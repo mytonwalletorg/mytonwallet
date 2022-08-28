@@ -1,0 +1,33 @@
+@import "../../styles/variables";
+
+.wrapper {
+  position: relative;
+
+  display: flex;
+}
+
+.input {
+  width: 100%;
+  padding: 0 0.5rem 0 0;
+
+  font-size: max(16px, 1rem);
+  color: var(--color-black);
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  appearance: none;
+
+  &::placeholder {
+    font-weight: 600;
+    color: var(--color-gray-3);
+  }
+
+  &:hover,
+  &:focus {
+    &::placeholder {
+      color: var(--color-interactive-input-text-hover-active);
+    }
+  }
+}

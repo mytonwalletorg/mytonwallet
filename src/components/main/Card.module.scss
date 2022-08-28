@@ -1,0 +1,152 @@
+@use "sass:math";
+
+@import "../../styles/variables";
+
+.containerWrapper {
+  position: relative;
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+  width: calc(100% - 0.125rem);
+  min-width: 16rem;
+  height: 0;
+  margin: 0 auto 0.5rem;
+  padding-top: math.div(200, 343) * 100%;
+}
+
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  width: 100%;
+  height: 100%;
+  padding: 3rem 1rem 0.75rem;
+
+  background-image: url('../../assets/card.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  background-clip: padding-box, padding-box;
+  background-origin: border-box;
+  background-size: cover, cover;
+  border-radius: var(--border-radius-default);
+
+  &.isLoading {
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+  }
+
+  @media (min-resolution: 1.5dppx) {
+    background-image: url('../../assets/card@2x.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  }
+}
+
+.secondaryValue {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.primaryValue {
+  font-size: 2.125rem;
+  font-weight: 800;
+  line-height: 2.5rem;
+  color: var(--color-card-text);
+}
+
+.primaryFractionPart {
+  font-size: 1.0625rem;
+  font-weight: 800;
+}
+
+.secondaryValue,
+.primaryFractionPart {
+  color: var(--color-card-second-text);
+}
+
+
+.addressContainer {
+  margin-top: auto;
+  margin-bottom: 0.125rem;
+}
+
+.address {
+  cursor: pointer;
+
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-card-second-text);
+  text-transform: none;
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  transition: color 150ms;
+
+  &:active {
+    color: var(--color-card-text);
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      color: var(--color-card-text);
+    }
+  }
+}
+
+.icon {
+  margin-left: 0.125rem;
+
+  font-size: 1.25rem;
+  vertical-align: -0.25rem;
+}
+
+.tonscanButton {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-card-second-text);
+  text-decoration: none !important;
+
+  transition: color 150ms;
+
+  &:active {
+    color: var(--color-card-text);
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      color: var(--color-card-text);
+    }
+  }
+}
+
+@media (min-width: 400px) {
+  .primaryValue {
+    margin-top: 0.5rem;
+
+    font-size: 2.625rem;
+  }
+
+  .secondaryValue,
+  .primaryFractionPart {
+    font-size: 1.25rem;
+  }
+
+  .address {
+    font-size: 1.125rem;
+  }
+}

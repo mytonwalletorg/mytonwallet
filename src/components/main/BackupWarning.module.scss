@@ -1,0 +1,27 @@
+@import '../../styles/variables';
+
+.wrapper {
+  width: 100vw;
+  padding: 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: var(--color-red-warning-text-75);
+  text-align: center;
+
+  background-color: var(--color-red-warning-background);
+}
+
+.button {
+  margin-inline-start: 0.25rem;
+
+  text-decoration: underline;
+
+  &,
+  &:hover,
+  &:focus,
+  &:active {
+    color: var(--color-red-warning-text);
+  }
+}

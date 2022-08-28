@@ -1,0 +1,52 @@
+{
+  "extends": [
+    "stylelint-config-recommended-scss",
+    "stylelint-config-clean-order"
+  ],
+  "ignoreFiles": [
+    "dist/*.css",
+    "src/styles/brilliant-icons.css"
+  ],
+  "plugins": [
+    "stylelint-declaration-block-no-ignored-properties",
+    "stylelint-high-performance-animation",
+    "stylelint-group-selectors",
+    "stylelint-order",
+    "./plugins/wholePixel.js"
+  ],
+  "rules": {
+    "number-leading-zero": "always",
+    "selector-attribute-quotes": "always",
+    "scss/operator-no-unspaced": null,
+    "no-descending-specificity": null,
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": [
+          "global"
+        ]
+      }
+    ],
+    "plugin/declaration-block-no-ignored-properties": true,
+    "plugin/no-low-performance-animation-properties": [
+      true,
+      {
+        "ignore": "paint-properties"
+      }
+    ],
+    "plugin/stylelint-group-selectors": [
+      true,
+      {
+        "severity": "warning"
+      }
+    ],
+    "plugin/whole-pixel": [
+      true,
+      {
+        "ignoreList": [
+          "letter-spacing"
+        ]
+      }
+    ]
+  }
+}

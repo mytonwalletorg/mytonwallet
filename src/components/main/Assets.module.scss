@@ -1,0 +1,48 @@
+.greetings {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  padding: 1.5rem 2rem;
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    right: 2rem;
+    bottom: 0;
+    left: 3.875rem;
+
+    height: 0.0625rem;
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+  }
+}
+
+.greetingsText {
+  margin-left: 1rem;
+}
+
+.greetingsHeader {
+  margin-bottom: 1rem;
+
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.greetingsDescription {
+  margin-bottom: 0;
+
+  font-size: 0.75rem;
+  color: var(--color-gray-2);
+}
+
+.emptyList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  height: 100%;
+  padding-top: 8rem;
+}

@@ -1,0 +1,50 @@
+.emptyList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  height: 100%;
+  padding-top: 2rem;
+}
+
+.emptyListText {
+  margin-top: 1rem;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.emptyListLoading {
+  padding-top: 8rem;
+}
+
+.itemLoading {
+  display: flex;
+  justify-content: center;
+
+  padding: 0.75rem 1rem;
+}
+
+.group {
+  padding-bottom: 0.25rem;
+
+  text-align: center;
+
+  &:first-of-type {
+    padding-top: 0.75rem;
+  }
+}
+
+.date {
+  width: max-content;
+  margin: 0 auto 0.25rem;
+  padding: 0.25rem 0.75rem;
+
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 0.75rem;
+  color: var(--color-activity-gray-text);
+
+  background-color: var(--color-activity-gray-10);
+  border-radius: var(--border-radius-small);
+}

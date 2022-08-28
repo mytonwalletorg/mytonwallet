@@ -1,0 +1,13 @@
+.dialogs {
+  position: fixed;
+  z-index: var(--z-modal);
+  top: 0;
+  left: 0;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.content {
+  margin-bottom: 2rem;
+}

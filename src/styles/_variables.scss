@@ -1,0 +1,168 @@
+//noinspection CssUnknownTarget
+:root {
+  // Color names comes from figma file
+  --color-white: #fff;
+  --color-blue: #0088CC;
+  --color-black: #313D4F;
+  --color-gray-1: #53657B;
+  --color-gray-2: #798795;
+  --color-gray-2-15: #E3E7EC;
+  --color-gray-3: #91ABB8;
+  --color-gray-4: #C1D1D9;
+  --color-green: #2CD36F;
+  --color-red: #F35B5B;
+
+  --color-background-first: #FFFFFF;
+  --color-background-second: #F6F8FB;
+  --color-background-window: #FFFFFF;
+  --color-background-drop-down: #FFFFFF;
+
+  --color-input-button-text: #53657B;
+  --color-input-button-background: #F6F8FB;
+
+  --color-blue-button-text: #FFFFFF;
+  --color-blue-button-text-hover: #FFFFFF;
+  --color-blue-button-text-active: #BFDBE9;
+  --color-blue-button-background: #0088CC;
+  --color-blue-button-background-hover: #16A5ED;
+  --color-blue-button-background-active: #006EA6;
+
+  --color-red-button-text: #FFFFFF;
+  --color-red-button-text-hover: #FFFFFF;
+  --color-red-button-text-active: #F5D2D2;
+  --color-red-button-background: #F35B5B;
+  --color-red-button-background-hover: #FF7070;
+  --color-red-button-background-active: #D74A4A;
+
+  --color-red-warning-text: #FFFFFF;
+  --color-red-warning-text-75: rgba(255, 255, 255, 0.75);
+  --color-red-warning-background: rgba(243, 91, 91, 0.9);
+
+  --color-gray-button-text: #2D4C5C;
+  --color-gray-button-text-hover: #313D4F;
+  --color-gray-button-text-active: #53657B;
+  --color-gray-button-background: #DEE6EC;
+  --color-gray-button-background-hover: #E3EAEF;
+  --color-gray-button-background-active: #C7D5DC;
+
+  --color-close-button-text: #798795;
+  --color-close-button-text-hover: #6F7C89;
+  --color-close-button-text-active: #66727E;
+  --color-close-button-background: #E3E7EC;
+  --color-close-button-background-hover: #D2D4DC;
+  --color-close-button-background-active: #C2C5CE;
+
+  --color-activity-round-blue: #0088CC;
+  --color-activity-round-orange: #FF9900;
+  --color-activity-icon: #FFFFFF;
+  --color-activity-gray-10: #F3F5F9;
+  --color-activity-gray-text: #53657B;
+  --color-activity-green-10: #EAFBF1;
+  --color-activity-green-text: #1EC160;
+
+  --color-separator: rgba(131, 148, 166, 0.3);
+  --color-linear-effect-1: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%);
+  --color-linear-effect-2: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.7) 100%);
+
+  --color-interactive-home-button-hover: #FAFBFD;
+  --color-interactive-input-text-hover-active: #758495;
+  --color-interactive-popup-menu-hover: rgba(0, 136, 204, 0.07);
+  --color-interactive-popup-menu-active: rgba(83, 101, 123, 0.07);
+  --color-interactive-drop-down-menu-hover: #F6F8FB;
+  --color-interactive-drop-down-menu-active: #ECEEF1;
+
+  --color-tint: rgba(0, 0, 0, 0.45);
+
+  --color-card-text: #FFFFFF;
+  --color-card-second-text: rgba(255, 255, 255, 0.6);
+
+  --default-shadow: 0 0 1.5625rem 0 #00000026;
+
+  --spinner-white-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEwLjggMjIuNEM2IDIxLjkgMi4xIDE4IDEuNiAxMy4yLjkgNy4xIDUuNCAxLjkgMTEuMyAxLjVjLjQgMCAuNy0uMy43LS43IDAtLjQtLjQtLjgtLjgtLjhDNC44LjQtLjIgNS45IDAgMTIuNS4yIDE4LjYgNS40IDIzLjggMTEuNSAyNGM2LjYuMiAxMi00LjggMTIuNC0xMS4yIDAtLjQtLjMtLjgtLjgtLjgtLjQgMC0uNy4zLS43LjctLjMgNS45LTUuNSAxMC40LTExLjYgOS43eiIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==);
+  --spinner-white-thin-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0iTTEyIDIzQzUuOSAyMyAxIDE4LjEgMSAxMlM1LjkgMSAxMiAxVjBDNS40IDAgMCA1LjQgMCAxMnM1LjQgMTIgMTIgMTIgMTItNS40IDEyLTEyaC0xYzAgNi4xLTQuOSAxMS0xMSAxMXoiLz48L3N2Zz4=);
+  --spinner-blue-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEwLjggMjIuNEM2IDIxLjkgMi4xIDE4IDEuNiAxMy4yLjkgNy4xIDUuNCAxLjkgMTEuMyAxLjVjLjQgMCAuNy0uMy43LS43IDAtLjQtLjQtLjgtLjgtLjhDNC44LjQtLjIgNS45IDAgMTIuNS4yIDE4LjYgNS40IDIzLjggMTEuNSAyNGM2LjYuMiAxMi00LjggMTIuNC0xMS4yIDAtLjQtLjMtLjgtLjgtLjgtLjQgMC0uNy4zLS43LjctLjMgNS45LTUuNSAxMC40LTExLjYgOS43eiIgZmlsbD0iIzAwODhDQyIvPjwvc3ZnPg==);
+  --spinner-dark-blue-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEwLjggMjIuNEM2IDIxLjkgMi4xIDE4IDEuNiAxMy4yLjkgNy4xIDUuNCAxLjkgMTEuMyAxLjVjLjQgMCAuNy0uMy43LS43IDAtLjQtLjQtLjgtLjgtLjhDNC44LjQtLjIgNS45IDAgMTIuNS4yIDE4LjYgNS40IDIzLjggMTEuNSAyNGM2LjYuMiAxMi00LjggMTIuNC0xMS4yIDAtLjQtLjMtLjgtLjgtLjgtLjQgMC0uNy4zLS43LjctLjMgNS45LTUuNSAxMC40LTExLjYgOS43eiIgZmlsbD0iIzAwODhDQyIvPjwvc3ZnPg==);
+
+  --layer-blackout-opacity: 0.3;
+
+  --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
+  --slide-transition: 250ms cubic-bezier(0.25, 1, 0.5, 1);
+  --select-transition: 200ms ease-out;
+
+  --border-radius-small: 0.625rem;
+  --border-radius-default: 0.9375rem;
+  --border-radius-big: 1.5rem;
+
+  --z-below: -1;
+  --z-modal: 100;
+  --z-menu-backdrop: 199;
+  --z-menu-bubble: 200;
+  --z-notification: 250;
+
+  html.is-ios {
+    --layer-transition: 450ms cubic-bezier(0.33, 1, 0.68, 1);
+    --slide-transition: 450ms cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  html.is-android {
+    --layer-transition: 450ms cubic-bezier(0.25, 1, 0.5, 1);
+    --slide-transition: 400ms cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    --color-blue: #0C9EE8;
+    --color-black: #DCEEFF;
+    --color-gray-1: #A3B8CA;
+    --color-gray-2: #808C9D;
+    --color-gray-2-15: #27303D;
+    --color-gray-3: #7F93A4;
+    --color-gray-4: #808C9E;
+
+    --color-background-first: #252A3C;
+    --color-background-second: #1E212E;
+    --color-background-window: #252A3C;
+    --color-background-drop-down: #2C3246;
+
+    --color-input-button-text: #A3B8CA;
+    --color-input-button-background: #2C3246;
+
+    --color-blue-button-text-active: #A5D5F2;
+    --color-blue-button-background: #0C9EE8;
+    --color-blue-button-background-hover: #39BAFB;
+    --color-blue-button-background-active: #0088CC;
+
+    --color-red-button-text-active: #DBC6D2;
+    --color-red-button-background: #D74A4A;
+    --color-red-button-background-hover: #F35B5B;
+
+    --color-gray-button-text: #DCEFFF;
+    --color-gray-button-text-hover: #DCEFFF;
+    --color-gray-button-text-active: #B3C3D3;
+    --color-gray-button-background: #424B5C;
+    --color-gray-button-background-hover: #4F5B68;
+    --color-gray-button-background-active: #373E4E;
+
+    --color-close-button-text: #808C9D;
+    --color-close-button-text-hover: #909DAE;
+    --color-close-button-text-active: #A2B0C2;
+    --color-close-button-background: #27303D;
+    --color-close-button-background-hover: #364150;
+    --color-close-button-background-active: #414C5C;
+
+    --color-activity-round-blue: #469CEC;
+    --color-activity-gray-10: #2C3345;
+    --color-activity-gray-text: #A3B8CA;
+    --color-activity-green-10: #253B41;
+    --color-activity-green-text: #2CD36F;
+
+    --color-linear-effect-1: linear-gradient(90deg, rgba(37, 42, 60, 0) 0%, #252A3C 100%);
+    --color-linear-effect-2: linear-gradient(180deg, rgba(37, 42, 60, 0) 0%, rgba(37, 42, 60, 0.7) 100%);
+
+    --color-interactive-home-button-hover: #2B3043;
+    --color-interactive-input-text-hover-active: #97A9BC;
+    --color-interactive-popup-menu-hover: rgba(12, 158, 232, 0.07);
+    --color-interactive-popup-menu-active: rgba(163, 184, 202, 0.07);
+    --color-interactive-drop-down-menu-hover: #252A3C;
+    --color-interactive-drop-down-menu-active: #202433;
+  }
+}

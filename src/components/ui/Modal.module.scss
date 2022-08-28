@@ -1,0 +1,249 @@
+.modal {
+  --transition: 350ms cubic-bezier(0.2, 0.9, 0.42, 1);
+
+  position: relative;
+  z-index: var(--z-modal);
+
+  &.error {
+    .dialog {
+      max-width: 23rem;
+    }
+  }
+
+  &:global(.open) .backdrop,
+  &:global(.open) .dialog {
+    opacity: 1;
+  }
+
+  &:not(.slideUp):global(.open) .dialog {
+    transform: translate3d(0, 0, 0);
+  }
+
+  &:not(.slideUp):global(.closing) .dialog {
+    transform: translate3d(0, 1rem, 0);
+  }
+
+  &.slideUp:global(.shown) {
+    .container {
+      overflow: hidden;
+    }
+
+    .dialog {
+      transform: translateY(100%);
+    }
+
+    &:global(.shown.open) {
+      .dialog {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+.container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 1rem;
+
+  .slideUp & {
+    align-items: flex-end;
+
+    padding: 0;
+  }
+}
+
+.backdrop {
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  opacity: 0;
+  background-color: var(--color-tint);
+
+  transition: opacity var(--transition);
+}
+
+.noBackdrop {
+  background-color: transparent !important;
+}
+
+.dialog {
+  position: relative;
+  transform: translate3d(0, -1rem, 0);
+
+  display: inline-flex;
+  flex-direction: column;
+
+  width: 100%;
+  min-width: 17.5rem;
+  max-width: 28rem;
+  max-height: calc(var(--vh, 1vh) * 100);
+  margin: 2rem auto;
+
+  opacity: 0;
+  background-color: var(--color-background-window);
+  border-radius: var(--border-radius-small);
+  box-shadow: var(--default-shadow);
+
+  transition: transform var(--transition), opacity var(--transition);
+
+  .slideUp & {
+    transform: none;
+
+    max-height: calc(95 * var(--vh, 1vh));
+    margin: 0;
+
+    opacity: 1;
+    background: var(--color-background-second);
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+
+    transition: transform var(--transition);
+  }
+}
+
+.header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+
+  padding: 1rem 1rem 0.75rem;
+
+  color: var(--color-black);
+
+  &_transition {
+    margin: -1rem 0 0.8125rem 0;
+    padding: 1rem 1rem 0;
+  }
+
+  .slideUp & {
+    padding-bottom: 0;
+  }
+}
+
+.closeButton {
+  width: 1.875rem !important;
+  height: 1.875rem !important;
+  padding: 0 !important;
+
+  color: var(--color-close-button-text) !important;
+
+  background-color: var(--color-close-button-background) !important;
+  border-radius: 50% !important;
+
+  transition: background-color 150ms ease-in;
+
+  &:hover,
+  &:focus {
+    color: var(--color-close-button-text-hover) !important;
+
+    background-color: var(--color-close-button-background-hover) !important;
+  }
+
+  &:active {
+    color: var(--color-close-button-text-active) !important;
+
+    background-color: var(--color-close-button-background-active) !important;
+  }
+}
+
+.closeIcon {
+  font-size: 1.875rem;
+  line-height: 1;
+
+  transition: color 150ms ease-in;
+}
+
+.title {
+  overflow: hidden;
+  flex: 1 1 auto;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+
+  &:not(:only-child) {
+    margin: 0 0.5rem 0 2.5rem;
+  }
+}
+
+.content {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  width: 100%;
+  padding-top: 0.5rem;
+
+  b, strong {
+    word-break: break-word;
+  }
+}
+
+.content:not(.contentSlideUp) {
+  padding: 0.5rem 1rem 1rem;
+
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+.buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+
+  margin-top: auto;
+}
+
+.transition {
+  overflow-x: hidden;
+  flex: 1 1 auto;
+}
+
+.transitionSlide {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  max-width: 100%;
+  padding-top: 0.5rem;
+
+  background: transparent !important;
+}
+
+.transitionContentWrapper {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+}
+
+.transitionContent {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  min-width: 0;
+  padding: 0 1rem 1rem;
+
+  &_simple {
+    padding-top: 5.5rem;
+  }
+
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}

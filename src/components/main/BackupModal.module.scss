@@ -1,0 +1,7 @@
+.modalDialog {
+  height: 33rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(33rem + env(safe-area-inset-bottom));
+  }
+}

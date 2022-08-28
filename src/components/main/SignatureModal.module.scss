@@ -1,0 +1,29 @@
+.modalDialog {
+  height: 28rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(28rem + env(safe-area-inset-bottom));
+  }
+}
+
+.error {
+  margin-bottom: 0.75rem;
+  padding: 0 0.5rem;
+
+  font-size: 0.9375rem;
+  color: var(--color-red);
+  text-align: center;
+}
+
+.sticker {
+  margin: -3rem auto 1rem;
+}
+
+.description {
+  margin-top: 0.25rem;
+
+  font-size: 0.9375rem;
+  line-height: 1.25;
+  color: var(--color-gray-1);
+  text-align: center;
+}

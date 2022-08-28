@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "MyTonWallet",
+  "description": "Securely store crypto and make blockchain payments at the speed of light.",
+  "version": "%%VERSION%%",
+  "icons": {
+    "192": "icon-192x192.png",
+    "384": "icon-384x384.png",
+    "512": "icon-512x512.png"
+  },
+  "action": {
+    "default_title": "MyTonWallet"
+  },
+  "permissions": [
+    "webRequest",
+    "system.display",
+    "proxy"
+  ],
+  "background": {
+    "service_worker": "/extensionServiceWorker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "file://*/*",
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "/extensionContentScript.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/extensionProvider.js"
+      ],
+      "matches": [
+        "file://*/*",
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; font-src https://fonts.gstatic.com/; style-src 'self' https://fonts.googleapis.com/; img-src 'self' data: https:; connect-src https://tw.mytonwallet.org https://mytonwallet-api.herokuapp.com"
+  }
+}

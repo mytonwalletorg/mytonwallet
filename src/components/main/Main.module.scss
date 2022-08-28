@@ -1,0 +1,185 @@
+@use "sass:color";
+
+@import "../../styles/variables";
+
+.container {
+  display: flex;
+  flex-direction: column;
+
+  max-width: 25rem;
+  height: 100vh;
+  max-height: calc(var(--vh, 1vh) * 100);
+  margin: auto;
+  padding: 0 1rem 1rem;
+
+  :global(.Tab) {
+    padding-right: 1.75rem;
+    padding-left: 1.75rem;
+  }
+
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+
+  :global(html.is-extension) & {
+    height: auto;
+    min-height: calc(var(--vh, 1vh) * 100);
+    max-height: none;
+    padding: 0 0.75rem !important;
+  }
+
+  @media (max-width: 600px) {
+    height: auto;
+    min-height: calc(var(--vh, 1vh) * 100);
+    max-height: none;
+    padding: 0 0.75rem !important;
+  }
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabs {
+  position: relative;
+  z-index: 1;
+
+  padding: 0 1.75rem;
+
+  border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  box-shadow: 0 0.025rem 0 0 var(--color-separator);
+}
+
+.tab {
+  flex: 1 1 33.3%;
+}
+
+.buttons {
+  display: flex;
+
+  width: 21.4375rem;
+  margin-bottom: 0.5rem;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+
+  @supports (aspect-ratio: 1) {
+    width: 100%;
+  }
+}
+
+.button {
+  user-select: none;
+
+  display: flex;
+  flex: 0 0 50%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+
+  width: 50%;
+  height: 3.4375rem;
+  padding: 0 0 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-black);
+  text-transform: none;
+
+  transition: background-color 150ms, color 150ms;
+
+  & + & {
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: -0.025rem 0 0 0 var(--color-separator);
+  }
+
+  &:not(:global(.not-implemented)):hover,
+  &:not(:global(.not-implemented)):focus {
+    color: var(--color-blue);
+
+    background-color: var(--color-interactive-home-button-hover);
+  }
+
+  &:not(:global(.not-implemented)):active {
+    color: var(--color-gray-1);
+
+    background-color: var(--color-interactive-home-button-hover);
+    // Optimization
+    transition: none;
+    .buttonIcon {
+      color: var(--color-gray-1);
+    }
+  }
+
+  &:first-child {
+    border-radius: var(--border-radius-default) 0 0 var(--border-radius-default);
+  }
+
+  &:last-child {
+    border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
+  }
+}
+
+.buttonIcon {
+  display: block;
+
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-bottom: 0.125rem;
+
+  font-size: 1.5rem;
+  color: var(--color-blue);
+
+  transition: color 150ms;
+}
+
+.slides {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
+
+  :global(html.is-extension) & {
+    flex: 1 1 auto;
+
+    border-radius: 0;
+  }
+
+  @media (max-width: 600px) {
+    flex: 1 1 auto;
+
+    border-radius: 0;
+  }
+}
+
+.slide {
+  overflow: auto;
+
+  @supports (overflow: overlay) {
+    overflow-y: overlay;
+  }
+
+  background: var(--color-background-first);
+
+  :global(html.is-extension) & {
+    overflow: hidden;
+    flex: 1 1 auto;
+
+    min-height: 0;
+  }
+
+  @media (max-width: 600px) {
+    overflow: hidden;
+    flex: 1 1 auto;
+
+    min-height: 0;
+  }
+}

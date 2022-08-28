@@ -1,0 +1,64 @@
+.wrapper {
+  user-select: none;
+
+  position: relative;
+}
+
+.bubble {
+
+  --offset-y: calc(100% + 0.5rem);
+  --offset-x: 0;
+
+  position: absolute;
+  z-index: var(--z-menu-bubble);
+  transform: scale(0.5);
+
+  overflow: hidden;
+  overscroll-behavior: contain;
+  display: block;
+
+  min-width: 13.5rem;
+  margin: 0;
+  padding: 0.5rem;
+
+  list-style: none;
+
+  background-color: var(--color-background-window);
+  border-radius: var(--border-radius-default);
+  box-shadow: var(--default-shadow);
+
+  transition: opacity 0.2s cubic-bezier(0.2, 0, 0.2, 1), transform 0.2s cubic-bezier(0.2, 0, 0.2, 1) !important;
+
+  &:global(.open) {
+    transform: scale(1);
+  }
+
+  &:global(.closing) {
+    transition: opacity 0.2s ease-in, transform 0.2s ease-in !important;
+  }
+
+  &.top {
+    top: var(--offset-y);
+  }
+
+  &.bottom {
+    bottom: var(--offset-y);
+  }
+
+  &.left {
+    left: var(--offset-x);
+  }
+
+  &.right {
+    right: var(--offset-x);
+  }
+}
+
+.backdrop {
+  position: fixed;
+  z-index: var(--z-menu-backdrop);
+  top: -100vh;
+  right: -100vw;
+  bottom: -100vh;
+  left: -100vw;
+}

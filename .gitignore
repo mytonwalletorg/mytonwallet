@@ -1,0 +1,12 @@
+node_modules
+dist
+MyTonWallet.zip
+.cache
+.env*
+!.env.example
+.idea
+*.iml
+dev/perf/screenshot*
+.DS_store
+test-results
+trash/

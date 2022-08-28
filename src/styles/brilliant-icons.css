@@ -1,0 +1,61 @@
+@font-face {
+    font-family: "brilliant-icons";
+    src: url("./brilliant-icons.woff?865a7017aa8d42caa9e3ff1df60d6a02") format("woff"),
+url("./brilliant-icons.woff2?865a7017aa8d42caa9e3ff1df60d6a02") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+    font-family: brilliant-icons !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-style: normal;
+    font-weight: 400 !important;
+}
+
+.icon-arrow-right::before {
+    content: "\f101";
+}
+.icon-close::before {
+    content: "\f102";
+}
+.icon-copy::before {
+    content: "\f103";
+}
+.icon-eye-closed::before {
+    content: "\f104";
+}
+.icon-eye::before {
+    content: "\f105";
+}
+.icon-menu::before {
+    content: "\f106";
+}
+.icon-paste::before {
+    content: "\f107";
+}
+.icon-qrcode::before {
+    content: "\f108";
+}
+.icon-receive-alt::before {
+    content: "\f109";
+}
+.icon-receive::before {
+    content: "\f10a";
+}
+.icon-search::before {
+    content: "\f10b";
+}
+.icon-send-alt::before {
+    content: "\f10c";
+}
+.icon-send::before {
+    content: "\f10d";
+}
+.icon-share::before {
+    content: "\f10e";
+}
+.icon-tonscan::before {
+    content: "\f10f";
+}

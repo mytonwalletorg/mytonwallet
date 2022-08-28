@@ -1,0 +1,60 @@
+.menuItem {
+  --border-radius-default: 0.75rem;
+
+  cursor: pointer;
+
+  position: relative;
+
+  overflow: hidden;
+  display: flex;
+
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-blue);
+  text-decoration: none;
+  white-space: nowrap;
+
+  background: none;
+  border: none !important;
+  border-radius: var(--border-radius-default);
+  outline: none !important;
+  box-shadow: none !important;
+
+  transition: color 150ms ease-in, background-color 150ms ease-in;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      text-decoration: none;
+
+      background-color: var(--color-interactive-popup-menu-hover);
+    }
+
+    &:active {
+      color: var(--color-gray-1) !important;
+
+      background-color: var(--color-interactive-popup-menu-active);
+    }
+  }
+
+  @media (max-width: 600px) {
+    &:focus,
+    &:hover {
+      color: var(--color-blue);
+    }
+
+    &:active {
+      color: var(--color-gray-1) !important;
+
+      background-color: var(--color-interactive-popup-menu-active);
+    }
+  }
+}
+
+.destructive {
+  color: var(--color-red) !important;
+}
