@@ -23,13 +23,52 @@
 }
 
 .amount {
+  overflow: hidden;
+  display: inline-block;
+
+  max-width: 100%;
+  margin: 1rem auto;
+  padding: 0.75rem 1rem;
+
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-activity-gray-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  background-color: var(--color-activity-gray-10);
+  border-radius: var(--border-radius-default);
+
   &_operationPositive {
-    color: var(--color-green);
+    color: var(--color-activity-green-text);
+
+    background-color: var(--color-activity-green-10);
   }
 
-  &_operationNegative {
-    color: var(--color-red);
+  @media (prefers-color-scheme: light) {
+    box-shadow: 0 0 2rem #FFFFFF;
   }
+}
+
+.amountSymbol,
+.amountFraction {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.amountSymbol {
+  margin-inline-start: 0.25rem;
+}
+
+.clockIcon {
+  margin-inline-start: 0.25rem;
+
+  vertical-align: -0.125rem;
+}
+
+.iconStar {
+  font-size: 1.0625rem;
 }
 
 .tonscan {
@@ -43,7 +82,7 @@
 
   font-size: 1.5rem;
   line-height: 1.875rem;
-  color: var(--color-gray-4);
+  color: var(--color-gray-3);
   text-align: center;
   text-decoration: none;
 
@@ -63,4 +102,8 @@
       text-decoration: none;
     }
   }
+}
+
+.nameInput {
+  margin-bottom: 1.5rem;
 }

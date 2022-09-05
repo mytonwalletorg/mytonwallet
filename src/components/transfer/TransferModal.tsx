@@ -1,9 +1,9 @@
 import React, {
-  memo, useCallback, useEffect, useState,
+  memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { TransferState } from '../../global/types';
+import { GlobalState, TransferState, UserToken } from '../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -12,6 +12,7 @@ import buildClassName from '../../util/buildClassName';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
+import { selectAllTokens } from '../../global/selectors';
 
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -25,19 +26,23 @@ import styles from './Transfer.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
 
 interface StateProps {
-  state: TransferState;
-  toAddress?: string;
-  amount?: number;
-  fee?: string;
-  comment?: string;
-  promiseId?: string;
-  error?: string;
-  isLoading?: boolean;
-  txId?: string;
+  currentTransfer: GlobalState['currentTransfer'];
+  tokens?: UserToken[];
 }
 
 function TransferModal({
-  state, amount, toAddress, fee, comment, promiseId, error, isLoading, txId,
+  currentTransfer: {
+    state,
+    amount,
+    toAddress,
+    fee,
+    comment,
+    promiseId,
+    error,
+    isLoading,
+    txId,
+    tokenSlug,
+  }, tokens,
 }: StateProps) {
   const {
     submitTransferConfirm, submitTransferPassword, setTransferScreen, cleanTransferError, cancelTransfer,
@@ -50,6 +55,10 @@ function TransferModal({
   const updateNextKey = useCallback(() => {
     setNextKey(renderingState + 1);
   }, [renderingState]);
+
+  const selectedToken = useMemo(() => {
+    return tokens?.find((token) => token.slug === tokenSlug);
+  }, [tokenSlug, tokens]);
 
   useEffect(() => {
     if (isOpen) {
@@ -126,7 +135,7 @@ function TransferModal({
           <div className={styles.label}>Amount</div>
           <div className={styles.inputReadOnly}>
             {formatCurrencyExtended(amount || 0, '', true)}
-            <span className={styles.suffix}>{CARD_SECONDARY_VALUE_SYMBOL}</span>
+            <span className={styles.suffix}>{selectedToken?.symbol}</span>
             {fee && (
               <>
                 <div className={styles.feeLabel}>Fee</div>
@@ -177,26 +186,6 @@ function TransferModal({
     );
   }
 
-  function renderInProgress(isActive: boolean) {
-    return (
-      <>
-        <ModalHeader title="Sending TON" onClose={cancelTransfer} />
-        <div className={buildClassName(modalStyles.transitionContent, modalStyles.transitionContent_simple)}>
-          <AnimatedIcon
-            play={isActive}
-            noLoop={false}
-            nonInteractive
-            className={styles.sticker}
-            tgsUrl={ANIMATED_STICKERS_PATHS.stonks}
-          />
-          <div className={styles.description}>
-            Please wait a few seconds for your <br /> transaction to be processed...
-          </div>
-        </div>
-      </>
-    );
-  }
-
   function renderComplete(isActive: boolean) {
     return (
       <>
@@ -210,9 +199,11 @@ function TransferModal({
             className={styles.sticker}
             tgsUrl={ANIMATED_STICKERS_PATHS.thumbUp}
           />
-          <div className={styles.description}>
-            <strong>{formatCurrencyExtended(amount || 0, CARD_SECONDARY_VALUE_SYMBOL, true)}</strong> have been sent.
-          </div>
+          {Boolean(selectedToken) && (
+            <div className={styles.description}>
+              <strong>{formatCurrencyExtended(amount || 0, selectedToken.symbol, true)}</strong> have been sent.
+            </div>
+          )}
 
           <div className={modalStyles.buttons}>
             <Button onClick={handleTransactionInfoClick}>
@@ -240,9 +231,6 @@ function TransferModal({
 
       case TransferState.Password:
         return renderPassword(isActive);
-
-      case TransferState.InProgress:
-        return renderInProgress(isActive);
 
       case TransferState.Complete:
         return renderComplete(isActive);
@@ -273,5 +261,8 @@ function TransferModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  return global.currentTransfer;
+  return {
+    currentTransfer: global.currentTransfer,
+    tokens: selectAllTokens(global),
+  };
 })(TransferModal));

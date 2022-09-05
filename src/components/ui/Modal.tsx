@@ -1,5 +1,7 @@
 import { RefObject } from 'react';
-import React, { useCallback, useEffect, useRef } from '../../lib/teact/teact';
+import React, {
+  TeactNode, useCallback, useEffect, useRef,
+} from '../../lib/teact/teact';
 
 import { IS_EXTENSION } from '../../util/environment';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
@@ -15,7 +17,7 @@ import Portal from './Portal';
 import styles from './Modal.module.scss';
 
 type OwnProps = {
-  title?: string;
+  title?: string | TeactNode;
   className?: string;
   dialogClassName?: string;
   isOpen?: boolean;

@@ -1,11 +1,11 @@
 import type { OnApiUpdate } from '../types';
 import type { Storage } from '../storages/types';
 
-import { MAIN_ACCOUNT_ID, TON_TOKEN_SLUG } from '../../config';
+import { MAIN_ACCOUNT_ID } from '../../config';
 import { pause } from '../../util/schedulers';
 import blockchains from '../blockchains';
 import { txCallbacks, whenTxComplete } from '../common/txCallbacks';
-import { checkAccountIsAuthorized, resolveBlockchainKey } from './helpers';
+import { buildLocalTransaction, checkAccountIsAuthorized, resolveBlockchainKey } from './helpers';
 
 const POLLING_INTERVAL = 1100;
 
@@ -59,32 +59,50 @@ export async function setupTransactionsPolling(accountId: string) {
   }
 }
 
-export function checkTransactionDraft(toAddress: string, amount: string, comment?: string) {
+export function checkTransactionDraft(slug: string, toAddress: string, amount: string, comment?: string) {
   const accountId = MAIN_ACCOUNT_ID;
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.checkTransactionDraft(storage, accountId, TON_TOKEN_SLUG, toAddress, amount, comment);
+  return blockchain.checkTransactionDraft(storage, accountId, slug, toAddress, amount, comment);
 }
 
 export async function submitTransfer(
-  password: string, toAddress: string, amount: string, comment?: string,
+  password: string, slug: string, toAddress: string, amount: string, comment?: string, fee?: string,
 ) {
   const accountId = MAIN_ACCOUNT_ID;
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+  const fromAddress = await blockchain.fetchAddress(storage, accountId);
   const result = await blockchain.submitTransfer(
-    storage, accountId, password, TON_TOKEN_SLUG, toAddress, amount, comment,
+    storage, accountId, password, slug, toAddress, amount, comment,
   );
 
   if (result) {
+    const localTransaction = buildLocalTransaction({
+      amount,
+      fromAddress,
+      toAddress,
+      comment,
+      fee: fee || '0',
+      slug,
+    });
+
+    onUpdate({
+      type: 'newTransaction',
+      transaction: localTransaction,
+    });
+
     whenTxComplete(result.resolvedAddress, result.amount).then(({ txId }) => {
       onUpdate({
         type: 'updateTxComplete',
         toAddress,
         amount,
         txId,
+        localTxId: localTransaction.txId,
       });
     });
+
+    return localTransaction.txId;
   }
 
-  return Boolean(result);
+  return false;
 }

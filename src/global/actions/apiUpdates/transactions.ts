@@ -1,21 +1,29 @@
-import { TransferState } from '../../types';
-
 import { addActionHandler, setGlobal } from '../../index';
 
-import { updateCurrentTransfer } from '../../reducers';
+import { updateCurrentTransfer, removeLocalTransaction } from '../../reducers';
 import { bigStrToHuman } from '../../helpers';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
     case 'updateTxComplete': {
-      const { amount, toAddress, txId } = update;
-      if (bigStrToHuman(amount) !== global.currentTransfer.amount || toAddress !== global.currentTransfer.toAddress) {
-        return;
+      const {
+        amount, toAddress, txId, localTxId,
+      } = update;
+
+      global = removeLocalTransaction(global, localTxId);
+
+      if (global.currentTransactionId === localTxId) {
+        global = {
+          ...global,
+          currentTransactionId: txId,
+        };
       }
 
-      setGlobal(updateCurrentTransfer(global, { state: TransferState.Complete, txId }));
+      if (bigStrToHuman(amount) === global.currentTransfer.amount && toAddress === global.currentTransfer.toAddress) {
+        global = updateCurrentTransfer(global, { txId });
+      }
 
-      break;
+      setGlobal(global);
     }
   }
 });

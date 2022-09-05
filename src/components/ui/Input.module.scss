@@ -9,7 +9,7 @@
 
   width: 100%;
   height: 3rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5625rem 0.75rem 0.4375rem;
 
   font-size: 1rem;
   font-weight: 600;
@@ -118,16 +118,6 @@
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
-
-    &::after {
-      content: attr(data-suffix);
-
-      margin-left: 0.25rem;
-
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--color-gray-4);
-    }
 
     /* Fix for ContentEditable multiline "issues" */
     br {
@@ -256,6 +246,8 @@
 }
 
 .shadow {
+  pointer-events: none;
+
   position: absolute;
   right: 0;
   bottom: 0;

@@ -3,7 +3,7 @@ import { Storage } from '../storages/types';
 import { updateDapps } from '../dappMethods';
 
 // eslint-disable-next-line no-restricted-globals
-export const IS_EXTENSION = Boolean(self?.chrome?.runtime?.id);
+const IS_EXTENSION = Boolean(self?.chrome?.runtime?.id);
 
 // eslint-disable-next-line max-len
 const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) { return host.endsWith('.ton') || host.endsWith('.adnl') ? 'PROXY ${PROXY}' : 'DIRECT'; }`;

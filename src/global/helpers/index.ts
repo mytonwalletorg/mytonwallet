@@ -12,3 +12,7 @@ function divideBigInt(a: bigint, b: bigint) {
   const div = a / b;
   return Number(div) + Number(a - div * b) / Number(b);
 }
+
+export function getIsTxIdLocal(txId?: string) {
+  return txId?.includes('|');
+}

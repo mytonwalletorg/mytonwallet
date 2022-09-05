@@ -1,5 +1,5 @@
 import { RefObject } from 'react';
-import React, { memo, useState, VirtualElement } from '../../lib/teact/teact';
+import React, { memo, TeactNode, useState } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 
@@ -12,12 +12,14 @@ type OwnProps = {
   labelText?: string;
   placeholder?: string;
   value?: string | number;
+  maxLength?: number;
   isRequired?: boolean;
   isControlled?: boolean;
   hasError?: boolean;
   error?: string;
+  className?: string;
   inputArg?: any;
-  children?: VirtualElement;
+  children?: TeactNode | TeactNode[];
   onInput: (value: string, inputArg?: any) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onFocus?: NoneToVoidFunction;
@@ -35,7 +37,9 @@ function Input({
   type = 'text',
   error,
   value = '',
+  maxLength,
   inputArg,
+  className,
   children,
   onInput,
   onKeyDown,
@@ -55,6 +59,7 @@ function Input({
   const finalType = type === 'text' || isPasswordVisible ? 'text' : 'password';
   const inputFullClass = buildClassName(
     styles.input,
+    className,
     type === 'password' && styles.input_password,
     (hasError || error) && styles.error,
   );
@@ -80,6 +85,7 @@ function Input({
         className={inputFullClass}
         type={finalType}
         value={value}
+        maxLength={maxLength}
         onInput={handleInput}
         onKeyDown={onKeyDown}
         onFocus={onFocus}

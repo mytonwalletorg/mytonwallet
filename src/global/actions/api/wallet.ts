@@ -4,16 +4,21 @@ import { TransferState } from '../../types';
 
 import { callApi } from '../../../api';
 import {
-  updateBackupWalletModal, updateCurrentTransfer, updateSendingLoading,
-  updateCurrentSignature, clearCurrentTransfer, updateTransactionsIsLoading,
+  clearCurrentTransfer,
+  updateBackupWalletModal,
+  updateCurrentSignature,
+  updateCurrentTransfer,
+  updateSendingLoading,
+  updateTransactionsIsLoading,
 } from '../../reducers';
 import { humanToBigStr } from '../../helpers';
 import { buildCollectionByKey } from '../../../util/iteratees';
 import { ApiTransactionDraftError } from '../../../api/types';
-import { TRANSACTIONS_SLICE } from '../../../config';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
-  const { toAddress, amount, comment } = payload || {};
+  const {
+    tokenSlug, toAddress, amount, comment,
+  } = payload || {};
 
   setGlobal(updateCurrentTransfer(global, {
     state: TransferState.Initial,
@@ -21,7 +26,12 @@ addActionHandler('startTransfer', (global, actions, payload) => {
     toAddress,
     amount,
     comment,
+    tokenSlug,
   }));
+});
+
+addActionHandler('changeTransferToken', (global, actions, { tokenSlug }) => {
+  setGlobal(updateCurrentTransfer(global, { tokenSlug }));
 });
 
 addActionHandler('setTransferScreen', (global, actions, payload) => {
@@ -31,11 +41,13 @@ addActionHandler('setTransferScreen', (global, actions, payload) => {
 });
 
 addActionHandler('submitTransferInitial', async (global, actions, payload) => {
-  const { toAddress, amount, comment } = payload;
+  const {
+    tokenSlug, toAddress, amount, comment,
+  } = payload;
 
   setGlobal(updateSendingLoading(global, true));
 
-  const result = await callApi('checkTransactionDraft', toAddress, humanToBigStr(amount), comment);
+  const result = await callApi('checkTransactionDraft', tokenSlug, toAddress, humanToBigStr(amount), comment);
 
   global = getGlobal();
   global = updateSendingLoading(global, false);
@@ -63,15 +75,16 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     amount,
     comment,
     fee: result.fee,
+    tokenSlug,
   }));
 });
 
 addActionHandler('fetchFee', async (global, actions, payload) => {
   const {
-    toAddress, amount, comment,
+    tokenSlug, toAddress, amount, comment,
   } = payload;
 
-  const result = await callApi('checkTransactionDraft', toAddress, humanToBigStr(amount), comment);
+  const result = await callApi('checkTransactionDraft', tokenSlug, toAddress, humanToBigStr(amount), comment);
 
   if (result?.fee) {
     setGlobal(updateCurrentTransfer(getGlobal(), { fee: result.fee }));
@@ -89,6 +102,8 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
     comment,
     amount,
     promiseId,
+    tokenSlug,
+    fee,
   } = global.currentTransfer;
 
   if (!(await callApi('verifyPassword', password))) {
@@ -98,7 +113,7 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
   }
 
   setGlobal(updateCurrentTransfer(getGlobal(), {
-    state: TransferState.InProgress,
+    isLoading: true,
     error: undefined,
   }));
 
@@ -108,8 +123,23 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
     return;
   }
 
-  const result = await callApi('submitTransfer', password, toAddress!, humanToBigStr(amount!), comment);
-  if (!result) {
+  const result = await callApi(
+    'submitTransfer',
+    password,
+    tokenSlug!,
+    toAddress!,
+    humanToBigStr(amount!),
+    comment,
+    fee,
+  );
+
+  if (result) {
+    setGlobal(updateCurrentTransfer(getGlobal(), {
+      isLoading: undefined,
+      state: TransferState.Complete,
+      txId: result,
+    }));
+  } else {
     actions.showDialog({
       message: 'Transfer was unsuccessful. Try again later',
     });
@@ -131,7 +161,7 @@ addActionHandler('cancelTransfer', (global) => {
 });
 
 addActionHandler('fetchTransactions', async (global, actions, payload) => {
-  const { offsetId, limit = TRANSACTIONS_SLICE } = payload || {};
+  const { limit, offsetId } = payload || {};
   global = updateTransactionsIsLoading(global, true);
   setGlobal(global);
 
@@ -153,7 +183,7 @@ addActionHandler('fetchTransactions', async (global, actions, payload) => {
       ...global.transactions,
       byTxId: { ...(global.transactions?.byTxId || {}), ...transactions },
       orderedTxIds: (global.transactions?.orderedTxIds || []).concat(orderedTxIds),
-      nextOffsetTxId: orderedTxIds.length && orderedTxIds.length >= TRANSACTIONS_SLICE
+      nextOffsetTxId: orderedTxIds.length && orderedTxIds.length >= limit
         ? orderedTxIds[orderedTxIds.length - 1]
         : undefined,
     },

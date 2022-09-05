@@ -87,7 +87,7 @@
 
   width: 100%;
   min-width: 17.5rem;
-  max-width: 28rem;
+  max-width: 26rem;
   max-height: calc(var(--vh, 1vh) * 100);
   margin: 2rem auto;
 
@@ -101,6 +101,7 @@
   .slideUp & {
     transform: none;
 
+    max-width: 28rem;
     max-height: calc(95 * var(--vh, 1vh));
     margin: 0;
 

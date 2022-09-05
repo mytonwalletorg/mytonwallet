@@ -101,7 +101,7 @@ function PasswordForm({
           isPrimary
           isLoading={isLoading}
           isDisabled={!password.length}
-          onClick={handleSubmit}
+          onClick={!isLoading ? handleSubmit : undefined}
         >
           {submitLabel}
         </Button>

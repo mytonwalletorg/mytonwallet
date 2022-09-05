@@ -3,6 +3,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiNft } from '../../api/types';
 
+import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { shortenAddress } from '../../util/shortenAddress';
 import buildClassName from '../../util/buildClassName';
@@ -49,11 +50,19 @@ function Nfts({ isActive, orderedAddresses, byAddress }: OwnProps & StateProps) 
       <div className={styles.emptyList}>
         <AnimatedIcon
           play={isActive}
-          tgsUrl={ANIMATED_STICKERS_PATHS.noData}
+          tgsUrl={ANIMATED_STICKERS_PATHS.happy}
+          size={ANIMATED_STICKER_BIG_SIZE_PX}
           noLoop={false}
           nonInteractive
         />
-        <p className={styles.emptyListText}>No NFTs</p>
+        <p className={styles.emptyListTitle}>No NFTs yet</p>
+        <p className={styles.emptyListText}>
+          Explore a marketplace to discover <br />
+          existing NFT collections.
+        </p>
+        <a className={styles.emptyListButton} href="https://getgems.io/" rel="noreferrer noopener" target="_blank">
+          Open Getgems
+        </a>
       </div>
     );
   }

@@ -40,7 +40,7 @@ export async function createWallet(mnemonic: string[], password: string) {
   await storeAccount(accountId, mnemonic, password, publicKey, address);
   void setupBalancePolling(accountId);
   void setupTransactionsPolling(accountId);
-  void setupTokensPolling();
+  void setupTokensPolling(accountId);
 
   return address;
 }
@@ -69,7 +69,7 @@ export async function importMnemonic(mnemonic: string[], password: string) {
   await storeAccount(accountId, mnemonic, password, publicKey, address);
   void setupBalancePolling(accountId);
   void setupTransactionsPolling(accountId);
-  void setupTokensPolling();
+  void setupTokensPolling(accountId);
 
   return address;
 }

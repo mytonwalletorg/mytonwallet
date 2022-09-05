@@ -2,7 +2,7 @@ import React, {
   memo, useCallback, useLayoutEffect, useRef, useState, VirtualElement,
 } from '../../lib/teact/teact';
 
-import { CARD_SECONDARY_VALUE_SYMBOL, FRACTION_DIGITS } from '../../config';
+import { FRACTION_DIGITS } from '../../config';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 import buildClassName from '../../util/buildClassName';
 import useFlag from '../../hooks/useFlag';
@@ -145,7 +145,6 @@ function InputNumberRich({
           onChange={handleChange}
           onFocus={markHasFocus}
           onBlur={handleBlur}
-          data-suffix={CARD_SECONDARY_VALUE_SYMBOL}
         />
         {children}
       </div>

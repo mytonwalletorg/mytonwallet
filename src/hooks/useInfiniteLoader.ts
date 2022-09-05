@@ -6,11 +6,11 @@ interface OwnProps {
   isDisabled?: boolean;
 }
 
-export default function useInfinityLoader({ isDisabled, isLoading, loadMore }: OwnProps) {
+export default function useInfiniteLoader({ isDisabled, isLoading, loadMore }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const loadingObserver = useRef<IntersectionObserver>(null);
 
-  return useCallback((node: HTMLElement) => {
+  return useCallback((node: HTMLElement | null) => {
     if (isLoading) {
       return;
     }
@@ -19,7 +19,7 @@ export default function useInfinityLoader({ isDisabled, isLoading, loadMore }: O
       loadingObserver.current.disconnect();
     }
 
-    if (isDisabled) {
+    if (isDisabled || !node) {
       return;
     }
 

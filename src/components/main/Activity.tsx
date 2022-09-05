@@ -5,10 +5,11 @@ import { withGlobal, getActions } from '../../global';
 
 import { ApiToken, ApiTransaction } from '../../api/types';
 
+import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import buildClassName from '../../util/buildClassName';
 import { formatHumanDay, getDayStartAt } from '../../util/dateFormat';
-import useInfinityLoader from '../../hooks/useInfinityLoader';
+import useInfiniteLoader from '../../hooks/useInfiniteLoader';
 
 import Transaction from './Transaction';
 import Loading from '../ui/Loading';
@@ -34,10 +35,14 @@ interface TransactionDateGroup {
   transactions: ApiTransaction[];
 }
 
+const INITIAL_SLICE = 20;
+const FURTHER_SLICE = 50;
+
 function Activity({
   isActive, isLoading, slug, txIds, byTxId, nextOffsetTxId, tokensBySlug,
 }: OwnProps & StateProps) {
   const { fetchTransactions, showTransactionInfo } = getActions();
+  const hasNextPage = Boolean(nextOffsetTxId);
 
   const transactions = useMemo(() => {
     if (!txIds) {
@@ -81,18 +86,18 @@ function Activity({
 
   // Initial loading
   useEffect(() => {
-    fetchTransactions();
+    fetchTransactions({ limit: INITIAL_SLICE });
   }, [fetchTransactions]);
 
   const loadMore = useCallback(() => {
-    fetchTransactions({ offsetId: nextOffsetTxId });
+    fetchTransactions({ limit: FURTHER_SLICE, offsetId: nextOffsetTxId });
   }, [fetchTransactions, nextOffsetTxId]);
 
   const handleTransactionClick = useCallback((txId: string) => {
     showTransactionInfo({ txId });
   }, [showTransactionInfo]);
 
-  const lastElementRef = useInfinityLoader({ isLoading, loadMore, isDisabled: !nextOffsetTxId });
+  const lastElementRef = useInfiniteLoader({ isLoading, loadMore, isDisabled: !hasNextPage });
 
   function renderTransactionGroups(transactionGroups: TransactionDateGroup[]) {
     return transactionGroups.map((group, groupIdx) => (
@@ -100,20 +105,19 @@ function Activity({
         <div className={styles.date}>
           {formatHumanDay(group.datetime)}
         </div>
-        {group.transactions.map((transaction, transactionIdx) => {
-          const isLastTransaction = transactionGroups.length === groupIdx + 1
-            && group.transactions.length === transactionIdx + 1;
-
+        {group.transactions.map((transaction) => {
           return (
             <Transaction
               key={transaction?.txId}
-              ref={isLastTransaction ? lastElementRef : undefined}
               transaction={transaction}
               token={transaction.slug ? tokensBySlug?.[transaction.slug] : undefined}
               onClick={handleTransactionClick}
             />
           );
         })}
+        {hasNextPage && groupIdx + 1 === transactionGroups.length && (
+          <div ref={lastElementRef} className={styles.loaderThreshold} />
+        )}
       </div>
     ));
   }
@@ -130,10 +134,11 @@ function Activity({
         <AnimatedIcon
           play={isActive}
           tgsUrl={ANIMATED_STICKERS_PATHS.noData}
+          size={ANIMATED_STICKER_BIG_SIZE_PX}
           noLoop={false}
           nonInteractive
         />
-        <p className={styles.emptyListText}>No activity</p>
+        <p className={styles.emptyListTitle}>No Activity</p>
       </div>
     );
   }

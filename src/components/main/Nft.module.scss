@@ -4,20 +4,62 @@
   align-items: center;
 
   height: 100%;
-  padding-top: 2rem;
+  padding-top: 1.875rem;
 
-  color: var(--color-gray-1);
+  color: var(--color-gray-2);
 }
 
-.emptyListText {
-  margin-top: 1rem;
+.emptyListTitle {
+  margin: 1rem 0 0;
 
   font-size: 1.0625rem;
   font-weight: 700;
+  color: var(--color-black);
+}
+
+.emptyListText {
+  margin: 1.0625rem 0 1.125rem;
+
+  font-size: 0.8125rem;
+  text-align: center;
 }
 
 .emptyListLoading {
   padding-top: 8rem;
+}
+
+.emptyListButton {
+  display: inline-block;
+
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-blue-button-text);
+  text-decoration: none;
+
+  background-color: var(--color-blue-button-background);
+  border-radius: 0.5rem;
+
+  transition: background-color 150ms ease-in, color 150ms ease-in;
+
+  &:hover,
+  &:focus {
+    color: var(--color-blue-button-text-hover);
+    text-decoration: none;
+
+    background-color: var(--color-blue-button-background-hover);
+  }
+
+  &:active {
+    color: var(--color-blue-button-text-active);
+
+    background-color: var(--color-blue-button-background-active);
+
+    // @optimization
+    transition: none !important;
+  }
 }
 
 .list {

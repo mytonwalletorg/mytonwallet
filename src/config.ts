@@ -20,6 +20,7 @@ export const MOBILE_SCREEN_LANDSCAPE_MAX_WIDTH = 950; // px
 export const MOBILE_SCREEN_LANDSCAPE_MAX_HEIGHT = 450; // px
 
 export const ANIMATED_STICKER_SMALL_SIZE_PX = 110;
+export const ANIMATED_STICKER_BIG_SIZE_PX = 156;
 
 export const DEFAULT_PRICE_CURRENCY = '$';
 export const CARD_SECONDARY_VALUE_SYMBOL = 'TON';
@@ -58,7 +59,5 @@ export const FRACTION_DIGITS = 9;
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/z/';
 
 export const TON_TOKEN_SLUG = 'toncoin';
-
-export const TRANSACTIONS_SLICE = 100;
 
 export const PROXY = process.env.PROXY;

@@ -19,6 +19,7 @@ type OwnProps = {
   positionY?: 'top' | 'bottom';
   autoClose?: boolean;
   shouldSkipTransition?: boolean;
+  noBackdrop?: boolean;
   noCloseOnBackdrop?: boolean;
   onCloseAnimationEnd?: () => void;
   onClose?: () => void;
@@ -38,6 +39,7 @@ const Menu: FC<OwnProps> = ({
   positionY = 'top',
   autoClose = false,
   shouldSkipTransition,
+  noBackdrop = false,
   noCloseOnBackdrop = false,
   onCloseAnimationEnd,
   onClose,
@@ -68,7 +70,7 @@ const Menu: FC<OwnProps> = ({
     }
   }, [isOpen]);
 
-  useVirtualBackdrop(isOpen, menuRef, noCloseOnBackdrop ? undefined : onClose);
+  useVirtualBackdrop(isOpen && !noBackdrop, menuRef, noCloseOnBackdrop ? undefined : onClose);
 
   const fullBubbleClassName = buildClassName(
     styles.bubble,
@@ -86,7 +88,7 @@ const Menu: FC<OwnProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={isOpen ? onMouseLeave : undefined}
     >
-      {isOpen && (
+      {isOpen && !noBackdrop && (
         // This only prevents click events triggering on underlying elements
         <div className={styles.backdrop} />
       )}

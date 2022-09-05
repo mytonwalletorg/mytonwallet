@@ -37,6 +37,7 @@ export type ApiUpdateTxComplete = {
   toAddress: string;
   amount: string;
   txId: string;
+  localTxId: string;
 };
 
 export type ApiUpdateShowTxDraftError = {

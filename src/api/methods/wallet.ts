@@ -28,10 +28,11 @@ export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage) {
   }
 
   const accountIds = Object.keys(JSON.parse(addressesJson) as Record<string, string>);
-  void setupTokensPolling();
+
   Object.keys(accountIds).forEach((accountId) => {
     setupBalancePolling(accountId);
     setupTransactionsPolling(accountId);
+    setupTokensPolling(accountId);
   });
 
   const isTonProxyEnabled = await storage.getItem('isTonProxyEnabled');
@@ -64,7 +65,7 @@ export async function setupBalancePolling(accountId: string) {
       }
 
       // tokens
-      const tokensBalances = await blockchain.getAccountTokensBalances(storage, accountId);
+      const tokensBalances = await blockchain.getAccountTokenBalances(storage, accountId);
       for (const [tokenSlug, tokenBalance] of Object.entries(tokensBalances)) {
         onUpdate({
           type: 'updateBalance',

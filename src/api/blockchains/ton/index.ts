@@ -11,7 +11,10 @@ export {
   verifyPassword,
 } from './auth';
 export { getAccountNfts } from './nfts';
-export { getAccountTokensBalances } from './tokens';
+export {
+  getKnownTokens,
+  getAccountTokenBalances,
+} from './tokens';
 export { oneCellFromBoc } from './util/tonweb';
 export {
   checkTransactionDraft,

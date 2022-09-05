@@ -7,7 +7,7 @@ import { CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
 import { formatTime } from '../../util/dateFormat';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import buildClassName from '../../util/buildClassName';
-import { bigStrToHuman } from '../../global/helpers';
+import { bigStrToHuman, getIsTxIdLocal } from '../../global/helpers';
 import { shortenAddress } from '../../util/shortenAddress';
 
 import Button from '../ui/Button';
@@ -39,6 +39,7 @@ function Transaction({
 
   const amountHuman = bigStrToHuman(amount);
   const address = isIncoming ? fromAddress : toAddress;
+  const isLocal = getIsTxIdLocal(txId);
 
   const handleClick = useCallback(() => {
     onClick(txId);
@@ -67,6 +68,9 @@ function Transaction({
       isSimple
     >
       <i className={iconFullClass} aria-hidden />
+      {isLocal && (
+        <i className={buildClassName(styles.iconWaiting, 'icon-clock')} title="Transaction is not completed" />
+      )}
       <div className={styles.leftBlock}>
         <div className={styles.operationName}>{isIncoming ? 'Received' : 'Sent'}</div>
         <div className={styles.date}>{formatTime(timestamp)}</div>

@@ -139,20 +139,6 @@ addActionHandler('toggleTonMagic', (global, actions, { isEnabled }) => {
   };
 });
 
-addActionHandler('showTransactionInfo', (global, actions, { txId }) => {
-  return {
-    ...global,
-    currentTransactionId: txId,
-  };
-});
-
-addActionHandler('closeTransactionInfo', (global) => {
-  return {
-    ...global,
-    currentTransactionId: undefined,
-  };
-});
-
 addActionHandler('signOut', async () => {
   await callApi('resetAccount');
 

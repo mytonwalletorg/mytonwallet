@@ -1,4 +1,8 @@
 import { Storage } from '../storages/types';
+import { ApiTransaction } from '../types';
+
+let localCounter = 0;
+const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
 export function resolveBlockchainKey(accountId: string) {
   if (accountId === '0') {
@@ -18,4 +22,22 @@ export async function checkAccountIsAuthorized(storage: Storage, accountId?: str
   }
   const accountIds = Object.keys(JSON.parse(addressesJson) as Record<string, string>);
   return accountIds.includes(accountId);
+}
+
+export function buildLocalTransaction(params: {
+  amount: string;
+  fromAddress: string;
+  toAddress: string;
+  comment?: string;
+  fee: string;
+  slug?: string;
+}): ApiTransaction {
+  const { amount, ...restParams } = params;
+  return {
+    txId: getNextLocalId(),
+    timestamp: Date.now(),
+    isIncoming: false,
+    amount: `-${amount}`,
+    ...restParams,
+  };
 }

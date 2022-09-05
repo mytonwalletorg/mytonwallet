@@ -6,27 +6,7 @@
   }
 }
 
-.fee {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-
-  margin-right: 0.625rem;
-
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-gray-4);
-}
-
-.feeValue {
-  margin-top: 0.0625rem;
-
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.pasteButton {
+.inputButton {
   position: absolute;
   right: 0.5rem;
   bottom: 0.5rem;
@@ -38,6 +18,7 @@
   width: 2rem;
   height: 2rem;
 
+  font-size: 1.25rem;
   color: var(--color-gray-3);
 
   border-radius: var(--border-radius-small) !important;
@@ -60,7 +41,10 @@
   line-height: 0.875rem;
 }
 
-.note {
+.feeAndBalance {
+  display: flex;
+  justify-content: space-between;
+
   margin-top: -0.5rem;
   margin-bottom: 0.9375rem;
   padding: 0 0.5rem;
@@ -68,6 +52,19 @@
   font-size: 0.8125rem;
   line-height: 1rem;
   color: var(--color-gray-1);
+}
+
+.feeValue {
+  margin-inline-start: 0.25rem;
+  margin-inline-end: auto;
+  padding-inline-end: 1rem;
+
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.note {
+  margin-inline-start: auto;
 }
 
 .balanceLink {
@@ -137,13 +134,13 @@
 .suffix {
   margin-left: 0.25rem;
 
-  color: var(--color-gray-4);
+  color: var(--color-gray-3);
 }
 
 .feeConfirm {
   margin-left: auto;
 
-  color: var(--color-gray-4);
+  color: var(--color-gray-3);
 }
 
 .feeLabel {
@@ -183,6 +180,109 @@
   border-radius: 50%;
 
   animation: button-loading-spinner 1s ease infinite;
+}
+
+.savedAddresses {
+  --offset-y: calc(100% - 0.5rem);
+
+  transform: scaleY(0.5) !important;
+  transform-origin: top !important;
+
+  width: 100%;
+
+  &:global(.open) {
+    transform: scaleY(1) !important;
+  }
+}
+
+.savedAddressItem {
+  cursor: pointer;
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  height: 2.25rem;
+  padding: 0 0.625rem;
+
+  border-radius: var(--border-radius-small);
+
+  &:active {
+    background-color: var(--color-interactive-drop-down-menu-active);
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      text-decoration: none;
+
+      background-color: var(--color-interactive-drop-down-menu-hover);
+    }
+}
+}
+
+.savedAddressName {
+  overflow: hidden;
+
+  margin-inline-end: auto;
+
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-black);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.savedAddressAddress {
+  padding-inline-start: 0.5rem;
+
+  font-size: 0.8125rem;
+  color: var(--color-gray-3);
+
+  transition: opacity 150ms;
+
+  .savedAddressDelete:hover + & {
+    opacity: 0;
+  }
+}
+
+.savedAddressDelete {
+  position: absolute;
+  z-index: 1;
+  top: 0.3125rem;
+  right: 0.25rem;
+
+  width: 7rem;
+  padding: 0.25rem;
+
+  font-size: 0.8125rem;
+  text-align: right;
+
+  opacity: 0;
+
+  transition: opacity 150ms, color 150ms;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.savedAddressDeleteInner {
+  cursor: pointer;
+
+  color: var(--color-gray-3);
+
+  &:hover,
+  &:active {
+    color: var(--color-red);
+  }
+}
+
+.tokenDropDown {
+  position: relative;
+  top: 0.375rem;
+  right: 0.375rem;
 }
 
 @keyframes button-loading-spinner {

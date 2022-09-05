@@ -121,6 +121,7 @@ function updateCache() {
       'tokenInfo',
       'settings',
       'isBackupRequired',
+      'savedAddresses',
     ]),
   };
 

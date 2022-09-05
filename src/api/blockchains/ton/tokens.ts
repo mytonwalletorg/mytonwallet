@@ -4,52 +4,96 @@ import {
   Action,
   ActionStatusEnum,
   ActionTypeEnum,
+  Jetton,
+  JettonBalance,
 } from 'tonapi-sdk-js';
 
 import { Storage } from '../../storages/types';
-import { BRILLIANT_API_BASE_URL } from '../../../config';
-import { handleFetchErrors } from '../../common/utils';
+import { DEBUG } from '../../../config';
 import { fetchAddress } from './address';
 import { getTonWeb, toBase64Address } from './util/tonweb';
 import {
   TOKEN_TRANSFER_TON_AMOUNT,
   TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
 } from './constants';
-import { ApiTransaction } from '../../types';
+import { ApiToken } from '../../types';
+import { ApiTransactionWithLt } from './types';
+import { fetchJettonBalances } from './util/tonapiio';
+import { fixBase64ImageData, fixIpfsUrl } from './util/metadata';
 
 const { Address } = TonWeb.utils;
 const { JettonWallet, JettonMinter } = TonWeb.token.jetton;
 export type JettonWalletType = InstanceType<typeof JettonWallet>;
 
-interface TokenInfo {
-  slug: string;
-  symbol: string;
-  minterAddress: string;
+interface ExtendedJetton extends Jetton {
+  image_data?: string;
 }
 
-interface TokenBalanceInfo extends TokenInfo {
-  balance: string;
-  jettonAddress: string;
-}
+const knownTokens: Record<string, ApiToken> = {
+  toncoin: {
+    slug: 'toncoin',
+    name: 'Toncoin',
+    symbol: 'TON',
+    quote: {
+      price: 0,
+      percentChange1h: 0,
+      percentChange24h: 0,
+      percentChange7d: 0,
+      percentChange30d: 0,
+    },
+  },
+};
 
-const knownTokensCache: Record<string, TokenInfo> = {};
+const DATA_TEXT_PREFIX = [0, 0, 0, 0];
 
-export async function getAccountTokensBalances(storage: Storage, accountId: string) {
+export async function getAccountTokenBalances(storage: Storage, accountId: string) {
   const address = await fetchAddress(storage, accountId);
-  const url = `${BRILLIANT_API_BASE_URL}/jetton-balances?`;
-  const response = await fetch(url + new URLSearchParams({ account: address }));
-  handleFetchErrors(response);
 
-  const balances = (await response.json()).balances as TokenBalanceInfo[];
-  updateKnownTokensCache(balances);
-  return Object.fromEntries(balances.map((balance) => [balance.slug, balance.balance]));
+  const balancesRaw: Array<JettonBalance> = await fetchJettonBalances(address);
+  return Object.fromEntries(balancesRaw.map(buildTokenBalance).filter(Boolean));
 }
 
-function updateKnownTokensCache(tokens: TokenInfo[]) {
-  tokens.filter(({ slug }) => !(slug in knownTokensCache))
-    .forEach(({ slug, symbol, minterAddress }) => {
-      knownTokensCache[slug] = { slug, symbol, minterAddress };
-    });
+function buildTokenBalance(balanceRaw: JettonBalance): [string, string] | undefined {
+  if (!balanceRaw.metadata) {
+    return undefined;
+  }
+
+  try {
+    const {
+      name,
+      symbol,
+      address: rawMinterAddress,
+      image,
+      image_data: imageData,
+    } = balanceRaw.metadata as ExtendedJetton;
+    const minterAddress = toBase64Address(rawMinterAddress);
+    const slug = buildTokenSlug(symbol);
+
+    if (!(slug in knownTokens)) {
+      knownTokens[slug] = {
+        slug,
+        name,
+        symbol,
+        minterAddress,
+        image: (image && fixIpfsUrl(image)) || (imageData && fixBase64ImageData(imageData)),
+        quote: {
+          price: 0,
+          percentChange1h: 0,
+          percentChange24h: 0,
+          percentChange7d: 0,
+          percentChange30d: 0,
+        },
+      };
+    }
+
+    return [slug, balanceRaw.balance];
+  } catch (err) {
+    if (DEBUG) {
+      // eslint-disable-next-line no-console
+      console.warn('[buildTokenBalance]', err);
+    }
+    return undefined;
+  }
 }
 
 export async function buildTokenTransfer(
@@ -59,15 +103,18 @@ export async function buildTokenTransfer(
   amount: string,
   data?: string,
 ) {
-  const tokenAddress = await resolveTokenAddress(fromAddress, resolveTokenBySlug(slug).minterAddress);
+  const tokenAddress = await resolveTokenAddress(fromAddress, resolveTokenBySlug(slug).minterAddress!);
   const tokenWallet = getTokenWallet(tokenAddress);
 
+  const forwardPayload = data && DATA_TEXT_PREFIX.concat(
+    Array.from(new TextEncoder().encode(data)),
+  );
   const payload = await tokenWallet.createTransferBody({
     tokenAmount: new TonWeb.utils.BN(amount), // TODO Waiting for a typo fix in tonweb
     jettonAmount: new TonWeb.utils.BN(amount), // tokenAmount <-> jettonAmount
     toAddress: new Address(toAddress),
     forwardAmount: TonWeb.utils.toNano(TOKEN_TRANSFER_TON_FORWARD_AMOUNT),
-    forwardPayload: data && new TextEncoder().encode(data),
+    forwardPayload,
     responseAddress: new Address(fromAddress),
   } as any);
 
@@ -86,7 +133,7 @@ export async function resolveTokenAddress(address: string, minterAddress: string
 }
 
 export function resolveTokenBySlug(slug: string) {
-  return knownTokensCache[slug]!;
+  return knownTokens[slug]!;
 }
 
 export function getTokenWallet(tokenAddress: string) {
@@ -97,7 +144,11 @@ export async function getTokenWalletBalance(tokenWallet: JettonWalletType) {
   return (await tokenWallet.getData()).balance;
 }
 
-export function buildTokenTransaction(event: AccountEvent, action: Action) {
+function buildTokenSlug(symbol: string) {
+  return `ton-${symbol}`.toLowerCase();
+}
+
+export function buildTokenTransaction(event: AccountEvent, action: Action): ApiTransactionWithLt | undefined {
   if (action.type !== ActionTypeEnum.JettonTransfer || action.status !== ActionStatusEnum.Ok) {
     return undefined;
   }
@@ -111,7 +162,7 @@ export function buildTokenTransaction(event: AccountEvent, action: Action) {
       jetton,
     } = action.jettonTransfer!;
     const minterAddress = toBase64Address(jetton.address);
-    const jettonInfo = Object.values(knownTokensCache).find((x) => x.minterAddress === minterAddress);
+    const jettonInfo = Object.values(knownTokens).find((x) => x.minterAddress === minterAddress);
     const fromAddress = toBase64Address(sender!.address);
     const isIncoming = fromAddress !== toBase64Address(event.account.address);
     return {
@@ -125,8 +176,12 @@ export function buildTokenTransaction(event: AccountEvent, action: Action) {
       slug: jettonInfo?.slug,
       isIncoming,
       lt: event.lt,
-    } as ApiTransaction;
+    };
   } catch (err) {
     return undefined;
   }
+}
+
+export function getKnownTokens() {
+  return knownTokens;
 }

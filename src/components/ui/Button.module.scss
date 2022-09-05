@@ -3,8 +3,6 @@
 @import '../../styles/variables';
 
 .button {
-  --border-radius-default: 0.75rem;
-
   cursor: pointer;
   user-select: none;
 
@@ -45,7 +43,7 @@
     text-transform: uppercase;
 
     background-color: var(--color-gray-button-background);
-    border-radius: var(--border-radius-default);
+    border-radius: var(--border-radius-buttons);
 
     &:hover,
     &:focus {

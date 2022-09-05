@@ -1,9 +1,11 @@
 import { pause } from '../../util/schedulers';
 import { ApiToken, OnApiUpdate } from '../types';
 import { BRILLIANT_API_BASE_URL, DEBUG } from '../../config';
-import { handleFetchErrors } from '../common/utils';
-import { checkAccountIsAuthorized } from './helpers';
+import { checkAccountIsAuthorized, resolveBlockchainKey } from './helpers';
 import { Storage } from '../storages/types';
+import blockchains from '../blockchains';
+import { buildCollectionByKey } from '../../util/iteratees';
+import { cloneDeep } from '../blockchains/ton/util';
 
 const POLLING_INTERVAL = 30000;
 
@@ -15,23 +17,31 @@ export function initTokens(_onUpdate: OnApiUpdate, _storage: Storage) {
   storage = _storage;
 }
 
-export async function setupTokensPolling() {
-  while (await checkAccountIsAuthorized(storage)) {
+export async function setupTokensPolling(accountId: string) {
+  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+
+  // TODO Wait for `setupBalancePolling` to be executed once
+  await blockchain.getAccountTokenBalances(storage, accountId);
+
+  while (await checkAccountIsAuthorized(storage, accountId)) {
     try {
-      const data = await fetch(`${BRILLIANT_API_BASE_URL}/tokens`);
-      handleFetchErrors(data);
+      const tokens = blockchain.getKnownTokens();
 
-      const tokensRaw = await data.json();
-      if (tokensRaw && Object.keys(tokensRaw).length > 0) {
-        const tokens = Object.keys(tokensRaw).reduce((acc, key) => {
-          acc[tokensRaw[key].slug] = tokensRaw[key];
-
-          return acc;
-        }, {} as Record<string, ApiToken>);
+      if (tokens && Object.keys(tokens).length > 0) {
+        const data = await fetch(`${BRILLIANT_API_BASE_URL}/prices`);
+        if (data.ok) {
+          const prices = (await data.json()) as Record<string, ApiToken>;
+          const pricesBySymbol = buildCollectionByKey(Object.values(prices), 'symbol');
+          Object.values(tokens).forEach((token) => {
+            if (pricesBySymbol[token.symbol]) {
+              token.quote = pricesBySymbol[token.symbol].quote;
+            }
+          });
+        }
 
         onUpdate({
           type: 'updateTokens',
-          tokens,
+          tokens: cloneDeep(tokens),
         });
       }
     } catch (err) {

@@ -14,11 +14,13 @@
 
   --color-background-first: #FFFFFF;
   --color-background-second: #F6F8FB;
-  --color-background-window: #FFFFFF;
+  --color-background-window: #F6F8FB;
   --color-background-drop-down: #FFFFFF;
 
   --color-input-button-text: #53657B;
   --color-input-button-background: #F6F8FB;
+  --color-input-button-background-hover: #EFF2F5;
+  --color-input-button-background-active: #ECEEF1;
 
   --color-blue-button-text: #FFFFFF;
   --color-blue-button-text-hover: #FFFFFF;
@@ -68,8 +70,8 @@
   --color-interactive-input-text-hover-active: #758495;
   --color-interactive-popup-menu-hover: rgba(0, 136, 204, 0.07);
   --color-interactive-popup-menu-active: rgba(83, 101, 123, 0.07);
-  --color-interactive-drop-down-menu-hover: #F6F8FB;
-  --color-interactive-drop-down-menu-active: #ECEEF1;
+  --color-interactive-drop-down-menu-hover: #EFF2F7;
+  --color-interactive-drop-down-menu-active: #DFE3E9;
 
   --color-tint: rgba(0, 0, 0, 0.45);
 
@@ -90,6 +92,7 @@
   --select-transition: 200ms ease-out;
 
   --border-radius-small: 0.625rem;
+  --border-radius-buttons: 0.75rem;
   --border-radius-default: 0.9375rem;
   --border-radius-big: 1.5rem;
 
@@ -120,11 +123,13 @@
 
     --color-background-first: #252A3C;
     --color-background-second: #1E212E;
-    --color-background-window: #252A3C;
+    --color-background-window: #1E212E;
     --color-background-drop-down: #2C3246;
 
     --color-input-button-text: #A3B8CA;
     --color-input-button-background: #2C3246;
+    --color-input-button-background-hover: #32394F;
+    --color-input-button-background-active: #3A4159;
 
     --color-blue-button-text-active: #A5D5F2;
     --color-blue-button-background: #0C9EE8;

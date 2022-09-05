@@ -78,6 +78,16 @@
   }
 }
 
+.iconWaiting {
+  position: absolute;
+  top: 2.125rem;
+  left: 2.375rem;
+
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--color-gray-1);
+}
+
 .leftBlock {
   grid-area: left;
 }

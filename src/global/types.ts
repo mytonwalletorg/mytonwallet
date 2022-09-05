@@ -25,7 +25,6 @@ export enum TransferState {
   Initial,
   Confirm,
   Password,
-  InProgress,
   Complete,
 }
 
@@ -52,6 +51,7 @@ export type GlobalState = {
   currentTransfer: {
     state: TransferState;
     isLoading?: boolean;
+    tokenSlug?: string;
     toAddress?: string;
     error?: string;
     amount?: number;
@@ -111,6 +111,8 @@ export type GlobalState = {
   notifications: NotificationType[];
   currentTokenSlug?: string;
   currentTransactionId?: string;
+
+  savedAddresses?: Record<string, string>;
 };
 
 export interface ActionPayloads {
@@ -132,9 +134,10 @@ export interface ActionPayloads {
   cleanBackupWalletError: never;
   closeBackupWallet: { isMnemonicChecked?: boolean };
   setTransferScreen: { state: TransferState };
-  startTransfer: { amount?: number; toAddress?: string; comment?: string };
-  fetchFee: { amount: number; toAddress: string; comment?: string };
-  submitTransferInitial: { amount: number; toAddress: string; comment?: string };
+  startTransfer: { tokenSlug: string; amount?: number; toAddress?: string; comment?: string };
+  changeTransferToken: { tokenSlug: string };
+  fetchFee: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
+  submitTransferInitial: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
   submitTransferConfirm: never;
   submitTransferPassword: { password: string };
   cleanTransferError: never;
@@ -146,7 +149,7 @@ export interface ActionPayloads {
   dismissNotification: never;
   afterSignIn: never;
   signOut: never;
-  fetchTransactions: { offsetId?: string; limit?: number };
+  fetchTransactions: { limit: number; offsetId?: string };
   fetchNfts: never;
   showTransactionInfo: { txId?: string };
   closeTransactionInfo: never;
@@ -157,6 +160,9 @@ export interface ActionPayloads {
 
   toggleTonProxy: { isEnabled: boolean };
   toggleTonMagic: { isEnabled: boolean };
+
+  addSavedAddress: { address: string; name: string };
+  removeFromSavedAddress: { address: string };
 }
 
 const typed = typify<GlobalState, ActionPayloads>();

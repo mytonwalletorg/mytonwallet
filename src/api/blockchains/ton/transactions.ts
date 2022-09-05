@@ -1,9 +1,8 @@
 import { Cell } from 'tonweb/dist/types/boc/cell';
 import { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
 import TonWeb from 'tonweb';
-import { Transaction } from 'tonapi-sdk-js/dist/models/Transaction';
+import { Transaction as RawTransaction } from 'tonapi-sdk-js/dist/models/Transaction';
 
-import { AccountEvent } from 'tonapi-sdk-js';
 import { Storage } from '../../storages/types';
 import { ApiTransaction, ApiTransactionDraftError } from '../../types';
 import { TON_TOKEN_SLUG } from '../../../config';
@@ -27,12 +26,12 @@ import {
   fetchAccountEvents,
   fetchAccountTransactions,
 } from './util/tonapiio';
+import { AnyTransactionWithLt, ApiTransactionWithLt } from './types';
 
 const { Address } = TonWeb.utils;
 
 const DEFAULT_FEE = '10966001';
 const GET_TRANSACTIONS_LIMIT = 100;
-
 const DATA_TEXT_PREFIX = [0, 0, 0, 0].toString();
 
 export async function checkTransactionDraft(
@@ -198,11 +197,11 @@ export async function getAccountLatestTxId(storage: Storage, accountId: string) 
     undefined,
     true,
   );
-  if (Array.isArray(result) && result.length) {
-    return stringifyTxId(result[0].transaction_id);
+  if (!result?.length) {
+    return undefined;
   }
 
-  return undefined;
+  return stringifyTxId(result[0].transaction_id);
 }
 
 export async function getAccountTransactionSlice(
@@ -213,25 +212,35 @@ export async function getAccountTransactionSlice(
   limit?: number,
 ) {
   const address = await fetchAddress(storage, accountId);
-  const beforeLt = beforeTxId ? Number(parseTxId(beforeTxId).lt) : undefined;
+  let beforeLt = beforeTxId ? Number(parseTxId(beforeTxId).lt) : undefined;
   const afterLt = afterTxId ? Number(parseTxId(afterTxId).lt) : undefined;
+  limit = limit || GET_TRANSACTIONS_LIMIT;
 
-  const rawTxs: Array<Transaction> = await fetchAccountTransactions(
-    address,
-    limit || GET_TRANSACTIONS_LIMIT,
-    afterLt,
-    beforeLt,
-  );
+  let txs: ApiTransactionWithLt[] = [];
 
-  let txs: ApiTransaction[] = [];
-  if (Array.isArray(rawTxs) && rawTxs.length) {
-    txs = rawTxs.map(buildApiTransaction).filter(Boolean) as ApiTransaction[];
-    // Request and add token transactions
-    const minTokenLt = afterLt ? afterLt + 1 : (txs[txs.length - 1] as any).lt;
-    const allEvents = await fetchAccountEvents(address, limit || GET_TRANSACTIONS_LIMIT, beforeLt);
+  // Additional loading in the presence of `afterLt` is not implemented
+  while (afterLt ? !txs.length : txs.length < limit) {
+    const [allEvents, rawTxs] = await Promise.all([
+      fetchAccountEvents(address, limit, beforeLt),
+      fetchAccountTransactions(
+        address,
+        limit,
+        afterLt,
+        beforeLt,
+      ),
+    ]);
 
-    let tokenTxs: ApiTransaction[] = [];
-    allEvents.forEach((event: AccountEvent) => {
+    if (!rawTxs?.length) {
+      break;
+    }
+
+    const allTxs = rawTxs.map(buildApiTransaction);
+    beforeLt = afterLt ? afterLt + 1 : (allTxs[allTxs.length - 1]).lt;
+    txs = txs.concat(allTxs.filter((x) => !!x.fromAddress) as ApiTransactionWithLt[]);
+
+    // Merge token transactions
+    let tokenTxs: ApiTransactionWithLt[] = [];
+    allEvents.forEach((event) => {
       const newTokenTxs = event.actions
         .map((action) => buildTokenTransaction(event, action))
         .filter(Boolean);
@@ -239,14 +248,20 @@ export async function getAccountTransactionSlice(
     });
 
     if (tokenTxs.length) {
-      txs = txs.concat(tokenTxs.filter((t: any) => (t.lt >= minTokenLt)));
-      txs = txs.sort((x: any, y: any) => (y.lt - x.lt));
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      txs = txs.concat(tokenTxs.filter((t: any) => (t.lt >= beforeLt!)));
+    }
+    if (rawTxs.length < limit) {
+      break;
     }
   }
-  // eslint-disable-next-line no-param-reassign
-  txs.forEach((t: any) => { delete t.lt; });
 
-  return txs;
+  txs = txs.sort((x: any, y: any) => (y.lt - x.lt));
+  txs.forEach((t: any) => {
+    delete t.lt;
+  });
+
+  return txs.slice(0, limit) as ApiTransaction[];
 }
 
 function parseTxId(txId: string) {
@@ -254,29 +269,33 @@ function parseTxId(txId: string) {
   return { lt: Number(lt), hash };
 }
 
-function buildApiTransaction(rawTx: Transaction): ApiTransaction | undefined {
+function buildApiTransaction(rawTx: RawTransaction): AnyTransactionWithLt {
   const amount = String(rawTx.outMsgs.reduce((acc: bigint, outMsg: any) => {
     return acc - BigInt(outMsg.value);
   }, BigInt(rawTx.inMsg!.value)));
 
   const isIncoming = Boolean(rawTx.inMsg?.source);
   const target = isIncoming ? rawTx.inMsg! : rawTx.outMsgs[0];
-  if (!target) {
-    return undefined;
-  }
-
-  return {
+  const tx = {
     txId: stringifyTxId({ lt: rawTx.lt.toString(), hash: hexToBase64(rawTx.hash) }),
     timestamp: Number(rawTx.utime * 1000),
     amount,
     fee: rawTx.fee.toString(),
+    slug: TON_TOKEN_SLUG,
+    lt: rawTx.lt,
+  };
+
+  if (!target) {
+    return tx;
+  }
+
+  return {
+    ...tx,
     fromAddress: toBase64Address(target!.source!.address!),
     toAddress: toBase64Address(target!.destination!.address!),
     comment: parseComment(target!.msgData),
-    slug: TON_TOKEN_SLUG,
     isIncoming,
-    lt: rawTx.lt,
-  } as ApiTransaction;
+  };
 }
 
 function stringifyTxId({ lt, hash }: { lt: string; hash: string }) {

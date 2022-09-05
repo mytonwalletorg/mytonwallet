@@ -25,16 +25,19 @@
 }
 
 .greetingsHeader {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 
   font-size: 0.9375rem;
   font-weight: 700;
+  line-height: 1rem;
+  color: var(--color-black);
 }
 
 .greetingsDescription {
   margin-bottom: 0;
 
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1rem;
   color: var(--color-gray-2);
 }
 

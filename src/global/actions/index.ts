@@ -1,4 +1,5 @@
 import './ui/initial';
+import './ui/misc';
 
 import './api/initial';
 import './api/auth';

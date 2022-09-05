@@ -15,7 +15,7 @@
   color: var(--color-black);
   list-style: none;
 
-  background: var(--color-background-window);
+  background: var(--color-background-drop-down);
   border-radius: var(--border-radius-default);
   box-shadow: var(--default-shadow);
 
@@ -53,7 +53,7 @@
 
     &:hover,
     &.active {
-      background-color: var(--color-background-second);
+      background-color: var(--color-interactive-drop-down-menu-hover);
     }
   }
 }

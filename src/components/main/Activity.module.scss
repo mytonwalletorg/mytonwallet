@@ -4,18 +4,31 @@
   align-items: center;
 
   height: 100%;
-  padding-top: 2rem;
+  padding-top: 1.875rem;
+
+  color: var(--color-gray-2);
 }
 
-.emptyListText {
-  margin-top: 1rem;
+.emptyListTitle {
+  margin: 1rem 0 0;
 
   font-size: 1.0625rem;
   font-weight: 700;
+  color: var(--color-black);
 }
 
 .emptyListLoading {
   padding-top: 8rem;
+}
+
+.loaderThreshold {
+  pointer-events: none;
+
+  position: absolute;
+  bottom: 32rem;
+
+  width: 0;
+  height: 0;
 }
 
 .itemLoading {
@@ -26,6 +39,8 @@
 }
 
 .group {
+  position: relative;
+
   padding-bottom: 0.25rem;
 
   text-align: center;

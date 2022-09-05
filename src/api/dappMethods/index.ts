@@ -3,7 +3,7 @@ import type { ApiDappUpdate, OnApiDappUpdate } from '../types/dappUpdates';
 
 import blockchains from '../blockchains';
 import storage from '../storages/idb';
-import { resolveBlockchainKey } from '../methods/helpers';
+import { buildLocalTransaction, resolveBlockchainKey } from '../methods/helpers';
 import { MAIN_ACCOUNT_ID, TON_TOKEN_SLUG } from '../../config';
 import { createDappPromise, resolveDappPromise } from '../common/dappPromises';
 import { clearCache, openPopupWindow } from './window';
@@ -146,6 +146,23 @@ export async function sendTransaction(params: {
   );
 
   if (result) {
+    const fromAddress = await ton.fetchAddress(storage, MAIN_ACCOUNT_ID);
+    const localTransaction = buildLocalTransaction({
+      amount,
+      fromAddress,
+      toAddress,
+      fee: checkResult.fee!,
+      slug: TON_TOKEN_SLUG,
+      ...(dataType === 'text' && {
+        comment: data,
+      }),
+    });
+
+    onPopupUpdate({
+      type: 'newTransaction',
+      transaction: localTransaction,
+    });
+
     whenTxComplete(result.resolvedAddress, amount)
       .then(({ txId }) => {
         onPopupUpdate({
@@ -153,6 +170,7 @@ export async function sendTransaction(params: {
           toAddress,
           amount,
           txId,
+          localTxId: localTransaction.txId,
         });
       });
   }

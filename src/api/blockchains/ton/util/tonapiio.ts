@@ -45,11 +45,14 @@ export function fetchAccountTransactions(account: string, limit: number, minLt?:
   }, []);
 }
 
-async function tonapiioErrorHandler(fn: () => Promise<any>, defaultValue?: any) {
+async function tonapiioErrorHandler<T>(fn: () => Promise<T>, defaultValue: T): Promise<T> {
   try {
     return (await fn()) || defaultValue;
   } catch (err) {
-    if (DEBUG) {
+    // TODO Remove when exception is fixed in tonapiio
+    if (err instanceof TypeError && err.message === "Cannot read properties of null (reading 'map')") {
+      return defaultValue;
+    } else if (DEBUG) {
       // eslint-disable-next-line no-console
       console.error('[tonapiioErrorHandler]', err);
     }
