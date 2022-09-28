@@ -5,8 +5,9 @@ import { withGlobal, getActions } from '../../global';
 
 import { ApiToken, ApiTransaction } from '../../api/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, TINY_TRANSFER_MAX_AMOUNT } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
 import { formatHumanDay, getDayStartAt } from '../../util/dateFormat';
 import useInfiniteLoader from '../../hooks/useInfiniteLoader';
@@ -24,9 +25,9 @@ interface OwnProps {
 type StateProps = {
   slug?: string;
   isLoading?: boolean;
+  areTinyTransfersHidden?: boolean;
   byTxId?: Record<string, ApiTransaction>;
   txIds?: string[];
-  nextOffsetTxId?: string;
   tokensBySlug?: Record<string, ApiToken>;
 };
 
@@ -39,10 +40,9 @@ const INITIAL_SLICE = 20;
 const FURTHER_SLICE = 50;
 
 function Activity({
-  isActive, isLoading, slug, txIds, byTxId, nextOffsetTxId, tokensBySlug,
+  isActive, isLoading, slug, txIds, byTxId, tokensBySlug, areTinyTransfersHidden,
 }: OwnProps & StateProps) {
   const { fetchTransactions, showTransactionInfo } = getActions();
-  const hasNextPage = Boolean(nextOffsetTxId);
 
   const transactions = useMemo(() => {
     if (!txIds) {
@@ -51,7 +51,11 @@ function Activity({
     const allTransactions = txIds
       .map((txId) => byTxId?.[txId])
       .filter((transaction) => {
-        return Boolean(transaction?.slug && (!slug || transaction.slug === slug));
+        return Boolean(
+          transaction?.slug
+          && (!slug || transaction.slug === slug)
+          && (!areTinyTransfersHidden || Math.abs(bigStrToHuman(transaction.amount)) >= TINY_TRANSFER_MAX_AMOUNT),
+        );
       }) as ApiTransaction[];
 
     if (!allTransactions.length) {
@@ -82,22 +86,25 @@ function Activity({
     });
 
     return groupedTransactions;
-  }, [byTxId, slug, txIds]);
+  }, [byTxId, areTinyTransfersHidden, slug, txIds]);
 
   // Initial loading
+  const areTxsPreloaded = txIds ? txIds.length >= INITIAL_SLICE : false;
   useEffect(() => {
-    fetchTransactions({ limit: INITIAL_SLICE });
-  }, [fetchTransactions]);
+    if (!areTxsPreloaded) {
+      fetchTransactions({ limit: INITIAL_SLICE });
+    }
+  }, [areTxsPreloaded, fetchTransactions]);
 
   const loadMore = useCallback(() => {
-    fetchTransactions({ limit: FURTHER_SLICE, offsetId: nextOffsetTxId });
-  }, [fetchTransactions, nextOffsetTxId]);
+    fetchTransactions({ limit: FURTHER_SLICE });
+  }, [fetchTransactions]);
 
   const handleTransactionClick = useCallback((txId: string) => {
     showTransactionInfo({ txId });
   }, [showTransactionInfo]);
 
-  const lastElementRef = useInfiniteLoader({ isLoading, loadMore, isDisabled: !hasNextPage });
+  const lastElementRef = useInfiniteLoader({ isLoading, loadMore });
 
   function renderTransactionGroups(transactionGroups: TransactionDateGroup[]) {
     return transactionGroups.map((group, groupIdx) => (
@@ -115,7 +122,7 @@ function Activity({
             />
           );
         })}
-        {hasNextPage && groupIdx + 1 === transactionGroups.length && (
+        {groupIdx + 1 === transactionGroups.length && (
           <div ref={lastElementRef} className={styles.loaderThreshold} />
         )}
       </div>
@@ -135,6 +142,7 @@ function Activity({
           play={isActive}
           tgsUrl={ANIMATED_STICKERS_PATHS.noData}
           size={ANIMATED_STICKER_BIG_SIZE_PX}
+          className={styles.sticker}
           noLoop={false}
           nonInteractive
         />
@@ -152,7 +160,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isLoading: global.transactions?.isLoading,
     byTxId: global.transactions?.byTxId,
     txIds: global.transactions?.orderedTxIds,
-    nextOffsetTxId: global.transactions?.nextOffsetTxId,
     tokensBySlug: global.tokenInfo?.bySlug,
+    areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
   };
 })(Activity));

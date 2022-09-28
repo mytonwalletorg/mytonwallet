@@ -186,17 +186,12 @@
 
 .passwordRule {
   font-weight: 600;
-  color: var(--color-blue);
 
   transition: color 150ms;
 }
 
 .valid {
   color: var(--color-green);
-}
-
-.invalid {
-  color: var(--color-red);
 }
 
 .error {
@@ -293,4 +288,12 @@
   font-weight: 600;
   color: var(--color-red);
   text-align: center;
+}
+
+.modalText {
+  font-size: 0.9375rem;
+
+  &:last-of-type {
+    margin-bottom: 1.5rem;
+  }
 }

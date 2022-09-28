@@ -11,6 +11,10 @@ const ALLOWED_METHODS = new Set([
 ]);
 
 createExtensionInterface(CONTENT_SCRIPT_PORT, (name: string, ...args: any[]) => {
+  if (name === 'init') {
+    return dappApi.connectDapp(args[0] as OnApiDappUpdate);
+  }
+
   if (!ALLOWED_METHODS.has(name)) {
     throw new Error('Method not allowed');
   }
@@ -19,7 +23,5 @@ createExtensionInterface(CONTENT_SCRIPT_PORT, (name: string, ...args: any[]) => 
   // @ts-ignore
   return method(...args as DappMethodArgs<keyof DappMethods>);
 }, PROVIDER_CHANNEL, (onUpdate: OnApiDappUpdate) => {
-  dappApi.connectDapp(onUpdate);
-}, (onUpdate: OnApiDappUpdate) => {
   dappApi.disconnectDapp(onUpdate);
-});
+}, true);

@@ -1,5 +1,5 @@
 import { Storage } from '../storages/types';
-import { ApiTransaction } from '../types';
+import { ApiTransaction, OnApiUpdate } from '../types';
 
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
@@ -40,4 +40,18 @@ export function buildLocalTransaction(params: {
     amount: `-${amount}`,
     ...restParams,
   };
+}
+
+let currentOnUpdate: OnApiUpdate | undefined;
+
+export function connectUpdater(onUpdate: OnApiUpdate) {
+  currentOnUpdate = onUpdate;
+}
+
+export function disconnectUpdater() {
+  currentOnUpdate = undefined;
+}
+
+export function isUpdaterAlive(onUpdate: OnApiUpdate) {
+  return currentOnUpdate === onUpdate;
 }

@@ -3,9 +3,9 @@ import TonWeb from 'tonweb';
 import React, {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
-import { withGlobal } from '../../lib/teact/teactn';
-import { getActions } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
+import { TONSCAN_BASE_URL } from '../../config';
 import { humanToBigStr } from '../../global/helpers';
 import { copyTextToClipboard } from '../../util/clipboard';
 import buildClassName from '../../util/buildClassName';
@@ -65,7 +65,7 @@ function Receive({
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
   const [isQrModalOpen, openQrModal, closeQrModal] = useFlag(false);
   const [isInvoiceModalOpen, openInvoiceModal, closeInvoiceModal] = useFlag(false);
-  const tonscanAddressUrl = `https://tonscan.org/address/${address}`;
+  const tonscanAddressUrl = `${TONSCAN_BASE_URL}address/${address}`;
 
   useEffect(() => {
     if (isQrModalOpen) {

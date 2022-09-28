@@ -43,7 +43,7 @@ export const TOKEN_INFO = {
 export const GLOBAL_STATE_CACHE_DISABLED = false;
 export const GLOBAL_STATE_CACHE_KEY = 'mytonwallet-global-state';
 
-export const IS_TESTNET = false;
+export const IS_TESTNET = process.env.IS_TESTNET === 'true';
 
 export const ANIMATION_LEVEL_MIN = 0;
 export const ANIMATION_LEVEL_MED = 1;
@@ -57,7 +57,11 @@ export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'htt
 export const FRACTION_DIGITS = 9;
 
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/z/';
+export const TONSCAN_BASE_URL = IS_TESTNET ? 'https://testnet.tonscan.org/' : 'https://tonscan.org/';
+export const GETGEMS_BASE_URL = IS_TESTNET ? 'https://testnet.getgems.io/' : 'https://getgems.io/';
 
 export const TON_TOKEN_SLUG = 'toncoin';
 
-export const PROXY = process.env.PROXY;
+export const PROXY_HOSTS = process.env.PROXY_HOSTS;
+
+export const TINY_TRANSFER_MAX_AMOUNT = 0.01;

@@ -27,15 +27,16 @@ function Token({
     slug,
     amount,
     price,
-    change,
+    change24h: change,
     image,
   } = token;
 
   const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
-  const secondaryValue = amount * price;
+  const value = amount * price;
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
   const changePrefix = change > 0 ? '↑' : change < 0 ? '↓' : undefined;
-  const changeValue = Math.abs(secondaryValue * change);
+  const changeValue = Math.abs(round(value * change, 4));
+  const changePercent = Math.abs(round(change * 100, 2));
 
   const handleClick = useCallback(() => {
     onClick(slug);
@@ -52,9 +53,9 @@ function Token({
         </div>
       </div>
       <div className={styles.values}>
-        <div className={styles.secondaryValue}>{formatCurrency(secondaryValue, DEFAULT_PRICE_CURRENCY)}</div>
+        <div className={styles.secondaryValue}>{formatCurrency(value, DEFAULT_PRICE_CURRENCY)}</div>
         <div className={buildClassName(styles.change, changeClassName)}>
-          {changePrefix} {round(Math.abs(change * 100), 2)}% · {formatCurrency(changeValue, DEFAULT_PRICE_CURRENCY)}
+          {changePrefix}{changePercent}% · {formatCurrency(changeValue, DEFAULT_PRICE_CURRENCY)}
         </div>
       </div>
       <i className={buildClassName(styles.iconArrow, 'icon-arrow-right')} aria-hidden />

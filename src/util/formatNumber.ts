@@ -18,7 +18,7 @@ export const formatInteger = withCache((value: number, fractionDigits = 2) => {
 
 export function formatCurrency(value: number, currency: string, fractionDigits?: number) {
   const formatted = formatInteger(value, fractionDigits);
-  return currency === '$' ? `$${formatted}` : `${formatted} ${currency}`;
+  return currency === '$' ? `$${formatted}`.replace('$-', '-$') : `${formatted} ${currency}`;
 }
 
 export function formatCurrencyExtended(value: number, currency: string, noSign = false) {

@@ -7,6 +7,7 @@ import { getActions, withGlobal } from '../../global';
 import { ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import buildClassName from '../../util/buildClassName';
+import useClipboardPaste from '../../hooks/useClipboardPaste';
 
 import AnimatedIcon from '../ui/AnimatedIcon';
 import InputMnemonic from '../ui/InputMnemonic';
@@ -30,6 +31,22 @@ const MNEMONIC_INPUTS = [...Array(MNEMONIC_COUNT)].map((_, index) => ({
 const AuthImportMnemonic = ({ isActive, error }: OwnProps & StateProps) => {
   const { afterImportMnemonic, restartAuth } = getActions();
   const [mnemonic, setMnemonic] = useState<Record<number, string>>({});
+
+  const handlePasteMnemonic = useCallback((pastedText: string) => {
+    const pastedMnemonic = parsePastedText(pastedText);
+
+    if (pastedMnemonic.length !== MNEMONIC_COUNT) {
+      return;
+    }
+
+    setMnemonic(pastedMnemonic);
+
+    if (document.activeElement?.id.startsWith('import-mnemonic-')) {
+      (document.activeElement as HTMLInputElement).blur();
+    }
+  }, []);
+
+  useClipboardPaste(Boolean(isActive), handlePasteMnemonic);
 
   const isSubmitDisabled = useMemo(() => {
     const mnemonicValues = Object.values(mnemonic);
@@ -111,3 +128,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     error: global.auth.error,
   };
 })(AuthImportMnemonic));
+
+function parsePastedText(str: string) {
+  return str.replace(/(?:\r\n)+|[\r\n\s;,\t]+/g, ' ').trim().split(' ');
+}

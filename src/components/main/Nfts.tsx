@@ -3,7 +3,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiNft } from '../../api/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, GETGEMS_BASE_URL } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { shortenAddress } from '../../util/shortenAddress';
 import buildClassName from '../../util/buildClassName';
@@ -52,6 +52,7 @@ function Nfts({ isActive, orderedAddresses, byAddress }: OwnProps & StateProps) 
           play={isActive}
           tgsUrl={ANIMATED_STICKERS_PATHS.happy}
           size={ANIMATED_STICKER_BIG_SIZE_PX}
+          className={styles.sticker}
           noLoop={false}
           nonInteractive
         />
@@ -60,7 +61,7 @@ function Nfts({ isActive, orderedAddresses, byAddress }: OwnProps & StateProps) 
           Explore a marketplace to discover <br />
           existing NFT collections.
         </p>
-        <a className={styles.emptyListButton} href="https://getgems.io/" rel="noreferrer noopener" target="_blank">
+        <a className={styles.emptyListButton} href={GETGEMS_BASE_URL} rel="noreferrer noopener" target="_blank">
           Open Getgems
         </a>
       </div>
@@ -71,7 +72,7 @@ function Nfts({ isActive, orderedAddresses, byAddress }: OwnProps & StateProps) 
     <div className={styles.list}>
       {nfts.map((nft) => (
         <a
-          href={`https://getgems.io/collection/${nft.collectionAddress}/${nft.address}`}
+          href={`${GETGEMS_BASE_URL}collection/${nft.collectionAddress}/${nft.address}`}
           className={buildClassName(styles.item, nft.isOnSale && styles.item_onSale)}
           target="_blank"
           rel="noopener noreferrer"

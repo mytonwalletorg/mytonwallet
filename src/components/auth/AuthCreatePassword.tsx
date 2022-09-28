@@ -9,11 +9,13 @@ import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import { usePasswordValidation } from '../../hooks/usePasswordValidation';
 import useFlag from '../../hooks/useFlag';
 
+import Modal from '../ui/Modal';
 import AnimatedIcon from '../ui/AnimatedIcon';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 
 import styles from './Auth.module.scss';
+import modalStyles from '../ui/Modal.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
@@ -37,7 +39,9 @@ const AuthCreatePassword = ({
   const [isPasswordFocused, markPasswordFocused, unmarkPasswordFocused] = useFlag(false);
   const [isSecondPasswordFocused, markSecondPasswordFocused, unmarkSecondPasswordFocused] = useFlag(false);
   const [isPasswordsNotEqual, setIsPasswordsNotEqual] = useState<boolean>(false);
+  const [isWeakPasswordModalOpen, openWeakPasswordModal, closeWeakPasswordModal] = useFlag(false);
   const canSubmit = firstPassword.length > 0 && secondPassword.length > 0 && !hasError;
+  const formId = isImporting ? 'auth_import_password' : 'auth_create_password';
 
   const validation = usePasswordValidation({
     firstPassword,
@@ -51,23 +55,14 @@ const AuthCreatePassword = ({
 
   useEffect(() => {
     setIsPasswordsNotEqual(false);
-    if (firstPassword === '' || !isActive) {
+    if (firstPassword === '' || !isActive || isPasswordFocused) {
       setHasError(false);
       return;
     }
 
-    const {
-      invalidLength,
-      noUpperCase,
-      noLowerCase,
-      noNumber,
-      noSpecialChar,
-      noEqual,
-    } = validation;
+    const { noEqual } = validation;
 
-    if (invalidLength || noUpperCase || noLowerCase || noNumber || noSpecialChar) {
-      setHasError(true);
-    } else if ((!isSecondPasswordFocused || isJustSubmitted) && noEqual && secondPassword !== '') {
+    if ((!isSecondPasswordFocused || isJustSubmitted) && noEqual && secondPassword !== '') {
       setHasError(true);
       setIsPasswordsNotEqual(true);
     } else if (!noEqual || secondPassword === '' || (isSecondPasswordFocused && !isJustSubmitted)) {
@@ -106,8 +101,21 @@ const AuthCreatePassword = ({
       return;
     }
 
+    const isWeakPassword = Object.values(validation).find((rule) => rule);
+
+    if (isWeakPassword && !isWeakPasswordModalOpen) {
+      openWeakPasswordModal();
+      return;
+    }
+
+    if (isWeakPasswordModalOpen) {
+      closeWeakPasswordModal();
+    }
     afterCreatePassword({ password: firstPassword, isImporting });
-  }, [afterCreatePassword, canSubmit, firstPassword, isImporting, secondPassword]);
+  }, [
+    afterCreatePassword, canSubmit, firstPassword, isImporting, isWeakPasswordModalOpen, openWeakPasswordModal,
+    secondPassword, validation, closeWeakPasswordModal,
+  ]);
 
   const shouldRenderError = hasError && !isPasswordFocused;
 
@@ -130,7 +138,7 @@ const AuthCreatePassword = ({
 
     return (
       <div className={styles.passwordRules}>
-        Password must contain
+        To protect your wallet as much as possible, use a password with
         <span className={getValidationRuleClass(shouldRenderError, invalidLength)}> at least 8 characters,</span>
         <span className={getValidationRuleClass(shouldRenderError, noLowerCase)}> one small letter,</span>
         <span className={getValidationRuleClass(shouldRenderError, noUpperCase)}> one capital letter,</span>
@@ -142,6 +150,7 @@ const AuthCreatePassword = ({
 
   return (
     <form
+      id={formId}
       onSubmit={handleSubmit}
       className={buildClassName(styles.container, styles.container_scrollable, 'custom-scroll')}
     >
@@ -195,13 +204,30 @@ const AuthCreatePassword = ({
         <Button
           isSubmit
           isPrimary
-          isDisabled={!canSubmit}
+          isDisabled={isPasswordsNotEqual || firstPassword === ''}
           className={styles.btn}
           isLoading={isLoading}
         >
           Continue
         </Button>
       </div>
+
+      <Modal
+        isOpen={isWeakPasswordModalOpen}
+        onClose={closeWeakPasswordModal}
+        title="Insecure Password"
+      >
+        <p className={styles.modalText}>
+          Your have entered an insecure password, which can be easily guessed by scammers.
+        </p>
+        <p className={styles.modalText}>
+          Continue or change password to something more secure?
+        </p>
+        <div className={modalStyles.buttons}>
+          <Button isPrimary onClick={closeWeakPasswordModal}>Change</Button>
+          <Button forFormId={formId} isSubmit isDestructive>Continue</Button>
+        </div>
+      </Modal>
     </form>
   );
 };

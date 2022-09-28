@@ -16,6 +16,7 @@ export const INITIAL_STATE: GlobalState = {
 
   settings: {
     animationLevel: ANIMATION_LEVEL_DEFAULT,
+    areTinyTransfersHidden: true,
   },
 
   backupWallet: {},

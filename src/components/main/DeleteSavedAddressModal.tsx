@@ -28,6 +28,7 @@ function DeleteSavedAddressModal({ isOpen, address, onClose }: OwnProps) {
   return (
     <Modal
       title="Delete Saved Address"
+      isCompact
       isOpen={isOpen}
       onClose={onClose}
     >

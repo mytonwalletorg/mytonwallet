@@ -1,4 +1,4 @@
-import { GlobalState } from '../types';
+import { GlobalState, UserToken } from '../types';
 
 import memoized from '../../util/memoized';
 import { bigStrToHuman } from '../helpers';
@@ -27,7 +27,9 @@ export const selectAllTokensMemoized = memoized((
     .map(([slug, balance]) => {
       const amount = bigStrToHuman(balance);
       const {
-        symbol, name, quote: { price, percentChange24h }, image,
+        symbol, name, image, quote: {
+          price, percentChange24h, percentChange7d, percentChange30d, history,
+        },
       } = tokenInfo.bySlug[slug];
 
       return {
@@ -35,10 +37,13 @@ export const selectAllTokensMemoized = memoized((
         slug,
         amount,
         name,
-        price,
-        change: round(percentChange24h / 100, 4),
         image,
-      };
+        price,
+        change24h: round(percentChange24h / 100, 4),
+        change7d: round(percentChange7d / 100, 4),
+        change30d: round(percentChange30d / 100, 4),
+        history,
+      } as UserToken;
     });
 });
 

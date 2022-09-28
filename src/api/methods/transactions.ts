@@ -5,7 +5,9 @@ import { MAIN_ACCOUNT_ID } from '../../config';
 import { pause } from '../../util/schedulers';
 import blockchains from '../blockchains';
 import { txCallbacks, whenTxComplete } from '../common/txCallbacks';
-import { buildLocalTransaction, checkAccountIsAuthorized, resolveBlockchainKey } from './helpers';
+import {
+  buildLocalTransaction, checkAccountIsAuthorized, resolveBlockchainKey, isUpdaterAlive,
+} from './helpers';
 
 const POLLING_INTERVAL = 1100;
 
@@ -31,15 +33,18 @@ export function fetchTransactionSlice(beforeTxId?: string, limit?: number) {
   return blockchain.getAccountTransactionSlice(storage, accountId, beforeTxId, undefined, limit);
 }
 
-export async function setupTransactionsPolling(accountId: string) {
+export async function setupTransactionsPolling(accountId: string, newestTxId?: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  let latestTxId = await blockchain.getAccountLatestTxId(storage, accountId);
 
-  while (await checkAccountIsAuthorized(storage, accountId)) {
+  if (!newestTxId) {
+    newestTxId = await blockchain.getAccountNewestTxId(storage, accountId);
+  }
+
+  while (isUpdaterAlive(onUpdate) && await checkAccountIsAuthorized(storage, accountId)) {
     try {
-      const transactions = await blockchain.getAccountTransactionSlice(storage, accountId, undefined, latestTxId);
+      const transactions = await blockchain.getAccountTransactionSlice(storage, accountId, undefined, newestTxId);
       if (transactions.length) {
-        latestTxId = transactions[0].txId;
+        newestTxId = transactions[0].txId;
 
         // eslint-disable-next-line @typescript-eslint/no-loop-func
         transactions.reverse().forEach((transaction) => {
@@ -91,15 +96,16 @@ export async function submitTransfer(
       transaction: localTransaction,
     });
 
-    whenTxComplete(result.resolvedAddress, result.amount).then(({ txId }) => {
-      onUpdate({
-        type: 'updateTxComplete',
-        toAddress,
-        amount,
-        txId,
-        localTxId: localTransaction.txId,
+    whenTxComplete(result.resolvedAddress, result.amount)
+      .then(({ txId }) => {
+        onUpdate({
+          type: 'updateTxComplete',
+          toAddress,
+          amount,
+          txId,
+          localTxId: localTransaction.txId,
+        });
       });
-    });
 
     return localTransaction.txId;
   }

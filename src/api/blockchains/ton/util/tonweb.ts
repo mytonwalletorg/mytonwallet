@@ -4,10 +4,8 @@ import { Address } from 'tonweb/dist/types/utils/address';
 import TonWeb from 'tonweb';
 import { IS_TESTNET } from '../../../../config';
 
-const TONWEB_MAINNET_API_URL = process.env.TONWEB_MAINNET_API_URL || 'https://toncenter.com/api/v2/jsonRPC';
-const TONWEB_TESTNET_API_URL = process.env.TONWEB_TESTNET_API_URL || 'https://testnet.toncenter.com/api/v2/jsonRPC';
-const TONWEB_API_KEY = process.env.TONWEB_API_KEY;
-const TONWEB_TESTNET_API_KEY = process.env.TONWEB_TESTNET_API_KEY;
+const TONHTTPAPI_MAINNET_URL = process.env.TONHTTPAPI_MAINNET_URL || 'https://toncenter.com/api/v2/jsonRPC';
+const TONHTTPAPI_TESTNET_URL = process.env.TONHTTPAPI_TESTNET_URL || 'https://testnet.toncenter.com/api/v2/jsonRPC';
 
 export declare class Dns {
   readonly provider: HttpProvider;
@@ -25,8 +23,7 @@ let tonWebCache: MyTonWeb;
 export function getTonWeb() {
   if (!tonWebCache) {
     tonWebCache = new TonWeb(new TonWeb.HttpProvider(
-      IS_TESTNET ? TONWEB_TESTNET_API_URL : TONWEB_MAINNET_API_URL,
-      { apiKey: IS_TESTNET ? TONWEB_TESTNET_API_KEY : TONWEB_API_KEY },
+      IS_TESTNET ? TONHTTPAPI_TESTNET_URL : TONHTTPAPI_MAINNET_URL,
     )) as MyTonWeb;
   }
 

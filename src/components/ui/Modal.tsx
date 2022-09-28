@@ -21,8 +21,10 @@ type OwnProps = {
   className?: string;
   dialogClassName?: string;
   isOpen?: boolean;
+  isCompact?: boolean;
   isSlideUp?: boolean;
   noBackdrop?: boolean;
+  noBackdropClose?: boolean;
   header?: any;
   hasCloseButton?: boolean;
   children: React.ReactNode;
@@ -44,8 +46,10 @@ function Modal({
   className,
   dialogClassName,
   isOpen,
+  isCompact,
   isSlideUp,
   noBackdrop,
+  noBackdropClose,
   header,
   hasCloseButton,
   children,
@@ -117,6 +121,7 @@ function Modal({
     className,
     transitionClassNames,
     isSlideUp && styles.slideUp,
+    isCompact && styles.compact,
   );
 
   const backdropFullClass = buildClassName(
@@ -133,7 +138,7 @@ function Modal({
         role="dialog"
       >
         <div className={styles.container}>
-          <div className={backdropFullClass} onClick={onClose} />
+          <div className={backdropFullClass} onClick={!noBackdropClose ? onClose : undefined} />
           <div className={buildClassName(styles.dialog, dialogClassName)} ref={dialogRef}>
             {renderHeader()}
             <div className={buildClassName(styles.content, isSlideUp && styles.contentSlideUp, 'custom-scroll')}>

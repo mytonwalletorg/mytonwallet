@@ -4,18 +4,13 @@ import {
   JettonApi,
   RawBlockchainApi,
 } from 'tonapi-sdk-js';
-import { DEBUG } from '../../../../config';
+import { DEBUG, IS_TESTNET } from '../../../../config';
 
-const TONAPIIO_BASE_URL = process.env.TONAPIIO_BASE_URL;
-const TONAPIIO_SERVER_KEY = process.env.TONAPIIO_SERVER_KEY;
+const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapi.io';
+const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://testnet.tonapi.io';
 
 export const apiConfiguration = new Configuration({
-  ...(TONAPIIO_SERVER_KEY && {
-    headers: {
-      Authorization: `Bearer ${TONAPIIO_SERVER_KEY}`,
-    },
-  }),
-  basePath: TONAPIIO_BASE_URL,
+  basePath: IS_TESTNET ? TONAPIIO_TESTNET_URL : TONAPIIO_MAINNET_URL,
 });
 
 export const eventApi = new EventApi(apiConfiguration);

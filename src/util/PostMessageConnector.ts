@@ -210,6 +210,7 @@ export function createConnector(
 export function createExtensionConnector(
   name: string,
   onUpdate?: (update: ApiUpdate) => void,
+  getInitArgs?: () => any,
   channel?: string,
 ) {
   const connector = new Connector(connect(), onUpdate, channel);
@@ -225,10 +226,13 @@ export function createExtensionConnector(
     // For some reason port can suddenly get disconnected
     port.onDisconnect.addListener(() => {
       connector.target = connect();
+      connector.init(getInitArgs?.());
     });
 
     return port;
   }
+
+  connector.init(getInitArgs?.());
 
   return connector;
 }

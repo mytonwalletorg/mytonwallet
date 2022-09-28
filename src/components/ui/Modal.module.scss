@@ -15,27 +15,39 @@
     opacity: 1;
   }
 
-  &:not(.slideUp):global(.open) .dialog {
-    transform: translate3d(0, 0, 0);
-  }
-
-  &:not(.slideUp):global(.closing) .dialog {
-    transform: translate3d(0, 1rem, 0);
-  }
-
-  &.slideUp:global(.shown) {
-    .container {
-      overflow: hidden;
+  @media (max-width: 600px) {
+    &:not(.slideUp):global(.open) .dialog {
+      transform: translate3d(0, 0, 0);
     }
 
-    .dialog {
-      transform: translateY(100%);
+    &:not(.slideUp):global(.closing) .dialog {
+      transform: translate3d(0, 1rem, 0);
     }
 
-    &:global(.shown.open) {
-      .dialog {
-        transform: translateY(0);
+    &.slideUp:global(.shown) {
+      .container {
+        overflow: hidden;
       }
+
+      .dialog {
+        transform: translateY(100%);
+      }
+
+      &:global(.shown.open) {
+        .dialog {
+          transform: translateY(0);
+        }
+      }
+    }
+  }
+
+  @media (min-width: 600.01px) {
+    &:global(.open) .dialog {
+      transform: translate3d(0, 0, 0);
+    }
+
+    &:global(.closing) .dialog {
+      transform: translate3d(0, 1rem, 0);
     }
   }
 }
@@ -53,10 +65,12 @@
 
   padding: 0 1rem;
 
-  .slideUp & {
-    align-items: flex-end;
+  @media (max-width: 600px) {
+    .slideUp & {
+      align-items: flex-end;
 
-    padding: 0;
+      padding: 0;
+    }
   }
 }
 
@@ -98,18 +112,27 @@
 
   transition: transform var(--transition), opacity var(--transition);
 
-  .slideUp & {
-    transform: none;
+  @media (min-width: 416.01px) {
+    // 26rem = 416px
+    .compact & {
+      max-width: 24rem;
+    }
+  }
 
-    max-width: 28rem;
-    max-height: calc(95 * var(--vh, 1vh));
-    margin: 0;
+  @media (max-width: 600px) {
+    .slideUp & {
+      transform: none;
 
-    opacity: 1;
-    background: var(--color-background-second);
-    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+      max-width: 28rem;
+      max-height: calc(95 * var(--vh, 1vh));
+      margin: 0;
 
-    transition: transform var(--transition);
+      opacity: 1;
+      background: var(--color-background-second);
+      border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+
+      transition: transform var(--transition);
+    }
   }
 }
 
@@ -127,8 +150,10 @@
     padding: 1rem 1rem 0;
   }
 
-  .slideUp & {
-    padding-bottom: 0;
+  @media (max-width: 600px) {
+    .slideUp & {
+      padding-bottom: 0;
+    }
   }
 }
 

@@ -1,11 +1,11 @@
 import React, {
-  memo, useCallback, useEffect, useLayoutEffect, useState, useRef,
+  memo, useCallback, useEffect, useState, useRef,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import { ApiToken, ApiTransaction } from '../../api/types';
 
-import { CARD_SECONDARY_VALUE_SYMBOL, TON_TOKEN_SLUG } from '../../config';
+import { CARD_SECONDARY_VALUE_SYMBOL, TON_TOKEN_SLUG, TONSCAN_BASE_URL } from '../../config';
 import { bigStrToHuman, getIsTxIdLocal } from '../../global/helpers';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import buildClassName from '../../util/buildClassName';
@@ -14,6 +14,7 @@ import { copyTextToClipboard } from '../../util/clipboard';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
+import useOnChange from '../../hooks/useOnChange';
 
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
@@ -63,9 +64,9 @@ function TransactionModal({
   const amountHuman = amount ? bigStrToHuman(amount) : 0;
   const address = isIncoming ? fromAddress : toAddress;
   const tonscanTransactionUrl = transactionHash && transactionHash !== EMPTY_HASH_VALUE
-    ? `https://tonscan.org/tx/${transactionHash}`
+    ? `${TONSCAN_BASE_URL}tx/${transactionHash}`
     : undefined;
-  const tonscanAddressUrl = `https://tonscan.org/address/${address}`;
+  const tonscanAddressUrl = `${TONSCAN_BASE_URL}address/${address}`;
 
   useEffect(() => {
     if (isSaveAddressModalOpen) {
@@ -73,11 +74,11 @@ function TransactionModal({
     }
   }, [isSaveAddressModalOpen]);
 
-  useLayoutEffect(() => {
-    if (transaction?.txId) {
+  useOnChange(() => {
+    if (transaction) {
       setIsModalOpen(true);
     }
-  }, [transaction?.txId]);
+  }, [transaction]);
 
   useFocusAfterAnimation({
     ref: addressNameRef,
@@ -124,7 +125,7 @@ function TransactionModal({
   };
 
   function renderHeader() {
-    const isLocal = getIsTxIdLocal(txId);
+    const isLocal = txId && getIsTxIdLocal(txId);
 
     return (
       <>
@@ -270,6 +271,7 @@ function TransactionModal({
     return (
       <Modal
         title="Save Address"
+        isCompact
         isOpen={isSaveAddressModalOpen}
         onClose={closeSaveAddressModal}
       >

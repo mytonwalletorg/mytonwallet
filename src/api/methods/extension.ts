@@ -1,12 +1,15 @@
-import { PROXY } from '../../config';
+import { PROXY_HOSTS } from '../../config';
 import { Storage } from '../storages/types';
 import { updateDapps } from '../dappMethods';
+import { sample } from '../../util/random';
 
 // eslint-disable-next-line no-restricted-globals
 const IS_EXTENSION = Boolean(self?.chrome?.runtime?.id);
 
+const proxyHost = PROXY_HOSTS ? sample(PROXY_HOSTS.split(' ')) : '';
+
 // eslint-disable-next-line max-len
-const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) { return host.endsWith('.ton') || host.endsWith('.adnl') ? 'PROXY ${PROXY}' : 'DIRECT'; }`;
+const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) { return host.endsWith('.ton') || host.endsWith('.adnl') ? 'PROXY ${proxyHost}' : 'DIRECT'; }`;
 
 let storage: Storage;
 
@@ -22,7 +25,7 @@ export async function initExtension(_storage: Storage) {
 }
 
 export function doProxy(isEnabled: boolean) {
-  if (!PROXY) {
+  if (!PROXY_HOSTS) {
     return;
   }
 

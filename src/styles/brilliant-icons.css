@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?475e91bb5d63bfe474cc0e4fb719c901") format("woff"),
-url("./brilliant-icons.woff2?475e91bb5d63bfe474cc0e4fb719c901") format("woff2");
+    src: url("./brilliant-icons.woff?5841a13a119250efd38c43f5d3050e46") format("woff"),
+url("./brilliant-icons.woff2?5841a13a119250efd38c43f5d3050e46") format("woff2");
     font-weight: normal;
     font-style: normal;
 }
@@ -17,57 +17,63 @@ url("./brilliant-icons.woff2?475e91bb5d63bfe474cc0e4fb719c901") format("woff2");
 .icon-arrow-down::before {
     content: "\f101";
 }
-.icon-arrow-right::before {
+.icon-arrow-left::before {
     content: "\f102";
 }
-.icon-clock::before {
+.icon-arrow-right::before {
     content: "\f103";
 }
-.icon-close::before {
+.icon-clock::before {
     content: "\f104";
 }
-.icon-copy::before {
+.icon-close::before {
     content: "\f105";
 }
-.icon-eye-closed::before {
+.icon-coinmarket::before {
     content: "\f106";
 }
-.icon-eye::before {
+.icon-copy::before {
     content: "\f107";
 }
-.icon-menu::before {
+.icon-eye-closed::before {
     content: "\f108";
 }
-.icon-paste::before {
+.icon-eye::before {
     content: "\f109";
 }
-.icon-qrcode::before {
+.icon-menu::before {
     content: "\f10a";
 }
-.icon-receive-alt::before {
+.icon-paste::before {
     content: "\f10b";
 }
-.icon-receive::before {
+.icon-qrcode::before {
     content: "\f10c";
 }
-.icon-search::before {
+.icon-receive-alt::before {
     content: "\f10d";
 }
-.icon-send-alt::before {
+.icon-receive::before {
     content: "\f10e";
 }
-.icon-send::before {
+.icon-search::before {
     content: "\f10f";
 }
-.icon-share::before {
+.icon-send-alt::before {
     content: "\f110";
 }
-.icon-star-filled::before {
+.icon-send::before {
     content: "\f111";
 }
-.icon-star::before {
+.icon-share::before {
     content: "\f112";
 }
-.icon-tonscan::before {
+.icon-star-filled::before {
     content: "\f113";
+}
+.icon-star::before {
+    content: "\f114";
+}
+.icon-tonscan::before {
+    content: "\f115";
 }

@@ -77,6 +77,11 @@
 
   --color-card-text: #FFFFFF;
   --color-card-second-text: rgba(255, 255, 255, 0.6);
+  --color-card-button: rgba(255, 255, 255, 0.2);
+  --color-card-green-text: #56E991;
+  --color-card-green-background: #2CD36F40;
+  --color-card-red-text: #FAD2EA;
+  --color-card-red-background: #FAD2EA40;
 
   --default-shadow: 0 0 1.5625rem 0 #00000026;
 
@@ -88,7 +93,7 @@
   --layer-blackout-opacity: 0.3;
 
   --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
-  --slide-transition: 250ms cubic-bezier(0.25, 1, 0.5, 1);
+  --slide-transition: 300ms cubic-bezier(0.25, 1, 0.5, 1);
   --select-transition: 200ms ease-out;
 
   --border-radius-small: 0.625rem;

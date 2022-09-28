@@ -1,6 +1,9 @@
-import React, { memo, useCallback, useState } from '../../lib/teact/teact';
-import { getActions } from '../../lib/teact/teactn';
+import type { GlobalState } from '../../global/types';
 
+import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import { withGlobal, getActions } from '../../global';
+
+import { IS_TESTNET } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import useFlag from '../../hooks/useFlag';
 
@@ -22,25 +25,28 @@ import TransactionModal from './TransactionModal';
 
 import styles from './Main.module.scss';
 
+type StateProps = Pick<GlobalState, 'currentTokenSlug'>;
+
 const TABS = [
   { id: 'assets', title: 'Assets', className: styles.tab },
   { id: 'activity', title: 'Activity', className: styles.tab },
   { id: 'nft', title: 'NFT', className: styles.tab },
 ];
 
-function Main() {
+function Main({ currentTokenSlug }: StateProps) {
   const { startTransfer, selectToken } = getActions();
 
-  const [activeTabIndex, setActiveTabIndex] = useState<number>(0);
+  const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : 0);
   const [isReceiveTonOpened, openReceiveTon, closeReceiveTon] = useFlag(false);
   const [isBackupWalletOpened, openBackupWallet, closeBackupWallet] = useFlag(false);
 
-  const handleSwitchTab = useCallback((index: number) => {
-    const tabId = TABS[index].id;
+  const handleTokenCardClose = useCallback(() => {
+    selectToken({ slug: undefined });
+    setActiveTabIndex(0);
+  }, [selectToken]);
 
-    if (tabId === 'activity') {
-      selectToken({ slug: undefined });
-    }
+  const handleSwitchTab = useCallback((index: number) => {
+    selectToken({ slug: undefined });
     setActiveTabIndex(index);
   }, [selectToken]);
 
@@ -68,17 +74,18 @@ function Main() {
   return (
     <div className={styles.container}>
       <div className={styles.head}>
+        {IS_TESTNET && <div className={styles.testnetWarning}>Testnet Version</div>}
         <BackupWarning onOpenBackupWallet={openBackupWallet} />
         <Header onOpenBackupWallet={openBackupWallet} />
-        <Card />
+        <Card onTokenCardClose={handleTokenCardClose} />
         <div className={styles.buttons}>
-          <Button className={styles.button} onClick={startTransfer} isSimple>
-            <i className={buildClassName(styles.buttonIcon, 'icon-send')} aria-hidden />
-            Send
-          </Button>
           <Button className={styles.button} onClick={openReceiveTon} isSimple>
             <i className={buildClassName(styles.buttonIcon, 'icon-receive')} aria-hidden />
             Receive
+          </Button>
+          <Button className={styles.button} onClick={startTransfer} isSimple>
+            <i className={buildClassName(styles.buttonIcon, 'icon-send')} aria-hidden />
+            Send
           </Button>
         </div>
         <BackupModal isOpen={isBackupWalletOpened} onClose={closeBackupWallet} />
@@ -107,4 +114,8 @@ function Main() {
   );
 }
 
-export default memo(Main);
+export default memo(withGlobal((global) => {
+  return {
+    currentTokenSlug: global.currentTokenSlug,
+  };
+})(Main));

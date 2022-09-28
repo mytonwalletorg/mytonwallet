@@ -13,6 +13,6 @@ function divideBigInt(a: bigint, b: bigint) {
   return Number(div) + Number(a - div * b) / Number(b);
 }
 
-export function getIsTxIdLocal(txId?: string) {
-  return txId?.includes('|');
+export function getIsTxIdLocal(txId: string) {
+  return txId.includes('|');
 }

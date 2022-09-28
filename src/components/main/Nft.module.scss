@@ -5,6 +5,7 @@
 
   height: 100%;
   padding-top: 1.875rem;
+  padding-bottom: 2rem;
 
   color: var(--color-gray-2);
 }
@@ -62,6 +63,11 @@
   }
 }
 
+.sticker {
+  width: 9.75rem;
+  height: 9.75rem;
+}
+
 .list {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -117,7 +123,7 @@
   max-width: 100%;
   margin-bottom: 0.4375rem;
 
-  border-radius: 0.4375rem;
+  border-radius: 0.5rem;
 
   @supports not (aspect-ratio: 1) {
     height: auto;

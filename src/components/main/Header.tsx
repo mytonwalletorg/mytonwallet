@@ -3,7 +3,7 @@ import React, { memo, useCallback } from '../../lib/teact/teact';
 import { withGlobal, getActions } from '../../global';
 
 import {
-  APP_NAME, APP_VERSION, MNEMONIC_COUNT, PROXY, TELEGRAM_WEB_URL,
+  APP_NAME, APP_VERSION, MNEMONIC_COUNT, PROXY_HOSTS, TELEGRAM_WEB_URL,
 } from '../../config';
 import { IS_EXTENSION } from '../../util/environment';
 import buildClassName from '../../util/buildClassName';
@@ -26,16 +26,19 @@ type OwnProps = {
 };
 
 type StateProps = {
+  areTinyTransfersHidden?: boolean;
   isTonProxyEnabled?: boolean;
   isTonMagicEnabled?: boolean;
 };
 
 function Header({
   onOpenBackupWallet,
+  areTinyTransfersHidden,
   isTonProxyEnabled,
   isTonMagicEnabled,
 }: OwnProps & StateProps) {
   const {
+    toggleTinyTransfersHidden,
     toggleTonProxy,
     toggleTonMagic,
     signOut,
@@ -66,6 +69,10 @@ function Header({
     closeMenu();
     openAbout();
   }, [closeMenu, openAbout]);
+
+  const handleTinyTransfersHiddenToggle = useCallback(() => {
+    toggleTinyTransfersHidden({ isEnabled: !areTinyTransfersHidden });
+  }, [areTinyTransfersHidden, toggleTinyTransfersHidden]);
 
   const handleOpenBackupWallet = useCallback(() => {
     closeMenu();
@@ -108,7 +115,7 @@ function Header({
       </Button>
       <Menu bubbleClassName={styles.menu} isOpen={isMenuOpened} onClose={closeMenu} positionX="right">
         {IS_EXTENSION && <MenuItem onClick={handleOpenAbout}>About</MenuItem>}
-        {IS_EXTENSION && PROXY && (
+        {IS_EXTENSION && PROXY_HOSTS && (
           <MenuItem onClick={handleTonProxyToggle}>
             TON Proxy
             <Switcher className={styles.menuSwitcher} label="Toggle TON Proxy" checked={isTonProxyEnabled} />
@@ -125,6 +132,14 @@ function Header({
             Open Telegram Web
           </MenuItem>
         )}
+        <MenuItem onClick={handleTinyTransfersHiddenToggle}>
+          Hide Tiny Transfers
+          <Switcher
+            className={styles.menuSwitcher}
+            label="Toggle Hide Tiny Transfers"
+            checked={areTinyTransfersHidden}
+          />
+        </MenuItem>
         <MenuItem onClick={handleOpenBackupWallet}>Back Up</MenuItem>
         <MenuItem isDestructive onClick={handleOpenConfirmation}>Exit</MenuItem>
       </Menu>
@@ -180,6 +195,7 @@ function Header({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   return {
+    areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
     isTonProxyEnabled: global.settings.isTonProxyEnabled,
     isTonMagicEnabled: global.settings.isTonMagicEnabled,
   };

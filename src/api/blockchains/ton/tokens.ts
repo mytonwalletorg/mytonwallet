@@ -62,11 +62,10 @@ function buildTokenBalance(balanceRaw: JettonBalance): [string, string] | undefi
     const {
       name,
       symbol,
-      address: rawMinterAddress,
       image,
       image_data: imageData,
     } = balanceRaw.metadata as ExtendedJetton;
-    const minterAddress = toBase64Address(rawMinterAddress);
+    const minterAddress = toBase64Address(balanceRaw.jettonAddress);
     const slug = buildTokenSlug(symbol);
 
     if (!(slug in knownTokens)) {

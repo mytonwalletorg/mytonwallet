@@ -1,4 +1,4 @@
-import type { OnApiUpdate } from '../../types';
+import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import type { Methods, MethodArgs, MethodResponse } from '../../methods/types';
 
 import { DEBUG } from '../../../config';
@@ -6,12 +6,13 @@ import { Connector, createConnector } from '../../../util/PostMessageConnector';
 
 let connector: Connector;
 
-export function initApi(onUpdate: OnApiUpdate) {
+export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => ApiInitArgs)) {
   if (!connector) {
     connector = createConnector(new Worker(new URL('./worker.ts', import.meta.url)), onUpdate);
   }
 
-  return connector.init();
+  const args = typeof initArgs === 'function' ? initArgs() : initArgs;
+  return connector.init(args);
 }
 
 export function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<T>) {

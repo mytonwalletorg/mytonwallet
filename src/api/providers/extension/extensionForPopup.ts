@@ -1,4 +1,4 @@
-import type { OnApiUpdate } from '../../types';
+import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import type { Methods, MethodArgs } from '../../methods/types';
 
 import { StorageType } from '../../storages/types';
@@ -7,11 +7,14 @@ import { createExtensionInterface } from '../../../util/createPostMessageInterfa
 
 import init from '../../methods/init';
 import * as methods from '../../methods';
+import { disconnectUpdater } from '../../methods/helpers';
 
 createExtensionInterface(POPUP_PORT, (name: string, ...args: any[]) => {
-  const method = methods[name as keyof Methods];
-  // @ts-ignore
-  return method(...args as MethodArgs<keyof Methods>);
-}, undefined, (onUpdate: OnApiUpdate) => {
-  init(onUpdate, StorageType.IndexedDb);
-});
+  if (name === 'init') {
+    return init(args[0] as OnApiUpdate, args[1] as ApiInitArgs, StorageType.IndexedDb);
+  } else {
+    const method = methods[name as keyof Methods];
+    // @ts-ignore
+    return method(...args as MethodArgs<keyof Methods>);
+  }
+}, undefined, disconnectUpdater);

@@ -37,8 +37,8 @@ export function createExtensionInterface(
   portName: string,
   api: ApiConfig,
   channel?: string,
-  autoInit?: (onUpdate: (update: ApiUpdate) => void) => void,
   cleanUpdater?: (onUpdate: (update: ApiUpdate) => void) => void,
+  withAutoInit = false,
 ) {
   chrome.runtime.onConnect.addListener((port) => {
     if (port.name !== portName) {
@@ -61,15 +61,17 @@ export function createExtensionInterface(
 
     port.onMessage.addListener((data: OriginMessageData) => {
       if (data.channel === channel) {
-        onMessage(api, data, sendToOrigin);
+        onMessage(api, data, sendToOrigin, dAppUpdater);
       }
     });
-
-    autoInit?.(dAppUpdater);
 
     port.onDisconnect.addListener(() => {
       cleanUpdater?.(dAppUpdater);
     });
+
+    if (withAutoInit) {
+      onMessage(api, { type: 'init', name: 'init', args: [] }, sendToOrigin, dAppUpdater);
+    }
   });
 }
 
@@ -77,12 +79,15 @@ async function onMessage(
   api: ApiConfig,
   data: OriginMessageData,
   sendToOrigin: SendToOrigin,
+  onUpdate?: (update: ApiUpdate) => void,
 ) {
-  function onUpdate(update: ApiUpdate) {
-    sendToOrigin({
-      type: 'update',
-      update,
-    });
+  if (!onUpdate) {
+    onUpdate = (update: ApiUpdate) => {
+      sendToOrigin({
+        type: 'update',
+        update,
+      });
+    };
   }
 
   switch (data.type) {

@@ -62,7 +62,7 @@ function Tab({
   return (
     <div
       className={buildClassName(styles.Tab, className)}
-      onClick={() => onClick(clickArg)}
+      onClick={!isActive ? () => onClick(clickArg) : undefined}
       ref={tabRef}
     >
       <span className={styles.content}>

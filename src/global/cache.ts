@@ -11,8 +11,10 @@ import { pick } from '../util/iteratees';
 
 import { INITIAL_STATE } from './initialState';
 import { addActionHandler, getGlobal } from './index';
+import { getIsTxIdLocal } from './helpers';
 
 const UPDATE_THROTTLE = 5000;
+const TXS_LIMIT = 20;
 
 const updateCacheThrottled = throttle(() => onIdle(updateCache), UPDATE_THROTTLE, false);
 
@@ -122,9 +124,28 @@ function updateCache() {
       'settings',
       'isBackupRequired',
       'savedAddresses',
+      'currentTokenSlug',
     ]),
+    transactions: reduceTransactions(global),
   };
 
   const json = JSON.stringify(reducedGlobal);
   localStorage.setItem(GLOBAL_STATE_CACHE_KEY, json);
+}
+
+function reduceTransactions(global: GlobalState) {
+  const { transactions } = global;
+
+  if (!transactions?.orderedTxIds) {
+    return undefined;
+  }
+
+  const orderedTxIds = transactions.orderedTxIds.filter((id) => !getIsTxIdLocal(id)).slice(0, TXS_LIMIT);
+  const byTxId = pick(transactions.byTxId, orderedTxIds);
+
+  return {
+    ...INITIAL_STATE.transactions,
+    byTxId,
+    orderedTxIds,
+  };
 }

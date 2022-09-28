@@ -1,5 +1,4 @@
-import { getActions } from '../../../lib/teact/teactn';
-import { addActionHandler } from '../../index';
+import { addActionHandler, getActions } from '../../index';
 
 import type { NotificationType } from '../../types';
 

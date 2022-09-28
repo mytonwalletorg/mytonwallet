@@ -11,8 +11,8 @@ import {
   updateSendingLoading,
   updateTransactionsIsLoading,
 } from '../../reducers';
-import { humanToBigStr } from '../../helpers';
-import { buildCollectionByKey } from '../../../util/iteratees';
+import { getIsTxIdLocal, humanToBigStr } from '../../helpers';
+import { buildCollectionByKey, unique } from '../../../util/iteratees';
 import { ApiTransactionDraftError } from '../../../api/types';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
@@ -133,13 +133,8 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
     fee,
   );
 
-  if (result) {
-    setGlobal(updateCurrentTransfer(getGlobal(), {
-      isLoading: undefined,
-      state: TransferState.Complete,
-      txId: result,
-    }));
-  } else {
+  // TODO Reset transfer modal state
+  if (!result) {
     actions.showDialog({
       message: 'Transfer was unsuccessful. Try again later',
     });
@@ -161,9 +156,13 @@ addActionHandler('cancelTransfer', (global) => {
 });
 
 addActionHandler('fetchTransactions', async (global, actions, payload) => {
-  const { limit, offsetId } = payload || {};
+  const { limit } = payload || {};
   global = updateTransactionsIsLoading(global, true);
   setGlobal(global);
+
+  const orderedTxIds = global.transactions?.orderedTxIds;
+  const lastTxId = orderedTxIds ? orderedTxIds[orderedTxIds.length - 1] : undefined;
+  const offsetId = lastTxId && !getIsTxIdLocal(lastTxId) ? lastTxId : undefined;
 
   const result = await callApi('fetchTransactionSlice', offsetId, limit);
   global = getGlobal();
@@ -175,17 +174,14 @@ addActionHandler('fetchTransactions', async (global, actions, payload) => {
   }
 
   const transactions = buildCollectionByKey(result, 'txId');
-  const orderedTxIds = Object.keys(transactions);
+  const newOrderedTxIds = Object.keys(transactions);
 
   setGlobal({
     ...global,
     transactions: {
       ...global.transactions,
       byTxId: { ...(global.transactions?.byTxId || {}), ...transactions },
-      orderedTxIds: (global.transactions?.orderedTxIds || []).concat(orderedTxIds),
-      nextOffsetTxId: orderedTxIds.length && orderedTxIds.length >= limit
-        ? orderedTxIds[orderedTxIds.length - 1]
-        : undefined,
+      orderedTxIds: unique((global.transactions?.orderedTxIds || []).concat(newOrderedTxIds)),
     },
   });
 });

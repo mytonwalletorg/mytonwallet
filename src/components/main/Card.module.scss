@@ -5,14 +5,12 @@
 .containerWrapper {
   position: relative;
 
-  overflow: hidden;
-
   box-sizing: border-box;
   width: calc(100% - 0.125rem);
   min-width: 16rem;
   height: 0;
   margin: 0 auto 0.5rem;
-  padding-top: math.div(200, 343) * 100%;
+  padding-top: 57%;
 }
 
 .container {
@@ -26,13 +24,59 @@
 
   width: 100%;
   height: 100%;
-  padding: 3rem 1rem 0.75rem;
+  padding: 3.5rem 1rem 0.5rem;
 
-  background-image: url('../../assets/card.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  background-image: url('../../assets/cards/card.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
   background-clip: padding-box, padding-box;
   background-origin: border-box;
   background-size: cover, cover;
   border-radius: var(--border-radius-default);
+
+  transition: transform var(--slide-transition), filter var(--slide-transition) !important;
+
+  &:global(.tegro) {
+    background-image: url('../../assets/cards/card_tegro.jpg'), linear-gradient(125deg, #479CFF 0, #0042A7 100%);
+  }
+
+  &:global(.red) {
+    background-image: url('../../assets/cards/card_red.jpg'), linear-gradient(125deg, #BE647F 0, #8A2935 100%);
+  }
+
+  &:global(.orange) {
+    background-image: url('../../assets/cards/card_orange.jpg'), linear-gradient(125deg, #D98A5E 0, #A04B26 100%);
+  }
+
+  &:global(.green) {
+    background-image: url('../../assets/cards/card_green.jpg'), linear-gradient(125deg, #7CAD64 0, #497228 100%);
+  }
+
+  &:global(.sea) {
+    background-image: url('../../assets/cards/card_sea.jpg'), linear-gradient(125deg, #5DAAAF 0, #1E7070 100%);
+  }
+
+  &:global(.purple) {
+    background-image: url('../../assets/cards/card_purple.jpg'), linear-gradient(125deg, #8F6FD4 0, #502081 100%);
+  }
+
+  &:global(.pink) {
+    background-image: url('../../assets/cards/card_pink.jpg'), linear-gradient(125deg, #BC67B4 0, #852B76 100%);
+  }
+
+  &.backstage {
+    transform: translateY(-1.25rem) scale(0.90);
+
+    filter: brightness(65%);
+  }
+
+  &.tokenCard {
+    transform: translateY(0.625rem) scale(1.05);
+
+    padding: 1rem;
+
+    &:global(.open) {
+      transform: translateY(0) scale(1);
+    }
+  }
 
   &.isLoading {
     align-items: center;
@@ -42,37 +86,55 @@
   }
 
   @media (min-resolution: 1.5dppx) {
-    background-image: url('../../assets/card@2x.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+    background-image: url('../../assets/cards/card@2x.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+
+    &:global(.tegro) {
+      background-image: url('../../assets/cards/card_tegro@2x.jpg'), linear-gradient(125deg, #479CFF 0, #0042A7 100%);
+    }
+
+    &:global(.red) {
+      background-image: url('../../assets/cards/card_red@2x.jpg'), linear-gradient(125deg, #BE647F 0, #8A2935 100%);
+    }
+
+    &:global(.orange) {
+      background-image: url('../../assets/cards/card_orange@2x.jpg'), linear-gradient(125deg, #D98A5E 0, #A04B26 100%);
+    }
+
+    &:global(.green) {
+      background-image: url('../../assets/cards/card_green@2x.jpg'), linear-gradient(125deg, #7CAD64 0, #497228 100%);
+    }
+
+    &:global(.sea) {
+      background-image: url('../../assets/cards/card_sea@2x.jpg'), linear-gradient(125deg, #5DAAAF 0, #1E7070 100%);
+    }
+
+    &:global(.purple) {
+      background-image: url('../../assets/cards/card_purple@2x.jpg'), linear-gradient(125deg, #8F6FD4 0, #502081 100%);
+    }
+
+    &:global(.pink) {
+      background-image: url('../../assets/cards/card_pink@2x.jpg'), linear-gradient(125deg, #BC67B4 0, #852B76 100%);
+    }
   }
 }
 
-.secondaryValue {
-  font-size: 1.0625rem;
-  font-weight: 600;
-  line-height: 1;
-}
-
 .primaryValue {
-  font-size: 2.125rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  line-height: 2.5rem;
+  line-height: 1;
   color: var(--color-card-text);
 }
 
 .primaryFractionPart {
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   font-weight: 800;
-}
-
-.secondaryValue,
-.primaryFractionPart {
   color: var(--color-card-second-text);
 }
 
 
 .addressContainer {
   margin-top: auto;
-  margin-bottom: 0.125rem;
+  margin-bottom: 0.375rem;
 }
 
 .address {
@@ -108,10 +170,8 @@
 }
 
 .icon {
-  margin-left: 0.125rem;
-
-  font-size: 1.25rem;
-  vertical-align: -0.25rem;
+  font-size: 1rem;
+  vertical-align: -0.1875rem;
 }
 
 .tonscanButton {
@@ -134,19 +194,142 @@
   }
 }
 
-@media (min-width: 400px) {
-  .primaryValue {
-    margin-top: 0.5rem;
+.change {
+  align-self: flex-start;
 
-    font-size: 2.625rem;
+  height: 1.5rem;
+  margin-top: 0.25rem;
+  padding: 0.3125rem 0.375rem 0;
+
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-card-text);
+
+  background: var(--color-card-button);
+  border-radius: 0.5rem;
+}
+
+.changeCourseUp {
+  color: var(--color-card-green-text);
+
+  background: var(--color-card-green-background);
+}
+
+.changeCourseDown {
+  color: var(--color-card-red-text);
+
+  background: var(--color-card-red-background);
+}
+
+.tokenInfo {
+  display: flex;
+  align-items: center;
+}
+
+.tokenLogo {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-right: 0.5rem;
+
+  border-radius: 50%;
+}
+
+.tokenAmount {
+  display: block;
+
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-card-text);
+}
+
+.tokenName {
+  display: block;
+
+  margin-top: 0.25rem;
+
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-card-second-text);
+}
+
+.tokenPrice {
+  top: 1.125rem;
+  right: 1rem;
+
+  text-align: right;
+}
+
+.tokenHistoryPrice {
+  bottom: 1rem;
+  left: 1rem;
+}
+
+.tokenCurrentPrice {
+  right: 1rem;
+  bottom: 1rem;
+
+  line-height: 1;
+  text-align: right;
+}
+
+.tokenHistoryPrice,
+.tokenPrice,
+.tokenCurrentPrice {
+  position: absolute;
+
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-card-text);
+}
+
+.tokenChange,
+.tokenPriceDate {
+  margin-top: 0.125rem;
+
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-card-second-text);
+}
+
+.coinMarket {
+  position: relative;
+  top: 0.25rem;
+
+  font-size: 1rem;
+  line-height: 0.625rem;
+  color: var(--color-card-text);
+  text-decoration: none !important;
+
+  transition: opacity 200ms;
+
+  &:hover,
+  &:focus {
+    color: var(--color-card-text);
+
+    opacity: 0.8;
   }
 
-  .secondaryValue,
-  .primaryFractionPart {
-    font-size: 1.25rem;
-  }
+  &:active {
+    color: var(--color-card-text);
 
-  .address {
-    font-size: 1.125rem;
+    opacity: 0.4;
   }
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  margin-top: 1.25rem;
+}
+
+.backButton {
+  margin: 0.25rem 0 0 -0.875rem;
+  padding-right: 0.125rem;
+
+  font-size: 1.25rem;
+  color: var(--color-card-text);
 }

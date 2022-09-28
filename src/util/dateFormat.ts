@@ -28,7 +28,7 @@ export function formatHumanDay(datetime: string | number) {
   return formatFullDay(datetime);
 }
 
-export function formatFullDay(datetime: string | number) {
+export function formatFullDay(datetime: string | number | Date) {
   const date = new Date(datetime);
   const dayStartAt = getDayStartAt(new Date(datetime));
   const today = getDayStart(new Date());

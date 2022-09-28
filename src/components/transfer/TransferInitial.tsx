@@ -390,7 +390,7 @@ function trimStringByMaxBytes(str: string, maxBytes: number) {
   const decoder = new TextDecoder('utf-8');
   const encoded = new TextEncoder().encode(str);
 
-  return decoder.decode(encoded.slice(0, maxBytes));
+  return decoder.decode(encoded.slice(0, maxBytes)).replace(/\uFFFD/g, '');
 }
 
 function getIsAddressValid(address?: string) {

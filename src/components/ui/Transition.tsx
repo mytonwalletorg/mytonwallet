@@ -1,8 +1,8 @@
 import { RefObject } from 'react';
 import React, { useLayoutEffect, useRef } from '../../lib/teact/teact';
 import { GlobalState } from '../../global/types';
+import { getGlobal } from '../../global';
 
-import { getGlobal } from '../../lib/teact/teactn';
 import { ANIMATION_LEVEL_MIN } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import forceReflow from '../../util/forceReflow';

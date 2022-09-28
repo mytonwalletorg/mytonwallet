@@ -5,6 +5,7 @@
 
   height: 100%;
   padding-top: 1.875rem;
+  padding-bottom: 2rem;
 
   color: var(--color-gray-2);
 }
@@ -19,6 +20,11 @@
 
 .emptyListLoading {
   padding-top: 8rem;
+}
+
+.sticker {
+  width: 9.75rem;
+  height: 9.75rem;
 }
 
 .loaderThreshold {

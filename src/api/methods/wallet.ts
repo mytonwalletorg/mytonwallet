@@ -9,7 +9,7 @@ import {
 } from '../../config';
 import { pause } from '../../util/schedulers';
 import * as dappPromises from '../common/dappPromises';
-import { checkAccountIsAuthorized, resolveBlockchainKey } from './helpers';
+import { checkAccountIsAuthorized, isUpdaterAlive, resolveBlockchainKey } from './helpers';
 import { setupTransactionsPolling } from './transactions';
 import { setupTokensPolling } from './tokens';
 
@@ -18,7 +18,7 @@ const POLLING_INTERVAL = 1100;
 let onUpdate: OnApiUpdate;
 let storage: Storage;
 
-export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage) {
+export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage, newestTxId?: string) {
   onUpdate = _onUpdate;
   storage = _storage;
 
@@ -31,7 +31,7 @@ export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage) {
 
   Object.keys(accountIds).forEach((accountId) => {
     setupBalancePolling(accountId);
-    setupTransactionsPolling(accountId);
+    setupTransactionsPolling(accountId, newestTxId);
     setupTokensPolling(accountId);
   });
 
@@ -51,7 +51,7 @@ export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage) {
 export async function setupBalancePolling(accountId: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  while (await checkAccountIsAuthorized(storage, accountId)) {
+  while (isUpdaterAlive(onUpdate) && await checkAccountIsAuthorized(storage, accountId)) {
     try {
       // toncoin
       const balance = await blockchain.getAccountBalance(storage, accountId);

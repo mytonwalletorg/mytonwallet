@@ -36,6 +36,19 @@
   }
 }
 
+.testnetWarning {
+  width: 100vw;
+  padding: 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: var(--color-blue-button-text);
+  text-align: center;
+
+  background-color: var(--color-blue-button-background);
+}
+
 .head {
   display: flex;
   flex-direction: column;
@@ -77,15 +90,13 @@
 
   display: flex;
   flex: 0 0 50%;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
 
   width: 50%;
   height: 3.4375rem;
-  padding: 0 0 0.5rem;
 
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1;
   color: var(--color-black);
@@ -128,11 +139,10 @@
 .buttonIcon {
   display: block;
 
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-bottom: 0.125rem;
+  margin-top: -0.125rem;
+  margin-inline-end: 0.25rem;
 
-  font-size: 1.5rem;
+  font-size: 1.875rem;
   color: var(--color-blue);
 
   transition: color 150ms;

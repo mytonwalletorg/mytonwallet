@@ -32,3 +32,13 @@ addActionHandler('removeFromSavedAddress', (global, actions, { address }) => {
     savedAddresses,
   };
 });
+
+addActionHandler('toggleTinyTransfersHidden', (global, actions, { isEnabled }) => {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      areTinyTransfersHidden: isEnabled,
+    },
+  };
+});

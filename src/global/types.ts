@@ -32,10 +32,13 @@ export type UserToken = {
   amount: number;
   name: string;
   symbol: string;
+  image?: string;
   slug: string;
   price: number;
-  change: number;
-  image?: string;
+  change24h: number;
+  change7d: number;
+  change30d: number;
+  history?: number[];
 };
 
 export type GlobalState = {
@@ -84,6 +87,7 @@ export type GlobalState = {
 
   settings: {
     animationLevel: 0 | 1 | 2;
+    areTinyTransfersHidden?: boolean;
     isTonProxyEnabled?: boolean;
     isTonMagicEnabled?: boolean;
   };
@@ -92,7 +96,6 @@ export type GlobalState = {
     isLoading?: boolean;
     byTxId: Record<string, ApiTransaction>;
     orderedTxIds?: string[];
-    nextOffsetTxId?: string;
   };
 
   nfts?: {
@@ -158,6 +161,7 @@ export interface ActionPayloads {
   cleanSignatureError: never;
   cancelSignature: never;
 
+  toggleTinyTransfersHidden: { isEnabled: boolean };
   toggleTonProxy: { isEnabled: boolean };
   toggleTonMagic: { isEnabled: boolean };
 

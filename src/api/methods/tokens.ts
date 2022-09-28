@@ -1,7 +1,7 @@
 import { pause } from '../../util/schedulers';
 import { ApiToken, OnApiUpdate } from '../types';
 import { BRILLIANT_API_BASE_URL, DEBUG } from '../../config';
-import { checkAccountIsAuthorized, resolveBlockchainKey } from './helpers';
+import { checkAccountIsAuthorized, resolveBlockchainKey, isUpdaterAlive } from './helpers';
 import { Storage } from '../storages/types';
 import blockchains from '../blockchains';
 import { buildCollectionByKey } from '../../util/iteratees';
@@ -23,7 +23,7 @@ export async function setupTokensPolling(accountId: string) {
   // TODO Wait for `setupBalancePolling` to be executed once
   await blockchain.getAccountTokenBalances(storage, accountId);
 
-  while (await checkAccountIsAuthorized(storage, accountId)) {
+  while (isUpdaterAlive(onUpdate) && await checkAccountIsAuthorized(storage, accountId)) {
     try {
       const tokens = blockchain.getKnownTokens();
 

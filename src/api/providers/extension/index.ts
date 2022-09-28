@@ -1,4 +1,4 @@
-import type { OnApiUpdate } from '../../types';
+import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import type { Methods, MethodArgs, MethodResponse } from '../../methods/types';
 
 import { DEBUG } from '../../../config';
@@ -7,9 +7,10 @@ import { Connector, createExtensionConnector } from '../../../util/PostMessageCo
 
 let connector: Connector;
 
-export function initApi(onUpdate: OnApiUpdate) {
+export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => ApiInitArgs)) {
   if (!connector) {
-    connector = createExtensionConnector(POPUP_PORT, onUpdate);
+    const getInitArgs = typeof initArgs === 'function' ? initArgs : () => initArgs;
+    connector = createExtensionConnector(POPUP_PORT, onUpdate, getInitArgs);
   }
 }
 

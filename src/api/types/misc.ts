@@ -1,4 +1,8 @@
-export type ApiToken = {
+export interface ApiInitArgs {
+  newestTxId?: string;
+}
+
+export interface ApiToken {
   name: string;
   symbol: string;
   slug: string;
@@ -8,10 +12,11 @@ export type ApiToken = {
     percentChange24h: number;
     percentChange7d: number;
     percentChange30d: number;
+    history?: number[];
   };
   minterAddress?: string;
   image?: string;
-};
+}
 
 export interface ApiTransaction {
   txId: string;

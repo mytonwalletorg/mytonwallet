@@ -18,7 +18,7 @@ export {
 export { oneCellFromBoc } from './util/tonweb';
 export {
   checkTransactionDraft,
-  getAccountLatestTxId,
+  getAccountNewestTxId,
   getAccountTransactionSlice,
   submitTransfer,
 } from './transactions';

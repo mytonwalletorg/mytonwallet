@@ -243,6 +243,7 @@ function TransferModal({
       isSlideUp
       isOpen={isOpen}
       onClose={cancelTransfer}
+      noBackdropClose
       onCloseAnimationEnd={handleModalClose}
       dialogClassName={styles.modalDialog}
     >

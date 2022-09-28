@@ -185,7 +185,7 @@ async function signTransaction(
   });
 }
 
-export async function getAccountLatestTxId(storage: Storage, accountId: string) {
+export async function getAccountNewestTxId(storage: Storage, accountId: string) {
   const address = await fetchAddress(storage, accountId);
   const tonWeb = getTonWeb();
 

@@ -173,6 +173,8 @@ export async function sendTransaction(params: {
           localTxId: localTransaction.txId,
         });
       });
+  } else {
+    // TODO Reset transfer modal state
   }
 
   return Boolean(result);
