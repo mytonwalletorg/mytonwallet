@@ -71,7 +71,12 @@ class Provider extends EventEmitter {
 }
 
 if (window.ton) {
-  window.ton.destroy();
+  try {
+    window.ton.destroy();
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err);
+  }
 }
 
 window.tonProtocolVersion = 1;

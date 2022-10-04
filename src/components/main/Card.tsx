@@ -107,7 +107,9 @@ function Card({
         </div>
         {primaryValue !== 0 && (
           <div className={buildClassName(styles.change, changeClassName)}>
-            {changePrefix}{Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), DEFAULT_PRICE_CURRENCY)}
+            {changePrefix}
+            &thinsp;
+            {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), DEFAULT_PRICE_CURRENCY)}
           </div>
         )}
         <div className={styles.addressContainer}>
@@ -207,7 +209,9 @@ function renderTokenCard(
           {formatCurrency(value, DEFAULT_PRICE_CURRENCY)}
           {Boolean(changeValue) && (
             <div className={styles.tokenChange}>
-              {changePrefix}{Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), DEFAULT_PRICE_CURRENCY)}
+              {changePrefix}
+              &thinsp;
+              {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), DEFAULT_PRICE_CURRENCY)}
             </div>
           )}
         </div>

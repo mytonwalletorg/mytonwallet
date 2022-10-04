@@ -55,7 +55,7 @@ function Token({
       <div className={styles.values}>
         <div className={styles.secondaryValue}>{formatCurrency(value, DEFAULT_PRICE_CURRENCY)}</div>
         <div className={buildClassName(styles.change, changeClassName)}>
-          {changePrefix}{changePercent}% · {formatCurrency(changeValue, DEFAULT_PRICE_CURRENCY)}
+          {changePrefix}&thinsp;{changePercent}% · {formatCurrency(changeValue, DEFAULT_PRICE_CURRENCY)}
         </div>
       </div>
       <i className={buildClassName(styles.iconArrow, 'icon-arrow-right')} aria-hidden />

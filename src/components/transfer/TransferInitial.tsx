@@ -39,6 +39,10 @@ const TON_ADDRESS_REGEX = /^[-\w_]{48}$/i;
 const TON_RAW_ADDRESS_REGEX = /^0:[\da-h]{64}$/i;
 const TON_DNS_REGEX = /^[-\da-z]{4,126}\.ton$/;
 const COMMENT_MAX_SIZE_BYTES = 121; // Value derived empirically
+
+// Fee may change, so we add 25% for more reliability. This is only safe for low-fee blockchains such as TON.
+const RESERVED_FEE_FACTOR = 1.25;
+
 const runThrottled = throttle((cb) => cb(), 1500, true);
 
 function TransferInitial({
@@ -101,7 +105,7 @@ function TransferInitial({
   useEffect(() => {
     if (shouldUseAllBalance && balance) {
       const calculatedFee = fee ? bigStrToHuman(fee) : 0;
-      setAmount(balance - calculatedFee);
+      setAmount(balance - calculatedFee * RESERVED_FEE_FACTOR);
     }
   }, [balance, fee, shouldUseAllBalance]);
 

@@ -32,7 +32,7 @@ function TokenPriceChart({
     const scaleX = width / boundingPoints.width;
     const scaleY = height / boundingPoints.height;
 
-    return prices.map((y, i) => ({ x: i * scaleX + 2.5, y: (y - boundingPoints.min) * scaleY + 2.5 }));
+    return prices.map((y, i) => ({ x: i * scaleX + 3, y: (y - boundingPoints.min) * scaleY + 3 }));
   }, [boundingPoints.height, boundingPoints.min, boundingPoints.width, height, width, prices]);
 
   function getBasisPoint(i: number) {

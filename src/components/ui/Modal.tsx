@@ -3,7 +3,7 @@ import React, {
   TeactNode, useCallback, useEffect, useRef,
 } from '../../lib/teact/teact';
 
-import { IS_EXTENSION } from '../../util/environment';
+import { IS_EXTENSION, IS_SINGLE_COLUMN_LAYOUT } from '../../util/environment';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import trapFocus from '../../util/trapFocus';
 import buildClassName from '../../util/buildClassName';
@@ -120,7 +120,7 @@ function Modal({
     styles.modal,
     className,
     transitionClassNames,
-    isSlideUp && styles.slideUp,
+    isSlideUp && IS_SINGLE_COLUMN_LAYOUT && styles.slideUp,
     isCompact && styles.compact,
   );
 
