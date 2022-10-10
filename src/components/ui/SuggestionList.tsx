@@ -2,7 +2,7 @@ import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 
-import styles from './SuggestionsList.module.scss';
+import styles from './SuggestionList.module.scss';
 
 type OwnProps = {
   position?: 'top' | 'bottom';
@@ -12,7 +12,7 @@ type OwnProps = {
   onSelect: (suggest: string) => void;
 };
 
-function SuggestionsList({
+function SuggestionList({
   position = 'bottom',
   suggestions,
   activeIndex,
@@ -47,4 +47,4 @@ function SuggestionsList({
   );
 }
 
-export default memo(SuggestionsList);
+export default memo(SuggestionList);

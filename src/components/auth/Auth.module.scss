@@ -36,7 +36,7 @@
   height: 12.5rem;
   margin: 4rem 0 0 0;
 
-  transition: opacity 1s ease, transform 0.35s ease-out !important;
+  transition: opacity 1s ease, transform 350ms ease-out !important;
 
   &:global(:not(.open)) {
     transform: translateY(-0.75rem);
@@ -97,7 +97,7 @@
   color: var(--color-blue);
 
   background: linear-gradient(to top, var(--color-background-first), var(--color-background-first)),
-              linear-gradient(to top, #0088cc99, #0088cc1a 50%, #0088cc00 70%) no-repeat 50% 50%;
+  linear-gradient(to top, #0088cc99, #0088cc1a 50%, #0088cc00 70%) no-repeat 50% 50%;
   background-clip: content-box, border-box;
   background-origin: border-box;
   border: 0.1875rem solid transparent;
@@ -105,7 +105,7 @@
 
   @media (prefers-color-scheme: dark) {
     background: linear-gradient(to top, var(--color-background-first), var(--color-background-first)),
-                linear-gradient(to top, #469cec, #469cec3d 50%, #469cec00 90%) no-repeat 50% 50%;
+    linear-gradient(to top, #469cec, #469cec3d 50%, #469cec00 90%) no-repeat 50% 50%;
     background-clip: content-box, border-box;
     background-origin: border-box;
   }
@@ -129,7 +129,7 @@
 
   opacity: 0.8 !important;
 
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out !important;
+  transition: opacity 500ms ease-out, transform 500ms ease-out !important;
 
   &:global(.open) {
     transform: scale(2.3);
@@ -227,6 +227,19 @@
 
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  &_about {
+    margin: 3.75rem auto 0.25rem;
+
+    font-size: 0.875rem !important;
+    font-weight: 500;
+    color: var(--color-gray-2);
+    white-space: nowrap;
+
+    &:hover, &:focus {
+      color: var(--color-gray-1);
+    }
   }
 }
 

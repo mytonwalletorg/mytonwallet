@@ -125,6 +125,7 @@ function updateCache() {
       'isBackupRequired',
       'savedAddresses',
       'currentTokenSlug',
+      'currentTokenPeriod',
     ]),
     transactions: reduceTransactions(global),
   };

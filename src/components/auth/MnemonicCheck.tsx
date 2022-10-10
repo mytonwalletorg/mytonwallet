@@ -9,7 +9,7 @@ import { areSortedArraysEqual } from '../../util/iteratees';
 
 import ModalHeader from '../ui/ModalHeader';
 import Button from '../ui/Button';
-import InputMnemonic from '../ui/InputMnemonic';
+import InputMnemonic from '../common/InputMnemonic';
 
 import styles from './Auth.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
@@ -57,7 +57,7 @@ function MnemonicCheck({
 
   return (
     <div className={modalStyles.transitionContentWrapper}>
-      <ModalHeader title="Let's check!" onClose={onClose} />
+      <ModalHeader title="Let's Check!" onClose={onClose} />
       <div className={buildClassName(modalStyles.transitionContent, 'custom-scroll')}>
         <p className={buildClassName(styles.info, styles.small)}>
           Let’s make sure your secrets words are recorded correctly.

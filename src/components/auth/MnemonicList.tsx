@@ -20,7 +20,7 @@ function MnemonicList({
 }: OwnProps) {
   return (
     <div className={modalStyles.transitionContentWrapper}>
-      <ModalHeader title={`${MNEMONIC_COUNT} words`} onClose={onClose} />
+      <ModalHeader title={`${MNEMONIC_COUNT} Secret Words`} onClose={onClose} />
       <div className={buildClassName(modalStyles.transitionContent, 'custom-scroll')}>
         <p className={buildClassName(styles.info, styles.small)}>
           Write down these words

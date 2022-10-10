@@ -12,7 +12,9 @@ export interface ApiToken {
     percentChange24h: number;
     percentChange7d: number;
     percentChange30d: number;
-    history?: number[];
+    history24h?: ApiHistoryList;
+    history7d?: ApiHistoryList;
+    history30d?: ApiHistoryList;
   };
   minterAddress?: string;
   image?: string;
@@ -48,3 +50,5 @@ export interface ApiNft {
   collectionAddress: string;
   isOnSale: boolean;
 }
+
+export type ApiHistoryList = Array<[number, number]>;

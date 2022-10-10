@@ -42,3 +42,10 @@ addActionHandler('toggleTinyTransfersHidden', (global, actions, { isEnabled }) =
     },
   };
 });
+
+addActionHandler('setCurrentTokenPeriod', (global, actions, { period }) => {
+  return {
+    ...global,
+    currentTokenPeriod: period,
+  };
+});

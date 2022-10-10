@@ -14,7 +14,7 @@
   border-radius: 0;
   outline: none !important;
 
-  transition: background-color 150ms ease-in, color 150ms ease-in, opacity 150ms ease-in;
+  transition: background-color 150ms, color 150ms, opacity 150ms;
 
   // @optimization
   &.clicked,
@@ -71,12 +71,12 @@
 
   background-color: transparent;
 
-  transition: color 150ms ease-in;
+  transition: color 150ms;
 
   &:hover,
   &:focus,
   &:active {
-    color: var(--color-blue);
+    color: var(--color-blue-button-background-hover);
   }
 
   &[disabled] {
@@ -177,7 +177,7 @@
     border-top-color: var(--color-white);
     border-radius: 50%;
 
-    animation: button-loading-spinner 1s ease infinite;
+    animation: button-loading-spinner 1s linear infinite;
   }
 }
 

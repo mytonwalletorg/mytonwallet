@@ -20,6 +20,7 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import DeleteSavedAddressModal from './DeleteSavedAddressModal';
+import TransactionAmount from '../common/TransactionAmount';
 
 import styles from './TransactionModal.module.scss';
 import transferStyles from '../transfer/Transfer.module.scss';
@@ -135,22 +136,6 @@ function TransactionModal({
     );
   }
 
-  function renderAmount() {
-    const [wholePart, fractionPart] = formatCurrencyExtended(amountHuman, '').split('.');
-
-    return (
-      <div className={buildClassName(
-        styles.amount,
-        isIncoming && styles.amount_operationPositive,
-      )}
-      >
-        {wholePart.trim().replace('\u202F', '')}
-        {fractionPart && <span className={styles.amountFraction}>.{fractionPart.trim()}</span>}
-        <span className={styles.amountSymbol}>{token?.symbol || CARD_SECONDARY_VALUE_SYMBOL}</span>
-      </div>
-    );
-  }
-
   function renderFee() {
     if (isIncoming || !fee) {
       return undefined;
@@ -212,7 +197,7 @@ function TransactionModal({
               <i className="icon-tonscan" aria-hidden />
             </a>
           )}
-          {renderAmount()}
+          <TransactionAmount isIncoming={isIncoming} amount={amountHuman} tokenSymbol={token?.symbol} />
 
           <div className={transferStyles.label}>{isIncoming ? 'Sender' : 'Recipient'}</div>
           <div className={buildClassName(receiveStyles.copyButtonWrapper, styles.copyButtonWrapper)}>

@@ -5,26 +5,21 @@ import { UserToken } from '../../global/types';
 
 import { getActions, withGlobal } from '../../global';
 import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG, TONSCAN_BASE_URL } from '../../config';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import { selectAllTokens } from '../../global/selectors';
 import { formatCurrency, formatInteger } from '../../util/formatNumber';
 import { copyTextToClipboard } from '../../util/clipboard';
 import buildClassName from '../../util/buildClassName';
 import { shortenAddress } from '../../util/shortenAddress';
 import { round } from '../../util/round';
-import { formatFullDay } from '../../util/dateFormat';
 import { getTokenCardColor } from './helpers/card_colors';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useShowTransition from '../../hooks/useShowTransition';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 
 import Loading from '../ui/Loading';
-import TokenPriceChart from '../ui/TokenPriceChart';
-import Button from '../ui/Button';
+import TokenCard from './TokenCard';
 
 import styles from './Card.module.scss';
-
-import tonUrl from '../../assets/coins/ton.svg';
 
 interface OwnProps {
   onTokenCardClose: NoneToVoidFunction;
@@ -35,11 +30,6 @@ interface StateProps {
   tokens?: UserToken[];
   currentTokenSlug?: string;
 }
-
-const COIN_MARKET_CAP_TOKENS: Record<string, string> = {
-  toncoin: 'toncoin',
-  'ton-tgr': 'tgr',
-};
 
 function Card({
   address,
@@ -128,8 +118,13 @@ function Card({
           </a>
         </div>
       </div>
-      {shouldRenderTokenCard && renderTokenCard(
-        renderedToken!, onTokenCardClose, tokenCardTransitionClassNames, tokenCardColor,
+      {shouldRenderTokenCard && (
+        <TokenCard
+          token={renderedToken!}
+          classNames={tokenCardTransitionClassNames}
+          color={tokenCardColor}
+          onClose={onTokenCardClose}
+        />
       )}
     </div>
   );
@@ -162,101 +157,4 @@ function buildValues(tokens: UserToken[]) {
     changePercent,
     changeValue,
   };
-}
-
-function renderTokenCard(
-  token: UserToken,
-  onClose: NoneToVoidFunction,
-  classNames: string,
-  tokenCardColor?: string,
-) {
-  const {
-    slug, symbol, amount, image, name, price, change30d: change, history,
-  } = token;
-  const logoPath = slug === TON_TOKEN_SLUG
-    ? tonUrl
-    : (image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS]);
-
-  const value = amount * price;
-  const changePrefix = change > 0 ? '↑' : change < 0 ? '↓' : undefined;
-  const changeValue = Math.abs(round(value * change, 4));
-  const changePercent = Math.abs(round(change * 100, 2));
-
-  const shouldRenderPrice = Boolean(price);
-  const shouldRenderCoinMarketCap = slug in COIN_MARKET_CAP_TOKENS;
-
-  const hasHistory = history && history.length;
-  const historyStartDay = new Date();
-  if (history) {
-    historyStartDay.setDate(historyStartDay.getDate() - history.length + 1);
-  }
-
-  return (
-    <div className={buildClassName(styles.container, styles.tokenCard, classNames, tokenCardColor)}>
-      <div className={styles.tokenInfo}>
-        <Button className={styles.backButton} isSimple onClick={onClose} ariaLabel="Back">
-          <i className="icon-arrow-left" aria-hidden />
-        </Button>
-        <img className={styles.tokenLogo} src={logoPath} alt={token.name} />
-        <div>
-          <strong className={styles.tokenAmount}>{formatCurrency(amount, symbol)}</strong>
-          <span className={styles.tokenName}>{name}</span>
-        </div>
-      </div>
-
-      {shouldRenderPrice && (
-        <div className={styles.tokenPrice}>
-          {formatCurrency(value, DEFAULT_PRICE_CURRENCY)}
-          {Boolean(changeValue) && (
-            <div className={styles.tokenChange}>
-              {changePrefix}
-              &thinsp;
-              {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), DEFAULT_PRICE_CURRENCY)}
-            </div>
-          )}
-        </div>
-      )}
-
-      {hasHistory && (
-        <TokenPriceChart
-          className={styles.chart}
-          width={300}
-          height={48}
-          prices={history}
-        />
-      )}
-
-      {hasHistory && (
-        <div className={styles.tokenHistoryPrice}>
-          {formatCurrency(history[0], DEFAULT_PRICE_CURRENCY)}
-          <div className={styles.tokenPriceDate}>
-            {formatFullDay(historyStartDay)}
-          </div>
-        </div>
-      )}
-
-      {shouldRenderPrice && (
-        <div className={styles.tokenCurrentPrice}>
-          {formatCurrency(price, DEFAULT_PRICE_CURRENCY)}
-          <div className={styles.tokenPriceDate}>
-            Now
-            {shouldRenderCoinMarketCap && (
-              <>
-                {' · '}
-                <a
-                  href={`https://coinmarketcap.com/currencies/${COIN_MARKET_CAP_TOKENS[slug]}/`}
-                  title="Open on CoinMarketCap"
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.coinMarket}
-                >
-                  <i className="icon-coinmarket" aria-hidden />
-                </a>
-              </>
-            ) }
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }

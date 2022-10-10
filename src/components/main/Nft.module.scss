@@ -43,7 +43,7 @@
   background-color: var(--color-blue-button-background);
   border-radius: 0.5rem;
 
-  transition: background-color 150ms ease-in, color 150ms ease-in;
+  transition: background-color 150ms, color 150ms;
 
   &:hover,
   &:focus {

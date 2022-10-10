@@ -1,25 +1,33 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
 
+import type { ApiHistoryList } from '../../api/types';
+
 interface OwnProps {
-  isChartSmooth?: boolean;
   width: number;
   height: number;
-  prices: number[];
+  prices: ApiHistoryList;
+  selectedIndex: number;
   className?: string;
+  imgClassName?: string;
+  onSelectIndex: (index: number) => void;
 }
 
+const IS_SMOOTH = true;
 const PATH_SMOOTHING = 0.0001;
 
 function TokenPriceChart({
   width,
   height,
   prices,
-  isChartSmooth,
+  selectedIndex,
   className,
+  imgClassName,
+  onSelectIndex,
 }: OwnProps) {
   const boundingPoints = useMemo(() => {
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
+    const priceValues = prices.map(([, price]) => price);
+    const min = Math.min(...priceValues);
+    const max = Math.max(...priceValues);
 
     return {
       width: prices.length - 1,
@@ -32,7 +40,7 @@ function TokenPriceChart({
     const scaleX = width / boundingPoints.width;
     const scaleY = height / boundingPoints.height;
 
-    return prices.map((y, i) => ({ x: i * scaleX + 3, y: (y - boundingPoints.min) * scaleY + 3 }));
+    return prices.map(([, y], i) => ({ x: i * scaleX + 3, y: (y - boundingPoints.min) * scaleY + 3 }));
   }, [boundingPoints.height, boundingPoints.min, boundingPoints.width, height, width, prices]);
 
   function getBasisPoint(i: number) {
@@ -74,15 +82,15 @@ function TokenPriceChart({
 
   function getPath() {
     let d = points.reduce((acc, point, i) => {
-      const partialPath = isChartSmooth
+      const partialPath = IS_SMOOTH
         ? getCurvePath(i)
         : getLinePath(point);
       return i === 0
-        ? `M ${i} ${point.y} `
+        ? `M ${point.x} ${point.y} `
         : `${acc} ${partialPath} `;
     }, '');
 
-    if (isChartSmooth) {
+    if (IS_SMOOTH) {
       d += getCurvePath(points.length);
       d += getLinePath(points[points.length - 1]);
     }
@@ -91,25 +99,49 @@ function TokenPriceChart({
   }
 
   function renderSvg() {
-    const lastPoint = points[points.length - 1];
+    const activePoint = points[selectedIndex] || points[points.length - 1];
 
     const svg = `<svg viewBox="0 0 ${width + 6} ${height + 6}" height="${height + 6}" width="${width + 6}"
         xmlns="http://www.w3.org/2000/svg" style="transform: scale(1,-1)">
         <g fill="none" stroke="white">
           <path stroke-linejoin="round" stroke-width="1.5" d="${getPath()}" style="stroke-linecap: round" />
-          <circle r="2.5" fill="white" cx="${lastPoint.x}" cy="${lastPoint.y}" />
+          <circle r="2.5" fill="white" cx="${activePoint.x}" cy="${activePoint.y}" />
         </g>
       </svg>`;
 
     return `data:image/svg+xml;utf8,${(svg)}`;
   }
 
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) {
+    const { x: containerX, width: containerWidth } = e.currentTarget.getBoundingClientRect();
+    const { clientX } = 'touches' in e ? e.touches[0] : e;
+    const segmentHalfWidth = (containerWidth / points.length) / 2;
+    const x = clientX - containerX - segmentHalfWidth;
+    const nextIndex = Math.max(0, Math.min(Math.round(points.length * (x / containerWidth)), points.length - 1));
+
+    onSelectIndex(nextIndex);
+  }
+
+  function handleMouseLeave() {
+    onSelectIndex(-1);
+  }
+
   return (
-    <img
-      src={renderSvg()}
-      alt="Currency History"
+    <div
       className={className}
-    />
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleMouseMove}
+      onTouchMove={handleMouseMove}
+      onTouchEnd={handleMouseLeave}
+      onTouchCancel={handleMouseLeave}
+    >
+      <img
+        src={renderSvg()}
+        className={imgClassName}
+        alt="Currency History"
+      />
+    </div>
   );
 }
 

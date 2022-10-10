@@ -295,7 +295,7 @@
   color: var(--color-card-second-text);
 }
 
-.coinMarket {
+.cmcButton {
   position: relative;
   top: 0.25rem;
 
@@ -321,9 +321,43 @@
 }
 
 .chart {
+  touch-action: none;
+  cursor: pointer;
+
+  position: relative;
+
   width: 100%;
   height: auto;
-  margin-top: 1.25rem;
+  padding: 0.75rem 0 0.875rem 0;
+
+  // Following pseudo-elements are used to enlarge interactive area without affecting bounding box
+
+  &::before {
+    content: "";
+
+    position: absolute;
+    top: 0;
+    left: -0.5rem;
+
+    width: 0.5rem;
+    height: 100%;
+  }
+
+  &::after {
+    content: "";
+
+    position: absolute;
+    top: 0;
+    right: -0.5rem;
+
+    width: 0.5rem;
+    height: 100%;
+  }
+}
+
+.chartImg {
+  width: 100%;
+  height: auto;
 }
 
 .backButton {
@@ -333,4 +367,58 @@
 
   font-size: 1.25rem;
   color: var(--color-card-text);
+}
+
+.periodChooser {
+  position: absolute;
+  bottom: 0.625rem;
+  left: 50%;
+  transform: translateX(-50%);
+
+  display: flex;
+  gap: 0.25rem;
+
+  @media (max-width: 600px) {
+    gap: 0.1875rem;
+  }
+}
+
+.periodItem {
+  cursor: pointer;
+
+  position: relative;
+
+  overflow: hidden;
+
+  margin: 0;
+  padding: 0.3125rem 0.3125rem 0.375rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 0.8125rem;
+  color: var(--color-card-text);
+
+  border-radius: 0.5rem;
+
+  transition: 200ms background-color;
+
+  &:hover {
+    background-color: var(--color-card-button);
+  }
+
+  &_active {
+    background-color: var(--color-card-toggle) !important;
+  }
+}
+
+.periodInput {
+  position: absolute;
+  top: -2rem;
+  left: -2rem;
+
+  width: 0.0625rem;
+  height: 0.0625rem;
+
+  opacity: 0;
+  clip: rect(0 0 0 0);
 }

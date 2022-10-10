@@ -22,45 +22,6 @@
   white-space: nowrap;
 }
 
-.amount {
-  overflow: hidden;
-  display: inline-block;
-
-  max-width: 100%;
-  margin: 1rem auto;
-  padding: 0.75rem 1rem;
-
-  font-size: 3rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--color-activity-gray-text);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  background-color: var(--color-activity-gray-10);
-  border-radius: var(--border-radius-default);
-
-  &_operationPositive {
-    color: var(--color-activity-green-text);
-
-    background-color: var(--color-activity-green-10);
-  }
-
-  @media (prefers-color-scheme: light) {
-    box-shadow: 0 0 2rem #FFFFFF;
-  }
-}
-
-.amountSymbol,
-.amountFraction {
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.amountSymbol {
-  margin-inline-start: 0.25rem;
-}
-
 .clockIcon {
   margin-inline-start: 0.25rem;
 

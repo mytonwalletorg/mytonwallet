@@ -149,7 +149,7 @@
   background-color: var(--color-close-button-background) !important;
   border-radius: 50% !important;
 
-  transition: background-color 150ms ease-in;
+  transition: background-color 150ms;
 
   &:hover,
   &:focus {
@@ -169,7 +169,7 @@
   font-size: 1.875rem;
   line-height: 1;
 
-  transition: color 150ms ease-in;
+  transition: color 150ms;
 }
 
 .title {

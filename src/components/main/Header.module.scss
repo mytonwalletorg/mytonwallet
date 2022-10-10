@@ -9,8 +9,6 @@
   background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
   box-shadow: none;
-
-  transition: box-shadow 0.15s ease-in-out;
 }
 
 .icon {
@@ -58,28 +56,10 @@
   margin-left: auto !important;
 }
 
-.modalTitle {
-  font-weight: 700;
-  text-align: center;
-}
-
-.modalTitleLink {
-  display: block;
-
-  font-size: small;
-  font-weight: normal;
-}
-
 .modalText {
   font-size: 0.9375rem;
 
   &:last-of-type {
     margin-bottom: 1.5rem;
   }
-}
-
-.aboutLogo {
-  width: 6rem;
-  height: 6rem;
-  margin: 0 auto 1rem;
 }

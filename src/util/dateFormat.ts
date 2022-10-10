@@ -3,15 +3,19 @@ import withCache from './withCache';
 const formatDayToStringWithCache = withCache((
   dayStartAt: number,
   noYear?: boolean,
-  monthFormat: 'short' | 'long' | 'numeric' = 'short',
+  monthFormat: 'short' | 'long' | 'numeric' | false = 'short',
   noDay?: boolean,
+  withTime = false,
 ) => {
   return new Date(dayStartAt).toLocaleString(
     'en-US',
     {
       year: noYear ? undefined : 'numeric',
-      month: monthFormat,
+      month: monthFormat || undefined,
       day: noDay ? undefined : 'numeric',
+      hour: withTime ? 'numeric' : undefined,
+      minute: withTime ? 'numeric' : undefined,
+      hour12: false,
     },
   );
 });
@@ -30,11 +34,23 @@ export function formatHumanDay(datetime: string | number) {
 
 export function formatFullDay(datetime: string | number | Date) {
   const date = new Date(datetime);
-  const dayStartAt = getDayStartAt(new Date(datetime));
+  const dayStartAt = getDayStartAt(date);
   const today = getDayStart(new Date());
   const noYear = date.getFullYear() === today.getFullYear();
 
   return formatDayToStringWithCache(dayStartAt, noYear, 'long');
+}
+
+export function formatShortDay(datetime: string | number | Date, withTime = false) {
+  const date = new Date(datetime);
+  const dayStartAt = getDayStartAt(date);
+  const today = getDayStart(new Date());
+  const todayStartAt = getDayStartAt(today);
+  const noYear = date.getFullYear() === today.getFullYear();
+  const noDate = withTime && dayStartAt === todayStartAt;
+  const targetAt = withTime ? getMinuteStart(date).getTime() : dayStartAt;
+
+  return formatDayToStringWithCache(targetAt, noYear, !noDate && 'short', noDate, withTime);
 }
 
 export function formatTime(datetime: string | number) {
@@ -51,6 +67,12 @@ export function getDayStart(datetime: number | Date) {
 
 export function getDayStartAt(datetime: number | Date) {
   return getDayStart(datetime).getTime();
+}
+
+export function getMinuteStart(datetime: number | Date) {
+  const date = new Date(datetime);
+  date.setSeconds(0, 0);
+  return date;
 }
 
 function isToday(datetime: string | number) {

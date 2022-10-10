@@ -125,7 +125,7 @@
   color: var(--color-gray-3);
   vertical-align: -0.1875rem;
 
-  transition: color 150ms ease-in;
+  transition: color 150ms;
 
   &:global(.icon-copy) {
     margin-inline-start: 0.0625rem;

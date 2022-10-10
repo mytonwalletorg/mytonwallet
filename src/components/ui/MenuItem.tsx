@@ -6,13 +6,14 @@ import styles from './MenuItem.module.scss';
 
 type OnClickHandler = (e: React.SyntheticEvent<HTMLDivElement | HTMLAnchorElement>) => void;
 
-type OwnProps = {
+interface OwnProps {
   className?: string;
   href?: string;
   children: React.ReactNode;
   onClick?: OnClickHandler;
   isDestructive?: boolean;
-};
+  isSeparator?: boolean;
+}
 
 const MenuItem: FC<OwnProps> = (props) => {
   const {
@@ -21,6 +22,7 @@ const MenuItem: FC<OwnProps> = (props) => {
     children,
     onClick,
     isDestructive,
+    isSeparator,
   } = props;
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -53,6 +55,7 @@ const MenuItem: FC<OwnProps> = (props) => {
     styles.menuItem,
     className,
     isDestructive && styles.destructive,
+    isSeparator && styles.menuItem_separator,
   );
 
   if (href) {

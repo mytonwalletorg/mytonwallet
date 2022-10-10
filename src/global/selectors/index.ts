@@ -28,7 +28,7 @@ export const selectAllTokensMemoized = memoized((
       const amount = bigStrToHuman(balance);
       const {
         symbol, name, image, quote: {
-          price, percentChange24h, percentChange7d, percentChange30d, history,
+          price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
         },
       } = tokenInfo.bySlug[slug];
 
@@ -42,7 +42,9 @@ export const selectAllTokensMemoized = memoized((
         change24h: round(percentChange24h / 100, 4),
         change7d: round(percentChange7d / 100, 4),
         change30d: round(percentChange30d / 100, 4),
-        history,
+        history24h,
+        history7d,
+        history30d,
       } as UserToken;
     });
 });

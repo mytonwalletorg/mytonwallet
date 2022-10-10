@@ -5,16 +5,15 @@
 
   position: relative;
 
-  overflow: hidden;
   display: flex;
 
   width: 100%;
-  padding: 0.75rem 0.5rem;
+  padding: 0.75rem;
 
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1;
-  color: var(--color-blue);
+  color: var(--color-black);
   text-decoration: none;
   white-space: nowrap;
 
@@ -24,11 +23,31 @@
   outline: none !important;
   box-shadow: none !important;
 
-  transition: color 150ms ease-in, background-color 150ms ease-in;
+  transition: color 150ms, background-color 150ms;
+
+  &_separator {
+    margin-bottom: 0.5rem;
+
+    &::after {
+      pointer-events: none;
+      content: '';
+
+      position: absolute;
+      bottom: -0.25rem;
+      left: -0.25rem;
+
+      width: calc(100% + 0.5rem);
+      height: 0.0625rem;
+
+      /* stylelint-disable-next-line plugin/whole-pixel */
+      box-shadow: inset 0 -0.025rem 0 0 var(--color-separator) !important;
+    }
+  }
 
   @media (hover: hover) {
     &:hover,
     &:focus {
+      color: var(--color-blue);
       text-decoration: none;
 
       background-color: var(--color-interactive-popup-menu-hover);

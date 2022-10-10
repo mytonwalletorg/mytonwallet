@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MyTonWallet",
-  "description": "Securely store crypto and make blockchain payments at the speed of light.",
+  "description": "The most feature-rich TON extension. Securely store crypto and make blockchain payments at the speed of light.",
   "version": "%%VERSION%%",
   "icons": {
     "192": "icon-192x192.png",

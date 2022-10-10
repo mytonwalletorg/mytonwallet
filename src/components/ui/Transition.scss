@@ -7,7 +7,7 @@
     width: 100%;
     height: 100%;
 
-    transition: background-color 0.2s;
+    transition: background-color 200ms;
     animation-fill-mode: forwards !important;
 
     &.from,
@@ -230,11 +230,11 @@
 
     &.animating {
       > .from {
-        animation: fade-out-opacity 0.15s ease;
+        animation: fade-out-opacity 150ms ease;
       }
 
       > .to {
-        animation: fade-in-opacity 0.15s ease, zoom-fade-in-move 0.15s ease;
+        animation: fade-in-opacity 150ms ease, zoom-fade-in-move 150ms ease;
       }
     }
   }
@@ -250,11 +250,11 @@
 
     &.animating {
       > .from {
-        animation: fade-in-backwards-opacity 0.1s ease, zoom-fade-in-backwards-move 0.15s ease;
+        animation: fade-in-backwards-opacity 100ms ease, zoom-fade-in-backwards-move 150ms ease;
       }
 
       > .to {
-        animation: fade-out-backwards-opacity 0.15s ease, zoom-fade-out-backwards-move 0.15s ease;
+        animation: fade-out-backwards-opacity 150ms ease, zoom-fade-out-backwards-move 150ms ease;
       }
     }
   }

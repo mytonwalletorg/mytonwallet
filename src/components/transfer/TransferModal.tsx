@@ -5,14 +5,16 @@ import { getActions, withGlobal } from '../../global';
 
 import { GlobalState, TransferState, UserToken } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, CARD_SECONDARY_VALUE_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
+import usePrevious from '../../hooks/usePrevious';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { selectAllTokens } from '../../global/selectors';
+import { round } from '../../util/round';
 
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -21,6 +23,7 @@ import TransferInitial from './TransferInitial';
 import PasswordForm from '../ui/PasswordForm';
 import Button from '../ui/Button';
 import AnimatedIcon from '../ui/AnimatedIcon';
+import TransactionAmount from '../common/TransactionAmount';
 
 import styles from './Transfer.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
@@ -29,6 +32,8 @@ interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
   tokens?: UserToken[];
 }
+
+const AMOUNT_PRECISION = 9;
 
 function TransferModal({
   currentTransfer: {
@@ -46,7 +51,7 @@ function TransferModal({
 }: StateProps) {
   const {
     submitTransferConfirm, submitTransferPassword, setTransferScreen, cleanTransferError, cancelTransfer,
-    showTransactionInfo,
+    showTransactionInfo, startTransfer,
   } = getActions();
 
   const isOpen = state !== TransferState.None;
@@ -55,10 +60,10 @@ function TransferModal({
   const updateNextKey = useCallback(() => {
     setNextKey(renderingState + 1);
   }, [renderingState]);
-
-  const selectedToken = useMemo(() => {
-    return tokens?.find((token) => token.slug === tokenSlug);
-  }, [tokenSlug, tokens]);
+  const selectedToken = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]);
+  const renderedTokenBalance = usePrevious(selectedToken?.amount, true);
+  const renderedTransactionAmount = usePrevious(amount, true);
+  const symbol = selectedToken?.symbol || '';
 
   useEffect(() => {
     if (isOpen) {
@@ -101,6 +106,15 @@ function TransferModal({
     }
   }, [cancelTransfer, showTransactionInfo, txId]);
 
+  const handleTransactionRepeatClick = useCallback(() => {
+    startTransfer({
+      tokenSlug: tokenSlug || TON_TOKEN_SLUG,
+      toAddress,
+      amount,
+      comment,
+    });
+  }, [amount, comment, startTransfer, toAddress, tokenSlug]);
+
   function renderComment() {
     if (!comment) {
       return undefined;
@@ -135,7 +149,7 @@ function TransferModal({
           <div className={styles.label}>Amount</div>
           <div className={styles.inputReadOnly}>
             {formatCurrencyExtended(amount || 0, '', true)}
-            <span className={styles.suffix}>{selectedToken?.symbol}</span>
+            <span className={styles.suffix}>{symbol}</span>
             {fee && (
               <>
                 <div className={styles.feeLabel}>Fee</div>
@@ -187,11 +201,14 @@ function TransferModal({
   }
 
   function renderComplete(isActive: boolean) {
+    const withBalanceChange = renderedTokenBalance && amount;
+    const finalTokenBalance = withBalanceChange ? renderedTokenBalance - amount - (fee ? bigStrToHuman(fee) : 0) : 0;
+
     return (
       <>
-        <ModalHeader title="Done!" onClose={cancelTransfer} />
+        <ModalHeader title="Coins have been sent!" onClose={cancelTransfer} />
 
-        <div className={buildClassName(modalStyles.transitionContent, modalStyles.transitionContent_simple)}>
+        <div className={modalStyles.transitionContent}>
           <AnimatedIcon
             play={isActive}
             noLoop={false}
@@ -199,16 +216,19 @@ function TransferModal({
             className={styles.sticker}
             tgsUrl={ANIMATED_STICKERS_PATHS.thumbUp}
           />
-          {Boolean(selectedToken) && (
-            <div className={styles.description}>
-              <strong>{formatCurrencyExtended(amount || 0, selectedToken.symbol, true)}</strong> have been sent.
+          <TransactionAmount amount={-(renderedTransactionAmount || 0)} tokenSymbol={symbol} />
+
+          {withBalanceChange && (
+            <div className={styles.balanceChange}>
+              {formatCurrencyExtended(round(renderedTokenBalance, AMOUNT_PRECISION), symbol, true)}
+              &nbsp;&rarr;&nbsp;
+              {formatCurrencyExtended(round(finalTokenBalance, AMOUNT_PRECISION), symbol, true)}
             </div>
           )}
 
           <div className={modalStyles.buttons}>
-            <Button onClick={handleTransactionInfoClick}>
-              {txId ? 'Transaction Info' : 'Close'}
-            </Button>
+            <Button onClick={handleTransactionInfoClick}>{txId ? 'Details' : 'Close'}</Button>
+            <Button onClick={handleTransactionRepeatClick}>Repeat</Button>
           </div>
         </div>
       </>

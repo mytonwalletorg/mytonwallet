@@ -10,7 +10,7 @@ import buildClassName from '../../util/buildClassName';
 import useClipboardPaste from '../../hooks/useClipboardPaste';
 
 import AnimatedIcon from '../ui/AnimatedIcon';
-import InputMnemonic from '../ui/InputMnemonic';
+import InputMnemonic from '../common/InputMnemonic';
 import Button from '../ui/Button';
 
 import styles from './Auth.module.scss';

@@ -22,14 +22,14 @@
   border-radius: var(--border-radius-default);
   outline: none;
 
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 150ms, box-shadow 150ms;
 
   -webkit-appearance: none;
 
   &::placeholder {
     color: var(--color-gray-3);
 
-    transition: color 150ms ease-in;
+    transition: color 150ms;
   }
 
   // Hide hint for Safari password strength meter
@@ -136,7 +136,7 @@
       font-size: 3rem;
       color: var(--color-gray-4);
 
-      transition: color 150ms ease-in;
+      transition: color 150ms;
     }
 
     &:focus {
@@ -162,7 +162,7 @@
   border-radius: var(--border-radius-default);
   outline: none;
 
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow 150ms;
 
   &.error,
   &_hasFocus.error, {
@@ -174,7 +174,7 @@
   }
 }
 
-.visibilityToggler {
+.visibilityToggle {
   cursor: pointer;
 
   position: absolute;
@@ -192,7 +192,7 @@
   border: none;
   outline: none;
 
-  transition: opacity 150ms ease-in;
+  transition: opacity 150ms;
 
   &:focus {
     opacity: 1;

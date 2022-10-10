@@ -2,13 +2,13 @@ import type { FocusEvent } from 'react';
 import React, { memo, useCallback } from '../../lib/teact/teact';
 import { withGlobal, getActions } from '../../global';
 
-import {
-  APP_NAME, APP_VERSION, MNEMONIC_COUNT, PROXY_HOSTS, TELEGRAM_WEB_URL,
-} from '../../config';
+import { MNEMONIC_COUNT, PROXY_HOSTS, TELEGRAM_WEB_URL } from '../../config';
 import { IS_EXTENSION } from '../../util/environment';
 import buildClassName from '../../util/buildClassName';
 import useFlag from '../../hooks/useFlag';
+import useShowTransition from '../../hooks/useShowTransition';
 
+import AboutModal from '../common/AboutModal';
 import Button from '../ui/Button';
 import SearchBar from '../ui/SearchBar';
 import Menu from '../ui/Menu';
@@ -18,8 +18,6 @@ import Switcher from '../ui/Switcher';
 
 import styles from './Header.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
-import logoSrc from '../../assets/logo.svg';
-import useShowTransition from '../../hooks/useShowTransition';
 
 type OwnProps = {
   onOpenBackupWallet: () => void;
@@ -65,10 +63,13 @@ function Header({
     }
   }, [closeMenu, isMenuOpened, openMenu]);
 
-  const handleOpenAbout = useCallback(() => {
-    closeMenu();
-    openAbout();
-  }, [closeMenu, openAbout]);
+  const handleTonProxyToggle = useCallback(() => {
+    toggleTonProxy({ isEnabled: !isTonProxyEnabled });
+  }, [isTonProxyEnabled, toggleTonProxy]);
+
+  const handleTonMagicToggle = useCallback(() => {
+    toggleTonMagic({ isEnabled: !isTonMagicEnabled });
+  }, [isTonMagicEnabled, toggleTonMagic]);
 
   const handleTinyTransfersHiddenToggle = useCallback(() => {
     toggleTinyTransfersHidden({ isEnabled: !areTinyTransfersHidden });
@@ -79,13 +80,10 @@ function Header({
     onOpenBackupWallet();
   }, [closeMenu, onOpenBackupWallet]);
 
-  const handleTonProxyToggle = useCallback(() => {
-    toggleTonProxy({ isEnabled: !isTonProxyEnabled });
-  }, [isTonProxyEnabled, toggleTonProxy]);
-
-  const handleTonMagicToggle = useCallback(() => {
-    toggleTonMagic({ isEnabled: !isTonMagicEnabled });
-  }, [isTonMagicEnabled, toggleTonMagic]);
+  const handleOpenAbout = useCallback(() => {
+    closeMenu();
+    openAbout();
+  }, [closeMenu, openAbout]);
 
   const handleOpenConfirmation = useCallback(() => {
     closeMenu();
@@ -114,7 +112,6 @@ function Header({
         <i className="icon-menu" aria-hidden />
       </Button>
       <Menu bubbleClassName={styles.menu} isOpen={isMenuOpened} onClose={closeMenu} positionX="right">
-        <MenuItem onClick={handleOpenAbout}>About</MenuItem>
         {IS_EXTENSION && PROXY_HOSTS && (
           <MenuItem onClick={handleTonProxyToggle}>
             TON Proxy
@@ -132,7 +129,7 @@ function Header({
             Open Telegram Web
           </MenuItem>
         )}
-        <MenuItem onClick={handleTinyTransfersHiddenToggle}>
+        <MenuItem isSeparator onClick={handleTinyTransfersHiddenToggle}>
           Hide Tiny Transfers
           <Switcher
             className={styles.menuSwitcher}
@@ -140,7 +137,8 @@ function Header({
             checked={areTinyTransfersHidden}
           />
         </MenuItem>
-        <MenuItem onClick={handleOpenBackupWallet}>Back Up</MenuItem>
+        <MenuItem onClick={handleOpenBackupWallet}>Back Up Secret Words</MenuItem>
+        <MenuItem onClick={handleOpenAbout}>About</MenuItem>
         <MenuItem isDestructive onClick={handleOpenConfirmation}>Exit</MenuItem>
       </Menu>
 
@@ -162,55 +160,7 @@ function Header({
           <Button isDestructive onClick={handleLogOut}>Exit</Button>
         </div>
       </Modal>
-      <Modal isOpen={isAboutOpened} onClose={closeAbout} title="About" hasCloseButton>
-        <img src={logoSrc} alt="Logo" className={styles.aboutLogo} />
-        <p className={styles.modalTitle}>
-          {APP_NAME} {APP_VERSION}
-          <a href="https://mytonwallet.io/" target="_blank" className={styles.modalTitleLink} rel="noreferrer">
-            mytonwallet.io
-          </a>
-        </p>
-        <p className={styles.modalText}>
-          Securely store crypto, explore decentralized apps,
-          and make blockchain payments at the <strong>speed of light</strong>.
-        </p>
-        <p className={styles.modalText}>
-          The wallet is <strong>non-custodial and safe</strong>.
-          The developers <strong>do not</strong> have access to your funds, browser history or any other information.
-        </p>
-        {IS_EXTENSION && (
-          <>
-            <p />
-            <p className={styles.modalText}>🥷 <strong>What is TON Proxy?</strong></p>
-            <p className={styles.modalText}>
-              TON Proxy opens a way to <strong>decentralized internet</strong> by
-              allowing to anonymously access TON Sites.{' '}
-              <a
-                href="https://telegra.ph/TON-Sites-TON-WWW-and-TON-Proxy-09-29-2"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                More info and demo.
-              </a>
-            </p>
-            <p />
-            <p className={styles.modalText}>🦄 <strong>What is TON Magic?</strong></p>
-            <p className={styles.modalText}>
-              TON Magic provides native <strong>Telegram integration</strong> by patching the official Telegram Web
-              app.
-            </p>
-            <p className={styles.modalText}>
-              Turn it on to send and receive Toncoins from any Telegram user.{' '}
-              <a href="https://telegra.ph/Telegram--TON-11-10" target="_blank" rel="noopener noreferrer">
-                More info and demo.
-              </a>
-            </p>
-          </>
-        )}
-        <div className={modalStyles.buttons}>
-          <Button onClick={closeAbout}>Close</Button>
-        </div>
-      </Modal>
+      <AboutModal isOpen={isAboutOpened} onClose={closeAbout} />
     </div>
   );
 }

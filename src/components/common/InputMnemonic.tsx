@@ -6,7 +6,7 @@ import React, {
 import buildClassName from '../../util/buildClassName';
 import useFlag from '../../hooks/useFlag';
 
-import SuggestionsList from './SuggestionsList';
+import SuggestionList from '../ui/SuggestionList';
 
 import styles from './InputMnemonic.module.scss';
 
@@ -131,7 +131,7 @@ function InputMnemonic({
     )}
     >
       {shouldRenderSuggestions && (
-        <SuggestionsList
+        <SuggestionList
           suggestions={filteredSuggestions}
           activeIndex={activeSuggestionIndex}
           position={suggestionsPosition}

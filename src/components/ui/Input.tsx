@@ -98,7 +98,7 @@ function Input({
       {type !== 'password' && <span className={styles.shadow} />}
       {type === 'password' && (
         <button
-          className={buildClassName(styles.visibilityToggler, labelText && styles.visibilityToggler_push)}
+          className={buildClassName(styles.visibilityToggle, labelText && styles.visibilityToggle_push)}
           type="button"
           onClick={handleTogglePasswordVisibility}
           aria-label="Change password visibility"

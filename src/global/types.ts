@@ -1,6 +1,6 @@
 import { typify } from '../lib/teact/teactn';
 import {
-  ApiNft, ApiToken, ApiTransaction, ApiTransactionDraftError, ApiUpdate,
+  ApiHistoryList, ApiNft, ApiToken, ApiTransaction, ApiTransactionDraftError, ApiUpdate,
 } from '../api/types';
 
 export type ThemeKey = 'light' | 'dark';
@@ -38,7 +38,9 @@ export type UserToken = {
   change24h: number;
   change7d: number;
   change30d: number;
-  history?: number[];
+  history24h?: ApiHistoryList;
+  history7d?: ApiHistoryList;
+  history30d?: ApiHistoryList;
 };
 
 export type GlobalState = {
@@ -114,6 +116,7 @@ export type GlobalState = {
   notifications: NotificationType[];
   currentTokenSlug?: string;
   currentTransactionId?: string;
+  currentTokenPeriod?: '24h' | '7d' | '30d';
 
   savedAddresses?: Record<string, string>;
 };
@@ -167,6 +170,8 @@ export interface ActionPayloads {
 
   addSavedAddress: { address: string; name: string };
   removeFromSavedAddress: { address: string };
+
+  setCurrentTokenPeriod: { period: GlobalState['currentTokenPeriod'] };
 }
 
 const typed = typify<GlobalState, ActionPayloads>();

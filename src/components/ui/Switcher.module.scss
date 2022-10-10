@@ -1,4 +1,6 @@
 .container {
+  cursor: pointer;
+
   position: relative;
 
   display: inline-flex;
@@ -25,8 +27,8 @@
 
   display: inline-block;
 
-  width: 2.125rem;
-  height: 0.875rem;
+  width: 2rem;
+  height: 0.75rem;
 
   text-indent: -999px;
 
@@ -39,7 +41,7 @@
     content: "";
 
     position: absolute;
-    top: -0.125rem;
+    top: -0.1875rem;
     left: 0;
 
     width: 1.125rem;
@@ -49,7 +51,7 @@
     border: 0.125rem solid var(--color-gray-4);
     border-radius: 0.75rem;
 
-    transition: border-color 0.2s ease-out, transform 150ms ease-in;
+    transition: border-color 150ms ease-in, transform 150ms ease-in;
   }
 }
 
@@ -58,7 +60,7 @@
 }
 
 .input:checked + .widget:after {
-  transform: translateX(100%);
+  transform: translateX(calc(100% - 0.25rem));
 
   border-color: var(--color-blue);
 }
