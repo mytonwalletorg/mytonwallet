@@ -1,0 +1,51 @@
+.logo {
+  width: 6rem;
+  height: 6rem;
+  margin: 0 auto 1rem;
+}
+
+.title {
+  font-weight: 700;
+  text-align: center;
+}
+
+.titleLink {
+  display: block;
+
+  font-size: small;
+  font-weight: normal;
+}
+
+.text {
+  margin: 0;
+
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.modal{
+  min-width: 20rem;
+  min-height: 24rem;
+}
+
+.tokenDropDown {
+  //min-width: 600px;
+  //min-height: 200px;
+  //position: relative;
+  top: 0.375rem;
+  right: 0.375rem;
+}
+
+.div-element-text {
+  align-items: center;
+  //position: relative;
+  justify-content: center;
+
+  margin: 1rem;
+}
+
+.element-line {
+  display: flex;
+  justify-content: space-between;
+  .child { display: inline-block; }
+}

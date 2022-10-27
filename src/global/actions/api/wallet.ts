@@ -8,6 +8,7 @@ import {
   updateBackupWalletModal,
   updateCurrentSignature,
   updateCurrentTransfer,
+  updateLanguage,
   updateSendingLoading,
   updateTransactionsIsLoading,
 } from '../../reducers';
@@ -32,6 +33,10 @@ addActionHandler('startTransfer', (global, actions, payload) => {
 
 addActionHandler('changeTransferToken', (global, actions, { tokenSlug }) => {
   setGlobal(updateCurrentTransfer(global, { tokenSlug }));
+});
+
+addActionHandler('changeLanguage', (global, actions, { lang }) => {
+  setGlobal(updateLanguage(global, lang));
 });
 
 addActionHandler('setTransferScreen', (global, actions, payload) => {

@@ -100,6 +100,10 @@ export type GlobalState = {
     orderedTxIds?: string[];
   };
 
+  currentLanguage?: {
+    lang: string;
+  };
+
   nfts?: {
     byAddress: Record<string, ApiNft>;
     orderedAddresses?: string[];
@@ -142,6 +146,7 @@ export interface ActionPayloads {
   setTransferScreen: { state: TransferState };
   startTransfer: { tokenSlug: string; amount?: number; toAddress?: string; comment?: string };
   changeTransferToken: { tokenSlug: string };
+  changeLanguage: { lang: string };
   fetchFee: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
   submitTransferInitial: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
   submitTransferConfirm: never;

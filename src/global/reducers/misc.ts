@@ -82,3 +82,10 @@ export function updateTransaction(global: GlobalState, transaction: ApiTransacti
     },
   };
 }
+
+export function updateLanguage(global: GlobalState, lang: string): GlobalState {
+  return {
+    ...global,
+    currentLanguage: { lang },
+  };
+}

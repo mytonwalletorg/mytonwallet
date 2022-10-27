@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 960.00004 640.00079"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="BevelledRussia.svg"
+   width="960.00006"
+   height="640.00079">
+  <metadata
+     id="metadata4551">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1600"
+     inkscape:window-height="837"
+     id="namedview4549"
+     showgrid="true"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:object-nodes="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:object-paths="false"
+     inkscape:snap-global="true"
+     inkscape:zoom="1.0468737"
+     inkscape:cx="480.00003"
+     inkscape:cy="320.0004"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient6136">
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="0"
+         id="stop6138" />
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="1"
+         id="stop6140" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient22506">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop22508" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop22510" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient22338">
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="0"
+         id="stop22340" />
+      <stop
+         id="stop6129"
+         offset="0.5"
+         style="stop-color:#000000;stop-opacity:0;" />
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="1"
+         id="stop22342" />
+    </linearGradient>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter23929">
+      <feGaussianBlur
+         stdDeviation="1 5"
+         result="blur"
+         id="feGaussianBlur23931" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter23980">
+      <feGaussianBlur
+         stdDeviation="2 2"
+         result="blur"
+         id="feGaussianBlur23982" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter23988">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur23990" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24008">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24010" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24012">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24014" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24016">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24018" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24020">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24022" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24024">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24026" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24028">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24030" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24032">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24034" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24036">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24038" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24052">
+      <feGaussianBlur
+         stdDeviation="1 1"
+         result="blur"
+         id="feGaussianBlur24054" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter24309">
+      <feGaussianBlur
+         stdDeviation="2 2"
+         result="blur"
+         id="feGaussianBlur24311" />
+    </filter>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath4532">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4534"
+         d="M 18.75,-2.6189942e-4 A 18.75,18.75 0 0 0 0,18.749739 L 0,381.25023 a 18.75,18.75 0 0 0 18.75,18.75 l 562.50001,0 a 18.75,18.75 0 0 0 18.75001,-18.75 l 0,-362.500491 A 18.75,18.75 0 0 0 581.25001,-2.6189942e-4 l -562.50001,0 z"
+         style="fill:#00ffff;fill-opacity:1" />
+    </clipPath>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient22338"
+       id="radialGradient6127"
+       cx="1070"
+       cy="700.00079"
+       fx="1070"
+       fy="700.00079"
+       r="40"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1,0,0,1,1830,-99.999203)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6136"
+       id="linearGradient6142"
+       x1="780"
+       y1="373.3338"
+       x2="800"
+       y2="373.3338"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6136"
+       id="linearGradient6152"
+       x1="410"
+       y1="620.00079"
+       x2="410"
+       y2="640.00079"
+       gradientUnits="userSpaceOnUse" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient22338"
+       id="radialGradient6156"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-1030,-99.9992)"
+       cx="1070"
+       cy="700.00079"
+       fx="1070"
+       fy="700.00079"
+       r="40" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6136"
+       id="linearGradient6160"
+       gradientUnits="userSpaceOnUse"
+       x1="780"
+       y1="373.3338"
+       x2="800"
+       y2="373.3338"
+       gradientTransform="translate(-800,0)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6136"
+       id="linearGradient6164"
+       gradientUnits="userSpaceOnUse"
+       x1="410"
+       y1="620.00079"
+       x2="410"
+       y2="640.00079"
+       gradientTransform="translate(0,-746.66757)" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient22338"
+       id="radialGradient6174"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1,0,0,-1,1830,846.66678)"
+       cx="1070"
+       cy="700.00079"
+       fx="1070"
+       fy="700.00079"
+       r="40" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient22338"
+       id="radialGradient6176"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1,0,0,-1,-1030,846.66678)"
+       cx="1070"
+       cy="700.00079"
+       fx="1070"
+       fy="700.00079"
+       r="40" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient22506"
+       id="linearGradient6209"
+       x1="2050"
+       y1="-120.00079"
+       x2="2560"
+       y2="-630.00079"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1,0,0,1.0068041,-1000,4.218536)" />
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Blur"
+       id="filter6223">
+      <feGaussianBlur
+         stdDeviation="2 2"
+         result="blur"
+         id="feGaussianBlur6225" />
+    </filter>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6227">
+      <rect
+         style="fill:#d70000;fill-opacity:1"
+         id="rect6229"
+         width="9"
+         height="6.0000072"
+         x="0"
+         y="-6"
+         transform="scale(1,-1)"
+         ry="0.44999999" />
+    </clipPath>
+  </defs>
+  <g
+     id="g6231"
+     transform="translate(80,-54.288626)">
+    <rect
+       style="fill:#000000;fill-opacity:1;filter:url(#filter6223)"
+       id="rect6199"
+       width="800"
+       height="533.33398"
+       x="-1000"
+       y="-640.00079"
+       transform="matrix(1,0,0,-1,1000,0.95522506)"
+       ry="40" />
+    <g
+       clip-path="url(#clipPath6227)"
+       transform="matrix(88.888889,0,0,88.888889,0,106.66746)"
+       id="g4142">
+      <rect
+         style="fill:#ffffff"
+         y="0"
+         x="0"
+         width="9"
+         height="3"
+         id="rect4" />
+      <rect
+         style="fill:#d52b1e"
+         x="0"
+         y="3"
+         width="9"
+         height="3"
+         id="rect6" />
+      <rect
+         style="fill:#0039a6"
+         x="0"
+         y="2"
+         width="9"
+         height="2"
+         id="rect8" />
+    </g>
+    <g
+       transform="translate(-1000,0)"
+       id="g6211">
+      <g
+         id="g6189"
+         transform="translate(1000,0)">
+        <path
+           inkscape:connector-curvature="0"
+           id="path5058"
+           d="m 800,600.00079 a 40,40 0 0 1 -40,40 l 0,-20 a 20,20 0 0 0 20,-20 l 20,0 z"
+           style="opacity:0.603;fill:url(#radialGradient6127);fill-opacity:1" />
+        <rect
+           ry="0"
+           y="146.66679"
+           x="780"
+           height="453.33401"
+           width="20"
+           id="rect6134"
+           style="opacity:0.603;fill:url(#linearGradient6142);fill-opacity:1" />
+        <rect
+           y="620.00079"
+           x="40"
+           height="20"
+           width="720"
+           id="rect6144"
+           style="opacity:0.603;fill:url(#linearGradient6152);fill-opacity:1" />
+        <path
+           style="opacity:0.603;fill:url(#radialGradient6156);fill-opacity:1"
+           d="m 0,600.00079 a 40,40 0 0 0 40,40 l 0,-20 a 20,20 0 0 1 -20,-20 l -20,0 z"
+           id="path6154"
+           inkscape:connector-curvature="0" />
+        <rect
+           transform="scale(-1,1)"
+           style="opacity:0.603;fill:url(#linearGradient6160);fill-opacity:1"
+           id="rect6158"
+           width="20"
+           height="453.33401"
+           x="-20"
+           y="146.66679"
+           ry="0" />
+        <rect
+           transform="scale(1,-1)"
+           style="opacity:0.603;fill:url(#linearGradient6164);fill-opacity:1"
+           id="rect6162"
+           width="720"
+           height="20"
+           x="40"
+           y="-126.66679" />
+        <path
+           style="opacity:0.603;fill:url(#radialGradient6174);fill-opacity:1"
+           d="m 800,146.66679 a 40,40 0 0 0 -40,-40 l 0,20 a 20,20 0 0 1 20,20 l 20,0 z"
+           id="path6166"
+           inkscape:connector-curvature="0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path6168"
+           d="m 0,146.66679 a 40,40 0 0 1 40,-40 l 0,20 a 20,20 0 0 0 -20,20 l -20,0 z"
+           style="opacity:0.603;fill:url(#radialGradient6176);fill-opacity:1" />
+      </g>
+      <rect
+         style="opacity:0.3;fill:url(#linearGradient6209);fill-opacity:1"
+         id="rect6201"
+         width="760"
+         height="493.33401"
+         x="1020"
+         y="-620.00079"
+         ry="20"
+         transform="scale(1,-1)" />
+    </g>
+  </g>
+</svg>

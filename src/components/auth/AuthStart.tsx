@@ -7,6 +7,7 @@ import useFlag from '../../hooks/useFlag';
 import buildClassName from '../../util/buildClassName';
 
 import AboutModal from '../common/AboutModal';
+import Settings from '../common/SettingsModal';
 import Button from '../ui/Button';
 
 import styles from './Auth.module.scss';
@@ -20,6 +21,7 @@ const AuthStart = () => {
 
   const [isLogoReady, markLogoReady] = useFlag();
   const [isAboutOpened, openAbout, closeAbout] = useFlag(false);
+  const [isSettingsOpened, openSettings, closeSettings] = useFlag(false);
   const { transitionClassNames } = useShowTransition(isLogoReady, undefined, undefined, 'slow');
 
   const handleCreateWallet = useCallback(() => {
@@ -62,8 +64,16 @@ const AuthStart = () => {
         >
           About MyTonWallet
         </Button>
+        <Button
+          isText
+          className={buildClassName(styles.btn, styles.btn_about)}
+          onClick={openSettings}
+        >
+          Settings
+        </Button>
       </div>
       <AboutModal isOpen={isAboutOpened} onClose={closeAbout} />
+      <Settings isOpen={isSettingsOpened} onClose={closeSettings} />
     </div>
   );
 };
