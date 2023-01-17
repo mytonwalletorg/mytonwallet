@@ -11,10 +11,7 @@ export {
   verifyPassword,
 } from './auth';
 export { getAccountNfts } from './nfts';
-export {
-  getKnownTokens,
-  getAccountTokenBalances,
-} from './tokens';
+export { getAccountTokenBalances } from './tokens';
 export { oneCellFromBoc } from './util/tonweb';
 export {
   checkTransactionDraft,
@@ -29,3 +26,11 @@ export {
   publicKeyToAddress,
   resolveWalletVersion,
 } from './wallet';
+export {
+  checkStakeDraft,
+  checkUnstakeDraft,
+  submitStake,
+  submitUnstake,
+  getStakingState,
+  getPoolState,
+} from './staking';

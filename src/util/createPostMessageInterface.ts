@@ -11,14 +11,14 @@ const callbackState = new Map<string, CancellableCallback>();
 type ApiConfig =
   ((name: string, ...args: any[]) => any | [any, ArrayBuffer[]])
   | Record<string, Function>;
-type SendToOrigin = (data: WorkerMessageData, arrayBuffers?: ArrayBuffer[]) => void;
+type SendToOrigin = (data: WorkerMessageData, transferables?: Transferable[]) => void;
 
 export function createWorkerInterface(api: ApiConfig, channel?: string) {
-  function sendToOrigin(data: WorkerMessageData, arrayBuffers?: ArrayBuffer[]) {
+  function sendToOrigin(data: WorkerMessageData, transferables?: Transferable[]) {
     data.channel = channel;
 
-    if (arrayBuffers) {
-      postMessage(data, arrayBuffers);
+    if (transferables) {
+      postMessage(data, transferables);
     } else {
       postMessage(data);
     }
@@ -99,9 +99,11 @@ async function onMessage(
       break;
     }
     case 'callMethod': {
-      const { messageId, name, args } = data;
+      const {
+        messageId, name, args, withCallback,
+      } = data;
       try {
-        if (messageId) {
+        if (messageId && withCallback) {
           const callback = (...callbackArgs: any[]) => {
             const lastArg = callbackArgs[callbackArgs.length - 1];
 
@@ -109,7 +111,7 @@ async function onMessage(
               type: 'methodCallback',
               messageId,
               callbackArgs,
-            }, lastArg instanceof ArrayBuffer ? [lastArg] : undefined);
+            }, isTransferable(lastArg) ? [lastArg] : undefined);
           };
 
           callbackState.set(messageId, callback);
@@ -160,6 +162,10 @@ async function onMessage(
       break;
     }
   }
+}
+
+function isTransferable(obj: any) {
+  return obj instanceof ArrayBuffer || obj instanceof ImageBitmap;
 }
 
 function handleErrors(sendToOrigin: SendToOrigin) {

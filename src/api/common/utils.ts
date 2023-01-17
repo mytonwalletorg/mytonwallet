@@ -30,3 +30,7 @@ export function handleFetchErrors(response: Response) {
   }
   return response;
 }
+
+export function sumBigString(a: string, b: string) {
+  return (BigInt(a) + BigInt(b)).toString();
+}

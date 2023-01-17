@@ -15,6 +15,7 @@ type OwnProps = {
   id?: string;
   className?: string;
   bubbleClassName?: string;
+  type?: 'menu' | 'suggestion' | 'dropdown';
   positionX?: 'left' | 'right';
   positionY?: 'top' | 'bottom';
   autoClose?: boolean;
@@ -37,6 +38,7 @@ const Menu: FC<OwnProps> = ({
   bubbleClassName,
   positionX = 'left',
   positionY = 'top',
+  type = 'menu',
   autoClose = false,
   shouldSkipTransition,
   noBackdrop = false,
@@ -78,6 +80,7 @@ const Menu: FC<OwnProps> = ({
     'custom-scroll',
     styles[positionY],
     styles[positionX],
+    styles[type],
     transitionClassNames,
   );
 

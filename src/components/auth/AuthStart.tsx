@@ -1,10 +1,12 @@
 import React, { memo, useCallback } from '../../lib/teact/teact';
 
 import { getActions } from '../../global';
-import { APP_NAME } from '../../config';
+import { APP_NAME, MNEMONIC_COUNT } from '../../config';
+import renderText from '../../global/helpers/renderText';
+import buildClassName from '../../util/buildClassName';
 import useShowTransition from '../../hooks/useShowTransition';
 import useFlag from '../../hooks/useFlag';
-import buildClassName from '../../util/buildClassName';
+import useLang from '../../hooks/useLang';
 
 import AboutModal from '../common/AboutModal';
 import Button from '../ui/Button';
@@ -18,6 +20,7 @@ const AuthStart = () => {
     startImportingWallet,
   } = getActions();
 
+  const lang = useLang();
   const [isLogoReady, markLogoReady] = useFlag();
   const [isAboutOpened, openAbout, closeAbout] = useFlag(false);
   const { transitionClassNames } = useShowTransition(isLogoReady, undefined, undefined, 'slow');
@@ -36,9 +39,7 @@ const AuthStart = () => {
       />
       <div className={styles.appName}>{APP_NAME}</div>
       <div className={styles.info}>
-        <strong>Securely</strong> store crypto
-        <br />and make blockchain payments
-        <br />at the <strong>speed of light</strong>.
+        {renderText(lang('$auth_intro'))}
       </div>
       <div className={styles.buttons}>
         <Button
@@ -46,21 +47,21 @@ const AuthStart = () => {
           className={styles.btn}
           onClick={handleCreateWallet}
         >
-          Create wallet
+          {lang('Create New Wallet')}
         </Button>
         <Button
           isText
           className={buildClassName(styles.btn, styles.btn_text)}
           onClick={startImportingWallet}
         >
-          Import From 24 Secret Words
+          {lang('Import From %1$d Secret Words', MNEMONIC_COUNT)}
         </Button>
         <Button
           isText
           className={buildClassName(styles.btn, styles.btn_about)}
           onClick={openAbout}
         >
-          About MyTonWallet
+          {lang('About MyTonWallet')}
         </Button>
       </div>
       <AboutModal isOpen={isAboutOpened} onClose={closeAbout} />

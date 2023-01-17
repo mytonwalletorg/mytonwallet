@@ -1,26 +1,56 @@
 import type { OnApiUpdate } from '../types';
 import type { ApiDappUpdate, OnApiDappUpdate } from '../types/dappUpdates';
 
+import { MAIN_ACCOUNT_ID, TON_TOKEN_SLUG } from '../../config';
+import { IS_EXTENSION } from '../environment';
 import blockchains from '../blockchains';
 import storage from '../storages/idb';
-import { buildLocalTransaction, resolveBlockchainKey } from '../methods/helpers';
-import { MAIN_ACCOUNT_ID, TON_TOKEN_SLUG } from '../../config';
+import { buildLocalTransaction, resolveBlockchainKey } from '../common/helpers';
 import { createDappPromise, resolveDappPromise } from '../common/dappPromises';
-import { clearCache, openPopupWindow } from './window';
 import { whenTxComplete } from '../common/txCallbacks';
 import { base64ToBytes, hexToBytes } from '../common/utils';
+import { getMainAccountId } from '../common/accounts';
+import { clearCache, openPopupWindow } from './window';
 
 let onPopupUpdate: OnApiUpdate;
 
 // Sometimes (e.g. when Dev Tools is open) dapp needs more time to subscribe to provider
 const INIT_UPDATE_DELAY = 50;
+const STORAGE_LAST_ACCOUNT = 'dappMethods:lastAccountId';
 
 const dappUpdaters: OnApiDappUpdate[] = [];
 const ton = blockchains[resolveBlockchainKey(MAIN_ACCOUNT_ID)!];
+let activeAccountId: string | undefined;
 
+(async function init() {
+  if (!IS_EXTENSION) {
+    return;
+  }
+
+  const defaultAccountId = await storage.getItem(STORAGE_LAST_ACCOUNT) || await getMainAccountId(storage);
+
+  // There is chance that `activateDappAccount` has already been called by now
+  if (defaultAccountId && !activeAccountId) {
+    activeAccountId = defaultAccountId;
+  }
+}());
+
+// This method is called from `initApi` which in turn is called when popup is open
 export function initDappMethods(_onPopupUpdate: OnApiUpdate) {
   onPopupUpdate = _onPopupUpdate;
   resolveDappPromise('whenPopupReady');
+}
+
+export function activateDappAccount(accountId: string) {
+  activeAccountId = accountId;
+
+  void storage.setItem(STORAGE_LAST_ACCOUNT, accountId);
+}
+
+export function deactivateDappAccount() {
+  activeAccountId = undefined;
+
+  void storage.removeItem(STORAGE_LAST_ACCOUNT);
 }
 
 export async function connectDapp(onDappUpdate: OnApiDappUpdate) {
@@ -59,19 +89,32 @@ export function updateDapps(update: ApiDappUpdate) {
 }
 
 export function getBalance() {
-  return ton.getAccountBalance(storage, MAIN_ACCOUNT_ID);
+  if (!activeAccountId) {
+    throw new Error('The user is not authorized in the wallet');
+  }
+
+  return ton.getAccountBalance(storage, activeAccountId);
 }
 
 export async function requestAccounts() {
-  const address = await ton.fetchAddress(storage, MAIN_ACCOUNT_ID);
+  if (!activeAccountId) {
+    throw new Error('The user is not authorized in the wallet');
+  }
+
+  const address = await ton.fetchAddress(storage, activeAccountId);
   return [address];
 }
 
 export async function requestWallets() {
+  if (!activeAccountId) {
+    throw new Error('The user is not authorized in the wallet');
+  }
+
+  const accountId = activeAccountId;
   const [address, publicKey, wallet] = await Promise.all([
-    ton.fetchAddress(storage, MAIN_ACCOUNT_ID),
-    ton.fetchPublicKey(storage, MAIN_ACCOUNT_ID),
-    ton.pickAccountWallet(storage, MAIN_ACCOUNT_ID),
+    ton.fetchAddress(storage, accountId),
+    ton.fetchPublicKey(storage, accountId),
+    ton.pickAccountWallet(storage, accountId),
   ]);
 
   return [{
@@ -88,6 +131,11 @@ export async function sendTransaction(params: {
   dataType?: 'text' | 'hex' | 'base64' | 'boc';
   stateInit?: string;
 }) {
+  if (!activeAccountId) {
+    throw new Error('The user is not authorized in the wallet');
+  }
+
+  const accountId = activeAccountId;
   const {
     value: amount, to: toAddress, data, dataType, stateInit,
   } = params;
@@ -114,7 +162,7 @@ export async function sendTransaction(params: {
   await openPopupWindow();
 
   const checkResult = await ton.checkTransactionDraft(
-    storage, MAIN_ACCOUNT_ID, TON_TOKEN_SLUG, toAddress, amount, processedData, processedStateInit,
+    storage, accountId, TON_TOKEN_SLUG, toAddress, amount, processedData, processedStateInit,
   );
 
   if (!checkResult || checkResult?.error) {
@@ -142,11 +190,11 @@ export async function sendTransaction(params: {
   const password = await promise;
 
   const result = await ton.submitTransfer(
-    storage, MAIN_ACCOUNT_ID, password, TON_TOKEN_SLUG, toAddress, amount, processedData, processedStateInit,
+    storage, accountId, password, TON_TOKEN_SLUG, toAddress, amount, processedData, processedStateInit,
   );
 
   if (result) {
-    const fromAddress = await ton.fetchAddress(storage, MAIN_ACCOUNT_ID);
+    const fromAddress = await ton.fetchAddress(storage, accountId);
     const localTransaction = buildLocalTransaction({
       amount,
       fromAddress,
@@ -161,6 +209,7 @@ export async function sendTransaction(params: {
     onPopupUpdate({
       type: 'newTransaction',
       transaction: localTransaction,
+      accountId,
     });
 
     whenTxComplete(result.resolvedAddress, amount)
@@ -181,6 +230,12 @@ export async function sendTransaction(params: {
 }
 
 export async function rawSign({ data }: { data: string }) {
+  if (!activeAccountId) {
+    throw new Error('The user is not authorized in the wallet');
+  }
+
+  const accountId = activeAccountId;
+
   await openPopupWindow();
 
   const { promiseId, promise } = createDappPromise();
@@ -193,7 +248,7 @@ export async function rawSign({ data }: { data: string }) {
 
   const password = await promise;
 
-  return ton.rawSign(storage, MAIN_ACCOUNT_ID, password, data);
+  return ton.rawSign(storage, accountId, password, data);
 }
 
 export async function flushMemoryCache() {

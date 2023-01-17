@@ -1,17 +1,22 @@
 import type { RefObject } from 'react';
+import type { FC } from '../../lib/teact/teact';
 
 import React, {
-  useEffect, useRef, memo, useCallback, useState,
+  useEffect, useRef, memo, useCallback, useState, useMemo,
 } from '../../lib/teact/teact';
 
 import { fastRaf } from '../../util/schedulers';
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
+
 import useHeavyAnimationCheck from '../../hooks/useHeavyAnimationCheck';
 import useBackgroundMode from '../../hooks/useBackgroundMode';
+import useOnChange from '../../hooks/useOnChange';
+import generateIdFor from '../../util/generateIdFor';
 
 export type OwnProps = {
   ref?: RefObject<HTMLDivElement>;
+  animationId?: string;
   className?: string;
   style?: string;
   tgsUrl?: string;
@@ -21,12 +26,15 @@ export type OwnProps = {
   noLoop?: boolean;
   size: number;
   quality?: number;
+  color?: [number, number, number];
   isLowPriority?: boolean;
   forceOnHeavyAnimation?: boolean;
-  color?: [number, number, number];
+  sharedCanvas?: HTMLCanvasElement;
+  sharedCanvasCoords?: { x: number; y: number };
   onClick?: NoneToVoidFunction;
   onLoad?: NoneToVoidFunction;
   onEnded?: NoneToVoidFunction;
+  onLoop?: NoneToVoidFunction;
 };
 
 type RLottieClass = typeof import('../../lib/rlottie/RLottie').default;
@@ -36,6 +44,7 @@ let RLottie: RLottieClass;
 
 // Time for the main interface to completely load
 const LOTTIE_LOAD_DELAY = 3000;
+const ID_STORE = {};
 
 async function ensureLottie() {
   if (!lottiePromise) {
@@ -48,8 +57,9 @@ async function ensureLottie() {
 
 setTimeout(ensureLottie, LOTTIE_LOAD_DELAY);
 
-function AnimatedSticker({
+const AnimatedSticker: FC<OwnProps> = ({
   ref,
+  animationId,
   className,
   style,
   tgsUrl,
@@ -62,15 +72,20 @@ function AnimatedSticker({
   isLowPriority,
   color,
   forceOnHeavyAnimation,
+  sharedCanvas,
+  sharedCanvasCoords,
   onClick,
   onLoad,
   onEnded,
-}: OwnProps) {
+  onLoop,
+}) => {
   // eslint-disable-next-line no-null/no-null
   let containerRef = useRef<HTMLDivElement>(null);
   if (ref) {
     containerRef = ref;
   }
+
+  const containerId = useMemo(() => generateIdFor(ID_STORE, true), []);
 
   const [animation, setAnimation] = useState<RLottieInstance>();
   const wasPlaying = useRef(false);
@@ -82,28 +97,44 @@ function AnimatedSticker({
   const playSegmentRef = useRef<[number, number]>();
   playSegmentRef.current = playSegment;
 
+  const isUnmountedRef = useRef();
   useEffect(() => {
-    if (animation || !tgsUrl) {
+    return () => {
+      isUnmountedRef.current = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (animation || !tgsUrl || (sharedCanvas && !sharedCanvasCoords)) {
       return;
     }
 
     const exec = () => {
-      if (!containerRef.current) {
+      if (isUnmountedRef.current) {
         return;
       }
 
-      const newAnimation = new RLottie(
-        containerRef.current,
+      const container = containerRef.current || sharedCanvas;
+      if (!container) {
+        return;
+      }
+
+      const newAnimation = RLottie.init(
+        containerId,
+        container,
+        onLoad,
+        animationId || generateIdFor(ID_STORE, true),
         tgsUrl,
         {
           noLoop,
           size,
           quality,
           isLowPriority,
+          coords: sharedCanvasCoords,
         },
-        onLoad,
         color,
         onEnded,
+        onLoop,
       );
 
       if (speed) {
@@ -124,7 +155,10 @@ function AnimatedSticker({
         });
       });
     }
-  }, [color, animation, tgsUrl, isLowPriority, noLoop, onLoad, quality, size, speed, onEnded]);
+  }, [
+    animation, animationId, tgsUrl, color, isLowPriority, noLoop, onLoad, quality, size, speed, onEnded, onLoop,
+    containerId, sharedCanvas, sharedCanvasCoords,
+  ]);
 
   useEffect(() => {
     if (!animation) return;
@@ -135,28 +169,28 @@ function AnimatedSticker({
   useEffect(() => {
     return () => {
       if (animation) {
-        animation.destroy();
+        animation.removeContainer(containerId);
       }
     };
-  }, [animation]);
+  }, [animation, containerId]);
 
   const playAnimation = useCallback((shouldRestart = false) => {
     if (animation && (playRef.current || playSegmentRef.current)) {
       if (playSegmentRef.current) {
         animation.playSegment(playSegmentRef.current);
       } else {
-        animation.play(shouldRestart);
+        animation.play(shouldRestart, containerId);
       }
     }
-  }, [animation]);
+  }, [animation, containerId]);
 
   const pauseAnimation = useCallback(() => {
     if (!animation) {
       return;
     }
 
-    animation.pause();
-  }, [animation]);
+    animation.pause(containerId);
+  }, [animation, containerId]);
 
   const freezeAnimation = useCallback(() => {
     isFrozen.current = true;
@@ -184,6 +218,18 @@ function AnimatedSticker({
   const unfreezeAnimationOnRaf = useCallback(() => {
     fastRaf(unfreezeAnimation);
   }, [unfreezeAnimation]);
+
+  useOnChange(([prevNoLoop]) => {
+    if (prevNoLoop !== undefined && noLoop !== prevNoLoop) {
+      animation?.setNoLoop(noLoop);
+    }
+  }, [noLoop, animation]);
+
+  useOnChange(([prevSharedCanvasCoords]) => {
+    if (prevSharedCanvasCoords !== undefined && sharedCanvasCoords !== prevSharedCanvasCoords) {
+      animation?.setSharedCanvasCoords(containerId, sharedCanvasCoords);
+    }
+  }, [sharedCanvasCoords, containerId, animation]);
 
   useEffect(() => {
     if (!animation) {
@@ -217,10 +263,14 @@ function AnimatedSticker({
   }, [playAnimation, animation, tgsUrl]);
 
   useHeavyAnimationCheck(freezeAnimation, unfreezeAnimation, forceOnHeavyAnimation);
-  // Pausing frame may not happen in background
+  // Pausing frame may not happen in background,
   // so we need to make sure it happens right after focusing,
   // then we can play again.
   useBackgroundMode(freezeAnimation, unfreezeAnimationOnRaf);
+
+  if (sharedCanvas) {
+    return undefined;
+  }
 
   return (
     <div
@@ -234,6 +284,6 @@ function AnimatedSticker({
       onClick={onClick}
     />
   );
-}
+};
 
 export default memo(AnimatedSticker);

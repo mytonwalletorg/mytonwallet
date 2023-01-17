@@ -1,6 +1,11 @@
 import { addActionHandler, setGlobal } from '../../index';
 
-import { updateBalance, updateTokens } from '../../reducers';
+import {
+  updateAccountState,
+  updateBalance,
+  updatePoolState,
+  updateTokens,
+} from '../../reducers';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -9,6 +14,22 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       if (newGlobal) {
         setGlobal(newGlobal);
       }
+
+      break;
+    }
+
+    case 'updateStakingState': {
+      global = updateAccountState(global, update.accountId, {
+        stakingBalance: update.stakingState.amount + update.stakingState.pendingDepositAmount,
+        isUnstakeRequested: update.stakingState.isUnstakeRequested,
+      });
+      setGlobal(global);
+      break;
+    }
+
+    case 'updatePoolState': {
+      global = updatePoolState(global, update.poolState);
+      setGlobal(global);
 
       break;
     }

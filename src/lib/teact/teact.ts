@@ -19,6 +19,7 @@ export enum VirtualElementTypesEnum {
   Text,
   Tag,
   Component,
+  Fragment,
 }
 
 interface VirtualElementEmpty {
@@ -44,6 +45,12 @@ export interface VirtualElementComponent {
   type: VirtualElementTypesEnum.Component;
   componentInstance: ComponentInstance;
   props: Props;
+  children: VirtualElementChildren;
+}
+
+export interface VirtualElementFragment {
+  type: VirtualElementTypesEnum.Fragment;
+  target?: Node;
   children: VirtualElementChildren;
 }
 
@@ -96,19 +103,22 @@ export type VirtualElement =
   VirtualElementEmpty
   | VirtualElementText
   | VirtualElementTag
-  | VirtualElementComponent;
+  | VirtualElementComponent
+  | VirtualElementFragment;
 export type VirtualElementParent =
   VirtualElementTag
-  | VirtualElementComponent;
+  | VirtualElementComponent
+  | VirtualElementFragment;
 export type VirtualElementChildren = VirtualElement[];
-export type VirtualElementReal = Exclude<VirtualElement, VirtualElementComponent>;
+export type VirtualElementReal = Exclude<VirtualElement, VirtualElementComponent | VirtualElementFragment>;
 
 // Compatibility with JSX types
 export type TeactNode =
   ReactElement
   | string
   | number
-  | boolean;
+  | boolean
+  | TeactNode[];
 
 const Fragment = Symbol('Fragment');
 
@@ -134,8 +144,12 @@ export function isComponentElement($element: VirtualElement): $element is Virtua
   return $element.type === VirtualElementTypesEnum.Component;
 }
 
+export function isFragmentElement($element: VirtualElement): $element is VirtualElementFragment {
+  return $element.type === VirtualElementTypesEnum.Fragment;
+}
+
 export function isParentElement($element: VirtualElement): $element is VirtualElementParent {
-  return isTagElement($element) || isComponentElement($element);
+  return isTagElement($element) || isComponentElement($element) || isFragmentElement($element);
 }
 
 function createElement(
@@ -143,19 +157,22 @@ function createElement(
   props: Props,
   ...children: any[]
 ): VirtualElementParent | VirtualElementChildren {
-  if (!props) {
-    props = {};
-  }
-
   children = children.flat();
 
   if (source === Fragment) {
-    return children;
+    return buildFragmentElement(children);
   } else if (typeof source === 'function') {
-    return createComponentInstance(source, props, children);
+    return createComponentInstance(source, props || {}, children);
   } else {
-    return buildTagElement(source, props, children);
+    return buildTagElement(source, props || {}, children);
   }
+}
+
+function buildFragmentElement(children: any[]): VirtualElementFragment {
+  return {
+    type: VirtualElementTypesEnum.Fragment,
+    children: dropEmptyTail(children, true).map(buildChildElement),
+  };
 }
 
 function createComponentInstance(Component: FC, props: Props, children: any[]): VirtualElementComponent {
@@ -206,13 +223,11 @@ function buildComponentElement(
   componentInstance: ComponentInstance,
   children: VirtualElementChildren = [],
 ): VirtualElementComponent {
-  const builtChildren = dropEmptyTail(children).map(buildChildElement);
-
   return {
     type: VirtualElementTypesEnum.Component,
     componentInstance,
     props: componentInstance.props,
-    children: builtChildren.length ? builtChildren : [buildEmptyElement()],
+    children: dropEmptyTail(children, true).map(buildChildElement),
   };
 }
 
@@ -226,7 +241,7 @@ function buildTagElement(tag: string, props: Props, children: any[]): VirtualEle
 }
 
 // We only need placeholders in the middle of collection (to ensure other elements order).
-function dropEmptyTail(children: any[]) {
+function dropEmptyTail(children: any[], noEmpty = false) {
   let i = children.length - 1;
 
   for (; i >= 0; i--) {
@@ -235,7 +250,15 @@ function dropEmptyTail(children: any[]) {
     }
   }
 
-  return i + 1 < children.length ? children.slice(0, i + 1) : children;
+  if (i === children.length - 1) {
+    return children;
+  }
+
+  if (i === -1 && noEmpty) {
+    return children.slice(0, 1);
+  }
+
+  return children.slice(0, i + 1);
 }
 
 function isEmptyPlaceholder(child: any) {

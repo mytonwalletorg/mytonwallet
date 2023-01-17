@@ -2,11 +2,13 @@ import React, { memo, useCallback, useState } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
+import useLang from '../../hooks/useLang';
 import useFlag from '../../hooks/useFlag';
 
 import Transition from '../ui/Transition';
-import AnimatedIcon from '../ui/AnimatedIcon';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import SafetyRules from './SafetyRules';
@@ -33,12 +35,13 @@ const SLIDE_ANIMATION_DURATION_MS = 250;
 const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
   const { afterCheckMnemonic, skipCheckMnemonic, restartCheckMnemonicIndexes } = getActions();
 
+  const lang = useLang();
   const [isModalOpen, openModal, closeModal] = useFlag();
 
   const [renderingKey, setRenderingKey] = useState<number>(BackupState.Accept);
   const [nextKey, setNextKey] = useState<number | undefined>(BackupState.View);
 
-  const handleCloseModal = useCallback(() => {
+  const handleModalClose = useCallback(() => {
     setRenderingKey(BackupState.Accept);
     setNextKey(BackupState.View);
   }, []);
@@ -87,7 +90,7 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
             isActive={isScreenActive}
             mnemonic={mnemonic}
             checkIndexes={checkIndexes}
-            buttonLabel="Continue"
+            buttonLabel={lang('Continue')}
             onSubmit={handleMnemonicCheckSubmit}
             onCancel={handleRestartCheckMnemonic}
             onClose={closeModal}
@@ -99,34 +102,31 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
   return (
     <>
       <div className={buildClassName(styles.container, 'custom-scroll')}>
-        <AnimatedIcon
+        <AnimatedIconWithPreview
           play={isActive && !isModalOpen}
           tgsUrl={ANIMATED_STICKERS_PATHS.snitch}
+          previewUrl={ANIMATED_STICKERS_PATHS.snitchPreview}
           noLoop={false}
           nonInteractive
           className={styles.sticker}
         />
-        <div className={styles.title}>Create Backup</div>
+        <div className={styles.title}>{lang('Create Backup')}</div>
         <div className={styles.info}>
-          <p className={styles.info__space}>
-            This is a <strong>secure wallet</strong>
-            <br />and is only <strong>controlled by you</strong>.
-          </p>
-
-          <p>
-            And with great power comes <strong>great responsibility</strong>.
-          </p>
-          <p>
-            You need to manually <strong>back&nbsp;up secret keys</strong> in case you forget
-            your password or lose access to this device.
-          </p>
+          <p className={styles.info__space}>{renderText(lang('$auth_backup_description1'))}</p>
+          <p>{renderText(lang('$auth_backup_description2'))}</p>
+          <p>{renderText(lang('$auth_backup_description3'))}</p>
         </div>
         <div className={styles.buttons}>
           <Button isPrimary className={styles.btn} onClick={openModal}>
-            Back up
+            {lang('Back Up')}
           </Button>
-          <Button isDestructive className={buildClassName(styles.btn, styles.btn_push)} onClick={skipCheckMnemonic}>
-            Skip for now
+          <Button
+            isDestructive
+            isText
+            className={buildClassName(styles.btn, styles.btn_push)}
+            onClick={skipCheckMnemonic}
+          >
+            {lang('Skip For Now')}
           </Button>
         </div>
       </div>
@@ -136,7 +136,7 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
         isSlideUp
         isOpen={isModalOpen}
         onClose={closeModal}
-        onCloseAnimationEnd={handleCloseModal}
+        onCloseAnimationEnd={handleModalClose}
         dialogClassName={styles.modalDialog}
       >
         <Transition

@@ -18,6 +18,8 @@
 }
 
 .appSlide {
+  background: var(--color-background-second);
+
   :global(html.is-extension) & {
     overflow: auto;
     overflow-x: hidden;
@@ -35,4 +37,10 @@
       overflow-y: overlay;
     }
   }
+}
+
+.loading {
+  top: 50%;
+  left: 50%;
+  transform: translate3d(-50%, -50%, 0);
 }

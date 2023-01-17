@@ -28,7 +28,7 @@ export async function doTonMagic(isEnabled: boolean, cb: NoneToVoidFunction) {
       }
     }
 
-    addBadge('Loading <strong>TON magic</strong>...');
+    addBadge('Loading <b>TON magic</b>...');
 
     const responses = await Promise.all(filesToInject.map(async (fileName: string) => {
       const res = await fetch(`https://ton.org/app/${fileName}`);
@@ -80,7 +80,7 @@ function toggleMagicBadge(isTurnedOn?: boolean) {
   const columnCenter = document.getElementById('column-center');
 
   if (isTurnedOn) {
-    addBadge('Switch to <strong>Z version</strong> in the menu to take advantage of <strong>TON magic</strong>.');
+    addBadge('Switch to <b>Z version</b> in the menu to take advantage of <b>TON magic</b>.');
 
     // handle shallow screen layout
     if (columnLeft) {

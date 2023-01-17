@@ -1,17 +1,30 @@
 import { AuthState } from '../../types';
 import { callApi } from '../../../api';
-import { addActionHandler, getGlobal, setGlobal } from '../..';
+import {
+  addActionHandler, getGlobal, setGlobal,
+} from '../..';
 import { pause } from '../../../util/schedulers';
-import { MAIN_ACCOUNT_ID, MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT } from '../../../config';
-import { updateAddress, updateAuth } from '../../reducers';
+import { MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT } from '../../../config';
+import { updateAccount, updateAuth, updateCurrentAccountsState } from '../../reducers';
+import { INITIAL_STATE } from '../../initialState';
+import { cloneDeep } from '../../../util/iteratees';
+import { buildAccountId, parseAccountId } from '../../../util/account';
+import { selectAccountState } from '../../selectors';
+import { getIsTxIdLocal } from '../../helpers';
 
 const CREATING_DURATION = 3300;
 
 addActionHandler('restartAuth', (global) => {
-  setGlobal(updateAuth(global, { state: AuthState.none }));
+  if (global.auth.prevAccountId) {
+    global = { ...global, currentAccountId: global.auth.prevAccountId };
+  }
+
+  global = { ...global, auth: cloneDeep(INITIAL_STATE.auth) };
+
+  setGlobal(global);
 });
 
-addActionHandler('startCreatingWallet', async (global) => {
+addActionHandler('startCreatingWallet', async (global, actions) => {
   setGlobal(updateAuth(global, { state: AuthState.creatingWallet, error: undefined }));
 
   const [mnemonic] = await Promise.all([
@@ -19,18 +32,35 @@ addActionHandler('startCreatingWallet', async (global) => {
     pause(CREATING_DURATION),
   ]);
 
-  setGlobal(updateAuth(getGlobal(), {
-    state: AuthState.createPassword,
+  global = updateAuth(getGlobal(), {
     mnemonic,
     mnemonicCheckIndexes: selectMnemonicForCheck(),
-  }));
+  });
+
+  if (global.auth.prevAccountId) {
+    setGlobal(global);
+    actions.afterCreatePassword({ password: global.auth.password! });
+
+    return;
+  }
+
+  setGlobal(updateAuth(global, { state: AuthState.createPassword }));
 });
 
 addActionHandler('afterCreatePassword', async (global, actions, { password, isImporting }) => {
   setGlobal(updateAuth(global, { isLoading: true }));
 
-  const address = await callApi(isImporting ? 'importMnemonic' : 'createWallet', global.auth.mnemonic!, password);
-  if (!address) {
+  const { isTestnet } = getGlobal().settings;
+  const network = isTestnet ? 'testnet' : 'mainnet';
+
+  const result = await callApi(
+    isImporting ? 'importMnemonic' : 'createWallet',
+    network,
+    global.auth.mnemonic!,
+    password,
+  );
+
+  if (!result) {
     setGlobal(updateAuth(global, { isLoading: undefined }));
     return;
   }
@@ -38,21 +68,41 @@ addActionHandler('afterCreatePassword', async (global, actions, { password, isIm
   global = getGlobal();
   global = updateAuth(global, {
     isLoading: undefined,
-    state: isImporting ? AuthState.ready : AuthState.createBackup,
-    address: isImporting ? undefined : address,
+    prevAccountId: undefined,
+    password: undefined,
   });
+  const {
+    accountId,
+    address,
+  } = result;
 
   if (isImporting) {
-    global = updateAddress(global, MAIN_ACCOUNT_ID, address);
-  }
+    global = { ...global, currentAccountId: accountId };
+    global = updateAuth(global, {
+      state: AuthState.ready,
+    });
+    global = updateAccount(global, accountId, address);
 
+    setGlobal(global);
+    actions.afterSignIn();
+  } else {
+    global = updateAuth(global, {
+      state: AuthState.createBackup,
+      accountId,
+      address,
+    });
+
+    setGlobal(global);
+  }
+});
+
+addActionHandler('afterCheckMnemonic', (global, actions) => {
+  global = { ...global, currentAccountId: global.auth.accountId! };
+  global = updateCurrentAccountsState(global, {});
+  global = updateAccount(global, global.auth.accountId!, global.auth.address!);
   setGlobal(global);
 
   actions.afterSignIn();
-});
-
-addActionHandler('afterCheckMnemonic', (global) => {
-  setGlobal(updateAddress(global, MAIN_ACCOUNT_ID, global.auth.address!));
 });
 
 addActionHandler('restartCheckMnemonicIndexes', (global) => {
@@ -61,13 +111,16 @@ addActionHandler('restartCheckMnemonicIndexes', (global) => {
   }));
 });
 
-addActionHandler('skipCheckMnemonic', (global) => {
-  global = {
-    ...global,
+addActionHandler('skipCheckMnemonic', (global, actions) => {
+  global = { ...global, currentAccountId: global.auth.accountId! };
+  global = updateCurrentAccountsState(global, {
+    backupWallet: undefined,
     isBackupRequired: true,
-  };
-  global = updateAddress(global, MAIN_ACCOUNT_ID, global.auth.address!);
+  });
+  global = updateAccount(global, global.auth.accountId!, global.auth.address!);
   setGlobal(global);
+
+  actions.afterSignIn();
 });
 
 addActionHandler('startImportingWallet', (global) => {
@@ -84,11 +137,23 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
     return;
   }
 
-  setGlobal(updateAuth(getGlobal(), {
-    state: AuthState.importWalletCreatePassword,
-    error: undefined,
+  global = updateAuth(getGlobal(), {
     mnemonic,
-  }));
+    error: undefined,
+  });
+
+  if (global.auth.prevAccountId) {
+    setGlobal(global);
+    actions.afterCreatePassword({ password: global.auth.password!, isImporting: true });
+
+    return;
+  }
+
+  setGlobal(updateAuth(global, { state: AuthState.importWalletCreatePassword }));
+});
+
+addActionHandler('cleanAuthError', (global) => {
+  setGlobal(updateAuth(global, { error: undefined }));
 });
 
 export function selectMnemonicForCheck() {
@@ -100,3 +165,28 @@ export function selectMnemonicForCheck() {
     .slice(0, MNEMONIC_CHECK_COUNT)
     .sort((a, b) => a - b);
 }
+
+addActionHandler('startChangingNetwork', (global, actions, { network }) => {
+  const accountId = buildAccountId({
+    ...parseAccountId(global.currentAccountId!),
+    network,
+  });
+
+  actions.switchAccount({ accountId, newNetwork: network });
+});
+
+addActionHandler('switchAccount', async (global, actions, { accountId, newNetwork }) => {
+  const newestTxId = selectAccountState(global, accountId)
+    ?.transactions?.orderedTxIds?.find((id) => !getIsTxIdLocal(id));
+
+  await callApi('switchAccount', accountId, newestTxId);
+
+  setGlobal({
+    ...getGlobal(),
+    currentAccountId: accountId,
+  });
+
+  if (newNetwork) {
+    actions.changeNetwork({ network: newNetwork });
+  }
+});

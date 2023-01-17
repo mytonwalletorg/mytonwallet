@@ -1,0 +1,58 @@
+.wrapper {
+  padding: 1rem 0.75rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-black);
+  text-align: left;
+  word-break: break-all;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+}
+
+
+.button {
+  cursor: pointer;
+
+  line-height: 1.25rem;
+  text-decoration: none !important;
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+
+  &:focus,
+  &:hover {
+    .icon {
+      color: var(--color-blue);
+    }
+  }
+}
+
+.icon {
+  font-size: 1rem;
+  line-height: 1rem;
+  color: var(--color-gray-3);
+  vertical-align: -0.1875rem;
+
+  transition: color 150ms;
+
+  &:global(.icon-copy) {
+    margin-inline-start: 0.0625rem;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.iconStar {
+  font-size: 1.0625rem;
+}
+
+.nameInput {
+  margin-bottom: 1.5rem;
+}

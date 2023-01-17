@@ -1,0 +1,31 @@
+.modalDialog {
+  height: 35rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(35rem + env(safe-area-inset-bottom));
+  }
+}
+
+.modalText {
+  max-width: 20rem;
+  margin: 0 auto 2rem;
+
+  font-size: 0.9375rem;
+  font-weight: 400;
+  text-align: center;
+}
+
+.modalButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 2rem;
+}
+
+.sticker {
+  margin: 0 auto 1.25rem;
+}

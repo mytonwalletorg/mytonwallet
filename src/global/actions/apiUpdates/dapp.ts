@@ -9,6 +9,7 @@ import {
   updateCurrentSignature,
   updateCurrentTransfer,
 } from '../../reducers';
+import { TON_TOKEN_SLUG } from '../../../config';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -29,6 +30,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         fee,
         comment,
         promiseId,
+        tokenSlug: TON_TOKEN_SLUG,
       });
       setGlobal(global);
 

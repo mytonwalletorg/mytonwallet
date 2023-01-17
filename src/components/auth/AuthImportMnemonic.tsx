@@ -1,15 +1,17 @@
 import React, {
-  memo, useCallback, useMemo, useState,
+  memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
-
 import { getActions, withGlobal } from '../../global';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
+import captureKeyboardListeners from '../../util/captureKeyboardListeners';
+import useLang from '../../hooks/useLang';
 import useClipboardPaste from '../../hooks/useClipboardPaste';
 
-import AnimatedIcon from '../ui/AnimatedIcon';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import InputMnemonic from '../common/InputMnemonic';
 import Button from '../ui/Button';
 
@@ -21,6 +23,7 @@ interface OwnProps {
 
 type StateProps = {
   error?: string;
+  isLoading?: boolean;
 };
 
 const MNEMONIC_INPUTS = [...Array(MNEMONIC_COUNT)].map((_, index) => ({
@@ -28,18 +31,32 @@ const MNEMONIC_INPUTS = [...Array(MNEMONIC_COUNT)].map((_, index) => ({
   label: `${index + 1}`,
 }));
 
-const AuthImportMnemonic = ({ isActive, error }: OwnProps & StateProps) => {
+const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProps) => {
   const { afterImportMnemonic, restartAuth } = getActions();
+
+  const lang = useLang();
   const [mnemonic, setMnemonic] = useState<Record<number, string>>({});
 
   const handlePasteMnemonic = useCallback((pastedText: string) => {
     const pastedMnemonic = parsePastedText(pastedText);
 
+    if (pastedMnemonic.length === 1 && document.activeElement?.id.startsWith('import-mnemonic-')) {
+      (document.activeElement as HTMLInputElement).value = pastedMnemonic[0];
+
+      const event = new Event('input');
+      (document.activeElement as HTMLInputElement).dispatchEvent(event);
+
+      return;
+    }
+
     if (pastedMnemonic.length !== MNEMONIC_COUNT) {
       return;
     }
 
-    setMnemonic(pastedMnemonic);
+    // RAF is a workaround for several Android browsers (e.g. Vivaldi)
+    requestAnimationFrame(() => {
+      setMnemonic(pastedMnemonic);
+    });
 
     if (document.activeElement?.id.startsWith('import-mnemonic-')) {
       (document.activeElement as HTMLInputElement).blur();
@@ -61,34 +78,43 @@ const AuthImportMnemonic = ({ isActive, error }: OwnProps & StateProps) => {
     });
   }, [mnemonic]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleCancel = useCallback(() => {
+    restartAuth();
+  }, [restartAuth]);
+
+  const handleSubmit = useCallback(() => {
     if (!isSubmitDisabled) {
       afterImportMnemonic({ mnemonic: Object.values(mnemonic) });
     }
-  };
+  }, [afterImportMnemonic, isSubmitDisabled, mnemonic]);
+
+  useEffect(() => {
+    return isSubmitDisabled
+      ? undefined
+      : captureKeyboardListeners({
+        onEnter: handleSubmit,
+      });
+  }, [afterImportMnemonic, handleSubmit, isSubmitDisabled, mnemonic]);
 
   return (
     <div className={buildClassName(styles.container, styles.container_scrollable, 'custom-scroll')}>
-      <AnimatedIcon
+      <AnimatedIconWithPreview
         play={isActive}
         size={ANIMATED_STICKER_SMALL_SIZE_PX}
         tgsUrl={ANIMATED_STICKERS_PATHS.snitch}
+        previewUrl={ANIMATED_STICKERS_PATHS.snitchPreview}
         nonInteractive
         noLoop={false}
         className={styles.sticker}
       />
-      <div className={buildClassName(styles.title, styles.title_afterSmallSticker)}>{MNEMONIC_COUNT} Secret Words</div>
+      <div className={buildClassName(styles.title, styles.title_afterSmallSticker)}>
+        {lang('%1$d Secret Words', MNEMONIC_COUNT)}
+      </div>
       <div className={buildClassName(styles.info, styles.info_pull)}>
-        You can restore access to your wallet by entering the {MNEMONIC_COUNT} secret words
-        that you wrote down when creating the wallet.
+        {renderText(lang('$auth_import_mnemonic_description', MNEMONIC_COUNT))}
       </div>
 
-      <form
-        id="import_mnemonic_form"
-        className={styles.importingContent}
-        onSubmit={handleSubmit}
-      >
+      <div className={styles.importingContent}>
         {MNEMONIC_INPUTS.map(({ id, label }) => (
           <InputMnemonic
             key={id}
@@ -101,21 +127,22 @@ const AuthImportMnemonic = ({ isActive, error }: OwnProps & StateProps) => {
             onInput={handleSetWord}
           />
         ))}
-      </form>
+      </div>
 
       <div className={styles.buttons}>
         {error && <div className={styles.footerError}>{error}</div>}
         <div className={styles.buttons__inner}>
-          <Button onClick={restartAuth} className={styles.btn}>
-            Cancel
+          <Button onClick={handleCancel} className={styles.footerButton}>
+            {lang('Cancel')}
           </Button>
           <Button
-            forFormId="import_mnemonic_form"
             isPrimary
             isDisabled={isSubmitDisabled}
-            className={styles.btn}
+            isLoading={isLoading}
+            className={styles.footerButton}
+            onClick={handleSubmit}
           >
-            Continue
+            {lang('Continue')}
           </Button>
         </div>
       </div>
@@ -126,6 +153,7 @@ const AuthImportMnemonic = ({ isActive, error }: OwnProps & StateProps) => {
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   return {
     error: global.auth.error,
+    isLoading: global.auth.isLoading,
   };
 })(AuthImportMnemonic));
 

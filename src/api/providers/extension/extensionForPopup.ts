@@ -7,7 +7,7 @@ import { createExtensionInterface } from '../../../util/createPostMessageInterfa
 
 import init from '../../methods/init';
 import * as methods from '../../methods';
-import { disconnectUpdater } from '../../methods/helpers';
+import { disconnectUpdater } from '../../common/helpers';
 
 createExtensionInterface(POPUP_PORT, (name: string, ...args: any[]) => {
   if (name === 'init') {

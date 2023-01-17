@@ -1,4 +1,14 @@
+export type ApiBlockchainKey = 'ton';
+export type ApiNetwork = 'mainnet' | 'testnet';
+
+export interface AccountIdParsed {
+  id: number;
+  blockchain: ApiBlockchainKey;
+  network: ApiNetwork;
+}
+
 export interface ApiInitArgs {
+  origin: string;
   newestTxId?: string;
 }
 
@@ -16,9 +26,13 @@ export interface ApiToken {
     history7d?: ApiHistoryList;
     history30d?: ApiHistoryList;
   };
+  decimals: number;
   minterAddress?: string;
   image?: string;
+  id?: number;
 }
+
+export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | undefined;
 
 export interface ApiTransaction {
   txId: string;
@@ -30,6 +44,7 @@ export interface ApiTransaction {
   fee: string;
   slug?: string;
   isIncoming: boolean;
+  type?: ApiTransactionType;
 }
 
 export enum ApiTransactionDraftError {
@@ -52,3 +67,17 @@ export interface ApiNft {
 }
 
 export type ApiHistoryList = Array<[number, number]>;
+export type ApiTokenSimple = Omit<ApiToken, 'quote'>;
+
+export interface ApiPoolState {
+  startOfCycle: number;
+  endOfCycle: number;
+  lastApy: number;
+  minStake: number;
+}
+
+export interface ApiStakingState {
+  amount: number;
+  pendingDepositAmount: number;
+  isUnstakeRequested: boolean;
+}

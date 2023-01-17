@@ -1,4 +1,6 @@
-import { GlobalState, TransferState } from '../types';
+import { BackupWallet, GlobalState, TransferState } from '../types';
+import { selectCurrentAccountState } from '../selectors';
+import { updateCurrentAccountsState, updateCurrentAccountState } from './misc';
 
 export function updateCurrentTransfer(global: GlobalState, update: Partial<GlobalState['currentTransfer']>) {
   return {
@@ -11,16 +13,16 @@ export function updateCurrentTransfer(global: GlobalState, update: Partial<Globa
 }
 
 export function removeLocalTransaction(global: GlobalState, localTxId: string) {
-  const { [localTxId]: removedTransaction, ...byTxId } = global.transactions?.byTxId || {};
+  const { transactions } = selectCurrentAccountState(global) || {};
+  const { [localTxId]: removedTransaction, ...byTxId } = transactions?.byTxId || {};
 
-  return {
-    ...global,
+  return updateCurrentAccountState(global, {
     transactions: {
-      ...global.transactions,
+      ...transactions,
       byTxId,
-      orderedTxIds: global.transactions?.orderedTxIds?.filter((txId) => txId !== localTxId),
+      orderedTxIds: transactions?.orderedTxIds?.filter((txId) => txId !== localTxId),
     },
-  };
+  });
 }
 
 export function clearCurrentTransfer(global: GlobalState) {
@@ -49,23 +51,24 @@ export function clearCurrentSignature(global: GlobalState) {
   };
 }
 
-export function updateBackupWalletModal(global: GlobalState, update: Partial<GlobalState['backupWallet']>) {
-  return {
-    ...global,
+export function updateBackupWalletModal(global: GlobalState, update: Partial<BackupWallet>) {
+  const { backupWallet } = selectCurrentAccountState(global) || {};
+
+  return updateCurrentAccountsState(global, {
     backupWallet: {
-      ...global.backupWallet,
+      ...backupWallet,
       ...update,
     },
-  } as GlobalState;
+  });
 }
 
 export function updateTransactionsIsLoading(global: GlobalState, isLoading: boolean) {
-  return {
-    ...global,
+  const { transactions } = selectCurrentAccountState(global) || {};
+
+  return updateCurrentAccountState(global, {
     transactions: {
-      ...global.transactions,
-      byTxId: global.transactions?.byTxId || {},
+      ...transactions || { byTxId: {} },
       isLoading,
     },
-  };
+  });
 }

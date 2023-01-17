@@ -1,6 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+import useLang from '../../hooks/useLang';
 
 import styles from './SuggestionList.module.scss';
 
@@ -19,6 +20,8 @@ function SuggestionList({
   isInModal,
   onSelect,
 }: OwnProps) {
+  const lang = useLang();
+
   const handleClick = (e: React.MouseEvent) => {
     const suggest = (e.target as HTMLLIElement).innerText.trim();
     onSelect(suggest);
@@ -42,7 +45,7 @@ function SuggestionList({
     </ul>
   ) : (
     <div className={styles.suggestions}>
-      <li className={styles.suggestion}>No suggestions, you&apos;re on your own!</li>
+      <li className={styles.suggestion}>{lang('No suggestions, you\'re on your own!')}</li>
     </div>
   );
 }

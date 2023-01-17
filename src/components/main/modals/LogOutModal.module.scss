@@ -1,0 +1,41 @@
+.checkbox {
+  margin-top: 0.25rem;
+  margin-bottom: 1.25rem;
+
+  line-height: 1.75rem;
+}
+
+.warning {
+  color: var(--color-red);
+}
+
+.accountLink {
+  overflow: hidden;
+  display: inline-flex;
+
+  max-width: 100%;
+
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+.accountLink::after {
+  content: ', ';
+
+  margin: 0 0.25rem 0 0;
+
+  font-weight: 400;
+}
+
+.accountLink.penultimate::after {
+  content: ' and ';
+
+  margin: 0 0.25rem;
+
+}
+
+.accountLink:last-of-type::after {
+  content: '';
+
+  display: none !important;
+}

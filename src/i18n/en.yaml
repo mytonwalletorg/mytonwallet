@@ -1,0 +1,270 @@
+$auth_intro: |
+  **Securely** store crypto
+  and make blockchain payments
+  at the **speed of light**.
+Create New Wallet: Create New Wallet
+Import From %1$d Secret Words: Import From %1$d Secret Words
+About MyTonWallet: About MyTonWallet
+Creating Wallet...: Creating Wallet...
+On the count of three...: On the count of three...
+$auth_backup_description1: |
+  This is a **secure wallet**
+  and is only **controlled by you**.
+$auth_backup_description2: "And with great power comes **great responsibility**."
+$auth_backup_description3: |
+  You need to manually **back up secret keys** in case you forget your password or lose access to this device.
+Back Up: Back Up
+Skip For Now: Skip For Now
+Passwords must be equal.: Passwords must be equal.
+To protect your wallet as much as possible, use a password with: To protect your wallet as much as possible, use a password with
+$auth_password_rule_8chars: at least 8 characters
+$auth_password_rule_one_small_char: one small letter
+$auth_password_rule_one_capital_char: one capital letter
+$auth_password_rule_one_digit: one digit
+$auth_password_rule_one_special_char: and one special character
+The wallet is imported: The wallet is imported
+The wallet is ready: The wallet is ready
+Create a password to protect it.: Create a password to protect it.
+Enter your password: Enter your password
+Enter your password...: Enter your password...
+...and repeat it: ...and repeat it
+Cancel: Cancel
+Insecure Password: Insecure Password
+Your have entered an insecure password, which can be easily guessed by scammers.: Your have entered an insecure password, which can be easily guessed by scammers.
+Continue or change password to something more secure?: Continue or change password to something more secure?
+Change: Change
+"%1$d Secret Words": "%1$d Secret Words"
+$auth_import_mnemonic_description: |
+  You can restore access to your wallet by entering the %1$d secret words
+  that you wrote down when creating the wallet.
+Let’s make sure your secrets words are recorded correctly.: Let’s make sure your secrets words are recorded correctly.
+$mnemonic_check_words_list: Please enter the words **%1$s** below.
+$mnemonic_check_error: The secret words you have entered do not match the ones in the list. Please try again.
+$mnemonic_list_description: |
+  Write down these words
+  in the **correct order** and store them
+  in a **secret place**.
+Let's Check: Let's Check
+Let's Check!: Let's Check!
+Safety Rules: Safety Rules
+$safety_rules_one: |
+  On the next screen you will see the **secret words**. Write them down in the correct order and **store in a secure place**.
+$safety_rules_two: They allow to **open your wallet** if you lose your password or access to this device.
+$safety_rules_three: If anybody else sees these words your funds **may be stolen**. Look around!
+Understood: Understood
+Congratulations!: Congratulations!
+Continue: Continue
+Close: Close
+Back: Back
+Search...: Search...
+Main menu: Main menu
+TON Proxy: TON Proxy
+Toggle TON Proxy: Toggle TON Proxy
+TON Magic: TON Magic
+Toggle TON Magic: Toggle TON Magic
+Open Telegram Web: Open Telegram Web
+Back Up Secret Words: Back Up Secret Words
+Settings: Settings
+About: About
+Exit: Exit
+Something went wrong: Something went wrong
+Logo: Logo
+$about_description1: Securely store crypto, explore decentralized apps, and make blockchain payments at the **speed of light**.
+$about_description2: The wallet is **non-custodial and safe**. The developers **do not** have access to your funds, browser history or any other information.
+What is TON Proxy?: What is TON Proxy?
+$about_extension_description1: TON Proxy opens a way to **decentralized internet** by allowing to anonymously access TON Sites.
+More info and demo.: More info and demo.
+$about_extension_description2: TON Magic provides native **Telegram integration** by patching the official Telegram Web app.
+$about_extension_description3: Turn it on to send and receive Toncoins from any Telegram user.
+$about_proxy_magic_title: What about %ninja% TON Proxy and %unicorn% TON Magic?
+$about_proxy_magic_description: To enjoy **decentralized internet**, access **TON Sites**, and leverage native **Telegram integration**, feel free to install the %extension_link%.
+$about_extension_link_text: "**MyTonWallet extension**"
+Is it open source?: Is it open source?
+$about_wallet_github: Yes, it is. Feel free to explore our %github_link%.
+$about_github_link_text: "**GitHub repository**"
+Is there a community?: Is there a community?
+$about_wallet_community: Sure, welcome to our %community_link%.
+$about_community_link_text: "**Telegram channel**"
+Currency History: Currency History
+$add_account_description1: |
+  **MyTonWallet** allows you to seamlessly
+  switch between **multiple accounts**.
+$add_account_description2: |
+  Try it by **creating** a new wallet,
+  or **importing** any of your existing ones
+  using 24 secret words.
+Enter Password: Enter Password
+Send: Send
+Add Wallet: Add Wallet
+Done: Done
+Delete: Delete
+Delete Saved Address: Delete Saved Address
+Are you sure you want to remove this address from your saved ones?: Are you sure you want to remove this address from your saved ones?
+You will be able to save it again via Transaction Info with this address.: You will be able to save it again via Transaction Info with this address.
+Address removed from saved: Address removed from saved
+Warning!: Warning!
+Log Out: Log Out
+$logout_without_backup_warning: You have not backed up this wallet. If you log out, you will lose access to your tokens and NFTs.
+$logout_accounts_without_backup_warning: You have not backed up %links%. If you log out, you will lose access to your tokens and NFTs.
+$logout_warning: This will disconnect the wallet from this app. You will be able to restore your wallet using **%1$d secret words** - or import another wallet.
+Receive TON: Receive TON
+Your address was copied!: Your address was copied!
+Show QR-Code: Show QR-Code
+Create Invoice: Create Invoice
+QR-code: QR-code
+$receive_invoice_description: |
+  You can specify the amount and purpose of
+  the payment to save the sender some time
+Amount: Amount
+Comment: Comment
+Share this URL to receive TON: Share this URL to receive TON
+Invoice link was copied!: Invoice link was copied!
+US Dollar: US Dollar
+Theme: Theme
+Language: Language
+Enable Animations: Enable Animations
+Fiat Currency: Fiat Currency
+Investor View: Investor View
+Toggle Investor View: Toggle Investor View
+Hide Tiny Transfers: Hide Tiny Transfers
+Toggle Hide Tiny Transfers: Toggle Hide Tiny Transfers
+Network: Network
+Developer Options: Developer Options
+Confirmation: Confirmation
+Data to sign: Data to sign
+$signature_warning: |
+  Signing custom data is very dangerous.
+  Use only if you know what you are doing.
+Sign: Sign
+Done!: Done!
+Signing was confirmed!: Signing was confirmed!
+Transaction Info: Transaction Info
+Transaction in progress: Transaction in progress
+Comment was copied!: Comment was copied!
+View Transaction on TON Explorer: View Transaction on TON Explorer
+Sender: Sender
+Recipient: Recipient
+Address was copied!: Address was copied!
+Send Back: Send Back
+Repeat: Repeat
+Receive: Receive
+Switch Account: Switch Account
+Copy wallet address: Copy wallet address
+View address on TON Explorer: View address on TON Explorer
+Open on CoinMarketCap: Open on CoinMarketCap
+No Activity: No Activity
+You have just created a new wallet: You have just created a new wallet
+You can now transfer your tokens from another wallet or exchange.: You can now transfer your tokens from another wallet or exchange.
+Assets: Assets
+Activity: Activity
+NFT: NFT
+No NFTs yet: No NFTs yet
+$nft_explore_offer: |
+  Explore a marketplace to discover
+  existing NFT collections.
+Open Getgems: Open Getgems
+Transaction is not completed: Transaction is not completed
+Received: Received
+Sent: Sent
+$transaction_from: from %address%
+$transaction_to: to %address%
+Wallet is not backed up!: Wallet is not backed up!
+Back up now: Back up now
+Testnet Version: Testnet Version
+Error reading clipboard: Error reading clipboard
+$fee_value: "Fee: %fee%"
+Loading...: Loading...
+Recipient address: Recipient address
+Wallet address or domain: Wallet address or domain
+Incorrect address: Incorrect address
+Paste: Paste
+Insufficient balance: Insufficient balance
+InsufficientBalance: Insufficient balance
+Optional: Optional
+$send_token_symbol: Send %1$s
+$your_balance_is: "Your balance: %balance%"
+Is it all ok?: Is it all ok?
+Receiving Address: Receiving Address
+Fee: Fee
+Edit: Edit
+Confirm: Confirm
+Confirm Transaction: Confirm Transaction
+Coins have been sent!: Coins have been sent!
+Details: Details
+Change password visibility: Change password visibility
+Amount value: Amount value
+Save Address: Save Address
+Name: Name
+Save: Save
+Copy: Copy
+Remove From Saved Addresses: Remove From Saved Addresses
+Add To Saved Addresses: Add To Saved Addresses
+View Address on TON Explorer: View Address on TON Explorer
+No suggestions, you're on your own!: No suggestions, you're on your own!
+Play Sounds: Play Sounds
+Focus on asset value rather than current balance: Focus on asset value rather than current balance
+$logout_confirm: Log out of **all** wallets
+$logout_warning2: Wallets are located in the decentralized TON Blockchain. If you want the wallet to be deleted simply transfer all the TON from it and leave it empty.
+$tiny_transfers_help: Turn this off to display transactions of less than %1$d %2$s. Please be aware that such transactions are often used for spam and scam purposes.
+Today: Today
+Yesterday: Yesterday
+Now: Now
+$receive_ton_description: |
+  You can share this address, show QR-code
+  or create invoice to receive TON
+Your address: Your address
+Wrong password, please try again: Wrong password, please try again
+Appearance: Appearance
+Assets and Activity: Assets and Activity
+Light: Light
+Dark: Dark
+System: System
+Create Backup: Create Backup
+Stake TON: Stake TON
+Earn from your tokens while holding them: Earn from your tokens while holding them
+$est_apy_val: Est. APY %1$d%
+Why this is safe: Why this is safe
+Why staking is safe?: Why staking is safe?
+$safe_staking_description1: Staking is **fully decentralized** and operated by the **official TON Nominator** smart contract. No one can gain access to your staked tokens.
+$safe_staking_description2: The deposited stake will be used for the TON network validation as part of its **proof-of-stake** essence.
+$safe_staking_description3: You can withdraw your stake at **any time** and it will be deposited back to your account within **two days**.
+$min_value: Min %value%
+Est. balance in a year: Est. balance in a year
+Confirm Staking: Confirm Staking
+Confirm operation with your password: Confirm operation with your password
+Coins have been staked!: Coins have been staked!
+View: View
+Stake More: Stake More
+Staking: Staking
+Currently staked: Currently staked
+Unstake: Unstake
+Earning history: Earning history
+$total: "Total: %value%"
+Unstake TON: Unstake TON
+$unstake_information_with_time: |
+  Your current deposit will be fully sent back to your wallet in %time%.
+  This will stop your earnings.
+Amount to unstake: Amount to unstake
+Confirm Unstaking: Confirm Unstaking
+Request for unstaking is sent!: Request for unstaking is sent!
+$unstaking_when_receive: You will receive your unstaked deposit in %time%
+$unstake_insufficient_balance: You need to have %balance% on your main balance to proceed with unstaking.
+at APY %1$s%: at APY %1$s%
+Staked: Staked
+Unstake Requested: Unstake Requested
+Unstaked: Unstaked
+The network fee has slightly changed, try sending again.: The network fee has slightly changed, try sending again.
+Transfer was unsuccessful. Try again later: Transfer was unsuccessful. Try again later
+Unstaking was unsuccessful. Try again later: Unstaking was unsuccessful. Try again later
+Staking was unsuccessful. Try again later: Staking was unsuccessful. Try again later
+Invalid amount: Invalid amount
+Invalid address: Invalid address
+Domain is not connected to a wallet: Domain is not connected to a wallet
+Unexpected error: Unexpected error
+Earning: Earning
+InvalidAmount: Invalid amount
+InvalidToAddress: Invalid recipient address
+Unexpected: Unexpected error
+DomainNotResolved: Domain Not Resolved
+You can save this address for quick access while sending.: You can save this address for quick access while sending.
+Stake Again: Stake Again

@@ -8,6 +8,7 @@ declare global {
   interface Window {
     tonProtocolVersion: 1;
     ton: Provider;
+    myTonWallet: Provider;
   }
 }
 
@@ -20,6 +21,8 @@ type Methods =
   | 'flushMemoryCache';
 
 class Provider extends EventEmitter {
+  public isMyTonWallet = true;
+
   public isTonWallet = true; // Native extension legacy requirement
 
   private connector: Connector;
@@ -80,5 +83,7 @@ if (window.ton) {
 }
 
 window.tonProtocolVersion = 1;
-window.ton = new Provider();
+const provider = new Provider();
+window.ton = provider;
+window.myTonWallet = provider;
 window.dispatchEvent(new Event('tonready'));

@@ -6,83 +6,112 @@
   --color-black: #313D4F;
   --color-gray-1: #53657B;
   --color-gray-2: #798795;
-  --color-gray-2-15: #E3E7EC;
   --color-gray-3: #91ABB8;
   --color-gray-4: #C1D1D9;
   --color-green: #2CD36F;
   --color-red: #F35B5B;
+  --color-purple-1: #5E6BDE;
+  --color-purple-2: #6875E9;
 
   --color-background-first: #FFFFFF;
-  --color-background-second: #F6F8FB;
-  --color-background-window: #F6F8FB;
+  --color-background-second: #F1F5FA;
+  --color-background-window: #F1F5FA;
   --color-background-drop-down: #FFFFFF;
+  --color-background-purple-1: #F7F8FE;
+  --color-background-purple-2: #DCDEFF;
 
   --color-input-button-text: #53657B;
   --color-input-button-background: #F6F8FB;
   --color-input-button-background-hover: #EFF2F5;
-  --color-input-button-background-active: #ECEEF1;
+
+  --color-input-hint: #88A6C2;
 
   --color-blue-button-text: #FFFFFF;
   --color-blue-button-text-hover: #FFFFFF;
-  --color-blue-button-text-active: #BFDBE9;
   --color-blue-button-background: #0088CC;
   --color-blue-button-background-hover: #16A5ED;
-  --color-blue-button-background-active: #006EA6;
 
   --color-red-button-text: #FFFFFF;
   --color-red-button-text-hover: #FFFFFF;
-  --color-red-button-text-active: #F5D2D2;
   --color-red-button-background: #F35B5B;
   --color-red-button-background-hover: #FF7070;
-  --color-red-button-background-active: #D74A4A;
 
   --color-red-warning-text: #FFFFFF;
-  --color-red-warning-text-75: rgba(255, 255, 255, 0.75);
+  --color-red-warning-text-70: rgba(255, 255, 255, 0.7);
+  --color-red-warning-text-hover: rgba(255, 255, 255, 0.85);
   --color-red-warning-background: rgba(243, 91, 91, 0.9);
 
   --color-gray-button-text: #2D4C5C;
   --color-gray-button-text-hover: #313D4F;
-  --color-gray-button-text-active: #53657B;
-  --color-gray-button-background: #DEE6EC;
+  --color-gray-button-background: #DCE5EB;
   --color-gray-button-background-hover: #E3EAEF;
-  --color-gray-button-background-active: #C7D5DC;
+  --color-gray-button-background-light: #E5E9F0;
+
+  --color-purple-button-text: #FFFFFF;
+  --color-purple-button-text-hover: #FFFFFF;
+  --color-purple-button-background: #6875E9;
+  --color-purple-button-background-hover: #707EFF;
+  --color-purple-button-light-text: #5561D3;
+  --color-purple-button-light-text-hover: #505DCD;
+  --color-purple-button-light-background: #CACDFF;
+  --color-purple-button-light-background-hover: #C2C6FF;
 
   --color-close-button-text: #798795;
   --color-close-button-text-hover: #6F7C89;
-  --color-close-button-text-active: #66727E;
   --color-close-button-background: #E3E7EC;
   --color-close-button-background-hover: #D2D4DC;
-  --color-close-button-background-active: #C2C5CE;
+
+  --color-close-button-purple-text-hover: #5664E2;
+  --color-close-button-purple-background: #CBCEFF;
+  --color-close-button-purple-background-hover: #B9BDFB;
 
   --color-activity-round-blue: #0088CC;
   --color-activity-round-orange: #FF9900;
   --color-activity-icon: #FFFFFF;
-  --color-activity-gray-10: #EFF2F6;
+  --color-activity-gray-background: #EDF1F7;
   --color-activity-gray-text: #53657B;
-  --color-activity-green-10: #EAFBF1;
+  --color-activity-green-background: #EAFBF1;
   --color-activity-green-text: #1EC160;
+  --color-activity-purple-text: #6875E9;
+  --color-activity-purple-background: #EDEEFC;
 
-  --color-separator: rgba(131, 148, 166, 0.3);
+  --color-separator: rgba(132, 146, 171, 0.3);
   --color-linear-effect-1: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%);
   --color-linear-effect-2: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.7) 100%);
 
-  --color-interactive-home-button-hover: #FAFBFD;
+  --color-interactive-item-hover: #F8F9FB;
+  --color-interactive-tab-hover: #F3F4F6;
+  --color-interactive-tab-active: #F0F6FB;
   --color-interactive-input-text-hover-active: #758495;
-  --color-interactive-popup-menu-hover: rgba(0, 136, 204, 0.07);
-  --color-interactive-popup-menu-active: rgba(83, 101, 123, 0.07);
-  --color-interactive-drop-down-menu-hover: #EFF2F7;
-  --color-interactive-drop-down-menu-active: #DFE3E9;
+  --color-interactive-popup-menu-hover: #F0F6FB;
+  --color-interactive-popup-menu-descructive-hover: #FEF4F4;
+  --color-interactive-drop-down-menu-hover: #F7F9FB;
+  --color-interactive-drop-down-menu-active: #EFF2F7;
 
   --color-tint: rgba(0, 0, 0, 0.45);
 
   --color-card-text: #FFFFFF;
+  --color-card-text-hover: rgba(255, 255, 255, 0.7);
   --color-card-second-text: rgba(255, 255, 255, 0.6);
   --color-card-button: rgba(255, 255, 255, 0.2);
+  --color-card-button-hover: rgba(255, 255, 255, 0.3);
   --color-card-toggle: rgba(255, 255, 255, 0.3);
   --color-card-green-text: #56E991;
   --color-card-green-background: #2CD36F40;
   --color-card-red-text: #FAD2EA;
   --color-card-red-background: #FAD2EA40;
+  --color-card-apy-text: #FFF;
+  --color-card-apy-background: rgba(86, 233, 145, 0.7);
+
+  --color-add-wallet-text: #53657B;
+  --color-add-wallet-text-hover: #3D4B60;
+  --color-add-wallet-background: #EFF2F6;
+  --color-add-wallet-background-hover: #F3F6FA;
+
+  --color-apy-text: #1EC160;
+  --color-apy-background: #EAFBF1;
+  --color-apy-active-text: #FFFFFF;
+  --color-apy-active-background: #8892EB;
 
   --default-shadow: 0 0 1.5625rem 0 #00000026;
 
@@ -96,10 +125,13 @@
   --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
   --slide-transition: 300ms cubic-bezier(0.25, 1, 0.5, 1);
   --select-transition: 200ms ease-out;
+  --dropdown-transition: opacity 200ms cubic-bezier(0.2, 0, 0.2, 1), transform 200ms cubic-bezier(0.2, 0, 0.2, 1), scrollbar-color 300ms;
+  --dropdown-transition-backwards: opacity 200ms ease-in, transform 200ms ease-in;
 
+  --border-radius-tiny: 0.5rem;
   --border-radius-small: 0.625rem;
   --border-radius-buttons: 0.75rem;
-  --border-radius-default: 0.9375rem;
+  --border-radius-default: 1rem;
   --border-radius-big: 1.5rem;
 
   --z-below: -1;
@@ -118,62 +150,89 @@
     --slide-transition: 400ms cubic-bezier(0.25, 1, 0.5, 1);
   }
 
-  @media (prefers-color-scheme: dark) {
+  &:global(.theme-dark) {
     --color-blue: #0C9EE8;
     --color-black: #DCEEFF;
     --color-gray-1: #A3B8CA;
     --color-gray-2: #808C9D;
-    --color-gray-2-15: #27303D;
     --color-gray-3: #7F93A4;
     --color-gray-4: #808C9E;
+    --color-purple-1: #95A0FE;
+    --color-purple-2: #7986F7;
 
-    --color-background-first: #252A3C;
-    --color-background-second: #1E212E;
-    --color-background-window: #1E212E;
-    --color-background-drop-down: #2C3246;
+    --color-background-first: #1E2732;
+    --color-background-second: #191E23;
+    --color-background-window: #191E23;
+    --color-background-drop-down: #273241;
+    --color-background-purple-1: #1F2731;
+    --color-background-purple-2: #2A314A;
 
-    --color-input-button-text: #A3B8CA;
-    --color-input-button-background: #2C3246;
-    --color-input-button-background-hover: #32394F;
-    --color-input-button-background-active: #3A4159;
+    --color-input-button-text: #A5B6CB;
+    --color-input-button-background: #2A3645;
+    --color-input-button-background-hover: #313E4F;
 
-    --color-blue-button-text-active: #A5D5F2;
+    --color-input-hint: #435362;
+
     --color-blue-button-background: #0C9EE8;
     --color-blue-button-background-hover: #39BAFB;
-    --color-blue-button-background-active: #0088CC;
 
-    --color-red-button-text-active: #DBC6D2;
     --color-red-button-background: #D74A4A;
     --color-red-button-background-hover: #F35B5B;
+    --color-red-warning-background: rgba(215, 74, 74, 0.9);
 
-    --color-gray-button-text: #DCEFFF;
-    --color-gray-button-text-hover: #DCEFFF;
-    --color-gray-button-text-active: #B3C3D3;
-    --color-gray-button-background: #424B5C;
-    --color-gray-button-background-hover: #4F5B68;
-    --color-gray-button-background-active: #373E4E;
+    --color-gray-button-text: #DCEDFF;
+    --color-gray-button-text-hover: #DCEDFF;
+    --color-gray-button-background: #43515F;
+    --color-gray-button-background-hover: #525F6C;
+    --color-gray-button-background-light: #293038;
+
+    --color-purple-button-text: #FFFFFF;
+    --color-purple-button-text-hover: #FFFFFF;
+    --color-purple-button-background: #7986F7;
+    --color-purple-button-background-hover: #8591FB;
+    --color-purple-button-light-text: #919CFF;
+    --color-purple-button-light-text-hover: #9CA6FF;
+    --color-purple-button-light-background: #384069;
+    --color-purple-button-light-background-hover: #455084;
 
     --color-close-button-text: #808C9D;
     --color-close-button-text-hover: #909DAE;
-    --color-close-button-text-active: #A2B0C2;
-    --color-close-button-background: #27303D;
+    --color-close-button-background: #282F35;
     --color-close-button-background-hover: #364150;
-    --color-close-button-background-active: #414C5C;
+
+    --color-close-button-purple-text-hover: #8692FF;
+    --color-close-button-purple-background: #384069;
+    --color-close-button-purple-background-hover: #455084;
 
     --color-activity-round-blue: #469CEC;
-    --color-activity-gray-10: #2C3345;
+    --color-activity-gray-background: #2E3947;
     --color-activity-gray-text: #A3B8CA;
-    --color-activity-green-10: #253B41;
+    --color-activity-green-background: #1F3838;
     --color-activity-green-text: #2CD36F;
+    --color-activity-purple-text: #6875E9;
+    --color-activity-purple-background: #2D3651;
 
-    --color-linear-effect-1: linear-gradient(90deg, rgba(37, 42, 60, 0) 0%, #252A3C 100%);
-    --color-linear-effect-2: linear-gradient(180deg, rgba(37, 42, 60, 0) 0%, rgba(37, 42, 60, 0.7) 100%);
+    --color-separator: rgba(84, 96, 112, 0.3);
+    --color-linear-effect-1: linear-gradient(90deg, rgba(30, 39, 50, 0) 0%, #1E2732 100%);
+    --color-linear-effect-2: linear-gradient(180deg, rgba(30, 39, 50, 0) 0%, rgba(30, 39, 50, 0.7) 100%);
 
-    --color-interactive-home-button-hover: #2B3043;
+    --color-interactive-item-hover: #232C38;
+    --color-interactive-tab-hover: #28313D;
+    --color-interactive-tab-active: #202F3F;
     --color-interactive-input-text-hover-active: #97A9BC;
-    --color-interactive-popup-menu-hover: rgba(12, 158, 232, 0.07);
-    --color-interactive-popup-menu-active: rgba(163, 184, 202, 0.07);
-    --color-interactive-drop-down-menu-hover: #252A3C;
-    --color-interactive-drop-down-menu-active: #202433;
+    --color-interactive-popup-menu-hover: #253A4D;
+    --color-interactive-popup-menu-descructive-hover: #353543;
+    --color-interactive-drop-down-menu-hover: #242D3B;
+    --color-interactive-drop-down-menu-active: #202833;
+
+    --color-add-wallet-text: #CBD5E3;
+    --color-add-wallet-text-hover: #E1EEFF;
+    --color-add-wallet-background: #394658;
+    --color-add-wallet-background-hover: #4C5869;
+
+    --color-apy-text: #2CD36F;
+    --color-apy-background: #1F3838;
+    --color-apy-active-text: #FFFFFF;
+    --color-apy-active-background: #6B78D9;
   }
 }

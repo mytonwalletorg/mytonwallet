@@ -1,0 +1,93 @@
+.sticker {
+  margin: -0.5rem auto 1.25rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 3rem;
+}
+
+.copyButtonWrapper {
+  margin-bottom: 1rem;
+}
+
+.comment {
+  word-break: break-word;
+}
+
+.button {
+  width: auto;
+  max-width: 70% !important;
+  padding: 0.5rem 1.5rem;
+
+  white-space: nowrap;
+}
+
+.clockIcon {
+  margin-inline-start: 0.25rem;
+
+  vertical-align: -0.125rem;
+}
+
+.tonscan {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+
+  width: 1.875rem !important;
+  height: 1.875rem !important;
+  padding: 0;
+
+  font-size: 1.5rem;
+  line-height: 1.875rem;
+  color: var(--color-gray-3);
+  text-align: center;
+  text-decoration: none;
+
+  border-radius: 50%;
+
+  transition: color 150ms;
+
+  &:active {
+    text-decoration: none;
+
+    // Optimization
+    transition: none;
+  }
+
+  &:hover,
+  &:focus {
+    color: var(--color-blue);
+    text-decoration: none;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.unstakeTime {
+  position: relative;
+
+  max-width: 18rem;
+  margin: 0.25rem auto 0;
+  padding: 0.75rem;
+
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-gray-1);
+  text-align: center;
+
+  background: var(--color-gray-button-background-light);
+  border-radius: var(--border-radius-buttons);
+}
+
+.unstakeTimeIcon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

@@ -1,16 +1,17 @@
 import React, {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
-
 import { getActions } from '../../global';
+
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import buildClassName from '../../util/buildClassName';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import { usePasswordValidation } from '../../hooks/usePasswordValidation';
+import useLang from '../../hooks/useLang';
 import useFlag from '../../hooks/useFlag';
 
 import Modal from '../ui/Modal';
-import AnimatedIcon from '../ui/AnimatedIcon';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 
@@ -29,6 +30,8 @@ const AuthCreatePassword = ({
   isLoading,
 }: OwnProps) => {
   const { afterCreatePassword, restartAuth } = getActions();
+
+  const lang = useLang();
 
   // eslint-disable-next-line no-null/no-null
   const firstInputRef = useRef<HTMLInputElement>(null);
@@ -86,6 +89,10 @@ const AuthCreatePassword = ({
     }
   }, [isJustSubmitted]);
 
+  const handleCancel = useCallback(() => {
+    restartAuth();
+  }, [restartAuth]);
+
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -122,8 +129,8 @@ const AuthCreatePassword = ({
   function renderErrors() {
     if (isPasswordsNotEqual) {
       return (
-        <div className={buildClassName(styles.errors, styles.invalid)}>
-          Passwords must be equal.
+        <div className={buildClassName(styles.errors, styles.error)}>
+          {lang('Passwords must be equal.')}
         </div>
       );
     }
@@ -138,12 +145,22 @@ const AuthCreatePassword = ({
 
     return (
       <div className={styles.passwordRules}>
-        To protect your wallet as much as possible, use a password with
-        <span className={getValidationRuleClass(shouldRenderError, invalidLength)}> at least 8 characters,</span>
-        <span className={getValidationRuleClass(shouldRenderError, noLowerCase)}> one small letter,</span>
-        <span className={getValidationRuleClass(shouldRenderError, noUpperCase)}> one capital letter,</span>
-        <span className={getValidationRuleClass(shouldRenderError, noNumber)}> one digit,</span>
-        <span className={getValidationRuleClass(shouldRenderError, noSpecialChar)}> and one special character</span>.
+        {lang('To protect your wallet as much as possible, use a password with')}
+        <span className={getValidationRuleClass(shouldRenderError, invalidLength)}>
+          {' '}{lang('$auth_password_rule_8chars')},
+        </span>
+        <span className={getValidationRuleClass(shouldRenderError, noLowerCase)}>
+          {' '}{lang('$auth_password_rule_one_small_char')},
+        </span>
+        <span className={getValidationRuleClass(shouldRenderError, noUpperCase)}>
+          {' '}{lang('$auth_password_rule_one_capital_char')},
+        </span>
+        <span className={getValidationRuleClass(shouldRenderError, noNumber)}>
+          {' '}{lang('$auth_password_rule_one_digit')},
+        </span>
+        <span className={getValidationRuleClass(shouldRenderError, noSpecialChar)}>
+          {' '}{lang('$auth_password_rule_one_special_char')}
+        </span>.
       </div>
     );
   }
@@ -154,19 +171,20 @@ const AuthCreatePassword = ({
       onSubmit={handleSubmit}
       className={buildClassName(styles.container, styles.container_scrollable, 'custom-scroll')}
     >
-      <AnimatedIcon
+      <AnimatedIconWithPreview
         play={isActive}
         tgsUrl={ANIMATED_STICKERS_PATHS.happy}
+        previewUrl={ANIMATED_STICKERS_PATHS.happyPreview}
         noLoop={false}
         nonInteractive
         className={styles.sticker}
       />
-      <div className={styles.title}>Congratulations!</div>
+      <div className={styles.title}>{lang('Congratulations!')}</div>
       <p className={styles.info}>
-        <strong>The wallet is {isImporting ? 'imported' : 'ready'}.</strong>
+        <b>{lang(isImporting ? 'The wallet is imported' : 'The wallet is ready')}.</b>
       </p>
       <p className={styles.info}>
-        Create a password to protect it.
+        {lang('Create a password to protect it.')}
       </p>
 
       <div className={styles.form}>
@@ -176,8 +194,9 @@ const AuthCreatePassword = ({
           isRequired
           id="first-password"
           hasError={shouldRenderError}
-          placeholder="Enter your password..."
+          placeholder={lang('Enter your password...')}
           value={firstPassword}
+          autoComplete="new-password"
           onInput={handleFirstPasswordChange}
           onFocus={markPasswordFocused}
           onBlur={unmarkPasswordFocused}
@@ -186,9 +205,10 @@ const AuthCreatePassword = ({
           type="password"
           isRequired
           id="second-password"
-          placeholder="...and repeat it"
+          placeholder={lang('...and repeat it')}
           hasError={isPasswordsNotEqual}
           value={secondPassword}
+          autoComplete="new-password"
           onInput={handleSecondPasswordChange}
           onFocus={markSecondPasswordFocused}
           onBlur={unmarkSecondPasswordFocused}
@@ -198,34 +218,34 @@ const AuthCreatePassword = ({
       {renderErrors()}
 
       <div className={buildClassName(styles.buttons, styles.buttons__inner)}>
-        <Button onClick={restartAuth} className={styles.btn}>
-          Cancel
+        <Button onClick={handleCancel} className={styles.footerButton}>
+          {lang('Cancel')}
         </Button>
         <Button
           isSubmit
           isPrimary
           isDisabled={isPasswordsNotEqual || firstPassword === ''}
-          className={styles.btn}
           isLoading={isLoading}
+          className={styles.footerButton}
         >
-          Continue
+          {lang('Continue')}
         </Button>
       </div>
 
       <Modal
         isOpen={isWeakPasswordModalOpen}
         onClose={closeWeakPasswordModal}
-        title="Insecure Password"
+        title={lang('Insecure Password')}
       >
-        <p className={styles.modalText}>
-          Your have entered an insecure password, which can be easily guessed by scammers.
+        <p className={modalStyles.text}>
+          {lang('Your have entered an insecure password, which can be easily guessed by scammers.')}
         </p>
-        <p className={styles.modalText}>
-          Continue or change password to something more secure?
+        <p className={modalStyles.text}>
+          {lang('Continue or change password to something more secure?')}
         </p>
         <div className={modalStyles.buttons}>
-          <Button isPrimary onClick={closeWeakPasswordModal}>Change</Button>
-          <Button forFormId={formId} isSubmit isDestructive>Continue</Button>
+          <Button isPrimary onClick={closeWeakPasswordModal} className={modalStyles.button}>{lang('Change')}</Button>
+          <Button forFormId={formId} isSubmit isDestructive className={modalStyles.button}>{lang('Continue')}</Button>
         </div>
       </Modal>
     </form>

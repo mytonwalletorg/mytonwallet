@@ -1,26 +1,43 @@
+import type { Theme } from '../global/types';
+
 import { useEffect } from '../lib/teact/teact';
 
-export default function useBrowserUiColor(isActive: boolean, lightColor: string, darkColor: string) {
+interface Props {
+  isActive: boolean;
+  currentTheme: Theme;
+  lightColor: string;
+  darkColor: string;
+}
+
+export default function useBrowserUiColor({
+  isActive,
+  currentTheme,
+  lightColor,
+  darkColor,
+}: Props) {
   useEffect(() => {
     const metaElementLight = getThemeColorMetaElement(true);
     const metaElementDark = getThemeColorMetaElement();
+    const lightContent = currentTheme === 'dark' ? darkColor : lightColor;
+    const darkContent = currentTheme === 'light' ? lightColor : darkColor;
 
     if (isActive) {
-      metaElementLight.setAttribute('content', lightColor);
-      metaElementDark.setAttribute('content', darkColor);
+      metaElementLight.setAttribute('content', lightContent);
+      metaElementDark.setAttribute('content', darkContent);
     }
 
     return () => {
       metaElementLight.remove();
       metaElementDark.remove();
     };
-  }, [lightColor, isActive, darkColor]);
+  }, [lightColor, isActive, darkColor, currentTheme]);
 }
 
 function getThemeColorMetaElement(isLight?: boolean) {
   let metaThemeColor = document.querySelector(
     `meta[name="theme-color"][media="(prefers-color-scheme: ${isLight ? 'light' : 'dark'})"]`,
   );
+
   if (!metaThemeColor) {
     metaThemeColor = document.createElement('meta');
     metaThemeColor.setAttribute('name', 'theme-color');

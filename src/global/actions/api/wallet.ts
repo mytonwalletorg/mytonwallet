@@ -6,6 +6,8 @@ import { callApi } from '../../../api';
 import {
   clearCurrentTransfer,
   updateBackupWalletModal,
+  updateCurrentAccountsState,
+  updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
   updateSendingLoading,
@@ -14,6 +16,7 @@ import {
 import { getIsTxIdLocal, humanToBigStr } from '../../helpers';
 import { buildCollectionByKey, unique } from '../../../util/iteratees';
 import { ApiTransactionDraftError } from '../../../api/types';
+import { selectCurrentAccountState } from '../../selectors';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
   const {
@@ -44,10 +47,18 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   const {
     tokenSlug, toAddress, amount, comment,
   } = payload;
+  const { decimals } = global.tokenInfo!.bySlug[tokenSlug];
 
   setGlobal(updateSendingLoading(global, true));
 
-  const result = await callApi('checkTransactionDraft', tokenSlug, toAddress, humanToBigStr(amount), comment);
+  const result = await callApi(
+    'checkTransactionDraft',
+    global.currentAccountId!,
+    tokenSlug,
+    toAddress,
+    humanToBigStr(amount, decimals),
+    comment,
+  );
 
   global = getGlobal();
   global = updateSendingLoading(global, false);
@@ -83,8 +94,16 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   const {
     tokenSlug, toAddress, amount, comment,
   } = payload;
+  const { decimals } = global.tokenInfo!.bySlug[tokenSlug];
 
-  const result = await callApi('checkTransactionDraft', tokenSlug, toAddress, humanToBigStr(amount), comment);
+  const result = await callApi(
+    'checkTransactionDraft',
+    global.currentAccountId!,
+    tokenSlug,
+    toAddress,
+    humanToBigStr(amount, decimals),
+    comment,
+  );
 
   if (result?.fee) {
     setGlobal(updateCurrentTransfer(getGlobal(), { fee: result.fee }));
@@ -105,6 +124,7 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
     tokenSlug,
     fee,
   } = global.currentTransfer;
+  const { decimals } = global.tokenInfo!.bySlug[tokenSlug!];
 
   if (!(await callApi('verifyPassword', password))) {
     setGlobal(updateCurrentTransfer(getGlobal(), { error: 'Wrong password, please try again' }));
@@ -125,10 +145,11 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
 
   const result = await callApi(
     'submitTransfer',
+    global.currentAccountId!,
     password,
     tokenSlug!,
     toAddress!,
-    humanToBigStr(amount!),
+    humanToBigStr(amount!, decimals),
     comment,
     fee,
   );
@@ -157,14 +178,15 @@ addActionHandler('cancelTransfer', (global) => {
 
 addActionHandler('fetchTransactions', async (global, actions, payload) => {
   const { limit } = payload || {};
+
   global = updateTransactionsIsLoading(global, true);
   setGlobal(global);
 
-  const orderedTxIds = global.transactions?.orderedTxIds;
+  const { orderedTxIds } = selectCurrentAccountState(global)?.transactions || {};
   const lastTxId = orderedTxIds ? orderedTxIds[orderedTxIds.length - 1] : undefined;
   const offsetId = lastTxId && !getIsTxIdLocal(lastTxId) ? lastTxId : undefined;
 
-  const result = await callApi('fetchTransactionSlice', offsetId, limit);
+  const result = await callApi('fetchTransactionSlice', global.currentAccountId!, offsetId, limit);
   global = getGlobal();
   global = updateTransactionsIsLoading(global, false);
 
@@ -173,35 +195,37 @@ addActionHandler('fetchTransactions', async (global, actions, payload) => {
     return;
   }
 
-  const transactions = buildCollectionByKey(result, 'txId');
-  const newOrderedTxIds = Object.keys(transactions);
+  const newTxsById = buildCollectionByKey(result, 'txId');
+  const newOrderedTxIds = Object.keys(newTxsById);
+  const currentTxs = selectCurrentAccountState(global)?.transactions;
 
-  setGlobal({
-    ...global,
+  global = updateCurrentAccountState(global, {
     transactions: {
-      ...global.transactions,
-      byTxId: { ...(global.transactions?.byTxId || {}), ...transactions },
-      orderedTxIds: unique((global.transactions?.orderedTxIds || []).concat(newOrderedTxIds)),
+      ...currentTxs,
+      byTxId: { ...(currentTxs?.byTxId || {}), ...newTxsById },
+      orderedTxIds: unique((currentTxs?.orderedTxIds || []).concat(newOrderedTxIds)),
     },
   });
+
+  setGlobal(global);
 });
 
-addActionHandler('fetchNfts', async () => {
+addActionHandler('fetchNfts', async (global) => {
   // TODO limit, offset
-  const result = await callApi('fetchNfts');
+  const result = await callApi('fetchNfts', global.currentAccountId!);
   if (!result) {
     return;
   }
 
   const nfts = buildCollectionByKey(result, 'address');
-
-  setGlobal({
-    ...getGlobal(),
+  global = getGlobal();
+  global = updateCurrentAccountState(global, {
     nfts: {
       byAddress: nfts,
       orderedAddresses: Object.keys(nfts),
     },
   });
+  setGlobal(global);
 });
 
 addActionHandler('startBackupWallet', async (global, actions, payload) => {
@@ -212,12 +236,12 @@ addActionHandler('startBackupWallet', async (global, actions, payload) => {
     error: undefined,
   }));
 
-  const mnemonic = await callApi('getMnemonic', password);
+  const mnemonic = await callApi('getMnemonic', global.currentAccountId!, password);
 
   global = getGlobal();
   setGlobal(updateBackupWalletModal(global, {
     isLoading: false,
-    error: !mnemonic ? 'Wrong password, please try again.' : undefined,
+    error: !mnemonic ? 'Wrong password, please try again' : undefined,
     mnemonic,
   }));
 });
@@ -228,17 +252,12 @@ addActionHandler('cleanBackupWalletError', (global) => {
 
 addActionHandler('closeBackupWallet', (global, actions, payload) => {
   const { isMnemonicChecked } = payload || {};
+  const { isBackupRequired } = selectCurrentAccountState(global) || {};
 
-  if (isMnemonicChecked) {
-    global = {
-      ...global, isBackupRequired: undefined,
-    };
-  }
-
-  setGlobal({
-    ...global,
-    backupWallet: {},
-  });
+  setGlobal(updateCurrentAccountsState(global, {
+    backupWallet: undefined,
+    isBackupRequired: isMnemonicChecked ? undefined : isBackupRequired,
+  }));
 });
 
 addActionHandler('submitSignature', async (global, actions, payload) => {

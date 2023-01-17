@@ -1,7 +1,9 @@
 import React, { memo } from '../../lib/teact/teact';
 
 import { MNEMONIC_COUNT } from '../../config';
+import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
+import useLang from '../../hooks/useLang';
 
 import ModalHeader from '../ui/ModalHeader';
 import Button from '../ui/Button';
@@ -18,14 +20,14 @@ type OwnProps = {
 function MnemonicList({
   mnemonic, onNext, onClose,
 }: OwnProps) {
+  const lang = useLang();
+
   return (
     <div className={modalStyles.transitionContentWrapper}>
-      <ModalHeader title={`${MNEMONIC_COUNT} Secret Words`} onClose={onClose} />
+      <ModalHeader title={lang('%1$d Secret Words', MNEMONIC_COUNT) as string} onClose={onClose} />
       <div className={buildClassName(modalStyles.transitionContent, 'custom-scroll')}>
         <p className={buildClassName(styles.info, styles.small)}>
-          Write down these words
-          <br />in the <strong>correct order</strong> and store them
-          <br />in a <strong>secret place</strong>.
+          {renderText(lang('$mnemonic_list_description'))}
         </p>
         <ol className={styles.words}>
           {mnemonic?.map((word) => (
@@ -34,7 +36,7 @@ function MnemonicList({
         </ol>
 
         <div className={modalStyles.buttons}>
-          <Button isPrimary onClick={onNext}>Let{'\''}s check</Button>
+          <Button isPrimary onClick={onNext}>{lang('Let\'s Check')}</Button>
         </div>
       </div>
     </div>

@@ -1,0 +1,177 @@
+@import "../../../../styles/variables";
+
+.item {
+  position: relative;
+
+  display: grid;
+  grid-template-areas: "icon left right" "useless bottom bottom";
+  grid-template-columns: 2.875rem auto 1fr;
+  grid-template-rows: 2.25rem auto;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  padding: 0.75rem 2rem 0.75rem 1rem;
+
+  color: var(--color-black);
+  text-align: left;
+
+  &:not(:last-of-type) {
+    &::after {
+      content: '';
+
+      position: absolute;
+      right: 2rem;
+      bottom: 0;
+      left: 3.875rem;
+
+      height: 1px;
+      /* stylelint-disable-next-line plugin/whole-pixel */
+      box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+    }
+  }
+
+  &:focus,
+  &:hover {
+    background-color: var(--color-interactive-item-hover);
+  }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+}
+
+.iconArrow {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+
+  font-size: 1rem;
+  color: var(--color-gray-3)
+}
+
+.icon {
+  grid-area: icon;
+
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 0.625rem 0 0;
+
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-activity-gray-text);
+  text-align: center;
+
+  background-color: var(--color-activity-gray-background);
+  border-radius: 50%;
+
+  &::before {
+    line-height: 2.25rem;
+  }
+
+  &_staking {
+    font-size: 1.875rem;
+  }
+
+  &_operationPositive {
+    color: var(--color-activity-green-text);
+
+    background-color: var(--color-activity-green-background);
+  }
+
+  &_purple {
+    color: var(--color-activity-purple-text);
+
+    background-color: var(--color-activity-purple-background);
+  }
+}
+
+.iconWaiting {
+  position: absolute;
+  top: 2.125rem;
+  left: 2.375rem;
+
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--color-gray-1);
+}
+
+.leftBlock {
+  grid-area: left;
+}
+
+.amount,
+.operationName {
+  padding-bottom: 0.0625rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.address,
+.date {
+  font-size: 0.75rem;
+  color: var(--color-gray-2);
+}
+
+.addressValue {
+  font-weight: 600;
+}
+
+.amountWrapper {
+  grid-area: right;
+
+  margin-left: auto;
+
+  text-align: right;
+}
+
+.amount {
+  &_operationPositive {
+    color: var(--color-green);
+  }
+
+  &_operationNegative {
+    color: var(--color-gray-1);
+  }
+
+  &_stake {
+    color: var(--color-purple-2);
+  }
+}
+
+.comment {
+  overflow: hidden;
+  grid-area: bottom;
+
+  max-width: 100%;
+  margin-top: 0.375rem;
+  padding: 0.5rem 0.625rem;
+
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  border-radius: 0.875rem;
+
+  &_incoming {
+    margin-inline-end: auto;
+
+    color: var(--color-activity-green-text);
+
+    background-color: var(--color-activity-green-background);
+    border-top-left-radius: 0.375rem;
+  }
+
+  &_outgoing {
+    margin-inline-start: auto;
+
+    color: var(--color-activity-gray-text);
+
+    background-color: var(--color-activity-gray-background);
+    border-top-right-radius: 0.375rem;
+  }
+}

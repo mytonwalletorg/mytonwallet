@@ -24,9 +24,17 @@ export function animateSingle(tick: Function, instance?: AnimationInstance) {
 }
 
 export function animate(tick: Function) {
+  fastRaf(() => {
+    if (tick()) {
+      animate(tick);
+    }
+  });
+}
+
+export function animateInstantly(tick: Function) {
   if (tick()) {
     fastRaf(() => {
-      animate(tick);
+      animateInstantly(tick);
     });
   }
 }
@@ -45,20 +53,20 @@ export type AnimateNumberProps = {
 export const timingFunctions = {
   linear: (t: number) => t,
   easeIn: (t: number) => t ** 1.675,
-  easeOut: (t: number) => 1 - (1 - t ** 1.675),
+  easeOut: (t: number) => -1 * t ** 1.675,
   easeInOut: (t: number) => 0.5 * (Math.sin((t - 0.5) * Math.PI) + 1),
   easeInQuad: (t: number) => t * t,
   easeOutQuad: (t: number) => t * (2 - t),
   easeInOutQuad: (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
-  easeInCubic: (t: number) => t * t * t,
+  easeInCubic: (t: number) => t ** 3,
   easeOutCubic: (t: number) => (--t) * t * t + 1,
-  easeInOutCubic: (t: number) => (t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1),
-  easeInQuart: (t: number) => t * t * t * t,
-  easeOutQuart: (t: number) => 1 - (--t) * t * t * t,
-  easeInOutQuart: (t: number) => (t < 0.5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t),
-  easeInQuint: (t: number) => t * t * t * t * t,
-  easeOutQuint: (t: number) => 1 + (--t) * t * t * t * t,
-  easeInOutQuint: (t: number) => (t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t),
+  easeInOutCubic: (t: number) => (t < 0.5 ? 4 * t ** 3 : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1),
+  easeInQuart: (t: number) => t ** 4,
+  easeOutQuart: (t: number) => 1 - (--t) * t ** 3,
+  easeInOutQuart: (t: number) => (t < 0.5 ? 8 * t ** 4 : 1 - 8 * (--t) * t ** 3),
+  easeInQuint: (t: number) => t ** 5,
+  easeOutQuint: (t: number) => 1 + (--t) * t ** 4,
+  easeInOutQuint: (t: number) => (t < 0.5 ? 16 * t ** 5 : 1 + 16 * (--t) * t ** 4),
 };
 
 export function animateNumber({
@@ -72,7 +80,7 @@ export function animateNumber({
   const t0 = Date.now();
   let canceled = false;
 
-  animate(() => {
+  animateInstantly(() => {
     if (canceled) return false;
     const t1 = Date.now();
     let t = (t1 - t0) / duration;

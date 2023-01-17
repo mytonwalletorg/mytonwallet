@@ -1,5 +1,7 @@
+const fs = require("fs");
 const path = require('path');
 const dotenv = require('dotenv');
+const yaml = require('js-yaml');
 
 const {
   DefinePlugin,
@@ -12,6 +14,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const { GitRevisionPlugin } = require('git-revision-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const WebpackBeforeBuildPlugin = require('before-build-webpack');
+const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 
 const {
   HEAD,
@@ -22,6 +26,7 @@ const gitRevisionPlugin = new GitRevisionPlugin();
 const branch = HEAD || gitRevisionPlugin.branch();
 const appRevision = (!branch || branch === 'HEAD') ? gitRevisionPlugin.commithash().substring(0, 7) : branch;
 const appVersion = require('./package.json').version;
+const defaultI18nFilename = path.resolve(__dirname, './src/i18n/en.json');
 
 dotenv.config();
 
@@ -66,6 +71,8 @@ module.exports = (_env, { mode = 'production' }) => {
         stats: 'minimal',
       },
     },
+
+    watchOptions: { ignored: defaultI18nFilename },
 
     output: {
       filename: (pathData) => (pathData.chunk.name.startsWith('extension') ? '[name].js' : '[name].[contenthash].js'),
@@ -143,9 +150,19 @@ module.exports = (_env, { mode = 'production' }) => {
     },
 
     plugins: [
+      new WebpackBeforeBuildPlugin(function(stats, callback) {
+        const defaultI18nYaml = fs.readFileSync('./src/i18n/en.yaml', 'utf8');
+        const defaultI18nJson = convertI18nYamlToJson(defaultI18nYaml, mode === 'production');
+
+        fs.writeFile(defaultI18nFilename, defaultI18nJson, 'utf-8', () => { callback() });
+      }),
       new HtmlPlugin({
         template: 'src/index.html',
         chunks: ['main'],
+      }),
+      new PreloadWebpackPlugin({
+        include: 'allAssets',
+        fileWhitelist: [/duck_.*?\.png/], // Lottie thumbs
       }),
       new MiniCssExtractPlugin({
         filename: '[name].[contenthash].css',
@@ -159,13 +176,16 @@ module.exports = (_env, { mode = 'production' }) => {
         APP_VERSION: appVersion,
         APP_REVISION: appRevision,
         TEST_SESSION: null,
-        IS_TESTNET: null,
         TONHTTPAPI_MAINNET_URL: null,
         TONHTTPAPI_TESTNET_URL: null,
         TONAPIIO_MAINNET_URL: null,
         TONAPIIO_TESTNET_URL: null,
         BRILLIANT_API_BASE_URL: null,
         PROXY_HOSTS: null,
+        STAKING_POOL_1_MAINNET: null,
+        STAKING_POOL_2_MAINNET: null,
+        STAKING_POOL_1_TESTNET: null,
+        STAKING_POOL_2_TESTNET: null,
       }),
       new DefinePlugin({
         APP_REVISION: DefinePlugin.runtimeValue(() => {
@@ -183,6 +203,10 @@ module.exports = (_env, { mode = 'production' }) => {
         patterns: [{
           from: 'src/extension/manifest.json',
           transform: (content) => content.toString().replace('%%VERSION%%', appVersion),
+        }, {
+          from:      "src/i18n/*.yaml",
+          to:        "i18n/[name].json",
+          transform: (content) => convertI18nYamlToJson(content, mode === 'production'),
         }],
       }),
       ...(mode === 'production' ? [
@@ -216,4 +240,29 @@ function getGitMetadata() {
     branch,
     commit,
   };
+}
+
+function convertI18nYamlToJson(content, shouldThrowException) {
+  try {
+    const i18n = yaml.load(content);
+
+    const json = Object.entries(i18n).reduce((acc, [key, value]) => {
+      if (typeof value === 'string') {
+        acc[key] = { value };
+      }
+      if (typeof value === 'object') {
+        acc[key] = { ...value };
+      }
+
+      return acc;
+      }, {});
+
+    return JSON.stringify(json, undefined, 2);
+  } catch (err) {
+    console.error(err.message);
+
+    if (shouldThrowException) {
+      throw err;
+    }
+  }
 }

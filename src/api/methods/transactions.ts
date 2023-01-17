@@ -1,15 +1,11 @@
 import type { OnApiUpdate } from '../types';
 import type { Storage } from '../storages/types';
 
-import { MAIN_ACCOUNT_ID } from '../../config';
-import { pause } from '../../util/schedulers';
 import blockchains from '../blockchains';
-import { txCallbacks, whenTxComplete } from '../common/txCallbacks';
+import { whenTxComplete } from '../common/txCallbacks';
 import {
-  buildLocalTransaction, checkAccountIsAuthorized, resolveBlockchainKey, isUpdaterAlive,
-} from './helpers';
-
-const POLLING_INTERVAL = 1100;
+  buildLocalTransaction, resolveBlockchainKey,
+} from '../common/helpers';
 
 let onUpdate: OnApiUpdate;
 let storage: Storage;
@@ -19,62 +15,35 @@ export function initTransactions(_onUpdate: OnApiUpdate, _storage: Storage) {
   storage = _storage;
 }
 
-export function fetchTransactions() {
-  const accountId = MAIN_ACCOUNT_ID;
+export function fetchTransactions(accountId: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   return blockchain.getAccountTransactionSlice(storage, accountId);
 }
 
-export function fetchTransactionSlice(beforeTxId?: string, limit?: number) {
-  const accountId = MAIN_ACCOUNT_ID;
+export function fetchTransactionSlice(accountId: string, beforeTxId?: string, limit?: number) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   return blockchain.getAccountTransactionSlice(storage, accountId, beforeTxId, undefined, limit);
 }
 
-export async function setupTransactionsPolling(accountId: string, newestTxId?: string) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
-  if (!newestTxId) {
-    newestTxId = await blockchain.getAccountNewestTxId(storage, accountId);
-  }
-
-  while (isUpdaterAlive(onUpdate) && await checkAccountIsAuthorized(storage, accountId)) {
-    try {
-      const transactions = await blockchain.getAccountTransactionSlice(storage, accountId, undefined, newestTxId);
-      if (transactions.length) {
-        newestTxId = transactions[0].txId;
-
-        // eslint-disable-next-line @typescript-eslint/no-loop-func
-        transactions.reverse().forEach((transaction) => {
-          txCallbacks.runCallbacks(transaction);
-
-          onUpdate({
-            type: 'newTransaction',
-            transaction,
-          });
-        });
-      }
-    } catch (err) {
-      // Do nothing
-    }
-
-    await pause(POLLING_INTERVAL);
-  }
-}
-
-export function checkTransactionDraft(slug: string, toAddress: string, amount: string, comment?: string) {
-  const accountId = MAIN_ACCOUNT_ID;
+export function checkTransactionDraft(
+  accountId: string, slug: string, toAddress: string, amount: string, comment?: string,
+) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   return blockchain.checkTransactionDraft(storage, accountId, slug, toAddress, amount, comment);
 }
 
 export async function submitTransfer(
-  password: string, slug: string, toAddress: string, amount: string, comment?: string, fee?: string,
+  accountId: string,
+  password: string,
+  slug: string,
+  toAddress: string,
+  amount: string,
+  comment?: string,
+  fee?: string,
 ) {
-  const accountId = MAIN_ACCOUNT_ID;
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
   const fromAddress = await blockchain.fetchAddress(storage, accountId);
   const result = await blockchain.submitTransfer(
@@ -94,6 +63,7 @@ export async function submitTransfer(
     onUpdate({
       type: 'newTransaction',
       transaction: localTransaction,
+      accountId,
     });
 
     whenTxComplete(result.resolvedAddress, result.amount)

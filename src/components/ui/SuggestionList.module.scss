@@ -48,6 +48,10 @@
     margin-top: 0.5rem;
   }
 
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+
   @media (pointer: fine) {
     width: auto;
 

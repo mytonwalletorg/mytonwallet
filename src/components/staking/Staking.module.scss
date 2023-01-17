@@ -1,0 +1,281 @@
+.modalDialog {
+  height: 35rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(35rem + env(safe-area-inset-bottom));
+  }
+}
+
+.welcome {
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 1.25rem;
+  padding: 1rem 2rem 1rem 1rem;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+}
+
+.welcomeInformation,
+.unstakeInformation {
+  margin-inline-start: 1rem;
+
+  font-size: 0.9375rem;
+}
+
+.welcomeInformation {
+  display: flex;
+  flex-direction: column;
+
+  font-weight: 700;
+}
+
+.stakingApy {
+  display: inline-block;
+  align-self: flex-start;
+
+  margin: 0.5rem 0 0.875rem;
+  padding: 0.375rem;
+
+  line-height: 0.9375rem;
+  color: var(--color-apy-text);
+
+  background: var(--color-apy-background);
+  border-radius: var(--border-radius-tiny);
+}
+
+.textButton {
+  align-self: flex-start;
+
+  min-width: 0 !important;
+  padding: 0;
+
+  font-size: 0.9375rem !important;
+  font-weight: 600;
+  line-height: 0.9375rem !important;
+  color: var(--color-blue);
+
+  transition: opacity 150ms;
+
+  &:hover,
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.sticker {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.stakingSafeDialog {
+  border-radius: var(--border-radius-default) !important;
+}
+
+.ton {
+  display: inline-flex;
+  align-items: center;
+
+  margin: 0;
+  padding: 0.75rem 1.125rem 0.75rem 0.5rem !important;
+
+  background-color: transparent;
+}
+
+.tonIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-inline-end: 0.375rem;
+
+  border-radius: 50%;
+}
+
+.tonName {
+  height: 1rem;
+
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-input-button-text);
+}
+
+.balance {
+  position: relative;
+  z-index: 1;
+
+  align-self: flex-end;
+
+  margin: 0 0.5rem -1rem auto;
+
+
+  font-size: 0.8125rem;
+  line-height: 1rem;
+}
+
+.minAmount {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: -0.75rem;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1rem;
+  color: var(--color-gray-2);
+
+  &_error {
+    color: var(--color-red);
+  }
+}
+
+.minAmountValue {
+  margin-inline-start: 0.1875rem;
+
+  font-weight: 600;
+}
+
+.balanceLink {
+  margin-inline-start: 0.25rem;
+
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+
+  &:hover, &:focus {
+    text-decoration: none;
+  }
+
+  & + & {
+    position: relative;
+
+    margin-inline-start: 0.625rem;
+
+    &::before {
+      content: '·';
+
+      position: absolute;
+      left: -0.4375rem;
+
+      font-size: 0.5rem
+    }
+  }
+}
+
+.stakingBalance {
+  margin-bottom: 0.75rem;
+}
+
+.balanceResultInput {
+  display: block;
+}
+
+.balanceResultLabel {
+  color: var(--color-gray-2);
+}
+
+.balanceStakedLabel {
+  color: var(--color-purple-2);
+}
+
+.balanceStakedResult {
+  color: var(--color-purple-1);
+}
+
+.balanceResult {
+  display: inline-flex;
+  align-items: baseline;
+
+  width: auto;
+
+  background: linear-gradient(81.88deg, #6875E9 19.42%, #1EC160 71.55%);
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+}
+
+.stakingInfo {
+  --color-blue-button-text: var(--color-purple-button-text);
+  --color-blue-button-text-hover: var(--color-purple-button-text-hover);
+  --color-blue-button-background: var(--color-purple-button-background);
+  --color-blue-button-background-hover: var(--color-purple-button-background-hover);
+  --color-gray-button-text: var(--color-purple-button-light-text);
+  --color-gray-button-background: var(--color-purple-button-light-background);
+  --color-gray-button-text-hover: var(--color-purple-button-light-text-hover);
+  --color-gray-button-background-hover: var(--color-purple-button-light-background-hover);
+
+  --color-black: var(--color-purple-1);
+  --color-close-button-text: var(--color-purple-2);
+  --color-close-button-text-hover: var(--color-close-button-purple-text-hover);
+  --color-close-button-background: var(--color-close-button-purple-background);
+  --color-close-button-background-hover: var(--color-close-button-purple-background-hover);
+
+  margin-top: -0.5rem;
+  padding: 1rem;
+
+  background: var(--color-background-purple-2);
+  border-radius: var(--border-radius-small);
+
+  &_forSlideUp {
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+  }
+}
+
+.stakingInfoLoading {
+  --spinner-size: 1.5rem !important;
+
+  position: absolute !important;
+  right: 1.25rem;
+  bottom: 1.25rem;
+}
+
+.stakingInfoClose {
+  position: relative;
+  left: 1rem;
+}
+
+.stakingInfoButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+
+  margin-top: 1.25rem;
+}
+
+.stakingInfoButton {
+  width: 100%;
+  max-width: 100% !important;
+
+  font-size: 0.9375rem !important;
+}
+
+.insufficientBalance {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-red);
+  text-align: center;
+}
+
+.unstakeTime {
+  position: relative;
+
+  max-width: 18rem;
+  margin: 0.25rem auto 0;
+  padding: 0.75rem;
+
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-gray-1);
+  text-align: center;
+
+  background: var(--color-gray-button-background-light);
+  border-radius: var(--border-radius-buttons);
+}
+
+.unstakeTimeIcon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

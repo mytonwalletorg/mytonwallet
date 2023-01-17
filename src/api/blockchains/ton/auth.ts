@@ -7,6 +7,7 @@ import {
   bytesToHex,
   hexToBytes,
 } from '../../common/utils';
+import { toInternalAccountId } from '../../common/helpers';
 
 export function generateMnemonic() {
   return tonWebMnemonic.generateMnemonic();
@@ -59,7 +60,8 @@ export async function decryptMnemonic(encrypted: string, password: string) {
 
 export async function fetchMnemonic(storage: Storage, accountId: string, password: string) {
   try {
-    const mnemonicEncrypted = (await storage.getItem('mnemonicEncrypted'))!;
+    const internalId = toInternalAccountId(accountId);
+    const mnemonicEncrypted = JSON.parse(await storage.getItem('mnemonicsEncrypted'))[internalId]!;
     return await decryptMnemonic(mnemonicEncrypted, password);
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -89,9 +91,10 @@ export async function fetchPrivateKey(storage: Storage, accountId: string, passw
 }
 
 export async function fetchPublicKey(storage: Storage, accountId: string): Promise<string> {
+  const internalId = toInternalAccountId(accountId);
   const publicKeysJson = (await storage.getItem('publicKeys'))!;
   const publicKeys = JSON.parse(publicKeysJson);
-  return publicKeys[accountId];
+  return publicKeys[internalId];
 }
 
 export async function rawSign(storage: Storage, accountId: string, password: string, dataHex: string) {

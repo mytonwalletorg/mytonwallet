@@ -23,6 +23,7 @@ type CallMethodData = {
   messageId?: string;
   name: string;
   args: any;
+  withCallback?: boolean;
 };
 
 export type OriginMessageData = InitData | CallMethodData | {
@@ -113,6 +114,8 @@ export class Connector {
     });
 
     if (typeof payload.args[payload.args.length - 1] === 'function') {
+      payload.withCallback = true;
+
       const callback = payload.args.pop() as AnyToVoidFunction;
       requestState.callback = callback;
       requestStatesByCallback.set(callback, requestState);

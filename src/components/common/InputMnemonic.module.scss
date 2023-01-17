@@ -20,6 +20,10 @@
       color: var(--color-red);
     }
   }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .input {
@@ -68,4 +72,11 @@
   font-weight: 600;
   color: var(--color-gray-3);
   text-align: right;
+
+  :global(html:not(.is-ios)) & {
+    position: relative;
+    top: 0.0625rem;
+
+    font-size: 0.9375rem;
+  }
 }

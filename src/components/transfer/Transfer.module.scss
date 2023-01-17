@@ -30,6 +30,11 @@
 
     background-color: var(--color-input-button-background);
   }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
 }
 
 .help,
@@ -41,41 +46,54 @@
   line-height: 0.875rem;
 }
 
-.feeAndBalance {
+.currencyAndFee {
   display: flex;
   justify-content: space-between;
 
-  margin-top: -0.5rem;
-  margin-bottom: 0.9375rem;
+  min-height: 1rem;
+  margin-top: -0.75rem;
+  margin-bottom: 0.75rem;
   padding: 0 0.5rem;
 
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1rem;
-  color: var(--color-gray-1);
+  color: var(--color-input-hint);
 }
 
 .feeValue {
-  margin-inline-start: 0.25rem;
-  margin-inline-end: auto;
-  padding-inline-end: 1rem;
-
   font-weight: 600;
   white-space: nowrap;
 }
 
-.note {
-  margin-inline-start: auto;
+.balanceContainer {
+  position: relative;
+  z-index: 1;
 
-  text-align: right;
+  width: 100%;
+}
+
+.balance {
+  position: absolute;
+  top: 0.0625rem;
+  right: 0.5rem;
+
+  font-size: 0.8125rem;
+  line-height: 0.8125rem;
+  color: var(--color-gray-1);
 }
 
 .balanceLink {
+  font-weight: 600;
   text-decoration: underline;
   text-decoration-style: dotted;
 
   &:hover, &:focus {
     text-decoration: none;
   }
+}
+
+.amountInCurrency {
+  font-weight: 600;
 }
 
 .help {
@@ -111,6 +129,10 @@
   color: var(--color-red);
 }
 
+.addressWidget {
+  margin-bottom: 1rem;
+}
+
 .inputReadOnly {
   position: relative;
 
@@ -131,6 +153,10 @@
   border: none;
   border-radius: var(--border-radius-default);
   outline: none;
+
+  &_words {
+    word-break: break-word !important;
+  }
 }
 
 .suffix {
@@ -152,28 +178,11 @@
 }
 
 .sticker {
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.25rem;
 
   &_sizeSmall {
-    margin: -0.375rem auto 0.875rem;
+    margin: -0.375rem auto 1.25rem;
   }
-}
-
-.balanceChange {
-  overflow: hidden;
-
-  max-width: 100%;
-  margin: -0.25rem auto 0;
-  padding: 0 0.375rem;
-
-  font-size: 0.9375rem;
-  line-height: 1.5rem;
-  color: var(--color-activity-gray-text);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  background-color: var(--color-activity-gray-10);
-  border-radius: 0.5rem;
 }
 
 .buttonLoading .buttonText {
@@ -201,19 +210,6 @@
   animation: button-loading-spinner 1s linear infinite;
 }
 
-.savedAddresses {
-  --offset-y: calc(100% - 0.5rem);
-
-  transform: scaleY(0.5) !important;
-  transform-origin: top !important;
-
-  width: 100%;
-
-  &:global(.open) {
-    transform: scaleY(1) !important;
-  }
-}
-
 .savedAddressItem {
   cursor: pointer;
 
@@ -228,17 +224,16 @@
   border-radius: var(--border-radius-small);
 
   &:active {
-    background-color: var(--color-interactive-drop-down-menu-active);
+    // Optimization
+    transition: none;
   }
 
-  @media (hover: hover) {
-    &:hover,
-    &:focus {
-      text-decoration: none;
+  &:hover,
+  &:focus {
+    text-decoration: none;
 
-      background-color: var(--color-interactive-drop-down-menu-hover);
-    }
-}
+    background-color: var(--color-interactive-drop-down-menu-hover);
+  }
 }
 
 .savedAddressName {
@@ -264,13 +259,18 @@
   .savedAddressDelete:hover + & {
     opacity: 0;
   }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .savedAddressDelete {
   position: absolute;
   z-index: 1;
-  top: 0.3125rem;
+  top: 50%;
   right: 0.25rem;
+  transform: translateY(-50%);
 
   width: 7rem;
   padding: 0.25rem;
@@ -285,6 +285,10 @@
   &:hover {
     opacity: 1;
   }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .savedAddressDeleteInner {
@@ -296,9 +300,17 @@
   &:active {
     color: var(--color-red);
   }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
 }
 
 .tokenDropDown {
+  --offset-y-value: calc(100% - 3.25rem);
+  --offset-x-value: 0;
+
   position: relative;
   top: 0.375rem;
   right: 0.375rem;

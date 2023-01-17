@@ -1,60 +1,78 @@
-import React, { memo, useEffect, useState } from '../lib/teact/teact';
-import { withGlobal } from '../global';
+import React, { memo, useEffect } from '../lib/teact/teact';
+import { getActions, withGlobal } from '../global';
 
 import { updateSizes } from '../util/windowSize';
 import buildClassName from '../util/buildClassName';
 import { selectHasSession } from '../global/selectors';
+import useFlag from '../hooks/useFlag';
 import useTimeout from '../hooks/useTimeout';
+import useOnChange from '../hooks/useOnChange';
 
 import Transition from './ui/Transition';
 import Auth from './auth/Auth';
 import Main from './main/Main';
-import Dialogs from './main/Dialogs';
+import SettingsModal from './main/modals/SettingsModal';
+import Dialogs from './Dialogs';
 // import Test from './components/test/TestNoRedundancy';
 
 import styles from './App.module.scss';
 
 interface StateProps {
-  isGuest: boolean;
+  isAuth: boolean;
+  isSettingsModalOpen?: boolean;
+  accountId?: string;
 }
 
 const PRERENDER_MAIN_DELAY = 1200;
+let mainKey = 0;
 
-function App({ isGuest }: StateProps) {
+function App({ isAuth, accountId, isSettingsModalOpen }: StateProps) {
   // return <Test />;
+  const { closeSettingsModal } = getActions();
 
-  const [mainPrerenderKey, setMainPrerenderKey] = useState<number | undefined>();
-  useTimeout(() => {
-    setMainPrerenderKey(Math.random());
-  }, isGuest ? PRERENDER_MAIN_DELAY : undefined);
+  const [canPrerenderMain, prerenderMain] = useFlag();
 
+  useTimeout(prerenderMain, isAuth && !canPrerenderMain ? PRERENDER_MAIN_DELAY : undefined);
+
+  useEffect(updateSizes, []);
   useEffect(() => {
-    updateSizes();
-  }, []);
+    if (isAuth && isSettingsModalOpen) {
+      closeSettingsModal();
+    }
+  }, [closeSettingsModal, isAuth, isSettingsModalOpen]);
+
+  useOnChange(() => {
+    if (accountId) {
+      mainKey++;
+    }
+  }, [accountId]);
 
   return (
     <div className={styles.containerOuter}>
       <div className={styles.containerInner}>
         <Transition
-          name="fade"
-          activeKey={isGuest ? 0 : 1}
-          nextKey={mainPrerenderKey ? 1 : undefined}
+          name="semi-fade"
+          activeKey={isAuth ? 0 : mainKey}
+          nextKey={isAuth && canPrerenderMain ? mainKey + 1 : undefined}
           shouldCleanup
           slideClassName={buildClassName(styles.appSlide, 'custom-scroll')}
         >
           {(isActive: boolean, isFrom: boolean, currentKey: number) => (
-            currentKey === 0 ? <Auth /> : <Main key={mainPrerenderKey} />
+            currentKey === 0 ? <Auth /> : <Main key={currentKey} />
           )}
         </Transition>
       </div>
 
+      <SettingsModal isOpen={isSettingsModalOpen} onClose={closeSettingsModal} />
       <Dialogs />
     </div>
   );
 }
 
-export default memo(withGlobal((global) => {
+export default memo(withGlobal((global): StateProps => {
   return {
-    isGuest: !selectHasSession(global),
+    isAuth: !selectHasSession(global),
+    accountId: global.currentAccountId,
+    isSettingsModalOpen: global.isSettingsModalOpen,
   };
 })(App));

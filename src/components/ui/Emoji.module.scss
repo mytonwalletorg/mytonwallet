@@ -1,0 +1,17 @@
+.root {
+  display: inline-block !important;
+
+  width: 0.9375rem;
+  height: 0.9375rem;
+  margin: -0.25rem 0.0625rem 0 0.0625rem;
+}
+
+:global(.theme-dark) .key-github {
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(.theme-system) .key-github {
+    filter: invert(1);
+  }
+}

@@ -1,10 +1,8 @@
 import { PROXY_HOSTS } from '../../config';
+import { sample } from '../../util/random';
+import { IS_EXTENSION } from '../environment';
 import { Storage } from '../storages/types';
 import { updateDapps } from '../dappMethods';
-import { sample } from '../../util/random';
-
-// eslint-disable-next-line no-restricted-globals
-const IS_EXTENSION = Boolean(self?.chrome?.runtime?.id);
 
 const proxyHost = PROXY_HOSTS ? sample(PROXY_HOSTS.split(' ')) : '';
 

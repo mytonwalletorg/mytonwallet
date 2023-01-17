@@ -21,7 +21,13 @@
   padding: 0 1rem 1rem;
 
   &_scrollable {
-    justify-content: unset;
+    justify-content: unset !important;
+  }
+
+  &_password {
+    align-items: stretch;
+
+    padding-top: 3.375rem;
   }
 
   @supports (padding-bottom: env(safe-area-inset-bottom)) {
@@ -41,6 +47,10 @@
   &:global(:not(.open)) {
     transform: translateY(-0.75rem);
   }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .appName {
@@ -49,6 +59,8 @@
 
 .title {
   margin: 1.375rem 0 1.875rem;
+
+  text-align: center;
 
   &_afterSmallSticker {
     margin: 2rem 0 1.25rem;
@@ -103,11 +115,20 @@
   border: 0.1875rem solid transparent;
   border-radius: var(--border-radius-default);
 
-  @media (prefers-color-scheme: dark) {
+  :global(.theme-dark) & {
     background: linear-gradient(to top, var(--color-background-first), var(--color-background-first)),
     linear-gradient(to top, #469cec, #469cec3d 50%, #469cec00 90%) no-repeat 50% 50%;
     background-clip: content-box, border-box;
     background-origin: border-box;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(.theme-system) & {
+      background: linear-gradient(to top, var(--color-background-first), var(--color-background-first)),
+      linear-gradient(to top, #469cec, #469cec3d 50%, #469cec00 90%) no-repeat 50% 50%;
+      background-clip: content-box, border-box;
+      background-origin: border-box;
+    }
   }
 }
 
@@ -137,8 +158,20 @@
     opacity: 0 !important;
   }
 
-  @media (prefers-color-scheme: dark) {
+  :global(.theme-dark) & {
     color: var(--color-white);
+  }
+
+  :global(html.animation-level-0) & {
+    transform: scale(2) !important;
+
+    transition: opacity 500ms ease-out !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(.theme-system) & {
+      color: var(--color-white);
+    }
   }
 }
 
@@ -188,6 +221,10 @@
   font-weight: 600;
 
   transition: color 150ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .valid {
@@ -211,7 +248,12 @@
   &__inner {
     display: flex;
     gap: 1rem;
+    justify-content: space-between;
   }
+}
+
+.footerButton {
+  flex: 1 1 50%;
 }
 
 .btn {
@@ -219,14 +261,12 @@
   margin: 0 auto;
 
   &_push {
-    margin-top: 0.5rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   &_text {
     margin: 1.25rem auto 0.75rem;
-
-    font-weight: 600;
-    white-space: nowrap;
   }
 
   &_about {
@@ -301,12 +341,4 @@
   font-weight: 600;
   color: var(--color-red);
   text-align: center;
-}
-
-.modalText {
-  font-size: 0.9375rem;
-
-  &:last-of-type {
-    margin-bottom: 1.5rem;
-  }
 }

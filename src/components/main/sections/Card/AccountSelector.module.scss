@@ -1,0 +1,320 @@
+.addressTitle {
+  cursor: pointer;
+
+  position: absolute;
+  top: 1.125rem;
+  left: 1rem;
+
+  overflow: hidden;
+
+  max-width: calc(100% - 2.5rem);
+  padding-right: 0.75rem;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-card-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  transition: color 150ms;
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    top: calc(50% - 0.0625rem);
+    right: 0;
+
+    width: 0.4375rem;
+    height: 0.1875rem;
+
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNyIgaGVpZ2h0PSIzIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0zLjE3NSAyLjcyMSAxLjAyNi44OEEuNS41IDAgMCAxIDEuMzUyIDBoNC4yOTZhLjUuNSAwIDAgMSAuMzI2Ljg4TDMuODI1IDIuNzJhLjUuNSAwIDAgMS0uNjUgMFoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=);
+
+    transition: opacity 150ms;
+
+    :global(html.animation-level-0) & {
+      transition: none !important;
+    }
+  }
+
+  &:focus,
+  &:hover {
+    color: var(--color-card-text-hover);
+
+    &::after {
+      opacity: 0.7;
+    }
+  }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.edit {
+  cursor: pointer;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 1.75rem;
+  height: 1.75rem;
+
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: var(--color-card-text);
+  text-align: center;
+
+  opacity: 0.8;
+  border-radius: 50%;
+
+  transition: opacity 150ms;
+
+  &:hover,
+  &:focus {
+    opacity: 1;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.inputContainer {
+  position: absolute;
+  top: 0.5625rem;
+  right: 0.5rem;
+  left: 0.5rem;
+
+  background-color: var(--color-card-button);
+  border-radius: var(--border-radius-small);
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 4rem 0.5625rem 0.5rem;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-card-text);
+
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-small);
+  outline: none;
+}
+
+.saveButton {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+
+  padding: 0.5rem 0.75rem 0.4375rem;
+
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-card-text);
+
+  background-color: var(--color-card-button);
+  border-radius: 0.5rem;
+
+  transition: background-color 150ms;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-card-button-hover);
+  }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.container {
+  position: absolute;
+  top: 2.75rem;
+  right: 0.5rem;
+  left: 0.5rem;
+
+  &:global(.shown) .dialog {
+    transform: translateY(-1rem);
+
+    opacity: 0;
+  }
+  &:global(.shown.open) .dialog {
+    transform: translateY(0);
+
+    opacity: 1;
+  }
+}
+
+.backdrop {
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.dialog {
+  position: relative;
+  z-index: 2;
+
+  overflow: hidden;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+
+  max-height: 16rem;
+  padding: 0.5rem !important;
+
+  background-color: var(--color-background-drop-down);
+  border-radius: var(--border-radius-default);
+  box-shadow: var(--default-shadow);
+
+  transition: var(--dropdown-transition), scrollbar-color 300ms !important;
+
+  &_compact {
+    grid-template-columns: 1fr 1fr;
+
+    max-width: calc(66% + 1rem);
+  }
+
+  &:global(.closing) {
+    transition: var(--dropdown-transition-backwards) !important;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+
+  @supports (overflow: overlay) {
+    overflow-y: overlay;
+  }
+}
+
+.actionIcon {
+  font-size: 1.5rem;
+}
+
+.button {
+  cursor: pointer;
+
+  position: relative;
+
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 3.75rem;
+  margin: 0;
+  padding: 0 0.5rem;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-card-text);
+  text-align: left;
+
+  background-image: url('../../../../assets/account_button_bg.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  background-clip: padding-box, padding-box;
+  background-origin: border-box;
+  background-size: cover, cover;
+  border: none;
+  border-radius: 0.5rem;
+
+  &_current {
+    cursor: default;
+
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: 0 0 0 0.046875rem var(--color-blue),
+          inset 0 0 0 0.046875rem var(--color-blue),
+          inset 0 0 0 0.140625rem var(--color-background-drop-down);
+  }
+
+  @media (min-resolution: 1.5dppx) {
+    background-image: url('../../../../assets/account_button_bg@2x.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  }
+}
+
+.accountName {
+  overflow: hidden;
+
+  max-width: 100%;
+  margin-top: 0.5rem;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .button_current > & {
+    margin-right: 1rem;
+  }
+
+  @supports (-webkit-line-clamp: 2) {
+    display: -webkit-box;
+
+    white-space: normal;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+.accountAddress {
+  margin-top: auto;
+  margin-bottom: 0.375rem;
+
+  font-size: 0.6875rem;
+  color: var(--color-card-second-text);
+}
+
+.createAccountButton {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+
+  width: 100% !important;
+  min-width: auto !important;
+  max-width: 100% !important;
+  height: 3.75rem !important;
+  padding: 0.5rem !important;
+
+  font-size: 0.75rem !important;
+  line-height: 1 !important;
+  color: var(--color-add-wallet-text) !important;
+  text-transform: none !important;
+
+  background-color: var(--color-add-wallet-background) !important;
+
+  &:focus,
+  &:hover {
+    color: var(--color-add-wallet-text-hover) !important;
+
+    background-color: var(--color-add-wallet-background-hover) !important;
+  }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+}
+
+.createAccountIcon {
+  margin-top: 0.375rem;
+
+  font-size: 1.5rem !important;
+}

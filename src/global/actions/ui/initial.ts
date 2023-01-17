@@ -1,15 +1,24 @@
-import { addActionHandler, getActions } from '../../index';
+import {
+  addActionHandler, getActions, getGlobal, setGlobal,
+} from '../../index';
+import { callApi } from '../../../api';
 
 import type { NotificationType } from '../../types';
 
+import { ApiTransactionDraftError } from '../../../api/types';
 import {
   IS_IOS, IS_ANDROID, IS_MAC_OS, IS_SAFARI, IS_EXTENSION,
 } from '../../../util/environment';
-import { callApi } from '../../../api';
-import { onTickEnd } from '../../../util/schedulers';
-import { ApiTransactionDraftError } from '../../../api/types';
+import switchTheme from '../../../util/switchTheme';
+import { setLanguage, clearPreviousLangpacks } from '../../../util/langProvider';
+import { updateCurrentAccountState } from '../../reducers';
+import { selectNetworkAccounts } from '../../selectors';
+import switchAnimationLevel from '../../../util/switchAnimationLevel';
+import { genRelatedAccountIds } from '../../../util/account';
+import { omit } from '../../../util/iteratees';
+import { initializeSoundsForSafari } from '../../../util/appSounds';
 
-addActionHandler('init', () => {
+addActionHandler('init', (_, actions) => {
   const { documentElement } = document;
 
   if (IS_IOS) {
@@ -24,6 +33,21 @@ addActionHandler('init', () => {
   }
   if (IS_EXTENSION) {
     documentElement.classList.add('is-extension');
+  }
+
+  actions.afterInit();
+});
+
+addActionHandler('afterInit', (global) => {
+  const { theme, animationLevel, langCode } = global.settings;
+
+  switchTheme(theme);
+  switchAnimationLevel(animationLevel);
+  void setLanguage(langCode);
+  clearPreviousLangpacks();
+
+  if (IS_SAFARI || IS_IOS) {
+    document.addEventListener('click', initializeSoundsForSafari, { once: true });
   }
 });
 
@@ -56,10 +80,7 @@ addActionHandler('dismissDialog', (global) => {
 });
 
 addActionHandler('selectToken', (global, actions, { slug }) => {
-  return {
-    ...global,
-    currentTokenSlug: slug,
-  };
+  return updateCurrentAccountState(global, { currentTokenSlug: slug });
 });
 
 addActionHandler('showTxDraftError', (global, actions, { error }) => {
@@ -138,10 +159,41 @@ addActionHandler('toggleTonMagic', (global, actions, { isEnabled }) => {
   };
 });
 
-addActionHandler('signOut', async () => {
-  await callApi('resetAccount');
+addActionHandler('signOut', async (global, actions, payload) => {
+  const { isFromAllAccounts } = payload || {};
+  const accountIds = Object.keys(selectNetworkAccounts(global)!);
 
-  onTickEnd(() => {
+  if (isFromAllAccounts || accountIds.length === 1) {
+    await callApi('resetAccounts');
+
+    getActions().afterSignOut({ isFromAllAccounts: true });
     getActions().init();
-  });
+  } else {
+    const { currentAccountId: prevAccountId } = global;
+    const nextAccountId = accountIds.find((id) => id !== prevAccountId);
+
+    actions.switchAccount({ accountId: nextAccountId! });
+
+    global = getGlobal();
+
+    const prevAccountIds = genRelatedAccountIds(prevAccountId!);
+    const accountsById = omit(global.accounts!.byId, prevAccountIds);
+    const accountsState = omit(global.byAccountId, prevAccountIds);
+
+    global = {
+      ...global,
+      currentAccountId: nextAccountId,
+      accounts: {
+        ...global.accounts!,
+        byId: accountsById,
+      },
+      byAccountId: { ...accountsState },
+    };
+
+    setGlobal(global);
+
+    callApi('removeAccount', prevAccountId!);
+
+    getActions().afterSignOut();
+  }
 });

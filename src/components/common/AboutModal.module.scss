@@ -1,3 +1,15 @@
+.content {
+  position: relative;
+
+  padding-top: 1.5rem !important;
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
 .logo {
   width: 6rem;
   height: 6rem;
@@ -5,12 +17,18 @@
 }
 
 .title {
+  margin-bottom: 1rem;
+
+  font-size: 1.0625rem;
   font-weight: 700;
+  color: var(--color-black);
   text-align: center;
 }
 
 .titleLink {
   display: block;
+
+  margin-top: 0.375rem;
 
   font-size: small;
   font-weight: normal;
@@ -22,4 +40,13 @@
   &:last-of-type {
     margin-bottom: 1.5rem;
   }
+}
+
+.heading {
+  margin-top: 0.625rem;
+  margin-bottom: 0.875rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-black);
 }

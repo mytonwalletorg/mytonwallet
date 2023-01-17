@@ -79,9 +79,14 @@ export async function openPopupWindow() {
     }
   }
 
-  const lastState = await storage.getItem('windowState');
+  await createWindow();
 
-  await new Promise<void>((resolve) => {
+  return readyPromise;
+}
+
+async function createWindow(isRetryingWithoutLastState = false): Promise<void> {
+  const lastState = !isRetryingWithoutLastState ? await storage.getItem('windowState') : undefined;
+  const promise = new Promise<void>((resolve, reject) => {
     chrome.windows.create({
       ...WINDOW_DEFAULTS,
       ...lastState,
@@ -89,7 +94,12 @@ export async function openPopupWindow() {
       type: 'popup',
       focused: true,
     }, (window) => {
-      currentWindowId = window?.id;
+      if (!window) {
+        reject(new Error('Failed to create extension window'));
+        return;
+      }
+
+      currentWindowId = window.id;
       readyPromise = createDappPromise('whenPopupReady').promise;
       resolve();
 
@@ -97,7 +107,15 @@ export async function openPopupWindow() {
     });
   });
 
-  return readyPromise;
+  try {
+    return await promise;
+  } catch (err) {
+    if (!isRetryingWithoutLastState) {
+      return createWindow(true);
+    } else {
+      throw err;
+    }
+  }
 }
 
 export async function clearCache() {

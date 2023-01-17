@@ -2,6 +2,8 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import type { ApiHistoryList } from '../../api/types';
 
+import useLang from '../../hooks/useLang';
+
 interface OwnProps {
   width: number;
   height: number;
@@ -24,6 +26,8 @@ function TokenPriceChart({
   imgClassName,
   onSelectIndex,
 }: OwnProps) {
+  const lang = useLang();
+
   const boundingPoints = useMemo(() => {
     const priceValues = prices.map(([, price]) => price);
     const min = Math.min(...priceValues);
@@ -139,7 +143,7 @@ function TokenPriceChart({
       <img
         src={renderSvg()}
         className={imgClassName}
-        alt="Currency History"
+        alt={lang('Currency History')}
       />
     </div>
   );

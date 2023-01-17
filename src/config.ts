@@ -20,15 +20,18 @@ export const MOBILE_SCREEN_LANDSCAPE_MAX_WIDTH = 950; // px
 export const MOBILE_SCREEN_LANDSCAPE_MAX_HEIGHT = 450; // px
 
 export const ANIMATED_STICKER_SMALL_SIZE_PX = 110;
+export const ANIMATED_STICKER_DEFAULT_PX = 150;
 export const ANIMATED_STICKER_BIG_SIZE_PX = 156;
 
 export const DEFAULT_PRICE_CURRENCY = '$';
 export const CARD_SECONDARY_VALUE_SYMBOL = 'TON';
 
+export const DEFAULT_DECIMAL_PLACES = 9;
+
 export const TOKEN_INFO = {
   toncoin: {
     name: 'Toncoin',
-    symbol: 'TON',
+    symbol: CARD_SECONDARY_VALUE_SYMBOL,
     slug: 'toncoin',
     quote: {
       price: 1.95,
@@ -37,31 +40,69 @@ export const TOKEN_INFO = {
       percentChange7d: 0,
       percentChange30d: 0,
     },
+    decimals: DEFAULT_DECIMAL_PLACES,
   },
 };
 
 export const GLOBAL_STATE_CACHE_DISABLED = false;
 export const GLOBAL_STATE_CACHE_KEY = 'mytonwallet-global-state';
 
-export const IS_TESTNET = process.env.IS_TESTNET === 'true';
-
 export const ANIMATION_LEVEL_MIN = 0;
 export const ANIMATION_LEVEL_MED = 1;
 export const ANIMATION_LEVEL_MAX = 2;
 export const ANIMATION_LEVEL_DEFAULT = ANIMATION_LEVEL_MAX;
+export const THEME_DEFAULT = 'system';
 
-export const MAIN_ACCOUNT_ID = '0';
+export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://mytonwallet-api.herokuapp.com';
 
 export const FRACTION_DIGITS = 9;
 
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/z/';
-export const TONSCAN_BASE_URL = IS_TESTNET ? 'https://testnet.tonscan.org/' : 'https://tonscan.org/';
-export const GETGEMS_BASE_URL = IS_TESTNET ? 'https://testnet.getgems.io/' : 'https://getgems.io/';
+export const TONSCAN_BASE_MAINNET_URL = 'https://tonscan.org/';
+export const TONSCAN_BASE_TESTNET_URL = 'https://testnet.tonscan.org/';
+export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
+export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 
 export const TON_TOKEN_SLUG = 'toncoin';
 
 export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_AMOUNT = 0.01;
+
+export const LANG_CACHE_NAME = 'mtw-lang-4';
+export const LANG_PACKS = [{
+  langCode: 'en',
+  name: 'English',
+  nativeName: 'English',
+  rtl: false,
+}, {
+  langCode: 'ru',
+  name: 'Russian',
+  nativeName: 'Русский',
+  rtl: false,
+}, {
+  langCode: 'zh-Hans',
+  name: 'Chinese (Simplified)',
+  nativeName: '繁体',
+  rtl: false,
+}, {
+  langCode: 'zh-Hant',
+  name: 'Chinese (Traditional)',
+  nativeName: '繁體',
+  rtl: false,
+}];
+
+export const STAKING_CYCLE_DURATION_MS = 129600000; // 36 hours
+
+export const STAKING_POOL_1_MAINNET = process.env.STAKING_POOL_1_MAINNET || '';
+export const STAKING_POOL_2_MAINNET = process.env.STAKING_POOL_2_MAINNET || '';
+export const STAKING_POOL_1_TESTNET = process.env.STAKING_POOL_1_TESTNET || '';
+export const STAKING_POOL_2_TESTNET = process.env.STAKING_POOL_2_TESTNET || '';
+export const STAKING_POOLS_ALL = [
+  STAKING_POOL_1_MAINNET,
+  STAKING_POOL_2_MAINNET,
+  STAKING_POOL_1_TESTNET,
+  STAKING_POOL_2_TESTNET,
+];

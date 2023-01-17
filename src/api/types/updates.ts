@@ -1,4 +1,10 @@
-import { ApiToken, ApiTransaction, ApiTransactionDraftError } from './misc';
+import {
+  ApiStakingState,
+  ApiPoolState,
+  ApiToken,
+  ApiTransaction,
+  ApiTransactionDraftError,
+} from './misc';
 
 export type ApiUpdateBalance = {
   type: 'updateBalance';
@@ -10,6 +16,7 @@ export type ApiUpdateBalance = {
 export type ApiUpdateNewTransaction = {
   type: 'newTransaction';
   transaction: ApiTransaction;
+  accountId: string;
 };
 
 export type ApiUpdateTokens = {
@@ -55,6 +62,17 @@ export type ApiUpdateTonMagicState = {
   isEnabled: boolean;
 };
 
+export type ApiUpdateStakingState = {
+  type: 'updateStakingState';
+  accountId: string;
+  stakingState: ApiStakingState;
+};
+
+export type ApiUpdatePoolState = {
+  type: 'updatePoolState';
+  poolState: ApiPoolState;
+};
+
 export type ApiUpdate =
   ApiUpdateBalance
   | ApiUpdateNewTransaction
@@ -64,6 +82,8 @@ export type ApiUpdate =
   | ApiUpdateTxComplete
   | ApiUpdateShowTxDraftError
   | ApiUpdateTonProxyState
-  | ApiUpdateTonMagicState;
+  | ApiUpdateTonMagicState
+  | ApiUpdateStakingState
+  | ApiUpdatePoolState;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

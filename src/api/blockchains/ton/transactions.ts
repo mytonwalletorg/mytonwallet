@@ -4,8 +4,10 @@ import TonWeb from 'tonweb';
 import { Transaction as RawTransaction } from 'tonapi-sdk-js/dist/models/Transaction';
 
 import { Storage } from '../../storages/types';
-import { ApiTransaction, ApiTransactionDraftError } from '../../types';
-import { TON_TOKEN_SLUG } from '../../../config';
+import {
+  ApiNetwork, ApiTransaction, ApiTransactionDraftError, ApiTransactionType,
+} from '../../types';
+import { STAKING_POOLS_ALL, TON_TOKEN_SLUG } from '../../../config';
 import { base64ToBytes, hexToBase64 } from '../../common/utils';
 import {
   getWalletBalance,
@@ -27,8 +29,10 @@ import {
   fetchAccountTransactions,
 } from './util/tonapiio';
 import { AnyTransactionWithLt, ApiTransactionWithLt } from './types';
+import { parseAccountId } from '../../../util/account';
+import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
 
-const { Address } = TonWeb.utils;
+const { Address, fromNano } = TonWeb.utils;
 
 const DEFAULT_FEE = '10966001';
 const GET_TRANSACTIONS_LIMIT = 100;
@@ -43,12 +47,14 @@ export async function checkTransactionDraft(
   data?: string | Uint8Array | Cell,
   stateInit?: Cell,
 ) {
+  const { network } = parseAccountId(accountId);
+
   const result: {
     error?: ApiTransactionDraftError;
     fee?: string;
   } = {};
 
-  const resolvedAddress = await resolveAddress(toAddress);
+  const resolvedAddress = await resolveAddress(network, toAddress);
   if (!resolvedAddress) {
     result.error = ApiTransactionDraftError.DomainNotResolved;
     return result;
@@ -85,7 +91,7 @@ export async function checkTransactionDraft(
       amount,
       toAddress,
       payload: data,
-    } = await buildTokenTransfer(tokenSlug, address, toAddress, amount, data));
+    } = await buildTokenTransfer(network, tokenSlug, address, toAddress, amount, data));
 
     const tokenBalance = await getTokenWalletBalance(tokenWallet!);
     if (BigInt(tokenBalance) < BigInt(tokenAmount!)) {
@@ -94,8 +100,8 @@ export async function checkTransactionDraft(
     }
   }
 
-  if (await isWalletInitialized(wallet)) {
-    const query = await signTransaction(wallet, toAddress, amount, data, stateInit);
+  if (await isWalletInitialized(network, wallet)) {
+    const query = await signTransaction(network, wallet, toAddress, amount, data, stateInit);
     const allFees = await query.estimateFee();
     const fees = allFees.source_fees;
     result.fee = String(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
@@ -103,7 +109,7 @@ export async function checkTransactionDraft(
     result.fee = DEFAULT_FEE;
   }
 
-  const balance = await getWalletBalance(wallet);
+  const balance = await getWalletBalance(network, wallet);
   if (BigInt(balance) < BigInt(amount) + BigInt(result.fee)) {
     result.error = ApiTransactionDraftError.InsufficientBalance;
     return result;
@@ -122,6 +128,8 @@ export async function submitTransfer(
   data?: string | Uint8Array | Cell,
   stateInit?: Cell,
 ) {
+  const { network } = parseAccountId(accountId);
+
   const wallet = await pickAccountWallet(storage, accountId);
   if (!wallet) {
     return undefined;
@@ -132,7 +140,7 @@ export async function submitTransfer(
     return undefined;
   }
 
-  let resolvedAddress = await resolveAddress(toAddress);
+  let resolvedAddress = await resolveAddress(network, toAddress);
   if (!resolvedAddress) {
     return undefined;
   }
@@ -147,24 +155,25 @@ export async function submitTransfer(
       amount,
       toAddress: resolvedAddress,
       payload: data,
-    } = await buildTokenTransfer(tokenSlug, address, resolvedAddress, amount, data));
+    } = await buildTokenTransfer(network, tokenSlug, address, resolvedAddress, amount, data));
   }
 
   // Force default bounceable address for `waitTxComplete` to work properly
   resolvedAddress = (new Address(resolvedAddress)).toString(true, true, true);
 
   // Force non-bounceable for non-initialized recipients
-  toAddress = !(await isWalletInitialized(resolvedAddress))
+  toAddress = !(await isWalletInitialized(network, resolvedAddress))
     ? (new Address(resolvedAddress)).toString(true, true, false)
     : resolvedAddress;
 
-  const query = await signTransaction(wallet, toAddress, amount, data, stateInit, privateKey);
+  const query = await signTransaction(network, wallet, toAddress, amount, data, stateInit, privateKey);
   await query.send();
 
   return { resolvedAddress, amount };
 }
 
 async function signTransaction(
+  network: ApiNetwork,
   wallet: WalletContract,
   toAddress: string,
   amount: string,
@@ -172,7 +181,7 @@ async function signTransaction(
   stateInit?: Cell,
   privateKey?: Uint8Array,
 ) {
-  const { seqno } = await getWalletInfo(wallet);
+  const { seqno } = await getWalletInfo(network, wallet);
 
   return wallet.methods.transfer({
     secretKey: privateKey as any, // Workaround for wrong typing
@@ -186,8 +195,9 @@ async function signTransaction(
 }
 
 export async function getAccountNewestTxId(storage: Storage, accountId: string) {
+  const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
-  const tonWeb = getTonWeb();
+  const tonWeb = getTonWeb(network);
 
   const result: any[] = await tonWeb.provider.getTransactions(
     address,
@@ -211,7 +221,9 @@ export async function getAccountTransactionSlice(
   afterTxId?: string,
   limit?: number,
 ) {
+  const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
+
   let beforeLt = beforeTxId ? Number(parseTxId(beforeTxId).lt) : undefined;
   const afterLt = afterTxId ? Number(parseTxId(afterTxId).lt) : undefined;
   limit = limit || GET_TRANSACTIONS_LIMIT;
@@ -221,8 +233,9 @@ export async function getAccountTransactionSlice(
   // Additional loading in the presence of `afterLt` is not implemented
   while (afterLt ? !txs.length : txs.length < limit) {
     const [allEvents, rawTxs] = await Promise.all([
-      fetchAccountEvents(address, limit, beforeLt),
+      fetchAccountEvents(network, address, limit, beforeLt),
       fetchAccountTransactions(
+        network,
         address,
         limit,
         afterLt,
@@ -235,6 +248,7 @@ export async function getAccountTransactionSlice(
     }
 
     const allTxs = rawTxs.map(buildApiTransaction);
+
     beforeLt = afterLt ? afterLt + 1 : (allTxs[allTxs.length - 1]).lt;
     txs = txs.concat(allTxs.filter((x) => !!x.fromAddress) as ApiTransactionWithLt[]);
 
@@ -289,11 +303,30 @@ function buildApiTransaction(rawTx: RawTransaction): AnyTransactionWithLt {
     return tx;
   }
 
+  let type: ApiTransactionType;
+  const fromAddress = toBase64Address(target!.source!.address!);
+  const toAddress = toBase64Address(target!.destination!.address!);
+  const comment = parseComment(target!.msgData);
+
+  if (fromAddress && toAddress) {
+    const amountNumber = Number(fromNano(tx.amount));
+    if (STAKING_POOLS_ALL.includes(fromAddress) && amountNumber > 1) {
+      type = 'unstake';
+    } else if (STAKING_POOLS_ALL.includes(toAddress)) {
+      if (comment === STAKE_COMMENT) {
+        type = 'stake';
+      } else if (comment === UNSTAKE_COMMENT) {
+        type = 'unstakeRequest';
+      }
+    }
+  }
+
   return {
     ...tx,
-    fromAddress: toBase64Address(target!.source!.address!),
-    toAddress: toBase64Address(target!.destination!.address!),
-    comment: parseComment(target!.msgData),
+    type,
+    fromAddress,
+    toAddress,
+    comment,
     isIncoming,
   };
 }

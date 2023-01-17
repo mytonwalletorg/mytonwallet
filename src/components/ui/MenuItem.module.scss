@@ -44,36 +44,30 @@
     }
   }
 
-  @media (hover: hover) {
-    &:hover,
-    &:focus {
-      color: var(--color-blue);
-      text-decoration: none;
+  &:hover,
+  &:focus {
+    color: var(--color-blue);
+    text-decoration: none;
 
-      background-color: var(--color-interactive-popup-menu-hover);
-    }
-
-    &:active {
-      color: var(--color-gray-1) !important;
-
-      background-color: var(--color-interactive-popup-menu-active);
-    }
+    background-color: var(--color-interactive-popup-menu-hover);
   }
 
-  @media (max-width: 600px) {
-    &:focus,
-    &:hover {
-      color: var(--color-blue);
-    }
+  &:active {
+    // Optimization
+    transition: none;
+  }
 
-    &:active {
-      color: var(--color-gray-1) !important;
-
-      background-color: var(--color-interactive-popup-menu-active);
-    }
+  :global(html.animation-level-0) & {
+    transition: none !important;
   }
 }
 
 .destructive {
   color: var(--color-red) !important;
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-interactive-popup-menu-descructive-hover);
+  }
+
 }

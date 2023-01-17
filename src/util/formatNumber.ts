@@ -1,6 +1,12 @@
 import withCache from './withCache';
+import { DEFAULT_DECIMAL_PLACES } from '../config';
 
-export const formatInteger = withCache((value: number, fractionDigits = 2) => {
+export const formatInteger = withCache((value: number, fractionDigits = 2, noRadix = false) => {
+  const minValue = 1 / (10 ** fractionDigits);
+  if (Math.abs(value) > 0 && Math.abs(value) < minValue) {
+    fractionDigits = DEFAULT_DECIMAL_PLACES;
+  }
+
   const fixed = value.toFixed(Math.min(fractionDigits, 100));
   let [wholePart, fractionPart] = fixed.split('.');
 
@@ -8,7 +14,9 @@ export const formatInteger = withCache((value: number, fractionDigits = 2) => {
   if (fractionPart === '') {
     wholePart = wholePart.replace(/^-0$/, '0');
   }
-  wholePart = wholePart.replace(/\d(?=(\d{3})+($|\.))/g, '$&,');
+  if (!noRadix) {
+    wholePart = wholePart.replace(/\d(?=(\d{3})+($|\.))/g, '$&,');
+  }
 
   return [
     wholePart,

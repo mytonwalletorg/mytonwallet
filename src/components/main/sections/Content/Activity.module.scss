@@ -1,0 +1,71 @@
+.emptyList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  height: 100%;
+  padding-top: 1.875rem;
+  padding-bottom: 2rem;
+
+  color: var(--color-gray-2);
+}
+
+.emptyListTitle {
+  margin: 1.25rem 0 0;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.emptyListLoading {
+  padding-top: 8rem;
+}
+
+.sticker {
+  width: 9.75rem;
+  height: 9.75rem;
+}
+
+.loaderThreshold {
+  pointer-events: none;
+
+  position: absolute;
+  bottom: 32rem;
+
+  width: 0;
+  height: 0;
+}
+
+.itemLoading {
+  display: flex;
+  justify-content: center;
+
+  padding: 0.75rem 1rem;
+}
+
+.group {
+  position: relative;
+
+  padding-bottom: 0.25rem;
+
+  text-align: center;
+
+  &:first-of-type {
+    padding-top: 0.75rem;
+  }
+}
+
+.date {
+  width: max-content;
+  margin: 0 auto 0.25rem;
+  padding: 0.25rem 0.75rem;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 0.75rem;
+  color: var(--color-activity-gray-text);
+
+  background-color: var(--color-activity-gray-background);
+  border-radius: var(--border-radius-small);
+}

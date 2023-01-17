@@ -4,8 +4,10 @@ import React, {
 
 import { FRACTION_DIGITS } from '../../config';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
+import { formatInteger } from '../../util/formatNumber';
 import buildClassName from '../../util/buildClassName';
 import useFlag from '../../hooks/useFlag';
+import useLang from '../../hooks/useLang';
 
 import styles from './Input.module.scss';
 
@@ -15,51 +17,86 @@ type OwnProps = {
   value?: number;
   hasError?: boolean;
   error?: string;
+  help?: string;
+  suffix?: string;
+  className?: string;
+  isReadable?: boolean;
+  zeroValue?: string;
+  inputClassName?: string;
+  labelClassName?: string;
+  valueClassName?: string;
   children?: VirtualElement;
-  onInput: (value?: number) => void;
+  onInput?: (value?: number) => void;
   onChange?: (e: React.FormEvent<HTMLDivElement>) => void;
+  onBlur?: NoneToVoidFunction;
   onPressEnter?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  decimals?: number;
 };
-
-const VALUE_REGEX = /^([0-9]+)([.,])?([0-9]+)?$/;
 
 function InputNumberRich({
   id,
   labelText,
   hasError,
   error,
+  help,
+  suffix,
   value,
+  isReadable,
+  zeroValue,
   children,
+  className,
+  inputClassName,
+  labelClassName,
+  valueClassName,
   onChange,
   onInput,
+  onBlur,
   onPressEnter,
+  decimals = FRACTION_DIGITS,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const lang = useLang();
   const prevValueRef = useRef<string>('');
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
 
-  const handleBlur = useCallback(() => {
-    unmarkHasFocus();
+  const updateInputValue = useCallback(() => {
     const newValue = Number(prevValueRef.current);
-    if (!Number.isNaN(newValue)) {
+    if (onInput && !Number.isNaN(newValue) && newValue <= Number.MAX_SAFE_INTEGER) {
       onInput(newValue === 0 ? undefined : parseFloat(newValue.toFixed(FRACTION_DIGITS)));
     }
-  }, [onInput, unmarkHasFocus]);
+  }, [onInput]);
+
+  const handleBlur = useCallback(() => {
+    unmarkHasFocus();
+    updateInputValue();
+    onBlur?.();
+  }, [onBlur, unmarkHasFocus, updateInputValue]);
+
+  const renderZeroValue = useCallback(() => {
+    if (!inputRef.current) {
+      return;
+    }
+
+    setIsEmpty(false);
+    inputRef.current.innerHTML = zeroValue!;
+  }, [zeroValue]);
 
   const renderValue = useCallback((inputValue = '', shouldReset = false) => {
     if (!inputRef.current) {
       return;
     }
 
-    const values = inputValue.toString().match(VALUE_REGEX);
+    const valueRegex = new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?$`);
+    const values = inputValue.toString().match(valueRegex);
 
     // eslint-disable-next-line no-null/no-null
     if (values === null || values.length < 4 || values[0] === '') {
       if (shouldReset || inputValue === '') {
         prevValueRef.current = '';
         inputRef.current.innerText = '';
+        onInput?.(undefined);
       } else {
         renderValue(prevValueRef.current, true);
       }
@@ -74,7 +111,9 @@ function InputNumberRich({
     const [, wholePart, dotPart, fractionPart] = values;
 
     const newHtml = `${parseInt(wholePart, 10)}${fractionPart || dotPart
-      ? `<span class="${styles.fractional}">.${(fractionPart || '').substring(0, FRACTION_DIGITS)}</span>`
+      ? `<span class="${styles.fractional}">.${(fractionPart || '').substring(0, FRACTION_DIGITS)} ${
+        suffix ? ` ${suffix}` : ''
+      }</span>`
       : ''
     }`;
 
@@ -88,14 +127,16 @@ function InputNumberRich({
     if (restoreCaretPosition) {
       restoreCaretPosition();
     }
-    handleBlur();
-  }, [handleBlur]);
+    updateInputValue();
+  }, [decimals, suffix, updateInputValue, onInput]);
 
   useLayoutEffect(() => {
-    if (value) {
-      renderValue(value.toString());
+    if (isReadable && zeroValue && !value) {
+      renderZeroValue();
+    } else if (value) {
+      renderValue(formatInteger(value, FRACTION_DIGITS, true));
     }
-  }, [renderValue, value]);
+  }, [isReadable, renderValue, renderZeroValue, value, zeroValue]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && onPressEnter) {
@@ -109,42 +150,53 @@ function InputNumberRich({
     renderValue(newValue);
   };
 
-  const inputFullClass = buildClassName(
+  const inputWrapperFullClass = buildClassName(
     styles.input__wrapper,
     (hasError || error) && styles.error,
     hasFocus && styles.input__wrapper_hasFocus,
+    inputClassName,
+  );
+  const inputFullClass = buildClassName(
+    styles.input,
+    styles.input_rich,
+    isEmpty && styles.isEmpty,
+    isReadable && styles.disabled,
+    valueClassName,
   );
 
   return (
-    <div className={styles.wrapper}>
+    <div className={buildClassName(styles.wrapper, className)}>
       {error && (
         <label className={buildClassName(styles.label, styles.label_error, styles.error)} htmlFor={id}>{error}</label>
       )}
+      {help && !error && (
+        <label className={buildClassName(styles.label, styles.label_help, styles.help)} htmlFor={id}>{help}</label>
+      )}
       {labelText && (
         <label
-          className={buildClassName(styles.label, (hasError || error) && styles.error)}
+          className={buildClassName(styles.label, (hasError || error) && styles.error, labelClassName)}
           htmlFor={id}
           id={`${id}Label`}
         >
           {labelText}
         </label>
       )}
-      <div className={inputFullClass}>
+      <div className={inputWrapperFullClass}>
         {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
         <div
           ref={inputRef}
-          contentEditable
+          contentEditable={!isReadable}
           id={id}
           role="textbox"
           aria-required
-          aria-placeholder="Amount value"
+          aria-placeholder={lang('Amount value')}
           aria-labelledby={labelText ? `${id}Label` : undefined}
-          tabIndex={0}
-          className={buildClassName(styles.input, styles.input_rich, isEmpty && styles.isEmpty)}
-          onKeyDown={handleKeyDown}
-          onChange={handleChange}
-          onFocus={markHasFocus}
-          onBlur={handleBlur}
+          tabIndex={isReadable ? -1 : 0}
+          className={inputFullClass}
+          onKeyDown={!isReadable ? handleKeyDown : undefined}
+          onChange={!isReadable ? handleChange : undefined}
+          onFocus={!isReadable ? markHasFocus : undefined}
+          onBlur={!isReadable ? handleBlur : undefined}
         />
         {children}
       </div>

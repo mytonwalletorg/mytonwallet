@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?5841a13a119250efd38c43f5d3050e46") format("woff"),
-url("./brilliant-icons.woff2?5841a13a119250efd38c43f5d3050e46") format("woff2");
+    src: url("./brilliant-icons.woff?86c932e1f01ff97effa02dc2879c41f0") format("woff"),
+url("./brilliant-icons.woff2?86c932e1f01ff97effa02dc2879c41f0") format("woff2");
     font-weight: normal;
     font-style: normal;
 }
@@ -17,63 +17,90 @@ url("./brilliant-icons.woff2?5841a13a119250efd38c43f5d3050e46") format("woff2");
 .icon-arrow-down::before {
     content: "\f101";
 }
-.icon-arrow-left::before {
+.icon-arrow-up::before {
     content: "\f102";
 }
-.icon-arrow-right::before {
+.icon-caret-down::before {
     content: "\f103";
 }
-.icon-clock::before {
+.icon-chevron-down::before {
     content: "\f104";
 }
-.icon-close::before {
+.icon-chevron-left::before {
     content: "\f105";
 }
-.icon-coinmarket::before {
+.icon-chevron-right::before {
     content: "\f106";
 }
-.icon-copy::before {
+.icon-clock::before {
     content: "\f107";
 }
-.icon-eye-closed::before {
+.icon-close::before {
     content: "\f108";
 }
-.icon-eye::before {
+.icon-coinmarket::before {
     content: "\f109";
 }
-.icon-menu::before {
+.icon-copy::before {
     content: "\f10a";
 }
-.icon-paste::before {
+.icon-earn::before {
     content: "\f10b";
 }
-.icon-qrcode::before {
+.icon-eye-closed::before {
     content: "\f10c";
 }
-.icon-receive-alt::before {
+.icon-eye::before {
     content: "\f10d";
 }
-.icon-receive::before {
+.icon-menu::before {
     content: "\f10e";
 }
-.icon-search::before {
+.icon-paste::before {
     content: "\f10f";
 }
-.icon-send-alt::before {
+.icon-pen::before {
     content: "\f110";
 }
-.icon-send::before {
+.icon-percent::before {
     content: "\f111";
 }
-.icon-share::before {
+.icon-plus::before {
     content: "\f112";
 }
-.icon-star-filled::before {
+.icon-qrcode::before {
     content: "\f113";
 }
-.icon-star::before {
+.icon-question::before {
     content: "\f114";
 }
-.icon-tonscan::before {
+.icon-receive-alt::before {
     content: "\f115";
+}
+.icon-receive::before {
+    content: "\f116";
+}
+.icon-search::before {
+    content: "\f117";
+}
+.icon-send-alt::before {
+    content: "\f118";
+}
+.icon-send::before {
+    content: "\f119";
+}
+.icon-share::before {
+    content: "\f11a";
+}
+.icon-star-filled::before {
+    content: "\f11b";
+}
+.icon-star::before {
+    content: "\f11c";
+}
+.icon-tonscan::before {
+    content: "\f11d";
+}
+.icon-trash::before {
+    content: "\f11e";
 }

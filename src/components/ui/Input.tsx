@@ -2,6 +2,7 @@ import { RefObject } from 'react';
 import React, { memo, TeactNode, useState } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+import useLang from '../../hooks/useLang';
 
 import styles from './Input.module.scss';
 
@@ -18,6 +19,7 @@ type OwnProps = {
   hasError?: boolean;
   error?: string;
   className?: string;
+  autoComplete?: string;
   inputArg?: any;
   children?: TeactNode | TeactNode[];
   onInput: (value: string, inputArg?: any) => void;
@@ -40,12 +42,14 @@ function Input({
   maxLength,
   inputArg,
   className,
+  autoComplete,
   children,
   onInput,
   onKeyDown,
   onFocus,
   onBlur,
 }: OwnProps) {
+  const lang = useLang();
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 
   const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
@@ -86,6 +90,7 @@ function Input({
         type={finalType}
         value={value}
         maxLength={maxLength}
+        autoComplete={autoComplete}
         onInput={handleInput}
         onKeyDown={onKeyDown}
         onFocus={onFocus}
@@ -95,13 +100,12 @@ function Input({
         placeholder={placeholder}
         teactExperimentControlled={isControlled}
       />
-      {type !== 'password' && <span className={styles.shadow} />}
       {type === 'password' && (
         <button
           className={buildClassName(styles.visibilityToggle, labelText && styles.visibilityToggle_push)}
           type="button"
           onClick={handleTogglePasswordVisibility}
-          aria-label="Change password visibility"
+          aria-label={lang('Change password visibility')}
           tabIndex={-1}
         >
           <i className={isPasswordVisible ? 'icon-eye' : 'icon-eye-closed'} />

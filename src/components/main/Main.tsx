@@ -1,43 +1,38 @@
-import type { GlobalState } from '../../global/types';
-
 import React, { memo, useCallback, useState } from '../../lib/teact/teact';
 import { withGlobal, getActions } from '../../global';
 
-import { IS_TESTNET } from '../../config';
-import buildClassName from '../../util/buildClassName';
+import { selectCurrentAccountState } from '../../global/selectors';
 import useFlag from '../../hooks/useFlag';
 
-import Card from './Card';
-import TabList from '../ui/TabList';
-import Header from './Header';
 import TransferModal from '../transfer/TransferModal';
-import Transition from '../ui/Transition';
-import Assets from './Assets';
-import Activity from './Activity';
-import Nfts from './Nfts';
-import Receive from './Receive';
 import Notifications from './Notifications';
-import BackupWarning from './BackupWarning';
-import BackupModal from './BackupModal';
-import SignatureModal from './SignatureModal';
-import Button from '../ui/Button';
-import TransactionModal from './TransactionModal';
+
+import StakingInfoModal from '../staking/StakingInfoModal';
+import StakeModal from '../staking/StakeModal';
+import UnstakingModal from '../staking/UnstakeModal';
+
+import BackupModal from './modals/BackupModal';
+import SignatureModal from './modals/SignatureModal';
+import TransactionModal from './modals/TransactionModal';
+
+import Actions from './sections/Actions';
+import Card from './sections/Card';
+import Content from './sections/Content';
+import Header from './sections/Header';
+import Warnings from './sections/Warnings';
 
 import styles from './Main.module.scss';
 
-type StateProps = Pick<GlobalState, 'currentTokenSlug'>;
+type StateProps = {
+  currentTokenSlug?: string;
+  isStakingActive: boolean;
+};
 
-const TABS = [
-  { id: 'assets', title: 'Assets', className: styles.tab },
-  { id: 'activity', title: 'Activity', className: styles.tab },
-  { id: 'nft', title: 'NFT', className: styles.tab },
-];
-
-function Main({ currentTokenSlug }: StateProps) {
-  const { startTransfer, selectToken } = getActions();
+function Main({ currentTokenSlug, isStakingActive }: StateProps) {
+  const { selectToken, startStaking } = getActions();
 
   const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : 0);
-  const [isReceiveTonOpened, openReceiveTon, closeReceiveTon] = useFlag(false);
+  const [isStakingInfoOpened, openStakingInfo, closeStakingInfo] = useFlag(false);
   const [isBackupWalletOpened, openBackupWallet, closeBackupWallet] = useFlag(false);
 
   const handleTokenCardClose = useCallback(() => {
@@ -45,77 +40,49 @@ function Main({ currentTokenSlug }: StateProps) {
     setActiveTabIndex(0);
   }, [selectToken]);
 
-  const handleSwitchTab = useCallback((index: number) => {
-    selectToken({ slug: undefined });
-    setActiveTabIndex(index);
-  }, [selectToken]);
-
-  const handleClickAssets = useCallback((slug: string) => {
-    selectToken({ slug });
-    setActiveTabIndex(TABS.findIndex((tab) => tab.id === 'activity'));
-  }, [selectToken]);
-
-  function renderCurrentTab(isActive: boolean) {
-    switch (TABS[activeTabIndex].id) {
-      case 'assets':
-        return <Assets isActive={isActive} onTokenClick={handleClickAssets} />;
-
-      case 'activity':
-        return <Activity isActive={isActive} />;
-
-      case 'nft':
-        return <Nfts isActive={isActive} />;
-
-      default:
-        return undefined;
+  const handleEarnClick = useCallback(() => {
+    if (isStakingActive) {
+      openStakingInfo();
+    } else {
+      startStaking();
     }
-  }
+  }, [isStakingActive, openStakingInfo, startStaking]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.head}>
-        {IS_TESTNET && <div className={styles.testnetWarning}>Testnet Version</div>}
-        <BackupWarning onOpenBackupWallet={openBackupWallet} />
-        <Header onOpenBackupWallet={openBackupWallet} />
-        <Card onTokenCardClose={handleTokenCardClose} />
-        <div className={styles.buttons}>
-          <Button className={styles.button} onClick={openReceiveTon} isSimple>
-            <i className={buildClassName(styles.buttonIcon, 'icon-receive')} aria-hidden />
-            Receive
-          </Button>
-          <Button className={styles.button} onClick={startTransfer} isSimple>
-            <i className={buildClassName(styles.buttonIcon, 'icon-send')} aria-hidden />
-            Send
-          </Button>
+    <>
+      <div className={styles.container}>
+        <div className={styles.head}>
+          <Warnings onOpenBackupWallet={openBackupWallet} />
+          <Header onBackupWalletOpen={openBackupWallet} />
+          <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
+          <Actions hasStaking={isStakingActive} onEarnClick={handleEarnClick} />
         </div>
-        <BackupModal isOpen={isBackupWalletOpened} onClose={closeBackupWallet} />
+
+        <Content
+          activeTabIndex={activeTabIndex}
+          setActiveTabIndex={setActiveTabIndex}
+          onStakedTokenClick={handleEarnClick}
+        />
       </div>
-      <TabList
-        tabs={TABS}
-        activeTab={activeTabIndex}
-        onSwitchTab={handleSwitchTab}
-        className={styles.tabs}
-      />
-      <Transition
-        name="slide"
-        activeKey={activeTabIndex}
-        renderCount={TABS.length}
-        className={styles.slides}
-        slideClassName={buildClassName(styles.slide, 'custom-scroll')}
-      >
-        {renderCurrentTab}
-      </Transition>
+
+      <BackupModal isOpen={isBackupWalletOpened} onClose={closeBackupWallet} />
       <TransferModal />
       <SignatureModal />
       <TransactionModal />
-      <Receive isOpen={isReceiveTonOpened} onClose={closeReceiveTon} />
       <Notifications />
-    </div>
+      <StakeModal onViewStakingInfo={openStakingInfo} />
+      <UnstakingModal />
+      <StakingInfoModal isOpen={isStakingInfoOpened} onClose={closeStakingInfo} />
+    </>
   );
 }
 
-export default memo(withGlobal((global) => {
+export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps => {
+  detachWhenChanged(global.currentAccountId);
+  const accountState = selectCurrentAccountState(global);
+
   return {
-    currentTokenSlug: global.currentTokenSlug,
+    isStakingActive: Boolean(accountState?.stakingBalance) && !accountState?.isUnstakeRequested,
+    currentTokenSlug: selectCurrentAccountState(global)?.currentTokenSlug,
   };
 })(Main));

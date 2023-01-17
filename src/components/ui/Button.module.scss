@@ -8,6 +8,7 @@
 
   color: var(--color-gray-button-text);
   text-decoration: none;
+  white-space: nowrap;
 
   background: none;
   border: 0;
@@ -16,9 +17,13 @@
 
   transition: background-color 150ms, color 150ms, opacity 150ms;
 
-  // @optimization
   &.clicked,
   &:active {
+    // Optimization
+    transition: none !important;
+  }
+
+  :global(html.animation-level-0) & {
     transition: none !important;
   }
 }
@@ -28,19 +33,18 @@
   align-items: center;
   justify-content: center;
 
-  width: 100%;
+  min-width: 10rem;
 
   font-size: 1.0625rem;
   line-height: 1.25;
 
   &:not(.isText) {
-    max-width: 66%;
-    height: 3rem;
-    padding: 0.5rem 0.625rem;
+    max-width: 68%;
+    height: 2.75rem;
+    padding: 0.5rem 1.5rem;
 
     font-weight: 700;
     color: var(--color-gray-button-text);
-    text-transform: uppercase;
 
     background-color: var(--color-gray-button-background);
     border-radius: var(--border-radius-buttons);
@@ -52,12 +56,6 @@
       background-color: var(--color-gray-button-background-hover);
     }
 
-    &:active {
-      color: var(--color-gray-button-text-active);
-
-      background-color: var(--color-gray-button-background-active);
-    }
-
     &[disabled] {
       pointer-events: none;
 
@@ -67,6 +65,7 @@
 }
 
 .isText {
+  font-weight: 600;
   color: var(--color-blue);
 
   background-color: transparent;
@@ -82,6 +81,10 @@
   &[disabled] {
     opacity: 0.4;
   }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .button.primary:not(.isSimple) {
@@ -94,12 +97,6 @@
     color: var(--color-blue-button-text-hover);
 
     background-color: var(--color-blue-button-background-hover);
-  }
-
-  &:active {
-    color: var(--color-blue-button-text-active);
-
-    background-color: var(--color-blue-button-background-active);
   }
 }
 
@@ -130,23 +127,42 @@
     background-color: var(--color-red-button-background-hover);
   }
 
-  &:active {
-    color: var(--color-red-button-text-active);
-
-    background-color: var(--color-red-button-background-active);
-  }
-
   &[disabled] {
     opacity: 0.4;
+  }
+
+
+  &.isText {
+    font-weight: 600;
+    color: var(--color-red-button-background);
+
+    background-color: transparent;
+
+    transition: color 150ms;
+
+    &:hover,
+    &:focus {
+      color: var(--color-red-button-background-hover);
+    }
+
+    :global(html.animation-level-0) & {
+      transition: none !important;
+    }
   }
 }
 
 .sizeSmall {
-  height: 2.5rem;
+  min-width: auto !important;
+  height: 2rem !important;
+
+  font-size: 0.9375rem !important;
+
+  border-radius: var(--border-radius-tiny) !important
 }
 
 .round {
   width: 3.5rem;
+  min-width: auto !important;
   height: 3.5rem;
 
   border-radius: 50%;

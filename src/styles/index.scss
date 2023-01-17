@@ -151,3 +151,7 @@ a {
     text-decoration: underline;
   }
 }
+
+.no-transitions * {
+  transition: none !important;
+}

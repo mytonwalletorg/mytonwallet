@@ -12,6 +12,7 @@ createWorkerInterface((name: string, ...args: any[]) => {
     return init(args[0] as OnApiUpdate, args[1] as ApiInitArgs, StorageType.IndexedDb);
   } else {
     const method = methods[name as keyof Methods];
+
     // @ts-ignore
     return method(...args as MethodArgs<keyof Methods>);
   }

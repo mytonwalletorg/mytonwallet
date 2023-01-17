@@ -5,8 +5,11 @@ MyTonWallet.zip
 .env*
 !.env.example
 .idea
+.vscode
 *.iml
 dev/perf/screenshot*
 .DS_store
 test-results
 trash/
+coverage/
+src/i18n/en.json

@@ -5,7 +5,8 @@
   ],
   "ignoreFiles": [
     "dist/*.css",
-    "src/styles/brilliant-icons.css"
+    "src/styles/brilliant-icons.css",
+    "coverage/**"
   ],
   "plugins": [
     "stylelint-declaration-block-no-ignored-properties",

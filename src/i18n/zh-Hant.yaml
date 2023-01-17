@@ -1,0 +1,253 @@
+$auth_intro: |
+  **安全的**儲存加密貨幣，
+  並享有**光速的**區塊鏈支付速度。
+Create New Wallet: 創建新錢包
+Import From %1$d Secret Words: 輸入註記詞
+About MyTonWallet: 關於 MyTonWallet
+Creating Wallet...: 錢包創建中...
+On the count of three...: 數到三...
+$auth_backup_description1: |
+  這是一個**僅由您控制**且**安全**的錢包。
+$auth_backup_description2: 「能力越強，責任越大。」
+$auth_backup_description3: |
+  你需要手動**備份註記詞**，免得你忘記助記詞而無法登入此裝置。
+Back Up: 備份
+Skip For Now: 跳過此步驟
+Passwords must be equal.: 密碼必須相同。
+To protect your wallet as much as possible, use a password with: 為了盡可能保護您的錢包，密碼請遵循下列規則
+$auth_password_rule_8chars: 至少 8 個字元
+$auth_password_rule_one_small_char: 一個小寫英文字母
+$auth_password_rule_one_capital_char: 一個大寫英文字母
+$auth_password_rule_one_digit: 一個數字
+$auth_password_rule_one_special_char: 一個特殊符號
+The wallet is imported: 錢包已經匯入
+The wallet is ready: 錢包已經準備完成
+Create a password to protect it.: 創建一個密碼來保護錢包.
+Enter your password: 請輸入你的密碼
+Enter your password...: 輸入你的密碼...
+...and repeat it: 再次輸入密碼...
+Cancel: 取消
+Insecure Password: 密碼強度不足
+Your have entered an insecure password, which can be easily guessed by scammers.: 您輸入的密碼不安全，很容易被猜到。
+Continue or change password to something more secure?: 繼續或將密碼更改為更安全的密碼？
+Change: 更改密碼
+"%1$d Secret Words": "%1$d 個註記詞"
+$auth_import_mnemonic_description: |
+  您可以通過輸入您在創建錢包時記下的 %1$d 個註記詞來恢復對您錢包的權限.
+Let’s make sure your secrets words are recorded correctly.: 請確定您的註記詞已被正確記錄下來。
+$mnemonic_check_words_list: 請輸入以下單字
+$mnemonic_check_error: 您輸入的單字與列表中的單字不相符。 請再試一遍。
+$mnemonic_list_description: |
+  按照**正確的順序**寫下這些單字，並將它們存放在一個**安全的地方**。
+Let's Check: 再確認一次
+Let's Check!: 再確認一次
+Safety Rules: 安全規定
+$safety_rules_one: |
+  在下一個畫面，您將看到**註記詞**。
+  請以正確的順序記下它們並存放在**安全的地方**。
+$safety_rules_two: 如果您忘記密碼或無法訪問此裝置，註記詞將允許打開您的錢包。
+$safety_rules_three: 如果其他人看到這些單字，您的資金可能會被盜，請注意周圍是否有人！
+Congratulations!: 恭喜!
+Continue: 繼續
+Close: 關閉
+Back: 上一步
+Search...: 搜尋...
+Main menu: 主選單
+TON Proxy: TON Proxy
+Toggle TON Proxy: 切換 TON Proxy
+TON Magic: TON Magic
+Toggle TON Magic: 切換 TON Magic
+Open Telegram Web: 開啟 Telegram Web
+Back Up Secret Words: 備份註記詞
+Settings: 設定
+About: 關於
+Exit: 斷開連結
+Something went wrong: 狀況異常
+Logo: Logo
+$about_description1: 安全地存儲加密貨幣、探索 dAPP 並以**光速**進行區塊鏈支付
+$about_description2: 錢包是**非託管且安全的**。開發人員無權使用您的資金、瀏覽器歷史記錄或任何其他資訊
+What is TON Proxy?: 什麼是 TON Proxy?
+$about_extension_description1: TON Proxy 支援匿名訪問 TON Site ，這開啟了通往**去中心化網路**的新篇章
+More info and demo.: 更多資訊和範例.
+$about_extension_description2: TON Magic 透過修補官方 Telegram Web 應用程序來整合原生 Telegram。
+$about_extension_description3: 打開它，將可以從任何 Telegram 用戶發送和接收 Toncoins.
+$about_proxy_magic_title: What about %ninja% TON Proxy and %unicorn% TON Magic?
+$about_proxy_magic_description: 要享受去中心化網路、瀏覽 TON Site並使用 Telegram Web，請安裝 MyTonWallet 擴展程序
+$about_extension_link_text: "**MyTonWallet 擴展程序**"
+Is it open source?: 它是開源的嗎？
+$about_wallet_github: 是的，歡迎查看我們的 %github_link%
+$about_github_link_text: "**GitHub repository**"
+Is there a community?: 有社群嗎？
+$about_wallet_community: 當然，歡迎來到我們的社群 %community_link%.
+$about_community_link_text: "**Telegram 頻道**"
+Currency History: 代幣歷史記錄
+$add_account_description1: |
+  **MyTonWallet** 讓您無縫在**多帳戶間**自由轉換。
+$add_account_description2: |
+  透過創建一個新錢包來嘗試,
+  或者透過24個註記詞 **導入** 現有錢包
+Enter Password: 輸入密碼
+Send: 發送
+Add Wallet: 新增錢包
+Done: 完成
+Delete: 刪除
+Delete Saved Address: 刪除保存的地址
+Are you sure you want to remove this address from your saved ones?: 您確定要從保存的地址中刪除嗎？
+You will be able to save it again via Transaction Info with this address.: 您也能透過交易紀錄再次保存此地址。
+Address removed from saved: 地址已從列表中移除
+Warning!: 警告!
+Log Out: 登出
+$logout_without_backup_warning: 您尚未備份錢包。 如果您註銷，您將喪失您的代幣和 NFT。
+$logout_accounts_without_backup_warning: 您還沒有備份 %links%。 如果您註銷，您將喪失您的代幣和 NFT。
+$logout_warning: 這將斷開錢包與此應用程序的連接。 您將能夠使用 **%1$d 個密語** 恢復您的錢包 - 或者導入另一個錢包。
+Receive TON: 接收 TON
+Your address was copied!: 您的地址已被複製!
+Show QR-Code: 顯示 QR-Code
+Create Invoice: 建立發票
+QR-code: QR-code
+$receive_invoice_description: |
+  您可以指定付款金額和地址來節省發送人的一些時間
+Amount: 數量
+Comment: 註記欄
+Share this URL to receive TON: 分享此連結來接收 TON
+Invoice link was copied!: 發票連結已複製！
+US Dollar: 美金
+Theme: 主題
+Language: 語言
+Enable Animations: 啟用動畫
+Fiat Currency: 法定貨幣
+Investor View: 投資者觀點
+Toggle Investor View: 切換投資者觀點
+Hide Tiny Transfers: 隱藏小額轉帳
+Toggle Hide Tiny Transfers: 切換隱藏小額轉帳
+Network: 網路
+Developer Options: 開發者選項
+Confirmation: 確認
+Data to sign: 簽署資訊
+$signature_warning: |
+  簽署自定義資訊是非常危險的。僅當您知道自己在做什麼時才使用。
+Sign: 簽署
+Done!: 完成!
+Signing was confirmed!: 簽署已確認!
+Transaction Info: 交易資訊
+Transaction in progress: 交易進行中
+Comment was copied!: 註記欄已被複製!
+View Transaction on TON Explorer: 在 TON Explorer 上查看此交易
+Sender: 發送人
+Recipient: 接收人
+Address was copied!: 地址已被複製!
+Send Back: 退還
+Repeat: 重複
+Receive: 接收
+Switch Account: 切換帳戶
+Copy wallet address: 複製錢包地址
+View address on TON Explorer: 在 TON Explorer 上查看此地址
+Open on CoinMarketCap: 在 CoinMarketCap 打開
+No Activity: 無活動紀錄
+You have just created a new wallet: 您剛剛創建了一個新錢包
+You can now transfer your tokens from another wallet or exchange.: 您現在可以從另一個錢包或交易所轉移您的代幣。
+Assets: 資產
+Activity: 活動紀錄
+NFT: NFT
+No NFTs yet: 尚未有 NFT
+$nft_explore_offer: |
+  探索市場來尋找現有的 NFT 收藏.
+Open Getgems: 開啟 Getgems
+Transaction is not completed: 交易未完成
+Received: 已收到
+Sent: 已送出
+$transaction_from: 從 %address%
+$transaction_to: 到 %address%
+Wallet is not backed up!: 錢包未備份!
+Back up now: 現在備份
+Testnet Version: 測試網版本
+Error reading clipboard: 讀取剪貼板時出現錯誤
+$fee_value: "Fee: %fee%"
+Loading...: 讀取中...
+Recipient address: 接收人地址
+Wallet address or domain: 錢包地址或是域名
+Incorrect address: 錯誤的地址
+Paste: 貼上
+Insufficient balance: 餘額不足
+Optional: 選項
+$send_token_symbol: 發送 %1$s
+$your_balance_is: "你的餘額: %balance%"
+Is it all ok?: 全部確認都 OK?
+Receiving Address: 接收地址
+Fee: 手續費
+Edit: 編輯
+Confirm: 確認
+Confirm Transaction: 確認交易
+Coins have been sent!: 代幣已送出!
+Details: 明細
+Change password visibility: 更改密碼能見度
+Amount value: 資產總額
+Save Address: 儲存地址
+Name: 名稱
+Save: 儲存
+Copy: 複製
+Remove From Saved Addresses: 從保存的地址中刪除
+Add To Saved Addresses: 新增到保存的地址
+View Address on TON Explorer: 在 TON Explorer 上查看此地址
+No suggestions, you're on your own!: 沒有建議，請靠自己！
+Play Sounds: 播放聲音
+Focus on asset value rather than current balance: 關注資產價值而非當前餘額
+$logout_confirm: 登出**所有**錢包
+$logout_warning2: 錢包位於去中心化的 TON 區塊鏈中。 如果你只是想簡單的清空錢包，只需將所有 TON 轉移出去即可。
+$tiny_transfers_help: 開啟此功能，隱藏少於 %1$d %2$s 的交易。 請注意，此類交易通常用於垃圾郵件和詐騙目的。
+Understood: 了解
+Today: 今天
+Yesterday: 昨天
+Now: 現在
+$receive_ton_description: |
+  您可以分享這個地址，出示 QR-Code 或創建發票來接收 TON
+Your address: 您的地址
+Wrong password, please try again: 密碼錯誤，請再嘗試一次
+Appearance: 外觀
+Assets and Activity: 資產及其活動
+Light: 亮色模式
+Dark: 暗色模式
+System: 系統
+Create Backup: 創建備份
+Stake TON: 質押 TON
+Earn from your tokens while holding them: 從你持有中的代幣獲利
+$est_apy_val: Est. APY %1$d%
+Why this is safe: 為什麼這是安全的
+Why staking is safe?: 為什麼質押是安全的?
+$safe_staking_description1: Staking 是**完全去中心化的**，由官方 TON Nominator 智能合約運作。 沒有人可以使用您質押中的代幣.
+$safe_staking_description2: 作為其 **權益證明** 本質的一部分，存入的代幣將用於 TON 網路驗證。
+$safe_staking_description3: 您可以在**任何時候**提取您的質押資產，它會在**2 天內**存入您的帳戶。
+$min_value: 最少 %value%
+Est. balance in a year: 預估 1 年後的資產餘額
+Confirm Staking: 確認質押
+Confirm operation with your password: 輸入您的密碼確認此筆操作
+Coins have been staked!: 代幣已被質押成功!
+View: 查看
+Stake More: 繼續質押
+Staking: 質押中
+Currently staked: 目前質押數量
+Unstake: 解除質押
+Earning history: 收益紀錄
+$total: "總額: %value%"
+Unstake TON: 解除 TON 質押
+$unstake_information_with_time: |
+  你的存款將在 %time% 後全數退還到你的錢包。
+  解除後將不再獲得質押收益。
+Amount to unstake: 解除質押數量
+Confirm Unstaking: 確認解除質押
+Request for unstaking is sent!: 解除質押申請已送出!
+$unstaking_when_receive: 你將會在 %time% 後收到解除的質押數量
+$unstake_insufficient_balance: 您的主帳戶餘額需要有 %balance% 才能繼續取消質押。
+at APY %1$s%: at APY %1$s%
+Staked: 已質押
+Unstaked: 已解除質押
+The network fee has slightly changed, try sending again.: 網路費略有變化，請重新發送交易。
+Transfer was unsuccessful. Try again later: 轉帳未成功，請稍後再試
+Unstaking was unsuccessful. Try again later: 解除質押未成功，請稍後再試
+Staking was unsuccessful. Try again later: 質押未成功，請稍後再試
+Invalid amount: 無效金額
+Invalid address: 無效地址
+Domain is not connected to a wallet: 域名未與錢包連結
+Unexpected error: 未知錯誤
+You can save this address for quick access while sending.: You can save this address for quick access while sending.
+Stake Again: Stake Again

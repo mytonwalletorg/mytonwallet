@@ -4,8 +4,10 @@ import React, {
 } from '../../lib/teact/teact';
 
 import { MNEMONIC_CHECK_COUNT } from '../../config';
+import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { areSortedArraysEqual } from '../../util/iteratees';
+import useLang from '../../hooks/useLang';
 
 import ModalHeader from '../ui/ModalHeader';
 import Button from '../ui/Button';
@@ -28,6 +30,7 @@ type OwnProps = {
 function MnemonicCheck({
   isActive, isInModal, mnemonic, checkIndexes, buttonLabel, onCancel, onSubmit, onClose,
 }: OwnProps) {
+  const lang = useLang();
   const [words, setWords] = useState<Record<number, string>>({});
   const [hasMnemonicError, setHasMnemonicError] = useState(false);
 
@@ -57,14 +60,14 @@ function MnemonicCheck({
 
   return (
     <div className={modalStyles.transitionContentWrapper}>
-      <ModalHeader title="Let's Check!" onClose={onClose} />
+      <ModalHeader title={lang('Let\'s Check!')} onClose={onClose} />
       <div className={buildClassName(modalStyles.transitionContent, 'custom-scroll')}>
         <p className={buildClassName(styles.info, styles.small)}>
-          Let’s make sure your secrets words are recorded correctly.
+          {lang('Let’s make sure your secrets words are recorded correctly.')}
         </p>
 
         <p className={buildClassName(styles.info, styles.small)}>
-          Please enter the words <strong>{checkIndexes?.map((n) => n + 1)?.join(', ')}</strong> below.
+          {renderText(lang('$mnemonic_check_words_list', checkIndexes?.map((n) => n + 1)?.join(', ')))}
         </p>
 
         <form onSubmit={handleMnemonicCheckSubmit} id="check_mnemonic_form">
@@ -86,13 +89,12 @@ function MnemonicCheck({
 
         {hasMnemonicError && (
           <div className={buildClassName(styles.error, styles.small)}>
-            The secret words you have entered do not
-            match the ones in the list. Please try again.
+            {renderText(lang('$mnemonic_check_error'))}
           </div>
         )}
 
         <div className={modalStyles.buttons}>
-          <Button onClick={onCancel}>Back</Button>
+          <Button onClick={onCancel}>{lang('Back')}</Button>
           <Button isPrimary forFormId="check_mnemonic_form">{buttonLabel}</Button>
         </div>
       </div>

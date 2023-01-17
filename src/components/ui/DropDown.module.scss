@@ -5,8 +5,6 @@
 
   align-items: center;
 
-  padding: 0.75rem !important;
-
   color: var(--color-input-button-text);
 
   border: none;
@@ -14,27 +12,88 @@
   outline: none;
 
   transition: background-color 150ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.wide {
+  display: flex;
+
+  width: 100%;
+
+  &.interactive {
+    cursor: pointer;
+  }
+}
+
+.label {
+  margin-inline-end: auto;
+
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-black);
 }
 
 .button {
   display: inline-flex;
 
   margin: 0;
+  padding: 0.75rem !important;
 
-  background-color: var(--color-input-button-background);
+  background-color: transparent;
 
-  // @optimization
-  &:active {
-    background-color: var(--color-input-button-background-active) !important;
-
-    transition: none !important;
+  &:not(.interactive) {
+    cursor: default;
   }
 
-  @media (hover: hover) {
+  &.interactive {
+    background-color: var(--color-input-button-background);
+
+    &:active {
+      // Optimization
+      transition: none !important;
+    }
+
     &:hover,
     &:focus {
       background-color: var(--color-input-button-background-hover);
     }
+  }
+
+  .light & {
+    margin: -1rem;
+
+    color: var(--color-gray-3);
+
+    background: none;
+
+    &:hover,
+    &:focus {
+      background: none;
+    }
+  }
+}
+
+.disabled {
+  cursor: not-allowed !important;
+
+  opacity: 0.5;
+
+  .button {
+    cursor: not-allowed !important;
+  }
+}
+
+.buttonIcon {
+  margin-right: -0.375rem;
+
+  .light & {
+    margin: -0.25rem 0;
+
+    font-size: 1rem;
+    color: var(--color-gray-3);
   }
 }
 
@@ -43,6 +102,10 @@
 
   width: 100%;
   margin: 0;
+  padding: 0.5625rem 1rem 0.5rem !important;
+
+  line-height: 1;
+  text-align: center;
 
   background: none;
 
@@ -50,22 +113,25 @@
     margin-bottom: 0.125rem;
   }
 
-  &:active {
+  &_selected {
     background-color: var(--color-interactive-drop-down-menu-active) !important;
+  }
 
-    // @optimization
+  &_with_icon {
+    padding: 0.625rem !important;
+
+    line-height: 1.25;
+    text-align: left;
+  }
+
+  &:active {
+    // Optimization
     transition: none !important;
   }
 
-  &_selected {
-    background-color: var(--color-input-button-background) !important;
-  }
-
-  @media (hover: hover) {
-    &:hover,
-    &:focus {
-      background-color: var(--color-interactive-drop-down-menu-hover);
-    }
+  &:hover,
+  &:focus {
+    background-color: var(--color-interactive-drop-down-menu-hover) !important;
   }
 }
 
@@ -78,24 +144,23 @@
 }
 
 .itemName {
+  unicode-bidi: plaintext;
+
   height: 1rem;
 
   font-size: 0.9375rem;
   font-weight: 700;
   text-transform: uppercase;
   white-space: nowrap;
-}
 
-.menu {
-  transform: scaleY(0.5) !important;
-  transform-origin: top !important;
+  .light & {
+    margin: auto;
+    padding-right: 0.25rem;
 
-  overflow: auto;
-
-  min-width: auto;
-  max-height: 16rem;
-
-  &:global(.open) {
-    transform: scaleY(1) !important;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1rem;
+    text-transform: none;
   }
 }
+

@@ -5,6 +5,7 @@ import type {
   VirtualElementParent,
   VirtualElementChildren,
   VirtualElementReal,
+  VirtualElementFragment,
 } from './teact';
 import {
   hasElementChanged,
@@ -16,15 +17,21 @@ import {
   mountComponent,
   renderComponent,
   unmountComponent,
+  isFragmentElement,
 } from './teact';
-import generateIdFor from '../../util/generateIdFor';
 import { DEBUG } from '../../config';
 import { addEventListener, removeAllDelegatedListeners, removeEventListener } from './dom-events';
 import { unique } from '../../util/iteratees';
 
-type VirtualDomHead = {
+interface VirtualDomHead {
   children: [VirtualElement] | [];
-};
+}
+
+interface SelectionState {
+  selectionStart: number | null;
+  selectionEnd: number | null;
+  isCaretAtEnd: boolean;
+}
 
 const FILTERED_ATTRIBUTES = new Set(['key', 'ref', 'teactFastList', 'teactOrderKey']);
 const HTML_ATTRIBUTES = new Set(['dir', 'role', 'form']);
@@ -35,28 +42,16 @@ const MAPPED_ATTRIBUTES: { [k: string]: string } = {
 };
 const INDEX_KEY_PREFIX = '__indexKey#';
 
-const headsByElement: Record<string, VirtualDomHead> = {};
-// eslint-disable-next-line @typescript-eslint/naming-convention
-let DEBUG_virtualTreeSize = 1;
+const headsByElement = new WeakMap<HTMLElement, VirtualDomHead>();
 
 function render($element: VirtualElement | undefined, parentEl: HTMLElement) {
-  let headId = parentEl.getAttribute('data-teact-head-id');
-  if (!headId) {
-    headId = generateIdFor(headsByElement);
-    headsByElement[headId] = { children: [] };
-    parentEl.setAttribute('data-teact-head-id', headId);
+  if (!headsByElement.has(parentEl)) {
+    headsByElement.set(parentEl, { children: [] });
   }
 
-  const $head = headsByElement[headId];
+  const $head = headsByElement.get(parentEl)!;
   const $newElement = renderWithVirtual(parentEl, $head.children[0], $element, $head, 0);
   $head.children = $newElement ? [$newElement] : [];
-
-  if (process.env.APP_ENV === 'perf') {
-    DEBUG_virtualTreeSize = 0;
-    DEBUG_addToVirtualTreeSize($head);
-
-    return DEBUG_virtualTreeSize;
-  }
 
   return undefined;
 }
@@ -80,6 +75,9 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   const isNewComponent = $new && isComponentElement($new);
   const $newAsReal = $new as VirtualElementReal;
 
+  const isCurrentFragment = $current && !isCurrentComponent && isFragmentElement($current);
+  const isNewFragment = $new && !isNewComponent && isFragmentElement($new);
+
   if (
     !skipComponentUpdate
     && isCurrentComponent && isNewComponent
@@ -98,6 +96,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   }
 
   if (DEBUG && $new) {
+    // @ts-ignore TS 4.9 bug https://github.com/microsoft/TypeScript/issues/51501
     const newTarget = 'target' in $new && $new.target;
     if (newTarget && (!$current || ('target' in $current && newTarget !== $current.target))) {
       throw new Error('[Teact] Cached virtual element was moved within tree');
@@ -105,9 +104,12 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   }
 
   if (!$current && $new) {
-    if (isNewComponent) {
-      $new = initComponent(parentEl, $new as VirtualElementComponent, $parent, index) as typeof $new;
-      mountComponentChildren(parentEl, $new as VirtualElementComponent, { nextSibling, fragment });
+    if (isNewComponent || isNewFragment) {
+      if (isNewComponent) {
+        $new = initComponent(parentEl, $new as VirtualElementComponent, $parent, index) as unknown as typeof $new;
+      }
+
+      mountChildren(parentEl, $new as VirtualElementComponent | VirtualElementFragment, { nextSibling, fragment });
     } else {
       const node = createNode($newAsReal);
       $newAsReal.target = node;
@@ -121,10 +123,13 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
         nextSibling = getNextSibling($current);
       }
 
-      if (isNewComponent) {
-        $new = initComponent(parentEl, $new as VirtualElementComponent, $parent, index) as typeof $new;
+      if (isNewComponent || isNewFragment) {
+        if (isNewComponent) {
+          $new = initComponent(parentEl, $new as VirtualElementComponent, $parent, index) as unknown as typeof $new;
+        }
+
         remount(parentEl, $current, undefined);
-        mountComponentChildren(parentEl, $new as VirtualElementComponent, { nextSibling, fragment });
+        mountChildren(parentEl, $new as VirtualElementComponent | VirtualElementFragment, { nextSibling, fragment });
       } else {
         const node = createNode($newAsReal);
         $newAsReal.target = node;
@@ -132,10 +137,12 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
       }
     } else {
       const isComponent = isCurrentComponent && isNewComponent;
-      if (isComponent) {
-        ($new as VirtualElementComponent).children = renderChildren(
+      const isFragment = isCurrentFragment && isNewFragment;
+
+      if (isComponent || isFragment) {
+        ($new as VirtualElementComponent | VirtualElementFragment).children = renderChildren(
           $current,
-          $new as VirtualElementComponent,
+          $new as VirtualElementComponent | VirtualElementFragment,
           parentEl,
           nextSibling,
         );
@@ -220,16 +227,20 @@ function setupComponentUpdateListener(
   };
 }
 
-function mountComponentChildren(parentEl: HTMLElement, $element: VirtualElementComponent, options: {
-  nextSibling?: ChildNode;
-  fragment?: DocumentFragment;
-}) {
+function mountChildren(
+  parentEl: HTMLElement,
+  $element: VirtualElementComponent | VirtualElementFragment,
+  options: {
+    nextSibling?: ChildNode;
+    fragment?: DocumentFragment;
+  },
+) {
   $element.children = $element.children.map(($child, i) => {
     return renderWithVirtual(parentEl, undefined, $child, $element, i, options);
   });
 }
 
-function unmountComponentChildren(parentEl: HTMLElement, $element: VirtualElementComponent) {
+function unmountChildren(parentEl: HTMLElement, $element: VirtualElementComponent | VirtualElementFragment) {
   $element.children.forEach(($child) => {
     renderWithVirtual(parentEl, $child, undefined, $element, -1);
   });
@@ -249,8 +260,7 @@ function createNode($element: VirtualElementReal): Node {
 
   if (typeof props.ref === 'object') {
     props.ref.current = element;
-  }
-  if (typeof props.ref === 'function') {
+  } else if (typeof props.ref === 'function') {
     props.ref(element);
   }
 
@@ -277,9 +287,15 @@ function remount(
   node: Node | undefined,
   componentNextSibling?: ChildNode,
 ) {
-  if (isComponentElement($current)) {
-    unmountComponent($current.componentInstance);
-    unmountComponentChildren(parentEl, $current);
+  const isComponent = isComponentElement($current);
+  const isFragment = !isComponent && isFragmentElement($current);
+
+  if (isComponent || isFragment) {
+    if (isComponent) {
+      unmountComponent($current.componentInstance);
+    }
+
+    unmountChildren(parentEl, $current);
 
     if (node) {
       insertBefore(parentEl, node, componentNextSibling);
@@ -302,10 +318,10 @@ export function unmountRealTree($element: VirtualElement) {
     if (isTagElement($element)) {
       if ($element.target) {
         removeAllDelegatedListeners($element.target as HTMLElement);
-      }
 
-      if ($element.props.ref) {
-        $element.props.ref.current = undefined; // Help GC
+        if ($element.props.ref?.current === $element.target) {
+          $element.props.ref.current = undefined;
+        }
       }
     }
 
@@ -330,7 +346,7 @@ function insertBefore(parentEl: HTMLElement | DocumentFragment, node: Node, next
 }
 
 function getNextSibling($current: VirtualElement): ChildNode | undefined {
-  if (isComponentElement($current)) {
+  if (isComponentElement($current) || isFragmentElement($current)) {
     const lastChild = $current.children[$current.children.length - 1];
     return getNextSibling(lastChild);
   }
@@ -347,7 +363,7 @@ function renderChildren(
     DEBUG_checkKeyUniqueness($new.children);
   }
 
-  if ($new.props.teactFastList) {
+  if (('props' in $new) && $new.props.teactFastList) {
     return renderFastListChildren($current, $new, currentEl);
   }
 
@@ -389,12 +405,18 @@ function renderChildren(
 function renderFastListChildren($current: VirtualElementParent, $new: VirtualElementParent, currentEl: HTMLElement) {
   const newKeys = new Set(
     $new.children.map(($newChild) => {
-      const key = 'props' in $newChild && $newChild.props.key;
+      const key = 'props' in $newChild ? $newChild.props.key : undefined;
 
-      // eslint-disable-next-line no-null/no-null
-      if (DEBUG && isParentElement($newChild) && (key === undefined || key === null)) {
-        // eslint-disable-next-line no-console
-        console.warn('Missing `key` in `teactFastList`');
+      if (DEBUG && isParentElement($newChild)) {
+        // eslint-disable-next-line no-null/no-null
+        if (key === undefined || key === null) {
+          // eslint-disable-next-line no-console
+          console.warn('Missing `key` in `teactFastList`');
+        }
+
+        if (isFragmentElement($newChild)) {
+          throw new Error('[Teact] Fragment can not be child of container with `teactFastList`');
+        }
       }
 
       return key;
@@ -534,8 +556,19 @@ function processControlled(tag: string, props: AnyLiteral) {
     onInput?.(e);
     onChange?.(e);
 
-    if (value !== undefined) {
+    if (value !== undefined && value !== e.currentTarget.value) {
+      const { selectionStart, selectionEnd } = e.currentTarget;
+      const isCaretAtEnd = selectionStart === selectionEnd && selectionEnd === e.currentTarget.value.length;
+
       e.currentTarget.value = value;
+
+      if (typeof selectionStart === 'number' && typeof selectionEnd === 'number') {
+        e.currentTarget.setSelectionRange(selectionStart, selectionEnd);
+
+        const selectionState: SelectionState = { selectionStart, selectionEnd, isCaretAtEnd };
+        // eslint-disable-next-line no-underscore-dangle
+        e.currentTarget.dataset.__teactSelectionState = JSON.stringify(selectionState);
+      }
     }
 
     if (checked !== undefined) {
@@ -558,7 +591,7 @@ function processUncontrolledOnMount(element: HTMLElement, props: AnyLiteral) {
   }
 }
 
-function updateAttributes($current: VirtualElementParent, $new: VirtualElementParent, element: HTMLElement) {
+function updateAttributes($current: VirtualElementTag, $new: VirtualElementTag, element: HTMLElement) {
   processControlled(element.tagName, $new.props);
 
   const currentEntries = Object.entries($current.props);
@@ -593,8 +626,23 @@ function setAttribute(element: HTMLElement, key: string, value: any) {
     element.className = value;
     // An optimization attempt
   } else if (key === 'value') {
-    if ((element as HTMLInputElement).value !== value) {
-      (element as HTMLInputElement).value = value;
+    const inputEl = element as HTMLInputElement;
+
+    if (inputEl.value !== value) {
+      inputEl.value = value;
+
+      // eslint-disable-next-line no-underscore-dangle
+      const selectionStateJson = inputEl.dataset.__teactSelectionState;
+      if (selectionStateJson) {
+        const { selectionStart, selectionEnd, isCaretAtEnd } = JSON.parse(selectionStateJson) as SelectionState;
+
+        if (isCaretAtEnd) {
+          const length = inputEl.value.length;
+          inputEl.setSelectionRange(length, length);
+        } else if (typeof selectionStart === 'number' && typeof selectionEnd === 'number') {
+          inputEl.setSelectionRange(selectionStart, selectionEnd);
+        }
+      }
     }
   } else if (key === 'style') {
     element.style.cssText = value;
@@ -626,17 +674,6 @@ function removeAttribute(element: HTMLElement, key: string, value: any) {
   } else if (!FILTERED_ATTRIBUTES.has(key)) {
     delete (element as any)[MAPPED_ATTRIBUTES[key] || key];
   }
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function DEBUG_addToVirtualTreeSize($current: VirtualElementParent | VirtualDomHead) {
-  DEBUG_virtualTreeSize += $current.children.length;
-
-  $current.children.forEach(($child) => {
-    if (isParentElement($child)) {
-      DEBUG_addToVirtualTreeSize($child);
-    }
-  });
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention

@@ -1,10 +1,13 @@
 import type { ChangeEvent } from 'react';
 import React, { memo, useCallback } from '../../lib/teact/teact';
 
+import buildClassName from '../../util/buildClassName';
+
 import styles from './Checkbox.module.scss';
 
 type OwnProps = {
   id?: string;
+  className?: string;
   children?: React.ReactNode;
   checked: boolean;
   onChange: (isChecked: boolean) => void;
@@ -12,6 +15,7 @@ type OwnProps = {
 
 function Checkbox({
   id,
+  className,
   children,
   checked,
   onChange,
@@ -22,7 +26,7 @@ function Checkbox({
   }, [onChange]);
 
   return (
-    <label className={styles.wrapper}>
+    <label className={buildClassName(styles.wrapper, className)}>
       <input
         id={id}
         type="checkbox"

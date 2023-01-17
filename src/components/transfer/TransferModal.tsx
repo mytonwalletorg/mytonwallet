@@ -5,16 +5,20 @@ import { getActions, withGlobal } from '../../global';
 
 import { GlobalState, TransferState, UserToken } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, CARD_SECONDARY_VALUE_SYMBOL, TON_TOKEN_SLUG } from '../../config';
+import {
+  ANIMATED_STICKER_SMALL_SIZE_PX,
+  CARD_SECONDARY_VALUE_SYMBOL,
+  TON_TOKEN_SLUG,
+} from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
-import usePrevious from '../../hooks/usePrevious';
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
-import { selectAllTokens } from '../../global/selectors';
-import { round } from '../../util/round';
+import { selectCurrentAccountTokens } from '../../global/selectors';
+import usePrevious from '../../hooks/usePrevious';
+import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
+import useLang from '../../hooks/useLang';
 
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -22,18 +26,19 @@ import Transition from '../ui/Transition';
 import TransferInitial from './TransferInitial';
 import PasswordForm from '../ui/PasswordForm';
 import Button from '../ui/Button';
-import AnimatedIcon from '../ui/AnimatedIcon';
-import TransactionAmount from '../common/TransactionAmount';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import InteractiveTextValue from '../ui/InteractiveTextValue';
+import TransferResult from '../common/TransferResult';
 
-import styles from './Transfer.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import styles from './Transfer.module.scss';
 
 interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
   tokens?: UserToken[];
 }
 
-const AMOUNT_PRECISION = 9;
+const AMOUNT_PRECISION = 4;
 
 function TransferModal({
   currentTransfer: {
@@ -54,6 +59,7 @@ function TransferModal({
     showTransactionInfo, startTransfer,
   } = getActions();
 
+  const lang = useLang();
   const isOpen = state !== TransferState.None;
   const renderingState = useCurrentOrPrev(isOpen ? state : undefined, true) ?? -1;
   const [nextKey, setNextKey] = useState(renderingState + 1);
@@ -101,9 +107,7 @@ function TransferModal({
 
   const handleTransactionInfoClick = useCallback(() => {
     cancelTransfer();
-    if (txId) {
-      showTransactionInfo({ txId });
-    }
+    showTransactionInfo({ txId });
   }, [cancelTransfer, showTransactionInfo, txId]);
 
   const handleTransactionRepeatClick = useCallback(() => {
@@ -122,8 +126,8 @@ function TransferModal({
 
     return (
       <>
-        <div className={styles.label}>Comment</div>
-        <div className={styles.inputReadOnly}>{comment}</div>
+        <div className={styles.label}>{lang('Comment')}</div>
+        <div className={buildClassName(styles.inputReadOnly, styles.inputReadOnly_words)}>{comment}</div>
       </>
     );
   }
@@ -131,28 +135,31 @@ function TransferModal({
   function renderConfirm(isActive: boolean) {
     return (
       <>
-        <ModalHeader title="Is it all ok?" onClose={cancelTransfer} />
+        <ModalHeader title={lang('Is it all ok?')} onClose={cancelTransfer} />
         <div className={modalStyles.transitionContent}>
-          <AnimatedIcon
+          <AnimatedIconWithPreview
             size={ANIMATED_STICKER_SMALL_SIZE_PX}
             play={isActive}
             noLoop={false}
             nonInteractive
             className={buildClassName(styles.sticker, styles.sticker_sizeSmall)}
             tgsUrl={ANIMATED_STICKERS_PATHS.bill}
+            previewUrl={ANIMATED_STICKERS_PATHS.billPreview}
           />
-          <div className={styles.label}>Receiving address</div>
-          <div className={styles.inputReadOnly}>
-            {toAddress}
-          </div>
+          <div className={styles.label}>{lang('Receiving Address')}</div>
+          <InteractiveTextValue
+            address={toAddress!}
+            copyNotification={lang('Address was copied!')}
+            className={styles.addressWidget}
+          />
 
-          <div className={styles.label}>Amount</div>
+          <div className={styles.label}>{lang('Amount')}</div>
           <div className={styles.inputReadOnly}>
             {formatCurrencyExtended(amount || 0, '', true)}
             <span className={styles.suffix}>{symbol}</span>
             {fee && (
               <>
-                <div className={styles.feeLabel}>Fee</div>
+                <div className={styles.feeLabel}>{lang('Fee')}</div>
                 <span className={styles.feeConfirm}>
                   {formatCurrencyExtended(bigStrToHuman(fee), CARD_SECONDARY_VALUE_SYMBOL)}
                 </span>
@@ -164,16 +171,16 @@ function TransferModal({
 
           <div className={modalStyles.buttons}>
             {promiseId ? (
-              <Button onClick={cancelTransfer}>Cancel</Button>
+              <Button onClick={cancelTransfer}>{lang('Cancel')}</Button>
             ) : (
-              <Button onClick={handleBackClick}>Edit</Button>
+              <Button onClick={handleBackClick}>{lang('Edit')}</Button>
             )}
             <Button
               isPrimary
               isLoading={isLoading}
               onClick={submitTransferConfirm}
             >
-              Confirm
+              {lang('Confirm')}
             </Button>
           </div>
         </div>
@@ -184,51 +191,44 @@ function TransferModal({
   function renderPassword(isActive: boolean) {
     return (
       <>
-        <ModalHeader title="Confirm Transaction" onClose={cancelTransfer} />
+        <ModalHeader title={lang('Confirm Transaction')} onClose={cancelTransfer} />
         <PasswordForm
           isActive={isActive}
           isLoading={isLoading}
           error={error}
-          placeholder="Enter your password"
+          placeholder={lang('Enter your password')}
           onCleanError={cleanTransferError}
           onSubmit={handleTransferSubmit}
-          submitLabel="Send"
+          submitLabel={lang('Send')}
           onCancel={handleBackClick}
-          cancelLabel="Back"
+          cancelLabel={lang('Back')}
         />
       </>
     );
   }
 
   function renderComplete(isActive: boolean) {
-    const withBalanceChange = renderedTokenBalance && amount;
-    const finalTokenBalance = withBalanceChange ? renderedTokenBalance - amount - (fee ? bigStrToHuman(fee) : 0) : 0;
-
     return (
       <>
-        <ModalHeader title="Coins have been sent!" onClose={cancelTransfer} />
+        <ModalHeader title={lang('Coins have been sent!')} onClose={cancelTransfer} />
 
         <div className={modalStyles.transitionContent}>
-          <AnimatedIcon
-            play={isActive}
-            noLoop={false}
-            nonInteractive
-            className={styles.sticker}
-            tgsUrl={ANIMATED_STICKERS_PATHS.thumbUp}
+          <TransferResult
+            playAnimation={isActive}
+            amount={renderedTransactionAmount ? -renderedTransactionAmount : undefined}
+            tokenSymbol={symbol}
+            precision={AMOUNT_PRECISION}
+            balance={renderedTokenBalance}
+            fee={fee ? bigStrToHuman(fee) : 0}
+            operationAmount={amount ? -amount : undefined}
+            firstButtonText={txId ? lang('Details') : undefined}
+            secondButtonText={lang('Repeat')}
+            onFirstButtonClick={handleTransactionInfoClick}
+            onSecondButtonClick={handleTransactionRepeatClick}
           />
-          <TransactionAmount amount={-(renderedTransactionAmount || 0)} tokenSymbol={symbol} />
-
-          {withBalanceChange && (
-            <div className={styles.balanceChange}>
-              {formatCurrencyExtended(round(renderedTokenBalance, AMOUNT_PRECISION), symbol, true)}
-              &nbsp;&rarr;&nbsp;
-              {formatCurrencyExtended(round(finalTokenBalance, AMOUNT_PRECISION), symbol, true)}
-            </div>
-          )}
 
           <div className={modalStyles.buttons}>
-            <Button onClick={handleTransactionInfoClick}>{txId ? 'Details' : 'Close'}</Button>
-            <Button onClick={handleTransactionRepeatClick}>Repeat</Button>
+            <Button onClick={cancelTransfer} isPrimary>{lang('Close')}</Button>
           </div>
         </div>
       </>
@@ -241,7 +241,7 @@ function TransferModal({
       case TransferState.Initial:
         return (
           <>
-            <ModalHeader title="Send" onClose={cancelTransfer} />
+            <ModalHeader title={lang('Send')} onClose={cancelTransfer} />
             <TransferInitial />
           </>
         );
@@ -284,6 +284,6 @@ function TransferModal({
 export default memo(withGlobal((global): StateProps => {
   return {
     currentTransfer: global.currentTransfer,
-    tokens: selectAllTokens(global),
+    tokens: selectCurrentAccountTokens(global),
   };
 })(TransferModal));

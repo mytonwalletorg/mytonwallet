@@ -1,6 +1,10 @@
 import withCache from './withCache';
 
+import type { LangCode } from '../global/types';
+import type { LangFn } from './langProvider';
+
 const formatDayToStringWithCache = withCache((
+  langCode: LangCode,
   dayStartAt: number,
   noYear?: boolean,
   monthFormat: 'short' | 'long' | 'numeric' | false = 'short',
@@ -8,7 +12,7 @@ const formatDayToStringWithCache = withCache((
   withTime = false,
 ) => {
   return new Date(dayStartAt).toLocaleString(
-    'en-US',
+    langCode,
     {
       year: noYear ? undefined : 'numeric',
       month: monthFormat || undefined,
@@ -20,28 +24,56 @@ const formatDayToStringWithCache = withCache((
   );
 });
 
-export function formatHumanDay(datetime: string | number) {
+export const formatRelativeHumanTime = withCache((
+  langCode: LangCode = 'en',
+  time: number,
+) => {
+  const total = time - Date.now();
+  const minutes = Math.floor((total / 1000 / 60) % 60);
+  const hours = Math.floor((total / (1000 * 3600)) % 24);
+
+  const rtf = new Intl.RelativeTimeFormat(langCode, {
+    localeMatcher: 'best fit',
+    numeric: 'always',
+    style: 'long',
+  });
+
+  const result: string[] = [];
+
+  if (hours > 0) {
+    const [hoursPlural, hoursValue] = rtf.formatToParts(hours, 'hour').reverse();
+    result.push(`${hoursValue.value}${hoursPlural.value}`);
+  }
+  if (minutes > 0) {
+    const [minutesPlural, minutesValue] = rtf.formatToParts(minutes, 'minute').reverse();
+    result.push(`${minutesValue.value}${minutesPlural.value}`);
+  }
+
+  return result.join(' ');
+});
+
+export function formatHumanDay(lang: LangFn, datetime: string | number) {
   if (isToday(datetime)) {
-    return 'Today';
+    return lang('Today');
   }
 
   if (isYesterday(datetime)) {
-    return 'Yesterday';
+    return lang('Yesterday');
   }
 
-  return formatFullDay(datetime);
+  return formatFullDay(lang.code!, datetime);
 }
 
-export function formatFullDay(datetime: string | number | Date) {
+export function formatFullDay(langCode: LangCode, datetime: string | number | Date) {
   const date = new Date(datetime);
   const dayStartAt = getDayStartAt(date);
   const today = getDayStart(new Date());
   const noYear = date.getFullYear() === today.getFullYear();
 
-  return formatDayToStringWithCache(dayStartAt, noYear, 'long');
+  return formatDayToStringWithCache(langCode, dayStartAt, noYear, 'long');
 }
 
-export function formatShortDay(datetime: string | number | Date, withTime = false) {
+export function formatShortDay(langCode: LangCode, datetime: string | number | Date, withTime = false) {
   const date = new Date(datetime);
   const dayStartAt = getDayStartAt(date);
   const today = getDayStart(new Date());
@@ -50,7 +82,7 @@ export function formatShortDay(datetime: string | number | Date, withTime = fals
   const noDate = withTime && dayStartAt === todayStartAt;
   const targetAt = withTime ? getMinuteStart(date).getTime() : dayStartAt;
 
-  return formatDayToStringWithCache(targetAt, noYear, !noDate && 'short', noDate, withTime);
+  return formatDayToStringWithCache(langCode, targetAt, noYear, !noDate && 'short', noDate, withTime);
 }
 
 export function formatTime(datetime: string | number) {

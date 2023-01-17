@@ -52,6 +52,14 @@
     border-radius: 0.75rem;
 
     transition: border-color 150ms ease-in, transform 150ms ease-in;
+
+    :global(html.animation-level-0) & {
+      transition: none !important;
+    }
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
   }
 }
 

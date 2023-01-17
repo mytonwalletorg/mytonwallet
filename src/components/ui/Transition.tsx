@@ -20,7 +20,7 @@ export type TransitionProps = {
   nextKey?: number;
   name: (
     'none' | 'slide' | 'slide-rtl' | 'mv-slide' | 'slide-fade' | 'zoom-fade' | 'slide-layers'
-    | 'fade' | 'push-slide' | 'reveal' | 'slide-optimized' | 'slide-optimized-rtl'
+    | 'fade' | 'push-slide' | 'reveal' | 'slide-optimized' | 'slide-optimized-rtl' | 'semi-fade'
   );
   direction?: 'auto' | 'inverse' | 1 | -1;
   renderCount?: number;
@@ -97,8 +97,9 @@ function Transition({
     const container = containerRef.current!;
 
     const childElements = nextKey
-      ? Array.from(container.children).filter((_, i) => i !== nextKey)
+      ? (Array.from(container.children) as HTMLDivElement[]).filter((el) => el.dataset.key !== String(nextKey))
       : container.children;
+
     if (childElements.length === 1 && !activeKeyChanged) {
       if (name.startsWith('slide-optimized')) {
         (childElements[0] as HTMLElement).style.transition = 'none';
@@ -213,7 +214,7 @@ function Transition({
 
       const watchedNode = name === 'mv-slide'
         ? childNodes[activeIndex]?.firstChild
-        : name === 'reveal' && isBackwards
+        : (name === 'reveal' || name === 'semi-fade') && isBackwards
           ? childNodes[prevActiveIndex]
           : childNodes[activeIndex];
 
@@ -263,11 +264,8 @@ function Transition({
     }
 
     return (
-      <div key={key} teactOrderKey={key} className={slideClassName}>{
-        typeof render === 'function'
-          ? render(key === activeKey, key === prevActiveKey, key)
-          : render
-      }
+      <div key={key} teactOrderKey={key} className={slideClassName} data-key={key}>
+        {typeof render === 'function' ? render(key === activeKey, key === prevActiveKey, key) : render}
       </div>
     );
   });

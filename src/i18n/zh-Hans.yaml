@@ -1,0 +1,252 @@
+$auth_intro: |
+  **安全的**存储加密货币，
+  并享有**高速的**区块链交易体验。
+Create New Wallet: 创建新钱包
+Import From %1$d Secret Words: 输入助记词
+About MyTonWallet: 关于 MyTonWallet
+Creating Wallet...: 正在创建钱包...
+On the count of three...: 倒数三个数···
+$auth_backup_description1: |
+  这是一个**仅由您控制的**且**安全**的钱包。
+$auth_backup_description2: “能力越大，责任越大。”
+$auth_backup_description3: |
+  您需要手动**备份助记词**，以免忘记助记词以永远失去您的钱包。
+Back Up: 备份
+Skip For Now: 跳过此步骤
+Passwords must be equal.: 密码必须相同。
+To protect your wallet as much as possible, use a password with: 为了尽可能的保障您钱包的安全，密码请遵循下列规则
+$auth_password_rule_8chars: 至少8位字符
+$auth_password_rule_one_small_char: 含有一个小写英文字母
+$auth_password_rule_one_capital_char: 含有一个大写英文字母
+$auth_password_rule_one_digit: 含有一个数字
+$auth_password_rule_one_special_char: 含有一个特殊符号
+The wallet is imported: 钱包已导入
+The wallet is ready: 钱包已经准备完成
+Create a password to protect it.: 创建一个密码以保护钱包
+Enter your password: 请输入您的密码
+Enter your password...: 请输入您的密码···
+...and repeat it: 请再次输入密码···
+Cancel: 取消
+Insecure Password: 密码不安全
+Your have entered an insecure password, which can be easily guessed by scammers.: 您输入的密码不安全，很容易被猜中。
+Continue or change password to something more secure?: 继续或更改为更安全的密码？
+Change: 更改密码
+"%1$d Secret Words": "%1$d 个助记词"
+$auth_import_mnemonic_description: |
+  您可以通过输入您在创建钱包时保存的 %1$d 助记词以找回您对钱包的控制权。
+Let’s make sure your secrets words are recorded correctly.: 请确保您已经将助记词正确的记录至安全的地方，这将是您访问钱包的唯一凭证。
+$mnemonic_check_words_list: 请输入以下单词
+$mnemonic_check_error: 您输入的单词与列表中的单词不符，请再试一次。
+$mnemonic_list_description: |
+  按照**正确的顺序**写下这些单词，并将它们存放在一个**安全**的地方。
+Let's Check: 再确认一次。
+Let's Check!: 请再确认一次！
+Safety Rules: 安全守则
+$safety_rules_one: |
+  在下一个页面将会显示您的**助记词**！
+  请以正确的顺序记下它们并且存放在**安全的地方**
+$safety_rules_two: 如果您忘记密码或无法访问此装置，助记词将成为您恢复钱包的唯一凭证。
+$safety_rules_three: 如果其他人看到这些单词，您的资金将可能不再安全！请注意周围是否有人或摄像头！
+Congratulations!: 恭喜！
+Continue: 继续
+Close: 关闭
+Back: 返回上一步
+Search...: 搜索···
+Main menu: 主菜单
+TON Proxy: TON 代理
+Toggle TON Proxy: 切换 TON 代理
+TON Magic: TON Magic
+Toggle TON Magic: 切换 TON Magic
+Open Telegram Web: 开启 Telegram 网页
+Back Up Secret Words: 备份助记词
+Settings: 设置
+About: 关于
+Exit: 离开
+Something went wrong: 什么地方出错了···
+Logo: Logo
+$about_description1: 安全的存储加密货币，探索 dAPP 并以**光速**进行区块链支付
+$about_description2: 您的钱包是**非托管**且**安全**的。开发人员无法挪用您的资金，亦无法访问您的浏览器历史记录或任何个人信息。
+What is TON Proxy?: 什么是 TON 代理?
+$about_extension_description1: TON 代理 支持匿名访问 TON 网站 ，这创造了通往**去中心化网络**的新方式！
+More info and demo.: 更多信息和演示。
+$about_extension_description2: TON Magic 通过修补官方 Telegram 网页应用程序来整合 Telegram。
+$about_extension_description3: 打开它，将可以与任何 Telegram 用户发送和接收 Toncoin。
+$about_proxy_magic_title: 什么是 %ninja% TON 代理 和 %unicorn% TON Magic?
+$about_proxy_magic_description: 要享受去中心化网络、浏览 Ton 网站并使用 Telegram 网页应用，请安装 MyTonWallet 拓展程序。
+$about_extension_link_text: "**MyTonWallet 拓展程序**"
+Is it open source?: 它是开源的吗？
+$about_wallet_github: 是的，欢迎查看我们的 %github_link%
+$about_github_link_text: "**GitHub 仓库**"
+Is there a community?: 有社区吗？
+$about_wallet_community: 当然，欢迎来到我们的社区 %community_link%.
+$about_community_link_text: "**Telegram 频道**"
+Currency History: 代币历史记录
+$add_account_description1: |
+  **MyTonWallet** 让您无缝在**多账户间**自由转换。
+$add_account_description2: |
+  通过创建一个新钱包来尝试，
+  或者通过24个助记词**导入**现有钱包
+Enter Password: 输入密码
+Send: 发送
+Add Wallet: 添加钱包
+Done: 完成
+Delete: 删除
+Delete Saved Address: 删除保存的地址
+Are you sure you want to remove this address from your saved ones?: 您确定要从保存的地址中删除吗？
+You will be able to save it again via Transaction Info with this address.: 您也可以通过交易记录再次保存此地址。
+Address removed from saved: 地址已从列表中删除
+Warning!: 警告！
+Log Out: 退出登录
+$logout_without_backup_warning: 您尚未备份钱包！如果您注销，您将永远丧失您的代币和 NFT ！
+$logout_accounts_without_backup_warning: 您还没有备份此账户 %links%。 如果您注销，您将永远丧失您的代币和 NFT ！
+$logout_warning: 这将断开钱包与此应用程序的连接，您将能使用 **%1$d 个密钥** 恢复您的钱包 - 或导入另一个钱包。
+Receive TON: 接收 TON
+Your address was copied!: 您的地址已复制！
+Show QR-Code: 显示二维码
+Create Invoice: 创建发票
+QR-code: 二维码
+$receive_invoice_description: 您可以指定付款金额和收款地址来节省付款方的一些时间
+Amount: 数量
+Comment: 留言
+Share this URL to receive TON: 分享此链接来接收 TON
+Invoice link was copied!: 发票链接已复制！
+US Dollar: 美元
+Theme: 主题
+Language: 语言
+Enable Animations: 启用动画
+Fiat Currency: 法定货币
+Investor View: 投资者见解
+Toggle Investor View: 切换投资者见解
+Hide Tiny Transfers: 隐藏小额转账
+Toggle Hide Tiny Transfers: 切换隐藏小额转账
+Network: 网络
+Developer Options: 开发者选项
+Confirmation: 确认
+Data to sign: 签署数据
+$signature_warning: |
+  签署自定义数据是**非常危险**的！如果您不知道自己在做什么，请不要使用此功能！
+Sign: 签署
+Done!: 完成!
+Signing was confirmed!: 签署已确认!
+Transaction Info: 交易资讯
+Transaction in progress: 交易进行中···
+Comment was copied!: 留言栏已复制
+View Transaction on TON Explorer: 在 TON Explorer 上查看这笔交易
+Sender: 发送者
+Recipient: 接收者
+Address was copied!: 地址已被复制!
+Send Back: 退回
+Repeat: 重复
+Receive: 接收
+Switch Account: 切换账户
+Copy wallet address: 复制钱包地址
+View address on TON Explorer: 在 TON Explorer 上查看此地址
+Open on CoinMarketCap: 在 CoinMarketCap 打开
+No Activity: 没有活动记录
+You have just created a new wallet: 您刚刚创建了一个新钱包
+You can now transfer your tokens from another wallet or exchange.: 您现在可以从另一个钱包或交易所转移您的代币
+Assets: 资产
+Activity: 活动记录
+NFT: NFT
+No NFTs yet: NFT 空空如也···
+$nft_explore_offer: |
+  在市场中寻找心仪的 NFT 收藏。
+Open Getgems: 开启 Getgems
+Transaction is not completed: 交易未完成
+Received: 已收到
+Sent: 已发送
+$transaction_from: 从 %address%
+$transaction_to: 至 %address%
+Wallet is not backed up!: 钱包未备份！
+Back up now: 现在备份
+Testnet Version: 测试网版本
+Error reading clipboard: 读取剪切板时出现错误
+$fee_value: "手续费: %fee%"
+Loading...: 读取中...
+Recipient address: 收款人地址
+Wallet address or domain: 钱包地址或域名
+Incorrect address: 地址错误
+Paste: 粘贴
+Insufficient balance: 余额不足
+Optional: 选项
+$send_token_symbol: 发送 %1$s
+$your_balance_is: "您的余额: %balance%"
+Is it all ok?: 确认全部正确?
+Receiving Address: 接收地址
+Fee: 手续费
+Edit: 编辑
+Confirm: 确认
+Confirm Transaction: 确认交易
+Coins have been sent!: 代币已送出!
+Details: 明细
+Change password visibility: 改变密码可见
+Amount value: 资产总额
+Save Address: 储存地址
+Name: 名称
+Save: 储存
+Copy: 复制
+Remove From Saved Addresses: 从保存的地址中删除
+Add To Saved Addresses: 新增至保存的地址
+View Address on TON Explorer: 在 TON Explorer 上查看此地址
+No suggestions, you're on your own!: 没有建议，请靠自己！
+Play Sounds: 播放声音
+Focus on asset value rather than current balance: 关注资产价值而非当前余额。
+$logout_confirm: 登出**所有**钱包
+$logout_warning2: 钱包位于去中心化的 TON 区块链中。如果您只是想弃用钱包，只需将所有TON转移出去即可。
+$tiny_transfers_help: 关闭此功能以显示少于 %1$d %2$s 的交易。 请注意，此类交易通常用于垃圾信息和诈骗目的。
+Understood: 明白
+Today: 今天
+Yesterday: 明天
+Now: 现在
+$receive_ton_description: |
+  您可以分享这个地址，显示二维码
+  或创建支票来收取 TON
+Your address: 您的地址
+Wrong password, please try again: 密码错误，请再试一次。
+Appearance: 外观
+Assets and Activity: 资产和活动
+Light: 白天模式
+Dark: 黑夜模式
+System: 系统
+Create Backup: 创建备份
+Stake TON: 质押 TON
+Earn from your tokens while holding them: 从你持有的代币身上赚一笔。
+$est_apy_val: 期望年回报率 %1$d%
+Why this is safe: 为什么这是安全的
+Why staking is safe?: 为什么质押是安全的？
+$safe_staking_description1: TON 质押是**完全去中心化的**，由官方 TON Nominator 智能合约运营。 没有人可以访问您抵押的代币。
+$safe_staking_description2: 作为其 **权益证明** 的一部分，您存入的 TON 将用于 TON 区块网络验证。
+$safe_staking_description3: 您可以在 **任何时候** 解除您 TON 的质押，它会在 **36小时** 内存入您的账户。
+$min_value: 最小 %1$s
+Est. balance in a year: 年平均预期回报
+Confirm Staking: 确认质押
+Confirm operation with your password: 使用您的密码以确认此操作
+Coins have been staked!: 代币已质押！
+View: 查看
+Stake More: 质押更多
+Staking: 质押中
+Currently staked: 当前质押
+Unstake: 解除质押
+Earning history: 质押奖励历史
+$total: "总计: %value%"
+Unstake TON: 解除 TON 质押
+$unstake_information_with_time: |
+  您当前的质押存款将在 %time% 后存入您的钱包
+  质押奖励将会停止。
+Amount to unstake: 解除质押的数量
+Confirm Unstaking: 确认解除质押
+Request for unstaking is sent!: 解除质押请求已发送!
+$unstaking_when_receive: 您将在 %time% 内收到解除质押的代币
+$unstake_insufficient_balance: 您需要有 %balance% 在您的主账户中以进行解除质押的操作。
+at APY %1$s%: 当前年回报率 %1$s%
+Staked: 已质押
+Unstaked: 已解除质押
+The network fee has slightly changed, try sending again.: 网络费用已有细微变动，请尝试重新发送。
+Transfer was unsuccessful. Try again later: 转账未成功。请稍等片刻并再试一次
+Unstaking was unsuccessful. Try again later: 解除质押未成功。请稍等片刻并再试一次
+Staking was unsuccessful. Try again later: 质押未成功。请稍等片刻并再试一次
+Invalid amount: 非法数额
+Invalid address: 非法地址
+Domain is not connected to a wallet: 此域名没有链接至任何钱包地址
+Unexpected error: 预期外的错误
+Stake Again: Stake Again

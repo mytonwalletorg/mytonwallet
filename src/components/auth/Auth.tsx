@@ -1,7 +1,8 @@
 import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import { withGlobal } from '../../global';
+
 import { AuthState, GlobalState } from '../../global/types';
 
-import { withGlobal } from '../../global';
 import { pick } from '../../util/iteratees';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 
@@ -14,7 +15,9 @@ import AuthCreateBackup from './AuthCreateBackup';
 
 import styles from './Auth.module.scss';
 
-type StateProps = Pick<GlobalState['auth'], 'state' | 'mnemonic' | 'mnemonicCheckIndexes' | 'isLoading'>;
+type StateProps = Pick<GlobalState['auth'], (
+  'state' | 'mnemonic' | 'mnemonicCheckIndexes' | 'isLoading'
+)>;
 
 const Auth = ({
   state,

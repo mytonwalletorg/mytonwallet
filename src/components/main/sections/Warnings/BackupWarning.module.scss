@@ -1,0 +1,36 @@
+@import '../../../../styles/variables';
+
+.wrapper {
+  padding: 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: var(--color-red-warning-text-70);
+  text-align: center;
+
+  background-color: var(--color-red-warning-background);
+}
+
+.button {
+  margin-inline-start: 0.25rem;
+
+  color: var(--color-red-warning-text);
+  text-decoration: none !important;
+
+  transition: color 150ms;
+
+  &:hover,
+  &:focus {
+    color: var(--color-red-warning-text-hover);
+  }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}

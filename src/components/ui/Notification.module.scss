@@ -10,6 +10,10 @@
 
   @media (min-width: 1276px) {
     transition: transform var(--layer-transition);
+
+    :global(html.animation-level-0) & {
+      transition: none !important;
+    }
   }
 }
 
@@ -39,5 +43,5 @@
 
   font-size: 1.25rem;
   line-height: 1rem;
-  vertical-align: -0.3125rem;
+  vertical-align: -0.25rem;
 }

@@ -1,0 +1,19 @@
+.container {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 100vw;
+}
+
+.testnetWarning {
+  padding: 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: var(--color-blue-button-text);
+  text-align: center;
+
+  background-color: var(--color-blue-button-background);
+}

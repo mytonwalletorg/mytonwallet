@@ -1,0 +1,43 @@
+.container {
+  position: relative;
+  transform: translateY(-0.375rem);
+
+  width: 0;
+  height: 0;
+
+  transition: transform 250ms, opacity 250ms !important;
+
+  &:global(.open) {
+    transform: translateY(0);
+  }
+}
+
+.tooltip {
+  position: absolute;
+
+  padding: 0.625rem 0.75rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-gray-1);
+
+  background: var(--color-background-drop-down);
+  border-radius: var(--border-radius-default);
+  box-shadow: 0 0 1.25rem rgba(49, 61, 79, 0.12);
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    bottom: -0.3125rem;
+    left: calc(50% - 0.375rem);
+    transform: rotate(45deg);
+
+    width: 0.6875rem;
+    height: 0.6875rem;
+
+    background: var(--color-background-drop-down);
+    border-radius: 0.125rem;
+    box-shadow: 0 0 1.25rem rgba(49, 61, 79, 0.12);
+  }
+}

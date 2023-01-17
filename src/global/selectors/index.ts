@@ -1,36 +1,28 @@
-import { GlobalState, UserToken } from '../types';
+import { AccountState, GlobalState, UserToken } from '../types';
 
 import memoized from '../../util/memoized';
 import { bigStrToHuman } from '../helpers';
 import { round } from '../../util/round';
+import { parseAccountId } from '../../util/account';
 
 export function selectHasSession(global: GlobalState) {
-  return Boolean(global.addresses);
+  return Boolean(global.currentAccountId);
 }
 
-export const selectAllTokensMemoized = memoized((
-  balances: Exclude<GlobalState['balances'], undefined>,
+export const selectAccountTokensMemoized = memoized((
+  balancesBySlug: Record<string, string>,
   tokenInfo: Exclude<GlobalState['tokenInfo'], undefined>,
 ) => {
-  const allBySlug = Object
-    .values(balances.byAccountId)
-    .reduce((acc, byAccountId) => {
-      return {
-        ...acc,
-        ...byAccountId.bySlug,
-      };
-    }, {} as Record<string, string>);
-
   return Object
-    .entries(allBySlug)
+    .entries(balancesBySlug)
     .filter(([slug]) => (slug in tokenInfo.bySlug))
     .map(([slug, balance]) => {
-      const amount = bigStrToHuman(balance);
       const {
-        symbol, name, image, quote: {
+        symbol, name, image, decimals, quote: {
           price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
         },
       } = tokenInfo.bySlug[slug];
+      const amount = bigStrToHuman(balance, decimals);
 
       return {
         symbol,
@@ -39,6 +31,7 @@ export const selectAllTokensMemoized = memoized((
         name,
         image,
         price,
+        decimals,
         change24h: round(percentChange24h / 100, 4),
         change7d: round(percentChange7d / 100, 4),
         change30d: round(percentChange30d / 100, 4),
@@ -49,10 +42,43 @@ export const selectAllTokensMemoized = memoized((
     });
 });
 
-export function selectAllTokens(global: GlobalState) {
-  if (!global.balances || !global.tokenInfo) {
+export function selectCurrentAccountTokens(global: GlobalState) {
+  const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;
+  if (!balancesBySlug || !global.tokenInfo) {
     return undefined;
   }
 
-  return selectAllTokensMemoized(global.balances, global.tokenInfo);
+  return selectAccountTokensMemoized(balancesBySlug, global.tokenInfo);
+}
+
+export function selectAccounts(global: GlobalState) {
+  return global.accounts?.byId;
+}
+
+export function selectNetworkAccounts(global: GlobalState) {
+  if (!global.accounts) {
+    return undefined;
+  }
+
+  const network = selectCurrentNetwork(global);
+  return Object.fromEntries(
+    Object.entries(global.accounts.byId)
+      .filter(([accountId]) => parseAccountId(accountId).network === network),
+  );
+}
+
+export function selectCurrentNetwork(global: GlobalState) {
+  return global.settings.isTestnet ? 'testnet' : 'mainnet';
+}
+
+export function selectAccount(global: GlobalState, accountId: string) {
+  return selectAccounts(global)?.[accountId];
+}
+
+export function selectCurrentAccountState(global: GlobalState): AccountState | undefined {
+  return selectAccountState(global, global.currentAccountId!);
+}
+
+export function selectAccountState(global: GlobalState, accountId: string): AccountState | undefined {
+  return global.byAccountId[accountId];
 }

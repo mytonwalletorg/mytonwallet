@@ -10,20 +10,28 @@
   font-weight: 600;
   line-height: 1;
   color: var(--color-activity-gray-text);
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  background-color: var(--color-activity-gray-10);
+  background-color: var(--color-activity-gray-background);
   border-radius: var(--border-radius-default);
+  box-shadow: 0 0 2rem #FFFFFF;
 
   &_operationPositive {
     color: var(--color-activity-green-text);
 
-    background-color: var(--color-activity-green-10);
+    background-color: var(--color-activity-green-background);
   }
 
-  @media (prefers-color-scheme: light) {
-    box-shadow: 0 0 2rem #FFFFFF;
+  :global(.theme-dark) & {
+    box-shadow: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(.theme-system) & {
+      box-shadow: none;
+    }
   }
 }
 
@@ -35,4 +43,25 @@
 
 .amountSymbol {
   margin-inline-start: 0.25rem;
+}
+
+.balanceChange {
+  overflow: hidden;
+
+  width: calc(100% + 2rem);
+  max-width: calc(100% + 2rem);
+  margin: 1rem 0 -0.75rem -1rem;
+  padding: 0 0.5rem;
+
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.75rem;
+  color: var(--color-activity-gray-text);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  border-radius: 0 0 1rem 1rem;
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  box-shadow: 0 -0.025rem 0 0 var(--color-separator);
 }

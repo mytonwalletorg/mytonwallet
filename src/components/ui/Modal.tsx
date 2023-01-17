@@ -7,9 +7,10 @@ import { IS_EXTENSION, IS_SINGLE_COLUMN_LAYOUT } from '../../util/environment';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import trapFocus from '../../util/trapFocus';
 import buildClassName from '../../util/buildClassName';
+import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
 import useShowTransition from '../../hooks/useShowTransition';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
-import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
+import useLang from '../../hooks/useLang';
 
 import Button from './Button';
 import Portal from './Portal';
@@ -20,6 +21,7 @@ type OwnProps = {
   title?: string | TeactNode;
   className?: string;
   dialogClassName?: string;
+  contentClassName?: string;
   isOpen?: boolean;
   isCompact?: boolean;
   isSlideUp?: boolean;
@@ -45,6 +47,7 @@ function Modal({
   title,
   className,
   dialogClassName,
+  contentClassName,
   isOpen,
   isCompact,
   isSlideUp,
@@ -64,8 +67,10 @@ function Modal({
   } = useShowTransition(
     isOpen, onCloseAnimationEnd, shouldSkipHistoryAnimations, false, shouldSkipHistoryAnimations,
   );
+
   // eslint-disable-next-line no-null/no-null
   const modalRef = useRef<HTMLDivElement>(null);
+  const lang = useLang();
 
   const handleClose = useCallback((e: KeyboardEvent) => {
     if (IS_EXTENSION) {
@@ -106,7 +111,7 @@ function Modal({
           <Button
             isRound
             className={styles.closeButton}
-            ariaLabel="Close"
+            ariaLabel={lang('Close')}
             onClick={onClose}
           >
             <i className={buildClassName(styles.closeIcon, 'icon-close')} aria-hidden />
@@ -129,6 +134,13 @@ function Modal({
     noBackdrop && styles.noBackdrop,
   );
 
+  const contentFullClassName = buildClassName(
+    styles.content,
+    isSlideUp && styles.contentSlideUp,
+    'custom-scroll',
+    contentClassName,
+  );
+
   return (
     <Portal>
       <div
@@ -141,7 +153,7 @@ function Modal({
           <div className={backdropFullClass} onClick={!noBackdropClose ? onClose : undefined} />
           <div className={buildClassName(styles.dialog, dialogClassName)} ref={dialogRef}>
             {renderHeader()}
-            <div className={buildClassName(styles.content, isSlideUp && styles.contentSlideUp, 'custom-scroll')}>
+            <div className={contentFullClassName}>
               {children}
             </div>
           </div>
