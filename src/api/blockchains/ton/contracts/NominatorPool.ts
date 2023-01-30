@@ -28,7 +28,12 @@ export class NominatorPool extends TonWeb.Contract<NominatorPoolOptions, Nominat
     this.methods.getMaxPunishment = this.getMaxPunishment.bind(this);
   }
 
-  async getListNominators() {
+  async getListNominators(): Promise<{
+    address: string;
+    amount: string;
+    pendingDepositAmount: string;
+    withdrawRequested: boolean;
+  }[]> {
     const myAddress = await this.getAddress();
     const result = await this.provider.call2(myAddress.toString(), 'list_nominators');
     return (result as any[]).map((item) => {

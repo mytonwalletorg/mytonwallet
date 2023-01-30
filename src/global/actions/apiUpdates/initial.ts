@@ -22,20 +22,20 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = updateAccountState(global, update.accountId, {
         stakingBalance: update.stakingState.amount + update.stakingState.pendingDepositAmount,
         isUnstakeRequested: update.stakingState.isUnstakeRequested,
-      });
+      }, true);
       setGlobal(global);
       break;
     }
 
     case 'updatePoolState': {
-      global = updatePoolState(global, update.poolState);
+      global = updatePoolState(global, update.poolState, true);
       setGlobal(global);
 
       break;
     }
 
     case 'updateTokens':
-      global = updateTokens(global, update.tokens);
+      global = updateTokens(global, update.tokens, true);
       setGlobal(global);
 
       break;

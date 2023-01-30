@@ -38,5 +38,5 @@ export const INITIAL_STATE: GlobalState = {
   dialogs: [],
   notifications: [],
 
-  stateVersion: 4, // When incrementing, make changes to migrateCache
+  stateVersion: 5, // When incrementing, make changes to migrateCache
 };

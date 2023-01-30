@@ -1,0 +1,79 @@
+.item {
+  position: relative;
+
+  display: grid;
+  grid-template-areas: "icon left right" "useless bottom bottom";
+  grid-template-columns: 2.875rem auto 1fr;
+  grid-template-rows: 2.25rem auto;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  padding: 0.75rem 1rem;
+
+  color: var(--color-black);
+  text-align: left;
+
+  &:not(:last-of-type) {
+    &::after {
+      content: '';
+
+      position: absolute;
+      right: 1rem;
+      bottom: 0;
+      left: 3.875rem;
+
+      height: 1px;
+      /* stylelint-disable-next-line plugin/whole-pixel */
+      box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+    }
+  }
+}
+
+.icon {
+  grid-area: icon;
+
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 0.625rem 0 0;
+
+  font-size: 1.875rem;
+  line-height: 1;
+  color: var(--color-activity-purple-text);
+  text-align: center;
+
+
+  background-color: var(--color-activity-purple-background);
+  border-radius: 50%;
+
+  &::before {
+    line-height: 2.25rem;
+  }
+}
+
+.leftBlock {
+  grid-area: left;
+}
+
+.amount,
+.operationName {
+  padding-bottom: 0.0625rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.date {
+  font-size: 0.75rem;
+  color: var(--color-gray-2);
+}
+
+.amount {
+  grid-area: right;
+
+  margin-left: auto;
+
+  color: var(--color-green);
+  text-align: right;
+
+}

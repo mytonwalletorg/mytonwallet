@@ -23,7 +23,7 @@ addActionHandler('fetchStakingState', async (global) => {
   setGlobal(updateAccountState(getGlobal(), currentAccountId!, {
     stakingBalance: stakingState.amount + stakingState.pendingDepositAmount,
     isUnstakeRequested: stakingState.isUnstakeRequested,
-  }));
+  }, true));
 });
 
 addActionHandler('startStaking', (global, actions, payload) => {
@@ -164,6 +164,18 @@ addActionHandler('fetchPoolState', async (global) => {
   }
 
   global = getGlobal();
-  global = updatePoolState(global, poolState);
+  global = updatePoolState(global, poolState, true);
+  setGlobal(global);
+});
+
+addActionHandler('fetchStakingHistory', async (global) => {
+  const result = await callApi('getStakingHistory', global.currentAccountId!);
+
+  if (!result) {
+    return;
+  }
+
+  global = getGlobal();
+  global = updateAccountState(global, global.currentAccountId!, { stakingHistory: result }, true);
   setGlobal(global);
 });

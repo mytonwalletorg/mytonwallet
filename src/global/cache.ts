@@ -288,6 +288,8 @@ function reduceByAccountId(global: GlobalState) {
       'savedAddresses',
       'stakingBalance',
       'isUnstakeRequested',
+      'poolState',
+      'stakingHistory',
     ]);
 
     const { orderedTxIds } = state.transactions || {};

@@ -1,9 +1,12 @@
-import { AccountState, GlobalState, UserToken } from '../types';
+import {
+  Account, AccountState, GlobalState, UserToken,
+} from '../types';
 
 import memoized from '../../util/memoized';
 import { bigStrToHuman } from '../helpers';
 import { round } from '../../util/round';
 import { parseAccountId } from '../../util/account';
+import { ApiNetwork } from '../../api/types';
 
 export function selectHasSession(global: GlobalState) {
   return Boolean(global.currentAccountId);
@@ -55,16 +58,22 @@ export function selectAccounts(global: GlobalState) {
   return global.accounts?.byId;
 }
 
-export function selectNetworkAccounts(global: GlobalState) {
-  if (!global.accounts) {
+export const selectNetworkAccountsMemoized = memoized((
+  network: ApiNetwork,
+  accountsById?: Record<string, Account>,
+) => {
+  if (!accountsById) {
     return undefined;
   }
 
-  const network = selectCurrentNetwork(global);
   return Object.fromEntries(
-    Object.entries(global.accounts.byId)
+    Object.entries(accountsById)
       .filter(([accountId]) => parseAccountId(accountId).network === network),
   );
+});
+
+export function selectNetworkAccounts(global: GlobalState) {
+  return selectNetworkAccountsMemoized(selectCurrentNetwork(global), global.accounts?.byId);
 }
 
 export function selectCurrentNetwork(global: GlobalState) {

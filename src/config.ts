@@ -71,11 +71,16 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_AMOUNT = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-4';
+export const LANG_CACHE_NAME = 'mtw-lang-5';
 export const LANG_PACKS = [{
   langCode: 'en',
   name: 'English',
   nativeName: 'English',
+  rtl: false,
+}, {
+  langCode: 'es',
+  name: 'Spanish',
+  nativeName: 'Español',
   rtl: false,
 }, {
   langCode: 'ru',
@@ -96,13 +101,8 @@ export const LANG_PACKS = [{
 
 export const STAKING_CYCLE_DURATION_MS = 129600000; // 36 hours
 
-export const STAKING_POOL_1_MAINNET = process.env.STAKING_POOL_1_MAINNET || '';
-export const STAKING_POOL_2_MAINNET = process.env.STAKING_POOL_2_MAINNET || '';
-export const STAKING_POOL_1_TESTNET = process.env.STAKING_POOL_1_TESTNET || '';
-export const STAKING_POOL_2_TESTNET = process.env.STAKING_POOL_2_TESTNET || '';
-export const STAKING_POOLS_ALL = [
-  STAKING_POOL_1_MAINNET,
-  STAKING_POOL_2_MAINNET,
-  STAKING_POOL_1_TESTNET,
-  STAKING_POOL_2_TESTNET,
-];
+export const STAKING_POOLS_MAINNET = process.env.STAKING_POOLS_MAINNET
+  ? process.env.STAKING_POOLS_MAINNET.split(' ') : [];
+export const STAKING_POOLS_TESTNET = process.env.STAKING_POOLS_TESTNET
+  ? process.env.STAKING_POOLS_TESTNET.split(' ') : [];
+export const STAKING_POOLS_ALL = STAKING_POOLS_MAINNET.concat(STAKING_POOLS_TESTNET);

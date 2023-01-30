@@ -29,7 +29,7 @@ interface StateProps {
   currentAccountId: string;
   hasManyAccounts: boolean;
   accounts: Record<string, Account>;
-  accountsState: Record<string, AccountState>;
+  accountStates: Record<string, AccountState>;
   isBackupRequired?: boolean;
 }
 
@@ -43,7 +43,7 @@ function LogOutModal({
   currentAccountId,
   hasManyAccounts,
   accounts,
-  accountsState,
+  accountStates,
   isBackupRequired,
   onClose,
 }: OwnProps & StateProps) {
@@ -65,7 +65,7 @@ function LogOutModal({
     }
 
     return Object.entries(accounts).reduce<LinkAccount[]>((acc, [id, { title, address }]) => {
-      if (id !== currentAccountId && accountsState[id].isBackupRequired) {
+      if (id !== currentAccountId && accountStates[id].isBackupRequired) {
         acc.push({
           id,
           title: title || shortenAddress(address)!,
@@ -74,7 +74,7 @@ function LogOutModal({
 
       return acc;
     }, []);
-  }, [accounts, accountsState, currentAccountId, hasManyAccounts]);
+  }, [accounts, accountStates, currentAccountId, hasManyAccounts]);
 
   useEffect(() => {
     if (isOpen) {
@@ -104,6 +104,7 @@ function LogOutModal({
         <a
           key={id}
           href="#"
+          className={styles.accountLink_inner}
           onClick={(e: React.MouseEvent) => { e.preventDefault(); handleSwitchAccount(id); }}
         >
           {title}
@@ -142,7 +143,7 @@ function LogOutModal({
       onCloseAnimationEnd={onClose}
       title={lang('Log Out')}
     >
-      <p className={modalStyles.text}>
+      <p className={buildClassName(modalStyles.text, modalStyles.text_noExtraMargin)}>
         {renderText(lang('$logout_warning', MNEMONIC_COUNT))}
       </p>
       {hasManyAccounts && (
@@ -177,7 +178,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     currentAccountId: global.currentAccountId!,
     hasManyAccounts,
     accounts,
-    accountsState: global.byAccountId,
+    accountStates: global.byAccountId,
     isBackupRequired: currentAccountState?.isBackupRequired,
   };
 })(LogOutModal));

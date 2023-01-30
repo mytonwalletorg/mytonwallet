@@ -163,6 +163,12 @@ function InputNumberRich({
     isReadable && styles.disabled,
     valueClassName,
   );
+  const labelTextClassName = buildClassName(
+    styles.label,
+    (hasError || error) && styles.error,
+    isReadable && styles.help,
+    labelClassName,
+  );
 
   return (
     <div className={buildClassName(styles.wrapper, className)}>
@@ -174,7 +180,7 @@ function InputNumberRich({
       )}
       {labelText && (
         <label
-          className={buildClassName(styles.label, (hasError || error) && styles.error, labelClassName)}
+          className={labelTextClassName}
           htmlFor={id}
           id={`${id}Label`}
         >

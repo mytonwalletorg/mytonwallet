@@ -81,3 +81,13 @@ export interface ApiStakingState {
   pendingDepositAmount: number;
   isUnstakeRequested: boolean;
 }
+
+export interface ApiStakingHistory {
+  poolAddress?: string;
+  balance: number;
+  totalProfit: number;
+  profitHistory: {
+    timestamp: number;
+    profit: number;
+  }[];
+}

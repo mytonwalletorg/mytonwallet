@@ -137,8 +137,6 @@
 }
 
 .balanceLink {
-  margin-inline-start: 0.25rem;
-
   font-weight: 600;
   text-decoration: underline;
   text-decoration-style: dotted;
@@ -195,6 +193,20 @@
   -webkit-text-fill-color: transparent;
 }
 
+.stakingInfoModal {
+  overflow: hidden;
+
+  max-height: 19.875rem !important;
+
+  &_withHistory {
+    max-height: calc(95 * var(--vh, 1vh)) !important;
+
+    @media (min-width: 600.01px) {
+      max-height: 100% !important;
+    }
+  }
+}
+
 .stakingInfo {
   --color-blue-button-text: var(--color-purple-button-text);
   --color-blue-button-text-hover: var(--color-purple-button-text-hover);
@@ -216,10 +228,6 @@
 
   background: var(--color-background-purple-2);
   border-radius: var(--border-radius-small);
-
-  &_forSlideUp {
-    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
-  }
 }
 
 .stakingInfoLoading {
@@ -278,4 +286,46 @@
   top: 0;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.history {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  padding: 1.25rem 1rem 1rem;
+}
+
+.historyTotal {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+
+  font-size: 0.8125rem;
+  line-height: 0.8125rem;
+  color: var(--color-gray-2)
+}
+
+.historyTotalValue {
+  font-weight: 600;
+}
+
+.historyTitle {
+  margin-left: 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 0.8125rem;
+  color: var(--color-gray-2);
+}
+
+.historyList {
+  flex-grow: 1;
+
+  margin-top: 0.5rem;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
 }

@@ -4,6 +4,7 @@ import {
   ApiNetwork,
   ApiNft,
   ApiPoolState,
+  ApiStakingHistory,
   ApiToken,
   ApiTransaction,
   ApiTransactionDraftError,
@@ -107,6 +108,7 @@ export interface AccountState {
   stakingBalance?: number;
   isUnstakeRequested?: boolean;
   poolState?: ApiPoolState;
+  stakingHistory?: ApiStakingHistory;
 }
 
 export type GlobalState = {
@@ -251,6 +253,7 @@ export interface ActionPayloads {
   cancelStaking: never;
   fetchPoolState: never;
   fetchStakingState: never;
+  fetchStakingHistory: never;
 
   // Settings
   openSettingsModal: never;

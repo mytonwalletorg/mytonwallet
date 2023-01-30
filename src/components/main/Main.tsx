@@ -1,4 +1,6 @@
-import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import React, {
+  memo, useCallback, useEffect, useState,
+} from '../../lib/teact/teact';
 import { withGlobal, getActions } from '../../global';
 
 import { selectCurrentAccountState } from '../../global/selectors';
@@ -25,15 +27,22 @@ import styles from './Main.module.scss';
 
 type StateProps = {
   currentTokenSlug?: string;
+  currentAccountId?: string;
   isStakingActive: boolean;
 };
 
-function Main({ currentTokenSlug, isStakingActive }: StateProps) {
-  const { selectToken, startStaking } = getActions();
+function Main({ currentTokenSlug, currentAccountId, isStakingActive }: StateProps) {
+  const { selectToken, startStaking, fetchStakingHistory } = getActions();
 
   const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : 0);
   const [isStakingInfoOpened, openStakingInfo, closeStakingInfo] = useFlag(false);
   const [isBackupWalletOpened, openBackupWallet, closeBackupWallet] = useFlag(false);
+
+  useEffect(() => {
+    if (currentAccountId && isStakingActive) {
+      fetchStakingHistory();
+    }
+  }, [fetchStakingHistory, currentAccountId, isStakingActive]);
 
   const handleTokenCardClose = useCallback(() => {
     selectToken({ slug: undefined });
@@ -84,5 +93,6 @@ export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps
   return {
     isStakingActive: Boolean(accountState?.stakingBalance) && !accountState?.isUnstakeRequested,
     currentTokenSlug: selectCurrentAccountState(global)?.currentTokenSlug,
+    currentAccountId: global.currentAccountId,
   };
 })(Main));

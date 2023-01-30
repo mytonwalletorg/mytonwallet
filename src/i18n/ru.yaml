@@ -11,7 +11,7 @@ $auth_backup_description1: |
   Вы создали новый **безопасный кошелёк**,
   доступ к которому **есть только у вас**.
 $auth_backup_description2: |
-  Однако, важно помнить:
+  Однако важно помнить:
   **особые возможности**
   требуют **особой ответственности**!
 $auth_backup_description3: |
@@ -271,3 +271,4 @@ Earning: Стейкинг
 DomainNotResolved: Ошибка резолвинга домена
 You can save this address for quick access while sending.: You can save this address for quick access while sending.
 Stake Again: Stake Again
+Earned: Earned

@@ -6,6 +6,7 @@ import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import buildClassName from '../../util/buildClassName';
 import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
+import stopEvent from '../../util/stopEvent';
 
 import styles from './Menu.module.scss';
 
@@ -93,7 +94,7 @@ const Menu: FC<OwnProps> = ({
     >
       {isOpen && !noBackdrop && (
         // This only prevents click events triggering on underlying elements
-        <div className={styles.backdrop} />
+        <div className={styles.backdrop} onClick={stopEvent} />
       )}
       <div
         ref={menuRef}

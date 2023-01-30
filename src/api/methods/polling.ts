@@ -26,6 +26,11 @@ let storage: Storage;
 let isAccountActive: IsAccountActiveFn;
 let origin: string;
 
+const lastBalanceCache: Record<string, {
+  balance?: string;
+  tokenBalances?: Record<string, string>;
+}> = {};
+
 export function initPolling(
   _onUpdate: OnApiUpdate, _storage: Storage, _isAccountActive: IsAccountActiveFn, args: ApiInitArgs,
 ) {
@@ -36,8 +41,14 @@ export function initPolling(
 }
 
 // TODO Switching back/to Testnet always creates a new polling loop but never breaks the previous one
-export async function setupBalancePolling(accountId: string) {
+export async function setupBalancePolling(accountId: string, newestTxId?: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+
+  if (!newestTxId) {
+    newestTxId = await blockchain.getAccountNewestTxId(storage, accountId);
+  }
+
+  delete lastBalanceCache[accountId];
 
   while (isUpdaterAlive(onUpdate) && isAccountActive(accountId)) {
     try {
@@ -48,7 +59,11 @@ export async function setupBalancePolling(accountId: string) {
       ]);
       if (!isUpdaterAlive(onUpdate) || !isAccountActive(accountId)) return;
 
-      if (balance) {
+      const cache = lastBalanceCache[accountId];
+      let isBalanceChanged = false;
+
+      if (balance && balance !== cache?.balance) {
+        isBalanceChanged = true;
         onUpdate({
           type: 'updateBalance',
           accountId,
@@ -86,12 +101,15 @@ export async function setupBalancePolling(accountId: string) {
         }
 
         // Process balances
-        for (const tokenBalance of tokenBalances) {
+        for (const { slug, balance: tokenBalance } of tokenBalances) {
+          if (tokenBalance === (cache?.tokenBalances || {})[slug]) continue;
+
+          isBalanceChanged = true;
           onUpdate({
             type: 'updateBalance',
             accountId,
-            slug: tokenBalance.slug,
-            balance: tokenBalance.balance,
+            slug,
+            balance: tokenBalance,
           });
         }
       }
@@ -103,6 +121,17 @@ export async function setupBalancePolling(accountId: string) {
           stakingState,
         });
       }
+
+      if (isBalanceChanged) {
+        newestTxId = await fetchNewTransactions(accountId, newestTxId);
+      }
+
+      lastBalanceCache[accountId] = {
+        balance,
+        tokenBalances: tokenBalances && Object.fromEntries(tokenBalances.map(
+          ({ slug, balance: tokenBalance }) => [slug, tokenBalance],
+        )),
+      };
     } catch (err) {
       if (DEBUG) {
         // eslint-disable-next-line no-console
@@ -114,43 +143,32 @@ export async function setupBalancePolling(accountId: string) {
   }
 }
 
-export async function setupTransactionsPolling(accountId: string, newestTxId?: string) {
+async function fetchNewTransactions(accountId: string, newestTxId?: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  if (!newestTxId) {
-    newestTxId = await blockchain.getAccountNewestTxId(storage, accountId);
-  }
+  const transactions = await blockchain.getAccountTransactionSlice(
+    storage,
+    accountId,
+    undefined,
+    newestTxId,
+  );
 
-  while (isUpdaterAlive(onUpdate) && isAccountActive(accountId)) {
-    try {
-      const transactions = await blockchain.getAccountTransactionSlice(
-        storage,
+  if (transactions.length) {
+    newestTxId = transactions[0].txId;
+
+    // eslint-disable-next-line @typescript-eslint/no-loop-func
+    transactions.reverse().forEach((transaction) => {
+      txCallbacks.runCallbacks(transaction);
+
+      onUpdate({
+        type: 'newTransaction',
+        transaction,
         accountId,
-        undefined,
-        newestTxId,
-      );
-      if (!isUpdaterAlive(onUpdate) || !isAccountActive(accountId)) return;
-
-      if (transactions.length) {
-        newestTxId = transactions[0].txId;
-
-        // eslint-disable-next-line @typescript-eslint/no-loop-func
-        transactions.reverse().forEach((transaction) => {
-          txCallbacks.runCallbacks(transaction);
-
-          onUpdate({
-            type: 'newTransaction',
-            transaction,
-            accountId,
-          });
-        });
-      }
-    } catch (err) {
-      // Do nothing
-    }
-
-    await pause(POLLING_INTERVAL);
+      });
+    });
   }
+
+  return newestTxId;
 }
 
 export async function setupPricesPolling() {

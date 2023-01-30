@@ -3,6 +3,7 @@ import { ApiToken, ApiTransaction } from '../../api/types';
 import { selectAccount, selectAccountState, selectCurrentAccountState } from '../selectors';
 import { TON_TOKEN_SLUG } from '../../config';
 import { genRelatedAccountIds } from '../../util/account';
+import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 
 export function updateAuth(global: GlobalState, authUpdate: Partial<GlobalState['auth']>) {
   return {
@@ -65,10 +66,10 @@ export function renameAccount(
 
 export function updateBalance(
   global: GlobalState, accountId: string, slug: string, balance: string,
-): GlobalState | undefined {
+): GlobalState {
   const { balances } = selectAccountState(global, accountId) || {};
   if (balances?.bySlug[slug] === balance) {
-    return undefined;
+    return global;
   }
 
   return updateAccountState(global, accountId, {
@@ -92,8 +93,18 @@ export function updateSendingLoading(global: GlobalState, isLoading: boolean): G
   };
 }
 
-export function updateTokens(global: GlobalState, tokens: Record<string, ApiToken>): GlobalState {
-  if (!tokens[TON_TOKEN_SLUG].quote.price && global.tokenInfo?.bySlug[TON_TOKEN_SLUG]) {
+export function updateTokens(
+  global: GlobalState,
+  partial: Record<string, ApiToken>,
+  withDeepCompare = false,
+): GlobalState {
+  const currentTokens = global.tokenInfo?.bySlug;
+
+  if (currentTokens?.[TON_TOKEN_SLUG] && !partial[TON_TOKEN_SLUG].quote.price) {
+    return global;
+  }
+
+  if (withDeepCompare && currentTokens && isPartialDeepEqual(currentTokens, partial)) {
     return global;
   }
 
@@ -102,8 +113,8 @@ export function updateTokens(global: GlobalState, tokens: Record<string, ApiToke
     tokenInfo: {
       ...global.tokenInfo,
       bySlug: {
-        ...(global.tokenInfo && global.tokenInfo.bySlug),
-        ...tokens,
+        ...currentTokens,
+        ...partial,
       },
     },
   };
@@ -135,9 +146,13 @@ export function updateCurrentAccountsState(global: GlobalState, partial: Partial
 }
 
 export function updateAccountState(
-  global: GlobalState, accountId: string, partial: Partial<AccountState>,
+  global: GlobalState, accountId: string, partial: Partial<AccountState>, withDeepCompare = false,
 ): GlobalState {
   const accountState = selectAccountState(global, accountId);
+
+  if (withDeepCompare && accountState && isPartialDeepEqual(accountState, partial)) {
+    return global;
+  }
 
   return {
     ...global,

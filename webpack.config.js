@@ -182,10 +182,8 @@ module.exports = (_env, { mode = 'production' }) => {
         TONAPIIO_TESTNET_URL: null,
         BRILLIANT_API_BASE_URL: null,
         PROXY_HOSTS: null,
-        STAKING_POOL_1_MAINNET: null,
-        STAKING_POOL_2_MAINNET: null,
-        STAKING_POOL_1_TESTNET: null,
-        STAKING_POOL_2_TESTNET: null,
+        STAKING_POOLS_MAINNET: undefined,
+        STAKING_POOLS_TESTNET: null,
       }),
       new DefinePlugin({
         APP_REVISION: DefinePlugin.runtimeValue(() => {

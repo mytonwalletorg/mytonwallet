@@ -14,7 +14,7 @@ import { selectCurrentAccountState } from '../../../global/selectors';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../global/helpers';
 import { formatCurrencyExtended } from '../../../util/formatNumber';
 import buildClassName from '../../../util/buildClassName';
-import { formatFullDay, formatRelativeHumanTime, formatTime } from '../../../util/dateFormat';
+import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
 import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
 import useOnChange from '../../../hooks/useOnChange';
 import useLang from '../../../hooks/useLang';
@@ -165,7 +165,7 @@ function TransactionModal({
       <div className={buildClassName(styles.unstakeTime, unstakeTimerClassNames)}>
         <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} />
         {lang('$unstaking_when_receive', {
-          time: <strong>{formatRelativeHumanTime(lang.code, unstakeDate)}</strong>,
+          time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
         })}
       </div>
     );

@@ -24,13 +24,14 @@ const formatDayToStringWithCache = withCache((
   );
 });
 
-export const formatRelativeHumanTime = withCache((
+export function formatRelativeHumanDateTime(
   langCode: LangCode = 'en',
   time: number,
-) => {
+) {
   const total = time - Date.now();
   const minutes = Math.floor((total / 1000 / 60) % 60);
   const hours = Math.floor((total / (1000 * 3600)) % 24);
+  const days = Math.floor(total / 1000 / 3600 / 24);
 
   const rtf = new Intl.RelativeTimeFormat(langCode, {
     localeMatcher: 'best fit',
@@ -40,6 +41,10 @@ export const formatRelativeHumanTime = withCache((
 
   const result: string[] = [];
 
+  if (days > 0) {
+    const [daysPlural, daysValue] = rtf.formatToParts(days, 'day').reverse();
+    result.push(`${daysValue.value}${daysPlural.value}`);
+  }
   if (hours > 0) {
     const [hoursPlural, hoursValue] = rtf.formatToParts(hours, 'hour').reverse();
     result.push(`${hoursValue.value}${hoursPlural.value}`);
@@ -50,7 +55,7 @@ export const formatRelativeHumanTime = withCache((
   }
 
   return result.join(' ');
-});
+}
 
 export function formatHumanDay(lang: LangFn, datetime: string | number) {
   if (isToday(datetime)) {

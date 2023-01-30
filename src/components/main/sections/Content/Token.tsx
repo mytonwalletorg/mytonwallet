@@ -8,7 +8,9 @@ import buildClassName from '../../../../util/buildClassName';
 import { formatCurrency } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
+import useShowTransition from '../../../../hooks/useShowTransition';
 
+import AnimatedCounter from '../../../ui/AnimatedCounter';
 import Button from '../../../ui/Button';
 
 import styles from './Token.module.scss';
@@ -48,6 +50,12 @@ function Token({
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
   const changeValue = Math.abs(round(calcChangeValue(value, change), 4));
   const changePercent = Math.abs(round(change * 100, 2));
+  const withApy = Boolean(apyValue) && slug === TON_TOKEN_SLUG;
+
+  const {
+    shouldRender: shouldRenderApy,
+    transitionClassNames: renderApyClassNames,
+  } = useShowTransition(withApy);
 
   const handleClick = useCallback(() => {
     onClick(slug);
@@ -55,7 +63,9 @@ function Token({
 
   function renderApy() {
     return (
-      <span className={buildClassName(styles.apy, stakingStatus && styles.apy_staked)}>APY {apyValue}%</span>
+      <span className={buildClassName(styles.apy, stakingStatus && styles.apy_staked, renderApyClassNames)}>
+        APY {apyValue}%
+      </span>
     );
   }
 
@@ -77,22 +87,22 @@ function Token({
         <div className={styles.primaryCell}>
           <div className={styles.name}>
             {name}
-            {Boolean(apyValue) && slug === TON_TOKEN_SLUG && renderApy()}
+            {shouldRenderApy && renderApy()}
           </div>
           <div className={styles.subtitle}>
-            {formatCurrency(renderedAmount, symbol)}
+            <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
             <i className={styles.dot} />
-            {formatCurrency(price, DEFAULT_PRICE_CURRENCY)}
+            <AnimatedCounter text={formatCurrency(price, DEFAULT_PRICE_CURRENCY)} />
           </div>
         </div>
         <div className={styles.secondaryCell}>
           <div className={buildClassName(styles.secondaryValue, stakingStatus && styles.secondaryValue_staked)}>
-            {formatCurrency(value, DEFAULT_PRICE_CURRENCY)}
+            <AnimatedCounter text={formatCurrency(value, DEFAULT_PRICE_CURRENCY)} />
           </div>
           <div className={buildClassName(styles.change, changeClassName)}>
-            {renderChangeIcon()}{changePercent}%
+            {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
             <i className={styles.dot} />
-            {formatCurrency(changeValue, DEFAULT_PRICE_CURRENCY)}
+            <AnimatedCounter text={formatCurrency(changeValue, DEFAULT_PRICE_CURRENCY)} />
           </div>
         </div>
         <i className={buildClassName(styles.iconChevron, 'icon-chevron-right')} aria-hidden />
@@ -115,12 +125,12 @@ function Token({
             {Boolean(apyValue) && slug === TON_TOKEN_SLUG && renderApy()}
           </div>
           <div className={styles.subtitle}>
-            {formatCurrency(price, DEFAULT_PRICE_CURRENCY)}
+            <AnimatedCounter text={formatCurrency(price, DEFAULT_PRICE_CURRENCY)} />
             {!stakingStatus && (
               <>
                 <i className={styles.dot} />
                 <span className={changeClassName}>
-                  {renderChangeIcon()}{changePercent}%
+                  {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
                 </span>
               </>
             )}
@@ -128,11 +138,11 @@ function Token({
         </div>
         <div className={styles.secondaryCell}>
           <div className={buildClassName(styles.secondaryValue, stakingStatus && styles.secondaryValue_staked)}>
-            {formatCurrency(renderedAmount, symbol)}
+            <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
           </div>
           <div className={styles.subtitle}>
             {totalAmount > 0 ? '≈' : ''}&thinsp;
-            {formatCurrency(totalAmount, DEFAULT_PRICE_CURRENCY)}
+            <AnimatedCounter text={formatCurrency(totalAmount, DEFAULT_PRICE_CURRENCY)} />
           </div>
         </div>
         <i className={buildClassName(styles.iconChevron, 'icon-chevron-right')} aria-hidden />

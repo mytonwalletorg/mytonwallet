@@ -1,3 +1,5 @@
+import { DEBUG } from '../config';
+
 export default function arePropsShallowEqual(currentProps: AnyLiteral, newProps: AnyLiteral) {
   if (currentProps === newProps) {
     return true;
@@ -36,7 +38,16 @@ export function getUnequalProps(currentProps: AnyLiteral, newProps: AnyLiteral) 
 
   return currentKeys.reduce((res, prop) => {
     if (currentProps[prop] !== newProps[prop]) {
-      res.push(`${prop}: ${currentProps[prop]} => ${newProps[prop]}`);
+      res.push(
+        `${prop}: ${currentProps[prop]} => ${newProps[prop]}`,
+      );
+
+      if (DEBUG) {
+        if (typeof newProps[prop] === 'object') {
+          // eslint-disable-next-line no-console
+          console.warn('[getUnequalProps] Changed prop is an object:', prop);
+        }
+      }
     }
 
     return res;

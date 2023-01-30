@@ -10,11 +10,13 @@ import { CARD_SECONDARY_VALUE_SYMBOL, STAKING_CYCLE_DURATION_MS, TON_TOKEN_SLUG 
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { formatRelativeHumanTime } from '../../util/dateFormat';
+import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import usePrevious from '../../hooks/usePrevious';
 import useLang from '../../hooks/useLang';
 import useOnChange from '../../hooks/useOnChange';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
+import useForceUpdate from '../../hooks/useForceUpdate';
+import useInterval from '../../hooks/useInterval';
 
 import Modal from '../ui/Modal';
 import Transition from '../ui/Transition';
@@ -42,6 +44,7 @@ const IS_OPEN_STATES = new Set([
 
 const MIN_BALANCE_FOR_UNSTAKE = 1;
 const ICON_SIZE = 80;
+const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
 
 function UnstakeModal({
   state,
@@ -72,6 +75,7 @@ function UnstakeModal({
   const renderedTokenBalance = usePrevious(tonToken?.amount, true);
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
   const hasBalanceForUnstake = tonToken && tonToken.amount >= MIN_BALANCE_FOR_UNSTAKE;
+  const forceUpdate = useForceUpdate();
 
   useEffect(() => {
     if (isOpen) {
@@ -85,6 +89,15 @@ function UnstakeModal({
       setUnstakeDate(endOfStakingCycle);
     }
   }, [endOfStakingCycle]);
+
+  const refreshUnstakeDate = useCallback(() => {
+    if (unstakeDate < Date.now()) {
+      fetchPoolState();
+    }
+    forceUpdate();
+  }, [fetchPoolState, forceUpdate, unstakeDate]);
+
+  useInterval(refreshUnstakeDate, UPDATE_UNSTAKE_DATE_INTERVAL_MS);
 
   const handleModalClose = useCallback(() => {
     setNextKey(StakingState.None);
@@ -122,7 +135,7 @@ function UnstakeModal({
             />
             <div className={styles.unstakeInformation}>
               {lang('$unstake_information_with_time', {
-                time: <strong>{formatRelativeHumanTime(lang.code, unstakeDate)}</strong>,
+                time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
               })}
             </div>
           </div>
@@ -201,7 +214,7 @@ function UnstakeModal({
           <div className={styles.unstakeTime}>
             <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} />
             {lang('$unstaking_when_receive', {
-              time: <strong>{formatRelativeHumanTime(lang.code, unstakeDate)}</strong>,
+              time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
             })}
           </div>
 

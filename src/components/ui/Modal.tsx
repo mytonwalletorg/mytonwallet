@@ -105,7 +105,7 @@ function Modal({
     }
 
     return (
-      <div className={styles.header}>
+      <div className={buildClassName(styles.header, !hasCloseButton && styles.header_noClose)}>
         <div className={styles.title}>{title}</div>
         {hasCloseButton && (
           <Button

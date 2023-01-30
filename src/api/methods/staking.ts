@@ -123,3 +123,7 @@ export async function getPoolState(accountId: string) {
     endOfCycle: poolInfo.endOfCycle * 1000,
   } as ApiPoolState;
 }
+
+export function getStakingHistory(accountId: string) {
+  return blockchains.ton.getStakingHistory(storage, accountId);
+}

@@ -33,4 +33,5 @@ export {
   submitUnstake,
   getStakingState,
   getPoolState,
+  getStakingHistory,
 } from './staking';

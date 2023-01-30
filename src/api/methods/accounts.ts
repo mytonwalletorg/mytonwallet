@@ -4,7 +4,7 @@ import { Storage } from '../storages/types';
 import { migrateStorage } from '../common/helpers';
 
 import * as dappMethods from '../dappMethods';
-import { setupBalancePolling, setupPoolStatePolling, setupTransactionsPolling } from './polling';
+import { setupBalancePolling, setupPoolStatePolling } from './polling';
 
 // let onUpdate: OnApiUpdate;
 let storage: Storage;
@@ -26,8 +26,7 @@ export async function activateAccount(accountId: string, newestTxId?: string) {
   activeAccountId = accountId;
   dappMethods.activateDappAccount(accountId);
 
-  void setupBalancePolling(accountId);
-  void setupTransactionsPolling(accountId, newestTxId);
+  void setupBalancePolling(accountId, newestTxId);
   void setupPoolStatePolling(accountId);
 }
 

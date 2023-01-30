@@ -146,6 +146,10 @@
     padding: 1rem 1rem 0;
   }
 
+  &_noClose {
+    padding-top: 1.375rem;
+  }
+
   .slideUp & {
     padding-bottom: 0;
   }
@@ -233,10 +237,18 @@
 }
 
 .text {
+  margin-right: 0.5rem;
+  margin-bottom: 1.25rem;
+  margin-left: 0.5rem;
+
   font-size: 0.9375rem;
 
   &_centered {
     text-align: center;
+  }
+
+  &_noExtraMargin {
+    margin-bottom: 1.25rem !important;
   }
 
   &:last-of-type {
