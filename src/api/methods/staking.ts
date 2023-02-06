@@ -1,4 +1,4 @@
-import type { ApiPoolState, OnApiUpdate } from '../types';
+import type { ApiBackendStakingState, OnApiUpdate } from '../types';
 import type { Storage } from '../storages/types';
 
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from '../blockchains/ton/constants';
@@ -111,19 +111,19 @@ export function getStakingState(accountId: string) {
   return blockchain.getStakingState(storage, accountId);
 }
 
-export async function getPoolState(accountId: string) {
-  const poolInfo = await blockchains.ton.getPoolState(storage, accountId);
-  if (!poolInfo) {
-    return undefined;
+export async function getBackendStakingState(accountId: string): Promise<ApiBackendStakingState | undefined> {
+  const state = await blockchains.ton.getBackendStakingState(storage, accountId);
+  if (!state) {
+    return state;
   }
 
+  const poolState = state.poolState;
   return {
-    ...poolInfo,
-    startOfCycle: poolInfo.startOfCycle * 1000,
-    endOfCycle: poolInfo.endOfCycle * 1000,
-  } as ApiPoolState;
-}
-
-export function getStakingHistory(accountId: string) {
-  return blockchains.ton.getStakingHistory(storage, accountId);
+    ...state,
+    poolState: {
+      ...poolState,
+      startOfCycle: poolState!.startOfCycle * 1000,
+      endOfCycle: poolState!.endOfCycle * 1000,
+    },
+  };
 }

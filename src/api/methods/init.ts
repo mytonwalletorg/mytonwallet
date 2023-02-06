@@ -5,6 +5,7 @@ import { IS_EXTENSION } from '../environment';
 import storages from '../storages';
 import * as methods from '.';
 import * as dappMethods from '../dappMethods';
+import * as tonConnect from '../tonConnect';
 import { connectUpdater } from '../common/helpers';
 
 export default function init(onUpdate: OnApiUpdate, args: ApiInitArgs, storageType: StorageType) {
@@ -23,6 +24,8 @@ export default function init(onUpdate: OnApiUpdate, args: ApiInitArgs, storageTy
   methods.initStaking(onUpdate, storage);
 
   if (IS_EXTENSION) {
+    methods.initDapps(onUpdate, storage);
     dappMethods.initDappMethods(onUpdate);
+    tonConnect.initTonConnect(onUpdate);
   }
 }

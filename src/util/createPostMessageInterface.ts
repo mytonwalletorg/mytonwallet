@@ -45,6 +45,8 @@ export function createExtensionInterface(
       return;
     }
 
+    const origin = port.sender?.origin;
+
     const dAppUpdater = (update: ApiUpdate) => {
       sendToOrigin({
         type: 'update',
@@ -61,7 +63,7 @@ export function createExtensionInterface(
 
     port.onMessage.addListener((data: OriginMessageData) => {
       if (data.channel === channel) {
-        onMessage(api, data, sendToOrigin, dAppUpdater);
+        onMessage(api, data, sendToOrigin, dAppUpdater, origin);
       }
     });
 
@@ -80,6 +82,7 @@ async function onMessage(
   data: OriginMessageData,
   sendToOrigin: SendToOrigin,
   onUpdate?: (update: ApiUpdate) => void,
+  origin?: string,
 ) {
   if (!onUpdate) {
     onUpdate = (update: ApiUpdate) => {
@@ -93,7 +96,9 @@ async function onMessage(
   switch (data.type) {
     case 'init': {
       const { args } = data;
-      const promise = typeof api === 'function' ? api('init', onUpdate, ...args) : api.init?.(onUpdate, ...args);
+      const promise = typeof api === 'function'
+        ? api('init', origin, onUpdate, ...args)
+        : api.init?.(origin, onUpdate, ...args);
       await promise;
 
       break;
@@ -119,7 +124,9 @@ async function onMessage(
           args.push(callback as never);
         }
 
-        const response = typeof api === 'function' ? await api(name, ...args) : await api[name](...args);
+        const response = typeof api === 'function'
+          ? await api(name, origin, ...args)
+          : await api[name](origin, ...args);
         const { arrayBuffer } = (typeof response === 'object' && 'arrayBuffer' in response && response) || {};
 
         if (messageId) {

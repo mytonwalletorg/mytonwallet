@@ -110,12 +110,10 @@ function InputNumberRich({
 
     const [, wholePart, dotPart, fractionPart] = values;
 
-    const newHtml = `${parseInt(wholePart, 10)}${fractionPart || dotPart
-      ? `<span class="${styles.fractional}">.${(fractionPart || '').substring(0, FRACTION_DIGITS)} ${
-        suffix ? ` ${suffix}` : ''
-      }</span>`
+    const newHtml = `${parseInt(wholePart, 10)}<span class="${styles.fractional}">${fractionPart || dotPart
+      ? `.${(fractionPart || '').substring(0, FRACTION_DIGITS)}`
       : ''
-    }`;
+    }${suffix ? ` ${suffix}` : ''}</span>`;
 
     const restoreCaretPosition = document.activeElement === inputRef.current
       ? saveCaretPosition(inputRef.current)

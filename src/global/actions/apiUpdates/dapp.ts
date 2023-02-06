@@ -2,14 +2,17 @@ import { TransferState } from '../../types';
 
 import { addActionHandler, setGlobal } from '../../index';
 
+import { TON_TOKEN_SLUG } from '../../../config';
 import { bigStrToHuman } from '../../helpers';
 import {
   clearCurrentSignature,
   clearCurrentTransfer,
+  updateAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
+  updateDappConnectRequest,
 } from '../../reducers';
-import { TON_TOKEN_SLUG } from '../../../config';
+import { selectAccountState } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -81,6 +84,53 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           isTonMagicEnabled: isEnabled,
         },
       });
+
+      break;
+    }
+
+    case 'dappConnect': {
+      const {
+        promiseId,
+        dapp,
+        accountId,
+        permissions,
+      } = update;
+
+      global = updateDappConnectRequest(global, {
+        promiseId,
+        accountId,
+        dapp,
+        permissions: {
+          isAddressRequired: permissions.address,
+          isPasswordRequired: permissions.proof,
+        },
+      });
+      setGlobal(global);
+
+      break;
+    }
+
+    case 'updateActiveDapp': {
+      const { accountId, origin } = update;
+
+      global = updateAccountState(global, accountId, {
+        activeDappOrigin: origin,
+      });
+      setGlobal(global);
+      break;
+    }
+
+    case 'dappDisconnect': {
+      const { accountId, origin } = update;
+      const accountState = selectAccountState(global, accountId);
+
+      if (accountState?.activeDappOrigin === origin) {
+        global = updateAccountState(global, accountId, {
+          activeDappOrigin: undefined,
+        });
+        setGlobal(global);
+      }
+      break;
     }
   }
 });

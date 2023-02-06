@@ -16,6 +16,7 @@ import UnstakingModal from '../staking/UnstakeModal';
 import BackupModal from './modals/BackupModal';
 import SignatureModal from './modals/SignatureModal';
 import TransactionModal from './modals/TransactionModal';
+import DappConnectModal from './sections/Dapps/DappConnectModal';
 
 import Actions from './sections/Actions';
 import Card from './sections/Card';
@@ -32,7 +33,7 @@ type StateProps = {
 };
 
 function Main({ currentTokenSlug, currentAccountId, isStakingActive }: StateProps) {
-  const { selectToken, startStaking, fetchStakingHistory } = getActions();
+  const { selectToken, startStaking, fetchBackendStakingState } = getActions();
 
   const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : 0);
   const [isStakingInfoOpened, openStakingInfo, closeStakingInfo] = useFlag(false);
@@ -40,9 +41,9 @@ function Main({ currentTokenSlug, currentAccountId, isStakingActive }: StateProp
 
   useEffect(() => {
     if (currentAccountId && isStakingActive) {
-      fetchStakingHistory();
+      fetchBackendStakingState();
     }
-  }, [fetchStakingHistory, currentAccountId, isStakingActive]);
+  }, [fetchBackendStakingState, currentAccountId, isStakingActive]);
 
   const handleTokenCardClose = useCallback(() => {
     selectToken({ slug: undefined });
@@ -82,6 +83,7 @@ function Main({ currentTokenSlug, currentAccountId, isStakingActive }: StateProp
       <StakeModal onViewStakingInfo={openStakingInfo} />
       <UnstakingModal />
       <StakingInfoModal isOpen={isStakingInfoOpened} onClose={closeStakingInfo} />
+      <DappConnectModal />
     </>
   );
 }

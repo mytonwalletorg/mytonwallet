@@ -12,10 +12,17 @@ export interface ApiInitArgs {
   newestTxId?: string;
 }
 
-export interface ApiToken {
+export interface ApiBaseToken {
   name: string;
   symbol: string;
   slug: string;
+  decimals: number;
+  minterAddress?: string;
+  image?: string;
+  id?: number;
+}
+
+export interface ApiToken extends ApiBaseToken {
   quote: {
     price: number;
     percentChange1h: number;
@@ -26,10 +33,6 @@ export interface ApiToken {
     history7d?: ApiHistoryList;
     history30d?: ApiHistoryList;
   };
-  decimals: number;
-  minterAddress?: string;
-  image?: string;
-  id?: number;
 }
 
 export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | undefined;
@@ -82,12 +85,34 @@ export interface ApiStakingState {
   isUnstakeRequested: boolean;
 }
 
-export interface ApiStakingHistory {
-  poolAddress?: string;
+export interface ApiBackendStakingState {
+  poolAddress: string;
   balance: number;
   totalProfit: number;
+  poolState: ApiPoolState;
   profitHistory: {
     timestamp: number;
     profit: number;
   }[];
 }
+
+export interface ApiDapp {
+  origin: string;
+  url: string;
+  name: string;
+  iconUrl: string;
+  manifestUrl: string;
+}
+
+export interface ApiDappPermissions {
+  isAddressRequired?: boolean;
+  isPasswordRequired?: boolean;
+}
+
+export type ApiDappRequest = {
+  origin?: string;
+  accountId?: string;
+} | {
+  origin: string;
+  accountId: string;
+};

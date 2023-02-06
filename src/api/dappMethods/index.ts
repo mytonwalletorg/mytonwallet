@@ -53,6 +53,10 @@ export function deactivateDappAccount() {
   void storage.removeItem(STORAGE_LAST_ACCOUNT);
 }
 
+export function getActiveDappAccountId() {
+  return activeAccountId;
+}
+
 export async function connectDapp(onDappUpdate: OnApiDappUpdate) {
   dappUpdaters.push(onDappUpdate);
 
@@ -75,7 +79,7 @@ export async function connectDapp(onDappUpdate: OnApiDappUpdate) {
   setTimeout(sendUpdates, INIT_UPDATE_DELAY);
 }
 
-export function disconnectDapp(onDappUpdate: OnApiDappUpdate) {
+export function deactivateDapp(onDappUpdate: OnApiDappUpdate) {
   const index = dappUpdaters.findIndex((updater) => updater === onDappUpdate);
   if (index !== 1) {
     dappUpdaters.splice(index, 1);

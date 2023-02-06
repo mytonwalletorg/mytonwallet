@@ -169,6 +169,7 @@ Wallet address or domain: 錢包地址或是域名
 Incorrect address: 錯誤的地址
 Paste: 貼上
 Insufficient balance: 餘額不足
+InsufficientBalance: 餘額不足
 Optional: 選項
 $send_token_symbol: 發送 %1$s
 $your_balance_is: "你的餘額: %balance%"
@@ -252,3 +253,8 @@ Unexpected error: 未知錯誤
 You can save this address for quick access while sending.: You can save this address for quick access while sending.
 Stake Again: Stake Again
 Earned: Earned
+Connect Dapp: Connect Dapp
+Select wallets to use on this dapp: Select wallets to use on this dapp
+Connect: Connect
+Dapp Permissions: Dapp Permissions
+$dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."

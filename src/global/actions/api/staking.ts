@@ -35,6 +35,30 @@ addActionHandler('startStaking', (global, actions, payload) => {
   }));
 });
 
+addActionHandler('fetchStakingFee', async (global, actions, payload) => {
+  const { amount } = payload;
+  const { currentAccountId } = global;
+
+  if (!currentAccountId) {
+    return;
+  }
+
+  const result = await callApi(
+    'checkStakeDraft',
+    currentAccountId,
+    humanToBigStr(amount!, DEFAULT_DECIMAL_PLACES),
+  );
+  if (!result) {
+    return;
+  }
+
+  global = getGlobal();
+  global = updateStaking(global, {
+    fee: result.fee,
+  });
+  setGlobal(global);
+});
+
 addActionHandler('submitStakingInitial', async (global, actions, payload) => {
   const { amount, isUnstaking } = payload || {};
   const { currentAccountId } = global;
@@ -143,7 +167,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
   setGlobal(global);
 });
 
-addActionHandler('cleanStakingError', (global) => {
+addActionHandler('clearStakingError', (global) => {
   setGlobal(updateStaking(global, { error: undefined }));
 });
 
@@ -157,19 +181,8 @@ addActionHandler('setStakingScreen', (global, actions, payload) => {
   setGlobal(updateStaking(global, { state }));
 });
 
-addActionHandler('fetchPoolState', async (global) => {
-  const poolState = await callApi('getPoolState', global.currentAccountId!);
-  if (!poolState) {
-    return;
-  }
-
-  global = getGlobal();
-  global = updatePoolState(global, poolState, true);
-  setGlobal(global);
-});
-
-addActionHandler('fetchStakingHistory', async (global) => {
-  const result = await callApi('getStakingHistory', global.currentAccountId!);
+addActionHandler('fetchBackendStakingState', async (global) => {
+  const result = await callApi('getBackendStakingState', global.currentAccountId!);
 
   if (!result) {
     return;
@@ -177,5 +190,6 @@ addActionHandler('fetchStakingHistory', async (global) => {
 
   global = getGlobal();
   global = updateAccountState(global, global.currentAccountId!, { stakingHistory: result }, true);
+  global = updatePoolState(global, result.poolState, true);
   setGlobal(global);
 });

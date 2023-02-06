@@ -55,7 +55,7 @@ function TransferModal({
   }, tokens,
 }: StateProps) {
   const {
-    submitTransferConfirm, submitTransferPassword, setTransferScreen, cleanTransferError, cancelTransfer,
+    submitTransferConfirm, submitTransferPassword, setTransferScreen, clearTransferError, cancelTransfer,
     showTransactionInfo, startTransfer,
   } = getActions();
 
@@ -197,7 +197,7 @@ function TransferModal({
           isLoading={isLoading}
           error={error}
           placeholder={lang('Enter your password')}
-          onCleanError={cleanTransferError}
+          onUpdate={clearTransferError}
           onSubmit={handleTransferSubmit}
           submitLabel={lang('Send')}
           onCancel={handleBackClick}

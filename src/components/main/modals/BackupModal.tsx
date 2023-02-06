@@ -40,7 +40,7 @@ enum SLIDES {
 function BackupModal({
   isOpen, onClose, isLoading, mnemonic, error,
 }: OwnProps & StateProps) {
-  const { startBackupWallet, cleanBackupWalletError, closeBackupWallet } = getActions();
+  const { startBackupWallet, clearBackupWalletError, closeBackupWallet } = getActions();
 
   const lang = useLang();
   const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.confirm);
@@ -107,7 +107,7 @@ function BackupModal({
               error={error}
               placeholder={lang('Enter your password')}
               submitLabel={lang('Back Up')}
-              onCleanError={cleanBackupWalletError}
+              onUpdate={clearBackupWalletError}
               onSubmit={handlePasswordSubmit}
               cancelLabel={lang('Cancel')}
               onCancel={onClose}

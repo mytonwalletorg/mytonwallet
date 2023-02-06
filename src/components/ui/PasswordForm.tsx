@@ -26,7 +26,7 @@ interface OwnProps {
   containerClassName?: string;
   children?: VirtualElement;
   onCancel: NoneToVoidFunction;
-  onCleanError: NoneToVoidFunction;
+  onUpdate: NoneToVoidFunction;
   onSubmit: (password: string) => void;
 }
 
@@ -42,7 +42,7 @@ function PasswordForm({
   error,
   containerClassName,
   children,
-  onCleanError,
+  onUpdate,
   onCancel,
   onSubmit,
 }: OwnProps) {
@@ -67,9 +67,9 @@ function PasswordForm({
   const handleInput = useCallback((value: string) => {
     setPassword(value);
     if (error) {
-      onCleanError();
+      onUpdate();
     }
-  }, [error, onCleanError]);
+  }, [error, onUpdate]);
 
   const handleSubmit = useCallback(() => {
     onSubmit(password);

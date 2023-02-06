@@ -9,7 +9,7 @@ import init from '../../methods/init';
 import * as methods from '../../methods';
 import { disconnectUpdater } from '../../common/helpers';
 
-createExtensionInterface(POPUP_PORT, (name: string, ...args: any[]) => {
+createExtensionInterface(POPUP_PORT, (name: string, origin?: string, ...args: any[]) => {
   if (name === 'init') {
     return init(args[0] as OnApiUpdate, args[1] as ApiInitArgs, StorageType.IndexedDb);
   } else {

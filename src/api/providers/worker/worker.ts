@@ -7,7 +7,7 @@ import { createWorkerInterface } from '../../../util/createPostMessageInterface'
 import init from '../../methods/init';
 import * as methods from '../../methods';
 
-createWorkerInterface((name: string, ...args: any[]) => {
+createWorkerInterface((name: string, origin?: string, ...args: any[]) => {
   if (name === 'init') {
     return init(args[0] as OnApiUpdate, args[1] as ApiInitArgs, StorageType.IndexedDb);
   } else {

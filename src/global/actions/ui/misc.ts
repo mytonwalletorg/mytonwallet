@@ -84,7 +84,7 @@ addActionHandler('renameAccount', (global, actions, { accountId, title }) => {
   return renameAccount(global, accountId, title);
 });
 
-addActionHandler('cleanAccountError', (global) => {
+addActionHandler('clearAccountError', (global) => {
   return updateAccounts(global, { error: undefined });
 });
 

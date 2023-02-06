@@ -49,7 +49,7 @@ function StakeModal({
     startStaking,
     setStakingScreen,
     cancelStaking,
-    cleanStakingError,
+    clearStakingError,
     submitStakingPassword,
   } = getActions();
 
@@ -99,7 +99,7 @@ function StakeModal({
           isLoading={isLoading}
           error={error}
           placeholder={lang('Confirm operation with your password')}
-          onCleanError={cleanStakingError}
+          onUpdate={clearStakingError}
           onSubmit={handleTransferSubmit}
           submitLabel={lang('Confirm')}
           onCancel={handleBackClick}

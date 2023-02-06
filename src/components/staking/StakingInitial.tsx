@@ -1,17 +1,19 @@
 import React, {
-  memo, useCallback, useMemo, useState,
+  memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 import { withGlobal, getActions } from '../../global';
 
 import type { UserToken } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_TOKEN_SLUG } from '../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, MIN_BALANCE_FOR_UNSTAKE, TON_TOKEN_SLUG } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import buildClassName from '../../util/buildClassName';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 import { floor } from '../../util/round';
+import { bigStrToHuman } from '../../global/helpers';
+import { throttle } from '../../util/schedulers';
 import renderText from '../../global/helpers/renderText';
 import useLang from '../../hooks/useLang';
 import useFlag from '../../hooks/useFlag';
@@ -28,6 +30,7 @@ interface StateProps {
   isLoading?: boolean;
   apiError?: string;
   tokens?: UserToken[];
+  fee?: string;
   stakingBalance: number;
   stakingMinAmount: number;
   apyValue: number;
@@ -35,23 +38,58 @@ interface StateProps {
 
 export const STAKING_DECIMAL = 2;
 
+// Fee may change, so we add 5% for more reliability. This is only safe for low-fee blockchains such as TON.
+const RESERVED_FEE_FACTOR = 1.05;
+const runThrottled = throttle((cb) => cb(), 1500, true);
+
 function StakingInitial({
   isLoading,
   apiError,
   tokens,
+  fee,
   stakingBalance,
   stakingMinAmount,
   apyValue,
 }: StateProps) {
-  const { submitStakingInitial } = getActions();
+  const { submitStakingInitial, fetchStakingFee } = getActions();
 
   const lang = useLang();
   const [isStakingInfoModalOpen, openStakingInfoModal, closeStakingInfoModal] = useFlag();
   const [amount, setAmount] = useState<number | undefined>(0);
   const [isNotEnough, setIsNotEnough] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
+  const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
   const balance = tonToken?.amount;
+  const shouldRenderBalance = !isInsufficientBalance && !isNotEnough && !apiError;
+
+  useEffect(() => {
+    if (shouldUseAllBalance && balance) {
+      const calculatedFee = fee && shouldUseAllBalance ? bigStrToHuman(fee, tonToken.decimals) : 0;
+
+      if (balance + stakingBalance < stakingMinAmount) {
+        setIsNotEnough(true);
+      }
+
+      setAmount(balance - calculatedFee * RESERVED_FEE_FACTOR);
+    }
+  }, [tonToken, balance, fee, shouldUseAllBalance, stakingBalance, stakingMinAmount]);
+
+  useEffect(() => {
+    if (!amount) {
+      return;
+    }
+
+    runThrottled(() => {
+      fetchStakingFee({
+        amount,
+      });
+    });
+  }, [amount, fetchStakingFee]);
+
+  const handleAmountChange = useCallback(() => {
+    setShouldUseAllBalance(false);
+  }, []);
 
   const handleAmountInput = useCallback((value?: number) => {
     if (value !== amount) {
@@ -89,18 +127,19 @@ function StakingInitial({
       return;
     }
 
-    let percentOfAmount = Number(e.currentTarget.dataset.amount || 100);
-    if (Number.isNaN(percentOfAmount) || ![25, 50, 100].includes(percentOfAmount)) {
-      percentOfAmount = 100;
+    setShouldUseAllBalance(true);
+  }, [balance]);
+
+  const handleMinusOneClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!balance || !amount || amount <= MIN_BALANCE_FOR_UNSTAKE) {
+      return;
     }
 
-    const newBalace = floor((balance / 100) * percentOfAmount, STAKING_DECIMAL);
-    setAmount(newBalace);
-
-    if (newBalace + stakingBalance < stakingMinAmount) {
-      setIsNotEnough(true);
-    }
-  }, [balance, stakingBalance, stakingMinAmount]);
+    setAmount(amount - MIN_BALANCE_FOR_UNSTAKE);
+  }, [amount, balance]);
 
   const canSubmit = amount && balance && !isNotEnough
     && amount <= balance
@@ -129,25 +168,23 @@ function StakingInitial({
       return undefined;
     }
 
-    const canSetHalf = stakingBalance > stakingMinAmount || (Boolean(balance) && balance / 2 >= stakingMinAmount);
-    const canSetQuarter = stakingBalance > stakingMinAmount || (Boolean(balance) && balance / 4 >= stakingMinAmount);
+    const hasMoreThanOne = Boolean(amount && amount > MIN_BALANCE_FOR_UNSTAKE);
 
     return (
       <div className={styles.balance}>
         {lang('$your_balance_is', {
           balance: (
-            <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink} data-amount="100">
+            <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink}>
               {balance !== undefined
                 ? formatCurrencyExtended(floor(balance, STAKING_DECIMAL), tonToken.symbol, true)
                 : lang('Loading...')}
             </a>
           ),
         })}
-        {canSetHalf && (
-          <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink} data-amount="50">50%</a>
-        )}
-        {canSetQuarter && (
-          <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink} data-amount="25">25%</a>
+        {hasMoreThanOne && (
+          <a href="#" onClick={handleMinusOneClick} className={styles.balanceLink}>
+            {formatCurrency(-Math.round(MIN_BALANCE_FOR_UNSTAKE), tonToken.symbol)}
+          </a>
         )}
       </div>
     );
@@ -217,7 +254,7 @@ function StakingInitial({
         </div>
       </div>
 
-      {!isInsufficientBalance && renderBalance()}
+      {shouldRenderBalance && renderBalance()}
       <InputNumberRich
         key="staking_amount"
         id="staking_amount"
@@ -226,6 +263,7 @@ function StakingInitial({
         labelText={lang('Amount')}
         error={getError()}
         onBlur={handleAmountBlur}
+        onChange={handleAmountChange}
         onInput={handleAmountInput}
         onPressEnter={handleSubmit}
         decimals={tonToken?.decimals}
@@ -263,6 +301,7 @@ function StakingInitial({
 export default memo(withGlobal((global): StateProps => {
   const {
     isLoading,
+    fee,
     error: apiError,
   } = global.staking;
   const tokens = selectCurrentAccountTokens(global);
@@ -272,6 +311,7 @@ export default memo(withGlobal((global): StateProps => {
     isLoading,
     tokens,
     apiError,
+    fee,
     stakingBalance: accountState?.stakingBalance || 0,
     stakingMinAmount: accountState?.poolState?.minStake || 0,
     apyValue: accountState?.poolState?.lastApy || 0,

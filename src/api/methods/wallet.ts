@@ -48,6 +48,10 @@ export function confirmDappRequest(promiseId: string, password: string) {
   dappPromises.resolveDappPromise(promiseId, password);
 }
 
+export function confirmDappRequestConnect(promiseId: string, password?: string, additionalAccountIds?: string[]) {
+  dappPromises.resolveDappPromise(promiseId, { isUserAllowed: true, additionalAccountIds, password });
+}
+
 export function cancelDappRequest(promiseId: string, reason?: string) {
   dappPromises.rejectDappPromise(promiseId, reason);
 }

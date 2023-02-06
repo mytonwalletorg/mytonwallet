@@ -24,6 +24,10 @@ export function base64ToString(base64: string) {
   return TonWeb.utils.base64toString(base64);
 }
 
+export function sha256(bytes: Uint8Array) {
+  return TonWeb.utils.sha256(bytes);
+}
+
 export function handleFetchErrors(response: Response) {
   if (!response.ok) {
     throw new Error(response.statusText);

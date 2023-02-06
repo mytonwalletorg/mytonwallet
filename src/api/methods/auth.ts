@@ -6,7 +6,8 @@ import blockchains from '../blockchains';
 import { getNewAccountId, removeAccountValue, setAccountValue } from '../common/accounts';
 import { bytesToHex } from '../common/utils';
 
-import { activateAccount, deactivateAccount } from './accounts';
+import { activateAccount, deactivateAccount, deactivateAllAccounts } from './accounts';
+import { IS_EXTENSION } from '../environment';
 
 // let onUpdate: OnApiUpdate;
 let storage: Storage;
@@ -89,19 +90,27 @@ async function storeAccount(
 }
 
 export async function resetAccounts() {
-  deactivateAccount();
+  deactivateAllAccounts();
+
   await Promise.all([
     storage.removeItem('addresses'),
     storage.removeItem('publicKeys'),
     storage.removeItem('mnemonicsEncrypted'),
   ]);
+  if (IS_EXTENSION) {
+    await storage.removeItem('dapps');
+  }
 }
 
 export async function removeAccount(accountId: string) {
   deactivateAccount();
+
   await Promise.all([
     removeAccountValue(storage, accountId, 'addresses'),
     removeAccountValue(storage, accountId, 'publicKeys'),
     removeAccountValue(storage, accountId, 'mnemonicsEncrypted'),
   ]);
+  if (IS_EXTENSION) {
+    await removeAccountValue(storage, accountId, 'dapps');
+  }
 }

@@ -8,6 +8,7 @@ import {
   hexToBytes,
 } from '../../common/utils';
 import { toInternalAccountId } from '../../common/helpers';
+import { DEBUG } from '../../../config';
 
 export function generateMnemonic() {
   return tonWebMnemonic.generateMnemonic();
@@ -95,6 +96,24 @@ export async function fetchPublicKey(storage: Storage, accountId: string): Promi
   const publicKeysJson = (await storage.getItem('publicKeys'))!;
   const publicKeys = JSON.parse(publicKeysJson);
   return publicKeys[internalId];
+}
+
+export async function fetchKeyPair(storage: Storage, accountId: string, password: string) {
+  try {
+    const mnemonic = await fetchMnemonic(storage, accountId, password);
+    if (!mnemonic) {
+      return undefined;
+    }
+
+    return await tonWebMnemonic.mnemonicToKeyPair(mnemonic);
+  } catch (err) {
+    if (DEBUG) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
+
+    return undefined;
+  }
 }
 
 export async function rawSign(storage: Storage, accountId: string, password: string, dataHex: string) {

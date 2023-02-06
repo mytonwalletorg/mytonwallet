@@ -1,9 +1,10 @@
 import {
   ApiStakingState,
-  ApiPoolState,
   ApiToken,
   ApiTransaction,
   ApiTransactionDraftError,
+  ApiDapp,
+  ApiBackendStakingState,
 } from './misc';
 
 export type ApiUpdateBalance = {
@@ -68,9 +69,42 @@ export type ApiUpdateStakingState = {
   stakingState: ApiStakingState;
 };
 
-export type ApiUpdatePoolState = {
-  type: 'updatePoolState';
-  poolState: ApiPoolState;
+export type ApiUpdateBackendStakingState = {
+  type: 'updateBackendStakingState';
+  backendStakingState: ApiBackendStakingState;
+};
+
+export type ApiUpdateActiveDapp = {
+  type: 'updateActiveDapp';
+  accountId: string;
+  origin?: string;
+};
+
+export type ApiUpdateCreateTransactions = {
+  type: 'createTransactions';
+  promiseId: string;
+  transactions: {
+    toAddress: string;
+    amount: string;
+    fee: string;
+  }[];
+};
+
+export type ApiUpdateDappConnect = {
+  type: 'dappConnect';
+  promiseId: string;
+  accountId: string;
+  dapp: ApiDapp;
+  permissions: {
+    address: boolean;
+    proof: boolean;
+  };
+};
+
+export type ApiUpdateDappDisconnect = {
+  type: 'dappDisconnect';
+  accountId: string;
+  origin: string;
 };
 
 export type ApiUpdate =
@@ -84,6 +118,10 @@ export type ApiUpdate =
   | ApiUpdateTonProxyState
   | ApiUpdateTonMagicState
   | ApiUpdateStakingState
-  | ApiUpdatePoolState;
+  | ApiUpdateActiveDapp
+  | ApiUpdateCreateTransactions
+  | ApiUpdateDappConnect
+  | ApiUpdateDappDisconnect
+  | ApiUpdateBackendStakingState;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

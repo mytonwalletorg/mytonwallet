@@ -41,6 +41,12 @@ export async function getNewAccountId(storage: Storage, network: ApiNetwork) {
   });
 }
 
+export async function getAccountValue(storage: Storage, accountId: string, item: string) {
+  const internalId = toInternalAccountId(accountId);
+  const data = await storage.getItem(item);
+  return data && JSON.parse(data)[internalId];
+}
+
 export async function removeAccountValue(storage: Storage, accountId: string, item: string) {
   const internalId = toInternalAccountId(accountId);
   const data = JSON.parse(await storage.getItem(item));

@@ -3,17 +3,21 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiStakingHistory } from '../../api/types';
+import type { ApiBackendStakingState } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
 import { CARD_SECONDARY_VALUE_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { STAKING_DECIMAL } from './StakingInitial';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import { formatCurrency } from '../../util/formatNumber';
+import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import buildClassName from '../../util/buildClassName';
 import { round } from '../../util/round';
+
 import useLang from '../../hooks/useLang';
 import useShowTransition from '../../hooks/useShowTransition';
+import useForceUpdate from '../../hooks/useForceUpdate';
+import useInterval from '../../hooks/useInterval';
 
 import InputNumberRich from '../ui/InputNumberRich';
 import Modal from '../ui/Modal';
@@ -32,9 +36,13 @@ interface OwnProps {
 interface StateProps {
   amount: number;
   apyValue: number;
-  stakingHistory?: ApiStakingHistory;
+  stakingHistory?: ApiBackendStakingState;
   tokens?: UserToken[];
+  isUnstakeRequested?: boolean;
+  endOfStakingCycle?: number;
 }
+
+const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
 
 function StakingInfoModal({
   isOpen,
@@ -42,9 +50,11 @@ function StakingInfoModal({
   apyValue,
   stakingHistory,
   tokens,
+  isUnstakeRequested,
+  endOfStakingCycle,
   onClose,
 }: OwnProps & StateProps) {
-  const { startStaking, fetchStakingHistory } = getActions();
+  const { startStaking, fetchBackendStakingState } = getActions();
 
   const lang = useLang();
   const isLoading = !amount;
@@ -54,12 +64,15 @@ function StakingInfoModal({
     transitionClassNames: spinnerClassNames,
   } = useShowTransition(isLoading && isOpen);
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG)!, [tokens]);
+  const forceUpdate = useForceUpdate();
+
+  useInterval(forceUpdate, isUnstakeRequested ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined);
 
   useEffect(() => {
     if (isOpen) {
-      fetchStakingHistory();
+      fetchBackendStakingState();
     }
-  }, [fetchStakingHistory, isOpen]);
+  }, [fetchBackendStakingState, isOpen]);
 
   const handleStakeClick = useCallback(() => {
     onClose();
@@ -73,6 +86,17 @@ function StakingInfoModal({
 
   const stakingResult = round(amount, STAKING_DECIMAL);
   const balanceResult = round(amount + (amount / 100) * apyValue, STAKING_DECIMAL);
+
+  function renderUnstakeDescription() {
+    return (
+      <div className={buildClassName(styles.unstakeTime, styles.unstakeTime_purple)}>
+        <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} />
+        {endOfStakingCycle && lang('$unstaking_when_receive', {
+          time: <strong>{formatRelativeHumanDateTime(lang.code, endOfStakingCycle)}</strong>,
+        })}
+      </div>
+    );
+  }
 
   function renderHistory() {
     return (
@@ -127,23 +151,29 @@ function StakingInfoModal({
         >
           {shouldRenderSpinner && <Loading className={buildClassName(styles.stakingInfoLoading, spinnerClassNames)} />}
         </InputNumberRich>
-        <InputNumberRich
-          labelText={lang('Est. balance in a year')}
-          isReadable
-          zeroValue="..."
-          value={balanceResult}
-          decimals={STAKING_DECIMAL}
-          suffix={CARD_SECONDARY_VALUE_SYMBOL}
-          inputClassName={styles.balanceResultInput}
-          labelClassName={styles.balanceStakedLabel}
-          valueClassName={styles.balanceResult}
-        />
-        <div className={styles.stakingInfoButtons}>
-          <Button className={styles.stakingInfoButton} isPrimary onClick={handleStakeClick}>
-            {lang('Stake More')}
-          </Button>
-          <Button className={styles.stakingInfoButton} onClick={handleUnstakeClick}>{lang('Unstake')}</Button>
-        </div>
+        {isUnstakeRequested
+          ? renderUnstakeDescription()
+          : (
+            <>
+              <InputNumberRich
+                labelText={lang('Est. balance in a year')}
+                isReadable
+                zeroValue="..."
+                value={balanceResult}
+                decimals={STAKING_DECIMAL}
+                suffix={CARD_SECONDARY_VALUE_SYMBOL}
+                inputClassName={styles.balanceResultInput}
+                labelClassName={styles.balanceStakedLabel}
+                valueClassName={styles.balanceResult}
+              />
+              <div className={styles.stakingInfoButtons}>
+                <Button className={styles.stakingInfoButton} isPrimary onClick={handleStakeClick}>
+                  {lang('Stake More')}
+                </Button>
+                <Button className={styles.stakingInfoButton} onClick={handleUnstakeClick}>{lang('Unstake')}</Button>
+              </div>
+            </>
+          )}
       </div>
 
       {hasHistory && renderHistory()}
@@ -159,5 +189,7 @@ export default memo(withGlobal((global): StateProps => {
     apyValue: accountState?.poolState?.lastApy || 0,
     stakingHistory: accountState?.stakingHistory,
     tokens: selectCurrentAccountTokens(global),
+    isUnstakeRequested: accountState?.isUnstakeRequested,
+    endOfStakingCycle: accountState?.poolState?.endOfCycle,
   };
 })(StakingInfoModal));

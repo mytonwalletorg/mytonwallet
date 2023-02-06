@@ -46,6 +46,6 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; font-src https://fonts.gstatic.com/; style-src 'self' https://fonts.googleapis.com/; img-src 'self' data: https:; connect-src https://mytonwallet-api.herokuapp.com https://tonhttpapi.mytonwallet.org https://tonapiio.mytonwallet.org https://tonhttpapi-testnet.mytonwallet.org https://tonapiio-testnet.mytonwallet.org"
+    "extension_pages": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; font-src https://fonts.gstatic.com/; style-src 'self' https://fonts.googleapis.com/; img-src 'self' data: https:; connect-src https: http://localhost:8081"
   }
 }

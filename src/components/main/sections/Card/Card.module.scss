@@ -459,3 +459,35 @@
   opacity: 0;
   clip: rect(0 0 0 0);
 }
+
+.dapp {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.625rem;
+
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+
+  max-width: 50%;
+  height: 1.75rem;
+  padding: 0 0.4375rem 0 0.3125rem;
+
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1rem;
+  color: var(--color-card-green-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  background-color: var(--color-card-connected-bg);
+  backdrop-filter: blur(0.375rem);
+  border-radius: var(--border-radius-small);
+}
+
+.dappIcon {
+  margin-right: 0.0625rem;
+
+  font-size: 1.25rem;
+  line-height: 1rem;
+}

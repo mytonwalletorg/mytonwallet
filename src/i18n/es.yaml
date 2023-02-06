@@ -260,6 +260,7 @@ Invalid amount: Cantidad no válida
 Invalid address: Dirección no válida
 Domain is not connected to a wallet: El dominio no está conectado a una cartera
 Unexpected error: Error inesperado
+Earn: Earn
 Earning: Adquisitivo
 InvalidAmount: Cantidad no válida
 InvalidToAddress: Dirección de destinatario no válida
@@ -268,3 +269,8 @@ DomainNotResolved: Dominio no resuelto
 You can save this address for quick access while sending.: Puede guardar esta dirección para un acceso rápido mientras la envía.
 Stake Again: Estaca de nuevo
 Earned: Ganado
+Connect Dapp: Connect Dapp
+Select wallets to use on this dapp: Select wallets to use on this dapp
+Connect: Connect
+Dapp Permissions: Dapp Permissions
+$dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."

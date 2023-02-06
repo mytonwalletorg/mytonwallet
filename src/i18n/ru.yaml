@@ -186,6 +186,7 @@ Wallet address or domain: Адрес кошелька или домен
 Incorrect address: Неверный адрес кошелька
 Paste: Вставить
 Insufficient balance: Недостаточный баланс
+InsufficientBalance: Недостаточный баланс
 Optional: Необязательно
 $send_token_symbol: Отправить %1$s
 $your_balance_is: "Ваш баланс: %balance%"
@@ -261,14 +262,19 @@ Transfer was unsuccessful. Try again later: С переводом что-то п
 Unstaking was unsuccessful. Try again later: Не удалось вывести депозит. Попробуйте ещё раз.
 Staking was unsuccessful. Try again later: Не удалось внести депозит. Попробуйте ещё раз.
 Invalid amount: Некорректная сумма
-InvalidAmount: Некорректная сумма
 Invalid address: Некорректный адрес
-InvalidToAddress: Некорректный адрес получателя
 Domain is not connected to a wallet: Домен не подключен к кошельку
 Unexpected error: Ошибочка вышла
 Earn: Стейкинг
 Earning: Стейкинг
+InvalidAmount: Некорректная сумма
+InvalidToAddress: Некорректный адрес получателя
 DomainNotResolved: Ошибка резолвинга домена
-You can save this address for quick access while sending.: You can save this address for quick access while sending.
+You can save this address for quick access while sending.: Вы можете сохранить этот адрес для быстрого доступа при отправке.
 Stake Again: Stake Again
 Earned: Earned
+Connect Dapp: Подключить приложение
+Select wallets to use on this dapp: Выберите кошельки для использования с этим приложением
+Connect: Подключить
+Dapp Permissions: Разрешения для приложения
+$dapp_can_view_balance: "Для %dappname% будет доступен ваш адрес кошелька и баланс."

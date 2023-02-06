@@ -38,6 +38,7 @@ interface OwnProps {
 interface StateProps {
   address?: string;
   tokens?: UserToken[];
+  activeDappOrigin?: string;
   currentTokenSlug?: string;
   isTestnet?: boolean;
 }
@@ -45,6 +46,7 @@ interface StateProps {
 function Card({
   address,
   tokens,
+  activeDappOrigin,
   currentTokenSlug,
   onTokenCardClose,
   onApyClick,
@@ -71,10 +73,30 @@ function Card({
 
     return getTokenCardColor(renderedToken.slug);
   }, [renderedToken]);
+  const dappDomain = useMemo(() => {
+    if (!activeDappOrigin) {
+      return undefined;
+    }
+
+    let value: string | undefined;
+    try {
+      value = new URL(activeDappOrigin).hostname;
+    } catch (err) {
+      value = shortenAddress(activeDappOrigin);
+    }
+
+    return value;
+  }, [activeDappOrigin]);
+  const renderingDappDomain = useCurrentOrPrev(dappDomain, true);
 
   const values = useMemo(() => {
     return tokens ? buildValues(tokens) : undefined;
   }, [tokens]);
+
+  const {
+    shouldRender: shouldRenderDapp,
+    transitionClassNames: dappClassNames,
+  } = useShowTransition(Boolean(dappDomain));
 
   useEffect(
     () => (shouldRenderTokenCard ? captureEscKeyListener(onTokenCardClose) : undefined),
@@ -106,6 +128,12 @@ function Card({
     <div className={styles.containerWrapper}>
       <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
         <AccountSelector />
+        {shouldRenderDapp && (
+          <div className={buildClassName(styles.dapp, dappClassNames)}>
+            <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
+            {renderingDappDomain}
+          </div>
+        )}
         <div className={styles.primaryValue}>
           {DEFAULT_PRICE_CURRENCY}
           {primaryWholePart}
@@ -154,11 +182,13 @@ function Card({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { address } = selectAccount(global, global.currentAccountId!) || {};
+  const accountState = selectCurrentAccountState(global);
 
   return {
     address,
     tokens: selectCurrentAccountTokens(global),
-    currentTokenSlug: selectCurrentAccountState(global)?.currentTokenSlug,
+    activeDappOrigin: accountState?.activeDappOrigin,
+    currentTokenSlug: accountState?.currentTokenSlug,
     isTestnet: global.settings.isTestnet,
   };
 })(Card));

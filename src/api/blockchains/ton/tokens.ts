@@ -9,14 +9,16 @@ import {
 } from 'tonapi-sdk-js';
 
 import { Storage } from '../../storages/types';
-import { DEBUG, DEFAULT_DECIMAL_PLACES } from '../../../config';
+import { DEBUG } from '../../../config';
 import { fetchAddress } from './address';
 import { buildTokenTransferBody, getTonWeb, toBase64Address } from './util/tonweb';
 import {
   TOKEN_TRANSFER_TON_AMOUNT,
   TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
 } from './constants';
-import { ApiNetwork, ApiToken, ApiTokenSimple } from '../../types';
+import {
+  ApiNetwork, ApiToken, ApiBaseToken, ApiTokenSimple,
+} from '../../types';
 import { ApiTransactionWithLt } from './types';
 import { fetchJettonBalances } from './util/tonapiio';
 import { fixBase64ImageData, fixIpfsUrl } from './util/metadata';
@@ -36,25 +38,64 @@ interface ExtendedJetton extends Jetton {
   image_data?: string;
 }
 
-const knownTokens: Record<string, ApiToken> = {
-  toncoin: {
+const KNOWN_TOKENS: ApiBaseToken[] = [
+  {
     slug: 'toncoin',
     name: 'Toncoin',
     symbol: 'TON',
-    quote: {
-      price: 0,
-      percentChange1h: 0,
-      percentChange24h: 0,
-      percentChange7d: 0,
-      percentChange30d: 0,
-    },
-    decimals: DEFAULT_DECIMAL_PLACES,
+    decimals: 9,
     id: 11419,
   },
-  'ton-eqavdfwfg0': {
+  {
+    slug: 'ton-eqc1yom8rb',
+    name: 'Orbit Bridge Ton USD Tether',
+    symbol: 'oUSDT',
+    decimals: 6,
+    minterAddress: 'EQC_1YoM8RBixN95lz7odcF3Vrkc_N8Ne7gQi7Abtlet_Efi',
+    image: 'https://raw.githubusercontent.com/orbit-chain/bridge-token-image/main/ton/usdt.png',
+    id: 825,
+  },
+  {
     slug: 'ton-eqavdfwfg0',
     name: 'Tegro',
     symbol: 'TGR',
+    decimals: 9,
+    minterAddress: 'EQAvDfWFG0oYX19jwNDNBBL1rKNT9XfaGP9HyTb5nb2Eml6y',
+    image: 'https://tegro.io/tgr.png',
+    id: 21133,
+  },
+  {
+    slug: 'ton-eqcclaw537',
+    name: 'Ambra',
+    symbol: 'AMBR',
+    decimals: 9,
+    minterAddress: 'EQCcLAW537KnRg_aSPrnQJoyYjOZkzqYp6FVmRUvN1crSazV',
+    image: fixIpfsUrl('ipfs://bafybeicsvozntp5iatwad32qgvisjxshop62erwohaqnajgsmkl77b6uh4'),
+    id: 23154,
+  },
+  {
+    slug: 'ton-eqbajmyi5w',
+    name: 'TonexCoin',
+    symbol: 'TNX',
+    decimals: 9,
+    minterAddress: 'EQB-ajMyi5-WKIgOHnbOGApfckUGbl6tDk3Qt8PKmb-xLAvp',
+    image: fixIpfsUrl('ipfs://bafybeibxnqgi23lnegtngobej3rfka5ipntib4m3olotdfzlofgbvfrkr4'),
+    id: 23155,
+  },
+  {
+    slug: 'ton-eqblqsm144',
+    name: 'Scaleton',
+    symbol: 'SCALE',
+    decimals: 9,
+    minterAddress: 'EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE',
+    image: fixIpfsUrl('ipfs://QmSMiXsZYMefwrTQ3P6HnDQaCpecS4EWLpgKK5EX1G8iA8'),
+    id: 23156,
+  },
+];
+
+const knownTokens = KNOWN_TOKENS.reduce((tokens, token) => {
+  tokens[token.slug] = {
+    ...token,
     quote: {
       price: 0,
       percentChange1h: 0,
@@ -62,13 +103,9 @@ const knownTokens: Record<string, ApiToken> = {
       percentChange7d: 0,
       percentChange30d: 0,
     },
-    decimals: DEFAULT_DECIMAL_PLACES,
-    minterAddress: 'EQAvDfWFG0oYX19jwNDNBBL1rKNT9XfaGP9HyTb5nb2Eml6y',
-    image: 'https://cache.tonapi.io/imgproxy/vjd8tHYiQDlaqeCJ2iIsDU_le9RGLLIgT6U6H6m-2TU'
-      + '/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZWdyby5pby90Z3IucG5n.webp', // TODO find original
-    id: 21133,
-  },
-};
+  };
+  return tokens;
+}, {} as Record<string, ApiToken>);
 
 export async function getAccountTokenBalances(storage: Storage, accountId: string) {
   const { network } = parseAccountId(accountId);

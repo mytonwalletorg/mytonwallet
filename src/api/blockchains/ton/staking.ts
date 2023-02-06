@@ -5,66 +5,32 @@ import memoized from '../../../util/memoized';
 import { checkTransactionDraft, submitTransfer } from './transactions';
 import { Storage } from '../../storages/types';
 import { handleFetchErrors } from '../../common/utils';
-import {
-  BRILLIANT_API_BASE_URL,
-  STAKING_POOLS_MAINNET,
-  STAKING_POOLS_TESTNET,
-  TON_TOKEN_SLUG,
-} from '../../../config';
+import { BRILLIANT_API_BASE_URL, TON_TOKEN_SLUG } from '../../../config';
 import { fetchAddress } from './address';
-import { NominatorPool } from './contracts/NominatorPool';
-import { getTonWeb } from './util/tonweb';
 import { parseAccountId } from '../../../util/account';
 import {
   ApiNetwork,
   ApiStakingState,
-  ApiPoolState,
   ApiTransactionDraftError,
-  ApiStakingHistory,
+  ApiBackendStakingState,
 } from '../../types';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
+import { NominatorPool } from './contracts/NominatorPool';
+import { getTonWeb } from './util/tonweb';
 
 const { toNano } = TonWeb.utils;
 
 const ONE_TON = '1000000000';
 const UNSTAKE_AMOUNT = ONE_TON;
 const MIN_STAKE_AMOUNT = 10001;
-const MIN_POOL_BALANCE = 350000;
 const CACHE_TTL = 60; // 1 m.
 const DISABLE_CACHE_PERIOD = 30; // 30 s.
 
-interface StakingPool {
-  id: number;
-  address: string;
-  contract: NominatorPool;
-}
-
-const POOLS_BY_NETWORK: Record<ApiNetwork, Record<number, StakingPool>> = {
-  mainnet: Object.fromEntries(STAKING_POOLS_MAINNET.map((address, index) => [index + 1, {
-    id: index + 1,
-    address,
-    contract: new NominatorPool(getTonWeb('mainnet').provider, { address }),
-  }])),
-  testnet: Object.fromEntries(STAKING_POOLS_TESTNET.map((address, index) => [index + 1, {
-    id: index + 1,
-    address,
-    contract: new NominatorPool(getTonWeb('testnet').provider, { address }),
-  }])),
-};
-
-export const resolveWalletPool = memoized(async (network: ApiNetwork, address: string) => {
-  const currentPool = await findCurrentPoolForAddress(network, address);
-  if (currentPool) {
-    return currentPool;
-  }
-
-  return pickPoolByBalance(network);
-}, CACHE_TTL);
+export const fetchStakingStateMemo = memoized(fetchBackendStakingState, CACHE_TTL);
 
 export async function checkStakeDraft(storage: Storage, accountId: string, amount: string) {
-  const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
-  const { address: poolAddress } = await resolveWalletPool(network, address);
+  const { poolAddress } = await fetchStakingStateMemo(address);
 
   const result: {
     error?: ApiTransactionDraftError;
@@ -90,9 +56,8 @@ export async function checkStakeDraft(storage: Storage, accountId: string, amoun
 }
 
 export async function checkUnstakeDraft(storage: Storage, accountId: string) {
-  const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
-  const { address: poolAddress } = await resolveWalletPool(network, address);
+  const { poolAddress } = await fetchStakingStateMemo(address);
   return checkTransactionDraft(
     storage,
     accountId,
@@ -104,9 +69,8 @@ export async function checkUnstakeDraft(storage: Storage, accountId: string) {
 }
 
 export async function submitStake(storage: Storage, accountId: string, password: string, amount: string) {
-  const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
-  const { address: poolAddress } = await resolveWalletPool(network, address);
+  const { poolAddress } = await fetchStakingStateMemo(address);
   const result = await submitTransfer(
     storage,
     accountId,
@@ -121,9 +85,8 @@ export async function submitStake(storage: Storage, accountId: string, password:
 }
 
 export async function submitUnstake(storage: Storage, accountId: string, password: string) {
-  const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
-  const { address: poolAddress } = await resolveWalletPool(network, address);
+  const { poolAddress } = await fetchStakingStateMemo(address);
   const result = await submitTransfer(
     storage,
     accountId,
@@ -138,7 +101,7 @@ export async function submitUnstake(storage: Storage, accountId: string, passwor
 }
 
 function onStakingChangeExpected() {
-  resolveWalletPool.disableCache(DISABLE_CACHE_PERIOD);
+  fetchStakingStateMemo.disableCache(DISABLE_CACHE_PERIOD);
 }
 
 export async function getStakingState(storage: Storage, accountId: string): Promise<ApiStakingState> {
@@ -170,64 +133,25 @@ export async function getStakingState(storage: Storage, accountId: string): Prom
   };
 }
 
-export async function getPoolState(storage: Storage, accountId: string) {
-  const { network } = parseAccountId(accountId);
-  const address = await fetchAddress(storage, accountId);
-  const poolConfig = await resolveWalletPool(network, address);
-  const response = await fetch(`${BRILLIANT_API_BASE_URL}/staking-info?pool=${poolConfig.address}`);
-  handleFetchErrors(response);
-  return response.json() as Promise<ApiPoolState>;
-}
-
-async function findCurrentPoolForAddress(network: ApiNetwork, address: string) {
-  const results = await Promise.all(
-    getPools(network).map(async (pool) => {
-      const nominators = await pool.contract.getListNominators();
-      const isCurrent = nominators.find((n) => address === n.address);
-
-      return isCurrent ? pool : undefined;
-    }),
-  );
-
-  return results.find(Boolean);
-}
-
-async function pickPoolByBalance(network: ApiNetwork) {
-  const items = await Promise.all(
-    getPools(network).map(async (pool) => ({
-      pool,
-      amount: Number((await pool.contract.getPoolData()).stakeAmountSent),
-    })),
-  );
-
-  return items.find(({ amount }) => amount > 0 && amount < MIN_POOL_BALANCE)?.pool
-    || items.sort((item1, item2) => item1.amount - item2.amount)[0]!.pool;
-}
-
-function getPools(network: ApiNetwork) {
-  return Object.values(POOLS_BY_NETWORK[network]);
-}
-
 async function getPoolContract(network: ApiNetwork, address: string) {
-  const poolConfig = await resolveWalletPool(network, address);
-  if (!poolConfig?.address) {
+  const { poolAddress } = await fetchStakingStateMemo(address);
+  return new NominatorPool(getTonWeb(network).provider, { address: poolAddress });
+}
+
+export async function getBackendStakingState(
+  storage: Storage, accountId: string,
+): Promise<ApiBackendStakingState | undefined> {
+  const { network } = parseAccountId(accountId);
+  if (network !== 'mainnet') {
     return undefined;
   }
 
-  return poolConfig.contract;
+  const address = await fetchAddress(storage, accountId);
+  return fetchStakingStateMemo(address);
 }
 
-export async function getStakingHistory(storage: Storage, accountId: string) {
-  const { network } = parseAccountId(accountId);
-  if (network !== 'mainnet') {
-    return {
-      balance: 0,
-      totalProfit: 0,
-      profitHistory: [],
-    };
-  }
-  const address = await fetchAddress(storage, accountId);
-  const response = await fetch(`${BRILLIANT_API_BASE_URL}/staking-history?account=${address}`);
+export async function fetchBackendStakingState(address: string) {
+  const response = await fetch(`${BRILLIANT_API_BASE_URL}/staking-state?account=${address}`);
   handleFetchErrors(response);
-  return response.json() as Promise<ApiStakingHistory>;
+  return response.json() as Promise<ApiBackendStakingState>;
 }

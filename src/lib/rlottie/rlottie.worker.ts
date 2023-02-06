@@ -41,6 +41,7 @@ const renderers = new Map<string, {
 }>();
 
 async function init(
+  origin: any,
   key: string,
   tgsUrl: string,
   imgSize: number,
@@ -70,6 +71,7 @@ async function init(
 }
 
 async function changeData(
+  origin: any,
   key: string,
   tgsUrl: string,
   isLowPriority: boolean,
@@ -116,7 +118,7 @@ function calcParams(json: string, isLowPriority: boolean, framesCount: number) {
 }
 
 async function renderFrames(
-  key: string, frameIndex: number, onProgress: CancellableCallback,
+  origin: any, key: string, frameIndex: number, onProgress: CancellableCallback,
 ) {
   if (!rLottieApi) {
     await rLottieApiPromise;
@@ -153,7 +155,7 @@ function applyColor(arr: Uint8ClampedArray, color: [number, number, number]) {
   }
 }
 
-function destroy(key: string, isRepeated = false) {
+function destroy(origin: any, key: string, isRepeated = false) {
   try {
     const renderer = renderers.get(key)!;
     rLottieApi.destroy(renderer.handle);
@@ -161,7 +163,7 @@ function destroy(key: string, isRepeated = false) {
   } catch (err) {
     // `destroy` sometimes can be called before the initialization is finished
     if (!isRepeated) {
-      setTimeout(() => destroy(key, true), DESTROY_REPEAT_DELAY);
+      setTimeout(() => destroy(origin, key, true), DESTROY_REPEAT_DELAY);
     }
   }
 }

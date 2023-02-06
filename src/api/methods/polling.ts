@@ -13,13 +13,13 @@ import { ApiInitArgs, ApiToken, OnApiUpdate } from '../types';
 import { buildCollectionByKey } from '../../util/iteratees';
 import { cloneDeep } from '../blockchains/ton/util';
 import { getKnownTokens } from '../blockchains/ton/tokens';
-import { getPoolState } from './staking';
+import { getBackendStakingState } from './staking';
 
 type IsAccountActiveFn = (accountId: string) => boolean;
 
 const POLLING_INTERVAL = 1100; // 1.1 sec
 const PRICES_POLLING_INTERVAL = 30000; // 30 sec
-const STAKING_INFO_POLLING_INTERVAL = 60000; // 1 min
+const BACKEND_STAKING_STATE_POLLING_INTERVAL = 60000; // 1 min
 
 let onUpdate: OnApiUpdate;
 let storage: Storage;
@@ -209,26 +209,26 @@ export async function setupPricesPolling() {
   }
 }
 
-export async function setupPoolStatePolling(accountId: string) {
+export async function setupBackendStakingStatePolling(accountId: string) {
   while (isUpdaterAlive(onUpdate) && isAccountActive(accountId)) {
     try {
-      const poolState = await getPoolState(accountId);
+      const backendStakingState = await getBackendStakingState(accountId);
       if (!isUpdaterAlive(onUpdate) || !isAccountActive(accountId)) return;
 
-      if (poolState) {
+      if (backendStakingState) {
         onUpdate({
-          type: 'updatePoolState',
-          poolState,
+          type: 'updateBackendStakingState',
+          backendStakingState,
         });
       }
     } catch (err) {
       if (DEBUG) {
         // eslint-disable-next-line no-console
-        console.error('Error fetching staking info', err);
+        console.error('Error fetching backend staking state', err);
       }
     }
 
-    await pause(STAKING_INFO_POLLING_INTERVAL);
+    await pause(BACKEND_STAKING_STATE_POLLING_INTERVAL);
   }
 }
 

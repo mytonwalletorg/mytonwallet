@@ -162,7 +162,7 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
   }
 });
 
-addActionHandler('cleanTransferError', (global) => {
+addActionHandler('clearTransferError', (global) => {
   setGlobal(updateCurrentTransfer(global, { error: undefined }));
 });
 
@@ -246,7 +246,7 @@ addActionHandler('startBackupWallet', async (global, actions, payload) => {
   }));
 });
 
-addActionHandler('cleanBackupWalletError', (global) => {
+addActionHandler('clearBackupWalletError', (global) => {
   setGlobal(updateBackupWalletModal(global, { error: undefined }));
 });
 
@@ -275,7 +275,7 @@ addActionHandler('submitSignature', async (global, actions, payload) => {
   setGlobal(updateCurrentSignature(getGlobal(), { isSigned: true }));
 });
 
-addActionHandler('cleanSignatureError', (global) => {
+addActionHandler('clearSignatureError', (global) => {
   setGlobal(updateCurrentSignature(global, { error: undefined }));
 });
 

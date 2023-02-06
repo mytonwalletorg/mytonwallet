@@ -2,7 +2,7 @@ import TonWeb from 'tonweb';
 import { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
 import { compact } from '../../../util/iteratees';
 import { Storage } from '../../storages/types';
-import { hexToBytes } from '../../common/utils';
+import { bytesToBase64, hexToBytes } from '../../common/utils';
 import { getTonWeb } from './util/tonweb';
 import { fetchPublicKey } from './auth';
 import { fetchAddress } from './address';
@@ -84,6 +84,12 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
   }, undefined);
 
   return withBiggestBalance?.wallet || buildWallet(network, publicKey, DEFAULT_WALLET_VERSION);
+}
+
+export async function getWalletStateInit(storage: Storage, accountId: string) {
+  const wallet = await pickAccountWallet(storage, accountId);
+  const { stateInit } = await wallet!.createStateInit();
+  return bytesToBase64(await stateInit.toBoc());
 }
 
 export async function pickWalletByAddress(network: ApiNetwork, publicKey: Uint8Array, address: string) {

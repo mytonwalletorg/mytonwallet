@@ -1,10 +1,12 @@
 import { typify } from '../lib/teact/teactn';
 import {
+  ApiDapp,
+  ApiDappPermissions,
+  ApiBackendStakingState,
   ApiHistoryList,
   ApiNetwork,
   ApiNft,
   ApiPoolState,
-  ApiStakingHistory,
   ApiToken,
   ApiTransaction,
   ApiTransactionDraftError,
@@ -101,6 +103,7 @@ export interface AccountState {
   };
   backupWallet?: BackupWallet;
   isBackupRequired?: boolean;
+  activeDappOrigin?: string;
   currentTokenSlug?: string;
   currentTransactionId?: string;
   currentTokenPeriod?: TokenPeriod;
@@ -108,7 +111,7 @@ export interface AccountState {
   stakingBalance?: number;
   isUnstakeRequested?: boolean;
   poolState?: ApiPoolState;
-  stakingHistory?: ApiStakingHistory;
+  stakingHistory?: ApiBackendStakingState;
 }
 
 export type GlobalState = {
@@ -142,6 +145,14 @@ export type GlobalState = {
     dataHex: string;
     error?: string;
     isSigned?: boolean;
+  };
+
+  dappConnectRequest?: {
+    promiseId?: string;
+    accountId?: string;
+    dapp: ApiDapp;
+    permissions?: ApiDappPermissions;
+    error?: string;
   };
 
   staking: {
@@ -204,7 +215,7 @@ export interface ActionPayloads {
 
   selectToken: { slug?: string };
   startBackupWallet: { password: string };
-  cleanBackupWalletError: never;
+  clearBackupWalletError: never;
   closeBackupWallet: { isMnemonicChecked?: boolean };
   setTransferScreen: { state: TransferState };
   startTransfer: { tokenSlug: string; amount?: number; toAddress?: string; comment?: string };
@@ -213,7 +224,7 @@ export interface ActionPayloads {
   submitTransferInitial: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
   submitTransferConfirm: never;
   submitTransferPassword: { password: string };
-  cleanTransferError: never;
+  clearTransferError: never;
   cancelTransfer: never;
   showDialog: { message: string };
   dismissDialog: never;
@@ -226,7 +237,7 @@ export interface ActionPayloads {
   addAccount: { isImporting?: boolean; password: string };
   switchAccount: { accountId: string; newNetwork?: ApiNetwork };
   renameAccount: { accountId: string; title: string };
-  cleanAccountError: never;
+  clearAccountError: never;
 
   fetchTransactions: { limit: number; offsetId?: string };
   fetchNfts: never;
@@ -234,7 +245,7 @@ export interface ActionPayloads {
   closeTransactionInfo: never;
 
   submitSignature: { password: string };
-  cleanSignatureError: never;
+  clearSignatureError: never;
   cancelSignature: never;
 
   addSavedAddress: { address: string; name: string };
@@ -249,11 +260,11 @@ export interface ActionPayloads {
   setStakingScreen: { state: StakingState };
   submitStakingInitial: { amount?: number; isUnstaking?: boolean };
   submitStakingPassword: { password: string; isUnstaking?: boolean };
-  cleanStakingError: never;
+  clearStakingError: never;
   cancelStaking: never;
-  fetchPoolState: never;
   fetchStakingState: never;
-  fetchStakingHistory: never;
+  fetchBackendStakingState: never;
+  fetchStakingFee: { amount: number };
 
   // Settings
   openSettingsModal: never;
@@ -268,6 +279,11 @@ export interface ActionPayloads {
   startChangingNetwork: { network: ApiNetwork };
   changeNetwork: { network: ApiNetwork };
   changeLanguage: { langCode: LangCode };
+
+  // TON Connect
+  submitDappConnectRequestConfirm: { additionalAccountIds?: string[]; password?: string };
+  clearDappConnectRequestError: never;
+  cancelDappConnectRequestConfirm: never;
 }
 
 const typed = typify<GlobalState, ActionPayloads>();

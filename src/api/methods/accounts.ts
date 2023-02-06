@@ -4,7 +4,9 @@ import { Storage } from '../storages/types';
 import { migrateStorage } from '../common/helpers';
 
 import * as dappMethods from '../dappMethods';
-import { setupBalancePolling, setupPoolStatePolling } from './polling';
+import { setupBalancePolling, setupBackendStakingStatePolling } from './polling';
+import { deactivateDapp, deactivateAllDapps } from './dapps';
+import { IS_EXTENSION } from '../environment';
 
 // let onUpdate: OnApiUpdate;
 let storage: Storage;
@@ -27,12 +29,22 @@ export async function activateAccount(accountId: string, newestTxId?: string) {
   dappMethods.activateDappAccount(accountId);
 
   void setupBalancePolling(accountId, newestTxId);
-  void setupPoolStatePolling(accountId);
+  void setupBackendStakingStatePolling(accountId);
 }
 
 export function deactivateAccount() {
+  if (IS_EXTENSION && activeAccountId) {
+    deactivateDapp(activeAccountId);
+  }
   dappMethods.deactivateDappAccount();
   activeAccountId = undefined;
+}
+
+export function deactivateAllAccounts() {
+  deactivateAccount();
+  if (IS_EXTENSION) {
+    deactivateAllDapps();
+  }
 }
 
 export function isAccountActive(accountId: string) {

@@ -25,6 +25,7 @@ export {
   pickBestWallet,
   publicKeyToAddress,
   resolveWalletVersion,
+  getWalletStateInit,
 } from './wallet';
 export {
   checkStakeDraft,
@@ -32,6 +33,5 @@ export {
   submitStake,
   submitUnstake,
   getStakingState,
-  getPoolState,
-  getStakingHistory,
+  getBackendStakingState,
 } from './staking';

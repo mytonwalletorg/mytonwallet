@@ -36,7 +36,7 @@ const enum SLIDES {
 function SignatureModal({
   dataHex, error, isSigned,
 }: StateProps) {
-  const { submitSignature, cleanSignatureError, cancelSignature } = getActions();
+  const { submitSignature, clearSignatureError, cancelSignature } = getActions();
 
   const lang = useLang();
   const [isModalOpen, openModal, closeModal] = useFlag(false);
@@ -108,7 +108,7 @@ function SignatureModal({
           error={error}
           placeholder={lang('Enter your password')}
           submitLabel={lang('Sign')}
-          onCleanError={cleanSignatureError}
+          onUpdate={clearSignatureError}
           onSubmit={handlePasswordSubmit}
           cancelLabel="Cancel"
           onCancel={closeModal}

@@ -28,6 +28,10 @@ export function toBase64Address(address: string) {
   return new TonWeb.utils.Address(address).toString(true, true, true);
 }
 
+export function toRawAddress(address: string) {
+  return new TonWeb.utils.Address(address).toString(false);
+}
+
 export function buildTokenTransferBody(params: TokenTransferBodyParams) {
   const cell = new Cell();
   cell.bits.writeUint(OperationCode.requestTransfer, 32);

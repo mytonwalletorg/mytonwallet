@@ -261,6 +261,7 @@ Invalid amount: Invalid amount
 Invalid address: Invalid address
 Domain is not connected to a wallet: Domain is not connected to a wallet
 Unexpected error: Unexpected error
+Earn: Earn
 Earning: Earning
 InvalidAmount: Invalid amount
 InvalidToAddress: Invalid recipient address
@@ -269,3 +270,8 @@ DomainNotResolved: Domain Not Resolved
 You can save this address for quick access while sending.: You can save this address for quick access while sending.
 Stake Again: Stake Again
 Earned: Earned
+Connect Dapp: Connect Dapp
+Select wallets to use on this dapp: Select wallets to use on this dapp
+Connect: Connect
+Dapp Permissions: Dapp Permissions
+$dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."

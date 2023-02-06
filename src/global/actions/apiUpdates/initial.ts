@@ -27,8 +27,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
-    case 'updatePoolState': {
-      global = updatePoolState(global, update.poolState, true);
+    case 'updateBackendStakingState': {
+      const { poolState } = update.backendStakingState;
+      global = updatePoolState(global, poolState, true);
       setGlobal(global);
 
       break;

@@ -6,3 +6,12 @@ export * from './extension';
 export * from './polling';
 export * from './accounts';
 export * from './staking';
+export {
+  initDapps,
+  isDappConnected,
+  getActiveDapp,
+  getDapps,
+  getDappsByOrigin,
+  deleteDapp,
+  deleteAllDapps,
+} from './dapps';

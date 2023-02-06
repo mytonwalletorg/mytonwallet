@@ -6,7 +6,9 @@ import { getActions, withGlobal } from '../../global';
 import { GlobalState, StakingState, UserToken } from '../../global/types';
 
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
-import { CARD_SECONDARY_VALUE_SYMBOL, STAKING_CYCLE_DURATION_MS, TON_TOKEN_SLUG } from '../../config';
+import {
+  CARD_SECONDARY_VALUE_SYMBOL, MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_TOKEN_SLUG,
+} from '../../config';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -42,7 +44,6 @@ const IS_OPEN_STATES = new Set([
   StakingState.UnstakeComplete,
 ]);
 
-const MIN_BALANCE_FOR_UNSTAKE = 1;
 const ICON_SIZE = 80;
 const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
 
@@ -57,10 +58,10 @@ function UnstakeModal({
   const {
     setStakingScreen,
     cancelStaking,
-    cleanStakingError,
+    clearStakingError,
     submitStakingInitial,
     submitStakingPassword,
-    fetchPoolState,
+    fetchBackendStakingState,
   } = getActions();
 
   const lang = useLang();
@@ -79,10 +80,10 @@ function UnstakeModal({
 
   useEffect(() => {
     if (isOpen) {
-      fetchPoolState();
+      fetchBackendStakingState();
       updateNextKey();
     }
-  }, [isOpen, fetchPoolState, updateNextKey]);
+  }, [isOpen, fetchBackendStakingState, updateNextKey]);
 
   useOnChange(() => {
     if (endOfStakingCycle) {
@@ -92,10 +93,10 @@ function UnstakeModal({
 
   const refreshUnstakeDate = useCallback(() => {
     if (unstakeDate < Date.now()) {
-      fetchPoolState();
+      fetchBackendStakingState();
     }
     forceUpdate();
-  }, [fetchPoolState, forceUpdate, unstakeDate]);
+  }, [fetchBackendStakingState, forceUpdate, unstakeDate]);
 
   useInterval(refreshUnstakeDate, UPDATE_UNSTAKE_DATE_INTERVAL_MS);
 
@@ -144,6 +145,7 @@ function UnstakeModal({
             key="unstaking_amount"
             id="unstaking_amount"
             isReadable
+            error={error ? lang(error) : undefined}
             value={stakingBalance}
             labelText={lang('Amount to unstake')}
             decimals={tonToken?.decimals}
@@ -186,7 +188,7 @@ function UnstakeModal({
           isLoading={isLoading}
           error={error}
           placeholder={lang('Confirm operation with your password')}
-          onCleanError={cleanStakingError}
+          onUpdate={clearStakingError}
           onSubmit={handleTransferSubmit}
           submitLabel={lang('Confirm')}
           onCancel={handleBackClick}

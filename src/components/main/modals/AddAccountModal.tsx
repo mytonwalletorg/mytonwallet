@@ -33,7 +33,7 @@ function AddAccountModal({
   isLoading,
   error,
 }: StateProps) {
-  const { addAccount, cleanAccountError, closeAddAccountModal } = getActions();
+  const { addAccount, clearAccountError, closeAddAccountModal } = getActions();
 
   const lang = useLang();
   const [renderingKey, setRenderingKey] = useState<number>(RenderingState.initial);
@@ -102,7 +102,7 @@ function AddAccountModal({
           isLoading={isLoading}
           error={error}
           placeholder={lang('Enter your password')}
-          onCleanError={cleanAccountError}
+          onUpdate={clearAccountError}
           onSubmit={handleSubmit}
           submitLabel={lang('Send')}
           onCancel={handleBackClick}
