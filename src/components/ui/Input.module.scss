@@ -242,9 +242,7 @@
   color: var(--color-blue);
   white-space: nowrap;
 
-  &.help {
-    color: var(--color-gray-2);
-  }
+  transition: color 150ms;
 
   &.error {
     color: var(--color-red);
@@ -259,6 +257,14 @@
     position: absolute;
     right: 0;
     bottom: 100%;
+  }
+
+  &_errorUnderInput {
+    position: absolute;
+    right: 0;
+    bottom: -1.375rem;
+
+    font-size: 0.75rem;
   }
 
   &_errorBottom {

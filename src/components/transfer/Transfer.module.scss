@@ -37,6 +37,10 @@
   }
 }
 
+.amountInput {
+  margin-bottom: 2rem;
+}
+
 .help,
 .label,
 .feeLabel {
@@ -46,18 +50,48 @@
   line-height: 0.875rem;
 }
 
-.currencyAndFee {
+.amountBottomWrapper {
+  position: relative;
+}
+
+.amountBottom {
+  position: absolute;
+  top: -1.75rem;
+
   display: flex;
   justify-content: space-between;
 
+  width: 100%;
   min-height: 1rem;
-  margin-top: -0.75rem;
-  margin-bottom: 0.75rem;
   padding: 0 0.5rem;
 
   font-size: 0.75rem;
   line-height: 1rem;
   color: var(--color-input-hint);
+}
+
+.amountBottomRight {
+  flex: 1;
+
+  & > div {
+    text-align: right;
+
+    background: var(--color-background-window);
+  }
+
+  &.animating {
+    > .from {
+      animation-duration: 150ms !important;
+    }
+
+    > .to {
+      animation-duration: 150ms !important;
+    }
+  }
+}
+
+.balanceError {
+  color: var(--color-red);
 }
 
 .feeValue {

@@ -27,7 +27,7 @@ import TransferInitial from './TransferInitial';
 import PasswordForm from '../ui/PasswordForm';
 import Button from '../ui/Button';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
-import InteractiveTextValue from '../ui/InteractiveTextValue';
+import InteractiveTextField from '../ui/InteractiveTextField';
 import TransferResult from '../common/TransferResult';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -147,7 +147,7 @@ function TransferModal({
             previewUrl={ANIMATED_STICKERS_PATHS.billPreview}
           />
           <div className={styles.label}>{lang('Receiving Address')}</div>
-          <InteractiveTextValue
+          <InteractiveTextField
             address={toAddress!}
             copyNotification={lang('Address was copied!')}
             className={styles.addressWidget}

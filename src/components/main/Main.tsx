@@ -30,9 +30,15 @@ type StateProps = {
   currentTokenSlug?: string;
   currentAccountId?: string;
   isStakingActive: boolean;
+  isUnstakeRequested?: boolean;
 };
 
-function Main({ currentTokenSlug, currentAccountId, isStakingActive }: StateProps) {
+function Main({
+  currentTokenSlug,
+  currentAccountId,
+  isStakingActive,
+  isUnstakeRequested,
+}: StateProps) {
   const { selectToken, startStaking, fetchBackendStakingState } = getActions();
 
   const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : 0);
@@ -40,10 +46,10 @@ function Main({ currentTokenSlug, currentAccountId, isStakingActive }: StateProp
   const [isBackupWalletOpened, openBackupWallet, closeBackupWallet] = useFlag(false);
 
   useEffect(() => {
-    if (currentAccountId && isStakingActive) {
+    if (currentAccountId && (isStakingActive || isUnstakeRequested)) {
       fetchBackendStakingState();
     }
-  }, [fetchBackendStakingState, currentAccountId, isStakingActive]);
+  }, [fetchBackendStakingState, currentAccountId, isStakingActive, isUnstakeRequested]);
 
   const handleTokenCardClose = useCallback(() => {
     selectToken({ slug: undefined });
@@ -51,12 +57,12 @@ function Main({ currentTokenSlug, currentAccountId, isStakingActive }: StateProp
   }, [selectToken]);
 
   const handleEarnClick = useCallback(() => {
-    if (isStakingActive) {
+    if (isStakingActive || isUnstakeRequested) {
       openStakingInfo();
     } else {
       startStaking();
     }
-  }, [isStakingActive, openStakingInfo, startStaking]);
+  }, [isStakingActive, isUnstakeRequested, openStakingInfo, startStaking]);
 
   return (
     <>
@@ -94,6 +100,7 @@ export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps
 
   return {
     isStakingActive: Boolean(accountState?.stakingBalance) && !accountState?.isUnstakeRequested,
+    isUnstakeRequested: accountState?.isUnstakeRequested,
     currentTokenSlug: selectCurrentAccountState(global)?.currentTokenSlug,
     currentAccountId: global.currentAccountId,
   };

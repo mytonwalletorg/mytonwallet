@@ -21,8 +21,8 @@ import Modal from '../../ui/Modal';
 import Button from '../../ui/Button';
 import DropDown, { DropDownItem } from '../../ui/DropDown';
 import Input from '../../ui/Input';
-import InputNumberRich from '../../ui/InputNumberRich';
-import InteractiveTextValue from '../../ui/InteractiveTextValue';
+import RichNumberInput from '../../ui/RichNumberInput';
+import InteractiveTextField from '../../ui/InteractiveTextField';
 
 import modalStyles from '../../ui/Modal.module.scss';
 import styles from './ReceiveModal.module.scss';
@@ -106,7 +106,7 @@ function ReceiveModal({
     QR_CODE.update({ data: TonWeb.utils.formatTransferUrl(address) });
   }, [address]);
 
-  const handleAmountInput = useCallback((value?: number) => {
+  const handleAmountChange = useCallback((value?: number) => {
     setHasAmountError(false);
 
     if (value === undefined) {
@@ -153,7 +153,7 @@ function ReceiveModal({
           </div>
 
           <p className={styles.description}>{lang('Your address')}</p>
-          <InteractiveTextValue
+          <InteractiveTextField
             address={address!}
             copyNotification={lang('Your address was copied!')}
             noSavedAddress
@@ -208,16 +208,16 @@ function ReceiveModal({
           <div className={buildClassName(styles.info, styles.info_push)}>
             {renderText(lang('$receive_invoice_description'))}
           </div>
-          <InputNumberRich
+          <RichNumberInput
             key="amount"
             id="amount"
             hasError={hasAmountError}
             value={amount}
             labelText={lang('Amount')}
-            onInput={handleAmountInput}
+            onChange={handleAmountChange}
           >
             {renderTokens()}
-          </InputNumberRich>
+          </RichNumberInput>
           <Input
             value={comment}
             onInput={setComment}
@@ -228,7 +228,7 @@ function ReceiveModal({
           <p className={buildClassName(styles.description, styles.description_forInvoice)}>
             {lang('Share this URL to receive TON')}
           </p>
-          <InteractiveTextValue
+          <InteractiveTextField
             text={invoiceUrl}
             copyNotification={lang('Invoice link was copied!')}
           />

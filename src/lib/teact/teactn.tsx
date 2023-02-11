@@ -4,7 +4,7 @@ import React, { useEffect, useState } from './teact';
 import { DEBUG, DEBUG_MORE } from '../../config';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import generateIdFor from '../../util/generateIdFor';
-import { fastRaf, throttleWithTickEnd } from '../../util/schedulers';
+import { fastRafWithFallback, throttleWithTickEnd } from '../../util/schedulers';
 import arePropsShallowEqual, { getUnequalProps } from '../../util/arePropsShallowEqual';
 import { orderBy } from '../../util/iteratees';
 import { handleError } from '../../util/handleError';
@@ -18,10 +18,11 @@ type GlobalState =
 type ActionNames = string;
 type ActionPayload = any;
 
-interface ActionOptions {
+export interface ActionOptions {
   forceOnHeavyAnimation?: boolean;
   // Workaround for iOS gesture history navigation
   forceSyncOnIOs?: boolean;
+  noUpdate?: boolean;
 }
 
 type Actions = Record<ActionNames, (payload?: ActionPayload, options?: ActionOptions) => void>;
@@ -48,13 +49,13 @@ const DEBUG_releaseCapturedIdThrottled = throttleWithTickEnd(() => {
 
 const actionHandlers: Record<string, ActionHandler[]> = {};
 const callbacks: Function[] = [updateContainers];
+const immediateCallbacks: Function[] = [];
 const actions = {} as Actions;
 const containers = new Map<string, {
   mapStateToProps: MapStateToProps<any>;
   ownProps: Props;
   mappedProps?: Props;
   forceUpdate: Function;
-  areMappedPropsChanged: boolean;
   isDetached: boolean;
   detachReason: any;
   detachWhenChanged: DetachWhenChanged;
@@ -64,9 +65,13 @@ const containers = new Map<string, {
 
 const runCallbacksThrottled = throttleWithTickEnd(runCallbacks);
 
+function runImmediateCallbacks() {
+  immediateCallbacks.forEach((cb) => cb(currentGlobal));
+}
+
 function runCallbacks(forceOnHeavyAnimation = false) {
   if (!forceOnHeavyAnimation && isHeavyAnimating()) {
-    fastRaf(runCallbacksThrottled);
+    fastRafWithFallback(runCallbacksThrottled);
     return;
   }
 
@@ -84,6 +89,9 @@ export function setGlobal(newGlobal?: GlobalState, options?: ActionOptions) {
     }
 
     currentGlobal = newGlobal;
+
+    if (!options?.noUpdate) runImmediateCallbacks();
+
     if (options?.forceSyncOnIOs) {
       runCallbacks(true);
     } else {
@@ -188,7 +196,6 @@ function updateContainers() {
       }
 
       container.mappedProps = newMappedProps;
-      container.areMappedPropsChanged = true;
       container.DEBUG_updates++;
 
       forceUpdate();
@@ -216,14 +223,14 @@ export function addActionHandler(name: ActionNames, handler: ActionHandler) {
   actionHandlers[name].push(handler);
 }
 
-export function addCallback(cb: Function) {
-  callbacks.push(cb);
+export function addCallback(cb: Function, isImmediate = false) {
+  (isImmediate ? immediateCallbacks : callbacks).push(cb);
 }
 
-export function removeCallback(cb: Function) {
-  const index = callbacks.indexOf(cb);
+export function removeCallback(cb: Function, isImmediate = false) {
+  const index = (isImmediate ? immediateCallbacks : callbacks).indexOf(cb);
   if (index !== -1) {
-    callbacks.splice(index, 1);
+    (isImmediate ? immediateCallbacks : callbacks).splice(index, 1);
   }
 }
 
@@ -248,7 +255,6 @@ export function withGlobal<OwnProps extends AnyLiteral>(
         container = {
           mapStateToProps,
           ownProps: props,
-          areMappedPropsChanged: false,
           forceUpdate,
           isDetached: false,
           detachReason: undefined,
@@ -269,17 +275,15 @@ export function withGlobal<OwnProps extends AnyLiteral>(
         containers.set(id, container);
       }
 
-      if (container.areMappedPropsChanged) {
-        container.areMappedPropsChanged = false;
-      }
-
       if (!container.mappedProps || !arePropsShallowEqual(container.ownProps, props)) {
         container.ownProps = props;
 
-        try {
-          container.mappedProps = mapStateToProps(currentGlobal, props, container.detachWhenChanged);
-        } catch (err: any) {
-          handleError(err);
+        if (!container.isDetached) {
+          try {
+            container.mappedProps = mapStateToProps(currentGlobal, props, container.detachWhenChanged);
+          } catch (err: any) {
+            handleError(err);
+          }
         }
       }
 
@@ -289,34 +293,29 @@ export function withGlobal<OwnProps extends AnyLiteral>(
   };
 }
 
-export function typify<ProjectGlobalState, ActionPayloads, NonTypedActionNames extends string = never>() {
-  type NonTypedActionPayloads = {
-    [ActionName in NonTypedActionNames]: ActionPayload;
-  };
-
-  type ProjectActionTypes =
-    ActionPayloads
-    & NonTypedActionPayloads;
-
-  type ProjectActionNames = keyof ProjectActionTypes;
+export function typify<
+  ProjectGlobalState,
+  ActionPayloads,
+>() {
+  type ProjectActionNames = keyof ActionPayloads;
 
   type ProjectActions = {
     [ActionName in ProjectActionNames]: (
-      payload?: ProjectActionTypes[ActionName],
+      payload?: ActionPayloads[ActionName],
       options?: ActionOptions,
     ) => void;
   };
 
   type ActionHandlers = {
-    [ActionName in keyof ProjectActionTypes]: (
+    [ActionName in keyof ActionPayloads]: (
       global: ProjectGlobalState,
       actions: ProjectActions,
-      payload: ProjectActionTypes[ActionName],
+      payload: ActionPayloads[ActionName],
     ) => ProjectGlobalState | void | Promise<void>;
   };
 
   return {
-    getGlobal: getGlobal as () => ProjectGlobalState,
+    getGlobal: getGlobal as <T extends ProjectGlobalState>() => T,
     setGlobal: setGlobal as (state: ProjectGlobalState, options?: ActionOptions) => void,
     getActions: getActions as () => ProjectActions,
     addActionHandler: addActionHandler as <ActionName extends ProjectActionNames>(

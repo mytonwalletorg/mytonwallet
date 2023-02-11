@@ -8,6 +8,7 @@ import { bytesToHex } from '../common/utils';
 
 import { activateAccount, deactivateAccount, deactivateAllAccounts } from './accounts';
 import { IS_EXTENSION } from '../environment';
+import { deactivateDapp } from './dapps';
 
 // let onUpdate: OnApiUpdate;
 let storage: Storage;
@@ -104,6 +105,9 @@ export async function resetAccounts() {
 
 export async function removeAccount(accountId: string) {
   deactivateAccount();
+  if (IS_EXTENSION) {
+    deactivateDapp(accountId);
+  }
 
   await Promise.all([
     removeAccountValue(storage, accountId, 'addresses'),

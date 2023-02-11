@@ -99,40 +99,88 @@
   color: var(--color-input-button-text);
 }
 
-.balance {
+.amountTopRight {
   position: relative;
   z-index: 1;
 
   align-self: flex-end;
 
+  width: 75%;
+  height: auto !important;
+  min-height: 1rem;
   margin: 0 0.5rem -1rem auto;
-
 
   font-size: 0.8125rem;
   line-height: 1rem;
+
+  & > div {
+    text-align: right;
+
+    background: var(--color-background-window);
+  }
+
+  &.animating {
+    > .from {
+      animation-duration: 150ms !important;
+    }
+
+    > .to {
+      animation-duration: 150ms !important;
+    }
+  }
 }
 
-.minAmount {
-  display: flex;
-  justify-content: flex-end;
+.amountBottomWrapper {
+  position: relative;
+}
 
-  margin-top: -0.75rem;
-  margin-bottom: 1rem;
+.amountBottom {
+  position: absolute;
+  top: -1.75rem;
+
+  display: flex;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: 1rem;
   padding: 0 0.5rem;
 
   font-size: 0.75rem;
-  font-weight: 400;
   line-height: 1rem;
-  color: var(--color-gray-2);
+  color: var(--color-input-hint);
+}
+
+.amountBottomRight {
+  flex: 1;
+
+  transition: color 150ms;
 
   &_error {
     color: var(--color-red);
   }
+
+  & > div {
+    text-align: right;
+
+    background: var(--color-background-window);
+  }
+
+  &.animating {
+    > .from {
+      animation-duration: 150ms !important;
+    }
+
+    > .to {
+      animation-duration: 150ms !important;
+    }
+  }
+}
+
+.balanceError {
+  color: var(--color-red);
 }
 
 .minAmountValue {
-  margin-inline-start: 0.1875rem;
-
   font-weight: 600;
 }
 
@@ -163,6 +211,10 @@
 
 .stakingBalance {
   margin-bottom: 0.75rem;
+}
+
+.amountInput {
+  margin-bottom: 2rem;
 }
 
 .balanceResultInput {

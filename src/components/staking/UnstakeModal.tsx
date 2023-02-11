@@ -25,7 +25,7 @@ import Transition from '../ui/Transition';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
-import InputNumberRich from '../ui/InputNumberRich';
+import RichNumberField from '../ui/RichNumberField';
 import Button from '../ui/Button';
 import TransferResult from '../common/TransferResult';
 
@@ -141,10 +141,9 @@ function UnstakeModal({
             </div>
           </div>
 
-          <InputNumberRich
+          <RichNumberField
             key="unstaking_amount"
             id="unstaking_amount"
-            isReadable
             error={error ? lang(error) : undefined}
             value={stakingBalance}
             labelText={lang('Amount to unstake')}
@@ -154,7 +153,7 @@ function UnstakeModal({
               <img src={ASSET_LOGO_PATHS.ton} alt="" className={styles.tonIcon} />
               <span className={styles.tonName}>{tonToken?.symbol}</span>
             </div>
-          </InputNumberRich>
+          </RichNumberField>
           {!hasBalanceForUnstake && (
             <p className={styles.insufficientBalance}>
               {lang('$unstake_insufficient_balance', {

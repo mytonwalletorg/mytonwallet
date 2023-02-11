@@ -43,6 +43,8 @@ const MAPPED_ATTRIBUTES: { [k: string]: string } = {
 const INDEX_KEY_PREFIX = '__indexKey#';
 
 const headsByElement = new WeakMap<HTMLElement, VirtualDomHead>();
+// eslint-disable-next-line @typescript-eslint/naming-convention
+let DEBUG_virtualTreeSize = 1;
 
 function render($element: VirtualElement | undefined, parentEl: HTMLElement) {
   if (!headsByElement.has(parentEl)) {
@@ -52,6 +54,13 @@ function render($element: VirtualElement | undefined, parentEl: HTMLElement) {
   const $head = headsByElement.get(parentEl)!;
   const $newElement = renderWithVirtual(parentEl, $head.children[0], $element, $head, 0);
   $head.children = $newElement ? [$newElement] : [];
+
+  if (process.env.APP_ENV === 'perf') {
+    DEBUG_virtualTreeSize = 0;
+    DEBUG_addToVirtualTreeSize($head);
+
+    return DEBUG_virtualTreeSize;
+  }
 
   return undefined;
 }
@@ -677,6 +686,17 @@ function removeAttribute(element: HTMLElement, key: string, value: any) {
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
+function DEBUG_addToVirtualTreeSize($current: VirtualElementParent | VirtualDomHead) {
+  DEBUG_virtualTreeSize += $current.children.length;
+
+  $current.children.forEach(($child) => {
+    if (isParentElement($child)) {
+      DEBUG_addToVirtualTreeSize($child);
+    }
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function DEBUG_checkKeyUniqueness(children: VirtualElementChildren) {
   const firstChild = children[0];
   if (firstChild && 'props' in firstChild && firstChild.props.key !== undefined) {
@@ -689,6 +709,8 @@ function DEBUG_checkKeyUniqueness(children: VirtualElementChildren) {
     }, []);
 
     if (keys.length !== unique(keys).length) {
+      // eslint-disable-next-line no-console
+      console.warn('[Teact] Duplicated keys:', keys.filter((e, i, a) => a.indexOf(e) !== i));
       throw new Error('[Teact] Children keys are not unique');
     }
   }

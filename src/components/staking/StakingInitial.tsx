@@ -19,12 +19,14 @@ import useLang from '../../hooks/useLang';
 import useFlag from '../../hooks/useFlag';
 
 import Button from '../ui/Button';
-import InputNumberRich from '../ui/InputNumberRich';
+import RichNumberInput from '../ui/RichNumberInput';
+import RichNumberField from '../ui/RichNumberField';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Modal from '../ui/Modal';
 
 import styles from './Staking.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import Transition from '../ui/Transition';
 
 interface StateProps {
   isLoading?: boolean;
@@ -54,26 +56,54 @@ function StakingInitial({
   const { submitStakingInitial, fetchStakingFee } = getActions();
 
   const lang = useLang();
+
   const [isStakingInfoModalOpen, openStakingInfoModal, closeStakingInfoModal] = useFlag();
   const [amount, setAmount] = useState<number | undefined>(0);
   const [isNotEnough, setIsNotEnough] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
   const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
-  const balance = tonToken?.amount;
-  const shouldRenderBalance = !isInsufficientBalance && !isNotEnough && !apiError;
+
+  const {
+    amount: balance, decimals, symbol,
+  } = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]) || {};
+  const hasAmountError = Boolean(isInsufficientBalance || apiError);
+
+  const validateAndSetAmount = useCallback((newAmount: number | undefined, noReset = false) => {
+    if (!noReset) {
+      setShouldUseAllBalance(false);
+      setIsNotEnough(false);
+      setIsInsufficientBalance(false);
+    }
+
+    if (newAmount === undefined) {
+      setAmount(undefined);
+      return;
+    }
+
+    if (Number.isNaN(newAmount) || newAmount < 0) {
+      setIsNotEnough(true);
+      return;
+    }
+
+    if (!balance || newAmount > balance) {
+      setIsInsufficientBalance(true);
+    } else if (balance + stakingBalance < stakingMinAmount) {
+      setIsNotEnough(true);
+    }
+
+    setAmount(newAmount);
+  }, [balance, stakingBalance, stakingMinAmount]);
 
   useEffect(() => {
     if (shouldUseAllBalance && balance) {
-      const calculatedFee = fee && shouldUseAllBalance ? bigStrToHuman(fee, tonToken.decimals) : 0;
+      const calculatedFee = fee && shouldUseAllBalance ? bigStrToHuman(fee, decimals) : 0;
+      const newAmount = balance - calculatedFee * RESERVED_FEE_FACTOR;
 
-      if (balance + stakingBalance < stakingMinAmount) {
-        setIsNotEnough(true);
-      }
-
-      setAmount(balance - calculatedFee * RESERVED_FEE_FACTOR);
+      validateAndSetAmount(newAmount, true);
+    } else {
+      validateAndSetAmount(amount, true);
     }
-  }, [tonToken, balance, fee, shouldUseAllBalance, stakingBalance, stakingMinAmount]);
+  }, [amount, balance, decimals, fee, shouldUseAllBalance, validateAndSetAmount]);
 
   useEffect(() => {
     if (!amount) {
@@ -87,31 +117,7 @@ function StakingInitial({
     });
   }, [amount, fetchStakingFee]);
 
-  const handleAmountChange = useCallback(() => {
-    setShouldUseAllBalance(false);
-  }, []);
-
-  const handleAmountInput = useCallback((value?: number) => {
-    if (value !== amount) {
-      setIsNotEnough(false);
-      setIsInsufficientBalance(false);
-    }
-
-    if (value === undefined) {
-      setAmount(undefined);
-      return;
-    }
-    if (Number.isNaN(value) || value < 0) {
-      setIsNotEnough(true);
-      return;
-    }
-
-    setAmount(value);
-
-    if (!balance || value > balance) {
-      setIsInsufficientBalance(true);
-    }
-  }, [amount, balance]);
+  const handleAmountChange = useCallback(validateAndSetAmount, [validateAndSetAmount]);
 
   const handleAmountBlur = useCallback(() => {
     if (amount && amount + stakingBalance < stakingMinAmount) {
@@ -138,8 +144,8 @@ function StakingInitial({
       return;
     }
 
-    setAmount(amount - MIN_BALANCE_FOR_UNSTAKE);
-  }, [amount, balance]);
+    validateAndSetAmount(amount - MIN_BALANCE_FOR_UNSTAKE);
+  }, [amount, balance, validateAndSetAmount]);
 
   const canSubmit = amount && balance && !isNotEnough
     && amount <= balance
@@ -163,30 +169,56 @@ function StakingInitial({
     return apiError ? lang(apiError) : undefined;
   }
 
-  function renderBalance() {
-    if (!tonToken) {
+  function renderTopRight() {
+    if (!symbol) {
       return undefined;
     }
 
-    const hasMoreThanOne = Boolean(amount && amount > MIN_BALANCE_FOR_UNSTAKE);
+    const isFullBalanceSelected = balance && amount
+      && (balance >= amount && balance - amount <= MIN_BALANCE_FOR_UNSTAKE);
+    const balanceLink = lang('$your_balance_is', {
+      balance: (
+        <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink}>
+          {balance !== undefined
+            ? formatCurrencyExtended(floor(balance, STAKING_DECIMAL), symbol, true)
+            : lang('Loading...')}
+        </a>
+      ),
+    });
+    const minusOneLink = (
+      <a href="#" onClick={handleMinusOneClick} className={styles.balanceLink}>
+        {formatCurrency(-Math.round(MIN_BALANCE_FOR_UNSTAKE), symbol)}
+      </a>
+    );
 
     return (
-      <div className={styles.balance}>
-        {lang('$your_balance_is', {
-          balance: (
-            <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink}>
-              {balance !== undefined
-                ? formatCurrencyExtended(floor(balance, STAKING_DECIMAL), tonToken.symbol, true)
-                : lang('Loading...')}
-            </a>
-          ),
-        })}
-        {hasMoreThanOne && (
-          <a href="#" onClick={handleMinusOneClick} className={styles.balanceLink}>
-            {formatCurrency(-Math.round(MIN_BALANCE_FOR_UNSTAKE), tonToken.symbol)}
-          </a>
-        )}
-      </div>
+      <Transition name="fade" activeKey={isFullBalanceSelected ? 1 : 0} className={styles.amountTopRight}>
+        {isFullBalanceSelected ? minusOneLink : balanceLink}
+      </Transition>
+    );
+  }
+
+  function renderBottomRight() {
+    const error = getError();
+
+    return (
+      <Transition
+        className={buildClassName(styles.amountBottomRight, isNotEnough && styles.amountBottomRight_error)}
+        name="fade"
+        activeKey={error ? 2 : !stakingBalance && !hasAmountError ? 1 : 0}
+      >
+        {error ? (
+          <span className={styles.balanceError}>{error}</span>
+        ) : !stakingBalance ? (
+          lang('$min_value', {
+            value: (
+              <span className={styles.minAmountValue}>
+                {formatCurrency(stakingMinAmount, 'TON')}
+              </span>
+            ),
+          })
+        ) : ' '}
+      </Transition>
     );
   }
 
@@ -220,12 +252,11 @@ function StakingInitial({
     const balanceResult = amount ? floor(amount! + (amount! / 100) * apyValue, STAKING_DECIMAL) : 0;
 
     return (
-      <InputNumberRich
+      <RichNumberField
         labelText={lang('Est. balance in a year')}
-        isReadable
         zeroValue="..."
         value={balanceResult}
-        decimals={tonToken?.decimals}
+        decimals={decimals}
         inputClassName={styles.balanceResultInput}
         labelClassName={styles.balanceResultLabel}
         valueClassName={styles.balanceResult}
@@ -254,32 +285,29 @@ function StakingInitial({
         </div>
       </div>
 
-      {shouldRenderBalance && renderBalance()}
-      <InputNumberRich
+      {renderTopRight()}
+      <RichNumberInput
         key="staking_amount"
         id="staking_amount"
         hasError={isNotEnough || isInsufficientBalance}
         value={amount}
         labelText={lang('Amount')}
-        error={getError()}
         onBlur={handleAmountBlur}
         onChange={handleAmountChange}
-        onInput={handleAmountInput}
         onPressEnter={handleSubmit}
-        decimals={tonToken?.decimals}
+        decimals={decimals}
+        className={styles.amountInput}
       >
         <div className={styles.ton}>
           <img src={ASSET_LOGO_PATHS.ton} alt="" className={styles.tonIcon} />
-          <span className={styles.tonName}>{tonToken?.symbol}</span>
+          <span className={styles.tonName}>{symbol}</span>
         </div>
-      </InputNumberRich>
-      {!stakingBalance && (
-        <div className={buildClassName(styles.minAmount, isNotEnough && styles.minAmount_error)}>
-          {lang('$min_value', {
-            value: <span className={styles.minAmountValue}>{formatCurrency(stakingMinAmount, 'TON')}</span>,
-          })}
+      </RichNumberInput>
+      <div className={styles.amountBottomWrapper}>
+        <div className={styles.amountBottom}>
+          {renderBottomRight()}
         </div>
-      )}
+      </div>
 
       {renderStakingResult()}
 

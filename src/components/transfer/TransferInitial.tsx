@@ -21,13 +21,14 @@ import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import InputNumberRich from '../ui/InputNumberRich';
+import RichNumberInput from '../ui/RichNumberInput';
 import Menu from '../ui/Menu';
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import DropDown, { DropDownItem } from '../ui/DropDown';
 
 import styles from './Transfer.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import Transition from '../ui/Transition';
 
 interface StateProps {
   initialAddress?: string;
@@ -70,7 +71,9 @@ function TransferInitial({
 
   // eslint-disable-next-line no-null/no-null
   const toAddressRef = useRef<HTMLInputElement>(null);
+
   const lang = useLang();
+
   const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState<boolean>(true);
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
@@ -82,6 +85,7 @@ function TransferInitial({
   const [hasToAddressError, setHasToAddressError] = useState<boolean>(false);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
+
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
@@ -89,19 +93,13 @@ function TransferInitial({
   const hasSavedAddresses = useMemo(() => {
     return savedAddresses && Object.keys(savedAddresses).length > 0;
   }, [savedAddresses]);
-  const selectedToken = useMemo(() => {
-    return tokens?.find((token) => token.slug === tokenSlug);
-  }, [tokenSlug, tokens]);
-  const amountInCurrency = selectedToken?.price && amount && !Number.isNaN(amount)
-    ? amount * selectedToken.price
-    : undefined;
+  const {
+    amount: balance, decimals, price, symbol,
+  } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
+  const amountInCurrency = price && amount && !Number.isNaN(amount) ? amount * price : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const renderingFee = useCurrentOrPrev(fee, true);
 
-  const {
-    shouldRender: shouldRenderFee,
-    transitionClassNames: feeClassNames,
-  } = useShowTransition(Boolean(fee && amount && amount > 0));
   const {
     shouldRender: shouldRenderCurrency,
     transitionClassNames: currencyClassNames,
@@ -125,14 +123,40 @@ function TransferInitial({
     }, []);
   }, [tokens]);
 
-  const balance = selectedToken?.amount;
+  const validateAndSetAmount = useCallback((newAmount: number | undefined, noReset = false) => {
+    if (!noReset) {
+      setShouldUseAllBalance(false);
+      setHasAmountError(false);
+      setIsInsufficientBalance(false);
+    }
+
+    if (newAmount === undefined) {
+      setAmount(undefined);
+      return;
+    }
+
+    if (Number.isNaN(newAmount) || newAmount < 0) {
+      setHasAmountError(true);
+      return;
+    }
+
+    if (!balance || newAmount > balance) {
+      setHasAmountError(true);
+      setIsInsufficientBalance(true);
+    }
+
+    setAmount(newAmount);
+  }, [balance]);
 
   useEffect(() => {
     if (shouldUseAllBalance && balance) {
-      const calculatedFee = fee ? bigStrToHuman(fee, selectedToken.decimals) : 0;
-      setAmount(balance - calculatedFee * RESERVED_FEE_FACTOR);
+      const calculatedFee = fee ? bigStrToHuman(fee, decimals) : 0;
+      const reducedAmount = balance - calculatedFee * RESERVED_FEE_FACTOR;
+      validateAndSetAmount(reducedAmount, true);
+    } else {
+      validateAndSetAmount(amount, true);
     }
-  }, [selectedToken, balance, fee, shouldUseAllBalance]);
+  }, [amount, balance, fee, decimals, shouldUseAllBalance, validateAndSetAmount]);
 
   useEffect(() => {
     if (!toAddress || hasToAddressError || !amount || !isAddressValid) {
@@ -229,27 +253,7 @@ function TransferInitial({
     setSavedAddressForDeletion(undefined);
   }, []);
 
-  const handleAmountInput = useCallback((value?: number) => {
-    setHasAmountError(false);
-    setIsInsufficientBalance(false);
-
-    if (value === undefined) {
-      setAmount(undefined);
-      return;
-    }
-
-    if (Number.isNaN(value) || value < 0) {
-      setHasAmountError(true);
-      return;
-    }
-
-    if (!balance || value > balance) {
-      setHasAmountError(true);
-      setIsInsufficientBalance(true);
-    }
-
-    setAmount(value);
-  }, [balance]);
+  const handleAmountChange = useCallback(validateAndSetAmount, [validateAndSetAmount]);
 
   const handleMaxAmountClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
@@ -260,10 +264,6 @@ function TransferInitial({
 
     setShouldUseAllBalance(true);
   }, [balance]);
-
-  const handleAmountChange = useCallback(() => {
-    setShouldUseAllBalance(false);
-  }, []);
 
   const handleCommentChange = useCallback((value) => {
     setComment(trimStringByMaxBytes(value, COMMENT_MAX_SIZE_BYTES));
@@ -318,22 +318,32 @@ function TransferInitial({
     );
   }
 
-  function renderFee() {
+  function renderBottomRight() {
+    const withFee = fee && amount && amount > 0;
+
     return (
-      <span className={buildClassName(styles.fee, feeClassNames)}>
-        {lang('$fee_value', {
-          fee: (
-            <span className={styles.feeValue}>
-              {formatCurrencyExtended(bigStrToHuman(renderingFee!), CARD_SECONDARY_VALUE_SYMBOL, true)}
-            </span>
-          ),
-        })}
-      </span>
+      <Transition
+        className={styles.amountBottomRight}
+        name="fade"
+        activeKey={isInsufficientBalance ? 2 : withFee ? 1 : 0}
+      >
+        {isInsufficientBalance ? (
+          <span className={styles.balanceError}>{lang('Insufficient balance')}</span>
+        ) : withFee ? (
+          lang('$fee_value', {
+            fee: (
+              <span className={styles.feeValue}>
+                {formatCurrencyExtended(bigStrToHuman(renderingFee!), CARD_SECONDARY_VALUE_SYMBOL, true)}
+              </span>
+            ),
+          })
+        ) : ' '}
+      </Transition>
     );
   }
 
   function renderBalance() {
-    if (!selectedToken) {
+    if (!symbol) {
       return undefined;
     }
 
@@ -344,7 +354,7 @@ function TransferInitial({
             balance: (
               <a href="#" onClick={handleMaxAmountClick} className={styles.balanceLink}>
                 {balance !== undefined
-                  ? formatCurrencyExtended(balance, selectedToken.symbol, true)
+                  ? formatCurrencyExtended(balance, symbol, true)
                   : lang('Loading...')}
               </a>
             ),
@@ -401,25 +411,26 @@ function TransferInitial({
 
         {hasSavedAddresses && renderSavedAddresses()}
 
-        {!isInsufficientBalance && renderBalance()}
-        <InputNumberRich
+        {renderBalance()}
+        <RichNumberInput
           key="amount"
           id="amount"
           hasError={hasAmountError}
-          error={isInsufficientBalance ? lang('Insufficient balance') : undefined}
           value={amount}
           labelText={lang('Amount')}
           onChange={handleAmountChange}
-          onInput={handleAmountInput}
           onPressEnter={handleSubmit}
-          decimals={selectedToken?.decimals}
+          decimals={decimals}
+          className={styles.amountInput}
         >
           {renderTokens()}
-        </InputNumberRich>
+        </RichNumberInput>
 
-        <div className={styles.currencyAndFee}>
-          {shouldRenderCurrency && renderCurrencyValue()}
-          {shouldRenderFee && renderFee()}
+        <div className={styles.amountBottomWrapper}>
+          <div className={styles.amountBottom}>
+            {shouldRenderCurrency && renderCurrencyValue()}
+            {renderBottomRight()}
+          </div>
         </div>
 
         <Input
@@ -437,7 +448,7 @@ function TransferInitial({
             isDisabled={!canSubmit}
             isLoading={isLoading}
           >
-            {lang('$send_token_symbol', selectedToken?.symbol || 'TON')}
+            {lang('$send_token_symbol', symbol || 'TON')}
           </Button>
         </div>
       </form>

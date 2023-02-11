@@ -19,7 +19,7 @@ import useShowTransition from '../../hooks/useShowTransition';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
 
-import InputNumberRich from '../ui/InputNumberRich';
+import RichNumberField from '../ui/RichNumberField';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import Button from '../ui/Button';
@@ -91,7 +91,7 @@ function StakingInfoModal({
     return (
       <div className={buildClassName(styles.unstakeTime, styles.unstakeTime_purple)}>
         <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} />
-        {endOfStakingCycle && lang('$unstaking_when_receive', {
+        {Boolean(endOfStakingCycle) && lang('$unstaking_when_receive', {
           time: <strong>{formatRelativeHumanDateTime(lang.code, endOfStakingCycle)}</strong>,
         })}
       </div>
@@ -138,9 +138,8 @@ function StakingInfoModal({
           closeClassName={styles.stakingInfoClose}
           onClose={onClose}
         />
-        <InputNumberRich
+        <RichNumberField
           labelText={lang('Currently staked')}
-          isReadable
           zeroValue="..."
           value={stakingResult}
           decimals={STAKING_DECIMAL}
@@ -150,14 +149,13 @@ function StakingInfoModal({
           valueClassName={styles.balanceStakedResult}
         >
           {shouldRenderSpinner && <Loading className={buildClassName(styles.stakingInfoLoading, spinnerClassNames)} />}
-        </InputNumberRich>
+        </RichNumberField>
         {isUnstakeRequested
           ? renderUnstakeDescription()
           : (
             <>
-              <InputNumberRich
+              <RichNumberField
                 labelText={lang('Est. balance in a year')}
-                isReadable
                 zeroValue="..."
                 value={balanceResult}
                 decimals={STAKING_DECIMAL}

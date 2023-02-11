@@ -22,7 +22,7 @@ import useLang from '../../../hooks/useLang';
 import Modal from '../../ui/Modal';
 import Button from '../../ui/Button';
 import TransactionAmount from '../../common/TransactionAmount';
-import InteractiveTextValue from '../../ui/InteractiveTextValue';
+import InteractiveTextField from '../../ui/InteractiveTextField';
 
 import transferStyles from '../../transfer/Transfer.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
@@ -150,7 +150,7 @@ function TransactionModal({
     return (
       <>
         <div className={transferStyles.label}>Comment</div>
-        <InteractiveTextValue
+        <InteractiveTextField
           text={comment}
           copyNotification={lang('Comment was copied!')}
           className={styles.copyButtonWrapper}
@@ -195,7 +195,7 @@ function TransactionModal({
         <TransactionAmount isIncoming={isIncoming} amount={amountHuman} tokenSymbol={token?.symbol} />
 
         <div className={transferStyles.label}>{lang(isIncoming ? 'Sender' : 'Recipient')}</div>
-        <InteractiveTextValue
+        <InteractiveTextField
           address={address!}
           copyNotification={lang('Address was copied!')}
           className={styles.copyButtonWrapper}

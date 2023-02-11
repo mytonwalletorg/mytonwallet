@@ -19,7 +19,7 @@ import Input from './Input';
 import Button from './Button';
 
 import modalStyles from './Modal.module.scss';
-import styles from './InteractiveTextValue.module.scss';
+import styles from './InteractiveTextField.module.scss';
 
 interface OwnProps {
   address?: string;
@@ -37,7 +37,7 @@ interface StateProps {
 
 const SAVED_ADDRESS_NAME_MAX_LENGTH = 255;
 
-function InteractiveTextValue({
+function InteractiveTextField({
   address,
   text,
   copyNotification,
@@ -195,4 +195,4 @@ export default memo(withGlobal<OwnProps>(
       isTestnet: global.settings.isTestnet,
     };
   },
-)(InteractiveTextValue));
+)(InteractiveTextField));

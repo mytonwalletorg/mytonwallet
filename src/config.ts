@@ -100,7 +100,7 @@ export const LANG_PACKS = [{
 }];
 
 export const STAKING_CYCLE_DURATION_MS = 129600000; // 36 hours
-export const MIN_BALANCE_FOR_UNSTAKE = 1.01;
+export const MIN_BALANCE_FOR_UNSTAKE = 1.02;
 
 export const STAKING_POOLS_MAINNET = process.env.STAKING_POOLS_MAINNET
   ? process.env.STAKING_POOLS_MAINNET.split(' ') : [];
