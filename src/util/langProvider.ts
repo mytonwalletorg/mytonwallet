@@ -2,7 +2,7 @@ import type { LangCode, LangPack, LangString } from '../global/types';
 import type { TeactNode } from '../lib/teact/teact';
 
 import { LANG_CACHE_NAME, LANG_PACKS } from '../config';
-import { DEFAULT_LANG_CODE } from './environment';
+import { DEFAULT_LANG_CODE } from './windowEnvironment';
 import renderText from '../global/helpers/renderText';
 import * as cacheApi from './cacheApi';
 import { createCallbackManager } from './callbacks';

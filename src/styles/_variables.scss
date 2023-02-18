@@ -8,6 +8,7 @@
   --color-gray-2: #798795;
   --color-gray-3: #91ABB8;
   --color-gray-4: #C1D1D9;
+  --color-gray-5: #91ABB8;
   --color-green: #2CD36F;
   --color-red: #F35B5B;
   --color-purple-1: #5E6BDE;
@@ -74,6 +75,13 @@
   --color-activity-green-text: #1EC160;
   --color-activity-purple-text: #6875E9;
   --color-activity-purple-background: #EDEEFC;
+
+  --color-transaction-gray-text: #53657B;
+  --color-transaction-gray-background: #E2E9F1;
+  --color-transaction-red-text: #F35B5B;
+  --color-transaction-red-background: #F5E6E7;
+  --color-transaction-green-text: #1EC160;
+  --color-transaction-green-background: #DDF2E8;
 
   --color-separator: rgba(132, 146, 171, 0.3);
   --color-linear-effect-1: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%);
@@ -158,6 +166,7 @@
     --color-gray-2: #808C9D;
     --color-gray-3: #7F93A4;
     --color-gray-4: #808C9E;
+    --color-gray-5: #59697A;
     --color-purple-1: #95A0FE;
     --color-purple-2: #7986F7;
 
@@ -212,6 +221,13 @@
     --color-activity-green-text: #2CD36F;
     --color-activity-purple-text: #6875E9;
     --color-activity-purple-background: #2D3651;
+
+    --color-transaction-gray-text: #AABCCC;
+    --color-transaction-gray-background: #2E3947;
+    --color-transaction-red-text: #FF6868;
+    --color-transaction-red-background: #452A2E;
+    --color-transaction-green-text: #2CD36F;
+    --color-transaction-green-background: #1F3838;
 
     --color-separator: rgba(84, 96, 112, 0.3);
     --color-linear-effect-1: linear-gradient(90deg, rgba(30, 39, 50, 0) 0%, #1E2732 100%);

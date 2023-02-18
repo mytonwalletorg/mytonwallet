@@ -1,4 +1,4 @@
-import { IS_IOS } from './environment';
+import { IS_IOS } from './windowEnvironment';
 
 window.addEventListener('orientationchange', updateSizes);
 if (IS_IOS) {

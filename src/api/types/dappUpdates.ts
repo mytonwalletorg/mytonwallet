@@ -13,6 +13,8 @@ export type ApiDappUpdateTonMagic = {
   isEnabled: boolean;
 };
 
-export type ApiDappUpdate = ApiDappUpdateBalance | ApiDappUpdateAccounts | ApiDappUpdateTonMagic;
+export type ApiDappUpdate = ApiLegacyDappUpdate | ApiDappUpdateTonMagic;
+
+export type ApiLegacyDappUpdate = ApiDappUpdateBalance | ApiDappUpdateAccounts;
 
 export type OnApiDappUpdate = (update: ApiDappUpdate) => void;

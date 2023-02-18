@@ -1,5 +1,6 @@
 import './ui/initial';
 import './ui/misc';
+import './ui/dapps';
 
 import './api/initial';
 import './api/auth';

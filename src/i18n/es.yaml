@@ -274,3 +274,8 @@ Select wallets to use on this dapp: Select wallets to use on this dapp
 Connect: Connect
 Dapp Permissions: Dapp Permissions
 $dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."
+Send Transaction: Send Transaction
+Payload: Payload
+$many_transactions: "%1$d transactions"
+Total Amount: Total Amount
+Unstaking: Unstaking

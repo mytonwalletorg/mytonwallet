@@ -12,9 +12,9 @@ import {
 } from '../../../config';
 import { selectCurrentAccountState } from '../../../global/selectors';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../global/helpers';
-import { formatCurrencyExtended } from '../../../util/formatNumber';
 import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
+import useShowTransition from '../../../hooks/useShowTransition';
 import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
 import useOnChange from '../../../hooks/useOnChange';
 import useLang from '../../../hooks/useLang';
@@ -23,11 +23,11 @@ import Modal from '../../ui/Modal';
 import Button from '../../ui/Button';
 import TransactionAmount from '../../common/TransactionAmount';
 import InteractiveTextField from '../../ui/InteractiveTextField';
+import AmountWithFeeTextField from '../../ui/AmountWithFeeTextField';
 
 import transferStyles from '../../transfer/Transfer.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
 import styles from './TransactionModal.module.scss';
-import useShowTransition from '../../../hooks/useShowTransition';
 
 type StateProps = {
   transaction?: ApiTransaction;
@@ -133,12 +133,11 @@ function TransactionModal({
     }
 
     return (
-      <>
-        <div className={transferStyles.label}>{lang('Fee')}</div>
-        <div className={transferStyles.inputReadOnly}>
-          {formatCurrencyExtended(bigStrToHuman(fee), CARD_SECONDARY_VALUE_SYMBOL, true)}
-        </div>
-      </>
+      <AmountWithFeeTextField
+        label={lang('Fee')}
+        amount={bigStrToHuman(fee)}
+        currency={CARD_SECONDARY_VALUE_SYMBOL}
+      />
     );
   }
 

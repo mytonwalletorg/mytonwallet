@@ -14,4 +14,5 @@ export {
   getDappsByOrigin,
   deleteDapp,
   deleteAllDapps,
+  deactivateDapp,
 } from './dapps';

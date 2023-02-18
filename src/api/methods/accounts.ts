@@ -5,7 +5,7 @@ import { migrateStorage } from '../common/helpers';
 
 import * as dappMethods from '../dappMethods';
 import { setupBalancePolling, setupBackendStakingStatePolling } from './polling';
-import { deactivateAllDapps } from './dapps';
+import { deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
 import { IS_EXTENSION } from '../environment';
 
 // let onUpdate: OnApiUpdate;
@@ -26,7 +26,11 @@ export async function activateAccount(accountId: string, newestTxId?: string) {
   await migrateStorage(storage);
 
   activeAccountId = accountId;
-  dappMethods.activateDappAccount(accountId);
+
+  if (IS_EXTENSION) {
+    dappMethods.activateDappAccount(accountId);
+    onActiveDappAccountUpdated(accountId);
+  }
 
   void setupBalancePolling(accountId, newestTxId);
   void setupBackendStakingStatePolling(accountId);

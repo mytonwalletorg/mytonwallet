@@ -1,4 +1,5 @@
 import generateIdFor from '../../util/generateIdFor';
+import { ApiUserRejectsError } from '../errors';
 
 const deferreds = new Map<string, Deferred>();
 const ids = {};
@@ -40,7 +41,7 @@ export function rejectDappPromise(promiseId: string, reason: string = 'Unknown r
     return;
   }
 
-  deferred.reject(new Error(reason));
+  deferred.reject(new ApiUserRejectsError(reason));
   deferreds.delete(promiseId);
 }
 

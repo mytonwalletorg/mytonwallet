@@ -18,6 +18,9 @@ export {
   getAccountNewestTxId,
   getAccountTransactionSlice,
   submitTransfer,
+  waitIncrementSeqno,
+  checkMultiTransactionDraft,
+  submitMultiTransfer,
 } from './transactions';
 export {
   getAccountBalance,
@@ -26,6 +29,7 @@ export {
   publicKeyToAddress,
   resolveWalletVersion,
   getWalletStateInit,
+  getWalletBalance,
 } from './wallet';
 export {
   checkStakeDraft,

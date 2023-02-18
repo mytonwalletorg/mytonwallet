@@ -11,6 +11,7 @@ import {
   ApiTransaction,
   ApiTransactionDraftError,
   ApiUpdate,
+  ApiDappTransaction,
 } from '../api/types';
 
 export type AnimationLevel = 0 | 1 | 2;
@@ -145,6 +146,17 @@ export type GlobalState = {
     dataHex: string;
     error?: string;
     isSigned?: boolean;
+  };
+
+  currentDappTransfer: {
+    state: TransferState;
+    promiseId?: string;
+    isLoading?: boolean;
+    transactions?: ApiDappTransaction[];
+    viewTransactionOnIdx?: number;
+    fee?: string;
+    dapp?: ApiDapp;
+    error?: string;
   };
 
   dappConnectRequest?: {
@@ -284,6 +296,12 @@ export interface ActionPayloads {
   submitDappConnectRequestConfirm: { additionalAccountIds?: string[]; password?: string };
   clearDappConnectRequestError: never;
   cancelDappConnectRequestConfirm: never;
+  showDappTransaction: { transactionIdx: number };
+  setDappTransferScreen: { state: TransferState };
+  clearDappTransferError: never;
+  submitDappTransfer: never;
+  submitDappTransferPassword: { password: string };
+  cancelDappTransfer: never;
 }
 
 const typed = typify<GlobalState, ActionPayloads>();

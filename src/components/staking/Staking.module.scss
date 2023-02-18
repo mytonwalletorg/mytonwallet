@@ -153,6 +153,8 @@
 .amountBottomRight {
   flex: 1;
 
+  color: var(--color-gray-5);
+
   transition: color 150ms;
 
   &_error {

@@ -483,6 +483,14 @@
   background-color: var(--color-card-connected-bg);
   backdrop-filter: blur(0.375rem);
   border-radius: var(--border-radius-small);
+
+  transition: opacity 150ms;
+
+  :global(.account-edit-input) ~ & {
+    z-index: 0;
+
+    opacity: 0;
+  }
 }
 
 .dappIcon {

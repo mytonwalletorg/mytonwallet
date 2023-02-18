@@ -2,7 +2,7 @@ import { addActionHandler, getGlobal } from '../../index';
 import { callApi, initApi } from '../../../api';
 import { getIsTxIdLocal } from '../../helpers';
 import { selectCurrentAccountState } from '../../selectors';
-import { IS_EXTENSION } from '../../../util/environment';
+import { IS_EXTENSION } from '../../../util/windowEnvironment';
 
 addActionHandler('initApi', (global, actions) => {
   initApi(actions.apiUpdate, {

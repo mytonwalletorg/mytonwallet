@@ -10,6 +10,7 @@ const proxyHost = PROXY_HOSTS ? sample(PROXY_HOSTS.split(' ')) : '';
 const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) { return host.endsWith('.ton') || host.endsWith('.adnl') ? 'PROXY ${proxyHost}' : 'DIRECT'; }`;
 
 let storage: Storage;
+let isProxyEnabled = false;
 
 export async function initExtension(_storage: Storage) {
   if (!IS_EXTENSION) {
@@ -27,18 +28,28 @@ export function doProxy(isEnabled: boolean) {
     return;
   }
 
+  if (isProxyEnabled === isEnabled) {
+    return;
+  }
+
+  isProxyEnabled = isEnabled;
   void storage.setItem('isTonProxyEnabled', isEnabled);
-  chrome.proxy.settings.set({
-    scope: 'regular',
-    value: isEnabled ? {
-      mode: 'pac_script',
-      pacScript: {
-        data: PROXY_PAC_SCRIPT,
+
+  if (isEnabled) {
+    chrome.proxy.settings.set({
+      scope: 'regular',
+      value: {
+        mode: 'pac_script',
+        pacScript: {
+          data: PROXY_PAC_SCRIPT,
+        },
       },
-    } : {
-      mode: 'direct',
-    },
-  });
+    });
+  } else {
+    chrome.proxy.settings.clear({
+      scope: 'regular',
+    });
+  }
 }
 
 export function doMagic(isEnabled: boolean) {

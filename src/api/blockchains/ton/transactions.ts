@@ -7,7 +7,7 @@ import { Storage } from '../../storages/types';
 import {
   ApiNetwork, ApiTransaction, ApiTransactionDraftError, ApiTransactionType,
 } from '../../types';
-import { STAKING_POOLS_ALL, TON_TOKEN_SLUG } from '../../../config';
+import { DEBUG, STAKING_POOLS_ALL, TON_TOKEN_SLUG } from '../../../config';
 import { base64ToBytes, hexToBase64 } from '../../common/utils';
 import {
   getWalletBalance,
@@ -28,15 +28,19 @@ import {
   fetchAccountEvents,
   fetchAccountTransactions,
 } from './util/tonapiio';
-import { AnyTransactionWithLt, ApiTransactionWithLt } from './types';
+import { AnyTransactionWithLt, ApiTransactionWithLt, TonTransferParams } from './types';
 import { parseAccountId } from '../../../util/account';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
+import { pause } from '../../../util/schedulers';
 
 const { Address, fromNano } = TonWeb.utils;
 
 const DEFAULT_FEE = '10966001';
+const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 60; // 60 sec.
 const GET_TRANSACTIONS_LIMIT = 100;
 const DATA_TEXT_PREFIX = [0, 0, 0, 0].toString();
+const WAIT_SEQNO_TIMEOUT = 10000; // 10 sec.
+const WAIT_SEQNO_PAUSE = 300; // 0.3 sec.
 
 export async function checkTransactionDraft(
   storage: Storage,
@@ -166,10 +170,11 @@ export async function submitTransfer(
     ? (new Address(resolvedAddress)).toString(true, true, false)
     : resolvedAddress;
 
+  const { seqno } = await getWalletInfo(network, wallet);
   const query = await signTransaction(network, wallet, toAddress, amount, data, stateInit, privateKey);
   await query.send();
 
-  return { resolvedAddress, amount };
+  return { resolvedAddress, amount, seqno };
 }
 
 async function signTransaction(
@@ -247,7 +252,7 @@ export async function getAccountTransactionSlice(
       break;
     }
 
-    const allTxs = rawTxs.map(buildApiTransaction);
+    const allTxs = rawTxs.map(parseNestedApiTransactions).flat();
 
     beforeLt = afterLt ? afterLt + 1 : (allTxs[allTxs.length - 1]).lt;
     txs = txs.concat(allTxs.filter((x) => !!x.fromAddress) as ApiTransactionWithLt[]);
@@ -281,6 +286,20 @@ export async function getAccountTransactionSlice(
 function parseTxId(txId: string) {
   const [lt, hash] = txId.split(':');
   return { lt: Number(lt), hash };
+}
+
+function parseNestedApiTransactions(rawTx: RawTransaction): AnyTransactionWithLt[] {
+  const baseTx = buildApiTransaction(rawTx);
+  if (rawTx.outMsgs?.length > 1) {
+    return rawTx.outMsgs.map((outMsg, i) => ({
+      ...baseTx,
+      txId: `${baseTx.txId}:${i}`,
+      toAddress: toBase64Address(outMsg.destination!.address!),
+      amount: String(BigInt(outMsg.value) * BigInt(-1)),
+      fee: i === 0 ? baseTx.fee : '0',
+    }));
+  }
+  return [baseTx];
 }
 
 function buildApiTransaction(rawTx: RawTransaction): AnyTransactionWithLt {
@@ -351,4 +370,145 @@ function parseComment(msgData?: string) {
     }
   }
   return undefined;
+}
+
+export async function waitIncrementSeqno(network: ApiNetwork, address: string, seqno: number) {
+  const waitUntil = new Date().getTime() + WAIT_SEQNO_TIMEOUT;
+  while (new Date().getTime() < waitUntil) {
+    try {
+      const { seqno: currentSeqno } = await getWalletInfo(network, address);
+      if (currentSeqno > seqno) return true;
+
+      await pause(WAIT_SEQNO_PAUSE);
+    } catch (err) {
+      if (DEBUG) {
+        // eslint-disable-next-line no-console
+        console.error('[waitIncrementSeqno]', err);
+      }
+    }
+  }
+  return false;
+}
+
+export async function checkMultiTransactionDraft(
+  storage: Storage,
+  accountId: string,
+  messages: TonTransferParams[],
+) {
+  const { network } = parseAccountId(accountId);
+
+  const result: {
+    error?: ApiTransactionDraftError;
+    fee?: string;
+    totalAmount?: string;
+  } = {};
+
+  let totalAmount: bigint = 0n;
+
+  for (const { toAddress, amount } of messages) {
+    if (BigInt(amount) < BigInt(0)) {
+      result.error = ApiTransactionDraftError.InvalidAmount;
+      return result;
+    }
+    if (!Address.isValid(toAddress)) {
+      result.error = ApiTransactionDraftError.InvalidToAddress;
+      return result;
+    }
+    totalAmount += BigInt(amount);
+  }
+
+  const wallet = await pickAccountWallet(storage, accountId);
+
+  if (!wallet) {
+    result.error = ApiTransactionDraftError.Unexpected;
+    return result;
+  }
+
+  if (await isWalletInitialized(network, wallet)) {
+    const { query } = await signMultiTransaction(network, wallet, messages);
+    const allFees = await query.estimateFee();
+    const fees = allFees.source_fees;
+    result.fee = String(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
+  } else {
+    result.fee = DEFAULT_FEE;
+  }
+  result.totalAmount = totalAmount.toString();
+
+  const balance = await getWalletBalance(network, wallet);
+  if (BigInt(balance) < totalAmount + BigInt(result.fee)) {
+    result.error = ApiTransactionDraftError.InsufficientBalance;
+    return result;
+  }
+
+  return result;
+}
+
+export async function submitMultiTransfer(
+  storage: Storage,
+  accountId: string,
+  password: string,
+  messages: TonTransferParams[],
+  expireAt?: number,
+) {
+  const { network } = parseAccountId(accountId);
+
+  const wallet = await pickAccountWallet(storage, accountId);
+  if (!wallet) {
+    return undefined;
+  }
+
+  const privateKey = await fetchPrivateKey(storage, accountId, password);
+  if (!privateKey) {
+    return undefined;
+  }
+
+  const preparedMessages = await Promise.all(messages.map(async (message) => {
+    let { toAddress } = message;
+
+    // Force default bounceable address for `waitTxComplete` to work properly
+    const resolvedAddress = (new Address(toAddress)).toString(true, true, true);
+    toAddress = !(await isWalletInitialized(network, toAddress))
+      ? (new Address(toAddress)).toString(true, true, false)
+      : resolvedAddress;
+
+    return {
+      ...message,
+      toAddress,
+      resolvedAddress,
+    };
+  }));
+
+  const { seqno, query } = await signMultiTransaction(network, wallet, preparedMessages, privateKey, expireAt);
+  const result = await query.send();
+
+  return {
+    seqno,
+    messages: preparedMessages,
+    result,
+  };
+}
+
+async function signMultiTransaction(
+  network: ApiNetwork,
+  wallet: WalletContract,
+  messages: TonTransferParams[],
+  privateKey?: Uint8Array,
+  expireAt?: number,
+) {
+  const { seqno } = await getWalletInfo(network, wallet);
+  if (!expireAt) {
+    expireAt = Math.round(Date.now() / 1000) + DEFAULT_EXPIRE_AT_TIMEOUT_SEC;
+  }
+
+  // TODO Uncomment after fixing types in tonweb
+  // @ts-ignore
+  const query = wallet.methods.transfers({
+    secretKey: privateKey as any,
+    seqno: seqno || 0,
+    messages,
+    sendMode: 3,
+    expireAt,
+  });
+
+  return { query, seqno };
 }

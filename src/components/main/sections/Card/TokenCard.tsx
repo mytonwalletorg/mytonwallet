@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { UserToken } from '../../../../global/types';
 
 import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../../../config';
-import { IS_SINGLE_COLUMN_LAYOUT } from '../../../../util/environment';
+import { IS_SINGLE_COLUMN_LAYOUT } from '../../../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';

@@ -35,6 +35,13 @@ export async function save(cacheName: string, key: string, data: AnyLiteral | Bl
     // To avoid the error "Request scheme 'webdocument' is unsupported"
     const request = new Request(key.replace(/:/g, '_'));
     const response = new Response(cacheData);
+
+    // To avoid the error "Request scheme 'chrome-extension' is unsupported"
+    // https://github.com/iamshaunjp/pwa-tutorial/issues/1
+    if (request.url.indexOf('chrome-extension') === 0) {
+      return undefined;
+    }
+
     const cache = await cacheApi.open(cacheName);
     return await cache.put(request, response);
   } catch (err) {

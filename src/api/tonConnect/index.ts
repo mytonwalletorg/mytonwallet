@@ -15,26 +15,27 @@ import { KeyPair } from 'tonweb-mnemonic';
 import TonWeb from 'tonweb';
 import nacl from 'tweetnacl';
 import {
-  base64ToBytes,
-  bytesToBase64,
-  handleFetchErrors,
-  sha256,
+  base64ToBytes, bytesToBase64, handleFetchErrors, sha256,
 } from '../common/utils';
 import storage from '../storages/idb';
 import { getActiveDappAccountId } from '../dappMethods';
 import {
+  activateDapp,
   addDapp,
   addDappToAccounts,
-  isDappConnected,
-  isDappActive,
-  activateDapp,
+  deactivateAccountDapp,
+  deactivateDapp,
   deleteDapp,
+  findConnectedAccountByDapp,
+  getDappsByOrigin,
+  isDappActive,
+  isDappConnected,
 } from '../methods/dapps';
 import { parseAccountId } from '../../util/account';
 import blockchains from '../blockchains';
 import { DEBUG, TON_TOKEN_SLUG } from '../../config';
 import {
-  ApiDapp, ApiDappRequest, OnApiUpdate, ApiTransaction,
+  ApiDapp, ApiDappRequest, ApiTransactionDraftError, OnApiUpdate,
 } from '../types';
 import { fetchKeyPair } from '../blockchains/ton/auth';
 import { toBase64Address, toRawAddress } from '../blockchains/ton/util/tonweb';
@@ -44,11 +45,9 @@ import { buildLocalTransaction } from '../common/helpers';
 import { whenTxComplete } from '../common/txCallbacks';
 import * as errors from './errors';
 import {
-  CONNECT_EVENT_ERROR_CODES,
-  SEND_TRANSACTION_ERROR_CODES,
-  LocalConnectEvent,
-  TransactionPayload,
+  CONNECT_EVENT_ERROR_CODES, LocalConnectEvent, SEND_TRANSACTION_ERROR_CODES, TransactionPayload,
 } from './types';
+import { ApiUserRejectsError } from '../errors';
 
 const { Address } = TonWeb.utils;
 
@@ -172,8 +171,13 @@ export async function reconnect(request: ApiDappRequest): Promise<LocalConnectEv
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function disconnect(request: ApiDappRequest, message: DisconnectEvent): Promise<DisconnectEvent> {
   try {
-    const { origin, accountId } = validateRequest(request, true);
-    await deleteDapp(accountId, origin);
+    const { origin } = validateRequest(request, true);
+
+    const connectedAccountId = findConnectedAccountByDapp(origin);
+    if (connectedAccountId) {
+      deactivateAccountDapp(connectedAccountId);
+      await deleteDapp(connectedAccountId, origin);
+    }
   } catch (e) {
     if (DEBUG) {
       // eslint-disable-next-line no-console
@@ -190,139 +194,112 @@ export async function sendTransaction(
   request: ApiDappRequest,
   message: SendTransactionRpcRequest,
 ): Promise<SendTransactionRpcResponse> {
+  let isPopupOpen = false;
+
   try {
-    const { accountId } = validateRequest(request);
+    const { accountId, origin } = validateRequest(request);
 
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
     const messages = txPayload.messages.slice(0, 3);
-
-    // TODO Remove after multitransaction support
-    if (messages.length > 1) {
-      throw new errors.BadRequestError('Multiple transactions are temporarily not supported');
+    let validUntil = txPayload.valid_until;
+    if (validUntil && validUntil > 10 ** 10) {
+      // If milliseconds were passed instead of seconds
+      validUntil = Math.round(validUntil / 1000);
     }
 
     await openPopupWindow();
+    isPopupOpen = true;
 
-    const checkResults = await Promise.all(messages.map(async (msg) => {
+    const preparedMessages = messages.map((msg) => {
       const {
-        address: toAddress,
-        amount,
-        payload,
-        stateInit,
+        address, amount, payload, stateInit,
       } = msg;
-      const processedData = payload ? ton.oneCellFromBoc(base64ToBytes(payload)) : undefined;
-      const processedStateInit = stateInit ? ton.oneCellFromBoc(base64ToBytes(stateInit)) : undefined;
 
-      const result = await ton.checkTransactionDraft(
-        storage, accountId, TON_TOKEN_SLUG, toAddress, amount, processedData, processedStateInit,
-      );
       return {
-        toAddress: toBase64Address(toAddress),
+        toAddress: address,
         amount,
-        processedData,
-        processedStateInit,
-        result,
+        payload: payload ? ton.oneCellFromBoc(base64ToBytes(payload)) : undefined,
+        stateInit: stateInit ? ton.oneCellFromBoc(base64ToBytes(stateInit)) : undefined,
       };
-    }));
+    });
 
-    const breakResult = checkResults.find(({ result }) => (!result || result.error));
+    const { fee, error } = await ton.checkMultiTransactionDraft(storage, accountId, preparedMessages);
 
-    if (breakResult) {
+    if (error) {
       onPopupUpdate({
         type: 'showTxDraftError',
-        error: breakResult?.result.error,
+        error,
       });
-      if (breakResult?.result.error) {
-        throw new errors.BadRequestError(breakResult.result.error);
-      }
-      throw new errors.UnknownError();
-    }
-
-    const balance = await ton.getAccountBalance(storage, accountId);
-    const totalAmount = checkResults.reduce((amount, result) => {
-      return amount + BigInt(result.amount) + BigInt(result.result.fee!);
-    }, 0n);
-    if (BigInt(totalAmount) > BigInt(balance!)) {
-      throw new errors.InsufficientBalance();
+      throw new errors.BadRequestError(error);
     }
 
     const { promiseId, promise } = createDappPromise();
 
-    // TODO Update after multitransaction support
-    const checkResult = checkResults[0];
+    // TODO Cache dapps in localstorage when connecting
+    const dapp = (await getDappsByOrigin(accountId))[origin];
+
     onPopupUpdate({
-      type: 'createTransaction',
+      type: 'dappSendTransactions',
       promiseId,
-      toAddress: checkResult.toAddress,
-      amount: checkResult.amount,
-      fee: checkResult.result.fee!,
+      accountId,
+      dapp,
+      transactions: messages.map(({ address, amount, payload }) => ({
+        toAddress: toBase64Address(address),
+        amount,
+        payload,
+      })),
+      fee: fee!,
     });
 
-    // onPopupUpdate({
-    //   type: 'createTransactions',
-    //   promiseId,
-    //   transactions: checkResults.map(({ toAddress, amount, result }) => ({
-    //     toAddress,
-    //     amount,
-    //     fee: result.fee!,
-    //   })),
-    // });
-
     const password = await promise;
-    const fromAddress = await ton.fetchAddress(storage, accountId);
-    const submitResults: Array<{
-      resolvedAddress: string;
-      amount: string;
-      localTransaction: ApiTransaction;
-    } | undefined> = [];
 
-    for (const {
-      toAddress, amount, processedData, processedStateInit, result,
-    } of checkResults) {
-      const submitResult = await ton.submitTransfer(
-        storage, accountId, password, TON_TOKEN_SLUG, toAddress, amount, processedData, processedStateInit,
-      );
-
-      if (submitResult) {
-        const localTransaction = buildLocalTransaction({
-          amount,
-          fromAddress,
-          toAddress,
-          fee: result.fee!,
-          slug: TON_TOKEN_SLUG,
-        });
-        submitResults.push({
-          ...submitResult,
-          localTransaction,
-        });
-
-        onPopupUpdate({
-          type: 'newTransaction',
-          transaction: localTransaction,
-          accountId,
-        });
-      } else {
-        // TODO Reset transfer modal state
-        // TODO Это ещё актуально ^ ?
-        submitResults.push(submitResult);
-      }
+    if (validUntil && validUntil < (Date.now() / 1000)) {
+      throw new errors.BadRequestError('The confirmation timeout has expired');
     }
 
-    // TODO Update after multitransaction support
-    if (submitResults[0]) {
-      const { toAddress } = checkResult;
-      const { resolvedAddress, amount, localTransaction } = submitResults[0];
+    const submitResult = await ton.submitMultiTransfer(
+      storage,
+      accountId,
+      password,
+      preparedMessages,
+      validUntil,
+    );
+
+    if (!submitResult) {
+      throw new errors.UnknownError('Unknown error during transfer');
+    }
+
+    const resultMessages = submitResult.messages;
+    const fromAddress = await ton.fetchAddress(storage, accountId);
+
+    resultMessages.forEach((resultMessage) => {
+      const { resolvedAddress, amount } = resultMessage;
+
+      const localTransaction = buildLocalTransaction({
+        amount,
+        fromAddress,
+        toAddress: resolvedAddress,
+        fee: fee!,
+        slug: TON_TOKEN_SLUG,
+      });
+
+      onPopupUpdate({
+        type: 'newTransaction',
+        transaction: localTransaction,
+        accountId,
+      });
+
       whenTxComplete(resolvedAddress, amount)
         .then(({ txId }) => {
           onPopupUpdate({
             type: 'updateTxComplete',
-            toAddress,
+            toAddress: resolvedAddress,
             amount,
             txId,
             localTxId: localTransaction.txId,
           });
         });
-    }
+    });
 
     return {
       result: 'ok',
@@ -333,16 +310,42 @@ export async function sendTransaction(
       // eslint-disable-next-line no-console
       console.error('[sendTransaction]', e);
     }
+
+    let code = SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR;
+    let errorMessage = 'Unhandled error';
+
+    if (e instanceof ApiUserRejectsError) {
+      code = SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR;
+      errorMessage = e.message;
+    } else if (e instanceof errors.TonConnectError) {
+      code = e.code;
+      errorMessage = e.message;
+    } else if (isPopupOpen) {
+      onPopupUpdate({
+        type: 'showTxDraftError',
+        error: ApiTransactionDraftError.Unexpected,
+      });
+    }
     return {
-      error: e instanceof errors.TonConnectError ? {
-        code: e.code,
-        message: e.message,
-      } : {
-        code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR,
-        message: 'Unhandled error',
+      error: {
+        code,
+        message: errorMessage,
       },
       id: message.id,
     };
+  }
+}
+
+export function deactivate(request: ApiDappRequest) {
+  try {
+    const { origin } = validateRequest(request);
+
+    deactivateDapp(origin);
+  } catch (e) {
+    if (DEBUG) {
+      // eslint-disable-next-line no-console
+      console.error('[deactivate]', e);
+    }
   }
 }
 
@@ -489,16 +492,17 @@ function isValidUrl(url: string) {
 }
 
 function validateRequest(request: ApiDappRequest, skipConnection = false) {
-  const accountId = getActiveDappAccountId();
   const { origin } = request;
   if (!origin) {
-    throw new errors.BadRequestError();
+    throw new errors.BadRequestError('Invalid origin');
   }
+
+  const accountId = getActiveDappAccountId();
   if (!accountId) {
-    throw new errors.BadRequestError();
+    throw new errors.BadRequestError('The user is not authorized in the wallet');
   }
   if (!skipConnection && !isDappActive(accountId, origin)) {
-    throw new errors.BadRequestError();
+    throw new errors.BadRequestError('Connection to the current account is not established');
   }
   return {
     origin,

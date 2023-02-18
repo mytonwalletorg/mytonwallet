@@ -3,7 +3,7 @@ import React, { memo, useCallback } from '../../../../lib/teact/teact';
 import { withGlobal, getActions } from '../../../../global';
 
 import { PROXY_HOSTS, TELEGRAM_WEB_URL } from '../../../../config';
-import { IS_EXTENSION } from '../../../../util/environment';
+import { IS_EXTENSION } from '../../../../util/windowEnvironment';
 import buildClassName from '../../../../util/buildClassName';
 import useFlag from '../../../../hooks/useFlag';
 import useShowTransition from '../../../../hooks/useShowTransition';

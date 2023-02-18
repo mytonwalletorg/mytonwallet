@@ -3,7 +3,7 @@ import {
   IS_SINGLE_COLUMN_LAYOUT,
   IS_SAFARI,
   IS_ANDROID,
-} from '../../util/environment';
+} from '../../util/windowEnvironment';
 import { createConnector } from '../../util/PostMessageConnector';
 import { animate } from '../../util/animation';
 import cycleRestrict from '../../util/cycleRestrict';

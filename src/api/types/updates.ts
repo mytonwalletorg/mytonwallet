@@ -5,6 +5,7 @@ import {
   ApiTransactionDraftError,
   ApiDapp,
   ApiBackendStakingState,
+  ApiDappTransaction,
 } from './misc';
 
 export type ApiUpdateBalance = {
@@ -80,14 +81,13 @@ export type ApiUpdateActiveDapp = {
   origin?: string;
 };
 
-export type ApiUpdateCreateTransactions = {
-  type: 'createTransactions';
+export type ApiUpdateDappSendTransactions = {
+  type: 'dappSendTransactions';
   promiseId: string;
-  transactions: {
-    toAddress: string;
-    amount: string;
-    fee: string;
-  }[];
+  accountId: string;
+  dapp: ApiDapp;
+  transactions: ApiDappTransaction[];
+  fee: string;
 };
 
 export type ApiUpdateDappConnect = {
@@ -119,7 +119,7 @@ export type ApiUpdate =
   | ApiUpdateTonMagicState
   | ApiUpdateStakingState
   | ApiUpdateActiveDapp
-  | ApiUpdateCreateTransactions
+  | ApiUpdateDappSendTransactions
   | ApiUpdateDappConnect
   | ApiUpdateDappDisconnect
   | ApiUpdateBackendStakingState;

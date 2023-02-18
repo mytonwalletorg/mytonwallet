@@ -1,13 +1,12 @@
 // eslint-disable-next-line max-classes-per-file
 import { AllErrorCodes, CONNECT_EVENT_ERROR_CODES } from './types';
+import { ApiBaseError } from '../errors';
 
-export class TonConnectError extends Error {
+export class TonConnectError extends ApiBaseError {
   code: number;
 
   constructor(message: string, code: AllErrorCodes = 0) {
     super(message);
-    Error.captureStackTrace(this);
-    this.name = 'TonConnectError';
     this.code = code;
   }
 }

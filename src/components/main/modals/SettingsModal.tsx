@@ -10,7 +10,7 @@ import {
   ANIMATION_LEVEL_MAX, ANIMATION_LEVEL_MIN, APP_NAME, APP_VERSION, LANG_PACKS,
   TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL,
 } from '../../../config';
-import { IS_TOUCH_ENV } from '../../../util/environment';
+import { IS_TOUCH_ENV } from '../../../util/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import stopEvent from '../../../util/stopEvent';
 import switchTheme from '../../../util/switchTheme';

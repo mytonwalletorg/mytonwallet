@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "1.11.5",
+  "version": "1.11.10",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "build:dev": "cross-env APP_ENV=development webpack --mode development && ./deploy/copy_to_dist.sh",
     "build:staging": "cross-env APP_ENV=staging webpack && ./deploy/copy_to_dist.sh",
     "build:production": "webpack && ./deploy/copy_to_dist.sh",
-    "build:extension:dev": "npm i && cross-env ENV_EXTENSION=1 APP_ENV=development webpack --mode development && ./deploy/copy_to_dist.sh",
+    "build:extension:dev": "cross-env ENV_EXTENSION=1 APP_ENV=development webpack --mode development && ./deploy/copy_to_dist.sh",
     "build:extension:production": "npm i && cross-env ENV_EXTENSION=1 webpack && ./deploy/copy_to_dist.sh && zip -r -X MyTonWallet.zip dist/*",
     "build:icons": "fantasticon",
     "check": "tsc && stylelint \"**/*.{css,scss}\" && eslint . --ext .ts,.tsx",
@@ -120,7 +120,7 @@
     "pako": "^2.0.4",
     "qr-code-styling": "github:zubiden/qr-code-styling#10f7cf3",
     "tonapi-sdk-js": "^0.24.0",
-    "tonweb": "^0.0.58",
+    "tonweb": "^0.0.60",
     "tonweb-mnemonic": "^1.0.1",
     "tweetnacl": "^1.0.3"
   }

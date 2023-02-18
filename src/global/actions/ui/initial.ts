@@ -8,7 +8,7 @@ import type { NotificationType } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
 import {
   IS_IOS, IS_ANDROID, IS_MAC_OS, IS_SAFARI, IS_EXTENSION,
-} from '../../../util/environment';
+} from '../../../util/windowEnvironment';
 import switchTheme from '../../../util/switchTheme';
 import { setLanguage, clearPreviousLangpacks } from '../../../util/langProvider';
 import { updateCurrentAccountState } from '../../reducers';

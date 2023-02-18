@@ -9,23 +9,18 @@
   font-size: 3rem;
   font-weight: 600;
   line-height: 1;
-  color: var(--color-activity-gray-text);
+  color: var(--color-transaction-gray-text);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  background-color: var(--color-activity-gray-background);
+  background-color: var(--color-transaction-gray-background);
   border-radius: var(--border-radius-default);
-  box-shadow: 0 0 2rem #FFFFFF;
 
   &_operationPositive {
-    color: var(--color-activity-green-text);
+    color: var(--color-transaction-green-text);
 
-    background-color: var(--color-activity-green-background);
-  }
-
-  :global(.theme-dark) & {
-    box-shadow: none;
+    background-color: var(--color-transaction-green-background);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -56,7 +51,7 @@
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1.75rem;
-  color: var(--color-activity-gray-text);
+  color: var(--color-transaction-gray-text);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;

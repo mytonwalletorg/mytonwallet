@@ -6,7 +6,7 @@ import {
   THEME_DEFAULT,
   TOKEN_INFO,
 } from '../config';
-import { USER_AGENT_LANG_CODE } from '../util/environment';
+import { USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
 export const INITIAL_STATE: GlobalState = {
   auth: {
@@ -14,6 +14,10 @@ export const INITIAL_STATE: GlobalState = {
   },
 
   currentTransfer: {
+    state: TransferState.None,
+  },
+
+  currentDappTransfer: {
     state: TransferState.None,
   },
 

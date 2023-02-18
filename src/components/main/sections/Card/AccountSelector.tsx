@@ -135,7 +135,7 @@ function AccountSelector({
 
   function renderInput() {
     return (
-      <div className={styles.inputContainer}>
+      <div className={buildClassName(styles.inputContainer, 'account-edit-input')}>
         <input
           ref={inputRef}
           className={styles.input}
@@ -177,13 +177,13 @@ function AccountSelector({
   }
 
   return (
-    <div>
+    <>
       {!isEdit && renderCurrentAccount()}
       {isEdit && renderInput()}
 
       {shouldRender && renderAccountsChooser()}
       <AddAccountModal />
-    </div>
+    </>
   );
 }
 

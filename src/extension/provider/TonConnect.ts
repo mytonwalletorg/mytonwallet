@@ -13,12 +13,16 @@ import {
 } from '@tonconnect/protocol';
 
 import packageJson from '../../../package.json';
-import { TonProvider } from './TonProvider';
+import { Connector } from '../../util/PostMessageConnector';
 
 type TonConnectCallback = (event: WalletEvent) => void;
 type AppMethodMessage = AppRequest<keyof RpcRequests>;
 type WalletMethodMessage = WalletResponse<RpcMethod>;
-type RequestMethods = 'connect' | 'reconnect' | 'disconnect' | keyof RpcRequests;
+type RequestMethods = 'connect'
+| 'reconnect'
+| 'disconnect'
+| keyof RpcRequests
+| 'deactivate';
 
 interface TonConnectBridge {
   deviceInfo: DeviceInfo; // see Requests/Responses spec
@@ -79,12 +83,12 @@ export class TonConnect implements TonConnectBridge {
 
   isWalletBrowser = false;
 
-  private provider: TonProvider;
+  private connector: Connector;
 
   private callbacks: Array<(event: WalletEvent) => void>;
 
-  constructor(provider: TonProvider) {
-    this.provider = provider;
+  constructor(connector: Connector) {
+    this.connector = connector;
     this.callbacks = [];
   }
 
@@ -99,6 +103,8 @@ export class TonConnect implements TonConnectBridge {
     const response = await this.request('connect', [message]);
     if (response?.event === 'connect') {
       response.payload.device = getDeviceInfo();
+
+      this.addEventListeners();
     }
 
     return this.emit<ConnectEvent>(response || TonConnect.buildError());
@@ -108,6 +114,8 @@ export class TonConnect implements TonConnectBridge {
     const response = await this.request('reconnect');
     if (response?.event === 'connect') {
       response.payload.device = getDeviceInfo();
+
+      this.addEventListeners();
     }
 
     return this.emit<ConnectEvent>(response || TonConnect.buildError());
@@ -115,6 +123,8 @@ export class TonConnect implements TonConnectBridge {
 
   async disconnect() {
     await this.request('disconnect');
+
+    this.removeEventListeners();
 
     return this.emit<DisconnectEvent>({
       event: 'disconnect',
@@ -138,7 +148,7 @@ export class TonConnect implements TonConnectBridge {
   }
 
   private request(name: RequestMethods, args: any[] = []) {
-    return this.provider.send(`tonConnect_${name}`, args);
+    return this.connector.request({ name: `tonConnect_${name}`, args });
   }
 
   private static buildError(msg = 'Unknown error', code?: CONNECT_EVENT_ERROR_CODES): ConnectEventError {
@@ -156,8 +166,23 @@ export class TonConnect implements TonConnectBridge {
     return event;
   }
 
+  private addEventListeners() {
+    this.removeEventListeners();
+
+    window.addEventListener('beforeunload', this.unloadEventListener);
+  }
+
+  private removeEventListeners() {
+    window.removeEventListener('beforeunload', this.unloadEventListener);
+  }
+
+  private unloadEventListener = () => {
+    void this.request('deactivate');
+  };
+
   private destroy() {
+    this.removeEventListeners();
     this.callbacks = [];
-    this.provider.destroy();
+    this.connector.destroy();
   }
 }

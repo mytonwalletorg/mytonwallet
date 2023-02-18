@@ -159,9 +159,14 @@ export async function buildTokenTransfer(
   amount: string,
   data?: string,
 ) {
-  const tokenAddress = await resolveTokenAddress(network, fromAddress, resolveTokenBySlug(slug).minterAddress!);
-  const tokenWallet = getTokenWallet(network, tokenAddress);
+  const minterAddress = resolveTokenBySlug(slug).minterAddress!;
+  const tokenWalletAddress = await resolveTokenWalletAddress(network, fromAddress, minterAddress);
+  const realMinterAddress = await resolveTokenMinterAddress(network, tokenWalletAddress);
+  if (minterAddress !== realMinterAddress) {
+    throw new Error('Invalid contract');
+  }
 
+  const tokenWallet = getTokenWallet(network, tokenWalletAddress);
   const forwardComment = new TonWeb.boc.Cell();
   if (data) {
     forwardComment.bits.writeUint(0, 32);
@@ -179,15 +184,19 @@ export async function buildTokenTransfer(
   return {
     tokenWallet,
     amount: toNano(TOKEN_TRANSFER_TON_AMOUNT).toString(),
-    toAddress: tokenAddress,
+    toAddress: tokenWalletAddress,
     payload,
   };
 }
 
-export async function resolveTokenAddress(network: ApiNetwork, address: string, minterAddress: string) {
+export async function resolveTokenWalletAddress(network: ApiNetwork, address: string, minterAddress: string) {
   const minter = new JettonMinter(getTonWeb(network).provider, { address: minterAddress } as any);
-  return (await minter.getJettonWalletAddress(new Address(address)))
-    .toString(true, true, true);
+  return (await minter.getJettonWalletAddress(new Address(address))).toString(true, true, true);
+}
+
+export async function resolveTokenMinterAddress(network: ApiNetwork, tokenWalletAddress: string) {
+  const tokenWallet = new JettonWallet(getTonWeb(network).provider, { address: tokenWalletAddress } as any);
+  return (await tokenWallet.getData()).jettonMinterAddress.toString(true, true, true);
 }
 
 export function resolveTokenBySlug(slug: string) {

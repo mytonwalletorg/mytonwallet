@@ -1,13 +1,16 @@
 import { TransferState } from '../../types';
 
-import { addActionHandler, setGlobal } from '../../index';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 
+import { callApi } from '../../../api';
 import { TON_TOKEN_SLUG } from '../../../config';
 import { bigStrToHuman } from '../../helpers';
 import {
+  clearCurrentDappTransfer,
   clearCurrentSignature,
   clearCurrentTransfer,
   updateAccountState,
+  updateCurrentDappTransfer,
   updateCurrentSignature,
   updateCurrentTransfer,
   updateDappConnectRequest,
@@ -128,8 +131,39 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         global = updateAccountState(global, accountId, {
           activeDappOrigin: undefined,
         });
+        global = clearCurrentDappTransfer(global);
         setGlobal(global);
       }
+      break;
+    }
+
+    case 'dappSendTransactions': {
+      const {
+        promiseId,
+        transactions,
+        fee,
+        accountId,
+        dapp,
+      } = update;
+
+      (async () => {
+        const { currentAccountId } = global;
+        if (currentAccountId !== accountId) {
+          await callApi('switchAccount', accountId);
+        }
+
+        global = getGlobal();
+        global = clearCurrentDappTransfer(global);
+        global = updateCurrentDappTransfer(global, {
+          state: TransferState.Initial,
+          promiseId,
+          transactions,
+          fee,
+          dapp,
+        });
+        setGlobal(global);
+      })();
+
       break;
     }
   }

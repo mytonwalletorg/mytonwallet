@@ -116,3 +116,9 @@ export type ApiDappRequest = {
   origin: string;
   accountId: string;
 };
+
+export interface ApiDappTransaction {
+  toAddress: string;
+  amount: string;
+  payload?: string;
+}

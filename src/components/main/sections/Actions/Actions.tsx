@@ -13,10 +13,11 @@ import styles from './Actions.module.scss';
 
 interface OwnProps {
   hasStaking?: boolean;
+  isUnstakeRequested?: boolean;
   onEarnClick: NoneToVoidFunction;
 }
 
-function Actions({ hasStaking, onEarnClick }: OwnProps) {
+function Actions({ hasStaking, isUnstakeRequested, onEarnClick }: OwnProps) {
   const { startTransfer } = getActions();
 
   const lang = useLang();
@@ -39,7 +40,7 @@ function Actions({ hasStaking, onEarnClick }: OwnProps) {
           isSimple
         >
           <i className={buildClassName(styles.buttonIcon, 'icon-earn')} aria-hidden />
-          {lang(hasStaking ? 'Earning' : 'Earn')}
+          {lang(isUnstakeRequested ? 'Unstaking' : (hasStaking ? 'Earning' : 'Earn'))}
         </Button>
       </div>
       <ReceiveModal isOpen={isReceiveTonOpened} onClose={closeReceiveTon} />

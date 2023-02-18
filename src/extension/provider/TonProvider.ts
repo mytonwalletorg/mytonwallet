@@ -1,20 +1,20 @@
 import { EventEmitter } from '../../util/callbacks';
-import { Connector, createConnector } from '../../util/PostMessageConnector';
-import { PROVIDER_CHANNEL } from '../config';
-import { ApiDappUpdate } from '../../api/types/dappUpdates';
-import { doTonMagic } from './tonMagic';
+import { Connector } from '../../util/PostMessageConnector';
+
+declare global {
+  interface Window {
+    tonProtocolVersion: 1;
+    ton: TonProvider;
+    myTonWallet: TonProvider;
+  }
+}
 
 type Methods =
   'ton_getBalance'
   | 'ton_requestAccounts'
   | 'ton_requestWallets'
   | 'ton_sendTransaction'
-  | 'ton_rawSign'
-  | 'flushMemoryCache'
-  | 'tonConnect_connect'
-  | 'tonConnect_reconnect'
-  | 'tonConnect_disconnect'
-  | 'tonConnect_sendTransaction';
+  | 'ton_rawSign';
 
 export class TonProvider extends EventEmitter {
   public isMyTonWallet = true;
@@ -23,10 +23,10 @@ export class TonProvider extends EventEmitter {
 
   private connector: Connector;
 
-  constructor() {
+  constructor(connector: Connector) {
     super();
 
-    this.connector = createConnector(window, this.onUpdate, PROVIDER_CHANNEL, window.location.href);
+    this.connector = connector;
   }
 
   destroy() {
@@ -34,37 +34,27 @@ export class TonProvider extends EventEmitter {
   }
 
   // Prefixes is the native extension legacy requirement
-  send(prefixedName: Methods, args: any[] = []) {
-    const name = prefixedName.replace('ton_', '');
+  send(name: Methods, args: any[] = []) {
     return this.connector.request({ name, args });
   }
+}
 
-  private onUpdate = (update: ApiDappUpdate) => {
-    const { type, ...args } = update;
+export function initTonProvider(connector: Connector) {
+  const tonProvider = new TonProvider(connector);
 
-    if (type === 'updateAccounts') {
-      const { accounts } = update;
-      this.emit('accountsChanged', accounts);
-
-      return;
+  if (window.ton) {
+    try {
+      window.ton.destroy();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.log(err);
     }
+  }
 
-    if (type === 'updateTonMagic') {
-      const { isEnabled } = update;
-      const cb = async () => {
-        await this.send('flushMemoryCache');
-        window.location.reload();
-      };
+  window.tonProtocolVersion = 1;
+  window.ton = tonProvider;
+  window.myTonWallet = tonProvider;
+  window.dispatchEvent(new Event('tonready'));
 
-      void doTonMagic(isEnabled, cb);
-      return;
-    }
-
-    this.emit(type, args);
-
-    // TODO Implement:
-    // this.emit('notification', result);
-    // this.emit('connect');
-    // this.emit('close', code, reason);
-  };
+  return tonProvider;
 }

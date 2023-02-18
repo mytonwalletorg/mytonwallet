@@ -1,0 +1,51 @@
+.root {
+  position: relative;
+
+  display: flex;
+
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  padding: 0.875rem 0.75rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--color-black);
+  text-align: left;
+  word-break: break-all;
+
+  background: var(--color-background-first);
+  border: none;
+  border-radius: var(--border-radius-default);
+  outline: none;
+}
+
+.suffix {
+  margin-left: 0.25rem;
+
+  color: var(--color-gray-3);
+}
+
+.label,
+.feeLabel {
+  margin-bottom: 0.3125rem;
+  padding: 0 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 0.875rem;
+  color: var(--color-gray-2);
+}
+
+
+.feeLabel {
+  position: absolute;
+  top: -1.1875rem;
+  right: 0.3125rem;
+}
+
+.feeConfirm {
+  margin-left: auto;
+
+  color: var(--color-gray-3);
+}

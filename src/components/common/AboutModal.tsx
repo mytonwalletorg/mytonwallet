@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 
 import { APP_NAME, APP_VERSION } from '../../config';
-import { IS_EXTENSION } from '../../util/environment';
+import { IS_EXTENSION } from '../../util/windowEnvironment';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import useLang from '../../hooks/useLang';

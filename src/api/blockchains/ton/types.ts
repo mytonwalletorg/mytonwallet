@@ -37,3 +37,10 @@ export interface TokenTransferBodyParams {
   forwardAmount: string;
   forwardPayload: Cell;
 }
+
+export interface TonTransferParams {
+  toAddress: string;
+  amount: string;
+  payload?: string | Uint8Array | Cell;
+  stateInit?: Cell;
+}

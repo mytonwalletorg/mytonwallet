@@ -278,3 +278,8 @@ Select wallets to use on this dapp: Выберите кошельки для и�
 Connect: Подключить
 Dapp Permissions: Разрешения для приложения
 $dapp_can_view_balance: "Для %dappname% будет доступен ваш адрес кошелька и баланс."
+Send Transaction: Отправить перевод
+Payload: Payload
+$many_transactions: "%1$d перевода"
+Total Amount: Общая сумма
+Unstaking: Unstaking

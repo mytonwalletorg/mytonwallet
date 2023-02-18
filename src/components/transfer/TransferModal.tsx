@@ -5,15 +5,10 @@ import { getActions, withGlobal } from '../../global';
 
 import { GlobalState, TransferState, UserToken } from '../../global/types';
 
-import {
-  ANIMATED_STICKER_SMALL_SIZE_PX,
-  CARD_SECONDARY_VALUE_SYMBOL,
-  TON_TOKEN_SLUG,
-} from '../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_TOKEN_SLUG } from '../../config';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
-import { formatCurrencyExtended } from '../../util/formatNumber';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import usePrevious from '../../hooks/usePrevious';
@@ -29,6 +24,7 @@ import Button from '../ui/Button';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import TransferResult from '../common/TransferResult';
+import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
@@ -153,19 +149,12 @@ function TransferModal({
             className={styles.addressWidget}
           />
 
-          <div className={styles.label}>{lang('Amount')}</div>
-          <div className={styles.inputReadOnly}>
-            {formatCurrencyExtended(amount || 0, '', true)}
-            <span className={styles.suffix}>{symbol}</span>
-            {fee && (
-              <>
-                <div className={styles.feeLabel}>{lang('Fee')}</div>
-                <span className={styles.feeConfirm}>
-                  {formatCurrencyExtended(bigStrToHuman(fee), CARD_SECONDARY_VALUE_SYMBOL)}
-                </span>
-              </>
-            )}
-          </div>
+          <AmountWithFeeTextField
+            label={lang('Amount')}
+            amount={amount || 0}
+            symbol={symbol}
+            fee={fee ? bigStrToHuman(fee) : undefined}
+          />
 
           {renderComment()}
 

@@ -1,28 +1,29 @@
 import React, {
   memo, useCallback, useEffect, useMemo, useState,
-} from '../../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../../global';
+} from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
-import type { Account, AccountState, UserToken } from '../../../../global/types';
-import type { ApiDapp, ApiDappPermissions } from '../../../../api/types';
+import type { Account, AccountState, UserToken } from '../../global/types';
+import type { ApiDapp, ApiDappPermissions } from '../../api/types';
 
-import { TON_TOKEN_SLUG } from '../../../../config';
-import { bigStrToHuman } from '../../../../global/helpers';
-import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../../../global/selectors';
-import { formatCurrency } from '../../../../util/formatNumber';
-import buildClassName from '../../../../util/buildClassName';
-import { shortenAddress } from '../../../../util/shortenAddress';
-import useLang from '../../../../hooks/useLang';
-import useFlag from '../../../../hooks/useFlag';
+import { TON_TOKEN_SLUG } from '../../config';
+import { bigStrToHuman } from '../../global/helpers';
+import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
+import { formatCurrency } from '../../util/formatNumber';
+import buildClassName from '../../util/buildClassName';
+import { shortenAddress } from '../../util/shortenAddress';
+import useLang from '../../hooks/useLang';
+import useFlag from '../../hooks/useFlag';
 
-import Modal from '../../../ui/Modal';
-import Button from '../../../ui/Button';
-import ModalHeader from '../../../ui/ModalHeader';
-import PasswordForm from '../../../ui/PasswordForm';
-import Transition from '../../../ui/Transition';
+import Modal from '../ui/Modal';
+import Button from '../ui/Button';
+import ModalHeader from '../ui/ModalHeader';
+import PasswordForm from '../ui/PasswordForm';
+import Transition from '../ui/Transition';
+import DappInfo from './DappInfo';
 
 import styles from './Dapp.module.scss';
-import modalStyles from '../../../ui/Modal.module.scss';
+import modalStyles from '../ui/Modal.module.scss';
 
 interface StateProps {
   hasConnectRequest: boolean;
@@ -138,18 +139,6 @@ function DappConnectModal({
     );
   }
 
-  function renderDapp() {
-    return (
-      <div className={buildClassName(styles.dapp, styles.dapp_first, styles.dapp_push)}>
-        {iconUrl && <img src={iconUrl} alt={lang('Logo')} className={styles.dappLogo} />}
-        <div className={styles.dappInfo}>
-          <span className={styles.dappName}>{name}</span>
-          <span className={styles.dappUrl}>{url}</span>
-        </div>
-      </div>
-    );
-  }
-
   function renderAccounts() {
     return (
       <>
@@ -187,7 +176,12 @@ function DappConnectModal({
         <ModalHeader title={lang('Connect Dapp')} onClose={closeModal} />
 
         <div className={modalStyles.transitionContent}>
-          {renderDapp()}
+          <DappInfo
+            iconUrl={iconUrl}
+            name={name}
+            url={url}
+            className={buildClassName(styles.dapp_first, styles.dapp_push)}
+          />
           {shouldRenderAccounts && renderAccounts()}
 
           <div className={styles.footer}>

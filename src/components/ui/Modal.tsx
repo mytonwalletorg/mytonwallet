@@ -3,7 +3,7 @@ import React, {
   TeactNode, useCallback, useEffect, useRef,
 } from '../../lib/teact/teact';
 
-import { IS_EXTENSION, IS_SINGLE_COLUMN_LAYOUT } from '../../util/environment';
+import { IS_EXTENSION, IS_SINGLE_COLUMN_LAYOUT } from '../../util/windowEnvironment';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import trapFocus from '../../util/trapFocus';
 import buildClassName from '../../util/buildClassName';

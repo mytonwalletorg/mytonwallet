@@ -1,0 +1,449 @@
+.modalDialog {
+  height: 35rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(35rem + env(safe-area-inset-bottom));
+  }
+}
+
+.dapp {
+  display: flex;
+  align-items: center;
+
+  padding: 0.875rem 1rem;
+
+  background-color: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+
+  &_first {
+    margin-top: 0.125rem;
+  }
+
+  &_push {
+    margin-bottom: 1.25rem;
+  }
+}
+
+.dappLogo {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-right: 0.625rem;
+
+  object-fit: cover;
+  border-radius: var(--border-radius-tiny);
+}
+
+.transactionAccount,
+.dappInfo {
+  // Allows the flex cell to be clamped
+  min-width: 0;
+}
+
+.dappName,
+.dappUrl {
+  overflow: hidden;
+  display: block;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dappUrl {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 0.75rem;
+  color: var(--color-gray-2);
+}
+
+.dappName {
+  margin-bottom: 0.25rem;
+
+  font-size: var(--font-size-title, 0.9375rem);
+  font-weight: var(--font-weight-title, 600);
+  line-height: 0.9375rem;
+  color: var(--color-black);
+}
+
+.label {
+  cursor: text;
+
+  display: block;
+
+  margin-bottom: 0.25rem;
+  padding: 0 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-gray-2);
+}
+
+.accounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+
+  padding: 0.5rem !important;
+
+  background-color: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+
+  @supports (overflow: overlay) {
+    overflow-y: overlay;
+  }
+}
+
+.account {
+  cursor: pointer;
+
+  position: relative;
+
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 3.75rem;
+  margin: 0;
+  padding: 0 0.5rem;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-card-text);
+  text-align: left;
+
+  opacity: 0.84;
+  background-image: url('../../assets/account_button_bg.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  background-clip: padding-box, padding-box;
+  background-origin: border-box;
+  background-size: cover, cover;
+  border: none;
+  border-radius: 0.5rem;
+
+  transition: opacity 200ms;
+
+  &_current {
+    cursor: default;
+
+    opacity: 1;
+  }
+
+  @media (min-resolution: 1.5dppx) {
+    background-image: url('../../assets/account_button_bg@2x.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  }
+}
+
+.accountName {
+  overflow: hidden;
+
+  max-width: 100%;
+  margin-top: 0.5rem;
+  padding-right: 1.125rem;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .button_current > & {
+    margin-right: 1rem;
+  }
+
+  @supports (-webkit-line-clamp: 2) {
+    display: -webkit-box;
+
+    line-height: 0.8125rem;
+    white-space: normal;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+.accountFooter {
+  display: flex;
+  align-items: center;
+
+  margin-top: auto;
+  margin-bottom: 0.5rem;
+
+  font-size: 0.6875rem;
+  line-height: 0.6875rem;
+}
+
+.accountCurrencyIcon {
+  margin-right: 0.125rem;
+
+  font-size: 0.5rem;
+  line-height: 0.5rem;
+}
+
+.accountAddress {
+  margin-left: auto;
+  padding-left: 0.25rem;
+
+  color: var(--color-card-second-text);
+}
+
+.accountCheckMark {
+  position: absolute;
+  top: 0.3125rem;
+  right: 0.3125rem;
+
+  width: 1rem;
+  height: 1rem;
+
+  border-radius: var(--border-radius-default);
+
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  box-shadow: inset 0 0 0 0.075rem var(--color-card-toggle);
+
+  &_active {
+    //noinspection CssUnknownTarget
+    background: var(--color-blue) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjciIGZpbGw9Im5vbmUiPjxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNCIgZD0ibTEgMy41IDIgMkw3IDEiLz48L3N2Zz4=") no-repeat 50% 50%;
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: inset 0 0 0 0.075rem var(--color-white);
+  }
+}
+
+.description {
+  font-size: 0.9375rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+
+  margin-top: 1.5rem;
+}
+
+.button {
+  flex: 1 1 calc(50% - 0.25rem);
+
+  min-width: 9rem !important;
+}
+
+.dataField {
+  margin-bottom: 1.25rem;
+}
+
+.receivingAddress {
+  padding: 0.75rem !important;
+}
+
+.payloadField {
+  position: relative;
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  padding: 0.875rem 0.75rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--color-black);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  background: var(--color-background-first);
+  border: none;
+  border-radius: var(--border-radius-default);
+  outline: none;
+
+  &_expanded {
+    word-break: break-all !important;
+    white-space: normal;
+  }
+}
+
+.payloadFieldExpand {
+  cursor: pointer;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  padding: 0.875rem 0.75rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-blue);
+
+  background: var(--color-background-first);
+  border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
+
+  &::before {
+    content: '';
+
+    position: absolute;
+    top: 0;
+    right: 100%;
+    bottom: 0;
+
+    width: 3rem;
+
+    background: var(--color-linear-effect-1);
+  }
+}
+
+.transactionList {
+  margin-bottom: 1.25rem;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+}
+
+.transactionRow {
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  min-height: 3rem;
+  padding: 0 0.75rem 0 1rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+
+  transition: background-color 200ms;
+
+  &:active {
+    background-color: var(--color-interactive-item-hover);
+  }
+
+  &:first-child {
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: var(--color-interactive-item-hover);
+    }
+  }
+}
+
+.transactionRow + .transactionRow {
+  position: relative;
+
+  &:before {
+    content: '';
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 1rem;
+
+    height: 0.0625rem;
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+  }
+}
+
+.transactionRowAmount {
+  margin-inline-end: 0.25rem;
+
+  color: var(--color-black);
+}
+
+.transactionRowAddress {
+  color: var(--color-gray-3);
+}
+
+.transactionRowChevron {
+  margin-left: auto;
+}
+
+.transactionDirection {
+  position: relative;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+
+  height: 4rem;
+  margin-bottom: 1.25rem;
+
+  color: var(--color-card-text);
+
+  background: #3679C0 url(../../assets/transfer_dapp_bg.jpg) no-repeat 50% 0;
+  background-size: cover;
+  border-radius: var(--border-radius-default);
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    top: 0;
+    right: 0;
+
+    width: calc(50% + 2rem);
+    height: 100%;
+
+    background: url("../../assets/transfer_dapp_info_bg.svg") no-repeat 100% 50%;
+    background-size: cover;
+    border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
+  }
+}
+
+.accountTitle {
+  margin-bottom: 0.25rem;
+
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.accountBalance {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-card-second-text);
+}
+
+.accountBalance,
+.accountTitle {
+  overflow: hidden;
+
+  padding: 0 1rem;
+
+  text-overflow: ellipsis;
+}
+
+.transactionDapp {
+  --color-black: var(--color-card-text);
+  --color-gray-2: var(--color-card-second-text);
+  --font-weight-title: 700;
+  --font-size-title: 1rem;
+
+  position: relative;
+  z-index: 1;
+
+  min-width: 0; // Allows the grid cell to be clamped
+  height: 100%;
+  margin: 0 0.25rem;
+  padding: 0 !important;
+
+  background: transparent;
+}
+
+.sticker {
+  margin: 0 auto 1.25rem;
+
+  &_sizeSmall {
+    margin: -0.375rem auto 1.25rem;
+  }
+}

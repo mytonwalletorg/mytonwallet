@@ -16,7 +16,8 @@ import UnstakingModal from '../staking/UnstakeModal';
 import BackupModal from './modals/BackupModal';
 import SignatureModal from './modals/SignatureModal';
 import TransactionModal from './modals/TransactionModal';
-import DappConnectModal from './sections/Dapps/DappConnectModal';
+import DappConnectModal from '../dapps/DappConnectModal';
+import DappTransactionModal from '../dapps/DappTransactionModal';
 
 import Actions from './sections/Actions';
 import Card from './sections/Card';
@@ -71,7 +72,7 @@ function Main({
           <Warnings onOpenBackupWallet={openBackupWallet} />
           <Header onBackupWalletOpen={openBackupWallet} />
           <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
-          <Actions hasStaking={isStakingActive} onEarnClick={handleEarnClick} />
+          <Actions hasStaking={isStakingActive} isUnstakeRequested={isUnstakeRequested} onEarnClick={handleEarnClick} />
         </div>
 
         <Content
@@ -90,6 +91,7 @@ function Main({
       <UnstakingModal />
       <StakingInfoModal isOpen={isStakingInfoOpened} onClose={closeStakingInfo} />
       <DappConnectModal />
+      <DappTransactionModal />‘
     </>
   );
 }
