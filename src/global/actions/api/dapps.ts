@@ -2,8 +2,11 @@ import { addActionHandler, getGlobal, setGlobal } from '../../index';
 
 import { callApi } from '../../../api';
 import {
+  clearConnectedDapps,
   clearCurrentDappTransfer,
   clearDappConnectRequest,
+  removeConnectedDapp,
+  updateConnectedDapps,
   updateCurrentDappTransfer,
   updateDappConnectRequest,
 } from '../../reducers';
@@ -79,5 +82,40 @@ addActionHandler('submitDappTransferPassword', async (global, actions, payload) 
 
   global = getGlobal();
   global = clearCurrentDappTransfer(global);
+  setGlobal(global);
+});
+
+addActionHandler('getDapps', async (global) => {
+  const { currentAccountId } = global;
+
+  const result = await callApi('getDapps', currentAccountId!);
+
+  if (!result) {
+    return;
+  }
+
+  global = getGlobal();
+  global = updateConnectedDapps(global, { dapps: result });
+  setGlobal(global);
+});
+
+addActionHandler('deleteAllDapps', (global) => {
+  const { currentAccountId } = global;
+
+  void callApi('deleteAllDapps', currentAccountId!);
+
+  global = getGlobal();
+  global = clearConnectedDapps(global);
+  setGlobal(global);
+});
+
+addActionHandler('deleteDapp', (global, actions, payload) => {
+  const { currentAccountId } = global;
+  const { origin } = payload;
+
+  void callApi('deleteDapp', currentAccountId!, origin);
+
+  global = getGlobal();
+  global = removeConnectedDapp(global, origin);
   setGlobal(global);
 });

@@ -35,6 +35,7 @@ export const INITIAL_STATE: GlobalState = {
     areTinyTransfersHidden: true,
     canPlaySounds: true,
     langCode: USER_AGENT_LANG_CODE,
+    dapps: [],
   },
 
   byAccountId: {},

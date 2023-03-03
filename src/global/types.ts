@@ -192,6 +192,7 @@ export type GlobalState = {
     theme: Theme;
     animationLevel: AnimationLevel;
     langCode: LangCode;
+    dapps: ApiDapp[];
     areTinyTransfersHidden?: boolean;
     canPlaySounds?: boolean;
     isInvestorViewEnabled?: boolean;
@@ -302,6 +303,10 @@ export interface ActionPayloads {
   submitDappTransfer: never;
   submitDappTransferPassword: { password: string };
   cancelDappTransfer: never;
+
+  getDapps: never;
+  deleteAllDapps: never;
+  deleteDapp: { origin: string };
 }
 
 const typed = typify<GlobalState, ActionPayloads>();

@@ -27,6 +27,7 @@ import DropDown from '../../ui/DropDown';
 import Tooltip from '../../ui/Tooltip';
 
 import styles from './SettingsModal.module.scss';
+import DappsModal from './DappsModal';
 
 interface OwnProps {
   isOpen?: boolean;
@@ -90,6 +91,7 @@ function SettingsModal({
   const forceUpdate = useForceUpdate();
   const [isInvestorHelpTooltipOpen, openInvestorHelpTooltip, closeInvestorHelpTooltip] = useFlag();
   const [isTinyTransfersHelpTooltipOpen, openTinyTransfersHelpTooltip, closeTinyTransfersHelpTooltip] = useFlag();
+  const [isDappsModalOpen, openDappsModal, closeDappsModal] = useFlag();
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
 
   const THEME_OPTIONS = [{
@@ -262,6 +264,13 @@ function SettingsModal({
         </div>
       </div>
 
+      <div className={styles.block}>
+        <div className={styles.item} onClick={openDappsModal}>
+          {lang('Connected Dapps')}
+          <i className="icon-chevron-right" />
+        </div>
+      </div>
+
       {shouldRenderDeveloperOptions && (
         <>
           <p className={styles.blockTitle}>{lang('Developer Options')}</p>
@@ -282,6 +291,11 @@ function SettingsModal({
       <div className={styles.version} onClick={!shouldShowDeveloperOptions ? handleMultipleClick : undefined}>
         {APP_NAME} {APP_VERSION}
       </div>
+
+      <DappsModal
+        isOpen={isDappsModalOpen}
+        onClose={closeDappsModal}
+      />
     </Modal>
   );
 }

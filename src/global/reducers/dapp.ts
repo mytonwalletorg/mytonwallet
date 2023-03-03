@@ -45,3 +45,33 @@ export function clearCurrentDappTransfer(global: GlobalState) {
     },
   };
 }
+
+export function updateConnectedDapps(global: GlobalState, update: Partial<GlobalState['settings']>) {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      dapps: update.dapps ?? [],
+    },
+  } as GlobalState;
+}
+
+export function clearConnectedDapps(global: GlobalState) {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      dapps: [],
+    },
+  } as GlobalState;
+}
+
+export function removeConnectedDapp(global: GlobalState, origin: string) {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      dapps: global.settings.dapps.filter((dapp) => dapp.origin !== origin),
+    },
+  } as GlobalState;
+}
