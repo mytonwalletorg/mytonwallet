@@ -3,12 +3,14 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import type { AnimationLevel, LangCode, Theme } from '../../../global/types';
-import type { ApiNetwork } from '../../../api/types';
+import {
+  AnimationLevel, LangCode, SettingsState, Theme,
+} from '../../../global/types';
+import type { ApiDapp, ApiNetwork } from '../../../api/types';
 
 import {
   ANIMATION_LEVEL_MAX, ANIMATION_LEVEL_MIN, APP_NAME, APP_VERSION, LANG_PACKS,
-  TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL,
+  TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL, ANIMATED_STICKER_BIG_SIZE_PX,
 } from '../../../config';
 import { IS_TOUCH_ENV } from '../../../util/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
@@ -27,7 +29,15 @@ import DropDown from '../../ui/DropDown';
 import Tooltip from '../../ui/Tooltip';
 
 import styles from './SettingsModal.module.scss';
-import DappsModal from './DappsModal';
+import ModalHeader from '../../ui/ModalHeader';
+import Transition from '../../ui/Transition';
+
+import modalStyles from '../../ui/Modal.module.scss';
+import Button from '../../ui/Button';
+import DisconnectDappModal from './DisconnectDappModal';
+import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
+import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
+import DappInfo from '../../dapps/DappInfo';
 
 interface OwnProps {
   isOpen?: boolean;
@@ -35,6 +45,7 @@ interface OwnProps {
 }
 
 interface StateProps {
+  state: SettingsState;
   theme: Theme;
   animationLevel: AnimationLevel;
   areTinyTransfersHidden?: boolean;
@@ -42,6 +53,7 @@ interface StateProps {
   isInvestorViewEnabled?: boolean;
   canPlaySounds?: boolean;
   langCode: LangCode;
+  dapps: ApiDapp[];
 }
 
 const LANGUAGE_OPTIONS = LANG_PACKS.map((langPack) => ({
@@ -68,6 +80,7 @@ const SWITCH_THEME_DURATION_MS = 300;
 
 function SettingsModal({
   isOpen,
+  state,
   theme,
   animationLevel,
   areTinyTransfersHidden,
@@ -75,6 +88,7 @@ function SettingsModal({
   isInvestorViewEnabled,
   canPlaySounds,
   langCode,
+  dapps,
   onClose,
 }: OwnProps & StateProps) {
   const {
@@ -85,14 +99,18 @@ function SettingsModal({
     toggleCanPlaySounds,
     startChangingNetwork,
     changeLanguage,
+    getDapps,
   } = getActions();
 
   const lang = useLang();
   const forceUpdate = useForceUpdate();
   const [isInvestorHelpTooltipOpen, openInvestorHelpTooltip, closeInvestorHelpTooltip] = useFlag();
   const [isTinyTransfersHelpTooltipOpen, openTinyTransfersHelpTooltip, closeTinyTransfersHelpTooltip] = useFlag();
-  const [isDappsModalOpen, openDappsModal, closeDappsModal] = useFlag();
+  const [isDisconnectModalOpen, openDisconnectModal, closeDisconnectModal] = useFlag();
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
+
+  const [renderingStage, setRenderingStage] = useState<number>(state);
+  const [dappToDelete, setDappToDelete] = useState<ApiDapp | undefined>();
 
   const THEME_OPTIONS = [{
     value: 'light',
@@ -116,6 +134,13 @@ function SettingsModal({
       shouldShowDeveloperOptions = true;
     }
   }, [isTestnet]);
+
+  // Load all connected dapps on dapps stage
+  useEffect(() => {
+    if (renderingStage === SettingsState.ConnectedDapps) {
+      getDapps();
+    }
+  }, [getDapps, renderingStage]);
 
   const handleThemeChange = useCallback((newTheme: string) => {
     document.documentElement.classList.add('no-transitions');
@@ -154,6 +179,29 @@ function SettingsModal({
     toggleInvestorView({ isEnabled: !isInvestorViewEnabled });
   }, [isInvestorViewEnabled, toggleInvestorView]);
 
+  const handleCloseModal = useCallback(() => {
+    onClose();
+    setRenderingStage(SettingsState.Initial);
+  }, [onClose]);
+
+  const handleConnectedDappsOpen = useCallback(() => {
+    setRenderingStage(SettingsState.ConnectedDapps);
+  }, []);
+
+  const handleBackClick = useCallback(() => {
+    setRenderingStage(SettingsState.Initial);
+  }, []);
+
+  const handleDisconnectAll = useCallback(() => {
+    setDappToDelete(undefined);
+    openDisconnectModal();
+  }, [openDisconnectModal]);
+
+  const handleDisconnectDapp = useCallback((dapp: ApiDapp) => {
+    setDappToDelete(dapp);
+    openDisconnectModal();
+  }, [openDisconnectModal]);
+
   const handleMultipleClick = () => {
     if (clicksAmount + 1 >= AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE) {
       shouldShowDeveloperOptions = true;
@@ -163,149 +211,253 @@ function SettingsModal({
     }
   };
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      title={lang('Settings')}
-      hasCloseButton
-      isSlideUp
-      onClose={onClose}
-      dialogClassName={styles.modal}
-      contentClassName={styles.content}
-    >
-      <p className={styles.blockTitle}>{lang('Appearance')}</p>
-      <div className={styles.block}>
-        <DropDown
-          label={lang('Theme')}
-          items={THEME_OPTIONS}
-          selectedValue={theme}
-          theme="light"
-          className={styles.item}
-          onChange={handleThemeChange}
+  function renderSettings() {
+    return (
+      <>
+        <ModalHeader
+          title={lang('Settings')}
+          onClose={handleCloseModal}
         />
-        <DropDown
-          label={lang('Language')}
-          className={styles.item}
-          items={LANGUAGE_OPTIONS}
-          selectedValue={langCode}
-          theme="light"
-          onChange={handleLanguageChange}
-        />
-        <div className={styles.item} onClick={handleAnimationLevelToggle}>
-          {lang('Enable Animations')}
+        <p className={styles.blockTitle}>{lang('Appearance')}</p>
+        <div className={styles.block}>
+          <DropDown
+            label={lang('Theme')}
+            items={THEME_OPTIONS}
+            selectedValue={theme}
+            theme="light"
+            className={styles.item}
+            onChange={handleThemeChange}
+          />
+          <DropDown
+            label={lang('Language')}
+            className={styles.item}
+            items={LANGUAGE_OPTIONS}
+            selectedValue={langCode}
+            theme="light"
+            onChange={handleLanguageChange}
+          />
+          <div className={styles.item} onClick={handleAnimationLevelToggle}>
+            {lang('Enable Animations')}
 
-          <Switcher
-            className={styles.menuSwitcher}
-            label={lang('Enable Animations')}
-            checked={animationLevel !== ANIMATION_LEVEL_MIN}
-          />
-        </div>
-        <div className={styles.item} onClick={handleCanPlaySoundToggle}>
-          {lang('Play Sounds')}
-
-          <Switcher
-            className={styles.menuSwitcher}
-            label={lang('Play Sounds')}
-            checked={canPlaySounds}
-          />
-        </div>
-      </div>
-
-      <p className={styles.blockTitle}>{lang('Assets and Activity')}</p>
-      <div className={styles.block}>
-        <DropDown
-          label={lang('Fiat Currency')}
-          className={styles.item}
-          items={CURRENCY_OPTIONS}
-          selectedValue={CURRENCY_OPTIONS[0].value}
-          theme="light"
-          disabled
-          shouldTranslateOptions
-        />
-        <div className={styles.item} onClick={handleInvestorViewToggle}>
-          {lang('Investor View')}
-
-          <Tooltip
-            isOpen={isInvestorHelpTooltipOpen}
-            message={lang('Focus on asset value rather than current balance')}
-            className={styles.tooltip}
-          />
-          <i
-            className={buildClassName(styles.iconQuestion, 'icon-question')}
-            onClick={IS_TOUCH_ENV ? stopEvent : undefined}
-            onMouseEnter={openInvestorHelpTooltip}
-            onMouseLeave={closeInvestorHelpTooltip}
-          />
-          <Switcher
-            className={styles.menuSwitcher}
-            label={lang('Toggle Investor View')}
-            checked={isInvestorViewEnabled}
-          />
-        </div>
-        <div className={styles.item} onClick={handleTinyTransfersHiddenToggle}>
-          {lang('Hide Tiny Transfers')}
-
-          <Tooltip
-            isOpen={isTinyTransfersHelpTooltipOpen}
-            message={lang('$tiny_transfers_help', [TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL]) as string}
-            className={buildClassName(styles.tooltip, styles.tooltip_wide)}
-          />
-          <i
-            className={buildClassName(styles.iconQuestion, 'icon-question')}
-            onClick={IS_TOUCH_ENV ? stopEvent : undefined}
-            onMouseEnter={openTinyTransfersHelpTooltip}
-            onMouseLeave={closeTinyTransfersHelpTooltip}
-          />
-          <Switcher
-            className={styles.menuSwitcher}
-            label={lang('Toggle Hide Tiny Transfers')}
-            checked={areTinyTransfersHidden}
-          />
-        </div>
-      </div>
-
-      <div className={styles.block}>
-        <div className={styles.item} onClick={openDappsModal}>
-          {lang('Connected Dapps')}
-          <i className="icon-chevron-right" />
-        </div>
-      </div>
-
-      {shouldRenderDeveloperOptions && (
-        <>
-          <p className={styles.blockTitle}>{lang('Developer Options')}</p>
-          <div className={styles.block}>
-            <DropDown
-              label={lang('Network')}
-              className={buildClassName(styles.item, developerOptionsTransitionClassNames)}
-              items={NETWORK_OPTIONS}
-              selectedValue={NETWORK_OPTIONS[isTestnet ? 1 : 0].value}
-              theme="light"
-              menuPosition="bottom"
-              onChange={handleNetworkChange}
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Enable Animations')}
+              checked={animationLevel !== ANIMATION_LEVEL_MIN}
             />
           </div>
-        </>
-      )}
+          <div className={styles.item} onClick={handleCanPlaySoundToggle}>
+            {lang('Play Sounds')}
 
-      <div className={styles.version} onClick={!shouldShowDeveloperOptions ? handleMultipleClick : undefined}>
-        {APP_NAME} {APP_VERSION}
-      </div>
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Play Sounds')}
+              checked={canPlaySounds}
+            />
+          </div>
+        </div>
 
-      <DappsModal
-        isOpen={isDappsModalOpen}
-        onClose={closeDappsModal}
+        <p className={styles.blockTitle}>{lang('Assets and Activity')}</p>
+        <div className={styles.block}>
+          <DropDown
+            label={lang('Fiat Currency')}
+            className={styles.item}
+            items={CURRENCY_OPTIONS}
+            selectedValue={CURRENCY_OPTIONS[0].value}
+            theme="light"
+            disabled
+            shouldTranslateOptions
+          />
+          <div className={styles.item} onClick={handleInvestorViewToggle}>
+            {lang('Investor View')}
+
+            <Tooltip
+              isOpen={isInvestorHelpTooltipOpen}
+              message={lang('Focus on asset value rather than current balance')}
+              className={styles.tooltip}
+            />
+            <i
+              className={buildClassName(styles.iconQuestion, 'icon-question')}
+              onClick={IS_TOUCH_ENV ? stopEvent : undefined}
+              onMouseEnter={openInvestorHelpTooltip}
+              onMouseLeave={closeInvestorHelpTooltip}
+            />
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Toggle Investor View')}
+              checked={isInvestorViewEnabled}
+            />
+          </div>
+          <div className={styles.item} onClick={handleTinyTransfersHiddenToggle}>
+            {lang('Hide Tiny Transfers')}
+
+            <Tooltip
+              isOpen={isTinyTransfersHelpTooltipOpen}
+              message={lang('$tiny_transfers_help', [TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL]) as string}
+              className={buildClassName(styles.tooltip, styles.tooltip_wide)}
+            />
+            <i
+              className={buildClassName(styles.iconQuestion, 'icon-question')}
+              onClick={IS_TOUCH_ENV ? stopEvent : undefined}
+              onMouseEnter={openTinyTransfersHelpTooltip}
+              onMouseLeave={closeTinyTransfersHelpTooltip}
+            />
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Toggle Hide Tiny Transfers')}
+              checked={areTinyTransfersHidden}
+            />
+          </div>
+        </div>
+
+        <div className={styles.block}>
+          <div className={styles.item} onClick={handleConnectedDappsOpen}>
+            {lang('Connected Dapps')}
+            <i className="icon-chevron-right" />
+          </div>
+        </div>
+
+        {shouldRenderDeveloperOptions && (
+          <>
+            <p className={styles.blockTitle}>{lang('Developer Options')}</p>
+            <div className={styles.block}>
+              <DropDown
+                label={lang('Network')}
+                className={buildClassName(styles.item, developerOptionsTransitionClassNames)}
+                items={NETWORK_OPTIONS}
+                selectedValue={NETWORK_OPTIONS[isTestnet ? 1 : 0].value}
+                theme="light"
+                menuPosition="bottom"
+                onChange={handleNetworkChange}
+              />
+            </div>
+          </>
+        )}
+
+        <div className={styles.version} onClick={!shouldShowDeveloperOptions ? handleMultipleClick : undefined}>
+          {APP_NAME} {APP_VERSION}
+        </div>
+      </>
+    );
+  }
+
+  function renderDapp(dapp: ApiDapp) {
+    const { iconUrl, name, url } = dapp;
+    const disconnect = () => {
+      handleDisconnectDapp(dapp);
+    };
+
+    return (
+      <DappInfo
+        iconUrl={iconUrl}
+        name={name}
+        url={url}
+        className={styles.dapp}
+        // eslint-disable-next-line react/jsx-no-bind
+        onDisconnect={disconnect}
       />
-    </Modal>
+    );
+  }
+
+  function renderDapps() {
+    const dappsList = dapps.map(renderDapp);
+
+    return (
+      <>
+        <div>
+          <Button
+            className={styles.disconnectButton}
+            isSimple
+            onClick={handleDisconnectAll}
+          >
+            {lang('Disconnect All Dapps')}
+          </Button>
+          <p className={styles.blockDescription}>{lang('$dapps-description')}</p>
+        </div>
+
+        <p className={styles.blockTitle}>{lang('Logged in with MyTonWallet')}</p>
+
+        <div className={styles.block}>
+          { dappsList }
+        </div>
+      </>
+    );
+  }
+
+  function renderEmptyDappsMessage(isActive: boolean) {
+    return (
+      <div className={styles.emptyList}>
+        <AnimatedIconWithPreview
+          play={isActive}
+          tgsUrl={ANIMATED_STICKERS_PATHS.noData}
+          previewUrl={ANIMATED_STICKERS_PATHS.noDataPreview}
+          size={ANIMATED_STICKER_BIG_SIZE_PX}
+          className={styles.sticker}
+          noLoop={false}
+          nonInteractive
+        />
+        <p className={styles.emptyListTitle}>{lang('No active connections')}</p>
+      </div>
+    );
+  }
+
+  function renderConnectedDapps(isActive: boolean) {
+    const content = dapps.length === 0
+      ? renderEmptyDappsMessage(isActive)
+      : renderDapps();
+
+    return (
+      <>
+        <ModalHeader
+          title={lang('Dapps')}
+          onClose={handleCloseModal}
+        />
+
+        {content}
+
+        <div className={modalStyles.buttons}>
+          <Button onClick={handleBackClick} className={modalStyles.button}>{lang('Back')}</Button>
+        </div>
+      </>
+    );
+  }
+
+  // eslint-disable-next-line consistent-return
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+    switch (currentKey) {
+      case SettingsState.Initial:
+        return renderSettings();
+      case SettingsState.ConnectedDapps:
+        return renderConnectedDapps(isActive);
+    }
+  }
+
+  return (
+    <>
+      <Modal
+        hasCloseButton
+        isSlideUp
+        isOpen={isOpen}
+        onClose={handleCloseModal}
+        dialogClassName={styles.modal}
+        contentClassName={styles.content}
+      >
+        <Transition
+          name="push-slide"
+          className={buildClassName(modalStyles.transition, 'custom-scroll')}
+          slideClassName={modalStyles.transitionSlide}
+          activeKey={renderingStage}
+        >
+          {renderContent}
+        </Transition>
+      </Modal>
+      <DisconnectDappModal isOpen={isDisconnectModalOpen} onClose={closeDisconnectModal} dapp={dappToDelete} />
+    </>
   );
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
-    theme, animationLevel, areTinyTransfersHidden, isTestnet, isInvestorViewEnabled, canPlaySounds, langCode,
-  } = global.settings;
-
-  return {
+    state,
     theme,
     animationLevel,
     areTinyTransfersHidden,
@@ -313,5 +465,18 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isInvestorViewEnabled,
     canPlaySounds,
     langCode,
+    dapps,
+  } = global.settings;
+
+  return {
+    state,
+    theme,
+    animationLevel,
+    areTinyTransfersHidden,
+    isTestnet,
+    isInvestorViewEnabled,
+    canPlaySounds,
+    langCode,
+    dapps,
   };
 })(SettingsModal));

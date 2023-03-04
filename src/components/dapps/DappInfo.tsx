@@ -4,11 +4,13 @@ import buildClassName from '../../util/buildClassName';
 import useLang from '../../hooks/useLang';
 
 import styles from './Dapp.module.scss';
+import Button from '../ui/Button';
 
 interface OwnProps {
   iconUrl?: string;
   name?: string;
   url?: string;
+  onDisconnect?: () => void;
   className?: string;
 }
 
@@ -16,6 +18,7 @@ function DappInfo({
   iconUrl,
   name,
   url,
+  onDisconnect,
   className,
 }: OwnProps) {
   const lang = useLang();
@@ -27,6 +30,16 @@ function DappInfo({
         <span className={styles.dappName}>{name}</span>
         <span className={styles.dappUrl}>{url}</span>
       </div>
+      {onDisconnect && (
+        <Button
+          isSmall
+          isPrimary
+          className={styles.dappDisconnect}
+          onClick={onDisconnect}
+        >
+          {lang('Disconnect')}
+        </Button>
+      )}
     </div>
   );
 }

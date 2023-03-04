@@ -147,7 +147,11 @@ export async function getDapps(accountId: string): Promise<ApiDapp[]> {
 }
 
 export async function getDappsByOrigin(accountId: string): Promise<Record<string, ApiDapp>> {
-  return (await getAccountValue(storage, accountId, DAPPS_STORAGE_KEY)) || {};
+  try {
+    return await getAccountValue(storage, accountId, DAPPS_STORAGE_KEY);
+  } catch {
+    return {};
+  }
 }
 
 export async function isDappConnected(accountId: string, origin: string) {

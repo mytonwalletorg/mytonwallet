@@ -35,6 +35,7 @@
 
 .transactionAccount,
 .dappInfo {
+  flex: 1;
   // Allows the flex cell to be clamped
   min-width: 0;
 }
@@ -62,6 +63,10 @@
   font-weight: var(--font-weight-title, 600);
   line-height: 0.9375rem;
   color: var(--color-black);
+}
+
+.dappDisconnect {
+  border-radius: 0.875rem !important;
 }
 
 .label {
