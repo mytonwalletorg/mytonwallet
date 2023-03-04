@@ -269,15 +269,16 @@ DomainNotResolved: Dominio no resuelto
 You can save this address for quick access while sending.: Puede guardar esta dirección para un acceso rápido mientras la envía.
 Stake Again: Estaca de nuevo
 Earned: Ganado
-Connected Dapps: Connected Dapps
-Disconnect All Dapps: Disconnect All Dapps
-Disconnect: Disconnect
-Disconnect Dapp: Disconnect Dapp
-Disconnect Dapps: Disconnect Dapps
-Are you sure you want to disconnect?: Are you sure you want to disconnect %name%?
-Are you sure you want to disconnect all websites?: Are you sure you want to disconnect all websites?
-$dapps-description: You can log in on dapps that support signing in with MyTonWallet. They can view wallet address and balance.
-Logged in with MyTonWallet: Logged in with MyTonWallet
+Connected Dapps: Dapps conectadas
+Disconnect All Dapps: Desconectar todas las Dapps
+Disconnect: Desconectar
+Disconnect Dapp: Desconectar Dapp
+Disconnect Dapps: Desconectar Dapps
+Are you sure you want to disconnect?: ¿Estás seguro de que quieres desconectar %dappname%?
+Are you sure you want to disconnect all websites?: ¿Estás seguro de que quieres desconectar todas las dapps?
+$dapps-description: Puedes iniciar sesión en dapps que admitan el inicio de sesión con MyTonWallet. Pueden ver la dirección del monedero y el saldo.
+Logged in with MyTonWallet: Conectado con MyTonWallet
+No active connections: No hay conexiones activas
 Connect Dapp: Connect Dapp
 Select wallets to use on this dapp: Select wallets to use on this dapp
 Connect: Connect

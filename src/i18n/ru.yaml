@@ -273,15 +273,16 @@ DomainNotResolved: Ошибка резолвинга домена
 You can save this address for quick access while sending.: Вы можете сохранить этот адрес для быстрого доступа при отправке.
 Stake Again: Stake Again
 Earned: Earned
-Connected Dapps: Connected Dapps
-Disconnect All Dapps: Disconnect All Dapps
-Disconnect: Disconnect
-Disconnect Dapp: Disconnect Dapp
-Disconnect Dapps: Disconnect Dapps
-Are you sure you want to disconnect?: Are you sure you want to disconnect %name%?
-Are you sure you want to disconnect all websites?: Are you sure you want to disconnect all websites?
-$dapps-description: You can log in on dapps that support signing in with MyTonWallet. They can view wallet address and balance.
-Logged in with MyTonWallet: Logged in with MyTonWallet
+Connected Dapps: Подключенные приложения
+Disconnect All Dapps: Отключить все приложения
+Disconnect: Отключить
+Disconnect Dapp: Отключить приложение
+Disconnect Dapps: Отключить приложения
+Are you sure you want to disconnect?: Вы уверены, что хотите отключить %dappname%?
+Are you sure you want to disconnect all websites?: Вы уверены, что хотите отключить все сайты?
+$dapps-description: Вы можете подключиться к приложениям, которые поддерживают вход с MyTonWallet. Они могут просматривать адрес кошелька и баланс.
+Logged in with MyTonWallet: Подключены с помощью MyTonWallet
+No active connections: Нет активных подключений
 Connect Dapp: Подключить приложение
 Select wallets to use on this dapp: Выберите кошельки для использования с этим приложением
 Connect: Подключить

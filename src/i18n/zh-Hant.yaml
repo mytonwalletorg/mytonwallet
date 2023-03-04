@@ -258,10 +258,11 @@ Disconnect All Dapps: Disconnect All Dapps
 Disconnect: Disconnect
 Disconnect Dapp: Disconnect Dapp
 Disconnect Dapps: Disconnect Dapps
-Are you sure you want to disconnect?: Are you sure you want to disconnect %name%?
+Are you sure you want to disconnect?: Are you sure you want to disconnect %dappname%?
 Are you sure you want to disconnect all websites?: Are you sure you want to disconnect all websites?
 $dapps-description: You can log in on dapps that support signing in with MyTonWallet. They can view wallet address and balance.
 Logged in with MyTonWallet: Logged in with MyTonWallet
+No active connections: No active connections
 Connect Dapp: Connect Dapp
 Select wallets to use on this dapp: Select wallets to use on this dapp
 Connect: Connect
