@@ -1,4 +1,4 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useCallback } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 import useLang from '../../hooks/useLang';
@@ -10,7 +10,8 @@ interface OwnProps {
   iconUrl?: string;
   name?: string;
   url?: string;
-  onDisconnect?: () => void;
+  origin?: string;
+  onDisconnect?: (origin: string) => void;
   className?: string;
 }
 
@@ -18,10 +19,19 @@ function DappInfo({
   iconUrl,
   name,
   url,
+  origin,
   onDisconnect,
   className,
 }: OwnProps) {
   const lang = useLang();
+
+  const handleDisconnect = useCallback(() => {
+    if (!onDisconnect || !origin) {
+      return;
+    }
+
+    onDisconnect(origin);
+  }, [origin, onDisconnect]);
 
   return (
     <div className={buildClassName(styles.dapp, className)}>
@@ -35,7 +45,7 @@ function DappInfo({
           isSmall
           isPrimary
           className={styles.dappDisconnect}
-          onClick={onDisconnect}
+          onClick={handleDisconnect}
         >
           {lang('Disconnect')}
         </Button>

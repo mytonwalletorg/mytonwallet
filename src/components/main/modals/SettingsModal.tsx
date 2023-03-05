@@ -135,13 +135,6 @@ function SettingsModal({
     }
   }, [isTestnet]);
 
-  // Load all connected dapps on dapps stage
-  useEffect(() => {
-    if (renderingStage === SettingsState.ConnectedDapps) {
-      getDapps();
-    }
-  }, [getDapps, renderingStage]);
-
   const handleThemeChange = useCallback((newTheme: string) => {
     document.documentElement.classList.add('no-transitions');
     setTheme({ theme: newTheme as Theme });
@@ -185,8 +178,9 @@ function SettingsModal({
   }, [onClose]);
 
   const handleConnectedDappsOpen = useCallback(() => {
+    getDapps();
     setRenderingStage(SettingsState.ConnectedDapps);
-  }, []);
+  }, [getDapps]);
 
   const handleBackClick = useCallback(() => {
     setRenderingStage(SettingsState.Initial);
@@ -197,10 +191,11 @@ function SettingsModal({
     openDisconnectModal();
   }, [openDisconnectModal]);
 
-  const handleDisconnectDapp = useCallback((dapp: ApiDapp) => {
+  const handleDisconnectDapp = useCallback((origin: string) => {
+    const dapp = dapps.find((d) => d.origin === origin);
     setDappToDelete(dapp);
     openDisconnectModal();
-  }, [openDisconnectModal]);
+  }, [openDisconnectModal, dapps]);
 
   const handleMultipleClick = () => {
     if (clicksAmount + 1 >= AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE) {
@@ -218,142 +213,148 @@ function SettingsModal({
           title={lang('Settings')}
           onClose={handleCloseModal}
         />
-        <p className={styles.blockTitle}>{lang('Appearance')}</p>
-        <div className={styles.block}>
-          <DropDown
-            label={lang('Theme')}
-            items={THEME_OPTIONS}
-            selectedValue={theme}
-            theme="light"
-            className={styles.item}
-            onChange={handleThemeChange}
-          />
-          <DropDown
-            label={lang('Language')}
-            className={styles.item}
-            items={LANGUAGE_OPTIONS}
-            selectedValue={langCode}
-            theme="light"
-            onChange={handleLanguageChange}
-          />
-          <div className={styles.item} onClick={handleAnimationLevelToggle}>
-            {lang('Enable Animations')}
+        <div className={styles.content}>
+          <p className={styles.blockTitle}>{lang('Appearance')}</p>
+          <div className={styles.block}>
+            <DropDown
+              label={lang('Theme')}
+              items={THEME_OPTIONS}
+              selectedValue={theme}
+              theme="light"
+              className={styles.item}
+              onChange={handleThemeChange}
+            />
+            <DropDown
+              label={lang('Language')}
+              className={styles.item}
+              items={LANGUAGE_OPTIONS}
+              selectedValue={langCode}
+              theme="light"
+              onChange={handleLanguageChange}
+            />
+            <div className={styles.item} onClick={handleAnimationLevelToggle}>
+              {lang('Enable Animations')}
 
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Enable Animations')}
-              checked={animationLevel !== ANIMATION_LEVEL_MIN}
-            />
-          </div>
-          <div className={styles.item} onClick={handleCanPlaySoundToggle}>
-            {lang('Play Sounds')}
-
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Play Sounds')}
-              checked={canPlaySounds}
-            />
-          </div>
-        </div>
-
-        <p className={styles.blockTitle}>{lang('Assets and Activity')}</p>
-        <div className={styles.block}>
-          <DropDown
-            label={lang('Fiat Currency')}
-            className={styles.item}
-            items={CURRENCY_OPTIONS}
-            selectedValue={CURRENCY_OPTIONS[0].value}
-            theme="light"
-            disabled
-            shouldTranslateOptions
-          />
-          <div className={styles.item} onClick={handleInvestorViewToggle}>
-            {lang('Investor View')}
-
-            <Tooltip
-              isOpen={isInvestorHelpTooltipOpen}
-              message={lang('Focus on asset value rather than current balance')}
-              className={styles.tooltip}
-            />
-            <i
-              className={buildClassName(styles.iconQuestion, 'icon-question')}
-              onClick={IS_TOUCH_ENV ? stopEvent : undefined}
-              onMouseEnter={openInvestorHelpTooltip}
-              onMouseLeave={closeInvestorHelpTooltip}
-            />
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Toggle Investor View')}
-              checked={isInvestorViewEnabled}
-            />
-          </div>
-          <div className={styles.item} onClick={handleTinyTransfersHiddenToggle}>
-            {lang('Hide Tiny Transfers')}
-
-            <Tooltip
-              isOpen={isTinyTransfersHelpTooltipOpen}
-              message={lang('$tiny_transfers_help', [TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL]) as string}
-              className={buildClassName(styles.tooltip, styles.tooltip_wide)}
-            />
-            <i
-              className={buildClassName(styles.iconQuestion, 'icon-question')}
-              onClick={IS_TOUCH_ENV ? stopEvent : undefined}
-              onMouseEnter={openTinyTransfersHelpTooltip}
-              onMouseLeave={closeTinyTransfersHelpTooltip}
-            />
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Toggle Hide Tiny Transfers')}
-              checked={areTinyTransfersHidden}
-            />
-          </div>
-        </div>
-
-        <div className={styles.block}>
-          <div className={styles.item} onClick={handleConnectedDappsOpen}>
-            {lang('Connected Dapps')}
-            <i className="icon-chevron-right" />
-          </div>
-        </div>
-
-        {shouldRenderDeveloperOptions && (
-          <>
-            <p className={styles.blockTitle}>{lang('Developer Options')}</p>
-            <div className={styles.block}>
-              <DropDown
-                label={lang('Network')}
-                className={buildClassName(styles.item, developerOptionsTransitionClassNames)}
-                items={NETWORK_OPTIONS}
-                selectedValue={NETWORK_OPTIONS[isTestnet ? 1 : 0].value}
-                theme="light"
-                menuPosition="bottom"
-                onChange={handleNetworkChange}
+              <Switcher
+                className={styles.menuSwitcher}
+                label={lang('Enable Animations')}
+                checked={animationLevel !== ANIMATION_LEVEL_MIN}
               />
             </div>
-          </>
-        )}
+            <div className={styles.item} onClick={handleCanPlaySoundToggle}>
+              {lang('Play Sounds')}
 
-        <div className={styles.version} onClick={!shouldShowDeveloperOptions ? handleMultipleClick : undefined}>
-          {APP_NAME} {APP_VERSION}
+              <Switcher
+                className={styles.menuSwitcher}
+                label={lang('Play Sounds')}
+                checked={canPlaySounds}
+              />
+            </div>
+          </div>
+
+          <p className={styles.blockTitle}>{lang('Assets and Activity')}</p>
+          <div className={styles.block}>
+            <DropDown
+              label={lang('Fiat Currency')}
+              className={styles.item}
+              items={CURRENCY_OPTIONS}
+              selectedValue={CURRENCY_OPTIONS[0].value}
+              theme="light"
+              disabled
+              shouldTranslateOptions
+            />
+            <div className={styles.item} onClick={handleInvestorViewToggle}>
+              {lang('Investor View')}
+
+              <Tooltip
+                isOpen={isInvestorHelpTooltipOpen}
+                message={lang('Focus on asset value rather than current balance')}
+                className={styles.tooltip}
+              />
+              <i
+                className={buildClassName(styles.iconQuestion, 'icon-question')}
+                onClick={IS_TOUCH_ENV ? stopEvent : undefined}
+                onMouseEnter={openInvestorHelpTooltip}
+                onMouseLeave={closeInvestorHelpTooltip}
+              />
+              <Switcher
+                className={styles.menuSwitcher}
+                label={lang('Toggle Investor View')}
+                checked={isInvestorViewEnabled}
+              />
+            </div>
+            <div className={styles.item} onClick={handleTinyTransfersHiddenToggle}>
+              {lang('Hide Tiny Transfers')}
+
+              <Tooltip
+                isOpen={isTinyTransfersHelpTooltipOpen}
+                message={
+                  lang(
+                    '$tiny_transfers_help',
+                    [TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL],
+                  ) as string
+                }
+                className={buildClassName(styles.tooltip, styles.tooltip_wide)}
+              />
+              <i
+                className={buildClassName(styles.iconQuestion, 'icon-question')}
+                onClick={IS_TOUCH_ENV ? stopEvent : undefined}
+                onMouseEnter={openTinyTransfersHelpTooltip}
+                onMouseLeave={closeTinyTransfersHelpTooltip}
+              />
+              <Switcher
+                className={styles.menuSwitcher}
+                label={lang('Toggle Hide Tiny Transfers')}
+                checked={areTinyTransfersHidden}
+              />
+            </div>
+          </div>
+
+          <div className={styles.block}>
+            <div className={styles.item} onClick={handleConnectedDappsOpen}>
+              {lang('Connected Dapps')}
+              <i className="icon-chevron-right" />
+            </div>
+          </div>
+
+          {shouldRenderDeveloperOptions && (
+            <>
+              <p className={styles.blockTitle}>{lang('Developer Options')}</p>
+              <div className={styles.block}>
+                <DropDown
+                  label={lang('Network')}
+                  className={buildClassName(styles.item, developerOptionsTransitionClassNames)}
+                  items={NETWORK_OPTIONS}
+                  selectedValue={NETWORK_OPTIONS[isTestnet ? 1 : 0].value}
+                  theme="light"
+                  menuPosition="bottom"
+                  onChange={handleNetworkChange}
+                />
+              </div>
+            </>
+          )}
+
+          <div className={styles.version} onClick={!shouldShowDeveloperOptions ? handleMultipleClick : undefined}>
+            {APP_NAME} {APP_VERSION}
+          </div>
         </div>
       </>
     );
   }
 
   function renderDapp(dapp: ApiDapp) {
-    const { iconUrl, name, url } = dapp;
-    const disconnect = () => {
-      handleDisconnectDapp(dapp);
-    };
+    const {
+      iconUrl, name, url, origin,
+    } = dapp;
 
     return (
       <DappInfo
         iconUrl={iconUrl}
         name={name}
         url={url}
+        origin={origin}
         className={styles.dapp}
-        // eslint-disable-next-line react/jsx-no-bind
-        onDisconnect={disconnect}
+        onDisconnect={handleDisconnectDapp}
       />
     );
   }
@@ -412,11 +413,14 @@ function SettingsModal({
           onClose={handleCloseModal}
         />
 
-        {content}
+        <div className={styles.content}>
+          {content}
 
-        <div className={modalStyles.buttons}>
-          <Button onClick={handleBackClick} className={modalStyles.button}>{lang('Back')}</Button>
+          <div className={modalStyles.buttons}>
+            <Button onClick={handleBackClick} className={modalStyles.button}>{lang('Back')}</Button>
+          </div>
         </div>
+
       </>
     );
   }
@@ -439,7 +443,6 @@ function SettingsModal({
         isOpen={isOpen}
         onClose={handleCloseModal}
         dialogClassName={styles.modal}
-        contentClassName={styles.content}
       >
         <Transition
           name="push-slide"

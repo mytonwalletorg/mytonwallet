@@ -22,10 +22,22 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, payl
     return;
   }
 
-  void callApi('confirmDappRequestConnect', promiseId!, password, additionalAccountIds);
+  await callApi('confirmDappRequestConnect', promiseId!, password, additionalAccountIds);
 
   global = getGlobal();
   global = clearDappConnectRequest(global);
+  setGlobal(global);
+
+  const { currentAccountId } = global;
+
+  const result = await callApi('getDapps', currentAccountId!);
+
+  if (!result) {
+    return;
+  }
+
+  global = getGlobal();
+  global = updateConnectedDapps(global, { dapps: result });
   setGlobal(global);
 });
 
