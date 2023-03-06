@@ -1,5 +1,5 @@
 import {
-  AuthState, GlobalState, SettingsState, StakingState, TransferState,
+  AuthState, GlobalState, StakingState, TransferState,
 } from './types';
 import {
   ANIMATION_LEVEL_DEFAULT,
@@ -30,7 +30,6 @@ export const INITIAL_STATE: GlobalState = {
   },
 
   settings: {
-    state: SettingsState.Initial,
     theme: THEME_DEFAULT,
     animationLevel: ANIMATION_LEVEL_DEFAULT,
     areTinyTransfersHidden: true,

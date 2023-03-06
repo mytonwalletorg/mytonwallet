@@ -1,12 +1,14 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
 
   padding: 1.5rem 1rem 1rem;
 }
 
 .description {
+  height: 34px;
+  padding: 0 0.5rem;
+
   font-size: 0.9375rem;
   font-weight: 400;
   line-height: 0.9375rem;
@@ -16,4 +18,11 @@
 .buttons {
   display: flex;
   justify-content: space-between;
+
+  margin-top: 0.5rem;
+}
+
+.button {
+  width: 9.25rem;
+  min-width: 9.25rem !important;
 }

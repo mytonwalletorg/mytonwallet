@@ -4,7 +4,7 @@ import React, {
 import { getActions, withGlobal } from '../../../global';
 
 import {
-  AnimationLevel, LangCode, SettingsState, Theme,
+  AnimationLevel, LangCode, Theme,
 } from '../../../global/types';
 import type { ApiDapp, ApiNetwork } from '../../../api/types';
 
@@ -39,13 +39,17 @@ import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 import DappInfo from '../../dapps/DappInfo';
 
+const enum RenderingState {
+  Initial,
+  Dapps,
+}
+
 interface OwnProps {
   isOpen?: boolean;
   onClose: NoneToVoidFunction;
 }
 
 interface StateProps {
-  state: SettingsState;
   theme: Theme;
   animationLevel: AnimationLevel;
   areTinyTransfersHidden?: boolean;
@@ -80,7 +84,6 @@ const SWITCH_THEME_DURATION_MS = 300;
 
 function SettingsModal({
   isOpen,
-  state,
   theme,
   animationLevel,
   areTinyTransfersHidden,
@@ -109,7 +112,8 @@ function SettingsModal({
   const [isDisconnectModalOpen, openDisconnectModal, closeDisconnectModal] = useFlag();
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
 
-  const [renderingStage, setRenderingStage] = useState<number>(state);
+  const [renderingKey, setRenderingKey] = useState<number>(RenderingState.Initial);
+
   const [dappToDelete, setDappToDelete] = useState<ApiDapp | undefined>();
 
   const THEME_OPTIONS = [{
@@ -173,17 +177,16 @@ function SettingsModal({
   }, [isInvestorViewEnabled, toggleInvestorView]);
 
   const handleCloseModal = useCallback(() => {
-    onClose();
-    setRenderingStage(SettingsState.Initial);
-  }, [onClose]);
+    setRenderingKey(RenderingState.Initial);
+  }, []);
 
   const handleConnectedDappsOpen = useCallback(() => {
     getDapps();
-    setRenderingStage(SettingsState.ConnectedDapps);
+    setRenderingKey(RenderingState.Dapps);
   }, [getDapps]);
 
   const handleBackClick = useCallback(() => {
-    setRenderingStage(SettingsState.Initial);
+    setRenderingKey(RenderingState.Initial);
   }, []);
 
   const handleDisconnectAll = useCallback(() => {
@@ -211,7 +214,7 @@ function SettingsModal({
       <>
         <ModalHeader
           title={lang('Settings')}
-          onClose={handleCloseModal}
+          onClose={onClose}
         />
         <div className={styles.content}>
           <p className={styles.blockTitle}>{lang('Appearance')}</p>
@@ -410,14 +413,19 @@ function SettingsModal({
       <>
         <ModalHeader
           title={lang('Dapps')}
-          onClose={handleCloseModal}
+          onClose={onClose}
         />
 
         <div className={styles.content}>
           {content}
 
           <div className={modalStyles.buttons}>
-            <Button onClick={handleBackClick} className={modalStyles.button}>{lang('Back')}</Button>
+            <Button
+              onClick={handleBackClick}
+              className={buildClassName(modalStyles.button, styles.backButton)}
+            >
+              {lang('Back')}
+            </Button>
           </div>
         </div>
 
@@ -428,9 +436,9 @@ function SettingsModal({
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
-      case SettingsState.Initial:
+      case RenderingState.Initial:
         return renderSettings();
-      case SettingsState.ConnectedDapps:
+      case RenderingState.Dapps:
         return renderConnectedDapps(isActive);
     }
   }
@@ -441,14 +449,16 @@ function SettingsModal({
         hasCloseButton
         isSlideUp
         isOpen={isOpen}
-        onClose={handleCloseModal}
+        onClose={onClose}
+        onCloseAnimationEnd={handleCloseModal}
+        noBackdropClose
         dialogClassName={styles.modal}
       >
         <Transition
           name="push-slide"
           className={buildClassName(modalStyles.transition, 'custom-scroll')}
           slideClassName={modalStyles.transitionSlide}
-          activeKey={renderingStage}
+          activeKey={renderingKey}
         >
           {renderContent}
         </Transition>
@@ -460,7 +470,6 @@ function SettingsModal({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
-    state,
     theme,
     animationLevel,
     areTinyTransfersHidden,
@@ -472,7 +481,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   } = global.settings;
 
   return {
-    state,
     theme,
     animationLevel,
     areTinyTransfersHidden,

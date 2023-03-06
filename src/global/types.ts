@@ -60,13 +60,6 @@ export enum StakingState {
   UnstakeComplete,
 }
 
-export enum SettingsState {
-  None,
-
-  Initial,
-  ConnectedDapps,
-}
-
 export type UserToken = {
   amount: number;
   name: string;
@@ -196,7 +189,6 @@ export type GlobalState = {
   byAccountId: Record<string, AccountState>;
 
   settings: {
-    state: SettingsState;
     theme: Theme;
     animationLevel: AnimationLevel;
     langCode: LangCode;
