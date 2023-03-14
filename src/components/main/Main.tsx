@@ -91,7 +91,7 @@ function Main({
       <UnstakingModal />
       <StakingInfoModal isOpen={isStakingInfoOpened} onClose={closeStakingInfo} />
       <DappConnectModal />
-      <DappTransactionModal />‘
+      <DappTransactionModal />
     </>
   );
 }
