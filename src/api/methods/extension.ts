@@ -3,6 +3,7 @@ import { sample } from '../../util/random';
 import { IS_EXTENSION } from '../environment';
 import { Storage } from '../storages/types';
 import { updateDapps } from '../dappMethods';
+import { OnApiUpdate } from '../types';
 
 const proxyHost = PROXY_HOSTS ? sample(PROXY_HOSTS.split(' ')) : '';
 
@@ -10,17 +11,43 @@ const proxyHost = PROXY_HOSTS ? sample(PROXY_HOSTS.split(' ')) : '';
 const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) { return host.endsWith('.ton') || host.endsWith('.adnl') ? 'PROXY ${proxyHost}' : 'DIRECT'; }`;
 
 let storage: Storage;
+let onUpdate: OnApiUpdate;
 let isProxyEnabled = false;
 
-export async function initExtension(_storage: Storage) {
+export async function initExtension(_onUpdate: OnApiUpdate, _storage: Storage) {
   if (!IS_EXTENSION) {
     return;
   }
 
   storage = _storage;
+  onUpdate = _onUpdate;
 
   const isTonProxyEnabled = await storage.getItem('isTonProxyEnabled');
   doProxy(isTonProxyEnabled);
+
+  const isDeeplinkHookEnabled = await storage.getItem('isDeeplinkHookEnabled');
+  doDeeplinkHook(isDeeplinkHookEnabled);
+}
+
+export function setupDefaultExtensionFeatures() {
+  doDeeplinkHook(true);
+  onUpdate({
+    type: 'updateDeeplinkHookState',
+    isEnabled: Boolean(true),
+  });
+}
+
+export async function clearExtensionFeatures() {
+  doProxy(false);
+  doMagic(false);
+  doDeeplinkHook(false);
+
+  await Promise.all([
+    storage.removeItem('isTonMagicEnabled'),
+    storage.removeItem('isTonProxyEnabled'),
+    storage.removeItem('isDeeplinkHookEnabled'),
+    storage.removeItem('dapps'),
+  ]);
 }
 
 export function doProxy(isEnabled: boolean) {
@@ -57,6 +84,15 @@ export function doMagic(isEnabled: boolean) {
 
   updateDapps({
     type: 'updateTonMagic',
+    isEnabled,
+  });
+}
+
+export function doDeeplinkHook(isEnabled: boolean) {
+  void storage.setItem('isDeeplinkHookEnabled', isEnabled);
+
+  updateDapps({
+    type: 'updateDeeplinkHook',
     isEnabled,
   });
 }

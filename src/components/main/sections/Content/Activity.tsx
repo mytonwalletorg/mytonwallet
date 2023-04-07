@@ -1,20 +1,20 @@
 import React, {
-  memo, useCallback, useEffect, useMemo,
+  memo, useCallback, useMemo,
 } from '../../../../lib/teact/teact';
 import { withGlobal, getActions } from '../../../../global';
 
 import type { ApiToken, ApiTransaction } from '../../../../api/types';
+import { compareTransactions } from '../../../../api/common/helpers';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, TINY_TRANSFER_MAX_AMOUNT } from '../../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, TINY_TRANSFER_MAX_AMOUNT, TON_TOKEN_SLUG } from '../../../../config';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
-import { bigStrToHuman } from '../../../../global/helpers';
+import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
 import { selectCurrentAccountState } from '../../../../global/selectors';
-import buildClassName from '../../../../util/buildClassName';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
 import useInfiniteLoader from '../../../../hooks/useInfiniteLoader';
 import useLang from '../../../../hooks/useLang';
+import { findLast } from '../../../../util/iteratees';
 
-import Loading from '../../../ui/Loading';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Transaction from './Transaction';
 
@@ -25,7 +25,6 @@ interface OwnProps {
 }
 
 type StateProps = {
-  currentAccountId: string;
   slug?: string;
   isLoading?: boolean;
   areTinyTransfersHidden?: boolean;
@@ -33,6 +32,7 @@ type StateProps = {
   txIds?: string[];
   tokensBySlug?: Record<string, ApiToken>;
   apyValue: number;
+  savedAddresses?: Record<string, string>;
 };
 
 interface TransactionDateGroup {
@@ -40,12 +40,10 @@ interface TransactionDateGroup {
   transactions: ApiTransaction[];
 }
 
-const INITIAL_SLICE = 20;
 const FURTHER_SLICE = 50;
 
 function Activity({
   isActive,
-  currentAccountId,
   isLoading,
   slug,
   txIds,
@@ -53,8 +51,9 @@ function Activity({
   tokensBySlug,
   areTinyTransfersHidden,
   apyValue,
+  savedAddresses,
 }: OwnProps & StateProps) {
-  const { fetchTransactions, showTransactionInfo } = getActions();
+  const { fetchTokenTransactions, fetchAllTransactions, showTransactionInfo } = getActions();
 
   const lang = useLang();
 
@@ -108,17 +107,13 @@ function Activity({
     return groupedTransactions;
   }, [tokensBySlug, byTxId, areTinyTransfersHidden, slug, txIds]);
 
-  // Initial loading
-  const areTxsPreloaded = txIds ? txIds.length >= INITIAL_SLICE : false;
-  useEffect(() => {
-    if (!areTxsPreloaded) {
-      fetchTransactions({ limit: INITIAL_SLICE });
-    }
-  }, [areTxsPreloaded, fetchTransactions, currentAccountId]);
-
   const loadMore = useCallback(() => {
-    fetchTransactions({ limit: FURTHER_SLICE });
-  }, [fetchTransactions]);
+    if (slug) {
+      fetchTokenTransactions({ slug, limit: FURTHER_SLICE });
+    } else {
+      fetchAllTransactions({ limit: FURTHER_SLICE });
+    }
+  }, [slug, fetchTokenTransactions, fetchAllTransactions]);
 
   const handleTransactionClick = useCallback((txId: string) => {
     showTransactionInfo({ txId });
@@ -139,6 +134,7 @@ function Activity({
               transaction={transaction}
               token={transaction.slug ? tokensBySlug?.[transaction.slug] : undefined}
               apyValue={apyValue}
+              savedAddresses={savedAddresses}
               onClick={handleTransactionClick}
             />
           );
@@ -150,13 +146,7 @@ function Activity({
     ));
   }
 
-  if (!transactions) {
-    return (
-      <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}><Loading /></div>
-    );
-  }
-
-  if (transactions.length === 0) {
+  if (!transactions?.length) {
     return (
       <div className={styles.emptyList}>
         <AnimatedIconWithPreview
@@ -182,14 +172,30 @@ export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): 
 
   const accountState = selectCurrentAccountState(global);
 
+  const slug = accountState?.currentTokenSlug;
+  const { txIdsBySlug = {}, byTxId } = accountState?.transactions || {};
+
+  let orderedTxIds: string[] | undefined;
+  if (slug) {
+    orderedTxIds = txIdsBySlug[slug];
+  } else if (byTxId) {
+    const lastTonTxId = findLast(txIdsBySlug[TON_TOKEN_SLUG] || [], (txId) => !getIsTxIdLocal(txId));
+    orderedTxIds = Object.values(txIdsBySlug).flat();
+    if (lastTonTxId) {
+      orderedTxIds = orderedTxIds.filter((txId) => byTxId[txId].timestamp >= byTxId[lastTonTxId].timestamp);
+    }
+
+    orderedTxIds.sort((a, b) => compareTransactions(byTxId[a], byTxId[b], false));
+  }
+
   return {
-    currentAccountId: currentAccountId!,
-    slug: accountState?.currentTokenSlug,
+    slug,
     isLoading: accountState?.transactions?.isLoading,
-    byTxId: accountState?.transactions?.byTxId,
-    txIds: accountState?.transactions?.orderedTxIds,
+    byTxId,
+    txIds: orderedTxIds,
     tokensBySlug: global.tokenInfo?.bySlug,
     areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
     apyValue: accountState?.poolState?.lastApy || 0,
+    savedAddresses: accountState?.savedAddresses,
   };
 })(Activity));

@@ -1,2 +1,2 @@
-import '../api/providers/extension/extensionForPopup';
-import '../api/providers/extension/extensionForContentScript';
+import '../api/providers/extension/providerForPopup';
+import '../api/providers/extension/providerForContentScript';

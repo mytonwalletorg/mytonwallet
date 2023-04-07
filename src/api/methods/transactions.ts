@@ -1,4 +1,4 @@
-import type { OnApiUpdate } from '../types';
+import type { ApiTxIdBySlug, OnApiUpdate } from '../types';
 import type { Storage } from '../storages/types';
 
 import blockchains from '../blockchains';
@@ -21,10 +21,16 @@ export function fetchTransactions(accountId: string) {
   return blockchain.getAccountTransactionSlice(storage, accountId);
 }
 
-export function fetchTransactionSlice(accountId: string, beforeTxId?: string, limit?: number) {
+export function fetchTokenTransactionSlice(accountId: string, slug: string, beforeTxId?: string, limit?: number) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.getAccountTransactionSlice(storage, accountId, beforeTxId, undefined, limit);
+  return blockchain.getTokenTransactionSlice(storage, accountId, slug, beforeTxId, undefined, limit);
+}
+
+export function fetchAllTransactionSlice(accountId: string, lastTxIds: ApiTxIdBySlug, limit: number) {
+  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+
+  return blockchain.getMergedTransactionSlice(storage, accountId, lastTxIds, limit);
 }
 
 export function checkTransactionDraft(
@@ -61,7 +67,7 @@ export async function submitTransfer(
     });
 
     onUpdate({
-      type: 'newTransaction',
+      type: 'newLocalTransaction',
       transaction: localTransaction,
       accountId,
     });
@@ -70,6 +76,7 @@ export async function submitTransfer(
       .then(({ txId }) => {
         onUpdate({
           type: 'updateTxComplete',
+          accountId,
           toAddress,
           amount,
           txId,

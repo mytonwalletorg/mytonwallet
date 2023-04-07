@@ -63,11 +63,13 @@ export async function openPopupWindow() {
 
   const lastWindowId = Number(await storage.getItem('windowId'));
   if (lastWindowId) {
-    const wasWindowFound = await new Promise<boolean>((resolve) => {
-      chrome.windows.get(lastWindowId, (window) => {
-        resolve(Boolean(window));
-      });
-    });
+    let wasWindowFound: boolean;
+    try {
+      await chrome.windows.get(lastWindowId);
+      wasWindowFound = true;
+    } catch (e) {
+      wasWindowFound = false;
+    }
 
     if (wasWindowFound) {
       currentWindowId = lastWindowId;

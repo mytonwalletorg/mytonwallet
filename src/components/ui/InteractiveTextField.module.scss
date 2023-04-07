@@ -19,6 +19,10 @@
   line-height: 1.25rem;
   text-decoration: none !important;
 
+  &_spoiler {
+    cursor: default;
+  }
+
   &:active {
     // Optimization
     transition: none;
@@ -55,4 +59,34 @@
 
 .nameInput {
   margin-bottom: 1.5rem;
+}
+
+.shortAddress {
+  position: relative;
+
+  margin-left: 0.75rem;
+
+  color: var(--color-gray-3);
+
+  &::before {
+    content: '';
+
+    position: absolute;
+    top: 0.625rem;
+    left: -0.4375rem;
+
+    width: 0.125rem;
+    height: 0.125rem;
+
+    background-color: var(--color-gray-3);
+    border-radius: 50%;
+  }
+}
+
+.viewSpoiler {
+  cursor: pointer;
+
+  margin-left: 0.1875rem;
+
+  color: var(--color-blue);
 }

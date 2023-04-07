@@ -12,7 +12,7 @@ import {
 import switchTheme from '../../../util/switchTheme';
 import { setLanguage, clearPreviousLangpacks } from '../../../util/langProvider';
 import { updateCurrentAccountState } from '../../reducers';
-import { selectNetworkAccounts } from '../../selectors';
+import { selectNetworkAccounts, selectNewestTxIds } from '../../selectors';
 import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import { genRelatedAccountIds } from '../../../util/account';
 import { omit } from '../../../util/iteratees';
@@ -159,6 +159,18 @@ addActionHandler('toggleTonMagic', (global, actions, { isEnabled }) => {
   };
 });
 
+addActionHandler('toggleDeeplinkHook', (global, actions, { isEnabled }) => {
+  void callApi('doDeeplinkHook', isEnabled);
+
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      isDeeplinkHookEnabled: isEnabled,
+    },
+  };
+});
+
 addActionHandler('signOut', async (global, actions, payload) => {
   const { isFromAllAccounts } = payload || {};
   const accountIds = Object.keys(selectNetworkAccounts(global)!);
@@ -169,16 +181,17 @@ addActionHandler('signOut', async (global, actions, payload) => {
     getActions().afterSignOut({ isFromAllAccounts: true });
     getActions().init();
   } else {
-    const { currentAccountId: prevAccountId } = global;
-    const nextAccountId = accountIds.find((id) => id !== prevAccountId);
+    const prevAccountId = global.currentAccountId!;
+    const nextAccountId = accountIds.find((id) => id !== prevAccountId)!;
+    const nextNewestTxIds = selectNewestTxIds(global, nextAccountId);
 
-    actions.switchAccount({ accountId: nextAccountId! });
+    await callApi('removeAccount', prevAccountId, nextAccountId, nextNewestTxIds);
 
     global = getGlobal();
 
     const prevAccountIds = genRelatedAccountIds(prevAccountId!);
     const accountsById = omit(global.accounts!.byId, prevAccountIds);
-    const accountsState = omit(global.byAccountId, prevAccountIds);
+    const byAccountId = omit(global.byAccountId, prevAccountIds);
 
     global = {
       ...global,
@@ -187,12 +200,10 @@ addActionHandler('signOut', async (global, actions, payload) => {
         ...global.accounts!,
         byId: accountsById,
       },
-      byAccountId: { ...accountsState },
+      byAccountId,
     };
 
     setGlobal(global);
-
-    callApi('removeAccount', prevAccountId!);
 
     getActions().afterSignOut();
   }

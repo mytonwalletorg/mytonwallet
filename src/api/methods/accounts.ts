@@ -1,50 +1,62 @@
-import { OnApiUpdate } from '../types';
+import { ApiTxIdBySlug, OnApiUpdate } from '../types';
 import { Storage } from '../storages/types';
 
-import { migrateStorage } from '../common/helpers';
+import { waitStorageMigration } from '../common/helpers';
 
 import * as dappMethods from '../dappMethods';
-import { setupBalancePolling, setupBackendStakingStatePolling } from './polling';
-import { deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
+import { setupBalancePolling, setupBackendStakingStatePolling, sendUpdateTokens } from './polling';
+import { deactivateAccountDapp, deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
 import { IS_EXTENSION } from '../environment';
+import { clearExtensionFeatures, setupDefaultExtensionFeatures } from './extension';
 
 // let onUpdate: OnApiUpdate;
-let storage: Storage;
+// let storage: Storage;
 let activeAccountId: string | undefined;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function initAccounts(_onUpdate: OnApiUpdate, _storage: Storage) {
   // onUpdate = _onUpdate;
-  storage = _storage;
+  // storage = _storage;
 }
 
-export async function switchAccount(accountId: string, newestTxId?: string) {
-  deactivateAccount();
-  await activateAccount(accountId, newestTxId);
-}
+export async function activateAccount(accountId: string, newestTxIds?: ApiTxIdBySlug) {
+  await waitStorageMigration();
 
-export async function activateAccount(accountId: string, newestTxId?: string) {
-  await migrateStorage(storage);
+  const isFirstLogin = !activeAccountId;
 
   activeAccountId = accountId;
 
   if (IS_EXTENSION) {
+    if (isFirstLogin) {
+      setupDefaultExtensionFeatures();
+    }
+
     dappMethods.activateDappAccount(accountId);
     onActiveDappAccountUpdated(accountId);
   }
 
-  void setupBalancePolling(accountId, newestTxId);
+  if (isFirstLogin) {
+    sendUpdateTokens();
+  }
+
+  void setupBalancePolling(accountId, newestTxIds);
   void setupBackendStakingStatePolling(accountId);
 }
 
-export function deactivateAccount() {
-  dappMethods.deactivateDappAccount();
-  activeAccountId = undefined;
-}
-
 export function deactivateAllAccounts() {
-  deactivateAccount();
+  deactivateCurrentAccount();
+  activeAccountId = undefined;
+
   if (IS_EXTENSION) {
     deactivateAllDapps();
+    void clearExtensionFeatures();
+  }
+}
+
+export function deactivateCurrentAccount() {
+  if (IS_EXTENSION) {
+    dappMethods.deactivateDappAccount();
+    deactivateAccountDapp(activeAccountId!);
   }
 }
 

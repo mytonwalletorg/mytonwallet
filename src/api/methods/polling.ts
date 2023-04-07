@@ -1,5 +1,5 @@
 import blockchains from '../blockchains';
-import { isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
+import { isUpdaterAlive, resolveBlockchainKey, compareTransactions } from '../common/helpers';
 import { txCallbacks } from '../common/txCallbacks';
 import { pause } from '../../util/schedulers';
 import {
@@ -9,22 +9,28 @@ import {
   TON_TOKEN_SLUG,
 } from '../../config';
 import { Storage } from '../storages/types';
-import { ApiInitArgs, ApiToken, OnApiUpdate } from '../types';
-import { buildCollectionByKey } from '../../util/iteratees';
-import { cloneDeep } from '../blockchains/ton/util';
-import { getKnownTokens } from '../blockchains/ton/tokens';
+import {
+  ApiInitArgs, ApiToken, ApiTokenPrice, ApiTransaction, ApiTxIdBySlug, OnApiUpdate,
+} from '../types';
+import { getKnownTokens, TokenBalanceParsed } from '../blockchains/ton/tokens';
 import { getBackendStakingState } from './staking';
+import { tryUpdateKnownAddresses } from '../common/addresses';
 
 type IsAccountActiveFn = (accountId: string) => boolean;
 
 const POLLING_INTERVAL = 1100; // 1.1 sec
-const PRICES_POLLING_INTERVAL = 30000; // 30 sec
-const BACKEND_STAKING_STATE_POLLING_INTERVAL = 60000; // 1 min
+const BACKEND_POLLING_INTERVAL = 30000; // 30 sec
+const LONG_BACKEND_POLLING_INTERVAL = 60000; // 1 min
+
+const FIRST_TRANSACTIONS_LIMIT = 20;
 
 let onUpdate: OnApiUpdate;
 let storage: Storage;
 let isAccountActive: IsAccountActiveFn;
 let origin: string;
+
+let preloadEnsurePromise: Promise<any>;
+let pricesBySymbol: Record<string, ApiTokenPrice>;
 
 const lastBalanceCache: Record<string, {
   balance?: string;
@@ -38,15 +44,43 @@ export function initPolling(
   storage = _storage;
   isAccountActive = _isAccountActive;
   origin = args.origin;
+
+  preloadEnsurePromise = Promise.all([
+    tryUpdateKnownAddresses(),
+    tryUpdatePrices(),
+  ]);
+
+  void setupBackendPolling();
+  void setupLongBackendPolling();
 }
 
-// TODO Switching back/to Testnet always creates a new polling loop but never breaks the previous one
-export async function setupBalancePolling(accountId: string, newestTxId?: string) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+function registerNewTokens(tokenBalances: TokenBalanceParsed[]) {
+  const tokens = getKnownTokens();
+  let areNewTokensFound = false;
 
-  if (!newestTxId) {
-    newestTxId = await blockchain.getAccountNewestTxId(storage, accountId);
+  for (const { token } of tokenBalances.filter(Boolean)) {
+    if (token.slug in tokens) continue;
+
+    areNewTokensFound = true;
+    tokens[token.slug] = {
+      ...token,
+      quote: pricesBySymbol[token.slug] || {
+        price: 0.0,
+        percentChange1h: 0.0,
+        percentChange24h: 0.0,
+        percentChange7d: 0.0,
+        percentChange30d: 0.0,
+      },
+    } as ApiToken;
   }
+
+  if (areNewTokensFound) {
+    sendUpdateTokens();
+  }
+}
+
+export async function setupBalancePolling(accountId: string, newestTxIds: ApiTxIdBySlug = {}) {
+  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   delete lastBalanceCache[accountId];
 
@@ -60,51 +94,33 @@ export async function setupBalancePolling(accountId: string, newestTxId?: string
       if (!isUpdaterAlive(onUpdate) || !isAccountActive(accountId)) return;
 
       const cache = lastBalanceCache[accountId];
-      let isBalanceChanged = false;
+      const changedTokenSlugs: string[] = [];
 
       if (balance && balance !== cache?.balance) {
-        isBalanceChanged = true;
+        changedTokenSlugs.push(TON_TOKEN_SLUG);
         onUpdate({
           type: 'updateBalance',
           accountId,
           slug: TON_TOKEN_SLUG,
           balance,
         });
+
+        lastBalanceCache[accountId] = {
+          ...lastBalanceCache[accountId],
+          balance,
+        };
       }
 
       if (tokenBalances) {
-        // Process new tokens
-        const tokens = getKnownTokens();
-        let areNewTokensFound = false;
-
-        for (const { token } of tokenBalances) {
-          if (token.slug in tokens) continue;
-
-          areNewTokensFound = true;
-          tokens[token.slug] = {
-            ...token,
-            quote: {
-              price: 0.0,
-              percentChange1h: 0.0,
-              percentChange24h: 0.0,
-              percentChange7d: 0.0,
-              percentChange30d: 0.0,
-            },
-          } as ApiToken;
-        }
-
-        if (areNewTokensFound) {
-          onUpdate({
-            type: 'updateTokens',
-            tokens: cloneDeep(tokens),
-          });
-        }
+        registerNewTokens(tokenBalances);
 
         // Process balances
         for (const { slug, balance: tokenBalance } of tokenBalances) {
-          if (tokenBalance === (cache?.tokenBalances || {})[slug]) continue;
+          const cachedBalance = cache?.tokenBalances && cache.tokenBalances[slug];
+          if (cachedBalance === tokenBalance) continue;
 
-          isBalanceChanged = true;
+          changedTokenSlugs.push(slug);
+
           onUpdate({
             type: 'updateBalance',
             accountId,
@@ -112,6 +128,13 @@ export async function setupBalancePolling(accountId: string, newestTxId?: string
             balance: tokenBalance,
           });
         }
+
+        lastBalanceCache[accountId] = {
+          ...lastBalanceCache[accountId],
+          tokenBalances: Object.fromEntries(tokenBalances.map(
+            ({ slug, balance: tokenBalance }) => [slug, tokenBalance],
+          )),
+        };
       }
 
       if (stakingState) {
@@ -122,16 +145,10 @@ export async function setupBalancePolling(accountId: string, newestTxId?: string
         });
       }
 
-      if (isBalanceChanged) {
-        newestTxId = await fetchNewTransactions(accountId, newestTxId);
+      if (changedTokenSlugs.length) {
+        const newTxIds = await processNewTokenTransactions(accountId, newestTxIds, changedTokenSlugs);
+        newestTxIds = { ...newestTxIds, ...newTxIds };
       }
-
-      lastBalanceCache[accountId] = {
-        balance,
-        tokenBalances: tokenBalances && Object.fromEntries(tokenBalances.map(
-          ({ slug, balance: tokenBalance }) => [slug, tokenBalance],
-        )),
-      };
     } catch (err) {
       if (DEBUG) {
         // eslint-disable-next-line no-console
@@ -143,70 +160,120 @@ export async function setupBalancePolling(accountId: string, newestTxId?: string
   }
 }
 
-async function fetchNewTransactions(accountId: string, newestTxId?: string) {
+async function processNewTokenTransactions(
+  accountId: string,
+  newestTxIds: ApiTxIdBySlug,
+  tokenSlugs: string[],
+): Promise<ApiTxIdBySlug> {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  const transactions = await blockchain.getAccountTransactionSlice(
-    storage,
-    accountId,
-    undefined,
-    newestTxId,
-  );
-
-  if (transactions.length) {
-    newestTxId = transactions[0].txId;
-
-    // eslint-disable-next-line @typescript-eslint/no-loop-func
-    transactions.reverse().forEach((transaction) => {
-      txCallbacks.runCallbacks(transaction);
-
-      onUpdate({
-        type: 'newTransaction',
-        transaction,
-        accountId,
-      });
-    });
+  if (!tokenSlugs.length) {
+    return {};
   }
 
-  return newestTxId;
+  let allTransactions: ApiTransaction[] = [];
+
+  const entries = await Promise.all(tokenSlugs.map(async (slug) => {
+    let newestTxId = newestTxIds[slug];
+
+    const transactions = await blockchain.getTokenTransactionSlice(
+      storage, accountId, slug, undefined, newestTxId,
+    );
+
+    if (transactions.length) {
+      newestTxId = transactions[0]!.txId;
+      allTransactions = allTransactions.concat(transactions.slice(0, FIRST_TRANSACTIONS_LIMIT));
+    }
+    return [slug, newestTxId];
+  }));
+
+  allTransactions.sort((a, b) => compareTransactions(a, b, true));
+
+  allTransactions.forEach((transaction) => {
+    txCallbacks.runCallbacks(transaction);
+  });
+
+  onUpdate({
+    type: 'newTransactions',
+    transactions: allTransactions,
+    accountId,
+  });
+
+  return Object.fromEntries(entries);
 }
 
-export async function setupPricesPolling() {
+export async function setupBackendPolling() {
   while (isUpdaterAlive(onUpdate)) {
+    await pause(BACKEND_POLLING_INTERVAL);
+
     try {
-      const data = await fetch(`${BRILLIANT_API_BASE_URL}/prices`, {
-        headers: {
-          'X-App-Origin': origin,
-          'X-App-Version': APP_VERSION,
-        },
-      });
-      if (!isUpdaterAlive(onUpdate)) return;
-      if (!data.ok) {
-        await pause(POLLING_INTERVAL);
-        continue;
-      }
-      const prices = (await data.json()) as Record<string, ApiToken>;
-      const pricesById = buildCollectionByKey(Object.values(prices), 'id');
-      const tokens = getKnownTokens();
-
-      Object.values(tokens).forEach((token) => {
-        if (!token.id) return;
-        token.quote = pricesById[token.id].quote;
-      });
-
-      onUpdate({
-        type: 'updateTokens',
-        tokens: cloneDeep(tokens),
-      });
+      await tryUpdatePrices();
     } catch (err) {
       if (DEBUG) {
         // eslint-disable-next-line no-console
-        console.error('Error fetching tokens', err);
+        console.error('[setupBackendPolling]', err);
       }
     }
-
-    await pause(PRICES_POLLING_INTERVAL);
   }
+}
+
+export async function setupLongBackendPolling() {
+  while (isUpdaterAlive(onUpdate)) {
+    await pause(LONG_BACKEND_POLLING_INTERVAL);
+
+    try {
+      await tryUpdateKnownAddresses();
+    } catch (err) {
+      if (DEBUG) {
+        // eslint-disable-next-line no-console
+        console.error('[setupLongBackendPolling]', err);
+      }
+    }
+  }
+}
+
+export async function tryUpdatePrices() {
+  try {
+    const response = await fetch(`${BRILLIANT_API_BASE_URL}/prices`, {
+      headers: {
+        'X-App-Origin': origin,
+        'X-App-Version': APP_VERSION,
+      },
+    });
+    if (!isUpdaterAlive(onUpdate)) return;
+    if (!response.ok) return;
+
+    const data = (await response.json()) as Record<string, {
+      symbol: string;
+      quote: ApiTokenPrice;
+    }>;
+
+    pricesBySymbol = Object.values(data).reduce((acc, { symbol, quote }) => {
+      acc[symbol] = quote;
+      return acc;
+    }, {} as Record<string, ApiTokenPrice>);
+
+    sendUpdateTokens();
+  } catch (err) {
+    if (DEBUG) {
+      // eslint-disable-next-line no-console
+      console.error('[tryUpdatePrices]', err);
+    }
+  }
+}
+
+export function sendUpdateTokens() {
+  const tokens = getKnownTokens();
+  Object.values(tokens).forEach((token) => {
+    if (token.symbol in pricesBySymbol) {
+      token.quote = pricesBySymbol[token.symbol];
+    }
+  });
+
+  onUpdate({
+    type: 'updateTokens',
+    tokens,
+  });
 }
 
 export async function setupBackendStakingStatePolling(accountId: string) {
@@ -228,7 +295,7 @@ export async function setupBackendStakingStatePolling(accountId: string) {
       }
     }
 
-    await pause(BACKEND_STAKING_STATE_POLLING_INTERVAL);
+    await pause(BACKEND_POLLING_INTERVAL);
   }
 }
 
@@ -239,4 +306,8 @@ function logAndRescue(err: Error) {
   }
 
   return undefined;
+}
+
+export async function waitDataPreload() {
+  await preloadEnsurePromise;
 }

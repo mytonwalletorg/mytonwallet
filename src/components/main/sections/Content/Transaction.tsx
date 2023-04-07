@@ -15,11 +15,14 @@ import Button from '../../../ui/Button';
 
 import styles from './Transaction.module.scss';
 
+import scamImg from '../../../../assets/scam.svg';
+
 type OwnProps = {
   ref?: Ref<HTMLElement>;
   token?: ApiToken;
   transaction: ApiTransaction;
   apyValue: number;
+  savedAddresses?: Record<string, string>;
   onClick: (txId: string) => void;
 };
 
@@ -28,6 +31,7 @@ function Transaction({
   token,
   transaction,
   apyValue,
+  savedAddresses,
   onClick,
 }: OwnProps) {
   const lang = useLang();
@@ -41,12 +45,15 @@ function Transaction({
     comment,
     isIncoming,
     type,
+    metadata,
   } = transaction;
 
   const isStaking = type === 'stake' || type === 'unstake' || type === 'unstakeRequest';
   const amountHuman = bigStrToHuman(amount, token!.decimals);
   const address = isIncoming ? fromAddress : toAddress;
+  const addressName = savedAddresses?.[address] || metadata?.name;
   const isLocal = getIsTxIdLocal(txId);
+  const isScam = Boolean(metadata?.isScam);
 
   const handleClick = useCallback(() => {
     onClick(txId);
@@ -108,7 +115,10 @@ function Transaction({
         />
       )}
       <div className={styles.leftBlock}>
-        <div className={styles.operationName}>{lang(getOperationName())}</div>
+        <div className={styles.operationName}>
+          {lang(getOperationName())}
+          {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
+        </div>
         <div className={styles.date}>{formatTime(timestamp)}</div>
       </div>
       <div className={styles.amountWrapper}>
@@ -121,13 +131,13 @@ function Transaction({
         </div>
         <div className={styles.address}>
           {!isStaking && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
-            address: <span className={styles.addressValue}>{shortenAddress(address)}</span>,
+            address: <span className={styles.addressValue}>{addressName || shortenAddress(address)}</span>,
           })}
           {type === 'stake' && lang('at APY %1$s%', apyValue)}
           {(type === 'unstake' || type === 'unstakeRequest') && '\u00A0'}
         </div>
       </div>
-      {!isStaking && comment && renderComment()}
+      {!isStaking && !isScam && comment && renderComment()}
       <i className={buildClassName(styles.iconArrow, 'icon-chevron-right')} aria-hidden />
     </Button>
   );

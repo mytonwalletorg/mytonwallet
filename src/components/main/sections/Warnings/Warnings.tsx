@@ -5,6 +5,7 @@ import { selectCurrentAccountState } from '../../../../global/selectors';
 import useLang from '../../../../hooks/useLang';
 
 import BackupWarning from './BackupWarning';
+import SecurityWarning from './SecurityWarning';
 
 import styles from './Warnings.module.scss';
 
@@ -21,14 +22,17 @@ function Warnings({ isBackupRequired, isTestnet, onOpenBackupWallet }: OwnProps 
   const lang = useLang();
 
   return (
-    <div className={styles.container}>
-      {isTestnet && <div className={styles.testnetWarning}>{lang('Testnet Version')}</div>}
+    <>
+      <div className={styles.container}>
+        {isTestnet && <div className={styles.testnetWarning}>{lang('Testnet Version')}</div>}
+      </div>
       <BackupWarning isRequired={isBackupRequired} onOpenBackupWallet={onOpenBackupWallet} />
-    </div>
+      <SecurityWarning />
+    </>
   );
 }
 
-export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps => {
   detachWhenChanged(global.currentAccountId);
 
   return {

@@ -206,7 +206,7 @@ function DappConnectModal({
         isOpen={isModalOpen}
         isSlideUp
         dialogClassName={styles.modalDialog}
-        onClose={closeModal}
+        onClose={handleClose}
         onCloseAnimationEnd={handleClose}
       >
         <Transition

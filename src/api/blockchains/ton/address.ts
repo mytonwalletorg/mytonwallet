@@ -2,7 +2,7 @@ import { Storage } from '../../storages/types';
 import { getTonWeb } from './util/tonweb';
 import dns from '../../../util/dns';
 import { ApiNetwork } from '../../types';
-import { toInternalAccountId } from '../../common/helpers';
+import { getAccountValue } from '../../common/accounts';
 
 const { DnsCollection } = require('tonweb/src/contract/dns/DnsCollection');
 
@@ -33,9 +33,6 @@ export async function resolveAddress(network: ApiNetwork, address: string) {
   }
 }
 
-export async function fetchAddress(storage: Storage, accountId: string): Promise<string> {
-  const internalId = toInternalAccountId(accountId);
-  const addressesJson = (await storage.getItem('addresses'))!;
-  const addresses = JSON.parse(addressesJson);
-  return addresses[internalId];
+export function fetchAddress(storage: Storage, accountId: string): Promise<string> {
+  return getAccountValue(storage, accountId, 'addresses');
 }

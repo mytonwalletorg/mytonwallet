@@ -74,7 +74,7 @@ Back Up Secret Words: Резервная копия
 Settings: Настройки
 About: О MyTonWallet
 Exit: Выйти
-Something went wrong: Упс, что-то пошло нет так
+Something went wrong: Упс, что-то пошло не так
 Logo: Логотип
 $about_description1: Безопасно храните криптовалюту, пользуйтесь децентрализованными приложениями и совершайте платежи в блокчейне **со скоростью света**.
 $about_description2: Кошелёк **управляется только вами**. Разработчики **не имеют доступа** к вашим средствам, истории браузера или любой другой информации.
@@ -175,8 +175,7 @@ Received: Получено
 Sent: Отправлено
 $transaction_from: от %address%
 $transaction_to: на %address%
-Wallet is not backed up!: Резервная копия кошелька не создана!
-Back up now: Создать
+Wallet is not backed up: Резервная копия кошелька не создана
 Testnet Version: Версия Testnet
 Error reading clipboard: Ошибка буфера обмена
 $fee_value: "Комиссия: %fee%"
@@ -283,3 +282,10 @@ Payload: Payload
 $many_transactions: "%1$d перевода"
 Total Amount: Общая сумма
 Unstaking: Unstaking
+"Handle ton:// links": Обрабатывать ссылки ton://
+Back up wallet to have full access to it: Сделайте резервную копию кошелька, чтобы иметь к нему полный доступ
+Improve wallet security: Повысьте безопасность кошелька
+by installing browser extension or native app: установив расширение для браузера или приложение
+Scam: Скам
+Scam comment is hidden.: Скам комментарий скрыт.
+Display: Показать

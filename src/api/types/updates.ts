@@ -15,10 +15,16 @@ export type ApiUpdateBalance = {
   balance: string;
 };
 
-export type ApiUpdateNewTransaction = {
-  type: 'newTransaction';
-  transaction: ApiTransaction;
+export type ApiUpdateNewTransactions = {
+  type: 'newTransactions';
   accountId: string;
+  transactions: ApiTransaction[];
+};
+
+export type ApiUpdateNewLocalTransaction = {
+  type: 'newLocalTransaction';
+  accountId: string;
+  transaction: ApiTransaction;
 };
 
 export type ApiUpdateTokens = {
@@ -43,6 +49,7 @@ export type ApiUpdateCreateSignature = {
 
 export type ApiUpdateTxComplete = {
   type: 'updateTxComplete';
+  accountId: string;
   toAddress: string;
   amount: string;
   txId: string;
@@ -61,6 +68,11 @@ export type ApiUpdateTonProxyState = {
 
 export type ApiUpdateTonMagicState = {
   type: 'updateTonMagicState';
+  isEnabled: boolean;
+};
+
+export type ApiUpdateDeeplinkHookState = {
+  type: 'updateDeeplinkHookState';
   isEnabled: boolean;
 };
 
@@ -107,9 +119,17 @@ export type ApiUpdateDappDisconnect = {
   origin: string;
 };
 
+export type ApiUpdatePrepareTransaction = {
+  type: 'prepareTransaction';
+  toAddress: string;
+  amount?: string;
+  comment?: string;
+};
+
 export type ApiUpdate =
   ApiUpdateBalance
-  | ApiUpdateNewTransaction
+  | ApiUpdateNewTransactions
+  | ApiUpdateNewLocalTransaction
   | ApiUpdateTokens
   | ApiUpdateCreateTransaction
   | ApiUpdateCreateSignature
@@ -117,11 +137,13 @@ export type ApiUpdate =
   | ApiUpdateShowTxDraftError
   | ApiUpdateTonProxyState
   | ApiUpdateTonMagicState
+  | ApiUpdateDeeplinkHookState
   | ApiUpdateStakingState
   | ApiUpdateActiveDapp
   | ApiUpdateDappSendTransactions
   | ApiUpdateDappConnect
   | ApiUpdateDappDisconnect
-  | ApiUpdateBackendStakingState;
+  | ApiUpdateBackendStakingState
+  | ApiUpdatePrepareTransaction;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

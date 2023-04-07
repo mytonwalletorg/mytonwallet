@@ -5,9 +5,9 @@ import { IS_EXTENSION } from '../environment';
 import storage from '../storages/idb';
 import { resolveDappPromise } from '../common/dappPromises';
 import { getMainAccountId } from '../common/accounts';
-import { clearCache } from './window';
+import { clearCache, openPopupWindow } from './window';
 
-// let onPopupUpdate: OnApiUpdate;
+let onPopupUpdate: OnApiUpdate;
 
 // Sometimes (e.g. when Dev Tools is open) dapp needs more time to subscribe to provider
 const INIT_UPDATE_DELAY = 50;
@@ -31,9 +31,8 @@ let activeAccountId: string | undefined;
 }());
 
 // This method is called from `initApi` which in turn is called when popup is open
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function initDappMethods(_onPopupUpdate: OnApiUpdate) {
-  // onPopupUpdate = _onPopupUpdate;
+  onPopupUpdate = _onPopupUpdate;
   resolveDappPromise('whenPopupReady');
 }
 
@@ -59,11 +58,17 @@ export async function connectDapp(
 ) {
   dappUpdaters.push(onDappUpdate);
   const isTonMagicEnabled = await storage.getItem('isTonMagicEnabled');
+  const isDeeplinkHookEnabled = await storage.getItem('isDeeplinkHookEnabled');
 
   function sendUpdates() {
     onDappUpdate({
       type: 'updateTonMagic',
       isEnabled: Boolean(isTonMagicEnabled),
+    });
+
+    onDappUpdate({
+      type: 'updateDeeplinkHook',
+      isEnabled: Boolean(isDeeplinkHookEnabled),
     });
 
     onDappSendUpdates(onDappUpdate);
@@ -75,7 +80,7 @@ export async function connectDapp(
 
 export function deactivateDapp(onDappUpdate: OnApiDappUpdate) {
   const index = dappUpdaters.findIndex((updater) => updater === onDappUpdate);
-  if (index !== 1) {
+  if (index !== -1) {
     dappUpdaters.splice(index, 1);
   }
 }
@@ -83,6 +88,27 @@ export function deactivateDapp(onDappUpdate: OnApiDappUpdate) {
 export function updateDapps(update: ApiDappUpdate) {
   dappUpdaters.forEach((onDappUpdate) => {
     onDappUpdate(update);
+  });
+}
+
+export async function prepareTransaction(params: {
+  to: string;
+  amount?: string;
+  comment?: string;
+}) {
+  if (!activeAccountId) {
+    throw new Error('The user is not authorized in the wallet');
+  }
+
+  const { to: toAddress, amount, comment } = params;
+
+  await openPopupWindow();
+
+  onPopupUpdate({
+    type: 'prepareTransaction',
+    toAddress,
+    amount,
+    comment,
   });
 }
 

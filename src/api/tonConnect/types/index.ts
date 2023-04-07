@@ -2,6 +2,7 @@ import { ConnectEventError, ConnectItemReply } from '@tonconnect/protocol';
 
 export interface LocalConnectEventSuccess {
   event: 'connect';
+  id: number;
   payload: {
     items: ConnectItemReply[];
     // device: DeviceInfo; // We add it later in contentScript.js

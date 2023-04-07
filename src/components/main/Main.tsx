@@ -103,7 +103,7 @@ export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps
   return {
     isStakingActive: Boolean(accountState?.stakingBalance) && !accountState?.isUnstakeRequested,
     isUnstakeRequested: accountState?.isUnstakeRequested,
-    currentTokenSlug: selectCurrentAccountState(global)?.currentTokenSlug,
+    currentTokenSlug: accountState?.currentTokenSlug,
     currentAccountId: global.currentAccountId,
   };
 })(Main));

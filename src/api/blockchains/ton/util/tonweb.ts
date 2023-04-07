@@ -4,6 +4,7 @@ import BN from 'bn.js';
 import { OperationCode } from '../constants';
 import { MyTonWeb, TokenTransferBodyParams } from '../types';
 import { ApiNetwork } from '../../../types';
+import { stringifyTxId } from './index';
 
 const { Cell } = TonWeb.boc;
 const { Address } = TonWeb.utils;
@@ -15,6 +16,24 @@ const tonwebByNetwork = {
   mainnet: new TonWeb(new TonWeb.HttpProvider(TONHTTPAPI_MAINNET_URL)) as MyTonWeb,
   testnet: new TonWeb(new TonWeb.HttpProvider(TONHTTPAPI_TESTNET_URL)) as MyTonWeb,
 };
+
+export async function fetchNewestTxId(network: ApiNetwork, address: string) {
+  const tonWeb = getTonWeb(network);
+
+  const result: any[] = await tonWeb.provider.getTransactions(
+    address,
+    1,
+    undefined,
+    undefined,
+    undefined,
+    true,
+  );
+  if (!result?.length) {
+    return undefined;
+  }
+
+  return stringifyTxId(result[0].transaction_id);
+}
 
 export function getTonWeb(network: ApiNetwork = 'mainnet') {
   return tonwebByNetwork[network];

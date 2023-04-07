@@ -36,7 +36,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "/extensionProvider.js"
+        "/extensionPageScript.js"
       ],
       "matches": [
         "file://*/*",

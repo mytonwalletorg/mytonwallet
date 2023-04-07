@@ -1,5 +1,6 @@
+import type { Connector } from '../../util/PostMessageConnector';
+
 import { EventEmitter } from '../../util/callbacks';
-import { Connector } from '../../util/PostMessageConnector';
 
 declare global {
   interface Window {
@@ -21,26 +22,22 @@ export class TonProvider extends EventEmitter {
 
   public isTonWallet = true; // Native extension legacy requirement
 
-  private connector: Connector;
-
-  constructor(connector: Connector) {
+  constructor(private apiConnector: Connector) {
     super();
-
-    this.connector = connector;
   }
 
   destroy() {
-    this.connector.destroy();
+    this.apiConnector.destroy();
   }
 
   // Prefixes is the native extension legacy requirement
   send(name: Methods, args: any[] = []) {
-    return this.connector.request({ name, args });
+    return this.apiConnector.request({ name, args });
   }
 }
 
-export function initTonProvider(connector: Connector) {
-  const tonProvider = new TonProvider(connector);
+export function initTonProvider(apiConnector: Connector) {
+  const tonProvider = new TonProvider(apiConnector);
 
   if (window.ton) {
     try {

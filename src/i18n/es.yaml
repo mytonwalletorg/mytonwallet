@@ -167,8 +167,7 @@ Received: Aceptado
 Sent: Enviado
 $transaction_from: de %address%
 $transaction_to: a %address%
-Wallet is not backed up!: ¡La billetera no está respaldada!
-Back up now: Copia de respaldo ahora
+Wallet is not backed up: La billetera no está respaldada
 Testnet Version: Versión de Testnet
 Error reading clipboard: Error al leer el portapapeles
 $fee_value: "Cuota: %fee%"
@@ -269,13 +268,20 @@ DomainNotResolved: Dominio no resuelto
 You can save this address for quick access while sending.: Puede guardar esta dirección para un acceso rápido mientras la envía.
 Stake Again: Estaca de nuevo
 Earned: Ganado
-Connect Dapp: Connect Dapp
-Select wallets to use on this dapp: Select wallets to use on this dapp
-Connect: Connect
-Dapp Permissions: Dapp Permissions
-$dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."
-Send Transaction: Send Transaction
-Payload: Payload
-$many_transactions: "%1$d transactions"
-Total Amount: Total Amount
-Unstaking: Unstaking
+Connect Dapp: Conectar Dapp
+Select wallets to use on this dapp: Seleccione billeteras para usar en este dapp
+Connect: Conectar
+Dapp Permissions: Permisos de Dapp
+$dapp_can_view_balance: "%dappname% podrá ver la dirección y el saldo de la billetera."
+Send Transaction: Enviar transacción
+Payload: Carga útil
+$many_transactions: "%1$d transacciones"
+Total Amount: Cantidad total
+Unstaking: Desquiciar
+"Handle ton:// links": Manejar ton:// enlaces
+Back up wallet to have full access to it: Haga una copia de seguridad de la billetera para tener acceso completo a ella
+Improve wallet security: Mejore la seguridad de la billetera
+by installing browser extension or native app: instalando una extensión de navegador o una aplicación nativa
+Scam: Estafa
+Scam comment is hidden.: El comentario de estafa está oculto.
+Display: Mostrar

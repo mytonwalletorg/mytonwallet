@@ -2,16 +2,17 @@ import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import type { Methods, MethodArgs, MethodResponse } from '../../methods/types';
 
 import { DEBUG } from '../../../config';
-import { POPUP_PORT } from '../../../extension/config';
-import { Connector, createExtensionConnector } from '../../../util/PostMessageConnector';
+import { Connector, createConnector } from '../../../util/PostMessageConnector';
 
 let connector: Connector;
 
 export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => ApiInitArgs)) {
   if (!connector) {
-    const getInitArgs = typeof initArgs === 'function' ? initArgs : () => initArgs;
-    connector = createExtensionConnector(POPUP_PORT, onUpdate, getInitArgs);
+    connector = createConnector(new Worker(new URL('./provider.ts', import.meta.url)), onUpdate);
   }
+
+  const args = typeof initArgs === 'function' ? initArgs() : initArgs;
+  return connector.init(args);
 }
 
 export function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<T>) {

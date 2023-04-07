@@ -5,10 +5,13 @@ import { Transaction as RawTransaction } from 'tonapi-sdk-js/dist/models/Transac
 
 import { Storage } from '../../storages/types';
 import {
-  ApiNetwork, ApiTransaction, ApiTransactionDraftError, ApiTransactionType,
+  ApiNetwork,
+  ApiTransaction,
+  ApiTransactionDraftError,
+  ApiTxIdBySlug,
 } from '../../types';
-import { DEBUG, STAKING_POOLS_ALL, TON_TOKEN_SLUG } from '../../../config';
-import { base64ToBytes, hexToBase64 } from '../../common/utils';
+import { DEBUG, TON_TOKEN_SLUG } from '../../../config';
+import { base64ToBytes, hexToBase64, isKnownStakingPool } from '../../common/utils';
 import {
   getWalletBalance,
   getWalletInfo,
@@ -16,28 +19,32 @@ import {
   pickAccountWallet,
 } from './wallet';
 import { fetchPrivateKey } from './auth';
-import { getTonWeb, toBase64Address } from './util/tonweb';
+import { fetchNewestTxId, toBase64Address } from './util/tonweb';
 import { fetchAddress, resolveAddress } from './address';
 import {
-  buildTokenTransaction,
   buildTokenTransfer,
   getTokenWalletBalance,
   JettonWalletType,
+  parseTokenTransaction,
+  resolveTokenBySlug,
+  resolveTokenWalletAddress,
 } from './tokens';
-import {
-  fetchAccountEvents,
-  fetchAccountTransactions,
-} from './util/tonapiio';
-import { AnyTransactionWithLt, ApiTransactionWithLt, TonTransferParams } from './types';
+import { fetchAccountTransactions } from './util/tonapiio';
+import { ApiTransactionExtra, TonTransferParams } from './types';
 import { parseAccountId } from '../../../util/account';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
 import { pause } from '../../../util/schedulers';
+import { stringifyTxId } from './util';
+import { omit } from '../../../util/iteratees';
+import { getAddressInfo } from '../../common/addresses';
+import { compareTransactions, updateTransactionMetadata } from '../../common/helpers';
 
 const { Address, fromNano } = TonWeb.utils;
 
 const DEFAULT_FEE = '10966001';
 const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 60; // 60 sec.
-const GET_TRANSACTIONS_LIMIT = 100;
+const GET_TRANSACTIONS_LIMIT = 50;
+const GET_TRANSACTIONS_MAX_LIMIT = 1000;
 const DATA_TEXT_PREFIX = [0, 0, 0, 0].toString();
 const WAIT_SEQNO_TIMEOUT = 10000; // 10 sec.
 const WAIT_SEQNO_PAUSE = 300; // 0.3 sec.
@@ -56,6 +63,8 @@ export async function checkTransactionDraft(
   const result: {
     error?: ApiTransactionDraftError;
     fee?: string;
+    addressName?: string;
+    isScam?: boolean;
   } = {};
 
   const resolvedAddress = await resolveAddress(network, toAddress);
@@ -69,6 +78,10 @@ export async function checkTransactionDraft(
     result.error = ApiTransactionDraftError.InvalidToAddress;
     return result;
   }
+
+  const addressInfo = await getAddressInfo(toAddress);
+  result.addressName = addressInfo?.name;
+  result.isScam = addressInfo?.isScam;
 
   if (BigInt(amount) < BigInt(0)) {
     result.error = ApiTransactionDraftError.InvalidAmount;
@@ -202,21 +215,8 @@ async function signTransaction(
 export async function getAccountNewestTxId(storage: Storage, accountId: string) {
   const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
-  const tonWeb = getTonWeb(network);
 
-  const result: any[] = await tonWeb.provider.getTransactions(
-    address,
-    1,
-    undefined,
-    undefined,
-    undefined,
-    true,
-  );
-  if (!result?.length) {
-    return undefined;
-  }
-
-  return stringifyTxId(result[0].transaction_id);
+  return fetchNewestTxId(network, address);
 }
 
 export async function getAccountTransactionSlice(
@@ -229,58 +229,108 @@ export async function getAccountTransactionSlice(
   const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
 
-  let beforeLt = beforeTxId ? Number(parseTxId(beforeTxId).lt) : undefined;
-  const afterLt = afterTxId ? Number(parseTxId(afterTxId).lt) : undefined;
-  limit = limit || GET_TRANSACTIONS_LIMIT;
-
-  let txs: ApiTransactionWithLt[] = [];
-
-  // Additional loading in the presence of `afterLt` is not implemented
-  while (afterLt ? !txs.length : txs.length < limit) {
-    const [allEvents, rawTxs] = await Promise.all([
-      fetchAccountEvents(network, address, limit, beforeLt),
-      fetchAccountTransactions(
-        network,
-        address,
-        limit,
-        afterLt,
-        beforeLt,
-      ),
-    ]);
-
-    if (!rawTxs?.length) {
-      break;
-    }
-
-    const allTxs = rawTxs.map(parseNestedApiTransactions).flat();
-
-    beforeLt = afterLt ? afterLt + 1 : (allTxs[allTxs.length - 1]).lt;
-    txs = txs.concat(allTxs.filter((x) => !!x.fromAddress) as ApiTransactionWithLt[]);
-
-    // Merge token transactions
-    let tokenTxs: ApiTransactionWithLt[] = [];
-    allEvents.forEach((event) => {
-      const newTokenTxs = event.actions
-        .map((action) => buildTokenTransaction(event, action))
-        .filter(Boolean);
-      tokenTxs = tokenTxs.concat(newTokenTxs);
-    });
-
-    if (tokenTxs.length) {
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
-      txs = txs.concat(tokenTxs.filter((t: any) => (t.lt >= beforeLt!)));
-    }
-    if (rawTxs.length < limit) {
-      break;
-    }
-  }
-
-  txs = txs.sort((x: any, y: any) => (y.lt - x.lt));
-  txs.forEach((t: any) => {
-    delete t.lt;
+  const transactions = await getTransactionSlice(network, address, {
+    beforeTxId,
+    afterTxId,
+    limit,
   });
 
-  return txs.slice(0, limit) as ApiTransaction[];
+  return transactions
+    .map(updateTransactionMetadata)
+    .map(omitExtraData);
+}
+
+export async function getMergedTransactionSlice(
+  storage: Storage,
+  accountId: string,
+  lastTxIds: ApiTxIdBySlug,
+  limit: number,
+) {
+  // eslint-disable-next-line prefer-const
+  let { toncoin: lastTonTxId, ...tokenLastTxIds } = lastTxIds;
+  const tonTxs = await getAccountTransactionSlice(storage, accountId, lastTonTxId, undefined, limit);
+
+  if (!tonTxs.length) {
+    return [];
+  }
+
+  lastTonTxId = tonTxs[tonTxs.length - 1].txId;
+  const lastTonTxLt = parseTxId(lastTonTxId).lt;
+
+  const results = await Promise.all(Object.entries(tokenLastTxIds).map(([slug, lastTxId]) => {
+    if (lastTxId && parseTxId(lastTxId).lt < lastTonTxLt) {
+      return [];
+    }
+    return getTokenTransactionSlice(
+      storage, accountId, slug, lastTxId, lastTonTxId, GET_TRANSACTIONS_MAX_LIMIT,
+    );
+  }));
+
+  const allTxs = [...tonTxs, ...results.flat()];
+  allTxs.sort((a, b) => compareTransactions(a, b, false));
+
+  return allTxs;
+}
+
+export async function getTokenTransactionSlice(
+  storage: Storage,
+  accountId: string,
+  tokenSlug: string,
+  beforeTxId?: string,
+  afterTxId?: string,
+  limit?: number,
+) {
+  if (tokenSlug === TON_TOKEN_SLUG) {
+    return getAccountTransactionSlice(storage, accountId, beforeTxId, afterTxId, limit);
+  }
+
+  const { network } = parseAccountId(accountId);
+  const address = await fetchAddress(storage, accountId);
+
+  const minterAddress = resolveTokenBySlug(tokenSlug).minterAddress!;
+  const tokenWalletAddress = await resolveTokenWalletAddress(network, address, minterAddress);
+
+  const transactions = await getTransactionSlice(network, tokenWalletAddress, {
+    beforeTxId,
+    afterTxId,
+    limit,
+  });
+
+  const parsedTxs = transactions
+    .map((tx) => parseTokenTransaction(tx, tokenSlug, address))
+    .filter(Boolean)
+    .map(updateTransactionMetadata)
+    .map(omitExtraData);
+
+  return parsedTxs.filter(Boolean);
+}
+
+export async function getTransactionSlice(network: ApiNetwork, address: string, options: {
+  beforeTxId?: string;
+  afterTxId?: string;
+  limit?: number;
+}): Promise<ApiTransactionExtra[]> {
+  const {
+    beforeTxId,
+    afterTxId,
+    limit = GET_TRANSACTIONS_LIMIT,
+  } = options || {};
+  const beforeLt = beforeTxId ? Number(parseTxId(beforeTxId).lt) : undefined;
+  const afterLt = afterTxId ? Number(parseTxId(afterTxId).lt) : undefined;
+
+  const rawTxs = await fetchAccountTransactions(
+    network,
+    address,
+    limit,
+    afterLt,
+    beforeLt,
+  );
+
+  return rawTxs.map(parseNestedApiTransactions).flat();
+}
+
+function omitExtraData(tx: ApiTransactionExtra): ApiTransaction {
+  return omit(tx, ['extraData']);
 }
 
 function parseTxId(txId: string) {
@@ -288,70 +338,75 @@ function parseTxId(txId: string) {
   return { lt: Number(lt), hash };
 }
 
-function parseNestedApiTransactions(rawTx: RawTransaction): AnyTransactionWithLt[] {
-  const baseTx = buildApiTransaction(rawTx);
-  if (rawTx.outMsgs?.length > 1) {
-    return rawTx.outMsgs.map((outMsg, i) => ({
-      ...baseTx,
-      txId: `${baseTx.txId}:${i}`,
-      toAddress: toBase64Address(outMsg.destination!.address!),
-      amount: String(BigInt(outMsg.value) * BigInt(-1)),
-      fee: i === 0 ? baseTx.fee : '0',
-    }));
+function parseNestedApiTransactions(rawTx: RawTransaction): ApiTransactionExtra[] {
+  const isIncoming = Boolean(rawTx.inMsg?.source);
+  const target = isIncoming ? rawTx.inMsg! : rawTx.outMsgs[0];
+  if (!target) {
+    return [];
   }
+
+  const baseTx = {
+    txId: stringifyTxId({ lt: rawTx.lt.toString(), hash: hexToBase64(rawTx.hash) }),
+    isIncoming,
+    slug: TON_TOKEN_SLUG,
+    timestamp: Number(rawTx.utime * 1000),
+    fromAddress: toBase64Address(target.source!.address!),
+    toAddress: toBase64Address(target.destination!.address!),
+    comment: parseComment(target.msgData),
+    fee: rawTx.fee.toString(),
+    amount: isIncoming
+      ? target.value
+      : String(BigInt(target.value) * BigInt(-1)),
+    metadata: isIncoming ? {
+      isScam: target.source?.isScam,
+      name: target.source?.name,
+    } : {
+      isScam: target.destination?.isScam,
+      name: target.destination?.name,
+    },
+    extraData: { body: target.msgData },
+  } as ApiTransaction;
+
+  if (!isIncoming && rawTx.outMsgs?.length > 1) {
+    return rawTx.outMsgs.map((outMsg, i) => {
+      return updateTransactionType({
+        ...baseTx,
+        txId: `${baseTx.txId}:${i}`,
+        toAddress: toBase64Address(outMsg.destination!.address!),
+        amount: String(BigInt(outMsg.value) * BigInt(-1)),
+        fee: i === 0 ? baseTx.fee : '0',
+        metadata: {
+          isScam: outMsg.destination?.isScam,
+          name: outMsg.destination?.name,
+        },
+        extraData: { body: outMsg.msgData },
+      });
+    });
+  }
+
   return [baseTx];
 }
 
-function buildApiTransaction(rawTx: RawTransaction): AnyTransactionWithLt {
-  const amount = String(rawTx.outMsgs.reduce((acc: bigint, outMsg: any) => {
-    return acc - BigInt(outMsg.value);
-  }, BigInt(rawTx.inMsg!.value)));
-
-  const isIncoming = Boolean(rawTx.inMsg?.source);
-  const target = isIncoming ? rawTx.inMsg! : rawTx.outMsgs[0];
-  const tx = {
-    txId: stringifyTxId({ lt: rawTx.lt.toString(), hash: hexToBase64(rawTx.hash) }),
-    timestamp: Number(rawTx.utime * 1000),
-    amount,
-    fee: rawTx.fee.toString(),
-    slug: TON_TOKEN_SLUG,
-    lt: rawTx.lt,
-  };
-
-  if (!target) {
-    return tx;
-  }
-
-  let type: ApiTransactionType;
-  const fromAddress = toBase64Address(target!.source!.address!);
-  const toAddress = toBase64Address(target!.destination!.address!);
-  const comment = parseComment(target!.msgData);
+function updateTransactionType(transaction: ApiTransactionExtra) {
+  const {
+    fromAddress, toAddress, comment, amount,
+  } = transaction;
 
   if (fromAddress && toAddress) {
-    const amountNumber = Number(fromNano(tx.amount));
-    if (STAKING_POOLS_ALL.includes(fromAddress) && amountNumber > 1) {
-      type = 'unstake';
-    } else if (STAKING_POOLS_ALL.includes(toAddress)) {
+    const amountNumber = Number(fromNano(amount));
+
+    if (isKnownStakingPool(fromAddress) && amountNumber > 1) {
+      transaction.type = 'unstake';
+    } else if (isKnownStakingPool(toAddress)) {
       if (comment === STAKE_COMMENT) {
-        type = 'stake';
+        transaction.type = 'stake';
       } else if (comment === UNSTAKE_COMMENT) {
-        type = 'unstakeRequest';
+        transaction.type = 'unstakeRequest';
       }
     }
   }
 
-  return {
-    ...tx,
-    type,
-    fromAddress,
-    toAddress,
-    comment,
-    isIncoming,
-  };
-}
-
-function stringifyTxId({ lt, hash }: { lt: string; hash: string }) {
-  return `${lt}:${hash}`;
+  return transaction;
 }
 
 function parseComment(msgData?: string) {

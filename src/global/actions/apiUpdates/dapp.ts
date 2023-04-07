@@ -149,7 +149,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       (async () => {
         const { currentAccountId } = global;
         if (currentAccountId !== accountId) {
-          await callApi('switchAccount', accountId);
+          await callApi('activateAccount', accountId);
         }
 
         global = getGlobal();
@@ -165,6 +165,39 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       })();
 
       break;
+    }
+
+    case 'updateDeeplinkHookState': {
+      const { isEnabled } = update;
+
+      setGlobal({
+        ...global,
+        settings: {
+          ...global.settings,
+          isDeeplinkHookEnabled: isEnabled,
+        },
+      });
+
+      break;
+    }
+
+    case 'prepareTransaction': {
+      const {
+        amount,
+        toAddress,
+        comment,
+      } = update;
+
+      global = clearCurrentTransfer(global);
+      global = updateCurrentTransfer(global, {
+        state: TransferState.Initial,
+        toAddress,
+        amount: bigStrToHuman(amount || '0'),
+        comment,
+        tokenSlug: TON_TOKEN_SLUG,
+      });
+
+      setGlobal(global);
     }
   }
 });

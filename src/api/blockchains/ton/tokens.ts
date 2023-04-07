@@ -1,12 +1,5 @@
 import TonWeb from 'tonweb';
-import {
-  AccountEvent,
-  Action,
-  ActionStatusEnum,
-  ActionTypeEnum,
-  Jetton,
-  JettonBalance,
-} from 'tonapi-sdk-js';
+import { Jetton, JettonBalance } from 'tonapi-sdk-js';
 
 import { Storage } from '../../storages/types';
 import { DEBUG } from '../../../config';
@@ -19,10 +12,11 @@ import {
 import {
   ApiNetwork, ApiToken, ApiBaseToken, ApiTokenSimple,
 } from '../../types';
-import { ApiTransactionWithLt } from './types';
 import { fetchJettonBalances } from './util/tonapiio';
-import { fixBase64ImageData, fixIpfsUrl } from './util/metadata';
+import { fixBase64ImageData, fixIpfsUrl, parseJettonWalletMsgBody } from './util/metadata';
 import { parseAccountId } from '../../../util/account';
+import { ApiTransactionExtra } from './types';
+import withCache from '../../../util/withCache';
 
 const { Address, toNano } = TonWeb.utils;
 const { JettonWallet, JettonMinter } = TonWeb.token.jetton;
@@ -44,52 +38,6 @@ const KNOWN_TOKENS: ApiBaseToken[] = [
     name: 'Toncoin',
     symbol: 'TON',
     decimals: 9,
-    id: 11419,
-  },
-  {
-    slug: 'ton-eqc1yom8rb',
-    name: 'Orbit Bridge Ton USD Tether',
-    symbol: 'oUSDT',
-    decimals: 6,
-    minterAddress: 'EQC_1YoM8RBixN95lz7odcF3Vrkc_N8Ne7gQi7Abtlet_Efi',
-    image: 'https://raw.githubusercontent.com/orbit-chain/bridge-token-image/main/ton/usdt.png',
-    id: 825,
-  },
-  {
-    slug: 'ton-eqavdfwfg0',
-    name: 'Tegro',
-    symbol: 'TGR',
-    decimals: 9,
-    minterAddress: 'EQAvDfWFG0oYX19jwNDNBBL1rKNT9XfaGP9HyTb5nb2Eml6y',
-    image: 'https://tegro.io/tgr.png',
-    id: 21133,
-  },
-  {
-    slug: 'ton-eqcclaw537',
-    name: 'Ambra',
-    symbol: 'AMBR',
-    decimals: 9,
-    minterAddress: 'EQCcLAW537KnRg_aSPrnQJoyYjOZkzqYp6FVmRUvN1crSazV',
-    image: fixIpfsUrl('ipfs://bafybeicsvozntp5iatwad32qgvisjxshop62erwohaqnajgsmkl77b6uh4'),
-    id: 23154,
-  },
-  {
-    slug: 'ton-eqbajmyi5w',
-    name: 'TonexCoin',
-    symbol: 'TNX',
-    decimals: 9,
-    minterAddress: 'EQB-ajMyi5-WKIgOHnbOGApfckUGbl6tDk3Qt8PKmb-xLAvp',
-    image: fixIpfsUrl('ipfs://bafybeibxnqgi23lnegtngobej3rfka5ipntib4m3olotdfzlofgbvfrkr4'),
-    id: 23155,
-  },
-  {
-    slug: 'ton-eqblqsm144',
-    name: 'Scaleton',
-    symbol: 'SCALE',
-    decimals: 9,
-    minterAddress: 'EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE',
-    image: fixIpfsUrl('ipfs://QmSMiXsZYMefwrTQ3P6HnDQaCpecS4EWLpgKK5EX1G8iA8'),
-    id: 23156,
   },
 ];
 
@@ -106,6 +54,15 @@ const knownTokens = KNOWN_TOKENS.reduce((tokens, token) => {
   };
   return tokens;
 }, {} as Record<string, ApiToken>);
+
+export const resolveTokenWalletAddress = withCache(async (
+  network: ApiNetwork,
+  address: string,
+  minterAddress: string,
+) => {
+  const minter = new JettonMinter(getTonWeb(network).provider, { address: minterAddress } as any);
+  return (await minter.getJettonWalletAddress(new Address(address))).toString(true, true, true);
+});
 
 export async function getAccountTokenBalances(storage: Storage, accountId: string) {
   const { network } = parseAccountId(accountId);
@@ -151,6 +108,37 @@ function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed {
   }
 }
 
+export function parseTokenTransaction(
+  tx: ApiTransactionExtra,
+  slug: string,
+  walletAddress: string,
+): ApiTransactionExtra | undefined {
+  const { extraData } = tx;
+  if (!extraData?.body) {
+    return undefined;
+  }
+
+  const parsedData = parseJettonWalletMsgBody(extraData.body);
+  if (!parsedData) {
+    return undefined;
+  }
+
+  const {
+    operation, jettonAmount, address, forwardComment,
+  } = parsedData;
+  const isIncoming = operation === 'internalTransfer';
+
+  return {
+    ...tx,
+    slug,
+    fromAddress: isIncoming ? address : walletAddress,
+    toAddress: isIncoming ? walletAddress : address,
+    amount: isIncoming ? jettonAmount.toString() : `-${jettonAmount}`,
+    comment: forwardComment,
+    isIncoming,
+  };
+}
+
 export async function buildTokenTransfer(
   network: ApiNetwork,
   slug: string,
@@ -189,11 +177,6 @@ export async function buildTokenTransfer(
   };
 }
 
-export async function resolveTokenWalletAddress(network: ApiNetwork, address: string, minterAddress: string) {
-  const minter = new JettonMinter(getTonWeb(network).provider, { address: minterAddress } as any);
-  return (await minter.getJettonWalletAddress(new Address(address))).toString(true, true, true);
-}
-
 export async function resolveTokenMinterAddress(network: ApiNetwork, tokenWalletAddress: string) {
   const tokenWallet = new JettonWallet(getTonWeb(network).provider, { address: tokenWalletAddress } as any);
   return (await tokenWallet.getData()).jettonMinterAddress.toString(true, true, true);
@@ -214,40 +197,6 @@ export async function getTokenWalletBalance(tokenWallet: JettonWalletType) {
 function buildTokenSlug(minterAddress: string) {
   const addressPart = minterAddress.replace(/[^a-z\d]/gi, '').slice(0, 10);
   return `ton-${addressPart}`.toLowerCase();
-}
-
-export function buildTokenTransaction(event: AccountEvent, action: Action): ApiTransactionWithLt | undefined {
-  if (action.type !== ActionTypeEnum.JettonTransfer || action.status !== ActionStatusEnum.Ok) {
-    return undefined;
-  }
-
-  try {
-    const {
-      amount,
-      comment,
-      sender,
-      recipient,
-      jetton,
-    } = action.jettonTransfer!;
-    const minterAddress = toBase64Address(jetton.address);
-    const jettonInfo = Object.values(knownTokens).find((x) => x.minterAddress === minterAddress);
-    const fromAddress = toBase64Address(sender!.address);
-    const isIncoming = fromAddress !== toBase64Address(event.account.address);
-    return {
-      txId: `${event.lt}:NOHASH`,
-      timestamp: event.timestamp * 1000,
-      fromAddress,
-      toAddress: toBase64Address(recipient!.address),
-      amount: isIncoming || amount === '0' ? amount : `-${amount}`,
-      comment,
-      fee: event.fee.total.toString(),
-      slug: jettonInfo?.slug,
-      isIncoming,
-      lt: event.lt,
-    };
-  } catch (err) {
-    return undefined;
-  }
 }
 
 export function getKnownTokens() {

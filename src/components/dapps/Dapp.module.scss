@@ -24,6 +24,11 @@
   }
 }
 
+.dappIcon {
+  font-size: 1.875rem;
+  line-height: 1.875rem;
+}
+
 .dappLogo {
   width: 2.25rem;
   height: 2.25rem;
@@ -31,6 +36,16 @@
 
   object-fit: cover;
   border-radius: var(--border-radius-tiny);
+
+  &_icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--color-card-green-text);
+
+    background: var(--color-card-green-background);
+  }
 }
 
 .transactionAccount,

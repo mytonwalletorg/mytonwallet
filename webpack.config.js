@@ -39,7 +39,7 @@ module.exports = (_env, { mode = 'production' }) => {
       main: './src/index.tsx',
       extensionServiceWorker: './src/extension/serviceWorker.ts',
       extensionContentScript: './src/extension/contentScript.ts',
-      extensionProvider: './src/extension/provider.ts',
+      extensionPageScript: './src/extension/pageScript/index.ts',
     },
 
     devServer: {
@@ -182,8 +182,7 @@ module.exports = (_env, { mode = 'production' }) => {
         TONAPIIO_TESTNET_URL: null,
         BRILLIANT_API_BASE_URL: null,
         PROXY_HOSTS: null,
-        STAKING_POOLS_MAINNET: undefined,
-        STAKING_POOLS_TESTNET: null,
+        STAKING_POOLS: null,
       }),
       new DefinePlugin({
         APP_REVISION: DefinePlugin.runtimeValue(() => {
@@ -214,8 +213,8 @@ module.exports = (_env, { mode = 'production' }) => {
         }),
       ] : []),
       ...(ENV_EXTENSION === '1' ? [new NormalModuleReplacementPlugin(
-        /src\/api\/providers\/worker\/index\.ts/,
-        '../extension/index.ts',
+        /src\/api\/providers\/worker\/connector\.ts/,
+        '../extension/connectorForPopup.ts',
       )] : []),
     ],
 

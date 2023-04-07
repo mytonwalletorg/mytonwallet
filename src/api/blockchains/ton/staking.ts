@@ -4,7 +4,7 @@ import BN from 'bn.js';
 import memoized from '../../../util/memoized';
 import { checkTransactionDraft, submitTransfer } from './transactions';
 import { Storage } from '../../storages/types';
-import { handleFetchErrors } from '../../common/utils';
+import { handleFetchErrors, isKnownStakingPool } from '../../common/utils';
 import { BRILLIANT_API_BASE_URL, TON_TOKEN_SLUG } from '../../../config';
 import { fetchAddress } from './address';
 import { parseAccountId } from '../../../util/account';
@@ -108,7 +108,7 @@ export async function getStakingState(storage: Storage, accountId: string): Prom
   const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
   const contract = await getPoolContract(network, address);
-  if (!contract) {
+  if (network !== 'mainnet' || !contract) {
     return {
       amount: 0,
       pendingDepositAmount: 0,
@@ -153,5 +153,11 @@ export async function getBackendStakingState(
 export async function fetchBackendStakingState(address: string) {
   const response = await fetch(`${BRILLIANT_API_BASE_URL}/staking-state?account=${address}`);
   handleFetchErrors(response);
-  return response.json() as Promise<ApiBackendStakingState>;
+  const stakingState = await response.json() as ApiBackendStakingState;
+
+  if (!isKnownStakingPool(stakingState.poolAddress)) {
+    throw Error('Unexpected pool address, likely a malicious activity');
+  }
+
+  return stakingState;
 }

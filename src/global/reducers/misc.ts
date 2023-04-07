@@ -1,6 +1,10 @@
 import { Account, AccountState, GlobalState } from '../types';
-import { ApiToken, ApiTransaction } from '../../api/types';
-import { selectAccount, selectAccountState, selectCurrentAccountState } from '../selectors';
+import { ApiToken } from '../../api/types';
+import {
+  selectAccount,
+  selectAccountState,
+  selectNetworkAccounts,
+} from '../selectors';
 import { TON_TOKEN_SLUG } from '../../config';
 import { genRelatedAccountIds } from '../../util/account';
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
@@ -32,8 +36,13 @@ export function updateAccount(
   global: GlobalState,
   accountId: string,
   address: string,
-  title: string = 'New Wallet',
+  title?: string,
 ) {
+  if (!title) {
+    const accounts = selectNetworkAccounts(global) || {};
+    title = `Wallet ${Object.keys(accounts).length + 1}`;
+  }
+
   const newAccountsById = genRelatedAccountIds(accountId).reduce((state, accId) => {
     state[accId] = {
       address,
@@ -118,20 +127,6 @@ export function updateTokens(
       },
     },
   };
-}
-
-export function updateTransaction(global: GlobalState, transaction: ApiTransaction): GlobalState {
-  const { transactions } = selectCurrentAccountState(global) || {};
-
-  return updateCurrentAccountState(global, {
-    transactions: {
-      ...transactions,
-      byTxId: { ...transactions?.byTxId, [transaction.txId]: transaction },
-      orderedTxIds: (transactions?.orderedTxIds || []).includes(transaction.txId)
-        ? transactions?.orderedTxIds
-        : [transaction.txId].concat(transactions?.orderedTxIds || []),
-    },
-  });
 }
 
 export function updateCurrentAccountState(global: GlobalState, partial: Partial<AccountState>): GlobalState {

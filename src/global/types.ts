@@ -96,7 +96,8 @@ export interface AccountState {
   transactions?: {
     isLoading?: boolean;
     byTxId: Record<string, ApiTransaction>;
-    orderedTxIds?: string[];
+    txIdsBySlug?: Record<string, string[]>;
+    newestTransactionsBySlug?: Record<string, ApiTransaction>;
   };
   nfts?: {
     byAddress: Record<string, ApiNft>;
@@ -133,6 +134,7 @@ export type GlobalState = {
     isLoading?: boolean;
     tokenSlug?: string;
     toAddress?: string;
+    toAddressName?: string;
     error?: string;
     amount?: number;
     fee?: string;
@@ -197,7 +199,9 @@ export type GlobalState = {
     isInvestorViewEnabled?: boolean;
     isTonProxyEnabled?: boolean;
     isTonMagicEnabled?: boolean;
+    isDeeplinkHookEnabled?: boolean;
     isTestnet?: boolean;
+    isSecurityWarningHidden?: boolean;
   };
 
   dialogs: string[];
@@ -251,7 +255,8 @@ export interface ActionPayloads {
   renameAccount: { accountId: string; title: string };
   clearAccountError: never;
 
-  fetchTransactions: { limit: number; offsetId?: string };
+  fetchTokenTransactions: { limit: number; slug: string; offsetId?: string };
+  fetchAllTransactions: { limit: number };
   fetchNfts: never;
   showTransactionInfo: { txId?: string };
   closeTransactionInfo: never;
@@ -288,9 +293,11 @@ export interface ActionPayloads {
   toggleCanPlaySounds: { isEnabled?: boolean };
   toggleTonProxy: { isEnabled: boolean };
   toggleTonMagic: { isEnabled: boolean };
+  toggleDeeplinkHook: { isEnabled: boolean };
   startChangingNetwork: { network: ApiNetwork };
   changeNetwork: { network: ApiNetwork };
   changeLanguage: { langCode: LangCode };
+  closeSecurityWarning: never;
 
   // TON Connect
   submitDappConnectRequestConfirm: { additionalAccountIds?: string[]; password?: string };

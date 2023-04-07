@@ -10,7 +10,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
-import { selectCurrentAccountTokens } from '../../global/selectors';
+import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import usePrevious from '../../hooks/usePrevious';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useLang from '../../hooks/useLang';
@@ -32,6 +32,7 @@ import styles from './Transfer.module.scss';
 interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
   tokens?: UserToken[];
+  savedAddresses?: Record<string, string>;
 }
 
 const AMOUNT_PRECISION = 4;
@@ -48,7 +49,8 @@ function TransferModal({
     isLoading,
     txId,
     tokenSlug,
-  }, tokens,
+    toAddressName,
+  }, tokens, savedAddresses,
 }: StateProps) {
   const {
     submitTransferConfirm, submitTransferPassword, setTransferScreen, clearTransferError, cancelTransfer,
@@ -129,6 +131,8 @@ function TransferModal({
   }
 
   function renderConfirm(isActive: boolean) {
+    const addressName = savedAddresses?.[toAddress!] || toAddressName;
+
     return (
       <>
         <ModalHeader title={lang('Is it all ok?')} onClose={cancelTransfer} />
@@ -145,6 +149,7 @@ function TransferModal({
           <div className={styles.label}>{lang('Receiving Address')}</div>
           <InteractiveTextField
             address={toAddress!}
+            addressName={addressName}
             copyNotification={lang('Address was copied!')}
             className={styles.addressWidget}
           />
@@ -271,8 +276,11 @@ function TransferModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
+  const accountState = selectCurrentAccountState(global);
+
   return {
     currentTransfer: global.currentTransfer,
     tokens: selectCurrentAccountTokens(global),
+    savedAddresses: accountState?.savedAddresses,
   };
 })(TransferModal));

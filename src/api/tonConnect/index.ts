@@ -45,7 +45,10 @@ import { buildLocalTransaction } from '../common/helpers';
 import { whenTxComplete } from '../common/txCallbacks';
 import * as errors from './errors';
 import {
-  CONNECT_EVENT_ERROR_CODES, LocalConnectEvent, SEND_TRANSACTION_ERROR_CODES, TransactionPayload,
+  CONNECT_EVENT_ERROR_CODES,
+  LocalConnectEvent,
+  SEND_TRANSACTION_ERROR_CODES,
+  TransactionPayload,
 } from './types';
 import { ApiUserRejectsError } from '../errors';
 
@@ -59,7 +62,11 @@ export function initTonConnect(_onPopupUpdate: OnApiUpdate) {
   onPopupUpdate = _onPopupUpdate;
 }
 
-export async function connect(request: ApiDappRequest, message: ConnectRequest): Promise<LocalConnectEvent> {
+export async function connect(
+  request: ApiDappRequest,
+  message: ConnectRequest,
+  id: number,
+): Promise<LocalConnectEvent> {
   try {
     const { accountId, origin } = validateRequest(request, true);
     const dapp = await fetchDapp(origin, message.manifestUrl);
@@ -96,17 +103,13 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest):
       });
 
       const result: {
-        isUserAllowed: boolean;
-        additionalAccountIds?: string[];
-        password?: string;
+        additionalAccountIds: string[];
+        password: string;
       } = await promise;
 
-      const { isUserAllowed, additionalAccountIds } = result;
-      if (!isUserAllowed) {
-        throw new errors.UserRejectsError();
-      }
-
+      const { additionalAccountIds } = result;
       password = result.password;
+
       if (additionalAccountIds) {
         await addDappToAccounts(dapp, [accountId].concat(additionalAccountIds));
       } else {
@@ -114,7 +117,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest):
       }
     }
 
-    const result = await reconnect(request);
+    const result = await reconnect(request, id);
 
     if (result.event === 'connect' && proofItem) {
       const address = await ton.fetchAddress(storage, accountId);
@@ -133,11 +136,11 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest):
       // eslint-disable-next-line no-console
       console.error('[connect]', e);
     }
-    return formatConnectError(e as Error);
+    return formatConnectError(id, e as Error);
   }
 }
 
-export async function reconnect(request: ApiDappRequest): Promise<LocalConnectEvent> {
+export async function reconnect(request: ApiDappRequest, id: number): Promise<LocalConnectEvent> {
   try {
     const { origin, accountId } = validateRequest(request, true);
 
@@ -161,10 +164,11 @@ export async function reconnect(request: ApiDappRequest): Promise<LocalConnectEv
 
     return {
       event: 'connect',
+      id,
       payload: { items },
     };
   } catch (e) {
-    return formatConnectError(e as Error);
+    return formatConnectError(id, e as Error);
   }
 }
 
@@ -186,6 +190,7 @@ export async function disconnect(request: ApiDappRequest, message: DisconnectEve
   }
   return {
     event: 'disconnect',
+    id: message.id,
     payload: {},
   };
 }
@@ -284,7 +289,7 @@ export async function sendTransaction(
       });
 
       onPopupUpdate({
-        type: 'newTransaction',
+        type: 'newLocalTransaction',
         transaction: localTransaction,
         accountId,
       });
@@ -293,6 +298,7 @@ export async function sendTransaction(
         .then(({ txId }) => {
           onPopupUpdate({
             type: 'updateTxComplete',
+            accountId,
             toAddress: resolvedAddress,
             amount,
             txId,
@@ -349,26 +355,39 @@ export function deactivate(request: ApiDappRequest) {
   }
 }
 
-function formatConnectError(error: Error): ConnectEventError {
+function formatConnectError(id: number, error: Error): ConnectEventError {
+  let code = CONNECT_EVENT_ERROR_CODES.UNKNOWN_ERROR;
+  let message = 'Unhandled error';
+
+  if (error instanceof ApiUserRejectsError) {
+    code = CONNECT_EVENT_ERROR_CODES.USER_REJECTS_ERROR;
+    message = error.message;
+  } else if (error instanceof errors.TonConnectError) {
+    code = error.code;
+    message = error.message;
+  }
+
   return {
+    id,
     event: 'connect_error',
-    payload: error instanceof errors.TonConnectError ? {
-      code: error.code,
-      message: error.message,
-    } : {
-      code: CONNECT_EVENT_ERROR_CODES.UNKNOWN_ERROR,
-      message: 'Unhandled error',
+    payload: {
+      code,
+      message,
     },
   };
 }
 
 async function buildTonAddressReplyItem(accountId: string, address: string): Promise<ConnectItemReply> {
   const { network } = parseAccountId(accountId);
-  const stateInit = await ton.getWalletStateInit(storage, accountId);
+  const [stateInit, publicKey] = await Promise.all([
+    ton.getWalletStateInit(storage, accountId),
+    ton.fetchPublicKey(storage, accountId),
+  ]);
   return {
     name: 'ton_addr',
     address: toRawAddress(address),
     network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
+    publicKey,
     walletStateInit: stateInit,
   };
 }

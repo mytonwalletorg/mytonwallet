@@ -17,10 +17,12 @@ export {
   checkTransactionDraft,
   getAccountNewestTxId,
   getAccountTransactionSlice,
+  getTokenTransactionSlice,
   submitTransfer,
   waitIncrementSeqno,
   checkMultiTransactionDraft,
   submitMultiTransfer,
+  getMergedTransactionSlice,
 } from './transactions';
 export {
   getAccountBalance,

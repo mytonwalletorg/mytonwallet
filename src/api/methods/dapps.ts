@@ -27,7 +27,7 @@ export function onActiveDappAccountUpdated(accountId: string) {
 
 export function activateDapp(accountId: string, origin: string) {
   const oldAccountId = findConnectedAccountByDapp(origin);
-  if (oldAccountId && oldAccountId !== accountId) {
+  if (oldAccountId && toInternalAccountId(oldAccountId) !== toInternalAccountId(accountId)) {
     throw new Error(`The app '${origin}' is already connected to another account`);
   }
 
@@ -92,8 +92,7 @@ export async function addDapp(accountId: string, dapp: ApiDapp) {
 }
 
 export async function addDappToAccounts(dapp: ApiDapp, accountIds: string[]) {
-  const data = await storage.getItem(DAPPS_STORAGE_KEY);
-  const dappsByAccount = data ? JSON.parse(data) : {};
+  const dappsByAccount = await storage.getItem(DAPPS_STORAGE_KEY) || {};
 
   accountIds.forEach((accountId) => {
     const internalId = toInternalAccountId(accountId);
@@ -102,7 +101,7 @@ export async function addDappToAccounts(dapp: ApiDapp, accountIds: string[]) {
 
     dappsByAccount[internalId] = dapps;
   });
-  await storage.setItem(DAPPS_STORAGE_KEY, JSON.stringify(dappsByAccount));
+  await storage.setItem(DAPPS_STORAGE_KEY, dappsByAccount);
 }
 
 export async function deleteDapp(accountId: string, origin: string) {

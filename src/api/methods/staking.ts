@@ -44,7 +44,7 @@ export async function submitStake(accountId: string, password: string, amount: s
     });
 
     onUpdate({
-      type: 'newTransaction',
+      type: 'newLocalTransaction',
       transaction: localTransaction,
       accountId,
     });
@@ -53,6 +53,7 @@ export async function submitStake(accountId: string, password: string, amount: s
       .then(({ txId }) => {
         onUpdate({
           type: 'updateTxComplete',
+          accountId,
           toAddress: result.resolvedAddress,
           amount: result.amount,
           txId,
@@ -83,7 +84,7 @@ export async function submitUnstake(accountId: string, password: string, fee?: s
     });
 
     onUpdate({
-      type: 'newTransaction',
+      type: 'newLocalTransaction',
       transaction: localTransaction,
       accountId,
     });
@@ -92,6 +93,7 @@ export async function submitUnstake(accountId: string, password: string, fee?: s
       .then(({ txId }) => {
         onUpdate({
           type: 'updateTxComplete',
+          accountId,
           toAddress: result.resolvedAddress,
           amount: result.amount,
           txId,

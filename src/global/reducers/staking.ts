@@ -26,7 +26,10 @@ export function clearStaking(global: GlobalState) {
 export function updatePoolState(global: GlobalState, partial: ApiPoolState, withDeepCompare = false): GlobalState {
   const currentPoolState = selectCurrentAccountState(global)?.poolState;
 
-  if (withDeepCompare && currentPoolState && isPartialDeepEqual(currentPoolState, partial)) {
+  if (
+    !global.currentAccountId
+    || (withDeepCompare && currentPoolState && isPartialDeepEqual(currentPoolState, partial))
+  ) {
     return global;
   }
 

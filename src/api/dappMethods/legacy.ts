@@ -38,7 +38,7 @@ export function getBalance() {
 export async function requestAccounts() {
   const activeAccountId = getActiveDappAccountId();
   if (!activeAccountId) {
-    throw new Error('The user is not authorized in the wallet');
+    return [];
   }
 
   const address = await ton.fetchAddress(storage, activeAccountId);
@@ -48,7 +48,7 @@ export async function requestAccounts() {
 export async function requestWallets() {
   const activeAccountId = getActiveDappAccountId();
   if (!activeAccountId) {
-    throw new Error('The user is not authorized in the wallet');
+    return [];
   }
 
   const accountId = activeAccountId;
@@ -149,7 +149,7 @@ export async function sendTransaction(params: {
     });
 
     onPopupUpdate({
-      type: 'newTransaction',
+      type: 'newLocalTransaction',
       transaction: localTransaction,
       accountId,
     });
@@ -158,6 +158,7 @@ export async function sendTransaction(params: {
       .then(({ txId }) => {
         onPopupUpdate({
           type: 'updateTxComplete',
+          accountId,
           toAddress,
           amount,
           txId,

@@ -99,6 +99,8 @@
 
 .leftBlock {
   grid-area: left;
+
+  margin-right: 1rem;
 }
 
 .amount,
@@ -107,6 +109,12 @@
 
   font-size: 0.9375rem;
   font-weight: 600;
+}
+
+.address {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 }
 
 .address,
@@ -122,6 +130,8 @@
 .amountWrapper {
   grid-area: right;
 
+  min-width: 0;
+  max-width: 100%;
   margin-left: auto;
 
   text-align: right;
@@ -174,4 +184,9 @@
     background-color: var(--color-activity-gray-background);
     border-top-right-radius: 0.375rem;
   }
+}
+
+.scamImage {
+  width: 2.375rem;
+  margin-left: 0.25rem;
 }

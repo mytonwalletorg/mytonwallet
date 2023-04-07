@@ -168,8 +168,7 @@ Received: Received
 Sent: Sent
 $transaction_from: from %address%
 $transaction_to: to %address%
-Wallet is not backed up!: Wallet is not backed up!
-Back up now: Back up now
+Wallet is not backed up: Wallet is not backed up
 Testnet Version: Testnet Version
 Error reading clipboard: Error reading clipboard
 $fee_value: "Fee: %fee%"
@@ -280,3 +279,10 @@ Payload: Payload
 $many_transactions: "%1$d transactions"
 Total Amount: Total Amount
 Unstaking: Unstaking
+"Handle ton:// links": Handle ton:// links
+Back up wallet to have full access to it: Back up wallet to have full access to it
+Improve wallet security: Improve wallet security
+by installing browser extension or native app: by installing browser extension or native app
+Scam: Scam
+Scam comment is hidden.: Scam comment is hidden.
+Display: Display

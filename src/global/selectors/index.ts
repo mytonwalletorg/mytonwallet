@@ -3,10 +3,11 @@ import {
 } from '../types';
 
 import memoized from '../../util/memoized';
-import { bigStrToHuman } from '../helpers';
+import { bigStrToHuman, getIsTxIdLocal } from '../helpers';
 import { round } from '../../util/round';
 import { parseAccountId } from '../../util/account';
-import { ApiNetwork } from '../../api/types';
+import { ApiNetwork, ApiTxIdBySlug } from '../../api/types';
+import { findLast, mapValues } from '../../util/iteratees';
 
 export function selectHasSession(global: GlobalState) {
   return Boolean(global.currentAccountId);
@@ -90,4 +91,19 @@ export function selectCurrentAccountState(global: GlobalState): AccountState | u
 
 export function selectAccountState(global: GlobalState, accountId: string): AccountState | undefined {
   return global.byAccountId[accountId];
+}
+
+export function selectNewestTxIds(global: GlobalState, accountId: string): ApiTxIdBySlug {
+  return mapValues(
+    selectAccountState(global, accountId)?.transactions?.newestTransactionsBySlug || {},
+    ({ txId }) => txId,
+  );
+}
+
+export function selectLastTxIds(global: GlobalState, accountId: string): ApiTxIdBySlug {
+  const txIdsBySlug = selectAccountState(global, accountId)?.transactions?.txIdsBySlug || {};
+
+  return mapValues(txIdsBySlug, (tokenTxIds) => {
+    return findLast(tokenTxIds, (txId) => !getIsTxIdLocal(txId));
+  });
 }

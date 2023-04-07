@@ -9,8 +9,7 @@ import { updateAccount, updateAuth, updateCurrentAccountsState } from '../../red
 import { INITIAL_STATE } from '../../initialState';
 import { cloneDeep } from '../../../util/iteratees';
 import { buildAccountId, parseAccountId } from '../../../util/account';
-import { selectAccountState } from '../../selectors';
-import { getIsTxIdLocal } from '../../helpers';
+import { selectNewestTxIds } from '../../selectors';
 
 const CREATING_DURATION = 3300;
 
@@ -176,10 +175,8 @@ addActionHandler('startChangingNetwork', (global, actions, { network }) => {
 });
 
 addActionHandler('switchAccount', async (global, actions, { accountId, newNetwork }) => {
-  const newestTxId = selectAccountState(global, accountId)
-    ?.transactions?.orderedTxIds?.find((id) => !getIsTxIdLocal(id));
-
-  await callApi('switchAccount', accountId, newestTxId);
+  const newestTxIds = selectNewestTxIds(global, accountId);
+  await callApi('activateAccount', accountId, newestTxIds);
 
   setGlobal({
     ...getGlobal(),

@@ -41,6 +41,8 @@
   --color-red-warning-text-70: rgba(255, 255, 255, 0.7);
   --color-red-warning-text-hover: rgba(255, 255, 255, 0.85);
   --color-red-warning-background: rgba(243, 91, 91, 0.9);
+  --color-red-warning-button-background: rgba(255, 255, 255, 0.3);
+  --color-red-warning-button-background-hover: rgba(255, 255, 255, 0.4);
 
   --color-gray-button-text: #2D4C5C;
   --color-gray-button-text-hover: #313D4F;
@@ -96,7 +98,7 @@
   --color-interactive-drop-down-menu-hover: #F7F9FB;
   --color-interactive-drop-down-menu-active: #EFF2F7;
 
-  --color-tint: rgba(0, 0, 0, 0.45);
+  --color-tint: rgba(12, 12, 12, 0.4);
 
   --color-card-text: #FFFFFF;
   --color-card-text-hover: rgba(255, 255, 255, 0.7);
@@ -241,6 +243,8 @@
     --color-interactive-popup-menu-descructive-hover: #353543;
     --color-interactive-drop-down-menu-hover: #242D3B;
     --color-interactive-drop-down-menu-active: #202833;
+
+    --color-tint: rgba(12, 12, 12, 0.6);
 
     --color-add-wallet-text: #CBD5E3;
     --color-add-wallet-text-hover: #E1EEFF;

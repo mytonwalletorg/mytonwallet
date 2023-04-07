@@ -10,7 +10,7 @@ import {
   ANIMATION_LEVEL_MAX, ANIMATION_LEVEL_MIN, APP_NAME, APP_VERSION, LANG_PACKS,
   TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL,
 } from '../../../config';
-import { IS_TOUCH_ENV } from '../../../util/windowEnvironment';
+import { IS_EXTENSION, IS_TOUCH_ENV } from '../../../util/windowEnvironment';
 import buildClassName from '../../../util/buildClassName';
 import stopEvent from '../../../util/stopEvent';
 import switchTheme from '../../../util/switchTheme';
@@ -41,6 +41,7 @@ interface StateProps {
   isInvestorViewEnabled?: boolean;
   canPlaySounds?: boolean;
   langCode: LangCode;
+  isDeeplinkHookEnabled?: boolean;
 }
 
 const LANGUAGE_OPTIONS = LANG_PACKS.map((langPack) => ({
@@ -75,6 +76,7 @@ function SettingsModal({
   canPlaySounds,
   langCode,
   onClose,
+  isDeeplinkHookEnabled,
 }: OwnProps & StateProps) {
   const {
     setTheme,
@@ -84,6 +86,7 @@ function SettingsModal({
     toggleCanPlaySounds,
     startChangingNetwork,
     changeLanguage,
+    toggleDeeplinkHook,
   } = getActions();
 
   const lang = useLang();
@@ -152,6 +155,10 @@ function SettingsModal({
     toggleInvestorView({ isEnabled: !isInvestorViewEnabled });
   }, [isInvestorViewEnabled, toggleInvestorView]);
 
+  const handleDeeplinkHookToggle = useCallback(() => {
+    toggleDeeplinkHook({ isEnabled: !isDeeplinkHookEnabled });
+  }, [isDeeplinkHookEnabled, toggleDeeplinkHook]);
+
   const handleMultipleClick = () => {
     if (clicksAmount + 1 >= AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE) {
       shouldShowDeveloperOptions = true;
@@ -207,6 +214,18 @@ function SettingsModal({
             checked={canPlaySounds}
           />
         </div>
+
+        {IS_EXTENSION && (
+          <div className={styles.item} onClick={handleDeeplinkHookToggle}>
+            {lang('Handle ton:// links')}
+
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Handle ton:// links')}
+              checked={isDeeplinkHookEnabled}
+            />
+          </div>
+        )}
       </div>
 
       <p className={styles.blockTitle}>{lang('Assets and Activity')}</p>
@@ -288,7 +307,14 @@ function SettingsModal({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
-    theme, animationLevel, areTinyTransfersHidden, isTestnet, isInvestorViewEnabled, canPlaySounds, langCode,
+    theme,
+    animationLevel,
+    areTinyTransfersHidden,
+    isTestnet,
+    isInvestorViewEnabled,
+    canPlaySounds,
+    langCode,
+    isDeeplinkHookEnabled,
   } = global.settings;
 
   return {
@@ -299,5 +325,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isInvestorViewEnabled,
     canPlaySounds,
     langCode,
+    isDeeplinkHookEnabled,
   };
 })(SettingsModal));

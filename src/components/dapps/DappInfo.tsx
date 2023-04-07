@@ -20,9 +20,23 @@ function DappInfo({
 }: OwnProps) {
   const lang = useLang();
 
+  function renderIcon() {
+    if (iconUrl) {
+      return (
+        <img src={iconUrl} alt={lang('Logo')} className={styles.dappLogo} />
+      );
+    }
+
+    return (
+      <div className={buildClassName(styles.dappLogo, styles.dappLogo_icon)}>
+        <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
+      </div>
+    );
+  }
+
   return (
     <div className={buildClassName(styles.dapp, className)}>
-      {iconUrl && <img src={iconUrl} alt={lang('Logo')} className={styles.dappLogo} />}
+      {renderIcon()}
       <div className={styles.dappInfo}>
         <span className={styles.dappName}>{name}</span>
         <span className={styles.dappUrl}>{url}</span>

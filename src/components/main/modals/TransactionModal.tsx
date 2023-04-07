@@ -29,9 +29,12 @@ import transferStyles from '../../transfer/Transfer.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
 import styles from './TransactionModal.module.scss';
 
+import scamImg from '../../../assets/scam.svg';
+
 type StateProps = {
   transaction?: ApiTransaction;
   token?: ApiToken;
+  savedAddresses?: Record<string, string>;
   isTestnet?: boolean;
   startOfStakingCycle?: number;
   endOfStakingCycle?: number;
@@ -42,6 +45,7 @@ const EMPTY_HASH_VALUE = 'NOHASH';
 function TransactionModal({
   transaction,
   token,
+  savedAddresses,
   isTestnet,
   startOfStakingCycle,
   endOfStakingCycle,
@@ -65,6 +69,8 @@ function TransactionModal({
 
   const amountHuman = amount ? bigStrToHuman(amount, token?.decimals) : 0;
   const address = isIncoming ? fromAddress : toAddress;
+  const addressName = (address && savedAddresses?.[address]) || transaction?.metadata?.name;
+  const isScam = Boolean(transaction?.metadata?.isScam);
 
   const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;
   const tonscanTransactionUrl = transactionHash && transactionHash !== EMPTY_HASH_VALUE
@@ -123,6 +129,7 @@ function TransactionModal({
             title={lang('Transaction in progress')}
           />
         )}
+        {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
       </>
     );
   }
@@ -151,6 +158,8 @@ function TransactionModal({
         <div className={transferStyles.label}>Comment</div>
         <InteractiveTextField
           text={comment}
+          spoiler={isScam ? lang('Scam comment is hidden.') : undefined}
+          viewSpoilerText={lang('Display')}
           copyNotification={lang('Comment was copied!')}
           className={styles.copyButtonWrapper}
           textClassName={styles.comment}
@@ -191,13 +200,20 @@ function TransactionModal({
             <i className="icon-tonscan" aria-hidden />
           </a>
         )}
-        <TransactionAmount isIncoming={isIncoming} amount={amountHuman} tokenSymbol={token?.symbol} />
+        <TransactionAmount
+          isIncoming={isIncoming}
+          isScam={isScam}
+          amount={amountHuman}
+          tokenSymbol={token?.symbol}
+        />
 
         <div className={transferStyles.label}>{lang(isIncoming ? 'Sender' : 'Recipient')}</div>
         <InteractiveTextField
+          addressName={addressName}
           address={address!}
           copyNotification={lang('Address was copied!')}
           className={styles.copyButtonWrapper}
+          textClassName={isScam ? styles.scamAddress : undefined}
         />
 
         {renderFee()}
@@ -229,10 +245,12 @@ export default memo(withGlobal(
     const transaction = txId ? accountState?.transactions?.byTxId[txId] : undefined;
     const token = transaction?.slug ? global.tokenInfo?.bySlug[transaction.slug] : undefined;
     const { startOfCycle: startOfStakingCycle, endOfCycle: endOfStakingCycle } = accountState?.poolState || {};
+    const savedAddresses = accountState?.savedAddresses;
 
     return {
       transaction,
       token,
+      savedAddresses,
       isTestnet: global.settings.isTestnet,
       startOfStakingCycle,
       endOfStakingCycle,

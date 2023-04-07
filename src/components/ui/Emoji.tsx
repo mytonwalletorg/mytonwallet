@@ -7,7 +7,7 @@ import useMediaTransition from '../../hooks/useMediaTransition';
 import styles from './Emoji.module.scss';
 
 interface OwnProps {
-  from: '🥷' | '🦄' | 'telegram' | 'github';
+  from: '🥷' | '🦄';
 }
 
 const PATH_BY_EMOJI = {

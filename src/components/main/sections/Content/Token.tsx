@@ -85,7 +85,7 @@ function Token({
           <i className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)} />
         )}
         <div className={styles.primaryCell}>
-          <div className={styles.name}>
+          <div className={buildClassName(styles.name, withApy && styles.name_withApy)}>
             {name}
             {shouldRenderApy && renderApy()}
           </div>
@@ -112,6 +112,7 @@ function Token({
 
   function renderDefaultView() {
     const totalAmount = renderedAmount * price;
+    const canRenderApy = Boolean(apyValue) && slug === TON_TOKEN_SLUG;
 
     return (
       <Button className={buildClassName(styles.container, classNames)} onClick={handleClick} isSimple>
@@ -120,9 +121,9 @@ function Token({
           <i className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)} />
         )}
         <div className={styles.primaryCell}>
-          <div className={styles.name}>
+          <div className={buildClassName(styles.name, canRenderApy && styles.name_withApy)}>
             {name}
-            {Boolean(apyValue) && slug === TON_TOKEN_SLUG && renderApy()}
+            {canRenderApy && renderApy()}
           </div>
           <div className={styles.subtitle}>
             <AnimatedCounter text={formatCurrency(price, DEFAULT_PRICE_CURRENCY)} />

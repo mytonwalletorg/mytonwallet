@@ -59,6 +59,7 @@ export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'htt
 
 export const FRACTION_DIGITS = 9;
 
+export const MY_TON_WALLET_PROMO_URL = 'https://mytonwallet.io';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/z/';
 export const TONSCAN_BASE_MAINNET_URL = 'https://tonscan.org/';
 export const TONSCAN_BASE_TESTNET_URL = 'https://testnet.tonscan.org/';
@@ -71,7 +72,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_AMOUNT = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-5';
+export const LANG_CACHE_NAME = 'mtw-lang-6';
 export const LANG_PACKS = [{
   langCode: 'en',
   name: 'English',
@@ -102,8 +103,4 @@ export const LANG_PACKS = [{
 export const STAKING_CYCLE_DURATION_MS = 129600000; // 36 hours
 export const MIN_BALANCE_FOR_UNSTAKE = 1.02;
 
-export const STAKING_POOLS_MAINNET = process.env.STAKING_POOLS_MAINNET
-  ? process.env.STAKING_POOLS_MAINNET.split(' ') : [];
-export const STAKING_POOLS_TESTNET = process.env.STAKING_POOLS_TESTNET
-  ? process.env.STAKING_POOLS_TESTNET.split(' ') : [];
-export const STAKING_POOLS_ALL = STAKING_POOLS_MAINNET.concat(STAKING_POOLS_TESTNET);
+export const STAKING_POOLS = process.env.STAKING_POOLS ? process.env.STAKING_POOLS.split(' ') : [];

@@ -7,7 +7,7 @@ import {
 } from '../../dappMethods/types';
 import { TonConnectMethodArgs, TonConnectMethods } from '../../tonConnect/types/misc';
 
-import { CONTENT_SCRIPT_PORT, PROVIDER_CHANNEL } from '../../../extension/config';
+import { CONTENT_SCRIPT_PORT, PAGE_CONNECTOR_CHANNEL } from './config';
 
 import * as dappApi from '../../dappMethods';
 import * as legacyDappApi from '../../dappMethods/legacy';
@@ -21,6 +21,7 @@ const ALLOWED_METHODS = new Set([
   'ton_sendTransaction',
   'ton_rawSign',
   'flushMemoryCache',
+  'prepareTransaction',
   'tonConnect_connect',
   'tonConnect_reconnect',
   'tonConnect_disconnect',
@@ -57,6 +58,6 @@ createExtensionInterface(CONTENT_SCRIPT_PORT, (
   const method = dappApi[name as keyof DappMethods];
   // @ts-ignore
   return method(...args as DappMethodArgs<keyof DappMethods>);
-}, PROVIDER_CHANNEL, (onUpdate: OnApiDappUpdate) => {
+}, PAGE_CONNECTOR_CHANNEL, (onUpdate: OnApiDappUpdate) => {
   dappApi.deactivateDapp(onUpdate);
 }, true);

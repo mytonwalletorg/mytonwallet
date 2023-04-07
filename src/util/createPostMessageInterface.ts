@@ -179,12 +179,12 @@ function handleErrors(sendToOrigin: SendToOrigin) {
   self.onerror = (e) => {
     // eslint-disable-next-line no-console
     console.error(e);
-    sendToOrigin({ type: 'unhandledError', error: { message: e.error.message || 'Uncaught exception in worker' } });
+    sendToOrigin({ type: 'unhandledError', error: { message: e.error?.message || 'Uncaught exception in worker' } });
   };
 
   self.addEventListener('unhandledrejection', (e) => {
     // eslint-disable-next-line no-console
     console.error(e);
-    sendToOrigin({ type: 'unhandledError', error: { message: e.reason.message || 'Uncaught rejection in worker' } });
+    sendToOrigin({ type: 'unhandledError', error: { message: e.reason?.message || 'Uncaught rejection in worker' } });
   });
 }

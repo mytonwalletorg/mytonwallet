@@ -157,8 +157,7 @@ Received: 已收到
 Sent: 已发送
 $transaction_from: 从 %address%
 $transaction_to: 至 %address%
-Wallet is not backed up!: 钱包未备份！
-Back up now: 现在备份
+Wallet is not backed up: 钱包未备份
 Testnet Version: 测试网版本
 Error reading clipboard: 读取剪切板时出现错误
 $fee_value: "手续费: %fee%"
@@ -250,16 +249,23 @@ Invalid amount: 非法数额
 Invalid address: 非法地址
 Domain is not connected to a wallet: 此域名没有链接至任何钱包地址
 Unexpected error: 预期外的错误
-You can save this address for quick access while sending.: You can save this address for quick access while sending.
-Stake Again: Stake Again
-Earned: Earned
-Connect Dapp: Connect Dapp
-Select wallets to use on this dapp: Select wallets to use on this dapp
-Connect: Connect
-Dapp Permissions: Dapp Permissions
-$dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."
-Send Transaction: Send Transaction
-Payload: Payload
-$many_transactions: "%1$d transactions"
-Total Amount: Total Amount
-Unstaking: Unstaking
+You can save this address for quick access while sending.: 您可以保存此地址以便在发送时快速访问。
+Stake Again: 再次质押
+Earned: 获得
+Connect Dapp: 连接Dapp
+Select wallets to use on this dapp: 选择要在此 dapp 上使用的钱包
+Connect: 连接
+Dapp Permissions: Dapp 权限
+$dapp_can_view_balance: "%dappname% 将能够查看钱包地址和余额。"
+Send Transaction: 发送交易
+Payload: 有效载荷
+$many_transactions: "%1$d 笔交易"
+Total Amount: 总金额
+Unstaking: 解除质押
+"Handle ton:// links": 处理 ton:// 链接
+Back up wallet to have full access to it: 备份钱包以完全访问它
+Improve wallet security: 提高钱包安全性
+by installing browser extension or native app: 通过安装浏览器扩展程序或本机应用程序
+Scam: 骗局
+Scam comment is hidden.: 诈骗评论被隐藏。
+Display: 展示

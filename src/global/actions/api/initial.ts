@@ -1,13 +1,14 @@
 import { addActionHandler, getGlobal } from '../../index';
 import { callApi, initApi } from '../../../api';
-import { getIsTxIdLocal } from '../../helpers';
-import { selectCurrentAccountState } from '../../selectors';
+import { selectNewestTxIds } from '../../selectors';
 import { IS_EXTENSION } from '../../../util/windowEnvironment';
 
-addActionHandler('initApi', (global, actions) => {
+addActionHandler('initApi', async (global, actions) => {
   initApi(actions.apiUpdate, {
-    origin: IS_EXTENSION ? `chrome://${chrome.runtime.id}` : window.location.origin,
+    origin: IS_EXTENSION ? `chrome-extension://${chrome.runtime.id}` : window.location.origin,
   });
+
+  await callApi('waitDataPreload');
 
   const { currentAccountId } = getGlobal();
 
@@ -18,6 +19,6 @@ addActionHandler('initApi', (global, actions) => {
   callApi(
     'activateAccount',
     currentAccountId,
-    selectCurrentAccountState(global)?.transactions?.orderedTxIds?.find((id) => !getIsTxIdLocal(id)),
+    selectNewestTxIds(global, currentAccountId),
   );
 });

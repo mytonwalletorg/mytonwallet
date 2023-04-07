@@ -9,6 +9,7 @@ import styles from './TransactionAmount.module.scss';
 interface OwnProps {
   amount: number;
   isIncoming?: boolean;
+  isScam?: boolean;
   tokenSymbol?: string;
   from?: number;
   to?: number;
@@ -18,6 +19,7 @@ const AMOUNT_PRECISION = 4;
 
 function TransactionAmount({
   isIncoming,
+  isScam,
   amount,
   tokenSymbol,
   from,
@@ -30,7 +32,8 @@ function TransactionAmount({
   return (
     <div className={buildClassName(
       styles.amount,
-      isIncoming && styles.amount_operationPositive,
+      isIncoming && !isScam && styles.amount_operationPositive,
+      isScam && styles.amount_operationScam,
     )}
     >
       {wholePart.trim().replace('\u202F', '')}

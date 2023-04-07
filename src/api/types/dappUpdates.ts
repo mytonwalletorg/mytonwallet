@@ -13,7 +13,12 @@ export type ApiDappUpdateTonMagic = {
   isEnabled: boolean;
 };
 
-export type ApiDappUpdate = ApiLegacyDappUpdate | ApiDappUpdateTonMagic;
+export type ApiDappUpdateDeeplinkHook = {
+  type: 'updateDeeplinkHook';
+  isEnabled: boolean;
+};
+
+export type ApiDappUpdate = ApiLegacyDappUpdate | ApiDappUpdateTonMagic | ApiDappUpdateDeeplinkHook;
 
 export type ApiLegacyDappUpdate = ApiDappUpdateBalance | ApiDappUpdateAccounts;
 

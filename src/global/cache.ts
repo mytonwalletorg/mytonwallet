@@ -9,7 +9,7 @@ import {
   DEBUG, DEFAULT_DECIMAL_PLACES, GLOBAL_STATE_CACHE_DISABLED, GLOBAL_STATE_CACHE_KEY, MAIN_ACCOUNT_ID,
 } from '../config';
 import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
-import { cloneDeep, pick } from '../util/iteratees';
+import { cloneDeep, mapValues, pick } from '../util/iteratees';
 
 import { INITIAL_STATE } from './initialState';
 import { addActionHandler, getGlobal } from './index';
@@ -247,6 +247,16 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
       ...initialState.staking,
     };
   }
+
+  if (cached.stateVersion === 5) {
+    cached.stateVersion = 6;
+
+    if (cached.byAccountId) {
+      for (const accountId of Object.keys(cached.byAccountId)) {
+        delete cached.byAccountId[accountId].transactions;
+      }
+    }
+  }
 }
 
 function updateCache() {
@@ -292,13 +302,17 @@ function reduceByAccountId(global: GlobalState) {
       'stakingHistory',
     ]);
 
-    const { orderedTxIds } = state.transactions || {};
-    if (orderedTxIds) {
-      const reducedTxIds = orderedTxIds.filter((id) => !getIsTxIdLocal(id)).slice(0, TXS_LIMIT);
+    const { txIdsBySlug, newestTransactionsBySlug } = state.transactions || {};
+
+    if (txIdsBySlug && Object.keys(txIdsBySlug).length) {
+      const reducedTxIdsBySlug = mapValues(txIdsBySlug, (txIds) => txIds.filter(
+        (id) => !getIsTxIdLocal(id),
+      ).slice(0, TXS_LIMIT));
 
       acc[accountId].transactions = {
-        byTxId: pick(state.transactions!.byTxId, reducedTxIds),
-        orderedTxIds: reducedTxIds,
+        byTxId: pick(state.transactions!.byTxId, Object.values(reducedTxIdsBySlug).flat()),
+        txIdsBySlug: reducedTxIdsBySlug,
+        newestTransactionsBySlug,
       };
     }
 

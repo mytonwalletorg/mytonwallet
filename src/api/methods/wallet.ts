@@ -25,6 +25,12 @@ export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage) {
     type: 'updateTonMagicState',
     isEnabled: Boolean(isTonMagicEnabled),
   });
+
+  const isDeeplinkHookEnabled = await storage.getItem('isDeeplinkHookEnabled');
+  onUpdate({
+    type: 'updateDeeplinkHookState',
+    isEnabled: Boolean(isDeeplinkHookEnabled),
+  });
 }
 
 export function getMnemonic(accountId: string, password: string) {
@@ -49,7 +55,7 @@ export function confirmDappRequest(promiseId: string, password: string) {
 }
 
 export function confirmDappRequestConnect(promiseId: string, password?: string, additionalAccountIds?: string[]) {
-  dappPromises.resolveDappPromise(promiseId, { isUserAllowed: true, additionalAccountIds, password });
+  dappPromises.resolveDappPromise(promiseId, { additionalAccountIds, password });
 }
 
 export function cancelDappRequest(promiseId: string, reason?: string) {

@@ -14,9 +14,11 @@ import {
   updateTransactionsIsLoading,
 } from '../../reducers';
 import { getIsTxIdLocal, humanToBigStr } from '../../helpers';
-import { buildCollectionByKey, unique } from '../../../util/iteratees';
+import {
+  buildCollectionByKey, findLast, mapValues, unique,
+} from '../../../util/iteratees';
 import { ApiTransactionDraftError } from '../../../api/types';
-import { selectCurrentAccountState } from '../../selectors';
+import { selectCurrentAccountState, selectLastTxIds } from '../../selectors';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
   const {
@@ -64,6 +66,9 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   global = updateSendingLoading(global, false);
 
   if (!result || result.error) {
+    if (result?.addressName) {
+      global = updateCurrentTransfer(global, { toAddressName: result.addressName });
+    }
     if (result?.fee) {
       global = updateCurrentTransfer(global, { fee: result.fee });
     }
@@ -86,6 +91,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     amount,
     comment,
     fee: result.fee,
+    toAddressName: result.addressName,
     tokenSlug,
   }));
 });
@@ -176,17 +182,19 @@ addActionHandler('cancelTransfer', (global) => {
   setGlobal(clearCurrentTransfer(global));
 });
 
-addActionHandler('fetchTransactions', async (global, actions, payload) => {
+addActionHandler('fetchTokenTransactions', async (global, actions, payload) => {
   const { limit } = payload || {};
+  const slug = payload.slug;
 
   global = updateTransactionsIsLoading(global, true);
   setGlobal(global);
 
-  const { orderedTxIds } = selectCurrentAccountState(global)?.transactions || {};
-  const lastTxId = orderedTxIds ? orderedTxIds[orderedTxIds.length - 1] : undefined;
-  const offsetId = lastTxId && !getIsTxIdLocal(lastTxId) ? lastTxId : undefined;
+  let { txIdsBySlug } = selectCurrentAccountState(global)?.transactions || {};
+  let tokenTxIds = (txIdsBySlug && txIdsBySlug[slug]) || [];
 
-  const result = await callApi('fetchTransactionSlice', global.currentAccountId!, offsetId, limit);
+  const offsetId = findLast(tokenTxIds, (txId) => !getIsTxIdLocal(txId));
+
+  const result = await callApi('fetchTokenTransactionSlice', global.currentAccountId!, slug, offsetId, limit);
   global = getGlobal();
   global = updateTransactionsIsLoading(global, false);
 
@@ -199,11 +207,54 @@ addActionHandler('fetchTransactions', async (global, actions, payload) => {
   const newOrderedTxIds = Object.keys(newTxsById);
   const currentTxs = selectCurrentAccountState(global)?.transactions;
 
+  txIdsBySlug = currentTxs?.txIdsBySlug || {};
+  tokenTxIds = unique(txIdsBySlug[slug] || []).concat(newOrderedTxIds);
+
   global = updateCurrentAccountState(global, {
     transactions: {
       ...currentTxs,
       byTxId: { ...(currentTxs?.byTxId || {}), ...newTxsById },
-      orderedTxIds: unique((currentTxs?.orderedTxIds || []).concat(newOrderedTxIds)),
+      txIdsBySlug: { ...txIdsBySlug, [slug]: tokenTxIds },
+    },
+  });
+
+  setGlobal(global);
+});
+
+addActionHandler('fetchAllTransactions', async (global, actions, payload) => {
+  const { limit } = payload || {};
+
+  global = updateTransactionsIsLoading(global, true);
+  setGlobal(global);
+
+  const accountId = global.currentAccountId!;
+  const lastTxIds = selectLastTxIds(global, accountId);
+
+  const result = await callApi('fetchAllTransactionSlice', global.currentAccountId!, lastTxIds, limit);
+  global = getGlobal();
+  global = updateTransactionsIsLoading(global, false);
+
+  if (!result || !result.length) {
+    setGlobal(global);
+    return;
+  }
+
+  const newTxsById = buildCollectionByKey(result, 'txId');
+  const currentTxs = selectCurrentAccountState(global)?.transactions;
+  let txIdsBySlug = { ...currentTxs?.txIdsBySlug };
+
+  txIdsBySlug = result.reduce((acc, { slug, txId }) => {
+    acc[slug] = (acc[slug] || []).concat([txId]);
+    return acc;
+  }, txIdsBySlug);
+
+  txIdsBySlug = mapValues(txIdsBySlug, (txIds) => unique(txIds));
+
+  global = updateCurrentAccountState(global, {
+    transactions: {
+      ...currentTxs,
+      byTxId: { ...(currentTxs?.byTxId || {}), ...newTxsById },
+      txIdsBySlug,
     },
   });
 

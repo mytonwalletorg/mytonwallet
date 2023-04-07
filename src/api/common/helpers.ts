@@ -7,10 +7,14 @@ import {
 import { Storage } from '../storages/types';
 import { parseAccountId } from '../../util/account';
 import { MAIN_ACCOUNT_ID } from '../../config';
+import { ApiTransactionExtra } from '../blockchains/ton/types';
+import { getKnownAddresses, getScamMarkers } from './addresses';
 
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
-const actualStateVersion = 2;
+
+const actualStateVersion = 3;
+let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
   return parseAccountId(accountId).blockchain;
@@ -25,23 +29,47 @@ export function buildInternalAccountId(account: Omit<AccountIdParsed, 'network'>
   return `${id}-${blockchain}`;
 }
 
-export function buildLocalTransaction(params: {
-  amount: string;
-  fromAddress: string;
-  toAddress: string;
-  comment?: string;
-  fee: string;
-  slug?: string;
-  type?: ApiTransactionType;
-}): ApiTransaction {
+export function buildLocalTransaction(
+  params: {
+    amount: string;
+    fromAddress: string;
+    toAddress: string;
+    comment?: string;
+    fee: string;
+    slug: string;
+    type?: ApiTransactionType;
+  },
+): ApiTransaction {
   const { amount, ...restParams } = params;
-  return {
+
+  return updateTransactionMetadata({
     txId: getNextLocalId(),
     timestamp: Date.now(),
     isIncoming: false,
     amount: `-${amount}`,
     ...restParams,
-  };
+  });
+}
+
+export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {
+  const {
+    isIncoming, fromAddress, toAddress, comment,
+  } = transaction;
+  let { metadata = {} } = transaction;
+
+  const knownAddresses = getKnownAddresses();
+  const scamMarkers = getScamMarkers();
+
+  const address = isIncoming ? fromAddress : toAddress;
+  if (address in knownAddresses) {
+    metadata = { ...metadata, ...knownAddresses[address] };
+  }
+
+  if (comment && scamMarkers.map((sm) => sm.test(comment)).find(Boolean)) {
+    metadata.isScam = true;
+  }
+
+  return { ...transaction, metadata };
 }
 
 let currentOnUpdate: OnApiUpdate | undefined;
@@ -56,6 +84,14 @@ export function disconnectUpdater() {
 
 export function isUpdaterAlive(onUpdate: OnApiUpdate) {
   return currentOnUpdate === onUpdate;
+}
+
+export function startStorageMigration(storage: Storage) {
+  migrationEnsurePromise = migrateStorage(storage);
+}
+
+export function waitStorageMigration() {
+  return migrationEnsurePromise;
 }
 
 export async function migrateStorage(storage: Storage) {
@@ -109,4 +145,23 @@ export async function migrateStorage(storage: Storage) {
     version = 2;
     await storage.setItem('stateVersion', version);
   }
+
+  if (version === 2) {
+    for (const key of ['addresses', 'mnemonicsEncrypted', 'publicKeys', 'dapps']) {
+      const rawData = await storage.getItem(key);
+      if (!rawData) continue;
+      await storage.setItem(key, JSON.parse(rawData));
+    }
+
+    version = 3;
+    await storage.setItem('stateVersion', version);
+  }
+}
+
+export function compareTransactions(a: ApiTransaction, b: ApiTransaction, isAsc: boolean) {
+  let value = a.timestamp - b.timestamp;
+  if (value === 0) {
+    value = a.txId > b.txId ? 1 : a.txId < b.txId ? -1 : 0;
+  }
+  return isAsc ? value : -value;
 }

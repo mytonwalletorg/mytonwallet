@@ -12,19 +12,6 @@ export function updateCurrentTransfer(global: GlobalState, update: Partial<Globa
   };
 }
 
-export function removeLocalTransaction(global: GlobalState, localTxId: string) {
-  const { transactions } = selectCurrentAccountState(global) || {};
-  const { [localTxId]: removedTransaction, ...byTxId } = transactions?.byTxId || {};
-
-  return updateCurrentAccountState(global, {
-    transactions: {
-      ...transactions,
-      byTxId,
-      orderedTxIds: transactions?.orderedTxIds?.filter((txId) => txId !== localTxId),
-    },
-  });
-}
-
 export function clearCurrentTransfer(global: GlobalState) {
   return {
     ...global,

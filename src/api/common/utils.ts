@@ -1,4 +1,5 @@
 import TonWeb from 'tonweb';
+import { STAKING_POOLS } from '../../config';
 
 export function bytesToHex(bytes: Uint8Array) {
   return TonWeb.utils.bytesToHex(bytes);
@@ -37,4 +38,8 @@ export function handleFetchErrors(response: Response) {
 
 export function sumBigString(a: string, b: string) {
   return (BigInt(a) + BigInt(b)).toString();
+}
+
+export function isKnownStakingPool(address: string) {
+  return STAKING_POOLS.some((poolPart) => address.endsWith(poolPart));
 }

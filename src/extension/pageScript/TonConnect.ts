@@ -5,33 +5,39 @@ import {
   ConnectEventError,
   ConnectRequest,
   DeviceInfo,
-  DisconnectEvent,
   RpcMethod,
   RpcRequests,
   WalletEvent,
   WalletResponse,
 } from '@tonconnect/protocol';
 
+import type { Connector } from '../../util/PostMessageConnector';
+
 import packageJson from '../../../package.json';
-import { Connector } from '../../util/PostMessageConnector';
+
+declare global {
+  interface Window {
+    mytonwallet: {
+      tonconnect: TonConnect;
+    };
+  }
+}
 
 type TonConnectCallback = (event: WalletEvent) => void;
 type AppMethodMessage = AppRequest<keyof RpcRequests>;
 type WalletMethodMessage = WalletResponse<RpcMethod>;
-type RequestMethods = 'connect'
-| 'reconnect'
-| 'disconnect'
-| keyof RpcRequests
-| 'deactivate';
+type RequestMethods = 'connect' | 'reconnect' | keyof RpcRequests | 'deactivate';
 
 interface TonConnectBridge {
   deviceInfo: DeviceInfo; // see Requests/Responses spec
   protocolVersion: number; // max supported Ton Connect version (e.g. 2)
   isWalletBrowser: boolean; // if the page is opened into wallet's browser
   connect(protocolVersion: number, message: ConnectRequest): Promise<ConnectEvent>;
-  disconnect(): Promise<DisconnectEvent>;
+
   restoreConnection(): Promise<ConnectEvent>;
+
   send(message: AppMethodMessage): Promise<WalletMethodMessage>;
+
   listen(callback: TonConnectCallback): () => void;
 }
 
@@ -45,7 +51,10 @@ function getDeviceInfo(): DeviceInfo {
     appName: 'MyTonWallet',
     appVersion: packageJson.version,
     maxProtocolVersion: TONCONNECT_VERSION,
-    features: ['SendTransaction'],
+    features: [
+      'SendTransaction', // TODO DEPRECATED
+      { name: 'SendTransaction', maxMessages: 4 },
+    ],
   };
 }
 
@@ -76,68 +85,70 @@ function getPlatform(): DevicePlatform {
   return os!;
 }
 
-export class TonConnect implements TonConnectBridge {
+class TonConnect implements TonConnectBridge {
   deviceInfo: DeviceInfo = getDeviceInfo();
 
   protocolVersion = TONCONNECT_VERSION;
 
   isWalletBrowser = false;
 
-  private connector: Connector;
-
   private callbacks: Array<(event: WalletEvent) => void>;
 
-  constructor(connector: Connector) {
-    this.connector = connector;
+  private lastConnectId: number = 0;
+
+  constructor(private apiConnector: Connector) {
     this.callbacks = [];
   }
 
   async connect(protocolVersion: number, message: ConnectRequest): Promise<ConnectEvent> {
+    const id = ++this.lastConnectId;
+
     if (protocolVersion > this.protocolVersion) {
-      return TonConnect.buildError(
+      return TonConnect.buildConnectError(
+        id,
         'Unsupported protocol version',
         CONNECT_EVENT_ERROR_CODES.BAD_REQUEST_ERROR,
       );
     }
 
-    const response = await this.request('connect', [message]);
+    const response = await this.request('connect', [message, id]);
     if (response?.event === 'connect') {
       response.payload.device = getDeviceInfo();
 
       this.addEventListeners();
     }
 
-    return this.emit<ConnectEvent>(response || TonConnect.buildError());
+    return this.emit<ConnectEvent>(response || TonConnect.buildConnectError(id));
   }
 
   async restoreConnection(): Promise<ConnectEvent> {
-    const response = await this.request('reconnect');
+    const id = ++this.lastConnectId;
+
+    const response = await this.request('reconnect', [id]);
     if (response?.event === 'connect') {
       response.payload.device = getDeviceInfo();
 
       this.addEventListeners();
     }
 
-    return this.emit<ConnectEvent>(response || TonConnect.buildError());
-  }
-
-  async disconnect() {
-    await this.request('disconnect');
-
-    this.removeEventListeners();
-
-    return this.emit<DisconnectEvent>({
-      event: 'disconnect',
-      payload: {},
-    });
+    return this.emit<ConnectEvent>(response || TonConnect.buildConnectError(id));
   }
 
   async send(message: AppMethodMessage) {
+    const { id } = message;
     const response = await this.request(message.method, [message]);
-    return response || TonConnect.buildError(
-      'Unknown app error',
-      CONNECT_EVENT_ERROR_CODES.UNKNOWN_APP_ERROR,
-    );
+
+    if (message.method === 'disconnect') {
+      this.removeEventListeners();
+    }
+
+    return response || {
+      error: {
+        code: 0,
+        message: 'Unknown error',
+      },
+      id,
+    };
   }
 
   listen(callback: (event: WalletEvent) => void): (() => void) {
@@ -148,12 +159,17 @@ export class TonConnect implements TonConnectBridge {
   }
 
   private request(name: RequestMethods, args: any[] = []) {
-    return this.connector.request({ name: `tonConnect_${name}`, args });
+    return this.apiConnector.request({ name: `tonConnect_${name}`, args });
   }
 
-  private static buildError(msg = 'Unknown error', code?: CONNECT_EVENT_ERROR_CODES): ConnectEventError {
+  private static buildConnectError(
+    id: number,
+    msg = 'Unknown error',
+    code?: CONNECT_EVENT_ERROR_CODES,
+  ): ConnectEventError {
     return {
       event: 'connect_error',
+      id,
       payload: {
         code: code || CONNECT_EVENT_ERROR_CODES.UNKNOWN_ERROR,
         message: msg,
@@ -183,6 +199,14 @@ export class TonConnect implements TonConnectBridge {
   private destroy() {
     this.removeEventListeners();
     this.callbacks = [];
-    this.connector.destroy();
+    this.apiConnector.destroy();
   }
+}
+
+export function initTonConnect(apiConnector: Connector) {
+  const tonConnect = new TonConnect(apiConnector);
+
+  window.mytonwallet = {
+    tonconnect: tonConnect,
+  };
 }

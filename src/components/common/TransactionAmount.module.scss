@@ -23,6 +23,12 @@
     background-color: var(--color-transaction-green-background);
   }
 
+  &_operationScam {
+    color: var(--color-transaction-red-text);
+
+    background-color: var(--color-transaction-red-background);
+  }
+
   @media (prefers-color-scheme: dark) {
     :global(.theme-system) & {
       box-shadow: none;

@@ -91,3 +91,12 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.scamImage {
+  width: 2.75rem;
+  margin: -0.25rem 0 0 0.25rem;
+}
+
+.scamAddress {
+  color: var(--color-red);
+}

@@ -51,3 +51,37 @@
   font-weight: 700;
   color: var(--color-black);
 }
+
+.github {
+  font-size: 1rem;
+  color: #000;
+  vertical-align: bottom;
+
+  :global(.theme-dark) & {
+    color: #fff;
+  }
+}
+
+.telegram {
+  position: relative;
+
+  font-size: 1rem;
+  color: var(--color-blue);
+  vertical-align: bottom;
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    z-index: -1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width:95%;
+    height: 95%;
+
+    background: #fff;
+    border-radius: 50%;
+  }
+}

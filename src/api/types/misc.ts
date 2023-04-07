@@ -23,18 +23,28 @@ export interface ApiBaseToken {
 }
 
 export interface ApiToken extends ApiBaseToken {
-  quote: {
-    price: number;
-    percentChange1h: number;
-    percentChange24h: number;
-    percentChange7d: number;
-    percentChange30d: number;
-    history24h?: ApiHistoryList;
-    history7d?: ApiHistoryList;
-    history30d?: ApiHistoryList;
-  };
+  quote: ApiTokenPrice;
 }
 
+export interface ApiTokenPrice {
+  price: number;
+  percentChange1h: number;
+  percentChange24h: number;
+  percentChange7d: number;
+  percentChange30d: number;
+  history24h?: ApiHistoryList;
+  history7d?: ApiHistoryList;
+  history30d?: ApiHistoryList;
+}
+
+export type ApiKnownAddresses = Record<string, ApiAddressInfo>;
+
+export interface ApiAddressInfo {
+  name?: string;
+  isScam?: boolean;
+}
+
+export type ApiTxIdBySlug = Record<string, string | undefined>;
 export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | undefined;
 
 export interface ApiTransaction {
@@ -45,9 +55,13 @@ export interface ApiTransaction {
   toAddress: string;
   comment?: string;
   fee: string;
-  slug?: string;
+  slug: string;
   isIncoming: boolean;
   type?: ApiTransactionType;
+  metadata?: ApiTransactionMetadata;
+}
+
+export interface ApiTransactionMetadata extends ApiAddressInfo {
 }
 
 export enum ApiTransactionDraftError {

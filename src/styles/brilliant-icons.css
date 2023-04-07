@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?2c84ee8b429878e38942a8a1ed98276f") format("woff"),
-url("./brilliant-icons.woff2?2c84ee8b429878e38942a8a1ed98276f") format("woff2");
+    src: url("./brilliant-icons.woff?371857629d816a8989a0d50e1ceb7a69") format("woff"),
+url("./brilliant-icons.woff2?371857629d816a8989a0d50e1ceb7a69") format("woff2");
     font-weight: normal;
     font-style: normal;
 }
@@ -53,60 +53,66 @@ url("./brilliant-icons.woff2?2c84ee8b429878e38942a8a1ed98276f") format("woff2");
 .icon-eye::before {
     content: "\f10d";
 }
-.icon-laptop::before {
+.icon-github::before {
     content: "\f10e";
 }
-.icon-menu::before {
+.icon-laptop::before {
     content: "\f10f";
 }
-.icon-paste::before {
+.icon-menu::before {
     content: "\f110";
 }
-.icon-pen::before {
+.icon-paste::before {
     content: "\f111";
 }
-.icon-percent::before {
+.icon-pen::before {
     content: "\f112";
 }
-.icon-plus::before {
+.icon-percent::before {
     content: "\f113";
 }
-.icon-qrcode::before {
+.icon-plus::before {
     content: "\f114";
 }
-.icon-question::before {
+.icon-qrcode::before {
     content: "\f115";
 }
-.icon-receive-alt::before {
+.icon-question::before {
     content: "\f116";
 }
-.icon-receive::before {
+.icon-receive-alt::before {
     content: "\f117";
 }
-.icon-search::before {
+.icon-receive::before {
     content: "\f118";
 }
-.icon-send-alt::before {
+.icon-search::before {
     content: "\f119";
 }
-.icon-send::before {
+.icon-send-alt::before {
     content: "\f11a";
 }
-.icon-share::before {
+.icon-send::before {
     content: "\f11b";
 }
-.icon-star-filled::before {
+.icon-share::before {
     content: "\f11c";
 }
-.icon-star::before {
+.icon-star-filled::before {
     content: "\f11d";
 }
-.icon-ton::before {
+.icon-star::before {
     content: "\f11e";
 }
-.icon-tonscan::before {
+.icon-telegram::before {
     content: "\f11f";
 }
-.icon-trash::before {
+.icon-ton::before {
     content: "\f120";
+}
+.icon-tonscan::before {
+    content: "\f121";
+}
+.icon-trash::before {
+    content: "\f122";
 }

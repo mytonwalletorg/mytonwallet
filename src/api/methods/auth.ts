@@ -1,20 +1,16 @@
-import type { ApiNetwork, OnApiUpdate } from '../types';
+import type { ApiNetwork, ApiTxIdBySlug } from '../types';
 import type { Storage } from '../storages/types';
 
+import { IS_EXTENSION } from '../environment';
 import blockchains from '../blockchains';
-
 import { getNewAccountId, removeAccountValue, setAccountValue } from '../common/accounts';
 import { bytesToHex } from '../common/utils';
 
-import { activateAccount, deactivateAccount, deactivateAllAccounts } from './accounts';
-import { IS_EXTENSION } from '../environment';
-import { deactivateAccountDapp } from './dapps';
+import { activateAccount, deactivateAllAccounts, deactivateCurrentAccount } from './accounts';
 
-// let onUpdate: OnApiUpdate;
 let storage: Storage;
 
-export function initAuth(_onUpdate: OnApiUpdate, _storage: Storage) {
-  // onUpdate = _onUpdate;
+export function initAuth(_storage: Storage) {
   storage = _storage;
 }
 
@@ -98,23 +94,16 @@ export async function resetAccounts() {
     storage.removeItem('publicKeys'),
     storage.removeItem('mnemonicsEncrypted'),
   ]);
-  if (IS_EXTENSION) {
-    await storage.removeItem('dapps');
-  }
 }
 
-export async function removeAccount(accountId: string) {
-  deactivateAccount();
-  if (IS_EXTENSION) {
-    deactivateAccountDapp(accountId);
-  }
-
+export async function removeAccount(accountId: string, nextAccountId: string, newestTxIds?: ApiTxIdBySlug) {
   await Promise.all([
     removeAccountValue(storage, accountId, 'addresses'),
     removeAccountValue(storage, accountId, 'publicKeys'),
     removeAccountValue(storage, accountId, 'mnemonicsEncrypted'),
+    IS_EXTENSION && removeAccountValue(storage, accountId, 'dapps'),
   ]);
-  if (IS_EXTENSION) {
-    await removeAccountValue(storage, accountId, 'dapps');
-  }
+
+  deactivateCurrentAccount();
+  await activateAccount(nextAccountId, newestTxIds);
 }

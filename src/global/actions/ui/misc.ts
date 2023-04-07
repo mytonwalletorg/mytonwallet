@@ -163,3 +163,13 @@ addActionHandler('toggleCanPlaySounds', (global, actions, { isEnabled }) => {
     },
   };
 });
+
+addActionHandler('closeSecurityWarning', (global) => {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      isSecurityWarningHidden: true,
+    },
+  };
+});
