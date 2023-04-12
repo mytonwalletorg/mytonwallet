@@ -99,6 +99,7 @@ function DappTransactionModal({
             <DappTransaction
               transaction={transaction}
               tonToken={tonToken}
+              tokens={tokens}
             />
           )}
           <div className={modalStyles.buttons}>

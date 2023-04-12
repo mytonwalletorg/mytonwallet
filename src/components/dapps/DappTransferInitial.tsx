@@ -7,7 +7,7 @@ import type { UserToken, Account } from '../../global/types';
 import type { ApiDapp, ApiDappTransaction } from '../../api/types';
 
 import buildClassName from '../../util/buildClassName';
-import { selectNetworkAccounts } from '../../global/selectors';
+import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
 import { bigStrToHuman } from '../../global/helpers';
 import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
@@ -21,6 +21,7 @@ import Button from '../ui/Button';
 
 import styles from './Dapp.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import { SHORT_FRACTION_DIGITS } from '../../config';
 
 interface OwnProps {
   tonToken: UserToken;
@@ -32,9 +33,8 @@ interface StateProps {
   fee?: string;
   dapp?: ApiDapp;
   isLoading?: boolean;
+  tokens?: UserToken[];
 }
-
-const FRACTION_DIGITS = 2;
 
 function DappTransferInitial({
   tonToken,
@@ -43,6 +43,7 @@ function DappTransferInitial({
   fee,
   dapp,
   isLoading,
+  tokens,
 }: OwnProps & StateProps) {
   const { showDappTransaction, submitDappTransfer, cancelDappTransfer } = getActions();
 
@@ -80,11 +81,23 @@ function DappTransferInitial({
         transaction={renderingTransactions![0]}
         tonToken={tonToken}
         fee={fee}
+        tokens={tokens}
       />
     );
   }
 
   function renderTransactionRow(transaction: ApiDappTransaction, i: number) {
+    const { payload } = transaction;
+
+    let extraText: string = '';
+    if (payload?.type === 'transfer-nft') {
+      extraText = '1 NFT + ';
+    } else if (payload?.type === 'transfer-tokens') {
+      const { slug, amount } = payload;
+      const { decimals, symbol } = tokens!.find((token) => token.slug === slug)!;
+      extraText = `${formatCurrency(bigStrToHuman(amount, decimals), symbol, SHORT_FRACTION_DIGITS)} + `;
+    }
+
     return (
       <div
         key={`${transaction.toAddress}_${transaction.amount}`}
@@ -92,7 +105,8 @@ function DappTransferInitial({
         onClick={() => { showDappTransaction({ transactionIdx: i }); }}
       >
         <span className={styles.transactionRowAmount}>
-          {formatCurrency(bigStrToHuman(transaction.amount, tonToken.decimals), tonToken.symbol, FRACTION_DIGITS)}
+          {extraText}
+          {formatCurrency(bigStrToHuman(transaction.amount, tonToken.decimals), tonToken.symbol, SHORT_FRACTION_DIGITS)}
         </span>
         {' '}
         <span className={styles.transactionRowAddress}>
@@ -161,5 +175,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     fee,
     dapp,
     isLoading,
+    tokens: selectCurrentAccountTokens(global),
   };
 })(DappTransferInitial));

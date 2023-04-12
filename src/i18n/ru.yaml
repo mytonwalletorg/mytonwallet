@@ -278,7 +278,7 @@ Connect: Подключить
 Dapp Permissions: Разрешения для приложения
 $dapp_can_view_balance: "Для %dappname% будет доступен ваш адрес кошелька и баланс."
 Send Transaction: Отправить перевод
-Payload: Payload
+Payload: Служебные данные
 $many_transactions: "%1$d перевода"
 Total Amount: Общая сумма
 Unstaking: Unstaking
@@ -289,3 +289,7 @@ by installing browser extension or native app: установив расшире
 Scam: Скам
 Scam comment is hidden.: Скам комментарий скрыт.
 Display: Показать
+$dapp_transfer_tokens_payload_with_comment: Отправить %amount% на %address% с комментарием «%comment%»
+$dapp_transfer_tokens_payload: Перевод %amount% с вашего аккаунта на %address%
+$dapp_transfer_nft_payload: Отправка NFT "%nft%" с вашего аккаунта на %address%
+Nested Transaction: Вложенная транзакция

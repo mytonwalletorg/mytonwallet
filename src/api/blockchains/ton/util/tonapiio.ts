@@ -3,6 +3,7 @@ import {
   EventApi,
   JettonApi,
   RawBlockchainApi,
+  NFTApi,
 } from 'tonapi-sdk-js';
 import { DEBUG } from '../../../../config';
 import { ApiNetwork } from '../../../types';
@@ -23,12 +24,14 @@ export const tonapiioByNetwork = {
     eventApi: new EventApi(configurationMainnet),
     jettonApi: new JettonApi(configurationMainnet),
     blockchainApi: new RawBlockchainApi(configurationMainnet),
+    nftApi: new NFTApi(configurationMainnet),
   },
   testnet: {
     configuration: configurationTestnet,
     eventApi: new EventApi(configurationTestnet),
     jettonApi: new JettonApi(configurationTestnet),
     blockchainApi: new RawBlockchainApi(configurationTestnet),
+    nftApi: new NFTApi(configurationTestnet),
   },
 };
 
@@ -58,6 +61,13 @@ export function fetchAccountTransactions(
       minLt,
     })).transactions;
   }, []);
+}
+
+export function fetchNftItems(network: ApiNetwork, addresses: string[]) {
+  const api = tonapiioByNetwork[network].nftApi;
+  return tonapiioErrorHandler(async () => (await api.getNFTItems({
+    addresses,
+  })).nftItems, []);
 }
 
 async function tonapiioErrorHandler<T>(fn: () => Promise<T>, defaultValue: T): Promise<T> {

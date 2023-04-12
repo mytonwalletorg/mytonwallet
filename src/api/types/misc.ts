@@ -72,6 +72,25 @@ export enum ApiTransactionDraftError {
   DomainNotResolved = 'DomainNotResolved',
 }
 
+export type ApiParsedPayload = {
+  type: 'comment';
+  comment: string;
+} | {
+  type: 'transfer-nft';
+  nftAddress: string;
+  toAddress: string;
+  nftName?: string;
+} | {
+  type: 'transfer-tokens';
+  slug: string;
+  toAddress: string;
+  amount: string;
+  comment?: string;
+} | {
+  type: 'unknown';
+  base64: string;
+};
+
 export interface ApiNft {
   index: number;
   name?: string;
@@ -134,5 +153,5 @@ export type ApiDappRequest = {
 export interface ApiDappTransaction {
   toAddress: string;
   amount: string;
-  payload?: string;
+  payload?: ApiParsedPayload;
 }

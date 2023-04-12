@@ -58,6 +58,7 @@ export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://mytonwallet-api.herokuapp.com';
 
 export const FRACTION_DIGITS = 9;
+export const SHORT_FRACTION_DIGITS = 2;
 
 export const MY_TON_WALLET_PROMO_URL = 'https://mytonwallet.io';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/z/';

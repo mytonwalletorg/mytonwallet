@@ -51,6 +51,7 @@ import {
   TransactionPayload,
 } from './types';
 import { ApiUserRejectsError } from '../errors';
+import { parsePayload } from '../blockchains/ton/transactions';
 
 const { Address } = TonWeb.utils;
 
@@ -203,6 +204,7 @@ export async function sendTransaction(
 
   try {
     const { accountId, origin } = validateRequest(request);
+    const { network } = parseAccountId(accountId);
 
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
     const messages = txPayload.messages.slice(0, 3);
@@ -242,17 +244,21 @@ export async function sendTransaction(
 
     // TODO Cache dapps in localstorage when connecting
     const dapp = (await getDappsByOrigin(accountId))[origin];
+    const transactionsForRequest = await Promise.all(messages.map(async ({ address, amount, payload }) => {
+      const toAddress = toBase64Address(address);
+      return {
+        toAddress,
+        amount,
+        payload: payload ? await parsePayload(network, toAddress, payload) : undefined,
+      };
+    }));
 
     onPopupUpdate({
       type: 'dappSendTransactions',
       promiseId,
       accountId,
       dapp,
-      transactions: messages.map(({ address, amount, payload }) => ({
-        toAddress: toBase64Address(address),
-        amount,
-        payload,
-      })),
+      transactions: transactionsForRequest,
       fee: fee!,
     });
 

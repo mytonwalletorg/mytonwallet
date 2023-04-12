@@ -2,10 +2,12 @@ import { Cell } from 'tonweb/dist/types/boc/cell';
 import { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
 import TonWeb from 'tonweb';
 import { Transaction as RawTransaction } from 'tonapi-sdk-js/dist/models/Transaction';
+import { Cell as TonCell } from 'ton-core';
 
 import { Storage } from '../../storages/types';
 import {
   ApiNetwork,
+  ApiParsedPayload,
   ApiTransaction,
   ApiTransactionDraftError,
   ApiTxIdBySlug,
@@ -22,22 +24,27 @@ import { fetchPrivateKey } from './auth';
 import { fetchNewestTxId, toBase64Address } from './util/tonweb';
 import { fetchAddress, resolveAddress } from './address';
 import {
+  buildTokenSlug,
   buildTokenTransfer,
   getTokenWalletBalance,
   JettonWalletType,
   parseTokenTransaction,
   resolveTokenBySlug,
+  resolveTokenMinterAddress,
   resolveTokenWalletAddress,
 } from './tokens';
-import { fetchAccountTransactions } from './util/tonapiio';
+import { fetchAccountTransactions, fetchNftItems } from './util/tonapiio';
 import { ApiTransactionExtra, TonTransferParams } from './types';
 import { parseAccountId } from '../../../util/account';
-import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
+import {
+  JettonOpCode, NftOpCode, STAKE_COMMENT, UNSTAKE_COMMENT,
+} from './constants';
 import { pause } from '../../../util/schedulers';
 import { stringifyTxId } from './util';
 import { omit } from '../../../util/iteratees';
 import { getAddressInfo } from '../../common/addresses';
 import { compareTransactions, updateTransactionMetadata } from '../../common/helpers';
+import { toBounceableAddress } from './util/metadata';
 
 const { Address, fromNano } = TonWeb.utils;
 
@@ -340,51 +347,42 @@ function parseTxId(txId: string) {
 
 function parseNestedApiTransactions(rawTx: RawTransaction): ApiTransactionExtra[] {
   const isIncoming = Boolean(rawTx.inMsg?.source);
-  const target = isIncoming ? rawTx.inMsg! : rawTx.outMsgs[0];
-  if (!target) {
+  const msgs = isIncoming ? [rawTx.inMsg!] : rawTx.outMsgs;
+  if (!msgs[0]) {
     return [];
   }
 
-  const baseTx = {
-    txId: stringifyTxId({ lt: rawTx.lt.toString(), hash: hexToBase64(rawTx.hash) }),
-    isIncoming,
-    slug: TON_TOKEN_SLUG,
-    timestamp: Number(rawTx.utime * 1000),
-    fromAddress: toBase64Address(target.source!.address!),
-    toAddress: toBase64Address(target.destination!.address!),
-    comment: parseComment(target.msgData),
-    fee: rawTx.fee.toString(),
-    amount: isIncoming
-      ? target.value
-      : String(BigInt(target.value) * BigInt(-1)),
-    metadata: isIncoming ? {
-      isScam: target.source?.isScam,
-      name: target.source?.name,
+  const txId = stringifyTxId({
+    lt: rawTx.lt.toString(),
+    hash: hexToBase64(rawTx.hash),
+  });
+  const slug = TON_TOKEN_SLUG;
+  const timestamp = Number(rawTx.utime * 1000);
+  const fee = rawTx.fee.toString();
+
+  const transactions = msgs.map((msg, i) => {
+    const metadata = isIncoming ? {
+      isScam: msg.source?.isScam,
+      name: msg.source?.name,
     } : {
-      isScam: target.destination?.isScam,
-      name: target.destination?.name,
-    },
-    extraData: { body: target.msgData },
-  } as ApiTransaction;
+      isScam: msg.destination?.isScam,
+      name: msg.destination?.name,
+    };
+    return {
+      txId: msgs.length > 1 ? `${txId}:${i}` : txId,
+      timestamp,
+      fromAddress: toBase64Address(msg.source!.address!),
+      toAddress: toBase64Address(msg.destination!.address!),
+      amount: isIncoming ? msg.value.toString() : `-${msg.value}`,
+      comment: parseComment(msg.msgData),
+      fee: i === 0 ? fee : '0',
+      slug,
+      metadata,
+      extraData: { body: msg.msgData },
+    } as ApiTransactionExtra;
+  });
 
-  if (!isIncoming && rawTx.outMsgs?.length > 1) {
-    return rawTx.outMsgs.map((outMsg, i) => {
-      return updateTransactionType({
-        ...baseTx,
-        txId: `${baseTx.txId}:${i}`,
-        toAddress: toBase64Address(outMsg.destination!.address!),
-        amount: String(BigInt(outMsg.value) * BigInt(-1)),
-        fee: i === 0 ? baseTx.fee : '0',
-        metadata: {
-          isScam: outMsg.destination?.isScam,
-          name: outMsg.destination?.name,
-        },
-        extraData: { body: outMsg.msgData },
-      });
-    });
-  }
-
-  return [baseTx];
+  return transactions.map(updateTransactionType);
 }
 
 function updateTransactionType(transaction: ApiTransactionExtra) {
@@ -393,7 +391,7 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
   } = transaction;
 
   if (fromAddress && toAddress) {
-    const amountNumber = Number(fromNano(amount));
+    const amountNumber = Math.abs(Number(fromNano(amount)));
 
     if (isKnownStakingPool(fromAddress) && amountNumber > 1) {
       transaction.type = 'unstake';
@@ -566,4 +564,72 @@ async function signMultiTransaction(
   });
 
   return { query, seqno };
+}
+
+export async function parsePayload(network: ApiNetwork, toAddress: string, base64: string): Promise<ApiParsedPayload> {
+  try {
+    let slice = TonCell.fromBase64(base64).beginParse();
+    const opCode = slice.loadUint(32);
+
+    if (opCode === 0) {
+      const comment = slice.loadStringTail();
+      return {
+        type: 'comment',
+        comment,
+      };
+    }
+
+    slice.loadUint(64); // queryId
+
+    switch (opCode) {
+      case JettonOpCode.transfer: {
+        const minterAddress = await resolveTokenMinterAddress(network, toAddress);
+
+        const amount = slice.loadCoins();
+        const address = slice.loadAddress();
+        let comment: string | undefined;
+
+        if (slice.loadMaybeAddress()) {
+          slice.loadBit();
+          slice.loadCoins();
+          const isSeparateCell = slice.remainingBits && slice.loadBit();
+          if (isSeparateCell && slice.remainingRefs) {
+            slice = slice.loadRef().beginParse();
+          }
+          if (slice.remainingBits > 32 && slice.loadUint(32) === 0) {
+            comment = slice.loadStringTail();
+          }
+        }
+
+        return {
+          type: 'transfer-tokens',
+          slug: buildTokenSlug(minterAddress),
+          toAddress: toBounceableAddress(address),
+          amount: amount.toString(),
+          comment,
+        };
+      }
+      case NftOpCode.transferOwnership: {
+        const address = toBounceableAddress(slice.loadAddress());
+        const nftAddress = toAddress;
+        const [nft] = await fetchNftItems(network, [nftAddress]);
+        return {
+          type: 'transfer-nft',
+          nftAddress,
+          nftName: nft?.metadata?.name,
+          toAddress: address,
+        };
+      }
+    }
+  } catch (err) {
+    if (DEBUG) {
+      // eslint-disable-next-line no-console
+      console.error('[parseJettonWalletMsgBody]', err);
+    }
+  }
+
+  return {
+    type: 'unknown',
+    base64,
+  };
 }

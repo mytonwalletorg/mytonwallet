@@ -269,3 +269,7 @@ by installing browser extension or native app: 通过安装浏览器扩展程序
 Scam: 骗局
 Scam comment is hidden.: 诈骗评论被隐藏。
 Display: 展示
+$dapp_transfer_tokens_payload_with_comment: 从您的帐户发送 %amount% 到 %address%，评论为“ %comment%
+$dapp_transfer_tokens_payload: 从您的账户发送 %amount% 到 %address%
+$dapp_transfer_nft_payload: 从您的账户发送 "%nft%" 到 %address%
+Nested Transaction: 嵌套事务

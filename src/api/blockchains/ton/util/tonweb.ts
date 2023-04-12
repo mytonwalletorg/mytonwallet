@@ -1,7 +1,7 @@
 import TonWeb from 'tonweb';
 
 import BN from 'bn.js';
-import { OperationCode } from '../constants';
+import { JettonOpCode } from '../constants';
 import { MyTonWeb, TokenTransferBodyParams } from '../types';
 import { ApiNetwork } from '../../../types';
 import { stringifyTxId } from './index';
@@ -53,7 +53,7 @@ export function toRawAddress(address: string) {
 
 export function buildTokenTransferBody(params: TokenTransferBodyParams) {
   const cell = new Cell();
-  cell.bits.writeUint(OperationCode.requestTransfer, 32);
+  cell.bits.writeUint(JettonOpCode.transfer, 32);
   cell.bits.writeUint(params.queryId || 0, 64);
   cell.bits.writeCoins(new BN(params.tokenAmount));
   cell.bits.writeAddress(new Address(params.toAddress));

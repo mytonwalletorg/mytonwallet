@@ -285,3 +285,7 @@ by installing browser extension or native app: instalando una extensión de nave
 Scam: Estafa
 Scam comment is hidden.: El comentario de estafa está oculto.
 Display: Mostrar
+$dapp_transfer_tokens_payload_with_comment: Enviando %amount% desde su cuenta a %address% con comentario «%comment%»
+$dapp_transfer_tokens_payload: Enviando %amount% desde su cuenta a %address%
+$dapp_transfer_nft_payload: Enviando NFT "%nft%" desde su cuenta a %address%
+Nested Transaction: Transacción anidada

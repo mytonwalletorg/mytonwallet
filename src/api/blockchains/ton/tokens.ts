@@ -64,6 +64,11 @@ export const resolveTokenWalletAddress = withCache(async (
   return (await minter.getJettonWalletAddress(new Address(address))).toString(true, true, true);
 });
 
+export const resolveTokenMinterAddress = withCache(async (network: ApiNetwork, tokenWalletAddress: string) => {
+  const tokenWallet = new JettonWallet(getTonWeb(network).provider, { address: tokenWalletAddress } as any);
+  return (await tokenWallet.getData()).jettonMinterAddress.toString(true, true, true);
+});
+
 export async function getAccountTokenBalances(storage: Storage, accountId: string) {
   const { network } = parseAccountId(accountId);
   const address = await fetchAddress(storage, accountId);
@@ -177,11 +182,6 @@ export async function buildTokenTransfer(
   };
 }
 
-export async function resolveTokenMinterAddress(network: ApiNetwork, tokenWalletAddress: string) {
-  const tokenWallet = new JettonWallet(getTonWeb(network).provider, { address: tokenWalletAddress } as any);
-  return (await tokenWallet.getData()).jettonMinterAddress.toString(true, true, true);
-}
-
 export function resolveTokenBySlug(slug: string) {
   return knownTokens[slug]!;
 }
@@ -194,7 +194,7 @@ export async function getTokenWalletBalance(tokenWallet: JettonWalletType) {
   return (await tokenWallet.getData()).balance.toString();
 }
 
-function buildTokenSlug(minterAddress: string) {
+export function buildTokenSlug(minterAddress: string) {
   const addressPart = minterAddress.replace(/[^a-z\d]/gi, '').slice(0, 10);
   return `ton-${addressPart}`.toLowerCase();
 }

@@ -1,10 +1,11 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import type { UserToken } from '../../global/types';
-import type { ApiDappTransaction } from '../../api/types';
+import type { ApiDappTransaction, ApiParsedPayload } from '../../api/types';
 
-import buildClassName from '../../util/buildClassName';
+import type { UserToken } from '../../global/types';
 import { bigStrToHuman } from '../../global/helpers';
+import buildClassName from '../../util/buildClassName';
+import { formatCurrency } from '../../util/formatNumber';
 
 import InteractiveTextField from '../ui/InteractiveTextField';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
@@ -17,11 +18,60 @@ interface OwnProps {
   tonToken: UserToken;
   transaction: ApiDappTransaction;
   fee?: string;
+  tokens?: UserToken[];
 }
 
-function DappTransaction({ tonToken, transaction, fee }: OwnProps) {
+const FRACTION_DIGITS = 2;
+
+function DappTransaction({
+  tonToken,
+  transaction,
+  fee,
+  tokens,
+}: OwnProps) {
   const lang = useLang();
   const [isPayloadExpanded, expandPayload] = useFlag(false);
+
+  // eslint-disable-next-line consistent-return
+  function renderPayload(payload: ApiParsedPayload) {
+    switch (payload.type) {
+      case 'comment':
+        return payload.comment;
+
+      case 'transfer-nft': {
+        const { nftAddress, nftName, toAddress } = payload;
+        return lang('$dapp_transfer_nft_payload', {
+          nft: nftName ?? nftAddress,
+          address: toAddress,
+        });
+      }
+
+      case 'transfer-tokens': {
+        const {
+          slug: tokenSlug,
+          amount: tokenAmount,
+          comment,
+          toAddress,
+        } = payload;
+        const token = tokens?.find(({ slug }) => slug === tokenSlug)!;
+        if (comment) {
+          return lang('$dapp_transfer_tokens_payload_with_comment', {
+            amount: formatCurrency(bigStrToHuman(tokenAmount, token.decimals), token.symbol, FRACTION_DIGITS),
+            address: toAddress,
+            comment,
+          });
+        }
+
+        return lang('$dapp_transfer_tokens_payload', {
+          amount: formatCurrency(bigStrToHuman(tokenAmount, token.decimals), token.symbol, FRACTION_DIGITS),
+          address: toAddress,
+        });
+      }
+
+      case 'unknown':
+        return payload.base64;
+    }
+  }
 
   return (
     <>
@@ -41,9 +91,9 @@ function DappTransaction({ tonToken, transaction, fee }: OwnProps) {
 
       {transaction.payload && (
         <>
-          <p className={styles.label}>{lang('Payload')}</p>
+          <p className={styles.label}>{lang('Nested Transaction')}</p>
           <div className={buildClassName(styles.payloadField, isPayloadExpanded && styles.payloadField_expanded)}>
-            {transaction.payload}
+            {renderPayload(transaction.payload)}
             {!isPayloadExpanded && (
               <div className={styles.payloadFieldExpand} onClick={expandPayload}>
                 {lang('View')}
