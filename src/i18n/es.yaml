@@ -1,111 +1,111 @@
 $auth_intro: |
-  **De forma segura** almacene criptografía
-  y realice pagos de blockchain
+  **De forma segura** almacene criptomonedas
+  y realice pagos blockchain
   a la **velocidad de la luz**.
-Create New Wallet: Crear nueva cartera
-Import From %1$d Secret Words: Importar desde %1$d palabras secretas
-About MyTonWallet: Sobre MyTonWallet
-Creating Wallet...: Creando la cartera...
-On the count of three...: En la cuenta de tres...
+Create New Wallet: Crear un monedero nuevo
+Import From %1$d Secret Words: Importar usando la frase semilla
+About MyTonWallet: Acerca de MyTonWallet
+Creating Wallet...: Creando monedero...
+On the count of three...: A la cuenta de tres...
 $auth_backup_description1: |
-  Esta es una **billetera segura**
-  y solo está **controlada por usted**.
-$auth_backup_description2: "Y con un gran poder viene **gran responsabilidad**."
+  Este es un **monedero seguro**
+  y **totalmente bajo su control**.
+$auth_backup_description2: "Y un gran poder conlleva una **gran responsabilidad**."
 $auth_backup_description3: |
-  Debe hacer manualmente **copia de seguridad de las claves secretas** en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
-Back Up: Hacer una copia de seguridad
-Skip For Now: Saltar por ahora
-Passwords must be equal.: Las contraseñas deben ser iguales.
-To protect your wallet as much as possible, use a password with: Para proteger su billetera tanto como sea posible, use una contraseña con
+  Debe hacer manualmente una **copia de seguridad de la frase semilla** que le permitirá recuperar su monedero en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
+Back Up: Hacer copia de seguridad
+Skip For Now: Omitir por ahora
+Passwords must be equal.: Las contraseñas deben coincidir.
+To protect your wallet as much as possible, use a password with: Para la máxima protección de su monedero, use una contraseña con
 $auth_password_rule_8chars: al menos 8 caracteres
-$auth_password_rule_one_small_char: una letra pequeña
+$auth_password_rule_one_small_char: una letra minúscula
 $auth_password_rule_one_capital_char: una letra mayúscula
 $auth_password_rule_one_digit: un dígito
 $auth_password_rule_one_special_char: y un carácter especial
-The wallet is imported: La cartera se importa
-The wallet is ready: La cartera está lista
+The wallet is imported: Importando monedero
+The wallet is ready: El monedero está listo
 Create a password to protect it.: Cree una contraseña para protegerlo.
 Enter your password: Ingresa la contraseña
 Enter your password...: Ingresa la contraseña...
-...and repeat it: ...y repetirlo
+...and repeat it: ...y vuelva a ingresarla
 Cancel: Cancelar
 Insecure Password: Contraseña insegura
 Your have entered an insecure password, which can be easily guessed by scammers.: Ha ingresado una contraseña insegura, que puede ser fácilmente adivinada por los estafadores.
-Continue or change password to something more secure?: ¿Continuar o cambiar la contraseña a algo más seguro?
+Continue or change password to something more secure?: ¿Continuar o cambiar la contraseña a una más segura?
 Change: Cambiar
-"%1$d Secret Words": "%1$d Secret Words"
+"%1$d Secret Words": "Frases Semilla"
 $auth_import_mnemonic_description: |
-  Puede restaurar el acceso a su billetera ingresando las palabras secretas %1$d que escribió al crear la billetera.
-Let’s make sure your secrets words are recorded correctly.: Asegurémonos de que tus palabras secretas se registren correctamente.
-$mnemonic_check_words_list: Introduce las palabras **%1$s** a continuación.
-$mnemonic_check_error: Las palabras secretas que ha introducido no coinciden con las de la lista. Inténtalo de nuevo.
+  Puede restaurar el acceso a su monedero ingresando la frase semilla que guardó al crearla.
+Let’s make sure your secrets words are recorded correctly.: Asegurémonos de que hayas guardado la frase semilla correctamente.
+$mnemonic_check_words_list: Introduce las **%1$s** palabras de la frase semilla a continuación.
+$mnemonic_check_error: La frases semilla que ha introducido no coinciden. Inténtalo de nuevo.
 $mnemonic_list_description: |
   Escriba estas palabras en
-  el **orden correcto** y guárdelas
-  en un **lugar secreto**.
+  el **mismo orden** y guárdelas
+  en un **lugar seguro**.
 Let's Check: Revisemos
 Let's Check!: ¡Revisemos!
 Safety Rules: Normas de seguridad
 $safety_rules_one: |
-  En la siguiente pantalla verás las **palabras secretas**. Escríbalos en el orden correcto y **guárdelos en un lugar seguro**.
-$safety_rules_two: Permiten **abrir su billetera** si pierde su contraseña o acceso a este dispositivo.
-$safety_rules_three: Si alguien más ve estas palabras, sus fondos **pueden ser robados**. ¡Mira a tu alrededor!
-Understood: Entendido
+  En la siguiente pantalla verás las %1$s palabras de la **frase semilla**. Escríbalas en el mismo orden y **guárdelas en un lugar seguro**.
+$safety_rules_two: Permiten **acceder a su mondero** si pierde su contraseña o el acceso a este dispositivo.
+$safety_rules_three: Si alguien más las ve, sus activos **pueden ser robados**. ¡Mire a su alrededor!
+Understood: Entiendo
 Congratulations!: ¡Felicidades!
-Continue: Continúe
+Continue: Continuar
 Close: Cerrar
 Back: Volver
 Search...: Buscar...
-Main menu: El menú principal
-TON Proxy: Proxy TON
-Toggle TON Proxy: Alternar proxy TON
-TON Magic: TON Magia
-Toggle TON Magic: Alternar TON Magia
+Main menu: Menú principal
+TON Proxy: TON Proxy
+Toggle TON Proxy: Alternar TON Proxy
+TON Magic: TON Magic
+Toggle TON Magic: Alternar TON Magic
 Open Telegram Web: Abrir Telegram Web
-Back Up Secret Words: Copia de seguridad de palabras secretas
+Back Up Secret Words: Copia de seguridad
 Settings: Configuración
-About: Sobre
-Exit: Salida
-Something went wrong: Algo salió mal
+About: Acerca de
+Exit: Salir
+Something went wrong: Oops! Algo salió mal
 Logo: Logotipo
-$about_description1: Almacene criptografía de forma segura, explore aplicaciones descentralizadas y realice pagos de blockchain a la **velocidad de la luz**.
-$about_description2: La billetera es **sin custodia y segura**. Los desarrolladores **no** tienen acceso a sus fondos, historial del navegador o cualquier otra información.
-What is TON Proxy?: ¿Qué es el proxy TON?
-$about_extension_description1: TON Proxy abre un camino a **Internet descentralizado** al permitir acceder anónimamente a los sitios TON.
+$about_description1: Almacene criptomonedas de forma segura, explore aplicaciones descentralizadas y realice pagos blockchain a la **velocidad de la luz**.
+$about_description2: Un monedero **sin custodia y seguro**. Los desarrolladores **no** tienen acceso a sus activos, historial del navegador o cualquier otra información.
+What is TON Proxy?: ¿Qué es el TON Proxy?
+$about_extension_description1: TON Proxy abre un camino al **Internet descentralizado** al permitir acceder anónimamente a TON Sites.
 More info and demo.: Más información y demo.
-$about_extension_description2: TON Magia proporciona **integración nativa de Telegram** parcheando la aplicación web oficial de Telegram.
+$about_extension_description2: TON Magic proporciona **integración nativa con Telegram** parcheando la aplicación web oficial de Telegram.
 $about_extension_description3: Actívalo para enviar y recibir Toncoins de cualquier usuario de Telegram.
-$about_proxy_magic_title: ¿Qué pasa con %ninja% TON Proxy y %unicorn% TON Magia?
-$about_proxy_magic_description: Para disfrutar de **Internet descentralizado**, acceder a **TON Sites**, y aprovechar la **integración nativa de Telegram**, no dude en instalar el enlace %extension_link%.
-$about_extension_link_text: "**Extensión  MyTonWallet**"
+$about_proxy_magic_title: ¿Qué pasa con %ninja% TON Proxy y %unicorn% TON Magic?
+$about_proxy_magic_description: Para disfrutar de **Internet descentralizado**, acceder a **TON Sites**, y aprovechar la **integración nativa de Telegram**, no dude en instalar la %extension_link%.
+$about_extension_link_text: "**extensión MyTonWallet**"
 Is it open source?: ¿Es de código abierto?
-$about_wallet_github: Sí. Siéntase libre de explorar nuestro enlace %github_link%.
-$about_github_link_text: "**Repositorio de GitHub**"
+$about_wallet_github: Sí. Siéntase libre de explorar nuestro %github_link%.
+$about_github_link_text: "**repositorio de GitHub**"
 Is there a community?: ¿Hay una comunidad?
 $about_wallet_community: Claro, bienvenido a nuestro %community_link%.
-$about_community_link_text: "**Canal de Telegram**"
-Currency History: Historia de la moneda
+$about_community_link_text: "**canal de Telegram**"
+Currency History: Historia del activo
 $add_account_description1: |
   **MyTonWallet** te permite cambiar sin problemas
-  entre **varias cuentas**.
+  entre **varios monederos**.
 $add_account_description2: |
-  Pruébalo **creando** una nueva billetera,
-  o **importando** cualquiera de tus existentes
-  usando 24 palabras secretas.
-Enter Password: Introducir la contraseña
+  Pruébalo **creando** un nuevo monedero,
+  o **importando** otro
+  usando la frase semilla.
+Enter Password: Introduce la contraseña
 Send: Enviar
-Add Wallet: Agregar cartera
+Add Wallet: Agregar monedero
 Done: Listo
 Delete: Borrar
 Delete Saved Address: Eliminar dirección guardada
-Are you sure you want to remove this address from your saved ones?: ¿Está seguro de que desea eliminar esta dirección de las guardadas?
-You will be able to save it again via Transaction Info with this address.: Podrá guardarlo nuevamente a través de Información de transacción con esta dirección.
-Address removed from saved: Dirección eliminada de guardado
+Are you sure you want to remove this address from your saved ones?: ¿Está seguro de que desea eliminar esta dirección?
+You will be able to save it again via Transaction Info with this address.: Podrá guardarla nuevamente a través de la información de una transacción con esta dirección.
+Address removed from saved: Dirección guardada eliminada
 Warning!: ¡Advertencia!
 Log Out: Cerrar sesión
-$logout_without_backup_warning: No ha realizado una copia de seguridad de esta billetera. Si cierra sesión, perderá el acceso a sus tokens y NFT.
-$logout_accounts_without_backup_warning: No ha realizado una copia de seguridad de %links%. Si cierra sesión, perderá el acceso a sus tokens y NFT.
-$logout_warning: Esto desconectará la billetera de esta aplicación. Podrá restaurar su billetera usando **%1$d palabras secretas** o importar otra billetera..
+$logout_without_backup_warning: No ha realizado copia de seguridad de este monedero. Si cierra sesión, perderá el acceso a sus activos.
+$logout_accounts_without_backup_warning: No ha realizado copia de seguridad de %links%. Si cierra sesión, perderá el acceso a sus activos.
+$logout_warning: Esto desconectará el monedero de esta aplicación. Podrá restaurar su monedero usando la frase semilla...
 Receive TON: Recibir TON
 Your address was copied!: ¡Su dirección fue copiada!
 Show QR-Code: Mostrar código QR
@@ -116,20 +116,20 @@ $receive_invoice_description: |
   el propósito del pago para ahorrar tiempo al remitente
 Amount: Cantidad
 Comment: Comentario
-Share this URL to receive TON: Compartir esta URL para recibir TON
+Share this URL to receive TON: Comparte esta URL para recibir TON
 Invoice link was copied!: ¡Se copió el enlace de la factura!
-US Dollar: El dólar estadounidense
+US Dollar: Dólar estadounidense
 Theme: Tema
 Language: Idioma
 Enable Animations: Habilitar animaciones
-Fiat Currency: La moneda fíat
-Investor View: Visión del inversor
-Toggle Investor View: Alternar vista de inversor
-Hide Tiny Transfers: Ocultar transferencias diminutas
-Toggle Hide Tiny Transfers: Alternar ocultar transferencias pequeñas
+Fiat Currency: Moneda fíat
+Investor View: Modo Inversor
+Toggle Investor View: Alternar Modo Inversor
+Hide Tiny Transfers: Ocultar transacciones pequeñas
+Toggle Hide Tiny Transfers: Alternar ocultar transacciones pequeñas
 Network: Red
 Developer Options: Opciones de desarrollador
-Confirmation: Confirmación
+Confirmation: Confirmar
 Data to sign: Datos a firmar
 $signature_warning: |
   Firmar datos personalizados es muy peligroso.
@@ -147,30 +147,30 @@ Address was copied!: ¡Se copió la dirección!
 Send Back: Devolver
 Repeat: Repetir
 Receive: Recibir
-Switch Account: Cambiar de cuenta
-Copy wallet address: Copiar la dirección de la cartera
+Switch Account: Cambiar de monedero
+Copy wallet address: Copiar la dirección del monedero
 View address on TON Explorer: Ver dirección en TON Explorer
 Open on CoinMarketCap: Abrir en CoinMarketCap
 No Activity: Sin actividad
-You have just created a new wallet: Acabas de crear una nueva cartera
-You can now transfer your tokens from another wallet or exchange.: Ahora puede transferir sus tokens desde otra billetera o intercambio.
+You have just created a new wallet: Acabas de crear un nuevo monedero
+You can now transfer your tokens from another wallet or exchange.: Ahora puede transferir sus tokens desde otro monedero o intercambio.
 Assets: Activos
 Activity: Actividad
 NFT: NFT
-No NFTs yet: Aún no hay NFT
+No NFTs yet: Aún no tienes NFT
 $nft_explore_offer: |
-  Explore un mercado para descubrir
-  colecciones NFT existentes.
+  Explore los mercados para descubrir
+  nuevas colecciones NFT.
 Open Getgems: Abrir Getgems
 Transaction is not completed: La transacción no se ha completado
-Received: Aceptado
+Received: Recibido
 Sent: Enviado
 $transaction_from: de %address%
 $transaction_to: a %address%
-Wallet is not backed up: La billetera no está respaldada
-Testnet Version: Versión de Testnet
+Wallet is not backed up: El monedero no está respaldado
+Testnet Version: Versión Testnet
 Error reading clipboard: Error al leer el portapapeles
-$fee_value: "Cuota: %fee%"
+$fee_value: "Comisión: %fee%"
 Loading...: Cargando...
 Recipient address: Dirección del destinatario
 Wallet address or domain: Dirección o dominio del monedero
@@ -182,9 +182,9 @@ Optional: Opcional
 $send_token_symbol: Enviar %1$s
 $your_balance_is: "Su saldo: %balance%"
 Is it all ok?: ¿Está todo bien?
-Receiving Address: Dirección de recepción
-Fee: Cuota
-Edit: Corregir
+Receiving Address: Dirección del receptor
+Fee: Comisión
+Edit: Editar
 Confirm: Confirmar
 Confirm Transaction: Confirmar transacción
 Coins have been sent!: ¡Se han enviado monedas!
@@ -201,8 +201,8 @@ View Address on TON Explorer: Ver dirección en TON Explorer
 No suggestions, you're on your own!: Sin sugerencias, ¡estás solo!
 Play Sounds: Reproducir sonidos
 Focus on asset value rather than current balance: Centrarse en el valor de los activos en lugar del saldo actual
-$logout_confirm: Cerrar sesión en **todas** las carteras
-$logout_warning2: Las billeteras se encuentran en la cadena de bloques TON descentralizada. Si desea que se elimine la billetera, simplemente transfiera toda la TON y déjela vacía.
+$logout_confirm: Cerrar sesión en **todos** los monederos
+$logout_warning2: Los monederos se encuentran en la cadena de bloques descentralizada de TON. Si desea que se elimine el monedero, simplemente transfiera todos los activos y déjela completamente vacía.
 $tiny_transfers_help: Desactive esta opción para mostrar transacciones de menos de %1$d %2$s. Tenga en cuenta que tales transacciones se utilizan a menudo con fines de spam y estafa.
 Today: Hoy
 Yesterday: Ayer
@@ -212,80 +212,80 @@ $receive_ton_description: |
   o crear una factura para recibir TON
 Your address: Tu dirección
 Wrong password, please try again: Contraseña incorrecta, inténtalo de nuevo
-Appearance: Aspecto
+Appearance: Apariencia
 Assets and Activity: Activos y Actividad
 Light: Claro
 Dark: Oscuro
 System: Sistema
 Create Backup: Crear copia de seguridad
-Stake TON: Estaca TON
+Stake TON: Apostar TON
 Earn from your tokens while holding them: Gana con tus tokens mientras los mantienes
 $est_apy_val: Est. APY %1$d%
 Why this is safe: Por qué esto es seguro
 Why staking is safe?: ¿Por qué el staking es seguro?
-$safe_staking_description1: El staking es **totalmente descentralizado** y operado por el **nominador oficial de TON**. Nadie puede obtener acceso a sus tokens apostados.
+$safe_staking_description1: El staking es **totalmente descentralizado** y operado por los **nominadores oficiales de TON**. Nadie puede obtener acceso a sus tokens en staking.
 $safe_staking_description2: La participación depositada se utilizará para la validación de la red TON como parte de su esencia de **prueba de participación**.
 $safe_staking_description3: Puede retirar su apuesta en **cualquier momento** y se depositará de nuevo en su cuenta dentro de **dos días**.
 $min_value: Min %value%
 Est. balance in a year: Saldo estimado en un año
-Confirm Staking: Confirmar replanteo
+Confirm Staking: Confirmar staking
 Confirm operation with your password: Confirme la operación con su contraseña
-Coins have been staked!: ¡Se han apostado monedas!
+Coins have been staked!: ¡Has apostado monedas!
 View: Ver
 Stake More: Apostar más
-Staking: Replanteo
-Currently staked: Actualmente en juego
-Unstake: Unstake
+Staking: Staking
+Currently staked: Apostados actualmente
+Unstake: Retirar
 Earning history: Historial de ganancias
 $total: "Total: %value%"
-Unstake TON: Unstake TON
+Unstake TON: Retirar TON
 $unstake_information_with_time: |
-  Su depósito actual será enviado completamente a su billetera en %time%.
+  Su depósito actual será enviado completamente a su monedero en %time%.
   Esto detendrá sus ganancias.
-Amount to unstake: Cantidad a unstake
-Confirm Unstaking: Confirmar la desplanteo
-Request for unstaking is sent!: ¡Se envía una solicitud de desplanteo!
-$unstaking_when_receive: Recibirá su depósito no apostado en %time%
-$unstake_insufficient_balance: Debe tener %balance% en su saldo principal para proceder con la anulación de confirmación.
+Amount to unstake: Cantidad a retirar
+Confirm Unstaking: Confirmar retiro
+Request for unstaking is sent!: ¡Se envía una solicitud de retiro!
+$unstaking_when_receive: Recibirá su depósito apostado en %time%
+$unstake_insufficient_balance: Debe tener %balance% en su saldo principal para proceder con la confirmación del retiro.
 at APY %1$s%: en APY %1$s%
 Staked: Apostado
-Unstake Requested: Unstake solicitado
-Unstaked: Unstaked
-The network fee has slightly changed, try sending again.: La tarifa de red ha cambiado ligeramente, intente enviar nuevamente.
+Unstake Requested: Retiro solicitado
+Unstaked: Retirado
+The network fee has slightly changed, try sending again.: La comisión de red ha cambiado ligeramente, inténtalo de nuevo.
 Transfer was unsuccessful. Try again later: La transferencia no tuvo éxito. Inténtalo de nuevo más tarde
-Unstaking was unsuccessful. Try again later: Unstaking no tuvo éxito. Inténtalo de nuevo más tarde
-Staking was unsuccessful. Try again later: El replanteo no tuvo éxito. Inténtalo de nuevo más tarde
+Unstaking was unsuccessful. Try again later: El retiro no tuvo éxito. Inténtalo de nuevo más tarde
+Staking was unsuccessful. Try again later: El staking no tuvo éxito. Inténtalo de nuevo más tarde
 Invalid amount: Cantidad no válida
 Invalid address: Dirección no válida
-Domain is not connected to a wallet: El dominio no está conectado a una cartera
+Domain is not connected to a wallet: El dominio no está conectado a un monedero
 Unexpected error: Error inesperado
-Earn: Earn
-Earning: Adquisitivo
+Earn: Ganar
+Earning: Ganando
 InvalidAmount: Cantidad no válida
 InvalidToAddress: Dirección de destinatario no válida
 Unexpected: Error inesperado
-DomainNotResolved: Dominio no resuelto
-You can save this address for quick access while sending.: Puede guardar esta dirección para un acceso rápido mientras la envía.
-Stake Again: Estaca de nuevo
+DomainNotResolved: Dominio no válido
+You can save this address for quick access while sending.: Puede guardar esta dirección como acceso rápido mientras envía.
+Stake Again: Apostar de nuevo
 Earned: Ganado
 Connect Dapp: Conectar Dapp
-Select wallets to use on this dapp: Seleccione billeteras para usar en este dapp
+Select wallets to use on this dapp: Seleccione monederos para usar en esta dapp
 Connect: Conectar
-Dapp Permissions: Permisos de Dapp
-$dapp_can_view_balance: "%dappname% podrá ver la dirección y el saldo de la billetera."
+Dapp Permissions: Permisos de la Dapp
+$dapp_can_view_balance: "%dappname% podrá ver la dirección y el saldo del monedero."
 Send Transaction: Enviar transacción
 Payload: Carga útil
 $many_transactions: "%1$d transacciones"
 Total Amount: Cantidad total
-Unstaking: Desquiciar
-"Handle ton:// links": Manejar ton:// enlaces
-Back up wallet to have full access to it: Haga una copia de seguridad de la billetera para tener acceso completo a ella
-Improve wallet security: Mejore la seguridad de la billetera
+Unstaking: Retirando
+"Handle ton:// links": Habilitar enlaces ton://
+Back up wallet to have full access to it: Haga una copia de seguridad del monedero para tener acceso completo al mismo
+Improve wallet security: Mejore la seguridad del monedero
 by installing browser extension or native app: instalando una extensión de navegador o una aplicación nativa
 Scam: Estafa
-Scam comment is hidden.: El comentario de estafa está oculto.
+Scam comment is hidden.: El comentario estafa está oculto.
 Display: Mostrar
-$dapp_transfer_tokens_payload_with_comment: Enviando %amount% desde su cuenta a %address% con comentario «%comment%»
-$dapp_transfer_tokens_payload: Enviando %amount% desde su cuenta a %address%
-$dapp_transfer_nft_payload: Enviando NFT "%nft%" desde su cuenta a %address%
+$dapp_transfer_tokens_payload_with_comment: Enviando %amount% desde su monedero a %address% con el comentario «%comment%»
+$dapp_transfer_tokens_payload: Enviando %amount% desde su monedero a %address%
+$dapp_transfer_nft_payload: Enviando el NFT "%nft%" desde su monedero a %address%
 Nested Transaction: Transacción anidada
