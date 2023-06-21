@@ -1,4 +1,5 @@
 const stylelint = require('stylelint');
+// eslint-disable-next-line import/no-unresolved
 const postcss = require('postcss');
 
 const ruleName = 'plugin/whole-pixel';
@@ -36,11 +37,13 @@ module.exports = stylelint.createPlugin(ruleName, (primaryOption, secondaryOptio
 
     const isAutoFixing = Boolean(context.fix);
 
+    // eslint-disable-next-line consistent-return
     const isValid = (value, unit) => {
       if (unit === 'px') return Number.isInteger(value);
       if (unit === 'rem') return Number.isInteger(value * pxPerRem);
     };
 
+    // eslint-disable-next-line consistent-return
     const suggestFix = (value, unit) => {
       if (unit === 'px') return `${Math.round(value)}px`;
       if (unit === 'rem') return `${Math.round(value * pxPerRem) / pxPerRem}rem`;
@@ -69,7 +72,7 @@ module.exports = stylelint.createPlugin(ruleName, (primaryOption, secondaryOptio
       }
     };
 
-    root.walkDecls(decl => {
+    root.walkDecls((decl) => {
       if (!decl.value || ignoreList.includes(decl.prop)) return;
       const values = postcss.list.space(decl.value);
       if (!values?.length) return;

@@ -1,13 +1,13 @@
-import React, { memo, useMemo, useRef } from '../../lib/teact/teact';
-import { getGlobal } from '../../global';
-
 import type { FC } from '../../lib/teact/teact';
+import React, { memo, useMemo, useRef } from '../../lib/teact/teact';
 
 import { ANIMATION_LEVEL_MAX } from '../../config';
-import usePrevious from '../../hooks/usePrevious';
+import { getGlobal } from '../../global';
+
 import useForceUpdate from '../../hooks/useForceUpdate';
-import useTimeout from '../../hooks/useTimeout';
 import useLang from '../../hooks/useLang';
+import usePrevious from '../../hooks/usePrevious';
+import useTimeout from '../../hooks/useTimeout';
 
 import styles from './AnimatedCounter.module.scss';
 

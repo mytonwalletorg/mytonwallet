@@ -1,2 +1,2 @@
-// eslint-disable-next-line no-restricted-exports
-export { default } from './Actions';
+export { default as LandscapeActions } from './LandscapeActions';
+export { default as PortraitActions } from './PortraitActions';

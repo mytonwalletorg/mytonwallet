@@ -1,4 +1,4 @@
-import { DEBUG } from '../config';
+import { logDebugError } from './logs';
 
 export const CLIPBOARD_ITEM_SUPPORTED = window.navigator.clipboard && window.ClipboardItem;
 
@@ -56,10 +56,7 @@ async function copyBlobToClipboard(pngBlob: Blob | null) {
         [pngBlob.type]: pngBlob,
       }),
     ]);
-  } catch (error) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error(error);
-    }
+  } catch (err) {
+    logDebugError('copyBlobToClipboard', err);
   }
 }

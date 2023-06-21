@@ -29,7 +29,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  @media (max-width: 600px) {
+  @media (max-width: 700px) {
     height: calc(var(--vh, 1vh) * 100);
   }
 }
@@ -41,6 +41,8 @@ html.is-macos body {
 
 #root {
   height: 100%;
+
+  background: var(--color-background-second);
 }
 
 #root,
@@ -127,18 +129,18 @@ div[role="button"] {
 .opacity-transition {
   opacity: 1;
 
-  transition: opacity 150ms;
+  transition: opacity 0.15s ease;
 
-  &:not(.open) {
+  &.not-open {
     opacity: 0;
   }
 
-  &:not(.shown) {
+  &.not-shown {
     display: none;
   }
 
   &.slow {
-    transition-duration: 300ms;
+    transition-duration: 0.3s;
   }
 }
 

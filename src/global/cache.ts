@@ -1,20 +1,24 @@
-import { addCallback, removeCallback } from '../lib/teact/teactn';
-
-import { GlobalState, TokenPeriod } from './types';
+import { addCallback, removeCallback, setGlobal } from '../lib/teact/teactn';
 
 import {
-  onBeforeUnload, onIdle, throttle,
-} from '../util/schedulers';
+  AppState,
+} from './types';
+import type { GlobalState, TokenPeriod } from './types';
+
 import {
   DEBUG, DEFAULT_DECIMAL_PLACES, GLOBAL_STATE_CACHE_DISABLED, GLOBAL_STATE_CACHE_KEY, MAIN_ACCOUNT_ID,
 } from '../config';
-import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
-import { cloneDeep, mapValues, pick } from '../util/iteratees';
-
-import { INITIAL_STATE } from './initialState';
-import { addActionHandler, getGlobal } from './index';
-import { getIsTxIdLocal } from './helpers';
 import { buildAccountId, parseAccountId } from '../util/account';
+import { cloneDeep, mapValues, pick } from '../util/iteratees';
+import {
+  onBeforeUnload, onIdle, throttle,
+} from '../util/schedulers';
+import { getIsTxIdLocal } from './helpers';
+import { addActionHandler, getGlobal } from './index';
+import { INITIAL_STATE, STATE_VERSION } from './initialState';
+import { updateHardware } from './reducers';
+
+import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
 
 const UPDATE_THROTTLE = 5000;
 const TXS_LIMIT = 20;
@@ -31,6 +35,8 @@ export function initCache() {
   }
 
   addActionHandler('afterSignIn', (global, actions) => {
+    setGlobal({ ...global, appState: AppState.Main });
+
     setTimeout(() => {
       actions.restartAuth();
     }, ANIMATION_DELAY_MS);
@@ -44,6 +50,11 @@ export function initCache() {
     const { isFromAllAccounts } = payload || {};
 
     if (isFromAllAccounts) {
+      setGlobal({
+        ...global,
+        state: AppState.Auth,
+      });
+
       localStorage.removeItem(GLOBAL_STATE_CACHE_KEY);
 
       if (!isCaching) {
@@ -52,6 +63,21 @@ export function initCache() {
 
       clearCaching();
     }
+  });
+
+  addActionHandler('cancelCaching', () => {
+    if (!isCaching) {
+      return;
+    }
+
+    clearCaching();
+  });
+
+  addActionHandler('initLedgerPage', (global) => {
+    global = updateHardware(global, {
+      isRemoteTab: true,
+    });
+    setGlobal({ ...global, appState: AppState.Ledger });
   });
 }
 
@@ -120,8 +146,12 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     ...cached.settings,
   };
 
+  if (cached.stateVersion === STATE_VERSION) {
+    return;
+  }
+
   // Migration to multi-accounts
-  if (!('byAccountId' in cached)) {
+  if (!cached.byAccountId) {
     cached.accounts = {
       byId: {
         [MAIN_ACCOUNT_ID]: {
@@ -161,7 +191,6 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     }
 
     if ('backupWallet' in cached) {
-      cached.byAccountId[MAIN_ACCOUNT_ID].backupWallet = (cached as any).backupWallet;
       delete (cached as any).backupWallet;
     }
   }
@@ -257,6 +286,28 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
       }
     }
   }
+
+  if (cached.stateVersion === 6) {
+    cached.stateVersion = 7;
+
+    if (cached.byAccountId) {
+      for (const accountId of Object.keys(cached.byAccountId)) {
+        delete cached.byAccountId[accountId].transactions;
+      }
+    }
+  }
+
+  if (cached.stateVersion === 7) {
+    if (cached.byAccountId) {
+      for (const accountId of Object.keys(cached.byAccountId)) {
+        delete (cached.byAccountId[accountId] as any).backupWallet;
+      }
+    }
+
+    cached.stateVersion = 8;
+  }
+
+  // When adding migration here, increase `STATE_VERSION`
 }
 
 function updateCache() {
@@ -276,6 +327,7 @@ function updateCache() {
       'settings',
       'currentAccountId',
       'stateVersion',
+      'landscapeActionsActiveTabIndex',
     ]),
     accounts: {
       byId: global.accounts?.byId || {},
@@ -291,7 +343,6 @@ function reduceByAccountId(global: GlobalState) {
   return Object.entries(global.byAccountId).reduce((acc, [accountId, state]) => {
     acc[accountId] = pick(state, [
       'balances',
-      'backupWallet',
       'isBackupRequired',
       'currentTokenSlug',
       'currentTokenPeriod',

@@ -69,6 +69,21 @@
   }
 }
 
+.unstakeNotice {
+  max-width: 18rem;
+  margin: 0 auto;
+  padding: 0.25rem 0.5rem;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.3125rem;
+  color: var(--color-transaction-green-text);
+  text-align: center;
+
+  background: var(--color-transaction-green-background);
+  border-radius: var(--border-radius-tiny);
+}
+
 .unstakeTime {
   position: relative;
 

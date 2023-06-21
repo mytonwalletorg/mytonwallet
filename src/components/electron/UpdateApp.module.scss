@@ -1,0 +1,135 @@
+.container {
+  cursor: pointer;
+
+  position: absolute;
+  right: 100%;
+
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+  height: 1.75rem;
+  margin-right: auto;
+  padding: 0 0.5rem;
+
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 0.9375rem;
+  color: var(--color-blue-button-text);
+
+  background-color: var(--color-blue-button-background);
+  border-radius: var(--border-radius-default);
+
+  /* stylelint-disable-next-line plugin/no-low-performance-animation-properties */
+  transition: max-width 400ms, min-width 400ms, opacity 400ms, background-color 150ms;
+
+  &:hover {
+    background-color: var(--color-blue-button-background-hover);
+
+    .icon {
+      color: var(--color-blue-button-background-hover);
+    }
+  }
+
+  &.success {
+    background-color: var(--color-green-button-background);
+
+    .progress-bar {
+      color: var(--color-apy-text);
+    }
+
+    &:hover {
+      background-color: var(--color-green-button-background-hover);
+
+      .icon {
+        color: var(--color-green-button-background-hover);
+      }
+    }
+  }
+
+  &.with-progress {
+    min-width: 8rem;
+    max-width: 8rem;
+  }
+
+  &.disabled {
+    cursor: not-allowed;
+
+    opacity: 0.3;
+  }
+
+  :global(html.is-electron.is-windows) & {
+    margin-right: 1rem;
+
+    -webkit-app-region: no-drag;
+  }
+
+  :global(html.is-electron.is-macos) & {
+    margin-right: 0.4375rem;
+  }
+}
+
+.wrapper {
+  /* stylelint-disable-next-line plugin/no-low-performance-animation-properties */
+  transition: margin 400ms;
+
+  &.with-progress {
+    width: 5.25rem;
+    margin: -0.375rem;
+  }
+}
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 1.5rem;
+  height: 1.5rem;
+
+  font-size: 0.75rem;
+  color: var(--color-blue-button-background);
+
+  background-color: var(--color-blue-button-text);
+  border-radius: var(--border-radius-default);
+
+  /* stylelint-disable-next-line plugin/no-low-performance-animation-properties */
+  transition: all 400ms;
+
+  &.with-text {
+    width: 0.875rem;
+    min-width: 0.875rem;
+    height: 0.875rem;
+    margin: 0;
+    margin-right: 0.3125rem;
+  }
+}
+
+.text {
+  white-space: nowrap;
+
+  &.fake {
+    pointer-events: none;
+
+    position: absolute;
+
+    visibility: hidden;
+  }
+
+  &:global(.not-shown) {
+    display: block !important;
+  }
+}
+
+.close {
+  cursor: pointer;
+
+  position: absolute;
+  right: 0.4375rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 1rem;
+}

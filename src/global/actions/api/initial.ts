@@ -1,7 +1,7 @@
-import { addActionHandler, getGlobal } from '../../index';
-import { callApi, initApi } from '../../../api';
-import { selectNewestTxIds } from '../../selectors';
 import { IS_EXTENSION } from '../../../util/windowEnvironment';
+import { callApi, initApi } from '../../../api';
+import { addActionHandler, getGlobal } from '../../index';
+import { selectNewestTxIds } from '../../selectors';
 
 addActionHandler('initApi', async (global, actions) => {
   initApi(actions.apiUpdate, {

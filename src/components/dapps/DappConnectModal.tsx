@@ -1,29 +1,30 @@
 import React, {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
 
-import type { Account, AccountState, UserToken } from '../../global/types';
 import type { ApiDapp, ApiDappPermissions } from '../../api/types';
+import type { Account, AccountState, UserToken } from '../../global/types';
 
 import { TON_TOKEN_SLUG } from '../../config';
+import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
 import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
-import { formatCurrency } from '../../util/formatNumber';
 import buildClassName from '../../util/buildClassName';
+import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
-import useLang from '../../hooks/useLang';
-import useFlag from '../../hooks/useFlag';
 
-import Modal from '../ui/Modal';
+import useFlag from '../../hooks/useFlag';
+import useLang from '../../hooks/useLang';
+
 import Button from '../ui/Button';
+import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
 import DappInfo from './DappInfo';
 
-import styles from './Dapp.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import styles from './Dapp.module.scss';
 
 interface StateProps {
   hasConnectRequest: boolean;
@@ -210,7 +211,7 @@ function DappConnectModal({
         onCloseAnimationEnd={handleClose}
       >
         <Transition
-          name="push-slide"
+          name="pushSlide"
           className={buildClassName(modalStyles.transition, 'custom-scroll')}
           slideClassName={modalStyles.transitionSlide}
           activeKey={shouldRenderPassword ? 1 : 0}

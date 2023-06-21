@@ -1,18 +1,20 @@
-import { typify } from '../lib/teact/teactn';
-import {
+import type {
+  ApiBackendStakingState,
   ApiDapp,
   ApiDappPermissions,
-  ApiBackendStakingState,
+  ApiDappTransaction,
   ApiHistoryList,
+  ApiLedgerDriver,
   ApiNetwork,
   ApiNft,
+  ApiParsedPayload,
   ApiPoolState,
   ApiToken,
   ApiTransaction,
   ApiTransactionDraftError,
   ApiUpdate,
-  ApiDappTransaction,
 } from '../api/types';
+import type { LedgerWalletInfo } from '../util/ledger/types';
 
 export type AnimationLevel = 0 | 1 | 2;
 export type Theme = 'light' | 'dark' | 'system';
@@ -21,7 +23,14 @@ export type NotificationType = {
   message: string;
 };
 
-export type LangCode = 'en' | 'ru' | 'zh-Hant' | 'zh-Hans';
+export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans';
+
+export interface LangItem {
+  langCode: LangCode;
+  name: string;
+  nativeName: string;
+  rtl: boolean;
+}
 
 export interface LangString {
   value?: string;
@@ -29,15 +38,25 @@ export interface LangString {
 
 export type LangPack = Record<string, LangString>;
 
+export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWallet';
+
+export enum AppState {
+  Auth,
+  Main,
+  Settings,
+  Ledger,
+  Inactive,
+}
+
 export enum AuthState {
   none,
   creatingWallet,
   createPassword,
   createBackup,
-  checkMnemonic,
   importWallet,
   importWalletCreatePassword,
   ready,
+  about,
 }
 
 export enum TransferState {
@@ -45,7 +64,19 @@ export enum TransferState {
   Initial,
   Confirm,
   Password,
+
+  ConnectHardware,
+  ConfirmHardware,
+
   Complete,
+}
+
+export enum HardwareConnectState {
+  Connect,
+  Connecting,
+  Failed,
+  Connected,
+  WaitingForBrowser,
 }
 
 export enum StakingState {
@@ -78,15 +109,14 @@ export type UserToken = {
 
 export type TokenPeriod = '24h' | '7d' | '30d';
 
-export interface BackupWallet {
-  isLoading?: boolean;
-  mnemonic?: string[];
-  error?: string;
-}
-
 export interface Account {
   title?: string;
   address: string;
+  isHardware?: boolean;
+  ledger?: {
+    index: number;
+    driver: ApiLedgerDriver;
+  };
 }
 
 export interface AccountState {
@@ -103,7 +133,6 @@ export interface AccountState {
     byAddress: Record<string, ApiNft>;
     orderedAddresses?: string[];
   };
-  backupWallet?: BackupWallet;
   isBackupRequired?: boolean;
   activeDappOrigin?: string;
   currentTokenSlug?: string;
@@ -117,16 +146,27 @@ export interface AccountState {
 }
 
 export type GlobalState = {
+  appState: AppState;
+
   auth: {
     state: AuthState;
+    method?: AuthMethod;
     isLoading?: boolean;
     mnemonic?: string[];
     mnemonicCheckIndexes?: number[];
     accountId?: string;
     address?: string;
     error?: string;
-    prevAccountId?: string;
     password?: string;
+  };
+
+  hardware: {
+    hardwareState?: HardwareConnectState;
+    hardwareWallets?: LedgerWalletInfo[];
+    hardwareSelectedIndices?: number[];
+    isRemoteTab?: boolean;
+    isLedgerConnected?: boolean;
+    isTonAppConnected?: boolean;
   };
 
   currentTransfer: {
@@ -141,6 +181,9 @@ export type GlobalState = {
     comment?: string;
     promiseId?: string;
     txId?: string;
+    rawPayload?: string;
+    parsedPayload?: ApiParsedPayload;
+    stateInit?: string;
   };
 
   currentSignature?: {
@@ -194,6 +237,7 @@ export type GlobalState = {
     theme: Theme;
     animationLevel: AnimationLevel;
     langCode: LangCode;
+    dapps: ApiDapp[];
     areTinyTransfersHidden?: boolean;
     canPlaySounds?: boolean;
     isInvestorViewEnabled?: boolean;
@@ -208,108 +252,130 @@ export type GlobalState = {
   notifications: NotificationType[];
   currentAccountId?: string;
   isAddAccountModalOpen?: boolean;
-  isSettingsModalOpen?: boolean;
+  isBackupWalletModalOpen?: boolean;
+  landscapeActionsActiveTabIndex?: 0 | 1;
+  isHardwareModalOpen?: boolean;
+  areSettingsOpen?: boolean;
 
   stateVersion: number;
 };
 
 export interface ActionPayloads {
   // Initial
-  init: never;
-  initApi: never;
-  afterInit: never;
+  init: undefined;
+  initApi: undefined;
+  afterInit: undefined;
   apiUpdate: ApiUpdate;
-  restartAuth: never;
-  startCreatingWallet: never;
-  afterCheckMnemonic: never;
-  skipCheckMnemonic: never;
-  restartCheckMnemonicIndexes: never;
-  afterCreatePassword: { password: string; isImporting?: boolean };
-  startImportingWallet: never;
+  restartAuth: undefined;
+  startCreatingWallet: undefined;
+  afterCheckMnemonic: undefined;
+  skipCheckMnemonic: undefined;
+  restartCheckMnemonicIndexes: undefined;
+  afterCreatePassword: { password: string };
+  startImportingWallet: undefined;
   afterImportMnemonic: { mnemonic: string[] };
-  cleanAuthError: never;
+  startImportingHardwareWallet: { driver: ApiLedgerDriver };
+  cleanAuthError: undefined;
+  openAbout: undefined;
+  closeAbout: undefined;
+  connectHardwareWallet: undefined;
+  createHardwareAccounts: undefined;
+  createAccount: { password: string; isImporting: boolean };
+  afterSelectHardwareWallets: { hardwareSelectedIndices: number[] };
 
-  selectToken: { slug?: string };
-  startBackupWallet: { password: string };
-  clearBackupWalletError: never;
-  closeBackupWallet: { isMnemonicChecked?: boolean };
+  selectToken: { slug?: string } | undefined;
+  openBackupWalletModal: undefined;
+  closeBackupWalletModal: undefined;
+  setIsBackupRequired: { isMnemonicChecked: boolean };
+  openHardwareWalletModal: undefined;
+  closeHardwareWalletModal: undefined;
+  resetHardwareWalletConnect: undefined;
   setTransferScreen: { state: TransferState };
-  startTransfer: { tokenSlug: string; amount?: number; toAddress?: string; comment?: string };
+  startTransfer: { tokenSlug?: string; amount?: number; toAddress?: string; comment?: string } | undefined;
   changeTransferToken: { tokenSlug: string };
   fetchFee: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
   submitTransferInitial: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
-  submitTransferConfirm: never;
+  submitTransferConfirm: undefined;
   submitTransferPassword: { password: string };
-  clearTransferError: never;
-  cancelTransfer: never;
+  submitTransferHardware: undefined;
+  clearTransferError: undefined;
+  cancelTransfer: undefined;
   showDialog: { message: string };
-  dismissDialog: never;
-  showTxDraftError: { error?: ApiTransactionDraftError };
+  dismissDialog: undefined;
+  showError: { error?: string };
+  showTxDraftError: { error?: ApiTransactionDraftError } | undefined;
   showNotification: { message: string; icon?: string };
-  dismissNotification: never;
-  afterSignIn: never;
-  signOut: { isFromAllAccounts?: boolean };
-  afterSignOut: { isFromAllAccounts?: boolean };
-  addAccount: { isImporting?: boolean; password: string };
+  dismissNotification: undefined;
+  initLedgerPage: undefined;
+  afterSignIn: undefined;
+  signOut: { isFromAllAccounts?: boolean } | undefined;
+  cancelCaching: undefined;
+  afterSignOut: { isFromAllAccounts?: boolean } | undefined;
+  addAccount: { method: AuthMethod; password: string };
   switchAccount: { accountId: string; newNetwork?: ApiNetwork };
   renameAccount: { accountId: string; title: string };
-  clearAccountError: never;
+  clearAccountError: undefined;
+  validatePassword: { password: string };
 
   fetchTokenTransactions: { limit: number; slug: string; offsetId?: string };
   fetchAllTransactions: { limit: number };
-  fetchNfts: never;
-  showTransactionInfo: { txId?: string };
-  closeTransactionInfo: never;
+  fetchNfts: undefined;
+  showTransactionInfo: { txId?: string } | undefined;
+  closeTransactionInfo: undefined;
 
   submitSignature: { password: string };
-  clearSignatureError: never;
-  cancelSignature: never;
+  clearSignatureError: undefined;
+  cancelSignature: undefined;
 
   addSavedAddress: { address: string; name: string };
   removeFromSavedAddress: { address: string };
 
   setCurrentTokenPeriod: { period: TokenPeriod };
-  openAddAccountModal: never;
-  closeAddAccountModal: never;
+  openAddAccountModal: undefined;
+  closeAddAccountModal: undefined;
+
+  setLandscapeActionsActiveTabIndex: { index: 0 | 1 };
 
   // Staking
-  startStaking: { isUnstaking?: boolean };
+  startStaking: { isUnstaking?: boolean } | undefined;
   setStakingScreen: { state: StakingState };
-  submitStakingInitial: { amount?: number; isUnstaking?: boolean };
+  submitStakingInitial: { amount?: number; isUnstaking?: boolean } | undefined;
   submitStakingPassword: { password: string; isUnstaking?: boolean };
-  clearStakingError: never;
-  cancelStaking: never;
-  fetchStakingState: never;
-  fetchBackendStakingState: never;
+  clearStakingError: undefined;
+  cancelStaking: undefined;
+  fetchStakingState: undefined;
+  fetchBackendStakingState: undefined;
   fetchStakingFee: { amount: number };
 
   // Settings
-  openSettingsModal: never;
-  closeSettingsModal: never;
+  openSettings: undefined;
+  closeSettings: undefined;
   setTheme: { theme: Theme };
   setAnimationLevel: { level: AnimationLevel };
-  toggleTinyTransfersHidden: { isEnabled?: boolean };
-  toggleInvestorView: { isEnabled?: boolean };
-  toggleCanPlaySounds: { isEnabled?: boolean };
+  toggleTinyTransfersHidden: { isEnabled?: boolean } | undefined;
+  toggleInvestorView: { isEnabled?: boolean } | undefined;
+  toggleCanPlaySounds: { isEnabled?: boolean } | undefined;
   toggleTonProxy: { isEnabled: boolean };
   toggleTonMagic: { isEnabled: boolean };
   toggleDeeplinkHook: { isEnabled: boolean };
   startChangingNetwork: { network: ApiNetwork };
   changeNetwork: { network: ApiNetwork };
   changeLanguage: { langCode: LangCode };
-  closeSecurityWarning: never;
+  closeSecurityWarning: undefined;
 
   // TON Connect
-  submitDappConnectRequestConfirm: { additionalAccountIds?: string[]; password?: string };
-  clearDappConnectRequestError: never;
-  cancelDappConnectRequestConfirm: never;
+  submitDappConnectRequestConfirm: { additionalAccountIds?: string[]; password?: string } | undefined;
+  clearDappConnectRequestError: undefined;
+  cancelDappConnectRequestConfirm: undefined;
   showDappTransaction: { transactionIdx: number };
   setDappTransferScreen: { state: TransferState };
-  clearDappTransferError: never;
-  submitDappTransfer: never;
+  clearDappTransferError: undefined;
+  submitDappTransferConfirm: undefined;
   submitDappTransferPassword: { password: string };
-  cancelDappTransfer: never;
-}
+  submitDappTransferHardware: undefined;
+  cancelDappTransfer: undefined;
 
-const typed = typify<GlobalState, ActionPayloads>();
-export type GlobalActions = ReturnType<typeof typed.getActions>;
+  getDapps: undefined;
+  deleteAllDapps: undefined;
+  deleteDapp: { origin: string };
+}

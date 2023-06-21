@@ -1,13 +1,15 @@
-import React, { FC, memo, useEffect } from '../lib/teact/teact';
-import { getActions, withGlobal } from '../global';
+import type { FC } from '../lib/teact/teact';
+import React, { memo, useEffect } from '../lib/teact/teact';
 
-import { pick } from '../util/iteratees';
+import { getActions, withGlobal } from '../global';
 import renderText from '../global/helpers/renderText';
+import { pick } from '../util/iteratees';
+
 import useFlag from '../hooks/useFlag';
 import useLang from '../hooks/useLang';
 
-import Modal from './ui/Modal';
 import Button from './ui/Button';
+import Modal from './ui/Modal';
 
 import styles from './Dialogs.module.scss';
 import modalStyles from './ui/Modal.module.scss';
@@ -25,6 +27,8 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   useEffect(() => {
     if (dialogs.length > 0) {
       openModal();
+    } else {
+      closeModal();
     }
   }, [dialogs, openModal]);
 
@@ -32,29 +36,23 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
     return undefined;
   }
 
-  const renderDialog = (message: string) => {
-    return (
-      <Modal
-        isCompact
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onCloseAnimationEnd={dismissDialog}
-        title={lang('Something went wrong')}
-      >
-        <div className={styles.content}>
-          {renderText(lang(message))}
-        </div>
-        <div className={modalStyles.buttons}>
-          <Button onClick={closeModal}>OK</Button>
-        </div>
-      </Modal>
-    );
-  };
+  const message = dialogs[dialogs.length - 1];
 
   return (
-    <div className={styles.dialogs}>
-      {Boolean(dialogs.length) && renderDialog(dialogs[dialogs.length - 1])}
-    </div>
+    <Modal
+      isCompact
+      isOpen={isModalOpen}
+      onClose={closeModal}
+      onCloseAnimationEnd={dismissDialog}
+      title={lang('Something went wrong')}
+    >
+      <div className={styles.content}>
+        {renderText(lang(message))}
+      </div>
+      <div className={modalStyles.buttons}>
+        <Button onClick={closeModal}>OK</Button>
+      </div>
+    </Modal>
   );
 };
 

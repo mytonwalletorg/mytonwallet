@@ -108,6 +108,15 @@
   }
 }
 
+.button.lighter:not(.isSimple) {
+  background-color: var(--color-gray-button-background-light);
+
+  &:hover,
+  &:focus {
+    background-color: var(--color-gray-button-background-light-hover);
+  }
+}
+
 .button.disabled {
   pointer-events: none;
   cursor: default;

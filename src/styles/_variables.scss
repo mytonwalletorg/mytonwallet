@@ -1,7 +1,6 @@
-//noinspection CssUnknownTarget
 :root {
   // Color names comes from figma file
-  --color-white: #fff;
+  --color-white: #FFF;
   --color-blue: #0088CC;
   --color-black: #313D4F;
   --color-gray-1: #53657B;
@@ -15,10 +14,11 @@
   --color-purple-2: #6875E9;
 
   --color-background-first: #FFFFFF;
+  --color-background-first-disabled: #F8F9FB;
   --color-background-second: #F1F5FA;
   --color-background-window: #F1F5FA;
   --color-background-drop-down: #FFFFFF;
-  --color-background-purple-1: #F7F8FE;
+  --color-background-purple-1: #F9FAFE;
   --color-background-purple-2: #DCDEFF;
 
   --color-input-button-text: #53657B;
@@ -37,6 +37,11 @@
   --color-red-button-background: #F35B5B;
   --color-red-button-background-hover: #FF7070;
 
+  --color-green-button-text: #FFFFFF;
+  --color-green-button-text-hover: #FFFFFF;
+  --color-green-button-background: #1EC160;
+  --color-green-button-background-hover: #26D76D;
+
   --color-red-warning-text: #FFFFFF;
   --color-red-warning-text-70: rgba(255, 255, 255, 0.7);
   --color-red-warning-text-hover: rgba(255, 255, 255, 0.85);
@@ -49,6 +54,7 @@
   --color-gray-button-background: #DCE5EB;
   --color-gray-button-background-hover: #E3EAEF;
   --color-gray-button-background-light: #E5E9F0;
+  --color-gray-button-background-light-hover: #EBEEF4;
 
   --color-purple-button-text: #FFFFFF;
   --color-purple-button-text-hover: #FFFFFF;
@@ -86,6 +92,7 @@
   --color-transaction-green-background: #DDF2E8;
 
   --color-separator: rgba(132, 146, 171, 0.3);
+  --color-separator-input-stroke: #DFE7F0;
   --color-linear-effect-1: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%);
   --color-linear-effect-2: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.7) 100%);
 
@@ -106,10 +113,10 @@
   --color-card-button: rgba(255, 255, 255, 0.2);
   --color-card-button-hover: rgba(255, 255, 255, 0.3);
   --color-card-toggle: rgba(255, 255, 255, 0.3);
-  --color-card-green-text: #56E991;
-  --color-card-green-background: #2CD36F40;
+  --color-card-green-text: #54F293;
+  --color-card-green-background: rgba(44, 211, 111, 0.25);
   --color-card-red-text: #FAD2EA;
-  --color-card-red-background: #FAD2EA40;
+  --color-card-red-background: rgba(250, 210, 234, 0.25);
   --color-card-apy-text: #FFF;
   --color-card-apy-background: rgba(86, 233, 145, 0.7);
   --color-card-connected-bg: rgba(0, 0, 0, 0.16);
@@ -136,7 +143,8 @@
   --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
   --slide-transition: 300ms cubic-bezier(0.25, 1, 0.5, 1);
   --select-transition: 200ms ease-out;
-  --dropdown-transition: opacity 200ms cubic-bezier(0.2, 0, 0.2, 1), transform 200ms cubic-bezier(0.2, 0, 0.2, 1), scrollbar-color 300ms;
+  --dropdown-transition: opacity 200ms cubic-bezier(0.2, 0, 0.2, 1), transform 200ms cubic-bezier(0.2, 0, 0.2, 1),
+    scrollbar-color 300ms;
   --dropdown-transition-backwards: opacity 200ms ease-in, transform 200ms ease-in;
 
   --border-radius-tiny: 0.5rem;
@@ -173,10 +181,11 @@
     --color-purple-2: #7986F7;
 
     --color-background-first: #1E2732;
+    --color-background-first-disabled: #1A2129;
     --color-background-second: #191E23;
     --color-background-window: #191E23;
     --color-background-drop-down: #273241;
-    --color-background-purple-1: #1F2731;
+    --color-background-purple-1: #222B37;
     --color-background-purple-2: #2A314A;
 
     --color-input-button-text: #A5B6CB;
@@ -197,6 +206,7 @@
     --color-gray-button-background: #43515F;
     --color-gray-button-background-hover: #525F6C;
     --color-gray-button-background-light: #293038;
+    --color-gray-button-background-light-hover: #525F6C;
 
     --color-purple-button-text: #FFFFFF;
     --color-purple-button-text-hover: #FFFFFF;
@@ -232,6 +242,7 @@
     --color-transaction-green-background: #1F3838;
 
     --color-separator: rgba(84, 96, 112, 0.3);
+    --color-separator-input-stroke: #364354;
     --color-linear-effect-1: linear-gradient(90deg, rgba(30, 39, 50, 0) 0%, #1E2732 100%);
     --color-linear-effect-2: linear-gradient(180deg, rgba(30, 39, 50, 0) 0%, rgba(30, 39, 50, 0.7) 100%);
 

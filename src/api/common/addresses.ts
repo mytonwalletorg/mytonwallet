@@ -1,7 +1,9 @@
-import { BRILLIANT_API_BASE_URL, DEBUG } from '../../config';
-import { handleFetchErrors } from './utils';
+import type { ApiKnownAddresses } from '../types';
+
+import { BRILLIANT_API_BASE_URL } from '../../config';
 import { mapValues } from '../../util/iteratees';
-import { ApiKnownAddresses } from '../types';
+import { logDebugError } from '../../util/logs';
+import { handleFetchErrors } from './utils';
 
 let knownAddresses: ApiKnownAddresses;
 let scamMarkers: RegExp[];
@@ -19,10 +21,7 @@ export async function tryUpdateKnownAddresses() {
     });
     scamMarkers = (data.scamMarkers as string[]).map((x) => new RegExp(x, 'i'));
   } catch (err) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[updateKnownAddresses]', err);
-    }
+    logDebugError('tryUpdateKnownAddresses', err);
   }
 }
 

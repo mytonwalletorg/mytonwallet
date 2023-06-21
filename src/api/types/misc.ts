@@ -1,10 +1,25 @@
+import type TonWeb from 'tonweb';
+
+export type ApiWalletVersion = keyof typeof TonWeb.Wallets['all'];
+
 export type ApiBlockchainKey = 'ton';
 export type ApiNetwork = 'mainnet' | 'testnet';
+export type ApiLedgerDriver = 'HID' | 'USB';
 
 export interface AccountIdParsed {
   id: number;
   blockchain: ApiBlockchainKey;
   network: ApiNetwork;
+}
+
+export interface ApiAccountInfo {
+  version?: ApiWalletVersion;
+  ledger?: {
+    index: number;
+    driver: ApiLedgerDriver;
+    deviceId?: string;
+    deviceName?: string;
+  };
 }
 
 export interface ApiInitArgs {
@@ -20,6 +35,7 @@ export interface ApiBaseToken {
   minterAddress?: string;
   image?: string;
   id?: number;
+  isPopular?: boolean;
 }
 
 export interface ApiToken extends ApiBaseToken {
@@ -72,16 +88,25 @@ export enum ApiTransactionDraftError {
   DomainNotResolved = 'DomainNotResolved',
 }
 
+export enum ApiTransactionError {
+  PartialTransactionFailure = 'PartialTransactionFailure',
+  IncorrectDeviceTime = 'IncorrectDeviceTime',
+  InsufficientBalance = 'InsufficientBalance',
+  UnsuccesfulTransfer = 'UnsuccesfulTransfer',
+}
+
 export type ApiParsedPayload = {
   type: 'comment';
   comment: string;
 } | {
   type: 'transfer-nft';
+  queryId: string;
   nftAddress: string;
   toAddress: string;
   nftName?: string;
 } | {
   type: 'transfer-tokens';
+  queryId: string;
   slug: string;
   toAddress: string;
   amount: string;
@@ -153,5 +178,41 @@ export type ApiDappRequest = {
 export interface ApiDappTransaction {
   toAddress: string;
   amount: string;
+  rawPayload?: string;
   payload?: ApiParsedPayload;
+  stateInit?: string;
+}
+
+export interface ApiSubmitTransferOptions {
+  accountId: string;
+  password: string;
+  slug: string;
+  toAddress: string;
+  amount: string;
+  comment?: string;
+  fee?: string;
+}
+
+export enum Workchain {
+  MasterChain = -1,
+  BaseChain = 0,
+}
+
+export const WORKCHAIN = Workchain.BaseChain;
+export const TRANSFER_TIMEOUT_SEC = 60; // 1 min.
+
+export interface ApiSignedTransfer {
+  base64: string;
+  seqno: number;
+  params: ApiLocalTransactionParams;
+}
+
+export interface ApiLocalTransactionParams {
+  amount: string;
+  fromAddress: string;
+  toAddress: string;
+  comment?: string;
+  fee: string;
+  slug: string;
+  type?: ApiTransactionType;
 }

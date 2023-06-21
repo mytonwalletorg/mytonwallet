@@ -5,3 +5,5 @@
 
 // eslint-disable-next-line no-restricted-globals
 export const IS_EXTENSION = Boolean(self?.chrome?.runtime?.id);
+
+export const IS_ELECTRON = process.env.IS_ELECTRON;

@@ -1,6 +1,10 @@
-import { addActionHandler, setGlobal } from '../../index';
-import { clearDappConnectRequestError, updateCurrentDappTransfer } from '../../reducers';
 import { TransferState } from '../../types';
+
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
+import {
+  clearDappConnectRequestError, updateCurrentDappTransfer,
+} from '../../reducers';
+import { selectAccount } from '../../selectors';
 
 addActionHandler('clearDappConnectRequestError', (global) => {
   global = clearDappConnectRequestError(global);
@@ -24,8 +28,17 @@ addActionHandler('setDappTransferScreen', (global, actions, payload) => {
   setGlobal(global);
 });
 
-addActionHandler('submitDappTransfer', (global) => {
-  global = updateCurrentDappTransfer(global, { state: TransferState.Password });
+addActionHandler('submitDappTransferConfirm', (global, actions) => {
+  const accountId = global.currentAccountId!;
+  const account = selectAccount(global, accountId)!;
+
+  if (account.isHardware) {
+    actions.resetHardwareWalletConnect();
+    global = updateCurrentDappTransfer(getGlobal(), { state: TransferState.ConnectHardware });
+  } else {
+    global = updateCurrentDappTransfer(global, { state: TransferState.Password });
+  }
+
   setGlobal(global);
 });
 

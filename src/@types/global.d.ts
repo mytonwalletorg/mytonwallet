@@ -11,13 +11,13 @@ declare namespace React {
     teactExperimentControlled?: boolean;
   }
 
+  // Teact feature
+  interface CSSProperties extends String {}
+
   interface Attributes {
     // Optimization for DOM nodes reordering. Requires `teactFastList` for parent
     teactOrderKey?: number;
   }
-
-  // Teact feature
-  interface CSSProperties extends String {}
 
   interface VideoHTMLAttributes {
     srcObject?: MediaStream;
@@ -27,7 +27,13 @@ declare namespace React {
     offsetX: number;
     offsetY: number;
   }
+
+  interface KeyboardEvent {
+    isComposing: boolean;
+  }
 }
+
+type TeactJsx = any;
 
 type AnyLiteral = Record<string, any>;
 type AnyClass = new (...args: any[]) => any;
@@ -54,9 +60,11 @@ type EmojiWithSkins = Record<number, Emoji>;
 type AllEmojis = Record<string, Emoji | EmojiWithSkins>;
 
 // Declare supported for import formats as modules
+declare module '*.webp';
 declare module '*.png';
 declare module '*.svg';
 declare module '*.tgs';
+declare module '*.wasm';
 
 declare module '*.txt' {
   const content: string;
@@ -128,3 +136,25 @@ interface Array<T> {
 interface ReadonlyArray<T> {
   filter<S extends T>(predicate: BooleanConstructor, thisArg?: any): Exclude<S, Falsy>[];
 }
+
+// Missing type definitions for OPFS (Origin Private File System) API
+// https://github.com/WICG/file-system-access/blob/main/AccessHandle.md#accesshandle-idl
+interface FileSystemFileHandle extends FileSystemHandle {
+  readonly kind: 'file';
+  getFile(): Promise<File>;
+  createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle>;
+}
+
+interface FileSystemSyncAccessHandle {
+  read: (buffer: BufferSource, options: FilesystemReadWriteOptions) => number;
+  write: (buffer: BufferSource, options: FilesystemReadWriteOptions) => number;
+
+  truncate: (size: number) => Promise<undefined>;
+  getSize: () => Promise<number>;
+  flush: () => Promise<undefined> ;
+  close: () => Promise<undefined>;
+}
+
+type FilesystemReadWriteOptions = {
+  at: number;
+};

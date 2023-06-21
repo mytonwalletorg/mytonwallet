@@ -1,12 +1,14 @@
 import React, { memo } from '../../../../lib/teact/teact';
-import { withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
 
+import { withGlobal } from '../../../../global';
 import buildClassName from '../../../../util/buildClassName';
-import useShowTransition from '../../../../hooks/useShowTransition';
+
 import useBrowserUiColor from '../../../../hooks/useBrowserUiColor';
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
+import useShowTransition from '../../../../hooks/useShowTransition';
 
 import styles from './Warnings.module.scss';
 
@@ -24,6 +26,7 @@ const UI_BG_RED_DARK = '#C44646';
 
 function BackupWarning({ isRequired, theme, onOpenBackupWallet }: OwnProps & StateProps) {
   const { shouldRender, transitionClassNames } = useShowTransition(isRequired, undefined, true);
+  const { isLandscape } = useDeviceScreen();
 
   const lang = useLang();
 
@@ -43,7 +46,10 @@ function BackupWarning({ isRequired, theme, onOpenBackupWallet }: OwnProps & Sta
   }
 
   return (
-    <div className={buildClassName(styles.wrapper, transitionClassNames)} onClick={handleClick}>
+    <div
+      className={buildClassName(styles.wrapper, isLandscape && styles.wrapper_landscape, transitionClassNames)}
+      onClick={handleClick}
+    >
       {lang('Wallet is not backed up')}
       <i className={buildClassName(styles.icon, 'icon-chevron-right')} />
       <p className={styles.text}>
@@ -53,10 +59,12 @@ function BackupWarning({ isRequired, theme, onOpenBackupWallet }: OwnProps & Sta
   );
 }
 
-export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-  detachWhenChanged(global.currentAccountId);
+export default memo(
+  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+    detachWhenChanged(global.currentAccountId);
 
-  return {
-    theme: global.settings.theme,
-  };
-})(BackupWarning));
+    return {
+      theme: global.settings.theme,
+    };
+  })(BackupWarning),
+);

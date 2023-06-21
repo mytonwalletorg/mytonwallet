@@ -1,11 +1,6 @@
 import type { LangCode } from '../global/types';
 
-import {
-  LANG_PACKS,
-  MOBILE_SCREEN_MAX_WIDTH,
-  MOBILE_SCREEN_LANDSCAPE_MAX_HEIGHT,
-  MOBILE_SCREEN_LANDSCAPE_MAX_WIDTH,
-} from '../config';
+import { LANG_LIST } from '../config';
 
 export function getPlatform() {
   const { userAgent, platform } = window.navigator;
@@ -34,11 +29,13 @@ function getBrowserLanguage(): LangCode {
     ? (navigator.language.endsWith('TW') || navigator.language.endsWith('HK') ? 'zh-Hant' : 'zh-Hans')
     : navigator.language.substring(0, 2);
 
-  return (LANG_PACKS.some(({ langCode }) => langCode === lang) ? lang : 'en') as LangCode;
+  return (LANG_LIST.some(({ langCode }) => langCode === lang) ? lang : 'en') as LangCode;
 }
 
 export const PLATFORM_ENV = getPlatform();
 export const IS_MAC_OS = PLATFORM_ENV === 'macOS';
+export const IS_WINDOWS = PLATFORM_ENV === 'Windows';
+export const IS_LINUX = PLATFORM_ENV === 'Linux';
 export const IS_IOS = PLATFORM_ENV === 'iOS';
 export const IS_ANDROID = PLATFORM_ENV === 'Android';
 export const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
@@ -46,10 +43,4 @@ export const IS_TOUCH_ENV = window.matchMedia('(pointer: coarse)').matches;
 export const IS_EXTENSION = Boolean(window.chrome && chrome.runtime && chrome.runtime.id);
 export const DEFAULT_LANG_CODE = 'en';
 export const USER_AGENT_LANG_CODE = getBrowserLanguage();
-
-// Keep in mind the landscape orientation
-export const IS_SINGLE_COLUMN_LAYOUT = window.innerWidth <= MOBILE_SCREEN_MAX_WIDTH || (
-  window.innerWidth <= MOBILE_SCREEN_LANDSCAPE_MAX_WIDTH && window.innerHeight <= MOBILE_SCREEN_LANDSCAPE_MAX_HEIGHT
-);
-
 export const DPR = window.devicePixelRatio || 1;

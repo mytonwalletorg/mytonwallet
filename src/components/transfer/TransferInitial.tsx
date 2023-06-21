@@ -1,34 +1,41 @@
 import React, {
   memo, useCallback, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
-import { withGlobal, getActions } from '../../global';
 
+import { ElectronEvent } from '../../electron/types';
 import type { UserToken } from '../../global/types';
 
 import { CARD_SECONDARY_VALUE_SYMBOL, DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../config';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
-import { selectCurrentAccountTokens, selectCurrentAccountState } from '../../global/selectors';
-import { shortenAddress } from '../../util/shortenAddress';
-import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
-import buildClassName from '../../util/buildClassName';
-import { throttle } from '../../util/schedulers';
+import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
+import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
+import buildClassName from '../../util/buildClassName';
 import dns from '../../util/dns';
+import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
+import { throttle } from '../../util/schedulers';
+import { shortenAddress } from '../../util/shortenAddress';
+import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
+
+import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useShowTransition from '../../hooks/useShowTransition';
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 
-import Button from '../ui/Button';
-import Input from '../ui/Input';
-import RichNumberInput from '../ui/RichNumberInput';
-import Menu from '../ui/Menu';
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
-import DropDown, { DropDownItem } from '../ui/DropDown';
-
-import styles from './Transfer.module.scss';
-import modalStyles from '../ui/Modal.module.scss';
+import Button from '../ui/Button';
+import type { DropDownItem } from '../ui/DropDown';
+import DropDown from '../ui/DropDown';
+import Input from '../ui/Input';
+import Menu from '../ui/Menu';
+import RichNumberInput from '../ui/RichNumberInput';
 import Transition from '../ui/Transition';
+
+import modalStyles from '../ui/Modal.module.scss';
+import styles from './Transfer.module.scss';
+
+interface OwnProps {
+  isStatic?: boolean;
+}
 
 interface StateProps {
   initialAddress?: string;
@@ -44,7 +51,7 @@ interface StateProps {
 const TON_ADDRESS_REGEX = /^[-\w_]{48}$/i;
 const TON_RAW_ADDRESS_REGEX = /^0:[\da-h]{64}$/i;
 const COMMENT_MAX_SIZE_BYTES = 121; // Value derived empirically
-const SHORT_ADDRESS_SHIFT = 16;
+const SHORT_ADDRESS_SHIFT = 14;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
 
 // Fee may change, so we add 5% for more reliability. This is only safe for low-fee blockchains such as TON.
@@ -53,6 +60,7 @@ const RESERVED_FEE_FACTOR = 1.05;
 const runThrottled = throttle((cb) => cb(), 1500, true);
 
 function TransferInitial({
+  isStatic,
   tokenSlug = TON_TOKEN_SLUG,
   initialAddress = '',
   initialAmount,
@@ -61,12 +69,9 @@ function TransferInitial({
   fee,
   savedAddresses,
   isLoading,
-}: StateProps) {
+}: OwnProps & StateProps) {
   const {
-    submitTransferInitial,
-    showNotification,
-    fetchFee,
-    changeTransferToken,
+    submitTransferInitial, showNotification, fetchFee, changeTransferToken,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -85,7 +90,6 @@ function TransferInitial({
   const [hasToAddressError, setHasToAddressError] = useState<boolean>(false);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
-
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
@@ -94,16 +98,18 @@ function TransferInitial({
     return savedAddresses && Object.keys(savedAddresses).length > 0;
   }, [savedAddresses]);
   const {
-    amount: balance, decimals, price, symbol,
+    amount: balance,
+    decimals,
+    price,
+    symbol,
   } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
   const amountInCurrency = price && amount && !Number.isNaN(amount) ? amount * price : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const renderingFee = useCurrentOrPrev(fee, true);
 
-  const {
-    shouldRender: shouldRenderCurrency,
-    transitionClassNames: currencyClassNames,
-  } = useShowTransition(Boolean(amountInCurrency));
+  const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
+    Boolean(amountInCurrency),
+  );
 
   const dropDownItems = useMemo(() => {
     if (!tokens) {
@@ -123,30 +129,33 @@ function TransferInitial({
     }, []);
   }, [tokens]);
 
-  const validateAndSetAmount = useCallback((newAmount: number | undefined, noReset = false) => {
-    if (!noReset) {
-      setShouldUseAllBalance(false);
-      setHasAmountError(false);
-      setIsInsufficientBalance(false);
-    }
+  const validateAndSetAmount = useCallback(
+    (newAmount: number | undefined, noReset = false) => {
+      if (!noReset) {
+        setShouldUseAllBalance(false);
+        setHasAmountError(false);
+        setIsInsufficientBalance(false);
+      }
 
-    if (newAmount === undefined) {
-      setAmount(undefined);
-      return;
-    }
+      if (newAmount === undefined) {
+        setAmount(undefined);
+        return;
+      }
 
-    if (Number.isNaN(newAmount) || newAmount < 0) {
-      setHasAmountError(true);
-      return;
-    }
+      if (Number.isNaN(newAmount) || newAmount < 0) {
+        setHasAmountError(true);
+        return;
+      }
 
-    if (!balance || newAmount > balance) {
-      setHasAmountError(true);
-      setIsInsufficientBalance(true);
-    }
+      if (!balance || newAmount > balance) {
+        setHasAmountError(true);
+        setIsInsufficientBalance(true);
+      }
 
-    setAmount(newAmount);
-  }, [balance]);
+      setAmount(newAmount);
+    },
+    [balance],
+  );
 
   useEffect(() => {
     if (shouldUseAllBalance && balance) {
@@ -173,9 +182,20 @@ function TransferInitial({
     });
   }, [amount, comment, fetchFee, hasToAddressError, isAddressValid, toAddress, tokenSlug]);
 
-  const handleTokenChange = useCallback((slug: string) => {
-    changeTransferToken({ tokenSlug: slug });
-  }, [changeTransferToken]);
+  useEffect(() => {
+    return window.electron?.on(ElectronEvent.DEEPLINK, (params: any) => {
+      setToAddress(params.to);
+      setAmount(params.amount);
+      setComment(params.text);
+    });
+  }, []);
+
+  const handleTokenChange = useCallback(
+    (slug: string) => {
+      changeTransferToken({ tokenSlug: slug });
+    },
+    [changeTransferToken],
+  );
 
   const validateToAddress = useCallback(() => {
     setHasToAddressError(Boolean(toAddress) && !isAddressValid);
@@ -219,7 +239,12 @@ function TransferInitial({
       closeSavedAddresses();
     }
   }, [
-    closeSavedAddresses, hasSavedAddresses, isSavedAddressesOpen, unmarkAddressFocused, validateToAddress, toAddress,
+    closeSavedAddresses,
+    hasSavedAddresses,
+    isSavedAddressesOpen,
+    unmarkAddressFocused,
+    validateToAddress,
+    toAddress,
   ]);
 
   const handlePasteClick = useCallback(() => {
@@ -239,15 +264,21 @@ function TransferInitial({
       });
   }, [lang, showNotification, validateToAddress]);
 
-  const handleSavedAddressClick = useCallback((address: string) => {
-    setToAddress(address);
-    closeSavedAddresses();
-  }, [closeSavedAddresses]);
+  const handleSavedAddressClick = useCallback(
+    (address: string) => {
+      setToAddress(address);
+      closeSavedAddresses();
+    },
+    [closeSavedAddresses],
+  );
 
-  const handleDeleteSavedAddressClick = useCallback((address: string) => {
-    setSavedAddressForDeletion(address);
-    closeSavedAddresses();
-  }, [closeSavedAddresses]);
+  const handleDeleteSavedAddressClick = useCallback(
+    (address: string) => {
+      setSavedAddressForDeletion(address);
+      closeSavedAddresses();
+    },
+    [closeSavedAddresses],
+  );
 
   const closeDeleteSavedAddressModal = useCallback(() => {
     setSavedAddressForDeletion(undefined);
@@ -255,64 +286,61 @@ function TransferInitial({
 
   const handleAmountChange = useCallback(validateAndSetAmount, [validateAndSetAmount]);
 
-  const handleMaxAmountClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
+  const handleMaxAmountClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      e.preventDefault();
 
-    if (!balance) {
-      return;
-    }
+      if (!balance) {
+        return;
+      }
 
-    setShouldUseAllBalance(true);
-  }, [balance]);
+      setShouldUseAllBalance(true);
+    },
+    [balance],
+  );
 
   const handleCommentChange = useCallback((value) => {
     setComment(trimStringByMaxBytes(value, COMMENT_MAX_SIZE_BYTES));
   }, []);
 
-  const canSubmit = toAddress.length
-    && amount && balance && amount > 0 && amount <= balance
-    && !hasToAddressError && !hasAmountError;
+  const canSubmit = toAddress.length && amount && balance && amount > 0
+    && amount <= balance && !hasToAddressError && !hasAmountError;
 
-  const handleSubmit = useCallback((e) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
 
-    if (!canSubmit) {
-      return;
-    }
+      if (!canSubmit) {
+        return;
+      }
 
-    submitTransferInitial({
-      tokenSlug,
-      amount: amount!,
-      toAddress,
-      comment,
-    });
-  }, [canSubmit, submitTransferInitial, tokenSlug, amount, toAddress, comment]);
+      submitTransferInitial({
+        tokenSlug,
+        amount: amount!,
+        toAddress,
+        comment,
+      });
+    },
+    [canSubmit, submitTransferInitial, tokenSlug, amount, toAddress, comment],
+  );
 
   const renderedSavedAddresses = useMemo(() => {
     if (!savedAddresses) {
       return undefined;
     }
 
-    return Object
-      .keys(savedAddresses)
-      .map((address) => renderSavedAddress(
-        address,
-        savedAddresses[address],
-        lang('Delete') as string,
-        handleSavedAddressClick,
-        handleDeleteSavedAddressClick,
-      ));
+    return Object.keys(savedAddresses).map((address) => renderSavedAddress(
+      address,
+      savedAddresses[address],
+      lang('Delete') as string,
+      handleSavedAddressClick,
+      handleDeleteSavedAddressClick,
+    ));
   }, [savedAddresses, lang, handleSavedAddressClick, handleDeleteSavedAddressClick]);
 
   function renderSavedAddresses() {
     return (
-      <Menu
-        positionX="right"
-        type="suggestion"
-        noBackdrop
-        isOpen={isSavedAddressesOpen}
-        onClose={closeSavedAddresses}
-      >
+      <Menu positionX="right" type="suggestion" noBackdrop isOpen={isSavedAddressesOpen} onClose={closeSavedAddresses}>
         {renderedSavedAddresses}
       </Menu>
     );
@@ -323,7 +351,8 @@ function TransferInitial({
 
     return (
       <Transition
-        className={styles.amountBottomRight}
+        className={buildClassName(styles.amountBottomRight, isStatic && styles.amountBottomRight_static)}
+        slideClassName={styles.amountBottomRight_slide}
         name="fade"
         activeKey={isInsufficientBalance ? 2 : withFee ? 1 : 0}
       >
@@ -337,7 +366,9 @@ function TransferInitial({
               </span>
             ),
           })
-        ) : ' '}
+        ) : (
+          ' '
+        )}
       </Transition>
     );
   }
@@ -353,9 +384,7 @@ function TransferInitial({
           {lang('$your_balance_is', {
             balance: (
               <a href="#" onClick={handleMaxAmountClick} className={styles.balanceLink}>
-                {balance !== undefined
-                  ? formatCurrencyExtended(balance, symbol, true)
-                  : lang('Loading...')}
+                {balance !== undefined ? formatCurrencyExtended(balance, symbol, true) : lang('Loading...')}
               </a>
             ),
           })}
@@ -385,25 +414,21 @@ function TransferInitial({
 
   return (
     <>
-      <form className={modalStyles.transitionContent} onSubmit={handleSubmit}>
+      <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
         <Input
           ref={toAddressRef}
+          className={isStatic ? styles.inputStatic : undefined}
           isRequired
           labelText={lang('Recipient address')}
           placeholder={lang('Wallet address or domain')}
           value={isAddressFocused ? toAddress : toAddressShort}
-          error={hasToAddressError ? lang('Incorrect address') as string : undefined}
+          error={hasToAddressError ? (lang('Incorrect address') as string) : undefined}
           onInput={setToAddress}
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}
         >
           {shouldRenderPasteButton && toAddress === '' && (
-            <Button
-              isSimple
-              className={styles.inputButton}
-              onClick={handlePasteClick}
-              ariaLabel={lang('Paste')}
-            >
+            <Button isSimple className={styles.inputButton} onClick={handlePasteClick} ariaLabel={lang('Paste')}>
               <i className="icon-paste" />
             </Button>
           )}
@@ -422,6 +447,7 @@ function TransferInitial({
           onPressEnter={handleSubmit}
           decimals={decimals}
           className={styles.amountInput}
+          inputClassName={isStatic ? styles.inputRichStatic : undefined}
         >
           {renderTokens()}
         </RichNumberInput>
@@ -434,6 +460,7 @@ function TransferInitial({
         </div>
 
         <Input
+          className={isStatic ? styles.inputStatic : undefined}
           labelText={lang('Comment')}
           placeholder={lang('Optional')}
           value={comment}
@@ -442,12 +469,7 @@ function TransferInitial({
         />
 
         <div className={modalStyles.buttons}>
-          <Button
-            isPrimary
-            isSubmit
-            isDisabled={!canSubmit}
-            isLoading={isLoading}
-          >
+          <Button isPrimary isSubmit isDisabled={!canSubmit} isLoading={isLoading}>
             {lang('$send_token_symbol', symbol || 'TON')}
           </Button>
         </div>
@@ -461,27 +483,29 @@ function TransferInitial({
   );
 }
 
-export default memo(withGlobal((global): StateProps => {
-  const {
-    toAddress: initialAddress,
-    amount: initialAmount,
-    comment: initialComment,
-    fee,
-    tokenSlug,
-    isLoading,
-  } = global.currentTransfer;
+export default memo(
+  withGlobal((global): StateProps => {
+    const {
+      toAddress: initialAddress,
+      amount: initialAmount,
+      comment: initialComment,
+      fee,
+      tokenSlug,
+      isLoading,
+    } = global.currentTransfer;
 
-  return {
-    initialAddress,
-    initialAmount,
-    initialComment,
-    fee,
-    tokenSlug,
-    tokens: selectCurrentAccountTokens(global),
-    isLoading,
-    savedAddresses: selectCurrentAccountState(global)?.savedAddresses,
-  };
-})(TransferInitial));
+    return {
+      initialAddress,
+      initialAmount,
+      initialComment,
+      fee,
+      tokenSlug,
+      tokens: selectCurrentAccountTokens(global),
+      isLoading,
+      savedAddresses: selectCurrentAccountState(global)?.savedAddresses,
+    };
+  })(TransferInitial),
+);
 
 function trimStringByMaxBytes(str: string, maxBytes: number) {
   const decoder = new TextDecoder('utf-8');
@@ -491,10 +515,8 @@ function trimStringByMaxBytes(str: string, maxBytes: number) {
 }
 
 function getIsAddressValid(address?: string) {
-  return address && (
-    TON_ADDRESS_REGEX.test(address)
-    || TON_RAW_ADDRESS_REGEX.test(address)
-    || dns.isDnsDomain(address)
+  return (
+    address && (TON_ADDRESS_REGEX.test(address) || TON_RAW_ADDRESS_REGEX.test(address) || dns.isDnsDomain(address))
   );
 }
 
@@ -523,12 +545,7 @@ function renderSavedAddress(
     >
       <span className={styles.savedAddressName}>{name}</span>
       <span className={styles.savedAddressDelete}>
-        <span
-          tabIndex={-1}
-          role="button"
-          className={styles.savedAddressDeleteInner}
-          onMouseDown={handleDeleteClick}
-        >
+        <span tabIndex={-1} role="button" className={styles.savedAddressDeleteInner} onMouseDown={handleDeleteClick}>
           {deleteLabel}
         </span>
       </span>

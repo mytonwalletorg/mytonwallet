@@ -1,11 +1,12 @@
 import React, { memo, useCallback } from '../../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../../global';
 
 import { MY_TON_WALLET_PROMO_URL } from '../../../../config';
-import { IS_EXTENSION } from '../../../../util/windowEnvironment';
+import { getActions, withGlobal } from '../../../../global';
 import buildClassName from '../../../../util/buildClassName';
-import useShowTransition from '../../../../hooks/useShowTransition';
+
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
+import useShowTransition from '../../../../hooks/useShowTransition';
 
 import styles from './Warnings.module.scss';
 
@@ -13,13 +14,11 @@ type StateProps = {
   isSecurityWarningHidden?: boolean;
 };
 
-const TEMPORARILY_DISABLED = true;
-
 function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
   const { closeSecurityWarning } = getActions();
 
-  const canRender = !IS_EXTENSION && !isSecurityWarningHidden && !TEMPORARILY_DISABLED;
-  const { shouldRender, transitionClassNames } = useShowTransition(canRender, undefined, true);
+  const { shouldRender, transitionClassNames } = useShowTransition(!isSecurityWarningHidden, undefined, true);
+  const { isLandscape } = useDeviceScreen();
 
   const lang = useLang();
 
@@ -27,38 +26,39 @@ function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
     window.open(MY_TON_WALLET_PROMO_URL, '_blank', 'noopener');
   }
 
-  const handleClose = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
+  const handleClose = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
 
-    closeSecurityWarning();
-  }, [closeSecurityWarning]);
+      closeSecurityWarning();
+    },
+    [closeSecurityWarning],
+  );
 
   if (!shouldRender) {
     return undefined;
   }
 
   return (
-    <div className={buildClassName(styles.wrapper, transitionClassNames)} onClick={handleClick}>
+    <div
+      className={buildClassName(styles.wrapper, isLandscape && styles.wrapper_landscape, transitionClassNames)}
+      onClick={handleClick}
+    >
       {lang('Improve wallet security')}
       <i className={buildClassName(styles.icon, 'icon-chevron-right')} />
-      <p className={styles.text}>
-        {lang('by installing browser extension or native app')}
-      </p>
+      <p className={styles.text}>{lang('by installing browser extension or native app')}</p>
 
-      <button
-        type="button"
-        className={styles.closeButton}
-        aria-label={lang('Close')}
-        onClick={handleClose}
-      >
+      <button type="button" className={styles.closeButton} aria-label={lang('Close')} onClick={handleClose}>
         <i className="icon-close" aria-hidden />
       </button>
     </div>
   );
 }
 
-export default memo(withGlobal((global): StateProps => {
-  return {
-    isSecurityWarningHidden: global.settings.isSecurityWarningHidden,
-  };
-})(SecurityWarning));
+export default memo(
+  withGlobal((global): StateProps => {
+    return {
+      isSecurityWarningHidden: global.settings.isSecurityWarningHidden,
+    };
+  })(SecurityWarning),
+);

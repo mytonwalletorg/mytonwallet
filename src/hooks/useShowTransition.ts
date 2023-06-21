@@ -1,4 +1,5 @@
 import { useRef, useState } from '../lib/teact/teact';
+
 import buildClassName from '../util/buildClassName';
 
 const CLOSE_DURATION = 350;
@@ -6,14 +7,16 @@ const CLOSE_DURATION = 350;
 const useShowTransition = (
   isOpen = false,
   onCloseTransitionEnd?: () => void,
-  noOpenTransition = false,
+  noFirstOpenTransition = false,
   className: string | false = 'fast',
   noCloseTransition = false,
+  closeDuration = CLOSE_DURATION,
+  noOpenTransition = false,
 ) => {
   const [isClosed, setIsClosed] = useState(!isOpen);
   const closeTimeoutRef = useRef<number>();
   // СSS class should be added in a separate tick to turn on CSS transition.
-  const [hasOpenClassName, setHasOpenClassName] = useState(isOpen && noOpenTransition);
+  const [hasOpenClassName, setHasOpenClassName] = useState(isOpen && noFirstOpenTransition);
 
   if (isOpen) {
     setIsClosed(false);
@@ -40,26 +43,30 @@ const useShowTransition = (
       if (noCloseTransition) {
         exec();
       } else {
-        closeTimeoutRef.current = window.setTimeout(exec, CLOSE_DURATION);
+        closeTimeoutRef.current = window.setTimeout(exec, closeDuration);
       }
     }
   }
 
   // `noCloseTransition`, when set to true, should remove the open class immediately
-  const shouldHaveOpenClassName = hasOpenClassName && !(noCloseTransition && !isOpen);
+  const shouldHaveOpenClassName = (hasOpenClassName && !(noCloseTransition && !isOpen)) || (noOpenTransition && isOpen);
   const isClosing = Boolean(closeTimeoutRef.current);
   const shouldRender = isOpen || isClosing;
   const transitionClassNames = buildClassName(
     className && 'opacity-transition',
     className,
     shouldHaveOpenClassName && 'open',
+    !shouldHaveOpenClassName && 'not-open',
     shouldRender && 'shown',
+    !shouldRender && 'not-shown',
     isClosing && 'closing',
   );
 
   return {
     shouldRender,
     transitionClassNames,
+    hasShownClass: shouldRender,
+    hasOpenClass: shouldHaveOpenClassName,
   };
 };
 

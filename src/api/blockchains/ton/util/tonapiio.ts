@@ -2,11 +2,13 @@ import {
   Configuration,
   EventApi,
   JettonApi,
-  RawBlockchainApi,
   NFTApi,
+  RawBlockchainApi,
 } from 'tonapi-sdk-js';
-import { DEBUG } from '../../../../config';
-import { ApiNetwork } from '../../../types';
+
+import type { ApiNetwork } from '../../../types';
+
+import { logDebugError } from '../../../../util/logs';
 
 const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapi.io';
 const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://testnet.tonapi.io';
@@ -81,10 +83,8 @@ async function tonapiioErrorHandler<T>(fn: () => Promise<T>, defaultValue: T): P
       || err.message.includes('t.transactions is null') // Firefox
     )) {
       return defaultValue;
-    } else if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[tonapiioErrorHandler]', err);
     }
+    logDebugError('tonapiioErrorHandler', err);
     return defaultValue;
   }
 }

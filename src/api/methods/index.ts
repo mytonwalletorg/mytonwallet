@@ -6,6 +6,7 @@ export * from './extension';
 export * from './polling';
 export * from './accounts';
 export * from './staking';
+export * from './tokens';
 export {
   initDapps,
   isDappConnected,

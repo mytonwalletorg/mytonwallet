@@ -1,11 +1,11 @@
-import type { ApiBackendStakingState, OnApiUpdate } from '../types';
 import type { Storage } from '../storages/types';
+import type { ApiBackendStakingState, OnApiUpdate } from '../types';
 
-import { STAKE_COMMENT, UNSTAKE_COMMENT } from '../blockchains/ton/constants';
 import { TON_TOKEN_SLUG } from '../../config';
 import blockchains from '../blockchains';
-import { buildLocalTransaction, resolveBlockchainKey } from '../common/helpers';
-import { whenTxComplete } from '../common/txCallbacks';
+import { STAKE_COMMENT, UNSTAKE_COMMENT } from '../blockchains/ton/constants';
+import { fetchStoredAddress } from '../common/accounts';
+import { createLocalTransaction, resolveBlockchainKey } from '../common/helpers';
 
 let onUpdate: OnApiUpdate;
 let storage: Storage;
@@ -29,82 +29,52 @@ export function checkUnstakeDraft(accountId: string) {
 
 export async function submitStake(accountId: string, password: string, amount: string, fee?: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const fromAddress = await blockchain.fetchAddress(storage, accountId);
+  const fromAddress = await fetchStoredAddress(storage, accountId);
 
   const result = await blockchain.submitStake(storage, accountId, password, amount);
-  if (result) {
-    const localTransaction = buildLocalTransaction({
-      amount: result.amount,
-      fromAddress,
-      toAddress: result.resolvedAddress,
-      comment: STAKE_COMMENT,
-      fee: fee || '0',
-      type: 'stake',
-      slug: TON_TOKEN_SLUG,
-    });
-
-    onUpdate({
-      type: 'newLocalTransaction',
-      transaction: localTransaction,
-      accountId,
-    });
-
-    whenTxComplete(result.resolvedAddress, result.amount)
-      .then(({ txId }) => {
-        onUpdate({
-          type: 'updateTxComplete',
-          accountId,
-          toAddress: result.resolvedAddress,
-          amount: result.amount,
-          txId,
-          localTxId: localTransaction.txId,
-        });
-      });
-
-    return localTransaction.txId;
+  if ('error' in result) {
+    return false;
   }
 
-  return false;
+  const localTransaction = createLocalTransaction(onUpdate, accountId, {
+    amount: result.amount,
+    fromAddress,
+    toAddress: result.resolvedAddress,
+    comment: STAKE_COMMENT,
+    fee: fee || '0',
+    type: 'stake',
+    slug: TON_TOKEN_SLUG,
+  });
+
+  return {
+    ...result,
+    txId: localTransaction.txId,
+  };
 }
 
 export async function submitUnstake(accountId: string, password: string, fee?: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const toAddress = await blockchain.fetchAddress(storage, accountId);
+  const toAddress = await fetchStoredAddress(storage, accountId);
 
   const result = await blockchain.submitUnstake(storage, accountId, password);
-  if (result) {
-    const localTransaction = buildLocalTransaction({
-      amount: result.amount,
-      fromAddress: result.resolvedAddress,
-      toAddress,
-      comment: UNSTAKE_COMMENT,
-      fee: fee || '0',
-      type: 'unstakeRequest',
-      slug: TON_TOKEN_SLUG,
-    });
-
-    onUpdate({
-      type: 'newLocalTransaction',
-      transaction: localTransaction,
-      accountId,
-    });
-
-    whenTxComplete(result.resolvedAddress, result.amount)
-      .then(({ txId }) => {
-        onUpdate({
-          type: 'updateTxComplete',
-          accountId,
-          toAddress: result.resolvedAddress,
-          amount: result.amount,
-          txId,
-          localTxId: localTransaction.txId,
-        });
-      });
-
-    return localTransaction.txId;
+  if ('error' in result) {
+    return false;
   }
 
-  return false;
+  const localTransaction = createLocalTransaction(onUpdate, accountId, {
+    amount: result.amount,
+    fromAddress: result.resolvedAddress,
+    toAddress,
+    comment: UNSTAKE_COMMENT,
+    fee: fee || '0',
+    type: 'unstakeRequest',
+    slug: TON_TOKEN_SLUG,
+  });
+
+  return {
+    ...result,
+    txId: localTransaction.txId,
+  };
 }
 
 export function getStakingState(accountId: string) {

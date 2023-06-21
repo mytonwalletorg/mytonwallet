@@ -1,14 +1,6 @@
 @import "../styles/variables";
 
-.containerOuter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  height: 100%;
-
-  background: var(--color-background-second);
-}
+@import '../styles/mixins/';
 
 .containerInner {
   overflow: hidden;
@@ -20,22 +12,30 @@
 .appSlide {
   background: var(--color-background-second);
 
+  /* These styles need to be applied via regular CSS and not as conditional class, since Transition does not work well when `slideClassName` updates */
   :global(html.is-extension) & {
     overflow: auto;
     overflow-x: hidden;
-
-    @supports (overflow: overlay) {
-      overflow-y: overlay;
-    }
   }
 
-  @media (max-width: 600px) {
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-below(xs) {
     overflow: auto;
     overflow-x: hidden;
+  }
+}
 
-    @supports (overflow: overlay) {
-      overflow-y: overlay;
-    }
+.transitionContainer {
+  :global(html.is-electron) & {
+    height: calc(100% - 3rem);
+  }
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-below(xs) {
+    overflow: hidden;
+
+    max-width: 25rem;
+    margin: 0 auto;
   }
 }
 

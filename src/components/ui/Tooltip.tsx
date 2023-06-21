@@ -1,7 +1,9 @@
-import React, { FC, memo } from '../../lib/teact/teact';
+import type { FC } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 import stopEvent from '../../util/stopEvent';
+
 import useShowTransition from '../../hooks/useShowTransition';
 
 import styles from './Tooltip.module.scss';

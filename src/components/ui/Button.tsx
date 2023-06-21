@@ -11,7 +11,7 @@ type OwnProps = {
   className?: string;
   ariaLabel?: string;
   forFormId?: string;
-  kind?: 'transparent';
+  kind?: 'transparent' | 'lighter';
   isSubmit?: boolean;
   isPrimary?: boolean;
   isSimple?: boolean;

@@ -1,25 +1,26 @@
 import React, {
   memo, useCallback, useEffect, useLayoutEffect, useState,
 } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
 
-import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
+import { getActions, withGlobal } from '../../../global';
 import renderText from '../../../global/helpers/renderText';
 import buildClassName from '../../../util/buildClassName';
 import captureKeyboardListeners from '../../../util/captureKeyboardListeners';
+import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
+
 import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
 
-import Modal from '../../ui/Modal';
+import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
-import Transition from '../../ui/Transition';
+import Modal from '../../ui/Modal';
 import ModalHeader from '../../ui/ModalHeader';
 import PasswordForm from '../../ui/PasswordForm';
-import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
+import Transition from '../../ui/Transition';
 
-import styles from './SignatureModal.module.scss';
 import transferStyles from '../../transfer/Transfer.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
+import styles from './SignatureModal.module.scss';
 
 type StateProps = {
   dataHex?: string;
@@ -166,7 +167,7 @@ function SignatureModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="push-slide"
+        name="pushSlide"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

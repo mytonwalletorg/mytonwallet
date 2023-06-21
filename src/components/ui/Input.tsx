@@ -1,7 +1,9 @@
-import { RefObject } from 'react';
-import React, { memo, TeactNode, useState } from '../../lib/teact/teact';
+import type { RefObject } from 'react';
+import type { TeactNode } from '../../lib/teact/teact';
+import React, { memo, useState } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+
 import useLang from '../../hooks/useLang';
 
 import styles from './Input.module.scss';

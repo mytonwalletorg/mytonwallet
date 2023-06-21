@@ -1,7 +1,10 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useCallback } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+
 import useLang from '../../hooks/useLang';
+
+import Button from '../ui/Button';
 
 import styles from './Dapp.module.scss';
 
@@ -9,6 +12,8 @@ interface OwnProps {
   iconUrl?: string;
   name?: string;
   url?: string;
+  origin?: string;
+  onDisconnect?: (origin: string) => void;
   className?: string;
 }
 
@@ -16,9 +21,17 @@ function DappInfo({
   iconUrl,
   name,
   url,
+  origin,
+  onDisconnect,
   className,
 }: OwnProps) {
   const lang = useLang();
+
+  const shouldShowDisconnect = Boolean(onDisconnect && origin);
+
+  const handleDisconnect = useCallback(() => {
+    onDisconnect!(origin!);
+  }, [origin, onDisconnect]);
 
   function renderIcon() {
     if (iconUrl) {
@@ -41,6 +54,16 @@ function DappInfo({
         <span className={styles.dappName}>{name}</span>
         <span className={styles.dappUrl}>{url}</span>
       </div>
+      {shouldShowDisconnect && (
+        <Button
+          isSmall
+          isPrimary
+          className={styles.dappDisconnect}
+          onClick={handleDisconnect}
+        >
+          {lang('Disconnect')}
+        </Button>
+      )}
     </div>
   );
 }

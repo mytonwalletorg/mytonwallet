@@ -1,16 +1,15 @@
-import { addActionHandler, getGlobal, setGlobal } from '../../index';
-
 import { StakingState } from '../../types';
 
-import { callApi } from '../../../api';
 import { DEFAULT_DECIMAL_PLACES } from '../../../config';
+import { callApi } from '../../../api';
+import { humanToBigStr } from '../../helpers';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearStaking,
   updateAccountState,
-  updateStaking,
   updatePoolState,
+  updateStaking,
 } from '../../reducers';
-import { humanToBigStr } from '../../helpers';
 
 addActionHandler('fetchStakingState', async (global) => {
   const { currentAccountId } = global;

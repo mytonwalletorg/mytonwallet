@@ -1,11 +1,14 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo, useEffect, useCallback, useRef, TeactNode,
+  memo,
+  useCallback, useEffect, useRef,
 } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS } from '../../config';
-import { saveCaretPosition } from '../../util/saveCaretPosition';
 import buildClassName from '../../util/buildClassName';
 import { floor } from '../../util/round';
+import { saveCaretPosition } from '../../util/saveCaretPosition';
+
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 
@@ -21,7 +24,7 @@ type OwnProps = {
   inputClassName?: string;
   labelClassName?: string;
   valueClassName?: string;
-  children?: TeactNode[];
+  children?: TeactNode;
   onChange?: (value?: number) => void;
   onBlur?: NoneToVoidFunction;
   onPressEnter?: (e: React.KeyboardEvent<HTMLDivElement>) => void;

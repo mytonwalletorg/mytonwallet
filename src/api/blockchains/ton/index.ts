@@ -1,8 +1,6 @@
-export { fetchAddress } from './address';
 export {
   encryptMnemonic,
   fetchMnemonic,
-  fetchPublicKey,
   generateMnemonic,
   mnemonicToSeed,
   rawSign,
@@ -11,7 +9,10 @@ export {
   verifyPassword,
 } from './auth';
 export { getAccountNfts } from './nfts';
-export { getAccountTokenBalances } from './tokens';
+export {
+  getAccountTokenBalances,
+  buildTokenTransferRaw,
+} from './tokens';
 export { oneCellFromBoc } from './util/tonweb';
 export {
   checkTransactionDraft,
@@ -19,10 +20,13 @@ export {
   getAccountTransactionSlice,
   getTokenTransactionSlice,
   submitTransfer,
-  waitIncrementSeqno,
+  waitLastTransfer,
   checkMultiTransactionDraft,
   submitMultiTransfer,
   getMergedTransactionSlice,
+  sendSignedMessage,
+  sendSignedMessages,
+  parsePayload,
 } from './transactions';
 export {
   getAccountBalance,
@@ -32,6 +36,8 @@ export {
   resolveWalletVersion,
   getWalletStateInit,
   getWalletBalance,
+  getWalletSeqno,
+  isWalletInitialized,
 } from './wallet';
 export {
   checkStakeDraft,
@@ -41,3 +47,9 @@ export {
   getStakingState,
   getBackendStakingState,
 } from './staking';
+export {
+  packPayloadToBoc,
+} from './other';
+export {
+  importToken,
+} from './tokens';

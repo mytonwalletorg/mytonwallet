@@ -4,6 +4,10 @@
   position: relative;
   z-index: var(--z-modal);
 
+  &.slideUp {
+    --transition: 500ms cubic-bezier(0.3, 0.8, 0.2, 1);
+  }
+
   &.error {
     .dialog {
       max-width: 23rem;
@@ -133,8 +137,11 @@
 }
 
 .header {
-  display: flex;
-  flex-shrink: 0;
+  position: relative;
+
+  display: grid;
+  grid-template-areas: "back title close";
+  grid-template-columns: 0.5fr 1fr 0.5fr;
   align-items: center;
 
   padding: 1rem 1rem 0.75rem;
@@ -142,12 +149,31 @@
   color: var(--color-black);
 
   &_transition {
-    margin: -1rem 0 0.8125rem 0;
+    margin: -1rem 0 1rem 0;
     padding: 1rem 1rem 0;
   }
 
   &_noClose {
     padding-top: 1.375rem;
+
+    .title {
+      position: static;
+      transform: none;
+    }
+  }
+
+  &_back {
+    cursor: pointer;
+
+    display: flex;
+    grid-area: back;
+    align-items: center;
+
+    color: var(--color-blue);
+  }
+
+  &_backIcon {
+    font-size: 1.5rem;
   }
 
   .slideUp & {
@@ -156,8 +182,12 @@
 }
 
 .closeButton {
+  grid-area: close;
+
   width: 1.875rem !important;
+  max-width: none !important;
   height: 1.875rem !important;
+  margin-left: auto;
   padding: 0 !important;
 
   color: var(--color-close-button-text) !important;
@@ -197,16 +227,12 @@
 
 .title {
   overflow: hidden;
-  flex: 1 1 auto;
+  grid-area: title;
 
   font-size: 1.0625rem;
   font-weight: 700;
   text-align: center;
   text-overflow: ellipsis;
-
-  &:not(:only-child) {
-    margin: 0 0.5rem 0 2.5rem;
-  }
 }
 
 .content {
@@ -280,8 +306,6 @@
   min-width: 0;
   max-width: 100%;
   padding-top: 0.5rem;
-
-  background: transparent !important;
 }
 
 .transitionContentWrapper {

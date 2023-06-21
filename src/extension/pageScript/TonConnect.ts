@@ -1,6 +1,5 @@
-import {
+import type {
   AppRequest,
-  CONNECT_EVENT_ERROR_CODES,
   ConnectEvent,
   ConnectEventError,
   ConnectRequest,
@@ -10,9 +9,11 @@ import {
   WalletEvent,
   WalletResponse,
 } from '@tonconnect/protocol';
+import {
+  CONNECT_EVENT_ERROR_CODES,
+} from '@tonconnect/protocol';
 
 import type { Connector } from '../../util/PostMessageConnector';
-
 import packageJson from '../../../package.json';
 
 declare global {
@@ -94,14 +95,14 @@ class TonConnect implements TonConnectBridge {
 
   private callbacks: Array<(event: WalletEvent) => void>;
 
-  private lastConnectId: number = 0;
+  private lastGeneratedId: number = 0;
 
   constructor(private apiConnector: Connector) {
     this.callbacks = [];
   }
 
   async connect(protocolVersion: number, message: ConnectRequest): Promise<ConnectEvent> {
-    const id = ++this.lastConnectId;
+    const id = ++this.lastGeneratedId;
 
     if (protocolVersion > this.protocolVersion) {
       return TonConnect.buildConnectError(
@@ -122,7 +123,7 @@ class TonConnect implements TonConnectBridge {
   }
 
   async restoreConnection(): Promise<ConnectEvent> {
-    const id = ++this.lastConnectId;
+    const id = ++this.lastGeneratedId;
 
     const response = await this.request('reconnect', [id]);
     if (response?.event === 'connect') {
@@ -156,6 +157,18 @@ class TonConnect implements TonConnectBridge {
     return () => {
       this.callbacks = this.callbacks.filter((cb) => cb !== callback);
     };
+  }
+
+  onDisconnect() {
+    const id = ++this.lastGeneratedId;
+
+    this.emit({
+      event: 'disconnect',
+      id,
+      payload: {},
+    });
+
+    this.removeEventListeners();
   }
 
   private request(name: RequestMethods, args: any[] = []) {
@@ -209,4 +222,6 @@ export function initTonConnect(apiConnector: Connector) {
   window.mytonwallet = {
     tonconnect: tonConnect,
   };
+
+  return tonConnect;
 }

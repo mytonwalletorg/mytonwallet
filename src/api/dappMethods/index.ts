@@ -1,10 +1,10 @@
-import type { OnApiUpdate } from '../types';
 import type { ApiDappUpdate, OnApiDappUpdate } from '../types/dappUpdates';
+import type { OnApiUpdate } from '../types';
 
-import { IS_EXTENSION } from '../environment';
-import storage from '../storages/idb';
-import { resolveDappPromise } from '../common/dappPromises';
 import { getMainAccountId } from '../common/accounts';
+import { resolveDappPromise } from '../common/dappPromises';
+import { IS_EXTENSION } from '../environment';
+import storage from '../storages/chrome';
 import { clearCache, openPopupWindow } from './window';
 
 let onPopupUpdate: OnApiUpdate;

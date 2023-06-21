@@ -1,29 +1,29 @@
 import React, {
   memo, useCallback, useEffect, useMemo,
 } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
 
 import type { ApiBackendStakingState } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
 import { CARD_SECONDARY_VALUE_SYMBOL, TON_TOKEN_SLUG } from '../../config';
-import { STAKING_DECIMAL } from './StakingInitial';
+import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
-import { formatCurrency } from '../../util/formatNumber';
-import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import buildClassName from '../../util/buildClassName';
+import { formatRelativeHumanDateTime } from '../../util/dateFormat';
+import { formatCurrency } from '../../util/formatNumber';
 import { round } from '../../util/round';
 
-import useLang from '../../hooks/useLang';
-import useShowTransition from '../../hooks/useShowTransition';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
+import useLang from '../../hooks/useLang';
+import useShowTransition from '../../hooks/useShowTransition';
 
-import RichNumberField from '../ui/RichNumberField';
-import Modal from '../ui/Modal';
-import ModalHeader from '../ui/ModalHeader';
 import Button from '../ui/Button';
 import Loading from '../ui/Loading';
+import Modal from '../ui/Modal';
+import ModalHeader from '../ui/ModalHeader';
+import RichNumberField from '../ui/RichNumberField';
+import { STAKING_DECIMAL } from './StakingInitial';
 import StakingProfitItem from './StakingProfitItem';
 
 import styles from './Staking.module.scss';

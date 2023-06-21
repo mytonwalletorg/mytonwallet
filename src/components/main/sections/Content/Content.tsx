@@ -1,14 +1,16 @@
 import React, { memo, useCallback, useMemo } from '../../../../lib/teact/teact';
-import { getActions } from '../../../../global';
 
+import { getActions, withGlobal } from '../../../../global';
+import { selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
 
 import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
-
-import Assets from './Assets';
 import Activity from './Activity';
+import Assets from './Assets';
 import Nfts from './Nfts';
 
 import styles from './Content.module.scss';
@@ -19,37 +21,59 @@ interface OwnProps {
   onStakedTokenClick: NoneToVoidFunction;
 }
 
-function Content({ activeTabIndex, onStakedTokenClick, setActiveTabIndex }: OwnProps) {
+interface StateProps {
+  tokenCount: number;
+}
+
+const MIN_ASSETS_FOR_DESKTOP_TAB_VIEW = 5;
+
+function Content({
+  activeTabIndex, tokenCount, setActiveTabIndex, onStakedTokenClick,
+}: OwnProps & StateProps) {
   const { selectToken } = getActions();
+  const { isLandscape } = useDeviceScreen();
 
   const lang = useLang();
 
-  const TABS = useMemo(() => ([
-    { id: 'assets', title: lang('Assets') as string, className: styles.tab },
-    { id: 'activity', title: lang('Activity') as string, className: styles.tab },
-    { id: 'nft', title: lang('NFT') as string, className: styles.tab },
-  ]), [lang]);
+  const shouldShowSeparateAssetsPanel = isLandscape && tokenCount < MIN_ASSETS_FOR_DESKTOP_TAB_VIEW;
 
-  const handleSwitchTab = useCallback((index: number) => {
-    selectToken({ slug: undefined });
-    setActiveTabIndex(index);
-  }, [selectToken, setActiveTabIndex]);
+  const TABS = useMemo(
+    () => [
+      ...(!shouldShowSeparateAssetsPanel
+        ? [{ id: 'assets', title: lang('Assets') as string, className: styles.tab }]
+        : []),
+      { id: 'activity', title: lang('Activity') as string, className: styles.tab },
+      { id: 'nft', title: lang('NFT') as string, className: styles.tab },
+    ],
+    [lang, shouldShowSeparateAssetsPanel],
+  );
 
-  const handleClickAssets = useCallback((slug: string) => {
-    selectToken({ slug });
-    setActiveTabIndex(TABS.findIndex((tab) => tab.id === 'activity'));
-  }, [TABS, selectToken, setActiveTabIndex]);
+  const handleSwitchTab = useCallback(
+    (index: number) => {
+      selectToken({ slug: undefined });
+      setActiveTabIndex(index);
+    },
+    [selectToken, setActiveTabIndex],
+  );
+
+  const handleClickAssets = useCallback(
+    (slug: string) => {
+      selectToken({ slug });
+      setActiveTabIndex(TABS.findIndex((tab) => tab.id === 'activity'));
+    },
+    [TABS, selectToken, setActiveTabIndex],
+  );
 
   function renderCurrentTab(isActive: boolean) {
+    // When assets are shown separately, there is effectively no tab with index 0,
+    // so we fall back to next tab to not break parent's component logic.
+    if (activeTabIndex === 0 && shouldShowSeparateAssetsPanel) {
+      return <Activity isActive={isActive} />;
+    }
+
     switch (TABS[activeTabIndex].id) {
       case 'assets':
-        return (
-          <Assets
-            isActive={isActive}
-            onTokenClick={handleClickAssets}
-            onStakedTokenClick={onStakedTokenClick}
-          />
-        );
+        return <Assets isActive={isActive} onTokenClick={handleClickAssets} onStakedTokenClick={onStakedTokenClick} />;
 
       case 'activity':
         return <Activity isActive={isActive} />;
@@ -63,15 +87,17 @@ function Content({ activeTabIndex, onStakedTokenClick, setActiveTabIndex }: OwnP
   }
 
   return (
-    <div className={styles.container}>
-      <TabList
-        tabs={TABS}
-        activeTab={activeTabIndex}
-        onSwitchTab={handleSwitchTab}
-        className={styles.tabs}
-      />
+    <div
+      className={buildClassName(styles.container, isLandscape ? styles.landscapeContainer : styles.portraitContainer)}
+    >
+      {shouldShowSeparateAssetsPanel && (
+        <div className={styles.assetsPanel}>
+          <Assets isActive onStakedTokenClick={onStakedTokenClick} onTokenClick={handleClickAssets} />
+        </div>
+      )}
+      <TabList tabs={TABS} activeTab={activeTabIndex} onSwitchTab={handleSwitchTab} className={styles.tabs} />
       <Transition
-        name="slide"
+        name={isLandscape ? 'slideFade' : 'slide'}
         activeKey={activeTabIndex}
         renderCount={TABS.length}
         className={styles.slides}
@@ -83,4 +109,14 @@ function Content({ activeTabIndex, onStakedTokenClick, setActiveTabIndex }: OwnP
   );
 }
 
-export default memo(Content);
+export default memo(
+  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+    detachWhenChanged(global.currentAccountId);
+
+    const tokens = selectCurrentAccountTokens(global);
+
+    return {
+      tokenCount: tokens?.length ?? 0,
+    };
+  })(Content),
+);

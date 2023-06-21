@@ -1,0 +1,46 @@
+productName: "MyTonWallet"
+artifactName: "${productName}-${arch}.${ext}"
+appId: "io.mytonwallet.electron"
+extraMetadata:
+  main: "./dist/electron.js"
+  productName: "MyTonWallet"
+files:
+  - "dist"
+  - "package.json"
+  - "!node_modules"
+directories:
+  buildResources: "./public"
+  output: "./dist-electron"
+protocols:
+  - name: "Ton"
+    schemes: ["ton"]
+publish:
+  provider: "github"
+  owner: "mytonwalletorg"
+  repo: "mytonwallet"
+  releaseType: "release"
+win:
+  target: "nsis"
+  icon: "public/icon-electron-windows.ico"
+mac:
+  target:
+    target: "default"
+    arch: ["x64", "arm64"]
+  entitlements: "public/electron-entitlements.mac.plist"
+  icon: "public/icon-electron-macos.icns"
+  notarize:
+    teamId: "Y54Z4K69Z9"
+dmg:
+  title: "MyTonWallet installer"
+  background: "public/background-electron-dmg.tiff"
+  contents:
+    - x: 148
+      y: 180
+      type: "file"
+    - x: 392
+      y: 180
+      type: "link"
+      path: "/Applications"
+linux:
+  category: "Cryptocurrencies"
+  target: ["AppImage"]

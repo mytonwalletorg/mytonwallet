@@ -1,6 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
 export class ApiBaseError extends Error {
-  constructor(message: string) {
+  constructor(message?: string) {
     super(message);
     Error.captureStackTrace(this);
     this.name = this.constructor.name;

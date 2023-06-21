@@ -1,8 +1,7 @@
-import { Storage } from '../../storages/types';
-import { getTonWeb } from './util/tonweb';
+import type { ApiNetwork } from '../../types';
+
 import dns from '../../../util/dns';
-import { ApiNetwork } from '../../types';
-import { getAccountValue } from '../../common/accounts';
+import { getTonWeb } from './util/tonweb';
 
 const { DnsCollection } = require('tonweb/src/contract/dns/DnsCollection');
 
@@ -31,8 +30,4 @@ export async function resolveAddress(network: ApiNetwork, address: string) {
     }
     return undefined;
   }
-}
-
-export function fetchAddress(storage: Storage, accountId: string): Promise<string> {
-  return getAccountValue(storage, accountId, 'addresses');
 }

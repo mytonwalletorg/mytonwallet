@@ -1,11 +1,13 @@
-import { OnApiDappUpdate } from '../../types/dappUpdates';
-import {
-  DappMethods, LegacyDappMethods, DappMethodResponse, LegacyDappMethodResponse,
+import type { OnApiDappUpdate } from '../../types/dappUpdates';
+import type {
+  DappMethodResponse, DappMethods, LegacyDappMethodResponse,
+  LegacyDappMethods,
 } from '../../dappMethods/types';
 
 import { PAGE_CONNECTOR_CHANNEL } from './config';
-import { createConnector, Connector } from '../../../util/PostMessageConnector';
-import { DEBUG } from '../../../config';
+import { logDebugError } from '../../../util/logs';
+import type { Connector } from '../../../util/PostMessageConnector';
+import { createConnector } from '../../../util/PostMessageConnector';
 
 let connector: Connector;
 
@@ -25,11 +27,7 @@ export function initApi(onUpdate: OnApiDappUpdate) {
 
 export function callApi<T extends keyof Methods>(methodName: T, ...args: any[]) {
   if (!connector) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.warn('API is not initialized');
-    }
-
+    logDebugError('API is not initialized');
     return undefined;
   }
 

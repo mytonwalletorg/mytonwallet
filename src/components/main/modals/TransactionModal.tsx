@@ -1,5 +1,4 @@
 import React, { memo, useCallback, useState } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
 
 import type { ApiToken, ApiTransaction } from '../../../api/types';
 
@@ -10,20 +9,22 @@ import {
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../config';
-import { selectCurrentAccountState } from '../../../global/selectors';
+import { getActions, withGlobal } from '../../../global';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../global/helpers';
+import { selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
-import useShowTransition from '../../../hooks/useShowTransition';
-import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
-import useOnChange from '../../../hooks/useOnChange';
-import useLang from '../../../hooks/useLang';
 
-import Modal from '../../ui/Modal';
-import Button from '../../ui/Button';
+import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
+import useLang from '../../../hooks/useLang';
+import useShowTransition from '../../../hooks/useShowTransition';
+import useSyncEffect from '../../../hooks/useSyncEffect';
+
 import TransactionAmount from '../../common/TransactionAmount';
-import InteractiveTextField from '../../ui/InteractiveTextField';
 import AmountWithFeeTextField from '../../ui/AmountWithFeeTextField';
+import Button from '../../ui/Button';
+import InteractiveTextField from '../../ui/InteractiveTextField';
+import Modal from '../../ui/Modal';
 
 import transferStyles from '../../transfer/Transfer.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
@@ -78,21 +79,20 @@ function TransactionModal({
     : undefined;
 
   const withUnstakeTimer = Boolean(
-    transaction?.type === 'unstakeRequest' && startOfStakingCycle
-    && (transaction.timestamp >= startOfStakingCycle),
+    transaction?.type === 'unstakeRequest' && startOfStakingCycle && transaction.timestamp >= startOfStakingCycle,
   );
   const {
     shouldRender: shouldRenderUnstakeTimer,
     transitionClassNames: unstakeTimerClassNames,
   } = useShowTransition(withUnstakeTimer);
 
-  useOnChange(() => {
+  useSyncEffect(() => {
     if (transaction) {
       setIsModalOpen(true);
     }
   }, [transaction]);
 
-  useOnChange(() => {
+  useSyncEffect(() => {
     if (endOfStakingCycle) {
       setUnstakeDate(endOfStakingCycle);
     }
@@ -124,10 +124,7 @@ function TransactionModal({
       <>
         {timestamp ? `${formatFullDay(lang.code!, timestamp)}, ${formatTime(timestamp)}` : lang('Transaction Info')}
         {isLocal && (
-          <i
-            className={buildClassName(styles.clockIcon, 'icon-clock')}
-            title={lang('Transaction in progress')}
-          />
+          <i className={buildClassName(styles.clockIcon, 'icon-clock')} title={lang('Transaction in progress')} />
         )}
         {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
       </>
@@ -218,6 +215,9 @@ function TransactionModal({
 
         {renderFee()}
         {renderComment()}
+        {isStaking && isIncoming && !shouldRenderUnstakeTimer && (
+          <div className={styles.unstakeNotice}>{lang('Unstaked successfully')}</div>
+        )}
         {shouldRenderUnstakeTimer && renderUnstakeTimer()}
 
         <div className={styles.footer}>
@@ -237,8 +237,8 @@ function TransactionModal({
   );
 }
 
-export default memo(withGlobal(
-  (global): StateProps => {
+export default memo(
+  withGlobal((global): StateProps => {
     const accountState = selectCurrentAccountState(global);
 
     const txId = accountState?.currentTransactionId;
@@ -255,5 +255,5 @@ export default memo(withGlobal(
       startOfStakingCycle,
       endOfStakingCycle,
     };
-  },
-)(TransactionModal));
+  })(TransactionModal),
+);

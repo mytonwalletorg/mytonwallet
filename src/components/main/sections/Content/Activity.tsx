@@ -1,21 +1,24 @@
-import React, {
-  memo, useCallback, useMemo,
-} from '../../../../lib/teact/teact';
-import { withGlobal, getActions } from '../../../../global';
+import React, { memo, useCallback, useMemo } from '../../../../lib/teact/teact';
 
 import type { ApiToken, ApiTransaction } from '../../../../api/types';
-import { compareTransactions } from '../../../../api/common/helpers';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, TINY_TRANSFER_MAX_AMOUNT, TON_TOKEN_SLUG } from '../../../../config';
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
+import { getActions, withGlobal } from '../../../../global';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
-import { selectCurrentAccountState } from '../../../../global/selectors';
+import { selectCurrentAccountState, selectIsNewWallet } from '../../../../global/selectors';
+import buildClassName from '../../../../util/buildClassName';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
+import { findLast } from '../../../../util/iteratees';
+import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
+import { compareTransactions } from '../../../../api/common/helpers';
+
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteLoader from '../../../../hooks/useInfiniteLoader';
 import useLang from '../../../../hooks/useLang';
-import { findLast } from '../../../../util/iteratees';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
+import Loading from '../../../ui/Loading';
+import NewWalletGreeting from './NewWalletGreeting';
 import Transaction from './Transaction';
 
 import styles from './Activity.module.scss';
@@ -25,11 +28,13 @@ interface OwnProps {
 }
 
 type StateProps = {
+  currentAccountId: string;
   slug?: string;
   isLoading?: boolean;
+  isNewWallet: boolean;
   areTinyTransfersHidden?: boolean;
   byTxId?: Record<string, ApiTransaction>;
-  txIds?: string[];
+  txIdsBySlug?: Record<string, string[]>;
   tokensBySlug?: Record<string, ApiToken>;
   apyValue: number;
   savedAddresses?: Record<string, string>;
@@ -44,9 +49,11 @@ const FURTHER_SLICE = 50;
 
 function Activity({
   isActive,
+  currentAccountId,
   isLoading,
+  isNewWallet,
   slug,
-  txIds,
+  txIdsBySlug,
   byTxId,
   tokensBySlug,
   areTinyTransfersHidden,
@@ -56,8 +63,27 @@ function Activity({
   const { fetchTokenTransactions, fetchAllTransactions, showTransactionInfo } = getActions();
 
   const lang = useLang();
+  const { isLandscape } = useDeviceScreen();
 
   const transactions = useMemo(() => {
+    let txIds: string[] | undefined;
+
+    const bySlug = txIdsBySlug ?? {};
+
+    if (byTxId) {
+      if (slug) {
+        txIds = bySlug[slug] ?? [];
+      } else {
+        const lastTonTxId = findLast(bySlug[TON_TOKEN_SLUG] ?? [], (txId) => !getIsTxIdLocal(txId));
+        txIds = Object.values(bySlug).flat();
+        if (lastTonTxId) {
+          txIds = txIds.filter((txId) => byTxId[txId].timestamp >= byTxId[lastTonTxId].timestamp);
+        }
+
+        txIds.sort((a, b) => compareTransactions(byTxId[a], byTxId[b], false));
+      }
+    }
+
     if (!txIds) {
       return undefined;
     }
@@ -67,13 +93,10 @@ function Activity({
       .filter((transaction) => {
         return Boolean(
           transaction?.slug
-          && (!slug || transaction.slug === slug)
-          && (
-            !areTinyTransfersHidden
-            || Math.abs(
-              bigStrToHuman(transaction.amount, tokensBySlug![transaction.slug!].decimals),
-            ) >= TINY_TRANSFER_MAX_AMOUNT
-          ),
+            && (!slug || transaction.slug === slug)
+            && (!areTinyTransfersHidden
+              || Math.abs(bigStrToHuman(transaction.amount, tokensBySlug![transaction.slug!].decimals))
+                >= TINY_TRANSFER_MAX_AMOUNT),
         );
       }) as ApiTransaction[];
 
@@ -105,7 +128,7 @@ function Activity({
     });
 
     return groupedTransactions;
-  }, [tokensBySlug, byTxId, areTinyTransfersHidden, slug, txIds]);
+  }, [tokensBySlug, byTxId, areTinyTransfersHidden, slug, txIdsBySlug]);
 
   const loadMore = useCallback(() => {
     if (slug) {
@@ -115,18 +138,23 @@ function Activity({
     }
   }, [slug, fetchTokenTransactions, fetchAllTransactions]);
 
-  const handleTransactionClick = useCallback((txId: string) => {
-    showTransactionInfo({ txId });
-  }, [showTransactionInfo]);
+  const handleTransactionClick = useCallback(
+    (txId: string) => {
+      showTransactionInfo({ txId });
+    },
+    [showTransactionInfo],
+  );
 
   const lastElementRef = useInfiniteLoader({ isLoading, loadMore });
+
+  if (!currentAccountId) {
+    return undefined;
+  }
 
   function renderTransactionGroups(transactionGroups: TransactionDateGroup[]) {
     return transactionGroups.map((group, groupIdx) => (
       <div className={styles.group}>
-        <div className={styles.date}>
-          {formatHumanDay(lang, group.datetime)}
-        </div>
+        <div className={styles.date}>{formatHumanDay(lang, group.datetime)}</div>
         {group.transactions.map((transaction) => {
           return (
             <Transaction
@@ -139,11 +167,25 @@ function Activity({
             />
           );
         })}
-        {groupIdx + 1 === transactionGroups.length && (
-          <div ref={lastElementRef} className={styles.loaderThreshold} />
-        )}
+        {groupIdx + 1 === transactionGroups.length && <div ref={lastElementRef} className={styles.loaderThreshold} />}
       </div>
     ));
+  }
+
+  if (transactions === undefined) {
+    return (
+      <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
+        <Loading />
+      </div>
+    );
+  }
+
+  if (isLandscape && isNewWallet) {
+    return (
+      <div className={styles.greeting}>
+        <NewWalletGreeting isActive mode="emptyList" />
+      </div>
+    );
   }
 
   if (!transactions?.length) {
@@ -163,39 +205,29 @@ function Activity({
     );
   }
 
-  return renderTransactionGroups(transactions);
+  return <div>{renderTransactionGroups(transactions)}</div>;
 }
 
-export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-  const { currentAccountId } = global;
-  detachWhenChanged(currentAccountId);
+export default memo(
+  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+    const { currentAccountId } = global;
+    detachWhenChanged(currentAccountId);
 
-  const accountState = selectCurrentAccountState(global);
-
-  const slug = accountState?.currentTokenSlug;
-  const { txIdsBySlug = {}, byTxId } = accountState?.transactions || {};
-
-  let orderedTxIds: string[] | undefined;
-  if (slug) {
-    orderedTxIds = txIdsBySlug[slug];
-  } else if (byTxId) {
-    const lastTonTxId = findLast(txIdsBySlug[TON_TOKEN_SLUG] || [], (txId) => !getIsTxIdLocal(txId));
-    orderedTxIds = Object.values(txIdsBySlug).flat();
-    if (lastTonTxId) {
-      orderedTxIds = orderedTxIds.filter((txId) => byTxId[txId].timestamp >= byTxId[lastTonTxId].timestamp);
-    }
-
-    orderedTxIds.sort((a, b) => compareTransactions(byTxId[a], byTxId[b], false));
-  }
-
-  return {
-    slug,
-    isLoading: accountState?.transactions?.isLoading,
-    byTxId,
-    txIds: orderedTxIds,
-    tokensBySlug: global.tokenInfo?.bySlug,
-    areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
-    apyValue: accountState?.poolState?.lastApy || 0,
-    savedAddresses: accountState?.savedAddresses,
-  };
-})(Activity));
+    const accountState = selectCurrentAccountState(global);
+    const isNewWallet = selectIsNewWallet(global);
+    const slug = accountState?.currentTokenSlug;
+    const { txIdsBySlug, byTxId, isLoading } = accountState?.transactions || {};
+    return {
+      currentAccountId: currentAccountId!,
+      slug,
+      isLoading,
+      byTxId,
+      isNewWallet,
+      txIdsBySlug,
+      tokensBySlug: global.tokenInfo?.bySlug,
+      areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
+      apyValue: accountState?.poolState?.lastApy || 0,
+      savedAddresses: accountState?.savedAddresses,
+    };
+  })(Activity),
+);

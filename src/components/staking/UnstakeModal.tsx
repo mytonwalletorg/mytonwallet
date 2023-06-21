@@ -1,36 +1,38 @@
 import React, {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
 
-import { GlobalState, StakingState, UserToken } from '../../global/types';
+import { StakingState } from '../../global/types';
+import type { GlobalState, UserToken } from '../../global/types';
 
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import {
   CARD_SECONDARY_VALUE_SYMBOL, MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_TOKEN_SLUG,
 } from '../../config';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
+import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
-import usePrevious from '../../hooks/usePrevious';
-import useLang from '../../hooks/useLang';
-import useOnChange from '../../hooks/useOnChange';
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
+
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
+import useLang from '../../hooks/useLang';
+import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
+import usePrevious from '../../hooks/usePrevious';
+import useSyncEffect from '../../hooks/useSyncEffect';
 
+import TransferResult from '../common/TransferResult';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
 import Modal from '../ui/Modal';
-import Transition from '../ui/Transition';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
-import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import RichNumberField from '../ui/RichNumberField';
-import Button from '../ui/Button';
-import TransferResult from '../common/TransferResult';
+import Transition from '../ui/Transition';
 
-import styles from './Staking.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import styles from './Staking.module.scss';
 
 type StateProps = GlobalState['staking'] & {
   tokens?: UserToken[];
@@ -66,11 +68,6 @@ function UnstakeModal({
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
-  const renderingState = useCurrentOrPrev(isOpen ? state : undefined, true) ?? -1;
-  const [nextKey, setNextKey] = useState(renderingState + 1);
-  const updateNextKey = useCallback(() => {
-    setNextKey(renderingState + 1);
-  }, [renderingState]);
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
   const renderedStakingBalance = usePrevious(stakingBalance, true);
   const renderedTokenBalance = usePrevious(tonToken?.amount, true);
@@ -78,14 +75,15 @@ function UnstakeModal({
   const hasBalanceForUnstake = tonToken && tonToken.amount >= MIN_BALANCE_FOR_UNSTAKE;
   const forceUpdate = useForceUpdate();
 
+  const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
+
   useEffect(() => {
     if (isOpen) {
       fetchBackendStakingState();
-      updateNextKey();
     }
-  }, [isOpen, fetchBackendStakingState, updateNextKey]);
+  }, [isOpen, fetchBackendStakingState]);
 
-  useOnChange(() => {
+  useSyncEffect(() => {
     if (endOfStakingCycle) {
       setUnstakeDate(endOfStakingCycle);
     }
@@ -100,16 +98,11 @@ function UnstakeModal({
 
   useInterval(refreshUnstakeDate, UPDATE_UNSTAKE_DATE_INTERVAL_MS);
 
-  const handleModalClose = useCallback(() => {
-    setNextKey(StakingState.None);
-  }, []);
-
   const handleBackClick = useCallback(() => {
     if (state === StakingState.UnstakePassword) {
       setStakingScreen({ state: StakingState.UnstakeInitial });
     }
-    setNextKey(nextKey - 1);
-  }, [nextKey, setStakingScreen, state]);
+  }, [setStakingScreen, state]);
 
   const handleStartUnstakeClick = useCallback(() => {
     submitStakingInitial({ isUnstaking: true });
@@ -248,14 +241,14 @@ function UnstakeModal({
       isOpen={isOpen}
       onClose={cancelStaking}
       noBackdropClose
-      onCloseAnimationEnd={handleModalClose}
       dialogClassName={styles.modalDialog}
+      onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="push-slide"
+        name="pushSlide"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
-        activeKey={renderingState}
+        activeKey={renderingKey}
         nextKey={nextKey}
         onStop={updateNextKey}
       >

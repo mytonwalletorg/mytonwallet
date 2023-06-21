@@ -1,14 +1,15 @@
 import type { Ref, RefObject } from 'react';
 import React, { memo, useCallback } from '../../../../lib/teact/teact';
 
-import { ApiToken, ApiTransaction } from '../../../../api/types';
+import type { ApiToken, ApiTransaction } from '../../../../api/types';
 
 import { CARD_SECONDARY_VALUE_SYMBOL } from '../../../../config';
+import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
+import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
-import buildClassName from '../../../../util/buildClassName';
-import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
 import { shortenAddress } from '../../../../util/shortenAddress';
+
 import useLang from '../../../../hooks/useLang';
 
 import Button from '../../../ui/Button';

@@ -1,5 +1,5 @@
-import storage from '../storages/idb';
 import { createDappPromise, rejectAllDappPromises } from '../common/dappPromises';
+import storage from '../storages/chrome';
 
 // eslint-disable-next-line no-restricted-globals
 const { chrome } = self;

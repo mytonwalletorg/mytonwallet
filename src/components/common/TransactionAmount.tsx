@@ -1,8 +1,8 @@
 import React, { memo } from '../../lib/teact/teact';
 
 import { CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
-import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 import buildClassName from '../../util/buildClassName';
+import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 
 import styles from './TransactionAmount.module.scss';
 

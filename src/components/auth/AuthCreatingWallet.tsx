@@ -1,11 +1,12 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import buildClassName from '../../util/buildClassName';
-import useLang from '../../hooks/useLang';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+
 import useFlag from '../../hooks/useFlag';
-import useTimeout from '../../hooks/useTimeout';
+import useLang from '../../hooks/useLang';
 import useMediaTransition from '../../hooks/useMediaTransition';
+import useTimeout from '../../hooks/useTimeout';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 

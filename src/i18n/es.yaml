@@ -289,3 +289,44 @@ $dapp_transfer_tokens_payload_with_comment: Enviando %amount% desde su monedero 
 $dapp_transfer_tokens_payload: Enviando %amount% desde su monedero a %address%
 $dapp_transfer_nft_payload: Enviando el NFT "%nft%" desde su monedero a %address%
 Nested Transaction: Transacción anidada
+Connected Dapps: Dapps conectadas
+Disconnect All Dapps: Desconectar todas las Dapps
+Disconnect: Desconectar
+Disconnect Dapp: Desconectar Dapp
+Disconnect Dapps: Desconectar Dapps
+Are you sure you want to disconnect?: ¿Estás seguro de que quieres desconectar %dappname%?
+Are you sure you want to disconnect all websites?: ¿Estás seguro de que quieres desconectar todas las dapps?
+$dapps-description: Puede iniciar sesión en dapps compatibles con MyTonWallet. Pueden ver la dirección y el saldo de la billetera.
+Logged in with MyTonWallet: Conectado con MyTonWallet
+No active connections: No hay conexiones activas
+Unstaked successfully: Desembolsado con éxito
+Other: Otros
+Assets & Activity: Activos & Actividad
+Update: Actualizar
+Restart: Reanudar
+Connect Ledger: Conectar libro mayor
+Connecting to your Ledger...: Conectándose a su libro mayor...
+Failed to connect: Error al conectar
+Ledger Connected!: Libro mayor conectado!
+Select Ledger Wallets: Seleccionar carteras contables
+"%1$d Selected": "%1$d Seleccionados"
+Add: Agregar
+Try Again: Intentar otra vez
+Driver: Conductor
+Connect your Ledger to PC: Conecta tu Ledger al PC
+Unlock it and open the TON App: Desbloquéalo y abre la aplicación de TON
+Maybe you need to check the password or change the driver.: Tal vez necesite verificar la contraseña o cambiar el controlador.
+Or import from...: O importar desde...
+Confirm via Ledger: Confirmar a través de Ledger
+Please confirm transaction on your Ledger: Confirme la transacción en su libro mayor
+Declined: Declinado
+Create Wallet: Crear Billetera
+Switch to the newly opened tab to connect Ledger.: Cambia a la pestaña recién abierta para conectar el Ledger.
+Once connected, switch back to this window to proceed.: Una vez conectado, vuelve a esta ventana para continuar.
+Not all transactions were sent successfully: No todas las transacciones se enviaron correctamente
+The time on your device is incorrect, sync it and try again: El tiempo en su dispositivo es incorrecto, sincronícelo y vuelva a intentarlo
+Such error, many tabs: Tal error, muchas pestañas
+$many_tabs_error_description: |
+  MyTonWallet solo admite una pestaña activa con la aplicación.
+  Vuelva a cargar esta página para continuar usando esta pestaña o ciérrela.
+Reload App: Recargar aplicación

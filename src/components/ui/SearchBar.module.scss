@@ -1,14 +1,38 @@
 @import "../../styles/variables";
 
+$addon-size: 2.25rem;
+
 .wrapper {
   position: relative;
 
+  background-color: var(--color-background-first);
+  border-radius: var(--border-radius-buttons);
+}
+
+.iconAddon {
+  pointer-events: none;
+
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+
   display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: $addon-size;
+}
+
+.icon {
+  font-size: 1.5rem;
+  color: var(--color-gray-3);
 }
 
 .input {
   width: 100%;
-  padding: 0 0.5rem 0 0;
+  padding: 0.625rem;
+  padding-left: $addon-size;
 
   font-size: max(16px, 1rem);
   color: var(--color-black);

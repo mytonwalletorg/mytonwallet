@@ -1,22 +1,25 @@
 import TonWeb from 'tonweb';
 import BN from 'bn.js';
 
-import memoized from '../../../util/memoized';
-import { checkTransactionDraft, submitTransfer } from './transactions';
-import { Storage } from '../../storages/types';
-import { handleFetchErrors, isKnownStakingPool } from '../../common/utils';
-import { BRILLIANT_API_BASE_URL, TON_TOKEN_SLUG } from '../../../config';
-import { fetchAddress } from './address';
-import { parseAccountId } from '../../../util/account';
 import {
+  ApiTransactionDraftError,
+} from '../../types';
+import type { Storage } from '../../storages/types';
+import type {
+  ApiBackendStakingState,
   ApiNetwork,
   ApiStakingState,
-  ApiTransactionDraftError,
-  ApiBackendStakingState,
 } from '../../types';
-import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
-import { NominatorPool } from './contracts/NominatorPool';
+
+import { BRILLIANT_API_BASE_URL, TON_TOKEN_SLUG } from '../../../config';
+import { parseAccountId } from '../../../util/account';
+import memoized from '../../../util/memoized';
 import { getTonWeb } from './util/tonweb';
+import { NominatorPool } from './contracts/NominatorPool';
+import { fetchStoredAddress } from '../../common/accounts';
+import { handleFetchErrors, isKnownStakingPool } from '../../common/utils';
+import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
+import { checkTransactionDraft, submitTransfer } from './transactions';
 
 const { toNano } = TonWeb.utils;
 
@@ -29,7 +32,7 @@ const DISABLE_CACHE_PERIOD = 30; // 30 s.
 export const fetchStakingStateMemo = memoized(fetchBackendStakingState, CACHE_TTL);
 
 export async function checkStakeDraft(storage: Storage, accountId: string, amount: string) {
-  const address = await fetchAddress(storage, accountId);
+  const address = await fetchStoredAddress(storage, accountId);
   const { poolAddress } = await fetchStakingStateMemo(address);
 
   const result: {
@@ -56,7 +59,7 @@ export async function checkStakeDraft(storage: Storage, accountId: string, amoun
 }
 
 export async function checkUnstakeDraft(storage: Storage, accountId: string) {
-  const address = await fetchAddress(storage, accountId);
+  const address = await fetchStoredAddress(storage, accountId);
   const { poolAddress } = await fetchStakingStateMemo(address);
   return checkTransactionDraft(
     storage,
@@ -69,7 +72,7 @@ export async function checkUnstakeDraft(storage: Storage, accountId: string) {
 }
 
 export async function submitStake(storage: Storage, accountId: string, password: string, amount: string) {
-  const address = await fetchAddress(storage, accountId);
+  const address = await fetchStoredAddress(storage, accountId);
   const { poolAddress } = await fetchStakingStateMemo(address);
   const result = await submitTransfer(
     storage,
@@ -85,7 +88,7 @@ export async function submitStake(storage: Storage, accountId: string, password:
 }
 
 export async function submitUnstake(storage: Storage, accountId: string, password: string) {
-  const address = await fetchAddress(storage, accountId);
+  const address = await fetchStoredAddress(storage, accountId);
   const { poolAddress } = await fetchStakingStateMemo(address);
   const result = await submitTransfer(
     storage,
@@ -106,7 +109,7 @@ function onStakingChangeExpected() {
 
 export async function getStakingState(storage: Storage, accountId: string): Promise<ApiStakingState> {
   const { network } = parseAccountId(accountId);
-  const address = await fetchAddress(storage, accountId);
+  const address = await fetchStoredAddress(storage, accountId);
   const contract = await getPoolContract(network, address);
   if (network !== 'mainnet' || !contract) {
     return {
@@ -146,7 +149,7 @@ export async function getBackendStakingState(
     return undefined;
   }
 
-  const address = await fetchAddress(storage, accountId);
+  const address = await fetchStoredAddress(storage, accountId);
   return fetchStakingStateMemo(address);
 }
 

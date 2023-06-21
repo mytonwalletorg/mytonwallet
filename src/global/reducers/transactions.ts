@@ -1,8 +1,9 @@
-import { GlobalState } from '../types';
+import type { ApiTransaction } from '../../api/types';
+import type { GlobalState } from '../types';
+
+import { getIsTxIdLocal } from '../helpers';
 import { selectAccountState } from '../selectors';
 import { updateAccountState } from './misc';
-import { ApiTransaction } from '../../api/types';
-import { getIsTxIdLocal } from '../helpers';
 
 export function updateTransaction(global: GlobalState, accountId: string, transaction: ApiTransaction): GlobalState {
   const { transactions } = selectAccountState(global, accountId) || {};

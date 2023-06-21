@@ -1,32 +1,33 @@
 import React, {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
-import { withGlobal, getActions } from '../../global';
 
 import type { UserToken } from '../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, MIN_BALANCE_FOR_UNSTAKE, TON_TOKEN_SLUG } from '../../config';
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
-import buildClassName from '../../util/buildClassName';
+import { getActions, withGlobal } from '../../global';
+import { bigStrToHuman } from '../../global/helpers';
+import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
+import buildClassName from '../../util/buildClassName';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 import { floor } from '../../util/round';
-import { bigStrToHuman } from '../../global/helpers';
 import { throttle } from '../../util/schedulers';
-import renderText from '../../global/helpers/renderText';
-import useLang from '../../hooks/useLang';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
+
 import useFlag from '../../hooks/useFlag';
+import useLang from '../../hooks/useLang';
 
-import Button from '../ui/Button';
-import RichNumberInput from '../ui/RichNumberInput';
-import RichNumberField from '../ui/RichNumberField';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
 import Modal from '../ui/Modal';
-
-import styles from './Staking.module.scss';
-import modalStyles from '../ui/Modal.module.scss';
+import RichNumberField from '../ui/RichNumberField';
+import RichNumberInput from '../ui/RichNumberInput';
 import Transition from '../ui/Transition';
+
+import modalStyles from '../ui/Modal.module.scss';
+import styles from './Staking.module.scss';
 
 interface StateProps {
   isLoading?: boolean;
@@ -192,7 +193,12 @@ function StakingInitial({
     );
 
     return (
-      <Transition name="fade" activeKey={isFullBalanceSelected ? 1 : 0} className={styles.amountTopRight}>
+      <Transition
+        className={styles.amountTopRight}
+        slideClassName={styles.amountTopRight_slide}
+        name="fade"
+        activeKey={isFullBalanceSelected ? 1 : 0}
+      >
         {isFullBalanceSelected ? minusOneLink : balanceLink}
       </Transition>
     );
@@ -204,6 +210,7 @@ function StakingInitial({
     return (
       <Transition
         className={buildClassName(styles.amountBottomRight, isNotEnough && styles.amountBottomRight_error)}
+        slideClassName={styles.amountBottomRight_slide}
         name="fade"
         activeKey={error ? 2 : !stakingBalance && !hasAmountError ? 1 : 0}
       >

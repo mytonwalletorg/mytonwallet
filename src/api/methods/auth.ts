@@ -1,11 +1,11 @@
-import type { ApiNetwork, ApiTxIdBySlug } from '../types';
+import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { Storage } from '../storages/types';
+import type { ApiAccountInfo, ApiNetwork, ApiTxIdBySlug } from '../types';
 
-import { IS_EXTENSION } from '../environment';
 import blockchains from '../blockchains';
 import { getNewAccountId, removeAccountValue, setAccountValue } from '../common/accounts';
 import { bytesToHex } from '../common/utils';
-
+import { IS_EXTENSION } from '../environment';
 import { activateAccount, deactivateAllAccounts, deactivateCurrentAccount } from './accounts';
 
 let storage: Storage;
@@ -73,16 +73,57 @@ export async function importMnemonic(network: ApiNetwork, mnemonic: string[], pa
   };
 }
 
+export async function importLedgerWallet(network: ApiNetwork, walletInfo: LedgerWalletInfo) {
+  const accountId: string = await getNewAccountId(storage, network);
+  const {
+    publicKey, address, index, driver, deviceId, deviceName, version,
+  } = walletInfo;
+
+  await storeHardwareAccount(accountId, publicKey, address, {
+    version,
+    ledger: {
+      index,
+      driver,
+      deviceId,
+      deviceName,
+    },
+  });
+  void activateAccount(accountId);
+
+  return { accountId, address, walletInfo };
+}
+
+async function storeHardwareAccount(
+  accountId: string,
+  publicKey: Uint8Array | string,
+  address: string,
+  accountInfo: ApiAccountInfo = {},
+) {
+  const publicKeyHex = typeof publicKey === 'string' ? publicKey : bytesToHex(publicKey);
+
+  await Promise.all([
+    setAccountValue(storage, accountId, 'publicKeys', publicKeyHex),
+    setAccountValue(storage, accountId, 'addresses', address),
+    setAccountValue(storage, accountId, 'accounts', accountInfo),
+  ]);
+}
+
 async function storeAccount(
-  accountId: string, mnemonic: string[], password: string, publicKey: Uint8Array, address: string,
+  accountId: string,
+  mnemonic: string[],
+  password: string,
+  publicKey: Uint8Array | string,
+  address: string,
+  accountInfo: ApiAccountInfo = {},
 ) {
   const mnemonicEncrypted = await blockchains.ton.encryptMnemonic(mnemonic, password);
-  const publicKeyHex = bytesToHex(publicKey);
+  const publicKeyHex = typeof publicKey === 'string' ? publicKey : bytesToHex(publicKey);
 
   await Promise.all([
     setAccountValue(storage, accountId, 'mnemonicsEncrypted', mnemonicEncrypted),
     setAccountValue(storage, accountId, 'publicKeys', publicKeyHex),
     setAccountValue(storage, accountId, 'addresses', address),
+    setAccountValue(storage, accountId, 'accounts', accountInfo),
   ]);
 }
 
@@ -93,6 +134,8 @@ export async function resetAccounts() {
     storage.removeItem('addresses'),
     storage.removeItem('publicKeys'),
     storage.removeItem('mnemonicsEncrypted'),
+    storage.removeItem('accounts'),
+    IS_EXTENSION && storage.removeItem('dapps'),
   ]);
 }
 
@@ -101,6 +144,7 @@ export async function removeAccount(accountId: string, nextAccountId: string, ne
     removeAccountValue(storage, accountId, 'addresses'),
     removeAccountValue(storage, accountId, 'publicKeys'),
     removeAccountValue(storage, accountId, 'mnemonicsEncrypted'),
+    removeAccountValue(storage, accountId, 'accounts'),
     IS_EXTENSION && removeAccountValue(storage, accountId, 'dapps'),
   ]);
 

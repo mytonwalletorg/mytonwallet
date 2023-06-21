@@ -1,26 +1,27 @@
-import React, {
-  memo, useCallback, useEffect, useMemo, useState,
-} from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
+import React, { memo, useCallback, useMemo } from '../../lib/teact/teact';
 
-import type { GlobalState, UserToken } from '../../global/types';
 import { TransferState } from '../../global/types';
+import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_TOKEN_SLUG } from '../../config';
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
-import buildClassName from '../../util/buildClassName';
+import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountTokens } from '../../global/selectors';
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
-import useLang from '../../hooks/useLang';
+import buildClassName from '../../util/buildClassName';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
-import Modal from '../ui/Modal';
-import Transition from '../ui/Transition';
-import ModalHeader from '../ui/ModalHeader';
-import DappTransferInitial from './DappTransferInitial';
-import PasswordForm from '../ui/PasswordForm';
-import Button from '../ui/Button';
+import useLang from '../../hooks/useLang';
+import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
+
+import LedgerConfirmTransaction from '../ledger/LedgerConfirmTransaction';
+import LedgerConnect from '../ledger/LedgerConnect';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
+import Modal from '../ui/Modal';
+import ModalHeader from '../ui/ModalHeader';
+import PasswordForm from '../ui/PasswordForm';
+import Transition from '../ui/Transition';
 import DappTransaction from './DappTransaction';
+import DappTransferInitial from './DappTransferInitial';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
@@ -28,6 +29,9 @@ import styles from './Dapp.module.scss';
 interface StateProps {
   currentDappTransfer: GlobalState['currentDappTransfer'];
   tokens?: UserToken[];
+  hardwareState?: HardwareConnectState;
+  isLedgerConnected?: boolean;
+  isTonAppConnected?: boolean;
 }
 
 function DappTransactionModal({
@@ -39,11 +43,15 @@ function DappTransactionModal({
     error,
   },
   tokens,
+  hardwareState,
+  isLedgerConnected,
+  isTonAppConnected,
 }: StateProps) {
   const {
     setDappTransferScreen,
     clearDappTransferError,
     submitDappTransferPassword,
+    submitDappTransferHardware,
     cancelDappTransfer,
   } = getActions();
 
@@ -51,32 +59,18 @@ function DappTransactionModal({
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens])!;
 
   const isOpen = state !== TransferState.None;
-  const renderingState = useCurrentOrPrev(isOpen ? state : undefined, true) ?? -1;
-  const [nextKey, setNextKey] = useState(renderingState + 1);
-  const updateNextKey = useCallback(() => {
-    setNextKey(renderingState + 1);
-  }, [renderingState]);
+
+  const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
   const handleBackClick = useCallback(() => {
     if (state === TransferState.Confirm || state === TransferState.Password) {
       setDappTransferScreen({ state: TransferState.Initial });
     }
-    setNextKey(nextKey - 1);
-  }, [nextKey, setDappTransferScreen, state]);
+  }, [setDappTransferScreen, state]);
 
-  const handleTransferSubmit = useCallback((password: string) => {
+  const handleTransferPasswordSubmit = useCallback((password: string) => {
     submitDappTransferPassword({ password });
   }, [submitDappTransferPassword]);
-
-  useEffect(() => {
-    if (isOpen) {
-      updateNextKey();
-    }
-  }, [isOpen, updateNextKey]);
-
-  const handleModalClose = useCallback(() => {
-    setNextKey(TransferState.None);
-  }, []);
 
   function renderSingleTransaction(isActive: boolean) {
     const transaction = viewTransactionOnIdx !== undefined ? transactions?.[viewTransactionOnIdx] : undefined;
@@ -120,7 +114,7 @@ function DappTransactionModal({
           error={error}
           placeholder={lang('Enter your password')}
           onUpdate={clearDappTransferError}
-          onSubmit={handleTransferSubmit}
+          onSubmit={handleTransferPasswordSubmit}
           submitLabel={lang('Send')}
           onCancel={handleBackClick}
           cancelLabel={lang('Back')}
@@ -145,6 +139,25 @@ function DappTransactionModal({
 
       case TransferState.Password:
         return renderPassword(isActive);
+
+      case TransferState.ConnectHardware:
+        return (
+          <LedgerConnect
+            state={hardwareState}
+            isTonAppConnected={isTonAppConnected}
+            isLedgerConnected={isLedgerConnected}
+            onConnected={submitDappTransferHardware}
+            onClose={cancelDappTransfer}
+          />
+        );
+      case TransferState.ConfirmHardware:
+        return (
+          <LedgerConfirmTransaction
+            error={error}
+            onTryAgain={submitDappTransferHardware}
+            onClose={cancelDappTransfer}
+          />
+        );
     }
   }
 
@@ -155,14 +168,14 @@ function DappTransactionModal({
       isOpen={isOpen}
       onClose={cancelDappTransfer}
       noBackdropClose
-      onCloseAnimationEnd={handleModalClose}
       dialogClassName={styles.modalDialog}
+      onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="push-slide"
+        name="pushSlide"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
-        activeKey={renderingState}
+        activeKey={renderingKey}
         nextKey={nextKey}
         onStop={updateNextKey}
       >
@@ -173,8 +186,17 @@ function DappTransactionModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
+  const {
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
+  } = global.hardware;
+
   return {
     currentDappTransfer: global.currentDappTransfer,
     tokens: selectCurrentAccountTokens(global),
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
   };
 })(DappTransactionModal));

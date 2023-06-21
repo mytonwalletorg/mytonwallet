@@ -1,6 +1,6 @@
-import type { Theme } from '../global/types';
-
 import { useEffect } from '../lib/teact/teact';
+
+import type { Theme } from '../global/types';
 
 interface Props {
   isActive: boolean;

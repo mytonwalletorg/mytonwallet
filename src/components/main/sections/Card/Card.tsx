@@ -1,32 +1,33 @@
 import React, {
   memo, useCallback, useEffect, useMemo,
 } from '../../../../lib/teact/teact';
-import { UserToken } from '../../../../global/types';
 
-import { getActions, withGlobal } from '../../../../global';
+import type { UserToken } from '../../../../global/types';
+
 import {
   DEFAULT_PRICE_CURRENCY,
   TON_TOKEN_SLUG,
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
-import { selectAccount, selectCurrentAccountTokens, selectCurrentAccountState } from '../../../../global/selectors';
-import { formatCurrency, formatInteger } from '../../../../util/formatNumber';
-import { copyTextToClipboard } from '../../../../util/clipboard';
+import { getActions, withGlobal } from '../../../../global';
+import { selectAccount, selectCurrentAccountState, selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
-import { getTokenCardColor } from '../../helpers/card_colors';
-import { shortenAddress } from '../../../../util/shortenAddress';
+import captureEscKeyListener from '../../../../util/captureEscKeyListener';
+import { copyTextToClipboard } from '../../../../util/clipboard';
+import { formatCurrency, formatInteger } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
+import { shortenAddress } from '../../../../util/shortenAddress';
+import { getTokenCardColor } from '../../helpers/card_colors';
+
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
-import useShowTransition from '../../../../hooks/useShowTransition';
 import useLang from '../../../../hooks/useLang';
+import useShowTransition from '../../../../hooks/useShowTransition';
 
 import Loading from '../../../ui/Loading';
-
-import TokenCard from './TokenCard';
 import AccountSelector from './AccountSelector';
+import TokenCard from './TokenCard';
 
 import styles from './Card.module.scss';
 
@@ -180,7 +181,8 @@ function Card({
   );
 }
 
-export default memo(withGlobal<OwnProps>((global): StateProps => {
+export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+  detachWhenChanged(global.currentAccountId);
   const { address } = selectAccount(global, global.currentAccountId!) || {};
   const accountState = selectCurrentAccountState(global);
 

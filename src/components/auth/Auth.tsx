@@ -1,30 +1,44 @@
 import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import { getActions } from '../../lib/teact/teactn';
+
+import { AuthState } from '../../global/types';
+import type { GlobalState } from '../../global/types';
+
 import { withGlobal } from '../../global';
-
-import { AuthState, GlobalState } from '../../global/types';
-
 import { pick } from '../../util/iteratees';
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 
+import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+
+import SettingsAbout from '../settings/SettingsAbout';
 import Transition from '../ui/Transition';
-import AuthStart from './AuthStart';
-import AuthCreatingWallet from './AuthCreatingWallet';
-import AuthCreatePassword from './AuthCreatePassword';
-import AuthImportMnemonic from './AuthImportMnemonic';
 import AuthCreateBackup from './AuthCreateBackup';
+import AuthCreatePassword from './AuthCreatePassword';
+import AuthCreatingWallet from './AuthCreatingWallet';
+import AuthImportMnemonic from './AuthImportMnemonic';
+import AuthStart from './AuthStart';
 
 import styles from './Auth.module.scss';
 
 type StateProps = Pick<GlobalState['auth'], (
-  'state' | 'mnemonic' | 'mnemonicCheckIndexes' | 'isLoading'
+  'state' | 'mnemonic' | 'mnemonicCheckIndexes' | 'isLoading' | 'method'
 )>;
+
+const RENDER_COUNT = Object.keys(AuthState).length / 2;
 
 const Auth = ({
   state,
   isLoading,
   mnemonic,
   mnemonicCheckIndexes,
+  method,
 }: StateProps) => {
+  const {
+    closeAbout,
+  } = getActions();
+
+  const { isPortrait } = useDeviceScreen();
+
   // Transitioning to ready state is done in another component
   const renderingAuthState = useCurrentOrPrev(
     state === AuthState.ready ? undefined : state,
@@ -33,8 +47,8 @@ const Auth = ({
 
   const [nextKey, setNextKey] = useState(renderingAuthState + 1);
   const updateNextKey = useCallback(() => {
-    setNextKey((current) => current + 1);
-  }, []);
+    setNextKey(renderingAuthState + 1);
+  }, [renderingAuthState]);
 
   // eslint-disable-next-line consistent-return
   function renderAuthScreen(isActive: boolean, isFrom: boolean, currentKey: number) {
@@ -44,24 +58,28 @@ const Auth = ({
       case AuthState.creatingWallet:
         return <AuthCreatingWallet isActive={isActive} />;
       case AuthState.createPassword:
-        return <AuthCreatePassword isActive={isActive} isLoading={isLoading} />;
+        return <AuthCreatePassword isActive={isActive} isLoading={isLoading} method="createAccount" />;
       case AuthState.createBackup:
         return <AuthCreateBackup isActive={isActive} mnemonic={mnemonic} checkIndexes={mnemonicCheckIndexes} />;
       case AuthState.importWallet:
         return <AuthImportMnemonic isActive={isActive} />;
       case AuthState.importWalletCreatePassword:
-        return <AuthCreatePassword isActive={isActive} isLoading={isLoading} isImporting />;
+        return <AuthCreatePassword isActive={isActive} isLoading={isLoading} method={method} />;
+      case AuthState.about:
+        return <SettingsAbout handleBackClick={closeAbout} />;
     }
   }
 
   return (
     <Transition
-      name="push-slide"
+      name={isPortrait ? 'pushSlide' : 'semiFade'}
       activeKey={renderingAuthState}
-      nextKey={nextKey}
+      renderCount={RENDER_COUNT}
       shouldCleanup
-      onStop={updateNextKey}
       className={styles.transitionContainer}
+      slideClassName={styles.transitionSlide}
+      nextKey={nextKey}
+      onStop={updateNextKey}
     >
       {renderAuthScreen}
     </Transition>
@@ -70,6 +88,6 @@ const Auth = ({
 
 export default memo(withGlobal((global): StateProps => {
   return pick(global.auth, [
-    'state', 'mnemonic', 'mnemonicCheckIndexes', 'isLoading',
+    'state', 'mnemonic', 'mnemonicCheckIndexes', 'isLoading', 'method',
   ]);
 })(Auth));

@@ -1,30 +1,34 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useState,
+  memo, useCallback, useEffect, useMemo,
 } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
 
-import { GlobalState, TransferState, UserToken } from '../../global/types';
+import { TransferState } from '../../global/types';
+import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_TOKEN_SLUG } from '../../config';
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
+import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
-import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
-import usePrevious from '../../hooks/usePrevious';
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
-import useLang from '../../hooks/useLang';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
+import useLang from '../../hooks/useLang';
+import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
+import usePrevious from '../../hooks/usePrevious';
+
+import TransferResult from '../common/TransferResult';
+import LedgerConfirmTransaction from '../ledger/LedgerConfirmTransaction';
+import LedgerConnect from '../ledger/LedgerConnect';
+import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
+import InteractiveTextField from '../ui/InteractiveTextField';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
+import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
 import TransferInitial from './TransferInitial';
-import PasswordForm from '../ui/PasswordForm';
-import Button from '../ui/Button';
-import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
-import InteractiveTextField from '../ui/InteractiveTextField';
-import TransferResult from '../common/TransferResult';
-import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
@@ -33,6 +37,9 @@ interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
   tokens?: UserToken[];
   savedAddresses?: Record<string, string>;
+  hardwareState?: HardwareConnectState;
+  isLedgerConnected?: boolean;
+  isTonAppConnected?: boolean;
 }
 
 const AMOUNT_PRECISION = 4;
@@ -50,30 +57,28 @@ function TransferModal({
     txId,
     tokenSlug,
     toAddressName,
-  }, tokens, savedAddresses,
+  }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected,
 }: StateProps) {
   const {
-    submitTransferConfirm, submitTransferPassword, setTransferScreen, clearTransferError, cancelTransfer,
-    showTransactionInfo, startTransfer,
+    submitTransferConfirm,
+    submitTransferPassword,
+    submitTransferHardware,
+    setTransferScreen,
+    clearTransferError,
+    cancelTransfer,
+    showTransactionInfo,
+    startTransfer,
   } = getActions();
 
   const lang = useLang();
   const isOpen = state !== TransferState.None;
-  const renderingState = useCurrentOrPrev(isOpen ? state : undefined, true) ?? -1;
-  const [nextKey, setNextKey] = useState(renderingState + 1);
-  const updateNextKey = useCallback(() => {
-    setNextKey(renderingState + 1);
-  }, [renderingState]);
+
   const selectedToken = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]);
   const renderedTokenBalance = usePrevious(selectedToken?.amount, true);
   const renderedTransactionAmount = usePrevious(amount, true);
   const symbol = selectedToken?.symbol || '';
 
-  useEffect(() => {
-    if (isOpen) {
-      updateNextKey();
-    }
-  }, [isOpen, updateNextKey]);
+  const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
   useEffect(() => (
     state === TransferState.Confirm
@@ -89,10 +94,6 @@ function TransferModal({
     submitTransferPassword({ password });
   }, [submitTransferPassword]);
 
-  const handleModalClose = useCallback(() => {
-    setNextKey(TransferState.None);
-  }, []);
-
   const handleBackClick = useCallback(() => {
     if (state === TransferState.Confirm) {
       setTransferScreen({ state: TransferState.Initial });
@@ -100,8 +101,7 @@ function TransferModal({
     if (state === TransferState.Password) {
       setTransferScreen({ state: TransferState.Confirm });
     }
-    setNextKey(nextKey - 1);
-  }, [nextKey, setTransferScreen, state]);
+  }, [setTransferScreen, state]);
 
   const handleTransactionInfoClick = useCallback(() => {
     cancelTransfer();
@@ -239,13 +239,28 @@ function TransferModal({
             <TransferInitial />
           </>
         );
-
       case TransferState.Confirm:
         return renderConfirm(isActive);
-
       case TransferState.Password:
         return renderPassword(isActive);
-
+      case TransferState.ConnectHardware:
+        return (
+          <LedgerConnect
+            state={hardwareState}
+            isLedgerConnected={isLedgerConnected}
+            isTonAppConnected={isTonAppConnected}
+            onConnected={submitTransferHardware}
+            onClose={cancelTransfer}
+          />
+        );
+      case TransferState.ConfirmHardware:
+        return (
+          <LedgerConfirmTransaction
+            error={error}
+            onClose={cancelTransfer}
+            onTryAgain={submitTransferHardware}
+          />
+        );
       case TransferState.Complete:
         return renderComplete(isActive);
     }
@@ -258,14 +273,14 @@ function TransferModal({
       isOpen={isOpen}
       onClose={cancelTransfer}
       noBackdropClose
-      onCloseAnimationEnd={handleModalClose}
       dialogClassName={styles.modalDialog}
+      onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="push-slide"
+        name="pushSlide"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
-        activeKey={renderingState}
+        activeKey={renderingKey}
         nextKey={nextKey}
         onStop={updateNextKey}
       >
@@ -278,9 +293,18 @@ function TransferModal({
 export default memo(withGlobal((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
 
+  const {
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
+  } = global.hardware;
+
   return {
     currentTransfer: global.currentTransfer,
     tokens: selectCurrentAccountTokens(global),
     savedAddresses: accountState?.savedAddresses,
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
   };
 })(TransferModal));

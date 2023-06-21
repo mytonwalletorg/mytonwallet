@@ -1,11 +1,17 @@
-import { addActionHandler, getGlobal, setGlobal } from '../../index';
-
+import { ApiTransactionDraftError } from '../../../api/types';
 import { TransferState } from '../../types';
+import type { ApiDappTransaction } from '../../../api/types';
 
+import {
+  buildCollectionByKey, findLast, mapValues, unique,
+} from '../../../util/iteratees';
+import { signLedgerTransactions, submitLedgerTransfer } from '../../../util/ledger';
 import { callApi } from '../../../api';
+import { ApiUserRejectsError } from '../../../api/errors';
+import { getIsTxIdLocal, humanToBigStr } from '../../helpers';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentTransfer,
-  updateBackupWalletModal,
   updateCurrentAccountsState,
   updateCurrentAccountState,
   updateCurrentSignature,
@@ -13,12 +19,7 @@ import {
   updateSendingLoading,
   updateTransactionsIsLoading,
 } from '../../reducers';
-import { getIsTxIdLocal, humanToBigStr } from '../../helpers';
-import {
-  buildCollectionByKey, findLast, mapValues, unique,
-} from '../../../util/iteratees';
-import { ApiTransactionDraftError } from '../../../api/types';
-import { selectCurrentAccountState, selectLastTxIds } from '../../selectors';
+import { selectAccount, selectCurrentAccountState, selectLastTxIds } from '../../selectors';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
   const {
@@ -116,8 +117,18 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   }
 });
 
-addActionHandler('submitTransferConfirm', (global) => {
-  setGlobal(updateCurrentTransfer(global, { state: TransferState.Password }));
+addActionHandler('submitTransferConfirm', (global, actions) => {
+  const accountId = global.currentAccountId!;
+  const account = selectAccount(global, accountId)!;
+
+  if (account.isHardware) {
+    actions.resetHardwareWalletConnect();
+    global = updateCurrentTransfer(getGlobal(), { state: TransferState.ConnectHardware });
+  } else {
+    global = updateCurrentTransfer(global, { state: TransferState.Password });
+  }
+
+  setGlobal(global);
 });
 
 addActionHandler('submitTransferPassword', async (global, actions, payload) => {
@@ -145,27 +156,95 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
 
   if (promiseId) {
     void callApi('confirmDappRequest', promiseId, password);
-
     return;
   }
 
-  const result = await callApi(
-    'submitTransfer',
-    global.currentAccountId!,
+  const options = {
+    accountId: global.currentAccountId!,
     password,
-    tokenSlug!,
-    toAddress!,
-    humanToBigStr(amount!, decimals),
+    slug: tokenSlug!,
+    toAddress: toAddress!,
+    amount: humanToBigStr(amount!, decimals),
     comment,
     fee,
-  );
+  };
 
-  // TODO Reset transfer modal state
-  if (!result) {
-    actions.showDialog({
-      message: 'Transfer was unsuccessful. Try again later',
-    });
+  const result = await callApi('submitTransfer', options);
+
+  setGlobal(updateCurrentTransfer(getGlobal(), {
+    isLoading: false,
+  }));
+
+  if (!result || 'error' in result) {
+    actions.showError({ error: result?.error });
   }
+});
+
+addActionHandler('submitTransferHardware', async (global) => {
+  const {
+    toAddress,
+    comment,
+    amount,
+    promiseId,
+    tokenSlug,
+    fee,
+    rawPayload,
+    parsedPayload,
+    stateInit,
+  } = global.currentTransfer;
+  const { decimals } = global.tokenInfo!.bySlug[tokenSlug!];
+
+  const accountId = global.currentAccountId!;
+
+  setGlobal(updateCurrentTransfer(getGlobal(), {
+    isLoading: true,
+    error: undefined,
+    state: TransferState.ConfirmHardware,
+  }));
+
+  if (promiseId) {
+    const message: ApiDappTransaction = {
+      toAddress: toAddress!,
+      amount: humanToBigStr(amount!, decimals),
+      rawPayload,
+      payload: parsedPayload,
+      stateInit,
+    };
+
+    try {
+      const signedMessage = await signLedgerTransactions(accountId, [message]);
+      void callApi('confirmDappRequest', promiseId, signedMessage);
+    } catch (err) {
+      if (err instanceof ApiUserRejectsError) {
+        setGlobal(updateCurrentTransfer(getGlobal(), {
+          isLoading: false,
+          error: 'Canceled by the user',
+        }));
+      } else {
+        void callApi('cancelDappRequest', promiseId, 'Unknown error');
+      }
+    }
+    return;
+  }
+
+  const options = {
+    accountId: global.currentAccountId!,
+    password: '',
+    slug: tokenSlug!,
+    toAddress: toAddress!,
+    amount: humanToBigStr(amount!, decimals),
+    comment,
+    fee,
+  };
+
+  const result = await submitLedgerTransfer(options);
+
+  const error = result === undefined ? 'Transfer error' : undefined;
+
+  setGlobal(updateCurrentTransfer(getGlobal(), {
+    isLoading: false,
+    error,
+  }));
 });
 
 addActionHandler('clearTransferError', (global) => {
@@ -279,34 +358,10 @@ addActionHandler('fetchNfts', async (global) => {
   setGlobal(global);
 });
 
-addActionHandler('startBackupWallet', async (global, actions, payload) => {
-  const { password } = payload;
-
-  setGlobal(updateBackupWalletModal(global, {
-    isLoading: true,
-    error: undefined,
-  }));
-
-  const mnemonic = await callApi('getMnemonic', global.currentAccountId!, password);
-
-  global = getGlobal();
-  setGlobal(updateBackupWalletModal(global, {
-    isLoading: false,
-    error: !mnemonic ? 'Wrong password, please try again' : undefined,
-    mnemonic,
-  }));
-});
-
-addActionHandler('clearBackupWalletError', (global) => {
-  setGlobal(updateBackupWalletModal(global, { error: undefined }));
-});
-
-addActionHandler('closeBackupWallet', (global, actions, payload) => {
-  const { isMnemonicChecked } = payload || {};
-  const { isBackupRequired } = selectCurrentAccountState(global) || {};
+addActionHandler('setIsBackupRequired', (global, actions, { isMnemonicChecked }) => {
+  const { isBackupRequired } = selectCurrentAccountState(global);
 
   setGlobal(updateCurrentAccountsState(global, {
-    backupWallet: undefined,
     isBackupRequired: isMnemonicChecked ? undefined : isBackupRequired,
   }));
 });

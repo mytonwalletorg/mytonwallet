@@ -1,13 +1,15 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo, useCallback, useLayoutEffect, useRef, VirtualElement,
+  memo, useCallback, useLayoutEffect, useRef,
 } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { floor } from '../../util/round';
 
 import { buildContentHtml } from './RichNumberInput';
+
 import styles from './Input.module.scss';
-import { floor } from '../../util/round';
 
 type OwnProps = {
   id?: string;
@@ -21,7 +23,7 @@ type OwnProps = {
   inputClassName?: string;
   labelClassName?: string;
   valueClassName?: string;
-  children?: VirtualElement;
+  children?: TeactNode;
 };
 
 function RichNumberInput({

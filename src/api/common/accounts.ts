@@ -1,9 +1,8 @@
-import { ApiNetwork } from '../types';
-import { Storage } from '../storages/types';
+import type { Storage, StorageKey } from '../storages/types';
+import type { ApiAccountInfo, ApiNetwork } from '../types';
 
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { buildCollectionByKey } from '../../util/iteratees';
-
 import { toInternalAccountId } from './helpers';
 
 const MIN_ACCOUNT_NUMBER = 0;
@@ -13,11 +12,27 @@ export async function getAccountIds(storage: Storage): Promise<string[]> {
 }
 
 export async function getMainAccountId(storage: Storage) {
+  const accountIds = await getAccountIds(storage);
+
+  const accounts = await Promise.all(
+    accountIds.map(async (accountId) => {
+      const info = await fetchStoredAccount(storage, accountId);
+      return {
+        ...parseAccountId(accountId),
+        accountId,
+        hasLedger: !!info?.ledger,
+      };
+    }),
+  );
+
+  const nonHardwareAccounts = accounts.filter((account) => !account.hasLedger);
+
+  if (!nonHardwareAccounts.length) {
+    return undefined;
+  }
+
   const accountById = buildCollectionByKey(
-    (await getAccountIds(storage)).map((accountId) => ({
-      ...parseAccountId(accountId),
-      accountId,
-    })),
+    nonHardwareAccounts,
     'id',
   );
 
@@ -41,12 +56,24 @@ export async function getNewAccountId(storage: Storage, network: ApiNetwork) {
   });
 }
 
-export async function getAccountValue(storage: Storage, accountId: string, key: string) {
+export function fetchStoredAccount(storage: Storage, accountId: string): Promise<ApiAccountInfo | undefined> {
+  return getAccountValue(storage, accountId, 'accounts');
+}
+
+export function fetchStoredPublicKey(storage: Storage, accountId: string): Promise<string> {
+  return getAccountValue(storage, accountId, 'publicKeys');
+}
+
+export function fetchStoredAddress(storage: Storage, accountId: string): Promise<string> {
+  return getAccountValue(storage, accountId, 'addresses');
+}
+
+export async function getAccountValue(storage: Storage, accountId: string, key: StorageKey) {
   const internalId = toInternalAccountId(accountId);
   return (await storage.getItem(key))?.[internalId];
 }
 
-export async function removeAccountValue(storage: Storage, accountId: string, key: string) {
+export async function removeAccountValue(storage: Storage, accountId: string, key: StorageKey) {
   const internalId = toInternalAccountId(accountId);
   const data = await storage.getItem(key);
   if (!data) return;
@@ -55,7 +82,7 @@ export async function removeAccountValue(storage: Storage, accountId: string, ke
   await storage.setItem(key, restData);
 }
 
-export async function setAccountValue(storage: Storage, accountId: string, key: string, value: any) {
+export async function setAccountValue(storage: Storage, accountId: string, key: StorageKey, value: any) {
   const internalId = toInternalAccountId(accountId);
   const data = await storage.getItem(key);
   await storage.setItem(key, { ...data, [internalId]: value });

@@ -1,4 +1,5 @@
-import { GlobalState, TransferState } from '../types';
+import { TransferState } from '../types';
+import type { GlobalState } from '../types';
 
 export function updateDappConnectRequest(global: GlobalState, update: Partial<GlobalState['dappConnectRequest']>) {
   return {
@@ -44,4 +45,34 @@ export function clearCurrentDappTransfer(global: GlobalState) {
       state: TransferState.None,
     },
   };
+}
+
+export function updateConnectedDapps(global: GlobalState, update: Partial<GlobalState['settings']>) {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      dapps: update.dapps ?? [],
+    },
+  } as GlobalState;
+}
+
+export function clearConnectedDapps(global: GlobalState) {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      dapps: [],
+    },
+  } as GlobalState;
+}
+
+export function removeConnectedDapp(global: GlobalState, origin: string) {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      dapps: global.settings.dapps.filter((dapp) => dapp.origin !== origin),
+    },
+  } as GlobalState;
 }

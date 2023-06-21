@@ -1,14 +1,16 @@
-import nacl from 'tweetnacl';
 import * as tonWebMnemonic from 'tonweb-mnemonic';
-import { Storage } from '../../storages/types';
+import nacl from 'tweetnacl';
+
+import type { Storage } from '../../storages/types';
+
+import { logDebugError } from '../../../util/logs';
+import { getAccountValue } from '../../common/accounts';
 import {
   base64ToBytes,
   bytesToBase64,
   bytesToHex,
   hexToBytes,
 } from '../../common/utils';
-import { DEBUG } from '../../../config';
-import { getAccountValue } from '../../common/accounts';
 
 export function generateMnemonic() {
   return tonWebMnemonic.generateMnemonic();
@@ -90,10 +92,6 @@ export async function fetchPrivateKey(storage: Storage, accountId: string, passw
   }
 }
 
-export function fetchPublicKey(storage: Storage, accountId: string): Promise<string> {
-  return getAccountValue(storage, accountId, 'publicKeys');
-}
-
 export async function fetchKeyPair(storage: Storage, accountId: string, password: string) {
   try {
     const mnemonic = await fetchMnemonic(storage, accountId, password);
@@ -103,10 +101,7 @@ export async function fetchKeyPair(storage: Storage, accountId: string, password
 
     return await tonWebMnemonic.mnemonicToKeyPair(mnemonic);
   } catch (err) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-    }
+    logDebugError('fetchKeyPair', err);
 
     return undefined;
   }

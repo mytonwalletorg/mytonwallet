@@ -1,26 +1,26 @@
 import React, {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
-
-import buildClassName from '../../util/buildClassName';
 
 import { TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL } from '../../config';
+import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState } from '../../global/selectors';
-import { copyTextToClipboard } from '../../util/clipboard';
+import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
+import { copyTextToClipboard } from '../../util/clipboard';
 import { shortenAddress } from '../../util/shortenAddress';
+
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useLang from '../../hooks/useLang';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
-import Modal from './Modal';
-import Input from './Input';
 import Button from './Button';
+import Input from './Input';
+import Modal from './Modal';
 
-import modalStyles from './Modal.module.scss';
 import styles from './InteractiveTextField.module.scss';
+import modalStyles from './Modal.module.scss';
 
 interface OwnProps {
   address?: string;
@@ -61,7 +61,7 @@ function InteractiveTextField({
   const lang = useLang();
   const [isSaveAddressModalOpen, openSaveAddressModal, closeSaveAddressModal] = useFlag();
   const [isDeleteSavedAddressModalOpen, openDeletedSavedAddressModal, closeDeleteSavedAddressModal] = useFlag();
-  const [savedAddressName, setSavedAddressName] = useState<string>(addressName);
+  const [savedAddressName, setSavedAddressName] = useState<string | undefined>(addressName);
   const [shouldUseSpoiler, , viewSpoiler] = useFlag(Boolean(spoiler));
 
   const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;

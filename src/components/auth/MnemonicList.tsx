@@ -3,13 +3,14 @@ import React, { memo } from '../../lib/teact/teact';
 import { MNEMONIC_COUNT } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
+
 import useLang from '../../hooks/useLang';
 
-import ModalHeader from '../ui/ModalHeader';
 import Button from '../ui/Button';
+import ModalHeader from '../ui/ModalHeader';
 
-import styles from './Auth.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import styles from './Auth.module.scss';
 
 type OwnProps = {
   mnemonic?: string[];

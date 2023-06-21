@@ -9,7 +9,9 @@
     "jsx-expressions",
     "no-async-without-await",
     "teactn",
-    "no-null"
+    "no-null",
+    "simple-import-sort",
+    "react-hooks-static-deps"
   ],
   "rules": {
     "indent": [
@@ -34,10 +36,24 @@
     "no-console": "error",
     "semi": "error",
     "no-implicit-coercion": "error",
-    "react-hooks/exhaustive-deps": [
+    "react-hooks/exhaustive-deps": "off",
+    "react-hooks-static-deps/exhaustive-deps": [
       "error",
       {
-        "additionalHooks": "(useSyncEffect|useAsync|useDebouncedCallback|useThrottledCallback|useEffectWithPrevDeps|useLayoutEffectWithPrevDeps|useDerivedState|useDerivedSignal|useThrottledResolver|useDebouncedResolver)$"
+        "additionalHooks": "(useSyncEffect|useAsync|useDebouncedCallback|useThrottledCallback|useEffectWithPrevDeps|useLayoutEffectWithPrevDeps|useDerivedState|useDerivedSignal|useThrottledResolver|useDebouncedResolver)$",
+        "staticHooks": {
+          "getActions": true,
+          "useFlag": [
+            false,
+            true,
+            true
+          ],
+          "useForceUpdate": true,
+          "useReducer": [
+            false,
+            true
+          ]
+        }
       }
     ],
     "arrow-body-style": "off",
@@ -76,6 +92,7 @@
     "import/prefer-default-export": "off",
     "import/named": "off",
     "import/no-webpack-loader-syntax": "off",
+    "import/extensions": "off",
     "react/prop-types": "off",
     "react/jsx-one-expression-per-line": "off",
     "react/button-has-type": "off",
@@ -120,7 +137,57 @@
       "error",
       "in-try-catch"
     ],
-    "teactn/prefer-separate-component-file": "off"
+    "teactn/prefer-separate-component-file": "off",
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "disallowTypeAnnotations": false
+      }
+    ],
+    "simple-import-sort/imports": [
+      "error",
+      {
+        "groups": [
+          [
+            "^react",
+            "^ton",
+            "^tonweb(/.*|$)",
+            "^@?\\w",
+            "dist(/.*|$)",
+            "^(\\.+/)+(lib)(/.*|$)"
+          ],
+          [
+            "^(\\.+/|\\w+/)+(types)(/.*|$)",
+            "^(\\.+/|\\w+/)+(types)\\u0000"
+          ],
+          [
+            "^(\\.+/)+config",
+            "^(\\.+/)+(global)(/.*|$)",
+            "^(\\.+/)+(util)(/.*|$)",
+            "^(\\.+/)+(contracts)(/.*|$)",
+            "^(\\.+/)+(ui)/[a-z](([a-z]+[A-Z]?)*)",
+            "^\\.\\.(?!/?$)",
+            "^\\.\\./?$",
+            "^\\./(?=.*/)(?!/?$)",
+            "^\\.(?!/?$)",
+            "^\\./?$"
+          ],
+          [
+            "^(\\.+/)+(hooks)(/.*|$)"
+          ],
+          [
+            "\/[A-Z](([a-z]+[A-Z]?)*)"
+          ],
+          [
+            "^.+\\.s?css$"
+          ],
+          [
+            "^(\\.+/)+(assets)(/.*|$)"
+          ]
+        ]
+      }
+    ]
   },
   "settings": {
     "import/resolver": "webpack"

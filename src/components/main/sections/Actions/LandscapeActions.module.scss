@@ -1,0 +1,224 @@
+$tab-0-height: 229;
+$tab-1-height: 348;
+
+.container {
+  position: relative;
+
+  border-radius: var(--border-radius-default);
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+
+  width: 100%;
+
+  background: var(--color-background-first-disabled);
+  border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+}
+
+.tab {
+  user-select: none;
+
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  padding: 0.125rem 0.5rem 0.5625rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-black);
+  text-transform: none;
+
+  background: transparent;
+  border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+
+  transition: color 150ms;
+
+  &:not(.active) {
+    &:hover,
+    &:focus {
+      color: var(--color-blue);
+    }
+  }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+
+  &_purple {
+    color: var(--color-purple-1);
+  }
+
+  &.active {
+    font-weight: 700;
+
+    background: var(--color-background-first);
+
+    &::before,
+    &::after,
+    .tabDecoration::before,
+    .tabDecoration::after {
+      content: "";
+
+      position: absolute;
+      bottom: 0;
+
+      display: block;
+
+      width: var(--border-radius-default);
+      height: var(--border-radius-default);
+
+      background: inherit;
+    }
+
+    &::before,
+    .tabDecoration::before {
+      right: 100%;
+    }
+
+    &::after,
+    .tabDecoration::after {
+      left: 100%;
+    }
+
+    .tabDecoration::before,
+    .tabDecoration::after {
+      z-index: 1;
+
+      background: var(--color-background-first-disabled);
+    }
+
+    .tabDecoration::before {
+      border-bottom-right-radius: var(--border-radius-default);
+    }
+
+    .tabDecoration::after {
+      border-bottom-left-radius: var(--border-radius-default);
+    }
+
+    &:last-child {
+      &::after,
+      .tabDecoration::after {
+        display: none;
+      }
+    }
+
+    &:first-child {
+      &::before,
+      .tabDecoration::before {
+        display: none;
+      }
+    }
+
+    .tabDelimiter {
+      display: none;
+    }
+  }
+}
+
+.tabIcon {
+  display: block;
+
+  margin-bottom: 1px;
+
+  font-size: 1.875rem;
+  color: var(--color-blue);
+
+  transition: color 150ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.tabDelimiter {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+
+  width: 1px;
+  height: 2rem;
+
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  box-shadow: inset 0.025rem 0 0 0 var(--color-separator);
+}
+
+.contentHeader {
+  background: var(--color-background-first-disabled);
+
+  &:not(.firstActive) .contentHeaderInner {
+    border-top-left-radius: var(--border-radius-default);
+  }
+
+  &:not(.lastActive) .contentHeaderInner {
+    border-top-right-radius: var(--border-radius-default);
+  }
+}
+
+.contentHeaderInner {
+  height: 1rem;
+
+  background: var(--color-background-first);
+}
+
+.contentBg, .contentFooter {
+  position: absolute;
+  top: 4.4375rem; // `.tabs` + `.contentHeader`
+  right: 0;
+  left: 0;
+
+  background: var(--color-background-first);
+
+  transition: transform 250ms ease; // as in `.Transition.slide-fade`
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.contentBg {
+  transform-origin: top;
+  // Using lesser base height (such as `1px`) causes incorrect scaling after zooming in Blink-based browsers
+  height: 100px;
+
+  &.tab-0 {
+    transform: scaleY(calc(#{$tab-0-height} / 100));
+  }
+
+  &.tab-1 {
+    transform: scaleY(calc(#{$tab-1-height} / 100));
+  }
+}
+
+.contentFooter {
+  height: 1rem;
+
+  border-bottom-right-radius: var(--border-radius-default);
+  border-bottom-left-radius: var(--border-radius-default);
+
+  &.tab-0 {
+    transform: translateY(#{$tab-0-height}px);
+  }
+
+  &.tab-1 {
+    transform: translateY(#{$tab-1-height}px);
+  }
+}
+
+.slideContent {
+  height: auto !important;
+  padding: 0 1rem;
+}

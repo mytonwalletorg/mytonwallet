@@ -2,6 +2,8 @@
 
 @import "../../../../styles/variables";
 
+@import "../../../../styles/mixins";
+
 .containerWrapper {
   position: relative;
 
@@ -9,8 +11,17 @@
   width: calc(100% - 0.125rem);
   min-width: 16rem;
   height: 0;
-  margin: 0 auto 0.75rem;
-  padding-top: 57%;
+  margin: 0.75rem auto;
+  padding-top: 58%;
+
+  :global(html.is-electron) & {
+    margin-top: 0;
+  }
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(xs) {
+    margin-top: 0;
+  }
 }
 
 .container {
@@ -26,7 +37,7 @@
   height: 100%;
   padding: 4.125rem 1rem 0.5rem;
 
-  background-image: url('../../../../assets/cards/card.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+  background-image: url("../../../../assets/cards/card.jpg"), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
   background-clip: padding-box, padding-box;
   background-origin: border-box;
   background-size: cover, cover;
@@ -35,35 +46,35 @@
   transition: transform var(--slide-transition), filter var(--slide-transition) !important;
 
   &:global(.tegro) {
-    background-image: url('../../../../assets/cards/card_tegro.jpg'), linear-gradient(125deg, #479CFF 0, #0042A7 100%);
+    background-image: url("../../../../assets/cards/card_tegro.jpg"), linear-gradient(125deg, #479CFF 0, #0042A7 100%);
   }
 
   &:global(.red) {
-    background-image: url('../../../../assets/cards/card_red.jpg'), linear-gradient(125deg, #BE647F 0, #8A2935 100%);
+    background-image: url("../../../../assets/cards/card_red.jpg"), linear-gradient(125deg, #BE647F 0, #8A2935 100%);
   }
 
   &:global(.orange) {
-    background-image: url('../../../../assets/cards/card_orange.jpg'), linear-gradient(125deg, #D98A5E 0, #A04B26 100%);
+    background-image: url("../../../../assets/cards/card_orange.jpg"), linear-gradient(125deg, #D98A5E 0, #A04B26 100%);
   }
 
   &:global(.green) {
-    background-image: url('../../../../assets/cards/card_green.jpg'), linear-gradient(125deg, #7CAD64 0, #497228 100%);
+    background-image: url("../../../../assets/cards/card_green.jpg"), linear-gradient(125deg, #7CAD64 0, #497228 100%);
   }
 
   &:global(.sea) {
-    background-image: url('../../../../assets/cards/card_sea.jpg'), linear-gradient(125deg, #5DAAAF 0, #1E7070 100%);
+    background-image: url("../../../../assets/cards/card_sea.jpg"), linear-gradient(125deg, #5DAAAF 0, #1E7070 100%);
   }
 
   &:global(.purple) {
-    background-image: url('../../../../assets/cards/card_purple.jpg'), linear-gradient(125deg, #8F6FD4 0, #502081 100%);
+    background-image: url("../../../../assets/cards/card_purple.jpg"), linear-gradient(125deg, #8F6FD4 0, #502081 100%);
   }
 
   &:global(.pink) {
-    background-image: url('../../../../assets/cards/card_pink.jpg'), linear-gradient(125deg, #BC67B4 0, #852B76 100%);
+    background-image: url("../../../../assets/cards/card_pink.jpg"), linear-gradient(125deg, #BC67B4 0, #852B76 100%);
   }
 
   &.backstage {
-    transform: translateY(-1.0625rem) scale(0.90);
+    transform: translateY(-1.0625rem) scale(0.9);
 
     filter: brightness(65%);
   }
@@ -90,34 +101,41 @@
   }
 
   @media (min-resolution: 1.5dppx) {
-    background-image: url('../../../../assets/cards/card@2x.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
+    background-image: url("../../../../assets/cards/card@2x.jpg"), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
 
     &:global(.tegro) {
-      background-image: url('../../../../assets/cards/card_tegro@2x.jpg'), linear-gradient(125deg, #479CFF 0, #0042A7 100%);
+      background-image: url("../../../../assets/cards/card_tegro@2x.jpg"),
+        linear-gradient(125deg, #479CFF 0, #0042A7 100%);
     }
 
     &:global(.red) {
-      background-image: url('../../../../assets/cards/card_red@2x.jpg'), linear-gradient(125deg, #BE647F 0, #8A2935 100%);
+      background-image: url("../../../../assets/cards/card_red@2x.jpg"),
+        linear-gradient(125deg, #BE647F 0, #8A2935 100%);
     }
 
     &:global(.orange) {
-      background-image: url('../../../../assets/cards/card_orange@2x.jpg'), linear-gradient(125deg, #D98A5E 0, #A04B26 100%);
+      background-image: url("../../../../assets/cards/card_orange@2x.jpg"),
+        linear-gradient(125deg, #D98A5E 0, #A04B26 100%);
     }
 
     &:global(.green) {
-      background-image: url('../../../../assets/cards/card_green@2x.jpg'), linear-gradient(125deg, #7CAD64 0, #497228 100%);
+      background-image: url("../../../../assets/cards/card_green@2x.jpg"),
+        linear-gradient(125deg, #7CAD64 0, #497228 100%);
     }
 
     &:global(.sea) {
-      background-image: url('../../../../assets/cards/card_sea@2x.jpg'), linear-gradient(125deg, #5DAAAF 0, #1E7070 100%);
+      background-image: url("../../../../assets/cards/card_sea@2x.jpg"),
+        linear-gradient(125deg, #5DAAAF 0, #1E7070 100%);
     }
 
     &:global(.purple) {
-      background-image: url('../../../../assets/cards/card_purple@2x.jpg'), linear-gradient(125deg, #8F6FD4 0, #502081 100%);
+      background-image: url("../../../../assets/cards/card_purple@2x.jpg"),
+        linear-gradient(125deg, #8F6FD4 0, #502081 100%);
     }
 
     &:global(.pink) {
-      background-image: url('../../../../assets/cards/card_pink@2x.jpg'), linear-gradient(125deg, #BC67B4 0, #852B76 100%);
+      background-image: url("../../../../assets/cards/card_pink@2x.jpg"),
+        linear-gradient(125deg, #BC67B4 0, #852B76 100%);
     }
   }
 }
@@ -134,7 +152,6 @@
   font-weight: 800;
   color: var(--color-card-second-text);
 }
-
 
 .addressContainer {
   margin-top: auto;
@@ -217,7 +234,7 @@
   color: var(--color-card-text);
 
   background: var(--color-card-button);
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-tiny);
 }
 
 .changeCourseUp {
@@ -411,7 +428,7 @@
   display: flex;
   gap: 0.25rem;
 
-  @media (max-width: 600px) {
+  &.compact {
     gap: 0.1875rem;
   }
 }
@@ -431,7 +448,7 @@
   line-height: 0.8125rem;
   color: var(--color-card-text);
 
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-tiny);
 
   transition: background-color 200ms;
 
@@ -462,8 +479,8 @@
 
 .dapp {
   position: absolute;
-  top: 0.875rem;
-  right: 0.625rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
 
   overflow: hidden;
   display: flex;

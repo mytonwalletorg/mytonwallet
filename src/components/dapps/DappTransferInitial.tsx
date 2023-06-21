@@ -1,27 +1,29 @@
 import React, {
-  memo, useMemo,
+  memo,
+  useMemo,
 } from '../../lib/teact/teact';
-import { withGlobal, getActions } from '../../global';
 
-import type { UserToken, Account } from '../../global/types';
 import type { ApiDapp, ApiDappTransaction } from '../../api/types';
+import type { Account, UserToken } from '../../global/types';
 
-import buildClassName from '../../util/buildClassName';
-import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
+import { SHORT_FRACTION_DIGITS } from '../../config';
+import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
+import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
+import buildClassName from '../../util/buildClassName';
 import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
+
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useLang from '../../hooks/useLang';
 
-import DappInfo from './DappInfo';
-import DappTransaction from './DappTransaction';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import Button from '../ui/Button';
+import DappInfo from './DappInfo';
+import DappTransaction from './DappTransaction';
 
-import styles from './Dapp.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
-import { SHORT_FRACTION_DIGITS } from '../../config';
+import styles from './Dapp.module.scss';
 
 interface OwnProps {
   tonToken: UserToken;
@@ -45,7 +47,7 @@ function DappTransferInitial({
   isLoading,
   tokens,
 }: OwnProps & StateProps) {
-  const { showDappTransaction, submitDappTransfer, cancelDappTransfer } = getActions();
+  const { showDappTransaction, submitDappTransferConfirm, cancelDappTransfer } = getActions();
 
   const lang = useLang();
   const isSingleTransaction = transactions?.length === 1;
@@ -151,7 +153,7 @@ function DappTransferInitial({
           isPrimary
           isSubmit
           isLoading={isLoading}
-          onClick={submitDappTransfer}
+          onClick={submitDappTransferConfirm}
         >
           {lang('Send')}
         </Button>

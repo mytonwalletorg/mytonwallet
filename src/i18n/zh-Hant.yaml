@@ -3,7 +3,7 @@ $auth_intro: |
   並享有**光速的**區塊鏈支付速度。
 Create New Wallet: 創建新錢包
 Import From %1$d Secret Words: 輸入註記詞
-About MyTonWallet: 關於 MyTonWallet
+More about MyTonWallet: 更多關於 MyTonWallet
 Creating Wallet...: 錢包創建中...
 On the count of three...: 數到三...
 $auth_backup_description1: |
@@ -204,7 +204,6 @@ $receive_ton_description: |
 Your address: 您的地址
 Wrong password, please try again: 密碼錯誤，請再嘗試一次
 Appearance: 外觀
-Assets and Activity: 資產及其活動
 Light: 亮色模式
 Dark: 暗色模式
 System: 系統
@@ -273,3 +272,44 @@ $dapp_transfer_tokens_payload_with_comment: 從您的帳戶發送 %amount% 到 %
 $dapp_transfer_tokens_payload: 從您的帳戶發送 %amount% 到 %address%
 $dapp_transfer_nft_payload: 從您的帳戶發送 "%nft%" 到 %address%
 Nested Transaction: 嵌套事務
+Connected Dapps: 連接的 Dapps
+Disconnect All Dapps: 斷開所有 Dapps
+Disconnect: 斷開
+Disconnect Dapp: 斷開 Dapp
+Disconnect Dapps: 斷開 Dapps
+Are you sure you want to disconnect?: 你確定要斷開 %dappname% 嗎？
+Are you sure you want to disconnect all websites?: 您確定要斷開所有網站嗎？
+$dapps-description: 您可以登錄支持 MyTonWallet 的 dapp。 他們可以查看錢包地址和余額。
+Logged in with MyTonWallet: 使用 MyTonWallet 登錄
+No active connections: 沒有活動連接
+Unstaked successfully: 解質押成功
+Other: 其他的
+Assets & Activity: 資產 & 活動紀錄
+Update: 更新
+Restart: 重新開始
+Connect Ledger: 連接賬本
+Connecting to your Ledger...: 連接到您的分類帳...
+Failed to connect: 連接失敗
+Ledger Connected!: 賬本連接！
+Select Ledger Wallets: 選擇分類帳錢包
+"%1$d Selected": "%1$d 已選"
+Add: 添加
+Try Again: 再試一次
+Driver: 司機
+Connect your Ledger to PC: 連接你的 Ledger 到電腦
+Unlock it and open the TON App: 解鎖並開啟 TON 應用
+Maybe you need to check the password or change the driver.: 也許您需要檢查密碼或更改驅動程序。
+Or import from...: 或者從...導入
+Confirm via Ledger: 通過賬本確認
+Please confirm transaction on your Ledger: 請在您的賬本上確認交易
+Declined: 謝絕
+Create Wallet: 建立錢包
+Switch to the newly opened tab to connect Ledger.: 切換到新開啟的頁籤以連接 Ledger。
+Once connected, switch back to this window to proceed.: 連接完成後，切換回此視窗以繼續。
+Not all transactions were sent successfully: 並非所有交易都成功發送
+The time on your device is incorrect, sync it and try again: 您設備上的時間不正確，請同步並重試
+Such error, many tabs: 這樣的錯誤，很多標籤
+$many_tabs_error_description: |
+  MyTonWallet 僅支持該應用程序的一個活動選項卡。
+  請重新加載此頁面以繼續使用此選項卡或將其關閉。
+Reload App: 重新加載應用程序

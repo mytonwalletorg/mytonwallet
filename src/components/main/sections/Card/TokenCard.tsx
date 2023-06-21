@@ -1,17 +1,18 @@
 import React, { memo, useState } from '../../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../../global';
 
 import type { UserToken } from '../../../../global/types';
 
 import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../../../config';
-import { IS_SINGLE_COLUMN_LAYOUT } from '../../../../util/windowEnvironment';
-import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
+import { getActions, withGlobal } from '../../../../global';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { calcChangeValue } from '../../../../util/calcChangeValue';
+import { formatShortDay } from '../../../../util/dateFormat';
 import { formatCurrency } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
-import { formatShortDay } from '../../../../util/dateFormat';
-import { calcChangeValue } from '../../../../util/calcChangeValue';
+import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
+
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
 
 import TokenPriceChart from '../../../common/TokenPriceChart';
@@ -48,7 +49,7 @@ const COIN_MARKET_CAP_TOKENS: Record<string, string> = {
   'ton-tgr': 'tgr',
 };
 
-const CHART_DIMENSIONS = { width: 300, height: IS_SINGLE_COLUMN_LAYOUT ? 61 : 66 };
+const CHART_DIMENSIONS = { width: 300, height: 64 };
 
 function TokenCard({
   token,
@@ -60,6 +61,7 @@ function TokenCard({
   onClose,
 }: OwnProps & StateProps) {
   const { setCurrentTokenPeriod } = getActions();
+  const { isPortrait } = useDeviceScreen();
 
   const lang = useLang();
   const currentHistoryPeriod = HISTORY_PERIODS[period].historyKey;
@@ -73,21 +75,25 @@ function TokenCard({
 
   const logoPath = slug === TON_TOKEN_SLUG
     ? tonUrl
-    : (image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS]);
+    : image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
 
   const history = currentHistoryPeriod in token ? token[currentHistoryPeriod] : undefined;
 
   const selectedHistoryPoint = history?.[selectedHistoryIndex];
   const price = selectedHistoryPoint?.[1] || lastPrice;
-  const dateStr = selectedHistoryPoint ? formatShortDay(lang.code!, selectedHistoryPoint[0] * 1000, true) : lang('Now');
+  const dateStr = selectedHistoryPoint
+    ? formatShortDay(lang.code!, selectedHistoryPoint[0] * 1000, true, true)
+    : lang('Now');
 
   const initialPrice = history?.[0]?.[1];
   const change = initialPrice
     ? (price - initialPrice) / initialPrice
-    : (currentChangePeriod in token ? token[currentChangePeriod] : undefined);
+    : currentChangePeriod in token
+      ? token[currentChangePeriod]
+      : undefined;
 
   const value = amount * price;
-  const changePrefix = change === undefined ? change : (change > 0 ? '↑' : change < 0 ? '↓' : 0);
+  const changePrefix = change === undefined ? change : change > 0 ? '↑' : change < 0 ? '↓' : 0;
   const changeValue = change ? Math.abs(round(calcChangeValue(value, change), 4)) : 0;
   const changePercent = change ? Math.abs(round(change * 100, 2)) : 0;
 
@@ -122,7 +128,9 @@ function TokenCard({
           <span className={styles.tokenName}>
             {name}
             {token.slug === TON_TOKEN_SLUG && (
-              <span className={styles.apy} onClick={onApyClick}>APY {apyValue}%</span>
+              <span className={styles.apy} onClick={onApyClick}>
+                APY {apyValue}%
+              </span>
             )}
           </span>
         </div>
@@ -149,12 +157,10 @@ function TokenCard({
 
           <div className={styles.tokenHistoryPrice}>
             {formatCurrency(history![0][1], DEFAULT_PRICE_CURRENCY)}
-            <div className={styles.tokenPriceDate}>
-              {formatShortDay(lang.code!, historyStartDay!)}
-            </div>
+            <div className={styles.tokenPriceDate}>{formatShortDay(lang.code!, historyStartDay!)}</div>
           </div>
 
-          <div className={styles.periodChooser}>
+          <div className={buildClassName(styles.periodChooser, isPortrait && styles.compact)}>
             {Object.entries(HISTORY_PERIODS).map(([historyPeriod, { historyKey, title }]) => (
               <label
                 key={historyKey}
@@ -202,11 +208,13 @@ function TokenCard({
   );
 }
 
-export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const accountState = selectCurrentAccountState(global);
+export default memo(
+  withGlobal<OwnProps>((global): StateProps => {
+    const accountState = selectCurrentAccountState(global);
 
-  return {
-    period: accountState?.currentTokenPeriod,
-    apyValue: accountState?.poolState?.lastApy || 0,
-  };
-})(TokenCard));
+    return {
+      period: accountState?.currentTokenPeriod,
+      apyValue: accountState?.poolState?.lastApy || 0,
+    };
+  })(TokenCard),
+);

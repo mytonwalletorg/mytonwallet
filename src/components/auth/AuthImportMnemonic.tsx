@@ -1,18 +1,19 @@
 import React, {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT } from '../../config';
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { getActions, withGlobal } from '../../global';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
-import useLang from '../../hooks/useLang';
-import useClipboardPaste from '../../hooks/useClipboardPaste';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
-import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import useClipboardPaste from '../../hooks/useClipboardPaste';
+import useLang from '../../hooks/useLang';
+
 import InputMnemonic from '../common/InputMnemonic';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 
 import styles from './Auth.module.scss';
@@ -31,8 +32,13 @@ const MNEMONIC_INPUTS = [...Array(MNEMONIC_COUNT)].map((_, index) => ({
   label: `${index + 1}`,
 }));
 
+const SLIDE_ANIMATION_DURATION_MS = 250;
+
 const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProps) => {
-  const { afterImportMnemonic, restartAuth } = getActions();
+  const {
+    afterImportMnemonic,
+    restartAuth,
+  } = getActions();
 
   const lang = useLang();
   const [mnemonic, setMnemonic] = useState<Record<number, string>>({});
@@ -79,7 +85,9 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   }, [mnemonic]);
 
   const handleCancel = useCallback(() => {
-    restartAuth();
+    setTimeout(() => {
+      restartAuth();
+    }, SLIDE_ANIMATION_DURATION_MS);
   }, [restartAuth]);
 
   const handleSubmit = useCallback(() => {

@@ -1,8 +1,8 @@
-import { RefObject } from 'react';
-
-import { IS_TOUCH_ENV } from '../util/windowEnvironment';
-import { fastRaf } from '../util/schedulers';
+import type { RefObject } from 'react';
 import { useEffect } from '../lib/teact/teact';
+
+import { fastRaf } from '../util/schedulers';
+import { IS_TOUCH_ENV } from '../util/windowEnvironment';
 
 const DEFAULT_DURATION = 400;
 

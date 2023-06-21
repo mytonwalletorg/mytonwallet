@@ -1,7 +1,9 @@
-import { ApiDapp, OnApiUpdate } from '../types';
+import type { Storage } from '../storages/types';
+import type { ApiDapp, OnApiUpdate } from '../types';
+
 import { getAccountValue, setAccountValue } from '../common/accounts';
-import { Storage } from '../storages/types';
 import { toInternalAccountId } from '../common/helpers';
+import { updateDapps } from '../dappMethods';
 
 const DAPPS_STORAGE_KEY = 'dapps';
 const activeDappByAccountId: Record<string, string> = {};
@@ -26,7 +28,7 @@ export function onActiveDappAccountUpdated(accountId: string) {
 }
 
 export function activateDapp(accountId: string, origin: string) {
-  const oldAccountId = findConnectedAccountByDapp(origin);
+  const oldAccountId = findActiveDappAccount(origin);
   if (oldAccountId && toInternalAccountId(oldAccountId) !== toInternalAccountId(accountId)) {
     throw new Error(`The app '${origin}' is already connected to another account`);
   }
@@ -45,7 +47,7 @@ export function getActiveDapp(accountId: string) {
 }
 
 export function deactivateDapp(origin: string) {
-  const accountId = findConnectedAccountByDapp(origin);
+  const accountId = findActiveDappAccount(origin);
   if (!accountId) {
     return false;
   }
@@ -55,7 +57,7 @@ export function deactivateDapp(origin: string) {
   return true;
 }
 
-export function findConnectedAccountByDapp(origin: string) {
+export function findActiveDappAccount(origin: string) {
   return Object.keys(activeDappByAccountId).find((acc) => origin === activeDappByAccountId[acc]);
 }
 
@@ -76,8 +78,17 @@ export function deactivateAccountDapp(accountId: string) {
 }
 
 export function deactivateAllDapps() {
-  for (const accountId of Object.keys(activeDappByAccountId)) {
+  for (const [accountId, value] of Object.entries(activeDappByAccountId)) {
+    if (!value) {
+      continue;
+    }
+
     delete activeDappByAccountId[accountId];
+
+    onUpdate({
+      type: 'updateActiveDapp',
+      accountId,
+    });
   }
 }
 
@@ -104,7 +115,7 @@ export async function addDappToAccounts(dapp: ApiDapp, accountIds: string[]) {
   await storage.setItem(DAPPS_STORAGE_KEY, dappsByAccount);
 }
 
-export async function deleteDapp(accountId: string, origin: string) {
+export async function deleteDapp(accountId: string, origin: string, dontNotifyDapp?: boolean) {
   const dapps = await getDappsByOrigin(accountId);
   if (!(origin in dapps)) {
     return false;
@@ -122,6 +133,13 @@ export async function deleteDapp(accountId: string, origin: string) {
     accountId,
     origin,
   });
+
+  if (!dontNotifyDapp) {
+    updateDapps({
+      type: 'disconnectDapp',
+      origin,
+    });
+  }
 
   return true;
 }
@@ -146,11 +164,18 @@ export async function getDapps(accountId: string): Promise<ApiDapp[]> {
 }
 
 export async function getDappsByOrigin(accountId: string): Promise<Record<string, ApiDapp>> {
-  return (await getAccountValue(storage, accountId, DAPPS_STORAGE_KEY)) || {};
+  return await getAccountValue(storage, accountId, DAPPS_STORAGE_KEY) || {};
 }
 
 export async function isDappConnected(accountId: string, origin: string) {
   const dapps = await getDappsByOrigin(accountId);
 
   return Object.values(dapps).some((dapp) => dapp.origin === origin);
+}
+
+export async function findConnectedDappAccounts(origin: string) {
+  const dapps = (await storage.getItem(DAPPS_STORAGE_KEY) || {}) as Record<string, Record<string, ApiDapp>>;
+  return Object.entries(dapps)
+    .filter(([, value]) => origin in value)
+    .map(([key]) => key);
 }

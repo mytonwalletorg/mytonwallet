@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding panel animation experiments</title>
+    <style>
+      .panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 68%; /* Set to desired closed height */
+        background-color: #ccc; /* Grey background */
+        border-radius: 15px 15px 0 0; /* Rounded corners at the top */
+        transition: transform 0.5s cubic-bezier(0.3, 0.8, 0.2, 1); /* Adjust speed as needed */
+        overflow: hidden;
+        z-index: 10; /* Ensure panel is above backdrop */
+        will-change: transform; /* New line to hint the browser that transform will be animated */
+      }
+
+      .panel.closed {
+        transform: translateY(100%);
+      }
+
+      .panel.open {
+        transform: translateY(0%);
+      }
+
+      .panel-content {
+        padding: 20px;
+        /* Add more styles for your content here */
+      }
+
+      /* Backdrop styles */
+      .backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0); /* Fully transparent black */
+        transition: opacity 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+        z-index: 5; /* Ensure backdrop is below panel */
+        opacity: 0;
+        will-change: opacity; /* New line to hint the browser that opacity will be animated */
+      }
+
+      .backdrop.show {
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+        opacity: 1;
+      }
+    </style>
+</head>
+<body>
+<div id="panel" class="panel closed">
+    <div class="panel-content">
+        <!-- Add your content here -->
+        <p>Some content...</p>
+    </div>
+</div>
+
+<!-- Backdrop div -->
+<!--<div id="backdrop" class="backdrop"></div>-->
+
+<script>
+  document.addEventListener('click', togglePanel);
+
+  // Close panel when backdrop is clicked
+  // document.getElementById('backdrop').addEventListener('click', togglePanel);
+
+  function togglePanel() {
+    const panel = document.getElementById('panel');
+    // const backdrop = document.getElementById('backdrop');
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+      panel.classList.add('closed');
+      // backdrop.classList.remove('show');
+    } else {
+      panel.classList.remove('closed');
+      panel.classList.add('open');
+      // backdrop.classList.add('show');
+    }
+  }
+</script>
+</body>
+</html>

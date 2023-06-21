@@ -1,15 +1,23 @@
-import { addActionHandler, getGlobal, setGlobal } from '../../index';
+import { AppState, HardwareConnectState } from '../../types';
 
+import { connectLedger } from '../../../util/ledger';
+import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
+import { pause } from '../../../util/schedulers';
 import { callApi } from '../../../api';
+import { IS_EXTENSION } from '../../../api/environment';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   renameAccount,
   updateAccounts,
   updateAuth,
   updateCurrentAccountState,
+  updateHardware,
 } from '../../reducers';
-import { selectCurrentAccountState } from '../../selectors';
+import { selectCurrentAccountState, selectFirstNonHardwareAccount } from '../../selectors';
 
-addActionHandler('showTransactionInfo', (global, actions, { txId }) => {
+const OPEN_LEDGER_TAB_DELAY = 500;
+
+addActionHandler('showTransactionInfo', (global, actions, { txId } = {}) => {
   return updateCurrentAccountState(global, { currentTransactionId: txId });
 });
 
@@ -34,7 +42,7 @@ addActionHandler('removeFromSavedAddress', (global, actions, { address }) => {
   return updateCurrentAccountState(global, { savedAddresses });
 });
 
-addActionHandler('toggleTinyTransfersHidden', (global, actions, { isEnabled }) => {
+addActionHandler('toggleTinyTransfersHidden', (global, actions, { isEnabled } = {}) => {
   return {
     ...global,
     settings: {
@@ -50,30 +58,26 @@ addActionHandler('setCurrentTokenPeriod', (global, actions, { period }) => {
   });
 });
 
-addActionHandler('addAccount', async (global, actions, payload) => {
-  const { isImporting, password } = payload || {};
+addActionHandler('addAccount', async (global, actions, { method, password }) => {
+  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
 
-  setGlobal(updateAccounts(global, { isLoading: true }));
-
-  const isPasswordValid = await callApi('verifyPassword', password);
-  global = getGlobal();
-
-  if (!isPasswordValid) {
-    setGlobal(updateAccounts(global, {
-      isLoading: undefined,
-      error: 'Wrong password, please try again',
-    }));
-
-    return;
+  if (firstNonHardwareAccount) {
+    if (!(await callApi('verifyPassword', password))) {
+      setGlobal(updateAccounts(getGlobal(), {
+        isLoading: undefined,
+        error: 'Wrong password, please try again',
+      }));
+      return;
+    }
   }
 
-  global = updateAccounts(global, { isLoading: undefined, error: undefined });
-  global = updateAuth(global, { prevAccountId: global.currentAccountId, password });
-  global = { ...global, isAddAccountModalOpen: undefined, currentAccountId: undefined };
+  global = getGlobal();
+  global = updateAuth(global, { password });
+  global = { ...global, isAddAccountModalOpen: undefined, appState: AppState.Auth };
 
   setGlobal(global);
 
-  if (isImporting) {
+  if (method === 'importMnemonic') {
     actions.startImportingWallet();
   } else {
     actions.startCreatingWallet();
@@ -126,15 +130,77 @@ addActionHandler('changeNetwork', (global, actions, { network }) => {
   };
 });
 
-addActionHandler('openSettingsModal', (global) => {
-  return { ...global, isSettingsModalOpen: true };
+addActionHandler('openSettings', (global) => {
+  return { ...global, areSettingsOpen: true };
 });
 
-addActionHandler('closeSettingsModal', (global) => {
-  return { ...global, isSettingsModalOpen: undefined };
+addActionHandler('closeSettings', (global) => {
+  if (!global.currentAccountId) {
+    return global;
+  }
+
+  return { ...global, areSettingsOpen: false };
 });
 
-addActionHandler('toggleInvestorView', (global, actions, { isEnabled }) => {
+addActionHandler('openBackupWalletModal', (global) => {
+  return { ...global, isBackupWalletModalOpen: true };
+});
+
+addActionHandler('closeBackupWalletModal', (global) => {
+  return { ...global, isBackupWalletModalOpen: undefined };
+});
+
+addActionHandler('openHardwareWalletModal', async (global, actions) => {
+  const startConnection = () => {
+    global = updateHardware(getGlobal(), {
+      hardwareState: HardwareConnectState.Connecting,
+    });
+    setGlobal({ ...global, isHardwareModalOpen: true });
+
+    actions.connectHardwareWallet();
+  };
+
+  if (await connectLedger()) {
+    startConnection();
+    return;
+  }
+
+  if (IS_EXTENSION) {
+    global = updateHardware(getGlobal(), {
+      hardwareState: HardwareConnectState.WaitingForBrowser,
+    });
+    setGlobal({ ...global, isHardwareModalOpen: true });
+
+    await pause(OPEN_LEDGER_TAB_DELAY);
+    const id = await openLedgerTab();
+    const extension = await chrome.windows.getCurrent();
+
+    onLedgerTabClose(id, async () => {
+      chrome.windows.update(extension.id!, { focused: true });
+
+      if (!await connectLedger()) {
+        actions.closeHardwareWalletModal();
+        return;
+      }
+
+      startConnection();
+    });
+
+    return;
+  }
+
+  global = updateHardware(getGlobal(), {
+    hardwareState: HardwareConnectState.Connect,
+  });
+
+  setGlobal({ ...global, isHardwareModalOpen: true });
+});
+
+addActionHandler('closeHardwareWalletModal', (global) => {
+  setGlobal({ ...global, isHardwareModalOpen: false });
+});
+
+addActionHandler('toggleInvestorView', (global, actions, { isEnabled } = {}) => {
   return {
     ...global,
     settings: {
@@ -154,13 +220,20 @@ addActionHandler('changeLanguage', (global, actions, { langCode }) => {
   };
 });
 
-addActionHandler('toggleCanPlaySounds', (global, actions, { isEnabled }) => {
+addActionHandler('toggleCanPlaySounds', (global, actions, { isEnabled } = {}) => {
   return {
     ...global,
     settings: {
       ...global.settings,
       canPlaySounds: isEnabled,
     },
+  };
+});
+
+addActionHandler('setLandscapeActionsActiveTabIndex', (global, actions, { index }) => {
+  return {
+    ...global,
+    landscapeActionsActiveTabIndex: index,
   };
 });
 

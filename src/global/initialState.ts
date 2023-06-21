@@ -1,6 +1,9 @@
 import {
-  AuthState, GlobalState, StakingState, TransferState,
+  AppState,
+  AuthState, StakingState, TransferState,
 } from './types';
+import type { GlobalState } from './types';
+
 import {
   ANIMATION_LEVEL_DEFAULT,
   THEME_DEFAULT,
@@ -8,10 +11,16 @@ import {
 } from '../config';
 import { USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
+export const STATE_VERSION = 8;
+
 export const INITIAL_STATE: GlobalState = {
+  appState: AppState.Auth,
+
   auth: {
     state: AuthState.none,
   },
+
+  hardware: {},
 
   currentTransfer: {
     state: TransferState.None,
@@ -35,6 +44,7 @@ export const INITIAL_STATE: GlobalState = {
     areTinyTransfersHidden: true,
     canPlaySounds: true,
     langCode: USER_AGENT_LANG_CODE,
+    dapps: [],
   },
 
   byAccountId: {},
@@ -42,5 +52,5 @@ export const INITIAL_STATE: GlobalState = {
   dialogs: [],
   notifications: [],
 
-  stateVersion: 6, // When incrementing, make changes to migrateCache
+  stateVersion: STATE_VERSION,
 };

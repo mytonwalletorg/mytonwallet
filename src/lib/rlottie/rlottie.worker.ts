@@ -1,6 +1,7 @@
 import { inflate } from 'pako/dist/pako_inflate';
+
 import { createWorkerInterface } from '../../util/createPostMessageInterface';
-import { CancellableCallback } from '../../util/PostMessageConnector';
+import type { CancellableCallback } from '../../util/PostMessageConnector';
 
 declare const Module: any;
 

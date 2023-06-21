@@ -43,7 +43,7 @@ export function pickTruthy<T, K extends keyof T>(object: T, keys: K[]) {
   }, {} as Pick<T, K>);
 }
 
-export function omit<T, K extends keyof T>(object: T, keys: K[]) {
+export function omit<T extends object, K extends keyof T>(object: T, keys: K[]): Omit<T, K> {
   const stringKeys = new Set(keys.map(String));
   const savedKeys = Object.keys(object)
     .filter((key) => !stringKeys.has(key)) as Array<Exclude<keyof T, K>>;
@@ -80,17 +80,6 @@ export function orderBy<T>(
   });
 }
 
-export function flatten(array: any[]) {
-  return array.reduce((result, member) => {
-    if (Array.isArray(member)) {
-      return result.concat(member);
-    } else {
-      result.push(member);
-      return result;
-    }
-  }, []);
-}
-
 export function unique<T extends any>(array: T[]): T[] {
   return Array.from(new Set(array));
 }
@@ -107,16 +96,8 @@ export function areSortedArraysEqual(array1: any[], array2: any[]) {
   return array1.every((item, i) => item === array2[i]);
 }
 
-export function areSortedArraysIntersecting(array1: any[], array2: any[]) {
-  return array1[0] <= array2[array2.length - 1] && array1[array1.length - 1] >= array2[0];
-}
-
-export function findIntersectionWithSet<T>(array: T[], set: Set<T>): T[] {
-  return array.filter((a) => set.has(a));
-}
-
-export function split(array: any[], chunkSize: number) {
-  const result = [];
+export function split<T extends any>(array: T[], chunkSize: number) {
+  const result: T[][] = [];
   for (let i = 0; i < array.length; i += chunkSize) {
     result.push(array.slice(i, i + chunkSize));
   }
@@ -125,7 +106,7 @@ export function split(array: any[], chunkSize: number) {
 }
 
 export function cloneDeep<T>(value: T): T {
-  if (typeof value !== 'object') {
+  if (!isObject(value)) {
     return value;
   }
 
@@ -139,6 +120,11 @@ export function cloneDeep<T>(value: T): T {
   }, {} as T);
 }
 
+function isObject(value: any): value is object {
+  // eslint-disable-next-line no-null/no-null
+  return typeof value === 'object' && value !== null;
+}
+
 export function findLast<T>(array: Array<T>, predicate: (value: T, index: number, obj: T[]) => boolean): T | undefined {
   let cursor = array.length;
 
@@ -149,4 +135,19 @@ export function findLast<T>(array: Array<T>, predicate: (value: T, index: number
   }
 
   return undefined;
+}
+
+export function range(start: number, end: number) {
+  const arr: number[] = [];
+  for (let i = start; i < end;) {
+    arr.push(i++);
+  }
+  return arr;
+}
+
+export function fromKeyValueArrays<T>(keys: string[], values: T[] | T) {
+  return keys.reduce((acc, key, index) => {
+    acc[key] = Array.isArray(values) ? values[index] : values;
+    return acc;
+  }, {} as Record<string, T>);
 }

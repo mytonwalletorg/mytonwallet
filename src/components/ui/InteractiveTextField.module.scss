@@ -1,9 +1,10 @@
 .wrapper {
-  padding: 1rem 0.75rem;
+  /* Account for border width */
+  padding: calc(1rem - 1px) calc(0.75rem - 1px);
 
   font-size: 1rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.125rem;
   color: var(--color-black);
   text-align: left;
   word-break: break-all;
@@ -12,11 +13,9 @@
   border-radius: var(--border-radius-default);
 }
 
-
 .button {
   cursor: pointer;
 
-  line-height: 1.25rem;
   text-decoration: none !important;
 
   &_spoiler {

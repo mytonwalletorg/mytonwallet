@@ -2,12 +2,12 @@ import React, {
   memo, useCallback, useState,
 } from '../../lib/teact/teact';
 
-import type { OwnProps as AnimatedStickerProps } from './AnimatedSticker';
-
 import buildClassName from '../../util/buildClassName';
-import useMediaTransition from '../../hooks/useMediaTransition';
-import useFlag from '../../hooks/useFlag';
 
+import useFlag from '../../hooks/useFlag';
+import useMediaTransition from '../../hooks/useMediaTransition';
+
+import type { OwnProps as AnimatedStickerProps } from './AnimatedSticker';
 import AnimatedSticker from './AnimatedSticker';
 
 const DEFAULT_SIZE = 150;

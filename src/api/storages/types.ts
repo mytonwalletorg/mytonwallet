@@ -1,14 +1,35 @@
 export enum StorageType {
   IndexedDb,
   LocalStorage,
+  ExtensionLocal,
 }
 
 export interface Storage {
-  getItem(name: string): Promise<any>;
+  getItem(name: StorageKey): Promise<any>;
 
-  setItem(name: string, value: any): Promise<void>;
+  setItem(name: StorageKey, value: any): Promise<void>;
 
-  removeItem(name: string): Promise<void>;
+  removeItem(name: StorageKey): Promise<void>;
 
   clear(): Promise<void>;
+
+  getAll(): Promise<AnyLiteral>;
+
+  setMany(items: AnyLiteral): Promise<void>;
+
+  getMany(keys: string[]): Promise<AnyLiteral>;
 }
+
+export type StorageKey = 'addresses'
+| 'mnemonicsEncrypted'
+| 'publicKeys'
+| 'accounts'
+| 'stateVersion'
+// For extension
+| 'dapps'
+| 'dappMethods:lastAccountId'
+| 'windowId'
+| 'windowState'
+| 'isTonMagicEnabled'
+| 'isTonProxyEnabled'
+| 'isDeeplinkHookEnabled';

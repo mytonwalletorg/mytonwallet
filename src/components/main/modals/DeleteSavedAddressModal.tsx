@@ -1,13 +1,14 @@
 import React, { memo, useCallback } from '../../../lib/teact/teact';
+
 import { getActions } from '../../../global';
 
 import useLang from '../../../hooks/useLang';
 
-import Modal from '../../ui/Modal';
 import Button from '../../ui/Button';
+import Modal from '../../ui/Modal';
 
-import styles from './DeleteSavedAddressModal.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
+import styles from './DeleteSavedAddressModal.module.scss';
 
 interface OwnProps {
   isOpen?: boolean;

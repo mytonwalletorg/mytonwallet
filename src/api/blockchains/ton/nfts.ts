@@ -1,13 +1,14 @@
-import { Storage } from '../../storages/types';
+import type { Storage } from '../../storages/types';
+import type { ApiNft } from '../../types';
+
 import { BRILLIANT_API_BASE_URL } from '../../../config';
-import { handleFetchErrors } from '../../common/utils';
-import { ApiNft } from '../../types';
-import { fetchAddress } from './address';
 import { parseAccountId } from '../../../util/account';
+import { fetchStoredAddress } from '../../common/accounts';
+import { handleFetchErrors } from '../../common/utils';
 
 export async function getAccountNfts(storage: Storage, accountId: string) {
   const { network } = parseAccountId(accountId);
-  const address = await fetchAddress(storage, accountId);
+  const address = await fetchStoredAddress(storage, accountId);
   const url = `${BRILLIANT_API_BASE_URL}/nfts?`;
   const response = await fetch(url + new URLSearchParams({
     network,

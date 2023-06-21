@@ -1,9 +1,10 @@
 // eslint-disable-next-line max-classes-per-file
-import { Cell } from 'tonweb/dist/types/boc/cell';
-import { HttpProvider } from 'tonweb/dist/types/providers/http-provider';
-import { Address as AddressType } from 'tonweb/dist/types/utils/address';
 import TonWeb from 'tonweb';
-import { ApiTransaction } from '../../types';
+import type { Cell } from 'tonweb/dist/types/boc/cell';
+import type { HttpProvider } from 'tonweb/dist/types/providers/http-provider';
+import type { Address as AddressType } from 'tonweb/dist/types/utils/address';
+
+import type { ApiTransaction } from '../../types';
 
 declare class Dns {
   readonly provider: HttpProvider;
@@ -26,7 +27,7 @@ export interface TokenTransferBodyParams {
   toAddress: string;
   responseAddress: string;
   forwardAmount: string;
-  forwardPayload: Cell;
+  forwardPayload?: Cell | string;
 }
 
 export interface TonTransferParams {
@@ -34,4 +35,14 @@ export interface TonTransferParams {
   amount: string;
   payload?: string | Uint8Array | Cell;
   stateInit?: Cell;
+}
+
+export interface JettonMetadata {
+  name: string;
+  symbol: string;
+  description?: string;
+  decimals?: number | string;
+  image?: string;
+  image_data?: string;
+  uri?: string;
 }

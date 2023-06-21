@@ -5,6 +5,7 @@ import type { UserToken } from '../../global/types';
 import buildClassName from '../../util/buildClassName';
 import { formatHumanDay, formatTime } from '../../util/dateFormat';
 import { formatCurrencyExtended } from '../../util/formatNumber';
+
 import useLang from '../../hooks/useLang';
 
 import styles from './StakingProfileItem.module.scss';

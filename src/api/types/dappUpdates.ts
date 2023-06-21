@@ -18,7 +18,15 @@ export type ApiDappUpdateDeeplinkHook = {
   isEnabled: boolean;
 };
 
-export type ApiDappUpdate = ApiLegacyDappUpdate | ApiDappUpdateTonMagic | ApiDappUpdateDeeplinkHook;
+export type ApiDappDisconnect = {
+  type: 'disconnectDapp';
+  origin: string;
+};
+
+export type ApiDappUpdate = ApiLegacyDappUpdate
+| ApiDappUpdateTonMagic
+| ApiDappUpdateDeeplinkHook
+| ApiDappDisconnect;
 
 export type ApiLegacyDappUpdate = ApiDappUpdateBalance | ApiDappUpdateAccounts;
 

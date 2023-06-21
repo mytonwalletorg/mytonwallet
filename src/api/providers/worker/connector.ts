@@ -1,8 +1,9 @@
+import type { MethodArgs, MethodResponse, Methods } from '../../methods/types';
 import type { ApiInitArgs, OnApiUpdate } from '../../types';
-import type { Methods, MethodArgs, MethodResponse } from '../../methods/types';
 
-import { DEBUG } from '../../../config';
-import { Connector, createConnector } from '../../../util/PostMessageConnector';
+import { logDebugError } from '../../../util/logs';
+import type { Connector } from '../../../util/PostMessageConnector';
+import { createConnector } from '../../../util/PostMessageConnector';
 
 let connector: Connector;
 
@@ -15,20 +16,19 @@ export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => Ap
   return connector.init(args);
 }
 
-export function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<T>) {
+export async function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<T>) {
   if (!connector) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.warn('API is not initialized');
-    }
-
+    logDebugError('API is not initialized');
     return undefined;
   }
 
-  const promise = connector.request({
-    name: fnName,
-    args,
-  });
-
-  return promise as MethodResponse<T>;
+  try {
+    return await (connector.request({
+      name: fnName,
+      args,
+    }) as MethodResponse<T>);
+  } catch (err) {
+    logDebugError('callApi', err);
+    return undefined;
+  }
 }

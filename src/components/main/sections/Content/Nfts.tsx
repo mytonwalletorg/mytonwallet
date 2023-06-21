@@ -1,23 +1,21 @@
 import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 
-import {
-  ANIMATED_STICKER_BIG_SIZE_PX,
-  GETGEMS_BASE_MAINNET_URL,
-  GETGEMS_BASE_TESTNET_URL,
-} from '../../../../config';
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
-import { shortenAddress } from '../../../../util/shortenAddress';
+import { ANIMATED_STICKER_BIG_SIZE_PX, GETGEMS_BASE_MAINNET_URL, GETGEMS_BASE_TESTNET_URL } from '../../../../config';
+import { getActions, withGlobal } from '../../../../global';
 import renderText from '../../../../global/helpers/renderText';
-import buildClassName from '../../../../util/buildClassName';
 import { selectCurrentAccountState } from '../../../../global/selectors';
+import buildClassName from '../../../../util/buildClassName';
+import { shortenAddress } from '../../../../util/shortenAddress';
+import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
+
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
 
-import Loading from '../../../ui/Loading';
-import Image from '../../../ui/Image';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
+import Image from '../../../ui/Image';
+import Loading from '../../../ui/Loading';
 
 import styles from './Nft.module.scss';
 
@@ -33,15 +31,12 @@ interface StateProps {
 }
 
 function Nfts({
-  isActive,
-  orderedAddresses,
-  byAddress,
-  currentAccountId,
-  isTestnet,
+  isActive, orderedAddresses, byAddress, currentAccountId, isTestnet,
 }: OwnProps & StateProps) {
   const { fetchNfts } = getActions();
-
+  const { isLandscape } = useDeviceScreen();
   const lang = useLang();
+
   const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
 
   useEffect(() => {
@@ -59,7 +54,9 @@ function Nfts({
 
   if (nfts === undefined) {
     return (
-      <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}><Loading /></div>
+      <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
+        <Loading />
+      </div>
     );
   }
 
@@ -76,9 +73,7 @@ function Nfts({
           nonInteractive
         />
         <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
-        <p className={styles.emptyListText}>
-          {renderText(lang('$nft_explore_offer'))}
-        </p>
+        <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
         <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">
           {lang('Open Getgems')}
         </a>
@@ -87,7 +82,7 @@ function Nfts({
   }
 
   return (
-    <div className={styles.list}>
+    <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
       {nfts.map((nft) => (
         <a
           href={`${getgemsBaseUrl}collection/${nft.collectionAddress}/${nft.address}`}
@@ -105,15 +100,17 @@ function Nfts({
     </div>
   );
 }
-export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-  detachWhenChanged(global.currentAccountId);
+export default memo(
+  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+    detachWhenChanged(global.currentAccountId);
 
-  const { orderedAddresses, byAddress } = selectCurrentAccountState(global)?.nfts || {};
+    const { orderedAddresses, byAddress } = selectCurrentAccountState(global)?.nfts || {};
 
-  return {
-    orderedAddresses,
-    byAddress,
-    currentAccountId: global.currentAccountId!,
-    isTestnet: global.settings.isTestnet,
-  };
-})(Nfts));
+    return {
+      orderedAddresses,
+      byAddress,
+      currentAccountId: global.currentAccountId!,
+      isTestnet: global.settings.isTestnet,
+    };
+  })(Nfts),
+);

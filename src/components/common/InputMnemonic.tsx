@@ -1,9 +1,10 @@
 import { wordlists } from 'tonweb-mnemonic';
-
 import React, {
   memo, useCallback, useEffect, useState,
 } from '../../lib/teact/teact';
+
 import buildClassName from '../../util/buildClassName';
+
 import useFlag from '../../hooks/useFlag';
 
 import SuggestionList from '../ui/SuggestionList';

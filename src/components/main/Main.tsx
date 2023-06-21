@@ -1,28 +1,19 @@
 import React, {
   memo, useCallback, useEffect, useState,
 } from '../../lib/teact/teact';
-import { withGlobal, getActions } from '../../global';
 
+import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState } from '../../global/selectors';
+
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
 
-import TransferModal from '../transfer/TransferModal';
-import Notifications from './Notifications';
-
-import StakingInfoModal from '../staking/StakingInfoModal';
 import StakeModal from '../staking/StakeModal';
+import StakingInfoModal from '../staking/StakingInfoModal';
 import UnstakingModal from '../staking/UnstakeModal';
-
-import BackupModal from './modals/BackupModal';
-import SignatureModal from './modals/SignatureModal';
-import TransactionModal from './modals/TransactionModal';
-import DappConnectModal from '../dapps/DappConnectModal';
-import DappTransactionModal from '../dapps/DappTransactionModal';
-
-import Actions from './sections/Actions';
+import { LandscapeActions, PortraitActions } from './sections/Actions';
 import Card from './sections/Card';
 import Content from './sections/Content';
-import Header from './sections/Header';
 import Warnings from './sections/Warnings';
 
 import styles from './Main.module.scss';
@@ -35,16 +26,18 @@ type StateProps = {
 };
 
 function Main({
-  currentTokenSlug,
-  currentAccountId,
-  isStakingActive,
-  isUnstakeRequested,
+  currentTokenSlug, currentAccountId, isStakingActive, isUnstakeRequested,
 }: StateProps) {
-  const { selectToken, startStaking, fetchBackendStakingState } = getActions();
+  const {
+    selectToken,
+    startStaking,
+    fetchBackendStakingState,
+    openBackupWalletModal,
+  } = getActions();
 
   const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : 0);
   const [isStakingInfoOpened, openStakingInfo, closeStakingInfo] = useFlag(false);
-  const [isBackupWalletOpened, openBackupWallet, closeBackupWallet] = useFlag(false);
+  const { isPortrait } = useDeviceScreen();
 
   useEffect(() => {
     if (currentAccountId && (isStakingActive || isUnstakeRequested)) {
@@ -65,14 +58,17 @@ function Main({
     }
   }, [isStakingActive, isUnstakeRequested, openStakingInfo, startStaking]);
 
-  return (
-    <>
-      <div className={styles.container}>
+  function renderPortraitLayout() {
+    return (
+      <div className={styles.portraitContainer}>
         <div className={styles.head}>
-          <Warnings onOpenBackupWallet={openBackupWallet} />
-          <Header onBackupWalletOpen={openBackupWallet} />
+          <Warnings onOpenBackupWallet={openBackupWalletModal} />
           <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
-          <Actions hasStaking={isStakingActive} isUnstakeRequested={isUnstakeRequested} onEarnClick={handleEarnClick} />
+          <PortraitActions
+            hasStaking={isStakingActive}
+            isUnstakeRequested={isUnstakeRequested}
+            onEarnClick={handleEarnClick}
+          />
         </div>
 
         <Content
@@ -81,29 +77,53 @@ function Main({
           onStakedTokenClick={handleEarnClick}
         />
       </div>
+    );
+  }
 
-      <BackupModal isOpen={isBackupWalletOpened} onClose={closeBackupWallet} />
-      <TransferModal />
-      <SignatureModal />
-      <TransactionModal />
-      <Notifications />
+  function renderLandscapeLayout() {
+    return (
+      <div className={styles.landscapeContainer}>
+        <div className={styles.sidebar}>
+          <Warnings onOpenBackupWallet={openBackupWalletModal} />
+          <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
+          <LandscapeActions
+            hasStaking={isStakingActive}
+            isUnstakeRequested={isUnstakeRequested}
+            onEarnClick={handleEarnClick}
+          />
+        </div>
+        <div className={styles.main}>
+          <Content
+            activeTabIndex={activeTabIndex}
+            setActiveTabIndex={setActiveTabIndex}
+            onStakedTokenClick={handleEarnClick}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {isPortrait ? renderPortraitLayout() : renderLandscapeLayout()}
+
       <StakeModal onViewStakingInfo={openStakingInfo} />
-      <UnstakingModal />
       <StakingInfoModal isOpen={isStakingInfoOpened} onClose={closeStakingInfo} />
-      <DappConnectModal />
-      <DappTransactionModal />
+      <UnstakingModal />
     </>
   );
 }
 
-export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps => {
-  detachWhenChanged(global.currentAccountId);
-  const accountState = selectCurrentAccountState(global);
+export default memo(
+  withGlobal((global, ownProps, detachWhenChanged): StateProps => {
+    detachWhenChanged(global.currentAccountId);
+    const accountState = selectCurrentAccountState(global);
 
-  return {
-    isStakingActive: Boolean(accountState?.stakingBalance) && !accountState?.isUnstakeRequested,
-    isUnstakeRequested: accountState?.isUnstakeRequested,
-    currentTokenSlug: accountState?.currentTokenSlug,
-    currentAccountId: global.currentAccountId,
-  };
-})(Main));
+    return {
+      isStakingActive: Boolean(accountState?.stakingBalance) && !accountState?.isUnstakeRequested,
+      isUnstakeRequested: accountState?.isUnstakeRequested,
+      currentTokenSlug: accountState?.currentTokenSlug,
+      currentAccountId: global.currentAccountId,
+    };
+  })(Main),
+);

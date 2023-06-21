@@ -51,7 +51,7 @@
     clip: rect(0, 0, 0, 0);
   }
 
-  :global(html:not(.is-ios)) &:not(&_rich) {
+  :global(html:not(.is-ios):not(.is-macos)) &:not(&_rich) {
     font-size: 0.9375rem;
   }
 
@@ -64,8 +64,7 @@
     &:-webkit-autofill-strong-password,
     &:-webkit-autofill-strong-password-viewable,
     &:-webkit-autofill-and-obscured {
-      box-shadow: inset 0 0 0 0.125rem var(--color-red),
-                  inset 0 0 0 10rem var(--color-background-first);
+      box-shadow: inset 0 0 0 0.125rem var(--color-red), inset 0 0 0 10rem var(--color-background-first);
     }
   }
 
@@ -77,8 +76,7 @@
     &:-webkit-autofill-strong-password,
     &:-webkit-autofill-strong-password-viewable,
     &:-webkit-autofill-and-obscured {
-      box-shadow: inset 0 0 0 0.125rem var(--color-blue),
-                  inset 0 0 0 10rem var(--color-background-first);
+      box-shadow: inset 0 0 0 0.125rem var(--color-blue), inset 0 0 0 10rem var(--color-background-first);
     }
   }
 
@@ -121,17 +119,17 @@
 
     /* Fix for ContentEditable multiline "issues" */
     br {
-      display:none;
+      display: none;
     }
 
     * {
-      display:inline;
+      display: inline;
 
-      white-space:nowrap;
+      white-space: nowrap;
     }
 
     &.isEmpty::before {
-      content: '0';
+      content: "0";
 
       font-size: 3rem;
       color: var(--color-gray-4);
@@ -177,7 +175,7 @@
   transition: box-shadow 150ms;
 
   &.error,
-  &_hasFocus.error, {
+  &_hasFocus.error {
     box-shadow: inset 0 0 0 0.125rem var(--color-red);
   }
 
@@ -234,11 +232,12 @@
 
   display: block;
 
-  margin-bottom: 0.1875rem;
+  margin-bottom: 0.3125rem;
   padding: 0 0.5rem;
 
   font-size: 0.8125rem;
   font-weight: 700;
+  line-height: 1;
   color: var(--color-blue);
   white-space: nowrap;
 

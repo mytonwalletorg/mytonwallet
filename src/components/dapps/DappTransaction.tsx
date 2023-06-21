@@ -1,16 +1,17 @@
 import React, { memo } from '../../lib/teact/teact';
 
 import type { ApiDappTransaction, ApiParsedPayload } from '../../api/types';
-
 import type { UserToken } from '../../global/types';
+
 import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency } from '../../util/formatNumber';
 
-import InteractiveTextField from '../ui/InteractiveTextField';
-import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
-import useLang from '../../hooks/useLang';
 import useFlag from '../../hooks/useFlag';
+import useLang from '../../hooks/useLang';
+
+import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
+import InteractiveTextField from '../ui/InteractiveTextField';
 
 import styles from './Dapp.module.scss';
 

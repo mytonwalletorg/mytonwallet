@@ -113,18 +113,18 @@
   font-size: 0.8125rem;
   line-height: 1rem;
 
-  & > div {
+  &_slide {
     text-align: right;
 
     background: var(--color-background-window);
   }
 
-  &.animating {
-    > .from {
+  &.Transition {
+    > .Transition_slide-from {
       animation-duration: 150ms !important;
     }
 
-    > .to {
+    > .Transition_slide-to {
       animation-duration: 150ms !important;
     }
   }
@@ -161,7 +161,7 @@
     color: var(--color-red);
   }
 
-  & > div {
+  &_slide {
     text-align: right;
 
     background: var(--color-background-window);

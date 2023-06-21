@@ -1,28 +1,30 @@
 import React, { memo, useCallback } from '../../lib/teact/teact';
 
+import { APP_NAME, IS_LEDGER_SUPPORTED, MNEMONIC_COUNT } from '../../config';
 import { getActions } from '../../global';
-import { APP_NAME, MNEMONIC_COUNT } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import useShowTransition from '../../hooks/useShowTransition';
+
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useShowTransition from '../../hooks/useShowTransition';
 
-import AboutModal from '../common/AboutModal';
 import Button from '../ui/Button';
 
 import styles from './Auth.module.scss';
+
 import logoPath from '../../assets/logo.svg';
 
 const AuthStart = () => {
   const {
     startCreatingWallet,
     startImportingWallet,
+    openAbout,
+    openHardwareWalletModal,
   } = getActions();
 
   const lang = useLang();
   const [isLogoReady, markLogoReady] = useFlag();
-  const [isAboutOpened, openAbout, closeAbout] = useFlag(false);
   const { transitionClassNames } = useShowTransition(isLogoReady, undefined, undefined, 'slow');
 
   const handleCreateWallet = useCallback(() => {
@@ -41,30 +43,40 @@ const AuthStart = () => {
       <div className={styles.info}>
         {renderText(lang('$auth_intro'))}
       </div>
-      <div className={styles.buttons}>
+      <Button
+        isText
+        className={buildClassName(styles.btn, styles.btn_about)}
+        onClick={openAbout}
+      >
+        {lang('More about MyTonWallet')}
+        <i className="icon-chevron-right" />
+      </Button>
+      <div className={styles.importButtonsBlock}>
         <Button
           isPrimary
           className={styles.btn}
           onClick={handleCreateWallet}
         >
-          {lang('Create New Wallet')}
+          {lang('Create Wallet')}
         </Button>
-        <Button
-          isText
-          className={buildClassName(styles.btn, styles.btn_text)}
-          onClick={startImportingWallet}
-        >
-          {lang('Import From %1$d Secret Words', MNEMONIC_COUNT)}
-        </Button>
-        <Button
-          isText
-          className={buildClassName(styles.btn, styles.btn_about)}
-          onClick={openAbout}
-        >
-          {lang('About MyTonWallet')}
-        </Button>
+        <span className={styles.importText}>{lang('Or import from...')}</span>
+        <div className={styles.importButtons}>
+          <Button
+            className={styles.btn}
+            onClick={startImportingWallet}
+          >
+            {lang('%1$d Secret Words', MNEMONIC_COUNT)}
+          </Button>
+          {IS_LEDGER_SUPPORTED && (
+            <Button
+              className={buildClassName(styles.btn, styles.btn_mini)}
+              onClick={openHardwareWalletModal}
+            >
+              {lang('Ledger')}
+            </Button>
+          )}
+        </div>
       </div>
-      <AboutModal isOpen={isAboutOpened} onClose={closeAbout} />
     </div>
   );
 };

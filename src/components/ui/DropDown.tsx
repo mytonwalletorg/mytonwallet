@@ -1,6 +1,7 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 
@@ -36,7 +37,7 @@ function DropDown({
   disabled,
   shouldTranslateOptions,
   onChange,
-}: OwnProps) {
+}: OwnProps): TeactJsx {
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
 

@@ -1,11 +1,12 @@
+import type { MethodArgs, MethodResponse, Methods } from '../../methods/types';
 import type { ApiInitArgs, OnApiUpdate } from '../../types';
-import type { Methods, MethodArgs, MethodResponse } from '../../methods/types';
 
-import { DEBUG } from '../../../config';
+import { logDebugError } from '../../../util/logs';
+import type { Connector } from '../../../util/PostMessageConnector';
+import { createExtensionConnector } from '../../../util/PostMessageConnector';
 // Relative import is needed for `NormalModuleReplacementPlugin`
 // eslint-disable-next-line import/no-useless-path-segments
 import { POPUP_PORT } from '../extension/config';
-import { Connector, createExtensionConnector } from '../../../util/PostMessageConnector';
 
 let connector: Connector;
 
@@ -18,11 +19,7 @@ export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => Ap
 
 export function callApi<T extends keyof Methods>(methodName: T, ...args: MethodArgs<T>) {
   if (!connector) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.warn('API is not initialized');
-    }
-
+    logDebugError('API is not initialized');
     return undefined;
   }
 

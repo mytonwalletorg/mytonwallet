@@ -1,6 +1,8 @@
-import { BackupWallet, GlobalState, TransferState } from '../types';
-import { selectCurrentAccountState } from '../selectors';
-import { updateCurrentAccountsState, updateCurrentAccountState } from './misc';
+import { TransferState } from '../types';
+import type { GlobalState } from '../types';
+
+import { selectAccountState, selectCurrentAccountState } from '../selectors';
+import { updateAccountState, updateCurrentAccountState } from './misc';
 
 export function updateCurrentTransfer(global: GlobalState, update: Partial<GlobalState['currentTransfer']>) {
   return {
@@ -38,21 +40,21 @@ export function clearCurrentSignature(global: GlobalState) {
   };
 }
 
-export function updateBackupWalletModal(global: GlobalState, update: Partial<BackupWallet>) {
-  const { backupWallet } = selectCurrentAccountState(global) || {};
-
-  return updateCurrentAccountsState(global, {
-    backupWallet: {
-      ...backupWallet,
-      ...update,
-    },
-  });
-}
-
 export function updateTransactionsIsLoading(global: GlobalState, isLoading: boolean) {
   const { transactions } = selectCurrentAccountState(global) || {};
 
   return updateCurrentAccountState(global, {
+    transactions: {
+      ...transactions || { byTxId: {} },
+      isLoading,
+    },
+  });
+}
+
+export function updateTransactionsIsLoadingByAccount(global: GlobalState, accountId: string, isLoading: boolean) {
+  const { transactions } = selectAccountState(global, accountId) || {};
+
+  return updateAccountState(global, accountId, {
     transactions: {
       ...transactions || { byTxId: {} },
       isLoading,

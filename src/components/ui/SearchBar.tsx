@@ -2,6 +2,7 @@ import type { FocusEvent } from 'react';
 import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+
 import useLang from '../../hooks/useLang';
 
 import styles from './SearchBar.module.scss';
@@ -17,6 +18,9 @@ function SearchBar({ className, onFocus, onBlur }: OwnProps) {
 
   return (
     <div className={buildClassName(styles.wrapper, className)}>
+      <div className={styles.iconAddon}>
+        <i className={buildClassName(styles.icon, 'icon-search')} aria-hidden />
+      </div>
       <input className={styles.input} onFocus={onFocus} onBlur={onBlur} placeholder={lang('Search...')} />
     </div>
   );

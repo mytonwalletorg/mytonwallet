@@ -4,7 +4,7 @@ $auth_intro: |
   **со скоростью света**.
 Create New Wallet: Создать новый кошелёк
 Import From %1$d Secret Words: Восстановить из %1$d секретных слов
-About MyTonWallet: О MyTonWallet
+More about MyTonWallet: Подробнее о MyTonWallet
 Creating Wallet...: Создаём кошелёк...
 On the count of three...: Сосчитайте до трёх...
 $auth_backup_description1: |
@@ -24,7 +24,7 @@ Skip For Now: Сделаю позже
 Passwords must be equal.: Пароли не совпадают.
 To protect your wallet as much as possible, use a password with: Для обеспечения максимальной безопасности кошелька пароль должен содержать
 $auth_password_rule_8chars: не менее 8 символов
-$auth_password_rule_one_small_char: одну прописную букву
+$auth_password_rule_one_small_char: одну строчную букву
 $auth_password_rule_one_capital_char: одну заглавную букву
 $auth_password_rule_one_digit: одну цифру
 $auth_password_rule_one_special_char: один символ
@@ -220,7 +220,6 @@ $receive_ton_description: |
 Your address: Ваш адрес
 Wrong password, please try again: Неправильный пароль, попробуйте ещё раз
 Appearance: Внешний вид
-Assets and Activity: Активы и Лента
 Light: Светлая
 Dark: Тёмная
 System: Системная
@@ -293,3 +292,44 @@ $dapp_transfer_tokens_payload_with_comment: Отправить %amount% на %ad
 $dapp_transfer_tokens_payload: Перевод %amount% с вашего аккаунта на %address%
 $dapp_transfer_nft_payload: Отправка NFT "%nft%" с вашего аккаунта на %address%
 Nested Transaction: Вложенная транзакция
+Connected Dapps: Подключенные приложения
+Disconnect All Dapps: Отключить все приложения
+Disconnect: Отключить
+Disconnect Dapp: Отключить приложение
+Disconnect Dapps: Отключить приложения
+Are you sure you want to disconnect?: Вы уверены, что хотите отключить %dappname%?
+Are you sure you want to disconnect all websites?: Вы уверены, что хотите отключить все сайты?
+$dapps-description: Вы можете подключиться к децентрализованным приложеним, поддерживающие MyTonWallet. Они могут просматривать адрес кошелька и баланс.
+Logged in with MyTonWallet: Подключены с помощью MyTonWallet
+No active connections: Нет активных подключений
+Unstaked successfully: Депозит выведен успешно
+Other: Другие
+Assets & Activity: Активы & Лента
+Update: Обновить
+Restart: Перезапустить
+Connect Ledger: Подключить Ledger
+Connecting to your Ledger...: Подключение к Ledger...
+Failed to connect: Не удалось подключиться
+Ledger Connected!: Ledger подключен!
+Select Ledger Wallets: Выберите кошельки Ledger
+"%1$d Selected": "%1$d Выбрано"
+Add: Добавить
+Try Again: Повторить
+Driver: Драйвер
+Connect your Ledger to PC: Подключите ваш Ledger к компьютеру
+Unlock it and open the TON App: Разблокируйте его и откройте приложение TON
+Maybe you need to check the password or change the driver.: Возможно, вам нужно проверить пароль или сменить драйвер.
+Or import from...: Или импортировать из...
+Confirm via Ledger: Подтвердить через Ledger
+Please confirm transaction on your Ledger: Пожалуйста, подтвердите транзакцию в вашем Ledger
+Declined: Отклонено
+Create Wallet: Создать кошелек
+Switch to the newly opened tab to connect Ledger.: Переключитесь на только что открытую вкладку, чтобы подключить Ledger.
+Once connected, switch back to this window to proceed.: После подключения, вернитесь в это окно, чтобы продолжить.
+Not all transactions were sent successfully: Не все транзакции были успешно отправлены
+The time on your device is incorrect, sync it and try again: Время на вашем устройстве некорректно, синхронизируйте его и попробуйте снова
+Such error, many tabs: Такая ошибка, много вкладок
+$many_tabs_error_description: |
+  MyTonWallet поддерживает только одну активную вкладку с приложением.
+  Пожалуйста, перезагрузите эту страницу, чтобы продолжить использовать эту вкладку, или закройте её.
+Reload App: Перезагрузить приложение

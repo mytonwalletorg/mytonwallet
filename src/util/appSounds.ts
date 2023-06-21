@@ -1,5 +1,5 @@
-import { debounce } from './schedulers';
 import safePlay from './safePlay';
+import { debounce } from './schedulers';
 
 const DEBOUNCE_MS = 1000;
 const sound = new Audio('./incoming-transaction.mp3');

@@ -1,6 +1,7 @@
 import React, { memo, useCallback } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+
 import useFlag from '../../hooks/useFlag';
 import useMediaTransition from '../../hooks/useMediaTransition';
 

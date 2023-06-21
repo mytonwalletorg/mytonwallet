@@ -1,7 +1,11 @@
 import React, { memo } from '../../../../lib/teact/teact';
-import { withGlobal } from '../../../../global';
 
+import { IS_ELECTRON } from '../../../../config';
+import { withGlobal } from '../../../../global';
 import { selectCurrentAccountState } from '../../../../global/selectors';
+import { IS_EXTENSION } from '../../../../util/windowEnvironment';
+
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
 
 import BackupWarning from './BackupWarning';
@@ -18,16 +22,22 @@ type StateProps = {
   isBackupRequired: boolean;
 };
 
+const SECURITY_WARNING_TEMPORARILY_DISABLED = true;
+
 function Warnings({ isBackupRequired, isTestnet, onOpenBackupWallet }: OwnProps & StateProps) {
+  const { isPortrait } = useDeviceScreen();
   const lang = useLang();
 
   return (
     <>
-      <div className={styles.container}>
-        {isTestnet && <div className={styles.testnetWarning}>{lang('Testnet Version')}</div>}
-      </div>
+      {isTestnet && (
+        <div className={isPortrait ? styles.portraitContainer : styles.container}>
+          <div className={styles.testnetWarning}>{lang('Testnet Version')}</div>
+        </div>
+      )}
+
       <BackupWarning isRequired={isBackupRequired} onOpenBackupWallet={onOpenBackupWallet} />
-      <SecurityWarning />
+      {!(IS_ELECTRON || IS_EXTENSION || SECURITY_WARNING_TEMPORARILY_DISABLED) && <SecurityWarning />}
     </>
   );
 }

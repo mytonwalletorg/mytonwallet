@@ -1,6 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
-import {
-  CHAIN,
+import type { KeyPair } from 'tonweb-mnemonic';
+import TonWeb from 'tonweb';
+import type {
   ConnectEventError,
   ConnectItemReply,
   ConnectRequest,
@@ -10,15 +11,46 @@ import {
   TonProofItem,
   TonProofItemReplySuccess,
 } from '@tonconnect/protocol';
-
-import { KeyPair } from 'tonweb-mnemonic';
-import TonWeb from 'tonweb';
+import {
+  CHAIN,
+} from '@tonconnect/protocol';
 import nacl from 'tweetnacl';
+
+import { ApiTransactionDraftError, ApiTransactionError } from '../types';
+import {
+  CONNECT_EVENT_ERROR_CODES,
+  SEND_TRANSACTION_ERROR_CODES,
+} from './types';
+import type { Storage } from '../storages/types';
+import type {
+  ApiDapp,
+  ApiDappRequest,
+  ApiNetwork,
+  ApiSignedTransfer,
+  OnApiUpdate,
+} from '../types';
+import type {
+  LocalConnectEvent,
+  TransactionPayload,
+  TransactionPayloadMessage,
+} from './types';
+
+import { TON_TOKEN_SLUG } from '../../config';
+import { buildAccountId, parseAccountId } from '../../util/account';
+import { logDebugError } from '../../util/logs';
+import blockchains from '../blockchains';
+import { fetchKeyPair } from '../blockchains/ton/auth';
+import { parsePayload } from '../blockchains/ton/transactions';
+import { toBase64Address, toRawAddress } from '../blockchains/ton/util/tonweb';
+import { fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey } from '../common/accounts';
+import { createDappPromise } from '../common/dappPromises';
+import { createLocalTransaction, toInternalAccountId } from '../common/helpers';
 import {
   base64ToBytes, bytesToBase64, handleFetchErrors, sha256,
 } from '../common/utils';
-import storage from '../storages/idb';
 import { getActiveDappAccountId } from '../dappMethods';
+import { openPopupWindow } from '../dappMethods/window';
+import * as apiErrors from '../errors';
 import {
   activateDapp,
   addDapp,
@@ -26,41 +58,23 @@ import {
   deactivateAccountDapp,
   deactivateDapp,
   deleteDapp,
-  findConnectedAccountByDapp,
+  findActiveDappAccount,
+  findConnectedDappAccounts,
   getDappsByOrigin,
-  isDappActive,
   isDappConnected,
 } from '../methods/dapps';
-import { parseAccountId } from '../../util/account';
-import blockchains from '../blockchains';
-import { DEBUG, TON_TOKEN_SLUG } from '../../config';
-import {
-  ApiDapp, ApiDappRequest, ApiTransactionDraftError, OnApiUpdate,
-} from '../types';
-import { fetchKeyPair } from '../blockchains/ton/auth';
-import { toBase64Address, toRawAddress } from '../blockchains/ton/util/tonweb';
-import { openPopupWindow } from '../dappMethods/window';
-import { createDappPromise } from '../common/dappPromises';
-import { buildLocalTransaction } from '../common/helpers';
-import { whenTxComplete } from '../common/txCallbacks';
 import * as errors from './errors';
-import {
-  CONNECT_EVENT_ERROR_CODES,
-  LocalConnectEvent,
-  SEND_TRANSACTION_ERROR_CODES,
-  TransactionPayload,
-} from './types';
-import { ApiUserRejectsError } from '../errors';
-import { parsePayload } from '../blockchains/ton/transactions';
 
 const { Address } = TonWeb.utils;
 
 const ton = blockchains.ton;
 
 let onPopupUpdate: OnApiUpdate;
+let storage: Storage;
 
-export function initTonConnect(_onPopupUpdate: OnApiUpdate) {
+export function initTonConnect(_onPopupUpdate: OnApiUpdate, _storage: Storage) {
   onPopupUpdate = _onPopupUpdate;
+  storage = _storage;
 }
 
 export async function connect(
@@ -69,7 +83,7 @@ export async function connect(
   id: number,
 ): Promise<LocalConnectEvent> {
   try {
-    const { accountId, origin } = validateRequest(request, true);
+    const { currentAccountId: accountId, origin } = validateRequest(request, true);
     const dapp = await fetchDapp(origin, message.manifestUrl);
 
     const addressItem = message.items.find(({ name }) => name === 'ton_addr');
@@ -121,7 +135,7 @@ export async function connect(
     const result = await reconnect(request, id);
 
     if (result.event === 'connect' && proofItem) {
-      const address = await ton.fetchAddress(storage, accountId);
+      const address = await fetchStoredAddress(storage, accountId);
       result.payload.items.push(await buildTonProofReplyItem(
         accountId,
         address,
@@ -132,33 +146,45 @@ export async function connect(
     }
 
     return result;
-  } catch (e) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[connect]', e);
-    }
-    return formatConnectError(id, e as Error);
+  } catch (err) {
+    logDebugError('tonConnect:connect', err);
+    return formatConnectError(id, err as Error);
   }
 }
 
 export async function reconnect(request: ApiDappRequest, id: number): Promise<LocalConnectEvent> {
   try {
-    const { origin, accountId } = validateRequest(request, true);
+    const { origin, currentAccountId, activeAccountId } = validateRequest(request, true);
+    const { network } = parseAccountId(currentAccountId);
 
     // TODO Initialize the API in a different way
     if (!onPopupUpdate) {
       await openPopupWindow();
     }
 
-    const isConnected = await isDappConnected(accountId, origin);
+    const connectedInternalAccountIds = await findConnectedDappAccounts(origin);
+    const isConnected = !!connectedInternalAccountIds.length;
 
     if (!isConnected) {
       throw new errors.UnknownAppError();
     }
 
+    let accountId: string;
+
+    if (activeAccountId) {
+      accountId = activeAccountId;
+    } else if (connectedInternalAccountIds.includes(toInternalAccountId(currentAccountId))) {
+      accountId = currentAccountId;
+    } else {
+      accountId = buildAccountId({
+        ...parseAccountId(connectedInternalAccountIds[0]),
+        network,
+      });
+    }
+
     activateDapp(accountId, origin);
 
-    const address = await ton.fetchAddress(storage, accountId);
+    const address = await fetchStoredAddress(storage, accountId);
     const items: ConnectItemReply[] = [
       await buildTonAddressReplyItem(accountId, address),
     ];
@@ -176,18 +202,13 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Lo
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function disconnect(request: ApiDappRequest, message: DisconnectEvent): Promise<DisconnectEvent> {
   try {
-    const { origin } = validateRequest(request, true);
+    const { origin, activeAccountId } = validateRequest(request);
+    const accountId = activeAccountId!;
 
-    const connectedAccountId = findConnectedAccountByDapp(origin);
-    if (connectedAccountId) {
-      deactivateAccountDapp(connectedAccountId);
-      await deleteDapp(connectedAccountId, origin);
-    }
-  } catch (e) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[disconnect]', e);
-    }
+    deactivateAccountDapp(accountId);
+    await deleteDapp(accountId, origin, true);
+  } catch (err) {
+    logDebugError('tonConnect:disconnect', err);
   }
   return {
     event: 'disconnect',
@@ -203,8 +224,8 @@ export async function sendTransaction(
   let isPopupOpen = false;
 
   try {
-    const { accountId, origin } = validateRequest(request);
-    const { network } = parseAccountId(accountId);
+    const { origin, activeAccountId } = validateRequest(request);
+    const accountId = activeAccountId!;
 
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
     const messages = txPayload.messages.slice(0, 3);
@@ -214,44 +235,20 @@ export async function sendTransaction(
       validUntil = Math.round(validUntil / 1000);
     }
 
+    const { network } = parseAccountId(accountId);
+    const account = await fetchStoredAccount(storage, accountId);
+    const isLedger = !!account?.ledger;
+
     await openPopupWindow();
     isPopupOpen = true;
 
-    const preparedMessages = messages.map((msg) => {
-      const {
-        address, amount, payload, stateInit,
-      } = msg;
-
-      return {
-        toAddress: address,
-        amount,
-        payload: payload ? ton.oneCellFromBoc(base64ToBytes(payload)) : undefined,
-        stateInit: stateInit ? ton.oneCellFromBoc(base64ToBytes(stateInit)) : undefined,
-      };
-    });
-
-    const { fee, error } = await ton.checkMultiTransactionDraft(storage, accountId, preparedMessages);
-
-    if (error) {
-      onPopupUpdate({
-        type: 'showTxDraftError',
-        error,
-      });
-      throw new errors.BadRequestError(error);
-    }
+    const { preparedMessages, checkResult } = await checkTransactionMessages(accountId, messages);
 
     const { promiseId, promise } = createDappPromise();
 
     // TODO Cache dapps in localstorage when connecting
     const dapp = (await getDappsByOrigin(accountId))[origin];
-    const transactionsForRequest = await Promise.all(messages.map(async ({ address, amount, payload }) => {
-      const toAddress = toBase64Address(address);
-      return {
-        toAddress,
-        amount,
-        payload: payload ? await parsePayload(network, toAddress, payload) : undefined,
-      };
-    }));
+    const transactionsForRequest = await prepareTransactionForRequest(network, messages);
 
     onPopupUpdate({
       type: 'dappSendTransactions',
@@ -259,79 +256,79 @@ export async function sendTransaction(
       accountId,
       dapp,
       transactions: transactionsForRequest,
-      fee: fee!,
+      fee: checkResult.fee!,
     });
 
-    const password = await promise;
+    // eslint-disable-next-line prefer-const
+    const response: string | ApiSignedTransfer[] = await promise;
 
     if (validUntil && validUntil < (Date.now() / 1000)) {
       throw new errors.BadRequestError('The confirmation timeout has expired');
     }
 
-    const submitResult = await ton.submitMultiTransfer(
-      storage,
-      accountId,
-      password,
-      preparedMessages,
-      validUntil,
-    );
+    let submitResult: any | { error: string };
+    let successNumber: number;
 
-    if (!submitResult) {
-      throw new errors.UnknownError('Unknown error during transfer');
+    if (isLedger) {
+      submitResult = await ton.sendSignedMessages(storage, accountId, response as ApiSignedTransfer[]);
+      successNumber = submitResult.successNumber;
+      if (successNumber > 0) {
+        if (successNumber < messages.length) {
+          onPopupUpdate({
+            type: 'showError',
+            error: ApiTransactionError.PartialTransactionFailure,
+          });
+        }
+      } else {
+        submitResult = { error: 'Failed transfers' };
+      }
+    } else {
+      const password = response as string;
+      successNumber = messages.length;
+      submitResult = await ton.submitMultiTransfer(
+        storage,
+        accountId,
+        password!,
+        preparedMessages,
+        validUntil,
+      );
     }
 
-    const resultMessages = submitResult.messages;
-    const fromAddress = await ton.fetchAddress(storage, accountId);
+    if ('error' in submitResult) {
+      throw new errors.UnknownError(submitResult.error);
+    }
 
-    resultMessages.forEach((resultMessage) => {
-      const { resolvedAddress, amount } = resultMessage;
+    const fromAddress = await fetchStoredAddress(storage, accountId);
+    const successTransactions = transactionsForRequest.slice(0, successNumber);
 
-      const localTransaction = buildLocalTransaction({
+    successTransactions.forEach(({ amount, resolvedAddress, payload }) => {
+      const comment = payload?.type === 'comment' ? payload.comment : undefined;
+      createLocalTransaction(onPopupUpdate, accountId, {
         amount,
         fromAddress,
         toAddress: resolvedAddress,
-        fee: fee!,
+        comment,
+        fee: checkResult.fee!,
         slug: TON_TOKEN_SLUG,
       });
-
-      onPopupUpdate({
-        type: 'newLocalTransaction',
-        transaction: localTransaction,
-        accountId,
-      });
-
-      whenTxComplete(resolvedAddress, amount)
-        .then(({ txId }) => {
-          onPopupUpdate({
-            type: 'updateTxComplete',
-            accountId,
-            toAddress: resolvedAddress,
-            amount,
-            txId,
-            localTxId: localTransaction.txId,
-          });
-        });
     });
 
     return {
       result: 'ok',
       id: message.id,
     };
-  } catch (e) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[sendTransaction]', e);
-    }
+  } catch (err) {
+    logDebugError('tonConnect:sendTransaction', err);
 
     let code = SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR;
     let errorMessage = 'Unhandled error';
 
-    if (e instanceof ApiUserRejectsError) {
+    if (err instanceof apiErrors.ApiUserRejectsError) {
       code = SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR;
-      errorMessage = e.message;
-    } else if (e instanceof errors.TonConnectError) {
-      code = e.code;
-      errorMessage = e.message;
+      errorMessage = err.message;
+    } else if (err instanceof errors.TonConnectError) {
+      code = err.code;
+      errorMessage = err.message;
     } else if (isPopupOpen) {
       onPopupUpdate({
         type: 'showTxDraftError',
@@ -348,16 +345,66 @@ export async function sendTransaction(
   }
 }
 
+async function checkTransactionMessages(accountId: string, messages: TransactionPayloadMessage[]) {
+  const preparedMessages = messages.map((msg) => {
+    const {
+      address,
+      amount,
+      payload,
+      stateInit,
+    } = msg;
+
+    return {
+      toAddress: address,
+      amount,
+      payload: payload ? ton.oneCellFromBoc(base64ToBytes(payload)) : undefined,
+      stateInit: stateInit ? ton.oneCellFromBoc(base64ToBytes(stateInit)) : undefined,
+    };
+  });
+
+  const checkResult = await ton.checkMultiTransactionDraft(storage, accountId, preparedMessages);
+  handleDraftError(checkResult);
+
+  return {
+    preparedMessages,
+    checkResult,
+  };
+}
+
+function prepareTransactionForRequest(network: ApiNetwork, messages: TransactionPayloadMessage[]) {
+  return Promise.all(messages.map(
+    async ({
+      address,
+      amount,
+      payload: rawPayload,
+      stateInit,
+    }) => {
+      const isInitialized = await ton.isWalletInitialized(network, address);
+      const resolvedAddress = toBase64Address(address);
+
+      // Force non-bounceable for non-initialized recipients
+      const toAddress = isInitialized ? resolvedAddress : toBase64Address(address, false);
+      const payload = rawPayload ? await parsePayload(network, toAddress, rawPayload) : undefined;
+
+      return {
+        resolvedAddress,
+        toAddress,
+        amount,
+        rawPayload,
+        payload,
+        stateInit,
+      };
+    },
+  ));
+}
+
 export function deactivate(request: ApiDappRequest) {
   try {
     const { origin } = validateRequest(request);
 
     deactivateDapp(origin);
-  } catch (e) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[deactivate]', e);
-    }
+  } catch (err) {
+    logDebugError('tonConnect:deactivate', err);
   }
 }
 
@@ -365,7 +412,7 @@ function formatConnectError(id: number, error: Error): ConnectEventError {
   let code = CONNECT_EVENT_ERROR_CODES.UNKNOWN_ERROR;
   let message = 'Unhandled error';
 
-  if (error instanceof ApiUserRejectsError) {
+  if (error instanceof apiErrors.ApiUserRejectsError) {
     code = CONNECT_EVENT_ERROR_CODES.USER_REJECTS_ERROR;
     message = error.message;
   } else if (error instanceof errors.TonConnectError) {
@@ -387,7 +434,7 @@ async function buildTonAddressReplyItem(accountId: string, address: string): Pro
   const { network } = parseAccountId(accountId);
   const [stateInit, publicKey] = await Promise.all([
     ton.getWalletStateInit(storage, accountId),
-    ton.fetchPublicKey(storage, accountId),
+    fetchStoredPublicKey(storage, accountId),
   ]);
   return {
     name: 'ton_addr',
@@ -490,11 +537,8 @@ async function fetchDapp(origin: string, manifestUrl: string): Promise<ApiDapp> 
       iconUrl,
       manifestUrl,
     };
-  } catch (e) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[fetchDapp]', e);
-    }
+  } catch (err) {
+    logDebugError('fetchDapp', err);
     throw new errors.ManifestContentError();
   }
 }
@@ -522,15 +566,30 @@ function validateRequest(request: ApiDappRequest, skipConnection = false) {
     throw new errors.BadRequestError('Invalid origin');
   }
 
-  const accountId = getActiveDappAccountId();
-  if (!accountId) {
+  const currentAccountId = getActiveDappAccountId();
+
+  if (!currentAccountId) {
     throw new errors.BadRequestError('The user is not authorized in the wallet');
   }
-  if (!skipConnection && !isDappActive(accountId, origin)) {
-    throw new errors.BadRequestError('Connection to the current account is not established');
+
+  const activeAccountId = findActiveDappAccount(origin);
+  if (!skipConnection && !activeAccountId) {
+    throw new errors.BadRequestError('The connection is outdated, try relogin');
   }
+
   return {
     origin,
-    accountId,
+    activeAccountId,
+    currentAccountId,
   };
+}
+
+function handleDraftError({ error }: { error?: ApiTransactionDraftError }) {
+  if (error) {
+    onPopupUpdate({
+      type: 'showTxDraftError',
+      error,
+    });
+    throw new errors.BadRequestError(error);
+  }
 }

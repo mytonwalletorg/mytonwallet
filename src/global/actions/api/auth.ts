@@ -1,21 +1,25 @@
-import { AuthState } from '../../types';
-import { callApi } from '../../../api';
-import {
-  addActionHandler, getGlobal, setGlobal,
-} from '../..';
-import { pause } from '../../../util/schedulers';
+import { AppState, AuthState, HardwareConnectState } from '../../types';
+
 import { MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT } from '../../../config';
-import { updateAccount, updateAuth, updateCurrentAccountsState } from '../../reducers';
-import { INITIAL_STATE } from '../../initialState';
-import { cloneDeep } from '../../../util/iteratees';
 import { buildAccountId, parseAccountId } from '../../../util/account';
-import { selectNewestTxIds } from '../../selectors';
+import { cloneDeep } from '../../../util/iteratees';
+import {
+  connectLedger, getFirstLedgerWallets, importLedgerWallet, waitLedgerTonApp,
+} from '../../../util/ledger';
+import { pause } from '../../../util/schedulers';
+import { callApi } from '../../../api';
+import { addActionHandler, getGlobal, setGlobal } from '../..';
+import { INITIAL_STATE } from '../../initialState';
+import {
+  createAccount, updateAuth, updateCurrentAccountsState, updateHardware,
+} from '../../reducers';
+import { selectCurrentNetwork, selectFirstNonHardwareAccount, selectNewestTxIds } from '../../selectors';
 
 const CREATING_DURATION = 3300;
 
 addActionHandler('restartAuth', (global) => {
-  if (global.auth.prevAccountId) {
-    global = { ...global, currentAccountId: global.auth.prevAccountId };
+  if (global.currentAccountId) {
+    global = { ...global, appState: AppState.Main };
   }
 
   global = { ...global, auth: cloneDeep(INITIAL_STATE.auth) };
@@ -24,19 +28,24 @@ addActionHandler('restartAuth', (global) => {
 });
 
 addActionHandler('startCreatingWallet', async (global, actions) => {
-  setGlobal(updateAuth(global, { state: AuthState.creatingWallet, error: undefined }));
+  setGlobal(
+    updateAuth(global, {
+      state: AuthState.creatingWallet,
+      method: 'createAccount',
+      error: undefined,
+    }),
+  );
 
-  const [mnemonic] = await Promise.all([
-    callApi('generateMnemonic'),
-    pause(CREATING_DURATION),
-  ]);
+  const [mnemonic] = await Promise.all([callApi('generateMnemonic'), pause(CREATING_DURATION)]);
 
   global = updateAuth(getGlobal(), {
     mnemonic,
     mnemonicCheckIndexes: selectMnemonicForCheck(),
   });
 
-  if (global.auth.prevAccountId) {
+  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
+
+  if (firstNonHardwareAccount) {
     setGlobal(global);
     actions.afterCreatePassword({ password: global.auth.password! });
 
@@ -46,11 +55,26 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   setGlobal(updateAuth(global, { state: AuthState.createPassword }));
 });
 
-addActionHandler('afterCreatePassword', async (global, actions, { password, isImporting }) => {
+addActionHandler('afterCreatePassword', (global, actions, { password }) => {
   setGlobal(updateAuth(global, { isLoading: true }));
 
-  const { isTestnet } = getGlobal().settings;
-  const network = isTestnet ? 'testnet' : 'mainnet';
+  const { method } = getGlobal().auth;
+
+  const isImporting = method !== 'createAccount';
+  const isHardware = method === 'importHardwareWallet';
+
+  if (isHardware) {
+    actions.createHardwareAccounts();
+    return;
+  }
+
+  actions.createAccount({ password, isImporting });
+});
+
+addActionHandler('createAccount', async (global, actions, { password, isImporting }) => {
+  setGlobal(updateAuth(global, { isLoading: true }));
+
+  const network = selectCurrentNetwork(getGlobal());
 
   const result = await callApi(
     isImporting ? 'importMnemonic' : 'createWallet',
@@ -67,22 +91,18 @@ addActionHandler('afterCreatePassword', async (global, actions, { password, isIm
   global = getGlobal();
   global = updateAuth(global, {
     isLoading: undefined,
-    prevAccountId: undefined,
     password: undefined,
   });
-  const {
-    accountId,
-    address,
-  } = result;
+  const { accountId, address } = result;
 
   if (isImporting) {
     global = { ...global, currentAccountId: accountId };
     global = updateAuth(global, {
       state: AuthState.ready,
     });
-    global = updateAccount(global, accountId, address);
-
+    global = createAccount(global, accountId, address);
     setGlobal(global);
+
     actions.afterSignIn();
   } else {
     global = updateAuth(global, {
@@ -95,43 +115,100 @@ addActionHandler('afterCreatePassword', async (global, actions, { password, isIm
   }
 });
 
+addActionHandler('createHardwareAccounts', async (global, actions) => {
+  const isFirstAccount = !global.currentAccountId;
+  setGlobal(updateAuth(global, { isLoading: true }));
+
+  const { hardwareSelectedIndices = [] } = getGlobal().hardware;
+  const network = selectCurrentNetwork(getGlobal());
+
+  const wallets = await Promise.all(hardwareSelectedIndices.map((wallet) => importLedgerWallet(network, wallet)));
+
+  const updatedGlobal = wallets.reduce((currentGlobal, wallet) => {
+    if (!wallet) {
+      return currentGlobal;
+    }
+    const { accountId, address, walletInfo } = wallet;
+
+    currentGlobal = { ...currentGlobal, currentAccountId: accountId };
+    currentGlobal = createAccount(currentGlobal, accountId, address, {
+      isHardware: true,
+      ...(walletInfo && {
+        ledger: {
+          driver: walletInfo.driver,
+          index: walletInfo.index,
+        },
+      }),
+    });
+
+    return currentGlobal;
+  }, getGlobal());
+
+  setGlobal(updateAuth(updatedGlobal, { isLoading: false }));
+
+  if (getGlobal().areSettingsOpen) {
+    actions.closeSettings();
+  }
+
+  if (isFirstAccount) {
+    actions.afterSignIn();
+  }
+});
+
 addActionHandler('afterCheckMnemonic', (global, actions) => {
   global = { ...global, currentAccountId: global.auth.accountId! };
   global = updateCurrentAccountsState(global, {});
-  global = updateAccount(global, global.auth.accountId!, global.auth.address!);
+  global = createAccount(global, global.auth.accountId!, global.auth.address!);
   setGlobal(global);
 
   actions.afterSignIn();
 });
 
 addActionHandler('restartCheckMnemonicIndexes', (global) => {
-  setGlobal(updateAuth(global, {
-    mnemonicCheckIndexes: selectMnemonicForCheck(),
-  }));
+  setGlobal(
+    updateAuth(global, {
+      mnemonicCheckIndexes: selectMnemonicForCheck(),
+    }),
+  );
 });
 
 addActionHandler('skipCheckMnemonic', (global, actions) => {
   global = { ...global, currentAccountId: global.auth.accountId! };
   global = updateCurrentAccountsState(global, {
-    backupWallet: undefined,
     isBackupRequired: true,
   });
-  global = updateAccount(global, global.auth.accountId!, global.auth.address!);
+  global = createAccount(global, global.auth.accountId!, global.auth.address!);
   setGlobal(global);
 
   actions.afterSignIn();
 });
 
 addActionHandler('startImportingWallet', (global) => {
-  setGlobal(updateAuth(global, { state: AuthState.importWallet, error: undefined }));
+  setGlobal(
+    updateAuth(global, {
+      state: AuthState.importWallet,
+      error: undefined,
+      method: 'importMnemonic',
+    }),
+  );
+});
+
+addActionHandler('openAbout', (global) => {
+  setGlobal(updateAuth(global, { state: AuthState.about, error: undefined }));
+});
+
+addActionHandler('closeAbout', (global) => {
+  setGlobal(updateAuth(global, { state: AuthState.none, error: undefined }));
 });
 
 addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) => {
   const isValid = await callApi('validateMnemonic', mnemonic);
   if (!isValid) {
-    setGlobal(updateAuth(getGlobal(), {
-      error: 'Your mnemonic words are invalid.',
-    }));
+    setGlobal(
+      updateAuth(getGlobal(), {
+        error: 'Your mnemonic words are invalid.',
+      }),
+    );
 
     return;
   }
@@ -141,9 +218,11 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
     error: undefined,
   });
 
-  if (global.auth.prevAccountId) {
+  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
+
+  if (firstNonHardwareAccount) {
     setGlobal(global);
-    actions.afterCreatePassword({ password: global.auth.password!, isImporting: true });
+    actions.afterCreatePassword({ password: global.auth.password! });
 
     return;
   }
@@ -186,4 +265,93 @@ addActionHandler('switchAccount', async (global, actions, { accountId, newNetwor
   if (newNetwork) {
     actions.changeNetwork({ network: newNetwork });
   }
+});
+
+addActionHandler('connectHardwareWallet', async (global) => {
+  setGlobal(
+    updateHardware(global, {
+      hardwareState: HardwareConnectState.Connecting,
+      hardwareWallets: undefined,
+      hardwareSelectedIndices: undefined,
+      isLedgerConnected: undefined,
+      isTonAppConnected: undefined,
+    }),
+  );
+
+  const isLedgerConnected = await connectLedger();
+  if (!isLedgerConnected) {
+    setGlobal(
+      updateHardware(getGlobal(), {
+        isLedgerConnected: false,
+        hardwareState: HardwareConnectState.Failed,
+      }),
+    );
+    return;
+  }
+
+  setGlobal(
+    updateHardware(getGlobal(), {
+      isLedgerConnected: true,
+    }),
+  );
+
+  const isTonAppConnected = await waitLedgerTonApp();
+
+  if (!isTonAppConnected) {
+    setGlobal(
+      updateHardware(getGlobal(), {
+        isTonAppConnected: false,
+        hardwareState: HardwareConnectState.Failed,
+      }),
+    );
+    return;
+  }
+
+  setGlobal(
+    updateHardware(getGlobal(), {
+      isTonAppConnected: true,
+    }),
+  );
+
+  try {
+    const network = selectCurrentNetwork(getGlobal());
+    const hardwareWallets = await getFirstLedgerWallets(network);
+
+    setGlobal(
+      updateHardware(getGlobal(), {
+        hardwareWallets,
+        hardwareState: HardwareConnectState.Connected,
+      }),
+    );
+  } catch (err) {
+    setGlobal(
+      updateHardware(getGlobal(), {
+        hardwareState: HardwareConnectState.Failed,
+      }),
+    );
+  }
+});
+
+addActionHandler('afterSelectHardwareWallets', (global, actions, { hardwareSelectedIndices }) => {
+  global = updateAuth(getGlobal(), {
+    method: 'importHardwareWallet',
+    error: undefined,
+  });
+
+  global = updateHardware(global, {
+    hardwareSelectedIndices,
+  });
+
+  setGlobal(global);
+  actions.afterCreatePassword({ password: '' });
+});
+
+addActionHandler('resetHardwareWalletConnect', (global) => {
+  setGlobal(
+    updateHardware(global, {
+      hardwareState: HardwareConnectState.Connect,
+      isLedgerConnected: undefined,
+      isTonAppConnected: undefined,
+    }),
+  );
 });

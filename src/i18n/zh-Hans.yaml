@@ -3,7 +3,7 @@ $auth_intro: |
   并享有**高速的**区块链交易体验。
 Create New Wallet: 创建新钱包
 Import From %1$d Secret Words: 输入助记词
-About MyTonWallet: 关于 MyTonWallet
+More about MyTonWallet: 更多关于 MyTonWallet
 Creating Wallet...: 正在创建钱包...
 On the count of three...: 倒数三个数···
 $auth_backup_description1: |
@@ -204,7 +204,6 @@ $receive_ton_description: |
 Your address: 您的地址
 Wrong password, please try again: 密码错误，请再试一次。
 Appearance: 外观
-Assets and Activity: 资产和活动
 Light: 白天模式
 Dark: 黑夜模式
 System: 系统
@@ -273,3 +272,44 @@ $dapp_transfer_tokens_payload_with_comment: 从您的帐户发送 %amount% 到 %
 $dapp_transfer_tokens_payload: 从您的账户发送 %amount% 到 %address%
 $dapp_transfer_nft_payload: 从您的账户发送 "%nft%" 到 %address%
 Nested Transaction: 嵌套事务
+Connected Dapps: 连接的 Dapps
+Disconnect All Dapps: 断开所有 Dapps
+Disconnect: 断开
+Disconnect Dapp: 断开 Dapp
+Disconnect Dapps: 断开 Dapps
+Are you sure you want to disconnect?: 你确定要断开 %dappname% 吗？
+Are you sure you want to disconnect all websites?: 您确定要断开所有网站吗？
+$dapps-description: 您可以登录支持 MyTonWallet 的 dapp。 他们可以查看钱包地址和余额。
+Logged in with MyTonWallet: 使用 MyTonWallet 登录
+No active connections: 没有活动连接
+Unstaked successfully: 解质押成功
+Other: 其他的
+Assets & Activity: 资产 & 活动记录
+Update: 更新
+Restart: 重新开始
+Connect Ledger: 连接账本
+Connecting to your Ledger...: 连接到您的分类帐...
+Failed to connect: 连接失败
+Ledger Connected!: 账本连接！
+Select Ledger Wallets: 选择分类帐钱包
+"%1$d Selected": "%1$d 已选"
+Add: 添加
+Try Again: 再试一次
+Driver: 司机
+Connect your Ledger to PC: 连接你的 Ledger 到电脑
+Unlock it and open the TON App: 解锁并打开 TON 应用
+Maybe you need to check the password or change the driver.: 也许您需要检查密码或更改驱动程序。
+Or import from...: 或者从...导入
+Confirm via Ledger: 通过账本确认
+Please confirm transaction on your Ledger: 请在您的账本上确认交易
+Declined: 谢绝
+Create Wallet: 创建钱包
+Switch to the newly opened tab to connect Ledger.: 切换到新打开的标签页以连接 Ledger。
+Once connected, switch back to this window to proceed.: 连接成功后，请切换回此窗口以继续。
+Not all transactions were sent successfully: 并非所有交易都成功发送
+The time on your device is incorrect, sync it and try again: 您设备上的时间不正确，请同步并重试
+Such error, many tabs: 这样的错误，很多标签
+$many_tabs_error_description: |
+  MyTonWallet 仅支持该应用程序的一个活动选项卡。
+  请重新加载此页面以继续使用此选项卡或将其关闭。
+Reload App: 重新加载应用程序

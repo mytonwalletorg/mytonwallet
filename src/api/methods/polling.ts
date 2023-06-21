@@ -1,26 +1,35 @@
-import blockchains from '../blockchains';
-import { isUpdaterAlive, resolveBlockchainKey, compareTransactions } from '../common/helpers';
-import { txCallbacks } from '../common/txCallbacks';
-import { pause } from '../../util/schedulers';
+import type { Storage } from '../storages/types';
+import type {
+  ApiBaseToken,
+  ApiInitArgs,
+  ApiToken,
+  ApiTokenPrice,
+  ApiTransaction,
+  ApiTxIdBySlug,
+  OnApiUpdate,
+} from '../types';
+
 import {
   APP_VERSION,
   BRILLIANT_API_BASE_URL,
-  DEBUG,
   TON_TOKEN_SLUG,
 } from '../../config';
-import { Storage } from '../storages/types';
-import {
-  ApiInitArgs, ApiToken, ApiTokenPrice, ApiTransaction, ApiTxIdBySlug, OnApiUpdate,
-} from '../types';
-import { getKnownTokens, TokenBalanceParsed } from '../blockchains/ton/tokens';
-import { getBackendStakingState } from './staking';
+import { logDebugError } from '../../util/logs';
+import { pause } from '../../util/schedulers';
+import blockchains from '../blockchains';
+import type { TokenBalanceParsed } from '../blockchains/ton/tokens';
+import { addKnownTokens, getKnownTokens } from '../blockchains/ton/tokens';
 import { tryUpdateKnownAddresses } from '../common/addresses';
+import { compareTransactions, isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
+import { txCallbacks } from '../common/txCallbacks';
+import { getBackendStakingState } from './staking';
 
 type IsAccountActiveFn = (accountId: string) => boolean;
 
 const POLLING_INTERVAL = 1100; // 1.1 sec
 const BACKEND_POLLING_INTERVAL = 30000; // 30 sec
 const LONG_BACKEND_POLLING_INTERVAL = 60000; // 1 min
+const TRANSACTIONS_WAITING_PAUSE = 2000; // 2 sec
 
 const FIRST_TRANSACTIONS_LIMIT = 20;
 
@@ -30,7 +39,7 @@ let isAccountActive: IsAccountActiveFn;
 let origin: string;
 
 let preloadEnsurePromise: Promise<any>;
-let pricesBySymbol: Record<string, ApiTokenPrice>;
+let pricesBySlug: Record<string, ApiTokenPrice>;
 
 const lastBalanceCache: Record<string, {
   balance?: string;
@@ -47,7 +56,7 @@ export function initPolling(
 
   preloadEnsurePromise = Promise.all([
     tryUpdateKnownAddresses(),
-    tryUpdatePrices(),
+    tryUpdateTokens(),
   ]);
 
   void setupBackendPolling();
@@ -64,7 +73,7 @@ function registerNewTokens(tokenBalances: TokenBalanceParsed[]) {
     areNewTokensFound = true;
     tokens[token.slug] = {
       ...token,
-      quote: pricesBySymbol[token.slug] || {
+      quote: pricesBySlug[token.slug] || {
         price: 0.0,
         percentChange1h: 0.0,
         percentChange24h: 0.0,
@@ -84,6 +93,7 @@ export async function setupBalancePolling(accountId: string, newestTxIds: ApiTxI
 
   delete lastBalanceCache[accountId];
 
+  let isFirstRun = true;
   while (isUpdaterAlive(onUpdate) && isAccountActive(accountId)) {
     try {
       const [balance, tokenBalances, stakingState] = await Promise.all([
@@ -146,14 +156,16 @@ export async function setupBalancePolling(accountId: string, newestTxIds: ApiTxI
       }
 
       if (changedTokenSlugs.length) {
+        if (!isFirstRun) {
+          await pause(TRANSACTIONS_WAITING_PAUSE);
+        }
         const newTxIds = await processNewTokenTransactions(accountId, newestTxIds, changedTokenSlugs);
         newestTxIds = { ...newestTxIds, ...newTxIds };
       }
+
+      isFirstRun = false;
     } catch (err) {
-      if (DEBUG) {
-        // eslint-disable-next-line no-console
-        console.error('[setupBalancePolling]', err);
-      }
+      logDebugError('setupBalancePolling', err);
     }
 
     await pause(POLLING_INTERVAL);
@@ -207,12 +219,9 @@ export async function setupBackendPolling() {
     await pause(BACKEND_POLLING_INTERVAL);
 
     try {
-      await tryUpdatePrices();
+      await tryUpdateTokens();
     } catch (err) {
-      if (DEBUG) {
-        // eslint-disable-next-line no-console
-        console.error('[setupBackendPolling]', err);
-      }
+      logDebugError('setupBackendPolling', err);
     }
   }
 }
@@ -224,49 +233,48 @@ export async function setupLongBackendPolling() {
     try {
       await tryUpdateKnownAddresses();
     } catch (err) {
-      if (DEBUG) {
-        // eslint-disable-next-line no-console
-        console.error('[setupLongBackendPolling]', err);
-      }
+      logDebugError('setupLongBackendPolling', err);
     }
   }
 }
 
-export async function tryUpdatePrices() {
+export async function tryUpdateTokens() {
   try {
-    const response = await fetch(`${BRILLIANT_API_BASE_URL}/prices`, {
-      headers: {
-        'X-App-Origin': origin,
-        'X-App-Version': APP_VERSION,
-      },
-    });
+    const [pricesRes, tokensRes] = await Promise.all([
+      fetch(`${BRILLIANT_API_BASE_URL}/prices`, {
+        headers: { 'X-App-Origin': origin, 'X-App-Version': APP_VERSION },
+      }),
+      fetch(`${BRILLIANT_API_BASE_URL}/known-tokens`),
+    ]);
+    if (!pricesRes.ok || !tokensRes.ok) return;
+
+    const [pricesData, tokens] = await Promise.all([
+      pricesRes.json() as Promise<Record<string, { slugs: string[]; quote: ApiTokenPrice }>>,
+      tokensRes.json() as Promise<ApiBaseToken[]>,
+    ]);
+
     if (!isUpdaterAlive(onUpdate)) return;
-    if (!response.ok) return;
 
-    const data = (await response.json()) as Record<string, {
-      symbol: string;
-      quote: ApiTokenPrice;
-    }>;
+    addKnownTokens(tokens);
 
-    pricesBySymbol = Object.values(data).reduce((acc, { symbol, quote }) => {
-      acc[symbol] = quote;
+    pricesBySlug = Object.values(pricesData).reduce((acc, { slugs, quote }) => {
+      for (const slug of slugs) {
+        acc[slug] = quote;
+      }
       return acc;
     }, {} as Record<string, ApiTokenPrice>);
 
     sendUpdateTokens();
   } catch (err) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[tryUpdatePrices]', err);
-    }
+    logDebugError('tryUpdateTokens', err);
   }
 }
 
 export function sendUpdateTokens() {
   const tokens = getKnownTokens();
   Object.values(tokens).forEach((token) => {
-    if (token.symbol in pricesBySymbol) {
-      token.quote = pricesBySymbol[token.symbol];
+    if (token.slug in pricesBySlug) {
+      token.quote = pricesBySlug[token.slug];
     }
   });
 
@@ -289,10 +297,7 @@ export async function setupBackendStakingStatePolling(accountId: string) {
         });
       }
     } catch (err) {
-      if (DEBUG) {
-        // eslint-disable-next-line no-console
-        console.error('Error fetching backend staking state', err);
-      }
+      logDebugError('setupBackendStakingStatePolling', err);
     }
 
     await pause(BACKEND_POLLING_INTERVAL);
@@ -300,10 +305,7 @@ export async function setupBackendStakingStatePolling(accountId: string) {
 }
 
 function logAndRescue(err: Error) {
-  if (DEBUG) {
-    // eslint-disable-next-line no-console
-    console.error('Polling error', err);
-  }
+  logDebugError('Polling error', err);
 
   return undefined;
 }

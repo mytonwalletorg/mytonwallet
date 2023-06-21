@@ -1,20 +1,20 @@
-import TonWeb from 'tonweb';
-import { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
-import { compact } from '../../../util/iteratees';
-import { Storage } from '../../storages/types';
-import { bytesToBase64, hexToBytes } from '../../common/utils';
-import { getTonWeb } from './util/tonweb';
-import { fetchPublicKey } from './auth';
-import { fetchAddress } from './address';
-import { ApiNetwork } from '../../types';
-import { parseAccountId } from '../../../util/account';
+import type { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
 
-const DEFAULT_WALLET_VERSION = 'v3R2';
+import type { Storage } from '../../storages/types';
+import type { ApiNetwork, ApiWalletVersion } from '../../types';
+
+import { parseAccountId } from '../../../util/account';
+import { compact } from '../../../util/iteratees';
+import { getTonWeb, toBase64Address } from './util/tonweb';
+import { fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey } from '../../common/accounts';
+import { bytesToBase64, hexToBytes } from '../../common/utils';
+
+const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
 
 export async function publicKeyToAddress(
   network: ApiNetwork,
   publicKey: Uint8Array,
-  walletVersion: keyof typeof TonWeb.Wallets['all'] = DEFAULT_WALLET_VERSION,
+  walletVersion: ApiWalletVersion = DEFAULT_WALLET_VERSION,
 ) {
   const wallet = buildWallet(network, publicKey, walletVersion);
   const address = await wallet.getAddress();
@@ -22,32 +22,40 @@ export async function publicKeyToAddress(
   return address.toString(true, true, true);
 }
 
-export function buildWallet(
-  network: ApiNetwork,
-  publicKey: Uint8Array,
-  walletVersion: keyof typeof TonWeb.Wallets['all'],
-) {
+export function buildWallet(network: ApiNetwork, publicKey: Uint8Array, walletVersion: ApiWalletVersion) {
   const tonWeb = getTonWeb(network);
   const WalletClass = tonWeb.wallet.all[walletVersion];
   return new WalletClass(tonWeb.provider, { publicKey, wc: 0 });
 }
 
-export async function getWalletInfo(network: ApiNetwork, walletOrAddress: WalletContract | string) {
+export async function getWalletInfo(network: ApiNetwork, walletOrAddress: WalletContract | string): Promise<{
+  isInitialized: boolean;
+  seqno: number;
+  balance: string;
+}> {
   const address = typeof walletOrAddress === 'string'
     ? walletOrAddress
     : (await walletOrAddress.getAddress()).toString(true, true, true);
 
-  return getTonWeb(network).provider.getWalletInfo(address);
+  const {
+    account_state: accountState,
+    seqno,
+    balance = '0',
+  } = await getTonWeb(network).provider.getWalletInfo(address);
+  const isInitialized = accountState === 'active';
+
+  return {
+    isInitialized,
+    seqno,
+    balance,
+  };
 }
 
 export async function getAccountBalance(storage: Storage, accountId: string) {
   const { network } = parseAccountId(accountId);
-  const wallet = await pickAccountWallet(storage, accountId);
-  if (!wallet) {
-    return undefined;
-  }
+  const address = await fetchStoredAddress(storage, accountId);
 
-  return getWalletBalance(network, wallet);
+  return getWalletBalance(network, address);
 }
 
 export async function getWalletBalance(
@@ -58,9 +66,13 @@ export async function getWalletBalance(
   return balance || '0';
 }
 
+export async function getWalletSeqno(network: ApiNetwork, walletOrAddress: WalletContract | string): Promise<number> {
+  const { seqno } = await getWalletInfo(network, walletOrAddress);
+  return seqno || 0;
+}
+
 export async function isWalletInitialized(network: ApiNetwork, walletOrAddress: WalletContract | string) {
-  const { account_state: accountState } = await getWalletInfo(network, walletOrAddress);
-  return accountState === 'active';
+  return (await getWalletInfo(network, walletOrAddress)).isInitialized;
 }
 
 export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array) {
@@ -93,6 +105,8 @@ export async function getWalletStateInit(storage: Storage, accountId: string) {
 }
 
 export async function pickWalletByAddress(network: ApiNetwork, publicKey: Uint8Array, address: string) {
+  address = toBase64Address(address);
+
   const tonWeb = getTonWeb(network);
   const walletClasses = tonWeb.wallet.list;
   const allWallets = await Promise.all(walletClasses.map(async (WalletClass) => {
@@ -111,11 +125,18 @@ export async function pickWalletByAddress(network: ApiNetwork, publicKey: Uint8A
 // TODO Cache
 export async function pickAccountWallet(storage: Storage, accountId: string) {
   const { network } = parseAccountId(accountId);
-  const [publicKeyHex, address] = await Promise.all([
-    fetchPublicKey(storage, accountId),
-    fetchAddress(storage, accountId),
+
+  const [publicKeyHex, address, account] = await Promise.all([
+    fetchStoredPublicKey(storage, accountId),
+    fetchStoredAddress(storage, accountId),
+    fetchStoredAccount(storage, accountId),
   ]);
+
   const publicKey = hexToBytes(publicKeyHex);
+
+  if (account?.version) {
+    return buildWallet(network, publicKey, account.version);
+  }
 
   return pickWalletByAddress(network, publicKey, address);
 }

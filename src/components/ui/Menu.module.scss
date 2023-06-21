@@ -79,7 +79,10 @@
   transform: scaleY(0.5) !important;
   transform-origin: top !important;
 
+  overflow: auto;
+
   width: 100%;
+  max-height: 16rem;
   padding: 0.375rem;
 
   &:global(.open) {
@@ -113,7 +116,6 @@
       transform: translateY(0) !important;
     }
   }
-
 
   @supports (overflow: overlay) {
     overflow-y: overlay;

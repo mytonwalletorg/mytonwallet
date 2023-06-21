@@ -1,10 +1,19 @@
-import { Address, Cell } from 'ton-core';
+import type { Address, DictionaryValue, Slice } from 'ton-core';
+import { Cell, Dictionary } from 'ton-core';
 
-import { base64ToString } from '../../../common/utils';
-import { DEBUG } from '../../../../config';
+import type { ApiNetwork } from '../../../types';
+import type { JettonMetadata } from '../types';
+
+import { pick } from '../../../../util/iteratees';
+import { logDebugError } from '../../../../util/logs';
+import { base64ToString, handleFetchErrors, sha256 } from '../../../common/utils';
 import { JettonOpCode } from '../constants';
+import { getJettonMinterData } from './tonweb';
 
-const IPFS_EXPLORER_BASE_URL: string = 'https://ipfs.io/ipfs/';
+const IPFS_GATEWAY_BASE_URL: string = 'https://ipfs.io/ipfs/';
+
+const ONCHAIN_CONTENT_PREFIX = 0x00;
+const SNAKE_PREFIX = 0x00;
 
 export function parseJettonWalletMsgBody(body?: string) {
   if (!body) return undefined;
@@ -12,11 +21,11 @@ export function parseJettonWalletMsgBody(body?: string) {
   try {
     let slice = Cell.fromBase64(body).beginParse();
     const opCode = slice.loadUint(32);
+    const queryId = slice.loadUint(64);
 
     if (opCode === JettonOpCode.transfer || opCode === JettonOpCode.internalTransfer) {
-      const queryId = slice.loadUint(64);
       const jettonAmount = slice.loadCoins();
-      const address = slice.loadAddress();
+      const address = slice.loadMaybeAddress();
       const responseAddress = slice.loadMaybeAddress();
       let forwardAmount: bigint | undefined;
       let forwardComment: string | undefined;
@@ -40,16 +49,13 @@ export function parseJettonWalletMsgBody(body?: string) {
         queryId,
         jettonAmount,
         responseAddress,
-        address: toBounceableAddress(address),
+        address: address ? toBounceableAddress(address) : undefined,
         forwardAmount,
         forwardComment,
       };
     }
   } catch (err) {
-    if (DEBUG) {
-      // eslint-disable-next-line no-console
-      console.error('[parseJettonWalletMsgBody]', err);
-    }
+    logDebugError('parseJettonWalletMsgBody', err);
   }
 
   return undefined;
@@ -60,7 +66,7 @@ export function toBounceableAddress(address: Address) {
 }
 
 export function fixIpfsUrl(url: string) {
-  return url.replace('ipfs://', IPFS_EXPLORER_BASE_URL);
+  return url.replace('ipfs://', IPFS_GATEWAY_BASE_URL);
 }
 
 export function fixBase64ImageData(data: string) {
@@ -69,4 +75,97 @@ export function fixBase64ImageData(data: string) {
     return `data:image/svg+xml;base64,${data}`;
   }
   return `data:image/png;base64,${data}`;
+}
+
+const dictSnakeBufferValue: DictionaryValue<Buffer> = {
+  parse: (slice) => {
+    const buffer = Buffer.from('');
+
+    const sliceToVal = (s: Slice, v: Buffer, isFirst: boolean) => {
+      if (isFirst && s.loadUint(8) !== SNAKE_PREFIX) {
+        throw new Error('Only snake format is supported');
+      }
+
+      v = Buffer.concat([v, s.loadBuffer(s.remainingBits / 8)]);
+      if (s.remainingRefs === 1) {
+        v = sliceToVal(s.loadRef().beginParse(), v, false);
+      }
+
+      return v;
+    };
+
+    return sliceToVal(slice.loadRef().beginParse() as any, buffer, true);
+  },
+  serialize: () => {
+    // pass
+  },
+};
+
+const jettonOnChainMetadataSpec: {
+  [key in keyof JettonMetadata]: 'utf8' | 'ascii' | undefined;
+} = {
+  uri: 'ascii',
+  name: 'utf8',
+  description: 'utf8',
+  image: 'ascii',
+  symbol: 'utf8',
+  decimals: 'utf8',
+};
+
+export async function getJettonMetadata(network: ApiNetwork, address: string) {
+  const { jettonContentUri, jettonContentCell } = await getJettonMinterData(network, address);
+
+  let metadata: JettonMetadata;
+
+  if (jettonContentUri) {
+    // Off-chain content
+    metadata = await fetchJettonMetadata(jettonContentUri);
+  } else {
+    // On-chain content
+    metadata = await parseJettonOnchainMetadata(await jettonContentCell.toBoc());
+    if (metadata.uri) {
+      // Semi-chain content
+      const offchainMetadata = await fetchJettonMetadata(metadata.uri);
+      metadata = { ...offchainMetadata, ...metadata };
+    }
+  }
+
+  return metadata;
+}
+
+export async function parseJettonOnchainMetadata(array: Uint8Array): Promise<JettonMetadata> {
+  const contentCell = Cell.fromBoc(Buffer.from(array))[0];
+  const contentSlice = contentCell.beginParse();
+
+  if (contentSlice.loadUint(8) !== ONCHAIN_CONTENT_PREFIX) {
+    throw new Error('Expected onchain content marker');
+  }
+
+  const dict = contentSlice.loadDict(Dictionary.Keys.Buffer(32), dictSnakeBufferValue);
+
+  const res: { [s in keyof JettonMetadata]?: string } = {};
+
+  for (const [key, value] of Object.entries(jettonOnChainMetadataSpec)) {
+    const sha256Key = Buffer.from(await sha256(Buffer.from(key, 'ascii')));
+    const val = dict.get(sha256Key)?.toString(value);
+
+    if (val) {
+      res[key as keyof JettonMetadata] = val;
+    }
+  }
+
+  return res as JettonMetadata;
+}
+
+export async function fetchJettonMetadata(uri: string): Promise<JettonMetadata> {
+  const metadata = await fetchJsonMetadata(uri);
+  return pick(metadata, ['name', 'description', 'symbol', 'decimals', 'image', 'image_data']);
+}
+
+async function fetchJsonMetadata(uri: string) {
+  uri = fixIpfsUrl(uri);
+
+  const response = await fetch(uri);
+  handleFetchErrors(response);
+  return response.json();
 }

@@ -1,3 +1,5 @@
+@import "../../../../styles/mixins";
+
 .emptyList {
   display: flex;
   flex-direction: column;
@@ -8,6 +10,11 @@
   padding-bottom: 2rem;
 
   color: var(--color-gray-2);
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(xs) {
+    justify-content: center;
+  }
 }
 
 .emptyListTitle {
@@ -27,6 +34,11 @@
 
 .emptyListLoading {
   padding-top: 8rem;
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(xs) {
+    padding-bottom: 8rem;
+  }
 }
 
 .emptyListButton {
@@ -42,7 +54,7 @@
   text-decoration: none;
 
   background-color: var(--color-blue-button-background);
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-tiny);
 
   transition: background-color 150ms, color 150ms;
 
@@ -73,8 +85,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
+  align-content: start;
 
   padding: 0.5rem;
+
+  &.landscapeList {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 .item {
@@ -97,7 +114,7 @@
     position: relative;
 
     &::before {
-      content: '';
+      content: "";
 
       position: absolute;
       z-index: 1;
@@ -114,6 +131,8 @@
 }
 
 .imageWrapper {
+  /* Fix for border-radius missing during transform on Safari. See https://stackoverflow.com/a/58283449 */
+  isolation: isolate;
   position: relative;
 
   overflow: hidden;
@@ -124,7 +143,7 @@
   max-width: 100%;
   margin-bottom: 0.4375rem;
 
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-tiny);
 
   @supports not (aspect-ratio: 1) {
     height: auto;

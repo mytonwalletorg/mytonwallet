@@ -1,10 +1,12 @@
+import type { FC } from '../../lib/teact/teact';
 import React, {
-  FC, useCallback, useEffect, useRef, useState,
+  useCallback, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import useShowTransition from '../../hooks/useShowTransition';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
+
+import useShowTransition from '../../hooks/useShowTransition';
 
 import Portal from './Portal';
 

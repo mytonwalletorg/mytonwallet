@@ -1,0 +1,165 @@
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 100vh;
+
+  font-family: 'Arial', sans-serif;
+  color: #222222;
+
+  background-color: rgb(28, 30, 36);
+  background-image: url(bg/proposition_bg--sm.svg);
+  background-repeat: no-repeat;
+  background-position: 50% 90%;
+  background-size: 250%;
+}
+
+@media (min-width: 500px) {
+  body {
+    background-position: 50% 70%;
+  }
+}
+
+@media (min-width: 834px) {
+  body {
+    background-image: url(bg/proposition_bg--md.svg),
+    url(bg/proposition_ring--md.svg);
+    background-position: calc(50% + 7rem) 0, left top;
+    background-size: 90%, 60%;
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    background-image: url(bg/proposition_bg.svg),
+    url(bg/proposition_ring.svg);
+    background-position: calc(50% + 10rem) 55%, left top;
+    background-size: 75%, 50%;
+  }
+}
+
+@media (min-width: 1300px) {
+  body {
+    background-position: calc(50% + 12rem) 55%, left top;
+    background-size: 70%, 50%;
+  }
+}
+
+@media (min-width: 1800px) {
+  body {
+    background-size: 60%, 50%;
+  }
+}
+
+.container {
+  min-width: 200px;
+  padding: 40px 40px 16px 40px;
+
+  text-align: center;
+
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo-container {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+}
+
+.logo {
+  width: 90px;
+  height: 90px;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.mytonwallet-logo {
+  background-image: url('./icon-electron-macos.png');
+}
+
+.apple-logo {
+  background-image: url('./apple-logo.svg');
+  background-size: auto 80%;
+}
+
+.container h1 {
+  margin-bottom: 10px;
+
+  font-size: 24px;
+}
+
+.select-model {
+  margin-top: 42px;
+  margin-bottom: 16px;
+
+  color: #444;
+}
+
+.downloading {
+  margin-top: 28px;
+  margin-bottom: 36px;
+
+  color: #555;
+}
+
+.download-container {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.download-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 36px;
+}
+
+.caption {
+  font-size: 14px;
+  color: grey;
+}
+
+.download-btn {
+  display: inline-block;
+
+  margin: 10px;
+  padding: 10px 20px;
+
+  font-size: 16px;
+  color: #FFF;
+  text-decoration: none;
+
+  background-color: #007BFF;
+  border-radius: 5px;
+}
+
+.download-btn:hover {
+  background-color: #0056B3;
+}
+
+.download-btn.single {
+  display: block;
+
+  margin: 32px 0;
+}
+
+.other-platforms {
+  font-size: small;
+  color: #AAAAAA;
+}
+
+.other-platforms:hover {
+  text-decoration: none;
+}

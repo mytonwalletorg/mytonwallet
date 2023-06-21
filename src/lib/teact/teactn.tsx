@@ -1,13 +1,14 @@
+import { DEBUG, DEBUG_MORE } from '../../config';
+import arePropsShallowEqual, { getUnequalProps } from '../../util/arePropsShallowEqual';
+import generateIdFor from '../../util/generateIdFor';
+import { handleError } from '../../util/handleError';
+import { orderBy } from '../../util/iteratees';
+import { throttleWithTickEnd } from '../../util/schedulers';
+import { requestMeasure } from '../fasterdom/fasterdom';
 import type { FC, FC_withDebug, Props } from './teact';
 import React, { useEffect, useState } from './teact';
 
-import { DEBUG, DEBUG_MORE } from '../../config';
 import useForceUpdate from '../../hooks/useForceUpdate';
-import generateIdFor from '../../util/generateIdFor';
-import { fastRafWithFallback, throttleWithTickEnd } from '../../util/schedulers';
-import arePropsShallowEqual, { getUnequalProps } from '../../util/arePropsShallowEqual';
-import { orderBy } from '../../util/iteratees';
-import { handleError } from '../../util/handleError';
 import { isHeavyAnimating } from '../../hooks/useHeavyAnimationCheck';
 
 export default React;
@@ -65,13 +66,17 @@ const containers = new Map<string, {
 
 const runCallbacksThrottled = throttleWithTickEnd(runCallbacks);
 
+let forceOnHeavyAnimation = true;
+
 function runImmediateCallbacks() {
   immediateCallbacks.forEach((cb) => cb(currentGlobal));
 }
 
-function runCallbacks(forceOnHeavyAnimation = false) {
-  if (!forceOnHeavyAnimation && isHeavyAnimating()) {
-    fastRafWithFallback(runCallbacksThrottled);
+function runCallbacks() {
+  if (forceOnHeavyAnimation) {
+    forceOnHeavyAnimation = false;
+  } else if (isHeavyAnimating()) {
+    requestMeasure(runCallbacksThrottled);
     return;
   }
 
@@ -93,9 +98,14 @@ export function setGlobal(newGlobal?: GlobalState, options?: ActionOptions) {
     if (!options?.noUpdate) runImmediateCallbacks();
 
     if (options?.forceSyncOnIOs) {
-      runCallbacks(true);
+      forceOnHeavyAnimation = true;
+      runCallbacks();
     } else {
-      runCallbacksThrottled(options?.forceOnHeavyAnimation);
+      if (options?.forceOnHeavyAnimation) {
+        forceOnHeavyAnimation = true;
+      }
+
+      runCallbacksThrottled();
     }
   }
 }
@@ -299,11 +309,14 @@ export function typify<
 >() {
   type ProjectActionNames = keyof ActionPayloads;
 
+  // When payload is allowed to be `undefined` we consider it optional
   type ProjectActions = {
-    [ActionName in ProjectActionNames]: (
-      payload?: ActionPayloads[ActionName],
-      options?: ActionOptions,
-    ) => void;
+    [ActionName in ProjectActionNames]:
+    (undefined extends ActionPayloads[ActionName] ? (
+      (payload?: ActionPayloads[ActionName], options?: ActionOptions) => void
+    ) : (
+      (payload: ActionPayloads[ActionName], options?: ActionOptions) => void
+    ))
   };
 
   type ActionHandlers = {
@@ -331,6 +344,7 @@ export function typify<
 
 if (DEBUG) {
   (window as any).getGlobal = getGlobal;
+  (window as any).setGlobal = setGlobal;
 
   document.addEventListener('dblclick', () => {
     // eslint-disable-next-line no-console

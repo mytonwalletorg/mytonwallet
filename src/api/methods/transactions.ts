@@ -1,11 +1,12 @@
-import type { ApiTxIdBySlug, OnApiUpdate } from '../types';
 import type { Storage } from '../storages/types';
+import type {
+  ApiSignedTransfer, ApiSubmitTransferOptions, ApiTxIdBySlug, OnApiUpdate,
+} from '../types';
 
+import { parseAccountId } from '../../util/account';
 import blockchains from '../blockchains';
-import { whenTxComplete } from '../common/txCallbacks';
-import {
-  buildLocalTransaction, resolveBlockchainKey,
-} from '../common/helpers';
+import { fetchStoredAddress } from '../common/accounts';
+import { createLocalTransaction, resolveBlockchainKey } from '../common/helpers';
 
 let onUpdate: OnApiUpdate;
 let storage: Storage;
@@ -41,51 +42,77 @@ export function checkTransactionDraft(
   return blockchain.checkTransactionDraft(storage, accountId, slug, toAddress, amount, comment);
 }
 
-export async function submitTransfer(
-  accountId: string,
-  password: string,
-  slug: string,
-  toAddress: string,
-  amount: string,
-  comment?: string,
-  fee?: string,
-) {
+export async function submitTransfer(options: ApiSubmitTransferOptions) {
+  const {
+    accountId, password, slug, toAddress, amount, comment, fee,
+  } = options;
+
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const fromAddress = await blockchain.fetchAddress(storage, accountId);
+  const fromAddress = await fetchStoredAddress(storage, accountId);
   const result = await blockchain.submitTransfer(
     storage, accountId, password, slug, toAddress, amount, comment,
   );
 
-  if (result) {
-    const localTransaction = buildLocalTransaction({
-      amount,
-      fromAddress,
-      toAddress,
-      comment,
-      fee: fee || '0',
-      slug,
-    });
-
-    onUpdate({
-      type: 'newLocalTransaction',
-      transaction: localTransaction,
-      accountId,
-    });
-
-    whenTxComplete(result.resolvedAddress, result.amount)
-      .then(({ txId }) => {
-        onUpdate({
-          type: 'updateTxComplete',
-          accountId,
-          toAddress,
-          amount,
-          txId,
-          localTxId: localTransaction.txId,
-        });
-      });
-
-    return localTransaction.txId;
+  if ('error' in result) {
+    return result;
   }
 
-  return false;
+  const localTransaction = createLocalTransaction(onUpdate, accountId, {
+    amount,
+    fromAddress,
+    toAddress,
+    comment,
+    fee: fee || '0',
+    slug,
+  });
+
+  return {
+    ...result,
+    txId: localTransaction.txId,
+  };
+}
+
+export function buildTokenTransferRaw(
+  accountId: string,
+  slug: string,
+  fromAddress: string,
+  toAddress: string,
+  amount: string,
+  comment?: string,
+) {
+  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+  const { network } = parseAccountId(accountId);
+
+  return blockchain.buildTokenTransferRaw(network, slug, fromAddress, toAddress, amount, comment);
+}
+
+export async function waitLastTransfer(accountId: string) {
+  const blockchain = blockchains.ton;
+
+  const { network } = parseAccountId(accountId);
+  const address = await fetchStoredAddress(storage, accountId);
+
+  return blockchain.waitLastTransfer(network, address);
+}
+
+export async function sendSignedTransferMessage(accountId: string, message: ApiSignedTransfer) {
+  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+
+  await blockchain.sendSignedMessage(storage, accountId, message);
+
+  const localTransaction = createLocalTransaction(onUpdate, accountId, message.params);
+
+  return localTransaction.txId;
+}
+
+export async function sendSignedTransferMessages(accountId: string, messages: ApiSignedTransfer[]) {
+  const blockchain = blockchains.ton;
+
+  const result = await blockchain.sendSignedMessages(storage, accountId, messages);
+
+  for (let i = 0; i < result.successNumber; i++) {
+    createLocalTransaction(onUpdate, accountId, messages[i].params);
+  }
+
+  return result;
 }

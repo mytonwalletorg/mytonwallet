@@ -1,14 +1,20 @@
-import type { OnApiUpdate } from '../types';
 import type { Storage } from '../storages/types';
+import type { ApiNetwork, OnApiUpdate } from '../types';
 
+import { parseAccountId } from '../../util/account';
 import blockchains from '../blockchains';
-
+import {
+  fetchStoredAddress,
+  fetchStoredPublicKey,
+  getMainAccountId,
+} from '../common/accounts';
 import * as dappPromises from '../common/dappPromises';
 import { resolveBlockchainKey } from '../common/helpers';
-import { getMainAccountId } from '../common/accounts';
 
 let onUpdate: OnApiUpdate;
 let storage: Storage;
+
+const ton = blockchains.ton;
 
 export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage) {
   onUpdate = _onUpdate;
@@ -50,8 +56,8 @@ export async function verifyPassword(password: string) {
   return blockchain.verifyPassword(storage, accountId, password);
 }
 
-export function confirmDappRequest(promiseId: string, password: string) {
-  dappPromises.resolveDappPromise(promiseId, password);
+export function confirmDappRequest(promiseId: string, data: any) {
+  dappPromises.resolveDappPromise(promiseId, data);
 }
 
 export function confirmDappRequestConnect(promiseId: string, password?: string, additionalAccountIds?: string[]) {
@@ -60,4 +66,24 @@ export function confirmDappRequestConnect(promiseId: string, password?: string, 
 
 export function cancelDappRequest(promiseId: string, reason?: string) {
   dappPromises.rejectDappPromise(promiseId, reason);
+}
+
+export async function getWalletSeqno(accountId: string) {
+  const { network } = parseAccountId(accountId);
+  const address = await fetchStoredAddress(storage, accountId);
+  return ton.getWalletSeqno(network, address);
+}
+
+export function fetchAddress(accountId: string) {
+  return fetchStoredAddress(storage, accountId);
+}
+
+export function fetchPublicKey(accountId: string) {
+  return fetchStoredPublicKey(storage, accountId);
+}
+
+export function isWalletInitialized(network: ApiNetwork, address: string) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.isWalletInitialized(network, address);
 }

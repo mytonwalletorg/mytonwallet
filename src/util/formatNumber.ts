@@ -1,5 +1,5 @@
-import withCache from './withCache';
 import { DEFAULT_DECIMAL_PLACES } from '../config';
+import withCache from './withCache';
 
 export const formatInteger = withCache((value: number, fractionDigits = 2, noRadix = false) => {
   const minValue = 1 / (10 ** fractionDigits);

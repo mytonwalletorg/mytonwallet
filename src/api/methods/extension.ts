@@ -1,9 +1,10 @@
+import type { Storage } from '../storages/types';
+import type { OnApiUpdate } from '../types';
+
 import { PROXY_HOSTS } from '../../config';
 import { sample } from '../../util/random';
-import { IS_EXTENSION } from '../environment';
-import { Storage } from '../storages/types';
 import { updateDapps } from '../dappMethods';
-import { OnApiUpdate } from '../types';
+import { IS_EXTENSION } from '../environment';
 
 const proxyHost = PROXY_HOSTS ? sample(PROXY_HOSTS.split(' ')) : '';
 

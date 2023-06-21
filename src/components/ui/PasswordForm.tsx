@@ -1,10 +1,12 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo, useCallback, useEffect, useRef, useState, VirtualElement,
+  memo, useCallback, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import { ANIMATED_STICKERS_PATHS } from './helpers/animatedAssets';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
+import { ANIMATED_STICKERS_PATHS } from './helpers/animatedAssets';
+
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useLang from '../../hooks/useLang';
 
@@ -12,8 +14,8 @@ import AnimatedIconWithPreview from './AnimatedIconWithPreview';
 import Button from './Button';
 import Input from './Input';
 
-import styles from './PasswordForm.module.scss';
 import modalStyles from './Modal.module.scss';
+import styles from './PasswordForm.module.scss';
 
 interface OwnProps {
   isActive: boolean;
@@ -24,7 +26,7 @@ interface OwnProps {
   placeholder?: string;
   error?: string;
   containerClassName?: string;
-  children?: VirtualElement;
+  children?: TeactNode;
   onCancel: NoneToVoidFunction;
   onUpdate: NoneToVoidFunction;
   onSubmit: (password: string) => void;

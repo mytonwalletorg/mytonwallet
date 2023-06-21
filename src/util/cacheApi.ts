@@ -1,3 +1,5 @@
+import { ELECTRON_HOST_URL, IS_ELECTRON } from '../config';
+
 // eslint-disable-next-line no-restricted-globals
 const cacheApi = self.caches;
 
@@ -8,7 +10,9 @@ export async function fetch(cacheName: string, key: string) {
 
   try {
     // To avoid the error "Request scheme 'webdocument' is unsupported"
-    const request = new Request(key.replace(/:/g, '_'));
+    const request = IS_ELECTRON
+      ? `${ELECTRON_HOST_URL}/${key.replace(/:/g, '_')}`
+      : new Request(key.replace(/:/g, '_'));
     const cache = await cacheApi.open(cacheName);
     const response = await cache.match(request);
     if (!response) {
@@ -33,12 +37,14 @@ export async function save(cacheName: string, key: string, data: AnyLiteral | Bl
       ? data
       : JSON.stringify(data);
     // To avoid the error "Request scheme 'webdocument' is unsupported"
-    const request = new Request(key.replace(/:/g, '_'));
+    const request = IS_ELECTRON
+      ? `${ELECTRON_HOST_URL}/${key.replace(/:/g, '_')}`
+      : new Request(key.replace(/:/g, '_'));
     const response = new Response(cacheData);
 
     // To avoid the error "Request scheme 'chrome-extension' is unsupported"
     // https://github.com/iamshaunjp/pwa-tutorial/issues/1
-    if (request.url.indexOf('chrome-extension') === 0) {
+    if (request instanceof Request && request.url.indexOf('chrome-extension') === 0) {
       return undefined;
     }
 

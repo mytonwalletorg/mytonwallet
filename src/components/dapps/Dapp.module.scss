@@ -50,6 +50,7 @@
 
 .transactionAccount,
 .dappInfo {
+  flex: 1;
   // Allows the flex cell to be clamped
   min-width: 0;
 }
@@ -66,7 +67,6 @@
 .dappUrl {
   font-size: 0.75rem;
   font-weight: 600;
-  line-height: 0.75rem;
   color: var(--color-gray-2);
 }
 
@@ -77,6 +77,16 @@
   font-weight: var(--font-weight-title, 600);
   line-height: 0.9375rem;
   color: var(--color-black);
+}
+
+.dappDisconnect {
+  height: 1.75rem !important;
+  padding: 0.4375rem 0.625rem !important;
+
+  font-size: 0.875rem !important;
+  line-height: 0.875rem !important;
+
+  border-radius: 0.875rem !important;
 }
 
 .label {
@@ -93,11 +103,12 @@
 }
 
 .accounts {
+  overflow-y: auto;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5rem;
 
-  padding: 0.5rem !important;
+  padding: 0.5rem;
 
   background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
@@ -132,7 +143,7 @@
   background-origin: border-box;
   background-size: cover, cover;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-tiny);
 
   transition: opacity 200ms;
 
@@ -211,7 +222,6 @@
   box-shadow: inset 0 0 0 0.075rem var(--color-card-toggle);
 
   &_active {
-    //noinspection CssUnknownTarget
     background: var(--color-blue) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjciIGZpbGw9Im5vbmUiPjxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNCIgZD0ibTEgMy41IDIgMkw3IDEiLz48L3N2Zz4=") no-repeat 50% 50%;
     /* stylelint-disable-next-line plugin/whole-pixel */
     box-shadow: inset 0 0 0 0.075rem var(--color-white);

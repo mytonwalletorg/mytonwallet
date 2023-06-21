@@ -1,22 +1,24 @@
+import { ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
+import type { NotificationType } from '../../types';
+
+import { IS_ELECTRON } from '../../../config';
+import { genRelatedAccountIds } from '../../../util/account';
+import { initializeSoundsForSafari } from '../../../util/appSounds';
+import { omit } from '../../../util/iteratees';
+import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
+import switchAnimationLevel from '../../../util/switchAnimationLevel';
+import switchTheme from '../../../util/switchTheme';
+import {
+  IS_ANDROID, IS_EXTENSION,
+  IS_IOS, IS_LINUX, IS_MAC_OS, IS_SAFARI,
+  IS_WINDOWS,
+} from '../../../util/windowEnvironment';
+import { callApi } from '../../../api';
 import {
   addActionHandler, getActions, getGlobal, setGlobal,
 } from '../../index';
-import { callApi } from '../../../api';
-
-import type { NotificationType } from '../../types';
-
-import { ApiTransactionDraftError } from '../../../api/types';
-import {
-  IS_IOS, IS_ANDROID, IS_MAC_OS, IS_SAFARI, IS_EXTENSION,
-} from '../../../util/windowEnvironment';
-import switchTheme from '../../../util/switchTheme';
-import { setLanguage, clearPreviousLangpacks } from '../../../util/langProvider';
 import { updateCurrentAccountState } from '../../reducers';
 import { selectNetworkAccounts, selectNewestTxIds } from '../../selectors';
-import switchAnimationLevel from '../../../util/switchAnimationLevel';
-import { genRelatedAccountIds } from '../../../util/account';
-import { omit } from '../../../util/iteratees';
-import { initializeSoundsForSafari } from '../../../util/appSounds';
 
 addActionHandler('init', (_, actions) => {
   const { documentElement } = document;
@@ -27,12 +29,19 @@ addActionHandler('init', (_, actions) => {
     documentElement.classList.add('is-android');
   } else if (IS_MAC_OS) {
     documentElement.classList.add('is-macos');
+  } else if (IS_WINDOWS) {
+    documentElement.classList.add('is-windows');
+  } else if (IS_LINUX) {
+    documentElement.classList.add('is-linux');
   }
   if (IS_SAFARI) {
     documentElement.classList.add('is-safari');
   }
   if (IS_EXTENSION) {
     documentElement.classList.add('is-extension');
+  }
+  if (IS_ELECTRON) {
+    documentElement.classList.add('is-electron');
   }
 
   actions.afterInit();
@@ -79,11 +88,31 @@ addActionHandler('dismissDialog', (global) => {
   };
 });
 
-addActionHandler('selectToken', (global, actions, { slug }) => {
+addActionHandler('selectToken', (global, actions, { slug } = {}) => {
   return updateCurrentAccountState(global, { currentTokenSlug: slug });
 });
 
-addActionHandler('showTxDraftError', (global, actions, { error }) => {
+addActionHandler('showError', (global, actions, { error }) => {
+  switch (error) {
+    case ApiTransactionError.PartialTransactionFailure:
+      actions.showDialog({ message: 'Not all transactions were sent successfully' });
+      break;
+    case ApiTransactionError.IncorrectDeviceTime:
+      actions.showDialog({ message: 'The time on your device is incorrect, sync it and try again' });
+      break;
+    case ApiTransactionError.UnsuccesfulTransfer:
+      actions.showDialog({ message: 'Transfer was unsuccessful. Try again later' });
+      break;
+    case undefined:
+      actions.showDialog({ message: 'Unexpected' });
+      break;
+    default:
+      actions.showDialog({ message: error });
+      break;
+  }
+});
+
+addActionHandler('showTxDraftError', (global, actions, { error } = {}) => {
   switch (error) {
     case ApiTransactionDraftError.InvalidAmount:
       actions.showDialog({ message: 'Invalid amount' });

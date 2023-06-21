@@ -1,13 +1,17 @@
-import { useRef, useLayoutEffect, VirtualElement } from '../../lib/teact/teact';
+import type { VirtualElement } from '../../lib/teact/teact';
+import { useLayoutEffect, useRef } from '../../lib/teact/teact';
 import TeactDOM from '../../lib/teact/teact-dom';
 
 type OwnProps = {
   containerId?: string;
   className?: string;
+  style?: string;
   children: VirtualElement;
 };
 
-function Portal({ containerId, className, children }: OwnProps) {
+function Portal({
+  containerId, className, style, children,
+}: OwnProps): TeactJsx {
   const elementRef = useRef<HTMLDivElement>();
   if (!elementRef.current) {
     elementRef.current = document.createElement('div');
@@ -24,13 +28,17 @@ function Portal({ containerId, className, children }: OwnProps) {
       element.classList.add(className);
     }
 
+    if (style) {
+      element.setAttribute('style', style);
+    }
+
     container.appendChild(element);
 
     return () => {
       TeactDOM.render(undefined, element);
       container.removeChild(element);
     };
-  }, [className, containerId]);
+  }, [className, style, containerId]);
 
   return TeactDOM.render(children, elementRef.current);
 }

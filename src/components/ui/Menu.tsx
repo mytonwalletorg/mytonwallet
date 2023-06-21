@@ -1,12 +1,14 @@
-import React, { FC, useEffect, useRef } from '../../lib/teact/teact';
+import type { FC } from '../../lib/teact/teact';
+import React, { useEffect, useRef } from '../../lib/teact/teact';
 
+import buildClassName from '../../util/buildClassName';
+import captureEscKeyListener from '../../util/captureEscKeyListener';
+import stopEvent from '../../util/stopEvent';
+
+import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
+import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
 import useShowTransition from '../../hooks/useShowTransition';
 import useVirtualBackdrop from '../../hooks/useVirtualBackdrop';
-import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
-import captureEscKeyListener from '../../util/captureEscKeyListener';
-import buildClassName from '../../util/buildClassName';
-import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
-import stopEvent from '../../util/stopEvent';
 
 import styles from './Menu.module.scss';
 

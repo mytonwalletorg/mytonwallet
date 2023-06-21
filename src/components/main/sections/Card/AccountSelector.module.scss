@@ -7,7 +7,7 @@
 
   overflow: hidden;
 
-  max-width: calc(100% - 2.5rem);
+  max-width: calc(100% - 4rem);
   padding-right: 0.75rem;
 
   font-size: 1.0625rem;
@@ -53,6 +53,33 @@
 
   :global(html.animation-level-0) & {
     transition: none !important;
+  }
+}
+
+.menuButton {
+  cursor: pointer;
+
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+
+  display: flex;
+  align-items: center;
+
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+
+  font-size: 1.5rem;
+  color: var(--color-card-second-text);
+
+  &:focus,
+  &:hover {
+    color: var(--color-card-text);
+
+    &::after {
+      opacity: 0.7;
+    }
   }
 }
 
@@ -125,7 +152,7 @@
   color: var(--color-card-text);
 
   background-color: var(--color-card-button);
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-tiny);
 
   transition: background-color 150ms;
 
@@ -146,6 +173,7 @@
 
 .container {
   position: absolute;
+  z-index: 2;
   top: 2.75rem;
   right: 0.5rem;
   left: 0.5rem;
@@ -237,7 +265,7 @@
   background-origin: border-box;
   background-size: cover, cover;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-tiny);
 
   &_current {
     cursor: default;
@@ -276,7 +304,10 @@
   }
 }
 
-.accountAddress {
+.accountAddressBlock {
+  display: flex;
+  gap: 0.25rem;
+
   margin-top: auto;
   margin-bottom: 0.375rem;
 
@@ -300,6 +331,7 @@
   text-transform: none !important;
 
   background-color: var(--color-add-wallet-background) !important;
+  border-radius: 0.5rem !important;
 
   &:focus,
   &:hover {

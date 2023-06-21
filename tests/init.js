@@ -1,7 +1,7 @@
-import '@testing-library/jest-dom';
-
-import { Buffer } from 'buffer/';
 import { Crypto } from '@peculiar/webcrypto';
+import { Buffer } from 'buffer/';
+
+import '@testing-library/jest-dom';
 
 require('dotenv')
   .config();
@@ -23,6 +23,7 @@ Object.defineProperty(window, 'matchMedia', {
     .mockImplementation((query) => ({
       matches: false,
       media: query,
+      // eslint-disable-next-line no-null/no-null
       onchange: null,
       addListener: jest.fn(), // Deprecated
       removeListener: jest.fn(), // Deprecated
@@ -46,12 +47,15 @@ Object.defineProperty(global, 'IntersectionObserver', {
   writable: true,
   configurable: true,
   value: class {
+    // eslint-disable-next-line class-methods-use-this
     observe() {
     }
 
+    // eslint-disable-next-line class-methods-use-this
     unobserve() {
     }
 
+    // eslint-disable-next-line class-methods-use-this
     disconnect() {
     }
   },

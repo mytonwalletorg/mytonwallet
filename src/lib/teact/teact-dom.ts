@@ -1,27 +1,28 @@
+import { DEBUG } from '../../config';
+import { unique } from '../../util/iteratees';
+import { addEventListener, removeAllDelegatedListeners, removeEventListener } from './dom-events';
 import type {
   VirtualElement,
-  VirtualElementComponent,
-  VirtualElementTag,
-  VirtualElementParent,
   VirtualElementChildren,
-  VirtualElementReal,
+  VirtualElementComponent,
   VirtualElementFragment,
+  VirtualElementParent,
+  VirtualElementReal,
+  VirtualElementTag,
 } from './teact';
 import {
+  captureImmediateEffects,
   hasElementChanged,
   isComponentElement,
-  isTagElement,
-  isParentElement,
-  isTextElement,
   isEmptyElement,
+  isFragmentElement,
+  isParentElement,
+  isTagElement,
+  isTextElement,
   mountComponent,
   renderComponent,
   unmountComponent,
-  isFragmentElement,
 } from './teact';
-import { DEBUG } from '../../config';
-import { addEventListener, removeAllDelegatedListeners, removeEventListener } from './dom-events';
-import { unique } from '../../util/iteratees';
 
 interface VirtualDomHead {
   children: [VirtualElement] | [];
@@ -42,7 +43,9 @@ const MAPPED_ATTRIBUTES: { [k: string]: string } = {
 };
 const INDEX_KEY_PREFIX = '__indexKey#';
 
-const headsByElement = new WeakMap<HTMLElement, VirtualDomHead>();
+const headsByElement = new WeakMap<Element, VirtualDomHead>();
+const extraClasses = new WeakMap<Element, Set<string>>();
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 let DEBUG_virtualTreeSize = 1;
 
@@ -51,8 +54,11 @@ function render($element: VirtualElement | undefined, parentEl: HTMLElement) {
     headsByElement.set(parentEl, { children: [] });
   }
 
+  const runImmediateEffects = captureImmediateEffects();
   const $head = headsByElement.get(parentEl)!;
   const $newElement = renderWithVirtual(parentEl, $head.children[0], $element, $head, 0);
+  runImmediateEffects?.();
+
   $head.children = $newElement ? [$newElement] : [];
 
   if (process.env.APP_ENV === 'perf') {
@@ -74,6 +80,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   options: {
     skipComponentUpdate?: boolean;
     nextSibling?: ChildNode;
+    forceMoveToEnd?: boolean;
     fragment?: DocumentFragment;
   } = {},
 ): T {
@@ -105,7 +112,6 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
   }
 
   if (DEBUG && $new) {
-    // @ts-ignore TS 4.9 bug https://github.com/microsoft/TypeScript/issues/51501
     const newTarget = 'target' in $new && $new.target;
     if (newTarget && (!$current || ('target' in $current && newTarget !== $current.target))) {
       throw new Error('[Teact] Cached virtual element was moved within tree');
@@ -154,6 +160,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
           $new as VirtualElementComponent | VirtualElementFragment,
           parentEl,
           nextSibling,
+          options.forceMoveToEnd,
         );
       } else {
         const $currentAsReal = $current as VirtualElementReal;
@@ -168,7 +175,7 @@ function renderWithVirtual<T extends VirtualElement | undefined>(
 
           $newAsTag.props.ref = $current.props.ref;
 
-          if (nextSibling) {
+          if (nextSibling || options.forceMoveToEnd) {
             insertBefore(parentEl, currentTarget, nextSibling);
           }
 
@@ -320,15 +327,18 @@ function remount(
   }
 }
 
-export function unmountRealTree($element: VirtualElement) {
+function unmountRealTree($element: VirtualElement) {
   if (isComponentElement($element)) {
     unmountComponent($element.componentInstance);
-  } else {
+  } else if (!isFragmentElement($element)) {
     if (isTagElement($element)) {
-      if ($element.target) {
-        removeAllDelegatedListeners($element.target as HTMLElement);
+      const { target } = $element;
 
-        if ($element.props.ref?.current === $element.target) {
+      if (target) {
+        extraClasses.delete(target);
+        removeAllDelegatedListeners(target);
+
+        if ($element.props.ref?.current === target) {
           $element.props.ref.current = undefined;
         }
       }
@@ -360,13 +370,15 @@ function getNextSibling($current: VirtualElement): ChildNode | undefined {
     return getNextSibling(lastChild);
   }
 
-  const target = $current.target!;
-  const { nextSibling } = target;
-  return nextSibling || undefined;
+  return $current.target!.nextSibling || undefined;
 }
 
 function renderChildren(
-  $current: VirtualElementParent, $new: VirtualElementParent, currentEl: HTMLElement, nextSibling?: ChildNode,
+  $current: VirtualElementParent,
+  $new: VirtualElementParent,
+  currentEl: HTMLElement,
+  nextSibling?: ChildNode,
+  forceMoveToEnd = false,
 ) {
   if (DEBUG) {
     DEBUG_checkKeyUniqueness($new.children);
@@ -383,8 +395,8 @@ function renderChildren(
 
   const fragment = newChildrenLength > currentChildrenLength ? document.createDocumentFragment() : undefined;
   const lastCurrentChild = $current.children[currentChildrenLength - 1];
-  const fragmentNextSibling = nextSibling || (
-    newChildrenLength > currentChildrenLength && lastCurrentChild ? getNextSibling(lastCurrentChild) : undefined
+  const fragmentNextSibling = fragment && (
+    nextSibling || (lastCurrentChild ? getNextSibling(lastCurrentChild) : undefined)
   );
 
   for (let i = 0; i < maxLength; i++) {
@@ -394,7 +406,7 @@ function renderChildren(
       $new.children[i],
       $new,
       i,
-      i >= currentChildrenLength ? { fragment } : { nextSibling },
+      i >= currentChildrenLength ? { fragment } : { nextSibling, forceMoveToEnd },
     );
 
     if ($newChild) {
@@ -500,7 +512,7 @@ function renderFastListChildren($current: VirtualElementParent, $new: VirtualEle
     const newOrderKey = 'props' in $newChild ? $newChild.props.teactOrderKey : undefined;
     // That is indicated by a changed `teactOrderKey` value
     const shouldMoveNode = (
-      currentChildInfo.index !== currentPreservedIndex && currentChildInfo.orderKey !== newOrderKey
+      currentChildInfo.index !== currentPreservedIndex && (!newOrderKey || currentChildInfo.orderKey !== newOrderKey)
     );
     const isMovingDown = shouldMoveNode && currentPreservedIndex > currentChildInfo.index;
 
@@ -508,12 +520,10 @@ function renderFastListChildren($current: VirtualElementParent, $new: VirtualEle
       currentPreservedIndex++;
     }
 
-    newChildren.push(
-      renderWithVirtual(currentEl, currentChildInfo.$element, $newChild, $new, i, {
-        // `+ 1` is needed because before moving down the node still takes place above
-        nextSibling: shouldMoveNode ? currentEl.childNodes[isMovingDown ? i + 1 : i] : undefined,
-      }),
-    );
+    const nextSibling = currentEl.childNodes[isMovingDown ? i + 1 : i];
+    const options = shouldMoveNode ? (nextSibling ? { nextSibling } : { forceMoveToEnd: true }) : undefined;
+
+    newChildren.push(renderWithVirtual(currentEl, currentChildInfo.$element, $newChild, $new, i, options));
   });
 
   // This appends new children to the bottom
@@ -630,10 +640,8 @@ function updateAttributes($current: VirtualElementTag, $new: VirtualElementTag, 
 }
 
 function setAttribute(element: HTMLElement, key: string, value: any) {
-  // An optimization attempt
   if (key === 'className') {
-    element.className = value;
-    // An optimization attempt
+    updateClassName(element, value);
   } else if (key === 'value') {
     const inputEl = element as HTMLInputElement;
 
@@ -669,7 +677,7 @@ function setAttribute(element: HTMLElement, key: string, value: any) {
 
 function removeAttribute(element: HTMLElement, key: string, value: any) {
   if (key === 'className') {
-    element.className = '';
+    updateClassName(element, '');
   } else if (key === 'value') {
     (element as HTMLInputElement).value = '';
   } else if (key === 'style') {
@@ -678,10 +686,90 @@ function removeAttribute(element: HTMLElement, key: string, value: any) {
     element.innerHTML = '';
   } else if (key.startsWith('on')) {
     removeEventListener(element, key, value, key.endsWith('Capture'));
-  } else if (key.startsWith('data-') || key.startsWith('aria-') || HTML_ATTRIBUTES.has(key)) {
-    element.removeAttribute(key);
   } else if (!FILTERED_ATTRIBUTES.has(key)) {
-    delete (element as any)[MAPPED_ATTRIBUTES[key] || key];
+    element.removeAttribute(key);
+  }
+}
+
+function updateClassName(element: HTMLElement, value: string) {
+  const extra = extraClasses.get(element);
+  if (!extra) {
+    element.className = value;
+    return;
+  }
+
+  const extraArray = Array.from(extra);
+  if (value) {
+    extraArray.push(value);
+  }
+
+  element.className = extraArray.join(' ');
+}
+
+export function addExtraClass(element: Element, className: string, forceSingle = false) {
+  if (!forceSingle) {
+    const classNames = className.split(' ');
+    if (classNames.length > 1) {
+      classNames.forEach((cn) => {
+        addExtraClass(element, cn, true);
+      });
+
+      return;
+    }
+  }
+
+  element.classList.add(className);
+
+  const classList = extraClasses.get(element);
+  if (classList) {
+    classList.add(className);
+  } else {
+    extraClasses.set(element, new Set([className]));
+  }
+}
+
+export function removeExtraClass(element: Element, className: string, forceSingle = false) {
+  if (!forceSingle) {
+    const classNames = className.split(' ');
+    if (classNames.length > 1) {
+      classNames.forEach((cn) => {
+        removeExtraClass(element, cn, true);
+      });
+
+      return;
+    }
+  }
+
+  element.classList.remove(className);
+
+  const classList = extraClasses.get(element);
+  if (classList) {
+    classList.delete(className);
+
+    if (!classList.size) {
+      extraClasses.delete(element);
+    }
+  }
+}
+
+export function toggleExtraClass(element: Element, className: string, force?: boolean, forceSingle = false) {
+  if (!forceSingle) {
+    const classNames = className.split(' ');
+    if (classNames.length > 1) {
+      classNames.forEach((cn) => {
+        toggleExtraClass(element, cn, force, true);
+      });
+
+      return;
+    }
+  }
+
+  element.classList.toggle(className, force);
+
+  if (element.classList.contains(className)) {
+    addExtraClass(element, className);
+  } else {
+    removeExtraClass(element, className);
   }
 }
 

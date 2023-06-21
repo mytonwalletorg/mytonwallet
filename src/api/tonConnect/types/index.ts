@@ -1,4 +1,4 @@
-import { ConnectEventError, ConnectItemReply } from '@tonconnect/protocol';
+import type { ConnectEventError, ConnectItemReply } from '@tonconnect/protocol';
 
 export interface LocalConnectEventSuccess {
   event: 'connect';

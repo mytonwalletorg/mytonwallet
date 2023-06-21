@@ -1,11 +1,12 @@
-import {
+import type {
+  ApiBackendStakingState,
+  ApiDapp,
+  ApiDappTransaction,
+  ApiParsedPayload,
   ApiStakingState,
   ApiToken,
   ApiTransaction,
   ApiTransactionDraftError,
-  ApiDapp,
-  ApiBackendStakingState,
-  ApiDappTransaction,
 } from './misc';
 
 export type ApiUpdateBalance = {
@@ -39,6 +40,9 @@ export type ApiUpdateCreateTransaction = {
   amount: string;
   fee: string;
   comment?: string;
+  rawPayload?: string;
+  parsedPayload?: ApiParsedPayload;
+  stateInit?: string;
 };
 
 export type ApiUpdateCreateSignature = {
@@ -126,6 +130,11 @@ export type ApiUpdatePrepareTransaction = {
   comment?: string;
 };
 
+export type ApiUpdateShowError = {
+  type: 'showError';
+  error: string;
+};
+
 export type ApiUpdate =
   ApiUpdateBalance
   | ApiUpdateNewTransactions
@@ -144,6 +153,7 @@ export type ApiUpdate =
   | ApiUpdateDappConnect
   | ApiUpdateDappDisconnect
   | ApiUpdateBackendStakingState
-  | ApiUpdatePrepareTransaction;
+  | ApiUpdatePrepareTransaction
+  | ApiUpdateShowError;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

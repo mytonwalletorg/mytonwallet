@@ -1,4 +1,4 @@
-import React, { useRef, memo, useEffect } from '../../lib/teact/teact';
+import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 import forceReflow from '../../util/forceReflow';

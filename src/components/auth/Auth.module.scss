@@ -1,10 +1,20 @@
 @import '../../styles/variables';
 
+@import '../../styles/mixins/';
+
+.wrapper {
+  height: 100%;
+}
+
 .transitionContainer {
   overflow: hidden;
 
   max-width: 25rem;
   margin: 0 auto;
+}
+
+.transitionSlide {
+  background: var(--color-background-second);
 }
 
 .container {
@@ -33,6 +43,11 @@
   @supports (padding-bottom: env(safe-area-inset-bottom)) {
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   }
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(sm) {
+    padding: 2rem;
+  }
 }
 
 .logo {
@@ -40,7 +55,7 @@
 
   width: 12.5rem;
   height: 12.5rem;
-  margin: 4rem 0 0 0;
+  margin: 5rem 0 0 0;
 
   transition: opacity 1s ease, transform 350ms ease-out !important;
 
@@ -50,6 +65,11 @@
 
   :global(html.animation-level-0) & {
     transition: none !important;
+  }
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(sm) {
+    margin-top: 0;
   }
 }
 
@@ -109,7 +129,7 @@
   color: var(--color-blue);
 
   background: linear-gradient(to top, var(--color-background-first), var(--color-background-first)),
-  linear-gradient(to top, #0088cc99, #0088cc1a 50%, #0088cc00 70%) no-repeat 50% 50%;
+  linear-gradient(to top, #0088CC99, #0088CC1A 50%, #0088CC00 70%) no-repeat 50% 50%;
   background-clip: content-box, border-box;
   background-origin: border-box;
   border: 0.1875rem solid transparent;
@@ -117,7 +137,7 @@
 
   :global(.theme-dark) & {
     background: linear-gradient(to top, var(--color-background-first), var(--color-background-first)),
-    linear-gradient(to top, #469cec, #469cec3d 50%, #469cec00 90%) no-repeat 50% 50%;
+    linear-gradient(to top, #469CEC, #469CEC3D 50%, #469CEC00 90%) no-repeat 50% 50%;
     background-clip: content-box, border-box;
     background-origin: border-box;
   }
@@ -125,7 +145,7 @@
   @media (prefers-color-scheme: dark) {
     :global(.theme-system) & {
       background: linear-gradient(to top, var(--color-background-first), var(--color-background-first)),
-      linear-gradient(to top, #469cec, #469cec3d 50%, #469cec00 90%) no-repeat 50% 50%;
+      linear-gradient(to top, #469CEC, #469CEC3D 50%, #469CEC00 90%) no-repeat 50% 50%;
       background-clip: content-box, border-box;
       background-origin: border-box;
     }
@@ -185,6 +205,10 @@
 
 .sticker {
   margin-top: 3.375rem;
+
+  :global(html.is-electron) & {
+    margin-top: 0;
+  }
 }
 
 .modalSticker {
@@ -250,6 +274,10 @@
     gap: 1rem;
     justify-content: space-between;
   }
+
+  @media (min-height: 800px) {
+    margin-top: 5rem;
+  }
 }
 
 .footerButton {
@@ -270,16 +298,22 @@
   }
 
   &_about {
-    margin: 3.75rem auto 0.25rem;
+    display: flex;
+    align-items: center;
 
-    font-size: 0.875rem !important;
-    font-weight: 500;
-    color: var(--color-gray-2);
-    white-space: nowrap;
+    margin: 1.6875rem auto 0;
+
+    font-size: 1.0625rem !important;
+    font-weight: 600;
+    color: var(--color-gray-3);
 
     &:hover, &:focus {
       color: var(--color-gray-1);
     }
+  }
+
+  &_mini {
+    min-width: unset !important;
   }
 }
 
@@ -341,4 +375,33 @@
   font-weight: 600;
   color: var(--color-red);
   text-align: center;
+}
+
+.importButtonsBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  margin-top: auto;
+}
+
+.importText {
+  margin-top: 2rem;
+
+  font-size: 1.0625rem !important;
+  font-weight: 600;
+  color: var(--color-gray-3);
+}
+
+.importButtons {
+  display: flex;
+  gap: 1rem;
+
+  margin-top: 0.75rem;
+
+  :global(html.is-electron) & {
+    .btn {
+      max-width: 100%;
+    }
+  }
 }

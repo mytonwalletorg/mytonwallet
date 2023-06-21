@@ -1,18 +1,18 @@
 import type { RefObject } from 'react';
 import type { FC } from '../../lib/teact/teact';
-
 import React, {
-  useEffect, useRef, memo, useCallback, useState, useMemo,
+  memo, useCallback, useEffect, useMemo,
+  useRef, useState,
 } from '../../lib/teact/teact';
 
-import { fastRaf } from '../../util/schedulers';
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
-
-import useHeavyAnimationCheck from '../../hooks/useHeavyAnimationCheck';
-import useBackgroundMode from '../../hooks/useBackgroundMode';
-import useOnChange from '../../hooks/useOnChange';
 import generateIdFor from '../../util/generateIdFor';
+import { fastRaf } from '../../util/schedulers';
+
+import useBackgroundMode from '../../hooks/useBackgroundMode';
+import useHeavyAnimationCheck from '../../hooks/useHeavyAnimationCheck';
+import useSyncEffect from '../../hooks/useSyncEffect';
 
 export type OwnProps = {
   ref?: RefObject<HTMLDivElement>;
@@ -219,13 +219,13 @@ const AnimatedSticker: FC<OwnProps> = ({
     fastRaf(unfreezeAnimation);
   }, [unfreezeAnimation]);
 
-  useOnChange(([prevNoLoop]) => {
+  useSyncEffect(([prevNoLoop]) => {
     if (prevNoLoop !== undefined && noLoop !== prevNoLoop) {
       animation?.setNoLoop(noLoop);
     }
   }, [noLoop, animation]);
 
-  useOnChange(([prevSharedCanvasCoords]) => {
+  useSyncEffect(([prevSharedCanvasCoords]) => {
     if (prevSharedCanvasCoords !== undefined && sharedCanvasCoords !== prevSharedCanvasCoords) {
       animation?.setSharedCanvasCoords(containerId, sharedCanvasCoords);
     }

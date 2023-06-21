@@ -1,10 +1,9 @@
 import { TransferState } from '../../types';
 
-import { addActionHandler, getGlobal, setGlobal } from '../../index';
-
-import { callApi } from '../../../api';
 import { TON_TOKEN_SLUG } from '../../../config';
+import { callApi } from '../../../api';
 import { bigStrToHuman } from '../../helpers';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentDappTransfer,
   clearCurrentSignature,
@@ -15,7 +14,7 @@ import {
   updateCurrentTransfer,
   updateDappConnectRequest,
 } from '../../reducers';
-import { selectAccountState } from '../../selectors';
+import { selectAccountState, selectNewestTxIds } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -26,6 +25,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         toAddress,
         fee,
         comment,
+        rawPayload,
+        parsedPayload,
+        stateInit,
       } = update;
 
       global = clearCurrentTransfer(global);
@@ -37,6 +39,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         comment,
         promiseId,
         tokenSlug: TON_TOKEN_SLUG,
+        rawPayload,
+        parsedPayload,
+        stateInit,
       });
       setGlobal(global);
 
@@ -59,6 +64,13 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     case 'showTxDraftError': {
       const { error } = update;
       actions.showTxDraftError({ error });
+
+      break;
+    }
+
+    case 'showError': {
+      const { error } = update;
+      actions.showError({ error });
 
       break;
     }
@@ -149,7 +161,12 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       (async () => {
         const { currentAccountId } = global;
         if (currentAccountId !== accountId) {
-          await callApi('activateAccount', accountId);
+          const newestTxIds = selectNewestTxIds(global, accountId);
+          await callApi('activateAccount', accountId, newestTxIds);
+          setGlobal({
+            ...getGlobal(),
+            currentAccountId: accountId,
+          });
         }
 
         global = getGlobal();

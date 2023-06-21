@@ -1,18 +1,17 @@
+import type { TonConnectMethodArgs, TonConnectMethods } from '../../tonConnect/types/misc';
 import type { OnApiDappUpdate } from '../../types/dappUpdates';
-import {
+import type {
   DappMethodArgs,
   DappMethods,
   LegacyDappMethodArgs,
   LegacyDappMethods,
 } from '../../dappMethods/types';
-import { TonConnectMethodArgs, TonConnectMethods } from '../../tonConnect/types/misc';
 
 import { CONTENT_SCRIPT_PORT, PAGE_CONNECTOR_CHANNEL } from './config';
-
+import { createExtensionInterface } from '../../../util/createPostMessageInterface';
 import * as dappApi from '../../dappMethods';
 import * as legacyDappApi from '../../dappMethods/legacy';
 import * as tonConnectApi from '../../tonConnect';
-import { createExtensionInterface } from '../../../util/createPostMessageInterface';
 
 const ALLOWED_METHODS = new Set([
   'ton_getBalance',

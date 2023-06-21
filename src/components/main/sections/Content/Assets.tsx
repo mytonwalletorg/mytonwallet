@@ -1,16 +1,16 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
+
+import type { UserToken } from '../../../../global/types';
+
+import { TON_TOKEN_SLUG } from '../../../../config';
 import { withGlobal } from '../../../../global';
+import { selectCurrentAccountState, selectCurrentAccountTokens, selectIsNewWallet } from '../../../../global/selectors';
 
-import { UserToken } from '../../../../global/types';
-
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
-import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_TOKEN_SLUG } from '../../../../config';
-import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../../../global/selectors';
-import useLang from '../../../../hooks/useLang';
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
-import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Loading from '../../../ui/Loading';
+import NewWalletGreeting from './NewWalletGreeting';
 import Token from './Token';
 
 import styles from './Assets.module.scss';
@@ -41,35 +41,13 @@ function Assets({
   onTokenClick,
   onStakedTokenClick,
 }: OwnProps & StateProps) {
-  const lang = useLang();
+  const { isPortrait } = useDeviceScreen();
 
+  const shouldShowGreeting = isNewWallet && isPortrait;
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens])!;
-  const {
-    shouldRender: shouldRenderStakedToken,
-    transitionClassNames: stakedTokenClassNames,
-  } = useShowTransition(Boolean(stakingStatus));
-
-  function renderNewWalletGreetings() {
-    return (
-      <div className={styles.greetings}>
-        <AnimatedIconWithPreview
-          play={isActive}
-          tgsUrl={ANIMATED_STICKERS_PATHS.hello}
-          previewUrl={ANIMATED_STICKERS_PATHS.helloPreview}
-          nonInteractive
-          noLoop={false}
-          size={ANIMATED_STICKER_SMALL_SIZE_PX}
-        />
-
-        <div className={styles.greetingsText}>
-          <p className={styles.greetingsHeader}>{lang('You have just created a new wallet')}</p>
-          <p className={styles.greetingsDescription}>
-            {lang('You can now transfer your tokens from another wallet or exchange.')}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const { shouldRender: shouldRenderStakedToken, transitionClassNames: stakedTokenClassNames } = useShowTransition(
+    Boolean(stakingStatus),
+  );
 
   function renderStakedToken() {
     return (
@@ -87,39 +65,49 @@ function Assets({
   }
 
   return (
-    <div>
-      {!tokens && <div className={styles.emptyList}><Loading /></div>}
-      {isNewWallet && renderNewWalletGreetings()}
+    <div className={styles.wrapper}>
+      {!tokens && (
+        <div className={styles.emptyList}>
+          <Loading />
+        </div>
+      )}
+      {shouldShowGreeting && <NewWalletGreeting isActive={isActive} mode="panel" />}
       {shouldRenderStakedToken && renderStakedToken()}
-      {tokens && tokens.map((token) => (
-        <Token
-          key={token.slug}
-          token={token}
-          apyValue={!stakingBalance && token.slug === TON_TOKEN_SLUG ? apyValue : undefined}
-          isInvestorView={isInvestorViewEnabled}
-          onClick={onTokenClick}
-        />
-      ))}
+      {tokens
+        && tokens.map((token) => (
+          <Token
+            key={token.slug}
+            token={token}
+            apyValue={!stakingBalance && token.slug === TON_TOKEN_SLUG ? apyValue : undefined}
+            isInvestorView={isInvestorViewEnabled}
+            onClick={onTokenClick}
+          />
+        ))}
     </div>
   );
 }
 
-export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-  detachWhenChanged(global.currentAccountId);
+export default memo(
+  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+    detachWhenChanged(global.currentAccountId);
 
-  const tokens = selectCurrentAccountTokens(global);
-  const accountState = selectCurrentAccountState(global);
-  const { isInvestorViewEnabled } = global.settings;
-  const stakingStatus = accountState?.stakingBalance
-    ? (accountState.isUnstakeRequested ? 'unstakeRequested' : 'active')
-    : undefined;
+    const tokens = selectCurrentAccountTokens(global);
+    const isNewWallet = selectIsNewWallet(global);
+    const accountState = selectCurrentAccountState(global);
+    const { isInvestorViewEnabled } = global.settings;
+    const stakingStatus = accountState?.stakingBalance
+      ? accountState.isUnstakeRequested
+        ? 'unstakeRequested'
+        : 'active'
+      : undefined;
 
-  return {
-    tokens,
-    stakingStatus,
-    stakingBalance: accountState?.stakingBalance,
-    isNewWallet: tokens?.length === 0 || (tokens?.length === 1 && tokens[0].amount === 0),
-    isInvestorViewEnabled,
-    apyValue: accountState?.poolState?.lastApy || 0,
-  };
-})(Assets));
+    return {
+      tokens,
+      isNewWallet,
+      stakingStatus,
+      stakingBalance: accountState?.stakingBalance,
+      isInvestorViewEnabled,
+      apyValue: accountState?.poolState?.lastApy || 0,
+    };
+  })(Assets),
+);

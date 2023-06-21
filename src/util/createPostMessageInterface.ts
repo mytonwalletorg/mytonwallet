@@ -1,8 +1,10 @@
-import type {
-  CancellableCallback, OriginMessageEvent, OriginMessageData, WorkerMessageData, ApiUpdate,
-} from './PostMessageConnector';
+import { DETACHED_TAB_URL } from './ledger/tab';
+import { logDebugError } from './logs';
 
-import { DEBUG } from '../config';
+import type {
+  ApiUpdate,
+  CancellableCallback, OriginMessageData, OriginMessageEvent, WorkerMessageData,
+} from './PostMessageConnector';
 
 declare const self: WorkerGlobalScope;
 
@@ -42,6 +44,14 @@ export function createExtensionInterface(
 ) {
   chrome.runtime.onConnect.addListener((port) => {
     if (port.name !== portName) {
+      return;
+    }
+
+    /**
+     * If the sender's URL includes the DETACHED_TAB_URL, we skip further processing
+     * This condition ensures that we don't interact with tabs that have already been closed.
+     */
+    if (port.sender?.url?.includes(DETACHED_TAB_URL)) {
       return;
     }
 
@@ -139,17 +149,14 @@ async function onMessage(
             arrayBuffer ? [arrayBuffer] : undefined,
           );
         }
-      } catch (error: any) {
-        if (DEBUG) {
-          // eslint-disable-next-line no-console
-          console.error(error);
-        }
+      } catch (err: any) {
+        logDebugError('onMessage:callMethod', err);
 
         if (messageId) {
           sendToOrigin({
             type: 'methodResponse',
             messageId,
-            error: { message: error.message },
+            error: { message: err.message },
           });
         }
       }

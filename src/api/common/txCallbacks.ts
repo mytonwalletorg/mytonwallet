@@ -1,5 +1,6 @@
+import type { ApiTransaction } from '../types';
+
 import { createCallbackManager } from '../../util/callbacks';
-import { ApiTransaction } from '../types';
 
 export const txCallbacks = createCallbackManager();
 

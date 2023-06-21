@@ -1,10 +1,9 @@
-import type { ApiInitArgs, OnApiUpdate } from '../../types';
-import type { Methods, MethodArgs, MethodResponse } from '../../methods/types';
-
 import { StorageType } from '../../storages/types';
+import type { MethodArgs, MethodResponse, Methods } from '../../methods/types';
+import type { ApiInitArgs, OnApiUpdate } from '../../types';
 
-import init from '../../methods/init';
 import * as methods from '../../methods';
+import init from '../../methods/init';
 
 // eslint-disable-next-line no-restricted-globals
 export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => ApiInitArgs)) {

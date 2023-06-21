@@ -3,6 +3,7 @@ import React, { memo } from '../../lib/teact/teact';
 import { CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
+
 import useLang from '../../hooks/useLang';
 
 import styles from './AmountWithFeeTextField.module.scss';

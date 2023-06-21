@@ -1,5 +1,4 @@
 import { addActionHandler, setGlobal } from '../../index';
-
 import {
   updateAccountState,
   updateBalance,

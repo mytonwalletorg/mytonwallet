@@ -1,7 +1,7 @@
-import withCache from './withCache';
-
 import type { LangCode } from '../global/types';
+
 import type { LangFn } from './langProvider';
+import withCache from './withCache';
 
 const formatDayToStringWithCache = withCache((
   langCode: LangCode,
@@ -78,14 +78,15 @@ export function formatFullDay(langCode: LangCode, datetime: string | number | Da
   return formatDayToStringWithCache(langCode, dayStartAt, noYear, 'long');
 }
 
-export function formatShortDay(langCode: LangCode, datetime: string | number | Date, withTime = false) {
+export function formatShortDay(langCode: LangCode, datetime: string | number | Date, withTime = false, noYear = false) {
   const date = new Date(datetime);
   const dayStartAt = getDayStartAt(date);
   const today = getDayStart(new Date());
   const todayStartAt = getDayStartAt(today);
-  const noYear = date.getFullYear() === today.getFullYear();
   const noDate = withTime && dayStartAt === todayStartAt;
   const targetAt = withTime ? getMinuteStart(date).getTime() : dayStartAt;
+
+  noYear ||= date.getFullYear() === today.getFullYear();
 
   return formatDayToStringWithCache(langCode, targetAt, noYear, !noDate && 'short', noDate, withTime);
 }

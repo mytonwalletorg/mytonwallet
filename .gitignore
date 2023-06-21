@@ -1,5 +1,6 @@
 node_modules
 dist
+dist-electron
 MyTonWallet.zip
 .cache
 .env*
@@ -13,3 +14,4 @@ test-results
 trash/
 coverage/
 src/i18n/en.json
+notarization-error.log

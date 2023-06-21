@@ -1,22 +1,23 @@
 import React, { memo, useCallback, useState } from '../../lib/teact/teact';
-import { getActions } from '../../global';
 
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { getActions } from '../../global';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import useLang from '../../hooks/useLang';
-import useFlag from '../../hooks/useFlag';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
-import Transition from '../ui/Transition';
+import useFlag from '../../hooks/useFlag';
+import useLang from '../../hooks/useLang';
+
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
-import SafetyRules from './SafetyRules';
-import MnemonicList from './MnemonicList';
+import Transition from '../ui/Transition';
 import MnemonicCheck from './MnemonicCheck';
+import MnemonicList from './MnemonicList';
+import SafetyRules from './SafetyRules';
 
-import styles from './Auth.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import styles from './Auth.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
@@ -100,7 +101,7 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
   }
 
   return (
-    <>
+    <div className={styles.wrapper}>
       <div className={buildClassName(styles.container, 'custom-scroll')}>
         <AnimatedIconWithPreview
           play={isActive && !isModalOpen}
@@ -140,7 +141,7 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
         dialogClassName={styles.modalDialog}
       >
         <Transition
-          name="push-slide"
+          name="pushSlide"
           className={modalStyles.transition}
           slideClassName={modalStyles.transitionSlide}
           activeKey={renderingKey}
@@ -149,7 +150,7 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
           {renderModalContent}
         </Transition>
       </Modal>
-    </>
+    </div>
   );
 };
 

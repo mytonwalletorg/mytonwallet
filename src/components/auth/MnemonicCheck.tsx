@@ -1,4 +1,4 @@
-import { FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import React, {
   memo, useCallback, useEffect, useState,
 } from '../../lib/teact/teact';
@@ -7,14 +7,15 @@ import { MNEMONIC_CHECK_COUNT } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { areSortedArraysEqual } from '../../util/iteratees';
+
 import useLang from '../../hooks/useLang';
 
-import ModalHeader from '../ui/ModalHeader';
-import Button from '../ui/Button';
 import InputMnemonic from '../common/InputMnemonic';
+import Button from '../ui/Button';
+import ModalHeader from '../ui/ModalHeader';
 
-import styles from './Auth.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import styles from './Auth.module.scss';
 
 type OwnProps = {
   isActive?: boolean;

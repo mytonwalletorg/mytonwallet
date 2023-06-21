@@ -1,10 +1,11 @@
-import React, { memo, useRef, useEffect } from '../../lib/teact/teact';
+import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 
-import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
 import buildClassName from '../../util/buildClassName';
 import fastSmoothScrollHorizontal from '../../util/fastSmoothScrollHorizontal';
-import usePrevious from '../../hooks/usePrevious';
+import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
+
 import useHorizontalScroll from '../../hooks/useHorizontalScroll';
+import usePrevious from '../../hooks/usePrevious';
 
 import Tab from './Tab';
 

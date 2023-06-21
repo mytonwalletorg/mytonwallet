@@ -1,13 +1,14 @@
 import React, { memo, useCallback } from '../../../../lib/teact/teact';
 
-import { UserToken } from '../../../../global/types';
+import type { UserToken } from '../../../../global/types';
 
 import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../../../config';
-import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 import buildClassName from '../../../../util/buildClassName';
+import { calcChangeValue } from '../../../../util/calcChangeValue';
 import { formatCurrency } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
-import { calcChangeValue } from '../../../../util/calcChangeValue';
+import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
+
 import useShowTransition from '../../../../hooks/useShowTransition';
 
 import AnimatedCounter from '../../../ui/AnimatedCounter';

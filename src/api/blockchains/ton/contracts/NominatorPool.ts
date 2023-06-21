@@ -1,7 +1,7 @@
 import TonWeb from 'tonweb';
+import type { ContractMethods, ContractOptions } from 'tonweb/dist/types/contract/contract';
+import type { HttpProvider } from 'tonweb/dist/types/providers/http-provider';
 
-import { ContractOptions, ContractMethods } from 'tonweb/dist/types/contract/contract';
-import { HttpProvider } from 'tonweb/dist/types/providers/http-provider';
 import { bnToAddress } from '../util/tonweb';
 
 // const { parseAddress } = require('tonweb/src/contract/token/nft/NftUtils');

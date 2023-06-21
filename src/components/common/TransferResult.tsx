@@ -1,12 +1,12 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
-import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 import buildClassName from '../../util/buildClassName';
+import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
-import Button from '../ui/Button';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
 
 import styles from './TransferResult.module.scss';
 

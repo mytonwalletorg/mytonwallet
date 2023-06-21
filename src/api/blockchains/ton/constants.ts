@@ -1,6 +1,13 @@
 export const TOKEN_TRANSFER_TON_AMOUNT = '0.05';
 export const TOKEN_TRANSFER_TON_FORWARD_AMOUNT = '0.000000001';
 
+export const STAKE_COMMENT = 'd';
+export const UNSTAKE_COMMENT = 'w';
+
+export const ATTEMPTS = 5;
+
+export const DEFAULT_DECIMALS = 9;
+
 export enum JettonOpCode {
   transfer = 0xf8a7ea5,
   transferNotification = 0x7362d09c,
@@ -13,6 +20,3 @@ export enum JettonOpCode {
 export enum NftOpCode {
   transferOwnership = 0x5fcc3d14,
 }
-
-export const STAKE_COMMENT = 'd';
-export const UNSTAKE_COMMENT = 'w';

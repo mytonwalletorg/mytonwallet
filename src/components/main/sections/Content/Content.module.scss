@@ -7,9 +7,23 @@
     overflow: unset;
   }
 
-  @media (min-width: 600.01px) {
+  &.portraitContainer {
+    flex: 1 1 auto;
+  }
+
+  &.landscapeContainer {
     overflow: hidden;
   }
+}
+
+.assetsPanel {
+  overflow: hidden;
+  flex-shrink: 0;
+
+  margin-bottom: 0.75rem;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
 }
 
 .tabs {
@@ -21,10 +35,23 @@
   border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
   /* stylelint-disable-next-line plugin/whole-pixel */
   box-shadow: 0 0.025rem 0 0 var(--color-separator);
+
+  .landscapeContainer & {
+    justify-content: flex-start;
+
+    padding: 0 0.75rem;
+  }
 }
 
 .tab {
   flex: 1 1 33.3%;
+
+  .landscapeContainer & {
+    flex: 0 0 auto;
+
+    padding-right: 0;
+    padding-left: 0;
+  }
 }
 
 .slides {
@@ -34,18 +61,11 @@
   align-items: center;
   justify-content: center;
 
+  background: var(--color-background-first);
   border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
 
-  :global(html.is-extension) & {
-    flex: 1 1 auto;
-
-    border-radius: 0;
-  }
-
-  @media (max-width: 600px) {
-    flex: 1 1 auto;
-
-    border-radius: 0;
+  .landscapeContainer & {
+    flex-grow: 1;
   }
 }
 
@@ -55,17 +75,16 @@
   @supports (overflow: overlay) {
     overflow-y: overlay;
   }
+}
 
-  background: var(--color-background-first);
-
-  :global(html.is-extension) & {
-    overflow: hidden;
+.portraitContainer {
+  .slides {
     flex: 1 1 auto;
 
-    min-height: 0;
+    border-radius: 0;
   }
 
-  @media (max-width: 600px) {
+  .slide {
     overflow: hidden;
     flex: 1 1 auto;
 

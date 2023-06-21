@@ -2,36 +2,53 @@
 
 @import "../../styles/variables";
 
-.container {
+.portraitContainer {
   display: flex;
   flex-direction: column;
 
   max-width: 25rem;
-  height: 100vh;
-  max-height: calc(var(--vh, 1vh) * 100);
+  height: auto;
+  min-height: calc(var(--vh, 1vh) * 100);
+  max-height: none;
   margin: auto;
-  padding: 0 1rem 1rem;
+  padding: 0 0.75rem !important;
 
   @supports (padding-bottom: env(safe-area-inset-bottom)) {
     padding-bottom: max(env(safe-area-inset-bottom), 1rem);
-  }
-
-  :global(html.is-extension) & {
-    height: auto;
-    min-height: calc(var(--vh, 1vh) * 100);
-    max-height: none;
-    padding: 0 0.75rem !important;
-  }
-
-  @media (max-width: 600px) {
-    height: auto;
-    min-height: calc(var(--vh, 1vh) * 100);
-    max-height: none;
-    padding: 0 0.75rem !important;
   }
 }
 
 .head {
   position: relative;
   z-index: 2;
+}
+
+.landscapeContainer {
+  display: grid;
+  grid-template-columns: 21.5rem 1fr;
+  column-gap: 0.75rem;
+
+  /* 948px + 1rem padding on both sides */
+  max-width: calc(59.25rem + 2rem);
+  height: 100vh;
+  max-height: calc(var(--vh, 1vh) * 100);
+  margin: auto;
+  padding: 1rem;
+
+  :global(html.is-electron:not(.is-linux)) & {
+    height: calc(100vh - 3.25rem);
+    padding-top: 0;
+  }
+}
+
+.main,
+.sidebar {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+}
+
+.main {
+  overflow: hidden;
 }

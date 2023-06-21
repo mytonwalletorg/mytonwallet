@@ -1,32 +1,35 @@
 import React, {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
+
+import type { AuthMethod } from '../../global/types';
+
 import { getActions } from '../../global';
-
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import buildClassName from '../../util/buildClassName';
-import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
-import { usePasswordValidation } from '../../hooks/usePasswordValidation';
-import useLang from '../../hooks/useLang';
-import useFlag from '../../hooks/useFlag';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
-import Modal from '../ui/Modal';
+import useFlag from '../../hooks/useFlag';
+import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
+import useLang from '../../hooks/useLang';
+import { usePasswordValidation } from '../../hooks/usePasswordValidation';
+
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import Modal from '../ui/Modal';
 
-import styles from './Auth.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import styles from './Auth.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
-  isImporting?: boolean;
+  method?: AuthMethod;
   isLoading?: boolean;
 }
 
 const AuthCreatePassword = ({
   isActive,
-  isImporting,
+  method,
   isLoading,
 }: OwnProps) => {
   const { afterCreatePassword, restartAuth } = getActions();
@@ -44,7 +47,8 @@ const AuthCreatePassword = ({
   const [isPasswordsNotEqual, setIsPasswordsNotEqual] = useState<boolean>(false);
   const [isWeakPasswordModalOpen, openWeakPasswordModal, closeWeakPasswordModal] = useFlag(false);
   const canSubmit = firstPassword.length > 0 && secondPassword.length > 0 && !hasError;
-  const formId = isImporting ? 'auth_import_password' : 'auth_create_password';
+  const isImporting = method !== 'createAccount';
+  const formId = getFormId(method!);
 
   const validation = usePasswordValidation({
     firstPassword,
@@ -118,9 +122,9 @@ const AuthCreatePassword = ({
     if (isWeakPasswordModalOpen) {
       closeWeakPasswordModal();
     }
-    afterCreatePassword({ password: firstPassword, isImporting });
+    afterCreatePassword({ password: firstPassword });
   }, [
-    afterCreatePassword, canSubmit, firstPassword, isImporting, isWeakPasswordModalOpen, openWeakPasswordModal,
+    afterCreatePassword, canSubmit, firstPassword, isWeakPasswordModalOpen, openWeakPasswordModal,
     secondPassword, validation, closeWeakPasswordModal,
   ]);
 
@@ -200,6 +204,7 @@ const AuthCreatePassword = ({
           onInput={handleFirstPasswordChange}
           onFocus={markPasswordFocused}
           onBlur={unmarkPasswordFocused}
+          className={styles.input}
         />
         <Input
           type="password"
@@ -212,6 +217,7 @@ const AuthCreatePassword = ({
           onInput={handleSecondPasswordChange}
           onFocus={markSecondPasswordFocused}
           onBlur={unmarkSecondPasswordFocused}
+          className={styles.input}
         />
       </div>
 
@@ -257,6 +263,18 @@ function getValidationRuleClass(shouldRenderError: boolean, ruleHasError: boolea
     styles.passwordRule,
     !ruleHasError ? styles.valid : shouldRenderError ? styles.invalid : undefined,
   );
+}
+
+// eslint-disable-next-line consistent-return
+function getFormId(method: AuthMethod) {
+  switch (method) {
+    case 'createAccount':
+      return 'auth_create_password';
+    case 'importMnemonic':
+      return 'auth_import_mnemonic_password';
+    case 'importHardwareWallet':
+      return 'auth_import_hardware_password';
+  }
 }
 
 export default memo(AuthCreatePassword);

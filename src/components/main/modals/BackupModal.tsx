@@ -1,33 +1,32 @@
 import React, {
-  memo, useCallback, useEffect, useState,
+  memo, useCallback, useEffect, useRef, useState,
 } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
 
-import buildClassName from '../../../util/buildClassName';
+import { getActions, withGlobal } from '../../../global';
 import { selectMnemonicForCheck } from '../../../global/actions/api/auth';
-import { selectCurrentAccountState } from '../../../global/selectors';
+import buildClassName from '../../../util/buildClassName';
+import { callApi } from '../../../api';
+
 import useLang from '../../../hooks/useLang';
 
+import MnemonicCheck from '../../auth/MnemonicCheck';
+import MnemonicList from '../../auth/MnemonicList';
+import SafetyRules from '../../auth/SafetyRules';
 import Modal from '../../ui/Modal';
 import ModalHeader from '../../ui/ModalHeader';
 import PasswordForm from '../../ui/PasswordForm';
-import SafetyRules from '../../auth/SafetyRules';
-import MnemonicList from '../../auth/MnemonicList';
-import MnemonicCheck from '../../auth/MnemonicCheck';
 import Transition from '../../ui/Transition';
 
-import styles from './BackupModal.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
+import styles from './BackupModal.module.scss';
 
 type OwnProps = {
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
 };
 
 type StateProps = {
-  isLoading?: boolean;
-  mnemonic?: string[];
-  error?: string;
+  currentAccountId?: string;
 };
 
 enum SLIDES {
@@ -38,30 +37,46 @@ enum SLIDES {
 }
 
 function BackupModal({
-  isOpen, onClose, isLoading, mnemonic, error,
+  isOpen, currentAccountId, onClose,
 }: OwnProps & StateProps) {
-  const { startBackupWallet, clearBackupWalletError, closeBackupWallet } = getActions();
+  const { setIsBackupRequired } = getActions();
 
   const lang = useLang();
   const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.confirm);
   const [nextKey, setNextKey] = useState<number | undefined>(SLIDES.password);
   const [checkIndexes, setCheckIndexes] = useState<number[]>([]);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+
+  const mnemonicRef = useRef<string[] | undefined>(undefined);
+
   useEffect(() => {
-    if (mnemonic?.length && currentSlide === SLIDES.password) {
-      setNextKey(SLIDES.check);
-      setCurrentSlide(SLIDES.mnemonic);
-    }
-  }, [currentSlide, mnemonic?.length]);
+    mnemonicRef.current = undefined;
+  }, [isOpen]);
 
   const handleSafetyConfirm = useCallback(() => {
     setCurrentSlide(SLIDES.password);
     setNextKey(SLIDES.mnemonic);
   }, []);
 
-  const handlePasswordSubmit = useCallback((password: string) => {
-    startBackupWallet({ password });
-  }, [startBackupWallet]);
+  const handlePasswordSubmit = useCallback(async (password: string) => {
+    setIsLoading(true);
+    mnemonicRef.current = await callApi('getMnemonic', currentAccountId!, password);
+    setIsLoading(false);
+
+    if (!mnemonicRef.current) {
+      setError('Wrong password, please try again');
+      return;
+    }
+
+    setNextKey(SLIDES.check);
+    setCurrentSlide(SLIDES.mnemonic);
+  }, [currentAccountId]);
+
+  const handleBackupErrorUpdate = useCallback(() => {
+    setError(undefined);
+  }, []);
 
   const handleCheckMnemonic = useCallback(() => {
     setCheckIndexes(selectMnemonicForCheck());
@@ -75,15 +90,16 @@ function BackupModal({
   }, []);
 
   const handleModalClose = useCallback(() => {
-    closeBackupWallet();
+    setIsLoading(false);
+    setError(undefined);
     setCurrentSlide(SLIDES.confirm);
     setNextKey(SLIDES.password);
-  }, [closeBackupWallet]);
+  }, []);
 
   const handleCheckMnemonicSubmit = useCallback(() => {
-    closeBackupWallet({ isMnemonicChecked: true });
+    setIsBackupRequired({ isMnemonicChecked: true });
     onClose();
-  }, [closeBackupWallet, onClose]);
+  }, [setIsBackupRequired, onClose]);
 
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
@@ -107,7 +123,7 @@ function BackupModal({
               error={error}
               placeholder={lang('Enter your password')}
               submitLabel={lang('Back Up')}
-              onUpdate={clearBackupWalletError}
+              onUpdate={handleBackupErrorUpdate}
               onSubmit={handlePasswordSubmit}
               cancelLabel={lang('Cancel')}
               onCancel={onClose}
@@ -118,7 +134,7 @@ function BackupModal({
       case SLIDES.mnemonic:
         return (
           <MnemonicList
-            mnemonic={mnemonic}
+            mnemonic={mnemonicRef.current}
             onNext={handleCheckMnemonic}
             onClose={onClose}
           />
@@ -129,7 +145,7 @@ function BackupModal({
           <MnemonicCheck
             isActive={isActive}
             isInModal
-            mnemonic={mnemonic}
+            mnemonic={mnemonicRef.current}
             checkIndexes={checkIndexes}
             buttonLabel={lang('Done')}
             onSubmit={handleCheckMnemonicSubmit}
@@ -150,7 +166,7 @@ function BackupModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="push-slide"
+        name="pushSlide"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}
@@ -163,7 +179,5 @@ function BackupModal({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { isLoading, mnemonic, error } = selectCurrentAccountState(global)?.backupWallet || {};
-
-  return { isLoading, mnemonic, error };
+  return { currentAccountId: global.currentAccountId };
 })(BackupModal));

@@ -1,19 +1,20 @@
 import React, {
   memo, useCallback, useEffect, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
-import { withGlobal, getActions } from '../../../../global';
 
-import { Account } from '../../../../global/types';
+import type { Account } from '../../../../global/types';
 
-import { shortenAddress } from '../../../../util/shortenAddress';
+import { getActions, withGlobal } from '../../../../global';
 import { selectNetworkAccounts } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import trapFocus from '../../../../util/trapFocus';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
-import useShowTransition from '../../../../hooks/useShowTransition';
+import { shortenAddress } from '../../../../util/shortenAddress';
+import trapFocus from '../../../../util/trapFocus';
+
 import useFlag from '../../../../hooks/useFlag';
 import useFocusAfterAnimation from '../../../../hooks/useFocusAfterAnimation';
 import useLang from '../../../../hooks/useLang';
+import useShowTransition from '../../../../hooks/useShowTransition';
 
 import Button from '../../../ui/Button';
 import AddAccountModal from '../../modals/AddAccountModal';
@@ -34,7 +35,9 @@ function AccountSelector({
   currentAccount,
   accounts,
 }: StateProps) {
-  const { switchAccount, renameAccount, openAddAccountModal } = getActions();
+  const {
+    switchAccount, renameAccount, openAddAccountModal, openSettings,
+  } = getActions();
 
   // eslint-disable-next-line no-null/no-null
   const modalRef = useRef<HTMLDivElement>(null);
@@ -99,7 +102,7 @@ function AccountSelector({
     }
   }, [handleSaveClick]);
 
-  function renderButton(accountId: string, address: string, title?: string) {
+  function renderButton(accountId: string, address: string, isHardware?: boolean, title?: string) {
     const isActive = accountId === currentAccountId;
 
     return (
@@ -109,7 +112,12 @@ function AccountSelector({
         onClick={isActive ? undefined : () => handleSwitchAccount(accountId)}
       >
         {title && <span className={styles.accountName}>{title}</span>}
-        <span className={styles.accountAddress}>{shortenAddress(address, ACCOUNT_ADDRESS_SHIFT)}</span>
+        <div className={styles.accountAddressBlock}>
+          {isHardware && <i className="icon-ledger" />}
+          <span>
+            {shortenAddress(address, ACCOUNT_ADDRESS_SHIFT)}
+          </span>
+        </div>
 
         {isActive && (
           <div className={styles.edit} onClick={handleEditClick}>
@@ -127,9 +135,21 @@ function AccountSelector({
 
   function renderCurrentAccount() {
     return (
-      <div className={styles.addressTitle} onClick={handleOpenAccountSelector}>
-        {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
-      </div>
+      <>
+        <div className={styles.addressTitle} onClick={handleOpenAccountSelector}>
+          {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
+        </div>
+        <Button
+          className={styles.menuButton}
+          isText
+          isSimple
+          kind="transparent"
+          ariaLabel={lang('Main menu')}
+          onClick={openSettings}
+        >
+          <i className="icon-cog" aria-hidden />
+        </Button>
+      </>
     );
   }
 
@@ -165,7 +185,7 @@ function AccountSelector({
         <div className={styles.backdrop} onClick={() => closeAccountSelector()} />
         <div className={dialogFullClassName}>
           {accounts && Object.entries(accounts).map(
-            ([accountId, { title, address }]) => renderButton(accountId, address, title),
+            ([accountId, { title, address, isHardware }]) => renderButton(accountId, address, isHardware, title),
           )}
           <Button className={styles.createAccountButton} onClick={handleAddWalletClick}>
             {lang('Add Wallet')}

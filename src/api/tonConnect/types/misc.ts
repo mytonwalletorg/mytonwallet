@@ -1,4 +1,4 @@
-import * as tonConnectMethods from '../index';
+import type * as tonConnectMethods from '../index';
 
 export type TonConnectMethods = typeof tonConnectMethods;
 export type TonConnectMethodArgs<N extends keyof TonConnectMethods> = Parameters<TonConnectMethods[N]>;

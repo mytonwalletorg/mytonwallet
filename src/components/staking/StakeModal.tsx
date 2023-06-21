@@ -1,27 +1,27 @@
-import React, {
-  memo, useCallback, useEffect, useMemo, useState,
-} from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
+import React, { memo, useCallback, useMemo } from '../../lib/teact/teact';
 
-import { GlobalState, StakingState, UserToken } from '../../global/types';
+import { StakingState } from '../../global/types';
+import type { GlobalState, UserToken } from '../../global/types';
 
 import { TON_TOKEN_SLUG } from '../../config';
-import buildClassName from '../../util/buildClassName';
+import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountTokens } from '../../global/selectors';
-import usePrevious from '../../hooks/usePrevious';
+import buildClassName from '../../util/buildClassName';
+
 import useLang from '../../hooks/useLang';
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
+import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
+import usePrevious from '../../hooks/usePrevious';
 
-import Modal from '../ui/Modal';
-import Transition from '../ui/Transition';
-import ModalHeader from '../ui/ModalHeader';
-import StakingInitial from './StakingInitial';
-import PasswordForm from '../ui/PasswordForm';
-import Button from '../ui/Button';
 import TransferResult from '../common/TransferResult';
+import Button from '../ui/Button';
+import Modal from '../ui/Modal';
+import ModalHeader from '../ui/ModalHeader';
+import PasswordForm from '../ui/PasswordForm';
+import Transition from '../ui/Transition';
+import StakingInitial from './StakingInitial';
 
-import styles from './Staking.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
+import styles from './Staking.module.scss';
 
 interface OwnProps {
   onViewStakingInfo: NoneToVoidFunction;
@@ -55,31 +55,17 @@ function StakeModal({
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
-  const renderingState = useCurrentOrPrev(isOpen ? state : undefined, true) ?? -1;
-  const [nextKey, setNextKey] = useState(renderingState + 1);
-  const updateNextKey = useCallback(() => {
-    setNextKey(renderingState + 1);
-  }, [renderingState]);
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
   const renderedTokenBalance = usePrevious(tonToken?.amount, true);
   const renderedStakingAmount = usePrevious(amount, true);
 
-  useEffect(() => {
-    if (isOpen) {
-      updateNextKey();
-    }
-  }, [isOpen, updateNextKey]);
-
-  const handleModalClose = useCallback(() => {
-    setNextKey(StakingState.None);
-  }, []);
+  const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
   const handleBackClick = useCallback(() => {
     if (state === StakingState.StakePassword) {
       setStakingScreen({ state: StakingState.StakeInitial });
     }
-    setNextKey(nextKey - 1);
-  }, [nextKey, setStakingScreen, state]);
+  }, [setStakingScreen, state]);
 
   const handleTransferSubmit = useCallback((password: string) => {
     submitStakingPassword({ password });
@@ -162,14 +148,14 @@ function StakeModal({
       isOpen={isOpen}
       onClose={cancelStaking}
       noBackdropClose
-      onCloseAnimationEnd={handleModalClose}
       dialogClassName={styles.modalDialog}
+      onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="push-slide"
+        name="pushSlide"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
-        activeKey={renderingState}
+        activeKey={renderingKey}
         nextKey={nextKey}
         onStop={updateNextKey}
       >

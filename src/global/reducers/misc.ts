@@ -1,13 +1,15 @@
-import { Account, AccountState, GlobalState } from '../types';
-import { ApiToken } from '../../api/types';
+import type { ApiToken } from '../../api/types';
+import type { Account, AccountState, GlobalState } from '../types';
+
+import { TON_TOKEN_SLUG } from '../../config';
+import { genRelatedAccountIds } from '../../util/account';
+import isPartialDeepEqual from '../../util/isPartialDeepEqual';
+import { fromKeyValueArrays } from '../../util/iteratees';
 import {
   selectAccount,
   selectAccountState,
   selectNetworkAccounts,
 } from '../selectors';
-import { TON_TOKEN_SLUG } from '../../config';
-import { genRelatedAccountIds } from '../../util/account';
-import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 
 export function updateAuth(global: GlobalState, authUpdate: Partial<GlobalState['auth']>) {
   return {
@@ -32,25 +34,24 @@ export function updateAccounts(
   };
 }
 
+export function createAccount(global: GlobalState, accountId: string, address: string, partial?: Partial<Account>) {
+  if (!partial?.title) {
+    const accounts = selectNetworkAccounts(global) || {};
+    partial = { ...partial, title: `Wallet ${Object.keys(accounts).length + 1}` };
+  }
+
+  return updateAccount(global, accountId, { ...partial, address });
+}
+
 export function updateAccount(
   global: GlobalState,
   accountId: string,
-  address: string,
-  title?: string,
+  partial: Partial<Account>,
 ) {
-  if (!title) {
-    const accounts = selectNetworkAccounts(global) || {};
-    title = `Wallet ${Object.keys(accounts).length + 1}`;
-  }
+  let account = selectAccount(global, accountId);
+  account = { ...account, ...partial } as Account;
 
-  const newAccountsById = genRelatedAccountIds(accountId).reduce((state, accId) => {
-    state[accId] = {
-      address,
-      title,
-    };
-    return state;
-  }, {} as Record<string, Account>);
-
+  const newAccountsById = fromKeyValueArrays(genRelatedAccountIds(accountId), account);
   return {
     ...global,
     accounts: {
@@ -63,14 +64,8 @@ export function updateAccount(
   };
 }
 
-export function renameAccount(
-  global: GlobalState,
-  accountId: string,
-  title: string = 'New Wallet',
-) {
-  const { address } = selectAccount(global, accountId)!;
-
-  return updateAccount(global, accountId, address, title);
+export function renameAccount(global: GlobalState, accountId: string, title: string) {
+  return updateAccount(global, accountId, { title });
 }
 
 export function updateBalance(
@@ -159,4 +154,14 @@ export function updateAccountState(
       },
     },
   };
+}
+
+export function updateHardware(global: GlobalState, hardwareUpdate: Partial<GlobalState['hardware']>) {
+  return {
+    ...global,
+    hardware: {
+      ...global.hardware,
+      ...hardwareUpdate,
+    },
+  } as GlobalState;
 }

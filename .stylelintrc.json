@@ -20,6 +20,7 @@
     "selector-attribute-quotes": "always",
     "scss/operator-no-unspaced": null,
     "no-descending-specificity": null,
+    "color-hex-case": "upper",
     "selector-pseudo-class-no-unknown": [
       true,
       {

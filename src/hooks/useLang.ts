@@ -1,13 +1,13 @@
 import * as langProvider from '../util/langProvider';
 import useForceUpdate from './useForceUpdate';
-import useOnChange from './useOnChange';
+import useSyncEffect from './useSyncEffect';
 
 export type { LangFn } from '../util/langProvider';
 
 function useLang() {
   const forceUpdate = useForceUpdate();
 
-  useOnChange(() => {
+  useSyncEffect(() => {
     return langProvider.addCallback(forceUpdate);
   }, [forceUpdate]);
 

@@ -1,6 +1,5 @@
-import React from '../../lib/teact/teact';
-
 import type { TeactNode } from '../../lib/teact/teact';
+import React from '../../lib/teact/teact';
 
 import { compact } from '../../util/iteratees';
 

@@ -1,14 +1,16 @@
-import { ApiDappUpdate } from '../../api/types/dappUpdates';
-import { initApi, callApi } from '../../api/providers/extension/connectorForPageScript';
+import type { ApiDappUpdate } from '../../api/types/dappUpdates';
+
+import { callApi, initApi } from '../../api/providers/extension/connectorForPageScript';
+import { doDeeplinkHook } from './deeplinkHook';
+import { doTonMagic } from './tonMagic';
 
 import { initTonConnect } from './TonConnect';
 import { initTonProvider } from './TonProvider';
-import { doTonMagic } from './tonMagic';
-import { doDeeplinkHook } from './deeplinkHook';
 
+const siteOrigin = window.origin;
 const apiConnector = initApi(onUpdate);
 const tonProvider = initTonProvider(apiConnector);
-initTonConnect(apiConnector);
+const tonConnect = initTonConnect(apiConnector);
 
 function onUpdate(update: ApiDappUpdate) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -27,6 +29,13 @@ function onUpdate(update: ApiDappUpdate) {
     const { isEnabled } = update;
     doDeeplinkHook(isEnabled);
     return;
+  }
+
+  if (type === 'disconnectDapp') {
+    const { origin } = update;
+    if (origin === siteOrigin) {
+      tonConnect.onDisconnect();
+    }
   }
 
   // <legacy>

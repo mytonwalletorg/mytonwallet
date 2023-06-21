@@ -14,7 +14,9 @@
   "permissions": [
     "webRequest",
     "system.display",
-    "proxy"
+    "proxy",
+    "storage",
+    "unlimitedStorage"
   ],
   "background": {
     "service_worker": "/extensionServiceWorker.js"

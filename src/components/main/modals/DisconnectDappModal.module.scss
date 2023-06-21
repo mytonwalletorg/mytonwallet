@@ -1,0 +1,27 @@
+.content {
+  display: flex;
+  flex-direction: column;
+
+  padding: 1.5rem 1rem 1rem;
+}
+
+.description {
+  height: 2.125rem;
+  padding: 0 0.5rem;
+
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--color-gray-1);
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+
+  margin-top: 0.5rem;
+}
+
+.button {
+  width: 9.25rem;
+  min-width: 9.25rem !important;
+}

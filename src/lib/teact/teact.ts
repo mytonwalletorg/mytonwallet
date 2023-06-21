@@ -1,16 +1,13 @@
 import type { ReactElement } from 'react';
+
 import { DEBUG, DEBUG_MORE } from '../../config';
-import {
-  throttleWithRafFallback,
-  throttleWithPrimaryRafFallback,
-  throttleWithTickEnd,
-  throttleWithPrimaryTickEnd,
-} from '../../util/schedulers';
-import { orderBy } from '../../util/iteratees';
 import { getUnequalProps } from '../../util/arePropsShallowEqual';
-import { handleError } from '../../util/handleError';
 import { incrementOverlayCounter } from '../../util/debugOverlay';
+import { orderBy } from '../../util/iteratees';
+import safeExec from '../../util/safeExec';
+import { throttleWith } from '../../util/schedulers';
 import { isSignal } from '../../util/signals';
+import { requestMeasure, requestMutation } from '../fasterdom/fasterdom';
 
 export type Props = AnyLiteral;
 export type FC<P extends Props = any> = (props: P) => any;
@@ -40,7 +37,7 @@ interface VirtualElementText {
 
 export interface VirtualElementTag {
   type: VirtualElementTypesEnum.Tag;
-  target?: Node;
+  target?: HTMLElement;
   tag: string;
   props: Props;
   children: VirtualElementChildren;
@@ -55,7 +52,6 @@ export interface VirtualElementComponent {
 
 export interface VirtualElementFragment {
   type: VirtualElementTypesEnum.Fragment;
-  target?: Node;
   children: VirtualElementChildren;
 }
 
@@ -126,6 +122,9 @@ export type TeactNode =
   | number
   | boolean
   | TeactNode[];
+
+type Effect = () => (NoneToVoidFunction | void);
+type EffectCleanup = NoneToVoidFunction;
 
 const Fragment = Symbol('Fragment');
 
@@ -306,47 +305,90 @@ document.addEventListener('dblclick', () => {
 
 let instancesPendingUpdate = new Set<ComponentInstance>();
 let idsToExcludeFromUpdate = new Set<number>();
+let pendingEffects = new Map<string, Effect>();
+let pendingCleanups = new Map<string, EffectCleanup>();
+let pendingLayoutEffects = new Map<string, Effect>();
+let pendingLayoutCleanups = new Map<string, EffectCleanup>();
+let areImmediateEffectsCaptured = false;
 
-const runUpdatePassOnRaf = throttleWithRafFallback(() => {
+/*
+  Order:
+  - component effect cleanups
+  - component effects
+  - measure tasks
+  - mutation tasks
+  - component updates
+  - component layout effect cleanups
+  - component layout effects
+  - forced layout measure tasks
+  - forced layout mutation tasks
+ */
+
+const runUpdatePassOnRaf = throttleWith(requestMeasure, () => {
+  const runImmediateEffects = captureImmediateEffects();
+
   idsToExcludeFromUpdate = new Set();
-
   const instancesToUpdate = Array
     .from(instancesPendingUpdate)
     .sort((a, b) => a.id - b.id);
-
   instancesPendingUpdate = new Set();
 
-  instancesToUpdate.forEach((instance) => {
-    prepareComponentForFrame(instance);
-  });
+  const currentCleanups = pendingCleanups;
+  pendingCleanups = new Map();
+  currentCleanups.forEach((cb) => cb());
 
-  instancesToUpdate.forEach((instance) => {
-    if (idsToExcludeFromUpdate!.has(instance.id)) {
-      return;
-    }
+  const currentEffects = pendingEffects;
+  pendingEffects = new Map();
+  currentEffects.forEach((cb) => cb());
 
-    forceUpdateComponent(instance);
+  requestMutation(() => {
+    instancesToUpdate.forEach(prepareComponentForFrame);
+    instancesToUpdate.forEach((instance) => {
+      if (idsToExcludeFromUpdate!.has(instance.id)) {
+        return;
+      }
+
+      forceUpdateComponent(instance);
+    });
+
+    runImmediateEffects?.();
   });
 });
 
-function scheduleUpdate(componentInstance: ComponentInstance) {
-  instancesPendingUpdate.add(componentInstance);
-  runUpdatePassOnRaf();
+export function captureImmediateEffects() {
+  if (areImmediateEffectsCaptured) {
+    return undefined;
+  }
+
+  areImmediateEffectsCaptured = true;
+  return runCapturedImmediateEffects;
+}
+
+function runCapturedImmediateEffects() {
+  const currentLayoutCleanups = pendingLayoutCleanups;
+  pendingLayoutCleanups = new Map();
+  currentLayoutCleanups.forEach((cb) => cb());
+
+  const currentLayoutEffects = pendingLayoutEffects;
+  pendingLayoutEffects = new Map();
+  currentLayoutEffects.forEach((cb) => cb());
+
+  areImmediateEffectsCaptured = false;
 }
 
 export function renderComponent(componentInstance: ComponentInstance) {
   idsToExcludeFromUpdate.add(componentInstance.id);
 
-  renderingInstance = componentInstance;
-  componentInstance.hooks.state.cursor = 0;
-  componentInstance.hooks.effects.cursor = 0;
-  componentInstance.hooks.memos.cursor = 0;
-  componentInstance.hooks.refs.cursor = 0;
-
   const { Component, props } = componentInstance;
-  let newRenderedValue;
+  let newRenderedValue: any;
 
-  try {
+  safeExec(() => {
+    renderingInstance = componentInstance;
+    componentInstance.hooks.state.cursor = 0;
+    componentInstance.hooks.effects.cursor = 0;
+    componentInstance.hooks.memos.cursor = 0;
+    componentInstance.hooks.refs.cursor = 0;
+
     // eslint-disable-next-line @typescript-eslint/naming-convention
     let DEBUG_startAt: number | undefined;
     if (DEBUG) {
@@ -387,11 +429,12 @@ export function renderComponent(componentInstance: ComponentInstance) {
         incrementOverlayCounter(`${componentName} duration`, duration);
       }
     }
-  } catch (err: any) {
-    handleError(err);
+  }, () => {
+    // eslint-disable-next-line no-console
+    console.error(`[Teact] Error while rendering component ${componentInstance.name}`);
 
     newRenderedValue = componentInstance.renderedValue;
-  }
+  });
 
   if (componentInstance.isMounted && newRenderedValue === componentInstance.renderedValue) {
     return componentInstance.$element;
@@ -439,14 +482,11 @@ export function unmountComponent(componentInstance: ComponentInstance) {
   idsToExcludeFromUpdate.add(componentInstance.id);
 
   componentInstance.hooks.effects.byCursor.forEach((effect) => {
-    try {
-      effect.cleanup?.();
-    } catch (err: any) {
-      handleError(err);
-    } finally {
-      effect.cleanup = undefined;
+    if (effect.cleanup) {
+      safeExec(effect.cleanup);
     }
 
+    effect.cleanup = undefined;
     effect.releaseSignals?.();
   });
 
@@ -511,6 +551,8 @@ function forceUpdateComponent(componentInstance: ComponentInstance) {
   }
 }
 
+export function useState<T>(): [T | undefined, StateHookSetter<T | undefined>];
+export function useState<T>(initial: T, debugKey?: string): [T, StateHookSetter<T>];
 export function useState<T>(initial?: T, debugKey?: string): [T, StateHookSetter<T>] {
   const { cursor, byCursor } = renderingInstance.hooks.state;
 
@@ -520,7 +562,7 @@ export function useState<T>(initial?: T, debugKey?: string): [T, StateHookSetter
       nextValue: initial,
       setter: ((componentInstance) => (newValue: ((current: T) => T) | T) => {
         if (typeof newValue === 'function') {
-          newValue = (newValue as (current: T) => T)(byCursor[cursor].value);
+          newValue = (newValue as (current: T) => T)(byCursor[cursor].nextValue);
         }
 
         if (byCursor[cursor].nextValue === newValue) {
@@ -529,7 +571,8 @@ export function useState<T>(initial?: T, debugKey?: string): [T, StateHookSetter
 
         byCursor[cursor].nextValue = newValue;
 
-        scheduleUpdate(componentInstance);
+        instancesPendingUpdate.add(componentInstance);
+        runUpdatePassOnRaf();
 
         if (DEBUG_MORE) {
           if (componentInstance.name !== 'TeactNContainer') {
@@ -559,90 +602,86 @@ export function useState<T>(initial?: T, debugKey?: string): [T, StateHookSetter
 }
 
 function useEffectBase(
-  schedulerFn: (cb: NoneToVoidFunction) => void,
-  primarySchedulerFn: (cb: NoneToVoidFunction) => void,
-  effect: () => NoneToVoidFunction | void,
+  isLayout: boolean,
+  effect: Effect,
   dependencies?: readonly any[],
   debugKey?: string,
 ) {
   const { cursor, byCursor } = renderingInstance.hooks.effects;
   const componentInstance = renderingInstance;
 
-  function execCleanup() {
-    if (!componentInstance.isMounted) {
-      return;
-    }
-
+  const runEffectCleanup = () => safeExec(() => {
     const { cleanup } = byCursor[cursor];
     if (!cleanup) {
       return;
     }
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      let DEBUG_startAt: number | undefined;
-      if (DEBUG) {
-        DEBUG_startAt = performance.now();
-      }
-
-      cleanup();
-
-      if (DEBUG) {
-        const duration = performance.now() - DEBUG_startAt!;
-        const componentName = componentInstance.name;
-        if (duration > DEBUG_EFFECT_THRESHOLD) {
-          // eslint-disable-next-line no-console
-          console.warn(
-            `[Teact] Slow cleanup at effect cursor #${cursor}: ${componentName}, ${Math.round(duration)} ms`,
-          );
-        }
-      }
-    } catch (err: any) {
-      // eslint-disable-next-line no-console
-      console.error(`[Teact] Error in effect cleanup at cursor #${cursor} in ${componentInstance.name}`);
-      handleError(err);
-    } finally {
-      byCursor[cursor].cleanup = undefined;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    let DEBUG_startAt: number | undefined;
+    if (DEBUG) {
+      DEBUG_startAt = performance.now();
     }
-  }
 
-  function exec() {
+    cleanup();
+
+    if (DEBUG) {
+      const duration = performance.now() - DEBUG_startAt!;
+      const componentName = componentInstance.name;
+      if (duration > DEBUG_EFFECT_THRESHOLD) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[Teact] Slow cleanup at effect cursor #${cursor}: ${componentName}, ${Math.round(duration)} ms`,
+        );
+      }
+    }
+  }, () => {
+    // eslint-disable-next-line no-console
+    console.error(`[Teact] Error in effect cleanup at cursor #${cursor} in ${componentInstance.name}`);
+  }, () => {
+    byCursor[cursor].cleanup = undefined;
+  });
+
+  const runEffect = () => safeExec(() => {
     if (!componentInstance.isMounted) {
       return;
     }
 
-    execCleanup();
-
-    try {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      let DEBUG_startAt: number | undefined;
-      if (DEBUG) {
-        DEBUG_startAt = performance.now();
-      }
-
-      const result = effect();
-      if (typeof result === 'function') {
-        byCursor[cursor].cleanup = result;
-      }
-
-      if (DEBUG) {
-        const duration = performance.now() - DEBUG_startAt!;
-        const componentName = componentInstance.name;
-        if (duration > DEBUG_EFFECT_THRESHOLD) {
-          // eslint-disable-next-line no-console
-          console.warn(`[Teact] Slow effect at cursor #${cursor}: ${componentName}, ${Math.round(duration)} ms`);
-        }
-      }
-    } catch (err: any) {
-      // eslint-disable-next-line no-console
-      console.error(`[Teact] Error in effect at cursor #${cursor} in ${componentInstance.name}`);
-      handleError(err);
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    let DEBUG_startAt: number | undefined;
+    if (DEBUG) {
+      DEBUG_startAt = performance.now();
     }
-  }
+
+    const result = effect();
+    if (typeof result === 'function') {
+      byCursor[cursor].cleanup = result;
+    }
+
+    if (DEBUG) {
+      const duration = performance.now() - DEBUG_startAt!;
+      const componentName = componentInstance.name;
+      if (duration > DEBUG_EFFECT_THRESHOLD) {
+        // eslint-disable-next-line no-console
+        console.warn(`[Teact] Slow effect at cursor #${cursor}: ${componentName}, ${Math.round(duration)} ms`);
+      }
+    }
+  }, () => {
+    // eslint-disable-next-line no-console
+    console.error(`[Teact] Error in effect at cursor #${cursor} in ${componentInstance.name}`);
+  });
 
   function schedule() {
-    primarySchedulerFn(execCleanup);
-    schedulerFn(exec);
+    const effectId = `${componentInstance.id}_${cursor}`;
+
+    if (isLayout) {
+      pendingLayoutCleanups.set(effectId, runEffectCleanup);
+      pendingLayoutEffects.set(effectId, runEffect);
+    } else {
+      pendingCleanups.set(effectId, runEffectCleanup);
+      pendingEffects.set(effectId, runEffect);
+    }
+
+    runUpdatePassOnRaf();
   }
 
   if (dependencies && byCursor[cursor]?.dependencies) {
@@ -701,26 +740,12 @@ function useEffectBase(
   renderingInstance.hooks.effects.cursor++;
 }
 
-export function useEffect(
-  effect: () => NoneToVoidFunction | void,
-  dependencies?: readonly any[],
-  debugKey?: string,
-) {
-  const schedulerFn = useMemo(() => throttleWithRafFallback((cb: NoneToVoidFunction) => cb()), []);
-  const primarySchedulerFn = useMemo(() => throttleWithPrimaryRafFallback((cb: NoneToVoidFunction) => cb()), []);
-
-  return useEffectBase(schedulerFn, primarySchedulerFn, effect, dependencies, debugKey);
+export function useEffect(effect: Effect, dependencies?: readonly any[], debugKey?: string) {
+  return useEffectBase(false, effect, dependencies, debugKey);
 }
 
-export function useLayoutEffect(
-  effect: () => NoneToVoidFunction | void,
-  dependencies?: readonly any[],
-  debugKey?: string,
-) {
-  const schedulerFn = useMemo(() => throttleWithTickEnd((cb: NoneToVoidFunction) => cb()), []);
-  const primarySchedulerFn = useMemo(() => throttleWithPrimaryTickEnd((cb: NoneToVoidFunction) => cb()), []);
-
-  return useEffectBase(schedulerFn, primarySchedulerFn, effect, dependencies, debugKey);
+export function useLayoutEffect(effect: Effect, dependencies?: readonly any[], debugKey?: string) {
+  return useEffectBase(true, effect, dependencies, debugKey);
 }
 
 export function useMemo<T extends any>(resolver: () => T, dependencies: any[], debugKey?: string): T {
@@ -729,6 +754,7 @@ export function useMemo<T extends any>(resolver: () => T, dependencies: any[], d
 
   if (
     byCursor[cursor] === undefined
+    || dependencies.length !== byCursor[cursor].dependencies.length
     || dependencies.some((dependency, i) => dependency !== byCursor[cursor].dependencies[i])
   ) {
     if (DEBUG && debugKey) {
@@ -736,7 +762,7 @@ export function useMemo<T extends any>(resolver: () => T, dependencies: any[], d
       console.log(
         `[Teact.useMemo] ${renderingInstance.name} (${debugKey}): Update is caused by:`,
         byCursor[cursor]
-          ? getUnequalProps(dependencies, byCursor[cursor].dependencies).join(', ')
+          ? getUnequalProps(byCursor[cursor].dependencies, dependencies).join(', ')
           : '[first render]',
       );
     }
@@ -755,7 +781,7 @@ export function useMemo<T extends any>(resolver: () => T, dependencies: any[], d
 }
 
 export function useCallback<F extends AnyFunction>(newCallback: F, dependencies: any[], debugKey?: string): F {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   return useMemo(() => newCallback, dependencies, debugKey);
 }
 
@@ -778,7 +804,7 @@ export function useRef<T>(initial?: T | null) {
 
 export function memo<T extends FC>(Component: T, debugKey?: string) {
   return function TeactMemoWrapper(props: Props) {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
     return useMemo(() => createElement(Component, props), Object.values(props), debugKey);
   } as T;
 }

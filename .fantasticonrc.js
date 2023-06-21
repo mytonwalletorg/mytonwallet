@@ -1,5 +1,5 @@
 module.exports = {
-  inputDir: './src/assets/icons',
+  inputDir: './src/assets/font-icons',
   outputDir: './src/styles',
   name: 'brilliant-icons',
   fontTypes: ['woff', 'woff2'],

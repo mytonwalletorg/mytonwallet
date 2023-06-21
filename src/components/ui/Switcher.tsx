@@ -1,8 +1,9 @@
 import type { ChangeEvent } from 'react';
 import React, { memo, useCallback } from '../../lib/teact/teact';
 
-import styles from './Switcher.module.scss';
 import buildClassName from '../../util/buildClassName';
+
+import styles from './Switcher.module.scss';
 
 type OwnProps = {
   id?: string;

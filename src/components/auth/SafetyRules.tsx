@@ -1,15 +1,16 @@
 import React, { memo, useCallback, useState } from '../../lib/teact/teact';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX } from '../../config';
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+
 import useLang from '../../hooks/useLang';
 
-import ModalHeader from '../ui/ModalHeader';
-import Checkbox from '../ui/Checkbox';
-import Button from '../ui/Button';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
+import Checkbox from '../ui/Checkbox';
+import ModalHeader from '../ui/ModalHeader';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Auth.module.scss';

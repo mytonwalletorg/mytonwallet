@@ -1,5 +1,6 @@
 import { typify } from '../lib/teact/teactn';
-import { GlobalState, ActionPayloads } from './types';
+
+import type { ActionPayloads, GlobalState } from './types';
 
 const typed = typify<GlobalState, ActionPayloads>();
 
