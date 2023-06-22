@@ -97,17 +97,18 @@ body {
 }
 
 .select-model {
-  margin-top: 42px;
+  margin-top: 36px;
   margin-bottom: 16px;
 
   color: #444;
 }
 
-.downloading {
+.info {
   margin-top: 28px;
   margin-bottom: 36px;
 
-  color: #555;
+  line-height: 1.5rem;
+  color: #777;
 }
 
 .download-container {
@@ -128,7 +129,7 @@ body {
 
 .caption {
   font-size: 14px;
-  color: grey;
+  color: #777;
 }
 
 .download-btn {
@@ -155,11 +156,17 @@ body {
   margin: 32px 0;
 }
 
-.other-platforms {
+.footer {
   font-size: small;
-  color: #AAAAAA;
+  color: #A9A9A9;
 }
 
-.other-platforms:hover {
+.footer a {
+  display: inline-block;
+
+  color: #A9A9A9;
+}
+
+a:hover {
   text-decoration: none;
 }

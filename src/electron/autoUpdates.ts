@@ -17,8 +17,8 @@ export function setupAutoUpdates() {
     clearInterval(interval);
   }
 
-  autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.checkForUpdates();
 
   interval = setInterval(() => autoUpdater.checkForUpdates(), CHECK_UPDATE_INTERVAL);

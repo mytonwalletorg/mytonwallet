@@ -124,10 +124,12 @@ function UpdateApp() {
     reset();
   }, [reset, progress, disable, enable]);
 
+  const { transitionClassNames, shouldRender } = useShowTransition(isUpdateDownloaded);
+
   const hasProgress = useMemo(() => !!(fakeProgress || progress) && !isDisabled, [progress, fakeProgress, isDisabled]);
   const isProgressShown = useMemo(() => !isUpdateDownloaded && hasProgress, [isUpdateDownloaded, hasProgress]);
-  const isCancelShown = useMemo(() => isProgressShown && progressWidth <= 100, [isProgressShown, progressWidth]);
 
+  const isCancelShown = useMemo(() => isProgressShown && progressWidth <= 100, [isProgressShown, progressWidth]);
   const {
     transitionClassNames: cancelTransitionClassNames, shouldRender: shouldRenderCancel,
   } = useShowTransition(isCancelShown);
@@ -142,7 +144,7 @@ function UpdateApp() {
 
   const { containerRef, renderedFakeText } = useContainerAnimation(text);
 
-  if (!(isUpdateAvailable || hasProgress || isUpdateDownloaded)) {
+  if (!shouldRender) {
     return null; // eslint-disable-line no-null/no-null
   }
 
@@ -150,6 +152,7 @@ function UpdateApp() {
     <div
       className={buildClassName(
         styles.container,
+        transitionClassNames,
         isProgressShown && styles.withProgress,
         isDisabled && styles.disabled,
         (isUpdateDownloaded || progress === 100) && styles.success,
