@@ -23,7 +23,7 @@ export type NotificationType = {
   message: string;
 };
 
-export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans';
+export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'de';
 
 export interface LangItem {
   langCode: LangCode;

@@ -115,6 +115,11 @@ export const LANG_LIST: LangItem[] = [{
   name: 'Chinese (Traditional)',
   nativeName: '繁體',
   rtl: false,
+}, {
+  langCode: 'de',
+  name: 'German',
+  nativeName: 'Deutsch',
+  rtl: false,
 }];
 
 export const STAKING_CYCLE_DURATION_MS = 129600000; // 36 hours
