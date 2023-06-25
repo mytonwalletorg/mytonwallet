@@ -9,7 +9,7 @@ import { IS_EXTENSION } from '../environment';
 const proxyHost = PROXY_HOSTS ? sample(PROXY_HOSTS.split(' ')) : '';
 
 // eslint-disable-next-line max-len
-const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) { return host.endsWith('.ton') || host.endsWith('.adnl') ? 'PROXY ${proxyHost}' : 'DIRECT'; }`;
+const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) { return host.endsWith('.ton') || host.endsWith('.adnl') || host.endsWith('.bag') ? 'PROXY ${proxyHost}' : 'DIRECT'; }`;
 
 let storage: Storage;
 let onUpdate: OnApiUpdate;

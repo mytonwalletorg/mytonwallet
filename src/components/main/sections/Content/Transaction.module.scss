@@ -1,5 +1,7 @@
 @import "../../../../styles/variables";
 
+@import "../../../../styles/mixins";
+
 .item {
   position: relative;
 
@@ -12,6 +14,8 @@
 
   width: 100%;
   padding: 0.75rem 2rem 0.75rem 1rem;
+
+  @include adapt-padding-to-scrollbar(2rem); /* stylelint-disable-line order/order */
 
   color: var(--color-black);
   text-align: left;
@@ -45,7 +49,7 @@
 .iconArrow {
   position: absolute;
   top: 0.75rem;
-  right: 1rem;
+  right: calc(1rem - var(--scrollbar-width));
 
   font-size: 1rem;
   color: var(--color-gray-3)

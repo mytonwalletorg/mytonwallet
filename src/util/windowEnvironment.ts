@@ -45,3 +45,16 @@ export const IS_EXTENSION = Boolean(window.chrome && chrome.runtime && chrome.ru
 export const DEFAULT_LANG_CODE = 'en';
 export const USER_AGENT_LANG_CODE = getBrowserLanguage();
 export const DPR = window.devicePixelRatio || 1;
+
+export const SCROLLBAR_WIDTH = (() => {
+  const el = document.createElement('div');
+  el.style.cssText = 'overflow:scroll; visibility:hidden; position:absolute;';
+  el.classList.add('custom-scroll');
+  document.body.appendChild(el);
+  const width = el.offsetWidth - el.clientWidth;
+  el.remove();
+
+  document.documentElement.style.setProperty('--scrollbar-width', `${width}px`);
+
+  return width;
+})();

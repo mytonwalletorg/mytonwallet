@@ -1,3 +1,5 @@
+@import "../../styles/mixins";
+
 .modal {
   --transition: 350ms cubic-bezier(0.2, 0.9, 0.42, 1);
 
@@ -151,6 +153,9 @@
   &_transition {
     margin: -1rem 0 1rem 0;
     padding: 1rem 1rem 0;
+
+    @include adapt-padding-to-scrollbar(1rem); /* stylelint-disable-line order/order */
+
   }
 
   &_noClose {
@@ -237,11 +242,6 @@
 
 .content {
   overflow-y: auto;
-
-  @supports (overflow: overlay) {
-    overflow-y: overlay;
-  }
-
   display: flex;
   flex-direction: column;
   flex-grow: 1;

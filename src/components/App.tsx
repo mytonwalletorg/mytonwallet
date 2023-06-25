@@ -103,7 +103,7 @@ function App({
             activeKey={mainKey}
             shouldCleanup
             nextKey={renderingKey === AppState.Auth && canPrerenderMain ? mainKey + 1 : undefined}
-            slideClassName={buildClassName(styles.appSlide, 'custom-scroll')}
+            slideClassName={buildClassName(styles.appSlide, styles.appSlideContent, 'custom-scroll')}
           >
             <Main key={mainKey} />
           </Transition>

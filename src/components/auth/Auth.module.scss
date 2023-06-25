@@ -1,6 +1,6 @@
 @import '../../styles/variables';
 
-@import '../../styles/mixins/';
+@import '../../styles/mixins';
 
 .wrapper {
   height: 100%;
@@ -18,7 +18,7 @@
 }
 
 .container {
-  overflow-y: auto;
+  overflow-y: scroll;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,6 +29,9 @@
   max-height: 100%;
   margin: 0 auto;
   padding: 0 1rem 1rem;
+
+  @include adapt-padding-to-scrollbar(1rem); /* stylelint-disable-line order/order */
+
 
   &_scrollable {
     justify-content: unset !important;
@@ -397,7 +400,7 @@
   display: flex;
   gap: 1rem;
 
-  margin-top: 0.75rem;
+  margin: 0.75rem -1rem 0;
 
   :global(html.is-electron) & {
     .btn {

@@ -3,10 +3,6 @@
   flex: 1 1 auto;
   flex-direction: column;
 
-  :global(html.is-extension) & {
-    overflow: unset;
-  }
-
   &.portraitContainer {
     flex: 1 1 auto;
   }
@@ -71,10 +67,7 @@
 
 .slide {
   overflow: auto;
-
-  @supports (overflow: overlay) {
-    overflow-y: overlay;
-  }
+  overflow-y: scroll;
 }
 
 .portraitContainer {

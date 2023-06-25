@@ -1,9 +1,11 @@
+@import "../../styles/mixins";
+
 .wrapper {
   height: 100%;
 }
 
 .slide {
-  overflow-y: auto;
+  overflow-y: scroll;
   display: flex;
   flex-direction: column;
 
@@ -74,6 +76,9 @@
 
   height: 100%;
   padding: 0 1rem 1rem;
+
+  @include adapt-padding-to-scrollbar(1rem); /* stylelint-disable-line order/order */
+
 }
 
 .blockTitle {

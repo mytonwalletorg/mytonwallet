@@ -2,6 +2,8 @@
 
 @import "../../../../styles/variables";
 
+@import "../../../../styles/mixins";
+
 .container {
   --color-dot: var(--color-gray-2);
 
@@ -13,6 +15,8 @@
 
   width: 100%;
   padding: 0.875rem 2rem 0.875rem 1rem;
+
+  @include adapt-padding-to-scrollbar(2rem); /* stylelint-disable-line order/order */
 
   color: var(--color-black);
   text-transform: none;
@@ -52,7 +56,7 @@
 .iconChevron {
   position: absolute;
   top: 0.8125rem;
-  right: 1rem;
+  right: calc(1rem - var(--scrollbar-width));
 
   font-size: 1rem;
   color: var(--color-gray-3);

@@ -1,3 +1,5 @@
+@import "../../styles/mixins";
+
 .wrapper {
   user-select: none;
 
@@ -96,10 +98,14 @@
   transform: translateY(-0.375rem) !important;
 
   overflow: auto;
+  overflow-y: scroll;
 
   min-width: auto;
   max-height: 16rem;
   padding: 0.5rem;
+
+  @include adapt-padding-to-scrollbar(0.5rem); /* stylelint-disable-line order/order */
+
 
   &:global(.open) {
     transform: translateY(0) !important;
@@ -115,9 +121,5 @@
     &:global(.open) {
       transform: translateY(0) !important;
     }
-  }
-
-  @supports (overflow: overlay) {
-    overflow-y: overlay;
   }
 }

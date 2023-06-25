@@ -25,6 +25,18 @@
   }
 }
 
+.appSlideContent {
+  /* These styles need to be applied via regular CSS and not as conditional class, since Transition does not work well when `slideClassName` updates */
+  :global(html.is-extension) & {
+    overflow-y: scroll;
+  }
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-below(xs) {
+    overflow-y: scroll;
+  }
+}
+
 .transitionContainer {
   :global(html.is-electron) & {
     height: calc(100% - 3rem);

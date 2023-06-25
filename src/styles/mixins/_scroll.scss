@@ -1,0 +1,7 @@
+@mixin adapt-padding-to-scrollbar($padding, $importantSuffix: '') {
+  padding-inline-end: calc($padding - var(--scrollbar-width)) #{$importantSuffix};
+
+  @supports (padding-inline-end: max(0px, 1px)) {
+    padding-inline-end: max(0px, calc($padding - var(--scrollbar-width))) #{$importantSuffix};
+  }
+}
