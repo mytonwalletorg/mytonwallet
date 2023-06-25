@@ -108,7 +108,7 @@ export const LANG_LIST: LangItem[] = [{
 }, {
   langCode: 'zh-Hans',
   name: 'Chinese (Simplified)',
-  nativeName: '繁体',
+  nativeName: '简体',
   rtl: false,
 }, {
   langCode: 'zh-Hant',
