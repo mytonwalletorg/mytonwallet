@@ -1,5 +1,5 @@
 $auth_intro: |
-  **安全的**存储加密货币，
+  **安全地**存储加密货币，
   并享有**高速的**区块链交易体验。
 Create New Wallet: 创建新钱包
 Import From %1$d Secret Words: 输入助记词
@@ -64,7 +64,7 @@ About: 关于
 Exit: 离开
 Something went wrong: 什么地方出错了···
 Logo: Logo
-$about_description1: 安全的存储加密货币，探索 dAPP 并以**光速**进行区块链支付
+$about_description1: 安全地存储加密货币，探索 dAPP 并以**光速**进行区块链支付
 $about_description2: 您的钱包是**非托管**且**安全**的。开发人员无法挪用您的资金，亦无法访问您的浏览器历史记录或任何个人信息。
 What is TON Proxy?: 什么是 TON 代理?
 $about_extension_description1: TON 代理 支持匿名访问 TON 网站 ，这创造了通往**去中心化网络**的新方式！
@@ -151,7 +151,7 @@ NFT: NFT
 No NFTs yet: NFT 空空如也···
 $nft_explore_offer: |
   在市场中寻找心仪的 NFT 收藏。
-Open Getgems: 开启 Getgems
+Open Getgems: 打开 Getgems
 Transaction is not completed: 交易未完成
 Received: 已收到
 Sent: 已发送
@@ -209,9 +209,9 @@ Dark: 黑夜模式
 System: 系统
 Create Backup: 创建备份
 Stake TON: 质押 TON
-Earn from your tokens while holding them: 从你持有的代币身上赚一笔。
+Earn from your tokens while holding them: 从您持有的代币身上赚一笔。
 $est_apy_val: 期望年回报率 %1$d%
-Why this is safe: 为什么这是安全的
+Why this is safe: 为什么这很安全
 Why staking is safe?: 为什么质押是安全的？
 $safe_staking_description1: TON 质押是**完全去中心化的**，由官方 TON Nominator 智能合约运营。 没有人可以访问您抵押的代币。
 $safe_staking_description2: 作为其 **权益证明** 的一部分，您存入的 TON 将用于 TON 区块网络验证。
@@ -277,12 +277,12 @@ Disconnect All Dapps: 断开所有 Dapps
 Disconnect: 断开
 Disconnect Dapp: 断开 Dapp
 Disconnect Dapps: 断开 Dapps
-Are you sure you want to disconnect?: 你确定要断开 %dappname% 吗？
+Are you sure you want to disconnect?: 您确定要断开 %dappname% 吗？
 Are you sure you want to disconnect all websites?: 您确定要断开所有网站吗？
 $dapps-description: 您可以登录支持 MyTonWallet 的 dapp。 他们可以查看钱包地址和余额。
 Logged in with MyTonWallet: 使用 MyTonWallet 登录
 No active connections: 没有活动连接
-Unstaked successfully: 解质押成功
+Unstaked successfully: 解除质押成功
 Other: 其他的
 Assets & Activity: 资产 & 活动记录
 Update: 更新
@@ -296,7 +296,7 @@ Select Ledger Wallets: 选择分类帐钱包
 Add: 添加
 Try Again: 再试一次
 Driver: 司机
-Connect your Ledger to PC: 连接你的 Ledger 到电脑
+Connect your Ledger to PC: 连接您的 Ledger 到电脑
 Unlock it and open the TON App: 解锁并打开 TON 应用
 Maybe you need to check the password or change the driver.: 也许您需要检查密码或更改驱动程序。
 Or import from...: 或者从...导入
