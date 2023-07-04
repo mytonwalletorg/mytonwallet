@@ -81,7 +81,13 @@ function LedgerModal({
           />
         );
       case LedgerModalState.SelectWallets:
-        return <LedgerSelectWallets accounts={accounts} hardwareWallets={hardwareWallets} onClose={onClose} />;
+        return (
+          <LedgerSelectWallets
+            accounts={accounts}
+            hardwareWallets={hardwareWallets}
+            onClose={onClose}
+          />
+        );
     }
   }
 

@@ -141,16 +141,18 @@ function Transition({
     });
 
     if (!activeKeyChanged) {
-      const activeChild = childNodes[activeIndex] as HTMLElement;
-      addExtraClass(activeChild, CLASSES.active);
+      const activeChild = childNodes[activeIndex];
+      if (activeChild instanceof HTMLElement) {
+        addExtraClass(activeChild, CLASSES.active);
 
-      if (isSlideOptimized) {
-        activeChild.style.transition = 'none';
-        activeChild.style.transform = 'translate3d(0, 0, 0)';
+        if (isSlideOptimized) {
+          activeChild.style.transition = 'none';
+          activeChild.style.transform = 'translate3d(0, 0, 0)';
+        }
       }
 
       const nextChild = nextIndex !== -1 && nextIndex !== activeIndex && childNodes[nextIndex] as HTMLElement;
-      if (nextChild) {
+      if (nextChild instanceof HTMLElement) {
         addExtraClass(nextChild, CLASSES.inactive);
       }
 

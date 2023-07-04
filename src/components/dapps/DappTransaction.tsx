@@ -40,32 +40,25 @@ function DappTransaction({
         return payload.comment;
 
       case 'transfer-nft': {
-        const { nftAddress, nftName, toAddress } = payload;
+        const { nftAddress, nftName, newOwner } = payload;
         return lang('$dapp_transfer_nft_payload', {
           nft: nftName ?? nftAddress,
-          address: toAddress,
+          address: newOwner,
         });
       }
 
+      case 'transfer-tokens:non-standard':
       case 'transfer-tokens': {
         const {
           slug: tokenSlug,
           amount: tokenAmount,
-          comment,
-          toAddress,
+          destination,
         } = payload;
         const token = tokens?.find(({ slug }) => slug === tokenSlug)!;
-        if (comment) {
-          return lang('$dapp_transfer_tokens_payload_with_comment', {
-            amount: formatCurrency(bigStrToHuman(tokenAmount, token.decimals), token.symbol, FRACTION_DIGITS),
-            address: toAddress,
-            comment,
-          });
-        }
 
         return lang('$dapp_transfer_tokens_payload', {
           amount: formatCurrency(bigStrToHuman(tokenAmount, token.decimals), token.symbol, FRACTION_DIGITS),
-          address: toAddress,
+          address: destination,
         });
       }
 

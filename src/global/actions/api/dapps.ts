@@ -1,6 +1,6 @@
-import { TransferState } from '../../types';
+import { DappConnectState, TransferState } from '../../types';
 
-import { signLedgerTransactions } from '../../../util/ledger';
+import { signLedgerProof, signLedgerTransactions } from '../../../util/ledger';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
@@ -14,9 +14,10 @@ import {
   updateDappConnectRequest,
 } from '../../reducers';
 
-addActionHandler('submitDappConnectRequestConfirm', async (global, actions, payload) => {
-  const { password, additionalAccountIds } = payload || {};
-  const { promiseId, permissions } = global.dappConnectRequest!;
+addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { password, additionalAccountIds }) => {
+  const {
+    promiseId, permissions,
+  } = global.dappConnectRequest!;
 
   if (permissions?.isPasswordRequired && (!password || !(await callApi('verifyPassword', password)))) {
     global = getGlobal();
@@ -25,7 +26,52 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, payl
     return;
   }
 
-  await callApi('confirmDappRequestConnect', promiseId!, password, additionalAccountIds);
+  await callApi('confirmDappRequestConnect', promiseId!, {
+    password,
+    additionalAccountIds,
+  });
+
+  global = getGlobal();
+  global = clearDappConnectRequest(global);
+  setGlobal(global);
+
+  const { currentAccountId } = global;
+
+  const result = await callApi('getDapps', currentAccountId!);
+
+  if (!result) {
+    return;
+  }
+
+  global = getGlobal();
+  global = updateConnectedDapps(global, { dapps: result });
+  setGlobal(global);
+});
+
+addActionHandler('submitDappConnectRequestConfirmHardware', async (global, actions, { additionalAccountIds }) => {
+  const {
+    accountId, promiseId, proof,
+  } = global.dappConnectRequest!;
+
+  global = getGlobal();
+  global = updateDappConnectRequest(global, {
+    error: undefined,
+    state: DappConnectState.ConfirmHardware,
+  });
+  setGlobal(global);
+
+  try {
+    const signature = await signLedgerProof(accountId!, proof!);
+    await callApi('confirmDappRequestConnect', promiseId!, {
+      signature,
+      additionalAccountIds,
+    });
+  } catch (err) {
+    setGlobal(updateDappConnectRequest(getGlobal(), {
+      error: 'Canceled by the user',
+    }));
+    return;
+  }
 
   global = getGlobal();
   global = clearDappConnectRequest(global);
@@ -56,6 +102,10 @@ addActionHandler('cancelDappConnectRequestConfirm', (global) => {
   global = getGlobal();
   global = clearDappConnectRequest(global);
   setGlobal(global);
+});
+
+addActionHandler('setDappConnectRequestState', (global, actions, { state }) => {
+  setGlobal(updateDappConnectRequest(global, { state }));
 });
 
 addActionHandler('cancelDappTransfer', (global) => {

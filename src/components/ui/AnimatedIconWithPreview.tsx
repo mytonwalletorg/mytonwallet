@@ -22,10 +22,11 @@ interface StateProps {
 }
 
 const loadedPreviewUrls = new Set();
+const DEFAULT_SIZE = 150;
 
 function AnimatedIconWithPreview(props: OwnProps & StateProps) {
   const {
-    previewUrl, thumbDataUri, className, noAnimation, ...otherProps
+    size = DEFAULT_SIZE, previewUrl, thumbDataUri, className, noAnimation, ...otherProps
   } = props;
 
   const [isPreviewLoaded, markPreviewLoaded] = useFlag(Boolean(thumbDataUri) || loadedPreviewUrls.has(previewUrl));
@@ -42,8 +43,6 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
     markPreviewLoaded();
     loadedPreviewUrls.add(previewUrl);
   }, [markPreviewLoaded, previewUrl]);
-
-  const { size } = props;
 
   return (
     <div
@@ -63,7 +62,7 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
         />
       )}
       {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-      {!noAnimation && <AnimatedIcon {...otherProps} onLoad={markAnimationReady} noTransition />}
+      {!noAnimation && <AnimatedIcon size={size} {...otherProps} onLoad={markAnimationReady} noTransition />}
     </div>
   );
 }

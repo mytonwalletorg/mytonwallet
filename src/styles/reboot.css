@@ -140,7 +140,7 @@ a {
   -webkit-text-decoration-skip: objects;
 }
 a:hover {
-  color: #0056b3;
+  color: #0056B3;
   text-decoration: underline;
 }
 
@@ -203,7 +203,7 @@ caption {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
 
-  color: #868e96;
+  color: #868E96;
   text-align: left;
 }
 

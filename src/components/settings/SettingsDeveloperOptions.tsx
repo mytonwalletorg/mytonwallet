@@ -8,7 +8,7 @@ import buildClassName from '../../util/buildClassName';
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
-import DropDown from '../ui/DropDown';
+import Dropdown from '../ui/Dropdown';
 import Modal from '../ui/Modal';
 
 import styles from './Settings.module.scss';
@@ -41,17 +41,19 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      noBackdropClose
+      isCompact
     >
       <div className={styles.developerTitle}>
         {lang('Developer Options')}
       </div>
       <div className={styles.settingsBlock}>
-        <DropDown
+        <Dropdown
           label={lang('Network')}
           items={NETWORK_OPTIONS}
           selectedValue={NETWORK_OPTIONS[isTestnet ? 1 : 0].value}
           theme="light"
-          menuPosition="bottom"
+          arrow="chevron"
           className={buildClassName(styles.item, styles.item_small)}
           onChange={handleNetworkChange}
         />

@@ -1,5 +1,5 @@
 .container {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: absolute;
   right: 100%;
@@ -122,7 +122,7 @@
 }
 
 .close {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: absolute;
   right: 0.4375rem;

@@ -1,4 +1,4 @@
-import generateIdFor from './generateIdFor';
+import generateUniqueId from './generateUniqueId';
 
 export interface CancellableCallback {
   (
@@ -72,7 +72,17 @@ interface RequestStates {
   callback: AnyToVoidFunction;
 }
 
-export class Connector {
+type InputRequestTypes = Record<string, AnyFunction>;
+
+type Values<T> = T[keyof T];
+export type RequestTypes<T extends InputRequestTypes> = Values<{
+  [Name in keyof (T)]: {
+    name: Name & string;
+    args: Parameters<T[Name]>;
+  }
+}>;
+
+class ConnectorClass<T extends InputRequestTypes> {
   private requestStates = new Map<string, RequestStates>();
 
   private requestStatesByCallback = new Map<AnyToVoidFunction, RequestStates>();
@@ -96,10 +106,10 @@ export class Connector {
     });
   }
 
-  request(messageData: { name: string; args: any }) {
+  request(messageData: RequestTypes<T>) {
     const { requestStates, requestStatesByCallback } = this;
 
-    const messageId = generateIdFor(requestStates);
+    const messageId = generateUniqueId();
     const payload: CallMethodData = {
       type: 'callMethod',
       messageId,
@@ -153,7 +163,6 @@ export class Connector {
 
   onMessage(data: WorkerMessageData) {
     const { requestStates, channel } = this;
-
     if (data.channel !== channel) {
       return;
     }
@@ -189,13 +198,13 @@ export class Connector {
   }
 }
 
-export function createConnector(
+export function createConnector<T extends InputRequestTypes>(
   worker: Worker | Window,
   onUpdate?: (update: ApiUpdate) => void,
   channel?: string,
   targetOrigin?: string,
 ) {
-  const connector = new Connector(worker, onUpdate, channel, targetOrigin);
+  const connector = new ConnectorClass<T>(worker, onUpdate, channel, targetOrigin);
 
   function handleMessage({ data }: WorkerMessageEvent | MessageEvent) {
     connector.onMessage(data);
@@ -216,7 +225,7 @@ export function createExtensionConnector(
   getInitArgs?: () => any,
   channel?: string,
 ) {
-  const connector = new Connector(connect(), onUpdate, channel);
+  const connector = new ConnectorClass(connect(), onUpdate, channel);
 
   function connect() {
     // eslint-disable-next-line no-restricted-globals
@@ -239,3 +248,5 @@ export function createExtensionConnector(
 
   return connector;
 }
+
+export type Connector<T extends InputRequestTypes = InputRequestTypes> = ReturnType<typeof createConnector<T>>;

@@ -1,10 +1,11 @@
 {
   "name": "mytonwallet",
-  "version": "1.14.4",
+  "version": "1.14.10",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
     "dev": "cross-env APP_ENV=development webpack serve --mode development",
+    "dev:electron": "npm run electron:webpack && IS_ELECTRON=true concurrently -n main,renderer,electron \"npm run electron:webpack -- --watch\" \"npm run dev\" \"electronmon dist/electron\"",
     "dev:mocked": "cross-env APP_ENV=test APP_MOCKED_CLIENT=1 webpack serve --mode development --port 1235",
     "build:mocked": "cross-env APP_ENV=test APP_MOCKED_CLIENT=1 webpack --mode development && bash ./deploy/copy_to_dist.sh",
     "build:dev": "cross-env APP_ENV=development webpack --mode development && bash ./deploy/copy_to_dist.sh",
@@ -12,6 +13,7 @@
     "build:production": "webpack && bash ./deploy/copy_to_dist.sh",
     "build:extension:dev": "cross-env ENV_EXTENSION=1 APP_ENV=development webpack --mode development && bash ./deploy/copy_to_dist.sh",
     "build:extension:production": "npm i && cross-env ENV_EXTENSION=1 webpack && bash ./deploy/copy_to_dist.sh && zip -r -X MyTonWallet.zip dist/*",
+    "deploy:electron": "source .env && npm run electron:production -- -p always && git checkout . && git clean -df",
     "start:extension:dev:arch": "npm run build:extension:dev && google-chrome-stable --load-extension=\"`pwd`/dist\"",
     "start:extension:dev:mac": "npm run build:extension:dev && open -a \"Google Chrome\" --load-extension=\"`pwd`/dist\"",
     "build:icons": "fantasticon",
@@ -20,13 +22,12 @@
     "test": "cross-env APP_ENV=test jest --verbose --forceExit",
     "test:playwright": "playwright test",
     "test:record": "playwright codegen localhost:1235",
-    "prepare": "husky install",
-    "electron:dev": "npm run electron:webpack && IS_ELECTRON=true concurrently -n main,renderer,electron \"npm run electron:webpack -- --watch\" \"npm run dev\" \"electronmon dist/electron\"",
     "electron:webpack": "cross-env APP_ENV=$ENV webpack --config ./webpack-electron.config.ts",
     "electron:build": "IS_ELECTRON=true npm run build:$ENV && electron-builder install-app-deps && electron-rebuild && ENV=$ENV npm run electron:webpack",
-    "electron:package:staging": "ENV=staging npm run electron:build && npx rimraf dist-electron && electron-builder build --win --mac --linux --config src/electron/config.yml",
-    "electron:package:production": "ENV=production npm run electron:build && npx rimraf dist-electron && electron-builder build --win --mac --linux --config src/electron/config.yml",
-    "deploy:electron": "source .env && npm run electron:package:production -- -p always && git checkout . && git clean -df"
+    "electron:staging": "ENV=staging CSC_IDENTITY_AUTO_DISCOVERY=false npm run electron:package --",
+    "electron:production": "ENV=production npm run electron:package --",
+    "electron:package": "npm run electron:build && npx rimraf dist-electron && electron-builder build --win --mac --linux --config src/electron/config.yml",
+    "prepare": "husky install"
   },
   "engines": {
     "node": "^18",
@@ -43,6 +44,14 @@
   },
   "author": "My Ton Wallet",
   "license": "GPL-3.0-or-later",
+  "protocols": [
+    {
+      "name": "Ton",
+      "schemes": [
+        "ton"
+      ]
+    }
+  ],
   "devDependencies": {
     "@babel/core": "^7.21.3",
     "@babel/plugin-proposal-class-properties": "^7.18.6",
@@ -139,13 +148,13 @@
   },
   "dependencies": {
     "@ledgerhq/hw-transport-webhid": "^6.27.12",
+    "@ton-community/ton-ledger": "^5.0.0",
     "buffer": "^6.0.3",
     "idb-keyval": "^6.2.0",
     "pako": "^2.1.0",
-    "qr-code-styling": "github:zubiden/qr-code-styling#dbbfed0",
+    "qrcode-generator": "^1.4.4",
     "ton": "^13.4.1",
     "ton-core": "^0.49.0",
-    "ton-ledger": "^3.0.0",
     "tonapi-sdk-js": "^0.24.0",
     "tonweb": "github:troman29/tonweb#3d5e2f3",
     "tonweb-mnemonic": "^1.0.1",

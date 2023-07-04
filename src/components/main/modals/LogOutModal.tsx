@@ -134,7 +134,7 @@ function LogOutModal({
   const shouldRenderWarningForCurrentAccount = isBackupRequired && !shouldRenderWarningForAnotherAccounts;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} onCloseAnimationEnd={onClose} title={lang('Log Out')}>
+    <Modal isOpen={isOpen} isCompact onClose={onClose} onCloseAnimationEnd={onClose} title={lang('Log Out')}>
       <p className={buildClassName(modalStyles.text, modalStyles.text_noExtraMargin)}>
         {renderText(lang('$logout_warning', MNEMONIC_COUNT))}
       </p>

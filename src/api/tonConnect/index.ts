@@ -1,5 +1,4 @@
 // eslint-disable-next-line max-classes-per-file
-import type { KeyPair } from 'tonweb-mnemonic';
 import TonWeb from 'tonweb';
 import type {
   ConnectEventError,
@@ -30,6 +29,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 import type {
+  ApiTonConnectProof,
   LocalConnectEvent,
   TransactionPayload,
   TransactionPayloadMessage,
@@ -88,6 +88,11 @@ export async function connect(
 
     const addressItem = message.items.find(({ name }) => name === 'ton_addr');
     const proofItem = message.items.find(({ name }) => name === 'ton_proof') as TonProofItem | undefined;
+    const proof = proofItem ? {
+      timestamp: Math.round(Date.now() / 1000),
+      domain: new URL(origin).host,
+      payload: proofItem.payload,
+    } : undefined;
 
     if (!addressItem) {
       throw new errors.BadRequestError("Missing 'ton_addr'");
@@ -99,9 +104,14 @@ export async function connect(
     }
 
     const isConnected = await isDappConnected(accountId, origin);
-    let password: string | undefined;
 
-    if (!isConnected || !!proofItem) {
+    let promiseResult: {
+      additionalAccountIds?: string[];
+      password?: string;
+      signature?: string;
+    } | undefined;
+
+    if (!isConnected || proof) {
       await openPopupWindow();
 
       const { promiseId, promise } = createDappPromise();
@@ -113,18 +123,14 @@ export async function connect(
         dapp,
         permissions: {
           address: true,
-          proof: !!proofItem,
+          proof: !!proof,
         },
+        proof,
       });
 
-      const result: {
-        additionalAccountIds: string[];
-        password: string;
-      } = await promise;
+      promiseResult = await promise;
 
-      const { additionalAccountIds } = result;
-      password = result.password;
-
+      const { additionalAccountIds } = promiseResult!;
       if (additionalAccountIds) {
         await addDappToAccounts(dapp, [accountId].concat(additionalAccountIds));
       } else {
@@ -134,15 +140,18 @@ export async function connect(
 
     const result = await reconnect(request, id);
 
-    if (result.event === 'connect' && proofItem) {
+    if (result.event === 'connect' && proof) {
       const address = await fetchStoredAddress(storage, accountId);
-      result.payload.items.push(await buildTonProofReplyItem(
-        accountId,
-        address,
-        password!,
-        origin,
-        proofItem.payload,
-      ));
+      const { password, signature } = promiseResult!;
+
+      let proofReplyItem: TonProofItemReplySuccess;
+      if (password) {
+        proofReplyItem = await signTonProof(accountId, password!, address, proof!);
+      } else {
+        proofReplyItem = buildTonProofReplyItem(proof, signature!);
+      }
+
+      result.payload.items.push(proofReplyItem);
     }
 
     return result;
@@ -445,30 +454,15 @@ async function buildTonAddressReplyItem(accountId: string, address: string): Pro
   };
 }
 
-async function buildTonProofReplyItem(
+async function signTonProof(
   accountId: string,
-  address: string,
   password: string,
-  origin: string,
-  payload: string,
-) {
-  const keyPair = await fetchKeyPair(storage, accountId, password);
-
-  return buildTonProofSignature(
-    address,
-    keyPair!,
-    new URL(origin).host,
-    payload,
-  );
-}
-
-async function buildTonProofSignature(
   walletAddress: string,
-  keyPair: KeyPair,
-  domain: string,
-  payload: string,
+  proof: ApiTonConnectProof,
 ): Promise<TonProofItemReplySuccess> {
-  const timestamp = Math.round(Date.now() / 1000);
+  const keyPair = await fetchKeyPair(storage, accountId, password);
+  const { timestamp, domain, payload } = proof;
+
   const timestampBuffer = Buffer.allocUnsafe(8);
   timestampBuffer.writeBigInt64LE(BigInt(timestamp));
 
@@ -503,8 +497,15 @@ async function buildTonProofSignature(
 
   const signature = nacl.sign.detached(
     Buffer.from(await sha256(bufferToSign)),
-    keyPair.secretKey,
+    keyPair!.secretKey,
   );
+
+  return buildTonProofReplyItem(proof, bytesToBase64(signature));
+}
+
+function buildTonProofReplyItem(proof: ApiTonConnectProof, signature: string): TonProofItemReplySuccess {
+  const { timestamp, domain, payload } = proof;
+  const domainBuffer = Buffer.from(domain);
 
   return {
     name: 'ton_proof',
@@ -514,7 +515,7 @@ async function buildTonProofSignature(
         lengthBytes: domainBuffer.byteLength,
         value: domainBuffer.toString('utf8'),
       },
-      signature: bytesToBase64(signature),
+      signature,
       payload,
     },
   };

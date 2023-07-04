@@ -43,3 +43,9 @@ export enum SEND_TRANSACTION_ERROR_CODES {
 
 export type AllErrorCodes = CONNECT_EVENT_ERROR_CODES | SEND_TRANSACTION_ERROR_CODES;
 export type LocalConnectEvent = LocalConnectEventSuccess | ConnectEventError;
+
+export interface ApiTonConnectProof {
+  timestamp: number;
+  domain: string;
+  payload: string;
+}

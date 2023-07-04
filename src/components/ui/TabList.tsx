@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 
+import animateHorizontalScroll from '../../util/animateHorizontalScroll';
 import buildClassName from '../../util/buildClassName';
-import fastSmoothScrollHorizontal from '../../util/fastSmoothScrollHorizontal';
 import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
 
 import useHorizontalScroll from '../../hooks/useHorizontalScroll';
@@ -35,7 +35,7 @@ function TabList({
   const containerRef = useRef<HTMLDivElement>(null);
   const previousActiveTab = usePrevious(activeTab);
 
-  useHorizontalScroll(containerRef.current);
+  useHorizontalScroll(containerRef, undefined, true);
 
   // Scroll container to place active tab in the center
   useEffect(() => {
@@ -58,14 +58,12 @@ function TabList({
       return;
     }
 
-    fastSmoothScrollHorizontal(container, newLeft, SCROLL_DURATION);
+    animateHorizontalScroll(container, newLeft, SCROLL_DURATION);
   }, [activeTab]);
 
   return (
     <div
-      className={buildClassName(
-        styles.container, 'no-scrollbar', big && styles.big, className,
-      )}
+      className={buildClassName(styles.container, 'no-scrollbar', big && styles.big, className)}
       ref={containerRef}
     >
       {tabs.map((tab, i) => (

@@ -41,8 +41,7 @@ Continue or change password to something more secure?: Продолжить ил
 Change: Изменить
 "%1$d Secret Words": "%1$d секретных слова"
 $auth_import_mnemonic_description: |
-  Вы можете восстановить доступ к кошельку, используя %1$d секретных слова,
-  которые вы сохранили при создании кошелька.
+  Вы можете восстановить доступ к кошельку, используя %1$d секретных слова, которые вы сохранили при создании кошелька.
 Let’s make sure your secrets words are recorded correctly.: Давайте убедимся, что все слова записаны правильно.
 $mnemonic_check_words_list: Пожалуйста, введите слова **%1$s** в соответствующие поля.
 $mnemonic_check_error: Введённые слова не совпадают со словами из списка. Попробуйте ещё раз.
@@ -165,7 +164,7 @@ You can now transfer your tokens from another wallet or exchange.: Теперь 
 Assets: Активы
 Activity: Лента
 NFT: NFT
-No NFTs yet: Пока у вас нет NFT.
+No NFTs yet: Пока у вас нет NFT
 $nft_explore_offer: |
   Но вы можете просмотреть
   существующие коллекции.
@@ -180,9 +179,9 @@ Testnet Version: Версия Testnet
 Error reading clipboard: Ошибка буфера обмена
 $fee_value: "Комиссия: %fee%"
 Loading...: Загрузка...
-Recipient address: Адрес получателя
+Recipient Address: Адрес получателя
 Wallet address or domain: Адрес кошелька или домен
-Incorrect address: Неверный адрес кошелька
+Incorrect address: Неверный адрес
 Paste: Вставить
 Insufficient balance: Недостаточный баланс
 InsufficientBalance: Недостаточный баланс
@@ -224,7 +223,7 @@ Light: Светлая
 Dark: Тёмная
 System: Системная
 Create Backup: Резервная копия
-Stake TON: Стейкинг
+Stake TON: Продолжить
 Earn from your tokens while holding them: Получайте пассивный доход от хранения TON на надёжном официальном смарт-контракте
 $est_apy_val: Доходность ~%1$d%
 Why this is safe: Почему это безопасно
@@ -240,9 +239,9 @@ Coins have been staked!: Депозит отправлен!
 View: Обзор
 Stake More: Добавить
 Staking: Стейкинг
-Currently staked: Текущий депозит
+Currently Staked: Текущий депозит
 Unstake: Вывести депозит
-Earning history: История начислений
+Earning History: История начислений
 $total: "Всего: %value%"
 Unstake TON: Вывести депозит
 $unstake_information_with_time: Текущий депозит будет полностью отправлен обратно на ваш кошелёк через %time%.
@@ -288,7 +287,6 @@ by installing browser extension or native app: установив расшире
 Scam: Скам
 Scam comment is hidden.: Скам комментарий скрыт.
 Display: Показать
-$dapp_transfer_tokens_payload_with_comment: Отправить %amount% на %address% с комментарием «%comment%»
 $dapp_transfer_tokens_payload: Перевод %amount% с вашего аккаунта на %address%
 $dapp_transfer_nft_payload: Отправка NFT "%nft%" с вашего аккаунта на %address%
 Nested Transaction: Вложенная транзакция
@@ -307,6 +305,7 @@ Other: Другие
 Assets & Activity: Активы & Лента
 Update: Обновить
 Restart: Перезапустить
+Update MyTonWallet: Обновить MyTonWallet
 Connect Ledger: Подключить Ledger
 Connecting to your Ledger...: Подключение к Ledger...
 Failed to connect: Не удалось подключиться
@@ -333,3 +332,8 @@ $many_tabs_error_description: |
   MyTonWallet поддерживает только одну активную вкладку с приложением.
   Пожалуйста, перезагрузите эту страницу, чтобы продолжить использовать эту вкладку, или закройте её.
 Reload App: Перезагрузить приложение
+Please confirm operation on your Ledger: Пожалуйста, подтвердите операцию на вашем Ledger
+Decrypt: Расшифровать
+Encrypted Message: Зашифрованное сообщение
+Encrypted message: Зашифрованное сообщение
+Message is encrypted.: Сообщение зашифровано.

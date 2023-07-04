@@ -3,7 +3,7 @@ import { useEffect, useState } from '../lib/teact/teact';
 import type { TransferState } from '../global/types';
 
 import useCurrentOrPrev from './useCurrentOrPrev';
-import { useLastCallback } from './useLastCallback';
+import useLastCallback from './useLastCallback';
 
 const ANIMATION_DURATION = 300;
 

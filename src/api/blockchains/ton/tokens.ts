@@ -9,7 +9,7 @@ import type { ApiTransactionExtra, JettonMetadata } from './types';
 
 import { parseAccountId } from '../../../util/account';
 import { logDebugError } from '../../../util/logs';
-import withCache from '../../../util/withCache';
+import withCacheAsync from '../../../util/withCacheAsync';
 import {
   fixBase64ImageData,
   fixIpfsUrl,
@@ -25,7 +25,7 @@ import {
   TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
 } from './constants';
 
-const { Address, toNano } = TonWeb.utils;
+const { Address } = TonWeb.utils;
 const { JettonWallet, JettonMinter } = TonWeb.token.jetton;
 
 export type JettonWalletType = InstanceType<typeof JettonWallet>;
@@ -51,7 +51,7 @@ const KNOWN_TOKENS: ApiBaseToken[] = [
 const knownTokens = {} as Record<string, ApiToken>;
 addKnownTokens(KNOWN_TOKENS);
 
-export const resolveTokenWalletAddress = withCache(async (
+export const resolveTokenWalletAddress = withCacheAsync(async (
   network: ApiNetwork,
   address: string,
   minterAddress: string,
@@ -60,7 +60,7 @@ export const resolveTokenWalletAddress = withCache(async (
   return (await minter.getJettonWalletAddress(new Address(address))).toString(true, true, true);
 });
 
-export const resolveTokenMinterAddress = withCache(async (network: ApiNetwork, tokenWalletAddress: string) => {
+export const resolveTokenMinterAddress = withCacheAsync(async (network: ApiNetwork, tokenWalletAddress: string) => {
   const tokenWallet = new JettonWallet(getTonWeb(network).provider, { address: tokenWalletAddress } as any);
   return (await tokenWallet.getData()).jettonMinterAddress.toString(true, true, true);
 });
@@ -142,30 +142,17 @@ export async function buildTokenTransfer(
   const payload = buildTokenTransferBody({
     tokenAmount: amount,
     toAddress,
-    forwardAmount: toNano(TOKEN_TRANSFER_TON_FORWARD_AMOUNT).toString(),
+    forwardAmount: TOKEN_TRANSFER_TON_FORWARD_AMOUNT.toString(),
     forwardPayload: comment,
     responseAddress: fromAddress,
   });
 
   return {
     tokenWallet,
-    amount: toNano(TOKEN_TRANSFER_TON_AMOUNT).toString(),
+    amount: TOKEN_TRANSFER_TON_AMOUNT.toString(),
     toAddress: tokenWalletAddress,
     payload,
   };
-}
-
-export async function buildTokenTransferRaw(
-  network: ApiNetwork,
-  slug: string,
-  fromAddress: string,
-  toAddress: string,
-  amount: string,
-  comment?: string,
-) {
-  const transferParams = await buildTokenTransfer(network, slug, fromAddress, toAddress, amount, comment);
-  const payload = Array.from(await transferParams.payload.toBoc());
-  return { ...transferParams, payload };
 }
 
 export function resolveTokenBySlug(slug: string) {

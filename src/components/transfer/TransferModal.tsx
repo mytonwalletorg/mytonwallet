@@ -18,7 +18,7 @@ import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import usePrevious from '../../hooks/usePrevious';
 
 import TransferResult from '../common/TransferResult';
-import LedgerConfirmTransaction from '../ledger/LedgerConfirmTransaction';
+import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -51,6 +51,7 @@ function TransferModal({
     toAddress,
     fee,
     comment,
+    shouldEncrypt,
     promiseId,
     error,
     isLoading,
@@ -124,7 +125,7 @@ function TransferModal({
 
     return (
       <>
-        <div className={styles.label}>{lang('Comment')}</div>
+        <div className={styles.label}>{shouldEncrypt ? lang('Encrypted Message') : lang('Comment')}</div>
         <div className={buildClassName(styles.inputReadOnly, styles.inputReadOnly_words)}>{comment}</div>
       </>
     );
@@ -255,7 +256,8 @@ function TransferModal({
         );
       case TransferState.ConfirmHardware:
         return (
-          <LedgerConfirmTransaction
+          <LedgerConfirmOperation
+            text={lang('Please confirm transaction on your Ledger')}
             error={error}
             onClose={cancelTransfer}
             onTryAgain={submitTransferHardware}

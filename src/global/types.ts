@@ -1,3 +1,4 @@
+import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
   ApiBackendStakingState,
   ApiDapp,
@@ -69,6 +70,13 @@ export enum TransferState {
   ConfirmHardware,
 
   Complete,
+}
+
+export enum DappConnectState {
+  Info,
+  Password,
+  ConnectHardware,
+  ConfirmHardware,
 }
 
 export enum HardwareConnectState {
@@ -184,6 +192,7 @@ export type GlobalState = {
     rawPayload?: string;
     parsedPayload?: ApiParsedPayload;
     stateInit?: string;
+    shouldEncrypt?: boolean;
   };
 
   currentSignature?: {
@@ -205,10 +214,12 @@ export type GlobalState = {
   };
 
   dappConnectRequest?: {
+    state: DappConnectState;
     promiseId?: string;
     accountId?: string;
     dapp: ApiDapp;
     permissions?: ApiDappPermissions;
+    proof?: ApiTonConnectProof;
     error?: string;
   };
 
@@ -253,7 +264,7 @@ export type GlobalState = {
   currentAccountId?: string;
   isAddAccountModalOpen?: boolean;
   isBackupWalletModalOpen?: boolean;
-  landscapeActionsActiveTabIndex?: 0 | 1;
+  landscapeActionsActiveTabIndex?: 0 | 1 | 2;
   isHardwareModalOpen?: boolean;
   areSettingsOpen?: boolean;
 
@@ -293,8 +304,20 @@ export interface ActionPayloads {
   setTransferScreen: { state: TransferState };
   startTransfer: { tokenSlug?: string; amount?: number; toAddress?: string; comment?: string } | undefined;
   changeTransferToken: { tokenSlug: string };
-  fetchFee: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
-  submitTransferInitial: { tokenSlug: string; amount: number; toAddress: string; comment?: string };
+  fetchFee: {
+    tokenSlug: string;
+    amount: number;
+    toAddress: string;
+    comment?: string;
+    shouldEncrypt?: boolean;
+  };
+  submitTransferInitial: {
+    tokenSlug: string;
+    amount: number;
+    toAddress: string;
+    comment?: string;
+    shouldEncrypt?: boolean;
+  };
   submitTransferConfirm: undefined;
   submitTransferPassword: { password: string };
   submitTransferHardware: undefined;
@@ -334,7 +357,7 @@ export interface ActionPayloads {
   openAddAccountModal: undefined;
   closeAddAccountModal: undefined;
 
-  setLandscapeActionsActiveTabIndex: { index: 0 | 1 };
+  setLandscapeActionsActiveTabIndex: { index: 0 | 1 | 2 };
 
   // Staking
   startStaking: { isUnstaking?: boolean } | undefined;
@@ -364,9 +387,11 @@ export interface ActionPayloads {
   closeSecurityWarning: undefined;
 
   // TON Connect
-  submitDappConnectRequestConfirm: { additionalAccountIds?: string[]; password?: string } | undefined;
+  submitDappConnectRequestConfirm: { additionalAccountIds: string[]; password?: string };
+  submitDappConnectRequestConfirmHardware: { additionalAccountIds: string[] };
   clearDappConnectRequestError: undefined;
   cancelDappConnectRequestConfirm: undefined;
+  setDappConnectRequestState: { state: DappConnectState };
   showDappTransaction: { transactionIdx: number };
   setDappTransferScreen: { state: TransferState };
   clearDappTransferError: undefined;

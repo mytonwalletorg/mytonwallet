@@ -60,8 +60,12 @@ export function confirmDappRequest(promiseId: string, data: any) {
   dappPromises.resolveDappPromise(promiseId, data);
 }
 
-export function confirmDappRequestConnect(promiseId: string, password?: string, additionalAccountIds?: string[]) {
-  dappPromises.resolveDappPromise(promiseId, { additionalAccountIds, password });
+export function confirmDappRequestConnect(promiseId: string, data: {
+  password?: string;
+  additionalAccountIds?: string[];
+  signature?: string;
+}) {
+  dappPromises.resolveDappPromise(promiseId, data);
 }
 
 export function cancelDappRequest(promiseId: string, reason?: string) {

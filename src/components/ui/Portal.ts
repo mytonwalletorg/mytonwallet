@@ -24,12 +24,13 @@ function Portal({
     }
 
     const element = elementRef.current!;
+
     if (className) {
-      element.classList.add(className);
+      element.className = className;
     }
 
     if (style) {
-      element.setAttribute('style', style);
+      element.style.cssText = style;
     }
 
     container.appendChild(element);

@@ -1,4 +1,6 @@
-import { fastRaf } from './schedulers';
+import { requestMeasure } from '../lib/fasterdom/fasterdom';
+
+import type { Scheduler } from './schedulers';
 
 interface AnimationInstance {
   isCancelled: boolean;
@@ -6,7 +8,7 @@ interface AnimationInstance {
 
 let currentInstance: AnimationInstance | undefined;
 
-export function animateSingle(tick: Function, instance?: AnimationInstance) {
+export function animateSingle(tick: Function, schedulerFn: Scheduler, instance?: AnimationInstance) {
   if (!instance) {
     if (currentInstance && !currentInstance.isCancelled) {
       currentInstance.isCancelled = true;
@@ -17,24 +19,31 @@ export function animateSingle(tick: Function, instance?: AnimationInstance) {
   }
 
   if (!instance!.isCancelled && tick()) {
-    fastRaf(() => {
-      animateSingle(tick, instance);
+    schedulerFn(() => {
+      animateSingle(tick, schedulerFn, instance);
     });
   }
 }
 
-export function animate(tick: Function) {
-  fastRaf(() => {
+export function cancelSingleAnimation() {
+  const dumbScheduler = (cb: AnyFunction) => cb;
+  const dumbCb = () => undefined;
+
+  animateSingle(dumbCb, dumbScheduler);
+}
+
+export function animate(tick: Function, schedulerFn: Scheduler) {
+  schedulerFn(() => {
     if (tick()) {
-      animate(tick);
+      animate(tick, schedulerFn);
     }
   });
 }
 
-export function animateInstantly(tick: Function) {
+export function animateInstantly(tick: Function, schedulerFn: Scheduler) {
   if (tick()) {
-    fastRaf(() => {
-      animateInstantly(tick);
+    schedulerFn(() => {
+      animateInstantly(tick, schedulerFn);
     });
   }
 }
@@ -94,7 +103,7 @@ export function animateNumber({
     }
     if (t === 1 && onEnd) onEnd();
     return t < 1;
-  });
+  }, requestMeasure);
 
   return () => {
     canceled = true;

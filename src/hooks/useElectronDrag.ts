@@ -47,14 +47,22 @@ const useElectronDrag = (ref: RefObject<HTMLDivElement>) => {
       }
     };
 
+    const handleDoubleClick = (event: MouseEvent) => {
+      if (event.currentTarget === event.target) {
+        window.electron?.handleDoubleClick();
+      }
+    };
+
     element.addEventListener('click', handleClick);
     element.addEventListener('mousedown', handleMousedown);
     element.addEventListener('mousemove', handleDrag);
+    element.addEventListener('dblclick', handleDoubleClick);
 
     return () => {
       element.removeEventListener('click', handleClick);
       element.removeEventListener('mouseup', handleMousedown);
       element.removeEventListener('mousemove', handleDrag);
+      element.removeEventListener('dblclick', handleDoubleClick);
     };
   }, [ref]);
 };

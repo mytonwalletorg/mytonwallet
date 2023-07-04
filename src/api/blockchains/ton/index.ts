@@ -9,10 +9,6 @@ export {
   verifyPassword,
 } from './auth';
 export { getAccountNfts } from './nfts';
-export {
-  getAccountTokenBalances,
-  buildTokenTransferRaw,
-} from './tokens';
 export { oneCellFromBoc } from './util/tonweb';
 export {
   checkTransactionDraft,
@@ -27,6 +23,7 @@ export {
   sendSignedMessage,
   sendSignedMessages,
   parsePayload,
+  decryptComment,
 } from './transactions';
 export {
   getAccountBalance,
@@ -51,5 +48,9 @@ export {
   packPayloadToBoc,
 } from './other';
 export {
+  getAccountTokenBalances,
   importToken,
+  resolveTokenBySlug,
+  resolveTokenWalletAddress,
+  resolveTokenMinterAddress,
 } from './tokens';

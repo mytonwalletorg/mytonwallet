@@ -173,7 +173,7 @@ Testnet Version: Testnet Version
 Error reading clipboard: Error reading clipboard
 $fee_value: "Fee: %fee%"
 Loading...: Loading...
-Recipient address: Recipient address
+Recipient Address: Recipient Address
 Wallet address or domain: Wallet address or domain
 Incorrect address: Incorrect address
 Paste: Paste
@@ -234,9 +234,9 @@ Coins have been staked!: Coins have been staked!
 View: View
 Stake More: Stake More
 Staking: Staking
-Currently staked: Currently staked
+Currently Staked: Currently Staked
 Unstake: Unstake
-Earning history: Earning history
+Earning History: Earning History
 $total: "Total: %value%"
 Unstake TON: Unstake TON
 $unstake_information_with_time: |
@@ -285,7 +285,6 @@ by installing browser extension or native app: by installing browser extension o
 Scam: Scam
 Scam comment is hidden.: Scam comment is hidden.
 Display: Display
-$dapp_transfer_tokens_payload_with_comment: Send %amount% to %address% with comment «%comment%»
 $dapp_transfer_tokens_payload: Sending %amount% from your account to %address%
 $dapp_transfer_nft_payload: Sending NFT "%nft%" from your account to %address%
 Connected Dapps: Connected Dapps
@@ -303,6 +302,7 @@ Other: Other
 Assets & Activity: Assets & Activity
 Update: Update
 Restart: Restart
+Update MyTonWallet: Update MyTonWallet
 Connect Ledger: Connect Ledger
 Connecting to your Ledger...: Connecting to your Ledger...
 Failed to connect: Failed to connect
@@ -329,3 +329,8 @@ $many_tabs_error_description: |
   MyTonWallet supports only one active tab with the app.
   Please reload this page to continue using this tab or close it.
 Reload App: Reload App
+Please confirm operation on your Ledger: Please confirm operation on your Ledger
+Decrypt: Decrypt
+Encrypted Message: Encrypted Message
+Encrypted message: Encrypted message
+Message is encrypted.: Message is encrypted.

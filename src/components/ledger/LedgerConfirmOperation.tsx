@@ -18,6 +18,7 @@ import modalStyles from '../ui/Modal.module.scss';
 import styles from './LedgerModal.module.scss';
 
 interface OwnProps {
+  text: string;
   error?: string;
   onClose: () => void;
   onTryAgain: () => void;
@@ -28,8 +29,8 @@ enum ConfirmTransactionState {
   Error,
 }
 
-function LedgerConfirmTransaction({
-  error, onClose, onTryAgain,
+function LedgerConfirmOperation({
+  text, error, onClose, onTryAgain,
 }: OwnProps) {
   const lang = useLang();
 
@@ -61,7 +62,7 @@ function LedgerConfirmTransaction({
             previewUrl={ANIMATED_STICKERS_PATHS.holdTonPreview}
           />
           <div className={buildClassName(styles.textBlock, styles.textBlock_small)}>
-            <span className={styles.text}>{lang('Please confirm transaction on your Ledger')}</span>
+            <span className={styles.text}>{text}</span>
           </div>
           <div className={buildClassName(styles.actionBlock, styles.actionBlock_single)}>
             <Button onClick={onClose} className={styles.button}>{lang('Cancel')}</Button>
@@ -86,7 +87,7 @@ function LedgerConfirmTransaction({
             previewUrl={ANIMATED_STICKERS_PATHS.holdTonPreview}
           />
           <div className={buildClassName(styles.textBlock, styles.textBlock_small)}>
-            <span className={styles.text}>{lang('Please confirm transaction on your Ledger')}</span>
+            <span className={styles.text}>{text}</span>
           </div>
           <span className={styles.declinedLabel}>{lang('Declined')}</span>
           <div className={styles.actionBlock}>
@@ -121,4 +122,4 @@ function LedgerConfirmTransaction({
   );
 }
 
-export default memo(LedgerConfirmTransaction);
+export default memo(LedgerConfirmOperation);

@@ -14,17 +14,19 @@ import dns from '../../util/dns';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
+import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from '../ui/Button';
-import type { DropDownItem } from '../ui/DropDown';
-import DropDown from '../ui/DropDown';
+import type { DropdownItem } from '../ui/Dropdown';
+import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import Menu from '../ui/Menu';
 import RichNumberInput from '../ui/RichNumberInput';
@@ -41,11 +43,13 @@ interface StateProps {
   initialAddress?: string;
   initialAmount?: number;
   initialComment?: string;
+  initialShouldEncryptComment?: boolean;
   fee?: string;
   tokenSlug?: string;
   tokens?: UserToken[];
   savedAddresses?: Record<string, string>;
   isLoading?: boolean;
+  onCommentChange?: NoneToVoidFunction;
 }
 
 const TON_ADDRESS_REGEX = /^[-\w_]{48}$/i;
@@ -53,6 +57,7 @@ const TON_RAW_ADDRESS_REGEX = /^0:[\da-h]{64}$/i;
 const COMMENT_MAX_SIZE_BYTES = 121; // Value derived empirically
 const SHORT_ADDRESS_SHIFT = 14;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
+const COMMENT_DROPDOWN_ITEMS = [{ value: 'raw', name: 'Comment' }, { value: 'encrypted', name: 'Encrypted message' }];
 
 // Fee may change, so we add 5% for more reliability. This is only safe for low-fee blockchains such as TON.
 const RESERVED_FEE_FACTOR = 1.05;
@@ -65,10 +70,12 @@ function TransferInitial({
   initialAddress = '',
   initialAmount,
   initialComment = '',
+  initialShouldEncryptComment,
   tokens,
   fee,
   savedAddresses,
   isLoading,
+  onCommentChange,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial, showNotification, fetchFee, changeTransferToken,
@@ -87,6 +94,7 @@ function TransferInitial({
   const [toAddress, setToAddress] = useState<string>(initialAddress);
   const [amount, setAmount] = useState<number | undefined>(initialAmount);
   const [comment, setComment] = useState<string>(initialComment);
+  const [shouldEncryptComment, setShouldEncryptComment] = useState(initialShouldEncryptComment);
   const [hasToAddressError, setHasToAddressError] = useState<boolean>(false);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
@@ -116,7 +124,7 @@ function TransferInitial({
       return [];
     }
 
-    return tokens.reduce<DropDownItem[]>((acc, token) => {
+    return tokens.reduce<DropdownItem[]>((acc, token) => {
       if (token.amount > 0) {
         acc.push({
           value: token.slug,
@@ -161,11 +169,15 @@ function TransferInitial({
     if (shouldUseAllBalance && balance) {
       const calculatedFee = fee ? bigStrToHuman(fee, decimals) : 0;
       const reducedAmount = balance - calculatedFee * RESERVED_FEE_FACTOR;
-      validateAndSetAmount(reducedAmount, true);
+      const newAmount = tokenSlug === TON_TOKEN_SLUG ? reducedAmount : balance;
+      validateAndSetAmount(newAmount, true);
     } else {
       validateAndSetAmount(amount, true);
     }
-  }, [amount, balance, fee, decimals, shouldUseAllBalance, validateAndSetAmount]);
+  }, [
+    tokenSlug, amount, balance, fee,
+    decimals, shouldUseAllBalance, validateAndSetAmount,
+  ]);
 
   useEffect(() => {
     if (!toAddress || hasToAddressError || !amount || !isAddressValid) {
@@ -301,28 +313,31 @@ function TransferInitial({
 
   const handleCommentChange = useCallback((value) => {
     setComment(trimStringByMaxBytes(value, COMMENT_MAX_SIZE_BYTES));
-  }, []);
+    onCommentChange?.();
+  }, [onCommentChange]);
 
   const canSubmit = toAddress.length && amount && balance && amount > 0
     && amount <= balance && !hasToAddressError && !hasAmountError;
 
-  const handleSubmit = useCallback(
-    (e) => {
-      e.preventDefault();
+  const handleSubmit = useLastCallback((e) => {
+    e.preventDefault();
 
-      if (!canSubmit) {
-        return;
-      }
+    if (!canSubmit) {
+      return;
+    }
 
-      submitTransferInitial({
-        tokenSlug,
-        amount: amount!,
-        toAddress,
-        comment,
-      });
-    },
-    [canSubmit, submitTransferInitial, tokenSlug, amount, toAddress, comment],
-  );
+    submitTransferInitial({
+      tokenSlug,
+      amount: amount!,
+      toAddress,
+      comment,
+      shouldEncrypt: shouldEncryptComment,
+    });
+  });
+
+  const handleCommentOptionsChange = useLastCallback((option: string) => {
+    setShouldEncryptComment(option === 'encrypted');
+  });
 
   const renderedSavedAddresses = useMemo(() => {
     if (!savedAddresses) {
@@ -395,10 +410,10 @@ function TransferInitial({
 
   function renderTokens() {
     return (
-      <DropDown
+      <Dropdown
         items={dropDownItems}
         selectedValue={tokenSlug}
-        className={styles.tokenDropDown}
+        className={styles.tokenDropdown}
         onChange={handleTokenChange}
       />
     );
@@ -412,6 +427,20 @@ function TransferInitial({
     );
   }
 
+  function renderCommentLabel() {
+    return (
+      <Dropdown
+        items={COMMENT_DROPDOWN_ITEMS}
+        selectedValue={COMMENT_DROPDOWN_ITEMS[shouldEncryptComment ? 1 : 0].value}
+        theme="light"
+        menuPositionHorizontal="left"
+        shouldTranslateOptions
+        className={styles.commentLabel}
+        onChange={handleCommentOptionsChange}
+      />
+    );
+  }
+
   return (
     <>
       <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
@@ -419,7 +448,7 @@ function TransferInitial({
           ref={toAddressRef}
           className={isStatic ? styles.inputStatic : undefined}
           isRequired
-          labelText={lang('Recipient address')}
+          label={lang('Recipient Address')}
           placeholder={lang('Wallet address or domain')}
           value={isAddressFocused ? toAddress : toAddressShort}
           error={hasToAddressError ? (lang('Incorrect address') as string) : undefined}
@@ -461,14 +490,15 @@ function TransferInitial({
 
         <Input
           className={isStatic ? styles.inputStatic : undefined}
-          labelText={lang('Comment')}
+          label={renderCommentLabel()}
           placeholder={lang('Optional')}
           value={comment}
           onInput={handleCommentChange}
           isControlled
+          isMultiline
         />
 
-        <div className={modalStyles.buttons}>
+        <div className={buildClassName(modalStyles.buttons, isStatic && styles.buttonSubmit)}>
           <Button isPrimary isSubmit isDisabled={!canSubmit} isLoading={isLoading}>
             {lang('$send_token_symbol', symbol || 'TON')}
           </Button>
@@ -489,6 +519,7 @@ export default memo(
       toAddress: initialAddress,
       amount: initialAmount,
       comment: initialComment,
+      shouldEncrypt: initialShouldEncryptComment,
       fee,
       tokenSlug,
       isLoading,
@@ -498,6 +529,7 @@ export default memo(
       initialAddress,
       initialAmount,
       initialComment,
+      initialShouldEncryptComment,
       fee,
       tokenSlug,
       tokens: selectCurrentAccountTokens(global),
@@ -539,8 +571,8 @@ function renderSavedAddress(
       key={address}
       tabIndex={-1}
       role="button"
-      onMouseDown={() => onClick(address)}
-      onTouchStart={() => onClick(address)}
+      onMouseDown={IS_TOUCH_ENV ? undefined : () => onClick(address)}
+      onClick={IS_TOUCH_ENV ? () => onClick(address) : undefined}
       className={styles.savedAddressItem}
     >
       <span className={styles.savedAddressName}>{name}</span>

@@ -3,6 +3,7 @@ import React, {
   useCallback, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
+import { IS_ELECTRON } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 
@@ -61,7 +62,10 @@ const Notification: FC<OwnProps> = ({
   }, [closeAndDismiss]);
 
   return (
-    <Portal className={styles.container} containerId={containerId}>
+    <Portal
+      className={buildClassName(styles.container, IS_ELECTRON && styles.container_electron)}
+      containerId={containerId}
+    >
       <div
         className={buildClassName(styles.notification, transitionClassNames)}
         onClick={closeAndDismiss}

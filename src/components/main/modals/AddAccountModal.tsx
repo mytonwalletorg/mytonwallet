@@ -194,6 +194,7 @@ function AddAccountModal({
             isLedgerConnected={isLedgerConnected}
             isTonAppConnected={isTonAppConnected}
             onConnected={handleHardwareWalletConnected}
+            onCancel={handleBackClick}
             onClose={closeAddAccountModal}
           />
         );
@@ -202,6 +203,7 @@ function AddAccountModal({
           <LedgerSelectWallets
             accounts={accounts}
             hardwareWallets={hardwareWallets}
+            onCancel={handleBackClick}
             onClose={closeAddAccountModal}
           />
         );

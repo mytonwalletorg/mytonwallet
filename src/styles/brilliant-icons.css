@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?fb3baf9e93f7d6c794045829d60d5d44") format("woff"),
-url("./brilliant-icons.woff2?fb3baf9e93f7d6c794045829d60d5d44") format("woff2");
+    src: url("./brilliant-icons.woff?35eca8dcbc8d89cb2297f4c41a5ac33b") format("woff"),
+url("./brilliant-icons.woff2?35eca8dcbc8d89cb2297f4c41a5ac33b") format("woff2");
     font-weight: normal;
     font-style: normal;
 }
@@ -74,69 +74,72 @@ url("./brilliant-icons.woff2?fb3baf9e93f7d6c794045829d60d5d44") format("woff2");
 .icon-ledger::before {
     content: "\f114";
 }
-.icon-menu::before {
+.icon-lock::before {
     content: "\f115";
 }
-.icon-paste::before {
+.icon-menu::before {
     content: "\f116";
 }
-.icon-pen::before {
+.icon-paste::before {
     content: "\f117";
 }
-.icon-percent::before {
+.icon-pen::before {
     content: "\f118";
 }
-.icon-plus::before {
+.icon-percent::before {
     content: "\f119";
 }
-.icon-qrcode::before {
+.icon-plus::before {
     content: "\f11a";
 }
-.icon-question::before {
+.icon-qrcode::before {
     content: "\f11b";
 }
-.icon-receive-alt::before {
+.icon-question::before {
     content: "\f11c";
 }
-.icon-receive::before {
+.icon-receive-alt::before {
     content: "\f11d";
 }
-.icon-send-alt::before {
+.icon-receive::before {
     content: "\f11e";
 }
-.icon-send::before {
+.icon-send-alt::before {
     content: "\f11f";
 }
-.icon-share::before {
+.icon-send::before {
     content: "\f120";
 }
-.icon-star-filled::before {
+.icon-share::before {
     content: "\f121";
 }
-.icon-star::before {
+.icon-star-filled::before {
     content: "\f122";
 }
-.icon-telegram::before {
+.icon-star::before {
     content: "\f123";
 }
-.icon-ton::before {
+.icon-telegram::before {
     content: "\f124";
 }
-.icon-tonscan::before {
+.icon-ton::before {
     content: "\f125";
 }
-.icon-trash::before {
+.icon-tonscan::before {
     content: "\f126";
 }
-.icon-update::before {
+.icon-trash::before {
     content: "\f127";
 }
-.icon-windows-close::before {
+.icon-update::before {
     content: "\f128";
 }
-.icon-windows-maximize::before {
+.icon-windows-close::before {
     content: "\f129";
 }
-.icon-windows-minimize::before {
+.icon-windows-maximize::before {
     content: "\f12a";
+}
+.icon-windows-minimize::before {
+    content: "\f12b";
 }

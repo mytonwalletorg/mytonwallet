@@ -1,8 +1,7 @@
-import generateIdFor from '../../util/generateIdFor';
+import generateUniqueId from '../../util/generateUniqueId';
 import { ApiUserRejectsError } from '../errors';
 
 const deferreds = new Map<string, Deferred>();
-const ids = {};
 
 class Deferred<T = any> {
   resolve!: AnyToVoidFunction;
@@ -15,7 +14,7 @@ class Deferred<T = any> {
   });
 }
 
-export function createDappPromise(promiseId = generateIdFor(ids)) {
+export function createDappPromise(promiseId = generateUniqueId()) {
   const deferred = new Deferred();
 
   deferreds.set(promiseId, deferred);

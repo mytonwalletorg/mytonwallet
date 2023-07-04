@@ -22,6 +22,10 @@ publish:
 win:
   target: "nsis"
   icon: "public/icon-electron-windows.ico"
+nsis:
+  oneClick: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
 mac:
   target:
     target: "default"

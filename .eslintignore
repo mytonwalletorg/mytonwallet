@@ -2,6 +2,8 @@ dev
 public
 
 src/lib/rlottie/rlottie-wasm.js
+src/lib/aes-js/index.js
+src/lib/noble-ed25519/index.js
 jest.config.js
 playwright.config.ts
 postcss.config.js

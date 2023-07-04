@@ -44,6 +44,7 @@ function Transaction({
     toAddress,
     timestamp,
     comment,
+    encryptedComment,
     isIncoming,
     type,
     metadata,
@@ -78,8 +79,14 @@ function Transaction({
 
   function renderComment() {
     return (
-      <div className={buildClassName(styles.comment, isIncoming ? styles.comment_incoming : styles.comment_outgoing)}>
-        {comment}
+      <div
+        className={buildClassName(
+          styles.comment,
+          isIncoming ? styles.comment_incoming : styles.comment_outgoing,
+        )}
+      >
+        {encryptedComment && <i className={buildClassName(styles.commentIcon, 'icon-lock')} aria-hidden />}
+        {encryptedComment ? <i>{lang('Encrypted message')}</i> : comment}
       </div>
     );
   }
@@ -138,7 +145,7 @@ function Transaction({
           {(type === 'unstake' || type === 'unstakeRequest') && '\u00A0'}
         </div>
       </div>
-      {!isStaking && !isScam && comment && renderComment()}
+      {!isStaking && !isScam && (comment || encryptedComment) && renderComment()}
       <i className={buildClassName(styles.iconArrow, 'icon-chevron-right')} aria-hidden />
     </Button>
   );

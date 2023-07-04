@@ -1,4 +1,4 @@
-import { Cell as TonCell } from 'ton-core';
+import { Builder, Cell as TonCell } from 'ton-core';
 import type { Method } from 'tonweb';
 import TonWeb from 'tonweb';
 import type { Cell } from 'tonweb/dist/types/boc/cell';
@@ -26,10 +26,11 @@ import { omit } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
 import { stringifyTxId } from './util';
-import { toBounceableAddress } from './util/metadata';
+import { decryptMessageComment, encryptMessageComment } from './util/encryption';
+import { parseTransactionBody, toBounceableAddress } from './util/metadata';
 import { fetchAccountTransactions, fetchNftItems } from './util/tonapiio';
 import { getTonClient, getTonWalletContract } from './util/tonCore';
-import { fetchNewestTxId, toBase64Address } from './util/tonweb';
+import { fetchNewestTxId, getWalletPublicKey, toBase64Address } from './util/tonweb';
 import { fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey } from '../../common/accounts';
 import { getAddressInfo } from '../../common/addresses';
 import {
@@ -39,7 +40,7 @@ import {
   base64ToBytes, hexToBase64, isKnownStakingPool,
 } from '../../common/utils';
 import { resolveAddress } from './address';
-import { fetchPrivateKey } from './auth';
+import { fetchKeyPair, fetchPrivateKey } from './auth';
 import {
   ATTEMPTS,
   JettonOpCode,
@@ -58,16 +59,14 @@ import {
   resolveTokenWalletAddress,
 } from './tokens';
 import {
-  getWalletBalance,
-  getWalletInfo,
-  isWalletInitialized,
-  pickAccountWallet,
+  getWalletBalance, getWalletInfo, isWalletInitialized, pickAccountWallet,
 } from './wallet';
 
 type SubmitTransferResult = {
   resolvedAddress: string;
   amount: string;
   seqno: number;
+  encryptedComment?: string;
 } | {
   error: string;
 };
@@ -108,6 +107,7 @@ export async function checkTransactionDraft(
   amount: string,
   data?: string | Uint8Array | Cell,
   stateInit?: Cell,
+  shouldEncrypt?: boolean,
 ) {
   const { network } = parseAccountId(accountId);
 
@@ -143,6 +143,14 @@ export async function checkTransactionDraft(
   if (!wallet) {
     result.error = ApiTransactionDraftError.Unexpected;
     return result;
+  }
+
+  if (data && typeof data === 'string' && shouldEncrypt) {
+    const toPublicKey = await getWalletPublicKey(network, toAddress);
+    if (!toPublicKey) {
+      result.error = ApiTransactionDraftError.WalletNotInitialized;
+      return result;
+    }
   }
 
   if (tokenSlug !== TON_TOKEN_SLUG) {
@@ -191,17 +199,26 @@ export async function submitTransfer(
   amount: string,
   data?: string | Uint8Array | Cell,
   stateInit?: Cell,
+  shouldEncrypt?: boolean,
 ): Promise<SubmitTransferResult> {
   const { network } = parseAccountId(accountId);
 
   try {
-    const [wallet, fromAddress, privateKey] = await Promise.all([
+    const [wallet, fromAddress, keyPair] = await Promise.all([
       pickAccountWallet(storage, accountId),
       fetchStoredAddress(storage, accountId),
-      fetchPrivateKey(storage, accountId, password),
+      fetchKeyPair(storage, accountId, password),
     ]);
+    const { publicKey, secretKey } = keyPair!;
 
+    let encryptedComment: string | undefined;
     let resolvedAddress = await resolveAddress(network, toAddress);
+
+    if (data && typeof data === 'string' && shouldEncrypt) {
+      const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
+      data = await encryptMessageComment(data, publicKey, toPublicKey, secretKey, fromAddress);
+      encryptedComment = Buffer.from(data.slice(4)).toString('base64');
+    }
 
     if (tokenSlug !== TON_TOKEN_SLUG) {
       if (data && typeof data !== 'string') {
@@ -230,7 +247,7 @@ export async function submitTransfer(
       ? resolvedAddress
       : toBase64Address(resolvedAddress, false);
 
-    const { seqno, query } = await signTransaction(network, wallet!, toAddress, amount, data, stateInit, privateKey);
+    const { seqno, query } = await signTransaction(network, wallet!, toAddress, amount, data, stateInit, secretKey);
 
     const fee = await calculateFee(isInitialized, query);
     if (BigInt(balance) < BigInt(amount) + BigInt(fee)) {
@@ -241,7 +258,9 @@ export async function submitTransfer(
 
     updateLastTransfer(network, fromAddress, seqno);
 
-    return { resolvedAddress, amount, seqno };
+    return {
+      resolvedAddress, amount, seqno, encryptedComment,
+    };
   } catch (err: any) {
     logDebugError('submitTransfer', err);
 
@@ -305,6 +324,7 @@ export async function getAccountTransactionSlice(
   });
 
   return transactions
+    .map(parseTransactionBody)
     .map(updateTransactionMetadata)
     .map(omitExtraData);
 }
@@ -695,42 +715,70 @@ export async function parsePayload(network: ApiNetwork, toAddress: string, base6
     switch (opCode) {
       case JettonOpCode.transfer: {
         const minterAddress = await resolveTokenMinterAddress(network, toAddress);
+        const slug = buildTokenSlug(minterAddress);
 
         const amount = slice.loadCoins();
-        const address = slice.loadAddress();
-        let comment: string | undefined;
+        const destination = slice.loadAddress();
+        const responseDestination = slice.loadMaybeAddress();
 
-        if (slice.loadMaybeAddress()) {
-          slice.loadBit();
-          slice.loadCoins();
-          const isSeparateCell = slice.remainingBits && slice.loadBit();
-          if (isSeparateCell && slice.remainingRefs) {
-            slice = slice.loadRef().beginParse();
-          }
-          if (slice.remainingBits > 32 && slice.loadUint(32) === 0) {
-            comment = slice.loadStringTail();
-          }
+        if (!responseDestination) {
+          return {
+            type: 'transfer-tokens:non-standard',
+            queryId,
+            destination: toBounceableAddress(destination),
+            amount: amount.toString(),
+            slug,
+          };
+        }
+
+        const customPayload = slice.loadMaybeRef();
+        const forwardAmount = slice.loadCoins();
+        let forwardPayload = slice.loadMaybeRef();
+        if (!forwardPayload && slice.remainingBits) {
+          forwardPayload = new Builder()
+            .storeBits(slice.loadBits(slice.remainingBits))
+            .endCell();
+          slice = forwardPayload.beginParse();
         }
 
         return {
           type: 'transfer-tokens',
           queryId,
-          slug: buildTokenSlug(minterAddress),
-          toAddress: toBounceableAddress(address),
           amount: amount.toString(),
-          comment,
+          destination: toBounceableAddress(destination),
+          responseDestination: toBounceableAddress(responseDestination),
+          customPayload: customPayload?.toBoc().toString('base64'),
+          forwardAmount: forwardAmount.toString(),
+          forwardPayload: forwardPayload?.toBoc().toString('base64'),
+          slug,
         };
       }
       case NftOpCode.transferOwnership: {
-        const address = toBounceableAddress(slice.loadAddress());
+        const newOwner = slice.loadAddress();
+        const responseDestination = slice.loadAddress();
+        const customPayload = slice.loadMaybeRef();
+        const forwardAmount = slice.loadCoins();
+
+        let forwardPayload = slice.loadMaybeRef();
+        if (!forwardPayload && slice.remainingBits) {
+          forwardPayload = new Builder()
+            .storeBits(slice.loadBits(slice.remainingBits))
+            .endCell();
+          slice = forwardPayload.beginParse();
+        }
+
         const nftAddress = toAddress;
         const [nft] = await fetchNftItems(network, [nftAddress]);
         return {
           type: 'transfer-nft',
           queryId,
+          newOwner: toBounceableAddress(newOwner),
+          responseDestination: toBounceableAddress(responseDestination),
+          customPayload: customPayload?.toBoc().toString('base64'),
+          forwardAmount: forwardAmount.toString(),
+          forwardPayload: forwardPayload?.toBoc().toString('base64'),
           nftAddress,
           nftName: nft?.metadata?.name,
-          toAddress: address,
         };
       }
     }
@@ -793,4 +841,15 @@ export async function sendSignedMessages(storage: Storage, accountId: string, me
   }
 
   return { successNumber: index };
+}
+
+export async function decryptComment(
+  storage: Storage, accountId: string, encryptedComment: string, fromAddress: string, password: string,
+) {
+  const keyPair = (await fetchKeyPair(storage, accountId, password))!;
+  const { secretKey, publicKey } = keyPair;
+
+  const buffer = Buffer.from(encryptedComment, 'base64');
+
+  return decryptMessageComment(buffer, publicKey, secretKey, fromAddress);
 }

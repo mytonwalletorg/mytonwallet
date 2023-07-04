@@ -16,8 +16,8 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
-import type { DropDownItem } from '../ui/DropDown';
-import DropDown from '../ui/DropDown';
+import type { DropdownItem } from '../ui/Dropdown';
+import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import Modal from '../ui/Modal';
@@ -55,12 +55,12 @@ function InvoiceModal({
   const invoiceAmount = amount ? humanToBigStr(amount) : undefined;
   const invoiceUrl = address ? TonWeb.utils.formatTransferUrl(address, invoiceAmount, comment) : '';
 
-  const dropDownItems = useMemo(() => {
+  const dropdownItems = useMemo(() => {
     if (!tokens) {
       return [];
     }
 
-    return tokens.reduce<DropDownItem[]>((acc, token) => {
+    return tokens.reduce<DropdownItem[]>((acc, token) => {
       if (token.slug === TON_TOKEN_SLUG) {
         acc.push({
           value: token.slug,
@@ -90,7 +90,7 @@ function InvoiceModal({
   }, []);
 
   function renderTokens() {
-    return <DropDown items={dropDownItems} selectedValue={TON_TOKEN_SLUG} className={styles.tokenDropDown} />;
+    return <Dropdown items={dropdownItems} selectedValue={TON_TOKEN_SLUG} className={styles.tokenDropdown} />;
   }
 
   return (
@@ -109,7 +109,13 @@ function InvoiceModal({
         >
           {renderTokens()}
         </RichNumberInput>
-        <Input value={comment} onInput={setComment} labelText={lang('Comment')} placeholder={lang('Optional')} />
+        <Input
+          value={comment}
+          onInput={setComment}
+          label={lang('Comment')}
+          placeholder={lang('Optional')}
+          wrapperClassName={styles.invoiceComment}
+        />
 
         <p className={buildClassName(styles.description, styles.description_forInvoice)}>
           {lang('Share this URL to receive TON')}

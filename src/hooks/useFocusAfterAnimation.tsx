@@ -1,31 +1,23 @@
 import type { RefObject } from 'react';
+import { requestMutation } from '../lib/fasterdom/fasterdom';
 import { useEffect } from '../lib/teact/teact';
 
-import { fastRaf } from '../util/schedulers';
 import { IS_TOUCH_ENV } from '../util/windowEnvironment';
 
 const DEFAULT_DURATION = 400;
 
-export default function useFocusAfterAnimation({
-  ref,
-  isActive = true,
-  animationDuration = DEFAULT_DURATION,
-}: {
-  ref: RefObject<HTMLInputElement>;
-  isActive?: boolean;
-  animationDuration?: number;
-}) {
+export default function useFocusAfterAnimation(
+  ref: RefObject<HTMLInputElement>, isDisabled = false, animationDuration = DEFAULT_DURATION,
+) {
   useEffect(() => {
-    if (IS_TOUCH_ENV || !isActive) {
+    if (IS_TOUCH_ENV || isDisabled) {
       return;
     }
 
     setTimeout(() => {
-      fastRaf(() => {
-        if (ref.current) {
-          ref.current.focus();
-        }
+      requestMutation(() => {
+        ref.current?.focus();
       });
     }, animationDuration);
-  }, [ref, animationDuration, isActive]);
+  }, [ref, animationDuration, isDisabled]);
 }

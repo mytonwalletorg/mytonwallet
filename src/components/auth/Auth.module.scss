@@ -11,6 +11,11 @@
 
   max-width: 25rem;
   margin: 0 auto;
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(xs) {
+    max-width: 31.4375rem;
+  }
 }
 
 .transitionSlide {
@@ -32,6 +37,10 @@
 
   @include adapt-padding-to-scrollbar(1rem); /* stylelint-disable-line order/order */
 
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(xs) {
+    max-width: 31.4375rem;
+  }
 
   &_scrollable {
     justify-content: unset !important;
@@ -277,10 +286,6 @@
     gap: 1rem;
     justify-content: space-between;
   }
-
-  @media (min-height: 800px) {
-    margin-top: 5rem;
-  }
 }
 
 .footerButton {
@@ -326,6 +331,10 @@
   font-weight: 400;
 }
 
+.mnemonicContainer {
+  user-select: text;
+}
+
 .words {
   counter-reset: li;
 
@@ -369,6 +378,11 @@
   grid-auto-flow: column;
   grid-template: repeat(12, 1fr) / repeat(2, 1fr);
   gap: 1rem;
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(xs) {
+    grid-template: repeat(8, 1fr) / repeat(3, 1fr);
+  }
 }
 
 .footerError {

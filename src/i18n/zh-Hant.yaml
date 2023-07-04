@@ -163,7 +163,7 @@ Testnet Version: 測試網版本
 Error reading clipboard: 讀取剪貼板時出現錯誤
 $fee_value: "Fee: %fee%"
 Loading...: 讀取中...
-Recipient address: 接收人地址
+Recipient Address: 接收人地址
 Wallet address or domain: 錢包地址或是域名
 Incorrect address: 錯誤的地址
 Paste: 貼上
@@ -224,9 +224,9 @@ Coins have been staked!: 代幣已被質押成功!
 View: 查看
 Stake More: 繼續質押
 Staking: 質押中
-Currently staked: 目前質押數量
+Currently Staked: 目前質押數量
 Unstake: 解除質押
-Earning history: 收益紀錄
+Earning History: 收益紀錄
 $total: "總額: %value%"
 Unstake TON: 解除 TON 質押
 $unstake_information_with_time: |
@@ -268,7 +268,6 @@ by installing browser extension or native app: 通過安裝瀏覽器擴展程序
 Scam: 騙局
 Scam comment is hidden.: 詐騙評論被隱藏。
 Display: 展示
-$dapp_transfer_tokens_payload_with_comment: 從您的帳戶發送 %amount% 到 %address% 並附上評論 %comment%
 $dapp_transfer_tokens_payload: 從您的帳戶發送 %amount% 到 %address%
 $dapp_transfer_nft_payload: 從您的帳戶發送 "%nft%" 到 %address%
 Nested Transaction: 嵌套事務
@@ -287,6 +286,7 @@ Other: 其他的
 Assets & Activity: 資產 & 活動紀錄
 Update: 更新
 Restart: 重新開始
+Update MyTonWallet: 更新 MyTonWallet
 Connect Ledger: 連接賬本
 Connecting to your Ledger...: 連接到您的分類帳...
 Failed to connect: 連接失敗
@@ -313,3 +313,8 @@ $many_tabs_error_description: |
   MyTonWallet 僅支持該應用程序的一個活動選項卡。
   請重新加載此頁面以繼續使用此選項卡或將其關閉。
 Reload App: 重新加載應用程序
+Please confirm operation on your Ledger: 請確認您在Ledger上的操作
+Decrypt: 解密
+Encrypted Message: 加密消息
+Encrypted message: 加密消息
+Message is encrypted.: 消息已加密。

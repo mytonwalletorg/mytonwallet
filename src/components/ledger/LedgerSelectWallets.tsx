@@ -21,7 +21,8 @@ import styles from './LedgerModal.module.scss';
 type OwnProps = {
   hardwareWallets?: LedgerWalletInfo[];
   accounts?: Record<string, Account>;
-  onClose: () => void;
+  onCancel?: NoneToVoidFunction ;
+  onClose: NoneToVoidFunction ;
 };
 
 const ACCOUNT_ADDRESS_SHIFT = 6;
@@ -29,9 +30,10 @@ const ACCOUNT_ADDRESS_SHIFT_END = 6;
 const ACCOUNT_BALANCE_DECIMALS = 3;
 
 function LedgerSelectWallets({
-  onClose,
   hardwareWallets,
   accounts,
+  onCancel,
+  onClose,
 }: OwnProps) {
   const {
     afterSelectHardwareWallets,
@@ -39,6 +41,7 @@ function LedgerSelectWallets({
   const lang = useLang();
 
   const [selectedAccountIndices, setSelectedAccountIndices] = useState<number[]>([]);
+  const shouldCloseOnCancel = !onCancel;
 
   const handleAccountToggle = useCallback((index: number) => {
     if (selectedAccountIndices.includes(index)) {
@@ -111,7 +114,12 @@ function LedgerSelectWallets({
       <div className={styles.container}>
         {renderAccounts()}
         <div className={styles.actionBlock}>
-          <Button onClick={onClose} className={styles.button}>{lang('Cancel')}</Button>
+          <Button
+            className={styles.button}
+            onClick={shouldCloseOnCancel ? onClose : onCancel}
+          >
+            {lang(shouldCloseOnCancel ? 'Cancel' : 'Back')}
+          </Button>
           <Button
             isPrimary
             isDisabled={areAccountsSelected}

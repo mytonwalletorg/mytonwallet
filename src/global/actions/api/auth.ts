@@ -83,12 +83,13 @@ addActionHandler('createAccount', async (global, actions, { password, isImportin
     password,
   );
 
+  global = getGlobal();
+
   if (!result) {
     setGlobal(updateAuth(global, { isLoading: undefined }));
     return;
   }
 
-  global = getGlobal();
   global = updateAuth(global, {
     isLoading: undefined,
     password: undefined,

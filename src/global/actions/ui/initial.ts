@@ -130,6 +130,12 @@ addActionHandler('showTxDraftError', (global, actions, { error } = {}) => {
       actions.showDialog({ message: 'Domain is not connected to a wallet' });
       break;
 
+    case ApiTransactionDraftError.WalletNotInitialized:
+      actions.showDialog({
+        message: 'Encryption is not possible. The recipient is not a wallet or has no outgoing transactions.',
+      });
+      break;
+
     default:
       actions.showDialog({ message: 'Unexpected error' });
       break;

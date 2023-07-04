@@ -95,7 +95,7 @@ function SettingsAppearance({
   }
 
   return (
-    <div className={buildClassName(styles.slide, 'custom-scroll')}>
+    <div className={styles.slide}>
       {isInsideModal ? (
         <ModalHeader title={lang('Appearance')} onBackButtonClick={handleBackClick} />
       ) : (
@@ -107,8 +107,7 @@ function SettingsAppearance({
           <span className={styles.headerTitle}>{lang('Appearance')}</span>
         </div>
       )}
-      <div className={styles.content}>
-
+      <div className={buildClassName(styles.content, 'custom-scroll')}>
         <p className={styles.blockTitle}>{lang('Theme')}</p>
         <div className={styles.settingsBlock}>
           <div className={styles.themeWrapper}>

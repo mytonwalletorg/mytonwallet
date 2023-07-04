@@ -1,8 +1,13 @@
+@import "../../../../styles/mixins";
+
 $tab-0-height: 229;
 $tab-1-height: 348;
 
 .container {
   position: relative;
+
+  display: flex;
+  flex-direction: column;
 
   border-radius: var(--border-radius-default);
 }
@@ -18,6 +23,7 @@ $tab-1-height: 348;
 }
 
 .tab {
+  cursor: var(--custom-cursor, pointer);
   user-select: none;
 
   position: relative;
@@ -34,7 +40,6 @@ $tab-1-height: 348;
   font-weight: 600;
   line-height: 1;
   color: var(--color-black);
-  text-transform: none;
 
   background: transparent;
   border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
@@ -58,7 +63,17 @@ $tab-1-height: 348;
   }
 
   &_purple {
+    --color-blue: --color-purple-1;
+
     color: var(--color-purple-1);
+
+    background-color: var(--color-background-purple-2) !important;
+  }
+
+  &.active + & {
+    .tabDelimiter {
+      display: none;
+    }
   }
 
   &.active {
@@ -146,7 +161,7 @@ $tab-1-height: 348;
 .tabDelimiter {
   position: absolute;
   top: 50%;
-  right: 0;
+  left: 0;
   transform: translateY(-50%);
 
   width: 1px;
@@ -172,6 +187,8 @@ $tab-1-height: 348;
   height: 1rem;
 
   background: var(--color-background-first);
+
+  transition: opacity 100ms;
 }
 
 .contentBg, .contentFooter {
@@ -182,11 +199,15 @@ $tab-1-height: 348;
 
   background: var(--color-background-first);
 
-  transition: transform 250ms ease; // as in `.Transition.slide-fade`
+  transition: transform 250ms ease, opacity 100ms; // as in `.Transition.slide-fade`
 
   :global(html.animation-level-0) & {
     transition: none !important;
   }
+}
+
+.contentSlideStaked {
+  opacity: 0;
 }
 
 .contentBg {
@@ -216,6 +237,14 @@ $tab-1-height: 348;
   &.tab-1 {
     transform: translateY(#{$tab-1-height}px);
   }
+}
+
+.slideContent,
+.transitionContent {
+  display: flex;
+  flex-direction: column;
+
+  min-height: 0;
 }
 
 .slideContent {

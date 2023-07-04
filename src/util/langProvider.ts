@@ -146,9 +146,7 @@ function processTranslation(
 ) {
   const template = langString?.value;
   if (!template || !template.trim()) {
-    const parts = key.split('.');
-
-    return parts[parts.length - 1];
+    return langString;
   }
 
   if (value !== undefined) {

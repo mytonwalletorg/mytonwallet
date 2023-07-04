@@ -129,7 +129,7 @@ function StakeModal({
         return (
           <>
             <ModalHeader title={lang('Stake TON')} onClose={cancelStaking} />
-            <StakingInitial />
+            <StakingInitial isActive={isActive} />
           </>
         );
 

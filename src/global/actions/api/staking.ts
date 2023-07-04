@@ -140,6 +140,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       actions.showDialog({
         message: 'Unstaking was unsuccessful. Try again later',
       });
+      global = getGlobal();
     } else {
       global = updateStaking(global, { state: StakingState.UnstakeComplete });
     }
@@ -158,6 +159,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       actions.showDialog({
         message: 'Staking was unsuccessful. Try again later',
       });
+      global = getGlobal();
     } else {
       global = updateStaking(global, { state: StakingState.StakeComplete });
     }

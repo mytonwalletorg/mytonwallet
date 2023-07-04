@@ -4,6 +4,7 @@ import React, {
 
 import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState } from '../../global/selectors';
+import buildClassName from '../../util/buildClassName';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
@@ -83,13 +84,12 @@ function Main({
   function renderLandscapeLayout() {
     return (
       <div className={styles.landscapeContainer}>
-        <div className={styles.sidebar}>
+        <div className={buildClassName(styles.sidebar, 'custom-scroll')}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
           <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
           <LandscapeActions
             hasStaking={isStakingActive}
             isUnstakeRequested={isUnstakeRequested}
-            onEarnClick={handleEarnClick}
           />
         </div>
         <div className={styles.main}>

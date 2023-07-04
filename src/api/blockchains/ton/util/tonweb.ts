@@ -13,6 +13,8 @@ import {
   TONHTTPAPI_TESTNET_API_KEY,
   TONHTTPAPI_TESTNET_URL,
 } from '../../../../config';
+import withCacheAsync from '../../../../util/withCacheAsync';
+import { hexToBytes } from '../../../common/utils';
 import { JettonOpCode } from '../constants';
 import { stringifyTxId } from './index';
 
@@ -28,6 +30,15 @@ const tonwebByNetwork = {
     new TonWeb.HttpProvider(TONHTTPAPI_TESTNET_URL, { apiKey: TONHTTPAPI_TESTNET_API_KEY }),
   ) as MyTonWeb,
 };
+
+export const getWalletPublicKey = withCacheAsync(async (network: ApiNetwork, address: string) => {
+  try {
+    const publicKeyBN = await getTonWeb(network).provider.call2(address, 'get_public_key');
+    return hexToBytes(publicKeyBN.toString(16));
+  } catch (err) {
+    return undefined;
+  }
+});
 
 export async function fetchNewestTxId(network: ApiNetwork, address: string) {
   const tonWeb = getTonWeb(network);

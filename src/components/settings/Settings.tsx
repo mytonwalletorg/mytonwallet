@@ -20,6 +20,7 @@ import { IS_EXTENSION } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useScrolledState from '../../hooks/useScrolledState';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import LogOutModal from '../main/modals/LogOutModal';
@@ -117,6 +118,11 @@ function Settings({
     shouldRender: isTelegramLinkRendered,
   } = useShowTransition(isTonMagicEnabled);
 
+  const {
+    handleScroll: handleContentScroll,
+    isAtBeginning: isContentNotScrolled,
+  } = useScrolledState();
+
   const handleConnectedDappsOpen = useCallback(() => {
     getDapps();
     setRenderingKey(RenderingState.Dapps);
@@ -192,9 +198,13 @@ function Settings({
 
   function renderSettings() {
     return (
-      <div className={buildClassName(styles.slide, 'custom-scroll')}>
+      <div className={styles.slide}>
         {isInsideModal ? (
-          <ModalHeader title={lang('Settings')} onClose={closeSettings} />
+          <ModalHeader
+            title={lang('Settings')}
+            withBorder={!isContentNotScrolled}
+            onClose={closeSettings}
+          />
         ) : (
           <div className={styles.header}>
             <Button isSimple isText onClick={closeSettings} className={styles.headerBack}>
@@ -205,7 +215,7 @@ function Settings({
           </div>
         )}
 
-        <div className={styles.content}>
+        <div className={buildClassName(styles.content, 'custom-scroll')} onScroll={handleContentScroll}>
           {IS_EXTENSION && (
             <div className={styles.block}>
               {PROXY_HOSTS && (
@@ -371,7 +381,6 @@ function Settings({
       <Transition
         name="pushSlide"
         className={buildClassName(isInsideModal ? modalStyles.transition : styles.transitionContainer, 'custom-scroll')}
-        slideClassName={isInsideModal ? buildClassName(modalStyles.transitionSlide, styles.transitionSlide) : undefined}
         activeKey={renderingKey}
       >
         {renderContent}

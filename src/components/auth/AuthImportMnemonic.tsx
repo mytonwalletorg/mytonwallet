@@ -10,6 +10,7 @@ import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useClipboardPaste from '../../hooks/useClipboardPaste';
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
 
 import InputMnemonic from '../common/InputMnemonic';
@@ -42,6 +43,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
 
   const lang = useLang();
   const [mnemonic, setMnemonic] = useState<Record<number, string>>({});
+  const { isPortrait } = useDeviceScreen();
 
   const handlePasteMnemonic = useCallback((pastedText: string) => {
     const pastedMnemonic = parsePastedText(pastedText);
@@ -130,7 +132,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
             nextId={id + 1 < MNEMONIC_COUNT ? `import-mnemonic-${id + 1}` : undefined}
             labelText={label}
             value={mnemonic[id]}
-            suggestionsPosition={(id > 7 && id < 12) || id > 19 ? 'top' : undefined}
+            suggestionsPosition={getSuggestPosition(id, isPortrait)}
             inputArg={id}
             onInput={handleSetWord}
           />
@@ -167,4 +169,12 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
 
 function parsePastedText(str: string) {
   return str.replace(/(?:\r\n)+|[\r\n\s;,\t]+/g, ' ').trim().split(' ');
+}
+
+function getSuggestPosition(id: number, isPortrait: boolean = false) {
+  if (!isPortrait && ((id > 5 && id < 8) || (id > 13 && id < 16) || id > 21)) {
+    return 'top';
+  }
+
+  return isPortrait && ((id > 7 && id < 12) || id > 19) ? 'top' : undefined;
 }

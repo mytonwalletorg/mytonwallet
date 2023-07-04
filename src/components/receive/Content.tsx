@@ -44,13 +44,12 @@ function Content({
       <div className={styles.buttons}>
         <Button
           className={styles.qrButton}
-          kind={isStatic ? 'lighter' : undefined}
           onClick={onQrModalOpen}
           ariaLabel={lang('Show QR-Code')}
         >
           <i className={buildClassName('icon-qrcode', styles.qrIcon)} aria-hidden />
         </Button>
-        <Button kind={isStatic ? 'lighter' : undefined} onClick={onInvoiceModalOpen}>
+        <Button onClick={onInvoiceModalOpen}>
           {lang('Create Invoice')}
         </Button>
       </div>

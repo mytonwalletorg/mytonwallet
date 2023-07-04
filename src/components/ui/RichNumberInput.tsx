@@ -54,15 +54,17 @@ function RichNumberInput({
 
   const updateHtml = useCallback((parts?: RegExpMatchArray) => {
     const input = inputRef.current!;
-    const newHtml = parts ? buildContentHtml(parts, suffix) : '';
+    const newHtml = parts ? buildContentHtml(parts, suffix, decimals) : '';
 
-    const restoreCaretPosition = document.activeElement === inputRef.current ? saveCaretPosition(input) : undefined;
+    const restoreCaretPosition = document.activeElement === inputRef.current
+      ? saveCaretPosition(input, decimals)
+      : undefined;
     input.innerHTML = newHtml;
     restoreCaretPosition?.();
 
     // Trick to remove pseudo-element with placeholder in this tick
     input.classList.toggle(styles.isEmpty, !newHtml.length);
-  }, [suffix]);
+  }, [decimals, suffix]);
 
   useEffect(() => {
     const newValue = castValue(value, decimals);
@@ -163,11 +165,11 @@ function castValue(value?: number, decimals?: number) {
   return value ? floor(value, decimals) : undefined;
 }
 
-export function buildContentHtml(values: RegExpMatchArray, suffix?: string) {
+export function buildContentHtml(values: RegExpMatchArray, suffix?: string, decimals = FRACTION_DIGITS) {
   const [, wholePart, dotPart, fractionPart] = values;
 
   const wholeStr = String(parseInt(wholePart, 10)); // Properly handle leading zero
-  const fractionStr = fractionPart || dotPart ? `.${(fractionPart || '').substring(0, FRACTION_DIGITS)}` : '';
+  const fractionStr = (fractionPart || dotPart) ? `.${(fractionPart || '').substring(0, decimals)}` : '';
   const suffixStr = suffix ? ` ${suffix}` : '';
 
   return `${wholeStr}<span class="${styles.fractional}">${fractionStr}${suffixStr}</span>`;

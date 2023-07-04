@@ -61,10 +61,7 @@ function PasswordForm({
     }
   }, [isActive]);
 
-  useFocusAfterAnimation({
-    isActive,
-    ref: passwordRef,
-  });
+  useFocusAfterAnimation(passwordRef, !isActive);
 
   const handleInput = useCallback((value: string) => {
     setPassword(value);
@@ -113,7 +110,7 @@ function PasswordForm({
       <div className={modalStyles.buttons}>
         {onCancel && (
           <Button onClick={onCancel}>
-            {cancelLabel}
+            {cancelLabel || lang('Cancel')}
           </Button>
         )}
         <Button
@@ -122,7 +119,7 @@ function PasswordForm({
           isDisabled={isSubmitDisabled}
           onClick={!isLoading ? handleSubmit : undefined}
         >
-          {submitLabel}
+          {submitLabel || lang('Send')}
         </Button>
       </div>
     </div>

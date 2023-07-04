@@ -36,7 +36,6 @@ function Content({
   const lang = useLang();
 
   const shouldShowSeparateAssetsPanel = isLandscape && tokenCount < MIN_ASSETS_FOR_DESKTOP_TAB_VIEW;
-
   const TABS = useMemo(
     () => [
       ...(!shouldShowSeparateAssetsPanel
@@ -47,6 +46,7 @@ function Content({
     ],
     [lang, shouldShowSeparateAssetsPanel],
   );
+  activeTabIndex = Math.min(activeTabIndex, TABS.length - 1);
 
   const handleSwitchTab = useCallback(
     (index: number) => {
@@ -71,7 +71,9 @@ function Content({
       return <Activity isActive={isActive} />;
     }
 
-    switch (TABS[activeTabIndex].id) {
+    const currentTabId = activeTabIndex > TABS.length - 1 ? TABS[TABS.length - 1].id : TABS[activeTabIndex].id;
+
+    switch (currentTabId) {
       case 'assets':
         return <Assets isActive={isActive} onTokenClick={handleClickAssets} onStakedTokenClick={onStakedTokenClick} />;
 

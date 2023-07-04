@@ -3,7 +3,7 @@
 @import '../../styles/variables';
 
 .button {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
   user-select: none;
 
   color: var(--color-gray-button-text);
@@ -33,7 +33,7 @@
   align-items: center;
   justify-content: center;
 
-  min-width: 10rem;
+  min-width: 9rem;
 
   font-size: 1.0625rem;
   line-height: 1.25;
@@ -105,15 +105,6 @@
   &:hover,
   &:active {
     background: transparent;
-  }
-}
-
-.button.lighter:not(.isSimple) {
-  background-color: var(--color-gray-button-background-light);
-
-  &:hover,
-  &:focus {
-    background-color: var(--color-gray-button-background-light-hover);
   }
 }
 

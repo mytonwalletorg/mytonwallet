@@ -1,4 +1,4 @@
-export function saveCaretPosition(context: HTMLElement) {
+export function saveCaretPosition(context: HTMLElement, decimals: number) {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) {
     return undefined;
@@ -6,14 +6,17 @@ export function saveCaretPosition(context: HTMLElement) {
 
   const range = selection.getRangeAt(0);
   range.setStart(context, 0);
-  const len = range.toString().length || 0;
+  const clearedValue = range.toString().match(new RegExp(`(\\d+(?:\\.\\d{0,${decimals}})?)`));
+  const len = clearedValue?.[0]?.length || range.toString().length || 0;
 
   return function restore() {
     try {
-      const pos = getTextNodeAtPosition(context, len);
+      const { node, position } = getTextNodeAtPosition(context, len);
+
       selection.removeAllRanges();
       const newRange = new Range();
-      newRange.setStart(pos.node, pos.position);
+      newRange.setStart(node, position);
+      newRange.setEnd(node, position);
       selection.addRange(newRange);
     } catch (e) {
       // ignore

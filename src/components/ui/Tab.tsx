@@ -1,4 +1,5 @@
-import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
+import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/fasterdom';
+import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 import forceReflow from '../../util/forceReflow';
@@ -25,12 +26,14 @@ function Tab({
   // eslint-disable-next-line no-null/no-null
   const tabRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Set initial active state
     if (isActive && previousActiveTab === undefined && tabRef.current) {
-      tabRef.current.classList.add(styles.Tab_active);
+      tabRef.current!.classList.add(styles.Tab_active);
     }
+  }, [isActive, previousActiveTab]);
 
+  useEffect(() => {
     if (!isActive || previousActiveTab === undefined) {
       return;
     }
@@ -38,25 +41,39 @@ function Tab({
     const tabEl = tabRef.current!;
     const prevTabEl = tabEl.parentElement!.children[previousActiveTab];
     if (!prevTabEl) {
+      // The number of tabs in the parent component has decreased. It is necessary to add the active tab class name.
+      if (isActive && !tabEl.classList.contains(styles.Tab_active)) {
+        requestMutation(() => {
+          tabEl.classList.add(styles.Tab_active);
+        });
+      }
       return;
     }
 
-    const platformEl = tabEl.querySelector('i')!;
-    const prevPlatformEl = prevTabEl.querySelector('i')!;
+    const platformEl = tabEl.querySelector<HTMLElement>(`.${styles.platform}`)!;
+    const prevPlatformEl = prevTabEl.querySelector<HTMLElement>(`.${styles.platform}`)!;
 
     // We move and resize the platform, so it repeats the position and size of the previous one
     const shiftLeft = prevPlatformEl.parentElement!.offsetLeft - platformEl.parentElement!.offsetLeft;
     const scaleFactor = prevPlatformEl.clientWidth / platformEl.clientWidth;
 
-    prevPlatformEl.classList.remove(styles.platform_animate);
-    platformEl.classList.remove(styles.platform_animate);
-    platformEl.style.transform = `translate3d(${shiftLeft}px, 0, 0) scale3d(${scaleFactor}, 1, 1)`;
-    forceReflow(platformEl);
-    platformEl.classList.add(styles.platform_animate);
-    platformEl.style.transform = 'none';
+    requestMutation(() => {
+      prevPlatformEl.classList.remove(styles.platform_animate);
+      platformEl.classList.remove(styles.platform_animate);
+      platformEl.style.transform = `translate3d(${shiftLeft}px, 0, 0) scale3d(${scaleFactor}, 1, 1)`;
 
-    prevTabEl.classList.remove(styles.Tab_active);
-    tabEl.classList.add(styles.Tab_active);
+      requestForcedReflow(() => {
+        forceReflow(platformEl);
+
+        return () => {
+          platformEl.classList.add(styles.platform_animate);
+          platformEl.style.transform = 'none';
+
+          prevTabEl.classList.remove(styles.Tab_active);
+          tabEl.classList.add(styles.Tab_active);
+        };
+      });
+    });
   }, [isActive, previousActiveTab]);
 
   return (
@@ -73,4 +90,4 @@ function Tab({
   );
 }
 
-export default memo(Tab);
+export default Tab;

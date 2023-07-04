@@ -1,5 +1,5 @@
 .Tab {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   display: flex;
   flex: 1 1 auto;

@@ -61,7 +61,7 @@ function AccountSelector({
     [closeEdit, isEdit],
   );
   useEffect(() => (shouldRender && modalRef.current ? trapFocus(modalRef.current) : undefined), [shouldRender]);
-  useFocusAfterAnimation({ ref: inputRef, isActive: isEdit });
+  useFocusAfterAnimation(inputRef, !isEdit);
   useEffect(() => {
     if (isEdit) {
       setInputValue(currentAccount?.title || '');

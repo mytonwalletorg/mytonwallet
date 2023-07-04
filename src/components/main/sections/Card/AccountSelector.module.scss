@@ -1,7 +1,7 @@
 @import "../../../../styles/mixins";
 
 .addressTitle {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: absolute;
   top: 1.125rem;
@@ -59,7 +59,7 @@
 }
 
 .menuButton {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: absolute;
   top: 0.75rem;
@@ -86,7 +86,7 @@
 }
 
 .edit {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: absolute;
   top: 0;
@@ -243,7 +243,7 @@
 }
 
 .button {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: relative;
 
@@ -329,7 +329,6 @@
   font-size: 0.75rem !important;
   line-height: 1 !important;
   color: var(--color-add-wallet-text) !important;
-  text-transform: none !important;
 
   background-color: var(--color-add-wallet-background) !important;
   border-radius: 0.5rem !important;

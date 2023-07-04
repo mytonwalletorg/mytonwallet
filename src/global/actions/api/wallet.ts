@@ -48,7 +48,7 @@ addActionHandler('setTransferScreen', (global, actions, payload) => {
 
 addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   const {
-    tokenSlug, toAddress, amount, comment,
+    tokenSlug, toAddress, amount, comment, shouldEncrypt,
   } = payload;
   const { decimals } = global.tokenInfo!.bySlug[tokenSlug];
 
@@ -61,6 +61,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     toAddress,
     humanToBigStr(amount, decimals),
     comment,
+    shouldEncrypt,
   );
 
   global = getGlobal();
@@ -91,6 +92,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     toAddress,
     amount,
     comment,
+    shouldEncrypt,
     fee: result.fee,
     toAddressName: result.addressName,
     tokenSlug,
@@ -99,7 +101,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
 
 addActionHandler('fetchFee', async (global, actions, payload) => {
   const {
-    tokenSlug, toAddress, amount, comment,
+    tokenSlug, toAddress, amount, comment, shouldEncrypt,
   } = payload;
   const { decimals } = global.tokenInfo!.bySlug[tokenSlug];
 
@@ -110,6 +112,7 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
     toAddress,
     humanToBigStr(amount, decimals),
     comment,
+    shouldEncrypt,
   );
 
   if (result?.fee) {
@@ -140,6 +143,7 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
     promiseId,
     tokenSlug,
     fee,
+    shouldEncrypt,
   } = global.currentTransfer;
   const { decimals } = global.tokenInfo!.bySlug[tokenSlug!];
 
@@ -167,6 +171,7 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
     amount: humanToBigStr(amount!, decimals),
     comment,
     fee,
+    shouldEncrypt,
   };
 
   const result = await callApi('submitTransfer', options);

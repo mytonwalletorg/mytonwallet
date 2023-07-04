@@ -1,4 +1,7 @@
 .wrapper {
+  flex-shrink: 0;
+
+  min-height: 3rem;
   /* Account for border width */
   padding: calc(1rem - 1px) calc(0.75rem - 1px);
 
@@ -14,7 +17,7 @@
 }
 
 .button {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   text-decoration: none !important;
 
@@ -82,10 +85,14 @@
   }
 }
 
-.viewSpoiler {
-  cursor: pointer;
+.revealSpoiler {
+  cursor: var(--custom-cursor, pointer);
 
   margin-left: 0.1875rem;
 
   color: var(--color-blue);
+
+  &:hover {
+    opacity: 0.8;
+  }
 }

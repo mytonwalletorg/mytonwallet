@@ -9,14 +9,17 @@ import {
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../config';
-import { getActions, withGlobal } from '../../../global';
+import { getActions, getGlobal, withGlobal } from '../../../global';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../global/helpers';
 import { selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
+import { callApi } from '../../../api';
 
 import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
+import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
+import useLastCallback from '../../../hooks/useLastCallback';
 import useShowTransition from '../../../hooks/useShowTransition';
 import useSyncEffect from '../../../hooks/useSyncEffect';
 
@@ -25,6 +28,7 @@ import AmountWithFeeTextField from '../../ui/AmountWithFeeTextField';
 import Button from '../../ui/Button';
 import InteractiveTextField from '../../ui/InteractiveTextField';
 import Modal from '../../ui/Modal';
+import PasswordForm from '../../ui/PasswordForm';
 
 import transferStyles from '../../transfer/Transfer.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
@@ -63,7 +67,16 @@ function TransactionModal({
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
 
   const {
-    fromAddress, toAddress, amount, comment, fee, txId, isIncoming, slug, timestamp,
+    fromAddress,
+    toAddress,
+    amount,
+    comment,
+    encryptedComment,
+    fee,
+    txId,
+    isIncoming,
+    slug,
+    timestamp,
   } = renderedTransaction || {};
   const [, transactionHash] = (txId || '').split(':');
   const isStaking = Boolean(transaction?.type);
@@ -72,6 +85,10 @@ function TransactionModal({
   const address = isIncoming ? fromAddress : toAddress;
   const addressName = (address && savedAddresses?.[address]) || transaction?.metadata?.name;
   const isScam = Boolean(transaction?.metadata?.isScam);
+
+  const [decryptedComment, setDecryptedComment] = useState<string>();
+  const [isPasswordModalOpen, openPasswordModal, closePasswordModal] = useFlag();
+  const [passwordError, setPasswordError] = useState<string>();
 
   const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;
   const tonscanTransactionUrl = transactionHash && transactionHash !== EMPTY_HASH_VALUE
@@ -89,6 +106,7 @@ function TransactionModal({
   useSyncEffect(() => {
     if (transaction) {
       setIsModalOpen(true);
+      setDecryptedComment(undefined);
     }
   }, [transaction]);
 
@@ -145,22 +163,74 @@ function TransactionModal({
     );
   }
 
+  const spoilerCallback = useLastCallback(() => {
+    openPasswordModal();
+  });
+
+  const handlePasswordSubmit = useLastCallback(async (password: string) => {
+    const result = await callApi(
+      'decryptComment',
+      getGlobal().currentAccountId!,
+      encryptedComment!,
+      fromAddress!,
+      password,
+    );
+
+    if (!result) {
+      setPasswordError('Wrong password, please try again');
+      return;
+    }
+
+    closePasswordModal();
+    setDecryptedComment(result);
+  });
+
+  const handlePasswordUpdate = useLastCallback(() => {
+    setPasswordError(undefined);
+  });
+
   function renderComment() {
-    if (!comment || transaction?.type) {
+    if ((!comment && !encryptedComment) || transaction?.type) {
       return undefined;
     }
 
+    const spoiler = encryptedComment
+      ? lang('Message is encrypted.')
+      : isScam
+        ? lang('Scam comment is hidden.')
+        : undefined;
+
     return (
       <>
-        <div className={transferStyles.label}>Comment</div>
+        <div className={transferStyles.label}>{lang('Comment')}</div>
         <InteractiveTextField
-          text={comment}
-          spoiler={isScam ? lang('Scam comment is hidden.') : undefined}
-          viewSpoilerText={lang('Display')}
+          text={encryptedComment ? decryptedComment : comment}
+          spoiler={spoiler}
+          spoilerRevealText={encryptedComment ? lang('Decrypt') : lang('Display')}
+          spoilerCallback={spoilerCallback}
           copyNotification={lang('Comment was copied!')}
           className={styles.copyButtonWrapper}
           textClassName={styles.comment}
         />
+        {encryptedComment && (
+          <Modal
+            isCompact
+            isOpen={isPasswordModalOpen}
+            onClose={closePasswordModal}
+            title={lang('Enter Password')}
+            contentClassName={styles.passwordModal}
+          >
+            <PasswordForm
+              isActive={isPasswordModalOpen}
+              submitLabel={lang('Send')}
+              placeholder={lang('Enter your password')}
+              error={passwordError}
+              onSubmit={handlePasswordSubmit}
+              onCancel={closePasswordModal}
+              onUpdate={handlePasswordUpdate}
+            />
+          </Modal>
+        )}
       </>
     );
   }

@@ -134,7 +134,8 @@ function UpdateApp() {
     transitionClassNames: cancelTransitionClassNames, shouldRender: shouldRenderCancel,
   } = useShowTransition(isCancelShown);
 
-  const text = useMemo(() => (isUpdateDownloaded ? lang('Restart') : lang('Update')), [isUpdateDownloaded, lang]);
+  // TODO: Return back "Restart" button after animation fix
+  const text = isUpdateDownloaded ? lang('Update MyTonWallet') : lang('Update');
   const { transitionClassNames: textTransitionClassNames } = useShowTransition(!hasProgress);
 
   const icon = useMemo(() => (isUpdateDownloaded

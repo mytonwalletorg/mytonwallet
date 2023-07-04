@@ -18,6 +18,7 @@ function SettingsModal({ children, isOpen, onClose }: OwnProps) {
       isOpen={isOpen}
       onClose={onClose}
       dialogClassName={styles.modalDialog}
+      contentClassName={styles.modalContent}
     >
       {children}
     </Modal>

@@ -32,7 +32,7 @@ export function buildInternalAccountId(account: Omit<AccountIdParsed, 'network'>
 
 export function createLocalTransaction(onUpdate: OnApiUpdate, accountId: string, params: ApiLocalTransactionParams) {
   const {
-    amount, fromAddress, toAddress, comment, fee, slug, type,
+    amount, fromAddress, toAddress, comment, fee, slug, type, encryptedComment,
   } = params;
 
   const localTransaction = buildLocalTransaction({
@@ -43,6 +43,7 @@ export function createLocalTransaction(onUpdate: OnApiUpdate, accountId: string,
     fee,
     slug,
     type,
+    encryptedComment,
   });
 
   onUpdate({

@@ -10,15 +10,13 @@ import useMediaTransition from '../../hooks/useMediaTransition';
 import type { OwnProps as AnimatedStickerProps } from './AnimatedSticker';
 import AnimatedSticker from './AnimatedSticker';
 
-const DEFAULT_SIZE = 150;
-
 export type OwnProps =
   Partial<AnimatedStickerProps>
-  & { noTransition?: boolean; nonInteractive?: boolean };
+  & { noTransition?: boolean; nonInteractive?: boolean; size: number };
 
 function AnimatedIcon(props: OwnProps) {
   const {
-    size = DEFAULT_SIZE,
+    size,
     play = true,
     noLoop = true,
     className,

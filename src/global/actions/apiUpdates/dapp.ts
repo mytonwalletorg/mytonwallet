@@ -1,4 +1,4 @@
-import { TransferState } from '../../types';
+import { DappConnectState, TransferState } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
 import { callApi } from '../../../api';
@@ -14,7 +14,7 @@ import {
   updateCurrentTransfer,
   updateDappConnectRequest,
 } from '../../reducers';
-import { selectAccountState, selectNewestTxIds } from '../../selectors';
+import { selectAccount, selectAccountState, selectNewestTxIds } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -109,16 +109,21 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         dapp,
         accountId,
         permissions,
+        proof,
       } = update;
 
+      const { isHardware } = selectAccount(global, accountId)!;
+
       global = updateDappConnectRequest(global, {
+        state: DappConnectState.Info,
         promiseId,
         accountId,
         dapp,
         permissions: {
           isAddressRequired: permissions.address,
-          isPasswordRequired: permissions.proof,
+          isPasswordRequired: permissions.proof && !isHardware,
         },
+        proof,
       });
       setGlobal(global);
 

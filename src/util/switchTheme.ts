@@ -6,6 +6,7 @@ let currentTheme: Theme;
 export default function switchTheme(theme: Theme) {
   currentTheme = theme;
   setThemeValue();
+  setThemeColor();
 }
 
 function setThemeValue() {
@@ -13,6 +14,15 @@ function setThemeValue() {
     'theme-dark',
     currentTheme === 'dark' || (currentTheme === 'system' && prefersDark.matches),
   );
+}
+
+function setThemeColor() {
+  const color = getComputedStyle(document.documentElement)
+    .getPropertyValue('--color-background-second');
+
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', color);
 }
 
 prefersDark.addEventListener('change', setThemeValue);

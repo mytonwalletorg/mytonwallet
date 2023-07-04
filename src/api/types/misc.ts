@@ -1,5 +1,7 @@
 import type TonWeb from 'tonweb';
 
+import type { ApiParsedPayload } from './payload';
+
 export type ApiWalletVersion = keyof typeof TonWeb.Wallets['all'];
 
 export type ApiBlockchainKey = 'ton';
@@ -70,6 +72,7 @@ export interface ApiTransaction {
   fromAddress: string;
   toAddress: string;
   comment?: string;
+  encryptedComment?: string;
   fee: string;
   slug: string;
   isIncoming: boolean;
@@ -86,6 +89,7 @@ export enum ApiTransactionDraftError {
   InsufficientBalance = 'InsufficientBalance',
   Unexpected = 'Unexpected',
   DomainNotResolved = 'DomainNotResolved',
+  WalletNotInitialized = 'WalletNotInitialized',
 }
 
 export enum ApiTransactionError {
@@ -94,27 +98,6 @@ export enum ApiTransactionError {
   InsufficientBalance = 'InsufficientBalance',
   UnsuccesfulTransfer = 'UnsuccesfulTransfer',
 }
-
-export type ApiParsedPayload = {
-  type: 'comment';
-  comment: string;
-} | {
-  type: 'transfer-nft';
-  queryId: string;
-  nftAddress: string;
-  toAddress: string;
-  nftName?: string;
-} | {
-  type: 'transfer-tokens';
-  queryId: string;
-  slug: string;
-  toAddress: string;
-  amount: string;
-  comment?: string;
-} | {
-  type: 'unknown';
-  base64: string;
-};
 
 export interface ApiNft {
   index: number;
@@ -191,6 +174,7 @@ export interface ApiSubmitTransferOptions {
   amount: string;
   comment?: string;
   fee?: string;
+  shouldEncrypt?: boolean;
 }
 
 export enum Workchain {
@@ -215,4 +199,5 @@ export interface ApiLocalTransactionParams {
   fee: string;
   slug: string;
   type?: ApiTransactionType;
+  encryptedComment?: string;
 }

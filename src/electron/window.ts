@@ -15,7 +15,7 @@ const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://'];
 export function createWindow() {
   const windowState = windowStateKeeper({
     defaultWidth: 980,
-    defaultHeight: 780,
+    defaultHeight: 788,
   });
 
   mainWindow = new BrowserWindow({

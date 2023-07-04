@@ -6,6 +6,7 @@ import buildClassName from '../../util/buildClassName';
 import { IS_EXTENSION } from '../../util/windowEnvironment';
 
 import useLang from '../../hooks/useLang';
+import useScrolledState from '../../hooks/useScrolledState';
 
 import Button from '../ui/Button';
 import Emoji from '../ui/Emoji';
@@ -23,10 +24,19 @@ interface OwnProps {
 function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
   const lang = useLang();
 
+  const {
+    handleScroll: handleContentScroll,
+    isAtBeginning: isContentNotScrolled,
+  } = useScrolledState();
+
   return (
-    <div className={buildClassName(styles.slide, 'custom-scroll')}>
+    <div className={styles.slide}>
       {isInsideModal ? (
-        <ModalHeader title={lang('About')} onBackButtonClick={handleBackClick} />
+        <ModalHeader
+          title={lang('About')}
+          withBorder={!isContentNotScrolled}
+          onBackButtonClick={handleBackClick}
+        />
       ) : (
         <div className={styles.header}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
@@ -36,7 +46,14 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
           <span className={styles.headerTitle}>{lang('About')}</span>
         </div>
       )}
-      <div className={styles.content}>
+      <div
+        className={buildClassName(
+          styles.content,
+          isInsideModal && 'custom-scroll',
+          !isInsideModal && styles.content_noScroll,
+        )}
+        onScroll={isInsideModal ? handleContentScroll : undefined}
+      >
         <img src={logoSrc} alt={lang('Logo')} className={styles.logo} />
         <h2 className={styles.title}>
           {APP_NAME} {APP_VERSION}
@@ -44,7 +61,7 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
             mytonwallet.io
           </a>
         </h2>
-        <div className={styles.blockAbout}>
+        <div className={buildClassName(styles.blockAbout, !isInsideModal && 'custom-scroll')}>
           <p className={styles.text}>
             {renderText(lang('$about_description1'))}
           </p>

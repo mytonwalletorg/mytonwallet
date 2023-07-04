@@ -83,8 +83,6 @@
   margin: 0 auto 0.25rem;
   padding: 0.25rem 0.75rem;
 
-  @include adapt-padding-to-scrollbar(0.75rem); /* stylelint-disable-line order/order */
-
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 0.75rem;

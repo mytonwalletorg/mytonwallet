@@ -4,7 +4,12 @@ import React, {
 
 import type { UserToken } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, MIN_BALANCE_FOR_UNSTAKE, TON_TOKEN_SLUG } from '../../config';
+import {
+  ANIMATED_STICKER_MIDDLE_SIZE_PX,
+  ANIMATED_STICKER_SMALL_SIZE_PX,
+  MIN_BALANCE_FOR_UNSTAKE,
+  TON_TOKEN_SLUG,
+} from '../../config';
 import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
 import renderText from '../../global/helpers/renderText';
@@ -29,6 +34,11 @@ import Transition from '../ui/Transition';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Staking.module.scss';
 
+interface OwnProps {
+  isActive?: boolean;
+  isStatic?: boolean;
+}
+
 interface StateProps {
   isLoading?: boolean;
   apiError?: string;
@@ -46,6 +56,8 @@ const RESERVED_FEE_FACTOR = 1.05;
 const runThrottled = throttle((cb) => cb(), 1500, true);
 
 function StakingInitial({
+  isActive,
+  isStatic,
   isLoading,
   apiError,
   tokens,
@@ -53,7 +65,7 @@ function StakingInitial({
   stakingBalance,
   stakingMinAmount,
   apyValue,
-}: StateProps) {
+}: OwnProps & StateProps) {
   const { submitStakingInitial, fetchStakingFee } = getActions();
 
   const lang = useLang();
@@ -194,7 +206,7 @@ function StakingInitial({
 
     return (
       <Transition
-        className={styles.amountTopRight}
+        className={buildClassName(styles.amountTopRight, isStatic && styles.amountTopRight_static)}
         slideClassName={styles.amountTopRight_slide}
         name="fade"
         activeKey={isFullBalanceSelected ? 1 : 0}
@@ -264,7 +276,7 @@ function StakingInitial({
         zeroValue="..."
         value={balanceResult}
         decimals={decimals}
-        inputClassName={styles.balanceResultInput}
+        inputClassName={buildClassName(styles.balanceResultInput, isStatic && styles.inputRichStatic)}
         labelClassName={styles.balanceResultLabel}
         valueClassName={styles.balanceResult}
       />
@@ -272,18 +284,21 @@ function StakingInitial({
   }
 
   return (
-    <form className={modalStyles.transitionContent} onSubmit={handleSubmit}>
-      <div className={styles.welcome}>
+    <form
+      className={isStatic ? undefined : modalStyles.transitionContent}
+      onSubmit={handleSubmit}
+    >
+      <div className={buildClassName(styles.welcome, isStatic && styles.welcome_static)}>
         <AnimatedIconWithPreview
-          size={ANIMATED_STICKER_SMALL_SIZE_PX}
-          play
+          size={isStatic ? ANIMATED_STICKER_MIDDLE_SIZE_PX : ANIMATED_STICKER_SMALL_SIZE_PX}
+          play={isActive}
           noLoop={false}
           nonInteractive
-          className={styles.sticker}
+          className={buildClassName(styles.sticker, isStatic && styles.sticker_static)}
           tgsUrl={ANIMATED_STICKERS_PATHS.wait}
           previewUrl={ANIMATED_STICKERS_PATHS.waitPreview}
         />
-        <div className={styles.welcomeInformation}>
+        <div className={buildClassName(styles.welcomeInformation, isStatic && styles.welcomeInformation_static)}>
           <div>{lang('Earn from your tokens while holding them')}</div>
           <div className={styles.stakingApy}>{lang('$est_apy_val', apyValue)}</div>
           <Button isText className={styles.textButton} onClick={openStakingInfoModal}>
@@ -303,6 +318,7 @@ function StakingInitial({
         onChange={handleAmountChange}
         onPressEnter={handleSubmit}
         decimals={decimals}
+        inputClassName={isStatic ? styles.inputRichStatic : undefined}
         className={styles.amountInput}
       >
         <div className={styles.ton}>
@@ -310,7 +326,7 @@ function StakingInitial({
           <span className={styles.tonName}>{symbol}</span>
         </div>
       </RichNumberInput>
-      <div className={styles.amountBottomWrapper}>
+      <div className={buildClassName(styles.amountBottomWrapper, isStatic && styles.amountBottomWrapper_static)}>
         <div className={styles.amountBottom}>
           {renderBottomRight()}
         </div>
@@ -318,7 +334,7 @@ function StakingInitial({
 
       {renderStakingResult()}
 
-      <div className={modalStyles.buttons}>
+      <div className={buildClassName(modalStyles.buttons, isStatic && styles.buttonSubmit)}>
         <Button
           isPrimary
           isSubmit

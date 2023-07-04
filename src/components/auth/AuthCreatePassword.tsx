@@ -55,10 +55,7 @@ const AuthCreatePassword = ({
     secondPassword,
   });
 
-  useFocusAfterAnimation({
-    ref: firstInputRef,
-    isActive,
-  });
+  useFocusAfterAnimation(firstInputRef, !isActive);
 
   useEffect(() => {
     setIsPasswordsNotEqual(false);
@@ -240,6 +237,7 @@ const AuthCreatePassword = ({
 
       <Modal
         isOpen={isWeakPasswordModalOpen}
+        isCompact
         onClose={closeWeakPasswordModal}
         title={lang('Insecure Password')}
       >

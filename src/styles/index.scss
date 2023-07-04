@@ -12,10 +12,12 @@ html, body {
   margin: 0;
   padding: 0;
 
-  background: var(--color-background-first);
+  background-color: var(--color-background-second);
 }
 
 body {
+  user-select: none;
+
   overflow: hidden;
 
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI", Oxygen, Ubuntu, Cantarell,
@@ -37,6 +39,10 @@ body {
 html.is-ios body,
 html.is-macos body {
   font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Apple Color Emoji", "Helvetica Neue", sans-serif;
+}
+
+html.is-electron {
+  --custom-cursor: default;
 }
 
 #root {
@@ -121,7 +127,7 @@ body:not(.is-ios) {
 }
 
 div[role="button"] {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   outline: none !important;
 }

@@ -8,6 +8,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useScrolledState from '../../hooks/useScrolledState';
 
 import DappInfo from '../dapps/DappInfo';
 import DisconnectDappModal from '../main/modals/DisconnectDappModal';
@@ -34,6 +35,11 @@ function SettingsDapps({
 
   const [isDisconnectModalOpen, openDisconnectModal, closeDisconnectModal] = useFlag();
   const [dappToDelete, setDappToDelete] = useState<ApiDapp | undefined>();
+
+  const {
+    handleScroll: handleContentScroll,
+    isAtBeginning: isContentNotScrolled,
+  } = useScrolledState();
 
   const handleDisconnectDapp = useCallback((origin: string) => {
     const dapp = dapps.find((d) => d.origin === origin);
@@ -68,8 +74,8 @@ function SettingsDapps({
     const dappList = dapps.map(renderDapp);
 
     return (
-      <div className={buildClassName(styles.slide, 'custom-scroll')}>
-        <div>
+      <div className={styles.slide}>
+        <div className={styles.disconnectAllBlock}>
           <Button
             className={styles.disconnectButton}
             isSimple
@@ -111,9 +117,9 @@ function SettingsDapps({
     : renderDapps();
 
   return (
-    <div className={buildClassName(styles.slide, 'custom-scroll')}>
+    <div className={styles.slide}>
       {isInsideModal ? (
-        <ModalHeader title={lang('Dapps')} onBackButtonClick={handleBackClick} />
+        <ModalHeader title={lang('Dapps')} withBorder={!isContentNotScrolled} onBackButtonClick={handleBackClick} />
       ) : (
         <div className={styles.header}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
@@ -123,7 +129,7 @@ function SettingsDapps({
           <span className={styles.headerTitle}>{lang('Dapps')}</span>
         </div>
       )}
-      <div className={styles.content}>
+      <div className={buildClassName(styles.content, 'custom-scroll')} onScroll={handleContentScroll}>
         {content}
       </div>
       <DisconnectDappModal isOpen={isDisconnectModalOpen} onClose={closeDisconnectModal} dapp={dappToDelete} />

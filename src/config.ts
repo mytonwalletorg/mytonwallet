@@ -27,6 +27,7 @@ export const MOBILE_SCREEN_MAX_WIDTH = 700; // px
 export const ANIMATION_END_DELAY = 50;
 
 export const ANIMATED_STICKER_SMALL_SIZE_PX = 110;
+export const ANIMATED_STICKER_MIDDLE_SIZE_PX = 120;
 export const ANIMATED_STICKER_DEFAULT_PX = 150;
 export const ANIMATED_STICKER_BIG_SIZE_PX = 156;
 
@@ -89,7 +90,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_AMOUNT = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-9';
+export const LANG_CACHE_NAME = 'mtw-lang-11';
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
   name: 'English',

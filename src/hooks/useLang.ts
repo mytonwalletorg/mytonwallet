@@ -1,17 +1,17 @@
 import * as langProvider from '../util/langProvider';
+import useEffectOnce from './useEffectOnce';
 import useForceUpdate from './useForceUpdate';
-import useSyncEffect from './useSyncEffect';
 
-export type { LangFn } from '../util/langProvider';
+export type LangFn = langProvider.LangFn;
 
-function useLang() {
+const useLang = (): LangFn => {
   const forceUpdate = useForceUpdate();
 
-  useSyncEffect(() => {
+  useEffectOnce(() => {
     return langProvider.addCallback(forceUpdate);
-  }, [forceUpdate]);
+  });
 
   return langProvider.getTranslation;
-}
+};
 
 export default useLang;

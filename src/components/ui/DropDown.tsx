@@ -7,9 +7,9 @@ import useLang from '../../hooks/useLang';
 
 import Menu from './Menu';
 
-import styles from './DropDown.module.scss';
+import styles from './Dropdown.module.scss';
 
-export interface DropDownItem {
+export interface DropdownItem {
   value: string;
   name: string;
   icon?: string;
@@ -18,22 +18,29 @@ export interface DropDownItem {
 interface OwnProps {
   label?: string;
   selectedValue: string;
-  items: DropDownItem[];
+  items: DropdownItem[];
   className?: string;
   theme?: 'light';
+  arrow?: 'caret' | 'chevron';
   menuPosition?: 'top' | 'bottom';
+  menuPositionHorizontal?: 'right' | 'left';
   disabled?: boolean;
   shouldTranslateOptions?: boolean;
   onChange?: (value: string) => void;
 }
 
-function DropDown({
+const DEFAULT_ARROW = 'caret';
+const DEFAULT_MENU_POSITION_HORIZONTAL = 'right';
+
+function Dropdown({
   label,
   items,
   selectedValue,
   className,
   theme,
+  arrow = DEFAULT_ARROW,
   menuPosition,
+  menuPositionHorizontal = DEFAULT_MENU_POSITION_HORIZONTAL,
   disabled,
   shouldTranslateOptions,
   onChange,
@@ -57,7 +64,7 @@ function DropDown({
 
   const buttonArrowIcon = buildClassName(
     styles.buttonIcon,
-    theme === 'light' ? 'icon-chevron-down' : 'icon-caret-down',
+    arrow === 'chevron' ? 'icon-chevron-down' : 'icon-caret-down',
   );
 
   const withMenu = items.length > 1;
@@ -88,14 +95,14 @@ function DropDown({
         disabled={disabled}
       >
         {selectedItem?.icon && <img src={selectedItem.icon} alt="" className={styles.itemIcon} />}
-        <span className={styles.itemName}>
+        <span className={buildClassName(styles.itemName, 'itemName')}>
           {shouldTranslateOptions ? lang(selectedItem!.name) : selectedItem!.name}
         </span>
         {withMenu && <i className={buttonArrowIcon} />}
       </button>
       {withMenu && (
         <Menu
-          positionX="right"
+          positionX={menuPositionHorizontal}
           positionY={menuPosition}
           isOpen={isMenuOpen}
           onClose={closeMenu}
@@ -114,7 +121,9 @@ function DropDown({
                 className={buttonClassName}
               >
                 {item.icon && <img src={item.icon} alt="" className={styles.itemIcon} />}
-                <span className={styles.itemName}>{shouldTranslateOptions ? lang(item.name) : item.name}</span>
+                <span className={buildClassName(styles.itemName, 'menuItemName')}>
+                  {shouldTranslateOptions ? lang(item.name) : item.name}
+                </span>
               </button>
             );
           })}
@@ -124,4 +133,4 @@ function DropDown({
   );
 }
 
-export default memo(DropDown);
+export default memo(Dropdown);

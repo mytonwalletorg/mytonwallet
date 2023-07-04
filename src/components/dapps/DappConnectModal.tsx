@@ -2,8 +2,12 @@ import React, {
   memo, useCallback, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 
+import { DappConnectState } from '../../global/types';
+import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type { ApiDapp, ApiDappPermissions } from '../../api/types';
-import type { Account, AccountState, UserToken } from '../../global/types';
+import type {
+  Account, AccountState, HardwareConnectState, UserToken,
+} from '../../global/types';
 
 import { TON_TOKEN_SLUG } from '../../config';
 import { getActions, withGlobal } from '../../global';
@@ -15,7 +19,10 @@ import { shortenAddress } from '../../util/shortenAddress';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
+import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
+import LedgerConnect from '../ledger/LedgerConnect';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -27,14 +34,19 @@ import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
 
 interface StateProps {
+  state?: DappConnectState;
   hasConnectRequest: boolean;
   dapp?: ApiDapp;
   error?: string;
   requiredPermissions?: ApiDappPermissions;
+  requiredProof?: ApiTonConnectProof;
   tokens?: UserToken[];
   currentAccountId: string;
   accounts?: Record<string, Account>;
   accountsData?: Record<string, AccountState>;
+  hardwareState?: HardwareConnectState;
+  isLedgerConnected?: boolean;
+  isTonAppConnected?: boolean;
 }
 
 const ACCOUNT_ADDRESS_SHIFT = 2;
@@ -42,26 +54,34 @@ const ACCOUNT_ADDRESS_SHIFT_END = 3;
 const ACCOUNT_BALANCE_DECIMALS = 3;
 
 function DappConnectModal({
+  state,
   hasConnectRequest,
   dapp,
   error,
   requiredPermissions,
+  requiredProof,
   accounts,
   accountsData,
   currentAccountId,
   tokens,
+  hardwareState,
+  isLedgerConnected,
+  isTonAppConnected,
 }: StateProps) {
   const {
     submitDappConnectRequestConfirm,
+    submitDappConnectRequestConfirmHardware,
     clearDappConnectRequestError,
     cancelDappConnectRequestConfirm,
+    setDappConnectRequestState,
   } = getActions();
 
   const lang = useLang();
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
   const [isModalOpen, openModal, closeModal] = useFlag(hasConnectRequest);
   const [isConfirmOpen, openConfirm, closeConfirm] = useFlag(false);
-  const [shouldRenderPassword, markRenderPassword, unmarkRenderPassword] = useFlag(false);
+
+  const { renderingKey, nextKey } = useModalTransitionKeys(state ?? 0, isModalOpen);
 
   useEffect(() => {
     if (hasConnectRequest) {
@@ -80,26 +100,37 @@ function DappConnectModal({
 
   const handleClose = useCallback(() => {
     cancelDappConnectRequestConfirm();
-    unmarkRenderPassword();
     setSelectedAccountIds([]);
-  }, [cancelDappConnectRequestConfirm, unmarkRenderPassword]);
+  }, [cancelDappConnectRequestConfirm]);
 
   const handleSubmit = useCallback(() => {
     closeConfirm();
 
-    if (requiredPermissions?.isPasswordRequired) {
-      markRenderPassword();
-    } else {
+    if (!requiredProof) {
       submitDappConnectRequestConfirm({
         additionalAccountIds: selectedAccountIds,
       });
 
       closeModal();
+    } else if (accounts![currentAccountId].isHardware && requiredProof) {
+      setDappConnectRequestState({ state: DappConnectState.ConnectHardware });
+    } else if (requiredPermissions?.isPasswordRequired) {
+      setDappConnectRequestState({ state: DappConnectState.Password });
     }
   }, [
-    closeConfirm, closeModal, markRenderPassword, requiredPermissions, selectedAccountIds,
-    submitDappConnectRequestConfirm,
+    accounts, currentAccountId, closeConfirm, closeModal, requiredPermissions,
+    selectedAccountIds, submitDappConnectRequestConfirm, requiredProof,
   ]);
+
+  const handlePasswordCancel = useCallback(() => {
+    setDappConnectRequestState({ state: DappConnectState.Info });
+  }, []);
+
+  const submitDappConnectRequestHardware = useCallback(() => {
+    submitDappConnectRequestConfirmHardware({
+      additionalAccountIds: selectedAccountIds,
+    });
+  }, [selectedAccountIds]);
 
   const handlePasswordSubmit = useCallback((password: string) => {
     submitDappConnectRequestConfirm({
@@ -116,13 +147,22 @@ function DappConnectModal({
     }
   }, [selectedAccountIds]);
 
+  const iterableAccounts = useMemo(() => {
+    return Object.entries(accounts || {});
+  }, [accounts]);
+
   function renderAccount(accountId: string, address: string, title?: string) {
     const isActive = accountId === currentAccountId || selectedAccountIds.includes(accountId);
     const balance = accountsData?.[accountId].balances?.bySlug[tonToken.slug] || '0';
+    const fullClassName = buildClassName(
+      styles.account,
+      isActive && styles.account_active,
+      accountId === currentAccountId && styles.account_current,
+    );
 
     return (
       <div
-        className={buildClassName(styles.account, isActive && styles.account_current)}
+        className={fullClassName}
         aria-label={lang('Switch Account')}
         onClick={accountId !== currentAccountId ? () => handleAccountToggle(accountId) : undefined}
       >
@@ -141,11 +181,17 @@ function DappConnectModal({
   }
 
   function renderAccounts() {
+    const fullClassName = buildClassName(
+      styles.accounts,
+      'custom-scroll',
+      iterableAccounts.length === 1 && styles.accounts_single,
+      iterableAccounts.length === 2 && styles.accounts_two,
+    );
     return (
       <>
         <p className={styles.label}>{lang('Select wallets to use on this dapp')}</p>
-        <div className={styles.accounts}>
-          {Object.entries(accounts!).map(
+        <div className={fullClassName}>
+          {iterableAccounts.map(
             ([accountId, { title, address }]) => renderAccount(accountId, address, title),
           )}
         </div>
@@ -165,7 +211,7 @@ function DappConnectModal({
           onUpdate={clearDappConnectRequestError}
           onSubmit={handlePasswordSubmit}
           cancelLabel="Cancel"
-          onCancel={unmarkRenderPassword}
+          onCancel={handlePasswordCancel}
         />
       </>
     );
@@ -193,12 +239,33 @@ function DappConnectModal({
     );
   }
 
+  // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
-    if (currentKey === 0) {
-      return renderDappInfo();
+    switch (currentKey) {
+      case DappConnectState.Info:
+        return renderDappInfo();
+      case DappConnectState.Password:
+        return renderPasswordForm(isActive);
+      case DappConnectState.ConnectHardware:
+        return (
+          <LedgerConnect
+            state={hardwareState}
+            isTonAppConnected={isTonAppConnected}
+            isLedgerConnected={isLedgerConnected}
+            onConnected={submitDappConnectRequestHardware}
+            onClose={handlePasswordCancel}
+          />
+        );
+      case DappConnectState.ConfirmHardware:
+        return (
+          <LedgerConfirmOperation
+            text={lang('Please confirm operation on your Ledger')}
+            error={error}
+            onTryAgain={submitDappConnectRequestHardware}
+            onClose={handlePasswordCancel}
+          />
+        );
     }
-
-    return renderPasswordForm(isActive);
   }
 
   return (
@@ -214,8 +281,8 @@ function DappConnectModal({
           name="pushSlide"
           className={buildClassName(modalStyles.transition, 'custom-scroll')}
           slideClassName={modalStyles.transitionSlide}
-          activeKey={shouldRenderPassword ? 1 : 0}
-          nextKey={!shouldRenderPassword ? 1 : undefined}
+          activeKey={renderingKey}
+          nextKey={nextKey}
         >
           {renderContent}
         </Transition>
@@ -245,17 +312,30 @@ export default memo(withGlobal((global): StateProps => {
   const hasConnectRequest = Boolean(global.dappConnectRequest?.dapp);
 
   const {
-    dapp, error, accountId, permissions,
+    state, dapp, error, accountId, permissions, proof,
   } = global.dappConnectRequest || {};
 
+  const currentAccountId = accountId || global.currentAccountId!;
+
+  const {
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
+  } = global.hardware;
+
   return {
+    state,
     hasConnectRequest,
     dapp,
     error,
     requiredPermissions: permissions,
+    requiredProof: proof,
     tokens: selectCurrentAccountTokens(global),
-    currentAccountId: accountId || global.currentAccountId!,
+    currentAccountId,
     accounts,
     accountsData: global.byAccountId,
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
   };
 })(DappConnectModal));

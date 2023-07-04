@@ -1,7 +1,7 @@
 .menuItem {
   --border-radius-default: 0.75rem;
 
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: relative;
 

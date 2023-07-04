@@ -56,9 +56,13 @@ function SettingsLanguage({
   }
 
   return (
-    <div className={buildClassName(styles.slide, 'custom-scroll')}>
+    <div className={styles.slide}>
       {isInsideModal ? (
-        <ModalHeader title={lang('Language')} onBackButtonClick={handleBackClick} />
+        <ModalHeader
+          title={lang('Language')}
+          onBackButtonClick={handleBackClick}
+          className={styles.languageHeader}
+        />
       ) : (
         <div className={styles.header}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
@@ -68,7 +72,7 @@ function SettingsLanguage({
           <span className={styles.headerTitle}>{lang('Language')}</span>
         </div>
       )}
-      <div className={styles.content}>
+      <div className={buildClassName(styles.content, 'custom-scroll')}>
         <div className={styles.block}>
           {renderLanguages()}
         </div>

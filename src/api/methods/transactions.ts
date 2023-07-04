@@ -35,33 +35,37 @@ export function fetchAllTransactionSlice(accountId: string, lastTxIds: ApiTxIdBy
 }
 
 export function checkTransactionDraft(
-  accountId: string, slug: string, toAddress: string, amount: string, comment?: string,
+  accountId: string, slug: string, toAddress: string, amount: string, comment?: string, shouldEncrypt?: boolean,
 ) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.checkTransactionDraft(storage, accountId, slug, toAddress, amount, comment);
+  return blockchain.checkTransactionDraft(
+    storage, accountId, slug, toAddress, amount, comment, undefined, shouldEncrypt,
+  );
 }
 
 export async function submitTransfer(options: ApiSubmitTransferOptions) {
   const {
-    accountId, password, slug, toAddress, amount, comment, fee,
+    accountId, password, slug, toAddress, amount, comment, fee, shouldEncrypt,
   } = options;
 
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
   const fromAddress = await fetchStoredAddress(storage, accountId);
   const result = await blockchain.submitTransfer(
-    storage, accountId, password, slug, toAddress, amount, comment,
+    storage, accountId, password, slug, toAddress, amount, comment, undefined, shouldEncrypt,
   );
 
   if ('error' in result) {
     return result;
   }
 
+  const { encryptedComment } = result;
   const localTransaction = createLocalTransaction(onUpdate, accountId, {
     amount,
     fromAddress,
     toAddress,
-    comment,
+    comment: shouldEncrypt ? undefined : comment,
+    encryptedComment,
     fee: fee || '0',
     slug,
   });
@@ -70,20 +74,6 @@ export async function submitTransfer(options: ApiSubmitTransferOptions) {
     ...result,
     txId: localTransaction.txId,
   };
-}
-
-export function buildTokenTransferRaw(
-  accountId: string,
-  slug: string,
-  fromAddress: string,
-  toAddress: string,
-  amount: string,
-  comment?: string,
-) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const { network } = parseAccountId(accountId);
-
-  return blockchain.buildTokenTransferRaw(network, slug, fromAddress, toAddress, amount, comment);
 }
 
 export async function waitLastTransfer(accountId: string) {
@@ -115,4 +105,10 @@ export async function sendSignedTransferMessages(accountId: string, messages: Ap
   }
 
   return result;
+}
+
+export function decryptComment(accountId: string, encryptedComment: string, fromAddress: string, password: string) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.decryptComment(storage, accountId, encryptedComment, fromAddress, password);
 }

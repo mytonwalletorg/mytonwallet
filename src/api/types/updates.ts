@@ -1,13 +1,15 @@
+import type { ApiTonConnectProof } from '../tonConnect/types';
+
 import type {
   ApiBackendStakingState,
   ApiDapp,
   ApiDappTransaction,
-  ApiParsedPayload,
   ApiStakingState,
   ApiToken,
   ApiTransaction,
   ApiTransactionDraftError,
 } from './misc';
+import type { ApiParsedPayload } from './payload';
 
 export type ApiUpdateBalance = {
   type: 'updateBalance';
@@ -115,6 +117,7 @@ export type ApiUpdateDappConnect = {
     address: boolean;
     proof: boolean;
   };
+  proof?: ApiTonConnectProof;
 };
 
 export type ApiUpdateDappDisconnect = {

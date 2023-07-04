@@ -19,8 +19,9 @@ interface OwnProps {
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isRemoteTab?: boolean;
-  onConnected: () => void;
-  onClose: () => void;
+  onConnected: NoneToVoidFunction;
+  onCancel?: NoneToVoidFunction;
+  onClose: NoneToVoidFunction;
 }
 
 const NEXT_SLIDE_DELAY = 500;
@@ -31,6 +32,7 @@ function LedgerConnect({
   isTonAppConnected,
   isRemoteTab,
   onConnected,
+  onCancel,
   onClose,
 }: OwnProps) {
   const {
@@ -43,6 +45,7 @@ function LedgerConnect({
   const isTonAppFailed = isTonAppConnected === false;
   const isConnected = state === HardwareConnectState.Connected;
   const title = isConnected ? lang('Ledger Connected!') : lang('Connect Ledger');
+  const shouldCloseOnCancel = !onCancel;
 
   const handleConnect = useCallback(() => {
     connectHardwareWallet();
@@ -91,9 +94,9 @@ function LedgerConnect({
         <Button
           isDisabled={isConnecting}
           className={buildClassName(styles.button, isConnected && styles.button_single)}
-          onClick={onClose}
+          onClick={shouldCloseOnCancel ? onClose : onCancel}
         >
-          {lang('Cancel')}
+          {lang(shouldCloseOnCancel ? 'Cancel' : 'Back')}
         </Button>
         {!isConnected && (
           <Button
@@ -138,9 +141,9 @@ function LedgerConnect({
           <div className={buildClassName(styles.actionBlock, styles.actionBlock_single)}>
             <Button
               className={buildClassName(styles.button, styles.button_single)}
-              onClick={onClose}
+              onClick={shouldCloseOnCancel ? onClose : onCancel}
             >
-              {lang('Cancel')}
+              {lang(shouldCloseOnCancel ? 'Cancel' : 'Back')}
             </Button>
           </div>
         </div>

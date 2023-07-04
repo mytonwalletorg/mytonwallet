@@ -19,7 +19,6 @@
   @include adapt-padding-to-scrollbar(2rem); /* stylelint-disable-line order/order */
 
   color: var(--color-black);
-  text-transform: none;
 
   &:not(:last-of-type) {
     &::after {

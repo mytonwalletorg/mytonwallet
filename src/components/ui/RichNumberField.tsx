@@ -64,7 +64,7 @@ function RichNumberInput({
 
     prevValueRef.current = inputValue;
 
-    contentEl.innerHTML = buildContentHtml(values, suffix);
+    contentEl.innerHTML = buildContentHtml(values, suffix, decimals);
   }, [decimals, suffix]);
 
   useLayoutEffect(() => {

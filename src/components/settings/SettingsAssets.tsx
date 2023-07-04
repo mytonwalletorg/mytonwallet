@@ -8,9 +8,10 @@ import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useScrolledState from '../../hooks/useScrolledState';
 
 import Button from '../ui/Button';
-import DropDown from '../ui/DropDown';
+import Dropdown from '../ui/Dropdown';
 import ModalHeader from '../ui/ModalHeader';
 import Switcher from '../ui/Switcher';
 import Tooltip from '../ui/Tooltip';
@@ -44,6 +45,11 @@ function SettingsAssets({
   const [isInvestorHelpTooltipOpen, openInvestorHelpTooltip, closeInvestorHelpTooltip] = useFlag();
   const [isTinyTransfersHelpTooltipOpen, openTinyTransfersHelpTooltip, closeTinyTransfersHelpTooltip] = useFlag();
 
+  const {
+    handleScroll: handleContentScroll,
+    isAtBeginning: isContentNotScrolled,
+  } = useScrolledState();
+
   const handleTinyTransfersHiddenToggle = useCallback(() => {
     toggleTinyTransfersHidden({ isEnabled: !areTinyTransfersHidden });
   }, [areTinyTransfersHidden, toggleTinyTransfersHidden]);
@@ -53,9 +59,13 @@ function SettingsAssets({
   }, [isInvestorViewEnabled, toggleInvestorView]);
 
   return (
-    <div className={buildClassName(styles.slide, 'custom-scroll')}>
+    <div className={styles.slide}>
       {isInsideModal ? (
-        <ModalHeader title={lang('Assets & Activity')} onBackButtonClick={handleBackClick} />
+        <ModalHeader
+          title={lang('Assets & Activity')}
+          withBorder={!isContentNotScrolled}
+          onBackButtonClick={handleBackClick}
+        />
       ) : (
         <div className={styles.header}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
@@ -65,9 +75,9 @@ function SettingsAssets({
           <span className={styles.headerTitle}>{lang('Assets & Activity')}</span>
         </div>
       )}
-      <div className={styles.content}>
+      <div className={buildClassName(styles.content, 'custom-scroll')} onScroll={handleContentScroll}>
         <div className={styles.settingsBlock}>
-          <DropDown
+          <Dropdown
             label={lang('Fiat Currency')}
             items={CURRENCY_OPTIONS}
             selectedValue={CURRENCY_OPTIONS[0].value}

@@ -162,6 +162,16 @@
   }
 }
 
+textarea.input {
+  resize: none;
+
+  overflow: hidden;
+
+  padding: 0.875rem 0.75rem 0.8125rem;
+
+  line-height: 1.3125rem;
+}
+
 .input__wrapper {
   display: flex;
 
@@ -189,7 +199,7 @@
 }
 
 .visibilityToggle {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: absolute;
   top: 0.75rem;

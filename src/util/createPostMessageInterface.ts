@@ -108,7 +108,7 @@ async function onMessage(
       const { args } = data;
       const promise = typeof api === 'function'
         ? api('init', origin, onUpdate, ...args)
-        : api.init?.(origin, onUpdate, ...args);
+        : api.init?.(onUpdate, ...args);
       await promise;
 
       break;
@@ -136,7 +136,7 @@ async function onMessage(
 
         const response = typeof api === 'function'
           ? await api(name, origin, ...args)
-          : await api[name](origin, ...args);
+          : await api[name](...args);
         const { arrayBuffer } = (typeof response === 'object' && 'arrayBuffer' in response && response) || {};
 
         if (messageId) {

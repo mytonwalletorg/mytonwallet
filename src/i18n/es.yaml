@@ -172,7 +172,7 @@ Testnet Version: Versión Testnet
 Error reading clipboard: Error al leer el portapapeles
 $fee_value: "Comisión: %fee%"
 Loading...: Cargando...
-Recipient address: Dirección del destinatario
+Recipient Address: Dirección del destinatario
 Wallet address or domain: Dirección o dominio del monedero
 Incorrect address: Dirección incorrecta
 Paste: Pegar
@@ -234,9 +234,9 @@ Coins have been staked!: ¡Has apostado monedas!
 View: Ver
 Stake More: Apostar más
 Staking: Staking
-Currently staked: Apostados actualmente
+Currently Staked: Apostados actualmente
 Unstake: Retirar
-Earning history: Historial de ganancias
+Earning History: Historial de ganancias
 $total: "Total: %value%"
 Unstake TON: Retirar TON
 $unstake_information_with_time: |
@@ -285,7 +285,6 @@ by installing browser extension or native app: instalando una extensión de nave
 Scam: Estafa
 Scam comment is hidden.: El comentario estafa está oculto.
 Display: Mostrar
-$dapp_transfer_tokens_payload_with_comment: Enviando %amount% desde su monedero a %address% con el comentario «%comment%»
 $dapp_transfer_tokens_payload: Enviando %amount% desde su monedero a %address%
 $dapp_transfer_nft_payload: Enviando el NFT "%nft%" desde su monedero a %address%
 Nested Transaction: Transacción anidada
@@ -304,6 +303,7 @@ Other: Otros
 Assets & Activity: Activos & Actividad
 Update: Actualizar
 Restart: Reanudar
+Update MyTonWallet: Actualizar MyTonWallet
 Connect Ledger: Conectar libro mayor
 Connecting to your Ledger...: Conectándose a su libro mayor...
 Failed to connect: Error al conectar
@@ -330,3 +330,8 @@ $many_tabs_error_description: |
   MyTonWallet solo admite una pestaña activa con la aplicación.
   Vuelva a cargar esta página para continuar usando esta pestaña o ciérrela.
 Reload App: Recargar aplicación
+Please confirm operation on your Ledger: Por favor, confirme la operación en su Ledger
+Decrypt: Descifrar
+Encrypted Message: Mensaje encriptado
+Encrypted message: Mensaje encriptado
+Message is encrypted.: El mensaje está encriptado.

@@ -12,7 +12,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import useLang from '../../hooks/useLang';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
-import LedgerConfirmTransaction from '../ledger/LedgerConfirmTransaction';
+import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
@@ -152,7 +152,8 @@ function DappTransactionModal({
         );
       case TransferState.ConfirmHardware:
         return (
-          <LedgerConfirmTransaction
+          <LedgerConfirmOperation
+            text={lang('Please confirm transaction on your Ledger')}
             error={error}
             onTryAgain={submitDappTransferHardware}
             onClose={cancelDappTransfer}

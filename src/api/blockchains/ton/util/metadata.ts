@@ -1,13 +1,15 @@
-import type { Address, DictionaryValue, Slice } from 'ton-core';
-import { Cell, Dictionary } from 'ton-core';
+import type { Address, DictionaryValue } from 'ton-core';
+import {
+  BitReader, BitString, Cell, Dictionary, Slice,
+} from 'ton-core';
 
 import type { ApiNetwork } from '../../../types';
-import type { JettonMetadata } from '../types';
+import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
 import { pick } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import { base64ToString, handleFetchErrors, sha256 } from '../../../common/utils';
-import { JettonOpCode } from '../constants';
+import { JettonOpCode, OpCode } from '../constants';
 import { getJettonMinterData } from './tonweb';
 
 const IPFS_GATEWAY_BASE_URL: string = 'https://ipfs.io/ipfs/';
@@ -168,4 +170,42 @@ async function fetchJsonMetadata(uri: string) {
   const response = await fetch(uri);
   handleFetchErrors(response);
   return response.json();
+}
+
+export function parseTransactionBody(transaction: ApiTransactionExtra): ApiTransactionExtra {
+  const body = transaction.extraData?.body;
+  if (!body) return transaction;
+
+  const payloadOffset = 13 * 8; // Wallet v3 or higher
+  const buffer = Buffer.from(body, 'base64');
+  let slice: Slice | undefined;
+
+  try {
+    slice = Cell.fromBoc(body)[0].beginParse();
+  } catch (err: any) {
+    if (err?.message !== 'Invalid magic') {
+      logDebugError('parseTransactionBody', err);
+      return transaction;
+    }
+  }
+
+  try {
+    if (!slice) {
+      slice = new Slice(new BitReader(new BitString(buffer, 0, buffer.length * 8)), []);
+    }
+
+    if (slice.remainingBits > payloadOffset + 32) {
+      slice.skip(payloadOffset);
+      const opCode = slice.loadUint(32);
+
+      if (opCode === OpCode.Encrypted) {
+        const encryptedComment = slice.loadBuffer(slice.remainingBits / 8).toString('base64');
+        transaction = { ...transaction, encryptedComment };
+      }
+    }
+  } catch (err) {
+    logDebugError('parseTransactionBody', err);
+  }
+
+  return transaction;
 }

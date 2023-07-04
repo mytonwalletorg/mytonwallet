@@ -116,10 +116,14 @@
 
   background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
+
+  &_two {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
 
 .account {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: relative;
 
@@ -151,6 +155,26 @@
     cursor: default;
 
     opacity: 1;
+  }
+
+  &_active {
+    opacity: 1;
+  }
+
+  .accounts_single & {
+    grid-column-start: 2;
+  }
+
+  .accounts_two & {
+    grid-column: span 2;
+
+    &:first-child {
+      grid-column-end: 4;
+    }
+
+    &:nth-child(2) {
+      grid-column-end: 6;
+    }
   }
 
   @media (min-resolution: 1.5dppx) {
@@ -225,6 +249,10 @@
     background: var(--color-blue) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjciIGZpbGw9Im5vbmUiPjxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNCIgZD0ibTEgMy41IDIgMkw3IDEiLz48L3N2Zz4=") no-repeat 50% 50%;
     /* stylelint-disable-next-line plugin/whole-pixel */
     box-shadow: inset 0 0 0 0.075rem var(--color-white);
+
+    .account_current & {
+      opacity: 0.5;
+    }
   }
 }
 
@@ -291,7 +319,7 @@
 }
 
 .payloadFieldExpand {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: absolute;
   top: 0;
@@ -329,7 +357,7 @@
 }
 
 .transactionRow {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   display: flex;
   align-items: center;

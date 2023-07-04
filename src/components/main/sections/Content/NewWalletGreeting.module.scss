@@ -48,7 +48,6 @@
 
   .emptyList & {
     font-size: 1.0625rem;
-    line-height: 1;
   }
 }
 
@@ -56,13 +55,11 @@
   margin-bottom: 0;
 
   font-size: 0.8125rem;
-  line-height: 1rem;
   color: var(--color-gray-2);
 
   .emptyList & {
     max-width: 28ch;
 
     font-size: 0.9375rem;
-    line-height: 1;
   }
 }

@@ -100,14 +100,18 @@
 }
 
 .qrIcon {
-  margin-inline-end: -0.125rem;
+  max-width: 1.75rem;
 }
 
-.tokenDropDown {
+.tokenDropdown {
   --offset-y-value: calc(100% - 3.25rem);
   --offset-x-value: 0;
 
   position: relative;
   top: 0.375rem;
   right: 0.375rem;
+}
+
+.invoiceComment {
+  margin: 0.25rem 0 1.25rem;
 }

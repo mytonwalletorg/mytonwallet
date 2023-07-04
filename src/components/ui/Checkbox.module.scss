@@ -1,5 +1,5 @@
 .wrapper {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: relative;
 

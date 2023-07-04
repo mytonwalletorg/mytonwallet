@@ -1,7 +1,7 @@
 import { useCallback, useState } from '../lib/teact/teact';
 
-const useFlag = (initial = false): [boolean, AnyToVoidFunction, AnyToVoidFunction] => {
-  const [value, setValue] = useState(initial);
+const useFlag = (initial = false, debugKey?: string): [boolean, NoneToVoidFunction, NoneToVoidFunction] => {
+  const [value, setValue] = useState(initial, debugKey);
 
   const setTrue = useCallback(() => {
     setValue(true);

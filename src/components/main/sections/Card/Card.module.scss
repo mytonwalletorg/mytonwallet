@@ -8,7 +8,7 @@
   position: relative;
 
   box-sizing: border-box;
-  width: calc(100% - 0.125rem);
+  width: 100%;
   min-width: 16rem;
   height: 0;
   margin: 0.75rem auto;
@@ -159,7 +159,7 @@
 }
 
 .address {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   width: auto;
   height: auto;
@@ -170,7 +170,6 @@
   font-weight: 600;
   line-height: 1;
   color: var(--color-card-second-text);
-  text-transform: none;
 
   background: transparent;
   border: none;
@@ -323,7 +322,7 @@
 }
 
 .apy {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   display: inline-block;
 
@@ -369,7 +368,7 @@
 
 .chart {
   touch-action: none;
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
   user-select: none;
 
   position: relative;
@@ -434,7 +433,7 @@
 }
 
 .periodItem {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: relative;
 
