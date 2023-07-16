@@ -8,7 +8,7 @@ import buildClassName from '../../util/buildClassName';
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
-import Dropdown from '../ui/Dropdown';
+import Dropdown from '../ui/DropDown';
 import Modal from '../ui/Modal';
 
 import styles from './Settings.module.scss';

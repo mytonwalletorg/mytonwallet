@@ -19,6 +19,7 @@ interface OwnProps {
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isRemoteTab?: boolean;
+  isInsideModal?:boolean;
   onConnected: NoneToVoidFunction;
   onCancel?: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
@@ -34,6 +35,8 @@ function LedgerConnect({
   onConnected,
   onCancel,
   onClose,
+  isInsideModal,
+
 }: OwnProps) {
   const {
     connectHardwareWallet,
@@ -154,7 +157,7 @@ function LedgerConnect({
   function renderConnect() {
     return (
       <>
-        <ModalHeader title={title} onClose={onClose} />
+       {isInsideModal? <ModalHeader title={title} onBackButtonClick={onClose} /> : <ModalHeader title={title} onClose={onClose} /> }
         <div className={styles.container}>
           <div
             className={buildClassName(

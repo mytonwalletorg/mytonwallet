@@ -23,6 +23,8 @@ import styles from './BackupModal.module.scss';
 type OwnProps = {
   isOpen?: boolean;
   onClose: () => void;
+  isInsideModal?: boolean;
+
 };
 
 type StateProps = {
@@ -37,10 +39,9 @@ enum SLIDES {
 }
 
 function BackupModal({
-  isOpen, currentAccountId, onClose,
+  isOpen, currentAccountId, onClose, isInsideModal=false,
 }: OwnProps & StateProps) {
   const { setIsBackupRequired } = getActions();
-
   const lang = useLang();
   const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.confirm);
   const [nextKey, setNextKey] = useState<number | undefined>(SLIDES.password);
@@ -110,13 +111,15 @@ function BackupModal({
             isActive={isActive}
             onSubmit={handleSafetyConfirm}
             onClose={onClose}
+            isInsideModal={isInsideModal}
           />
         );
 
       case SLIDES.password:
         return (
           <>
-            <ModalHeader title={lang('Enter Password')} onClose={onClose} />
+           {isInsideModal? <ModalHeader title={lang('Enter Password')} onBackButtonClick={onClose} />:            <ModalHeader title={lang('Enter Password')} onClose={onClose} />
+}
             <PasswordForm
               isActive={isActive}
               isLoading={isLoading}
@@ -137,6 +140,8 @@ function BackupModal({
             mnemonic={mnemonicRef.current}
             onNext={handleCheckMnemonic}
             onClose={onClose}
+            isInsideModal={isInsideModal}
+
           />
         );
 
@@ -157,6 +162,21 @@ function BackupModal({
   }
 
   return (
+    <>
+    {isInsideModal ?     
+    <div className={styles.wrapper}> 
+    <Transition
+          name="pushSlide"
+          className={buildClassName(modalStyles.transition, 'custom-scroll')}
+          slideClassName={modalStyles.transitionSlide}
+          activeKey={currentSlide}
+          nextKey={nextKey}
+      > 
+        
+                {renderContent}
+
+      </Transition>
+    </div>: 
     <Modal
       hasCloseButton
       isSlideUp
@@ -174,7 +194,9 @@ function BackupModal({
       >
         {renderContent}
       </Transition>
-    </Modal>
+    </Modal>}
+    </>
+    
   );
 }
 

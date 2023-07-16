@@ -34,6 +34,9 @@ import SettingsAssets from './SettingsAssets';
 import SettingsDapps from './SettingsDapps';
 import SettingsDeveloperOptions from './SettingsDeveloperOptions';
 import SettingsLanguage from './SettingsLanguage';
+import BackupModal from '../main/modals/BackupModal';
+import LedgerModal from '../ledger/LedgerModal';
+
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Settings.module.scss';
@@ -58,6 +61,8 @@ const enum RenderingState {
   Dapps,
   Language,
   About,
+  Backup,
+  Hardware,
 }
 
 type OwnProps = {
@@ -95,8 +100,6 @@ function Settings({
   isInsideModal,
 }: OwnProps & StateProps) {
   const {
-    openBackupWalletModal,
-    openHardwareWalletModal,
     closeSettings,
     toggleDeeplinkHook,
     toggleTonProxy,
@@ -110,7 +113,6 @@ function Settings({
 
   const [isDeveloperModalOpen, openDeveloperModal, closeDeveloperModal] = useFlag();
   const [isLogOutModalOpened, openLogOutModal, closeLogOutModal] = useFlag();
-
   const activeLang = useMemo(() => LANG_LIST.find((l) => l.langCode === langCode), [langCode]);
 
   const {
@@ -161,7 +163,9 @@ function Settings({
   }, [isTonMagicEnabled, toggleTonMagic]);
 
   function handleOpenBackupWallet() {
-    openBackupWalletModal();
+    setRenderingKey(RenderingState.Backup);
+
+    // openBackupWalletModal();
   }
 
   const handleLogOut = useCallback(() => {
@@ -174,7 +178,7 @@ function Settings({
   }, [closeLogOutModal]);
 
   function handleOpenHardwareModal() {
-    openHardwareWalletModal();
+    setRenderingKey(RenderingState.Hardware);
   }
 
   const handleMultipleClick = () => {
@@ -296,7 +300,7 @@ function Settings({
           </div>
 
           <div className={styles.block}>
-            <div className={styles.item} onClick={handleOpenBackupWallet}>
+            <div className={styles.item} onClick={() => handleOpenBackupWallet()}>
               <img className={styles.menuIcon} src={backupSecretImg} alt={lang('Back Up Secret Words')} />
               {lang('Back Up Secret Words')}
 
@@ -326,7 +330,6 @@ function Settings({
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
             </div>
           </div>
-
           <div className={styles.version} onClick={handleMultipleClick}>
             {APP_NAME} {APP_VERSION}
           </div>
@@ -373,6 +376,10 @@ function Settings({
         return <SettingsLanguage langCode={langCode} handleBackClick={handleBackClick} isInsideModal={isInsideModal} />;
       case RenderingState.About:
         return <SettingsAbout handleBackClick={handleBackClick} isInsideModal={isInsideModal} />;
+      case RenderingState.Backup:
+        return  <BackupModal onClose={handleBackClick} isInsideModal={isInsideModal}/>;
+      case RenderingState.Hardware:
+        return <LedgerModal  onClose={handleBackClick} isInsideModal={isInsideModal} />;
     }
   }
 

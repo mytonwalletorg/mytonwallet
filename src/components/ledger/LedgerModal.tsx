@@ -20,6 +20,7 @@ import styles from './LedgerModal.module.scss';
 type OwnProps = {
   isOpen?: boolean;
   onClose: () => void;
+  isInsideModal?:boolean;
 };
 
 type StateProps = {
@@ -46,6 +47,7 @@ function LedgerModal({
   isLedgerConnected,
   isTonAppConnected,
   isRemoteTab,
+  isInsideModal,
 }: OwnProps & StateProps) {
   const {
     resetHardwareWalletConnect,
@@ -78,6 +80,7 @@ function LedgerModal({
             isRemoteTab={isRemoteTab}
             onConnected={handleConnected}
             onClose={onClose}
+            isInsideModal
           />
         );
       case LedgerModalState.SelectWallets:
@@ -92,7 +95,18 @@ function LedgerModal({
   }
 
   return (
-    <Modal
+    <>
+    {isInsideModal ? <div className={styles.wrapper}>
+    <Transition
+        name="pushSlide"
+        className={buildClassName(modalStyles.transition, 'custom-scroll')}
+        slideClassName={modalStyles.transitionSlide}
+        activeKey={currentSlide}
+        nextKey={nextKey}
+      >
+        {renderContent}
+      </Transition>
+    </div>: <Modal
       hasCloseButton
       isSlideUp
       isOpen={isOpen}
@@ -109,7 +123,10 @@ function LedgerModal({
       >
         {renderContent}
       </Transition>
-    </Modal>
+    </Modal>}
+   
+    </>
+   
   );
 }
 

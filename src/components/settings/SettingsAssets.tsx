@@ -11,7 +11,7 @@ import useLang from '../../hooks/useLang';
 import useScrolledState from '../../hooks/useScrolledState';
 
 import Button from '../ui/Button';
-import Dropdown from '../ui/Dropdown';
+import Dropdown from '../ui/DropDown';
 import ModalHeader from '../ui/ModalHeader';
 import Switcher from '../ui/Switcher';
 import Tooltip from '../ui/Tooltip';
