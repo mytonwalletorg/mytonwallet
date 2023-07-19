@@ -169,19 +169,17 @@ function BackupModal({
     <>
       {isInsideModal
         ? (
-          <div className={styles.wrapper}>
-            <Transition
-              name="pushSlide"
-              className={buildClassName(modalStyles.transition, 'custom-scroll')}
-              slideClassName={modalStyles.transitionSlide}
-              activeKey={currentSlide}
-              nextKey={nextKey}
-            >
+          <Transition
+            name="pushSlide"
+            className={buildClassName(modalStyles.transition, 'custom-scroll')}
+            slideClassName={modalStyles.transitionSlide}
+            activeKey={currentSlide}
+            nextKey={nextKey}
+          >
 
-              {renderContent}
+            {renderContent}
 
-            </Transition>
-          </div>
+          </Transition>
         ) : (
           <Modal
             hasCloseButton
