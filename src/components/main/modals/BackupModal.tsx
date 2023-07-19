@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-useless-fragment */
 import React, {
   memo, useCallback, useEffect, useRef, useState,
 } from '../../../lib/teact/teact';
@@ -39,7 +40,7 @@ enum SLIDES {
 }
 
 function BackupModal({
-  isOpen, currentAccountId, onClose, isInsideModal=false,
+  isOpen, currentAccountId, onClose, isInsideModal = false,
 }: OwnProps & StateProps) {
   const { setIsBackupRequired } = getActions();
   const lang = useLang();
@@ -118,8 +119,11 @@ function BackupModal({
       case SLIDES.password:
         return (
           <>
-           {isInsideModal? <ModalHeader title={lang('Enter Password')} onBackButtonClick={onClose} />:            <ModalHeader title={lang('Enter Password')} onClose={onClose} />
-}
+            {isInsideModal ? (
+              <ModalHeader title={lang('Enter Password')} onBackButtonClick={onClose} />
+            ) : (
+              <ModalHeader title={lang('Enter Password')} onClose={onClose} />
+            )}
             <PasswordForm
               isActive={isActive}
               isLoading={isLoading}
@@ -163,40 +167,43 @@ function BackupModal({
 
   return (
     <>
-    {isInsideModal ?     
-    <div className={styles.wrapper}> 
-    <Transition
-          name="pushSlide"
-          className={buildClassName(modalStyles.transition, 'custom-scroll')}
-          slideClassName={modalStyles.transitionSlide}
-          activeKey={currentSlide}
-          nextKey={nextKey}
-      > 
-        
-                {renderContent}
+      {isInsideModal
+        ? (
+          <div className={styles.wrapper}>
+            <Transition
+              name="pushSlide"
+              className={buildClassName(modalStyles.transition, 'custom-scroll')}
+              slideClassName={modalStyles.transitionSlide}
+              activeKey={currentSlide}
+              nextKey={nextKey}
+            >
 
-      </Transition>
-    </div>: 
-    <Modal
-      hasCloseButton
-      isSlideUp
-      isOpen={isOpen}
-      onClose={onClose}
-      onCloseAnimationEnd={handleModalClose}
-      dialogClassName={styles.modalDialog}
-    >
-      <Transition
-        name="pushSlide"
-        className={buildClassName(modalStyles.transition, 'custom-scroll')}
-        slideClassName={modalStyles.transitionSlide}
-        activeKey={currentSlide}
-        nextKey={nextKey}
-      >
-        {renderContent}
-      </Transition>
-    </Modal>}
+              {renderContent}
+
+            </Transition>
+          </div>
+        ) : (
+          <Modal
+            hasCloseButton
+            isSlideUp
+            isOpen={isOpen}
+            onClose={onClose}
+            onCloseAnimationEnd={handleModalClose}
+            dialogClassName={styles.modalDialog}
+          >
+            <Transition
+              name="pushSlide"
+              className={buildClassName(modalStyles.transition, 'custom-scroll')}
+              slideClassName={modalStyles.transitionSlide}
+              activeKey={currentSlide}
+              nextKey={nextKey}
+            >
+              {renderContent}
+            </Transition>
+          </Modal>
+        )}
     </>
-    
+
   );
 }
 

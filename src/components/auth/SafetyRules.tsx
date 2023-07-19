@@ -22,7 +22,9 @@ type OwnProps = {
   isInsideModal?:boolean;
 };
 
-function SafetyRules({ isActive, onSubmit, onClose, isInsideModal}: OwnProps) {
+function SafetyRules({
+  isActive, onSubmit, onClose, isInsideModal,
+}: OwnProps) {
   const lang = useLang();
   const [writedownAccepted, setWritedownAccepted] = useState(false);
   const [openWalletAccepted, setOpenWalletAccepted] = useState(false);
@@ -39,8 +41,8 @@ function SafetyRules({ isActive, onSubmit, onClose, isInsideModal}: OwnProps) {
 
   return (
     <div className={modalStyles.transitionContentWrapper}>
-       {isInsideModal?     <ModalHeader title={lang('Safety Rules')} onBackButtonClick={onClose} />  : 
-        <ModalHeader title={lang('Safety Rules')} onClose={onClose} />}
+      {isInsideModal ? <ModalHeader title={lang('Safety Rules')} onBackButtonClick={onClose} />
+        : <ModalHeader title={lang('Safety Rules')} onClose={onClose} />}
       <div className={buildClassName(modalStyles.transitionContent, 'custom-scroll')}>
         <AnimatedIconWithPreview
           tgsUrl={ANIMATED_STICKERS_PATHS.bill}

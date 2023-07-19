@@ -104,8 +104,7 @@ function StakingInfoContent({
 
   function renderHistory() {
     return (
-      <div className={buildClassName(styles.history, isStatic && styles.history_static)}
-      >
+      <div className={buildClassName(styles.history, isStatic && styles.history_static)}>
         <div className={styles.historyTotal}>
           {lang('$total', {
             value: (

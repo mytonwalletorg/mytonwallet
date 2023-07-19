@@ -7,7 +7,7 @@ import useLang from '../../hooks/useLang';
 
 import Menu from './Menu';
 
-import styles from './Dropdown.module.scss';
+import styles from './DropDown.module.scss';
 
 export interface DropdownItem {
   value: string;

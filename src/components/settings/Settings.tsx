@@ -23,6 +23,8 @@ import useLang from '../../hooks/useLang';
 import useScrolledState from '../../hooks/useScrolledState';
 import useShowTransition from '../../hooks/useShowTransition';
 
+import LedgerModal from '../ledger/LedgerModal';
+import BackupModal from '../main/modals/BackupModal';
 import LogOutModal from '../main/modals/LogOutModal';
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
@@ -34,9 +36,6 @@ import SettingsAssets from './SettingsAssets';
 import SettingsDapps from './SettingsDapps';
 import SettingsDeveloperOptions from './SettingsDeveloperOptions';
 import SettingsLanguage from './SettingsLanguage';
-import BackupModal from '../main/modals/BackupModal';
-import LedgerModal from '../ledger/LedgerModal';
-
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Settings.module.scss';
@@ -377,9 +376,9 @@ function Settings({
       case RenderingState.About:
         return <SettingsAbout handleBackClick={handleBackClick} isInsideModal={isInsideModal} />;
       case RenderingState.Backup:
-        return  <BackupModal onClose={handleBackClick} isInsideModal={isInsideModal}/>;
+        return <BackupModal onClose={handleBackClick} isInsideModal={isInsideModal} />;
       case RenderingState.Hardware:
-        return <LedgerModal  onClose={handleBackClick} isInsideModal={isInsideModal} />;
+        return <LedgerModal onClose={handleBackClick} isInsideModal={isInsideModal} />;
     }
   }
 

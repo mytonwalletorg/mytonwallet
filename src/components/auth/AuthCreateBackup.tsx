@@ -74,7 +74,7 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
   function renderModalContent(isScreenActive: boolean, isFrom: boolean, currentScreenKey: number) {
     switch (currentScreenKey) {
       case BackupState.Accept:
-        return <SafetyRules  isActive={isScreenActive} onSubmit={handleMnemonicView} onClose={closeModal} />;
+        return <SafetyRules isActive={isScreenActive} onSubmit={handleMnemonicView} onClose={closeModal} />;
 
       case BackupState.View:
         return (
