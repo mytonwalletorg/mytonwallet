@@ -93,10 +93,9 @@ function LedgerModal({
         );
     }
   }
-
-  return (
-    <div>
-      {isInsideModal ? (
+  function renderHeader() {
+    return (
+      isInsideModal ? (
         <Transition
           name="pushSlide"
           className={buildClassName(modalStyles.transition, 'custom-scroll')}
@@ -125,9 +124,13 @@ function LedgerModal({
             {renderContent}
           </Transition>
         </Modal>
-      )}
-
-    </div>
+      )
+    );
+  }
+  return (
+    <>
+      {renderHeader()}
+    </>
 
   );
 }

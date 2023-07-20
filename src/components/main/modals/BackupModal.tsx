@@ -40,7 +40,7 @@ enum SLIDES {
 }
 
 function BackupModal({
-  isOpen, currentAccountId, onClose, isInsideModal = false,
+  isOpen, currentAccountId, onClose, isInsideModal,
 }: OwnProps & StateProps) {
   const { setIsBackupRequired } = getActions();
   const lang = useLang();
@@ -119,11 +119,11 @@ function BackupModal({
       case SLIDES.password:
         return (
           <>
-            {isInsideModal ? (
-              <ModalHeader title={lang('Enter Password')} onBackButtonClick={onClose} />
-            ) : (
-              <ModalHeader title={lang('Enter Password')} onClose={onClose} />
-            )}
+            <ModalHeader
+              title={lang('Enter Password')}
+              onBackButtonClick={isInsideModal ? onClose : undefined}
+              onClose={isInsideModal ? undefined : onClose}
+            />
             <PasswordForm
               isActive={isActive}
               isLoading={isLoading}
@@ -164,11 +164,27 @@ function BackupModal({
         );
     }
   }
-
-  return (
-    <>
-      {isInsideModal
-        ? (
+  function renderHeader() {
+    return (
+      isInsideModal ? (
+        <Transition
+          name="pushSlide"
+          className={buildClassName(modalStyles.transition, 'custom-scroll')}
+          slideClassName={modalStyles.transitionSlide}
+          activeKey={currentSlide}
+          nextKey={nextKey}
+        >
+          {renderContent}
+        </Transition>
+      ) : (
+        <Modal
+          hasCloseButton
+          isSlideUp
+          isOpen={isOpen}
+          onClose={onClose}
+          onCloseAnimationEnd={handleModalClose}
+          dialogClassName={styles.modalDialog}
+        >
           <Transition
             name="pushSlide"
             className={buildClassName(modalStyles.transition, 'custom-scroll')}
@@ -176,30 +192,15 @@ function BackupModal({
             activeKey={currentSlide}
             nextKey={nextKey}
           >
-
             {renderContent}
-
           </Transition>
-        ) : (
-          <Modal
-            hasCloseButton
-            isSlideUp
-            isOpen={isOpen}
-            onClose={onClose}
-            onCloseAnimationEnd={handleModalClose}
-            dialogClassName={styles.modalDialog}
-          >
-            <Transition
-              name="pushSlide"
-              className={buildClassName(modalStyles.transition, 'custom-scroll')}
-              slideClassName={modalStyles.transitionSlide}
-              activeKey={currentSlide}
-              nextKey={nextKey}
-            >
-              {renderContent}
-            </Transition>
-          </Modal>
-        )}
+        </Modal>
+      )
+    );
+  }
+  return (
+    <>
+      {renderHeader()}
     </>
 
   );

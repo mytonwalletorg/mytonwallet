@@ -163,8 +163,6 @@ function Settings({
 
   function handleOpenBackupWallet() {
     setRenderingKey(RenderingState.Backup);
-
-    // openBackupWalletModal();
   }
 
   const handleLogOut = useCallback(() => {

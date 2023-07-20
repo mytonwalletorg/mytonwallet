@@ -36,7 +36,6 @@ function LedgerConnect({
   onCancel,
   onClose,
   isInsideModal,
-
 }: OwnProps) {
   const {
     connectHardwareWallet,

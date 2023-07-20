@@ -25,8 +25,8 @@ import useShowTransition from '../../hooks/useShowTransition';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from '../ui/Button';
-import type { DropdownItem } from '../ui/DropDown';
-import Dropdown from '../ui/DropDown';
+import type { DropdownItem } from '../ui/Dropdown';
+import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import Menu from '../ui/Menu';
 import RichNumberInput from '../ui/RichNumberInput';

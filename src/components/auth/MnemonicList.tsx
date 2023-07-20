@@ -26,17 +26,11 @@ function MnemonicList({
 
   return (
     <div className={modalStyles.transitionContentWrapper}>
-      {isInsideModal ? (
-        <ModalHeader
-          title={lang('%1$d Secret Words', MNEMONIC_COUNT) as string}
-          onBackButtonClick={onClose}
-        />
-      ) : (
-        <ModalHeader
-          title={lang('%1$d Secret Words', MNEMONIC_COUNT) as string}
-          onClose={onClose}
-        />
-      )}
+      <ModalHeader
+        title={lang('%1$d Secret Words', MNEMONIC_COUNT) as string}
+        onBackButtonClick={isInsideModal ? onClose : undefined}
+        onClose={isInsideModal ? undefined : onClose}
+      />
       <div className={buildClassName(styles.mnemonicContainer, modalStyles.transitionContent, 'custom-scroll')}>
         <p className={buildClassName(styles.info, styles.small)}>
           {renderText(lang('$mnemonic_list_description'))}

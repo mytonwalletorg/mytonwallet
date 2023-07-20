@@ -16,8 +16,8 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
-import type { DropdownItem } from '../ui/DropDown';
-import Dropdown from '../ui/DropDown';
+import type { DropdownItem } from '../ui/Dropdown';
+import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import Modal from '../ui/Modal';
