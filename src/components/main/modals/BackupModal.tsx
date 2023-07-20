@@ -30,6 +30,8 @@ type OwnProps = {
 
 type StateProps = {
   currentAccountId?: string;
+  isInsideModal?: boolean;
+
 };
 
 enum SLIDES {

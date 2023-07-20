@@ -16,7 +16,7 @@ type OwnProps = {
   mnemonic?: string[];
   onClose: NoneToVoidFunction;
   onNext: NoneToVoidFunction;
-  isInsideModal: boolean;
+  isInsideModal?: boolean;
 };
 
 function MnemonicList({
