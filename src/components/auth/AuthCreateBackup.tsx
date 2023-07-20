@@ -82,7 +82,6 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
             mnemonic={mnemonic}
             onNext={handleShowMnemonicCheck}
             onClose={closeModal}
-            isInsideModal={false}
           />
         );
 

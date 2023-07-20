@@ -41,8 +41,11 @@ function SafetyRules({
 
   return (
     <div className={modalStyles.transitionContentWrapper}>
-      {isInsideModal ? <ModalHeader title={lang('Safety Rules')} onBackButtonClick={onClose} />
-        : <ModalHeader title={lang('Safety Rules')} onClose={onClose} />}
+      <ModalHeader
+        title={lang('Safety Rules')}
+        onBackButtonClick={isInsideModal ? onClose : undefined}
+        onClose={isInsideModal ? undefined : onClose}
+      />
       <div className={buildClassName(modalStyles.transitionContent, 'custom-scroll')}>
         <AnimatedIconWithPreview
           tgsUrl={ANIMATED_STICKERS_PATHS.bill}

@@ -18,7 +18,6 @@ interface OwnProps {
 }
 
 interface StateProps {
-  hasHistory?: boolean;
   isUnstakeRequested?: boolean;
 }
 
@@ -26,8 +25,6 @@ const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
 
 function StakingInfoModal({
   isOpen,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  hasHistory,
   isUnstakeRequested,
   onClose,
 }: OwnProps & StateProps) {
@@ -57,10 +54,8 @@ function StakingInfoModal({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
-  const hasHistory = Boolean(accountState?.stakingHistory?.profitHistory.length);
 
   return {
-    hasHistory,
     isUnstakeRequested: accountState?.isUnstakeRequested,
   };
 })(StakingInfoModal));

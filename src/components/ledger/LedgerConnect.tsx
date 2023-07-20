@@ -156,11 +156,11 @@ function LedgerConnect({
   function renderConnect() {
     return (
       <>
-        {
-          isInsideModal
-            ? <ModalHeader title={title} onBackButtonClick={onClose} />
-            : <ModalHeader title={title} onClose={onClose} />
-        }
+        <ModalHeader
+          title={title}
+          onBackButtonClick={isInsideModal ? onClose : undefined}
+          onClose={isInsideModal ? undefined : onClose}
+        />
         <div className={styles.container}>
           <div
             className={buildClassName(

@@ -25,13 +25,11 @@ type OwnProps = {
   isOpen?: boolean;
   onClose: () => void;
   isInsideModal?: boolean;
-
 };
 
 type StateProps = {
   currentAccountId?: string;
   isInsideModal?: boolean;
-
 };
 
 enum SLIDES {
@@ -147,7 +145,6 @@ function BackupModal({
             onNext={handleCheckMnemonic}
             onClose={onClose}
             isInsideModal={isInsideModal}
-
           />
         );
 
