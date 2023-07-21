@@ -163,44 +163,34 @@ function BackupModal({
         );
     }
   }
-  function renderHeader() {
+
+  function renderContentTransition() {
     return (
-      isInsideModal ? (
-        <Transition
-          name="pushSlide"
-          className={buildClassName(modalStyles.transition, 'custom-scroll')}
-          slideClassName={modalStyles.transitionSlide}
-          activeKey={currentSlide}
-          nextKey={nextKey}
-        >
-          {renderContent}
-        </Transition>
-      ) : (
-        <Modal
-          hasCloseButton
-          isSlideUp
-          isOpen={isOpen}
-          onClose={onClose}
-          onCloseAnimationEnd={handleModalClose}
-          dialogClassName={styles.modalDialog}
-        >
-          <Transition
-            name="pushSlide"
-            className={buildClassName(modalStyles.transition, 'custom-scroll')}
-            slideClassName={modalStyles.transitionSlide}
-            activeKey={currentSlide}
-            nextKey={nextKey}
-          >
-            {renderContent}
-          </Transition>
-        </Modal>
-      )
+      <Transition
+        name="pushSlide"
+        className={buildClassName(modalStyles.transition, 'custom-scroll')}
+        slideClassName={modalStyles.transitionSlide}
+        activeKey={currentSlide}
+        nextKey={nextKey}
+      >
+        {renderContent}
+      </Transition>
     );
   }
+  if (isInsideModal) {
+    return renderContentTransition();
+  }
   return (
-    <>
-      {renderHeader()}
-    </>
+    <Modal
+      hasCloseButton
+      isSlideUp
+      isOpen={isOpen}
+      onClose={onClose}
+      onCloseAnimationEnd={handleModalClose}
+      dialogClassName={styles.modalDialog}
+    >
+      {renderContentTransition()}
+    </Modal>
 
   );
 }
