@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?35eca8dcbc8d89cb2297f4c41a5ac33b") format("woff"),
-url("./brilliant-icons.woff2?35eca8dcbc8d89cb2297f4c41a5ac33b") format("woff2");
+    src: url("./brilliant-icons.woff?1ba3fca65beb9674413d8a7bf95c7abd") format("woff"),
+url("./brilliant-icons.woff2?1ba3fca65beb9674413d8a7bf95c7abd") format("woff2");
     font-weight: normal;
     font-style: normal;
 }
@@ -77,31 +77,31 @@ url("./brilliant-icons.woff2?35eca8dcbc8d89cb2297f4c41a5ac33b") format("woff2");
 .icon-lock::before {
     content: "\f115";
 }
-.icon-menu::before {
+.icon-paste::before {
     content: "\f116";
 }
-.icon-paste::before {
+.icon-pen::before {
     content: "\f117";
 }
-.icon-pen::before {
+.icon-percent::before {
     content: "\f118";
 }
-.icon-percent::before {
+.icon-plus::before {
     content: "\f119";
 }
-.icon-plus::before {
+.icon-qrcode::before {
     content: "\f11a";
 }
-.icon-qrcode::before {
+.icon-question::before {
     content: "\f11b";
 }
-.icon-question::before {
+.icon-receive-alt::before {
     content: "\f11c";
 }
-.icon-receive-alt::before {
+.icon-receive::before {
     content: "\f11d";
 }
-.icon-receive::before {
+.icon-search::before {
     content: "\f11e";
 }
 .icon-send-alt::before {
@@ -113,33 +113,36 @@ url("./brilliant-icons.woff2?35eca8dcbc8d89cb2297f4c41a5ac33b") format("woff2");
 .icon-share::before {
     content: "\f121";
 }
-.icon-star-filled::before {
+.icon-sort::before {
     content: "\f122";
 }
-.icon-star::before {
+.icon-star-filled::before {
     content: "\f123";
 }
-.icon-telegram::before {
+.icon-star::before {
     content: "\f124";
 }
-.icon-ton::before {
+.icon-telegram::before {
     content: "\f125";
 }
-.icon-tonscan::before {
+.icon-ton::before {
     content: "\f126";
 }
-.icon-trash::before {
+.icon-tonscan::before {
     content: "\f127";
 }
-.icon-update::before {
+.icon-trash::before {
     content: "\f128";
 }
-.icon-windows-close::before {
+.icon-update::before {
     content: "\f129";
 }
-.icon-windows-maximize::before {
+.icon-windows-close::before {
     content: "\f12a";
 }
-.icon-windows-minimize::before {
+.icon-windows-maximize::before {
     content: "\f12b";
+}
+.icon-windows-minimize::before {
+    content: "\f12c";
 }

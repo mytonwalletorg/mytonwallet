@@ -2,6 +2,7 @@ node_modules
 dist
 dist-electron
 MyTonWallet.zip
+MyTonWallet-firefox.zip
 .cache
 .env*
 !.env.example
@@ -10,7 +11,11 @@ MyTonWallet.zip
 *.iml
 dev/perf/screenshot*
 .DS_store
+.DS_Store
 test-results
+public/build-stats.json
+public/reference.json
+public/statoscope-report.html
 trash/
 coverage/
 src/i18n/en.json

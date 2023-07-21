@@ -64,6 +64,20 @@ function Assets({
     );
   }
 
+  function renderToken(token: UserToken) {
+    if (token.isDisabled) return undefined;
+
+    return (
+      <Token
+        key={token.slug}
+        token={token}
+        apyValue={!stakingBalance && token.slug === TON_TOKEN_SLUG ? apyValue : undefined}
+        isInvestorView={isInvestorViewEnabled}
+        onClick={onTokenClick}
+      />
+    );
+  }
+
   return (
     <div className={styles.wrapper}>
       {!tokens && (
@@ -73,16 +87,7 @@ function Assets({
       )}
       {shouldShowGreeting && <NewWalletGreeting isActive={isActive} mode="panel" />}
       {shouldRenderStakedToken && renderStakedToken()}
-      {tokens
-        && tokens.map((token) => (
-          <Token
-            key={token.slug}
-            token={token}
-            apyValue={!stakingBalance && token.slug === TON_TOKEN_SLUG ? apyValue : undefined}
-            isInvestorView={isInvestorViewEnabled}
-            onClick={onTokenClick}
-          />
-        ))}
+      {tokens && tokens.map(renderToken)}
     </div>
   );
 }

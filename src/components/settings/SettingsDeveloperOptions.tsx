@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import type { ApiNetwork } from '../../api/types';
 
@@ -6,6 +6,7 @@ import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
@@ -33,9 +34,9 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
   } = getActions();
   const lang = useLang();
 
-  const handleNetworkChange = useCallback((newNetwork: string) => {
+  const handleNetworkChange = useLastCallback((newNetwork: string) => {
     startChangingNetwork({ network: newNetwork as ApiNetwork });
-  }, [startChangingNetwork]);
+  });
 
   return (
     <Modal

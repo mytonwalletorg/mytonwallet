@@ -2,10 +2,9 @@ import { app, nativeImage } from 'electron';
 import contextMenu from 'electron-context-menu';
 import path from 'path';
 
-import { setupAutoUpdates } from './autoUpdates';
-import { initDeeplink, processDeeplink } from './deeplink';
+import { initDeeplink } from './deeplink';
 import { IS_MAC_OS } from './utils';
-import { createWindow, mainWindow, setupCloseHandlers } from './window';
+import { createWindow, setupCloseHandlers } from './window';
 
 import 'v8-compile-cache';
 
@@ -16,6 +15,7 @@ contextMenu({
   showLookUpSelection: false,
   showSearchWithGoogle: false,
   showCopyImage: false,
+  showSelectAll: true,
 });
 
 app.on('ready', () => {
@@ -25,10 +25,4 @@ app.on('ready', () => {
 
   createWindow();
   setupCloseHandlers();
-
-  mainWindow.webContents.once('dom-ready', () => {
-    mainWindow.show();
-    processDeeplink();
-    setupAutoUpdates();
-  });
 });

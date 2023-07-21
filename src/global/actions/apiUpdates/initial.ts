@@ -1,7 +1,11 @@
-import { addActionHandler, setGlobal } from '../../index';
+import { buildCollectionByKey } from '../../../util/iteratees';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
+  addNft,
+  removeNft,
   updateAccountState,
   updateBalance,
+  updateNft,
   updatePoolState,
   updateTokens,
 } from '../../reducers';
@@ -9,10 +13,8 @@ import {
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
     case 'updateBalance': {
-      const newGlobal = updateBalance(global, update.accountId, update.slug, update.balance);
-      if (newGlobal) {
-        setGlobal(newGlobal);
-      }
+      global = updateBalance(global, update.accountId, update.slug, update.balance);
+      setGlobal(global);
 
       break;
     }
@@ -34,10 +36,50 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
-    case 'updateTokens':
+    case 'updateTokens': {
       global = updateTokens(global, update.tokens, true);
       setGlobal(global);
 
       break;
+    }
+
+    case 'updateNfts': {
+      const { accountId } = update;
+      const nfts = buildCollectionByKey(update.nfts, 'address');
+      global = getGlobal();
+      global = updateAccountState(global, accountId, {
+        nfts: {
+          byAddress: nfts,
+          orderedAddresses: Object.keys(nfts),
+        },
+      });
+      setGlobal(global);
+      break;
+    }
+
+    case 'nftSent': {
+      const { accountId, nftAddress } = update;
+      global = removeNft(global, accountId, nftAddress);
+      setGlobal(global);
+      break;
+    }
+
+    case 'nftReceived': {
+      const { accountId, nft } = update;
+      global = addNft(global, accountId, nft);
+      setGlobal(global);
+      break;
+    }
+
+    case 'nftPutUpForSale': {
+      const { accountId, nftAddress } = update;
+      global = updateNft(global, accountId, nftAddress, {
+        isOnSale: true,
+      });
+      setGlobal(global);
+      break;
+    }
   }
+
+  actions.initTokensOrder();
 });

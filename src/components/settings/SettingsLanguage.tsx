@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import type { LangCode } from '../../global/types';
 
@@ -8,13 +8,14 @@ import buildClassName from '../../util/buildClassName';
 import { setLanguage } from '../../util/langProvider';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
 
 import styles from './Settings.module.scss';
 
-import checkmarkImg from '../../assets/settings/checkmark.svg';
+import checkmarkImg from '../../assets/settings/settings_checkmark.svg';
 
 interface OwnProps {
   langCode: LangCode;
@@ -32,11 +33,11 @@ function SettingsLanguage({
   } = getActions();
   const lang = useLang();
 
-  const handleLanguageChange = useCallback((newLangCode: LangCode) => {
+  const handleLanguageChange = useLastCallback((newLangCode: LangCode) => {
     void setLanguage(newLangCode, () => {
       changeLanguage({ langCode: newLangCode });
     });
-  }, [changeLanguage]);
+  });
 
   function renderLanguages() {
     return LANG_LIST.map(({ name, nativeName, langCode: lc }) => (

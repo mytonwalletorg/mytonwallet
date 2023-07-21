@@ -35,7 +35,7 @@
   background-color: var(--color-gray-4);
   border-radius: var(--border-radius-tiny);
 
-  transition: background-color 150ms ease-in;
+  transition: background-color 100ms ease-in;
 
   &::after {
     content: "";
@@ -51,7 +51,7 @@
     border: 0.125rem solid var(--color-gray-4);
     border-radius: 0.75rem;
 
-    transition: border-color 150ms ease-in, transform 150ms ease-in;
+    transition: border-color 100ms ease-in, transform 100ms ease-in;
 
     :global(html.animation-level-0) & {
       transition: none !important;

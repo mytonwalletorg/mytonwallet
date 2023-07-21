@@ -1,62 +1,43 @@
-import { Builder, Cell as TonCell } from 'ton-core';
+import { Cell as TonCell } from 'ton-core';
 import type { Method } from 'tonweb';
 import TonWeb from 'tonweb';
 import type { Cell } from 'tonweb/dist/types/boc/cell';
 import type { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
-import type { Transaction as RawTransaction } from 'tonapi-sdk-js/dist/models/Transaction';
 
-import {
-  ApiTransactionDraftError, ApiTransactionError,
-} from '../../types';
-import type { Storage } from '../../storages/types';
+import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
 import type {
-  ApiNetwork,
-  ApiParsedPayload,
-  ApiSignedTransfer,
-  ApiTransaction,
-  ApiTxIdBySlug,
+  ApiNetwork, ApiSignedTransfer, ApiTransaction, ApiTxIdBySlug,
 } from '../../types';
-import type {
-  ApiTransactionExtra, TonTransferParams,
-} from './types';
+import type { ApiTransactionExtra, TonTransferParams } from './types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
+import { compareTransactions } from '../../../util/compareTransactions';
 import { omit } from '../../../util/iteratees';
+import { isValidLedgerComment } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
-import { stringifyTxId } from './util';
+import { parseTxId } from './util';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
-import { parseTransactionBody, toBounceableAddress } from './util/metadata';
-import { fetchAccountTransactions, fetchNftItems } from './util/tonapiio';
+import { parseWalletTransactionBody } from './util/metadata';
 import { getTonClient, getTonWalletContract } from './util/tonCore';
-import { fetchNewestTxId, getWalletPublicKey, toBase64Address } from './util/tonweb';
+import {
+  fetchNewestTxId,
+  fetchTransactions,
+  getWalletPublicKey,
+  resolveTokenWalletAddress,
+  toBase64Address,
+} from './util/tonweb';
 import { fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey } from '../../common/accounts';
 import { getAddressInfo } from '../../common/addresses';
-import {
-  compareTransactions, updateTransactionMetadata,
-} from '../../common/helpers';
-import {
-  base64ToBytes, hexToBase64, isKnownStakingPool,
-} from '../../common/utils';
+import { updateTransactionMetadata } from '../../common/helpers';
+import { isKnownStakingPool } from '../../common/utils';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
-import {
-  ATTEMPTS,
-  JettonOpCode,
-  NftOpCode,
-  STAKE_COMMENT,
-  UNSTAKE_COMMENT,
-} from './constants';
+import { ATTEMPTS, STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
 import type { JettonWalletType } from './tokens';
 import {
-  buildTokenSlug,
-  buildTokenTransfer,
-  getTokenWalletBalance,
-  parseTokenTransaction,
-  resolveTokenBySlug,
-  resolveTokenMinterAddress,
-  resolveTokenWalletAddress,
+  buildTokenTransfer, getTokenWalletBalance, parseTokenTransaction, resolveTokenBySlug,
 } from './tokens';
 import {
   getWalletBalance, getWalletInfo, isWalletInitialized, pickAccountWallet,
@@ -86,8 +67,7 @@ const { Address, fromNano } = TonWeb.utils;
 const DEFAULT_FEE = '10966001';
 const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 60; // 60 sec.
 const GET_TRANSACTIONS_LIMIT = 50;
-const GET_TRANSACTIONS_MAX_LIMIT = 1000;
-const DATA_TEXT_PREFIX = [0, 0, 0, 0].toString();
+const GET_TRANSACTIONS_MAX_LIMIT = 100;
 const WAIT_SEQNO_TIMEOUT = 40000; // 40 sec.
 const WAIT_SEQNO_PAUSE = 5000; // 5 sec.
 
@@ -100,7 +80,6 @@ const lastTransfers: Record<ApiNetwork, Record<string, {
 };
 
 export async function checkTransactionDraft(
-  storage: Storage,
   accountId: string,
   tokenSlug: string,
   toAddress: string,
@@ -139,7 +118,7 @@ export async function checkTransactionDraft(
     return result;
   }
 
-  const wallet = await pickAccountWallet(storage, accountId);
+  const wallet = await pickAccountWallet(accountId);
   if (!wallet) {
     result.error = ApiTransactionDraftError.Unexpected;
     return result;
@@ -153,13 +132,21 @@ export async function checkTransactionDraft(
     }
   }
 
-  if (tokenSlug !== TON_TOKEN_SLUG) {
+  if (tokenSlug === TON_TOKEN_SLUG) {
+    const account = await fetchStoredAccount(accountId);
+    if (data && account?.ledger) {
+      if (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data)) {
+        result.error = ApiTransactionDraftError.UnsupportedHardwarePayload;
+        return result;
+      }
+    }
+  } else {
     if (data && typeof data !== 'string') {
       result.error = ApiTransactionDraftError.Unexpected;
       return result;
     }
 
-    const address = await fetchStoredAddress(storage, accountId);
+    const address = await fetchStoredAddress(accountId);
     const tokenAmount: string = amount;
     let tokenWallet: JettonWalletType;
     ({
@@ -191,7 +178,6 @@ export async function checkTransactionDraft(
 }
 
 export async function submitTransfer(
-  storage: Storage,
   accountId: string,
   password: string,
   tokenSlug: string,
@@ -205,9 +191,9 @@ export async function submitTransfer(
 
   try {
     const [wallet, fromAddress, keyPair] = await Promise.all([
-      pickAccountWallet(storage, accountId),
-      fetchStoredAddress(storage, accountId),
-      fetchKeyPair(storage, accountId, password),
+      pickAccountWallet(accountId),
+      fetchStoredAddress(accountId),
+      fetchKeyPair(accountId, password),
     ]);
     const { publicKey, secretKey } = keyPair!;
 
@@ -300,44 +286,40 @@ async function signTransaction(
   return { seqno, query };
 }
 
-export async function getAccountNewestTxId(storage: Storage, accountId: string) {
+export async function getAccountNewestTxId(accountId: string) {
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
 
   return fetchNewestTxId(network, address);
 }
 
 export async function getAccountTransactionSlice(
-  storage: Storage,
   accountId: string,
-  beforeTxId?: string,
-  afterTxId?: string,
+  fromTxId?: string,
+  toTxId?: string,
   limit?: number,
 ) {
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
 
-  const transactions = await getTransactionSlice(network, address, {
-    beforeTxId,
-    afterTxId,
-    limit,
-  });
+  let transactions = await fetchTransactions(
+    network, address, limit ?? GET_TRANSACTIONS_LIMIT, fromTxId, toTxId,
+  );
+
+  transactions = await Promise.all(
+    transactions.map((transaction) => parseWalletTransactionBody(network, transaction)),
+  );
 
   return transactions
-    .map(parseTransactionBody)
+    .map(updateTransactionType)
     .map(updateTransactionMetadata)
     .map(omitExtraData);
 }
 
-export async function getMergedTransactionSlice(
-  storage: Storage,
-  accountId: string,
-  lastTxIds: ApiTxIdBySlug,
-  limit: number,
-) {
+export async function getMergedTransactionSlice(accountId: string, lastTxIds: ApiTxIdBySlug, limit: number) {
   // eslint-disable-next-line prefer-const
   let { toncoin: lastTonTxId, ...tokenLastTxIds } = lastTxIds;
-  const tonTxs = await getAccountTransactionSlice(storage, accountId, lastTonTxId, undefined, limit);
+  const tonTxs = await getAccountTransactionSlice(accountId, lastTonTxId, undefined, limit);
 
   if (!tonTxs.length) {
     return [];
@@ -350,9 +332,8 @@ export async function getMergedTransactionSlice(
     if (lastTxId && parseTxId(lastTxId).lt < lastTonTxLt) {
       return [];
     }
-    return getTokenTransactionSlice(
-      storage, accountId, slug, lastTxId, lastTonTxId, GET_TRANSACTIONS_MAX_LIMIT,
-    );
+
+    return getTokenTransactionSlice(accountId, slug, lastTxId, lastTonTxId, GET_TRANSACTIONS_MAX_LIMIT);
   }));
 
   const allTxs = [...tonTxs, ...results.flat()];
@@ -362,28 +343,25 @@ export async function getMergedTransactionSlice(
 }
 
 export async function getTokenTransactionSlice(
-  storage: Storage,
   accountId: string,
   tokenSlug: string,
-  beforeTxId?: string,
-  afterTxId?: string,
+  fromTxId?: string,
+  toTxId?: string,
   limit?: number,
 ) {
   if (tokenSlug === TON_TOKEN_SLUG) {
-    return getAccountTransactionSlice(storage, accountId, beforeTxId, afterTxId, limit);
+    return getAccountTransactionSlice(accountId, fromTxId, toTxId, limit);
   }
 
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
 
   const minterAddress = resolveTokenBySlug(tokenSlug).minterAddress!;
   const tokenWalletAddress = await resolveTokenWalletAddress(network, address, minterAddress);
 
-  const transactions = await getTransactionSlice(network, tokenWalletAddress, {
-    beforeTxId,
-    afterTxId,
-    limit,
-  });
+  const transactions = await fetchTransactions(
+    network, tokenWalletAddress, limit ?? GET_TRANSACTIONS_LIMIT, fromTxId, toTxId,
+  );
 
   const parsedTxs = transactions
     .map((tx) => parseTokenTransaction(tx, tokenSlug, address))
@@ -394,78 +372,8 @@ export async function getTokenTransactionSlice(
   return parsedTxs.filter(Boolean);
 }
 
-export async function getTransactionSlice(network: ApiNetwork, address: string, options: {
-  beforeTxId?: string;
-  afterTxId?: string;
-  limit?: number;
-}): Promise<ApiTransactionExtra[]> {
-  const {
-    beforeTxId,
-    afterTxId,
-    limit = GET_TRANSACTIONS_LIMIT,
-  } = options || {};
-  const beforeLt = beforeTxId ? Number(parseTxId(beforeTxId).lt) : undefined;
-  const afterLt = afterTxId ? Number(parseTxId(afterTxId).lt) : undefined;
-
-  const rawTxs = await fetchAccountTransactions(
-    network,
-    address,
-    limit,
-    afterLt,
-    beforeLt,
-  );
-
-  return rawTxs.map(parseNestedApiTransactions).flat();
-}
-
 function omitExtraData(tx: ApiTransactionExtra): ApiTransaction {
   return omit(tx, ['extraData']);
-}
-
-function parseTxId(txId: string) {
-  const [lt, hash] = txId.split(':');
-  return { lt: Number(lt), hash };
-}
-
-function parseNestedApiTransactions(rawTx: RawTransaction): ApiTransactionExtra[] {
-  const isIncoming = Boolean(rawTx.inMsg?.source);
-  const msgs = isIncoming ? [rawTx.inMsg!] : rawTx.outMsgs;
-  if (!msgs[0]) {
-    return [];
-  }
-
-  const txId = stringifyTxId({
-    lt: rawTx.lt.toString(),
-    hash: hexToBase64(rawTx.hash),
-  });
-  const slug = TON_TOKEN_SLUG;
-  const timestamp = Number(rawTx.utime * 1000);
-  const fee = rawTx.fee.toString();
-
-  const transactions = msgs.map((msg, i) => {
-    const metadata = isIncoming ? {
-      isScam: msg.source?.isScam,
-      name: msg.source?.name,
-    } : {
-      isScam: msg.destination?.isScam,
-      name: msg.destination?.name,
-    };
-    return {
-      txId: msgs.length > 1 ? `${txId}:${i}` : txId,
-      timestamp,
-      isIncoming,
-      fromAddress: toBase64Address(msg.source!.address!),
-      toAddress: toBase64Address(msg.destination!.address!),
-      amount: isIncoming ? msg.value.toString() : `-${msg.value}`,
-      comment: parseComment(msg.msgData),
-      fee: i === 0 ? fee : '0',
-      slug,
-      metadata,
-      extraData: { body: msg.msgData },
-    } as ApiTransactionExtra;
-  });
-
-  return transactions.map(updateTransactionType);
 }
 
 function updateTransactionType(transaction: ApiTransactionExtra) {
@@ -490,29 +398,7 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
   return transaction;
 }
 
-function parseComment(msgData?: string) {
-  if (msgData) {
-    try {
-      const bytes = base64ToBytes(msgData);
-      const firstBytes = Array.from(bytes.slice(0, 4));
-      if (firstBytes.toString() === DATA_TEXT_PREFIX) {
-        return new TextDecoder('utf-8', {
-          fatal: true,
-          ignoreBOM: true,
-        }).decode(bytes.slice(4));
-      }
-    } catch (err) {
-      // do nothing
-    }
-  }
-  return undefined;
-}
-
-export async function checkMultiTransactionDraft(
-  storage: Storage,
-  accountId: string,
-  messages: TonTransferParams[],
-) {
+export async function checkMultiTransactionDraft(accountId: string, messages: TonTransferParams[]) {
   const { network } = parseAccountId(accountId);
 
   const result: {
@@ -535,7 +421,7 @@ export async function checkMultiTransactionDraft(
     totalAmount += BigInt(amount);
   }
 
-  const wallet = await pickAccountWallet(storage, accountId);
+  const wallet = await pickAccountWallet(accountId);
 
   if (!wallet) {
     result.error = ApiTransactionDraftError.Unexpected;
@@ -558,7 +444,6 @@ export async function checkMultiTransactionDraft(
 }
 
 export async function submitMultiTransfer(
-  storage: Storage,
   accountId: string,
   password: string,
   messages: TonTransferParams[],
@@ -568,9 +453,9 @@ export async function submitMultiTransfer(
 
   try {
     const [wallet, fromAddress, privateKey] = await Promise.all([
-      pickAccountWallet(storage, accountId),
-      fetchStoredAddress(storage, accountId),
-      fetchPrivateKey(storage, accountId, password),
+      pickAccountWallet(accountId),
+      fetchStoredAddress(accountId),
+      fetchPrivateKey(accountId, password),
     ]);
 
     let totalAmount = 0n;
@@ -697,107 +582,12 @@ async function calculateFee(isInitialized: boolean, query: Method | (() => Promi
   }
 }
 
-export async function parsePayload(network: ApiNetwork, toAddress: string, base64: string): Promise<ApiParsedPayload> {
-  try {
-    let slice = TonCell.fromBase64(base64).beginParse();
-    const opCode = slice.loadUint(32);
-
-    if (opCode === 0) {
-      const comment = slice.loadStringTail();
-      return {
-        type: 'comment',
-        comment,
-      };
-    }
-
-    const queryId = slice.loadUint(64).toString();
-
-    switch (opCode) {
-      case JettonOpCode.transfer: {
-        const minterAddress = await resolveTokenMinterAddress(network, toAddress);
-        const slug = buildTokenSlug(minterAddress);
-
-        const amount = slice.loadCoins();
-        const destination = slice.loadAddress();
-        const responseDestination = slice.loadMaybeAddress();
-
-        if (!responseDestination) {
-          return {
-            type: 'transfer-tokens:non-standard',
-            queryId,
-            destination: toBounceableAddress(destination),
-            amount: amount.toString(),
-            slug,
-          };
-        }
-
-        const customPayload = slice.loadMaybeRef();
-        const forwardAmount = slice.loadCoins();
-        let forwardPayload = slice.loadMaybeRef();
-        if (!forwardPayload && slice.remainingBits) {
-          forwardPayload = new Builder()
-            .storeBits(slice.loadBits(slice.remainingBits))
-            .endCell();
-          slice = forwardPayload.beginParse();
-        }
-
-        return {
-          type: 'transfer-tokens',
-          queryId,
-          amount: amount.toString(),
-          destination: toBounceableAddress(destination),
-          responseDestination: toBounceableAddress(responseDestination),
-          customPayload: customPayload?.toBoc().toString('base64'),
-          forwardAmount: forwardAmount.toString(),
-          forwardPayload: forwardPayload?.toBoc().toString('base64'),
-          slug,
-        };
-      }
-      case NftOpCode.transferOwnership: {
-        const newOwner = slice.loadAddress();
-        const responseDestination = slice.loadAddress();
-        const customPayload = slice.loadMaybeRef();
-        const forwardAmount = slice.loadCoins();
-
-        let forwardPayload = slice.loadMaybeRef();
-        if (!forwardPayload && slice.remainingBits) {
-          forwardPayload = new Builder()
-            .storeBits(slice.loadBits(slice.remainingBits))
-            .endCell();
-          slice = forwardPayload.beginParse();
-        }
-
-        const nftAddress = toAddress;
-        const [nft] = await fetchNftItems(network, [nftAddress]);
-        return {
-          type: 'transfer-nft',
-          queryId,
-          newOwner: toBounceableAddress(newOwner),
-          responseDestination: toBounceableAddress(responseDestination),
-          customPayload: customPayload?.toBoc().toString('base64'),
-          forwardAmount: forwardAmount.toString(),
-          forwardPayload: forwardPayload?.toBoc().toString('base64'),
-          nftAddress,
-          nftName: nft?.metadata?.name,
-        };
-      }
-    }
-  } catch (err) {
-    logDebugError('parseJettonWalletMsgBody', err);
-  }
-
-  return {
-    type: 'unknown',
-    base64,
-  };
-}
-
-export async function sendSignedMessage(storage: Storage, accountId: string, message: ApiSignedTransfer) {
+export async function sendSignedMessage(accountId: string, message: ApiSignedTransfer) {
   const { network } = parseAccountId(accountId);
   const [fromAddress, publicKey, account] = await Promise.all([
-    fetchStoredAddress(storage, accountId),
-    fetchStoredPublicKey(storage, accountId),
-    fetchStoredAccount(storage, accountId),
+    fetchStoredAddress(accountId),
+    fetchStoredPublicKey(accountId),
+    fetchStoredAccount(accountId),
   ]);
   const wallet = getTonWalletContract(publicKey!, account!.version!);
   const client = getTonClient(network);
@@ -809,12 +599,12 @@ export async function sendSignedMessage(storage: Storage, accountId: string, mes
   updateLastTransfer(network, fromAddress, seqno);
 }
 
-export async function sendSignedMessages(storage: Storage, accountId: string, messages: ApiSignedTransfer[]) {
+export async function sendSignedMessages(accountId: string, messages: ApiSignedTransfer[]) {
   const { network } = parseAccountId(accountId);
   const [fromAddress, publicKey, account] = await Promise.all([
-    fetchStoredAddress(storage, accountId),
-    fetchStoredPublicKey(storage, accountId),
-    fetchStoredAccount(storage, accountId),
+    fetchStoredAddress(accountId),
+    fetchStoredPublicKey(accountId),
+    fetchStoredAccount(accountId),
   ]);
   const wallet = getTonWalletContract(publicKey!, account!.version!);
   const client = getTonClient(network);
@@ -844,9 +634,13 @@ export async function sendSignedMessages(storage: Storage, accountId: string, me
 }
 
 export async function decryptComment(
-  storage: Storage, accountId: string, encryptedComment: string, fromAddress: string, password: string,
+  accountId: string, encryptedComment: string, fromAddress: string, password: string,
 ) {
-  const keyPair = (await fetchKeyPair(storage, accountId, password))!;
+  const keyPair = await fetchKeyPair(accountId, password);
+  if (!keyPair) {
+    return undefined;
+  }
+
   const { secretKey, publicKey } = keyPair;
 
   const buffer = Buffer.from(encryptedComment, 'base64');

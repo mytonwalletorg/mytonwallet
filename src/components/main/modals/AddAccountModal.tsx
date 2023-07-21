@@ -3,11 +3,12 @@ import React, { memo, useCallback, useState } from '../../../lib/teact/teact';
 import type { Account, HardwareConnectState } from '../../../global/types';
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, IS_LEDGER_SUPPORTED, MNEMONIC_COUNT } from '../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, MNEMONIC_COUNT } from '../../../config';
 import { getActions, withGlobal } from '../../../global';
 import renderText from '../../../global/helpers/renderText';
 import { selectFirstNonHardwareAccount, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
+import { IS_LEDGER_SUPPORTED } from '../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
 import useLang from '../../../hooks/useLang';

@@ -1,15 +1,16 @@
 import type { ApiTonConnectProof } from '../tonConnect/types';
 
+import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBackendStakingState,
-  ApiDapp,
   ApiDappTransaction,
+  ApiNft,
   ApiStakingState,
   ApiToken,
   ApiTransaction,
-  ApiTransactionDraftError,
 } from './misc';
 import type { ApiParsedPayload } from './payload';
+import type { ApiDapp } from './storage';
 
 export type ApiUpdateBalance = {
   type: 'updateBalance';
@@ -62,9 +63,9 @@ export type ApiUpdateTxComplete = {
   localTxId: string;
 };
 
-export type ApiUpdateShowTxDraftError = {
-  type: 'showTxDraftError';
-  error?: ApiTransactionDraftError;
+export type ApiUpdateShowError = {
+  type: 'showError';
+  error?: ApiAnyDisplayError;
 };
 
 export type ApiUpdateTonProxyState = {
@@ -133,10 +134,32 @@ export type ApiUpdatePrepareTransaction = {
   comment?: string;
 };
 
-export type ApiUpdateShowError = {
-  type: 'showError';
-  error: string;
+export type ApiUpdateNfts = {
+  type: 'updateNfts';
+  accountId: string;
+  nfts: ApiNft[];
 };
+
+export type ApiUpdateNftReceived = {
+  type: 'nftReceived';
+  accountId: string;
+  nftAddress: string;
+  nft: ApiNft;
+};
+
+export type ApiUpdateNftSent = {
+  type: 'nftSent';
+  accountId: string;
+  nftAddress: string;
+};
+
+export type ApiUpdateNftPutUpForSale = {
+  type: 'nftPutUpForSale';
+  accountId: string;
+  nftAddress: string;
+};
+
+export type ApiNftUpdate = ApiUpdateNftReceived | ApiUpdateNftSent | ApiUpdateNftPutUpForSale;
 
 export type ApiUpdate =
   ApiUpdateBalance
@@ -146,7 +169,7 @@ export type ApiUpdate =
   | ApiUpdateCreateTransaction
   | ApiUpdateCreateSignature
   | ApiUpdateTxComplete
-  | ApiUpdateShowTxDraftError
+  | ApiUpdateShowError
   | ApiUpdateTonProxyState
   | ApiUpdateTonMagicState
   | ApiUpdateDeeplinkHookState
@@ -157,6 +180,8 @@ export type ApiUpdate =
   | ApiUpdateDappDisconnect
   | ApiUpdateBackendStakingState
   | ApiUpdatePrepareTransaction
-  | ApiUpdateShowError;
+  | ApiUpdateShowError
+  | ApiUpdateNfts
+  | ApiNftUpdate;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

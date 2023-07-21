@@ -1,9 +1,9 @@
-import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
+import React, { memo, useMemo } from '../../../../lib/teact/teact';
 
 import type { ApiNft } from '../../../../api/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, GETGEMS_BASE_MAINNET_URL, GETGEMS_BASE_TESTNET_URL } from '../../../../config';
-import { getActions, withGlobal } from '../../../../global';
+import { withGlobal } from '../../../../global';
 import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -26,23 +26,16 @@ interface OwnProps {
 interface StateProps {
   orderedAddresses?: string[];
   byAddress?: Record<string, ApiNft>;
-  currentAccountId: string;
   isTestnet?: boolean;
 }
 
 function Nfts({
-  isActive, orderedAddresses, byAddress, currentAccountId, isTestnet,
+  isActive, orderedAddresses, byAddress, isTestnet,
 }: OwnProps & StateProps) {
-  const { fetchNfts } = getActions();
   const { isLandscape } = useDeviceScreen();
   const lang = useLang();
 
   const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
-
-  useEffect(() => {
-    // TODO Infinite Scroll
-    fetchNfts();
-  }, [fetchNfts, currentAccountId]);
 
   const nfts = useMemo(() => {
     if (!orderedAddresses || !byAddress) {
@@ -109,7 +102,6 @@ export default memo(
     return {
       orderedAddresses,
       byAddress,
-      currentAccountId: global.currentAccountId!,
       isTestnet: global.settings.isTestnet,
     };
   })(Nfts),

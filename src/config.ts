@@ -12,7 +12,7 @@ export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
 export const IS_TEST = process.env.APP_ENV === 'test';
 export const IS_PERF = process.env.APP_ENV === 'perf';
 export const IS_ELECTRON = process.env.IS_ELECTRON;
-export const IS_LEDGER_SUPPORTED = true;
+export const IS_SSE_SUPPORTED = IS_ELECTRON;
 
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
@@ -90,7 +90,8 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_AMOUNT = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-11';
+export const LANG_CACHE_NAME = 'mtw-lang-15';
+
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
   name: 'English',

@@ -1,4 +1,3 @@
-import type { Storage } from '../storages/types';
 import type {
   ApiSignedTransfer, ApiSubmitTransferOptions, ApiTxIdBySlug, OnApiUpdate,
 } from '../types';
@@ -9,29 +8,27 @@ import { fetchStoredAddress } from '../common/accounts';
 import { createLocalTransaction, resolveBlockchainKey } from '../common/helpers';
 
 let onUpdate: OnApiUpdate;
-let storage: Storage;
 
-export function initTransactions(_onUpdate: OnApiUpdate, _storage: Storage) {
+export function initTransactions(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
-  storage = _storage;
 }
 
 export function fetchTransactions(accountId: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.getAccountTransactionSlice(storage, accountId);
+  return blockchain.getAccountTransactionSlice(accountId);
 }
 
-export function fetchTokenTransactionSlice(accountId: string, slug: string, beforeTxId?: string, limit?: number) {
+export function fetchTokenTransactionSlice(accountId: string, slug: string, fromTxId?: string, limit?: number) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.getTokenTransactionSlice(storage, accountId, slug, beforeTxId, undefined, limit);
+  return blockchain.getTokenTransactionSlice(accountId, slug, fromTxId, undefined, limit);
 }
 
 export function fetchAllTransactionSlice(accountId: string, lastTxIds: ApiTxIdBySlug, limit: number) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.getMergedTransactionSlice(storage, accountId, lastTxIds, limit);
+  return blockchain.getMergedTransactionSlice(accountId, lastTxIds, limit);
 }
 
 export function checkTransactionDraft(
@@ -40,7 +37,7 @@ export function checkTransactionDraft(
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   return blockchain.checkTransactionDraft(
-    storage, accountId, slug, toAddress, amount, comment, undefined, shouldEncrypt,
+    accountId, slug, toAddress, amount, comment, undefined, shouldEncrypt,
   );
 }
 
@@ -50,9 +47,9 @@ export async function submitTransfer(options: ApiSubmitTransferOptions) {
   } = options;
 
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const fromAddress = await fetchStoredAddress(storage, accountId);
+  const fromAddress = await fetchStoredAddress(accountId);
   const result = await blockchain.submitTransfer(
-    storage, accountId, password, slug, toAddress, amount, comment, undefined, shouldEncrypt,
+    accountId, password, slug, toAddress, amount, comment, undefined, shouldEncrypt,
   );
 
   if ('error' in result) {
@@ -80,7 +77,7 @@ export async function waitLastTransfer(accountId: string) {
   const blockchain = blockchains.ton;
 
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
 
   return blockchain.waitLastTransfer(network, address);
 }
@@ -88,7 +85,7 @@ export async function waitLastTransfer(accountId: string) {
 export async function sendSignedTransferMessage(accountId: string, message: ApiSignedTransfer) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  await blockchain.sendSignedMessage(storage, accountId, message);
+  await blockchain.sendSignedMessage(accountId, message);
 
   const localTransaction = createLocalTransaction(onUpdate, accountId, message.params);
 
@@ -98,7 +95,7 @@ export async function sendSignedTransferMessage(accountId: string, message: ApiS
 export async function sendSignedTransferMessages(accountId: string, messages: ApiSignedTransfer[]) {
   const blockchain = blockchains.ton;
 
-  const result = await blockchain.sendSignedMessages(storage, accountId, messages);
+  const result = await blockchain.sendSignedMessages(accountId, messages);
 
   for (let i = 0; i < result.successNumber; i++) {
     createLocalTransaction(onUpdate, accountId, messages[i].params);
@@ -110,5 +107,5 @@ export async function sendSignedTransferMessages(accountId: string, messages: Ap
 export function decryptComment(accountId: string, encryptedComment: string, fromAddress: string, password: string) {
   const blockchain = blockchains.ton;
 
-  return blockchain.decryptComment(storage, accountId, encryptedComment, fromAddress, password);
+  return blockchain.decryptComment(accountId, encryptedComment, fromAddress, password);
 }

@@ -210,7 +210,7 @@ function DappConnectModal({
           submitLabel={lang('Connect')}
           onUpdate={clearDappConnectRequestError}
           onSubmit={handlePasswordSubmit}
-          cancelLabel="Cancel"
+          cancelLabel={lang('Cancel')}
           onCancel={handlePasswordCancel}
         />
       </>

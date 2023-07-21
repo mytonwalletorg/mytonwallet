@@ -1,7 +1,11 @@
+import extension from '../../lib/webextension-polyfill';
+
 import type { Storage } from './types';
 
+import { IS_EXTENSION } from '../environment';
+
 // eslint-disable-next-line no-restricted-globals
-const storage = self.chrome?.storage.local;
+const storage = IS_EXTENSION ? extension.storage.local : undefined;
 
 export default ((storage && {
   getItem: async (key) => (await storage.get(key))?.[key],

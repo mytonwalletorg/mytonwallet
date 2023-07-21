@@ -1,5 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
 import { CONNECT_EVENT_ERROR_CODES } from './types';
+import type { ApiAnyDisplayError } from '../types';
 import type { AllErrorCodes } from './types';
 
 import { ApiBaseError } from '../errors';
@@ -7,9 +8,10 @@ import { ApiBaseError } from '../errors';
 export class TonConnectError extends ApiBaseError {
   code: number;
 
-  constructor(message: string, code: AllErrorCodes = 0) {
+  constructor(message: string, code: AllErrorCodes = 0, displayError?: ApiAnyDisplayError) {
     super(message);
     this.code = code;
+    this.displayError = displayError;
   }
 }
 
@@ -26,8 +28,8 @@ export class UnknownError extends TonConnectError {
 }
 
 export class BadRequestError extends TonConnectError {
-  constructor(message = 'Bad request') {
-    super(message, 1);
+  constructor(message = 'Bad request', displayError?: ApiAnyDisplayError) {
+    super(message, 1, displayError);
   }
 }
 

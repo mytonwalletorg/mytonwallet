@@ -11,7 +11,7 @@ import switchTheme from '../../../util/switchTheme';
 import {
   IS_ANDROID, IS_EXTENSION,
   IS_IOS, IS_LINUX, IS_MAC_OS, IS_SAFARI,
-  IS_WINDOWS,
+  IS_WINDOWS, setPageSafeAreaProperty, setScrollbarWidthProperty,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import {
@@ -43,6 +43,9 @@ addActionHandler('init', (_, actions) => {
   if (IS_ELECTRON) {
     documentElement.classList.add('is-electron');
   }
+
+  setScrollbarWidthProperty();
+  setPageSafeAreaProperty();
 
   actions.afterInit();
 });
@@ -92,27 +95,7 @@ addActionHandler('selectToken', (global, actions, { slug } = {}) => {
   return updateCurrentAccountState(global, { currentTokenSlug: slug });
 });
 
-addActionHandler('showError', (global, actions, { error }) => {
-  switch (error) {
-    case ApiTransactionError.PartialTransactionFailure:
-      actions.showDialog({ message: 'Not all transactions were sent successfully' });
-      break;
-    case ApiTransactionError.IncorrectDeviceTime:
-      actions.showDialog({ message: 'The time on your device is incorrect, sync it and try again' });
-      break;
-    case ApiTransactionError.UnsuccesfulTransfer:
-      actions.showDialog({ message: 'Transfer was unsuccessful. Try again later' });
-      break;
-    case undefined:
-      actions.showDialog({ message: 'Unexpected' });
-      break;
-    default:
-      actions.showDialog({ message: error });
-      break;
-  }
-});
-
-addActionHandler('showTxDraftError', (global, actions, { error } = {}) => {
+addActionHandler('showError', (global, actions, { error } = {}) => {
   switch (error) {
     case ApiTransactionDraftError.InvalidAmount:
       actions.showDialog({ message: 'Invalid amount' });
@@ -136,8 +119,29 @@ addActionHandler('showTxDraftError', (global, actions, { error } = {}) => {
       });
       break;
 
+    case ApiTransactionError.PartialTransactionFailure:
+      actions.showDialog({ message: 'Not all transactions were sent successfully' });
+      break;
+
+    case ApiTransactionError.IncorrectDeviceTime:
+      actions.showDialog({ message: 'The time on your device is incorrect, sync it and try again' });
+      break;
+
+    case ApiTransactionError.UnsuccesfulTransfer:
+      actions.showDialog({ message: 'Transfer was unsuccessful. Try again later' });
+      break;
+
+    case ApiTransactionError.UnsupportedHardwarePayload:
+      actions.showDialog({ message: 'The hardware wallet does not support this data format' });
+      break;
+
+    case ApiTransactionError.Unexpected:
+    case undefined:
+      actions.showDialog({ message: 'Unexpected' });
+      break;
+
     default:
-      actions.showDialog({ message: 'Unexpected error' });
+      actions.showDialog({ message: error });
       break;
   }
 });

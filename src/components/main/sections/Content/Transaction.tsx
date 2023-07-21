@@ -86,7 +86,7 @@ function Transaction({
         )}
       >
         {encryptedComment && <i className={buildClassName(styles.commentIcon, 'icon-lock')} aria-hidden />}
-        {encryptedComment ? <i>{lang('Encrypted message')}</i> : comment}
+        {encryptedComment ? <i>{lang('Encrypted Message')}</i> : comment}
       </div>
     );
   }

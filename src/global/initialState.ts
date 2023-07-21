@@ -45,6 +45,8 @@ export const INITIAL_STATE: GlobalState = {
     canPlaySounds: true,
     langCode: USER_AGENT_LANG_CODE,
     dapps: [],
+    byAccountId: {},
+    areTokensWithNoPriceHidden: true,
   },
 
   byAccountId: {},

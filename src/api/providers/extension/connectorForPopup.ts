@@ -17,16 +17,19 @@ export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => Ap
   }
 }
 
-export function callApi<T extends keyof Methods>(methodName: T, ...args: MethodArgs<T>) {
+export async function callApi<T extends keyof Methods>(methodName: T, ...args: MethodArgs<T>) {
   if (!connector) {
     logDebugError('API is not initialized');
     return undefined;
   }
 
-  const promise = connector.request({
-    name: methodName,
-    args,
-  });
-
-  return promise as MethodResponse<T>;
+  try {
+    return await (connector.request({
+      name: methodName,
+      args,
+    }) as MethodResponse<T>);
+  } catch (err) {
+    logDebugError('callApi', err);
+    return undefined;
+  }
 }

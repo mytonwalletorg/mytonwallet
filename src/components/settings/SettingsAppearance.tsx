@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import type { AnimationLevel, Theme } from '../../global/types';
 
@@ -9,6 +9,7 @@ import switchAnimationLevel from '../../util/switchAnimationLevel';
 import switchTheme from '../../util/switchTheme';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
@@ -16,9 +17,9 @@ import Switcher from '../ui/Switcher';
 
 import styles from './Settings.module.scss';
 
-import darkThemeImg from '../../assets/theme/dark.png';
-import lightThemeImg from '../../assets/theme/light.png';
-import systemThemeImg from '../../assets/theme/system.png';
+import darkThemeImg from '../../assets/theme/theme_dark.png';
+import lightThemeImg from '../../assets/theme/theme_light.png';
+import systemThemeImg from '../../assets/theme/theme_system.png';
 
 interface OwnProps {
   theme: Theme;
@@ -58,24 +59,24 @@ function SettingsAppearance({
     icon: darkThemeImg,
   }];
 
-  const handleThemeChange = useCallback((newTheme: string) => {
+  const handleThemeChange = useLastCallback((newTheme: string) => {
     document.documentElement.classList.add('no-transitions');
     setTheme({ theme: newTheme as Theme });
     switchTheme(newTheme as Theme);
     setTimeout(() => {
       document.documentElement.classList.remove('no-transitions');
     }, SWITCH_THEME_DURATION_MS);
-  }, [setTheme]);
+  });
 
-  const handleAnimationLevelToggle = useCallback(() => {
+  const handleAnimationLevelToggle = useLastCallback(() => {
     const level = animationLevel === ANIMATION_LEVEL_MIN ? ANIMATION_LEVEL_MAX : ANIMATION_LEVEL_MIN;
     setAnimationLevel({ level });
     switchAnimationLevel(level);
-  }, [animationLevel, setAnimationLevel]);
+  });
 
-  const handleCanPlaySoundToggle = useCallback(() => {
+  const handleCanPlaySoundToggle = useLastCallback(() => {
     toggleCanPlaySounds({ isEnabled: !canPlaySounds });
-  }, [canPlaySounds, toggleCanPlaySounds]);
+  });
 
   function renderThemes() {
     return THEME_OPTIONS.map(({ name, value, icon }) => {

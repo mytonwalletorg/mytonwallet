@@ -1,3 +1,6 @@
+import type { Runtime } from 'webextension-polyfill';
+import extension from '../lib/webextension-polyfill';
+
 import generateUniqueId from './generateUniqueId';
 
 export interface CancellableCallback {
@@ -88,7 +91,7 @@ class ConnectorClass<T extends InputRequestTypes> {
   private requestStatesByCallback = new Map<AnyToVoidFunction, RequestStates>();
 
   constructor(
-    public target: Worker | Window | chrome.runtime.Port,
+    public target: Worker | Window | Runtime.Port,
     private onUpdate?: (update: ApiUpdate) => void,
     private channel?: string,
     private targetOrigin = '*',
@@ -229,7 +232,7 @@ export function createExtensionConnector(
 
   function connect() {
     // eslint-disable-next-line no-restricted-globals
-    const port = (self as any).chrome.runtime.connect({ name });
+    const port = extension.runtime.connect({ name });
 
     port.onMessage.addListener((data: WorkerMessageData) => {
       connector.onMessage(data);

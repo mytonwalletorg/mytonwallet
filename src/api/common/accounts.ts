@@ -1,22 +1,29 @@
-import type { Storage, StorageKey } from '../storages/types';
+import type { StorageKey } from '../storages/types';
 import type { ApiAccountInfo, ApiNetwork } from '../types';
 
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { buildCollectionByKey } from '../../util/iteratees';
+import { storage } from '../storages';
 import { toInternalAccountId } from './helpers';
 
 const MIN_ACCOUNT_NUMBER = 0;
 
-export async function getAccountIds(storage: Storage): Promise<string[]> {
+// eslint-disable-next-line import/no-mutable-exports
+export let loginResolve: AnyFunction;
+const loginPromise = new Promise<void>((resolve) => {
+  loginResolve = resolve;
+});
+
+export async function getAccountIds(): Promise<string[]> {
   return Object.keys(await storage.getItem('addresses') || {});
 }
 
-export async function getMainAccountId(storage: Storage) {
-  const accountIds = await getAccountIds(storage);
+export async function getMainAccountId() {
+  const accountIds = await getAccountIds();
 
   const accounts = await Promise.all(
     accountIds.map(async (accountId) => {
-      const info = await fetchStoredAccount(storage, accountId);
+      const info = await fetchStoredAccount(accountId);
       return {
         ...parseAccountId(accountId),
         accountId,
@@ -46,8 +53,8 @@ export async function getMainAccountId(storage: Storage) {
   return accountById[id].accountId;
 }
 
-export async function getNewAccountId(storage: Storage, network: ApiNetwork) {
-  const ids = (await getAccountIds(storage)).map((accountId) => parseAccountId(accountId).id);
+export async function getNewAccountId(network: ApiNetwork) {
+  const ids = (await getAccountIds()).map((accountId) => parseAccountId(accountId).id);
   const id = ids.length === 0 ? MIN_ACCOUNT_NUMBER : Math.max(...ids) + 1;
   return buildAccountId({
     id,
@@ -56,24 +63,24 @@ export async function getNewAccountId(storage: Storage, network: ApiNetwork) {
   });
 }
 
-export function fetchStoredAccount(storage: Storage, accountId: string): Promise<ApiAccountInfo | undefined> {
-  return getAccountValue(storage, accountId, 'accounts');
+export function fetchStoredAccount(accountId: string): Promise<ApiAccountInfo | undefined> {
+  return getAccountValue(accountId, 'accounts');
 }
 
-export function fetchStoredPublicKey(storage: Storage, accountId: string): Promise<string> {
-  return getAccountValue(storage, accountId, 'publicKeys');
+export function fetchStoredPublicKey(accountId: string): Promise<string> {
+  return getAccountValue(accountId, 'publicKeys');
 }
 
-export function fetchStoredAddress(storage: Storage, accountId: string): Promise<string> {
-  return getAccountValue(storage, accountId, 'addresses');
+export function fetchStoredAddress(accountId: string): Promise<string> {
+  return getAccountValue(accountId, 'addresses');
 }
 
-export async function getAccountValue(storage: Storage, accountId: string, key: StorageKey) {
+export async function getAccountValue(accountId: string, key: StorageKey) {
   const internalId = toInternalAccountId(accountId);
   return (await storage.getItem(key))?.[internalId];
 }
 
-export async function removeAccountValue(storage: Storage, accountId: string, key: StorageKey) {
+export async function removeAccountValue(accountId: string, key: StorageKey) {
   const internalId = toInternalAccountId(accountId);
   const data = await storage.getItem(key);
   if (!data) return;
@@ -82,8 +89,16 @@ export async function removeAccountValue(storage: Storage, accountId: string, ke
   await storage.setItem(key, restData);
 }
 
-export async function setAccountValue(storage: Storage, accountId: string, key: StorageKey, value: any) {
+export async function setAccountValue(accountId: string, key: StorageKey, value: any) {
   const internalId = toInternalAccountId(accountId);
   const data = await storage.getItem(key);
   await storage.setItem(key, { ...data, [internalId]: value });
+}
+
+export function getCurrentAccountId(): Promise<string | undefined> {
+  return storage.getItem('currentAccountId');
+}
+
+export function waitLogin() {
+  return loginPromise;
 }

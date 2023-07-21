@@ -1,4 +1,6 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
+
+import type { UserToken } from '../../global/types';
 
 import { CARD_SECONDARY_VALUE_SYMBOL, TINY_TRANSFER_MAX_AMOUNT } from '../../config';
 import { getActions } from '../../global';
@@ -8,6 +10,7 @@ import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 
 import Button from '../ui/Button';
@@ -15,14 +18,21 @@ import Dropdown from '../ui/Dropdown';
 import ModalHeader from '../ui/ModalHeader';
 import Switcher from '../ui/Switcher';
 import Tooltip from '../ui/Tooltip';
+import SettingsTokens from './SettingsTokens';
 
 import styles from './Settings.module.scss';
 
 interface OwnProps {
-  handleBackClick: () => void;
+  tokens?: UserToken[];
+  popularTokens?: UserToken[];
+  orderedSlugs?: string[];
   areTinyTransfersHidden?: boolean;
   isInvestorViewEnabled?: boolean;
+  areTokensWithNoBalanceHidden?: boolean;
+  areTokensWithNoPriceHidden?: boolean;
+  isSortByValueEnabled?: boolean;
   isInsideModal?: boolean;
+  handleBackClick: () => void;
 }
 
 const CURRENCY_OPTIONS = [{
@@ -31,14 +41,23 @@ const CURRENCY_OPTIONS = [{
 }];
 
 function SettingsAssets({
-  handleBackClick,
+  tokens,
+  popularTokens,
+  orderedSlugs,
   areTinyTransfersHidden,
   isInvestorViewEnabled,
+  areTokensWithNoBalanceHidden,
+  areTokensWithNoPriceHidden,
+  isSortByValueEnabled,
+  handleBackClick,
   isInsideModal,
 }: OwnProps) {
   const {
     toggleTinyTransfersHidden,
     toggleInvestorView,
+    toggleTokensWithNoBalance,
+    toggleTokensWithNoPrice,
+    toggleSortByValue,
   } = getActions();
   const lang = useLang();
 
@@ -50,13 +69,25 @@ function SettingsAssets({
     isAtBeginning: isContentNotScrolled,
   } = useScrolledState();
 
-  const handleTinyTransfersHiddenToggle = useCallback(() => {
+  const handleTinyTransfersHiddenToggle = useLastCallback(() => {
     toggleTinyTransfersHidden({ isEnabled: !areTinyTransfersHidden });
-  }, [areTinyTransfersHidden, toggleTinyTransfersHidden]);
+  });
 
-  const handleInvestorViewToggle = useCallback(() => {
+  const handleInvestorViewToggle = useLastCallback(() => {
     toggleInvestorView({ isEnabled: !isInvestorViewEnabled });
-  }, [isInvestorViewEnabled, toggleInvestorView]);
+  });
+
+  const handleTokensWithNoBalanceToggle = useLastCallback(() => {
+    toggleTokensWithNoBalance({ isEnabled: !areTokensWithNoBalanceHidden });
+  });
+
+  const handleTokensWithNoPriceToggle = useLastCallback(() => {
+    toggleTokensWithNoPrice({ isEnabled: !areTokensWithNoPriceHidden });
+  });
+
+  const handleSortByValueToggle = useLastCallback(() => {
+    toggleSortByValue({ isEnabled: !isSortByValueEnabled });
+  });
 
   return (
     <div className={styles.slide}>
@@ -139,6 +170,43 @@ function SettingsAssets({
             />
           </div>
         </div>
+        <p className={styles.blockTitle}>{lang('Tokens Settings')}</p>
+        <div className={styles.settingsBlock}>
+          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTokensWithNoBalanceToggle}>
+            {lang('Hide Tokens With No Balance')}
+
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Hide Tokens With No Balance')}
+              checked={areTokensWithNoBalanceHidden}
+            />
+          </div>
+          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTokensWithNoPriceToggle}>
+            {lang('Hide Tokens With No Price')}
+
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Hide Tokens With No Price')}
+              checked={areTokensWithNoPriceHidden}
+            />
+          </div>
+          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleSortByValueToggle}>
+            {lang('Sort By Value')}
+
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Sort By Value')}
+              checked={isSortByValueEnabled}
+            />
+          </div>
+        </div>
+
+        <SettingsTokens
+          tokens={tokens}
+          popularTokens={popularTokens}
+          orderedSlugs={orderedSlugs}
+          isSortByValueEnabled={isSortByValueEnabled}
+        />
       </div>
     </div>
   );

@@ -14,16 +14,6 @@ export interface AccountIdParsed {
   network: ApiNetwork;
 }
 
-export interface ApiAccountInfo {
-  version?: ApiWalletVersion;
-  ledger?: {
-    index: number;
-    driver: ApiLedgerDriver;
-    deviceId?: string;
-    deviceName?: string;
-  };
-}
-
 export interface ApiInitArgs {
   origin: string;
   newestTxId?: string;
@@ -36,8 +26,8 @@ export interface ApiBaseToken {
   decimals: number;
   minterAddress?: string;
   image?: string;
-  id?: number;
   isPopular?: boolean;
+  keywords?: string[];
 }
 
 export interface ApiToken extends ApiBaseToken {
@@ -83,30 +73,14 @@ export interface ApiTransaction {
 export interface ApiTransactionMetadata extends ApiAddressInfo {
 }
 
-export enum ApiTransactionDraftError {
-  InvalidAmount = 'InvalidAmount',
-  InvalidToAddress = 'InvalidToAddress',
-  InsufficientBalance = 'InsufficientBalance',
-  Unexpected = 'Unexpected',
-  DomainNotResolved = 'DomainNotResolved',
-  WalletNotInitialized = 'WalletNotInitialized',
-}
-
-export enum ApiTransactionError {
-  PartialTransactionFailure = 'PartialTransactionFailure',
-  IncorrectDeviceTime = 'IncorrectDeviceTime',
-  InsufficientBalance = 'InsufficientBalance',
-  UnsuccesfulTransfer = 'UnsuccesfulTransfer',
-}
-
 export interface ApiNft {
   index: number;
   name?: string;
   address: string;
   thumbnail: string;
   image: string;
-  collectionName: string;
-  collectionAddress: string;
+  collectionName?: string;
+  collectionAddress?: string;
   isOnSale: boolean;
 }
 
@@ -135,14 +109,6 @@ export interface ApiBackendStakingState {
     timestamp: number;
     profit: number;
   }[];
-}
-
-export interface ApiDapp {
-  origin: string;
-  url: string;
-  name: string;
-  iconUrl: string;
-  manifestUrl: string;
 }
 
 export interface ApiDappPermissions {

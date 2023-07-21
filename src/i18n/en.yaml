@@ -294,12 +294,20 @@ Disconnect Dapp: Disconnect Dapp
 Disconnect Dapps: Disconnect Dapps
 Are you sure you want to disconnect?: Are you sure you want to disconnect %dappname%?
 Are you sure you want to disconnect all websites?: Are you sure you want to disconnect all websites?
-$dapps-description: You can log in on dapps that support MyTonWallet. They can view wallet address and balance.
+$dapps-description: You can log in on dapps that support MyTonWallet. They can view wallet address, balance, and request operations.
 Logged in with MyTonWallet: Logged in with MyTonWallet
 No active connections: No active connections
 Unstaked successfully: Unstaked successfully
 Other: Other
 Assets & Activity: Assets & Activity
+Tokens Settings: Tokens Settings
+Your Tokens: Your Tokens
+Add Token: Add Token
+Delete Token: Delete Token
+Are you sure you want to delete?: Are you sure you want to delete %token%?
+Hide Tokens With No Balance: Hide Tokens With No Balance
+Hide Tokens With No Price: Hide Tokens With No Price
+Sort By Value: Sort By Value
 Update: Update
 Restart: Restart
 Update MyTonWallet: Update MyTonWallet
@@ -324,13 +332,19 @@ Switch to the newly opened tab to connect Ledger.: Switch to the newly opened ta
 Once connected, switch back to this window to proceed.: Once connected, switch back to this window to proceed.
 Not all transactions were sent successfully: Not all transactions were sent successfully
 The time on your device is incorrect, sync it and try again: The time on your device is incorrect, sync it and try again
+Name or Address...: Name or Address...
 Such error, many tabs: Such error, many tabs
 $many_tabs_error_description: |
   MyTonWallet supports only one active tab with the app.
   Please reload this page to continue using this tab or close it.
 Reload App: Reload App
 Please confirm operation on your Ledger: Please confirm operation on your Ledger
+Token Not Found: Token Not Found
+Try another keyword or address.: Try another keyword or address.
 Decrypt: Decrypt
 Encrypted Message: Encrypted Message
-Encrypted message: Encrypted message
 Message is encrypted.: Message is encrypted.
+$dapp_ledger_warning1: You are about to send a multi-way transaction using your **Ledger** wallet. You will need to sign each underlying transaction **one by one manually**.
+$dapp_ledger_warning2: Please take your time and do not interrupt the process.
+Agree: Agree
+The hardware wallet does not support this data format: The hardware wallet does not support this data format

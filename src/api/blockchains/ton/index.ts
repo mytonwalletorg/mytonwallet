@@ -8,7 +8,7 @@ export {
   validateMnemonic,
   verifyPassword,
 } from './auth';
-export { getAccountNfts } from './nfts';
+export { getAccountNfts, getNftUpdates } from './nfts';
 export { oneCellFromBoc } from './util/tonweb';
 export {
   checkTransactionDraft,
@@ -22,7 +22,6 @@ export {
   getMergedTransactionSlice,
   sendSignedMessage,
   sendSignedMessages,
-  parsePayload,
   decryptComment,
 } from './transactions';
 export {
@@ -51,6 +50,11 @@ export {
   getAccountTokenBalances,
   importToken,
   resolveTokenBySlug,
+} from './tokens';
+export {
   resolveTokenWalletAddress,
   resolveTokenMinterAddress,
-} from './tokens';
+} from './util/tonweb';
+export {
+  parsePayloadBase64,
+} from './util/metadata';

@@ -1,5 +1,6 @@
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
+  ApiAnyDisplayError,
   ApiBackendStakingState,
   ApiDapp,
   ApiDappPermissions,
@@ -12,7 +13,6 @@ import type {
   ApiPoolState,
   ApiToken,
   ApiTransaction,
-  ApiTransactionDraftError,
   ApiUpdate,
 } from '../api/types';
 import type { LedgerWalletInfo } from '../util/ledger/types';
@@ -62,13 +62,12 @@ export enum AuthState {
 
 export enum TransferState {
   None,
+  WarningHardware,
   Initial,
   Confirm,
   Password,
-
   ConnectHardware,
   ConfirmHardware,
-
   Complete,
 }
 
@@ -113,6 +112,8 @@ export type UserToken = {
   history24h?: ApiHistoryList;
   history7d?: ApiHistoryList;
   history30d?: ApiHistoryList;
+  isDisabled: boolean;
+  keywords?: string[];
 };
 
 export type TokenPeriod = '24h' | '7d' | '30d';
@@ -151,6 +152,12 @@ export interface AccountState {
   isUnstakeRequested?: boolean;
   poolState?: ApiPoolState;
   stakingHistory?: ApiBackendStakingState;
+}
+
+export interface AccountSettings {
+  orderedSlugs?: string[];
+  enabledSlugs?: string[];
+  disabledSlugs?: string[];
 }
 
 export type GlobalState = {
@@ -238,7 +245,7 @@ export type GlobalState = {
     error?: string;
   };
 
-  tokenInfo?: {
+  tokenInfo: {
     bySlug: Record<string, ApiToken>;
   };
 
@@ -249,6 +256,7 @@ export type GlobalState = {
     animationLevel: AnimationLevel;
     langCode: LangCode;
     dapps: ApiDapp[];
+    byAccountId: Record<string, AccountSettings>;
     areTinyTransfersHidden?: boolean;
     canPlaySounds?: boolean;
     isInvestorViewEnabled?: boolean;
@@ -257,6 +265,13 @@ export type GlobalState = {
     isDeeplinkHookEnabled?: boolean;
     isTestnet?: boolean;
     isSecurityWarningHidden?: boolean;
+    areTokensWithNoBalanceHidden?: boolean;
+    areTokensWithNoPriceHidden: boolean;
+    isSortByValueEnabled?: boolean;
+    importToken?: {
+      isLoading?: boolean;
+      token?: UserToken;
+    };
   };
 
   dialogs: string[];
@@ -325,8 +340,7 @@ export interface ActionPayloads {
   cancelTransfer: undefined;
   showDialog: { message: string };
   dismissDialog: undefined;
-  showError: { error?: string };
-  showTxDraftError: { error?: ApiTransactionDraftError } | undefined;
+  showError: { error?: ApiAnyDisplayError | string };
   showNotification: { message: string; icon?: string };
   dismissNotification: undefined;
   initLedgerPage: undefined;
@@ -385,6 +399,17 @@ export interface ActionPayloads {
   changeNetwork: { network: ApiNetwork };
   changeLanguage: { langCode: LangCode };
   closeSecurityWarning: undefined;
+  toggleTokensWithNoBalance: { isEnabled: boolean };
+  toggleTokensWithNoPrice: { isEnabled: boolean };
+  toggleSortByValue: { isEnabled: boolean };
+  initTokensOrder: undefined;
+  sortTokens: { orderedSlugs: string[] };
+  updateDisabledSlugs: undefined;
+  toggleDisabledToken: { slug: string };
+  addToken: { token: UserToken };
+  deleteToken: { slug: string };
+  importToken: { address: string };
+  resetImportToken: undefined;
 
   // TON Connect
   submitDappConnectRequestConfirm: { additionalAccountIds: string[]; password?: string };

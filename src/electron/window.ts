@@ -6,9 +6,11 @@ import path from 'path';
 
 import { ElectronAction } from './types';
 
-import { IS_MAC_OS } from './utils';
-
-export let mainWindow: BrowserWindow; // eslint-disable-line import/no-mutable-exports
+import { setupAutoUpdates } from './autoUpdates';
+import { processDeeplink } from './deeplink';
+import {
+  forceQuit, IS_MAC_OS, mainWindow, setMainWindow,
+} from './utils';
 
 const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://'];
 
@@ -18,7 +20,7 @@ export function createWindow() {
     defaultHeight: 788,
   });
 
-  mainWindow = new BrowserWindow({
+  const window = new BrowserWindow({
     show: false,
     x: windowState.x,
     y: windowState.y,
@@ -36,6 +38,8 @@ export function createWindow() {
       trafficLightPosition: { x: 19, y: 17 },
     }),
   });
+
+  setMainWindow(window);
 
   mainWindow.on('page-title-updated', (event: Event) => {
     event.preventDefault();
@@ -76,15 +80,20 @@ export function createWindow() {
       }
     }
   });
+
+  mainWindow.webContents.once('dom-ready', () => {
+    mainWindow.show();
+    processDeeplink();
+    setupAutoUpdates();
+  });
 }
 
-let forceQuit = false;
 export function setupCloseHandlers() {
   mainWindow.on('close', (event: Event) => {
     if (IS_MAC_OS) {
-      if (forceQuit) {
+      if (forceQuit.isEnabled) {
         app.exit(0);
-        forceQuit = false;
+        forceQuit.disable();
       } else {
         event.preventDefault();
         mainWindow.hide();
@@ -99,9 +108,9 @@ export function setupCloseHandlers() {
   });
 
   app.on('before-quit', (event: Event) => {
-    if (IS_MAC_OS && !forceQuit) {
+    if (IS_MAC_OS && !forceQuit.isEnabled) {
       event.preventDefault();
-      forceQuit = true;
+      forceQuit.enable();
       app.quit();
     }
   });
@@ -114,14 +123,10 @@ export function setupCloseHandlers() {
     }
 
     if (IS_MAC_OS && hasActiveWindow) {
-      forceQuit = false;
+      forceQuit.disable();
       mainWindow.show();
     }
   });
-}
-
-export function setForceQuit() {
-  forceQuit = true;
 }
 
 function setupWindowsTitleBar() {

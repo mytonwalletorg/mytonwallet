@@ -165,3 +165,13 @@ export function updateHardware(global: GlobalState, hardwareUpdate: Partial<Glob
     },
   } as GlobalState;
 }
+
+export function updateSettings(global: GlobalState, settingsUpdate: Partial<GlobalState['settings']>) {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      ...settingsUpdate,
+    },
+  } as GlobalState;
+}

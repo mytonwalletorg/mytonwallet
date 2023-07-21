@@ -1,9 +1,11 @@
 import type { ApiNetwork, ApiTxIdBySlug } from '../../api/types';
-import type { Account, GlobalState, UserToken } from '../types';
+import type {
+  Account, AccountSettings, GlobalState, UserToken,
+} from '../types';
 
 import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../config';
 import { parseAccountId } from '../../util/account';
-import { findLast, mapValues } from '../../util/iteratees';
+import { findLast, mapValues, unique } from '../../util/iteratees';
 import memoized from '../../util/memoized';
 import { round } from '../../util/round';
 import { bigStrToHuman, getIsTxIdLocal } from '../helpers';
@@ -12,40 +14,49 @@ export function selectHasSession(global: GlobalState) {
   return Boolean(global.currentAccountId);
 }
 
-export const selectAccountTokensMemoized = memoized(
-  (balancesBySlug: Record<string, string>, tokenInfo: Exclude<GlobalState['tokenInfo'], undefined>) => {
-    return Object.entries(balancesBySlug)
-      .filter(([slug]) => slug in tokenInfo.bySlug)
-      .map(([slug, balance]) => {
-        const {
-          symbol,
-          name,
-          image,
-          decimals,
-          quote: {
-            price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
-          },
-        } = tokenInfo.bySlug[slug];
-        const amount = bigStrToHuman(balance, decimals);
+export const selectAccountTokensMemoized = memoized((
+  balancesBySlug: Record<string, string>,
+  tokenInfo: GlobalState['tokenInfo'],
+  accountSettings: AccountSettings,
+) => {
+  return Object
+    .entries(balancesBySlug)
+    .filter(([slug]) => (slug in tokenInfo.bySlug))
+    .sort(([slugA], [slugB]) => {
+      if (!accountSettings.orderedSlugs) {
+        return 1;
+      }
+      const indexA = accountSettings.orderedSlugs.indexOf(slugA);
+      const indexB = accountSettings.orderedSlugs.indexOf(slugB);
+      return indexA - indexB;
+    })
+    .map(([slug, balance]) => {
+      const {
+        symbol, name, image, decimals, quote: {
+          price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
+        },
+      } = tokenInfo.bySlug[slug];
+      const isDisabled = accountSettings.disabledSlugs?.includes(slug);
+      const amount = bigStrToHuman(balance, decimals);
 
-        return {
-          symbol,
-          slug,
-          amount,
-          name,
-          image,
-          price,
-          decimals,
-          change24h: round(percentChange24h / 100, 4),
-          change7d: round(percentChange7d / 100, 4),
-          change30d: round(percentChange30d / 100, 4),
-          history24h,
-          history7d,
-          history30d,
-        } as UserToken;
-      });
-  },
-);
+      return {
+        symbol,
+        slug,
+        amount,
+        name,
+        image,
+        price,
+        decimals,
+        change24h: round(percentChange24h / 100, 4),
+        change7d: round(percentChange7d / 100, 4),
+        change30d: round(percentChange30d / 100, 4),
+        history24h,
+        history7d,
+        history30d,
+        isDisabled,
+      } as UserToken;
+    });
+});
 
 export function selectCurrentAccountTokens(global: GlobalState) {
   const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;
@@ -53,7 +64,53 @@ export function selectCurrentAccountTokens(global: GlobalState) {
     return undefined;
   }
 
-  return selectAccountTokensMemoized(balancesBySlug, global.tokenInfo);
+  const accountSettings = selectAccountSettings(global, global.currentAccountId!) ?? {};
+
+  return selectAccountTokensMemoized(balancesBySlug, global.tokenInfo, accountSettings);
+}
+
+export const selectPopularTokensMemoized = memoized((
+  balancesBySlug: Record<string, string>,
+  tokenInfo: GlobalState['tokenInfo'],
+) => {
+  return Object.entries(tokenInfo.bySlug)
+    .filter(([, token]) => token.isPopular)
+    .filter(([slug]) => !(slug in balancesBySlug))
+    .map(([slug]) => {
+      const {
+        symbol, name, image, decimals, keywords, quote: {
+          price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
+        },
+      } = tokenInfo.bySlug[slug];
+      const amount = bigStrToHuman('0', decimals);
+
+      return {
+        symbol,
+        slug,
+        amount,
+        name,
+        image,
+        price,
+        decimals,
+        change24h: round(percentChange24h / 100, 4),
+        change7d: round(percentChange7d / 100, 4),
+        change30d: round(percentChange30d / 100, 4),
+        history24h,
+        history7d,
+        history30d,
+        isDisabled: false,
+        keywords,
+      } as UserToken;
+    });
+});
+
+export function selectPopularTokensWithoutAccountTokens(global: GlobalState) {
+  const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;
+  if (!balancesBySlug || !global.tokenInfo) {
+    return undefined;
+  }
+
+  return selectPopularTokensMemoized(balancesBySlug, global.tokenInfo);
 }
 
 export function selectIsNewWallet(global: GlobalState) {
@@ -123,4 +180,39 @@ export function selectLastTxIds(global: GlobalState, accountId: string): ApiTxId
   return mapValues(txIdsBySlug, (tokenTxIds) => {
     return findLast(tokenTxIds, (txId) => !getIsTxIdLocal(txId));
   });
+}
+
+export function selectAccountSettings(global: GlobalState, accountId: string): AccountSettings | undefined {
+  return global.settings.byAccountId[accountId];
+}
+
+export function selectDisabledSlugs(
+  global: GlobalState,
+  areTokensWithNoBalanceHidden = false,
+  areTokensWithNoPriceHidden = false,
+): string[] {
+  const accountId = global.currentAccountId!;
+  const tokens = selectCurrentAccountTokens(global) ?? [];
+  const { enabledSlugs = [], disabledSlugs = [] } = selectAccountSettings(global, accountId) ?? {};
+
+  const newDisabledSlugs = tokens
+    .filter(({ slug }) => !enabledSlugs.includes(slug))
+    .filter(({ amount, price }) => {
+      if (areTokensWithNoBalanceHidden && areTokensWithNoPriceHidden) {
+        return amount === 0 || price === 0;
+      } else if (areTokensWithNoBalanceHidden) {
+        return amount === 0;
+      } else if (areTokensWithNoPriceHidden) {
+        return price === 0;
+      }
+      return false;
+    }).map(({ slug }) => slug);
+
+  return unique([...disabledSlugs, ...newDisabledSlugs]);
+}
+
+export function selectIsHardwareAccount(global: GlobalState) {
+  const state = selectAccount(global, global.currentAccountId!);
+
+  return state?.isHardware;
 }

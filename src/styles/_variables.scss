@@ -18,6 +18,7 @@
   --color-background-second: #F1F5FA;
   --color-background-window: #F1F5FA;
   --color-background-drop-down: #FFFFFF;
+  --color-background-drop-down-search: #F1F5FA;
   --color-background-purple-1: #F9FAFE;
   --color-background-purple-2: #DCDEFF;
 
@@ -154,6 +155,7 @@
   --border-radius-big: 1.5rem;
 
   --scrollbar-width: 0;
+  --safe-area-bottom-value: env(safe-area-inset-bottom);
 
   --z-below: -1;
   --z-modal: 100;
@@ -187,6 +189,7 @@
     --color-background-second: #191E23;
     --color-background-window: #191E23;
     --color-background-drop-down: #273241;
+    --color-background-drop-down-search: #1E2732;
     --color-background-purple-1: #222B37;
     --color-background-purple-2: #2A314A;
 

@@ -111,7 +111,7 @@ function SignatureModal({
           submitLabel={lang('Sign')}
           onUpdate={clearSignatureError}
           onSubmit={handlePasswordSubmit}
-          cancelLabel="Cancel"
+          cancelLabel={lang('Cancel')}
           onCancel={closeModal}
         />
       </>

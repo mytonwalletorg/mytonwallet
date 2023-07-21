@@ -1,4 +1,3 @@
-import type { Storage } from '../storages/types';
 import type { ApiBackendStakingState, OnApiUpdate } from '../types';
 
 import { TON_TOKEN_SLUG } from '../../config';
@@ -8,30 +7,28 @@ import { fetchStoredAddress } from '../common/accounts';
 import { createLocalTransaction, resolveBlockchainKey } from '../common/helpers';
 
 let onUpdate: OnApiUpdate;
-let storage: Storage;
 
-export function initStaking(_onUpdate: OnApiUpdate, _storage: Storage) {
+export function initStaking(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
-  storage = _storage;
 }
 
 export function checkStakeDraft(accountId: string, amount: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.checkStakeDraft(storage, accountId, amount);
+  return blockchain.checkStakeDraft(accountId, amount);
 }
 
 export function checkUnstakeDraft(accountId: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.checkUnstakeDraft(storage, accountId);
+  return blockchain.checkUnstakeDraft(accountId);
 }
 
 export async function submitStake(accountId: string, password: string, amount: string, fee?: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const fromAddress = await fetchStoredAddress(storage, accountId);
+  const fromAddress = await fetchStoredAddress(accountId);
 
-  const result = await blockchain.submitStake(storage, accountId, password, amount);
+  const result = await blockchain.submitStake(accountId, password, amount);
   if ('error' in result) {
     return false;
   }
@@ -54,9 +51,9 @@ export async function submitStake(accountId: string, password: string, amount: s
 
 export async function submitUnstake(accountId: string, password: string, fee?: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const toAddress = await fetchStoredAddress(storage, accountId);
+  const toAddress = await fetchStoredAddress(accountId);
 
-  const result = await blockchain.submitUnstake(storage, accountId, password);
+  const result = await blockchain.submitUnstake(accountId, password);
   if ('error' in result) {
     return false;
   }
@@ -80,11 +77,11 @@ export async function submitUnstake(accountId: string, password: string, fee?: s
 export function getStakingState(accountId: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.getStakingState(storage, accountId);
+  return blockchain.getStakingState(accountId);
 }
 
 export async function getBackendStakingState(accountId: string): Promise<ApiBackendStakingState | undefined> {
-  const state = await blockchains.ton.getBackendStakingState(storage, accountId);
+  const state = await blockchains.ton.getBackendStakingState(accountId);
   if (!state) {
     return state;
   }

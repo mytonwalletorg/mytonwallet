@@ -29,7 +29,7 @@ import { parseAccountId } from '../account';
 import { range } from '../iteratees';
 import { logDebugError } from '../logs';
 import { pause } from '../schedulers';
-import { isAscii } from '../stringFormat';
+import { isValidLedgerComment } from './utils';
 
 const CHAIN = 0; // workchain === -1 ? 255 : 0;
 const VERSION = 'v4R2';
@@ -37,7 +37,6 @@ const ACCOUNTS_PAGE = 9;
 const ATTEMPTS = 10;
 const PAUSE = 125;
 const IS_BOUNCEABLE = false;
-const MAX_COMMENT_SIZE = 120;
 
 let transport: TransportWebHID | undefined;
 let tonTransport: TonTransport | undefined;
@@ -139,16 +138,10 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
       network, slug, fromAddress!, toAddress, amount, comment,
     ));
   } else if (comment) {
-    if (isAscii(comment) && comment.length <= MAX_COMMENT_SIZE) {
+    if (isValidLedgerComment(comment)) {
       payload = { type: 'comment', text: comment };
     } else {
-      payload = {
-        type: 'unsafe',
-        message: new Builder()
-          .storeUint(0, 32)
-          .storeStringTail(comment)
-          .asCell(),
-      };
+      throw Error('Unsupported format');
     }
   }
 
@@ -242,7 +235,7 @@ export async function signLedgerTransactions(
 
   const preparedOptions = messages.map((message, index) => {
     const {
-      toAddress, amount, payload, rawPayload,
+      toAddress, amount, payload,
     } = message;
 
     let ledgerPayload: TonPayloadFormat | undefined;
@@ -250,13 +243,10 @@ export async function signLedgerTransactions(
     switch (payload?.type) {
       case 'comment': {
         const { comment } = payload;
-        if (isAscii(comment) && comment.length <= MAX_COMMENT_SIZE) {
+        if (isValidLedgerComment(comment)) {
           ledgerPayload = { type: 'comment', text: payload.comment };
         } else {
-          ledgerPayload = {
-            type: 'unsafe',
-            message: Cell.fromBase64(rawPayload!),
-          };
+          throw Error('Unsupported format');
         }
         break;
       }
@@ -314,10 +304,7 @@ export async function signLedgerTransactions(
       }
       case 'unknown':
       default: {
-        ledgerPayload = {
-          type: 'unsafe',
-          message: Cell.fromBase64(rawPayload!),
-        };
+        throw Error('Unsupported format');
       }
     }
 

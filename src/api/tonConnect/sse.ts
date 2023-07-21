@@ -1,0 +1,202 @@
+import type {
+  AppRequest,
+  ConnectEvent,
+  ConnectRequest,
+  DeviceInfo,
+  RpcRequests,
+} from '@tonconnect/protocol';
+import nacl, { randomBytes } from 'tweetnacl';
+
+import type { ApiSseOptions } from '../types';
+
+import { buildAccountId, parseAccountId } from '../../util/account';
+import { extractKey } from '../../util/iteratees';
+import { logDebug } from '../../util/logs';
+import { waitLogin } from '../common/accounts';
+import { bytesToHex, handleFetchErrors } from '../common/utils';
+import { getActiveAccountId } from '../methods/accounts';
+import {
+  getDappsState,
+  getSseLastEventId,
+  setSseLastEventId,
+  updateDapp,
+} from '../methods/dapps';
+import * as tonConnect from './index';
+
+type SseDapp = {
+  accountId: string;
+  origin: string;
+} & ApiSseOptions;
+
+const BRIDGE_URL = 'https://tonconnectbridge.mytonwallet.org/bridge';
+const TTL_SEC = 300;
+const NONCE_SIZE = 24;
+
+let sseEventSource: EventSource | undefined;
+let sseDapps: SseDapp[] = [];
+
+export async function startSseConnection(url: string, deviceInfo: DeviceInfo) {
+  await waitLogin();
+
+  const params = new URL(url).searchParams;
+
+  const version = Number(params.get('v') as string);
+  const appClientId = params.get('id') as string;
+  const request = JSON.parse(params.get('r') as string) as ConnectRequest;
+  const ret = params.get('ret') as 'back' | 'none' | string | null;
+  const origin = new URL(request.manifestUrl).origin;
+
+  logDebug('SSE Start connection:', {
+    version, appClientId, request, ret, origin,
+  });
+
+  const lastOutputId = 0;
+  const accountId = getActiveAccountId()!;
+  const result = await tonConnect.connect({ origin }, request, lastOutputId) as ConnectEvent;
+  if (result.event === 'connect') {
+    result.payload.device = deviceInfo;
+  }
+
+  const { secretKey: secretKeyArray, publicKey: publicKeyArray } = nacl.box.keyPair();
+  const secretKey = bytesToHex(secretKeyArray);
+  const clientId = bytesToHex(publicKeyArray);
+
+  await sendMessage(result, secretKey, clientId, appClientId);
+
+  if (result.event === 'connect_error') {
+    return;
+  }
+
+  await updateDapp(accountId, origin, (dapp) => ({
+    ...dapp,
+    sse: {
+      clientId,
+      appClientId,
+      secretKey,
+      lastOutputId,
+    },
+  }));
+
+  void resetupSseConnection();
+}
+
+export async function resetupSseConnection() {
+  closeEventSource();
+
+  const [lastEventId, dappsState] = await Promise.all([
+    getSseLastEventId(),
+    getDappsState(),
+  ]);
+
+  if (!dappsState) {
+    return;
+  }
+
+  sseDapps = Object.entries(dappsState).reduce((result, [internalAccountId, dapps]) => {
+    const accountId = buildAccountId(parseAccountId(internalAccountId)); // TODO Issue #471
+    for (const dapp of Object.values(dapps)) {
+      result.push({ ...dapp.sse!, accountId, origin: dapp.origin });
+    }
+    return result;
+  }, [] as SseDapp[]);
+
+  const clientIds = extractKey(sseDapps, 'clientId');
+  if (!clientIds.length) {
+    return;
+  }
+
+  sseEventSource = openEventSource(clientIds, lastEventId);
+  sseEventSource.onmessage = async (event) => {
+    const { from, message: encryptedMessage } = JSON.parse(event.data);
+
+    const sseDapp = sseDapps.find(({ appClientId }) => appClientId === from);
+    if (!sseDapp) return;
+
+    const {
+      accountId, clientId, appClientId, secretKey, origin,
+    } = sseDapp;
+    const message = decryptMessage(encryptedMessage, appClientId, secretKey) as AppRequest<keyof RpcRequests>;
+
+    logDebug('SSE Event:', message);
+
+    await setSseLastEventId(event.lastEventId);
+
+    // @ts-ignore
+    const result = await tonConnect[message.method]({ origin, accountId }, message);
+
+    await sendMessage(result, secretKey, clientId, appClientId);
+  };
+}
+
+export async function sendSseDisconnect(accountId: string, origin: string) {
+  const sseDapp = sseDapps.find((dapp) => dapp.origin === origin && dapp.accountId === accountId);
+  if (!sseDapp) return;
+
+  const { secretKey, clientId, appClientId } = sseDapp;
+  const lastOutputId = sseDapp.lastOutputId + 1;
+
+  await sendMessage({
+    event: 'disconnect',
+    id: lastOutputId,
+    payload: {},
+  }, secretKey, clientId, appClientId);
+}
+
+function sendMessage(
+  message: AnyLiteral, secretKey: string, clientId: string, toId: string, topic?: 'signTransaction' | 'signData',
+) {
+  const buffer = Buffer.from(JSON.stringify(message));
+  const encryptedMessage = encryptMessage(buffer, toId, secretKey);
+  return sendRawMessage(encryptedMessage, clientId, toId, topic);
+}
+
+async function sendRawMessage(body: string, clientId: string, toId: string, topic?: 'signTransaction' | 'signData') {
+  const url = new URL(`${BRIDGE_URL}/message`);
+  url.searchParams.set('client_id', clientId);
+  url.searchParams.set('to', toId);
+  url.searchParams.set('ttl', TTL_SEC.toString());
+  if (topic) {
+    url.searchParams.set('topic', topic);
+  }
+
+  const response = await fetch(url, { method: 'POST', body });
+  handleFetchErrors(response);
+}
+
+function closeEventSource() {
+  if (!sseEventSource) return;
+
+  sseEventSource.close();
+  sseEventSource = undefined;
+}
+
+function openEventSource(clientIds: string[], lastEventId?: string) {
+  const url = new URL(`${BRIDGE_URL}/events`);
+  url.searchParams.set('client_id', clientIds.join(','));
+  if (lastEventId) {
+    url.searchParams.set('last_event_id', lastEventId);
+  }
+  return new EventSource(url);
+}
+
+function encryptMessage(message: Uint8Array, publicKey: string, secretKey: string) {
+  const nonce = randomBytes(NONCE_SIZE);
+  const encrypted = nacl.box(
+    message, nonce, Buffer.from(publicKey, 'hex'), Buffer.from(secretKey, 'hex'),
+  );
+  return Buffer.concat([nonce, encrypted]).toString('base64');
+}
+
+function decryptMessage(message: string, publicKey: string, secretKey: string) {
+  const fullBuffer = Buffer.from(message, 'base64');
+  const nonce = fullBuffer.subarray(0, NONCE_SIZE);
+  const encrypted = fullBuffer.subarray(NONCE_SIZE);
+  const decrypted = nacl.box.open(
+    encrypted,
+    nonce,
+    Buffer.from(publicKey, 'hex'),
+    Buffer.from(secretKey, 'hex'),
+  );
+  const jsonText = new TextDecoder('utf-8').decode(decrypted!);
+  return JSON.parse(jsonText);
+}

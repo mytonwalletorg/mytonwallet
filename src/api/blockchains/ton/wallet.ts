@@ -1,15 +1,26 @@
 import type { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
 
-import type { Storage } from '../../storages/types';
 import type { ApiNetwork, ApiWalletVersion } from '../../types';
 
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
+import withCacheAsync from '../../../util/withCacheAsync';
 import { getTonWeb, toBase64Address } from './util/tonweb';
 import { fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey } from '../../common/accounts';
 import { bytesToBase64, hexToBytes } from '../../common/utils';
 
 const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
+
+export const isWalletInitialized = withCacheAsync(
+  async (network: ApiNetwork, walletOrAddress: WalletContract | string) => {
+    return (await getWalletInfo(network, walletOrAddress)).isInitialized;
+  },
+);
+
+export const isActiveSmartContract = withCacheAsync(async (network: ApiNetwork, address: string) => {
+  const { isInitialized, isWallet } = await getWalletInfo(network, address);
+  return isInitialized && !isWallet;
+});
 
 export async function publicKeyToAddress(
   network: ApiNetwork,
@@ -30,6 +41,7 @@ export function buildWallet(network: ApiNetwork, publicKey: Uint8Array, walletVe
 
 export async function getWalletInfo(network: ApiNetwork, walletOrAddress: WalletContract | string): Promise<{
   isInitialized: boolean;
+  isWallet: boolean;
   seqno: number;
   balance: string;
 }> {
@@ -39,6 +51,7 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: Wallet
 
   const {
     account_state: accountState,
+    wallet: isWallet,
     seqno,
     balance = '0',
   } = await getTonWeb(network).provider.getWalletInfo(address);
@@ -46,14 +59,15 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: Wallet
 
   return {
     isInitialized,
+    isWallet,
     seqno,
     balance,
   };
 }
 
-export async function getAccountBalance(storage: Storage, accountId: string) {
+export async function getAccountBalance(accountId: string) {
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
 
   return getWalletBalance(network, address);
 }
@@ -69,10 +83,6 @@ export async function getWalletBalance(
 export async function getWalletSeqno(network: ApiNetwork, walletOrAddress: WalletContract | string): Promise<number> {
   const { seqno } = await getWalletInfo(network, walletOrAddress);
   return seqno || 0;
-}
-
-export async function isWalletInitialized(network: ApiNetwork, walletOrAddress: WalletContract | string) {
-  return (await getWalletInfo(network, walletOrAddress)).isInitialized;
 }
 
 export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array) {
@@ -98,8 +108,8 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
   return withBiggestBalance?.wallet || buildWallet(network, publicKey, DEFAULT_WALLET_VERSION);
 }
 
-export async function getWalletStateInit(storage: Storage, accountId: string) {
-  const wallet = await pickAccountWallet(storage, accountId);
+export async function getWalletStateInit(accountId: string) {
+  const wallet = await pickAccountWallet(accountId);
   const { stateInit } = await wallet!.createStateInit();
   return bytesToBase64(await stateInit.toBoc());
 }
@@ -123,13 +133,13 @@ export async function pickWalletByAddress(network: ApiNetwork, publicKey: Uint8A
 }
 
 // TODO Cache
-export async function pickAccountWallet(storage: Storage, accountId: string) {
+export async function pickAccountWallet(accountId: string) {
   const { network } = parseAccountId(accountId);
 
   const [publicKeyHex, address, account] = await Promise.all([
-    fetchStoredPublicKey(storage, accountId),
-    fetchStoredAddress(storage, accountId),
-    fetchStoredAccount(storage, accountId),
+    fetchStoredPublicKey(accountId),
+    fetchStoredAddress(accountId),
+    fetchStoredAccount(accountId),
   ]);
 
   const publicKey = hexToBytes(publicKeyHex);

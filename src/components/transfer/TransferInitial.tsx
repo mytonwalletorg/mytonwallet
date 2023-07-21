@@ -12,6 +12,7 @@ import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../glo
 import buildClassName from '../../util/buildClassName';
 import dns from '../../util/dns';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
+import { getIsAddressValid } from '../../util/getIsAddressValid';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
@@ -52,12 +53,10 @@ interface StateProps {
   onCommentChange?: NoneToVoidFunction;
 }
 
-const TON_ADDRESS_REGEX = /^[-\w_]{48}$/i;
-const TON_RAW_ADDRESS_REGEX = /^0:[\da-h]{64}$/i;
 const COMMENT_MAX_SIZE_BYTES = 121; // Value derived empirically
 const SHORT_ADDRESS_SHIFT = 14;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
-const COMMENT_DROPDOWN_ITEMS = [{ value: 'raw', name: 'Comment' }, { value: 'encrypted', name: 'Encrypted message' }];
+const COMMENT_DROPDOWN_ITEMS = [{ value: 'raw', name: 'Comment' }, { value: 'encrypted', name: 'Encrypted Message' }];
 
 // Fee may change, so we add 5% for more reliability. This is only safe for low-fee blockchains such as TON.
 const RESERVED_FEE_FACTOR = 1.05;
@@ -197,7 +196,7 @@ function TransferInitial({
   useEffect(() => {
     return window.electron?.on(ElectronEvent.DEEPLINK, (params: any) => {
       setToAddress(params.to);
-      setAmount(params.amount);
+      setAmount(bigStrToHuman(params.amount));
       setComment(params.text);
     });
   }, []);
@@ -544,12 +543,6 @@ function trimStringByMaxBytes(str: string, maxBytes: number) {
   const encoded = new TextEncoder().encode(str);
 
   return decoder.decode(encoded.slice(0, maxBytes)).replace(/\uFFFD/g, '');
-}
-
-function getIsAddressValid(address?: string) {
-  return (
-    address && (TON_ADDRESS_REGEX.test(address) || TON_RAW_ADDRESS_REGEX.test(address) || dns.isDnsDomain(address))
-  );
 }
 
 function renderSavedAddress(

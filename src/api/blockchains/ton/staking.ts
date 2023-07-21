@@ -4,20 +4,20 @@ import BN from 'bn.js';
 import {
   ApiTransactionDraftError,
 } from '../../types';
-import type { Storage } from '../../storages/types';
 import type {
   ApiBackendStakingState,
   ApiNetwork,
   ApiStakingState,
 } from '../../types';
 
-import { BRILLIANT_API_BASE_URL, TON_TOKEN_SLUG } from '../../../config';
+import { TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import memoized from '../../../util/memoized';
 import { getTonWeb } from './util/tonweb';
 import { NominatorPool } from './contracts/NominatorPool';
 import { fetchStoredAddress } from '../../common/accounts';
-import { handleFetchErrors, isKnownStakingPool } from '../../common/utils';
+import { callBackendGet } from '../../common/backend';
+import { isKnownStakingPool } from '../../common/utils';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
 import { checkTransactionDraft, submitTransfer } from './transactions';
 
@@ -31,8 +31,8 @@ const DISABLE_CACHE_PERIOD = 30; // 30 s.
 
 export const fetchStakingStateMemo = memoized(fetchBackendStakingState, CACHE_TTL);
 
-export async function checkStakeDraft(storage: Storage, accountId: string, amount: string) {
-  const address = await fetchStoredAddress(storage, accountId);
+export async function checkStakeDraft(accountId: string, amount: string) {
+  const address = await fetchStoredAddress(accountId);
   const { poolAddress } = await fetchStakingStateMemo(address);
 
   const result: {
@@ -40,7 +40,7 @@ export async function checkStakeDraft(storage: Storage, accountId: string, amoun
     fee?: string;
   } = {};
 
-  const staked = await getStakingState(storage, accountId);
+  const staked = await getStakingState(accountId);
   if (!staked) {
     if (new BN(amount).lt(toNano(MIN_STAKE_AMOUNT.toString()))) {
       result.error = ApiTransactionDraftError.InvalidAmount;
@@ -49,7 +49,6 @@ export async function checkStakeDraft(storage: Storage, accountId: string, amoun
   }
 
   return checkTransactionDraft(
-    storage,
     accountId,
     TON_TOKEN_SLUG,
     poolAddress,
@@ -58,11 +57,10 @@ export async function checkStakeDraft(storage: Storage, accountId: string, amoun
   );
 }
 
-export async function checkUnstakeDraft(storage: Storage, accountId: string) {
-  const address = await fetchStoredAddress(storage, accountId);
+export async function checkUnstakeDraft(accountId: string) {
+  const address = await fetchStoredAddress(accountId);
   const { poolAddress } = await fetchStakingStateMemo(address);
   return checkTransactionDraft(
-    storage,
     accountId,
     TON_TOKEN_SLUG,
     poolAddress,
@@ -71,11 +69,10 @@ export async function checkUnstakeDraft(storage: Storage, accountId: string) {
   );
 }
 
-export async function submitStake(storage: Storage, accountId: string, password: string, amount: string) {
-  const address = await fetchStoredAddress(storage, accountId);
+export async function submitStake(accountId: string, password: string, amount: string) {
+  const address = await fetchStoredAddress(accountId);
   const { poolAddress } = await fetchStakingStateMemo(address);
   const result = await submitTransfer(
-    storage,
     accountId,
     password,
     TON_TOKEN_SLUG,
@@ -87,11 +84,10 @@ export async function submitStake(storage: Storage, accountId: string, password:
   return result;
 }
 
-export async function submitUnstake(storage: Storage, accountId: string, password: string) {
-  const address = await fetchStoredAddress(storage, accountId);
+export async function submitUnstake(accountId: string, password: string) {
+  const address = await fetchStoredAddress(accountId);
   const { poolAddress } = await fetchStakingStateMemo(address);
   const result = await submitTransfer(
-    storage,
     accountId,
     password,
     TON_TOKEN_SLUG,
@@ -107,9 +103,9 @@ function onStakingChangeExpected() {
   fetchStakingStateMemo.disableCache(DISABLE_CACHE_PERIOD);
 }
 
-export async function getStakingState(storage: Storage, accountId: string): Promise<ApiStakingState> {
+export async function getStakingState(accountId: string): Promise<ApiStakingState> {
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
   const contract = await getPoolContract(network, address);
   if (network !== 'mainnet' || !contract) {
     return {
@@ -141,22 +137,18 @@ async function getPoolContract(network: ApiNetwork, address: string) {
   return new NominatorPool(getTonWeb(network).provider, { address: poolAddress });
 }
 
-export async function getBackendStakingState(
-  storage: Storage, accountId: string,
-): Promise<ApiBackendStakingState | undefined> {
+export async function getBackendStakingState(accountId: string): Promise<ApiBackendStakingState | undefined> {
   const { network } = parseAccountId(accountId);
   if (network !== 'mainnet') {
     return undefined;
   }
 
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
   return fetchStakingStateMemo(address);
 }
 
 export async function fetchBackendStakingState(address: string) {
-  const response = await fetch(`${BRILLIANT_API_BASE_URL}/staking-state?account=${address}`);
-  handleFetchErrors(response);
-  const stakingState = await response.json() as ApiBackendStakingState;
+  const stakingState = await callBackendGet(`/staking-state?account=${address}`) as ApiBackendStakingState;
 
   if (!isKnownStakingPool(stakingState.poolAddress)) {
     throw Error('Unexpected pool address, likely a malicious activity');

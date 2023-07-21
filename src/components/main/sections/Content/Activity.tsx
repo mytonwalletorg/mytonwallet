@@ -1,4 +1,6 @@
-import React, { memo, useCallback, useMemo } from '../../../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo,
+} from '../../../../lib/teact/teact';
 
 import type { ApiToken, ApiTransaction } from '../../../../api/types';
 
@@ -7,14 +9,15 @@ import { getActions, withGlobal } from '../../../../global';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
 import { selectCurrentAccountState, selectIsNewWallet } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { compareTransactions } from '../../../../util/compareTransactions';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
 import { findLast } from '../../../../util/iteratees';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
-import { compareTransactions } from '../../../../api/common/helpers';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteLoader from '../../../../hooks/useInfiniteLoader';
 import useLang from '../../../../hooks/useLang';
+import useLastCallback from '../../../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Loading from '../../../ui/Loading';
@@ -65,25 +68,33 @@ function Activity({
   const lang = useLang();
   const { isLandscape } = useDeviceScreen();
 
-  const transactions = useMemo(() => {
-    let txIds: string[] | undefined;
+  const txIds = useMemo(() => {
+    let idList: string[] | undefined;
 
     const bySlug = txIdsBySlug ?? {};
 
     if (byTxId) {
       if (slug) {
-        txIds = bySlug[slug] ?? [];
+        idList = bySlug[slug] ?? [];
       } else {
         const lastTonTxId = findLast(bySlug[TON_TOKEN_SLUG] ?? [], (txId) => !getIsTxIdLocal(txId));
-        txIds = Object.values(bySlug).flat();
+        idList = Object.values(bySlug).flat();
         if (lastTonTxId) {
-          txIds = txIds.filter((txId) => byTxId[txId].timestamp >= byTxId[lastTonTxId].timestamp);
+          idList = idList.filter((txId) => byTxId[txId].timestamp >= byTxId[lastTonTxId].timestamp);
         }
 
-        txIds.sort((a, b) => compareTransactions(byTxId[a], byTxId[b], false));
+        idList.sort((a, b) => compareTransactions(byTxId[a], byTxId[b], false));
       }
     }
 
+    if (!idList) {
+      return undefined;
+    }
+
+    return idList;
+  }, [byTxId, slug, txIdsBySlug]);
+
+  const transactions = useMemo(() => {
     if (!txIds) {
       return undefined;
     }
@@ -128,24 +139,27 @@ function Activity({
     });
 
     return groupedTransactions;
-  }, [tokensBySlug, byTxId, areTinyTransfersHidden, slug, txIdsBySlug]);
+  }, [txIds, byTxId, slug, areTinyTransfersHidden, tokensBySlug]);
 
-  const loadMore = useCallback(() => {
+  const loadMore = useLastCallback(() => {
     if (slug) {
       fetchTokenTransactions({ slug, limit: FURTHER_SLICE });
     } else {
       fetchAllTransactions({ limit: FURTHER_SLICE });
     }
-  }, [slug, fetchTokenTransactions, fetchAllTransactions]);
+  });
 
-  const handleTransactionClick = useCallback(
-    (txId: string) => {
-      showTransactionInfo({ txId });
-    },
-    [showTransactionInfo],
-  );
+  const { handleIntersection } = useInfiniteLoader({ isLoading, loadMore });
 
-  const lastElementRef = useInfiniteLoader({ isLoading, loadMore });
+  useEffect(() => {
+    if (!transactions?.length && txIds?.length) {
+      loadMore();
+    }
+  }, [loadMore, txIds, transactions]);
+
+  const handleTransactionClick = useLastCallback((txId: string) => {
+    showTransactionInfo({ txId });
+  });
 
   if (!currentAccountId) {
     return undefined;
@@ -167,12 +181,16 @@ function Activity({
             />
           );
         })}
-        {groupIdx + 1 === transactionGroups.length && <div ref={lastElementRef} className={styles.loaderThreshold} />}
+        {
+          groupIdx + 1 === transactionGroups.length && (
+            <div ref={handleIntersection} className={styles.loaderThreshold} />
+          )
+        }
       </div>
     ));
   }
 
-  if (transactions === undefined) {
+  if (transactions === undefined || (!transactions?.length && txIds?.length)) {
     return (
       <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
         <Loading />

@@ -74,7 +74,9 @@
   .slides {
     flex: 1 1 auto;
 
-    border-radius: 0;
+    :global(html:not(.with-safe-area-bottom)) & {
+      border-radius: 0;
+    }
   }
 
   .slide {

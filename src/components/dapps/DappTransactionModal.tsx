@@ -20,6 +20,7 @@ import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
+import DappLedgerWarning from './DappLedgerWarning';
 import DappTransaction from './DappTransaction';
 import DappTransferInitial from './DappTransferInitial';
 
@@ -133,13 +134,17 @@ function DappTransactionModal({
             <DappTransferInitial tonToken={tonToken} />
           </>
         );
-
+      case TransferState.WarningHardware:
+        return (
+          <>
+            <ModalHeader title={lang('Send Transaction')} onClose={cancelDappTransfer} />
+            <DappLedgerWarning tonToken={tonToken} />
+          </>
+        );
       case TransferState.Confirm:
         return renderSingleTransaction(isActive);
-
       case TransferState.Password:
         return renderPassword(isActive);
-
       case TransferState.ConnectHardware:
         return (
           <LedgerConnect

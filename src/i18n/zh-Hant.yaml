@@ -278,12 +278,20 @@ Disconnect Dapp: 斷開 Dapp
 Disconnect Dapps: 斷開 Dapps
 Are you sure you want to disconnect?: 你確定要斷開 %dappname% 嗎？
 Are you sure you want to disconnect all websites?: 您確定要斷開所有網站嗎？
-$dapps-description: 您可以登錄支持 MyTonWallet 的 dapp。 他們可以查看錢包地址和余額。
+$dapps-description: 您可以登錄支持 MyTonWallet 的 dapp。 它們可以查看錢包地址、餘額並請求操作。
 Logged in with MyTonWallet: 使用 MyTonWallet 登錄
 No active connections: 沒有活動連接
 Unstaked successfully: 解質押成功
 Other: 其他的
 Assets & Activity: 資產 & 活動紀錄
+Tokens Settings: 代幣設置
+Your Tokens: 你的代幣
+Add Token: 添加令牌
+Delete Token: 刪除令牌
+Are you sure you want to delete?: 您確定要刪除 %token% 嗎？
+Hide Tokens With No Balance: 隱藏沒有餘額的代幣
+Hide Tokens With No Price: 隱藏沒有價格的代幣
+Sort By Value: 按值排序
 Update: 更新
 Restart: 重新開始
 Update MyTonWallet: 更新 MyTonWallet
@@ -308,13 +316,19 @@ Switch to the newly opened tab to connect Ledger.: 切換到新開啟的頁籤�
 Once connected, switch back to this window to proceed.: 連接完成後，切換回此視窗以繼續。
 Not all transactions were sent successfully: 並非所有交易都成功發送
 The time on your device is incorrect, sync it and try again: 您設備上的時間不正確，請同步並重試
+Name or Address...: 姓名或地址...
 Such error, many tabs: 這樣的錯誤，很多標籤
 $many_tabs_error_description: |
   MyTonWallet 僅支持該應用程序的一個活動選項卡。
   請重新加載此頁面以繼續使用此選項卡或將其關閉。
 Reload App: 重新加載應用程序
 Please confirm operation on your Ledger: 請確認您在Ledger上的操作
+Token Not Found: 找不到令牌
+Try another keyword or address.: 試試其他關鍵字或地址。
 Decrypt: 解密
 Encrypted Message: 加密消息
-Encrypted message: 加密消息
 Message is encrypted.: 消息已加密。
+$dapp_ledger_warning1: 您即將使用您的**Ledger**錢包發送多方交易。您需要手動**一一**簽署每筆底層交易。
+$dapp_ledger_warning2: 請慢慢來，不要中斷過程。
+Agree: 同意
+The hardware wallet does not support this data format: 硬件錢包不支持該數據格式

@@ -64,6 +64,12 @@ function InputMnemonic({
     processSuggestions(userInput);
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedValue = e.clipboardData.getData('text');
+
+    processSuggestions(pastedValue);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!value) {
       return;
@@ -115,7 +121,10 @@ function InputMnemonic({
     markFocus();
   };
 
-  const handleBlur = () => {
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    // Remove focus from the input element to ensure correct blur handling, especially when triggered by window switching
+    e.target.blur();
+
     unmarkFocus();
     requestAnimationFrame(() => {
       setShowSuggestions(false);
@@ -150,6 +159,7 @@ function InputMnemonic({
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
+        onPaste={handlePaste}
         value={value}
         tabIndex={0}
       />

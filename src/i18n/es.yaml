@@ -295,12 +295,20 @@ Disconnect Dapp: Desconectar Dapp
 Disconnect Dapps: Desconectar Dapps
 Are you sure you want to disconnect?: ¿Estás seguro de que quieres desconectar %dappname%?
 Are you sure you want to disconnect all websites?: ¿Estás seguro de que quieres desconectar todas las dapps?
-$dapps-description: Puede iniciar sesión en dapps compatibles con MyTonWallet. Pueden ver la dirección y el saldo de la billetera.
+$dapps-description: Puede iniciar sesión en dapps compatibles con MyTonWallet. Pueden ver la dirección del monedero, el saldo y solicitar operaciones.
 Logged in with MyTonWallet: Conectado con MyTonWallet
 No active connections: No hay conexiones activas
 Unstaked successfully: Desembolsado con éxito
 Other: Otros
 Assets & Activity: Activos & Actividad
+Tokens Settings: Configuración de fichas
+Your Tokens: Tus fichas
+Add Token: Agregar token
+Delete Token: Eliminar token
+Are you sure you want to delete?: ¿Está seguro de que desea eliminar %token%?
+Hide Tokens With No Balance: Ocultar tokens sin saldo
+Hide Tokens With No Price: Ocultar tokens sin precio
+Sort By Value: Ordenar por valor
 Update: Actualizar
 Restart: Reanudar
 Update MyTonWallet: Actualizar MyTonWallet
@@ -325,13 +333,19 @@ Switch to the newly opened tab to connect Ledger.: Cambia a la pestaña recién 
 Once connected, switch back to this window to proceed.: Una vez conectado, vuelve a esta ventana para continuar.
 Not all transactions were sent successfully: No todas las transacciones se enviaron correctamente
 The time on your device is incorrect, sync it and try again: El tiempo en su dispositivo es incorrecto, sincronícelo y vuelva a intentarlo
+Name or Address...: Nombre o Dirección...
 Such error, many tabs: Tal error, muchas pestañas
 $many_tabs_error_description: |
   MyTonWallet solo admite una pestaña activa con la aplicación.
   Vuelva a cargar esta página para continuar usando esta pestaña o ciérrela.
 Reload App: Recargar aplicación
 Please confirm operation on your Ledger: Por favor, confirme la operación en su Ledger
+Token Not Found: Token no encontrado
+Try another keyword or address.: Prueba con otra palabra clave o dirección.
 Decrypt: Descifrar
 Encrypted Message: Mensaje encriptado
-Encrypted message: Mensaje encriptado
 Message is encrypted.: El mensaje está encriptado.
+$dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccional utilizando tu monedero **Ledger**. Necesitarás firmar cada transacción subyacente **una por una manualmente**.
+$dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
+Agree: Aceptar
+The hardware wallet does not support this data format: La billetera de hardware no admite este formato de datos

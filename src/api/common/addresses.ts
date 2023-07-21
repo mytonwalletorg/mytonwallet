@@ -1,20 +1,15 @@
 import type { ApiKnownAddresses } from '../types';
 
-import { BRILLIANT_API_BASE_URL } from '../../config';
 import { mapValues } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
-import { handleFetchErrors } from './utils';
+import { callBackendGet } from './backend';
 
 let knownAddresses: ApiKnownAddresses;
 let scamMarkers: RegExp[];
 
 export async function tryUpdateKnownAddresses() {
   try {
-    const response = await fetch(`${BRILLIANT_API_BASE_URL}/known-addresses`);
-    handleFetchErrors(response);
-    if (!response.ok) return;
-
-    const data = await response.json();
+    const data = await callBackendGet('/known-addresses');
 
     knownAddresses = mapValues(data.knownAddresses as Record<string, string | any>, (value) => {
       return typeof value === 'string' ? { name: value } : value;

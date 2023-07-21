@@ -1,4 +1,6 @@
-import { useCallback, useRef } from '../lib/teact/teact';
+import { useRef, useState } from '../lib/teact/teact';
+
+import useLastCallback from './useLastCallback';
 
 interface OwnProps {
   loadMore: NoneToVoidFunction;
@@ -9,13 +11,15 @@ interface OwnProps {
 export default function useInfiniteLoader({ isDisabled, isLoading, loadMore }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const loadingObserver = useRef<IntersectionObserver>(null);
+  const [hasIntersection, setHasIntersection] = useState(false);
 
-  return useCallback((node: HTMLElement | null) => {
+  const handleIntersection = useLastCallback((node: HTMLElement | null) => {
     if (isLoading) {
       return;
     }
 
     if (loadingObserver.current) {
+      setHasIntersection(false);
       loadingObserver.current.disconnect();
     }
 
@@ -24,11 +28,15 @@ export default function useInfiniteLoader({ isDisabled, isLoading, loadMore }: O
     }
 
     loadingObserver.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
+      const isIntersecting = entries.some((entry) => entry.isIntersecting);
+      setHasIntersection(isIntersecting);
+      if (isIntersecting) {
         loadMore();
       }
     });
 
     loadingObserver.current.observe(node);
-  }, [isDisabled, isLoading, loadMore]);
+  });
+
+  return { handleIntersection, hasIntersection };
 }

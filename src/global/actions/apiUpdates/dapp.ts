@@ -14,7 +14,9 @@ import {
   updateCurrentTransfer,
   updateDappConnectRequest,
 } from '../../reducers';
-import { selectAccount, selectAccountState, selectNewestTxIds } from '../../selectors';
+import {
+  selectAccount, selectAccountState, selectIsHardwareAccount, selectNewestTxIds,
+} from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -57,13 +59,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         dataHex,
       });
       setGlobal(global);
-
-      break;
-    }
-
-    case 'showTxDraftError': {
-      const { error } = update;
-      actions.showTxDraftError({ error });
 
       break;
     }
@@ -174,10 +169,14 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           });
         }
 
+        const state = selectIsHardwareAccount(global) && transactions.length > 1
+          ? TransferState.WarningHardware
+          : TransferState.Initial;
+
         global = getGlobal();
         global = clearCurrentDappTransfer(global);
         global = updateCurrentDappTransfer(global, {
-          state: TransferState.Initial,
+          state,
           promiseId,
           transactions,
           fee,

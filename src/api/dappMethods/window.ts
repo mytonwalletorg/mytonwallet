@@ -1,5 +1,7 @@
+import extension from '../../lib/webextension-polyfill';
+
 import { createDappPromise, rejectAllDappPromises } from '../common/dappPromises';
-import storage from '../storages/chrome';
+import storage from '../storages/extension';
 
 // eslint-disable-next-line no-restricted-globals
 const { chrome } = self;
@@ -21,15 +23,17 @@ const WINDOW_STATE_MONITOR_INTERVAL = 3000;
     return;
   }
 
-  chrome.system.display.getInfo(([firstScreen]) => {
-    if (firstScreen) {
-      WINDOW_DEFAULTS.left = firstScreen.bounds.width - WINDOW_DEFAULTS.width - MARGIN_RIGHT;
-    }
-  });
+  if (chrome.system) {
+    chrome.system.display.getInfo(([firstScreen]) => {
+      if (firstScreen) {
+        WINDOW_DEFAULTS.left = firstScreen.bounds.width - WINDOW_DEFAULTS.width - MARGIN_RIGHT;
+      }
+    });
+  }
 
-  chrome.action.onClicked.addListener(openPopupWindow);
+  extension.action.onClicked.addListener(openPopupWindow);
 
-  chrome.windows.onRemoved.addListener((removedWindowId) => {
+  extension.windows.onRemoved.addListener((removedWindowId) => {
     if (removedWindowId !== currentWindowId) {
       return;
     }
@@ -41,7 +45,7 @@ const WINDOW_STATE_MONITOR_INTERVAL = 3000;
   });
 
   setInterval(async () => {
-    const currentWindow = await chrome.windows.getCurrent();
+    const currentWindow = await extension.windows.getCurrent();
     if (!currentWindow || currentWindow.id !== currentWindowId) {
       return;
     }
@@ -57,7 +61,7 @@ const WINDOW_STATE_MONITOR_INTERVAL = 3000;
 
 export async function openPopupWindow() {
   if (typeof currentWindowId === 'number') {
-    chrome.windows.update(currentWindowId, { focused: true });
+    await extension.windows.update(currentWindowId, { focused: true });
     return readyPromise;
   }
 
@@ -65,7 +69,7 @@ export async function openPopupWindow() {
   if (lastWindowId) {
     let wasWindowFound: boolean;
     try {
-      await chrome.windows.get(lastWindowId);
+      await extension.windows.get(lastWindowId);
       wasWindowFound = true;
     } catch (e) {
       wasWindowFound = false;
@@ -73,7 +77,7 @@ export async function openPopupWindow() {
 
     if (wasWindowFound) {
       currentWindowId = lastWindowId;
-      chrome.windows.update(lastWindowId, { focused: true });
+      await extension.windows.update(lastWindowId, { focused: true });
       readyPromise = Promise.resolve();
       return readyPromise;
     } else {
@@ -88,32 +92,27 @@ export async function openPopupWindow() {
 
 async function createWindow(isRetryingWithoutLastState = false): Promise<void> {
   const lastState = !isRetryingWithoutLastState ? await storage.getItem('windowState') : undefined;
-  const promise = new Promise<void>((resolve, reject) => {
-    chrome.windows.create({
+
+  try {
+    const window = await extension.windows.create({
       ...WINDOW_DEFAULTS,
       ...lastState,
       url: 'index.html',
       type: 'popup',
       focused: true,
-    }, (window) => {
-      if (!window) {
-        reject(new Error('Failed to create extension window'));
-        return;
-      }
-
-      currentWindowId = window.id;
-      readyPromise = createDappPromise('whenPopupReady').promise;
-      resolve();
-
-      void storage.setItem('windowId', currentWindowId);
     });
-  });
 
-  try {
-    return await promise;
+    if (!window) {
+      throw new Error('Failed to create extension window');
+    }
+
+    currentWindowId = window.id;
+    readyPromise = createDappPromise('whenPopupReady').promise;
+
+    void storage.setItem('windowId', currentWindowId);
   } catch (err) {
     if (!isRetryingWithoutLastState) {
-      return createWindow(true);
+      await createWindow(true);
     } else {
       throw err;
     }
@@ -121,5 +120,5 @@ async function createWindow(isRetryingWithoutLastState = false): Promise<void> {
 }
 
 export async function clearCache() {
-  await chrome.webRequest.handlerBehaviorChanged();
+  await extension.webRequest.handlerBehaviorChanged();
 }

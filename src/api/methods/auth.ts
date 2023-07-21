@@ -1,18 +1,13 @@
 import type { LedgerWalletInfo } from '../../util/ledger/types';
-import type { Storage } from '../storages/types';
 import type { ApiAccountInfo, ApiNetwork, ApiTxIdBySlug } from '../types';
 
 import blockchains from '../blockchains';
 import { getNewAccountId, removeAccountValue, setAccountValue } from '../common/accounts';
 import { bytesToHex } from '../common/utils';
-import { IS_EXTENSION } from '../environment';
+import { IS_DAPP_SUPPORTED } from '../environment';
+import { storage } from '../storages';
 import { activateAccount, deactivateAllAccounts, deactivateCurrentAccount } from './accounts';
-
-let storage: Storage;
-
-export function initAuth(_storage: Storage) {
-  storage = _storage;
-}
+import { removeAccountDapps, removeAllDapps } from './dapps';
 
 export function generateMnemonic() {
   return blockchains.ton.generateMnemonic();
@@ -33,7 +28,7 @@ export async function createWallet(network: ApiNetwork, mnemonic: string[], pass
   const { publicKey } = seedToKeyPair(seedBase64);
   const address = await publicKeyToAddress(network, publicKey);
 
-  const accountId = await getNewAccountId(storage, network);
+  const accountId = await getNewAccountId(network);
   await storeAccount(accountId, mnemonic, password, publicKey, address);
   void activateAccount(accountId);
 
@@ -63,7 +58,7 @@ export async function importMnemonic(network: ApiNetwork, mnemonic: string[], pa
   const wallet = await pickBestWallet(network, publicKey);
   const address = (await wallet.getAddress()).toString(true, true, true);
 
-  const accountId: string = await getNewAccountId(storage, network);
+  const accountId: string = await getNewAccountId(network);
   await storeAccount(accountId, mnemonic, password, publicKey, address);
   void activateAccount(accountId);
 
@@ -74,7 +69,7 @@ export async function importMnemonic(network: ApiNetwork, mnemonic: string[], pa
 }
 
 export async function importLedgerWallet(network: ApiNetwork, walletInfo: LedgerWalletInfo) {
-  const accountId: string = await getNewAccountId(storage, network);
+  const accountId: string = await getNewAccountId(network);
   const {
     publicKey, address, index, driver, deviceId, deviceName, version,
   } = walletInfo;
@@ -102,9 +97,9 @@ async function storeHardwareAccount(
   const publicKeyHex = typeof publicKey === 'string' ? publicKey : bytesToHex(publicKey);
 
   await Promise.all([
-    setAccountValue(storage, accountId, 'publicKeys', publicKeyHex),
-    setAccountValue(storage, accountId, 'addresses', address),
-    setAccountValue(storage, accountId, 'accounts', accountInfo),
+    setAccountValue(accountId, 'publicKeys', publicKeyHex),
+    setAccountValue(accountId, 'addresses', address),
+    setAccountValue(accountId, 'accounts', accountInfo),
   ]);
 }
 
@@ -120,10 +115,10 @@ async function storeAccount(
   const publicKeyHex = typeof publicKey === 'string' ? publicKey : bytesToHex(publicKey);
 
   await Promise.all([
-    setAccountValue(storage, accountId, 'mnemonicsEncrypted', mnemonicEncrypted),
-    setAccountValue(storage, accountId, 'publicKeys', publicKeyHex),
-    setAccountValue(storage, accountId, 'addresses', address),
-    setAccountValue(storage, accountId, 'accounts', accountInfo),
+    setAccountValue(accountId, 'mnemonicsEncrypted', mnemonicEncrypted),
+    setAccountValue(accountId, 'publicKeys', publicKeyHex),
+    setAccountValue(accountId, 'addresses', address),
+    setAccountValue(accountId, 'accounts', accountInfo),
   ]);
 }
 
@@ -135,17 +130,18 @@ export async function resetAccounts() {
     storage.removeItem('publicKeys'),
     storage.removeItem('mnemonicsEncrypted'),
     storage.removeItem('accounts'),
-    IS_EXTENSION && storage.removeItem('dapps'),
+    storage.removeItem('currentAccountId'),
+    IS_DAPP_SUPPORTED && removeAllDapps(),
   ]);
 }
 
 export async function removeAccount(accountId: string, nextAccountId: string, newestTxIds?: ApiTxIdBySlug) {
   await Promise.all([
-    removeAccountValue(storage, accountId, 'addresses'),
-    removeAccountValue(storage, accountId, 'publicKeys'),
-    removeAccountValue(storage, accountId, 'mnemonicsEncrypted'),
-    removeAccountValue(storage, accountId, 'accounts'),
-    IS_EXTENSION && removeAccountValue(storage, accountId, 'dapps'),
+    removeAccountValue(accountId, 'addresses'),
+    removeAccountValue(accountId, 'publicKeys'),
+    removeAccountValue(accountId, 'mnemonicsEncrypted'),
+    removeAccountValue(accountId, 'accounts'),
+    IS_DAPP_SUPPORTED && removeAccountDapps(accountId),
   ]);
 
   deactivateCurrentAccount();

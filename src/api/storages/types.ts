@@ -25,6 +25,7 @@ export type StorageKey = 'addresses'
 | 'publicKeys'
 | 'accounts'
 | 'stateVersion'
+| 'currentAccountId'
 // For extension
 | 'dapps'
 | 'dappMethods:lastAccountId'
@@ -32,4 +33,6 @@ export type StorageKey = 'addresses'
 | 'windowState'
 | 'isTonMagicEnabled'
 | 'isTonProxyEnabled'
-| 'isDeeplinkHookEnabled';
+| 'isDeeplinkHookEnabled'
+// For TonConnect SSE
+| 'sseLastEventId';

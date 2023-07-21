@@ -1,6 +1,10 @@
+import { requestMutation } from '../lib/fasterdom/fasterdom';
+
 import type { LangCode } from '../global/types';
 
-import { LANG_LIST } from '../config';
+import { IS_ELECTRON, LANG_LIST } from '../config';
+
+const SAFE_AREA_INITIALIZATION_DELAY = 1000;
 
 export function getPlatform() {
   const { userAgent, platform } = window.navigator;
@@ -42,13 +46,17 @@ export const IS_ANDROID = PLATFORM_ENV === 'Android';
 export const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 export const IS_TOUCH_ENV = window.matchMedia('(pointer: coarse)').matches;
 export const IS_EXTENSION = Boolean(window.chrome && chrome.runtime && chrome.runtime.id);
+export const IS_CHROME_EXTENSION = Boolean(window.chrome?.system);
+export const IS_FIREFOX_EXTENSION = IS_EXTENSION && !IS_CHROME_EXTENSION;
 export const DEFAULT_LANG_CODE = 'en';
 export const USER_AGENT_LANG_CODE = getBrowserLanguage();
 export const DPR = window.devicePixelRatio || 1;
+export const IS_DAPP_SUPPORTED = IS_ELECTRON || IS_EXTENSION;
+export const IS_LEDGER_SUPPORTED = !(IS_IOS || IS_ANDROID || IS_FIREFOX_EXTENSION);
 
-export const SCROLLBAR_WIDTH = (() => {
+export function setScrollbarWidthProperty() {
   const el = document.createElement('div');
-  el.style.cssText = 'overflow:scroll; visibility:hidden; position:absolute;';
+  el.style.cssText = 'overflow-x: hidden; overflow-y: scroll; visibility:hidden; position:absolute;';
   el.classList.add('custom-scroll');
   document.body.appendChild(el);
   const width = el.offsetWidth - el.clientWidth;
@@ -57,4 +65,20 @@ export const SCROLLBAR_WIDTH = (() => {
   document.documentElement.style.setProperty('--scrollbar-width', `${width}px`);
 
   return width;
-})();
+}
+
+export function setPageSafeAreaProperty() {
+  const { documentElement } = document;
+
+  // WebKit has issues with this property on page load
+  // https://bugs.webkit.org/show_bug.cgi?id=191872
+  setTimeout(() => {
+    const safeAreaBottom = parseInt(getComputedStyle(documentElement).getPropertyValue('--safe-area-bottom-value'), 10);
+
+    if (!Number.isNaN(safeAreaBottom) && safeAreaBottom > 0) {
+      requestMutation(() => {
+        documentElement.classList.add('with-safe-area-bottom');
+      });
+    }
+  }, SAFE_AREA_INITIALIZATION_DELAY);
+}

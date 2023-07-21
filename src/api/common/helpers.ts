@@ -1,5 +1,5 @@
 import type { ApiTransactionExtra } from '../blockchains/ton/types';
-import type { Storage, StorageKey } from '../storages/types';
+import type { StorageKey } from '../storages/types';
 import type {
   AccountIdParsed, ApiLocalTransactionParams, ApiTransaction, OnApiUpdate,
 } from '../types';
@@ -7,6 +7,7 @@ import type {
 import { MAIN_ACCOUNT_ID } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { IS_EXTENSION } from '../environment';
+import { storage } from '../storages';
 import idbStorage from '../storages/idb';
 import { getKnownAddresses, getScamMarkers } from './addresses';
 import { whenTxComplete } from './txCallbacks';
@@ -14,7 +15,7 @@ import { whenTxComplete } from './txCallbacks';
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 5;
+const actualStateVersion = 6;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -114,15 +115,16 @@ export function isUpdaterAlive(onUpdate: OnApiUpdate) {
   return currentOnUpdate === onUpdate;
 }
 
-export function startStorageMigration(storage: Storage) {
-  migrationEnsurePromise = migrateStorage(storage);
+export function startStorageMigration() {
+  migrationEnsurePromise = migrateStorage();
+  return migrationEnsurePromise;
 }
 
 export function waitStorageMigration() {
   return migrationEnsurePromise;
 }
 
-export async function migrateStorage(storage: Storage) {
+export async function migrateStorage() {
   let version = Number(await storage.getItem('stateVersion'));
 
   if (version === actualStateVersion) {
@@ -197,12 +199,19 @@ export async function migrateStorage(storage: Storage) {
     version = 5;
     await storage.setItem('stateVersion', version);
   }
-}
 
-export function compareTransactions(a: ApiTransaction, b: ApiTransaction, isAsc: boolean) {
-  let value = a.timestamp - b.timestamp;
-  if (value === 0) {
-    value = a.txId > b.txId ? 1 : a.txId < b.txId ? -1 : 0;
+  if (version === 5) {
+    const dapps = await storage.getItem('dapps');
+    if (dapps) {
+      for (const accountDapps of Object.values(dapps) as any[]) {
+        for (const dapp of Object.values(accountDapps) as any[]) {
+          dapp.connectedAt = 1;
+        }
+      }
+      await storage.setItem('dapps', dapps);
+    }
+
+    version = 6;
+    await storage.setItem('stateVersion', version);
   }
-  return isAsc ? value : -value;
 }

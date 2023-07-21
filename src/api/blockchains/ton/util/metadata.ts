@@ -1,16 +1,18 @@
 import type { Address, DictionaryValue } from 'ton-core';
 import {
-  BitReader, BitString, Cell, Dictionary, Slice,
+  BitReader, BitString, Builder, Cell, Dictionary, Slice,
 } from 'ton-core';
 
-import type { ApiNetwork } from '../../../types';
+import type { ApiNetwork, ApiParsedPayload } from '../../../types';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
-import { pick } from '../../../../util/iteratees';
+import { pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import { base64ToString, handleFetchErrors, sha256 } from '../../../common/utils';
-import { JettonOpCode, OpCode } from '../constants';
-import { getJettonMinterData } from './tonweb';
+import { JettonOpCode, NftOpCode, OpCode } from '../constants';
+import { buildTokenSlug } from './index';
+import { fetchNftItems } from './tonapiio';
+import { getJettonMinterData, resolveTokenMinterAddress } from './tonweb';
 
 const IPFS_GATEWAY_BASE_URL: string = 'https://ipfs.io/ipfs/';
 
@@ -25,7 +27,7 @@ export function parseJettonWalletMsgBody(body?: string) {
     const opCode = slice.loadUint(32);
     const queryId = slice.loadUint(64);
 
-    if (opCode === JettonOpCode.transfer || opCode === JettonOpCode.internalTransfer) {
+    if (opCode === JettonOpCode.Transfer || opCode === JettonOpCode.InternalTransfer) {
       const jettonAmount = slice.loadCoins();
       const address = slice.loadMaybeAddress();
       const responseAddress = slice.loadMaybeAddress();
@@ -33,7 +35,7 @@ export function parseJettonWalletMsgBody(body?: string) {
       let forwardComment: string | undefined;
 
       if (responseAddress) {
-        if (opCode === JettonOpCode.transfer) {
+        if (opCode === JettonOpCode.Transfer) {
           slice.loadBit();
         }
         forwardAmount = slice.loadCoins();
@@ -47,7 +49,7 @@ export function parseJettonWalletMsgBody(body?: string) {
       }
 
       return {
-        operation: JettonOpCode[opCode],
+        operation: JettonOpCode[opCode] as keyof typeof JettonOpCode,
         queryId,
         jettonAmount,
         responseAddress,
@@ -172,35 +174,23 @@ async function fetchJsonMetadata(uri: string) {
   return response.json();
 }
 
-export function parseTransactionBody(transaction: ApiTransactionExtra): ApiTransactionExtra {
+export async function parseWalletTransactionBody(
+  network: ApiNetwork, transaction: ApiTransactionExtra,
+): Promise<ApiTransactionExtra> {
   const body = transaction.extraData?.body;
   if (!body) return transaction;
 
-  const payloadOffset = 13 * 8; // Wallet v3 or higher
-  const buffer = Buffer.from(body, 'base64');
-  let slice: Slice | undefined;
-
   try {
-    slice = Cell.fromBoc(body)[0].beginParse();
-  } catch (err: any) {
-    if (err?.message !== 'Invalid magic') {
-      logDebugError('parseTransactionBody', err);
-      return transaction;
-    }
-  }
+    const slice = dataToSlice(body);
 
-  try {
-    if (!slice) {
-      slice = new Slice(new BitReader(new BitString(buffer, 0, buffer.length * 8)), []);
-    }
+    if (slice.remainingBits > 32) {
+      const parsedPayload = await parsePayloadSlice(network, transaction.toAddress, slice);
 
-    if (slice.remainingBits > payloadOffset + 32) {
-      slice.skip(payloadOffset);
-      const opCode = slice.loadUint(32);
-
-      if (opCode === OpCode.Encrypted) {
-        const encryptedComment = slice.loadBuffer(slice.remainingBits / 8).toString('base64');
-        transaction = { ...transaction, encryptedComment };
+      if (parsedPayload?.type === 'encrypted-comment') {
+        transaction = {
+          ...transaction,
+          encryptedComment: parsedPayload.encryptedComment,
+        };
       }
     }
   } catch (err) {
@@ -208,4 +198,131 @@ export function parseTransactionBody(transaction: ApiTransactionExtra): ApiTrans
   }
 
   return transaction;
+}
+
+export async function parsePayloadBase64(
+  network: ApiNetwork, toAddress: string, base64: string,
+): Promise<ApiParsedPayload> {
+  const slice = dataToSlice(base64);
+  const result: ApiParsedPayload = { type: 'unknown', base64 };
+
+  if (!slice) return result;
+
+  return await parsePayloadSlice(network, toAddress, slice) ?? result;
+}
+
+export async function parsePayloadSlice(
+  network: ApiNetwork, toAddress: string, slice: Slice,
+): Promise<ApiParsedPayload | undefined> {
+  try {
+    const opCode = slice.loadUint(32);
+
+    if (opCode === OpCode.Comment) {
+      const comment = slice.loadStringTail();
+      return { type: 'comment', comment };
+    } else if (opCode === OpCode.Encrypted) {
+      const encryptedComment = slice.loadBuffer(slice.remainingBits / 8).toString('base64');
+      return { type: 'encrypted-comment', encryptedComment };
+    }
+
+    const queryId = slice.loadUint(64).toString();
+
+    switch (opCode) {
+      case JettonOpCode.Transfer: {
+        const minterAddress = await resolveTokenMinterAddress(network, toAddress);
+        const slug = buildTokenSlug(minterAddress);
+
+        const amount = slice.loadCoins();
+        const destination = slice.loadAddress();
+        const responseDestination = slice.loadMaybeAddress();
+
+        if (!responseDestination) {
+          return {
+            type: 'transfer-tokens:non-standard',
+            queryId,
+            destination: toBounceableAddress(destination),
+            amount: amount.toString(),
+            slug,
+          };
+        }
+
+        const customPayload = slice.loadMaybeRef();
+        const forwardAmount = slice.loadCoins();
+        let forwardPayload = slice.loadMaybeRef();
+        if (!forwardPayload && slice.remainingBits) {
+          const builder = new Builder().storeBits(slice.loadBits(slice.remainingBits));
+          range(0, slice.remainingRefs).forEach(() => {
+            builder.storeRef(slice.loadRef());
+          });
+          forwardPayload = builder.endCell();
+        }
+
+        return {
+          type: 'transfer-tokens',
+          queryId,
+          amount: amount.toString(),
+          destination: toBounceableAddress(destination),
+          responseDestination: toBounceableAddress(responseDestination),
+          customPayload: customPayload?.toBoc().toString('base64'),
+          forwardAmount: forwardAmount.toString(),
+          forwardPayload: forwardPayload?.toBoc().toString('base64'),
+          slug,
+        };
+      }
+      case NftOpCode.TransferOwnership: {
+        const newOwner = slice.loadAddress();
+        const responseDestination = slice.loadAddress();
+        const customPayload = slice.loadMaybeRef();
+        const forwardAmount = slice.loadCoins();
+
+        let forwardPayload = slice.loadMaybeRef();
+        if (!forwardPayload && slice.remainingBits) {
+          const builder = new Builder().storeBits(slice.loadBits(slice.remainingBits));
+          range(0, slice.remainingRefs).forEach(() => {
+            builder.storeRef(slice.loadRef());
+          });
+          forwardPayload = builder.endCell();
+        }
+
+        const nftAddress = toAddress;
+        const [nft] = await fetchNftItems(network, [nftAddress]);
+        return {
+          type: 'transfer-nft',
+          queryId,
+          newOwner: toBounceableAddress(newOwner),
+          responseDestination: toBounceableAddress(responseDestination),
+          customPayload: customPayload?.toBoc().toString('base64'),
+          forwardAmount: forwardAmount.toString(),
+          forwardPayload: forwardPayload?.toBoc().toString('base64'),
+          nftAddress,
+          nftName: nft?.metadata?.name,
+        };
+      }
+    }
+  } catch (err) {
+    logDebugError('parsePayload', err);
+  }
+
+  return undefined;
+}
+
+function dataToSlice(data: string | Buffer | Uint8Array): Slice {
+  let buffer: Buffer;
+  if (typeof data === 'string') {
+    buffer = Buffer.from(data, 'base64');
+  } else if (data instanceof Buffer) {
+    buffer = data;
+  } else {
+    buffer = Buffer.from(data);
+  }
+
+  try {
+    return Cell.fromBoc(buffer)[0].beginParse();
+  } catch (err: any) {
+    if (err?.message !== 'Invalid magic') {
+      throw err;
+    }
+  }
+
+  return new Slice(new BitReader(new BitString(buffer, 0, buffer.length * 8)), []);
 }

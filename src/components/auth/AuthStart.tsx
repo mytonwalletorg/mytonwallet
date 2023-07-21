@@ -1,9 +1,10 @@
 import React, { memo, useCallback } from '../../lib/teact/teact';
 
-import { APP_NAME, IS_LEDGER_SUPPORTED, MNEMONIC_COUNT } from '../../config';
+import { APP_NAME, MNEMONIC_COUNT } from '../../config';
 import { getActions } from '../../global';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
+import { IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
@@ -62,7 +63,7 @@ const AuthStart = () => {
         <span className={styles.importText}>{lang('Or import from...')}</span>
         <div className={styles.importButtons}>
           <Button
-            className={styles.btn}
+            className={buildClassName(styles.btn, !IS_LEDGER_SUPPORTED && styles.btn_single)}
             onClick={startImportingWallet}
           >
             {lang('%1$d Secret Words', MNEMONIC_COUNT)}

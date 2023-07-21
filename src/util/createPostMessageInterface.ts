@@ -1,3 +1,5 @@
+import extension from '../lib/webextension-polyfill';
+
 import { DETACHED_TAB_URL } from './ledger/tab';
 import { logDebugError } from './logs';
 
@@ -42,7 +44,7 @@ export function createExtensionInterface(
   cleanUpdater?: (onUpdate: (update: ApiUpdate) => void) => void,
   withAutoInit = false,
 ) {
-  chrome.runtime.onConnect.addListener((port) => {
+  extension.runtime.onConnect.addListener((port) => {
     if (port.name !== portName) {
       return;
     }
@@ -51,11 +53,12 @@ export function createExtensionInterface(
      * If the sender's URL includes the DETACHED_TAB_URL, we skip further processing
      * This condition ensures that we don't interact with tabs that have already been closed.
      */
-    if (port.sender?.url?.includes(DETACHED_TAB_URL)) {
+    const url = port.sender?.url;
+    if (url?.includes(DETACHED_TAB_URL)) {
       return;
     }
 
-    const origin = port.sender?.origin;
+    const origin = url ? new URL(url).origin : undefined;
 
     const dAppUpdater = (update: ApiUpdate) => {
       sendToOrigin({

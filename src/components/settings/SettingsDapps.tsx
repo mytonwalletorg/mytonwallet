@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import React, { memo, useState } from '../../lib/teact/teact';
 
 import type { ApiDapp } from '../../api/types';
 
@@ -8,6 +8,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 
 import DappInfo from '../dapps/DappInfo';
@@ -41,16 +42,16 @@ function SettingsDapps({
     isAtBeginning: isContentNotScrolled,
   } = useScrolledState();
 
-  const handleDisconnectDapp = useCallback((origin: string) => {
+  const handleDisconnectDapp = useLastCallback((origin: string) => {
     const dapp = dapps.find((d) => d.origin === origin);
     setDappToDelete(dapp);
     openDisconnectModal();
-  }, [openDisconnectModal, dapps]);
+  });
 
-  const handleDisconnectAll = useCallback(() => {
+  const handleDisconnectAll = useLastCallback(() => {
     setDappToDelete(undefined);
     openDisconnectModal();
-  }, [openDisconnectModal]);
+  });
 
   function renderDapp(dapp: ApiDapp) {
     const {

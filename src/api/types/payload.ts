@@ -3,6 +3,11 @@ export type ApiCommentPayload = {
   comment: string;
 };
 
+export type ApiEncryptedCommentPayload = {
+  type: 'encrypted-comment';
+  encryptedComment: string;
+};
+
 export type ApiTransferNftPayload = {
   type: 'transfer-nft';
   queryId: string;
@@ -44,6 +49,7 @@ export type ApiUnknownPayload = {
 };
 
 export type ApiParsedPayload = ApiCommentPayload
+| ApiEncryptedCommentPayload
 | ApiTransferNftPayload
 | ApiTransferTokensPayload
 | ApiTransferTokensNonStandardPayload

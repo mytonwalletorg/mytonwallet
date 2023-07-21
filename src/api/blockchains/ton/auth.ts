@@ -1,8 +1,6 @@
 import * as tonWebMnemonic from 'tonweb-mnemonic';
 import nacl from 'tweetnacl';
 
-import type { Storage } from '../../storages/types';
-
 import { logDebugError } from '../../../util/logs';
 import { getAccountValue } from '../../common/accounts';
 import {
@@ -61,9 +59,9 @@ export async function decryptMnemonic(encrypted: string, password: string) {
   return plaintext.split(',');
 }
 
-export async function fetchMnemonic(storage: Storage, accountId: string, password: string) {
+export async function fetchMnemonic(accountId: string, password: string) {
   try {
-    const mnemonicEncrypted = await getAccountValue(storage, accountId, 'mnemonicsEncrypted');
+    const mnemonicEncrypted = await getAccountValue(accountId, 'mnemonicsEncrypted');
     return await decryptMnemonic(mnemonicEncrypted, password);
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -73,9 +71,9 @@ export async function fetchMnemonic(storage: Storage, accountId: string, passwor
   }
 }
 
-export async function fetchPrivateKey(storage: Storage, accountId: string, password: string) {
+export async function fetchPrivateKey(accountId: string, password: string) {
   try {
-    const mnemonic = await fetchMnemonic(storage, accountId, password);
+    const mnemonic = await fetchMnemonic(accountId, password);
     if (!mnemonic) {
       return undefined;
     }
@@ -92,9 +90,9 @@ export async function fetchPrivateKey(storage: Storage, accountId: string, passw
   }
 }
 
-export async function fetchKeyPair(storage: Storage, accountId: string, password: string) {
+export async function fetchKeyPair(accountId: string, password: string) {
   try {
-    const mnemonic = await fetchMnemonic(storage, accountId, password);
+    const mnemonic = await fetchMnemonic(accountId, password);
     if (!mnemonic) {
       return undefined;
     }
@@ -107,8 +105,8 @@ export async function fetchKeyPair(storage: Storage, accountId: string, password
   }
 }
 
-export async function rawSign(storage: Storage, accountId: string, password: string, dataHex: string) {
-  const privateKey = await fetchPrivateKey(storage, accountId, password);
+export async function rawSign(accountId: string, password: string, dataHex: string) {
+  const privateKey = await fetchPrivateKey(accountId, password);
   if (!privateKey) {
     return undefined;
   }
@@ -118,8 +116,8 @@ export async function rawSign(storage: Storage, accountId: string, password: str
   return bytesToHex(signature);
 }
 
-export async function verifyPassword(storage: Storage, accountId: string, password: string) {
-  const mnemonic = await fetchMnemonic(storage, accountId, password);
+export async function verifyPassword(accountId: string, password: string) {
+  const mnemonic = await fetchMnemonic(accountId, password);
 
   return Boolean(mnemonic);
 }

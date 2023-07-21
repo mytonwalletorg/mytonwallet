@@ -1,5 +1,6 @@
 export enum ElectronEvent {
   DEEPLINK = 'deeplink',
+  DEEPLINK_TONCONNECT = 'deeplink-tonconnect',
   UPDATE_ERROR = 'update-error',
   UPDATE_AVAILABLE = 'update-available',
   UPDATE_DOWNLOAD_PROGRESS = 'update-download-progress',

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTonWallet Desktop</title>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+<div class="container">
+    <h1>Sign In with <span class="gradient-text">MyTonWallet</span></h1>
+    <div class="info">
+        <p>
+            Launch the app and log into your wallet.
+        </p>
+        <a href="https://mytonwallet.app/get" target="_blank" class="download-btn">Install MyTonWallet</a>
+    </div>
+    <div class="info">
+        <p>
+            Once you have done it, proceed by clicking the button below.
+        </p>
+        <a href="javascript: location.href = 'tc://' + window.location.search;" id="btn-sign-in" class="download-btn">
+            Sign In
+        </a>
+    </div>
+    <div class="footer">
+        <a href="https://mytonwallet.io">mytonwallet.io</a>
+    </div>
+</div>
+<script>
+  location.href = 'tc://' + window.location.search;
+</script>
+</body>
+</html>

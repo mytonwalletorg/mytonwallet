@@ -151,3 +151,7 @@ export function fromKeyValueArrays<T>(keys: string[], values: T[] | T) {
     return acc;
   }, {} as Record<string, T>);
 }
+
+export function extractKey<T, K extends keyof T>(array: T[], key: K): T[K][] {
+  return array.map((value) => value[key]);
+}

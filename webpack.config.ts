@@ -1,3 +1,4 @@
+import StatoscopeWebpackPlugin from '@statoscope/webpack-plugin';
 // @ts-ignore
 import PreloadWebpackPlugin from '@vue/preload-webpack-plugin';
 // @ts-ignore
@@ -10,7 +11,7 @@ import HtmlPlugin from 'html-webpack-plugin';
 import yaml from 'js-yaml';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
-import type { Configuration } from 'webpack';
+import type { Compiler, Configuration } from 'webpack';
 import {
   DefinePlugin, EnvironmentPlugin, NormalModuleReplacementPlugin, ProvidePlugin,
 } from 'webpack';
@@ -19,12 +20,18 @@ import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import 'webpack-dev-server';
 
 const {
-  APP_ENV, HEAD, ENV_EXTENSION, IS_ELECTRON,
+  APP_ENV,
+  HEAD,
+  ENV_EXTENSION,
+  IS_ELECTRON,
+  IS_FIREFOX_EXTENSION,
 } = process.env;
 
 const gitRevisionPlugin = new GitRevisionPlugin();
 const branch = HEAD || gitRevisionPlugin.branch();
 const appRevision = !branch || branch === 'HEAD' ? gitRevisionPlugin.commithash()?.substring(0, 7) : branch;
+const STATOSCOPE_REFERENCE_URL = 'https://mytonwallet.app/build-stats.json';
+let isReferenceFetched = false;
 
 const appVersion = require('./package.json').version;
 
@@ -39,6 +46,13 @@ export default function createConfig(
   return {
     mode,
     target: 'web',
+
+    optimization: {
+      splitChunks: {
+        chunks: 'initial',
+        maxSize: 4194304, // 4 Mb
+      },
+    },
 
     entry: {
       main: './src/index.tsx',
@@ -141,6 +155,20 @@ export default function createConfig(
     },
 
     plugins: [
+      ...(APP_ENV === 'staging' ? [{
+        apply: (compiler: Compiler) => {
+          compiler.hooks.compile.tap('Before Compilation', async () => {
+            try {
+              const stats = await fetch(STATOSCOPE_REFERENCE_URL).then((res) => res.text());
+              fs.writeFileSync(path.resolve('./public/reference.json'), stats);
+              isReferenceFetched = true;
+            } catch (err: any) {
+              // eslint-disable-next-line no-console
+              console.warn('Failed to fetch reference statoscope stats: ', err.message);
+            }
+          });
+        },
+      }] : []),
       new WebpackBeforeBuildPlugin((stats: any, callback: VoidFunction) => {
         const defaultI18nYaml = fs.readFileSync('./src/i18n/en.yaml', 'utf8');
         const defaultI18nJson = convertI18nYamlToJson(defaultI18nYaml, mode === 'production');
@@ -159,7 +187,16 @@ export default function createConfig(
       }),
       new PreloadWebpackPlugin({
         include: 'allAssets',
-        fileWhitelist: [/duck_.*?\.png/], // Lottie thumbs
+        fileWhitelist: [
+          /duck_.*?\.png/, // Lottie thumbs
+          /theme_.*?\.png/, // All theme icons
+          /settings_.*?\.svg/, // All settings svg icons
+        ],
+        as(entry: string) {
+          if (/\.png$/.test(entry)) return 'image';
+          if (/\.svg$/.test(entry)) return 'image';
+          return 'script';
+        },
       }),
       new MiniCssExtractPlugin({
         filename: '[name].[contenthash].css',
@@ -204,7 +241,26 @@ export default function createConfig(
         patterns: [
           {
             from: 'src/extension/manifest.json',
-            transform: (content) => content.toString().replace('%%VERSION%%', appVersion),
+            transform: (content) => {
+              const manifest = JSON.parse(content.toString());
+              manifest.version = appVersion;
+
+              if (IS_FIREFOX_EXTENSION) {
+                manifest.background = {
+                  scripts: [manifest.background.service_worker],
+                };
+                manifest.host_permissions = ['<all_urls>'];
+                manifest.permissions = manifest.permissions.filter((value: string) => value !== 'system.display');
+                manifest.browser_specific_settings = {
+                  gecko: {
+                    id: '{98fcdaee-2b58-4f71-8a3c-f0c66f24dede}',
+                    strict_min_version: '91.1.0', // Minimum version for using a proxy
+                  },
+                };
+              }
+
+              return JSON.stringify(manifest, undefined, 2);
+            },
           },
           {
             from: 'src/i18n/*.yaml',
@@ -214,6 +270,19 @@ export default function createConfig(
             ) as any,
           },
         ],
+      }),
+      new StatoscopeWebpackPlugin({
+        statsOptions: {
+          context: __dirname,
+        },
+        saveReportTo: path.resolve('./public/statoscope-report.html'),
+        saveStatsTo: path.resolve('./public/build-stats.json'),
+        normalizeStats: true,
+        open: false,
+        extensions: [new WebpackContextExtension()], // eslint-disable-line @typescript-eslint/no-use-before-define
+        ...(APP_ENV === 'staging' && isReferenceFetched && {
+          additionalStats: ['./public/reference.json'],
+        }),
       }),
       ...(mode === 'production' ? [new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false })] : []),
       ...(ENV_EXTENSION === '1'
@@ -272,4 +341,23 @@ function convertI18nYamlToJson(content: string, shouldThrowException: boolean): 
   }
 
   return undefined;
+}
+
+class WebpackContextExtension {
+  context: string;
+
+  constructor() {
+    this.context = '';
+  }
+
+  handleCompiler(compiler: Compiler) {
+    this.context = compiler.context;
+  }
+
+  getExtension() {
+    return {
+      descriptor: { name: 'custom-webpack-extension-context', version: '1.0.0' },
+      payload: { context: this.context },
+    };
+  }
 }

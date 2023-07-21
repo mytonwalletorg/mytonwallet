@@ -53,7 +53,7 @@
   pointer-events: none;
 
   position: absolute;
-  bottom: 32rem;
+  bottom: min(100%, 40rem);
 
   width: 0;
   height: 0;

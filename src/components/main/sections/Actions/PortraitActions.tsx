@@ -4,6 +4,7 @@ import { ElectronEvent } from '../../../../electron/types';
 
 import { TON_TOKEN_SLUG } from '../../../../config';
 import { getActions } from '../../../../global';
+import { bigStrToHuman } from '../../../../global/helpers';
 import buildClassName from '../../../../util/buildClassName';
 
 import useFlag from '../../../../hooks/useFlag';
@@ -31,7 +32,7 @@ function PortraitActions({ hasStaking, isUnstakeRequested, onEarnClick }: OwnPro
       startTransfer({
         tokenSlug: TON_TOKEN_SLUG,
         toAddress: params.to,
-        amount: params.amount,
+        amount: bigStrToHuman(params.amount),
         comment: params.text,
       });
     });

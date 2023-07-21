@@ -33,6 +33,10 @@ npm run dev
 
 Electron allows to build native application, that can be installed and run on Windows, macOS and Linux.
 
+### Installing app on Linux
+
+In order for the application to work correctly and be displayed in the Linux menu, you need to install the AppImage via [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher)
+
 #### NPM scripts
 
 - `npm run dev:electron`

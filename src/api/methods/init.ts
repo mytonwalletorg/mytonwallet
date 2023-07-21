@@ -1,35 +1,39 @@
-import type { StorageType } from '../storages/types';
-import type { ApiInitArgs, OnApiUpdate } from '../types';
+import type { ApiInitArgs, ApiUpdate, OnApiUpdate } from '../types';
 
+import { IS_SSE_SUPPORTED } from '../../config';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
 import * as dappMethods from '../dappMethods';
 import * as legacyDappMethods from '../dappMethods/legacy';
-import { IS_EXTENSION } from '../environment';
-import storages from '../storages';
+import { IS_DAPP_SUPPORTED, IS_EXTENSION } from '../environment';
 import * as tonConnect from '../tonConnect';
+import { resetupSseConnection, sendSseDisconnect } from '../tonConnect/sse';
 import * as methods from '.';
 
-export default function init(onUpdate: OnApiUpdate, args: ApiInitArgs, storageType: StorageType) {
+export default async function init(_onUpdate: OnApiUpdate, args: ApiInitArgs) {
+  const onUpdate: OnApiUpdate = (update: ApiUpdate) => _onUpdate(update);
+
   connectUpdater(onUpdate);
 
-  const storage = storages[storageType];
+  methods.initPolling(onUpdate, methods.isAccountActive, args);
+  methods.initTransactions(onUpdate);
+  void methods.initWallet(onUpdate);
+  methods.initStaking(onUpdate);
 
-  methods.initAccounts(onUpdate, storage);
-  methods.initPolling(onUpdate, storage, methods.isAccountActive, args);
-  methods.initAuth(storage);
-  methods.initTransactions(onUpdate, storage);
-  void methods.initWallet(onUpdate, storage);
-  methods.initNfts(storage);
-  methods.initTokens(onUpdate, storage);
-  methods.initStaking(onUpdate, storage);
-
+  if (IS_DAPP_SUPPORTED) {
+    const onDappChanged = IS_SSE_SUPPORTED ? resetupSseConnection : undefined;
+    const onDappDisconnected = IS_SSE_SUPPORTED ? sendSseDisconnect : undefined;
+    methods.initDapps(onUpdate, onDappChanged, onDappDisconnected);
+    tonConnect.initTonConnect(onUpdate);
+  }
   if (IS_EXTENSION) {
-    void methods.initExtension(onUpdate, storage);
-    methods.initDapps(onUpdate, storage);
+    void methods.initExtension(onUpdate);
     legacyDappMethods.initLegacyDappMethods(onUpdate);
     dappMethods.initDappMethods(onUpdate);
-    tonConnect.initTonConnect(onUpdate, storage);
   }
 
-  void startStorageMigration(storage);
+  await startStorageMigration();
+
+  if (IS_SSE_SUPPORTED) {
+    void resetupSseConnection();
+  }
 }

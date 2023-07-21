@@ -17,3 +17,7 @@ export {
   deleteAllDapps,
   deactivateDapp,
 } from './dapps';
+export {
+  startSseConnection,
+} from '../tonConnect/sse';
+export * from './swap';

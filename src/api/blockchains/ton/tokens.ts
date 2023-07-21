@@ -1,7 +1,6 @@
-import type { Jetton, JettonBalance } from 'tonapi-sdk-js';
+import type { JettonBalance } from 'tonapi-sdk-js';
 import TonWeb from 'tonweb';
 
-import type { Storage } from '../../storages/types';
 import type {
   ApiBaseToken, ApiNetwork, ApiToken, ApiTokenSimple,
 } from '../../types';
@@ -9,7 +8,7 @@ import type { ApiTransactionExtra, JettonMetadata } from './types';
 
 import { parseAccountId } from '../../../util/account';
 import { logDebugError } from '../../../util/logs';
-import withCacheAsync from '../../../util/withCacheAsync';
+import { buildTokenSlug } from './util';
 import {
   fixBase64ImageData,
   fixIpfsUrl,
@@ -17,7 +16,13 @@ import {
   parseJettonWalletMsgBody,
 } from './util/metadata';
 import { fetchJettonBalances } from './util/tonapiio';
-import { buildTokenTransferBody, getTonWeb, toBase64Address } from './util/tonweb';
+import {
+  buildTokenTransferBody,
+  getTonWeb,
+  resolveTokenMinterAddress,
+  resolveTokenWalletAddress,
+  toBase64Address,
+} from './util/tonweb';
 import { fetchStoredAddress } from '../../common/accounts';
 import {
   DEFAULT_DECIMALS,
@@ -25,8 +30,7 @@ import {
   TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
 } from './constants';
 
-const { Address } = TonWeb.utils;
-const { JettonWallet, JettonMinter } = TonWeb.token.jetton;
+const { JettonWallet } = TonWeb.token.jetton;
 
 export type JettonWalletType = InstanceType<typeof JettonWallet>;
 export type TokenBalanceParsed = {
@@ -34,10 +38,6 @@ export type TokenBalanceParsed = {
   balance: string;
   token: ApiTokenSimple;
 } | undefined;
-
-interface ExtendedJetton extends Jetton {
-  image_data?: string;
-}
 
 const KNOWN_TOKENS: ApiBaseToken[] = [
   {
@@ -51,38 +51,23 @@ const KNOWN_TOKENS: ApiBaseToken[] = [
 const knownTokens = {} as Record<string, ApiToken>;
 addKnownTokens(KNOWN_TOKENS);
 
-export const resolveTokenWalletAddress = withCacheAsync(async (
-  network: ApiNetwork,
-  address: string,
-  minterAddress: string,
-) => {
-  const minter = new JettonMinter(getTonWeb(network).provider, { address: minterAddress } as any);
-  return (await minter.getJettonWalletAddress(new Address(address))).toString(true, true, true);
-});
-
-export const resolveTokenMinterAddress = withCacheAsync(async (network: ApiNetwork, tokenWalletAddress: string) => {
-  const tokenWallet = new JettonWallet(getTonWeb(network).provider, { address: tokenWalletAddress } as any);
-  return (await tokenWallet.getData()).jettonMinterAddress.toString(true, true, true);
-});
-
-export async function getAccountTokenBalances(storage: Storage, accountId: string) {
+export async function getAccountTokenBalances(accountId: string) {
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
 
   const balancesRaw: Array<JettonBalance> = await fetchJettonBalances(network, address);
   return balancesRaw.map(parseTokenBalance).filter(Boolean);
 }
 
 function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed {
-  if (!balanceRaw.metadata) {
+  if (!balanceRaw.jetton) {
     return undefined;
   }
 
   try {
-    const { balance, jettonAddress, metadata } = balanceRaw;
-    const minterAddress = toBase64Address(jettonAddress);
-
-    const token = buildTokenByMetadata(minterAddress, metadata as ExtendedJetton);
+    const { balance, jetton } = balanceRaw;
+    const minterAddress = toBase64Address(jetton.address);
+    const token = buildTokenByMetadata(minterAddress, jetton);
 
     return { slug: token.slug, balance, token };
   } catch (err) {
@@ -109,7 +94,7 @@ export function parseTokenTransaction(
   const {
     operation, jettonAmount, address, forwardComment,
   } = parsedData;
-  const isIncoming = operation === 'internalTransfer';
+  const isIncoming = operation === 'InternalTransfer';
 
   return {
     ...tx,
@@ -165,11 +150,6 @@ export function getTokenWallet(network: ApiNetwork, tokenAddress: string) {
 
 export async function getTokenWalletBalance(tokenWallet: JettonWalletType) {
   return (await tokenWallet.getData()).balance.toString();
-}
-
-export function buildTokenSlug(minterAddress: string) {
-  const addressPart = minterAddress.replace(/[^a-z\d]/gi, '').slice(0, 10);
-  return `ton-${addressPart}`.toLowerCase();
 }
 
 export function getKnownTokens() {

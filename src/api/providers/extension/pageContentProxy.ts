@@ -1,8 +1,11 @@
+import type { Runtime } from 'webextension-polyfill';
+import extension from '../../../lib/webextension-polyfill';
+
 import { CONTENT_SCRIPT_PORT, PAGE_CONNECTOR_CHANNEL } from './config';
 
 const PAGE_ORIGIN = window.location.href;
 
-let port: chrome.runtime.Port;
+let port: Runtime.Port;
 
 window.addEventListener('message', handlePageMessage);
 
@@ -15,7 +18,7 @@ function handlePageMessage(e: MessageEvent) {
 }
 
 function connectPort() {
-  port = chrome.runtime.connect({ name: CONTENT_SCRIPT_PORT });
+  port = extension.runtime.connect({ name: CONTENT_SCRIPT_PORT });
   port.onMessage.addListener(sendToPage);
 }
 

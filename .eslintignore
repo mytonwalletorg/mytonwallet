@@ -1,9 +1,11 @@
 dev
 public
 
+src/lib/big.js/
 src/lib/rlottie/rlottie-wasm.js
 src/lib/aes-js/index.js
 src/lib/noble-ed25519/index.js
+src/lib/webextension-polyfill/browser.js
 jest.config.js
 playwright.config.ts
 postcss.config.js

@@ -14,6 +14,9 @@ body {
   background-repeat: no-repeat;
   background-position: 50% 90%;
   background-size: 250%;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @media (min-width: 500px) {
@@ -55,6 +58,7 @@ body {
 
 .container {
   min-width: 200px;
+  max-width: 330px;
   padding: 40px 40px 16px 40px;
 
   text-align: center;
@@ -97,6 +101,15 @@ body {
   font-size: 24px;
 }
 
+.gradient-text {
+  color: #007BFF; /* Fallback for non-WebKit */
+
+  background: -webkit-linear-gradient(left, #007BFF, #009CFF);
+  -webkit-background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+}
+
 .select-model {
   margin-top: 36px;
   margin-bottom: 16px;
@@ -108,8 +121,8 @@ body {
   margin-top: 28px;
   margin-bottom: 36px;
 
-  line-height: 1.5rem;
-  color: #777;
+  line-height: 1.25rem;
+  color: #444444;
 }
 
 .download-container {
@@ -137,7 +150,7 @@ body {
   display: inline-block;
 
   margin: 10px;
-  padding: 10px 20px;
+  padding: 8px 20px;
 
   font-size: 16px;
   color: #FFF;
@@ -145,10 +158,12 @@ body {
 
   background-color: #007BFF;
   border-radius: 5px;
+
+  transition: background-color 150ms;
 }
 
 .download-btn:hover {
-  background-color: #0056B3;
+  background-color: rgba(0, 123, 255, 0.9);
 }
 
 .download-btn.single {

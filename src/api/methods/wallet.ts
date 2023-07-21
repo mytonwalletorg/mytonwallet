@@ -1,4 +1,3 @@
-import type { Storage } from '../storages/types';
 import type { ApiNetwork, OnApiUpdate } from '../types';
 
 import { parseAccountId } from '../../util/account';
@@ -10,15 +9,14 @@ import {
 } from '../common/accounts';
 import * as dappPromises from '../common/dappPromises';
 import { resolveBlockchainKey } from '../common/helpers';
+import { storage } from '../storages';
 
 let onUpdate: OnApiUpdate;
-let storage: Storage;
 
 const ton = blockchains.ton;
 
-export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage) {
+export async function initWallet(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
-  storage = _storage;
 
   const isTonProxyEnabled = await storage.getItem('isTonProxyEnabled');
   onUpdate({
@@ -42,18 +40,18 @@ export async function initWallet(_onUpdate: OnApiUpdate, _storage: Storage) {
 export function getMnemonic(accountId: string, password: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.fetchMnemonic(storage, accountId, password);
+  return blockchain.fetchMnemonic(accountId, password);
 }
 
 export async function verifyPassword(password: string) {
-  const accountId = await getMainAccountId(storage);
+  const accountId = await getMainAccountId();
   if (!accountId) {
     throw new Error('The user is not authorized in the wallet');
   }
 
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.verifyPassword(storage, accountId, password);
+  return blockchain.verifyPassword(accountId, password);
 }
 
 export function confirmDappRequest(promiseId: string, data: any) {
@@ -74,16 +72,16 @@ export function cancelDappRequest(promiseId: string, reason?: string) {
 
 export async function getWalletSeqno(accountId: string) {
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(storage, accountId);
+  const address = await fetchStoredAddress(accountId);
   return ton.getWalletSeqno(network, address);
 }
 
 export function fetchAddress(accountId: string) {
-  return fetchStoredAddress(storage, accountId);
+  return fetchStoredAddress(accountId);
 }
 
 export function fetchPublicKey(accountId: string) {
-  return fetchStoredPublicKey(storage, accountId);
+  return fetchStoredPublicKey(accountId);
 }
 
 export function isWalletInitialized(network: ApiNetwork, address: string) {

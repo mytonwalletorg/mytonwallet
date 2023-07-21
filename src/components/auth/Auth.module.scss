@@ -323,6 +323,10 @@
   &_mini {
     min-width: unset !important;
   }
+
+  &_single {
+    max-width: 100% !important;
+  }
 }
 
 .modalDialog {
@@ -399,6 +403,7 @@
   flex-direction: column;
   align-items: center;
 
+  width: 100%;
   margin-top: auto;
 }
 
@@ -415,10 +420,4 @@
   gap: 1rem;
 
   margin: 0.75rem -1rem 0;
-
-  :global(html.is-electron) & {
-    .btn {
-      max-width: 100%;
-    }
-  }
 }

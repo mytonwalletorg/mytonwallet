@@ -277,10 +277,12 @@ textarea.input {
   }
 
   &_errorBottom {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
 
     font-size: 0.9375rem;
     font-weight: 600;
+    line-height: 1.25;
     text-align: center;
+    white-space: normal;
   }
 }

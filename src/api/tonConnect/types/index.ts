@@ -41,7 +41,16 @@ export enum SEND_TRANSACTION_ERROR_CODES {
   METHOD_NOT_SUPPORTED = 400,
 }
 
-export type AllErrorCodes = CONNECT_EVENT_ERROR_CODES | SEND_TRANSACTION_ERROR_CODES;
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export enum SIGN_DATA_ERROR_CODES {
+  UNKNOWN_ERROR = 0,
+  BAD_REQUEST_ERROR = 1,
+  UNKNOWN_APP_ERROR = 100,
+  USER_REJECTS_ERROR = 300,
+  METHOD_NOT_SUPPORTED = 400,
+}
+
+export type AllErrorCodes = CONNECT_EVENT_ERROR_CODES | SEND_TRANSACTION_ERROR_CODES | SIGN_DATA_ERROR_CODES;
 export type LocalConnectEvent = LocalConnectEventSuccess | ConnectEventError;
 
 export interface ApiTonConnectProof {

@@ -1,4 +1,4 @@
-import { DEFAULT_DECIMAL_PLACES } from '../config';
+import { DEFAULT_DECIMAL_PLACES, DEFAULT_PRICE_CURRENCY } from '../config';
 import withCache from './withCache';
 
 export const formatInteger = withCache((value: number, fractionDigits = 2, noRadix = false) => {
@@ -34,4 +34,16 @@ export function formatCurrencyExtended(value: number, currency: string, noSign =
   const prefix = !noSign ? (value > 0 ? '+\u202F' : '\u2212\u202F') : '';
 
   return prefix + formatCurrency(noSign ? value : Math.abs(value), currency, 10 - integerLength);
+}
+
+export function formatCurrencyForBigValue(value: number, threshold = 1000) {
+  const formattedValue = formatCurrency(value, DEFAULT_PRICE_CURRENCY);
+
+  if (value < threshold) {
+    return formattedValue;
+  }
+
+  const [mainPart] = formattedValue.split('.');
+
+  return mainPart;
 }

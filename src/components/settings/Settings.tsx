@@ -1,25 +1,30 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 
 import type { ApiDapp } from '../../api/types';
-import type { AnimationLevel, LangCode, Theme } from '../../global/types';
+import type {
+  AnimationLevel, LangCode, Theme, UserToken,
+} from '../../global/types';
 
 import {
   APP_NAME,
   APP_VERSION,
-  IS_LEDGER_SUPPORTED,
   LANG_LIST,
   PROXY_HOSTS,
   TELEGRAM_WEB_URL,
 } from '../../config';
 import { getActions, withGlobal } from '../../global';
+import {
+  selectAccountSettings, selectCurrentAccountTokens, selectPopularTokensWithoutAccountTokens,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
-import { IS_EXTENSION } from '../../util/windowEnvironment';
+import { IS_DAPP_SUPPORTED, IS_EXTENSION, IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 import useShowTransition from '../../hooks/useShowTransition';
 
@@ -38,18 +43,18 @@ import SettingsLanguage from './SettingsLanguage';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Settings.module.scss';
 
-import aboutImg from '../../assets/settings/about.svg';
-import appearanceImg from '../../assets/settings/appearance.svg';
-import assetsActivityImg from '../../assets/settings/assets-activity.svg';
-import backupSecretImg from '../../assets/settings/backup-secret.svg';
-import connectedDappsImg from '../../assets/settings/connected-dapps.svg';
-import exitImg from '../../assets/settings/exit.svg';
-import languageImg from '../../assets/settings/language.svg';
-import ledgerImg from '../../assets/settings/ledger.svg';
-import telegramImg from '../../assets/settings/telegram-menu.svg';
-import tonLinksImg from '../../assets/settings/ton-links.svg';
-import tonMagicImg from '../../assets/settings/ton-magic.svg';
-import tonProxyImg from '../../assets/settings/ton-proxy.svg';
+import aboutImg from '../../assets/settings/settings_about.svg';
+import appearanceImg from '../../assets/settings/settings_appearance.svg';
+import assetsActivityImg from '../../assets/settings/settings_assets-activity.svg';
+import backupSecretImg from '../../assets/settings/settings_backup-secret.svg';
+import connectedDappsImg from '../../assets/settings/settings_connected-dapps.svg';
+import exitImg from '../../assets/settings/settings_exit.svg';
+import languageImg from '../../assets/settings/settings_language.svg';
+import ledgerImg from '../../assets/settings/settings_ledger.svg';
+import telegramImg from '../../assets/settings/settings_telegram-menu.svg';
+import tonLinksImg from '../../assets/settings/settings_ton-links.svg';
+import tonMagicImg from '../../assets/settings/settings_ton-magic.svg';
+import tonProxyImg from '../../assets/settings/settings_ton-proxy.svg';
 
 const enum RenderingState {
   Initial,
@@ -75,7 +80,13 @@ type StateProps = {
   isTonProxyEnabled?: boolean;
   isTonMagicEnabled?: boolean;
   isDeeplinkHookEnabled?: boolean;
+  areTokensWithNoBalanceHidden?: boolean;
+  areTokensWithNoPriceHidden?: boolean;
+  isSortByValueEnabled?: boolean;
   dapps: ApiDapp[];
+  tokens?: UserToken[];
+  popularTokens?: UserToken[];
+  orderedSlugs?: string[];
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -91,7 +102,13 @@ function Settings({
   isTonProxyEnabled,
   isTonMagicEnabled,
   isDeeplinkHookEnabled,
+  areTokensWithNoBalanceHidden,
+  areTokensWithNoPriceHidden,
+  isSortByValueEnabled,
   dapps,
+  tokens,
+  popularTokens,
+  orderedSlugs,
   isInsideModal,
 }: OwnProps & StateProps) {
   const {
@@ -102,6 +119,7 @@ function Settings({
     toggleTonProxy,
     toggleTonMagic,
     getDapps,
+    initTokensOrder,
   } = getActions();
 
   const lang = useLang();
@@ -118,15 +136,19 @@ function Settings({
     shouldRender: isTelegramLinkRendered,
   } = useShowTransition(isTonMagicEnabled);
 
+  useEffect(() => {
+    initTokensOrder();
+  }, []);
+
   const {
     handleScroll: handleContentScroll,
     isAtBeginning: isContentNotScrolled,
   } = useScrolledState();
 
-  const handleConnectedDappsOpen = useCallback(() => {
+  const handleConnectedDappsOpen = useLastCallback(() => {
     getDapps();
     setRenderingKey(RenderingState.Dapps);
-  }, [getDapps]);
+  });
 
   function handleAppearanceOpen() {
     setRenderingKey(RenderingState.Appearance);
@@ -144,34 +166,34 @@ function Settings({
     setRenderingKey(RenderingState.About);
   }
 
-  const handleBackClick = useCallback(() => {
+  const handleBackClick = useLastCallback(() => {
     setRenderingKey(RenderingState.Initial);
-  }, []);
+  });
 
-  const handleDeeplinkHookToggle = useCallback(() => {
+  const handleDeeplinkHookToggle = useLastCallback(() => {
     toggleDeeplinkHook({ isEnabled: !isDeeplinkHookEnabled });
-  }, [isDeeplinkHookEnabled, toggleDeeplinkHook]);
+  });
 
-  const handleTonProxyToggle = useCallback(() => {
+  const handleTonProxyToggle = useLastCallback(() => {
     toggleTonProxy({ isEnabled: !isTonProxyEnabled });
-  }, [isTonProxyEnabled, toggleTonProxy]);
+  });
 
-  const handleTonMagicToggle = useCallback(() => {
+  const handleTonMagicToggle = useLastCallback(() => {
     toggleTonMagic({ isEnabled: !isTonMagicEnabled });
-  }, [isTonMagicEnabled, toggleTonMagic]);
+  });
 
   function handleOpenBackupWallet() {
     openBackupWalletModal();
   }
 
-  const handleLogOut = useCallback(() => {
+  const handleLogOut = useLastCallback(() => {
     closeLogOutModal();
     closeSettings();
-  }, [closeLogOutModal, closeSettings]);
+  });
 
-  const handleCloseLogOutModal = useCallback(() => {
+  const handleCloseLogOutModal = useLastCallback(() => {
     closeLogOutModal();
-  }, [closeLogOutModal]);
+  });
 
   function handleOpenHardwareModal() {
     openHardwareWalletModal();
@@ -274,7 +296,7 @@ function Settings({
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
             </div>
-            {IS_EXTENSION && (
+            {(IS_DAPP_SUPPORTED) && (
               <div className={styles.item} onClick={handleConnectedDappsOpen}>
                 <img className={styles.menuIcon} src={connectedDappsImg} alt={lang('Connected Dapps')} />
                 {lang('Connected Dapps')}
@@ -354,8 +376,14 @@ function Settings({
       case RenderingState.Assets:
         return (
           <SettingsAssets
+            tokens={tokens}
+            popularTokens={popularTokens}
+            orderedSlugs={orderedSlugs}
             isInvestorViewEnabled={isInvestorViewEnabled}
             areTinyTransfersHidden={areTinyTransfersHidden}
+            areTokensWithNoBalanceHidden={areTokensWithNoBalanceHidden}
+            areTokensWithNoPriceHidden={areTokensWithNoPriceHidden}
+            isSortByValueEnabled={isSortByValueEnabled}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
           />
@@ -390,37 +418,46 @@ function Settings({
   );
 }
 
-export default memo(
-  withGlobal((global): StateProps => {
-    const {
-      theme,
-      animationLevel,
-      areTinyTransfersHidden,
-      isTestnet,
-      isInvestorViewEnabled,
-      canPlaySounds,
-      langCode,
-      isTonMagicEnabled,
-      isTonProxyEnabled,
-      isDeeplinkHookEnabled,
-      dapps,
-    } = global.settings;
+export default memo(withGlobal((global): StateProps => {
+  const {
+    theme,
+    animationLevel,
+    areTinyTransfersHidden,
+    isTestnet,
+    isInvestorViewEnabled,
+    canPlaySounds,
+    langCode,
+    isTonMagicEnabled,
+    isTonProxyEnabled,
+    isDeeplinkHookEnabled,
+    areTokensWithNoBalanceHidden,
+    areTokensWithNoPriceHidden,
+    isSortByValueEnabled,
+    dapps,
+  } = global.settings;
 
-    return {
-      theme,
-      animationLevel,
-      areTinyTransfersHidden,
-      isTestnet,
-      isInvestorViewEnabled,
-      canPlaySounds,
-      langCode,
-      isTonMagicEnabled,
-      isTonProxyEnabled,
-      isDeeplinkHookEnabled,
-      dapps,
-    };
-  })(Settings),
-);
+  const { orderedSlugs } = selectAccountSettings(global, global.currentAccountId!) ?? {};
+
+  return {
+    theme,
+    animationLevel,
+    areTinyTransfersHidden,
+    isTestnet,
+    isInvestorViewEnabled,
+    canPlaySounds,
+    langCode,
+    isTonMagicEnabled,
+    isTonProxyEnabled,
+    isDeeplinkHookEnabled,
+    areTokensWithNoBalanceHidden,
+    areTokensWithNoPriceHidden,
+    isSortByValueEnabled,
+    dapps,
+    tokens: selectCurrentAccountTokens(global),
+    popularTokens: selectPopularTokensWithoutAccountTokens(global),
+    orderedSlugs,
+  };
+})(Settings));
 
 function handleOpenTelegramWeb() {
   window.open(TELEGRAM_WEB_URL, '_blank', 'noopener');

@@ -1,25 +1,33 @@
 import { ApiTransactionDraftError } from '../../../api/types';
 import { TransferState } from '../../types';
-import type { ApiDappTransaction } from '../../../api/types';
+import type { ApiDappTransaction, ApiToken } from '../../../api/types';
+import type { UserToken } from '../../types';
 
 import {
   buildCollectionByKey, findLast, mapValues, unique,
 } from '../../../util/iteratees';
 import { signLedgerTransactions, submitLedgerTransfer } from '../../../util/ledger';
+import { pause } from '../../../util/schedulers';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
-import { getIsTxIdLocal, humanToBigStr } from '../../helpers';
+import { bigStrToHuman, getIsTxIdLocal, humanToBigStr } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentTransfer,
+  updateAccountState,
   updateCurrentAccountsState,
   updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
   updateSendingLoading,
+  updateSettings,
   updateTransactionsIsLoading,
 } from '../../reducers';
-import { selectAccount, selectCurrentAccountState, selectLastTxIds } from '../../selectors';
+import {
+  selectAccount, selectAccountSettings, selectAccountState, selectCurrentAccountState, selectLastTxIds,
+} from '../../selectors';
+
+const IMPORT_TOKEN_PAUSE = 250;
 
 addActionHandler('startTransfer', (global, actions, payload) => {
   const {
@@ -80,7 +88,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     if (result?.error === ApiTransactionDraftError.InsufficientBalance) {
       actions.showDialog({ message: 'The network fee has slightly changed, try sending again.' });
     } else {
-      actions.showTxDraftError({ error: result?.error });
+      actions.showError({ error: result?.error });
     }
 
     return;
@@ -345,24 +353,6 @@ addActionHandler('fetchAllTransactions', async (global, actions, payload) => {
   setGlobal(global);
 });
 
-addActionHandler('fetchNfts', async (global) => {
-  // TODO limit, offset
-  const result = await callApi('fetchNfts', global.currentAccountId!);
-  if (!result) {
-    return;
-  }
-
-  const nfts = buildCollectionByKey(result, 'address');
-  global = getGlobal();
-  global = updateCurrentAccountState(global, {
-    nfts: {
-      byAddress: nfts,
-      orderedAddresses: Object.keys(nfts),
-    },
-  });
-  setGlobal(global);
-});
-
 addActionHandler('setIsBackupRequired', (global, actions, { isMnemonicChecked }) => {
   const { isBackupRequired } = selectCurrentAccountState(global);
 
@@ -401,4 +391,137 @@ addActionHandler('cancelSignature', (global) => {
     ...global,
     currentSignature: undefined,
   });
+});
+
+addActionHandler('addToken', (global, actions, { token }) => {
+  const accountId = global.currentAccountId!;
+  const { balances } = selectAccountState(global, accountId) || {};
+  const accountSettings = selectAccountSettings(global, accountId) ?? {};
+
+  if (balances?.bySlug[token.slug]) {
+    return;
+  }
+
+  const apiToken: ApiToken = {
+    name: token.name,
+    symbol: token.symbol,
+    slug: token.slug,
+    decimals: token.decimals,
+    image: token.image,
+    keywords: token.keywords,
+    quote: {
+      price: token.price ?? 0,
+      percentChange1h: 0,
+      percentChange24h: token.change24h ?? 0,
+      percentChange7d: token.change7d ?? 0,
+      percentChange30d: token.change30d ?? 0,
+      history24h: token.history24h ?? [],
+      history7d: token.history7d ?? [],
+      history30d: token.history30d ?? [],
+    },
+  };
+
+  global = updateAccountState(global, accountId, {
+    balances: {
+      ...balances,
+      bySlug: {
+        ...balances?.bySlug,
+        [apiToken.slug]: '0',
+      },
+    },
+  });
+
+  global = updateSettings(global, {
+    byAccountId: {
+      ...global.settings.byAccountId,
+      [accountId]: {
+        ...accountSettings,
+        orderedSlugs: [
+          ...accountSettings.orderedSlugs ?? [],
+          apiToken.slug,
+        ],
+      },
+    },
+  });
+
+  setGlobal({
+    ...global,
+    tokenInfo: {
+      ...global.tokenInfo,
+      bySlug: {
+        ...global.tokenInfo.bySlug,
+        [apiToken.slug]: apiToken,
+      },
+    },
+  });
+
+  actions.toggleDisabledToken({ slug: apiToken.slug });
+});
+
+addActionHandler('importToken', async (global, actions, { address }) => {
+  setGlobal(
+    updateSettings(global, {
+      importToken: {
+        isLoading: true,
+        token: undefined,
+      },
+    }),
+  );
+
+  const baseToken = await callApi('importToken', global.currentAccountId!, address);
+  await pause(IMPORT_TOKEN_PAUSE);
+
+  if (!baseToken) {
+    global = getGlobal();
+    setGlobal(
+      updateSettings(global, {
+        importToken: {
+          isLoading: false,
+          token: undefined,
+        },
+      }),
+    );
+    return;
+  }
+
+  const {
+    slug, symbol, name, image, decimals, keywords,
+  } = baseToken;
+  const amount = bigStrToHuman('0', decimals);
+
+  const token: UserToken = {
+    symbol,
+    slug,
+    amount,
+    name,
+    image,
+    decimals,
+    price: 0,
+    change24h: 0,
+    change7d: 0,
+    change30d: 0,
+    isDisabled: false,
+    keywords,
+  };
+
+  global = getGlobal();
+  setGlobal(
+    updateSettings(global, {
+      importToken: {
+        isLoading: false,
+        token,
+      },
+    }),
+  );
+});
+
+addActionHandler('resetImportToken', (global) => {
+  setGlobal(
+    updateSettings(global, {
+      importToken: {
+        isLoading: false,
+        token: undefined,
+      },
+    }),
+  );
 });
