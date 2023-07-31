@@ -7,7 +7,7 @@ import useLang from '../../hooks/useLang';
 
 import Menu from './Menu';
 
-import styles from './Dropdown.module.scss';
+import styles from './DropDown.module.scss';
 
 export interface DropdownItem {
   value: string;
@@ -32,7 +32,7 @@ interface OwnProps {
 const DEFAULT_ARROW = 'caret';
 const DEFAULT_MENU_POSITION_HORIZONTAL = 'right';
 
-function Dropdown({
+function DropDown({
   label,
   items,
   selectedValue,
@@ -133,4 +133,4 @@ function Dropdown({
   );
 }
 
-export default memo(Dropdown);
+export default memo(DropDown);

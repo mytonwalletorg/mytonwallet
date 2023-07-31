@@ -16,8 +16,8 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
-import type { DropdownItem } from '../ui/Dropdown';
-import Dropdown from '../ui/Dropdown';
+import type { DropdownItem } from '../ui/DropDown';
+import DropDown from '../ui/DropDown';
 import Input from '../ui/Input';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import Modal from '../ui/Modal';
@@ -90,7 +90,7 @@ function InvoiceModal({
   }, []);
 
   function renderTokens() {
-    return <Dropdown items={dropdownItems} selectedValue={TON_TOKEN_SLUG} className={styles.tokenDropdown} />;
+    return <DropDown items={dropdownItems} selectedValue={TON_TOKEN_SLUG} className={styles.tokenDropdown} />;
   }
 
   return (

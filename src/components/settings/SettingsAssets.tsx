@@ -14,7 +14,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 
 import Button from '../ui/Button';
-import Dropdown from '../ui/Dropdown';
+import DropDown from '../ui/DropDown';
 import ModalHeader from '../ui/ModalHeader';
 import Switcher from '../ui/Switcher';
 import Tooltip from '../ui/Tooltip';
@@ -108,7 +108,7 @@ function SettingsAssets({
       )}
       <div className={buildClassName(styles.content, 'custom-scroll')} onScroll={handleContentScroll}>
         <div className={styles.settingsBlock}>
-          <Dropdown
+          <DropDown
             label={lang('Fiat Currency')}
             items={CURRENCY_OPTIONS}
             selectedValue={CURRENCY_OPTIONS[0].value}

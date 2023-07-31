@@ -9,7 +9,7 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
-import Dropdown from '../ui/Dropdown';
+import DropDown from '../ui/DropDown';
 import Modal from '../ui/Modal';
 
 import styles from './Settings.module.scss';
@@ -49,7 +49,7 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
         {lang('Developer Options')}
       </div>
       <div className={styles.settingsBlock}>
-        <Dropdown
+        <DropDown
           label={lang('Network')}
           items={NETWORK_OPTIONS}
           selectedValue={NETWORK_OPTIONS[isTestnet ? 1 : 0].value}

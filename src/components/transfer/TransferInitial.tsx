@@ -26,8 +26,8 @@ import useShowTransition from '../../hooks/useShowTransition';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from '../ui/Button';
-import type { DropdownItem } from '../ui/Dropdown';
-import Dropdown from '../ui/Dropdown';
+import type { DropdownItem } from '../ui/DropDown';
+import DropDown from '../ui/DropDown';
 import Input from '../ui/Input';
 import Menu from '../ui/Menu';
 import RichNumberInput from '../ui/RichNumberInput';
@@ -409,7 +409,7 @@ function TransferInitial({
 
   function renderTokens() {
     return (
-      <Dropdown
+      <DropDown
         items={dropDownItems}
         selectedValue={tokenSlug}
         className={styles.tokenDropdown}
@@ -428,7 +428,7 @@ function TransferInitial({
 
   function renderCommentLabel() {
     return (
-      <Dropdown
+      <DropDown
         items={COMMENT_DROPDOWN_ITEMS}
         selectedValue={COMMENT_DROPDOWN_ITEMS[shouldEncryptComment ? 1 : 0].value}
         theme="light"
