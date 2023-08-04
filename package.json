@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "1.15.0",
+  "version": "1.15.1",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "build:extension:production": "npm i && cross-env ENV_EXTENSION=1 webpack && bash ./deploy/copy_to_dist.sh && rm -f MyTonWallet.zip && zip -r -X MyTonWallet.zip dist/*",
     "build:extension:dev:firefox": "cross-env IS_FIREFOX_EXTENSION=1 npm run build:extension:dev",
     "build:extension:production:firefox": "npm i && cross-env IS_FIREFOX_EXTENSION=1 ENV_EXTENSION=1 webpack && bash ./deploy/copy_to_dist.sh && rm -f MyTonWallet-firefox.zip && cd dist && rm -f reference.json && zip -r -X ../MyTonWallet-firefox.zip ./*",
-    "deploy:electron": "source .env && npm run electron:production -- -p always && git checkout . && git clean -df",
+    "deploy:electron": "npm run electron:production -- -p always",
     "start:extension:dev:arch": "npm run build:extension:dev && google-chrome-stable --load-extension=\"`pwd`/dist\"",
     "start:extension:dev:mac": "npm run build:extension:dev && open -a \"Google Chrome\" --load-extension=\"`pwd`/dist\"",
     "build:icons": "fantasticon",
@@ -26,7 +26,7 @@
     "test:record": "playwright codegen localhost:1235",
     "electron:webpack": "cross-env APP_ENV=$ENV webpack --config ./webpack-electron.config.ts",
     "electron:build": "IS_ELECTRON=true npm run build:$ENV && electron-builder install-app-deps && electron-rebuild && ENV=$ENV npm run electron:webpack",
-    "electron:staging": "ENV=staging CSC_IDENTITY_AUTO_DISCOVERY=false npm run electron:package --",
+    "electron:staging": "ENV=staging npm run electron:package -- -p never",
     "electron:production": "ENV=production npm run electron:package --",
     "electron:package": "npm run electron:build && npx rimraf dist-electron && electron-builder build --win --mac --linux --config src/electron/config.yml",
     "prepare": "husky install",
@@ -71,7 +71,6 @@
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.21.0",
     "@babel/register": "^7.21.0",
-    "@electron/rebuild": "^3.2.10",
     "@peculiar/webcrypto": "^1.3.2",
     "@playwright/test": "^1.31.2",
     "@statoscope/cli": "^5.26.2",

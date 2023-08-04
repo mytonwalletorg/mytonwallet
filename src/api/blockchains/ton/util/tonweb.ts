@@ -99,9 +99,18 @@ export async function fetchTransactions(
   const fromHash = fromTxId ? parseTxId(fromTxId).hash : undefined;
   const toLt = toTxId ? parseTxId(toTxId).lt : undefined;
 
-  const rawTransactions = await tonWeb.provider.getTransactions(
+  let rawTransactions = await tonWeb.provider.getTransactions(
     address, limit, fromLt, fromHash, toLt, true,
-  );
+  ) as any[];
+
+  if (
+    fromTxId
+    && rawTransactions.length
+    && Number(rawTransactions[0].transaction_id.lt) === fromLt
+    && rawTransactions[0].transaction_id.hash === fromHash
+  ) {
+    rawTransactions = rawTransactions.slice(1);
+  }
 
   return rawTransactions.map(parseRawTransaction).flat();
 }
@@ -200,6 +209,10 @@ export function buildTokenTransferBody(params: TokenTransferBodyParams) {
       forwardPayload.bits.writeUint(0, 32);
       forwardPayload.bits.writeBytes(buffer);
     }
+  } else if (forwardPayload instanceof Uint8Array && cell.bits.getFreeBits() < forwardPayload.length * 8) {
+    const bytes = forwardPayload;
+    forwardPayload = new Cell();
+    forwardPayload.bits.writeBytes(bytes);
   }
 
   if (!forwardPayload) {
@@ -208,6 +221,9 @@ export function buildTokenTransferBody(params: TokenTransferBodyParams) {
     cell.bits.writeBit(false);
     cell.bits.writeUint(0, 32);
     cell.bits.writeBytes(Buffer.from(forwardPayload));
+  } else if (forwardPayload instanceof Uint8Array) {
+    cell.bits.writeBit(false);
+    cell.bits.writeBytes(forwardPayload);
   } else {
     cell.bits.writeBit(true);
     cell.refs.push(forwardPayload);

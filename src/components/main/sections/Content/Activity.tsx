@@ -4,9 +4,9 @@ import React, {
 
 import type { ApiToken, ApiTransaction } from '../../../../api/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, TINY_TRANSFER_MAX_AMOUNT, TON_TOKEN_SLUG } from '../../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, TON_TOKEN_SLUG } from '../../../../config';
 import { getActions, withGlobal } from '../../../../global';
-import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
+import { getIsTxIdLocal, getIsTynyTransaction } from '../../../../global/helpers';
 import { selectCurrentAccountState, selectIsNewWallet } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { compareTransactions } from '../../../../util/compareTransactions';
@@ -105,9 +105,7 @@ function Activity({
         return Boolean(
           transaction?.slug
             && (!slug || transaction.slug === slug)
-            && (!areTinyTransfersHidden
-              || Math.abs(bigStrToHuman(transaction.amount, tokensBySlug![transaction.slug!].decimals))
-                >= TINY_TRANSFER_MAX_AMOUNT),
+            && (!areTinyTransfersHidden || !getIsTynyTransaction(transaction, tokensBySlug![transaction.slug])),
         );
       }) as ApiTransaction[];
 

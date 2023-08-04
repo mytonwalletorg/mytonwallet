@@ -33,7 +33,6 @@ function DappTransaction({
   const lang = useLang();
   const [isPayloadExpanded, expandPayload] = useFlag(false);
 
-  // eslint-disable-next-line consistent-return
   function renderPayload(payload: ApiParsedPayload) {
     switch (payload.type) {
       case 'comment':
@@ -62,8 +61,25 @@ function DappTransaction({
         });
       }
 
-      case 'unknown':
+      case 'encrypted-comment':
+        return payload.encryptedComment;
+
+      default:
         return payload.base64;
+    }
+  }
+
+  function renderPayloadLabel(payload: ApiParsedPayload) {
+    switch (payload.type) {
+      case 'comment':
+        return lang('Comment');
+      case 'transfer-tokens:non-standard':
+      case 'transfer-tokens':
+      case 'transfer-nft':
+      case 'encrypted-comment':
+        return lang('Nested Transaction');
+      default:
+        return lang('Payload');
     }
   }
 
@@ -85,7 +101,7 @@ function DappTransaction({
 
       {transaction.payload && (
         <>
-          <p className={styles.label}>{lang('Nested Transaction')}</p>
+          <p className={styles.label}>{renderPayloadLabel(transaction.payload)}</p>
           <div className={buildClassName(styles.payloadField, isPayloadExpanded && styles.payloadField_expanded)}>
             {renderPayload(transaction.payload)}
             {!isPayloadExpanded && (

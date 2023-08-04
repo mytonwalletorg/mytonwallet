@@ -8,7 +8,7 @@ import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
 import type {
   ApiNetwork, ApiSignedTransfer, ApiTransaction, ApiTxIdBySlug,
 } from '../../types';
-import type { ApiTransactionExtra, TonTransferParams } from './types';
+import type { AnyPayload, ApiTransactionExtra, TonTransferParams } from './types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -141,11 +141,6 @@ export async function checkTransactionDraft(
       }
     }
   } else {
-    if (data && typeof data !== 'string') {
-      result.error = ApiTransactionDraftError.Unexpected;
-      return result;
-    }
-
     const address = await fetchStoredAddress(accountId);
     const tokenAmount: string = amount;
     let tokenWallet: JettonWalletType;
@@ -183,7 +178,7 @@ export async function submitTransfer(
   tokenSlug: string,
   toAddress: string,
   amount: string,
-  data?: string | Uint8Array | Cell,
+  data?: AnyPayload,
   stateInit?: Cell,
   shouldEncrypt?: boolean,
 ): Promise<SubmitTransferResult> {
@@ -207,10 +202,6 @@ export async function submitTransfer(
     }
 
     if (tokenSlug !== TON_TOKEN_SLUG) {
-      if (data && typeof data !== 'string') {
-        throw new Error('Unknown error');
-      }
-
       ({
         amount,
         toAddress: resolvedAddress,

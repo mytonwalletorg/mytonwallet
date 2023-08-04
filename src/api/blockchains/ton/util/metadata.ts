@@ -27,37 +27,46 @@ export function parseJettonWalletMsgBody(body?: string) {
     const opCode = slice.loadUint(32);
     const queryId = slice.loadUint(64);
 
-    if (opCode === JettonOpCode.Transfer || opCode === JettonOpCode.InternalTransfer) {
-      const jettonAmount = slice.loadCoins();
-      const address = slice.loadMaybeAddress();
-      const responseAddress = slice.loadMaybeAddress();
-      let forwardAmount: bigint | undefined;
-      let forwardComment: string | undefined;
+    if (opCode !== JettonOpCode.Transfer && opCode !== JettonOpCode.InternalTransfer) {
+      return undefined;
+    }
 
-      if (responseAddress) {
-        if (opCode === JettonOpCode.Transfer) {
-          slice.loadBit();
-        }
-        forwardAmount = slice.loadCoins();
-        const isSeparateCell = slice.remainingBits && slice.loadBit();
-        if (isSeparateCell && slice.remainingRefs) {
-          slice = slice.loadRef().beginParse();
-        }
-        if (slice.remainingBits > 32 && slice.loadUint(32) === 0) {
-          forwardComment = slice.loadStringTail();
+    const jettonAmount = slice.loadCoins();
+    const address = slice.loadMaybeAddress();
+    const responseAddress = slice.loadMaybeAddress();
+    let forwardAmount: bigint | undefined;
+    let comment: string | undefined;
+    let encryptedComment: string | undefined;
+
+    if (responseAddress) {
+      if (opCode === JettonOpCode.Transfer) {
+        slice.loadBit();
+      }
+      forwardAmount = slice.loadCoins();
+      const isSeparateCell = slice.remainingBits && slice.loadBit();
+      if (isSeparateCell && slice.remainingRefs) {
+        slice = slice.loadRef().beginParse();
+      }
+      if (slice.remainingBits > 32) {
+        const forwardOpCode = slice.loadUint(32);
+        if (forwardOpCode === OpCode.Comment) {
+          comment = slice.loadStringTail();
+        } else if (forwardOpCode === OpCode.Encrypted) {
+          encryptedComment = slice.loadBuffer(slice.remainingBits / 8).toString('base64');
         }
       }
-
-      return {
-        operation: JettonOpCode[opCode] as keyof typeof JettonOpCode,
-        queryId,
-        jettonAmount,
-        responseAddress,
-        address: address ? toBounceableAddress(address) : undefined,
-        forwardAmount,
-        forwardComment,
-      };
     }
+
+    return {
+      operation: JettonOpCode[opCode] as keyof typeof JettonOpCode,
+      queryId,
+      jettonAmount,
+      responseAddress,
+      address: address ? toBounceableAddress(address) : undefined,
+      forwardAmount,
+      comment,
+      encryptedComment,
+    };
   } catch (err) {
     logDebugError('parseJettonWalletMsgBody', err);
   }

@@ -88,7 +88,7 @@ export const TON_TOKEN_SLUG = 'toncoin';
 
 export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
-export const TINY_TRANSFER_MAX_AMOUNT = 0.01;
+export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const LANG_CACHE_NAME = 'mtw-lang-15';
 

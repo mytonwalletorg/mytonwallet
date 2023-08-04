@@ -2,7 +2,7 @@ import React, { memo } from '../../lib/teact/teact';
 
 import type { UserToken } from '../../global/types';
 
-import { CARD_SECONDARY_VALUE_SYMBOL, TINY_TRANSFER_MAX_AMOUNT } from '../../config';
+import { CARD_SECONDARY_VALUE_SYMBOL, TINY_TRANSFER_MAX_COST } from '../../config';
 import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import stopEvent from '../../util/stopEvent';
@@ -150,7 +150,7 @@ function SettingsAssets({
                 message={
                   lang(
                     '$tiny_transfers_help',
-                    [TINY_TRANSFER_MAX_AMOUNT, CARD_SECONDARY_VALUE_SYMBOL],
+                    [TINY_TRANSFER_MAX_COST, CARD_SECONDARY_VALUE_SYMBOL],
                   ) as string
                 }
                 className={buildClassName(styles.tooltip, styles.tooltip_wide)}

@@ -4,7 +4,7 @@ import TonWeb from 'tonweb';
 import type {
   ApiBaseToken, ApiNetwork, ApiToken, ApiTokenSimple,
 } from '../../types';
-import type { ApiTransactionExtra, JettonMetadata } from './types';
+import type { AnyPayload, ApiTransactionExtra, JettonMetadata } from './types';
 
 import { parseAccountId } from '../../../util/account';
 import { logDebugError } from '../../../util/logs';
@@ -92,7 +92,7 @@ export function parseTokenTransaction(
   }
 
   const {
-    operation, jettonAmount, address, forwardComment,
+    operation, jettonAmount, address, comment, encryptedComment,
   } = parsedData;
   const isIncoming = operation === 'InternalTransfer';
 
@@ -102,7 +102,8 @@ export function parseTokenTransaction(
     fromAddress: isIncoming ? (address ?? tx.fromAddress) : walletAddress,
     toAddress: isIncoming ? walletAddress : address!,
     amount: isIncoming ? jettonAmount.toString() : `-${jettonAmount}`,
-    comment: forwardComment,
+    comment,
+    encryptedComment,
     isIncoming,
   };
 }
@@ -113,7 +114,7 @@ export async function buildTokenTransfer(
   fromAddress: string,
   toAddress: string,
   amount: string,
-  comment?: string,
+  payload?: AnyPayload,
 ) {
   const minterAddress = resolveTokenBySlug(slug).minterAddress!;
   const tokenWalletAddress = await resolveTokenWalletAddress(network, fromAddress, minterAddress);
@@ -124,11 +125,11 @@ export async function buildTokenTransfer(
 
   const tokenWallet = getTokenWallet(network, tokenWalletAddress);
 
-  const payload = buildTokenTransferBody({
+  payload = buildTokenTransferBody({
     tokenAmount: amount,
     toAddress,
     forwardAmount: TOKEN_TRANSFER_TON_FORWARD_AMOUNT.toString(),
-    forwardPayload: comment,
+    forwardPayload: payload,
     responseAddress: fromAddress,
   });
 

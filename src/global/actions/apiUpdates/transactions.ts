@@ -1,8 +1,7 @@
 import { TransferState } from '../../types';
 
-import { DEFAULT_DECIMAL_PLACES, TINY_TRANSFER_MAX_AMOUNT } from '../../../config';
 import { playIncomingTransactionSound } from '../../../util/appSounds';
-import { bigStrToHuman } from '../../helpers';
+import { bigStrToHuman, getIsTynyTransaction } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   removeTransaction,
@@ -61,11 +60,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           transaction.isIncoming
           && global.settings.canPlaySounds
           && (Date.now() - transaction.timestamp < TX_AGE_TO_PLAY_SOUND)
-          && (!global.settings.areTinyTransfersHidden
-            || Math.abs(bigStrToHuman(
-              transaction.amount,
-              global.tokenInfo?.bySlug[transaction.slug!].decimals || DEFAULT_DECIMAL_PLACES,
-            )) >= TINY_TRANSFER_MAX_AMOUNT
+          && (
+            !global.settings.areTinyTransfersHidden
+            || getIsTynyTransaction(transaction, global.tokenInfo?.bySlug[transaction.slug!])
           )
         ) {
           shouldPlaySound = true;

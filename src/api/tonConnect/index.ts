@@ -194,8 +194,8 @@ export async function disconnect(request: ApiDappRequest, message: DisconnectRpc
   try {
     const { origin, accountId } = await validateRequest(request);
 
-    deactivateAccountDapp(accountId);
     await deleteDapp(accountId, origin, true);
+    deactivateAccountDapp(accountId);
   } catch (err) {
     logDebugError('tonConnect:disconnect', err);
   }

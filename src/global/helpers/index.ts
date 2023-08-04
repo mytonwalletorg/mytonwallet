@@ -1,4 +1,13 @@
-import { DEFAULT_DECIMAL_PLACES } from '../../config';
+import type { ApiToken, ApiTransaction } from '../../api/types';
+
+import { DEFAULT_DECIMAL_PLACES, TINY_TRANSFER_MAX_COST } from '../../config';
+
+export function getIsTynyTransaction(transaction: ApiTransaction, token?: ApiToken) {
+  if (!token) return false;
+  const decimals = token.decimals;
+  const cost = Math.abs(bigStrToHuman(transaction.amount, decimals)) * token.quote.price;
+  return cost < TINY_TRANSFER_MAX_COST;
+}
 
 export function bigStrToHuman(amount: string, decimalPlaces?: number) {
   if (decimalPlaces === undefined) decimalPlaces = DEFAULT_DECIMAL_PLACES;

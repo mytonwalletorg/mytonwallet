@@ -17,6 +17,8 @@ export declare class MyTonWeb extends TonWeb {
   dns: Dns;
 }
 
+export type AnyPayload = string | Uint8Array | Cell;
+
 export interface ApiTransactionExtra extends ApiTransaction {
   extraData?: { body?: any };
 }
@@ -27,13 +29,13 @@ export interface TokenTransferBodyParams {
   toAddress: string;
   responseAddress: string;
   forwardAmount: string;
-  forwardPayload?: Cell | string;
+  forwardPayload?: AnyPayload;
 }
 
 export interface TonTransferParams {
   toAddress: string;
   amount: string;
-  payload?: string | Uint8Array | Cell;
+  payload?: AnyPayload;
   stateInit?: Cell;
 }
 

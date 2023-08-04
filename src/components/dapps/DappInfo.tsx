@@ -52,7 +52,7 @@ function DappInfo({
       {renderIcon()}
       <div className={styles.dappInfo}>
         <span className={styles.dappName}>{name}</span>
-        <span className={styles.dappUrl}>{url}</span>
+        <span className={styles.dappUrl}>{url && new URL(url).host}</span>
       </div>
       {shouldShowDisconnect && (
         <Button

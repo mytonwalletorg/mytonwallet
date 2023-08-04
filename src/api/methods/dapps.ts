@@ -89,10 +89,12 @@ export function deactivateAccountDapp(accountId: string) {
 
   delete activeDappByAccountId[accountId];
 
-  onUpdate({
-    type: 'updateActiveDapp',
-    accountId,
-  });
+  if (onUpdate && isUpdaterAlive(onUpdate)) {
+    onUpdate({
+      type: 'updateActiveDapp',
+      accountId,
+    });
+  }
 
   return true;
 }
@@ -157,11 +159,13 @@ export async function deleteDapp(accountId: string, origin: string, dontNotifyDa
   delete dapps[origin];
   await setAccountValue(accountId, 'dapps', dapps);
 
-  onUpdate({
-    type: 'dappDisconnect',
-    accountId,
-    origin,
-  });
+  if (onUpdate && isUpdaterAlive(onUpdate)) {
+    onUpdate({
+      type: 'dappDisconnect',
+      accountId,
+      origin,
+    });
+  }
 
   if (!dontNotifyDapp) {
     updateDapps({

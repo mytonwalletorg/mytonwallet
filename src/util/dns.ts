@@ -1,8 +1,8 @@
 const zones = ['ton', 't.me', 'vip'];
 const zonesRegex = {
-  ton: /^([-\da-z]{4,126})\.ton$/i,
-  't.me': /^([-_\da-z]{4,126})\.t\.me$/i,
-  vip: /^([\da-z]{1,24})\.(vip|vip\.ton|ton\.vip)$/i,
+  ton: /^([-\da-z]+\.){0,2}([-\da-z]{4,126})\.ton$/i,
+  't.me': /^([-\da-z]+\.){0,2}([-_\da-z]{4,126})\.t\.me$/i,
+  vip: /^(?<base>([-\da-z]+\.){0,2}([\da-z]{1,24}))\.(ton\.vip|vip\.ton|vip)$/i,
 };
 
 function isDnsDomain(value: string) {
@@ -13,10 +13,9 @@ function isVipDnsDomain(value: string) {
   return zonesRegex.vip.test(value);
 }
 
-function removeZone(value: string) {
-  return Object.values(zonesRegex).map((zone) => (
-    zone.test(value) && value.match(zone)![1]
-  )).find(Boolean);
+function removeVipZone(value: string) {
+  value = value.replace(/\.ton\.vip$/i, '.vip').replace(/\.vip\.ton$/i, '.vip');
+  return value.match(zonesRegex.vip)?.groups?.base;
 }
 
 export default {
@@ -24,5 +23,5 @@ export default {
   zonesRegex,
   isDnsDomain,
   isVipDnsDomain,
-  removeZone,
+  removeVipZone,
 };

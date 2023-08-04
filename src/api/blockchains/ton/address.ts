@@ -17,7 +17,8 @@ export async function resolveAddress(network: ApiNetwork, address: string) {
 
   try {
     if (dns.isVipDnsDomain(domain)) {
-      const base = dns.removeZone(domain);
+      const base = dns.removeVipZone(domain)!;
+
       return (await new DnsCollection(tonweb.provider, {
         address: VIP_DNS_COLLECTION,
       }).resolve(base, 'wallet'))?.toString(true, true, true);
