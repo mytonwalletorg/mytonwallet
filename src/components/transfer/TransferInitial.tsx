@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useRef, useState,
+  memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 
 import { ElectronEvent } from '../../electron/types';
@@ -8,7 +8,11 @@ import type { UserToken } from '../../global/types';
 import { CARD_SECONDARY_VALUE_SYMBOL, DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../config';
 import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
-import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
+import {
+  selectCurrentAccountState,
+  selectCurrentAccountTokens,
+  selectIsHardwareAccount,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import dns from '../../util/dns';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
@@ -41,16 +45,18 @@ interface OwnProps {
 }
 
 interface StateProps {
-  initialAddress?: string;
-  initialAmount?: number;
-  initialComment?: string;
-  initialShouldEncryptComment?: boolean;
+  toAddress?: string;
+  amount?: number;
+  comment?: string;
+  shouldEncrypt?: boolean;
   fee?: string;
   tokenSlug?: string;
   tokens?: UserToken[];
   savedAddresses?: Record<string, string>;
   isLoading?: boolean;
   onCommentChange?: NoneToVoidFunction;
+  isEncryptedCommentSupported: boolean;
+  isCommentSupported: boolean;
 }
 
 const COMMENT_MAX_SIZE_BYTES = 121; // Value derived empirically
@@ -66,18 +72,27 @@ const runThrottled = throttle((cb) => cb(), 1500, true);
 function TransferInitial({
   isStatic,
   tokenSlug = TON_TOKEN_SLUG,
-  initialAddress = '',
-  initialAmount,
-  initialComment = '',
-  initialShouldEncryptComment,
+  toAddress = '',
+  amount,
+  comment = '',
+  shouldEncrypt,
   tokens,
   fee,
   savedAddresses,
   isLoading,
   onCommentChange,
+  isEncryptedCommentSupported,
+  isCommentSupported,
 }: OwnProps & StateProps) {
   const {
-    submitTransferInitial, showNotification, fetchFee, changeTransferToken,
+    submitTransferInitial,
+    showNotification,
+    fetchFee,
+    changeTransferToken,
+    setTransferAmount,
+    setTransferToAddress,
+    setTransferComment,
+    setTransferShouldEncrypt,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -85,15 +100,11 @@ function TransferInitial({
 
   const lang = useLang();
 
-  const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);
-  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState<boolean>(true);
+  const [shouldUseAllBalance, setShouldUseAllBalance] = useState(false);
+  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(true);
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [isSavedAddressesOpen, openSavedAddresses, closeSavedAddresses] = useFlag();
   const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
-  const [toAddress, setToAddress] = useState<string>(initialAddress);
-  const [amount, setAmount] = useState<number | undefined>(initialAmount);
-  const [comment, setComment] = useState<string>(initialComment);
-  const [shouldEncryptComment, setShouldEncryptComment] = useState(initialShouldEncryptComment);
   const [hasToAddressError, setHasToAddressError] = useState<boolean>(false);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
@@ -136,7 +147,7 @@ function TransferInitial({
     }, []);
   }, [tokens]);
 
-  const validateAndSetAmount = useCallback(
+  const validateAndSetAmount = useLastCallback(
     (newAmount: number | undefined, noReset = false) => {
       if (!noReset) {
         setShouldUseAllBalance(false);
@@ -145,7 +156,7 @@ function TransferInitial({
       }
 
       if (newAmount === undefined) {
-        setAmount(undefined);
+        setTransferAmount({ amount: undefined });
         return;
       }
 
@@ -159,9 +170,8 @@ function TransferInitial({
         setIsInsufficientBalance(true);
       }
 
-      setAmount(newAmount);
+      setTransferAmount({ amount: newAmount });
     },
-    [balance],
   );
 
   useEffect(() => {
@@ -195,24 +205,23 @@ function TransferInitial({
 
   useEffect(() => {
     return window.electron?.on(ElectronEvent.DEEPLINK, (params: any) => {
-      setToAddress(params.to);
-      setAmount(bigStrToHuman(params.amount));
-      setComment(params.text);
+      setTransferToAddress({ toAddress: params.to });
+      setTransferAmount({ amount: bigStrToHuman(params.amount) });
+      setTransferComment({ comment: params.text });
     });
   }, []);
 
-  const handleTokenChange = useCallback(
+  const handleTokenChange = useLastCallback(
     (slug: string) => {
       changeTransferToken({ tokenSlug: slug });
     },
-    [changeTransferToken],
   );
 
-  const validateToAddress = useCallback(() => {
+  const validateToAddress = useLastCallback(() => {
     setHasToAddressError(Boolean(toAddress) && !isAddressValid);
-  }, [toAddress, isAddressValid]);
+  });
 
-  const handleAddressFocus = useCallback(() => {
+  const handleAddressFocus = useLastCallback(() => {
     const el = toAddressRef.current!;
 
     // `selectionStart` is only updated in the next frame after `focus` event
@@ -236,11 +245,11 @@ function TransferInitial({
     if (hasSavedAddresses) {
       openSavedAddresses();
     }
-  }, [hasSavedAddresses, markAddressFocused, openSavedAddresses, toAddressShort.length]);
+  });
 
-  const handleAddressBlur = useCallback(() => {
+  const handleAddressBlur = useLastCallback(() => {
     if (dns.isDnsDomain(toAddress) && toAddress !== toAddress.toLowerCase()) {
-      setToAddress(toAddress.toLowerCase());
+      setTransferToAddress({ toAddress: toAddress.toLowerCase() });
     }
 
     validateToAddress();
@@ -249,21 +258,18 @@ function TransferInitial({
     if (hasSavedAddresses && isSavedAddressesOpen) {
       closeSavedAddresses();
     }
-  }, [
-    closeSavedAddresses,
-    hasSavedAddresses,
-    isSavedAddressesOpen,
-    unmarkAddressFocused,
-    validateToAddress,
-    toAddress,
-  ]);
+  });
 
-  const handlePasteClick = useCallback(() => {
+  const handleAddressInput = useLastCallback((newToAddress: string) => {
+    setTransferToAddress({ toAddress: newToAddress });
+  });
+
+  const handlePasteClick = useLastCallback(() => {
     navigator.clipboard
       .readText()
       .then((clipboardText) => {
         if (getIsAddressValid(clipboardText)) {
-          setToAddress(clipboardText);
+          setTransferToAddress({ toAddress: clipboardText });
           validateToAddress();
         }
       })
@@ -273,31 +279,29 @@ function TransferInitial({
         });
         setShouldRenderPasteButton(false);
       });
-  }, [lang, showNotification, validateToAddress]);
+  });
 
-  const handleSavedAddressClick = useCallback(
+  const handleSavedAddressClick = useLastCallback(
     (address: string) => {
-      setToAddress(address);
+      setTransferToAddress({ toAddress: address });
       closeSavedAddresses();
     },
-    [closeSavedAddresses],
   );
 
-  const handleDeleteSavedAddressClick = useCallback(
+  const handleDeleteSavedAddressClick = useLastCallback(
     (address: string) => {
       setSavedAddressForDeletion(address);
       closeSavedAddresses();
     },
-    [closeSavedAddresses],
   );
 
-  const closeDeleteSavedAddressModal = useCallback(() => {
+  const closeDeleteSavedAddressModal = useLastCallback(() => {
     setSavedAddressForDeletion(undefined);
-  }, []);
+  });
 
-  const handleAmountChange = useCallback(validateAndSetAmount, [validateAndSetAmount]);
+  const handleAmountChange = useLastCallback(validateAndSetAmount);
 
-  const handleMaxAmountClick = useCallback(
+  const handleMaxAmountClick = useLastCallback(
     (e: React.MouseEvent<HTMLElement>) => {
       e.preventDefault();
 
@@ -307,13 +311,12 @@ function TransferInitial({
 
       setShouldUseAllBalance(true);
     },
-    [balance],
   );
 
-  const handleCommentChange = useCallback((value) => {
-    setComment(trimStringByMaxBytes(value, COMMENT_MAX_SIZE_BYTES));
+  const handleCommentChange = useLastCallback((value) => {
+    setTransferComment({ comment: trimStringByMaxBytes(value, COMMENT_MAX_SIZE_BYTES) });
     onCommentChange?.();
-  }, [onCommentChange]);
+  });
 
   const canSubmit = toAddress.length && amount && balance && amount > 0
     && amount <= balance && !hasToAddressError && !hasAmountError;
@@ -330,12 +333,12 @@ function TransferInitial({
       amount: amount!,
       toAddress,
       comment,
-      shouldEncrypt: shouldEncryptComment,
+      shouldEncrypt,
     });
   });
 
   const handleCommentOptionsChange = useLastCallback((option: string) => {
-    setShouldEncryptComment(option === 'encrypted');
+    setTransferShouldEncrypt({ shouldEncrypt: option === 'encrypted' });
   });
 
   const renderedSavedAddresses = useMemo(() => {
@@ -395,7 +398,7 @@ function TransferInitial({
     return (
       <div className={styles.balanceContainer}>
         <span className={styles.balance}>
-          {lang('$your_balance_is', {
+          {lang('$balance_is', {
             balance: (
               <a href="#" onClick={handleMaxAmountClick} className={styles.balanceLink}>
                 {balance !== undefined ? formatCurrencyExtended(balance, symbol, true) : lang('Loading...')}
@@ -429,8 +432,8 @@ function TransferInitial({
   function renderCommentLabel() {
     return (
       <Dropdown
-        items={COMMENT_DROPDOWN_ITEMS}
-        selectedValue={COMMENT_DROPDOWN_ITEMS[shouldEncryptComment ? 1 : 0].value}
+        items={isEncryptedCommentSupported ? COMMENT_DROPDOWN_ITEMS : [COMMENT_DROPDOWN_ITEMS[0]]}
+        selectedValue={COMMENT_DROPDOWN_ITEMS[shouldEncrypt ? 1 : 0].value}
         theme="light"
         menuPositionHorizontal="left"
         shouldTranslateOptions
@@ -451,13 +454,13 @@ function TransferInitial({
           placeholder={lang('Wallet address or domain')}
           value={isAddressFocused ? toAddress : toAddressShort}
           error={hasToAddressError ? (lang('Incorrect address') as string) : undefined}
-          onInput={setToAddress}
+          onInput={handleAddressInput}
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}
         >
           {shouldRenderPasteButton && toAddress === '' && (
             <Button isSimple className={styles.inputButton} onClick={handlePasteClick} ariaLabel={lang('Paste')}>
-              <i className="icon-paste" />
+              <i className="icon-paste" aria-hidden />
             </Button>
           )}
         </Input>
@@ -487,15 +490,17 @@ function TransferInitial({
           </div>
         </div>
 
-        <Input
-          className={isStatic ? styles.inputStatic : undefined}
-          label={renderCommentLabel()}
-          placeholder={lang('Optional')}
-          value={comment}
-          onInput={handleCommentChange}
-          isControlled
-          isMultiline
-        />
+        {isCommentSupported && (
+          <Input
+            className={isStatic ? styles.inputStatic : undefined}
+            label={renderCommentLabel()}
+            placeholder={lang('Optional')}
+            value={comment}
+            onInput={handleCommentChange}
+            isControlled
+            isMultiline
+          />
+        )}
 
         <div className={buildClassName(modalStyles.buttons, isStatic && styles.buttonSubmit)}>
           <Button isPrimary isSubmit isDisabled={!canSubmit} isLoading={isLoading}>
@@ -515,25 +520,29 @@ function TransferInitial({
 export default memo(
   withGlobal((global): StateProps => {
     const {
-      toAddress: initialAddress,
-      amount: initialAmount,
-      comment: initialComment,
-      shouldEncrypt: initialShouldEncryptComment,
+      toAddress,
+      amount,
+      comment,
+      shouldEncrypt,
       fee,
       tokenSlug,
       isLoading,
     } = global.currentTransfer;
 
+    const isLedger = selectIsHardwareAccount(global);
+
     return {
-      initialAddress,
-      initialAmount,
-      initialComment,
-      initialShouldEncryptComment,
+      toAddress,
+      amount,
+      comment,
+      shouldEncrypt,
       fee,
       tokenSlug,
       tokens: selectCurrentAccountTokens(global),
       isLoading,
       savedAddresses: selectCurrentAccountState(global)?.savedAddresses,
+      isEncryptedCommentSupported: !isLedger,
+      isCommentSupported: !tokenSlug || tokenSlug === TON_TOKEN_SLUG || !isLedger,
     };
   })(TransferInitial),
 );

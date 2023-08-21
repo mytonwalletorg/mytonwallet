@@ -40,21 +40,18 @@ import { fetchKeyPair } from '../blockchains/ton/auth';
 import { LEDGER_SUPPORTED_PAYLOADS } from '../blockchains/ton/constants';
 import { toBase64Address, toRawAddress } from '../blockchains/ton/util/tonweb';
 import {
-  fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey, getCurrentAccountId,
+  fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey, getCurrentAccountId, getCurrentAccountIdOrFail,
 } from '../common/accounts';
 import { createDappPromise } from '../common/dappPromises';
 import { createLocalTransaction, isUpdaterAlive } from '../common/helpers';
 import {
   base64ToBytes, bytesToBase64, handleFetchErrors, sha256,
 } from '../common/utils';
-import { getCurrentAccountIdOrFail } from '../dappMethods';
-import { openPopupWindow } from '../dappMethods/window';
 import { IS_EXTENSION } from '../environment';
 import * as apiErrors from '../errors';
 import {
   activateDapp,
   addDapp,
-  addDappToAccounts,
   deactivateAccountDapp,
   deactivateDapp,
   deleteDapp,
@@ -65,6 +62,8 @@ import {
 import * as errors from './errors';
 import { BadRequestError } from './errors';
 import { isValidString, isValidUrl } from './utils';
+
+import { callHook } from '../hooks';
 
 const { Address } = TonWeb.utils;
 
@@ -92,6 +91,7 @@ export async function connect(
     const dapp = {
       ...await fetchDappMetadata(origin, message.manifestUrl),
       connectedAt: Date.now(),
+      ...('sseOptions' in request && { sse: request.sseOptions }),
     };
 
     const addressItem = message.items.find(({ name }) => name === 'ton_addr');
@@ -106,18 +106,20 @@ export async function connect(
       throw new errors.BadRequestError("Missing 'ton_addr'");
     }
 
-    await openExtensionPopup();
-    const accountId = await getCurrentAccountOrFail();
+    const isOpened = await openExtensionPopup();
+    let accountId = await getCurrentAccountOrFail();
     const isConnected = await isDappConnected(accountId, origin);
 
     let promiseResult: {
-      additionalAccountIds?: string[];
+      accountId?: string;
       password?: string;
       signature?: string;
     } | undefined;
 
     if (!isConnected || proof) {
-      await openExtensionPopup(true);
+      if (!isOpened) {
+        await openExtensionPopup(true);
+      }
 
       const { promiseId, promise } = createDappPromise();
 
@@ -135,12 +137,8 @@ export async function connect(
 
       promiseResult = await promise;
 
-      const { additionalAccountIds } = promiseResult!;
-      if (additionalAccountIds) {
-        await addDappToAccounts(dapp, [accountId].concat(additionalAccountIds));
-      } else {
-        await addDapp(accountId, dapp);
-      }
+      accountId = promiseResult!.accountId!;
+      await addDapp(accountId, dapp);
     }
 
     const result = await reconnect(request, id);
@@ -358,7 +356,9 @@ async function checkTransactionMessages(accountId: string, messages: Transaction
   });
 
   const checkResult = await ton.checkMultiTransactionDraft(accountId, preparedMessages);
-  handleDraftError(checkResult);
+  if ('error' in checkResult) {
+    handleDraftError(checkResult.error);
+  }
 
   return {
     preparedMessages,
@@ -561,23 +561,23 @@ async function validateRequest(request: ApiDappRequest, skipConnection = false) 
   return { origin, accountId };
 }
 
-function handleDraftError({ error }: { error?: ApiTransactionDraftError }) {
-  if (error) {
-    onPopupUpdate({
-      type: 'showError',
-      error,
-    });
-    throw new errors.BadRequestError(error);
-  }
+function handleDraftError(error: ApiTransactionDraftError) {
+  onPopupUpdate({
+    type: 'showError',
+    error,
+  });
+  throw new errors.BadRequestError(error);
 }
 
 async function openExtensionPopup(force?: boolean) {
   if (!IS_EXTENSION || (!force && onPopupUpdate && isUpdaterAlive(onPopupUpdate))) {
-    return;
+    return false;
   }
 
-  await openPopupWindow();
+  await callHook('onWindowNeeded');
   await initPromise;
+
+  return true;
 }
 
 async function getCurrentAccountOrFail() {

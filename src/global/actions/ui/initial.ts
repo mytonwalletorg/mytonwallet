@@ -1,8 +1,8 @@
 import { ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
-import type { NotificationType } from '../../types';
+import type { Account, AccountState, NotificationType } from '../../types';
 
 import { IS_ELECTRON } from '../../../config';
-import { genRelatedAccountIds } from '../../../util/account';
+import { parseAccountId } from '../../../util/account';
 import { initializeSoundsForSafari } from '../../../util/appSounds';
 import { omit } from '../../../util/iteratees';
 import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
@@ -18,7 +18,12 @@ import {
   addActionHandler, getActions, getGlobal, setGlobal,
 } from '../../index';
 import { updateCurrentAccountState } from '../../reducers';
-import { selectNetworkAccounts, selectNewestTxIds } from '../../selectors';
+import {
+  selectCurrentNetwork,
+  selectNetworkAccounts,
+  selectNetworkAccountsMemoized,
+  selectNewestTxIds,
+} from '../../selectors';
 
 addActionHandler('init', (_, actions) => {
   const { documentElement } = document;
@@ -119,6 +124,12 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       });
       break;
 
+    case ApiTransactionDraftError.InvalidAddressFormat:
+      actions.showDialog({
+        message: 'Invalid address format. Only URL Safe Base64 format is allowed.',
+      });
+      break;
+
     case ApiTransactionError.PartialTransactionFailure:
       actions.showDialog({ message: 'Not all transactions were sent successfully' });
       break;
@@ -212,13 +223,53 @@ addActionHandler('toggleDeeplinkHook', (global, actions, { isEnabled }) => {
 
 addActionHandler('signOut', async (global, actions, payload) => {
   const { isFromAllAccounts } = payload || {};
+
+  const network = selectCurrentNetwork(global);
   const accountIds = Object.keys(selectNetworkAccounts(global)!);
 
-  if (isFromAllAccounts || accountIds.length === 1) {
-    await callApi('resetAccounts');
+  const otherNetwork = network === 'mainnet' ? 'testnet' : 'mainnet';
+  const otherNetworkAccountIds = Object.keys(selectNetworkAccountsMemoized(otherNetwork, global.accounts?.byId)!);
 
-    getActions().afterSignOut({ isFromAllAccounts: true });
-    getActions().init();
+  if (isFromAllAccounts || accountIds.length === 1) {
+    if (otherNetworkAccountIds.length) {
+      await callApi('removeNetworkAccounts', network);
+
+      global = getGlobal();
+
+      const nextAccountId = otherNetworkAccountIds[0];
+      const accountsById = Object.entries(global.accounts!.byId).reduce((byId, [accountId, account]) => {
+        if (parseAccountId(accountId).network !== network) {
+          byId[accountId] = account;
+        }
+        return byId;
+      }, {} as Record<string, Account>);
+      const byAccountId = Object.entries(global.byAccountId).reduce((byId, [accountId, state]) => {
+        if (parseAccountId(accountId).network !== network) {
+          byId[accountId] = state;
+        }
+        return byId;
+      }, {} as Record<string, AccountState>);
+
+      global = {
+        ...global,
+        currentAccountId: nextAccountId,
+        accounts: {
+          ...global.accounts!,
+          byId: accountsById,
+        },
+        byAccountId,
+      };
+
+      setGlobal(global);
+
+      getActions().switchAccount({ accountId: nextAccountId, newNetwork: otherNetwork });
+      getActions().afterSignOut();
+    } else {
+      await callApi('resetAccounts');
+
+      getActions().afterSignOut({ isFromAllAccounts: true });
+      getActions().init();
+    }
   } else {
     const prevAccountId = global.currentAccountId!;
     const nextAccountId = accountIds.find((id) => id !== prevAccountId)!;
@@ -228,9 +279,8 @@ addActionHandler('signOut', async (global, actions, payload) => {
 
     global = getGlobal();
 
-    const prevAccountIds = genRelatedAccountIds(prevAccountId!);
-    const accountsById = omit(global.accounts!.byId, prevAccountIds);
-    const byAccountId = omit(global.byAccountId, prevAccountIds);
+    const accountsById = omit(global.accounts!.byId, [prevAccountId]);
+    const byAccountId = omit(global.byAccountId, [prevAccountId]);
 
     global = {
       ...global,

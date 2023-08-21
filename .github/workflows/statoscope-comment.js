@@ -1,0 +1,10 @@
+module.exports = ({ initialSize, bundleSize, validation, prNumber}) => `**📦 Statoscope quick diff with master branch:**
+
+**⚖️ Initial size:** ${initialSize.diff.percent > 1.5 ? '🔴' : (initialSize.diff.percent < 0 ? '🟢' : '⚪️')} ${initialSize.diff.percent > 0 ? '+' : ''}${initialSize.diff.formatted}
+
+**⚖️ Total bundle size:** ${bundleSize.diff.percent > 1.5 ? '🔴' : (bundleSize.diff.percent < 0 ? '🟢' : '⚪️')} ${bundleSize.diff.percent > 0 ? '+' : ''}${bundleSize.diff.formatted}
+
+**🕵️ Validation errors:** ${validation.total > 0 ? validation.total : '✅'}
+
+Full Statoscope report could be found [here️](https://deploy-preview-${prNumber}--mytonwallet-e5kxpi8iga.netlify.app/report.html)
+`;

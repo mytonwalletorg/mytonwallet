@@ -25,6 +25,7 @@ import {
   fetchNewestTxId,
   fetchTransactions,
   getWalletPublicKey,
+  parseBase64,
   resolveTokenWalletAddress,
   toBase64Address,
 } from './util/tonweb';
@@ -44,7 +45,7 @@ import {
 } from './wallet';
 
 type SubmitTransferResult = {
-  resolvedAddress: string;
+  normalizedAddress: string;
   amount: string;
   seqno: number;
   encryptedComment?: string;
@@ -84,51 +85,72 @@ export async function checkTransactionDraft(
   tokenSlug: string,
   toAddress: string,
   amount: string,
-  data?: string | Uint8Array | Cell,
+  data?: AnyPayload,
   stateInit?: Cell,
   shouldEncrypt?: boolean,
+  isBase64Data?: boolean,
 ) {
   const { network } = parseAccountId(accountId);
 
   const result: {
-    error?: ApiTransactionDraftError;
     fee?: string;
     addressName?: string;
     isScam?: boolean;
+    resolvedAddress?: string;
+    normalizedAddress?: string;
   } = {};
 
-  const resolvedAddress = await resolveAddress(network, toAddress);
-  if (!resolvedAddress) {
-    result.error = ApiTransactionDraftError.DomainNotResolved;
-    return result;
+  const resolved = await resolveAddress(network, toAddress);
+  if (resolved) {
+    result.addressName = resolved.domain;
+    toAddress = resolved.address;
+  } else {
+    return { ...result, error: ApiTransactionDraftError.DomainNotResolved };
   }
 
-  toAddress = resolvedAddress;
   if (!Address.isValid(toAddress)) {
-    result.error = ApiTransactionDraftError.InvalidToAddress;
-    return result;
+    return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
   }
+
+  const {
+    isUserFriendly, isTestOnly, isBounceable,
+  } = new Address(toAddress);
+
+  const regex = /[+=/]/; // Temp check for `isUrlSafe`. Remove after TonWeb fixes the issue
+  const isUrlSafe = !regex.test(toAddress);
+
+  if (!isUserFriendly || !isUrlSafe || (network === 'mainnet' && isTestOnly)) {
+    return { ...result, error: ApiTransactionDraftError.InvalidAddressFormat };
+  }
+
+  if (tokenSlug === TON_TOKEN_SLUG && isBounceable && !(await isWalletInitialized(network, toAddress))) {
+    toAddress = toBase64Address(toAddress, false);
+  }
+
+  result.resolvedAddress = toAddress;
+  result.normalizedAddress = toBase64Address(toAddress);
 
   const addressInfo = await getAddressInfo(toAddress);
-  result.addressName = addressInfo?.name;
-  result.isScam = addressInfo?.isScam;
+  if (addressInfo?.name) result.addressName = addressInfo.name;
+  if (addressInfo?.isScam) result.isScam = addressInfo.isScam;
 
   if (BigInt(amount) < BigInt(0)) {
-    result.error = ApiTransactionDraftError.InvalidAmount;
-    return result;
+    return { ...result, error: ApiTransactionDraftError.InvalidAmount };
   }
 
   const wallet = await pickAccountWallet(accountId);
   if (!wallet) {
-    result.error = ApiTransactionDraftError.Unexpected;
-    return result;
+    return { ...result, error: ApiTransactionDraftError.Unexpected };
+  }
+
+  if (typeof data === 'string' && isBase64Data) {
+    data = parseBase64(data);
   }
 
   if (data && typeof data === 'string' && shouldEncrypt) {
     const toPublicKey = await getWalletPublicKey(network, toAddress);
     if (!toPublicKey) {
-      result.error = ApiTransactionDraftError.WalletNotInitialized;
-      return result;
+      return { ...result, error: ApiTransactionDraftError.WalletNotInitialized };
     }
   }
 
@@ -136,8 +158,7 @@ export async function checkTransactionDraft(
     const account = await fetchStoredAccount(accountId);
     if (data && account?.ledger) {
       if (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data)) {
-        result.error = ApiTransactionDraftError.UnsupportedHardwarePayload;
-        return result;
+        return { ...result, error: ApiTransactionDraftError.UnsupportedHardwarePayload };
       }
     }
   } else {
@@ -153,23 +174,27 @@ export async function checkTransactionDraft(
 
     const tokenBalance = await getTokenWalletBalance(tokenWallet!);
     if (BigInt(tokenBalance) < BigInt(tokenAmount!)) {
-      result.error = ApiTransactionDraftError.InsufficientBalance;
-      return result;
+      return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
     }
   }
 
-  const isInitialized = await isWalletInitialized(network, wallet);
-  result.fee = await calculateFee(isInitialized, async () => (await signTransaction(
+  const isOurWalletInitialized = await isWalletInitialized(network, wallet);
+  result.fee = await calculateFee(isOurWalletInitialized, async () => (await signTransaction(
     network, wallet, toAddress, amount, data, stateInit,
   )).query);
 
   const balance = await getWalletBalance(network, wallet);
   if (BigInt(balance) < BigInt(amount) + BigInt(result.fee)) {
-    result.error = ApiTransactionDraftError.InsufficientBalance;
-    return result;
+    return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
   }
 
-  return result;
+  return result as {
+    fee: string;
+    resolvedAddress: string;
+    normalizedAddress: string;
+    addressName?: string;
+    isScam?: boolean;
+  };
 }
 
 export async function submitTransfer(
@@ -181,6 +206,7 @@ export async function submitTransfer(
   data?: AnyPayload,
   stateInit?: Cell,
   shouldEncrypt?: boolean,
+  isBase64Data?: boolean,
 ): Promise<SubmitTransferResult> {
   const { network } = parseAccountId(accountId);
 
@@ -193,7 +219,12 @@ export async function submitTransfer(
     const { publicKey, secretKey } = keyPair!;
 
     let encryptedComment: string | undefined;
-    let resolvedAddress = await resolveAddress(network, toAddress);
+    // Force default bounceable address for `waitTxComplete` to work properly
+    const normalizedAddress = toBase64Address(toAddress);
+
+    if (typeof data === 'string' && isBase64Data) {
+      data = parseBase64(data);
+    }
 
     if (data && typeof data === 'string' && shouldEncrypt) {
       const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
@@ -204,25 +235,14 @@ export async function submitTransfer(
     if (tokenSlug !== TON_TOKEN_SLUG) {
       ({
         amount,
-        toAddress: resolvedAddress,
+        toAddress,
         payload: data,
-      } = await buildTokenTransfer(network, tokenSlug, fromAddress, resolvedAddress, amount, data));
+      } = await buildTokenTransfer(network, tokenSlug, fromAddress, toAddress, amount, data));
     }
-
-    // Force default bounceable address for `waitTxComplete` to work properly
-    resolvedAddress = toBase64Address(resolvedAddress);
 
     await waitLastTransfer(network, fromAddress);
 
-    const [{ isInitialized, balance }, toWalletInfo] = await Promise.all([
-      getWalletInfo(network, wallet!),
-      getWalletInfo(network, resolvedAddress),
-    ]);
-
-    // Force non-bounceable for non-initialized recipients
-    toAddress = toWalletInfo.isInitialized
-      ? resolvedAddress
-      : toBase64Address(resolvedAddress, false);
+    const { isInitialized, balance } = await getWalletInfo(network, wallet!);
 
     const { seqno, query } = await signTransaction(network, wallet!, toAddress, amount, data, stateInit, secretKey);
 
@@ -236,7 +256,7 @@ export async function submitTransfer(
     updateLastTransfer(network, fromAddress, seqno);
 
     return {
-      resolvedAddress, amount, seqno, encryptedComment,
+      normalizedAddress, amount, seqno, encryptedComment,
     };
   } catch (err: any) {
     logDebugError('submitTransfer', err);
@@ -393,7 +413,6 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
   const { network } = parseAccountId(accountId);
 
   const result: {
-    error?: ApiTransactionDraftError;
     fee?: string;
     totalAmount?: string;
   } = {};
@@ -402,12 +421,10 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
 
   for (const { toAddress, amount } of messages) {
     if (BigInt(amount) < BigInt(0)) {
-      result.error = ApiTransactionDraftError.InvalidAmount;
-      return result;
+      return { ...result, error: ApiTransactionDraftError.InvalidAmount };
     }
     if (!Address.isValid(toAddress)) {
-      result.error = ApiTransactionDraftError.InvalidToAddress;
-      return result;
+      return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
     }
     totalAmount += BigInt(amount);
   }
@@ -415,8 +432,7 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
   const wallet = await pickAccountWallet(accountId);
 
   if (!wallet) {
-    result.error = ApiTransactionDraftError.Unexpected;
-    return result;
+    return { ...result, error: ApiTransactionDraftError.Unexpected };
   }
 
   const { isInitialized, balance } = await getWalletInfo(network, wallet);
@@ -427,11 +443,10 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
   result.totalAmount = totalAmount.toString();
 
   if (BigInt(balance) < totalAmount + BigInt(result.fee)) {
-    result.error = ApiTransactionDraftError.InsufficientBalance;
-    return result;
+    return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
   }
 
-  return result;
+  return result as { fee: string; totalAmount: string };
 }
 
 export async function submitMultiTransfer(
@@ -504,6 +519,12 @@ async function signMultiTransaction(
   const { seqno } = await getWalletInfo(network, wallet);
   if (!expireAt) {
     expireAt = Math.round(Date.now() / 1000) + DEFAULT_EXPIRE_AT_TIMEOUT_SEC;
+  }
+
+  for (const message of messages) {
+    if (message.payload && typeof message.payload === 'string' && message.isBase64Payload) {
+      message.payload = parseBase64(message.payload);
+    }
   }
 
   // TODO Uncomment after fixing types in tonweb

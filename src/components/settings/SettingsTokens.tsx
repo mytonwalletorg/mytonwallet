@@ -177,11 +177,11 @@ function SettingsTokens({
           </div>
           <div className={styles.tokenDescription}>
             <AnimatedCounter text={formatCurrency(totalAmount, DEFAULT_PRICE_CURRENCY)} />
-            <i className={styles.dot} />
+            <i className={styles.dot} aria-hidden />
             <AnimatedCounter text={formatCurrency(amount, symbol)} />
             {isDeleteButtonVisible && (
               <>
-                <i className={styles.dot} />
+                <i className={styles.dot} aria-hidden />
                 <span className={styles.deleteText} onClick={(e) => handleDeleteToken(token, e)}>Delete</span>
               </>
             )}
@@ -211,7 +211,7 @@ function SettingsTokens({
         >
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleOpenAddTokenModal}>
             {lang('Add Token')}
-            <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-down')} />
+            <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-down')} aria-hidden />
           </div>
 
           {tokens?.map(renderToken)}

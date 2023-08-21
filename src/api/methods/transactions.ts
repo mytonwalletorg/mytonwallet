@@ -60,7 +60,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions) {
   const localTransaction = createLocalTransaction(onUpdate, accountId, {
     amount,
     fromAddress,
-    toAddress,
+    toAddress: result.normalizedAddress,
     comment: shouldEncrypt ? undefined : comment,
     encryptedComment,
     fee: fee || '0',

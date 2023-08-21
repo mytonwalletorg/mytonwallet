@@ -6,21 +6,22 @@ import type { UserToken } from '../../types';
 import {
   buildCollectionByKey, findLast, mapValues, unique,
 } from '../../../util/iteratees';
-import { signLedgerTransactions, submitLedgerTransfer } from '../../../util/ledger';
 import { pause } from '../../../util/schedulers';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { bigStrToHuman, getIsTxIdLocal, humanToBigStr } from '../../helpers';
-import { addActionHandler, getGlobal, setGlobal } from '../../index';
+import {
+  addActionHandler, getActions, getGlobal, setGlobal,
+} from '../../index';
 import {
   clearCurrentTransfer,
   updateAccountState,
-  updateCurrentAccountsState,
   updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
   updateSendingLoading,
   updateSettings,
+  updateTransactionsIsHistoryEndReached,
   updateTransactionsIsLoading,
 } from '../../reducers';
 import {
@@ -54,6 +55,38 @@ addActionHandler('setTransferScreen', (global, actions, payload) => {
   setGlobal(updateCurrentTransfer(global, { state }));
 });
 
+addActionHandler('setTransferAmount', (global, actions, { amount }) => {
+  setGlobal(
+    updateCurrentTransfer(global, {
+      amount,
+    }),
+  );
+});
+
+addActionHandler('setTransferToAddress', (global, actions, { toAddress }) => {
+  setGlobal(
+    updateCurrentTransfer(global, {
+      toAddress,
+    }),
+  );
+});
+
+addActionHandler('setTransferComment', (global, actions, { comment }) => {
+  setGlobal(
+    updateCurrentTransfer(global, {
+      comment,
+    }),
+  );
+});
+
+addActionHandler('setTransferShouldEncrypt', (global, actions, { shouldEncrypt }) => {
+  setGlobal(
+    updateCurrentTransfer(global, {
+      shouldEncrypt,
+    }),
+  );
+});
+
 addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   const {
     tokenSlug, toAddress, amount, comment, shouldEncrypt,
@@ -75,7 +108,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   global = getGlobal();
   global = updateSendingLoading(global, false);
 
-  if (!result || result.error) {
+  if (!result || 'error' in result) {
     if (result?.addressName) {
       global = updateCurrentTransfer(global, { toAddressName: result.addressName });
     }
@@ -98,6 +131,8 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     state: TransferState.Confirm,
     error: undefined,
     toAddress,
+    resolvedAddress: result.resolvedAddress,
+    normalizedAddress: result.normalizedAddress,
     amount,
     comment,
     shouldEncrypt,
@@ -145,7 +180,7 @@ addActionHandler('submitTransferConfirm', (global, actions) => {
 addActionHandler('submitTransferPassword', async (global, actions, payload) => {
   const { password } = payload;
   const {
-    toAddress,
+    resolvedAddress,
     comment,
     amount,
     promiseId,
@@ -175,7 +210,7 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
     accountId: global.currentAccountId!,
     password,
     slug: tokenSlug!,
-    toAddress: toAddress!,
+    toAddress: resolvedAddress!,
     amount: humanToBigStr(amount!, decimals),
     comment,
     fee,
@@ -196,6 +231,7 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
 addActionHandler('submitTransferHardware', async (global) => {
   const {
     toAddress,
+    resolvedAddress,
     comment,
     amount,
     promiseId,
@@ -215,6 +251,8 @@ addActionHandler('submitTransferHardware', async (global) => {
     state: TransferState.ConfirmHardware,
   }));
 
+  const ledgerApi = await import('../../../util/ledger');
+
   if (promiseId) {
     const message: ApiDappTransaction = {
       toAddress: toAddress!,
@@ -225,7 +263,7 @@ addActionHandler('submitTransferHardware', async (global) => {
     };
 
     try {
-      const signedMessage = await signLedgerTransactions(accountId, [message]);
+      const signedMessage = await ledgerApi.signLedgerTransactions(accountId, [message]);
       void callApi('confirmDappRequest', promiseId, signedMessage);
     } catch (err) {
       if (err instanceof ApiUserRejectsError) {
@@ -244,13 +282,13 @@ addActionHandler('submitTransferHardware', async (global) => {
     accountId: global.currentAccountId!,
     password: '',
     slug: tokenSlug!,
-    toAddress: toAddress!,
+    toAddress: resolvedAddress!,
     amount: humanToBigStr(amount!, decimals),
     comment,
     fee,
   };
 
-  const result = await submitLedgerTransfer(options);
+  const result = await ledgerApi.submitLedgerTransfer(options);
 
   const error = result === undefined ? 'Transfer error' : undefined;
 
@@ -265,13 +303,16 @@ addActionHandler('clearTransferError', (global) => {
 });
 
 addActionHandler('cancelTransfer', (global) => {
-  const { promiseId } = global.currentTransfer;
+  const { promiseId, tokenSlug } = global.currentTransfer;
 
   if (promiseId) {
     void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
   }
 
-  setGlobal(clearCurrentTransfer(global));
+  global = clearCurrentTransfer(global);
+  global = updateCurrentTransfer(global, { tokenSlug });
+
+  setGlobal(global);
 });
 
 addActionHandler('fetchTokenTransactions', async (global, actions, payload) => {
@@ -290,7 +331,8 @@ addActionHandler('fetchTokenTransactions', async (global, actions, payload) => {
   global = getGlobal();
   global = updateTransactionsIsLoading(global, false);
 
-  if (!result) {
+  if (!result || !result.length) {
+    global = updateTransactionsIsHistoryEndReached(global, true);
     setGlobal(global);
     return;
   }
@@ -327,6 +369,7 @@ addActionHandler('fetchAllTransactions', async (global, actions, payload) => {
   global = updateTransactionsIsLoading(global, false);
 
   if (!result || !result.length) {
+    global = updateTransactionsIsHistoryEndReached(global, true);
     setGlobal(global);
     return;
   }
@@ -353,10 +396,15 @@ addActionHandler('fetchAllTransactions', async (global, actions, payload) => {
   setGlobal(global);
 });
 
+addActionHandler('resetIsHistoryEndReached', (global) => {
+  global = updateTransactionsIsHistoryEndReached(global, false);
+  setGlobal(global);
+});
+
 addActionHandler('setIsBackupRequired', (global, actions, { isMnemonicChecked }) => {
   const { isBackupRequired } = selectCurrentAccountState(global);
 
-  setGlobal(updateCurrentAccountsState(global, {
+  setGlobal(updateCurrentAccountState(global, {
     isBackupRequired: isMnemonicChecked ? undefined : isBackupRequired,
   }));
 });
@@ -500,7 +548,6 @@ addActionHandler('importToken', async (global, actions, { address }) => {
     change24h: 0,
     change7d: 0,
     change30d: 0,
-    isDisabled: false,
     keywords,
   };
 
@@ -524,4 +571,21 @@ addActionHandler('resetImportToken', (global) => {
       },
     }),
   );
+});
+
+addActionHandler('verifyHardwareAddress', async (global) => {
+  const accountId = global.currentAccountId!;
+
+  const ledgerApi = await import('../../../util/ledger');
+
+  if (!(await ledgerApi.reconnectLedger())) {
+    getActions().showError({ error: '$ledger_not_ready' });
+    return;
+  }
+
+  try {
+    await ledgerApi.verifyAddress(accountId);
+  } catch (err) {
+    getActions().showError({ error: err as string });
+  }
 });

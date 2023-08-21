@@ -36,7 +36,7 @@ export async function submitStake(accountId: string, password: string, amount: s
   const localTransaction = createLocalTransaction(onUpdate, accountId, {
     amount: result.amount,
     fromAddress,
-    toAddress: result.resolvedAddress,
+    toAddress: result.normalizedAddress,
     comment: STAKE_COMMENT,
     fee: fee || '0',
     type: 'stake',
@@ -51,7 +51,7 @@ export async function submitStake(accountId: string, password: string, amount: s
 
 export async function submitUnstake(accountId: string, password: string, fee?: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const toAddress = await fetchStoredAddress(accountId);
+  const fromAddress = await fetchStoredAddress(accountId);
 
   const result = await blockchain.submitUnstake(accountId, password);
   if ('error' in result) {
@@ -60,8 +60,8 @@ export async function submitUnstake(accountId: string, password: string, fee?: s
 
   const localTransaction = createLocalTransaction(onUpdate, accountId, {
     amount: result.amount,
-    fromAddress: result.resolvedAddress,
-    toAddress,
+    fromAddress,
+    toAddress: result.normalizedAddress,
     comment: UNSTAKE_COMMENT,
     fee: fee || '0',
     type: 'unstakeRequest',

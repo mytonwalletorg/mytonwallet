@@ -98,7 +98,6 @@ export const selectPopularTokensMemoized = memoized((
         history24h,
         history7d,
         history30d,
-        isDisabled: false,
         keywords,
       } as UserToken;
     });
@@ -139,6 +138,10 @@ export function selectNetworkAccounts(global: GlobalState) {
 
 export function selectCurrentNetwork(global: GlobalState) {
   return global.settings.isTestnet ? 'testnet' : 'mainnet';
+}
+
+export function selectCurrentAccount(global: GlobalState) {
+  return selectAccount(global, global.currentAccountId!);
 }
 
 export function selectAccount(global: GlobalState, accountId: string) {

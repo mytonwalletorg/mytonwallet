@@ -1,11 +1,8 @@
-import { DEBUG_ALERT_MSG } from '../config';
+import { APP_ENV, DEBUG_ALERT_MSG } from '../config';
 import { throttle } from './schedulers';
 
 window.addEventListener('error', handleErrorEvent);
 window.addEventListener('unhandledrejection', handleErrorEvent);
-
-// eslint-disable-next-line prefer-destructuring
-const APP_ENV = process.env.APP_ENV;
 
 function handleErrorEvent(e: ErrorEvent | PromiseRejectionEvent) {
   // https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded

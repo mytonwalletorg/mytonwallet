@@ -1,12 +1,12 @@
 import React, {
-  memo, useEffect, useMemo,
+  memo, useEffect, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
 
 import type { ApiToken, ApiTransaction } from '../../../../api/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, TON_TOKEN_SLUG } from '../../../../config';
 import { getActions, withGlobal } from '../../../../global';
-import { getIsTxIdLocal, getIsTynyTransaction } from '../../../../global/helpers';
+import { getIsTinyTransaction, getIsTxIdLocal } from '../../../../global/helpers';
 import { selectCurrentAccountState, selectIsNewWallet } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { compareTransactions } from '../../../../util/compareTransactions';
@@ -41,6 +41,7 @@ type StateProps = {
   tokensBySlug?: Record<string, ApiToken>;
   apyValue: number;
   savedAddresses?: Record<string, string>;
+  isHistoryEndReached?: boolean;
 };
 
 interface TransactionDateGroup {
@@ -49,6 +50,7 @@ interface TransactionDateGroup {
 }
 
 const FURTHER_SLICE = 50;
+const LOAD_MORE_REQUEST_TIMEOUT = 3_000;
 
 function Activity({
   isActive,
@@ -62,11 +64,16 @@ function Activity({
   areTinyTransfersHidden,
   apyValue,
   savedAddresses,
+  isHistoryEndReached,
 }: OwnProps & StateProps) {
-  const { fetchTokenTransactions, fetchAllTransactions, showTransactionInfo } = getActions();
+  const {
+    fetchTokenTransactions, fetchAllTransactions, showTransactionInfo, resetIsHistoryEndReached,
+  } = getActions();
 
   const lang = useLang();
   const { isLandscape } = useDeviceScreen();
+  const [isFetching, setIsFetching] = useState(!isNewWallet);
+  const loadMoreTimeout = useRef<NodeJS.Timeout>();
 
   const txIds = useMemo(() => {
     let idList: string[] | undefined;
@@ -96,7 +103,7 @@ function Activity({
 
   const transactions = useMemo(() => {
     if (!txIds) {
-      return undefined;
+      return [];
     }
 
     const allTransactions = txIds
@@ -105,7 +112,7 @@ function Activity({
         return Boolean(
           transaction?.slug
             && (!slug || transaction.slug === slug)
-            && (!areTinyTransfersHidden || !getIsTynyTransaction(transaction, tokensBySlug![transaction.slug])),
+            && (!areTinyTransfersHidden || !getIsTinyTransaction(transaction, tokensBySlug![transaction.slug])),
         );
       }) as ApiTransaction[];
 
@@ -147,13 +154,30 @@ function Activity({
     }
   });
 
-  const { handleIntersection } = useInfiniteLoader({ isLoading, loadMore });
+  const isLoadingDisabled = isHistoryEndReached || isLoading;
+  const { handleIntersection } = useInfiniteLoader({ isDisabled: isLoadingDisabled, isLoading, loadMore });
+
+  const handleFetchingState = useLastCallback(() => {
+    clearTimeout(loadMoreTimeout.current);
+    loadMoreTimeout.current = setTimeout(() => {
+      setIsFetching(false);
+    }, LOAD_MORE_REQUEST_TIMEOUT);
+  });
 
   useEffect(() => {
-    if (!transactions?.length && txIds?.length) {
-      loadMore();
+    if (isActive) {
+      setIsFetching(!isNewWallet);
+      resetIsHistoryEndReached();
+      handleFetchingState();
     }
-  }, [loadMore, txIds, transactions]);
+  }, [handleFetchingState, isActive, isNewWallet, loadMore, slug]);
+
+  useEffect(() => {
+    if (!transactions.length) {
+      loadMore();
+      handleFetchingState();
+    }
+  }, [handleFetchingState, loadMore, transactions, txIds]);
 
   const handleTransactionClick = useLastCallback((txId: string) => {
     showTransactionInfo({ txId });
@@ -187,8 +211,7 @@ function Activity({
       </div>
     ));
   }
-
-  if (transactions === undefined || (!transactions?.length && txIds?.length)) {
+  if (!transactions.length && isFetching) {
     return (
       <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
         <Loading />
@@ -232,7 +255,9 @@ export default memo(
     const accountState = selectCurrentAccountState(global);
     const isNewWallet = selectIsNewWallet(global);
     const slug = accountState?.currentTokenSlug;
-    const { txIdsBySlug, byTxId, isLoading } = accountState?.transactions || {};
+    const {
+      txIdsBySlug, byTxId, isLoading, isHistoryEndReached,
+    } = accountState?.transactions || {};
     return {
       currentAccountId: currentAccountId!,
       slug,
@@ -244,6 +269,7 @@ export default memo(
       areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
       apyValue: accountState?.poolState?.lastApy || 0,
       savedAddresses: accountState?.savedAddresses,
+      isHistoryEndReached,
     };
   })(Activity),
 );

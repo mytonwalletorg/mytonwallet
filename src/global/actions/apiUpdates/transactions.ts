@@ -1,7 +1,7 @@
 import { TransferState } from '../../types';
 
 import { playIncomingTransactionSound } from '../../../util/appSounds';
-import { bigStrToHuman, getIsTynyTransaction } from '../../helpers';
+import { bigStrToHuman, getIsTinyTransaction } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   removeTransaction,
@@ -28,7 +28,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
       if (
         -bigStrToHuman(amount, decimals) === global.currentTransfer.amount
-        && toAddress === global.currentTransfer.toAddress
+        && toAddress === global.currentTransfer.normalizedAddress
       ) {
         global = updateCurrentTransfer(global, {
           txId,
@@ -62,7 +62,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           && (Date.now() - transaction.timestamp < TX_AGE_TO_PLAY_SOUND)
           && (
             !global.settings.areTinyTransfersHidden
-            || getIsTynyTransaction(transaction, global.tokenInfo?.bySlug[transaction.slug!])
+            || getIsTinyTransaction(transaction, global.tokenInfo?.bySlug[transaction.slug!])
           )
         ) {
           shouldPlaySound = true;

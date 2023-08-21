@@ -94,7 +94,7 @@ function StakingInfoContent({
   function renderUnstakeDescription() {
     return (
       <div className={buildClassName(styles.unstakeTime, styles.unstakeTime_purple)}>
-        <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} />
+        <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
         {Boolean(endOfStakingCycle) && lang('$unstaking_when_receive', {
           time: <strong>{formatRelativeHumanDateTime(lang.code, endOfStakingCycle)}</strong>,
         })}
@@ -104,8 +104,7 @@ function StakingInfoContent({
 
   function renderHistory() {
     return (
-      <div className={buildClassName(styles.history, isStatic && styles.history_static)}
-      >
+      <div className={buildClassName(styles.history, isStatic && styles.history_static)}>
         <div className={styles.historyTotal}>
           {lang('$total', {
             value: (

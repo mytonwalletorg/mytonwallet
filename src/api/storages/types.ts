@@ -26,6 +26,7 @@ export type StorageKey = 'addresses'
 | 'accounts'
 | 'stateVersion'
 | 'currentAccountId'
+| 'clientId'
 // For extension
 | 'dapps'
 | 'dappMethods:lastAccountId'

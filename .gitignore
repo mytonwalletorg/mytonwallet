@@ -20,5 +20,3 @@ trash/
 coverage/
 src/i18n/en.json
 notarization-error.log
-.github/workflows/*
-!.github/workflows/electron-release.yml

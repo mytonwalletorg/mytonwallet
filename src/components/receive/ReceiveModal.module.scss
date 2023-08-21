@@ -115,3 +115,16 @@
 .invoiceComment {
   margin: 0.25rem 0 1.25rem;
 }
+
+.dottedLink {
+  cursor: var(--custom-cursor, pointer);
+
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+}

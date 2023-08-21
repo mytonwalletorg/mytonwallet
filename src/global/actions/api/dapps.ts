@@ -1,6 +1,5 @@
 import { DappConnectState, TransferState } from '../../types';
 
-import { signLedgerProof, signLedgerTransactions } from '../../../util/ledger';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
@@ -14,7 +13,7 @@ import {
   updateDappConnectRequest,
 } from '../../reducers';
 
-addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { password, additionalAccountIds }) => {
+addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { password, accountId }) => {
   const {
     promiseId, permissions,
   } = global.dappConnectRequest!;
@@ -26,9 +25,10 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
     return;
   }
 
+  actions.switchAccount({ accountId });
   await callApi('confirmDappRequestConnect', promiseId!, {
+    accountId,
     password,
-    additionalAccountIds,
   });
 
   global = getGlobal();
@@ -48,47 +48,53 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
   setGlobal(global);
 });
 
-addActionHandler('submitDappConnectRequestConfirmHardware', async (global, actions, { additionalAccountIds }) => {
-  const {
-    accountId, promiseId, proof,
-  } = global.dappConnectRequest!;
+addActionHandler(
+  'submitDappConnectRequestConfirmHardware',
+  async (global, actions, { accountId: connectAccountId }) => {
+    const {
+      accountId, promiseId, proof,
+    } = global.dappConnectRequest!;
 
-  global = getGlobal();
-  global = updateDappConnectRequest(global, {
-    error: undefined,
-    state: DappConnectState.ConfirmHardware,
-  });
-  setGlobal(global);
-
-  try {
-    const signature = await signLedgerProof(accountId!, proof!);
-    await callApi('confirmDappRequestConnect', promiseId!, {
-      signature,
-      additionalAccountIds,
+    global = getGlobal();
+    global = updateDappConnectRequest(global, {
+      error: undefined,
+      state: DappConnectState.ConfirmHardware,
     });
-  } catch (err) {
-    setGlobal(updateDappConnectRequest(getGlobal(), {
-      error: 'Canceled by the user',
-    }));
-    return;
-  }
+    setGlobal(global);
 
-  global = getGlobal();
-  global = clearDappConnectRequest(global);
-  setGlobal(global);
+    const ledgerApi = await import('../../../util/ledger');
 
-  const { currentAccountId } = global;
+    try {
+      const signature = await ledgerApi.signLedgerProof(accountId!, proof!);
+      actions.switchAccount({ accountId: connectAccountId });
+      await callApi('confirmDappRequestConnect', promiseId!, {
+        accountId: connectAccountId,
+        signature,
+      });
+    } catch (err) {
+      setGlobal(updateDappConnectRequest(getGlobal(), {
+        error: 'Canceled by the user',
+      }));
+      return;
+    }
 
-  const result = await callApi('getDapps', currentAccountId!);
+    global = getGlobal();
+    global = clearDappConnectRequest(global);
+    setGlobal(global);
 
-  if (!result) {
-    return;
-  }
+    const { currentAccountId } = global;
 
-  global = getGlobal();
-  global = updateConnectedDapps(global, { dapps: result });
-  setGlobal(global);
-});
+    const result = await callApi('getDapps', currentAccountId!);
+
+    if (!result) {
+      return;
+    }
+
+    global = getGlobal();
+    global = updateConnectedDapps(global, { dapps: result });
+    setGlobal(global);
+  },
+);
 
 addActionHandler('cancelDappConnectRequestConfirm', (global) => {
   const { promiseId } = global.dappConnectRequest || {};
@@ -165,9 +171,10 @@ addActionHandler('submitDappTransferHardware', async (global) => {
   setGlobal(global);
 
   const accountId = global.currentAccountId!;
+  const ledgerApi = await import('../../../util/ledger');
 
   try {
-    const signedMessages = await signLedgerTransactions(accountId, transactions!);
+    const signedMessages = await ledgerApi.signLedgerTransactions(accountId, transactions!);
     void callApi('confirmDappRequest', promiseId, signedMessages);
   } catch (err) {
     if (err instanceof ApiUserRejectsError) {

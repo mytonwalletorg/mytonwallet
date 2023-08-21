@@ -7,14 +7,7 @@ Import From %1$d Secret Words: Importar usando la frase semilla
 About MyTonWallet: Acerca de MyTonWallet
 Creating Wallet...: Creando monedero...
 On the count of three...: A la cuenta de tres...
-$auth_backup_description1: |
-  Este es un **monedero seguro**
-  y **totalmente bajo su control**.
-$auth_backup_description2: "Y un gran poder conlleva una **gran responsabilidad**."
-$auth_backup_description3: |
-  Debe hacer manualmente una **copia de seguridad de la frase semilla** que le permitirá recuperar su monedero en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
 Back Up: Hacer copia de seguridad
-Skip For Now: Omitir por ahora
 Passwords must be equal.: Las contraseñas deben coincidir.
 To protect your wallet as much as possible, use a password with: Para la máxima protección de su monedero, use una contraseña con
 $auth_password_rule_8chars: al menos 8 caracteres
@@ -180,7 +173,7 @@ Insufficient balance: Saldo insuficiente
 InsufficientBalance: Saldo insuficiente
 Optional: Opcional
 $send_token_symbol: Enviar %1$s
-$your_balance_is: "Su saldo: %balance%"
+$balance_is: "Saldo: %balance%"
 Is it all ok?: ¿Está todo bien?
 Receiving Address: Dirección del receptor
 Fee: Comisión
@@ -207,9 +200,7 @@ $tiny_transfers_help: Desactive esta opción para mostrar transacciones de menos
 Today: Hoy
 Yesterday: Ayer
 Now: Ahora
-$receive_ton_description: |
-  Puede compartir esta dirección, mostrar el código QR
-  o crear una factura para recibir TON
+$receive_ton_description: Puede compartir esta dirección, mostrar el código QR o crear una factura para recibir TON
 Your address: Tu dirección
 Wrong password, please try again: Contraseña incorrecta, inténtalo de nuevo
 Appearance: Apariencia
@@ -217,7 +208,6 @@ Assets and Activity: Activos y Actividad
 Light: Claro
 Dark: Oscuro
 System: Sistema
-Create Backup: Crear copia de seguridad
 Stake TON: Apostar TON
 Earn from your tokens while holding them: Gana con tus tokens mientras los mantienes
 $est_apy_val: Est. APY %1$d%
@@ -349,3 +339,22 @@ $dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccion
 $dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
 Agree: Aceptar
 The hardware wallet does not support this data format: La billetera de hardware no admite este formato de datos
+Use Responsibly: Usar responsablemente
+$auth_responsibly_description1: |
+  MyTonWallet es una billetera con **autocustodia**, lo que significa que **solo usted** tiene el control total y, lo que es más importante, la **total responsabilidad** de sus fondos.
+$auth_responsibly_description2: |
+  Sus claves privadas se almacenan en su dispositivo y están sujetas a **ataques de piratas informáticos**. Si su computadora está infectada con **malware**, es probable que le roben sus fondos.
+$auth_responsibly_description3: |
+  El equipo de MyTonWallet **no es responsable** de la seguridad de sus fondos, al igual que el fabricante de su computadora o su proveedor de Internet no es responsable.
+$auth_responsibly_description4: |
+  **Nunca** almacene todos sus fondos en un solo lugar. **Diversificar** y usar varios software y hardware. Siempre **haga su propia investigación** y obtenga más información sobre la criptoseguridad.
+Start Wallet: Iniciar billetera
+$auth_backup_warning_notice: |
+  Ahora debe realizar manualmente una **copia de seguridad de las claves secretas** en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
+Later: Más tarde
+Back Up Now: Copia ahora
+I have read and accept this information: He leído y acepto esta información
+$ledger_verify_address: Siempre verifique la dirección pegada usando su dispositivo Ledger.
+$ledger_not_ready: El libro mayor no está conectado o la aplicación TON no está abierta.
+Verify now: Comprobar ahora
+Invalid address format. Only URL Safe Base64 format is allowed.: Formato de dirección no válido. Solo se permite el formato urlsafe base64.

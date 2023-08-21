@@ -206,7 +206,7 @@ function UnstakeModal({
           />
 
           <div className={styles.unstakeTime}>
-            <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} />
+            <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
             {lang('$unstaking_when_receive', {
               time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
             })}

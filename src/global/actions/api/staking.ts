@@ -74,7 +74,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
     global = updateStaking(global, { isLoading: false });
 
     if (result) {
-      if (result.error) {
+      if ('error' in result) {
         global = updateStaking(global, { error: result.error });
       } else {
         global = updateStaking(global, {
@@ -95,7 +95,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
     global = updateStaking(global, { isLoading: false });
 
     if (result) {
-      if (result.error) {
+      if ('error' in result) {
         global = updateStaking(global, { error: result.error });
       } else {
         global = updateStaking(global, {

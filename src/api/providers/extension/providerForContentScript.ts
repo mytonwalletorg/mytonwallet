@@ -1,16 +1,16 @@
 import type { TonConnectMethodArgs, TonConnectMethods } from '../../tonConnect/types/misc';
-import type { OnApiDappUpdate } from '../../types/dappUpdates';
+import type { OnApiSiteUpdate } from '../../types/dappUpdates';
 import type {
-  DappMethodArgs,
-  DappMethods,
   LegacyDappMethodArgs,
   LegacyDappMethods,
-} from '../../dappMethods/types';
+  SiteMethodArgs,
+  SiteMethods,
+} from '../../extensionMethods/types';
 
 import { CONTENT_SCRIPT_PORT, PAGE_CONNECTOR_CHANNEL } from './config';
 import { createExtensionInterface } from '../../../util/createPostMessageInterface';
-import * as dappApi from '../../dappMethods';
-import * as legacyDappApi from '../../dappMethods/legacy';
+import * as legacyDappApi from '../../extensionMethods/legacy';
+import * as siteApi from '../../extensionMethods/sites';
 import * as tonConnectApi from '../../tonConnect';
 
 const ALLOWED_METHODS = new Set([
@@ -32,7 +32,7 @@ createExtensionInterface(CONTENT_SCRIPT_PORT, (
   name: string, origin?: string, ...args: any[]
 ) => {
   if (name === 'init') {
-    return dappApi.connectDapp(args[0] as OnApiDappUpdate, legacyDappApi.onDappSendUpdates);
+    return siteApi.connectSite(args[0] as OnApiSiteUpdate, legacyDappApi.onDappSendUpdates);
   }
 
   if (!ALLOWED_METHODS.has(name)) {
@@ -54,9 +54,9 @@ createExtensionInterface(CONTENT_SCRIPT_PORT, (
     return method(...[request].concat(args) as TonConnectMethodArgs<keyof TonConnectMethods>);
   }
 
-  const method = dappApi[name as keyof DappMethods];
+  const method = siteApi[name as keyof SiteMethods];
   // @ts-ignore
-  return method(...args as DappMethodArgs<keyof DappMethods>);
-}, PAGE_CONNECTOR_CHANNEL, (onUpdate: OnApiDappUpdate) => {
-  dappApi.deactivateDapp(onUpdate);
+  return method(...args as SiteMethodArgs<keyof SiteMethods>);
+}, PAGE_CONNECTOR_CHANNEL, (onUpdate: OnApiSiteUpdate) => {
+  siteApi.deactivateSite(onUpdate);
 }, true);

@@ -24,6 +24,7 @@ import { TON_TOKEN_SLUG } from '../../config';
 import { callApi } from '../../api';
 import { getWalletBalance } from '../../api/blockchains/ton';
 import { TOKEN_TRANSFER_TON_AMOUNT, TOKEN_TRANSFER_TON_FORWARD_AMOUNT } from '../../api/blockchains/ton/constants';
+import { toBase64Address } from '../../api/blockchains/ton/util/tonweb';
 import { ApiUserRejectsError } from '../../api/errors';
 import { parseAccountId } from '../account';
 import { range } from '../iteratees';
@@ -44,6 +45,18 @@ let tonTransport: TonTransport | undefined;
 export async function importLedgerWallet(network: ApiNetwork, accountIndex: number) {
   const walletInfo = await getLedgerWalletInfo(network, accountIndex, IS_BOUNCEABLE);
   return callApi('importLedgerWallet', network, walletInfo);
+}
+
+export async function reconnectLedger() {
+  try {
+    if (tonTransport && await tonTransport?.isAppOpen()) {
+      return true;
+    }
+  } catch {
+    // do nothing
+  }
+
+  return await connectLedger() && await waitLedgerTonApp();
 }
 
 export async function connectLedger() {
@@ -132,11 +145,15 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
   ]);
 
   let payload: TonPayloadFormat | undefined;
+  let isBounceable = Address.parseFriendly(toAddress).isBounceable;
+  // Force default bounceable address for `waitTxComplete` to work properly
+  const normalizedAddress = toBase64Address(toAddress);
 
   if (slug !== TON_TOKEN_SLUG) {
     ({ toAddress, amount, payload } = await buildLedgerTokenTransfer(
       network, slug, fromAddress!, toAddress, amount, comment,
     ));
+    isBounceable = true;
   } else if (comment) {
     if (isValidLedgerComment(comment)) {
       payload = { type: 'comment', text: comment };
@@ -151,7 +168,7 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
       sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
       seqno: seqno!,
       timeout: getTransferExpirationTime(),
-      bounce: IS_BOUNCEABLE,
+      bounce: isBounceable,
       amount: BigInt(amount),
       payload,
     });
@@ -162,7 +179,7 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
       params: {
         amount: options.amount,
         fromAddress: fromAddress!,
-        toAddress: options.toAddress,
+        toAddress: normalizedAddress,
         comment,
         fee: fee!,
         slug,
@@ -238,6 +255,7 @@ export async function signLedgerTransactions(
       toAddress, amount, payload,
     } = message;
 
+    let isBounceable = IS_BOUNCEABLE;
     let ledgerPayload: TonPayloadFormat | undefined;
 
     switch (payload?.type) {
@@ -264,6 +282,7 @@ export async function signLedgerTransactions(
           forwardPayload,
         } = payload;
 
+        isBounceable = true;
         ledgerPayload = {
           type: 'nft-transfer',
           queryId: BigInt(queryId),
@@ -288,6 +307,7 @@ export async function signLedgerTransactions(
           forwardPayload,
         } = payload;
 
+        isBounceable = true;
         ledgerPayload = {
           type: 'jetton-transfer',
           queryId: BigInt(queryId),
@@ -313,7 +333,7 @@ export async function signLedgerTransactions(
       sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
       seqno: seqno! + index,
       timeout: getTransferExpirationTime(),
-      bounce: IS_BOUNCEABLE,
+      bounce: isBounceable,
       amount: BigInt(amount),
       payload: ledgerPayload,
     };
@@ -404,6 +424,12 @@ export function getLedgerWalletAddress(index: number, isBounceable: boolean, isT
     chain: CHAIN,
     bounceable: isBounceable,
   });
+}
+
+export async function verifyAddress(accountId: string) {
+  const path = await getLedgerAccountPath(accountId);
+
+  await tonTransport!.validateAddress(path, { bounceable: IS_BOUNCEABLE });
 }
 
 async function getLedgerAccountPath(accountId: string) {

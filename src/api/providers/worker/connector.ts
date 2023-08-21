@@ -1,4 +1,4 @@
-import type { MethodArgs, MethodResponse, Methods } from '../../methods/types';
+import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/methods';
 import type { ApiInitArgs, OnApiUpdate } from '../../types';
 
 import { logDebugError } from '../../../util/logs';
@@ -16,7 +16,7 @@ export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => Ap
   return connector.init(args);
 }
 
-export async function callApi<T extends keyof Methods>(fnName: T, ...args: MethodArgs<T>) {
+export async function callApi<T extends keyof AllMethods>(fnName: T, ...args: AllMethodArgs<T>) {
   if (!connector) {
     logDebugError('API is not initialized');
     return undefined;
@@ -26,7 +26,7 @@ export async function callApi<T extends keyof Methods>(fnName: T, ...args: Metho
     return await (connector.request({
       name: fnName,
       args,
-    }) as MethodResponse<T>);
+    }) as AllMethodResponse<T>);
   } catch (err) {
     logDebugError('callApi', err);
     return undefined;

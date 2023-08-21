@@ -45,7 +45,7 @@ function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
       onClick={handleClick}
     >
       {lang('Improve wallet security')}
-      <i className={buildClassName(styles.icon, 'icon-chevron-right')} />
+      <i className={buildClassName(styles.icon, 'icon-chevron-right')} aria-hidden />
       <p className={styles.text}>{lang('by installing browser extension or native app')}</p>
 
       <button type="button" className={styles.closeButton} aria-label={lang('Close')} onClick={handleClose}>

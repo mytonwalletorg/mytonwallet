@@ -1,11 +1,12 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { withGlobal } from '../../global';
+import { getActions, withGlobal } from '../../global';
 import renderText from '../../global/helpers/renderText';
 import { selectAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import InteractiveTextField from '../ui/InteractiveTextField';
@@ -14,6 +15,7 @@ import styles from './ReceiveModal.module.scss';
 
 interface StateProps {
   address?: string;
+  isLedger?: boolean;
 }
 
 type OwnProps = {
@@ -23,9 +25,15 @@ type OwnProps = {
 };
 
 function Content({
-  address, isStatic, onInvoiceModalOpen, onQrModalOpen,
+  address, isStatic, onInvoiceModalOpen, onQrModalOpen, isLedger,
 }: StateProps & OwnProps) {
   const lang = useLang();
+
+  const { verifyHardwareAddress } = getActions();
+
+  const handleVerify = useLastCallback(() => {
+    verifyHardwareAddress();
+  });
 
   return (
     <>
@@ -40,6 +48,16 @@ function Content({
         copyNotification={lang('Your address was copied!')}
         noSavedAddress
       />
+
+      {isLedger && (
+        <div className={buildClassName(styles.info, isStatic && styles.infoStatic)}>
+          {renderText(lang('$ledger_verify_address'))}
+          {' '}
+          <a href="#" onClick={handleVerify} className={styles.dottedLink}>
+            {lang('Verify now')}
+          </a>
+        </div>
+      )}
 
       <div className={styles.buttons}>
         <Button
@@ -59,10 +77,11 @@ function Content({
 
 export default memo(
   withGlobal<OwnProps>((global): StateProps => {
-    const address = selectAccount(global, global.currentAccountId!)?.address;
+    const account = selectAccount(global, global.currentAccountId!);
 
     return {
-      address,
+      address: account?.address,
+      isLedger: Boolean(account?.ledger),
     };
   })(Content),
 );

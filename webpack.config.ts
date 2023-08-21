@@ -33,6 +33,23 @@ const appRevision = !branch || branch === 'HEAD' ? gitRevisionPlugin.commithash(
 const STATOSCOPE_REFERENCE_URL = 'https://mytonwallet.app/build-stats.json';
 let isReferenceFetched = false;
 
+// The `connect-src` rule contains `https:` due to arbitrary requests are needed for jetton JSON configs.
+// The `img-src` rule contains `https:` due to arbitrary image URLs being used as jetton logos.
+// The `media-src` rule contains `data:` because of iOS sound initialization.
+const CSP = `
+  default-src 'none';
+  manifest-src 'self';
+  connect-src 'self' https:;
+  script-src 'self' 'wasm-unsafe-eval';
+  style-src 'self' https://fonts.googleapis.com/;
+  img-src 'self' data: https:;
+  media-src 'self' data:;
+  object-src 'none';
+  base-uri 'none';
+  font-src 'self' https://fonts.gstatic.com/;
+  form-action 'none';`
+  .replace(/\s+/g, ' ').trim();
+
 const appVersion = require('./package.json').version;
 
 const defaultI18nFilename = path.resolve(__dirname, './src/i18n/en.json');
@@ -48,9 +65,23 @@ export default function createConfig(
     target: 'web',
 
     optimization: {
+      usedExports: true,
       splitChunks: {
-        chunks: 'initial',
-        maxSize: 4194304, // 4 Mb
+        chunks: 'all',
+        cacheGroups: {
+          extensionVendors: {
+            test: /[\\/]node_modules[\\/](webextension-polyfill)/,
+            name: 'extensionVendors',
+            chunks: 'all',
+            priority: 10, // For some reason priority is required here in order to bundle extensionVendors.js separately
+          },
+          defaultVendors: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            priority: 0,
+          },
+        },
       },
     },
 
@@ -76,6 +107,9 @@ export default function createConfig(
       ],
       devMiddleware: {
         stats: 'minimal',
+      },
+      headers: {
+        'Content-Security-Policy': CSP,
       },
     },
 
@@ -184,6 +218,7 @@ export default function createConfig(
       new HtmlPlugin({
         template: 'src/index.html',
         chunks: ['main'],
+        csp: CSP,
       }),
       new PreloadWebpackPlugin({
         include: 'allAssets',
@@ -206,7 +241,6 @@ export default function createConfig(
       /* eslint-disable no-null/no-null */
       new EnvironmentPlugin({
         APP_ENV: 'production',
-        APP_MOCKED_CLIENT: '',
         APP_NAME: null,
         APP_VERSION: appVersion,
         APP_REVISION: appRevision,
@@ -244,6 +278,9 @@ export default function createConfig(
             transform: (content) => {
               const manifest = JSON.parse(content.toString());
               manifest.version = appVersion;
+              manifest.content_security_policy = {
+                extension_pages: CSP,
+              };
 
               if (IS_FIREFOX_EXTENSION) {
                 manifest.background = {

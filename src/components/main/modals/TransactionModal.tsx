@@ -142,7 +142,11 @@ function TransactionModal({
       <>
         {timestamp ? `${formatFullDay(lang.code!, timestamp)}, ${formatTime(timestamp)}` : lang('Transaction Info')}
         {isLocal && (
-          <i className={buildClassName(styles.clockIcon, 'icon-clock')} title={lang('Transaction in progress')} />
+          <i
+            className={buildClassName(styles.clockIcon, 'icon-clock')}
+            title={lang('Transaction in progress')}
+            aria-hidden
+          />
         )}
         {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
       </>
@@ -238,7 +242,7 @@ function TransactionModal({
   function renderUnstakeTimer() {
     return (
       <div className={buildClassName(styles.unstakeTime, unstakeTimerClassNames)}>
-        <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} />
+        <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
         {lang('$unstaking_when_receive', {
           time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
         })}

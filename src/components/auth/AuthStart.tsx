@@ -50,7 +50,7 @@ const AuthStart = () => {
         onClick={openAbout}
       >
         {lang('More about MyTonWallet')}
-        <i className="icon-chevron-right" />
+        <i className="icon-chevron-right" aria-hidden />
       </Button>
       <div className={styles.importButtonsBlock}>
         <Button

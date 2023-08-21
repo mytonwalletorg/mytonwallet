@@ -7,8 +7,10 @@ import type { UserToken } from '../../global/types';
 import { getActions, withGlobal } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
-import { formatCurrencyForBigValue } from '../../util/formatNumber';
+import { formatCurrencyForBigValue, formatInteger } from '../../util/formatNumber';
 import { getIsAddressValid } from '../../util/getIsAddressValid';
+import { REM } from '../../util/windowEnvironment';
+import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -22,12 +24,20 @@ import styles from './Settings.module.scss';
 
 interface OwnProps {
   isOpen: boolean;
+  type?: 'price' | 'balance';
+  shouldFilter?: boolean;
   tokens?: UserToken[];
   position?: {
     top: number;
     right: number;
     left: number;
     width: number;
+  };
+  offset?: {
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
   };
   onClose: NoneToVoidFunction;
   onSelect: (token: UserToken) => void;
@@ -47,16 +57,22 @@ enum SearchState {
 
 const SLIDE_ANIMATION_DURATION_MS = 250;
 
-const OFFSET_TOP = 4;
-const OFFSET_RIGHT = 8;
-const OFFSET_BOTTOM = 16;
+const DEFAULT_OFFSET = {
+  top: 0.25 * REM,
+  right: 0.5 * REM,
+  bottom: REM,
+  left: 0,
+};
 
 function SelectTokens({
   token,
+  type = 'price',
+  shouldFilter = false,
   tokens,
   isOpen,
   isLoading,
   position,
+  offset = DEFAULT_OFFSET,
   onClose,
   onSelect,
 }: OwnProps & StateProps) {
@@ -91,12 +107,12 @@ function SelectTokens({
       const { width: componentWidth, height: componentHeight } = elementRef.current.getBoundingClientRect();
       const isTop = window.innerHeight > top + componentWidth;
       const verticalStyle = isTop
-        ? `top: ${top + OFFSET_TOP}px;`
-        : `top: calc(100% - ${componentHeight + OFFSET_BOTTOM}px);`;
+        ? `top: ${top + offset.top}px;`
+        : `top: calc(100% - ${componentHeight + offset.bottom}px);`;
 
-      setStyle(`${verticalStyle} left: ${(right - componentWidth) - OFFSET_RIGHT}px;`);
+      setStyle(`${verticalStyle} left: ${(right - componentWidth) - offset.right}px;`);
     }
-  }, [position]);
+  }, [position, offset]);
 
   useEffect(
     () => (shouldRender ? captureEscKeyListener(onClose) : undefined),
@@ -117,12 +133,11 @@ function SelectTokens({
     }
   }, [importToken, searchValue]);
 
-  const filteredTokenList = useMemo(() => tokens?.filter(
-    ({ name, symbol, keywords }) => {
-      const isName = name.toLowerCase().includes(searchValue.toLowerCase());
+  const filteredTokenList = useMemo(() => tokens?.filter((t) => !t.isDisabled).filter(
+    ({ symbol, keywords }) => {
       const isSymbol = symbol.toLowerCase().includes(searchValue.toLowerCase());
       const isKeyword = keywords?.find((key) => key.toLowerCase().includes(searchValue.toLowerCase()));
-      return isName || isSymbol || isKeyword;
+      return isSymbol || isKeyword;
     },
   ) ?? [], [tokens, searchValue]);
 
@@ -148,15 +163,35 @@ function SelectTokens({
     }, SLIDE_ANIMATION_DURATION_MS);
   });
 
-  const popularTokenList = useMemo(() => filteredTokenList.map((t) => (
-    <div className={styles.addTokenItem} key={t.slug} onClick={() => handleTokenClick(t)}>
-      <img src={t.image} alt={t.symbol} className={styles.addTokenIcon} />
-      <div className={styles.addTokenText}>
-        <span className={styles.addTokenSymbol}>{t.symbol}</span>
-        <span className={styles.addTokenPrice}>{formatCurrencyForBigValue(t.price)}</span>
+  const popularTokenList = useMemo(() => filteredTokenList.map((t) => {
+    const image = t?.image ?? ASSET_LOGO_PATHS[t?.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
+    const isAvailable = !shouldFilter;
+    const value = isAvailable
+      ? type === 'price'
+        ? formatCurrencyForBigValue(t.price)
+        : formatInteger(t.amount)
+      : lang('Unavailable');
+    const handleClick = isAvailable ? () => handleTokenClick(t) : undefined;
+    return (
+      <div className={styles.addTokenItem} key={t.slug} onClick={handleClick}>
+        <LazyImage symbol={t.symbol} image={image} isAvailable={isAvailable} />
+        <div className={styles.addTokenText}>
+          <span className={buildClassName(
+            styles.addTokenSymbol,
+            !isAvailable && styles.addTokenSymbol_disabled,
+          )}
+          >{t.symbol}
+          </span>
+          <span className={buildClassName(
+            styles.addTokenPrice,
+            !isAvailable && styles.addTokenPrice_disabled,
+          )}
+          >{value}
+          </span>
+        </div>
       </div>
-    </div>
-  )), [filteredTokenList, handleTokenClick]);
+    );
+  }), [filteredTokenList, handleTokenClick, type, lang, shouldFilter]);
 
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
@@ -194,7 +229,7 @@ function SelectTokens({
         content = (
           <div className={styles.addTokenItem}>
             <div className={buildClassName(styles.addTokenIcon, styles.addTokenIcon_empty)}>
-              <i className={buildClassName('icon-ton', styles.emptyIcon)} />
+              <i className={buildClassName('icon-ton', styles.emptyIcon)} aria-hidden />
             </div>
             <div className={styles.addTokenText}>
               <span className={buildClassName(styles.addTokenSymbol, styles.addTokenSymbol_gray)}>
@@ -266,6 +301,40 @@ function SelectTokens({
         </div>
       </div>
     </Portal>
+  );
+}
+
+function LazyImage({ symbol, image, isAvailable }: { symbol: string; image: string; isAvailable?: boolean }) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isImageVisible, setIsImageVisible] = useState(true);
+  const [firstLetter] = symbol;
+
+  return (
+    <>
+      {isImageVisible && (
+        <img
+          loading="lazy"
+          src={image}
+          alt={symbol}
+          className={buildClassName(
+            styles.addTokenIcon,
+            !isAvailable && styles.addTokenIcon_disabled,
+          )}
+          onLoad={() => setIsLoading(false)}
+          onError={() => setIsImageVisible(false)}
+        />
+      )}
+      {isLoading && (
+        <div className={buildClassName(
+          styles.addTokenIcon,
+          styles.addTokenIcon_symbol,
+          !isAvailable && styles.addTokenIcon_disabled,
+        )}
+        >
+          <span className={styles.addTokenIconLetter}>{firstLetter}</span>
+        </div>
+      )}
+    </>
   );
 }
 

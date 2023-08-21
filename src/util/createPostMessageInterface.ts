@@ -1,5 +1,3 @@
-import extension from '../lib/webextension-polyfill';
-
 import { DETACHED_TAB_URL } from './ledger/tab';
 import { logDebugError } from './logs';
 
@@ -44,7 +42,7 @@ export function createExtensionInterface(
   cleanUpdater?: (onUpdate: (update: ApiUpdate) => void) => void,
   withAutoInit = false,
 ) {
-  extension.runtime.onConnect.addListener((port) => {
+  chrome.runtime.onConnect.addListener((port) => {
     if (port.name !== portName) {
       return;
     }

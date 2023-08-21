@@ -8,6 +8,7 @@ import styles from './Checkbox.module.scss';
 type OwnProps = {
   id?: string;
   className?: string;
+  contentClassName?: string;
   children?: React.ReactNode;
   checked: boolean;
   onChange: (isChecked: boolean) => void;
@@ -16,6 +17,7 @@ type OwnProps = {
 function Checkbox({
   id,
   className,
+  contentClassName,
   children,
   checked,
   onChange,
@@ -35,7 +37,7 @@ function Checkbox({
         tabIndex={0}
         onChange={handleChange}
       />
-      <div className={styles.content}>
+      <div className={buildClassName(styles.content, contentClassName)}>
         {children}
       </div>
     </label>

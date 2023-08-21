@@ -1,3 +1,5 @@
+import { randomBytes } from 'tweetnacl';
+
 import type {
   ApiBaseToken,
   ApiInitArgs,
@@ -9,7 +11,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { APP_VERSION, TON_TOKEN_SLUG } from '../../config';
+import { APP_ENV, APP_VERSION, TON_TOKEN_SLUG } from '../../config';
 import { compareTransactions } from '../../util/compareTransactions';
 import { logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
@@ -20,6 +22,7 @@ import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet } from '../common/backend';
 import { isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
 import { txCallbacks } from '../common/txCallbacks';
+import { storage } from '../storages';
 import { getBackendStakingState } from './staking';
 
 type IsAccountActiveFn = (accountId: string) => boolean;
@@ -28,7 +31,7 @@ const POLLING_INTERVAL = 1100; // 1.1 sec
 const BACKEND_POLLING_INTERVAL = 30000; // 30 sec
 const LONG_BACKEND_POLLING_INTERVAL = 60000; // 1 min
 
-const TRANSACTIONS_WAITING_PAUSE = 2000; // 2 sec
+const PAUSE_AFTER_BALANCE_CHANGE = 1000; // 1 sec
 const FIRST_TRANSACTIONS_LIMIT = 20;
 
 const NFT_FULL_POLLING_INTERVAL = 30000; // 30 sec
@@ -37,6 +40,7 @@ const NFT_FULL_UPDATE_FREQUNCY = Math.round(NFT_FULL_POLLING_INTERVAL / POLLING_
 let onUpdate: OnApiUpdate;
 let isAccountActive: IsAccountActiveFn;
 let origin: string;
+let clientId: string | undefined;
 
 let preloadEnsurePromise: Promise<any>;
 let pricesBySlug: Record<string, ApiTokenPrice>;
@@ -90,7 +94,6 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
   delete lastBalanceCache[accountId];
 
-  let isFirstRun = true;
   let nftFromSec = Math.round(Date.now() / 1000);
   let nftUpdates: ApiNftUpdate[];
   let i = 0;
@@ -148,6 +151,8 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
         balance,
       };
 
+      await pause(PAUSE_AFTER_BALANCE_CHANGE);
+
       // Fetch and process token balances
       const tokenBalances = await blockchain.getAccountTokenBalances(accountId).catch(logAndRescue);
       if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
@@ -179,9 +184,6 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
       // Fetch transactions for tokens with a changed balance
       if (changedTokenSlugs.length) {
-        if (!isFirstRun) {
-          await pause(TRANSACTIONS_WAITING_PAUSE);
-        }
         const newTxIds = await processNewTokenTransactions(accountId, newestTxIds, changedTokenSlugs);
         newestTxIds = { ...newestTxIds, ...newTxIds };
       }
@@ -191,7 +193,6 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
       if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
       nftUpdates.forEach(onUpdate);
 
-      isFirstRun = false;
       i++;
     } catch (err) {
       logDebugError('setupBalancePolling', err);
@@ -276,6 +277,8 @@ export async function tryUpdateTokens(localOnUpdate: OnApiUpdate) {
       callBackendGet('/prices', undefined, {
         'X-App-Origin': origin,
         'X-App-Version': APP_VERSION,
+        'X-App-ClientID': clientId ?? await getClientId(),
+        'X-App-Env': APP_ENV,
       }) as Promise<Record<string, { slugs: string[]; quote: ApiTokenPrice }>>,
       callBackendGet('/known-tokens') as Promise<ApiBaseToken[]>,
     ]);
@@ -295,6 +298,15 @@ export async function tryUpdateTokens(localOnUpdate: OnApiUpdate) {
   } catch (err) {
     logDebugError('tryUpdateTokens', err);
   }
+}
+
+async function getClientId() {
+  clientId = await storage.getItem('clientId');
+  if (!clientId) {
+    clientId = Buffer.from(randomBytes(10)).toString('hex');
+    await storage.setItem('clientId', clientId);
+  }
+  return clientId;
 }
 
 export function sendUpdateTokens() {

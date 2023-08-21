@@ -53,8 +53,9 @@ export enum AuthState {
   none,
   creatingWallet,
   createPassword,
-  createBackup,
+  disclaimerAndBackup,
   importWallet,
+  disclaimer,
   importWalletCreatePassword,
   ready,
   about,
@@ -98,6 +99,12 @@ export enum StakingState {
   UnstakeComplete,
 }
 
+export enum ActiveTab {
+  Receive,
+  Transfer,
+  Stake,
+}
+
 export type UserToken = {
   amount: number;
   name: string;
@@ -112,7 +119,7 @@ export type UserToken = {
   history24h?: ApiHistoryList;
   history7d?: ApiHistoryList;
   history30d?: ApiHistoryList;
-  isDisabled: boolean;
+  isDisabled?: boolean;
   keywords?: string[];
 };
 
@@ -137,6 +144,7 @@ export interface AccountState {
     byTxId: Record<string, ApiTransaction>;
     txIdsBySlug?: Record<string, string[]>;
     newestTransactionsBySlug?: Record<string, ApiTransaction>;
+    isHistoryEndReached?: boolean;
   };
   nfts?: {
     byAddress: Record<string, ApiNft>;
@@ -190,6 +198,8 @@ export type GlobalState = {
     tokenSlug?: string;
     toAddress?: string;
     toAddressName?: string;
+    resolvedAddress?: string;
+    normalizedAddress?: string;
     error?: string;
     amount?: number;
     fee?: string;
@@ -279,7 +289,7 @@ export type GlobalState = {
   currentAccountId?: string;
   isAddAccountModalOpen?: boolean;
   isBackupWalletModalOpen?: boolean;
-  landscapeActionsActiveTabIndex?: 0 | 1 | 2;
+  landscapeActionsActiveTabIndex?: ActiveTab;
   isHardwareModalOpen?: boolean;
   areSettingsOpen?: boolean;
 
@@ -301,6 +311,7 @@ export interface ActionPayloads {
   startImportingWallet: undefined;
   afterImportMnemonic: { mnemonic: string[] };
   startImportingHardwareWallet: { driver: ApiLedgerDriver };
+  confirmDisclaimer: undefined;
   cleanAuthError: undefined;
   openAbout: undefined;
   closeAbout: undefined;
@@ -317,6 +328,10 @@ export interface ActionPayloads {
   closeHardwareWalletModal: undefined;
   resetHardwareWalletConnect: undefined;
   setTransferScreen: { state: TransferState };
+  setTransferAmount: { amount?: number };
+  setTransferToAddress: { toAddress?: string };
+  setTransferComment: { comment?: string };
+  setTransferShouldEncrypt: { shouldEncrypt?: boolean };
   startTransfer: { tokenSlug?: string; amount?: number; toAddress?: string; comment?: string } | undefined;
   changeTransferToken: { tokenSlug: string };
   fetchFee: {
@@ -353,9 +368,11 @@ export interface ActionPayloads {
   renameAccount: { accountId: string; title: string };
   clearAccountError: undefined;
   validatePassword: { password: string };
+  verifyHardwareAddress: undefined;
 
   fetchTokenTransactions: { limit: number; slug: string; offsetId?: string };
   fetchAllTransactions: { limit: number };
+  resetIsHistoryEndReached: undefined;
   fetchNfts: undefined;
   showTransactionInfo: { txId?: string } | undefined;
   closeTransactionInfo: undefined;
@@ -371,7 +388,7 @@ export interface ActionPayloads {
   openAddAccountModal: undefined;
   closeAddAccountModal: undefined;
 
-  setLandscapeActionsActiveTabIndex: { index: 0 | 1 | 2 };
+  setLandscapeActionsActiveTabIndex: { index: ActiveTab };
 
   // Staking
   startStaking: { isUnstaking?: boolean } | undefined;
@@ -412,8 +429,8 @@ export interface ActionPayloads {
   resetImportToken: undefined;
 
   // TON Connect
-  submitDappConnectRequestConfirm: { additionalAccountIds: string[]; password?: string };
-  submitDappConnectRequestConfirmHardware: { additionalAccountIds: string[] };
+  submitDappConnectRequestConfirm: { accountId: string; password?: string };
+  submitDappConnectRequestConfirmHardware: { accountId: string };
   clearDappConnectRequestError: undefined;
   cancelDappConnectRequestConfirm: undefined;
   setDappConnectRequestState: { state: DappConnectState };

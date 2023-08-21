@@ -17,11 +17,15 @@ import styles from './PortraitActions.module.scss';
 
 interface OwnProps {
   hasStaking?: boolean;
+  isTestnet?: boolean;
   isUnstakeRequested?: boolean;
   onEarnClick: NoneToVoidFunction;
+  isLedger?: boolean;
 }
 
-function PortraitActions({ hasStaking, isUnstakeRequested, onEarnClick }: OwnProps) {
+function PortraitActions({
+  hasStaking, isTestnet, isUnstakeRequested, onEarnClick, isLedger,
+}: OwnProps) {
   const { startTransfer } = getActions();
 
   const lang = useLang();
@@ -40,7 +44,13 @@ function PortraitActions({ hasStaking, isUnstakeRequested, onEarnClick }: OwnPro
 
   return (
     <div className={styles.container}>
-      <div className={styles.buttons}>
+      <div className={
+        buildClassName(
+          styles.buttons,
+          (isTestnet || isLedger) && styles.notAllButtons,
+        )
+      }
+      >
         <Button className={styles.button} onClick={openReceiveTon} isSimple>
           <i className={buildClassName(styles.buttonIcon, 'icon-receive')} aria-hidden />
           {lang('Receive')}
@@ -49,14 +59,16 @@ function PortraitActions({ hasStaking, isUnstakeRequested, onEarnClick }: OwnPro
           <i className={buildClassName(styles.buttonIcon, 'icon-send')} aria-hidden />
           {lang('Send')}
         </Button>
-        <Button
-          className={buildClassName(styles.button, hasStaking && styles.button_purple)}
-          onClick={onEarnClick}
-          isSimple
-        >
-          <i className={buildClassName(styles.buttonIcon, 'icon-earn')} aria-hidden />
-          {lang(isUnstakeRequested ? 'Unstaking' : hasStaking ? 'Earning' : 'Earn')}
-        </Button>
+        {!isTestnet && !isLedger && (
+          <Button
+            className={buildClassName(styles.button, hasStaking && styles.button_purple)}
+            onClick={onEarnClick}
+            isSimple
+          >
+            <i className={buildClassName(styles.buttonIcon, 'icon-earn')} aria-hidden />
+            {lang(isUnstakeRequested ? 'Unstaking' : hasStaking ? 'Earning' : 'Earn')}
+          </Button>
+        )}
       </div>
       <ReceiveModal isOpen={isReceiveTonOpened} onClose={closeReceiveTon} />
     </div>

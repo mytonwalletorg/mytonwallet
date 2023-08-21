@@ -6,12 +6,13 @@ import { waitStorageMigration } from '../common/helpers';
 import { IS_EXTENSION } from '../environment';
 import { storage } from '../storages';
 import { deactivateAccountDapp, deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
-import { clearExtensionFeatures, setupDefaultExtensionFeatures } from './extension';
 import {
   sendUpdateTokens,
   setupBackendStakingStatePolling,
   setupBalanceBasedPolling,
 } from './polling';
+
+import { callHook } from '../hooks';
 
 let activeAccountId: string | undefined;
 
@@ -30,9 +31,7 @@ export async function activateAccount(accountId: string, newestTxIds?: ApiTxIdBy
       deactivateAllDapps();
     }
 
-    if (isFirstLogin) {
-      setupDefaultExtensionFeatures();
-    }
+    callHook('onFirstLogin');
 
     onActiveDappAccountUpdated(accountId);
   }
@@ -51,7 +50,7 @@ export function deactivateAllAccounts() {
 
   if (IS_EXTENSION) {
     deactivateAllDapps();
-    void clearExtensionFeatures();
+    callHook('onFullLogout');
   }
 }
 

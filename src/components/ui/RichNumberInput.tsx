@@ -1,7 +1,7 @@
+import { Big } from '../../lib/big.js';
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo,
-  useCallback, useEffect, useRef,
+  memo, useEffect, useRef,
 } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS } from '../../config';
@@ -11,12 +11,13 @@ import { saveCaretPosition } from '../../util/saveCaretPosition';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import styles from './Input.module.scss';
 
 type OwnProps = {
   id?: string;
-  labelText?: string;
+  labelText?: React.ReactNode;
   value?: number;
   hasError?: boolean;
   suffix?: string;
@@ -24,11 +25,14 @@ type OwnProps = {
   inputClassName?: string;
   labelClassName?: string;
   valueClassName?: string;
+  cornerClassName?: string;
   children?: TeactNode;
   onChange?: (value?: number) => void;
   onBlur?: NoneToVoidFunction;
+  onFocus?: NoneToVoidFunction;
   onPressEnter?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   decimals?: number;
+  disabled?: boolean;
 };
 
 function RichNumberInput({
@@ -42,17 +46,20 @@ function RichNumberInput({
   inputClassName,
   labelClassName,
   valueClassName,
+  cornerClassName,
   onChange,
   onBlur,
+  onFocus,
   onPressEnter,
   decimals = FRACTION_DIGITS,
+  disabled,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLInputElement | null>(null);
   const lang = useLang();
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
 
-  const updateHtml = useCallback((parts?: RegExpMatchArray) => {
+  const updateHtml = useLastCallback((parts?: RegExpMatchArray) => {
     const input = inputRef.current!;
     const newHtml = parts ? buildContentHtml(parts, suffix, decimals) : '';
 
@@ -64,7 +71,7 @@ function RichNumberInput({
 
     // Trick to remove pseudo-element with placeholder in this tick
     input.classList.toggle(styles.isEmpty, !newHtml.length);
-  }, [decimals, suffix]);
+  });
 
   useEffect(() => {
     const newValue = castValue(value, decimals);
@@ -75,7 +82,7 @@ function RichNumberInput({
     if (value !== newValue) {
       onChange?.(newValue);
     }
-  }, [decimals, onChange, updateHtml, value]);
+  }, [decimals, onChange, updateHtml, value, suffix]);
 
   function handleChange(e: React.FormEvent<HTMLDivElement>) {
     const inputValue = e.currentTarget.innerText.trim();
@@ -94,10 +101,19 @@ function RichNumberInput({
     }
   }
 
-  const handleBlur = useCallback(() => {
+  const handleFocus = useLastCallback(() => {
+    if (disabled) return;
+
+    markHasFocus();
+    onFocus?.();
+  });
+
+  const handleBlur = useLastCallback(() => {
+    if (disabled) return;
+
     unmarkHasFocus();
     onBlur?.();
-  }, [onBlur, unmarkHasFocus]);
+  });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && onPressEnter) {
@@ -122,10 +138,15 @@ function RichNumberInput({
     hasError && styles.error,
     labelClassName,
   );
+  const cornerFullClass = buildClassName(
+    cornerClassName,
+    hasFocus && styles.swapCorner,
+    hasError && styles.swapCorner_error,
+  );
 
   return (
     <div className={buildClassName(styles.wrapper, className)}>
-      {labelText && (
+      {Boolean(labelText) && (
         <label
           className={labelTextClassName}
           htmlFor={id}
@@ -138,7 +159,7 @@ function RichNumberInput({
         {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
         <div
           ref={inputRef}
-          contentEditable
+          contentEditable={!disabled}
           id={id}
           role="textbox"
           aria-required
@@ -148,17 +169,24 @@ function RichNumberInput({
           className={inputFullClass}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
-          onFocus={markHasFocus}
+          onFocus={handleFocus}
           onBlur={handleBlur}
         />
         {children}
+        {cornerClassName && <div className={cornerFullClass} />}
       </div>
     </div>
   );
 }
 
 function getParts(value: string, decimals: number) {
-  return value.match(new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?$`)) || undefined;
+  const regex = new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?$`);
+  // Correct problem with numbers like 1e-8
+  if (value.includes('e-')) {
+    Big.NE = -decimals - 1;
+    return new Big(value).toString().match(regex) || undefined;
+  }
+  return value.match(regex) || undefined;
 }
 
 function castValue(value?: number, decimals?: number) {

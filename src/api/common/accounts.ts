@@ -4,7 +4,6 @@ import type { ApiAccountInfo, ApiNetwork } from '../types';
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { buildCollectionByKey } from '../../util/iteratees';
 import { storage } from '../storages';
-import { toInternalAccountId } from './helpers';
 
 const MIN_ACCOUNT_NUMBER = 0;
 
@@ -76,23 +75,47 @@ export function fetchStoredAddress(accountId: string): Promise<string> {
 }
 
 export async function getAccountValue(accountId: string, key: StorageKey) {
-  const internalId = toInternalAccountId(accountId);
-  return (await storage.getItem(key))?.[internalId];
+  return (await storage.getItem(key))?.[accountId];
 }
 
 export async function removeAccountValue(accountId: string, key: StorageKey) {
-  const internalId = toInternalAccountId(accountId);
   const data = await storage.getItem(key);
   if (!data) return;
 
-  const { [internalId]: removedValue, ...restData } = data;
+  const { [accountId]: removedValue, ...restData } = data;
   await storage.setItem(key, restData);
 }
 
 export async function setAccountValue(accountId: string, key: StorageKey, value: any) {
-  const internalId = toInternalAccountId(accountId);
   const data = await storage.getItem(key);
-  await storage.setItem(key, { ...data, [internalId]: value });
+  await storage.setItem(key, { ...data, [accountId]: value });
+}
+
+export async function removeNetworkAccountsValue(network: string, key: StorageKey) {
+  const data = await storage.getItem(key);
+  if (!data) return;
+
+  for (const accountId of Object.keys(data)) {
+    if (parseAccountId(accountId).network === network) {
+      delete data[accountId];
+    }
+  }
+
+  await storage.setItem(key, data);
+}
+
+export async function getCurrentNetwork() {
+  const accountId = await getCurrentAccountId();
+  if (!accountId) return undefined;
+  return parseAccountId(accountId).network;
+}
+
+export async function getCurrentAccountIdOrFail() {
+  const accountId = await getCurrentAccountId();
+  if (!accountId) {
+    throw new Error('The user is not authorized in the wallet');
+  }
+  return accountId;
 }
 
 export function getCurrentAccountId(): Promise<string | undefined> {

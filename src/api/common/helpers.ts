@@ -5,7 +5,7 @@ import type {
 } from '../types';
 
 import { MAIN_ACCOUNT_ID } from '../../config';
-import { parseAccountId } from '../../util/account';
+import { buildAccountId, parseAccountId } from '../../util/account';
 import { IS_EXTENSION } from '../environment';
 import { storage } from '../storages';
 import idbStorage from '../storages/idb';
@@ -15,7 +15,7 @@ import { whenTxComplete } from './txCallbacks';
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 6;
+const actualStateVersion = 7;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -212,6 +212,29 @@ export async function migrateStorage() {
     }
 
     version = 6;
+    await storage.setItem('stateVersion', version);
+  }
+
+  if (version === 6) {
+    for (const key of ['addresses', 'mnemonicsEncrypted', 'publicKeys', 'accounts', 'dapps'] as StorageKey[]) {
+      let data = await storage.getItem(key) as AnyLiteral;
+      if (!data) continue;
+
+      data = Object.entries(data).reduce((byAccountId, [internalAccountId, accountData]) => {
+        const parsed = parseAccountId(internalAccountId);
+        const mainnetAccountId = buildAccountId({ ...parsed, network: 'mainnet' });
+        const testnetAccountId = buildAccountId({ ...parsed, network: 'testnet' });
+        return {
+          ...byAccountId,
+          [mainnetAccountId]: accountData,
+          [testnetAccountId]: accountData,
+        };
+      }, {} as AnyLiteral);
+
+      await storage.setItem(key, data);
+    }
+
+    version = 7;
     await storage.setItem('stateVersion', version);
   }
 }

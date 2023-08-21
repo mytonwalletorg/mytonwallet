@@ -6,13 +6,7 @@ Import From %1$d Secret Words: 输入助记词
 More about MyTonWallet: 更多关于 MyTonWallet
 Creating Wallet...: 正在创建钱包...
 On the count of three...: 倒数三个数···
-$auth_backup_description1: |
-  这是一个**仅由您控制的**且**安全**的钱包。
-$auth_backup_description2: “能力越大，责任越大。”
-$auth_backup_description3: |
-  您需要手动**备份助记词**，以免忘记助记词以永远失去您的钱包。
 Back Up: 备份
-Skip For Now: 跳过此步骤
 Passwords must be equal.: 密码必须相同。
 To protect your wallet as much as possible, use a password with: 为了尽可能的保障您钱包的安全，密码请遵循下列规则
 $auth_password_rule_8chars: 至少8位字符
@@ -170,7 +164,7 @@ Insufficient balance: 余额不足
 InsufficientBalance: 余额不足
 Optional: 选项
 $send_token_symbol: 发送 %1$s
-$your_balance_is: "您的余额: %balance%"
+$balance_is: "余额：%balance%"
 Is it all ok?: 确认全部正确?
 Receiving Address: 接收地址
 Fee: 手续费
@@ -207,7 +201,6 @@ Appearance: 外观
 Light: 白天模式
 Dark: 黑夜模式
 System: 系统
-Create Backup: 创建备份
 Stake TON: 质押 TON
 Earn from your tokens while holding them: 从你持有的代币身上赚一笔。
 $est_apy_val: 期望年回报率 %1$d%
@@ -331,4 +324,23 @@ Message is encrypted.: 消息已加密。
 $dapp_ledger_warning1: 您即将使用您的**Ledger**钱包发送多方交易。您需要手动**逐个**签署每笔底层交易。
 $dapp_ledger_warning2: 请慢慢来，不要中断过程。
 Agree: 同意
-The hardware wallet does not support this data format: 硬件钱包不支持该数据格式
+The hardware wallet does not support this data format: 硬件钱包不支持该数据格
+Use Responsibly: 负责任地使用
+$auth_responsibly_description1: |
+  MyTonWallet 是一个**自我托管**钱包，这意味着**只有您**拥有完全控制权，最重要的是，对您的资金**承担全部责任**。
+$auth_responsibly_description2: |
+  您的私钥存储在您的设备上，并且容易受到**黑客攻击**。 如果您的计算机感染了**恶意软件**，您的资金可能会被盗。
+$auth_responsibly_description3: |
+  MyTonWallet 团队对您的资金安全**不负责**，就像您的计算机制造商或互联网提供商不负责一样。
+$auth_responsibly_description4: |
+  **永远不要**将您的所有资金存储在一个地方。 **多样化**并使用各种软件和硬件。 始终**进行自己的研究**并了解有关加密安全的更多信息。
+Start Wallet: 启动钱包
+$auth_backup_warning_notice: |
+  现在，您需要手动**备份密钥**，以防忘记密码或无法访问该设备。
+Later: 之后
+Back Up Now: 立即备份
+I have read and accept this information: 我已阅读并接受此信息
+$ledger_verify_address: 请务必使用您的 Ledger 设备验证粘贴的地址。
+$ledger_not_ready: Ledger 未连接或 TON 应用程序未打开。
+Verify now: 现在检查
+Invalid address format. Only URL Safe Base64 format is allowed.: 地址格式无效。 仅允许使用 URL Safe Base64 格式。

@@ -82,3 +82,5 @@ export function setPageSafeAreaProperty() {
     }
   }, SAFE_AREA_INITIALIZATION_DELAY);
 }
+
+export const REM = parseInt(getComputedStyle(document.documentElement).fontSize, 10);

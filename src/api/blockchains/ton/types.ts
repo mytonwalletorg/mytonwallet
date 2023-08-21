@@ -37,6 +37,7 @@ export interface TonTransferParams {
   amount: string;
   payload?: AnyPayload;
   stateInit?: Cell;
+  isBase64Payload?: boolean;
 }
 
 export interface JettonMetadata {

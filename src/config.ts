@@ -1,16 +1,15 @@
 import type { LangItem } from './global/types';
 
+export const APP_ENV = process.env.APP_ENV;
+
 export const APP_NAME = process.env.APP_NAME || 'MyTonWallet';
 export const APP_VERSION = process.env.APP_VERSION!;
 
-export const DEBUG = (
-  process.env.APP_ENV !== 'production' && process.env.APP_ENV !== 'perf' && process.env.APP_ENV !== 'test'
-);
+export const DEBUG = APP_ENV !== 'production' && APP_ENV !== 'perf' && APP_ENV !== 'test';
 export const DEBUG_MORE = false;
 
-export const IS_MOCKED_CLIENT = process.env.APP_MOCKED_CLIENT === '1';
-export const IS_TEST = process.env.APP_ENV === 'test';
-export const IS_PERF = process.env.APP_ENV === 'perf';
+export const IS_TEST = APP_ENV === 'test';
+export const IS_PERF = APP_ENV === 'perf';
 export const IS_ELECTRON = process.env.IS_ELECTRON;
 export const IS_SSE_SUPPORTED = IS_ELECTRON;
 
@@ -26,6 +25,7 @@ export const MOBILE_SCREEN_MAX_WIDTH = 700; // px
 
 export const ANIMATION_END_DELAY = 50;
 
+export const ANIMATED_STICKER_TINY_SIZE_PX = 70;
 export const ANIMATED_STICKER_SMALL_SIZE_PX = 110;
 export const ANIMATED_STICKER_MIDDLE_SIZE_PX = 120;
 export const ANIMATED_STICKER_DEFAULT_PX = 150;
@@ -37,6 +37,8 @@ export const CARD_SECONDARY_VALUE_SYMBOL = 'TON';
 export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 1;
 
 export const DEFAULT_DECIMAL_PLACES = 9;
+
+export const DEFAULT_SLIPPAGE_VALUE = 0.5;
 
 export const TOKEN_INFO = {
   toncoin: {
@@ -85,12 +87,13 @@ export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 
 export const TON_TOKEN_SLUG = 'toncoin';
+export const JWBTC_TOKEN_SLUG = 'ton-eqdcbkghmc';
 
 export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-15';
+export const LANG_CACHE_NAME = 'mtw-lang-23';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',

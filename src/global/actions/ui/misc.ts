@@ -1,10 +1,7 @@
-import extension from '../../../lib/webextension-polyfill';
-
 import { AppState, HardwareConnectState } from '../../types';
 import type { UserToken } from '../../types';
 
 import { unique } from '../../../util/iteratees';
-import { connectLedger } from '../../../util/ledger';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { pause } from '../../../util/schedulers';
 import { callApi } from '../../../api';
@@ -170,7 +167,9 @@ addActionHandler('openHardwareWalletModal', async (global, actions) => {
     actions.connectHardwareWallet();
   };
 
-  if (await connectLedger()) {
+  const ledgerApi = await import('../../../util/ledger');
+
+  if (await ledgerApi.connectLedger()) {
     startConnection();
     return;
   }
@@ -183,12 +182,12 @@ addActionHandler('openHardwareWalletModal', async (global, actions) => {
 
     await pause(OPEN_LEDGER_TAB_DELAY);
     const id = await openLedgerTab();
-    const popup = await extension.windows.getCurrent();
+    const popup = await chrome.windows.getCurrent();
 
     onLedgerTabClose(id, async () => {
-      await extension.windows.update(popup.id!, { focused: true });
+      await chrome.windows.update(popup.id!, { focused: true });
 
-      if (!await connectLedger()) {
+      if (!await ledgerApi.connectLedger()) {
         actions.closeHardwareWalletModal();
         return;
       }

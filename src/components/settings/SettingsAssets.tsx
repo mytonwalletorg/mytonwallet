@@ -5,19 +5,16 @@ import type { UserToken } from '../../global/types';
 import { CARD_SECONDARY_VALUE_SYMBOL, TINY_TRANSFER_MAX_COST } from '../../config';
 import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
-import stopEvent from '../../util/stopEvent';
-import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
-import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
+import IconWithTooltip from '../ui/IconWithTooltip';
 import ModalHeader from '../ui/ModalHeader';
 import Switcher from '../ui/Switcher';
-import Tooltip from '../ui/Tooltip';
 import SettingsTokens from './SettingsTokens';
 
 import styles from './Settings.module.scss';
@@ -60,9 +57,6 @@ function SettingsAssets({
     toggleSortByValue,
   } = getActions();
   const lang = useLang();
-
-  const [isInvestorHelpTooltipOpen, openInvestorHelpTooltip, closeInvestorHelpTooltip] = useFlag();
-  const [isTinyTransfersHelpTooltipOpen, openTinyTransfersHelpTooltip, closeTinyTransfersHelpTooltip] = useFlag();
 
   const {
     handleScroll: handleContentScroll,
@@ -121,16 +115,10 @@ function SettingsAssets({
             <div className={styles.blockWithTooltip}>
               {lang('Investor View')}
 
-              <Tooltip
-                isOpen={isInvestorHelpTooltipOpen}
+              <IconWithTooltip
                 message={lang('Focus on asset value rather than current balance')}
-                className={styles.tooltip}
-              />
-              <i
-                className={buildClassName(styles.iconQuestion, 'icon-question')}
-                onClick={IS_TOUCH_ENV ? stopEvent : undefined}
-                onMouseEnter={openInvestorHelpTooltip}
-                onMouseLeave={closeInvestorHelpTooltip}
+                tooltipClassName={styles.tooltip}
+                iconClassName={styles.iconQuestion}
               />
 
             </div>
@@ -145,21 +133,15 @@ function SettingsAssets({
             <div className={styles.blockWithTooltip}>
               {lang('Hide Tiny Transfers')}
 
-              <Tooltip
-                isOpen={isTinyTransfersHelpTooltipOpen}
+              <IconWithTooltip
                 message={
                   lang(
                     '$tiny_transfers_help',
                     [TINY_TRANSFER_MAX_COST, CARD_SECONDARY_VALUE_SYMBOL],
                   ) as string
                 }
-                className={buildClassName(styles.tooltip, styles.tooltip_wide)}
-              />
-              <i
-                className={buildClassName(styles.iconQuestion, 'icon-question')}
-                onClick={IS_TOUCH_ENV ? stopEvent : undefined}
-                onMouseEnter={openTinyTransfersHelpTooltip}
-                onMouseLeave={closeTinyTransfersHelpTooltip}
+                tooltipClassName={buildClassName(styles.tooltip, styles.tooltip_wide)}
+                iconClassName={styles.iconQuestion}
               />
             </div>
 

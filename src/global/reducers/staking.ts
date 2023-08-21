@@ -4,7 +4,7 @@ import type { GlobalState } from '../types';
 
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 import { selectCurrentAccountState } from '../selectors';
-import { updateCurrentAccountsState } from './misc';
+import { updateCurrentAccountState } from './misc';
 
 export function updateStaking(global: GlobalState, update: Partial<GlobalState['staking']>): GlobalState {
   return {
@@ -35,7 +35,7 @@ export function updatePoolState(global: GlobalState, partial: ApiPoolState, with
     return global;
   }
 
-  return updateCurrentAccountsState(global, {
+  return updateCurrentAccountState(global, {
     poolState: {
       ...currentPoolState,
       ...partial,

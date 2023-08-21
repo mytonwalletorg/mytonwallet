@@ -9,10 +9,13 @@
 
   width: 21.4375rem;
 
-
   @supports (aspect-ratio: 1) {
     width: 100%;
   }
+}
+
+.notAllButtons {
+  grid-template-columns: 1fr 1fr;
 }
 
 .button {

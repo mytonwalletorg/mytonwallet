@@ -8,26 +8,26 @@ export type ApiDappUpdateAccounts = {
   accounts: string[];
 };
 
-export type ApiDappUpdateTonMagic = {
+export type ApiSiteUpdateTonMagic = {
   type: 'updateTonMagic';
   isEnabled: boolean;
 };
 
-export type ApiDappUpdateDeeplinkHook = {
+export type ApiSiteUpdateDeeplinkHook = {
   type: 'updateDeeplinkHook';
   isEnabled: boolean;
 };
 
-export type ApiDappDisconnect = {
-  type: 'disconnectDapp';
+export type ApiSiteDisconnect = {
+  type: 'disconnectSite';
   origin: string;
 };
 
-export type ApiDappUpdate = ApiLegacyDappUpdate
-| ApiDappUpdateTonMagic
-| ApiDappUpdateDeeplinkHook
-| ApiDappDisconnect;
+export type ApiSiteUpdate = ApiLegacyDappUpdate
+| ApiSiteUpdateTonMagic
+| ApiSiteUpdateDeeplinkHook
+| ApiSiteDisconnect;
 
 export type ApiLegacyDappUpdate = ApiDappUpdateBalance | ApiDappUpdateAccounts;
 
-export type OnApiDappUpdate = (update: ApiDappUpdate) => void;
+export type OnApiSiteUpdate = (update: ApiSiteUpdate) => void;
