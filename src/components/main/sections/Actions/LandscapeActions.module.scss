@@ -22,6 +22,10 @@ $tab-1-height: 348;
   border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
 }
 
+.notAllTabs {
+  grid-template-columns: 1fr 1fr;
+}
+
 .tab {
   cursor: var(--custom-cursor, pointer);
   user-select: none;
@@ -156,6 +160,10 @@ $tab-1-height: 348;
   :global(html.animation-level-0) & {
     transition: none !important;
   }
+}
+
+.tabText {
+  z-index: 2;
 }
 
 .tabDelimiter {

@@ -1,4 +1,4 @@
-import type { ApiDappUpdate } from '../../api/types/dappUpdates';
+import type { ApiSiteUpdate } from '../../api/types/dappUpdates';
 
 import { callApi, initApi } from '../../api/providers/extension/connectorForPageScript';
 import { doDeeplinkHook } from './deeplinkHook';
@@ -12,7 +12,7 @@ const apiConnector = initApi(onUpdate);
 const tonProvider = initTonProvider(apiConnector);
 const tonConnect = initTonConnect(apiConnector);
 
-function onUpdate(update: ApiDappUpdate) {
+function onUpdate(update: ApiSiteUpdate) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { type, ...args } = update;
 
@@ -31,7 +31,7 @@ function onUpdate(update: ApiDappUpdate) {
     return;
   }
 
-  if (type === 'disconnectDapp') {
+  if (type === 'disconnectSite') {
     const { origin } = update;
     if (origin === siteOrigin) {
       tonConnect.onDisconnect();

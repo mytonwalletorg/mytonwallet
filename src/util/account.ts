@@ -1,13 +1,5 @@
 import type { AccountIdParsed, ApiBlockchainKey, ApiNetwork } from '../api/types';
 
-export function genRelatedAccountIds(accountId: string): string[] {
-  const account = parseAccountId(accountId);
-  return [
-    buildAccountId({ ...account, network: 'mainnet' }),
-    buildAccountId({ ...account, network: 'testnet' }),
-  ];
-}
-
 export function parseAccountId(accountId: string): AccountIdParsed {
   const [
     id,

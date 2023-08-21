@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo,
+  memo, useEffect, useMemo,
 } from '../../lib/teact/teact';
 
 import { TransferState } from '../../global/types';
@@ -14,6 +14,7 @@ import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import usePrevious from '../../hooks/usePrevious';
 
@@ -49,6 +50,7 @@ function TransferModal({
     state,
     amount,
     toAddress,
+    resolvedAddress,
     fee,
     comment,
     shouldEncrypt,
@@ -91,32 +93,37 @@ function TransferModal({
       : undefined
   ), [state, submitTransferConfirm]);
 
-  const handleTransferSubmit = useCallback((password: string) => {
+  const handleTransferSubmit = useLastCallback((password: string) => {
     submitTransferPassword({ password });
-  }, [submitTransferPassword]);
+  });
 
-  const handleBackClick = useCallback(() => {
+  const handleBackClick = useLastCallback(() => {
     if (state === TransferState.Confirm) {
       setTransferScreen({ state: TransferState.Initial });
     }
     if (state === TransferState.Password) {
       setTransferScreen({ state: TransferState.Confirm });
     }
-  }, [setTransferScreen, state]);
+  });
 
-  const handleTransactionInfoClick = useCallback(() => {
+  const handleTransactionInfoClick = useLastCallback(() => {
     cancelTransfer();
     showTransactionInfo({ txId });
-  }, [cancelTransfer, showTransactionInfo, txId]);
+  });
 
-  const handleTransactionRepeatClick = useCallback(() => {
+  const handleTransactionRepeatClick = useLastCallback(() => {
     startTransfer({
       tokenSlug: tokenSlug || TON_TOKEN_SLUG,
       toAddress,
       amount,
       comment,
     });
-  }, [amount, comment, startTransfer, toAddress, tokenSlug]);
+  });
+
+  const handleModalClose = useLastCallback(() => {
+    cancelTransfer();
+    updateNextKey();
+  });
 
   function renderComment() {
     if (!comment) {
@@ -149,7 +156,7 @@ function TransferModal({
           />
           <div className={styles.label}>{lang('Receiving Address')}</div>
           <InteractiveTextField
-            address={toAddress!}
+            address={resolvedAddress!}
             addressName={addressName}
             copyNotification={lang('Address was copied!')}
             className={styles.addressWidget}
@@ -276,7 +283,7 @@ function TransferModal({
       onClose={cancelTransfer}
       noBackdropClose
       dialogClassName={styles.modalDialog}
-      onCloseAnimationEnd={updateNextKey}
+      onCloseAnimationEnd={handleModalClose}
     >
       <Transition
         name="pushSlide"

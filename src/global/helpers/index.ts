@@ -2,7 +2,7 @@ import type { ApiToken, ApiTransaction } from '../../api/types';
 
 import { DEFAULT_DECIMAL_PLACES, TINY_TRANSFER_MAX_COST } from '../../config';
 
-export function getIsTynyTransaction(transaction: ApiTransaction, token?: ApiToken) {
+export function getIsTinyTransaction(transaction: ApiTransaction, token?: ApiToken) {
   if (!token) return false;
   const decimals = token.decimals;
   const cost = Math.abs(bigStrToHuman(transaction.amount, decimals)) * token.quote.price;

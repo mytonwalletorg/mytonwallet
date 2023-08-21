@@ -1,5 +1,4 @@
 import React, { memo, useEffect } from '../lib/teact/teact';
-import extension from '../lib/webextension-polyfill';
 
 import { AppState } from '../global/types';
 
@@ -171,6 +170,6 @@ export default memo(withGlobal((global): StateProps => {
 })(App));
 
 async function handleCloseBrowserTab() {
-  const tab = await extension.tabs.getCurrent();
-  await extension.tabs.remove(tab.id!);
+  const tab = await chrome.tabs.getCurrent();
+  await chrome.tabs.remove(tab.id!);
 }

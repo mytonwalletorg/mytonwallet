@@ -84,7 +84,7 @@ function Tab({
     >
       <span className={styles.content}>
         {title}
-        <i className={styles.platform} />
+        <i className={styles.platform} aria-hidden />
       </span>
     </div>
   );

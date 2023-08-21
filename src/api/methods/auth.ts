@@ -2,12 +2,14 @@ import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { ApiAccountInfo, ApiNetwork, ApiTxIdBySlug } from '../types';
 
 import blockchains from '../blockchains';
-import { getNewAccountId, removeAccountValue, setAccountValue } from '../common/accounts';
+import {
+  getNewAccountId, removeAccountValue, removeNetworkAccountsValue, setAccountValue,
+} from '../common/accounts';
 import { bytesToHex } from '../common/utils';
 import { IS_DAPP_SUPPORTED } from '../environment';
 import { storage } from '../storages';
 import { activateAccount, deactivateAllAccounts, deactivateCurrentAccount } from './accounts';
-import { removeAccountDapps, removeAllDapps } from './dapps';
+import { removeAccountDapps, removeAllDapps, removeNetworkDapps } from './dapps';
 
 export function generateMnemonic() {
   return blockchains.ton.generateMnemonic();
@@ -119,6 +121,18 @@ async function storeAccount(
     setAccountValue(accountId, 'publicKeys', publicKeyHex),
     setAccountValue(accountId, 'addresses', address),
     setAccountValue(accountId, 'accounts', accountInfo),
+  ]);
+}
+
+export async function removeNetworkAccounts(network: ApiNetwork) {
+  deactivateAllAccounts();
+
+  await Promise.all([
+    removeNetworkAccountsValue(network, 'addresses'),
+    removeNetworkAccountsValue(network, 'publicKeys'),
+    removeNetworkAccountsValue(network, 'mnemonicsEncrypted'),
+    removeNetworkAccountsValue(network, 'accounts'),
+    IS_DAPP_SUPPORTED && removeNetworkDapps(network),
   ]);
 }
 

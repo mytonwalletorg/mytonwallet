@@ -6,6 +6,7 @@ export enum ApiTransactionDraftError {
   DomainNotResolved = 'DomainNotResolved',
   WalletNotInitialized = 'WalletNotInitialized',
   UnsupportedHardwarePayload = 'UnsupportedHardwarePayload',
+  InvalidAddressFormat = 'InvalidAddressFormat',
 }
 
 export enum ApiTransactionError {

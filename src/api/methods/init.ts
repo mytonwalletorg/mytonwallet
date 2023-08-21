@@ -1,17 +1,20 @@
-import type { ApiInitArgs, ApiUpdate, OnApiUpdate } from '../types';
+import type { ApiInitArgs, OnApiUpdate } from '../types';
 
 import { IS_SSE_SUPPORTED } from '../../config';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
-import * as dappMethods from '../dappMethods';
-import * as legacyDappMethods from '../dappMethods/legacy';
-import { IS_DAPP_SUPPORTED, IS_EXTENSION } from '../environment';
+import { IS_DAPP_SUPPORTED } from '../environment';
 import * as tonConnect from '../tonConnect';
 import { resetupSseConnection, sendSseDisconnect } from '../tonConnect/sse';
 import * as methods from '.';
 
-export default async function init(_onUpdate: OnApiUpdate, args: ApiInitArgs) {
-  const onUpdate: OnApiUpdate = (update: ApiUpdate) => _onUpdate(update);
+import { addHooks } from '../hooks';
 
+addHooks({
+  onDappDisconnected: sendSseDisconnect,
+  onDappsChanged: resetupSseConnection,
+});
+
+export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   connectUpdater(onUpdate);
 
   methods.initPolling(onUpdate, methods.isAccountActive, args);
@@ -20,15 +23,8 @@ export default async function init(_onUpdate: OnApiUpdate, args: ApiInitArgs) {
   methods.initStaking(onUpdate);
 
   if (IS_DAPP_SUPPORTED) {
-    const onDappChanged = IS_SSE_SUPPORTED ? resetupSseConnection : undefined;
-    const onDappDisconnected = IS_SSE_SUPPORTED ? sendSseDisconnect : undefined;
-    methods.initDapps(onUpdate, onDappChanged, onDappDisconnected);
+    methods.initDapps(onUpdate);
     tonConnect.initTonConnect(onUpdate);
-  }
-  if (IS_EXTENSION) {
-    void methods.initExtension(onUpdate);
-    legacyDappMethods.initLegacyDappMethods(onUpdate);
-    dappMethods.initDappMethods(onUpdate);
   }
 
   await startStorageMigration();

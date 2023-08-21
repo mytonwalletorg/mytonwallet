@@ -113,7 +113,7 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
             </>
           )}
           <h3 className={buildClassName(styles.text, styles.heading)}>
-            <i className={buildClassName(styles.github, 'icon-github')} /> {lang('Is it open source?')}
+            <i className={buildClassName(styles.github, 'icon-github')} aria-hidden /> {lang('Is it open source?')}
           </h3>
           <p className={styles.text}>
             {lang('$about_wallet_github', {
@@ -125,7 +125,10 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
             })}
           </p>
           <h3 className={styles.heading}>
-            <i className={buildClassName(styles.telegram, 'icon-telegram')} /> {lang('Is there a community?')}
+            <i
+              className={buildClassName(styles.telegram, 'icon-telegram')}
+              aria-hidden
+            /> {lang('Is there a community?')}
           </h3>
           <p className={styles.text}>
             {lang('$about_wallet_community', {

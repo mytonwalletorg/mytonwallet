@@ -130,11 +130,11 @@ function LedgerConnect({
             )}
           >
             <span className={styles.text}>
-              <i className={buildClassName(styles.textIcon, 'icon-dot')} />
+              <i className={buildClassName(styles.textIcon, 'icon-dot')} aria-hidden />
               {lang('Switch to the newly opened tab to connect Ledger.')}
             </span>
             <span className={styles.text}>
-              <i className={buildClassName(styles.textIcon, 'icon-dot')} />
+              <i className={buildClassName(styles.textIcon, 'icon-dot')} aria-hidden />
               {lang('Once connected, switch back to this window to proceed.')}
             </span>
           </div>
@@ -176,7 +176,10 @@ function LedgerConnect({
                 isConnected && styles.text_success,
               )}
             >
-              <i className={buildClassName(styles.textIcon, isLedgerConnected ? 'icon-accept' : 'icon-dot')} />
+              <i
+                className={buildClassName(styles.textIcon, isLedgerConnected ? 'icon-accept' : 'icon-dot')}
+                aria-hidden
+              />
               {lang('Connect your Ledger to PC')}
             </span>
             <span
@@ -187,7 +190,10 @@ function LedgerConnect({
                 isConnected && styles.text_success,
               )}
             >
-              <i className={buildClassName(styles.textIcon, isTonAppConnected ? 'icon-accept' : 'icon-dot')} />
+              <i
+                className={buildClassName(styles.textIcon, isTonAppConnected ? 'icon-accept' : 'icon-dot')}
+                aria-hidden
+              />
               {lang('Unlock it and open the TON App')}
             </span>
           </div>

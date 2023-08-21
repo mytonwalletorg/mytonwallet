@@ -2,12 +2,11 @@ import type { ApiToken } from '../../api/types';
 import type { Account, AccountState, GlobalState } from '../types';
 
 import { TON_TOKEN_SLUG } from '../../config';
-import { genRelatedAccountIds } from '../../util/account';
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
-import { fromKeyValueArrays } from '../../util/iteratees';
 import {
   selectAccount,
   selectAccountState,
+  selectCurrentNetwork,
   selectNetworkAccounts,
 } from '../selectors';
 
@@ -36,8 +35,10 @@ export function updateAccounts(
 
 export function createAccount(global: GlobalState, accountId: string, address: string, partial?: Partial<Account>) {
   if (!partial?.title) {
+    const network = selectCurrentNetwork(global);
     const accounts = selectNetworkAccounts(global) || {};
-    partial = { ...partial, title: `Wallet ${Object.keys(accounts).length + 1}` };
+    const titlePrefix = network === 'mainnet' ? 'Wallet' : 'Testnet Wallet';
+    partial = { ...partial, title: `${titlePrefix} ${Object.keys(accounts).length + 1}` };
   }
 
   return updateAccount(global, accountId, { ...partial, address });
@@ -48,17 +49,16 @@ export function updateAccount(
   accountId: string,
   partial: Partial<Account>,
 ) {
-  let account = selectAccount(global, accountId);
-  account = { ...account, ...partial } as Account;
-
-  const newAccountsById = fromKeyValueArrays(genRelatedAccountIds(accountId), account);
   return {
     ...global,
     accounts: {
       ...global.accounts,
       byId: {
         ...global.accounts?.byId,
-        ...newAccountsById,
+        [accountId]: {
+          ...selectAccount(global, accountId),
+          ...partial,
+        } as Account,
       },
     },
   };
@@ -126,13 +126,6 @@ export function updateTokens(
 
 export function updateCurrentAccountState(global: GlobalState, partial: Partial<AccountState>): GlobalState {
   return updateAccountState(global, global.currentAccountId!, partial);
-}
-
-export function updateCurrentAccountsState(global: GlobalState, partial: Partial<AccountState>): GlobalState {
-  for (const accountId of genRelatedAccountIds(global.currentAccountId!)) {
-    global = updateAccountState(global, accountId, partial);
-  }
-  return global;
 }
 
 export function updateAccountState(

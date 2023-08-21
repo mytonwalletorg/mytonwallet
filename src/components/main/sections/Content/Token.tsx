@@ -75,7 +75,12 @@ function Token({
       return undefined;
     }
 
-    return <i className={buildClassName(styles.iconArrow, change > 0 ? 'icon-arrow-up' : 'icon-arrow-down')} />;
+    return (
+      <i
+        className={buildClassName(styles.iconArrow, change > 0 ? 'icon-arrow-up' : 'icon-arrow-down')}
+        aria-hidden
+      />
+    );
   }
 
   function renderInvestorView() {
@@ -83,7 +88,10 @@ function Token({
       <Button className={buildClassName(styles.container, classNames)} onClick={handleClick} isSimple>
         <img src={logoPath} alt={symbol} className={styles.icon} />
         {stakingStatus && (
-          <i className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)} />
+          <i
+            className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)}
+            aria-hidden
+          />
         )}
         <div className={styles.primaryCell}>
           <div className={buildClassName(styles.name, withApy && styles.name_withApy)}>
@@ -95,7 +103,7 @@ function Token({
               text={formatCurrency(renderedAmount, symbol)}
               key={isInvestorView ? 'investor' : 'default'}
             />
-            <i className={styles.dot} />
+            <i className={styles.dot} aria-hidden />
             <AnimatedCounter text={formatCurrency(price, DEFAULT_PRICE_CURRENCY)} />
           </div>
         </div>
@@ -105,7 +113,7 @@ function Token({
           </div>
           <div className={buildClassName(styles.change, changeClassName)}>
             {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
-            <i className={styles.dot} />
+            <i className={styles.dot} aria-hidden />
             <AnimatedCounter text={formatCurrency(changeValue, DEFAULT_PRICE_CURRENCY)} />
           </div>
         </div>
@@ -122,7 +130,10 @@ function Token({
       <Button className={buildClassName(styles.container, classNames)} onClick={handleClick} isSimple>
         <img src={logoPath} alt={symbol} className={styles.icon} />
         {stakingStatus && (
-          <i className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)} />
+          <i
+            className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)}
+            aria-hidden
+          />
         )}
         <div className={styles.primaryCell}>
           <div className={buildClassName(styles.name, canRenderApy && styles.name_withApy)}>
@@ -133,7 +144,7 @@ function Token({
             <AnimatedCounter text={formatCurrency(price, DEFAULT_PRICE_CURRENCY)} />
             {!stakingStatus && (
               <>
-                <i className={styles.dot} />
+                <i className={styles.dot} aria-hidden />
                 <span className={changeClassName}>
                   {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
                 </span>

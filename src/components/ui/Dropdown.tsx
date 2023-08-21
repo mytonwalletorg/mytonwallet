@@ -98,7 +98,7 @@ function Dropdown({
         <span className={buildClassName(styles.itemName, 'itemName')}>
           {shouldTranslateOptions ? lang(selectedItem!.name) : selectedItem!.name}
         </span>
-        {withMenu && <i className={buttonArrowIcon} />}
+        {withMenu && <i className={buttonArrowIcon} aria-hidden />}
       </button>
       {withMenu && (
         <Menu

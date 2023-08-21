@@ -7,14 +7,7 @@ Import From %1$d Secret Words: Import From %1$d Secret Words
 More about MyTonWallet: More about MyTonWallet
 Creating Wallet...: Creating Wallet...
 On the count of three...: On the count of three...
-$auth_backup_description1: |
-  This is a **secure wallet**
-  and is only **controlled by you**.
-$auth_backup_description2: "And with great power comes **great responsibility**."
-$auth_backup_description3: |
-  You need to manually **back up secret keys** in case you forget your password or lose access to this device.
 Back Up: Back Up
-Skip For Now: Skip For Now
 Passwords must be equal.: Passwords must be equal.
 To protect your wallet as much as possible, use a password with: To protect your wallet as much as possible, use a password with
 $auth_password_rule_8chars: at least 8 characters
@@ -181,7 +174,7 @@ Insufficient balance: Insufficient balance
 InsufficientBalance: Insufficient balance
 Optional: Optional
 $send_token_symbol: Send %1$s
-$your_balance_is: "Your balance: %balance%"
+$balance_is: "Balance: %balance%"
 Is it all ok?: Is it all ok?
 Receiving Address: Receiving Address
 Fee: Fee
@@ -217,7 +210,6 @@ Appearance: Appearance
 Light: Light
 Dark: Dark
 System: System
-Create Backup: Create Backup
 Stake TON: Stake TON
 Earn from your tokens while holding them: Earn from your tokens while holding them
 $est_apy_val: Est. APY %1$d%
@@ -348,3 +340,22 @@ $dapp_ledger_warning1: You are about to send a multi-way transaction using your 
 $dapp_ledger_warning2: Please take your time and do not interrupt the process.
 Agree: Agree
 The hardware wallet does not support this data format: The hardware wallet does not support this data format
+Use Responsibly: Use Responsibly
+$auth_responsibly_description1: |
+  MyTonWallet is a **self-custodial** wallet, which means that **only you** have full control and, most importantly, **full responsibility** for your funds.
+$auth_responsibly_description2: |
+  Your private keys are stored on your device and are subject to **hacker attacks**. If your computer is infected with **malware**, your funds are likely to be stolen.
+$auth_responsibly_description3: |
+  The MyTonWallet team is **not responsible** for the safety of your funds, just as your computer manufacturer or internet provider is not responsible.
+$auth_responsibly_description4: |
+  **Never** store all your funds in one place. **Diversify** and use various software and hardware. Always **do your own research** and learn more about crypto security.
+Start Wallet: Start Wallet
+$auth_backup_warning_notice: |
+  Now you need to manually **back up secret keys** in a case you forget your password or lose access to this device.
+Later: Later
+Back Up Now: Back Up Now
+I have read and accept this information: I have read and accept this information
+$ledger_verify_address: Always verify pasted address using your Ledger device.
+$ledger_not_ready: Ledger is not connected or TON app is not open.
+Verify now: Verify now
+Invalid address format. Only URL Safe Base64 format is allowed.: Invalid address format. Only URL Safe Base64 format is allowed.

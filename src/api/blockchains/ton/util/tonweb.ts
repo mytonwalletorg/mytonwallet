@@ -14,8 +14,9 @@ import {
   TONHTTPAPI_TESTNET_API_KEY,
   TONHTTPAPI_TESTNET_URL,
 } from '../../../../config';
+import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
-import { hexToBytes } from '../../../common/utils';
+import { base64ToBytes, hexToBytes } from '../../../common/utils';
 import { JettonOpCode } from '../constants';
 import { parseTxId, stringifyTxId } from './index';
 
@@ -234,4 +235,13 @@ export function buildTokenTransferBody(params: TokenTransferBodyParams) {
 
 export function bnToAddress(value: BN) {
   return new Address(`0:${value.toString('hex', 64)}`).toString(true, true, true);
+}
+
+export function parseBase64(base64: string) {
+  try {
+    return Cell.oneFromBoc(base64ToBytes(base64));
+  } catch (err) {
+    logDebugError('parseBase64', err);
+    return Uint8Array.from(Buffer.from(base64, 'base64'));
+  }
 }

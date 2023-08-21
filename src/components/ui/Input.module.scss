@@ -286,3 +286,15 @@ textarea.input {
     white-space: normal;
   }
 }
+
+.swapCorner {
+  &::after {
+    box-shadow: inset 0 0 0 0.125rem var(--color-blue);
+  }
+
+  &_error {
+    &::after {
+      box-shadow: inset 0 0 0 0.125rem var(--color-red);
+    }
+  }
+}

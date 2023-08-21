@@ -51,6 +51,17 @@ export function updateTransactionsIsLoading(global: GlobalState, isLoading: bool
   });
 }
 
+export function updateTransactionsIsHistoryEndReached(global: GlobalState, isReached: boolean) {
+  const { transactions } = selectCurrentAccountState(global) || {};
+
+  return updateCurrentAccountState(global, {
+    transactions: {
+      ...transactions || { byTxId: {} },
+      isHistoryEndReached: isReached,
+    },
+  });
+}
+
 export function updateTransactionsIsLoadingByAccount(global: GlobalState, accountId: string, isLoading: boolean) {
   const { transactions } = selectAccountState(global, accountId) || {};
 

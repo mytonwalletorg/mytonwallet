@@ -6,13 +6,7 @@ Import From %1$d Secret Words: 輸入註記詞
 More about MyTonWallet: 更多關於 MyTonWallet
 Creating Wallet...: 錢包創建中...
 On the count of three...: 數到三...
-$auth_backup_description1: |
-  這是一個**僅由您控制**且**安全**的錢包。
-$auth_backup_description2: 「能力越強，責任越大。」
-$auth_backup_description3: |
-  你需要手動**備份註記詞**，免得你忘記助記詞而無法登入此裝置。
 Back Up: 備份
-Skip For Now: 跳過此步驟
 Passwords must be equal.: 密碼必須相同。
 To protect your wallet as much as possible, use a password with: 為了盡可能保護您的錢包，密碼請遵循下列規則
 $auth_password_rule_8chars: 至少 8 個字元
@@ -171,7 +165,7 @@ Insufficient balance: 餘額不足
 InsufficientBalance: 餘額不足
 Optional: 選項
 $send_token_symbol: 發送 %1$s
-$your_balance_is: "你的餘額: %balance%"
+$balance_is: "餘額：%balance%"
 Is it all ok?: 全部確認都 OK?
 Receiving Address: 接收地址
 Fee: 手續費
@@ -207,7 +201,6 @@ Appearance: 外觀
 Light: 亮色模式
 Dark: 暗色模式
 System: 系統
-Create Backup: 創建備份
 Stake TON: 質押 TON
 Earn from your tokens while holding them: 從你持有中的代幣獲利
 $est_apy_val: Est. APY %1$d%
@@ -332,3 +325,22 @@ $dapp_ledger_warning1: 您即將使用您的**Ledger**錢包發送多方交易�
 $dapp_ledger_warning2: 請慢慢來，不要中斷過程。
 Agree: 同意
 The hardware wallet does not support this data format: 硬件錢包不支持該數據格式
+Use Responsibly: 負責任地使用
+$auth_responsibly_description1: |
+  MyTonWallet 是一個**自我託管**錢包，這意味著**只有您**擁有完全控制權，最重要的是，對您的資金**承擔全部責任**。
+$auth_responsibly_description2: |
+  您的私鑰存儲在您的設備上，並且容易受到**黑客攻擊**。 如果您的計算機感染了**惡意軟件**，您的資金可能會被盜。
+$auth_responsibly_description3: |
+  MyTonWallet 團隊對您的資金安全**不負責**，就像您的計算機製造商或互聯網提供商不負責一樣。
+$auth_responsibly_description4: |
+  **永遠不要**將您的所有資金存儲在一個地方。 **多樣化**並使用各種軟件和硬件。 始終**進行自己的研究**並了解有關加密安全的更多信息。
+Start Wallet: 啟動錢包
+$auth_backup_warning_notice: |
+  現在，您需要手動**備份密鑰**，以防忘記密碼或無法訪問該設備。
+Later: 之後
+Back Up Now: 立即備份
+I have read and accept this information: 我已閱讀並接受此信息
+$ledger_verify_address: 請務必使用您的 Ledger 設備驗證粘貼的地址。
+$ledger_not_ready: Ledger 未連接或 TON 應用程序未打開。
+Verify now: 現在檢查
+Invalid address format. Only URL Safe Base64 format is allowed.: 地址格式無效。 僅允許使用 URL Safe Base64 格式。

@@ -1,5 +1,5 @@
 import TonWeb from 'tonweb';
-import QrCodeStyling from '../../lib/qr-code-styling';
+import QrCodeStyling from 'qr-code-styling';
 import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 
 import { withGlobal } from '../../global';

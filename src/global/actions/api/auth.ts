@@ -1,25 +1,37 @@
 import { AppState, AuthState, HardwareConnectState } from '../../types';
 
 import { MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT } from '../../../config';
-import { buildAccountId, parseAccountId } from '../../../util/account';
+import { parseAccountId } from '../../../util/account';
 import { cloneDeep } from '../../../util/iteratees';
-import {
-  connectLedger, getFirstLedgerWallets, importLedgerWallet, waitLedgerTonApp,
-} from '../../../util/ledger';
 import { pause } from '../../../util/schedulers';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
 import { INITIAL_STATE } from '../../initialState';
 import {
-  createAccount, updateAuth, updateCurrentAccountsState, updateHardware,
+  clearCurrentTransfer,
+  createAccount,
+  updateAuth,
+  updateCurrentAccountState,
+  updateHardware,
+  updateSettings,
 } from '../../reducers';
-import { selectCurrentNetwork, selectFirstNonHardwareAccount, selectNewestTxIds } from '../../selectors';
+import {
+  selectCurrentNetwork,
+  selectFirstNonHardwareAccount,
+  selectNetworkAccountsMemoized,
+  selectNewestTxIds,
+} from '../../selectors';
 
 const CREATING_DURATION = 3300;
 
 addActionHandler('restartAuth', (global) => {
   if (global.currentAccountId) {
     global = { ...global, appState: AppState.Main };
+
+    // Restore the network when refreshing the page during the switching networks
+    global = updateSettings(global, {
+      isTestnet: parseAccountId(global.currentAccountId!).network === 'testnet',
+    });
   }
 
   global = { ...global, auth: cloneDeep(INITIAL_STATE.auth) };
@@ -107,7 +119,7 @@ addActionHandler('createAccount', async (global, actions, { password, isImportin
     actions.afterSignIn();
   } else {
     global = updateAuth(global, {
-      state: AuthState.createBackup,
+      state: AuthState.disclaimerAndBackup,
       accountId,
       address,
     });
@@ -123,7 +135,12 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
   const { hardwareSelectedIndices = [] } = getGlobal().hardware;
   const network = selectCurrentNetwork(getGlobal());
 
-  const wallets = await Promise.all(hardwareSelectedIndices.map((wallet) => importLedgerWallet(network, wallet)));
+  const ledgerApi = await import('../../../util/ledger');
+  const wallets = await Promise.all(
+    hardwareSelectedIndices.map(
+      (wallet) => ledgerApi.importLedgerWallet(network, wallet),
+    ),
+  );
 
   const updatedGlobal = wallets.reduce((currentGlobal, wallet) => {
     if (!wallet) {
@@ -158,7 +175,7 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
 
 addActionHandler('afterCheckMnemonic', (global, actions) => {
   global = { ...global, currentAccountId: global.auth.accountId! };
-  global = updateCurrentAccountsState(global, {});
+  global = updateCurrentAccountState(global, {});
   global = createAccount(global, global.auth.accountId!, global.auth.address!);
   setGlobal(global);
 
@@ -175,7 +192,7 @@ addActionHandler('restartCheckMnemonicIndexes', (global) => {
 
 addActionHandler('skipCheckMnemonic', (global, actions) => {
   global = { ...global, currentAccountId: global.auth.accountId! };
-  global = updateCurrentAccountsState(global, {
+  global = updateCurrentAccountState(global, {
     isBackupRequired: true,
   });
   global = createAccount(global, global.auth.accountId!, global.auth.address!);
@@ -217,8 +234,12 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
   global = updateAuth(getGlobal(), {
     mnemonic,
     error: undefined,
+    state: AuthState.disclaimer,
   });
+  setGlobal(global);
+});
 
+addActionHandler('confirmDisclaimer', (global, actions) => {
   const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
 
   if (firstNonHardwareAccount) {
@@ -246,22 +267,33 @@ export function selectMnemonicForCheck() {
 }
 
 addActionHandler('startChangingNetwork', (global, actions, { network }) => {
-  const accountId = buildAccountId({
-    ...parseAccountId(global.currentAccountId!),
-    network,
-  });
+  const accountIds = Object.keys(selectNetworkAccountsMemoized(network, global.accounts!.byId)!);
 
-  actions.switchAccount({ accountId, newNetwork: network });
+  if (accountIds.length) {
+    const accountId = accountIds[0];
+    actions.switchAccount({ accountId, newNetwork: network });
+  } else {
+    setGlobal({
+      ...global,
+      areSettingsOpen: false,
+      appState: AppState.Auth,
+    });
+    actions.changeNetwork({ network });
+  }
 });
 
 addActionHandler('switchAccount', async (global, actions, { accountId, newNetwork }) => {
   const newestTxIds = selectNewestTxIds(global, accountId);
   await callApi('activateAccount', accountId, newestTxIds);
 
-  setGlobal({
+  global = {
     ...getGlobal(),
     currentAccountId: accountId,
-  });
+  };
+
+  global = clearCurrentTransfer(global);
+
+  setGlobal(global);
 
   if (newNetwork) {
     actions.changeNetwork({ network: newNetwork });
@@ -279,7 +311,9 @@ addActionHandler('connectHardwareWallet', async (global) => {
     }),
   );
 
-  const isLedgerConnected = await connectLedger();
+  const ledgerApi = await import('../../../util/ledger');
+
+  const isLedgerConnected = await ledgerApi.connectLedger();
   if (!isLedgerConnected) {
     setGlobal(
       updateHardware(getGlobal(), {
@@ -296,7 +330,7 @@ addActionHandler('connectHardwareWallet', async (global) => {
     }),
   );
 
-  const isTonAppConnected = await waitLedgerTonApp();
+  const isTonAppConnected = await ledgerApi.waitLedgerTonApp();
 
   if (!isTonAppConnected) {
     setGlobal(
@@ -316,7 +350,7 @@ addActionHandler('connectHardwareWallet', async (global) => {
 
   try {
     const network = selectCurrentNetwork(getGlobal());
-    const hardwareWallets = await getFirstLedgerWallets(network);
+    const hardwareWallets = await ledgerApi.getFirstLedgerWallets(network);
 
     setGlobal(
       updateHardware(getGlobal(), {

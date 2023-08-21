@@ -14,8 +14,8 @@ export function bytesToBase64(bytes: Uint8Array) {
   return TonWeb.utils.bytesToBase64(bytes);
 }
 
-export function base64ToBytes(hex: string) {
-  return TonWeb.utils.base64ToBytes(hex);
+export function base64ToBytes(base64: string) {
+  return TonWeb.utils.base64ToBytes(base64);
 }
 
 export function hexToBase64(hex: string) {

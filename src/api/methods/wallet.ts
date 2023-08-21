@@ -60,7 +60,7 @@ export function confirmDappRequest(promiseId: string, data: any) {
 
 export function confirmDappRequestConnect(promiseId: string, data: {
   password?: string;
-  additionalAccountIds?: string[];
+  accountId?: string;
   signature?: string;
 }) {
   dappPromises.resolveDappPromise(promiseId, data);

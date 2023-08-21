@@ -77,7 +77,7 @@ function DappConnectModal({
   } = getActions();
 
   const lang = useLang();
-  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<string>(currentAccountId);
   const [isModalOpen, openModal, closeModal] = useFlag(hasConnectRequest);
   const [isConfirmOpen, openConfirm, closeConfirm] = useFlag(false);
 
@@ -91,6 +91,12 @@ function DappConnectModal({
     }
   }, [closeModal, hasConnectRequest, openModal]);
 
+  useEffect(() => {
+    if (!currentAccountId) return;
+
+    setSelectedAccount(currentAccountId);
+  }, [currentAccountId]);
+
   const shouldRenderAccounts = useMemo(() => {
     return accounts && Object.keys(accounts).length > 1;
   }, [accounts]);
@@ -100,7 +106,6 @@ function DappConnectModal({
 
   const handleClose = useCallback(() => {
     cancelDappConnectRequestConfirm();
-    setSelectedAccountIds([]);
   }, [cancelDappConnectRequestConfirm]);
 
   const handleSubmit = useCallback(() => {
@@ -108,7 +113,7 @@ function DappConnectModal({
 
     if (!requiredProof) {
       submitDappConnectRequestConfirm({
-        additionalAccountIds: selectedAccountIds,
+        accountId: selectedAccount,
       });
 
       closeModal();
@@ -117,10 +122,7 @@ function DappConnectModal({
     } else if (requiredPermissions?.isPasswordRequired) {
       setDappConnectRequestState({ state: DappConnectState.Password });
     }
-  }, [
-    accounts, currentAccountId, closeConfirm, closeModal, requiredPermissions,
-    selectedAccountIds, submitDappConnectRequestConfirm, requiredProof,
-  ]);
+  }, [requiredProof, accounts, currentAccountId, requiredPermissions?.isPasswordRequired, selectedAccount]);
 
   const handlePasswordCancel = useCallback(() => {
     setDappConnectRequestState({ state: DappConnectState.Info });
@@ -128,43 +130,35 @@ function DappConnectModal({
 
   const submitDappConnectRequestHardware = useCallback(() => {
     submitDappConnectRequestConfirmHardware({
-      additionalAccountIds: selectedAccountIds,
+      accountId: selectedAccount,
     });
-  }, [selectedAccountIds]);
+  }, [selectedAccount]);
 
   const handlePasswordSubmit = useCallback((password: string) => {
     submitDappConnectRequestConfirm({
-      additionalAccountIds: selectedAccountIds,
+      accountId: selectedAccount,
       password,
     });
-  }, [selectedAccountIds, submitDappConnectRequestConfirm]);
-
-  const handleAccountToggle = useCallback((accountId: string) => {
-    if (selectedAccountIds.includes(accountId)) {
-      setSelectedAccountIds(selectedAccountIds.filter((id) => id !== accountId));
-    } else {
-      setSelectedAccountIds(selectedAccountIds.concat([accountId]));
-    }
-  }, [selectedAccountIds]);
+  }, [selectedAccount]);
 
   const iterableAccounts = useMemo(() => {
     return Object.entries(accounts || {});
   }, [accounts]);
 
   function renderAccount(accountId: string, address: string, title?: string) {
-    const isActive = accountId === currentAccountId || selectedAccountIds.includes(accountId);
     const balance = accountsData?.[accountId].balances?.bySlug[tonToken.slug] || '0';
+    const isActive = accountId === selectedAccount;
+    const onClick = isActive ? undefined : () => setSelectedAccount(accountId);
     const fullClassName = buildClassName(
       styles.account,
-      isActive && styles.account_active,
-      accountId === currentAccountId && styles.account_current,
+      isActive && styles.account_current,
     );
 
     return (
       <div
         className={fullClassName}
         aria-label={lang('Switch Account')}
-        onClick={accountId !== currentAccountId ? () => handleAccountToggle(accountId) : undefined}
+        onClick={onClick}
       >
         {title && <span className={styles.accountName}>{title}</span>}
         <div className={styles.accountFooter}>
@@ -174,8 +168,6 @@ function DappConnectModal({
             {shortenAddress(address, ACCOUNT_ADDRESS_SHIFT, ACCOUNT_ADDRESS_SHIFT_END)}
           </span>
         </div>
-
-        <div className={buildClassName(styles.accountCheckMark, isActive && styles.accountCheckMark_active)} />
       </div>
     );
   }

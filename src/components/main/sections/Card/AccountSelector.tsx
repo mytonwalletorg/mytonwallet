@@ -113,7 +113,7 @@ function AccountSelector({
       >
         {title && <span className={styles.accountName}>{title}</span>}
         <div className={styles.accountAddressBlock}>
-          {isHardware && <i className="icon-ledger" />}
+          {isHardware && <i className="icon-ledger" aria-hidden />}
           <span>
             {shortenAddress(address, ACCOUNT_ADDRESS_SHIFT)}
           </span>
@@ -121,7 +121,7 @@ function AccountSelector({
 
         {isActive && (
           <div className={styles.edit} onClick={handleEditClick}>
-            <i className="icon-pen" />
+            <i className="icon-pen" aria-hidden />
           </div>
         )}
       </div>
@@ -189,7 +189,7 @@ function AccountSelector({
           )}
           <Button className={styles.createAccountButton} onClick={handleAddWalletClick}>
             {lang('Add Wallet')}
-            <i className={buildClassName(styles.createAccountIcon, 'icon-plus')} />
+            <i className={buildClassName(styles.createAccountIcon, 'icon-plus')} aria-hidden />
           </Button>
         </div>
       </div>

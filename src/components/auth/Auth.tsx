@@ -12,9 +12,9 @@ import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 
 import SettingsAbout from '../settings/SettingsAbout';
 import Transition from '../ui/Transition';
-import AuthCreateBackup from './AuthCreateBackup';
 import AuthCreatePassword from './AuthCreatePassword';
 import AuthCreatingWallet from './AuthCreatingWallet';
+import AuthDisclaimer from './AuthDisclaimer';
 import AuthImportMnemonic from './AuthImportMnemonic';
 import AuthStart from './AuthStart';
 
@@ -59,10 +59,27 @@ const Auth = ({
         return <AuthCreatingWallet isActive={isActive} />;
       case AuthState.createPassword:
         return <AuthCreatePassword isActive={isActive} isLoading={isLoading} method="createAccount" />;
-      case AuthState.createBackup:
-        return <AuthCreateBackup isActive={isActive} mnemonic={mnemonic} checkIndexes={mnemonicCheckIndexes} />;
+      case AuthState.disclaimerAndBackup:
+        return (
+          <AuthDisclaimer
+            key="create"
+            isActive={isActive}
+            mnemonic={mnemonic}
+            checkIndexes={mnemonicCheckIndexes}
+          />
+        );
       case AuthState.importWallet:
         return <AuthImportMnemonic isActive={isActive} />;
+      case AuthState.disclaimer:
+        return (
+          <AuthDisclaimer
+            key="import"
+            isActive={isActive}
+            isImport
+            mnemonic={mnemonic}
+            checkIndexes={mnemonicCheckIndexes}
+          />
+        );
       case AuthState.importWalletCreatePassword:
         return <AuthCreatePassword isActive={isActive} isLoading={isLoading} method={method} />;
       case AuthState.about:

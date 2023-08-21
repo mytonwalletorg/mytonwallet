@@ -1,6 +1,7 @@
 import type TonWeb from 'tonweb';
 
 import type { ApiParsedPayload } from './payload';
+import type { ApiSseOptions } from './storage';
 
 export type ApiWalletVersion = keyof typeof TonWeb.Wallets['all'];
 
@@ -119,6 +120,7 @@ export interface ApiDappPermissions {
 export type ApiDappRequest = {
   origin?: string;
   accountId?: string;
+  sseOptions?: ApiSseOptions;
 } | {
   origin: string;
   accountId: string;

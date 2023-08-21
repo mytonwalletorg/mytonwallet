@@ -7,19 +7,17 @@ import type {
 } from '@tonconnect/protocol';
 import nacl, { randomBytes } from 'tweetnacl';
 
-import type { ApiSseOptions } from '../types';
+import type { ApiDappRequest, ApiSseOptions } from '../types';
 
-import { buildAccountId, parseAccountId } from '../../util/account';
+import { parseAccountId } from '../../util/account';
 import { extractKey } from '../../util/iteratees';
 import { logDebug } from '../../util/logs';
-import { waitLogin } from '../common/accounts';
+import { getCurrentNetwork, waitLogin } from '../common/accounts';
 import { bytesToHex, handleFetchErrors } from '../common/utils';
-import { getActiveAccountId } from '../methods/accounts';
 import {
   getDappsState,
   getSseLastEventId,
   setSseLastEventId,
-  updateDapp,
 } from '../methods/dapps';
 import * as tonConnect from './index';
 
@@ -42,24 +40,33 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo) {
 
   const version = Number(params.get('v') as string);
   const appClientId = params.get('id') as string;
-  const request = JSON.parse(params.get('r') as string) as ConnectRequest;
+  const connectRequest = JSON.parse(params.get('r') as string) as ConnectRequest;
   const ret = params.get('ret') as 'back' | 'none' | string | null;
-  const origin = new URL(request.manifestUrl).origin;
+  const origin = new URL(connectRequest.manifestUrl).origin;
 
   logDebug('SSE Start connection:', {
-    version, appClientId, request, ret, origin,
+    version, appClientId, connectRequest, ret, origin,
   });
-
-  const lastOutputId = 0;
-  const accountId = getActiveAccountId()!;
-  const result = await tonConnect.connect({ origin }, request, lastOutputId) as ConnectEvent;
-  if (result.event === 'connect') {
-    result.payload.device = deviceInfo;
-  }
 
   const { secretKey: secretKeyArray, publicKey: publicKeyArray } = nacl.box.keyPair();
   const secretKey = bytesToHex(secretKeyArray);
   const clientId = bytesToHex(publicKeyArray);
+
+  const lastOutputId = 0;
+  const request: ApiDappRequest = {
+    origin,
+    sseOptions: {
+      clientId,
+      appClientId,
+      secretKey,
+      lastOutputId,
+    },
+  };
+
+  const result = await tonConnect.connect(request, connectRequest, lastOutputId) as ConnectEvent;
+  if (result.event === 'connect') {
+    result.payload.device = deviceInfo;
+  }
 
   await sendMessage(result, secretKey, clientId, appClientId);
 
@@ -67,35 +74,27 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo) {
     return;
   }
 
-  await updateDapp(accountId, origin, (dapp) => ({
-    ...dapp,
-    sse: {
-      clientId,
-      appClientId,
-      secretKey,
-      lastOutputId,
-    },
-  }));
-
   void resetupSseConnection();
 }
 
 export async function resetupSseConnection() {
   closeEventSource();
 
-  const [lastEventId, dappsState] = await Promise.all([
+  const [lastEventId, dappsState, network] = await Promise.all([
     getSseLastEventId(),
     getDappsState(),
+    getCurrentNetwork(),
   ]);
 
-  if (!dappsState) {
+  if (!dappsState || !network) {
     return;
   }
 
-  sseDapps = Object.entries(dappsState).reduce((result, [internalAccountId, dapps]) => {
-    const accountId = buildAccountId(parseAccountId(internalAccountId)); // TODO Issue #471
-    for (const dapp of Object.values(dapps)) {
-      result.push({ ...dapp.sse!, accountId, origin: dapp.origin });
+  sseDapps = Object.entries(dappsState).reduce((result, [accountId, dapps]) => {
+    if (parseAccountId(accountId).network === network) {
+      for (const dapp of Object.values(dapps)) {
+        result.push({ ...dapp.sse!, accountId, origin: dapp.origin });
+      }
     }
     return result;
   }, [] as SseDapp[]);

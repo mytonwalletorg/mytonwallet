@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 
 import { getActions, withGlobal } from '../../global';
-import { selectCurrentAccountState } from '../../global/selectors';
+import { selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
@@ -24,10 +24,12 @@ type StateProps = {
   currentAccountId?: string;
   isStakingActive: boolean;
   isUnstakeRequested?: boolean;
+  isTestnet?: boolean;
+  isLedger?: boolean;
 };
 
 function Main({
-  currentTokenSlug, currentAccountId, isStakingActive, isUnstakeRequested,
+  currentTokenSlug, currentAccountId, isStakingActive, isUnstakeRequested, isTestnet, isLedger,
 }: StateProps) {
   const {
     selectToken,
@@ -67,8 +69,10 @@ function Main({
           <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
           <PortraitActions
             hasStaking={isStakingActive}
+            isTestnet={isTestnet}
             isUnstakeRequested={isUnstakeRequested}
             onEarnClick={handleEarnClick}
+            isLedger={isLedger}
           />
         </div>
 
@@ -90,6 +94,7 @@ function Main({
           <LandscapeActions
             hasStaking={isStakingActive}
             isUnstakeRequested={isUnstakeRequested}
+            isLedger={isLedger}
           />
         </div>
         <div className={styles.main}>
@@ -118,12 +123,15 @@ export default memo(
   withGlobal((global, ownProps, detachWhenChanged): StateProps => {
     detachWhenChanged(global.currentAccountId);
     const accountState = selectCurrentAccountState(global);
+    const account = selectCurrentAccount(global);
 
     return {
       isStakingActive: Boolean(accountState?.stakingBalance) && !accountState?.isUnstakeRequested,
       isUnstakeRequested: accountState?.isUnstakeRequested,
       currentTokenSlug: accountState?.currentTokenSlug,
       currentAccountId: global.currentAccountId,
+      isTestnet: global.settings.isTestnet,
+      isLedger: !!account?.ledger,
     };
   })(Main),
 );

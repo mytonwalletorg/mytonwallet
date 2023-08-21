@@ -186,13 +186,11 @@ function Settings({
     openBackupWalletModal();
   }
 
-  const handleLogOut = useLastCallback(() => {
+  const handleCloseLogOutModal = useLastCallback((shouldCloseSettings: boolean) => {
     closeLogOutModal();
-    closeSettings();
-  });
-
-  const handleCloseLogOutModal = useLastCallback(() => {
-    closeLogOutModal();
+    if (shouldCloseSettings) {
+      closeSettings();
+    }
   });
 
   function handleOpenHardwareModal() {
@@ -267,7 +265,7 @@ function Settings({
                   <img className={styles.menuIcon} src={telegramImg} alt={lang('Open Telegram Web')} />
                   {lang('Open Telegram Web')}
 
-                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
                 </div>
               )}
               <div className={styles.item} onClick={handleDeeplinkHookToggle}>
@@ -288,13 +286,13 @@ function Settings({
               <img className={styles.menuIcon} src={appearanceImg} alt={lang('Appearance')} />
               {lang('Appearance')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
             <div className={styles.item} onClick={handleAssetsOpen}>
               <img className={styles.menuIcon} src={assetsActivityImg} alt={lang('Assets & Activity')} />
               {lang('Assets & Activity')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
             {(IS_DAPP_SUPPORTED) && (
               <div className={styles.item} onClick={handleConnectedDappsOpen}>
@@ -303,7 +301,7 @@ function Settings({
 
                 <div className={styles.itemInfo}>
                   {dapps.length ? dapps.length : ''}
-                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
                 </div>
               </div>
             )}
@@ -312,7 +310,7 @@ function Settings({
               {lang('Language')}
               <div className={styles.itemInfo}>
                 {activeLang?.name}
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             </div>
           </div>
@@ -322,14 +320,14 @@ function Settings({
               <img className={styles.menuIcon} src={backupSecretImg} alt={lang('Back Up Secret Words')} />
               {lang('Back Up Secret Words')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
             {IS_LEDGER_SUPPORTED && (
               <div className={styles.item} onClick={handleOpenHardwareModal}>
                 <img className={styles.menuIcon} src={ledgerImg} alt={lang('Connect Ledger')} />
                 {lang('Connect Ledger')}
 
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
           </div>
@@ -339,13 +337,13 @@ function Settings({
               <img className={styles.menuIcon} src={aboutImg} alt={lang('About')} />
               {lang('About')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
             <div className={buildClassName(styles.item, styles.item_red)} onClick={openLogOutModal}>
               <img className={styles.menuIcon} src={exitImg} alt={lang('Exit')} />
               {lang('Exit')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} />
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
           </div>
 
@@ -413,7 +411,7 @@ function Settings({
       >
         {renderContent}
       </Transition>
-      <LogOutModal isOpen={isLogOutModalOpened} onClose={handleCloseLogOutModal} onLogOut={handleLogOut} />
+      <LogOutModal isOpen={isLogOutModalOpened} onClose={handleCloseLogOutModal} />
     </div>
   );
 }

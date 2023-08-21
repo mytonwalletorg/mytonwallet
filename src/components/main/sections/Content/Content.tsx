@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useMemo } from '../../../../lib/teact/teact';
 
 import { getActions, withGlobal } from '../../../../global';
-import { selectCurrentAccountTokens } from '../../../../global/selectors';
+import { selectCurrentAccountTokens, selectIsHardwareAccount } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -23,12 +23,13 @@ interface OwnProps {
 
 interface StateProps {
   tokenCount: number;
+  isNftSupported: boolean;
 }
 
 const MIN_ASSETS_FOR_DESKTOP_TAB_VIEW = 5;
 
 function Content({
-  activeTabIndex, tokenCount, setActiveTabIndex, onStakedTokenClick,
+  activeTabIndex, tokenCount, setActiveTabIndex, onStakedTokenClick, isNftSupported,
 }: OwnProps & StateProps) {
   const { selectToken } = getActions();
   const { isLandscape } = useDeviceScreen();
@@ -42,9 +43,9 @@ function Content({
         ? [{ id: 'assets', title: lang('Assets') as string, className: styles.tab }]
         : []),
       { id: 'activity', title: lang('Activity') as string, className: styles.tab },
-      { id: 'nft', title: lang('NFT') as string, className: styles.tab },
+      ...(isNftSupported ? [{ id: 'nft', title: lang('NFT') as string, className: styles.tab }] : []),
     ],
-    [lang, shouldShowSeparateAssetsPanel],
+    [lang, shouldShowSeparateAssetsPanel, isNftSupported],
   );
   activeTabIndex = Math.min(activeTabIndex, TABS.length - 1);
 
@@ -116,9 +117,11 @@ export default memo(
     detachWhenChanged(global.currentAccountId);
 
     const tokens = selectCurrentAccountTokens(global);
+    const isLedger = selectIsHardwareAccount(global);
 
     return {
       tokenCount: tokens?.length ?? 0,
+      isNftSupported: !isLedger,
     };
   })(Content),
 );

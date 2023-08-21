@@ -189,7 +189,7 @@ function StakingInitial({
 
     const isFullBalanceSelected = balance && amount
       && (balance >= amount && balance - amount <= MIN_BALANCE_FOR_UNSTAKE);
-    const balanceLink = lang('$your_balance_is', {
+    const balanceLink = lang('$balance_is', {
       balance: (
         <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink}>
           {balance !== undefined
