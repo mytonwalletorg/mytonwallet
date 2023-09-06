@@ -7,10 +7,8 @@ import { getActions } from '../../../../global';
 import { bigStrToHuman } from '../../../../global/helpers';
 import buildClassName from '../../../../util/buildClassName';
 
-import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
 
-import ReceiveModal from '../../../receive/ReceiveModal';
 import Button from '../../../ui/Button';
 
 import styles from './PortraitActions.module.scss';
@@ -20,16 +18,16 @@ interface OwnProps {
   isTestnet?: boolean;
   isUnstakeRequested?: boolean;
   onEarnClick: NoneToVoidFunction;
+  onReceiveClick: NoneToVoidFunction;
   isLedger?: boolean;
 }
 
 function PortraitActions({
-  hasStaking, isTestnet, isUnstakeRequested, onEarnClick, isLedger,
+  hasStaking, isTestnet, isUnstakeRequested, onEarnClick, onReceiveClick, isLedger,
 }: OwnProps) {
   const { startTransfer } = getActions();
 
   const lang = useLang();
-  const [isReceiveTonOpened, openReceiveTon, closeReceiveTon] = useFlag(false);
 
   useEffect(() => {
     return window.electron?.on(ElectronEvent.DEEPLINK, (params: any) => {
@@ -51,7 +49,7 @@ function PortraitActions({
         )
       }
       >
-        <Button className={styles.button} onClick={openReceiveTon} isSimple>
+        <Button className={styles.button} onClick={onReceiveClick} isSimple>
           <i className={buildClassName(styles.buttonIcon, 'icon-receive')} aria-hidden />
           {lang('Receive')}
         </Button>
@@ -70,7 +68,6 @@ function PortraitActions({
           </Button>
         )}
       </div>
-      <ReceiveModal isOpen={isReceiveTonOpened} onClose={closeReceiveTon} />
     </div>
   );
 }

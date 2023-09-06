@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import { StakingState } from '../../global/types';
 import type { GlobalState, UserToken } from '../../global/types';
@@ -9,6 +9,7 @@ import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import usePrevious from '../../hooks/usePrevious';
 
@@ -61,20 +62,20 @@ function StakeModal({
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
-  const handleBackClick = useCallback(() => {
+  const handleBackClick = useLastCallback(() => {
     if (state === StakingState.StakePassword) {
       setStakingScreen({ state: StakingState.StakeInitial });
     }
-  }, [setStakingScreen, state]);
+  });
 
-  const handleTransferSubmit = useCallback((password: string) => {
+  const handleTransferSubmit = useLastCallback((password: string) => {
     submitStakingPassword({ password });
-  }, [submitStakingPassword]);
+  });
 
-  const handleViewStakingInfoClick = useCallback(() => {
+  const handleViewStakingInfoClick = useLastCallback(() => {
     onViewStakingInfo();
     cancelStaking();
-  }, [cancelStaking, onViewStakingInfo]);
+  });
 
   function renderPassword(isActive: boolean) {
     return (
@@ -144,7 +145,6 @@ function StakeModal({
   return (
     <Modal
       hasCloseButton
-      isSlideUp
       isOpen={isOpen}
       onClose={cancelStaking}
       noBackdropClose
@@ -152,7 +152,7 @@ function StakeModal({
       onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

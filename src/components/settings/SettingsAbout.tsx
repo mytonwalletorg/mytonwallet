@@ -1,9 +1,8 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { APP_NAME, APP_VERSION } from '../../config';
+import { APP_NAME, APP_VERSION, IS_EXTENSION } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import { IS_EXTENSION } from '../../util/windowEnvironment';
 
 import useLang from '../../hooks/useLang';
 import useScrolledState from '../../hooks/useScrolledState';
@@ -36,6 +35,7 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
           title={lang('About')}
           withBorder={!isContentNotScrolled}
           onBackButtonClick={handleBackClick}
+          className={styles.modalHeader}
         />
       ) : (
         <div className={styles.header}>
@@ -143,6 +143,23 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
               ),
             })}
           </p>
+        </div>
+        <div className={styles.aboutFooterWrapper}>
+          <div className={styles.aboutFooterContent}>
+            <a
+              href="https://mytonwallet.io/terms-of-use"
+              target="_blank"
+              rel="noreferrer"
+            >{lang('Terms of Use')}
+            </a>
+            <i className={styles.dotLarge} aria-hidden />
+            <a
+              href="https://mytonwallet.io/privacy-policy"
+              target="_blank"
+              rel="noreferrer"
+            >{lang('Privacy Policy')}
+            </a>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from '../../../../lib/teact/teact';
+import React, { memo } from '../../../../lib/teact/teact';
 
 import type { UserToken } from '../../../../global/types';
 
@@ -9,6 +9,7 @@ import { formatCurrency } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 
+import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
 import AnimatedCounter from '../../../ui/AnimatedCounter';
@@ -58,9 +59,9 @@ function Token({
     transitionClassNames: renderApyClassNames,
   } = useShowTransition(withApy);
 
-  const handleClick = useCallback(() => {
+  const handleClick = useLastCallback(() => {
     onClick(slug);
-  }, [onClick, slug]);
+  });
 
   function renderApy() {
     return (

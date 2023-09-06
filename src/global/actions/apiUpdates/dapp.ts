@@ -70,34 +70,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
-    case 'updateTonProxyState': {
-      const { isEnabled } = update;
-
-      setGlobal({
-        ...global,
-        settings: {
-          ...global.settings,
-          isTonProxyEnabled: isEnabled,
-        },
-      });
-
-      break;
-    }
-
-    case 'updateTonMagicState': {
-      const { isEnabled } = update;
-
-      setGlobal({
-        ...global,
-        settings: {
-          ...global.settings,
-          isTonMagicEnabled: isEnabled,
-        },
-      });
-
-      break;
-    }
-
     case 'dappConnect': {
       const {
         promiseId,
@@ -184,20 +156,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         });
         setGlobal(global);
       })();
-
-      break;
-    }
-
-    case 'updateDeeplinkHookState': {
-      const { isEnabled } = update;
-
-      setGlobal({
-        ...global,
-        settings: {
-          ...global.settings,
-          isDeeplinkHookEnabled: isEnabled,
-        },
-      });
 
       break;
     }

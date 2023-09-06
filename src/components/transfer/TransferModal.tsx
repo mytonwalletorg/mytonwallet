@@ -1,6 +1,4 @@
-import React, {
-  memo, useEffect, useMemo,
-} from '../../lib/teact/teact';
+import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
 
 import { TransferState } from '../../global/types';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
@@ -278,7 +276,6 @@ function TransferModal({
   return (
     <Modal
       hasCloseButton
-      isSlideUp
       isOpen={isOpen}
       onClose={cancelTransfer}
       noBackdropClose
@@ -286,7 +283,7 @@ function TransferModal({
       onCloseAnimationEnd={handleModalClose}
     >
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

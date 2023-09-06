@@ -18,6 +18,8 @@ export enum ElectronAction {
   INSTALL_UPDATE = 'install-update',
   CANCEL_UPDATE = 'cancel-update',
   HANDLE_DOUBLE_CLICK = 'handle-double-click',
+
+  TOGGLE_DEEPLINK_HANDLER = 'toggle-deeplink-handler',
 }
 
 export interface ElectronApi {
@@ -31,6 +33,8 @@ export interface ElectronApi {
   cancelUpdate: () => Promise<void>;
   installUpdate: () => Promise<void>;
   handleDoubleClick: () => Promise<void>;
+
+  toggleDeeplinkHandler: (isEnabled: boolean) => Promise<void>;
 
   on: (eventName: ElectronEvent, callback: any) => VoidFunction;
 }

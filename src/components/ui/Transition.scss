@@ -262,7 +262,7 @@
   }
 
   &-slideLayers {
-    --background-color: var(--color-background);
+    --background-color: var(--color-background-second);
 
     background: black !important;
 
@@ -282,9 +282,9 @@
   }
 
   &-slideLayersBackwards {
-    --background-color: var(--color-background);
-
-    background: black !important;
+    > .Transition_slide {
+      background: var(--background-color);
+    }
 
     > .Transition_slide-to {
       transform: translateX(-20%);
@@ -300,10 +300,6 @@
   }
 
   &-pushSlide {
-    > .Transition_slide {
-      background: var(--color-background);
-    }
-
     > .Transition_slide-from {
       transform: scale(1);
       transform-origin: center;

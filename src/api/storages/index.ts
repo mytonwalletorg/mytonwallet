@@ -1,6 +1,6 @@
 import { StorageType } from './types';
 
-import { IS_EXTENSION } from '../environment';
+import { IS_EXTENSION } from '../../config';
 import extensionStorage from './extension';
 import idb from './idb';
 import localStorage from './localStorage';

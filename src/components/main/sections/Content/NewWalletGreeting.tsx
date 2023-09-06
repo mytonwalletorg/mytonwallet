@@ -26,7 +26,7 @@ function NewWalletGreeting({ isActive, mode }: Props) {
         previewUrl={ANIMATED_STICKERS_PATHS.helloPreview}
         nonInteractive
         noLoop={false}
-        size={mode === 'panel' ? ANIMATED_STICKER_SMALL_SIZE_PX : ANIMATED_STICKER_BIG_SIZE_PX}
+        size={mode === 'emptyList' ? ANIMATED_STICKER_BIG_SIZE_PX : ANIMATED_STICKER_SMALL_SIZE_PX}
       />
 
       <div className={styles.text}>

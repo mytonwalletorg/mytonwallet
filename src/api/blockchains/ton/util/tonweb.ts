@@ -17,7 +17,8 @@ import {
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
 import { base64ToBytes, hexToBytes } from '../../../common/utils';
-import { JettonOpCode } from '../constants';
+import { API_HEADERS } from '../../../environment';
+import { JettonOpCode, OpCode } from '../constants';
 import { parseTxId, stringifyTxId } from './index';
 
 import CustomHttpProvider from './CustomHttpProvider';
@@ -26,12 +27,16 @@ const { Cell } = TonWeb.boc;
 const { Address } = TonWeb.utils;
 const { JettonMinter, JettonWallet } = TonWeb.token.jetton;
 
+const TON_MAX_COMMENT_BYTES = 127;
+
 const tonwebByNetwork = {
   mainnet: new TonWeb(new CustomHttpProvider(TONHTTPAPI_MAINNET_URL, {
     apiKey: TONHTTPAPI_MAINNET_API_KEY,
+    headers: API_HEADERS,
   })) as MyTonWeb,
   testnet: new TonWeb(new CustomHttpProvider(TONHTTPAPI_TESTNET_URL, {
     apiKey: TONHTTPAPI_TESTNET_API_KEY,
+    headers: API_HEADERS,
   })) as MyTonWeb,
 };
 
@@ -202,18 +207,9 @@ export function buildTokenTransferBody(params: TokenTransferBodyParams) {
   cell.bits.writeBit(false); // null custom_payload
   cell.bits.writeCoins(new BN(forwardAmount || '0'));
 
-  // A large comment must be placed in a separate cell
-  if (typeof forwardPayload === 'string') {
-    const buffer = Buffer.from(forwardPayload);
-    if (cell.bits.getFreeBits() < (buffer.length * 8) + 32 + 1) {
-      forwardPayload = new Cell();
-      forwardPayload.bits.writeUint(0, 32);
-      forwardPayload.bits.writeBytes(buffer);
-    }
-  } else if (forwardPayload instanceof Uint8Array && cell.bits.getFreeBits() < forwardPayload.length * 8) {
-    const bytes = forwardPayload;
-    forwardPayload = new Cell();
-    forwardPayload.bits.writeBytes(bytes);
+  if (forwardPayload instanceof Uint8Array) {
+    const freeBytes = Math.round(cell.bits.getFreeBits() / 8);
+    forwardPayload = packBytesAsSnake(forwardPayload, freeBytes);
   }
 
   if (!forwardPayload) {
@@ -244,4 +240,38 @@ export function parseBase64(base64: string) {
     logDebugError('parseBase64', err);
     return Uint8Array.from(Buffer.from(base64, 'base64'));
   }
+}
+
+export function commentToBytes(comment: string): Uint8Array {
+  const buffer = Buffer.from(comment);
+  const bytes = new Uint8Array(buffer.length + 4);
+
+  const startBuffer = Buffer.alloc(4);
+  startBuffer.writeUInt32BE(OpCode.Comment);
+  bytes.set(startBuffer, 0);
+  bytes.set(buffer, 4);
+
+  return bytes;
+}
+
+export function packBytesAsSnake(bytes: Uint8Array, maxBytes = TON_MAX_COMMENT_BYTES): Uint8Array | CellType {
+  const buffer = Buffer.from(bytes);
+  if (buffer.length <= maxBytes) {
+    return bytes;
+  }
+
+  const cell = new Cell();
+
+  let subcell = cell;
+
+  for (const byte of buffer) {
+    if (subcell.bits.getFreeBits() < 8) {
+      const newCell = new Cell();
+      subcell.refs = [newCell];
+      subcell = newCell;
+    }
+    subcell.bits.writeUint8(byte);
+  }
+
+  return cell;
 }

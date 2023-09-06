@@ -30,7 +30,7 @@ import type {
   ApiTonConnectProof, LocalConnectEvent, TransactionPayload, TransactionPayloadMessage,
 } from './types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { IS_EXTENSION, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { isValidLedgerComment } from '../../util/ledger/utils';
 import { logDebugError } from '../../util/logs';
@@ -47,7 +47,6 @@ import { createLocalTransaction, isUpdaterAlive } from '../common/helpers';
 import {
   base64ToBytes, bytesToBase64, handleFetchErrors, sha256,
 } from '../common/utils';
-import { IS_EXTENSION } from '../environment';
 import * as apiErrors from '../errors';
 import {
   activateDapp,

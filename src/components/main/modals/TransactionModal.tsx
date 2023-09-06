@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from '../../../lib/teact/teact';
+import React, { memo, useState } from '../../../lib/teact/teact';
 
 import type { ApiToken, ApiTransaction } from '../../../api/types';
 
@@ -38,7 +38,7 @@ import scamImg from '../../../assets/scam.svg';
 
 type StateProps = {
   transaction?: ApiTransaction;
-  token?: ApiToken;
+  tokensBySlug?: Record<string, ApiToken>;
   savedAddresses?: Record<string, string>;
   isTestnet?: boolean;
   startOfStakingCycle?: number;
@@ -49,7 +49,7 @@ const EMPTY_HASH_VALUE = 'NOHASH';
 
 function TransactionModal({
   transaction,
-  token,
+  tokensBySlug,
   savedAddresses,
   isTestnet,
   startOfStakingCycle,
@@ -63,7 +63,7 @@ function TransactionModal({
 
   const lang = useLang();
   const renderedTransaction = useCurrentOrPrev(transaction, true);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, openModal, closeModal] = useFlag(false);
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
 
   const {
@@ -81,6 +81,7 @@ function TransactionModal({
   const [, transactionHash] = (txId || '').split(':');
   const isStaking = Boolean(transaction?.type);
 
+  const token = slug ? tokensBySlug?.[slug] : undefined;
   const amountHuman = amount ? bigStrToHuman(amount, token?.decimals) : 0;
   const address = isIncoming ? fromAddress : toAddress;
   const addressName = (address && savedAddresses?.[address]) || transaction?.metadata?.name;
@@ -98,6 +99,7 @@ function TransactionModal({
   const withUnstakeTimer = Boolean(
     transaction?.type === 'unstakeRequest' && startOfStakingCycle && transaction.timestamp >= startOfStakingCycle,
   );
+
   const {
     shouldRender: shouldRenderUnstakeTimer,
     transitionClassNames: unstakeTimerClassNames,
@@ -105,7 +107,7 @@ function TransactionModal({
 
   useSyncEffect(() => {
     if (transaction) {
-      setIsModalOpen(true);
+      openModal();
       setDecryptedComment(undefined);
     }
   }, [transaction]);
@@ -116,59 +118,19 @@ function TransactionModal({
     }
   }, [endOfStakingCycle]);
 
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-  }, []);
-
-  const handleSendClick = useCallback(() => {
-    handleCloseModal();
+  const handleSendClick = useLastCallback(() => {
+    closeModal();
     startTransfer({
       tokenSlug: slug || TON_TOKEN_SLUG,
       toAddress: address,
       amount: Math.abs(amountHuman),
       comment: !isIncoming ? comment : undefined,
     });
-  }, [handleCloseModal, startTransfer, slug, address, amountHuman, isIncoming, comment]);
+  });
 
-  const handleStartStakingClick = useCallback(() => {
-    handleCloseModal();
+  const handleStartStakingClick = useLastCallback(() => {
+    closeModal();
     startStaking();
-  }, [handleCloseModal, startStaking]);
-
-  function renderHeader() {
-    const isLocal = txId && getIsTxIdLocal(txId);
-
-    return (
-      <>
-        {timestamp ? `${formatFullDay(lang.code!, timestamp)}, ${formatTime(timestamp)}` : lang('Transaction Info')}
-        {isLocal && (
-          <i
-            className={buildClassName(styles.clockIcon, 'icon-clock')}
-            title={lang('Transaction in progress')}
-            aria-hidden
-          />
-        )}
-        {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
-      </>
-    );
-  }
-
-  function renderFee() {
-    if (isIncoming || !fee) {
-      return undefined;
-    }
-
-    return (
-      <AmountWithFeeTextField
-        label={lang('Fee')}
-        amount={bigStrToHuman(fee)}
-        currency={CARD_SECONDARY_VALUE_SYMBOL}
-      />
-    );
-  }
-
-  const spoilerCallback = useLastCallback(() => {
-    openPasswordModal();
   });
 
   const handlePasswordSubmit = useLastCallback(async (password: string) => {
@@ -189,9 +151,54 @@ function TransactionModal({
     setDecryptedComment(result);
   });
 
-  const handlePasswordUpdate = useLastCallback(() => {
+  const clearPasswordError = useLastCallback(() => {
     setPasswordError(undefined);
   });
+
+  function renderHeader() {
+    const isLocal = txId && getIsTxIdLocal(txId);
+    const plainTitle = isIncoming
+      ? lang('Received')
+      : isLocal
+        ? lang('Sending')
+        : lang('Sent');
+    const title = plainTitle;
+
+    return (
+      <div className={styles.transactionHeader}>
+        <div className={styles.headerTitle}>
+          {title}
+          {isLocal && (
+            <i
+              className={buildClassName(styles.clockIcon, 'icon-clock')}
+              title={lang('Transaction in progress')}
+              aria-hidden
+            />
+          )}
+          {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
+        </div>
+        {!!timestamp && (
+          <div className={styles.headerDate}>
+            {formatFullDay(lang.code!, timestamp)}, {formatTime(timestamp)}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderFee() {
+    if (isIncoming || !fee) {
+      return undefined;
+    }
+
+    return (
+      <AmountWithFeeTextField
+        label={lang('Fee')}
+        amount={bigStrToHuman(fee)}
+        currency={CARD_SECONDARY_VALUE_SYMBOL}
+      />
+    );
+  }
 
   function renderComment() {
     if ((!comment && !encryptedComment) || transaction?.type) {
@@ -211,7 +218,7 @@ function TransactionModal({
           text={encryptedComment ? decryptedComment : comment}
           spoiler={spoiler}
           spoilerRevealText={encryptedComment ? lang('Decrypt') : lang('Display')}
-          spoilerCallback={spoilerCallback}
+          spoilerCallback={openPasswordModal}
           copyNotification={lang('Comment was copied!')}
           className={styles.copyButtonWrapper}
           textClassName={styles.comment}
@@ -229,9 +236,10 @@ function TransactionModal({
               submitLabel={lang('Send')}
               placeholder={lang('Enter your password')}
               error={passwordError}
+              containerClassName={styles.passwordFormContent}
               onSubmit={handlePasswordSubmit}
               onCancel={closePasswordModal}
-              onUpdate={handlePasswordUpdate}
+              onUpdate={clearPasswordError}
             />
           </Modal>
         )}
@@ -250,27 +258,9 @@ function TransactionModal({
     );
   }
 
-  return (
-    <Modal
-      isSlideUp
-      hasCloseButton
-      title={renderHeader()}
-      isOpen={isModalOpen}
-      onClose={handleCloseModal}
-      onCloseAnimationEnd={closeTransactionInfo}
-    >
-      <div className={modalStyles.transitionContent}>
-        {tonscanTransactionUrl && (
-          <a
-            href={tonscanTransactionUrl}
-            target="_blank"
-            rel="noreferrer noopener"
-            className={styles.tonscan}
-            title={lang('View Transaction on TON Explorer')}
-          >
-            <i className="icon-tonscan" aria-hidden />
-          </a>
-        )}
+  function renderPlainTransaction() {
+    return (
+      <>
         <TransactionAmount
           isIncoming={isIncoming}
           isScam={isScam}
@@ -306,6 +296,35 @@ function TransactionModal({
             </Button>
           )}
         </div>
+      </>
+    );
+  }
+
+  function renderTransactionContent() {
+    return renderPlainTransaction();
+  }
+
+  return (
+    <Modal
+      hasCloseButton
+      title={renderHeader()}
+      isOpen={isModalOpen}
+      onClose={closeModal}
+      onCloseAnimationEnd={closeTransactionInfo}
+    >
+      <div className={modalStyles.transitionContent}>
+        {tonscanTransactionUrl && (
+          <a
+            href={tonscanTransactionUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={styles.tonscan}
+            title={lang('View Transaction on TON Explorer')}
+          >
+            <i className="icon-tonscan" aria-hidden />
+          </a>
+        )}
+        {renderTransactionContent()}
       </div>
     </Modal>
   );
@@ -317,13 +336,12 @@ export default memo(
 
     const txId = accountState?.currentTransactionId;
     const transaction = txId ? accountState?.transactions?.byTxId[txId] : undefined;
-    const token = transaction?.slug ? global.tokenInfo?.bySlug[transaction.slug] : undefined;
     const { startOfCycle: startOfStakingCycle, endOfCycle: endOfStakingCycle } = accountState?.poolState || {};
     const savedAddresses = accountState?.savedAddresses;
 
     return {
       transaction,
-      token,
+      tokensBySlug: global.tokenInfo?.bySlug,
       savedAddresses,
       isTestnet: global.settings.isTestnet,
       startOfStakingCycle,

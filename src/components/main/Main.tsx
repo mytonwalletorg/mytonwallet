@@ -1,23 +1,33 @@
 import React, {
-  memo, useCallback, useEffect, useState,
+  memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
 import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { REM } from '../../util/windowEnvironment';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
+import useLastCallback from '../../hooks/useLastCallback';
+import useShowTransition from '../../hooks/useShowTransition';
 
+import ReceiveModal from '../receive/ReceiveModal';
 import StakeModal from '../staking/StakeModal';
 import StakingInfoModal from '../staking/StakingInfoModal';
 import UnstakingModal from '../staking/UnstakeModal';
 import { LandscapeActions, PortraitActions } from './sections/Actions';
 import Card from './sections/Card';
+import StickyCard from './sections/Card/StickyCard';
 import Content from './sections/Content';
 import Warnings from './sections/Warnings';
 
 import styles from './Main.module.scss';
+
+interface OwnProps {
+  initialContentTabIndex?: number;
+  onChangeContentTabIndex?: (index: number) => void;
+}
 
 type StateProps = {
   currentTokenSlug?: string;
@@ -28,9 +38,12 @@ type StateProps = {
   isLedger?: boolean;
 };
 
+const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
+
 function Main({
   currentTokenSlug, currentAccountId, isStakingActive, isUnstakeRequested, isTestnet, isLedger,
-}: StateProps) {
+  initialContentTabIndex = 0, onChangeContentTabIndex,
+}: OwnProps & StateProps) {
   const {
     selectToken,
     startStaking,
@@ -38,9 +51,23 @@ function Main({
     openBackupWalletModal,
   } = getActions();
 
-  const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : 0);
+  // eslint-disable-next-line no-null/no-null
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
+  const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : initialContentTabIndex);
   const [isStakingInfoOpened, openStakingInfo, closeStakingInfo] = useFlag(false);
+  const [isReceiveModalOpened, openReceiveModal, closeReceiveModal] = useFlag(false);
   const { isPortrait } = useDeviceScreen();
+  const {
+    shouldRender: shouldRenderStickyCard,
+    transitionClassNames: stickyCardTransitionClassNames,
+  } = useShowTransition(canRenderStickyCard);
+
+  useEffect(() => {
+    return () => {
+      onChangeContentTabIndex?.(activeTabIndex);
+    };
+  }, [activeTabIndex, onChangeContentTabIndex]);
 
   useEffect(() => {
     if (currentAccountId && (isStakingActive || isUnstakeRequested)) {
@@ -48,30 +75,55 @@ function Main({
     }
   }, [fetchBackendStakingState, currentAccountId, isStakingActive, isUnstakeRequested]);
 
-  const handleTokenCardClose = useCallback(() => {
+  useEffect(() => {
+    if (!isPortrait) {
+      setCanRenderStickyCard(false);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      const { isIntersecting, boundingClientRect: { left, width } } = entries[0];
+      setCanRenderStickyCard(entries.length > 0 && !isIntersecting && left >= 0 && left < width);
+    }, { rootMargin: `${STICKY_CARD_INTERSECTION_THRESHOLD}px 0px 0px` });
+    const cardElement = cardRef.current;
+
+    if (cardElement) {
+      observer.observe(cardElement);
+    }
+
+    return () => {
+      if (cardElement) {
+        observer.unobserve(cardElement);
+      }
+    };
+  }, [isPortrait]);
+
+  const handleTokenCardClose = useLastCallback(() => {
     selectToken({ slug: undefined });
     setActiveTabIndex(0);
-  }, [selectToken]);
+  });
 
-  const handleEarnClick = useCallback(() => {
+  const handleEarnClick = useLastCallback(() => {
     if (isStakingActive || isUnstakeRequested) {
       openStakingInfo();
     } else {
       startStaking();
     }
-  }, [isStakingActive, isUnstakeRequested, openStakingInfo, startStaking]);
+  });
 
   function renderPortraitLayout() {
     return (
       <div className={styles.portraitContainer}>
         <div className={styles.head}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
-          <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
+          <Card ref={cardRef} onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
+          {shouldRenderStickyCard && <StickyCard classNames={stickyCardTransitionClassNames} />}
           <PortraitActions
             hasStaking={isStakingActive}
             isTestnet={isTestnet}
             isUnstakeRequested={isUnstakeRequested}
             onEarnClick={handleEarnClick}
+            onReceiveClick={openReceiveModal}
             isLedger={isLedger}
           />
         </div>
@@ -114,13 +166,14 @@ function Main({
 
       <StakeModal onViewStakingInfo={openStakingInfo} />
       <StakingInfoModal isOpen={isStakingInfoOpened} onClose={closeStakingInfo} />
+      <ReceiveModal isOpen={isReceiveModalOpened} onClose={closeReceiveModal} />
       <UnstakingModal />
     </>
   );
 }
 
 export default memo(
-  withGlobal((global, ownProps, detachWhenChanged): StateProps => {
+  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
     detachWhenChanged(global.currentAccountId);
     const accountState = selectCurrentAccountState(global);
     const account = selectCurrentAccount(global);

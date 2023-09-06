@@ -1,8 +1,9 @@
-import React, { memo, useCallback, useRef } from '../../lib/teact/teact';
+import React, { memo, useRef } from '../../lib/teact/teact';
 
 import { IS_WINDOWS } from '../../util/windowEnvironment';
 
 import useElectronDrag from '../../hooks/useElectronDrag';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import UpdateApp from './UpdateApp';
 
@@ -18,25 +19,25 @@ function ElectronHeader({ children, withTitle }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   useElectronDrag(containerRef);
 
-  const handleMinimize = useCallback(() => {
+  const handleMinimize = useLastCallback(() => {
     window.electron?.minimize();
-  }, []);
+  });
 
-  const handleMaximize = useCallback(async () => {
+  const handleMaximize = useLastCallback(async () => {
     if (await window.electron?.getIsMaximized()) {
       window.electron?.unmaximize();
     } else {
       window.electron?.maximize();
     }
-  }, []);
+  });
 
-  const handleClose = useCallback(() => {
+  const handleClose = useLastCallback(() => {
     window.electron?.close();
-  }, []);
+  });
 
-  const handleDoubleClick = useCallback(() => {
+  const handleDoubleClick = useLastCallback(() => {
     window.electron?.handleDoubleClick();
-  }, []);
+  });
 
   if (IS_WINDOWS) {
     return (

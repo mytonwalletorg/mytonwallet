@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT } from '../../config';
@@ -12,6 +12,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import useClipboardPaste from '../../hooks/useClipboardPaste';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import InputMnemonic from '../common/InputMnemonic';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -45,7 +46,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   const [mnemonic, setMnemonic] = useState<Record<number, string>>({});
   const { isPortrait } = useDeviceScreen();
 
-  const handlePasteMnemonic = useCallback((pastedText: string) => {
+  const handlePasteMnemonic = useLastCallback((pastedText: string) => {
     const pastedMnemonic = parsePastedText(pastedText);
 
     if (pastedMnemonic.length === 1 && document.activeElement?.id.startsWith('import-mnemonic-')) {
@@ -69,7 +70,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
     if (document.activeElement?.id.startsWith('import-mnemonic-')) {
       (document.activeElement as HTMLInputElement).blur();
     }
-  }, []);
+  });
 
   useClipboardPaste(Boolean(isActive), handlePasteMnemonic);
 
@@ -79,24 +80,24 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
     return mnemonicValues.length !== MNEMONIC_COUNT || mnemonicValues.some((word) => !word);
   }, [mnemonic]);
 
-  const handleSetWord = useCallback((value: string, index: number) => {
+  const handleSetWord = useLastCallback((value: string, index: number) => {
     setMnemonic({
       ...mnemonic,
       [index]: value?.toLowerCase(),
     });
-  }, [mnemonic]);
+  });
 
-  const handleCancel = useCallback(() => {
+  const handleCancel = useLastCallback(() => {
     setTimeout(() => {
       restartAuth();
     }, SLIDE_ANIMATION_DURATION_MS);
-  }, [restartAuth]);
+  });
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useLastCallback(() => {
     if (!isSubmitDisabled) {
       afterImportMnemonic({ mnemonic: Object.values(mnemonic) });
     }
-  }, [afterImportMnemonic, isSubmitDisabled, mnemonic]);
+  });
 
   useEffect(() => {
     return isSubmitDisabled

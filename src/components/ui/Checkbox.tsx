@@ -1,7 +1,9 @@
 import type { ChangeEvent } from 'react';
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+
+import useLastCallback from '../../hooks/useLastCallback';
 
 import styles from './Checkbox.module.scss';
 
@@ -22,10 +24,10 @@ function Checkbox({
   checked,
   onChange,
 }: OwnProps) {
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useLastCallback((e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     onChange(e.currentTarget.checked);
-  }, [onChange]);
+  });
 
   return (
     <label className={buildClassName(styles.wrapper, className)}>

@@ -1,12 +1,12 @@
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { ApiAccountInfo, ApiNetwork, ApiTxIdBySlug } from '../types';
 
+import { IS_DAPP_SUPPORTED } from '../../config';
 import blockchains from '../blockchains';
 import {
   getNewAccountId, removeAccountValue, removeNetworkAccountsValue, setAccountValue,
 } from '../common/accounts';
 import { bytesToHex } from '../common/utils';
-import { IS_DAPP_SUPPORTED } from '../environment';
 import { storage } from '../storages';
 import { activateAccount, deactivateAllAccounts, deactivateCurrentAccount } from './accounts';
 import { removeAccountDapps, removeAllDapps, removeNetworkDapps } from './dapps';

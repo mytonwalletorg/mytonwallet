@@ -90,6 +90,7 @@ function SettingsAssets({
           title={lang('Assets & Activity')}
           withBorder={!isContentNotScrolled}
           onBackButtonClick={handleBackClick}
+          className={styles.modalHeader}
         />
       ) : (
         <div className={styles.header}>

@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 
@@ -26,7 +26,7 @@ function Switcher({
   onChange,
   onCheck,
 }: OwnProps) {
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
     if (onChange) {
       onChange(e);
     }
@@ -34,7 +34,7 @@ function Switcher({
     if (onCheck) {
       onCheck(e.currentTarget.checked);
     }
-  }, [onChange, onCheck]);
+  }
 
   return (
     <label className={buildClassName(styles.container, className)} title={label}>

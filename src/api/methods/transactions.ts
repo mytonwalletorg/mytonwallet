@@ -13,22 +13,20 @@ export function initTransactions(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 }
 
-export function fetchTransactions(accountId: string) {
+export async function fetchTokenTransactionSlice(accountId: string, slug: string, fromTxId?: string, limit?: number) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.getAccountTransactionSlice(accountId);
+  const transactions = await blockchain.getTokenTransactionSlice(accountId, slug, fromTxId, undefined, limit);
+
+  return transactions;
 }
 
-export function fetchTokenTransactionSlice(accountId: string, slug: string, fromTxId?: string, limit?: number) {
+export async function fetchAllTransactionSlice(accountId: string, lastTxIds: ApiTxIdBySlug, limit: number) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.getTokenTransactionSlice(accountId, slug, fromTxId, undefined, limit);
-}
+  const transactions = await blockchain.getMergedTransactionSlice(accountId, lastTxIds, limit);
 
-export function fetchAllTransactionSlice(accountId: string, lastTxIds: ApiTxIdBySlug, limit: number) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
-  return blockchain.getMergedTransactionSlice(accountId, lastTxIds, limit);
+  return transactions;
 }
 
 export function checkTransactionDraft(

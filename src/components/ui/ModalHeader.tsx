@@ -26,7 +26,6 @@ function ModalHeader({
     <div
       className={buildClassName(
         modalStyles.header,
-        modalStyles.header_transition,
         withBorder && modalStyles.header_bordered,
         !onBackButtonClick && modalStyles.header_wideContent,
         className,

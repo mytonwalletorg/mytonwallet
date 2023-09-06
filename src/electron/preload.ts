@@ -16,6 +16,8 @@ const electronApi: ElectronApi = {
   installUpdate: () => ipcRenderer.invoke(ElectronAction.INSTALL_UPDATE),
   handleDoubleClick: () => ipcRenderer.invoke(ElectronAction.HANDLE_DOUBLE_CLICK),
 
+  toggleDeeplinkHandler: (isEnabled: boolean) => ipcRenderer.invoke(ElectronAction.TOGGLE_DEEPLINK_HANDLER, isEnabled),
+
   on: (eventName: ElectronEvent, callback) => {
     const subscription = (event: IpcRendererEvent, ...args: any) => callback(...args);
 

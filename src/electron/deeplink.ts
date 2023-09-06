@@ -1,7 +1,7 @@
-import { app } from 'electron';
+import { app, ipcMain } from 'electron';
 import path from 'path';
 
-import { ElectronEvent } from './types';
+import { ElectronAction, ElectronEvent } from './types';
 
 import {
   IS_LINUX, IS_MAC_OS, IS_WINDOWS, mainWindow,
@@ -16,13 +16,26 @@ let deeplinkUrl: string | undefined;
 export function initDeeplink() {
   if (process.defaultApp) {
     if (process.argv.length >= 2) {
-      app.setAsDefaultProtocolClient(TON_PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
       app.setAsDefaultProtocolClient(TONCONNECT_PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
     }
   } else {
-    app.setAsDefaultProtocolClient(TON_PROTOCOL);
     app.setAsDefaultProtocolClient(TONCONNECT_PROTOCOL);
   }
+
+  ipcMain.handle(ElectronAction.TOGGLE_DEEPLINK_HANDLER, (event, isEnabled: boolean) => {
+    if (!isEnabled) {
+      app.removeAsDefaultProtocolClient(TON_PROTOCOL);
+      return;
+    }
+
+    if (process.defaultApp) {
+      if (process.argv.length >= 2) {
+        app.setAsDefaultProtocolClient(TON_PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
+      }
+    } else {
+      app.setAsDefaultProtocolClient(TON_PROTOCOL);
+    }
+  });
 
   const gotTheLock = app.requestSingleInstanceLock();
 

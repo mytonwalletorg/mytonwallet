@@ -10,12 +10,15 @@ $scrollOffset: 0.1875rem;
   display: flex;
   flex-direction: column;
 
-  max-width: 25rem;
   height: auto;
   min-height: calc(var(--vh, 1vh) * 100);
   max-height: none;
-  margin: auto;
   padding: 0 0.75rem !important;
+
+  // Fix for opera, dead zone of 37 pixels in extension window on windows
+  :global(html.is-windows.is-opera.is-extension) & {
+    padding-top: 1.875rem !important;
+  }
 
   @include adapt-padding-to-scrollbar(0.75rem, !important); /* stylelint-disable-line order/order */
 
@@ -26,6 +29,12 @@ $scrollOffset: 0.1875rem;
     @include respond-above(xs) {
       padding-bottom: max(env(safe-area-inset-bottom), 1rem) !important;
     }
+  }
+
+  .head {
+    width: 100%;
+    max-width: 25rem;
+    margin: 0 auto;
   }
 }
 
@@ -49,6 +58,11 @@ $scrollOffset: 0.1875rem;
   :global(html.is-electron:not(.is-linux)) & {
     height: calc(100vh - 3rem);
     padding-top: 0;
+  }
+
+  // Fix for opera, dead zone of 37 pixels in extension window on windows
+  :global(html.is-windows.is-opera.is-extension) & {
+    padding-top: 2.3125rem;
   }
 
   @supports (column-gap: max(0px, 1px)) {

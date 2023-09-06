@@ -1,8 +1,9 @@
-import React, { useCallback } from '../lib/teact/teact';
+import React from '../lib/teact/teact';
 
 import renderText from '../global/helpers/renderText';
 
 import useLang from '../hooks/useLang';
+import useLastCallback from '../hooks/useLastCallback';
 
 import Button from './ui/Button';
 
@@ -14,9 +15,9 @@ import appInactivePathWebP from '../assets/app-inactive.webp';
 function AppInactive() {
   const lang = useLang();
 
-  const handleReload = useCallback(() => {
+  const handleReload = useLastCallback(() => {
     window.location.reload();
-  }, []);
+  });
 
   return (
     <div className={styles.root}>

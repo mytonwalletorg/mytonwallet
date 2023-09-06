@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import React, { memo, useState } from '../../lib/teact/teact';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX } from '../../config';
 import renderText from '../../global/helpers/renderText';
@@ -6,6 +6,7 @@ import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
@@ -28,13 +29,13 @@ function SafetyRules({ isActive, onSubmit, onClose }: OwnProps) {
   const [canBeStolenAccepted, setCanBeStolenAccepted] = useState(false);
   const canSubmit = writedownAccepted && openWalletAccepted && canBeStolenAccepted;
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useLastCallback(() => {
     if (!canSubmit) {
       return;
     }
 
     onSubmit();
-  }, [canSubmit, onSubmit]);
+  });
 
   return (
     <div className={modalStyles.transitionContentWrapper}>

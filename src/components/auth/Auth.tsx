@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import React, { memo, useState } from '../../lib/teact/teact';
 import { getActions } from '../../lib/teact/teactn';
 
 import { AuthState } from '../../global/types';
@@ -9,9 +9,11 @@ import { pick } from '../../util/iteratees';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import SettingsAbout from '../settings/SettingsAbout';
 import Transition from '../ui/Transition';
+import AuthCreateBackup from './AuthCreateBackup';
 import AuthCreatePassword from './AuthCreatePassword';
 import AuthCreatingWallet from './AuthCreatingWallet';
 import AuthDisclaimer from './AuthDisclaimer';
@@ -46,9 +48,9 @@ const Auth = ({
   ) ?? -1;
 
   const [nextKey, setNextKey] = useState(renderingAuthState + 1);
-  const updateNextKey = useCallback(() => {
+  const updateNextKey = useLastCallback(() => {
     setNextKey(renderingAuthState + 1);
-  }, [renderingAuthState]);
+  });
 
   // eslint-disable-next-line consistent-return
   function renderAuthScreen(isActive: boolean, isFrom: boolean, currentKey: number) {
@@ -59,6 +61,8 @@ const Auth = ({
         return <AuthCreatingWallet isActive={isActive} />;
       case AuthState.createPassword:
         return <AuthCreatePassword isActive={isActive} isLoading={isLoading} method="createAccount" />;
+      case AuthState.createBackup:
+        return <AuthCreateBackup isActive={isActive} mnemonic={mnemonic} checkIndexes={mnemonicCheckIndexes} />;
       case AuthState.disclaimerAndBackup:
         return (
           <AuthDisclaimer
@@ -89,7 +93,7 @@ const Auth = ({
 
   return (
     <Transition
-      name={isPortrait ? 'pushSlide' : 'semiFade'}
+      name={isPortrait ? 'slideLayers' : 'semiFade'}
       activeKey={renderingAuthState}
       renderCount={RENDER_COUNT}
       shouldCleanup
@@ -97,6 +101,7 @@ const Auth = ({
       slideClassName={styles.transitionSlide}
       nextKey={nextKey}
       onStop={updateNextKey}
+      shouldWrap
     >
       {renderAuthScreen}
     </Transition>

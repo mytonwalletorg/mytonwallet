@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import { TransferState } from '../../global/types';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
@@ -10,6 +10,7 @@ import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
@@ -63,15 +64,15 @@ function DappTransactionModal({
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
-  const handleBackClick = useCallback(() => {
+  const handleBackClick = useLastCallback(() => {
     if (state === TransferState.Confirm || state === TransferState.Password) {
       setDappTransferScreen({ state: TransferState.Initial });
     }
-  }, [setDappTransferScreen, state]);
+  });
 
-  const handleTransferPasswordSubmit = useCallback((password: string) => {
+  const handleTransferPasswordSubmit = useLastCallback((password: string) => {
     submitDappTransferPassword({ password });
-  }, [submitDappTransferPassword]);
+  });
 
   function renderSingleTransaction(isActive: boolean) {
     const transaction = viewTransactionOnIdx !== undefined ? transactions?.[viewTransactionOnIdx] : undefined;
@@ -170,7 +171,6 @@ function DappTransactionModal({
   return (
     <Modal
       hasCloseButton
-      isSlideUp
       isOpen={isOpen}
       onClose={cancelDappTransfer}
       noBackdropClose
@@ -178,7 +178,7 @@ function DappTransactionModal({
       onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

@@ -84,6 +84,8 @@
   --color-activity-green-text: #1EC160;
   --color-activity-purple-text: #6875E9;
   --color-activity-purple-background: #EDEEFC;
+  --color-activity-orange-text: #F59300;
+  --color-activity-orange-background: #FFF0D8;
 
   --color-transaction-gray-text: #53657B;
   --color-transaction-gray-background: #E2E9F1;
@@ -141,17 +143,11 @@
 
   --layer-blackout-opacity: 0.3;
 
-  --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
-  --slide-transition: 300ms cubic-bezier(0.25, 1, 0.5, 1);
-  --select-transition: 200ms ease-out;
-  --dropdown-transition: opacity 200ms cubic-bezier(0.2, 0, 0.2, 1), transform 200ms cubic-bezier(0.2, 0, 0.2, 1),
-    scrollbar-color 300ms;
-  --dropdown-transition-backwards: opacity 200ms ease-in, transform 200ms ease-in;
-
   --border-radius-tiny: 0.5rem;
   --border-radius-small: 0.625rem;
   --border-radius-buttons: 0.75rem;
   --border-radius-default: 1rem;
+  --border-radius-card: 1.25rem;
   --border-radius-big: 1.5rem;
 
   --scrollbar-width: 0;
@@ -164,12 +160,20 @@
   --z-notification: 250;
   --z-tooltip: 300;
 
-  html.is-ios {
+  --no-animation-transition: 200ms opacity ease;
+  --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
+  --slide-transition: 300ms cubic-bezier(0.25, 1, 0.5, 1);
+  --select-transition: 200ms ease-out;
+  --dropdown-transition: opacity 200ms cubic-bezier(0.2, 0, 0.2, 1), transform 200ms cubic-bezier(0.2, 0, 0.2, 1),
+  scrollbar-color 300ms;
+  --dropdown-transition-backwards: opacity 200ms ease-in, transform 200ms ease-in;
+
+  &.is-ios {
     --layer-transition: 450ms cubic-bezier(0.33, 1, 0.68, 1);
     --slide-transition: 450ms cubic-bezier(0.25, 1, 0.5, 1);
   }
 
-  html.is-android {
+  &.is-android {
     --layer-transition: 450ms cubic-bezier(0.25, 1, 0.5, 1);
     --slide-transition: 400ms cubic-bezier(0.25, 1, 0.5, 1);
   }
@@ -239,6 +243,8 @@
     --color-activity-green-text: #2CD36F;
     --color-activity-purple-text: #6875E9;
     --color-activity-purple-background: #2D3651;
+    --color-activity-orange-text: #FA9600;
+    --color-activity-orange-background: #3C362B;
 
     --color-transaction-gray-text: #AABCCC;
     --color-transaction-gray-background: #2E3947;

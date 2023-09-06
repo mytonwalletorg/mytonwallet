@@ -16,8 +16,6 @@ export interface AccountIdParsed {
 }
 
 export interface ApiInitArgs {
-  origin: string;
-  newestTxId?: string;
 }
 
 export interface ApiBaseToken {
@@ -159,13 +157,4 @@ export interface ApiSignedTransfer {
   params: ApiLocalTransactionParams;
 }
 
-export interface ApiLocalTransactionParams {
-  amount: string;
-  fromAddress: string;
-  toAddress: string;
-  comment?: string;
-  fee: string;
-  slug: string;
-  type?: ApiTransactionType;
-  encryptedComment?: string;
-}
+export type ApiLocalTransactionParams = Omit<ApiTransaction, 'txId' | 'timestamp' | 'isIncoming'>;

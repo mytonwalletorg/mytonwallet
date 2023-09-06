@@ -1,13 +1,16 @@
+import type { RoundingMode } from '../lib/big.js';
 import { Big } from '../lib/big.js';
 
-export function round(value: number, precision = 0) {
+export function round(value: number, precision = 0, roundingMode: RoundingMode = Big.roundHalfUp) {
   const bn = new Big(value);
 
-  return bn.round(precision, Big.roundHalfUp).toNumber();
+  return bn.round(precision, roundingMode).toNumber();
 }
 
 export function floor(value: number, precision = 0) {
-  const bn = new Big(value);
+  return round(value, precision, Big.roundDown);
+}
 
-  return bn.round(precision, Big.roundDown).toNumber();
+export function ceil(value: number, precision = 0) {
+  return round(value, precision, Big.roundUp);
 }

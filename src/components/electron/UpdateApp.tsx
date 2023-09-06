@@ -1,5 +1,6 @@
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import React, {
-  memo, useCallback, useEffect, useMemo, useRef, useState,
+  memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 
 import { ElectronEvent } from '../../electron/types';
@@ -9,6 +10,7 @@ import getBoundingClientRectsAsync from '../../util/getBoundingClientReactAsync'
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import styles from './UpdateApp.module.scss';
@@ -17,7 +19,7 @@ const PROGRESS_OFFSET = 28.5; // Minimum progress in % when progressbar starts t
 
 // Fake progress is shown between Update click and actual download progress received
 const FAKE_PROGRESS_STEP = 1;
-const FAKE_PROGRESS_TIMEOUT = 1 * 1000;
+const FAKE_PROGRESS_TIMEOUT_MS = 1000;
 const FAKE_PROGRESS_MAX = 20;
 
 function UpdateApp() {
@@ -37,13 +39,13 @@ function UpdateApp() {
   const timer = useRef<number | undefined>();
   const isCanceled = useRef<boolean>(false);
 
-  const reset = useCallback(() => {
+  const reset = useLastCallback(() => {
     clearInterval(timer.current);
     setIsUpdateAvailable(true);
     setIsUpdateDownloaded(false);
     setFakeProgress(0);
     setProgress(0);
-  }, []);
+  });
 
   useEffect(() => {
     const removeUpdateErrorListener = window.electron?.on(ElectronEvent.UPDATE_ERROR, () => {
@@ -81,7 +83,7 @@ function UpdateApp() {
     };
   }, [reset, enable]);
 
-  const handleClick = useCallback(async () => {
+  const handleClick = useLastCallback(async () => {
     isCanceled.current = false;
 
     if (isDisabled || progress) {
@@ -106,11 +108,11 @@ function UpdateApp() {
 
           return fp + FAKE_PROGRESS_STEP;
         });
-      }, FAKE_PROGRESS_TIMEOUT);
+      }, FAKE_PROGRESS_TIMEOUT_MS);
     }
-  }, [progress, isUpdateDownloaded, isUpdateAvailable, isDisabled, disable]);
+  });
 
-  const handleCancel = useCallback(async (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleCancel = useLastCallback(async (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
     disable();
 
@@ -122,7 +124,7 @@ function UpdateApp() {
     }
 
     reset();
-  }, [reset, progress, disable, enable]);
+  });
 
   const { transitionClassNames, shouldRender } = useShowTransition(isUpdateDownloaded);
 
@@ -192,19 +194,21 @@ function useContainerAnimation(text?: string) {
   const textRef = useRef<HTMLDivElement>(null); // eslint-disable-line no-null/no-null
   const lastWidthRef = useRef<number>();
 
-  const calculateWidth = useCallback(() => {
+  const calculateWidth = useLastCallback(() => {
     if (!textRef.current) {
       return;
     }
 
     getBoundingClientRectsAsync(textRef.current).then((rect) => {
       if (lastWidthRef.current !== rect.width) {
-        // Text width + icon width (19) + paddings (8 * 2)
-        containerRef.current!.style.maxWidth = `${rect.width + 19 + 16}px`;
-        lastWidthRef.current = rect.width;
+        requestMutation(() => {
+          // Text width + icon width (19) + paddings (8 * 2)
+          containerRef.current!.style.maxWidth = `${rect.width + 19 + 16}px`;
+          lastWidthRef.current = rect.width;
+        });
       }
     });
-  }, []);
+  });
 
   useEffect(() => {
     calculateWidth();

@@ -1,9 +1,8 @@
 import React, { memo } from '../../../../lib/teact/teact';
 
-import { IS_ELECTRON } from '../../../../config';
+import { IS_ELECTRON, IS_EXTENSION } from '../../../../config';
 import { withGlobal } from '../../../../global';
 import { selectCurrentAccountState } from '../../../../global/selectors';
-import { IS_EXTENSION } from '../../../../util/windowEnvironment';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';

@@ -62,7 +62,7 @@ function SettingsLanguage({
         <ModalHeader
           title={lang('Language')}
           onBackButtonClick={handleBackClick}
-          className={styles.languageHeader}
+          className={buildClassName(styles.modalHeader, styles.languageHeader)}
         />
       ) : (
         <div className={styles.header}>

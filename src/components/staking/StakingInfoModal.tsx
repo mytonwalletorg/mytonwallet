@@ -43,7 +43,6 @@ function StakingInfoModal({
   return (
     <Modal
       isOpen={isOpen}
-      isSlideUp
       onClose={onClose}
       contentClassName={buildClassName(styles.stakingInfoModalContent)}
     >

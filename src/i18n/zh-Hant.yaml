@@ -137,7 +137,6 @@ Switch Account: 切換帳戶
 Copy wallet address: 複製錢包地址
 View address on TON Explorer: 在 TON Explorer 上查看此地址
 Open on CoinMarketCap: 在 CoinMarketCap 打開
-No Activity: 無活動紀錄
 You have just created a new wallet: 您剛剛創建了一個新錢包
 You can now transfer your tokens from another wallet or exchange.: 您現在可以從另一個錢包或交易所轉移您的代幣。
 Assets: 資產
@@ -339,8 +338,15 @@ $auth_backup_warning_notice: |
   現在，您需要手動**備份密鑰**，以防忘記密碼或無法訪問該設備。
 Later: 之後
 Back Up Now: 立即備份
-I have read and accept this information: 我已閱讀並接受此信息
+I have read and accept this information: 我已閱讀並接受此信息。
 $ledger_verify_address: 請務必使用您的 Ledger 設備驗證粘貼的地址。
 $ledger_not_ready: Ledger 未連接或 TON 應用程序未打開。
 Verify now: 現在檢查
 Invalid address format. Only URL Safe Base64 format is allowed.: 地址格式無效。 僅允許使用 URL Safe Base64 格式。
+$auth_backup_description1: |
+  這是一個**僅由您控制**且**安全**的錢包。
+$auth_backup_description2: 「能力越強，責任越大。」
+$auth_backup_description3: |
+  你需要手動**備份註記詞**，免得你忘記助記詞而無法登入此裝置。
+Terms of Use: 使用條款
+Privacy Policy: 隱私政策

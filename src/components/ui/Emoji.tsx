@@ -1,8 +1,9 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 
 import useFlag from '../../hooks/useFlag';
+import useLastCallback from '../../hooks/useLastCallback';
 import useMediaTransition from '../../hooks/useMediaTransition';
 
 import styles from './Emoji.module.scss';
@@ -24,10 +25,10 @@ function Emoji({ from }: OwnProps) {
   const [isLoaded, markLoaded] = useFlag(loadedImages.has(src));
   const transitionClassNames = useMediaTransition(isLoaded);
 
-  const handleLoad = useCallback(() => {
+  const handleLoad = useLastCallback(() => {
     markLoaded();
     loadedImages.add(src);
-  }, [markLoaded, src]);
+  });
 
   return (
     <img

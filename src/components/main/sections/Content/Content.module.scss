@@ -1,11 +1,10 @@
+@import "../../../../styles/mixins";
+
+.contentPanel,
 .container {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-
-  &.portraitContainer {
-    flex: 1 1 auto;
-  }
 
   &.landscapeContainer {
     overflow: hidden;
@@ -20,6 +19,12 @@
 
   background: var(--color-background-first);
   border-radius: var(--border-radius-default);
+
+  .portraitContainer & {
+    width: 100%;
+    max-width: 25rem;
+    margin: 0 auto 1rem;
+  }
 }
 
 .tabs {
@@ -28,14 +33,39 @@
 
   padding: 0 1.75rem;
 
-  border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
-  /* stylelint-disable-next-line plugin/whole-pixel */
-  box-shadow: 0 0.025rem 0 0 var(--color-separator);
-
   .landscapeContainer & {
     justify-content: flex-start;
 
     padding: 0 0.75rem;
+
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+  }
+
+  .portraitContainer & {
+    position: sticky;
+    top: 3.75rem;
+
+    overflow: visible;
+
+    width: 100%;
+    max-width: 25rem;
+    margin: 0 auto;
+
+    &::after {
+      content: '';
+
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+
+      width: 100vw;
+      height: 0.0625rem;
+
+      /* stylelint-disable-next-line plugin/whole-pixel */
+      box-shadow: 0 0.025rem 0 0 var(--color-separator);
+    }
+
   }
 }
 
@@ -74,6 +104,9 @@
   .slides {
     flex: 1 1 auto;
 
+    max-width: 25rem;
+    margin: 0 auto;
+
     :global(html:not(.with-safe-area-bottom)) & {
       border-radius: 0;
     }
@@ -85,4 +118,14 @@
 
     min-height: 0;
   }
+}
+
+.contentPanel {
+  position: relative;
+
+  flex-grow: 1;
+
+  margin: 0 -0.75rem;
+
+  background: var(--color-background-first);
 }

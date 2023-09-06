@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import React, { memo, useState } from '../../lib/teact/teact';
 
 import { ANIMATED_STICKER_MIDDLE_SIZE_PX } from '../../config';
 import { getActions } from '../../global';
@@ -63,6 +63,11 @@ const AuthDisclaimer = ({
     setIsInformationConfirmed(false);
   });
 
+  const handleSkipMnemonic = useLastCallback(() => {
+    skipCheckMnemonic();
+    handleCloseBackupWarningModal();
+  });
+
   const handleModalClose = useLastCallback(() => {
     setRenderingKey(BackupState.Accept);
     setNextKey(BackupState.View);
@@ -73,23 +78,23 @@ const AuthDisclaimer = ({
     setNextKey(BackupState.Confirm);
   });
 
-  const handleRestartCheckMnemonic = useCallback(() => {
+  const handleRestartCheckMnemonic = useLastCallback(() => {
     handleMnemonicView();
 
     setTimeout(() => {
       restartCheckMnemonicIndexes();
     }, SLIDE_ANIMATION_DURATION_MS);
-  }, [handleMnemonicView, restartCheckMnemonicIndexes]);
+  });
 
   const handleShowMnemonicCheck = useLastCallback(() => {
     setRenderingKey(BackupState.Confirm);
     setNextKey(undefined);
   });
 
-  const handleMnemonicCheckSubmit = useCallback(() => {
+  const handleMnemonicCheckSubmit = useLastCallback(() => {
     closeModal();
     afterCheckMnemonic();
-  }, [afterCheckMnemonic, closeModal]);
+  });
 
   // eslint-disable-next-line consistent-return
   function renderModalContent(isScreenActive: boolean, isFrom: boolean, currentScreenKey: number) {
@@ -162,10 +167,9 @@ const AuthDisclaimer = ({
       </div>
 
       <Modal
-        isSlideUp
-        isCompact
         isOpen={isInformationConfirmed && !isImport}
         onClose={handleCloseBackupWarningModal}
+        dialogClassName={styles.disclaimerBackupDialog}
       >
         <p className={styles.backupNotice}>{renderText(lang('$auth_backup_warning_notice'))}</p>
         <div className={styles.backupNoticeButtons}>
@@ -175,7 +179,7 @@ const AuthDisclaimer = ({
           <Button
             isDestructive
             className={buildClassName(styles.btn, styles.btn_mini)}
-            onClick={skipCheckMnemonic}
+            onClick={handleSkipMnemonic}
           >
             {lang('Later')}
           </Button>
@@ -184,14 +188,13 @@ const AuthDisclaimer = ({
 
       <Modal
         hasCloseButton
-        isSlideUp
         isOpen={isModalOpen}
         onClose={closeModal}
         onCloseAnimationEnd={handleModalClose}
         dialogClassName={styles.modalDialog}
       >
         <Transition
-          name="pushSlide"
+          name="slideLayers"
           className={modalStyles.transition}
           slideClassName={modalStyles.transitionSlide}
           activeKey={renderingKey}

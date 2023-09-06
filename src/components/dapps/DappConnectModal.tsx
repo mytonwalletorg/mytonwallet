@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 
 import { DappConnectState } from '../../global/types';
@@ -19,6 +19,7 @@ import { shortenAddress } from '../../util/shortenAddress';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
@@ -104,11 +105,7 @@ function DappConnectModal({
 
   const { iconUrl, name, url } = dapp || {};
 
-  const handleClose = useCallback(() => {
-    cancelDappConnectRequestConfirm();
-  }, [cancelDappConnectRequestConfirm]);
-
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useLastCallback(() => {
     closeConfirm();
 
     if (!requiredProof) {
@@ -122,24 +119,24 @@ function DappConnectModal({
     } else if (requiredPermissions?.isPasswordRequired) {
       setDappConnectRequestState({ state: DappConnectState.Password });
     }
-  }, [requiredProof, accounts, currentAccountId, requiredPermissions?.isPasswordRequired, selectedAccount]);
+  });
 
-  const handlePasswordCancel = useCallback(() => {
+  const handlePasswordCancel = useLastCallback(() => {
     setDappConnectRequestState({ state: DappConnectState.Info });
-  }, []);
+  });
 
-  const submitDappConnectRequestHardware = useCallback(() => {
+  const submitDappConnectRequestHardware = useLastCallback(() => {
     submitDappConnectRequestConfirmHardware({
       accountId: selectedAccount,
     });
-  }, [selectedAccount]);
+  });
 
-  const handlePasswordSubmit = useCallback((password: string) => {
+  const handlePasswordSubmit = useLastCallback((password: string) => {
     submitDappConnectRequestConfirm({
       accountId: selectedAccount,
       password,
     });
-  }, [selectedAccount]);
+  });
 
   const iterableAccounts = useMemo(() => {
     return Object.entries(accounts || {});
@@ -264,13 +261,12 @@ function DappConnectModal({
     <>
       <Modal
         isOpen={isModalOpen}
-        isSlideUp
         dialogClassName={styles.modalDialog}
-        onClose={handleClose}
-        onCloseAnimationEnd={handleClose}
+        onClose={cancelDappConnectRequestConfirm}
+        onCloseAnimationEnd={cancelDappConnectRequestConfirm}
       >
         <Transition
-          name="pushSlide"
+          name="slideLayers"
           className={buildClassName(modalStyles.transition, 'custom-scroll')}
           slideClassName={modalStyles.transitionSlide}
           activeKey={renderingKey}

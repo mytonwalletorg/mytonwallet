@@ -1,6 +1,6 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo, useCallback, useEffect, useRef, useState,
+  memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -9,6 +9,7 @@ import { ANIMATED_STICKERS_PATHS } from './helpers/animatedAssets';
 
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from './AnimatedIconWithPreview';
 import Button from './Button';
@@ -63,16 +64,16 @@ function PasswordForm({
 
   useFocusAfterAnimation(passwordRef, !isActive);
 
-  const handleInput = useCallback((value: string) => {
+  const handleInput = useLastCallback((value: string) => {
     setPassword(value);
     if (error) {
       onUpdate();
     }
-  }, [error, onUpdate]);
+  });
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useLastCallback(() => {
     onSubmit(password);
-  }, [onSubmit, password]);
+  });
 
   useEffect(() => {
     return isSubmitDisabled

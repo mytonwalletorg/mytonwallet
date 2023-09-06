@@ -1,0 +1,91 @@
+.root {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 0;
+}
+
+.background {
+  pointer-events: none;
+
+  position: relative;
+
+  padding: 0 1rem;
+
+  opacity: 0;
+  background-image: linear-gradient(125deg, #71AAEF 10.21%, #3F79CF 29.02%, #2E74B5 49.57%, #2160A1 65.77%);
+  background-size: cover;
+
+  &::before {
+    pointer-events: none;
+    content: '';
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: url("../../../../assets/cards/sticky_card_bg.png") repeat-x;
+    mix-blend-mode: multiply;
+  }
+
+  &:global(.shown) {
+    transition: opacity 0.3s ease;
+  }
+
+  &:global(.open) {
+    pointer-events: auto;
+
+    opacity: 1;
+  }
+}
+
+.content {
+  position: relative;
+
+  display: grid;
+  grid-template: "account balance menu";
+  grid-template-columns: minmax(25%, auto) 1fr 25%;
+  align-items: center;
+
+  max-width: 25rem;
+  height: 3.75rem;
+  margin: 0 auto;
+}
+
+.account {
+  position: relative;
+  top: initial;
+  left: initial;
+
+  grid-area: account;
+  justify-self: start;
+
+  max-width: 100%;
+}
+
+.menuButton {
+  position: static;
+
+  grid-area: menu;
+  justify-self: end;
+}
+
+.balance {
+  grid-area: balance;
+  justify-self: center;
+
+  font-size: 1.1875rem;
+  font-weight: 800;
+  font-style: normal;
+  color: var(--color-card-text);
+}
+
+.balanceFractionPart {
+  font-size: 0.9375rem;
+  color: var(--color-card-second-text);
+}

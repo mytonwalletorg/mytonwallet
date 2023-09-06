@@ -145,7 +145,6 @@ Switch Account: Сменить аккаунт
 Copy wallet address: Скопировать адрес
 View address on TON Explorer: Посмотреть адрес в TON Explorer
 Open on CoinMarketCap: Открыть в CoinMarketCap
-No Activity: Здесь пока пусто.
 You have just created a new wallet: Поздравляем! Вы только что создали новый кошелёк
 You can now transfer your tokens from another wallet or exchange.: Теперь вы можете пополнить его с другого кошелька или биржи.
 Assets: Активы
@@ -336,7 +335,7 @@ Agree: Согласен
 The hardware wallet does not support this data format: Аппаратный кошелек не поддерживает данный формат данных
 Use Responsibly: Используйте ответственно
 $auth_responsibly_description1: |
-  MyTonWallet — это кошелек **самообслуживания**, что означает, что **только вы** имеете полный контроль и, самое главное, **полную ответственность** за свои средства.
+  MyTonWallet — это **некастодиальный** кошелек, что означает, что **только вы** имеете полный контроль и, самое главное, **полную ответственность** за свои средства.
 $auth_responsibly_description2: |
   Ваши закрытые ключи хранятся на вашем устройстве и могут быть подвержены **хакерским атакам**. Если ваш компьютер заражен **вредоносной программой**, ваши средства могут быть украдены.
 $auth_responsibly_description3: |
@@ -348,8 +347,20 @@ $auth_backup_warning_notice: |
   Теперь вам нужно вручную **сделать резервную копию** секретных слов на случай, если вы забудете пароль или потеряете доступ к этому устройству.
 Later: Позже
 Back Up Now: Показать слова сейчас
-I have read and accept this information: Я прочитал и принимаю эту информацию
+I have read and accept this information: Я прочитал и принимаю эту информацию.
 $ledger_verify_address: Всегда проверяйте вставленный адрес используя Ledger.
 $ledger_not_ready: Ledger не подключен или приложение TON не открыто.
 Verify now: Проверить сейчас
 Invalid address format. Only URL Safe Base64 format is allowed.: Некорректный формат адреса. Разрешен только URL Safe Base64 формат.
+$auth_backup_description1: |
+  Вы создали новый **безопасный кошелёк**,
+  доступ к которому **есть только у вас**.
+$auth_backup_description2: |
+  Однако важно помнить:
+  **особые возможности**
+  требуют **особой ответственности**!
+$auth_backup_description3: |
+  Сейчас необходимо сделать
+  **резервную копию** секретных слов.
+  Это поможет, если вы потеряете доступ
+  к этому устройству или забудете пароль.

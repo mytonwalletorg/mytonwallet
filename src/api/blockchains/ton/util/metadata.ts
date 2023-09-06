@@ -50,9 +50,11 @@ export function parseJettonWalletMsgBody(body?: string) {
       if (slice.remainingBits > 32) {
         const forwardOpCode = slice.loadUint(32);
         if (forwardOpCode === OpCode.Comment) {
-          comment = slice.loadStringTail();
+          const buffer = readSnakeBytes(slice);
+          comment = buffer.toString('utf-8');
         } else if (forwardOpCode === OpCode.Encrypted) {
-          encryptedComment = slice.loadBuffer(slice.remainingBits / 8).toString('base64');
+          const buffer = readSnakeBytes(slice);
+          encryptedComment = buffer.toString('base64');
         }
       }
     }
@@ -334,4 +336,19 @@ function dataToSlice(data: string | Buffer | Uint8Array): Slice {
   }
 
   return new Slice(new BitReader(new BitString(buffer, 0, buffer.length * 8)), []);
+}
+
+export function readSnakeBytes(slice: Slice) {
+  let buffer = Buffer.alloc(0);
+
+  while (slice.remainingBits > 8) {
+    buffer = Buffer.concat([buffer, slice.loadBuffer(slice.remainingBits / 8)]);
+    if (slice.remainingRefs) {
+      slice = slice.loadRef().beginParse();
+    } else {
+      break;
+    }
+  }
+
+  return buffer;
 }

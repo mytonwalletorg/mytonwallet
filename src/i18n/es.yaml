@@ -144,7 +144,6 @@ Switch Account: Cambiar de monedero
 Copy wallet address: Copiar la dirección del monedero
 View address on TON Explorer: Ver dirección en TON Explorer
 Open on CoinMarketCap: Abrir en CoinMarketCap
-No Activity: Sin actividad
 You have just created a new wallet: Acabas de crear un nuevo monedero
 You can now transfer your tokens from another wallet or exchange.: Ahora puede transferir sus tokens desde otro monedero o intercambio.
 Assets: Activos
@@ -353,8 +352,16 @@ $auth_backup_warning_notice: |
   Ahora debe realizar manualmente una **copia de seguridad de las claves secretas** en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
 Later: Más tarde
 Back Up Now: Copia ahora
-I have read and accept this information: He leído y acepto esta información
+I have read and accept this information: He leído y acepto esta información.
 $ledger_verify_address: Siempre verifique la dirección pegada usando su dispositivo Ledger.
 $ledger_not_ready: El libro mayor no está conectado o la aplicación TON no está abierta.
 Verify now: Comprobar ahora
 Invalid address format. Only URL Safe Base64 format is allowed.: Formato de dirección no válido. Solo se permite el formato urlsafe base64.
+$auth_backup_description1: |
+  Este es un **monedero seguro**
+  y **totalmente bajo su control**.
+$auth_backup_description2: "Y un gran poder conlleva una **gran responsabilidad**."
+$auth_backup_description3: |
+  Debe hacer manualmente una **copia de seguridad de la frase semilla** que le permitirá recuperar su monedero en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
+Terms of Use: Términos de Uso
+Privacy Policy: Política de Privacidad

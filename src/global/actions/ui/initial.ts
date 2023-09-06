@@ -1,7 +1,9 @@
+import { requestMutation } from '../../../lib/fasterdom/fasterdom';
+
 import { ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
 import type { Account, AccountState, NotificationType } from '../../types';
 
-import { IS_ELECTRON } from '../../../config';
+import { IS_ELECTRON, IS_EXTENSION } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { initializeSoundsForSafari } from '../../../util/appSounds';
 import { omit } from '../../../util/iteratees';
@@ -9,8 +11,7 @@ import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider'
 import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import switchTheme from '../../../util/switchTheme';
 import {
-  IS_ANDROID, IS_EXTENSION,
-  IS_IOS, IS_LINUX, IS_MAC_OS, IS_SAFARI,
+  IS_ANDROID, IS_IOS, IS_LINUX, IS_MAC_OS, IS_OPERA, IS_SAFARI,
   IS_WINDOWS, setPageSafeAreaProperty, setScrollbarWidthProperty,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -26,33 +27,38 @@ import {
 } from '../../selectors';
 
 addActionHandler('init', (_, actions) => {
-  const { documentElement } = document;
+  requestMutation(() => {
+    const { documentElement } = document;
 
-  if (IS_IOS) {
-    documentElement.classList.add('is-ios');
-  } else if (IS_ANDROID) {
-    documentElement.classList.add('is-android');
-  } else if (IS_MAC_OS) {
-    documentElement.classList.add('is-macos');
-  } else if (IS_WINDOWS) {
-    documentElement.classList.add('is-windows');
-  } else if (IS_LINUX) {
-    documentElement.classList.add('is-linux');
-  }
-  if (IS_SAFARI) {
-    documentElement.classList.add('is-safari');
-  }
-  if (IS_EXTENSION) {
-    documentElement.classList.add('is-extension');
-  }
-  if (IS_ELECTRON) {
-    documentElement.classList.add('is-electron');
-  }
+    if (IS_IOS) {
+      documentElement.classList.add('is-ios');
+    } else if (IS_ANDROID) {
+      documentElement.classList.add('is-android');
+    } else if (IS_MAC_OS) {
+      documentElement.classList.add('is-macos');
+    } else if (IS_WINDOWS) {
+      documentElement.classList.add('is-windows');
+    } else if (IS_LINUX) {
+      documentElement.classList.add('is-linux');
+    }
+    if (IS_SAFARI) {
+      documentElement.classList.add('is-safari');
+    }
+    if (IS_OPERA) {
+      documentElement.classList.add('is-opera');
+    }
+    if (IS_EXTENSION) {
+      documentElement.classList.add('is-extension');
+    }
+    if (IS_ELECTRON) {
+      documentElement.classList.add('is-electron');
+    }
 
-  setScrollbarWidthProperty();
-  setPageSafeAreaProperty();
+    setScrollbarWidthProperty();
+    setPageSafeAreaProperty();
 
-  actions.afterInit();
+    actions.afterInit();
+  });
 });
 
 addActionHandler('afterInit', (global) => {
@@ -210,7 +216,11 @@ addActionHandler('toggleTonMagic', (global, actions, { isEnabled }) => {
 });
 
 addActionHandler('toggleDeeplinkHook', (global, actions, { isEnabled }) => {
-  void callApi('doDeeplinkHook', isEnabled);
+  if (IS_ELECTRON) {
+    window.electron?.toggleDeeplinkHandler(isEnabled);
+  } else {
+    void callApi('doDeeplinkHook', isEnabled);
+  }
 
   return {
     ...global,

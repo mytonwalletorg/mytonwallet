@@ -150,7 +150,7 @@ $tab-1-height: 348;
 .tabIcon {
   display: block;
 
-  margin-bottom: 1px;
+  margin-bottom: 0.0625rem;
 
   font-size: 1.875rem;
   color: var(--color-blue);
@@ -172,7 +172,7 @@ $tab-1-height: 348;
   left: 0;
   transform: translateY(-50%);
 
-  width: 1px;
+  width: 0.0625rem;
   height: 2rem;
 
   /* stylelint-disable-next-line plugin/whole-pixel */
@@ -221,7 +221,7 @@ $tab-1-height: 348;
 .contentBg {
   transform-origin: top;
   // Using lesser base height (such as `1px`) causes incorrect scaling after zooming in Blink-based browsers
-  height: 100px;
+  height: 6.25rem;
 
   &.tab-0 {
     transform: scaleY(calc(#{$tab-0-height} / 100));

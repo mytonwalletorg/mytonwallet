@@ -1,4 +1,3 @@
-import TonWeb from 'tonweb';
 import QrCodeStyling from 'qr-code-styling';
 import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 
@@ -6,12 +5,12 @@ import { withGlobal } from '../../global';
 import { selectAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { shortenAddress } from '../../util/shortenAddress';
+import formatTransferUrl from '../../util/ton/formatTransferUrl';
 
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
-import ModalTransitionContent from '../ui/ModalTransitionContent';
 
 import styles from './ReceiveModal.module.scss';
 
@@ -66,19 +65,19 @@ function QrModal({
     if (!address) {
       return;
     }
-    QR_CODE.update({ data: TonWeb.utils.formatTransferUrl(address) });
+    QR_CODE.update({ data: formatTransferUrl(address) });
   }, [address]);
 
   return (
-    <Modal isSlideUp hasCloseButton title={lang('QR-code')} isOpen={isOpen} onClose={onClose}>
-      <ModalTransitionContent className={buildClassName(styles.content, styles.contentQr)}>
+    <Modal hasCloseButton title={lang('QR-code')} isOpen={isOpen} onClose={onClose}>
+      <div className={buildClassName(styles.content, styles.contentQr)}>
         <div className={styles.qrCode} ref={qrCodeRef} />
         <p className={buildClassName(styles.info, styles.info_small)}>{address && shortenAddress(address)}</p>
 
         <div className={styles.buttons}>
           <Button onClick={onBackButtonClick}>{backButtonText ?? lang('Back')}</Button>
         </div>
-      </ModalTransitionContent>
+      </div>
     </Modal>
   );
 }

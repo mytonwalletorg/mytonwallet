@@ -16,8 +16,10 @@ import {
   updateSettings,
 } from '../../reducers';
 import {
+  selectAccounts,
   selectCurrentNetwork,
   selectFirstNonHardwareAccount,
+  selectIsOneAccount,
   selectNetworkAccountsMemoized,
   selectNewestTxIds,
 } from '../../selectors';
@@ -40,15 +42,24 @@ addActionHandler('restartAuth', (global) => {
 });
 
 addActionHandler('startCreatingWallet', async (global, actions) => {
+  const accounts = selectAccounts(global) ?? {};
+  const isFirstAccount = !Object.values(accounts).length;
+  const methodState = isFirstAccount ? AuthState.creatingWallet : AuthState.createBackup;
+
+  const promiseCalls = [
+    callApi('generateMnemonic'),
+    ...(isFirstAccount ? [pause(CREATING_DURATION)] : []),
+  ] as [Promise<Promise<string[]> | undefined>, Promise<void> | undefined];
+
   setGlobal(
     updateAuth(global, {
-      state: AuthState.creatingWallet,
+      state: methodState,
       method: 'createAccount',
       error: undefined,
     }),
   );
 
-  const [mnemonic] = await Promise.all([callApi('generateMnemonic'), pause(CREATING_DURATION)]);
+  const [mnemonic] = await Promise.all(promiseCalls);
 
   global = updateAuth(getGlobal(), {
     mnemonic,
@@ -117,9 +128,14 @@ addActionHandler('createAccount', async (global, actions, { password, isImportin
     setGlobal(global);
 
     actions.afterSignIn();
+    if (selectIsOneAccount(global)) {
+      actions.resetApiSettings();
+    }
   } else {
+    const accounts = selectAccounts(global) ?? {};
+    const isFirstAccount = !Object.values(accounts).length;
     global = updateAuth(global, {
-      state: AuthState.disclaimerAndBackup,
+      state: isFirstAccount ? AuthState.disclaimerAndBackup : AuthState.createBackup,
       accountId,
       address,
     });
@@ -170,6 +186,7 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
 
   if (isFirstAccount) {
     actions.afterSignIn();
+    actions.resetApiSettings();
   }
 });
 
@@ -180,6 +197,9 @@ addActionHandler('afterCheckMnemonic', (global, actions) => {
   setGlobal(global);
 
   actions.afterSignIn();
+  if (selectIsOneAccount(global)) {
+    actions.resetApiSettings();
+  }
 });
 
 addActionHandler('restartCheckMnemonicIndexes', (global) => {
@@ -199,6 +219,9 @@ addActionHandler('skipCheckMnemonic', (global, actions) => {
   setGlobal(global);
 
   actions.afterSignIn();
+  if (selectIsOneAccount(global)) {
+    actions.resetApiSettings();
+  }
 });
 
 addActionHandler('startImportingWallet', (global) => {

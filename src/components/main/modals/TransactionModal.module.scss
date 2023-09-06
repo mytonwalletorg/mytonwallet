@@ -2,6 +2,10 @@
   min-height: 24.5rem;
 }
 
+.passwordFormContent {
+  padding: 0 !important;
+}
+
 .sticker {
   margin: -0.5rem auto 1.25rem;
 }
@@ -41,8 +45,11 @@
   top: 1rem;
   left: 1rem;
 
-  width: 1.875rem !important;
-  height: 1.875rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 2.5rem !important;
   padding: 0;
 
   font-size: 1.5rem;
@@ -113,9 +120,87 @@
 
 .scamImage {
   width: 2.75rem;
-  margin: -0.25rem 0 0 0.25rem;
+  height: 1.0625rem;
 }
 
 .scamAddress {
   color: var(--color-red);
+}
+
+.transactionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+
+.headerTitle {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.headerDate {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gray-2);
+}
+
+.infoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  margin-top: 2rem;
+}
+
+.textFieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.textFieldLabel {
+  display: flex;
+  align-items: center;
+
+  padding-left: 1rem;
+
+  font-size: 0.8125rem;
+  font-weight:  700;
+  color: var(--color-gray-2);
+}
+
+.textField {
+  display: flex;
+  align-items: center;
+
+  padding: 1rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-black);
+
+  background-color: var(--color-background-first);
+  border-radius: 1rem;
+}
+
+.advancedTooltip {
+  cursor: pointer;
+
+  margin-left: 0.25rem;
+
+  color: var(--color-gray-4);
+
+  transition: color 150ms;
+}
+
+.advancedTooltipContainer {
+  z-index: 1;
+
+  width: 18.9375rem;
 }

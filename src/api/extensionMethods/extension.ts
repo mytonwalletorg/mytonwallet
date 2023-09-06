@@ -1,10 +1,7 @@
 import extension from 'webextension-polyfill';
 
-import type { OnApiUpdate } from '../types';
-
-import { PROXY_HOSTS } from '../../config';
+import { IS_FIREFOX_EXTENSION, PROXY_HOSTS } from '../../config';
 import { sample } from '../../util/random';
-import { IS_FIREFOX_EXTENSION } from '../environment';
 import { storage } from '../storages';
 import { updateSites } from './sites';
 
@@ -38,12 +35,9 @@ const PROXY_PAC_SCRIPT = `function FindProxyForURL(url, host) {
     : 'DIRECT';
 }`;
 
-let onUpdate: OnApiUpdate;
 let isProxyEnabled = false;
 
-export async function initExtension(_onUpdate: OnApiUpdate) {
-  onUpdate = _onUpdate;
-
+export async function initExtension() {
   const isTonProxyEnabled = await storage.getItem('isTonProxyEnabled');
   void doProxy(isTonProxyEnabled);
 
@@ -51,25 +45,8 @@ export async function initExtension(_onUpdate: OnApiUpdate) {
   doDeeplinkHook(isDeeplinkHookEnabled);
 }
 
-export function setupDefaultExtensionFeatures() {
-  doDeeplinkHook(true);
-  onUpdate({
-    type: 'updateDeeplinkHookState',
-    isEnabled: Boolean(true),
-  });
-}
-
-export async function clearExtensionFeatures() {
-  void doProxy(false);
-  doMagic(false);
-  doDeeplinkHook(false);
-
-  await Promise.all([
-    storage.removeItem('isTonMagicEnabled'),
-    storage.removeItem('isTonProxyEnabled'),
-    storage.removeItem('isDeeplinkHookEnabled'),
-    storage.removeItem('dapps'),
-  ]);
+export function onFullLogout() {
+  return storage.removeItem('dapps');
 }
 
 export function doProxy(isEnabled: boolean) {

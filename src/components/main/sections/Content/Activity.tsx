@@ -4,7 +4,7 @@ import React, {
 
 import type { ApiToken, ApiTransaction } from '../../../../api/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, TON_TOKEN_SLUG } from '../../../../config';
+import { TON_TOKEN_SLUG } from '../../../../config';
 import { getActions, withGlobal } from '../../../../global';
 import { getIsTinyTransaction, getIsTxIdLocal } from '../../../../global/helpers';
 import { selectCurrentAccountState, selectIsNewWallet } from '../../../../global/selectors';
@@ -12,14 +12,12 @@ import buildClassName from '../../../../util/buildClassName';
 import { compareTransactions } from '../../../../util/compareTransactions';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
 import { findLast } from '../../../../util/iteratees';
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteLoader from '../../../../hooks/useInfiniteLoader';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
-import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Loading from '../../../ui/Loading';
 import NewWalletGreeting from './NewWalletGreeting';
 import Transaction from './Transaction';
@@ -196,7 +194,7 @@ function Activity({
             <Transaction
               key={transaction?.txId}
               transaction={transaction}
-              token={transaction.slug ? tokensBySlug?.[transaction.slug] : undefined}
+              tokensBySlug={tokensBySlug}
               apyValue={apyValue}
               savedAddresses={savedAddresses}
               onClick={handleTransactionClick}
@@ -219,27 +217,10 @@ function Activity({
     );
   }
 
-  if (isLandscape && isNewWallet) {
+  if (!transactions?.length || (isLandscape && isNewWallet)) {
     return (
-      <div className={styles.greeting}>
-        <NewWalletGreeting isActive mode="emptyList" />
-      </div>
-    );
-  }
-
-  if (!transactions?.length) {
-    return (
-      <div className={styles.emptyList}>
-        <AnimatedIconWithPreview
-          play={isActive}
-          tgsUrl={ANIMATED_STICKERS_PATHS.noData}
-          previewUrl={ANIMATED_STICKERS_PATHS.noDataPreview}
-          size={ANIMATED_STICKER_BIG_SIZE_PX}
-          className={styles.sticker}
-          noLoop={false}
-          nonInteractive
-        />
-        <p className={styles.emptyListTitle}>{lang('No Activity')}</p>
+      <div className={buildClassName(isLandscape && styles.greeting)}>
+        <NewWalletGreeting isActive={isActive} mode={isLandscape ? 'emptyList' : 'panel'} />
       </div>
     );
   }

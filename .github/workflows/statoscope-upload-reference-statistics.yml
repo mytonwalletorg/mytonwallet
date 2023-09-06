@@ -1,4 +1,4 @@
-name: Upload main stats
+name: Statoscope upload reference statistics
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
         node-version: [18.x]
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         persist-credentials: false
     - name: Reconfigure git to use HTTPS authentication
@@ -24,8 +24,8 @@ jobs:
     - name: Install
       run: npm ci
     - name: Build
-      run: npm run build:production; cp ./public/build-stats.json ./reference.json
-    - uses: actions/upload-artifact@v2
+      run: npm run build:production; cp ./public/statoscope-build-statistics.json ./statoscope-reference.json
+    - uses: actions/upload-artifact@v3
       with:
-        name: main-stats
-        path: ./reference.json
+        name: statoscope-reference
+        path: ./statoscope-reference.json

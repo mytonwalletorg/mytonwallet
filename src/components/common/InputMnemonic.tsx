@@ -1,11 +1,12 @@
-import { wordlists } from 'tonweb-mnemonic';
 import React, {
-  memo, useCallback, useEffect, useState,
+  memo, useEffect, useState,
 } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+import { callApi } from '../../api';
 
 import useFlag from '../../hooks/useFlag';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import SuggestionList from '../ui/SuggestionList';
 
@@ -23,7 +24,6 @@ type OwnProps = {
   onInput: (value: string, inputArg?: any) => void;
 };
 
-const { default: mnemonicSuggestions } = wordlists;
 const SUGGESTION_WORDS_COUNT = 7;
 
 function InputMnemonic({
@@ -34,21 +34,29 @@ function InputMnemonic({
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number>(0);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [wordlist, setWordlist] = useState<string[]>([]);
   const shouldRenderSuggestions = showSuggestions && value && filteredSuggestions.length > 0;
+
+  useEffect(() => {
+    (async () => {
+      const words = await callApi('getMnemonicWordList');
+      setWordlist(words ?? []);
+    })();
+  }, []);
 
   useEffect(() => {
     if (showSuggestions && value && filteredSuggestions.length === 0) {
       setHasError(true);
-    } else if (!hasFocus && value && !isCorrectMnemonic(value)) {
+    } else if (!hasFocus && value && !isCorrectMnemonic(value, wordlist)) {
       setHasError(true);
     } else {
       setHasError(false);
     }
-  }, [filteredSuggestions.length, hasFocus, showSuggestions, value]);
+  }, [filteredSuggestions.length, hasFocus, showSuggestions, value, wordlist]);
 
   const processSuggestions = (userInput: string) => {
     // Filter our suggestions that don't contain the user's input
-    const unLinked = mnemonicSuggestions.filter(
+    const unLinked = wordlist.filter(
       (suggestion) => suggestion.toLowerCase().startsWith(userInput.toLowerCase()),
     ).slice(0, SUGGESTION_WORDS_COUNT);
 
@@ -109,12 +117,12 @@ function InputMnemonic({
     }
   };
 
-  const handleClick = useCallback((suggestion: string) => {
+  const handleClick = useLastCallback((suggestion: string) => {
     onInput(suggestion, inputArg);
     setShowSuggestions(false);
     setActiveSuggestionIndex(0);
     setFilteredSuggestions([]);
-  }, [inputArg, onInput]);
+  });
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     processSuggestions(e.target.value);
@@ -167,8 +175,8 @@ function InputMnemonic({
   );
 }
 
-function isCorrectMnemonic(mnemonic: string) {
-  return mnemonicSuggestions.includes(mnemonic);
+function isCorrectMnemonic(mnemonic: string, wordlist: string[]) {
+  return wordlist.includes(mnemonic);
 }
 
 export default memo(InputMnemonic);

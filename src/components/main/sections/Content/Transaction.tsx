@@ -1,5 +1,5 @@
 import type { Ref, RefObject } from 'react';
-import React, { memo, useCallback } from '../../../../lib/teact/teact';
+import React, { memo } from '../../../../lib/teact/teact';
 
 import type { ApiToken, ApiTransaction } from '../../../../api/types';
 
@@ -11,6 +11,7 @@ import { formatCurrencyExtended } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
 
 import useLang from '../../../../hooks/useLang';
+import useLastCallback from '../../../../hooks/useLastCallback';
 
 import Button from '../../../ui/Button';
 
@@ -20,7 +21,7 @@ import scamImg from '../../../../assets/scam.svg';
 
 type OwnProps = {
   ref?: Ref<HTMLElement>;
-  token?: ApiToken;
+  tokensBySlug?: Record<string, ApiToken>;
   transaction: ApiTransaction;
   apyValue: number;
   savedAddresses?: Record<string, string>;
@@ -29,7 +30,7 @@ type OwnProps = {
 
 function Transaction({
   ref,
-  token,
+  tokensBySlug,
   transaction,
   apyValue,
   savedAddresses,
@@ -48,29 +49,35 @@ function Transaction({
     isIncoming,
     type,
     metadata,
+    slug,
   } = transaction;
 
-  const isStaking = type === 'stake' || type === 'unstake' || type === 'unstakeRequest';
+  const isStake = type === 'stake';
+  const isUnstake = type === 'unstake';
+  const isUnstakeRequest = type === 'unstakeRequest';
+  const isStaking = isStake || isUnstake || isUnstakeRequest;
+
+  const token = tokensBySlug?.[slug];
   const amountHuman = bigStrToHuman(amount, token!.decimals);
   const address = isIncoming ? fromAddress : toAddress;
   const addressName = savedAddresses?.[address] || metadata?.name;
   const isLocal = getIsTxIdLocal(txId);
   const isScam = Boolean(metadata?.isScam);
 
-  const handleClick = useCallback(() => {
+  const handleClick = useLastCallback(() => {
     onClick(txId);
-  }, [onClick, txId]);
+  });
 
   function getOperationName() {
-    if (type === 'stake') {
+    if (isStake) {
       return 'Staked';
     }
 
-    if (type === 'unstakeRequest') {
+    if (isUnstakeRequest) {
       return 'Unstake Requested';
     }
 
-    if (type === 'unstake') {
+    if (isUnstake) {
       return 'Unstaked';
     }
 
@@ -78,6 +85,10 @@ function Transaction({
   }
 
   function renderComment() {
+    if (isStaking || isScam || (!comment && !encryptedComment)) {
+      return undefined;
+    }
+
     return (
       <div
         className={buildClassName(
@@ -91,21 +102,46 @@ function Transaction({
     );
   }
 
+  const stakeIconClass = buildClassName(
+    isStaking && 'icon-earn',
+    isStake && styles.icon_purple,
+    isStaking && styles.icon_staking,
+    !isStaking && (isIncoming ? 'icon-receive-alt' : 'icon-send-alt'),
+  );
+
   const iconFullClass = buildClassName(
     styles.icon,
     isIncoming && styles.icon_operationPositive,
-    type === 'stake' && styles.icon_purple,
-    !isStaking && (isIncoming ? 'icon-receive-alt' : 'icon-send-alt'),
-    isStaking && 'icon-earn',
-    isStaking && styles.icon_staking,
+    stakeIconClass,
   );
 
-  const amountFullClass = buildClassName(
-    styles.amount,
-    isIncoming
-      ? styles.amount_operationPositive
-      : (type === 'stake' ? styles.amount_stake : styles.amount_operationNegative),
-  );
+  function renderAmount() {
+    const amountOtherClass = buildClassName(
+      styles.amount,
+      isIncoming
+        ? styles.amount_operationPositive
+        : (isStake ? styles.amount_stake : styles.amount_operationNegative),
+    );
+
+    return (
+      <div className={styles.amountWrapper}>
+        <div className={amountOtherClass}>
+          {formatCurrencyExtended(
+            isStaking ? Math.abs(amountHuman) : amountHuman,
+            token?.symbol || CARD_SECONDARY_VALUE_SYMBOL,
+            isStaking,
+          )}
+        </div>
+        <div className={styles.address}>
+          {!isStaking && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
+            address: <span className={styles.addressValue}>{addressName || shortenAddress(address)}</span>,
+          })}
+          {isStake && lang('at APY %1$s%', apyValue)}
+          {(isUnstake || isUnstakeRequest) && '\u00A0'}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Button
@@ -129,23 +165,8 @@ function Transaction({
         </div>
         <div className={styles.date}>{formatTime(timestamp)}</div>
       </div>
-      <div className={styles.amountWrapper}>
-        <div className={amountFullClass}>
-          {formatCurrencyExtended(
-            isStaking ? Math.abs(amountHuman) : amountHuman,
-            token?.symbol || CARD_SECONDARY_VALUE_SYMBOL,
-            isStaking,
-          )}
-        </div>
-        <div className={styles.address}>
-          {!isStaking && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
-            address: <span className={styles.addressValue}>{addressName || shortenAddress(address)}</span>,
-          })}
-          {type === 'stake' && lang('at APY %1$s%', apyValue)}
-          {(type === 'unstake' || type === 'unstakeRequest') && '\u00A0'}
-        </div>
-      </div>
-      {!isStaking && !isScam && (comment || encryptedComment) && renderComment()}
+      {renderAmount()}
+      {renderComment()}
       <i className={buildClassName(styles.iconArrow, 'icon-chevron-right')} aria-hidden />
     </Button>
   );

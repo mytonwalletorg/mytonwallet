@@ -219,3 +219,7 @@ export function selectIsHardwareAccount(global: GlobalState) {
 
   return state?.isHardware;
 }
+
+export function selectIsOneAccount(global: GlobalState) {
+  return Object.keys(selectAccounts(global) || {}).length === 1;
+}

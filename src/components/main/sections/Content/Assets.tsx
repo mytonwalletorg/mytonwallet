@@ -17,6 +17,7 @@ import styles from './Assets.module.scss';
 
 type OwnProps = {
   isActive?: boolean;
+  noGreeting?: boolean;
   onTokenClick: (slug: string) => void;
   onStakedTokenClick: NoneToVoidFunction;
 };
@@ -37,13 +38,14 @@ function Assets({
   stakingStatus,
   stakingBalance,
   isInvestorViewEnabled,
+  noGreeting,
   apyValue,
   onTokenClick,
   onStakedTokenClick,
 }: OwnProps & StateProps) {
   const { isPortrait } = useDeviceScreen();
 
-  const shouldShowGreeting = isNewWallet && isPortrait;
+  const shouldShowGreeting = isNewWallet && isPortrait && !noGreeting;
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens])!;
   const { shouldRender: shouldRenderStakedToken, transitionClassNames: stakedTokenClassNames } = useShowTransition(
     Boolean(stakingStatus),

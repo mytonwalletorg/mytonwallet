@@ -13,7 +13,7 @@ const WINDOW_DEFAULTS = {
   top: 120,
   left: 20,
   width: 368,
-  height: 750,
+  height: 770,
 };
 const MARGIN_RIGHT = 20;
 const WINDOW_STATE_MONITOR_INTERVAL = 3000;

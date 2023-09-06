@@ -2,20 +2,18 @@ import type { RefObject } from 'react';
 import type {
   TeactNode,
 } from '../../lib/teact/teact';
-import React, {
-  useCallback, useEffect, useRef,
-} from '../../lib/teact/teact';
+import React, { useEffect, useRef } from '../../lib/teact/teact';
 
-import { ANIMATION_END_DELAY } from '../../config';
+import { ANIMATION_END_DELAY, IS_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import trapFocus from '../../util/trapFocus';
-import { IS_EXTENSION } from '../../util/windowEnvironment';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import Button from './Button';
@@ -30,7 +28,6 @@ type OwnProps = {
   contentClassName?: string;
   isOpen?: boolean;
   isCompact?: boolean;
-  isSlideUp?: boolean;
   noBackdrop?: boolean;
   noBackdropClose?: boolean;
   header?: any;
@@ -57,7 +54,6 @@ function Modal({
   contentClassName,
   isOpen,
   isCompact,
-  isSlideUp,
   noBackdrop,
   noBackdropClose,
   header,
@@ -84,16 +80,13 @@ function Modal({
   const modalRef = useRef<HTMLDivElement>(null);
   const lang = useLang();
 
-  const handleClose = useCallback(
-    (e: KeyboardEvent) => {
-      if (IS_EXTENSION) {
-        e.preventDefault();
-      }
+  const handleClose = useLastCallback((e: KeyboardEvent) => {
+    if (IS_EXTENSION) {
+      e.preventDefault();
+    }
 
-      onClose();
-    },
-    [onClose],
-  );
+    onClose();
+  });
 
   useEffect(
     () => (isOpen ? captureKeyboardListeners({ onEsc: handleClose, onEnter }) : undefined),
@@ -139,7 +132,7 @@ function Modal({
     styles.modal,
     className,
     transitionClassNames,
-    isSlideUp && isPortrait && styles.slideUp,
+    !isCompact && isPortrait && styles.slideUpAnimation,
     isCompact && styles.compact,
   );
 
@@ -147,7 +140,7 @@ function Modal({
 
   const contentFullClassName = buildClassName(
     styles.content,
-    isSlideUp && styles.contentSlideUp,
+    isCompact && styles.contentCompact,
     'custom-scroll',
     contentClassName,
   );
@@ -156,7 +149,7 @@ function Modal({
     <Portal>
       <div ref={modalRef} className={fullClassName} tabIndex={-1} role="dialog">
         <div className={styles.container}>
-          <div className={backdropFullClass} onClick={!noBackdropClose ? onClose : undefined} />
+          <div className={backdropFullClass} onClick={!noBackdropClose ? () => { onClose(); } : undefined} />
           <div className={buildClassName(styles.dialog, dialogClassName)} ref={dialogRef}>
             {renderHeader()}
             <div className={contentFullClassName}>{children}</div>

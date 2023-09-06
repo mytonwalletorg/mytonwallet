@@ -1,7 +1,9 @@
+import { requestMutation } from './lib/fasterdom/fasterdom';
+import { enableStrict } from './lib/fasterdom/stricterdom';
 import React from './lib/teact/teact';
 import TeactDOM from './lib/teact/teact-dom';
 
-import { DEBUG } from './config';
+import { DEBUG, STRICTERDOM_ENABLED } from './config';
 import { getActions, getGlobal } from './global';
 
 import App from './components/App';
@@ -17,6 +19,10 @@ if (DEBUG) {
   console.log('>>> INIT');
 }
 
+if (STRICTERDOM_ENABLED) {
+  enableStrict();
+}
+
 getActions().init();
 getActions().initApi();
 
@@ -25,10 +31,12 @@ if (DEBUG) {
   console.log('>>> START INITIAL RENDER');
 }
 
-TeactDOM.render(
-  <App />,
-  document.getElementById('root')!,
-);
+requestMutation(() => {
+  TeactDOM.render(
+    <App />,
+    document.getElementById('root')!,
+  );
+});
 
 if (DEBUG) {
   // eslint-disable-next-line no-console

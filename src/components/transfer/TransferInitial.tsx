@@ -59,7 +59,7 @@ interface StateProps {
   isCommentSupported: boolean;
 }
 
-const COMMENT_MAX_SIZE_BYTES = 121; // Value derived empirically
+const COMMENT_MAX_SIZE_BYTES = 5000;
 const SHORT_ADDRESS_SHIFT = 14;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
 const COMMENT_DROPDOWN_ITEMS = [{ value: 'raw', name: 'Comment' }, { value: 'encrypted', name: 'Encrypted Message' }];
@@ -100,7 +100,6 @@ function TransferInitial({
 
   const lang = useLang();
 
-  const [shouldUseAllBalance, setShouldUseAllBalance] = useState(false);
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(true);
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [isSavedAddressesOpen, openSavedAddresses, closeSavedAddresses] = useFlag();
@@ -135,7 +134,7 @@ function TransferInitial({
     }
 
     return tokens.reduce<DropdownItem[]>((acc, token) => {
-      if (token.amount > 0) {
+      if (token.amount > 0 || token.slug === tokenSlug) {
         acc.push({
           value: token.slug,
           icon: token.image || ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS],
@@ -145,12 +144,11 @@ function TransferInitial({
 
       return acc;
     }, []);
-  }, [tokens]);
+  }, [tokenSlug, tokens]);
 
   const validateAndSetAmount = useLastCallback(
     (newAmount: number | undefined, noReset = false) => {
       if (!noReset) {
-        setShouldUseAllBalance(false);
         setHasAmountError(false);
         setIsInsufficientBalance(false);
       }
@@ -175,18 +173,15 @@ function TransferInitial({
   );
 
   useEffect(() => {
-    if (shouldUseAllBalance && balance) {
+    if (balance && amount === balance) {
       const calculatedFee = fee ? bigStrToHuman(fee, decimals) : 0;
       const reducedAmount = balance - calculatedFee * RESERVED_FEE_FACTOR;
-      const newAmount = tokenSlug === TON_TOKEN_SLUG ? reducedAmount : balance;
-      validateAndSetAmount(newAmount, true);
+      const newAmount = tokenSlug === TON_TOKEN_SLUG && reducedAmount > 0 ? reducedAmount : balance;
+      validateAndSetAmount(newAmount);
     } else {
-      validateAndSetAmount(amount, true);
+      validateAndSetAmount(amount);
     }
-  }, [
-    tokenSlug, amount, balance, fee,
-    decimals, shouldUseAllBalance, validateAndSetAmount,
-  ]);
+  }, [tokenSlug, amount, balance, fee, decimals, validateAndSetAmount]);
 
   useEffect(() => {
     if (!toAddress || hasToAddressError || !amount || !isAddressValid) {
@@ -309,7 +304,7 @@ function TransferInitial({
         return;
       }
 
-      setShouldUseAllBalance(true);
+      setTransferAmount({ amount: balance });
     },
   );
 

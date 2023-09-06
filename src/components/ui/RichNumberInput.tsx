@@ -1,4 +1,5 @@
 import { Big } from '../../lib/big.js';
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   memo, useEffect, useRef,
@@ -6,7 +7,7 @@ import React, {
 
 import { FRACTION_DIGITS } from '../../config';
 import buildClassName from '../../util/buildClassName';
-import { floor } from '../../util/round';
+import { ceil } from '../../util/round';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
 import useFlag from '../../hooks/useFlag';
@@ -70,7 +71,9 @@ function RichNumberInput({
     restoreCaretPosition?.();
 
     // Trick to remove pseudo-element with placeholder in this tick
-    input.classList.toggle(styles.isEmpty, !newHtml.length);
+    requestMutation(() => {
+      input.classList.toggle(styles.isEmpty, !newHtml.length);
+    });
   });
 
   useEffect(() => {
@@ -140,8 +143,6 @@ function RichNumberInput({
   );
   const cornerFullClass = buildClassName(
     cornerClassName,
-    hasFocus && styles.swapCorner,
-    hasError && styles.swapCorner_error,
   );
 
   return (
@@ -180,7 +181,7 @@ function RichNumberInput({
 }
 
 function getParts(value: string, decimals: number) {
-  const regex = new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?$`);
+  const regex = getInputRegex(decimals);
   // Correct problem with numbers like 1e-8
   if (value.includes('e-')) {
     Big.NE = -decimals - 1;
@@ -189,8 +190,13 @@ function getParts(value: string, decimals: number) {
   return value.match(regex) || undefined;
 }
 
+export function getInputRegex(decimals: number) {
+  if (!decimals) return /^(\d+)$/;
+  return new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?$`);
+}
+
 function castValue(value?: number, decimals?: number) {
-  return value ? floor(value, decimals) : undefined;
+  return value ? ceil(value, decimals) : undefined;
 }
 
 export function buildContentHtml(values: RegExpMatchArray, suffix?: string, decimals = FRACTION_DIGITS) {

@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useRef, useState,
+  memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
 import type { AuthMethod } from '../../global/types';
@@ -11,6 +11,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import { usePasswordValidation } from '../../hooks/usePasswordValidation';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -76,25 +77,25 @@ const AuthCreatePassword = ({
     isActive, firstPassword, secondPassword, validation, isSecondPasswordFocused, isPasswordFocused, isJustSubmitted,
   ]);
 
-  const handleFirstPasswordChange = useCallback((value: string) => {
+  const handleFirstPasswordChange = useLastCallback((value: string) => {
     setFirstPassword(value);
     if (isJustSubmitted) {
       setIsJustSubmitted(false);
     }
-  }, [isJustSubmitted]);
+  });
 
-  const handleSecondPasswordChange = useCallback((value: string) => {
+  const handleSecondPasswordChange = useLastCallback((value: string) => {
     setSecondPassword(value);
     if (isJustSubmitted) {
       setIsJustSubmitted(false);
     }
-  }, [isJustSubmitted]);
+  });
 
-  const handleCancel = useCallback(() => {
+  const handleCancel = useLastCallback(() => {
     restartAuth();
-  }, [restartAuth]);
+  });
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useLastCallback((e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -120,10 +121,7 @@ const AuthCreatePassword = ({
       closeWeakPasswordModal();
     }
     afterCreatePassword({ password: firstPassword });
-  }, [
-    afterCreatePassword, canSubmit, firstPassword, isWeakPasswordModalOpen, openWeakPasswordModal,
-    secondPassword, validation, closeWeakPasswordModal,
-  ]);
+  });
 
   const shouldRenderError = hasError && !isPasswordFocused;
 

@@ -2,13 +2,9 @@ import { DEFAULT_DECIMAL_PLACES, DEFAULT_PRICE_CURRENCY } from '../config';
 import withCache from './withCache';
 
 export const formatInteger = withCache((value: number, fractionDigits = 2, noRadix = false) => {
-  const minValue = 1 / (10 ** fractionDigits);
-  if (Math.abs(value) > 0 && Math.abs(value) < minValue) {
-    fractionDigits = DEFAULT_DECIMAL_PLACES;
-  }
-
-  const fixed = value.toFixed(Math.min(fractionDigits, 100));
-  let [wholePart, fractionPart] = fixed.split('.');
+  const fixed = value.toFixed(DEFAULT_DECIMAL_PLACES);
+  let [wholePart, fractionPart = ''] = fixed.split('.');
+  fractionPart = toSignificant(fractionPart, Math.min(fractionDigits, 100));
 
   fractionPart = fractionPart.replace(/0+$/, '');
   if (fractionPart === '') {
@@ -30,10 +26,9 @@ export function formatCurrency(value: number, currency: string, fractionDigits?:
 }
 
 export function formatCurrencyExtended(value: number, currency: string, noSign = false) {
-  const integerLength = String(Math.round(value)).length;
   const prefix = !noSign ? (value > 0 ? '+\u202F' : '\u2212\u202F') : '';
 
-  return prefix + formatCurrency(noSign ? value : Math.abs(value), currency, 10 - integerLength);
+  return prefix + formatCurrency(noSign ? value : Math.abs(value), currency);
 }
 
 export function formatCurrencyForBigValue(value: number, threshold = 1000) {
@@ -46,4 +41,35 @@ export function formatCurrencyForBigValue(value: number, threshold = 1000) {
   const [mainPart] = formattedValue.split('.');
 
   return mainPart;
+}
+
+/**
+ * @example
+ * '000012', 2 => '000012'
+ * '120012', 2 => '12'
+ * '010012', 2 => '01'
+ * '001012', 2 => '001'
+ * '000112', 2 => '00011'
+ * '100012', 2 => '1'
+ * @param value fractionPart of number
+ */
+function toSignificant(value: string, fractionDigits: number): string {
+  let digitsCount = 0;
+  let digitsLastIndex = 0;
+
+  for (let i = 0; i < value.length; i++) {
+    digitsLastIndex += 1;
+
+    if (value[i] === '0' && digitsCount === 0) {
+      continue;
+    }
+
+    digitsCount += 1;
+
+    if (digitsCount === fractionDigits) {
+      break;
+    }
+  }
+
+  return value.slice(0, digitsLastIndex).replace(/0+$/, '');
 }

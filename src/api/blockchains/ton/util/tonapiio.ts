@@ -9,6 +9,7 @@ import {
 import type { ApiNetwork } from '../../../types';
 
 import { logDebugError } from '../../../../util/logs';
+import { API_HEADERS } from '../../../environment';
 
 const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapi.io';
 const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://testnet.tonapi.io';
@@ -16,9 +17,11 @@ const MAX_LIMIT = 1000;
 
 const configurationMainnet = new Configuration({
   basePath: TONAPIIO_MAINNET_URL,
+  headers: API_HEADERS,
 });
 const configurationTestnet = new Configuration({
   basePath: TONAPIIO_TESTNET_URL,
+  headers: API_HEADERS,
 });
 
 export const tonapiioByNetwork = {

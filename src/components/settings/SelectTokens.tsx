@@ -105,7 +105,7 @@ function SelectTokens({
       } = position;
 
       const { width: componentWidth, height: componentHeight } = elementRef.current.getBoundingClientRect();
-      const isTop = window.innerHeight > top + componentWidth;
+      const isTop = window.innerHeight > top + componentHeight;
       const verticalStyle = isTop
         ? `top: ${top + offset.top}px;`
         : `top: calc(100% - ${componentHeight + offset.bottom}px);`;

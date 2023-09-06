@@ -13,7 +13,7 @@ let connector: Connector;
 export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => ApiInitArgs)) {
   if (!connector) {
     const getInitArgs = typeof initArgs === 'function' ? initArgs : () => initArgs;
-    connector = createExtensionConnector(POPUP_PORT, onUpdate, getInitArgs);
+    connector = createExtensionConnector(POPUP_PORT, onUpdate, getInitArgs as () => ApiInitArgs);
   }
 }
 

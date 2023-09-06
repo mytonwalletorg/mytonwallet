@@ -1,8 +1,8 @@
-import { requestMutation } from '../lib/fasterdom/fasterdom';
+import { requestForcedReflow, requestMutation } from '../lib/fasterdom/fasterdom';
 
 import type { LangCode } from '../global/types';
 
-import { IS_ELECTRON, LANG_LIST } from '../config';
+import { IS_FIREFOX_EXTENSION, LANG_LIST } from '../config';
 
 const SAFE_AREA_INITIALIZATION_DELAY = 1000;
 
@@ -44,14 +44,13 @@ export const IS_LINUX = PLATFORM_ENV === 'Linux';
 export const IS_IOS = PLATFORM_ENV === 'iOS';
 export const IS_ANDROID = PLATFORM_ENV === 'Android';
 export const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+export const IS_OPERA = navigator.userAgent.includes(' OPR/');
 export const IS_TOUCH_ENV = window.matchMedia('(pointer: coarse)').matches;
-export const IS_EXTENSION = Boolean(window.chrome && chrome.runtime && chrome.runtime.id);
 export const IS_CHROME_EXTENSION = Boolean(window.chrome?.system);
-export const IS_FIREFOX_EXTENSION = IS_EXTENSION && !IS_CHROME_EXTENSION;
 export const DEFAULT_LANG_CODE = 'en';
 export const USER_AGENT_LANG_CODE = getBrowserLanguage();
 export const DPR = window.devicePixelRatio || 1;
-export const IS_DAPP_SUPPORTED = IS_ELECTRON || IS_EXTENSION;
+
 export const IS_LEDGER_SUPPORTED = !(IS_IOS || IS_ANDROID || IS_FIREFOX_EXTENSION);
 
 export function setScrollbarWidthProperty() {
@@ -59,12 +58,15 @@ export function setScrollbarWidthProperty() {
   el.style.cssText = 'overflow-x: hidden; overflow-y: scroll; visibility:hidden; position:absolute;';
   el.classList.add('custom-scroll');
   document.body.appendChild(el);
-  const width = el.offsetWidth - el.clientWidth;
-  el.remove();
 
-  document.documentElement.style.setProperty('--scrollbar-width', `${width}px`);
+  requestForcedReflow(() => {
+    const width = el.offsetWidth - el.clientWidth;
 
-  return width;
+    return () => {
+      document.documentElement.style.setProperty('--scrollbar-width', `${width}px`);
+      el.remove();
+    };
+  });
 }
 
 export function setPageSafeAreaProperty() {

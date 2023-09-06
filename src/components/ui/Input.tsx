@@ -1,6 +1,7 @@
 import type { ChangeEvent, RefObject } from 'react';
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import type { TeactNode } from '../../lib/teact/teact';
-import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import React, { memo, useState } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 
@@ -66,10 +67,15 @@ function Input({
     setIsPasswordVisible(!isPasswordVisible);
   };
 
-  const handleChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
-    e.currentTarget.style.height = '0';
-    e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-  }, []);
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const { currentTarget } = e;
+    const { scrollHeight } = currentTarget;
+
+    requestMutation(() => {
+      currentTarget.style.height = '0';
+      currentTarget.style.height = `${scrollHeight}px`;
+    });
+  };
 
   const finalType = type === 'text' || isPasswordVisible ? 'text' : 'password';
   const inputFullClass = buildClassName(

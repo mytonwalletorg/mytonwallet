@@ -1,6 +1,5 @@
-import TonWeb from 'tonweb';
 import React, {
-  memo, useCallback, useMemo, useState,
+  memo, useMemo, useState,
 } from '../../lib/teact/teact';
 
 import type { UserToken } from '../../global/types';
@@ -11,9 +10,11 @@ import { humanToBigStr } from '../../global/helpers';
 import renderText from '../../global/helpers/renderText';
 import { selectAccount, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import formatTransferUrl from '../../util/ton/formatTransferUrl';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import type { DropdownItem } from '../ui/Dropdown';
@@ -21,7 +22,6 @@ import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import Modal from '../ui/Modal';
-import ModalTransitionContent from '../ui/ModalTransitionContent';
 import RichNumberInput from '../ui/RichNumberInput';
 
 import styles from './ReceiveModal.module.scss';
@@ -53,7 +53,7 @@ function InvoiceModal({
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
 
   const invoiceAmount = amount ? humanToBigStr(amount) : undefined;
-  const invoiceUrl = address ? TonWeb.utils.formatTransferUrl(address, invoiceAmount, comment) : '';
+  const invoiceUrl = address ? formatTransferUrl(address, invoiceAmount, comment) : '';
 
   const dropdownItems = useMemo(() => {
     if (!tokens) {
@@ -73,7 +73,7 @@ function InvoiceModal({
     }, []);
   }, [tokens]);
 
-  const handleAmountInput = useCallback((value?: number) => {
+  const handleAmountInput = useLastCallback((value?: number) => {
     setHasAmountError(false);
 
     if (value === undefined) {
@@ -87,45 +87,49 @@ function InvoiceModal({
     }
 
     setAmount(value);
-  }, []);
+  });
 
   function renderTokens() {
     return <Dropdown items={dropdownItems} selectedValue={TON_TOKEN_SLUG} className={styles.tokenDropdown} />;
   }
 
   return (
-    <Modal isSlideUp hasCloseButton title={lang('Create Invoice')} isOpen={isOpen} onClose={onClose}>
-      <ModalTransitionContent className={styles.contentInvoice}>
-        <div className={buildClassName(styles.info, styles.info_push)}>
-          {renderText(lang('$receive_invoice_description'))}
-        </div>
-        <RichNumberInput
-          key="amount"
-          id="amount"
-          hasError={hasAmountError}
-          value={amount}
-          labelText={lang('Amount')}
-          onChange={handleAmountInput}
-        >
-          {renderTokens()}
-        </RichNumberInput>
-        <Input
-          value={comment}
-          onInput={setComment}
-          label={lang('Comment')}
-          placeholder={lang('Optional')}
-          wrapperClassName={styles.invoiceComment}
-        />
+    <Modal
+      hasCloseButton
+      title={lang('Create Invoice')}
+      isOpen={isOpen}
+      contentClassName={styles.content}
+      onClose={onClose}
+    >
+      <div className={buildClassName(styles.info, styles.info_push)}>
+        {renderText(lang('$receive_invoice_description'))}
+      </div>
+      <RichNumberInput
+        key="amount"
+        id="amount"
+        hasError={hasAmountError}
+        value={amount}
+        labelText={lang('Amount')}
+        onChange={handleAmountInput}
+      >
+        {renderTokens()}
+      </RichNumberInput>
+      <Input
+        value={comment}
+        onInput={setComment}
+        label={lang('Comment')}
+        placeholder={lang('Optional')}
+        wrapperClassName={styles.invoiceComment}
+      />
 
-        <p className={buildClassName(styles.description, styles.description_forInvoice)}>
-          {lang('Share this URL to receive TON')}
-        </p>
-        <InteractiveTextField text={invoiceUrl} copyNotification={lang('Invoice link was copied!')} />
+      <p className={buildClassName(styles.description, styles.description_forInvoice)}>
+        {lang('Share this URL to receive TON')}
+      </p>
+      <InteractiveTextField text={invoiceUrl} copyNotification={lang('Invoice link was copied!')} />
 
-        <div className={styles.buttons}>
-          <Button onClick={onBackButtonClick}>{backButtonText ?? lang('Back')}</Button>
-        </div>
-      </ModalTransitionContent>
+      <div className={styles.buttons}>
+        <Button onClick={onBackButtonClick}>{backButtonText ?? lang('Back')}</Button>
+      </div>
     </Modal>
   );
 }

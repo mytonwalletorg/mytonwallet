@@ -1,13 +1,15 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Modal from '../ui/Modal';
-import ModalTransitionContent from '../ui/ModalTransitionContent';
 import Content from './Content';
 import InvoiceModal from './InvoiceModal';
 import QrModal from './QrModal';
+
+import styles from './ReceiveModal.module.scss';
 
 type Props = {
   isOpen: boolean;
@@ -19,18 +21,18 @@ function ReceiveModal({ isOpen, onClose }: Props) {
   const [isQrModalOpen, openQrModal, closeQrModal] = useFlag(false);
   const [isInvoiceModalOpen, openInvoiceModal, closeInvoiceModal] = useFlag(false);
 
-  const handleClose = useCallback(() => {
+  const handleClose = useLastCallback(() => {
     onClose();
     closeInvoiceModal();
     closeQrModal();
-  }, [closeInvoiceModal, closeQrModal, onClose]);
+  });
 
   return (
     <>
-      <Modal isSlideUp hasCloseButton title={lang('Receive TON')} isOpen={isOpen} onClose={handleClose}>
-        <ModalTransitionContent>
+      <Modal hasCloseButton title={lang('Receive TON')} isOpen={isOpen} onClose={handleClose}>
+        <div className={styles.content}>
           <Content onInvoiceModalOpen={openInvoiceModal} onQrModalOpen={openQrModal} />
-        </ModalTransitionContent>
+        </div>
       </Modal>
       <QrModal isOpen={isQrModalOpen} onBackButtonClick={closeQrModal} onClose={handleClose} />
       <InvoiceModal isOpen={isInvoiceModalOpen} onBackButtonClick={closeInvoiceModal} onClose={handleClose} />

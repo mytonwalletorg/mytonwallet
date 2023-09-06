@@ -68,21 +68,6 @@ export type ApiUpdateShowError = {
   error?: ApiAnyDisplayError;
 };
 
-export type ApiUpdateTonProxyState = {
-  type: 'updateTonProxyState';
-  isEnabled: boolean;
-};
-
-export type ApiUpdateTonMagicState = {
-  type: 'updateTonMagicState';
-  isEnabled: boolean;
-};
-
-export type ApiUpdateDeeplinkHookState = {
-  type: 'updateDeeplinkHookState';
-  isEnabled: boolean;
-};
-
 export type ApiUpdateStakingState = {
   type: 'updateStakingState';
   accountId: string;
@@ -169,10 +154,6 @@ export type ApiUpdate =
   | ApiUpdateCreateTransaction
   | ApiUpdateCreateSignature
   | ApiUpdateTxComplete
-  | ApiUpdateShowError
-  | ApiUpdateTonProxyState
-  | ApiUpdateTonMagicState
-  | ApiUpdateDeeplinkHookState
   | ApiUpdateStakingState
   | ApiUpdateActiveDapp
   | ApiUpdateDappSendTransactions

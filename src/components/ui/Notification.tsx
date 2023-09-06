@@ -1,12 +1,13 @@
 import type { FC } from '../../lib/teact/teact';
 import React, {
-  useCallback, useEffect, useRef, useState,
+  useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
 import { IS_ELECTRON } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 
+import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import Portal from './Portal';
@@ -32,10 +33,10 @@ const Notification: FC<OwnProps> = ({
 
   const { transitionClassNames } = useShowTransition(isOpen);
 
-  const closeAndDismiss = useCallback(() => {
+  const closeAndDismiss = useLastCallback(() => {
     setIsOpen(false);
     setTimeout(onDismiss, ANIMATION_DURATION);
-  }, [onDismiss]);
+  });
 
   useEffect(() => (isOpen ? captureEscKeyListener(closeAndDismiss) : undefined), [isOpen, closeAndDismiss]);
 
@@ -50,16 +51,16 @@ const Notification: FC<OwnProps> = ({
     };
   }, [closeAndDismiss]);
 
-  const handleMouseEnter = useCallback(() => {
+  const handleMouseEnter = useLastCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = undefined;
     }
-  }, []);
+  });
 
-  const handleMouseLeave = useCallback(() => {
+  const handleMouseLeave = useLastCallback(() => {
     timerRef.current = window.setTimeout(closeAndDismiss, DURATION_MS);
-  }, [closeAndDismiss]);
+  });
 
   return (
     <Portal

@@ -13,25 +13,24 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
 import type { Compiler, Configuration } from 'webpack';
 import {
-  DefinePlugin, EnvironmentPlugin, NormalModuleReplacementPlugin, ProvidePlugin,
+  DefinePlugin, EnvironmentPlugin, NormalModuleReplacementPlugin,
+  ProvidePlugin,
 } from 'webpack';
-import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 
 import 'webpack-dev-server';
 
-const {
-  APP_ENV,
-  HEAD,
-  ENV_EXTENSION,
-  IS_ELECTRON,
-  IS_FIREFOX_EXTENSION,
-} = process.env;
+const { APP_ENV, HEAD } = process.env;
+const IS_EXTENSION = process.env.IS_EXTENSION === '1';
+const IS_ELECTRON = process.env.IS_ELECTRON === '1';
+const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
+const IS_OPERA_EXTENSION = process.env.IS_OPERA_EXTENSION === '1';
 
 const gitRevisionPlugin = new GitRevisionPlugin();
 const branch = HEAD || gitRevisionPlugin.branch();
 const appRevision = !branch || branch === 'HEAD' ? gitRevisionPlugin.commithash()?.substring(0, 7) : branch;
-const STATOSCOPE_REFERENCE_URL = 'https://mytonwallet.app/build-stats.json';
-let isReferenceFetched = false;
+const STATOSCOPE_REFERENCE_URL = 'https://beta.mytonwallet.app/statoscope-build-statistics.json';
+const canUseStatoscope = !IS_EXTENSION && !IS_ELECTRON;
+const canUseBuildReference = canUseStatoscope && APP_ENV === 'staging';
 
 // The `connect-src` rule contains `https:` due to arbitrary requests are needed for jetton JSON configs.
 // The `img-src` rule contains `https:` due to arbitrary image URLs being used as jetton logos.
@@ -39,7 +38,7 @@ let isReferenceFetched = false;
 const CSP = `
   default-src 'none';
   manifest-src 'self';
-  connect-src 'self' https:;
+  connect-src 'self' https: http://localhost:3000;
   script-src 'self' 'wasm-unsafe-eval';
   style-src 'self' https://fonts.googleapis.com/;
   img-src 'self' data: https:;
@@ -66,23 +65,12 @@ export default function createConfig(
 
     optimization: {
       usedExports: true,
-      splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-          extensionVendors: {
-            test: /[\\/]node_modules[\\/](webextension-polyfill)/,
-            name: 'extensionVendors',
-            chunks: 'all',
-            priority: 10, // For some reason priority is required here in order to bundle extensionVendors.js separately
-          },
-          defaultVendors: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            priority: 0,
-          },
-        },
-      },
+      ...(APP_ENV === 'staging' && {
+        chunkIds: 'named',
+      }),
+      ...(IS_EXTENSION && {
+        minimize: false,
+      }),
     },
 
     entry: {
@@ -186,19 +174,48 @@ export default function createConfig(
       fallback: {
         crypto: false,
       },
+      alias: {
+        // It is used to remove duplicate dependencies
+        'bn.js': path.join(__dirname, 'node_modules/bn.js/lib/bn.js'),
+      },
     },
 
     plugins: [
-      ...(APP_ENV === 'staging' ? [{
+      ...(canUseBuildReference ? [{
         apply: (compiler: Compiler) => {
           compiler.hooks.compile.tap('Before Compilation', async () => {
             try {
               const stats = await fetch(STATOSCOPE_REFERENCE_URL).then((res) => res.text());
-              fs.writeFileSync(path.resolve('./public/reference.json'), stats);
-              isReferenceFetched = true;
+              // Quick and simple json validator
+              JSON.parse(stats);
+              fs.writeFileSync(path.resolve('./public/statoscope-master-reference.json'), stats);
+              // eslint-disable-next-line no-console
+              console.info('Reference statoscope stats fetched');
             } catch (err: any) {
+              fs.writeFileSync(path.resolve('./public/statoscope-master-reference.json'), '{}');
+
               // eslint-disable-next-line no-console
               console.warn('Failed to fetch reference statoscope stats: ', err.message);
+            }
+          });
+        },
+      }] : []),
+      ...(IS_OPERA_EXTENSION ? [{
+        apply: (compiler: Compiler) => {
+          compiler.hooks.afterDone.tap('After Compilation', async () => {
+            const dir = './dist/';
+
+            for (const filename of await fs.promises.readdir(dir)) {
+              const file = path.join(dir, filename);
+
+              if (file.endsWith('.tgs')) {
+                await fs.promises.rename(file, file.replace('.tgs', '.json'));
+              } else if (filename.includes('main') && filename.endsWith('.js')) {
+                const content = (await fs.promises.readFile(file))
+                  .toString('utf-8')
+                  .replace(/\.tgs"/g, '.json"');
+                await fs.promises.writeFile(file, content);
+              }
             }
           });
         },
@@ -257,6 +274,8 @@ export default function createConfig(
         IS_ELECTRON: false,
         ELECTRON_TONHTTPAPI_MAINNET_API_KEY: null,
         ELECTRON_TONHTTPAPI_TESTNET_API_KEY: null,
+        IS_EXTENSION: false,
+        IS_FIREFOX_EXTENSION: false,
       }),
       /* eslint-enable no-null/no-null */
       new DefinePlugin({
@@ -308,21 +327,20 @@ export default function createConfig(
           },
         ],
       }),
-      new StatoscopeWebpackPlugin({
+      ...(canUseStatoscope ? [new StatoscopeWebpackPlugin({
         statsOptions: {
           context: __dirname,
         },
         saveReportTo: path.resolve('./public/statoscope-report.html'),
-        saveStatsTo: path.resolve('./public/build-stats.json'),
+        saveStatsTo: path.resolve('./public/statoscope-build-statistics.json'),
         normalizeStats: true,
         open: false,
         extensions: [new WebpackContextExtension()], // eslint-disable-line @typescript-eslint/no-use-before-define
-        ...(APP_ENV === 'staging' && isReferenceFetched && {
-          additionalStats: ['./public/reference.json'],
-        }),
-      }),
-      ...(mode === 'production' ? [new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false })] : []),
-      ...(ENV_EXTENSION === '1'
+        ...(canUseBuildReference ? {
+          additionalStats: ['./public/statoscope-master-reference.json'],
+        } : {}),
+      })] : []),
+      ...(IS_EXTENSION
         ? [
           new NormalModuleReplacementPlugin(
             /src\/api\/providers\/worker\/connector\.ts/,
@@ -333,13 +351,7 @@ export default function createConfig(
     ],
 
     devtool:
-      ENV_EXTENSION === '1' ? 'cheap-source-map' : APP_ENV === 'production' && IS_ELECTRON ? undefined : 'source-map',
-
-    ...(ENV_EXTENSION === '1' && {
-      optimization: {
-        minimize: false,
-      },
-    }),
+      IS_EXTENSION ? 'cheap-source-map' : APP_ENV === 'production' && IS_ELECTRON ? undefined : 'source-map',
   };
 }
 

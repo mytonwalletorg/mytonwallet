@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useRef, useState,
+  memo, useEffect, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
 
 import type { Account } from '../../../../global/types';
@@ -14,12 +14,19 @@ import trapFocus from '../../../../util/trapFocus';
 import useFlag from '../../../../hooks/useFlag';
 import useFocusAfterAnimation from '../../../../hooks/useFocusAfterAnimation';
 import useLang from '../../../../hooks/useLang';
+import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
 import Button from '../../../ui/Button';
 import AddAccountModal from '../../modals/AddAccountModal';
 
 import styles from './AccountSelector.module.scss';
+
+interface OwnProps {
+  canEdit?: boolean;
+  accountClassName?: string;
+  menuButtonClassName?: string;
+}
 
 interface StateProps {
   currentAccountId: string;
@@ -33,8 +40,11 @@ const ACCOUNTS_AMOUNT_FOR_COMPACT_DIALOG = 3;
 function AccountSelector({
   currentAccountId,
   currentAccount,
+  canEdit,
+  accountClassName,
+  menuButtonClassName,
   accounts,
-}: StateProps) {
+}: OwnProps & StateProps) {
   const {
     switchAccount, renameAccount, openAddAccountModal, openSettings,
   } = getActions();
@@ -68,9 +78,9 @@ function AccountSelector({
     }
   }, [currentAccount?.title, isEdit]);
 
-  const handleOpenAccountSelector = useCallback(() => {
+  const handleOpenAccountSelector = () => {
     openAccountSelector();
-  }, [openAccountSelector]);
+  };
 
   const handleSwitchAccount = (value: string) => {
     closeAccountSelector();
@@ -83,24 +93,24 @@ function AccountSelector({
     openEdit();
   };
 
-  const handleSaveClick = useCallback(() => {
+  const handleSaveClick = useLastCallback(() => {
     renameAccount({ accountId: currentAccountId, title: inputValue.trim() });
     closeAccountSelector();
     closeEdit();
-  }, [closeAccountSelector, closeEdit, currentAccountId, inputValue, renameAccount]);
+  });
 
-  const handleAddWalletClick = useCallback(() => {
+  const handleAddWalletClick = useLastCallback(() => {
     closeAccountSelector();
     openAddAccountModal();
-  }, [closeAccountSelector, openAddAccountModal]);
+  });
 
-  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyDown = useLastCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.code === 'Enter') {
       handleSaveClick();
     } else {
       setInputValue(e.currentTarget.value);
     }
-  }, [handleSaveClick]);
+  });
 
   function renderButton(accountId: string, address: string, isHardware?: boolean, title?: string) {
     const isActive = accountId === currentAccountId;
@@ -119,7 +129,7 @@ function AccountSelector({
           </span>
         </div>
 
-        {isActive && (
+        {isActive && canEdit && (
           <div className={styles.edit} onClick={handleEditClick}>
             <i className="icon-pen" aria-hidden />
           </div>
@@ -136,11 +146,11 @@ function AccountSelector({
   function renderCurrentAccount() {
     return (
       <>
-        <div className={styles.addressTitle} onClick={handleOpenAccountSelector}>
+        <div className={buildClassName(styles.addressTitle, accountClassName)} onClick={handleOpenAccountSelector}>
           {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
         </div>
         <Button
-          className={styles.menuButton}
+          className={buildClassName(styles.menuButton, menuButtonClassName)}
           isText
           isSimple
           kind="transparent"
@@ -207,7 +217,7 @@ function AccountSelector({
   );
 }
 
-export default memo(withGlobal((global): StateProps => {
+export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accounts = selectNetworkAccounts(global);
 
   return {

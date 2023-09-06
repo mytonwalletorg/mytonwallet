@@ -10,11 +10,16 @@ export const DEBUG_MORE = false;
 
 export const IS_TEST = APP_ENV === 'test';
 export const IS_PERF = APP_ENV === 'perf';
-export const IS_ELECTRON = process.env.IS_ELECTRON;
+export const IS_EXTENSION = process.env.IS_EXTENSION === '1';
+export const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
+export const IS_ELECTRON = process.env.IS_ELECTRON === '1';
+export const IS_DAPP_SUPPORTED = IS_EXTENSION || IS_ELECTRON;
 export const IS_SSE_SUPPORTED = IS_ELECTRON;
 
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
+
+export const STRICTERDOM_ENABLED = DEBUG && !IS_ELECTRON;
 
 export const DEBUG_ALERT_MSG = 'Shoot!\nSomething went wrong, please see the error details in Dev Tools Console.';
 
@@ -93,7 +98,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-23';
+export const LANG_CACHE_NAME = 'mtw-lang-26';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',

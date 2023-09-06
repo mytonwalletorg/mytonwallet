@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo,
+  memo, useEffect, useMemo,
 } from '../../lib/teact/teact';
 
 import type { ApiBackendStakingState } from '../../api/types';
@@ -16,6 +16,7 @@ import { round } from '../../util/round';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 import useWindowSize from '../../hooks/useWindowSize';
 
@@ -78,15 +79,15 @@ function StakingInfoContent({
     }
   }, [fetchBackendStakingState, isActive]);
 
-  const handleStakeClick = useCallback(() => {
+  const handleStakeClick = useLastCallback(() => {
     onClose?.();
     startStaking();
-  }, [onClose, startStaking]);
+  });
 
-  const handleUnstakeClick = useCallback(() => {
+  const handleUnstakeClick = useLastCallback(() => {
     onClose?.();
     startStaking({ isUnstaking: true });
-  }, [onClose, startStaking]);
+  });
 
   const stakingResult = round(amount, STAKING_DECIMAL);
   const balanceResult = round(amount + (amount / 100) * apyValue, STAKING_DECIMAL);

@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useMemo, useState,
+  memo, useMemo, useState,
 } from '../../lib/teact/teact';
 
 import type { Account } from '../../global/types';
@@ -12,6 +12,7 @@ import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
@@ -43,18 +44,18 @@ function LedgerSelectWallets({
   const [selectedAccountIndices, setSelectedAccountIndices] = useState<number[]>([]);
   const shouldCloseOnCancel = !onCancel;
 
-  const handleAccountToggle = useCallback((index: number) => {
+  const handleAccountToggle = useLastCallback((index: number) => {
     if (selectedAccountIndices.includes(index)) {
       setSelectedAccountIndices(selectedAccountIndices.filter((id) => id !== index));
     } else {
       setSelectedAccountIndices(selectedAccountIndices.concat([index]));
     }
-  }, [selectedAccountIndices]);
+  });
 
-  const handleAddLedgerWallets = useCallback(() => {
+  const handleAddLedgerWallets = useLastCallback(() => {
     afterSelectHardwareWallets({ hardwareSelectedIndices: selectedAccountIndices });
     onClose();
-  }, [afterSelectHardwareWallets, selectedAccountIndices, onClose]);
+  });
 
   const alreadyConnectedList = useMemo(
     () => Object.values(accounts ?? []).map(({ address }) => address),

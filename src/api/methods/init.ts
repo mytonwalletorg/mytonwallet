@@ -1,8 +1,7 @@
 import type { ApiInitArgs, OnApiUpdate } from '../types';
 
-import { IS_SSE_SUPPORTED } from '../../config';
+import { IS_DAPP_SUPPORTED, IS_SSE_SUPPORTED } from '../../config';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
-import { IS_DAPP_SUPPORTED } from '../environment';
 import * as tonConnect from '../tonConnect';
 import { resetupSseConnection, sendSseDisconnect } from '../tonConnect/sse';
 import * as methods from '.';
@@ -14,12 +13,12 @@ addHooks({
   onDappsChanged: resetupSseConnection,
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   connectUpdater(onUpdate);
 
-  methods.initPolling(onUpdate, methods.isAccountActive, args);
+  methods.initPolling(onUpdate, methods.isAccountActive);
   methods.initTransactions(onUpdate);
-  void methods.initWallet(onUpdate);
   methods.initStaking(onUpdate);
 
   if (IS_DAPP_SUPPORTED) {

@@ -53,6 +53,7 @@ export enum AuthState {
   none,
   creatingWallet,
   createPassword,
+  createBackup,
   disclaimerAndBackup,
   importWallet,
   disclaimer,
@@ -319,6 +320,7 @@ export interface ActionPayloads {
   createHardwareAccounts: undefined;
   createAccount: { password: string; isImporting: boolean };
   afterSelectHardwareWallets: { hardwareSelectedIndices: number[] };
+  resetApiSettings: { areAllDisabled?: boolean } | undefined;
 
   selectToken: { slug?: string } | undefined;
   openBackupWalletModal: undefined;
@@ -359,7 +361,7 @@ export interface ActionPayloads {
   showNotification: { message: string; icon?: string };
   dismissNotification: undefined;
   initLedgerPage: undefined;
-  afterSignIn: undefined;
+  afterSignIn: { isFirstLogin: boolean } | undefined;
   signOut: { isFromAllAccounts?: boolean } | undefined;
   cancelCaching: undefined;
   afterSignOut: { isFromAllAccounts?: boolean } | undefined;

@@ -9,7 +9,9 @@ let connector: Connector;
 
 export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => ApiInitArgs)) {
   if (!connector) {
-    connector = createConnector(new Worker(new URL('./provider.ts', import.meta.url)), onUpdate);
+    connector = createConnector(new Worker(
+      /* webpackChunkName: "worker" */ new URL('./provider.ts', import.meta.url),
+    ), onUpdate);
   }
 
   const args = typeof initArgs === 'function' ? initArgs() : initArgs;

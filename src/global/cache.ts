@@ -6,7 +6,7 @@ import {
 import type { GlobalState, TokenPeriod } from './types';
 
 import {
-  DEBUG, DEFAULT_DECIMAL_PLACES, GLOBAL_STATE_CACHE_DISABLED, GLOBAL_STATE_CACHE_KEY, MAIN_ACCOUNT_ID,
+  DEBUG, DEFAULT_DECIMAL_PLACES, GLOBAL_STATE_CACHE_DISABLED, GLOBAL_STATE_CACHE_KEY, IS_ELECTRON, MAIN_ACCOUNT_ID,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
 import { cloneDeep, mapValues, pick } from '../util/iteratees';
@@ -40,6 +40,7 @@ export function initCache() {
     setTimeout(() => {
       actions.restartAuth();
     }, ANIMATION_DELAY_MS);
+
     if (isCaching) {
       return;
     }
@@ -54,6 +55,8 @@ export function initCache() {
         ...global,
         state: AppState.Auth,
       });
+
+      actions.resetApiSettings({ areAllDisabled: true });
 
       localStorage.removeItem(GLOBAL_STATE_CACHE_KEY);
 
@@ -305,6 +308,14 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     }
 
     cached.stateVersion = 8;
+  }
+
+  if (cached.stateVersion === 8) {
+    if (cached.settings && IS_ELECTRON) {
+      cached.settings.isDeeplinkHookEnabled = true;
+    }
+
+    cached.stateVersion = 9;
   }
 
   // When adding migration here, increase `STATE_VERSION`

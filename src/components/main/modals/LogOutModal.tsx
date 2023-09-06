@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 
 import type { Account, AccountState } from '../../../global/types';
@@ -81,10 +81,10 @@ function LogOutModal({
     switchAccount({ accountId });
   };
 
-  const handleLogOut = useCallback(() => {
+  const handleLogOut = useLastCallback(() => {
     onClose(!isLogOutFromAllAccounts && hasManyAccounts);
     signOut({ isFromAllAccounts: isLogOutFromAllAccounts });
-  }, [isLogOutFromAllAccounts, hasManyAccounts, onClose]);
+  });
 
   const handleClose = useLastCallback(() => {
     onClose(false);

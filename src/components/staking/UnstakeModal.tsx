@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 
 import { StakingState } from '../../global/types';
@@ -18,6 +18,7 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import usePrevious from '../../hooks/usePrevious';
 import useSyncEffect from '../../hooks/useSyncEffect';
@@ -89,28 +90,28 @@ function UnstakeModal({
     }
   }, [endOfStakingCycle]);
 
-  const refreshUnstakeDate = useCallback(() => {
+  const refreshUnstakeDate = useLastCallback(() => {
     if (unstakeDate < Date.now()) {
       fetchBackendStakingState();
     }
     forceUpdate();
-  }, [fetchBackendStakingState, forceUpdate, unstakeDate]);
+  });
 
   useInterval(refreshUnstakeDate, UPDATE_UNSTAKE_DATE_INTERVAL_MS);
 
-  const handleBackClick = useCallback(() => {
+  const handleBackClick = useLastCallback(() => {
     if (state === StakingState.UnstakePassword) {
       setStakingScreen({ state: StakingState.UnstakeInitial });
     }
-  }, [setStakingScreen, state]);
+  });
 
-  const handleStartUnstakeClick = useCallback(() => {
+  const handleStartUnstakeClick = useLastCallback(() => {
     submitStakingInitial({ isUnstaking: true });
-  }, [submitStakingInitial]);
+  });
 
-  const handleTransferSubmit = useCallback((password: string) => {
+  const handleTransferSubmit = useLastCallback((password: string) => {
     submitStakingPassword({ password, isUnstaking: true });
-  }, [submitStakingPassword]);
+  });
 
   function renderInitial(isActive: boolean) {
     return (
@@ -237,7 +238,6 @@ function UnstakeModal({
   return (
     <Modal
       hasCloseButton
-      isSlideUp
       isOpen={isOpen}
       onClose={cancelStaking}
       noBackdropClose
@@ -245,7 +245,7 @@ function UnstakeModal({
       onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

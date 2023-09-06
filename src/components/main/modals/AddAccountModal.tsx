@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from '../../../lib/teact/teact';
+import React, { memo, useState } from '../../../lib/teact/teact';
 
 import type { Account, HardwareConnectState } from '../../../global/types';
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
@@ -12,6 +12,7 @@ import { IS_LEDGER_SUPPORTED } from '../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
 import useLang from '../../../hooks/useLang';
+import useLastCallback from '../../../hooks/useLastCallback';
 
 import LedgerConnect from '../../ledger/LedgerConnect';
 import LedgerSelectWallets from '../../ledger/LedgerSelectWallets';
@@ -56,7 +57,7 @@ function AddAccountModal({
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
-}: StateProps & StateProps) {
+}: StateProps) {
   const { addAccount, clearAccountError, closeAddAccountModal } = getActions();
 
   const lang = useLang();
@@ -64,17 +65,17 @@ function AddAccountModal({
 
   const [isNewAccountImporting, setIsNewAccountImporting] = useState<boolean>(false);
 
-  const handleBackClick = useCallback(() => {
+  const handleBackClick = useLastCallback(() => {
     setRenderingKey(RenderingState.Initial);
     clearAccountError();
-  }, [clearAccountError]);
+  });
 
-  const handleModalClose = useCallback(() => {
+  const handleModalClose = useLastCallback(() => {
     setRenderingKey(RenderingState.Initial);
     setIsNewAccountImporting(false);
-  }, []);
+  });
 
-  const handleNewAccountClick = useCallback(() => {
+  const handleNewAccountClick = useLastCallback(() => {
     if (!firstNonHardwareAccount) {
       addAccount({
         method: 'createAccount',
@@ -85,9 +86,9 @@ function AddAccountModal({
 
     setRenderingKey(RenderingState.Password);
     setIsNewAccountImporting(false);
-  }, [firstNonHardwareAccount, addAccount]);
+  });
 
-  const handleImportAccountClick = useCallback(() => {
+  const handleImportAccountClick = useLastCallback(() => {
     if (!firstNonHardwareAccount) {
       addAccount({
         method: 'importMnemonic',
@@ -98,19 +99,19 @@ function AddAccountModal({
 
     setRenderingKey(RenderingState.Password);
     setIsNewAccountImporting(true);
-  }, [firstNonHardwareAccount, addAccount]);
+  });
 
-  const handleImportHardwareWalletClick = useCallback(() => {
+  const handleImportHardwareWalletClick = useLastCallback(() => {
     setRenderingKey(RenderingState.ConnectHardware);
-  }, []);
+  });
 
-  const handleHardwareWalletConnected = useCallback(() => {
+  const handleHardwareWalletConnected = useLastCallback(() => {
     setRenderingKey(RenderingState.SelectAccountsHardware);
-  }, []);
+  });
 
-  const handleSubmit = useCallback((password: string) => {
+  const handleSubmit = useLastCallback((password: string) => {
     addAccount({ method: isNewAccountImporting ? 'importMnemonic' : 'createAccount', password });
-  }, [addAccount, isNewAccountImporting]);
+  });
 
   function renderSelector(isActive?: boolean) {
     return (
@@ -214,7 +215,6 @@ function AddAccountModal({
   return (
     <Modal
       hasCloseButton
-      isSlideUp
       isOpen={isOpen}
       onClose={closeAddAccountModal}
       noBackdropClose
@@ -222,7 +222,7 @@ function AddAccountModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
 
 import type { UserToken } from '../../global/types';
@@ -23,6 +23,7 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
@@ -81,7 +82,7 @@ function StakingInitial({
   } = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]) || {};
   const hasAmountError = Boolean(isInsufficientBalance || apiError);
 
-  const validateAndSetAmount = useCallback((newAmount: number | undefined, noReset = false) => {
+  const validateAndSetAmount = useLastCallback((newAmount: number | undefined, noReset = false) => {
     if (!noReset) {
       setShouldUseAllBalance(false);
       setIsNotEnough(false);
@@ -105,7 +106,7 @@ function StakingInitial({
     }
 
     setAmount(newAmount);
-  }, [balance, stakingBalance, stakingMinAmount]);
+  });
 
   useEffect(() => {
     if (shouldUseAllBalance && balance) {
@@ -130,15 +131,13 @@ function StakingInitial({
     });
   }, [amount, fetchStakingFee]);
 
-  const handleAmountChange = useCallback(validateAndSetAmount, [validateAndSetAmount]);
-
-  const handleAmountBlur = useCallback(() => {
+  const handleAmountBlur = useLastCallback(() => {
     if (amount && amount + stakingBalance < stakingMinAmount) {
       setIsNotEnough(true);
     }
-  }, [amount, stakingBalance, stakingMinAmount]);
+  });
 
-  const handleBalanceLinkClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
+  const handleBalanceLinkClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -147,9 +146,9 @@ function StakingInitial({
     }
 
     setShouldUseAllBalance(true);
-  }, [balance]);
+  });
 
-  const handleMinusOneClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
+  const handleMinusOneClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -158,13 +157,13 @@ function StakingInitial({
     }
 
     validateAndSetAmount(amount - MIN_BALANCE_FOR_UNSTAKE);
-  }, [amount, balance, validateAndSetAmount]);
+  });
 
   const canSubmit = amount && balance && !isNotEnough
     && amount <= balance
     && (amount + stakingBalance >= stakingMinAmount);
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useLastCallback((e) => {
     e.preventDefault();
 
     if (!canSubmit) {
@@ -172,7 +171,7 @@ function StakingInitial({
     }
 
     submitStakingInitial({ amount });
-  }, [canSubmit, submitStakingInitial, amount]);
+  });
 
   function getError() {
     if (isInsufficientBalance) {
@@ -315,7 +314,7 @@ function StakingInitial({
         value={amount}
         labelText={lang('Amount')}
         onBlur={handleAmountBlur}
-        onChange={handleAmountChange}
+        onChange={validateAndSetAmount}
         onPressEnter={handleSubmit}
         decimals={decimals}
         inputClassName={isStatic ? styles.inputRichStatic : undefined}

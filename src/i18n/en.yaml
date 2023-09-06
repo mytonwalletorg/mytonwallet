@@ -145,7 +145,6 @@ Switch Account: Switch Account
 Copy wallet address: Copy wallet address
 View address on TON Explorer: View address on TON Explorer
 Open on CoinMarketCap: Open on CoinMarketCap
-No Activity: No Activity
 You have just created a new wallet: You have just created a new wallet
 You can now transfer your tokens from another wallet or exchange.: You can now transfer your tokens from another wallet or exchange.
 Assets: Assets
@@ -351,11 +350,19 @@ $auth_responsibly_description4: |
   **Never** store all your funds in one place. **Diversify** and use various software and hardware. Always **do your own research** and learn more about crypto security.
 Start Wallet: Start Wallet
 $auth_backup_warning_notice: |
-  Now you need to manually **back up secret keys** in a case you forget your password or lose access to this device.
+  Now you need to manually **back up secret keys** in case you forget your password or lose access to this device.
 Later: Later
 Back Up Now: Back Up Now
-I have read and accept this information: I have read and accept this information
+I have read and accept this information: I have read and accept this information.
 $ledger_verify_address: Always verify pasted address using your Ledger device.
 $ledger_not_ready: Ledger is not connected or TON app is not open.
 Verify now: Verify now
 Invalid address format. Only URL Safe Base64 format is allowed.: Invalid address format. Only URL Safe Base64 format is allowed.
+$auth_backup_description1: |
+  This is a **secure wallet**
+  and is only **controlled by you**.
+$auth_backup_description2: "And with great power comes **great responsibility**."
+$auth_backup_description3: |
+  You need to manually **back up secret keys** in case you forget your password or lose access to this device.
+Terms of Use: Terms of Use
+Privacy Policy: Privacy Policy

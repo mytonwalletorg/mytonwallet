@@ -1,12 +1,24 @@
 import TonWeb from 'tonweb';
+import type { HttpProviderOptions } from 'tonweb/dist/types/providers/http-provider';
 
 import { logDebugError } from '../../../../util/logs';
 import { pause } from '../../../../util/schedulers';
+
+type Options = HttpProviderOptions & {
+  headers?: AnyLiteral;
+};
 
 const ATTEMPTS = 5;
 const ERROR_PAUSE = 200; // 200 ms
 
 class CustomHttpProvider extends TonWeb.HttpProvider {
+  options: Options;
+
+  constructor(host: string, options?: Options) {
+    super(host, options);
+    this.options = options ?? {};
+  }
+
   send(method: string, params: any): Promise<Response> {
     return this.sendRequest(this.host, {
       id: 1, jsonrpc: '2.0', method, params,
@@ -19,6 +31,7 @@ class CustomHttpProvider extends TonWeb.HttpProvider {
     let lastStatusCode: number | undefined;
 
     const headers: AnyLiteral = {
+      ...this.options.headers,
       'Content-Type': 'application/json',
     };
     if (this.options.apiKey) {

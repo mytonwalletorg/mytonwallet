@@ -40,6 +40,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html.theme-dark {
+  color-scheme: dark;
+}
+
 html.is-ios body,
 html.is-macos body {
   font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Apple Color Emoji", "Helvetica Neue", sans-serif;

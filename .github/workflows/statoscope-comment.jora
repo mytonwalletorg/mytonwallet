@@ -36,7 +36,7 @@ $getSizeByChunks: => files.(getAssetSize($$, true)).reduce(=> size + $$, 0);
     }
   },
   validation: {
-    $messages: resolveInputFile().compilations.[hash].(hash.validation_getItems());
+    $messages: $after.compilations.[hash].(hash.validation_getItems());
     $messages,
     total: $messages.size()
   }

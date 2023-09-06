@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useRef, useState,
+  memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
 import { TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL } from '../../config';
@@ -77,7 +77,7 @@ function InteractiveTextField({
     }
   }, [isSaveAddressModalOpen]);
 
-  const handleSaveAddressSubmit = useCallback(() => {
+  const handleSaveAddressSubmit = useLastCallback(() => {
     if (!savedAddressName || !address) {
       return;
     }
@@ -85,7 +85,7 @@ function InteractiveTextField({
     addSavedAddress({ address, name: savedAddressName });
     showNotification({ message: 'Address was saved!', icon: 'icon-star' });
     closeSaveAddressModal();
-  }, [addSavedAddress, address, closeSaveAddressModal, savedAddressName, showNotification]);
+  });
 
   useEffect(() => (
     isSaveAddressModalOpen
@@ -97,10 +97,10 @@ function InteractiveTextField({
 
   useFocusAfterAnimation(addressNameRef, !isSaveAddressModalOpen);
 
-  const handleCopy = useCallback(() => {
+  const handleCopy = useLastCallback(() => {
     showNotification({ message: copyNotification, icon: 'icon-copy' });
     copyTextToClipboard(address || text || '');
-  }, [address, copyNotification, showNotification, text]);
+  });
 
   const handleRevealSpoiler = useLastCallback(() => {
     revealSpoiler();

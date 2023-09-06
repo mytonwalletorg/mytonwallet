@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useRef, useState,
+  memo, useEffect, useRef, useState,
 } from '../../../lib/teact/teact';
 
 import { getActions, withGlobal } from '../../../global';
@@ -8,6 +8,7 @@ import buildClassName from '../../../util/buildClassName';
 import { callApi } from '../../../api';
 
 import useLang from '../../../hooks/useLang';
+import useLastCallback from '../../../hooks/useLastCallback';
 
 import MnemonicCheck from '../../auth/MnemonicCheck';
 import MnemonicList from '../../auth/MnemonicList';
@@ -55,12 +56,12 @@ function BackupModal({
     mnemonicRef.current = undefined;
   }, [isOpen]);
 
-  const handleSafetyConfirm = useCallback(() => {
+  const handleSafetyConfirm = useLastCallback(() => {
     setCurrentSlide(SLIDES.password);
     setNextKey(SLIDES.mnemonic);
-  }, []);
+  });
 
-  const handlePasswordSubmit = useCallback(async (password: string) => {
+  const handlePasswordSubmit = useLastCallback(async (password: string) => {
     setIsLoading(true);
     mnemonicRef.current = await callApi('getMnemonic', currentAccountId!, password);
     setIsLoading(false);
@@ -72,34 +73,34 @@ function BackupModal({
 
     setNextKey(SLIDES.check);
     setCurrentSlide(SLIDES.mnemonic);
-  }, [currentAccountId]);
+  });
 
-  const handleBackupErrorUpdate = useCallback(() => {
+  const handleBackupErrorUpdate = useLastCallback(() => {
     setError(undefined);
-  }, []);
+  });
 
-  const handleCheckMnemonic = useCallback(() => {
+  const handleCheckMnemonic = useLastCallback(() => {
     setCheckIndexes(selectMnemonicForCheck());
     setCurrentSlide(SLIDES.check);
     setNextKey(undefined);
-  }, []);
+  });
 
-  const handleRestartCheckMnemonic = useCallback(() => {
+  const handleRestartCheckMnemonic = useLastCallback(() => {
     setCurrentSlide(SLIDES.mnemonic);
     setNextKey(SLIDES.check);
-  }, []);
+  });
 
-  const handleModalClose = useCallback(() => {
+  const handleModalClose = useLastCallback(() => {
     setIsLoading(false);
     setError(undefined);
     setCurrentSlide(SLIDES.confirm);
     setNextKey(SLIDES.password);
-  }, []);
+  });
 
-  const handleCheckMnemonicSubmit = useCallback(() => {
+  const handleCheckMnemonicSubmit = useLastCallback(() => {
     setIsBackupRequired({ isMnemonicChecked: true });
     onClose();
-  }, [setIsBackupRequired, onClose]);
+  });
 
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
@@ -159,14 +160,13 @@ function BackupModal({
   return (
     <Modal
       hasCloseButton
-      isSlideUp
       isOpen={isOpen}
       onClose={onClose}
       onCloseAnimationEnd={handleModalClose}
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

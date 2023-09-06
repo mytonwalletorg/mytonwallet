@@ -14,7 +14,6 @@ function SettingsModal({ children, isOpen, onClose }: OwnProps) {
   return (
     <Modal
       hasCloseButton
-      isSlideUp
       isOpen={isOpen}
       onClose={onClose}
       dialogClassName={styles.modalDialog}

@@ -9,9 +9,6 @@ import type {
   WalletEvent,
   WalletResponse,
 } from '@tonconnect/protocol';
-import {
-  CONNECT_EVENT_ERROR_CODES,
-} from '@tonconnect/protocol';
 
 import type { Connector } from '../../util/PostMessageConnector';
 import { TONCONNECT_VERSION, tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
@@ -22,6 +19,18 @@ declare global {
       tonconnect: TonConnect;
     };
   }
+}
+
+// This is imported from @tonconnect/protocol library
+// eslint-disable-next-line @typescript-eslint/naming-convention
+enum CONNECT_EVENT_ERROR_CODES {
+  UNKNOWN_ERROR = 0,
+  BAD_REQUEST_ERROR = 1,
+  MANIFEST_NOT_FOUND_ERROR = 2,
+  MANIFEST_CONTENT_ERROR = 3,
+  UNKNOWN_APP_ERROR = 100,
+  USER_REJECTS_ERROR = 300,
+  METHOD_NOT_SUPPORTED = 400,
 }
 
 type TonConnectCallback = (event: WalletEvent) => void;

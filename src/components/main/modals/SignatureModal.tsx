@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect, useLayoutEffect, useState,
+  memo, useEffect, useLayoutEffect, useState,
 } from '../../../lib/teact/teact';
 
 import { getActions, withGlobal } from '../../../global';
@@ -10,6 +10,7 @@ import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
 import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
+import useLastCallback from '../../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
@@ -69,14 +70,14 @@ function SignatureModal({
       : undefined
   ), [closeModal, currentSlide]);
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useLastCallback(() => {
     setCurrentSlide(SLIDES.password);
     setNextKey(SLIDES.complete);
-  }, []);
+  });
 
-  const handlePasswordSubmit = useCallback((password: string) => {
+  const handlePasswordSubmit = useLastCallback((password: string) => {
     submitSignature({ password });
-  }, [submitSignature]);
+  });
 
   function renderConfirm() {
     return (
@@ -159,7 +160,6 @@ function SignatureModal({
 
   return (
     <Modal
-      isSlideUp
       hasCloseButton
       isOpen={isModalOpen}
       onClose={closeModal}
@@ -167,7 +167,7 @@ function SignatureModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

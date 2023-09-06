@@ -1,7 +1,9 @@
 import type { RefObject } from 'react';
-import React, { memo, useCallback, useState } from '../../lib/teact/teact';
+import React, { memo, useState } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+
+import useLastCallback from '../../hooks/useLastCallback';
 
 import styles from './Button.module.scss';
 
@@ -47,7 +49,7 @@ function Button({
 }: OwnProps) {
   const [isClicked, setIsClicked] = useState(false);
 
-  const handleClick = useCallback(() => {
+  const handleClick = useLastCallback(() => {
     if (!isDisabled && onClick) {
       onClick();
     }
@@ -56,7 +58,7 @@ function Button({
     setTimeout(() => {
       setIsClicked(false);
     }, CLICKED_TIMEOUT);
-  }, [isDisabled, onClick]);
+  });
 
   return (
     <button

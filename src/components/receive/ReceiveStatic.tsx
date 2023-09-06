@@ -1,7 +1,8 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Content from './Content';
 import InvoiceModal from './InvoiceModal';
@@ -16,10 +17,10 @@ function ReceiveStatic({ className }: Props) {
   const [isQrModalOpen, openQrModal, closeQrModal] = useFlag(false);
   const [isInvoiceModalOpen, openInvoiceModal, closeInvoiceModal] = useFlag(false);
 
-  const handleClose = useCallback(() => {
+  const handleClose = useLastCallback(() => {
     closeInvoiceModal();
     closeQrModal();
-  }, [closeInvoiceModal, closeQrModal]);
+  });
 
   return (
     <div className={className}>

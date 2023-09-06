@@ -1,5 +1,4 @@
 import type { RefObject } from 'react';
-import { requestMutation } from '../lib/fasterdom/fasterdom';
 import { useEffect } from '../lib/teact/teact';
 
 import { IS_TOUCH_ENV } from '../util/windowEnvironment';
@@ -15,9 +14,7 @@ export default function useFocusAfterAnimation(
     }
 
     setTimeout(() => {
-      requestMutation(() => {
-        ref.current?.focus();
-      });
+      ref.current?.focus();
     }, animationDuration);
   }, [ref, animationDuration, isDisabled]);
 }

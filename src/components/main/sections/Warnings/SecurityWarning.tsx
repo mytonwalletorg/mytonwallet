@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from '../../../../lib/teact/teact';
+import React, { memo } from '../../../../lib/teact/teact';
 
 import { MY_TON_WALLET_PROMO_URL } from '../../../../config';
 import { getActions, withGlobal } from '../../../../global';
@@ -6,6 +6,7 @@ import buildClassName from '../../../../util/buildClassName';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
+import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
 import styles from './Warnings.module.scss';
@@ -26,14 +27,11 @@ function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
     window.open(MY_TON_WALLET_PROMO_URL, '_blank', 'noopener');
   }
 
-  const handleClose = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
+  const handleClose = useLastCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
 
-      closeSecurityWarning();
-    },
-    [closeSecurityWarning],
-  );
+    closeSecurityWarning();
+  });
 
   if (!shouldRender) {
     return undefined;

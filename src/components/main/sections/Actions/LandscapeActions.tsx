@@ -1,3 +1,4 @@
+import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import React, {
   memo, useEffect, useMemo, useRef,
 } from '../../../../lib/teact/teact';
@@ -9,7 +10,6 @@ import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
 import { getActions, withGlobal } from '../../../../global';
 import { selectLandscapeActionsActiveTabIndex } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { fastRaf } from '../../../../util/schedulers';
 import { ReceiveStatic } from '../../../receive';
 
 import useLang from '../../../../hooks/useLang';
@@ -193,27 +193,31 @@ function useTabHeightAnimation(slideClassName: string, contentBackgroundClassNam
 
     if (lastHeightRef.current === rect.height || !contentBgRef.current) return;
 
-    const contentBgStyle = contentBgRef.current.style;
-    const contentFooterStyle = contentFooterRef.current!.style;
+    requestMutation(() => {
+      if (!contentBgRef.current || !contentFooterRef.current) return;
 
-    if (shouldRenderWithoutTransition) {
-      contentBgStyle.transition = 'none';
-      contentFooterStyle.transition = 'none';
-    }
+      const contentBgStyle = contentBgRef.current.style;
+      const contentFooterStyle = contentFooterRef.current!.style;
 
-    contentBgStyle.transform = `scaleY(calc(${rect.height} / 100))`;
-    contentFooterStyle.transform = `translateY(${Math.floor(rect.height)}px)`;
+      if (shouldRenderWithoutTransition) {
+        contentBgStyle.transition = 'none';
+        contentFooterStyle.transition = 'none';
+      }
 
-    if (shouldRenderWithoutTransition) {
-      fastRaf(() => {
-        if (!contentBgRef.current || !contentFooterRef.current) return;
+      contentBgStyle.transform = `scaleY(calc(${rect.height} / 100))`;
+      contentFooterStyle.transform = `translateY(${Math.floor(rect.height)}px)`;
 
-        contentBgRef.current.style.transition = '';
-        contentFooterRef.current.style.transition = '';
-      });
-    }
+      if (shouldRenderWithoutTransition) {
+        requestMutation(() => {
+          if (!contentBgRef.current || !contentFooterRef.current) return;
 
-    lastHeightRef.current = rect.height;
+          contentBgRef.current.style.transition = '';
+          contentFooterRef.current.style.transition = '';
+        });
+      }
+
+      lastHeightRef.current = rect.height;
+    });
   });
 
   useEffect(() => {

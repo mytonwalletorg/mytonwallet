@@ -6,16 +6,8 @@
   }
 }
 
-.contentInvoice {
-  padding: 0.5rem 1rem 1rem;
-
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
-  }
-}
-
 .contentQr {
-  margin-top: -0.1875rem;
+  margin-top: -0.25rem;
 }
 
 .info {
@@ -48,7 +40,7 @@
   width: 100%;
   max-width: 20.5rem;
   max-height: 20.5rem;
-  margin: 0.5rem auto 0;
+  margin: 0 auto;
 
   background-color: var(--color-white);
   border-radius: var(--border-radius-default);

@@ -6,9 +6,9 @@
   position: relative;
   z-index: var(--z-modal);
 
-  &.slideUp {
-    --transition: 500ms cubic-bezier(0.3, 0.8, 0.2, 1);
-  }
+  &.slideUpAnimation {
+      --transition: 500ms cubic-bezier(0.3, 0.8, 0.2, 1);
+    }
 
   &.error {
     .dialog {
@@ -21,15 +21,15 @@
     opacity: 1;
   }
 
-  &:not(.slideUp):global(.open) .dialog {
+  &:not(.slideUpAnimation):global(.open) .dialog {
     transform: translate3d(0, 0, 0);
   }
 
-  &:not(.slideUp):global(.closing) .dialog {
+  :global(html:not(.animation-level-0)) &:not(.slideUpAnimation):global(.closing) .dialog {
     transform: translate3d(0, 1rem, 0);
   }
 
-  &.slideUp:global(.shown) {
+  &.slideUpAnimation:global(.shown) {
     .container {
       overflow: hidden;
     }
@@ -59,7 +59,7 @@
 
   padding: 1rem;
 
-  .slideUp & {
+  .slideUpAnimation & {
     align-items: flex-end;
 
     padding: 0;
@@ -80,7 +80,7 @@
   transition: opacity var(--transition);
 
   :global(html.animation-level-0) & {
-    transition: none !important;
+    transition: var(--no-animation-transition) !important;
   }
 }
 
@@ -108,26 +108,45 @@
 
   transition: transform var(--transition), opacity var(--transition);
 
-  .slideUp & {
+  .slideUpAnimation & {
     transform: none;
 
     max-width: 28rem;
     max-height: calc(95 * var(--vh, 1vh));
     margin: 0;
 
-    opacity: 1;
     background: var(--color-background-second);
     border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
 
     transition: transform var(--transition);
 
+    :global(html:not(.animation-level-0)) & {
+      opacity: 1;
+    }
+
     :global(html.animation-level-0) & {
-      transition: none !important;
+      transition: var(--no-animation-transition) !important;
+    }
+
+    > :global(.Transition-slideLayers),
+    > :global(.Transition-slideLayersBackwards) {
+      border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
     }
   }
 
   :global(html.animation-level-0) & {
-    transition: none !important;
+    transform: translate3d(0, 0, 0) !important;
+
+    opacity: 0;
+
+    transition: var(--no-animation-transition) !important;
+  }
+
+  .content > :global(.Transition-slideLayers),
+  .content > :global(.Transition-slideLayersBackwards) {
+    overflow: hidden;
+
+    border-radius: var(--border-radius-default);
   }
 
   @media (min-width: 416.01px) {
@@ -146,15 +165,11 @@
   grid-template-columns: 0.5fr 1fr 0.5fr;
   align-items: center;
 
-  padding: 1rem 1rem 0.75rem;
+  padding: 1rem;
 
   color: var(--color-black);
 
   transition: box-shadow 200ms;
-
-  &_transition {
-    padding: 1rem;
-  }
 
   &_noClose {
     grid-template-areas: "title title title";
@@ -183,6 +198,8 @@
     display: flex;
     grid-area: back;
     align-items: center;
+
+    margin-left: -0.875rem;
 
     font-size: 1.0625rem;
     color: var(--color-blue);
@@ -222,7 +239,7 @@
   }
 
   :global(html.animation-level-0) & {
-    transition: none !important;
+    transition: var(--no-animation-transition) !important;
   }
 }
 
@@ -243,8 +260,10 @@
 
   font-size: 1.0625rem;
   font-weight: 700;
+  line-height: 1;
   text-align: center;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .content {
@@ -262,12 +281,8 @@
   }
 }
 
-.content:not(.contentSlideUp) {
+.contentCompact {
   padding: 0.5rem 1rem 1rem;
-
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
-  }
 }
 
 .text {
@@ -308,6 +323,8 @@
 }
 
 .transitionSlide {
+  --background-color: var(--color-background-window);
+
   display: flex;
   flex-direction: column;
 

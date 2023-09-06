@@ -1,7 +1,9 @@
 import type { FC } from '../../lib/teact/teact';
-import React, { useCallback } from '../../lib/teact/teact';
+import React from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+
+import useLastCallback from '../../hooks/useLastCallback';
 
 import styles from './MenuItem.module.scss';
 
@@ -26,7 +28,7 @@ const MenuItem: FC<OwnProps> = (props) => {
     isSeparator,
   } = props;
 
-  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick = useLastCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!onClick) {
       e.stopPropagation();
       e.preventDefault();
@@ -35,9 +37,9 @@ const MenuItem: FC<OwnProps> = (props) => {
     }
 
     onClick(e);
-  }, [onClick]);
+  });
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = useLastCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.code !== 'Enter' && e.code !== 'Space') {
       return;
     }
@@ -50,7 +52,7 @@ const MenuItem: FC<OwnProps> = (props) => {
     }
 
     onClick(e);
-  }, [onClick]);
+  });
 
   const fullClassName = buildClassName(
     styles.menuItem,

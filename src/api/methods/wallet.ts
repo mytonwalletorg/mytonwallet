@@ -1,4 +1,6 @@
-import type { ApiNetwork, OnApiUpdate } from '../types';
+import * as tonWebMnemonic from 'tonweb-mnemonic';
+
+import type { ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
 import blockchains from '../blockchains';
@@ -9,38 +11,17 @@ import {
 } from '../common/accounts';
 import * as dappPromises from '../common/dappPromises';
 import { resolveBlockchainKey } from '../common/helpers';
-import { storage } from '../storages';
-
-let onUpdate: OnApiUpdate;
 
 const ton = blockchains.ton;
-
-export async function initWallet(_onUpdate: OnApiUpdate) {
-  onUpdate = _onUpdate;
-
-  const isTonProxyEnabled = await storage.getItem('isTonProxyEnabled');
-  onUpdate({
-    type: 'updateTonProxyState',
-    isEnabled: Boolean(isTonProxyEnabled),
-  });
-
-  const isTonMagicEnabled = await storage.getItem('isTonMagicEnabled');
-  onUpdate({
-    type: 'updateTonMagicState',
-    isEnabled: Boolean(isTonMagicEnabled),
-  });
-
-  const isDeeplinkHookEnabled = await storage.getItem('isDeeplinkHookEnabled');
-  onUpdate({
-    type: 'updateDeeplinkHookState',
-    isEnabled: Boolean(isDeeplinkHookEnabled),
-  });
-}
 
 export function getMnemonic(accountId: string, password: string) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   return blockchain.fetchMnemonic(accountId, password);
+}
+
+export function getMnemonicWordList() {
+  return tonWebMnemonic.wordlists.default;
 }
 
 export async function verifyPassword(password: string) {

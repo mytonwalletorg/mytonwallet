@@ -13,7 +13,7 @@ import type {
 import { TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import memoized from '../../../util/memoized';
-import { getTonWeb } from './util/tonweb';
+import { getTonWeb, toBase64Address } from './util/tonweb';
 import { NominatorPool } from './contracts/NominatorPool';
 import { fetchStoredAddress } from '../../common/accounts';
 import { callBackendGet } from '../../common/backend';
@@ -76,7 +76,7 @@ export async function submitStake(accountId: string, password: string, amount: s
     accountId,
     password,
     TON_TOKEN_SLUG,
-    poolAddress,
+    toBase64Address(poolAddress),
     amount,
     STAKE_COMMENT,
   );
@@ -91,7 +91,7 @@ export async function submitUnstake(accountId: string, password: string) {
     accountId,
     password,
     TON_TOKEN_SLUG,
-    poolAddress,
+    toBase64Address(poolAddress),
     UNSTAKE_AMOUNT,
     UNSTAKE_COMMENT,
   );

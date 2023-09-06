@@ -120,7 +120,12 @@ function SettingsDapps({
   return (
     <div className={styles.slide}>
       {isInsideModal ? (
-        <ModalHeader title={lang('Dapps')} withBorder={!isContentNotScrolled} onBackButtonClick={handleBackClick} />
+        <ModalHeader
+          title={lang('Dapps')}
+          withBorder={!isContentNotScrolled}
+          onBackButtonClick={handleBackClick}
+          className={styles.modalHeader}
+        />
       ) : (
         <div className={styles.header}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>

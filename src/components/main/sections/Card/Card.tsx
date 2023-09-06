@@ -1,5 +1,6 @@
+import type { Ref } from 'react';
 import React, {
-  memo, useCallback, useEffect, useMemo,
+  memo, useEffect, useMemo,
 } from '../../../../lib/teact/teact';
 
 import type { UserToken } from '../../../../global/types';
@@ -13,16 +14,16 @@ import {
 import { getActions, withGlobal } from '../../../../global';
 import { selectAccount, selectCurrentAccountState, selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { calcChangeValue } from '../../../../util/calcChangeValue';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { copyTextToClipboard } from '../../../../util/clipboard';
-import { formatCurrency, formatInteger } from '../../../../util/formatNumber';
-import { round } from '../../../../util/round';
+import { formatCurrency } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { getTokenCardColor } from '../../helpers/card_colors';
+import { buildTokenValues } from './helpers/buildTokenValues';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import useLang from '../../../../hooks/useLang';
+import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
 import Loading from '../../../ui/Loading';
@@ -32,6 +33,7 @@ import TokenCard from './TokenCard';
 import styles from './Card.module.scss';
 
 interface OwnProps {
+  ref?: Ref<HTMLDivElement>;
   onTokenCardClose: NoneToVoidFunction;
   onApyClick: NoneToVoidFunction;
 }
@@ -45,6 +47,7 @@ interface StateProps {
 }
 
 function Card({
+  ref,
   address,
   tokens,
   activeDappOrigin,
@@ -91,7 +94,7 @@ function Card({
   const renderingDappDomain = useCurrentOrPrev(dappDomain, true);
 
   const values = useMemo(() => {
-    return tokens ? buildValues(tokens) : undefined;
+    return tokens ? buildTokenValues(tokens) : undefined;
   }, [tokens]);
 
   const {
@@ -104,79 +107,85 @@ function Card({
     [shouldRenderTokenCard, onTokenCardClose],
   );
 
-  const handleCopyAddress = useCallback(() => {
+  const handleCopyAddress = useLastCallback(() => {
     if (!address) return;
 
     showNotification({ message: lang('Address was copied!') as string, icon: 'icon-copy' });
     copyTextToClipboard(address);
-  }, [address, lang, showNotification]);
+  });
 
-  if (!values) {
+  const {
+    primaryValue, primaryWholePart, primaryFractionPart, changeClassName, changePrefix, changePercent, changeValue,
+  } = values || {};
+
+  function renderLoader() {
     return (
-      <div className={styles.containerWrapper}>
-        <div className={buildClassName(styles.container, styles.isLoading)}>
-          <Loading color="white" />
-        </div>
+      <div className={buildClassName(styles.container, styles.isLoading)}>
+        <Loading color="white" />
       </div>
     );
   }
 
-  const {
-    primaryValue, primaryWholePart, primaryFractionPart, changeClassName, changePrefix, changePercent, changeValue,
-  } = values;
+  function renderContent() {
+    return (
+      <>
+        <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
+          <AccountSelector canEdit />
+          {shouldRenderDapp && (
+            <div className={buildClassName(styles.dapp, dappClassNames)}>
+              <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
+              {renderingDappDomain}
+            </div>
+          )}
+          <div className={styles.primaryValue}>
+            {DEFAULT_PRICE_CURRENCY}
+            {primaryWholePart}
+            {primaryFractionPart && <span className={styles.primaryFractionPart}>.{primaryFractionPart}</span>}
+          </div>
+          {primaryValue !== 0 && (
+            <div className={buildClassName(styles.change, changeClassName)}>
+              {changePrefix}
+              &thinsp;
+              {Math.abs(changePercent!)}% · {formatCurrency(Math.abs(changeValue!), DEFAULT_PRICE_CURRENCY)}
+            </div>
+          )}
+          <div className={styles.addressContainer}>
+            <button
+              type="button"
+              className={styles.address}
+              aria-label={lang('Copy wallet address')}
+              onClick={handleCopyAddress}
+            >
+              {address && shortenAddress(address)}
+              <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
+            </button>
+            <a
+              href={tonscanAddressUrl}
+              className={styles.tonscanButton}
+              title={lang('View address on TON Explorer')}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <i className={buildClassName(styles.icon, 'icon-tonscan')} aria-hidden />
+            </a>
+          </div>
+        </div>
+        {shouldRenderTokenCard && (
+          <TokenCard
+            token={renderedToken!}
+            classNames={tokenCardTransitionClassNames}
+            color={tokenCardColor}
+            onApyClick={onApyClick}
+            onClose={onTokenCardClose}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
-    <div className={styles.containerWrapper}>
-      <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
-        <AccountSelector />
-        {shouldRenderDapp && (
-          <div className={buildClassName(styles.dapp, dappClassNames)}>
-            <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
-            {renderingDappDomain}
-          </div>
-        )}
-        <div className={styles.primaryValue}>
-          {DEFAULT_PRICE_CURRENCY}
-          {primaryWholePart}
-          {primaryFractionPart && <span className={styles.primaryFractionPart}>.{primaryFractionPart}</span>}
-        </div>
-        {primaryValue !== 0 && (
-          <div className={buildClassName(styles.change, changeClassName)}>
-            {changePrefix}
-            &thinsp;
-            {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), DEFAULT_PRICE_CURRENCY)}
-          </div>
-        )}
-        <div className={styles.addressContainer}>
-          <button
-            type="button"
-            className={styles.address}
-            aria-label={lang('Copy wallet address')}
-            onClick={handleCopyAddress}
-          >
-            {address && shortenAddress(address)}
-            <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
-          </button>
-          <a
-            href={tonscanAddressUrl}
-            className={styles.tonscanButton}
-            title={lang('View address on TON Explorer')}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            <i className={buildClassName(styles.icon, 'icon-tonscan')} aria-hidden />
-          </a>
-        </div>
-      </div>
-      {shouldRenderTokenCard && (
-        <TokenCard
-          token={renderedToken!}
-          classNames={tokenCardTransitionClassNames}
-          color={tokenCardColor}
-          onApyClick={onApyClick}
-          onClose={onTokenCardClose}
-        />
-      )}
+    <div className={styles.containerWrapper} ref={ref}>
+      {!values ? renderLoader() : renderContent()}
     </div>
   );
 }
@@ -194,27 +203,3 @@ export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): 
     isTestnet: global.settings.isTestnet,
   };
 })(Card));
-
-function buildValues(tokens: UserToken[]) {
-  const primaryValue = tokens.reduce((acc, token) => acc + token.amount * token.price, 0);
-  const [primaryWholePart, primaryFractionPart] = formatInteger(primaryValue).split('.');
-  const changeValue = round(tokens.reduce((acc, token) => {
-    return acc + calcChangeValue(token.amount * token.price, token.change24h);
-  }, 0), 4);
-
-  const changePercent = round(primaryValue ? (changeValue / (primaryValue - changeValue)) * 100 : 0, 2);
-  const changeClassName = changePercent > 0
-    ? styles.changeCourseUp
-    : (changePercent < 0 ? styles.changeCourseDown : undefined);
-  const changePrefix = changeValue > 0 ? '↑' : changeValue < 0 ? '↓' : undefined;
-
-  return {
-    primaryValue,
-    primaryWholePart,
-    primaryFractionPart,
-    changeClassName,
-    changePrefix,
-    changePercent,
-    changeValue,
-  };
-}

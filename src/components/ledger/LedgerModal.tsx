@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useState,
+  memo, useState,
 } from '../../lib/teact/teact';
 
 import type { Account, HardwareConnectState } from '../../global/types';
@@ -8,6 +8,8 @@ import type { LedgerWalletInfo } from '../../util/ledger/types';
 import { getActions, withGlobal } from '../../global';
 import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Modal from '../ui/Modal';
 import Transition from '../ui/Transition';
@@ -50,6 +52,7 @@ function LedgerModal({
   const {
     resetHardwareWalletConnect,
   } = getActions();
+
   const [currentSlide, setCurrentSlide] = useState<number>(
     LedgerModalState.Connect,
   );
@@ -57,14 +60,14 @@ function LedgerModal({
     LedgerModalState.SelectWallets,
   );
 
-  const handleConnected = useCallback(() => {
+  const handleConnected = useLastCallback(() => {
     setCurrentSlide(LedgerModalState.SelectWallets);
-  }, []);
+  });
 
-  const handleLedgerModalClose = useCallback(() => {
+  const handleLedgerModalClose = useLastCallback(() => {
     setCurrentSlide(LedgerModalState.Connect);
     resetHardwareWalletConnect();
-  }, [resetHardwareWalletConnect]);
+  });
 
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
@@ -94,14 +97,13 @@ function LedgerModal({
   return (
     <Modal
       hasCloseButton
-      isSlideUp
       isOpen={isOpen}
       onClose={onClose}
       onCloseAnimationEnd={handleLedgerModalClose}
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

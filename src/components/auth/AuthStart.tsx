@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import { APP_NAME, MNEMONIC_COUNT } from '../../config';
 import { getActions } from '../../global';
@@ -28,10 +28,6 @@ const AuthStart = () => {
   const [isLogoReady, markLogoReady] = useFlag();
   const { transitionClassNames } = useShowTransition(isLogoReady, undefined, undefined, 'slow');
 
-  const handleCreateWallet = useCallback(() => {
-    startCreatingWallet();
-  }, [startCreatingWallet]);
-
   return (
     <div className={buildClassName(styles.container, 'custom-scroll')}>
       <img
@@ -56,7 +52,7 @@ const AuthStart = () => {
         <Button
           isPrimary
           className={styles.btn}
-          onClick={handleCreateWallet}
+          onClick={startCreatingWallet}
         >
           {lang('Create Wallet')}
         </Button>

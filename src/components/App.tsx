@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from '../lib/teact/teact';
+import React, { memo, useEffect, useState } from '../lib/teact/teact';
 
 import { AppState } from '../global/types';
 
@@ -64,6 +64,7 @@ function App({
 
   const [isInactive, markInactive] = useFlag(false);
   const [canPrerenderMain, prerenderMain] = useFlag();
+  const [contentActiveTabIndex, setContentActiveTabIndex] = useState<number>(0);
 
   const renderingKey = isInactive
     ? AppState.Inactive
@@ -96,18 +97,29 @@ function App({
     switch (currentKey) {
       case AppState.Auth:
         return <Auth />;
-      case AppState.Main:
+      case AppState.Main: {
+        const slideFullClassName = buildClassName(
+          styles.appSlide,
+          styles.appSlideContent,
+          'custom-scroll',
+          'app-slide-content',
+        );
         return (
           <Transition
             name="semiFade"
             activeKey={mainKey}
             shouldCleanup
             nextKey={renderingKey === AppState.Auth && canPrerenderMain ? mainKey + 1 : undefined}
-            slideClassName={buildClassName(styles.appSlide, styles.appSlideContent, 'custom-scroll')}
+            slideClassName={slideFullClassName}
           >
-            <Main key={mainKey} />
+            <Main
+              key={mainKey}
+              initialContentTabIndex={contentActiveTabIndex}
+              onChangeContentTabIndex={setContentActiveTabIndex}
+            />
           </Transition>
         );
+      }
       case AppState.Settings:
         return <Settings />;
       case AppState.Ledger:
@@ -122,7 +134,7 @@ function App({
       {IS_ELECTRON && !IS_LINUX && <ElectronHeader withTitle />}
 
       <Transition
-        name={isPortrait ? 'pushSlide' : 'semiFade'}
+        name={isPortrait ? 'slideLayers' : 'semiFade'}
         activeKey={renderingKey}
         shouldCleanup
         className={styles.transitionContainer}

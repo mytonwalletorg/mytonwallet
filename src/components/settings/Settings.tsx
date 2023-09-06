@@ -10,6 +10,9 @@ import type {
 import {
   APP_NAME,
   APP_VERSION,
+  IS_DAPP_SUPPORTED,
+  IS_ELECTRON,
+  IS_EXTENSION,
   LANG_LIST,
   PROXY_HOSTS,
   TELEGRAM_WEB_URL,
@@ -20,7 +23,7 @@ import {
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
-import { IS_DAPP_SUPPORTED, IS_EXTENSION, IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';
+import { IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
@@ -38,6 +41,7 @@ import SettingsAppearance from './SettingsAppearance';
 import SettingsAssets from './SettingsAssets';
 import SettingsDapps from './SettingsDapps';
 import SettingsDeveloperOptions from './SettingsDeveloperOptions';
+import SettingsDisclaimer from './SettingsDisclaimer';
 import SettingsLanguage from './SettingsLanguage';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -48,6 +52,7 @@ import appearanceImg from '../../assets/settings/settings_appearance.svg';
 import assetsActivityImg from '../../assets/settings/settings_assets-activity.svg';
 import backupSecretImg from '../../assets/settings/settings_backup-secret.svg';
 import connectedDappsImg from '../../assets/settings/settings_connected-dapps.svg';
+import disclaimerImg from '../../assets/settings/settings_disclaimer.svg';
 import exitImg from '../../assets/settings/settings_exit.svg';
 import languageImg from '../../assets/settings/settings_language.svg';
 import ledgerImg from '../../assets/settings/settings_ledger.svg';
@@ -63,6 +68,7 @@ const enum RenderingState {
   Dapps,
   Language,
   About,
+  Disclaimer,
 }
 
 type OwnProps = {
@@ -166,6 +172,10 @@ function Settings({
     setRenderingKey(RenderingState.About);
   }
 
+  function handleDisclaimerOpen() {
+    setRenderingKey(RenderingState.Disclaimer);
+  }
+
   const handleBackClick = useLastCallback(() => {
     setRenderingKey(RenderingState.Initial);
   });
@@ -216,6 +226,21 @@ function Settings({
     [handleBackClick, renderingKey],
   );
 
+  function renderHandleDeeplinkButton() {
+    return (
+      <div className={styles.item} onClick={handleDeeplinkHookToggle}>
+        <img className={styles.menuIcon} src={tonLinksImg} alt={lang('Handle ton:// links')} />
+        {lang('Handle ton:// links')}
+
+        <Switcher
+          className={styles.menuSwitcher}
+          label={lang('Handle ton:// links')}
+          checked={isDeeplinkHookEnabled}
+        />
+      </div>
+    );
+  }
+
   function renderSettings() {
     return (
       <div className={styles.slide}>
@@ -224,6 +249,7 @@ function Settings({
             title={lang('Settings')}
             withBorder={!isContentNotScrolled}
             onClose={closeSettings}
+            className={styles.modalHeader}
           />
         ) : (
           <div className={styles.header}>
@@ -268,16 +294,12 @@ function Settings({
                   <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
                 </div>
               )}
-              <div className={styles.item} onClick={handleDeeplinkHookToggle}>
-                <img className={styles.menuIcon} src={tonLinksImg} alt={lang('Handle ton:// links')} />
-                {lang('Handle ton:// links')}
-
-                <Switcher
-                  className={styles.menuSwitcher}
-                  label={lang('Handle ton:// links')}
-                  checked={isDeeplinkHookEnabled}
-                />
-              </div>
+              {renderHandleDeeplinkButton()}
+            </div>
+          )}
+          {IS_ELECTRON && (
+            <div className={styles.block}>
+              {renderHandleDeeplinkButton()}
             </div>
           )}
 
@@ -336,6 +358,12 @@ function Settings({
             <div className={styles.item} onClick={handleAboutOpen}>
               <img className={styles.menuIcon} src={aboutImg} alt={lang('About')} />
               {lang('About')}
+
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </div>
+            <div className={styles.item} onClick={handleDisclaimerOpen}>
+              <img className={styles.menuIcon} src={disclaimerImg} alt={lang('Use Responsibly')} />
+              {lang('Use Responsibly')}
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
@@ -399,15 +427,24 @@ function Settings({
         return <SettingsLanguage langCode={langCode} handleBackClick={handleBackClick} isInsideModal={isInsideModal} />;
       case RenderingState.About:
         return <SettingsAbout handleBackClick={handleBackClick} isInsideModal={isInsideModal} />;
+      case RenderingState.Disclaimer:
+        return (
+          <SettingsDisclaimer
+            isActive={isActive}
+            handleBackClick={handleBackClick}
+            isInsideModal={isInsideModal}
+          />
+        );
     }
   }
 
   return (
     <div className={styles.wrapper}>
       <Transition
-        name="pushSlide"
+        name="slideLayers"
         className={buildClassName(isInsideModal ? modalStyles.transition : styles.transitionContainer, 'custom-scroll')}
         activeKey={renderingKey}
+        slideClassName={modalStyles.transitionSlide}
       >
         {renderContent}
       </Transition>

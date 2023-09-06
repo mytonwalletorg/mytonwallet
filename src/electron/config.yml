@@ -8,6 +8,9 @@ files:
   - "dist"
   - "package.json"
   - "!dist/get"
+  - "!dist/**/statoscope-build-statistics.json"
+  - "!dist/**/statoscope-report.html"
+  - "!dist/**/statoscope-reference.json"
   - "!node_modules"
 directories:
   buildResources: "./public"

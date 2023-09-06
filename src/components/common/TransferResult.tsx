@@ -55,7 +55,7 @@ function TransferResult({
         {firstButtonText && (
           <Button className={styles.button} onClick={onFirstButtonClick}>{firstButtonText}</Button>
         )}
-        {firstButtonText && (
+        {secondButtonText && (
           <Button className={styles.button} onClick={onSecondButtonClick}>{secondButtonText}</Button>
         )}
       </div>

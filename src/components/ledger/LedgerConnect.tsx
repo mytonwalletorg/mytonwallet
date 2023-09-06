@@ -1,5 +1,5 @@
 import React, {
-  memo, useCallback, useEffect,
+  memo, useEffect,
 } from '../../lib/teact/teact';
 
 import { HardwareConnectState } from '../../global/types';
@@ -8,6 +8,7 @@ import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
@@ -47,11 +48,7 @@ function LedgerConnect({
   const title = isConnected ? lang('Ledger Connected!') : lang('Connect Ledger');
   const shouldCloseOnCancel = !onCancel;
 
-  const handleConnect = useCallback(() => {
-    connectHardwareWallet();
-  }, [connectHardwareWallet]);
-
-  const handleConnected = useCallback(() => {
+  const handleConnected = useLastCallback(() => {
     if (isRemoteTab) {
       return;
     }
@@ -63,7 +60,7 @@ function LedgerConnect({
         resetHardwareWalletConnect();
       }, NEXT_SLIDE_DELAY);
     }, NEXT_SLIDE_DELAY);
-  }, [onConnected, resetHardwareWalletConnect, isRemoteTab]);
+  });
 
   useEffect(() => {
     if (state === HardwareConnectState.Connected) {
@@ -103,7 +100,7 @@ function LedgerConnect({
             isPrimary
             isDisabled={isConnecting}
             className={styles.button}
-            onClick={handleConnect}
+            onClick={connectHardwareWallet}
           >
             {isFailed ? lang('Try Again') : lang('Continue')}
           </Button>

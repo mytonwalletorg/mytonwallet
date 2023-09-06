@@ -21,6 +21,7 @@ type OwnProps = {
 };
 
 const ARROW_WIDTH = 0.6875 * REM;
+const GAP = 2 * REM;
 
 const IconWithTooltip: FC<OwnProps> = ({
   message,
@@ -48,9 +49,12 @@ const IconWithTooltip: FC<OwnProps> = ({
     } = tooltipRef.current.getBoundingClientRect();
 
     const tooltipCenter = (window.innerWidth - tooltipWidth) / 2;
+    const arrowPosition = left - tooltipCenter + width / 2 - ARROW_WIDTH / 2;
+    const horizontalOffset = arrowPosition < GAP ? GAP - arrowPosition : 0;
+
     const tooltipVerticalStyle = `top: ${top - tooltipHeight - ARROW_WIDTH}px;`;
-    const tooltipHorizontalStyle = `left: ${tooltipCenter}px;`;
-    const arrowHorizontalStyle = `left: ${left - tooltipCenter + width / 2 - ARROW_WIDTH / 2}px;`;
+    const tooltipHorizontalStyle = `left: ${tooltipCenter - horizontalOffset}px;`;
+    const arrowHorizontalStyle = `left: ${arrowPosition + horizontalOffset}px;`;
     const arrowVerticalStyle = `top: ${tooltipHeight - ARROW_WIDTH / 2 - 1}px;`;
 
     tooltipStyle.current = `${tooltipVerticalStyle} ${tooltipHorizontalStyle}`;

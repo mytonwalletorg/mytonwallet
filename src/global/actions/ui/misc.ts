@@ -1,11 +1,11 @@
 import { AppState, HardwareConnectState } from '../../types';
 import type { UserToken } from '../../types';
 
+import { IS_EXTENSION } from '../../../config';
 import { unique } from '../../../util/iteratees';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { pause } from '../../../util/schedulers';
 import { callApi } from '../../../api';
-import { IS_EXTENSION } from '../../../api/environment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   renameAccount,

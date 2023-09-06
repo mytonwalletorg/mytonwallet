@@ -1,8 +1,9 @@
-import React, { memo, useCallback } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 
@@ -29,9 +30,9 @@ function DappInfo({
 
   const shouldShowDisconnect = Boolean(onDisconnect && origin);
 
-  const handleDisconnect = useCallback(() => {
+  const handleDisconnect = useLastCallback(() => {
     onDisconnect!(origin!);
-  }, [origin, onDisconnect]);
+  });
 
   function renderIcon() {
     if (iconUrl) {

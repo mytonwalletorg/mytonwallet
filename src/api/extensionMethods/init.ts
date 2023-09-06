@@ -9,8 +9,7 @@ import { addHooks } from '../hooks';
 
 addHooks({
   onWindowNeeded: openPopupWindow,
-  onFirstLogin: extensionMethods.setupDefaultExtensionFeatures,
-  onFullLogout: extensionMethods.clearExtensionFeatures,
+  onFullLogout: extensionMethods.onFullLogout,
   onDappDisconnected: () => {
     siteMethods.updateSites({
       type: 'disconnectSite',
@@ -20,7 +19,7 @@ addHooks({
 });
 
 export default function init(onUpdate: OnApiUpdate) {
-  void extensionMethods.initExtension(onUpdate);
+  void extensionMethods.initExtension();
   legacyDappMethods.initLegacyDappMethods(onUpdate);
   siteMethods.initSiteMethods(onUpdate);
 }

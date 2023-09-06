@@ -4,9 +4,8 @@ import type {
   AccountIdParsed, ApiLocalTransactionParams, ApiTransaction, OnApiUpdate,
 } from '../types';
 
-import { MAIN_ACCOUNT_ID } from '../../config';
+import { IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
 import { buildAccountId, parseAccountId } from '../../util/account';
-import { IS_EXTENSION } from '../environment';
 import { storage } from '../storages';
 import idbStorage from '../storages/idb';
 import { getKnownAddresses, getScamMarkers } from './addresses';
@@ -31,21 +30,15 @@ export function buildInternalAccountId(account: Omit<AccountIdParsed, 'network'>
   return `${id}-${blockchain}`;
 }
 
-export function createLocalTransaction(onUpdate: OnApiUpdate, accountId: string, params: ApiLocalTransactionParams) {
-  const {
-    amount, fromAddress, toAddress, comment, fee, slug, type, encryptedComment,
-  } = params;
+export function createLocalTransaction(
+  onUpdate: OnApiUpdate,
+  accountId: string,
+  params: ApiLocalTransactionParams,
+  onTxComplete?: (transaction: ApiTransaction) => void,
+) {
+  const { amount, toAddress } = params;
 
-  const localTransaction = buildLocalTransaction({
-    amount,
-    fromAddress,
-    toAddress,
-    comment,
-    fee,
-    slug,
-    type,
-    encryptedComment,
-  });
+  const localTransaction = buildLocalTransaction(params);
 
   onUpdate({
     type: 'newLocalTransaction',
@@ -54,13 +47,16 @@ export function createLocalTransaction(onUpdate: OnApiUpdate, accountId: string,
   });
 
   whenTxComplete(toAddress, amount)
-    .then(({ txId }) => {
+    .then(({ transaction }) => {
+      if (onTxComplete) {
+        onTxComplete(transaction);
+      }
       onUpdate({
         type: 'updateTxComplete',
         accountId,
         toAddress,
         amount,
-        txId,
+        txId: transaction.txId,
         localTxId: localTransaction.txId,
       });
     });

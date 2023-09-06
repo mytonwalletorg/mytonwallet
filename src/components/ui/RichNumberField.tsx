@@ -1,13 +1,15 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo, useCallback, useLayoutEffect, useRef,
+  memo, useLayoutEffect, useRef,
 } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { floor } from '../../util/round';
 
-import { buildContentHtml } from './RichNumberInput';
+import useLastCallback from '../../hooks/useLastCallback';
+
+import { buildContentHtml, getInputRegex } from './RichNumberInput';
 
 import styles from './Input.module.scss';
 
@@ -44,10 +46,10 @@ function RichNumberInput({
   const contentRef = useRef<HTMLInputElement | null>(null);
   const prevValueRef = useRef<string>('');
 
-  const renderValue = useCallback((inputValue = '', noFallbackToPrev = false) => {
+  const renderValue = useLastCallback((inputValue = '', noFallbackToPrev = false) => {
     const contentEl = contentRef.current!;
 
-    const valueRegex = new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?$`);
+    const valueRegex = getInputRegex(decimals);
     const values = inputValue.toString().match(valueRegex);
 
     // eslint-disable-next-line no-null/no-null
@@ -65,7 +67,7 @@ function RichNumberInput({
     prevValueRef.current = inputValue;
 
     contentEl.innerHTML = buildContentHtml(values, suffix, decimals);
-  }, [decimals, suffix]);
+  });
 
   useLayoutEffect(() => {
     if (value) {

@@ -22,9 +22,11 @@ import { decryptMessageComment, encryptMessageComment } from './util/encryption'
 import { parseWalletTransactionBody } from './util/metadata';
 import { getTonClient, getTonWalletContract } from './util/tonCore';
 import {
+  commentToBytes,
   fetchNewestTxId,
   fetchTransactions,
   getWalletPublicKey,
+  packBytesAsSnake,
   parseBase64,
   resolveTokenWalletAddress,
   toBase64Address,
@@ -154,12 +156,20 @@ export async function checkTransactionDraft(
     }
   }
 
+  const account = await fetchStoredAccount(accountId);
+  const isLedger = !!account?.ledger;
+
+  if (data && typeof data === 'string' && !isBase64Data && !isLedger) {
+    data = commentToBytes(data);
+  }
+
   if (tokenSlug === TON_TOKEN_SLUG) {
-    const account = await fetchStoredAccount(accountId);
-    if (data && account?.ledger) {
-      if (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data)) {
-        return { ...result, error: ApiTransactionDraftError.UnsupportedHardwarePayload };
-      }
+    if (data && isLedger && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))) {
+      return { ...result, error: ApiTransactionDraftError.UnsupportedHardwarePayload };
+    }
+
+    if (data instanceof Uint8Array) {
+      data = packBytesAsSnake(data);
     }
   } else {
     const address = await fetchStoredAddress(accountId);
@@ -222,17 +232,23 @@ export async function submitTransfer(
     // Force default bounceable address for `waitTxComplete` to work properly
     const normalizedAddress = toBase64Address(toAddress);
 
-    if (typeof data === 'string' && isBase64Data) {
-      data = parseBase64(data);
+    if (data && typeof data === 'string') {
+      if (isBase64Data) {
+        data = parseBase64(data);
+      } else if (shouldEncrypt) {
+        const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
+        data = await encryptMessageComment(data, publicKey, toPublicKey, secretKey, fromAddress);
+        encryptedComment = Buffer.from(data.slice(4)).toString('base64');
+      } else {
+        data = commentToBytes(data);
+      }
     }
 
-    if (data && typeof data === 'string' && shouldEncrypt) {
-      const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
-      data = await encryptMessageComment(data, publicKey, toPublicKey, secretKey, fromAddress);
-      encryptedComment = Buffer.from(data.slice(4)).toString('base64');
-    }
-
-    if (tokenSlug !== TON_TOKEN_SLUG) {
+    if (tokenSlug === TON_TOKEN_SLUG) {
+      if (data instanceof Uint8Array) {
+        data = packBytesAsSnake(data);
+      }
+    } else {
       ({
         amount,
         toAddress,

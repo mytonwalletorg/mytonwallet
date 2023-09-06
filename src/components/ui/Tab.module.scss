@@ -23,7 +23,7 @@
     outline: none;
   }
 
-  &:not(&_active):active .content {
+  :global(html:not(.animation-level-0)) &:not(&_active):active .content {
     color: var(--color-blue) !important;
 
     background-color: var(--color-interactive-tab-active) !important;

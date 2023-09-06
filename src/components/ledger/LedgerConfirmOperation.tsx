@@ -1,7 +1,4 @@
-import React, {
-  memo, useEffect,
-  useState,
-} from '../../lib/teact/teact';
+import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -111,7 +108,7 @@ function LedgerConfirmOperation({
 
   return (
     <Transition
-      name="pushSlide"
+      name="slideLayers"
       className={buildClassName(modalStyles.transition, 'custom-scroll')}
       slideClassName={buildClassName(modalStyles.transitionSlide, styles.slide)}
       activeKey={activeState}
