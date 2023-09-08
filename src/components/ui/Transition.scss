@@ -282,6 +282,10 @@
   }
 
   &-slideLayersBackwards {
+    --background-color: var(--color-background-second);
+
+    background: black !important;
+
     > .Transition_slide {
       background: var(--background-color);
     }

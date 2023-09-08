@@ -7,6 +7,7 @@ import { selectMnemonicForCheck } from '../../../global/actions/api/auth';
 import buildClassName from '../../../util/buildClassName';
 import { callApi } from '../../../api';
 
+import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -49,6 +50,7 @@ function BackupModal({
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const { isLandscape } = useDeviceScreen();
 
   const mnemonicRef = useRef<string[] | undefined>(undefined);
 
@@ -160,6 +162,7 @@ function BackupModal({
   return (
     <Modal
       hasCloseButton
+      isCompact={isLandscape}
       isOpen={isOpen}
       onClose={onClose}
       onCloseAnimationEnd={handleModalClose}
