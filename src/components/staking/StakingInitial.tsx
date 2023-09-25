@@ -348,7 +348,9 @@ function StakingInitial({
   );
 }
 
-export default memo(withGlobal((global): StateProps => {
+export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps => {
+  detachWhenChanged(global.currentAccountId);
+
   const {
     isLoading,
     fee,

@@ -4,4 +4,8 @@
   @supports (height: env(safe-area-inset-bottom)) {
     height: calc(33rem + env(safe-area-inset-bottom));
   }
+
+  @media (min-width: 416.01px) {
+    max-width: 24rem;
+  }
 }

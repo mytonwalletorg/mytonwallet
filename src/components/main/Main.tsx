@@ -2,6 +2,8 @@ import React, {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
+import { ContentTab } from '../../global/types';
+
 import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -24,11 +26,6 @@ import Warnings from './sections/Warnings';
 
 import styles from './Main.module.scss';
 
-interface OwnProps {
-  initialContentTabIndex?: number;
-  onChangeContentTabIndex?: (index: number) => void;
-}
-
 type StateProps = {
   currentTokenSlug?: string;
   currentAccountId?: string;
@@ -42,19 +39,18 @@ const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
 
 function Main({
   currentTokenSlug, currentAccountId, isStakingActive, isUnstakeRequested, isTestnet, isLedger,
-  initialContentTabIndex = 0, onChangeContentTabIndex,
-}: OwnProps & StateProps) {
+}: StateProps) {
   const {
     selectToken,
     startStaking,
     fetchBackendStakingState,
     openBackupWalletModal,
+    setActiveContentTabIndex,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
   const cardRef = useRef<HTMLDivElement>(null);
   const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
-  const [activeTabIndex, setActiveTabIndex] = useState<number>(currentTokenSlug ? 1 : initialContentTabIndex);
   const [isStakingInfoOpened, openStakingInfo, closeStakingInfo] = useFlag(false);
   const [isReceiveModalOpened, openReceiveModal, closeReceiveModal] = useFlag(false);
   const { isPortrait } = useDeviceScreen();
@@ -64,16 +60,16 @@ function Main({
   } = useShowTransition(canRenderStickyCard);
 
   useEffect(() => {
-    return () => {
-      onChangeContentTabIndex?.(activeTabIndex);
-    };
-  }, [activeTabIndex, onChangeContentTabIndex]);
-
-  useEffect(() => {
     if (currentAccountId && (isStakingActive || isUnstakeRequested)) {
       fetchBackendStakingState();
     }
   }, [fetchBackendStakingState, currentAccountId, isStakingActive, isUnstakeRequested]);
+
+  useEffect(() => {
+    if (currentTokenSlug) {
+      setActiveContentTabIndex({ index: ContentTab.Activity });
+    }
+  }, [currentTokenSlug]);
 
   useEffect(() => {
     if (!isPortrait) {
@@ -100,7 +96,7 @@ function Main({
 
   const handleTokenCardClose = useLastCallback(() => {
     selectToken({ slug: undefined });
-    setActiveTabIndex(0);
+    setActiveContentTabIndex({ index: ContentTab.Assets });
   });
 
   const handleEarnClick = useLastCallback(() => {
@@ -128,11 +124,7 @@ function Main({
           />
         </div>
 
-        <Content
-          activeTabIndex={activeTabIndex}
-          setActiveTabIndex={setActiveTabIndex}
-          onStakedTokenClick={handleEarnClick}
-        />
+        <Content onStakedTokenClick={handleEarnClick} />
       </div>
     );
   }
@@ -150,11 +142,7 @@ function Main({
           />
         </div>
         <div className={styles.main}>
-          <Content
-            activeTabIndex={activeTabIndex}
-            setActiveTabIndex={setActiveTabIndex}
-            onStakedTokenClick={handleEarnClick}
-          />
+          <Content onStakedTokenClick={handleEarnClick} />
         </div>
       </div>
     );
@@ -173,7 +161,7 @@ function Main({
 }
 
 export default memo(
-  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+  withGlobal((global, ownProps, detachWhenChanged): StateProps => {
     detachWhenChanged(global.currentAccountId);
     const accountState = selectCurrentAccountState(global);
     const account = selectCurrentAccount(global);

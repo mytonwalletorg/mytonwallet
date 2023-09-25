@@ -15,27 +15,7 @@ import Modal from '../ui/Modal';
 import styles from './ReceiveModal.module.scss';
 
 const QR_SIZE = 600;
-const QR_CODE = new QrCodeStyling({
-  width: QR_SIZE,
-  height: QR_SIZE,
-  image: './logo.svg',
-  margin: 0,
-  type: 'canvas',
-  dotsOptions: {
-    type: 'rounded',
-  },
-  cornersSquareOptions: {
-    type: 'extra-rounded',
-  },
-  imageOptions: {
-    imageSize: 0.4,
-    margin: 8,
-    crossOrigin: 'anonymous',
-  },
-  qrOptions: {
-    errorCorrectionLevel: 'M',
-  },
-});
+let qrCode: QrCodeStyling;
 
 type StateProps = {
   address?: string;
@@ -57,16 +37,19 @@ function QrModal({
 
   useEffect(() => {
     if (isOpen) {
-      QR_CODE.append(qrCodeRef.current || undefined);
+      if (!qrCode) {
+        qrCode = initializeQrCode();
+      }
+      qrCode.append(qrCodeRef.current || undefined);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    if (!address) {
+    if (!address || !qrCode || !isOpen) {
       return;
     }
-    QR_CODE.update({ data: formatTransferUrl(address) });
-  }, [address]);
+    qrCode.update({ data: formatTransferUrl(address) });
+  }, [address, isOpen]);
 
   return (
     <Modal hasCloseButton title={lang('QR-code')} isOpen={isOpen} onClose={onClose}>
@@ -91,3 +74,28 @@ export default memo(
     };
   })(QrModal),
 );
+
+function initializeQrCode() {
+  return new QrCodeStyling({
+    width: QR_SIZE,
+    height: QR_SIZE,
+    image: './logo.svg',
+    margin: 0,
+    type: 'canvas',
+    dotsOptions: {
+      type: 'rounded',
+    },
+    cornersSquareOptions: {
+      type: 'extra-rounded',
+    },
+    imageOptions: {
+      imageSize: 0.4,
+      margin: 8,
+      crossOrigin: 'anonymous',
+    },
+    qrOptions: {
+      errorCorrectionLevel: 'M',
+    },
+    data: formatTransferUrl(''),
+  });
+}

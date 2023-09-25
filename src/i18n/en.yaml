@@ -271,8 +271,8 @@ Total Amount: Total Amount
 Unstaking: Unstaking
 "Handle ton:// links": Handle ton:// links
 Back up wallet to have full access to it: Back up wallet to have full access to it
-Improve wallet security: Improve wallet security
-by installing browser extension or native app: by installing browser extension or native app
+Consider More Secure Version: Consider More Secure Version
+Install our native app or browser extension.: Install our native app or browser extension.
 Scam: Scam
 Scam comment is hidden.: Scam comment is hidden.
 Display: Display
@@ -366,3 +366,5 @@ $auth_backup_description3: |
   You need to manually **back up secret keys** in case you forget your password or lose access to this device.
 Terms of Use: Terms of Use
 Privacy Policy: Privacy Policy
+This address is new and never received transfers before.: This address is new and never received transfers before.
+failed: failed

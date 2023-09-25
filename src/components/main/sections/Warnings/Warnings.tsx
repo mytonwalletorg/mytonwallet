@@ -3,6 +3,7 @@ import React, { memo } from '../../../../lib/teact/teact';
 import { IS_ELECTRON, IS_EXTENSION } from '../../../../config';
 import { withGlobal } from '../../../../global';
 import { selectCurrentAccountState } from '../../../../global/selectors';
+import { IS_ANDROID, IS_IOS } from '../../../../util/windowEnvironment';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
@@ -21,7 +22,7 @@ type StateProps = {
   isBackupRequired: boolean;
 };
 
-const SECURITY_WARNING_TEMPORARILY_DISABLED = true;
+const IS_UNSAFE_WEB = !IS_ELECTRON && !IS_EXTENSION && !IS_IOS && !IS_ANDROID;
 
 function Warnings({ isBackupRequired, isTestnet, onOpenBackupWallet }: OwnProps & StateProps) {
   const { isPortrait } = useDeviceScreen();
@@ -36,7 +37,7 @@ function Warnings({ isBackupRequired, isTestnet, onOpenBackupWallet }: OwnProps 
       )}
 
       <BackupWarning isRequired={isBackupRequired} onOpenBackupWallet={onOpenBackupWallet} />
-      {!(IS_ELECTRON || IS_EXTENSION || SECURITY_WARNING_TEMPORARILY_DISABLED) && <SecurityWarning />}
+      {IS_UNSAFE_WEB && <SecurityWarning />}
     </>
   );
 }

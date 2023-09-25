@@ -264,8 +264,8 @@ Total Amount: Общая сумма
 Unstaking: Unstaking
 "Handle ton:// links": Обрабатывать ссылки ton://
 Back up wallet to have full access to it: Сделайте резервную копию кошелька, чтобы иметь к нему полный доступ
-Improve wallet security: Повысьте безопасность кошелька
-by installing browser extension or native app: установив расширение для браузера или приложение
+Consider More Secure Version: Повысьте безопасность кошелька
+Install our native app or browser extension.: Установите наше приложение или браузерное расширение.
 Scam: Скам
 Scam comment is hidden.: Скам комментарий скрыт.
 Display: Показать
@@ -364,3 +364,6 @@ $auth_backup_description3: |
   **резервную копию** секретных слов.
   Это поможет, если вы потеряете доступ
   к этому устройству или забудете пароль.
+Terms of Use: Условия использования
+Privacy Policy: Политика конфиденциальности
+This address is new and never received transfers before.: Этот адрес новый и ранее не получал переводов.

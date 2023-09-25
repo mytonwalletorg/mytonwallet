@@ -4,8 +4,8 @@ import type {
   ConnectEventError,
   ConnectItemReply,
   ConnectRequest,
-  DisconnectEvent,
   DisconnectRpcRequest,
+  DisconnectRpcResponse,
   SendTransactionRpcRequest,
   SendTransactionRpcResponse,
   SignDataRpcRequest,
@@ -88,7 +88,7 @@ export async function connect(
   try {
     const { origin } = await validateRequest(request, true);
     const dapp = {
-      ...await fetchDappMetadata(origin, message.manifestUrl),
+      ...await fetchDappMetadata(message.manifestUrl, origin),
       connectedAt: Date.now(),
       ...('sseOptions' in request && { sse: request.sseOptions }),
     };
@@ -186,8 +186,10 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Lo
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function disconnect(request: ApiDappRequest, message: DisconnectRpcRequest): Promise<DisconnectEvent> {
+export async function disconnect(
+  request: ApiDappRequest,
+  message: DisconnectRpcRequest,
+): Promise<DisconnectRpcResponse> {
   try {
     const { origin, accountId } = await validateRequest(request);
 
@@ -197,9 +199,8 @@ export async function disconnect(request: ApiDappRequest, message: DisconnectRpc
     logDebugError('tonConnect:disconnect', err);
   }
   return {
-    event: 'disconnect',
-    id: Number(message.id),
-    payload: {},
+    id: message.id,
+    result: {},
   };
 }
 
@@ -247,12 +248,16 @@ export async function sendTransaction(
       throw new errors.BadRequestError('The confirmation timeout has expired');
     }
 
-    let submitResult: any | { error: string };
-    let successNumber: number;
+    let boc: string | undefined;
+    let successNumber: number | undefined;
+    let error: string | undefined;
 
     if (isLedger) {
-      submitResult = await ton.sendSignedMessages(accountId, response as ApiSignedTransfer[]);
+      const signedTransfers = response as ApiSignedTransfer[];
+      const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
+      boc = signedTransfers[0].base64;
       successNumber = submitResult.successNumber;
+
       if (successNumber > 0) {
         if (successNumber < messages.length) {
           onPopupUpdate({
@@ -261,20 +266,25 @@ export async function sendTransaction(
           });
         }
       } else {
-        submitResult = { error: 'Failed transfers' };
+        error = 'Failed transfers';
       }
     } else {
       const password = response as string;
-      successNumber = messages.length;
-      submitResult = await ton.submitMultiTransfer(accountId, password!, preparedMessages, validUntil);
+      const submitResult = await ton.submitMultiTransfer(accountId, password!, preparedMessages, validUntil);
+      if ('error' in submitResult) {
+        error = submitResult.error;
+      } else {
+        boc = submitResult.boc;
+        successNumber = messages.length;
+      }
     }
 
-    if ('error' in submitResult) {
-      throw new errors.UnknownError(submitResult.error);
+    if (error) {
+      throw new errors.UnknownError(error);
     }
 
     const fromAddress = await fetchStoredAddress(accountId);
-    const successTransactions = transactionsForRequest.slice(0, successNumber);
+    const successTransactions = transactionsForRequest.slice(0, successNumber!);
 
     successTransactions.forEach(({ amount, resolvedAddress, payload }) => {
       const comment = payload?.type === 'comment' ? payload.comment : undefined;
@@ -289,7 +299,7 @@ export async function sendTransaction(
     });
 
     return {
-      result: 'ok',
+      result: boc!,
       id: message.id,
     };
   } catch (err) {
@@ -516,7 +526,7 @@ function buildTonProofReplyItem(proof: ApiTonConnectProof, signature: string): T
   };
 }
 
-async function fetchDappMetadata(origin: string, manifestUrl: string): Promise<ApiDappMetadata> {
+export async function fetchDappMetadata(manifestUrl: string, origin?: string): Promise<ApiDappMetadata> {
   try {
     const response = await fetch(manifestUrl);
     handleFetchErrors(response);
@@ -527,7 +537,7 @@ async function fetchDappMetadata(origin: string, manifestUrl: string): Promise<A
     }
 
     return {
-      origin,
+      origin: origin ?? new URL(url).origin,
       url,
       name,
       iconUrl,

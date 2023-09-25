@@ -3,7 +3,6 @@ import type {
   Account, AccountSettings, GlobalState, UserToken,
 } from '../types';
 
-import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { findLast, mapValues, unique } from '../../util/iteratees';
 import memoized from '../../util/memoized';
@@ -154,10 +153,6 @@ export function selectCurrentAccountState(global: GlobalState) {
 
 export function selectAccountState(global: GlobalState, accountId: string) {
   return global.byAccountId[accountId];
-}
-
-export function selectLandscapeActionsActiveTabIndex(global: GlobalState) {
-  return global.landscapeActionsActiveTabIndex ?? DEFAULT_LANDSCAPE_ACTION_TAB_ID;
 }
 
 export function selectFirstNonHardwareAccount(global: GlobalState) {

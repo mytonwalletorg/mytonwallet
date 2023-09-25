@@ -30,8 +30,8 @@ export function sha256(bytes: Uint8Array) {
   return TonWeb.utils.sha256(bytes);
 }
 
-export function handleFetchErrors(response: Response) {
-  if (!response.ok) {
+export function handleFetchErrors(response: Response, ignoreHttpCodes?: number[]) {
+  if (!response.ok && (!ignoreHttpCodes?.includes(response.status))) {
     throw new Error(response.statusText);
   }
   return response;

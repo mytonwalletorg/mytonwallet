@@ -12,5 +12,6 @@ postcss.config.js
 coverage
 
 trash
+deploy
 
 dist

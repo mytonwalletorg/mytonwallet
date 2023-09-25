@@ -106,6 +106,12 @@ export enum ActiveTab {
   Stake,
 }
 
+export enum ContentTab {
+  Assets,
+  Activity,
+  Nft,
+}
+
 export type UserToken = {
   amount: number;
   name: string;
@@ -161,6 +167,8 @@ export interface AccountState {
   isUnstakeRequested?: boolean;
   poolState?: ApiPoolState;
   stakingHistory?: ApiBackendStakingState;
+  activeContentTabIndex?: ContentTab;
+  landscapeActionsActiveTabIndex?: ActiveTab;
 }
 
 export interface AccountSettings {
@@ -211,6 +219,7 @@ export type GlobalState = {
     parsedPayload?: ApiParsedPayload;
     stateInit?: string;
     shouldEncrypt?: boolean;
+    isToNewAddress?: boolean;
   };
 
   currentSignature?: {
@@ -290,7 +299,6 @@ export type GlobalState = {
   currentAccountId?: string;
   isAddAccountModalOpen?: boolean;
   isBackupWalletModalOpen?: boolean;
-  landscapeActionsActiveTabIndex?: ActiveTab;
   isHardwareModalOpen?: boolean;
   areSettingsOpen?: boolean;
 
@@ -391,6 +399,7 @@ export interface ActionPayloads {
   closeAddAccountModal: undefined;
 
   setLandscapeActionsActiveTabIndex: { index: ActiveTab };
+  setActiveContentTabIndex: { index: ContentTab };
 
   // Staking
   startStaking: { isUnstaking?: boolean } | undefined;

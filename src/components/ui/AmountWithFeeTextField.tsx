@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
+import { TON_SYMBOL } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 
@@ -37,7 +37,7 @@ function AmountWithFeeTextField({
           <>
             <div className={styles.feeLabel}>{lang('Fee')}</div>
             <span className={styles.feeConfirm}>
-              {formatCurrencyExtended(fee, CARD_SECONDARY_VALUE_SYMBOL)}
+              {formatCurrencyExtended(fee, TON_SYMBOL)}
             </span>
           </>
         )}

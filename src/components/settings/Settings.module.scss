@@ -468,6 +468,8 @@
 }
 
 .logo {
+  flex-shrink: 0;
+
   width: 6rem;
   height: 6rem;
   margin: 0 auto 0.875rem;
@@ -552,7 +554,9 @@
   border-radius: 100%;
 
   @media (pointer: coarse) {
-    opacity: 0;
+    &:not(.tokenIconSingle) {
+     opacity: 0;
+    }
   }
 }
 
@@ -609,6 +613,14 @@
 
   @supports (height: env(safe-area-inset-bottom)) {
     height: calc(46rem + env(safe-area-inset-bottom));
+  }
+}
+
+.modalDialogWeb {
+  height: 38rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(38rem + env(safe-area-inset-bottom));
   }
 }
 

@@ -1,3 +1,5 @@
+@import '../../styles/mixins';
+
 .content {
   padding: 0 1rem 1rem;
 
@@ -89,6 +91,26 @@
   padding: 0.5rem !important;
 
   font-size: 1.875rem !important;
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(xs) {
+    background-color: var(--color-gray-button-background-desktop) !important;
+
+    &:hover {
+      background-color: var(--color-gray-button-background-desktop-hover) !important;
+    }
+  }
+}
+
+.invoiceButton {
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-above(xs) {
+    background-color: var(--color-gray-button-background-desktop) !important;
+
+    &:hover {
+      background-color: var(--color-gray-button-background-desktop-hover) !important;
+    }
+  }
 }
 
 .qrIcon {

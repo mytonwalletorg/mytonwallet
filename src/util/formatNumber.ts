@@ -2,11 +2,11 @@ import { DEFAULT_DECIMAL_PLACES, DEFAULT_PRICE_CURRENCY } from '../config';
 import withCache from './withCache';
 
 export const formatInteger = withCache((value: number, fractionDigits = 2, noRadix = false) => {
-  const fixed = value.toFixed(DEFAULT_DECIMAL_PLACES);
-  let [wholePart, fractionPart = ''] = fixed.split('.');
-  fractionPart = toSignificant(fractionPart, Math.min(fractionDigits, 100));
+  const fixed = value > 1 ? value.toFixed(2) : value.toFixed(DEFAULT_DECIMAL_PLACES);
 
-  fractionPart = fractionPart.replace(/0+$/, '');
+  let [wholePart, fractionPart = ''] = fixed.split('.');
+
+  fractionPart = toSignificant(fractionPart, Math.min(fractionDigits, 100)).replace(/0+$/, '');
   if (fractionPart === '') {
     wholePart = wholePart.replace(/^-0$/, '0');
   }
@@ -25,10 +25,10 @@ export function formatCurrency(value: number, currency: string, fractionDigits?:
   return currency === '$' ? `$${formatted}`.replace('$-', '-$') : `${formatted} ${currency}`;
 }
 
-export function formatCurrencyExtended(value: number, currency: string, noSign = false) {
+export function formatCurrencyExtended(value: number, currency: string, noSign = false, fractionDigits?: number) {
   const prefix = !noSign ? (value > 0 ? '+\u202F' : '\u2212\u202F') : '';
 
-  return prefix + formatCurrency(noSign ? value : Math.abs(value), currency);
+  return prefix + formatCurrency(noSign ? value : Math.abs(value), currency, fractionDigits);
 }
 
 export function formatCurrencyForBigValue(value: number, threshold = 1000) {

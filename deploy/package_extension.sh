@@ -20,4 +20,6 @@ rm -rf ./dist/statoscope-* \
 
 rm -f "MyTonWallet-$TARGET.zip"
 
-zip -r -X "MyTonWallet-$TARGET.zip" dist/*
+cd dist
+
+zip -r -X "../MyTonWallet-$TARGET.zip" ./*

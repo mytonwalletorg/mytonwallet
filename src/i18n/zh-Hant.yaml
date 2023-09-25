@@ -255,8 +255,8 @@ Total Amount: 總金額
 Unstaking: 解除質押
 "Handle ton:// links": 處理 ton:// 鏈接
 Back up wallet to have full access to it: 備份錢包以完全訪問它
-Improve wallet security: 提高錢包安全性
-by installing browser extension or native app: 通過安裝瀏覽器擴展程序或本機應用程序
+Consider More Secure Version: 提高錢包安全性
+Install our native app or browser extension.: 通過安裝瀏覽器擴展程序或本機應用程序
 Scam: 騙局
 Scam comment is hidden.: 詐騙評論被隱藏。
 Display: 展示
@@ -350,3 +350,5 @@ $auth_backup_description3: |
   你需要手動**備份註記詞**，免得你忘記助記詞而無法登入此裝置。
 Terms of Use: 使用條款
 Privacy Policy: 隱私政策
+This address is new and never received transfers before.: 這個地址是新的，以前從未收到過轉帳。
+failed: 失败

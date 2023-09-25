@@ -3,8 +3,9 @@ import React, { memo, useState } from '../../../lib/teact/teact';
 import type { ApiToken, ApiTransaction } from '../../../api/types';
 
 import {
-  CARD_SECONDARY_VALUE_SYMBOL,
+  ANIMATION_END_DELAY, ANIMATION_LEVEL_MIN,
   STAKING_CYCLE_DURATION_MS,
+  TON_SYMBOL,
   TON_TOKEN_SLUG,
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
@@ -16,10 +17,11 @@ import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
 import { callApi } from '../../../api';
 
-import useCurrentOrPrev from '../../../hooks/useCurrentOrPrev';
+import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
 import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
+import usePrevDuringAnimation from '../../../hooks/usePrevDuringAnimation';
 import useShowTransition from '../../../hooks/useShowTransition';
 import useSyncEffect from '../../../hooks/useSyncEffect';
 
@@ -27,7 +29,7 @@ import TransactionAmount from '../../common/TransactionAmount';
 import AmountWithFeeTextField from '../../ui/AmountWithFeeTextField';
 import Button from '../../ui/Button';
 import InteractiveTextField from '../../ui/InteractiveTextField';
-import Modal from '../../ui/Modal';
+import Modal, { ANIMATION_DURATION, ANIMATION_DURATION_PORTRAIT } from '../../ui/Modal';
 import PasswordForm from '../../ui/PasswordForm';
 
 import transferStyles from '../../transfer/Transfer.module.scss';
@@ -62,8 +64,12 @@ function TransactionModal({
   } = getActions();
 
   const lang = useLang();
-  const renderedTransaction = useCurrentOrPrev(transaction, true);
-  const [isModalOpen, openModal, closeModal] = useFlag(false);
+  const { isPortrait } = useDeviceScreen();
+  const animationLevel = getGlobal().settings.animationLevel;
+  const animationDuration = animationLevel === ANIMATION_LEVEL_MIN
+    ? 0
+    : (isPortrait ? ANIMATION_DURATION_PORTRAIT : ANIMATION_DURATION) + ANIMATION_END_DELAY;
+  const renderedTransaction = usePrevDuringAnimation(transaction, animationDuration);
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
 
   const {
@@ -106,11 +112,12 @@ function TransactionModal({
   } = useShowTransition(withUnstakeTimer);
 
   useSyncEffect(() => {
-    if (transaction) {
-      openModal();
+    if (renderedTransaction) {
       setDecryptedComment(undefined);
+    } else {
+      closeTransactionInfo();
     }
-  }, [transaction]);
+  }, [renderedTransaction]);
 
   useSyncEffect(() => {
     if (endOfStakingCycle) {
@@ -119,7 +126,7 @@ function TransactionModal({
   }, [endOfStakingCycle]);
 
   const handleSendClick = useLastCallback(() => {
-    closeModal();
+    closeTransactionInfo();
     startTransfer({
       tokenSlug: slug || TON_TOKEN_SLUG,
       toAddress: address,
@@ -129,7 +136,7 @@ function TransactionModal({
   });
 
   const handleStartStakingClick = useLastCallback(() => {
-    closeModal();
+    closeTransactionInfo();
     startStaking();
   });
 
@@ -195,7 +202,7 @@ function TransactionModal({
       <AmountWithFeeTextField
         label={lang('Fee')}
         amount={bigStrToHuman(fee)}
-        currency={CARD_SECONDARY_VALUE_SYMBOL}
+        currency={TON_SYMBOL}
       />
     );
   }
@@ -308,9 +315,8 @@ function TransactionModal({
     <Modal
       hasCloseButton
       title={renderHeader()}
-      isOpen={isModalOpen}
-      onClose={closeModal}
-      onCloseAnimationEnd={closeTransactionInfo}
+      isOpen={Boolean(transaction)}
+      onClose={closeTransactionInfo}
     >
       <div className={modalStyles.transitionContent}>
         {tonscanTransactionUrl && (

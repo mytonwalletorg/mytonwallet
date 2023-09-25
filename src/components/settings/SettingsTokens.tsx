@@ -144,6 +144,7 @@ function SettingsTokens({
     const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
     const totalAmount = amount * price;
     const isDragged = state.draggedIndex === index;
+    const isSingleToken = tokens?.length === 1;
 
     const draggedTop = getOrderIndex(slug, state.orderedTokenSlugs);
     const top = getOrderIndex(slug, state.dragOrderTokenSlugs);
@@ -170,7 +171,11 @@ function SettingsTokens({
         // eslint-disable-next-line react/jsx-no-bind
         onClick={() => handleDisabledToken(slug)}
       >
-        <img src={logoPath} alt={symbol} className={styles.tokenIcon} />
+        <img
+          src={logoPath}
+          alt={symbol}
+          className={buildClassName(styles.tokenIcon, isSingleToken && styles.tokenIconSingle)}
+        />
         <div className={styles.tokenInfo}>
           <div className={styles.tokenTitle}>
             {name}

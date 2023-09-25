@@ -9,13 +9,11 @@ export function getIsTinyTransaction(transaction: ApiTransaction, token?: ApiTok
   return cost < TINY_TRANSFER_MAX_COST;
 }
 
-export function bigStrToHuman(amount: string, decimalPlaces?: number) {
-  if (decimalPlaces === undefined) decimalPlaces = DEFAULT_DECIMAL_PLACES;
+export function bigStrToHuman(amount: string, decimalPlaces = DEFAULT_DECIMAL_PLACES) {
   return divideBigInt(BigInt(amount), BigInt(10 ** decimalPlaces));
 }
 
-export function humanToBigStr(amount: number, decimalPlaces?: number) {
-  if (decimalPlaces === undefined) decimalPlaces = DEFAULT_DECIMAL_PLACES;
+export function humanToBigStr(amount: number, decimalPlaces = DEFAULT_DECIMAL_PLACES) {
   return String(Math.round(amount * (10 ** decimalPlaces)));
 }
 

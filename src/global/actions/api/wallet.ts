@@ -139,6 +139,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     fee: result.fee,
     toAddressName: result.addressName,
     tokenSlug,
+    isToNewAddress: result.isToAddressNew,
   }));
 });
 
@@ -588,4 +589,11 @@ addActionHandler('verifyHardwareAddress', async (global) => {
   } catch (err) {
     getActions().showError({ error: err as string });
   }
+});
+
+addActionHandler('setActiveContentTabIndex', (global, actions, { index }) => {
+  global = updateCurrentAccountState(global, {
+    activeContentTabIndex: index,
+  });
+  setGlobal(global);
 });

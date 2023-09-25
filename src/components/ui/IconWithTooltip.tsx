@@ -10,12 +10,15 @@ import { IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
 import useFlag from '../../hooks/useFlag';
 import useShowTransition from '../../hooks/useShowTransition';
 
+import type { EmojiIcon } from './Emoji';
+import Emoji from './Emoji';
 import Portal from './Portal';
 
 import styles from './IconWithTooltip.module.scss';
 
 type OwnProps = {
   message: React.ReactNode;
+  emoji?: EmojiIcon;
   iconClassName?: string;
   tooltipClassName?: string;
 };
@@ -25,6 +28,7 @@ const GAP = 2 * REM;
 
 const IconWithTooltip: FC<OwnProps> = ({
   message,
+  emoji,
   iconClassName,
   tooltipClassName,
 }) => {
@@ -61,6 +65,32 @@ const IconWithTooltip: FC<OwnProps> = ({
     arrowStyle.current = `${arrowVerticalStyle} ${arrowHorizontalStyle}`;
   }, [shouldRender]);
 
+  function renderIcon() {
+    if (emoji) {
+      return (
+        <div
+          ref={iconRef}
+          className={buildClassName(styles.icon, iconClassName)}
+          onClick={IS_TOUCH_ENV ? stopEvent : undefined}
+          onMouseEnter={open}
+          onMouseLeave={close}
+        >
+          <Emoji from={emoji} />
+        </div>
+      );
+    }
+
+    return (
+      <i
+        ref={iconRef}
+        className={buildClassName(styles.icon, 'icon-question', iconClassName)}
+        onClick={IS_TOUCH_ENV ? stopEvent : undefined}
+        onMouseEnter={open}
+        onMouseLeave={close}
+      />
+    );
+  }
+
   return (
     <div className={styles.wrapper}>
       {shouldRender && (
@@ -80,13 +110,7 @@ const IconWithTooltip: FC<OwnProps> = ({
           </div>
         </Portal>
       )}
-      <i
-        ref={iconRef}
-        className={buildClassName('icon-question', iconClassName)}
-        onClick={IS_TOUCH_ENV ? stopEvent : undefined}
-        onMouseEnter={open}
-        onMouseLeave={close}
-      />
+      {renderIcon()}
     </div>
   );
 };

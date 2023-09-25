@@ -338,7 +338,6 @@ function updateCache() {
       'settings',
       'currentAccountId',
       'stateVersion',
-      'landscapeActionsActiveTabIndex',
     ]),
     accounts: {
       byId: global.accounts?.byId || {},

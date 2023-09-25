@@ -18,12 +18,24 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
       name,
       browser_download_url,
     }) => {
+      let key;
+
       if (name.endsWith('.exe')) {
-        acc['win'] = browser_download_url;
+        key = 'win';
       } else if (name.endsWith('.AppImage')) {
-        acc['linux'] = browser_download_url;
+        key = 'linux';
       } else if (name.endsWith('.dmg')) {
-        acc[`mac-${name.includes('arm') ? 'arm' : 'x64'}`] = browser_download_url;
+        key = `mac-${name.includes('arm') ? 'arm' : 'x64'}`;
+      } else if (name.endsWith('.exe.asc')) {
+        key = 'win-signature';
+      } else if (name.endsWith('.AppImage.asc')) {
+        key = 'linux-signature';
+      } else if (name.endsWith('.dmg.asc')) {
+        key = `mac-${name.includes('arm') ? 'arm' : 'x64'}-signature`;
+      }
+
+      if (key) {
+        acc[key] = browser_download_url;
       }
 
       return acc;
@@ -89,9 +101,12 @@ function setupDownloadButton() {
 
 function setupVersion() {
   document.addEventListener('DOMContentLoaded', () => {
-    packagesPromise.then((packages) => {
+    Promise.all([packagesPromise, areSignaturesPresent()]).then(([packages, areSignaturesPresentResult]) => {
       const versionEl = document.querySelector('.version');
-      versionEl.innerHTML = `v. ${packages.$version} · `;
+      const signaturesHtml = areSignaturesPresentResult
+        ? '<a href="javascript:redirectToFullList();">Signatures</a>'
+        : '<span class="missing-signatures">Missing signatures!</span>';
+      versionEl.innerHTML = `v. ${packages.$version} · ${signaturesHtml}`;
     });
   });
 }
@@ -124,8 +139,16 @@ function downloadDefault() {
   }
 }
 
-function download(platform) {
+function download(platformKey) {
   packagesPromise.then((packages) => {
-    location.href = packages[platform];
+    location.href = packages[platformKey];
+  });
+}
+
+function areSignaturesPresent() {
+  return packagesPromise.then((packages) => {
+    if (platform === 'Windows') return !!packages['win-signature'];
+    if (platform === 'Linux') return !!packages['linux-signature'];
+    if (platform === 'macOS') return !!(packages['mac-arm-signature'] && packages['mac-x64-signature']);
   });
 }

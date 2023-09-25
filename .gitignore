@@ -3,6 +3,7 @@ dist
 dist-electron
 MyTonWallet-chrome.zip
 MyTonWallet-firefox.zip
+MyTonWallet-firefox-sources.tgz
 MyTonWallet-opera.zip
 .cache
 .env*

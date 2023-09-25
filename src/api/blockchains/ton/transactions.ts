@@ -17,6 +17,7 @@ import { omit } from '../../../util/iteratees';
 import { isValidLedgerComment } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
+import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
 import { parseWalletTransactionBody } from './util/metadata';
@@ -34,7 +35,7 @@ import {
 import { fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey } from '../../common/accounts';
 import { getAddressInfo } from '../../common/addresses';
 import { updateTransactionMetadata } from '../../common/helpers';
-import { isKnownStakingPool } from '../../common/utils';
+import { bytesToBase64, isKnownStakingPool } from '../../common/utils';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
 import { ATTEMPTS, STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
@@ -61,6 +62,7 @@ type SubmitMultiTransferResult = {
   })[];
   amount: string;
   seqno: number;
+  boc: string;
 } | {
   error: string;
 };
@@ -82,6 +84,11 @@ const lastTransfers: Record<ApiNetwork, Record<string, {
   testnet: {},
 };
 
+export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, address: string) => {
+  const transactions = await fetchTransactions(network, address, 1);
+  return Boolean(transactions.length);
+});
+
 export async function checkTransactionDraft(
   accountId: string,
   tokenSlug: string,
@@ -100,6 +107,7 @@ export async function checkTransactionDraft(
     isScam?: boolean;
     resolvedAddress?: string;
     normalizedAddress?: string;
+    isToAddressNew?: boolean;
   } = {};
 
   const resolved = await resolveAddress(network, toAddress);
@@ -125,8 +133,14 @@ export async function checkTransactionDraft(
     return { ...result, error: ApiTransactionDraftError.InvalidAddressFormat };
   }
 
-  if (tokenSlug === TON_TOKEN_SLUG && isBounceable && !(await isWalletInitialized(network, toAddress))) {
-    toAddress = toBase64Address(toAddress, false);
+  if (isBounceable) {
+    const isInitialized = await isWalletInitialized(network, toAddress);
+    if (!isInitialized) {
+      result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
+      if (tokenSlug === TON_TOKEN_SLUG) {
+        toAddress = toBase64Address(toAddress, false);
+      }
+    }
   }
 
   result.resolvedAddress = toAddress;
@@ -204,6 +218,7 @@ export async function checkTransactionDraft(
     normalizedAddress: string;
     addressName?: string;
     isScam?: boolean;
+    isToAddressNew?: boolean;
   };
 }
 
@@ -505,6 +520,8 @@ export async function submitMultiTransfer(
 
     const { seqno, query } = await signMultiTransaction(network, wallet!, preparedMessages, privateKey, expireAt);
 
+    const boc = bytesToBase64(await (await query.getQuery()).toBoc());
+
     const fee = await calculateFee(isInitialized, query);
     if (BigInt(balance) < BigInt(totalAmount) + BigInt(fee)) {
       return { error: ApiTransactionError.InsufficientBalance };
@@ -518,6 +535,7 @@ export async function submitMultiTransfer(
       seqno,
       amount: totalAmount.toString(),
       messages: preparedMessages,
+      boc,
     };
   } catch (err) {
     logDebugError('submitMultiTransfer', err);
@@ -551,7 +569,7 @@ async function signMultiTransaction(
     messages,
     sendMode: 3,
     expireAt,
-  });
+  }) as Method;
 
   return { query, seqno };
 }

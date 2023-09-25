@@ -93,14 +93,14 @@ function Activity({
     }
 
     if (!idList) {
-      return undefined;
+      return [];
     }
 
     return idList;
   }, [byTxId, slug, txIdsBySlug]);
 
   const transactions = useMemo(() => {
-    if (!txIds) {
+    if (!txIds.length) {
       return [];
     }
 
@@ -164,11 +164,11 @@ function Activity({
 
   useEffect(() => {
     if (isActive) {
-      setIsFetching(!isNewWallet);
+      setIsFetching(Boolean(txIds.length));
       resetIsHistoryEndReached();
       handleFetchingState();
     }
-  }, [handleFetchingState, isActive, isNewWallet, loadMore, slug]);
+  }, [handleFetchingState, isActive, isNewWallet, loadMore, slug, txIds]);
 
   useEffect(() => {
     if (!transactions.length) {
@@ -217,7 +217,7 @@ function Activity({
     );
   }
 
-  if (!transactions?.length || (isLandscape && isNewWallet)) {
+  if (!transactions.length || (isLandscape && isNewWallet)) {
     return (
       <div className={buildClassName(isLandscape && styles.greeting)}>
         <NewWalletGreeting isActive={isActive} mode={isLandscape ? 'emptyList' : 'panel'} />

@@ -22,6 +22,7 @@ import LedgerConnect from '../ledger/LedgerConnect';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
+import IconWithTooltip from '../ui/IconWithTooltip';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -58,6 +59,7 @@ function TransferModal({
     txId,
     tokenSlug,
     toAddressName,
+    isToNewAddress,
   }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected,
 }: StateProps) {
   const {
@@ -152,7 +154,17 @@ function TransferModal({
             tgsUrl={ANIMATED_STICKERS_PATHS.bill}
             previewUrl={ANIMATED_STICKERS_PATHS.billPreview}
           />
-          <div className={styles.label}>{lang('Receiving Address')}</div>
+          <div className={styles.label}>
+            {lang('Receiving Address')}
+
+            {isToNewAddress && (
+              <IconWithTooltip
+                emoji="⚠️"
+                message={lang('This address is new and never received transfers before.')}
+                tooltipClassName={styles.warningTooltipContainer}
+              />
+            )}
+          </div>
           <InteractiveTextField
             address={resolvedAddress!}
             addressName={addressName}

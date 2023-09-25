@@ -37,7 +37,7 @@ export const ANIMATED_STICKER_DEFAULT_PX = 150;
 export const ANIMATED_STICKER_BIG_SIZE_PX = 156;
 
 export const DEFAULT_PRICE_CURRENCY = '$';
-export const CARD_SECONDARY_VALUE_SYMBOL = 'TON';
+export const TON_SYMBOL = 'TON';
 
 export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 1;
 
@@ -48,7 +48,7 @@ export const DEFAULT_SLIPPAGE_VALUE = 0.5;
 export const TOKEN_INFO = {
   toncoin: {
     name: 'Toncoin',
-    symbol: CARD_SECONDARY_VALUE_SYMBOL,
+    symbol: TON_SYMBOL,
     slug: 'toncoin',
     quote: {
       price: 1.95,
@@ -98,7 +98,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-26';
+export const LANG_CACHE_NAME = 'mtw-lang-30';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',

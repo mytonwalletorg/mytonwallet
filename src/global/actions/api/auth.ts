@@ -254,12 +254,18 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
     return;
   }
 
-  global = updateAuth(getGlobal(), {
+  global = getGlobal();
+  const hasAccounts = Object.keys(selectAccounts(global) || {}).length > 0;
+  global = updateAuth(global, {
     mnemonic,
     error: undefined,
-    state: AuthState.disclaimer,
+    ...(!hasAccounts && { state: AuthState.disclaimer }),
   });
   setGlobal(global);
+
+  if (hasAccounts) {
+    actions.confirmDisclaimer();
+  }
 });
 
 addActionHandler('confirmDisclaimer', (global, actions) => {
@@ -315,7 +321,6 @@ addActionHandler('switchAccount', async (global, actions, { accountId, newNetwor
   };
 
   global = clearCurrentTransfer(global);
-
   setGlobal(global);
 
   if (newNetwork) {

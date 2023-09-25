@@ -255,8 +255,8 @@ Total Amount: 总金额
 Unstaking: 解除质押
 "Handle ton:// links": 处理 ton:// 链接
 Back up wallet to have full access to it: 备份钱包以完全访问它
-Improve wallet security: 提高钱包安全性
-by installing browser extension or native app: 通过安装浏览器扩展程序或本机应用程序
+Consider More Secure Version: 提高钱包安全性
+Install our native app or browser extension.: 通过安装浏览器扩展程序或本机应用程序
 Scam: 骗局
 Scam comment is hidden.: 诈骗评论被隐藏。
 Display: 展示
@@ -323,7 +323,7 @@ Message is encrypted.: 消息已加密。
 $dapp_ledger_warning1: 您即将使用您的**Ledger**钱包发送多方交易。您需要手动**逐个**签署每笔底层交易。
 $dapp_ledger_warning2: 请慢慢来，不要中断过程。
 Agree: 同意
-The hardware wallet does not support this data format: 硬件钱包不支持该数据格
+The hardware wallet does not support this data format: 硬件钱包不支持该数据格式
 Use Responsibly: 负责任地使用
 $auth_responsibly_description1: |
   MyTonWallet 是一个**自我托管**钱包，这意味着**只有您**拥有完全控制权，最重要的是，对您的资金**承担全部责任**。
@@ -351,3 +351,5 @@ $auth_backup_description3: |
 $transaction_at: 于价格 %price%
 Terms of Use: 使用条款
 Privacy Policy: 隐私政策
+This address is new and never received transfers before.: 这个地址是新的，以前从未收到过转帐。
+failed: 失敗

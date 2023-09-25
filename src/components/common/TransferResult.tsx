@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
+import { TON_SYMBOL } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -29,7 +29,7 @@ interface OwnProps {
 function TransferResult({
   playAnimation,
   amount = 0,
-  tokenSymbol = CARD_SECONDARY_VALUE_SYMBOL,
+  tokenSymbol = TON_SYMBOL,
   precision = 2,
   noSign,
   color,

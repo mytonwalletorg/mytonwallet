@@ -8,7 +8,7 @@ import { ActiveTab } from '../../../../global/types';
 
 import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
 import { getActions, withGlobal } from '../../../../global';
-import { selectLandscapeActionsActiveTabIndex } from '../../../../global/selectors';
+import { selectAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { ReceiveStatic } from '../../../receive';
 
@@ -31,13 +31,13 @@ interface OwnProps {
 }
 
 interface StateProps {
-  activeTabIndex: ActiveTab;
+  activeTabIndex?: ActiveTab;
   isTestnet?: boolean;
 }
 
 function LandscapeActions({
   hasStaking,
-  activeTabIndex,
+  activeTabIndex = DEFAULT_LANDSCAPE_ACTION_TAB_ID,
   isUnstakeRequested,
   isTestnet,
   isLedger,
@@ -254,11 +254,13 @@ function useTabHeightAnimation(slideClassName: string, contentBackgroundClassNam
 }
 
 export default memo(
-  withGlobal<OwnProps>((global): StateProps => {
-    const activeTabIndex = selectLandscapeActionsActiveTabIndex(global);
+  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
+    detachWhenChanged(global.currentAccountId);
+
+    const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
     return {
-      activeTabIndex,
+      activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
       isTestnet: global.settings.isTestnet,
     };
   })(LandscapeActions),

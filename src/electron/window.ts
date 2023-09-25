@@ -84,7 +84,10 @@ export function createWindow() {
   mainWindow.webContents.once('dom-ready', () => {
     mainWindow.show();
     processDeeplink();
-    setupAutoUpdates();
+
+    if (process.env.APP_ENV === 'production') {
+      setupAutoUpdates();
+    }
   });
 }
 

@@ -1,13 +1,15 @@
 import { BRILLIANT_API_BASE_URL } from '../../config';
 import { handleFetchErrors } from './utils';
 
-export async function callBackendPost(path: string, data: AnyLiteral) {
+const BAD_REQUEST_CODE = 400;
+
+export async function callBackendPost(path: string, data: AnyLiteral, isAllowBadRequest?: boolean) {
   const response = await fetch(`${BRILLIANT_API_BASE_URL}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  handleFetchErrors(response);
+  handleFetchErrors(response, isAllowBadRequest ? [BAD_REQUEST_CODE] : undefined);
   return response.json();
 }
 

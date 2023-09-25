@@ -8,6 +8,7 @@ import { pause } from '../../../util/schedulers';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
+  clearCurrentTransfer,
   renameAccount,
   updateAccounts,
   updateAccountState,
@@ -80,6 +81,7 @@ addActionHandler('addAccount', async (global, actions, { method, password }) => 
 
   global = getGlobal();
   global = updateAuth(global, { password });
+  global = clearCurrentTransfer(global);
   global = { ...global, isAddAccountModalOpen: undefined, appState: AppState.Auth };
 
   setGlobal(global);
@@ -240,10 +242,10 @@ addActionHandler('toggleCanPlaySounds', (global, actions, { isEnabled } = {}) =>
 });
 
 addActionHandler('setLandscapeActionsActiveTabIndex', (global, actions, { index }) => {
-  return {
-    ...global,
+  global = updateCurrentAccountState(global, {
     landscapeActionsActiveTabIndex: index,
-  };
+  });
+  setGlobal(global);
 });
 
 addActionHandler('closeSecurityWarning', (global) => {
@@ -386,14 +388,12 @@ addActionHandler('toggleDisabledToken', (global, actions, { slug }) => {
   const slugIndexInAvailable = enabledSlugsCopy.indexOf(slug);
   const slugIndexInDisabled = disabledSlugsCopy.indexOf(slug);
 
-  if (slugIndexInAvailable !== -1) {
-    enabledSlugsCopy.splice(slugIndexInAvailable, 1);
-    disabledSlugsCopy.push(slug);
-  } else if (slugIndexInDisabled !== -1) {
+  if (slugIndexInDisabled !== -1) {
     disabledSlugsCopy.splice(slugIndexInDisabled, 1);
     enabledSlugsCopy.push(slug);
   } else {
-    enabledSlugsCopy.push(slug);
+    enabledSlugsCopy.splice(slugIndexInAvailable, 1);
+    disabledSlugsCopy.push(slug);
   }
 
   setGlobal(updateSettings(global, {

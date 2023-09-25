@@ -9,6 +9,7 @@ export type IDimensions = {
 };
 
 const WINDOW_RESIZE_THROTTLE_MS = 250;
+const WINDOW_ORIENTATION_CHANGE_THROTTLE_MS = IS_IOS ? 350 : 250;
 
 const initialHeight = window.innerHeight;
 let currentWindowSize = updateSizes();
@@ -17,10 +18,12 @@ const handleResize = throttle(() => {
   currentWindowSize = updateSizes();
 }, WINDOW_RESIZE_THROTTLE_MS, true);
 
-window.addEventListener('orientationchange', handleResize);
-if (IS_IOS) {
-  window.visualViewport!.addEventListener('resize', handleResize);
-} else {
+const handleOrientationChange = throttle(() => {
+  currentWindowSize = updateSizes();
+}, WINDOW_ORIENTATION_CHANGE_THROTTLE_MS, false);
+
+window.addEventListener('orientationchange', handleOrientationChange);
+if (!IS_IOS) {
   window.addEventListener('resize', handleResize);
 }
 

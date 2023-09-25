@@ -42,9 +42,9 @@ function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
       className={buildClassName(styles.wrapper, isLandscape && styles.wrapper_landscape, transitionClassNames)}
       onClick={handleClick}
     >
-      {lang('Improve wallet security')}
+      {lang('Consider More Secure Version')}
       <i className={buildClassName(styles.icon, 'icon-chevron-right')} aria-hidden />
-      <p className={styles.text}>{lang('by installing browser extension or native app')}</p>
+      <p className={styles.text}>{lang('Install our native app or browser extension.')}</p>
 
       <button type="button" className={styles.closeButton} aria-label={lang('Close')} onClick={handleClose}>
         <i className="icon-close" aria-hidden />

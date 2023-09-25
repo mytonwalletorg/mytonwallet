@@ -67,7 +67,7 @@ function Content({
         >
           <i className={buildClassName('icon-qrcode', styles.qrIcon)} aria-hidden />
         </Button>
-        <Button onClick={onInvoiceModalOpen}>
+        <Button onClick={onInvoiceModalOpen} className={styles.invoiceButton}>
           {lang('Create Invoice')}
         </Button>
       </div>

@@ -3,6 +3,7 @@ import type {
   ConnectEvent,
   ConnectRequest,
   DeviceInfo,
+  DisconnectRpcResponse,
   RpcRequests,
 } from '@tonconnect/protocol';
 import nacl, { randomBytes } from 'tweetnacl';
@@ -42,7 +43,8 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo) {
   const appClientId = params.get('id') as string;
   const connectRequest = JSON.parse(params.get('r') as string) as ConnectRequest;
   const ret = params.get('ret') as 'back' | 'none' | string | null;
-  const origin = new URL(connectRequest.manifestUrl).origin;
+
+  const { origin } = await tonConnect.fetchDappMetadata(connectRequest.manifestUrl);
 
   logDebug('SSE Start connection:', {
     version, appClientId, connectRequest, ret, origin,
@@ -134,11 +136,12 @@ export async function sendSseDisconnect(accountId: string, origin: string) {
   const { secretKey, clientId, appClientId } = sseDapp;
   const lastOutputId = sseDapp.lastOutputId + 1;
 
-  await sendMessage({
-    event: 'disconnect',
-    id: lastOutputId,
-    payload: {},
-  }, secretKey, clientId, appClientId);
+  const response: DisconnectRpcResponse = {
+    id: lastOutputId.toString(),
+    result: {},
+  };
+
+  await sendMessage(response, secretKey, clientId, appClientId);
 }
 
 function sendMessage(

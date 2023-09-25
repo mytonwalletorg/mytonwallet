@@ -144,6 +144,10 @@
 }
 
 .label {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+
   margin-bottom: 0.3125rem;
 
   font-weight: 700;
@@ -402,4 +406,10 @@ textarea.inputStatic {
   to {
     transform: rotate(1turn);
   }
+}
+
+.warningTooltipContainer {
+  z-index: 1;
+
+  width: 18.9375rem;
 }

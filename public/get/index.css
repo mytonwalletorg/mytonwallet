@@ -186,3 +186,7 @@ body {
 a:hover {
   text-decoration: none;
 }
+
+.missing-signatures {
+  color: #FF7777;
+}

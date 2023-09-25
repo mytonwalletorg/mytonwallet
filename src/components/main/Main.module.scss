@@ -23,8 +23,6 @@ $scrollOffset: 0.1875rem;
   @include adapt-padding-to-scrollbar(0.75rem, !important); /* stylelint-disable-line order/order */
 
   @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    padding-bottom: env(safe-area-inset-bottom) !important;
-
     /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
     @include respond-above(xs) {
       padding-bottom: max(env(safe-area-inset-bottom), 1rem) !important;

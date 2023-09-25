@@ -43,8 +43,8 @@ type StateProps = {
   shouldSkipHistoryAnimations?: boolean;
 };
 
-const ANIMATION_DURATION = 350;
-const ANIMATION_DURATION_PORTRAIT = 500;
+export const ANIMATION_DURATION = 350;
+export const ANIMATION_DURATION_PORTRAIT = 500;
 
 function Modal({
   dialogRef,

@@ -19,7 +19,7 @@ const formatDayToStringWithCache = withCache((
       day: noDay ? undefined : 'numeric',
       hour: withTime ? 'numeric' : undefined,
       minute: withTime ? 'numeric' : undefined,
-      hour12: false,
+      hourCycle: 'h23',
     },
   );
 });

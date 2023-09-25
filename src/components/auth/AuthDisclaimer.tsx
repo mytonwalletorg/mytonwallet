@@ -93,6 +93,8 @@ const AuthDisclaimer = ({
 
   const handleMnemonicCheckSubmit = useLastCallback(() => {
     closeModal();
+    // Don't flicker the backup notice modal after submitting a mnemonic
+    setIsInformationConfirmed(false);
     afterCheckMnemonic();
   });
 
@@ -167,7 +169,7 @@ const AuthDisclaimer = ({
       </div>
 
       <Modal
-        isOpen={isInformationConfirmed && !isImport}
+        isOpen={isInformationConfirmed && !isImport && !isModalOpen}
         onClose={handleCloseBackupWarningModal}
         dialogClassName={styles.disclaimerBackupDialog}
       >

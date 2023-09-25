@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from '../lib/teact/teact';
+import React, { memo, useEffect } from '../lib/teact/teact';
 
 import { AppState } from '../global/types';
 
@@ -64,7 +64,6 @@ function App({
 
   const [isInactive, markInactive] = useFlag(false);
   const [canPrerenderMain, prerenderMain] = useFlag();
-  const [contentActiveTabIndex, setContentActiveTabIndex] = useState<number>(0);
 
   const renderingKey = isInactive
     ? AppState.Inactive
@@ -112,11 +111,7 @@ function App({
             nextKey={renderingKey === AppState.Auth && canPrerenderMain ? mainKey + 1 : undefined}
             slideClassName={slideFullClassName}
           >
-            <Main
-              key={mainKey}
-              initialContentTabIndex={contentActiveTabIndex}
-              onChangeContentTabIndex={setContentActiveTabIndex}
-            />
+            <Main key={mainKey} />
           </Transition>
         );
       }

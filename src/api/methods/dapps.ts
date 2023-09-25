@@ -145,10 +145,10 @@ export async function deleteDapp(accountId: string, origin: string, dontNotifyDa
   }
 
   if (!dontNotifyDapp) {
-    callHook('onDappDisconnected', accountId, origin);
+    await callHook('onDappDisconnected', accountId, origin);
   }
 
-  callHook('onDappsChanged');
+  await callHook('onDappsChanged');
 
   return true;
 }
@@ -168,7 +168,7 @@ export async function deleteAllDapps(accountId: string) {
     callHook('onDappDisconnected', accountId, origin);
   });
 
-  callHook('onDappsChanged');
+  await callHook('onDappsChanged');
 }
 
 export async function getDapps(accountId: string): Promise<ApiDapp[]> {
@@ -220,7 +220,7 @@ export async function removeAccountDapps(accountId: string) {
 export async function removeAllDapps() {
   await storage.removeItem('dapps');
 
-  callHook('onDappsChanged');
+  await callHook('onDappsChanged');
 }
 
 export function removeNetworkDapps(network: ApiNetwork) {

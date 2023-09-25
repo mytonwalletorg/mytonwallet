@@ -5,7 +5,7 @@ import React, {
 import type { ApiBackendStakingState } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
-import { CARD_SECONDARY_VALUE_SYMBOL, TON_TOKEN_SLUG } from '../../config';
+import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -110,7 +110,7 @@ function StakingInfoContent({
           {lang('$total', {
             value: (
               <span className={styles.historyTotalValue}>
-                {formatCurrency(stakingHistory!.totalProfit, CARD_SECONDARY_VALUE_SYMBOL)}
+                {formatCurrency(stakingHistory!.totalProfit, TON_SYMBOL)}
               </span>
             ),
           })}
@@ -157,7 +157,7 @@ function StakingInfoContent({
           zeroValue="..."
           value={stakingResult}
           decimals={STAKING_DECIMAL}
-          suffix={CARD_SECONDARY_VALUE_SYMBOL}
+          suffix={TON_SYMBOL}
           className={styles.stakingBalance}
           labelClassName={styles.balanceStakedLabel}
           valueClassName={styles.balanceStakedResult}
@@ -173,7 +173,7 @@ function StakingInfoContent({
                 zeroValue="..."
                 value={balanceResult}
                 decimals={STAKING_DECIMAL}
-                suffix={CARD_SECONDARY_VALUE_SYMBOL}
+                suffix={TON_SYMBOL}
                 inputClassName={styles.balanceResultInput}
                 labelClassName={styles.balanceStakedLabel}
                 valueClassName={styles.balanceResult}

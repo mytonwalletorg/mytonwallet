@@ -93,6 +93,14 @@
   .landscapeContainer & {
     flex-grow: 1;
   }
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-below(xs) {
+
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+  }
 }
 
 .slide {

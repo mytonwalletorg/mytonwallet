@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { CARD_SECONDARY_VALUE_SYMBOL } from '../../config';
+import { DEFAULT_DECIMAL_PLACES, TON_SYMBOL } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 
@@ -15,8 +15,6 @@ interface OwnProps {
   to?: number;
 }
 
-const AMOUNT_PRECISION = 4;
-
 function TransactionAmount({
   isIncoming,
   isScam,
@@ -25,7 +23,7 @@ function TransactionAmount({
   from,
   to,
 }: OwnProps) {
-  const [wholePart, fractionPart] = formatCurrencyExtended(amount, '').split('.');
+  const [wholePart, fractionPart] = formatCurrencyExtended(amount, '', false, DEFAULT_DECIMAL_PLACES).split('.');
 
   const withBalanceChange = from !== undefined && to !== undefined;
 
@@ -38,13 +36,13 @@ function TransactionAmount({
     >
       {wholePart.trim().replace('\u202F', '')}
       {fractionPart && <span className={styles.amountFraction}>.{fractionPart.trim()}</span>}
-      <span className={styles.amountSymbol}>{tokenSymbol || CARD_SECONDARY_VALUE_SYMBOL}</span>
+      <span className={styles.amountSymbol}>{tokenSymbol || TON_SYMBOL}</span>
 
       {withBalanceChange && (
         <div className={styles.balanceChange}>
-          {formatCurrency(from, '', AMOUNT_PRECISION)}
+          {formatCurrency(from, '', DEFAULT_DECIMAL_PLACES)}
           &nbsp;&rarr;&nbsp;
-          {formatCurrency(to, '', AMOUNT_PRECISION)}
+          {formatCurrency(to, '', DEFAULT_DECIMAL_PLACES)}
         </div>
       )}
     </div>

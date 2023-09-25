@@ -5,7 +5,7 @@ import React, {
 import { ElectronEvent } from '../../electron/types';
 import type { UserToken } from '../../global/types';
 
-import { CARD_SECONDARY_VALUE_SYMBOL, DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../config';
+import { DEFAULT_PRICE_CURRENCY, TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
 import {
@@ -374,7 +374,7 @@ function TransferInitial({
           lang('$fee_value', {
             fee: (
               <span className={styles.feeValue}>
-                {formatCurrencyExtended(bigStrToHuman(renderingFee!), CARD_SECONDARY_VALUE_SYMBOL, true)}
+                {formatCurrencyExtended(bigStrToHuman(renderingFee!), TON_SYMBOL, true)}
               </span>
             ),
           })
@@ -513,7 +513,9 @@ function TransferInitial({
 }
 
 export default memo(
-  withGlobal((global): StateProps => {
+  withGlobal((global, ownProps, detachWhenChanged): StateProps => {
+    detachWhenChanged(global.currentAccountId);
+
     const {
       toAddress,
       amount,

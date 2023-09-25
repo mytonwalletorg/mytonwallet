@@ -6,7 +6,7 @@ import { StakingState } from '../../global/types';
 import type { GlobalState, UserToken } from '../../global/types';
 
 import {
-  CARD_SECONDARY_VALUE_SYMBOL, MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_TOKEN_SLUG,
+  MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TON_TOKEN_SLUG,
 } from '../../config';
 import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
@@ -151,7 +151,7 @@ function UnstakeModal({
           {!hasBalanceForUnstake && (
             <p className={styles.insufficientBalance}>
               {lang('$unstake_insufficient_balance', {
-                balance: `${MIN_BALANCE_FOR_UNSTAKE} ${CARD_SECONDARY_VALUE_SYMBOL}`,
+                balance: `${MIN_BALANCE_FOR_UNSTAKE} ${TON_SYMBOL}`,
               })}
             </p>
           )}

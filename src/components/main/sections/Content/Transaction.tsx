@@ -3,7 +3,7 @@ import React, { memo } from '../../../../lib/teact/teact';
 
 import type { ApiToken, ApiTransaction } from '../../../../api/types';
 
-import { CARD_SECONDARY_VALUE_SYMBOL } from '../../../../config';
+import { TON_SYMBOL } from '../../../../config';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
@@ -128,7 +128,7 @@ function Transaction({
         <div className={amountOtherClass}>
           {formatCurrencyExtended(
             isStaking ? Math.abs(amountHuman) : amountHuman,
-            token?.symbol || CARD_SECONDARY_VALUE_SYMBOL,
+            token?.symbol || TON_SYMBOL,
             isStaking,
           )}
         </div>
@@ -156,6 +156,7 @@ function Transaction({
         <i
           className={buildClassName(styles.iconWaiting, 'icon-clock')}
           title={lang('Transaction is not completed')}
+          aria-hidden
         />
       )}
       <div className={styles.leftBlock}>

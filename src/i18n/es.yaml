@@ -269,8 +269,8 @@ Total Amount: Cantidad total
 Unstaking: Retirando
 "Handle ton:// links": Habilitar enlaces ton://
 Back up wallet to have full access to it: Haga una copia de seguridad del monedero para tener acceso completo al mismo
-Improve wallet security: Mejore la seguridad del monedero
-by installing browser extension or native app: instalando una extensión de navegador o una aplicación nativa
+Consider More Secure Version: Mejore la seguridad del monedero
+Install our native app or browser extension.: Instala una aplicación nativa o una extensión de navegador.
 Scam: Estafa
 Scam comment is hidden.: El comentario estafa está oculto.
 Display: Mostrar
@@ -365,3 +365,5 @@ $auth_backup_description3: |
   Debe hacer manualmente una **copia de seguridad de la frase semilla** que le permitirá recuperar su monedero en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
 Terms of Use: Términos de Uso
 Privacy Policy: Política de Privacidad
+This address is new and never received transfers before.: Esta dirección es nueva y nunca ha recibido transferencias antes.
+failed: fallido

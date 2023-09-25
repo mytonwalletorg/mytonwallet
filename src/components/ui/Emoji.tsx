@@ -8,13 +8,16 @@ import useMediaTransition from '../../hooks/useMediaTransition';
 
 import styles from './Emoji.module.scss';
 
+export type EmojiIcon = '🥷' | '🦄' | '⚠️';
+
 interface OwnProps {
-  from: '🥷' | '🦄';
+  from: EmojiIcon;
 }
 
 const PATH_BY_EMOJI = {
   '🥷': '1f977',
   '🦄': '1f984',
+  '⚠️': '26a0',
 };
 
 const loadedImages = new Set();
