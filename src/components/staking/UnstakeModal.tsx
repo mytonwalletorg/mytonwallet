@@ -1,14 +1,14 @@
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
-import { StakingState } from '../../global/types';
 import type { GlobalState, UserToken } from '../../global/types';
+import { StakingState } from '../../global/types';
 
 import {
   MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TON_TOKEN_SLUG,
 } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
@@ -245,7 +245,7 @@ function UnstakeModal({
       onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="slideLayers"
+        name="slideFade"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

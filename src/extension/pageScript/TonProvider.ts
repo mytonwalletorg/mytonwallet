@@ -1,5 +1,6 @@
-import { EventEmitter } from '../../util/callbacks';
 import type { Connector } from '../../util/PostMessageConnector';
+
+import { EventEmitter } from '../../util/callbacks';
 
 declare global {
   interface Window {

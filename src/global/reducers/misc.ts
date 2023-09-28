@@ -104,8 +104,15 @@ export function updateTokens(
 ): GlobalState {
   const currentTokens = global.tokenInfo?.bySlug;
 
-  if (currentTokens?.[TON_TOKEN_SLUG] && !partial[TON_TOKEN_SLUG].quote.price) {
-    return global;
+  // If the backend does not work, then we won't delete the old prices
+  if (!partial[TON_TOKEN_SLUG].quote.price) {
+    partial = Object.values(partial).reduce((result, token) => {
+      result[token.slug] = {
+        ...token,
+        quote: currentTokens?.[token.slug]?.quote ?? token.quote,
+      };
+      return result;
+    }, {} as Record<string, ApiToken>);
   }
 
   if (withDeepCompare && currentTokens && isPartialDeepEqual(currentTokens, partial)) {

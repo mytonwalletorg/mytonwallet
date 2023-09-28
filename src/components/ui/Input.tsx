@@ -1,8 +1,10 @@
-import type { ChangeEvent, RefObject } from 'react';
-import { requestMutation } from '../../lib/fasterdom/fasterdom';
+import type {
+  ChangeEvent, FormEvent, KeyboardEvent, RefObject,
+} from 'react';
 import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo, useState } from '../../lib/teact/teact';
 
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
@@ -28,7 +30,7 @@ type OwnProps = {
   inputArg?: any;
   children?: TeactNode;
   onInput: (value: string, inputArg?: any) => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onFocus?: NoneToVoidFunction;
   onBlur?: NoneToVoidFunction;
 };
@@ -59,7 +61,7 @@ function Input({
   const lang = useLang();
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 
-  const handleInput = (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInput = (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onInput(e.currentTarget.value, inputArg);
   };
 

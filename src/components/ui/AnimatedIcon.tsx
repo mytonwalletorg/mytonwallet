@@ -2,13 +2,14 @@ import React, {
   memo, useState,
 } from '../../lib/teact/teact';
 
+import type { OwnProps as AnimatedStickerProps } from './AnimatedSticker';
+
 import buildClassName from '../../util/buildClassName';
 
 import useFlag from '../../hooks/useFlag';
 import useLastCallback from '../../hooks/useLastCallback';
 import useMediaTransition from '../../hooks/useMediaTransition';
 
-import type { OwnProps as AnimatedStickerProps } from './AnimatedSticker';
 import AnimatedSticker from './AnimatedSticker';
 
 export type OwnProps =

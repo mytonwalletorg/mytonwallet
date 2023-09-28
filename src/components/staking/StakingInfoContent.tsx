@@ -1,12 +1,12 @@
 import React, {
   memo, useEffect, useMemo,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import type { ApiBackendStakingState } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
 import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
@@ -139,6 +139,7 @@ function StakingInfoContent({
   const fullClassName = buildClassName(
     styles.stakingInfo,
     !isStatic && styles.stakingInfo_modal,
+    !hasHistory && styles.stakingInfoNoHistory,
     isStatic && 'staking-info',
   );
 

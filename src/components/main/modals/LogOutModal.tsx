@@ -1,11 +1,11 @@
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../global';
 
 import type { Account, AccountState } from '../../../global/types';
 
 import { MNEMONIC_COUNT } from '../../../config';
-import { getActions, withGlobal } from '../../../global';
 import renderText from '../../../global/helpers/renderText';
 import { selectCurrentAccountState, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';

@@ -317,6 +317,14 @@
   min-width: 9rem !important;
 }
 
+.customCancelButton {
+  min-width: 7rem !important;
+}
+
+.customSubmitButton {
+  max-width: 100%;
+}
+
 .transition {
   overflow-x: hidden;
   flex: 1 1 auto;

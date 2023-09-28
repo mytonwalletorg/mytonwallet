@@ -4,7 +4,7 @@ import './api/wallet';
 import './api/staking';
 import './api/dapps';
 import './apiUpdates/initial';
-import './apiUpdates/transactions';
+import './apiUpdates/activities';
 import './apiUpdates/dapp';
 import './ui/initial';
 import './ui/misc';

@@ -1,6 +1,6 @@
 import React, { memo, useState } from '../../lib/teact/teact';
-
 import { getActions } from '../../global';
+
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -141,7 +141,7 @@ const AuthCreateBackup = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
         dialogClassName={styles.modalDialog}
       >
         <Transition
-          name="pushSlide"
+          name="slideFade"
           className={modalStyles.transition}
           slideClassName={modalStyles.transitionSlide}
           activeKey={renderingKey}

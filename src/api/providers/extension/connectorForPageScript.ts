@@ -1,14 +1,14 @@
-import type { OnApiSiteUpdate } from '../../types/dappUpdates';
+import type { Connector } from '../../../util/PostMessageConnector';
 import type {
   LegacyDappMethodResponse,
   LegacyDappMethods,
   SiteMethodResponse,
   SiteMethods,
 } from '../../extensionMethods/types';
+import type { OnApiSiteUpdate } from '../../types/dappUpdates';
 
 import { PAGE_CONNECTOR_CHANNEL } from './config';
 import { logDebugError } from '../../../util/logs';
-import type { Connector } from '../../../util/PostMessageConnector';
 import { createConnector } from '../../../util/PostMessageConnector';
 
 let connector: Connector;

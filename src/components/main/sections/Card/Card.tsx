@@ -2,6 +2,7 @@ import type { Ref } from 'react';
 import React, {
   memo, useEffect, useMemo,
 } from '../../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../../global';
 
 import type { UserToken } from '../../../../global/types';
 
@@ -11,7 +12,6 @@ import {
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
-import { getActions, withGlobal } from '../../../../global';
 import { selectAccount, selectCurrentAccountState, selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';

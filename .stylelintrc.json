@@ -49,6 +49,18 @@
           "letter-spacing"
         ]
       }
-    ]
+    ],
+    "order/order": [
+      {
+        "type": "at-rule",
+        "name": "import",
+        "hasBlock": false
+      }
+    ],
+    "at-rule-empty-line-before": ["always", {
+      "ignore": [
+        "first-nested"
+      ]
+    }]
   }
 }

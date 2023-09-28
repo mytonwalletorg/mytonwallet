@@ -4,15 +4,16 @@ import TonWeb from 'tonweb';
 import type { Cell } from 'tonweb/dist/types/boc/cell';
 import type { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
 
-import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
 import type {
-  ApiNetwork, ApiSignedTransfer, ApiTransaction, ApiTxIdBySlug,
+  ApiNetwork, ApiSignedTransfer, ApiTransaction, ApiTransactionActivity, ApiTxIdBySlug,
 } from '../../types';
+import type { JettonWalletType } from './tokens';
 import type { AnyPayload, ApiTransactionExtra, TonTransferParams } from './types';
+import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
-import { compareTransactions } from '../../../util/compareTransactions';
+import { compareActivities } from '../../../util/compareActivities';
 import { omit } from '../../../util/iteratees';
 import { isValidLedgerComment } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
@@ -39,7 +40,6 @@ import { bytesToBase64, isKnownStakingPool } from '../../common/utils';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
 import { ATTEMPTS, STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
-import type { JettonWalletType } from './tokens';
 import {
   buildTokenTransfer, getTokenWalletBalance, parseTokenTransaction, resolveTokenBySlug,
 } from './tokens';
@@ -355,7 +355,8 @@ export async function getAccountTransactionSlice(
   return transactions
     .map(updateTransactionType)
     .map(updateTransactionMetadata)
-    .map(omitExtraData);
+    .map(omitExtraData)
+    .map(transactionToActivity);
 }
 
 export async function getMergedTransactionSlice(accountId: string, lastTxIds: ApiTxIdBySlug, limit: number) {
@@ -379,7 +380,7 @@ export async function getMergedTransactionSlice(accountId: string, lastTxIds: Ap
   }));
 
   const allTxs = [...tonTxs, ...results.flat()];
-  allTxs.sort((a, b) => compareTransactions(a, b, false));
+  allTxs.sort((a, b) => compareActivities(a, b, false));
 
   return allTxs;
 }
@@ -390,7 +391,7 @@ export async function getTokenTransactionSlice(
   fromTxId?: string,
   toTxId?: string,
   limit?: number,
-) {
+): Promise<ApiTransactionActivity[]> {
   if (tokenSlug === TON_TOKEN_SLUG) {
     return getAccountTransactionSlice(accountId, fromTxId, toTxId, limit);
   }
@@ -405,13 +406,12 @@ export async function getTokenTransactionSlice(
     network, tokenWalletAddress, limit ?? GET_TRANSACTIONS_LIMIT, fromTxId, toTxId,
   );
 
-  const parsedTxs = transactions
+  return transactions
     .map((tx) => parseTokenTransaction(tx, tokenSlug, address))
     .filter(Boolean)
     .map(updateTransactionMetadata)
-    .map(omitExtraData);
-
-  return parsedTxs.filter(Boolean);
+    .map(omitExtraData)
+    .map(transactionToActivity);
 }
 
 function omitExtraData(tx: ApiTransactionExtra): ApiTransaction {
@@ -438,6 +438,14 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
   }
 
   return transaction;
+}
+
+function transactionToActivity(transaction: ApiTransaction): ApiTransactionActivity {
+  return {
+    ...transaction,
+    kind: 'transaction',
+    id: transaction.txId,
+  };
 }
 
 export async function checkMultiTransactionDraft(accountId: string, messages: TonTransferParams[]) {

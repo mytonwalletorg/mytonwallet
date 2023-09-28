@@ -2,7 +2,8 @@ import { DEFAULT_DECIMAL_PLACES, DEFAULT_PRICE_CURRENCY } from '../config';
 import withCache from './withCache';
 
 export const formatInteger = withCache((value: number, fractionDigits = 2, noRadix = false) => {
-  const fixed = value > 1 ? value.toFixed(2) : value.toFixed(DEFAULT_DECIMAL_PLACES);
+  const dp = value > 1 ? fractionDigits : DEFAULT_DECIMAL_PLACES;
+  const fixed = value.toFixed(dp);
 
   let [wholePart, fractionPart = ''] = fixed.split('.');
 

@@ -1,6 +1,6 @@
-import { StakingState } from '../types';
 import type { ApiPoolState } from '../../api/types';
 import type { GlobalState } from '../types';
+import { StakingState } from '../types';
 
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 import { selectCurrentAccountState } from '../selectors';

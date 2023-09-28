@@ -1,5 +1,5 @@
-import { TransferState } from '../types';
 import type { GlobalState } from '../types';
+import { TransferState } from '../types';
 
 import { selectAccountState, selectCurrentAccountState } from '../selectors';
 import { updateAccountState, updateCurrentAccountState } from './misc';
@@ -40,34 +40,34 @@ export function clearCurrentSignature(global: GlobalState) {
   };
 }
 
-export function updateTransactionsIsLoading(global: GlobalState, isLoading: boolean) {
-  const { transactions } = selectCurrentAccountState(global) || {};
+export function updateActivitiesIsLoading(global: GlobalState, isLoading: boolean) {
+  const { activities } = selectCurrentAccountState(global) || {};
 
   return updateCurrentAccountState(global, {
-    transactions: {
-      ...transactions || { byTxId: {} },
+    activities: {
+      ...activities || { byId: {} },
       isLoading,
     },
   });
 }
 
-export function updateTransactionsIsHistoryEndReached(global: GlobalState, isReached: boolean) {
-  const { transactions } = selectCurrentAccountState(global) || {};
+export function updateActivitiesIsHistoryEndReached(global: GlobalState, isReached: boolean) {
+  const { activities } = selectCurrentAccountState(global) || {};
 
   return updateCurrentAccountState(global, {
-    transactions: {
-      ...transactions || { byTxId: {} },
+    activities: {
+      ...activities || { byId: {} },
       isHistoryEndReached: isReached,
     },
   });
 }
 
-export function updateTransactionsIsLoadingByAccount(global: GlobalState, accountId: string, isLoading: boolean) {
-  const { transactions } = selectAccountState(global, accountId) || {};
+export function updateActivitiesIsLoadingByAccount(global: GlobalState, accountId: string, isLoading: boolean) {
+  const { activities } = selectAccountState(global, accountId) || {};
 
   return updateAccountState(global, accountId, {
-    transactions: {
-      ...transactions || { byTxId: {} },
+    activities: {
+      ...activities || { byId: {} },
       isLoading,
     },
   });

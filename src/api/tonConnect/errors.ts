@@ -1,7 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
-import { CONNECT_EVENT_ERROR_CODES } from './types';
 import type { ApiAnyDisplayError } from '../types';
 import type { AllErrorCodes } from './types';
+import { CONNECT_EVENT_ERROR_CODES } from './types';
 
 import { ApiBaseError } from '../errors';
 

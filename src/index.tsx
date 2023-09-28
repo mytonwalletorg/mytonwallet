@@ -1,18 +1,18 @@
-import { requestMutation } from './lib/fasterdom/fasterdom';
-import { enableStrict } from './lib/fasterdom/stricterdom';
+import './global/actions';
+import './global/init';
+import './util/handleError';
+
 import React from './lib/teact/teact';
 import TeactDOM from './lib/teact/teact-dom';
+import { getActions, getGlobal } from './global';
 
 import { DEBUG, STRICTERDOM_ENABLED } from './config';
-import { getActions, getGlobal } from './global';
+import { requestMutation } from './lib/fasterdom/fasterdom';
+import { enableStrict } from './lib/fasterdom/stricterdom';
 
 import App from './components/App';
 
 import './styles/index.scss';
-
-import './global/actions';
-import './global/init';
-import './util/handleError';
 
 if (DEBUG) {
   // eslint-disable-next-line no-console

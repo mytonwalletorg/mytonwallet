@@ -16,7 +16,6 @@ $breakpoints: (
     @media (min-width: $breakpoint-value) {
       @content;
     }
-
   } @else {
     @warn 'Invalid breakpoint: #{$breakpoint}.';
   }

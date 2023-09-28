@@ -1,8 +1,8 @@
-import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/methods';
+import type { Connector } from '../../../util/PostMessageConnector';
 import type { ApiInitArgs, OnApiUpdate } from '../../types';
+import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/methods';
 
 import { logDebugError } from '../../../util/logs';
-import type { Connector } from '../../../util/PostMessageConnector';
 import { createConnector } from '../../../util/PostMessageConnector';
 
 let connector: Connector;

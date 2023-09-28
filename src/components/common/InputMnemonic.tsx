@@ -2,6 +2,7 @@ import React, {
   memo, useEffect, useState,
 } from '../../lib/teact/teact';
 
+import { requestMeasure } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { callApi } from '../../api';
 
@@ -94,10 +95,12 @@ function InputMnemonic({
       }
 
       if (nextId) {
-        requestAnimationFrame(() => {
-          const nextInput = document.getElementById(nextId);
-          nextInput?.focus();
-          (nextInput as HTMLInputElement)?.select();
+        requestMeasure(() => {
+          requestMeasure(() => {
+            const nextInput = document.getElementById(nextId);
+            nextInput?.focus();
+            (nextInput as HTMLInputElement)?.select();
+          });
         });
       }
     }
@@ -122,6 +125,16 @@ function InputMnemonic({
     setShowSuggestions(false);
     setActiveSuggestionIndex(0);
     setFilteredSuggestions([]);
+
+    if (nextId) {
+      requestMeasure(() => {
+        requestMeasure(() => {
+          const nextInput = document.getElementById(nextId);
+          nextInput?.focus();
+          (nextInput as HTMLInputElement)?.select();
+        });
+      });
+    }
   });
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {

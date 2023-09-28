@@ -1,9 +1,9 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
+import { withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, GETGEMS_BASE_MAINNET_URL, GETGEMS_BASE_TESTNET_URL } from '../../../../config';
-import { withGlobal } from '../../../../global';
 import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';

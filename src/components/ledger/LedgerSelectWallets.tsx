@@ -1,11 +1,11 @@
 import React, {
   memo, useMemo, useState,
 } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import type { Account } from '../../global/types';
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 
-import { getActions } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency } from '../../util/formatNumber';

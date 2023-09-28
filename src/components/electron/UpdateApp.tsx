@@ -1,10 +1,10 @@
-import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 
 import { ElectronEvent } from '../../electron/types';
 
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import getBoundingClientRectsAsync from '../../util/getBoundingClientReactAsync';
 

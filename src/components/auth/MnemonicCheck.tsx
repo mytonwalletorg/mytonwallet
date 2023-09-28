@@ -8,6 +8,7 @@ import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { areSortedArraysEqual } from '../../util/iteratees';
 
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -35,6 +36,7 @@ function MnemonicCheck({
   const lang = useLang();
   const [words, setWords] = useState<Record<number, string>>({});
   const [hasMnemonicError, setHasMnemonicError] = useState(false);
+  const { isPortrait } = useDeviceScreen();
 
   useEffect(() => {
     if (isActive) {
@@ -81,7 +83,7 @@ function MnemonicCheck({
               labelText={`${key + 1}`}
               value={words[key]}
               isInModal={isInModal}
-              suggestionsPosition={i > 1 ? 'top' : undefined}
+              suggestionsPosition={i > 1 || isPortrait ? 'top' : undefined}
               inputArg={key}
               className={styles.checkMnemonicInput}
               onInput={handleSetWord}

@@ -1,7 +1,11 @@
 import type { ApiTransactionExtra } from '../blockchains/ton/types';
 import type { StorageKey } from '../storages/types';
 import type {
-  AccountIdParsed, ApiLocalTransactionParams, ApiTransaction, OnApiUpdate,
+  AccountIdParsed,
+  ApiLocalTransactionParams,
+  ApiTransaction,
+  ApiTransactionActivity,
+  OnApiUpdate,
 } from '../types';
 
 import { IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
@@ -34,7 +38,7 @@ export function createLocalTransaction(
   onUpdate: OnApiUpdate,
   accountId: string,
   params: ApiLocalTransactionParams,
-  onTxComplete?: (transaction: ApiTransaction) => void,
+  onTxComplete?: (transaction: ApiTransactionActivity) => void,
 ) {
   const { amount, toAddress } = params;
 
@@ -64,16 +68,22 @@ export function createLocalTransaction(
   return localTransaction;
 }
 
-function buildLocalTransaction(params: ApiLocalTransactionParams): ApiTransaction {
+function buildLocalTransaction(params: ApiLocalTransactionParams): ApiTransactionActivity {
   const { amount, ...restParams } = params;
 
-  return updateTransactionMetadata({
+  const transaction: ApiTransaction = updateTransactionMetadata({
     txId: getNextLocalId(),
     timestamp: Date.now(),
     isIncoming: false,
     amount: `-${amount}`,
     ...restParams,
   });
+
+  return {
+    ...transaction,
+    id: transaction.txId,
+    kind: 'transaction',
+  };
 }
 
 export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {

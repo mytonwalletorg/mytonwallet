@@ -1,6 +1,7 @@
 import React, { memo, useState } from '../../../lib/teact/teact';
+import { getActions, getGlobal, withGlobal } from '../../../global';
 
-import type { ApiToken, ApiTransaction } from '../../../api/types';
+import type { ApiToken, ApiTransactionActivity } from '../../../api/types';
 
 import {
   ANIMATION_END_DELAY, ANIMATION_LEVEL_MIN,
@@ -10,7 +11,6 @@ import {
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../config';
-import { getActions, getGlobal, withGlobal } from '../../../global';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../global/helpers';
 import { selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
@@ -39,7 +39,7 @@ import styles from './TransactionModal.module.scss';
 import scamImg from '../../../assets/scam.svg';
 
 type StateProps = {
-  transaction?: ApiTransaction;
+  transaction?: ApiTransactionActivity;
   tokensBySlug?: Record<string, ApiToken>;
   savedAddresses?: Record<string, string>;
   isTestnet?: boolean;
@@ -60,7 +60,7 @@ function TransactionModal({
   const {
     startTransfer,
     startStaking,
-    closeTransactionInfo,
+    closeActivityInfo,
   } = getActions();
 
   const lang = useLang();
@@ -115,7 +115,7 @@ function TransactionModal({
     if (renderedTransaction) {
       setDecryptedComment(undefined);
     } else {
-      closeTransactionInfo();
+      closeActivityInfo();
     }
   }, [renderedTransaction]);
 
@@ -126,7 +126,7 @@ function TransactionModal({
   }, [endOfStakingCycle]);
 
   const handleSendClick = useLastCallback(() => {
-    closeTransactionInfo();
+    closeActivityInfo();
     startTransfer({
       tokenSlug: slug || TON_TOKEN_SLUG,
       toAddress: address,
@@ -136,7 +136,7 @@ function TransactionModal({
   });
 
   const handleStartStakingClick = useLastCallback(() => {
-    closeTransactionInfo();
+    closeActivityInfo();
     startStaking();
   });
 
@@ -164,12 +164,11 @@ function TransactionModal({
 
   function renderHeader() {
     const isLocal = txId && getIsTxIdLocal(txId);
-    const plainTitle = isIncoming
+    const title = isIncoming
       ? lang('Received')
       : isLocal
         ? lang('Sending')
         : lang('Sent');
-    const title = plainTitle;
 
     return (
       <div className={styles.transactionHeader}>
@@ -265,7 +264,7 @@ function TransactionModal({
     );
   }
 
-  function renderPlainTransaction() {
+  function renderTransactionContent() {
     return (
       <>
         <TransactionAmount
@@ -307,16 +306,12 @@ function TransactionModal({
     );
   }
 
-  function renderTransactionContent() {
-    return renderPlainTransaction();
-  }
-
   return (
     <Modal
       hasCloseButton
       title={renderHeader()}
       isOpen={Boolean(transaction)}
-      onClose={closeTransactionInfo}
+      onClose={closeActivityInfo}
     >
       <div className={modalStyles.transitionContent}>
         {tonscanTransactionUrl && (
@@ -340,13 +335,13 @@ export default memo(
   withGlobal((global): StateProps => {
     const accountState = selectCurrentAccountState(global);
 
-    const txId = accountState?.currentTransactionId;
-    const transaction = txId ? accountState?.transactions?.byTxId[txId] : undefined;
+    const txId = accountState?.currentActivityId;
+    const activity = txId ? accountState?.activities?.byId[txId] : undefined;
     const { startOfCycle: startOfStakingCycle, endOfCycle: endOfStakingCycle } = accountState?.poolState || {};
     const savedAddresses = accountState?.savedAddresses;
 
     return {
-      transaction,
+      transaction: activity?.kind === 'transaction' ? activity : undefined,
       tokensBySlug: global.tokenInfo?.bySlug,
       savedAddresses,
       isTestnet: global.settings.isTestnet,

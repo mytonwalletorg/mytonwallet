@@ -1,7 +1,7 @@
 import React, { memo, useState } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import { ANIMATED_STICKER_MIDDLE_SIZE_PX } from '../../config';
-import { getActions } from '../../global';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -196,7 +196,7 @@ const AuthDisclaimer = ({
         dialogClassName={styles.modalDialog}
       >
         <Transition
-          name="slideLayers"
+          name="slideFade"
           className={modalStyles.transition}
           slideClassName={modalStyles.transitionSlide}
           activeKey={renderingKey}

@@ -108,7 +108,7 @@ function LedgerConfirmOperation({
 
   return (
     <Transition
-      name="slideLayers"
+      name="slideFade"
       className={buildClassName(modalStyles.transition, 'custom-scroll')}
       slideClassName={buildClassName(modalStyles.transitionSlide, styles.slide)}
       activeKey={activeState}

@@ -1,8 +1,8 @@
 import type { IpcRendererEvent } from 'electron';
 import { contextBridge, ipcRenderer } from 'electron';
 
-import { ElectronAction } from './types';
 import type { ElectronApi, ElectronEvent } from './types';
+import { ElectronAction } from './types';
 
 const electronApi: ElectronApi = {
   close: () => ipcRenderer.invoke(ElectronAction.CLOSE),

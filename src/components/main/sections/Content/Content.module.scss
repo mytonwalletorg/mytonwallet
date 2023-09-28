@@ -22,7 +22,7 @@
 
   .portraitContainer & {
     width: 100%;
-    max-width: 25rem;
+    max-width: 27rem;
     margin: 0 auto 1rem;
   }
 }
@@ -31,7 +31,7 @@
   position: relative;
   z-index: 1;
 
-  padding: 0 1.75rem;
+  padding: 0 2.5rem;
 
   .landscapeContainer & {
     justify-content: flex-start;
@@ -39,6 +39,8 @@
     padding: 0 0.75rem;
 
     border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: 0 0.025rem 0 0 var(--color-separator);
   }
 
   .portraitContainer & {
@@ -48,7 +50,7 @@
     overflow: visible;
 
     width: 100%;
-    max-width: 25rem;
+    max-width: 27rem;
     margin: 0 auto;
 
     &::after {
@@ -94,9 +96,7 @@
     flex-grow: 1;
   }
 
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-below(xs) {
-
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       padding-bottom: env(safe-area-inset-bottom) !important;
     }
@@ -112,7 +112,7 @@
   .slides {
     flex: 1 1 auto;
 
-    max-width: 25rem;
+    max-width: 27rem;
     margin: 0 auto;
 
     :global(html:not(.with-safe-area-bottom)) & {

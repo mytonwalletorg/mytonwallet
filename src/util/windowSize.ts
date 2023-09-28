@@ -1,5 +1,4 @@
 import { requestMutation } from '../lib/fasterdom/fasterdom';
-
 import { throttle } from './schedulers';
 import { IS_IOS } from './windowEnvironment';
 

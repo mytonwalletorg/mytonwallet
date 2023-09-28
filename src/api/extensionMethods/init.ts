@@ -1,11 +1,10 @@
 import type { OnApiUpdate } from '../types';
 
+import { addHooks } from '../hooks';
 import * as legacyDappMethods from './legacy';
 import * as siteMethods from './sites';
 import { openPopupWindow } from './window';
 import * as extensionMethods from '.';
-
-import { addHooks } from '../hooks';
 
 addHooks({
   onWindowNeeded: openPopupWindow,

@@ -15,8 +15,6 @@ import type {
 import { CHAIN } from '@tonconnect/protocol';
 import nacl from 'tweetnacl';
 
-import { ApiTransactionError } from '../types';
-import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
 import type {
   ApiAnyDisplayError,
   ApiDappMetadata,
@@ -29,6 +27,8 @@ import type {
 import type {
   ApiTonConnectProof, LocalConnectEvent, TransactionPayload, TransactionPayloadMessage,
 } from './types';
+import { ApiTransactionError } from '../types';
+import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
 
 import { IS_EXTENSION, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
@@ -48,6 +48,7 @@ import {
   base64ToBytes, bytesToBase64, handleFetchErrors, sha256,
 } from '../common/utils';
 import * as apiErrors from '../errors';
+import { callHook } from '../hooks';
 import {
   activateDapp,
   addDapp,
@@ -61,8 +62,6 @@ import {
 import * as errors from './errors';
 import { BadRequestError } from './errors';
 import { isValidString, isValidUrl } from './utils';
-
-import { callHook } from '../hooks';
 
 const { Address } = TonWeb.utils;
 

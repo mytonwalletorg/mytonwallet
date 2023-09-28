@@ -6,10 +6,6 @@ import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import type { TonPayloadFormat } from '@ton-community/ton-ledger';
 import { TonTransport } from '@ton-community/ton-ledger';
 
-import {
-  TRANSFER_TIMEOUT_SEC,
-  WORKCHAIN,
-} from '../../api/types';
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
   ApiDappTransaction,
@@ -19,6 +15,10 @@ import type {
   Workchain,
 } from '../../api/types';
 import type { LedgerWalletInfo } from './types';
+import {
+  TRANSFER_TIMEOUT_SEC,
+  WORKCHAIN,
+} from '../../api/types';
 
 import { TON_TOKEN_SLUG } from '../../config';
 import { callApi } from '../../api';

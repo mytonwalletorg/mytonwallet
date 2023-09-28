@@ -1,10 +1,10 @@
 import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
-import { TransferState } from '../../global/types';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
+import { TransferState } from '../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_TOKEN_SLUG } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -69,7 +69,7 @@ function TransferModal({
     setTransferScreen,
     clearTransferError,
     cancelTransfer,
-    showTransactionInfo,
+    showActivityInfo,
     startTransfer,
   } = getActions();
 
@@ -108,7 +108,7 @@ function TransferModal({
 
   const handleTransactionInfoClick = useLastCallback(() => {
     cancelTransfer();
-    showTransactionInfo({ txId });
+    showActivityInfo({ id: txId });
   });
 
   const handleTransactionRepeatClick = useLastCallback(() => {
@@ -295,7 +295,7 @@ function TransferModal({
       onCloseAnimationEnd={handleModalClose}
     >
       <Transition
-        name="slideLayers"
+        name="slideFade"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

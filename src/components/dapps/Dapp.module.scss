@@ -6,6 +6,10 @@
   @supports (height: env(safe-area-inset-bottom)) {
     height: calc(35rem + env(safe-area-inset-bottom));
   }
+
+  @media (min-width: 416.01px) {
+    max-width: 24rem;
+  }
 }
 
 .dapp {
@@ -112,7 +116,7 @@
 
   padding: 0.5rem;
 
-  @include adapt-padding-to-scrollbar(0.5rem); /* stylelint-disable-line order/order */
+  @include adapt-padding-to-scrollbar(0.5rem);
 
   background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);

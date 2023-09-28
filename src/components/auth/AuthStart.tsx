@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import { APP_NAME, MNEMONIC_COUNT } from '../../config';
-import { getActions } from '../../global';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';

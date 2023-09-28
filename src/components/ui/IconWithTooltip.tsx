@@ -3,6 +3,8 @@ import React, {
   memo, useEffect, useRef,
 } from '../../lib/teact/teact';
 
+import type { EmojiIcon } from './Emoji';
+
 import buildClassName from '../../util/buildClassName';
 import stopEvent from '../../util/stopEvent';
 import { IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
@@ -10,7 +12,6 @@ import { IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
 import useFlag from '../../hooks/useFlag';
 import useShowTransition from '../../hooks/useShowTransition';
 
-import type { EmojiIcon } from './Emoji';
 import Emoji from './Emoji';
 import Portal from './Portal';
 

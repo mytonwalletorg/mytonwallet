@@ -1,13 +1,13 @@
 import TonWeb from 'tonweb';
 import BN from 'bn.js';
 
-import {
-  ApiTransactionDraftError,
-} from '../../types';
 import type {
   ApiBackendStakingState,
   ApiNetwork,
   ApiStakingState,
+} from '../../types';
+import {
+  ApiTransactionDraftError,
 } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';

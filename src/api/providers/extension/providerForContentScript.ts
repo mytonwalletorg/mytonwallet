@@ -1,11 +1,11 @@
-import type { TonConnectMethodArgs, TonConnectMethods } from '../../tonConnect/types/misc';
-import type { OnApiSiteUpdate } from '../../types/dappUpdates';
 import type {
   LegacyDappMethodArgs,
   LegacyDappMethods,
   SiteMethodArgs,
   SiteMethods,
 } from '../../extensionMethods/types';
+import type { TonConnectMethodArgs, TonConnectMethods } from '../../tonConnect/types/misc';
+import type { OnApiSiteUpdate } from '../../types/dappUpdates';
 
 import { CONTENT_SCRIPT_PORT, PAGE_CONNECTOR_CHANNEL } from './config';
 import { createExtensionInterface } from '../../../util/createPostMessageInterface';

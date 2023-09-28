@@ -1,5 +1,5 @@
-import { TransferState } from '../types';
 import type { GlobalState } from '../types';
+import { TransferState } from '../types';
 
 export function updateDappConnectRequest(global: GlobalState, update: Partial<GlobalState['dappConnectRequest']>) {
   return {

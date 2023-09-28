@@ -1,5 +1,6 @@
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
+  ApiActivity,
   ApiAnyDisplayError,
   ApiBackendStakingState,
   ApiDapp,
@@ -146,10 +147,10 @@ export interface AccountState {
   balances?: {
     bySlug: Record<string, string>;
   };
-  transactions?: {
+  activities?: {
     isLoading?: boolean;
-    byTxId: Record<string, ApiTransaction>;
-    txIdsBySlug?: Record<string, string[]>;
+    byId: Record<string, ApiActivity>;
+    idsBySlug?: Record<string, string[]>;
     newestTransactionsBySlug?: Record<string, ApiTransaction>;
     isHistoryEndReached?: boolean;
   };
@@ -160,7 +161,7 @@ export interface AccountState {
   isBackupRequired?: boolean;
   activeDappOrigin?: string;
   currentTokenSlug?: string;
-  currentTransactionId?: string;
+  currentActivityId?: string;
   currentTokenPeriod?: TokenPeriod;
   savedAddresses?: Record<string, string>;
   stakingBalance?: number;
@@ -384,8 +385,8 @@ export interface ActionPayloads {
   fetchAllTransactions: { limit: number };
   resetIsHistoryEndReached: undefined;
   fetchNfts: undefined;
-  showTransactionInfo: { txId?: string } | undefined;
-  closeTransactionInfo: undefined;
+  showActivityInfo: { id?: string } | undefined;
+  closeActivityInfo: undefined;
 
   submitSignature: { password: string };
   clearSignatureError: undefined;

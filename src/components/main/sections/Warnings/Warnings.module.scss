@@ -63,8 +63,15 @@
 }
 
 .icon {
+  position: relative;
+  top: 0.125rem;
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  left: -0.03125rem;
+
+  font-size: 0.8125rem;
+  line-height: 0.625rem;
   color: var(--color-red-warning-text-70);
-  vertical-align: -0.1875rem;
+  vertical-align: 0;
 }
 
 .text {

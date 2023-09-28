@@ -1,9 +1,9 @@
 import { addCallback, removeCallback, setGlobal } from '../lib/teact/teactn';
 
+import type { GlobalState, TokenPeriod } from './types';
 import {
   AppState,
 } from './types';
-import type { GlobalState, TokenPeriod } from './types';
 
 import {
   DEBUG, DEFAULT_DECIMAL_PLACES, GLOBAL_STATE_CACHE_DISABLED, GLOBAL_STATE_CACHE_KEY, IS_ELECTRON, MAIN_ACCOUNT_ID,
@@ -21,7 +21,7 @@ import { updateHardware } from './reducers';
 import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
 
 const UPDATE_THROTTLE = 5000;
-const TXS_LIMIT = 20;
+const ACTIVITIES_LIMIT = 20;
 const ANIMATION_DELAY_MS = 320;
 
 const updateCacheThrottled = throttle(() => onIdle(updateCache), UPDATE_THROTTLE, false);
@@ -179,7 +179,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     }
 
     if ('transactions' in cached) {
-      cached.byAccountId[MAIN_ACCOUNT_ID].transactions = (cached as any).transactions;
+      (cached.byAccountId[MAIN_ACCOUNT_ID] as any).transactions = (cached as any).transactions;
       delete (cached as any).transactions;
     }
 
@@ -226,8 +226,8 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
         if (accountState.balances?.bySlug) {
           accountState.balances.bySlug = pick(accountState.balances!.bySlug, ['toncoin']);
         }
-        if (accountState.transactions) {
-          delete accountState.transactions;
+        if ((accountState as any).transactions) {
+          delete (accountState as any).transactions;
         }
       });
     }
@@ -267,7 +267,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
 
     if (cached.byAccountId) {
       for (const accountId of Object.keys(cached.byAccountId)) {
-        delete cached.byAccountId[accountId].transactions;
+        delete (cached.byAccountId[accountId] as any).transactions;
       }
     }
   }
@@ -285,7 +285,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
 
     if (cached.byAccountId) {
       for (const accountId of Object.keys(cached.byAccountId)) {
-        delete cached.byAccountId[accountId].transactions;
+        delete (cached.byAccountId[accountId] as any).transactions;
       }
     }
   }
@@ -295,7 +295,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
 
     if (cached.byAccountId) {
       for (const accountId of Object.keys(cached.byAccountId)) {
-        delete cached.byAccountId[accountId].transactions;
+        delete (cached.byAccountId[accountId] as any).transactions;
       }
     }
   }
@@ -363,16 +363,16 @@ function reduceByAccountId(global: GlobalState) {
       'stakingHistory',
     ]);
 
-    const { txIdsBySlug, newestTransactionsBySlug } = state.transactions || {};
+    const { idsBySlug, newestTransactionsBySlug } = state.activities || {};
 
-    if (txIdsBySlug && Object.keys(txIdsBySlug).length) {
-      const reducedTxIdsBySlug = mapValues(txIdsBySlug, (txIds) => txIds.filter(
+    if (idsBySlug && Object.keys(idsBySlug).length) {
+      const reducedIdsBySlug = mapValues(idsBySlug, (ids) => ids.filter(
         (id) => !getIsTxIdLocal(id),
-      ).slice(0, TXS_LIMIT));
+      ).slice(0, ACTIVITIES_LIMIT));
 
-      acc[accountId].transactions = {
-        byTxId: pick(state.transactions!.byTxId, Object.values(reducedTxIdsBySlug).flat()),
-        txIdsBySlug: reducedTxIdsBySlug,
+      acc[accountId].activities = {
+        byId: pick(state.activities!.byId, Object.values(reducedIdsBySlug).flat()),
+        idsBySlug: reducedIdsBySlug,
         newestTransactionsBySlug,
       };
     }

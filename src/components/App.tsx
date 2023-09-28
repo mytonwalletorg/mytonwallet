@@ -1,9 +1,9 @@
 import React, { memo, useEffect } from '../lib/teact/teact';
+import { getActions, withGlobal } from '../global';
 
 import { AppState } from '../global/types';
 
 import { INACTIVE_MARKER, IS_ELECTRON } from '../config';
-import { getActions, withGlobal } from '../global';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
 import { IS_LINUX } from '../util/windowEnvironment';

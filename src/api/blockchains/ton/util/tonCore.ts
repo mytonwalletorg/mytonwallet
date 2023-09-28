@@ -11,8 +11,8 @@ import {
 } from 'ton';
 import axios from 'axios';
 
-import { WORKCHAIN } from '../../../types';
 import type { ApiNetwork, ApiWalletVersion } from '../../../types';
+import { WORKCHAIN } from '../../../types';
 
 import { TONHTTPAPI_MAINNET_URL, TONHTTPAPI_TESTNET_URL } from '../../../../config';
 import { hexToBytes } from '../../../common/utils';

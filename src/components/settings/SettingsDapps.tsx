@@ -135,7 +135,10 @@ function SettingsDapps({
           <span className={styles.headerTitle}>{lang('Dapps')}</span>
         </div>
       )}
-      <div className={buildClassName(styles.content, 'custom-scroll')} onScroll={handleContentScroll}>
+      <div
+        className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}
+        onScroll={handleContentScroll}
+      >
         {content}
       </div>
       <DisconnectDappModal isOpen={isDisconnectModalOpen} onClose={closeDisconnectModal} dapp={dappToDelete} />

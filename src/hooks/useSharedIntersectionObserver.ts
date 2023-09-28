@@ -1,6 +1,7 @@
 import { useEffect } from '../lib/teact/teact';
 
 import type { CallbackManager } from '../util/callbacks';
+
 import { createCallbackManager } from '../util/callbacks';
 import { useStateRef } from './useStateRef';
 

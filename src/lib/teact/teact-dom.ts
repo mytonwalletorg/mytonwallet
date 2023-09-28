@@ -1,8 +1,5 @@
 import type { ChangeEvent } from 'react';
 
-import { DEBUG } from '../../config';
-import { unique } from '../../util/iteratees';
-import { addEventListener, removeAllDelegatedListeners, removeEventListener } from './dom-events';
 import type {
   VirtualElement,
   VirtualElementChildren,
@@ -12,6 +9,10 @@ import type {
   VirtualElementReal,
   VirtualElementTag,
 } from './teact';
+
+import { DEBUG } from '../../config';
+import { unique } from '../../util/iteratees';
+import { addEventListener, removeAllDelegatedListeners, removeEventListener } from './dom-events';
 import {
   captureImmediateEffects,
   hasElementChanged,

@@ -1,8 +1,7 @@
-import { requestForcedReflow, requestMutation } from '../lib/fasterdom/fasterdom';
-
 import type { LangCode } from '../global/types';
 
 import { IS_FIREFOX_EXTENSION, LANG_LIST } from '../config';
+import { requestForcedReflow, requestMutation } from '../lib/fasterdom/fasterdom';
 
 const SAFE_AREA_INITIALIZATION_DELAY = 1000;
 

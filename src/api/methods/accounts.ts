@@ -4,6 +4,7 @@ import { IS_EXTENSION } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { fetchStoredAccount, loginResolve } from '../common/accounts';
 import { waitStorageMigration } from '../common/helpers';
+import { callHook } from '../hooks';
 import { storage } from '../storages';
 import { deactivateAccountDapp, deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
 import {
@@ -11,8 +12,6 @@ import {
   setupBackendStakingStatePolling,
   setupBalanceBasedPolling,
 } from './polling';
-
-import { callHook } from '../hooks';
 
 let activeAccountId: string | undefined;
 

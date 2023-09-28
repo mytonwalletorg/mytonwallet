@@ -50,6 +50,7 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
         className={buildClassName(
           styles.content,
           isInsideModal && 'custom-scroll',
+          isInsideModal && styles.contentInModal,
           !isInsideModal && styles.content_noScroll,
         )}
         onScroll={isInsideModal ? handleContentScroll : undefined}

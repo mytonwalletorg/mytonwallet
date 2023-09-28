@@ -1,7 +1,9 @@
 import React, { memo, useEffect } from '../../lib/teact/teact';
+import { withGlobal } from '../../global';
+
+import type { OwnProps as AnimatedIconProps } from './AnimatedIcon';
 
 import { ANIMATION_LEVEL_MIN } from '../../config';
-import { withGlobal } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 
@@ -9,7 +11,6 @@ import useFlag from '../../hooks/useFlag';
 import useLastCallback from '../../hooks/useLastCallback';
 import useMediaTransition from '../../hooks/useMediaTransition';
 
-import type { OwnProps as AnimatedIconProps } from './AnimatedIcon';
 import AnimatedIcon from './AnimatedIcon';
 
 import styles from './AnimatedIconWithPreview.module.scss';

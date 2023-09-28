@@ -1,10 +1,10 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
-import { TransferState } from '../../global/types';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
+import { TransferState } from '../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_TOKEN_SLUG } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -178,7 +178,7 @@ function DappTransactionModal({
       onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="slideLayers"
+        name="slideFade"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

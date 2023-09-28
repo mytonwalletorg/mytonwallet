@@ -1,5 +1,5 @@
-import type { OnApiSiteUpdate } from '../types/dappUpdates';
 import type { ApiSignedTransfer, OnApiUpdate } from '../types';
+import type { OnApiSiteUpdate } from '../types/dappUpdates';
 
 import { TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';

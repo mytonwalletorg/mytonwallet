@@ -1,12 +1,15 @@
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
-
-import { ElectronEvent } from '../../electron/types';
-import type { UserToken } from '../../global/types';
-
-import { DEFAULT_PRICE_CURRENCY, TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { getActions, withGlobal } from '../../global';
+
+import type { UserToken } from '../../global/types';
+import type { DropdownItem } from '../ui/Dropdown';
+import { ElectronEvent } from '../../electron/types';
+
+import {
+  DEFAULT_PRICE_CURRENCY, TON_SYMBOL, TON_TOKEN_SLUG,
+} from '../../config';
 import { bigStrToHuman } from '../../global/helpers';
 import {
   selectCurrentAccountState,
@@ -19,6 +22,7 @@ import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber'
 import { getIsAddressValid } from '../../util/getIsAddressValid';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
+import stopEvent from '../../util/stopEvent';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
@@ -30,7 +34,6 @@ import useShowTransition from '../../hooks/useShowTransition';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from '../ui/Button';
-import type { DropdownItem } from '../ui/Dropdown';
 import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import Menu from '../ui/Menu';
@@ -581,6 +584,16 @@ function renderSavedAddress(
         </span>
       </span>
       <span className={styles.savedAddressAddress}>{shortenAddress(address)}</span>
+      <span
+        className={styles.savedAddressDeleteIcon}
+        role="button"
+        tabIndex={-1}
+        onMouseDown={handleDeleteClick}
+        onClick={stopEvent}
+        aria-label={deleteLabel}
+      >
+        <i className="icon-trash" aria-hidden />
+      </span>
     </div>
   );
 }

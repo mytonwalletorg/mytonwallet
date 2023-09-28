@@ -1,5 +1,5 @@
-import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/methods';
 import type { ApiInitArgs, OnApiUpdate } from '../../types';
+import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/methods';
 
 import * as methods from '../../methods';
 import init from '../../methods/init';

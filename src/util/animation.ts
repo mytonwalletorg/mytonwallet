@@ -1,6 +1,6 @@
-import { requestMeasure } from '../lib/fasterdom/fasterdom';
-
 import type { Scheduler } from './schedulers';
+
+import { requestMeasure } from '../lib/fasterdom/fasterdom';
 
 interface AnimationInstance {
   isCancelled: boolean;

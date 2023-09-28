@@ -1,17 +1,19 @@
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiToken, ApiTransaction } from '../../../../api/types';
+import type { ApiActivity, ApiToken } from '../../../../api/types';
 
 import { TON_TOKEN_SLUG } from '../../../../config';
-import { getActions, withGlobal } from '../../../../global';
-import { getIsTinyTransaction, getIsTxIdLocal } from '../../../../global/helpers';
+import {
+  getIsSwapId, getIsTinyTransaction, getIsTxIdLocal,
+} from '../../../../global/helpers';
 import { selectCurrentAccountState, selectIsNewWallet } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { compareTransactions } from '../../../../util/compareTransactions';
+import { compareActivities } from '../../../../util/compareActivities';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
-import { findLast } from '../../../../util/iteratees';
+import { findLast, unique } from '../../../../util/iteratees';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteLoader from '../../../../hooks/useInfiniteLoader';
@@ -22,7 +24,7 @@ import Loading from '../../../ui/Loading';
 import NewWalletGreeting from './NewWalletGreeting';
 import Transaction from './Transaction';
 
-import styles from './Activity.module.scss';
+import styles from './Activities.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
@@ -34,30 +36,30 @@ type StateProps = {
   isLoading?: boolean;
   isNewWallet: boolean;
   areTinyTransfersHidden?: boolean;
-  byTxId?: Record<string, ApiTransaction>;
-  txIdsBySlug?: Record<string, string[]>;
+  byId?: Record<string, ApiActivity>;
+  idsBySlug?: Record<string, string[]>;
   tokensBySlug?: Record<string, ApiToken>;
   apyValue: number;
   savedAddresses?: Record<string, string>;
   isHistoryEndReached?: boolean;
 };
 
-interface TransactionDateGroup {
+interface ActivityDateGroup {
   datetime: number;
-  transactions: ApiTransaction[];
+  activities: ApiActivity[];
 }
 
 const FURTHER_SLICE = 50;
 const LOAD_MORE_REQUEST_TIMEOUT = 3_000;
 
-function Activity({
+function Activities({
   isActive,
   currentAccountId,
   isLoading,
   isNewWallet,
   slug,
-  txIdsBySlug,
-  byTxId,
+  idsBySlug,
+  byId,
   tokensBySlug,
   areTinyTransfersHidden,
   apyValue,
@@ -65,7 +67,7 @@ function Activity({
   isHistoryEndReached,
 }: OwnProps & StateProps) {
   const {
-    fetchTokenTransactions, fetchAllTransactions, showTransactionInfo, resetIsHistoryEndReached,
+    fetchTokenTransactions, fetchAllTransactions, showActivityInfo, resetIsHistoryEndReached,
   } = getActions();
 
   const lang = useLang();
@@ -73,22 +75,22 @@ function Activity({
   const [isFetching, setIsFetching] = useState(!isNewWallet);
   const loadMoreTimeout = useRef<NodeJS.Timeout>();
 
-  const txIds = useMemo(() => {
+  const ids = useMemo(() => {
     let idList: string[] | undefined;
 
-    const bySlug = txIdsBySlug ?? {};
+    const bySlug = idsBySlug ?? {};
 
-    if (byTxId) {
+    if (byId) {
       if (slug) {
         idList = bySlug[slug] ?? [];
       } else {
-        const lastTonTxId = findLast(bySlug[TON_TOKEN_SLUG] ?? [], (txId) => !getIsTxIdLocal(txId));
-        idList = Object.values(bySlug).flat();
+        const lastTonTxId = findLast(bySlug[TON_TOKEN_SLUG] ?? [], (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
+        idList = unique(Object.values(bySlug).flat());
         if (lastTonTxId) {
-          idList = idList.filter((txId) => byTxId[txId].timestamp >= byTxId[lastTonTxId].timestamp);
+          idList = idList.filter((txId) => byId[txId].timestamp >= byId[lastTonTxId].timestamp);
         }
 
-        idList.sort((a, b) => compareTransactions(byTxId[a], byTxId[b], false));
+        idList.sort((a, b) => compareActivities(byId[a], byId[b], false));
       }
     }
 
@@ -97,52 +99,52 @@ function Activity({
     }
 
     return idList;
-  }, [byTxId, slug, txIdsBySlug]);
+  }, [byId, slug, idsBySlug]);
 
-  const transactions = useMemo(() => {
-    if (!txIds.length) {
+  const activities = useMemo(() => {
+    if (!ids.length) {
       return [];
     }
 
-    const allTransactions = txIds
-      .map((txId) => byTxId?.[txId])
-      .filter((transaction) => {
+    const allActivities = ids
+      .map((id) => byId?.[id])
+      .filter((activity) => {
         return Boolean(
-          transaction?.slug
-            && (!slug || transaction.slug === slug)
-            && (!areTinyTransfersHidden || !getIsTinyTransaction(transaction, tokensBySlug![transaction.slug])),
+          activity?.slug
+          && (!slug || activity.slug === slug)
+          && (!areTinyTransfersHidden || !getIsTinyTransaction(activity, tokensBySlug![activity.slug])),
         );
-      }) as ApiTransaction[];
+      }) as ApiActivity[];
 
-    if (!allTransactions.length) {
+    if (!allActivities.length) {
       return [];
     }
 
-    let currentDateGroup: TransactionDateGroup = {
-      datetime: getDayStartAt(allTransactions[0].timestamp),
-      transactions: [],
+    let currentDateGroup: ActivityDateGroup = {
+      datetime: getDayStartAt(allActivities[0].timestamp),
+      activities: [],
     };
-    const groupedTransactions: TransactionDateGroup[] = [currentDateGroup];
+    const groupedActivities: ActivityDateGroup[] = [currentDateGroup];
 
-    allTransactions.forEach((transaction, index) => {
-      currentDateGroup.transactions.push(transaction);
-      const nextTransaction = allTransactions[index + 1];
+    allActivities.forEach((activity, index) => {
+      currentDateGroup.activities.push(activity);
+      const nextActivity = allActivities[index + 1];
 
-      if (nextTransaction) {
-        const nextTransactionDayStartsAt = getDayStartAt(nextTransaction.timestamp);
-        if (currentDateGroup.datetime !== nextTransactionDayStartsAt) {
+      if (nextActivity) {
+        const nextActivityDayStartsAt = getDayStartAt(nextActivity.timestamp);
+        if (currentDateGroup.datetime !== nextActivityDayStartsAt) {
           currentDateGroup = {
-            datetime: nextTransactionDayStartsAt,
-            transactions: [],
+            datetime: nextActivityDayStartsAt,
+            activities: [],
           };
 
-          groupedTransactions.push(currentDateGroup);
+          groupedActivities.push(currentDateGroup);
         }
       }
     });
 
-    return groupedTransactions;
-  }, [txIds, byTxId, slug, areTinyTransfersHidden, tokensBySlug]);
+    return groupedActivities;
+  }, [ids, byId, slug, areTinyTransfersHidden, tokensBySlug]);
 
   const loadMore = useLastCallback(() => {
     if (slug) {
@@ -164,52 +166,52 @@ function Activity({
 
   useEffect(() => {
     if (isActive) {
-      setIsFetching(Boolean(txIds.length));
+      setIsFetching(Boolean(ids.length));
       resetIsHistoryEndReached();
       handleFetchingState();
     }
-  }, [handleFetchingState, isActive, isNewWallet, loadMore, slug, txIds]);
+  }, [handleFetchingState, isActive, isNewWallet, loadMore, slug, ids]);
 
   useEffect(() => {
-    if (!transactions.length) {
+    if (!activities.length) {
       loadMore();
       handleFetchingState();
     }
-  }, [handleFetchingState, loadMore, transactions, txIds]);
+  }, [handleFetchingState, loadMore, activities, ids]);
 
-  const handleTransactionClick = useLastCallback((txId: string) => {
-    showTransactionInfo({ txId });
+  const handleActivityClick = useLastCallback((id: string) => {
+    showActivityInfo({ id });
   });
 
   if (!currentAccountId) {
     return undefined;
   }
 
-  function renderTransactionGroups(transactionGroups: TransactionDateGroup[]) {
-    return transactionGroups.map((group, groupIdx) => (
+  function renderActivityGroups(activityGroups: ActivityDateGroup[]) {
+    return activityGroups.map((group, groupIdx) => (
       <div className={styles.group}>
         <div className={styles.date}>{formatHumanDay(lang, group.datetime)}</div>
-        {group.transactions.map((transaction) => {
+        {group.activities.map((activity) => {
           return (
             <Transaction
-              key={transaction?.txId}
-              transaction={transaction}
+              key={activity?.id}
+              transaction={activity}
               tokensBySlug={tokensBySlug}
               apyValue={apyValue}
               savedAddresses={savedAddresses}
-              onClick={handleTransactionClick}
+              onClick={handleActivityClick}
             />
           );
         })}
         {
-          groupIdx + 1 === transactionGroups.length && (
+          groupIdx + 1 === activityGroups.length && (
             <div ref={handleIntersection} className={styles.loaderThreshold} />
           )
         }
       </div>
     ));
   }
-  if (!transactions.length && isFetching) {
+  if (!activities.length && isFetching) {
     return (
       <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
         <Loading />
@@ -217,7 +219,7 @@ function Activity({
     );
   }
 
-  if (!transactions.length || (isLandscape && isNewWallet)) {
+  if (!activities.length || (isLandscape && isNewWallet)) {
     return (
       <div className={buildClassName(isLandscape && styles.greeting)}>
         <NewWalletGreeting isActive={isActive} mode={isLandscape ? 'emptyList' : 'panel'} />
@@ -225,7 +227,7 @@ function Activity({
     );
   }
 
-  return <div>{renderTransactionGroups(transactions)}</div>;
+  return <div>{renderActivityGroups(activities)}</div>;
 }
 
 export default memo(
@@ -237,20 +239,20 @@ export default memo(
     const isNewWallet = selectIsNewWallet(global);
     const slug = accountState?.currentTokenSlug;
     const {
-      txIdsBySlug, byTxId, isLoading, isHistoryEndReached,
-    } = accountState?.transactions || {};
+      idsBySlug, byId, isLoading, isHistoryEndReached,
+    } = accountState?.activities || {};
     return {
       currentAccountId: currentAccountId!,
       slug,
       isLoading,
-      byTxId,
+      byId,
       isNewWallet,
-      txIdsBySlug,
+      idsBySlug,
       tokensBySlug: global.tokenInfo?.bySlug,
       areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
       apyValue: accountState?.poolState?.lastApy || 0,
       savedAddresses: accountState?.savedAddresses,
       isHistoryEndReached,
     };
-  })(Activity),
+  })(Activities),
 );

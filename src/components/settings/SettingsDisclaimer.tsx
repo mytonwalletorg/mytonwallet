@@ -48,6 +48,7 @@ function SettingsDisclaimer({ isActive, handleBackClick, isInsideModal }: OwnPro
         className={buildClassName(
           styles.content,
           isInsideModal && 'custom-scroll',
+          isInsideModal && styles.contentInModal,
           !isInsideModal && styles.content_noScroll,
         )}
         onScroll={isInsideModal ? handleContentScroll : undefined}
@@ -63,7 +64,7 @@ function SettingsDisclaimer({ isActive, handleBackClick, isInsideModal }: OwnPro
           />
           <div className={styles.sideTitle}>{lang('Use Responsibly')}</div>
         </div>
-        <div className={styles.infoBlock}>
+        <div className={buildClassName(styles.blockAbout, !isInsideModal && 'custom-scroll')}>
           <p className={styles.text}>{renderText(lang('$auth_responsibly_description1'))}</p>
           <p className={styles.text}>{renderText(lang('$auth_responsibly_description2'))}</p>
           <p className={styles.text}>{renderText(lang('$auth_responsibly_description3'))}</p>

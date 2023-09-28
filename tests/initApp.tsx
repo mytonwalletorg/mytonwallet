@@ -1,10 +1,10 @@
+import '../src/global/init';
+
 import React from '../src/lib/teact/teact';
 import TeactDOM from '../src/lib/teact/teact-dom';
 import { getActions } from '../src/lib/teact/teactn';
 
 import Main from '../src/components/main/Main';
-
-import '../src/global/init';
 
 const initApp = () => {
   return new Promise<void>(() => {

@@ -1,13 +1,13 @@
-import { Big } from '../../lib/big.js';
-import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   memo, useEffect, useRef,
 } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS } from '../../config';
+import { Big } from '../../lib/big.js';
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
-import { ceil } from '../../util/round';
+import { round } from '../../util/round';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
 import useFlag from '../../hooks/useFlag';
@@ -192,11 +192,11 @@ function getParts(value: string, decimals: number) {
 
 export function getInputRegex(decimals: number) {
   if (!decimals) return /^(\d+)$/;
-  return new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?$`);
+  return new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?`);
 }
 
-function castValue(value?: number, decimals?: number) {
-  return value ? ceil(value, decimals) : undefined;
+function castValue(value?: number | string, decimals?: number) {
+  return value && Number.isFinite(Number(value)) ? round(value, decimals, Big.roundDown) : undefined;
 }
 
 export function buildContentHtml(values: RegExpMatchArray, suffix?: string, decimals = FRACTION_DIGITS) {

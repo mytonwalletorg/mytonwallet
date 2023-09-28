@@ -4,8 +4,8 @@ import { mapValues } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { callBackendGet } from './backend';
 
-let knownAddresses: ApiKnownAddresses;
-let scamMarkers: RegExp[];
+let knownAddresses: ApiKnownAddresses = {};
+let scamMarkers: RegExp[] = [];
 
 export async function tryUpdateKnownAddresses() {
   try {

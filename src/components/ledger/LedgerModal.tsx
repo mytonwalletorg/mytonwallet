@@ -1,11 +1,11 @@
 import React, {
   memo, useState,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import type { Account, HardwareConnectState } from '../../global/types';
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 
-import { getActions, withGlobal } from '../../global';
 import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
@@ -103,7 +103,7 @@ function LedgerModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="slideLayers"
+        name="slideFade"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

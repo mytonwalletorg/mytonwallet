@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
-
 import { getActions, withGlobal } from '../../global';
+
 import renderText from '../../global/helpers/renderText';
 import { selectAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';

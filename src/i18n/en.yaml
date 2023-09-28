@@ -28,8 +28,7 @@ Continue or change password to something more secure?: Continue or change passwo
 Change: Change
 "%1$d Secret Words": "%1$d Secret Words"
 $auth_import_mnemonic_description: |
-  You can restore access to your wallet by entering the %1$d secret words
-  that you wrote down when creating the wallet.
+  You can restore access to your wallet by entering the %1$d secret words that you wrote down when creating the wallet.
 Let’s make sure your secrets words are recorded correctly.: Let’s make sure your secrets words are recorded correctly.
 $mnemonic_check_words_list: Please enter the words **%1$s** below.
 $mnemonic_check_error: The secret words you have entered do not match the ones in the list. Please try again.
@@ -367,4 +366,6 @@ $auth_backup_description3: |
 Terms of Use: Terms of Use
 Privacy Policy: Privacy Policy
 This address is new and never received transfers before.: This address is new and never received transfers before.
+Create Backup: Create Backup
+Sending: Sending
 failed: failed

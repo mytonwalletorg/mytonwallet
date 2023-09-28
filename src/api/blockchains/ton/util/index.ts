@@ -15,3 +15,7 @@ export function buildTokenSlug(minterAddress: string) {
   const addressPart = minterAddress.replace(/[^a-z\d]/gi, '').slice(0, 10);
   return `ton-${addressPart}`.toLowerCase();
 }
+
+export function buildSwapId(backendId: string) {
+  return `swap:${backendId}`;
+}

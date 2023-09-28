@@ -2,11 +2,10 @@ import type { ApiInitArgs, OnApiUpdate } from '../types';
 
 import { IS_DAPP_SUPPORTED, IS_SSE_SUPPORTED } from '../../config';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
+import { addHooks } from '../hooks';
 import * as tonConnect from '../tonConnect';
 import { resetupSseConnection, sendSseDisconnect } from '../tonConnect/sse';
 import * as methods from '.';
-
-import { addHooks } from '../hooks';
 
 addHooks({
   onDappDisconnected: sendSseDisconnect,

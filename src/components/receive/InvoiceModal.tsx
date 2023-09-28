@@ -1,11 +1,12 @@
 import React, {
   memo, useMemo, useState,
 } from '../../lib/teact/teact';
+import { withGlobal } from '../../global';
 
 import type { UserToken } from '../../global/types';
+import type { DropdownItem } from '../ui/Dropdown';
 
 import { TON_TOKEN_SLUG } from '../../config';
-import { withGlobal } from '../../global';
 import { humanToBigStr } from '../../global/helpers';
 import renderText from '../../global/helpers/renderText';
 import { selectAccount, selectCurrentAccountTokens } from '../../global/selectors';
@@ -17,7 +18,6 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
-import type { DropdownItem } from '../ui/Dropdown';
 import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import InteractiveTextField from '../ui/InteractiveTextField';

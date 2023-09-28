@@ -2,12 +2,12 @@ import React, {
   memo,
   useMemo,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import type { ApiDapp, ApiDappTransaction } from '../../api/types';
 import type { Account, UserToken } from '../../global/types';
 
 import { SHORT_FRACTION_DIGITS } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
 import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';

@@ -1,8 +1,8 @@
 import React, {
   memo, useEffect, useLayoutEffect, useState,
 } from '../../../lib/teact/teact';
-
 import { getActions, withGlobal } from '../../../global';
+
 import renderText from '../../../global/helpers/renderText';
 import buildClassName from '../../../util/buildClassName';
 import captureKeyboardListeners from '../../../util/captureKeyboardListeners';
@@ -167,7 +167,7 @@ function SignatureModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="slideLayers"
+        name="slideFade"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

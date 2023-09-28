@@ -6,9 +6,9 @@ import { addActionHandler, setGlobal } from '../../index';
 import {
   removeTransaction,
   updateAccountState,
+  updateActivitiesIsLoadingByAccount,
+  updateActivity,
   updateCurrentTransfer,
-  updateTransaction,
-  updateTransactionsIsLoadingByAccount,
 } from '../../reducers';
 import { selectAccountState } from '../../selectors';
 
@@ -24,7 +24,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       } = update;
       const { decimals } = global.tokenInfo!.bySlug[transaction.slug!]!;
 
-      global = updateTransaction(global, accountId, transaction);
+      global = updateActivity(global, accountId, transaction);
 
       if (
         -bigStrToHuman(amount, decimals) === global.currentTransfer.amount
@@ -46,29 +46,29 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
-    case 'newTransactions': {
-      const { transactions, accountId } = update;
+    case 'newActivities': {
+      const { activities, accountId } = update;
       let shouldPlaySound = false;
       let wasStakingTransaction = false;
 
-      global = updateTransactionsIsLoadingByAccount(global, accountId, false);
+      global = updateActivitiesIsLoadingByAccount(global, accountId, false);
 
-      for (const transaction of transactions) {
-        global = updateTransaction(global, accountId, transaction);
+      for (const activity of activities) {
+        global = updateActivity(global, accountId, activity);
 
         if (
-          transaction.isIncoming
+          activity.isIncoming
           && global.settings.canPlaySounds
-          && (Date.now() - transaction.timestamp < TX_AGE_TO_PLAY_SOUND)
+          && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
           && (
             !global.settings.areTinyTransfersHidden
-            || getIsTinyTransaction(transaction, global.tokenInfo?.bySlug[transaction.slug!])
+            || getIsTinyTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
           )
         ) {
           shouldPlaySound = true;
         }
 
-        if (transaction.type === 'stake' || transaction.type === 'unstake') {
+        if (activity.type === 'stake' || activity.type === 'unstake') {
           wasStakingTransaction = true;
         }
       }
@@ -95,9 +95,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         global = updateCurrentTransfer(global, { txId });
       }
 
-      const { currentTransactionId } = selectAccountState(global, accountId) || {};
-      if (currentTransactionId === localTxId) {
-        global = updateAccountState(global, accountId, { currentTransactionId: txId });
+      const { currentActivityId } = selectAccountState(global, accountId) || {};
+      if (currentActivityId === localTxId) {
+        global = updateAccountState(global, accountId, { currentActivityId: txId });
       }
 
       setGlobal(global);

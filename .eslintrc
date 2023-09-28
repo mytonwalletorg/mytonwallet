@@ -149,39 +149,50 @@
       "error",
       {
         "groups": [
+          // Side effect imports
+          ["^\\u0000"],
+          // Lib and global imports
           [
             "^react",
             "^ton",
             "^tonweb(/.*|$)",
             "^@?\\w",
             "dist(/.*|$)",
-            "^(\\.+/)+(lib)(/.*|$)"
+            "^(\\.+/)+(lib/teact)(/.*|$)",
+            "^(\\.+/)+global$"
           ],
+          // Type imports
           [
+            "^(\\.+/)+.+\\u0000$",
             "^(\\.+/|\\w+/)+(types)(/.*|$)",
             "^(\\.+/|\\w+/)+(types)\\u0000"
           ],
+          // Config, utils, helpers
           [
             "^(\\.+/)+config",
-            "^(\\.+/)+(global)(/.*|$)",
+            "^(\\.+/)+(lib)(?!/teact)(/.*|$)",
+            "^(\\.+/)+global/.+",
             "^(\\.+/)+(util)(/.*|$)",
             "^(\\.+/)+(contracts)(/.*|$)",
-            "^(\\.+/)+(ui)/[a-z](([a-z]+[A-Z]?)*)",
             "^\\.\\.(?!/?$)",
             "^\\.\\./?$",
             "^\\./(?=.*/)(?!/?$)",
             "^\\.(?!/?$)",
             "^\\./?$"
           ],
+          // Hooks
           [
-            "^(\\.+/)+(hooks)(/.*|$)"
+            ".+(/hooks/)(.*|$)"
           ],
+          // Components
           [
             "\/[A-Z](([a-z]+[A-Z]?)*)"
           ],
+          // Styles and CSS modules
           [
             "^.+\\.s?css$"
           ],
+          // Assets: images, stickers, etc
           [
             "^(\\.+/)+(assets)(/.*|$)"
           ]

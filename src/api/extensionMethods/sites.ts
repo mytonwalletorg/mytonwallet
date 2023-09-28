@@ -1,5 +1,5 @@
-import type { ApiSiteUpdate, OnApiSiteUpdate } from '../types/dappUpdates';
 import type { OnApiUpdate } from '../types';
+import type { ApiSiteUpdate, OnApiSiteUpdate } from '../types/dappUpdates';
 
 import { getCurrentAccountIdOrFail, waitLogin } from '../common/accounts';
 import { resolveDappPromise } from '../common/dappPromises';

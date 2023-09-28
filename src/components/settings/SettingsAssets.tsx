@@ -1,9 +1,11 @@
 import React, { memo } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import type { UserToken } from '../../global/types';
 
-import { TINY_TRANSFER_MAX_COST, TON_SYMBOL } from '../../config';
-import { getActions } from '../../global';
+import {
+  TINY_TRANSFER_MAX_COST, TON_SYMBOL,
+} from '../../config';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
@@ -101,7 +103,10 @@ function SettingsAssets({
           <span className={styles.headerTitle}>{lang('Assets & Activity')}</span>
         </div>
       )}
-      <div className={buildClassName(styles.content, 'custom-scroll')} onScroll={handleContentScroll}>
+      <div
+        className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}
+        onScroll={handleContentScroll}
+      >
         <div className={styles.settingsBlock}>
           <Dropdown
             label={lang('Fiat Currency')}

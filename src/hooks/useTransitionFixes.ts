@@ -1,5 +1,4 @@
 import { requestMeasure, requestMutation } from '../lib/fasterdom/fasterdom';
-
 import useLastCallback from './useLastCallback';
 
 // Set `min-height` for transition container to prevent jumping when switching tabs

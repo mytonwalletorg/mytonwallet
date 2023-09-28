@@ -1,7 +1,7 @@
 import React, { memo } from '../../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../../global';
 
 import { MY_TON_WALLET_PROMO_URL } from '../../../../config';
-import { getActions, withGlobal } from '../../../../global';
 import buildClassName from '../../../../util/buildClassName';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';

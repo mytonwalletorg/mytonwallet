@@ -1,9 +1,9 @@
 import React, { memo, useState } from '../../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../../global';
 
 import type { UserToken } from '../../../../global/types';
 
 import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../../../config';
-import { getActions, withGlobal } from '../../../../global';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
@@ -185,7 +185,7 @@ function TokenCard({
       )}
 
       <div className={styles.tokenCurrentPrice}>
-        {formatCurrency(price, DEFAULT_PRICE_CURRENCY, selectedHistoryIndex === -1 ? undefined : 4)}
+        {formatCurrency(price, DEFAULT_PRICE_CURRENCY, selectedHistoryIndex === -1 ? 2 : 4)}
         <div className={styles.tokenPriceDate}>
           {dateStr}
           {withCmcButton && (

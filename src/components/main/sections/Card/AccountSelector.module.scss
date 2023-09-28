@@ -215,7 +215,7 @@
   max-height: 16rem;
   padding: 0.5rem !important;
 
-  @include adapt-padding-to-scrollbar(0.5rem, !important); /* stylelint-disable-line order/order */
+  @include adapt-padding-to-scrollbar(0.5rem, !important);
 
 
   background-color: var(--color-background-drop-down);

@@ -1,8 +1,8 @@
 import React, {
   memo, useEffect, useRef, useState,
 } from '../../../lib/teact/teact';
-
 import { getActions, withGlobal } from '../../../global';
+
 import { selectMnemonicForCheck } from '../../../global/actions/api/auth';
 import buildClassName from '../../../util/buildClassName';
 import { callApi } from '../../../api';
@@ -166,7 +166,7 @@ function BackupModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="slideLayers"
+        name="slideFade"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

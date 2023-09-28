@@ -26,15 +26,14 @@
   align-items: center;
   justify-content: center;
 
-  max-width: 25rem;
+  max-width: 27rem;
   height: 100%;
   max-height: 100%;
   margin: 0 auto;
   padding: 0 1rem 1rem;
 
-  @include adapt-padding-to-scrollbar(1rem); /* stylelint-disable-line order/order */
+  @include adapt-padding-to-scrollbar(1rem);
 
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-above(xs) {
     max-width: 31.4375rem;
   }
@@ -53,7 +52,6 @@
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   }
 
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-above(sm) {
     padding: 2rem;
   }
@@ -76,7 +74,6 @@
     transition: none !important;
   }
 
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-above(sm) {
     margin-top: 0;
   }
@@ -153,13 +150,18 @@
     margin-top: 3rem;
   }
 
-  &_pull {
-    margin-bottom: 1.5rem;
-  }
-
   &__space {
     margin-bottom: 1.25rem;
   }
+}
+
+.infoPull {
+  margin-bottom: 1.5rem;
+}
+
+.infoSmallFont {
+  font-size: 0.9375rem;
+  font-weight: 400;
 }
 
 .counter {
@@ -460,7 +462,6 @@
   grid-template: repeat(12, 1fr) / repeat(2, 1fr);
   gap: 1rem;
 
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-above(xs) {
     grid-template: repeat(8, 1fr) / repeat(3, 1fr);
   }
@@ -500,7 +501,6 @@
 }
 
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-
   @include respond-below(xs) {
     .disclaimerBackupDialog {
       padding-bottom: max(env(safe-area-inset-bottom), 0);

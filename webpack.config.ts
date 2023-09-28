@@ -1,3 +1,5 @@
+import 'webpack-dev-server';
+
 import StatoscopeWebpackPlugin from '@statoscope/webpack-plugin';
 // @ts-ignore
 import PreloadWebpackPlugin from '@vue/preload-webpack-plugin';
@@ -16,8 +18,6 @@ import {
   DefinePlugin, EnvironmentPlugin, NormalModuleReplacementPlugin,
   ProvidePlugin,
 } from 'webpack';
-
-import 'webpack-dev-server';
 
 const { APP_ENV, HEAD } = process.env;
 const IS_EXTENSION = process.env.IS_EXTENSION === '1';

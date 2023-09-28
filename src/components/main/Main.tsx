@@ -1,10 +1,10 @@
 import React, {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import { ContentTab } from '../../global/types';
 
-import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { REM } from '../../util/windowEnvironment';

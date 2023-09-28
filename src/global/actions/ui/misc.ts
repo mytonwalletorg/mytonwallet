@@ -1,5 +1,5 @@
-import { AppState, HardwareConnectState } from '../../types';
 import type { UserToken } from '../../types';
+import { AppState, HardwareConnectState } from '../../types';
 
 import { IS_EXTENSION } from '../../../config';
 import { unique } from '../../../util/iteratees';
@@ -25,12 +25,12 @@ import {
 
 const OPEN_LEDGER_TAB_DELAY = 500;
 
-addActionHandler('showTransactionInfo', (global, actions, { txId } = {}) => {
-  return updateCurrentAccountState(global, { currentTransactionId: txId });
+addActionHandler('showActivityInfo', (global, actions, { id } = {}) => {
+  return updateCurrentAccountState(global, { currentActivityId: id });
 });
 
-addActionHandler('closeTransactionInfo', (global) => {
-  return updateCurrentAccountState(global, { currentTransactionId: undefined });
+addActionHandler('closeActivityInfo', (global) => {
+  return updateCurrentAccountState(global, { currentActivityId: undefined });
 });
 
 addActionHandler('addSavedAddress', (global, actions, { address, name }) => {

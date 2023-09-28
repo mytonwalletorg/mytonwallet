@@ -9,7 +9,7 @@
   margin: 0.25rem auto;
 
   &_electron {
-    top: 2rem
+    top: 2rem !important;
   }
 
   @media (min-width: 1276px) {
@@ -18,6 +18,10 @@
     :global(html.animation-level-0) & {
       transition: none !important;
     }
+  }
+
+  @supports (top: max(env(safe-area-inset-top), 1rem)) {
+    top: max(env(safe-area-inset-top), 1rem);
   }
 }
 

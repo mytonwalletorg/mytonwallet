@@ -1,21 +1,21 @@
 import { randomBytes } from 'tweetnacl';
 
+import type { TokenBalanceParsed } from '../blockchains/ton/tokens';
 import type {
   ApiBaseToken,
   ApiNftUpdate,
   ApiToken,
   ApiTokenPrice,
-  ApiTransaction,
+  ApiTransactionActivity,
   ApiTxIdBySlug,
   OnApiUpdate,
 } from '../types';
 
 import { APP_ENV, APP_VERSION, TON_TOKEN_SLUG } from '../../config';
-import { compareTransactions } from '../../util/compareTransactions';
+import { compareActivities } from '../../util/compareActivities';
 import { logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
 import blockchains from '../blockchains';
-import type { TokenBalanceParsed } from '../blockchains/ton/tokens';
 import { addKnownTokens, getKnownTokens } from '../blockchains/ton/tokens';
 import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet } from '../common/backend';
@@ -41,7 +41,7 @@ let isAccountActive: IsAccountActiveFn;
 let clientId: string | undefined;
 
 let preloadEnsurePromise: Promise<any>;
-let pricesBySlug: Record<string, ApiTokenPrice>;
+let pricesBySlug: Record<string, ApiTokenPrice> = {};
 
 const lastBalanceCache: Record<string, {
   balance?: string;
@@ -184,7 +184,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
       // Fetch transactions for tokens with a changed balance
       if (changedTokenSlugs.length) {
-        const newTxIds = await processNewTokenTransactions(accountId, newestTxIds, changedTokenSlugs);
+        const newTxIds = await processNewTokenActivities(accountId, newestTxIds, changedTokenSlugs);
         newestTxIds = { ...newestTxIds, ...newTxIds };
       }
 
@@ -204,7 +204,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
   }
 }
 
-async function processNewTokenTransactions(
+async function processNewTokenActivities(
   accountId: string,
   newestTxIds: ApiTxIdBySlug,
   tokenSlugs: string[],
@@ -215,7 +215,7 @@ async function processNewTokenTransactions(
     return {};
   }
 
-  let allTransactions: ApiTransaction[] = [];
+  let allTransactions: ApiTransactionActivity[] = [];
 
   const entries = await Promise.all(tokenSlugs.map(async (slug) => {
     let newestTxId = newestTxIds[slug];
@@ -231,15 +231,17 @@ async function processNewTokenTransactions(
     return [slug, newestTxId];
   }));
 
-  allTransactions.sort((a, b) => compareTransactions(a, b, true));
+  allTransactions.sort((a, b) => compareActivities(a, b, true));
 
   allTransactions.forEach((transaction) => {
     txCallbacks.runCallbacks(transaction);
   });
 
+  const activities = allTransactions;
+
   onUpdate({
-    type: 'newTransactions',
-    transactions: allTransactions,
+    type: 'newActivities',
+    activities,
     accountId,
   });
 

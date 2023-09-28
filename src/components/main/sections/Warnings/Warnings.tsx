@@ -1,7 +1,7 @@
 import React, { memo } from '../../../../lib/teact/teact';
+import { withGlobal } from '../../../../global';
 
 import { IS_ELECTRON, IS_EXTENSION } from '../../../../config';
-import { withGlobal } from '../../../../global';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import { IS_ANDROID, IS_IOS } from '../../../../util/windowEnvironment';
 

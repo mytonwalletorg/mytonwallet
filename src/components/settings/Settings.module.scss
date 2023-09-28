@@ -9,11 +9,14 @@
   flex-direction: column;
 
   width: 100%;
-  max-width: 25rem;
   height: 100%;
   min-height: 0;
   max-height: 100%;
   margin: 0 auto;
+
+  @include respond-below(xs) {
+    max-width: 27rem;
+  }
 }
 
 .transitionContainer {
@@ -45,7 +48,6 @@
   font-weight: 700;
   line-height: 1.0625rem;
 
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-below(xs) {
     // Fix for opera, dead zone of 37 pixels in extension window on windows
     :global(html.is-windows.is-opera.is-extension) & {
@@ -85,7 +87,6 @@
 
 .modalHeader {
   min-height: 4rem;
-  margin-bottom: 0.75rem;
 }
 
 .content {
@@ -98,11 +99,15 @@
   min-height: 0;
   padding: 0 1rem 1rem;
 
-  @include adapt-padding-to-scrollbar(1rem); /* stylelint-disable-line order/order */
+  @include adapt-padding-to-scrollbar(1rem);
 
   &_noScroll {
     overflow: visible;
   }
+}
+
+.contentInModal {
+  padding-top: 0.75rem;
 }
 
 .blockTitle {
@@ -139,7 +144,7 @@
     overflow-x: hidden;
     overflow-y: scroll;
 
-    @include adapt-padding-to-scrollbar(1rem); /* stylelint-disable-line order/order */
+    @include adapt-padding-to-scrollbar(1rem);
   }
 }
 
@@ -554,7 +559,7 @@
   border-radius: 100%;
 
   @media (pointer: coarse) {
-    &:not(.tokenIconSingle) {
+    &:not(.tokenIconVisible) {
      opacity: 0;
     }
   }
@@ -761,7 +766,7 @@
     overflow-x: hidden;
     overflow-y: scroll;
 
-    @include adapt-padding-to-scrollbar(0.5rem); /* stylelint-disable-line order/order */
+    @include adapt-padding-to-scrollbar(0.5rem);
   }
 
   &_single {

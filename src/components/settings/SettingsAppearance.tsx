@@ -1,9 +1,9 @@
 import React, { memo } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import type { AnimationLevel, Theme } from '../../global/types';
 
 import { ANIMATION_LEVEL_MAX, ANIMATION_LEVEL_MIN } from '../../config';
-import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import switchAnimationLevel from '../../util/switchAnimationLevel';
 import switchTheme from '../../util/switchTheme';
@@ -112,7 +112,7 @@ function SettingsAppearance({
           <span className={styles.headerTitle}>{lang('Appearance')}</span>
         </div>
       )}
-      <div className={buildClassName(styles.content, 'custom-scroll')}>
+      <div className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}>
         <p className={styles.blockTitle}>{lang('Theme')}</p>
         <div className={styles.settingsBlock}>
           <div className={styles.themeWrapper}>

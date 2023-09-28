@@ -4,8 +4,8 @@
 
 .buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0.5rem;
 
   width: 21.4375rem;
 
@@ -33,7 +33,7 @@
 
   font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 0.75rem;
   color: var(--color-black);
 
   background: var(--color-background-first);

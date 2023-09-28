@@ -7,7 +7,7 @@ import { parseAccountId } from '../../util/account';
 import { findLast, mapValues, unique } from '../../util/iteratees';
 import memoized from '../../util/memoized';
 import { round } from '../../util/round';
-import { bigStrToHuman, getIsTxIdLocal } from '../helpers';
+import { bigStrToHuman, getIsSwapId, getIsTxIdLocal } from '../helpers';
 
 export function selectHasSession(global: GlobalState) {
   return Boolean(global.currentAccountId);
@@ -167,16 +167,16 @@ export function selectFirstNonHardwareAccount(global: GlobalState) {
 
 export function selectNewestTxIds(global: GlobalState, accountId: string): ApiTxIdBySlug {
   return mapValues(
-    selectAccountState(global, accountId)?.transactions?.newestTransactionsBySlug || {},
+    selectAccountState(global, accountId)?.activities?.newestTransactionsBySlug || {},
     ({ txId }) => txId,
   );
 }
 
 export function selectLastTxIds(global: GlobalState, accountId: string): ApiTxIdBySlug {
-  const txIdsBySlug = selectAccountState(global, accountId)?.transactions?.txIdsBySlug || {};
+  const idsBySlug = selectAccountState(global, accountId)?.activities?.idsBySlug || {};
 
-  return mapValues(txIdsBySlug, (tokenTxIds) => {
-    return findLast(tokenTxIds, (txId) => !getIsTxIdLocal(txId));
+  return mapValues(idsBySlug, (tokenTxIds) => {
+    return findLast(tokenTxIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
   });
 }
 

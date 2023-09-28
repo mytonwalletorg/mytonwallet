@@ -1,3 +1,5 @@
+@import "../../styles/mixins";
+
 .modalDialog {
   height: 35rem;
 
@@ -318,6 +320,11 @@
   :global(html.animation-level-0) & {
     transition: none !important;
   }
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-below(xs) {
+    display: none;
+  }
 }
 
 .savedAddressDeleteInner {
@@ -333,6 +340,19 @@
   &:active {
     // Optimization
     transition: none;
+  }
+}
+
+.savedAddressDeleteIcon {
+  display: none;
+
+  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
+  @include respond-below(xs) {
+    display: block;
+
+    margin-inline-start: 0.25rem;
+
+    font-size: 1.25rem;
   }
 }
 

@@ -1,3 +1,5 @@
+import 'v8-compile-cache';
+
 import { app, nativeImage } from 'electron';
 import contextMenu from 'electron-context-menu';
 import path from 'path';
@@ -5,8 +7,6 @@ import path from 'path';
 import { initDeeplink } from './deeplink';
 import { IS_MAC_OS } from './utils';
 import { createWindow, setupCloseHandlers } from './window';
-
-import 'v8-compile-cache';
 
 initDeeplink();
 

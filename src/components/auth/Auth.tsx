@@ -1,10 +1,10 @@
 import React, { memo, useState } from '../../lib/teact/teact';
 import { getActions } from '../../lib/teact/teactn';
-
-import { AuthState } from '../../global/types';
-import type { GlobalState } from '../../global/types';
-
 import { withGlobal } from '../../global';
+
+import type { GlobalState } from '../../global/types';
+import { AuthState } from '../../global/types';
+
 import { pick } from '../../util/iteratees';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';

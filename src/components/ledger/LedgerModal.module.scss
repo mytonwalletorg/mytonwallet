@@ -155,7 +155,7 @@
 
   padding: 0.5rem;
 
-  @include adapt-padding-to-scrollbar(0.5rem); /* stylelint-disable-line order/order */
+  @include adapt-padding-to-scrollbar(0.5rem);
 
   background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);

@@ -1,9 +1,9 @@
 import React, { memo, useEffect } from '../../../../lib/teact/teact';
+import { getActions } from '../../../../global';
 
 import { ElectronEvent } from '../../../../electron/types';
 
 import { TON_TOKEN_SLUG } from '../../../../config';
-import { getActions } from '../../../../global';
 import { bigStrToHuman } from '../../../../global/helpers';
 import buildClassName from '../../../../util/buildClassName';
 

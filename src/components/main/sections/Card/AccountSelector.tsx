@@ -1,10 +1,10 @@
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../../global';
 
 import type { Account } from '../../../../global/types';
 
-import { getActions, withGlobal } from '../../../../global';
 import { selectNetworkAccounts } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';

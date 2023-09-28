@@ -1,10 +1,10 @@
 import React, { memo, useState } from '../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../global';
 
 import type { Account, HardwareConnectState } from '../../../global/types';
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, MNEMONIC_COUNT } from '../../../config';
-import { getActions, withGlobal } from '../../../global';
 import renderText from '../../../global/helpers/renderText';
 import { selectFirstNonHardwareAccount, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
@@ -144,7 +144,7 @@ function AddAccountModal({
           <span className={styles.importText}>{lang('Or import from...')}</span>
           <div className={styles.importButtons}>
             <Button
-              className={styles.button}
+              className={buildClassName(styles.button, !IS_LEDGER_SUPPORTED && styles.button_single)}
               onClick={handleImportAccountClick}
             >
               {lang('%1$d Secret Words', MNEMONIC_COUNT)}
@@ -222,7 +222,7 @@ function AddAccountModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="slideLayers"
+        name="slideFade"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

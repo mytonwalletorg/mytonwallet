@@ -1,10 +1,10 @@
 import React, {
   memo, useEffect,
 } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import { HardwareConnectState } from '../../global/types';
 
-import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';

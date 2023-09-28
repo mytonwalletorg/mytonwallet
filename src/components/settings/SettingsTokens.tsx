@@ -1,11 +1,11 @@
 import React, {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import type { UserToken } from '../../global/types';
 
 import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../config';
-import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency } from '../../util/formatNumber';
 import { isBetween } from '../../util/math';
@@ -144,7 +144,6 @@ function SettingsTokens({
     const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
     const totalAmount = amount * price;
     const isDragged = state.draggedIndex === index;
-    const isSingleToken = tokens?.length === 1;
 
     const draggedTop = getOrderIndex(slug, state.orderedTokenSlugs);
     const top = getOrderIndex(slug, state.dragOrderTokenSlugs);
@@ -174,7 +173,7 @@ function SettingsTokens({
         <img
           src={logoPath}
           alt={symbol}
-          className={buildClassName(styles.tokenIcon, isSingleToken && styles.tokenIconSingle)}
+          className={buildClassName(styles.tokenIcon, isDragDisabled && styles.tokenIconVisible)}
         />
         <div className={styles.tokenInfo}>
           <div className={styles.tokenTitle}>

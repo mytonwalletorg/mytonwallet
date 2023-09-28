@@ -1,10 +1,10 @@
 import React, {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import type { AuthMethod } from '../../global/types';
 
-import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 

@@ -1,12 +1,12 @@
 import type { RefObject } from 'react';
-import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/fasterdom';
 import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 import { addExtraClass, removeExtraClass, toggleExtraClass } from '../../lib/teact/teact-dom';
+import { getGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 
 import { ANIMATION_LEVEL_MIN } from '../../config';
-import { getGlobal } from '../../global';
+import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { waitForAnimationEnd, waitForTransitionEnd } from '../../util/cssAnimationEndListeners';
 import forceReflow from '../../util/forceReflow';

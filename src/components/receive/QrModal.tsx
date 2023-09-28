@@ -1,7 +1,7 @@
 import QrCodeStyling from 'qr-code-styling';
 import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
-
 import { withGlobal } from '../../global';
+
 import { selectAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { shortenAddress } from '../../util/shortenAddress';

@@ -1,6 +1,7 @@
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import type { UserToken } from '../../global/types';
 
@@ -10,7 +11,6 @@ import {
   MIN_BALANCE_FOR_UNSTAKE,
   TON_TOKEN_SLUG,
 } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
 import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';

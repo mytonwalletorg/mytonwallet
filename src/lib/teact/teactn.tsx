@@ -1,10 +1,11 @@
+import type { FC, FC_withDebug, Props } from './teact';
+
 import { DEBUG, DEBUG_MORE } from '../../config';
 import arePropsShallowEqual, { logUnequalProps } from '../../util/arePropsShallowEqual';
 import { handleError } from '../../util/handleError';
 import { orderBy } from '../../util/iteratees';
 import { throttleWithTickEnd } from '../../util/schedulers';
 import { requestMeasure } from '../fasterdom/fasterdom';
-import type { FC, FC_withDebug, Props } from './teact';
 import React, { DEBUG_resolveComponentName, useEffect } from './teact';
 
 import useForceUpdate from '../../hooks/useForceUpdate';

@@ -1,16 +1,16 @@
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
-import { DappConnectState } from '../../global/types';
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type { ApiDapp, ApiDappPermissions } from '../../api/types';
 import type {
   Account, AccountState, HardwareConnectState, UserToken,
 } from '../../global/types';
+import { DappConnectState } from '../../global/types';
 
 import { TON_TOKEN_SLUG } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import { bigStrToHuman } from '../../global/helpers';
 import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -266,7 +266,7 @@ function DappConnectModal({
         onCloseAnimationEnd={cancelDappConnectRequestConfirm}
       >
         <Transition
-          name="slideLayers"
+          name="slideFade"
           className={buildClassName(modalStyles.transition, 'custom-scroll')}
           slideClassName={modalStyles.transitionSlide}
           activeKey={renderingKey}

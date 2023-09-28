@@ -1,3 +1,5 @@
+@import "../../../styles/mixins";
+
 .modalDialog {
   height: 38.5rem;
 
@@ -21,7 +23,7 @@
 
 .button {
   width: 100%;
-  min-width: unset !important;
+  min-width: 0 !important;
   max-width: 100% !important;
   margin: 0 auto;
 
@@ -51,8 +53,15 @@
   display: flex;
   gap: 1rem;
 
+  width: 100%;
   margin: 0.875rem 0 1rem;
   padding: 0 1rem;
+
+  @include respond-below(xs) {
+    @supports (margin-bottom: max(env(safe-area-inset-bottom), 1rem)) {
+      margin-bottom: max(env(safe-area-inset-bottom), 1rem);
+    }
+  }
 }
 
 .sticker {

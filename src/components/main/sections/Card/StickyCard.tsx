@@ -1,9 +1,9 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
+import { withGlobal } from '../../../../global';
 
 import type { UserToken } from '../../../../global/types';
 
 import { DEFAULT_PRICE_CURRENCY } from '../../../../config';
-import { withGlobal } from '../../../../global';
 import { selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { buildTokenValues } from './helpers/buildTokenValues';

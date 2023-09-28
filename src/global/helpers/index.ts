@@ -25,3 +25,7 @@ function divideBigInt(a: bigint, b: bigint) {
 export function getIsTxIdLocal(txId: string) {
   return txId.includes('|');
 }
+
+export function getIsSwapId(id: string) {
+  return id.startsWith('swap:');
+}

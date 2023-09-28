@@ -1,11 +1,11 @@
 import React, {
   memo,
 } from '../../lib/teact/teact';
-
-import { type Account, TransferState, type UserToken } from '../../global/types';
-import type { ApiDapp } from '../../api/types';
-
 import { getActions, withGlobal } from '../../global';
+
+import type { ApiDapp } from '../../api/types';
+import { type Account, TransferState, type UserToken } from '../../global/types';
+
 import renderText from '../../global/helpers/renderText';
 import { selectNetworkAccounts } from '../../global/selectors';
 import { formatCurrency } from '../../util/formatNumber';

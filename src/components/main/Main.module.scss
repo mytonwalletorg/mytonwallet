@@ -20,10 +20,9 @@ $scrollOffset: 0.1875rem;
     padding-top: 1.875rem !important;
   }
 
-  @include adapt-padding-to-scrollbar(0.75rem, !important); /* stylelint-disable-line order/order */
+  @include adapt-padding-to-scrollbar(0.75rem, !important);
 
   @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
     @include respond-above(xs) {
       padding-bottom: max(env(safe-area-inset-bottom), 1rem) !important;
     }
@@ -31,7 +30,7 @@ $scrollOffset: 0.1875rem;
 
   .head {
     width: 100%;
-    max-width: 25rem;
+    max-width: 27rem;
     margin: 0 auto;
   }
 }

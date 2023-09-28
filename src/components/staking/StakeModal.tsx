@@ -1,10 +1,10 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
-import { StakingState } from '../../global/types';
 import type { GlobalState, UserToken } from '../../global/types';
+import { StakingState } from '../../global/types';
 
 import { TON_TOKEN_SLUG } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
@@ -152,7 +152,7 @@ function StakeModal({
       onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="slideLayers"
+        name="slideFade"
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

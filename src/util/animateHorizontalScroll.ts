@@ -1,5 +1,4 @@
 import { requestMutation } from '../lib/fasterdom/fasterdom';
-
 import { animate } from './animation';
 
 const DEFAULT_DURATION = 300;

@@ -24,6 +24,8 @@ function SuggestionList({
   const lang = useLang();
 
   const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
     const suggest = (e.target as HTMLLIElement).innerText.trim();
     onSelect(suggest);
   };

@@ -11,6 +11,7 @@ import type {
 } from '@tonconnect/protocol';
 
 import type { Connector } from '../../util/PostMessageConnector';
+
 import { TONCONNECT_VERSION, tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
 
 declare global {

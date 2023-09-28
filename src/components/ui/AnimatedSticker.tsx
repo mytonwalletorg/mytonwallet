@@ -1,13 +1,14 @@
 import type { RefObject } from 'react';
-import { requestMeasure } from '../../lib/fasterdom/fasterdom';
-import type RLottieInstance from '../../lib/rlottie/RLottie';
-import { ensureRLottie, getRLottie } from '../../lib/rlottie/RLottie.async';
 import type { FC } from '../../lib/teact/teact';
 import React, {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
+import type RLottieInstance from '../../lib/rlottie/RLottie';
+
 import { IS_ELECTRON } from '../../config';
+import { requestMeasure } from '../../lib/fasterdom/fasterdom';
+import { ensureRLottie, getRLottie } from '../../lib/rlottie/RLottie.async';
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import generateUniqueId from '../../util/generateUniqueId';

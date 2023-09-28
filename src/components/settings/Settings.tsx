@@ -1,6 +1,7 @@
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import type { ApiDapp } from '../../api/types';
 import type {
@@ -17,7 +18,6 @@ import {
   PROXY_HOSTS,
   TELEGRAM_WEB_URL,
 } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import {
   selectAccountSettings, selectCurrentAccountTokens, selectPopularTokensWithoutAccountTokens,
 } from '../../global/selectors';
@@ -261,7 +261,10 @@ function Settings({
           </div>
         )}
 
-        <div className={buildClassName(styles.content, 'custom-scroll')} onScroll={handleContentScroll}>
+        <div
+          className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}
+          onScroll={handleContentScroll}
+        >
           {IS_EXTENSION && (
             <div className={styles.block}>
               {PROXY_HOSTS && (
@@ -441,7 +444,7 @@ function Settings({
   return (
     <div className={styles.wrapper}>
       <Transition
-        name="slideLayers"
+        name={isInsideModal ? 'slideFade' : 'slideLayers'}
         className={buildClassName(isInsideModal ? modalStyles.transition : styles.transitionContainer, 'custom-scroll')}
         activeKey={renderingKey}
         slideClassName={modalStyles.transitionSlide}

@@ -317,8 +317,7 @@
   border-radius: var(--border-radius-small);
 
   &_modal {
-    margin-top: -0.5rem;
-    padding: 1rem;
+    padding: 0 1rem 1rem;
 
     border-radius: var(--border-radius-default);
   }
@@ -343,6 +342,12 @@
   }
 }
 
+@include respond-below(xs) {
+  .stakingInfoNoHistory {
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+  }
+}
+
 .stakingInfoModalContent {
   min-height: 0;
 
@@ -359,7 +364,7 @@
         height: 1rem;
       }
 
-      @include adapt-padding-to-scrollbar(1rem); /* stylelint-disable-line order/order */
+      @include adapt-padding-to-scrollbar(1rem);
     }
   }
 

@@ -1,10 +1,10 @@
-import { DETACHED_TAB_URL } from './ledger/tab';
-import { logDebugError } from './logs';
-
 import type {
   ApiUpdate,
   CancellableCallback, OriginMessageData, OriginMessageEvent, WorkerMessageData,
 } from './PostMessageConnector';
+
+import { DETACHED_TAB_URL } from './ledger/tab';
+import { logDebugError } from './logs';
 
 declare const self: WorkerGlobalScope;
 

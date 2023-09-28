@@ -18,7 +18,6 @@
     margin-top: 0;
   }
 
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-above(xs) {
     margin-top: 0;
   }

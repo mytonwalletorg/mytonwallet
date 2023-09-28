@@ -1,9 +1,9 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
+import { withGlobal } from '../../../../global';
 
 import type { UserToken } from '../../../../global/types';
 
 import { TON_TOKEN_SLUG } from '../../../../config';
-import { withGlobal } from '../../../../global';
 import { selectCurrentAccountState, selectCurrentAccountTokens, selectIsNewWallet } from '../../../../global/selectors';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';

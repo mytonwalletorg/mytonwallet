@@ -1,5 +1,5 @@
 import type { ApiTonConnectProof } from '../tonConnect/types';
-
+import type { ApiActivity, ApiTransactionActivity } from './activity';
 import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBackendStakingState,
@@ -7,7 +7,6 @@ import type {
   ApiNft,
   ApiStakingState,
   ApiToken,
-  ApiTransaction,
 } from './misc';
 import type { ApiParsedPayload } from './payload';
 import type { ApiDapp } from './storage';
@@ -19,16 +18,16 @@ export type ApiUpdateBalance = {
   balance: string;
 };
 
-export type ApiUpdateNewTransactions = {
-  type: 'newTransactions';
+export type ApiUpdateNewActivities = {
+  type: 'newActivities';
   accountId: string;
-  transactions: ApiTransaction[];
+  activities: ApiActivity[];
 };
 
 export type ApiUpdateNewLocalTransaction = {
   type: 'newLocalTransaction';
   accountId: string;
-  transaction: ApiTransaction;
+  transaction: ApiTransactionActivity;
 };
 
 export type ApiUpdateTokens = {
@@ -148,7 +147,7 @@ export type ApiNftUpdate = ApiUpdateNftReceived | ApiUpdateNftSent | ApiUpdateNf
 
 export type ApiUpdate =
   ApiUpdateBalance
-  | ApiUpdateNewTransactions
+  | ApiUpdateNewActivities
   | ApiUpdateNewLocalTransaction
   | ApiUpdateTokens
   | ApiUpdateCreateTransaction

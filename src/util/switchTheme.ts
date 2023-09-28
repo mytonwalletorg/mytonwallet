@@ -1,6 +1,6 @@
-import { requestMeasure } from '../lib/fasterdom/fasterdom';
-
 import type { Theme } from '../global/types';
+
+import { requestMeasure } from '../lib/fasterdom/fasterdom';
 
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 let currentTheme: Theme;

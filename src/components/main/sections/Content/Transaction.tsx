@@ -1,7 +1,7 @@
 import type { Ref, RefObject } from 'react';
 import React, { memo } from '../../../../lib/teact/teact';
 
-import type { ApiToken, ApiTransaction } from '../../../../api/types';
+import type { ApiToken, ApiTransactionActivity } from '../../../../api/types';
 
 import { TON_SYMBOL } from '../../../../config';
 import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
@@ -22,10 +22,10 @@ import scamImg from '../../../../assets/scam.svg';
 type OwnProps = {
   ref?: Ref<HTMLElement>;
   tokensBySlug?: Record<string, ApiToken>;
-  transaction: ApiTransaction;
+  transaction: ApiTransactionActivity;
   apyValue: number;
   savedAddresses?: Record<string, string>;
-  onClick: (txId: string) => void;
+  onClick: (id: string) => void;
 };
 
 function Transaction({

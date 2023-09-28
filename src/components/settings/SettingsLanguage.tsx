@@ -1,9 +1,9 @@
 import React, { memo } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import type { LangCode } from '../../global/types';
 
 import { LANG_LIST } from '../../config';
-import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import { setLanguage } from '../../util/langProvider';
 
@@ -73,7 +73,7 @@ function SettingsLanguage({
           <span className={styles.headerTitle}>{lang('Language')}</span>
         </div>
       )}
-      <div className={buildClassName(styles.content, 'custom-scroll')}>
+      <div className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}>
         <div className={styles.block}>
           {renderLanguages()}
         </div>

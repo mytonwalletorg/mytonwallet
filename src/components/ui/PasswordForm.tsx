@@ -110,7 +110,7 @@ function PasswordForm({
 
       <div className={modalStyles.buttons}>
         {onCancel && (
-          <Button onClick={onCancel}>
+          <Button onClick={onCancel} className={buildClassName(submitLabel && modalStyles.customCancelButton)}>
             {cancelLabel || lang('Cancel')}
           </Button>
         )}
@@ -119,6 +119,7 @@ function PasswordForm({
           isLoading={isLoading}
           isDisabled={isSubmitDisabled}
           onClick={!isLoading ? handleSubmit : undefined}
+          className={buildClassName(submitLabel && modalStyles.customSubmitButton)}
         >
           {submitLabel || lang('Send')}
         </Button>

@@ -1,10 +1,10 @@
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import type { UserToken } from '../../global/types';
 
-import { getActions, withGlobal } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { formatCurrencyForBigValue, formatInteger } from '../../util/formatNumber';

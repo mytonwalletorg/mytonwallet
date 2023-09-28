@@ -92,7 +92,6 @@
 
   font-size: 1.875rem !important;
 
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-above(xs) {
     background-color: var(--color-gray-button-background-desktop) !important;
 
@@ -103,7 +102,6 @@
 }
 
 .invoiceButton {
-  /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
   @include respond-above(xs) {
     background-color: var(--color-gray-button-background-desktop) !important;
 

@@ -6,6 +6,7 @@ import type { UserToken } from '../../global/types';
 import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency } from '../../util/formatNumber';
+import { DEFAULT_DECIMALS } from '../../api/blockchains/ton/constants';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
@@ -53,10 +54,12 @@ function DappTransaction({
           amount: tokenAmount,
           destination,
         } = payload;
-        const token = tokens?.find(({ slug }) => slug === tokenSlug)!;
+        const token = tokens?.find(({ slug }) => slug === tokenSlug);
+        const decimals = token?.decimals ?? DEFAULT_DECIMALS;
+        const symbol = token?.symbol ?? '';
 
         return lang('$dapp_transfer_tokens_payload', {
-          amount: formatCurrency(bigStrToHuman(tokenAmount, token.decimals), token.symbol, FRACTION_DIGITS),
+          amount: formatCurrency(bigStrToHuman(tokenAmount, decimals), symbol, FRACTION_DIGITS),
           address: destination,
         });
       }

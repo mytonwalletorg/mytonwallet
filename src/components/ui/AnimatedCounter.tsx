@@ -1,8 +1,8 @@
 import type { FC } from '../../lib/teact/teact';
 import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
+import { getGlobal } from '../../global';
 
 import { ANIMATION_LEVEL_MAX } from '../../config';
-import { getGlobal } from '../../global';
 
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useLang from '../../hooks/useLang';

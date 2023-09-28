@@ -1,9 +1,8 @@
-import { requestMutation } from '../../../lib/fasterdom/fasterdom';
-
-import { ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
 import type { Account, AccountState, NotificationType } from '../../types';
+import { ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
 
 import { IS_ELECTRON, IS_EXTENSION } from '../../../config';
+import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
 import { initializeSoundsForSafari } from '../../../util/appSounds';
 import { omit } from '../../../util/iteratees';

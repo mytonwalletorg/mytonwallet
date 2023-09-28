@@ -1,6 +1,6 @@
 import React, { memo, useEffect } from '../../lib/teact/teact';
-
 import { getActions, withGlobal } from '../../global';
+
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 

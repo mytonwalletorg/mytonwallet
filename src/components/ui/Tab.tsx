@@ -1,6 +1,6 @@
-import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/fasterdom';
 import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
+import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import forceReflow from '../../util/forceReflow';
 

@@ -1,8 +1,8 @@
 import React, { memo } from '../../../../lib/teact/teact';
+import { withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
 
-import { withGlobal } from '../../../../global';
 import buildClassName from '../../../../util/buildClassName';
 
 import useBrowserUiColor from '../../../../hooks/useBrowserUiColor';

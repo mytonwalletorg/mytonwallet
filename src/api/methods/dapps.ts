@@ -7,9 +7,8 @@ import {
   getAccountValue, removeAccountValue, removeNetworkAccountsValue, setAccountValue,
 } from '../common/accounts';
 import { isUpdaterAlive } from '../common/helpers';
-import { storage } from '../storages';
-
 import { callHook } from '../hooks';
+import { storage } from '../storages';
 
 const activeDappByAccountId: Record<string, string> = {};
 

@@ -1,13 +1,15 @@
-import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import React, {
   memo, useEffect, useMemo, useRef,
 } from '../../../../lib/teact/teact';
+import {
+  getActions, withGlobal,
+} from '../../../../global';
 
 import { ElectronEvent } from '../../../../electron/types';
 import { ActiveTab } from '../../../../global/types';
 
 import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
-import { getActions, withGlobal } from '../../../../global';
+import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import { selectAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { ReceiveStatic } from '../../../receive';

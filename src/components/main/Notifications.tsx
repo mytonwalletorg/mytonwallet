@@ -1,8 +1,8 @@
 import React, { memo } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import type { NotificationType } from '../../global/types';
 
-import { getActions, withGlobal } from '../../global';
 import { pick } from '../../util/iteratees';
 
 import Notification from '../ui/Notification';

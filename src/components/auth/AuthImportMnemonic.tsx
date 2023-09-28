@@ -1,9 +1,9 @@
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT } from '../../config';
-import { getActions, withGlobal } from '../../global';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
@@ -121,7 +121,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
       <div className={buildClassName(styles.title, styles.title_afterSmallSticker)}>
         {lang('%1$d Secret Words', MNEMONIC_COUNT)}
       </div>
-      <div className={buildClassName(styles.info, styles.info_pull)}>
+      <div className={buildClassName(styles.info, styles.infoSmallFont, styles.infoPull)}>
         {renderText(lang('$auth_import_mnemonic_description', MNEMONIC_COUNT))}
       </div>
 
@@ -173,9 +173,9 @@ function parsePastedText(str: string) {
 }
 
 function getSuggestPosition(id: number, isPortrait: boolean = false) {
-  if (!isPortrait && ((id > 5 && id < 8) || (id > 13 && id < 16) || id > 21)) {
+  if (isPortrait) {
     return 'top';
   }
 
-  return isPortrait && ((id > 7 && id < 12) || id > 19) ? 'top' : undefined;
+  return ((id > 5 && id < 8) || (id > 13 && id < 16) || id > 21) ? 'top' : undefined;
 }

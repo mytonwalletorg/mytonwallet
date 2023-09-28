@@ -1,11 +1,13 @@
 import React, {
   memo, useEffect, useMemo, useRef,
 } from '../../../../lib/teact/teact';
+import { getActions, withGlobal } from '../../../../global';
 
 import { ContentTab, type UserToken } from '../../../../global/types';
 
-import { getActions, withGlobal } from '../../../../global';
-import { selectAccountState, selectCurrentAccountTokens, selectIsHardwareAccount } from '../../../../global/selectors';
+import {
+  selectAccountState, selectCurrentAccountTokens, selectIsHardwareAccount,
+} from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -15,7 +17,7 @@ import useTransitionFixes from '../../../../hooks/useTransitionFixes';
 
 import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
-import Activity from './Activity';
+import Activity from './Activities';
 import Assets from './Assets';
 import Nfts from './Nfts';
 
