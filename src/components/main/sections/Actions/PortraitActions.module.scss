@@ -4,7 +4,8 @@
 
 .buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
   gap: 0.5rem;
 
   width: 21.4375rem;
@@ -12,10 +13,6 @@
   @supports (aspect-ratio: 1) {
     width: 100%;
   }
-}
-
-.notAllButtons {
-  grid-template-columns: 1fr 1fr;
 }
 
 .button {

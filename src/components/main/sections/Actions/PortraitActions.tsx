@@ -42,13 +42,7 @@ function PortraitActions({
 
   return (
     <div className={styles.container}>
-      <div className={
-        buildClassName(
-          styles.buttons,
-          (isTestnet || isLedger) && styles.notAllButtons,
-        )
-      }
-      >
+      <div className={styles.buttons}>
         <Button className={styles.button} onClick={onReceiveClick} isSimple>
           <i className={buildClassName(styles.buttonIcon, 'icon-receive')} aria-hidden />
           {lang('Receive')}

@@ -13,9 +13,7 @@
   justify-content: center;
 
   width: 100%;
-  padding: 0.875rem 1.75rem 0.875rem 1rem;
-
-  @include adapt-padding-to-scrollbar(1.75rem);
+  padding: 0.875rem 1.5rem 0.875rem 0.75rem;
 
   color: var(--color-black);
   text-align: left;
@@ -25,9 +23,9 @@
       content: '';
 
       position: absolute;
-      right: 1.75rem;
+      right: 1.5rem;
       bottom: 0;
-      left: 3.875rem;
+      left: 3.625rem;
 
       height: 0.0625rem;
       /* stylelint-disable-next-line plugin/whole-pixel */
@@ -49,10 +47,10 @@
 .iconArrow {
   position: absolute;
   top: 0.8125rem;
-  right: calc(0.75rem - var(--scrollbar-width));
+  right: 0.5rem;
 
   font-size: 1rem;
-  color: var(--color-gray-4)
+  color: var(--color-gray-4);
 }
 
 .icon {

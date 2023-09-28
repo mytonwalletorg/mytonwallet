@@ -14,9 +14,7 @@
   justify-content: center;
 
   width: 100%;
-  padding: 0.875rem 1.75rem 0.875rem 1rem;
-
-  @include adapt-padding-to-scrollbar(1.75rem);
+  padding: 0.875rem 1.5rem 0.875rem 0.75rem;
 
   color: var(--color-black);
 
@@ -25,16 +23,17 @@
       content: '';
 
       position: absolute;
-      right: 1.75rem;
+      right: 1.5rem;
       bottom: 0;
-      left: 3.875rem;
+      left: 3.625rem;
 
       height: 0.0625rem;
       /* stylelint-disable-next-line plugin/whole-pixel */
       box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
 
-      @include respond-below(xs) {
-        left: 4.125rem;
+      :global(html.is-android) &,
+      :global(html.is-ios) & {
+        left: 4rem;
       }
     }
   }
@@ -49,10 +48,9 @@
     transition: none;
   }
 
-  @include respond-below(xs) {
-    padding: 0.75rem 1.5rem 0.75rem 0.75rem;
-
-    @include adapt-padding-to-scrollbar(1.75rem);
+  :global(html.is-android) &,
+  :global(html.is-ios) & {
+    padding: 0.6875rem 1.5rem 0.6875rem 0.75rem;
   }
 }
 
@@ -65,15 +63,10 @@
 .iconChevron {
   position: absolute;
   top: 0.8125rem;
-  right: calc(0.75rem - var(--scrollbar-width));
+  right: 0.5rem;
 
   font-size: 1rem;
   color: var(--color-gray-4);
-
-  @include respond-below(xs) {
-    top: 0.875rem;
-    right: calc(0.5rem - var(--scrollbar-width));
-  }
 }
 
 .icon {
@@ -86,7 +79,8 @@
 
   border-radius: 50%;
 
-  @include respond-below(xs) {
+  :global(html.is-android) &,
+  :global(html.is-ios) & {
     flex-basis: 2.625rem;
 
     width: 2.625rem;
