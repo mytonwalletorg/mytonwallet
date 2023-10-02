@@ -1,6 +1,6 @@
 import { requestMutation } from '../lib/fasterdom/fasterdom';
 import { throttle } from './schedulers';
-import { IS_IOS } from './windowEnvironment';
+import { IS_ANDROID, IS_IOS } from './windowEnvironment';
 
 export type IDimensions = {
   width: number;
@@ -17,6 +17,14 @@ const handleResize = throttle(() => {
   currentWindowSize = updateSizes();
 }, WINDOW_RESIZE_THROTTLE_MS, true);
 
+const handleViewportResize = throttle((e: Event) => {
+  const target = e.target as VisualViewport;
+  currentWindowSize = {
+    width: window.innerWidth,
+    height: target.height,
+  };
+}, WINDOW_RESIZE_THROTTLE_MS, true);
+
 const handleOrientationChange = throttle(() => {
   currentWindowSize = updateSizes();
 }, WINDOW_ORIENTATION_CHANGE_THROTTLE_MS, false);
@@ -24,6 +32,10 @@ const handleOrientationChange = throttle(() => {
 window.addEventListener('orientationchange', handleOrientationChange);
 if (!IS_IOS) {
   window.addEventListener('resize', handleResize);
+}
+
+if ('visualViewport' in window && (IS_IOS || IS_ANDROID)) {
+  window.visualViewport!.addEventListener('resize', handleViewportResize);
 }
 
 export function updateSizes(): IDimensions {

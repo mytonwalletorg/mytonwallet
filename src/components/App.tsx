@@ -6,7 +6,7 @@ import { AppState } from '../global/types';
 import { INACTIVE_MARKER, IS_ELECTRON } from '../config';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
-import { IS_LINUX } from '../util/windowEnvironment';
+import { IS_ANDROID, IS_LINUX } from '../util/windowEnvironment';
 import { updateSizes } from '../util/windowSize';
 
 import { useDeviceScreen } from '../hooks/useDeviceScreen';
@@ -129,7 +129,7 @@ function App({
       {IS_ELECTRON && !IS_LINUX && <ElectronHeader withTitle />}
 
       <Transition
-        name={isPortrait ? 'slideLayers' : 'semiFade'}
+        name={isPortrait ? (IS_ANDROID ? 'slideFade' : 'slideLayers') : 'semiFade'}
         activeKey={renderingKey}
         shouldCleanup
         className={styles.transitionContainer}

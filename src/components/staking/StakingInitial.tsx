@@ -72,7 +72,7 @@ function StakingInitial({
   const lang = useLang();
 
   const [isStakingInfoModalOpen, openStakingInfoModal, closeStakingInfoModal] = useFlag();
-  const [amount, setAmount] = useState<number | undefined>(0);
+  const [amount, setAmount] = useState<number | undefined>();
   const [isNotEnough, setIsNotEnough] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
   const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);

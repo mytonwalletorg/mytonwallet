@@ -6,6 +6,7 @@ import type { GlobalState } from '../../global/types';
 import { AuthState } from '../../global/types';
 
 import { pick } from '../../util/iteratees';
+import { IS_ANDROID } from '../../util/windowEnvironment';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
@@ -93,7 +94,7 @@ const Auth = ({
 
   return (
     <Transition
-      name={isPortrait ? 'slideLayers' : 'semiFade'}
+      name={isPortrait ? (IS_ANDROID ? 'slideFade' : 'slideLayers') : 'semiFade'}
       activeKey={renderingAuthState}
       renderCount={RENDER_COUNT}
       shouldCleanup

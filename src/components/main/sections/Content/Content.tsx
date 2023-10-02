@@ -9,6 +9,8 @@ import {
   selectAccountState, selectCurrentAccountTokens, selectIsHardwareAccount,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { captureSwipe, SwipeDirection } from '../../../../util/captureSwipe';
+import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
@@ -49,6 +51,8 @@ function Content({
   const lang = useLang();
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const transitionRef = useRef<HTMLDivElement>(null);
   const {
     applyTransitionFix,
     releaseTransitionFix,
@@ -92,10 +96,34 @@ function Content({
     setActiveContentTabIndex({ index: index + indexShift });
   });
 
+  useEffect(() => {
+    if (!IS_TOUCH_ENV) {
+      return undefined;
+    }
+
+    return captureSwipe(transitionRef.current!, (e, direction) => {
+      if (direction === SwipeDirection.Left) {
+        handleSwitchTab(Math.min(TABS.length - 1, activeContentTabIndex + 1));
+        return true;
+      } else if (direction === SwipeDirection.Right) {
+        handleSwitchTab(Math.max(0, activeContentTabIndex - 1 - indexShift));
+        return true;
+      }
+
+      return false;
+    });
+  }, [TABS.length, activeContentTabIndex, handleSwitchTab, indexShift]);
+
   const handleClickAssets = useLastCallback((slug: string) => {
     selectToken({ slug });
     setActiveContentTabIndex({ index: TABS.findIndex((tab) => tab.id === ContentTab.Activity) });
   });
+
+  const containerClassName = buildClassName(
+    styles.container,
+    IS_TOUCH_ENV && 'swipe-container',
+    isLandscape ? styles.landscapeContainer : styles.portraitContainer,
+  );
 
   function renderCurrentTab(isActive: boolean) {
     // When assets are shown separately, there is effectively no tab with index 0,
@@ -126,6 +154,7 @@ function Content({
           className={buildClassName(styles.tabs, 'content-tabslist')}
         />
         <Transition
+          ref={transitionRef}
           name={isLandscape ? 'slideFade' : 'slide'}
           activeKey={realActiveIndex}
           renderCount={TABS.length}
@@ -143,7 +172,7 @@ function Content({
   return (
     <div
       ref={containerRef}
-      className={buildClassName(styles.container, isLandscape ? styles.landscapeContainer : styles.portraitContainer)}
+      className={containerClassName}
     >
       {shouldShowSeparateAssetsPanel && (
         <div className={styles.assetsPanel}>

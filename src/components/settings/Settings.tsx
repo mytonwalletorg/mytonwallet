@@ -1,5 +1,5 @@
 import React, {
-  memo, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -23,7 +23,8 @@ import {
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
-import { IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';
+import { captureSwipe, SwipeDirection } from '../../util/captureSwipe';
+import { IS_ANDROID, IS_LEDGER_SUPPORTED, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
@@ -129,6 +130,8 @@ function Settings({
   } = getActions();
 
   const lang = useLang();
+  // eslint-disable-next-line no-null/no-null
+  const transitionRef = useRef<HTMLDivElement>(null);
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
   const [renderingKey, setRenderingKey] = useState<number>(RenderingState.Initial);
 
@@ -196,6 +199,14 @@ function Settings({
     openBackupWalletModal();
   }
 
+  const handleBackOrCloseAction = useLastCallback(() => {
+    if (renderingKey === RenderingState.Initial) {
+      closeSettings();
+    } else {
+      handleBackClick();
+    }
+  });
+
   const handleCloseLogOutModal = useLastCallback((shouldCloseSettings: boolean) => {
     closeLogOutModal();
     if (shouldCloseSettings) {
@@ -216,15 +227,24 @@ function Settings({
   };
 
   useEffect(
-    () => captureEscKeyListener(() => {
-      if (renderingKey === RenderingState.Initial) {
-        closeSettings();
-      } else {
-        handleBackClick();
-      }
-    }),
-    [handleBackClick, renderingKey],
+    () => captureEscKeyListener(handleBackOrCloseAction),
+    [handleBackOrCloseAction],
   );
+
+  useEffect(() => {
+    if (!IS_TOUCH_ENV) {
+      return undefined;
+    }
+
+    return captureSwipe(transitionRef.current!, (e, direction) => {
+      if (direction === SwipeDirection.Right) {
+        handleBackOrCloseAction();
+        return true;
+      }
+
+      return false;
+    });
+  }, [handleBackOrCloseAction]);
 
   function renderHandleDeeplinkButton() {
     return (
@@ -444,7 +464,8 @@ function Settings({
   return (
     <div className={styles.wrapper}>
       <Transition
-        name={isInsideModal ? 'slideFade' : 'slideLayers'}
+        ref={transitionRef}
+        name={isInsideModal || IS_ANDROID ? 'slideFade' : 'slideLayers'}
         className={buildClassName(isInsideModal ? modalStyles.transition : styles.transitionContainer, 'custom-scroll')}
         activeKey={renderingKey}
         slideClassName={modalStyles.transitionSlide}

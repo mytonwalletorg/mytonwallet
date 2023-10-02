@@ -7,7 +7,10 @@ import React, { useEffect, useRef } from '../../lib/teact/teact';
 import { ANIMATION_END_DELAY, IS_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
+import { captureSwipe, SwipeDirection } from '../../util/captureSwipe';
 import trapFocus from '../../util/trapFocus';
+import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
+import windowSize from '../../util/windowSize';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
@@ -76,9 +79,10 @@ function Modal({
     animationDuration + ANIMATION_END_DELAY,
   );
 
+  const lang = useLang();
   // eslint-disable-next-line no-null/no-null
   const modalRef = useRef<HTMLDivElement>(null);
-  const lang = useLang();
+  const isSlideUp = !isCompact && isPortrait;
 
   const handleClose = useLastCallback((e: KeyboardEvent) => {
     if (IS_EXTENSION) {
@@ -102,6 +106,21 @@ function Modal({
     },
     [animationDuration, isOpen],
   );
+
+  useEffect(() => {
+    if (!IS_TOUCH_ENV || !isOpen || !isPortrait || !isSlideUp) {
+      return undefined;
+    }
+
+    return captureSwipe(modalRef.current!, (e, direction) => {
+      if (direction === SwipeDirection.Down && !windowSize.getIsKeyboardVisible()) {
+        onClose();
+        return true;
+      }
+
+      return false;
+    });
+  }, [isOpen, isPortrait, isSlideUp, onClose]);
 
   if (!shouldRender) {
     return undefined;
@@ -132,7 +151,7 @@ function Modal({
     styles.modal,
     className,
     transitionClassNames,
-    !isCompact && isPortrait && styles.slideUpAnimation,
+    isSlideUp && styles.slideUpAnimation,
     isCompact && styles.compact,
   );
 
