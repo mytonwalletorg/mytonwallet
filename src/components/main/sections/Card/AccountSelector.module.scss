@@ -58,6 +58,10 @@
   }
 }
 
+.addressTitleShort {
+  max-width: calc(100% - 6rem);
+}
+
 .menuButton {
   cursor: var(--custom-cursor, pointer);
 
@@ -78,11 +82,11 @@
   &:focus,
   &:hover {
     color: var(--color-card-text);
-
-    &::after {
-      opacity: 0.7;
-    }
   }
+}
+
+.menuButtonFirst {
+  right: 2.75rem;
 }
 
 .edit {
@@ -180,11 +184,24 @@
   right: 0.5rem;
   left: 0.5rem;
 
+  max-width: 19.625rem;
+
+  &:global(.sticky-card-account-selector) {
+    top: 3.125rem;
+    right: -0.5rem;
+    left: -0.5rem;
+
+    @supports (top: env(safe-area-inset-top)) {
+      top: max(2.0625rem, calc(3.125rem - env(safe-area-inset-top)));
+    }
+  }
+
   &:global(.shown) .dialog {
     transform: translateY(-1rem);
 
     opacity: 0;
   }
+
   &:global(.shown.open) .dialog {
     transform: translateY(0);
 
@@ -217,7 +234,6 @@
 
   @include adapt-padding-to-scrollbar(0.5rem, !important);
 
-
   background-color: var(--color-background-drop-down);
   border-radius: var(--border-radius-default);
   box-shadow: var(--default-shadow);
@@ -230,7 +246,7 @@
     max-width: calc(66% + 1rem);
   }
 
-  &:global(.closing) {
+  .container:global(.closing) > & {
     transition: var(--dropdown-transition-backwards) !important;
   }
 

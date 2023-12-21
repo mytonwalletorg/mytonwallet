@@ -1,4 +1,5 @@
-import { throttle } from './schedulers';
+import { animate } from './animation';
+import { fastRaf, throttle } from './schedulers';
 
 const KEYS_TO_IGNORE = new Set([
   'TeactMemoWrapper renders',
@@ -87,10 +88,33 @@ export function renderCounters() {
     .join('\n');
 }
 
+export function debugFps() {
+  if (!loggerEl) {
+    setupOverlay();
+  }
+
+  let ticks: number[] = [];
+  let lastFrameAt = performance.now();
+
+  animate(() => {
+    const now = performance.now();
+    ticks.push(now - lastFrameAt);
+    lastFrameAt = now;
+
+    if (ticks.length > 100) {
+      ticks = ticks.slice(-100);
+    }
+
+    const avg = ticks.reduce((acc, t) => acc + t, 0) / ticks.length;
+    loggerEl!.innerHTML = `${Math.round(1000 / avg)} FPS`;
+    return true;
+  }, fastRaf);
+}
+
 function setupOverlay() {
   loggerEl = document.createElement('div');
   loggerEl.style.cssText = 'position: absolute; left: 0; bottom: 25px; z-index: 9998; width: 260px; height: 200px;'
-    + ' border: 1px solid #555; background: rgba(255, 255, 255, 0.9); overflow: auto; font-size: 10px;';
+    + ' border: 1px solid #555; background: rgba(255, 255, 255, 0.9); overflow: auto; font-size: 50px; color: black;';
   document.body.appendChild(loggerEl);
 
   const clearEl = document.createElement('a');

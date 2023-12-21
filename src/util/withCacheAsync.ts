@@ -1,9 +1,9 @@
 const cache = new WeakMap<AnyFunction, Map<string, any>>();
 
 export default function withCacheAsync<T extends AnyAsyncFunction>(
-  fn: T, canBeCached: (value: ReturnType<T>) => boolean = (value) => !!value,
+  fn: T, canBeCached: (value: Awaited<ReturnType<T>>) => boolean = (value) => !!value,
 ) {
-  return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
+  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     let fnCache = cache.get(fn);
     const cacheKey = buildCacheKey(args);
 

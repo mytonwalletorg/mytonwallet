@@ -1,8 +1,12 @@
+export enum ApiCommonError {
+  Unexpected = 'Unexpected',
+  ServerError = 'ServerError',
+}
+
 export enum ApiTransactionDraftError {
   InvalidAmount = 'InvalidAmount',
   InvalidToAddress = 'InvalidToAddress',
   InsufficientBalance = 'InsufficientBalance',
-  Unexpected = 'Unexpected',
   DomainNotResolved = 'DomainNotResolved',
   WalletNotInitialized = 'WalletNotInitialized',
   UnsupportedHardwarePayload = 'UnsupportedHardwarePayload',
@@ -15,7 +19,6 @@ export enum ApiTransactionError {
   InsufficientBalance = 'InsufficientBalance',
   UnsuccesfulTransfer = 'UnsuccesfulTransfer',
   UnsupportedHardwarePayload = 'UnsupportedHardwarePayload',
-  Unexpected = 'Unexpected',
 }
 
-export type ApiAnyDisplayError = ApiTransactionDraftError | ApiTransactionError;
+export type ApiAnyDisplayError = ApiCommonError | ApiTransactionDraftError | ApiTransactionError;

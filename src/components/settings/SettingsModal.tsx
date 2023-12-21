@@ -1,7 +1,8 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { IS_ELECTRON, IS_EXTENSION } from '../../config';
+import { IS_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { IS_ELECTRON } from '../../util/windowEnvironment';
 
 import Modal from '../ui/Modal';
 
@@ -23,9 +24,11 @@ function SettingsModal({ children, isOpen, onClose }: OwnProps) {
     <Modal
       hasCloseButton
       isOpen={isOpen}
-      onClose={onClose}
       dialogClassName={fullDialogClassName}
       contentClassName={styles.modalContent}
+      nativeBottomSheetKey="settings"
+      forceFullNative
+      onClose={onClose}
     >
       {children}
     </Modal>

@@ -1,4 +1,4 @@
-import type { ApiAccountInfo, ApiTxIdBySlug } from '../types';
+import type { ApiAccount, ApiTxIdBySlug } from '../types';
 
 import { IS_EXTENSION } from '../../config';
 import { parseAccountId } from '../../util/account';
@@ -9,8 +9,9 @@ import { storage } from '../storages';
 import { deactivateAccountDapp, deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
 import {
   sendUpdateTokens,
-  setupBackendStakingStatePolling,
   setupBalanceBasedPolling,
+  setupStakingPolling,
+  setupSwapPolling,
 } from './polling';
 
 let activeAccountId: string | undefined;
@@ -40,7 +41,8 @@ export async function activateAccount(accountId: string, newestTxIds?: ApiTxIdBy
   }
 
   void setupBalanceBasedPolling(accountId, newestTxIds);
-  void setupBackendStakingStatePolling(accountId);
+  void setupStakingPolling(accountId);
+  void setupSwapPolling(accountId);
 }
 
 export function deactivateAllAccounts() {
@@ -63,7 +65,7 @@ export function isAccountActive(accountId: string) {
   return activeAccountId === accountId;
 }
 
-export function fetchAccount(accountId: string): Promise<ApiAccountInfo | undefined> {
+export function fetchAccount(accountId: string): Promise<ApiAccount> {
   return fetchStoredAccount(accountId);
 }
 

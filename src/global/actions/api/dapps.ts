@@ -1,5 +1,9 @@
 import { DappConnectState, TransferState } from '../../types';
 
+import { IS_CAPACITOR } from '../../../config';
+import { vibrateOnSuccess } from '../../../util/capacitor';
+import { pause } from '../../../util/schedulers';
+import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
@@ -7,11 +11,18 @@ import {
   clearConnectedDapps,
   clearCurrentDappTransfer,
   clearDappConnectRequest,
+  clearIsPinPadPasswordAccepted,
   removeConnectedDapp,
   updateConnectedDapps,
   updateCurrentDappTransfer,
   updateDappConnectRequest,
+  updateIsPinPadPasswordAccepted,
 } from '../../reducers';
+import { selectAccount, selectIsHardwareAccount, selectNewestTxIds } from '../../selectors';
+
+import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
+
+const GET_DAPPS_PAUSE = 250;
 
 addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { password, accountId }) => {
   const {
@@ -20,7 +31,22 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
 
   if (permissions?.isPasswordRequired && (!password || !(await callApi('verifyPassword', password)))) {
     global = getGlobal();
-    setGlobal(updateDappConnectRequest(global, { error: 'Wrong password, please try again' }));
+    global = updateDappConnectRequest(global, { error: 'Wrong password, please try again' });
+    setGlobal(global);
+
+    return;
+  }
+
+  if (IS_CAPACITOR) {
+    global = getGlobal();
+    global = updateIsPinPadPasswordAccepted(global);
+    setGlobal(global);
+
+    await vibrateOnSuccess(true);
+  }
+
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('submitDappConnectRequestConfirm', { password, accountId });
 
     return;
   }
@@ -37,6 +63,7 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
 
   const { currentAccountId } = global;
 
+  await pause(GET_DAPPS_PAUSE);
   const result = await callApi('getDapps', currentAccountId!);
 
   if (!result) {
@@ -84,6 +111,7 @@ addActionHandler(
 
     const { currentAccountId } = global;
 
+    await pause(GET_DAPPS_PAUSE);
     const result = await callApi('getDapps', currentAccountId!);
 
     if (!result) {
@@ -98,6 +126,11 @@ addActionHandler(
 
 addActionHandler('cancelDappConnectRequestConfirm', (global) => {
   const { promiseId } = global.dappConnectRequest || {};
+
+  if (IS_CAPACITOR) {
+    global = clearIsPinPadPasswordAccepted(global);
+    setGlobal(global);
+  }
 
   if (!promiseId) {
     return;
@@ -117,11 +150,17 @@ addActionHandler('setDappConnectRequestState', (global, actions, { state }) => {
 addActionHandler('cancelDappTransfer', (global) => {
   const { promiseId } = global.currentDappTransfer;
 
+  if (IS_CAPACITOR) {
+    global = clearIsPinPadPasswordAccepted(global);
+    setGlobal(global);
+  }
+
   if (promiseId) {
     void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
   }
 
-  setGlobal(clearCurrentDappTransfer(global));
+  global = clearCurrentDappTransfer(getGlobal());
+  setGlobal(global);
 });
 
 addActionHandler('submitDappTransferPassword', async (global, actions, { password }) => {
@@ -141,12 +180,25 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
     return;
   }
 
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('submitDappTransferPassword', { password });
+
+    return;
+  }
+
   global = getGlobal();
+  if (IS_CAPACITOR) {
+    global = updateIsPinPadPasswordAccepted(global);
+  }
   global = updateCurrentDappTransfer(global, {
     isLoading: true,
     error: undefined,
   });
   setGlobal(global);
+
+  if (IS_CAPACITOR) {
+    await vibrateOnSuccess(true);
+  }
 
   void callApi('confirmDappRequest', promiseId, password);
 
@@ -217,13 +269,65 @@ addActionHandler('deleteAllDapps', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('deleteDapp', (global, actions, payload) => {
+addActionHandler('deleteDapp', (global, actions, { origin }) => {
   const { currentAccountId } = global;
-  const { origin } = payload;
 
   void callApi('deleteDapp', currentAccountId!, origin);
 
   global = getGlobal();
   global = removeConnectedDapp(global, origin);
+  setGlobal(global);
+});
+
+addActionHandler('apiUpdateDappConnect', (global, actions, {
+  accountId, dapp, permissions, promiseId, proof,
+}) => {
+  const { isHardware } = selectAccount(global, accountId)!;
+
+  global = updateDappConnectRequest(global, {
+    state: DappConnectState.Info,
+    promiseId,
+    accountId,
+    dapp,
+    permissions: {
+      isAddressRequired: permissions.address,
+      isPasswordRequired: permissions.proof && !isHardware,
+    },
+    proof,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
+  promiseId,
+  transactions,
+  fee,
+  accountId,
+  dapp,
+}) => {
+  const { currentAccountId } = global;
+  if (currentAccountId !== accountId) {
+    const newestTxIds = selectNewestTxIds(global, accountId);
+    await callApi('activateAccount', accountId, newestTxIds);
+    global = getGlobal();
+    setGlobal({
+      ...global,
+      currentAccountId: accountId,
+    });
+  }
+
+  const state = selectIsHardwareAccount(global) && transactions.length > 1
+    ? TransferState.WarningHardware
+    : TransferState.Initial;
+
+  global = getGlobal();
+  global = clearCurrentDappTransfer(global);
+  global = updateCurrentDappTransfer(global, {
+    state,
+    promiseId,
+    transactions,
+    fee,
+    dapp,
+  });
   setGlobal(global);
 });

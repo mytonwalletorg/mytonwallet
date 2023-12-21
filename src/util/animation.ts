@@ -48,15 +48,15 @@ export function animateInstantly(tick: Function, schedulerFn: Scheduler) {
   }
 }
 
-export type TimingFn = (t: number) => number;
+type TimingFn = (t: number) => number;
 
-export type AnimateNumberProps = {
-  to: number | number[];
-  from: number | number[];
+type AnimateNumberProps<T extends number | number[]> = {
+  to: T;
+  from: T;
   duration: number;
-  onUpdate: (value: any) => void;
+  onUpdate: (value: T) => void;
   timing?: TimingFn;
-  onEnd?: () => void;
+  onEnd?: (isCanceled?: boolean) => void;
 };
 
 export const timingFunctions = {
@@ -78,35 +78,41 @@ export const timingFunctions = {
   easeInOutQuint: (t: number) => (t < 0.5 ? 16 * t ** 5 : 1 + 16 * (--t) * t ** 4),
 };
 
-export function animateNumber({
+export function animateNumber<T extends number | number[]>({
   timing = timingFunctions.linear,
   onUpdate,
   duration,
   onEnd,
   from,
   to,
-}: AnimateNumberProps) {
+}: AnimateNumberProps<T>) {
   const t0 = Date.now();
-  let canceled = false;
+
+  let isCanceled = false;
 
   animateInstantly(() => {
-    if (canceled) return false;
+    if (isCanceled) return false;
+
     const t1 = Date.now();
-    let t = (t1 - t0) / duration;
-    if (t > 1) t = 1;
+    const t = Math.min((t1 - t0) / duration, 1);
+
     const progress = timing(t);
     if (typeof from === 'number' && typeof to === 'number') {
-      onUpdate(from + ((to - from) * progress));
+      onUpdate((from + ((to - from) * progress)) as T);
     } else if (Array.isArray(from) && Array.isArray(to)) {
       const result = from.map((f, i) => f + ((to[i] - f) * progress));
-      onUpdate(result);
+      onUpdate(result as T);
     }
-    if (t === 1 && onEnd) onEnd();
+
+    if (t === 1) {
+      onEnd?.();
+    }
+
     return t < 1;
   }, requestMeasure);
 
   return () => {
-    canceled = true;
-    if (onEnd) onEnd();
+    isCanceled = true;
+    onEnd?.(true);
   };
 }

@@ -2,7 +2,7 @@ export function cloneDeep<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
-export function stringifyTxId({ lt, hash }: { lt: number; hash: string }) {
+export function stringifyTxId({ lt, hash }: { lt: number | string; hash: string }) {
   return `${lt}:${hash}`;
 }
 
@@ -14,8 +14,4 @@ export function parseTxId(txId: string): { lt: number; hash: string } {
 export function buildTokenSlug(minterAddress: string) {
   const addressPart = minterAddress.replace(/[^a-z\d]/gi, '').slice(0, 10);
   return `ton-${addressPart}`.toLowerCase();
-}
-
-export function buildSwapId(backendId: string) {
-  return `swap:${backendId}`;
 }

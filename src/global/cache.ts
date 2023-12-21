@@ -6,13 +6,21 @@ import {
 } from './types';
 
 import {
-  DEBUG, DEFAULT_DECIMAL_PLACES, GLOBAL_STATE_CACHE_DISABLED, GLOBAL_STATE_CACHE_KEY, IS_ELECTRON, MAIN_ACCOUNT_ID,
+  DEBUG,
+  DEFAULT_DECIMAL_PLACES,
+  GLOBAL_STATE_CACHE_DISABLED,
+  GLOBAL_STATE_CACHE_KEY,
+  IS_CAPACITOR,
+  MAIN_ACCOUNT_ID,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
+import authApi from '../util/authApi';
+import { getIsNativeBiometricAuthSupported } from '../util/capacitor';
 import { cloneDeep, mapValues, pick } from '../util/iteratees';
 import {
   onBeforeUnload, onIdle, throttle,
 } from '../util/schedulers';
+import { IS_ELECTRON } from '../util/windowEnvironment';
 import { getIsTxIdLocal } from './helpers';
 import { addActionHandler, getGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
@@ -20,14 +28,15 @@ import { updateHardware } from './reducers';
 
 import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
 
-const UPDATE_THROTTLE = 5000;
-const ACTIVITIES_LIMIT = 20;
+const UPDATE_THROTTLE = IS_CAPACITOR ? 500 : 5000;
+const ACTIVITIES_LIMIT = 50;
 const ANIMATION_DELAY_MS = 320;
 
 const updateCacheThrottled = throttle(() => onIdle(updateCache), UPDATE_THROTTLE, false);
 
 let isCaching = false;
 let unsubscribeFromBeforeUnload: NoneToVoidFunction | undefined;
+let preloadedData: Partial<GlobalState> | undefined;
 
 export function initCache() {
   if (GLOBAL_STATE_CACHE_DISABLED) {
@@ -55,6 +64,12 @@ export function initCache() {
         ...global,
         state: AppState.Auth,
       });
+      global = getGlobal();
+      if (getIsNativeBiometricAuthSupported() && global.settings.authConfig?.kind === 'native-biometrics') {
+        authApi.removeNativeBiometrics();
+      }
+
+      preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo']);
 
       actions.resetApiSettings({ areAllDisabled: true });
 
@@ -138,6 +153,7 @@ function readCache(initialState: GlobalState): GlobalState {
 
   return {
     ...initialState,
+    ...preloadedData,
     ...cached,
   };
 }
@@ -318,6 +334,15 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 9;
   }
 
+  if (cached.stateVersion === 9) {
+    if (cached.byAccountId) {
+      for (const accountId of Object.keys(cached.byAccountId)) {
+        delete (cached.byAccountId[accountId] as any).activities;
+      }
+    }
+    cached.stateVersion = 10;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 
@@ -357,18 +382,27 @@ function reduceByAccountId(global: GlobalState) {
       'currentTokenSlug',
       'currentTokenPeriod',
       'savedAddresses',
-      'stakingBalance',
-      'isUnstakeRequested',
-      'poolState',
+      'staking',
       'stakingHistory',
     ]);
 
-    const { idsBySlug, newestTransactionsBySlug } = state.activities || {};
+    const { idsBySlug, newestTransactionsBySlug, byId } = state.activities || {};
 
-    if (idsBySlug && Object.keys(idsBySlug).length) {
-      const reducedIdsBySlug = mapValues(idsBySlug, (ids) => ids.filter(
-        (id) => !getIsTxIdLocal(id),
-      ).slice(0, ACTIVITIES_LIMIT));
+    if (byId && idsBySlug && Object.keys(idsBySlug).length) {
+      const reducedIdsBySlug = mapValues(idsBySlug, (ids) => {
+        const result: string[] = [];
+        let visibleIdCount = 0;
+        ids.filter((id) => !getIsTxIdLocal(id)).forEach((id) => {
+          if (visibleIdCount === ACTIVITIES_LIMIT) return;
+
+          if (!byId[id].shouldHide) {
+            visibleIdCount += 1;
+          }
+          result.push(id);
+        });
+
+        return result;
+      });
 
       acc[accountId].activities = {
         byId: pick(state.activities!.byId, Object.values(reducedIdsBySlug).flat()),

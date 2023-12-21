@@ -38,7 +38,7 @@ export function logUnequalProps(currentProps: AnyLiteral, newProps: AnyLiteral, 
 
   // eslint-disable-next-line no-console
   console.log(msg);
-  currentKeys.forEach((res, prop) => {
+  currentKeys.forEach((prop) => {
     if (currentProps[prop] !== newProps[prop]) {
       // eslint-disable-next-line no-console
       console.log(debugKey, prop, ':', currentProps[prop], '=>', newProps[prop]);

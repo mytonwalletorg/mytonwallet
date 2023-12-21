@@ -14,7 +14,7 @@ $tab-1-height: 348;
 
 .tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
 
   width: 100%;
 
@@ -50,10 +50,12 @@ $tab-1-height: 348;
 
   transition: color 150ms;
 
-  &:not(.active) {
-    &:hover,
-    &:focus {
-      color: var(--color-blue);
+  @media (hover: hover) {
+    &:not(.active) {
+      &:hover,
+      &:focus {
+        color: var(--color-blue);
+      }
     }
   }
 

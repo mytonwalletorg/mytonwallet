@@ -1,31 +1,33 @@
 import type { Ref } from 'react';
-import React, {
-  memo, useEffect, useMemo,
-} from '../../../../lib/teact/teact';
+import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
+import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
 import {
-  DEFAULT_PRICE_CURRENCY,
+  IS_CAPACITOR,
   TON_TOKEN_SLUG,
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
 import { selectAccount, selectCurrentAccountState, selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { vibrateOnSuccess } from '../../../../util/capacitor';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { copyTextToClipboard } from '../../../../util/clipboard';
-import { formatCurrency } from '../../../../util/formatNumber';
+import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { getTokenCardColor } from '../../helpers/card_colors';
 import { buildTokenValues } from './helpers/buildTokenValues';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
+import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
+import AnimatedCounter from '../../../ui/AnimatedCounter';
 import Loading from '../../../ui/Loading';
 import AccountSelector from './AccountSelector';
 import TokenCard from './TokenCard';
@@ -34,8 +36,10 @@ import styles from './Card.module.scss';
 
 interface OwnProps {
   ref?: Ref<HTMLDivElement>;
+  forceCloseAccountSelector?: boolean;
   onTokenCardClose: NoneToVoidFunction;
   onApyClick: NoneToVoidFunction;
+  onQrScanPress?: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -44,6 +48,7 @@ interface StateProps {
   activeDappOrigin?: string;
   currentTokenSlug?: string;
   isTestnet?: boolean;
+  baseCurrency?: ApiBaseCurrency;
 }
 
 function Card({
@@ -52,15 +57,19 @@ function Card({
   tokens,
   activeDappOrigin,
   currentTokenSlug,
+  forceCloseAccountSelector,
   onTokenCardClose,
   onApyClick,
+  onQrScanPress,
   isTestnet,
+  baseCurrency,
 }: OwnProps & StateProps) {
   const { showNotification } = getActions();
 
   const lang = useLang();
   const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;
   const tonscanAddressUrl = `${tonscanBaseUrl}address/${address}`;
+  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const currentToken = useMemo(() => {
     return tokens ? tokens.find((token) => token.slug === currentTokenSlug) : undefined;
@@ -102,6 +111,11 @@ function Card({
     transitionClassNames: dappClassNames,
   } = useShowTransition(Boolean(dappDomain));
 
+  useHistoryBack({
+    isActive: Boolean(currentTokenSlug),
+    onBack: onTokenCardClose,
+  });
+
   useEffect(
     () => (shouldRenderTokenCard ? captureEscKeyListener(onTokenCardClose) : undefined),
     [shouldRenderTokenCard, onTokenCardClose],
@@ -111,7 +125,10 @@ function Card({
     if (!address) return;
 
     showNotification({ message: lang('Address was copied!') as string, icon: 'icon-copy' });
-    copyTextToClipboard(address);
+    void copyTextToClipboard(address);
+    if (IS_CAPACITOR) {
+      void vibrateOnSuccess();
+    }
   });
 
   const {
@@ -130,23 +147,45 @@ function Card({
     return (
       <>
         <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
-          <AccountSelector canEdit />
+          <AccountSelector forceClose={forceCloseAccountSelector} canEdit onQrScanPress={onQrScanPress} />
           {shouldRenderDapp && (
             <div className={buildClassName(styles.dapp, dappClassNames)}>
               <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
               {renderingDappDomain}
             </div>
           )}
-          <div className={styles.primaryValue}>
-            {DEFAULT_PRICE_CURRENCY}
-            {primaryWholePart}
-            {primaryFractionPart && <span className={styles.primaryFractionPart}>.{primaryFractionPart}</span>}
-          </div>
+          {
+            shortBaseSymbol.length === 1 ? (
+              <div className={styles.primaryValue}>
+                {shortBaseSymbol}
+                <AnimatedCounter text={primaryWholePart ?? ''} />
+                {primaryFractionPart && (
+                  <span className={styles.primaryFractionPart}>
+                    <AnimatedCounter text={`.${primaryFractionPart}`} />
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className={styles.primaryValue}>
+                <AnimatedCounter text={primaryWholePart ?? ''} />
+                {primaryFractionPart && (
+                  <span className={styles.primaryFractionPart}>
+                    <AnimatedCounter text={`.${primaryFractionPart}`} />
+                  </span>
+                )}
+                <span className={styles.primaryFractionPart}>
+                  &nbsp;{shortBaseSymbol}
+                </span>
+              </div>
+            )
+          }
           {primaryValue !== 0 && (
             <div className={buildClassName(styles.change, changeClassName)}>
               {changePrefix}
               &thinsp;
-              {Math.abs(changePercent!)}% · {formatCurrency(Math.abs(changeValue!), DEFAULT_PRICE_CURRENCY)}
+              <AnimatedCounter text={`${Math.abs(changePercent!)}%`} />
+              {' · '}
+              <AnimatedCounter text={formatCurrency(Math.abs(changeValue!), shortBaseSymbol)} />
             </div>
           )}
           <div className={styles.addressContainer}>
@@ -190,16 +229,21 @@ function Card({
   );
 }
 
-export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-  detachWhenChanged(global.currentAccountId);
-  const { address } = selectAccount(global, global.currentAccountId!) || {};
-  const accountState = selectCurrentAccountState(global);
+export default memo(
+  withGlobal<OwnProps>(
+    (global): StateProps => {
+      const { address } = selectAccount(global, global.currentAccountId!) || {};
+      const accountState = selectCurrentAccountState(global);
 
-  return {
-    address,
-    tokens: selectCurrentAccountTokens(global),
-    activeDappOrigin: accountState?.activeDappOrigin,
-    currentTokenSlug: accountState?.currentTokenSlug,
-    isTestnet: global.settings.isTestnet,
-  };
-})(Card));
+      return {
+        address,
+        tokens: selectCurrentAccountTokens(global),
+        activeDappOrigin: accountState?.activeDappOrigin,
+        currentTokenSlug: accountState?.currentTokenSlug,
+        isTestnet: global.settings.isTestnet,
+        baseCurrency: global.settings.baseCurrency,
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(Card),
+);

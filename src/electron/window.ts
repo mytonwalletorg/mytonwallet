@@ -6,16 +6,21 @@ import path from 'path';
 
 import { ElectronAction } from './types';
 
-import { setupAutoUpdates } from './autoUpdates';
+import { APP_ENV, BASE_URL } from '../config';
+import { AUTO_UPDATE_SETTING_KEY, getIsAutoUpdateEnabled, setupAutoUpdates } from './autoUpdates';
 import { processDeeplink } from './deeplink';
+import { captureStorage, restoreStorage } from './storageUtils';
+import tray from './tray';
 import {
-  forceQuit, IS_MAC_OS, mainWindow, setMainWindow,
+  checkIsWebContentsUrlAllowed, forceQuit, IS_FIRST_RUN, IS_MAC_OS, IS_PREVIEW, IS_WINDOWS,
+  mainWindow, setMainWindow, store, WINDOW_STATE_FILE,
 } from './utils';
 
 const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://'];
 
 export function createWindow() {
   const windowState = windowStateKeeper({
+    file: WINDOW_STATE_FILE,
     defaultWidth: 980,
     defaultHeight: 788,
   });
@@ -31,7 +36,7 @@ export function createWindow() {
     title: 'MyTonWallet',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      devTools: process.env.APP_ENV !== 'production',
+      devTools: APP_ENV !== 'production',
     },
     titleBarStyle: 'hidden',
     ...(IS_MAC_OS && {
@@ -56,17 +61,54 @@ export function createWindow() {
     return deviceType === 'hid' && ALLOWED_DEVICE_ORIGINS.includes(origin);
   });
 
-  if (app.isPackaged) {
-    mainWindow.loadURL(`file://${__dirname}/index.html`);
-  } else {
-    mainWindow.loadURL('http://localhost:4321');
-    mainWindow.webContents.openDevTools();
-  }
+  window.webContents.on('will-navigate', (event, newUrl) => {
+    if (!checkIsWebContentsUrlAllowed(newUrl)) {
+      event.preventDefault();
+    }
+  });
 
   if (!IS_MAC_OS) {
     setupWindowsTitleBar();
   }
 
+  if (IS_WINDOWS && tray.isEnabled) {
+    tray.create();
+  }
+
+  mainWindow.webContents.once('dom-ready', async () => {
+    processDeeplink();
+
+    if (APP_ENV === 'production') {
+      setupAutoUpdates();
+    }
+
+    if (!IS_FIRST_RUN && getIsAutoUpdateEnabled() === undefined) {
+      store.set(AUTO_UPDATE_SETTING_KEY, true);
+      await captureStorage();
+      loadWindowUrl();
+    }
+
+    mainWindow.show();
+  });
+
+  loadWindowUrl();
+}
+
+function loadWindowUrl(): void {
+  if (!app.isPackaged) {
+    mainWindow.loadURL('http://localhost:4321');
+    mainWindow.webContents.openDevTools();
+  } else if (getIsAutoUpdateEnabled()) {
+    mainWindow.loadURL(BASE_URL!);
+  } else if (getIsAutoUpdateEnabled() === undefined && IS_FIRST_RUN) {
+    store.set(AUTO_UPDATE_SETTING_KEY, true);
+    mainWindow.loadURL(BASE_URL!);
+  } else {
+    mainWindow.loadURL(`file://${__dirname}/index.html`);
+  }
+}
+
+export function setupElectronActionHandlers() {
   ipcMain.handle(ElectronAction.HANDLE_DOUBLE_CLICK, () => {
     const doubleClickAction = systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string');
 
@@ -81,19 +123,36 @@ export function createWindow() {
     }
   });
 
-  mainWindow.webContents.once('dom-ready', () => {
-    mainWindow.show();
-    processDeeplink();
-
-    if (process.env.APP_ENV === 'production') {
-      setupAutoUpdates();
+  ipcMain.handle(ElectronAction.SET_IS_TRAY_ICON_ENABLED, (_, isTrayIconEnabled: boolean) => {
+    if (isTrayIconEnabled) {
+      tray.enable();
+    } else {
+      tray.disable();
     }
   });
+
+  ipcMain.handle(ElectronAction.GET_IS_TRAY_ICON_ENABLED, () => tray.isEnabled);
+
+  ipcMain.handle(ElectronAction.SET_IS_AUTO_UPDATE_ENABLED, async (_, isAutoUpdateEnabled: boolean) => {
+    if (IS_PREVIEW) {
+      return;
+    }
+
+    store.set(AUTO_UPDATE_SETTING_KEY, isAutoUpdateEnabled);
+    await captureStorage();
+    loadWindowUrl();
+  });
+
+  ipcMain.handle(ElectronAction.GET_IS_AUTO_UPDATE_ENABLED, () => {
+    return store.get(AUTO_UPDATE_SETTING_KEY, true);
+  });
+
+  ipcMain.handle(ElectronAction.RESTORE_STORAGE, () => restoreStorage());
 }
 
 export function setupCloseHandlers() {
   mainWindow.on('close', (event: Event) => {
-    if (IS_MAC_OS) {
+    if (IS_MAC_OS || (IS_WINDOWS && tray.isEnabled)) {
       if (forceQuit.isEnabled) {
         app.exit(0);
         forceQuit.disable();
@@ -135,7 +194,7 @@ export function setupCloseHandlers() {
 function setupWindowsTitleBar() {
   mainWindow.removeMenu();
 
-  ipcMain.handle(ElectronAction.CLOSE, () => mainWindow.destroy());
+  ipcMain.handle(ElectronAction.CLOSE, () => mainWindow.close());
   ipcMain.handle(ElectronAction.MINIMIZE, () => mainWindow.minimize());
   ipcMain.handle(ElectronAction.MAXIMIZE, () => mainWindow.maximize());
   ipcMain.handle(ElectronAction.UNMAXIMIZE, () => mainWindow.unmaximize());

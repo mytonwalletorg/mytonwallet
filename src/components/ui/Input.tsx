@@ -18,6 +18,7 @@ type OwnProps = {
   label?: TeactNode;
   placeholder?: string;
   value?: string | number;
+  inputMode?: 'numeric' | 'text' | 'search';
   maxLength?: number;
   isRequired?: boolean;
   isControlled?: boolean;
@@ -31,8 +32,8 @@ type OwnProps = {
   children?: TeactNode;
   onInput: (value: string, inputArg?: any) => void;
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  onFocus?: NoneToVoidFunction;
-  onBlur?: NoneToVoidFunction;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 };
 
 function Input({
@@ -40,6 +41,7 @@ function Input({
   id,
   label,
   placeholder,
+  inputMode,
   isRequired,
   isControlled,
   isMultiline,
@@ -127,6 +129,7 @@ function Input({
           className={inputFullClass}
           type={finalType}
           value={value}
+          inputMode={inputMode}
           maxLength={maxLength}
           autoComplete={autoComplete}
           onInput={handleInput}

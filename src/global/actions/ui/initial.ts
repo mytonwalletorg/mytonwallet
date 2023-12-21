@@ -1,17 +1,26 @@
 import type { Account, AccountState, NotificationType } from '../../types';
-import { ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
+import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
 
-import { IS_ELECTRON, IS_EXTENSION } from '../../../config';
+import { IS_EXTENSION } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
 import { initializeSoundsForSafari } from '../../../util/appSounds';
 import { omit } from '../../../util/iteratees';
 import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
 import switchAnimationLevel from '../../../util/switchAnimationLevel';
-import switchTheme from '../../../util/switchTheme';
+import switchTheme, { setStatusBarStyle } from '../../../util/switchTheme';
 import {
-  IS_ANDROID, IS_IOS, IS_LINUX, IS_MAC_OS, IS_OPERA, IS_SAFARI,
-  IS_WINDOWS, setPageSafeAreaProperty, setScrollbarWidthProperty,
+  IS_ANDROID,
+  IS_DELEGATED_BOTTOM_SHEET,
+  IS_ELECTRON,
+  IS_IOS,
+  IS_LINUX,
+  IS_MAC_OS,
+  IS_OPERA,
+  IS_SAFARI,
+  IS_WINDOWS,
+  setPageSafeAreaProperty,
+  setScrollbarWidthProperty,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import {
@@ -24,6 +33,8 @@ import {
   selectNetworkAccountsMemoized,
   selectNewestTxIds,
 } from '../../selectors';
+
+import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
 
 addActionHandler('init', (_, actions) => {
   requestMutation(() => {
@@ -52,6 +63,9 @@ addActionHandler('init', (_, actions) => {
     if (IS_ELECTRON) {
       documentElement.classList.add('is-electron');
     }
+    if (IS_DELEGATED_BOTTOM_SHEET) {
+      documentElement.classList.add('is-native-bottom-sheet');
+    }
 
     setScrollbarWidthProperty();
     setPageSafeAreaProperty();
@@ -65,6 +79,7 @@ addActionHandler('afterInit', (global) => {
 
   switchTheme(theme);
   switchAnimationLevel(animationLevel);
+  setStatusBarStyle();
   void setLanguage(langCode);
   clearPreviousLangpacks();
 
@@ -151,7 +166,11 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       actions.showDialog({ message: 'The hardware wallet does not support this data format' });
       break;
 
-    case ApiTransactionError.Unexpected:
+    case ApiCommonError.ServerError:
+      actions.showDialog({ message: 'An error on the server side. Please try again.' });
+      break;
+
+    case ApiCommonError.Unexpected:
     case undefined:
       actions.showDialog({ message: 'Unexpected' });
       break;
@@ -163,6 +182,11 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
 });
 
 addActionHandler('showNotification', (global, actions, payload) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('showNotification', payload);
+    return undefined;
+  }
+
   const { message, icon } = payload;
 
   const newNotifications: NotificationType[] = [...global.notifications];
@@ -231,6 +255,10 @@ addActionHandler('toggleDeeplinkHook', (global, actions, { isEnabled }) => {
 });
 
 addActionHandler('signOut', async (global, actions, payload) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('signOut', payload);
+  }
+
   const { isFromAllAccounts } = payload || {};
 
   const network = selectCurrentNetwork(global);

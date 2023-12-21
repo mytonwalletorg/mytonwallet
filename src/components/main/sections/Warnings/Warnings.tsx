@@ -1,9 +1,9 @@
 import React, { memo } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
-import { IS_ELECTRON, IS_EXTENSION } from '../../../../config';
+import { IS_EXTENSION } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
-import { IS_ANDROID, IS_IOS } from '../../../../util/windowEnvironment';
+import { IS_ANDROID, IS_ELECTRON, IS_IOS } from '../../../../util/windowEnvironment';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
@@ -42,11 +42,14 @@ function Warnings({ isBackupRequired, isTestnet, onOpenBackupWallet }: OwnProps 
   );
 }
 
-export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps => {
-  detachWhenChanged(global.currentAccountId);
-
-  return {
-    isBackupRequired: Boolean(selectCurrentAccountState(global)?.isBackupRequired),
-    isTestnet: global.settings.isTestnet,
-  };
-})(Warnings));
+export default memo(
+  withGlobal(
+    (global): StateProps => {
+      return {
+        isBackupRequired: Boolean(selectCurrentAccountState(global)?.isBackupRequired),
+        isTestnet: global.settings.isTestnet,
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(Warnings),
+);

@@ -6,15 +6,17 @@ import {
 import type { ApiNetwork, ApiParsedPayload } from '../../../types';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
+import { LIQUID_JETTON } from '../../../../config';
 import { pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
-import { base64ToString, handleFetchErrors, sha256 } from '../../../common/utils';
-import { JettonOpCode, NftOpCode, OpCode } from '../constants';
+import { fetchJsonMetadata } from '../../../../util/metadata';
+import { base64ToString, sha256 } from '../../../common/utils';
+import {
+  DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, NftOpCode, OpCode,
+} from '../constants';
 import { buildTokenSlug } from './index';
 import { fetchNftItems } from './tonapiio';
 import { getJettonMinterData, resolveTokenMinterAddress } from './tonweb';
-
-const IPFS_GATEWAY_BASE_URL: string = 'https://ipfs.io/ipfs/';
 
 const ONCHAIN_CONTENT_PREFIX = 0x00;
 const SNAKE_PREFIX = 0x00;
@@ -64,7 +66,7 @@ export function parseJettonWalletMsgBody(body?: string) {
       queryId,
       jettonAmount,
       responseAddress,
-      address: address ? toBounceableAddress(address) : undefined,
+      address: address ? toBase64Address(address) : undefined,
       forwardAmount,
       comment,
       encryptedComment,
@@ -74,14 +76,6 @@ export function parseJettonWalletMsgBody(body?: string) {
   }
 
   return undefined;
-}
-
-export function toBounceableAddress(address: Address) {
-  return address.toString({ urlSafe: true, bounceable: true });
-}
-
-export function fixIpfsUrl(url: string) {
-  return url.replace('ipfs://', IPFS_GATEWAY_BASE_URL);
 }
 
 export function fixBase64ImageData(data: string) {
@@ -127,20 +121,20 @@ const jettonOnChainMetadataSpec: {
   decimals: 'utf8',
 };
 
-export async function getJettonMetadata(network: ApiNetwork, address: string) {
+export async function fetchJettonMetadata(network: ApiNetwork, address: string) {
   const { jettonContentUri, jettonContentCell } = await getJettonMinterData(network, address);
 
   let metadata: JettonMetadata;
 
   if (jettonContentUri) {
     // Off-chain content
-    metadata = await fetchJettonMetadata(jettonContentUri);
+    metadata = await fetchJettonOffchainMetadata(jettonContentUri);
   } else {
     // On-chain content
     metadata = await parseJettonOnchainMetadata(await jettonContentCell.toBoc());
     if (metadata.uri) {
       // Semi-chain content
-      const offchainMetadata = await fetchJettonMetadata(metadata.uri);
+      const offchainMetadata = await fetchJettonOffchainMetadata(metadata.uri);
       metadata = { ...offchainMetadata, ...metadata };
     }
   }
@@ -172,32 +166,32 @@ export async function parseJettonOnchainMetadata(array: Uint8Array): Promise<Jet
   return res as JettonMetadata;
 }
 
-export async function fetchJettonMetadata(uri: string): Promise<JettonMetadata> {
+export async function fetchJettonOffchainMetadata(uri: string): Promise<JettonMetadata> {
   const metadata = await fetchJsonMetadata(uri);
   return pick(metadata, ['name', 'description', 'symbol', 'decimals', 'image', 'image_data']);
-}
-
-async function fetchJsonMetadata(uri: string) {
-  uri = fixIpfsUrl(uri);
-
-  const response = await fetch(uri);
-  handleFetchErrors(response);
-  return response.json();
 }
 
 export async function parseWalletTransactionBody(
   network: ApiNetwork, transaction: ApiTransactionExtra,
 ): Promise<ApiTransactionExtra> {
   const body = transaction.extraData?.body;
-  if (!body) return transaction;
+  if (!body || transaction.comment || transaction.encryptedComment) {
+    return transaction;
+  }
 
   try {
     const slice = dataToSlice(body);
 
     if (slice.remainingBits > 32) {
       const parsedPayload = await parsePayloadSlice(network, transaction.toAddress, slice);
+      transaction.extraData!.parsedPayload = parsedPayload;
 
-      if (parsedPayload?.type === 'encrypted-comment') {
+      if (parsedPayload?.type === 'comment') {
+        transaction = {
+          ...transaction,
+          comment: parsedPayload.comment,
+        };
+      } else if (parsedPayload?.type === 'encrypted-comment') {
         transaction = {
           ...transaction,
           encryptedComment: parsedPayload.encryptedComment,
@@ -229,10 +223,12 @@ export async function parsePayloadSlice(
     const opCode = slice.loadUint(32);
 
     if (opCode === OpCode.Comment) {
-      const comment = slice.loadStringTail();
+      const buffer = readSnakeBytes(slice);
+      const comment = buffer.toString('utf-8');
       return { type: 'comment', comment };
     } else if (opCode === OpCode.Encrypted) {
-      const encryptedComment = slice.loadBuffer(slice.remainingBits / 8).toString('base64');
+      const buffer = readSnakeBytes(slice);
+      const encryptedComment = buffer.toString('base64');
       return { type: 'encrypted-comment', encryptedComment };
     }
 
@@ -249,9 +245,9 @@ export async function parsePayloadSlice(
 
         if (!responseDestination) {
           return {
-            type: 'transfer-tokens:non-standard',
+            type: 'tokens:transfer-non-standard',
             queryId,
-            destination: toBounceableAddress(destination),
+            destination: toBase64Address(destination),
             amount: amount.toString(),
             slug,
           };
@@ -269,11 +265,11 @@ export async function parsePayloadSlice(
         }
 
         return {
-          type: 'transfer-tokens',
+          type: 'tokens:transfer',
           queryId,
           amount: amount.toString(),
-          destination: toBounceableAddress(destination),
-          responseDestination: toBounceableAddress(responseDestination),
+          destination: toBase64Address(destination),
+          responseDestination: toBase64Address(responseDestination),
           customPayload: customPayload?.toBoc().toString('base64'),
           forwardAmount: forwardAmount.toString(),
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
@@ -298,15 +294,53 @@ export async function parsePayloadSlice(
         const nftAddress = toAddress;
         const [nft] = await fetchNftItems(network, [nftAddress]);
         return {
-          type: 'transfer-nft',
+          type: 'nft:transfer',
           queryId,
-          newOwner: toBounceableAddress(newOwner),
-          responseDestination: toBounceableAddress(responseDestination),
+          newOwner: toBase64Address(newOwner),
+          responseDestination: toBase64Address(responseDestination),
           customPayload: customPayload?.toBoc().toString('base64'),
           forwardAmount: forwardAmount.toString(),
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
           nftAddress,
           nftName: nft?.metadata?.name,
+        };
+      }
+      case JettonOpCode.Burn: {
+        const minterAddress = await resolveTokenMinterAddress(network, toAddress);
+        const slug = buildTokenSlug(minterAddress);
+
+        const amount = slice.loadCoins();
+        const address = slice.loadAddress();
+        const customPayload = slice.loadMaybeRef();
+        const isLiquidUnstakeRequest = minterAddress === LIQUID_JETTON;
+
+        return {
+          type: 'tokens:burn',
+          queryId,
+          amount: amount.toString(),
+          address: toBase64Address(address),
+          customPayload: customPayload?.toBoc().toString('base64'),
+          slug,
+          isLiquidUnstakeRequest,
+        };
+      }
+      case LiquidStakingOpCode.DistributedAsset: {
+        return {
+          type: 'liquid-staking:withdrawal-nft',
+          queryId,
+        };
+      }
+      case LiquidStakingOpCode.Withdrawal: {
+        return {
+          type: 'liquid-staking:withdrawal',
+          queryId,
+        };
+      }
+      case LiquidStakingOpCode.Deposit: {
+        // const amount = slice.loadCoins();
+        return {
+          type: 'liquid-staking:deposit',
+          queryId,
         };
       }
     }
@@ -315,6 +349,10 @@ export async function parsePayloadSlice(
   }
 
   return undefined;
+}
+
+function toBase64Address(address: Address, isBounceable = DEFAULT_IS_BOUNCEABLE) {
+  return address.toString({ urlSafe: true, bounceable: isBounceable });
 }
 
 function dataToSlice(data: string | Buffer | Uint8Array): Slice {

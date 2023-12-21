@@ -56,9 +56,17 @@
       transition: none !important;
     }
 
-    &:hover,
-    &:focus {
-      background-color: var(--color-input-button-background-hover);
+    @media (hover: hover) {
+      &:hover,
+      &:focus {
+        background-color: var(--color-input-button-background-hover);
+      }
+    }
+
+    @media (pointer: coarse) {
+      &:active {
+        background-color: var(--color-input-button-background-hover);
+      }
     }
   }
 
@@ -161,4 +169,15 @@
     font-weight: 600;
     line-height: 1rem;
   }
+}
+
+.dropdownButtonWrapper {
+  display: flex;
+
+  width: 5rem;
+  height: 1rem;
+}
+
+.spinner {
+  --spinner-size: 1rem;
 }

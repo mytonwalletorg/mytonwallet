@@ -3,8 +3,11 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
+import { IS_CAPACITOR } from '../../../config';
 import { selectMnemonicForCheck } from '../../../global/actions/api/auth';
 import buildClassName from '../../../util/buildClassName';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
 import { callApi } from '../../../api';
 
 import useLang from '../../../hooks/useLang';
@@ -40,7 +43,7 @@ enum SLIDES {
 function BackupModal({
   isOpen, currentAccountId, onClose,
 }: OwnProps & StateProps) {
-  const { setIsBackupRequired } = getActions();
+  const { setIsBackupRequired, setIsPinPadPasswordAccepted, clearIsPinPadPasswordAccepted } = getActions();
 
   const lang = useLang();
   const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.confirm);
@@ -51,6 +54,7 @@ function BackupModal({
   const [error, setError] = useState<string | undefined>();
 
   const mnemonicRef = useRef<string[] | undefined>(undefined);
+  const noResetFullNativeOnBlur = currentSlide === SLIDES.confirm || currentSlide === SLIDES.password;
 
   useEffect(() => {
     mnemonicRef.current = undefined;
@@ -68,7 +72,16 @@ function BackupModal({
 
     if (!mnemonicRef.current) {
       setError('Wrong password, please try again');
+      if (IS_CAPACITOR) {
+        void vibrateOnError();
+      }
+
       return;
+    }
+    if (IS_CAPACITOR) {
+      setIsPinPadPasswordAccepted();
+      await vibrateOnSuccess(true);
+      clearIsPinPadPasswordAccepted();
     }
 
     setNextKey(SLIDES.check);
@@ -117,13 +130,14 @@ function BackupModal({
       case SLIDES.password:
         return (
           <>
-            <ModalHeader title={lang('Enter Password')} onClose={onClose} />
+            {!IS_CAPACITOR && <ModalHeader title={lang('Enter Password')} onClose={onClose} />}
             <PasswordForm
               isActive={isActive}
               isLoading={isLoading}
               error={error}
               placeholder={lang('Enter your password')}
               submitLabel={lang('Back Up')}
+              withCloseButton={IS_CAPACITOR}
               onUpdate={handleBackupErrorUpdate}
               onSubmit={handlePasswordSubmit}
               cancelLabel={lang('Cancel')}
@@ -159,14 +173,17 @@ function BackupModal({
 
   return (
     <Modal
-      hasCloseButton
       isOpen={isOpen}
+      hasCloseButton
+      dialogClassName={styles.modalDialog}
+      nativeBottomSheetKey="backup"
+      forceFullNative={currentSlide === SLIDES.password}
+      noResetFullNativeOnBlur={noResetFullNativeOnBlur}
       onClose={onClose}
       onCloseAnimationEnd={handleModalClose}
-      dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="slideFade"
+        name={resolveModalTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

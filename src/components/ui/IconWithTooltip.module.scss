@@ -46,5 +46,5 @@
 }
 
 .icon {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 }

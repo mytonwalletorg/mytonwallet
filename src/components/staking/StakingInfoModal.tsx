@@ -28,7 +28,7 @@ function StakingInfoModal({
   isUnstakeRequested,
   onClose,
 }: OwnProps & StateProps) {
-  const { fetchBackendStakingState } = getActions();
+  const { fetchStakingHistory } = getActions();
 
   const forceUpdate = useForceUpdate();
 
@@ -36,15 +36,16 @@ function StakingInfoModal({
 
   useEffect(() => {
     if (isOpen) {
-      fetchBackendStakingState();
+      fetchStakingHistory();
     }
-  }, [fetchBackendStakingState, isOpen]);
+  }, [fetchStakingHistory, isOpen]);
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
       contentClassName={buildClassName(styles.stakingInfoModalContent)}
+      nativeBottomSheetKey="staking-info"
+      onClose={onClose}
     >
       <StakingInfoContent isActive={isOpen} onClose={onClose} />
     </Modal>
@@ -55,6 +56,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
 
   return {
-    isUnstakeRequested: accountState?.isUnstakeRequested,
+    isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
   };
 })(StakingInfoModal));

@@ -64,21 +64,9 @@
   padding: 0.75rem 1rem;
 }
 
-.group {
-  position: relative;
-
-  padding-bottom: 0.25rem;
-
-  text-align: center;
-
-  &:first-of-type {
-    padding-top: 0.75rem;
-  }
-}
-
 .date {
   width: max-content;
-  margin: 0 auto 0.25rem;
+  margin: 0.75rem auto 0.25rem;
   padding: 0.375rem 0.625rem;
 
   font-size: 0.75rem;
@@ -88,4 +76,19 @@
 
   background-color: var(--color-activity-gray-background);
   border-radius: var(--border-radius-default);
+}
+
+.listItem {
+  position: absolute;
+
+  width: 100%;
+
+  text-align: center;
+}
+
+.listGroup {
+  overflow-y: scroll;
+
+  width: 100%;
+  height: 100%;
 }

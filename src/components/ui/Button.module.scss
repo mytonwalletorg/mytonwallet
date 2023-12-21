@@ -10,6 +10,10 @@
   text-decoration: none;
   white-space: nowrap;
 
+  &.loadingInit::after {
+    border-top-color: var(--color-gray-button-text);
+  }
+
   background: none;
   border: 0;
   border-radius: 0;
@@ -49,11 +53,13 @@
     background-color: var(--color-gray-button-background);
     border-radius: var(--border-radius-buttons);
 
-    &:hover,
-    &:focus {
-      color: var(--color-gray-button-text-hover);
+    @media (hover: hover) {
+      &:hover,
+      &:focus {
+        color: var(--color-gray-button-text-hover);
 
-      background-color: var(--color-gray-button-background-hover);
+        background-color: var(--color-gray-button-background-hover);
+      }
     }
 
     &[disabled] {
@@ -72,10 +78,15 @@
 
   transition: color 150ms;
 
-  &:hover,
-  &:focus,
   &:active {
     color: var(--color-blue-button-background-hover);
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus{
+      color: var(--color-blue-button-background-hover);
+    }
   }
 
   &[disabled] {
@@ -92,11 +103,17 @@
 
   background-color: var(--color-blue-button-background);
 
-  &:hover,
-  &:focus {
-    color: var(--color-blue-button-text-hover);
+  &.loadingInit::after {
+    border-top-color: var(--color-blue-button-text);
+  }
 
-    background-color: var(--color-blue-button-background-hover);
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      color: var(--color-blue-button-text-hover);
+
+      background-color: var(--color-blue-button-background-hover);
+    }
   }
 }
 
@@ -120,11 +137,17 @@
 
   background-color: var(--color-red-button-background);
 
-  &:hover,
-  &:focus {
-    color: var(--color-red-button-text-hover);
+  &.loadingInit::after {
+    border-top-color: var(--color-red-button-text);
+  }
 
-    background-color: var(--color-red-button-background-hover);
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      color: var(--color-red-button-text-hover);
+
+      background-color: var(--color-red-button-background-hover);
+    }
   }
 
   &[disabled] {
@@ -140,9 +163,11 @@
 
     transition: color 150ms;
 
-    &:hover,
-    &:focus {
-      color: var(--color-red-button-background-hover);
+    @media (hover: hover) {
+      &:hover,
+      &:focus {
+        color: var(--color-red-button-background-hover);
+      }
     }
 
     :global(html.animation-level-0) & {
@@ -173,7 +198,7 @@
   }
 }
 
-.loading {
+.loadingInit {
   position: relative;
 
   &::after {
@@ -189,17 +214,28 @@
     height: 1rem;
     margin: auto;
 
+    opacity: 0;
     border: 0.25rem solid transparent;
-    border-top-color: var(--color-white);
     border-radius: 50%;
 
-    animation: button-loading-spinner 1s linear infinite;
+    transition: opacity 150ms;
   }
 }
 
-.buttonText {
-  visibility: hidden;
-  opacity: 0;
+.loadingStart {
+  color: rgba(0,0,0,0) !important;
+
+  &::after {
+    content: "";
+
+    opacity: 1;
+  }
+}
+
+.loadingAnimation {
+  &::after {
+    animation: button-loading-spinner 1s linear infinite;
+  }
 }
 
 @keyframes button-loading-spinner {

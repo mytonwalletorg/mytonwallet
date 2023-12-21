@@ -18,6 +18,17 @@ const electronApi: ElectronApi = {
 
   toggleDeeplinkHandler: (isEnabled: boolean) => ipcRenderer.invoke(ElectronAction.TOGGLE_DEEPLINK_HANDLER, isEnabled),
 
+  getIsTouchIdSupported: () => ipcRenderer.invoke(ElectronAction.GET_IS_TOUCH_ID_SUPPORTED),
+  encryptPassword: (password: string) => ipcRenderer.invoke(ElectronAction.ENCRYPT_PASSWORD, password),
+  decryptPassword: (encrypted: string) => ipcRenderer.invoke(ElectronAction.DECRYPT_PASSWORD, encrypted),
+
+  setIsTrayIconEnabled: (value: boolean) => ipcRenderer.invoke(ElectronAction.SET_IS_TRAY_ICON_ENABLED, value),
+  getIsTrayIconEnabled: () => ipcRenderer.invoke(ElectronAction.GET_IS_TRAY_ICON_ENABLED),
+  setIsAutoUpdateEnabled: (value: boolean) => ipcRenderer.invoke(ElectronAction.SET_IS_AUTO_UPDATE_ENABLED, value),
+  getIsAutoUpdateEnabled: () => ipcRenderer.invoke(ElectronAction.GET_IS_AUTO_UPDATE_ENABLED),
+
+  restoreStorage: () => ipcRenderer.invoke(ElectronAction.RESTORE_STORAGE),
+
   on: (eventName: ElectronEvent, callback) => {
     const subscription = (event: IpcRendererEvent, ...args: any) => callback(...args);
 

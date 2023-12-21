@@ -9,10 +9,11 @@ export const UNSTAKE_COMMENT = 'w';
 export const ATTEMPTS = 5;
 
 export const DEFAULT_DECIMALS = 9;
+export const DEFAULT_IS_BOUNCEABLE = false;
 
 export const LEDGER_SUPPORTED_PAYLOADS: ApiParsedPayload['type'][] = [
-  'transfer-nft',
-  'transfer-tokens',
+  'nft:transfer',
+  'tokens:transfer',
   'comment',
 ];
 
@@ -32,4 +33,18 @@ export enum JettonOpCode {
 
 export enum NftOpCode {
   TransferOwnership = 0x5fcc3d14,
+}
+
+export enum LiquidStakingOpCode {
+  // Pool
+  RequestLoan = 0xe642c965,
+  LoanRepayment = 0xdfdca27b,
+  Deposit = 0x47d54391,
+  Withdraw = 0x319B0CDC,
+  Withdrawal = 0x0a77535c,
+  DeployController = 0xb27edcad,
+  Touch = 0x4bc7c2df,
+  Donate = 0x73affe21,
+  // NFT
+  DistributedAsset = 0xdb3b8abd,
 }

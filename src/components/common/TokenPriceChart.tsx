@@ -16,6 +16,7 @@ interface OwnProps {
 
 const IS_SMOOTH = true;
 const PATH_SMOOTHING = 0.0001;
+const MIN_CHART_HEIGHT = 0.000000001;
 
 function TokenPriceChart({
   width,
@@ -35,7 +36,7 @@ function TokenPriceChart({
 
     return {
       width: prices.length - 1,
-      height: max - min,
+      height: Math.max(MIN_CHART_HEIGHT, max - min),
       min,
     };
   }, [prices]);

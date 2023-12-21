@@ -18,14 +18,17 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
 import Button from '../../../ui/Button';
-import AddAccountModal from '../../modals/AddAccountModal';
 
 import styles from './AccountSelector.module.scss';
 
 interface OwnProps {
   canEdit?: boolean;
+  forceClose?: boolean;
   accountClassName?: string;
+  accountSelectorClassName?: string;
   menuButtonClassName?: string;
+  noSettingsButton?: boolean;
+  onQrScanPress?: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -41,9 +44,13 @@ function AccountSelector({
   currentAccountId,
   currentAccount,
   canEdit,
+  forceClose,
   accountClassName,
+  accountSelectorClassName,
   menuButtonClassName,
+  noSettingsButton,
   accounts,
+  onQrScanPress,
 }: OwnProps & StateProps) {
   const {
     switchAccount, renameAccount, openAddAccountModal, openSettings,
@@ -57,10 +64,18 @@ function AccountSelector({
   const lang = useLang();
   const [isOpen, openAccountSelector, closeAccountSelector] = useFlag(false);
   const [isEdit, openEdit, closeEdit] = useFlag(false);
-  const { shouldRender, transitionClassNames } = useShowTransition(isOpen && !isEdit);
+  const { shouldRender, transitionClassNames } = useShowTransition(isOpen && !isEdit, undefined, undefined, 'slow');
   const [inputValue, setInputValue] = useState<string>(currentAccount?.title || '');
 
   const accountsAmount = useMemo(() => Object.keys(accounts || {}).length, [accounts]);
+  const shouldRenderQrScannerButton = Boolean(onQrScanPress);
+  const shouldRenderSettingsButton = !noSettingsButton || !shouldRenderQrScannerButton;
+
+  useEffect(() => {
+    if (isOpen && forceClose) {
+      closeAccountSelector();
+    }
+  }, [forceClose, isOpen]);
 
   useEffect(
     () => (shouldRender ? captureEscKeyListener(closeAccountSelector) : undefined),
@@ -141,24 +156,49 @@ function AccountSelector({
   const fullClassName = buildClassName(
     styles.container,
     transitionClassNames,
+    accountSelectorClassName,
+  );
+  const addressTitleClassName = buildClassName(
+    styles.addressTitle,
+    accountClassName,
+    shouldRenderQrScannerButton && shouldRenderSettingsButton && styles.addressTitleShort,
+  );
+  const settingsButtonClassName = buildClassName(
+    styles.menuButton,
+    menuButtonClassName,
+    shouldRenderQrScannerButton && styles.menuButtonFirst,
   );
 
   function renderCurrentAccount() {
     return (
       <>
-        <div className={buildClassName(styles.addressTitle, accountClassName)} onClick={handleOpenAccountSelector}>
+        <div className={addressTitleClassName} onClick={handleOpenAccountSelector}>
           {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
         </div>
-        <Button
-          className={buildClassName(styles.menuButton, menuButtonClassName)}
-          isText
-          isSimple
-          kind="transparent"
-          ariaLabel={lang('Main menu')}
-          onClick={openSettings}
-        >
-          <i className="icon-cog" aria-hidden />
-        </Button>
+        {shouldRenderSettingsButton && (
+          <Button
+            className={settingsButtonClassName}
+            isText
+            isSimple
+            kind="transparent"
+            ariaLabel={lang('Main menu')}
+            onClick={openSettings}
+          >
+            <i className="icon-cog" aria-hidden />
+          </Button>
+        )}
+        {shouldRenderQrScannerButton && (
+          <Button
+            className={buildClassName(styles.menuButton, menuButtonClassName)}
+            isText
+            isSimple
+            kind="transparent"
+            ariaLabel={lang('Scan QR Code')}
+            onClick={onQrScanPress}
+          >
+            <i className="icon-qr-scanner" aria-hidden />
+          </Button>
+        )}
       </>
     );
   }
@@ -212,17 +252,19 @@ function AccountSelector({
       {isEdit && renderInput()}
 
       {shouldRender && renderAccountsChooser()}
-      <AddAccountModal />
     </>
   );
 }
 
-export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const accounts = selectNetworkAccounts(global);
+export default memo(withGlobal<OwnProps>(
+  (global): StateProps => {
+    const accounts = selectNetworkAccounts(global);
 
-  return {
-    currentAccountId: global.currentAccountId!,
-    currentAccount: accounts?.[global.currentAccountId!],
-    accounts,
-  };
-})(AccountSelector));
+    return {
+      currentAccountId: global.currentAccountId!,
+      currentAccount: accounts?.[global.currentAccountId!],
+      accounts,
+    };
+  },
+  (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+)(AccountSelector));

@@ -3,15 +3,20 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import type { ApiStakingType } from '../../api/types';
 import type { GlobalState, UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
 import {
+  IS_CAPACITOR,
   MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TON_TOKEN_SLUG,
 } from '../../config';
+import { Big } from '../../lib/big.js';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
+import { formatCurrency } from '../../util/formatNumber';
+import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
@@ -20,7 +25,6 @@ import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
-import usePrevious from '../../hooks/usePrevious';
 import useSyncEffect from '../../hooks/useSyncEffect';
 
 import TransferResult from '../common/TransferResult';
@@ -37,8 +41,10 @@ import styles from './Staking.module.scss';
 
 type StateProps = GlobalState['staking'] & {
   tokens?: UserToken[];
+  stakingType?: ApiStakingType;
   stakingBalance?: number;
   endOfStakingCycle?: number;
+  stakingInfo: GlobalState['stakingInfo'];
 };
 
 const IS_OPEN_STATES = new Set([
@@ -55,8 +61,10 @@ function UnstakeModal({
   isLoading,
   error,
   tokens,
+  stakingType,
   stakingBalance,
   endOfStakingCycle,
+  stakingInfo,
 }: StateProps) {
   const {
     setStakingScreen,
@@ -64,14 +72,20 @@ function UnstakeModal({
     clearStakingError,
     submitStakingInitial,
     submitStakingPassword,
-    fetchBackendStakingState,
+    fetchStakingHistory,
   } = getActions();
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
+  const isInstantUnstake = stakingType === 'liquid'
+    ? Big(stakingBalance ?? 0).lte(stakingInfo.liquid?.instantAvailable ?? 0)
+    : false;
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
-  const renderedStakingBalance = usePrevious(stakingBalance, true);
-  const renderedTokenBalance = usePrevious(tonToken?.amount, true);
+
+  const [renderedStakingBalance, setRenderedStakingBalance] = useState(stakingBalance);
+  const [renderedBalance, setRenderedBalance] = useState(tonToken?.amount);
+  const [renderedIsInstantUnstake, setRenderedIsInstantUnstake] = useState(isInstantUnstake);
+
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
   const hasBalanceForUnstake = tonToken && tonToken.amount >= MIN_BALANCE_FOR_UNSTAKE;
   const forceUpdate = useForceUpdate();
@@ -80,9 +94,9 @@ function UnstakeModal({
 
   useEffect(() => {
     if (isOpen) {
-      fetchBackendStakingState();
+      fetchStakingHistory();
     }
-  }, [isOpen, fetchBackendStakingState]);
+  }, [isOpen, fetchStakingHistory]);
 
   useSyncEffect(() => {
     if (endOfStakingCycle) {
@@ -92,7 +106,7 @@ function UnstakeModal({
 
   const refreshUnstakeDate = useLastCallback(() => {
     if (unstakeDate < Date.now()) {
-      fetchBackendStakingState();
+      fetchStakingHistory();
     }
     forceUpdate();
   });
@@ -110,8 +124,25 @@ function UnstakeModal({
   });
 
   const handleTransferSubmit = useLastCallback((password: string) => {
+    setRenderedIsInstantUnstake(isInstantUnstake);
+    setRenderedStakingBalance(stakingBalance);
+    setRenderedBalance(tonToken?.amount);
+
     submitStakingPassword({ password, isUnstaking: true });
   });
+
+  function renderUnstakingShortInfo() {
+    if (!tonToken || !stakingBalance) return undefined;
+
+    const logoPath = tonToken.image || ASSET_LOGO_PATHS[tonToken.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
+
+    return (
+      <div className={buildClassName(styles.stakingShortInfo, styles.unstake)}>
+        <img src={logoPath} alt={tonToken.symbol} className={styles.tokenIcon} />
+        <span>{formatCurrency(stakingBalance, tonToken.symbol)}</span>
+      </div>
+    );
+  }
 
   function renderInitial(isActive: boolean) {
     return (
@@ -129,9 +160,11 @@ function UnstakeModal({
               previewUrl={ANIMATED_STICKERS_PATHS.snitchPreview}
             />
             <div className={styles.unstakeInformation}>
-              {lang('$unstake_information_with_time', {
-                time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
-              })}
+              {isInstantUnstake
+                ? lang('$unstake_information_with_time', {
+                  time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
+                })
+                : lang('$unstake_information_instantly')}
             </div>
           </div>
 
@@ -157,12 +190,13 @@ function UnstakeModal({
           )}
 
           <div className={modalStyles.buttons}>
-            <Button onClick={cancelStaking}>{lang('Cancel')}</Button>
+            <Button className={modalStyles.button} onClick={cancelStaking}>{lang('Cancel')}</Button>
             <Button
               isPrimary
-              onClick={handleStartUnstakeClick}
               isLoading={isLoading}
               isDisabled={!hasBalanceForUnstake}
+              className={modalStyles.button}
+              onClick={handleStartUnstakeClick}
             >
               {lang('Unstake')}
             </Button>
@@ -175,18 +209,21 @@ function UnstakeModal({
   function renderPassword(isActive: boolean) {
     return (
       <>
-        <ModalHeader title={lang('Confirm Unstaking')} onClose={cancelStaking} />
+        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Unstaking')} onClose={cancelStaking} />}
         <PasswordForm
           isActive={isActive}
           isLoading={isLoading}
           error={error}
           placeholder={lang('Confirm operation with your password')}
+          withCloseButton={IS_CAPACITOR}
           onUpdate={clearStakingError}
           onSubmit={handleTransferSubmit}
           submitLabel={lang('Confirm')}
           onCancel={handleBackClick}
           cancelLabel={lang('Back')}
-        />
+        >
+          {IS_CAPACITOR && renderUnstakingShortInfo()}
+        </PasswordForm>
       </>
     );
   }
@@ -194,7 +231,10 @@ function UnstakeModal({
   function renderComplete(isActive: boolean) {
     return (
       <>
-        <ModalHeader title={lang('Request for unstaking is sent!')} onClose={cancelStaking} />
+        <ModalHeader
+          title={lang('Request for unstaking is sent!')}
+          onClose={cancelStaking}
+        />
 
         <div className={modalStyles.transitionContent}>
           <TransferResult
@@ -202,16 +242,18 @@ function UnstakeModal({
             playAnimation={isActive}
             amount={renderedStakingBalance}
             noSign
-            balance={renderedTokenBalance}
-            operationAmount={stakingBalance}
+            balance={renderedBalance}
+            operationAmount={renderedStakingBalance}
           />
 
-          <div className={styles.unstakeTime}>
-            <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
-            {lang('$unstaking_when_receive', {
-              time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
-            })}
-          </div>
+          {renderedIsInstantUnstake && (
+            <div className={styles.unstakeTime}>
+              <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
+              {lang('$unstaking_when_receive', {
+                time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
+              })}
+            </div>
+          )}
 
           <div className={modalStyles.buttons}>
             <Button onClick={cancelStaking} isPrimary>{lang('Close')}</Button>
@@ -237,15 +279,17 @@ function UnstakeModal({
 
   return (
     <Modal
-      hasCloseButton
       isOpen={isOpen}
-      onClose={cancelStaking}
+      hasCloseButton
       noBackdropClose
       dialogClassName={styles.modalDialog}
+      nativeBottomSheetKey="unstake"
+      forceFullNative={renderingKey === StakingState.UnstakePassword}
+      onClose={cancelStaking}
       onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name="slideFade"
+        name={resolveModalTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}
@@ -265,7 +309,9 @@ export default memo(withGlobal((global): StateProps => {
   return {
     ...global.staking,
     tokens,
-    stakingBalance: currentAccountState?.stakingBalance,
-    endOfStakingCycle: currentAccountState?.poolState?.endOfCycle,
+    stakingType: currentAccountState?.staking?.type,
+    stakingBalance: currentAccountState?.staking?.balance,
+    endOfStakingCycle: currentAccountState?.staking?.end,
+    stakingInfo: global.stakingInfo,
   };
 })(UnstakeModal));

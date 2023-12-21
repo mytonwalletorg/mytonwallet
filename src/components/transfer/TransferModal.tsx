@@ -1,37 +1,43 @@
-import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo, useState,
+} from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 import { TransferState } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_TOKEN_SLUG } from '../../config';
-import { bigStrToHuman } from '../../global/helpers';
+import { IS_CAPACITOR } from '../../config';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { formatCurrency } from '../../util/formatNumber';
+import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import { shortenAddress } from '../../util/shortenAddress';
+import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import usePrevious from '../../hooks/usePrevious';
+import useWindowSize from '../../hooks/useWindowSize';
 
-import TransferResult from '../common/TransferResult';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
-import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
-import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
-import Button from '../ui/Button';
-import IconWithTooltip from '../ui/IconWithTooltip';
-import InteractiveTextField from '../ui/InteractiveTextField';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
-import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
+import TransferComplete from './TransferComplete';
+import TransferConfirm from './TransferConfirm';
 import TransferInitial from './TransferInitial';
+import TransferPassword from './TransferPassword';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
+
+interface OwnProps {
+  onQrScanPress?: NoneToVoidFunction;
+}
 
 interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
@@ -42,42 +48,37 @@ interface StateProps {
   isTonAppConnected?: boolean;
 }
 
-const AMOUNT_PRECISION = 4;
+const SCREEN_HEIGHT_FOR_FORCE_FULLSIZE_NBS = 762; // Computed empirically
 
 function TransferModal({
   currentTransfer: {
     state,
     amount,
     toAddress,
-    resolvedAddress,
     fee,
     comment,
-    shouldEncrypt,
-    promiseId,
     error,
     isLoading,
     txId,
     tokenSlug,
-    toAddressName,
-    isToNewAddress,
-  }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected,
-}: StateProps) {
+  }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, onQrScanPress,
+}: OwnProps & StateProps) {
   const {
     submitTransferConfirm,
     submitTransferPassword,
     submitTransferHardware,
     setTransferScreen,
-    clearTransferError,
     cancelTransfer,
     showActivityInfo,
-    startTransfer,
   } = getActions();
 
   const lang = useLang();
+  const { isPortrait } = useDeviceScreen();
   const isOpen = state !== TransferState.None;
 
+  const { screenHeight } = useWindowSize();
   const selectedToken = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]);
-  const renderedTokenBalance = usePrevious(selectedToken?.amount, true);
+  const [renderedTokenBalance, setRenderedTokenBalance] = useState(selectedToken?.amount);
   const renderedTransactionAmount = usePrevious(amount, true);
   const symbol = selectedToken?.symbol || '';
 
@@ -94,6 +95,8 @@ function TransferModal({
   ), [state, submitTransferConfirm]);
 
   const handleTransferSubmit = useLastCallback((password: string) => {
+    setRenderedTokenBalance(selectedToken?.amount);
+
     submitTransferPassword({ password });
   });
 
@@ -107,143 +110,36 @@ function TransferModal({
   });
 
   const handleTransactionInfoClick = useLastCallback(() => {
-    cancelTransfer();
-    showActivityInfo({ id: txId });
-  });
-
-  const handleTransactionRepeatClick = useLastCallback(() => {
-    startTransfer({
-      tokenSlug: tokenSlug || TON_TOKEN_SLUG,
-      toAddress,
-      amount,
-      comment,
-    });
+    cancelTransfer({ shouldReset: true });
+    showActivityInfo({ id: txId! });
   });
 
   const handleModalClose = useLastCallback(() => {
-    cancelTransfer();
+    cancelTransfer({ shouldReset: isPortrait });
     updateNextKey();
   });
 
-  function renderComment() {
-    if (!comment) {
-      return undefined;
-    }
+  const handleModalCloseWithReset = useLastCallback(() => {
+    cancelTransfer({ shouldReset: true });
+  });
+
+  const handleLedgerConnect = useLastCallback(() => {
+    submitTransferHardware();
+  });
+
+  function renderTransferShortInfo() {
+    const logoPath = selectedToken?.image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
 
     return (
-      <>
-        <div className={styles.label}>{shouldEncrypt ? lang('Encrypted Message') : lang('Comment')}</div>
-        <div className={buildClassName(styles.inputReadOnly, styles.inputReadOnly_words)}>{comment}</div>
-      </>
-    );
-  }
-
-  function renderConfirm(isActive: boolean) {
-    const addressName = savedAddresses?.[toAddress!] || toAddressName;
-
-    return (
-      <>
-        <ModalHeader title={lang('Is it all ok?')} onClose={cancelTransfer} />
-        <div className={modalStyles.transitionContent}>
-          <AnimatedIconWithPreview
-            size={ANIMATED_STICKER_SMALL_SIZE_PX}
-            play={isActive}
-            noLoop={false}
-            nonInteractive
-            className={buildClassName(styles.sticker, styles.sticker_sizeSmall)}
-            tgsUrl={ANIMATED_STICKERS_PATHS.bill}
-            previewUrl={ANIMATED_STICKERS_PATHS.billPreview}
-          />
-          <div className={styles.label}>
-            {lang('Receiving Address')}
-
-            {isToNewAddress && (
-              <IconWithTooltip
-                emoji="⚠️"
-                message={lang('This address is new and never received transfers before.')}
-                tooltipClassName={styles.warningTooltipContainer}
-              />
-            )}
-          </div>
-          <InteractiveTextField
-            address={resolvedAddress!}
-            addressName={addressName}
-            copyNotification={lang('Address was copied!')}
-            className={styles.addressWidget}
-          />
-
-          <AmountWithFeeTextField
-            label={lang('Amount')}
-            amount={amount || 0}
-            symbol={symbol}
-            fee={fee ? bigStrToHuman(fee) : undefined}
-          />
-
-          {renderComment()}
-
-          <div className={modalStyles.buttons}>
-            {promiseId ? (
-              <Button onClick={cancelTransfer}>{lang('Cancel')}</Button>
-            ) : (
-              <Button onClick={handleBackClick}>{lang('Edit')}</Button>
-            )}
-            <Button
-              isPrimary
-              isLoading={isLoading}
-              onClick={submitTransferConfirm}
-            >
-              {lang('Confirm')}
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  function renderPassword(isActive: boolean) {
-    return (
-      <>
-        <ModalHeader title={lang('Confirm Transaction')} onClose={cancelTransfer} />
-        <PasswordForm
-          isActive={isActive}
-          isLoading={isLoading}
-          error={error}
-          placeholder={lang('Enter your password')}
-          onUpdate={clearTransferError}
-          onSubmit={handleTransferSubmit}
-          submitLabel={lang('Send')}
-          onCancel={handleBackClick}
-          cancelLabel={lang('Back')}
-        />
-      </>
-    );
-  }
-
-  function renderComplete(isActive: boolean) {
-    return (
-      <>
-        <ModalHeader title={lang('Coins have been sent!')} onClose={cancelTransfer} />
-
-        <div className={modalStyles.transitionContent}>
-          <TransferResult
-            playAnimation={isActive}
-            amount={renderedTransactionAmount ? -renderedTransactionAmount : undefined}
-            tokenSymbol={symbol}
-            precision={AMOUNT_PRECISION}
-            balance={renderedTokenBalance}
-            fee={fee ? bigStrToHuman(fee) : 0}
-            operationAmount={amount ? -amount : undefined}
-            firstButtonText={txId ? lang('Details') : undefined}
-            secondButtonText={lang('Repeat')}
-            onFirstButtonClick={handleTransactionInfoClick}
-            onSecondButtonClick={handleTransactionRepeatClick}
-          />
-
-          <div className={modalStyles.buttons}>
-            <Button onClick={cancelTransfer} isPrimary>{lang('Close')}</Button>
-          </div>
-        </div>
-      </>
+      <div className={styles.transferShortInfo}>
+        <img src={logoPath} alt={symbol} className={styles.tokenIcon} />
+        <span>
+          {lang('%amount% to %address%', {
+            amount: <span className={styles.bold}>{formatCurrency(amount!, symbol)}</span>,
+            address: <span className={styles.bold}>{shortenAddress(toAddress!)}</span>,
+          })}
+        </span>
+      </div>
     );
   }
 
@@ -253,22 +149,41 @@ function TransferModal({
       case TransferState.Initial:
         return (
           <>
-            <ModalHeader title={lang('Send')} onClose={cancelTransfer} />
-            <TransferInitial />
+            <ModalHeader title={lang('Send')} onClose={handleModalCloseWithReset} />
+            <TransferInitial onQrScanPress={onQrScanPress} />
           </>
         );
       case TransferState.Confirm:
-        return renderConfirm(isActive);
+        return (
+          <TransferConfirm
+            isActive={isActive}
+            symbol={symbol}
+            savedAddresses={savedAddresses}
+            onBack={isPortrait ? handleBackClick : handleModalClose}
+            onClose={handleModalCloseWithReset}
+          />
+        );
       case TransferState.Password:
-        return renderPassword(isActive);
+        return (
+          <TransferPassword
+            isActive={isActive}
+            isLoading={isLoading}
+            error={error}
+            onSubmit={handleTransferSubmit}
+            onCancel={handleModalCloseWithReset}
+          >
+            {IS_CAPACITOR ? renderTransferShortInfo() : undefined}
+          </TransferPassword>
+        );
       case TransferState.ConnectHardware:
         return (
           <LedgerConnect
+            isActive={isActive}
             state={hardwareState}
             isLedgerConnected={isLedgerConnected}
             isTonAppConnected={isTonAppConnected}
-            onConnected={submitTransferHardware}
-            onClose={cancelTransfer}
+            onConnected={handleLedgerConnect}
+            onClose={handleModalCloseWithReset}
           />
         );
       case TransferState.ConfirmHardware:
@@ -276,26 +191,42 @@ function TransferModal({
           <LedgerConfirmOperation
             text={lang('Please confirm transaction on your Ledger')}
             error={error}
-            onClose={cancelTransfer}
+            onClose={handleModalCloseWithReset}
             onTryAgain={submitTransferHardware}
           />
         );
       case TransferState.Complete:
-        return renderComplete(isActive);
+        return (
+          <TransferComplete
+            isActive={isActive}
+            amount={renderedTransactionAmount}
+            symbol={symbol}
+            balance={renderedTokenBalance}
+            fee={fee}
+            operationAmount={amount}
+            txId={txId}
+            tokenSlug={tokenSlug}
+            toAddress={toAddress}
+            comment={comment}
+            onInfoClick={handleTransactionInfoClick}
+            onClose={handleModalCloseWithReset}
+          />
+        );
     }
   }
 
   return (
     <Modal
-      hasCloseButton
       isOpen={isOpen}
-      onClose={cancelTransfer}
       noBackdropClose
       dialogClassName={styles.modalDialog}
+      nativeBottomSheetKey="transfer"
+      forceFullNative={screenHeight <= SCREEN_HEIGHT_FOR_FORCE_FULLSIZE_NBS || renderingKey === TransferState.Password}
+      onClose={handleModalCloseWithReset}
       onCloseAnimationEnd={handleModalClose}
     >
       <Transition
-        name="slideFade"
+        name={resolveModalTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}
@@ -308,7 +239,7 @@ function TransferModal({
   );
 }
 
-export default memo(withGlobal((global): StateProps => {
+export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
 
   const {

@@ -1,0 +1,377 @@
+{
+  "api": {
+    "name": "BottomSheetPlugin",
+    "slug": "bottomsheetplugin",
+    "docs": "",
+    "tags": [],
+    "methods": [
+      {
+        "name": "prepare",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "prepare"
+      },
+      {
+        "name": "delegate",
+        "signature": "(options: { key: BottomSheetKeys; globalJson: string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ key: BottomSheetKeys; globalJson: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "BottomSheetKeys"
+        ],
+        "slug": "delegate"
+      },
+      {
+        "name": "release",
+        "signature": "(options: { key: BottomSheetKeys | '*'; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ key: BottomSheetKeys | '*'; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "BottomSheetKeys"
+        ],
+        "slug": "release"
+      },
+      {
+        "name": "openSelf",
+        "signature": "(options: { key: BottomSheetKeys; height: string; backgroundColor: string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ key: BottomSheetKeys; height: string; backgroundColor: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "BottomSheetKeys"
+        ],
+        "slug": "openself"
+      },
+      {
+        "name": "closeSelf",
+        "signature": "(options: { key: BottomSheetKeys; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ key: BottomSheetKeys; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "BottomSheetKeys"
+        ],
+        "slug": "closeself"
+      },
+      {
+        "name": "setSelfSize",
+        "signature": "(options: { size: 'half' | 'full'; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ size: 'half' | 'full'; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "setselfsize"
+      },
+      {
+        "name": "callActionInMain",
+        "signature": "(options: { name: string; optionsJson: string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ name: string; optionsJson: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "callactioninmain"
+      },
+      {
+        "name": "callActionInNative",
+        "signature": "(options: { name: string; optionsJson: string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ name: string; optionsJson: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "callactioninnative"
+      },
+      {
+        "name": "openInMain",
+        "signature": "(options: { key: BottomSheetKeys; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ key: BottomSheetKeys; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "BottomSheetKeys"
+        ],
+        "slug": "openinmain"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'delegate', handler: (options: { key: BottomSheetKeys; globalJson: string; }) => void) => Promise<PluginListenerHandle> & PluginListenerHandle",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'delegate'"
+          },
+          {
+            "name": "handler",
+            "docs": "",
+            "type": "(options: { key: BottomSheetKeys; globalJson: string; }) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle> & PluginListenerHandle",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "BottomSheetKeys"
+        ],
+        "slug": "addlistenerdelegate"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'move', handler: () => void) => Promise<PluginListenerHandle> & PluginListenerHandle",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'move'"
+          },
+          {
+            "name": "handler",
+            "docs": "",
+            "type": "() => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle> & PluginListenerHandle",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "PluginListenerHandle"
+        ],
+        "slug": "addlistenermove"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'callActionInMain', handler: (options: { name: string; optionsJson: string; }) => void) => Promise<PluginListenerHandle> & PluginListenerHandle",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'callActionInMain'"
+          },
+          {
+            "name": "handler",
+            "docs": "",
+            "type": "(options: { name: string; optionsJson: string; }) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle> & PluginListenerHandle",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "PluginListenerHandle"
+        ],
+        "slug": "addlistenercallactioninmain"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'callActionInNative', handler: (options: { name: string; optionsJson: string; }) => void) => Promise<PluginListenerHandle> & PluginListenerHandle",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'callActionInNative'"
+          },
+          {
+            "name": "handler",
+            "docs": "",
+            "type": "(options: { name: string; optionsJson: string; }) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle> & PluginListenerHandle",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "PluginListenerHandle"
+        ],
+        "slug": "addlistenercallactioninnative"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'openInMain', handler: (options: { key: BottomSheetKeys; }) => void) => Promise<PluginListenerHandle> & PluginListenerHandle",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'openInMain'"
+          },
+          {
+            "name": "handler",
+            "docs": "",
+            "type": "(options: { key: BottomSheetKeys; }) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle> & PluginListenerHandle",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "BottomSheetKeys"
+        ],
+        "slug": "addlisteneropeninmain"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [
+    {
+      "name": "PluginListenerHandle",
+      "slug": "pluginlistenerhandle",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "remove",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "() => Promise<void>"
+        }
+      ]
+    }
+  ],
+  "enums": [],
+  "typeAliases": [
+    {
+      "name": "BottomSheetKeys",
+      "slug": "bottomsheetkeys",
+      "docs": "",
+      "types": [
+        {
+          "text": "'initial'",
+          "complexTypes": []
+        },
+        {
+          "text": "'receive'",
+          "complexTypes": []
+        },
+        {
+          "text": "'invoice'",
+          "complexTypes": []
+        },
+        {
+          "text": "'transfer'",
+          "complexTypes": []
+        },
+        {
+          "text": "'swap'",
+          "complexTypes": []
+        },
+        {
+          "text": "'stake'",
+          "complexTypes": []
+        },
+        {
+          "text": "'unstake'",
+          "complexTypes": []
+        },
+        {
+          "text": "'staking-info'",
+          "complexTypes": []
+        },
+        {
+          "text": "'transaction-info'",
+          "complexTypes": []
+        },
+        {
+          "text": "'swap-activity'",
+          "complexTypes": []
+        },
+        {
+          "text": "'backup'",
+          "complexTypes": []
+        },
+        {
+          "text": "'add-account'",
+          "complexTypes": []
+        },
+        {
+          "text": "'settings'",
+          "complexTypes": []
+        },
+        {
+          "text": "'qr-scanner'",
+          "complexTypes": []
+        },
+        {
+          "text": "'dapp-connect'",
+          "complexTypes": []
+        },
+        {
+          "text": "'dapp-transaction'",
+          "complexTypes": []
+        },
+        {
+          "text": "'disclaimer'",
+          "complexTypes": []
+        },
+        {
+          "text": "'backup-warning'",
+          "complexTypes": []
+        }
+      ]
+    }
+  ],
+  "pluginConfigs": []
+}

@@ -6,12 +6,15 @@ import { parseAccountId } from '../../util/account';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
 import {
-  fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey, getCurrentAccountId, getCurrentAccountIdOrFail,
+  fetchStoredAccount,
+  fetchStoredAddress,
+  getCurrentAccountId,
+  getCurrentAccountIdOrFail,
   waitLogin,
 } from '../common/accounts';
 import { createDappPromise } from '../common/dappPromises';
-import { createLocalTransaction } from '../common/helpers';
 import { base64ToBytes, hexToBytes } from '../common/utils';
+import { createLocalTransaction } from '../methods';
 import { openPopupWindow } from './window';
 
 const ton = blockchains.ton;
@@ -52,9 +55,8 @@ export async function requestWallets() {
     return [];
   }
 
-  const [address, publicKey, wallet] = await Promise.all([
-    fetchStoredAddress(accountId),
-    fetchStoredPublicKey(accountId),
+  const [{ address, publicKey }, wallet] = await Promise.all([
+    fetchStoredAccount(accountId),
     ton.pickAccountWallet(accountId),
   ]);
 
@@ -116,7 +118,7 @@ export async function sendTransaction(params: {
   const { promiseId, promise } = createDappPromise();
 
   const account = await fetchStoredAccount(accountId);
-  if (account?.ledger) {
+  if (account.ledger) {
     return sendLedgerTransaction(accountId, promiseId, promise, checkResult.fee!, params);
   }
 
@@ -142,7 +144,7 @@ export async function sendTransaction(params: {
   }
 
   const fromAddress = await fetchStoredAddress(accountId);
-  createLocalTransaction(onPopupUpdate, accountId, {
+  createLocalTransaction(accountId, {
     amount,
     fromAddress,
     toAddress,
@@ -221,7 +223,7 @@ async function sendLedgerTransaction(
     return false;
   }
 
-  createLocalTransaction(onPopupUpdate, accountId, {
+  createLocalTransaction(accountId, {
     amount,
     fromAddress,
     toAddress,

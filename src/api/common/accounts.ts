@@ -1,5 +1,5 @@
 import type { StorageKey } from '../storages/types';
-import type { ApiAccountInfo, ApiNetwork } from '../types';
+import type { ApiAccount, ApiNetwork } from '../types';
 
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { buildCollectionByKey } from '../../util/iteratees';
@@ -14,7 +14,7 @@ const loginPromise = new Promise<void>((resolve) => {
 });
 
 export async function getAccountIds(): Promise<string[]> {
-  return Object.keys(await storage.getItem('addresses') || {});
+  return Object.keys(await storage.getItem('accounts') || {});
 }
 
 export async function getMainAccountId() {
@@ -62,16 +62,24 @@ export async function getNewAccountId(network: ApiNetwork) {
   });
 }
 
-export function fetchStoredAccount(accountId: string): Promise<ApiAccountInfo | undefined> {
+export async function fetchStoredPublicKey(accountId: string): Promise<string> {
+  return (await fetchStoredAccount(accountId)).publicKey;
+}
+
+export async function fetchStoredAddress(accountId: string): Promise<string> {
+  return (await fetchStoredAccount(accountId)).address;
+}
+
+export function fetchStoredAccount(accountId: string): Promise<ApiAccount> {
   return getAccountValue(accountId, 'accounts');
 }
 
-export function fetchStoredPublicKey(accountId: string): Promise<string> {
-  return getAccountValue(accountId, 'publicKeys');
-}
-
-export function fetchStoredAddress(accountId: string): Promise<string> {
-  return getAccountValue(accountId, 'addresses');
+export async function updateStoredAccount(accountId: string, partial: Partial<ApiAccount>): Promise<void> {
+  const account = await fetchStoredAccount(accountId);
+  return setAccountValue(accountId, 'accounts', {
+    ...account,
+    ...partial,
+  });
 }
 
 export async function getAccountValue(accountId: string, key: StorageKey) {

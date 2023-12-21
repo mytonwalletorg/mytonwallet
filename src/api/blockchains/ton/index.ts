@@ -7,9 +7,11 @@ export {
   seedToKeyPair,
   validateMnemonic,
   verifyPassword,
+  fetchPrivateKey,
 } from './auth';
 export { getAccountNfts, getNftUpdates } from './nfts';
 export { oneCellFromBoc } from './util/tonweb';
+export { buildTokenSlug } from './util';
 export {
   checkTransactionDraft,
   getAccountNewestTxId,
@@ -23,6 +25,7 @@ export {
   sendSignedMessage,
   sendSignedMessages,
   decryptComment,
+  waitUntilTransactionAppears,
 } from './transactions';
 export {
   getAccountBalance,
@@ -33,7 +36,9 @@ export {
   getWalletStateInit,
   getWalletBalance,
   getWalletSeqno,
-  isWalletInitialized,
+  isAddressInitialized,
+  isActiveSmartContract,
+  getWalletInfo,
 } from './wallet';
 export {
   checkStakeDraft,
@@ -41,14 +46,14 @@ export {
   submitStake,
   submitUnstake,
   getStakingState,
-  getBackendStakingState,
 } from './staking';
 export {
   packPayloadToBoc,
+  checkApiAvailability,
 } from './other';
 export {
   getAccountTokenBalances,
-  importToken,
+  fetchToken,
   resolveTokenBySlug,
 } from './tokens';
 export {
@@ -58,3 +63,6 @@ export {
 export {
   parsePayloadBase64,
 } from './util/metadata';
+export {
+  normalizeAddress,
+} from './address';

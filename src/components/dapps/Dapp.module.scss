@@ -100,7 +100,7 @@
 
   display: block;
 
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   padding: 0 0.5rem;
 
   font-size: 0.8125rem;
@@ -180,6 +180,10 @@
     cursor: default;
 
     opacity: 1;
+  }
+
+  &_disabled {
+    cursor: auto;
   }
 
   .accounts_single & {
@@ -293,7 +297,7 @@
   overflow: hidden;
 
   box-sizing: border-box;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   padding: 0.875rem 0.75rem;
 
   font-size: 1rem;
@@ -507,4 +511,177 @@
 
   background: var(--color-background-first);
   border-radius: 1rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200%;
+  }
+  100% {
+    background-position: -200%;
+  }
+}
+
+@mixin skeleton($color: var(--color-background-first), $edgeColor: var(--color-separator-input-stroke)) {
+  background: linear-gradient(
+    90deg,
+    $edgeColor,
+    $edgeColor,
+    $color,
+    $edgeColor,
+    $edgeColor
+  );
+  background-repeat: no-repeat;
+  background-size: 400% 100%;
+
+  animation: shimmer 2s infinite linear;
+}
+
+.dappInfoSkeleton {
+  display: flex;
+  gap: 0.625rem;
+  align-items: center;
+
+  height: 4rem;
+  padding: 0.875rem 1rem;
+
+  background-color: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+}
+
+.accountWrapperSkeleton {
+  margin-top: 1.25rem;
+}
+
+.dappInfoIconSkeleton {
+  @include skeleton();
+
+  width: 2.25rem;
+  height: 2.25rem;
+
+  background-color: var(--color-separator-input-stroke);
+  border-radius: var(--border-radius-tiny);
+}
+
+.transactionDappIconSkeleton {
+  @include skeleton(
+    var(--color-background-first),
+    #00000000
+  );
+
+  background-color: var(--color-card-button);
+}
+
+.dappInfoTextSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nameSkeleton {
+  @include skeleton();
+
+  width: 4rem;
+  height: 0.75rem;
+
+  background-color: var(--color-separator-input-stroke);
+  border-radius: var(--border-radius-tiny);
+}
+
+.descSkeleton {
+  @include skeleton();
+
+  width: 5rem;
+  height: 0.75rem;
+
+  background-color: var(--color-separator-input-stroke);
+  border-radius: var(--border-radius-tiny);
+}
+
+.nameDappSkeleton {
+  @include skeleton(
+    var(--color-background-first),
+    #00000000
+  );
+
+  height: 0.875rem;
+
+  background-color: var(--color-card-button);
+}
+.descDappSkeleton {
+  @include skeleton(
+    var(--color-background-first),
+    #00000000
+  );
+
+  height: 0.6875rem;
+
+  background-color: var(--color-card-button);
+}
+
+.transactionDirectionLeftSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  margin-left: 1rem;
+}
+
+.transactionDirectionRightSkeleton {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-self: center;
+}
+
+.dappInfoDataSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rowContainerSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  margin-bottom: 1.25rem;
+}
+
+.rowSkeleton {
+  @include skeleton(
+    var(--color-background-second)
+  );
+
+  width: 100%;
+  height: 3rem;
+
+  background-color: var(--color-separator-input-stroke);
+  border-radius: var(--border-radius-default);
+}
+
+.rowLargeSkeleton {
+  height: 4.25rem;
+}
+
+.rowTextSkeleton {
+  @include skeleton(
+    var(--color-background-second)
+  );
+
+  width: 3.0625rem;
+  height: 0.8125rem;
+  margin-left: 0.5rem;
+
+  background-color: var(--color-separator-input-stroke);
+  border-radius: var(--border-radius-default);
+}
+
+.rowTextLargeSkeleton {
+  width: 6.8125rem;
+}
+
+.skeletonTransitionWrapper {
+  display: flex;
+  flex-direction: column;
 }

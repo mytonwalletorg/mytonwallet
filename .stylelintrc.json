@@ -6,7 +6,9 @@
   "ignoreFiles": [
     "dist/*.css",
     "src/styles/brilliant-icons.css",
-    "coverage/**"
+    "coverage/**",
+    "dist-electron/*.css",
+    "mobile/**/public/*.css"
   ],
   "plugins": [
     "stylelint-declaration-block-no-ignored-properties",

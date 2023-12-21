@@ -8,6 +8,7 @@ import type { LedgerWalletInfo } from '../../util/ledger/types';
 
 import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -50,6 +51,7 @@ function LedgerModal({
   isRemoteTab,
 }: OwnProps & StateProps) {
   const {
+    afterSelectHardwareWallets,
     resetHardwareWalletConnect,
   } = getActions();
 
@@ -60,7 +62,16 @@ function LedgerModal({
     LedgerModalState.SelectWallets,
   );
 
-  const handleConnected = useLastCallback(() => {
+  const handleAddLedgerWallet = useLastCallback(() => {
+    afterSelectHardwareWallets({ hardwareSelectedIndices: [hardwareWallets![0].index] });
+    onClose();
+  });
+
+  const handleConnected = useLastCallback((isSingleWallet: boolean) => {
+    if (isSingleWallet) {
+      handleAddLedgerWallet();
+      return;
+    }
     setCurrentSlide(LedgerModalState.SelectWallets);
   });
 
@@ -75,6 +86,7 @@ function LedgerModal({
       case LedgerModalState.Connect:
         return (
           <LedgerConnect
+            isActive={isActive}
             state={hardwareState}
             isLedgerConnected={isLedgerConnected}
             isTonAppConnected={isTonAppConnected}
@@ -86,6 +98,7 @@ function LedgerModal({
       case LedgerModalState.SelectWallets:
         return (
           <LedgerSelectWallets
+            isActive={isActive}
             accounts={accounts}
             hardwareWallets={hardwareWallets}
             onClose={onClose}
@@ -103,7 +116,7 @@ function LedgerModal({
       dialogClassName={styles.modalDialog}
     >
       <Transition
-        name="slideFade"
+        name={resolveModalTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

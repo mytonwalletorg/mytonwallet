@@ -1,21 +1,29 @@
 import type { ApiTonConnectProof } from '../tonConnect/types';
 import type { ApiActivity, ApiTransactionActivity } from './activity';
+import type { ApiStakingCommonData, ApiSwapAsset } from './backend';
 import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBackendStakingState,
+  ApiBaseCurrency,
   ApiDappTransaction,
   ApiNft,
   ApiStakingState,
   ApiToken,
 } from './misc';
 import type { ApiParsedPayload } from './payload';
-import type { ApiDapp } from './storage';
+import type { ApiAccount, ApiDapp } from './storage';
 
 export type ApiUpdateBalance = {
   type: 'updateBalance';
   accountId: string;
   slug: string;
   balance: string;
+};
+
+export type ApiUpdateBalances = {
+  type: 'updateBalances';
+  accountId: string;
+  balancesToUpdate: Record<string, string>;
 };
 
 export type ApiUpdateNewActivities = {
@@ -33,6 +41,12 @@ export type ApiUpdateNewLocalTransaction = {
 export type ApiUpdateTokens = {
   type: 'updateTokens';
   tokens: Record<string, ApiToken>;
+  baseCurrency: ApiBaseCurrency;
+};
+
+export type ApiUpdateSwapTokens = {
+  type: 'updateSwapTokens';
+  tokens: Record<string, ApiSwapAsset>;
 };
 
 export type ApiUpdateCreateTransaction = {
@@ -53,28 +67,16 @@ export type ApiUpdateCreateSignature = {
   dataHex: string;
 };
 
-export type ApiUpdateTxComplete = {
-  type: 'updateTxComplete';
-  accountId: string;
-  toAddress: string;
-  amount: string;
-  txId: string;
-  localTxId: string;
-};
-
 export type ApiUpdateShowError = {
   type: 'showError';
   error?: ApiAnyDisplayError;
 };
 
-export type ApiUpdateStakingState = {
-  type: 'updateStakingState';
+export type ApiUpdateStaking = {
+  type: 'updateStaking';
   accountId: string;
+  stakingCommonData: ApiStakingCommonData;
   stakingState: ApiStakingState;
-};
-
-export type ApiUpdateBackendStakingState = {
-  type: 'updateBackendStakingState';
   backendStakingState: ApiBackendStakingState;
 };
 
@@ -111,6 +113,11 @@ export type ApiUpdateDappDisconnect = {
   origin: string;
 };
 
+export type ApiUpdateDappLoading = {
+  type: 'dappLoading';
+  connectionType: 'connect' | 'sendTransaction';
+};
+
 export type ApiUpdatePrepareTransaction = {
   type: 'prepareTransaction';
   toAddress: string;
@@ -145,23 +152,31 @@ export type ApiUpdateNftPutUpForSale = {
 
 export type ApiNftUpdate = ApiUpdateNftReceived | ApiUpdateNftSent | ApiUpdateNftPutUpForSale;
 
+export type ApiUpdateAccount = {
+  type: 'updateAccount';
+  accountId: string;
+  partial: Partial<ApiAccount>;
+};
+
 export type ApiUpdate =
   ApiUpdateBalance
+  | ApiUpdateBalances
   | ApiUpdateNewActivities
   | ApiUpdateNewLocalTransaction
   | ApiUpdateTokens
+  | ApiUpdateSwapTokens
   | ApiUpdateCreateTransaction
   | ApiUpdateCreateSignature
-  | ApiUpdateTxComplete
-  | ApiUpdateStakingState
+  | ApiUpdateStaking
   | ApiUpdateActiveDapp
   | ApiUpdateDappSendTransactions
   | ApiUpdateDappConnect
   | ApiUpdateDappDisconnect
-  | ApiUpdateBackendStakingState
+  | ApiUpdateDappLoading
   | ApiUpdatePrepareTransaction
   | ApiUpdateShowError
   | ApiUpdateNfts
-  | ApiNftUpdate;
+  | ApiNftUpdate
+  | ApiUpdateAccount;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

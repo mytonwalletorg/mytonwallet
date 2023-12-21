@@ -7,24 +7,8 @@ textCopyEl.setAttribute('readonly', '');
 textCopyEl.tabIndex = -1;
 textCopyEl.className = 'visually-hidden';
 
-export const copyTextToClipboard = (str: string): void => {
-  textCopyEl.value = str;
-  document.body.appendChild(textCopyEl);
-  const selection = document.getSelection();
-
-  if (selection) {
-    // Store previous selection
-    const rangeToRestore = selection.rangeCount > 0 && selection.getRangeAt(0);
-    textCopyEl.select();
-    document.execCommand('copy');
-    // Restore the original selection
-    if (rangeToRestore) {
-      selection.removeAllRanges();
-      selection.addRange(rangeToRestore);
-    }
-  }
-
-  document.body.removeChild(textCopyEl);
+export const copyTextToClipboard = (str: string): Promise<void> => {
+  return navigator.clipboard.writeText(str);
 };
 
 export const copyImageToClipboard = (imageUrl?: string) => {

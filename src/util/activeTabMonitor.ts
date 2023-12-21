@@ -1,18 +1,22 @@
-import { DETACHED_TAB_URL } from './ledger/tab';
+import { ACTIVE_TAB_STORAGE_KEY } from '../config';
+import {
+  IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_LEDGER_EXTENSION_TAB,
+} from './windowEnvironment';
 
-const STORAGE_KEY = 'mtw-active-tab';
+const IS_DISABLED = IS_LEDGER_EXTENSION_TAB || IS_DELEGATED_BOTTOM_SHEET || IS_ELECTRON;
+
 const INTERVAL = 2000;
 
 const tabKey = String(Date.now() + Math.random());
 
-if (!window.location.href.includes(DETACHED_TAB_URL)) {
-  localStorage.setItem(STORAGE_KEY, tabKey);
+if (!IS_DISABLED) {
+  localStorage.setItem(ACTIVE_TAB_STORAGE_KEY, tabKey);
 }
 
 let callback: NoneToVoidFunction;
 
 const interval = window.setInterval(() => {
-  if (callback && localStorage.getItem(STORAGE_KEY) !== tabKey && !window.location.href.includes(DETACHED_TAB_URL)) {
+  if (!IS_DISABLED && callback && localStorage.getItem(ACTIVE_TAB_STORAGE_KEY) !== tabKey) {
     callback();
     clearInterval(interval);
   }

@@ -1,19 +1,22 @@
 import React, { memo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
+import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../../../config';
+import { TON_TOKEN_SLUG } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
 import { formatShortDay } from '../../../../util/dateFormat';
-import { formatCurrency } from '../../../../util/formatNumber';
+import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
+import useForceUpdate from '../../../../hooks/useForceUpdate';
 import useLang from '../../../../hooks/useLang';
+import useTimeout from '../../../../hooks/useTimeout';
 
 import TokenPriceChart from '../../../common/TokenPriceChart';
 import Button from '../../../ui/Button';
@@ -34,6 +37,7 @@ interface OwnProps {
 interface StateProps {
   period?: keyof typeof HISTORY_PERIODS;
   apyValue: number;
+  baseCurrency?: ApiBaseCurrency;
 }
 
 const HISTORY_PERIODS = {
@@ -43,11 +47,7 @@ const HISTORY_PERIODS = {
 } as const;
 
 const DEFAULT_PERIOD = '24h';
-
-const COIN_MARKET_CAP_TOKENS: Record<string, string> = {
-  toncoin: 'toncoin',
-  'ton-tgr': 'tgr',
-};
+const OFFLINE_TIMEOUT = 120000; // 2 minutes
 
 const CHART_DIMENSIONS = { width: 300, height: 64 };
 
@@ -59,11 +59,14 @@ function TokenCard({
   apyValue,
   onApyClick,
   onClose,
+  baseCurrency,
 }: OwnProps & StateProps) {
   const { setCurrentTokenPeriod } = getActions();
   const { isPortrait } = useDeviceScreen();
-
   const lang = useLang();
+  const forceUpdate = useForceUpdate();
+
+  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const currentHistoryPeriod = HISTORY_PERIODS[period].historyKey;
   const currentChangePeriod = HISTORY_PERIODS[period].changeKey;
 
@@ -79,11 +82,15 @@ function TokenCard({
 
   const history = currentHistoryPeriod in token ? token[currentHistoryPeriod] : undefined;
 
+  const tokenLastUpdatedAt = history?.length ? history[history.length - 1][0] * 1000 : undefined;
   const selectedHistoryPoint = history?.[selectedHistoryIndex];
   const price = selectedHistoryPoint?.[1] || lastPrice;
+  const isLoading = !tokenLastUpdatedAt || (Date.now() - tokenLastUpdatedAt > OFFLINE_TIMEOUT);
   const dateStr = selectedHistoryPoint
     ? formatShortDay(lang.code!, selectedHistoryPoint[0] * 1000, true, true)
-    : lang('Now');
+    : (isLoading && tokenLastUpdatedAt ? formatShortDay(lang.code!, tokenLastUpdatedAt, true, false) : lang('Now'));
+
+  useTimeout(forceUpdate, isLoading ? undefined : OFFLINE_TIMEOUT, [tokenLastUpdatedAt]);
 
   const initialPrice = history?.[0]?.[1];
   const change = initialPrice
@@ -100,7 +107,7 @@ function TokenCard({
   const withChange = Boolean(change !== undefined);
   const withHistory = Boolean(history?.length);
   const historyStartDay = withHistory ? new Date(history![0][0] * 1000) : undefined;
-  const withCmcButton = slug in COIN_MARKET_CAP_TOKENS;
+  const withCmcButton = Boolean(token.cmcSlug);
 
   function renderChart() {
     return (
@@ -117,7 +124,7 @@ function TokenCard({
   }
 
   return (
-    <div className={buildClassName(styles.container, styles.tokenCard, classNames, color)}>
+    <div className={buildClassName(styles.container, styles.tokenCard, classNames, color, 'token-card')}>
       <div className={styles.tokenInfo}>
         <Button className={styles.backButton} isSimple onClick={onClose} ariaLabel={lang('Back')}>
           <i className="icon-chevron-left" aria-hidden />
@@ -138,12 +145,12 @@ function TokenCard({
 
       {withChange && (
         <div className={styles.tokenPrice}>
-          ≈&thinsp;{formatCurrency(value, DEFAULT_PRICE_CURRENCY)}
+          ≈&thinsp;{formatCurrency(value, shortBaseSymbol)}
           {Boolean(changeValue) && (
             <div className={styles.tokenChange}>
               {changePrefix}
               &thinsp;
-              {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), DEFAULT_PRICE_CURRENCY)}
+              {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), shortBaseSymbol)}
             </div>
           )}
         </div>
@@ -156,7 +163,7 @@ function TokenCard({
           </Transition>
 
           <div className={styles.tokenHistoryPrice}>
-            {formatCurrency(history![0][1], DEFAULT_PRICE_CURRENCY)}
+            {formatCurrency(history![0][1], shortBaseSymbol)}
             <div className={styles.tokenPriceDate}>{formatShortDay(lang.code!, historyStartDay!)}</div>
           </div>
 
@@ -185,14 +192,14 @@ function TokenCard({
       )}
 
       <div className={styles.tokenCurrentPrice}>
-        {formatCurrency(price, DEFAULT_PRICE_CURRENCY, selectedHistoryIndex === -1 ? 2 : 4)}
+        {formatCurrency(price, shortBaseSymbol, selectedHistoryIndex === -1 ? 2 : 4)}
         <div className={styles.tokenPriceDate}>
           {dateStr}
           {withCmcButton && (
             <>
               {' · '}
               <a
-                href={`https://coinmarketcap.com/currencies/${COIN_MARKET_CAP_TOKENS[slug]}/`}
+                href={`https://coinmarketcap.com/currencies/${token.cmcSlug}/`}
                 title={lang('Open on CoinMarketCap')}
                 target="_blank"
                 rel="noreferrer"
@@ -214,7 +221,8 @@ export default memo(
 
     return {
       period: accountState?.currentTokenPeriod,
-      apyValue: accountState?.poolState?.lastApy || 0,
+      apyValue: accountState?.staking?.apy || 0,
+      baseCurrency: global.settings.baseCurrency,
     };
   })(TokenCard),
 );

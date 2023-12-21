@@ -2,6 +2,7 @@ import type { ApiTransactionExtra } from '../blockchains/ton/types';
 import type { StorageKey } from '../storages/types';
 import type {
   AccountIdParsed,
+  ApiAccount,
   ApiLocalTransactionParams,
   ApiTransaction,
   ApiTransactionActivity,
@@ -10,15 +11,15 @@ import type {
 
 import { IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
 import { buildAccountId, parseAccountId } from '../../util/account';
+import { toBase64Address } from '../blockchains/ton/util/tonweb';
 import { storage } from '../storages';
 import idbStorage from '../storages/idb';
 import { getKnownAddresses, getScamMarkers } from './addresses';
-import { whenTxComplete } from './txCallbacks';
 
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 7;
+const actualStateVersion = 8;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -34,41 +35,10 @@ export function buildInternalAccountId(account: Omit<AccountIdParsed, 'network'>
   return `${id}-${blockchain}`;
 }
 
-export function createLocalTransaction(
-  onUpdate: OnApiUpdate,
-  accountId: string,
+export function buildLocalTransaction(
   params: ApiLocalTransactionParams,
-  onTxComplete?: (transaction: ApiTransactionActivity) => void,
-) {
-  const { amount, toAddress } = params;
-
-  const localTransaction = buildLocalTransaction(params);
-
-  onUpdate({
-    type: 'newLocalTransaction',
-    transaction: localTransaction,
-    accountId,
-  });
-
-  whenTxComplete(toAddress, amount)
-    .then(({ transaction }) => {
-      if (onTxComplete) {
-        onTxComplete(transaction);
-      }
-      onUpdate({
-        type: 'updateTxComplete',
-        accountId,
-        toAddress,
-        amount,
-        txId: transaction.txId,
-        localTxId: localTransaction.txId,
-      });
-    });
-
-  return localTransaction;
-}
-
-function buildLocalTransaction(params: ApiLocalTransactionParams): ApiTransactionActivity {
+  normalizedAddress: string,
+): ApiTransactionActivity {
   const { amount, ...restParams } = params;
 
   const transaction: ApiTransaction = updateTransactionMetadata({
@@ -77,6 +47,9 @@ function buildLocalTransaction(params: ApiLocalTransactionParams): ApiTransactio
     isIncoming: false,
     amount: `-${amount}`,
     ...restParams,
+    extraData: {
+      normalizedAddress,
+    },
   });
 
   return {
@@ -87,17 +60,14 @@ function buildLocalTransaction(params: ApiLocalTransactionParams): ApiTransactio
 }
 
 export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {
-  const {
-    isIncoming, fromAddress, toAddress, comment,
-  } = transaction;
+  const { extraData, comment } = transaction;
   let { metadata = {} } = transaction;
 
   const knownAddresses = getKnownAddresses();
   const scamMarkers = getScamMarkers();
 
-  const address = isIncoming ? fromAddress : toAddress;
-  if (address in knownAddresses) {
-    metadata = { ...metadata, ...knownAddresses[address] };
+  if (extraData.normalizedAddress in knownAddresses) {
+    metadata = { ...metadata, ...knownAddresses[extraData.normalizedAddress] };
   }
 
   if (comment && scamMarkers.map((sm) => sm.test(comment)).find(Boolean)) {
@@ -121,8 +91,8 @@ export function isUpdaterAlive(onUpdate: OnApiUpdate) {
   return currentOnUpdate === onUpdate;
 }
 
-export function startStorageMigration() {
-  migrationEnsurePromise = migrateStorage();
+export function startStorageMigration(onUpdate: OnApiUpdate) {
+  migrationEnsurePromise = migrateStorage(onUpdate);
   return migrationEnsurePromise;
 }
 
@@ -130,14 +100,14 @@ export function waitStorageMigration() {
   return migrationEnsurePromise;
 }
 
-export async function migrateStorage() {
+export async function migrateStorage(onUpdate: OnApiUpdate) {
   let version = Number(await storage.getItem('stateVersion'));
 
   if (version === actualStateVersion) {
     return;
   }
 
-  if (!version && !(await storage.getItem('addresses'))) {
+  if (!version && !(await storage.getItem('addresses' as StorageKey))) {
     version = await idbStorage.getItem('stateVersion');
 
     if (IS_EXTENSION && version) {
@@ -182,7 +152,7 @@ export async function migrateStorage() {
   }
 
   if (version === 1) {
-    const addresses = await storage.getItem('addresses') as string | undefined;
+    const addresses = await storage.getItem('addresses' as StorageKey) as string | undefined;
     if (addresses && addresses.includes('-undefined')) {
       for (const field of ['mnemonicsEncrypted', 'addresses', 'publicKeys'] as StorageKey[]) {
         const newValue = (await storage.getItem(field) as string).replace('-undefined', '-ton');
@@ -241,6 +211,41 @@ export async function migrateStorage() {
     }
 
     version = 7;
+    await storage.setItem('stateVersion', version);
+  }
+
+  if (version === 7) {
+    const addresses = (await storage.getItem('addresses' as StorageKey)) as Record<string, string> | undefined;
+
+    if (addresses) {
+      const publicKeys = (await storage.getItem('publicKeys' as StorageKey)) as Record<string, string>;
+      const accounts = (await storage.getItem('accounts') ?? {}) as Record<string, ApiAccount>;
+
+      for (const [accountId, oldAddress] of Object.entries(addresses)) {
+        const newAddress = toBase64Address(oldAddress, false);
+
+        accounts[accountId] = {
+          ...accounts[accountId],
+          address: newAddress,
+          publicKey: publicKeys[accountId],
+        };
+
+        onUpdate({
+          type: 'updateAccount',
+          accountId,
+          partial: {
+            address: newAddress,
+          },
+        });
+      }
+
+      await storage.setItem('accounts', accounts);
+
+      await storage.removeItem('addresses' as StorageKey);
+      await storage.removeItem('publicKeys' as StorageKey);
+    }
+
+    version = 8;
     await storage.setItem('stateVersion', version);
   }
 }

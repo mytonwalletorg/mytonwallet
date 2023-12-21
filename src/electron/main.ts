@@ -5,8 +5,9 @@ import contextMenu from 'electron-context-menu';
 import path from 'path';
 
 import { initDeeplink } from './deeplink';
+import { setupSecrets } from './secrets';
 import { IS_MAC_OS } from './utils';
-import { createWindow, setupCloseHandlers } from './window';
+import { createWindow, setupCloseHandlers, setupElectronActionHandlers } from './window';
 
 initDeeplink();
 
@@ -24,5 +25,7 @@ app.on('ready', () => {
   }
 
   createWindow();
+  setupElectronActionHandlers();
   setupCloseHandlers();
+  setupSecrets();
 });

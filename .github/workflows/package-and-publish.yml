@@ -13,6 +13,11 @@ on:
   push:
     branches:
       - master
+      - mobile-release
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   APP_NAME: MyTonWallet
@@ -22,6 +27,7 @@ jobs:
   electron-release:
     name: Build, package and publish Electron
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -59,6 +65,10 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k actions $KEY_CHAIN
           security find-identity -v -p codesigning $KEY_CHAIN
 
+      - name: Get branch name for current workflow run
+        id: branch-name
+        uses: tj-actions/branch-names@v7
+
       - name: Build, package and publish
         env:
           TONHTTPAPI_MAINNET_URL: ${{ vars.TONHTTPAPI_MAINNET_URL }}
@@ -74,6 +84,8 @@ jobs:
 
           PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          BASE_URL: ${{ vars.BASE_URL }}
+          IS_PREVIEW: ${{ steps.branch-name.outputs.current_branch != 'master' }}
         run: |
           if [ -z "$PUBLISH_REPO" ]; then
             npm run electron:package:staging
@@ -109,6 +121,7 @@ jobs:
     name: Sign and re-publish Windows package
     needs: electron-release
     runs-on: windows-latest
+    timeout-minutes: 10
     if: vars.PUBLISH_REPO != ''
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -200,6 +213,7 @@ jobs:
   extensions-package:
     name: Build and package extensions
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -257,6 +271,7 @@ jobs:
     name: Publish extensions
     needs: extensions-package
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: vars.PUBLISH_REPO != ''
     steps:
       - name: Checkout
@@ -292,33 +307,33 @@ jobs:
         with:
           name: ${{ env.FIREFOX_FILE_NAME }}
 
-#      - name: Publish to Firefox addons
-#        env:
-#          WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
-#          WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
-#          # App env
-#          TONHTTPAPI_MAINNET_URL: ${{ vars.TONHTTPAPI_MAINNET_URL }}
-#          TONAPIIO_MAINNET_URL: ${{ vars.TONAPIIO_MAINNET_URL }}
-#          TONHTTPAPI_TESTNET_URL: ${{ vars.TONHTTPAPI_TESTNET_URL }}
-#          TONAPIIO_TESTNET_URL: ${{ vars.TONAPIIO_TESTNET_URL }}
-#          PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
-#          STAKING_POOLS: ${{ vars.STAKING_POOLS }}
-#        if: ${{ env.WEB_EXT_API_KEY != '' }}
-#        run: |
-#          npm i jsonwebtoken@9 web-ext-submit@7
-#          UNZIP_DIR=/tmp/${{ env.APP_NAME }}-firefox
-#          mkdir $UNZIP_DIR
-#          unzip ${{ env.FIREFOX_FILE_NAME }} -d $UNZIP_DIR
-#          web-ext-submit --source-dir=$UNZIP_DIR/dist
-#          echo "APP_NAME=\"${APP_NAME}\"
-#          TONHTTPAPI_MAINNET_URL=\"${TONHTTPAPI_MAINNET_URL}\"
-#          TONHTTPAPI_TESTNET_URL=\"${TONHTTPAPI_TESTNET_URL}\"
-#          TONAPIIO_MAINNET_URL=\"${TONAPIIO_MAINNET_URL}\"
-#          TONAPIIO_TESTNET_URL=\"${TONAPIIO_TESTNET_URL}\"
-#          PROXY_HOSTS=\"${PROXY_HOSTS}\"
-#          STAKING_POOLS=\"${STAKING_POOLS}\"" >.env
-#          bash deploy/firefox_pack_sources.sh
-#          node deploy/firefoxPatchVersion.js
+      - name: Publish to Firefox addons
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
+          # App env
+          TONHTTPAPI_MAINNET_URL: ${{ vars.TONHTTPAPI_MAINNET_URL }}
+          TONAPIIO_MAINNET_URL: ${{ vars.TONAPIIO_MAINNET_URL }}
+          TONHTTPAPI_TESTNET_URL: ${{ vars.TONHTTPAPI_TESTNET_URL }}
+          TONAPIIO_TESTNET_URL: ${{ vars.TONAPIIO_TESTNET_URL }}
+          PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
+          STAKING_POOLS: ${{ vars.STAKING_POOLS }}
+        if: ${{ env.WEB_EXT_API_KEY != '' }}
+        run: |
+          npm i jsonwebtoken@9 web-ext-submit@7
+          UNZIP_DIR=/tmp/${{ env.APP_NAME }}-firefox
+          mkdir $UNZIP_DIR
+          unzip ${{ env.FIREFOX_FILE_NAME }} -d $UNZIP_DIR
+          web-ext-submit --source-dir=$UNZIP_DIR/dist
+          echo "APP_NAME=\"${APP_NAME}\"
+          TONHTTPAPI_MAINNET_URL=\"${TONHTTPAPI_MAINNET_URL}\"
+          TONHTTPAPI_TESTNET_URL=\"${TONHTTPAPI_TESTNET_URL}\"
+          TONAPIIO_MAINNET_URL=\"${TONAPIIO_MAINNET_URL}\"
+          TONAPIIO_TESTNET_URL=\"${TONAPIIO_TESTNET_URL}\"
+          PROXY_HOSTS=\"${PROXY_HOSTS}\"
+          STAKING_POOLS=\"${STAKING_POOLS}\"" >.env
+          bash deploy/firefox_pack_sources.sh
+          node deploy/firefoxPatchVersion.js
 
   calculate-hash:
     name: Calculate sha256 hashes
@@ -343,3 +358,121 @@ jobs:
         with:
           name: ${{ env.HASH_FILENAME }}
           path: ${{ env.HASH_FILENAME }}
+
+  mobile-release:
+    name: Build, package and publish mobile apps
+    runs-on: macos-latest
+    timeout-minutes: 30
+    if: vars.PUBLISH_REPO == '' && github.event_name != 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Cache node modules
+        id: npm-cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Build and sync mobile projects
+        env:
+          TONHTTPAPI_MAINNET_URL: ${{ vars.TONHTTPAPI_MAINNET_URL }}
+          TONAPIIO_MAINNET_URL: ${{ vars.TONAPIIO_MAINNET_URL }}
+          TONHTTPAPI_TESTNET_URL: ${{ vars.TONHTTPAPI_TESTNET_URL }}
+          TONAPIIO_TESTNET_URL: ${{ vars.TONAPIIO_TESTNET_URL }}
+          PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
+          STAKING_POOLS: ${{ vars.STAKING_POOLS }}
+          PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
+        run: |
+          if [ "$GITHUB_REF_NAME" == "mobile-release" ]; then
+            npm run mobile:build:production
+          else
+            npm run mobile:build:staging
+          fi
+
+      - name: Use Ruby and install dependencies
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Install the Apple certificate and provisioning profile
+        env:
+          IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+          IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate and provisioning profile from secrets
+          echo -n "$IOS_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$IOS_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$IOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$IOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$IOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+      - name: "iOS: Package and publish"
+        env:
+          IOS_AUTH_KEY_BASE64: ${{ secrets.IOS_AUTH_KEY_BASE64 }}
+        run: |
+          cd mobile/ios/App
+          echo -n "$IOS_AUTH_KEY_BASE64" | base64 --decode -o ./AuthKey.p8
+          if [ "$GITHUB_REF_NAME" == "mobile-release" ]; then
+            bundle exec fastlane release
+          else
+            bundle exec fastlane beta
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: "Android: Package and publish"
+        env:
+          ANDROID_API_KEY_BASE64: ${{ secrets.ANDROID_API_KEY_BASE64 }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          cd mobile/android
+
+          echo -n "$ANDROID_API_KEY_BASE64" | base64 --decode -o ./api-key.json
+          echo -n "$ANDROID_KEYSTORE_BASE64" | base64 --decode -o ./android.keystore
+
+          if [ "$GITHUB_REF_NAME" == "mobile-release" ]; then
+            bundle exec fastlane release
+          else
+            bundle exec fastlane beta
+          fi

@@ -19,3 +19,6 @@ export {
 export {
   startSseConnection,
 } from '../tonConnect/sse';
+export * from './swap';
+export * from './other';
+export * from './prices';

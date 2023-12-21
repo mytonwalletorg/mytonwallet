@@ -10,6 +10,6 @@ export function logDebugError(message: string, ...args: any[]) {
 export function logDebug(message: any, ...args: any[]) {
   if (DEBUG) {
     // eslint-disable-next-line no-console
-    console.log('[DEBUG]', message, ...args);
+    console.log(`[DEBUG] ${message}`, ...args);
   }
 }

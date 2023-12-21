@@ -7,7 +7,7 @@ Import From %1$d Secret Words: Importar usando la frase semilla
 About MyTonWallet: Acerca de MyTonWallet
 Creating Wallet...: Creando monedero...
 On the count of three...: A la cuenta de tres...
-Back Up: Hacer copia de seguridad
+Back Up: Siguiente
 Passwords must be equal.: Las contraseñas deben coincidir.
 To protect your wallet as much as possible, use a password with: Para la máxima protección de su monedero, use una contraseña con
 $auth_password_rule_8chars: al menos 8 caracteres
@@ -40,7 +40,7 @@ Let's Check: Revisemos
 Let's Check!: ¡Revisemos!
 Safety Rules: Normas de seguridad
 $safety_rules_one: |
-  En la siguiente pantalla verás las %1$s palabras de la **frase semilla**. Escríbalas en el mismo orden y **guárdelas en un lugar seguro**.
+  En la siguiente pantalla verás las palabras de la **frase semilla**. Escríbalas en el mismo orden y **guárdelas en un lugar seguro**.
 $safety_rules_two: Permiten **acceder a su mondero** si pierde su contraseña o el acceso a este dispositivo.
 $safety_rules_three: Si alguien más las ve, sus activos **pueden ser robados**. ¡Mire a su alrededor!
 Understood: Entiendo
@@ -101,21 +101,20 @@ $logout_accounts_without_backup_warning: No ha realizado copia de seguridad de %
 $logout_warning: Esto desconectará el monedero de esta aplicación. Podrá restaurar su monedero usando la frase semilla...
 Receive TON: Recibir TON
 Your address was copied!: ¡Su dirección fue copiada!
-Show QR-Code: Mostrar código QR
-Create Invoice: Crear factura
-QR-code: Código QR
+Show QR Code: Mostrar código QR
+Create Deposit Link: Crear enlace de depósito
+QR Code: Código QR
 $receive_invoice_description: |
   Puede especificar la cantidad y
-  el propósito del pago para ahorrar tiempo al remitente
+  el propósito del pago para ahorrar tiempo al remitente.
 Amount: Cantidad
 Comment: Comentario
 Share this URL to receive TON: Comparte esta URL para recibir TON
 Invoice link was copied!: ¡Se copió el enlace de la factura!
-US Dollar: Dólar estadounidense
 Theme: Tema
 Language: Idioma
 Enable Animations: Habilitar animaciones
-Fiat Currency: Moneda fíat
+Base Currency: Moneda base
 Investor View: Modo Inversor
 Toggle Investor View: Alternar Modo Inversor
 Hide Tiny Transfers: Ocultar transacciones pequeñas
@@ -167,12 +166,12 @@ Loading...: Cargando...
 Recipient Address: Dirección del destinatario
 Wallet address or domain: Dirección o dominio del monedero
 Incorrect address: Dirección incorrecta
+Incorrect address.: Dirección incorrecta.
 Paste: Pegar
 Insufficient balance: Saldo insuficiente
 InsufficientBalance: Saldo insuficiente
 Optional: Opcional
 $send_token_symbol: Enviar %1$s
-$balance_is: "Saldo: %balance%"
 Is it all ok?: ¿Está todo bien?
 Receiving Address: Dirección del receptor
 Fee: Comisión
@@ -199,7 +198,7 @@ $tiny_transfers_help: Desactive esta opción para mostrar transacciones de menos
 Today: Hoy
 Yesterday: Ayer
 Now: Ahora
-$receive_ton_description: Puede compartir esta dirección, mostrar el código QR o crear una factura para recibir TON
+$receive_ton_description: Puede compartir su dirección, escanear un código QR o crear un enlace de depósito para recibir criptomonedas.
 Your address: Tu dirección
 Wrong password, please try again: Contraseña incorrecta, inténtalo de nuevo
 Appearance: Apariencia
@@ -212,7 +211,7 @@ Earn from your tokens while holding them: Gana con tus tokens mientras los manti
 $est_apy_val: Est. APY %1$d%
 Why this is safe: Por qué esto es seguro
 Why staking is safe?: ¿Por qué el staking es seguro?
-$safe_staking_description1: El staking es **totalmente descentralizado** y operado por los **nominadores oficiales de TON**. Nadie puede obtener acceso a sus tokens en staking.
+$safe_staking_description1: El staking es **totalmente descentralizado** y operado por los **TON Liquid Staking smart contracts**.
 $safe_staking_description2: La participación depositada se utilizará para la validación de la red TON como parte de su esencia de **prueba de participación**.
 $safe_staking_description3: Puede retirar su apuesta en **cualquier momento** y se depositará de nuevo en su cuenta dentro de **dos días**.
 $min_value: Min %value%
@@ -338,6 +337,28 @@ $dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccion
 $dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
 Agree: Aceptar
 The hardware wallet does not support this data format: La billetera de hardware no admite este formato de datos
+Swap: Intercambiar
+You sell: Usted vende
+You buy: Usted compra
+Swap Details: Detalles del intercambio
+Blockchain fee: Tarifa de blockchain
+Price Impact: Impacto en el precio
+Minimum Received: Cantidad mínima recibida
+Slippage: Deslizamiento
+$swap_from_to: Intercambiar de %from% a %to%
+The exchange rate is below market value!: La tasa de cambio está un %value% por debajo del valor de mercado.
+Invalid Pair: Par Inválido
+We do not recommend to perform an exchange, try to specify a lower amount.: No recomendamos realizar un intercambio, intente especificar una cantidad menor.
+$swap_minimum_received_tooltip1: Esta es la cantidad mínima de nuevos tokens que recibirá en este intercambio, considerando las condiciones actuales del mercado, la tolerancia al deslizamiento y el posible impacto en el precio.
+$swap_minimum_received_tooltip2: Es un mínimo esperado, pero si las condiciones cambian mucho mientras su intercambio está siendo procesado, la cantidad final podría ser menor.
+$swap_price_impact_tooltip1: Esto muestra cuánto puede cambiar el precio de su operación el precio del token.
+$swap_price_impact_tooltip2: Las operaciones grandes pueden hacer que el precio suba o baje más. En general, es mejor un valor más bajo.
+$swap_slippage_tooltip1: Esto establece cuánto se permite que el precio cambie antes de que se procese su intercambio.
+$swap_slippage_tooltip2: Si durante el procesamiento de su intercambio, el precio cambia más que este valor, su orden será cancelada.
+Coins have been swapped!: ¡Las monedas han sido intercambiadas!
+Slippage not specified: Deslizamiento no especificado
+Slippage too high: Deslizamiento demasiado alto
+Not enough TON: TON insuficiente
 Use Responsibly: Usar responsablemente
 $auth_responsibly_description1: |
   MyTonWallet es una billetera con **autocustodia**, lo que significa que **solo usted** tiene el control total y, lo que es más importante, la **total responsabilidad** de sus fondos.
@@ -363,9 +384,125 @@ $auth_backup_description1: |
 $auth_backup_description2: "Y un gran poder conlleva una **gran responsabilidad**."
 $auth_backup_description3: |
   Debe hacer manualmente una **copia de seguridad de la frase semilla** que le permitirá recuperar su monedero en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
+Swap Placed: Intercambio Colocado
+Swapping: Intercambiando
+Swapped: Intercambiado
+Swap Failed: Intercambio Fallido
+Exchange rate: Tasa de Cambio
+Swap Again: Intercambiar de Nuevo
 Terms of Use: Términos de Uso
 Privacy Policy: Política de Privacidad
+Insufficient liquidity: Liquidez insuficiente
 This address is new and never received transfers before.: Esta dirección es nueva y nunca ha recibido transferencias antes.
 Create Backup: Crear copia de seguridad
 Sending: Enviando
-failed: fallido
+Failed: Fallido
+Refunded: Reembolsado
+On hold: En espera
+Expired: Expirado
+In progress: En progreso
+Waiting Payment: Esperando Pago
+Waiting for payment: Esperando el pago
+Blockchain: Blockchain
+Receiving address in blockchain: Dirección en %blockchain%
+Please provide an address of your wallet in another blockchain to receive bought tokens.: Por favor, proporcione una dirección de su billetera en otra cadena de bloques para recibir tokens comprados.
+The time for sending coins is over: El tiempo para enviar monedas ha terminado
+Please wait a few moments...: Por favor, espere unos momentos...
+You have not sent the coins to the specified address.: Usted no ha enviado las monedas a la dirección especificada.
+$swap_changelly_to_ton_description1: "Debe enviar %value% a esta dirección en la cadena de bloques %blockchain% dentro de %time%"
+Please contact support and provide a transaction ID.: Por favor, póngase en contacto con el soporte y proporcione un ID de transacción.
+Exchange failed and coins were refunded to your wallet.: El intercambio falló y las monedas fueron reembolsadas a su billetera.
+Please contact security team to pass the KYC procedure.: Por favor, póngase en contacto con el equipo de seguridad para completar el procedimiento de KYC.
+Swap Expired: Intercambio vencido
+Swap On Hold: Intercambio en Espera
+Swap Refunded: Intercambio reembolsado
+Changelly Payment Address: Dirección de Pago de Changelly
+Cross-chain exchange provided by Changelly: Proporcionado por Changelly
+$swap_changelly_agreement_message: Al continuar, usted acepta los %terms% y %policy% y comprende que la transacción puede desencadenar una verificación según el %kyc%.
+$swap_changelly_terms_of_use: términos de uso
+$swap_changelly_privacy_policy: política de privacidad
+Password must contain %length% digits.: La contraseña debe contener %length% dígitos.
+Deposit Link: Enlace de depósito
+$swap_changelly_from_ton_description: "Los tokens serán enviados a tu dirección en la blockchain de %blockchain% en unos momentos:"
+Minimum amount: Mínimo %value%
+Maximum amount: Máximo %value%
+Display Tray Icon: Icono de bandeja
+Enable Auto-Updates: Habilitar actualizaciones automáticas
+Biometric Authentication: Autenticación biométrica
+Turn off biometrics?: ¿Desactivar la biometría?
+If you turn off biometric protection, you will need to create a password.: Si desactiva la protección biométrica, deberá crear una contraseña.
+Enter your current password: Introduce tu contraseña actual
+Turn On Biometrics: Activar la biometría
+Please confirm transaction using biometrics: Confirme la transacción utilizando datos biométricos
+Enabling biometric confirmation will reset the password.: Al habilitar la confirmación biométrica se restablecerá la contraseña.
+Biometric Registration: Registro Biométrico
+Step 1 of 2. Registration: Paso 1 de 2. Registro
+Step 2 of 2. Verification: Paso 2 de 2. Verificación
+Biometric setup failed: Error en la configuración biométrica
+Biometric confirmation failed: Error de confirmación biométrica
+Failed to disable biometrics: No se pudo desactivar la biometría
+Biometric Confirmation: Confirmación biométrica
+Please verify your identity.: Verifique por favor su Identidad.
+Create Password: Crear contraseña
+Complete: Completo
+Verification: Verificación
+Create a password or use biometric authentication to protect it.: Cree una contraseña o utilice autenticación biométrica para protegerla.
+Connect Biometrics: Conectar biométrico
+Use Password: Usar contraseña
+Biometrics Disabled: Biometría deshabilitada
+Biometrics Enabled: Biometría habilitada
+A request is already pending: Ya hay una solicitud pendiente
+Please confirm operation using biometrics: Confirme la operación mediante datos biométricos.
+Scan QR Code: Escanear código QR
+Permission denied. Please grant camera permission to use the QR code scanner.: Permiso denegado. Otorgue permiso a la cámara para usar el escáner QR.
+Unsupported barcode format: Formato de código de barras no admitido
+An error on the server side. Please try again.: Un error en el lado del servidor. Inténtalo de nuevo.
+Unrecognized QR Code: Código QR no reconocido
+$fee_value_almost_equal: Comisión ≈ %fee%
+Address was saved!: ¡Dirección guardada!
+US Dollar: Dólar estadounidense
+Euro: Euro
+Ruble: Rublo
+Yuan: Yuan
+$max_balance: "Máximo: %balance%"
+$unstake_information_instantly: Obtendrá su depósito al instante.
+Select Token: Seleccionar Token
+MY: MI
+POPULAR: POPULAR
+A-Z: A-Z
+Not Found: No Encontrado
+Wallet is ready!: ¡La billetera está lista!
+Wallet is imported!: ¡La billetera es importada!
+Create a code to protect it: Crea un código para protegerlo.
+Enter your code again: Ingresa tu código nuevamente
+Codes don't match: Los códigos no coinciden
+Code set successfully: Código configurado correctamente
+Use Biometrics: Utilice la biometría
+Use Touch ID: Usar Touch ID
+Use Face ID: Usar Face ID
+You can connect your biometric data for more convenience: Puede conectar sus datos biométricos para mayor comodidad
+Connect Touch ID: Conectar Touch ID
+Connect Face ID: Conectar Face ID
+Not Now: Ahora no
+Biometric Authentification: Autenticación biométrica
+Touch ID: Touch ID
+Face ID: Face ID
+Turn Off Touch ID?: ¿Desactivar Touch ID?
+Turn Off Face ID?: ¿Desactivar Face ID?
+Turn Off Biometrics?: ¿Desactivar la biometría?
+Enter code: Introduzca el código
+Enter code or use Face ID: Ingresa el código o usa Face ID
+Enter code or use Touch ID: Ingresa el código o usa Touch ID
+Enter code or user biometrics: Ingrese el código o la biometría del usuario
+Wrong code, please try again: Código incorrecto, inténtalo de nuevo.
+Scan your fingerprint: Escanea tu huella digital
+Incorrect code, please try again: Codigo Incorrecto, por favor intenta de nuevo
+Correct: Correcto
+Confirm Operation: Confirmar operación
+Confirm Swap: Confirmar intercambio
+"%amount% to %address%": "%amount% a %address%"
+"%amount_from% to %amount_to%": "%amount_from% a %amount_to%"
+Are you sure you want to disable Face ID?: ¿Estás seguro de que quieres deshabilitar Face ID?
+Are you sure you want to disable Touch ID?: ¿Estás seguro de que quieres deshabilitar Touch ID?
+Are you sure you want to disable biometrics?: ¿Estás seguro de que quieres deshabilitar la biometría?
+Yes: Sí

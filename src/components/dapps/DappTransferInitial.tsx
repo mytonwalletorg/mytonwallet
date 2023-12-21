@@ -92,9 +92,9 @@ function DappTransferInitial({
     const { payload } = transaction;
 
     let extraText: string = '';
-    if (payload?.type === 'transfer-nft') {
+    if (payload?.type === 'nft:transfer') {
       extraText = '1 NFT + ';
-    } else if (payload?.type === 'transfer-tokens') {
+    } else if (payload?.type === 'tokens:transfer') {
       const { slug, amount } = payload;
       const { decimals, symbol } = tokens!.find((token) => token.slug === slug)!;
       extraText = `${formatCurrency(bigStrToHuman(amount, decimals), symbol, SHORT_FRACTION_DIGITS)} + `;
@@ -148,11 +148,12 @@ function DappTransferInitial({
       {isSingleTransaction ? renderTransaction() : renderTransactions()}
 
       <div className={modalStyles.buttons}>
-        <Button onClick={cancelDappTransfer}>{lang('Cancel')}</Button>
+        <Button className={modalStyles.button} onClick={cancelDappTransfer}>{lang('Cancel')}</Button>
         <Button
           isPrimary
           isSubmit
           isLoading={isLoading}
+          className={modalStyles.button}
           onClick={submitDappTransferConfirm}
         >
           {lang('Send')}

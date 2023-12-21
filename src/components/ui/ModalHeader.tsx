@@ -11,14 +11,14 @@ import modalStyles from './Modal.module.scss';
 type OwnProps = {
   title: string;
   className?: string;
-  withBorder?: boolean;
+  withNotch?: boolean;
   closeClassName?: string;
   onClose?: NoneToVoidFunction;
   onBackButtonClick?: () => void;
 };
 
 function ModalHeader({
-  title, className, withBorder, closeClassName, onClose, onBackButtonClick,
+  title, className, withNotch, closeClassName, onClose, onBackButtonClick,
 }: OwnProps) {
   const lang = useLang();
 
@@ -26,7 +26,8 @@ function ModalHeader({
     <div
       className={buildClassName(
         modalStyles.header,
-        withBorder && modalStyles.header_bordered,
+        'with-notch-on-scroll',
+        withNotch && 'is-scrolled',
         !onBackButtonClick && modalStyles.header_wideContent,
         className,
       )}

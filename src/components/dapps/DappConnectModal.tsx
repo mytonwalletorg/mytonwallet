@@ -15,6 +15,7 @@ import { bigStrToHuman } from '../../global/helpers';
 import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency } from '../../util/formatNumber';
+import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { shortenAddress } from '../../util/shortenAddress';
 
 import useFlag from '../../hooks/useFlag';
@@ -27,9 +28,9 @@ import LedgerConnect from '../ledger/LedgerConnect';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
-import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
 import DappInfo from './DappInfo';
+import DappPassword from './DappPassword';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
@@ -72,7 +73,6 @@ function DappConnectModal({
   const {
     submitDappConnectRequestConfirm,
     submitDappConnectRequestConfirmHardware,
-    clearDappConnectRequestError,
     cancelDappConnectRequestConfirm,
     setDappConnectRequestState,
   } = getActions();
@@ -83,6 +83,8 @@ function DappConnectModal({
   const [isConfirmOpen, openConfirm, closeConfirm] = useFlag(false);
 
   const { renderingKey, nextKey } = useModalTransitionKeys(state ?? 0, isModalOpen);
+
+  const isLoading = dapp === undefined;
 
   useEffect(() => {
     if (hasConnectRequest) {
@@ -145,10 +147,11 @@ function DappConnectModal({
   function renderAccount(accountId: string, address: string, title?: string) {
     const balance = accountsData?.[accountId].balances?.bySlug[tonToken.slug] || '0';
     const isActive = accountId === selectedAccount;
-    const onClick = isActive ? undefined : () => setSelectedAccount(accountId);
+    const onClick = isActive || isLoading ? undefined : () => setSelectedAccount(accountId);
     const fullClassName = buildClassName(
       styles.account,
       isActive && styles.account_current,
+      isLoading && styles.account_disabled,
     );
 
     return (
@@ -188,24 +191,6 @@ function DappConnectModal({
     );
   }
 
-  function renderPasswordForm(isActive: boolean) {
-    return (
-      <>
-        <ModalHeader title={lang('Enter Password')} onClose={closeModal} />
-        <PasswordForm
-          isActive={isActive}
-          error={error}
-          placeholder={lang('Enter your password')}
-          submitLabel={lang('Connect')}
-          onUpdate={clearDappConnectRequestError}
-          onSubmit={handlePasswordSubmit}
-          cancelLabel={lang('Cancel')}
-          onCancel={handlePasswordCancel}
-        />
-      </>
-    );
-  }
-
   function renderDappInfo() {
     return (
       <>
@@ -228,16 +213,53 @@ function DappConnectModal({
     );
   }
 
+  function renderWaitForConnection() {
+    return (
+      <>
+        <ModalHeader title={lang('Connect Dapp')} onClose={closeModal} />
+        <div className={modalStyles.transitionContent}>
+          <div className={styles.dappInfoSkeleton}>
+            <div className={styles.dappInfoIconSkeleton} />
+            <div className={styles.dappInfoTextSkeleton}>
+              <div className={styles.nameSkeleton} />
+              <div className={styles.descSkeleton} />
+            </div>
+          </div>
+          <div className={styles.accountWrapperSkeleton}>
+            {shouldRenderAccounts && renderAccounts()}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  function renderDappInfoWithSkeleton() {
+    return (
+      <Transition name="fade" activeKey={isLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
+        {isLoading ? renderWaitForConnection() : renderDappInfo()}
+      </Transition>
+    );
+  }
+
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
       case DappConnectState.Info:
-        return renderDappInfo();
+        return renderDappInfoWithSkeleton();
       case DappConnectState.Password:
-        return renderPasswordForm(isActive);
+        return (
+          <DappPassword
+            isActive={isActive}
+            error={error}
+            onSubmit={handlePasswordSubmit}
+            onClose={closeModal}
+            onCancel={handlePasswordCancel}
+          />
+        );
       case DappConnectState.ConnectHardware:
         return (
           <LedgerConnect
+            isActive={isActive}
             state={hardwareState}
             isTonAppConnected={isTonAppConnected}
             isLedgerConnected={isLedgerConnected}
@@ -248,6 +270,7 @@ function DappConnectModal({
       case DappConnectState.ConfirmHardware:
         return (
           <LedgerConfirmOperation
+            isActive={isActive}
             text={lang('Please confirm operation on your Ledger')}
             error={error}
             onTryAgain={submitDappConnectRequestHardware}
@@ -262,11 +285,13 @@ function DappConnectModal({
       <Modal
         isOpen={isModalOpen}
         dialogClassName={styles.modalDialog}
+        nativeBottomSheetKey="dapp-connect"
+        forceFullNative={renderingKey === DappConnectState.Password}
         onClose={cancelDappConnectRequestConfirm}
         onCloseAnimationEnd={cancelDappConnectRequestConfirm}
       >
         <Transition
-          name="slideFade"
+          name={resolveModalTransitionName()}
           className={buildClassName(modalStyles.transition, 'custom-scroll')}
           slideClassName={modalStyles.transitionSlide}
           activeKey={renderingKey}
@@ -297,7 +322,7 @@ function DappConnectModal({
 
 export default memo(withGlobal((global): StateProps => {
   const accounts = selectNetworkAccounts(global);
-  const hasConnectRequest = Boolean(global.dappConnectRequest?.dapp);
+  const hasConnectRequest = global.dappConnectRequest?.state !== undefined;
 
   const {
     state, dapp, error, accountId, permissions, proof,

@@ -5,6 +5,7 @@ import buildClassName from '../../util/buildClassName';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 
+import Loading from './Loading';
 import Menu from './Menu';
 
 import styles from './Dropdown.module.scss';
@@ -27,6 +28,7 @@ interface OwnProps {
   disabled?: boolean;
   shouldTranslateOptions?: boolean;
   onChange?: (value: string) => void;
+  isLoading?: boolean;
 }
 
 const DEFAULT_ARROW = 'caret';
@@ -44,6 +46,7 @@ function Dropdown({
   disabled,
   shouldTranslateOptions,
   onChange,
+  isLoading = false,
 }: OwnProps): TeactJsx {
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
@@ -88,23 +91,29 @@ function Dropdown({
       onClick={isFullyInteractive && !disabled && withMenu ? openMenu : undefined}
     >
       {label && <span className={styles.label}>{label}</span>}
-      <button
-        type="button"
-        className={buttonFullClassName}
-        onClick={!isFullyInteractive && withMenu ? openMenu : undefined}
-        disabled={disabled}
-      >
-        {selectedItem?.icon && <img src={selectedItem.icon} alt="" className={styles.itemIcon} />}
-        <span className={buildClassName(styles.itemName, 'itemName')}>
-          {shouldTranslateOptions ? lang(selectedItem!.name) : selectedItem!.name}
-        </span>
-        {withMenu && <i className={buttonArrowIcon} aria-hidden />}
-      </button>
+
+      {isLoading ? (
+        <Loading className={styles.spinner} />
+      ) : (
+        <button
+          type="button"
+          className={buttonFullClassName}
+          onClick={!isFullyInteractive && withMenu ? openMenu : undefined}
+          disabled={disabled}
+        >
+          {selectedItem?.icon && <img src={selectedItem.icon} alt="" className={styles.itemIcon} />}
+          <span className={buildClassName(styles.itemName, 'itemName')}>
+            {shouldTranslateOptions ? lang(selectedItem!.name) : selectedItem!.name}
+          </span>
+          {withMenu && <i className={buttonArrowIcon} aria-hidden />}
+        </button>
+      )}
+
       {withMenu && (
         <Menu
           positionX={menuPositionHorizontal}
           positionY={menuPosition}
-          isOpen={isMenuOpen}
+          isOpen={isMenuOpen && !isLoading}
           onClose={closeMenu}
           type="dropdown"
         >

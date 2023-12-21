@@ -23,3 +23,4 @@ trash/
 coverage/
 src/i18n/en.json
 notarization-error.log
+.patch-version

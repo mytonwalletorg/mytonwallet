@@ -1,50 +1,69 @@
-import type { ApiDappTransaction, ApiToken } from '../../../api/types';
-import type { UserToken } from '../../types';
+import type {
+  ApiActivity, ApiBaseToken, ApiDappTransaction, ApiSwapAsset, ApiToken,
+} from '../../../api/types';
+import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
-import { TransferState } from '../../types';
+import { ActiveTab, TransferState } from '../../types';
 
+import { IS_CAPACITOR } from '../../../config';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { compareActivities } from '../../../util/compareActivities';
 import {
-  buildCollectionByKey, findLast, mapValues, unique,
+  buildCollectionByKey, findLast, mapValues, pick, unique,
 } from '../../../util/iteratees';
-import { pause } from '../../../util/schedulers';
+import { onTickEnd, pause } from '../../../util/schedulers';
+import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import {
-  bigStrToHuman, getIsSwapId, getIsTxIdLocal, humanToBigStr,
+  getIsSwapId, getIsTinyTransaction, getIsTxIdLocal, humanToBigStr,
 } from '../../helpers';
 import {
   addActionHandler, getActions, getGlobal, setGlobal,
 } from '../../index';
 import {
   clearCurrentTransfer,
+  clearIsPinPadPasswordAccepted,
   updateAccountState,
   updateActivitiesIsHistoryEndReached,
   updateActivitiesIsLoading,
   updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
+  updateIsPinPadPasswordAccepted,
   updateSendingLoading,
   updateSettings,
 } from '../../reducers';
 import {
-  selectAccount, selectAccountSettings, selectAccountState, selectCurrentAccountState, selectLastTxIds,
+  selectAccount,
+  selectAccountSettings,
+  selectAccountState,
+  selectCurrentAccountState,
+  selectLastTxIds,
 } from '../../selectors';
+
+import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
 
 const IMPORT_TOKEN_PAUSE = 250;
 
 addActionHandler('startTransfer', (global, actions, payload) => {
-  const {
-    tokenSlug, toAddress, amount, comment,
-  } = payload || {};
+  const isOpen = global.currentTransfer.state !== TransferState.None;
+  if (IS_DELEGATED_BOTTOM_SHEET && !isOpen) {
+    callActionInMain('startTransfer', payload);
+    return;
+  }
+
+  const { isPortrait, ...rest } = payload ?? {};
 
   setGlobal(updateCurrentTransfer(global, {
-    state: TransferState.Initial,
+    state: isPortrait ? TransferState.Initial : TransferState.None,
     error: undefined,
-    toAddress,
-    amount,
-    comment,
-    tokenSlug,
+    ...rest,
   }));
+
+  if (!isPortrait) {
+    actions.setLandscapeActionsActiveTabIndex({ index: ActiveTab.Transfer });
+  }
 });
 
 addActionHandler('changeTransferToken', (global, actions, { tokenSlug }) => {
@@ -134,7 +153,6 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     error: undefined,
     toAddress,
     resolvedAddress: result.resolvedAddress,
-    normalizedAddress: result.normalizedAddress,
     amount,
     comment,
     shouldEncrypt,
@@ -180,8 +198,7 @@ addActionHandler('submitTransferConfirm', (global, actions) => {
   setGlobal(global);
 });
 
-addActionHandler('submitTransferPassword', async (global, actions, payload) => {
-  const { password } = payload;
+addActionHandler('submitTransferPassword', async (global, actions, { password }) => {
   const {
     resolvedAddress,
     comment,
@@ -199,10 +216,19 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
     return;
   }
 
-  setGlobal(updateCurrentTransfer(getGlobal(), {
+  global = getGlobal();
+  global = updateCurrentTransfer(getGlobal(), {
     isLoading: true,
     error: undefined,
-  }));
+  });
+  if (IS_CAPACITOR) {
+    global = updateIsPinPadPasswordAccepted(global);
+  }
+  setGlobal(global);
+
+  if (IS_CAPACITOR) {
+    await vibrateOnSuccess(true);
+  }
 
   if (promiseId) {
     void callApi('confirmDappRequest', promiseId, password);
@@ -222,12 +248,21 @@ addActionHandler('submitTransferPassword', async (global, actions, payload) => {
 
   const result = await callApi('submitTransfer', options);
 
-  setGlobal(updateCurrentTransfer(getGlobal(), {
+  global = getGlobal();
+  global = updateCurrentTransfer(global, {
     isLoading: false,
-  }));
+  });
+  setGlobal(global);
 
   if (!result || 'error' in result) {
+    if (IS_CAPACITOR) {
+      global = clearIsPinPadPasswordAccepted(global);
+      setGlobal(global);
+      void vibrateOnError();
+    }
     actions.showError({ error: result?.error });
+  } else if (IS_CAPACITOR) {
+    void vibrateOnSuccess();
   }
 });
 
@@ -305,47 +340,73 @@ addActionHandler('clearTransferError', (global) => {
   setGlobal(updateCurrentTransfer(global, { error: undefined }));
 });
 
-addActionHandler('cancelTransfer', (global) => {
+addActionHandler('cancelTransfer', (global, actions, { shouldReset } = {}) => {
   const { promiseId, tokenSlug } = global.currentTransfer;
 
-  if (promiseId) {
-    void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
-  }
+  if (shouldReset) {
+    if (promiseId) {
+      void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
+    }
 
-  global = clearCurrentTransfer(global);
-  global = updateCurrentTransfer(global, { tokenSlug });
+    global = clearCurrentTransfer(global);
+    global = updateCurrentTransfer(global, { tokenSlug });
 
-  setGlobal(global);
-});
-
-addActionHandler('fetchTokenTransactions', async (global, actions, payload) => {
-  const { limit } = payload || {};
-  const slug = payload.slug;
-
-  global = updateActivitiesIsLoading(global, true);
-  setGlobal(global);
-
-  let { idsBySlug } = selectCurrentAccountState(global)?.activities || {};
-  let tokenIds = (idsBySlug && idsBySlug[slug]) || [];
-
-  const offsetId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
-
-  const result = await callApi('fetchTokenActivitySlice', global.currentAccountId!, slug, offsetId, limit);
-  global = getGlobal();
-  global = updateActivitiesIsLoading(global, false);
-
-  if (!result || !result.length) {
-    global = updateActivitiesIsHistoryEndReached(global, true);
     setGlobal(global);
     return;
   }
 
-  const newById = buildCollectionByKey(result, 'id');
+  if (IS_CAPACITOR) {
+    global = clearIsPinPadPasswordAccepted(global);
+  }
+  global = updateCurrentTransfer(global, { state: TransferState.None });
+  setGlobal(global);
+});
+
+addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug, shouldLoadWithBudget }) => {
+  global = updateActivitiesIsLoading(global, true);
+  setGlobal(global);
+
+  let { idsBySlug } = selectCurrentAccountState(global)?.activities || {};
+  let shouldFetchMore = true;
+  let fetchedActivities: ApiActivity[] = [];
+  let tokenIds = (idsBySlug && idsBySlug[slug]) || [];
+  let offsetId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
+
+  while (shouldFetchMore) {
+    const result = await callApi('fetchTokenActivitySlice', global.currentAccountId!, slug, offsetId, limit);
+
+    global = getGlobal();
+
+    if (!result || 'error' in result) {
+      break;
+    }
+
+    if (!result.length) {
+      global = updateActivitiesIsHistoryEndReached(global, true, slug);
+      break;
+    }
+
+    const filteredResult = global.settings.areTinyTransfersHidden
+      ? result.filter((tx) => tx.kind === 'transaction' && !getIsTinyTransaction(tx))
+      : result;
+
+    fetchedActivities = fetchedActivities.concat(result);
+    shouldFetchMore = filteredResult.length < limit && fetchedActivities.length < limit;
+
+    tokenIds = unique(tokenIds.concat(filteredResult.map((tx) => tx.id)));
+    offsetId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
+  }
+
+  fetchedActivities.sort((a, b) => compareActivities(a, b, false));
+
+  global = updateActivitiesIsLoading(global, false);
+
+  const newById = buildCollectionByKey(fetchedActivities, 'id');
   const newOrderedIds = Object.keys(newById);
   const currentActivities = selectCurrentAccountState(global)?.activities;
 
   idsBySlug = currentActivities?.idsBySlug || {};
-  tokenIds = unique(idsBySlug[slug] || []).concat(newOrderedIds);
+  tokenIds = unique((idsBySlug[slug] || []).concat(newOrderedIds));
 
   global = updateCurrentAccountState(global, {
     activities: {
@@ -356,34 +417,65 @@ addActionHandler('fetchTokenTransactions', async (global, actions, payload) => {
   });
 
   setGlobal(global);
+
+  if (shouldLoadWithBudget) {
+    onTickEnd(() => {
+      actions.fetchTokenTransactions({ limit, slug });
+    });
+  }
 });
 
-addActionHandler('fetchAllTransactions', async (global, actions, payload) => {
-  const { limit } = payload || {};
-
+addActionHandler('fetchAllTransactions', async (global, actions, { limit, shouldLoadWithBudget }) => {
   global = updateActivitiesIsLoading(global, true);
   setGlobal(global);
 
   const accountId = global.currentAccountId!;
-  const lastTxIds = selectLastTxIds(global, accountId);
 
-  const result = await callApi('fetchAllActivitySlice', global.currentAccountId!, lastTxIds, limit);
-  global = getGlobal();
-  global = updateActivitiesIsLoading(global, false);
+  let lastTxIds = selectLastTxIds(global, accountId);
+  let shouldFetchMore = true;
+  let fetchedActivities: ApiActivity[] = [];
 
-  if (!result || !result.length) {
-    global = updateActivitiesIsHistoryEndReached(global, true);
-    setGlobal(global);
-    return;
+  while (shouldFetchMore) {
+    const result = await callApi('fetchAllActivitySlice', accountId, lastTxIds, limit);
+
+    global = getGlobal();
+
+    if (!result || 'error' in result) {
+      break;
+    }
+
+    if (!result.length) {
+      global = updateActivitiesIsHistoryEndReached(global, true);
+      break;
+    }
+
+    const filteredResult = global.settings.areTinyTransfersHidden
+      ? result.filter((tx) => tx.kind === 'transaction' && !getIsTinyTransaction(tx))
+      : result;
+
+    fetchedActivities = fetchedActivities.concat(result);
+    shouldFetchMore = filteredResult.length < limit && fetchedActivities.length < limit;
+
+    lastTxIds = selectLastTxIds(global, accountId);
   }
 
-  const newById = buildCollectionByKey(result, 'id');
+  global = updateActivitiesIsLoading(global, false);
+
+  const newById = buildCollectionByKey(fetchedActivities, 'id');
   const currentActivities = selectCurrentAccountState(global)?.activities;
   let idsBySlug = { ...currentActivities?.idsBySlug };
 
-  idsBySlug = result.reduce((acc, activity) => {
-    const { id, slug } = activity;
-    acc[slug] = (acc[slug] || []).concat([id]);
+  fetchedActivities = fetchedActivities.sort((a, b) => compareActivities(a, b, false));
+
+  idsBySlug = fetchedActivities.reduce((acc, activity) => {
+    if (activity.kind === 'swap') {
+      const { id, from, to } = activity;
+      acc[from] = (acc[from] || []).concat([id]);
+      acc[to] = (acc[to] || []).concat([id]);
+    } else {
+      const { id, slug } = activity;
+      acc[slug] = (acc[slug] || []).concat([id]);
+    }
     return acc;
   }, idsBySlug);
 
@@ -398,15 +490,21 @@ addActionHandler('fetchAllTransactions', async (global, actions, payload) => {
   });
 
   setGlobal(global);
+
+  if (shouldLoadWithBudget) {
+    onTickEnd(() => {
+      actions.fetchAllTransactions({ limit });
+    });
+  }
 });
 
-addActionHandler('resetIsHistoryEndReached', (global) => {
-  global = updateActivitiesIsHistoryEndReached(global, false);
+addActionHandler('resetIsHistoryEndReached', (global, actions, payload) => {
+  global = updateActivitiesIsHistoryEndReached(global, false, payload?.slug);
   setGlobal(global);
 });
 
 addActionHandler('setIsBackupRequired', (global, actions, { isMnemonicChecked }) => {
-  const { isBackupRequired } = selectCurrentAccountState(global);
+  const { isBackupRequired } = selectCurrentAccountState(global) ?? {};
 
   setGlobal(updateCurrentAccountState(global, {
     isBackupRequired: isMnemonicChecked ? undefined : isBackupRequired,
@@ -447,14 +545,17 @@ addActionHandler('cancelSignature', (global) => {
 
 addActionHandler('addToken', (global, actions, { token }) => {
   const accountId = global.currentAccountId!;
+  const { areTokensWithNoPriceHidden, areTokensWithNoBalanceHidden } = global.settings;
   const { balances } = selectAccountState(global, accountId) || {};
   const accountSettings = selectAccountSettings(global, accountId) ?? {};
+  const { orderedSlugs = [], exceptionSlugs = [], deletedSlugs } = accountSettings;
 
   if (balances?.bySlug[token.slug]) {
     return;
   }
 
-  const apiToken: ApiToken = {
+  const existingToken = global.tokenInfo?.bySlug?.[token.slug];
+  const apiToken: ApiToken = existingToken ?? {
     name: token.name,
     symbol: token.symbol,
     slug: token.slug,
@@ -473,6 +574,13 @@ addActionHandler('addToken', (global, actions, { token }) => {
     },
   };
 
+  const exceptionSlugsCopy = exceptionSlugs.slice();
+  const deletedSlugsCopy = deletedSlugs?.filter((slug) => slug !== token.slug);
+
+  if ((areTokensWithNoBalanceHidden && token.amount === 0) || (areTokensWithNoPriceHidden && token.price === 0)) {
+    exceptionSlugsCopy.push(token.slug);
+  }
+
   global = updateAccountState(global, accountId, {
     balances: {
       ...balances,
@@ -489,9 +597,11 @@ addActionHandler('addToken', (global, actions, { token }) => {
       [accountId]: {
         ...accountSettings,
         orderedSlugs: [
-          ...accountSettings.orderedSlugs ?? [],
+          ...orderedSlugs ?? [],
           apiToken.slug,
         ],
+        exceptionSlugs: exceptionSlugsCopy,
+        deletedSlugs: deletedSlugsCopy,
       },
     },
   });
@@ -506,75 +616,77 @@ addActionHandler('addToken', (global, actions, { token }) => {
       },
     },
   });
-
-  actions.toggleDisabledToken({ slug: apiToken.slug });
 });
 
-addActionHandler('importToken', async (global, actions, { address }) => {
-  setGlobal(
-    updateSettings(global, {
-      importToken: {
-        isLoading: true,
-        token: undefined,
-      },
-    }),
-  );
+addActionHandler('importToken', async (global, actions, { address, isSwap }) => {
+  global = updateSettings(global, {
+    importToken: {
+      isLoading: true,
+      token: undefined,
+    },
+  });
+  setGlobal(global);
 
-  const baseToken = await callApi('importToken', global.currentAccountId!, address);
-  await pause(IMPORT_TOKEN_PAUSE);
+  const slug = (await callApi('buildTokenSlug', address))!;
+  global = getGlobal();
 
-  if (!baseToken) {
-    global = getGlobal();
-    setGlobal(
-      updateSettings(global, {
+  let token: ApiToken | ApiBaseToken | undefined = global.tokenInfo.bySlug?.[slug!];
+
+  if (!token) {
+    token = await callApi('fetchToken', global.currentAccountId!, address);
+    await pause(IMPORT_TOKEN_PAUSE);
+
+    if (!token) {
+      global = getGlobal();
+      global = updateSettings(global, {
         importToken: {
           isLoading: false,
           token: undefined,
         },
-      }),
-    );
-    return;
+      });
+      setGlobal(global);
+      return;
+    }
   }
 
-  const {
-    slug, symbol, name, image, decimals, keywords,
-  } = baseToken;
-  const amount = bigStrToHuman('0', decimals);
-
-  const token: UserToken = {
-    symbol,
-    slug,
-    amount,
-    name,
-    image,
-    decimals,
+  const userToken: UserToken | UserSwapToken = {
+    ...pick(token, [
+      'symbol',
+      'slug',
+      'name',
+      'image',
+      'decimals',
+      'keywords',
+    ]),
+    amount: 0,
     price: 0,
     change24h: 0,
     change7d: 0,
     change30d: 0,
-    keywords,
+    ...(isSwap && {
+      blockchain: 'ton',
+      contract: token.minterAddress,
+    }),
   };
 
   global = getGlobal();
-  setGlobal(
-    updateSettings(global, {
-      importToken: {
-        isLoading: false,
-        token,
-      },
-    }),
-  );
+  global = updateSettings(global, {
+    importToken: {
+      isLoading: false,
+      token: userToken,
+    },
+  });
+  setGlobal(global);
 });
 
 addActionHandler('resetImportToken', (global) => {
-  setGlobal(
-    updateSettings(global, {
-      importToken: {
-        isLoading: false,
-        token: undefined,
-      },
-    }),
-  );
+  global = updateSettings(global, {
+    importToken: {
+      isLoading: false,
+      token: undefined,
+    },
+  });
+  setGlobal(global);
 });
 
 addActionHandler('verifyHardwareAddress', async (global) => {
@@ -594,9 +706,33 @@ addActionHandler('verifyHardwareAddress', async (global) => {
   }
 });
 
-addActionHandler('setActiveContentTabIndex', (global, actions, { index }) => {
+addActionHandler('setActiveContentTab', (global, actions, { tab }) => {
   global = updateCurrentAccountState(global, {
-    activeContentTabIndex: index,
+    activeContentTab: tab,
   });
   setGlobal(global);
+});
+
+addActionHandler('addSwapToken', (global, actions, { token }) => {
+  const apiSwapAsset: ApiSwapAsset = {
+    name: token.name,
+    symbol: token.symbol,
+    blockchain: token.blockchain,
+    slug: token.slug,
+    decimals: token.decimals,
+    image: token.image,
+    contract: token.contract,
+    keywords: token.keywords,
+  };
+
+  setGlobal({
+    ...global,
+    swapTokenInfo: {
+      ...global.swapTokenInfo,
+      bySlug: {
+        ...global.swapTokenInfo.bySlug,
+        [apiSwapAsset.slug]: apiSwapAsset,
+      },
+    },
+  });
 });

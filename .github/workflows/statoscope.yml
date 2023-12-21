@@ -67,7 +67,7 @@ jobs:
           path: ./
         continue-on-error: true
       - name: Prepare statoscope input
-        run: cp public/statoscope-build-statistics.json input.json; mv statoscope-reference.json reference.json
+        run: mv public/statoscope-build-statistics.json input.json; mv statoscope-reference.json reference.json
       - name: Validate
         run: npm run statoscope:validate-diff
       - name: Query stats

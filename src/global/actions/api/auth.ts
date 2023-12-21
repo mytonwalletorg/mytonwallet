@@ -1,18 +1,38 @@
-import { AppState, AuthState, HardwareConnectState } from '../../types';
+import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
-import { MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT } from '../../../config';
+import { ApiCommonError } from '../../../api/types';
+import {
+  AppState, AuthState, BiometricsState, HardwareConnectState,
+} from '../../types';
+
+import {
+  APP_NAME, IS_CAPACITOR, MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT,
+} from '../../../config';
 import { parseAccountId } from '../../../util/account';
+import authApi from '../../../util/authApi';
+import webAuthn from '../../../util/authApi/webAuthn';
+import {
+  getIsBiometricAuthSupported,
+  getIsNativeBiometricAuthSupported,
+  vibrateOnError,
+  vibrateOnSuccess,
+} from '../../../util/capacitor';
 import { cloneDeep } from '../../../util/iteratees';
 import { pause } from '../../../util/schedulers';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
 import { INITIAL_STATE } from '../../initialState';
 import {
+  clearCurrentSwap,
   clearCurrentTransfer,
+  clearIsPinPadPasswordAccepted,
   createAccount,
   updateAuth,
+  updateBiometrics,
   updateCurrentAccountState,
   updateHardware,
+  updateIsPinPadPasswordAccepted,
   updateSettings,
 } from '../../reducers';
 import {
@@ -20,11 +40,15 @@ import {
   selectCurrentNetwork,
   selectFirstNonHardwareAccount,
   selectIsOneAccount,
+  selectLastLedgerAccountIndex,
   selectNetworkAccountsMemoized,
   selectNewestTxIds,
 } from '../../selectors';
 
+import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
+
 const CREATING_DURATION = 3300;
+const NATIVE_BIOMETRICS_PAUSE_MS = 750;
 
 addActionHandler('restartAuth', (global) => {
   if (global.currentAccountId) {
@@ -45,6 +69,19 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   const accounts = selectAccounts(global) ?? {};
   const isFirstAccount = !Object.values(accounts).length;
   const methodState = isFirstAccount ? AuthState.creatingWallet : AuthState.createBackup;
+
+  const network = selectCurrentNetwork(global);
+  const checkResult = await callApi('checkApiAvailability', {
+    blockchainKey: 'ton',
+    network,
+  });
+
+  if (!checkResult) {
+    actions.showError({ error: ApiCommonError.ServerError });
+    return;
+  }
+
+  global = getGlobal();
 
   const promiseCalls = [
     callApi('generateMnemonic'),
@@ -75,10 +112,51 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
     return;
   }
 
-  setGlobal(updateAuth(global, { state: AuthState.createPassword }));
+  setGlobal(updateAuth(global, {
+    state: getIsBiometricAuthSupported()
+      ? (getIsNativeBiometricAuthSupported() ? AuthState.createPin : AuthState.createBiometrics)
+      : AuthState.createPassword,
+  }));
+
+  if (isFirstAccount) {
+    actions.requestConfetti();
+    if (IS_CAPACITOR) {
+      void vibrateOnSuccess();
+    }
+  }
 });
 
-addActionHandler('afterCreatePassword', (global, actions, { password }) => {
+addActionHandler('createPin', (global, actions, { pin, isImporting }) => {
+  global = updateAuth(global, {
+    state: isImporting ? AuthState.importWalletConfirmPin : AuthState.confirmPin,
+    password: pin,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('confirmPin', (global, actions, { isImporting }) => {
+  global = updateAuth(global, {
+    state: isImporting ? AuthState.importWalletCreateNativeBiometrics : AuthState.createNativeBiometrics,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('cancelConfirmPin', (global, actions, { isImporting }) => {
+  global = updateAuth(global, {
+    state: isImporting ? AuthState.importWalletCreatePin : AuthState.createPin,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('cancelDisclaimer', (global) => {
+  setGlobal(updateAuth(global, {
+    state: getIsBiometricAuthSupported()
+      ? (getIsNativeBiometricAuthSupported() ? AuthState.createPin : AuthState.createBiometrics)
+      : AuthState.createPassword,
+  }));
+});
+
+addActionHandler('afterCreatePassword', (global, actions, { password, isPasswordNumeric }) => {
   setGlobal(updateAuth(global, { isLoading: true }));
 
   const { method } = getGlobal().auth;
@@ -91,10 +169,102 @@ addActionHandler('afterCreatePassword', (global, actions, { password }) => {
     return;
   }
 
-  actions.createAccount({ password, isImporting });
+  actions.createAccount({ password, isImporting, isPasswordNumeric });
 });
 
-addActionHandler('createAccount', async (global, actions, { password, isImporting }) => {
+addActionHandler('afterCreateBiometrics', async (global, actions) => {
+  const withCredential = !IS_ELECTRON;
+  global = updateAuth(global, {
+    isLoading: true,
+    error: undefined,
+    biometricsStep: withCredential ? 1 : undefined,
+  });
+  setGlobal(global);
+
+  try {
+    const credential = withCredential
+      ? await webAuthn.createCredential()
+      : undefined;
+    global = getGlobal();
+    global = updateAuth(global, { biometricsStep: withCredential ? 2 : undefined });
+    setGlobal(global);
+    const result = await authApi.setupBiometrics({ credential });
+
+    global = getGlobal();
+    global = updateAuth(global, {
+      isLoading: false,
+      biometricsStep: undefined,
+    });
+
+    if (!result) {
+      global = updateAuth(global, { error: 'Biometric setup failed' });
+      setGlobal(global);
+
+      return;
+    }
+
+    global = updateSettings(global, { authConfig: result.config });
+    setGlobal(global);
+
+    actions.afterCreatePassword({ password: result.password });
+  } catch (err: any) {
+    const error = err?.message.includes('privacy-considerations-client')
+      ? 'Biometric setup failed'
+      : (err?.message || 'Biometric setup failed');
+    global = getGlobal();
+    global = updateAuth(global, {
+      isLoading: false,
+      error,
+      biometricsStep: undefined,
+    });
+    setGlobal(global);
+  }
+});
+
+addActionHandler('afterCreateNativeBiometrics', async (global, actions) => {
+  global = updateAuth(global, {
+    isLoading: true,
+    error: undefined,
+  });
+  setGlobal(global);
+
+  try {
+    const { password } = global.auth;
+    const result = await authApi.setupNativeBiometrics(password!);
+
+    global = getGlobal();
+    global = updateAuth(global, { isLoading: false });
+    global = updateSettings(global, { authConfig: result.config });
+    setGlobal(global);
+
+    actions.afterCreatePassword({ password: password!, isPasswordNumeric: true });
+  } catch (err: any) {
+    const error = err?.message.includes('privacy-considerations-client')
+      ? 'Biometric setup failed'
+      : (err?.message || 'Biometric setup failed');
+    global = getGlobal();
+    global = updateAuth(global, {
+      isLoading: false,
+      error,
+    });
+    setGlobal(global);
+  }
+});
+
+addActionHandler('skipCreateNativeBiometrics', (global, actions) => {
+  const { password } = global.auth;
+
+  global = updateAuth(global, { isLoading: false, error: undefined });
+  global = updateSettings(global, {
+    authConfig: { kind: 'password' },
+    isPasswordNumeric: true,
+  });
+  setGlobal(global);
+
+  actions.afterCreatePassword({ password: password!, isPasswordNumeric: true });
+});
+
+addActionHandler('createAccount', async (global, actions, { password, isImporting, isPasswordNumeric }) => {
   setGlobal(updateAuth(global, { isLoading: true }));
 
   const network = selectCurrentNetwork(getGlobal());
@@ -108,40 +278,40 @@ addActionHandler('createAccount', async (global, actions, { password, isImportin
 
   global = getGlobal();
 
-  if (!result) {
+  if (!result || 'error' in result) {
     setGlobal(updateAuth(global, { isLoading: undefined }));
+    actions.showError({ error: result?.error });
     return;
   }
 
+  const { accountId, address } = result;
   global = updateAuth(global, {
+    address,
+    accountId,
     isLoading: undefined,
     password: undefined,
+    ...(isPasswordNumeric && { isPasswordNumeric: true }),
   });
-  const { accountId, address } = result;
 
   if (isImporting) {
-    global = { ...global, currentAccountId: accountId };
-    global = updateAuth(global, {
-      state: AuthState.ready,
-    });
-    global = createAccount(global, accountId, address);
-    setGlobal(global);
+    const hasAccounts = Object.keys(selectAccounts(global) || {}).length > 0;
+    if (hasAccounts) {
+      setGlobal(global);
+      actions.afterConfirmDisclaimer();
 
-    actions.afterSignIn();
-    if (selectIsOneAccount(global)) {
-      actions.resetApiSettings();
+      return;
+    } else {
+      global = updateAuth(global, { state: AuthState.disclaimer });
     }
   } else {
     const accounts = selectAccounts(global) ?? {};
     const isFirstAccount = !Object.values(accounts).length;
     global = updateAuth(global, {
       state: isFirstAccount ? AuthState.disclaimerAndBackup : AuthState.createBackup,
-      accountId,
-      address,
     });
-
-    setGlobal(global);
   }
+
+  setGlobal(global);
 });
 
 addActionHandler('createHardwareAccounts', async (global, actions) => {
@@ -187,6 +357,11 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
   if (isFirstAccount) {
     actions.afterSignIn();
     actions.resetApiSettings();
+    actions.requestConfetti();
+
+    if (IS_CAPACITOR) {
+      void vibrateOnSuccess();
+    }
   }
 });
 
@@ -259,11 +434,24 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
   global = updateAuth(global, {
     mnemonic,
     error: undefined,
-    ...(!hasAccounts && { state: AuthState.disclaimer }),
+    ...(!hasAccounts && {
+      state: getIsBiometricAuthSupported()
+        ? (getIsNativeBiometricAuthSupported()
+          ? AuthState.importWalletCreatePin
+          : AuthState.importWalletCreateBiometrics
+        )
+        : AuthState.importWalletCreatePassword,
+    }),
   });
   setGlobal(global);
 
-  if (hasAccounts) {
+  if (!hasAccounts) {
+    actions.requestConfetti();
+
+    if (IS_CAPACITOR) {
+      void vibrateOnSuccess();
+    }
+  } else {
     actions.confirmDisclaimer();
   }
 });
@@ -278,7 +466,21 @@ addActionHandler('confirmDisclaimer', (global, actions) => {
     return;
   }
 
-  setGlobal(updateAuth(global, { state: AuthState.importWalletCreatePassword }));
+  actions.afterConfirmDisclaimer();
+});
+
+addActionHandler('afterConfirmDisclaimer', (global, actions) => {
+  const { accountId, address } = global.auth;
+
+  global = { ...global, currentAccountId: accountId };
+  global = updateAuth(global, { state: AuthState.ready });
+  global = createAccount(global, accountId!, address!);
+  setGlobal(global);
+
+  actions.afterSignIn();
+  if (selectIsOneAccount(global)) {
+    actions.resetApiSettings();
+  }
 });
 
 addActionHandler('cleanAuthError', (global) => {
@@ -296,6 +498,10 @@ export function selectMnemonicForCheck() {
 }
 
 addActionHandler('startChangingNetwork', (global, actions, { network }) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('startChangingNetwork', { network });
+  }
+
   const accountIds = Object.keys(selectNetworkAccountsMemoized(network, global.accounts!.byId)!);
 
   if (accountIds.length) {
@@ -311,7 +517,12 @@ addActionHandler('startChangingNetwork', (global, actions, { network }) => {
   }
 });
 
-addActionHandler('switchAccount', async (global, actions, { accountId, newNetwork }) => {
+addActionHandler('switchAccount', async (global, actions, payload) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('switchAccount', payload);
+  }
+
+  const { accountId, newNetwork } = payload;
   const newestTxIds = selectNewestTxIds(global, accountId);
   await callApi('activateAccount', accountId, newestTxIds);
 
@@ -321,6 +532,7 @@ addActionHandler('switchAccount', async (global, actions, { accountId, newNetwor
   };
 
   global = clearCurrentTransfer(global);
+  global = clearCurrentSwap(global);
   setGlobal(global);
 
   if (newNetwork) {
@@ -328,75 +540,86 @@ addActionHandler('switchAccount', async (global, actions, { accountId, newNetwor
   }
 });
 
-addActionHandler('connectHardwareWallet', async (global) => {
-  setGlobal(
-    updateHardware(global, {
-      hardwareState: HardwareConnectState.Connecting,
-      hardwareWallets: undefined,
-      hardwareSelectedIndices: undefined,
-      isLedgerConnected: undefined,
-      isTonAppConnected: undefined,
-    }),
-  );
+addActionHandler('connectHardwareWallet', async (global, actions) => {
+  global = updateHardware(global, {
+    hardwareState: HardwareConnectState.Connecting,
+    hardwareWallets: undefined,
+    hardwareSelectedIndices: undefined,
+    isLedgerConnected: undefined,
+    isTonAppConnected: undefined,
+  });
+  setGlobal(global);
 
   const ledgerApi = await import('../../../util/ledger');
 
   const isLedgerConnected = await ledgerApi.connectLedger();
+  global = getGlobal();
+
   if (!isLedgerConnected) {
-    setGlobal(
-      updateHardware(getGlobal(), {
-        isLedgerConnected: false,
-        hardwareState: HardwareConnectState.Failed,
-      }),
-    );
+    global = updateHardware(global, {
+      isLedgerConnected: false,
+      hardwareState: HardwareConnectState.Failed,
+    });
+    setGlobal(global);
     return;
   }
 
-  setGlobal(
-    updateHardware(getGlobal(), {
-      isLedgerConnected: true,
-    }),
-  );
+  global = updateHardware(global, {
+    isLedgerConnected: true,
+  });
+  setGlobal(global);
 
   const isTonAppConnected = await ledgerApi.waitLedgerTonApp();
+  global = getGlobal();
 
   if (!isTonAppConnected) {
-    setGlobal(
-      updateHardware(getGlobal(), {
-        isTonAppConnected: false,
-        hardwareState: HardwareConnectState.Failed,
-      }),
-    );
+    global = updateHardware(global, {
+      isTonAppConnected: false,
+      hardwareState: HardwareConnectState.Failed,
+    });
+    setGlobal(global);
     return;
   }
 
-  setGlobal(
-    updateHardware(getGlobal(), {
-      isTonAppConnected: true,
-    }),
-  );
+  global = updateHardware(global, {
+    isTonAppConnected: true,
+  });
+  setGlobal(global);
 
   try {
-    const network = selectCurrentNetwork(getGlobal());
-    const hardwareWallets = await ledgerApi.getFirstLedgerWallets(network);
+    global = getGlobal();
+    const { isRemoteTab } = global.hardware;
+    const network = selectCurrentNetwork(global);
+    const lastIndex = selectLastLedgerAccountIndex(global, network);
+    const hardwareWallets = isRemoteTab ? [] : await ledgerApi.getNextLedgerWallets(network, lastIndex);
 
-    setGlobal(
-      updateHardware(getGlobal(), {
-        hardwareWallets,
-        hardwareState: HardwareConnectState.Connected,
-      }),
-    );
+    global = getGlobal();
+
+    if ('error' in hardwareWallets) {
+      actions.showError({ error: hardwareWallets.error });
+      throw Error(hardwareWallets.error);
+    }
+
+    const nextHardwareState = isRemoteTab || hardwareWallets.length === 1
+      ? HardwareConnectState.ConnectedWithSingleWallet
+      : HardwareConnectState.ConnectedWithSeveralWallets;
+
+    global = updateHardware(global, {
+      hardwareWallets,
+      hardwareState: nextHardwareState,
+    });
+    setGlobal(global);
   } catch (err) {
-    setGlobal(
-      updateHardware(getGlobal(), {
-        hardwareState: HardwareConnectState.Failed,
-      }),
-    );
+    global = getGlobal();
+    global = updateHardware(global, {
+      hardwareState: HardwareConnectState.Failed,
+    });
+    setGlobal(global);
   }
 });
 
 addActionHandler('afterSelectHardwareWallets', (global, actions, { hardwareSelectedIndices }) => {
-  global = updateAuth(getGlobal(), {
+  global = updateAuth(global, {
     method: 'importHardwareWallet',
     error: undefined,
   });
@@ -410,11 +633,250 @@ addActionHandler('afterSelectHardwareWallets', (global, actions, { hardwareSelec
 });
 
 addActionHandler('resetHardwareWalletConnect', (global) => {
-  setGlobal(
-    updateHardware(global, {
-      hardwareState: HardwareConnectState.Connect,
-      isLedgerConnected: undefined,
-      isTonAppConnected: undefined,
-    }),
-  );
+  global = updateHardware(global, {
+    hardwareState: HardwareConnectState.Connect,
+    isLedgerConnected: undefined,
+    isTonAppConnected: undefined,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('enableBiometrics', async (global, actions, { password }) => {
+  if (!(await callApi('verifyPassword', password))) {
+    global = getGlobal();
+    global = updateBiometrics(global, { error: 'Wrong password, please try again' });
+    setGlobal(global);
+
+    return;
+  }
+
+  global = getGlobal();
+  global = updateBiometrics(global, {
+    error: undefined,
+    state: BiometricsState.TurnOnRegistration,
+  });
+  setGlobal(global);
+
+  try {
+    const credential = IS_ELECTRON
+      ? undefined
+      : await webAuthn.createCredential();
+
+    global = getGlobal();
+    global = updateBiometrics(global, { state: BiometricsState.TurnOnVerification });
+    setGlobal(global);
+
+    const result = await authApi.setupBiometrics({ credential });
+
+    global = getGlobal();
+    if (!result) {
+      global = updateBiometrics(global, {
+        error: 'Biometric setup failed',
+        state: BiometricsState.TurnOnPasswordConfirmation,
+      });
+      setGlobal(global);
+
+      return;
+    }
+    global = updateBiometrics(global, { state: BiometricsState.TurnOnComplete });
+    setGlobal(global);
+
+    await callApi('changePassword', password, result.password);
+
+    global = getGlobal();
+    global = updateSettings(global, { authConfig: result.config });
+
+    setGlobal(global);
+  } catch (err: any) {
+    const error = err?.message.includes('privacy-considerations-client')
+      ? 'Biometric setup failed'
+      : (err?.message || 'Biometric setup failed');
+    global = getGlobal();
+    global = updateBiometrics(global, {
+      error,
+      state: BiometricsState.TurnOnPasswordConfirmation,
+    });
+    setGlobal(global);
+  }
+});
+
+addActionHandler('disableBiometrics', async (global, actions, { password, isPasswordNumeric }) => {
+  const { password: oldPassword } = global.biometrics;
+
+  if (!password || !oldPassword) {
+    global = updateBiometrics(global, { error: 'Biometric confirmation failed' });
+    setGlobal(global);
+
+    return;
+  }
+
+  try {
+    await callApi('changePassword', oldPassword, password);
+  } catch (err: any) {
+    global = getGlobal();
+    global = updateBiometrics(global, { error: err?.message || 'Failed to disable biometrics' });
+    setGlobal(global);
+
+    return;
+  }
+
+  global = getGlobal();
+  global = updateBiometrics(global, {
+    state: BiometricsState.TurnOffComplete,
+    error: undefined,
+  });
+  global = updateSettings(global, {
+    authConfig: { kind: 'password' },
+    isPasswordNumeric,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('closeBiometricSettings', (global) => {
+  global = { ...global, biometrics: cloneDeep(INITIAL_STATE.biometrics) };
+
+  setGlobal(global);
+});
+
+addActionHandler('openBiometricsTurnOn', (global) => {
+  global = updateBiometrics(global, { state: BiometricsState.TurnOnPasswordConfirmation });
+
+  setGlobal(global);
+});
+
+addActionHandler('openBiometricsTurnOffWarning', (global) => {
+  global = updateBiometrics(global, { state: BiometricsState.TurnOffWarning });
+
+  setGlobal(global);
+});
+
+addActionHandler('openBiometricsTurnOff', async (global) => {
+  global = updateBiometrics(global, { state: BiometricsState.TurnOffBiometricConfirmation });
+  setGlobal(global);
+
+  const password = await authApi.getPassword(global.settings.authConfig!);
+  global = getGlobal();
+
+  if (!password) {
+    global = updateBiometrics(global, { error: 'Biometric confirmation failed' });
+  } else {
+    global = updateBiometrics(global, {
+      state: BiometricsState.TurnOffCreatePassword,
+      password,
+    });
+  }
+
+  setGlobal(global);
+});
+
+addActionHandler('disableNativeBiometrics', (global) => {
+  global = updateSettings(global, {
+    authConfig: { kind: 'password' },
+    isPasswordNumeric: true,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('enableNativeBiometrics', async (global, actions, { password }) => {
+  if (!(await callApi('verifyPassword', password))) {
+    global = getGlobal();
+    global = {
+      ...global,
+      nativeBiometricsError: 'Incorrect code, please try again',
+    };
+    global = clearIsPinPadPasswordAccepted(global);
+    setGlobal(global);
+
+    return;
+  }
+
+  global = getGlobal();
+
+  global = updateIsPinPadPasswordAccepted(global);
+  global = {
+    ...global,
+    nativeBiometricsError: undefined,
+  };
+  setGlobal(global);
+
+  try {
+    const isVerified = await NativeBiometric.verifyIdentity({
+      title: APP_NAME,
+      subtitle: '',
+    })
+      .then(() => true)
+      .catch(() => false);
+
+    if (!isVerified) {
+      global = getGlobal();
+      global = {
+        ...global,
+        nativeBiometricsError: 'Failed to enable biometrics',
+      };
+      global = clearIsPinPadPasswordAccepted(global);
+      setGlobal(global);
+      void vibrateOnError();
+
+      return;
+    }
+
+    const result = await authApi.setupNativeBiometrics(password);
+    await pause(NATIVE_BIOMETRICS_PAUSE_MS);
+
+    global = getGlobal();
+    global = updateSettings(global, {
+      authConfig: result.config,
+    });
+    global = {
+      ...global,
+      nativeBiometricsError: undefined,
+    };
+    setGlobal(global);
+
+    void vibrateOnSuccess();
+  } catch (err: any) {
+    global = getGlobal();
+    global = {
+      ...global,
+      nativeBiometricsError: err?.message || 'Failed to enable biometrics',
+    };
+    global = clearIsPinPadPasswordAccepted(global);
+    setGlobal(global);
+
+    void vibrateOnError();
+  }
+});
+
+addActionHandler('clearNativeBiometricsError', (global) => {
+  return {
+    ...global,
+    nativeBiometricsError: undefined,
+  };
+});
+
+addActionHandler('openAuthBackupWalletModal', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openAuthBackupWalletModal');
+    return;
+  }
+
+  global = updateAuth(global, { isBackupModalOpen: true });
+  setGlobal(global);
+});
+
+addActionHandler('closeAuthBackupWalletModal', (global, actions, props) => {
+  const { isBackupCreated } = props || {};
+
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('closeAuthBackupWalletModal', props);
+  }
+
+  global = updateAuth(global, {
+    isBackupModalOpen: undefined,
+  });
+  setGlobal(global);
+
+  if (!IS_DELEGATED_BOTTOM_SHEET && isBackupCreated) {
+    actions.afterCheckMnemonic();
+  }
 });

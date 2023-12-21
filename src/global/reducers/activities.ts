@@ -1,4 +1,4 @@
-import type { ApiActivity } from '../../api/types';
+import type { ApiActivity, ApiTransactionActivity } from '../../api/types';
 import type { GlobalState } from '../types';
 
 import { getIsTxIdLocal } from '../helpers';
@@ -9,7 +9,29 @@ export function updateActivity(global: GlobalState, accountId: string, activity:
   const { activities } = selectAccountState(global, accountId) || {};
   const idsBySlug = activities?.idsBySlug || {};
 
-  const { id, timestamp } = activity;
+  const { id, timestamp, kind } = activity;
+
+  if (kind === 'swap') {
+    const { from, to } = activity;
+
+    let fromTokenIds = idsBySlug[from] || [];
+    let toTokenIds = idsBySlug[to] || [];
+
+    if (!fromTokenIds.includes(id)) {
+      fromTokenIds = [id].concat(fromTokenIds);
+    }
+    if (!toTokenIds.includes(id)) {
+      toTokenIds = [id].concat(toTokenIds);
+    }
+
+    return updateAccountState(global, accountId, {
+      activities: {
+        ...activities,
+        byId: { ...activities?.byId, [id]: activity },
+        idsBySlug: { ...idsBySlug, [from]: fromTokenIds, [to]: toTokenIds },
+      },
+    });
+  }
 
   const { slug } = activity;
   const isLocal = getIsTxIdLocal(id);
@@ -38,21 +60,65 @@ export function updateActivity(global: GlobalState, accountId: string, activity:
   });
 }
 
-export function removeTransaction(global: GlobalState, accountId: string, txId: string) {
+export function assignRemoteTxId(global: GlobalState, accountId: string, txId: string, newTxId: string) {
   const { activities } = selectAccountState(global, accountId) || {};
-  let { idsBySlug } = activities || {};
-  const { [txId]: removedActivity, ...byTxId } = activities?.byId || {};
-  const slug = removedActivity?.kind === 'transaction' && removedActivity.slug;
+  const { byId, idsBySlug } = activities || { byId: {}, idsBySlug: {} };
+  const replacedActivity: ApiActivity | undefined = byId[txId];
 
-  if (slug && idsBySlug && idsBySlug[slug]) {
-    idsBySlug = { ...idsBySlug, [slug]: idsBySlug[slug].filter((x) => x !== txId) };
+  if (!replacedActivity || replacedActivity.kind !== 'transaction') return global;
+
+  const slug = replacedActivity.slug;
+  const updatedIdsBySlug = { ...idsBySlug };
+
+  if (slug in updatedIdsBySlug) {
+    const indexOfTxId = updatedIdsBySlug[slug].indexOf(txId);
+    if (indexOfTxId === -1) return global;
+
+    updatedIdsBySlug[slug] = [
+      ...updatedIdsBySlug[slug].slice(0, indexOfTxId),
+      newTxId,
+      ...updatedIdsBySlug[slug].slice(indexOfTxId + 1),
+    ];
   }
+
+  const updatedByTxId = {
+    ...byId,
+    [newTxId]: { ...replacedActivity, id: newTxId, txId: newTxId },
+  };
+
+  delete updatedByTxId[txId];
 
   return updateAccountState(global, accountId, {
     activities: {
       ...activities,
-      byId: byTxId,
-      idsBySlug,
+      byId: updatedByTxId,
+      idsBySlug: updatedIdsBySlug,
+    },
+  });
+}
+
+export function addLocalTransaction(global: GlobalState, accountId: string, transaction: ApiTransactionActivity) {
+  const { activities } = selectAccountState(global, accountId) || {};
+  const localTransactions = (activities?.localTransactions ?? []).concat(transaction);
+
+  return updateAccountState(global, accountId, {
+    activities: {
+      ...activities,
+      byId: activities?.byId ?? {},
+      localTransactions,
+    },
+  });
+}
+
+export function removeLocalTransaction(global: GlobalState, accountId: string, txId: string) {
+  const { activities } = selectAccountState(global, accountId) || {};
+  const localTransactions = (activities?.localTransactions ?? []).filter(({ id }) => id !== txId);
+
+  return updateAccountState(global, accountId, {
+    activities: {
+      ...activities,
+      byId: activities?.byId ?? {},
+      localTransactions,
     },
   });
 }

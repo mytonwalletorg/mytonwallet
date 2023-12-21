@@ -3,7 +3,7 @@ import type {
   ConnectEvent,
   ConnectRequest,
   DeviceInfo,
-  DisconnectRpcResponse,
+  DisconnectEvent,
   RpcRequests,
 } from '@tonconnect/protocol';
 import nacl, { randomBytes } from 'tweetnacl';
@@ -27,6 +27,8 @@ type SseDapp = {
   origin: string;
 } & ApiSseOptions;
 
+type ReturnStrategy = 'back' | 'none' | string;
+
 const BRIDGE_URL = 'https://tonconnectbridge.mytonwallet.org/bridge';
 const TTL_SEC = 300;
 const NONCE_SIZE = 24;
@@ -34,16 +36,18 @@ const NONCE_SIZE = 24;
 let sseEventSource: EventSource | undefined;
 let sseDapps: SseDapp[] = [];
 
-export async function startSseConnection(url: string, deviceInfo: DeviceInfo) {
-  await waitLogin();
-
+export async function startSseConnection(url: string, deviceInfo: DeviceInfo): Promise<ReturnStrategy | undefined> {
   const params = new URL(url).searchParams;
+
+  const ret = params.get('ret') as ReturnStrategy | null;
+
+  if (!ret || !params.get('r')) {
+    return ret ?? undefined;
+  }
 
   const version = Number(params.get('v') as string);
   const appClientId = params.get('id') as string;
   const connectRequest = JSON.parse(params.get('r') as string) as ConnectRequest;
-  const ret = params.get('ret') as 'back' | 'none' | string | null;
-
   const { origin } = await tonConnect.fetchDappMetadata(connectRequest.manifestUrl);
 
   logDebug('SSE Start connection:', {
@@ -65,6 +69,8 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo) {
     },
   };
 
+  await waitLogin();
+
   const result = await tonConnect.connect(request, connectRequest, lastOutputId) as ConnectEvent;
   if (result.event === 'connect') {
     result.payload.device = deviceInfo;
@@ -72,11 +78,11 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo) {
 
   await sendMessage(result, secretKey, clientId, appClientId);
 
-  if (result.event === 'connect_error') {
-    return;
+  if (result.event !== 'connect_error') {
+    await resetupSseConnection();
   }
 
-  void resetupSseConnection();
+  return ret;
 }
 
 export async function resetupSseConnection() {
@@ -136,9 +142,10 @@ export async function sendSseDisconnect(accountId: string, origin: string) {
   const { secretKey, clientId, appClientId } = sseDapp;
   const lastOutputId = sseDapp.lastOutputId + 1;
 
-  const response: DisconnectRpcResponse = {
-    id: lastOutputId.toString(),
-    result: {},
+  const response: DisconnectEvent = {
+    event: 'disconnect',
+    id: lastOutputId,
+    payload: {},
   };
 
   await sendMessage(response, secretKey, clientId, appClientId);

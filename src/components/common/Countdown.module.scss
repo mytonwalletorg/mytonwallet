@@ -1,0 +1,12 @@
+.time {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 0.8125rem;
+  color: var(--color-gray-2);
+
+  transition: color 150ms;
+}
+
+.timeWarning {
+  color: var(--color-red);
+}

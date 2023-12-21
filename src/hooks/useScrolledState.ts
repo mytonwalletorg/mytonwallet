@@ -15,5 +15,10 @@ export default function useScrolledState(threshold = THRESHOLD) {
     setIsAtEnd(scrollHeight - scrollTop - clientHeight < threshold);
   });
 
-  return { isAtBeginning, isAtEnd, handleScroll };
+  return {
+    isAtBeginning,
+    isAtEnd,
+    isScrolled: !isAtBeginning,
+    handleScroll,
+  };
 }

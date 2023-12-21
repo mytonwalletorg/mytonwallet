@@ -11,6 +11,7 @@ import buildClassName from '../../util/buildClassName';
 import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -20,17 +21,18 @@ import ModalHeader from '../ui/ModalHeader';
 import styles from './LedgerModal.module.scss';
 
 type OwnProps = {
+  isActive?: boolean;
   hardwareWallets?: LedgerWalletInfo[];
   accounts?: Record<string, Account>;
-  onCancel?: NoneToVoidFunction ;
-  onClose: NoneToVoidFunction ;
+  onCancel?: NoneToVoidFunction;
+  onClose: NoneToVoidFunction;
 };
 
-const ACCOUNT_ADDRESS_SHIFT = 6;
-const ACCOUNT_ADDRESS_SHIFT_END = 6;
+const ACCOUNT_ADDRESS_SHIFT = 4;
 const ACCOUNT_BALANCE_DECIMALS = 3;
 
 function LedgerSelectWallets({
+  isActive,
   hardwareWallets,
   accounts,
   onCancel,
@@ -43,6 +45,11 @@ function LedgerSelectWallets({
 
   const [selectedAccountIndices, setSelectedAccountIndices] = useState<number[]>([]);
   const shouldCloseOnCancel = !onCancel;
+
+  useHistoryBack({
+    isActive,
+    onBack: onCancel ?? onClose,
+  });
 
   const handleAccountToggle = useLastCallback((index: number) => {
     if (selectedAccountIndices.includes(index)) {
@@ -63,12 +70,12 @@ function LedgerSelectWallets({
   );
 
   function renderAccount(address: string, balance: string, index: number, isConnected: boolean) {
-    const isActive = isConnected || selectedAccountIndices.includes(index);
+    const isActiveAccount = isConnected || selectedAccountIndices.includes(index);
 
     return (
       <div
         key={address}
-        className={buildClassName(styles.account, isActive && styles.account_current)}
+        className={buildClassName(styles.account, isActiveAccount && styles.account_current)}
         aria-label={lang('Switch Account')}
         onClick={isConnected ? undefined : () => handleAccountToggle(index)}
       >
@@ -78,20 +85,25 @@ function LedgerSelectWallets({
         </span>
         <div className={styles.accountFooter}>
           <span className={styles.accountAddress}>
-            {shortenAddress(address, ACCOUNT_ADDRESS_SHIFT, ACCOUNT_ADDRESS_SHIFT_END)}
+            {shortenAddress(address, ACCOUNT_ADDRESS_SHIFT, ACCOUNT_ADDRESS_SHIFT)}
           </span>
         </div>
 
-        <div className={buildClassName(styles.accountCheckMark, isActive && styles.accountCheckMark_active)} />
+        <div className={buildClassName(styles.accountCheckMark, isActiveAccount && styles.accountCheckMark_active)} />
       </div>
     );
   }
 
   function renderAccounts() {
     const list = hardwareWallets ?? [];
+    const fullClassName = buildClassName(
+      styles.accounts,
+      list.length === 1 && styles.accounts_single,
+      list.length === 2 && styles.accounts_two,
+    );
 
     return (
-      <div className={styles.accounts}>
+      <div className={fullClassName}>
         {list.map(
           ({ address, balance, index }) => renderAccount(
             address,

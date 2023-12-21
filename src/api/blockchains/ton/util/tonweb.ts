@@ -13,12 +13,19 @@ import {
   TONHTTPAPI_MAINNET_URL,
   TONHTTPAPI_TESTNET_API_KEY,
   TONHTTPAPI_TESTNET_URL,
+  TONINDEXER_MAINNET_URL,
+  TONINDEXER_TESTNET_URL,
 } from '../../../../config';
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
-import { base64ToBytes, hexToBytes } from '../../../common/utils';
+import { base64ToBytes, fetchJson, hexToBytes } from '../../../common/utils';
 import { API_HEADERS } from '../../../environment';
-import { JettonOpCode, OpCode } from '../constants';
+import {
+  DEFAULT_IS_BOUNCEABLE,
+  JettonOpCode,
+  LiquidStakingOpCode,
+  OpCode,
+} from '../constants';
 import { parseTxId, stringifyTxId } from './index';
 
 import CustomHttpProvider from './CustomHttpProvider';
@@ -26,6 +33,7 @@ import CustomHttpProvider from './CustomHttpProvider';
 const { Cell } = TonWeb.boc;
 const { Address } = TonWeb.utils;
 const { JettonMinter, JettonWallet } = TonWeb.token.jetton;
+export const { toNano, fromNano } = TonWeb.utils;
 
 const TON_MAX_COMMENT_BYTES = 127;
 
@@ -43,13 +51,13 @@ const tonwebByNetwork = {
 export const resolveTokenWalletAddress = withCacheAsync(
   async (network: ApiNetwork, address: string, minterAddress: string) => {
     const minter = new JettonMinter(getTonWeb(network).provider, { address: minterAddress } as any);
-    return toBase64Address(await minter.getJettonWalletAddress(new Address(address)));
+    return toBase64Address(await minter.getJettonWalletAddress(new Address(address)), true);
   },
 );
 
 export const resolveTokenMinterAddress = withCacheAsync(async (network: ApiNetwork, tokenWalletAddress: string) => {
   const tokenWallet = new JettonWallet(getTonWeb(network).provider, { address: tokenWalletAddress } as any);
-  return toBase64Address((await tokenWallet.getData()).jettonMinterAddress);
+  return toBase64Address((await tokenWallet.getData()).jettonMinterAddress, true);
 });
 
 export const getWalletPublicKey = withCacheAsync(async (network: ApiNetwork, address: string) => {
@@ -74,48 +82,58 @@ export async function getJettonMinterData(network: ApiNetwork, address: string) 
   return {
     ...data,
     totalSupply: data.totalSupply.toString(),
-    adminAddress: data.adminAddress ? toBase64Address(data.adminAddress) : undefined,
+    adminAddress: data.adminAddress ? toBase64Address(data.adminAddress, false) : undefined,
   };
 }
 
 export async function fetchNewestTxId(network: ApiNetwork, address: string) {
-  const tonWeb = getTonWeb(network);
+  const transactions = await fetchTransactions(network, address, 1);
 
-  const result: any[] = await tonWeb.provider.getTransactions(
-    address,
-    1,
-    undefined,
-    undefined,
-    undefined,
-    true,
-  );
-  if (!result?.length) {
+  if (!transactions.length) {
     return undefined;
   }
 
-  return stringifyTxId(result[0].transaction_id);
+  return transactions[0].txId;
 }
 
 export async function fetchTransactions(
-  network: ApiNetwork, address: string, limit: number, fromTxId?: string, toTxId?: string,
+  network: ApiNetwork,
+  address: string,
+  limit: number,
+  toTxId?: string,
+  fromTxId?: string,
 ): Promise<ApiTransactionExtra[]> {
-  const tonWeb = getTonWeb(network);
+  const indexerUrl = network === 'testnet' ? TONINDEXER_TESTNET_URL : TONINDEXER_MAINNET_URL;
+  const apiKey = network === 'testnet' ? TONHTTPAPI_TESTNET_API_KEY : TONHTTPAPI_MAINNET_API_KEY;
 
-  const fromLt = fromTxId ? parseTxId(fromTxId).lt : undefined;
-  const fromHash = fromTxId ? parseTxId(fromTxId).hash : undefined;
-  const toLt = toTxId ? parseTxId(toTxId).lt : undefined;
+  const fromLt = fromTxId ? parseTxId(fromTxId).lt.toString() : undefined;
+  const toLt = toTxId ? parseTxId(toTxId).lt.toString() : undefined;
 
-  let rawTransactions = await tonWeb.provider.getTransactions(
-    address, limit, fromLt, fromHash, toLt, true,
-  ) as any[];
+  let rawTransactions: any[] = await fetchJson(`${indexerUrl}/transactions`, {
+    account: address,
+    limit,
+    start_lt: fromLt,
+    end_lt: toLt,
+    sort: 'desc',
+  }, {
+    headers: {
+      ...(apiKey && { 'X-Api-Key': apiKey }),
+      ...API_HEADERS,
+    },
+  });
 
-  if (
-    fromTxId
-    && rawTransactions.length
-    && Number(rawTransactions[0].transaction_id.lt) === fromLt
-    && rawTransactions[0].transaction_id.hash === fromHash
-  ) {
-    rawTransactions = rawTransactions.slice(1);
+  if (!rawTransactions.length) {
+    return [];
+  }
+
+  if (limit > 1) {
+    if (fromLt && rawTransactions[rawTransactions.length - 1].lt === fromLt) {
+      rawTransactions.pop();
+    }
+
+    if (toLt && rawTransactions[0]?.lt === toLt) {
+      rawTransactions = rawTransactions.slice(1);
+    }
   }
 
   return rawTransactions.map(parseRawTransaction).flat();
@@ -123,15 +141,14 @@ export async function fetchTransactions(
 
 function parseRawTransaction(rawTx: any): ApiTransactionExtra[] {
   const {
-    utime,
-    transaction_id: {
-      lt,
-      hash,
-    },
+    now,
+    lt,
+    hash,
     fee,
   } = rawTx;
+
   const txId = stringifyTxId({ lt, hash });
-  const timestamp = utime as number * 1000;
+  const timestamp = now as number * 1000;
   const isIncoming = !!rawTx.in_msg.source;
   const msgs: any[] = isIncoming ? [rawTx.in_msg] : rawTx.out_msgs;
 
@@ -139,41 +156,27 @@ function parseRawTransaction(rawTx: any): ApiTransactionExtra[] {
 
   return msgs.map((msg, i) => {
     const { source, destination, value } = msg;
+    const normalizedAddress = toBase64Address(isIncoming ? source : destination, true);
     return {
       txId: msgs.length > 1 ? `${txId}:${i + 1}` : txId,
       timestamp,
       isIncoming,
-      fromAddress: source,
-      toAddress: destination,
+      fromAddress: toBase64Address(source),
+      toAddress: toBase64Address(destination),
       amount: isIncoming ? value : `-${value}`,
-      comment: getComment(msg),
-      encryptedComment: getEncryptedComment(msg),
       slug: TON_TOKEN_SLUG,
       fee,
       extraData: {
+        normalizedAddress,
         body: getRawBody(msg),
       },
     };
   });
 }
 
-function getComment(msg: any): string | undefined {
-  if (!msg.msg_data) return undefined;
-  if (msg.msg_data['@type'] !== 'msg.dataText') return undefined;
-  const base64 = msg.msg_data.text;
-  return new TextDecoder().decode(TonWeb.utils.base64ToBytes(base64));
-}
-
-function getEncryptedComment(msg: any): string | undefined {
-  if (!msg.msg_data) return undefined;
-  if (msg.msg_data['@type'] !== 'msg.dataEncryptedText') return undefined;
-  return msg.msg_data.text;
-}
-
 function getRawBody(msg: any) {
-  if (!msg.msg_data) return undefined;
-  if (msg.msg_data['@type'] !== 'msg.dataRaw') return undefined;
-  return msg.msg_data.body;
+  if (!msg.message_content) return undefined;
+  return msg.message_content.body;
 }
 
 export function getTonWeb(network: ApiNetwork = 'mainnet') {
@@ -184,7 +187,7 @@ export function oneCellFromBoc(boc: Uint8Array) {
   return TonWeb.boc.Cell.oneFromBoc(boc);
 }
 
-export function toBase64Address(address: AddressType, isBounceable = true) {
+export function toBase64Address(address: AddressType, isBounceable = DEFAULT_IS_BOUNCEABLE) {
   return new TonWeb.utils.Address(address).toString(true, true, isBounceable);
 }
 
@@ -274,4 +277,45 @@ export function packBytesAsSnake(bytes: Uint8Array, maxBytes = TON_MAX_COMMENT_B
   }
 
   return cell;
+}
+
+export function buildLiquidStakingDepositBody(queryId?: number) {
+  const cell = new Cell();
+  cell.bits.writeUint(LiquidStakingOpCode.Deposit, 32);
+  cell.bits.writeUint(queryId || 0, 64);
+  return cell;
+}
+
+export function buildLiquidStakingWithdrawBody(options: {
+  queryId?: number;
+  amount: string | BN;
+  responseAddress: AddressType;
+  waitTillRoundEnd?: boolean; // opposite of request_immediate_withdrawal
+  fillOrKill?: boolean;
+}) {
+  const {
+    queryId, amount, responseAddress, waitTillRoundEnd, fillOrKill,
+  } = options;
+
+  const customPayload = new Cell();
+  customPayload.bits.writeUint(Number(waitTillRoundEnd), 1);
+  customPayload.bits.writeUint(Number(fillOrKill), 1);
+
+  const cell = new Cell();
+  cell.bits.writeUint(JettonOpCode.Burn, 32);
+  cell.bits.writeUint(queryId ?? 0, 64);
+  cell.bits.writeCoins(new BN(amount));
+  cell.bits.writeAddress(new Address(responseAddress));
+  cell.bits.writeBit(1);
+  cell.refs.push(customPayload);
+
+  return cell;
+}
+
+export async function getTokenBalance(network: ApiNetwork, walletAddress: string) {
+  const jettonWallet = new JettonWallet(getTonWeb(network).provider, {
+    address: walletAddress,
+  });
+  const wallletData = await jettonWallet.getData();
+  return fromNano(wallletData.balance);
 }

@@ -8,7 +8,7 @@ interface OrderCallback<T> {
   (member: T): any;
 }
 
-export function buildCollectionByKey<T extends AnyLiteral>(collection: T[], key: keyof T) {
+export function buildCollectionByKey<T extends AnyLiteral>(collection: T[], key: keyof T): CollectionByKey<T> {
   return collection.reduce((byKey: CollectionByKey<T>, member: T) => {
     byKey[member[key]] = member;
 

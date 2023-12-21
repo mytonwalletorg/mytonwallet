@@ -67,6 +67,10 @@ export function initDeeplink() {
     processDeeplink();
 
     if (mainWindow) {
+      if (!mainWindow.isVisible()) {
+        mainWindow.show();
+      }
+
       if (mainWindow.isMinimized()) {
         mainWindow.restore();
       }
@@ -82,11 +86,8 @@ export function processDeeplink() {
   }
 
   if (isTonTransferDeeplink(deeplinkUrl)) {
-    const parsed = new URL(deeplinkUrl);
     mainWindow.webContents.send(ElectronEvent.DEEPLINK, {
-      to: parsed.pathname.replace(/^.*\//g, ''),
-      amount: Number(parsed.searchParams.get('amount')),
-      text: parsed.searchParams.get('text'),
+      url: deeplinkUrl,
     });
   } else if (isTonConnectDeeplink(deeplinkUrl)) {
     mainWindow.webContents.send(ElectronEvent.DEEPLINK_TONCONNECT, {

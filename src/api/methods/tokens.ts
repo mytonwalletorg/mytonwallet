@@ -3,12 +3,11 @@ import type { ApiNetwork } from '../types';
 import { parseAccountId } from '../../util/account';
 import blockchains from '../blockchains';
 
-export function importToken(accountId: string, address: string) {
+export function fetchToken(accountId: string, address: string) {
   const { network, blockchain: blockchainKey } = parseAccountId(accountId);
-
   const blockchain = blockchains[blockchainKey];
 
-  return blockchain.importToken(network, address);
+  return blockchain.fetchToken(network, address);
 }
 
 export function resolveTokenBySlug(slug: string) {
@@ -27,4 +26,10 @@ export function resolveTokenMinterAddress(network: ApiNetwork, tokenWalletAddres
   const blockchain = blockchains.ton;
 
   return blockchain.resolveTokenMinterAddress(network, tokenWalletAddress);
+}
+
+export function buildTokenSlug(address: string) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.buildTokenSlug(address);
 }

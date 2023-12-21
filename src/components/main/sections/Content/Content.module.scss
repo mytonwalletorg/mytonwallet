@@ -31,6 +31,7 @@
   position: relative;
   z-index: 1;
 
+  height: 2.75rem;
   padding: 0 2.5rem;
 
   .landscapeContainer & {
@@ -57,7 +58,7 @@
       content: '';
 
       position: absolute;
-      bottom: 0;
+      bottom: 0.0625rem;
       left: 50%;
       transform: translateX(-50%);
 
@@ -68,6 +69,14 @@
       box-shadow: 0 0.025rem 0 0 var(--color-separator);
     }
 
+    :global(html.with-safe-area-top) & {
+      top: 2.625rem;
+    }
+
+    // Fix for opera, dead zone of 37 pixels in extension window on windows
+    :global(html.is-windows.is-opera.is-extension) & {
+      top: 4.75rem;
+    }
   }
 }
 
@@ -113,7 +122,17 @@
     flex: 1 1 auto;
 
     max-width: 27rem;
+    min-height: calc(100vh - 6.5rem) !important;
     margin: 0 auto;
+
+    :global(html.with-safe-area-top) & {
+      min-height: calc(100vh - 5.375rem - var(--status-bar-height, 0px)) !important;
+    }
+
+    // Fix for opera, dead zone of 37 pixels in extension window on windows
+    :global(html.is-windows.is-opera.is-extension) & {
+      min-height: calc(100vh - 7.5rem) !important;
+    }
 
     :global(html:not(.with-safe-area-bottom)) & {
       border-radius: 0;

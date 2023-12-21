@@ -1,22 +1,20 @@
-import { useEffect, useLayoutEffect, useRef } from '../lib/teact/teact';
+import { useEffect } from '../lib/teact/teact';
+
+import useLastCallback from './useLastCallback';
 
 function useInterval(callback: NoneToVoidFunction, delay?: number, noFirst = false) {
-  const savedCallback = useRef(callback);
-
-  useLayoutEffect(() => {
-    savedCallback.current = callback;
-  }, [callback]);
+  const lastCallback = useLastCallback(callback);
 
   useEffect(() => {
     if (delay === undefined) {
       return undefined;
     }
 
-    const id = setInterval(() => savedCallback.current(), delay);
-    if (!noFirst) savedCallback.current();
+    const id = setInterval(lastCallback, delay);
+    if (!noFirst) lastCallback();
 
     return () => clearInterval(id);
-  }, [delay, noFirst]);
+  }, [delay, lastCallback, noFirst]);
 }
 
 export default useInterval;

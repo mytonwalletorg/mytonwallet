@@ -20,6 +20,17 @@ export enum ElectronAction {
   HANDLE_DOUBLE_CLICK = 'handle-double-click',
 
   TOGGLE_DEEPLINK_HANDLER = 'toggle-deeplink-handler',
+
+  GET_IS_TOUCH_ID_SUPPORTED = 'get-is-touch-id-supported',
+  ENCRYPT_PASSWORD = 'encrypt-password',
+  DECRYPT_PASSWORD = 'decrypt-password',
+
+  SET_IS_TRAY_ICON_ENABLED = 'set-is-tray-icon-enabled',
+  GET_IS_TRAY_ICON_ENABLED = 'get-is-tray-icon-enabled',
+  SET_IS_AUTO_UPDATE_ENABLED = 'set-is-auto-update-enabled',
+  GET_IS_AUTO_UPDATE_ENABLED = 'get-is-auto-update-enabled',
+
+  RESTORE_STORAGE = 'restore-storage',
 }
 
 export interface ElectronApi {
@@ -35,6 +46,17 @@ export interface ElectronApi {
   handleDoubleClick: () => Promise<void>;
 
   toggleDeeplinkHandler: (isEnabled: boolean) => Promise<void>;
+
+  getIsTouchIdSupported: () => Promise<boolean>;
+  encryptPassword: (password: string) => Promise<string>;
+  decryptPassword: (encrypted: string) => Promise<string | undefined>;
+
+  setIsTrayIconEnabled: (value: boolean) => Promise<void>;
+  getIsTrayIconEnabled: () => Promise<boolean>;
+  setIsAutoUpdateEnabled: (value: boolean) => Promise<void>;
+  getIsAutoUpdateEnabled: () => Promise<boolean>;
+
+  restoreStorage: () => Promise<void>;
 
   on: (eventName: ElectronEvent, callback: any) => VoidFunction;
 }

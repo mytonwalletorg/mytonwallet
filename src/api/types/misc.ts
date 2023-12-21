@@ -27,6 +27,7 @@ export interface ApiBaseToken {
   image?: string;
   isPopular?: boolean;
   keywords?: string[];
+  cmcSlug?: string;
 }
 
 export interface ApiToken extends ApiBaseToken {
@@ -52,7 +53,7 @@ export interface ApiAddressInfo {
 }
 
 export type ApiTxIdBySlug = Record<string, string | undefined>;
-export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | undefined;
+export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | 'swap' | undefined;
 
 export interface ApiTransaction {
   txId: string;
@@ -81,34 +82,45 @@ export interface ApiNft {
   collectionName?: string;
   collectionAddress?: string;
   isOnSale: boolean;
+  isHidden?: boolean;
 }
 
 export type ApiHistoryList = Array<[number, number]>;
 export type ApiTokenSimple = Omit<ApiToken, 'quote'>;
 
-export interface ApiPoolState {
-  startOfCycle: number;
-  endOfCycle: number;
-  lastApy: number;
-  minStake: number;
-}
+export type ApiStakingType = 'nominators' | 'liquid';
 
-export interface ApiStakingState {
+export type ApiStakingState = {
+  type: 'nominators';
   amount: number;
   pendingDepositAmount: number;
   isUnstakeRequested: boolean;
+} | {
+  type: 'liquid';
+  tokenAmount: string;
+  amount: number;
+  unstakeRequestAmount: number;
+} | {
+  type: 'empty';
+};
+
+export interface ApiNominatorsPool {
+  address: string;
+  apy: number;
+  start: number;
+  end: number;
 }
 
 export interface ApiBackendStakingState {
-  poolAddress: string;
   balance: number;
   totalProfit: number;
-  poolState: ApiPoolState;
-  profitHistory: {
-    timestamp: number;
-    profit: number;
-  }[];
+  nominatorsPool: ApiNominatorsPool;
 }
+
+export type ApiStakingHistory = {
+  timestamp: number;
+  profit: number;
+}[];
 
 export interface ApiDappPermissions {
   isAddressRequired?: boolean;
@@ -158,3 +170,11 @@ export interface ApiSignedTransfer {
 }
 
 export type ApiLocalTransactionParams = Omit<ApiTransaction, 'txId' | 'timestamp' | 'isIncoming'>;
+
+export type ApiBaseCurrency = 'USD' | 'EUR' | 'RUB' | 'CNY' | 'BTC' | 'TON';
+
+export enum ApiLiquidUnstakeMode {
+  Default,
+  Instant,
+  BestRate,
+}

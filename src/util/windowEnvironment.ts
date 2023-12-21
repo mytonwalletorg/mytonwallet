@@ -1,12 +1,16 @@
 import type { LangCode } from '../global/types';
 
-import { IS_FIREFOX_EXTENSION, LANG_LIST } from '../config';
+import { IS_CAPACITOR, IS_FIREFOX_EXTENSION, LANG_LIST } from '../config';
 import { requestForcedReflow, requestMutation } from '../lib/fasterdom/fasterdom';
 
 const SAFE_AREA_INITIALIZATION_DELAY = 1000;
 
 export function getPlatform() {
   const { userAgent, platform } = window.navigator;
+
+  if (/Android/.test(userAgent)) return 'Android';
+
+  if (/Linux/.test(platform)) return 'Linux';
 
   const iosPlatforms = ['iPhone', 'iPad', 'iPod'];
   if (
@@ -20,10 +24,6 @@ export function getPlatform() {
 
   const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];
   if (windowsPlatforms.indexOf(platform) !== -1) return 'Windows';
-
-  if (/Android/.test(userAgent)) return 'Android';
-
-  if (/Linux/.test(platform)) return 'Linux';
 
   return undefined;
 }
@@ -44,13 +44,23 @@ export const IS_IOS = PLATFORM_ENV === 'iOS';
 export const IS_ANDROID = PLATFORM_ENV === 'Android';
 export const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 export const IS_OPERA = navigator.userAgent.includes(' OPR/');
+export const IS_FIREFOX = navigator.userAgent.includes('Firefox/');
 export const IS_TOUCH_ENV = window.matchMedia('(pointer: coarse)').matches;
 export const IS_CHROME_EXTENSION = Boolean(window.chrome?.system);
+export const IS_ELECTRON = Boolean(window.electron);
 export const DEFAULT_LANG_CODE = 'en';
 export const USER_AGENT_LANG_CODE = getBrowserLanguage();
 export const DPR = window.devicePixelRatio || 1;
-
 export const IS_LEDGER_SUPPORTED = !(IS_IOS || IS_ANDROID || IS_FIREFOX_EXTENSION);
+export const IS_LEDGER_EXTENSION_TAB = global.location.hash.startsWith('#detached');
+// Disable biometric auth on electron for now until this issue is fixed:
+// https://github.com/electron/electron/issues/24573
+export const IS_BIOMETRIC_AUTH_SUPPORTED = Boolean(
+  !IS_CAPACITOR && window.navigator.credentials && (!IS_ELECTRON || IS_MAC_OS),
+);
+export const IS_DELEGATED_BOTTOM_SHEET = IS_CAPACITOR && global.location.search.startsWith('?bottom-sheet');
+export const CAN_DELEGATE_BOTTOM_SHEET = IS_CAPACITOR && IS_IOS && !IS_DELEGATED_BOTTOM_SHEET;
+export const IS_MULTITAB_SUPPORTED = 'BroadcastChannel' in window && !IS_LEDGER_EXTENSION_TAB;
 
 export function setScrollbarWidthProperty() {
   const el = document.createElement('div');
@@ -74,14 +84,28 @@ export function setPageSafeAreaProperty() {
   // WebKit has issues with this property on page load
   // https://bugs.webkit.org/show_bug.cgi?id=191872
   setTimeout(() => {
-    const safeAreaBottom = parseInt(getComputedStyle(documentElement).getPropertyValue('--safe-area-bottom-value'), 10);
+    const safeAreaTop = getSafeAreaTop();
+    const safeAreaBottom = getSafeAreaBottom();
 
+    if (!Number.isNaN(safeAreaTop) && safeAreaTop > 0) {
+      requestMutation(() => {
+        documentElement.classList.add('with-safe-area-top');
+      });
+    }
     if (!Number.isNaN(safeAreaBottom) && safeAreaBottom > 0) {
       requestMutation(() => {
         documentElement.classList.add('with-safe-area-bottom');
       });
     }
   }, SAFE_AREA_INITIALIZATION_DELAY);
+}
+
+export function getSafeAreaTop() {
+  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-top-value'), 10);
+}
+
+export function getSafeAreaBottom() {
+  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom-value'), 10);
 }
 
 export const REM = parseInt(getComputedStyle(document.documentElement).fontSize, 10);

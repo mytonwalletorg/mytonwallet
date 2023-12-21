@@ -1,6 +1,10 @@
 @import '../../styles/mixins';
 
 .content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
   padding: 0 1rem 1rem;
 
   @supports (padding-bottom: env(safe-area-inset-bottom)) {
@@ -8,29 +12,13 @@
   }
 }
 
-.contentQr {
-  margin-top: -0.25rem;
-}
+.contentTitle {
+  margin-bottom: 1.5rem;
 
-.info {
   font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.0625rem;
-  color: var(--color-gray-1);
+  line-height: 1.1875rem;
+  color: var(--color-gray-2);
   text-align: center;
-
-  &_push {
-    margin-bottom: 1.25rem;
-  }
-
-  &_small {
-    margin-top: 0.75rem;
-    margin-bottom: 0;
-  }
-
-  &.infoStatic {
-    padding-top: 0.5rem;
-  }
 }
 
 .qrCode {
@@ -40,12 +28,13 @@
 
   aspect-ratio: 1;
   width: 100%;
-  max-width: 20.5rem;
-  max-height: 20.5rem;
-  margin: 0 auto;
+  max-width: 11rem;
+  margin: 1rem auto 0;
 
   background-color: var(--color-white);
-  border-radius: var(--border-radius-default);
+  border-radius: var(--border-radius-card);
+
+  transition: opacity 350ms ease-in-out;
 
   canvas {
     position: absolute;
@@ -59,17 +48,23 @@
   }
 }
 
-.description {
-  margin: 1.5rem 0 0.375rem 0.5rem;
+.qrCodeHidden {
+  opacity: 0;
+
+  transition: none;
+}
+
+.label {
+  margin: 0 0 0.5rem 0.5rem;
 
   font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1;
   color: var(--color-gray-2);
+}
 
-  &_forInvoice {
-    margin-top: 0.3125rem;
-  }
+.labelForInvoice {
+  margin-top: 0.3125rem;
 }
 
 .copyButtonStatic {
@@ -77,31 +72,9 @@
   border: 1px solid var(--color-separator-input-stroke) !important;
 }
 
-.buttons {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-
-  margin-top: 2rem;
-}
-
-.qrButton {
-  width: auto !important;
-  min-width: 1.75rem !important;
-  padding: 0.5rem !important;
-
-  font-size: 1.875rem !important;
-
-  @include respond-above(xs) {
-    background-color: var(--color-gray-button-background-desktop) !important;
-
-    &:hover {
-      background-color: var(--color-gray-button-background-desktop-hover) !important;
-    }
-  }
-}
-
 .invoiceButton {
+  max-width: 100% !important;
+
   @include respond-above(xs) {
     background-color: var(--color-gray-button-background-desktop) !important;
 
@@ -109,10 +82,6 @@
       background-color: var(--color-gray-button-background-desktop-hover) !important;
     }
   }
-}
-
-.qrIcon {
-  max-width: 1.75rem;
 }
 
 .tokenDropdown {

@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBackendStakingState } from '../../api/types';
+import type { ApiStakingHistory } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
 import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
@@ -38,7 +38,8 @@ interface OwnProps {
 interface StateProps {
   amount: number;
   apyValue: number;
-  stakingHistory?: ApiBackendStakingState;
+  totalProfit: number;
+  stakingHistory?: ApiStakingHistory;
   tokens?: UserToken[];
   isUnstakeRequested?: boolean;
   endOfStakingCycle?: number;
@@ -52,17 +53,18 @@ function StakingInfoContent({
   isStatic,
   amount,
   apyValue,
+  totalProfit,
   stakingHistory,
   tokens,
   isUnstakeRequested,
   endOfStakingCycle,
   onClose,
 }: OwnProps & StateProps) {
-  const { startStaking, fetchBackendStakingState } = getActions();
+  const { startStaking, fetchStakingHistory } = getActions();
 
   const lang = useLang();
   const isLoading = !amount;
-  const hasHistory = Boolean(stakingHistory?.profitHistory.length);
+  const hasHistory = Boolean(stakingHistory?.length);
   const {
     shouldRender: shouldRenderSpinner,
     transitionClassNames: spinnerClassNames,
@@ -75,9 +77,9 @@ function StakingInfoContent({
 
   useEffect(() => {
     if (isActive) {
-      fetchBackendStakingState();
+      fetchStakingHistory();
     }
-  }, [fetchBackendStakingState, isActive]);
+  }, [fetchStakingHistory, isActive]);
 
   const handleStakeClick = useLastCallback(() => {
     onClose?.();
@@ -110,7 +112,7 @@ function StakingInfoContent({
           {lang('$total', {
             value: (
               <span className={styles.historyTotalValue}>
-                {formatCurrency(stakingHistory!.totalProfit, TON_SYMBOL)}
+                {formatCurrency(totalProfit, TON_SYMBOL)}
               </span>
             ),
           })}
@@ -123,7 +125,7 @@ function StakingInfoContent({
           !isStatic && height >= HISTORY_SCROLL_APPEARANCE_HEIGHT_PX && 'custom-scroll',
         )}
         >
-          {stakingHistory?.profitHistory.map((record) => (
+          {stakingHistory?.map((record) => (
             <StakingProfitItem
               key={record.timestamp}
               profit={record.profit}
@@ -198,11 +200,12 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
 
   return {
-    amount: accountState?.stakingBalance || 0,
-    apyValue: accountState?.poolState?.lastApy || 0,
+    amount: accountState?.staking?.balance || 0,
+    apyValue: accountState?.staking?.apy || 0,
+    totalProfit: accountState?.staking?.totalProfit ?? 0,
     stakingHistory: accountState?.stakingHistory,
     tokens: selectCurrentAccountTokens(global),
-    isUnstakeRequested: accountState?.isUnstakeRequested,
-    endOfStakingCycle: accountState?.poolState?.endOfCycle,
+    isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
+    endOfStakingCycle: accountState?.staking?.end,
   };
 })(StakingInfoContent));

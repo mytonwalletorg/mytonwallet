@@ -5,11 +5,17 @@ import type { Cell } from 'tonweb/dist/types/boc/cell';
 import type { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
 
 import type {
-  ApiNetwork, ApiSignedTransfer, ApiTransaction, ApiTransactionActivity, ApiTxIdBySlug,
+  ApiAnyDisplayError,
+  ApiNetwork,
+  ApiSignedTransfer,
+  ApiTransaction,
+  ApiTransactionActivity,
+  ApiTransactionType,
+  ApiTxIdBySlug,
 } from '../../types';
 import type { JettonWalletType } from './tokens';
 import type { AnyPayload, ApiTransactionExtra, TonTransferParams } from './types';
-import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
+import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -33,10 +39,11 @@ import {
   resolveTokenWalletAddress,
   toBase64Address,
 } from './util/tonweb';
-import { fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey } from '../../common/accounts';
+import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
 import { getAddressInfo } from '../../common/addresses';
 import { updateTransactionMetadata } from '../../common/helpers';
 import { bytesToBase64, isKnownStakingPool } from '../../common/utils';
+import { ApiServerError, handleServerError } from '../../errors';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
 import { ATTEMPTS, STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
@@ -44,10 +51,19 @@ import {
   buildTokenTransfer, getTokenWalletBalance, parseTokenTransaction, resolveTokenBySlug,
 } from './tokens';
 import {
-  getWalletBalance, getWalletInfo, isWalletInitialized, pickAccountWallet,
+  getWalletBalance, getWalletInfo, isAddressInitialized, pickAccountWallet,
 } from './wallet';
 
-type SubmitTransferResult = {
+export type CheckTransactionDraftResult = {
+  fee?: string;
+  addressName?: string;
+  isScam?: boolean;
+  resolvedAddress?: string;
+  isToAddressNew?: boolean;
+  error?: ApiAnyDisplayError;
+};
+
+export type SubmitTransferResult = {
   normalizedAddress: string;
   amount: string;
   seqno: number;
@@ -57,9 +73,7 @@ type SubmitTransferResult = {
 };
 
 type SubmitMultiTransferResult = {
-  messages: (TonTransferParams & {
-    resolvedAddress: string;
-  })[];
+  messages: TonTransferParams[];
   amount: string;
   seqno: number;
   boc: string;
@@ -75,6 +89,7 @@ const GET_TRANSACTIONS_LIMIT = 50;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;
 const WAIT_SEQNO_TIMEOUT = 40000; // 40 sec.
 const WAIT_SEQNO_PAUSE = 5000; // 5 sec.
+const WAIT_TRANSACTION_PAUSE = 500; // 0.5 sec.
 
 const lastTransfers: Record<ApiNetwork, Record<string, {
   timestamp: number;
@@ -98,128 +113,159 @@ export async function checkTransactionDraft(
   stateInit?: Cell,
   shouldEncrypt?: boolean,
   isBase64Data?: boolean,
-) {
+): Promise<CheckTransactionDraftResult> {
   const { network } = parseAccountId(accountId);
 
-  const result: {
-    fee?: string;
-    addressName?: string;
-    isScam?: boolean;
-    resolvedAddress?: string;
-    normalizedAddress?: string;
-    isToAddressNew?: boolean;
-  } = {};
+  const result: CheckTransactionDraftResult = {};
 
-  const resolved = await resolveAddress(network, toAddress);
-  if (resolved) {
-    result.addressName = resolved.domain;
-    toAddress = resolved.address;
-  } else {
-    return { ...result, error: ApiTransactionDraftError.DomainNotResolved };
-  }
+  try {
+    const resolved = await resolveAddress(network, toAddress);
+    if (resolved) {
+      result.addressName = resolved.domain;
+      toAddress = resolved.address;
+    } else {
+      return {
+        ...result,
+        error: ApiTransactionDraftError.DomainNotResolved,
+      };
+    }
 
-  if (!Address.isValid(toAddress)) {
-    return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
-  }
+    if (!Address.isValid(toAddress)) {
+      return {
+        ...result,
+        error: ApiTransactionDraftError.InvalidToAddress,
+      };
+    }
 
-  const {
-    isUserFriendly, isTestOnly, isBounceable,
-  } = new Address(toAddress);
+    const {
+      isUserFriendly,
+      isTestOnly,
+      isBounceable,
+    } = new Address(toAddress);
 
-  const regex = /[+=/]/; // Temp check for `isUrlSafe`. Remove after TonWeb fixes the issue
-  const isUrlSafe = !regex.test(toAddress);
+    const regex = /[+=/]/; // Temp check for `isUrlSafe`. Remove after TonWeb fixes the issue
+    const isUrlSafe = !regex.test(toAddress);
 
-  if (!isUserFriendly || !isUrlSafe || (network === 'mainnet' && isTestOnly)) {
-    return { ...result, error: ApiTransactionDraftError.InvalidAddressFormat };
-  }
+    if (!isUserFriendly || !isUrlSafe || (network === 'mainnet' && isTestOnly)) {
+      return {
+        ...result,
+        error: ApiTransactionDraftError.InvalidAddressFormat,
+      };
+    }
 
-  if (isBounceable) {
-    const isInitialized = await isWalletInitialized(network, toAddress);
-    if (!isInitialized) {
-      result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
-      if (tokenSlug === TON_TOKEN_SLUG) {
-        toAddress = toBase64Address(toAddress, false);
+    const isInitialized = await isAddressInitialized(network, toAddress);
+
+    if (isBounceable) {
+      if (!isInitialized) {
+        result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
+        if (tokenSlug === TON_TOKEN_SLUG) {
+          // Force non-bounceable for non-initialized recipients
+          toAddress = toBase64Address(toAddress, false);
+        }
+      }
+    } else if (isInitialized) {
+      toAddress = toBase64Address(toAddress, true);
+    }
+
+    result.resolvedAddress = toAddress;
+
+    const addressInfo = await getAddressInfo(toAddress);
+    if (addressInfo?.name) result.addressName = addressInfo.name;
+    if (addressInfo?.isScam) result.isScam = addressInfo.isScam;
+
+    if (BigInt(amount) < BigInt(0)) {
+      return {
+        ...result,
+        error: ApiTransactionDraftError.InvalidAmount,
+      };
+    }
+
+    const wallet = await pickAccountWallet(accountId);
+    if (!wallet) {
+      return {
+        ...result,
+        error: ApiCommonError.Unexpected,
+      };
+    }
+
+    if (typeof data === 'string' && isBase64Data) {
+      data = parseBase64(data);
+    }
+
+    if (data && typeof data === 'string' && shouldEncrypt) {
+      const toPublicKey = await getWalletPublicKey(network, toAddress);
+      if (!toPublicKey) {
+        return {
+          ...result,
+          error: ApiTransactionDraftError.WalletNotInitialized,
+        };
       }
     }
-  }
 
-  result.resolvedAddress = toAddress;
-  result.normalizedAddress = toBase64Address(toAddress);
+    const account = await fetchStoredAccount(accountId);
+    const isLedger = !!account.ledger;
 
-  const addressInfo = await getAddressInfo(toAddress);
-  if (addressInfo?.name) result.addressName = addressInfo.name;
-  if (addressInfo?.isScam) result.isScam = addressInfo.isScam;
-
-  if (BigInt(amount) < BigInt(0)) {
-    return { ...result, error: ApiTransactionDraftError.InvalidAmount };
-  }
-
-  const wallet = await pickAccountWallet(accountId);
-  if (!wallet) {
-    return { ...result, error: ApiTransactionDraftError.Unexpected };
-  }
-
-  if (typeof data === 'string' && isBase64Data) {
-    data = parseBase64(data);
-  }
-
-  if (data && typeof data === 'string' && shouldEncrypt) {
-    const toPublicKey = await getWalletPublicKey(network, toAddress);
-    if (!toPublicKey) {
-      return { ...result, error: ApiTransactionDraftError.WalletNotInitialized };
-    }
-  }
-
-  const account = await fetchStoredAccount(accountId);
-  const isLedger = !!account?.ledger;
-
-  if (data && typeof data === 'string' && !isBase64Data && !isLedger) {
-    data = commentToBytes(data);
-  }
-
-  if (tokenSlug === TON_TOKEN_SLUG) {
-    if (data && isLedger && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))) {
-      return { ...result, error: ApiTransactionDraftError.UnsupportedHardwarePayload };
+    if (data && typeof data === 'string' && !isBase64Data && !isLedger) {
+      data = commentToBytes(data);
     }
 
-    if (data instanceof Uint8Array) {
-      data = packBytesAsSnake(data);
+    if (tokenSlug === TON_TOKEN_SLUG) {
+      if (data && isLedger && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))) {
+        return {
+          ...result,
+          error: ApiTransactionDraftError.UnsupportedHardwarePayload,
+        };
+      }
+
+      if (data instanceof Uint8Array) {
+        data = packBytesAsSnake(data);
+      }
+    } else {
+      const address = await fetchStoredAddress(accountId);
+      const tokenAmount: string = amount;
+      let tokenWallet: JettonWalletType;
+      ({
+        tokenWallet,
+        amount,
+        toAddress,
+        payload: data,
+      } = await buildTokenTransfer(network, tokenSlug, address, toAddress, amount, data));
+
+      const tokenBalance = await getTokenWalletBalance(tokenWallet!);
+      if (BigInt(tokenBalance) < BigInt(tokenAmount!)) {
+        return {
+          ...result,
+          error: ApiTransactionDraftError.InsufficientBalance,
+        };
+      }
     }
-  } else {
-    const address = await fetchStoredAddress(accountId);
-    const tokenAmount: string = amount;
-    let tokenWallet: JettonWalletType;
-    ({
-      tokenWallet,
-      amount,
-      toAddress,
-      payload: data,
-    } = await buildTokenTransfer(network, tokenSlug, address, toAddress, amount, data));
 
-    const tokenBalance = await getTokenWalletBalance(tokenWallet!);
-    if (BigInt(tokenBalance) < BigInt(tokenAmount!)) {
-      return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
+    const isOurWalletInitialized = await isAddressInitialized(network, wallet);
+    result.fee = await calculateFee(isOurWalletInitialized, async () => (await signTransaction(
+      network, wallet, toAddress, amount, data, stateInit,
+    )).query);
+
+    const balance = await getWalletBalance(network, wallet);
+    if (BigInt(balance) < BigInt(amount) + BigInt(result.fee)) {
+      return {
+        ...result,
+        error: ApiTransactionDraftError.InsufficientBalance,
+      };
     }
+
+    return result as {
+      fee: string;
+      resolvedAddress: string;
+      addressName?: string;
+      isScam?: boolean;
+      isToAddressNew?: boolean;
+    };
+  } catch (err: any) {
+    return {
+      ...handleServerError(err),
+      ...result,
+    };
   }
-
-  const isOurWalletInitialized = await isWalletInitialized(network, wallet);
-  result.fee = await calculateFee(isOurWalletInitialized, async () => (await signTransaction(
-    network, wallet, toAddress, amount, data, stateInit,
-  )).query);
-
-  const balance = await getWalletBalance(network, wallet);
-  if (BigInt(balance) < BigInt(amount) + BigInt(result.fee)) {
-    return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
-  }
-
-  return result as {
-    fee: string;
-    resolvedAddress: string;
-    normalizedAddress: string;
-    addressName?: string;
-    isScam?: boolean;
-    isToAddressNew?: boolean;
-  };
 }
 
 export async function submitTransfer(
@@ -244,7 +290,7 @@ export async function submitTransfer(
     const { publicKey, secretKey } = keyPair!;
 
     let encryptedComment: string | undefined;
-    // Force default bounceable address for `waitTxComplete` to work properly
+    // Fix address format for `waitTxComplete` to work properly
     const normalizedAddress = toBase64Address(toAddress);
 
     if (data && typeof data === 'string') {
@@ -296,10 +342,13 @@ export async function submitTransfer(
   }
 }
 
-function resolveTransactionError(error: any): ApiTransactionError {
-  const message = typeof error === 'string' ? error : error?.message;
-  if (message?.includes('exitcode=35,')) {
-    return ApiTransactionError.IncorrectDeviceTime;
+export function resolveTransactionError(error: any): ApiAnyDisplayError {
+  if (error instanceof ApiServerError) {
+    if (error.message.includes('exitcode=35,')) {
+      return ApiTransactionError.IncorrectDeviceTime;
+    } else if (error.displayError) {
+      return error.displayError;
+    }
   }
   return ApiTransactionError.UnsuccesfulTransfer;
 }
@@ -337,15 +386,15 @@ export async function getAccountNewestTxId(accountId: string) {
 
 export async function getAccountTransactionSlice(
   accountId: string,
-  fromTxId?: string,
   toTxId?: string,
+  fromTxId?: string,
   limit?: number,
 ) {
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 
   let transactions = await fetchTransactions(
-    network, address, limit ?? GET_TRANSACTIONS_LIMIT, fromTxId, toTxId,
+    network, address, limit ?? GET_TRANSACTIONS_LIMIT, toTxId, fromTxId,
   );
 
   transactions = await Promise.all(
@@ -388,12 +437,12 @@ export async function getMergedTransactionSlice(accountId: string, lastTxIds: Ap
 export async function getTokenTransactionSlice(
   accountId: string,
   tokenSlug: string,
-  fromTxId?: string,
   toTxId?: string,
+  fromTxId?: string,
   limit?: number,
 ): Promise<ApiTransactionActivity[]> {
   if (tokenSlug === TON_TOKEN_SLUG) {
-    return getAccountTransactionSlice(accountId, fromTxId, toTxId, limit);
+    return getAccountTransactionSlice(accountId, toTxId, fromTxId, limit);
   }
 
   const { network } = parseAccountId(accountId);
@@ -403,7 +452,7 @@ export async function getTokenTransactionSlice(
   const tokenWalletAddress = await resolveTokenWalletAddress(network, address, minterAddress);
 
   const transactions = await fetchTransactions(
-    network, tokenWalletAddress, limit ?? GET_TRANSACTIONS_LIMIT, fromTxId, toTxId,
+    network, tokenWalletAddress, limit ?? GET_TRANSACTIONS_LIMIT, toTxId, fromTxId,
   );
 
   return transactions
@@ -420,24 +469,33 @@ function omitExtraData(tx: ApiTransactionExtra): ApiTransaction {
 
 function updateTransactionType(transaction: ApiTransactionExtra) {
   const {
-    fromAddress, toAddress, comment, amount,
+    fromAddress, toAddress, comment, amount, extraData,
   } = transaction;
 
-  if (fromAddress && toAddress) {
-    const amountNumber = Math.abs(Number(fromNano(amount)));
+  const amountNumber = Math.abs(Number(fromNano(amount)));
+  let type: ApiTransactionType | undefined;
 
-    if (isKnownStakingPool(fromAddress) && amountNumber > 1) {
-      transaction.type = 'unstake';
-    } else if (isKnownStakingPool(toAddress)) {
-      if (comment === STAKE_COMMENT) {
-        transaction.type = 'stake';
-      } else if (comment === UNSTAKE_COMMENT) {
-        transaction.type = 'unstakeRequest';
-      }
+  if (isKnownStakingPool(fromAddress) && amountNumber > 1) {
+    type = 'unstake';
+  } else if (isKnownStakingPool(toBase64Address(toAddress, true))) {
+    if (comment === STAKE_COMMENT) {
+      type = 'stake';
+    } else if (comment === UNSTAKE_COMMENT) {
+      type = 'unstakeRequest';
+    }
+  } else if (extraData?.parsedPayload) {
+    const payload = extraData.parsedPayload;
+
+    if (payload.type === 'tokens:burn' && payload.isLiquidUnstakeRequest) {
+      type = 'unstakeRequest';
+    } else if (payload.type === 'liquid-staking:deposit') {
+      type = 'stake';
+    } else if (payload.type === 'liquid-staking:withdrawal' || payload.type === 'liquid-staking:withdrawal-nft') {
+      type = 'unstake';
     }
   }
 
-  return transaction;
+  return { ...transaction, type };
 }
 
 function transactionToActivity(transaction: ApiTransaction): ApiTransactionActivity {
@@ -458,34 +516,38 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
 
   let totalAmount: bigint = 0n;
 
-  for (const { toAddress, amount } of messages) {
-    if (BigInt(amount) < BigInt(0)) {
-      return { ...result, error: ApiTransactionDraftError.InvalidAmount };
+  try {
+    for (const { toAddress, amount } of messages) {
+      if (BigInt(amount) < BigInt(0)) {
+        return { ...result, error: ApiTransactionDraftError.InvalidAmount };
+      }
+      if (!Address.isValid(toAddress)) {
+        return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
+      }
+      totalAmount += BigInt(amount);
     }
-    if (!Address.isValid(toAddress)) {
-      return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
+
+    const wallet = await pickAccountWallet(accountId);
+
+    if (!wallet) {
+      return { ...result, error: ApiCommonError.Unexpected };
     }
-    totalAmount += BigInt(amount);
+
+    const { isInitialized, balance } = await getWalletInfo(network, wallet);
+
+    result.fee = await calculateFee(isInitialized, async () => (await signMultiTransaction(
+      network, wallet, messages,
+    )).query);
+    result.totalAmount = totalAmount.toString();
+
+    if (BigInt(balance) < totalAmount + BigInt(result.fee)) {
+      return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
+    }
+
+    return result as { fee: string; totalAmount: string };
+  } catch (err: any) {
+    return handleServerError(err);
   }
-
-  const wallet = await pickAccountWallet(accountId);
-
-  if (!wallet) {
-    return { ...result, error: ApiTransactionDraftError.Unexpected };
-  }
-
-  const { isInitialized, balance } = await getWalletInfo(network, wallet);
-
-  result.fee = await calculateFee(isInitialized, async () => (await signMultiTransaction(
-    network, wallet, messages,
-  )).query);
-  result.totalAmount = totalAmount.toString();
-
-  if (BigInt(balance) < totalAmount + BigInt(result.fee)) {
-    return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
-  }
-
-  return result as { fee: string; totalAmount: string };
 }
 
 export async function submitMultiTransfer(
@@ -504,29 +566,15 @@ export async function submitMultiTransfer(
     ]);
 
     let totalAmount = 0n;
-    const preparedMessages = await Promise.all(messages.map(async (message) => {
-      let { toAddress } = message;
-
-      // Force default bounceable address for `waitTxComplete` to work properly
-      const resolvedAddress = toBase64Address(toAddress);
-      toAddress = await isWalletInitialized(network, toAddress)
-        ? resolvedAddress
-        : toBase64Address(toAddress, false);
-
+    messages.forEach((message) => {
       totalAmount += BigInt(message.amount);
-
-      return {
-        ...message,
-        toAddress,
-        resolvedAddress,
-      };
-    }));
+    });
 
     await waitLastTransfer(network, fromAddress);
 
     const { isInitialized, balance } = await getWalletInfo(network, wallet!);
 
-    const { seqno, query } = await signMultiTransaction(network, wallet!, preparedMessages, privateKey, expireAt);
+    const { seqno, query } = await signMultiTransaction(network, wallet!, messages, privateKey, expireAt);
 
     const boc = bytesToBase64(await (await query.getQuery()).toBoc());
 
@@ -542,7 +590,7 @@ export async function submitMultiTransfer(
     return {
       seqno,
       amount: totalAmount.toString(),
-      messages: preparedMessages,
+      messages,
       boc,
     };
   } catch (err) {
@@ -638,12 +686,8 @@ async function calculateFee(isInitialized: boolean, query: Method | (() => Promi
 
 export async function sendSignedMessage(accountId: string, message: ApiSignedTransfer) {
   const { network } = parseAccountId(accountId);
-  const [fromAddress, publicKey, account] = await Promise.all([
-    fetchStoredAddress(accountId),
-    fetchStoredPublicKey(accountId),
-    fetchStoredAccount(accountId),
-  ]);
-  const wallet = getTonWalletContract(publicKey!, account!.version!);
+  const { address: fromAddress, publicKey, version } = await fetchStoredAccount(accountId);
+  const wallet = getTonWalletContract(publicKey, version!);
   const client = getTonClient(network);
   const contract = client.open(wallet);
 
@@ -655,12 +699,8 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
 
 export async function sendSignedMessages(accountId: string, messages: ApiSignedTransfer[]) {
   const { network } = parseAccountId(accountId);
-  const [fromAddress, publicKey, account] = await Promise.all([
-    fetchStoredAddress(accountId),
-    fetchStoredPublicKey(accountId),
-    fetchStoredAccount(accountId),
-  ]);
-  const wallet = getTonWalletContract(publicKey!, account!.version!);
+  const { address: fromAddress, publicKey, version } = await fetchStoredAccount(accountId);
+  const wallet = getTonWalletContract(publicKey, version!);
   const client = getTonClient(network);
   const contract = client.open(wallet);
 
@@ -700,4 +740,21 @@ export async function decryptComment(
   const buffer = Buffer.from(encryptedComment, 'base64');
 
   return decryptMessageComment(buffer, publicKey, secretKey, fromAddress);
+}
+
+export async function waitUntilTransactionAppears(network: ApiNetwork, address: string, txId: string) {
+  const { lt } = parseTxId(txId);
+
+  if (lt === 0) {
+    return;
+  }
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const transaction = (await fetchTransactions(network, address, 1))[0];
+    if (parseTxId(transaction.txId).lt >= lt) {
+      return;
+    }
+    await pause(WAIT_TRANSACTION_PAUSE);
+  }
 }

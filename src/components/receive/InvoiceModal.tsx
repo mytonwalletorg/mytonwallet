@@ -1,6 +1,4 @@
-import React, {
-  memo, useMemo, useState,
-} from '../../lib/teact/teact';
+import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
 import type { UserToken } from '../../global/types';
@@ -17,7 +15,6 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
-import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import InteractiveTextField from '../ui/InteractiveTextField';
@@ -32,18 +29,14 @@ interface StateProps {
 }
 
 type OwnProps = {
-  backButtonText?: string;
   isOpen: boolean;
-  onBackButtonClick: () => void;
   onClose: () => void;
 };
 
 function InvoiceModal({
   address,
-  backButtonText = 'Back',
   isOpen,
   tokens,
-  onBackButtonClick,
   onClose,
 }: StateProps & OwnProps) {
   const lang = useLang();
@@ -95,13 +88,14 @@ function InvoiceModal({
 
   return (
     <Modal
-      hasCloseButton
-      title={lang('Create Invoice')}
       isOpen={isOpen}
+      hasCloseButton
+      title={lang('Deposit Link')}
       contentClassName={styles.content}
+      nativeBottomSheetKey="invoice"
       onClose={onClose}
     >
-      <div className={buildClassName(styles.info, styles.info_push)}>
+      <div className={styles.contentTitle}>
         {renderText(lang('$receive_invoice_description'))}
       </div>
       <RichNumberInput
@@ -116,20 +110,20 @@ function InvoiceModal({
       </RichNumberInput>
       <Input
         value={comment}
-        onInput={setComment}
         label={lang('Comment')}
         placeholder={lang('Optional')}
         wrapperClassName={styles.invoiceComment}
+        onInput={setComment}
       />
 
-      <p className={buildClassName(styles.description, styles.description_forInvoice)}>
+      <p className={buildClassName(styles.label, styles.labelForInvoice)}>
         {lang('Share this URL to receive TON')}
       </p>
-      <InteractiveTextField text={invoiceUrl} copyNotification={lang('Invoice link was copied!')} />
-
-      <div className={styles.buttons}>
-        <Button onClick={onBackButtonClick}>{backButtonText ?? lang('Back')}</Button>
-      </div>
+      <InteractiveTextField
+        text={invoiceUrl}
+        copyNotification={lang('Invoice link was copied!')}
+        className={styles.invoiceLinkField}
+      />
     </Modal>
   );
 }

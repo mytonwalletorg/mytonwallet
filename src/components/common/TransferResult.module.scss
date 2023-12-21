@@ -55,6 +55,9 @@
 }
 
 .buttons {
+  --color-gray-button-background: var(--color-gray-button-background-light);
+  --color-gray-button-background-hover: var(--color-gray-button-background-light-hover);
+
   display: flex;
   justify-content: center;
 

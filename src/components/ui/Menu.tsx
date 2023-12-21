@@ -7,6 +7,7 @@ import stopEvent from '../../util/stopEvent';
 
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useShowTransition from '../../hooks/useShowTransition';
 import useVirtualBackdrop from '../../hooks/useVirtualBackdrop';
 
@@ -53,6 +54,12 @@ const Menu: FC<OwnProps> = ({
 }) => {
   // eslint-disable-next-line no-null/no-null
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useHistoryBack({
+    isActive: Boolean(isOpen && onClose),
+    onBack: onClose!,
+    shouldBeReplaced: true,
+  });
 
   const {
     transitionClassNames,

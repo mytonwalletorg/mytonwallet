@@ -1,6 +1,8 @@
 import type { Theme } from '../global/types';
 
+import { IS_CAPACITOR } from '../config';
 import { requestMeasure } from '../lib/fasterdom/fasterdom';
+import { switchStatusBar } from './capacitor';
 
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 let currentTheme: Theme;
@@ -19,6 +21,11 @@ function setThemeValue() {
   );
 }
 
+function handlePrefersColorSchemeChange() {
+  setThemeValue();
+  setStatusBarStyle();
+}
+
 function setThemeColor() {
   requestMeasure(() => {
     const color = getComputedStyle(document.documentElement)
@@ -30,4 +37,10 @@ function setThemeColor() {
   });
 }
 
-prefersDark.addEventListener('change', setThemeValue);
+export function setStatusBarStyle(forceDarkBackground?: boolean) {
+  if (!IS_CAPACITOR) return;
+
+  switchStatusBar(currentTheme, prefersDark.matches, forceDarkBackground);
+}
+
+prefersDark.addEventListener('change', handlePrefersColorSchemeChange);

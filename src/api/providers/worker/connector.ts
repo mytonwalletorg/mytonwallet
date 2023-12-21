@@ -30,7 +30,6 @@ export async function callApi<T extends keyof AllMethods>(fnName: T, ...args: Al
       args,
     }) as AllMethodResponse<T>);
   } catch (err) {
-    logDebugError('callApi', err);
     return undefined;
   }
 }

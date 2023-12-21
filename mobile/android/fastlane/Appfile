@@ -1,0 +1,2 @@
+json_key_file("./api-key.json")
+package_name("org.mytonwallet.app")

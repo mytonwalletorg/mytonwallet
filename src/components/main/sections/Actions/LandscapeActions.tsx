@@ -1,9 +1,7 @@
 import React, {
   memo, useEffect, useMemo, useRef,
 } from '../../../../lib/teact/teact';
-import {
-  getActions, withGlobal,
-} from '../../../../global';
+import { getActions, withGlobal } from '../../../../global';
 
 import { ElectronEvent } from '../../../../electron/types';
 import { ActiveTab } from '../../../../global/types';
@@ -19,12 +17,13 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 
 import StakingInfoContent from '../../../staking/StakingInfoContent';
 import StakingInitial from '../../../staking/StakingInitial';
+import SwapInitial from '../../../swap/SwapInitial';
 import TransferInitial from '../../../transfer/TransferInitial';
 import Transition, { ACTIVE_SLIDE_CLASS_NAME, TO_SLIDE_CLASS_NAME } from '../../../ui/Transition';
 
 import styles from './LandscapeActions.module.scss';
 
-const TABS = [ActiveTab.Receive, ActiveTab.Transfer, ActiveTab.Stake];
+const TABS = [ActiveTab.Receive, ActiveTab.Transfer, ActiveTab.Swap, ActiveTab.Stake];
 
 interface OwnProps {
   hasStaking?: boolean;
@@ -58,11 +57,18 @@ function LandscapeActions({
     isStaking,
   );
 
+  const isSwapAllowed = !(isTestnet || isLedger);
+  const isStakingAllowed = !(isTestnet || isLedger);
+  const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
+
   useEffect(() => {
-    if ((isTestnet || isLedger) && [ActiveTab.Stake].includes(activeTabIndex)) {
+    if (
+      (!isSwapAllowed && activeTabIndex === ActiveTab.Swap)
+      || (!isStakingAllowed && activeTabIndex === ActiveTab.Stake)
+    ) {
       setActiveTabIndex({ index: ActiveTab.Transfer });
     }
-  }, [activeTabIndex, isTestnet, isLedger]);
+  }, [activeTabIndex, isTestnet, isLedger, isSwapAllowed, isStakingAllowed]);
 
   function renderCurrentTab(isActive: boolean) {
     switch (activeTabIndex) {
@@ -73,6 +79,13 @@ function LandscapeActions({
         return (
           <div className={styles.slideContent}>
             <TransferInitial isStatic onCommentChange={handleTransitionStart} />
+          </div>
+        );
+
+      case ActiveTab.Swap:
+        return (
+          <div className={styles.slideContent}>
+            <SwapInitial isStatic isActive={isActive} />
           </div>
         );
 
@@ -109,7 +122,7 @@ function LandscapeActions({
   return (
     <div className={styles.container}>
       <div className={
-        buildClassName(styles.tabs, (isTestnet || isLedger) && styles.notAllTabs)
+        buildClassName(styles.tabs, areNotAllTabs && styles.notAllTabs)
       }
       >
         <div
@@ -130,7 +143,18 @@ function LandscapeActions({
           <span className={styles.tabDecoration} aria-hidden />
           <span className={styles.tabDelimiter} aria-hidden />
         </div>
-        {!isTestnet && !isLedger && (
+        {isSwapAllowed && (
+          <div
+            className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Swap && styles.active)}
+            onClick={() => setActiveTabIndex({ index: ActiveTab.Swap })}
+          >
+            <i className={buildClassName(styles.tabIcon, 'icon-swap')} aria-hidden />
+            <span className={styles.tabText}>{lang('Swap')}</span>
+            <span className={styles.tabDecoration} aria-hidden />
+            <span className={styles.tabDelimiter} aria-hidden />
+          </div>
+        )}
+        {isStakingAllowed && (
           <div
             className={buildClassName(
               styles.tab,
@@ -256,14 +280,15 @@ function useTabHeightAnimation(slideClassName: string, contentBackgroundClassNam
 }
 
 export default memo(
-  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-    detachWhenChanged(global.currentAccountId);
+  withGlobal<OwnProps>(
+    (global): StateProps => {
+      const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
-    const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
-
-    return {
-      activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
-      isTestnet: global.settings.isTestnet,
-    };
-  })(LandscapeActions),
+      return {
+        activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
+        isTestnet: global.settings.isTestnet,
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(LandscapeActions),
 );

@@ -7,6 +7,7 @@ import { ANIMATED_STICKER_BIG_SIZE_PX, GETGEMS_BASE_MAINNET_URL, GETGEMS_BASE_TE
 import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { getCapacitorPlatform } from '../../../../util/capacitor';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
@@ -66,10 +67,14 @@ function Nfts({
           nonInteractive
         />
         <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
-        <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
-        <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">
-          {lang('Open Getgems')}
-        </a>
+        { getCapacitorPlatform() !== 'ios' && (
+          <>
+            <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
+            <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">
+              {lang('Open Getgems')}
+            </a>
+          </>
+        ) }
       </div>
     );
   }
@@ -94,15 +99,16 @@ function Nfts({
   );
 }
 export default memo(
-  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-    detachWhenChanged(global.currentAccountId);
+  withGlobal<OwnProps>(
+    (global): StateProps => {
+      const { orderedAddresses, byAddress } = selectCurrentAccountState(global)?.nfts || {};
 
-    const { orderedAddresses, byAddress } = selectCurrentAccountState(global)?.nfts || {};
-
-    return {
-      orderedAddresses,
-      byAddress,
-      isTestnet: global.settings.isTestnet,
-    };
-  })(Nfts),
+      return {
+        orderedAddresses,
+        byAddress,
+        isTestnet: global.settings.isTestnet,
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(Nfts),
 );

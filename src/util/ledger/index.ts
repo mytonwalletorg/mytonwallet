@@ -22,19 +22,19 @@ import {
 
 import { TON_TOKEN_SLUG } from '../../config';
 import { callApi } from '../../api';
-import { getWalletBalance } from '../../api/blockchains/ton';
-import { TOKEN_TRANSFER_TON_AMOUNT, TOKEN_TRANSFER_TON_FORWARD_AMOUNT } from '../../api/blockchains/ton/constants';
-import { toBase64Address } from '../../api/blockchains/ton/util/tonweb';
-import { ApiUserRejectsError } from '../../api/errors';
+import {
+  DEFAULT_IS_BOUNCEABLE,
+  TOKEN_TRANSFER_TON_AMOUNT,
+  TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
+} from '../../api/blockchains/ton/constants';
+import { ApiUserRejectsError, handleServerError } from '../../api/errors';
 import { parseAccountId } from '../account';
-import { range } from '../iteratees';
 import { logDebugError } from '../logs';
 import { pause } from '../schedulers';
 import { isValidLedgerComment } from './utils';
 
 const CHAIN = 0; // workchain === -1 ? 255 : 0;
 const VERSION = 'v4R2';
-const ACCOUNTS_PAGE = 9;
 const ATTEMPTS = 10;
 const PAUSE = 125;
 const IS_BOUNCEABLE = false;
@@ -145,9 +145,10 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
   ]);
 
   let payload: TonPayloadFormat | undefined;
-  let isBounceable = Address.parseFriendly(toAddress).isBounceable;
+  const parsedAddress = Address.parseFriendly(toAddress);
+  let isBounceable = parsedAddress.isBounceable;
   // Force default bounceable address for `waitTxComplete` to work properly
-  const normalizedAddress = toBase64Address(toAddress);
+  const normalizedAddress = parsedAddress.address.toString({ urlSafe: true, bounceable: DEFAULT_IS_BOUNCEABLE });
 
   if (slug !== TON_TOKEN_SLUG) {
     ({ toAddress, amount, payload } = await buildLedgerTokenTransfer(
@@ -272,7 +273,7 @@ export async function signLedgerTransactions(
         ledgerPayload = undefined;
         break;
       }
-      case 'transfer-nft': {
+      case 'nft:transfer': {
         const {
           queryId,
           newOwner,
@@ -296,7 +297,7 @@ export async function signLedgerTransactions(
         };
         break;
       }
-      case 'transfer-tokens': {
+      case 'tokens:transfer': {
         const {
           queryId,
           amount: jettonAmount,
@@ -389,12 +390,28 @@ export async function signLedgerProof(accountId: string, proof: ApiTonConnectPro
   return result.signature.toString('base64');
 }
 
-export function getFirstLedgerWallets(network: ApiNetwork) {
-  const accountIndexes = range(0, ACCOUNTS_PAGE);
+export async function getNextLedgerWallets(network: ApiNetwork, lastExistingIndex = -1) {
+  const result: LedgerWalletInfo[] = [];
+  let index = lastExistingIndex + 1;
 
-  return Promise.all(accountIndexes.map((index) => {
-    return getLedgerWalletInfo(network, index, IS_BOUNCEABLE);
-  }));
+  try {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const walletInfo = await getLedgerWalletInfo(network, index, IS_BOUNCEABLE);
+      if (walletInfo.balance !== '0') {
+        result.push(walletInfo);
+        index += 1;
+        continue;
+      }
+
+      if (!result.length) {
+        result.push(walletInfo);
+      }
+      return result;
+    }
+  } catch (err) {
+    return handleServerError(err);
+  }
 }
 
 export async function getLedgerWalletInfo(
@@ -403,7 +420,7 @@ export async function getLedgerWalletInfo(
   isBounceable: boolean,
 ): Promise<LedgerWalletInfo> {
   const { address, publicKey } = await getLedgerWalletAddress(accountIndex, isBounceable);
-  const balance = await getWalletBalance(network, address);
+  const balance = (await callApi('getWalletBalance', network, address))!;
 
   return {
     index: accountIndex,

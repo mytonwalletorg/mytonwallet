@@ -1,0 +1,107 @@
+default_platform(:ios)
+
+def update_version_and_build_number
+  version = JSON.parse(File.read("../../../../package.json"))["version"]
+  production_build_number = app_store_build_number(version: version, initial_build_number: 0, live: true).to_i
+  beta_build_number = latest_testflight_build_number(version: version, initial_build_number: 0)
+  build_number = [production_build_number, beta_build_number].max() + 1
+
+  increment_version_number(version_number: version)
+  increment_build_number(skip_info_plist: true, build_number: build_number)
+
+  return version, build_number
+end
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+
+  $project_data = nil
+  $plist_data = nil
+
+  before_all do |lane|
+    $project_data = File.read("../App.xcodeproj/project.pbxproj")
+    $plist_data = File.read("../App/Info.plist")
+
+    app_store_connect_api_key(
+      key_id: "TL49GJ73DP",
+      issuer_id: "519080b4-bc5f-4d06-a889-a69254108348",
+      key_filepath: "./AuthKey.p8",
+      duration: 1200,
+      in_house: false
+    )
+
+    update_code_signing_settings(
+      path: "App.xcodeproj",
+      use_automatic_signing: false,
+      profile_name: "MyTonWallet Production profile",
+      build_configurations: ["Debug"],
+      sdk: "iphoneos*",
+      team_id: "Y54Z4K69Z9",
+      code_sign_identity: "iPhone Distribution"
+    )
+  end
+
+  lane :beta do
+    update_version_and_build_number
+
+    build_app(
+      workspace: "App.xcworkspace",
+      scheme: "MyTonWallet",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "org.mytonwallet.app" => "MyTonWallet Production profile",
+        }
+      }
+    )
+
+    changelog_from_git_commits(merge_commit_filtering: "exclude_merges", commits_count: 3)
+    upload_to_testflight(distribute_external: true, groups: "MTW external group")
+  end
+
+  lane :release do
+    version, build_number = update_version_and_build_number
+
+    changelog_path = "../../../../changelogs/" + version + ".txt"
+    if !File.exist?(changelog_path)
+      raise "There is no changelog for version " + version
+    end
+
+    changelog = File.read(changelog_path)
+
+    build_app(
+      workspace: "App.xcworkspace",
+      scheme: "MyTonWallet",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "org.mytonwallet.app" => "MyTonWallet Production profile",
+        }
+      }
+    )
+
+    upload_to_app_store(
+      skip_screenshots: true,
+      skip_metadata: true,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: true,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      },
+      release_notes: {
+        "default" => changelog
+      }
+    )
+  end
+
+  after_all do |lane|
+    File.write("../App.xcodeproj/project.pbxproj", $project_data)
+    File.write("../App/Info.plist", $plist_data)
+  end
+
+  error do |lane, exception|
+    File.write("../App.xcodeproj/project.pbxproj", $project_data)
+    File.write("../App/Info.plist", $plist_data)
+  end
+
+end

@@ -19,7 +19,7 @@
 }
 
 .copyButtonWrapper {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .comment {
@@ -98,7 +98,10 @@
 .unstakeTime {
   position: relative;
 
-  max-width: 18rem;
+  display: flex;
+  flex-direction: column;
+
+  max-width: 19rem;
   margin: 0.25rem auto 0;
   padding: 0.75rem;
 
@@ -130,7 +133,6 @@
 .transactionHeader {
   display: flex;
   flex-direction: column;
-  gap: 0.3125rem;
 }
 
 .headerTitle {
@@ -138,6 +140,8 @@
   gap: 0.25rem;
   align-items: center;
   justify-content: center;
+
+  margin-bottom: 0.25rem;
 
   font-size: 1.0625rem;
   font-weight: 700;
@@ -168,7 +172,7 @@
   display: flex;
   align-items: center;
 
-  padding-left: 1rem;
+  padding-left: 0.5rem;
 
   font-size: 0.8125rem;
   font-weight:  700;
@@ -184,13 +188,14 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-black);
+  word-break: break-all;
 
   background-color: var(--color-background-first);
   border-radius: 1rem;
 }
 
 .advancedTooltip {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   margin-left: 0.25rem;
 
@@ -203,4 +208,52 @@
   z-index: 1;
 
   width: 18.9375rem;
+}
+
+.errorCexBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 0.75rem;
+}
+
+.errorCexMessage {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 0.8125rem;
+  color: var(--color-gray-2);
+  text-align: center;
+}
+
+.errorCexEmail {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.0625rem;
+  color: var(--color-blue);
+  text-align: center;
+}
+
+.changellyInfoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.changellyDescription {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-gray-2);
+  text-align: center;
+}
+
+.changellyTextField {
+  width: 100%;
+}
+
+.changellyDescriptionBold {
+  font-weight: 700;
 }

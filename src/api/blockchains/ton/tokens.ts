@@ -6,13 +6,14 @@ import type {
 } from '../../types';
 import type { AnyPayload, ApiTransactionExtra, JettonMetadata } from './types';
 
+import { DEFAULT_DECIMAL_PLACES, TON_SYMBOL, TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { logDebugError } from '../../../util/logs';
+import { fixIpfsUrl } from '../../../util/metadata';
 import { buildTokenSlug } from './util';
 import {
+  fetchJettonMetadata,
   fixBase64ImageData,
-  fixIpfsUrl,
-  getJettonMetadata,
   parseJettonWalletMsgBody,
 } from './util/metadata';
 import { fetchJettonBalances } from './util/tonapiio';
@@ -41,10 +42,11 @@ export type TokenBalanceParsed = {
 
 const KNOWN_TOKENS: ApiBaseToken[] = [
   {
-    slug: 'toncoin',
+    slug: TON_TOKEN_SLUG,
     name: 'Toncoin',
-    symbol: 'TON',
-    decimals: 9,
+    cmcSlug: TON_TOKEN_SLUG,
+    symbol: TON_SYMBOL,
+    decimals: DEFAULT_DECIMAL_PLACES,
   },
 ];
 
@@ -66,7 +68,7 @@ function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed {
 
   try {
     const { balance, jetton } = balanceRaw;
-    const minterAddress = toBase64Address(jetton.address);
+    const minterAddress = toBase64Address(jetton.address, true);
     const token = buildTokenByMetadata(minterAddress, jetton);
 
     return { slug: token.slug, balance, token };
@@ -174,8 +176,8 @@ export function addKnownTokens(tokens: ApiBaseToken[]) {
   }
 }
 
-export async function importToken(network: ApiNetwork, address: string) {
-  const metadata = await getJettonMetadata(network, address);
+export async function fetchToken(network: ApiNetwork, address: string) {
+  const metadata = await fetchJettonMetadata(network, address);
 
   return buildTokenByMetadata(address, metadata);
 }

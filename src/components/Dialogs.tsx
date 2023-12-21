@@ -1,9 +1,11 @@
+import { Dialog } from '@capacitor/dialog';
 import type { FC } from '../lib/teact/teact';
 import React, { memo, useEffect } from '../lib/teact/teact';
 import { getActions, withGlobal } from '../global';
 
 import renderText from '../global/helpers/renderText';
 import { pick } from '../util/iteratees';
+import { CAN_DELEGATE_BOTTOM_SHEET, IS_DELEGATED_BOTTOM_SHEET } from '../util/windowEnvironment';
 
 import useFlag from '../hooks/useFlag';
 import useLang from '../hooks/useLang';
@@ -24,27 +26,37 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const lang = useLang();
   const [isModalOpen, openModal, closeModal] = useFlag();
 
+  const message = dialogs[dialogs.length - 1];
+  const title = lang('Something went wrong');
+
   useEffect(() => {
-    if (dialogs.length > 0) {
+    if (CAN_DELEGATE_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
+      if (message) {
+        Dialog.alert({
+          title,
+          message: lang(message),
+        }).then(() => {
+          dismissDialog();
+        });
+      }
+    } else if (message) {
       openModal();
     } else {
       closeModal();
     }
-  }, [dialogs, openModal]);
+  }, [dialogs, lang, message, openModal, title]);
 
-  if (!dialogs.length) {
+  if (!message || CAN_DELEGATE_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
     return undefined;
   }
 
-  const message = dialogs[dialogs.length - 1];
-
   return (
     <Modal
-      isCompact
       isOpen={isModalOpen}
+      isCompact
+      title={title}
       onClose={closeModal}
       onCloseAnimationEnd={dismissDialog}
-      title={lang('Something went wrong')}
     >
       <div className={styles.content}>
         {renderText(lang(message))}

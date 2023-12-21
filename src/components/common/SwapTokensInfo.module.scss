@@ -1,0 +1,94 @@
+
+.infoBlock {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  width: 100%;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+
+  padding: 0.875rem 1rem;
+
+  background-color: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+}
+
+.infoRowIcon {
+  width: 2.25rem;
+  height: 2.25rem;
+
+  border-radius: 50%;
+}
+
+.infoRowToken {
+  display: flex;
+  gap: 0.625rem;
+}
+
+.infoRowText {
+  display: flex;
+  flex-direction: column;
+}
+
+.infoRowTextCenter {
+  justify-content: center;
+}
+
+.infoRowTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.infoRowDescription {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gray-2);
+}
+
+.infoRowAmount {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-gray-1);
+}
+
+.infoRowAmountGreen {
+  color: var(--color-green);
+}
+
+.infoRowAmountError {
+  color: var(--color-gray-3)
+}
+
+.infoSeparator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.5rem;
+  height: 2.5rem;
+
+  background-color: var(--color-background-second);
+  border-radius: 50%;
+}
+
+.infoSeparatorIcon {
+  font-size: 1.5rem;
+  color: var(--color-gray-1);
+}
+
+.infoSeparatorIconError {
+  font-size: 2.5rem;
+  color: var(--color-red);
+}

@@ -1,14 +1,23 @@
-import { buildCollectionByKey } from '../../../util/iteratees';
+import { StakingState } from '../../types';
+
+import { buildCollectionByKey, pick } from '../../../util/iteratees';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   addNft,
   removeNft,
+  updateAccount,
+  updateAccountStakingState,
   updateAccountState,
   updateBalance,
+  updateBalances,
   updateNft,
-  updatePoolState,
+  updateSettings,
+  updateStaking,
+  updateStakingInfo,
+  updateSwapTokens,
   updateTokens,
 } from '../../reducers';
+import { selectAccountState } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -16,28 +25,108 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = updateBalance(global, update.accountId, update.slug, update.balance);
       setGlobal(global);
 
+      actions.updateDeletionListForActiveTokens({ accountId: update.accountId });
       break;
     }
 
-    case 'updateStakingState': {
-      global = updateAccountState(global, update.accountId, {
-        stakingBalance: update.stakingState.amount + update.stakingState.pendingDepositAmount,
-        isUnstakeRequested: update.stakingState.isUnstakeRequested,
-      }, true);
+    case 'updateBalances': {
+      global = updateBalances(global, update.accountId, update.balancesToUpdate);
       setGlobal(global);
+
+      actions.updateDeletionListForActiveTokens({ accountId: update.accountId });
       break;
     }
 
-    case 'updateBackendStakingState': {
-      const { poolState } = update.backendStakingState;
-      global = updatePoolState(global, poolState, true);
+    case 'updateStaking': {
+      const {
+        accountId,
+        stakingCommonData,
+        stakingState,
+        backendStakingState,
+      } = update;
+
+      const oldBalance = selectAccountState(global, accountId)?.staking?.balance ?? 0;
+      let balance = 0;
+
+      if (stakingState.type === 'nominators') {
+        balance = stakingState.amount + stakingState.pendingDepositAmount;
+        global = updateAccountStakingState(global, accountId, {
+          type: stakingState.type,
+          balance,
+          isUnstakeRequested: stakingState.isUnstakeRequested,
+          unstakeRequestedAmount: undefined,
+          apy: backendStakingState.nominatorsPool.apy,
+          start: backendStakingState.nominatorsPool.start,
+          end: backendStakingState.nominatorsPool.end,
+          totalProfit: backendStakingState.totalProfit,
+        }, true);
+      } else {
+        const isPrevRoundUnlocked = Date.now() > stakingCommonData.prevRound.unlock;
+        const state = {
+          start: isPrevRoundUnlocked ? stakingCommonData.round.start : stakingCommonData.prevRound.start,
+          end: isPrevRoundUnlocked ? stakingCommonData.round.unlock : stakingCommonData.prevRound.unlock,
+          apy: stakingCommonData.liquid.apy,
+          totalProfit: backendStakingState.totalProfit,
+        };
+
+        if (stakingState.type === 'liquid') {
+          balance = stakingState.amount;
+          global = updateAccountStakingState(global, accountId, {
+            type: stakingState.type,
+            balance,
+            isUnstakeRequested: !!stakingState.unstakeRequestAmount,
+            unstakeRequestedAmount: Number(stakingState.unstakeRequestAmount),
+            ...state,
+          }, true);
+        } else {
+          balance = 0;
+          global = updateAccountStakingState(global, accountId, {
+            type: 'liquid',
+            balance,
+            isUnstakeRequested: false,
+            unstakeRequestedAmount: undefined,
+            ...state,
+          }, true);
+        }
+      }
+
+      let shouldOpenStakingInfo = false;
+      if (balance !== oldBalance && global.staking.state !== StakingState.None) {
+        if (balance === 0) {
+          global = updateStaking(global, { state: StakingState.StakeInitial });
+        } else if (oldBalance === 0) {
+          shouldOpenStakingInfo = true;
+        }
+      }
+
+      global = updateStakingInfo(global, {
+        liquid: {
+          instantAvailable: stakingCommonData.liquid.available,
+        },
+      });
       setGlobal(global);
 
+      if (shouldOpenStakingInfo) {
+        actions.cancelStaking();
+        actions.openStakingInfo();
+      }
       break;
     }
 
     case 'updateTokens': {
-      global = updateTokens(global, update.tokens, true);
+      const { tokens, baseCurrency } = update;
+      global = updateTokens(global, tokens, true);
+      global = updateSettings(global, {
+        baseCurrency,
+      });
+      setGlobal(global);
+
+      actions.updateDeletionListForActiveTokens();
+      break;
+    }
+
+    case 'updateSwapTokens': {
+      global = updateSwapTokens(global, update.tokens);
       setGlobal(global);
 
       break;
@@ -79,7 +168,12 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       setGlobal(global);
       break;
     }
-  }
 
-  actions.initTokensOrder();
+    case 'updateAccount': {
+      const { accountId, partial } = update;
+      global = updateAccount(global, accountId, pick(partial, ['address']));
+      setGlobal(global);
+      break;
+    }
+  }
 });

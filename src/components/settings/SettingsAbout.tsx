@@ -4,6 +4,7 @@ import { APP_NAME, APP_VERSION, IS_EXTENSION } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useScrolledState from '../../hooks/useScrolledState';
 
@@ -16,16 +17,22 @@ import styles from './Settings.module.scss';
 import logoSrc from '../../assets/logo.svg';
 
 interface OwnProps {
+  isActive?: boolean;
   handleBackClick: () => void;
   isInsideModal?: boolean;
 }
 
-function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
+function SettingsAbout({ isActive, handleBackClick, isInsideModal }: OwnProps) {
   const lang = useLang();
+
+  useHistoryBack({
+    isActive,
+    onBack: handleBackClick,
+  });
 
   const {
     handleScroll: handleContentScroll,
-    isAtBeginning: isContentNotScrolled,
+    isScrolled,
   } = useScrolledState();
 
   return (
@@ -33,12 +40,12 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
       {isInsideModal ? (
         <ModalHeader
           title={lang('About')}
-          withBorder={!isContentNotScrolled}
+          withNotch={isScrolled}
           onBackButtonClick={handleBackClick}
           className={styles.modalHeader}
         />
       ) : (
-        <div className={styles.header}>
+        <div className={buildClassName(styles.header, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
@@ -50,7 +57,6 @@ function SettingsAbout({ handleBackClick, isInsideModal }: OwnProps) {
         className={buildClassName(
           styles.content,
           isInsideModal && 'custom-scroll',
-          isInsideModal && styles.contentInModal,
           !isInsideModal && styles.content_noScroll,
         )}
         onScroll={isInsideModal ? handleContentScroll : undefined}

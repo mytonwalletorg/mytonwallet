@@ -60,11 +60,12 @@ function BackupWarning({ isRequired, theme, onOpenBackupWallet }: OwnProps & Sta
 }
 
 export default memo(
-  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-    detachWhenChanged(global.currentAccountId);
-
-    return {
-      theme: global.settings.theme,
-    };
-  })(BackupWarning),
+  withGlobal<OwnProps>(
+    (global): StateProps => {
+      return {
+        theme: global.settings.theme,
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(BackupWarning),
 );

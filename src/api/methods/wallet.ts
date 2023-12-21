@@ -6,7 +6,6 @@ import { parseAccountId } from '../../util/account';
 import blockchains from '../blockchains';
 import {
   fetchStoredAddress,
-  fetchStoredPublicKey,
   getMainAccountId,
 } from '../common/accounts';
 import * as dappPromises from '../common/dappPromises';
@@ -61,12 +60,14 @@ export function fetchAddress(accountId: string) {
   return fetchStoredAddress(accountId);
 }
 
-export function fetchPublicKey(accountId: string) {
-  return fetchStoredPublicKey(accountId);
-}
-
 export function isWalletInitialized(network: ApiNetwork, address: string) {
   const blockchain = blockchains.ton;
 
-  return blockchain.isWalletInitialized(network, address);
+  return blockchain.isAddressInitialized(network, address);
+}
+
+export function getWalletBalance(network: ApiNetwork, address: string) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.getWalletBalance(network, address);
 }

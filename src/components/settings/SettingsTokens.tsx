@@ -1,17 +1,18 @@
+import type { RefObject } from 'react';
 import React, {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import type { UserToken } from '../../global/types';
+import type { ApiBaseCurrency } from '../../api/types';
+import { SettingsState, type UserToken } from '../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../config';
+import { TON_TOKEN_SLUG } from '../../config';
 import buildClassName from '../../util/buildClassName';
-import { formatCurrency } from '../../util/formatNumber';
+import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { isBetween } from '../../util/math';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
-import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -19,7 +20,6 @@ import DeleteTokenModal from '../main/modals/DeleteTokenModal';
 import AnimatedCounter from '../ui/AnimatedCounter';
 import Draggable from '../ui/Draggable';
 import Switcher from '../ui/Switcher';
-import SelectTokens from './SelectTokens';
 
 import styles from './Settings.module.scss';
 
@@ -29,44 +29,43 @@ interface SortState {
   draggedIndex?: number;
 }
 
-interface Position {
-  top: number;
-  right: number;
-}
-
 interface OwnProps {
+  parentContainer: RefObject<HTMLDivElement>;
   tokens?: UserToken[];
-  popularTokens?: UserToken[];
   orderedSlugs?: string[];
   isSortByValueEnabled?: boolean;
+  baseCurrency?: ApiBaseCurrency;
 }
 
 const TOKEN_HEIGHT_PX = 64;
 const TOP_OFFSET = 48;
 
 function SettingsTokens({
-  tokens, popularTokens, orderedSlugs, isSortByValueEnabled,
+  parentContainer,
+  tokens,
+  orderedSlugs,
+  isSortByValueEnabled,
+  baseCurrency,
 }: OwnProps) {
   const {
+    openSettingsWithState,
     sortTokens,
-    toggleDisabledToken,
-    addToken,
+    toggleExceptionToken,
   } = getActions();
   const lang = useLang();
+  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   // eslint-disable-next-line no-null/no-null
   const tokensRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   const sortableContainerRef = useRef<HTMLDivElement>(null);
 
-  const [isAddTokenModalOpen, openAddTokenModal, closeAddTokenModal] = useFlag();
   const [tokenToDelete, setTokenToDelete] = useState<UserToken | undefined>();
   const [state, setState] = useState<SortState>({
     orderedTokenSlugs: orderedSlugs,
     dragOrderTokenSlugs: orderedSlugs,
     draggedIndex: undefined,
   });
-  const [sortableContainerPosition, setSortableContainerPosition] = useState<Position | undefined>();
 
   useEffect(() => {
     if (!arraysAreEqual(orderedSlugs, state.orderedTokenSlugs)) {
@@ -78,15 +77,8 @@ function SettingsTokens({
     }
   }, [orderedSlugs, state.orderedTokenSlugs]);
 
-  const handleOpenAddTokenModal = useLastCallback(() => {
-    if (sortableContainerRef.current) {
-      const { top, right } = sortableContainerRef.current.getBoundingClientRect();
-      setSortableContainerPosition({
-        top, right,
-      });
-    }
-
-    openAddTokenModal();
+  const handleOpenAddTokenPage = useLastCallback(() => {
+    openSettingsWithState({ state: SettingsState.SelectTokenList });
   });
 
   const handleDrag = useLastCallback((translation: { x: number; y: number }, id: string | number) => {
@@ -120,19 +112,17 @@ function SettingsTokens({
     });
   });
 
-  const handleDisabledToken = useLastCallback((slug: string) => {
+  const handleExceptionToken = useLastCallback((slug: string, e: React.MouseEvent | React.TouchEvent) => {
     if (slug === TON_TOKEN_SLUG) return;
 
-    toggleDisabledToken({ slug });
+    e.preventDefault();
+    e.stopPropagation();
+    toggleExceptionToken({ slug });
   });
 
   const handleDeleteToken = useLastCallback((token: UserToken, e: React.MouseEvent<HTMLSpanElement>) => {
     e.stopPropagation();
     setTokenToDelete(token);
-  });
-
-  const handleTokenSelect = useLastCallback((token: UserToken) => {
-    addToken({ token });
   });
 
   function renderToken(token: UserToken, index: number) {
@@ -145,8 +135,8 @@ function SettingsTokens({
     const totalAmount = amount * price;
     const isDragged = state.draggedIndex === index;
 
-    const draggedTop = getOrderIndex(slug, state.orderedTokenSlugs);
-    const top = getOrderIndex(slug, state.dragOrderTokenSlugs);
+    const draggedTop = isSortByValueEnabled ? getOffsetByIndex(index) : getOffsetBySlug(slug, state.orderedTokenSlugs);
+    const top = isSortByValueEnabled ? getOffsetByIndex(index) : getOffsetBySlug(slug, state.dragOrderTokenSlugs);
 
     const style = `top: ${isDragged ? draggedTop : top}px;`;
     const knobStyle = 'left: 1rem;';
@@ -167,8 +157,9 @@ function SettingsTokens({
         className={buildClassName(styles.item, styles.item_token)}
         offset={{ top: TOP_OFFSET }}
         parentRef={tokensRef}
+        scrollRef={parentContainer}
         // eslint-disable-next-line react/jsx-no-bind
-        onClick={() => handleDisabledToken(slug)}
+        onClick={(e) => handleExceptionToken(slug, e)}
       >
         <img
           src={logoPath}
@@ -180,7 +171,7 @@ function SettingsTokens({
             {name}
           </div>
           <div className={styles.tokenDescription}>
-            <AnimatedCounter text={formatCurrency(totalAmount, DEFAULT_PRICE_CURRENCY)} />
+            <AnimatedCounter text={formatCurrency(totalAmount, shortBaseSymbol)} />
             <i className={styles.dot} aria-hidden />
             <AnimatedCounter text={formatCurrency(amount, symbol)} />
             {isDeleteButtonVisible && (
@@ -196,8 +187,6 @@ function SettingsTokens({
             className={styles.menuSwitcher}
             label={lang('Investor View')}
             checked={!isDisabled}
-            // eslint-disable-next-line react/jsx-no-bind
-            onCheck={() => handleDisabledToken(slug)}
           />
         )}
       </Draggable>
@@ -213,21 +202,13 @@ function SettingsTokens({
           style={`height: ${(tokens?.length ?? 0) * TOKEN_HEIGHT_PX + TOP_OFFSET}px`}
           ref={tokensRef}
         >
-          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleOpenAddTokenModal}>
+          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleOpenAddTokenPage}>
             {lang('Add Token')}
             <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-down')} aria-hidden />
           </div>
 
           {tokens?.map(renderToken)}
         </div>
-
-        <SelectTokens
-          position={sortableContainerPosition}
-          isOpen={isAddTokenModalOpen}
-          onClose={closeAddTokenModal}
-          tokens={popularTokens}
-          onSelect={handleTokenSelect}
-        />
       </div>
 
       <DeleteTokenModal token={tokenToDelete} />
@@ -239,9 +220,13 @@ function arraysAreEqual<T>(arr1: T[] = [], arr2: T[] = []) {
   return arr1.length === arr2.length && arr1.every((value, index) => value === arr2[index]);
 }
 
-function getOrderIndex(slug: string, list: string[] = []) {
+function getOffsetBySlug(slug: string, list: string[] = []) {
   const realIndex = list.indexOf(slug);
   const index = realIndex === -1 ? list.length : realIndex;
+  return getOffsetByIndex(index);
+}
+
+function getOffsetByIndex(index: number) {
   return index * TOKEN_HEIGHT_PX + TOP_OFFSET;
 }
 

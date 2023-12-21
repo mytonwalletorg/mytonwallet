@@ -5,6 +5,7 @@ import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useScrolledState from '../../hooks/useScrolledState';
 
@@ -23,9 +24,14 @@ interface OwnProps {
 function SettingsDisclaimer({ isActive, handleBackClick, isInsideModal }: OwnProps) {
   const lang = useLang();
 
+  useHistoryBack({
+    isActive,
+    onBack: handleBackClick,
+  });
+
   const {
     handleScroll: handleContentScroll,
-    isAtBeginning: isContentNotScrolled,
+    isScrolled,
   } = useScrolledState();
 
   return (
@@ -33,11 +39,11 @@ function SettingsDisclaimer({ isActive, handleBackClick, isInsideModal }: OwnPro
       {isInsideModal ? (
         <ModalHeader
           title=""
-          withBorder={!isContentNotScrolled}
+          withNotch={isScrolled}
           onBackButtonClick={handleBackClick}
         />
       ) : (
-        <div className={styles.header}>
+        <div className={buildClassName(styles.header, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
@@ -48,7 +54,6 @@ function SettingsDisclaimer({ isActive, handleBackClick, isInsideModal }: OwnPro
         className={buildClassName(
           styles.content,
           isInsideModal && 'custom-scroll',
-          isInsideModal && styles.contentInModal,
           !isInsideModal && styles.content_noScroll,
         )}
         onScroll={isInsideModal ? handleContentScroll : undefined}

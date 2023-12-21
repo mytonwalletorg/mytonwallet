@@ -1,13 +1,16 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useRef, useState } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
+import type { ApiBaseCurrency } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
 import {
+  DEFAULT_PRICE_CURRENCY,
   TINY_TRANSFER_MAX_COST, TON_SYMBOL,
 } from '../../config';
 import buildClassName from '../../util/buildClassName';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
@@ -22,8 +25,8 @@ import SettingsTokens from './SettingsTokens';
 import styles from './Settings.module.scss';
 
 interface OwnProps {
+  isActive?: boolean;
   tokens?: UserToken[];
-  popularTokens?: UserToken[];
   orderedSlugs?: string[];
   areTinyTransfersHidden?: boolean;
   isInvestorViewEnabled?: boolean;
@@ -31,17 +34,40 @@ interface OwnProps {
   areTokensWithNoPriceHidden?: boolean;
   isSortByValueEnabled?: boolean;
   isInsideModal?: boolean;
-  handleBackClick: () => void;
+  handleBackClick: NoneToVoidFunction;
+  baseCurrency?: ApiBaseCurrency;
 }
 
-const CURRENCY_OPTIONS = [{
-  value: 'usd',
-  name: 'US Dollar',
-}];
+const CURRENCY_OPTIONS = [
+  {
+    value: 'USD',
+    name: 'US Dollar',
+  },
+  {
+    value: 'EUR',
+    name: 'Euro',
+  },
+  {
+    value: 'RUB',
+    name: 'Ruble',
+  },
+  {
+    value: 'CNY',
+    name: 'Yuan',
+  },
+  {
+    value: 'BTC',
+    name: 'Bitcoin',
+  },
+  {
+    value: 'TON',
+    name: 'Toncoin',
+  },
+];
 
 function SettingsAssets({
+  isActive,
   tokens,
-  popularTokens,
   orderedSlugs,
   areTinyTransfersHidden,
   isInvestorViewEnabled,
@@ -50,6 +76,7 @@ function SettingsAssets({
   isSortByValueEnabled,
   handleBackClick,
   isInsideModal,
+  baseCurrency,
 }: OwnProps) {
   const {
     toggleTinyTransfersHidden,
@@ -57,12 +84,21 @@ function SettingsAssets({
     toggleTokensWithNoBalance,
     toggleTokensWithNoPrice,
     toggleSortByValue,
+    changeBaseCurrency,
   } = getActions();
   const lang = useLang();
 
+  // eslint-disable-next-line no-null/no-null
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useHistoryBack({
+    isActive,
+    onBack: handleBackClick,
+  });
+
   const {
     handleScroll: handleContentScroll,
-    isAtBeginning: isContentNotScrolled,
+    isScrolled,
   } = useScrolledState();
 
   const handleTinyTransfersHiddenToggle = useLastCallback(() => {
@@ -85,17 +121,26 @@ function SettingsAssets({
     toggleSortByValue({ isEnabled: !isSortByValueEnabled });
   });
 
+  const [localBaseCurrency, setLocalBaseCurrency] = useState(baseCurrency);
+
+  const handleBaseCurrencyChange = useLastCallback((currency: string) => {
+    if (currency !== baseCurrency) {
+      setLocalBaseCurrency(currency as ApiBaseCurrency);
+      changeBaseCurrency({ currency: currency as ApiBaseCurrency });
+    }
+  });
+
   return (
     <div className={styles.slide}>
       {isInsideModal ? (
         <ModalHeader
           title={lang('Assets & Activity')}
-          withBorder={!isContentNotScrolled}
+          withNotch={isScrolled}
           onBackButtonClick={handleBackClick}
           className={styles.modalHeader}
         />
       ) : (
-        <div className={styles.header}>
+        <div className={buildClassName(styles.header, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
@@ -104,18 +149,20 @@ function SettingsAssets({
         </div>
       )}
       <div
-        className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}
+        className={buildClassName(styles.content, 'custom-scroll')}
         onScroll={handleContentScroll}
+        ref={scrollContainerRef}
       >
         <div className={styles.settingsBlock}>
           <Dropdown
-            label={lang('Fiat Currency')}
+            label={lang('Base Currency')}
             items={CURRENCY_OPTIONS}
-            selectedValue={CURRENCY_OPTIONS[0].value}
+            selectedValue={baseCurrency ?? DEFAULT_PRICE_CURRENCY}
             theme="light"
-            disabled
             shouldTranslateOptions
             className={buildClassName(styles.item, styles.item_small)}
+            onChange={handleBaseCurrencyChange}
+            isLoading={localBaseCurrency !== baseCurrency}
           />
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleInvestorViewToggle}>
             <div className={styles.blockWithTooltip}>
@@ -190,10 +237,11 @@ function SettingsAssets({
         </div>
 
         <SettingsTokens
+          parentContainer={scrollContainerRef}
           tokens={tokens}
-          popularTokens={popularTokens}
           orderedSlugs={orderedSlugs}
           isSortByValueEnabled={isSortByValueEnabled}
+          baseCurrency={baseCurrency}
         />
       </div>
     </div>

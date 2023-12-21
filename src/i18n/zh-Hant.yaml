@@ -96,20 +96,18 @@ $logout_accounts_without_backup_warning: 您還沒有備份 %links%。 如果您
 $logout_warning: 這將斷開錢包與此應用程序的連接。 您將能夠使用 **%1$d 個密語** 恢復您的錢包 - 或者導入另一個錢包。
 Receive TON: 接收 TON
 Your address was copied!: 您的地址已被複製!
-Show QR-Code: 顯示 QR-Code
-Create Invoice: 建立發票
-QR-code: QR-code
-$receive_invoice_description: |
-  您可以指定付款金額和地址來節省發送人的一些時間
+Show QR Code: 顯示 QR Code
+Create Deposit Link: 建立存款連結
+QR Code: QR Code
+$receive_invoice_description: 您可以指定付款金額和地址來節省發送人的一些時間。
 Amount: 數量
 Comment: 註記欄
 Share this URL to receive TON: 分享此連結來接收 TON
 Invoice link was copied!: 發票連結已複製！
-US Dollar: 美金
 Theme: 主題
 Language: 語言
 Enable Animations: 啟用動畫
-Fiat Currency: 法定貨幣
+Base Currency: 基本貨幣
 Investor View: 投資者觀點
 Toggle Investor View: 切換投資者觀點
 Hide Tiny Transfers: 隱藏小額轉帳
@@ -154,17 +152,17 @@ $transaction_to: 到 %address%
 Wallet is not backed up: 錢包未備份
 Testnet Version: 測試網版本
 Error reading clipboard: 讀取剪貼板時出現錯誤
-$fee_value: "Fee: %fee%"
+$fee_value: "手續費: %fee%"
 Loading...: 讀取中...
 Recipient Address: 接收人地址
 Wallet address or domain: 錢包地址或是域名
 Incorrect address: 錯誤的地址
+Incorrect address.: 錯誤的地址。
 Paste: 貼上
 Insufficient balance: 餘額不足
 InsufficientBalance: 餘額不足
 Optional: 選項
 $send_token_symbol: 發送 %1$s
-$balance_is: "餘額：%balance%"
 Is it all ok?: 全部確認都 OK?
 Receiving Address: 接收地址
 Fee: 手續費
@@ -192,8 +190,7 @@ Understood: 了解
 Today: 今天
 Yesterday: 昨天
 Now: 現在
-$receive_ton_description: |
-  您可以分享這個地址，出示 QR-Code 或創建發票來接收 TON
+$receive_ton_description: 您可以分享您的地址、掃描二維碼或建立存款連結來接收加密貨幣。
 Your address: 您的地址
 Wrong password, please try again: 密碼錯誤，請再嘗試一次
 Appearance: 外觀
@@ -205,7 +202,7 @@ Earn from your tokens while holding them: 從你持有中的代幣獲利
 $est_apy_val: Est. APY %1$d%
 Why this is safe: 為什麼這是安全的
 Why staking is safe?: 為什麼質押是安全的?
-$safe_staking_description1: Staking 是**完全去中心化的**，由官方 TON Nominator 智能合約運作。 沒有人可以使用您質押中的代幣.
+$safe_staking_description1: Staking 是**完全去中心化的**，由官方 TON Liquid Staking 智能合約運作。
 $safe_staking_description2: 作為其 **權益證明** 本質的一部分，存入的代幣將用於 TON 網路驗證。
 $safe_staking_description3: 您可以在**任何時候**提取您的質押資產，它會在**2 天內**存入您的帳戶。
 $min_value: 最少 %value%
@@ -324,6 +321,28 @@ $dapp_ledger_warning1: 您即將使用您的**Ledger**錢包發送多方交易�
 $dapp_ledger_warning2: 請慢慢來，不要中斷過程。
 Agree: 同意
 The hardware wallet does not support this data format: 硬件錢包不支持該數據格式
+Swap: 交換
+You sell: 您賣出
+You buy: 您購買
+Swap Details: 交換詳情
+Blockchain fee: 區塊鏈費用
+Price Impact: 價格影響
+Minimum Received: 最低接收數量
+Slippage: 下單誤差
+$swap_from_to: 從 %from% 交換至 %to%
+The exchange rate is below market value!: 匯率低於市場價值 %value%！
+Invalid Pair: 無效交易對
+We do not recommend to perform an exchange, try to specify a lower amount.: 我們不建議進行交換，請嘗試指定較小的金額。
+$swap_minimum_received_tooltip1: 這是您從此次交換中可能獲得的最少新代幣數量，考慮了目前市場條件、滑點容忍度和潛在價格影響。
+$swap_minimum_received_tooltip2: 這是預期的最低值，但如果在處理您的交換時條件發生很大變化，最終金額可能會較少。
+$swap_price_impact_tooltip1: 這顯示了您的交易可能對代幣價格造成的影響。
+$swap_price_impact_tooltip2: 大型交易可能會使價格上漲或下跌得更多。較低的值通常較好。
+$swap_slippage_tooltip1: 設置此值可以允許價格在進行交換前發生變化的程度。
+$swap_slippage_tooltip2: 如果在處理您的交換時，價格變化超過此值，您的訂單將被取消。
+Coins have been swapped!: 币已交换完成！
+Slippage not specified: 未指定下單誤差
+Slippage too high: 下單誤差過高
+Not enough TON: TON 不足
 Use Responsibly: 負責任地使用
 $auth_responsibly_description1: |
   MyTonWallet 是一個**自我託管**錢包，這意味著**只有您**擁有完全控制權，最重要的是，對您的資金**承擔全部責任**。
@@ -348,9 +367,129 @@ $auth_backup_description1: |
 $auth_backup_description2: 「能力越強，責任越大。」
 $auth_backup_description3: |
   你需要手動**備份註記詞**，免得你忘記助記詞而無法登入此裝置。
+Swap Placed: 已提交交換
+Swapping: 進行交換
+Swapped: 已交換
+Swap Failed: 交換失敗
+Exchange rate: 兌換率
+Swap Again: 再次進行交換
 Terms of Use: 使用條款
 Privacy Policy: 隱私政策
+Insufficient liquidity: 流動性不足
 This address is new and never received transfers before.: 這個地址是新的，以前從未收到過轉帳。
 Create Backup: 建立備份
 Sending: 傳送
-failed: 失败
+Failed: 失敗
+Refunded: 退款
+On hold: 持有
+Expired: 過期
+In progress: 進行中
+Waiting Payment: 等待付款
+Waiting for payment: 等待付款
+Blockchain: 區塊鏈
+Receiving address in blockchain: 在 %blockchain% 區塊鏈中的接收地址
+Please provide an address of your wallet in another blockchain to receive bought tokens.: 請提供您在另一個區塊鏈上的錢包地址以接收已購買的代幣。
+The time for sending coins is over: 發送硬幣的時間已結束
+Please wait a few moments...: 請稍等片刻...
+You have not sent the coins to the specified address.: 您尚未將硬幣發送到指定地址。
+$swap_changelly_to_ton_description1: "您必須在 %time% 內將 %value% 發送到此地址 在 %blockchain% 區塊鏈中"
+Please contact support and provide a transaction ID.: 請聯繫支援並提供交易ID。
+Exchange failed and coins were refunded to your wallet.: 交換失敗，硬幣已退還到您的錢包。
+Please contact security team to pass the KYC procedure.: 請聯繫安全團隊以通過KYC程序。
+Swap Expired: 交換過期
+Swap On Hold: 交換暫停
+Swap Refunded: 交換退款
+Changelly Payment Address: Changelly 付款地址
+Cross-chain exchange provided by Changelly: Changelly提供的跨鏈交換
+$swap_changelly_agreement_message: 繼續操作即表示您同意 %terms% 和 %policy%，並理解該交易可能會觸發根據 %kyc% 的驗證。
+$swap_changelly_terms_of_use: 使用條款
+$swap_changelly_privacy_policy: 隱私政策
+Password must contain %length% digits.: 密碼必須包含%length%位數字。
+Deposit Link: 儲值連結
+$swap_changelly_from_ton_description: "代幣將在幾分鐘內發送到您在%blockchain%區塊鏈上的地址："
+Minimum amount: 最低 %value%
+Maximum amount: 最高 %value%
+Display Tray Icon: 顯示托盤圖標
+Enable Auto-Updates: 啟用自動更新
+Biometric Authentication: 生物辨識認證
+Turn off biometrics?: 關閉生物識別？
+If you turn off biometric protection, you will need to create a password.: 如果您關閉生物辨識保護，則需要建立密碼。
+Enter your current password: 輸入目前密碼
+Turn On Biometrics: 打開生物識別
+Please confirm transaction using biometrics: 請使用生物辨識技術確認交易
+Enabling biometric confirmation will reset the password.: 啟用生物辨識確認將重設密碼。
+Biometric Registration: 生物辨識註冊
+Step 1 of 2. Registration: 第 1 步（共 2 步）：註冊
+Step 2 of 2. Verification: 第 2 步（共 2 步）：驗證
+Biometric setup failed: 生物辨識設定失敗
+Biometric confirmation failed: 生物辨識確認失敗
+Failed to disable biometrics: 無法禁用生物識別
+Biometric Confirmation: 生物辨識確認
+Please verify your identity.: 請證明你的身分。
+Create Password: 建立密碼
+Complete: 罷
+Verification: 確認
+Create a password or use biometric authentication to protect it.: 創建密碼或使用生物識別身份驗證來保護它。
+Connect Biometrics: 連接生物識別
+Use Password: 使用密碼
+Biometrics Disabled: 生物辨識已停用
+Biometrics Enabled: 啟用生物識別
+A request is already pending: 請求已待處理
+Please confirm operation using biometrics: 請使用生物辨識確認操作
+Scan QR Code: 掃描二維碼
+Permission denied. Please grant camera permission to use the QR code scanner.: 沒有權限。 請授予相機使用 QR 掃描器的權限。
+Unsupported barcode format: 不支援的條碼格式
+An error on the server side. Please try again.: 服務器端的錯誤。請再試一次。
+Unrecognized QR Code: 無法辨識的二維碼
+$fee_value_almost_equal: 手續費 ≈ %fee%
+Address was saved!: 地址已儲存！
+US Dollar: 美金
+Euro: 歐元
+Ruble: 盧布
+Yuan: 元
+$max_balance: "最大: %balance%"
+$unstake_information_instantly: 您將立即收到您的存款。
+Select Token: 選擇代幣
+MY: 我的
+POPULAR: 受歡迎
+A-Z: A-Z
+Not Found: 未找到
+Wallet is ready!: 錢包準備好了！
+Wallet is imported!: 錢包是進口的！
+Create a code to protect it: 創建程式碼來保護它
+Enter your code again: 再次輸入您的代碼
+Codes don't match: 代碼不匹配
+Code set successfully: 代碼設定成功
+Use Biometrics: 使用生物辨識技術
+Use Touch ID: 使用 Touch ID
+Use Face ID: 使用 Face ID
+You can connect your biometric data for more convenience: 您可以連接您的生物識別數據以獲得更多便利
+Connect Touch ID: 連接 Touch ID
+Connect Face ID: 連接 Face ID
+Not Now: 現在不要
+Biometric Authentification: 生物辨識認證
+Touch ID: Touch ID
+Face ID: Face ID
+Turn Off Touch ID?: 關閉 Touch ID？
+Turn Off Face ID?: 關閉 Off Face ID?
+Turn Off Biometrics?: 關閉生物辨識技術？
+Enter code: 輸入代碼
+Enter code or use Face ID: 輸入代碼或使用 Face ID
+Enter code or use Touch ID: 輸入代碼或使用 Touch ID
+Enter code or user biometrics: 輸入代碼或使用者生物辨識訊息
+Wrong code, please try again: 程式碼錯誤，請重試
+Scan your fingerprint: 掃描您的指紋
+Incorrect code, please try again: Incorrect code, please try again
+Correct: 不錯
+Confirm Operation: 確認操作
+Confirm Swap: 確認兌換
+"%amount% to %address%": "%amount% 至 %address%"
+"%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
+Failed to enable biometrics: 無法啟用生物識別
+Disable Face ID: Disable Face ID
+Disable Touch ID: Disable Touch ID
+Disable Biometrics: Disable Biometrics
+Are you sure you want to disable Face ID?: 您確定要禁用Face ID嗎？
+Are you sure you want to disable Touch ID?: 您確定要禁用Touch ID嗎？
+Are you sure you want to disable biometrics?: 您確定要禁用生物識別技術嗎？
+Yes: 是的

@@ -26,6 +26,17 @@
   }
 }
 
+.appSlide.appSlideTransparent {
+  background: transparent !important;
+
+  transition: background-color 150ms;
+  transition-delay: 350ms;
+
+  :global(html.is-ios) & {
+    transition-delay: 650ms;
+  }
+}
+
 .appSlideContent {
   /* These styles need to be applied via regular CSS and not as conditional class, since Transition does not work well when `slideClassName` updates */
   :global(html.is-extension) & {
@@ -34,6 +45,10 @@
 
   @include respond-below(xs) {
     overflow-y: scroll;
+  }
+
+  @supports (padding-top: env(safe-area-inset-top)) {
+    padding-top: env(safe-area-inset-top);
   }
 }
 

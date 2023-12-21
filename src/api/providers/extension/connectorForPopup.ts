@@ -29,7 +29,6 @@ export async function callApi<T extends keyof Methods>(methodName: T, ...args: M
       args,
     }) as MethodResponse<T>);
   } catch (err) {
-    logDebugError('callApi', err);
     return undefined;
   }
 }

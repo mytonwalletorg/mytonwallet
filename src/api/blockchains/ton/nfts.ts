@@ -13,7 +13,7 @@ export async function getAccountNfts(accountId: string, offset?: number, limit?:
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 
-  const rawNfts = await fetchAccountNfts(network, address, offset, limit);
+  const rawNfts = await fetchAccountNfts(network, address, { offset, limit });
   return compact(rawNfts.map(buildNft));
 }
 
@@ -30,20 +30,25 @@ export function buildNft(rawNft: NftItem): ApiNft | undefined {
       metadata: {
         name,
         image,
+        attributes,
+        description,
       },
       previews,
       sale,
     } = rawNft;
 
+    const isHidden = attributes?.render_type === 'hidden' || description === 'SCAM';
+
     return {
       index,
       name,
-      address: toBase64Address(address),
+      address: toBase64Address(address, true),
       image,
       thumbnail: previews!.find((x) => x.resolution === '500x500')!.url,
       isOnSale: Boolean(sale),
+      isHidden,
       ...(collection && {
-        collectionAddress: toBase64Address(collection.address),
+        collectionAddress: toBase64Address(collection.address, true),
         collectionName: collection.name,
       }),
     };
@@ -72,12 +77,12 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         const { sender, recipient, nft: rawNftAddress } = action.nftItemTransfer;
         if (!sender || !recipient) continue;
         to = toBase64Address(recipient.address);
-        nftAddress = toBase64Address(rawNftAddress);
+        nftAddress = toBase64Address(rawNftAddress, true);
       } else if (action.nftPurchase) {
         const { buyer } = action.nftPurchase;
         to = toBase64Address(buyer.address);
         rawNft = action.nftPurchase.nft;
-        nftAddress = toBase64Address(rawNft.address);
+        nftAddress = toBase64Address(rawNft.address, true);
       } else {
         continue;
       }
@@ -86,12 +91,16 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         if (!rawNft) {
           [rawNft] = await fetchNftItems(network, [nftAddress]);
         }
-        updates.push({
-          type: 'nftReceived',
-          accountId,
-          nftAddress,
-          nft: buildNft(rawNft)!,
-        });
+        const nft = buildNft(rawNft);
+
+        if (nft) {
+          updates.push({
+            type: 'nftReceived',
+            accountId,
+            nftAddress,
+            nft,
+          });
+        }
       } else if (!isPurchase && await isActiveSmartContract(network, to)) {
         updates.push({
           type: 'nftPutUpForSale',

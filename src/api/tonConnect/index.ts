@@ -21,19 +21,19 @@ import type {
   ApiDappRequest,
   ApiNetwork,
   ApiSignedTransfer,
-  ApiTransactionDraftError,
   OnApiUpdate,
 } from '../types';
 import type {
   ApiTonConnectProof, LocalConnectEvent, TransactionPayload, TransactionPayloadMessage,
 } from './types';
-import { ApiTransactionError } from '../types';
+import { ApiCommonError, ApiTransactionError } from '../types';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
 
 import { IS_EXTENSION, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { isValidLedgerComment } from '../../util/ledger/utils';
 import { logDebugError } from '../../util/logs';
+import { fetchJsonMetadata } from '../../util/metadata';
 import blockchains from '../blockchains';
 import { parsePayloadBase64 } from '../blockchains/ton';
 import { fetchKeyPair } from '../blockchains/ton/auth';
@@ -43,11 +43,12 @@ import {
   fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey, getCurrentAccountId, getCurrentAccountIdOrFail,
 } from '../common/accounts';
 import { createDappPromise } from '../common/dappPromises';
-import { createLocalTransaction, isUpdaterAlive } from '../common/helpers';
+import { isUpdaterAlive } from '../common/helpers';
 import {
-  base64ToBytes, bytesToBase64, handleFetchErrors, sha256,
+  base64ToBytes, bytesToBase64, sha256,
 } from '../common/utils';
 import * as apiErrors from '../errors';
+import { ApiServerError } from '../errors';
 import { callHook } from '../hooks';
 import {
   activateDapp,
@@ -57,8 +58,10 @@ import {
   deleteDapp,
   findLastConnectedAccount,
   getDappsByOrigin,
-  isDappConnected, updateDapp,
+  isDappConnected,
+  updateDapp,
 } from '../methods/dapps';
+import { createLocalTransaction } from '../methods/transactions';
 import * as errors from './errors';
 import { BadRequestError } from './errors';
 import { isValidString, isValidUrl } from './utils';
@@ -85,6 +88,11 @@ export async function connect(
   id: number,
 ): Promise<LocalConnectEvent> {
   try {
+    onPopupUpdate({
+      type: 'dappLoading',
+      connectionType: 'connect',
+    });
+
     const { origin } = await validateRequest(request, true);
     const dapp = {
       ...await fetchDappMetadata(message.manifestUrl, origin),
@@ -208,6 +216,11 @@ export async function sendTransaction(
   message: SendTransactionRpcRequest,
 ): Promise<SendTransactionRpcResponse> {
   try {
+    onPopupUpdate({
+      type: 'dappLoading',
+      connectionType: 'sendTransaction',
+    });
+
     const { origin, accountId } = await validateRequest(request);
 
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
@@ -220,7 +233,7 @@ export async function sendTransaction(
 
     const { network } = parseAccountId(accountId);
     const account = await fetchStoredAccount(accountId);
-    const isLedger = !!account?.ledger;
+    const isLedger = !!account.ledger;
 
     await openExtensionPopup(true);
 
@@ -285,12 +298,12 @@ export async function sendTransaction(
     const fromAddress = await fetchStoredAddress(accountId);
     const successTransactions = transactionsForRequest.slice(0, successNumber!);
 
-    successTransactions.forEach(({ amount, resolvedAddress, payload }) => {
+    successTransactions.forEach(({ amount, normalizedAddress, payload }) => {
       const comment = payload?.type === 'comment' ? payload.comment : undefined;
-      createLocalTransaction(onPopupUpdate, accountId, {
+      createLocalTransaction(accountId, {
         amount,
         fromAddress,
-        toAddress: resolvedAddress,
+        toAddress: normalizedAddress,
         comment,
         fee: checkResult.fee!,
         slug: TON_TOKEN_SLUG,
@@ -315,8 +328,10 @@ export async function sendTransaction(
       code = err.code;
       errorMessage = err.message;
       displayError = err.displayError;
+    } else if (err instanceof ApiServerError) {
+      displayError = err.displayError;
     } else {
-      displayError = ApiTransactionError.Unexpected;
+      displayError = ApiCommonError.Unexpected;
     }
 
     if (onPopupUpdate && isUpdaterAlive(onPopupUpdate) && displayError) {
@@ -365,7 +380,11 @@ async function checkTransactionMessages(accountId: string, messages: Transaction
 
   const checkResult = await ton.checkMultiTransactionDraft(accountId, preparedMessages);
   if ('error' in checkResult) {
-    handleDraftError(checkResult.error);
+    onPopupUpdate({
+      type: 'showError',
+      error: checkResult.error,
+    });
+    throw new errors.BadRequestError(checkResult.error);
   }
 
   return {
@@ -382,30 +401,30 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       payload: rawPayload,
       stateInit,
     }) => {
-      const isInitialized = await ton.isWalletInitialized(network, address);
-      const resolvedAddress = toBase64Address(address);
-
+      const isActiveContract = await ton.isAddressInitialized(network, address);
       // Force non-bounceable for non-initialized recipients
-      const toAddress = isInitialized ? resolvedAddress : toBase64Address(address, false);
+      const toAddress = toBase64Address(address, isActiveContract);
+      // Fix address format for `waitTxComplete` to work properly
+      const normalizedAddress = toBase64Address(address);
       const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
 
       if (isLedger && payload) {
         if (
           !LEDGER_SUPPORTED_PAYLOADS.includes(payload.type)
           || (payload.type === 'comment' && !isValidLedgerComment(payload.comment))
-          || (payload.type === 'transfer-nft' && !!payload.forwardPayload)
+          || (payload.type === 'nft:transfer' && !!payload.forwardPayload)
         ) {
           throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwarePayload);
         }
       }
 
       return {
-        resolvedAddress,
         toAddress,
         amount,
         rawPayload,
         payload,
         stateInit,
+        normalizedAddress,
       };
     },
   ));
@@ -527,10 +546,9 @@ function buildTonProofReplyItem(proof: ApiTonConnectProof, signature: string): T
 
 export async function fetchDappMetadata(manifestUrl: string, origin?: string): Promise<ApiDappMetadata> {
   try {
-    const response = await fetch(manifestUrl);
-    handleFetchErrors(response);
+    const data = await fetchJsonMetadata(manifestUrl);
 
-    const { url, name, iconUrl } = await response.json();
+    const { url, name, iconUrl } = await data;
     if (!isValidUrl(url) || !isValidString(name) || !isValidUrl(iconUrl)) {
       throw new Error('Invalid data');
     }
@@ -567,14 +585,6 @@ async function validateRequest(request: ApiDappRequest, skipConnection = false) 
   }
 
   return { origin, accountId };
-}
-
-function handleDraftError(error: ApiTransactionDraftError) {
-  onPopupUpdate({
-    type: 'showError',
-    error,
-  });
-  throw new errors.BadRequestError(error);
 }
 
 async function openExtensionPopup(force?: boolean) {

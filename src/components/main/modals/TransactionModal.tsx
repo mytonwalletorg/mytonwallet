@@ -1,10 +1,12 @@
 import React, { memo, useState } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
-import type { ApiToken, ApiTransactionActivity } from '../../../api/types';
+import type { ApiStakingType, ApiToken, ApiTransactionActivity } from '../../../api/types';
 
 import {
-  ANIMATION_END_DELAY, ANIMATION_LEVEL_MIN,
+  ANIMATION_END_DELAY,
+  ANIMATION_LEVEL_MIN,
+  IS_CAPACITOR,
   STAKING_CYCLE_DURATION_MS,
   TON_SYMBOL,
   TON_TOKEN_SLUG,
@@ -14,11 +16,12 @@ import {
 import { bigStrToHuman, getIsTxIdLocal } from '../../../global/helpers';
 import { selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
+import { vibrateOnSuccess } from '../../../util/capacitor';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
+import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
 import { callApi } from '../../../api';
 
 import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
-import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import usePrevDuringAnimation from '../../../hooks/usePrevDuringAnimation';
@@ -29,8 +32,10 @@ import TransactionAmount from '../../common/TransactionAmount';
 import AmountWithFeeTextField from '../../ui/AmountWithFeeTextField';
 import Button from '../../ui/Button';
 import InteractiveTextField from '../../ui/InteractiveTextField';
-import Modal, { ANIMATION_DURATION, ANIMATION_DURATION_PORTRAIT } from '../../ui/Modal';
+import Modal, { CLOSE_DURATION, CLOSE_DURATION_PORTRAIT } from '../../ui/Modal';
+import ModalHeader from '../../ui/ModalHeader';
 import PasswordForm from '../../ui/PasswordForm';
+import Transition from '../../ui/Transition';
 
 import transferStyles from '../../transfer/Transfer.module.scss';
 import modalStyles from '../../ui/Modal.module.scss';
@@ -45,7 +50,14 @@ type StateProps = {
   isTestnet?: boolean;
   startOfStakingCycle?: number;
   endOfStakingCycle?: number;
+  stakingType?: ApiStakingType;
+  isUnstakeRequested?: boolean;
+  isInstantUnstakeRequested?: boolean;
 };
+const enum SLIDES {
+  initial,
+  password,
+}
 
 const EMPTY_HASH_VALUE = 'NOHASH';
 
@@ -56,19 +68,26 @@ function TransactionModal({
   isTestnet,
   startOfStakingCycle,
   endOfStakingCycle,
+  stakingType,
+  isUnstakeRequested,
+  isInstantUnstakeRequested,
 }: StateProps) {
   const {
     startTransfer,
     startStaking,
     closeActivityInfo,
+    setIsPinPadPasswordAccepted,
+    clearIsPinPadPasswordAccepted,
   } = getActions();
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
+  const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.initial);
+  const [nextKey, setNextKey] = useState<number | undefined>(SLIDES.password);
   const animationLevel = getGlobal().settings.animationLevel;
   const animationDuration = animationLevel === ANIMATION_LEVEL_MIN
     ? 0
-    : (isPortrait ? ANIMATION_DURATION_PORTRAIT : ANIMATION_DURATION) + ANIMATION_END_DELAY;
+    : (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
   const renderedTransaction = usePrevDuringAnimation(transaction, animationDuration);
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
 
@@ -79,12 +98,12 @@ function TransactionModal({
     comment,
     encryptedComment,
     fee,
-    txId,
+    id,
     isIncoming,
     slug,
     timestamp,
   } = renderedTransaction || {};
-  const [, transactionHash] = (txId || '').split(':');
+  const [, transactionHash] = (id || '').split(':');
   const isStaking = Boolean(transaction?.type);
 
   const token = slug ? tokensBySlug?.[slug] : undefined;
@@ -93,8 +112,8 @@ function TransactionModal({
   const addressName = (address && savedAddresses?.[address]) || transaction?.metadata?.name;
   const isScam = Boolean(transaction?.metadata?.isScam);
 
+  const [isLoading, setIsLoading] = useState(false);
   const [decryptedComment, setDecryptedComment] = useState<string>();
-  const [isPasswordModalOpen, openPasswordModal, closePasswordModal] = useFlag();
   const [passwordError, setPasswordError] = useState<string>();
 
   const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;
@@ -103,7 +122,12 @@ function TransactionModal({
     : undefined;
 
   const withUnstakeTimer = Boolean(
-    transaction?.type === 'unstakeRequest' && startOfStakingCycle && transaction.timestamp >= startOfStakingCycle,
+    (stakingType === 'liquid' ? isInstantUnstakeRequested || isUnstakeRequested : true)
+    && transaction?.type === 'unstakeRequest'
+    && startOfStakingCycle
+    && endOfStakingCycle
+    && transaction.timestamp >= startOfStakingCycle
+    && transaction.timestamp <= endOfStakingCycle,
   );
 
   const {
@@ -114,8 +138,6 @@ function TransactionModal({
   useSyncEffect(() => {
     if (renderedTransaction) {
       setDecryptedComment(undefined);
-    } else {
-      closeActivityInfo();
     }
   }, [renderedTransaction]);
 
@@ -125,9 +147,20 @@ function TransactionModal({
     }
   }, [endOfStakingCycle]);
 
+  const openPasswordSlide = useLastCallback(() => {
+    setCurrentSlide(SLIDES.password);
+    setNextKey(undefined);
+  });
+
+  const closePasswordSlide = useLastCallback(() => {
+    setCurrentSlide(SLIDES.initial);
+    setNextKey(SLIDES.password);
+  });
+
   const handleSendClick = useLastCallback(() => {
-    closeActivityInfo();
+    closeActivityInfo({ id: id! });
     startTransfer({
+      isPortrait,
       tokenSlug: slug || TON_TOKEN_SLUG,
       toAddress: address,
       amount: Math.abs(amountHuman),
@@ -136,11 +169,12 @@ function TransactionModal({
   });
 
   const handleStartStakingClick = useLastCallback(() => {
-    closeActivityInfo();
+    closeActivityInfo({ id: id! });
     startStaking();
   });
 
   const handlePasswordSubmit = useLastCallback(async (password: string) => {
+    setIsLoading(true);
     const result = await callApi(
       'decryptComment',
       getGlobal().currentAccountId!,
@@ -148,14 +182,27 @@ function TransactionModal({
       fromAddress!,
       password,
     );
+    setIsLoading(false);
 
     if (!result) {
       setPasswordError('Wrong password, please try again');
       return;
     }
 
-    closePasswordModal();
+    if (IS_CAPACITOR) {
+      setIsPinPadPasswordAccepted();
+      await vibrateOnSuccess(true);
+    }
+
+    closePasswordSlide();
     setDecryptedComment(result);
+  });
+
+  const handleClose = useLastCallback(() => {
+    closeActivityInfo({ id: id! });
+    if (IS_CAPACITOR) {
+      clearIsPinPadPasswordAccepted();
+    }
   });
 
   const clearPasswordError = useLastCallback(() => {
@@ -163,7 +210,8 @@ function TransactionModal({
   });
 
   function renderHeader() {
-    const isLocal = txId && getIsTxIdLocal(txId);
+    const isLocal = id && getIsTxIdLocal(id);
+
     const title = isIncoming
       ? lang('Received')
       : isLocal
@@ -171,23 +219,38 @@ function TransactionModal({
         : lang('Sent');
 
     return (
-      <div className={styles.transactionHeader}>
-        <div className={styles.headerTitle}>
-          {title}
-          {isLocal && (
-            <i
-              className={buildClassName(styles.clockIcon, 'icon-clock')}
-              title={lang('Transaction in progress')}
-              aria-hidden
-            />
-          )}
-          {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
-        </div>
-        {!!timestamp && (
-          <div className={styles.headerDate}>
-            {formatFullDay(lang.code!, timestamp)}, {formatTime(timestamp)}
-          </div>
+      <div
+        className={buildClassName(
+          modalStyles.header,
+          modalStyles.header_wideContent,
         )}
+      >
+        <div className={modalStyles.title}>
+          <div className={styles.headerTitle}>
+            {title}
+            {isLocal && (
+              <i
+                className={buildClassName(styles.clockIcon, 'icon-clock')}
+                title={lang('Transaction in progress')}
+                aria-hidden
+              />
+            )}
+            {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
+          </div>
+          {!!timestamp && (
+            <div className={styles.headerDate}>
+              {formatFullDay(lang.code!, timestamp)}, {formatTime(timestamp)}
+            </div>
+          )}
+        </div>
+        <Button
+          isRound
+          className={modalStyles.closeButton}
+          ariaLabel={lang('Close')}
+          onClick={handleClose}
+        >
+          <i className={buildClassName(modalStyles.closeIcon, 'icon-close')} aria-hidden />
+        </Button>
       </div>
     );
   }
@@ -224,31 +287,11 @@ function TransactionModal({
           text={encryptedComment ? decryptedComment : comment}
           spoiler={spoiler}
           spoilerRevealText={encryptedComment ? lang('Decrypt') : lang('Display')}
-          spoilerCallback={openPasswordModal}
+          spoilerCallback={openPasswordSlide}
           copyNotification={lang('Comment was copied!')}
           className={styles.copyButtonWrapper}
           textClassName={styles.comment}
         />
-        {encryptedComment && (
-          <Modal
-            isCompact
-            isOpen={isPasswordModalOpen}
-            onClose={closePasswordModal}
-            title={lang('Enter Password')}
-            contentClassName={styles.passwordModal}
-          >
-            <PasswordForm
-              isActive={isPasswordModalOpen}
-              submitLabel={lang('Send')}
-              placeholder={lang('Enter your password')}
-              error={passwordError}
-              containerClassName={styles.passwordFormContent}
-              onSubmit={handlePasswordSubmit}
-              onCancel={closePasswordModal}
-              onUpdate={clearPasswordError}
-            />
-          </Modal>
-        )}
       </>
     );
   }
@@ -306,27 +349,70 @@ function TransactionModal({
     );
   }
 
+  // eslint-disable-next-line consistent-return
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+    switch (currentKey) {
+      case SLIDES.initial:
+        return (
+          <>
+            {renderHeader()}
+            <div className={modalStyles.transitionContent}>
+              {tonscanTransactionUrl && (
+                <a
+                  href={tonscanTransactionUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className={styles.tonscan}
+                  title={lang('View Transaction on TON Explorer')}
+                >
+                  <i className="icon-tonscan" aria-hidden />
+                </a>
+              )}
+              {renderTransactionContent()}
+            </div>
+          </>
+        );
+      case SLIDES.password:
+        if (!encryptedComment) return undefined;
+
+        return (
+          <>
+            {!IS_CAPACITOR && <ModalHeader title={lang('Enter Password')} onClose={handleClose} />}
+            <PasswordForm
+              isActive={isActive}
+              isLoading={isLoading}
+              submitLabel={lang('Send')}
+              placeholder={lang('Enter your password')}
+              error={passwordError}
+              withCloseButton={IS_CAPACITOR}
+              containerClassName={styles.passwordFormContent}
+              onSubmit={handlePasswordSubmit}
+              onCancel={closePasswordSlide}
+              onUpdate={clearPasswordError}
+            />
+          </>
+        );
+    }
+  }
+
   return (
     <Modal
-      hasCloseButton
-      title={renderHeader()}
       isOpen={Boolean(transaction)}
-      onClose={closeActivityInfo}
+      hasCloseButton
+      nativeBottomSheetKey="transaction-info"
+      forceFullNative={currentSlide === SLIDES.password}
+      dialogClassName={styles.modalDialog}
+      onClose={handleClose}
     >
-      <div className={modalStyles.transitionContent}>
-        {tonscanTransactionUrl && (
-          <a
-            href={tonscanTransactionUrl}
-            target="_blank"
-            rel="noreferrer noopener"
-            className={styles.tonscan}
-            title={lang('View Transaction on TON Explorer')}
-          >
-            <i className="icon-tonscan" aria-hidden />
-          </a>
-        )}
-        {renderTransactionContent()}
-      </div>
+      <Transition
+        name={resolveModalTransitionName()}
+        className={buildClassName(modalStyles.transition, 'custom-scroll')}
+        slideClassName={modalStyles.transitionSlide}
+        activeKey={currentSlide}
+        nextKey={nextKey}
+      >
+        {renderContent}
+      </Transition>
     </Modal>
   );
 }
@@ -337,7 +423,10 @@ export default memo(
 
     const txId = accountState?.currentActivityId;
     const activity = txId ? accountState?.activities?.byId[txId] : undefined;
-    const { startOfCycle: startOfStakingCycle, endOfCycle: endOfStakingCycle } = accountState?.poolState || {};
+    const {
+      start: startOfStakingCycle,
+      end: endOfStakingCycle,
+    } = accountState?.staking || {};
     const savedAddresses = accountState?.savedAddresses;
 
     return {
@@ -347,6 +436,9 @@ export default memo(
       isTestnet: global.settings.isTestnet,
       startOfStakingCycle,
       endOfStakingCycle,
+      stakingType: accountState?.staking?.type,
+      isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
+      isInstantUnstakeRequested: accountState?.staking?.isInstantUnstakeRequested,
     };
   })(TransactionModal),
 );

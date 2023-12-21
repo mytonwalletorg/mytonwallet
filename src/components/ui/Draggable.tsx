@@ -5,6 +5,7 @@ import React, {
 
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
+import { clamp } from '../../util/math';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -25,6 +26,7 @@ type Offset = {
 
 type DraggableState = {
   isDragging: boolean;
+  scrollTop: number;
   origin: TPoint;
   translation: TPoint;
   width?: number;
@@ -41,8 +43,9 @@ type OwnProps = {
   isDisabled?: boolean;
   offset?: Offset;
   parentRef?: RefObject<HTMLDivElement>;
+  scrollRef?: RefObject<HTMLDivElement>;
   className?: string;
-  onClick: NoneToVoidFunction;
+  onClick: (e: React.MouseEvent | React.TouchEvent) => void;
 };
 
 const ZERO_POINT: TPoint = { x: 0, y: 0 };
@@ -54,6 +57,8 @@ const DEFAULT_OFFSET: Offset = {
   right: 0,
 };
 
+const EDGE_THRESHOLD = 150;
+
 function Draggable({
   children,
   id,
@@ -64,6 +69,7 @@ function Draggable({
   isDisabled,
   offset = DEFAULT_OFFSET,
   parentRef,
+  scrollRef,
   className,
   onClick,
 }: OwnProps) {
@@ -73,61 +79,110 @@ function Draggable({
   // eslint-disable-next-line no-null/no-null
   const buttonRef = useRef<HTMLDivElement>(null);
 
+  const scrollIntervalId = useRef<number>();
+
   const [state, setState] = useState<DraggableState>({
     isDragging: false,
+    scrollTop: 0,
     origin: ZERO_POINT,
     translation: ZERO_POINT,
   });
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const { x, y } = getClientCoordinate(e);
+  const lastMousePosition = useRef<TPoint>({ x: 0, y: 0 });
+
+  const updateDraggablePosition = () => {
+    if (!state.isDragging || !ref.current || !parentRef?.current || !scrollRef?.current) return;
+
+    const translation = calculateConstrainedTranslation(
+      state,
+      lastMousePosition.current,
+      scrollRef.current.scrollTop,
+      ref.current,
+      parentRef.current,
+      offset,
+    );
+
+    setState((current) => ({
+      ...current,
+      translation,
+    }));
+
+    onDrag(translation, id);
+  };
+
+  const stopContinuousScroll = () => {
+    if (scrollIntervalId.current !== undefined) {
+      cancelAnimationFrame(scrollIntervalId.current);
+      scrollIntervalId.current = undefined;
+    }
+  };
+
+  const startContinuousScroll = (scrollContainer: HTMLElement, speed: number) => {
+    const animateScroll = () => {
+      scrollContainer.scrollBy(0, speed);
+      updateDraggablePosition();
+      scrollIntervalId.current = requestAnimationFrame(animateScroll);
+    };
+
+    stopContinuousScroll();
+    animateScroll();
+  };
+
+  const setInitialState = (e: React.MouseEvent | TouchEvent) => {
+    const origin = getClientCoordinate(e);
+    const scrollTop = scrollRef?.current?.scrollTop ?? 0;
 
     setState({
       ...state,
       isDragging: true,
-      origin: { x, y },
+      origin,
+      scrollTop,
       width: ref.current?.offsetWidth,
       height: ref.current?.offsetHeight,
     });
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setInitialState(e);
+  };
+
   const handleTouchStart = useLastCallback((e: TouchEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    const { x, y } = getClientCoordinate(e);
-
-    setState({
-      ...state,
-      isDragging: true,
-      origin: { x, y },
-      width: ref.current?.offsetWidth,
-      height: ref.current?.offsetHeight,
-    });
+    setInitialState(e);
   });
 
   const handleMouseMove = useLastCallback((e: MouseEvent | TouchEvent) => {
+    if (!ref.current || !parentRef?.current || !scrollRef?.current) return;
+
     const { x, y } = getClientCoordinate(e);
+    lastMousePosition.current = { x, y };
 
-    const translation = {
-      x: x - state.origin.x,
-      y: y - state.origin.y,
-    };
+    const translation = calculateConstrainedTranslation(
+      state,
+      lastMousePosition.current,
+      scrollRef.current.scrollTop,
+      ref.current,
+      parentRef.current,
+      offset,
+    );
 
-    if (parentRef && parentRef?.current && ref.current) {
-      const {
-        top = 0, right = 0, bottom = 0, left = 0,
-      } = offset;
-      const parentRect = parentRef.current.getBoundingClientRect();
-      const draggableRect = ref.current.getBoundingClientRect();
+    const scrollRect = scrollRef.current.getBoundingClientRect();
+    const distanceFromTop = y - scrollRect.top;
+    const distanceFromBottom = scrollRect.bottom - y;
 
-      const minX = -ref.current.offsetLeft + left;
-      const maxX = parentRect.width - draggableRect.width - ref.current.offsetLeft + right;
-
-      const minY = -ref.current.offsetTop + top;
-      const maxY = parentRect.height - draggableRect.height - ref.current.offsetTop + bottom;
-
-      translation.x = Math.max(minX, Math.min(translation.x, maxX));
-      translation.y = Math.max(minY, Math.min(translation.y, maxY));
+    if (distanceFromTop < EDGE_THRESHOLD) {
+      startContinuousScroll(
+        scrollRef.current,
+        -scaledEase((EDGE_THRESHOLD - distanceFromTop) / EDGE_THRESHOLD),
+      );
+    } else if (distanceFromBottom < EDGE_THRESHOLD) {
+      startContinuousScroll(
+        scrollRef.current,
+        scaledEase((EDGE_THRESHOLD - distanceFromBottom) / EDGE_THRESHOLD),
+      );
+    } else {
+      stopContinuousScroll();
     }
 
     setState((current) => ({
@@ -149,23 +204,12 @@ function Draggable({
     onDragEnd();
   });
 
-  useEffect(() => {
-    if (state.isDragging && isDisabled) {
-      setState((current) => ({
-        ...current,
-        isDragging: false,
-        width: undefined,
-        height: undefined,
-      }));
-    }
-  }, [isDisabled, state.isDragging]);
-
-  const handleClick = useLastCallback(() => {
+  const handleClick = useLastCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (state.isDragging) {
       return;
     }
 
-    onClick();
+    onClick(e);
   });
 
   useEffect(() => {
@@ -182,6 +226,7 @@ function Draggable({
       window.addEventListener('touchcancel', handleMouseUp);
       window.addEventListener('mouseup', handleMouseUp);
     } else {
+      stopContinuousScroll();
       window.removeEventListener('touchmove', handleMouseMove);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchend', handleMouseUp);
@@ -196,6 +241,7 @@ function Draggable({
 
     return () => {
       if (state.isDragging) {
+        stopContinuousScroll();
         window.removeEventListener('touchmove', handleMouseMove);
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('touchend', handleMouseUp);
@@ -207,7 +253,7 @@ function Draggable({
         }
       }
     };
-  }, [handleMouseMove, handleMouseUp, handleTouchStart, state.isDragging, buttonRef]);
+  }, [handleMouseMove, handleMouseUp, handleTouchStart, state.isDragging, buttonRef, isDisabled]);
 
   const fullClassName = buildClassName(styles.container, className, state.isDragging && styles.isDragging);
 
@@ -256,4 +302,39 @@ function getClientCoordinate(e: MouseEvent | TouchEvent | React.MouseEvent | Rea
   }
 
   return { x, y };
+}
+
+function scaledEase(n: number) {
+  return 5 * (n ** 3) + 1;
+}
+
+function calculateConstrainedTranslation(
+  state: DraggableState,
+  lastMousePosition: TPoint,
+  lastScrollTop: number,
+  draggableElement: HTMLDivElement,
+  parentElement: HTMLDivElement,
+  offset: Offset,
+) {
+  const translation = {
+    x: lastMousePosition.x - state.origin.x,
+    y: lastMousePosition.y - state.origin.y + lastScrollTop - state.scrollTop,
+  };
+
+  const {
+    top = 0, right = 0, bottom = 0, left = 0,
+  } = offset;
+
+  const parentRect = parentElement.getBoundingClientRect();
+  const draggableRect = draggableElement.getBoundingClientRect();
+
+  const minX = -draggableElement.offsetLeft + left;
+  const maxX = parentRect.width - draggableRect.width - draggableElement.offsetLeft + right;
+  const minY = -draggableElement.offsetTop + top;
+  const maxY = parentRect.height - draggableRect.height - draggableElement.offsetTop + bottom;
+
+  return {
+    x: clamp(translation.x, minX, maxX),
+    y: clamp(translation.y, minY, maxY),
+  };
 }

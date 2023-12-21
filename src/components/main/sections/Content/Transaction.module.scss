@@ -18,29 +18,39 @@
   color: var(--color-black);
   text-align: left;
 
-  &:not(:last-of-type) {
-    &::after {
-      content: '';
+  &::after {
+    content: '';
 
-      position: absolute;
-      right: 1.5rem;
-      bottom: 0;
-      left: 3.625rem;
+    position: absolute;
+    right: 1.5rem;
+    bottom: 0;
+    left: 3.625rem;
 
-      height: 0.0625rem;
-      /* stylelint-disable-next-line plugin/whole-pixel */
-      box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+    height: 0.0625rem;
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+  }
+
+  @media (hover: hover) {
+    &:focus,
+    &:hover {
+      background-color: var(--color-interactive-item-hover);
     }
   }
 
-  &:focus,
-  &:hover {
+  &.active {
     background-color: var(--color-interactive-item-hover);
   }
 
   &:active {
     // Optimization
     transition: none;
+  }
+}
+
+.itemLast {
+  &::after {
+    content: none;
   }
 }
 
@@ -87,12 +97,40 @@
 
     background-color: var(--color-activity-purple-background);
   }
+
+  &_error {
+    color: var(--color-red);
+
+    background: var(--color-activity-red-background) !important;
+  }
+
+  &_swap {
+    font-size: 1.875rem;
+
+    background-image: linear-gradient(135deg, #EDF1F6 13.89%, #EAFBF1 86.11%);
+
+    :global(.theme-dark) & {
+      background-image: linear-gradient(135deg, #2E3947 13.89%, #1F3838 86.11%);
+    }
+
+    &:not(.icon_error)::before {
+      color: transparent;
+
+      background: linear-gradient(74deg, #53657B 29.67%, #1EC160 45.27%);
+      background-clip: text;
+      background-size: 100%;
+
+      :global(.theme-dark) & {
+        background-image: linear-gradient(74deg, #A3B8CA 29.67%, #2CD36F 45.27%);
+      }
+    }
+  }
 }
 
 .iconWaiting {
   position: absolute;
   top: 2.25rem;
-  left: 2.375rem;
+  left: 2.125rem;
 
   font-size: 1rem;
   line-height: 1;
@@ -117,6 +155,10 @@
 
 .iconWaitingSwap {
   color: var(--color-activity-green-text);
+}
+
+.iconWaitingStake {
+  color: var(--color-activity-purple-text);
 }
 
 .leftBlock {
@@ -221,4 +263,45 @@
 .scamImage {
   width: 2.375rem;
   margin-left: 0.25rem;
+}
+
+.swapAmount {
+  display: flex;
+  align-items: center;
+}
+
+.swapArrowRight {
+  padding: 0 0.125rem;
+
+  color: transparent;
+
+  background: linear-gradient(90deg, #8399AE 0.98%, #2CD36F 99.02%);
+  background-clip: text;
+  background-size: 100%;
+
+  :global(.theme-dark) & {
+    background-image: linear-gradient(90deg, #8799B3 0.98%, #2CD36F 99.02%);
+  }
+}
+
+.swapSell {
+  color: var(--color-gray-2);
+}
+
+.swapBuy {
+  color: var(--color-green);
+}
+
+.swapError {
+  color: var(--color-red);
+}
+
+.swapHold {
+  color: var(--color-gray-2);
+}
+
+.isSwapErrorMessage {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-red);
 }

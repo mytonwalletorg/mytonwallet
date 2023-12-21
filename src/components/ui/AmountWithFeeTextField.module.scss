@@ -4,7 +4,7 @@
   display: flex;
 
   box-sizing: border-box;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   padding: 0.875rem 0.75rem;
 
   font-size: 1rem;
@@ -28,7 +28,7 @@
 
 .label,
 .feeLabel {
-  margin-bottom: 0.3125rem;
+  margin-bottom: 0.5rem;
   padding: 0 0.5rem;
 
   font-size: 0.8125rem;
@@ -40,7 +40,7 @@
 
 .feeLabel {
   position: absolute;
-  top: -1.1875rem;
+  top: -1.375rem;
   right: 0.3125rem;
 }
 

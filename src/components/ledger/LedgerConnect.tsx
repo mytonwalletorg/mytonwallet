@@ -6,21 +6,27 @@ import { getActions } from '../../global';
 import { HardwareConnectState } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
+import { closeLedgerTab } from '../../util/ledger/tab';
+import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
+import Transition from '../ui/Transition';
 
+import modalStyles from '../ui/Modal.module.scss';
 import styles from './LedgerModal.module.scss';
 
 interface OwnProps {
+  isActive: boolean;
   state?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isRemoteTab?: boolean;
-  onConnected: NoneToVoidFunction;
+  onConnected: (isSingleWallet: boolean) => void;
   onCancel?: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -28,6 +34,7 @@ interface OwnProps {
 const NEXT_SLIDE_DELAY = 500;
 
 function LedgerConnect({
+  isActive,
   state,
   isLedgerConnected,
   isTonAppConnected,
@@ -39,22 +46,30 @@ function LedgerConnect({
   const {
     connectHardwareWallet,
     resetHardwareWalletConnect,
+    initializeHardwareWalletConnection,
   } = getActions();
   const lang = useLang();
 
   const isLedgerFailed = isLedgerConnected === false;
   const isTonAppFailed = isTonAppConnected === false;
-  const isConnected = state === HardwareConnectState.Connected;
+  const isConnected = state === HardwareConnectState.ConnectedWithSingleWallet
+    || state === HardwareConnectState.ConnectedWithSeveralWallets;
+  const isWaitingForBrowser = state === HardwareConnectState.WaitingForBrowser;
   const title = isConnected ? lang('Ledger Connected!') : lang('Connect Ledger');
   const shouldCloseOnCancel = !onCancel;
 
-  const handleConnected = useLastCallback(() => {
+  useHistoryBack({
+    isActive,
+    onBack: onCancel ?? onClose,
+  });
+
+  const handleConnected = useLastCallback((isSingleWallet: boolean) => {
     if (isRemoteTab) {
       return;
     }
 
     setTimeout(() => {
-      onConnected();
+      onConnected(isSingleWallet);
 
       setTimeout(() => {
         resetHardwareWalletConnect();
@@ -63,10 +78,25 @@ function LedgerConnect({
   });
 
   useEffect(() => {
-    if (state === HardwareConnectState.Connected) {
-      handleConnected();
+    if (isRemoteTab || !isActive) return;
+
+    initializeHardwareWalletConnection();
+  }, [isActive, isRemoteTab]);
+
+  useEffect(() => {
+    if (
+      state === HardwareConnectState.ConnectedWithSingleWallet
+      || state === HardwareConnectState.ConnectedWithSeveralWallets
+    ) {
+      handleConnected(state === HardwareConnectState.ConnectedWithSingleWallet);
     }
   }, [state, handleConnected]);
+
+  const handleCloseWithBrowserTab = useLastCallback(() => {
+    const closeAction = shouldCloseOnCancel ? onClose : onCancel;
+    closeLedgerTab();
+    closeAction();
+  });
 
   function renderButtons() {
     const isConnecting = state === HardwareConnectState.Connecting;
@@ -112,7 +142,7 @@ function LedgerConnect({
   function renderWaitingForBrowser() {
     return (
       <>
-        <ModalHeader title={title} onClose={onClose} />
+        <ModalHeader title={title} onClose={handleCloseWithBrowserTab} />
         <div className={styles.container}>
           <div
             className={buildClassName(
@@ -138,7 +168,7 @@ function LedgerConnect({
           <div className={buildClassName(styles.actionBlock, styles.actionBlock_single)}>
             <Button
               className={buildClassName(styles.button, styles.button_single)}
-              onClick={shouldCloseOnCancel ? onClose : onCancel}
+              onClick={handleCloseWithBrowserTab}
             >
               {lang(shouldCloseOnCancel ? 'Cancel' : 'Back')}
             </Button>
@@ -201,14 +231,23 @@ function LedgerConnect({
   }
 
   function renderContent() {
-    if (state === HardwareConnectState.WaitingForBrowser) {
+    if (isWaitingForBrowser) {
       return renderWaitingForBrowser();
     }
 
     return renderConnect();
   }
 
-  return renderContent();
+  return (
+    <Transition
+      name={resolveModalTransitionName()}
+      className={buildClassName(modalStyles.transition, 'custom-scroll')}
+      slideClassName={modalStyles.transitionSlide}
+      activeKey={isWaitingForBrowser ? 1 : 0}
+    >
+      {renderContent}
+    </Transition>
+  );
 }
 
 export default memo(LedgerConnect);

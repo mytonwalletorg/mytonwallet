@@ -7,9 +7,12 @@ import { ANIMATION_LEVEL_MAX, ANIMATION_LEVEL_MIN } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import switchAnimationLevel from '../../util/switchAnimationLevel';
 import switchTheme from '../../util/switchTheme';
+import { IS_ELECTRON, IS_WINDOWS } from '../../util/windowEnvironment';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useScrolledState from '../../hooks/useScrolledState';
 
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
@@ -22,21 +25,31 @@ import lightThemeImg from '../../assets/theme/theme_light.png';
 import systemThemeImg from '../../assets/theme/theme_system.png';
 
 interface OwnProps {
+  isActive?: boolean;
   theme: Theme;
   handleBackClick: () => void;
   animationLevel: AnimationLevel;
   canPlaySounds?: boolean;
   isInsideModal?: boolean;
+  isTrayIconEnabled: boolean;
+  onTrayIconEnabledToggle: VoidFunction;
+  isAutoUpdateEnabled: boolean;
+  onAutoUpdateEnabledToggle: VoidFunction;
 }
 
 const SWITCH_THEME_DURATION_MS = 300;
 
 function SettingsAppearance({
+  isActive,
   theme,
   handleBackClick,
   animationLevel,
   canPlaySounds,
   isInsideModal,
+  isTrayIconEnabled,
+  onTrayIconEnabledToggle,
+  isAutoUpdateEnabled,
+  onAutoUpdateEnabledToggle,
 }: OwnProps) {
   const {
     setTheme,
@@ -58,6 +71,16 @@ function SettingsAppearance({
     name: lang('Dark'),
     icon: darkThemeImg,
   }];
+
+  useHistoryBack({
+    isActive,
+    onBack: handleBackClick,
+  });
+
+  const {
+    handleScroll: handleContentScroll,
+    isScrolled,
+  } = useScrolledState();
 
   const handleThemeChange = useLastCallback((newTheme: string) => {
     document.documentElement.classList.add('no-transitions');
@@ -100,11 +123,12 @@ function SettingsAppearance({
       {isInsideModal ? (
         <ModalHeader
           title={lang('Appearance')}
+          withNotch={isScrolled}
           onBackButtonClick={handleBackClick}
           className={styles.modalHeader}
         />
       ) : (
-        <div className={styles.header}>
+        <div className={buildClassName(styles.header, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
@@ -112,7 +136,10 @@ function SettingsAppearance({
           <span className={styles.headerTitle}>{lang('Appearance')}</span>
         </div>
       )}
-      <div className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}>
+      <div
+        className={buildClassName(styles.content, 'custom-scroll')}
+        onScroll={handleContentScroll}
+      >
         <p className={styles.blockTitle}>{lang('Theme')}</p>
         <div className={styles.settingsBlock}>
           <div className={styles.themeWrapper}>
@@ -139,6 +166,28 @@ function SettingsAppearance({
               checked={canPlaySounds}
             />
           </div>
+          {IS_ELECTRON && IS_WINDOWS && (
+            <div className={buildClassName(styles.item, styles.item_small)} onClick={onTrayIconEnabledToggle}>
+              {lang('Display Tray Icon')}
+
+              <Switcher
+                className={styles.menuSwitcher}
+                label={lang('Display Tray Icon')}
+                checked={isTrayIconEnabled}
+              />
+            </div>
+          )}
+          {IS_ELECTRON && (
+            <div className={buildClassName(styles.item, styles.item_small)} onClick={onAutoUpdateEnabledToggle}>
+              {lang('Enable Auto-Updates')}
+
+              <Switcher
+                className={styles.menuSwitcher}
+                label={lang('Enable Auto-Updates')}
+                checked={isAutoUpdateEnabled}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -6,42 +6,176 @@
   position: relative;
   z-index: var(--z-modal);
 
-  &.slideUpAnimation {
-      --transition: 500ms cubic-bezier(0.3, 0.8, 0.2, 1);
-    }
-
   &.error {
     .dialog {
       max-width: 23rem;
     }
   }
 
-  &:global(.open) .backdrop,
+  .dialog {
+    transform: translateY(-1rem);
+
+    opacity: 0;
+
+    transition: transform var(--transition), opacity var(--transition);
+
+    :global(html.animation-level-0) & {
+      transform: translateY(0);
+
+      transition: var(--no-animation-transition);
+    }
+  }
+
   &:global(.open) .dialog {
+    transform: translateY(0);
+
     opacity: 1;
   }
 
-  &:not(.slideUpAnimation):global(.open) .dialog {
-    transform: translate3d(0, 0, 0);
+  &:global(.closing) .dialog {
+    transform: translateY(1rem);
   }
 
-  :global(html:not(.animation-level-0)) &:not(.slideUpAnimation):global(.closing) .dialog {
-    transform: translate3d(0, 1rem, 0);
+  .backdrop {
+    opacity: 0;
+
+    transition: opacity var(--transition);
+
+    :global(html.animation-level-0) & {
+      transition: var(--no-animation-transition);
+    }
   }
 
-  &.slideUpAnimation:global(.shown) {
+  &:global(.open) .backdrop {
+    opacity: 1;
+  }
+}
+
+.delegatingToNative {
+  display: none;
+}
+
+.slideUpAnimation {
+  --transition: 500ms cubic-bezier(0.3, 0.8, 0.2, 1);
+
+  .container {
+    overflow: hidden;
+    align-items: flex-end;
+
+    padding: 0;
+  }
+
+  // Disable catching events on closing modals
+  &:global(.closing) .container {
+    pointer-events: none;
+  }
+
+  .dialog {
+    transform: translateY(100%);
+
+    max-width: 28rem;
+    max-height: calc(95 * var(--vh, 1vh));
+    margin: 0;
+
+    background: var(--color-background-second);
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+
+    transition: transform var(--transition);
+
+    :global(html:not(.animation-level-0)) & {
+      opacity: 1;
+    }
+
+    :global(html.animation-level-0) & {
+      transition: var(--no-animation-transition);
+    }
+
+    > :global(.Transition-slideLayers),
+    > :global(.Transition-slideLayersBackwards) {
+      border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+    }
+  }
+
+  &:global(.open) .dialog {
+    transform: translateY(0);
+  }
+
+  &:global(.closing) .dialog {
+    transform: translateY(100%);
+  }
+
+  :global(html.animation-level-0) &:global(.closing) {
+    .dialog {
+      display: none;
+
+      // The transition for the `display` property is needed to prevent blocking events
+      /* stylelint-disable-next-line plugin/no-low-performance-animation-properties */
+      transition: var(--no-animation-transition), display 0ms 200ms !important;
+    }
+
+    .backdrop {
+      display: none;
+    }
+  }
+
+  // Mimic the animation from the system Settings section on Android
+  :global(html.is-android) &:not(.forceBottomSheet) {
+    --transition: 500ms cubic-bezier(0.16, 1, 0.3, 1);
+
+    .dialog {
+      transform: translateY(15%);
+
+      height: 100%;
+      max-height: 100%;
+
+      opacity: 0;
+      border-radius: 0;
+
+      > :global(.Transition-slideLayers),
+      > :global(.Transition-slideLayersBackwards) {
+        border-radius: 0;
+      }
+    }
+
+    &:global(.open) .dialog {
+      transform: translateY(0);
+
+      opacity: 1;
+
+      transition: transform var(--transition), opacity var(--transition);
+    }
+
+    &:global(.closing) {
+      .dialog {
+        transform: translateY(3%);
+
+        transition: transform 200ms ease-in, opacity 100ms 100ms ease-out !important;
+      }
+    }
+  }
+
+  :global(html.is-native-bottom-sheet) & {
     .container {
-      overflow: hidden;
+      align-items: flex-start;
+
+      background: var(--color-background-second);
     }
 
     .dialog {
-      transform: translateY(100%);
+      max-height: none;
+
+      border-radius: 0;
+      box-shadow: none;
+
+      transition: none;
     }
 
-    &:global(.shown.open) {
-      .dialog {
-        transform: translateY(0);
-      }
+    &:global(.closing) .dialog {
+      transform: translateY(0);
+    }
+
+    .backdrop {
+      display: none;
     }
   }
 }
@@ -58,12 +192,6 @@
   justify-content: center;
 
   padding: 1rem;
-
-  .slideUpAnimation & {
-    align-items: flex-end;
-
-    padding: 0;
-  }
 }
 
 .backdrop {
@@ -74,14 +202,7 @@
   bottom: 0;
   left: 0;
 
-  opacity: 0;
   background-color: var(--color-tint);
-
-  transition: opacity var(--transition);
-
-  :global(html.animation-level-0) & {
-    transition: var(--no-animation-transition) !important;
-  }
 }
 
 .noBackdrop {
@@ -90,7 +211,6 @@
 
 .dialog {
   position: relative;
-  transform: translate3d(0, -1rem, 0);
 
   display: inline-flex;
   flex-direction: column;
@@ -101,46 +221,9 @@
   max-height: 100%;
   margin: 2rem auto;
 
-  opacity: 0;
   background-color: var(--color-background-window);
   border-radius: var(--border-radius-default);
   box-shadow: var(--default-shadow);
-
-  transition: transform var(--transition), opacity var(--transition);
-
-  .slideUpAnimation & {
-    transform: none;
-
-    max-width: 28rem;
-    max-height: calc(95 * var(--vh, 1vh));
-    margin: 0;
-
-    background: var(--color-background-second);
-    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
-
-    transition: transform var(--transition);
-
-    :global(html:not(.animation-level-0)) & {
-      opacity: 1;
-    }
-
-    :global(html.animation-level-0) & {
-      transition: var(--no-animation-transition) !important;
-    }
-
-    > :global(.Transition-slideLayers),
-    > :global(.Transition-slideLayersBackwards) {
-      border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
-    }
-  }
-
-  :global(html.animation-level-0) & {
-    transform: translate3d(0, 0, 0) !important;
-
-    opacity: 0;
-
-    transition: var(--no-animation-transition) !important;
-  }
 
   .content > :global(.Transition-slideLayers),
   .content > :global(.Transition-slideLayersBackwards) {
@@ -169,8 +252,6 @@
 
   color: var(--color-black);
 
-  transition: box-shadow 200ms;
-
   &_noClose {
     grid-template-areas: "title title title";
 
@@ -183,13 +264,7 @@
   }
 
   &_wideContent {
-    grid-template-columns: 0.25fr 1fr 0.25fr;
-  }
-
-  &_bordered {
-    z-index: 1;
-    /* stylelint-disable-next-line plugin/whole-pixel */
-    box-shadow: 0 0.035rem 0 0 var(--color-separator);
+    grid-template-columns: 0.25fr 1.5fr 0.25fr;
   }
 
   &_back {
@@ -200,6 +275,7 @@
     align-items: center;
 
     margin-left: -0.875rem;
+    padding: 0 0.5rem;
 
     font-size: 1.0625rem;
     color: var(--color-blue);
@@ -306,23 +382,38 @@
 }
 
 .buttons {
-  display: flex;
+  display: grid;
+  grid-auto-columns: minmax(max-content, 1fr);
+  grid-auto-flow: column;
   gap: 1rem;
-  justify-content: center;
+  justify-items: center;
 
-  margin-top: auto;
+  margin-top: auto; // Used to pull down when modal has fixed height
+  padding-top: 2rem;
+}
+
+.buttonsInsideContentWithScroll {
+  margin-bottom: -1rem;
+  padding-bottom: 1rem;
+
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    margin-bottom: calc(-1 * max(env(safe-area-inset-bottom), 1rem));
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+.buttonsNoExtraSpace {
+  padding-top: 0;
 }
 
 .button {
+  width: 100%;
   min-width: 9rem !important;
+  max-width: 68vw !important;
 }
 
-.customCancelButton {
-  min-width: 7rem !important;
-}
-
-.customSubmitButton {
-  max-width: 100%;
+.shortButton {
+  min-width: 6rem !important;
 }
 
 .transition {

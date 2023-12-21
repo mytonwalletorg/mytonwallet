@@ -4,6 +4,10 @@
   height: 100%;
 }
 
+.wrapperLoading {
+  height: 4rem;
+}
+
 .emptyList {
   display: flex;
   flex-direction: column;
@@ -15,7 +19,15 @@
   @include respond-above(xs) {
     justify-content: center;
 
-    height: 8rem;
     padding-top: 0;
   }
+}
+
+.emptyListSeparate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  height: 100%;
 }

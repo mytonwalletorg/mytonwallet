@@ -4,6 +4,7 @@ import { MNEMONIC_COUNT } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
@@ -13,15 +14,21 @@ import modalStyles from '../ui/Modal.module.scss';
 import styles from './Auth.module.scss';
 
 type OwnProps = {
+  isActive?: boolean;
   mnemonic?: string[];
   onClose: NoneToVoidFunction;
   onNext: NoneToVoidFunction;
 };
 
 function MnemonicList({
-  mnemonic, onNext, onClose,
+  isActive, mnemonic, onNext, onClose,
 }: OwnProps) {
   const lang = useLang();
+
+  useHistoryBack({
+    isActive,
+    onBack: onClose,
+  });
 
   return (
     <div className={modalStyles.transitionContentWrapper}>

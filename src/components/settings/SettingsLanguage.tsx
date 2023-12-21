@@ -7,6 +7,7 @@ import { LANG_LIST } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { setLanguage } from '../../util/langProvider';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -18,12 +19,14 @@ import styles from './Settings.module.scss';
 import checkmarkImg from '../../assets/settings/settings_checkmark.svg';
 
 interface OwnProps {
+  isActive?: boolean;
   langCode: LangCode;
   handleBackClick: () => void;
   isInsideModal?: boolean;
 }
 
 function SettingsLanguage({
+  isActive,
   langCode,
   handleBackClick,
   isInsideModal,
@@ -32,6 +35,11 @@ function SettingsLanguage({
     changeLanguage,
   } = getActions();
   const lang = useLang();
+
+  useHistoryBack({
+    isActive,
+    onBack: handleBackClick,
+  });
 
   const handleLanguageChange = useLastCallback((newLangCode: LangCode) => {
     void setLanguage(newLangCode, () => {
@@ -73,7 +81,7 @@ function SettingsLanguage({
           <span className={styles.headerTitle}>{lang('Language')}</span>
         </div>
       )}
-      <div className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}>
+      <div className={buildClassName(styles.content, 'custom-scroll')}>
         <div className={styles.block}>
           {renderLanguages()}
         </div>

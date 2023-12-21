@@ -1,13 +1,16 @@
+import type { URLOpenListenerEvent } from '@capacitor/app';
+import { App as CapacitorApp } from '@capacitor/app';
 import React, { memo, useEffect } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
 import { ElectronEvent } from '../../../../electron/types';
 
-import { TON_TOKEN_SLUG } from '../../../../config';
-import { bigStrToHuman } from '../../../../global/helpers';
 import buildClassName from '../../../../util/buildClassName';
+import { clearLaunchUrl, getLaunchUrl } from '../../../../util/capacitor';
+import { processDeeplink } from '../../../../util/processDeeplink';
 
 import useLang from '../../../../hooks/useLang';
+import useLastCallback from '../../../../hooks/useLastCallback';
 
 import Button from '../../../ui/Button';
 
@@ -25,20 +28,38 @@ interface OwnProps {
 function PortraitActions({
   hasStaking, isTestnet, isUnstakeRequested, onEarnClick, onReceiveClick, isLedger,
 }: OwnProps) {
-  const { startTransfer } = getActions();
+  const { startTransfer, startSwap } = getActions();
 
   const lang = useLang();
 
+  const isSwapAllowed = !(isTestnet || isLedger);
+  const isStakingAllowed = !(isTestnet || isLedger);
+
   useEffect(() => {
-    return window.electron?.on(ElectronEvent.DEEPLINK, (params: any) => {
-      startTransfer({
-        tokenSlug: TON_TOKEN_SLUG,
-        toAddress: params.to,
-        amount: bigStrToHuman(params.amount),
-        comment: params.text,
-      });
+    return window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {
+      processDeeplink(url);
     });
   }, [startTransfer]);
+
+  useEffect(() => {
+    const launchUrl = getLaunchUrl();
+    if (launchUrl) {
+      processDeeplink(launchUrl);
+      clearLaunchUrl();
+    }
+
+    return CapacitorApp.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
+      processDeeplink(event.url);
+    }).remove;
+  }, [startTransfer]);
+
+  const handleStartSwap = useLastCallback(() => {
+    startSwap({ isPortrait: true });
+  });
+
+  const handleStartTransfer = useLastCallback(() => {
+    startTransfer({ isPortrait: true });
+  });
 
   return (
     <div className={styles.container}>
@@ -47,11 +68,17 @@ function PortraitActions({
           <i className={buildClassName(styles.buttonIcon, 'icon-receive')} aria-hidden />
           {lang('Receive')}
         </Button>
-        <Button className={styles.button} onClick={startTransfer} isSimple>
+        <Button className={styles.button} onClick={handleStartTransfer} isSimple>
           <i className={buildClassName(styles.buttonIcon, 'icon-send')} aria-hidden />
           {lang('Send')}
         </Button>
-        {!isTestnet && !isLedger && (
+        {isSwapAllowed && (
+          <Button className={styles.button} onClick={handleStartSwap} isSimple>
+            <i className={buildClassName(styles.buttonIcon, 'icon-swap')} aria-hidden />
+            {lang('Swap')}
+          </Button>
+        )}
+        {isStakingAllowed && (
           <Button
             className={buildClassName(styles.button, hasStaking && styles.button_purple)}
             onClick={onEarnClick}

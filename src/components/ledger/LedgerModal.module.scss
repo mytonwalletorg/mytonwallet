@@ -155,10 +155,12 @@
 
   padding: 0.5rem;
 
-  @include adapt-padding-to-scrollbar(0.5rem);
-
   background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
+
+  &_two {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
 
 .account {
@@ -194,6 +196,22 @@
     cursor: default;
 
     opacity: 1;
+  }
+
+  .accounts_single & {
+    grid-column-start: 2;
+  }
+
+  .accounts_two & {
+    grid-column: span 2;
+
+    &:first-child {
+      grid-column-end: 4;
+    }
+
+    &:nth-child(2) {
+      grid-column-end: 6;
+    }
   }
 
   @media (min-resolution: 1.5dppx) {

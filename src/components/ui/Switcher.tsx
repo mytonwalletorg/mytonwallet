@@ -46,6 +46,7 @@ function Switcher({
         checked={checked}
         className={styles.input}
         onChange={handleChange}
+        teactExperimentControlled={!onChange && !onCheck}
       />
       <span className={styles.widget} />
     </label>

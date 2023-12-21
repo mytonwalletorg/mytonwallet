@@ -41,8 +41,11 @@ function TransferResult({
   onFirstButtonClick,
   onSecondButtonClick,
 }: OwnProps) {
-  const withBalanceChange = balance && operationAmount;
-  const finalBalance = withBalanceChange ? balance + operationAmount - (fee ?? 0) : 0;
+  const withBalanceChange = Boolean(balance !== undefined && operationAmount);
+  let finalBalance = withBalanceChange ? balance! + operationAmount! : 0;
+  if (finalBalance && fee && tokenSymbol === TON_SYMBOL) {
+    finalBalance -= fee;
+  }
   const [wholePart, fractionPart] = formatCurrencyExtended(amount, '', noSign).split('.');
 
   function renderButtons() {

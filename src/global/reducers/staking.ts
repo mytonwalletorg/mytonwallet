@@ -1,10 +1,9 @@
-import type { ApiPoolState } from '../../api/types';
-import type { GlobalState } from '../types';
+import type { AccountState, GlobalState } from '../types';
 import { StakingState } from '../types';
 
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
-import { selectCurrentAccountState } from '../selectors';
-import { updateCurrentAccountState } from './misc';
+import { selectAccountState } from '../selectors';
+import { updateAccountState } from './misc';
 
 export function updateStaking(global: GlobalState, update: Partial<GlobalState['staking']>): GlobalState {
   return {
@@ -25,20 +24,48 @@ export function clearStaking(global: GlobalState) {
   };
 }
 
-export function updatePoolState(global: GlobalState, partial: ApiPoolState, withDeepCompare = false): GlobalState {
-  const currentPoolState = selectCurrentAccountState(global)?.poolState;
+export function updateAccountStakingState(
+  global: GlobalState,
+  accountId: string,
+  state: NonNullable<AccountState['staking']>,
+  withDeepCompare = false,
+): GlobalState {
+  const currentState = selectAccountState(global, accountId)?.staking;
 
-  if (
-    !global.currentAccountId
-    || (withDeepCompare && currentPoolState && isPartialDeepEqual(currentPoolState, partial))
-  ) {
+  if (withDeepCompare && currentState && isPartialDeepEqual(currentState, state)) {
     return global;
   }
 
-  return updateCurrentAccountState(global, {
-    poolState: {
-      ...currentPoolState,
+  return updateAccountState(global, accountId, {
+    staking: {
+      ...currentState,
+      ...state,
+    },
+  });
+}
+
+export function updateAccountStakingStatePartial(
+  global: GlobalState,
+  accountId: string,
+  partial: Partial<AccountState['staking']>,
+): GlobalState {
+  const currentState = selectAccountState(global, accountId)?.staking;
+
+  if (!currentState) {
+    return global;
+  }
+
+  return updateAccountState(global, accountId, {
+    staking: {
+      ...currentState,
       ...partial,
     },
   });
+}
+
+export function updateStakingInfo(global: GlobalState, stakingInfo: GlobalState['stakingInfo']) {
+  return {
+    ...global,
+    stakingInfo,
+  };
 }

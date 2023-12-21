@@ -51,13 +51,27 @@ export function updateActivitiesIsLoading(global: GlobalState, isLoading: boolea
   });
 }
 
-export function updateActivitiesIsHistoryEndReached(global: GlobalState, isReached: boolean) {
+export function updateActivitiesIsHistoryEndReached(global: GlobalState, isReached: boolean, slug?: string) {
   const { activities } = selectCurrentAccountState(global) || {};
+
+  if (slug) {
+    const bySlug = activities?.isHistoryEndReachedBySlug ?? {};
+
+    return updateCurrentAccountState(global, {
+      activities: {
+        ...activities || { byId: {} },
+        isHistoryEndReachedBySlug: {
+          ...bySlug,
+          [slug]: isReached,
+        },
+      },
+    });
+  }
 
   return updateCurrentAccountState(global, {
     activities: {
       ...activities || { byId: {} },
-      isHistoryEndReached: isReached,
+      isMainHistoryEndReached: isReached,
     },
   });
 }

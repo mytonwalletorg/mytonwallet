@@ -1,0 +1,288 @@
+@import "../../styles/mixins";
+
+.tokenSelectInputWrapper {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  height: 2.25rem;
+  min-height: 2.25rem;
+  margin: 0 0.75rem 0.5rem;
+
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-gray-2);
+
+  background-color: var(--color-close-button-background);
+  border-radius: var(--border-radius-buttons);
+}
+
+.tokenSelectSearchIcon {
+  margin-left: 0.5rem;
+}
+
+.tokenSelectSearchResetWrapper {
+  position: absolute;
+  right: 0.5rem;
+
+  display: flex;
+
+  width: 1rem;
+  height: 1rem;
+}
+
+.tokenSelectSearchReset {
+  cursor: var(--custom-cursor, pointer);
+
+  font-size: 1rem;
+  color: var(--color-close-button-background);
+
+  background-color: var(--color-gray-2);
+  border-radius: 50%;
+}
+
+.tokenSelectInput {
+  display: flex;
+
+  width: 100%;
+  padding: 0 2.125rem 0 0.25rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-black);
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  appearance: none;
+
+  &::placeholder {
+    font-weight: 600;
+    color: var(--color-gray-2);
+  }
+
+  &:hover,
+  &:focus {
+    &::placeholder {
+      color: var(--color-interactive-input-text-hover-active);
+    }
+  }
+}
+
+.tokenSelectContent {
+  overflow-y: scroll;
+
+  height: 100%;
+  padding: 0 0.25rem 0 0;
+
+  background-color: var(--color-background-first);
+
+  @include adapt-padding-to-scrollbar(0.25rem);
+}
+
+.tokenGroupContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.tokenGroupHeader {
+  display: flex;
+  justify-content: space-between;
+
+  padding: 0.5rem 1rem;
+
+  background: var(--color-background-first-disabled);
+}
+
+.tokenGroupTitle,
+.tokenGroupAdditionalTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-gray-2);
+}
+
+.tokenGroupAdditionalTitle {
+  cursor: var(--custom-cursor, pointer);
+}
+
+.tokenContainer {
+  cursor: var(--custom-cursor, pointer);
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 4rem;
+  padding: 0 1rem;
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: var(--color-interactive-item-hover);
+    }
+  }
+
+  @media (pointer: coarse) {
+    &:active {
+      background-color: var(--color-interactive-item-hover);
+    }
+  }
+}
+
+.tokenContainerDisabled {
+  cursor: auto;
+}
+
+.tokenLogoContainer {
+  display: flex;
+  gap: 0.625rem;
+  align-items: center;
+}
+
+.logoContainer {
+  position: relative;
+
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.tokenLogo,
+.tokenLogoSkeleton,
+.tokenLogoSymbol {
+  width: 2.25rem;
+  height: 2.25rem;
+
+  font-size: 0;
+
+  border-radius: 100%;
+}
+
+.tokenLogoDisabled {
+  opacity: 0.5;
+}
+
+.tokenLogoSymbol {
+  position: absolute;
+  top: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--color-gray-3);
+
+  background-color: var(--color-background-first);
+  box-shadow: inset 0 0 0 0.0625rem var(--color-gray-4);
+}
+
+.tokenLogoSkeleton {
+  background-color: var(--color-separator-input-stroke);
+}
+
+.tokenNetworkLogo,
+.tokenNetworkLogoSkeleton {
+  position: absolute;
+  z-index: 1;
+  top: 1.5rem;
+  right: -0.25rem;
+
+  width: 1.125rem;
+  height: 1.125rem;
+
+  border-radius: 100%;
+
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  box-shadow: 0 0 0 0.0938rem var(--color-background-drop-down),
+        inset 0 0 0 0.125rem var(--color-background-drop-down);
+}
+
+.tokenNetworkLogoSkeleton {
+  background-color: var(--color-separator-input-stroke);
+
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  box-shadow: 0 0 0 0.0938rem var(--color-background-drop-down);
+}
+
+.tokenNetworkLogoDisabled {
+  position: absolute;
+  z-index: 1;
+  top: 1.5rem;
+  right: -0.25rem;
+
+  width: 1.125rem;
+  height: 1.125rem;
+
+  opacity: 0.5;
+  background-color: var(--color-background-first);
+  border-radius: 100%;
+}
+
+.nameContainer,
+.tokenPriceContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+
+.tokenPriceContainer {
+  align-items: flex-end;
+}
+
+.tokenName,
+.tokenAmount {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.tokenNetwork,
+.tokenValue {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-2);
+}
+
+.tokenNameSkeleton {
+  width: 5rem;
+  height: 0.875rem;
+
+  background-color: var(--color-separator-input-stroke);
+  border-radius: var(--border-radius-tiny);
+}
+
+.tokenValueSkeleton {
+  width: 3rem;
+  height: 0.6875rem;
+
+  background-color: var(--color-separator-input-stroke);
+  border-radius: var(--border-radius-tiny);
+}
+
+.tokenNotFound {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+  justify-content: center;
+
+  padding-top: 2rem;
+}
+
+.tokenNotFoundTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.tokenNotFoundDesc {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--color-gray-2);
+}
+
+.tokenTextDisabled {
+  color: var(--color-gray-2);
+}

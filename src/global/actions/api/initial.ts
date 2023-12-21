@@ -1,7 +1,8 @@
 import { ElectronEvent } from '../../../electron/types';
 
-import { IS_ELECTRON, IS_EXTENSION } from '../../../config';
+import { DEFAULT_PRICE_CURRENCY, IS_EXTENSION } from '../../../config';
 import { tonConnectGetDeviceInfo } from '../../../util/tonConnectEnvironment';
+import { IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi, initApi } from '../../../api';
 import { addActionHandler, getGlobal } from '../../index';
 import { selectNewestTxIds } from '../../selectors';
@@ -39,4 +40,5 @@ addActionHandler('resetApiSettings', (global, actions, params) => {
   if (IS_EXTENSION || IS_ELECTRON) {
     actions.toggleDeeplinkHook({ isEnabled: isDefaultEnabled });
   }
+  actions.changeBaseCurrency({ currency: DEFAULT_PRICE_CURRENCY });
 });

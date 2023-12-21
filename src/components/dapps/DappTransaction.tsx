@@ -34,12 +34,12 @@ function DappTransaction({
   const lang = useLang();
   const [isPayloadExpanded, expandPayload] = useFlag(false);
 
-  function renderPayload(payload: ApiParsedPayload) {
+  function renderPayload(payload: ApiParsedPayload, rawPayload?: string) {
     switch (payload.type) {
       case 'comment':
         return payload.comment;
 
-      case 'transfer-nft': {
+      case 'nft:transfer': {
         const { nftAddress, nftName, newOwner } = payload;
         return lang('$dapp_transfer_nft_payload', {
           nft: nftName ?? nftAddress,
@@ -47,8 +47,8 @@ function DappTransaction({
         });
       }
 
-      case 'transfer-tokens:non-standard':
-      case 'transfer-tokens': {
+      case 'tokens:transfer-non-standard':
+      case 'tokens:transfer': {
         const {
           slug: tokenSlug,
           amount: tokenAmount,
@@ -68,7 +68,7 @@ function DappTransaction({
         return payload.encryptedComment;
 
       default:
-        return payload.base64;
+        return rawPayload;
     }
   }
 
@@ -76,9 +76,9 @@ function DappTransaction({
     switch (payload.type) {
       case 'comment':
         return lang('Comment');
-      case 'transfer-tokens:non-standard':
-      case 'transfer-tokens':
-      case 'transfer-nft':
+      case 'tokens:transfer-non-standard':
+      case 'tokens:transfer':
+      case 'nft:transfer':
       case 'encrypted-comment':
         return lang('Nested Transaction');
       default:
@@ -106,7 +106,7 @@ function DappTransaction({
         <>
           <p className={styles.label}>{renderPayloadLabel(transaction.payload)}</p>
           <div className={buildClassName(styles.payloadField, isPayloadExpanded && styles.payloadField_expanded)}>
-            {renderPayload(transaction.payload)}
+            {renderPayload(transaction.payload, transaction.rawPayload)}
             {!isPayloadExpanded && (
               <div className={styles.payloadFieldExpand} onClick={expandPayload}>
                 {lang('View')}

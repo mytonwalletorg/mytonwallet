@@ -1,15 +1,16 @@
+import type { URLOpenListenerEvent } from '@capacitor/app';
+import { App as CapacitorApp } from '@capacitor/app';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import type { ApiBaseCurrency } from '../../api/types';
 import type { UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { ElectronEvent } from '../../electron/types';
 
-import {
-  DEFAULT_PRICE_CURRENCY, TON_SYMBOL, TON_TOKEN_SLUG,
-} from '../../config';
+import { IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { bigStrToHuman } from '../../global/helpers';
 import {
   selectCurrentAccountState,
@@ -17,13 +18,20 @@ import {
   selectIsHardwareAccount,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { clearLaunchUrl, getLaunchUrl } from '../../util/capacitor';
 import dns from '../../util/dns';
-import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
+import {
+  formatCurrency,
+  formatCurrencyExtended,
+  formatCurrencySimple,
+  getShortCurrencySymbol,
+} from '../../util/formatNumber';
 import { getIsAddressValid } from '../../util/getIsAddressValid';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
-import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
+import { parseTonDeeplink } from '../../util/ton/deeplinks';
+import { IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -45,6 +53,8 @@ import styles from './Transfer.module.scss';
 
 interface OwnProps {
   isStatic?: boolean;
+  onQrScanPress?: NoneToVoidFunction;
+  onCommentChange?: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -52,14 +62,14 @@ interface StateProps {
   amount?: number;
   comment?: string;
   shouldEncrypt?: boolean;
+  isLoading?: boolean;
   fee?: string;
   tokenSlug?: string;
   tokens?: UserToken[];
   savedAddresses?: Record<string, string>;
-  isLoading?: boolean;
-  onCommentChange?: NoneToVoidFunction;
   isEncryptedCommentSupported: boolean;
   isCommentSupported: boolean;
+  baseCurrency?: ApiBaseCurrency;
 }
 
 const COMMENT_MAX_SIZE_BYTES = 5000;
@@ -82,10 +92,12 @@ function TransferInitial({
   tokens,
   fee,
   savedAddresses,
-  isLoading,
-  onCommentChange,
   isEncryptedCommentSupported,
   isCommentSupported,
+  isLoading,
+  onCommentChange,
+  onQrScanPress,
+  baseCurrency,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -96,6 +108,7 @@ function TransferInitial({
     setTransferToAddress,
     setTransferComment,
     setTransferShouldEncrypt,
+    cancelTransfer,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -103,7 +116,8 @@ function TransferInitial({
 
   const lang = useLang();
 
-  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(true);
+  // Note: As of 27-11-2023, Firefox does not support readText()
+  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(!(IS_FIREFOX || IS_FIREFOX_EXTENSION));
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [isSavedAddressesOpen, openSavedAddresses, closeSavedAddresses] = useFlag();
   const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
@@ -126,6 +140,9 @@ function TransferInitial({
   const amountInCurrency = price && amount && !Number.isNaN(amount) ? amount * price : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const renderingFee = useCurrentOrPrev(fee, true);
+  const withPasteButton = shouldRenderPasteButton && toAddress === '';
+  const withQrScanButton = Boolean(onQrScanPress);
+  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
     Boolean(amountInCurrency),
@@ -201,13 +218,32 @@ function TransferInitial({
     });
   }, [amount, comment, fetchFee, hasToAddressError, isAddressValid, toAddress, tokenSlug]);
 
+  const processDeeplink = useLastCallback((url: string) => {
+    const params = parseTonDeeplink(url);
+    if (!params) return;
+
+    setTransferToAddress({ toAddress: params.to });
+    setTransferAmount({ amount: params.amount ? bigStrToHuman(params.amount) : undefined });
+    setTransferComment({ comment: params.comment });
+  });
+
   useEffect(() => {
-    return window.electron?.on(ElectronEvent.DEEPLINK, (params: any) => {
-      setTransferToAddress({ toAddress: params.to });
-      setTransferAmount({ amount: bigStrToHuman(params.amount) });
-      setTransferComment({ comment: params.text });
+    return window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {
+      processDeeplink(url);
     });
-  }, []);
+  }, [processDeeplink]);
+
+  useEffect(() => {
+    const launchUrl = getLaunchUrl();
+    if (launchUrl) {
+      processDeeplink(launchUrl);
+      clearLaunchUrl();
+    }
+
+    return CapacitorApp.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
+      processDeeplink(event.url);
+    }).remove;
+  }, [processDeeplink]);
 
   const handleTokenChange = useLastCallback(
     (slug: string) => {
@@ -260,6 +296,11 @@ function TransferInitial({
 
   const handleAddressInput = useLastCallback((newToAddress: string) => {
     setTransferToAddress({ toAddress: newToAddress });
+  });
+
+  const handleQrScanClick = useLastCallback(() => {
+    cancelTransfer();
+    onQrScanPress!();
   });
 
   const handlePasteClick = useLastCallback(() => {
@@ -396,10 +437,10 @@ function TransferInitial({
     return (
       <div className={styles.balanceContainer}>
         <span className={styles.balance}>
-          {lang('$balance_is', {
+          {lang('$max_balance', {
             balance: (
               <a href="#" onClick={handleMaxAmountClick} className={styles.balanceLink}>
-                {balance !== undefined ? formatCurrencyExtended(balance, symbol, true) : lang('Loading...')}
+                {balance !== undefined ? formatCurrencySimple(balance, symbol, decimals) : lang('Loading...')}
               </a>
             ),
           })}
@@ -422,7 +463,7 @@ function TransferInitial({
   function renderCurrencyValue() {
     return (
       <span className={buildClassName(styles.amountInCurrency, currencyClassNames)}>
-        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || 0, DEFAULT_PRICE_CURRENCY)}
+        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || 0, shortBaseSymbol)}
       </span>
     );
   }
@@ -446,7 +487,7 @@ function TransferInitial({
       <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
         <Input
           ref={toAddressRef}
-          className={isStatic ? styles.inputStatic : undefined}
+          className={buildClassName(isStatic && styles.inputStatic, withQrScanButton && styles.inputWithIcon)}
           isRequired
           label={lang('Recipient Address')}
           placeholder={lang('Wallet address or domain')}
@@ -456,7 +497,17 @@ function TransferInitial({
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}
         >
-          {shouldRenderPasteButton && toAddress === '' && (
+          {withQrScanButton && (
+            <Button
+              isSimple
+              className={buildClassName(styles.inputButton, withPasteButton && styles.inputButtonShifted)}
+              onClick={handleQrScanClick}
+              ariaLabel={lang('Scan QR Code')}
+            >
+              <i className="icon-qr-scanner-alt" aria-hidden />
+            </Button>
+          )}
+          {withPasteButton && (
             <Button isSimple className={styles.inputButton} onClick={handlePasteClick} ariaLabel={lang('Paste')}>
               <i className="icon-paste" aria-hidden />
             </Button>
@@ -490,17 +541,18 @@ function TransferInitial({
 
         {isCommentSupported && (
           <Input
+            wrapperClassName={styles.commentInputWrapper}
             className={isStatic ? styles.inputStatic : undefined}
             label={renderCommentLabel()}
             placeholder={lang('Optional')}
             value={comment}
-            onInput={handleCommentChange}
             isControlled
             isMultiline
+            onInput={handleCommentChange}
           />
         )}
 
-        <div className={buildClassName(modalStyles.buttons, isStatic && styles.buttonSubmit)}>
+        <div className={modalStyles.buttons}>
           <Button isPrimary isSubmit isDisabled={!canSubmit} isLoading={isLoading}>
             {lang('$send_token_symbol', symbol || 'TON')}
           </Button>
@@ -516,35 +568,37 @@ function TransferInitial({
 }
 
 export default memo(
-  withGlobal((global, ownProps, detachWhenChanged): StateProps => {
-    detachWhenChanged(global.currentAccountId);
+  withGlobal<OwnProps>(
+    (global): StateProps => {
+      const {
+        toAddress,
+        amount,
+        comment,
+        shouldEncrypt,
+        fee,
+        tokenSlug,
+        isLoading,
+      } = global.currentTransfer;
 
-    const {
-      toAddress,
-      amount,
-      comment,
-      shouldEncrypt,
-      fee,
-      tokenSlug,
-      isLoading,
-    } = global.currentTransfer;
+      const isLedger = selectIsHardwareAccount(global);
+      const accountState = selectCurrentAccountState(global);
 
-    const isLedger = selectIsHardwareAccount(global);
-
-    return {
-      toAddress,
-      amount,
-      comment,
-      shouldEncrypt,
-      fee,
-      tokenSlug,
-      tokens: selectCurrentAccountTokens(global),
-      isLoading,
-      savedAddresses: selectCurrentAccountState(global)?.savedAddresses,
-      isEncryptedCommentSupported: !isLedger,
-      isCommentSupported: !tokenSlug || tokenSlug === TON_TOKEN_SLUG || !isLedger,
-    };
-  })(TransferInitial),
+      return {
+        toAddress,
+        amount,
+        comment,
+        shouldEncrypt,
+        fee,
+        tokenSlug,
+        tokens: selectCurrentAccountTokens(global),
+        savedAddresses: accountState?.savedAddresses,
+        isEncryptedCommentSupported: !isLedger,
+        isCommentSupported: !tokenSlug || tokenSlug === TON_TOKEN_SLUG || !isLedger,
+        isLoading,
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(TransferInitial),
 );
 
 function trimStringByMaxBytes(str: string, maxBytes: number) {

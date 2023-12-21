@@ -9,7 +9,7 @@ import * as extensionMethods from '.';
 addHooks({
   onWindowNeeded: openPopupWindow,
   onFullLogout: extensionMethods.onFullLogout,
-  onDappDisconnected: () => {
+  onDappDisconnected: (_, origin) => {
     siteMethods.updateSites({
       type: 'disconnectSite',
       origin,

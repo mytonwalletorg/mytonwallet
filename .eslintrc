@@ -156,6 +156,7 @@
             "^react",
             "^ton",
             "^tonweb(/.*|$)",
+            "^qr-code-styling(/.*|$)",
             "^@?\\w",
             "dist(/.*|$)",
             "^(\\.+/)+(lib/teact)(/.*|$)",

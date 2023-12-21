@@ -11,6 +11,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useClipboardPaste from '../../hooks/useClipboardPaste';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -97,6 +98,11 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
     if (!isSubmitDisabled) {
       afterImportMnemonic({ mnemonic: Object.values(mnemonic) });
     }
+  });
+
+  useHistoryBack({
+    isActive,
+    onBack: handleCancel,
   });
 
   useEffect(() => {

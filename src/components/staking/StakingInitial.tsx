@@ -1,3 +1,4 @@
+import { Dialog } from '@capacitor/dialog';
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../lib/teact/teact';
@@ -8,22 +9,28 @@ import type { UserToken } from '../../global/types';
 import {
   ANIMATED_STICKER_MIDDLE_SIZE_PX,
   ANIMATED_STICKER_SMALL_SIZE_PX,
+  DEFAULT_DECIMAL_PLACES,
+  DEFAULT_FEE,
   MIN_BALANCE_FOR_UNSTAKE,
+  STAKING_FORWARD_AMOUNT,
+  STAKING_MIN_AMOUNT,
   TON_TOKEN_SLUG,
 } from '../../config';
 import { bigStrToHuman } from '../../global/helpers';
 import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
+import { formatCurrency, formatCurrencySimple } from '../../util/formatNumber';
 import { floor } from '../../util/round';
 import { throttle } from '../../util/schedulers';
+import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useSyncEffect from '../../hooks/useSyncEffect';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
@@ -46,7 +53,6 @@ interface StateProps {
   tokens?: UserToken[];
   fee?: string;
   stakingBalance: number;
-  stakingMinAmount: number;
   apyValue: number;
 }
 
@@ -64,7 +70,6 @@ function StakingInitial({
   tokens,
   fee,
   stakingBalance,
-  stakingMinAmount,
   apyValue,
 }: OwnProps & StateProps) {
   const { submitStakingInitial, fetchStakingFee } = getActions();
@@ -78,9 +83,11 @@ function StakingInitial({
   const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);
 
   const {
-    amount: balance, decimals, symbol,
+    amount: balance, symbol,
   } = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]) || {};
   const hasAmountError = Boolean(isInsufficientBalance || apiError);
+  const calculatedFee = fee ? bigStrToHuman(fee) * RESERVED_FEE_FACTOR : DEFAULT_FEE;
+  const decimals = DEFAULT_DECIMAL_PLACES;
 
   const validateAndSetAmount = useLastCallback((newAmount: number | undefined, noReset = false) => {
     if (!noReset) {
@@ -99,9 +106,9 @@ function StakingInitial({
       return;
     }
 
-    if (!balance || newAmount > balance) {
+    if (!balance || newAmount + STAKING_MIN_AMOUNT + calculatedFee > balance) {
       setIsInsufficientBalance(true);
-    } else if (balance + stakingBalance < stakingMinAmount) {
+    } else if (balance + stakingBalance < STAKING_MIN_AMOUNT) {
       setIsNotEnough(true);
     }
 
@@ -110,14 +117,13 @@ function StakingInitial({
 
   useEffect(() => {
     if (shouldUseAllBalance && balance) {
-      const calculatedFee = fee && shouldUseAllBalance ? bigStrToHuman(fee, decimals) : 0;
-      const newAmount = balance - calculatedFee * RESERVED_FEE_FACTOR;
+      const newAmount = balance - STAKING_FORWARD_AMOUNT - calculatedFee;
 
       validateAndSetAmount(newAmount, true);
     } else {
       validateAndSetAmount(amount, true);
     }
-  }, [amount, balance, decimals, fee, shouldUseAllBalance, validateAndSetAmount]);
+  }, [amount, balance, fee, shouldUseAllBalance, validateAndSetAmount, calculatedFee]);
 
   useEffect(() => {
     if (!amount) {
@@ -131,8 +137,24 @@ function StakingInitial({
     });
   }, [amount, fetchStakingFee]);
 
+  useSyncEffect(() => {
+    if (!IS_DELEGATED_BOTTOM_SHEET) return;
+
+    if (isStakingInfoModalOpen) {
+      Dialog.alert({
+        title: lang('Why staking is safe?'),
+        message: [
+          `1. ${lang('$safe_staking_description1')}`,
+          `2. ${lang('$safe_staking_description2')}`,
+          `3. ${lang('$safe_staking_description3')}`,
+        ].join('\n\n').replace(/\*\*/g, ''),
+      })
+        .then(closeStakingInfoModal);
+    }
+  }, [isStakingInfoModalOpen, lang]);
+
   const handleAmountBlur = useLastCallback(() => {
-    if (amount && amount + stakingBalance < stakingMinAmount) {
+    if (amount && amount + stakingBalance < STAKING_MIN_AMOUNT) {
       setIsNotEnough(true);
     }
   });
@@ -157,11 +179,12 @@ function StakingInitial({
     }
 
     validateAndSetAmount(amount - MIN_BALANCE_FOR_UNSTAKE);
+    setShouldUseAllBalance(false);
   });
 
   const canSubmit = amount && balance && !isNotEnough
     && amount <= balance
-    && (amount + stakingBalance >= stakingMinAmount);
+    && (amount + stakingBalance >= STAKING_MIN_AMOUNT);
 
   const handleSubmit = useLastCallback((e) => {
     e.preventDefault();
@@ -187,16 +210,18 @@ function StakingInitial({
     }
 
     const isFullBalanceSelected = balance && amount
-      && (balance >= amount && balance - amount <= MIN_BALANCE_FOR_UNSTAKE);
-    const balanceLink = lang('$balance_is', {
+      && (balance >= amount && Number((balance - amount).toFixed(2)) < MIN_BALANCE_FOR_UNSTAKE); // TODO $decimals
+
+    const balanceLink = lang('$max_balance', {
       balance: (
         <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink}>
           {balance !== undefined
-            ? formatCurrencyExtended(floor(balance, STAKING_DECIMAL), symbol, true)
+            ? formatCurrencySimple(balance, symbol, decimals)
             : lang('Loading...')}
         </a>
       ),
     });
+
     const minusOneLink = (
       <a href="#" onClick={handleMinusOneClick} className={styles.balanceLink}>
         {formatCurrency(-Math.round(MIN_BALANCE_FOR_UNSTAKE), symbol)}
@@ -231,7 +256,7 @@ function StakingInitial({
           lang('$min_value', {
             value: (
               <span className={styles.minAmountValue}>
-                {formatCurrency(stakingMinAmount, 'TON')}
+                {formatCurrency(STAKING_MIN_AMOUNT, 'TON')}
               </span>
             ),
           })
@@ -241,6 +266,8 @@ function StakingInitial({
   }
 
   function renderStakingSafeModal() {
+    if (IS_DELEGATED_BOTTOM_SHEET) return undefined;
+
     return (
       <Modal
         isCompact
@@ -275,6 +302,7 @@ function StakingInitial({
         zeroValue="..."
         value={balanceResult}
         decimals={decimals}
+        className={styles.balanceResultWrapper}
         inputClassName={buildClassName(styles.balanceResultInput, isStatic && styles.inputRichStatic)}
         labelClassName={styles.balanceResultLabel}
         valueClassName={styles.balanceResult}
@@ -333,7 +361,7 @@ function StakingInitial({
 
       {renderStakingResult()}
 
-      <div className={buildClassName(modalStyles.buttons, isStatic && styles.buttonSubmit)}>
+      <div className={modalStyles.buttons}>
         <Button
           isPrimary
           isSubmit
@@ -348,24 +376,26 @@ function StakingInitial({
   );
 }
 
-export default memo(withGlobal((global, ownProps, detachWhenChanged): StateProps => {
-  detachWhenChanged(global.currentAccountId);
+export default memo(
+  withGlobal(
+    (global): StateProps => {
+      const {
+        isLoading,
+        fee,
+        error: apiError,
+      } = global.staking;
+      const tokens = selectCurrentAccountTokens(global);
+      const accountState = selectCurrentAccountState(global);
 
-  const {
-    isLoading,
-    fee,
-    error: apiError,
-  } = global.staking;
-  const tokens = selectCurrentAccountTokens(global);
-  const accountState = selectCurrentAccountState(global);
-
-  return {
-    isLoading,
-    tokens,
-    apiError,
-    fee,
-    stakingBalance: accountState?.stakingBalance || 0,
-    stakingMinAmount: accountState?.poolState?.minStake || 0,
-    apyValue: accountState?.poolState?.lastApy || 0,
-  };
-})(StakingInitial));
+      return {
+        isLoading,
+        tokens,
+        apiError,
+        fee,
+        stakingBalance: accountState?.staking?.balance || 0,
+        apyValue: accountState?.staking?.apy || 0,
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(StakingInitial),
+);

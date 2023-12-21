@@ -3,9 +3,10 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL } from '../../config';
+import { IS_CAPACITOR, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL } from '../../config';
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { vibrateOnSuccess } from '../../util/capacitor';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { shortenAddress } from '../../util/shortenAddress';
@@ -35,6 +36,7 @@ interface OwnProps {
   className?: string;
   textClassName?: string;
   noSavedAddress?: boolean;
+  noExplorer?: boolean;
 }
 
 interface StateProps {
@@ -53,6 +55,7 @@ function InteractiveTextField({
   spoilerCallback,
   copyNotification,
   noSavedAddress,
+  noExplorer,
   className,
   textClassName,
   isAddressAlreadySaved,
@@ -83,7 +86,7 @@ function InteractiveTextField({
     }
 
     addSavedAddress({ address, name: savedAddressName });
-    showNotification({ message: 'Address was saved!', icon: 'icon-star' });
+    showNotification({ message: lang('Address was saved!'), icon: 'icon-star' });
     closeSaveAddressModal();
   });
 
@@ -99,7 +102,10 @@ function InteractiveTextField({
 
   const handleCopy = useLastCallback(() => {
     showNotification({ message: copyNotification, icon: 'icon-copy' });
-    copyTextToClipboard(address || text || '');
+    void copyTextToClipboard(address || text || '');
+    if (IS_CAPACITOR) {
+      void vibrateOnSuccess();
+    }
   });
 
   const handleRevealSpoiler = useLastCallback(() => {
@@ -209,7 +215,7 @@ function InteractiveTextField({
           </span>
         )}
 
-        {address && (
+        {!noExplorer && address && (
           <a
             href={tonscanAddressUrl}
             className={styles.button}

@@ -151,7 +151,7 @@ async function onMessage(
           );
         }
       } catch (err: any) {
-        logDebugError('onMessage:callMethod', err);
+        logDebugError(name, err);
 
         if (messageId) {
           sendToOrigin({

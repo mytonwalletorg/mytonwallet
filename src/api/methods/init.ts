@@ -10,6 +10,7 @@ import * as methods from '.';
 addHooks({
   onDappDisconnected: sendSseDisconnect,
   onDappsChanged: resetupSseConnection,
+  onSwapCreated: methods.setupSwapPolling,
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -18,14 +19,16 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
 
   methods.initPolling(onUpdate, methods.isAccountActive);
   methods.initTransactions(onUpdate);
-  methods.initStaking(onUpdate);
+  methods.initStaking();
+  methods.initSwap(onUpdate);
+  methods.initNfts(onUpdate);
 
   if (IS_DAPP_SUPPORTED) {
     methods.initDapps(onUpdate);
     tonConnect.initTonConnect(onUpdate);
   }
 
-  await startStorageMigration();
+  await startStorageMigration(onUpdate);
 
   if (IS_SSE_SUPPORTED) {
     void resetupSseConnection();

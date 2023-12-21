@@ -7,9 +7,14 @@ import useDebouncedCallback from './useDebouncedCallback';
 const THROTTLE = 250;
 
 export default function useWindowSize() {
-  const { width: initialWidth, height: initialHeight } = windowSize.get();
+  const {
+    width: initialWidth,
+    height: initialHeight,
+    screenHeight: initialScreenHeight,
+  } = windowSize.get();
   const [width, setWidth] = useState(initialWidth);
   const [height, setHeight] = useState(initialHeight);
+  const [screenHeight, setScreenHeight] = useState(initialScreenHeight);
   const [isResizing, setIsResizing] = useState(false);
   const setIsResizingDebounced = useDebouncedCallback(setIsResizing, [setIsResizing], THROTTLE, true);
 
@@ -19,9 +24,10 @@ export default function useWindowSize() {
     }, THROTTLE, true);
 
     const throttledSetSize = throttle(() => {
-      const { width: newWidth, height: newHeight } = windowSize.get();
+      const { width: newWidth, height: newHeight, screenHeight: newScreenHeight } = windowSize.get();
       setWidth(newWidth);
       setHeight(newHeight);
+      setScreenHeight(newScreenHeight);
       setIsResizingDebounced(false);
     }, THROTTLE, false);
 
@@ -37,5 +43,7 @@ export default function useWindowSize() {
     };
   }, [setIsResizingDebounced]);
 
-  return useMemo(() => ({ width, height, isResizing }), [height, isResizing, width]);
+  return useMemo(() => ({
+    width, height, screenHeight, isResizing,
+  }), [height, isResizing, screenHeight, width]);
 }

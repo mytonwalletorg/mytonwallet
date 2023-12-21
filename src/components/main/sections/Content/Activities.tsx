@@ -1,79 +1,107 @@
+import type { RefObject } from 'react';
 import React, {
-  memo, useEffect, useMemo, useRef, useState,
+  memo, useEffect, useLayoutEffect, useMemo, useRef,
 } from '../../../../lib/teact/teact';
+import { setExtraStyles } from '../../../../lib/teact/teact-dom';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiActivity, ApiToken } from '../../../../api/types';
+import type { ApiActivity, ApiSwapAsset, ApiToken } from '../../../../api/types';
+import { ContentTab } from '../../../../global/types';
 
-import { TON_TOKEN_SLUG } from '../../../../config';
 import {
-  getIsSwapId, getIsTinyTransaction, getIsTxIdLocal,
-} from '../../../../global/helpers';
-import { selectCurrentAccountState, selectIsNewWallet } from '../../../../global/selectors';
+  ANIMATED_STICKER_BIG_SIZE_PX, MIN_ASSETS_TAB_VIEW, TON_TOKEN_SLUG,
+} from '../../../../config';
+import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../../../global/helpers';
+import {
+  selectCurrentAccountState, selectCurrentAccountTokens, selectEnabledTokensCountMemoized, selectIsNewWallet,
+} from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { compareActivities } from '../../../../util/compareActivities';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
 import { findLast, unique } from '../../../../util/iteratees';
+import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
-import useInfiniteLoader from '../../../../hooks/useInfiniteLoader';
+import useInfiniteScroll from '../../../../hooks/useInfiniteScroll';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
+import useThrottledCallback from '../../../../hooks/useThrottledCallback';
 
+import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
+import InfiniteScroll from '../../../ui/InfiniteScroll';
 import Loading from '../../../ui/Loading';
 import NewWalletGreeting from './NewWalletGreeting';
+import Swap from './Swap';
 import Transaction from './Transaction';
 
 import styles from './Activities.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
+  mobileRef?: RefObject<HTMLDivElement>;
 }
 
 type StateProps = {
   currentAccountId: string;
   slug?: string;
-  isLoading?: boolean;
   isNewWallet: boolean;
   areTinyTransfersHidden?: boolean;
   byId?: Record<string, ApiActivity>;
   idsBySlug?: Record<string, string[]>;
   tokensBySlug?: Record<string, ApiToken>;
+  swapTokensBySlug?: Record<string, ApiSwapAsset>;
+  currentActivityId?: string;
   apyValue: number;
   savedAddresses?: Record<string, string>;
-  isHistoryEndReached?: boolean;
+  isMainHistoryEndReached?: boolean;
+  isHistoryEndReachedBySlug?: Record<string, boolean>;
 };
 
-interface ActivityDateGroup {
-  datetime: number;
-  activities: ApiActivity[];
+interface ActivityOffsetInfo {
+  offset: number;
+  offsetNext: number;
+  dateCount: number;
+  commentCount: number;
+  date: number;
 }
 
-const FURTHER_SLICE = 50;
-const LOAD_MORE_REQUEST_TIMEOUT = 3_000;
+const FURTHER_SLICE = 30;
+const THROTTLE_TIME = 1000;
+
+const DATE_HEADER_HEIGHT = 40;
+const TRANSACTION_COMMENT_HEIGHT = 35;
+const TRANSACTION_HEIGHT = 64;
+
+const TIME_BETWEEN_SWAP_AND_TX = 3600000; // 1 hour
 
 function Activities({
   isActive,
+  mobileRef,
   currentAccountId,
-  isLoading,
   isNewWallet,
   slug,
   idsBySlug,
   byId,
   tokensBySlug,
+  swapTokensBySlug,
   areTinyTransfersHidden,
+  currentActivityId,
   apyValue,
   savedAddresses,
-  isHistoryEndReached,
+  isMainHistoryEndReached,
+  isHistoryEndReachedBySlug,
 }: OwnProps & StateProps) {
   const {
-    fetchTokenTransactions, fetchAllTransactions, showActivityInfo, resetIsHistoryEndReached,
+    fetchTokenTransactions, fetchAllTransactions, showActivityInfo,
   } = getActions();
 
   const lang = useLang();
   const { isLandscape } = useDeviceScreen();
-  const [isFetching, setIsFetching] = useState(!isNewWallet);
-  const loadMoreTimeout = useRef<NodeJS.Timeout>();
+
+  // eslint-disable-next-line no-null/no-null
+  const containerRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const portraitContainerRef = useRef<HTMLDivElement>(null);
 
   const ids = useMemo(() => {
     let idList: string[] | undefined;
@@ -83,6 +111,14 @@ function Activities({
     if (byId) {
       if (slug) {
         idList = bySlug[slug] ?? [];
+
+        idList.sort((a, b) => compareActivities(byId[a], byId[b], false));
+        const lastTokenTxId = findLast(idList, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
+
+        if (lastTokenTxId) {
+          const lastTokenTxTimestamp = byId[lastTokenTxId].timestamp - TIME_BETWEEN_SWAP_AND_TX;
+          idList = idList.filter((txId) => byId[txId].timestamp >= lastTokenTxTimestamp);
+        }
       } else {
         const lastTonTxId = findLast(bySlug[TON_TOKEN_SLUG] ?? [], (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
         idList = unique(Object.values(bySlug).flat());
@@ -93,91 +129,149 @@ function Activities({
         idList.sort((a, b) => compareActivities(byId[a], byId[b], false));
       }
     }
-
     if (!idList) {
-      return [];
+      return undefined;
     }
 
     return idList;
   }, [byId, slug, idsBySlug]);
 
-  const activities = useMemo(() => {
-    if (!ids.length) {
-      return [];
+  const activityList = useMemo(() => {
+    if (!ids) {
+      return undefined;
     }
 
     const allActivities = ids
       .map((id) => byId?.[id])
       .filter((activity) => {
-        return Boolean(
-          activity?.slug
-          && (!slug || activity.slug === slug)
-          && (!areTinyTransfersHidden || !getIsTinyTransaction(activity, tokensBySlug![activity.slug])),
-        );
+        if (activity?.shouldHide) {
+          return false;
+        }
+        if (activity?.kind === 'swap') {
+          return Boolean(!slug || activity.from === slug || activity.to === slug);
+        } else {
+          return Boolean(
+            activity?.slug
+            && (!slug || activity.slug === slug)
+            && (!areTinyTransfersHidden || !getIsTinyTransaction(activity, tokensBySlug![activity.slug])),
+          );
+        }
       }) as ApiActivity[];
 
     if (!allActivities.length) {
       return [];
     }
 
-    let currentDateGroup: ActivityDateGroup = {
-      datetime: getDayStartAt(allActivities[0].timestamp),
-      activities: [],
-    };
-    const groupedActivities: ActivityDateGroup[] = [currentDateGroup];
+    return allActivities;
+  }, [areTinyTransfersHidden, byId, ids, slug, tokensBySlug]);
 
-    allActivities.forEach((activity, index) => {
-      currentDateGroup.activities.push(activity);
-      const nextActivity = allActivities[index + 1];
+  const { activityIds, activitiesById } = useMemo(() => {
+    const activityIdList: string[] = [];
+    const activityMap: Record<string, ApiActivity> = {};
 
-      if (nextActivity) {
-        const nextActivityDayStartsAt = getDayStartAt(nextActivity.timestamp);
-        if (currentDateGroup.datetime !== nextActivityDayStartsAt) {
-          currentDateGroup = {
-            datetime: nextActivityDayStartsAt,
-            activities: [],
-          };
-
-          groupedActivities.push(currentDateGroup);
-        }
-      }
+    activityList?.forEach((activity) => {
+      activityIdList.push(activity.id);
+      activityMap[activity.id] = activity;
     });
 
-    return groupedActivities;
-  }, [ids, byId, slug, areTinyTransfersHidden, tokensBySlug]);
+    return { activityIds: activityIdList, activitiesById: activityMap };
+  }, [activityList]);
+
+  const isHistoryEndReached = useMemo(() => {
+    if (slug) {
+      return !!isHistoryEndReachedBySlug?.[slug];
+    }
+
+    return !!isMainHistoryEndReached;
+  }, [isHistoryEndReachedBySlug, isMainHistoryEndReached, slug]);
 
   const loadMore = useLastCallback(() => {
     if (slug) {
-      fetchTokenTransactions({ slug, limit: FURTHER_SLICE });
+      fetchTokenTransactions({ slug, limit: FURTHER_SLICE * 2, shouldLoadWithBudget: true });
     } else {
-      fetchAllTransactions({ limit: FURTHER_SLICE });
+      fetchAllTransactions({ limit: FURTHER_SLICE * 2, shouldLoadWithBudget: true });
     }
   });
 
-  const isLoadingDisabled = isHistoryEndReached || isLoading;
-  const { handleIntersection } = useInfiniteLoader({ isDisabled: isLoadingDisabled, isLoading, loadMore });
+  const throttledLoadMore = useThrottledCallback(loadMore, [loadMore], THROTTLE_TIME, true);
 
-  const handleFetchingState = useLastCallback(() => {
-    clearTimeout(loadMoreTimeout.current);
-    loadMoreTimeout.current = setTimeout(() => {
-      setIsFetching(false);
-    }, LOAD_MORE_REQUEST_TIMEOUT);
-  });
+  const [viewportIds, getMore] = useInfiniteScroll(throttledLoadMore, activityIds, undefined, FURTHER_SLICE);
+
+  const isActivitiesEmpty = !activityList || !activityList.length;
+
+  const activityOffsetInfoById = useMemo(() => {
+    const offsetMap: Record<string, ActivityOffsetInfo> = {};
+
+    let dateCount = 0;
+    let commentCount = 0;
+    let lastActivityDayStart = 0;
+
+    activityIds.forEach((id, index) => {
+      const activity = activitiesById[id];
+      if (!activity) return;
+
+      offsetMap[id] = {
+        offset: 0,
+        offsetNext: 0,
+        dateCount: 0,
+        commentCount: 0,
+        date: lastActivityDayStart,
+      };
+
+      const offsetTop = calculateOffset(index, dateCount, commentCount);
+      const activityDayStart = getDayStartAt(activity.timestamp);
+      const isNewDay = lastActivityDayStart !== activityDayStart;
+      if (isNewDay) {
+        lastActivityDayStart = activityDayStart;
+        dateCount += 1;
+      }
+
+      if (activity.kind === 'transaction' && !activity.type && (activity.comment || activity.encryptedComment)) {
+        commentCount += 1;
+      }
+
+      offsetMap[id] = {
+        ...offsetMap[id],
+        offset: offsetTop,
+        offsetNext: calculateOffset(index + 1, dateCount, commentCount),
+        dateCount,
+        commentCount,
+      };
+    });
+
+    return offsetMap;
+  }, [activitiesById, activityIds]);
+
+  const currentContainerHeight = useMemo(
+    () => {
+      const lastViewportId = viewportIds![viewportIds!.length - 1];
+      const activityInfo = activityOffsetInfoById[lastViewportId];
+
+      if (!activityInfo) return 0;
+
+      return activityInfo.offsetNext;
+    },
+    [activityOffsetInfoById, viewportIds],
+  );
 
   useEffect(() => {
-    if (isActive) {
-      setIsFetching(Boolean(ids.length));
-      resetIsHistoryEndReached();
-      handleFetchingState();
+    if (!isHistoryEndReached && ids && isActivitiesEmpty) {
+      throttledLoadMore();
     }
-  }, [handleFetchingState, isActive, isNewWallet, loadMore, slug, ids]);
+  }, [ids, isActivitiesEmpty, isHistoryEndReached, throttledLoadMore]);
 
-  useEffect(() => {
-    if (!activities.length) {
-      loadMore();
-      handleFetchingState();
+  useLayoutEffect(() => {
+    if (isLandscape && containerRef.current) {
+      setExtraStyles(containerRef.current, { height: '' });
+      return;
     }
-  }, [handleFetchingState, loadMore, activities, ids]);
+
+    if (!containerRef.current || !mobileRef?.current) return;
+
+    portraitContainerRef.current = mobileRef.current?.closest<HTMLDivElement>('.app-slide-content');
+
+    setExtraStyles(containerRef.current, { height: `${currentContainerHeight}px` });
+  }, [isLandscape, currentContainerHeight, mobileRef]);
 
   const handleActivityClick = useLastCallback((id: string) => {
     showActivityInfo({ id });
@@ -187,39 +281,67 @@ function Activities({
     return undefined;
   }
 
-  function renderActivityGroups(activityGroups: ActivityDateGroup[]) {
-    return activityGroups.map((group, groupIdx) => (
-      <div className={styles.group}>
-        <div className={styles.date}>{formatHumanDay(lang, group.datetime)}</div>
-        {group.activities.map((activity) => {
-          return (
-            <Transaction
-              key={activity?.id}
-              transaction={activity}
-              tokensBySlug={tokensBySlug}
-              apyValue={apyValue}
-              savedAddresses={savedAddresses}
-              onClick={handleActivityClick}
-            />
-          );
-        })}
-        {
-          groupIdx + 1 === activityGroups.length && (
-            <div ref={handleIntersection} className={styles.loaderThreshold} />
-          )
-        }
-      </div>
-    ));
-  }
-  if (!activities.length && isFetching) {
-    return (
-      <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
-        <Loading />
-      </div>
-    );
+  function renderActivity(activity: ApiActivity, isLast: boolean, isActivityActive: boolean) {
+    const isSwap = activity.kind === 'swap';
+
+    if (isSwap) {
+      return (
+        <Swap
+          key={activity.id}
+          activity={activity}
+          tokensBySlug={swapTokensBySlug}
+          isLast={isLast}
+          isActive={isActivityActive}
+          onClick={handleActivityClick}
+        />
+      );
+    } else {
+      return (
+        <Transaction
+          key={activity.id}
+          transaction={activity}
+          tokensBySlug={tokensBySlug}
+          isActive={isActivityActive}
+          apyValue={apyValue}
+          isLast={isLast}
+          savedAddresses={savedAddresses}
+          onClick={handleActivityClick}
+        />
+      );
+    }
   }
 
-  if (!activities.length || (isLandscape && isNewWallet)) {
+  function renderHistory() {
+    return viewportIds!.map((id, index) => {
+      const activityInfo = activityOffsetInfoById[id];
+
+      const nextActivityId = viewportIds![index + 1];
+      const activity = activitiesById[id];
+      const nextActivity = activitiesById[nextActivityId];
+      if (!activity) return undefined;
+
+      const activityDayStart = getDayStartAt(activity.timestamp);
+      const isNewDay = activityInfo.date !== activityDayStart;
+
+      const nextActivityDayStart = nextActivity ? getDayStartAt(nextActivity.timestamp) : 0;
+      const isLast = !nextActivityId || activityInfo.date !== nextActivityDayStart;
+
+      const isActivityActive = activity.id === currentActivityId;
+
+      return (
+        <div
+          key={id}
+          style={`top: ${activityInfo.offset}px`}
+          className={buildClassName('ListItem', styles.listItem)}
+        >
+          {isNewDay && <div className={styles.date}>{formatHumanDay(lang, activityDayStart)}</div>}
+          {renderActivity(activity, isLast, isActivityActive)}
+        </div>
+      );
+    });
+  }
+
+  if (isNewWallet && isActivitiesEmpty) {
     return (
       <div className={buildClassName(isLandscape && styles.greeting)}>
         <NewWalletGreeting isActive={isActive} mode={isLandscape ? 'emptyList' : 'panel'} />
@@ -227,32 +349,88 @@ function Activities({
     );
   }
 
-  return <div>{renderActivityGroups(activities)}</div>;
+  if (isHistoryEndReached && isActivitiesEmpty) {
+    return (
+      <div className={styles.emptyList}>
+        <AnimatedIconWithPreview
+          play={isActive}
+          tgsUrl={ANIMATED_STICKERS_PATHS.noData}
+          previewUrl={ANIMATED_STICKERS_PATHS.noDataPreview}
+          size={ANIMATED_STICKER_BIG_SIZE_PX}
+          className={styles.sticker}
+          noLoop={false}
+          nonInteractive
+        />
+        <p className={styles.emptyListTitle}>{lang('No Activity')}</p>
+      </div>
+    );
+  }
+
+  if (!ids || isActivitiesEmpty) {
+    return (
+      <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
+        <Loading />
+      </div>
+    );
+  }
+
+  return (
+    <InfiniteScroll
+      className={buildClassName('custom-scroll', styles.listGroup)}
+      ref={containerRef}
+      scrollRef={isLandscape ? undefined : portraitContainerRef}
+      items={viewportIds}
+      preloadBackwards={FURTHER_SLICE}
+      withAbsolutePositioning
+      maxHeight={currentContainerHeight}
+      onLoadMore={getMore}
+    >
+      {renderHistory()}
+    </InfiniteScroll>
+  );
 }
 
 export default memo(
-  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-    const { currentAccountId } = global;
-    detachWhenChanged(currentAccountId);
+  withGlobal<OwnProps>(
+    (global): StateProps => {
+      const accountState = selectCurrentAccountState(global);
+      const isNewWallet = selectIsNewWallet(global);
+      const slug = accountState?.currentTokenSlug;
+      const {
+        idsBySlug, byId, isMainHistoryEndReached, isHistoryEndReachedBySlug,
+      } = accountState?.activities ?? {};
+      return {
+        currentAccountId: global.currentAccountId!,
+        slug,
+        byId,
+        isNewWallet,
+        idsBySlug,
+        tokensBySlug: global.tokenInfo?.bySlug,
+        swapTokensBySlug: global.swapTokenInfo?.bySlug,
+        areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
+        apyValue: accountState?.staking?.apy || 0,
+        savedAddresses: accountState?.savedAddresses,
+        isMainHistoryEndReached,
+        isHistoryEndReachedBySlug,
+        currentActivityId: accountState?.currentActivityId,
+      };
+    },
+    (global, _, stickToFirst) => {
+      const tokens = selectCurrentAccountTokens(global);
+      const accountState = selectCurrentAccountState(global);
+      const tokensCount = selectEnabledTokensCountMemoized(tokens);
+      const shouldShowSeparateAssetsPanel = tokensCount > 0 && tokensCount < MIN_ASSETS_TAB_VIEW;
 
-    const accountState = selectCurrentAccountState(global);
-    const isNewWallet = selectIsNewWallet(global);
-    const slug = accountState?.currentTokenSlug;
-    const {
-      idsBySlug, byId, isLoading, isHistoryEndReached,
-    } = accountState?.activities || {};
-    return {
-      currentAccountId: currentAccountId!,
-      slug,
-      isLoading,
-      byId,
-      isNewWallet,
-      idsBySlug,
-      tokensBySlug: global.tokenInfo?.bySlug,
-      areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
-      apyValue: accountState?.poolState?.lastApy || 0,
-      savedAddresses: accountState?.savedAddresses,
-      isHistoryEndReached,
-    };
-  })(Activities),
+      return stickToFirst((
+        accountState?.activeContentTab === ContentTab.Activity
+        || (accountState?.activeContentTab === ContentTab.Assets && shouldShowSeparateAssetsPanel)
+      ) && global.currentAccountId);
+    },
+  )(Activities),
 );
+
+function calculateOffset(index: number, dateCount: number, commentCount: number) {
+  const commentOffset = commentCount * TRANSACTION_COMMENT_HEIGHT;
+  const dateOffset = dateCount * DATE_HEADER_HEIGHT;
+  return index * TRANSACTION_HEIGHT + dateOffset + commentOffset;
+}

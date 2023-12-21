@@ -1,0 +1,103 @@
+import type { BottomSheetKeys } from 'native-bottom-sheet';
+import { BottomSheet } from 'native-bottom-sheet';
+import { useEffect } from '../lib/teact/teact';
+import { forceOnHeavyAnimationOnce } from '../lib/teact/teactn';
+import { getActions, getGlobal } from '../global';
+
+import type { ActionPayloads } from '../global/types';
+
+import { pause } from '../util/schedulers';
+import { CAN_DELEGATE_BOTTOM_SHEET } from '../util/windowEnvironment';
+import useEffectWithPrevDeps from './useEffectWithPrevDeps';
+
+const RACE_TIMEOUT = 1000;
+const CLOSING_DURATION = 100;
+
+const controlledByNative = new Map<BottomSheetKeys, NoneToVoidFunction>();
+
+if (CAN_DELEGATE_BOTTOM_SHEET) {
+  BottomSheet.prepare();
+
+  BottomSheet.addListener(
+    'callActionInMain',
+    <K extends keyof ActionPayloads>({ name, optionsJson }: { name: string; optionsJson: string }) => {
+      const action = getActions()[name as K];
+      action((JSON.parse(optionsJson) || undefined) as ActionPayloads[K]);
+    },
+  );
+
+  BottomSheet.addListener(
+    'openInMain',
+    ({ key }: { key: BottomSheetKeys }) => {
+      controlledByNative.get(key)?.();
+    },
+  );
+}
+
+let lastOpenCall = Promise.resolve();
+let closeCurrent: NoneToVoidFunction | undefined;
+
+export function useDelegatingBottomSheet(
+  key: BottomSheetKeys | undefined,
+  isPortrait: boolean | undefined,
+  isOpen: boolean | undefined,
+  onClose: AnyToVoidFunction,
+) {
+  const isDelegating = CAN_DELEGATE_BOTTOM_SHEET && key;
+  const shouldOpen = isOpen && isPortrait;
+
+  useEffectWithPrevDeps(([prevShouldOpen]) => {
+    if (!isDelegating) return;
+
+    if (shouldOpen) {
+      closeCurrent?.();
+
+      const closeNext = () => {
+        forceOnHeavyAnimationOnce();
+        onClose();
+      };
+
+      closeCurrent = closeNext;
+
+      // Wait until previous call resolves to get an up-to-date global
+      lastOpenCall = Promise.race([
+        lastOpenCall,
+        pause(RACE_TIMEOUT), // Sometimes the last open call is stuck for some unknown reason
+      ])
+        .then(() => {
+          return BottomSheet.delegate({
+            key,
+            globalJson: JSON.stringify(getGlobal()),
+          });
+        })
+        .then(() => {
+          if (closeCurrent === closeNext) {
+            closeCurrent();
+            closeCurrent = undefined;
+          }
+        })
+        .then(() => pause(CLOSING_DURATION));
+    } else if (prevShouldOpen) {
+      BottomSheet.release({ key });
+    }
+  }, [shouldOpen, isDelegating, key, onClose]);
+
+  return isDelegating && isPortrait;
+}
+
+export function useOpenFromNativeBottomSheet(
+  key: BottomSheetKeys,
+  open: NoneToVoidFunction,
+) {
+  useEffect(() => {
+    if (!CAN_DELEGATE_BOTTOM_SHEET) return undefined;
+
+    controlledByNative.set(key, open);
+
+    return () => {
+      if (controlledByNative.get(key) === open) {
+        controlledByNative.delete(key);
+      }
+    };
+  }, [key, open]);
+}

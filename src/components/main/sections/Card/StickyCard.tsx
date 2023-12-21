@@ -1,11 +1,12 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
+import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY } from '../../../../config';
 import { selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { buildTokenValues } from './helpers/buildTokenValues';
 
 import AccountSelector from './AccountSelector';
@@ -14,17 +15,25 @@ import styles from './StickyCard.module.scss';
 
 interface OwnProps {
   classNames?: string;
+  onQrScanPress?: NoneToVoidFunction;
 }
 
 interface StateProps {
   tokens?: UserToken[];
+  baseCurrency?: ApiBaseCurrency;
 }
 
-function StickyCard({ classNames, tokens }: OwnProps & StateProps) {
+function StickyCard({
+  classNames,
+  tokens,
+  onQrScanPress,
+  baseCurrency,
+}: OwnProps & StateProps) {
   const values = useMemo(() => {
     return tokens ? buildTokenValues(tokens) : undefined;
   }, [tokens]);
 
+  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const { primaryWholePart, primaryFractionPart } = values || {};
 
   return (
@@ -33,10 +42,13 @@ function StickyCard({ classNames, tokens }: OwnProps & StateProps) {
         <div className={styles.content}>
           <AccountSelector
             accountClassName={styles.account}
+            accountSelectorClassName="sticky-card-account-selector"
             menuButtonClassName={styles.menuButton}
+            noSettingsButton
+            onQrScanPress={onQrScanPress}
           />
           <div className={styles.balance}>
-            {DEFAULT_PRICE_CURRENCY}
+            {shortBaseSymbol}
             {primaryWholePart}
             {primaryFractionPart && <span className={styles.balanceFractionPart}>.{primaryFractionPart}</span>}
           </div>
@@ -46,10 +58,13 @@ function StickyCard({ classNames, tokens }: OwnProps & StateProps) {
   );
 }
 
-export default memo(withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-  detachWhenChanged(global.currentAccountId);
-
-  return {
-    tokens: selectCurrentAccountTokens(global),
-  };
-})(StickyCard));
+export default memo(
+  withGlobal<OwnProps>(
+    (global): StateProps => {
+      return {
+        tokens: selectCurrentAccountTokens(global),
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(StickyCard),
+);

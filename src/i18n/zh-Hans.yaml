@@ -96,19 +96,18 @@ $logout_accounts_without_backup_warning: 您还没有备份此账户 %links%。 
 $logout_warning: 这将断开钱包与此应用程序的连接，您将能使用 **%1$d 个密钥** 恢复您的钱包 - 或导入另一个钱包。
 Receive TON: 接收 TON
 Your address was copied!: 您的地址已复制！
-Show QR-Code: 显示二维码
-Create Invoice: 创建发票
-QR-code: 二维码
-$receive_invoice_description: 您可以指定付款金额和收款地址来节省付款方的一些时间
+Show QR Code: 显示二维码
+Create Deposit Link: 创建存款链接
+QR Code: 二维码
+$receive_invoice_description: 您可以指定付款金额和收款地址来节省付款方的一些时间。
 Amount: 数量
 Comment: 留言
 Share this URL to receive TON: 分享此链接来接收 TON
 Invoice link was copied!: 发票链接已复制！
-US Dollar: 美元
 Theme: 主题
 Language: 语言
 Enable Animations: 启用动画
-Fiat Currency: 法定货币
+Base Currency: 基本货币
 Investor View: 投资者见解
 Toggle Investor View: 切换投资者见解
 Hide Tiny Transfers: 隐藏小额转账
@@ -158,12 +157,12 @@ Loading...: 读取中...
 Recipient Address: 收款人地址
 Wallet address or domain: 钱包地址或域名
 Incorrect address: 地址错误
+Incorrect address.: 地址错误。
 Paste: 粘贴
 Insufficient balance: 余额不足
 InsufficientBalance: 余额不足
 Optional: 选项
 $send_token_symbol: 发送 %1$s
-$balance_is: "余额：%balance%"
 Is it all ok?: 确认全部正确?
 Receiving Address: 接收地址
 Fee: 手续费
@@ -191,9 +190,7 @@ Understood: 明白
 Today: 今天
 Yesterday: 明天
 Now: 现在
-$receive_ton_description: |
-  您可以分享这个地址，显示二维码
-  或创建支票来收取 TON
+$receive_ton_description: 您可以分享您的地址、扫描二维码或创建存款链接来接收加密货币。
 Your address: 您的地址
 Wrong password, please try again: 密码错误，请再试一次。
 Appearance: 外观
@@ -205,7 +202,7 @@ Earn from your tokens while holding them: 从你持有的代币身上赚一笔�
 $est_apy_val: 期望年回报率 %1$d%
 Why this is safe: 为什么这是安全的
 Why staking is safe?: 为什么质押是安全的？
-$safe_staking_description1: TON 质押是**完全去中心化的**，由官方 TON Nominator 智能合约运营。 没有人可以访问您抵押的代币。
+$safe_staking_description1: TON 质押是**完全去中心化的**，由官方 TON Liquid Staking 智能合约运营。
 $safe_staking_description2: 作为其 **权益证明** 的一部分，您存入的 TON 将用于 TON 区块网络验证。
 $safe_staking_description3: 您可以在 **任何时候** 解除您 TON 的质押，它会在 **36小时** 内存入您的账户。
 $min_value: 最小 %1$s
@@ -324,6 +321,28 @@ $dapp_ledger_warning1: 您即将使用您的**Ledger**钱包发送多方交易�
 $dapp_ledger_warning2: 请慢慢来，不要中断过程。
 Agree: 同意
 The hardware wallet does not support this data format: 硬件钱包不支持该数据格式
+Swap: 交换
+You sell: 您卖出
+You buy: 您购买
+Swap Details: 交换详情
+Blockchain fee: 区块链费用
+Price Impact: 价格影响
+Minimum Received: 最低接收数量
+Slippage: 下单误差
+$swap_from_to: 从 %from% 交换至 %to%
+The exchange rate is below market value!: 汇率低于市场价值 %value%！
+Invalid Pair: 无效交易对
+We do not recommend to perform an exchange, try to specify a lower amount.: 我们不建议进行交换，请尝试指定较小的金额。
+$swap_minimum_received_tooltip1: 这是您从此次交换中可能获得的最少新代币数量，考虑了目前市场条件、滑点容忍度和潜在价格影响。
+$swap_minimum_received_tooltip2: 这是预期的最低值，但如果在处理您的交换时条件发生很大变化，最终金额可能会较少。
+$swap_price_impact_tooltip1: 这显示了您的交易可能对代币价格造成的影响。
+$swap_price_impact_tooltip2: 大型交易可能会使价格上涨或下跌得更多。较低的值通常较好。
+$swap_slippage_tooltip1: 设置此值可以允许价格在进行交换前发生变化的程度。
+$swap_slippage_tooltip2: 如果在处理您的交换时，价格变化超过此值，您的订单将被取消。
+Coins have been swapped!: 币已交换完成！
+Slippage not specified: 未指定下单误差
+Slippage too high: 下单误差过高
+Not enough TON: TON 不足
 Use Responsibly: 负责任地使用
 $auth_responsibly_description1: |
   MyTonWallet 是一个**自我托管**钱包，这意味着**只有您**拥有完全控制权，最重要的是，对您的资金**承担全部责任**。
@@ -348,10 +367,129 @@ $auth_backup_description1: |
 $auth_backup_description2: “能力越大，责任越大。”
 $auth_backup_description3: |
   您需要手动**备份助记词**，以免忘记助记词以永远失去您的钱包。
-$transaction_at: 于价格 %price%
+Swap Placed: 已提交交换
+Swapping: 进行交换
+Swapped: 已交换
+Swap Failed: 交换失败
+Exchange rate: 汇率
+Swap Again: 再次进行交换
 Terms of Use: 使用条款
 Privacy Policy: 隐私政策
+Insufficient liquidity: 流动性不足
 This address is new and never received transfers before.: 这个地址是新的，以前从未收到过转帐。
 Create Backup: 创建备份
 Sending: 发送
-failed: 失敗
+Failed: 失败
+Refunded: 退款
+On hold: 持有
+Expired: 过期
+In progress: 进行中
+Waiting Payment: 等待付款
+Waiting for payment: 等待付款
+Blockchain: 区块链
+Receiving address in blockchain: 在 %blockchain% 区块链中的接收地址
+Please provide an address of your wallet in another blockchain to receive bought tokens.: 请提供您在另一个区块链上的钱包地址以接收已购买的代币。
+The time for sending coins is over: 发送硬币的时间已结束
+Please wait a few moments...: 请稍等片刻...
+You have not sent the coins to the specified address.: 您尚未将硬币发送到指定地址。
+$swap_changelly_to_ton_description1: "您必须在 %time% 内将 %value% 发送到此地址 在 %blockchain% 区块链中"
+Please contact support and provide a transaction ID.: 请联系支持并提供交易ID。
+Exchange failed and coins were refunded to your wallet.: 交换失败，硬币已退还到您的钱包。
+Please contact security team to pass the KYC procedure.: 请联系安全团队以完成KYC程序。
+Swap Expired: 交换已过期
+Swap On Hold: 交换暂停
+Swap Refunded: 交换已退款
+Changelly Payment Address: Changelly 付款地址
+Cross-chain exchange provided by Changelly: 由Changelly提供的跨链交换
+$swap_changelly_agreement_message: 继续操作，即表示您同意 %terms% 和 %policy%，并理解该交易可能会触发根据 %kyc% 进行的验证。
+$swap_changelly_terms_of_use: 使用条款
+$swap_changelly_privacy_policy: 隐私政策
+Password must contain %length% digits.: 密码必须包含%length%位数字。
+Deposit Link: 充值链接
+$swap_changelly_from_ton_description: "代币将在几分钟内发送到您在%blockchain%区块链上的地址："
+Minimum amount: 最低 %value%
+Maximum amount: 最高 %value%
+Display Tray Icon: 显示托盘图标
+Enable Auto-Updates: 启用自动更新
+Biometric Authentication: 生物识别认证
+Turn off biometrics?: 关闭生物识别？
+If you turn off biometric protection, you will need to create a password.: 如果您关闭生物识别保护，则需要创建密码。
+Enter your current password: 输入当前密码
+Turn On Biometrics: 打开生物识别
+Please confirm transaction using biometrics: 请使用生物识别技术确认交易
+Enabling biometric confirmation will reset the password.: 启用生物识别确认将重置密码。
+Biometric Registration: 生物识别注册
+Step 1 of 2. Registration: 第 1 步（共 2 步）：注册
+Step 2 of 2. Verification: 第 2 步（共 2 步）：验证
+Biometric setup failed: 生物识别设置失败
+Biometric confirmation failed: 生物识别确认失败
+Failed to disable biometrics: 无法禁用生物识别
+Biometric Confirmation: 生物识别确认
+Please verify your identity.: 请证明你的身份。
+Create Password: 创建密码
+Complete: 完成
+Verification: 确认
+Create a password or use biometric authentication to protect it.: 创建密码或使用生物识别身份验证来保护它。
+Connect Biometrics: 连接生物识别
+Use Password: 使用密码
+Biometrics Disabled: 生物识别已禁用
+Biometrics Enabled: 启用生物识别
+A request is already pending: 请求已待处理
+Please confirm operation using biometrics: 请使用生物识别确认操作
+Scan QR Code: 扫描二维码
+Permission denied. Please grant camera permission to use the QR code scanner.: 没有权限。 请授予相机使用 QR 扫描仪的权限。
+Unsupported barcode format: 不支持的条形码格式
+An error on the server side. Please try again.: 服务器端的错误。请再试一次。
+Unrecognized QR Code: 无法识别的二维码
+$fee_value_almost_equal: 手续费 ≈ %fee%
+Address was saved!: 地址已保存！
+US Dollar: 美元
+Euro: 欧元
+Ruble: 卢布
+Yuan: 元
+$max_balance: "最大: %balance%"
+$unstake_information_instantly: 您将立即获得存款。
+Select Token: 选择代币
+MY: 我的
+POPULAR: 流行
+A-Z: A-Z
+Not Found: 未找到
+Wallet is ready!: 钱包准备好了！
+Wallet is imported!: 钱包是进口的！
+Create a code to protect it: 创建代码来保护它
+Enter your code again: 再次输入您的代码
+Codes don't match: 代码不匹配
+Code set successfully: 代码设置成功
+Use Biometrics: 使用生物识别技术
+Use Touch ID: 使用 Touch ID
+Use Face ID: 使用 Face ID
+You can connect your biometric data for more convenience: 您可以连接您的生物识别数据以获得更多便利
+Connect Touch ID: 连接 Touch ID
+Connect Face ID: 连接 Face ID
+Not Now: 现在不要
+Biometric Authentification: 生物识别认证
+Touch ID: Touch ID
+Face ID: Face ID
+Turn Off Touch ID?: 关闭 Touch ID？
+Turn Off Face ID?: 关闭 Face ID?
+Turn Off Biometrics?: 关闭生物识别技术？
+Enter code: 输入代码
+Enter code or use Face ID: 输入代码或使用 Face ID
+Enter code or use Touch ID: 输入代码或使用 Touch ID
+Enter code or user biometrics: 输入代码或用户生物识别信息
+Wrong code, please try again: 代码错误，请重试
+Scan your fingerprint: 扫描您的指纹
+Incorrect code, please try again: 不正确的代码，请重试
+Correct: 正确
+Confirm Operation: 确认操作
+Confirm Swap: 确认兑换
+"%amount% to %address%": "%amount% 至 %address%"
+"%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
+Failed to enable biometrics: 无法启用生物识别
+Disable Face ID: Disable Face ID
+Disable Touch ID: Disable Touch ID
+Disable Biometrics: Disable Biometrics
+Are you sure you want to disable Face ID?: 您确定要禁用Face ID吗？
+Are you sure you want to disable Touch ID?: 您确定要禁用Touch ID吗？
+Are you sure you want to disable biometrics?: 您确定要禁用生物识别技术吗？
+Yes: 是的

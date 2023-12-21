@@ -123,7 +123,7 @@
   width: 75%;
   height: auto !important;
   min-height: 1rem;
-  margin: 0 0.5rem -1rem auto;
+  margin: 0 0.5rem -0.8125rem auto;
 
   font-size: 0.8125rem;
   line-height: 1rem;
@@ -255,6 +255,10 @@
   padding: 0.5rem 0.6875rem 0.375rem;
 }
 
+.balanceResultWrapper {
+  margin-bottom: 0 !important;
+}
+
 .balanceResultInput {
   display: block;
 }
@@ -277,10 +281,17 @@
 
   width: auto;
 
-  background: linear-gradient(81.88deg, #6875E9 19.42%, #1EC160 71.55%);
+  background: linear-gradient(81.88deg, var(--color-purple-1) 19.42%, #1EC160 71.55%);
   background-clip: text;
 
   -webkit-text-fill-color: transparent;
+
+  :global(.theme-dark) & {
+    background: linear-gradient(81.88deg, var(--color-purple-1) 19.42%, var(--color-green) 71.55%);
+    background-clip: text;
+
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 .stakingInfoModal {
@@ -417,7 +428,10 @@
 .unstakeTime {
   position: relative;
 
-  max-width: 18rem;
+  display: flex;
+  flex-direction: column;
+
+  max-width: 19rem;
   margin: 0.25rem auto 0;
   padding: 0.75rem;
 
@@ -506,6 +520,31 @@
   }
 }
 
-.buttonSubmit {
-  margin-top: 2rem;
+.stakingShortInfo {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+
+  height: 2rem;
+  padding: 0 0.5rem 0 0.375rem;
+
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-transaction-purple-text);
+
+  background-color: var(--color-transaction-purple-background);
+  border-radius: 1rem;
+
+  &.unstake {
+    color: var(--color-transaction-green-text);
+
+    background-color: var(--color-transaction-green-background);
+  }
+}
+
+.tokenIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+
+  border-radius: 50%;
 }

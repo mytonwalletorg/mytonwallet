@@ -1,3 +1,5 @@
+@import "../../../../styles/mixins";
+
 .root {
   position: fixed;
   top: 0;
@@ -42,6 +44,17 @@
 
     opacity: 1;
   }
+
+  @supports (padding-top: env(safe-area-inset-top)) {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  @include respond-below(xs) {
+    // Fix for opera, dead zone of 37 pixels in extension window on windows
+    :global(html.is-windows.is-opera.is-extension) & {
+      padding-top: 1rem !important;
+    }
+  }
 }
 
 .content {
@@ -55,6 +68,12 @@
   max-width: 27rem;
   height: 3.75rem;
   margin: 0 auto;
+
+  :global(html.with-safe-area-top) & {
+    box-sizing: content-box;
+    height: 1.5rem;
+    padding-bottom: 1.125rem;
+  }
 }
 
 .account {

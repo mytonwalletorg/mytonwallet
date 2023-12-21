@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?bc5164b37bfd0b73b5ecadf95aa71fe5") format("woff"),
-url("./brilliant-icons.woff2?bc5164b37bfd0b73b5ecadf95aa71fe5") format("woff2");
+    src: url("./brilliant-icons.woff?c432e9e8a4a2ab95fcf5874fa9f9b512") format("woff"),
+url("./brilliant-icons.woff2?c432e9e8a4a2ab95fcf5874fa9f9b512") format("woff2");
     font-weight: normal;
     font-style: normal;
 }
@@ -20,144 +20,168 @@ url("./brilliant-icons.woff2?bc5164b37bfd0b73b5ecadf95aa71fe5") format("woff2");
 .icon-arrow-down::before {
     content: "\f102";
 }
-.icon-arrow-right::before {
+.icon-arrow-right-swap::before {
     content: "\f103";
 }
-.icon-arrow-up::before {
+.icon-arrow-right::before {
     content: "\f104";
 }
-.icon-caret-down::before {
+.icon-arrow-up-swap::before {
     content: "\f105";
 }
-.icon-chevron-down::before {
+.icon-arrow-up::before {
     content: "\f106";
 }
-.icon-chevron-left::before {
+.icon-backspace::before {
     content: "\f107";
 }
-.icon-chevron-right::before {
+.icon-caret-down::before {
     content: "\f108";
 }
-.icon-clock::before {
+.icon-changelly::before {
     content: "\f109";
 }
-.icon-close-filled::before {
+.icon-chevron-down::before {
     content: "\f10a";
 }
-.icon-close::before {
+.icon-chevron-left::before {
     content: "\f10b";
 }
-.icon-cog::before {
+.icon-chevron-right::before {
     content: "\f10c";
 }
-.icon-coinmarket::before {
+.icon-clock::before {
     content: "\f10d";
 }
-.icon-copy::before {
+.icon-close-filled::before {
     content: "\f10e";
 }
-.icon-dot::before {
+.icon-close::before {
     content: "\f10f";
 }
-.icon-download::before {
+.icon-cog::before {
     content: "\f110";
 }
-.icon-earn::before {
+.icon-coinmarket::before {
     content: "\f111";
 }
-.icon-eye-closed::before {
+.icon-copy::before {
     content: "\f112";
 }
-.icon-eye::before {
+.icon-dot::before {
     content: "\f113";
 }
-.icon-github::before {
+.icon-download::before {
     content: "\f114";
 }
-.icon-laptop::before {
+.icon-earn::before {
     content: "\f115";
 }
-.icon-ledger::before {
+.icon-eye-closed::before {
     content: "\f116";
 }
-.icon-lock::before {
+.icon-eye::before {
     content: "\f117";
 }
-.icon-params::before {
+.icon-face-id::before {
     content: "\f118";
 }
-.icon-paste::before {
+.icon-flashlight::before {
     content: "\f119";
 }
-.icon-pen::before {
+.icon-github::before {
     content: "\f11a";
 }
-.icon-percent::before {
+.icon-laptop::before {
     content: "\f11b";
 }
-.icon-plus::before {
+.icon-ledger::before {
     content: "\f11c";
 }
-.icon-qrcode::before {
+.icon-lock::before {
     content: "\f11d";
 }
-.icon-question::before {
+.icon-params::before {
     content: "\f11e";
 }
-.icon-receive-alt::before {
+.icon-paste::before {
     content: "\f11f";
 }
-.icon-receive::before {
+.icon-pen::before {
     content: "\f120";
 }
-.icon-replace::before {
+.icon-percent::before {
     content: "\f121";
 }
-.icon-search::before {
+.icon-plus::before {
     content: "\f122";
 }
-.icon-send-alt::before {
+.icon-qr-scanner-alt::before {
     content: "\f123";
 }
-.icon-send::before {
+.icon-qr-scanner::before {
     content: "\f124";
 }
-.icon-share::before {
+.icon-question::before {
     content: "\f125";
 }
-.icon-sort::before {
+.icon-receive-alt::before {
     content: "\f126";
 }
-.icon-star-filled::before {
+.icon-receive::before {
     content: "\f127";
 }
-.icon-star::before {
+.icon-replace::before {
     content: "\f128";
 }
-.icon-swap::before {
+.icon-search::before {
     content: "\f129";
 }
-.icon-telegram::before {
+.icon-send-alt::before {
     content: "\f12a";
 }
-.icon-ton::before {
+.icon-send::before {
     content: "\f12b";
 }
-.icon-tonscan::before {
+.icon-share::before {
     content: "\f12c";
 }
-.icon-trash::before {
+.icon-sort::before {
     content: "\f12d";
 }
-.icon-update::before {
+.icon-star-filled::before {
     content: "\f12e";
 }
-.icon-windows-close::before {
+.icon-star::before {
     content: "\f12f";
 }
-.icon-windows-maximize::before {
+.icon-swap::before {
     content: "\f130";
 }
-.icon-windows-minimize::before {
+.icon-telegram::before {
     content: "\f131";
+}
+.icon-ton::before {
+    content: "\f132";
+}
+.icon-tonscan::before {
+    content: "\f133";
+}
+.icon-touch-id::before {
+    content: "\f134";
+}
+.icon-trash::before {
+    content: "\f135";
+}
+.icon-update::before {
+    content: "\f136";
+}
+.icon-windows-close::before {
+    content: "\f137";
+}
+.icon-windows-maximize::before {
+    content: "\f138";
+}
+.icon-windows-minimize::before {
+    content: "\f139";
 }

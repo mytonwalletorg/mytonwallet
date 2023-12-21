@@ -8,11 +8,10 @@ import {
 
 import type { ApiNetwork } from '../../../types';
 
+import { TONAPIIO_MAINNET_URL, TONAPIIO_TESTNET_URL } from '../../../../config';
 import { logDebugError } from '../../../../util/logs';
 import { API_HEADERS } from '../../../environment';
 
-const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapi.io';
-const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://testnet.tonapi.io';
 const MAX_LIMIT = 1000;
 
 const configurationMainnet = new Configuration({
@@ -53,13 +52,20 @@ export function fetchNftItems(network: ApiNetwork, addresses: string[]) {
   })).nftItems, []);
 }
 
-export function fetchAccountNfts(network: ApiNetwork, address: string, offset?: number, limit?: number) {
+export function fetchAccountNfts(network: ApiNetwork, address: string, options?: {
+  collection?: string;
+  offset?: number;
+  limit?: number;
+}) {
+  const { collection, offset, limit } = options ?? {};
   const api = tonapiioByNetwork[network].accountsApi;
+
   return tonapiioErrorHandler(async () => (await api.getNftItemsByOwner({
     accountId: address,
     offset: offset ?? 0,
     limit: limit ?? MAX_LIMIT,
     indirectOwnership: true,
+    collection,
   })).nftItems, []);
 }
 

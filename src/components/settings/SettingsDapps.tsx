@@ -7,6 +7,7 @@ import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useFlag from '../../hooks/useFlag';
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
@@ -16,6 +17,7 @@ import DisconnectDappModal from '../main/modals/DisconnectDappModal';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
+import Transition from '../ui/Transition';
 
 import styles from './Settings.module.scss';
 
@@ -37,9 +39,14 @@ function SettingsDapps({
   const [isDisconnectModalOpen, openDisconnectModal, closeDisconnectModal] = useFlag();
   const [dappToDelete, setDappToDelete] = useState<ApiDapp | undefined>();
 
+  useHistoryBack({
+    isActive,
+    onBack: handleBackClick,
+  });
+
   const {
     handleScroll: handleContentScroll,
-    isAtBeginning: isContentNotScrolled,
+    isScrolled,
   } = useScrolledState();
 
   const handleDisconnectDapp = useLastCallback((origin: string) => {
@@ -104,7 +111,6 @@ function SettingsDapps({
           tgsUrl={ANIMATED_STICKERS_PATHS.noData}
           previewUrl={ANIMATED_STICKERS_PATHS.noDataPreview}
           size={ANIMATED_STICKER_BIG_SIZE_PX}
-          className={styles.sticker}
           noLoop={false}
           nonInteractive
         />
@@ -122,12 +128,12 @@ function SettingsDapps({
       {isInsideModal ? (
         <ModalHeader
           title={lang('Dapps')}
-          withBorder={!isContentNotScrolled}
+          withNotch={isScrolled}
           onBackButtonClick={handleBackClick}
           className={styles.modalHeader}
         />
       ) : (
-        <div className={styles.header}>
+        <div className={buildClassName(styles.header, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
@@ -136,10 +142,12 @@ function SettingsDapps({
         </div>
       )}
       <div
-        className={buildClassName(styles.content, 'custom-scroll', isInsideModal && styles.contentInModal)}
+        className={buildClassName(styles.content, 'custom-scroll')}
         onScroll={handleContentScroll}
       >
-        {content}
+        <Transition activeKey={dapps.length === 0 ? 0 : 1} name="fade">
+          {content}
+        </Transition>
       </div>
       <DisconnectDappModal isOpen={isDisconnectModalOpen} onClose={closeDisconnectModal} dapp={dappToDelete} />
     </div>

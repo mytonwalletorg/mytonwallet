@@ -1,6 +1,7 @@
 import TonWeb from 'tonweb';
 
 import { STAKING_POOLS } from '../../config';
+import { ApiServerError } from '../errors';
 
 export function bytesToHex(bytes: Uint8Array) {
   return TonWeb.utils.bytesToHex(bytes);
@@ -43,4 +44,20 @@ export function sumBigString(a: string, b: string) {
 
 export function isKnownStakingPool(address: string) {
   return STAKING_POOLS.some((poolPart) => address.endsWith(poolPart));
+}
+
+export async function fetchJson(url: string, data?: AnyLiteral, init?: RequestInit) {
+  const urlObject = new URL(url);
+  if (data) {
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined) return;
+      urlObject.searchParams.set(key, value.toString());
+    });
+  }
+
+  const response = await fetch(urlObject, init);
+  if (!response.ok) {
+    throw new ApiServerError(`Http error ${response.status}`);
+  }
+  return response.json();
 }

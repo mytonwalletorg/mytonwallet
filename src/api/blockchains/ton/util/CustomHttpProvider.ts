@@ -1,8 +1,8 @@
 import TonWeb from 'tonweb';
 import type { HttpProviderOptions } from 'tonweb/dist/types/providers/http-provider';
 
-import { logDebugError } from '../../../../util/logs';
 import { pause } from '../../../../util/schedulers';
+import { ApiServerError } from '../../../errors';
 
 type Options = HttpProviderOptions & {
   headers?: AnyLiteral;
@@ -27,8 +27,6 @@ class CustomHttpProvider extends TonWeb.HttpProvider {
 
   async sendRequest(apiUrl: string, request: any) {
     const method: string = request.method;
-    let lastError: any;
-    let lastStatusCode: number | undefined;
 
     const headers: AnyLiteral = {
       ...this.options.headers,
@@ -39,44 +37,45 @@ class CustomHttpProvider extends TonWeb.HttpProvider {
     }
     const body = JSON.stringify(request);
 
+    let message = 'Unknown error';
+    let statusCode: number | undefined;
+
     for (let i = 1; i <= ATTEMPTS; i++) {
       try {
         const response = await fetch(apiUrl, {
           method: 'POST', headers, body,
         });
-        lastStatusCode = response.status;
-        const { error, result } = await response.json();
-        if (error) {
+        statusCode = response.status;
+
+        if (statusCode >= 400) {
+          if (response.headers.get('content-type') !== 'application/json') {
+            throw new Error(`HTTP Error ${statusCode}`);
+          }
+          const { error } = await response.json();
           throw new Error(error);
         }
+
+        const { result } = await response.json();
         return result;
       } catch (err: any) {
-        lastError = err;
+        message = typeof err === 'string' ? err : err.message ?? message;
 
-        const message: string = typeof err === 'string' ? err : err.message;
-        if (isNotTemporaryError(method, message, lastStatusCode)) {
-          throw err;
+        if (isNotTemporaryError(method, message, statusCode)) {
+          throw new ApiServerError(message);
         }
 
         if (i < ATTEMPTS) {
-          if (!isFrequentError(message)) {
-            logDebugError('HttpProvider:sendRequest', 'retry', err);
-          }
           await pause(ERROR_PAUSE * i);
         }
       }
     }
 
-    throw lastError;
+    throw new ApiServerError(message);
   }
 }
 
 function isNotTemporaryError(method: string, message: string, statusCode?: number) {
   return statusCode === 422 || (method === 'sendBoc' && message?.includes('exitcode='));
-}
-
-function isFrequentError(message: string) {
-  return message.includes('LITE_SERVER_NOTREADY') || message.includes('LITE_SERVER_UNKNOWN');
 }
 
 export default CustomHttpProvider;

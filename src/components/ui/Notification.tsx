@@ -3,9 +3,9 @@ import React, {
   useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import { IS_ELECTRON } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
+import { IS_ELECTRON } from '../../util/windowEnvironment';
 
 import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';

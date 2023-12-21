@@ -1,6 +1,8 @@
 import type { ApiLedgerDriver, ApiWalletVersion } from './misc';
 
-export interface ApiAccountInfo {
+export interface ApiAccount {
+  address: string;
+  publicKey: string;
   version?: ApiWalletVersion;
   ledger?: {
     index: number;
@@ -8,6 +10,9 @@ export interface ApiAccountInfo {
     deviceId?: string;
     deviceName?: string;
   };
+  lastFinishedSwapTimestamp?: number;
+  authToken?: string;
+  isInitialized?: boolean;
 }
 
 export interface ApiDappMetadata {

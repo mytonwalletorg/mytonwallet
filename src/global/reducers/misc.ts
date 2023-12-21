@@ -1,4 +1,4 @@
-import type { ApiToken } from '../../api/types';
+import type { ApiSwapAsset, ApiToken } from '../../api/types';
 import type { Account, AccountState, GlobalState } from '../types';
 
 import { TON_TOKEN_SLUG } from '../../config';
@@ -30,6 +30,20 @@ export function updateAccounts(
       ...(global.accounts || { byId: {} }),
       ...state,
     },
+  };
+}
+
+export function updateIsPinPadPasswordAccepted(global: GlobalState) {
+  return {
+    ...global,
+    isPinPadPasswordAccepted: true,
+  };
+}
+
+export function clearIsPinPadPasswordAccepted(global: GlobalState) {
+  return {
+    ...global,
+    isPinPadPasswordAccepted: undefined,
   };
 }
 
@@ -87,6 +101,31 @@ export function updateBalance(
   });
 }
 
+export function updateBalances(
+  global: GlobalState,
+  accountId: string,
+  balancesToUpdate: Record<string, string>,
+): GlobalState {
+  if (Object.keys(balancesToUpdate).length === 0) {
+    return global;
+  }
+
+  const { balances } = selectAccountState(global, accountId) || {};
+
+  const updatedBalancesBySlug = { ...(balances?.bySlug || {}) };
+
+  for (const [slug, balance] of Object.entries(balancesToUpdate)) {
+    updatedBalancesBySlug[slug] = balance;
+  }
+
+  return updateAccountState(global, accountId, {
+    balances: {
+      ...balances,
+      bySlug: updatedBalancesBySlug,
+    },
+  });
+}
+
 export function updateSendingLoading(global: GlobalState, isLoading: boolean): GlobalState {
   return {
     ...global,
@@ -123,6 +162,24 @@ export function updateTokens(
     ...global,
     tokenInfo: {
       ...global.tokenInfo,
+      bySlug: {
+        ...currentTokens,
+        ...partial,
+      },
+    },
+  };
+}
+
+export function updateSwapTokens(
+  global: GlobalState,
+  partial: Record<string, ApiSwapAsset>,
+): GlobalState {
+  const currentTokens = global.swapTokenInfo?.bySlug;
+
+  return {
+    ...global,
+    swapTokenInfo: {
+      ...global.swapTokenInfo,
       bySlug: {
         ...currentTokens,
         ...partial,
@@ -174,4 +231,14 @@ export function updateSettings(global: GlobalState, settingsUpdate: Partial<Glob
       ...settingsUpdate,
     },
   } as GlobalState;
+}
+
+export function updateBiometrics(global: GlobalState, biometricsUpdate: Partial<GlobalState['biometrics']>) {
+  return {
+    ...global,
+    biometrics: {
+      ...global.biometrics,
+      ...biometricsUpdate,
+    },
+  };
 }

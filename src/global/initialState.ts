@@ -1,17 +1,24 @@
 import type { GlobalState } from './types';
 import {
   AppState,
-  AuthState, StakingState, TransferState,
+  AuthState,
+  BiometricsState,
+  SettingsState,
+  StakingState,
+  SwapState,
+  TransferState,
 } from './types';
 
 import {
   ANIMATION_LEVEL_DEFAULT,
+  DEFAULT_SLIPPAGE_VALUE,
+  INIT_SWAP_ASSETS,
   THEME_DEFAULT,
   TOKEN_INFO,
 } from '../config';
 import { USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 9;
+export const STATE_VERSION = 10;
 
 export const INITIAL_STATE: GlobalState = {
   appState: AppState.Auth,
@@ -20,10 +27,19 @@ export const INITIAL_STATE: GlobalState = {
     state: AuthState.none,
   },
 
+  biometrics: {
+    state: BiometricsState.None,
+  },
+
   hardware: {},
 
   currentTransfer: {
     state: TransferState.None,
+  },
+
+  currentSwap: {
+    state: SwapState.None,
+    slippage: DEFAULT_SLIPPAGE_VALUE,
   },
 
   currentDappTransfer: {
@@ -34,11 +50,18 @@ export const INITIAL_STATE: GlobalState = {
     state: StakingState.None,
   },
 
+  stakingInfo: {},
+
   tokenInfo: {
     bySlug: TOKEN_INFO,
   },
 
+  swapTokenInfo: {
+    bySlug: INIT_SWAP_ASSETS,
+  },
+
   settings: {
+    state: SettingsState.Initial,
     theme: THEME_DEFAULT,
     animationLevel: ANIMATION_LEVEL_DEFAULT,
     areTinyTransfersHidden: true,

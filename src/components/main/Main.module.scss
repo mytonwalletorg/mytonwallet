@@ -28,6 +28,10 @@ $scrollOffset: 0.1875rem;
     }
   }
 
+  @supports (padding-top: env(safe-area-inset-top)) {
+    min-height: calc(var(--vh, 1vh) * 100 - env(safe-area-inset-top));
+  }
+
   .head {
     width: 100%;
     max-width: 27rem;

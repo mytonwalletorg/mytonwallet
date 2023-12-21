@@ -1,3 +1,4 @@
+import { parseTonDeeplink } from '../../util/ton/deeplinks';
 import { callApi } from '../../api/providers/extension/connectorForPageScript';
 
 const originalOpenFn = window.open;
@@ -36,24 +37,9 @@ function patchedOpenFn(url?: string | URL, ...args: any[]) {
 }
 
 function tryHandleDeeplink(value: any) {
-  if (typeof value !== 'string' || !value.startsWith('ton://transfer/')) {
-    return false;
-  }
+  const params = parseTonDeeplink(value);
+  if (!params) return false;
 
-  try {
-    const url = new URL(value);
-    const params = {
-      to: url.pathname.replace('//transfer/', ''),
-      amount: url.searchParams.get('amount'),
-      text: url.searchParams.get('text'),
-    };
-    void callApi('prepareTransaction', {
-      to: params.to,
-      amount: params.amount,
-      comment: params.text,
-    });
-    return true;
-  } catch (err) {
-    return false;
-  }
+  void callApi('prepareTransaction', params);
+  return true;
 }

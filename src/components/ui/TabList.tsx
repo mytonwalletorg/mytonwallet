@@ -12,6 +12,7 @@ import Tab from './Tab';
 import styles from './TabList.module.scss';
 
 export type TabWithProperties = {
+  id: number;
   title: string;
   className?: string;
 };
@@ -74,7 +75,7 @@ function TabList({
           previousActiveTab={previousActiveTab}
           className={tab?.className}
           onClick={onSwitchTab}
-          clickArg={i}
+          clickArg={tab.id}
         />
       ))}
     </div>

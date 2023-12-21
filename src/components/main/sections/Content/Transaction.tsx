@@ -23,6 +23,8 @@ type OwnProps = {
   ref?: Ref<HTMLElement>;
   tokensBySlug?: Record<string, ApiToken>;
   transaction: ApiTransactionActivity;
+  isLast: boolean;
+  isActive: boolean;
   apyValue: number;
   savedAddresses?: Record<string, string>;
   onClick: (id: string) => void;
@@ -32,8 +34,10 @@ function Transaction({
   ref,
   tokensBySlug,
   transaction,
+  isActive,
   apyValue,
   savedAddresses,
+  isLast,
   onClick,
 }: OwnProps) {
   const lang = useLang();
@@ -143,18 +147,28 @@ function Transaction({
     );
   }
 
+  const waitingIconClassName = buildClassName(
+    styles.iconWaiting,
+    isStaking && styles.iconWaitingStake,
+    'icon-clock',
+  );
+
   return (
     <Button
       ref={ref as RefObject<HTMLButtonElement>}
       key={txId}
-      className={styles.item}
+      className={buildClassName(
+        styles.item,
+        isLast && styles.itemLast,
+        isActive && styles.active,
+      )}
       onClick={handleClick}
       isSimple
     >
       <i className={iconFullClass} aria-hidden />
       {isLocal && (
         <i
-          className={buildClassName(styles.iconWaiting, 'icon-clock')}
+          className={waitingIconClassName}
           title={lang('Transaction is not completed')}
           aria-hidden
         />

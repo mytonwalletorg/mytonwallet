@@ -8,7 +8,7 @@ import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { areSortedArraysEqual } from '../../util/iteratees';
 
-import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -36,7 +36,6 @@ function MnemonicCheck({
   const lang = useLang();
   const [words, setWords] = useState<Record<number, string>>({});
   const [hasMnemonicError, setHasMnemonicError] = useState(false);
-  const { isPortrait } = useDeviceScreen();
 
   useEffect(() => {
     if (isActive) {
@@ -44,6 +43,11 @@ function MnemonicCheck({
       setHasMnemonicError(false);
     }
   }, [isActive]);
+
+  useHistoryBack({
+    isActive,
+    onBack: onCancel,
+  });
 
   const handleSetWord = useLastCallback((value: string, index: number) => {
     setWords({
@@ -83,7 +87,7 @@ function MnemonicCheck({
               labelText={`${key + 1}`}
               value={words[key]}
               isInModal={isInModal}
-              suggestionsPosition={i > 1 || isPortrait ? 'top' : undefined}
+              suggestionsPosition={i > 1 ? 'top' : undefined}
               inputArg={key}
               className={styles.checkMnemonicInput}
               onInput={handleSetWord}
@@ -98,8 +102,8 @@ function MnemonicCheck({
         )}
 
         <div className={modalStyles.buttons}>
-          <Button onClick={onCancel}>{lang('Back')}</Button>
-          <Button isPrimary forFormId="check_mnemonic_form">{buttonLabel}</Button>
+          <Button onClick={onCancel} className={modalStyles.button}>{lang('Back')}</Button>
+          <Button isPrimary forFormId="check_mnemonic_form" className={modalStyles.button}>{buttonLabel}</Button>
         </div>
       </div>
     </div>

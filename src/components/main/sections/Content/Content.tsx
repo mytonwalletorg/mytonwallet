@@ -3,19 +3,21 @@ import React, {
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import { ContentTab, type UserToken } from '../../../../global/types';
+import { ContentTab } from '../../../../global/types';
 
+import { MIN_ASSETS_TAB_VIEW } from '../../../../config';
 import {
-  selectAccountState, selectCurrentAccountTokens, selectIsHardwareAccount,
+  selectAccountState, selectCurrentAccountTokens, selectEnabledTokensCountMemoized, selectIsHardwareAccount,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { captureSwipe, SwipeDirection } from '../../../../util/captureSwipe';
+import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
+import useEffectOnce from '../../../../hooks/useEffectOnce';
+import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
-import useTransitionFixes from '../../../../hooks/useTransitionFixes';
 
 import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
@@ -31,21 +33,17 @@ interface OwnProps {
 
 interface StateProps {
   isNftSupported: boolean;
-  tokens?: UserToken[];
-  activeContentTabIndex?: ContentTab;
+  tokensCount: number;
+  activeContentTab?: ContentTab;
 }
 
-const MIN_ASSETS_TAB_VIEW = 5;
-const DEFAULT_TABS_COUNT = 3;
-const STICKY_CARD_HEIGHT = 60;
-
 function Content({
-  activeContentTabIndex = 0,
-  tokens,
+  activeContentTab,
+  tokensCount,
   onStakedTokenClick,
   isNftSupported,
 }: OwnProps & StateProps) {
-  const { selectToken, setActiveContentTabIndex } = getActions();
+  const { selectToken, setActiveContentTab } = getActions();
   const { isLandscape } = useDeviceScreen();
 
   const lang = useLang();
@@ -53,47 +51,48 @@ function Content({
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
-  const {
-    applyTransitionFix,
-    releaseTransitionFix,
-  } = useTransitionFixes(containerRef, '.content-transition', '.content-tabslist');
 
-  const tokenCount = useMemo(() => (tokens ?? []).filter(({ isDisabled }) => !isDisabled).length, [tokens]);
-  const shouldShowSeparateAssetsPanel = tokenCount > 0 && tokenCount < MIN_ASSETS_TAB_VIEW;
+  const shouldShowSeparateAssetsPanel = tokensCount > 0 && tokensCount < MIN_ASSETS_TAB_VIEW;
   const TABS = useMemo(
     () => [
       ...(!shouldShowSeparateAssetsPanel
         ? [{ id: ContentTab.Assets, title: lang('Assets') as string, className: styles.tab }]
         : []),
       { id: ContentTab.Activity, title: lang('Activity') as string, className: styles.tab },
-      ...(isNftSupported ? [{ id: ContentTab.Nft, title: lang('NFT') as string, className: styles.tab }] : []),
+      ...(isNftSupported
+        ? [{ id: ContentTab.Nft, title: lang('NFT') as string, className: styles.tab }]
+        : []),
     ],
     [lang, shouldShowSeparateAssetsPanel, isNftSupported],
   );
 
-  // Calculate the difference between the default number of tabs and the current number of tabs.
-  // This shift is used to adjust the tab index in landscape mode.
-  const indexShift = DEFAULT_TABS_COUNT - TABS.length;
-  const realActiveIndex = activeContentTabIndex === 0 ? activeContentTabIndex : activeContentTabIndex - indexShift;
+  const activeTabIndex = useMemo(
+    () => {
+      const tabIndex = TABS.findIndex((tab) => tab.id === activeContentTab);
 
-  useEffect(() => {
-    if (isLandscape || realActiveIndex !== ContentTab.Activity) {
-      return;
+      if (tabIndex === -1) {
+        return ContentTab.Assets;
+      }
+
+      return tabIndex;
+    },
+    [TABS, activeContentTab],
+  );
+
+  useEffectOnce(() => {
+    if (activeContentTab === undefined) {
+      setActiveContentTab({ tab: ContentTab.Assets });
     }
+  });
 
-    const contentTop = containerRef.current?.getBoundingClientRect().top ?? 0;
-    const containerEl = containerRef.current?.closest<HTMLDivElement>('.app-slide-content');
-
-    if (contentTop > STICKY_CARD_HEIGHT || !containerEl) {
-      return;
-    }
-
-    containerEl.scrollTop = containerEl.scrollTop + contentTop - STICKY_CARD_HEIGHT;
-  }, [isLandscape, realActiveIndex]);
-
-  const handleSwitchTab = useLastCallback((index: number) => {
+  const handleSwitchTab = useLastCallback((tab: ContentTab) => {
     selectToken({ slug: undefined });
-    setActiveContentTabIndex({ index: index + indexShift });
+    setActiveContentTab({ tab });
+  });
+
+  useHistoryBack({
+    isActive: activeTabIndex !== 0,
+    onBack: () => handleSwitchTab(ContentTab.Assets),
   });
 
   useEffect(() => {
@@ -101,22 +100,27 @@ function Content({
       return undefined;
     }
 
-    return captureSwipe(transitionRef.current!, (e, direction) => {
-      if (direction === SwipeDirection.Left) {
-        handleSwitchTab(Math.min(TABS.length - 1, activeContentTabIndex + 1));
-        return true;
-      } else if (direction === SwipeDirection.Right) {
-        handleSwitchTab(Math.max(0, activeContentTabIndex - 1 - indexShift));
-        return true;
-      }
+    return captureEvents(transitionRef.current!, {
+      includedClosestSelector: '.swipe-container',
+      onSwipe: (e, direction) => {
+        if (direction === SwipeDirection.Left) {
+          const tab = TABS[Math.min(TABS.length - 1, activeTabIndex + 1)];
+          handleSwitchTab(tab.id);
+          return true;
+        } else if (direction === SwipeDirection.Right) {
+          const tab = TABS[Math.max(0, activeTabIndex - 1)];
+          handleSwitchTab(tab.id);
+          return true;
+        }
 
-      return false;
+        return false;
+      },
     });
-  }, [TABS.length, activeContentTabIndex, handleSwitchTab, indexShift]);
+  }, [TABS, handleSwitchTab, activeTabIndex]);
 
-  const handleClickAssets = useLastCallback((slug: string) => {
+  const handleClickAsset = useLastCallback((slug: string) => {
     selectToken({ slug });
-    setActiveContentTabIndex({ index: TABS.findIndex((tab) => tab.id === ContentTab.Activity) });
+    setActiveContentTab({ tab: ContentTab.Activity });
   });
 
   const containerClassName = buildClassName(
@@ -128,15 +132,15 @@ function Content({
   function renderCurrentTab(isActive: boolean) {
     // When assets are shown separately, there is effectively no tab with index 0,
     // so we fall back to next tab to not break parent's component logic.
-    if (realActiveIndex === 0 && shouldShowSeparateAssetsPanel) {
-      return <Activity isActive={isActive} />;
+    if (activeTabIndex === 0 && shouldShowSeparateAssetsPanel) {
+      return <Activity isActive={isActive} mobileRef={containerRef} />;
     }
 
-    switch (TABS[realActiveIndex].id) {
+    switch (TABS[activeTabIndex].id) {
       case ContentTab.Assets:
-        return <Assets isActive={isActive} onTokenClick={handleClickAssets} onStakedTokenClick={onStakedTokenClick} />;
+        return <Assets isActive={isActive} onTokenClick={handleClickAsset} onStakedTokenClick={onStakedTokenClick} />;
       case ContentTab.Activity:
-        return <Activity isActive={isActive} />;
+        return <Activity isActive={isActive} mobileRef={containerRef} />;
       case ContentTab.Nft:
         return <Nfts isActive={isActive} />;
       default:
@@ -149,19 +153,17 @@ function Content({
       <>
         <TabList
           tabs={TABS}
-          activeTab={realActiveIndex}
+          activeTab={activeTabIndex}
           onSwitchTab={handleSwitchTab}
           className={buildClassName(styles.tabs, 'content-tabslist')}
         />
         <Transition
           ref={transitionRef}
           name={isLandscape ? 'slideFade' : 'slide'}
-          activeKey={realActiveIndex}
+          activeKey={activeTabIndex}
           renderCount={TABS.length}
           className={buildClassName(styles.slides, 'content-transition')}
           slideClassName={buildClassName(styles.slide, 'custom-scroll')}
-          onStart={!isLandscape ? applyTransitionFix : undefined}
-          onStop={!isLandscape ? releaseTransitionFix : undefined}
         >
           {renderCurrentTab}
         </Transition>
@@ -178,9 +180,9 @@ function Content({
         <div className={styles.assetsPanel}>
           <Assets
             isActive
-            noGreeting
+            isSeparatePanel
             onStakedTokenClick={onStakedTokenClick}
-            onTokenClick={handleClickAssets}
+            onTokenClick={handleClickAsset}
           />
         </div>
       )}
@@ -190,17 +192,19 @@ function Content({
 }
 
 export default memo(
-  withGlobal<OwnProps>((global, ownProps, detachWhenChanged): StateProps => {
-    detachWhenChanged(global.currentAccountId);
+  withGlobal<OwnProps>(
+    (global): StateProps => {
+      const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
+      const tokens = selectCurrentAccountTokens(global);
+      const tokensCount = selectEnabledTokensCountMemoized(tokens);
+      const isLedger = selectIsHardwareAccount(global);
 
-    const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
-    const tokens = selectCurrentAccountTokens(global);
-    const isLedger = selectIsHardwareAccount(global);
-
-    return {
-      tokens,
-      isNftSupported: !isLedger,
-      activeContentTabIndex: accountState?.activeContentTabIndex,
-    };
-  })(Content),
+      return {
+        tokensCount,
+        isNftSupported: !isLedger,
+        activeContentTab: accountState?.activeContentTab,
+      };
+    },
+    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+  )(Content),
 );

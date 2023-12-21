@@ -69,10 +69,11 @@ function DappLedgerWarning({
       </div>
 
       <div className={modalStyles.buttons}>
-        <Button onClick={cancelDappTransfer}>{lang('Cancel')}</Button>
+        <Button className={modalStyles.button} onClick={cancelDappTransfer}>{lang('Cancel')}</Button>
         <Button
           isPrimary
           isSubmit
+          className={modalStyles.button}
           onClick={handleAgree}
         >
           {lang('Agree')}

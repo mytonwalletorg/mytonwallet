@@ -2,8 +2,10 @@ import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -15,6 +17,7 @@ import modalStyles from '../ui/Modal.module.scss';
 import styles from './LedgerModal.module.scss';
 
 interface OwnProps {
+  isActive?: boolean;
   text: string;
   error?: string;
   onClose: () => void;
@@ -27,12 +30,17 @@ enum ConfirmTransactionState {
 }
 
 function LedgerConfirmOperation({
-  text, error, onClose, onTryAgain,
+  isActive, text, error, onClose, onTryAgain,
 }: OwnProps) {
   const lang = useLang();
 
   const [activeState, setActiveState] = useState(ConfirmTransactionState.Waiting);
   const [nextKey, setNextKey] = useState(ConfirmTransactionState.Error);
+
+  useHistoryBack({
+    isActive,
+    onBack: onClose,
+  });
 
   useEffect(() => {
     if (error) {
@@ -44,14 +52,14 @@ function LedgerConfirmOperation({
     }
   }, [error]);
 
-  function renderWaitingConfirm(isActive: boolean) {
+  function renderWaitingConfirm(isActiveSlide: boolean) {
     return (
       <>
         <ModalHeader title={lang('Confirm via Ledger')} onClose={onClose} />
         <div className={styles.container}>
           <AnimatedIconWithPreview
             size={ANIMATED_STICKER_BIG_SIZE_PX}
-            play={isActive}
+            play={isActiveSlide}
             noLoop={false}
             nonInteractive
             className={styles.sticker}
@@ -69,14 +77,14 @@ function LedgerConfirmOperation({
     );
   }
 
-  function renderTryAgain(isActive: boolean) {
+  function renderTryAgain(isActiveSlide: boolean) {
     return (
       <>
         <ModalHeader title={lang('Confirm via Ledger')} onClose={onClose} />
         <div className={styles.container}>
           <AnimatedIconWithPreview
             size={ANIMATED_STICKER_BIG_SIZE_PX}
-            play={isActive}
+            play={isActiveSlide}
             noLoop={false}
             nonInteractive
             className={styles.sticker}
@@ -97,18 +105,18 @@ function LedgerConfirmOperation({
   }
 
   // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isActiveSlide: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
       case ConfirmTransactionState.Waiting:
-        return renderWaitingConfirm(isActive);
+        return renderWaitingConfirm(isActiveSlide);
       case ConfirmTransactionState.Error:
-        return renderTryAgain(isActive);
+        return renderTryAgain(isActiveSlide);
     }
   }
 
   return (
     <Transition
-      name="slideFade"
+      name={resolveModalTransitionName()}
       className={buildClassName(modalStyles.transition, 'custom-scroll')}
       slideClassName={buildClassName(modalStyles.transitionSlide, styles.slide)}
       activeKey={activeState}

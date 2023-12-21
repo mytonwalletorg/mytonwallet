@@ -93,18 +93,32 @@
 }
 
 .item {
+  z-index: 0;
+
   padding-bottom: 0.125rem;
 
   font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
 
-  &:hover,
-  &:focus {
-    text-decoration: none;
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      text-decoration: none;
 
-    .image {
-      transform: scale(1.05);
+      .image {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  @media (pointer: coarse) {
+    &:active {
+      text-decoration: none;
+
+      .image {
+        transform: scale(1.05);
+      }
     }
   }
 
@@ -116,11 +130,11 @@
 
       position: absolute;
       z-index: 1;
-      top: -0.375rem;
-      right: 0.25rem;
+      top: -0.125rem;
+      right: 0.75rem;
 
-      width: 2.75rem;
-      height: 2.9375rem;
+      width: 1.75rem;
+      height: 2rem;
 
       background: url("../../../../assets/sale.png") no-repeat;
       background-size: contain;

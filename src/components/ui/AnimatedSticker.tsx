@@ -6,12 +6,12 @@ import React, {
 
 import type RLottieInstance from '../../lib/rlottie/RLottie';
 
-import { IS_ELECTRON } from '../../config';
 import { requestMeasure } from '../../lib/fasterdom/fasterdom';
 import { ensureRLottie, getRLottie } from '../../lib/rlottie/RLottie.async';
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import generateUniqueId from '../../util/generateUniqueId';
+import { IS_ELECTRON } from '../../util/windowEnvironment';
 
 import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';

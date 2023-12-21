@@ -38,8 +38,14 @@
     }
   }
 
-  &:focus,
-  &:hover {
+  @media (hover: hover) {
+    &:focus,
+    &:hover {
+      background-color: var(--color-interactive-item-hover);
+    }
+  }
+
+  &.active {
     background-color: var(--color-interactive-item-hover);
   }
 

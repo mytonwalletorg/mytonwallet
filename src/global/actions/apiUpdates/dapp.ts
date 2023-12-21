@@ -1,9 +1,8 @@
 import { DappConnectState, TransferState } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
-import { callApi } from '../../../api';
 import { bigStrToHuman } from '../../helpers';
-import { addActionHandler, getGlobal, setGlobal } from '../../index';
+import { addActionHandler, setGlobal } from '../../index';
 import {
   clearCurrentDappTransfer,
   clearCurrentSignature,
@@ -15,8 +14,10 @@ import {
   updateDappConnectRequest,
 } from '../../reducers';
 import {
-  selectAccount, selectAccountState, selectIsHardwareAccount, selectNewestTxIds,
+  selectAccountState,
 } from '../../selectors';
+
+import { callActionInNative } from '../../../hooks/useDelegatedBottomSheet';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -71,28 +72,8 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'dappConnect': {
-      const {
-        promiseId,
-        dapp,
-        accountId,
-        permissions,
-        proof,
-      } = update;
-
-      const { isHardware } = selectAccount(global, accountId)!;
-
-      global = updateDappConnectRequest(global, {
-        state: DappConnectState.Info,
-        promiseId,
-        accountId,
-        dapp,
-        permissions: {
-          isAddressRequired: permissions.address,
-          isPasswordRequired: permissions.proof && !isHardware,
-        },
-        proof,
-      });
-      setGlobal(global);
+      actions.apiUpdateDappConnect(update);
+      callActionInNative('apiUpdateDappConnect', update);
 
       break;
     }
@@ -121,41 +102,25 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
-    case 'dappSendTransactions': {
-      const {
-        promiseId,
-        transactions,
-        fee,
-        accountId,
-        dapp,
-      } = update;
+    case 'dappLoading': {
+      const { connectionType } = update;
 
-      (async () => {
-        const { currentAccountId } = global;
-        if (currentAccountId !== accountId) {
-          const newestTxIds = selectNewestTxIds(global, accountId);
-          await callApi('activateAccount', accountId, newestTxIds);
-          setGlobal({
-            ...getGlobal(),
-            currentAccountId: accountId,
-          });
-        }
-
-        const state = selectIsHardwareAccount(global) && transactions.length > 1
-          ? TransferState.WarningHardware
-          : TransferState.Initial;
-
-        global = getGlobal();
-        global = clearCurrentDappTransfer(global);
-        global = updateCurrentDappTransfer(global, {
-          state,
-          promiseId,
-          transactions,
-          fee,
-          dapp,
+      if (connectionType === 'connect') {
+        global = updateDappConnectRequest(global, {
+          state: DappConnectState.Info,
         });
-        setGlobal(global);
-      })();
+      } else if (connectionType === 'sendTransaction') {
+        global = updateCurrentDappTransfer(global, {
+          state: TransferState.Initial,
+        });
+      }
+      setGlobal(global);
+      break;
+    }
+
+    case 'dappSendTransactions': {
+      actions.apiUpdateDappSendTransaction(update);
+      callActionInNative('apiUpdateDappSendTransaction', update);
 
       break;
     }

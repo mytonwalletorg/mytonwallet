@@ -20,13 +20,12 @@ export interface Storage {
   getMany(keys: string[]): Promise<AnyLiteral>;
 }
 
-export type StorageKey = 'addresses'
-| 'mnemonicsEncrypted'
-| 'publicKeys'
+export type StorageKey = 'mnemonicsEncrypted'
 | 'accounts'
 | 'stateVersion'
 | 'currentAccountId'
 | 'clientId'
+| 'baseCurrency'
 // For extension
 | 'dapps'
 | 'dappMethods:lastAccountId'

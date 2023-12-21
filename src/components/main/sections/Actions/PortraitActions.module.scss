@@ -38,9 +38,11 @@
 
   transition: background-color 150ms, color 150ms;
 
-  &:hover,
-  &:focus {
-    color: var(--color-blue);
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      color: var(--color-blue);
+    }
   }
 
   &:active {

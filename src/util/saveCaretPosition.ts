@@ -6,7 +6,7 @@ export function saveCaretPosition(context: HTMLElement, decimals: number) {
 
   const range = selection.getRangeAt(0);
   range.setStart(context, 0);
-  const clearedValue = range.toString().match(new RegExp(`(\\d+(?:\\.\\d{0,${decimals}})?)`));
+  const clearedValue = range.toString().match(new RegExp(`(\\d+(?:[.,]\\d{0,${decimals}})?)`));
   const len = clearedValue?.[0]?.length || range.toString().length || 0;
 
   return function restore() {

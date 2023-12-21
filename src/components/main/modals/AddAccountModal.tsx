@@ -1,14 +1,17 @@
 import React, { memo, useState } from '../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../global';
+import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { Account, HardwareConnectState } from '../../../global/types';
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
+import { ApiCommonError } from '../../../api/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, MNEMONIC_COUNT } from '../../../config';
 import renderText from '../../../global/helpers/renderText';
 import { selectFirstNonHardwareAccount, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
+import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
 import { IS_LEDGER_SUPPORTED } from '../../../util/windowEnvironment';
+import { callApi } from '../../../api';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
 import useLang from '../../../hooks/useLang';
@@ -20,8 +23,8 @@ import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
 import Modal from '../../ui/Modal';
 import ModalHeader from '../../ui/ModalHeader';
-import PasswordForm from '../../ui/PasswordForm';
 import Transition from '../../ui/Transition';
+import AddAccountPasswordModal from './AddAccountPasswordModal';
 
 import modalStyles from '../../ui/Modal.module.scss';
 import styles from './AddAccountModal.module.scss';
@@ -58,7 +61,13 @@ function AddAccountModal({
   isLedgerConnected,
   isTonAppConnected,
 }: StateProps) {
-  const { addAccount, clearAccountError, closeAddAccountModal } = getActions();
+  const {
+    addAccount,
+    clearAccountError,
+    closeAddAccountModal,
+    afterSelectHardwareWallets,
+    showError,
+  } = getActions();
 
   const lang = useLang();
   const [renderingKey, setRenderingKey] = useState<number>(RenderingState.Initial);
@@ -75,7 +84,7 @@ function AddAccountModal({
     setIsNewAccountImporting(false);
   });
 
-  const handleNewAccountClick = useLastCallback(() => {
+  const handleNewAccountClick = useLastCallback(async () => {
     if (!firstNonHardwareAccount) {
       addAccount({
         method: 'createAccount',
@@ -84,8 +93,16 @@ function AddAccountModal({
       return;
     }
 
-    setRenderingKey(RenderingState.Password);
-    setIsNewAccountImporting(false);
+    const isApiAvailable = await callApi('checkApiAvailability', {
+      accountId: getGlobal().currentAccountId!,
+    });
+
+    if (isApiAvailable) {
+      setRenderingKey(RenderingState.Password);
+      setIsNewAccountImporting(false);
+    } else {
+      showError({ error: ApiCommonError.ServerError });
+    }
   });
 
   const handleImportAccountClick = useLastCallback(() => {
@@ -105,7 +122,16 @@ function AddAccountModal({
     setRenderingKey(RenderingState.ConnectHardware);
   });
 
-  const handleHardwareWalletConnected = useLastCallback(() => {
+  const handleAddLedgerWallet = useLastCallback(() => {
+    afterSelectHardwareWallets({ hardwareSelectedIndices: [hardwareWallets![0].index] });
+    closeAddAccountModal();
+  });
+
+  const handleHardwareWalletConnected = useLastCallback((isSingleWallet: boolean) => {
+    if (isSingleWallet) {
+      handleAddLedgerWallet();
+      return;
+    }
     setRenderingKey(RenderingState.SelectAccountsHardware);
   });
 
@@ -151,7 +177,7 @@ function AddAccountModal({
             </Button>
             {IS_LEDGER_SUPPORTED && (
               <Button
-                className={styles.button}
+                className={buildClassName(styles.button, styles.ledgerButton)}
                 onClick={handleImportHardwareWalletClick}
               >
                 {lang('Ledger')}
@@ -163,35 +189,27 @@ function AddAccountModal({
     );
   }
 
-  function renderPassword(isActive: boolean) {
-    return (
-      <>
-        <ModalHeader title={lang('Enter Password')} onClose={closeAddAccountModal} />
-        <PasswordForm
-          isActive={isActive}
-          isLoading={isLoading}
-          error={error}
-          placeholder={lang('Enter your password')}
-          onUpdate={clearAccountError}
-          onSubmit={handleSubmit}
-          submitLabel={lang('Send')}
-          onCancel={handleBackClick}
-          cancelLabel={lang('Back')}
-        />
-      </>
-    );
-  }
-
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
       case RenderingState.Initial:
         return renderSelector(isActive);
       case RenderingState.Password:
-        return renderPassword(isActive);
+        return (
+          <AddAccountPasswordModal
+            isActive={isActive}
+            isLoading={isLoading}
+            error={error}
+            onClearError={clearAccountError}
+            onSubmit={handleSubmit}
+            onBack={handleBackClick}
+            onClose={closeAddAccountModal}
+          />
+        );
       case RenderingState.ConnectHardware:
         return (
           <LedgerConnect
+            isActive={isActive}
             state={hardwareState}
             isLedgerConnected={isLedgerConnected}
             isTonAppConnected={isTonAppConnected}
@@ -216,13 +234,15 @@ function AddAccountModal({
     <Modal
       hasCloseButton
       isOpen={isOpen}
-      onClose={closeAddAccountModal}
       noBackdropClose
-      onCloseAnimationEnd={handleModalClose}
       dialogClassName={styles.modalDialog}
+      nativeBottomSheetKey="add-account"
+      forceFullNative={renderingKey === RenderingState.Password}
+      onCloseAnimationEnd={handleModalClose}
+      onClose={closeAddAccountModal}
     >
       <Transition
-        name="slideFade"
+        name={resolveModalTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

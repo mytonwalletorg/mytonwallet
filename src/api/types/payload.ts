@@ -8,8 +8,8 @@ export type ApiEncryptedCommentPayload = {
   encryptedComment: string;
 };
 
-export type ApiTransferNftPayload = {
-  type: 'transfer-nft';
+export type ApiNftTransferPayload = {
+  type: 'nft:transfer';
   queryId: string;
   newOwner: string;
   responseDestination: string;
@@ -21,8 +21,8 @@ export type ApiTransferNftPayload = {
   nftName?: string;
 };
 
-export type ApiTransferTokensPayload = {
-  type: 'transfer-tokens';
+export type ApiTokensTransferPayload = {
+  type: 'tokens:transfer';
   queryId: string;
   amount: string;
   destination: string;
@@ -34,8 +34,8 @@ export type ApiTransferTokensPayload = {
   slug: string;
 };
 
-export type ApiTransferTokensNonStandardPayload = {
-  type: 'transfer-tokens:non-standard';
+export type ApiTokensTransferNonStandardPayload = {
+  type: 'tokens:transfer-non-standard';
   queryId: string;
   amount: string;
   destination: string;
@@ -48,9 +48,39 @@ export type ApiUnknownPayload = {
   base64: string;
 };
 
+export type ApiTokensBurnPayload = {
+  type: 'tokens:burn';
+  queryId: string;
+  amount: string;
+  address: string;
+  customPayload?: string;
+  // Specific to UI
+  slug: string;
+  isLiquidUnstakeRequest: boolean;
+};
+
+export type ApiLiquidStakingDepositPayload = {
+  type: 'liquid-staking:deposit';
+  queryId: string;
+};
+
+export type ApiLiquidStakingWithdrawalNftPayload = {
+  type: 'liquid-staking:withdrawal-nft';
+  queryId: string;
+};
+
+export type ApiLiquidStakingWithdrawalPayload = {
+  type: 'liquid-staking:withdrawal';
+  queryId: string;
+};
+
 export type ApiParsedPayload = ApiCommentPayload
 | ApiEncryptedCommentPayload
-| ApiTransferNftPayload
-| ApiTransferTokensPayload
-| ApiTransferTokensNonStandardPayload
-| ApiUnknownPayload;
+| ApiNftTransferPayload
+| ApiTokensTransferPayload
+| ApiTokensTransferNonStandardPayload
+| ApiUnknownPayload
+| ApiTokensBurnPayload
+| ApiLiquidStakingDepositPayload
+| ApiLiquidStakingWithdrawalPayload
+| ApiLiquidStakingWithdrawalNftPayload;

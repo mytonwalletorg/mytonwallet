@@ -40,3 +40,7 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
     return undefined;
   }
 }
+
+export function normalizeAddress(address: string) {
+  return toBase64Address(address, true);
+}

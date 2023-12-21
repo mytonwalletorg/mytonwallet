@@ -15,7 +15,9 @@ html, body {
   margin: 0;
   padding: 0;
 
-  background-color: var(--color-background-second);
+  background-color: var(--color-app-background);
+
+  transition: background-color 350ms;
 
   @include respond-below(xs) {
     height: calc(var(--vh, 1vh) * 100);
@@ -24,8 +26,6 @@ html, body {
 
 body {
   user-select: none;
-
-  overflow: hidden;
 
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI", Oxygen, Ubuntu, Cantarell,
   "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
@@ -52,10 +52,13 @@ html.is-electron {
   --custom-cursor: default;
 }
 
-#root {
-  height: 100%;
+// Required for closing over scrollable content (scroll tracking)
+html.is-native-bottom-sheet {
+  overflow: auto;
 
-  background: var(--color-background-second);
+  body {
+    overflow: auto;
+  }
 }
 
 #root,
@@ -169,4 +172,30 @@ a {
 
 .no-transitions * {
   transition: none !important;
+}
+
+.with-notch-on-scroll {
+  position: relative;
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+    height: 0.0625rem;
+
+    opacity: 0;
+
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: 0 0.035rem 0 0 var(--color-separator);
+
+    transition: opacity 200ms;
+  }
+
+  &.is-scrolled::after {
+    opacity: 1;
+  }
 }

@@ -1,11 +1,10 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo, useEffect, useRef,
+  memo, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import { FRACTION_DIGITS } from '../../config';
+import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS } from '../../config';
 import { Big } from '../../lib/big.js';
-import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { round } from '../../util/round';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
@@ -21,6 +20,7 @@ type OwnProps = {
   labelText?: React.ReactNode;
   value?: number;
   hasError?: boolean;
+  isLoading?: boolean;
   suffix?: string;
   className?: string;
   inputClassName?: string;
@@ -34,12 +34,14 @@ type OwnProps = {
   onPressEnter?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   decimals?: number;
   disabled?: boolean;
+  isStatic?: boolean;
 };
 
 function RichNumberInput({
   id,
   labelText,
   hasError,
+  isLoading = false,
   suffix,
   value,
   children,
@@ -53,39 +55,53 @@ function RichNumberInput({
   onFocus,
   onPressEnter,
   decimals = FRACTION_DIGITS,
-  disabled,
+  disabled = false,
+  isStatic = false,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLInputElement | null>(null);
   const lang = useLang();
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
+  const [isContentEditable, setContentEditable] = useState(!disabled);
 
-  const updateHtml = useLastCallback((parts?: RegExpMatchArray) => {
-    const input = inputRef.current!;
+  const handleLoadingHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
     const newHtml = parts ? buildContentHtml(parts, suffix, decimals) : '';
+    input.innerHTML = newHtml;
+    setContentEditable(false);
 
+    return newHtml;
+  });
+
+  const handleNumberHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
+    const newHtml = parts ? buildContentHtml(parts, suffix, decimals) : '';
     const restoreCaretPosition = document.activeElement === inputRef.current
       ? saveCaretPosition(input, decimals)
       : undefined;
+
     input.innerHTML = newHtml;
+    setContentEditable(!disabled);
     restoreCaretPosition?.();
 
-    // Trick to remove pseudo-element with placeholder in this tick
-    requestMutation(() => {
-      input.classList.toggle(styles.isEmpty, !newHtml.length);
-    });
+    return newHtml;
   });
 
-  useEffect(() => {
-    const newValue = castValue(value, decimals);
+  const updateHtml = useLastCallback((parts?: RegExpMatchArray) => {
+    const input = inputRef.current!;
+    const content = isLoading ? handleLoadingHtml(input, parts) : handleNumberHtml(input, parts);
 
-    const parts = getParts(String(newValue), decimals);
+    input.classList.toggle(styles.isEmpty, !content.length);
+  });
+
+  useLayoutEffect(() => {
+    const newValue = castValue(value);
+
+    const parts = getParts(String(newValue));
     updateHtml(parts);
 
     if (value !== newValue) {
       onChange?.(newValue);
     }
-  }, [decimals, onChange, updateHtml, value, suffix]);
+  }, [decimals, onChange, updateHtml, value, suffix, isLoading, disabled]);
 
   function handleChange(e: React.FormEvent<HTMLDivElement>) {
     const inputValue = e.currentTarget.innerText.trim();
@@ -126,6 +142,7 @@ function RichNumberInput({
 
   const inputWrapperFullClass = buildClassName(
     styles.input__wrapper,
+    isStatic && styles.inputWrapperStatic,
     hasError && styles.error,
     hasFocus && styles.input__wrapper_hasFocus,
     inputClassName,
@@ -135,6 +152,7 @@ function RichNumberInput({
     styles.input_rich,
     !value && styles.isEmpty,
     valueClassName,
+    isLoading && styles.isLoading,
   );
   const labelTextClassName = buildClassName(
     styles.label,
@@ -143,6 +161,8 @@ function RichNumberInput({
   );
   const cornerFullClass = buildClassName(
     cornerClassName,
+    hasFocus && styles.swapCorner,
+    hasError && styles.swapCorner_error,
   );
 
   return (
@@ -160,13 +180,14 @@ function RichNumberInput({
         {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
         <div
           ref={inputRef}
-          contentEditable={!disabled}
+          contentEditable={isContentEditable}
           id={id}
           role="textbox"
           aria-required
           aria-placeholder={lang('Amount value')}
           aria-labelledby={labelText ? `${id}Label` : undefined}
           tabIndex={0}
+          inputMode="decimal"
           className={inputFullClass}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
@@ -174,13 +195,13 @@ function RichNumberInput({
           onBlur={handleBlur}
         />
         {children}
-        {cornerClassName && <div className={cornerFullClass} />}
       </div>
+      {cornerClassName && <div className={cornerFullClass} />}
     </div>
   );
 }
 
-function getParts(value: string, decimals: number) {
+function getParts(value: string, decimals = DEFAULT_DECIMAL_PLACES) {
   const regex = getInputRegex(decimals);
   // Correct problem with numbers like 1e-8
   if (value.includes('e-')) {
@@ -195,7 +216,7 @@ export function getInputRegex(decimals: number) {
   return new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?`);
 }
 
-function castValue(value?: number | string, decimals?: number) {
+function castValue(value?: number | string, decimals = DEFAULT_DECIMAL_PLACES) {
   return value && Number.isFinite(Number(value)) ? round(value, decimals, Big.roundDown) : undefined;
 }
 
