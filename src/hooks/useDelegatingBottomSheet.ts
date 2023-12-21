@@ -7,7 +7,7 @@ import { getActions, getGlobal } from '../global';
 import type { ActionPayloads } from '../global/types';
 
 import { pause } from '../util/schedulers';
-import { CAN_DELEGATE_BOTTOM_SHEET } from '../util/windowEnvironment';
+import { IS_DELEGATING_BOTTOM_SHEET } from '../util/windowEnvironment';
 import useEffectWithPrevDeps from './useEffectWithPrevDeps';
 
 const RACE_TIMEOUT = 1000;
@@ -15,7 +15,7 @@ const CLOSING_DURATION = 100;
 
 const controlledByNative = new Map<BottomSheetKeys, NoneToVoidFunction>();
 
-if (CAN_DELEGATE_BOTTOM_SHEET) {
+if (IS_DELEGATING_BOTTOM_SHEET) {
   BottomSheet.prepare();
 
   BottomSheet.addListener(
@@ -43,7 +43,7 @@ export function useDelegatingBottomSheet(
   isOpen: boolean | undefined,
   onClose: AnyToVoidFunction,
 ) {
-  const isDelegating = CAN_DELEGATE_BOTTOM_SHEET && key;
+  const isDelegating = IS_DELEGATING_BOTTOM_SHEET && key;
   const shouldOpen = isOpen && isPortrait;
 
   useEffectWithPrevDeps(([prevShouldOpen]) => {
@@ -90,7 +90,7 @@ export function useOpenFromNativeBottomSheet(
   open: NoneToVoidFunction,
 ) {
   useEffect(() => {
-    if (!CAN_DELEGATE_BOTTOM_SHEET) return undefined;
+    if (!IS_DELEGATING_BOTTOM_SHEET) return undefined;
 
     controlledByNative.set(key, open);
 

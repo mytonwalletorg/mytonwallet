@@ -9,7 +9,7 @@ type OwnProps = {
   id?: string;
   name?: string;
   value?: string;
-  label: string;
+  label?: string;
   checked?: boolean;
   className?: string;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;

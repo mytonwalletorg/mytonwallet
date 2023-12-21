@@ -12,7 +12,7 @@ import { enableStrict } from './lib/fasterdom/stricterdom';
 import { betterView } from './util/betterView';
 import { initCapacitor } from './util/capacitor';
 import { initMultitab } from './util/multitab';
-import { CAN_DELEGATE_BOTTOM_SHEET, IS_DELEGATED_BOTTOM_SHEET } from './util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from './util/windowEnvironment';
 
 import App from './components/App';
 
@@ -31,7 +31,7 @@ if (IS_CAPACITOR) {
   void initCapacitor();
 }
 
-if (CAN_DELEGATE_BOTTOM_SHEET) {
+if (IS_DELEGATING_BOTTOM_SHEET) {
   initMultitab({ noPub: true });
 } else if (IS_DELEGATED_BOTTOM_SHEET) {
   initMultitab({ noSub: true });

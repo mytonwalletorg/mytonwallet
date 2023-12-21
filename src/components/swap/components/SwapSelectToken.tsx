@@ -64,7 +64,7 @@ function SwapSelectToken({ token, shouldFilter }: OwnProps) {
           onClick={handleOpenSelectTokenModal}
         >
           <div className={styles.tokenIconWrapper}>
-            <img src={image} alt={tokenToRender?.symbol} className={styles.tokenIcon} />
+            <img src={image} alt="" className={styles.tokenIcon} />
             <img
               src={getBlockchainNetworkIcon(blockchain)}
               className={styles.tokenBlockchainIcon}

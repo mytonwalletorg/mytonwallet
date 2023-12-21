@@ -9,7 +9,7 @@ import buildClassName from '../../../util/buildClassName';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { pause } from '../../../util/schedulers';
 import {
-  CAN_DELEGATE_BOTTOM_SHEET, DPR, IS_IOS,
+  DPR, IS_DELEGATING_BOTTOM_SHEET, IS_IOS,
 } from '../../../util/windowEnvironment';
 
 import useEffectOnce from '../../../hooks/useEffectOnce';
@@ -105,7 +105,7 @@ function QrScannerModal({ isOpen, onScan, onClose }: OwnProps) {
   });
 
   useEffectWithPrevDeps(([prevIsOpen]) => {
-    if (CAN_DELEGATE_BOTTOM_SHEET) return undefined;
+    if (IS_DELEGATING_BOTTOM_SHEET) return undefined;
 
     let startScanTimeoutId: number;
     let documentClassModifyTimeoutId: number;

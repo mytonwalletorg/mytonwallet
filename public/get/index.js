@@ -2,6 +2,10 @@ const REPO = 'mytonwalletorg/mytonwallet';
 const LATEST_RELEASE_API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
 const LATEST_RELEASE_WEB_URL = `https://github.com/${REPO}/releases/latest`;
 const WEB_APP_URL = '/';
+const MOBILE_URLS = {
+  ios: 'https://apps.apple.com/ru/app/mytonwallet-anyway-ton-wallet/id6464677844',
+  android: 'https://play.google.com/store/apps/details?id=org.mytonwallet.app',
+};
 
 const platform = getPlatform();
 const currentPage = location.href.includes('mac.html')
@@ -48,7 +52,7 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
   });
 
 (function init() {
-  if (platform === 'Windows' || platform === 'Linux') {
+  if (['Windows', 'Linux', 'iOS', 'Android'].includes(platform)) {
     if (currentPage === 'index') {
       setupDownloadButton();
       setupVersion();
@@ -103,10 +107,17 @@ function setupVersion() {
   document.addEventListener('DOMContentLoaded', () => {
     Promise.all([packagesPromise, areSignaturesPresent()]).then(([packages, areSignaturesPresentResult]) => {
       const versionEl = document.querySelector('.version');
-      const signaturesHtml = areSignaturesPresentResult
-        ? '<a href="javascript:redirectToFullList();">Signatures</a>'
-        : '<span class="missing-signatures">Missing signatures!</span>';
-      versionEl.innerHTML = `v. ${packages.$version} · ${signaturesHtml}`;
+
+      let html = `v. ${packages.$version}`;
+      if (['Windows', 'macOS', 'Linux'].includes(platform)) {
+        const signaturesHtml = areSignaturesPresentResult
+          ? '<a href="javascript:redirectToFullList();">Signatures</a>'
+          : '<span class="missing-signatures">Missing signatures!</span>';
+
+        html += ` · ${signaturesHtml}`;
+      }
+
+      versionEl.innerHTML = html;
     });
   });
 }
@@ -127,6 +138,10 @@ function redirectToFullList() {
   location.href = LATEST_RELEASE_WEB_URL;
 }
 
+function redirectToStore(platform) {
+  location.href = MOBILE_URLS[platform.toLowerCase()];
+}
+
 function downloadDefault() {
   if (platform === 'Windows') {
     download('win');
@@ -134,6 +149,8 @@ function downloadDefault() {
     download('linux');
   } else if (platform === 'macOS') {
     redirectToMac();
+  } else if (platform === 'iOS' || platform === 'Android') {
+    redirectToStore(platform);
   } else {
     redirectToUnsupported();
   }

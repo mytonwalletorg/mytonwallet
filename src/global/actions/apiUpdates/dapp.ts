@@ -1,6 +1,7 @@
 import { DappConnectState, TransferState } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
+import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { bigStrToHuman } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
@@ -72,8 +73,11 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'dappConnect': {
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        callActionInNative('apiUpdateDappConnect', update);
+      }
+
       actions.apiUpdateDappConnect(update);
-      callActionInNative('apiUpdateDappConnect', update);
 
       break;
     }
@@ -119,8 +123,11 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'dappSendTransactions': {
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        callActionInNative('apiUpdateDappSendTransaction', update);
+      }
+
       actions.apiUpdateDappSendTransaction(update);
-      callActionInNative('apiUpdateDappSendTransaction', update);
 
       break;
     }

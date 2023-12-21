@@ -26,7 +26,7 @@ function SettingsTokenList({
         isActive={isActive}
         onBack={handleBackClick}
         onClose={handleBackClick}
-        onlyPopular
+        isInsideSettings
       />
     </div>
   );

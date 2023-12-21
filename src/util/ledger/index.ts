@@ -390,7 +390,11 @@ export async function signLedgerProof(accountId: string, proof: ApiTonConnectPro
   return result.signature.toString('base64');
 }
 
-export async function getNextLedgerWallets(network: ApiNetwork, lastExistingIndex = -1) {
+export async function getNextLedgerWallets(
+  network: ApiNetwork,
+  lastExistingIndex = -1,
+  alreadyImportedAddresses: string[] = [],
+) {
   const result: LedgerWalletInfo[] = [];
   let index = lastExistingIndex + 1;
 
@@ -398,6 +402,12 @@ export async function getNextLedgerWallets(network: ApiNetwork, lastExistingInde
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const walletInfo = await getLedgerWalletInfo(network, index, IS_BOUNCEABLE);
+
+      if (alreadyImportedAddresses.includes(walletInfo.address)) {
+        index += 1;
+        continue;
+      }
+
       if (walletInfo.balance !== '0') {
         result.push(walletInfo);
         index += 1;
@@ -407,6 +417,7 @@ export async function getNextLedgerWallets(network: ApiNetwork, lastExistingInde
       if (!result.length) {
         result.push(walletInfo);
       }
+
       return result;
     }
   } catch (err) {

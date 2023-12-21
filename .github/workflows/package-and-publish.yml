@@ -312,10 +312,6 @@ jobs:
           WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
           # App env
-          TONHTTPAPI_MAINNET_URL: ${{ vars.TONHTTPAPI_MAINNET_URL }}
-          TONAPIIO_MAINNET_URL: ${{ vars.TONAPIIO_MAINNET_URL }}
-          TONHTTPAPI_TESTNET_URL: ${{ vars.TONHTTPAPI_TESTNET_URL }}
-          TONAPIIO_TESTNET_URL: ${{ vars.TONAPIIO_TESTNET_URL }}
           PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
           STAKING_POOLS: ${{ vars.STAKING_POOLS }}
         if: ${{ env.WEB_EXT_API_KEY != '' }}
@@ -324,12 +320,8 @@ jobs:
           UNZIP_DIR=/tmp/${{ env.APP_NAME }}-firefox
           mkdir $UNZIP_DIR
           unzip ${{ env.FIREFOX_FILE_NAME }} -d $UNZIP_DIR
-          web-ext-submit --source-dir=$UNZIP_DIR/dist
+          npx web-ext-submit --source-dir=$UNZIP_DIR/dist
           echo "APP_NAME=\"${APP_NAME}\"
-          TONHTTPAPI_MAINNET_URL=\"${TONHTTPAPI_MAINNET_URL}\"
-          TONHTTPAPI_TESTNET_URL=\"${TONHTTPAPI_TESTNET_URL}\"
-          TONAPIIO_MAINNET_URL=\"${TONAPIIO_MAINNET_URL}\"
-          TONAPIIO_TESTNET_URL=\"${TONAPIIO_TESTNET_URL}\"
           PROXY_HOSTS=\"${PROXY_HOSTS}\"
           STAKING_POOLS=\"${STAKING_POOLS}\"" >.env
           bash deploy/firefox_pack_sources.sh

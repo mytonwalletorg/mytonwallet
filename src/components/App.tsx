@@ -8,7 +8,7 @@ import { INACTIVE_MARKER, IS_CAPACITOR } from '../config';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
 import {
-  CAN_DELEGATE_BOTTOM_SHEET, IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_IOS, IS_LINUX,
+  IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON, IS_IOS, IS_LINUX,
 } from '../util/windowEnvironment';
 import { updateSizes } from '../util/windowSize';
 
@@ -79,7 +79,7 @@ function App({
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
-  const areSettingsInModal = !isPortrait || IS_ELECTRON || CAN_DELEGATE_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET;
+  const areSettingsInModal = !isPortrait || IS_ELECTRON || IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET;
   const [isBarcodeSupported, setIsBarcodeSupported] = useState<boolean>(false);
 
   const [isInactive, markInactive] = useFlag(false);

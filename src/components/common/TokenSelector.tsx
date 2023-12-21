@@ -14,8 +14,9 @@ import {
 import { ANIMATED_STICKER_MIDDLE_SIZE_PX, TON_BLOCKCHAIN } from '../../config';
 import { Big } from '../../lib/big.js/index.js';
 import {
+  selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectPopularTokensWithoutAccountTokens,
+  selectPopularTokens,
   selectSwapTokens,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -52,6 +53,7 @@ interface StateProps {
   swapTokens?: UserSwapToken[];
   tokenInSlug?: string;
   pairsBySlug?: Record<string, AssetPairs>;
+  balancesBySlug?: Record<string, string>;
   baseCurrency?: ApiBaseCurrency;
   isLoading?: boolean;
 }
@@ -59,7 +61,7 @@ interface StateProps {
 interface OwnProps {
   isActive?: boolean;
   shouldFilter?: boolean;
-  onlyPopular?: boolean;
+  isInsideSettings?: boolean;
   onClose: NoneToVoidFunction;
   onBack: NoneToVoidFunction;
 }
@@ -80,10 +82,11 @@ function TokenSelector({
   swapTokens,
   popularTokens,
   shouldFilter,
-  onlyPopular,
+  isInsideSettings,
   baseCurrency,
   tokenInSlug,
   pairsBySlug,
+  balancesBySlug,
   isActive,
   isLoading,
   onBack,
@@ -96,6 +99,7 @@ function TokenSelector({
     setSwapTokenIn,
     setSwapTokenOut,
     addToken,
+    addSwapToken,
   } = getActions();
   const lang = useLang();
 
@@ -124,14 +128,27 @@ function TokenSelector({
   const [renderingKey, setRenderingKey] = useState(SearchState.Initial);
   const [searchTokenList, setSearchTokenList] = useState<Token[]>([]);
 
-  const popularTokensPrev = usePrevious(popularTokens);
+  const balancesBySlugPrev = usePrevious(balancesBySlug);
 
   const filterTokens = useLastCallback((tokens: Token[]) => filterAndSortTokens(tokens, tokenInSlug, pairsBySlug));
+
+  const allUnimportedTonTokens = useMemo(() => {
+    const balances = balancesBySlugPrev ?? balancesBySlug ?? {};
+    const tokens = (swapTokens ?? EMPTY_ARRAY).filter(
+      (popularToken) => {
+        const isTonBlockchain = 'blockchain' in popularToken && popularToken.blockchain === TON_BLOCKCHAIN;
+        const isTokenUnimported = balances[popularToken.slug] === undefined;
+        return isTonBlockchain && isTokenUnimported;
+      },
+    );
+
+    return tokens;
+  }, [balancesBySlug, balancesBySlugPrev, swapTokens]);
 
   const { userTokensWithFilter, popularTokensWithFilter, swapTokensWithFilter } = useMemo(() => {
     const currentUserTokens = userTokens ?? EMPTY_ARRAY;
     const currentSwapTokens = swapTokens ?? EMPTY_ARRAY;
-    const currentPopularTokens = popularTokensPrev ?? popularTokens ?? EMPTY_ARRAY;
+    const currentPopularTokens = popularTokens ?? EMPTY_ARRAY;
 
     if (!shouldFilter) {
       return {
@@ -142,26 +159,18 @@ function TokenSelector({
     }
 
     const filteredPopularTokens = filterTokens(currentPopularTokens);
-    let filteredUserTokens: Token[];
-    let filteredSwapTokens: Token[];
-
-    if (onlyPopular) {
-      filteredUserTokens = EMPTY_ARRAY;
-      filteredSwapTokens = EMPTY_ARRAY;
-    } else {
-      filteredUserTokens = filterTokens(currentUserTokens);
-      filteredSwapTokens = filterTokens(currentSwapTokens);
-    }
+    const filteredUserTokens = filterTokens(currentUserTokens);
+    const filteredSwapTokens = filterTokens(currentSwapTokens);
 
     return {
       userTokensWithFilter: filteredUserTokens,
       popularTokensWithFilter: filteredPopularTokens,
       swapTokensWithFilter: filteredSwapTokens,
     };
-  }, [filterTokens, onlyPopular, popularTokens, popularTokensPrev, shouldFilter, swapTokens, userTokens]);
+  }, [filterTokens, popularTokens, shouldFilter, swapTokens, userTokens]);
 
   const filteredTokenList = useMemo(() => {
-    const tokensToFilter = onlyPopular ? popularTokensWithFilter : swapTokensWithFilter;
+    const tokensToFilter = isInsideSettings ? allUnimportedTonTokens : swapTokensWithFilter;
     const lowerCaseSearchValue = searchValue.toLowerCase().trim();
 
     return tokensToFilter.filter(({
@@ -177,7 +186,7 @@ function TokenSelector({
 
       return isName || isSymbol || isKeyword;
     }).sort((a, b) => b.amount - a.amount) ?? [];
-  }, [onlyPopular, popularTokensWithFilter, searchValue, swapTokensWithFilter]);
+  }, [allUnimportedTonTokens, isInsideSettings, searchValue, swapTokensWithFilter]);
 
   const resetSearch = () => {
     setSearchValue('');
@@ -228,9 +237,10 @@ function TokenSelector({
       onClose();
     }
 
-    if (onlyPopular) {
+    if (isInsideSettings) {
       addToken({ token: selectedToken as UserToken });
     } else {
+      addSwapToken({ token: selectedToken as UserSwapToken });
       const setToken = shouldFilter ? setSwapTokenOut : setSwapTokenIn;
       setToken({ tokenSlug: selectedToken.slug });
     }
@@ -435,8 +445,8 @@ function TokenSelector({
   }
 
   function renderTokenGroups() {
-    if (onlyPopular) {
-      return renderTokenGroup(popularTokensWithFilter, lang('POPULAR'));
+    if (isInsideSettings) {
+      return renderTokenGroup(allUnimportedTonTokens, lang('A-Z'));
     }
 
     return (
@@ -489,11 +499,12 @@ function TokenSelector({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
+  const balances = selectCurrentAccountState(global)?.balances;
   const { isLoading, token } = global.settings.importToken ?? {};
   const { pairs, tokenInSlug } = global.currentSwap ?? {};
 
   const userTokens = selectCurrentAccountTokens(global);
-  const popularTokens = selectPopularTokensWithoutAccountTokens(global);
+  const popularTokens = selectPopularTokens(global);
   const swapTokens = selectSwapTokens(global);
   const { baseCurrency } = global.settings;
 
@@ -506,6 +517,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     tokenInSlug,
     baseCurrency,
     pairsBySlug: pairs?.bySlug,
+    balancesBySlug: balances?.bySlug,
   };
 })(TokenSelector));
 

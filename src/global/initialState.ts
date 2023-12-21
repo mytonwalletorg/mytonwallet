@@ -18,7 +18,7 @@ import {
 } from '../config';
 import { USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 10;
+export const STATE_VERSION = 11;
 
 export const INITIAL_STATE: GlobalState = {
   appState: AppState.Auth,
@@ -70,6 +70,7 @@ export const INITIAL_STATE: GlobalState = {
     dapps: [],
     byAccountId: {},
     areTokensWithNoPriceHidden: true,
+    areTokensWithNoBalanceHidden: true,
   },
 
   byAccountId: {},

@@ -1,4 +1,4 @@
-import type { ApiNetwork, ApiTxIdBySlug } from '../../api/types';
+import type { ApiNetwork, ApiSwapAsset, ApiTxIdBySlug } from '../../api/types';
 import type {
   Account,
   AccountSettings,
@@ -103,59 +103,18 @@ export function selectCurrentAccountTokens(global: GlobalState) {
   );
 }
 
-export const selectPopularTokensMemoized = memoized((
-  balancesBySlug: Record<string, string>,
-  tokenInfo: GlobalState['tokenInfo'],
-) => {
-  return Object.entries(tokenInfo.bySlug)
-    .filter(([slug, token]) => token.isPopular && !(slug in balancesBySlug))
-    .map(([slug]) => {
-      const {
-        symbol, name, image, decimals, keywords, quote: {
-          price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
-        },
-      } = tokenInfo.bySlug[slug];
-      const amount = bigStrToHuman('0', decimals);
-
-      return {
-        symbol,
-        slug,
-        amount,
-        name,
-        image,
-        price,
-        decimals,
-        change24h: round(percentChange24h / 100, 4),
-        change7d: round(percentChange7d / 100, 4),
-        change30d: round(percentChange30d / 100, 4),
-        history24h,
-        history7d,
-        history30d,
-        keywords,
-      } as UserToken;
-    });
-});
-
-export function selectPopularTokensWithoutAccountTokens(global: GlobalState) {
-  const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;
-  if (!balancesBySlug || !global.tokenInfo) {
-    return undefined;
-  }
-
-  return selectPopularTokensMemoized(balancesBySlug, global.tokenInfo);
-}
-
-const selectSwapTokensMemoized = memoized((
-  balancesBySlug: Record<string, string>,
+function createTokenList(
   swapTokenInfo: GlobalState['swapTokenInfo'],
-) => {
-  const tokenList: UserSwapToken[] = Object.entries(swapTokenInfo.bySlug)
-    .map(([slug]) => {
-      const {
-        symbol, name, image, decimals, keywords, blockchain, contract,
-      } = swapTokenInfo.bySlug[slug];
+  balancesBySlug: Record<string, string>,
+  sortFn: (tokenA: ApiSwapAsset, tokenB: ApiSwapAsset) => number,
+  filterFn?: (token: ApiSwapAsset) => boolean,
+): UserSwapToken[] {
+  return Object.entries(swapTokenInfo.bySlug)
+    .filter(([, token]) => !filterFn || filterFn(token))
+    .map(([slug, {
+      symbol, name, image, decimals, keywords, blockchain, contract, isPopular,
+    }]) => {
       const amount = bigStrToHuman(balancesBySlug[slug] ?? '0', decimals);
-
       return {
         symbol,
         slug,
@@ -165,17 +124,55 @@ const selectSwapTokensMemoized = memoized((
         decimals,
         isDisabled: false,
         canSwap: true,
+        isPopular,
         keywords,
         blockchain,
         contract,
       } satisfies UserSwapToken;
-    });
+    })
+    .sort(sortFn);
+}
 
-  const userTokenList = tokenList.slice()
-    .sort((a, b) => a.name.trim().toLowerCase().localeCompare(b.name.trim().toLowerCase()));
+const selectPopularTokensMemoized = memoized(
+  (balancesBySlug, swapTokenInfo) => {
+    const popularTokenOrder = [
+      'TON',
+      'BTC',
+      'ETH',
+      'USDT',
+      'jUSDT',
+      'jWBTC',
+    ];
+    const orderMap = new Map(popularTokenOrder.map((item, index) => [item, index]));
 
-  return userTokenList;
-});
+    const filterFn = (token: ApiSwapAsset) => token.isPopular;
+    const sortFn = (tokenA: ApiSwapAsset, tokenB: ApiSwapAsset) => {
+      const orderIndexA = orderMap.has(tokenA.symbol) ? orderMap.get(tokenA.symbol)! : popularTokenOrder.length;
+      const orderIndexB = orderMap.has(tokenB.symbol) ? orderMap.get(tokenB.symbol)! : popularTokenOrder.length;
+
+      return orderIndexA - orderIndexB;
+    };
+    return createTokenList(swapTokenInfo, balancesBySlug, sortFn, filterFn);
+  },
+);
+
+const selectSwapTokensMemoized = memoized(
+  (balancesBySlug, swapTokenInfo) => {
+    const sortFn = (tokenA: ApiSwapAsset, tokenB: ApiSwapAsset) => (
+      tokenA.name.trim().toLowerCase().localeCompare(tokenB.name.trim().toLowerCase())
+    );
+    return createTokenList(swapTokenInfo, balancesBySlug, sortFn);
+  },
+);
+
+export function selectPopularTokens(global: GlobalState) {
+  const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;
+  if (!balancesBySlug || !global.swapTokenInfo) {
+    return undefined;
+  }
+
+  return selectPopularTokensMemoized(balancesBySlug, global.swapTokenInfo);
+}
 
 export function selectSwapTokens(global: GlobalState) {
   const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;
@@ -270,6 +267,16 @@ export function selectIsHardwareAccount(global: GlobalState) {
   return state?.isHardware;
 }
 
+export function selectAllHardwareAccounts(global: GlobalState) {
+  const accounts = selectAccounts(global);
+
+  if (!accounts) {
+    return undefined;
+  }
+
+  return Object.values(accounts).filter((account) => account.isHardware);
+}
+
 export function selectIsOneAccount(global: GlobalState) {
   return Object.keys(selectAccounts(global) || {}).length === 1;
 }
@@ -278,14 +285,26 @@ export const selectEnabledTokensCountMemoized = memoized((tokens?: UserToken[]) 
   return (tokens ?? []).filter(({ isDisabled }) => !isDisabled).length;
 });
 
-export function selectLastLedgerAccountIndex(global: GlobalState, network: ApiNetwork) {
-  const byId = global.accounts?.byId ?? {};
-  return Object.entries(byId).reduce((previousValue, [accountId, account]) => {
-    if (!account.ledger || parseAccountId(accountId).network !== network) {
-      return previousValue;
+export function selectLedgerAccountIndexToImport(global: GlobalState) {
+  const hardwareAccounts = selectAllHardwareAccounts(global) ?? [];
+  const hardwareAccountIndexes = hardwareAccounts?.map((account) => account.ledger!.index)
+    .sort((a, b) => a - b);
+
+  if (hardwareAccountIndexes.length === 0 || hardwareAccountIndexes[0] !== 0) {
+    return -1;
+  }
+
+  if (hardwareAccountIndexes.length === 1) {
+    return 0;
+  }
+
+  for (let i = 1; i < hardwareAccountIndexes.length; i++) {
+    if (hardwareAccountIndexes[i] - hardwareAccountIndexes[i - 1] !== 1) {
+      return i - 1;
     }
-    return Math.max(account.ledger.index, previousValue ?? 0);
-  }, undefined as number | undefined);
+  }
+
+  return hardwareAccountIndexes.length - 1;
 }
 
 export function selectLocalTransactions(global: GlobalState, accountId: string) {

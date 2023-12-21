@@ -343,6 +343,13 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 10;
   }
 
+  if (cached.stateVersion === 10) {
+    if (cached.settings.areTokensWithNoBalanceHidden === undefined) {
+      cached.settings.areTokensWithNoBalanceHidden = true;
+    }
+    cached.stateVersion = 11;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 

@@ -5,7 +5,7 @@ import { TON_TOKEN_SLUG } from '../config';
 import { bigStrToHuman } from '../global/helpers';
 import { parseTonDeeplink } from './ton/deeplinks';
 import { pause } from './schedulers';
-import { CAN_DELEGATE_BOTTOM_SHEET } from './windowEnvironment';
+import { IS_DELEGATING_BOTTOM_SHEET } from './windowEnvironment';
 
 // Both to close current Transfer Modal and delay when app launch
 const PAUSE = 700;
@@ -13,7 +13,7 @@ export async function processDeeplink(url: string) {
   const params = parseTonDeeplink(url);
   if (!params) return false;
 
-  if (CAN_DELEGATE_BOTTOM_SHEET) {
+  if (IS_DELEGATING_BOTTOM_SHEET) {
     await BottomSheet.release({ key: '*' });
     await pause(PAUSE);
   }

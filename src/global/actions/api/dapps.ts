@@ -41,14 +41,14 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
     global = getGlobal();
     global = updateIsPinPadPasswordAccepted(global);
     setGlobal(global);
-
-    await vibrateOnSuccess(true);
   }
 
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('submitDappConnectRequestConfirm', { password, accountId });
 
     return;
+  } else if (IS_CAPACITOR) {
+    vibrateOnSuccess(true);
   }
 
   actions.switchAccount({ accountId });

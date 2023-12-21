@@ -212,6 +212,7 @@ export type UserToken = {
 
 export type UserSwapToken = {
   blockchain: string;
+  isPopular: boolean;
   contract?: string;
 } & Omit<UserToken, 'price' | 'change24h' | 'change7d' | 'change30d' | 'history24h' | 'history7d' | 'history30d'>;
 
@@ -449,7 +450,7 @@ export type GlobalState = {
     isPasswordNumeric?: boolean; // Backwards compatibility for non-numeric passwords from older versions
     isTestnet?: boolean;
     isSecurityWarningHidden?: boolean;
-    areTokensWithNoBalanceHidden?: boolean;
+    areTokensWithNoBalanceHidden: boolean;
     areTokensWithNoPriceHidden: boolean;
     isSortByValueEnabled?: boolean;
     importToken?: {
@@ -508,6 +509,7 @@ export interface ActionPayloads {
   initializeHardwareWalletConnection: undefined;
   connectHardwareWallet: undefined;
   createHardwareAccounts: undefined;
+  loadMoreHardwareWallets: { lastIndex: number };
   createAccount: { password: string; isImporting: boolean; isPasswordNumeric?: boolean };
   afterSelectHardwareWallets: { hardwareSelectedIndices: number[] };
   resetApiSettings: { areAllDisabled?: boolean } | undefined;

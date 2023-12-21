@@ -40,6 +40,7 @@ function LedgerSelectWallets({
 }: OwnProps) {
   const {
     afterSelectHardwareWallets,
+    loadMoreHardwareWallets,
   } = getActions();
   const lang = useLang();
 
@@ -69,6 +70,25 @@ function LedgerSelectWallets({
     [accounts],
   );
 
+  const handleAddWalletClick = useLastCallback(() => {
+    const list = hardwareWallets ?? [];
+    const lastIndex = list[list.length - 1]?.index ?? 0;
+
+    loadMoreHardwareWallets({ lastIndex });
+  });
+
+  function renderAddAccount() {
+    return (
+      <Button
+        className={styles.addAccountContainer}
+        onClick={handleAddWalletClick}
+      >
+        {lang('Add Wallet')}
+        <i className={buildClassName(styles.addAccountIcon, 'icon-plus')} aria-hidden />
+      </Button>
+    );
+  }
+
   function renderAccount(address: string, balance: string, index: number, isConnected: boolean) {
     const isActiveAccount = isConnected || selectedAccountIndices.includes(index);
 
@@ -76,7 +96,6 @@ function LedgerSelectWallets({
       <div
         key={address}
         className={buildClassName(styles.account, isActiveAccount && styles.account_current)}
-        aria-label={lang('Switch Account')}
         onClick={isConnected ? undefined : () => handleAccountToggle(index)}
       >
         <span className={styles.accountName}>
@@ -98,8 +117,8 @@ function LedgerSelectWallets({
     const list = hardwareWallets ?? [];
     const fullClassName = buildClassName(
       styles.accounts,
-      list.length === 1 && styles.accounts_single,
-      list.length === 2 && styles.accounts_two,
+      list.length === 1 && styles.accounts_two,
+      'custom-scroll',
     );
 
     return (
@@ -112,6 +131,7 @@ function LedgerSelectWallets({
             alreadyConnectedList.includes(address),
           ),
         )}
+        {renderAddAccount()}
       </div>
     );
   }

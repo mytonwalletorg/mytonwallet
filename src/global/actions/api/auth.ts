@@ -37,10 +37,11 @@ import {
 } from '../../reducers';
 import {
   selectAccounts,
+  selectAllHardwareAccounts,
   selectCurrentNetwork,
   selectFirstNonHardwareAccount,
   selectIsOneAccount,
-  selectLastLedgerAccountIndex,
+  selectLedgerAccountIndexToImport,
   selectNetworkAccountsMemoized,
   selectNewestTxIds,
 } from '../../selectors';
@@ -590,8 +591,14 @@ addActionHandler('connectHardwareWallet', async (global, actions) => {
     global = getGlobal();
     const { isRemoteTab } = global.hardware;
     const network = selectCurrentNetwork(global);
-    const lastIndex = selectLastLedgerAccountIndex(global, network);
-    const hardwareWallets = isRemoteTab ? [] : await ledgerApi.getNextLedgerWallets(network, lastIndex);
+    const lastIndex = selectLedgerAccountIndexToImport(global);
+    const currentHardwareAccounts = selectAllHardwareAccounts(global) ?? [];
+    const currentHardwareAddresses = currentHardwareAccounts.map((account) => account.address);
+    const hardwareWallets = isRemoteTab ? [] : await ledgerApi.getNextLedgerWallets(
+      network,
+      lastIndex,
+      currentHardwareAddresses,
+    );
 
     global = getGlobal();
 
@@ -616,6 +623,25 @@ addActionHandler('connectHardwareWallet', async (global, actions) => {
     });
     setGlobal(global);
   }
+});
+
+addActionHandler('loadMoreHardwareWallets', async (global, actions, { lastIndex }) => {
+  const network = selectCurrentNetwork(global);
+  const oldHardwareWallets = global.hardware.hardwareWallets ?? [];
+  const ledgerApi = await import('../../../util/ledger');
+  const hardwareWallets = await ledgerApi.getNextLedgerWallets(network, lastIndex);
+
+  global = getGlobal();
+
+  if ('error' in hardwareWallets) {
+    actions.showError({ error: hardwareWallets.error });
+    throw Error(hardwareWallets.error);
+  }
+
+  global = updateHardware(global, {
+    hardwareWallets: oldHardwareWallets.concat(hardwareWallets),
+  });
+  setGlobal(global);
 });
 
 addActionHandler('afterSelectHardwareWallets', (global, actions, { hardwareSelectedIndices }) => {

@@ -93,6 +93,7 @@ export function useDelegatedBottomSheet(
   useLayoutEffect(() => {
     if (!IS_DELEGATED_BOTTOM_SHEET || !isOpen) return;
 
+    dialogRef.current!.style[forceFullNative ? 'maxHeight' : 'height'] = '';
     dialogRef.current!.style[forceFullNative ? 'height' : 'maxHeight'] = `${maxHeight}px`;
   }, [dialogRef, forceFullNative, isOpen, maxHeight]);
 

@@ -5,7 +5,7 @@ import { getActions, withGlobal } from '../global';
 
 import renderText from '../global/helpers/renderText';
 import { pick } from '../util/iteratees';
-import { CAN_DELEGATE_BOTTOM_SHEET, IS_DELEGATED_BOTTOM_SHEET } from '../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../util/windowEnvironment';
 
 import useFlag from '../hooks/useFlag';
 import useLang from '../hooks/useLang';
@@ -30,7 +30,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const title = lang('Something went wrong');
 
   useEffect(() => {
-    if (CAN_DELEGATE_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
+    if (IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
       if (message) {
         Dialog.alert({
           title,
@@ -46,7 +46,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
     }
   }, [dialogs, lang, message, openModal, title]);
 
-  if (!message || CAN_DELEGATE_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
+  if (!message || IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
     return undefined;
   }
 

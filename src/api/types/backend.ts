@@ -42,6 +42,7 @@ export type ApiSwapAsset = {
   blockchain: string;
   slug: string;
   decimals: number;
+  isPopular: boolean;
   image?: string;
   contract?: string;
   keywords?: string[];

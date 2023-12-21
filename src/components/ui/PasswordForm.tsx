@@ -12,7 +12,7 @@ import buildClassName from '../../util/buildClassName';
 import { getIsFaceIdAvailable, getIsNativeBiometricAuthSupported, getIsTouchIdAvailable } from '../../util/capacitor';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { pause } from '../../util/schedulers';
-import { CAN_DELEGATE_BOTTOM_SHEET } from '../../util/windowEnvironment';
+import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from './helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
@@ -109,7 +109,7 @@ function PasswordForm({
   });
 
   useEffect(() => {
-    if (CAN_DELEGATE_BOTTOM_SHEET || !isActive || !isBiometricAuthEnabled) {
+    if (IS_DELEGATING_BOTTOM_SHEET || !isActive || !isBiometricAuthEnabled) {
       return;
     }
 

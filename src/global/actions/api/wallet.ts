@@ -714,6 +714,12 @@ addActionHandler('setActiveContentTab', (global, actions, { tab }) => {
 });
 
 addActionHandler('addSwapToken', (global, actions, { token }) => {
+  const isAlreadyExist = token.slug in global.swapTokenInfo.bySlug;
+
+  if (isAlreadyExist) {
+    return;
+  }
+
   const apiSwapAsset: ApiSwapAsset = {
     name: token.name,
     symbol: token.symbol,
@@ -723,6 +729,7 @@ addActionHandler('addSwapToken', (global, actions, { token }) => {
     image: token.image,
     contract: token.contract,
     keywords: token.keywords,
+    isPopular: false,
   };
 
   setGlobal({

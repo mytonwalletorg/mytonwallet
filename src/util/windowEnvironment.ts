@@ -59,7 +59,7 @@ export const IS_BIOMETRIC_AUTH_SUPPORTED = Boolean(
   !IS_CAPACITOR && window.navigator.credentials && (!IS_ELECTRON || IS_MAC_OS),
 );
 export const IS_DELEGATED_BOTTOM_SHEET = IS_CAPACITOR && global.location.search.startsWith('?bottom-sheet');
-export const CAN_DELEGATE_BOTTOM_SHEET = IS_CAPACITOR && IS_IOS && !IS_DELEGATED_BOTTOM_SHEET;
+export const IS_DELEGATING_BOTTOM_SHEET = IS_CAPACITOR && IS_IOS && !IS_DELEGATED_BOTTOM_SHEET;
 export const IS_MULTITAB_SUPPORTED = 'BroadcastChannel' in window && !IS_LEDGER_EXTENSION_TAB;
 
 export function setScrollbarWidthProperty() {

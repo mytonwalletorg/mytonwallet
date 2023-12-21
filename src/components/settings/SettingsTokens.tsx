@@ -185,7 +185,6 @@ function SettingsTokens({
         {!isTON && (
           <Switcher
             className={styles.menuSwitcher}
-            label={lang('Investor View')}
             checked={!isDisabled}
           />
         )}

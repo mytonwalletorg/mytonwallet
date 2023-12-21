@@ -1,3 +1,4 @@
+import type { ApiSwapAsset } from './api/types';
 import type { LangItem } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
@@ -168,13 +169,14 @@ export const TOKEN_INFO = {
 
 export const TON_BLOCKCHAIN = 'ton';
 
-export const INIT_SWAP_ASSETS = {
+export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
   toncoin: {
     name: 'Toncoin',
     symbol: TON_SYMBOL,
     blockchain: TON_BLOCKCHAIN,
     slug: TON_TOKEN_SLUG,
     decimals: DEFAULT_DECIMAL_PLACES,
+    isPopular: true,
   },
   'ton-eqdcbkghmc': {
     name: 'jWBTC',
@@ -185,6 +187,7 @@ export const INIT_SWAP_ASSETS = {
     // eslint-disable-next-line max-len
     image: 'https://cache.tonapi.io/imgproxy/LaFKdzahVX9epWT067gyVLd8aCa1lFrZd7Rp9siViEE/rs:fill:200:200:1/g:no/aHR0cHM6Ly9icmlkZ2UudG9uLm9yZy90b2tlbi8xLzB4MjI2MGZhYzVlNTU0MmE3NzNhYTQ0ZmJjZmVkZjdjMTkzYmMyYzU5OS5wbmc.webp',
     contract: 'EQDcBkGHmC4pTf34x3Gm05XvepO5w60DNxZ-XT4I6-UGG5L5',
+    isPopular: false,
     keywords: ['bitcoin'],
   },
 };
