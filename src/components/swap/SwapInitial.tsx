@@ -35,7 +35,6 @@ import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePrevious from '../../hooks/usePrevious';
-import usePrevious2 from '../../hooks/usePrevious2';
 import useSyncEffect from '../../hooks/useSyncEffect';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -497,9 +496,7 @@ function SwapInitial({
           </div>
 
           <div className={buildClassName(styles.swapButtonWrapper, isStatic && styles.swapButtonWrapperStatic)}>
-            <div className={styles.swapButton} onClick={handleSwitchTokens}>
-              <AnimatedArrows value={tokenIn?.slug} />
-            </div>
+            <AnimatedArrows onClick={handleSwitchTokens} />
           </div>
 
           <div ref={inputOutRef} className={styles.inputContainer}>
@@ -582,24 +579,21 @@ function useTokenTransitionKey(tokenSlug: string) {
   return transitionKeyRef.current;
 }
 
-function AnimatedArrows({ value }: { value?: string }) {
+function AnimatedArrows({ onClick }: { onClick?: NoneToVoidFunction }) {
   const animationLevel = getGlobal().settings.animationLevel;
-  const prevValue = usePrevious2(value);
+  const shouldAnimate = (animationLevel === ANIMATION_LEVEL_MAX);
+  const [hasAnimation, startAnimation, stopAnimation] = useFlag(false);
 
-  const shouldAnimate = (animationLevel === ANIMATION_LEVEL_MAX) && prevValue && prevValue !== value;
-  const [hasAnimation, setHasAnimation] = useState(false);
+  const handleClick = useLastCallback(() => {
+    if (shouldAnimate) {
+      startAnimation();
+      window.setTimeout(() => {
+        stopAnimation();
+      }, 350);
+    }
 
-  useEffect(() => {
-    if (!shouldAnimate) return undefined;
-
-    setHasAnimation(true);
-
-    const timeoutId = window.setTimeout(() => {
-      setHasAnimation(false);
-    }, 350);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [animationLevel, prevValue, shouldAnimate, value]);
+    onClick?.();
+  });
 
   function renderArrow(isInverted?: boolean) {
     return (
@@ -618,9 +612,9 @@ function AnimatedArrows({ value }: { value?: string }) {
   }
 
   return (
-    <>
+    <div className={styles.swapButton} onClick={handleClick}>
       {renderArrow()}
       {renderArrow(true)}
-    </>
+    </div>
   );
 }

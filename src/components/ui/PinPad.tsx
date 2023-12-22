@@ -45,7 +45,8 @@ function PinPad({
 }: OwnProps & StateProps) {
   const isFaceId = getIsFaceIdAvailable();
   const canRenderBackspace = value.length > 0;
-  const isDisablePinButtons = value.length === length || Boolean(type);
+  const arePinButtonsDisabled = value.length === length
+    && type !== 'error'; // Allow pincode entry in case of an error
   const isSuccess = type === 'success' || isPinPadPasswordAccepted;
   const titleClassName = buildClassName(
     styles.title,
@@ -70,6 +71,13 @@ function PinPad({
   }, [length, onChange, onClearError, type, value.length]);
 
   const handleClick = useLastCallback((char: string) => {
+    if (value.length === length) {
+      onChange(char);
+      onClearError?.();
+
+      return;
+    }
+
     const newValue = `${value}${char}`;
     onChange(newValue);
 
@@ -115,21 +123,21 @@ function PinPad({
       {renderDots()}
 
       <div className={styles.grid}>
-        <PinPadButton value="1" onClick={handleClick} isDisabled={isDisablePinButtons} />
-        <PinPadButton value="2" onClick={handleClick} isDisabled={isDisablePinButtons} />
-        <PinPadButton value="3" onClick={handleClick} isDisabled={isDisablePinButtons} />
-        <PinPadButton value="4" onClick={handleClick} isDisabled={isDisablePinButtons} />
-        <PinPadButton value="5" onClick={handleClick} isDisabled={isDisablePinButtons} />
-        <PinPadButton value="6" onClick={handleClick} isDisabled={isDisablePinButtons} />
-        <PinPadButton value="7" onClick={handleClick} isDisabled={isDisablePinButtons} />
-        <PinPadButton value="8" onClick={handleClick} isDisabled={isDisablePinButtons} />
-        <PinPadButton value="9" onClick={handleClick} isDisabled={isDisablePinButtons} />
+        <PinPadButton value="1" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
+        <PinPadButton value="2" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
+        <PinPadButton value="3" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
+        <PinPadButton value="4" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
+        <PinPadButton value="5" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
+        <PinPadButton value="6" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
+        <PinPadButton value="7" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
+        <PinPadButton value="8" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
+        <PinPadButton value="9" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
         {!onBiometricsClick ? <span /> : (
           <PinPadButton onClick={onBiometricsClick} isDisabled={isSuccess}>
             <i className={buildClassName('icon', isFaceId ? 'icon-face-id' : 'icon-touch-id')} aria-hidden />
           </PinPadButton>
         )}
-        <PinPadButton value="0" onClick={handleClick} isDisabled={isDisablePinButtons} />
+        <PinPadButton value="0" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
         <PinPadButton
           className={!canRenderBackspace && styles.buttonHidden}
           isDisabled={!canRenderBackspace}

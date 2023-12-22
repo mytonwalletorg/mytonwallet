@@ -68,7 +68,6 @@ function BackupModal({
   const handlePasswordSubmit = useLastCallback(async (password: string) => {
     setIsLoading(true);
     mnemonicRef.current = await callApi('getMnemonic', currentAccountId!, password);
-    setIsLoading(false);
 
     if (!mnemonicRef.current) {
       setError('Wrong password, please try again');
@@ -76,6 +75,7 @@ function BackupModal({
         void vibrateOnError();
       }
 
+      setIsLoading(false);
       return;
     }
     if (IS_CAPACITOR) {
@@ -84,6 +84,7 @@ function BackupModal({
       clearIsPinPadPasswordAccepted();
     }
 
+    setIsLoading(false);
     setNextKey(SLIDES.check);
     setCurrentSlide(SLIDES.mnemonic);
   });

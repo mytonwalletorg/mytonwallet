@@ -135,7 +135,7 @@ function Swap({
       // Skip the 'waiting' status for transactions from TON to account for delayed status updates from changelly.
       text = lang('Waiting for payment');
     } else if (isPending) {
-      text = lang('In progress');
+      text = lang('Waiting for payment');
     }
 
     return (

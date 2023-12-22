@@ -103,7 +103,7 @@ function SwapWaitTokens({
   return (
     <>
       <ModalHeader
-        title={lang('Waiting Payment')}
+        title={lang('Waiting for Payment')}
         onClose={onClose}
       />
 

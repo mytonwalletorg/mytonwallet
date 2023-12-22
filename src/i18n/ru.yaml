@@ -401,8 +401,7 @@ Failed: Ошибка
 Refunded: Возвращено
 On hold: Удержан
 Expired: Истёк
-In progress: В процессе
-Waiting Payment: Ожидание оплаты
+Waiting for Payment: Ожидание оплаты
 Waiting for payment: Ожидание оплаты
 Blockchain: Блокчейн
 Receiving address in blockchain: Адрес для получения в блокчейне %blockchain%
@@ -494,7 +493,7 @@ Turn Off Biometrics?: Отключить биометрию?
 Enter code: Введите код
 Enter code or use Face ID: Введите код или используйте Face ID
 Enter code or use Touch ID: Введите код или используйте Touch ID
-Enter code or user biometrics: Введите код или используйте биометрические данные
+Enter code or use biometrics: Введите код или используйте биометрию
 Wrong code, please try again: Неверный код, попробуйте ещё раз
 Scan your fingerprint: Отсканируйте свой отпечаток пальца
 Incorrect code, please try again: Неверный код, пожалуйста, попробуйте снова

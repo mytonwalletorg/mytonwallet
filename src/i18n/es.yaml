@@ -400,8 +400,7 @@ Failed: Fallido
 Refunded: Reembolsado
 On hold: En espera
 Expired: Expirado
-In progress: En progreso
-Waiting Payment: Esperando Pago
+Waiting for Payment: Esperando el pago
 Waiting for payment: Esperando el pago
 Blockchain: Blockchain
 Receiving address in blockchain: Dirección en %blockchain%
@@ -493,7 +492,7 @@ Turn Off Biometrics?: ¿Desactivar la biometría?
 Enter code: Introduzca el código
 Enter code or use Face ID: Ingresa el código o usa Face ID
 Enter code or use Touch ID: Ingresa el código o usa Touch ID
-Enter code or user biometrics: Ingrese el código o la biometría del usuario
+Enter code or use biometrics: Ingrese el código o use datos biométricos
 Wrong code, please try again: Código incorrecto, inténtalo de nuevo.
 Scan your fingerprint: Escanea tu huella digital
 Incorrect code, please try again: Codigo Incorrecto, por favor intenta de nuevo

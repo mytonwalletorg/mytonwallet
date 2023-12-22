@@ -75,6 +75,13 @@
 .invoiceButton {
   max-width: 100% !important;
 
+  background-color: var(--color-gray-button-background) !important;
+
+  &:focus,
+  &:hover {
+    background-color: var(--color-gray-button-background-hover) !important;
+  }
+
   @include respond-above(xs) {
     background-color: var(--color-gray-button-background-desktop) !important;
 

@@ -15,7 +15,6 @@ import {
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
 import authApi from '../util/authApi';
-import { getIsNativeBiometricAuthSupported } from '../util/capacitor';
 import { cloneDeep, mapValues, pick } from '../util/iteratees';
 import {
   onBeforeUnload, onIdle, throttle,
@@ -65,7 +64,7 @@ export function initCache() {
         state: AppState.Auth,
       });
       global = getGlobal();
-      if (getIsNativeBiometricAuthSupported() && global.settings.authConfig?.kind === 'native-biometrics') {
+      if (IS_CAPACITOR && global.settings.authConfig?.kind === 'native-biometrics') {
         authApi.removeNativeBiometrics();
       }
 

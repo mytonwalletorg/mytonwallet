@@ -1,5 +1,5 @@
 import React, {
-  memo, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -130,7 +130,10 @@ function TokenSelector({
 
   const balancesBySlugPrev = usePrevious(balancesBySlug);
 
-  const filterTokens = useLastCallback((tokens: Token[]) => filterAndSortTokens(tokens, tokenInSlug, pairsBySlug));
+  // It is necessary to use useCallback instead of useLastCallback here
+  const filterTokens = useCallback((tokens: Token[]) => {
+    return filterAndSortTokens(tokens, tokenInSlug, pairsBySlug);
+  }, [pairsBySlug, tokenInSlug]);
 
   const allUnimportedTonTokens = useMemo(() => {
     const balances = balancesBySlugPrev ?? balancesBySlug ?? {};

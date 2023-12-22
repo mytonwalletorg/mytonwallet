@@ -12,14 +12,13 @@ import { parseAccountId } from '../../../util/account';
 import authApi from '../../../util/authApi';
 import webAuthn from '../../../util/authApi/webAuthn';
 import {
-  getIsBiometricAuthSupported,
   getIsNativeBiometricAuthSupported,
   vibrateOnError,
   vibrateOnSuccess,
 } from '../../../util/capacitor';
 import { cloneDeep } from '../../../util/iteratees';
 import { pause } from '../../../util/schedulers';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
+import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
 import { INITIAL_STATE } from '../../initialState';
@@ -114,9 +113,9 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   }
 
   setGlobal(updateAuth(global, {
-    state: getIsBiometricAuthSupported()
-      ? (getIsNativeBiometricAuthSupported() ? AuthState.createPin : AuthState.createBiometrics)
-      : AuthState.createPassword,
+    state: IS_CAPACITOR
+      ? AuthState.createPin
+      : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword),
   }));
 
   if (isFirstAccount) {
@@ -136,10 +135,14 @@ addActionHandler('createPin', (global, actions, { pin, isImporting }) => {
 });
 
 addActionHandler('confirmPin', (global, actions, { isImporting }) => {
-  global = updateAuth(global, {
-    state: isImporting ? AuthState.importWalletCreateNativeBiometrics : AuthState.createNativeBiometrics,
-  });
-  setGlobal(global);
+  if (getIsNativeBiometricAuthSupported()) {
+    global = updateAuth(global, {
+      state: isImporting ? AuthState.importWalletCreateNativeBiometrics : AuthState.createNativeBiometrics,
+    });
+    setGlobal(global);
+  } else {
+    actions.skipCreateNativeBiometrics();
+  }
 });
 
 addActionHandler('cancelConfirmPin', (global, actions, { isImporting }) => {
@@ -151,9 +154,9 @@ addActionHandler('cancelConfirmPin', (global, actions, { isImporting }) => {
 
 addActionHandler('cancelDisclaimer', (global) => {
   setGlobal(updateAuth(global, {
-    state: getIsBiometricAuthSupported()
-      ? (getIsNativeBiometricAuthSupported() ? AuthState.createPin : AuthState.createBiometrics)
-      : AuthState.createPassword,
+    state: IS_CAPACITOR
+      ? AuthState.createPin
+      : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword),
   }));
 });
 
@@ -293,6 +296,7 @@ addActionHandler('createAccount', async (global, actions, { password, isImportin
     password: undefined,
     ...(isPasswordNumeric && { isPasswordNumeric: true }),
   });
+  global = clearIsPinPadPasswordAccepted(global);
 
   if (isImporting) {
     const hasAccounts = Object.keys(selectAccounts(global) || {}).length > 0;
@@ -436,12 +440,11 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
     mnemonic,
     error: undefined,
     ...(!hasAccounts && {
-      state: getIsBiometricAuthSupported()
-        ? (getIsNativeBiometricAuthSupported()
-          ? AuthState.importWalletCreatePin
-          : AuthState.importWalletCreateBiometrics
-        )
-        : AuthState.importWalletCreatePassword,
+      state: IS_CAPACITOR
+        ? AuthState.importWalletCreatePin
+        : (IS_BIOMETRIC_AUTH_SUPPORTED
+          ? AuthState.importWalletCreateBiometrics
+          : AuthState.importWalletCreatePassword),
     }),
   });
   setGlobal(global);

@@ -400,8 +400,7 @@ Failed: Failed
 Refunded: Refunded
 On hold: On hold
 Expired: Expired
-In progress: In progress
-Waiting Payment: Waiting Payment
+Waiting for Payment: Waiting for Payment
 Waiting for payment: Waiting for payment
 Blockchain: Blockchain
 Receiving address in blockchain: Receiving address in %blockchain% blockchain
@@ -495,7 +494,7 @@ Turn Off Biometrics?: Turn Off Biometrics?
 Enter code: Enter code
 Enter code or use Face ID: Enter code or use Face ID
 Enter code or use Touch ID: Enter code or use Touch ID
-Enter code or user biometrics: Enter code or user biometrics
+Enter code or use biometrics: Enter code or use biometrics
 Wrong code, please try again: Wrong code, please try again
 Scan your fingerprint: Scan your fingerprint
 Incorrect code, please try again: Incorrect code, please try again

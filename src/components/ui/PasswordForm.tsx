@@ -6,10 +6,10 @@ import { withGlobal } from '../../global';
 
 import type { AuthConfig } from '../../util/authApi/types';
 
-import { PIN_LENGTH } from '../../config';
+import { IS_CAPACITOR, PIN_LENGTH } from '../../config';
 import authApi from '../../util/authApi';
 import buildClassName from '../../util/buildClassName';
-import { getIsFaceIdAvailable, getIsNativeBiometricAuthSupported, getIsTouchIdAvailable } from '../../util/capacitor';
+import { getIsFaceIdAvailable, getIsTouchIdAvailable } from '../../util/capacitor';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { pause } from '../../util/schedulers';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
@@ -160,7 +160,7 @@ function PasswordForm({
     }
   }
 
-  if (getIsNativeBiometricAuthSupported()) {
+  if (IS_CAPACITOR) {
     const hasError = Boolean(localError || error);
     const title = getPinPadTitle();
     const actionName = lang(

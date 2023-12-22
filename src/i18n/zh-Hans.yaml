@@ -383,8 +383,7 @@ Failed: 失败
 Refunded: 退款
 On hold: 持有
 Expired: 过期
-In progress: 进行中
-Waiting Payment: 等待付款
+Waiting for Payment: 等待付款
 Waiting for payment: 等待付款
 Blockchain: 区块链
 Receiving address in blockchain: 在 %blockchain% 区块链中的接收地址
@@ -476,7 +475,7 @@ Turn Off Biometrics?: 关闭生物识别技术？
 Enter code: 输入代码
 Enter code or use Face ID: 输入代码或使用 Face ID
 Enter code or use Touch ID: 输入代码或使用 Touch ID
-Enter code or user biometrics: 输入代码或用户生物识别信息
+Enter code or use biometrics: 输入代码或使用生物识别技术
 Wrong code, please try again: 代码错误，请重试
 Scan your fingerprint: 扫描您的指纹
 Incorrect code, please try again: 不正确的代码，请重试
