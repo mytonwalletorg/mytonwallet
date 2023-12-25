@@ -107,6 +107,10 @@
   }
 }
 
+.titleSmallMargin {
+  margin-bottom: 0.25rem;
+}
+
 .title, .appName {
   font-size: 1.6875rem;
   font-weight: 800;
@@ -428,6 +432,11 @@
   }
 }
 
+.btnHalfWidth {
+  width: 100%;
+  max-width: calc((100% - 1rem) / 2) !important;
+}
+
 .modalDialog {
   height: 35rem;
 
@@ -538,16 +547,16 @@
 .biometricsError {
   align-self: center;
 
-  margin-top: 0.25rem;
-  padding: 0.375rem 0.5rem;
+  padding: 0.5rem 0.75rem;
 
-  font-size: 1.0625rem;
-  font-weight: 700;
-  line-height: 1;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3125rem;
   color: var(--color-transaction-red-text);
+  text-align: center;
 
   background-color: var(--color-transaction-red-background);
-  border-radius: var(--border-radius-tiny);
+  border-radius: var(--border-radius-buttons);
 }
 
 .stepTransition {

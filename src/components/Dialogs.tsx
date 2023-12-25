@@ -27,7 +27,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const [isModalOpen, openModal, closeModal] = useFlag();
 
   const message = dialogs[dialogs.length - 1];
-  const title = lang('Something went wrong');
+  const title = lang('Something went wrong.');
 
   useEffect(() => {
     if (IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {

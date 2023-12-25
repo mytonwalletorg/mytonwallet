@@ -99,12 +99,12 @@ function PasswordForm({
     try {
       const biometricPassword = await authApi.getPassword(authConfig!);
       if (!biometricPassword) {
-        setLocalError('Declined');
+        setLocalError('Declined. Please try to confirm transaction using biometrics again.');
       } else {
         onSubmit(biometricPassword);
       }
     } catch (err: any) {
-      setLocalError(err.message || lang('Something went wrong'));
+      setLocalError(err.message || lang('Something went wrong.'));
     }
   });
 
@@ -212,6 +212,46 @@ function PasswordForm({
     );
   }
 
+  function renderBiometricPrompt() {
+    if (localError) {
+      return (
+        <div className={styles.error}>{lang(localError)}</div>
+      );
+    }
+
+    return (
+      <div className={styles.verify}>
+        {lang(operationType === 'transfer'
+          ? 'Please confirm transaction using biometrics' : 'Please confirm operation using biometrics')}
+      </div>
+    );
+  }
+
+  function renderPasswordForm() {
+    return (
+      <>
+        <Input
+          ref={passwordRef}
+          type="password"
+          isRequired
+          id="first-password"
+          inputMode={isPasswordNumeric ? 'numeric' : undefined}
+          error={error ? lang(error) : localError}
+          placeholder={placeholder}
+          value={password}
+          onInput={handleInput}
+          maxLength={isPasswordNumeric ? PIN_LENGTH : undefined}
+        />
+        {localError && (
+          <div className={styles.errorMessage}>{lang(localError)}</div>
+        )}
+        {help && !error && (
+          <div className={styles.label}>{help}</div>
+        )}
+      </>
+    );
+  }
+
   return (
     <div className={buildClassName(modalStyles.transitionContent, containerClassName)}>
       <AnimatedIconWithPreview
@@ -226,41 +266,28 @@ function PasswordForm({
 
       {children}
 
-      {isBiometricAuthEnabled ? (
-        <div className={styles.verify}>
-          {lang(operationType === 'transfer'
-            ? 'Please confirm transaction using biometrics' : 'Please confirm operation using biometrics')}
-        </div>
-      ) : (
-        <Input
-          ref={passwordRef}
-          type="password"
-          isRequired
-          id="first-password"
-          inputMode={isPasswordNumeric ? 'numeric' : undefined}
-          error={error ? lang(error) : localError}
-          placeholder={placeholder}
-          value={password}
-          onInput={handleInput}
-          maxLength={isPasswordNumeric ? PIN_LENGTH : undefined}
-        />
-      )}
-      {localError && (
-        <div className={styles.error}>{lang(localError)}</div>
-      )}
-      {help && !error && (
-        <div className={styles.label}>{help}</div>
-      )}
+      {isBiometricAuthEnabled ? renderBiometricPrompt() : renderPasswordForm()}
 
-      <div className={modalStyles.buttons}>
+      <div className={modalStyles.footerButtons}>
         {onCancel && (
           <Button
             onClick={isBiometricAuthEnabled && isLoading ? undefined : onCancel}
             isLoading={isLoading && isBiometricAuthEnabled}
             isDisabled={isLoading && !isBiometricAuthEnabled}
-            className={modalStyles.button}
+            className={modalStyles.buttonHalfWidth}
           >
             {cancelLabel || lang('Cancel')}
+          </Button>
+        )}
+        {isBiometricAuthEnabled && Boolean(localError) && (
+          <Button
+            isPrimary
+            isLoading={isLoading}
+            isDisabled={isSubmitDisabled}
+            onClick={!isLoading ? handleBiometrics : undefined}
+            className={modalStyles.buttonHalfWidth}
+          >
+            {lang('Try Again')}
           </Button>
         )}
         {!isBiometricAuthEnabled && (
@@ -269,7 +296,7 @@ function PasswordForm({
             isLoading={isLoading}
             isDisabled={isSubmitDisabled}
             onClick={!isLoading ? handleSubmit : undefined}
-            className={modalStyles.button}
+            className={modalStyles.buttonHalfWidth}
           >
             {submitLabel || lang('Send')}
           </Button>

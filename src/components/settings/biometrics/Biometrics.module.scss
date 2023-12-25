@@ -18,30 +18,28 @@
   margin-top: 2rem;
 }
 
+.error,
 .step {
   align-self: center;
 
-  margin-bottom: 1rem;
-  padding: 0.75rem;
+  padding: 0.5625rem 0.75rem;
 
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--light-gray-1);
+  line-height: 1.3125rem;
+  text-align: center;
 
-  background-color: var(--color-gray-button-background-light);
   border-radius: var(--border-radius-buttons);
 }
 
+.step {
+  color: var(--light-gray-1);
+
+  background-color: var(--color-gray-button-background-light);
+}
+
 .error {
-  align-self: center;
-
-  padding: 0.375rem 0.5rem;
-
-  font-size: 1.0625rem;
-  font-weight: 700;
-  line-height: 1;
   color: var(--color-transaction-red-text);
 
   background-color: var(--color-transaction-red-background);
-  border-radius: var(--border-radius-tiny);
 }

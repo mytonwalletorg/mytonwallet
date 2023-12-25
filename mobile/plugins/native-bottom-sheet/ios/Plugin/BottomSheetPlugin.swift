@@ -41,13 +41,22 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             fpc.track(scrollView: capVc!.webView!.scrollView)
             // Fix redunant scroll offsets
             fpc.contentInsetAdjustmentBehavior = .never
+            // Fix warning "Unable to simultaneously satisfy constraints."
+            // https://github.com/scenee/FloatingPanel/issues/557
+            fpc.invalidateLayout()
 
             setupScrollReducers()
 
             let topVc = bridge!.viewController!
             topVc.view.clipsToBounds = true
-            topVc.present(fpc, animated: false) {
+            // Check if the view controller is already being presented
+            if fpc.presentingViewController != nil {
                 call.resolve()
+            } else {
+                // Present the view controller modally
+                topVc.present(fpc, animated: false) {
+                    call.resolve()
+                }
             }
         }
     }

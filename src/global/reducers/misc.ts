@@ -33,17 +33,17 @@ export function updateAccounts(
   };
 }
 
-export function updateIsPinPadPasswordAccepted(global: GlobalState) {
+export function setIsPinAccepted(global: GlobalState): GlobalState {
   return {
     ...global,
-    isPinPadPasswordAccepted: true,
+    isPinAccepted: true,
   };
 }
 
-export function clearIsPinPadPasswordAccepted(global: GlobalState) {
+export function clearIsPinAccepted(global: GlobalState): GlobalState {
   return {
     ...global,
-    isPinPadPasswordAccepted: undefined,
+    isPinAccepted: undefined,
   };
 }
 

@@ -43,7 +43,7 @@ enum SLIDES {
 function BackupModal({
   isOpen, currentAccountId, onClose,
 }: OwnProps & StateProps) {
-  const { setIsBackupRequired, setIsPinPadPasswordAccepted, clearIsPinPadPasswordAccepted } = getActions();
+  const { setIsBackupRequired, setIsPinAccepted, clearIsPinAccepted } = getActions();
 
   const lang = useLang();
   const [currentSlide, setCurrentSlide] = useState<number>(SLIDES.confirm);
@@ -70,7 +70,7 @@ function BackupModal({
     mnemonicRef.current = await callApi('getMnemonic', currentAccountId!, password);
 
     if (!mnemonicRef.current) {
-      setError('Wrong password, please try again');
+      setError('Wrong password, please try again.');
       if (IS_CAPACITOR) {
         void vibrateOnError();
       }
@@ -79,9 +79,9 @@ function BackupModal({
       return;
     }
     if (IS_CAPACITOR) {
-      setIsPinPadPasswordAccepted();
+      setIsPinAccepted();
       await vibrateOnSuccess(true);
-      clearIsPinPadPasswordAccepted();
+      clearIsPinAccepted();
     }
 
     setIsLoading(false);

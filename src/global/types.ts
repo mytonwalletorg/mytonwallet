@@ -62,6 +62,7 @@ export enum AuthState {
   createPin,
   confirmPin,
   createBiometrics,
+  confirmBiometrics,
   createNativeBiometrics,
   createPassword,
   createBackup,
@@ -71,6 +72,7 @@ export enum AuthState {
   importWalletConfirmPin,
   importWalletCreateNativeBiometrics,
   importWalletCreateBiometrics,
+  importWalletConfirmBiometrics,
   importWalletCreatePassword,
   disclaimer,
   ready,
@@ -472,7 +474,7 @@ export type GlobalState = {
   areSettingsOpen?: boolean;
   isAppUpdateAvailable?: boolean;
   confettiRequestedAt?: number;
-  isPinPadPasswordAccepted?: boolean;
+  isPinAccepted?: boolean;
 
   stateVersion: number;
 };
@@ -490,7 +492,10 @@ export interface ActionPayloads {
   restartCheckMnemonicIndexes: undefined;
   cancelDisclaimer: undefined;
   afterCreatePassword: { password: string; isPasswordNumeric?: boolean };
+  startCreatingBiometrics: undefined;
   afterCreateBiometrics: undefined;
+  skipCreateBiometrics: undefined;
+  cancelCreateBiometrics: undefined;
   afterCreateNativeBiometrics: undefined;
   skipCreateNativeBiometrics: undefined;
   createPin: { pin: string; isImporting: boolean };
@@ -594,8 +599,8 @@ export interface ActionPayloads {
   setActiveContentTab: { tab: ContentTab };
 
   requestConfetti: undefined;
-  setIsPinPadPasswordAccepted: undefined;
-  clearIsPinPadPasswordAccepted: undefined;
+  setIsPinAccepted: undefined;
+  clearIsPinAccepted: undefined;
 
   openQrScanner: undefined;
   closeQrScanner: undefined;

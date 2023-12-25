@@ -23,14 +23,14 @@ import {
 } from '../../index';
 import {
   clearCurrentTransfer,
-  clearIsPinPadPasswordAccepted,
+  clearIsPinAccepted,
+  setIsPinAccepted,
   updateAccountState,
   updateActivitiesIsHistoryEndReached,
   updateActivitiesIsLoading,
   updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
-  updateIsPinPadPasswordAccepted,
   updateSendingLoading,
   updateSettings,
 } from '../../reducers';
@@ -211,7 +211,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
   const { decimals } = global.tokenInfo!.bySlug[tokenSlug!];
 
   if (!(await callApi('verifyPassword', password))) {
-    setGlobal(updateCurrentTransfer(getGlobal(), { error: 'Wrong password, please try again' }));
+    setGlobal(updateCurrentTransfer(getGlobal(), { error: 'Wrong password, please try again.' }));
 
     return;
   }
@@ -222,7 +222,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     error: undefined,
   });
   if (IS_CAPACITOR) {
-    global = updateIsPinPadPasswordAccepted(global);
+    global = setIsPinAccepted(global);
   }
   setGlobal(global);
 
@@ -231,6 +231,11 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
   }
 
   if (promiseId) {
+    if (IS_CAPACITOR) {
+      global = setIsPinAccepted(global);
+      setGlobal(global);
+    }
+
     void callApi('confirmDappRequest', promiseId, password);
     return;
   }
@@ -256,7 +261,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
 
   if (!result || 'error' in result) {
     if (IS_CAPACITOR) {
-      global = clearIsPinPadPasswordAccepted(global);
+      global = clearIsPinAccepted(global);
       setGlobal(global);
       void vibrateOnError();
     }
@@ -310,7 +315,7 @@ addActionHandler('submitTransferHardware', async (global) => {
           error: 'Canceled by the user',
         }));
       } else {
-        void callApi('cancelDappRequest', promiseId, 'Unknown error');
+        void callApi('cancelDappRequest', promiseId, 'Unknown error.');
       }
     }
     return;
@@ -356,7 +361,7 @@ addActionHandler('cancelTransfer', (global, actions, { shouldReset } = {}) => {
   }
 
   if (IS_CAPACITOR) {
-    global = clearIsPinPadPasswordAccepted(global);
+    global = clearIsPinAccepted(global);
   }
   global = updateCurrentTransfer(global, { state: TransferState.None });
   setGlobal(global);
@@ -516,7 +521,7 @@ addActionHandler('submitSignature', async (global, actions, payload) => {
   const { promiseId } = global.currentSignature!;
 
   if (!(await callApi('verifyPassword', password))) {
-    setGlobal(updateCurrentSignature(getGlobal(), { error: 'Wrong password, please try again' }));
+    setGlobal(updateCurrentSignature(getGlobal(), { error: 'Wrong password, please try again.' }));
 
     return;
   }

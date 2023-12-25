@@ -192,7 +192,7 @@ Yesterday: 明天
 Now: 现在
 $receive_ton_description: 您可以分享您的地址、扫描二维码或创建存款链接来接收加密货币。
 Your address: 您的地址
-Wrong password, please try again: 密码错误，请再试一次。
+Wrong password, please try again.: 密码错误，请再试一次。
 Appearance: 外观
 Light: 白天模式
 Dark: 黑夜模式
@@ -420,11 +420,11 @@ Enabling biometric confirmation will reset the password.: 启用生物识别确�
 Biometric Registration: 生物识别注册
 Step 1 of 2. Registration: 第 1 步（共 2 步）：注册
 Step 2 of 2. Verification: 第 2 步（共 2 步）：验证
-Biometric setup failed: 生物识别设置失败
-Biometric confirmation failed: 生物识别确认失败
-Failed to disable biometrics: 无法禁用生物识别
+Biometric setup failed.: 生物识别设置失败。
+Biometric confirmation failed.: 生物识别确认失败。
+Failed to disable biometrics.: 无法禁用生物识别。
 Biometric Confirmation: 生物识别确认
-Please verify your identity.: 请证明你的身份。
+Please verify the operation.: 请验证操作。
 Create Password: 创建密码
 Complete: 完成
 Verification: 确认
@@ -478,17 +478,17 @@ Enter code or use Touch ID: 输入代码或使用 Touch ID
 Enter code or use biometrics: 输入代码或使用生物识别技术
 Wrong code, please try again: 代码错误，请重试
 Scan your fingerprint: 扫描您的指纹
-Incorrect code, please try again: 不正确的代码，请重试
+Incorrect code, please try again.: 不正确的代码，请重试。
 Correct: 正确
 Confirm Operation: 确认操作
 Confirm Swap: 确认兑换
 "%amount% to %address%": "%amount% 至 %address%"
 "%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
-Failed to enable biometrics: 无法启用生物识别
-Disable Face ID: Disable Face ID
-Disable Touch ID: Disable Touch ID
-Disable Biometrics: Disable Biometrics
+Failed to enable biometrics.: 无法启用生物识别。
+Please try to confirm your biometrics again.: 请尝试再次确认您的生物识别信息。
+Unknown error.: 未知错误。
 Are you sure you want to disable Face ID?: 您确定要禁用Face ID吗？
 Are you sure you want to disable Touch ID?: 您确定要禁用Touch ID吗？
 Are you sure you want to disable biometrics?: 您确定要禁用生物识别技术吗？
 Yes: 是的
+Declined. Please try to confirm transaction using biometrics again.: 拒绝了。 请尝试再次使用生物识别技术确认交易。

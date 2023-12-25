@@ -155,9 +155,13 @@ function SwapModal({
 
     const logoIn = tokenIn.image ?? ASSET_LOGO_PATHS[tokenIn.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
     const logoOut = tokenOut.image ?? ASSET_LOGO_PATHS[tokenOut.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
+    const swapInfoClassName = buildClassName(
+      styles.swapShortInfo,
+      !IS_CAPACITOR && styles.swapShortInfoInsidePasswordForm,
+    );
 
     return (
-      <div className={styles.swapShortInfo}>
+      <div className={swapInfoClassName}>
         <div className={styles.tokenIconWrapper}>
           <img src={logoIn} alt={tokenIn.symbol} className={styles.swapShortInfoTokenIcon} />
           {tokenIn.blockchain && (
@@ -238,7 +242,7 @@ function SwapModal({
             onSubmit={handleTransferSubmit}
             onBack={handleBackClick}
           >
-            {IS_CAPACITOR && renderSwapShortInfo()}
+            {renderSwapShortInfo()}
           </SwapPassword>
         );
       case SwapState.Complete:

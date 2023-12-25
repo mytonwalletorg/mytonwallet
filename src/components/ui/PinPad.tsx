@@ -1,5 +1,5 @@
 import React, { memo, useEffect } from '../../lib/teact/teact';
-import { withGlobal } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 
@@ -25,7 +25,7 @@ interface OwnProps {
 }
 
 type StateProps = Pick<GlobalState['settings'], 'authConfig'> & {
-  isPinPadPasswordAccepted?: boolean;
+  isPinAccepted?: boolean;
 };
 
 const DEFAULT_PIN_LENGTH = 4;
@@ -37,22 +37,30 @@ function PinPad({
   value,
   length = DEFAULT_PIN_LENGTH,
   onBiometricsClick,
-  isPinPadPasswordAccepted,
+  isPinAccepted,
   className,
   onChange,
   onClearError,
   onSubmit,
 }: OwnProps & StateProps) {
+  const { clearIsPinAccepted } = getActions();
+
   const isFaceId = getIsFaceIdAvailable();
   const canRenderBackspace = value.length > 0;
   const arePinButtonsDisabled = value.length === length
     && type !== 'error'; // Allow pincode entry in case of an error
-  const isSuccess = type === 'success' || isPinPadPasswordAccepted;
+  const isSuccess = type === 'success' || isPinAccepted;
   const titleClassName = buildClassName(
     styles.title,
     type === 'error' && styles.error,
     isSuccess && styles.success,
   );
+
+  useEffect(() => {
+    return () => {
+      clearIsPinAccepted();
+    };
+  }, []);
 
   useEffect(() => {
     if (type !== 'error') return undefined;
@@ -140,7 +148,7 @@ function PinPad({
         <PinPadButton value="0" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
         <PinPadButton
           className={!canRenderBackspace && styles.buttonHidden}
-          isDisabled={!canRenderBackspace}
+          isDisabled={!canRenderBackspace || isSuccess}
           onClick={handleBackspaceClick}
         >
           <i className="icon icon-backspace" aria-hidden />
@@ -152,9 +160,10 @@ function PinPad({
 
 export default memo(withGlobal<OwnProps>(
   (global) => {
-    const { isPinPadPasswordAccepted } = global;
+    const { isPinAccepted } = global;
+
     return {
-      isPinPadPasswordAccepted,
+      isPinAccepted,
     };
   },
 )(PinPad));

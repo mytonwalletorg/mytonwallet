@@ -27,9 +27,9 @@ import { addActionHandler, getGlobal, setGlobal } from '../..';
 import { bigStrToHuman, humanToBigStr } from '../../helpers';
 import {
   clearCurrentSwap,
-  clearIsPinPadPasswordAccepted,
+  clearIsPinAccepted,
+  setIsPinAccepted,
   updateCurrentSwap,
-  updateIsPinPadPasswordAccepted,
 } from '../../reducers';
 import { selectAccount } from '../../selectors';
 
@@ -156,7 +156,7 @@ addActionHandler('cancelSwap', (global, actions, { shouldReset } = {}) => {
   }
 
   if (IS_CAPACITOR) {
-    global = clearIsPinPadPasswordAccepted(global);
+    global = clearIsPinAccepted(global);
   }
   global = updateCurrentSwap(global, {
     state: SwapState.None,
@@ -168,7 +168,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   if (!(await callApi('verifyPassword', password))) {
     setGlobal(updateCurrentSwap(
       getGlobal(),
-      { error: 'Wrong password, please try again' },
+      { error: 'Wrong password, please try again.' },
     ));
 
     return;
@@ -176,7 +176,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
 
   global = getGlobal();
   if (IS_CAPACITOR) {
-    global = updateIsPinPadPasswordAccepted(global);
+    global = setIsPinAccepted(global);
   }
   global = updateCurrentSwap(global, {
     isLoading: true,
@@ -195,7 +195,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     actions.showError({ error: buildResult?.error });
     global = getGlobal();
     if (IS_CAPACITOR) {
-      global = clearIsPinPadPasswordAccepted(global);
+      global = clearIsPinAccepted(global);
     }
     global = updateCurrentSwap(global, {
       isLoading: false,
@@ -248,7 +248,7 @@ addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) =
   if (!(await callApi('verifyPassword', password))) {
     setGlobal(updateCurrentSwap(
       getGlobal(),
-      { error: 'Wrong password, please try again' },
+      { error: 'Wrong password, please try again.' },
     ));
 
     return;
@@ -256,7 +256,7 @@ addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) =
 
   global = getGlobal();
   if (IS_CAPACITOR) {
-    global = updateIsPinPadPasswordAccepted(global);
+    global = setIsPinAccepted(global);
   }
   global = updateCurrentSwap(global, {
     isLoading: true,
@@ -334,7 +334,7 @@ addActionHandler('submitSwapCexToTon', async (global, actions, { password }) => 
   if (!(await callApi('verifyPassword', password))) {
     setGlobal(updateCurrentSwap(
       getGlobal(),
-      { error: 'Wrong password, please try again' },
+      { error: 'Wrong password, please try again.' },
     ));
 
     return;

@@ -22,14 +22,14 @@ import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentSwap,
   clearCurrentTransfer,
-  clearIsPinPadPasswordAccepted,
+  clearIsPinAccepted,
   renameAccount,
+  setIsPinAccepted,
   updateAccounts,
   updateAccountState,
   updateAuth,
   updateCurrentAccountState,
   updateHardware,
-  updateIsPinPadPasswordAccepted,
   updateSettings,
 } from '../../reducers';
 import {
@@ -102,13 +102,13 @@ addActionHandler('addAccount', async (global, actions, { method, password }) => 
     if (!(await callApi('verifyPassword', password))) {
       setGlobal(updateAccounts(getGlobal(), {
         isLoading: undefined,
-        error: 'Wrong password, please try again',
+        error: 'Wrong password, please try again.',
       }));
       return;
     }
 
     if (IS_CAPACITOR) {
-      global = updateIsPinPadPasswordAccepted(getGlobal());
+      global = setIsPinAccepted(getGlobal());
       setGlobal(global);
 
       await vibrateOnSuccess(true);
@@ -158,7 +158,7 @@ addActionHandler('openAddAccountModal', (global) => {
 
 addActionHandler('closeAddAccountModal', (global) => {
   if (IS_CAPACITOR) {
-    global = clearIsPinPadPasswordAccepted(global);
+    global = clearIsPinAccepted(global);
   }
 
   return { ...global, isAddAccountModalOpen: undefined };
@@ -599,10 +599,10 @@ addActionHandler('changeBaseCurrency', async (global, actions, { currency }) => 
   void callApi('tryUpdateTokens');
 });
 
-addActionHandler('setIsPinPadPasswordAccepted', (global) => {
-  return updateIsPinPadPasswordAccepted(global);
+addActionHandler('setIsPinAccepted', (global) => {
+  return setIsPinAccepted(global);
 });
 
-addActionHandler('clearIsPinPadPasswordAccepted', (global) => {
-  return clearIsPinPadPasswordAccepted(global);
+addActionHandler('clearIsPinAccepted', (global) => {
+  return clearIsPinAccepted(global);
 });

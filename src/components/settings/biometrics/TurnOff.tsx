@@ -60,8 +60,12 @@ function TurnOff({
                 noLoop={false}
                 className={styles.sticker}
               />
-              <div className={styles.step}>{lang('Please verify your identity.')}</div>
-              {error && <div className={styles.error}>{lang(error)}</div>}
+
+              {error ? (
+                <div className={styles.error}>{lang(error)}</div>
+              ) : (
+                <div className={styles.step}>{lang('Please verify the operation.')}</div>
+              )}
 
               <div className={modalStyles.buttons}>
                 <Button onClick={onClose} className={modalStyles.customSubmitButton}>

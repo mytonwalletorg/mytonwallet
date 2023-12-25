@@ -135,9 +135,14 @@ function UnstakeModal({
     if (!tonToken || !stakingBalance) return undefined;
 
     const logoPath = tonToken.image || ASSET_LOGO_PATHS[tonToken.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
+    const className = buildClassName(
+      styles.stakingShortInfo,
+      styles.unstake,
+      !IS_CAPACITOR && styles.stakingShortInfoInsidePasswordForm,
+    );
 
     return (
-      <div className={buildClassName(styles.stakingShortInfo, styles.unstake)}>
+      <div className={className}>
         <img src={logoPath} alt={tonToken.symbol} className={styles.tokenIcon} />
         <span>{formatCurrency(stakingBalance, tonToken.symbol)}</span>
       </div>
@@ -222,7 +227,7 @@ function UnstakeModal({
           onCancel={handleBackClick}
           cancelLabel={lang('Back')}
         >
-          {IS_CAPACITOR && renderUnstakingShortInfo()}
+          {renderUnstakingShortInfo()}
         </PasswordForm>
       </>
     );

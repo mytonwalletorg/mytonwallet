@@ -15,6 +15,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import SettingsAbout from '../settings/SettingsAbout';
 import Transition from '../ui/Transition';
 import AuthBackupWalletModal from './AuthBackupWalletModal';
+import AuthConfirmBiometrics from './AuthConfirmBiometrics';
 import AuthConfirmPin from './AuthConfirmPin';
 import AuthCreateBackup from './AuthCreateBackup';
 import AuthCreateBiometrics from './AuthCreateBiometrics';
@@ -76,11 +77,12 @@ const Auth = ({
       case AuthState.confirmPin:
         return <AuthConfirmPin isActive={isActive} method="createAccount" />;
       case AuthState.createBiometrics:
+        return <AuthCreateBiometrics isActive={isActive} method="createAccount" />;
+      case AuthState.confirmBiometrics:
         return (
-          <AuthCreateBiometrics
+          <AuthConfirmBiometrics
             isActive={isActive}
             isLoading={isLoading}
-            method="createAccount"
             error={error}
             biometricsStep={biometricsStep}
           />
@@ -118,12 +120,13 @@ const Auth = ({
       case AuthState.importWalletCreatePassword:
         return <AuthCreatePassword isActive={isActive} isLoading={isLoading} method={method} />;
       case AuthState.importWalletCreateBiometrics:
+        return <AuthCreateBiometrics isActive={isActive} method={method} />;
+      case AuthState.importWalletConfirmBiometrics:
         return (
-          <AuthCreateBiometrics
+          <AuthConfirmBiometrics
             isActive={isActive}
             isLoading={isLoading}
             error={error}
-            method={method}
             biometricsStep={biometricsStep}
           />
         );

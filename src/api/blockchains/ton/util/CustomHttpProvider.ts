@@ -37,7 +37,7 @@ class CustomHttpProvider extends TonWeb.HttpProvider {
     }
     const body = JSON.stringify(request);
 
-    let message = 'Unknown error';
+    let message = 'Unknown error.';
     let statusCode: number | undefined;
 
     for (let i = 1; i <= ATTEMPTS; i++) {

@@ -76,8 +76,8 @@ function TransactionModal({
     startTransfer,
     startStaking,
     closeActivityInfo,
-    setIsPinPadPasswordAccepted,
-    clearIsPinPadPasswordAccepted,
+    setIsPinAccepted,
+    clearIsPinAccepted,
   } = getActions();
 
   const lang = useLang();
@@ -185,12 +185,12 @@ function TransactionModal({
     setIsLoading(false);
 
     if (!result) {
-      setPasswordError('Wrong password, please try again');
+      setPasswordError('Wrong password, please try again.');
       return;
     }
 
     if (IS_CAPACITOR) {
-      setIsPinPadPasswordAccepted();
+      setIsPinAccepted();
       await vibrateOnSuccess(true);
     }
 
@@ -201,7 +201,7 @@ function TransactionModal({
   const handleClose = useLastCallback(() => {
     closeActivityInfo({ id: id! });
     if (IS_CAPACITOR) {
-      clearIsPinPadPasswordAccepted();
+      clearIsPinAccepted();
     }
   });
 

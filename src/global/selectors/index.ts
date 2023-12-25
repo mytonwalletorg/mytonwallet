@@ -312,3 +312,7 @@ export function selectLocalTransactions(global: GlobalState, accountId: string) 
 
   return accountState?.activities?.localTransactions;
 }
+
+export function selectIsPasswordPresent(global: GlobalState) {
+  return !!selectFirstNonHardwareAccount(global);
+}

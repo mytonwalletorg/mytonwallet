@@ -84,9 +84,13 @@ function StakeModal({
     if (!tonToken || !amount) return undefined;
 
     const logoPath = tonToken.image || ASSET_LOGO_PATHS[tonToken.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
+    const stakingInfoClassName = buildClassName(
+      styles.stakingShortInfo,
+      !IS_CAPACITOR && styles.stakingShortInfoInsidePasswordForm,
+    );
 
     return (
-      <div className={styles.stakingShortInfo}>
+      <div className={stakingInfoClassName}>
         <img src={logoPath} alt={tonToken.symbol} className={styles.tokenIcon} />
         <span>{formatCurrency(amount, tonToken.symbol)}</span>
       </div>
@@ -110,7 +114,7 @@ function StakeModal({
           onCancel={handleBackClick}
           cancelLabel={lang('Back')}
         >
-          {IS_CAPACITOR && renderStakingShortInfo()}
+          {renderStakingShortInfo()}
         </PasswordForm>
       </>
     );

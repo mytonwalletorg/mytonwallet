@@ -16,8 +16,7 @@ import {
   TELEGRAM_WEB_URL,
 } from '../../config';
 import {
-  selectAccountSettings,
-  selectCurrentAccountTokens,
+  selectAccountSettings, selectCurrentAccountTokens, selectIsHardwareAccount, selectIsPasswordPresent,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { getIsNativeBiometricAuthSupported } from '../../util/capacitor';
@@ -87,6 +86,8 @@ type StateProps = {
   tokens?: UserToken[];
   orderedSlugs?: string[];
   isBiometricAuthEnabled: boolean;
+  isPasswordPresent?: boolean;
+  isHardwareAccount?: boolean;
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -115,6 +116,8 @@ function Settings({
   orderedSlugs,
   isInsideModal,
   isBiometricAuthEnabled,
+  isPasswordPresent,
+  isHardwareAccount,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
@@ -128,7 +131,7 @@ function Settings({
     initTokensOrder,
     openBiometricsTurnOn,
     openBiometricsTurnOffWarning,
-    clearIsPinPadPasswordAccepted,
+    clearIsPinAccepted,
   } = getActions();
 
   const lang = useLang();
@@ -159,7 +162,7 @@ function Settings({
 
   const handleSlideAnimationStop = useLastCallback(() => {
     if (prevRenderingKeyRef.current === SettingsState.NativeBiometricsTurnOn) {
-      clearIsPinPadPasswordAccepted();
+      clearIsPinAccepted();
     }
   });
 
@@ -341,12 +344,12 @@ function Settings({
           className={buildClassName(styles.content, 'custom-scroll')}
           onScroll={handleContentScroll}
         >
-          {getIsNativeBiometricAuthSupported() && (
+          {isPasswordPresent && getIsNativeBiometricAuthSupported() && (
             <NativeBiometricsToggle
               onEnable={handleNativeBiometricsTurnOnOpen}
             />
           )}
-          {IS_BIOMETRIC_AUTH_SUPPORTED && (
+          {isPasswordPresent && IS_BIOMETRIC_AUTH_SUPPORTED && (
             <div className={styles.block}>
               <div className={styles.item} onClick={handleBiometricAuthToggle}>
                 <img className={styles.menuIcon} src={biometricsImg} alt={lang('Biometric Authentication')} />
@@ -436,12 +439,14 @@ function Settings({
           </div>
 
           <div className={styles.block}>
-            <div className={styles.item} onClick={handleOpenBackupWallet}>
-              <img className={styles.menuIcon} src={backupSecretImg} alt={lang('Back Up Secret Words')} />
-              {lang('Back Up Secret Words')}
+            {!isHardwareAccount && (
+              <div className={styles.item} onClick={handleOpenBackupWallet}>
+                <img className={styles.menuIcon} src={backupSecretImg} alt={lang('Back Up Secret Words')} />
+                {lang('Back Up Secret Words')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </div>
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            )}
             {IS_LEDGER_SUPPORTED && (
               <div className={styles.item} onClick={handleOpenHardwareModal}>
                 <img className={styles.menuIcon} src={ledgerImg} alt={lang('Connect Ledger')} />
@@ -587,6 +592,8 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { authConfig } = global.settings;
 
   const { orderedSlugs } = selectAccountSettings(global, global.currentAccountId!) ?? {};
+  const isHardwareAccount = selectIsHardwareAccount(global);
+  const isPasswordPresent = selectIsPasswordPresent(global);
 
   return {
     settings: global.settings,
@@ -594,6 +601,8 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     tokens: selectCurrentAccountTokens(global),
     orderedSlugs,
     isBiometricAuthEnabled: !!authConfig && authConfig.kind !== 'password',
+    isPasswordPresent,
+    isHardwareAccount,
   };
 })(Settings));
 

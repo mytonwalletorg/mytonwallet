@@ -56,7 +56,7 @@ Back Up Secret Words: 備份註記詞
 Settings: 設定
 About: 關於
 Exit: 斷開連結
-Something went wrong: 狀況異常
+Something went wrong: 狀況異常。
 Logo: Logo
 $about_description1: 安全地存儲加密貨幣、探索 dAPP 並以**光速**進行區塊鏈支付
 $about_description2: 錢包是**非託管且安全的**。開發人員無權使用您的資金、瀏覽器歷史記錄或任何其他資訊
@@ -192,7 +192,7 @@ Yesterday: 昨天
 Now: 現在
 $receive_ton_description: 您可以分享您的地址、掃描二維碼或建立存款連結來接收加密貨幣。
 Your address: 您的地址
-Wrong password, please try again: 密碼錯誤，請再嘗試一次
+Wrong password, please try again.: 密碼錯誤，請再嘗試一次。
 Appearance: 外觀
 Light: 亮色模式
 Dark: 暗色模式
@@ -420,11 +420,11 @@ Enabling biometric confirmation will reset the password.: 啟用生物辨識確�
 Biometric Registration: 生物辨識註冊
 Step 1 of 2. Registration: 第 1 步（共 2 步）：註冊
 Step 2 of 2. Verification: 第 2 步（共 2 步）：驗證
-Biometric setup failed: 生物辨識設定失敗
-Biometric confirmation failed: 生物辨識確認失敗
-Failed to disable biometrics: 無法禁用生物識別
+Biometric setup failed.: 生物辨識設定失敗。
+Biometric confirmation failed.: 生物辨識確認失敗。
+Failed to disable biometrics.: 無法禁用生物識別。
 Biometric Confirmation: 生物辨識確認
-Please verify your identity.: 請證明你的身分。
+Please verify the operation.: 請驗證操作。
 Create Password: 建立密碼
 Complete: 罷
 Verification: 確認
@@ -478,17 +478,17 @@ Enter code or use Touch ID: 輸入代碼或使用 Touch ID
 Enter code or use biometrics: 輸入代碼或使用生物辨識技術
 Wrong code, please try again: 程式碼錯誤，請重試
 Scan your fingerprint: 掃描您的指紋
-Incorrect code, please try again: Incorrect code, please try again
+Incorrect code, please try again.: 不正確的代碼，請重試。
 Correct: 不錯
 Confirm Operation: 確認操作
 Confirm Swap: 確認兌換
 "%amount% to %address%": "%amount% 至 %address%"
 "%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
-Failed to enable biometrics: 無法啟用生物識別
-Disable Face ID: Disable Face ID
-Disable Touch ID: Disable Touch ID
-Disable Biometrics: Disable Biometrics
+Failed to enable biometrics.: 無法啟用生物識別。
+Please try to confirm your biometrics again.: 請嘗試再次確認您的生物辨識訊息。
+Unknown error.: 未知錯誤。
 Are you sure you want to disable Face ID?: 您確定要禁用Face ID嗎？
 Are you sure you want to disable Touch ID?: 您確定要禁用Touch ID嗎？
 Are you sure you want to disable biometrics?: 您確定要禁用生物識別技術嗎？
 Yes: 是的
+Declined. Please try to confirm transaction using biometrics again.: 拒絕了。 請嘗試再次使用生物辨識技術確認交易。

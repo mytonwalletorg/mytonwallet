@@ -59,14 +59,14 @@ interface StateProps {
   cardTokenSlug?: string;
 }
 
-const ESTIMATE_REQUEST_INTERVAL = 15_000;
+const ESTIMATE_REQUEST_INTERVAL = 5_000;
 const ESTIMATE_REQUEST_DEBOUNCE_TIME = 500;
 const DEFAULT_SWAP_FEE = 0.5;
 
 function SwapInitial({
   currentSwap: {
-    tokenInSlug = TON_TOKEN_SLUG,
-    tokenOutSlug = JWBTC_TOKEN_SLUG,
+    tokenInSlug,
+    tokenOutSlug,
     amountIn,
     amountOut,
     errorType,
@@ -113,18 +113,21 @@ function SwapInitial({
 
   const [hasAmountInError, setHasAmountInError] = useState(false);
 
-  const tokenInTransitionKey = useTokenTransitionKey(tokenInSlug);
+  const currentTokenInSlug = tokenInSlug ?? TON_TOKEN_SLUG;
+  const currentTokenOutSlug = tokenOutSlug ?? JWBTC_TOKEN_SLUG;
+
+  const tokenInTransitionKey = useTokenTransitionKey(currentTokenInSlug ?? '');
 
   const accountIdPrev = usePrevious(accountId, true);
 
   const tokenIn = useMemo(
-    () => tokens?.find((token) => token.slug === tokenInSlug),
-    [tokenInSlug, tokens],
+    () => tokens?.find((token) => token.slug === currentTokenInSlug),
+    [currentTokenInSlug, tokens],
   );
 
   const tokenOut = useMemo(
-    () => tokens?.find((token) => token.slug === tokenOutSlug),
-    [tokenOutSlug, tokens],
+    () => tokens?.find((token) => token.slug === currentTokenOutSlug),
+    [currentTokenOutSlug, tokens],
   );
 
   const TON = useMemo(
@@ -132,7 +135,7 @@ function SwapInitial({
     [tokens],
   );
 
-  const isTokenInTON = tokenInSlug === TON_TOKEN_SLUG;
+  const isTokenInTON = currentTokenInSlug === TON_TOKEN_SLUG;
   const totalTonAmount = useMemo(
     () => {
       if (!tokenIn || !amountIn) {
@@ -157,8 +160,8 @@ function SwapInitial({
   const isCrosschain = swapType === SwapType.CrosschainFromTon || swapType === SwapType.CrosschainToTon;
 
   const isReverseProhibited = useMemo(() => {
-    return isCrosschain || pairs?.bySlug?.[tokenInSlug]?.[tokenOutSlug]?.isReverseProhibited;
-  }, [isCrosschain, pairs, tokenInSlug, tokenOutSlug]);
+    return isCrosschain || pairs?.bySlug?.[currentTokenInSlug]?.[currentTokenOutSlug]?.isReverseProhibited;
+  }, [currentTokenInSlug, currentTokenOutSlug, isCrosschain, pairs?.bySlug]);
 
   const handleEstimateSwap = useLastCallback((shouldBlock: boolean) => {
     if (isCrosschain) {
@@ -181,10 +184,12 @@ function SwapInitial({
   useEffect(() => {
     if (cardTokenSlug === TON_TOKEN_SLUG) {
       setDefaultSwapParams({ tokenInSlug: JUSDT_TOKEN_SLUG, tokenOutSlug: cardTokenSlug });
-    } else {
+    } else if (cardTokenSlug) {
       setDefaultSwapParams({ tokenOutSlug: cardTokenSlug });
+    } else if (!tokenInSlug && !tokenOutSlug) {
+      setDefaultSwapParams();
     }
-  }, [cardTokenSlug]);
+  }, [cardTokenSlug, tokenInSlug, tokenOutSlug]);
 
   useEffect(() => {
     const clearEstimateTimer = () => estimateIntervalId.current && window.clearInterval(estimateIntervalId.current);
@@ -202,13 +207,13 @@ function SwapInitial({
   useEffect(() => {
     const shouldForceUpdate = accountId !== accountIdPrev;
 
-    if (tokenInSlug) {
-      loadSwapPairs({ tokenSlug: tokenInSlug, shouldForceUpdate });
+    if (currentTokenInSlug) {
+      loadSwapPairs({ tokenSlug: currentTokenInSlug, shouldForceUpdate });
     }
-    if (tokenOutSlug) {
-      loadSwapPairs({ tokenSlug: tokenOutSlug, shouldForceUpdate });
+    if (currentTokenOutSlug) {
+      loadSwapPairs({ tokenSlug: currentTokenOutSlug, shouldForceUpdate });
     }
-  }, [tokenInSlug, tokenOutSlug, accountId, accountIdPrev]);
+  }, [accountId, accountIdPrev, currentTokenInSlug, currentTokenOutSlug]);
 
   useEffect(() => {
     if (tokenIn?.blockchain === 'ton' && tokenOut?.blockchain !== 'ton') {

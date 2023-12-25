@@ -8,7 +8,7 @@ import { addActionHandler, setGlobal } from '../../index';
 import {
   addLocalTransaction,
   assignRemoteTxId,
-  clearIsPinPadPasswordAccepted,
+  clearIsPinAccepted,
   removeLocalTransaction,
   updateAccountState,
   updateActivitiesIsLoadingByAccount,
@@ -40,7 +40,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           isLoading: false,
         });
         if (IS_CAPACITOR) {
-          global = clearIsPinPadPasswordAccepted(global);
+          global = clearIsPinAccepted(global);
         }
       }
 

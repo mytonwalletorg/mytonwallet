@@ -60,7 +60,7 @@ function TurnOn({
     try {
       enableBiometrics({ password });
     } catch (err: any) {
-      setLocalError(err.message || 'Unknown error');
+      setLocalError(err.message || 'Unknown error.');
     }
   });
 

@@ -112,7 +112,7 @@ class TonConnect implements TonConnectBridge {
     return response || {
       error: {
         code: 0,
-        message: 'Unknown error',
+        message: 'Unknown error.',
       },
       id,
     };
@@ -143,7 +143,7 @@ class TonConnect implements TonConnectBridge {
 
   private static buildConnectError(
     id: number,
-    msg = 'Unknown error',
+    msg = 'Unknown error.',
     code?: CONNECT_EVENT_ERROR_CODES,
   ): ConnectEventError {
     return {

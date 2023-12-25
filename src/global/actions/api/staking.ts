@@ -8,11 +8,11 @@ import { callApi } from '../../../api';
 import { humanToBigStr } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
-  clearIsPinPadPasswordAccepted,
+  clearIsPinAccepted,
   clearStaking,
+  setIsPinAccepted,
   updateAccountStakingStatePartial,
   updateAccountState,
-  updateIsPinPadPasswordAccepted,
   updateStaking,
 } from '../../reducers';
 import { selectAccountState } from '../../selectors';
@@ -127,7 +127,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
   const { currentAccountId } = global;
 
   if (!(await callApi('verifyPassword', password))) {
-    setGlobal(updateStaking(getGlobal(), { error: 'Wrong password, please try again' }));
+    setGlobal(updateStaking(getGlobal(), { error: 'Wrong password, please try again.' }));
 
     return;
   }
@@ -135,7 +135,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
   global = getGlobal();
 
   if (IS_CAPACITOR) {
-    global = updateIsPinPadPasswordAccepted(global);
+    global = setIsPinAccepted(global);
   }
 
   global = updateStaking(global, {
@@ -180,7 +180,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       });
 
       if (IS_CAPACITOR) {
-        global = clearIsPinPadPasswordAccepted(global);
+        global = clearIsPinAccepted(global);
       }
     } else {
       global = updateStaking(global, { state: StakingState.UnstakeComplete });
@@ -206,7 +206,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       });
 
       if (IS_CAPACITOR) {
-        global = clearIsPinPadPasswordAccepted(global);
+        global = clearIsPinAccepted(global);
       }
     } else {
       global = updateStaking(global, { state: StakingState.StakeComplete });
@@ -222,7 +222,7 @@ addActionHandler('clearStakingError', (global) => {
 
 addActionHandler('cancelStaking', (global) => {
   if (IS_CAPACITOR) {
-    global = clearIsPinPadPasswordAccepted(global);
+    global = clearIsPinAccepted(global);
   }
 
   global = clearStaking(global);

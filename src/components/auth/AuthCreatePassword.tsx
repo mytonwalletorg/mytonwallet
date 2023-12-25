@@ -4,6 +4,7 @@ import { getActions } from '../../global';
 import type { AuthMethod } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
+import { getIsBiometricAuthSupported } from '../../util/capacitor';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -31,6 +32,7 @@ const AuthCreatePassword = ({
   const lang = useLang();
   const isImporting = method !== 'createAccount';
   const formId = getFormId(method!);
+  const withDescription = !getIsBiometricAuthSupported();
 
   useHistoryBack({
     isActive,
@@ -45,19 +47,25 @@ const AuthCreatePassword = ({
     <div className={buildClassName(styles.container, styles.container_scrollable, 'custom-scroll')}>
       <AnimatedIconWithPreview
         play={isActive}
-        tgsUrl={ANIMATED_STICKERS_PATHS.happy}
-        previewUrl={ANIMATED_STICKERS_PATHS.happyPreview}
+        tgsUrl={ANIMATED_STICKERS_PATHS.guard}
+        previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}
         noLoop={false}
         nonInteractive
         className={styles.sticker}
       />
-      <div className={styles.title}>{lang('Congratulations!')}</div>
-      <p className={styles.info}>
-        <b>{lang(isImporting ? 'The wallet is imported' : 'The wallet is ready')}.</b>
-      </p>
-      <p className={styles.info}>
-        {lang('Create a password to protect it.')}
-      </p>
+      <div className={buildClassName(styles.title, !withDescription && styles.titleSmallMargin)}>
+        {lang(withDescription ? 'Congratulations!' : 'Create Password')}
+      </div>
+      {withDescription && (
+        <>
+          <p className={styles.info}>
+            <b>{lang(isImporting ? 'The wallet is imported' : 'The wallet is ready')}.</b>
+          </p>
+          <p className={styles.info}>
+            {lang('Create a password to protect it.')}
+          </p>
+        </>
+      )}
 
       <CreatePasswordForm
         isActive={isActive}

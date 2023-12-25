@@ -22,14 +22,14 @@ interface OwnProps {
 }
 
 interface StateProps {
-  isPinPadPasswordAccepted?: boolean;
+  isPinAccepted?: boolean;
   error?: string;
   isNativeBiometricsEnabled?: boolean;
 }
 
 function NativeBiometricsTurnOn({
   isActive,
-  isPinPadPasswordAccepted,
+  isPinAccepted,
   error,
   isNativeBiometricsEnabled,
   handleBackClick,
@@ -40,8 +40,8 @@ function NativeBiometricsTurnOn({
   const [pin, setPin] = useState<string>('');
   const pinPadType = pin.length !== PIN_LENGTH
     ? undefined
-    : (isPinPadPasswordAccepted ? 'success' : (error ? 'error' : undefined));
-  const pinTitle = isPinPadPasswordAccepted
+    : (isPinAccepted ? 'success' : (error ? 'error' : undefined));
+  const pinTitle = isPinAccepted
     ? 'Correct'
     : (error && pin.length === PIN_LENGTH ? error : 'Enter code');
 
@@ -104,12 +104,12 @@ function NativeBiometricsTurnOn({
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
     nativeBiometricsError,
-    isPinPadPasswordAccepted,
+    isPinAccepted,
     settings: { authConfig },
   } = global;
 
   return {
-    isPinPadPasswordAccepted,
+    isPinAccepted,
     error: nativeBiometricsError,
     isNativeBiometricsEnabled: !!authConfig && authConfig.kind === 'native-biometrics',
   };

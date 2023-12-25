@@ -392,6 +392,16 @@
   padding-top: 2rem;
 }
 
+.footerButtons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
 .buttonsInsideContentWithScroll {
   margin-bottom: -1rem;
   padding-bottom: 1rem;
@@ -410,6 +420,11 @@
   width: 100%;
   min-width: 9rem !important;
   max-width: 68vw !important;
+}
+
+.buttonHalfWidth {
+  width: 100%;
+  max-width: calc((100% - 1rem) / 2) !important;
 }
 
 .shortButton {

@@ -8,6 +8,7 @@ import useLastCallback from './useLastCallback';
 import usePrevious from './usePrevious';
 
 type GetMore = (args: { direction: LoadMoreDirection }) => void;
+type ResetScroll = () => void;
 type LoadMoreBackwards = (args: { offsetId?: string | number }) => void;
 
 const DEFAULT_LIST_SLICE = 30;
@@ -17,7 +18,7 @@ const useInfiniteScroll = <ListId extends string | number>(
   listIds?: ListId[],
   isDisabled = false,
   listSlice = DEFAULT_LIST_SLICE,
-): [ListId[]?, GetMore?] => {
+): [ListId[]?, GetMore?, ResetScroll?] => {
   const requestParamsRef = useRef<{
     direction?: LoadMoreDirection;
     offsetId?: ListId;
@@ -94,7 +95,19 @@ const useInfiniteScroll = <ListId extends string | number>(
     }
   });
 
-  return isDisabled ? [listIds] : [currentStateRef.current?.viewportIds, getMore];
+  const resetScroll: ResetScroll = useLastCallback(() => {
+    if (!listIds?.length) return;
+
+    const {
+      newViewportIds,
+      newIsOnTop,
+    } = getViewportSlice(listIds, LoadMoreDirection.Forwards, listSlice, listIds[0]);
+
+    currentStateRef.current = { viewportIds: newViewportIds, isOnTop: newIsOnTop };
+    requestParamsRef.current = {};
+  });
+
+  return isDisabled ? [listIds] : [currentStateRef.current?.viewportIds, getMore, resetScroll];
 };
 
 function getViewportSlice<ListId extends string | number>(

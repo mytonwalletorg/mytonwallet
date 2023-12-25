@@ -1,6 +1,8 @@
 import React, { memo, type TeactNode } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
+import { IS_CAPACITOR } from '../../config';
+
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
@@ -33,7 +35,7 @@ function TransferPassword({
 
   return (
     <>
-      {!children && <ModalHeader title={lang('Confirm Transaction')} onClose={cancelTransfer} />}
+      {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Transaction')} onClose={cancelTransfer} />}
       <PasswordForm
         isActive={isActive}
         isLoading={isLoading}

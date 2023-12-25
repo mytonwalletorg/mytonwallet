@@ -582,6 +582,7 @@ export default memo(
 
       const isLedger = selectIsHardwareAccount(global);
       const accountState = selectCurrentAccountState(global);
+      const baseCurrency = global.settings.baseCurrency;
 
       return {
         toAddress,
@@ -595,6 +596,7 @@ export default memo(
         isEncryptedCommentSupported: !isLedger,
         isCommentSupported: !tokenSlug || tokenSlug === TON_TOKEN_SLUG || !isLedger,
         isLoading,
+        baseCurrency,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

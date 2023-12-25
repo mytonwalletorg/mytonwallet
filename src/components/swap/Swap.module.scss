@@ -595,7 +595,6 @@
     }
   }
 
-
   @media (pointer: coarse) {
     &:active {
       color: var(--color-input-button-text);
@@ -760,6 +759,12 @@ $animation-time: 350ms;
 
   background-color: var(--color-activity-blue-background);
   border-radius: 1rem;
+}
+
+.swapShortInfoInsidePasswordForm {
+  align-self: center;
+
+  margin-bottom: 2rem;
 }
 
 .swapShortAmount {

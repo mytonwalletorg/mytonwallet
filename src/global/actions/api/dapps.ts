@@ -11,12 +11,12 @@ import {
   clearConnectedDapps,
   clearCurrentDappTransfer,
   clearDappConnectRequest,
-  clearIsPinPadPasswordAccepted,
+  clearIsPinAccepted,
   removeConnectedDapp,
+  setIsPinAccepted,
   updateConnectedDapps,
   updateCurrentDappTransfer,
   updateDappConnectRequest,
-  updateIsPinPadPasswordAccepted,
 } from '../../reducers';
 import { selectAccount, selectIsHardwareAccount, selectNewestTxIds } from '../../selectors';
 
@@ -31,7 +31,7 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
 
   if (permissions?.isPasswordRequired && (!password || !(await callApi('verifyPassword', password)))) {
     global = getGlobal();
-    global = updateDappConnectRequest(global, { error: 'Wrong password, please try again' });
+    global = updateDappConnectRequest(global, { error: 'Wrong password, please try again.' });
     setGlobal(global);
 
     return;
@@ -39,7 +39,7 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
 
   if (IS_CAPACITOR) {
     global = getGlobal();
-    global = updateIsPinPadPasswordAccepted(global);
+    global = setIsPinAccepted(global);
     setGlobal(global);
   }
 
@@ -128,7 +128,7 @@ addActionHandler('cancelDappConnectRequestConfirm', (global) => {
   const { promiseId } = global.dappConnectRequest || {};
 
   if (IS_CAPACITOR) {
-    global = clearIsPinPadPasswordAccepted(global);
+    global = clearIsPinAccepted(global);
     setGlobal(global);
   }
 
@@ -151,7 +151,7 @@ addActionHandler('cancelDappTransfer', (global) => {
   const { promiseId } = global.currentDappTransfer;
 
   if (IS_CAPACITOR) {
-    global = clearIsPinPadPasswordAccepted(global);
+    global = clearIsPinAccepted(global);
     setGlobal(global);
   }
 
@@ -173,7 +173,7 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
   if (!(await callApi('verifyPassword', password))) {
     global = getGlobal();
     global = updateCurrentDappTransfer(global, {
-      error: 'Wrong password, please try again',
+      error: 'Wrong password, please try again.',
     });
     setGlobal(global);
 
@@ -188,7 +188,7 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
 
   global = getGlobal();
   if (IS_CAPACITOR) {
-    global = updateIsPinPadPasswordAccepted(global);
+    global = setIsPinAccepted(global);
   }
   global = updateCurrentDappTransfer(global, {
     isLoading: true,
@@ -236,7 +236,7 @@ addActionHandler('submitDappTransferHardware', async (global) => {
       }));
       return;
     } else {
-      void callApi('cancelDappRequest', promiseId, 'Unknown error');
+      void callApi('cancelDappRequest', promiseId, 'Unknown error.');
     }
   }
 

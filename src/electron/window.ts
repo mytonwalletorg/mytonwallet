@@ -16,7 +16,7 @@ import {
   mainWindow, setMainWindow, store, WINDOW_STATE_FILE,
 } from './utils';
 
-const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://'];
+const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://', BASE_URL];
 
 export function createWindow() {
   const windowState = windowStateKeeper({

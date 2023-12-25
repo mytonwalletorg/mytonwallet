@@ -59,7 +59,7 @@ Back Up Secret Words: Copia de seguridad
 Settings: Configuración
 About: Acerca de
 Exit: Salir
-Something went wrong: Oops! Algo salió mal
+Something went wrong.: Oops! Algo salió mal.
 Logo: Logotipo
 $about_description1: Almacene criptomonedas de forma segura, explore aplicaciones descentralizadas y realice pagos blockchain a la **velocidad de la luz**.
 $about_description2: Un monedero **sin custodia y seguro**. Los desarrolladores **no** tienen acceso a sus activos, historial del navegador o cualquier otra información.
@@ -200,7 +200,7 @@ Yesterday: Ayer
 Now: Ahora
 $receive_ton_description: Puede compartir su dirección, escanear un código QR o crear un enlace de depósito para recibir criptomonedas.
 Your address: Tu dirección
-Wrong password, please try again: Contraseña incorrecta, inténtalo de nuevo
+Wrong password, please try again.: Contraseña incorrecta, inténtalo de nuevo.
 Appearance: Apariencia
 Assets and Activity: Activos y Actividad
 Light: Claro
@@ -437,11 +437,11 @@ Enabling biometric confirmation will reset the password.: Al habilitar la confir
 Biometric Registration: Registro Biométrico
 Step 1 of 2. Registration: Paso 1 de 2. Registro
 Step 2 of 2. Verification: Paso 2 de 2. Verificación
-Biometric setup failed: Error en la configuración biométrica
-Biometric confirmation failed: Error de confirmación biométrica
-Failed to disable biometrics: No se pudo desactivar la biometría
+Biometric setup failed.: Error en la configuración biométrica.
+Biometric confirmation failed.: Error de confirmación biométrica.
+Failed to disable biometrics.: No se pudo desactivar la biometría.
 Biometric Confirmation: Confirmación biométrica
-Please verify your identity.: Verifique por favor su Identidad.
+Please verify the operation.: Verifique la operación.
 Create Password: Crear contraseña
 Complete: Completo
 Verification: Verificación
@@ -495,13 +495,17 @@ Enter code or use Touch ID: Ingresa el código o usa Touch ID
 Enter code or use biometrics: Ingrese el código o use datos biométricos
 Wrong code, please try again: Código incorrecto, inténtalo de nuevo.
 Scan your fingerprint: Escanea tu huella digital
-Incorrect code, please try again: Codigo Incorrecto, por favor intenta de nuevo
+Incorrect code, please try again.: Codigo Incorrecto, por favor intenta de nuevo.
 Correct: Correcto
 Confirm Operation: Confirmar operación
 Confirm Swap: Confirmar intercambio
 "%amount% to %address%": "%amount% a %address%"
 "%amount_from% to %amount_to%": "%amount_from% a %amount_to%"
+Failed to enable biometrics.: No se pudo habilitar la biometría.
+Please try to confirm your biometrics again.: Intente confirmar sus datos biométricos nuevamente.
+Unknown error.: Error desconocido.
 Are you sure you want to disable Face ID?: ¿Estás seguro de que quieres deshabilitar Face ID?
 Are you sure you want to disable Touch ID?: ¿Estás seguro de que quieres deshabilitar Touch ID?
 Are you sure you want to disable biometrics?: ¿Estás seguro de que quieres deshabilitar la biometría?
 Yes: Sí
+Declined. Please try to confirm transaction using biometrics again.: Rechazado. Intente confirmar la transacción nuevamente utilizando datos biométricos.

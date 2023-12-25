@@ -25,13 +25,13 @@ import { INITIAL_STATE } from '../../initialState';
 import {
   clearCurrentSwap,
   clearCurrentTransfer,
-  clearIsPinPadPasswordAccepted,
+  clearIsPinAccepted,
   createAccount,
+  setIsPinAccepted,
   updateAuth,
   updateBiometrics,
   updateCurrentAccountState,
   updateHardware,
-  updateIsPinPadPasswordAccepted,
   updateSettings,
 } from '../../reducers';
 import {
@@ -126,6 +126,24 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   }
 });
 
+addActionHandler('startCreatingBiometrics', (global) => {
+  global = updateAuth(global, {
+    state: global.auth.method !== 'createAccount'
+      ? AuthState.importWalletConfirmBiometrics
+      : AuthState.confirmBiometrics,
+    biometricsStep: 1,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('cancelCreateBiometrics', (global) => {
+  global = updateAuth(global, {
+    state: AuthState.createBiometrics,
+    biometricsStep: undefined,
+  });
+  setGlobal(global);
+});
+
 addActionHandler('createPin', (global, actions, { pin, isImporting }) => {
   global = updateAuth(global, {
     state: isImporting ? AuthState.importWalletConfirmPin : AuthState.confirmPin,
@@ -201,7 +219,7 @@ addActionHandler('afterCreateBiometrics', async (global, actions) => {
     });
 
     if (!result) {
-      global = updateAuth(global, { error: 'Biometric setup failed' });
+      global = updateAuth(global, { error: 'Biometric setup failed.' });
       setGlobal(global);
 
       return;
@@ -213,8 +231,8 @@ addActionHandler('afterCreateBiometrics', async (global, actions) => {
     actions.afterCreatePassword({ password: result.password });
   } catch (err: any) {
     const error = err?.message.includes('privacy-considerations-client')
-      ? 'Biometric setup failed'
-      : (err?.message || 'Biometric setup failed');
+      ? 'Biometric setup failed.'
+      : (err?.message || 'Biometric setup failed.');
     global = getGlobal();
     global = updateAuth(global, {
       isLoading: false,
@@ -223,6 +241,11 @@ addActionHandler('afterCreateBiometrics', async (global, actions) => {
     });
     setGlobal(global);
   }
+});
+
+addActionHandler('skipCreateBiometrics', (global) => {
+  global = updateAuth(global, { state: AuthState.createPassword });
+  setGlobal(global);
 });
 
 addActionHandler('afterCreateNativeBiometrics', async (global, actions) => {
@@ -244,8 +267,8 @@ addActionHandler('afterCreateNativeBiometrics', async (global, actions) => {
     actions.afterCreatePassword({ password: password!, isPasswordNumeric: true });
   } catch (err: any) {
     const error = err?.message.includes('privacy-considerations-client')
-      ? 'Biometric setup failed'
-      : (err?.message || 'Biometric setup failed');
+      ? 'Biometric setup failed.'
+      : (err?.message || 'Biometric setup failed.');
     global = getGlobal();
     global = updateAuth(global, {
       isLoading: false,
@@ -296,7 +319,7 @@ addActionHandler('createAccount', async (global, actions, { password, isImportin
     password: undefined,
     ...(isPasswordNumeric && { isPasswordNumeric: true }),
   });
-  global = clearIsPinPadPasswordAccepted(global);
+  global = clearIsPinAccepted(global);
 
   if (isImporting) {
     const hasAccounts = Object.keys(selectAccounts(global) || {}).length > 0;
@@ -673,7 +696,7 @@ addActionHandler('resetHardwareWalletConnect', (global) => {
 addActionHandler('enableBiometrics', async (global, actions, { password }) => {
   if (!(await callApi('verifyPassword', password))) {
     global = getGlobal();
-    global = updateBiometrics(global, { error: 'Wrong password, please try again' });
+    global = updateBiometrics(global, { error: 'Wrong password, please try again.' });
     setGlobal(global);
 
     return;
@@ -700,7 +723,7 @@ addActionHandler('enableBiometrics', async (global, actions, { password }) => {
     global = getGlobal();
     if (!result) {
       global = updateBiometrics(global, {
-        error: 'Biometric setup failed',
+        error: 'Biometric setup failed.',
         state: BiometricsState.TurnOnPasswordConfirmation,
       });
       setGlobal(global);
@@ -718,8 +741,8 @@ addActionHandler('enableBiometrics', async (global, actions, { password }) => {
     setGlobal(global);
   } catch (err: any) {
     const error = err?.message.includes('privacy-considerations-client')
-      ? 'Biometric setup failed'
-      : (err?.message || 'Biometric setup failed');
+      ? 'Biometric setup failed.'
+      : (err?.message || 'Biometric setup failed.');
     global = getGlobal();
     global = updateBiometrics(global, {
       error,
@@ -733,7 +756,7 @@ addActionHandler('disableBiometrics', async (global, actions, { password, isPass
   const { password: oldPassword } = global.biometrics;
 
   if (!password || !oldPassword) {
-    global = updateBiometrics(global, { error: 'Biometric confirmation failed' });
+    global = updateBiometrics(global, { error: 'Biometric confirmation failed.' });
     setGlobal(global);
 
     return;
@@ -743,7 +766,7 @@ addActionHandler('disableBiometrics', async (global, actions, { password, isPass
     await callApi('changePassword', oldPassword, password);
   } catch (err: any) {
     global = getGlobal();
-    global = updateBiometrics(global, { error: err?.message || 'Failed to disable biometrics' });
+    global = updateBiometrics(global, { error: err?.message || 'Failed to disable biometrics.' });
     setGlobal(global);
 
     return;
@@ -787,7 +810,7 @@ addActionHandler('openBiometricsTurnOff', async (global) => {
   global = getGlobal();
 
   if (!password) {
-    global = updateBiometrics(global, { error: 'Biometric confirmation failed' });
+    global = updateBiometrics(global, { error: 'Biometric confirmation failed.' });
   } else {
     global = updateBiometrics(global, {
       state: BiometricsState.TurnOffCreatePassword,
@@ -811,9 +834,9 @@ addActionHandler('enableNativeBiometrics', async (global, actions, { password })
     global = getGlobal();
     global = {
       ...global,
-      nativeBiometricsError: 'Incorrect code, please try again',
+      nativeBiometricsError: 'Incorrect code, please try again.',
     };
-    global = clearIsPinPadPasswordAccepted(global);
+    global = clearIsPinAccepted(global);
     setGlobal(global);
 
     return;
@@ -821,7 +844,7 @@ addActionHandler('enableNativeBiometrics', async (global, actions, { password })
 
   global = getGlobal();
 
-  global = updateIsPinPadPasswordAccepted(global);
+  global = setIsPinAccepted(global);
   global = {
     ...global,
     nativeBiometricsError: undefined,
@@ -840,9 +863,9 @@ addActionHandler('enableNativeBiometrics', async (global, actions, { password })
       global = getGlobal();
       global = {
         ...global,
-        nativeBiometricsError: 'Failed to enable biometrics',
+        nativeBiometricsError: 'Failed to enable biometrics.',
       };
-      global = clearIsPinPadPasswordAccepted(global);
+      global = clearIsPinAccepted(global);
       setGlobal(global);
       void vibrateOnError();
 
@@ -867,9 +890,9 @@ addActionHandler('enableNativeBiometrics', async (global, actions, { password })
     global = getGlobal();
     global = {
       ...global,
-      nativeBiometricsError: err?.message || 'Failed to enable biometrics',
+      nativeBiometricsError: err?.message || 'Failed to enable biometrics.',
     };
-    global = clearIsPinPadPasswordAccepted(global);
+    global = clearIsPinAccepted(global);
     setGlobal(global);
 
     void vibrateOnError();

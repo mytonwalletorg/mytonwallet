@@ -59,7 +59,7 @@ Back Up Secret Words: Back Up Secret Words
 Settings: Settings
 About: About
 Exit: Exit
-Something went wrong: Something went wrong
+Something went wrong.: Something went wrong.
 Logo: Logo
 $about_description1: Securely store crypto, explore decentralized apps, and make blockchain payments at the **speed of light**.
 $about_description2: The wallet is **non-custodial and safe**. The developers **do not** have access to your funds, browser history or any other information.
@@ -202,7 +202,7 @@ $receive_ton_description: |
   You can share your address, scan QR code
   or create a deposit link to receive crypto.
 Your address: Your address
-Wrong password, please try again: Wrong password, please try again
+Wrong password, please try again.: Wrong password, please try again.
 Appearance: Appearance
 Light: Light
 Dark: Dark
@@ -437,11 +437,11 @@ Enabling biometric confirmation will reset the password.: Enabling biometric con
 Biometric Registration: Biometric Registration
 Step 1 of 2. Registration: Step 1 of 2. Registration
 Step 2 of 2. Verification: Step 2 of 2. Verification
-Biometric setup failed: Biometric setup failed
-Biometric confirmation failed: Biometric confirmation failed
-Failed to disable biometrics: Failed to disable biometrics
+Biometric setup failed.: Biometric setup failed.
+Biometric confirmation failed.: Biometric confirmation failed.
+Failed to disable biometrics.: Failed to disable biometrics.
 Biometric Confirmation: Biometric Confirmation
-Please verify your identity.: Please verify your identity.
+Please verify the operation.: Please verify the operation.
 Create Password: Create Password
 Complete: Complete
 Verification: Verification
@@ -497,14 +497,17 @@ Enter code or use Touch ID: Enter code or use Touch ID
 Enter code or use biometrics: Enter code or use biometrics
 Wrong code, please try again: Wrong code, please try again
 Scan your fingerprint: Scan your fingerprint
-Incorrect code, please try again: Incorrect code, please try again
+Incorrect code, please try again.: Incorrect code, please try again.
 Correct: Correct
 Confirm Operation: Confirm Operation
 Confirm Swap: Confirm Swap
 "%amount% to %address%": "%amount% to %address%"
 "%amount_from% to %amount_to%": "%amount_from% to %amount_to%"
-Failed to enable biometrics: Failed to enable biometrics
+Failed to enable biometrics.: Failed to enable biometrics.
+Please try to confirm your biometrics again.: Please try to confirm your biometrics again.
+Unknown error.: Unknown error.
 Are you sure you want to disable Face ID?: Are you sure you want to disable Face ID?
 Are you sure you want to disable Touch ID?: Are you sure you want to disable Touch ID?
 Are you sure you want to disable biometrics?: Are you sure you want to disable biometrics?
 Yes: Yes
+Declined. Please try to confirm transaction using biometrics again.: Declined. Please try to confirm transaction using biometrics again.

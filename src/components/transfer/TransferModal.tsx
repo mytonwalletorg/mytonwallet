@@ -129,9 +129,13 @@ function TransferModal({
 
   function renderTransferShortInfo() {
     const logoPath = selectedToken?.image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
+    const transferInfoClassName = buildClassName(
+      styles.transferShortInfo,
+      !IS_CAPACITOR && styles.transferShortInfoInsidePasswordForm,
+    );
 
     return (
-      <div className={styles.transferShortInfo}>
+      <div className={transferInfoClassName}>
         <img src={logoPath} alt={symbol} className={styles.tokenIcon} />
         <span>
           {lang('%amount% to %address%', {
@@ -172,7 +176,7 @@ function TransferModal({
             onSubmit={handleTransferSubmit}
             onCancel={handleModalCloseWithReset}
           >
-            {IS_CAPACITOR ? renderTransferShortInfo() : undefined}
+            {renderTransferShortInfo()}
           </TransferPassword>
         );
       case TransferState.ConnectHardware:

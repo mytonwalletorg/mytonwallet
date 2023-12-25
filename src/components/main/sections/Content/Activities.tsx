@@ -195,7 +195,9 @@ function Activities({
 
   const throttledLoadMore = useThrottledCallback(loadMore, [loadMore], THROTTLE_TIME, true);
 
-  const [viewportIds, getMore] = useInfiniteScroll(throttledLoadMore, activityIds, undefined, FURTHER_SLICE);
+  const [viewportIds, getMore, resetScroll] = useInfiniteScroll(
+    throttledLoadMore, activityIds, undefined, FURTHER_SLICE,
+  );
 
   const isActivitiesEmpty = !activityList || !activityList.length;
 
@@ -259,6 +261,12 @@ function Activities({
       throttledLoadMore();
     }
   }, [ids, isActivitiesEmpty, isHistoryEndReached, throttledLoadMore]);
+
+  useEffect(() => {
+    if (!isActive && !isLandscape) {
+      resetScroll?.();
+    }
+  }, [isActive, isLandscape, resetScroll]);
 
   useLayoutEffect(() => {
     if (isLandscape && containerRef.current) {

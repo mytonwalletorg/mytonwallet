@@ -22,7 +22,7 @@ export class ManifestContentError extends TonConnectError {
 }
 
 export class UnknownError extends TonConnectError {
-  constructor(message = 'Unknown error') {
+  constructor(message = 'Unknown error.') {
     super(message, 0);
   }
 }
