@@ -182,10 +182,21 @@ function StakingInfoContent({
                 valueClassName={styles.balanceResult}
               />
               <div className={styles.stakingInfoButtons}>
-                <Button className={styles.stakingInfoButton} isPrimary onClick={handleStakeClick}>
+                <Button
+                  className={styles.stakingInfoButton}
+                  isPrimary
+                  isDisabled={isLoading}
+                  onClick={handleStakeClick}
+                >
                   {lang('Stake More')}
                 </Button>
-                <Button className={styles.stakingInfoButton} onClick={handleUnstakeClick}>{lang('Unstake')}</Button>
+                <Button
+                  className={styles.stakingInfoButton}
+                  isDisabled={isLoading}
+                  onClick={handleUnstakeClick}
+                >
+                  {lang('Unstake')}
+                </Button>
               </div>
             </>
           )}

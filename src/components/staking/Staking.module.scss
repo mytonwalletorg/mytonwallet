@@ -356,6 +356,10 @@
 @include respond-below(xs) {
   .stakingInfoNoHistory {
     border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+
+    @supports (padding-bottom: max(1rem, env(safe-area-inset-bottom))) {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom))
+    }
   }
 }
 

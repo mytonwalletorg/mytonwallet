@@ -19,7 +19,6 @@ import {
   IS_OPERA,
   IS_SAFARI,
   IS_WINDOWS,
-  setPageSafeAreaProperty,
   setScrollbarWidthProperty,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -68,7 +67,6 @@ addActionHandler('init', (_, actions) => {
     }
 
     setScrollbarWidthProperty();
-    setPageSafeAreaProperty();
 
     actions.afterInit();
   });

@@ -182,14 +182,18 @@ function SwapInitial({
   });
 
   useEffect(() => {
+    if (!tokenInSlug && !tokenOutSlug) {
+      setDefaultSwapParams();
+    }
+  }, [tokenInSlug, tokenOutSlug]);
+
+  useEffect(() => {
     if (cardTokenSlug === TON_TOKEN_SLUG) {
       setDefaultSwapParams({ tokenInSlug: JUSDT_TOKEN_SLUG, tokenOutSlug: cardTokenSlug });
     } else if (cardTokenSlug) {
       setDefaultSwapParams({ tokenOutSlug: cardTokenSlug });
-    } else if (!tokenInSlug && !tokenOutSlug) {
-      setDefaultSwapParams();
     }
-  }, [cardTokenSlug, tokenInSlug, tokenOutSlug]);
+  }, [cardTokenSlug]);
 
   useEffect(() => {
     const clearEstimateTimer = () => estimateIntervalId.current && window.clearInterval(estimateIntervalId.current);

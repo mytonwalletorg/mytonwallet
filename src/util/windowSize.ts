@@ -5,6 +5,7 @@ import { IS_ANDROID, IS_IOS } from './windowEnvironment';
 
 const WINDOW_RESIZE_THROTTLE_MS = 250;
 const WINDOW_ORIENTATION_CHANGE_THROTTLE_MS = IS_IOS ? 350 : 250;
+const SAFE_AREA_INITIALIZATION_DELAY = 1000;
 
 const initialHeight = window.innerHeight;
 
@@ -27,17 +28,22 @@ if ('visualViewport' in window && (IS_IOS || IS_ANDROID)) {
       width: window.innerWidth,
       height: target.height,
       screenHeight: window.screen.height,
+      safeAreaTop: getSafeAreaTop(),
+      safeAreaBottom: getSafeAreaBottom(),
     };
   }, WINDOW_RESIZE_THROTTLE_MS, true));
 }
 
 export function updateSizes() {
   patchVh();
+  patchSafeAreaProperty();
 
   return {
     width: window.innerWidth,
     height: window.innerHeight,
     screenHeight: window.screen.height,
+    safeAreaTop: getSafeAreaTop(),
+    safeAreaBottom: getSafeAreaBottom(),
   };
 }
 
@@ -55,4 +61,33 @@ function patchVh() {
     const vh = height * 0.01;
     document.documentElement.style.setProperty('--vh', `${vh}px`);
   });
+}
+
+function patchSafeAreaProperty() {
+  const { documentElement } = document;
+
+  // WebKit has issues with this property on page load
+  // https://bugs.webkit.org/show_bug.cgi?id=191872
+  setTimeout(() => {
+    const { safeAreaTop, safeAreaBottom } = currentWindowSize;
+
+    if (!Number.isNaN(safeAreaTop) && safeAreaTop > 0) {
+      requestMutation(() => {
+        documentElement.classList.add('with-safe-area-top');
+      });
+    }
+    if (!Number.isNaN(safeAreaBottom) && safeAreaBottom > 0) {
+      requestMutation(() => {
+        documentElement.classList.add('with-safe-area-bottom');
+      });
+    }
+  }, SAFE_AREA_INITIALIZATION_DELAY);
+}
+
+function getSafeAreaTop() {
+  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-top-value'), 10);
+}
+
+function getSafeAreaBottom() {
+  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom-value'), 10);
 }

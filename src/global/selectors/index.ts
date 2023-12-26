@@ -23,9 +23,9 @@ const selectAccountTokensMemoized = memoized((
   balancesBySlug: Record<string, string>,
   tokenInfo: GlobalState['tokenInfo'],
   accountSettings: AccountSettings,
-  isSortByValueEnabled = false,
-  areTokensWithNoBalanceHidden = false,
-  areTokensWithNoPriceHidden = false,
+  isSortByValueEnabled: boolean = false,
+  areTokensWithNoBalanceHidden: boolean = false,
+  areTokensWithNoPriceHidden: boolean = false,
 ) => {
   const getTotalValue = ({ price, amount }: UserToken) => price * amount;
 
@@ -134,7 +134,7 @@ function createTokenList(
 }
 
 const selectPopularTokensMemoized = memoized(
-  (balancesBySlug, swapTokenInfo) => {
+  (balancesBySlug: Record<string, string>, swapTokenInfo: GlobalState['swapTokenInfo']) => {
     const popularTokenOrder = [
       'TON',
       'BTC',
@@ -157,13 +157,52 @@ const selectPopularTokensMemoized = memoized(
 );
 
 const selectSwapTokensMemoized = memoized(
-  (balancesBySlug, swapTokenInfo) => {
+  (balancesBySlug: Record<string, string>, swapTokenInfo: GlobalState['swapTokenInfo']) => {
     const sortFn = (tokenA: ApiSwapAsset, tokenB: ApiSwapAsset) => (
       tokenA.name.trim().toLowerCase().localeCompare(tokenB.name.trim().toLowerCase())
     );
     return createTokenList(swapTokenInfo, balancesBySlug, sortFn);
   },
 );
+
+const selectAccountTokensForSwapMemoized = memoized((
+  balancesBySlug: Record<string, string>,
+  tokenInfo: GlobalState['tokenInfo'],
+  swapTokenInfo: GlobalState['swapTokenInfo'],
+  accountSettings: AccountSettings,
+  isSortByValueEnabled = false,
+  areTokensWithNoBalanceHidden = false,
+  areTokensWithNoPriceHidden = false,
+) => {
+  return selectAccountTokensMemoized(
+    balancesBySlug,
+    tokenInfo,
+    accountSettings,
+    isSortByValueEnabled,
+    areTokensWithNoBalanceHidden,
+    areTokensWithNoPriceHidden,
+  ).filter((token) => token.slug in swapTokenInfo.bySlug && !token.isDisabled);
+});
+
+export function selectAvailableUserForSwapTokens(global: GlobalState) {
+  const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;
+  if (!balancesBySlug || !global.tokenInfo || !global.swapTokenInfo) {
+    return undefined;
+  }
+
+  const accountSettings = selectAccountSettings(global, global.currentAccountId!) ?? {};
+  const { areTokensWithNoBalanceHidden, areTokensWithNoPriceHidden, isSortByValueEnabled } = global.settings;
+
+  return selectAccountTokensForSwapMemoized(
+    balancesBySlug,
+    global.tokenInfo,
+    global.swapTokenInfo,
+    accountSettings,
+    isSortByValueEnabled,
+    areTokensWithNoBalanceHidden,
+    areTokensWithNoPriceHidden,
+  );
+}
 
 export function selectPopularTokens(global: GlobalState) {
   const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;

@@ -96,7 +96,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 
   background: var(--color-background-first);
   border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);

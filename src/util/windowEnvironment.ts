@@ -1,9 +1,7 @@
 import type { LangCode } from '../global/types';
 
 import { IS_CAPACITOR, IS_FIREFOX_EXTENSION, LANG_LIST } from '../config';
-import { requestForcedReflow, requestMutation } from '../lib/fasterdom/fasterdom';
-
-const SAFE_AREA_INITIALIZATION_DELAY = 1000;
+import { requestForcedReflow } from '../lib/fasterdom/fasterdom';
 
 export function getPlatform() {
   const { userAgent, platform } = window.navigator;
@@ -76,36 +74,6 @@ export function setScrollbarWidthProperty() {
       el.remove();
     };
   });
-}
-
-export function setPageSafeAreaProperty() {
-  const { documentElement } = document;
-
-  // WebKit has issues with this property on page load
-  // https://bugs.webkit.org/show_bug.cgi?id=191872
-  setTimeout(() => {
-    const safeAreaTop = getSafeAreaTop();
-    const safeAreaBottom = getSafeAreaBottom();
-
-    if (!Number.isNaN(safeAreaTop) && safeAreaTop > 0) {
-      requestMutation(() => {
-        documentElement.classList.add('with-safe-area-top');
-      });
-    }
-    if (!Number.isNaN(safeAreaBottom) && safeAreaBottom > 0) {
-      requestMutation(() => {
-        documentElement.classList.add('with-safe-area-bottom');
-      });
-    }
-  }, SAFE_AREA_INITIALIZATION_DELAY);
-}
-
-export function getSafeAreaTop() {
-  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-top-value'), 10);
-}
-
-export function getSafeAreaBottom() {
-  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom-value'), 10);
 }
 
 export const REM = parseInt(getComputedStyle(document.documentElement).fontSize, 10);

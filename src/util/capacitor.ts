@@ -36,6 +36,11 @@ export async function initCapacitor() {
   isFaceIdAvailable = biometricsAvailableResult.biometryType === BiometryType.FACE_ID;
   isTouchIdAvailable = biometricsAvailableResult.biometryType === BiometryType.TOUCH_ID;
 
+  SafeArea.getStatusBarHeight().then(({ statusBarHeight: height }) => {
+    statusBarHeight = height;
+    document.documentElement.style.setProperty('--status-bar-height', `${height}px`);
+  });
+
   if (IS_DELEGATED_BOTTOM_SHEET) {
     void SplashScreen.hide({ fadeOutDuration: 0 });
     return;
@@ -63,11 +68,6 @@ export async function initCapacitor() {
     void StatusBar.setOverlaysWebView({ overlay: false });
     void NavigationBar.setTransparency({ isTransparent: false });
   }
-
-  SafeArea.getStatusBarHeight().then(({ statusBarHeight: height }) => {
-    statusBarHeight = height;
-    document.documentElement.style.setProperty('--status-bar-height', `${height}px`);
-  });
 
   await SafeArea.addListener('safeAreaChanged', (data) => {
     const { insets } = data;

@@ -268,9 +268,10 @@ textarea.input {
     color: var(--color-red);
   }
 
-  &_help,
   &_error {
     float: right;
+
+    font-weight: 600;
   }
 
   &_forPassword {

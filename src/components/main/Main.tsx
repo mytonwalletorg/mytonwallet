@@ -1,4 +1,3 @@
-import { BottomSheet } from 'native-bottom-sheet';
 import React, {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
@@ -12,12 +11,10 @@ import buildClassName from '../../util/buildClassName';
 import { getStatusBarHeight } from '../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
 import { setStatusBarStyle } from '../../util/switchTheme';
-import {
-  getSafeAreaTop, IS_DELEGATED_BOTTOM_SHEET, IS_TOUCH_ENV, REM,
-} from '../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
+import windowSize from '../../util/windowSize';
 
 import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
-import { useOpenFromNativeBottomSheet } from '../../hooks/useDelegatingBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -50,7 +47,6 @@ type StateProps = {
 };
 
 const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
-const STICKY_CARD_WITH_SAFE_AREA_INTERSECTION_THRESHOLD = -5.5 * REM;
 
 function Main({
   isActive,
@@ -80,19 +76,9 @@ function Main({
   const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
   const [shouldRenderDarkStatusBar, setShouldRenderDarkStatusBar] = useState(false);
   const [isReceiveModalOpened, openReceiveModal, closeReceiveModal] = useFlag();
-
-  useOpenFromMainBottomSheet('staking-info', openStakingInfo);
-  useOpenFromNativeBottomSheet('staking-info', openStakingInfo);
+  const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
 
   useOpenFromMainBottomSheet('receive', openReceiveModal);
-
-  const handleOpenStakingInfo = useLastCallback(() => {
-    if (IS_DELEGATED_BOTTOM_SHEET) {
-      BottomSheet.openInMain({ key: 'staking-info' });
-    } else {
-      openStakingInfo();
-    }
-  });
 
   const { isPortrait } = useDeviceScreen();
   const {
@@ -118,19 +104,17 @@ function Main({
       return undefined;
     }
 
-    const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : getSafeAreaTop();
-    const rootMarginTop = safeAreaTop > 0
-      ? STICKY_CARD_WITH_SAFE_AREA_INTERSECTION_THRESHOLD
-      : STICKY_CARD_INTERSECTION_THRESHOLD;
+    const rootMarginTop = STICKY_CARD_INTERSECTION_THRESHOLD - safeAreaTop;
     const observer = new IntersectionObserver((entries) => {
       const { isIntersecting, boundingClientRect: { left, width } } = entries[0];
       setCanRenderStickyCard(entries.length > 0 && !isIntersecting && left >= 0 && left < width);
     }, { rootMargin: `${rootMarginTop}px 0px 0px` });
+
     const cardTopSideObserver = new IntersectionObserver((entries) => {
       const { isIntersecting } = entries[0];
 
       setShouldRenderDarkStatusBar(!isIntersecting);
-    }, { rootMargin: `${rootMarginTop / 2}px 0px 0px`, threshold: [1] });
+    }, { rootMargin: `-${safeAreaTop}px 0px 0px`, threshold: [1] });
     const cardElement = cardRef.current;
 
     if (cardElement) {
@@ -144,7 +128,7 @@ function Main({
         cardTopSideObserver.unobserve(cardElement);
       }
     };
-  }, [isActive, isPortrait]);
+  }, [isActive, isPortrait, safeAreaTop]);
 
   const handleTokenCardClose = useLastCallback(() => {
     selectToken({ slug: undefined });
@@ -233,7 +217,7 @@ function Main({
     <>
       {!IS_DELEGATED_BOTTOM_SHEET && (isPortrait ? renderPortraitLayout() : renderLandscapeLayout())}
 
-      <StakeModal onViewStakingInfo={handleOpenStakingInfo} />
+      <StakeModal />
       <StakingInfoModal isOpen={isStakingInfoModalOpen} onClose={closeStakingInfo} />
       <ReceiveModal isOpen={isReceiveModalOpened} onClose={closeReceiveModal} />
       <UnstakingModal />

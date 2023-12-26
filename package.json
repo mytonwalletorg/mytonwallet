@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "1.17.4",
+  "version": "1.17.5",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -38,7 +38,7 @@
     "test:record": "playwright codegen localhost:1235",
     "prepare": "husky install",
     "statoscope:validate-diff": "statoscope validate --input input.json --reference reference.json",
-    "postversion": "echo $(node -p \"require('./package.json').version\") > public/version.txt && git commit --amend --no-verify --no-edit public/version.txt"
+    "postversion": "./deploy/postversion.sh"
   },
   "engines": {
     "node": "^18",

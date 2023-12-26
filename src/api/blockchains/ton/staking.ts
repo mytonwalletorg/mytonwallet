@@ -231,7 +231,10 @@ export async function getStakingState(
   let unstakeAmount = Big(0);
 
   if (collection) {
-    const nfts = await apiDb.nfts.where({ collectionAddress: collection }).toArray();
+    const nfts = await apiDb.nfts.where({
+      accountId,
+      collectionAddress: collection,
+    }).toArray();
 
     for (const nft of nfts) {
       const billAmount = nft.name?.match(/Bill for (?<amount>[\d.]+) Pool Jetton/)?.groups?.amount;

@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency } from '../../api/types';
+import type { ApiBaseCurrency, ApiToken } from '../../api/types';
 import {
   type AssetPairs,
   SettingsState,
@@ -14,8 +14,8 @@ import {
 import { ANIMATED_STICKER_MIDDLE_SIZE_PX, TON_BLOCKCHAIN } from '../../config';
 import { Big } from '../../lib/big.js/index.js';
 import {
+  selectAvailableUserForSwapTokens,
   selectCurrentAccountState,
-  selectCurrentAccountTokens,
   selectPopularTokens,
   selectSwapTokens,
 } from '../../global/selectors';
@@ -54,6 +54,7 @@ interface StateProps {
   tokenInSlug?: string;
   pairsBySlug?: Record<string, AssetPairs>;
   balancesBySlug?: Record<string, string>;
+  tokenInfoBySlug?: Record<string, ApiToken>;
   baseCurrency?: ApiBaseCurrency;
   isLoading?: boolean;
 }
@@ -87,6 +88,7 @@ function TokenSelector({
   tokenInSlug,
   pairsBySlug,
   balancesBySlug,
+  tokenInfoBySlug,
   isActive,
   isLoading,
   onBack,
@@ -293,7 +295,11 @@ function TokenSelector({
       currentToken?.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS
     ] ?? currentToken?.image;
     const blockchain = 'blockchain' in currentToken ? currentToken.blockchain : TON_BLOCKCHAIN;
-    const price = 'price' in currentToken ? currentToken.price : 1;
+    const price = 'price' in currentToken
+      ? currentToken.price
+      : tokenInfoBySlug?.[currentToken.slug]
+        ? tokenInfoBySlug?.[currentToken.slug].quote.price
+        : 0;
 
     const isAvailable = !shouldFilter || currentToken.canSwap;
     const descriptionText = isAvailable
@@ -506,7 +512,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { isLoading, token } = global.settings.importToken ?? {};
   const { pairs, tokenInSlug } = global.currentSwap ?? {};
 
-  const userTokens = selectCurrentAccountTokens(global);
+  const userTokens = selectAvailableUserForSwapTokens(global);
   const popularTokens = selectPopularTokens(global);
   const swapTokens = selectSwapTokens(global);
   const { baseCurrency } = global.settings;
@@ -521,6 +527,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     baseCurrency,
     pairsBySlug: pairs?.bySlug,
     balancesBySlug: balances?.bySlug,
+    tokenInfoBySlug: global.tokenInfo.bySlug,
   };
 })(TokenSelector));
 

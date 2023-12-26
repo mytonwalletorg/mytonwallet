@@ -26,10 +26,6 @@ import StakingInitial from './StakingInitial';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Staking.module.scss';
 
-interface OwnProps {
-  onViewStakingInfo: NoneToVoidFunction;
-}
-
 type StateProps = GlobalState['staking'] & {
   tokens?: UserToken[];
 };
@@ -46,14 +42,14 @@ function StakeModal({
   amount,
   error,
   tokens,
-  onViewStakingInfo,
-}: OwnProps & StateProps) {
+}: StateProps) {
   const {
     startStaking,
     setStakingScreen,
     cancelStaking,
     clearStakingError,
     submitStakingPassword,
+    openStakingInfo,
   } = getActions();
 
   const lang = useLang();
@@ -76,8 +72,8 @@ function StakeModal({
   });
 
   const handleViewStakingInfoClick = useLastCallback(() => {
-    onViewStakingInfo();
     cancelStaking();
+    openStakingInfo();
   });
 
   function renderStakingShortInfo() {
@@ -191,7 +187,7 @@ function StakeModal({
   );
 }
 
-export default memo(withGlobal<OwnProps>((global) => {
+export default memo(withGlobal((global) => {
   const tokens = selectCurrentAccountTokens(global);
 
   return {

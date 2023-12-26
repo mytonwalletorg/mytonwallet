@@ -249,6 +249,11 @@ addActionHandler('fetchStakingHistory', async (global, actions, payload) => {
 });
 
 addActionHandler('openStakingInfo', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openStakingInfo');
+    return;
+  }
+
   global = { ...global, isStakingInfoModalOpen: true };
   setGlobal(global);
 });
