@@ -444,10 +444,10 @@ jobs:
           STAKING_POOLS: ${{ vars.STAKING_POOLS }}
           PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
         run: |
-          if [ "$PUBLISH_REPO" != "" ]; then
-            npm run mobile:build:production
-          else
+          if [ -z "$PUBLISH_REPO" ]; then
             npm run mobile:build:staging
+          else
+            npm run mobile:build:production
           fi
 
       - name: Use Ruby and install dependencies
