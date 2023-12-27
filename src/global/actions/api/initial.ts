@@ -8,7 +8,7 @@ import { addActionHandler, getGlobal } from '../../index';
 import { selectNewestTxIds } from '../../selectors';
 
 addActionHandler('initApi', async (global, actions) => {
-  initApi(actions.apiUpdate, {});
+  initApi(actions.apiUpdate, { isElectron: IS_ELECTRON });
 
   window.electron?.on(ElectronEvent.DEEPLINK_TONCONNECT, (params: { url: string }) => {
     const deviceInfo = tonConnectGetDeviceInfo();

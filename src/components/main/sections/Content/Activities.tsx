@@ -196,7 +196,7 @@ function Activities({
   const throttledLoadMore = useThrottledCallback(loadMore, [loadMore], THROTTLE_TIME, true);
 
   const [viewportIds, getMore, resetScroll] = useInfiniteScroll(
-    throttledLoadMore, activityIds, undefined, FURTHER_SLICE,
+    throttledLoadMore, activityIds, undefined, FURTHER_SLICE, slug, isActive,
   );
 
   const isActivitiesEmpty = !activityList || !activityList.length;

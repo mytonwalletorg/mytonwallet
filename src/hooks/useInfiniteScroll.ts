@@ -1,4 +1,4 @@
-import { useRef } from '../lib/teact/teact';
+import { useEffect, useRef } from '../lib/teact/teact';
 
 import { LoadMoreDirection } from '../global/types';
 
@@ -6,6 +6,7 @@ import { areSortedArraysEqual } from '../util/iteratees';
 import useForceUpdate from './useForceUpdate';
 import useLastCallback from './useLastCallback';
 import usePrevious from './usePrevious';
+import usePrevious2 from './usePrevious2';
 
 type GetMore = (args: { direction: LoadMoreDirection }) => void;
 type ResetScroll = () => void;
@@ -18,6 +19,8 @@ const useInfiniteScroll = <ListId extends string | number>(
   listIds?: ListId[],
   isDisabled = false,
   listSlice = DEFAULT_LIST_SLICE,
+  slug?: string,
+  isActive?: boolean,
 ): [ListId[]?, GetMore?, ResetScroll?] => {
   const requestParamsRef = useRef<{
     direction?: LoadMoreDirection;
@@ -45,6 +48,25 @@ const useInfiniteScroll = <ListId extends string | number>(
     && listIds.length > 0 && prevListIds.length > 0
     && listIds[0] === prevListIds[0]
     && listIds[listIds.length - 1] === prevListIds[prevListIds.length - 1];
+  const prevSlug = usePrevious2(slug);
+
+  const resetScroll: ResetScroll = useLastCallback(() => {
+    if (!listIds?.length) return;
+
+    const {
+      newViewportIds,
+      newIsOnTop,
+    } = getViewportSlice(listIds, LoadMoreDirection.Forwards, listSlice, listIds[0]);
+
+    currentStateRef.current = { viewportIds: newViewportIds, isOnTop: newIsOnTop };
+    requestParamsRef.current = {};
+  });
+
+  useEffect(() => {
+    if (!isActive && slug !== prevSlug) {
+      resetScroll();
+    }
+  }, [isActive, prevSlug, resetScroll, slug]);
 
   if (listIds && !isDisabled && (!areListsEqual || isDisabled !== prevIsDisabled)) {
     const { viewportIds, isOnTop } = currentStateRef.current || {};
@@ -93,18 +115,6 @@ const useInfiniteScroll = <ListId extends string | number>(
     if (!areAllLocal && loadMoreBackwards) {
       loadMoreBackwards({ offsetId });
     }
-  });
-
-  const resetScroll: ResetScroll = useLastCallback(() => {
-    if (!listIds?.length) return;
-
-    const {
-      newViewportIds,
-      newIsOnTop,
-    } = getViewportSlice(listIds, LoadMoreDirection.Forwards, listSlice, listIds[0]);
-
-    currentStateRef.current = { viewportIds: newViewportIds, isOnTop: newIsOnTop };
-    requestParamsRef.current = {};
   });
 
   return isDisabled ? [listIds] : [currentStateRef.current?.viewportIds, getMore, resetScroll];

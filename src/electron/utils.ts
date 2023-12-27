@@ -1,11 +1,12 @@
-import type { BrowserWindow } from 'electron';
-import { app } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import Store from 'electron-store';
 import fs from 'fs';
 
-import { BASE_URL, PRODUCTION_URL } from '../config';
+import {
+  BASE_URL, BETA_URL, GLOBAL_STATE_CACHE_KEY, PRODUCTION_URL,
+} from '../config';
 
-const ALLOWED_URL_ORIGINS = [BASE_URL!, PRODUCTION_URL].map((url) => (new URL(url).origin));
+const ALLOWED_URL_ORIGINS = [BASE_URL!, BETA_URL, PRODUCTION_URL].map((url) => (new URL(url).origin));
 
 export let mainWindow: BrowserWindow; // eslint-disable-line import/no-mutable-exports
 export const store: Store = new Store();
@@ -33,8 +34,28 @@ export const IS_LINUX = process.platform === 'linux';
 export const IS_PREVIEW = process.env.IS_PREVIEW === 'true';
 export const IS_FIRST_RUN = !fs.existsSync(`${app.getPath('userData')}/${WINDOW_STATE_FILE}`);
 
-export function getIsForceStorageCaptureRequired(): boolean {
-  return app.getVersion() === '1.17.7' && !store.get(FORCE_STORAGE_CAPTURED_SETTINGS_KEY);
+// Fix for users who updated to version 1.17.4, which was by mistake loading Beta URL. Can be removed after 31.01.2024.
+export function getIsForceStorageCaptureRequired(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (store.get(FORCE_STORAGE_CAPTURED_SETTINGS_KEY)) {
+      resolve(false);
+    }
+
+    const hiddenWindow = new BrowserWindow({ show: false });
+    hiddenWindow.loadURL(BETA_URL);
+    hiddenWindow.webContents.once('dom-ready', async () => {
+      try {
+        const globalState = await hiddenWindow.webContents.executeJavaScript(
+          `({ ...localStorage })['${GLOBAL_STATE_CACHE_KEY}'];`,
+        );
+        resolve(Boolean(globalState));
+      } catch (error) {
+        resolve(false);
+      }
+
+      hiddenWindow.close();
+    });
+  });
 }
 
 export function setMainWindow(window: BrowserWindow) {

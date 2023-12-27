@@ -38,7 +38,8 @@ export type TokenBalanceParsed = {
   slug: string;
   balance: string;
   token: ApiTokenSimple;
-} | undefined;
+  jettonWallet: string;
+};
 
 const KNOWN_TOKENS: ApiBaseToken[] = [
   {
@@ -61,17 +62,22 @@ export async function getAccountTokenBalances(accountId: string) {
   return balancesRaw.map(parseTokenBalance).filter(Boolean);
 }
 
-function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed {
+function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed | undefined {
   if (!balanceRaw.jetton) {
     return undefined;
   }
 
   try {
-    const { balance, jetton } = balanceRaw;
+    const { balance, jetton, walletAddress } = balanceRaw;
     const minterAddress = toBase64Address(jetton.address, true);
     const token = buildTokenByMetadata(minterAddress, jetton);
 
-    return { slug: token.slug, balance, token };
+    return {
+      slug: token.slug,
+      balance,
+      token,
+      jettonWallet: toBase64Address(walletAddress.address),
+    };
   } catch (err) {
     logDebugError('parseTokenBalance', err);
     return undefined;

@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "1.17.7",
+  "version": "1.17.8",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -18,9 +18,9 @@
     "extension-opera:package": "cross-env IS_OPERA_EXTENSION=1 IS_EXTENSION=1 webpack && bash ./deploy/package_extension.sh opera",
     "extension-opera:package:staging": "cross-env APP_ENV=staging npm run extension-opera:package",
     "extension-opera:package:production": "npm run extension-opera:package",
-    "electron:dev": "npm run electron:webpack && IS_ELECTRON_BUILD=1 concurrently -n main,renderer,electron \"npm run electron:webpack -- --watch\" \"npm run dev\" \"electronmon dist/electron\"",
+    "electron:dev": "npm run electron:webpack && IS_PACKAGED_ELECTRON=1 concurrently -n main,renderer,electron \"npm run electron:webpack -- --watch\" \"npm run dev\" \"electronmon dist/electron\"",
     "electron:webpack": "cross-env APP_ENV=$ENV webpack --config ./webpack-electron.config.ts",
-    "electron:build": "IS_ELECTRON_BUILD=1 npm run build:$ENV && electron-builder install-app-deps && electron-rebuild && ENV=$ENV npm run electron:webpack",
+    "electron:build": "IS_PACKAGED_ELECTRON=1 npm run build:$ENV && electron-builder install-app-deps && electron-rebuild && ENV=$ENV npm run electron:webpack",
     "electron:package": "npm run electron:build && npx rimraf dist-electron && electron-builder build --win --mac --linux --config src/electron/config.yml",
     "electron:package:staging": "ENV=staging npm run electron:package -- -p never",
     "electron:release:production": "ENV=production npm run electron:package -- -p always",

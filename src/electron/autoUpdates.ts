@@ -70,11 +70,9 @@ async function checkForUpdates(): Promise<void> {
     if (await shouldPerformAutoUpdate()) {
       if (getIsAutoUpdateEnabled()) {
         autoUpdater.checkForUpdates();
-
-        return;
+      } else {
+        mainWindow.webContents.send(ElectronEvent.UPDATE_DOWNLOADED);
       }
-
-      mainWindow.webContents.send(ElectronEvent.UPDATE_DOWNLOADED);
     }
 
     await pause(CHECK_UPDATE_INTERVAL);

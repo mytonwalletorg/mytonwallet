@@ -28,6 +28,7 @@ interface OwnProps {
   accountSelectorClassName?: string;
   menuButtonClassName?: string;
   noSettingsButton?: boolean;
+  noAccountSelector?: boolean;
   onQrScanPress?: NoneToVoidFunction;
 }
 
@@ -49,6 +50,7 @@ function AccountSelector({
   accountSelectorClassName,
   menuButtonClassName,
   noSettingsButton,
+  noAccountSelector,
   accounts,
   onQrScanPress,
 }: OwnProps & StateProps) {
@@ -69,7 +71,7 @@ function AccountSelector({
 
   const accountsAmount = useMemo(() => Object.keys(accounts || {}).length, [accounts]);
   const shouldRenderQrScannerButton = Boolean(onQrScanPress);
-  const shouldRenderSettingsButton = !noSettingsButton || !shouldRenderQrScannerButton;
+  const shouldRenderSettingsButton = !noSettingsButton && !shouldRenderQrScannerButton;
 
   useEffect(() => {
     if (isOpen && forceClose) {
@@ -158,10 +160,10 @@ function AccountSelector({
     transitionClassNames,
     accountSelectorClassName,
   );
-  const addressTitleClassName = buildClassName(
-    styles.addressTitle,
+  const accountTitleClassName = buildClassName(
+    styles.accountTitle,
     accountClassName,
-    shouldRenderQrScannerButton && shouldRenderSettingsButton && styles.addressTitleShort,
+    shouldRenderQrScannerButton && shouldRenderSettingsButton && styles.accountTitleShort,
   );
   const settingsButtonClassName = buildClassName(
     styles.menuButton,
@@ -172,9 +174,11 @@ function AccountSelector({
   function renderCurrentAccount() {
     return (
       <>
-        <div className={addressTitleClassName} onClick={handleOpenAccountSelector}>
-          {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
-        </div>
+        {!noAccountSelector && (
+          <div className={accountTitleClassName} onClick={handleOpenAccountSelector}>
+            {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
+          </div>
+        )}
         {shouldRenderSettingsButton && (
           <Button
             className={settingsButtonClassName}

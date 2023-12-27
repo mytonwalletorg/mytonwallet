@@ -1,4 +1,4 @@
-import { ELECTRON_HOST_URL, IS_ELECTRON_BUILD } from '../config';
+import { ELECTRON_HOST_URL, IS_PACKAGED_ELECTRON } from '../config';
 
 // eslint-disable-next-line no-restricted-globals
 const cacheApi = self.caches;
@@ -10,7 +10,7 @@ export async function fetch(cacheName: string, key: string) {
 
   try {
     // To avoid the error "Request scheme 'webdocument' is unsupported"
-    const request = IS_ELECTRON_BUILD
+    const request = IS_PACKAGED_ELECTRON
       ? `${ELECTRON_HOST_URL}/${key.replace(/:/g, '_')}`
       : new Request(key.replace(/:/g, '_'));
     const cache = await cacheApi.open(cacheName);
@@ -37,7 +37,7 @@ export async function save(cacheName: string, key: string, data: AnyLiteral | Bl
       ? data
       : JSON.stringify(data);
     // To avoid the error "Request scheme 'webdocument' is unsupported"
-    const request = IS_ELECTRON_BUILD
+    const request = IS_PACKAGED_ELECTRON
       ? `${ELECTRON_HOST_URL}/${key.replace(/:/g, '_')}`
       : new Request(key.replace(/:/g, '_'));
     const response = new Response(cacheData);

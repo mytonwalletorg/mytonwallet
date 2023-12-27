@@ -7,6 +7,7 @@ import type { UserToken } from '../../../../global/types';
 import { selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { getShortCurrencySymbol } from '../../../../util/formatNumber';
+import { IS_ELECTRON, IS_MAC_OS } from '../../../../util/windowEnvironment';
 import { buildTokenValues } from './helpers/buildTokenValues';
 
 import AccountSelector from './AccountSelector';
@@ -45,6 +46,7 @@ function StickyCard({
             accountSelectorClassName="sticky-card-account-selector"
             menuButtonClassName={styles.menuButton}
             noSettingsButton
+            noAccountSelector={IS_ELECTRON && IS_MAC_OS}
             onQrScanPress={onQrScanPress}
           />
           <div className={styles.balance}>

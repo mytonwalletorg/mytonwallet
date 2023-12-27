@@ -24,6 +24,7 @@ import {
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { compareActivities } from '../../util/compareActivities';
+import { buildCollectionByKey } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
 import blockchains from '../blockchains';
@@ -129,6 +130,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
   let nftUpdates: ApiNftUpdate[];
   let i = 0;
   let doubleCheckTokensTime: number | undefined;
+  let tokenBalances: TokenBalanceParsed[] | undefined;
 
   const localOnUpdate = onUpdate;
 
@@ -160,7 +162,6 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
       const balancesToUpdate: Record<string, string> = {};
 
       if (isTonBalanceChanged) {
-        changedTokenSlugs.push(TON_TOKEN_SLUG);
         balancesToUpdate[TON_TOKEN_SLUG] = balance;
 
         lastBalanceCache[accountId] = {
@@ -173,7 +174,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
       if (isTonBalanceChanged || (doubleCheckTokensTime && doubleCheckTokensTime < Date.now())) {
         doubleCheckTokensTime = isTonBalanceChanged ? Date.now() + DOUBLE_CHECK_TOKENS_PAUSE : undefined;
 
-        const tokenBalances = await blockchain.getAccountTokenBalances(accountId).catch(logAndRescue);
+        tokenBalances = await blockchain.getAccountTokenBalances(accountId).catch(logAndRescue);
 
         if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
 
@@ -206,12 +207,12 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
       }
 
       // Fetch transactions for tokens with a changed balance
-      if (changedTokenSlugs.length) {
+      if (isTonBalanceChanged || changedTokenSlugs.length) {
         if (lastTxId) {
           await blockchain.waitUntilTransactionAppears(network, address, lastTxId);
         }
 
-        const newTxIds = await processNewTokenActivities(accountId, newestTxIds, changedTokenSlugs);
+        const newTxIds = await processNewActivities(accountId, newestTxIds, changedTokenSlugs, tokenBalances);
         newestTxIds = { ...newestTxIds, ...newTxIds };
       }
 
@@ -287,21 +288,22 @@ export async function setupStakingPolling(accountId: string) {
   }
 }
 
-async function processNewTokenActivities(
+async function processNewActivities(
   accountId: string,
   newestTxIds: ApiTxIdBySlug,
   tokenSlugs: string[],
+  tokenBalances?: TokenBalanceParsed[],
 ): Promise<ApiTxIdBySlug> {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
-  if (!tokenSlugs.length) {
-    return {};
-  }
 
   let allTransactions: ApiTransactionActivity[] = [];
   let allActivities: ApiActivity[] = [];
 
-  const entries = await Promise.all(tokenSlugs.map(async (slug) => {
+  const result: [string, string | undefined][] = [];
+
+  // Process TON transactions first
+  {
+    const slug = TON_TOKEN_SLUG;
     let newestTxId = newestTxIds[slug];
 
     const transactions = await blockchain.getTokenTransactionSlice(
@@ -315,7 +317,37 @@ async function processNewTokenActivities(
       allActivities = allActivities.concat(activities);
       allTransactions = allTransactions.concat(transactions);
     }
-    return [slug, newestTxId];
+
+    result.push([slug, newestTxId]);
+
+    // Find affected token wallets
+    const tokenBalanceByAddress = buildCollectionByKey(tokenBalances ?? [], 'jettonWallet');
+    transactions.forEach(({ isIncoming, toAddress, fromAddress }) => {
+      const address = isIncoming ? fromAddress : toAddress;
+      const tokenBalance: TokenBalanceParsed | undefined = tokenBalanceByAddress[address];
+
+      if (tokenBalance && !tokenSlugs.includes(tokenBalance.slug)) {
+        tokenSlugs = tokenSlugs.concat([tokenBalance.slug]);
+      }
+    });
+  }
+
+  await Promise.all(tokenSlugs.map(async (slug) => {
+    let newestTxId = newestTxIds[slug];
+
+    const transactions = await blockchain.getTokenTransactionSlice(
+      accountId, slug, undefined, newestTxId, FIRST_TRANSACTIONS_LIMIT,
+    );
+    const activities = await swapReplaceTransactions(accountId, transactions, slug);
+
+    if (transactions.length) {
+      newestTxId = transactions[0]!.txId;
+
+      allActivities = allActivities.concat(activities);
+      allTransactions = allTransactions.concat(transactions);
+    }
+
+    result.push([slug, newestTxId]);
   }));
 
   allTransactions = allTransactions.sort((a, b) => compareActivities(a, b, true));
@@ -330,7 +362,7 @@ async function processNewTokenActivities(
     accountId,
   });
 
-  return Object.fromEntries(entries);
+  return Object.fromEntries(result);
 }
 
 export async function setupBackendPolling() {

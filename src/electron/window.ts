@@ -89,7 +89,7 @@ export function createWindow() {
       loadWindowUrl();
     }
 
-    if (getIsForceStorageCaptureRequired()) {
+    if (await getIsForceStorageCaptureRequired()) {
       await captureStorage();
       store.set(FORCE_STORAGE_CAPTURED_SETTINGS_KEY, true);
       loadWindowUrl();
@@ -101,12 +101,12 @@ export function createWindow() {
   loadWindowUrl();
 }
 
-function loadWindowUrl(): void {
+async function loadWindowUrl(): Promise<void> {
   if (!app.isPackaged) {
     mainWindow.loadURL('http://localhost:4321');
     mainWindow.webContents.openDevTools();
   } else if (getIsAutoUpdateEnabled()) {
-    if (getIsForceStorageCaptureRequired()) {
+    if (await getIsForceStorageCaptureRequired()) {
       mainWindow.loadURL(BETA_URL);
     } else {
       mainWindow.loadURL(BASE_URL!);

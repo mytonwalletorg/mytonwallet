@@ -1,6 +1,6 @@
 @import "../../../../styles/mixins";
 
-.addressTitle {
+.accountTitle {
   cursor: var(--custom-cursor, pointer);
 
   position: absolute;
@@ -58,7 +58,7 @@
   }
 }
 
-.addressTitleShort {
+.accountTitleShort {
   max-width: calc(100% - 6rem);
 }
 

@@ -28,14 +28,14 @@ process.env.BASE_URL = process.env.BASE_URL || PRODUCTION_URL;
 
 const { APP_ENV, BASE_URL, HEAD } = process.env;
 const IS_EXTENSION = process.env.IS_EXTENSION === '1';
-const IS_ELECTRON_BUILD = process.env.IS_ELECTRON_BUILD === '1';
+const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
 const IS_OPERA_EXTENSION = process.env.IS_OPERA_EXTENSION === '1';
 
 const gitRevisionPlugin = new GitRevisionPlugin();
 const branch = HEAD || gitRevisionPlugin.branch();
 const appRevision = !branch || branch === 'HEAD' ? gitRevisionPlugin.commithash()?.substring(0, 7) : branch;
-const canUseStatoscope = !IS_EXTENSION && !IS_ELECTRON_BUILD;
+const canUseStatoscope = !IS_EXTENSION && !IS_PACKAGED_ELECTRON;
 const connectSrcExtraUrl = APP_ENV === 'development' ? process.env.CSP_CONNECT_SRC_EXTRA_URL ?? '' : '';
 
 // The `connect-src` rule contains `https:` due to arbitrary requests are needed for jetton JSON configs.
@@ -262,7 +262,7 @@ export default function createConfig(
         STAKING_POOLS: null,
         LIQUID_POOL: null,
         LIQUID_JETTON: null,
-        IS_ELECTRON_BUILD: false,
+        IS_PACKAGED_ELECTRON: false,
         ELECTRON_TONHTTPAPI_MAINNET_API_KEY: null,
         ELECTRON_TONHTTPAPI_TESTNET_API_KEY: null,
         BASE_URL,
@@ -341,7 +341,7 @@ export default function createConfig(
     ],
 
     devtool:
-      IS_EXTENSION ? 'cheap-source-map' : APP_ENV === 'production' && IS_ELECTRON_BUILD ? undefined : 'source-map',
+      IS_EXTENSION ? 'cheap-source-map' : APP_ENV === 'production' && IS_PACKAGED_ELECTRON ? undefined : 'source-map',
   };
 }
 

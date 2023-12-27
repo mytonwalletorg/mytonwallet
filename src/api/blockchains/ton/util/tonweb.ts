@@ -19,7 +19,7 @@ import {
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
 import { base64ToBytes, fetchJson, hexToBytes } from '../../../common/utils';
-import { API_HEADERS } from '../../../environment';
+import { getEnvironment } from '../../../environment';
 import {
   DEFAULT_IS_BOUNCEABLE,
   JettonOpCode,
@@ -37,16 +37,7 @@ export const { toNano, fromNano } = TonWeb.utils;
 
 const TON_MAX_COMMENT_BYTES = 127;
 
-const tonwebByNetwork = {
-  mainnet: new TonWeb(new CustomHttpProvider(TONHTTPAPI_MAINNET_URL, {
-    apiKey: TONHTTPAPI_MAINNET_API_KEY,
-    headers: API_HEADERS,
-  })) as MyTonWeb,
-  testnet: new TonWeb(new CustomHttpProvider(TONHTTPAPI_TESTNET_URL, {
-    apiKey: TONHTTPAPI_TESTNET_API_KEY,
-    headers: API_HEADERS,
-  })) as MyTonWeb,
-};
+let tonwebByNetwork: Record<ApiNetwork, MyTonWeb> | undefined;
 
 export const resolveTokenWalletAddress = withCacheAsync(
   async (network: ApiNetwork, address: string, minterAddress: string) => {
@@ -118,7 +109,7 @@ export async function fetchTransactions(
   }, {
     headers: {
       ...(apiKey && { 'X-Api-Key': apiKey }),
-      ...API_HEADERS,
+      ...getEnvironment().apiHeaders,
     },
   });
 
@@ -180,6 +171,19 @@ function getRawBody(msg: any) {
 }
 
 export function getTonWeb(network: ApiNetwork = 'mainnet') {
+  if (!tonwebByNetwork) {
+    tonwebByNetwork = {
+      mainnet: new TonWeb(new CustomHttpProvider(TONHTTPAPI_MAINNET_URL, {
+        apiKey: TONHTTPAPI_MAINNET_API_KEY,
+        headers: getEnvironment().apiHeaders,
+      })) as MyTonWeb,
+      testnet: new TonWeb(new CustomHttpProvider(TONHTTPAPI_TESTNET_URL, {
+        apiKey: TONHTTPAPI_TESTNET_API_KEY,
+        headers: getEnvironment().apiHeaders,
+      })) as MyTonWeb,
+    };
+  }
+
   return tonwebByNetwork[network];
 }
 

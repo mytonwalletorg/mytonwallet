@@ -442,6 +442,7 @@ jobs:
           TONAPIIO_TESTNET_URL: ${{ vars.TONAPIIO_TESTNET_URL }}
           PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
           STAKING_POOLS: ${{ vars.STAKING_POOLS }}
+
           PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
         run: |
           if [ -z "$PUBLISH_REPO" ]; then
@@ -489,13 +490,15 @@ jobs:
       - name: "iOS: Package and publish"
         env:
           IOS_AUTH_KEY_BASE64: ${{ secrets.IOS_AUTH_KEY_BASE64 }}
+
+          PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
         run: |
           cd mobile/ios/App
           echo -n "$IOS_AUTH_KEY_BASE64" | base64 --decode -o ./AuthKey.p8
-          if [ "$GITHUB_REF_NAME" == "mobile-release" ]; then
-            bundle exec fastlane release
-          else
+          if [ -z "$PUBLISH_REPO" ]; then
             bundle exec fastlane beta
+          else
+            bundle exec fastlane release
           fi
 
       - name: Set up JDK 17
@@ -513,14 +516,16 @@ jobs:
           ANDROID_API_KEY_BASE64: ${{ secrets.ANDROID_API_KEY_BASE64 }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+
+          PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
         run: |
           cd mobile/android
 
           echo -n "$ANDROID_API_KEY_BASE64" | base64 --decode -o ./api-key.json
           echo -n "$ANDROID_KEYSTORE_BASE64" | base64 --decode -o ./android.keystore
 
-          if [ "$GITHUB_REF_NAME" == "mobile-release" ]; then
-            bundle exec fastlane release
-          else
+          if [ -z "$PUBLISH_REPO" ]; then
             bundle exec fastlane beta
+          else
+            bundle exec fastlane release
           fi

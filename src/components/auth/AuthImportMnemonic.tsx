@@ -47,18 +47,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   const [mnemonic, setMnemonic] = useState<Record<number, string>>({});
   const { isPortrait } = useDeviceScreen();
 
-  const handlePasteMnemonic = useLastCallback((pastedText: string) => {
-    const pastedMnemonic = parsePastedText(pastedText);
-
-    if (pastedMnemonic.length === 1 && document.activeElement?.id.startsWith('import-mnemonic-')) {
-      (document.activeElement as HTMLInputElement).value = pastedMnemonic[0];
-
-      const event = new Event('input');
-      (document.activeElement as HTMLInputElement).dispatchEvent(event);
-
-      return;
-    }
-
+  const handleMnemonicSet = useLastCallback((pastedMnemonic: string[]) => {
     if (pastedMnemonic.length !== MNEMONIC_COUNT) {
       return;
     }
@@ -73,6 +62,21 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
     }
   });
 
+  const handlePasteMnemonic = useLastCallback((pastedText: string) => {
+    const pastedMnemonic = parsePastedText(pastedText);
+
+    if (pastedMnemonic.length === 1 && document.activeElement?.id.startsWith('import-mnemonic-')) {
+      (document.activeElement as HTMLInputElement).value = pastedMnemonic[0];
+
+      const event = new Event('input');
+      (document.activeElement as HTMLInputElement).dispatchEvent(event);
+
+      return;
+    }
+
+    handleMnemonicSet(pastedMnemonic);
+  });
+
   useClipboardPaste(Boolean(isActive), handlePasteMnemonic);
 
   const isSubmitDisabled = useMemo(() => {
@@ -82,6 +86,12 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   }, [mnemonic]);
 
   const handleSetWord = useLastCallback((value: string, index: number) => {
+    const pastedMnemonic = parsePastedText(value);
+    if (pastedMnemonic.length === MNEMONIC_COUNT) {
+      handleMnemonicSet(pastedMnemonic);
+      return;
+    }
+
     setMnemonic({
       ...mnemonic,
       [index]: value?.toLowerCase(),

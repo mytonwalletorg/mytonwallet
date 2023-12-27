@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { ContentTab } from '../../global/types';
+import { ActiveTab, ContentTab } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
 import { selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
@@ -67,6 +67,7 @@ function Main({
     changeTransferToken,
     openStakingInfo,
     closeStakingInfo,
+    setLandscapeActionsActiveTabIndex,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -154,6 +155,11 @@ function Main({
   }, [currentTokenSlug, handleTokenCardClose, isPortrait]);
 
   const handleEarnClick = useLastCallback(() => {
+    if (!isPortrait) {
+      setLandscapeActionsActiveTabIndex({ index: ActiveTab.Stake });
+      return;
+    }
+
     if (isStakingActive || isUnstakeRequested) {
       openStakingInfo();
     } else {

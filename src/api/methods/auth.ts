@@ -1,7 +1,6 @@
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { ApiAccount, ApiNetwork, ApiTxIdBySlug } from '../types';
 
-import { IS_DAPP_SUPPORTED } from '../../config';
 import blockchains from '../blockchains';
 import { toBase64Address } from '../blockchains/ton/util/tonweb';
 import {
@@ -13,6 +12,7 @@ import {
 } from '../common/accounts';
 import { bytesToHex } from '../common/utils';
 import { apiDb } from '../db';
+import { getEnvironment } from '../environment';
 import { handleServerError } from '../errors';
 import { storage } from '../storages';
 import { activateAccount, deactivateAllAccounts, deactivateCurrentAccount } from './accounts';
@@ -131,7 +131,7 @@ export async function removeNetworkAccounts(network: ApiNetwork) {
   await Promise.all([
     removeNetworkAccountsValue(network, 'mnemonicsEncrypted'),
     removeNetworkAccountsValue(network, 'accounts'),
-    IS_DAPP_SUPPORTED && removeNetworkDapps(network),
+    getEnvironment().isDappSupported && removeNetworkDapps(network),
   ]);
 }
 
@@ -142,7 +142,7 @@ export async function resetAccounts() {
     storage.removeItem('mnemonicsEncrypted'),
     storage.removeItem('accounts'),
     storage.removeItem('currentAccountId'),
-    IS_DAPP_SUPPORTED && removeAllDapps(),
+    getEnvironment().isDappSupported && removeAllDapps(),
     apiDb.nfts.clear(),
   ]);
 }
@@ -151,7 +151,7 @@ export async function removeAccount(accountId: string, nextAccountId: string, ne
   await Promise.all([
     removeAccountValue(accountId, 'mnemonicsEncrypted'),
     removeAccountValue(accountId, 'accounts'),
-    IS_DAPP_SUPPORTED && removeAccountDapps(accountId),
+    getEnvironment().isDappSupported && removeAccountDapps(accountId),
     apiDb.nfts.where({ accountId }).delete(),
   ]);
 

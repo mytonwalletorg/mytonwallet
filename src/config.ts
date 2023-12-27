@@ -14,10 +14,8 @@ export const IS_TEST = APP_ENV === 'test';
 export const IS_PERF = APP_ENV === 'perf';
 export const IS_EXTENSION = process.env.IS_EXTENSION === '1';
 export const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
-export const IS_ELECTRON_BUILD = process.env.IS_ELECTRON_BUILD === '1';
+export const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 export const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
-export const IS_DAPP_SUPPORTED = IS_EXTENSION || IS_ELECTRON_BUILD || IS_CAPACITOR;
-export const IS_SSE_SUPPORTED = IS_ELECTRON_BUILD || IS_CAPACITOR;
 
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
@@ -25,7 +23,7 @@ export const PRODUCTION_URL = 'https://mytonwallet.app';
 export const BETA_URL = 'https://beta.mytonwallet.app';
 export const BASE_URL = process.env.BASE_URL;
 
-export const STRICTERDOM_ENABLED = DEBUG && !IS_ELECTRON_BUILD;
+export const STRICTERDOM_ENABLED = DEBUG && !IS_PACKAGED_ELECTRON;
 
 export const DEBUG_ALERT_MSG = 'Shoot!\nSomething went wrong, please see the error details in Dev Tools Console.';
 
@@ -68,16 +66,15 @@ export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 
 export const TONHTTPAPI_MAINNET_URL = process.env.TONHTTPAPI_MAINNET_URL
   || 'https://tonhttpapi.mytonwallet.org/api/v2/jsonRPC';
-export const TONHTTPAPI_MAINNET_API_KEY = (IS_ELECTRON_BUILD && process.env.ELECTRON_TONHTTPAPI_MAINNET_API_KEY)
-  || process.env.TONHTTPAPI_MAINNET_API_KEY;
-export const TONINDEXER_MAINNET_URL = process.env.TONINDEXER_MAINNET_URL
-  || 'https://tonhttpapi.mytonwallet.org/api/v3';
+export const TONHTTPAPI_MAINNET_API_KEY = process.env.TONHTTPAPI_MAINNET_API_KEY;
+export const ELECTRON_TONHTTPAPI_MAINNET_API_KEY = process.env.ELECTRON_TONHTTPAPI_MAINNET_API_KEY;
+export const TONINDEXER_MAINNET_URL = process.env.TONINDEXER_MAINNET_URL || 'https://tonhttpapi.mytonwallet.org/api/v3';
 export const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapiio.mytonwallet.org';
 
 export const TONHTTPAPI_TESTNET_URL = process.env.TONHTTPAPI_TESTNET_URL
   || 'https://tonhttpapi-testnet.mytonwallet.org/api/v2/jsonRPC';
-export const TONHTTPAPI_TESTNET_API_KEY = (IS_ELECTRON_BUILD && process.env.ELECTRON_TONHTTPAPI_TESTNET_API_KEY)
-  || process.env.TONHTTPAPI_TESTNET_API_KEY;
+export const TONHTTPAPI_TESTNET_API_KEY = process.env.TONHTTPAPI_TESTNET_API_KEY;
+export const ELECTRON_TONHTTPAPI_TESTNET_API_KEY = process.env.ELECTRON_TONHTTPAPI_TESTNET_API_KEY;
 export const TONINDEXER_TESTNET_URL = process.env.TONINDEXER_TESTNET_URL
   || 'https://tonhttpapi-testnet.mytonwallet.org/api/v3';
 export const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://tonapiio-testnet.mytonwallet.org';

@@ -10,43 +10,55 @@ import type { ApiNetwork } from '../../../types';
 
 import { TONAPIIO_MAINNET_URL, TONAPIIO_TESTNET_URL } from '../../../../config';
 import { logDebugError } from '../../../../util/logs';
-import { API_HEADERS } from '../../../environment';
+import { getEnvironment } from '../../../environment';
 
 const MAX_LIMIT = 1000;
 
-const configurationMainnet = new Configuration({
-  basePath: TONAPIIO_MAINNET_URL,
-  headers: API_HEADERS,
-});
-const configurationTestnet = new Configuration({
-  basePath: TONAPIIO_TESTNET_URL,
-  headers: API_HEADERS,
-});
+let apiByNetwork: Record<ApiNetwork, {
+  blockchainApi: BlockchainApi;
+  nftApi: NFTApi;
+  accountsApi: AccountsApi;
+}> | undefined;
 
-export const tonapiioByNetwork = {
-  mainnet: {
-    configuration: configurationMainnet,
-    blockchainApi: new BlockchainApi(configurationMainnet),
-    nftApi: new NFTApi(configurationMainnet),
-    accountsApi: new AccountsApi(configurationMainnet),
-  },
-  testnet: {
-    configuration: configurationTestnet,
-    blockchainApi: new BlockchainApi(configurationTestnet),
-    nftApi: new NFTApi(configurationTestnet),
-    accountsApi: new AccountsApi(configurationTestnet),
-  },
-};
+function getApi(network: ApiNetwork) {
+  if (!apiByNetwork) {
+    const headers = getEnvironment().apiHeaders;
+
+    const configurationMainnet = new Configuration({
+      basePath: TONAPIIO_MAINNET_URL,
+      ...(headers && { headers }),
+    });
+    const configurationTestnet = new Configuration({
+      basePath: TONAPIIO_TESTNET_URL,
+      ...(headers && { headers }),
+    });
+
+    apiByNetwork = {
+      mainnet: {
+        blockchainApi: new BlockchainApi(configurationMainnet),
+        nftApi: new NFTApi(configurationMainnet),
+        accountsApi: new AccountsApi(configurationMainnet),
+      },
+      testnet: {
+        blockchainApi: new BlockchainApi(configurationTestnet),
+        nftApi: new NFTApi(configurationTestnet),
+        accountsApi: new AccountsApi(configurationTestnet),
+      },
+    };
+  }
+
+  return apiByNetwork[network];
+}
 
 export function fetchJettonBalances(network: ApiNetwork, account: string) {
-  const api = tonapiioByNetwork[network].accountsApi;
+  const api = getApi(network).accountsApi;
   return tonapiioErrorHandler(async () => {
     return (await api.getJettonsBalances({ accountId: account })).balances;
   }, []);
 }
 
 export function fetchNftItems(network: ApiNetwork, addresses: string[]) {
-  const api = tonapiioByNetwork[network].nftApi;
+  const api = getApi(network).nftApi;
   return tonapiioErrorHandler(async () => (await api.getNftItemsByAddresses({
     getAccountsRequest: { accountIds: addresses },
   })).nftItems, []);
@@ -58,7 +70,7 @@ export function fetchAccountNfts(network: ApiNetwork, address: string, options?:
   limit?: number;
 }) {
   const { collection, offset, limit } = options ?? {};
-  const api = tonapiioByNetwork[network].accountsApi;
+  const api = getApi(network).accountsApi;
 
   return tonapiioErrorHandler(async () => (await api.getNftItemsByOwner({
     accountId: address,
@@ -70,7 +82,7 @@ export function fetchAccountNfts(network: ApiNetwork, address: string, options?:
 }
 
 export function fetchAccountEvents(network: ApiNetwork, address: string, fromSec: number, limit?: number) {
-  const api = tonapiioByNetwork[network].accountsApi;
+  const api = getApi(network).accountsApi;
   return tonapiioErrorHandler(async () => (await api.getEventsByAccount({
     accountId: address,
     limit: limit ?? MAX_LIMIT,

@@ -16,6 +16,7 @@ export interface AccountIdParsed {
 }
 
 export interface ApiInitArgs {
+  isElectron: boolean;
 }
 
 export interface ApiBaseToken {

@@ -83,7 +83,7 @@ type SubmitMultiTransferResult = {
 
 const { Address, fromNano } = TonWeb.utils;
 
-const DEFAULT_FEE = '10966001';
+const DEFAULT_FEE = '15000000';
 const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 60; // 60 sec.
 const GET_TRANSACTIONS_LIMIT = 50;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;

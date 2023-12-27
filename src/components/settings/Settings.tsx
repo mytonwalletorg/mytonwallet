@@ -10,7 +10,6 @@ import {
   APP_NAME,
   APP_VERSION,
   IS_CAPACITOR,
-  IS_DAPP_SUPPORTED,
   IS_EXTENSION,
   LANG_LIST,
   PROXY_HOSTS,
@@ -29,6 +28,7 @@ import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
 import {
   IS_BIOMETRIC_AUTH_SUPPORTED,
+  IS_DAPP_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
   IS_ELECTRON,
   IS_LEDGER_SUPPORTED,
