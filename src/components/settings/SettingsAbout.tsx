@@ -1,6 +1,8 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { APP_NAME, APP_VERSION, IS_EXTENSION } from '../../config';
+import {
+  APP_ENV_MARKER, APP_NAME, APP_VERSION, IS_EXTENSION,
+} from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 
@@ -63,7 +65,7 @@ function SettingsAbout({ isActive, handleBackClick, isInsideModal }: OwnProps) {
       >
         <img src={logoSrc} alt={lang('Logo')} className={styles.logo} />
         <h2 className={styles.title}>
-          {APP_NAME} {APP_VERSION}
+          {APP_NAME} {APP_VERSION} {APP_ENV_MARKER}
           <a href="https://mytonwallet.io/" target="_blank" className={styles.titleLink} rel="noreferrer">
             mytonwallet.io
           </a>

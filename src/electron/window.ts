@@ -13,7 +13,7 @@ import { captureStorage, restoreStorage } from './storageUtils';
 import tray from './tray';
 import {
   checkIsWebContentsUrlAllowed, FORCE_STORAGE_CAPTURED_SETTINGS_KEY, forceQuit,
-  IS_FIRST_RUN, IS_FORCE_STORAGE_CAPTURE_REQUIRED, IS_MAC_OS, IS_PREVIEW, IS_WINDOWS,
+  getIsForceStorageCaptureRequired, IS_FIRST_RUN, IS_MAC_OS, IS_PREVIEW, IS_WINDOWS,
   mainWindow, setMainWindow, store, WINDOW_STATE_FILE,
 } from './utils';
 
@@ -89,7 +89,7 @@ export function createWindow() {
       loadWindowUrl();
     }
 
-    if (IS_FORCE_STORAGE_CAPTURE_REQUIRED) {
+    if (getIsForceStorageCaptureRequired()) {
       await captureStorage();
       store.set(FORCE_STORAGE_CAPTURED_SETTINGS_KEY, true);
       loadWindowUrl();
@@ -106,7 +106,7 @@ function loadWindowUrl(): void {
     mainWindow.loadURL('http://localhost:4321');
     mainWindow.webContents.openDevTools();
   } else if (getIsAutoUpdateEnabled()) {
-    if (IS_FORCE_STORAGE_CAPTURE_REQUIRED) {
+    if (getIsForceStorageCaptureRequired()) {
       mainWindow.loadURL(BETA_URL);
     } else {
       mainWindow.loadURL(BASE_URL!);

@@ -32,8 +32,10 @@ export const IS_WINDOWS = process.platform === 'win32';
 export const IS_LINUX = process.platform === 'linux';
 export const IS_PREVIEW = process.env.IS_PREVIEW === 'true';
 export const IS_FIRST_RUN = !fs.existsSync(`${app.getPath('userData')}/${WINDOW_STATE_FILE}`);
-export const IS_FORCE_STORAGE_CAPTURE_REQUIRED = app.getVersion() === '1.17.6'
-  && !store.get(FORCE_STORAGE_CAPTURED_SETTINGS_KEY);
+
+export function getIsForceStorageCaptureRequired(): boolean {
+  return app.getVersion() === '1.17.7' && !store.get(FORCE_STORAGE_CAPTURED_SETTINGS_KEY);
+}
 
 export function setMainWindow(window: BrowserWindow) {
   mainWindow = window;

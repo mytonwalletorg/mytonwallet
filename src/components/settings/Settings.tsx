@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import { type GlobalState, SettingsState, type UserToken } from '../../global/types';
 
 import {
-  APP_ENV,
+  APP_ENV_MARKER,
   APP_NAME,
   APP_VERSION,
   IS_CAPACITOR,
@@ -483,7 +483,7 @@ function Settings({
           </div>
 
           <div className={styles.version} onClick={handleMultipleClick}>
-            {APP_NAME} {APP_VERSION} {APP_ENV === 'staging' ? 'Beta' : APP_ENV === 'development' ? 'Dev' : undefined}
+            {APP_NAME} {APP_VERSION} {APP_ENV_MARKER}
           </div>
         </div>
         <SettingsDeveloperOptions isOpen={isDeveloperModalOpen} onClose={closeDeveloperModal} isTestnet={isTestnet} />
