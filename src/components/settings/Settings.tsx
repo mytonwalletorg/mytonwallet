@@ -6,6 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import { type GlobalState, SettingsState, type UserToken } from '../../global/types';
 
 import {
+  APP_ENV,
   APP_NAME,
   APP_VERSION,
   IS_CAPACITOR,
@@ -16,7 +17,10 @@ import {
   TELEGRAM_WEB_URL,
 } from '../../config';
 import {
-  selectAccountSettings, selectCurrentAccountTokens, selectIsHardwareAccount, selectIsPasswordPresent,
+  selectAccountSettings,
+  selectCurrentAccountTokens,
+  selectIsHardwareAccount,
+  selectIsPasswordPresent,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { getIsNativeBiometricAuthSupported } from '../../util/capacitor';
@@ -479,7 +483,7 @@ function Settings({
           </div>
 
           <div className={styles.version} onClick={handleMultipleClick}>
-            {APP_NAME} {APP_VERSION}
+            {APP_NAME} {APP_VERSION} {APP_ENV === 'staging' ? 'Beta' : APP_ENV === 'development' ? 'Dev' : undefined}
           </div>
         </div>
         <SettingsDeveloperOptions isOpen={isDeveloperModalOpen} onClose={closeDeveloperModal} isTestnet={isTestnet} />

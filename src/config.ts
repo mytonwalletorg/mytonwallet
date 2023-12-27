@@ -21,6 +21,7 @@ export const IS_SSE_SUPPORTED = IS_ELECTRON_BUILD || IS_CAPACITOR;
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
 export const PRODUCTION_URL = 'https://mytonwallet.app';
+export const BETA_URL = 'https://beta.mytonwallet.app';
 export const BASE_URL = process.env.BASE_URL;
 
 export const STRICTERDOM_ENABLED = DEBUG && !IS_ELECTRON_BUILD;

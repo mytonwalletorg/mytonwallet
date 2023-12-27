@@ -6,13 +6,14 @@ import path from 'path';
 
 import { ElectronAction } from './types';
 
-import { APP_ENV, BASE_URL } from '../config';
+import { APP_ENV, BASE_URL, BETA_URL } from '../config';
 import { AUTO_UPDATE_SETTING_KEY, getIsAutoUpdateEnabled, setupAutoUpdates } from './autoUpdates';
 import { processDeeplink } from './deeplink';
 import { captureStorage, restoreStorage } from './storageUtils';
 import tray from './tray';
 import {
-  checkIsWebContentsUrlAllowed, forceQuit, IS_FIRST_RUN, IS_MAC_OS, IS_PREVIEW, IS_WINDOWS,
+  checkIsWebContentsUrlAllowed, FORCE_STORAGE_CAPTURED_SETTINGS_KEY, forceQuit,
+  IS_FIRST_RUN, IS_FORCE_STORAGE_CAPTURE_REQUIRED, IS_MAC_OS, IS_PREVIEW, IS_WINDOWS,
   mainWindow, setMainWindow, store, WINDOW_STATE_FILE,
 } from './utils';
 
@@ -88,6 +89,12 @@ export function createWindow() {
       loadWindowUrl();
     }
 
+    if (IS_FORCE_STORAGE_CAPTURE_REQUIRED) {
+      await captureStorage();
+      store.set(FORCE_STORAGE_CAPTURED_SETTINGS_KEY, true);
+      loadWindowUrl();
+    }
+
     mainWindow.show();
   });
 
@@ -99,7 +106,11 @@ function loadWindowUrl(): void {
     mainWindow.loadURL('http://localhost:4321');
     mainWindow.webContents.openDevTools();
   } else if (getIsAutoUpdateEnabled()) {
-    mainWindow.loadURL(BASE_URL!);
+    if (IS_FORCE_STORAGE_CAPTURE_REQUIRED) {
+      mainWindow.loadURL(BETA_URL);
+    } else {
+      mainWindow.loadURL(BASE_URL!);
+    }
   } else if (getIsAutoUpdateEnabled() === undefined && IS_FIRST_RUN) {
     store.set(AUTO_UPDATE_SETTING_KEY, true);
     mainWindow.loadURL(BASE_URL!);
