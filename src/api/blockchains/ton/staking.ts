@@ -36,7 +36,6 @@ import { isAddressInitialized } from './wallet';
 const LIQUID_STAKE_AMOUNT = '1';
 const LIQUID_UNSTAKE_AMOUNT = '1';
 const UNSTAKE_AMOUNT = '1';
-const MIN_NOMINATORS_AMOUNT = '10001';
 
 export async function checkStakeDraft(
   accountId: string,
@@ -50,10 +49,7 @@ export async function checkStakeDraft(
   let result: CheckTransactionDraftResult;
   const bigAmount = Big(fromNano(amount));
 
-  if (
-    (staked?.type === 'nominators' && bigAmount.gte(STAKING_MIN_AMOUNT))
-    || (staked.type === 'empty' && bigAmount.gte(MIN_NOMINATORS_AMOUNT))
-  ) {
+  if (staked?.type === 'nominators' && bigAmount.gte(STAKING_MIN_AMOUNT)) {
     type = 'nominators';
 
     const poolAddress = backendState.nominatorsPool.address;
@@ -242,6 +238,12 @@ export async function getStakingState(
     }
   }
 
+  const { loyaltyType } = backendState;
+  let liquidApy = commonData.liquid.apy;
+  if (loyaltyType && loyaltyType in commonData.liquid.loyaltyApy) {
+    liquidApy = commonData.liquid.loyaltyApy[loyaltyType];
+  }
+
   if (tokenBalance.gt(0) || unstakeAmount.gt(0)) {
     const fullTokenAmount = tokenBalance.plus(unstakeAmount);
     const amount = Big(currentRate).times(fullTokenAmount).toFixed(DEFAULT_DECIMALS);
@@ -251,6 +253,7 @@ export async function getStakingState(
       tokenAmount: tokenBalance.toFixed(DEFAULT_DECIMALS),
       amount: parseFloat(amount),
       unstakeRequestAmount: unstakeAmount.toNumber(),
+      apy: liquidApy,
     };
   }
 
@@ -259,16 +262,22 @@ export async function getStakingState(
   const nominators = await nominatorPool.getListNominators();
   const currentNominator = nominators.find((n) => n.address === address);
 
-  if (currentNominator) {
+  if (!currentNominator) {
     return {
-      type: 'nominators',
-      amount: parseFloat(currentNominator.amount),
-      pendingDepositAmount: parseFloat(currentNominator.pendingDepositAmount),
-      isUnstakeRequested: currentNominator.withdrawRequested,
+      type: 'liquid',
+      tokenAmount: '0',
+      amount: 0,
+      unstakeRequestAmount: 0,
+      apy: liquidApy,
     };
   }
 
-  return { type: 'empty' };
+  return {
+    type: 'nominators',
+    amount: parseFloat(currentNominator.amount),
+    pendingDepositAmount: parseFloat(currentNominator.pendingDepositAmount),
+    isUnstakeRequested: currentNominator.withdrawRequested,
+  };
 }
 
 function getPoolContract(network: ApiNetwork, poolAddress: string) {

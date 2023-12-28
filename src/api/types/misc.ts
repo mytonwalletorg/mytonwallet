@@ -101,8 +101,7 @@ export type ApiStakingState = {
   tokenAmount: string;
   amount: number;
   unstakeRequestAmount: number;
-} | {
-  type: 'empty';
+  apy: number;
 };
 
 export interface ApiNominatorsPool {
@@ -116,6 +115,7 @@ export interface ApiBackendStakingState {
   balance: number;
   totalProfit: number;
   nominatorsPool: ApiNominatorsPool;
+  loyaltyType?: ApiLoyaltyType;
 }
 
 export type ApiStakingHistory = {
@@ -179,3 +179,5 @@ export enum ApiLiquidUnstakeMode {
   Instant,
   BestRate,
 }
+
+export type ApiLoyaltyType = 'black' | 'platinum' | 'gold' | 'silver' | 'standard';

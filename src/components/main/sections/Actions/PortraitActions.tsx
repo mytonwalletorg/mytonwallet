@@ -5,9 +5,11 @@ import { getActions } from '../../../../global';
 
 import { ElectronEvent } from '../../../../electron/types';
 
+import { IS_CAPACITOR } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { clearLaunchUrl, getLaunchUrl } from '../../../../util/capacitor';
 import { processDeeplink } from '../../../../util/processDeeplink';
+import { IS_IOS } from '../../../../util/windowEnvironment';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -32,7 +34,7 @@ function PortraitActions({
 
   const lang = useLang();
 
-  const isSwapAllowed = !(isTestnet || isLedger);
+  const isSwapAllowed = !(isTestnet || isLedger || (IS_IOS && IS_CAPACITOR));
   const isStakingAllowed = !(isTestnet || isLedger);
 
   useEffect(() => {

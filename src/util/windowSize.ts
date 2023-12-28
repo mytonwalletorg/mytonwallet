@@ -85,9 +85,13 @@ function patchSafeAreaProperty() {
 }
 
 function getSafeAreaTop() {
-  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-top-value'), 10);
+  const value = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-top-value'), 10);
+
+  return Number.isNaN(value) ? 0 : value;
 }
 
 function getSafeAreaBottom() {
-  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom-value'), 10);
+  const value = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom-value'), 10);
+
+  return Number.isNaN(value) ? 0 : value;
 }

@@ -11,7 +11,7 @@ The wallet is **self-custodial and safe**. The developers **do not** have access
 - [Requirements](#requirements)
 - [Local Setup](#local-setup)
 - [Dev Mode](#dev-mode)
-- [Installing App on Linux](#installing-app-on-linux)
+- [Linux](#linux-desktop)
 - [Electron](./docs/electron.md)
 - [Verifying GPG Signatures](./docs/gpg-check.md)
 - [Support Us](#support-us)
@@ -39,9 +39,31 @@ npm i
 npm run dev
 ```
 
-## Installing App on Linux
+## Linux Desktop Troubleshooting
 
-In order for the application to work correctly and be displayed in the Linux menu, you need to install the AppImage via [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher)
+**If the app does not start after click:**
+
+Install the [FUSE 2 library](https://github.com/AppImage/AppImageKit/wiki/FUSE)
+
+**If the app does not appear in the system menu or does not process ton:// and TON Connect deeplinks:**
+
+Install [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher) and install the AppImage file through it.
+
+```bash
+sudo add-apt-repository ppa:appimagelauncher-team/stable
+sudo apt-get update
+sudo apt-get install appimagelauncher
+```
+
+**If the app does not connect to Ledger:**
+
+Copy the udev rules from the [official repository](https://github.com/LedgerHQ/udev-rules) and run the file `add_udev_rules.sh` with root rights.
+
+```bash
+git clone https://github.com/LedgerHQ/udev-rules
+cd udev-rules
+sudo bash ./add_udev_rules.sh
+```
 
 ## Support Us
 

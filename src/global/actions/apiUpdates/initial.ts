@@ -62,32 +62,18 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         }, true);
       } else {
         const isPrevRoundUnlocked = Date.now() > stakingCommonData.prevRound.unlock;
-        const state = {
+
+        balance = stakingState.amount;
+        global = updateAccountStakingState(global, accountId, {
+          type: stakingState.type,
+          balance,
+          isUnstakeRequested: !!stakingState.unstakeRequestAmount,
+          unstakeRequestedAmount: Number(stakingState.unstakeRequestAmount),
           start: isPrevRoundUnlocked ? stakingCommonData.round.start : stakingCommonData.prevRound.start,
           end: isPrevRoundUnlocked ? stakingCommonData.round.unlock : stakingCommonData.prevRound.unlock,
-          apy: stakingCommonData.liquid.apy,
+          apy: stakingState.apy,
           totalProfit: backendStakingState.totalProfit,
-        };
-
-        if (stakingState.type === 'liquid') {
-          balance = stakingState.amount;
-          global = updateAccountStakingState(global, accountId, {
-            type: stakingState.type,
-            balance,
-            isUnstakeRequested: !!stakingState.unstakeRequestAmount,
-            unstakeRequestedAmount: Number(stakingState.unstakeRequestAmount),
-            ...state,
-          }, true);
-        } else {
-          balance = 0;
-          global = updateAccountStakingState(global, accountId, {
-            type: 'liquid',
-            balance,
-            isUnstakeRequested: false,
-            unstakeRequestedAmount: undefined,
-            ...state,
-          }, true);
-        }
+        }, true);
       }
 
       let shouldOpenStakingInfo = false;

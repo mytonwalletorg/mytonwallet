@@ -1,4 +1,4 @@
-import { useEffect, useRef } from '../lib/teact/teact';
+import { useRef } from '../lib/teact/teact';
 
 import { LoadMoreDirection } from '../global/types';
 
@@ -7,6 +7,7 @@ import useForceUpdate from './useForceUpdate';
 import useLastCallback from './useLastCallback';
 import usePrevious from './usePrevious';
 import usePrevious2 from './usePrevious2';
+import useSyncEffect from './useSyncEffect';
 
 type GetMore = (args: { direction: LoadMoreDirection }) => void;
 type ResetScroll = () => void;
@@ -62,8 +63,8 @@ const useInfiniteScroll = <ListId extends string | number>(
     requestParamsRef.current = {};
   });
 
-  useEffect(() => {
-    if (!isActive && slug !== prevSlug) {
+  useSyncEffect(() => {
+    if (!isActive || slug !== prevSlug) {
       resetScroll();
     }
   }, [isActive, prevSlug, resetScroll, slug]);

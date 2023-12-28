@@ -71,7 +71,6 @@ function AccountSelector({
 
   const accountsAmount = useMemo(() => Object.keys(accounts || {}).length, [accounts]);
   const shouldRenderQrScannerButton = Boolean(onQrScanPress);
-  const shouldRenderSettingsButton = !noSettingsButton && !shouldRenderQrScannerButton;
 
   useEffect(() => {
     if (isOpen && forceClose) {
@@ -163,7 +162,7 @@ function AccountSelector({
   const accountTitleClassName = buildClassName(
     styles.accountTitle,
     accountClassName,
-    shouldRenderQrScannerButton && shouldRenderSettingsButton && styles.accountTitleShort,
+    shouldRenderQrScannerButton && !noSettingsButton && styles.accountTitleShort,
   );
   const settingsButtonClassName = buildClassName(
     styles.menuButton,
@@ -179,7 +178,7 @@ function AccountSelector({
             {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
           </div>
         )}
-        {shouldRenderSettingsButton && (
+        {!noSettingsButton && (
           <Button
             className={settingsButtonClassName}
             isText

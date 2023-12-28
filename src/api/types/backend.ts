@@ -1,4 +1,6 @@
 // Decentralized swap of TON and tokens
+import type { ApiLoyaltyType } from './misc';
+
 export type ApiSwapEstimateRequest = {
   from: string;
   to: string;
@@ -124,6 +126,9 @@ export type ApiStakingCommonData = {
     collection?: string;
     apy: number;
     available: string;
+    loyaltyApy: {
+      [key in ApiLoyaltyType]: number;
+    };
   };
   round: {
     start: number;
