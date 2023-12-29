@@ -14,6 +14,8 @@ npx cap sync
 <docgen-index>
 
 * [`prepare()`](#prepare)
+* [`applyScrollPatch()`](#applyscrollpatch)
+* [`clearScrollPatch()`](#clearscrollpatch)
 * [`delegate(...)`](#delegate)
 * [`release(...)`](#release)
 * [`openSelf(...)`](#openself)
@@ -39,6 +41,24 @@ npx cap sync
 
 ```typescript
 prepare() => Promise<void>
+```
+
+--------------------
+
+
+### applyScrollPatch()
+
+```typescript
+applyScrollPatch() => Promise<void>
+```
+
+--------------------
+
+
+### clearScrollPatch()
+
+```typescript
+clearScrollPatch() => Promise<void>
 ```
 
 --------------------

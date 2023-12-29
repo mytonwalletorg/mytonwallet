@@ -88,6 +88,7 @@ function NativeBiometricsTurnOn({
         />
 
         <PinPad
+          isActive={isActive}
           onClearError={clearNativeBiometricsError}
           title={lang(pinTitle)}
           type={pinPadType}

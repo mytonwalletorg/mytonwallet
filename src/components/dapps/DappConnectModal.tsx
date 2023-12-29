@@ -5,16 +5,11 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type { ApiDapp, ApiDappPermissions } from '../../api/types';
-import type {
-  Account, AccountState, HardwareConnectState, UserToken,
-} from '../../global/types';
+import type { Account, HardwareConnectState } from '../../global/types';
 import { DappConnectState } from '../../global/types';
 
-import { TON_TOKEN_SLUG } from '../../config';
-import { bigStrToHuman } from '../../global/helpers';
-import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
+import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { formatCurrency } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { shortenAddress } from '../../util/shortenAddress';
 
@@ -42,18 +37,15 @@ interface StateProps {
   error?: string;
   requiredPermissions?: ApiDappPermissions;
   requiredProof?: ApiTonConnectProof;
-  tokens?: UserToken[];
   currentAccountId: string;
   accounts?: Record<string, Account>;
-  accountsData?: Record<string, AccountState>;
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
 }
 
-const ACCOUNT_ADDRESS_SHIFT = 2;
-const ACCOUNT_ADDRESS_SHIFT_END = 3;
-const ACCOUNT_BALANCE_DECIMALS = 3;
+const ACCOUNT_ADDRESS_SHIFT = 4;
+const ACCOUNT_ADDRESS_SHIFT_END = 4;
 
 function DappConnectModal({
   state,
@@ -63,9 +55,7 @@ function DappConnectModal({
   requiredPermissions,
   requiredProof,
   accounts,
-  accountsData,
   currentAccountId,
-  tokens,
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
@@ -103,8 +93,6 @@ function DappConnectModal({
   const shouldRenderAccounts = useMemo(() => {
     return accounts && Object.keys(accounts).length > 1;
   }, [accounts]);
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens])!;
-
   const { iconUrl, name, url } = dapp || {};
 
   const handleSubmit = useLastCallback(() => {
@@ -145,7 +133,6 @@ function DappConnectModal({
   }, [accounts]);
 
   function renderAccount(accountId: string, address: string, title?: string) {
-    const balance = accountsData?.[accountId].balances?.bySlug[tonToken.slug] || '0';
     const isActive = accountId === selectedAccount;
     const onClick = isActive || isLoading ? undefined : () => setSelectedAccount(accountId);
     const fullClassName = buildClassName(
@@ -156,14 +143,13 @@ function DappConnectModal({
 
     return (
       <div
+        key={accountId}
         className={fullClassName}
         aria-label={lang('Switch Account')}
         onClick={onClick}
       >
         {title && <span className={styles.accountName}>{title}</span>}
         <div className={styles.accountFooter}>
-          <i className={buildClassName(styles.accountCurrencyIcon, 'icon-ton')} aria-hidden />
-          {formatCurrency(bigStrToHuman(balance), '', ACCOUNT_BALANCE_DECIMALS)}
           <span className={styles.accountAddress}>
             {shortenAddress(address, ACCOUNT_ADDRESS_SHIFT, ACCOUNT_ADDRESS_SHIFT_END)}
           </span>
@@ -343,10 +329,8 @@ export default memo(withGlobal((global): StateProps => {
     error,
     requiredPermissions: permissions,
     requiredProof: proof,
-    tokens: selectCurrentAccountTokens(global),
     currentAccountId,
     accounts,
-    accountsData: global.byAccountId,
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,

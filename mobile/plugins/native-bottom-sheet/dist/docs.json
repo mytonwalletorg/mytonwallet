@@ -16,6 +16,26 @@
         "slug": "prepare"
       },
       {
+        "name": "applyScrollPatch",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "applyscrollpatch"
+      },
+      {
+        "name": "clearScrollPatch",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "clearscrollpatch"
+      },
+      {
         "name": "delegate",
         "signature": "(options: { key: BottomSheetKeys; globalJson: string; }) => Promise<void>",
         "parameters": [

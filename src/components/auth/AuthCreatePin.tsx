@@ -69,6 +69,7 @@ const AuthCreatePin = ({
         <div className={styles.title}>{lang(isImporting ? 'Wallet is imported!' : 'Wallet is ready!')}</div>
       </div>
       <PinPad
+        isActive={isActive}
         title={lang('Create a code to protect it')}
         length={PIN_LENGTH}
         value={pin}

@@ -1,4 +1,5 @@
 import type { RefObject } from 'react';
+import { BottomSheet } from 'native-bottom-sheet';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
@@ -6,6 +7,7 @@ import React, {
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import { clamp } from '../../util/math';
+import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -150,6 +152,10 @@ function Draggable({
     e.stopPropagation();
     e.preventDefault();
     setInitialState(e);
+
+    if (IS_DELEGATED_BOTTOM_SHEET) {
+      void BottomSheet.clearScrollPatch();
+    }
   });
 
   const handleMouseMove = useLastCallback((e: MouseEvent | TouchEvent) => {
@@ -200,6 +206,10 @@ function Draggable({
       width: undefined,
       height: undefined,
     }));
+
+    if (IS_DELEGATED_BOTTOM_SHEET) {
+      void BottomSheet.applyScrollPatch();
+    }
 
     onDragEnd();
   });

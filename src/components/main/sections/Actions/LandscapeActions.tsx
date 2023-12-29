@@ -10,6 +10,7 @@ import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import { selectAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { IS_SWAP_DISABLED } from '../../../../util/windowEnvironment';
 import { ReceiveStatic } from '../../../receive';
 
 import useLang from '../../../../hooks/useLang';
@@ -57,8 +58,8 @@ function LandscapeActions({
     isStaking,
   );
 
-  const isSwapAllowed = !(isTestnet || isLedger);
-  const isStakingAllowed = !(isTestnet || isLedger);
+  const isSwapAllowed = !isTestnet && !isLedger && !IS_SWAP_DISABLED;
+  const isStakingAllowed = !isTestnet && !isLedger;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
 
   useEffect(() => {

@@ -60,7 +60,25 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             }
         }
     }
-
+    
+    @objc func applyScrollPatch(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [self] in
+            let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
+            let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
+            topBottomSheetPlugin.setupScrollReducers()
+            call.resolve()
+        }
+    }
+    
+    @objc func clearScrollPatch(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [self] in
+            let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
+            let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
+            topBottomSheetPlugin.removeScrollReducers()
+            call.resolve()
+        }
+    }
+    
     @objc func delegate(_ call: CAPPluginCall) {
         ensureLocalOrigin()
         ensureDelegating()
@@ -333,6 +351,24 @@ extension BottomSheetPlugin: UIGestureRecognizerDelegate {
         let mainGestureRecognizer = UIPanGestureRecognizer()
         mainGestureRecognizer.delegate = self
         bridge!.webView!.scrollView.addGestureRecognizer(mainGestureRecognizer)
+
+        let fpcGestureRecognizer = UIPanGestureRecognizer()
+        fpcGestureRecognizer.delegate = self
+        fpc.view.addGestureRecognizer(fpcGestureRecognizer)
+
+        fpc.panGestureRecognizer.isEnabled = true
+    }
+
+    private func removeScrollReducers() {
+        if let mainGestureRecognizer = bridge!.webView!.scrollView.gestureRecognizers?.first(where: { $0 is UIPanGestureRecognizer }) {
+            bridge!.webView!.scrollView.removeGestureRecognizer(mainGestureRecognizer)
+        }
+        
+        if let fpcGestureRecognizer = fpc.view.gestureRecognizers?.first(where: { $0 is UIPanGestureRecognizer }) {
+            fpc.view.removeGestureRecognizer(fpcGestureRecognizer)
+        }
+        
+        fpc.panGestureRecognizer.isEnabled = false
     }
 
     @objc public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {

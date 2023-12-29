@@ -23,6 +23,10 @@ export type BottomSheetKeys =
 export interface BottomSheetPlugin {
   prepare(): Promise<void>;
 
+  applyScrollPatch(): Promise<void>;
+
+  clearScrollPatch(): Promise<void>;
+
   delegate(options: { key: BottomSheetKeys, globalJson: string }): Promise<void>;
 
   release(options: { key: BottomSheetKeys | '*' }): Promise<void>;

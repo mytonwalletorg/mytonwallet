@@ -1,3 +1,4 @@
+import { BottomSheet } from 'native-bottom-sheet';
 import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -5,7 +6,9 @@ import type { GlobalState } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
 import { getIsFaceIdAvailable, vibrateOnError } from '../../util/capacitor';
+import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
+import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import PinPadButton from './PinPadButton';
@@ -13,6 +16,7 @@ import PinPadButton from './PinPadButton';
 import styles from './PinPad.module.scss';
 
 interface OwnProps {
+  isActive?: boolean;
   title: string;
   type?: 'error' | 'success';
   value: string;
@@ -32,6 +36,7 @@ const DEFAULT_PIN_LENGTH = 4;
 const RESET_STATE_DELAY_MS = 1500;
 
 function PinPad({
+  isActive,
   title,
   type,
   value,
@@ -61,6 +66,16 @@ function PinPad({
       clearIsPinAccepted();
     };
   }, []);
+
+  // Fix for iOS, enable fast pinpad button presses
+  useEffectWithPrevDeps(([prevIsActive]) => {
+    if (!IS_DELEGATED_BOTTOM_SHEET) return;
+    if (isActive) {
+      void BottomSheet.clearScrollPatch();
+    } else if (prevIsActive) {
+      void BottomSheet.applyScrollPatch();
+    }
+  }, [isActive]);
 
   useEffect(() => {
     if (type !== 'error') return undefined;

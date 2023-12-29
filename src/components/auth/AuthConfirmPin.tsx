@@ -93,6 +93,7 @@ const AuthConfirmPin = ({
       </div>
 
       <PinPad
+        isActive={isActive}
         title={isConfirmed ? lang('Code set successfully') : (error || lang('Enter your code again'))}
         type={isConfirmed ? 'success' : (error ? 'error' : undefined)}
         length={PIN_LENGTH}

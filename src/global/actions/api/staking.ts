@@ -172,17 +172,18 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
     global = updateAccountStakingStatePartial(global, currentAccountId!, { isInstantUnstakeRequested });
     global = updateStaking(global, { isLoading: false });
     setGlobal(global);
-    global = getGlobal();
 
     if (!result) {
       actions.showDialog({
         message: 'Unstaking was unsuccessful. Try again later',
       });
+      global = getGlobal();
 
       if (IS_CAPACITOR) {
         global = clearIsPinAccepted(global);
       }
     } else {
+      global = getGlobal();
       global = updateStaking(global, { state: StakingState.UnstakeComplete });
     }
   } else {
@@ -198,17 +199,18 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
     global = getGlobal();
     global = updateStaking(global, { isLoading: false });
     setGlobal(global);
-    global = getGlobal();
 
     if (!result) {
       actions.showDialog({
         message: 'Staking was unsuccessful. Try again later',
       });
 
+      global = getGlobal();
       if (IS_CAPACITOR) {
         global = clearIsPinAccepted(global);
       }
     } else {
+      global = getGlobal();
       global = updateStaking(global, { state: StakingState.StakeComplete });
     }
   }

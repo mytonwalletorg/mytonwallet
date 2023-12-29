@@ -23,7 +23,8 @@ $tab-1-height: 348;
 }
 
 .notAllTabs {
-  grid-template-columns: 1fr 1fr;
+  grid-auto-flow: column;
+  grid-template-columns: auto;
 }
 
 .tab {

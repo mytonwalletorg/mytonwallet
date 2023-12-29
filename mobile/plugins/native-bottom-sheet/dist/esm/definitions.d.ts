@@ -2,6 +2,8 @@ import { PluginListenerHandle } from '@capacitor/core';
 export declare type BottomSheetKeys = 'initial' | 'receive' | 'invoice' | 'transfer' | 'swap' | 'stake' | 'unstake' | 'staking-info' | 'transaction-info' | 'swap-activity' | 'backup' | 'add-account' | 'settings' | 'qr-scanner' | 'dapp-connect' | 'dapp-transaction' | 'disclaimer' | 'backup-warning';
 export interface BottomSheetPlugin {
     prepare(): Promise<void>;
+    applyScrollPatch(): Promise<void>;
+    clearScrollPatch(): Promise<void>;
     delegate(options: {
         key: BottomSheetKeys;
         globalJson: string;

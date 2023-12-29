@@ -11,7 +11,7 @@ The wallet is **self-custodial and safe**. The developers **do not** have access
 - [Requirements](#requirements)
 - [Local Setup](#local-setup)
 - [Dev Mode](#dev-mode)
-- [Linux](#linux-desktop)
+- [Linux](#linux-desktop-troubleshooting)
 - [Electron](./docs/electron.md)
 - [Verifying GPG Signatures](./docs/gpg-check.md)
 - [Support Us](#support-us)
@@ -43,7 +43,7 @@ npm run dev
 
 **If the app does not start after click:**
 
-Install the [FUSE 2 library](https://github.com/AppImage/AppImageKit/wiki/FUSE)
+Install the [FUSE 2 library](https://github.com/AppImage/AppImageKit/wiki/FUSE).
 
 **If the app does not appear in the system menu or does not process ton:// and TON Connect deeplinks:**
 

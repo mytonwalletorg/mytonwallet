@@ -48,7 +48,7 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
 
     return;
   } else if (IS_CAPACITOR) {
-    vibrateOnSuccess(true);
+    void vibrateOnSuccess();
   }
 
   actions.switchAccount({ accountId });

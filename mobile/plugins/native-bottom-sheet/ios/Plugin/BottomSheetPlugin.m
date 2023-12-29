@@ -13,4 +13,6 @@ CAP_PLUGIN(BottomSheetPlugin, "BottomSheet",
            CAP_PLUGIN_METHOD(callActionInMain, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(callActionInNative, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(openInMain, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(applyScrollPatch, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(clearScrollPatch, CAPPluginReturnPromise);
 )

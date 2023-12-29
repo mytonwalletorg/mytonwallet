@@ -62,6 +62,7 @@ export const IS_DELEGATED_BOTTOM_SHEET = IS_CAPACITOR && global.location.search.
 export const IS_DELEGATING_BOTTOM_SHEET = IS_CAPACITOR && IS_IOS && !IS_DELEGATED_BOTTOM_SHEET;
 export const IS_MULTITAB_SUPPORTED = 'BroadcastChannel' in window && !IS_LEDGER_EXTENSION_TAB;
 export const IS_DAPP_SUPPORTED = IS_EXTENSION || IS_ELECTRON || IS_CAPACITOR;
+export const IS_SWAP_DISABLED = IS_IOS && IS_CAPACITOR;
 
 export function setScrollbarWidthProperty() {
   const el = document.createElement('div');

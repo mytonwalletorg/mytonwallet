@@ -199,6 +199,7 @@ function PasswordForm({
         </div>
 
         <PinPad
+          isActive={isActive}
           title={lang(hasError ? (localError || error!) : (isSmallHeight ? title : actionName))}
           type={hasError ? 'error' : undefined}
           length={PIN_LENGTH}

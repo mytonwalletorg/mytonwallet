@@ -232,6 +232,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
 
   if (promiseId) {
     if (IS_CAPACITOR) {
+      global = getGlobal();
       global = setIsPinAccepted(global);
       setGlobal(global);
     }
@@ -261,6 +262,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
 
   if (!result || 'error' in result) {
     if (IS_CAPACITOR) {
+      global = getGlobal();
       global = clearIsPinAccepted(global);
       setGlobal(global);
       void vibrateOnError();

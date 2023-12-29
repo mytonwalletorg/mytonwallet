@@ -262,13 +262,13 @@ addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) =
     isLoading: true,
     error: undefined,
   });
+  const swapOptions = getSwapBuildOptions(global);
   setGlobal(global);
 
   if (IS_CAPACITOR) {
     await vibrateOnSuccess(true);
   }
 
-  const swapOptions = getSwapBuildOptions(global);
   const swapItem = await callApi(
     'swapCexCreateTransaction',
     global.currentAccountId!,
