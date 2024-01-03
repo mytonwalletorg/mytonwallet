@@ -1,6 +1,7 @@
 import { StakingState } from '../../types';
 
 import { buildCollectionByKey, pick } from '../../../util/iteratees';
+import { IS_IOS_APP } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   addNft,
@@ -11,6 +12,7 @@ import {
   updateBalance,
   updateBalances,
   updateNft,
+  updateRestrictions,
   updateSettings,
   updateStaking,
   updateStakingInfo,
@@ -160,6 +162,16 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = updateAccount(global, accountId, pick(partial, ['address']));
       setGlobal(global);
       break;
+    }
+
+    case 'updateRegion': {
+      const { isLimited: isLimitedRegion } = update;
+
+      global = updateRestrictions(global, {
+        isLimitedRegion,
+        isSwapDisabled: IS_IOS_APP && isLimitedRegion,
+      });
+      setGlobal(global);
     }
   }
 });

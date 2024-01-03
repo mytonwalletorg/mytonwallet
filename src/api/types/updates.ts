@@ -158,6 +158,11 @@ export type ApiUpdateAccount = {
   partial: Partial<ApiAccount>;
 };
 
+export type ApiUpdateRegion = {
+  type: 'updateRegion';
+  isLimited: boolean;
+};
+
 export type ApiUpdate =
   ApiUpdateBalance
   | ApiUpdateBalances
@@ -177,6 +182,7 @@ export type ApiUpdate =
   | ApiUpdateShowError
   | ApiUpdateNfts
   | ApiNftUpdate
-  | ApiUpdateAccount;
+  | ApiUpdateAccount
+  | ApiUpdateRegion;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

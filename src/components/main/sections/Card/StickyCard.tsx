@@ -50,9 +50,10 @@ function StickyCard({
             onQrScanPress={onQrScanPress}
           />
           <div className={styles.balance}>
-            {shortBaseSymbol}
+            {shortBaseSymbol.length === 1 && shortBaseSymbol}
             {primaryWholePart}
             {primaryFractionPart && <span className={styles.balanceFractionPart}>.{primaryFractionPart}</span>}
+            {shortBaseSymbol.length > 1 && <span className={styles.balanceFractionPart}>&nbsp;{shortBaseSymbol}</span>}
           </div>
         </div>
       </div>
@@ -65,6 +66,7 @@ export default memo(
     (global): StateProps => {
       return {
         tokens: selectCurrentAccountTokens(global),
+        baseCurrency: global.settings.baseCurrency,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

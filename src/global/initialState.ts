@@ -16,7 +16,7 @@ import {
   THEME_DEFAULT,
   TOKEN_INFO,
 } from '../config';
-import { USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
+import { IS_IOS_APP, USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
 export const STATE_VERSION = 11;
 
@@ -79,4 +79,8 @@ export const INITIAL_STATE: GlobalState = {
   notifications: [],
 
   stateVersion: STATE_VERSION,
+  restrictions: {
+    isLimitedRegion: false,
+    isSwapDisabled: IS_IOS_APP,
+  },
 };

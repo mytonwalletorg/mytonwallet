@@ -1,8 +1,15 @@
 import { APP_ENV, DEBUG_ALERT_MSG } from '../config';
 import { throttle } from './schedulers';
 
-window.addEventListener('error', handleErrorEvent);
-window.addEventListener('unhandledrejection', handleErrorEvent);
+const noop = () => {
+};
+
+const throttledAlert = typeof window !== 'undefined' ? throttle(window.alert, 1000) : noop;
+
+// eslint-disable-next-line no-restricted-globals
+self.addEventListener('error', handleErrorEvent);
+// eslint-disable-next-line no-restricted-globals
+self.addEventListener('unhandledrejection', handleErrorEvent);
 
 function handleErrorEvent(e: ErrorEvent | PromiseRejectionEvent) {
   // https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
@@ -14,8 +21,6 @@ function handleErrorEvent(e: ErrorEvent | PromiseRejectionEvent) {
 
   handleError(e instanceof ErrorEvent ? (e.error || e.message) : e.reason);
 }
-
-const throttledAlert = throttle(window.alert, 1000);
 
 export function handleError(err: Error) {
   // eslint-disable-next-line no-console

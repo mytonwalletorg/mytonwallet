@@ -153,10 +153,29 @@ function SwapSettingsModal({
       <div className={styles.advancedBlock}>
         <div className={styles.advancedRow}>
           <span className={styles.advancedDescription}>
-            {lang('Blockchain fee')}
+            {lang('Blockchain Fee')}
           </span>
           <span className={styles.advancedValue}>
             ≈ {formatCurrency(fee, TON_SYMBOL)}
+          </span>
+        </div>
+        <div className={styles.advancedRow}>
+          <span className={styles.advancedDescription}>
+            {lang('Routing Fees')}
+            <IconWithTooltip
+              message={(
+                <div className={styles.advancedTooltipMessage}>
+                  <span>{lang('$swap_routing_fees_tooltip')}</span>
+                </div>
+              )}
+              tooltipClassName={styles.advancedTooltipContainer}
+              iconClassName={buildClassName(
+                styles.advancedTooltip, priceImpactError && styles.advancedError,
+              )}
+            />
+          </span>
+          <span className={styles.advancedValue}>
+            {lang('Included')}
           </span>
         </div>
         <div className={styles.advancedRow}>

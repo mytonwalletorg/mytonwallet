@@ -44,6 +44,7 @@ type StateProps = {
   isTestnet?: boolean;
   isLedger?: boolean;
   isStakingInfoModalOpen?: boolean;
+  isSwapDisabled?: boolean;
 };
 
 const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
@@ -57,14 +58,13 @@ function Main({
   isLedger,
   onQrScanPress,
   isStakingInfoModalOpen,
+  isSwapDisabled,
 }: OwnProps & StateProps) {
   const {
     selectToken,
     startStaking,
     openBackupWalletModal,
     setActiveContentTab,
-    setSwapTokenOut,
-    changeTransferToken,
     openStakingInfo,
     closeStakingInfo,
     setLandscapeActionsActiveTabIndex,
@@ -90,14 +90,6 @@ function Main({
   useEffect(() => {
     setStatusBarStyle(shouldRenderDarkStatusBar);
   }, [shouldRenderDarkStatusBar]);
-
-  useEffect(() => {
-    if (currentTokenSlug) {
-      setActiveContentTab({ tab: ContentTab.Activity });
-      setSwapTokenOut({ tokenSlug: currentTokenSlug });
-      changeTransferToken({ tokenSlug: currentTokenSlug });
-    }
-  }, [currentTokenSlug]);
 
   useEffect(() => {
     if (!isPortrait || !isActive) {
@@ -192,6 +184,7 @@ function Main({
             onEarnClick={handleEarnClick}
             onReceiveClick={openReceiveModal}
             isLedger={isLedger}
+            isSwapDisabled={isSwapDisabled}
           />
         </div>
 
@@ -244,6 +237,7 @@ export default memo(
         isTestnet: global.settings.isTestnet,
         isLedger: !!account?.ledger,
         isStakingInfoModalOpen: global.isStakingInfoModalOpen,
+        isSwapDisabled: global.restrictions.isSwapDisabled,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

@@ -242,3 +242,13 @@ export function updateBiometrics(global: GlobalState, biometricsUpdate: Partial<
     },
   };
 }
+
+export function updateRestrictions(global: GlobalState, partial: Partial<GlobalState['restrictions']>) {
+  return {
+    ...global,
+    restrictions: {
+      ...global.restrictions,
+      ...partial,
+    },
+  };
+}

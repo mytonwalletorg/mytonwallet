@@ -59,6 +59,7 @@ Back Up Secret Words: Copia de seguridad
 Settings: Configuración
 About: Acerca de
 Exit: Salir
+Remove Wallet: Salir
 Something went wrong.: Oops! Algo salió mal.
 Logo: Logotipo
 $about_description1: Almacene criptomonedas de forma segura, explore aplicaciones descentralizadas y realice pagos blockchain a la **velocidad de la luz**.
@@ -341,7 +342,9 @@ Swap: Intercambiar
 You sell: Usted vende
 You buy: Usted compra
 Swap Details: Detalles del intercambio
-Blockchain fee: Tarifa de blockchain
+Blockchain Fee: Tarifa de blockchain
+Routing Fees: Tarifas de routing
+Included: Incluido en el precio
 Price Impact: Impacto en el precio
 Minimum Received: Cantidad mínima recibida
 Slippage: Deslizamiento
@@ -351,6 +354,7 @@ Invalid Pair: Par Inválido
 We do not recommend to perform an exchange, try to specify a lower amount.: No recomendamos realizar un intercambio, intente especificar una cantidad menor.
 $swap_minimum_received_tooltip1: Esta es la cantidad mínima de nuevos tokens que recibirá en este intercambio, considerando las condiciones actuales del mercado, la tolerancia al deslizamiento y el posible impacto en el precio.
 $swap_minimum_received_tooltip2: Es un mínimo esperado, pero si las condiciones cambian mucho mientras su intercambio está siendo procesado, la cantidad final podría ser menor.
+$swap_routing_fees_tooltip: Tanto las tarifas de intercambio descentralizado como de aplicación (~0,875%) ya están incluidas en el precio que ves y no se cobrarán adicionalmente.
 $swap_price_impact_tooltip1: Esto muestra cuánto puede cambiar el precio de su operación el precio del token.
 $swap_price_impact_tooltip2: Las operaciones grandes pueden hacer que el precio suba o baje más. En general, es mejor un valor más bajo.
 $swap_slippage_tooltip1: Esto establece cuánto se permite que el precio cambie antes de que se procese su intercambio.

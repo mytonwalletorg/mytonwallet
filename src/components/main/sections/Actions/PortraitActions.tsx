@@ -8,7 +8,6 @@ import { ElectronEvent } from '../../../../electron/types';
 import buildClassName from '../../../../util/buildClassName';
 import { clearLaunchUrl, getLaunchUrl } from '../../../../util/capacitor';
 import { processDeeplink } from '../../../../util/processDeeplink';
-import { IS_SWAP_DISABLED } from '../../../../util/windowEnvironment';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -24,16 +23,23 @@ interface OwnProps {
   onEarnClick: NoneToVoidFunction;
   onReceiveClick: NoneToVoidFunction;
   isLedger?: boolean;
+  isSwapDisabled?: boolean;
 }
 
 function PortraitActions({
-  hasStaking, isTestnet, isUnstakeRequested, onEarnClick, onReceiveClick, isLedger,
+  hasStaking,
+  isTestnet,
+  isUnstakeRequested,
+  onEarnClick,
+  onReceiveClick,
+  isLedger,
+  isSwapDisabled,
 }: OwnProps) {
   const { startTransfer, startSwap } = getActions();
 
   const lang = useLang();
 
-  const isSwapAllowed = !isTestnet && !isLedger && !IS_SWAP_DISABLED;
+  const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isStakingAllowed = !isTestnet && !isLedger;
 
   useEffect(() => {

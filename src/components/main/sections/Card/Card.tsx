@@ -6,10 +6,7 @@ import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
 import {
-  IS_CAPACITOR,
-  TON_TOKEN_SLUG,
-  TONSCAN_BASE_MAINNET_URL,
-  TONSCAN_BASE_TESTNET_URL,
+  IS_CAPACITOR, TON_TOKEN_SLUG, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
 import { selectAccount, selectCurrentAccountState, selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -154,31 +151,20 @@ function Card({
               {renderingDappDomain}
             </div>
           )}
-          {
-            shortBaseSymbol.length === 1 ? (
-              <div className={styles.primaryValue}>
-                {shortBaseSymbol}
-                <AnimatedCounter text={primaryWholePart ?? ''} />
-                {primaryFractionPart && (
-                  <span className={styles.primaryFractionPart}>
-                    <AnimatedCounter text={`.${primaryFractionPart}`} />
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div className={styles.primaryValue}>
-                <AnimatedCounter text={primaryWholePart ?? ''} />
-                {primaryFractionPart && (
-                  <span className={styles.primaryFractionPart}>
-                    <AnimatedCounter text={`.${primaryFractionPart}`} />
-                  </span>
-                )}
-                <span className={styles.primaryFractionPart}>
-                  &nbsp;{shortBaseSymbol}
-                </span>
-              </div>
-            )
-          }
+          <div className={styles.primaryValue}>
+            {shortBaseSymbol.length === 1 && shortBaseSymbol}
+            <AnimatedCounter text={primaryWholePart ?? ''} />
+            {primaryFractionPart && (
+              <span className={styles.primaryFractionPart}>
+                <AnimatedCounter text={`.${primaryFractionPart}`} />
+              </span>
+            )}
+            {shortBaseSymbol.length > 1 && (
+              <span className={styles.primaryFractionPart}>
+                &nbsp;{shortBaseSymbol}
+              </span>
+            )}
+          </div>
           {primaryValue !== 0 && (
             <div className={buildClassName(styles.change, changeClassName)}>
               {changePrefix}

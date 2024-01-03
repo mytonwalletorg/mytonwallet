@@ -1,15 +1,10 @@
-import { BottomSheet } from 'native-bottom-sheet';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
-import {
-  getActions, getGlobal, withGlobal,
-} from '../../global';
+import { getActions, getGlobal, withGlobal } from '../../global';
 
 import type { GlobalState, UserSwapToken } from '../../global/types';
-import {
-  SwapInputSource, SwapState, SwapType,
-} from '../../global/types';
+import { SwapInputSource, SwapState, SwapType } from '../../global/types';
 
 import {
   ANIMATED_STICKER_TINY_SIZE_PX,
@@ -17,20 +12,17 @@ import {
   CHANGELLY_AML_KYC,
   CHANGELLY_PRIVACY_POLICY,
   CHANGELLY_TERMS_OF_USE,
-  JUSDT_TOKEN_SLUG,
   JWBTC_TOKEN_SLUG,
   TON_SYMBOL,
   TON_TOKEN_SLUG,
 } from '../../config';
-import { selectCurrentAccountState, selectSwapTokens } from '../../global/selectors';
+import { selectSwapTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency, formatCurrencySimple } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useDebouncedCallback from '../../hooks/useDebouncedCallback';
-import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -56,7 +48,6 @@ interface StateProps {
   currentSwap: GlobalState['currentSwap'];
   accountId?: string;
   tokens?: UserSwapToken[];
-  cardTokenSlug?: string;
 }
 
 const ESTIMATE_REQUEST_INTERVAL = 5_000;
@@ -80,9 +71,9 @@ function SwapInitial({
     limits,
     isLoading,
     pairs,
+    isSettingsModalOpen,
   },
   accountId,
-  cardTokenSlug,
   tokens,
   isActive,
   isStatic,
@@ -98,6 +89,7 @@ function SwapInitial({
     loadSwapPairs,
     setSwapType,
     setSwapCexAddress,
+    toggleSwapSettingsModal,
   } = getActions();
   const lang = useLang();
 
@@ -108,8 +100,6 @@ function SwapInitial({
 
   // eslint-disable-next-line no-null/no-null
   const estimateIntervalId = useRef<number>(null);
-
-  const [isSettingsModalOpen, openSettingsModal, closeSettingsModal] = useFlag(false);
 
   const [hasAmountInError, setHasAmountInError] = useState(false);
 
@@ -188,14 +178,6 @@ function SwapInitial({
   }, [tokenInSlug, tokenOutSlug]);
 
   useEffect(() => {
-    if (cardTokenSlug === TON_TOKEN_SLUG) {
-      setDefaultSwapParams({ tokenInSlug: JUSDT_TOKEN_SLUG, tokenOutSlug: cardTokenSlug });
-    } else if (cardTokenSlug) {
-      setDefaultSwapParams({ tokenOutSlug: cardTokenSlug });
-    }
-  }, [cardTokenSlug]);
-
-  useEffect(() => {
     const clearEstimateTimer = () => estimateIntervalId.current && window.clearInterval(estimateIntervalId.current);
 
     if (shouldEstimate) {
@@ -247,14 +229,6 @@ function SwapInitial({
   useEffect(() => {
     validateAmountIn(amountIn);
   }, [amountIn, tokenIn, validateAmountIn, swapType]);
-
-  useEffectWithPrevDeps(([prevIsOpen]) => {
-    if (!IS_DELEGATED_BOTTOM_SHEET) return;
-
-    if (isSettingsModalOpen || prevIsOpen) {
-      BottomSheet.setSelfSize({ size: isSettingsModalOpen ? 'full' : 'half' });
-    }
-  }, [isSettingsModalOpen]);
 
   const handleAmountInChange = useLastCallback(
     (amount: number | undefined, noReset = false) => {
@@ -317,6 +291,14 @@ function SwapInitial({
 
   const handleSwitchTokens = useLastCallback(() => {
     switchSwapTokens();
+  });
+
+  const openSettingsModal = useLastCallback(() => {
+    toggleSwapSettingsModal({ isOpen: true });
+  });
+
+  const closeSettingsModal = useLastCallback(() => {
+    toggleSwapSettingsModal({ isOpen: false });
   });
 
   function renderBalance() {
@@ -553,7 +535,7 @@ function SwapInitial({
         </div>
       </form>
       <SwapSettingsModal
-        isOpen={isSettingsModalOpen}
+        isOpen={Boolean(isSettingsModalOpen)}
         tokenOut={tokenOut}
         fee={realNetworkFee}
         onClose={closeSettingsModal}
@@ -565,13 +547,10 @@ function SwapInitial({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
-      const accountState = selectCurrentAccountState(global);
-
       return {
         accountId: global.currentAccountId,
         currentSwap: global.currentSwap,
         tokens: selectSwapTokens(global),
-        cardTokenSlug: accountState?.currentTokenSlug,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

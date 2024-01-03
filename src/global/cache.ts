@@ -68,7 +68,7 @@ export function initCache() {
         authApi.removeNativeBiometrics();
       }
 
-      preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo']);
+      preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo', 'restrictions']);
 
       actions.resetApiSettings({ areAllDisabled: true });
 
@@ -369,6 +369,7 @@ function updateCache() {
       'settings',
       'currentAccountId',
       'stateVersion',
+      'restrictions',
     ]),
     accounts: {
       byId: global.accounts?.byId || {},

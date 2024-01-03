@@ -10,6 +10,7 @@ import renderText from '../../../global/helpers/renderText';
 import { selectCurrentAccountState, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { shortenAddress } from '../../../util/shortenAddress';
+import { IS_IOS_APP } from '../../../util/windowEnvironment';
 
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -137,7 +138,12 @@ function LogOutModal({
   const shouldRenderWarningForCurrentAccount = isBackupRequired && !shouldRenderWarningForAnotherAccounts;
 
   return (
-    <Modal isOpen={isOpen} isCompact onClose={handleClose} title={lang('Log Out')}>
+    <Modal
+      isOpen={isOpen}
+      isCompact
+      title={IS_IOS_APP ? lang('Remove Wallet') : lang('Log Out')}
+      onClose={handleClose}
+    >
       <p className={buildClassName(modalStyles.text, modalStyles.text_noExtraMargin)}>
         {renderText(lang('$logout_warning', MNEMONIC_COUNT))}
       </p>
@@ -160,7 +166,7 @@ function LogOutModal({
           {lang('Cancel')}
         </Button>
         <Button isDestructive onClick={handleLogOut} className={modalStyles.button}>
-          {lang('Exit')}
+          {IS_IOS_APP ? lang('Remove Wallet') : lang('Exit')}
         </Button>
       </div>
     </Modal>

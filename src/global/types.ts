@@ -373,6 +373,7 @@ export type GlobalState = {
       fromMin?: string;
       fromMax?: string;
     };
+    isSettingsModalOpen?: boolean;
   };
 
   currentSignature?: {
@@ -461,6 +462,7 @@ export type GlobalState = {
     };
     authConfig?: AuthConfig;
     baseCurrency?: ApiBaseCurrency;
+    isLimitedRegion?: boolean;
   };
 
   dialogs: string[];
@@ -477,6 +479,10 @@ export type GlobalState = {
   isPinAccepted?: boolean;
 
   stateVersion: number;
+  restrictions: {
+    isLimitedRegion: boolean;
+    isSwapDisabled: boolean;
+  };
 };
 
 export interface ActionPayloads {
@@ -699,6 +705,7 @@ export interface ActionPayloads {
   setSwapType: { type: SwapType };
   setSwapCexAddress: { toAddress: string };
   addSwapToken: { token: UserSwapToken };
+  toggleSwapSettingsModal: { isOpen: boolean };
 }
 
 export enum LoadMoreDirection {

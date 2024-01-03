@@ -274,7 +274,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
         </div>
         <div className={styles.textFieldWrapper}>
           <span className={styles.textFieldLabel}>
-            {lang('Blockchain fee')}
+            {lang('Blockchain Fee')}
           </span>
           <div className={styles.textField}>
             {formatCurrency(networkFee, TON_SYMBOL)}

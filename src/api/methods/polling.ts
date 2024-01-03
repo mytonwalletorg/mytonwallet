@@ -85,6 +85,7 @@ export function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAccountA
     tryUpdateTokens(_onUpdate),
     tryLoadSwapTokens(_onUpdate),
     tryUpdateStakingCommonData(),
+    tryUpdateRegion(_onUpdate),
   ]);
 
   void setupBackendPolling();
@@ -451,6 +452,21 @@ export async function tryLoadSwapTokens(localOnUpdate: OnApiUpdate) {
     });
   } catch (err) {
     logDebugError('tryLoadSwapTokens', err);
+  }
+}
+
+export async function tryUpdateRegion(localOnUpdate: OnApiUpdate) {
+  try {
+    const { isLimited } = await callBackendGet<{ isLimited: boolean }>('/utils/check-region');
+
+    if (!isUpdaterAlive(localOnUpdate)) return;
+
+    onUpdate({
+      type: 'updateRegion',
+      isLimited,
+    });
+  } catch (err) {
+    logDebugError('tryUpdateRegion', err);
   }
 }
 

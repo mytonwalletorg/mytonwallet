@@ -59,6 +59,7 @@ Back Up Secret Words: Back Up Secret Words
 Settings: Settings
 About: About
 Exit: Exit
+Remove Wallet: Remove Wallet
 Something went wrong.: Something went wrong.
 Logo: Logo
 $about_description1: Securely store crypto, explore decentralized apps, and make blockchain payments at the **speed of light**.
@@ -95,10 +96,10 @@ Are you sure you want to remove this address from your saved ones?: Are you sure
 You will be able to save it again via Transaction Info with this address.: You will be able to save it again via Transaction Info with this address.
 Address removed from saved: Address removed from saved
 Warning!: Warning!
-Log Out: Log Out
-$logout_without_backup_warning: You have not backed up this wallet. If you log out, you will lose access to your tokens and NFTs.
-$logout_accounts_without_backup_warning: You have not backed up %links%. If you log out, you will lose access to your tokens and NFTs.
-$logout_warning: This will disconnect the wallet from this app. You will be able to restore your wallet using **%1$d secret words** - or import another wallet.
+Log Out: Remove Wallet
+$logout_without_backup_warning: You have not backed up this wallet. If you remove it now, you will lose access to your tokens and NFTs.
+$logout_accounts_without_backup_warning: You have not backed up %links%. If you proceed, you will lose access to your tokens and NFTs.
+$logout_warning: This will remove the current wallet from the app. Make sure you have your **%1$d secret words** backed up.
 Receive TON: Receive TON
 Your address was copied!: Your address was copied!
 Show QR Code: Show QR Code
@@ -192,7 +193,7 @@ View Address on TON Explorer: View Address on TON Explorer
 No suggestions, you're on your own!: No suggestions, you're on your own!
 Play Sounds: Play Sounds
 Focus on asset value rather than current balance: Focus on asset value rather than current balance
-$logout_confirm: Log out of **all** wallets
+$logout_confirm: Remove **all** wallets
 $logout_warning2: Wallets are located in the decentralized TON Blockchain. If you want the wallet to be deleted simply transfer all the TON from it and leave it empty.
 $tiny_transfers_help: Turn this off to display transactions of less than %1$d %2$s. Please be aware that such transactions are often used for spam and scam purposes.
 Today: Today
@@ -341,7 +342,9 @@ Swap: Swap
 You sell: You sell
 You buy: You buy
 Swap Details: Swap Details
-Blockchain fee: Blockchain fee
+Blockchain Fee: Blockchain Fee
+Routing Fees: Routing Fees
+Included: Included
 Price Impact: Price Impact
 Minimum Received: Minimum Received
 Slippage: Slippage
@@ -351,6 +354,7 @@ Invalid Pair: Invalid Pair
 We do not recommend to perform an exchange, try to specify a lower amount.: We do not recommend to perform an exchange, try to specify a lower amount.
 $swap_minimum_received_tooltip1: This is the least amount of new tokens you'll get from this swap, considering current market conditions, slippage tolerance, and potential price impact.
 $swap_minimum_received_tooltip2: It's an expected minimum, but if the conditions change a lot while your swap is being processed, the final amount could be less.
+$swap_routing_fees_tooltip: Both decentralized exchange and app fees (~0.875%) are already included in the price you see and will not be charged additionally.
 $swap_price_impact_tooltip1: This shows how much your trade might change the token's price.
 $swap_price_impact_tooltip2: Big trades can make the price go up or down more. Lower is usually better.
 $swap_slippage_tooltip1: This sets how much the price is allowed to change before your swap is processed.

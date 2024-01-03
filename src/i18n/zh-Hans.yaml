@@ -56,6 +56,7 @@ Back Up Secret Words: 备份助记词
 Settings: 设置
 About: 关于
 Exit: 离开
+Remove Wallet: 离开
 Something went wrong: 什么地方出错了···
 Logo: Logo
 $about_description1: 安全的存储加密货币，探索 dAPP 并以**光速**进行区块链支付
@@ -325,7 +326,9 @@ Swap: 交换
 You sell: 您卖出
 You buy: 您购买
 Swap Details: 交换详情
-Blockchain fee: 区块链费用
+Blockchain Fee: 区块链费用
+Routing Fees: 路由费用
+Included: 包括
 Price Impact: 价格影响
 Minimum Received: 最低接收数量
 Slippage: 下单误差
@@ -333,6 +336,7 @@ $swap_from_to: 从 %from% 交换至 %to%
 The exchange rate is below market value!: 汇率低于市场价值 %value%！
 Invalid Pair: 无效交易对
 We do not recommend to perform an exchange, try to specify a lower amount.: 我们不建议进行交换，请尝试指定较小的金额。
+$swap_routing_fees_tooltip: 去中心化交易所和应用程序费用（~0.875%）已包含在您看到的价格中，不会额外收取。
 $swap_minimum_received_tooltip1: 这是您从此次交换中可能获得的最少新代币数量，考虑了目前市场条件、滑点容忍度和潜在价格影响。
 $swap_minimum_received_tooltip2: 这是预期的最低值，但如果在处理您的交换时条件发生很大变化，最终金额可能会较少。
 $swap_price_impact_tooltip1: 这显示了您的交易可能对代币价格造成的影响。

@@ -5,7 +5,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import { ContentTab } from '../../../../global/types';
 
-import { MIN_ASSETS_TAB_VIEW } from '../../../../config';
+import { JUSDT_TOKEN_SLUG, MIN_ASSETS_TAB_VIEW, TON_TOKEN_SLUG } from '../../../../config';
 import {
   selectAccountState, selectCurrentAccountTokens, selectEnabledTokensCountMemoized, selectIsHardwareAccount,
 } from '../../../../global/selectors';
@@ -43,7 +43,12 @@ function Content({
   onStakedTokenClick,
   isNftSupported,
 }: OwnProps & StateProps) {
-  const { selectToken, setActiveContentTab } = getActions();
+  const {
+    selectToken,
+    setActiveContentTab,
+    setDefaultSwapParams,
+    changeTransferToken,
+  } = getActions();
   const { isLandscape } = useDeviceScreen();
 
   const lang = useLang();
@@ -120,6 +125,16 @@ function Content({
 
   const handleClickAsset = useLastCallback((slug: string) => {
     selectToken({ slug });
+
+    if (slug) {
+      if (slug === TON_TOKEN_SLUG) {
+        setDefaultSwapParams({ tokenInSlug: JUSDT_TOKEN_SLUG, tokenOutSlug: slug });
+      } else {
+        setDefaultSwapParams({ tokenOutSlug: slug });
+      }
+      changeTransferToken({ tokenSlug: slug });
+    }
+
     setActiveContentTab({ tab: ContentTab.Activity });
   });
 

@@ -12,7 +12,8 @@ import type { ApiDappRequest, ApiSseOptions } from '../types';
 
 import { parseAccountId } from '../../util/account';
 import { extractKey } from '../../util/iteratees';
-import { logDebug } from '../../util/logs';
+import { logDebug, logDebugError } from '../../util/logs';
+import safeExec from '../../util/safeExec';
 import { getCurrentNetwork, waitLogin } from '../common/accounts';
 import { bytesToHex, handleFetchErrors } from '../common/utils';
 import {
@@ -112,12 +113,31 @@ export async function resetupSseConnection() {
     return;
   }
 
+  if (sseEventSource) {
+    safeExec(() => {
+      sseEventSource!.close();
+    });
+    sseEventSource = undefined;
+  }
+
   sseEventSource = openEventSource(clientIds, lastEventId);
+
+  sseEventSource.onopen = () => {
+    logDebug('EventSource opened');
+  };
+
+  sseEventSource.onerror = (e) => {
+    logDebugError('EventSource', e.type);
+  };
+
   sseEventSource.onmessage = async (event) => {
     const { from, message: encryptedMessage } = JSON.parse(event.data);
 
     const sseDapp = sseDapps.find(({ appClientId }) => appClientId === from);
-    if (!sseDapp) return;
+    if (!sseDapp) {
+      logDebug(`Dapp with clientId ${from} not found`);
+      return;
+    }
 
     const {
       accountId, clientId, appClientId, secretKey, origin,

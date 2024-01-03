@@ -84,6 +84,8 @@ export function useDelegatedBottomSheet(
     }
   }, [dialogRef, isOpen, key, onClose]);
 
+  const isDelegatedAndOpen = IS_DELEGATED_BOTTOM_SHEET && key && isOpen;
+
   const { screenHeight } = useDeviceScreen();
   const [safeArea, setSafeArea] = useState(safeAreaCache);
   safeArePromise.then(setSafeArea);
@@ -91,23 +93,23 @@ export function useDelegatedBottomSheet(
   const maxHeight = screenHeight - (safeArea?.top || 0);
 
   useLayoutEffect(() => {
-    if (!IS_DELEGATED_BOTTOM_SHEET || !isOpen) return;
+    if (!isDelegatedAndOpen) return;
 
     dialogRef.current!.style[forceFullNative ? 'maxHeight' : 'height'] = '';
     dialogRef.current!.style[forceFullNative ? 'height' : 'maxHeight'] = `${maxHeight}px`;
-  }, [dialogRef, forceFullNative, isOpen, maxHeight]);
+  }, [dialogRef, forceFullNative, isDelegatedAndOpen, maxHeight]);
 
   useEffectWithPrevDeps(([prevForceFullNative]) => {
-    if (!IS_DELEGATED_BOTTOM_SHEET || !isOpen) return;
+    if (!isDelegatedAndOpen) return;
 
     // Skip initial opening
-    if (prevForceFullNative === undefined) return;
+    if (forceFullNative !== undefined && prevForceFullNative === undefined) return;
 
     BottomSheet.setSelfSize({ size: forceFullNative ? 'full' : 'half' });
-  }, [forceFullNative, isOpen]);
+  }, [forceFullNative, isDelegatedAndOpen]);
 
   useLayoutEffect(() => {
-    if (!IS_DELEGATED_BOTTOM_SHEET || !isOpen) return undefined;
+    if (!isDelegatedAndOpen) return undefined;
 
     const dialogEl = dialogRef.current!;
     let blurTimeout: number | undefined;
@@ -146,7 +148,7 @@ export function useDelegatedBottomSheet(
       document.removeEventListener('focusout', onBlur);
       document.removeEventListener('focusin', onFocus);
     };
-  }, [dialogRef, isOpen, key, noResetHeightOnBlur]);
+  }, [dialogRef, isDelegatedAndOpen, noResetHeightOnBlur]);
 }
 
 export function useOpenFromMainBottomSheet(

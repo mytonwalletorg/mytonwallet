@@ -52,6 +52,7 @@ function SwapModal({
     swapType,
     toAddress,
     payinAddress,
+    isSettingsModalOpen,
   },
   swapTokens,
   activityById,
@@ -273,6 +274,10 @@ function SwapModal({
     }
   }
 
+  const forceFullNative = isSettingsModalOpen || (
+    [SwapState.Password, SwapState.SelectTokenFrom, SwapState.SelectTokenTo].includes(renderingKey)
+  );
+
   return (
     <Modal
       isOpen={isOpen}
@@ -280,7 +285,7 @@ function SwapModal({
       noBackdropClose
       dialogClassName={styles.modalDialog}
       nativeBottomSheetKey="swap"
-      forceFullNative={[SwapState.Password, SwapState.SelectTokenFrom, SwapState.SelectTokenTo].includes(renderingKey)}
+      forceFullNative={forceFullNative}
       hasCloseButton
       onCloseAnimationEnd={handleModalClose}
     >

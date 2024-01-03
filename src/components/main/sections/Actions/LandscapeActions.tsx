@@ -10,7 +10,6 @@ import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import { selectAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { IS_SWAP_DISABLED } from '../../../../util/windowEnvironment';
 import { ReceiveStatic } from '../../../receive';
 
 import useLang from '../../../../hooks/useLang';
@@ -35,6 +34,7 @@ interface OwnProps {
 interface StateProps {
   activeTabIndex?: ActiveTab;
   isTestnet?: boolean;
+  isSwapDisabled: boolean;
 }
 
 function LandscapeActions({
@@ -43,6 +43,7 @@ function LandscapeActions({
   isUnstakeRequested,
   isTestnet,
   isLedger,
+  isSwapDisabled,
 }: OwnProps & StateProps) {
   const { setLandscapeActionsActiveTabIndex: setActiveTabIndex } = getActions();
   const lang = useLang();
@@ -58,7 +59,7 @@ function LandscapeActions({
     isStaking,
   );
 
-  const isSwapAllowed = !isTestnet && !isLedger && !IS_SWAP_DISABLED;
+  const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isStakingAllowed = !isTestnet && !isLedger;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
 
@@ -288,6 +289,7 @@ export default memo(
       return {
         activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
         isTestnet: global.settings.isTestnet,
+        isSwapDisabled: global.restrictions.isSwapDisabled,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

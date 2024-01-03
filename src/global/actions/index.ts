@@ -11,3 +11,4 @@ import './ui/initial';
 import './ui/misc';
 import './ui/dapps';
 import './ui/settings';
+import './ui/swap';
