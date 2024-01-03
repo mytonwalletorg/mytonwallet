@@ -200,6 +200,11 @@ addActionHandler('openSettings', (global) => {
 });
 
 addActionHandler('openSettingsWithState', (global, actions, { state }) => {
+  if (IS_DELEGATED_BOTTOM_SHEET && !global.areSettingsOpen) {
+    callActionInMain('openSettingsWithState', { state });
+    return;
+  }
+
   global = updateSettings(global, { state });
   setGlobal({ ...global, areSettingsOpen: true });
 });

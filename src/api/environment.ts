@@ -5,7 +5,6 @@
 import type { ApiInitArgs } from './types';
 
 import {
-  APP_ENV,
   ELECTRON_TONHTTPAPI_MAINNET_API_KEY,
   ELECTRON_TONHTTPAPI_TESTNET_API_KEY,
   IS_CAPACITOR,
@@ -14,8 +13,7 @@ import {
   TONHTTPAPI_TESTNET_API_KEY,
 } from '../config';
 
-// eslint-disable-next-line no-restricted-globals
-export const X_APP_ORIGIN = self?.origin;
+const ELECTRON_ORIGIN = 'file://';
 
 let environment: ApiInitArgs & {
   isDappSupported: boolean;
@@ -30,10 +28,8 @@ export function setEnvironment(args: ApiInitArgs) {
     ...args,
     isDappSupported: IS_EXTENSION || IS_CAPACITOR || args.isElectron,
     isSseSupported: args.isElectron || IS_CAPACITOR,
-    apiHeaders: IS_EXTENSION || (args.isElectron && APP_ENV !== 'development')
-      // eslint-disable-next-line no-restricted-globals
-      ? { 'X-App-Origin': X_APP_ORIGIN }
-      : undefined,
+    // eslint-disable-next-line no-restricted-globals
+    apiHeaders: { 'X-App-Origin': args.isElectron ? ELECTRON_ORIGIN : self?.origin },
     tonhttpapiMainnetKey: args.isElectron ? ELECTRON_TONHTTPAPI_MAINNET_API_KEY : TONHTTPAPI_MAINNET_API_KEY,
     tonhttpapiTestnetKey: args.isElectron ? ELECTRON_TONHTTPAPI_TESTNET_API_KEY : TONHTTPAPI_TESTNET_API_KEY,
   };

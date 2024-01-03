@@ -34,7 +34,7 @@ import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet } from '../common/backend';
 import { isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
 import { txCallbacks } from '../common/txCallbacks';
-import { X_APP_ORIGIN } from '../environment';
+import { getEnvironment } from '../environment';
 import { storage } from '../storages';
 import { processNftUpdates, updateNfts } from './nfts';
 import { getBaseCurrency } from './prices';
@@ -382,12 +382,15 @@ export async function setupBackendPolling() {
 }
 
 export async function setupLongBackendPolling() {
-  while (isUpdaterAlive(onUpdate)) {
+  const localOnUpdate = onUpdate;
+
+  while (isUpdaterAlive(localOnUpdate)) {
     await pause(LONG_BACKEND_POLLING_INTERVAL);
 
     await Promise.all([
       tryUpdateKnownAddresses(),
       tryUpdateStakingCommonData(),
+      tryUpdateRegion(localOnUpdate),
     ]);
   }
 }
@@ -400,7 +403,7 @@ export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
   try {
     const baseCurrency = await getBaseCurrency();
     const pricesHeaders: AnyLiteral = {
-      'X-App-Origin': X_APP_ORIGIN,
+      ...getEnvironment().apiHeaders,
       'X-App-Version': APP_VERSION,
       'X-App-ClientID': clientId ?? await getClientId(),
       'X-App-Env': APP_ENV,

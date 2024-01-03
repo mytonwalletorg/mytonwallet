@@ -1,13 +1,17 @@
 import type { UserToken } from '../../../../../global/types';
 
+import { TON_TOKEN_SLUG } from '../../../../../config';
 import { calcChangeValue } from '../../../../../util/calcChangeValue';
 import { formatInteger } from '../../../../../util/formatNumber';
 import { round } from '../../../../../util/round';
 
 import styles from '../Card.module.scss';
 
-export function buildTokenValues(tokens: UserToken[]) {
-  const primaryValue = tokens.reduce((acc, token) => acc + token.amount * token.price, 0);
+export function calculateFullBalance(tokens: UserToken[], stakingBalance: number) {
+  const primaryValue = tokens.reduce((acc, token) => {
+    const amount = token.slug === TON_TOKEN_SLUG ? token.amount + stakingBalance : token.amount;
+    return acc + amount * token.price;
+  }, 0);
   const [primaryWholePart, primaryFractionPart] = formatInteger(primaryValue).split('.');
   const changeValue = round(tokens.reduce((acc, token) => {
     return acc + calcChangeValue(token.amount * token.price, token.change24h);

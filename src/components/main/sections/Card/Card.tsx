@@ -16,7 +16,7 @@ import { copyTextToClipboard } from '../../../../util/clipboard';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { getTokenCardColor } from '../../helpers/card_colors';
-import { buildTokenValues } from './helpers/buildTokenValues';
+import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
@@ -46,6 +46,7 @@ interface StateProps {
   currentTokenSlug?: string;
   isTestnet?: boolean;
   baseCurrency?: ApiBaseCurrency;
+  stakingBalance?: number;
 }
 
 function Card({
@@ -60,6 +61,7 @@ function Card({
   onQrScanPress,
   isTestnet,
   baseCurrency,
+  stakingBalance,
 }: OwnProps & StateProps) {
   const { showNotification } = getActions();
 
@@ -100,8 +102,8 @@ function Card({
   const renderingDappDomain = useCurrentOrPrev(dappDomain, true);
 
   const values = useMemo(() => {
-    return tokens ? buildTokenValues(tokens) : undefined;
-  }, [tokens]);
+    return tokens && stakingBalance !== undefined ? calculateFullBalance(tokens, stakingBalance) : undefined;
+  }, [tokens, stakingBalance]);
 
   const {
     shouldRender: shouldRenderDapp,
@@ -228,6 +230,7 @@ export default memo(
         currentTokenSlug: accountState?.currentTokenSlug,
         isTestnet: global.settings.isTestnet,
         baseCurrency: global.settings.baseCurrency,
+        stakingBalance: accountState?.staking?.balance,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

@@ -8,7 +8,7 @@ import { selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { IS_ELECTRON, IS_MAC_OS, IS_WINDOWS } from '../../../../util/windowEnvironment';
-import { buildTokenValues } from './helpers/buildTokenValues';
+import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import AccountSelector from './AccountSelector';
 
@@ -22,6 +22,7 @@ interface OwnProps {
 interface StateProps {
   tokens?: UserToken[];
   baseCurrency?: ApiBaseCurrency;
+  stakingBalance?: number;
 }
 
 function StickyCard({
@@ -29,10 +30,11 @@ function StickyCard({
   tokens,
   onQrScanPress,
   baseCurrency,
+  stakingBalance,
 }: OwnProps & StateProps) {
   const values = useMemo(() => {
-    return tokens ? buildTokenValues(tokens) : undefined;
-  }, [tokens]);
+    return tokens && stakingBalance !== undefined ? calculateFullBalance(tokens, stakingBalance) : undefined;
+  }, [tokens, stakingBalance]);
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const { primaryWholePart, primaryFractionPart } = values || {};
