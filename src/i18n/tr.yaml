@@ -3,7 +3,7 @@ $auth_intro: |
   ve blockchain ödemelerinizi
   **ışık hızında** gerçekleştirin.
 Create New Wallet: Yeni cüzdan oluşturun
-Import From %1$d Secret Words: 1$d Gizli Kelimeyi içe aktarın
+Import From %1$d Secret Words: "%1$d Gizli Kelimeyi içe aktarın"
 More about MyTonWallet: MyTonWallet hakkında daha fazla bilgi
 Creating Wallet...: Cüzdan oluşturuluyor...
 On the count of three...: Üçe kadar saydığınızda...
@@ -30,7 +30,7 @@ Change: Değiştir
 $auth_import_mnemonic_description: |
   Cüzdanı oluştururken yazdığınız %1$d gizli kelimeyi girerek cüzdanınıza erişimi geri kazanabilirsiniz.
 Let’s make sure your secrets words are recorded correctly.: Gizli kelimelerinizin doğru kaydedildiğinden emin olun.
-$mnemonic_check_words_list: **%1$s** numaralı kelimeleri aşağıya girin.
+$mnemonic_check_words_list: **%1$** numaralı kelimeleri aşağıya girin.
 $mnemonic_check_error: Girdiğiniz gizli kelimeler listedekilerle eşleşmiyor. Lütfen tekrar deneyin.
 $mnemonic_list_description: |
   Bu kelimeleri
@@ -98,7 +98,7 @@ Address removed from saved: Adres kaydedilenlerden kaldırıldı
 Warning!: Uyarı!
 Log Out: Cüzdanı kaldırın
 $logout_without_backup_warning: Bu cüzdanı yedeklemediniz. Cüzdanı kaldırırsanız tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz.
-$logout_accounts_without_backup_warning: %links% için yedekleme yapmadınız. Devam ederseniz tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz.
+$logout_accounts_without_backup_warning: "%links% için yedekleme yapmadınız. Devam ederseniz tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz."
 $logout_warning: Bu işlem, mevcut cüzdanı uygulamadan kaldıracaktır. **%1$d gizli kelimenizi** yedeklediğinizden emin olun.
 Receive TON: TON al
 Your address was copied!: Adresiniz kopyalandı!
@@ -157,8 +157,8 @@ Open Getgems: Getgems'i aç
 Transaction is not completed: İşlem tamamlanmadı
 Received: Alındı
 Sent: Gönder
-$transaction_from: bu adresten = %address%
-$transaction_to: bu adrese = %address%
+$transaction_from: "bu adresten = %address%"
+$transaction_to: "bu adrese = %address%"
 Wallet is not backed up: Cüzdan yedeklenmemiş
 Testnet Version: Testnet Sürümü
 Error reading clipboard: Pano okunurken hata oluştu
@@ -172,7 +172,7 @@ Paste: Yapıştır
 Insufficient balance: Yetersiz bakiye
 InsufficientBalance: Yetersiz bakiye
 Optional: Opsiyonel
-$send_token_symbol: %1$ gönder
+$send_token_symbol: "%1$ gönder"
 Is it all ok?: Herşey tamam mı?
 Receiving Address: Alıcı adresi
 Fee: Ücret
@@ -238,7 +238,7 @@ Confirm Unstaking: Unstaking işlemini onayla
 Request for unstaking is sent!: Unstake işlemi için talep gönderildi!
 $unstaking_when_receive: Stake'e yatırılmamış bakiyenizi %time% içinde alacaksınız
 $unstake_insufficient_balance: Unstaking işlemine devam etmek için ana bakiyenizde %balance% bulunması gerekir.
-at APY %1$s%: %1$s% APY ile
+at APY %1$s%: "%1$s% APY ile"
 Staked: Stake edildi
 Unstake Requested: Unstake talep edildi
 Unstaked: Unstake gerçekleşti
@@ -277,13 +277,13 @@ Scam: Scam
 Scam comment is hidden.: Scam yorumu gizlendi.
 Display: Görüntüle
 $dapp_transfer_tokens_payload: Hesabınızdan %adres%'e %amount% gönderiliyor
-$dapp_transfer_nft_payload: Hesabınızdan %adres%'e NFT "%nft%" gönderiliyor
+$dapp_transfer_nft_payload: Hesabınızdan %adres%'e "%nft%" NFT'si gönderiliyor
 Connected Dapps: Bağlı Dapp'ler
 Disconnect All Dapps: Tüm Dapp'lerin bağlantısını kesin
 Disconnect: Bağlantıyı kes
 Disconnect Dapp: Dapp'in bağlantısını kes
 Disconnect Dapps: Dapp'lerin bağlantısını kes
-Are you sure you want to disconnect?: %dappname% bağlantısını kesmek istediğinizden emin misiniz?
+Are you sure you want to disconnect?: "%dappname% bağlantısını kesmek istediğinizden emin misiniz?"
 Are you sure you want to disconnect all websites?: Tüm web sitelerinin bağlantısını kesmek istediğinizden emin misiniz?
 $dapps-description: MyTonWallet'ı destekleyen Dapp'lerde oturum açabilirsiniz. Bu Dapp'ler, cüzdan adresini, bakiyeyi görüntüleyebilir ve işlem talep edebilirler.
 Logged in with MyTonWallet: MyTonWallet ile oturum açıldı
@@ -295,7 +295,7 @@ Tokens Settings: Token ayarları
 Your Tokens: Token'larınız
 Add Token: Token ekle
 Delete Token: Token sil
-Are you sure you want to delete?: %token%'ı silmek istediğinizden emin misiniz?
+Are you sure you want to delete?: "%token%'ı silmek istediğinizden emin misiniz?"
 Hide Tokens With No Balance: Sıfır bakiyeli tokenları gizle
 Hide Tokens With No Price: Fiyatı olmayan tokenları gizle
 Sort By Value: Değere göre sırala
@@ -349,7 +349,7 @@ Included: Dahil edildi
 Price Impact: Fiyat etkisi
 Minimum Received: Minimum alınan
 Slippage: Kayma toleransı
-$swap_from_to: %from% ile %to% arasında takas yapın
+$swap_from_to: "%from% ile %to% arasında takas yapın"
 The exchange rate is below market value!: Takas oranı piyasa değerinin %value% altındadır!
 Invalid Pair: Geçersiz işlem çifti
 We do not recommend to perform an exchange, try to specify a lower amount.: Takas yapmanızı tavsiye etmiyoruz, daha düşük bir tutar belirtmeye çalışın.
@@ -408,7 +408,7 @@ Expired: Süresi doldu
 Waiting for Payment: Ödeme bekleniyor
 Waiting for payment: Ödeme bekleniyor
 Blockchain: Blockchain
-Receiving address in blockchain: %blockchain% blok zincirindeki alıcı adresi
+Receiving address in blockchain: "%blockchain% blok zincirindeki alıcı adresi"
 Please provide an address of your wallet in another blockchain to receive bought tokens.: Satın alınan tokenları almak için lütfen başka bir blok zincirindeki cüzdanınızın adresini belirtin.
 The time for sending coins is over: Coin'leri gönderme süresi sona erdi
 Please wait a few moments...: Bir süre bekleyiniz...
