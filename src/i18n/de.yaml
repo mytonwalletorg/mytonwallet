@@ -20,7 +20,7 @@ The wallet is ready: Die Wallet ist bereit.
 Create a password to protect it.: Erstellen Sie ein Passwort, um es zu schützen.
 Enter your password: Geben Sie Ihr Passwort ein.
 Enter your password...: Geben Sie Ihr Passwort ein...
-...and repeat it: ... Und wiederholen Sie es.
+...and repeat it: ... und wiederholen Sie es.
 Cancel: Abbrechen
 Insecure Password: Unsicheres Passwort.
 Your have entered an insecure password, which can be easily guessed by scammers.: Sie haben ein unsicheres Passwort eingegeben, das leicht von Betrügern erraten werden kann.
@@ -158,12 +158,12 @@ Open Getgems: Getgems öffnen
 Transaction is not completed: Die Transaktion ist nicht abgeschlossen.
 Received: Empfangen
 Sent: Gesendet
-$transaction_from: von %Adresse%
-$transaction_to: an %Adresse%
+$transaction_from: von %address%
+$transaction_to: an %address%
 Wallet is not backed up: Die Wallet ist nicht gesichert.
 Testnet Version: Testnet Version
 Error reading clipboard: Fehler beim Lesen der Zwischenablage
-$fee_value: "Gebühr: %Gebühr%"
+$fee_value: "Gebühr: %fee%"
 Loading...: Laden...
 Recipient Address: Empfänger adresse
 Wallet address or domain: Wallet adresse oder Domain
@@ -229,7 +229,7 @@ Staking: Staking
 Currently Staked: Derzeit gestakt
 Unstake: Unstaken
 Earning History: Verdiensthistorie
-$total: "Gesamt: %Wert%"
+$total: "Gesamt: %value%"
 Unstake TON: TON unstaken
 $unstake_information_with_time: |
   Ihre aktuelle Einzahlung wird vollständig in %time% an Ihre Wallet zurückgesendet.
@@ -252,7 +252,7 @@ Invalid address: Ungültige Adresse
 Domain is not connected to a wallet: Die Domain ist nicht mit einer Wallet verbunden.
 Unexpected error: Unerwarteter Fehler
 Earn: Verdienen
-Earning: Verdienen
+Earning: Verdienend
 InvalidAmount: Ungültiger Betrag
 InvalidToAddress: Ungültige Empfängeradresse
 Unexpected: Unerwarteter Fehler
@@ -278,7 +278,7 @@ Scam: Scam
 Scam comment is hidden.: Betrügerischer Kommentar ist versteckt.
 Display: Anzeigen
 $dapp_transfer_tokens_payload: Senden von %amount% von Ihrem Konto an %address%
-$dapp_transfer_nft_payload: Senden von NFT '%nft%' von Ihrem Konto an %address%
+$dapp_transfer_nft_payload: Senden von NFT "%nft%" von Ihrem Konto an %address%
 Connected Dapps: Verbundene Dapps
 Disconnect All Dapps: Alle Dapps trennen
 Disconnect: Trennen
@@ -424,7 +424,7 @@ Swap On Hold: Tausch in Wartestellung
 Swap Refunded: Tausch erstattet
 Changelly Payment Address: Changelly-Zahlungsadresse
 Cross-chain exchange provided by Changelly: Cross-Chain-Austausch bereitgestellt von Changelly
-$swap_changelly_agreement_message: Mit der Fortsetzung stimmen Sie den %Bedingungen% und %Richtlinien% zu und verstehen, dass die Transaktion gemäß den %KYC%-Bestimmungen verifiziert werden kann.
+$swap_changelly_agreement_message: Mit der Fortsetzung stimmen Sie den %terms% und %policy% zu und verstehen, dass die Transaktion gemäß den %kyc%-Bestimmungen verifiziert werden kann.
 $swap_changelly_terms_of_use: Nutzungsbedingungen
 $swap_changelly_privacy_policy: Datenschutzrichtlinie
 Password must contain %length% digits.: Das Passwort muss %length% Ziffern enthalten.
@@ -508,8 +508,8 @@ Incorrect code, please try again.: Falscher Code, bitte versuchen Sie es erneut.
 Correct: Korrekt
 Confirm Operation: Operation bestätigen
 Confirm Swap: Swap bestätigen
-"%betrag% zu %adresse%": "%betrag% zu %adresse%"
-"%betrag_von% zu %betrag_nach%": "%betrag_von% zu %betrag_nach%"
+"%amount% to %address%": "%amount% zu %address%"
+"%amount_from% to %amount_to%": "%amount_from% zu %amount_to%""
 Failed to enable biometrics.: Fehler beim Aktivieren der Biometrie.
 Please try to confirm your biometrics again.: Bitte versuchen Sie erneut, Ihre Biometrie zu bestätigen.
 Unknown error.: Unbekannter Fehler.
