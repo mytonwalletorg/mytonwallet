@@ -30,7 +30,7 @@ Change: Ändern.
 $auth_import_mnemonic_description: |
   Sie können den Zugang zu Ihrer Wallet wiederherstellen, indem Sie die %1$d geheimen Wörter eingeben, die Sie notiert haben, als Sie die wallet erstellt haben.
 Let’s make sure your secrets words are recorded correctly.: Stellen Sie sicher, dass Ihre geheimen Wörter korrekt aufgezeichnet sind.
-$mnemonic_check_words_list: Bitte geben Sie die Wörter %1$s unten ein.
+$mnemonic_check_words_list: Bitte geben Sie die Wörter **%1$s** unten ein.
 $mnemonic_check_error: Die eingegebenen geheimen Wörter stimmen nicht mit denen in der Liste überein. Bitte versuchen Sie es erneut.
 $mnemonic_list_description: |
   Write down these words
@@ -264,7 +264,7 @@ Connect Dapp: Dapp verbinden
 Select wallets to use on this dapp: Wählen Sie Wallet aus, die Sie auf dieser Dapp verwenden möchten.
 Connect: Verbinden
 Dapp Permissions: Dapp-Berechtigungen
-$dapp_can_view_balance: %dappname% wird die Wallet adresse und den Kontostand anzeigen können.
+$dapp_can_view_balance: "%dappname% wird die Wallet adresse und den Kontostand anzeigen können."
 Send Transaction: Transaktion senden
 Payload: Payload
 $many_transactions: "%1$d Transaktionen"
@@ -390,7 +390,7 @@ $auth_backup_description1: |
   wird nur **von Ihnen kontrolliert**.
 $auth_backup_description2: "Und mit großer Macht kommt **große Verantwortung**."
 $auth_backup_description3: |
-  Sie müssen die geheimen Schlüssel manuell **sichern**, falls Sie Ihr Passwort vergessen oder den Zugriff auf dieses Gerät verlieren.
+  Sie müssen manuell **Geheimschlüssel sichern**, falls Sie Ihr Passwort vergessen oder den Zugriff auf dieses Gerät verlieren.
 Swap Placed: Tausch platziert
 Swapping: Tausch läuft
 Swapped: Getauscht
