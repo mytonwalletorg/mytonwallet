@@ -128,10 +128,15 @@ export const LANG_LIST: LangItem[] = [{
   name: 'Chinese (Simplified)',
   nativeName: '繁体',
   rtl: false,
-}, {
-  langCode: 'zh-Hant',
-  name: 'Chinese (Traditional)',
-  nativeName: '繁體',
+  }, {
+  langCode: 'tr',
+  name: 'Turkish',
+  nativeName: 'Türkçe',
+  rtl: false,
+  }, {
+  langCode: 'de',
+  name: 'German',
+  nativeName: 'Deutsch',
   rtl: false,
 }];
 
