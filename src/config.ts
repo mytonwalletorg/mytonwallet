@@ -134,12 +134,12 @@ export const LANG_LIST: LangItem[] = [{
   name: 'Chinese (Traditional)',
   nativeName: '繁體',
   rtl: false,
-  }, {
+}, {
   langCode: 'tr',
   name: 'Turkish',
   nativeName: 'Türkçe',
   rtl: false,
-  }, {
+}, {
   langCode: 'de',
   name: 'German',
   nativeName: 'Deutsch',
