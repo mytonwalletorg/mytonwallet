@@ -59,6 +59,7 @@ Back Up Secret Words: Gizli Kelimeleri Yedekleyin
 Settings: Ayarlar
 About: Hakkında
 Exit: Çıkış
+Remove Wallet: Cüzdanı kaldırın
 Something went wrong.: Bir şeyler ters gitti.
 Logo: Logo
 $about_description1: Kriptoyu güvenle saklayın, merkeziyetsiz uygulamaları keşfedin ve **ışık hızında** blok zinciri ödemeleri yapın.
@@ -95,10 +96,10 @@ Are you sure you want to remove this address from your saved ones?: Bu adresi ka
 You will be able to save it again via Transaction Info with this address.: Bu adrese ait İşlem Bilgisi aracılığıyla bu adresi tekrar kaydedebileceksiniz.
 Address removed from saved: Adres kaydedilenlerden kaldırıldı
 Warning!: Uyarı!
-Log Out: Çıkış
-$logout_without_backup_warning: Bu cüzdanı yedeklemediniz. Oturumu kapatırsanız tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz.
-$logout_accounts_without_backup_warning: %links% için yedekleme yapmadınız. Oturumu kapatırsanız tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz.
-$logout_warning: Bu işlem, cüzdanın bu uygulamayla bağlantısını kesecektir. Cüzdanınızı **%1$d gizli kelimeyi** kullanarak geri yükleyebilecek veya başka bir cüzdanı içe aktarabileceksiniz.
+Log Out: Cüzdanı kaldırın
+$logout_without_backup_warning: Bu cüzdanı yedeklemediniz. Cüzdanı kaldırırsanız tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz.
+$logout_accounts_without_backup_warning: %links% için yedekleme yapmadınız. Devam ederseniz tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz.
+$logout_warning: Bu işlem, mevcut cüzdanı uygulamadan kaldıracaktır. **%1$d gizli kelimenizi** yedeklediğinizden emin olun.
 Receive TON: TON al
 Your address was copied!: Adresiniz kopyalandı!
 Show QR Code: QR Kodunu Göster
@@ -192,7 +193,7 @@ View Address on TON Explorer: TON Explorer'da adresi görüntüle
 No suggestions, you're on your own!: Önerimiz bulunmuyor, tek başınasınız!
 Play Sounds: Sesleri çal
 Focus on asset value rather than current balance: Mevcut bakiyeden ziyade varlık değerine odaklanır
-$logout_confirm: **Tüm** cüzdanlardan çıkış yap
+$logout_confirm: **Tüm** cüzdanları kaldırın
 $logout_warning2: Cüzdanlar merkeziyetsiz TON Blockchain'inde bulunmaktadır. Cüzdanın silinmesini istiyorsanız, içindeki tüm TON'u aktarmanız ve cüzdanı boş bırakmanız yeterlidir.
 $tiny_transfers_help: Tutarı 1$d %2$s'den az olan işlemleri görüntülemek için bu düğmeyi kapalı konuma getirin. Lütfen bu tür işlemlerin genellikle spam ve dolandırıcılık amacıyla kullanıldığını unutmayın.
 Today: Bugün
@@ -343,6 +344,8 @@ You sell: Satıyorsunuz
 You buy: Alıyorsunuz
 Swap Details: Takas bilgileri
 Blockchain fee: Blockchain ücreti
+Routing Fees: Yönlendirme ücretleri
+Included: Dahil edildi
 Price Impact: Fiyat etkisit
 Minimum Received: Minimum alınan
 Slippage: Kayma toleransı
@@ -352,6 +355,7 @@ Invalid Pair: Geçersiz işlem çifti
 We do not recommend to perform an exchange, try to specify a lower amount.: Takas yapmanızı tavsiye etmiyoruz, daha düşük bir tutar belirtmeye çalışın.
 $swap_minimum_received_tooltip1: Mevcut piyasa koşulları, kayma toleransı ve potansiyel fiyat etkisi göz önüne alındığında, bu takastan elde edeceğiniz en az yeni token miktarı budur.
 $swap_minimum_received_tooltip2: Bu beklenen minimum tutardır, ancak takasınız işleme konurken koşullar çok değişirse, nihai tutar daha az olabilir.
+$swap_routing_fees_tooltip: Hem merkeziyetsiz borsa hem de uygulama ücretleri (~%0,875) görüntülediğiniz fiyata halihazırda dahil olup ayrıca ücretlendirilmeyecektir.
 $swap_price_impact_tooltip1: Bu, işleminizin token fiyatını ne kadar değiştirebileceğini gösterir.
 $swap_price_impact_tooltip2: Yüksek hacimli alım satımlar fiyatın daha fazla yükselmesine veya düşmesine neden olabilir. Daha düşük tutarlar genellikle daha iyidir.
 $swap_slippage_tooltip1: Bu, takas talebinizin işleme alınmadan önce fiyatın ne kadar değişmesine izin verileceğini belirler.
