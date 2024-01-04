@@ -59,6 +59,7 @@ Back Up Secret Words: Geheime Wörter sichern.
 Settings: Einstellungen
 About: Über
 Exit: Beenden
+Remove Wallet: Wallet entfernen
 Something went wrong.: Etwas ist schiefgegangen.
 Logo: Logo
 $about_description1: Kryptowährungen sicher speichern, dezentrale Apps erkunden und Blockchain-Zahlungen mit der **Geschwindigkeit des Lichts** durchführen.
@@ -95,10 +96,10 @@ Are you sure you want to remove this address from your saved ones?: Sind Sie sic
 You will be able to save it again via Transaction Info with this address.: Sie können es erneut über die Transaktions informationen mit dieser Adresse speichern.
 Address removed from saved: Adresse aus den Gespeicherten entfernt.
 Warning!: Achtung!
-Log Out: Ausloggen
-$logout_without_backup_warning: Sie haben diese Wallet nicht gesichert. Wenn Sie sich ausloggen, verlieren Sie den Zugriff auf Ihre Token und NFTs.
-$logout_accounts_without_backup_warning: Sie haben %links% nicht gesichert. Wenn Sie sich ausloggen, verlieren Sie den Zugriff auf Ihre Token und NFTs.
-$logout_warning: Dies wird die Wallet von dieser App trennen. Sie können Ihre Wallet mit **%1$d geheimen Wörtern** wiederherstellen oder eine andere Wallet importieren.
+Log Out: Wallet entfernen
+$logout_without_backup_warning: Sie haben diese Wallet nicht gesichert. Wenn Sie sie jetzt entfernen, verlieren Sie den Zugriff auf Ihre Token und NFTs.
+$logout_accounts_without_backup_warning: Sie haben %links% nicht gesichert. Wenn Sie fortfahren, verlieren Sie den Zugriff auf Ihre Token und NFTs.
+$logout_warning: Das wird die aktuelle Wallet aus der App entfernen. Stellen Sie sicher, dass Sie Ihre %1$d Geheimwörter gesichert haben.
 Receive TON: TON empfangen
 Your address was copied!: Ihre Adresse wurde kopiert!
 Show QR Code: QR-Code anzeigen
@@ -193,7 +194,7 @@ View Address on TON Explorer: Adresse im TON Explorer anzeigen
 No suggestions, you're on your own!: Keine Vorschläge, Sie sind auf sich allein gestellt!
 Play Sounds: Sounds abspielen
 Focus on asset value rather than current balance: Fokus auf den Vermögenswert anstatt auf den aktuellen Kontostand legen
-$logout_confirm: Aus allen Wallet ausloggen
+$logout_confirm: Alle Wallets entfernen
 $logout_warning2: Wallet befinden sich in der dezentralen TON-Blockchain. Wenn Sie möchten, dass die Wallet gelöscht wird, übertragen Sie einfach alle TON davon und lassen Sie sie leer.
 $tiny_transfers_help: Schalten Sie dies aus, um Transaktionen von weniger als %1$d %2$s anzuzeigen. Bitte beachten Sie, dass solche Transaktionen oft für Spam- und Betrugszwecke verwendet werden.
 Today: Heute
@@ -345,6 +346,8 @@ You sell: Sie verkaufen
 You buy: Sie kaufen
 Swap Details: Tauschdetails
 Blockchain fee: Blockchain-Gebühr
+Routing Fees: Weiterleitungsgebühren
+Included: Inklusive
 Price Impact: Preisauswirkung
 Minimum Received: Mindestbetrag erhalten
 Slippage: Schlupf
@@ -354,6 +357,7 @@ Invalid Pair: Ungültiges Paar
 We do not recommend to perform an exchange, try to specify a lower amount.: Wir empfehlen keine Durchführung des Austauschs. Versuchen Sie, einen niedrigeren Betrag anzugeben.
 $swap_minimum_received_tooltip1: Dies ist die geringste Menge an neuen Token, die Sie bei diesem Tausch erhalten, unter Berücksichtigung der aktuellen Marktkonditionen, der Schlupftoleranz und möglicher Preisauswirkungen
 $swap_minimum_received_tooltip2: Es handelt sich um ein erwartetes Minimum, aber wenn sich die Bedingungen während der Verarbeitung Ihres Tausches stark ändern, könnte der endgültige Betrag geringer ausfallen.
+$swap_routing_fees_tooltip: Sowohl die Gebühren der dezentralen Börse als auch die App-Gebühren (~0,875 %) sind bereits im angezeigten Preis enthalten und werden nicht zusätzlich berechnet.
 $swap_price_impact_tooltip1: Dies zeigt, wie sehr Ihr Handel den Preis des Tokens ändern könnte.
 $swap_price_impact_tooltip2: Große Trades können den Preis stärker nach oben oder unten bewegen. In der Regel ist ein niedrigerer Wert besser.
 $swap_slippage_tooltip1: Dies legt fest, wie viel sich der Preis ändern darf, bevor Ihr Tausch verarbeitet wird.
