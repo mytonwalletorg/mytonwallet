@@ -195,7 +195,7 @@ Play Sounds: Sesleri çal
 Focus on asset value rather than current balance: Mevcut bakiyeden ziyade varlık değerine odaklanır
 $logout_confirm: **Tüm** cüzdanları kaldırın
 $logout_warning2: Cüzdanlar merkeziyetsiz TON Blockchain'inde bulunmaktadır. Cüzdanın silinmesini istiyorsanız, içindeki tüm TON'u aktarmanız ve cüzdanı boş bırakmanız yeterlidir.
-$tiny_transfers_help: Tutarı 1$d %2$s'den az olan işlemleri görüntülemek için bu düğmeyi kapalı konuma getirin. Lütfen bu tür işlemlerin genellikle spam ve dolandırıcılık amacıyla kullanıldığını unutmayın.
+$tiny_transfers_help: Tutarı 1$d %2$'den az olan işlemleri görüntülemek için bu düğmeyi kapalı konuma getirin. Lütfen bu tür işlemlerin genellikle spam ve dolandırıcılık amacıyla kullanıldığını unutmayın.
 Today: Bugün
 Yesterday: Dün
 Now: Şimdi
@@ -346,7 +346,7 @@ Swap Details: Takas bilgileri
 Blockchain fee: Blockchain ücreti
 Routing Fees: Yönlendirme ücretleri
 Included: Dahil edildi
-Price Impact: Fiyat etkisit
+Price Impact: Fiyat etkisi
 Minimum Received: Minimum alınan
 Slippage: Kayma toleransı
 $swap_from_to: %from% ile %to% arasında takas yapın
@@ -506,13 +506,13 @@ Incorrect code, please try again.: Hatalı kod, lütfen tekrar deneyin.
 Correct: Doğru
 Confirm Operation: İşlemi Onaylayın
 Confirm Swap: Takası onaylayın
-"%amount% to %address%": "%amount% %address% numaralı adrese"
+"%amount% to %address%": "%address% numaralı adrese %amount%"
 "%amount_from% to %amount_to%": "%amount_from%'den' %amount_to%'e"
 Failed to enable biometrics.: Biyometrik koruma etkinleştirilemedi.
 Please try to confirm your biometrics again.: Lütfen biyometriklerinizi tekrar onaylamayı deneyin.
 Unknown error.: Bilinmeyen hata.
 Are you sure you want to disable Face ID?: Face ID'yi devre dışı bırakmak istediğinizden emin misiniz?
 Are you sure you want to disable Touch ID?: Touch ID'yi devre dışı bırakmak istediğinizden emin misiniz?
-Are you sure you want to disable biometrics?: ABiyometrik korumayı devre dışı bırakmak istediğinizden emin misiniz?
+Are you sure you want to disable biometrics?: Biyometrik korumayı devre dışı bırakmak istediğinizden emin misiniz?
 Yes: Evet
 Declined. Please try to confirm transaction using biometrics again.: Reddedildi. Lütfen biyometrik koruma kullanarak işlemi tekrar onaylamayı deneyin.
