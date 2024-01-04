@@ -267,7 +267,7 @@ Dapp Permissions: Dapp-Berechtigungen
 $dapp_can_view_balance: %dappname% wird die Wallet adresse und den Kontostand anzeigen können.
 Send Transaction: Transaktion senden
 Payload: Payload
-$many_transactions: %1$d Transaktionen
+$many_transactions: "%1$d Transaktionen"
 Total Amount: Gesamtbetrag
 Unstaking: Entstaken
 "Handle ton:// links": Handle ton:// links
@@ -308,7 +308,7 @@ Connecting to your Ledger...: Mit Ihrem Ledger verbinden...
 Failed to connect: Verbindung fehlgeschlagen
 Ledger Connected!: Ledger verbunden!
 Select Ledger Wallets: Ledger Wallets auswählen
-"%1$d ausgewählt": %1$d ausgewählt
+"%1$d Selected": "%1$d ausgewählt"
 Add: Hinzufügen
 Try Again: Nochmal versuchen
 Driver: Treiber
