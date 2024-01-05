@@ -509,7 +509,8 @@ Correct: Korrekt
 Confirm Operation: Operation bestätigen
 Confirm Swap: Swap bestätigen
 "%amount% to %address%": "%amount% zu %address%"
-"%amount_from% to %amount_to%": "%amount_from% zu %amount_to%""
+"%amount_from% to %amount_to%": "%amount_from% zu %amount_to%"
+
 Failed to enable biometrics.: Fehler beim Aktivieren der Biometrie.
 Please try to confirm your biometrics again.: Bitte versuchen Sie erneut, Ihre Biometrie zu bestätigen.
 Unknown error.: Unbekannter Fehler.
