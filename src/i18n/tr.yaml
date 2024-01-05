@@ -30,7 +30,7 @@ Change: Değiştir
 $auth_import_mnemonic_description: |
   Cüzdanı oluştururken yazdığınız %1$d gizli kelimeyi girerek cüzdanınıza erişimi geri kazanabilirsiniz.
 Let’s make sure your secrets words are recorded correctly.: Gizli kelimelerinizin doğru kaydedildiğinden emin olun.
-$mnemonic_check_words_list: "**%1$** numaralı kelimeleri aşağıya girin."
+$mnemonic_check_words_list: "**%1$s** numaralı kelimeleri aşağıya girin."
 $mnemonic_check_error: Girdiğiniz gizli kelimeler listedekilerle eşleşmiyor. Lütfen tekrar deneyin.
 $mnemonic_list_description: |
   Bu kelimeleri
@@ -172,7 +172,7 @@ Paste: Yapıştır
 Insufficient balance: Yetersiz bakiye
 InsufficientBalance: Yetersiz bakiye
 Optional: Opsiyonel
-$send_token_symbol: "%1$ gönder"
+$send_token_symbol: "%1$s gönder"
 Is it all ok?: Herşey tamam mı?
 Receiving Address: Alıcı adresi
 Fee: Ücret
@@ -195,7 +195,7 @@ Play Sounds: Sesleri çal
 Focus on asset value rather than current balance: Mevcut bakiyeden ziyade varlık değerine odaklanır
 $logout_confirm: "**Tüm** cüzdanları kaldırın"
 $logout_warning2: Cüzdanlar merkeziyetsiz TON Blockchain'inde bulunmaktadır. Cüzdanın silinmesini istiyorsanız, içindeki tüm TON'u aktarmanız ve cüzdanı boş bırakmanız yeterlidir.
-$tiny_transfers_help: Tutarı 1$d %2$'den az olan işlemleri görüntülemek için bu düğmeyi kapalı konuma getirin. Lütfen bu tür işlemlerin genellikle spam ve dolandırıcılık amacıyla kullanıldığını unutmayın.
+$tiny_transfers_help: Tutarı %1$d %2$s'den az olan işlemleri görüntülemek için bu düğmeyi kapalı konuma getirin. Lütfen bu tür işlemlerin genellikle spam ve dolandırıcılık amacıyla kullanıldığını unutmayın.
 Today: Bugün
 Yesterday: Dün
 Now: Şimdi
