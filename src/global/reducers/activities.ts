@@ -39,7 +39,7 @@ export function updateActivity(global: GlobalState, accountId: string, activity:
 
   if (!isLocal) {
     const newestTx = newestTransactionsBySlug[slug];
-    if (!newestTx || newestTx.timestamp < timestamp) {
+    if (!newestTx || newestTx.timestamp < timestamp || (newestTx.timestamp === timestamp && newestTx.txId < id)) {
       newestTransactionsBySlug = { ...newestTransactionsBySlug, [slug]: activity };
     }
   }

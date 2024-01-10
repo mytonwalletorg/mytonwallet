@@ -6,6 +6,10 @@
   @supports (height: env(safe-area-inset-bottom)) {
     height: calc(35.5rem + env(safe-area-inset-bottom));
   }
+
+  :global(.is-native-bottom-sheet) & {
+    height: calc(35.5rem + var(--safe-area-bottom, 0rem)) !important;
+  }
 }
 
 .inputButton {

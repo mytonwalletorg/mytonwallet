@@ -1,7 +1,7 @@
-import React, { memo, useState } from '../../../lib/teact/teact';
+import React, { memo, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
-import type { ApiStakingType, ApiToken, ApiTransactionActivity } from '../../../api/types';
+import type { ApiToken, ApiTransactionActivity } from '../../../api/types';
 
 import {
   ANIMATION_END_DELAY,
@@ -50,9 +50,8 @@ type StateProps = {
   isTestnet?: boolean;
   startOfStakingCycle?: number;
   endOfStakingCycle?: number;
-  stakingType?: ApiStakingType;
   isUnstakeRequested?: boolean;
-  isInstantUnstakeRequested?: boolean;
+  isLongUnstakeRequested?: boolean;
 };
 const enum SLIDES {
   initial,
@@ -68,9 +67,8 @@ function TransactionModal({
   isTestnet,
   startOfStakingCycle,
   endOfStakingCycle,
-  stakingType,
   isUnstakeRequested,
-  isInstantUnstakeRequested,
+  isLongUnstakeRequested,
 }: StateProps) {
   const {
     startTransfer,
@@ -121,14 +119,17 @@ function TransactionModal({
     ? `${tonscanBaseUrl}tx/${transactionHash}`
     : undefined;
 
-  const withUnstakeTimer = Boolean(
-    (stakingType === 'liquid' ? isInstantUnstakeRequested || isUnstakeRequested : true)
-    && transaction?.type === 'unstakeRequest'
-    && startOfStakingCycle
-    && endOfStakingCycle
-    && transaction.timestamp >= startOfStakingCycle
-    && transaction.timestamp <= endOfStakingCycle,
-  );
+  const [withUnstakeTimer, setWithUnstakeTimer] = useState(false);
+
+  useEffect(() => {
+    if (transaction?.type !== 'unstakeRequest' || !startOfStakingCycle) {
+      return;
+    }
+
+    const shouldDisplayTimer = Boolean(isUnstakeRequested || isLongUnstakeRequested)
+      && transaction.timestamp >= startOfStakingCycle;
+    setWithUnstakeTimer(shouldDisplayTimer);
+  }, [isUnstakeRequested, startOfStakingCycle, transaction, isLongUnstakeRequested]);
 
   const {
     shouldRender: shouldRenderUnstakeTimer,
@@ -436,9 +437,8 @@ export default memo(
       isTestnet: global.settings.isTestnet,
       startOfStakingCycle,
       endOfStakingCycle,
-      stakingType: accountState?.staking?.type,
       isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
-      isInstantUnstakeRequested: accountState?.staking?.isInstantUnstakeRequested,
+      isLongUnstakeRequested: accountState?.isLongUnstakeRequested,
     };
   })(TransactionModal),
 );

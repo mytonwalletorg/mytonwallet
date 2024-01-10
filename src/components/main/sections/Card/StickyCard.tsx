@@ -4,7 +4,7 @@ import { withGlobal } from '../../../../global';
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import { selectCurrentAccountTokens } from '../../../../global/selectors';
+import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { IS_ELECTRON, IS_MAC_OS, IS_WINDOWS } from '../../../../util/windowEnvironment';
@@ -33,7 +33,7 @@ function StickyCard({
   stakingBalance,
 }: OwnProps & StateProps) {
   const values = useMemo(() => {
-    return tokens && stakingBalance !== undefined ? calculateFullBalance(tokens, stakingBalance) : undefined;
+    return tokens ? calculateFullBalance(tokens, stakingBalance) : undefined;
   }, [tokens, stakingBalance]);
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
@@ -66,9 +66,11 @@ function StickyCard({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
+      const accountState = selectCurrentAccountState(global);
       return {
         tokens: selectCurrentAccountTokens(global),
         baseCurrency: global.settings.baseCurrency,
+        stakingBalance: accountState?.staking?.balance,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

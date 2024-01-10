@@ -77,14 +77,21 @@ function UnstakeModal({
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
-  const isInstantUnstake = stakingType === 'liquid'
-    ? Big(stakingBalance ?? 0).lte(stakingInfo.liquid?.instantAvailable ?? 0)
-    : false;
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
 
   const [renderedStakingBalance, setRenderedStakingBalance] = useState(stakingBalance);
   const [renderedBalance, setRenderedBalance] = useState(tonToken?.amount);
-  const [renderedIsInstantUnstake, setRenderedIsInstantUnstake] = useState(isInstantUnstake);
+
+  const [isLongUnstake, setIsLongUnstake] = useState(false);
+
+  useEffect(() => {
+    const instantAvailable = Big(stakingInfo.liquid?.instantAvailable ?? 0);
+    const isInstantUnstake = stakingType === 'liquid'
+      ? Big(stakingBalance ?? 0).lte(instantAvailable)
+      : false;
+
+    setIsLongUnstake(!isInstantUnstake);
+  }, [stakingType, stakingBalance, stakingInfo]);
 
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
   const hasBalanceForUnstake = tonToken && tonToken.amount >= MIN_BALANCE_FOR_UNSTAKE;
@@ -124,7 +131,6 @@ function UnstakeModal({
   });
 
   const handleTransferSubmit = useLastCallback((password: string) => {
-    setRenderedIsInstantUnstake(isInstantUnstake);
     setRenderedStakingBalance(stakingBalance);
     setRenderedBalance(tonToken?.amount);
 
@@ -165,7 +171,7 @@ function UnstakeModal({
               previewUrl={ANIMATED_STICKERS_PATHS.snitchPreview}
             />
             <div className={styles.unstakeInformation}>
-              {isInstantUnstake
+              {isLongUnstake
                 ? lang('$unstake_information_with_time', {
                   time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
                 })
@@ -251,7 +257,7 @@ function UnstakeModal({
             operationAmount={renderedStakingBalance}
           />
 
-          {renderedIsInstantUnstake && (
+          {isLongUnstake && (
             <div className={styles.unstakeTime}>
               <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
               {lang('$unstaking_when_receive', {

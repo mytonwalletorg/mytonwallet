@@ -11,7 +11,6 @@ import {
   clearIsPinAccepted,
   clearStaking,
   setIsPinAccepted,
-  updateAccountStakingStatePartial,
   updateAccountState,
   updateStaking,
 } from '../../reducers';
@@ -164,12 +163,12 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       fee,
     );
 
-    const isInstantUnstakeRequested = Boolean(
-      type === 'liquid' && instantAvailable && Big(instantAvailable).gt(stakingBalance),
-    );
+    const isLongUnstakeRequested = type === 'liquid'
+      ? Boolean(instantAvailable) && Big(instantAvailable).lt(stakingBalance)
+      : true;
 
     global = getGlobal();
-    global = updateAccountStakingStatePartial(global, currentAccountId!, { isInstantUnstakeRequested });
+    global = updateAccountState(global, currentAccountId!, { isLongUnstakeRequested });
     global = updateStaking(global, { isLoading: false });
     setGlobal(global);
 

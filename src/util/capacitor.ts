@@ -41,6 +41,10 @@ export async function initCapacitor() {
     document.documentElement.style.setProperty('--status-bar-height', `${height}px`);
   });
 
+  SafeArea.getSafeAreaInsets().then(({ insets: { bottom } }) => {
+    document.documentElement.style.setProperty('--safe-area-bottom', `${bottom}px`);
+  });
+
   if (IS_DELEGATED_BOTTOM_SHEET) {
     void SplashScreen.hide({ fadeOutDuration: 0 });
     return;

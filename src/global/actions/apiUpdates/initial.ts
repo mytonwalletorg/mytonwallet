@@ -76,6 +76,12 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           apy: stakingState.apy,
           totalProfit: backendStakingState.totalProfit,
         }, true);
+
+        global = updateStakingInfo(global, {
+          liquid: {
+            instantAvailable: stakingState.instantAvailable,
+          },
+        });
       }
 
       let shouldOpenStakingInfo = false;
@@ -87,11 +93,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         }
       }
 
-      global = updateStakingInfo(global, {
-        liquid: {
-          instantAvailable: stakingCommonData.liquid.available,
-        },
-      });
       setGlobal(global);
 
       if (shouldOpenStakingInfo) {

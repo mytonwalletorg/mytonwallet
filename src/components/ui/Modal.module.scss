@@ -469,5 +469,9 @@
 
   @supports (padding-bottom: env(safe-area-inset-bottom)) {
     padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+
+    :global(.is-native-bottom-sheet) & {
+      padding-bottom: max(var(--safe-area-bottom, 1rem), 1rem);
+    }
   }
 }

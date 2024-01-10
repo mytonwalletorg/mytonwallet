@@ -19,6 +19,7 @@ interface OwnProps {
 
 interface StateProps {
   isUnstakeRequested?: boolean;
+  hasHistory?: boolean;
 }
 
 const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
@@ -26,6 +27,7 @@ const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
 function StakingInfoModal({
   isOpen,
   isUnstakeRequested,
+  hasHistory,
   onClose,
 }: OwnProps & StateProps) {
   const { fetchStakingHistory } = getActions();
@@ -46,6 +48,7 @@ function StakingInfoModal({
       contentClassName={buildClassName(styles.stakingInfoModalContent)}
       nativeBottomSheetKey="staking-info"
       onClose={onClose}
+      forceFullNative={hasHistory}
     >
       <StakingInfoContent isActive={isOpen} onClose={onClose} />
     </Modal>
@@ -57,5 +60,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
 
   return {
     isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
+    hasHistory: accountState?.stakingHistory && accountState.stakingHistory.length > 0,
   };
 })(StakingInfoModal));

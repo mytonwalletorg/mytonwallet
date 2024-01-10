@@ -351,7 +351,7 @@ async function processNewActivities(
     result.push([slug, newestTxId]);
   }));
 
-  allTransactions = allTransactions.sort((a, b) => compareActivities(a, b, true));
+  allTransactions.sort((a, b) => compareActivities(a, b, true));
 
   allTransactions.forEach((transaction) => {
     txCallbacks.runCallbacks(transaction);

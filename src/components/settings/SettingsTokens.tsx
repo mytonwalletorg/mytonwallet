@@ -177,7 +177,9 @@ function SettingsTokens({
             {isDeleteButtonVisible && (
               <>
                 <i className={styles.dot} aria-hidden />
-                <span className={styles.deleteText} onClick={(e) => handleDeleteToken(token, e)}>Delete</span>
+                <span className={styles.deleteText} onClick={(e) => handleDeleteToken(token, e)}>
+                  {lang('Delete')}
+                </span>
               </>
             )}
           </div>

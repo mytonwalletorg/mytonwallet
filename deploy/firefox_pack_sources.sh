@@ -14,4 +14,6 @@ COPYFILE_DISABLE=1 tar \
   --exclude=./.DS_Store \
   --exclude=./.idea \
   --exclude=./mobile \
-  "$@" -cvzf MyTonWallet-firefox-sources.tgz ./
+  "$@" -cvzf /tmp/MyTonWallet-firefox-sources.tgz ./
+
+mv /tmp/MyTonWallet-firefox-sources.tgz ./

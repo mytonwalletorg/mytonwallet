@@ -31,7 +31,7 @@ export type NotificationType = {
   message: string;
 };
 
-export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans';
+export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'tr' | 'de';
 
 export interface LangItem {
   langCode: LangCode;
@@ -277,6 +277,8 @@ export interface AccountState {
     isInstantUnstakeRequested?: boolean;
   };
   stakingHistory?: ApiStakingHistory;
+
+  isLongUnstakeRequested?: boolean;
 }
 
 export interface AccountSettings {

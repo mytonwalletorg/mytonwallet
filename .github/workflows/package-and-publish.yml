@@ -20,7 +20,9 @@ concurrency:
 
 env:
   APP_NAME: MyTonWallet
-  FIREFOX_EXT_ID: '{98fcdaee-2b58-4f71-8a3c-f0c66f24dede}'
+  PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
+  STAKING_POOLS: ${{ vars.STAKING_POOLS }}
+  PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
 
 jobs:
   electron-release:
@@ -70,18 +72,12 @@ jobs:
 
       - name: Build, package and publish
         env:
-          TONHTTPAPI_MAINNET_URL: ${{ vars.TONHTTPAPI_MAINNET_URL }}
-          TONAPIIO_MAINNET_URL: ${{ vars.TONAPIIO_MAINNET_URL }}
-          TONHTTPAPI_TESTNET_URL: ${{ vars.TONHTTPAPI_TESTNET_URL }}
-          TONAPIIO_TESTNET_URL: ${{ vars.TONAPIIO_TESTNET_URL }}
-          PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
-          STAKING_POOLS: ${{ vars.STAKING_POOLS }}
           ELECTRON_TONHTTPAPI_MAINNET_API_KEY: ${{ secrets.ELECTRON_TONHTTPAPI_MAINNET_API_KEY }}
+          ELECTRON_TONHTTPAPI_TESTNET_API_KEY: ${{ secrets.ELECTRON_TONHTTPAPI_TESTNET_API_KEY }}
 
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
 
-          PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           BASE_URL: ${{ vars.BASE_URL }}
           IS_PREVIEW: ${{ steps.branch-name.outputs.current_branch != 'master' }}
@@ -124,7 +120,6 @@ jobs:
     if: vars.PUBLISH_REPO != ''
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
     steps:
       - name: Setup certificate
         shell: bash
@@ -236,15 +231,6 @@ jobs:
         run: npm ci
 
       - name: Build and package
-        env:
-          TONHTTPAPI_MAINNET_URL: ${{ vars.TONHTTPAPI_MAINNET_URL }}
-          TONAPIIO_MAINNET_URL: ${{ vars.TONAPIIO_MAINNET_URL }}
-          TONHTTPAPI_TESTNET_URL: ${{ vars.TONHTTPAPI_TESTNET_URL }}
-          TONAPIIO_TESTNET_URL: ${{ vars.TONAPIIO_TESTNET_URL }}
-          PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
-          STAKING_POOLS: ${{ vars.STAKING_POOLS }}
-
-          PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
         run: |
           if [ -z "$PUBLISH_REPO" ]; then
             npm run extension-chrome:package:staging
@@ -331,9 +317,7 @@ jobs:
         env:
           WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
-          # App env
-          PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
-          STAKING_POOLS: ${{ vars.STAKING_POOLS }}
+          FIREFOX_EXTENSION_ID: ${{ vars.FIREFOX_EXTENSION_ID }}
         run: |
           npm i jsonwebtoken@9 web-ext-submit@7
           UNZIP_DIR=/tmp/${{ env.APP_NAME }}-firefox
@@ -407,11 +391,11 @@ jobs:
           name: ${{ env.HASH_FILENAME }}
           path: ${{ env.HASH_FILENAME }}
 
-  mobile-release:
-    name: Build, package and publish mobile apps
+  android-release:
+    name: Release Android app
     runs-on: macos-latest
     timeout-minutes: 30
-    if: github.event_name != 'workflow_dispatch'
+    if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -434,16 +418,76 @@ jobs:
         if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Build and sync mobile projects
-        env:
-          TONHTTPAPI_MAINNET_URL: ${{ vars.TONHTTPAPI_MAINNET_URL }}
-          TONAPIIO_MAINNET_URL: ${{ vars.TONAPIIO_MAINNET_URL }}
-          TONHTTPAPI_TESTNET_URL: ${{ vars.TONHTTPAPI_TESTNET_URL }}
-          TONAPIIO_TESTNET_URL: ${{ vars.TONAPIIO_TESTNET_URL }}
-          PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
-          STAKING_POOLS: ${{ vars.STAKING_POOLS }}
+      - name: Build and sync mobile project
+        run: |
+          if [ -z "$PUBLISH_REPO" ]; then
+            npm run mobile:build:staging
+          else
+            npm run mobile:build:production
+          fi
 
-          PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
+      - name: Use Ruby and install dependencies
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: "Android: Package and publish"
+        env:
+          ANDROID_API_KEY_BASE64: ${{ secrets.ANDROID_API_KEY_BASE64 }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          cd mobile/android
+
+          echo -n "$ANDROID_API_KEY_BASE64" | base64 --decode -o ./api-key.json
+          echo -n "$ANDROID_KEYSTORE_BASE64" | base64 --decode -o ./android.keystore
+
+          if [ -z "$PUBLISH_REPO" ]; then
+            bundle exec fastlane beta
+          else
+            bundle exec fastlane release
+          fi
+
+  ios-release:
+    name: Release iOS app
+    runs-on: macos-latest
+    timeout-minutes: 30
+    if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Cache node modules
+        id: npm-cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Build and sync mobile project
         run: |
           if [ -z "$PUBLISH_REPO" ]; then
             npm run mobile:build:staging
@@ -490,40 +534,9 @@ jobs:
       - name: "iOS: Package and publish"
         env:
           IOS_AUTH_KEY_BASE64: ${{ secrets.IOS_AUTH_KEY_BASE64 }}
-
-          PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
         run: |
           cd mobile/ios/App
           echo -n "$IOS_AUTH_KEY_BASE64" | base64 --decode -o ./AuthKey.p8
-          if [ -z "$PUBLISH_REPO" ]; then
-            bundle exec fastlane beta
-          else
-            bundle exec fastlane release
-          fi
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: "Android: Package and publish"
-        env:
-          ANDROID_API_KEY_BASE64: ${{ secrets.ANDROID_API_KEY_BASE64 }}
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-
-          PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
-        run: |
-          cd mobile/android
-
-          echo -n "$ANDROID_API_KEY_BASE64" | base64 --decode -o ./api-key.json
-          echo -n "$ANDROID_KEYSTORE_BASE64" | base64 --decode -o ./android.keystore
-
           if [ -z "$PUBLISH_REPO" ]; then
             bundle exec fastlane beta
           else

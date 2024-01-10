@@ -4,14 +4,14 @@ const fs = require('fs');
 const {
   WEB_EXT_API_KEY,
   WEB_EXT_API_SECRET,
-  FIREFOX_EXT_ID,
+  FIREFOX_EXTENSION_ID,
 } = process.env;
 
-if (!WEB_EXT_API_KEY || !WEB_EXT_API_SECRET || !FIREFOX_EXT_ID) {
+if (!WEB_EXT_API_KEY || !WEB_EXT_API_SECRET || !FIREFOX_EXTENSION_ID) {
   throw new Error('Missing env vars!');
 }
 
-const extId = FIREFOX_EXT_ID;
+const extId = FIREFOX_EXTENSION_ID;
 const baseUrl = 'https://addons.mozilla.org';
 const sourceFile = 'MyTonWallet-firefox-sources.tgz';
 

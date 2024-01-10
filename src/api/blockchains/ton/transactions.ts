@@ -429,7 +429,7 @@ export async function getMergedTransactionSlice(accountId: string, lastTxIds: Ap
   }));
 
   const allTxs = [...tonTxs, ...results.flat()];
-  allTxs.sort((a, b) => compareActivities(a, b, false));
+  allTxs.sort((a, b) => compareActivities(a, b));
 
   return allTxs;
 }

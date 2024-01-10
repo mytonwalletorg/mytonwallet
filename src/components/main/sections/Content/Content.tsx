@@ -7,7 +7,10 @@ import { ContentTab } from '../../../../global/types';
 
 import { JUSDT_TOKEN_SLUG, MIN_ASSETS_TAB_VIEW, TON_TOKEN_SLUG } from '../../../../config';
 import {
-  selectAccountState, selectCurrentAccountTokens, selectEnabledTokensCountMemoized, selectIsHardwareAccount,
+  selectAccountState,
+  selectCurrentAccountTokens,
+  selectEnabledTokensCountMemoized,
+  selectIsHardwareAccount,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
@@ -91,8 +94,8 @@ function Content({
   });
 
   const handleSwitchTab = useLastCallback((tab: ContentTab) => {
-    selectToken({ slug: undefined });
-    setActiveContentTab({ tab });
+    selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
+    setActiveContentTab({ tab }, { forceOnHeavyAnimation: true });
   });
 
   useHistoryBack({

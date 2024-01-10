@@ -349,6 +349,15 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 11;
   }
 
+  if (cached.stateVersion === 11) {
+    if (cached.byAccountId) {
+      for (const accountId of Object.keys(cached.byAccountId)) {
+        delete cached.byAccountId[accountId].activities;
+      }
+    }
+    cached.stateVersion = 12;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 

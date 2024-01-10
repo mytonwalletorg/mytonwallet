@@ -23,6 +23,20 @@
   }
 }
 
+.isLoading {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+.center {
+  top: 33%;
+  transform: translate(0, -50%);
+
+  margin-right: auto;
+  margin-left: auto
+}
+
 .container {
   position: absolute;
   top: 0;
@@ -86,13 +100,6 @@
     &:global(.open) {
       transform: translateY(0) scale(1);
     }
-  }
-
-  &.isLoading {
-    align-items: center;
-    justify-content: center;
-
-    padding: 0;
   }
 
   :global(html.animation-level-0) & {

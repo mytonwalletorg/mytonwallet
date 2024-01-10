@@ -7,7 +7,7 @@ import { round } from '../../../../../util/round';
 
 import styles from '../Card.module.scss';
 
-export function calculateFullBalance(tokens: UserToken[], stakingBalance: number) {
+export function calculateFullBalance(tokens: UserToken[], stakingBalance = 0) {
   const primaryValue = tokens.reduce((acc, token) => {
     const amount = token.slug === TON_TOKEN_SLUG ? token.amount + stakingBalance : token.amount;
     return acc + amount * token.price;

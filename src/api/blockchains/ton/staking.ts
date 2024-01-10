@@ -239,6 +239,8 @@ export async function getStakingState(
   }
 
   const { loyaltyType } = backendState;
+
+  const liquidAvailable = commonData.liquid.collection ? '0' : commonData.liquid.available;
   let liquidApy = commonData.liquid.apy;
   if (loyaltyType && loyaltyType in commonData.liquid.loyaltyApy) {
     liquidApy = commonData.liquid.loyaltyApy[loyaltyType];
@@ -254,6 +256,7 @@ export async function getStakingState(
       amount: parseFloat(amount),
       unstakeRequestAmount: unstakeAmount.toNumber(),
       apy: liquidApy,
+      instantAvailable: liquidAvailable,
     };
   }
 
@@ -269,6 +272,7 @@ export async function getStakingState(
       amount: 0,
       unstakeRequestAmount: 0,
       apy: liquidApy,
+      instantAvailable: liquidAvailable,
     };
   }
 

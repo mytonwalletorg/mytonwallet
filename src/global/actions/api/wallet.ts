@@ -5,7 +5,7 @@ import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
 import { ActiveTab, TransferState } from '../../types';
 
-import { IS_CAPACITOR } from '../../../config';
+import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { compareActivities } from '../../../util/compareActivities';
 import {
@@ -404,21 +404,24 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
     offsetId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
   }
 
-  fetchedActivities.sort((a, b) => compareActivities(a, b, false));
+  fetchedActivities.sort((a, b) => compareActivities(a, b));
 
   global = updateActivitiesIsLoading(global, false);
 
   const newById = buildCollectionByKey(fetchedActivities, 'id');
   const newOrderedIds = Object.keys(newById);
   const currentActivities = selectCurrentAccountState(global)?.activities;
+  const byId = { ...(currentActivities?.byId || {}), ...newById };
 
   idsBySlug = currentActivities?.idsBySlug || {};
   tokenIds = unique((idsBySlug[slug] || []).concat(newOrderedIds));
 
+  tokenIds.sort((a, b) => compareActivities(byId[a], byId[b]));
+
   global = updateCurrentAccountState(global, {
     activities: {
       ...currentActivities,
-      byId: { ...(currentActivities?.byId || {}), ...newById },
+      byId,
       idsBySlug: { ...idsBySlug, [slug]: tokenIds },
     },
   });
@@ -470,9 +473,10 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
 
   const newById = buildCollectionByKey(fetchedActivities, 'id');
   const currentActivities = selectCurrentAccountState(global)?.activities;
+  const byId = { ...(currentActivities?.byId || {}), ...newById };
   let idsBySlug = { ...currentActivities?.idsBySlug };
 
-  fetchedActivities = fetchedActivities.sort((a, b) => compareActivities(a, b, false));
+  fetchedActivities = fetchedActivities.sort((a, b) => compareActivities(a, b));
 
   idsBySlug = fetchedActivities.reduce((acc, activity) => {
     if (activity.kind === 'swap') {
@@ -487,11 +491,12 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
   }, idsBySlug);
 
   idsBySlug = mapValues(idsBySlug, (txIds) => unique(txIds));
+  idsBySlug[TON_TOKEN_SLUG]?.sort((a, b) => compareActivities(byId[a], byId[b]));
 
   global = updateCurrentAccountState(global, {
     activities: {
       ...currentActivities,
-      byId: { ...(currentActivities?.byId || {}), ...newById },
+      byId,
       idsBySlug,
     },
   });

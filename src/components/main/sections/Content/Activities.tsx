@@ -111,8 +111,6 @@ function Activities({
     if (byId) {
       if (slug) {
         idList = bySlug[slug] ?? [];
-
-        idList.sort((a, b) => compareActivities(byId[a], byId[b], false));
         const lastTokenTxId = findLast(idList, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
 
         if (lastTokenTxId) {
@@ -126,7 +124,7 @@ function Activities({
           idList = idList.filter((txId) => byId[txId].timestamp >= byId[lastTonTxId].timestamp);
         }
 
-        idList.sort((a, b) => compareActivities(byId[a], byId[b], false));
+        idList.sort((a, b) => compareActivities(byId[a], byId[b]));
       }
     }
     if (!idList) {

@@ -102,7 +102,7 @@ function Card({
   const renderingDappDomain = useCurrentOrPrev(dappDomain, true);
 
   const values = useMemo(() => {
-    return tokens && stakingBalance !== undefined ? calculateFullBalance(tokens, stakingBalance) : undefined;
+    return tokens ? calculateFullBalance(tokens, stakingBalance) : undefined;
   }, [tokens, stakingBalance]);
 
   const {
@@ -136,75 +136,37 @@ function Card({
 
   function renderLoader() {
     return (
-      <div className={buildClassName(styles.container, styles.isLoading)}>
-        <Loading color="white" />
+      <div className={buildClassName(styles.isLoading)}>
+        <Loading color="white" className={styles.center} />
       </div>
     );
   }
 
-  function renderContent() {
+  function renderBalance() {
     return (
       <>
-        <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
-          <AccountSelector forceClose={forceCloseAccountSelector} canEdit onQrScanPress={onQrScanPress} />
-          {shouldRenderDapp && (
-            <div className={buildClassName(styles.dapp, dappClassNames)}>
-              <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
-              {renderingDappDomain}
-            </div>
+        <div className={styles.primaryValue}>
+          {shortBaseSymbol.length === 1 && shortBaseSymbol}
+          <AnimatedCounter text={primaryWholePart ?? ''} />
+          {primaryFractionPart && (
+            <span className={styles.primaryFractionPart}>
+              <AnimatedCounter text={`.${primaryFractionPart}`} />
+            </span>
           )}
-          <div className={styles.primaryValue}>
-            {shortBaseSymbol.length === 1 && shortBaseSymbol}
-            <AnimatedCounter text={primaryWholePart ?? ''} />
-            {primaryFractionPart && (
-              <span className={styles.primaryFractionPart}>
-                <AnimatedCounter text={`.${primaryFractionPart}`} />
-              </span>
-            )}
-            {shortBaseSymbol.length > 1 && (
-              <span className={styles.primaryFractionPart}>
+          {shortBaseSymbol.length > 1 && (
+            <span className={styles.primaryFractionPart}>
                 &nbsp;{shortBaseSymbol}
-              </span>
-            )}
-          </div>
-          {primaryValue !== 0 && (
-            <div className={buildClassName(styles.change, changeClassName)}>
-              {changePrefix}
-              &thinsp;
-              <AnimatedCounter text={`${Math.abs(changePercent!)}%`} />
-              {' · '}
-              <AnimatedCounter text={formatCurrency(Math.abs(changeValue!), shortBaseSymbol)} />
-            </div>
+            </span>
           )}
-          <div className={styles.addressContainer}>
-            <button
-              type="button"
-              className={styles.address}
-              aria-label={lang('Copy wallet address')}
-              onClick={handleCopyAddress}
-            >
-              {address && shortenAddress(address)}
-              <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
-            </button>
-            <a
-              href={tonscanAddressUrl}
-              className={styles.tonscanButton}
-              title={lang('View address on TON Explorer')}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              <i className={buildClassName(styles.icon, 'icon-tonscan')} aria-hidden />
-            </a>
-          </div>
         </div>
-        {shouldRenderTokenCard && (
-          <TokenCard
-            token={renderedToken!}
-            classNames={tokenCardTransitionClassNames}
-            color={tokenCardColor}
-            onApyClick={onApyClick}
-            onClose={onTokenCardClose}
-          />
+        {primaryValue !== 0 && (
+          <div className={buildClassName(styles.change, changeClassName)}>
+            {changePrefix}
+            &thinsp;
+            <AnimatedCounter text={`${Math.abs(changePercent!)}%`} />
+            {' · '}
+            <AnimatedCounter text={formatCurrency(Math.abs(changeValue!), shortBaseSymbol)} />
+          </div>
         )}
       </>
     );
@@ -212,7 +174,45 @@ function Card({
 
   return (
     <div className={styles.containerWrapper} ref={ref}>
-      {!values ? renderLoader() : renderContent()}
+      <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
+        <AccountSelector forceClose={forceCloseAccountSelector} canEdit onQrScanPress={onQrScanPress} />
+        {shouldRenderDapp && (
+          <div className={buildClassName(styles.dapp, dappClassNames)}>
+            <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
+            {renderingDappDomain}
+          </div>
+        )}
+        {values ? renderBalance() : renderLoader()}
+        <div className={styles.addressContainer}>
+          <button
+            type="button"
+            className={styles.address}
+            aria-label={lang('Copy wallet address')}
+            onClick={handleCopyAddress}
+          >
+            {address && shortenAddress(address)}
+            <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
+          </button>
+          <a
+            href={tonscanAddressUrl}
+            className={styles.tonscanButton}
+            title={lang('View address on TON Explorer')}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            <i className={buildClassName(styles.icon, 'icon-tonscan')} aria-hidden />
+          </a>
+        </div>
+      </div>
+      {shouldRenderTokenCard && (
+        <TokenCard
+          token={renderedToken!}
+          classNames={tokenCardTransitionClassNames}
+          color={tokenCardColor}
+          onApyClick={onApyClick}
+          onClose={onTokenCardClose}
+        />
+      )}
     </div>
   );
 }

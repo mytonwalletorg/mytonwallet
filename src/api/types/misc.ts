@@ -102,6 +102,7 @@ export type ApiStakingState = {
   amount: number;
   unstakeRequestAmount: number;
   apy: number;
+  instantAvailable: string;
 };
 
 export interface ApiNominatorsPool {
