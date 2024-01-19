@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency, ApiToken } from '../../api/types';
+import type { ApiBalanceBySlug, ApiBaseCurrency } from '../../api/types';
 import {
   type AssetPairs,
   SettingsState,
@@ -12,7 +12,6 @@ import {
 } from '../../global/types';
 
 import { ANIMATED_STICKER_MIDDLE_SIZE_PX, TON_BLOCKCHAIN } from '../../config';
-import { Big } from '../../lib/big.js/index.js';
 import {
   selectAvailableUserForSwapTokens,
   selectCurrentAccountState,
@@ -20,10 +19,12 @@ import {
   selectSwapTokens,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import {
   formatCurrency, getShortCurrencySymbol,
 } from '../../util/formatNumber';
 import { getIsAddressValid } from '../../util/getIsAddressValid';
+import { disableSwipeToClose, enableSwipeToClose } from '../../util/modalSwipeManager';
 import getBlockchainNetworkIcon from '../../util/swap/getBlockchainNetworkIcon';
 import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -53,8 +54,7 @@ interface StateProps {
   swapTokens?: UserSwapToken[];
   tokenInSlug?: string;
   pairsBySlug?: Record<string, AssetPairs>;
-  balancesBySlug?: Record<string, string>;
-  tokenInfoBySlug?: Record<string, ApiToken>;
+  balancesBySlug?: ApiBalanceBySlug;
   baseCurrency?: ApiBaseCurrency;
   isLoading?: boolean;
 }
@@ -88,7 +88,6 @@ function TokenSelector({
   tokenInSlug,
   pairsBySlug,
   balancesBySlug,
-  tokenInfoBySlug,
   isActive,
   isLoading,
   onBack,
@@ -117,6 +116,14 @@ function TokenSelector({
     isActive,
     onBack,
   });
+
+  useEffect(() => {
+    if (!isActive) return undefined;
+
+    disableSwipeToClose();
+
+    return enableSwipeToClose;
+  }, [isActive]);
 
   useFocusAfterAnimation(searchInputRef, !isActive);
 
@@ -190,7 +197,7 @@ function TokenSelector({
       const isKeyword = keywords?.some((key) => key.toLowerCase().includes(lowerCaseSearchValue));
 
       return isName || isSymbol || isKeyword;
-    }).sort((a, b) => b.amount - a.amount) ?? [];
+    }).sort((a, b) => Number(b.amount - a.amount)) ?? [];
   }, [allUnimportedTonTokens, isInsideSettings, searchValue, swapTokensWithFilter]);
 
   const resetSearch = () => {
@@ -295,17 +302,12 @@ function TokenSelector({
       currentToken?.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS
     ] ?? currentToken?.image;
     const blockchain = 'blockchain' in currentToken ? currentToken.blockchain : TON_BLOCKCHAIN;
-    const price = 'price' in currentToken
-      ? currentToken.price
-      : tokenInfoBySlug?.[currentToken.slug]
-        ? tokenInfoBySlug?.[currentToken.slug].quote.price
-        : 0;
 
     const isAvailable = !shouldFilter || currentToken.canSwap;
     const descriptionText = isAvailable
       ? getBlockchainNetworkName(blockchain)
       : lang('Unavailable');
-    const currencyHoldings = Big(price).mul(currentToken.amount);
+    const currencyHoldings = currentToken.totalValue;
     const handleClick = isAvailable ? () => handleTokenClick(currentToken) : undefined;
 
     return (
@@ -354,14 +356,14 @@ function TokenSelector({
             !isAvailable && styles.tokenTextDisabled,
           )}
           >
-            {formatCurrency(currentToken.amount, currentToken.symbol)}
+            {formatCurrency(toDecimal(currentToken.amount, token?.decimals), currentToken.symbol)}
           </span>
           <span className={buildClassName(
             styles.tokenValue,
             !isAvailable && styles.tokenTextDisabled,
           )}
           >
-            {formatCurrency(currencyHoldings.toNumber(), shortBaseSymbol)}
+            {formatCurrency(currencyHoldings, shortBaseSymbol)}
           </span>
         </div>
       </div>
@@ -527,7 +529,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     baseCurrency,
     pairsBySlug: pairs?.bySlug,
     balancesBySlug: balances?.bySlug,
-    tokenInfoBySlug: global.tokenInfo.bySlug,
   };
 })(TokenSelector));
 

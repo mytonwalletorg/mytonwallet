@@ -6,8 +6,8 @@ import { getActions } from '../../global';
 import type { Account } from '../../global/types';
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 
-import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
 
@@ -89,7 +89,7 @@ function LedgerSelectWallets({
     );
   }
 
-  function renderAccount(address: string, balance: string, index: number, isConnected: boolean) {
+  function renderAccount(address: string, balance: bigint, index: number, isConnected: boolean) {
     const isActiveAccount = isConnected || selectedAccountIndices.includes(index);
 
     return (
@@ -100,7 +100,7 @@ function LedgerSelectWallets({
       >
         <span className={styles.accountName}>
           <i className={buildClassName(styles.accountCurrencyIcon, 'icon-ton')} aria-hidden />
-          {formatCurrency(bigStrToHuman(balance), '', ACCOUNT_BALANCE_DECIMALS)}
+          {formatCurrency(toDecimal(balance), '', ACCOUNT_BALANCE_DECIMALS)}
         </span>
         <div className={styles.accountFooter}>
           <span className={styles.accountAddress}>

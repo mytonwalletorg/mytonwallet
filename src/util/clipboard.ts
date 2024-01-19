@@ -1,3 +1,6 @@
+import { Clipboard } from '@capacitor/clipboard';
+
+import { IS_CAPACITOR } from '../config';
 import { logDebugError } from './logs';
 
 export const CLIPBOARD_ITEM_SUPPORTED = window.navigator.clipboard && window.ClipboardItem;
@@ -42,5 +45,15 @@ async function copyBlobToClipboard(pngBlob: Blob | null) {
     ]);
   } catch (err) {
     logDebugError('copyBlobToClipboard', err);
+  }
+}
+
+export async function readClipboardContent() {
+  if (IS_CAPACITOR) {
+    const { value, type } = await Clipboard.read();
+    return { text: value, type };
+  } else {
+    const text = await navigator.clipboard.readText();
+    return { text, type: 'text/plain' };
   }
 }

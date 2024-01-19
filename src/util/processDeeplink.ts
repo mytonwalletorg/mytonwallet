@@ -2,7 +2,6 @@ import { BottomSheet } from 'native-bottom-sheet';
 import { getActions } from '../global';
 
 import { TON_TOKEN_SLUG } from '../config';
-import { bigStrToHuman } from '../global/helpers';
 import { parseTonDeeplink } from './ton/deeplinks';
 import { pause } from './schedulers';
 import { IS_DELEGATING_BOTTOM_SHEET } from './windowEnvironment';
@@ -22,7 +21,7 @@ export async function processDeeplink(url: string) {
     isPortrait: true,
     tokenSlug: TON_TOKEN_SLUG,
     toAddress: params.to,
-    amount: params.amount ? bigStrToHuman(params.amount) : undefined,
+    amount: params.amount,
     comment: params.comment,
   });
 

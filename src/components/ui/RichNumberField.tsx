@@ -5,7 +5,6 @@ import React, {
 
 import { FRACTION_DIGITS } from '../../config';
 import buildClassName from '../../util/buildClassName';
-import { floor } from '../../util/round';
 
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -16,7 +15,7 @@ import styles from './Input.module.scss';
 type OwnProps = {
   id?: string;
   labelText?: string;
-  value?: number;
+  value?: string;
   error?: string;
   suffix?: string;
   zeroValue?: string;
@@ -71,7 +70,7 @@ function RichNumberInput({
 
   useLayoutEffect(() => {
     if (value) {
-      renderValue(floor(value, decimals));
+      renderValue(value);
     } else if (zeroValue) {
       contentRef.current!.innerHTML = zeroValue;
     }

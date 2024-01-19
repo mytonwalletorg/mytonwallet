@@ -17,6 +17,7 @@ import {
   vibrateOnSuccess,
 } from '../../../util/capacitor';
 import { cloneDeep } from '../../../util/iteratees';
+import { callActionInMain } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
 import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -30,6 +31,7 @@ import {
   setIsPinAccepted,
   updateAuth,
   updateBiometrics,
+  updateCurrentAccountId,
   updateCurrentAccountState,
   updateHardware,
   updateSettings,
@@ -44,8 +46,6 @@ import {
   selectNetworkAccountsMemoized,
   selectNewestTxIds,
 } from '../../selectors';
-
-import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
 
 const CREATING_DURATION = 3300;
 const NATIVE_BIOMETRICS_PAUSE_MS = 750;
@@ -362,7 +362,7 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
     }
     const { accountId, address, walletInfo } = wallet;
 
-    currentGlobal = { ...currentGlobal, currentAccountId: accountId };
+    currentGlobal = updateCurrentAccountId(currentGlobal, accountId);
     currentGlobal = createAccount(currentGlobal, accountId, address, {
       isHardware: true,
       ...(walletInfo && {
@@ -394,7 +394,7 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
 });
 
 addActionHandler('afterCheckMnemonic', (global, actions) => {
-  global = { ...global, currentAccountId: global.auth.accountId! };
+  global = updateCurrentAccountId(global, global.auth.accountId!);
   global = updateCurrentAccountState(global, {});
   global = createAccount(global, global.auth.accountId!, global.auth.address!);
   setGlobal(global);
@@ -414,7 +414,7 @@ addActionHandler('restartCheckMnemonicIndexes', (global) => {
 });
 
 addActionHandler('skipCheckMnemonic', (global, actions) => {
-  global = { ...global, currentAccountId: global.auth.accountId! };
+  global = updateCurrentAccountId(global, global.auth.accountId!);
   global = updateCurrentAccountState(global, {
     isBackupRequired: true,
   });
@@ -499,7 +499,7 @@ addActionHandler('confirmDisclaimer', (global, actions) => {
 addActionHandler('afterConfirmDisclaimer', (global, actions) => {
   const { accountId, address } = global.auth;
 
-  global = { ...global, currentAccountId: accountId };
+  global = updateCurrentAccountId(global, accountId!);
   global = updateAuth(global, { state: AuthState.ready });
   global = createAccount(global, accountId!, address!);
   setGlobal(global);
@@ -553,11 +553,8 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   const newestTxIds = selectNewestTxIds(global, accountId);
   await callApi('activateAccount', accountId, newestTxIds);
 
-  global = {
-    ...getGlobal(),
-    currentAccountId: accountId,
-  };
-
+  global = getGlobal();
+  global = updateCurrentAccountId(global, accountId);
   global = clearCurrentTransfer(global);
   global = clearCurrentSwap(global);
   setGlobal(global);

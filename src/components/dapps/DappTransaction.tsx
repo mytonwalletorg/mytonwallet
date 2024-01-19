@@ -3,8 +3,8 @@ import React, { memo } from '../../lib/teact/teact';
 import type { ApiDappTransaction, ApiParsedPayload } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
-import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import { DEFAULT_DECIMALS } from '../../api/blockchains/ton/constants';
 
@@ -19,7 +19,7 @@ import styles from './Dapp.module.scss';
 interface OwnProps {
   tonToken: UserToken;
   transaction: ApiDappTransaction;
-  fee?: string;
+  fee?: bigint;
   tokens?: UserToken[];
 }
 
@@ -59,7 +59,7 @@ function DappTransaction({
         const symbol = token?.symbol ?? '';
 
         return lang('$dapp_transfer_tokens_payload', {
-          amount: formatCurrency(bigStrToHuman(tokenAmount, decimals), symbol, FRACTION_DIGITS),
+          amount: formatCurrency(toDecimal(tokenAmount, decimals), symbol, FRACTION_DIGITS),
           address: destination,
         });
       }
@@ -96,9 +96,9 @@ function DappTransaction({
       />
       <AmountWithFeeTextField
         label={lang('Amount')}
-        amount={bigStrToHuman(transaction.amount, tonToken.decimals)}
+        amount={toDecimal(transaction.amount)}
         symbol={tonToken.symbol}
-        fee={fee ? bigStrToHuman(fee, tonToken.decimals) : undefined}
+        fee={fee ? toDecimal(fee, tonToken.decimals) : undefined}
         className={styles.dataField}
       />
 

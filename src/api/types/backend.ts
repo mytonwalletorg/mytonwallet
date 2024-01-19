@@ -125,7 +125,7 @@ export type ApiStakingCommonData = {
     nextRoundRate: number;
     collection?: string;
     apy: number;
-    available: string;
+    available: bigint;
     loyaltyApy: {
       [key in ApiLoyaltyType]: number;
     };
@@ -140,4 +140,5 @@ export type ApiStakingCommonData = {
     end: number;
     unlock: number;
   };
+  bigInt: bigint;
 };

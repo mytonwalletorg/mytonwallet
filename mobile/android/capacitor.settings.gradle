@@ -8,6 +8,9 @@ project(':capacitor-mlkit-barcode-scanning').projectDir = new File('../../node_m
 include ':capacitor-app'
 project(':capacitor-app').projectDir = new File('../../node_modules/@capacitor/app/android')
 
+include ':capacitor-clipboard'
+project(':capacitor-clipboard').projectDir = new File('../../node_modules/@capacitor/clipboard/android')
+
 include ':capacitor-dialog'
 project(':capacitor-dialog').projectDir = new File('../../node_modules/@capacitor/dialog/android')
 

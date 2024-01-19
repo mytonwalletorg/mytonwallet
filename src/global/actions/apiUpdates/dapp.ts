@@ -1,24 +1,20 @@
-import { DappConnectState, TransferState } from '../../types';
+import { TransferState } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
+import { callActionInNative } from '../../../util/multitab';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
-import { bigStrToHuman } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   clearCurrentDappTransfer,
   clearCurrentSignature,
   clearCurrentTransfer,
   updateAccountState,
-  updateCurrentDappTransfer,
   updateCurrentSignature,
   updateCurrentTransfer,
-  updateDappConnectRequest,
 } from '../../reducers';
 import {
   selectAccountState,
 } from '../../selectors';
-
-import { callActionInNative } from '../../../hooks/useDelegatedBottomSheet';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -38,7 +34,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = updateCurrentTransfer(global, {
         state: TransferState.Confirm,
         toAddress,
-        amount: bigStrToHuman(amount), // TODO Unsafe?
+        amount,
         fee,
         comment,
         promiseId,
@@ -107,18 +103,22 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'dappLoading': {
-      const { connectionType } = update;
-
-      if (connectionType === 'connect') {
-        global = updateDappConnectRequest(global, {
-          state: DappConnectState.Info,
-        });
-      } else if (connectionType === 'sendTransaction') {
-        global = updateCurrentDappTransfer(global, {
-          state: TransferState.Initial,
-        });
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        callActionInNative('apiUpdateDappLoading', update);
       }
-      setGlobal(global);
+
+      actions.apiUpdateDappLoading(update);
+
+      break;
+    }
+
+    case 'dappCloseLoading': {
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        callActionInNative('apiUpdateDappCloseLoading');
+      }
+
+      actions.apiUpdateDappCloseLoading();
+
       break;
     }
 
@@ -143,7 +143,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = updateCurrentTransfer(global, {
         state: TransferState.Initial,
         toAddress,
-        amount: bigStrToHuman(amount || '0'),
+        amount: amount ?? 0n,
         comment,
         tokenSlug: TON_TOKEN_SLUG,
       });

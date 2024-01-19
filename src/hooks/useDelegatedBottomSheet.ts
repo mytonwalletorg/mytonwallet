@@ -5,10 +5,11 @@ import type { BottomSheetKeys } from 'native-bottom-sheet';
 import { BottomSheet } from 'native-bottom-sheet';
 import { useEffect, useLayoutEffect, useState } from '../lib/teact/teact';
 import { forceOnHeavyAnimationOnce } from '../lib/teact/teactn';
-import { getActions, setGlobal } from '../global';
+import { setGlobal } from '../global';
 
-import type { ActionPayloads, GlobalState } from '../global/types';
+import type { GlobalState } from '../global/types';
 
+import { bigintReviver } from '../util/bigint';
 import cssColorToHex from '../util/cssColorToHex';
 import { setStatusBarStyle } from '../util/switchTheme';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../util/windowEnvironment';
@@ -38,7 +39,7 @@ if (IS_DELEGATED_BOTTOM_SHEET) {
     controlledByMain.get(key)?.();
 
     setGlobal(
-      JSON.parse(globalJson) as GlobalState,
+      JSON.parse(globalJson, bigintReviver) as GlobalState,
       { forceOutdated: true, forceSyncOnIOs: true },
     );
   });
@@ -46,14 +47,6 @@ if (IS_DELEGATED_BOTTOM_SHEET) {
   BottomSheet.addListener('move', () => {
     window.dispatchEvent(new Event('viewportmove'));
   });
-
-  BottomSheet.addListener(
-    'callActionInNative',
-    <K extends keyof ActionPayloads>({ name, optionsJson }: { name: string; optionsJson: string }) => {
-      const action = getActions()[name as K];
-      action((JSON.parse(optionsJson) || undefined) as ActionPayloads[K]);
-    },
-  );
 }
 
 export function useDelegatedBottomSheet(
@@ -82,7 +75,7 @@ export function useDelegatedBottomSheet(
       BottomSheet.closeSelf({ key });
       setStatusBarStyle();
     }
-  }, [dialogRef, isOpen, key, onClose]);
+  }, [isOpen, dialogRef, key, onClose]);
 
   const isDelegatedAndOpen = IS_DELEGATED_BOTTOM_SHEET && key && isOpen;
 
@@ -170,22 +163,6 @@ export function useOpenFromMainBottomSheet(
       }
     };
   }, [key, open]);
-}
-
-export function callActionInMain<K extends keyof ActionPayloads>(name: K, options?: ActionPayloads[K]) {
-  BottomSheet.callActionInMain({
-    name,
-    // eslint-disable-next-line no-null/no-null
-    optionsJson: JSON.stringify(options ?? null),
-  });
-}
-
-export function callActionInNative<K extends keyof ActionPayloads>(name: K, options?: ActionPayloads[K]) {
-  BottomSheet.callActionInNative({
-    name,
-    // eslint-disable-next-line no-null/no-null
-    optionsJson: JSON.stringify(options ?? null),
-  });
 }
 
 export function openInMain(key: BottomSheetKeys) {

@@ -1,9 +1,26 @@
-.passwordModal {
-  min-height: 24.5rem;
+.modalDialog {
+  height: 30rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(30rem + env(safe-area-inset-bottom));
+  }
+
+  :global(.is-native-bottom-sheet) & {
+    height: calc(30rem + var(--safe-area-bottom, 0rem)) !important;
+  }
+
 }
 
 .passwordFormContent {
   padding: 0 !important;
+}
+
+.passwordFormContentInModal {
+  padding: 0 1rem 1rem;
+
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
 }
 
 .sticker {

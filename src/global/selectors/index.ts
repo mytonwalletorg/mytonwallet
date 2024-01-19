@@ -1,4 +1,6 @@
-import type { ApiNetwork, ApiSwapAsset, ApiTxIdBySlug } from '../../api/types';
+import type {
+  ApiBalanceBySlug, ApiNetwork, ApiSwapAsset, ApiTxIdBySlug,
+} from '../../api/types';
 import type {
   Account,
   AccountSettings,
@@ -10,25 +12,24 @@ import type {
 
 import { TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
+import { toBig, toDecimal } from '../../util/decimals';
 import { findLast, mapValues } from '../../util/iteratees';
 import memoized from '../../util/memoized';
 import { round } from '../../util/round';
-import { bigStrToHuman, getIsSwapId, getIsTxIdLocal } from '../helpers';
+import { getIsSwapId, getIsTxIdLocal } from '../helpers';
 
 export function selectHasSession(global: GlobalState) {
   return Boolean(global.currentAccountId);
 }
 
 const selectAccountTokensMemoized = memoized((
-  balancesBySlug: Record<string, string>,
+  balancesBySlug: ApiBalanceBySlug,
   tokenInfo: GlobalState['tokenInfo'],
   accountSettings: AccountSettings,
   isSortByValueEnabled: boolean = false,
   areTokensWithNoBalanceHidden: boolean = false,
   areTokensWithNoPriceHidden: boolean = false,
 ) => {
-  const getTotalValue = ({ price, amount }: UserToken) => price * amount;
-
   return Object
     .entries(balancesBySlug)
     .filter(([slug]) => (slug in tokenInfo.bySlug))
@@ -38,10 +39,13 @@ const selectAccountTokensMemoized = memoized((
           price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
         },
       } = tokenInfo.bySlug[slug];
-      const amount = bigStrToHuman(balance, decimals);
+
+      const amount = balance;
+      const totalValue = toBig(balance, decimals).mul(price).round(decimals).toString();
+
       const isException = accountSettings.exceptionSlugs?.includes(slug);
       let isDisabled = (areTokensWithNoPriceHidden && price === 0)
-        || (areTokensWithNoBalanceHidden && amount === 0);
+        || (areTokensWithNoBalanceHidden && amount === 0n);
 
       if (isException) {
         isDisabled = !isDisabled;
@@ -67,11 +71,12 @@ const selectAccountTokensMemoized = memoized((
         history30d,
         isDisabled,
         cmcSlug,
+        totalValue,
       } as UserToken;
     })
     .sort((tokenA, tokenB) => {
       if (isSortByValueEnabled) {
-        return getTotalValue(tokenB) - getTotalValue(tokenA);
+        return Number(tokenB.totalValue) - Number(tokenA.totalValue);
       }
 
       if (!accountSettings.orderedSlugs) {
@@ -105,7 +110,7 @@ export function selectCurrentAccountTokens(global: GlobalState) {
 
 function createTokenList(
   swapTokenInfo: GlobalState['swapTokenInfo'],
-  balancesBySlug: Record<string, string>,
+  balancesBySlug: ApiBalanceBySlug,
   sortFn: (tokenA: ApiSwapAsset, tokenB: ApiSwapAsset) => number,
   filterFn?: (token: ApiSwapAsset) => boolean,
 ): UserSwapToken[] {
@@ -114,7 +119,9 @@ function createTokenList(
     .map(([slug, {
       symbol, name, image, decimals, keywords, blockchain, contract, isPopular,
     }]) => {
-      const amount = bigStrToHuman(balancesBySlug[slug] ?? '0', decimals);
+      const amount = balancesBySlug[slug] ?? 0n;
+      const totalValue = toDecimal(amount, decimals);
+
       return {
         symbol,
         slug,
@@ -128,13 +135,14 @@ function createTokenList(
         keywords,
         blockchain,
         contract,
+        totalValue,
       } satisfies UserSwapToken;
     })
     .sort(sortFn);
 }
 
 const selectPopularTokensMemoized = memoized(
-  (balancesBySlug: Record<string, string>, swapTokenInfo: GlobalState['swapTokenInfo']) => {
+  (balancesBySlug: ApiBalanceBySlug, swapTokenInfo: GlobalState['swapTokenInfo']) => {
     const popularTokenOrder = [
       'TON',
       'BTC',
@@ -157,7 +165,7 @@ const selectPopularTokensMemoized = memoized(
 );
 
 const selectSwapTokensMemoized = memoized(
-  (balancesBySlug: Record<string, string>, swapTokenInfo: GlobalState['swapTokenInfo']) => {
+  (balancesBySlug: ApiBalanceBySlug, swapTokenInfo: GlobalState['swapTokenInfo']) => {
     const sortFn = (tokenA: ApiSwapAsset, tokenB: ApiSwapAsset) => (
       tokenA.name.trim().toLowerCase().localeCompare(tokenB.name.trim().toLowerCase())
     );
@@ -166,7 +174,7 @@ const selectSwapTokensMemoized = memoized(
 );
 
 const selectAccountTokensForSwapMemoized = memoized((
-  balancesBySlug: Record<string, string>,
+  balancesBySlug: ApiBalanceBySlug,
   tokenInfo: GlobalState['tokenInfo'],
   swapTokenInfo: GlobalState['swapTokenInfo'],
   accountSettings: AccountSettings,
@@ -228,7 +236,7 @@ export function selectSwapTokens(global: GlobalState) {
 export function selectIsNewWallet(global: GlobalState) {
   const tokens = selectCurrentAccountTokens(global);
 
-  return tokens?.length === 0 || (tokens?.length === 1 && tokens[0].amount === 0);
+  return tokens?.length === 0 || (tokens?.length === 1 && tokens[0].amount === 0n);
 }
 
 export function selectAccounts(global: GlobalState) {

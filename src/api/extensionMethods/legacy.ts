@@ -77,8 +77,9 @@ export async function sendTransaction(params: {
   const accountId = await getCurrentAccountIdOrFail();
 
   const {
-    value: amount, to: toAddress, data, dataType, stateInit,
+    value, to: toAddress, data, dataType, stateInit,
   } = params;
+  const amount = BigInt(value);
 
   let processedData;
   if (data) {
@@ -162,7 +163,7 @@ async function sendLedgerTransaction(
   accountId: string,
   promiseId: string,
   promise: Promise<any>,
-  fee: string,
+  fee: bigint,
   params: {
     to: string;
     value: string;
@@ -174,8 +175,9 @@ async function sendLedgerTransaction(
   const { network } = parseAccountId(accountId);
   const fromAddress = await fetchStoredAddress(accountId);
   const {
-    to: toAddress, value: amount, data, dataType, stateInit,
+    to: toAddress, value, data, dataType, stateInit,
   } = params;
+  const amount = BigInt(value);
 
   let payloadBoc: string | undefined;
 
@@ -204,7 +206,7 @@ async function sendLedgerTransaction(
     type: 'createTransaction',
     promiseId,
     toAddress,
-    amount,
+    amount: BigInt(amount),
     fee,
     ...(dataType === 'text' && {
       comment: data,

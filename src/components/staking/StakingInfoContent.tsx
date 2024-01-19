@@ -10,8 +10,8 @@ import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
+import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
-import { round } from '../../util/round';
 
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
@@ -36,9 +36,9 @@ interface OwnProps {
 }
 
 interface StateProps {
-  amount: number;
+  amount: bigint;
   apyValue: number;
-  totalProfit: number;
+  totalProfit: bigint;
   stakingHistory?: ApiStakingHistory;
   tokens?: UserToken[];
   isUnstakeRequested?: boolean;
@@ -91,8 +91,8 @@ function StakingInfoContent({
     startStaking({ isUnstaking: true });
   });
 
-  const stakingResult = round(amount, STAKING_DECIMAL);
-  const balanceResult = round(amount + (amount / 100) * apyValue, STAKING_DECIMAL);
+  const stakingResult = toBig(amount).round(STAKING_DECIMAL).toString();
+  const balanceResult = toBig(amount).mul((apyValue / 100) + 1).round(STAKING_DECIMAL).toString();
 
   function renderUnstakeDescription() {
     return (
@@ -112,7 +112,7 @@ function StakingInfoContent({
           {lang('$total', {
             value: (
               <span className={styles.historyTotalValue}>
-                {formatCurrency(totalProfit, TON_SYMBOL)}
+                {formatCurrency(toDecimal(totalProfit), TON_SYMBOL)}
               </span>
             ),
           })}
@@ -211,9 +211,9 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
 
   return {
-    amount: accountState?.staking?.balance || 0,
+    amount: accountState?.staking?.balance || 0n,
     apyValue: accountState?.staking?.apy || 0,
-    totalProfit: accountState?.staking?.totalProfit ?? 0,
+    totalProfit: accountState?.staking?.totalProfit ?? 0n,
     stakingHistory: accountState?.stakingHistory,
     tokens: selectCurrentAccountTokens(global),
     isUnstakeRequested: accountState?.staking?.isUnstakeRequested,

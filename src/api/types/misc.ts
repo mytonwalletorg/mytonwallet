@@ -17,6 +17,7 @@ export interface AccountIdParsed {
 
 export interface ApiInitArgs {
   isElectron: boolean;
+  isNativeBottomSheet: boolean;
 }
 
 export interface ApiBaseToken {
@@ -59,12 +60,12 @@ export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | 'swap'
 export interface ApiTransaction {
   txId: string;
   timestamp: number;
-  amount: string;
+  amount: bigint;
   fromAddress: string;
   toAddress: string;
   comment?: string;
   encryptedComment?: string;
-  fee: string;
+  fee: bigint;
   slug: string;
   isIncoming: boolean;
   type?: ApiTransactionType;
@@ -93,16 +94,16 @@ export type ApiStakingType = 'nominators' | 'liquid';
 
 export type ApiStakingState = {
   type: 'nominators';
-  amount: number;
-  pendingDepositAmount: number;
+  amount: bigint;
+  pendingDepositAmount: bigint;
   isUnstakeRequested: boolean;
 } | {
   type: 'liquid';
-  tokenAmount: string;
-  amount: number;
-  unstakeRequestAmount: number;
+  tokenAmount: bigint;
+  amount: bigint;
+  unstakeRequestAmount: bigint;
   apy: number;
-  instantAvailable: string;
+  instantAvailable: bigint;
 };
 
 export interface ApiNominatorsPool {
@@ -113,10 +114,11 @@ export interface ApiNominatorsPool {
 }
 
 export interface ApiBackendStakingState {
-  balance: number;
-  totalProfit: number;
+  balance: bigint;
+  totalProfit: bigint;
   nominatorsPool: ApiNominatorsPool;
   loyaltyType?: ApiLoyaltyType;
+  shouldUseNominators?: boolean;
 }
 
 export type ApiStakingHistory = {
@@ -140,7 +142,7 @@ export type ApiDappRequest = {
 
 export interface ApiDappTransaction {
   toAddress: string;
-  amount: string;
+  amount: bigint;
   rawPayload?: string;
   payload?: ApiParsedPayload;
   stateInit?: string;
@@ -151,9 +153,9 @@ export interface ApiSubmitTransferOptions {
   password: string;
   slug: string;
   toAddress: string;
-  amount: string;
+  amount: bigint;
   comment?: string;
-  fee?: string;
+  fee?: bigint;
   shouldEncrypt?: boolean;
 }
 
@@ -182,3 +184,5 @@ export enum ApiLiquidUnstakeMode {
 }
 
 export type ApiLoyaltyType = 'black' | 'platinum' | 'gold' | 'silver' | 'standard';
+
+export type ApiBalanceBySlug = Record<string, bigint>;

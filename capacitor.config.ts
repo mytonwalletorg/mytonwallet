@@ -13,6 +13,7 @@ const config: CapacitorConfig = {
     includePlugins: [
       '@capacitor-mlkit/barcode-scanning',
       '@capacitor/app',
+      '@capacitor/clipboard',
       '@capacitor/dialog',
       '@capacitor/haptics',
       '@capacitor/status-bar',

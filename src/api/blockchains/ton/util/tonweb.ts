@@ -135,7 +135,7 @@ function parseRawTransaction(rawTx: any): ApiTransactionExtra[] {
     now,
     lt,
     hash,
-    fee,
+    total_fees: fee,
   } = rawTx;
 
   const txId = stringifyTxId({ lt, hash });
@@ -154,9 +154,9 @@ function parseRawTransaction(rawTx: any): ApiTransactionExtra[] {
       isIncoming,
       fromAddress: toBase64Address(source),
       toAddress: toBase64Address(destination),
-      amount: isIncoming ? value : `-${value}`,
+      amount: isIncoming ? BigInt(value) : -BigInt(value),
       slug: TON_TOKEN_SLUG,
-      fee,
+      fee: BigInt(fee),
       extraData: {
         normalizedAddress,
         body: getRawBody(msg),
@@ -208,11 +208,11 @@ export function buildTokenTransferBody(params: TokenTransferBodyParams) {
   const cell = new Cell();
   cell.bits.writeUint(JettonOpCode.Transfer, 32);
   cell.bits.writeUint(queryId || 0, 64);
-  cell.bits.writeCoins(new BN(tokenAmount));
+  cell.bits.writeCoins(toBN(tokenAmount));
   cell.bits.writeAddress(new Address(toAddress));
   cell.bits.writeAddress(new Address(responseAddress));
   cell.bits.writeBit(false); // null custom_payload
-  cell.bits.writeCoins(new BN(forwardAmount || '0'));
+  cell.bits.writeCoins(toBN(forwardAmount ?? 0n));
 
   if (forwardPayload instanceof Uint8Array) {
     const freeBytes = Math.round(cell.bits.getFreeBits() / 8);
@@ -292,7 +292,7 @@ export function buildLiquidStakingDepositBody(queryId?: number) {
 
 export function buildLiquidStakingWithdrawBody(options: {
   queryId?: number;
-  amount: string | BN;
+  amount: bigint;
   responseAddress: AddressType;
   waitTillRoundEnd?: boolean; // opposite of request_immediate_withdrawal
   fillOrKill?: boolean;
@@ -308,7 +308,7 @@ export function buildLiquidStakingWithdrawBody(options: {
   const cell = new Cell();
   cell.bits.writeUint(JettonOpCode.Burn, 32);
   cell.bits.writeUint(queryId ?? 0, 64);
-  cell.bits.writeCoins(new BN(amount));
+  cell.bits.writeCoins(toBN(amount));
   cell.bits.writeAddress(new Address(responseAddress));
   cell.bits.writeBit(1);
   cell.refs.push(customPayload);
@@ -321,5 +321,9 @@ export async function getTokenBalance(network: ApiNetwork, walletAddress: string
     address: walletAddress,
   });
   const wallletData = await jettonWallet.getData();
-  return fromNano(wallletData.balance);
+  return BigInt(wallletData.balance.toString());
+}
+
+export function toBN(value: bigint) {
+  return new BN(value.toString());
 }

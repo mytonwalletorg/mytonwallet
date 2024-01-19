@@ -10,6 +10,7 @@ import { IS_CAPACITOR } from '../../config';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { shortenAddress } from '../../util/shortenAddress';
@@ -78,6 +79,7 @@ function TransferModal({
 
   const { screenHeight } = useWindowSize();
   const selectedToken = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]);
+  const decimals = selectedToken?.decimals;
   const [renderedTokenBalance, setRenderedTokenBalance] = useState(selectedToken?.amount);
   const renderedTransactionAmount = usePrevious(amount, true);
   const symbol = selectedToken?.symbol || '';
@@ -139,7 +141,7 @@ function TransferModal({
         <img src={logoPath} alt={symbol} className={styles.tokenIcon} />
         <span>
           {lang('%amount% to %address%', {
-            amount: <span className={styles.bold}>{formatCurrency(amount!, symbol)}</span>,
+            amount: <span className={styles.bold}>{formatCurrency(toDecimal(amount!, decimals), symbol)}</span>,
             address: <span className={styles.bold}>{shortenAddress(toAddress!)}</span>,
           })}
         </span>
@@ -162,6 +164,7 @@ function TransferModal({
           <TransferConfirm
             isActive={isActive}
             symbol={symbol}
+            decimals={selectedToken?.decimals}
             savedAddresses={savedAddresses}
             onBack={isPortrait ? handleBackClick : handleModalClose}
             onClose={handleModalCloseWithReset}

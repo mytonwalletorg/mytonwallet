@@ -45,7 +45,7 @@ export async function fetchAllActivitySlice(accountId: string, lastTxIds: ApiTxI
 }
 
 export function checkTransactionDraft(
-  accountId: string, slug: string, toAddress: string, amount: string, comment?: string, shouldEncrypt?: boolean,
+  accountId: string, slug: string, toAddress: string, amount: bigint, comment?: string, shouldEncrypt?: boolean,
 ) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
@@ -81,7 +81,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCr
     toAddress: result.normalizedAddress,
     comment: shouldEncrypt ? undefined : comment,
     encryptedComment,
-    fee: fee || '0',
+    fee: fee || 0n,
     slug,
   });
 

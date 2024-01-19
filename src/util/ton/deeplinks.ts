@@ -7,10 +7,15 @@ export function parseTonDeeplink(value: string | unknown) {
 
   try {
     const url = new URL(value);
+
+    const to = url.pathname.replace(/.*\//, '');
+    const amount = url.searchParams.get('amount') ?? undefined;
+    const comment = url.searchParams.get('text') ?? undefined;
+
     return {
-      to: url.pathname.replace(/.*\//, ''),
-      amount: url.searchParams.get('amount') ?? undefined,
-      comment: url.searchParams.get('text') ?? undefined,
+      to,
+      amount: amount ? BigInt(amount) : undefined,
+      comment,
     };
   } catch (err) {
     return undefined;

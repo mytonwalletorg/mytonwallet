@@ -9,6 +9,7 @@ import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
 import { formatShortDay } from '../../../../util/dateFormat';
+import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
@@ -73,7 +74,7 @@ function TokenCard({
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState(-1);
 
   const {
-    slug, symbol, amount, image, name, price: lastPrice,
+    slug, symbol, amount, image, name, price: lastPrice, decimals,
   } = token;
 
   const logoPath = slug === TON_TOKEN_SLUG
@@ -99,9 +100,9 @@ function TokenCard({
       ? token[currentChangePeriod]
       : undefined;
 
-  const value = amount * price;
+  const value = toBig(amount, decimals).mul(price).toString();
   const changePrefix = change === undefined ? change : change > 0 ? '↑' : change < 0 ? '↓' : 0;
-  const changeValue = change ? Math.abs(round(calcChangeValue(value, change), 4)) : 0;
+  const changeValue = change ? Math.abs(round(calcChangeValue(Number(value), change), 4)) : 0;
   const changePercent = change ? Math.abs(round(change * 100, 2)) : 0;
 
   const withChange = Boolean(change !== undefined);
@@ -131,7 +132,7 @@ function TokenCard({
         </Button>
         <img className={styles.tokenLogo} src={logoPath} alt={token.name} />
         <div>
-          <b className={styles.tokenAmount}>{formatCurrency(amount, symbol)}</b>
+          <b className={styles.tokenAmount}>{formatCurrency(toDecimal(amount, token.decimals), symbol)}</b>
           <span className={styles.tokenName}>
             {name}
             {token.slug === TON_TOKEN_SLUG && (

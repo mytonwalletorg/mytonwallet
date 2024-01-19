@@ -11,7 +11,6 @@ import type { DropdownItem } from '../ui/Dropdown';
 import { ElectronEvent } from '../../electron/types';
 
 import { IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
-import { bigStrToHuman } from '../../global/helpers';
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
@@ -19,6 +18,8 @@ import {
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { clearLaunchUrl, getLaunchUrl } from '../../util/capacitor';
+import { readClipboardContent } from '../../util/clipboard';
+import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
 import {
   formatCurrency,
@@ -59,11 +60,11 @@ interface OwnProps {
 
 interface StateProps {
   toAddress?: string;
-  amount?: number;
+  amount?: bigint;
   comment?: string;
   shouldEncrypt?: boolean;
   isLoading?: boolean;
-  fee?: string;
+  fee?: bigint;
   tokenSlug?: string;
   tokens?: UserToken[];
   savedAddresses?: Record<string, string>;
@@ -76,9 +77,6 @@ const COMMENT_MAX_SIZE_BYTES = 5000;
 const SHORT_ADDRESS_SHIFT = 14;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
 const COMMENT_DROPDOWN_ITEMS = [{ value: 'raw', name: 'Comment' }, { value: 'encrypted', name: 'Encrypted Message' }];
-
-// Fee may change, so we add 5% for more reliability. This is only safe for low-fee blockchains such as TON.
-const RESERVED_FEE_FACTOR = 1.05;
 
 const runThrottled = throttle((cb) => cb(), 1500, true);
 
@@ -137,7 +135,8 @@ function TransferInitial({
     price,
     symbol,
   } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
-  const amountInCurrency = price && amount && !Number.isNaN(amount) ? amount * price : undefined;
+
+  const amountInCurrency = price && amount ? toBig(amount).mul(price).round(decimals).toString() : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const renderingFee = useCurrentOrPrev(fee, true);
   const withPasteButton = shouldRenderPasteButton && toAddress === '';
@@ -167,7 +166,7 @@ function TransferInitial({
   }, [tokenSlug, tokens]);
 
   const validateAndSetAmount = useLastCallback(
-    (newAmount: number | undefined, noReset = false) => {
+    (newAmount: bigint | undefined, noReset = false) => {
       if (!noReset) {
         setHasAmountError(false);
         setIsInsufficientBalance(false);
@@ -178,7 +177,7 @@ function TransferInitial({
         return;
       }
 
-      if (Number.isNaN(newAmount) || newAmount < 0) {
+      if (newAmount < 0) {
         setHasAmountError(true);
         return;
       }
@@ -194,8 +193,7 @@ function TransferInitial({
 
   useEffect(() => {
     if (balance && amount === balance) {
-      const calculatedFee = fee ? bigStrToHuman(fee, decimals) : 0;
-      const reducedAmount = balance - calculatedFee * RESERVED_FEE_FACTOR;
+      const reducedAmount = balance - (fee ?? 0n);
       const newAmount = tokenSlug === TON_TOKEN_SLUG && reducedAmount > 0 ? reducedAmount : balance;
       validateAndSetAmount(newAmount);
     } else {
@@ -223,7 +221,7 @@ function TransferInitial({
     if (!params) return;
 
     setTransferToAddress({ toAddress: params.to });
-    setTransferAmount({ amount: params.amount ? bigStrToHuman(params.amount) : undefined });
+    setTransferAmount({ amount: params.amount });
     setTransferComment({ comment: params.comment });
   });
 
@@ -303,21 +301,18 @@ function TransferInitial({
     onQrScanPress!();
   });
 
-  const handlePasteClick = useLastCallback(() => {
-    navigator.clipboard
-      .readText()
-      .then((clipboardText) => {
-        if (getIsAddressValid(clipboardText)) {
-          setTransferToAddress({ toAddress: clipboardText });
-          validateToAddress();
-        }
-      })
-      .catch(() => {
-        showNotification({
-          message: lang('Error reading clipboard') as string,
-        });
-        setShouldRenderPasteButton(false);
-      });
+  const handlePasteClick = useLastCallback(async () => {
+    try {
+      const { type, text } = await readClipboardContent();
+
+      if (type === 'text/plain' && getIsAddressValid(text.trim())) {
+        setTransferToAddress({ toAddress: text.trim() });
+        validateToAddress();
+      }
+    } catch (error) {
+      showNotification({ message: lang('Error reading clipboard') });
+      setShouldRenderPasteButton(false);
+    }
   });
 
   const handleSavedAddressClick = useLastCallback(
@@ -338,7 +333,10 @@ function TransferInitial({
     setSavedAddressForDeletion(undefined);
   });
 
-  const handleAmountChange = useLastCallback(validateAndSetAmount);
+  const handleAmountChange = useLastCallback((stringValue?: string) => {
+    const value = stringValue ? fromDecimal(stringValue, decimals) : undefined;
+    validateAndSetAmount(value);
+  });
 
   const handleMaxAmountClick = useLastCallback(
     (e: React.MouseEvent<HTMLElement>) => {
@@ -418,7 +416,7 @@ function TransferInitial({
           lang('$fee_value', {
             fee: (
               <span className={styles.feeValue}>
-                {formatCurrencyExtended(bigStrToHuman(renderingFee!), TON_SYMBOL, true)}
+                {formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true)}
               </span>
             ),
           })
@@ -463,7 +461,7 @@ function TransferInitial({
   function renderCurrencyValue() {
     return (
       <span className={buildClassName(styles.amountInCurrency, currencyClassNames)}>
-        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || 0, shortBaseSymbol)}
+        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol)}
       </span>
     );
   }
@@ -521,7 +519,7 @@ function TransferInitial({
           key="amount"
           id="amount"
           hasError={hasAmountError}
-          value={amount}
+          value={amount === undefined ? undefined : toDecimal(amount)}
           labelText={lang('Amount')}
           onChange={handleAmountChange}
           onPressEnter={handleSubmit}

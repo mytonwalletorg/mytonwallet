@@ -62,6 +62,22 @@ export function setMainWindow(window: BrowserWindow) {
   mainWindow = window;
 }
 
+export function focusMainWindow() {
+  if (!mainWindow) {
+    return;
+  }
+
+  if (!mainWindow.isVisible()) {
+    mainWindow.show();
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+
+  mainWindow.focus();
+}
+
 export const forceQuit = {
   value: false,
 

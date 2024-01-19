@@ -8,7 +8,9 @@ import type { ApiBaseCurrency } from '../../api/types';
 import { SettingsState, type UserToken } from '../../global/types';
 
 import { TON_TOKEN_SLUG } from '../../config';
+import { bigintMultiplyToNumber } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { isBetween } from '../../util/math';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
@@ -132,7 +134,7 @@ function SettingsTokens({
 
     const isTON = slug === TON_TOKEN_SLUG;
     const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
-    const totalAmount = amount * price;
+    const totalAmount = bigintMultiplyToNumber(amount, price);
     const isDragged = state.draggedIndex === index;
 
     const draggedTop = isSortByValueEnabled ? getOffsetByIndex(index) : getOffsetBySlug(slug, state.orderedTokenSlugs);
@@ -141,7 +143,7 @@ function SettingsTokens({
     const style = `top: ${isDragged ? draggedTop : top}px;`;
     const knobStyle = 'left: 1rem;';
 
-    const isDeleteButtonVisible = amount === 0 && !isTON;
+    const isDeleteButtonVisible = amount === 0n && !isTON;
 
     const isDragDisabled = isSortByValueEnabled || tokens!.length <= 1;
 
@@ -171,9 +173,9 @@ function SettingsTokens({
             {name}
           </div>
           <div className={styles.tokenDescription}>
-            <AnimatedCounter text={formatCurrency(totalAmount, shortBaseSymbol)} />
+            <AnimatedCounter text={formatCurrency(toDecimal(totalAmount, token.decimals), shortBaseSymbol)} />
             <i className={styles.dot} aria-hidden />
-            <AnimatedCounter text={formatCurrency(amount, symbol)} />
+            <AnimatedCounter text={formatCurrency(toDecimal(amount, token.decimals), symbol)} />
             {isDeleteButtonVisible && (
               <>
                 <i className={styles.dot} aria-hidden />

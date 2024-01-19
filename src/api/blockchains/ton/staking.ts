@@ -1,5 +1,3 @@
-import BN from 'bn.js';
-
 import type {
   ApiBackendStakingState,
   ApiNetwork,
@@ -12,34 +10,29 @@ import type { TonTransferParams } from './types';
 import { ApiCommonError, ApiLiquidUnstakeMode, ApiTransactionDraftError } from '../../types';
 
 import {
-  LIQUID_JETTON, LIQUID_POOL, STAKING_MIN_AMOUNT, TON_TOKEN_SLUG,
+  LIQUID_JETTON, LIQUID_POOL, ONE_TON, TON_TOKEN_SLUG,
 } from '../../../config';
-import { Big } from '../../../lib/big.js';
 import { parseAccountId } from '../../../util/account';
+import { bigintDivideToNumber, bigintMultiplyToNumber } from '../../../util/bigint';
+import { fromDecimal } from '../../../util/decimals';
 import {
   buildLiquidStakingDepositBody,
   buildLiquidStakingWithdrawBody,
-  fromNano,
   getTokenBalance,
   getTonWeb,
   resolveTokenWalletAddress,
   toBase64Address,
-  toNano,
 } from './util/tonweb';
 import { NominatorPool } from './contracts/NominatorPool';
 import { fetchStoredAddress } from '../../common/accounts';
 import { apiDb } from '../../db';
-import { DEFAULT_DECIMALS, STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
+import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
 import { checkTransactionDraft, submitTransfer } from './transactions';
 import { isAddressInitialized } from './wallet';
 
-const LIQUID_STAKE_AMOUNT = '1';
-const LIQUID_UNSTAKE_AMOUNT = '1';
-const UNSTAKE_AMOUNT = '1';
-
 export async function checkStakeDraft(
   accountId: string,
-  amount: string,
+  amount: bigint,
   commonData: ApiStakingCommonData,
   backendState: ApiBackendStakingState,
 ) {
@@ -47,15 +40,14 @@ export async function checkStakeDraft(
 
   let type: ApiStakingType;
   let result: CheckTransactionDraftResult;
-  const bigAmount = Big(fromNano(amount));
 
-  if (staked?.type === 'nominators' && bigAmount.gte(STAKING_MIN_AMOUNT)) {
+  if (staked?.type === 'nominators' && amount >= ONE_TON) {
     type = 'nominators';
 
     const poolAddress = backendState.nominatorsPool.address;
-    amount = new BN(amount).add(toNano(LIQUID_STAKE_AMOUNT)).toString();
+    amount += ONE_TON;
     result = await checkTransactionDraft(accountId, TON_TOKEN_SLUG, poolAddress, amount, STAKE_COMMENT);
-  } else if (bigAmount.lt(STAKING_MIN_AMOUNT)) {
+  } else if (amount < ONE_TON) {
     return { error: ApiTransactionDraftError.InvalidAmount };
   } else {
     type = 'liquid';
@@ -72,7 +64,7 @@ export async function checkStakeDraft(
 
 export async function checkUnstakeDraft(
   accountId: string,
-  amount: string,
+  amount: bigint,
   commonData: ApiStakingCommonData,
   backendState: ApiBackendStakingState,
 ) {
@@ -82,29 +74,25 @@ export async function checkUnstakeDraft(
 
   let type: ApiStakingType;
   let result: CheckTransactionDraftResult;
-  let tokenAmount: string | undefined;
+  let tokenAmount: bigint | undefined;
 
   if (staked.type === 'nominators') {
     type = 'nominators';
 
     const poolAddress = backendState.nominatorsPool.address;
     result = await checkTransactionDraft(
-      accountId, TON_TOKEN_SLUG, poolAddress, toNano(UNSTAKE_AMOUNT).toString(), UNSTAKE_COMMENT,
+      accountId, TON_TOKEN_SLUG, poolAddress, ONE_TON, UNSTAKE_COMMENT,
     );
   } else if (staked.type === 'liquid') {
     type = 'liquid';
 
-    const bigAmount = Big(fromNano(amount).toString());
-    if (bigAmount.gt(staked.amount)) {
+    if (amount > staked.amount) {
       return { error: ApiTransactionDraftError.InsufficientBalance };
-    } else if (bigAmount.eq(staked.amount)) {
+    } else if (amount === staked.amount) {
       tokenAmount = staked.tokenAmount;
     } else {
-      const { currentRate } = commonData.liquid;
-      tokenAmount = bigAmount.div(currentRate).toFixed(DEFAULT_DECIMALS);
+      tokenAmount = bigintDivideToNumber(amount, commonData.liquid.currentRate);
     }
-
-    tokenAmount = toNano(tokenAmount).toString();
 
     const params = await buildLiquidStakingWithdraw(network, address, tokenAmount);
     result = await checkTransactionDraft(
@@ -124,14 +112,14 @@ export async function checkUnstakeDraft(
 export async function submitStake(
   accountId: string,
   password: string,
-  amount: string,
+  amount: bigint,
   type: ApiStakingType,
   backendState: ApiBackendStakingState,
 ) {
   let result: SubmitTransferResult;
 
   if (type === 'liquid') {
-    amount = new BN(amount).add(toNano(LIQUID_STAKE_AMOUNT)).toString();
+    amount += ONE_TON;
     result = await submitTransfer(
       accountId,
       password,
@@ -159,7 +147,7 @@ export async function submitUnstake(
   accountId: string,
   password: string,
   type: ApiStakingType,
-  amount: string,
+  amount: bigint,
   backendState: ApiBackendStakingState,
 ) {
   const { network } = parseAccountId(accountId);
@@ -184,7 +172,7 @@ export async function submitUnstake(
       password,
       TON_TOKEN_SLUG,
       toBase64Address(poolAddress, true),
-      toNano(UNSTAKE_AMOUNT).toString(),
+      ONE_TON,
       UNSTAKE_COMMENT,
     );
   }
@@ -195,7 +183,7 @@ export async function submitUnstake(
 export async function buildLiquidStakingWithdraw(
   network: ApiNetwork,
   address: string,
-  amount: string,
+  amount: bigint,
   mode: ApiLiquidUnstakeMode = ApiLiquidUnstakeMode.Default,
 ): Promise<TonTransferParams> {
   const tokenWalletAddress = await resolveTokenWalletAddress(network, address, LIQUID_JETTON);
@@ -208,7 +196,7 @@ export async function buildLiquidStakingWithdraw(
   });
 
   return {
-    amount: toNano(LIQUID_UNSTAKE_AMOUNT).toString(),
+    amount: ONE_TON,
     toAddress: tokenWalletAddress,
     payload,
   };
@@ -223,8 +211,8 @@ export async function getStakingState(
   const address = toBase64Address(await fetchStoredAddress(accountId), true);
 
   const { currentRate, collection } = commonData.liquid;
-  const tokenBalance = Big(await getLiquidStakingTokenBalance(accountId));
-  let unstakeAmount = Big(0);
+  const tokenBalance = await getLiquidStakingTokenBalance(accountId);
+  let unstakeAmount = 0n;
 
   if (collection) {
     const nfts = await apiDb.nfts.where({
@@ -234,27 +222,29 @@ export async function getStakingState(
 
     for (const nft of nfts) {
       const billAmount = nft.name?.match(/Bill for (?<amount>[\d.]+) Pool Jetton/)?.groups?.amount;
-      unstakeAmount = unstakeAmount.plus(billAmount ?? 0);
+      if (billAmount) {
+        unstakeAmount += fromDecimal(billAmount);
+      }
     }
   }
 
-  const { loyaltyType } = backendState;
+  const { loyaltyType, shouldUseNominators } = backendState;
 
-  const liquidAvailable = commonData.liquid.collection ? '0' : commonData.liquid.available;
+  const liquidAvailable = commonData.liquid.collection ? 0n : commonData.liquid.available;
   let liquidApy = commonData.liquid.apy;
   if (loyaltyType && loyaltyType in commonData.liquid.loyaltyApy) {
     liquidApy = commonData.liquid.loyaltyApy[loyaltyType];
   }
 
-  if (tokenBalance.gt(0) || unstakeAmount.gt(0)) {
-    const fullTokenAmount = tokenBalance.plus(unstakeAmount);
-    const amount = Big(currentRate).times(fullTokenAmount).toFixed(DEFAULT_DECIMALS);
+  if (tokenBalance > 0n || unstakeAmount > 0n) {
+    const fullTokenAmount = tokenBalance + unstakeAmount;
+    const amount = bigintMultiplyToNumber(fullTokenAmount, currentRate);
 
     return {
       type: 'liquid',
-      tokenAmount: tokenBalance.toFixed(DEFAULT_DECIMALS),
-      amount: parseFloat(amount),
-      unstakeRequestAmount: unstakeAmount.toNumber(),
+      tokenAmount: tokenBalance,
+      amount,
+      unstakeRequestAmount: unstakeAmount,
       apy: liquidApy,
       instantAvailable: liquidAvailable,
     };
@@ -265,23 +255,30 @@ export async function getStakingState(
   const nominators = await nominatorPool.getListNominators();
   const currentNominator = nominators.find((n) => n.address === address);
 
-  if (!currentNominator) {
+  if (currentNominator) {
+    return {
+      type: 'nominators',
+      amount: fromDecimal(currentNominator.amount),
+      pendingDepositAmount: fromDecimal(currentNominator.pendingDepositAmount),
+      isUnstakeRequested: currentNominator.withdrawRequested,
+    };
+  } else if (shouldUseNominators) {
+    return {
+      type: 'nominators',
+      amount: 0n,
+      pendingDepositAmount: 0n,
+      isUnstakeRequested: false,
+    };
+  } else {
     return {
       type: 'liquid',
-      tokenAmount: '0',
-      amount: 0,
-      unstakeRequestAmount: 0,
+      tokenAmount: 0n,
+      amount: 0n,
+      unstakeRequestAmount: 0n,
       apy: liquidApy,
       instantAvailable: liquidAvailable,
     };
   }
-
-  return {
-    type: 'nominators',
-    amount: parseFloat(currentNominator.amount),
-    pendingDepositAmount: parseFloat(currentNominator.pendingDepositAmount),
-    isUnstakeRequested: currentNominator.withdrawRequested,
-  };
 }
 
 function getPoolContract(network: ApiNetwork, poolAddress: string) {
@@ -291,7 +288,7 @@ function getPoolContract(network: ApiNetwork, poolAddress: string) {
 async function getLiquidStakingTokenBalance(accountId: string) {
   const { network } = parseAccountId(accountId);
   if (network !== 'mainnet') {
-    return '0';
+    return 0n;
   }
 
   const address = await fetchStoredAddress(accountId);
@@ -299,7 +296,7 @@ async function getLiquidStakingTokenBalance(accountId: string) {
   const isInitialized = await isAddressInitialized(network, walletAddress);
 
   if (!isInitialized) {
-    return '0';
+    return 0n;
   }
 
   return getTokenBalance(network, walletAddress);

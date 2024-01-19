@@ -4,8 +4,8 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState } from '../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX } from '../../config';
-import { bigStrToHuman } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -25,6 +25,7 @@ interface OwnProps {
   isActive: boolean;
   savedAddresses?: Record<string, string>;
   symbol: string;
+  decimals?: number;
   onBack: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -45,7 +46,13 @@ function TransferConfirm({
     isLoading,
     toAddressName,
     isToNewAddress,
-  }, symbol, isActive, savedAddresses, onBack, onClose,
+  },
+  symbol,
+  decimals,
+  isActive,
+  savedAddresses,
+  onBack,
+  onClose,
 }: OwnProps & StateProps) {
   const { submitTransferConfirm } = getActions();
 
@@ -106,9 +113,9 @@ function TransferConfirm({
 
         <AmountWithFeeTextField
           label={lang('Amount')}
-          amount={amount || 0}
+          amount={toDecimal(amount ?? 0n, decimals)}
           symbol={symbol}
-          fee={fee ? bigStrToHuman(fee) : undefined}
+          fee={fee ? toDecimal(fee) : undefined}
         />
 
         {renderComment()}

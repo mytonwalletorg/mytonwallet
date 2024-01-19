@@ -6,3 +6,10 @@ export function isAscii(str: string) {
   }
   return true;
 }
+
+export function insertSubstring(str: string, start: number, newSubStr: string) {
+  if (start < 0) {
+    start = str.length - start;
+  }
+  return str.slice(0, start) + newSubStr + str.slice(start);
+}

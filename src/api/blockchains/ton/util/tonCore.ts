@@ -1,15 +1,13 @@
-import {
-  TonClient,
-  WalletContractV1R1,
-  WalletContractV1R2,
-  WalletContractV1R3,
-  WalletContractV2R1,
-  WalletContractV2R2,
-  WalletContractV3R1,
-  WalletContractV3R2,
-  WalletContractV4,
-} from 'ton';
 import axios from 'axios';
+import { TonClient } from '@ton/ton/dist/client/TonClient';
+import { WalletContractV1R1 } from '@ton/ton/dist/wallets/WalletContractV1R1';
+import { WalletContractV1R2 } from '@ton/ton/dist/wallets/WalletContractV1R2';
+import { WalletContractV1R3 } from '@ton/ton/dist/wallets/WalletContractV1R3';
+import { WalletContractV2R1 } from '@ton/ton/dist/wallets/WalletContractV2R1';
+import { WalletContractV2R2 } from '@ton/ton/dist/wallets/WalletContractV2R2';
+import { WalletContractV3R1 } from '@ton/ton/dist/wallets/WalletContractV3R1';
+import { WalletContractV3R2 } from '@ton/ton/dist/wallets/WalletContractV3R2';
+import { WalletContractV4 } from '@ton/ton/dist/wallets/WalletContractV4';
 
 import type { ApiNetwork, ApiWalletVersion } from '../../../types';
 import { WORKCHAIN } from '../../../types';

@@ -12,16 +12,16 @@ import styles from './SwapTokensInfo.module.scss';
 
 interface OwnProps {
   tokenIn?: UserSwapToken | ApiSwapAsset;
-  amountIn?: number;
+  amountIn?: string;
   tokenOut?: UserSwapToken | ApiSwapAsset;
-  amountOut?: number;
+  amountOut?: string;
   isError?: boolean;
 }
 
 function SwapTokensInfo({
   tokenIn, amountIn, tokenOut, amountOut, isError = false,
 }: OwnProps) {
-  function renderTokenInfo(token?: UserSwapToken | ApiSwapAsset, amount = 0, isReceived = false) {
+  function renderTokenInfo(token?: UserSwapToken | ApiSwapAsset, amount = '0', isReceived = false) {
     const image = token?.image ?? ASSET_LOGO_PATHS[token?.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
     const amountWithSign = isReceived ? amount : -amount;
     return (

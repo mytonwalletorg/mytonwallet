@@ -22,7 +22,7 @@ interface OwnProps {
 interface StateProps {
   tokens?: UserToken[];
   baseCurrency?: ApiBaseCurrency;
-  stakingBalance?: number;
+  stakingBalance?: bigint;
 }
 
 function StickyCard({

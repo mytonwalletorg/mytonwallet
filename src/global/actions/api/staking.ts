@@ -1,11 +1,10 @@
 import { StakingState } from '../../types';
 
-import { DEFAULT_DECIMAL_PLACES, IS_CAPACITOR } from '../../../config';
-import { Big } from '../../../lib/big.js';
+import { IS_CAPACITOR } from '../../../config';
 import { vibrateOnSuccess } from '../../../util/capacitor';
+import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
-import { humanToBigStr } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearIsPinAccepted,
@@ -15,8 +14,6 @@ import {
   updateStaking,
 } from '../../reducers';
 import { selectAccountState } from '../../selectors';
-
-import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
 
 addActionHandler('startStaking', (global, actions, payload) => {
   const isOpen = global.staking.state !== StakingState.None;
@@ -44,7 +41,7 @@ addActionHandler('fetchStakingFee', async (global, actions, payload) => {
   const result = await callApi(
     'checkStakeDraft',
     currentAccountId,
-    humanToBigStr(amount!, DEFAULT_DECIMAL_PLACES),
+    amount!,
   );
   if (!result || 'error' in result) {
     return;
@@ -70,7 +67,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
 
   if (isUnstaking) {
     amount = selectAccountState(global, currentAccountId)!.staking!.balance;
-    const result = await callApi('checkUnstakeDraft', currentAccountId, humanToBigStr(amount));
+    const result = await callApi('checkUnstakeDraft', currentAccountId, amount);
     global = getGlobal();
     global = updateStaking(global, { isLoading: false });
 
@@ -92,7 +89,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
     const result = await callApi(
       'checkStakeDraft',
       currentAccountId,
-      humanToBigStr(amount!, DEFAULT_DECIMAL_PLACES),
+      amount!,
     );
     global = getGlobal();
     global = updateStaking(global, { isLoading: false });
@@ -153,7 +150,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
     const { instantAvailable } = global.stakingInfo.liquid ?? {};
     const stakingBalance = selectAccountState(global, currentAccountId!)!.staking!.balance;
 
-    const unstakeAmount = type === 'nominators' ? humanToBigStr(stakingBalance) : tokenAmount!;
+    const unstakeAmount = type === 'nominators' ? stakingBalance : tokenAmount!;
     const result = await callApi(
       'submitUnstake',
       global.currentAccountId!,
@@ -163,9 +160,9 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       fee,
     );
 
-    const isLongUnstakeRequested = type === 'liquid'
-      ? Boolean(instantAvailable) && Big(instantAvailable).lt(stakingBalance)
-      : true;
+    const isLongUnstakeRequested = Boolean(
+      type === 'nominators' || (type === 'liquid' && instantAvailable && instantAvailable < stakingBalance),
+    );
 
     global = getGlobal();
     global = updateAccountState(global, currentAccountId!, { isLongUnstakeRequested });
@@ -190,7 +187,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       'submitStake',
       global.currentAccountId!,
       password,
-      humanToBigStr(amount!, DEFAULT_DECIMAL_PLACES),
+      amount!,
       type!,
       fee,
     );

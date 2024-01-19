@@ -19,6 +19,7 @@ import type {
 } from '../types';
 
 import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
+import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
 import { buildSwapId } from '../../util/swap/buildSwapId';
@@ -52,6 +53,7 @@ export async function swapBuildTransfer(accountId: string, password: string, par
 
   const transferList = transfers.map((transfer) => ({
     ...transfer,
+    amount: BigInt(transfer.amount),
     isBase64Payload: true,
   }));
   const result = await ton.checkMultiTransactionDraft(accountId, transferList);
@@ -66,12 +68,13 @@ export async function swapBuildTransfer(accountId: string, password: string, par
 export async function swapSubmit(
   accountId: string,
   password: string,
-  fee: string,
+  fee: bigint,
   transfers: ApiSwapTransfer[],
   historyItem: ApiSwapHistoryItem,
 ) {
   const transferList = transfers.map((transfer) => ({
     ...transfer,
+    amount: BigInt(transfer.amount),
     isBase64Payload: true,
   }));
   const result = await ton.submitMultiTransfer(accountId, password, transferList);
@@ -98,7 +101,7 @@ export async function swapSubmit(
     pendingLtRanges.push([lt, lt + SWAP_MAX_LT]);
   }
 
-  whenTxComplete(toAddress, amount)
+  whenTxComplete(toAddress, fromDecimal(amount)) // TODO
     .then(({ transaction }) => onTxComplete(transaction));
 
   onUpdate({

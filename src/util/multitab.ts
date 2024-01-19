@@ -1,13 +1,13 @@
 import { addCallback } from '../lib/teact/teactn';
-import { getGlobal, setGlobal } from '../global';
+import { getActions, getGlobal, setGlobal } from '../global';
 
-import type { GlobalState } from '../global/types';
+import type { ActionPayloads, GlobalState } from '../global/types';
 
 import { MULTITAB_DATA_CHANNEL_NAME } from '../config';
 import { deepDiff } from './deepDiff';
 import { deepMerge } from './deepMerge';
 import { omit } from './iteratees';
-import { IS_MULTITAB_SUPPORTED } from './windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_MULTITAB_SUPPORTED } from './windowEnvironment';
 
 import { isBackgroundModeActive } from '../hooks/useBackgroundMode';
 
@@ -16,7 +16,21 @@ interface BroadcastChannelGlobalDiff {
   diff: any;
 }
 
-type BroadcastChannelMessage = BroadcastChannelGlobalDiff;
+interface BroadcastChannelCallActionInMain<K extends keyof ActionPayloads> {
+  type: 'callActionInMain';
+  name: K;
+  options?: ActionPayloads[K];
+}
+
+interface BroadcastChannelCallActionInNative<K extends keyof ActionPayloads> {
+  type: 'callActionInNative';
+  name: K;
+  options?: ActionPayloads[K];
+}
+
+type BroadcastChannelMessage = BroadcastChannelGlobalDiff
+| BroadcastChannelCallActionInMain<keyof ActionPayloads>
+| BroadcastChannelCallActionInNative<keyof ActionPayloads>;
 type EventListener = (type: 'message', listener: (event: { data: BroadcastChannelMessage }) => void) => void;
 
 export type TypedBroadcastChannel = {
@@ -31,16 +45,14 @@ const channel = IS_MULTITAB_SUPPORTED
 
 let currentGlobal = getGlobal();
 
-export function initMultitab({ noPub, noSub }: { noPub?: boolean; noSub?: boolean } = {}) {
+export function initMultitab({ noPubGlobal }: { noPubGlobal?: boolean } = {}) {
   if (!channel) return;
 
-  if (!noPub) {
+  if (!noPubGlobal) {
     addCallback(handleGlobalChange);
   }
 
-  if (!noSub) {
-    channel.addEventListener('message', handleMultitabMessage);
-  }
+  channel.addEventListener('message', handleMultitabMessage);
 }
 
 function handleGlobalChange(global: GlobalState) {
@@ -70,11 +82,47 @@ function omitLocalOnlyKeys(global: GlobalState) {
 function handleMultitabMessage({ data }: { data: BroadcastChannelMessage }) {
   switch (data.type) {
     case 'globalDiffUpdate': {
+      if (IS_DELEGATED_BOTTOM_SHEET) return;
+
       currentGlobal = deepMerge(getGlobal(), data.diff);
 
       setGlobal(currentGlobal);
 
       break;
     }
+
+    case 'callActionInMain': {
+      if (!IS_DELEGATING_BOTTOM_SHEET) return;
+
+      const { name, options } = data;
+
+      getActions()[name](options as never);
+      break;
+    }
+
+    case 'callActionInNative': {
+      if (!IS_DELEGATED_BOTTOM_SHEET) return;
+
+      const { name, options } = data;
+
+      getActions()[name](options as never);
+      break;
+    }
   }
+}
+
+export function callActionInMain<K extends keyof ActionPayloads>(name: K, options?: ActionPayloads[K]) {
+  channel!.postMessage({
+    type: 'callActionInMain',
+    name,
+    options,
+  });
+}
+
+export function callActionInNative<K extends keyof ActionPayloads>(name: K, options?: ActionPayloads[K]) {
+  channel!.postMessage({
+    type: 'callActionInNative',
+    name,
+    options,
+  });
 }

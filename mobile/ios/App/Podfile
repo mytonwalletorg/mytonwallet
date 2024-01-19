@@ -24,6 +24,7 @@ def capacitor_pods
   pod 'CapacitorCordova', :path => '../../../node_modules/@capacitor/ios'
   pod 'CapacitorMlkitBarcodeScanning', :path => '../../../node_modules/@capacitor-mlkit/barcode-scanning'
   pod 'CapacitorApp', :path => '../../../node_modules/@capacitor/app'
+  pod 'CapacitorClipboard', :path => '../../../node_modules/@capacitor/clipboard'
   pod 'CapacitorDialog', :path => '../../../node_modules/@capacitor/dialog'
   pod 'CapacitorHaptics', :path => '../../../node_modules/@capacitor/haptics'
   pod 'CapacitorStatusBar', :path => '../../../node_modules/@capacitor/status-bar'

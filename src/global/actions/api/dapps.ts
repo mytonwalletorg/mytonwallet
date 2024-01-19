@@ -2,7 +2,8 @@ import { DappConnectState, TransferState } from '../../types';
 
 import { IS_CAPACITOR } from '../../../config';
 import { vibrateOnSuccess } from '../../../util/capacitor';
-import { pause } from '../../../util/schedulers';
+import { callActionInMain } from '../../../util/multitab';
+import { pause, waitFor } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
@@ -15,12 +16,11 @@ import {
   removeConnectedDapp,
   setIsPinAccepted,
   updateConnectedDapps,
+  updateCurrentAccountId,
   updateCurrentDappTransfer,
   updateDappConnectRequest,
 } from '../../reducers';
 import { selectAccount, selectIsHardwareAccount, selectNewestTxIds } from '../../selectors';
-
-import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
 
 const GET_DAPPS_PAUSE = 250;
 
@@ -126,19 +126,19 @@ addActionHandler(
 
 addActionHandler('cancelDappConnectRequestConfirm', (global) => {
   const { promiseId } = global.dappConnectRequest || {};
-
-  if (IS_CAPACITOR) {
-    global = clearIsPinAccepted(global);
-    setGlobal(global);
-  }
-
   if (!promiseId) {
     return;
   }
 
-  void callApi('cancelDappRequest', promiseId!, 'Canceled by the user');
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('cancelDappConnectRequestConfirm');
+  } else {
+    void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
+  }
 
-  global = getGlobal();
+  if (IS_CAPACITOR) {
+    global = clearIsPinAccepted(global);
+  }
   global = clearDappConnectRequest(global);
   setGlobal(global);
 });
@@ -148,18 +148,22 @@ addActionHandler('setDappConnectRequestState', (global, actions, { state }) => {
 });
 
 addActionHandler('cancelDappTransfer', (global) => {
-  const { promiseId } = global.currentDappTransfer;
+  const { promiseId, state } = global.currentDappTransfer;
 
-  if (IS_CAPACITOR) {
-    global = clearIsPinAccepted(global);
-    setGlobal(global);
+  if (state === TransferState.None) {
+    return;
   }
 
-  if (promiseId) {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('cancelDappTransfer');
+  } else if (promiseId) {
     void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
   }
 
-  global = clearCurrentDappTransfer(getGlobal());
+  if (IS_CAPACITOR) {
+    global = clearIsPinAccepted(global);
+  }
+  global = clearCurrentDappTransfer(global);
   setGlobal(global);
 });
 
@@ -272,16 +276,29 @@ addActionHandler('deleteAllDapps', (global) => {
 addActionHandler('deleteDapp', (global, actions, { origin }) => {
   const { currentAccountId } = global;
 
-  void callApi('deleteDapp', currentAccountId!, origin);
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('deleteDapp', { origin });
+  } else {
+    void callApi('deleteDapp', currentAccountId!, origin);
+  }
 
   global = getGlobal();
   global = removeConnectedDapp(global, origin);
   setGlobal(global);
 });
 
-addActionHandler('apiUpdateDappConnect', (global, actions, {
+addActionHandler('apiUpdateDappConnect', async (global, actions, {
   accountId, dapp, permissions, promiseId, proof,
 }) => {
+  // We only need to apply changes in NBS when Dapp Connect Modal is already open
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    if (!(await waitFor(() => Boolean(getGlobal().dappConnectRequest), 300, 5))) {
+      return;
+    }
+
+    global = getGlobal();
+  }
+
   const { isHardware } = selectAccount(global, accountId)!;
 
   global = updateDappConnectRequest(global, {
@@ -310,10 +327,16 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
     const newestTxIds = selectNewestTxIds(global, accountId);
     await callApi('activateAccount', accountId, newestTxIds);
     global = getGlobal();
-    setGlobal({
-      ...global,
-      currentAccountId: accountId,
-    });
+    setGlobal(updateCurrentAccountId(global, accountId));
+  }
+
+  // We only need to apply changes in NBS when Dapp Transaction Modal is already open
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    if (!(await waitFor(() => getGlobal().currentDappTransfer.state !== TransferState.None, 300, 5))) {
+      return;
+    }
+
+    global = getGlobal();
   }
 
   const state = selectIsHardwareAccount(global) && transactions.length > 1
@@ -329,5 +352,53 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
     fee,
     dapp,
   });
+  setGlobal(global);
+});
+
+addActionHandler('apiUpdateDappLoading', async (global, actions, { connectionType }) => {
+  // We only need to apply changes in NBS when Dapp Connect Modal is already open
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    if (!(await waitFor(() => {
+      global = getGlobal();
+      return (connectionType === 'connect' && !!global.dappConnectRequest)
+      || (connectionType === 'sendTransaction' && global.currentDappTransfer.state !== TransferState.None);
+    }, 300, 5))) {
+      return;
+    }
+
+    global = getGlobal();
+  }
+
+  if (connectionType === 'connect') {
+    global = updateDappConnectRequest(global, {
+      state: DappConnectState.Info,
+    });
+  } else if (connectionType === 'sendTransaction') {
+    global = updateCurrentDappTransfer(global, {
+      state: TransferState.Initial,
+    });
+  }
+  setGlobal(global);
+});
+
+addActionHandler('apiUpdateDappCloseLoading', async (global) => {
+  // We only need to apply changes in NBS when Dapp Modal is already open
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    if (!(await waitFor(() => {
+      global = getGlobal();
+      return (Boolean(global.dappConnectRequest) || global.currentDappTransfer.state !== TransferState.None);
+    }, 300, 5))) {
+      return;
+    }
+
+    global = getGlobal();
+  }
+
+  // But clear the state if a skeleton is displayed in the Modal
+  if (global.dappConnectRequest?.state === DappConnectState.Info) {
+    global = clearDappConnectRequest(global);
+  } else if (global.currentDappTransfer.state === TransferState.Initial) {
+    global = clearCurrentDappTransfer(global);
+  }
   setGlobal(global);
 });

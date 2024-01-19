@@ -6,6 +6,7 @@ import type {
 } from '../types';
 
 import { TON_TOKEN_SLUG } from '../../config';
+import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from '../blockchains/ton/constants';
@@ -25,14 +26,14 @@ export function initStaking() {
   // onUpdate = _onUpdate;
 }
 
-export async function checkStakeDraft(accountId: string, amount: string) {
+export async function checkStakeDraft(accountId: string, amount: bigint) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   const backendState = await getBackendStakingState(accountId);
   return blockchain.checkStakeDraft(accountId, amount, stakingCommonData!, backendState!);
 }
 
-export async function checkUnstakeDraft(accountId: string, amount: string) {
+export async function checkUnstakeDraft(accountId: string, amount: bigint) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   const backendState = await getBackendStakingState(accountId);
@@ -40,7 +41,7 @@ export async function checkUnstakeDraft(accountId: string, amount: string) {
 }
 
 export async function submitStake(
-  accountId: string, password: string, amount: string, type: ApiStakingType, fee?: string,
+  accountId: string, password: string, amount: bigint, type: ApiStakingType, fee?: bigint,
 ) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
   const fromAddress = await fetchStoredAddress(accountId);
@@ -60,7 +61,7 @@ export async function submitStake(
     fromAddress,
     toAddress: result.normalizedAddress,
     comment: STAKE_COMMENT,
-    fee: fee || '0',
+    fee: fee || 0n,
     type: 'stake',
     slug: TON_TOKEN_SLUG,
   });
@@ -75,8 +76,8 @@ export async function submitUnstake(
   accountId: string,
   password: string,
   type: ApiStakingType,
-  amount: string,
-  fee?: string,
+  amount: bigint,
+  fee?: bigint,
 ) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
   const fromAddress = await fetchStoredAddress(accountId);
@@ -94,7 +95,7 @@ export async function submitUnstake(
     fromAddress,
     toAddress: result.normalizedAddress,
     comment: UNSTAKE_COMMENT,
-    fee: fee || '0',
+    fee: fee || 0n,
     type: 'unstakeRequest',
     slug: TON_TOKEN_SLUG,
   });
@@ -125,6 +126,8 @@ export async function fetchBackendStakingState(address: string): Promise<ApiBack
   }
 
   const stakingState = await callBackendGet(`/staking/state/${address}`);
+  stakingState.balance = fromDecimal(stakingState.balance);
+  stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
 
   if (!isKnownStakingPool(stakingState.nominatorsPool.address)) {
     throw Error('Unexpected pool address, likely a malicious activity');
@@ -148,14 +151,15 @@ export function onStakingChangeExpected() {
 
 export async function tryUpdateStakingCommonData() {
   try {
-    const data: ApiStakingCommonData = await callBackendGet('/staking/common');
+    const data = await callBackendGet('/staking/common');
     data.round.start *= 1000;
     data.round.end *= 1000;
     data.round.unlock *= 1000;
     data.prevRound.start *= 1000;
     data.prevRound.end *= 1000;
     data.prevRound.unlock *= 1000;
-    stakingCommonData = data;
+    data.liquid.available = fromDecimal(data.liquid.available);
+    stakingCommonData = data as ApiStakingCommonData;
   } catch (err) {
     logDebugError('tryUpdateLiquidStakingState', err);
   }

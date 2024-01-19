@@ -60,7 +60,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             }
         }
     }
-    
+
     @objc func applyScrollPatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [self] in
             let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
@@ -69,7 +69,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             call.resolve()
         }
     }
-    
+
     @objc func clearScrollPatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [self] in
             let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
@@ -78,7 +78,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             call.resolve()
         }
     }
-    
+
     @objc func delegate(_ call: CAPPluginCall) {
         ensureLocalOrigin()
         ensureDelegating()
@@ -173,22 +173,6 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
         }
     }
 
-    @objc func callActionInMain(_ call: CAPPluginCall) {
-        ensureLocalOrigin()
-        ensureDelegated()
-
-        call.resolve()
-
-        DispatchQueue.main.async { [self] in
-            let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
-            let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
-            topBottomSheetPlugin.notifyListeners("callActionInMain", data: [
-                "name": call.getString("name")!,
-                "optionsJson": call.getString("optionsJson")!
-            ])
-        }
-    }
-
     @objc func openInMain(_ call: CAPPluginCall) {
         ensureLocalOrigin()
         ensureDelegated()
@@ -200,20 +184,6 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
             topBottomSheetPlugin.notifyListeners("openInMain", data: [
                 "key": call.getString("key")!
-            ])
-        }
-    }
-
-    @objc func callActionInNative(_ call: CAPPluginCall) {
-        ensureLocalOrigin()
-        ensureDelegating()
-
-        call.resolve()
-
-        DispatchQueue.main.async { [self] in
-            capVc!.bridge?.plugin(withName: "BottomSheet")!.notifyListeners("callActionInNative", data: [
-                "name": call.getString("name")!,
-                "optionsJson": call.getString("optionsJson")!
             ])
         }
     }
@@ -363,11 +333,11 @@ extension BottomSheetPlugin: UIGestureRecognizerDelegate {
         if let mainGestureRecognizer = bridge!.webView!.scrollView.gestureRecognizers?.first(where: { $0 is UIPanGestureRecognizer }) {
             bridge!.webView!.scrollView.removeGestureRecognizer(mainGestureRecognizer)
         }
-        
+
         if let fpcGestureRecognizer = fpc.view.gestureRecognizers?.first(where: { $0 is UIPanGestureRecognizer }) {
             fpc.view.removeGestureRecognizer(fpcGestureRecognizer)
         }
-        
+
         fpc.panGestureRecognizer.isEnabled = false
     }
 

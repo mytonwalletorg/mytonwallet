@@ -1,7 +1,7 @@
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
   ApiActivity,
-  ApiAnyDisplayError,
+  ApiAnyDisplayError, ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiDapp,
   ApiDappPermissions,
@@ -19,6 +19,7 @@ import type {
   ApiTransactionActivity,
   ApiUpdate,
   ApiUpdateDappConnect,
+  ApiUpdateDappLoading,
   ApiUpdateDappSendTransactions,
 } from '../api/types';
 import type { AuthConfig } from '../util/authApi/types';
@@ -193,7 +194,7 @@ export enum ContentTab {
 }
 
 export type UserToken = {
-  amount: number;
+  amount: bigint;
   name: string;
   symbol: string;
   image?: string;
@@ -210,6 +211,7 @@ export type UserToken = {
   canSwap?: boolean;
   keywords?: string[];
   cmcSlug?: string;
+  totalValue: string;
 };
 
 export type UserSwapToken = {
@@ -238,7 +240,7 @@ export interface AssetPairs {
 
 export interface AccountState {
   balances?: {
-    bySlug: Record<string, string>;
+    bySlug: ApiBalanceBySlug;
   };
   activities?: {
     isLoading?: boolean;
@@ -265,15 +267,15 @@ export interface AccountState {
   // Staking
   staking?: {
     type: ApiStakingType;
-    balance: number;
+    balance: bigint;
     apy: number;
     isUnstakeRequested: boolean;
     start: number;
     end: number;
-    totalProfit: number;
+    totalProfit: bigint;
     // liquid
-    unstakeRequestedAmount?: number;
-    tokenBalance?: number;
+    unstakeRequestedAmount?: bigint;
+    tokenBalance?: bigint;
     isInstantUnstakeRequested?: boolean;
   };
   stakingHistory?: ApiStakingHistory;
@@ -331,8 +333,8 @@ export type GlobalState = {
     toAddressName?: string;
     resolvedAddress?: string;
     error?: string;
-    amount?: number;
-    fee?: string;
+    amount?: bigint;
+    fee?: bigint;
     comment?: string;
     promiseId?: string;
     txId?: string;
@@ -348,8 +350,8 @@ export type GlobalState = {
     slippage: number;
     tokenInSlug?: string;
     tokenOutSlug?: string;
-    amountIn?: number;
-    amountOut?: number;
+    amountIn?: string;
+    amountOut?: string;
     amountOutMin?: string;
     transactionFee?: string;
     networkFee?: number;
@@ -391,7 +393,7 @@ export type GlobalState = {
     isLoading?: boolean;
     transactions?: ApiDappTransaction[];
     viewTransactionOnIdx?: number;
-    fee?: string;
+    fee?: bigint;
     dapp?: ApiDapp;
     error?: string;
   };
@@ -410,16 +412,16 @@ export type GlobalState = {
     state: StakingState;
     isLoading?: boolean;
     isUnstaking?: boolean;
-    amount?: number;
-    tokenAmount?: string;
-    fee?: string;
+    amount?: bigint;
+    tokenAmount?: bigint;
+    fee?: bigint;
     error?: string;
     type?: ApiStakingType;
   };
 
   stakingInfo: {
     liquid?: {
-      instantAvailable: string;
+      instantAvailable: bigint;
     };
   };
 
@@ -536,28 +538,28 @@ export interface ActionPayloads {
   closeHardwareWalletModal: undefined;
   resetHardwareWalletConnect: undefined;
   setTransferScreen: { state: TransferState };
-  setTransferAmount: { amount?: number };
+  setTransferAmount: { amount?: bigint };
   setTransferToAddress: { toAddress?: string };
   setTransferComment: { comment?: string };
   setTransferShouldEncrypt: { shouldEncrypt?: boolean };
   startTransfer: {
     isPortrait?: boolean;
     tokenSlug?: string;
-    amount?: number;
+    amount?: bigint;
     toAddress?: string;
     comment?: string;
   } | undefined;
   changeTransferToken: { tokenSlug: string };
   fetchFee: {
     tokenSlug: string;
-    amount: number;
+    amount: bigint;
     toAddress: string;
     comment?: string;
     shouldEncrypt?: boolean;
   };
   submitTransferInitial: {
     tokenSlug: string;
-    amount: number;
+    amount: bigint;
     toAddress: string;
     comment?: string;
     shouldEncrypt?: boolean;
@@ -617,12 +619,12 @@ export interface ActionPayloads {
   // Staking
   startStaking: { isUnstaking?: boolean } | undefined;
   setStakingScreen: { state: StakingState };
-  submitStakingInitial: { amount?: number; isUnstaking?: boolean } | undefined;
+  submitStakingInitial: { amount?: bigint; isUnstaking?: boolean } | undefined;
   submitStakingPassword: { password: string; isUnstaking?: boolean };
   clearStakingError: undefined;
   cancelStaking: undefined;
   fetchStakingHistory: { limit?: number; offset?: number } | undefined;
-  fetchStakingFee: { amount: number };
+  fetchStakingFee: { amount: bigint };
   openStakingInfo: undefined;
   closeStakingInfo: undefined;
 
@@ -685,17 +687,19 @@ export interface ActionPayloads {
 
   apiUpdateDappConnect: ApiUpdateDappConnect;
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
+  apiUpdateDappLoading: ApiUpdateDappLoading;
+  apiUpdateDappCloseLoading: undefined;
 
   // Swap
   submitSwap: { password: string };
-  startSwap: { tokenInSlug?: string; tokenOutSlug?: string; amountIn?: number; isPortrait?: boolean } | undefined;
+  startSwap: { tokenInSlug?: string; tokenOutSlug?: string; amountIn?: string; isPortrait?: boolean } | undefined;
   cancelSwap: { shouldReset?: boolean } | undefined;
   setDefaultSwapParams: { tokenInSlug?: string; tokenOutSlug?: string } | undefined;
   switchSwapTokens: undefined;
   setSwapTokenIn: { tokenSlug: string };
   setSwapTokenOut: { tokenSlug: string };
-  setSwapAmountIn: { amount?: number };
-  setSwapAmountOut: { amount?: number };
+  setSwapAmountIn: { amount?: string };
+  setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
   loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
   estimateSwap: { shouldBlock: boolean };

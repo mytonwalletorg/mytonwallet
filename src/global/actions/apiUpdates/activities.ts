@@ -3,7 +3,7 @@ import { TransferState } from '../../types';
 import { IS_CAPACITOR } from '../../../config';
 import { playIncomingTransactionSound } from '../../../util/appSounds';
 import { compareActivities } from '../../../util/compareActivities';
-import { bigStrToHuman, getIsTinyTransaction } from '../../helpers';
+import { getIsTinyTransaction } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   addLocalTransaction,
@@ -27,13 +27,11 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         transaction,
         transaction: { amount, txId },
       } = update;
-      const { decimals } = global.tokenInfo!.bySlug[transaction.slug!]!;
 
       global = updateActivity(global, accountId, transaction);
       global = addLocalTransaction(global, accountId, transaction);
 
-      // TODO $decimal
-      if ((-bigStrToHuman(amount, decimals)).toFixed(decimals) === global.currentTransfer.amount?.toFixed(decimals)) {
+      if (-amount === global.currentTransfer.amount) {
         global = updateCurrentTransfer(global, {
           txId,
           state: TransferState.Complete,

@@ -4,6 +4,7 @@ import type { ApiStakingCommonData, ApiSwapAsset } from './backend';
 import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBackendStakingState,
+  ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiDappTransaction,
   ApiNft,
@@ -13,17 +14,10 @@ import type {
 import type { ApiParsedPayload } from './payload';
 import type { ApiAccount, ApiDapp } from './storage';
 
-export type ApiUpdateBalance = {
-  type: 'updateBalance';
-  accountId: string;
-  slug: string;
-  balance: string;
-};
-
 export type ApiUpdateBalances = {
   type: 'updateBalances';
   accountId: string;
-  balancesToUpdate: Record<string, string>;
+  balancesToUpdate: ApiBalanceBySlug;
 };
 
 export type ApiUpdateNewActivities = {
@@ -53,8 +47,8 @@ export type ApiUpdateCreateTransaction = {
   type: 'createTransaction';
   promiseId: string;
   toAddress: string;
-  amount: string;
-  fee: string;
+  amount: bigint;
+  fee: bigint;
   comment?: string;
   rawPayload?: string;
   parsedPayload?: ApiParsedPayload;
@@ -92,7 +86,7 @@ export type ApiUpdateDappSendTransactions = {
   accountId: string;
   dapp: ApiDapp;
   transactions: ApiDappTransaction[];
-  fee: string;
+  fee: bigint;
 };
 
 export type ApiUpdateDappConnect = {
@@ -118,10 +112,14 @@ export type ApiUpdateDappLoading = {
   connectionType: 'connect' | 'sendTransaction';
 };
 
+export type ApiUpdateDappCloseLoading = {
+  type: 'dappCloseLoading';
+};
+
 export type ApiUpdatePrepareTransaction = {
   type: 'prepareTransaction';
   toAddress: string;
-  amount?: string;
+  amount?: bigint;
   comment?: string;
 };
 
@@ -164,7 +162,6 @@ export type ApiUpdateRegion = {
 };
 
 export type ApiUpdate =
-  ApiUpdateBalance
   | ApiUpdateBalances
   | ApiUpdateNewActivities
   | ApiUpdateNewLocalTransaction
@@ -178,6 +175,7 @@ export type ApiUpdate =
   | ApiUpdateDappConnect
   | ApiUpdateDappDisconnect
   | ApiUpdateDappLoading
+  | ApiUpdateDappCloseLoading
   | ApiUpdatePrepareTransaction
   | ApiUpdateShowError
   | ApiUpdateNfts

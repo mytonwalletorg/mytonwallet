@@ -146,14 +146,15 @@ export const LANG_LIST: LangItem[] = [{
 }];
 
 export const STAKING_CYCLE_DURATION_MS = 131072000; // 36.4 hours
-export const MIN_BALANCE_FOR_UNSTAKE = 1.02;
-export const STAKING_FORWARD_AMOUNT = 1;
-export const DEFAULT_FEE = 0.01;
+export const ONE_TON = 1000000000n;
+export const MIN_BALANCE_FOR_UNSTAKE = 1020000000n; // 1.02 TON
+export const STAKING_FORWARD_AMOUNT = ONE_TON;
+export const DEFAULT_FEE = 15000000n; // 0.015 TON
 
 export const STAKING_POOLS = process.env.STAKING_POOLS ? process.env.STAKING_POOLS.split(' ') : [];
 export const LIQUID_POOL = process.env.LIQUID_POOL || 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o';
 export const LIQUID_JETTON = process.env.LIQUID_JETTON || 'EQCqC6EhRJ_tpWngKxL6dV0k6DSnRUrs9GSVkLbfdCqsj6TE';
-export const STAKING_MIN_AMOUNT = 1;
+export const STAKING_MIN_AMOUNT = ONE_TON;
 
 export const TON_PROTOCOL = 'ton://';
 export const TONCONNECT_PROTOCOL = 'tc://';

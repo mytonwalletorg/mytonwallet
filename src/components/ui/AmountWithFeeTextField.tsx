@@ -9,11 +9,11 @@ import useLang from '../../hooks/useLang';
 import styles from './AmountWithFeeTextField.module.scss';
 
 interface OwnProps {
-  amount: number;
+  amount: string;
   label: string;
   currency?: string;
   symbol?: string;
-  fee?: number;
+  fee?: string;
   className?: string;
 }
 

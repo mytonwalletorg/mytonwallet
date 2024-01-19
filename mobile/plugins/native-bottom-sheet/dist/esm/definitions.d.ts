@@ -22,14 +22,6 @@ export interface BottomSheetPlugin {
     setSelfSize(options: {
         size: 'half' | 'full';
     }): Promise<void>;
-    callActionInMain(options: {
-        name: string;
-        optionsJson: string;
-    }): Promise<void>;
-    callActionInNative(options: {
-        name: string;
-        optionsJson: string;
-    }): Promise<void>;
     openInMain(options: {
         key: BottomSheetKeys;
     }): Promise<void>;
@@ -38,14 +30,6 @@ export interface BottomSheetPlugin {
         globalJson: string;
     }) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
     addListener(eventName: 'move', handler: () => void): Promise<PluginListenerHandle> & PluginListenerHandle;
-    addListener(eventName: 'callActionInMain', handler: (options: {
-        name: string;
-        optionsJson: string;
-    }) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
-    addListener(eventName: 'callActionInNative', handler: (options: {
-        name: string;
-        optionsJson: string;
-    }) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
     addListener(eventName: 'openInMain', handler: (options: {
         key: BottomSheetKeys;
     }) => void): Promise<PluginListenerHandle> & PluginListenerHandle;

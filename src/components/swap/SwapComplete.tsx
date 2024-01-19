@@ -18,8 +18,8 @@ interface OwnProps {
   isActive: boolean;
   tokenIn?: UserSwapToken;
   tokenOut?: UserSwapToken;
-  amountIn?: number;
-  amountOut?: number;
+  amountIn?: string;
+  amountOut?: string;
   swapType?: SwapType;
   toAddress?: string;
   onInfoClick: NoneToVoidFunction;

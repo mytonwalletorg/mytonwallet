@@ -44,7 +44,7 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: Wallet
   isInitialized: boolean;
   isWallet: boolean;
   seqno: number;
-  balance: string;
+  balance: bigint;
   lastTxId?: string;
 }> {
   const address = typeof walletOrAddress === 'string'
@@ -66,7 +66,7 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: Wallet
     isInitialized: accountState === 'active',
     isWallet,
     seqno,
-    balance: balance || '0',
+    balance: BigInt(balance || '0'),
     lastTxId: lt === '0'
       ? undefined
       : stringifyTxId({ lt, hash }),
@@ -80,12 +80,8 @@ export async function getAccountBalance(accountId: string) {
   return getWalletBalance(network, address);
 }
 
-export async function getWalletBalance(
-  network: ApiNetwork, walletOrAddress: WalletContract | string,
-): Promise<string> {
-  const { balance } = await getWalletInfo(network, walletOrAddress);
-
-  return balance || '0';
+export async function getWalletBalance(network: ApiNetwork, walletOrAddress: WalletContract | string): Promise<bigint> {
+  return (await getWalletInfo(network, walletOrAddress)).balance;
 }
 
 export async function getWalletSeqno(network: ApiNetwork, walletOrAddress: WalletContract | string): Promise<number> {
@@ -99,7 +95,7 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
   const allWallets = await Promise.all(walletClasses.map(async (WalletClass) => {
     const wallet = new WalletClass(tonWeb.provider, { publicKey, wc: 0 });
     const balance = await getWalletBalance(network, wallet);
-    if (balance === '0') {
+    if (balance === 0n) {
       return undefined;
     }
 

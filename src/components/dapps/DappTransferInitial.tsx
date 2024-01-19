@@ -8,9 +8,9 @@ import type { ApiDapp, ApiDappTransaction } from '../../api/types';
 import type { Account, UserToken } from '../../global/types';
 
 import { SHORT_FRACTION_DIGITS } from '../../config';
-import { bigStrToHuman } from '../../global/helpers';
 import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
 
@@ -32,7 +32,7 @@ interface OwnProps {
 interface StateProps {
   currentAccount?: Account;
   transactions?: ApiDappTransaction[];
-  fee?: string;
+  fee?: bigint;
   dapp?: ApiDapp;
   isLoading?: boolean;
   tokens?: UserToken[];
@@ -55,16 +55,16 @@ function DappTransferInitial({
 
   const totalAmount = useMemo(() => {
     return renderingTransactions?.reduce((acc, { amount }) => {
-      return acc + bigStrToHuman(amount, tonToken.decimals);
-    }, fee ? bigStrToHuman(fee, tonToken.decimals) : 0) || 0;
-  }, [renderingTransactions, fee, tonToken.decimals]);
+      return acc + amount;
+    }, fee ?? 0n) || 0n;
+  }, [renderingTransactions, fee]);
 
   function renderDapp() {
     return (
       <div className={styles.transactionDirection}>
         <div className={styles.transactionAccount}>
           <div className={styles.accountTitle}>{currentAccount?.title}</div>
-          <div className={styles.accountBalance}>{formatCurrency(tonToken.amount, tonToken.symbol)}</div>
+          <div className={styles.accountBalance}>{formatCurrency(toDecimal(tonToken.amount), tonToken.symbol)}</div>
         </div>
 
         <DappInfo
@@ -97,7 +97,7 @@ function DappTransferInitial({
     } else if (payload?.type === 'tokens:transfer') {
       const { slug, amount } = payload;
       const { decimals, symbol } = tokens!.find((token) => token.slug === slug)!;
-      extraText = `${formatCurrency(bigStrToHuman(amount, decimals), symbol, SHORT_FRACTION_DIGITS)} + `;
+      extraText = `${formatCurrency(toDecimal(amount, decimals), symbol, SHORT_FRACTION_DIGITS)} + `;
     }
 
     return (
@@ -108,7 +108,7 @@ function DappTransferInitial({
       >
         <span className={styles.transactionRowAmount}>
           {extraText}
-          {formatCurrency(bigStrToHuman(transaction.amount, tonToken.decimals), tonToken.symbol, SHORT_FRACTION_DIGITS)}
+          {formatCurrency(toDecimal(transaction.amount), tonToken.symbol, SHORT_FRACTION_DIGITS)}
         </span>
         {' '}
         <span className={styles.transactionRowAddress}>
@@ -130,7 +130,7 @@ function DappTransferInitial({
         </div>
         <AmountWithFeeTextField
           label={lang('Total Amount')}
-          amount={totalAmount}
+          amount={toDecimal(totalAmount)}
           symbol={tonToken.symbol}
         />
       </>

@@ -4,7 +4,7 @@ export interface LedgerWalletInfo {
   index: number;
   address: string;
   publicKey: string;
-  balance: string;
+  balance: bigint;
   version: ApiWalletVersion;
 
   driver: ApiLedgerDriver;

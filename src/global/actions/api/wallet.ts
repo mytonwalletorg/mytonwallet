@@ -11,13 +11,12 @@ import { compareActivities } from '../../../util/compareActivities';
 import {
   buildCollectionByKey, findLast, mapValues, pick, unique,
 } from '../../../util/iteratees';
+import { callActionInMain } from '../../../util/multitab';
 import { onTickEnd, pause } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
-import {
-  getIsSwapId, getIsTinyTransaction, getIsTxIdLocal, humanToBigStr,
-} from '../../helpers';
+import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../helpers';
 import {
   addActionHandler, getActions, getGlobal, setGlobal,
 } from '../../index';
@@ -41,8 +40,6 @@ import {
   selectCurrentAccountState,
   selectLastTxIds,
 } from '../../selectors';
-
-import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
 
 const IMPORT_TOKEN_PAUSE = 250;
 
@@ -112,7 +109,6 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   const {
     tokenSlug, toAddress, amount, comment, shouldEncrypt,
   } = payload;
-  const { decimals } = global.tokenInfo!.bySlug[tokenSlug];
 
   setGlobal(updateSendingLoading(global, true));
 
@@ -121,7 +117,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     global.currentAccountId!,
     tokenSlug,
     toAddress,
-    humanToBigStr(amount, decimals),
+    amount,
     comment,
     shouldEncrypt,
   );
@@ -167,14 +163,13 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   const {
     tokenSlug, toAddress, amount, comment, shouldEncrypt,
   } = payload;
-  const { decimals } = global.tokenInfo!.bySlug[tokenSlug];
 
   const result = await callApi(
     'checkTransactionDraft',
     global.currentAccountId!,
     tokenSlug,
     toAddress,
-    humanToBigStr(amount, decimals),
+    amount,
     comment,
     shouldEncrypt,
   );
@@ -208,7 +203,6 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     fee,
     shouldEncrypt,
   } = global.currentTransfer;
-  const { decimals } = global.tokenInfo!.bySlug[tokenSlug!];
 
   if (!(await callApi('verifyPassword', password))) {
     setGlobal(updateCurrentTransfer(getGlobal(), { error: 'Wrong password, please try again.' }));
@@ -246,7 +240,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     password,
     slug: tokenSlug!,
     toAddress: resolvedAddress!,
-    amount: humanToBigStr(amount!, decimals),
+    amount: amount!,
     comment,
     fee,
     shouldEncrypt,
@@ -286,7 +280,6 @@ addActionHandler('submitTransferHardware', async (global) => {
     parsedPayload,
     stateInit,
   } = global.currentTransfer;
-  const { decimals } = global.tokenInfo!.bySlug[tokenSlug!];
 
   const accountId = global.currentAccountId!;
 
@@ -301,7 +294,7 @@ addActionHandler('submitTransferHardware', async (global) => {
   if (promiseId) {
     const message: ApiDappTransaction = {
       toAddress: toAddress!,
-      amount: humanToBigStr(amount!, decimals),
+      amount: amount!,
       rawPayload,
       payload: parsedPayload,
       stateInit,
@@ -328,7 +321,7 @@ addActionHandler('submitTransferHardware', async (global) => {
     password: '',
     slug: tokenSlug!,
     toAddress: resolvedAddress!,
-    amount: humanToBigStr(amount!, decimals),
+    amount: amount!,
     comment,
     fee,
   };
@@ -589,7 +582,7 @@ addActionHandler('addToken', (global, actions, { token }) => {
   const exceptionSlugsCopy = exceptionSlugs.slice();
   const deletedSlugsCopy = deletedSlugs?.filter((slug) => slug !== token.slug);
 
-  if ((areTokensWithNoBalanceHidden && token.amount === 0) || (areTokensWithNoPriceHidden && token.price === 0)) {
+  if ((areTokensWithNoBalanceHidden && token.amount === 0n) || (areTokensWithNoPriceHidden && token.price === 0)) {
     exceptionSlugsCopy.push(token.slug);
   }
 
@@ -598,7 +591,7 @@ addActionHandler('addToken', (global, actions, { token }) => {
       ...balances,
       bySlug: {
         ...balances?.bySlug,
-        [apiToken.slug]: '0',
+        [apiToken.slug]: 0n,
       },
     },
   });
@@ -670,7 +663,8 @@ addActionHandler('importToken', async (global, actions, { address, isSwap }) => 
       'decimals',
       'keywords',
     ]),
-    amount: 0,
+    amount: 0n,
+    totalValue: '0',
     price: 0,
     change24h: 0,
     change7d: 0,

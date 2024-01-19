@@ -4,6 +4,7 @@ import type { TokenBalanceParsed } from '../blockchains/ton/tokens';
 import type {
   ApiActivity,
   ApiBackendStakingState,
+  ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiBaseToken,
   ApiNftUpdate,
@@ -72,8 +73,8 @@ const prices: {
 };
 let swapPollingAccountId: string | undefined;
 const lastBalanceCache: Record<string, {
-  balance?: string;
-  tokenBalances?: Record<string, string>;
+  balance?: bigint;
+  tokenBalances?: ApiBalanceBySlug;
 }> = {};
 
 export function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAccountActiveFn) {
@@ -158,9 +159,9 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
       // Process TON balance
       const cache = lastBalanceCache[accountId];
       const changedTokenSlugs: string[] = [];
-      const isTonBalanceChanged = balance && balance !== cache?.balance;
+      const isTonBalanceChanged = balance !== undefined && balance !== cache?.balance;
 
-      const balancesToUpdate: Record<string, string> = {};
+      const balancesToUpdate: ApiBalanceBySlug = {};
 
       if (isTonBalanceChanged) {
         balancesToUpdate[TON_TOKEN_SLUG] = balance;

@@ -11,10 +11,10 @@ import {
   IS_CAPACITOR,
   MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TON_TOKEN_SLUG,
 } from '../../config';
-import { Big } from '../../lib/big.js';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -42,7 +42,7 @@ import styles from './Staking.module.scss';
 type StateProps = GlobalState['staking'] & {
   tokens?: UserToken[];
   stakingType?: ApiStakingType;
-  stakingBalance?: number;
+  stakingBalance?: bigint;
   endOfStakingCycle?: number;
   stakingInfo: GlobalState['stakingInfo'];
 };
@@ -77,6 +77,7 @@ function UnstakeModal({
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
+
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
 
   const [renderedStakingBalance, setRenderedStakingBalance] = useState(stakingBalance);
@@ -85,10 +86,9 @@ function UnstakeModal({
   const [isLongUnstake, setIsLongUnstake] = useState(false);
 
   useEffect(() => {
-    const instantAvailable = Big(stakingInfo.liquid?.instantAvailable ?? 0);
-    const isInstantUnstake = stakingType === 'liquid'
-      ? Big(stakingBalance ?? 0).lte(instantAvailable)
-      : false;
+    const isInstantUnstake = Boolean(
+      stakingType === 'liquid' && (stakingBalance ?? 0n) < (stakingInfo.liquid?.instantAvailable ?? 0n),
+    );
 
     setIsLongUnstake(!isInstantUnstake);
   }, [stakingType, stakingBalance, stakingInfo]);
@@ -150,7 +150,7 @@ function UnstakeModal({
     return (
       <div className={className}>
         <img src={logoPath} alt={tonToken.symbol} className={styles.tokenIcon} />
-        <span>{formatCurrency(stakingBalance, tonToken.symbol)}</span>
+        <span>{formatCurrency(toDecimal(stakingBalance), tonToken.symbol)}</span>
       </div>
     );
   }
@@ -183,7 +183,7 @@ function UnstakeModal({
             key="unstaking_amount"
             id="unstaking_amount"
             error={error ? lang(error) : undefined}
-            value={stakingBalance}
+            value={stakingBalance === undefined ? undefined : toDecimal(stakingBalance)}
             labelText={lang('Amount to unstake')}
             decimals={tonToken?.decimals}
           >

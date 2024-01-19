@@ -8,6 +8,7 @@ import { type Account, TransferState, type UserToken } from '../../global/types'
 
 import renderText from '../../global/helpers/renderText';
 import { selectNetworkAccounts } from '../../global/selectors';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 
 import useLang from '../../hooks/useLang';
@@ -46,7 +47,7 @@ function DappLedgerWarning({
       <div className={styles.transactionDirection}>
         <div className={styles.transactionAccount}>
           <div className={styles.accountTitle}>{currentAccount?.title}</div>
-          <div className={styles.accountBalance}>{formatCurrency(tonToken.amount, tonToken.symbol)}</div>
+          <div className={styles.accountBalance}>{formatCurrency(toDecimal(tonToken.amount), tonToken.symbol)}</div>
         </div>
 
         <DappInfo

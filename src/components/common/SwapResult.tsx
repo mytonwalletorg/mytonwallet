@@ -18,8 +18,8 @@ import styles from './SwapResult.module.scss';
 interface OwnProps {
   tokenIn?: UserSwapToken;
   tokenOut?: UserSwapToken;
-  amountIn?: number;
-  amountOut?: number;
+  amountIn?: string;
+  amountOut?: string;
   playAnimation?: boolean;
   firstButtonText?: string;
   secondButtonText?: string;

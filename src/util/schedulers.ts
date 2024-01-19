@@ -197,3 +197,17 @@ export function onBeforeUnload(callback: NoneToVoidFunction, isLast = false) {
     beforeUnloadCallbacks = beforeUnloadCallbacks!.filter((cb) => cb !== callback);
   };
 }
+
+export async function waitFor(cb: () => boolean, interval: number, attempts: number) {
+  let i = 0;
+  let result = cb();
+
+  while (!result && i < attempts) {
+    await pause(interval);
+
+    i++;
+    result = cb();
+  }
+
+  return result;
+}

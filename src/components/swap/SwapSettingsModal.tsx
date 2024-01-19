@@ -66,6 +66,11 @@ function SwapSettingsModal({
     setCurrentSlippage(slippage);
   });
 
+  const handleInputChange = useLastCallback((stringValue?: string) => {
+    const value = stringValue ? Number(stringValue) : undefined;
+    setCurrentSlippage(value);
+  });
+
   function renderSlippageValues() {
     const slippageList = SLIPPAGE_VALUES.map((value, index) => {
       return (
@@ -140,11 +145,11 @@ function SwapSettingsModal({
         <RichNumberInput
           labelText={renderSlippageLabel()}
           labelClassName={styles.slippageLabel}
-          value={currentSlippage}
+          value={currentSlippage?.toString()}
           hasError={hasError}
           decimals={2}
           suffix={isSlippageFocused ? '' : '%'}
-          onChange={setCurrentSlippage}
+          onChange={handleInputChange}
           onFocus={markSlippageFocused}
           onBlur={unmarkSlippageFocused}
         />

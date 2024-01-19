@@ -13,11 +13,13 @@ import {
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../config';
-import { bigStrToHuman, getIsTxIdLocal } from '../../../global/helpers';
+import { getIsTxIdLocal } from '../../../global/helpers';
 import { selectCurrentAccountState } from '../../../global/selectors';
+import { bigintAbs } from '../../../util/bigint';
 import buildClassName from '../../../util/buildClassName';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
+import { toDecimal } from '../../../util/decimals';
 import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
 import { callApi } from '../../../api';
 
@@ -105,7 +107,6 @@ function TransactionModal({
   const isStaking = Boolean(transaction?.type);
 
   const token = slug ? tokensBySlug?.[slug] : undefined;
-  const amountHuman = amount ? bigStrToHuman(amount, token?.decimals) : 0;
   const address = isIncoming ? fromAddress : toAddress;
   const addressName = (address && savedAddresses?.[address]) || transaction?.metadata?.name;
   const isScam = Boolean(transaction?.metadata?.isScam);
@@ -164,7 +165,7 @@ function TransactionModal({
       isPortrait,
       tokenSlug: slug || TON_TOKEN_SLUG,
       toAddress: address,
-      amount: Math.abs(amountHuman),
+      amount: bigintAbs(amount!),
       comment: !isIncoming ? comment : undefined,
     });
   });
@@ -264,7 +265,7 @@ function TransactionModal({
     return (
       <AmountWithFeeTextField
         label={lang('Fee')}
-        amount={bigStrToHuman(fee)}
+        amount={toDecimal(fee)}
         currency={TON_SYMBOL}
       />
     );
@@ -314,7 +315,7 @@ function TransactionModal({
         <TransactionAmount
           isIncoming={isIncoming}
           isScam={isScam}
-          amount={amountHuman}
+          amount={toDecimal(amount ?? 0n, token?.decimals)}
           tokenSymbol={token?.symbol}
         />
 
@@ -386,7 +387,7 @@ function TransactionModal({
               placeholder={lang('Enter your password')}
               error={passwordError}
               withCloseButton={IS_CAPACITOR}
-              containerClassName={styles.passwordFormContent}
+              containerClassName={IS_CAPACITOR ? styles.passwordFormContent : styles.passwordFormContentInModal}
               onSubmit={handlePasswordSubmit}
               onCancel={closePasswordSlide}
               onUpdate={clearPasswordError}
@@ -404,6 +405,7 @@ function TransactionModal({
       forceFullNative={currentSlide === SLIDES.password}
       dialogClassName={styles.modalDialog}
       onClose={handleClose}
+      onCloseAnimationEnd={closePasswordSlide}
     >
       <Transition
         name={resolveModalTransitionName()}

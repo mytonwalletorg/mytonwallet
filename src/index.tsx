@@ -32,9 +32,9 @@ if (IS_CAPACITOR) {
 }
 
 if (IS_DELEGATING_BOTTOM_SHEET) {
-  initMultitab({ noPub: true });
+  initMultitab({ noPubGlobal: true });
 } else if (IS_DELEGATED_BOTTOM_SHEET) {
-  initMultitab({ noSub: true });
+  initMultitab();
 }
 
 (async () => {

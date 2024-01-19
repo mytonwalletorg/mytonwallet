@@ -9,7 +9,6 @@ import {
   updateAccount,
   updateAccountStakingState,
   updateAccountState,
-  updateBalance,
   updateBalances,
   updateNft,
   updateRestrictions,
@@ -23,14 +22,6 @@ import { selectAccountState } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
-    case 'updateBalance': {
-      global = updateBalance(global, update.accountId, update.slug, update.balance);
-      setGlobal(global);
-
-      actions.updateDeletionListForActiveTokens({ accountId: update.accountId });
-      break;
-    }
-
     case 'updateBalances': {
       global = updateBalances(global, update.accountId, update.balancesToUpdate);
       setGlobal(global);
@@ -47,8 +38,8 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         backendStakingState,
       } = update;
 
-      const oldBalance = selectAccountState(global, accountId)?.staking?.balance ?? 0;
-      let balance = 0;
+      const oldBalance = selectAccountState(global, accountId)?.staking?.balance ?? 0n;
+      let balance = 0n;
 
       if (stakingState.type === 'nominators') {
         balance = stakingState.amount + stakingState.pendingDepositAmount;
@@ -70,7 +61,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           type: stakingState.type,
           balance,
           isUnstakeRequested: !!stakingState.unstakeRequestAmount,
-          unstakeRequestedAmount: Number(stakingState.unstakeRequestAmount),
+          unstakeRequestedAmount: stakingState.unstakeRequestAmount,
           start: isPrevRoundUnlocked ? stakingCommonData.round.start : stakingCommonData.prevRound.start,
           end: isPrevRoundUnlocked ? stakingCommonData.round.unlock : stakingCommonData.prevRound.unlock,
           apy: stakingState.apy,
@@ -86,9 +77,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
       let shouldOpenStakingInfo = false;
       if (balance !== oldBalance && global.staking.state !== StakingState.None) {
-        if (balance === 0) {
+        if (balance === 0n) {
           global = updateStaking(global, { state: StakingState.StakeInitial });
-        } else if (oldBalance === 0) {
+        } else if (oldBalance === 0n) {
           shouldOpenStakingInfo = true;
         }
       }

@@ -1,5 +1,7 @@
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
-import React, { memo, useEffect, useState } from '../lib/teact/teact';
+import React, {
+  memo, useEffect, useLayoutEffect, useState,
+} from '../lib/teact/teact';
 import { getActions, withGlobal } from '../global';
 
 import { AppState } from '../global/types';
@@ -116,6 +118,10 @@ function App({
       cancelCaching();
     });
   }, [markInactive]);
+
+  useLayoutEffect(() => {
+    document.documentElement.classList.add('is-rendered');
+  }, []);
 
   useSyncEffect(() => {
     if (accountId) {

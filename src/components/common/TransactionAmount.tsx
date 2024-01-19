@@ -7,7 +7,7 @@ import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber'
 import styles from './TransactionAmount.module.scss';
 
 interface OwnProps {
-  amount: number;
+  amount: string;
   isIncoming?: boolean;
   isScam?: boolean;
   tokenSymbol?: string;

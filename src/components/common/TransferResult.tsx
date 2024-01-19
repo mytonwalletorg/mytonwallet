@@ -1,7 +1,8 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { TON_SYMBOL } from '../../config';
+import { DEFAULT_DECIMAL_PLACES, TON_SYMBOL } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -14,12 +15,13 @@ interface OwnProps {
   playAnimation?: boolean;
   color?: 'green' | 'purple';
   noSign?: boolean;
-  amount?: number;
+  amount?: bigint;
   tokenSymbol?: string;
+  decimals?: number;
   precision?: number;
-  balance?: number;
-  operationAmount?: number;
-  fee?: number;
+  balance?: bigint;
+  operationAmount?: bigint;
+  fee?: bigint;
   firstButtonText?: string;
   secondButtonText?: string;
   onFirstButtonClick?: NoneToVoidFunction;
@@ -28,8 +30,9 @@ interface OwnProps {
 
 function TransferResult({
   playAnimation,
-  amount = 0,
+  amount = 0n,
   tokenSymbol = TON_SYMBOL,
+  decimals = DEFAULT_DECIMAL_PLACES,
   precision = 2,
   noSign,
   color,
@@ -42,11 +45,13 @@ function TransferResult({
   onSecondButtonClick,
 }: OwnProps) {
   const withBalanceChange = Boolean(balance !== undefined && operationAmount);
-  let finalBalance = withBalanceChange ? balance! + operationAmount! : 0;
+  let finalBalance = withBalanceChange ? balance! + operationAmount! : 0n;
   if (finalBalance && fee && tokenSymbol === TON_SYMBOL) {
     finalBalance -= fee;
   }
-  const [wholePart, fractionPart] = formatCurrencyExtended(amount, '', noSign).split('.');
+
+  const amountString = toDecimal(amount, decimals);
+  const [wholePart, fractionPart] = formatCurrencyExtended(amountString, '', noSign).split('.');
 
   function renderButtons() {
     if (!firstButtonText && !secondButtonText) {
@@ -78,9 +83,9 @@ function TransferResult({
 
       {Boolean(withBalanceChange) && (
         <div className={styles.balanceChange}>
-          {formatCurrency(balance!, tokenSymbol, precision)}
+          {formatCurrency(toDecimal(balance!, decimals), tokenSymbol, precision)}
           &nbsp;&rarr;&nbsp;
-          {formatCurrency(finalBalance, tokenSymbol, precision)}
+          {formatCurrency(toDecimal(finalBalance!, decimals), tokenSymbol, precision)}
         </div>
       )}
 

@@ -1,4 +1,4 @@
-import type { ApiSwapAsset, ApiToken } from '../../api/types';
+import type { ApiBalanceBySlug, ApiSwapAsset, ApiToken } from '../../api/types';
 import type { Account, AccountState, GlobalState } from '../types';
 
 import { TON_TOKEN_SLUG } from '../../config';
@@ -82,29 +82,10 @@ export function renameAccount(global: GlobalState, accountId: string, title: str
   return updateAccount(global, accountId, { title });
 }
 
-export function updateBalance(
-  global: GlobalState, accountId: string, slug: string, balance: string,
-): GlobalState {
-  const { balances } = selectAccountState(global, accountId) || {};
-  if (balances?.bySlug[slug] === balance) {
-    return global;
-  }
-
-  return updateAccountState(global, accountId, {
-    balances: {
-      ...balances,
-      bySlug: {
-        ...balances?.bySlug,
-        [slug]: balance,
-      },
-    },
-  });
-}
-
 export function updateBalances(
   global: GlobalState,
   accountId: string,
-  balancesToUpdate: Record<string, string>,
+  balancesToUpdate: ApiBalanceBySlug,
 ): GlobalState {
   if (Object.keys(balancesToUpdate).length === 0) {
     return global;
@@ -250,5 +231,16 @@ export function updateRestrictions(global: GlobalState, partial: Partial<GlobalS
       ...global.restrictions,
       ...partial,
     },
+  };
+}
+
+export function updateCurrentAccountId(global: GlobalState, accountId: string): GlobalState {
+  if (!accountId) {
+    throw Error('Empty accountId!');
+  }
+
+  return {
+    ...global,
+    currentAccountId: accountId,
   };
 }

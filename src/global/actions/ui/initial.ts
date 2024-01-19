@@ -7,6 +7,7 @@ import { parseAccountId } from '../../../util/account';
 import { initializeSoundsForSafari } from '../../../util/appSounds';
 import { omit } from '../../../util/iteratees';
 import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
+import { callActionInMain } from '../../../util/multitab';
 import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import switchTheme, { setStatusBarStyle } from '../../../util/switchTheme';
 import {
@@ -25,15 +26,13 @@ import { callApi } from '../../../api';
 import {
   addActionHandler, getActions, getGlobal, setGlobal,
 } from '../../index';
-import { updateCurrentAccountState } from '../../reducers';
+import { updateCurrentAccountId, updateCurrentAccountState } from '../../reducers';
 import {
   selectCurrentNetwork,
   selectNetworkAccounts,
   selectNetworkAccountsMemoized,
   selectNewestTxIds,
 } from '../../selectors';
-
-import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
 
 addActionHandler('init', (_, actions) => {
   requestMutation(() => {
@@ -285,9 +284,10 @@ addActionHandler('signOut', async (global, actions, payload) => {
         return byId;
       }, {} as Record<string, AccountState>);
 
+      global = updateCurrentAccountId(global, nextAccountId);
+
       global = {
         ...global,
-        currentAccountId: nextAccountId,
         accounts: {
           ...global.accounts!,
           byId: accountsById,
@@ -317,9 +317,10 @@ addActionHandler('signOut', async (global, actions, payload) => {
     const accountsById = omit(global.accounts!.byId, [prevAccountId]);
     const byAccountId = omit(global.byAccountId, [prevAccountId]);
 
+    global = updateCurrentAccountId(global, nextAccountId);
+
     global = {
       ...global,
-      currentAccountId: nextAccountId,
       accounts: {
         ...global.accounts!,
         byId: accountsById,

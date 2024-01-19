@@ -11,17 +11,16 @@ import {
   ANIMATED_STICKER_SMALL_SIZE_PX,
   DEFAULT_DECIMAL_PLACES,
   DEFAULT_FEE,
-  MIN_BALANCE_FOR_UNSTAKE,
+  MIN_BALANCE_FOR_UNSTAKE, ONE_TON,
   STAKING_FORWARD_AMOUNT,
   STAKING_MIN_AMOUNT,
   TON_TOKEN_SLUG,
 } from '../../config';
-import { bigStrToHuman } from '../../global/helpers';
 import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency, formatCurrencySimple } from '../../util/formatNumber';
-import { floor } from '../../util/round';
 import { throttle } from '../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -51,15 +50,13 @@ interface StateProps {
   isLoading?: boolean;
   apiError?: string;
   tokens?: UserToken[];
-  fee?: string;
-  stakingBalance: number;
+  fee?: bigint;
+  stakingBalance: bigint;
   apyValue: number;
 }
 
 export const STAKING_DECIMAL = 2;
 
-// Fee may change, so we add 5% for more reliability. This is only safe for low-fee blockchains such as TON.
-const RESERVED_FEE_FACTOR = 1.05;
 const runThrottled = throttle((cb) => cb(), 1500, true);
 
 function StakingInitial({
@@ -77,7 +74,7 @@ function StakingInitial({
   const lang = useLang();
 
   const [isStakingInfoModalOpen, openStakingInfoModal, closeStakingInfoModal] = useFlag();
-  const [amount, setAmount] = useState<number | undefined>();
+  const [amount, setAmount] = useState<bigint | undefined>();
   const [isNotEnough, setIsNotEnough] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
   const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);
@@ -86,10 +83,10 @@ function StakingInitial({
     amount: balance, symbol,
   } = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]) || {};
   const hasAmountError = Boolean(isInsufficientBalance || apiError);
-  const calculatedFee = fee ? bigStrToHuman(fee) * RESERVED_FEE_FACTOR : DEFAULT_FEE;
+  const calculatedFee = fee ?? DEFAULT_FEE;
   const decimals = DEFAULT_DECIMAL_PLACES;
 
-  const validateAndSetAmount = useLastCallback((newAmount: number | undefined, noReset = false) => {
+  const validateAndSetAmount = useLastCallback((newAmount: bigint | undefined, noReset = false) => {
     if (!noReset) {
       setShouldUseAllBalance(false);
       setIsNotEnough(false);
@@ -196,6 +193,11 @@ function StakingInitial({
     submitStakingInitial({ amount });
   });
 
+  const handleAmountChange = useLastCallback((stringValue?: string) => {
+    const value = stringValue ? fromDecimal(stringValue, decimals) : undefined;
+    validateAndSetAmount(value);
+  });
+
   function getError() {
     if (isInsufficientBalance) {
       return lang('Insufficient balance');
@@ -210,7 +212,7 @@ function StakingInitial({
     }
 
     const isFullBalanceSelected = balance && amount
-      && (balance >= amount && Number((balance - amount).toFixed(2)) < MIN_BALANCE_FOR_UNSTAKE); // TODO $decimals
+      && (balance >= amount && balance - amount < MIN_BALANCE_FOR_UNSTAKE);
 
     const balanceLink = lang('$max_balance', {
       balance: (
@@ -224,7 +226,7 @@ function StakingInitial({
 
     const minusOneLink = (
       <a href="#" onClick={handleMinusOneClick} className={styles.balanceLink}>
-        {formatCurrency(-Math.round(MIN_BALANCE_FOR_UNSTAKE), symbol)}
+        {formatCurrency(toDecimal(ONE_TON), symbol)}
       </a>
     );
 
@@ -256,7 +258,7 @@ function StakingInitial({
           lang('$min_value', {
             value: (
               <span className={styles.minAmountValue}>
-                {formatCurrency(STAKING_MIN_AMOUNT, 'TON')}
+                {formatCurrency(toDecimal(STAKING_MIN_AMOUNT), 'TON')}
               </span>
             ),
           })
@@ -294,7 +296,9 @@ function StakingInitial({
   }
 
   function renderStakingResult() {
-    const balanceResult = amount ? floor(amount! + (amount! / 100) * apyValue, STAKING_DECIMAL) : 0;
+    const balanceResult = amount
+      ? toBig(amount).mul((apyValue / 100) + 1).round(STAKING_DECIMAL).toString()
+      : '0';
 
     return (
       <RichNumberField
@@ -339,10 +343,10 @@ function StakingInitial({
         key="staking_amount"
         id="staking_amount"
         hasError={isNotEnough || isInsufficientBalance}
-        value={amount}
+        value={amount === undefined ? undefined : toDecimal(amount)}
         labelText={lang('Amount')}
         onBlur={handleAmountBlur}
-        onChange={validateAndSetAmount}
+        onChange={handleAmountChange}
         onPressEnter={handleSubmit}
         decimals={decimals}
         inputClassName={isStatic ? styles.inputRichStatic : undefined}
@@ -392,7 +396,7 @@ export default memo(
         tokens,
         apiError,
         fee,
-        stakingBalance: accountState?.staking?.balance || 0,
+        stakingBalance: accountState?.staking?.balance || 0n,
         apyValue: accountState?.staking?.apy || 0,
       };
     },

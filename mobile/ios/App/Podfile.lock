@@ -3,6 +3,8 @@ PODS:
     - CapacitorCordova
   - CapacitorApp (5.0.6):
     - Capacitor
+  - CapacitorClipboard (5.0.6):
+    - Capacitor
   - CapacitorCordova (5.5.1)
   - CapacitorDialog (5.0.6):
     - Capacitor
@@ -83,6 +85,7 @@ PODS:
 DEPENDENCIES:
   - "Capacitor (from `../../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../../node_modules/@capacitor/app`)"
+  - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCordova (from `../../../node_modules/@capacitor/ios`)"
   - "CapacitorDialog (from `../../../node_modules/@capacitor/dialog`)"
   - "CapacitorHaptics (from `../../../node_modules/@capacitor/haptics`)"
@@ -115,6 +118,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/ios"
   CapacitorApp:
     :path: "../../../node_modules/@capacitor/app"
+  CapacitorClipboard:
+    :path: "../../../node_modules/@capacitor/clipboard"
   CapacitorCordova:
     :path: "../../../node_modules/@capacitor/ios"
   CapacitorDialog:
@@ -139,6 +144,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Capacitor: 9da0a2415e3b6098511f8b5ffdb578d91ee79f8f
   CapacitorApp: 024e1b1bea5f883d79f6330d309bc441c88ad04a
+  CapacitorClipboard: 77edf49827ea21da2a9c05c690a4a6a4d07199c4
   CapacitorCordova: e128cc7688c070ca0bfa439898a5f609da8dbcfe
   CapacitorDialog: 0f3c15dfe9414b83bc64aef4078f1b92bcfead26
   CapacitorHaptics: 1fffc1217c7e64a472d7845be50fb0c2f7d4204c
@@ -163,6 +169,6 @@ SPEC CHECKSUMS:
   NativeBottomSheet: edfc1f70d3517ea92e70392db8c2de5ea3e6f15e
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
 
-PODFILE CHECKSUM: f2e7c24dfc22bd949d0c502101768c1e911d066f
+PODFILE CHECKSUM: 05d9e9b62e3a715491a0613182dd0784570842b7
 
 COCOAPODS: 1.14.3

@@ -2,13 +2,16 @@ import { ElectronEvent } from '../../../electron/types';
 
 import { DEFAULT_PRICE_CURRENCY, IS_EXTENSION } from '../../../config';
 import { tonConnectGetDeviceInfo } from '../../../util/tonConnectEnvironment';
-import { IS_ELECTRON } from '../../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi, initApi } from '../../../api';
 import { addActionHandler, getGlobal } from '../../index';
 import { selectNewestTxIds } from '../../selectors';
 
 addActionHandler('initApi', async (global, actions) => {
-  initApi(actions.apiUpdate, { isElectron: IS_ELECTRON });
+  initApi(actions.apiUpdate, {
+    isElectron: IS_ELECTRON,
+    isNativeBottomSheet: IS_DELEGATED_BOTTOM_SHEET,
+  });
 
   window.electron?.on(ElectronEvent.DEEPLINK_TONCONNECT, (params: { url: string }) => {
     const deviceInfo = tonConnectGetDeviceInfo();

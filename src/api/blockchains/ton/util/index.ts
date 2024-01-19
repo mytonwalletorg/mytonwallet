@@ -1,5 +1,7 @@
+import { bigintReviver } from '../../../../util/bigint';
+
 export function cloneDeep<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
+  return JSON.parse(JSON.stringify(value), bigintReviver);
 }
 
 export function stringifyTxId({ lt, hash }: { lt: number | string; hash: string }) {

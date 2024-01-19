@@ -8,7 +8,12 @@ import type { UserToken } from '../../../../global/types';
 import {
   IS_CAPACITOR, TON_TOKEN_SLUG, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
-import { selectAccount, selectCurrentAccountState, selectCurrentAccountTokens } from '../../../../global/selectors';
+import {
+  selectAccount,
+  selectCurrentAccountState,
+  selectCurrentAccountTokens,
+  selectCurrentNetwork,
+} from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrateOnSuccess } from '../../../../util/capacitor';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
@@ -46,7 +51,7 @@ interface StateProps {
   currentTokenSlug?: string;
   isTestnet?: boolean;
   baseCurrency?: ApiBaseCurrency;
-  stakingBalance?: number;
+  stakingBalance?: bigint;
 }
 
 function Card({
@@ -159,7 +164,7 @@ function Card({
             </span>
           )}
         </div>
-        {primaryValue !== 0 && (
+        {primaryValue !== '0' && (
           <div className={buildClassName(styles.change, changeClassName)}>
             {changePrefix}
             &thinsp;
@@ -222,6 +227,9 @@ export default memo(
     (global): StateProps => {
       const { address } = selectAccount(global, global.currentAccountId!) || {};
       const accountState = selectCurrentAccountState(global);
+      const stakingBalance = selectCurrentNetwork(global) === 'mainnet'
+        ? accountState?.staking?.balance
+        : 0n;
 
       return {
         address,
@@ -230,7 +238,7 @@ export default memo(
         currentTokenSlug: accountState?.currentTokenSlug,
         isTestnet: global.settings.isTestnet,
         baseCurrency: global.settings.baseCurrency,
-        stakingBalance: accountState?.staking?.balance,
+        stakingBalance,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

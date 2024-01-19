@@ -71,17 +71,20 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
       let to: string;
       let nftAddress: string;
       let rawNft: NftItem | undefined;
-      const isPurchase = !!action.nftPurchase;
+      const isPurchase = !!action.NftPurchase;
 
-      if (action.nftItemTransfer) {
-        const { sender, recipient, nft: rawNftAddress } = action.nftItemTransfer;
+      if (action.NftItemTransfer) {
+        const { sender, recipient, nft: rawNftAddress } = action.NftItemTransfer;
         if (!sender || !recipient) continue;
         to = toBase64Address(recipient.address);
         nftAddress = toBase64Address(rawNftAddress, true);
-      } else if (action.nftPurchase) {
-        const { buyer } = action.nftPurchase;
+      } else if (action.NftPurchase) {
+        const { buyer } = action.NftPurchase;
         to = toBase64Address(buyer.address);
-        rawNft = action.nftPurchase.nft;
+        rawNft = action.NftPurchase.nft;
+        if (!rawNft) {
+          continue;
+        }
         nftAddress = toBase64Address(rawNft.address, true);
       } else {
         continue;
@@ -91,15 +94,18 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         if (!rawNft) {
           [rawNft] = await fetchNftItems(network, [nftAddress]);
         }
-        const nft = buildNft(rawNft);
 
-        if (nft) {
-          updates.push({
-            type: 'nftReceived',
-            accountId,
-            nftAddress,
-            nft,
-          });
+        if (rawNft) {
+          const nft = buildNft(rawNft);
+
+          if (nft) {
+            updates.push({
+              type: 'nftReceived',
+              accountId,
+              nftAddress,
+              nft,
+            });
+          }
         }
       } else if (!isPurchase && await isActiveSmartContract(network, to)) {
         updates.push({

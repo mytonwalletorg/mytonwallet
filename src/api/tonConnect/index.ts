@@ -34,6 +34,7 @@ import { parseAccountId } from '../../util/account';
 import { isValidLedgerComment } from '../../util/ledger/utils';
 import { logDebugError } from '../../util/logs';
 import { fetchJsonMetadata } from '../../util/metadata';
+import safeExec from '../../util/safeExec';
 import blockchains from '../blockchains';
 import { parsePayloadBase64 } from '../blockchains/ton';
 import { fetchKeyPair } from '../blockchains/ton/auth';
@@ -88,17 +89,9 @@ export async function connect(
   id: number,
 ): Promise<LocalConnectEvent> {
   try {
-    onPopupUpdate({
-      type: 'dappLoading',
-      connectionType: 'connect',
-    });
-
     const { origin } = await validateRequest(request, true);
-    const dapp = {
-      ...await fetchDappMetadata(message.manifestUrl, origin),
-      connectedAt: Date.now(),
-      ...('sseOptions' in request && { sse: request.sseOptions }),
-    };
+
+    const dappMetadata = fetchDappMetadata(message.manifestUrl, origin);
 
     const addressItem = message.items.find(({ name }) => name === 'ton_addr');
     const proofItem = message.items.find(({ name }) => name === 'ton_proof') as TonProofItem | undefined;
@@ -112,7 +105,13 @@ export async function connect(
       throw new errors.BadRequestError("Missing 'ton_addr'");
     }
 
-    const isOpened = await openExtensionPopup();
+    await openExtensionPopup(true);
+
+    onPopupUpdate({
+      type: 'dappLoading',
+      connectionType: 'connect',
+    });
+
     let accountId = await getCurrentAccountOrFail();
     const isConnected = await isDappConnected(accountId, origin);
 
@@ -123,11 +122,13 @@ export async function connect(
     } | undefined;
 
     if (!isConnected || proof) {
-      if (!isOpened) {
-        await openExtensionPopup(true);
-      }
-
       const { promiseId, promise } = createDappPromise();
+
+      const dapp = {
+        ...await dappMetadata,
+        connectedAt: Date.now(),
+        ...('sseOptions' in request && { sse: request.sseOptions }),
+      };
 
       onPopupUpdate({
         type: 'dappConnect',
@@ -166,6 +167,13 @@ export async function connect(
     return result;
   } catch (err) {
     logDebugError('tonConnect:connect', err);
+
+    safeExec(() => {
+      onPopupUpdate({
+        type: 'dappCloseLoading',
+      });
+    });
+
     return formatConnectError(id, err as Error);
   }
 }
@@ -216,11 +224,6 @@ export async function sendTransaction(
   message: SendTransactionRpcRequest,
 ): Promise<SendTransactionRpcResponse> {
   try {
-    onPopupUpdate({
-      type: 'dappLoading',
-      connectionType: 'sendTransaction',
-    });
-
     const { origin, accountId } = await validateRequest(request);
 
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
@@ -236,6 +239,11 @@ export async function sendTransaction(
     const isLedger = !!account.ledger;
 
     await openExtensionPopup(true);
+
+    onPopupUpdate({
+      type: 'dappLoading',
+      connectionType: 'sendTransaction',
+    });
 
     const { preparedMessages, checkResult } = await checkTransactionMessages(accountId, messages);
 
@@ -317,6 +325,12 @@ export async function sendTransaction(
   } catch (err) {
     logDebugError('tonConnect:sendTransaction', err);
 
+    safeExec(() => {
+      onPopupUpdate({
+        type: 'dappCloseLoading',
+      });
+    });
+
     let code = SEND_TRANSACTION_ERROR_CODES.UNKNOWN_ERROR;
     let errorMessage = 'Unhandled error';
     let displayError: ApiAnyDisplayError | undefined;
@@ -372,7 +386,7 @@ async function checkTransactionMessages(accountId: string, messages: Transaction
 
     return {
       toAddress: address,
-      amount,
+      amount: BigInt(amount),
       payload: payload ? ton.oneCellFromBoc(base64ToBytes(payload)) : undefined,
       stateInit: stateInit ? ton.oneCellFromBoc(base64ToBytes(stateInit)) : undefined,
     };
@@ -420,7 +434,7 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
 
       return {
         toAddress,
-        amount,
+        amount: BigInt(amount),
         rawPayload,
         payload,
         stateInit,

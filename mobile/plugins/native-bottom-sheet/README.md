@@ -21,13 +21,9 @@ npx cap sync
 * [`openSelf(...)`](#openself)
 * [`closeSelf(...)`](#closeself)
 * [`setSelfSize(...)`](#setselfsize)
-* [`callActionInMain(...)`](#callactioninmain)
-* [`callActionInNative(...)`](#callactioninnative)
 * [`openInMain(...)`](#openinmain)
 * [`addListener('delegate', ...)`](#addlistenerdelegate)
 * [`addListener('move', ...)`](#addlistenermove)
-* [`addListener('callActionInMain', ...)`](#addlistenercallactioninmain)
-* [`addListener('callActionInNative', ...)`](#addlistenercallactioninnative)
 * [`addListener('openInMain', ...)`](#addlisteneropeninmain)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
@@ -129,32 +125,6 @@ setSelfSize(options: { size: 'half' | 'full'; }) => Promise<void>
 --------------------
 
 
-### callActionInMain(...)
-
-```typescript
-callActionInMain(options: { name: string; optionsJson: string; }) => Promise<void>
-```
-
-| Param         | Type                                                |
-| ------------- | --------------------------------------------------- |
-| **`options`** | <code>{ name: string; optionsJson: string; }</code> |
-
---------------------
-
-
-### callActionInNative(...)
-
-```typescript
-callActionInNative(options: { name: string; optionsJson: string; }) => Promise<void>
-```
-
-| Param         | Type                                                |
-| ------------- | --------------------------------------------------- |
-| **`options`** | <code>{ name: string; optionsJson: string; }</code> |
-
---------------------
-
-
 ### openInMain(...)
 
 ```typescript
@@ -194,38 +164,6 @@ addListener(eventName: 'move', handler: () => void) => Promise<PluginListenerHan
 | --------------- | -------------------------- |
 | **`eventName`** | <code>'move'</code>        |
 | **`handler`**   | <code>() =&gt; void</code> |
-
-**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
-
---------------------
-
-
-### addListener('callActionInMain', ...)
-
-```typescript
-addListener(eventName: 'callActionInMain', handler: (options: { name: string; optionsJson: string; }) => void) => Promise<PluginListenerHandle> & PluginListenerHandle
-```
-
-| Param           | Type                                                                      |
-| --------------- | ------------------------------------------------------------------------- |
-| **`eventName`** | <code>'callActionInMain'</code>                                           |
-| **`handler`**   | <code>(options: { name: string; optionsJson: string; }) =&gt; void</code> |
-
-**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
-
---------------------
-
-
-### addListener('callActionInNative', ...)
-
-```typescript
-addListener(eventName: 'callActionInNative', handler: (options: { name: string; optionsJson: string; }) => void) => Promise<PluginListenerHandle> & PluginListenerHandle
-```
-
-| Param           | Type                                                                      |
-| --------------- | ------------------------------------------------------------------------- |
-| **`eventName`** | <code>'callActionInNative'</code>                                         |
-| **`handler`**   | <code>(options: { name: string; optionsJson: string; }) =&gt; void</code> |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
 

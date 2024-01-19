@@ -11,6 +11,9 @@ export const ATTEMPTS = 5;
 export const DEFAULT_DECIMALS = 9;
 export const DEFAULT_IS_BOUNCEABLE = false;
 
+// Fee may change, so we add 5% for more reliability. This is only safe for low-fee blockchains such as TON.
+export const FEE_FACTOR = 1.05;
+
 export const LEDGER_SUPPORTED_PAYLOADS: ApiParsedPayload['type'][] = [
   'nft:transfer',
   'tokens:transfer',

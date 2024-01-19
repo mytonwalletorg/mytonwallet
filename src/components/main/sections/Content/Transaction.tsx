@@ -4,9 +4,11 @@ import React, { memo } from '../../../../lib/teact/teact';
 import type { ApiToken, ApiTransactionActivity } from '../../../../api/types';
 
 import { TON_SYMBOL } from '../../../../config';
-import { bigStrToHuman, getIsTxIdLocal } from '../../../../global/helpers';
+import { getIsTxIdLocal } from '../../../../global/helpers';
+import { bigintAbs } from '../../../../util/bigint';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
+import { toDecimal } from '../../../../util/decimals';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
 
@@ -62,7 +64,6 @@ function Transaction({
   const isStaking = isStake || isUnstake || isUnstakeRequest;
 
   const token = tokensBySlug?.[slug];
-  const amountHuman = bigStrToHuman(amount, token!.decimals);
   const address = isIncoming ? fromAddress : toAddress;
   const addressName = savedAddresses?.[address] || metadata?.name;
   const isLocal = getIsTxIdLocal(txId);
@@ -131,7 +132,7 @@ function Transaction({
       <div className={styles.amountWrapper}>
         <div className={amountOtherClass}>
           {formatCurrencyExtended(
-            isStaking ? Math.abs(amountHuman) : amountHuman,
+            toDecimal(isStaking ? bigintAbs(amount) : amount, token!.decimals),
             token?.symbol || TON_SYMBOL,
             isStaking,
           )}

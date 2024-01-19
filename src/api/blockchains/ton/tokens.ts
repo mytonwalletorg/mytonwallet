@@ -36,7 +36,7 @@ const { JettonWallet } = TonWeb.token.jetton;
 export type JettonWalletType = InstanceType<typeof JettonWallet>;
 export type TokenBalanceParsed = {
   slug: string;
-  balance: string;
+  balance: bigint;
   token: ApiTokenSimple;
   jettonWallet: string;
 };
@@ -68,13 +68,13 @@ function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed | unde
   }
 
   try {
-    const { balance, jetton, walletAddress } = balanceRaw;
+    const { balance, jetton, wallet_address: walletAddress } = balanceRaw;
     const minterAddress = toBase64Address(jetton.address, true);
     const token = buildTokenByMetadata(minterAddress, jetton);
 
     return {
       slug: token.slug,
-      balance,
+      balance: BigInt(balance),
       token,
       jettonWallet: toBase64Address(walletAddress.address),
     };
@@ -109,7 +109,7 @@ export function parseTokenTransaction(
     slug,
     fromAddress: isIncoming ? (address ?? tx.fromAddress) : walletAddress,
     toAddress: isIncoming ? walletAddress : address!,
-    amount: isIncoming ? jettonAmount.toString() : `-${jettonAmount}`,
+    amount: isIncoming ? jettonAmount : -jettonAmount,
     comment,
     encryptedComment,
     isIncoming,
@@ -121,7 +121,7 @@ export async function buildTokenTransfer(
   slug: string,
   fromAddress: string,
   toAddress: string,
-  amount: string,
+  amount: bigint,
   payload?: AnyPayload,
 ) {
   const minterAddress = resolveTokenBySlug(slug).minterAddress!;
@@ -136,14 +136,14 @@ export async function buildTokenTransfer(
   payload = buildTokenTransferBody({
     tokenAmount: amount,
     toAddress,
-    forwardAmount: TOKEN_TRANSFER_TON_FORWARD_AMOUNT.toString(),
+    forwardAmount: TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
     forwardPayload: payload,
     responseAddress: fromAddress,
   });
 
   return {
     tokenWallet,
-    amount: TOKEN_TRANSFER_TON_AMOUNT.toString(),
+    amount: TOKEN_TRANSFER_TON_AMOUNT,
     toAddress: tokenWalletAddress,
     payload,
   };
@@ -158,7 +158,7 @@ export function getTokenWallet(network: ApiNetwork, tokenAddress: string) {
 }
 
 export async function getTokenWalletBalance(tokenWallet: JettonWalletType) {
-  return (await tokenWallet.getData()).balance.toString();
+  return BigInt((await tokenWallet.getData()).balance.toString());
 }
 
 export function getKnownTokens() {

@@ -73,7 +73,7 @@ export async function prepareTransaction(params: {
   onPopupUpdate({
     type: 'prepareTransaction',
     toAddress,
-    amount,
+    amount: amount ? BigInt(amount) : undefined,
     comment,
   });
 }

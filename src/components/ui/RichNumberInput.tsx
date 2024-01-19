@@ -4,9 +4,7 @@ import React, {
 } from '../../lib/teact/teact';
 
 import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS } from '../../config';
-import { Big } from '../../lib/big.js';
 import buildClassName from '../../util/buildClassName';
-import { round } from '../../util/round';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
 import useFlag from '../../hooks/useFlag';
@@ -18,7 +16,7 @@ import styles from './Input.module.scss';
 type OwnProps = {
   id?: string;
   labelText?: React.ReactNode;
-  value?: number;
+  value?: string;
   hasError?: boolean;
   isLoading?: boolean;
   suffix?: string;
@@ -28,7 +26,7 @@ type OwnProps = {
   valueClassName?: string;
   cornerClassName?: string;
   children?: TeactNode;
-  onChange?: (value?: number) => void;
+  onChange?: (value?: string) => void;
   onBlur?: NoneToVoidFunction;
   onFocus?: NoneToVoidFunction;
   onPressEnter?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
@@ -89,32 +87,39 @@ function RichNumberInput({
     const input = inputRef.current!;
     const content = isLoading ? handleLoadingHtml(input, parts) : handleNumberHtml(input, parts);
 
-    input.classList.toggle(styles.isEmpty, !content.length);
+    if (content.length) {
+      input.classList.remove(styles.isEmpty);
+    } else {
+      input.classList.add(styles.isEmpty);
+    }
   });
 
   useLayoutEffect(() => {
-    const newValue = castValue(value);
-
-    const parts = getParts(String(newValue));
-    updateHtml(parts);
-
-    if (value !== newValue) {
-      onChange?.(newValue);
+    if (value === undefined) {
+      updateHtml();
+    } else {
+      updateHtml(getParts(value));
     }
-  }, [decimals, onChange, updateHtml, value, suffix, isLoading, disabled]);
+  }, [updateHtml, value]);
 
   function handleChange(e: React.FormEvent<HTMLDivElement>) {
     const inputValue = e.currentTarget.innerText.trim();
-    const parts = getParts(inputValue, decimals);
+
+    const newValue = clearValue(inputValue, decimals);
+
+    // TODO Убрать
+    // eslint-disable-next-line no-console
+    console.log({ value, inputValue, newValue });
+
+    const parts = getParts(newValue, decimals);
     const isEmpty = inputValue === '';
 
     if (!parts && !isEmpty && value) {
-      updateHtml(getParts(String(value), decimals));
+      updateHtml(getParts(value, decimals));
     } else {
       updateHtml(parts);
     }
 
-    const newValue = castValue(Number(inputValue), decimals);
     if ((newValue || isEmpty) && newValue !== value) {
       onChange?.(newValue);
     }
@@ -203,11 +208,6 @@ function RichNumberInput({
 
 function getParts(value: string, decimals = DEFAULT_DECIMAL_PLACES) {
   const regex = getInputRegex(decimals);
-  // Correct problem with numbers like 1e-8
-  if (value.includes('e-')) {
-    Big.NE = -decimals - 1;
-    return new Big(value).toString().match(regex) || undefined;
-  }
   return value.match(regex) || undefined;
 }
 
@@ -216,18 +216,23 @@ export function getInputRegex(decimals: number) {
   return new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?`);
 }
 
-function castValue(value?: number | string, decimals = DEFAULT_DECIMAL_PLACES) {
-  return value && Number.isFinite(Number(value)) ? round(value, decimals, Big.roundDown) : undefined;
+function clearValue(value: string, decimals: number) {
+  return value
+    .replace(',', '.') // Replace comma to point
+    .replace(/[^\d.]/, '') // Remove incorrect symbols
+    .match(getInputRegex(decimals))?.[0] // Trim extra decimal places
+    .replace(/^0+(?=([1-9]|0\.))/, '') // Trim extra zeros at beginning
+    .replace(/^0+$/, '0') // Trim extra zeros (if only zeros are entered)
+    ?? '';
 }
 
 export function buildContentHtml(values: RegExpMatchArray, suffix?: string, decimals = FRACTION_DIGITS) {
   const [, wholePart, dotPart, fractionPart] = values;
 
-  const wholeStr = String(parseInt(wholePart, 10)); // Properly handle leading zero
   const fractionStr = (fractionPart || dotPart) ? `.${(fractionPart || '').substring(0, decimals)}` : '';
   const suffixStr = suffix ? ` ${suffix}` : '';
 
-  return `${wholeStr}<span class="${styles.fractional}">${fractionStr}${suffixStr}</span>`;
+  return `${wholePart}<span class="${styles.fractional}">${fractionStr}${suffixStr}</span>`;
 }
 
 export default memo(RichNumberInput);

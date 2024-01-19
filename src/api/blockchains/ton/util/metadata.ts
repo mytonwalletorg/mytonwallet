@@ -1,7 +1,10 @@
-import type { Address, DictionaryValue } from 'ton-core';
-import {
-  BitReader, BitString, Builder, Cell, Dictionary, Slice,
-} from 'ton-core';
+import type { Address, DictionaryValue } from '@ton/core';
+import { BitReader } from '@ton/core/dist/boc/BitReader';
+import { BitString } from '@ton/core/dist/boc/BitString';
+import { Builder } from '@ton/core/dist/boc/Builder';
+import { Cell } from '@ton/core/dist/boc/Cell';
+import { Slice } from '@ton/core/dist/boc/Slice';
+import { Dictionary } from '@ton/core/dist/dict/Dictionary';
 
 import type { ApiNetwork, ApiParsedPayload } from '../../../types';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
@@ -232,7 +235,7 @@ export async function parsePayloadSlice(
       return { type: 'encrypted-comment', encryptedComment };
     }
 
-    const queryId = slice.loadUint(64).toString();
+    const queryId = slice.loadUintBig(64);
 
     switch (opCode) {
       case JettonOpCode.Transfer: {
@@ -248,7 +251,7 @@ export async function parsePayloadSlice(
             type: 'tokens:transfer-non-standard',
             queryId,
             destination: toBase64Address(destination),
-            amount: amount.toString(),
+            amount,
             slug,
           };
         }
@@ -267,11 +270,11 @@ export async function parsePayloadSlice(
         return {
           type: 'tokens:transfer',
           queryId,
-          amount: amount.toString(),
+          amount,
           destination: toBase64Address(destination),
           responseDestination: toBase64Address(responseDestination),
           customPayload: customPayload?.toBoc().toString('base64'),
-          forwardAmount: forwardAmount.toString(),
+          forwardAmount,
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
           slug,
         };
@@ -299,7 +302,7 @@ export async function parsePayloadSlice(
           newOwner: toBase64Address(newOwner),
           responseDestination: toBase64Address(responseDestination),
           customPayload: customPayload?.toBoc().toString('base64'),
-          forwardAmount: forwardAmount.toString(),
+          forwardAmount,
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
           nftAddress,
           nftName: nft?.metadata?.name,
@@ -317,7 +320,7 @@ export async function parsePayloadSlice(
         return {
           type: 'tokens:burn',
           queryId,
-          amount: amount.toString(),
+          amount,
           address: toBase64Address(address),
           customPayload: customPayload?.toBoc().toString('base64'),
           slug,

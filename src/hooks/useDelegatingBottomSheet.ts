@@ -2,9 +2,7 @@ import type { BottomSheetKeys } from 'native-bottom-sheet';
 import { BottomSheet } from 'native-bottom-sheet';
 import { useEffect } from '../lib/teact/teact';
 import { forceOnHeavyAnimationOnce } from '../lib/teact/teactn';
-import { getActions, getGlobal } from '../global';
-
-import type { ActionPayloads } from '../global/types';
+import { getGlobal } from '../global';
 
 import { pause } from '../util/schedulers';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../util/windowEnvironment';
@@ -17,14 +15,6 @@ const controlledByNative = new Map<BottomSheetKeys, NoneToVoidFunction>();
 
 if (IS_DELEGATING_BOTTOM_SHEET) {
   BottomSheet.prepare();
-
-  BottomSheet.addListener(
-    'callActionInMain',
-    <K extends keyof ActionPayloads>({ name, optionsJson }: { name: string; optionsJson: string }) => {
-      const action = getActions()[name as K];
-      action((JSON.parse(optionsJson) || undefined) as ActionPayloads[K]);
-    },
-  );
 
   BottomSheet.addListener(
     'openInMain',

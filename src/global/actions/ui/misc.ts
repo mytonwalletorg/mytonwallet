@@ -13,6 +13,7 @@ import { getIsAddressValid } from '../../../util/getIsAddressValid';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { unique } from '../../../util/iteratees';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
+import { callActionInMain } from '../../../util/multitab';
 import { processDeeplink } from '../../../util/processDeeplink';
 import { pause } from '../../../util/schedulers';
 import { isTonConnectDeeplink } from '../../../util/ton/deeplinks';
@@ -39,8 +40,6 @@ import {
   selectCurrentAccountTokens,
   selectFirstNonHardwareAccount,
 } from '../../selectors';
-
-import { callActionInMain } from '../../../hooks/useDelegatedBottomSheet';
 
 const OPEN_LEDGER_TAB_DELAY = 500;
 const APP_VERSION_URL = 'version.txt';
@@ -488,7 +487,7 @@ addActionHandler('deleteToken', (global, actions, { slug }) => {
   const accountId = global.currentAccountId!;
   const { balances } = selectAccountState(global, accountId) ?? {};
 
-  if (!balances?.bySlug[slug]) {
+  if (balances?.bySlug[slug] === undefined) {
     return;
   }
 

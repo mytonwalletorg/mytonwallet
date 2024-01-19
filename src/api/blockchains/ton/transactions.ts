@@ -1,8 +1,8 @@
-import { Cell as TonCell } from 'ton-core';
 import type { Method } from 'tonweb';
 import TonWeb from 'tonweb';
 import type { Cell } from 'tonweb/dist/types/boc/cell';
 import type { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
+import { Cell as TonCell } from '@ton/core/dist/boc/Cell';
 
 import type {
   ApiAnyDisplayError,
@@ -17,8 +17,9 @@ import type { JettonWalletType } from './tokens';
 import type { AnyPayload, ApiTransactionExtra, TonTransferParams } from './types';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import { TON_TOKEN_SLUG } from '../../../config';
+import { ONE_TON, TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
+import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
 import { omit } from '../../../util/iteratees';
 import { isValidLedgerComment } from '../../../util/ledger/utils';
@@ -46,7 +47,9 @@ import { bytesToBase64, isKnownStakingPool } from '../../common/utils';
 import { ApiServerError, handleServerError } from '../../errors';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
-import { ATTEMPTS, STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
+import {
+  ATTEMPTS, FEE_FACTOR, STAKE_COMMENT, UNSTAKE_COMMENT,
+} from './constants';
 import {
   buildTokenTransfer, getTokenWalletBalance, parseTokenTransaction, resolveTokenBySlug,
 } from './tokens';
@@ -55,7 +58,7 @@ import {
 } from './wallet';
 
 export type CheckTransactionDraftResult = {
-  fee?: string;
+  fee?: bigint;
   addressName?: string;
   isScam?: boolean;
   resolvedAddress?: string;
@@ -65,7 +68,7 @@ export type CheckTransactionDraftResult = {
 
 export type SubmitTransferResult = {
   normalizedAddress: string;
-  amount: string;
+  amount: bigint;
   seqno: number;
   encryptedComment?: string;
 } | {
@@ -81,9 +84,9 @@ type SubmitMultiTransferResult = {
   error: string;
 };
 
-const { Address, fromNano } = TonWeb.utils;
+const { Address } = TonWeb.utils;
 
-const DEFAULT_FEE = '15000000';
+const DEFAULT_FEE = 15000000n;
 const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 60; // 60 sec.
 const GET_TRANSACTIONS_LIMIT = 50;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;
@@ -108,7 +111,7 @@ export async function checkTransactionDraft(
   accountId: string,
   tokenSlug: string,
   toAddress: string,
-  amount: string,
+  amount: bigint,
   data?: AnyPayload,
   stateInit?: Cell,
   shouldEncrypt?: boolean,
@@ -173,7 +176,7 @@ export async function checkTransactionDraft(
     if (addressInfo?.name) result.addressName = addressInfo.name;
     if (addressInfo?.isScam) result.isScam = addressInfo.isScam;
 
-    if (BigInt(amount) < BigInt(0)) {
+    if (amount < 0n) {
       return {
         ...result,
         error: ApiTransactionDraftError.InvalidAmount,
@@ -222,7 +225,7 @@ export async function checkTransactionDraft(
       }
     } else {
       const address = await fetchStoredAddress(accountId);
-      const tokenAmount: string = amount;
+      const tokenAmount: bigint = amount;
       let tokenWallet: JettonWalletType;
       ({
         tokenWallet,
@@ -232,7 +235,7 @@ export async function checkTransactionDraft(
       } = await buildTokenTransfer(network, tokenSlug, address, toAddress, amount, data));
 
       const tokenBalance = await getTokenWalletBalance(tokenWallet!);
-      if (BigInt(tokenBalance) < BigInt(tokenAmount!)) {
+      if (tokenBalance < tokenAmount!) {
         return {
           ...result,
           error: ApiTransactionDraftError.InsufficientBalance,
@@ -241,12 +244,14 @@ export async function checkTransactionDraft(
     }
 
     const isOurWalletInitialized = await isAddressInitialized(network, wallet);
-    result.fee = await calculateFee(isOurWalletInitialized, async () => (await signTransaction(
+    const realFee = await calculateFee(isOurWalletInitialized, async () => (await signTransaction(
       network, wallet, toAddress, amount, data, stateInit,
     )).query);
+    result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
 
     const balance = await getWalletBalance(network, wallet);
-    if (BigInt(balance) < BigInt(amount) + BigInt(result.fee)) {
+
+    if (balance < amount + realFee) {
       return {
         ...result,
         error: ApiTransactionDraftError.InsufficientBalance,
@@ -254,7 +259,7 @@ export async function checkTransactionDraft(
     }
 
     return result as {
-      fee: string;
+      fee: bigint;
       resolvedAddress: string;
       addressName?: string;
       isScam?: boolean;
@@ -273,7 +278,7 @@ export async function submitTransfer(
   password: string,
   tokenSlug: string,
   toAddress: string,
-  amount: string,
+  amount: bigint,
   data?: AnyPayload,
   stateInit?: Cell,
   shouldEncrypt?: boolean,
@@ -324,7 +329,7 @@ export async function submitTransfer(
     const { seqno, query } = await signTransaction(network, wallet!, toAddress, amount, data, stateInit, secretKey);
 
     const fee = await calculateFee(isInitialized, query);
-    if (BigInt(balance) < BigInt(amount) + BigInt(fee)) {
+    if (balance < amount + fee) {
       return { error: ApiTransactionError.InsufficientBalance };
     }
 
@@ -357,7 +362,7 @@ async function signTransaction(
   network: ApiNetwork,
   wallet: WalletContract,
   toAddress: string,
-  amount: string,
+  amount: bigint,
   payload?: string | Uint8Array | Cell,
   stateInit?: Cell,
   privateKey?: Uint8Array,
@@ -367,7 +372,7 @@ async function signTransaction(
   const query = wallet.methods.transfer({
     secretKey: privateKey as any, // Workaround for wrong typing
     toAddress,
-    amount,
+    amount: amount.toString(),
     payload,
     seqno: seqno || 0,
     sendMode: 3,
@@ -472,10 +477,9 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
     fromAddress, toAddress, comment, amount, extraData,
   } = transaction;
 
-  const amountNumber = Math.abs(Number(fromNano(amount)));
   let type: ApiTransactionType | undefined;
 
-  if (isKnownStakingPool(fromAddress) && amountNumber > 1) {
+  if (isKnownStakingPool(fromAddress) && amount > ONE_TON) {
     type = 'unstake';
   } else if (isKnownStakingPool(toBase64Address(toAddress, true))) {
     if (comment === STAKE_COMMENT) {
@@ -510,21 +514,21 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
   const { network } = parseAccountId(accountId);
 
   const result: {
-    fee?: string;
-    totalAmount?: string;
+    fee?: bigint;
+    totalAmount?: bigint;
   } = {};
 
   let totalAmount: bigint = 0n;
 
   try {
     for (const { toAddress, amount } of messages) {
-      if (BigInt(amount) < BigInt(0)) {
+      if (amount < 0n) {
         return { ...result, error: ApiTransactionDraftError.InvalidAmount };
       }
       if (!Address.isValid(toAddress)) {
         return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
       }
-      totalAmount += BigInt(amount);
+      totalAmount += amount;
     }
 
     const wallet = await pickAccountWallet(accountId);
@@ -535,16 +539,17 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
 
     const { isInitialized, balance } = await getWalletInfo(network, wallet);
 
-    result.fee = await calculateFee(isInitialized, async () => (await signMultiTransaction(
+    const realFee = await calculateFee(isInitialized, async () => (await signMultiTransaction(
       network, wallet, messages,
     )).query);
-    result.totalAmount = totalAmount.toString();
+    result.totalAmount = totalAmount;
+    result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
 
-    if (BigInt(balance) < totalAmount + BigInt(result.fee)) {
+    if (balance < totalAmount + realFee) {
       return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
     }
 
-    return result as { fee: string; totalAmount: string };
+    return result as { fee: bigint; totalAmount: bigint };
   } catch (err: any) {
     return handleServerError(err);
   }
@@ -678,7 +683,7 @@ async function calculateFee(isInitialized: boolean, query: Method | (() => Promi
   if (isInitialized) {
     const allFees = await query.estimateFee();
     const fees = allFees.source_fees;
-    return String(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
+    return BigInt(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
   } else {
     return DEFAULT_FEE;
   }

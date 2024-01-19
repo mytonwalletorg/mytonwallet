@@ -4,7 +4,7 @@ import path from 'path';
 import { ElectronAction, ElectronEvent } from './types';
 
 import {
-  IS_LINUX, IS_MAC_OS, IS_WINDOWS, mainWindow,
+  focusMainWindow, IS_LINUX, IS_MAC_OS, IS_WINDOWS, mainWindow,
 } from './utils';
 
 const TON_PROTOCOL = 'ton';
@@ -50,6 +50,7 @@ export function initDeeplink() {
       event.preventDefault();
       deeplinkUrl = url;
       processDeeplink();
+      focusMainWindow();
     });
   });
 
@@ -65,18 +66,7 @@ export function initDeeplink() {
     }
 
     processDeeplink();
-
-    if (mainWindow) {
-      if (!mainWindow.isVisible()) {
-        mainWindow.show();
-      }
-
-      if (mainWindow.isMinimized()) {
-        mainWindow.restore();
-      }
-
-      mainWindow.focus();
-    }
+    focusMainWindow();
   });
 }
 

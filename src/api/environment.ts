@@ -27,7 +27,7 @@ export function setEnvironment(args: ApiInitArgs) {
   environment = {
     ...args,
     isDappSupported: IS_EXTENSION || IS_CAPACITOR || args.isElectron,
-    isSseSupported: args.isElectron || IS_CAPACITOR,
+    isSseSupported: args.isElectron || (IS_CAPACITOR && !args.isNativeBottomSheet),
     // eslint-disable-next-line no-restricted-globals
     apiHeaders: { 'X-App-Origin': args.isElectron ? ELECTRON_ORIGIN : self?.origin },
     tonhttpapiMainnetKey: args.isElectron ? ELECTRON_TONHTTPAPI_MAINNET_API_KEY : TONHTTPAPI_MAINNET_API_KEY,

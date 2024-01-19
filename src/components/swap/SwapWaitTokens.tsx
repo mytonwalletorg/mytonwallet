@@ -25,8 +25,8 @@ interface OwnProps {
   isActive: boolean;
   tokenIn?: UserSwapToken;
   tokenOut?: UserSwapToken;
-  amountIn?: number;
-  amountOut?: number;
+  amountIn?: string;
+  amountOut?: string;
   payinAddress?: string;
   onClose: NoneToVoidFunction;
 }

@@ -45,7 +45,7 @@ export function buildLocalTransaction(
     txId: getNextLocalId(),
     timestamp: Date.now(),
     isIncoming: false,
-    amount: `-${amount}`,
+    amount: -amount,
     ...restParams,
     extraData: {
       normalizedAddress,

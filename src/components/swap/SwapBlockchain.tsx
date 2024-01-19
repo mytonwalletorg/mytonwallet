@@ -8,6 +8,7 @@ import { SwapState, SwapType, type UserSwapToken } from '../../global/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, IS_FIREFOX_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { readClipboardContent } from '../../util/clipboard';
 import { shortenAddress } from '../../util/shortenAddress';
 import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
 import { IS_FIREFOX } from '../../util/windowEnvironment';
@@ -128,19 +129,20 @@ function SwapBlockchain({
     setSwapCexAddress({ toAddress: newToAddress.trim() });
   });
 
-  const handlePasteClick = useLastCallback(() => {
-    navigator.clipboard
-      .readText()
-      .then((clipboardText) => {
-        setSwapCexAddress({ toAddress: clipboardText.trim() });
-        validateToAddress(clipboardText.trim());
-      })
-      .catch(() => {
-        showNotification({
-          message: lang('Error reading clipboard') as string,
-        });
-        setShouldRenderPasteButton(false);
+  const handlePasteClick = useLastCallback(async () => {
+    try {
+      const { type, text } = await readClipboardContent();
+
+      if (type === 'text/plain') {
+        setSwapCexAddress({ toAddress: text.trim() });
+        validateToAddress(text.trim());
+      }
+    } catch (error) {
+      showNotification({
+        message: lang('Error reading clipboard'),
       });
+      setShouldRenderPasteButton(false);
+    }
   });
 
   const submitPassword = useLastCallback(() => {

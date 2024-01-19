@@ -66,8 +66,8 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
 
   let fromToken: ApiSwapAsset | undefined;
   let toToken: ApiSwapAsset | undefined;
-  let fromAmount = 0;
-  let toAmount = 0;
+  let fromAmount = '0';
+  let toAmount = '0';
   let isPending = true;
   let isError = false;
   let isCexError = false;
@@ -83,8 +83,8 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     } = renderedActivity;
     fromToken = tokensBySlug?.[from];
     toToken = tokensBySlug?.[to];
-    fromAmount = Number(renderedActivity.fromAmount);
-    toAmount = Number(renderedActivity.toAmount);
+    fromAmount = renderedActivity.fromAmount;
+    toAmount = renderedActivity.toAmount;
 
     const isFromTon = from === TON_TOKEN_SLUG;
 

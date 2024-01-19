@@ -2,7 +2,6 @@ import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import { TON_TOKEN_SLUG } from '../../config';
-import { bigStrToHuman } from '../../global/helpers';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -17,11 +16,11 @@ import modalStyles from '../ui/Modal.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
-  amount?: number;
+  amount?: bigint;
   symbol: string;
-  balance?: number;
-  fee?: string;
-  operationAmount?: number;
+  balance?: bigint;
+  fee?: bigint;
+  operationAmount?: bigint;
   txId?: string;
   tokenSlug?: string;
   toAddress?: string;
@@ -77,7 +76,7 @@ function TransferComplete({
           tokenSymbol={symbol}
           precision={AMOUNT_PRECISION}
           balance={balance}
-          fee={fee ? bigStrToHuman(fee) : 0}
+          fee={fee ?? 0n}
           operationAmount={operationAmount ? -operationAmount : undefined}
           firstButtonText={txId ? lang('Details') : undefined}
           secondButtonText={lang('Repeat')}

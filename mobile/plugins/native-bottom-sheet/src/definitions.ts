@@ -37,10 +37,6 @@ export interface BottomSheetPlugin {
 
   setSelfSize(options: { size: 'half' | 'full' }): Promise<void>;
 
-  callActionInMain(options: { name: string, optionsJson: string }): Promise<void>;
-
-  callActionInNative(options: { name: string, optionsJson: string }): Promise<void>;
-
   openInMain(options: { key: BottomSheetKeys }): Promise<void>;
 
   addListener(
@@ -53,15 +49,6 @@ export interface BottomSheetPlugin {
     handler: () => void,
   ): Promise<PluginListenerHandle> & PluginListenerHandle;
 
-  addListener(
-    eventName: 'callActionInMain',
-    handler: (options: { name: string, optionsJson: string }) => void,
-  ): Promise<PluginListenerHandle> & PluginListenerHandle;
-
-  addListener(
-    eventName: 'callActionInNative',
-    handler: (options: { name: string, optionsJson: string }) => void,
-  ): Promise<PluginListenerHandle> & PluginListenerHandle;
 
   addListener(
     eventName: 'openInMain',

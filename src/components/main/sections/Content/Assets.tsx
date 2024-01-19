@@ -7,6 +7,7 @@ import type { UserToken } from '../../../../global/types';
 import { TON_TOKEN_SLUG } from '../../../../config';
 import { selectCurrentAccountState, selectCurrentAccountTokens, selectIsNewWallet } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { toDecimal } from '../../../../util/decimals';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useShowTransition from '../../../../hooks/useShowTransition';
@@ -28,7 +29,7 @@ interface StateProps {
   tokens?: UserToken[];
   isNewWallet: boolean;
   stakingStatus?: 'active' | 'unstakeRequested';
-  stakingBalance?: number;
+  stakingBalance?: bigint;
   isInvestorViewEnabled?: boolean;
   apyValue: number;
   currentTokenSlug?: string;
@@ -64,7 +65,7 @@ function Assets({
         token={tonToken!}
         stakingStatus={stakingStatus}
         apyValue={apyValue}
-        amount={stakingBalance}
+        amount={stakingBalance === undefined ? undefined : toDecimal(stakingBalance)}
         isInvestorView={isInvestorViewEnabled}
         classNames={stakedTokenClassNames}
         onClick={onStakedTokenClick}

@@ -7,6 +7,7 @@ import { StakingState } from '../../global/types';
 import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../config';
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
@@ -88,7 +89,7 @@ function StakeModal({
     return (
       <div className={stakingInfoClassName}>
         <img src={logoPath} alt={tonToken.symbol} className={styles.tokenIcon} />
-        <span>{formatCurrency(amount, tonToken.symbol)}</span>
+        <span>{formatCurrency(toDecimal(amount), tonToken.symbol)}</span>
       </div>
     );
   }
@@ -127,7 +128,7 @@ function StakeModal({
             playAnimation={isActive}
             amount={renderedStakingAmount}
             noSign
-            balance={tonToken?.amount ?? 0}
+            balance={tonToken?.amount ?? 0n}
             operationAmount={amount ? -amount : undefined}
             firstButtonText={lang('View')}
             secondButtonText={lang('Stake More')}

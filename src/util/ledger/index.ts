@@ -1,11 +1,12 @@
-import {
-  Address, Builder, Cell, SendMode,
-} from 'ton-core';
 import { StatusCodes } from '@ledgerhq/errors';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import type { TonPayloadFormat } from '@ton-community/ton-ledger';
 import { TonTransport } from '@ton-community/ton-ledger';
+import { Address } from '@ton/core/dist/address/Address';
+import { Builder } from '@ton/core/dist/boc/Builder';
+import { Cell } from '@ton/core/dist/boc/Cell';
+import { SendMode } from '@ton/core/dist/types/SendMode';
 
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
@@ -227,7 +228,7 @@ export async function buildLedgerTokenTransfer(
   slug: string,
   fromAddress: string,
   toAddress: string,
-  amount: string,
+  amount: bigint,
   comment?: string,
 ) {
   const { minterAddress } = (await callApi('resolveTokenBySlug', slug))!;
@@ -249,7 +250,7 @@ export async function buildLedgerTokenTransfer(
   const payload: TonPayloadFormat = {
     type: 'jetton-transfer',
     queryId: 0n,
-    amount: BigInt(amount),
+    amount,
     destination: Address.parse(toAddress),
     responseDestination: Address.parse(fromAddress),
     // eslint-disable-next-line no-null/no-null
@@ -259,7 +260,7 @@ export async function buildLedgerTokenTransfer(
   };
 
   return {
-    amount: TOKEN_TRANSFER_TON_AMOUNT.toString(),
+    amount: TOKEN_TRANSFER_TON_AMOUNT,
     toAddress: tokenWalletAddress!,
     payload,
   };
@@ -388,7 +389,7 @@ export async function signLedgerTransactions(
           fromAddress: fromAddress!,
           toAddress: message.toAddress,
           comment: message.payload?.type === 'comment' ? message.payload.comment : undefined,
-          fee: '0',
+          fee: 0n,
           slug: TON_TOKEN_SLUG,
         },
       });
@@ -436,7 +437,7 @@ export async function getNextLedgerWallets(
         continue;
       }
 
-      if (walletInfo.balance !== '0') {
+      if (walletInfo.balance !== 0n) {
         result.push(walletInfo);
         index += 1;
         continue;

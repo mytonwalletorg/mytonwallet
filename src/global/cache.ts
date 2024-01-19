@@ -15,6 +15,7 @@ import {
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
 import authApi from '../util/authApi';
+import { bigintReviver } from '../util/bigint';
 import { cloneDeep, mapValues, pick } from '../util/iteratees';
 import {
   onBeforeUnload, onIdle, throttle,
@@ -132,7 +133,7 @@ function readCache(initialState: GlobalState): GlobalState {
   }
 
   const json = localStorage.getItem(GLOBAL_STATE_CACHE_KEY);
-  let cached = json ? JSON.parse(json) as GlobalState : undefined;
+  let cached = json ? JSON.parse(json, bigintReviver) as GlobalState : undefined;
 
   if (DEBUG) {
     // eslint-disable-next-line no-console
@@ -356,6 +357,24 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
       }
     }
     cached.stateVersion = 12;
+  }
+
+  if (cached.stateVersion === 12) {
+    if (cached.byAccountId) {
+      for (const accountId of Object.keys(cached.byAccountId)) {
+        delete cached.byAccountId[accountId].activities;
+
+        const { balances } = cached.byAccountId[accountId];
+        if (balances) {
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
+          balances.bySlug = Object.entries(balances.bySlug).reduce((acc, [slug, balance]) => {
+            acc[slug] = BigInt(balance);
+            return acc;
+          }, {} as Record<string, bigint>);
+        }
+      }
+    }
+    cached.stateVersion = 13;
   }
 
   // When adding migration here, increase `STATE_VERSION`

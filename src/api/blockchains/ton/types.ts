@@ -29,16 +29,16 @@ export interface ApiTransactionExtra extends ApiTransaction {
 
 export interface TokenTransferBodyParams {
   queryId?: number;
-  tokenAmount: string;
+  tokenAmount: bigint;
   toAddress: string;
   responseAddress: string;
-  forwardAmount: string;
+  forwardAmount: bigint;
   forwardPayload?: AnyPayload;
 }
 
 export interface TonTransferParams {
   toAddress: string;
-  amount: string;
+  amount: bigint;
   payload?: AnyPayload;
   stateInit?: Cell;
   isBase64Payload?: boolean;

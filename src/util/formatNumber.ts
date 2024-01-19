@@ -1,13 +1,16 @@
 import type { ApiBaseCurrency } from '../api/types';
 
 import { DEFAULT_DECIMAL_PLACES, DEFAULT_PRICE_CURRENCY, SHORT_CURRENCY_SYMBOL_MAP } from '../config';
+import { Big } from '../lib/big.js';
+import { toDecimal } from './decimals';
 import withCache from './withCache';
 
 const SHORT_SYMBOLS = new Set(Object.values(SHORT_CURRENCY_SYMBOL_MAP));
 
-export const formatInteger = withCache((value: number, fractionDigits = 2, noRadix = false) => {
-  const dp = value >= 1 ? fractionDigits : DEFAULT_DECIMAL_PLACES;
-  const fixed = value.toFixed(dp);
+export const formatInteger = withCache((value: number | Big | string, fractionDigits = 2, noRadix = false) => {
+  value = Big(value);
+  const dp = value.gte(1) ? fractionDigits : DEFAULT_DECIMAL_PLACES;
+  const fixed = value.round(dp).toString();
 
   let [wholePart, fractionPart = ''] = fixed.split('.');
 
@@ -25,31 +28,32 @@ export const formatInteger = withCache((value: number, fractionDigits = 2, noRad
   ].filter(Boolean).join('.');
 });
 
-export function formatCurrency(value: number, currency: string, fractionDigits?: number) {
+export function formatCurrency(value: number | string | Big, currency: string, fractionDigits?: number) {
   const formatted = formatInteger(value, fractionDigits);
   return addCurrency(formatted, currency);
 }
 
-export function formatCurrencyExtended(value: number, currency: string, noSign = false, fractionDigits?: number) {
-  const prefix = !noSign ? (value > 0 ? '+\u202F' : '\u2212\u202F') : '';
+export function formatCurrencyExtended(
+  value: number | string, currency: string, noSign = false, fractionDigits?: number,
+) {
+  value = value.toString();
 
-  return prefix + formatCurrency(noSign ? value : Math.abs(value), currency, fractionDigits);
+  const prefix = !noSign ? (!value.startsWith('-') ? '+\u202F' : '\u2212\u202F') : '';
+
+  return prefix + formatCurrency(noSign ? value : value.replace('-', ''), currency, fractionDigits);
 }
 
-export function formatCurrencySimple(value: number, currency: string, decimals?: number) {
-  const stringValue = clearZeros(value.toFixed(decimals ?? DEFAULT_DECIMAL_PLACES));
-  return addCurrency(stringValue, currency);
+export function formatCurrencySimple(value: number | bigint | string, currency: string, decimals?: number) {
+  if (typeof value !== 'string') {
+    value = toDecimal(value, decimals);
+  }
+  return addCurrency(value, currency);
 }
 
 function addCurrency(value: number | string, currency: string) {
   return SHORT_SYMBOLS.has(currency)
     ? `${currency}${value}`.replace(`${currency}-`, `-${currency}`)
     : `${value} ${currency}`;
-}
-
-function clearZeros(value: string) {
-  if (value.indexOf('.') === -1) return value;
-  return value.replace(/\.?0*$/, '');
 }
 
 export function formatCurrencyForBigValue(value: number, currency: string, threshold = 1000) {

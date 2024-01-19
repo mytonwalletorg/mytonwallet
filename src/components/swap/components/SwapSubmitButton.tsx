@@ -18,8 +18,8 @@ import styles from '../Swap.module.scss';
 interface OwnProps {
   tokenIn?: UserSwapToken;
   tokenOut?: UserSwapToken;
-  amountIn?: number;
-  amountOut?: number;
+  amountIn?: string;
+  amountOut?: string;
   swapType?: SwapType;
   isEstimating?: boolean;
   isSending?: boolean;
@@ -58,10 +58,10 @@ function SwapSubmitButton({
     [SwapErrorType.InvalidPair]: lang('Invalid Pair'),
     [SwapErrorType.NotEnoughLiquidity]: lang('Insufficient liquidity'),
     [SwapErrorType.ChangellyMinSwap]: lang('Minimum amount', {
-      value: formatCurrencySimple(Number(limits?.fromMin ?? 0), tokenIn?.symbol ?? '', tokenIn?.decimals),
+      value: formatCurrencySimple(limits?.fromMin ?? '0', tokenIn?.symbol ?? '', tokenIn?.decimals),
     }),
     [SwapErrorType.ChangellyMaxSwap]: lang('Maximum amount', {
-      value: formatCurrencySimple(Number(limits?.fromMax ?? 0), tokenIn?.symbol ?? '', tokenIn?.decimals),
+      value: formatCurrencySimple(limits?.fromMax ?? '0', tokenIn?.symbol ?? '', tokenIn?.decimals),
     }),
   };
 
