@@ -3,6 +3,7 @@ import {
 } from 'ton-core';
 import { StatusCodes } from '@ledgerhq/errors';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
+import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import type { TonPayloadFormat } from '@ton-community/ton-ledger';
 import { TonTransport } from '@ton-community/ton-ledger';
 
@@ -39,7 +40,7 @@ const ATTEMPTS = 10;
 const PAUSE = 125;
 const IS_BOUNCEABLE = false;
 
-let transport: TransportWebHID | undefined;
+let transport: TransportWebHID | TransportWebUSB | undefined;
 let tonTransport: TonTransport | undefined;
 
 export async function importLedgerWallet(network: ApiNetwork, accountIndex: number) {
@@ -61,7 +62,14 @@ export async function reconnectLedger() {
 
 export async function connectLedger() {
   try {
-    transport = await connectHID();
+    if (await TransportWebHID.isSupported()) {
+      transport = await connectHID();
+    } else if (await TransportWebUSB.isSupported()) {
+      transport = await connectUSB();
+    } else {
+      logDebugError('connectLedger: HID and/or USB are not supported');
+      return false;
+    }
     tonTransport = new TonTransport(transport);
     return true;
   } catch (err) {
@@ -123,6 +131,26 @@ async function connectHID() {
       return new TransportWebHID(device);
     } else {
       return TransportWebHID.open(device);
+    }
+  }
+
+  throw new Error('Failed to connect');
+}
+
+async function connectUSB() {
+  for (let i = 0; i < ATTEMPTS; i++) {
+    const [device] = await TransportWebUSB.list();
+
+    if (!device) {
+      await TransportWebUSB.create();
+      await pause(PAUSE);
+      continue;
+    }
+
+    if (device.opened) {
+      return (await TransportWebUSB.openConnected()) ?? (await TransportWebUSB.request());
+    } else {
+      return TransportWebUSB.open(device);
     }
   }
 
