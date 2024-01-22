@@ -195,7 +195,7 @@ function UnstakeModal({
           {!hasBalanceForUnstake && (
             <p className={styles.insufficientBalance}>
               {lang('$unstake_insufficient_balance', {
-                balance: `${MIN_BALANCE_FOR_UNSTAKE} ${TON_SYMBOL}`,
+                balance: `${toDecimal(MIN_BALANCE_FOR_UNSTAKE)} ${TON_SYMBOL}`,
               })}
             </p>
           )}

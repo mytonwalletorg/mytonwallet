@@ -315,7 +315,8 @@ function TransactionModal({
         <TransactionAmount
           isIncoming={isIncoming}
           isScam={isScam}
-          amount={toDecimal(amount ?? 0n, token?.decimals)}
+          amount={amount ?? 0n}
+          decimals={token?.decimals}
           tokenSymbol={token?.symbol}
         />
 

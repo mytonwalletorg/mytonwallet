@@ -217,6 +217,7 @@ function TransferModal({
             comment={comment}
             onInfoClick={handleTransactionInfoClick}
             onClose={handleModalCloseWithReset}
+            decimals={decimals}
           />
         );
     }

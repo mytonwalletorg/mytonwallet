@@ -519,7 +519,7 @@ function TransferInitial({
           key="amount"
           id="amount"
           hasError={hasAmountError}
-          value={amount === undefined ? undefined : toDecimal(amount)}
+          value={amount === undefined ? undefined : toDecimal(amount, decimals)}
           labelText={lang('Amount')}
           onChange={handleAmountChange}
           onPressEnter={handleSubmit}

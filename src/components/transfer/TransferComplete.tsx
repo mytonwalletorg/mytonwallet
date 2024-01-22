@@ -25,6 +25,7 @@ interface OwnProps {
   tokenSlug?: string;
   toAddress?: string;
   comment?: string;
+  decimals?: number;
   onInfoClick: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -42,6 +43,7 @@ function TransferComplete({
   tokenSlug,
   toAddress,
   comment,
+  decimals,
   onInfoClick,
   onClose,
 }: OwnProps) {
@@ -82,6 +84,7 @@ function TransferComplete({
           secondButtonText={lang('Repeat')}
           onFirstButtonClick={onInfoClick}
           onSecondButtonClick={handleTransactionRepeatClick}
+          decimals={decimals}
         />
 
         <div className={modalStyles.buttons}>

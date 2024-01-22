@@ -2,12 +2,14 @@ import React, { memo } from '../../lib/teact/teact';
 
 import { DEFAULT_DECIMAL_PLACES, TON_SYMBOL } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { toDecimal } from '../../util/decimals';
 import { formatCurrency, formatCurrencyExtended } from '../../util/formatNumber';
 
 import styles from './TransactionAmount.module.scss';
 
 interface OwnProps {
-  amount: string;
+  amount: bigint;
+  decimals?: number;
   isIncoming?: boolean;
   isScam?: boolean;
   tokenSymbol?: string;
@@ -19,11 +21,13 @@ function TransactionAmount({
   isIncoming,
   isScam,
   amount,
+  decimals,
   tokenSymbol,
   from,
   to,
 }: OwnProps) {
-  const [wholePart, fractionPart] = formatCurrencyExtended(amount, '', false, DEFAULT_DECIMAL_PLACES).split('.');
+  const amountString = toDecimal(amount, decimals);
+  const [wholePart, fractionPart] = formatCurrencyExtended(amountString, '', false, decimals).split('.');
 
   const withBalanceChange = from !== undefined && to !== undefined;
 

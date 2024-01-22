@@ -51,7 +51,7 @@ function TransferResult({
   }
 
   const amountString = toDecimal(amount, decimals);
-  const [wholePart, fractionPart] = formatCurrencyExtended(amountString, '', noSign).split('.');
+  const [wholePart, fractionPart] = formatCurrencyExtended(amountString, '', noSign, decimals).split('.');
 
   function renderButtons() {
     if (!firstButtonText && !secondButtonText) {
