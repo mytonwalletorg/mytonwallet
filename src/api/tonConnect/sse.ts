@@ -16,6 +16,7 @@ import { logDebug, logDebugError } from '../../util/logs';
 import safeExec from '../../util/safeExec';
 import { getCurrentNetwork, waitLogin } from '../common/accounts';
 import { bytesToHex, handleFetchErrors } from '../common/utils';
+import { apiDb } from '../db';
 import {
   getDappsState,
   getSseLastEventId,
@@ -40,14 +41,19 @@ let sseDapps: SseDapp[] = [];
 export async function startSseConnection(url: string, deviceInfo: DeviceInfo): Promise<ReturnStrategy | undefined> {
   const params = new URL(url).searchParams;
 
-  const ret = params.get('ret') as ReturnStrategy | null;
+  const ret: ReturnStrategy = params.get('ret') || 'back';
+  const version = Number(params.get('v') as string);
+  const appClientId = params.get('id') as string;
 
-  if (!ret || !params.get('r')) {
+  if (!params.get('r')) {
+    return undefined;
+  }
+
+  if (await apiDb.sseConnections.get(appClientId)) {
+    // Avoid re-processing link
     return ret ?? undefined;
   }
 
-  const version = Number(params.get('v') as string);
-  const appClientId = params.get('id') as string;
   const connectRequest = JSON.parse(params.get('r') as string) as ConnectRequest;
   const { origin } = await tonConnect.fetchDappMetadata(connectRequest.manifestUrl);
 
@@ -78,6 +84,8 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
   }
 
   await sendMessage(result, secretKey, clientId, appClientId);
+
+  await apiDb.sseConnections.put({ clientId: appClientId });
 
   if (result.event !== 'connect_error') {
     await resetupSseConnection();

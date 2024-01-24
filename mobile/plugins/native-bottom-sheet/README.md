@@ -16,6 +16,8 @@ npx cap sync
 * [`prepare()`](#prepare)
 * [`applyScrollPatch()`](#applyscrollpatch)
 * [`clearScrollPatch()`](#clearscrollpatch)
+* [`disable()`](#disable)
+* [`enable()`](#enable)
 * [`delegate(...)`](#delegate)
 * [`release(...)`](#release)
 * [`openSelf(...)`](#openself)
@@ -55,6 +57,24 @@ applyScrollPatch() => Promise<void>
 
 ```typescript
 clearScrollPatch() => Promise<void>
+```
+
+--------------------
+
+
+### disable()
+
+```typescript
+disable() => Promise<void>
+```
+
+--------------------
+
+
+### enable()
+
+```typescript
+enable() => Promise<void>
 ```
 
 --------------------

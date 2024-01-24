@@ -3,7 +3,7 @@ import Store from 'electron-store';
 import fs from 'fs';
 
 import {
-  BASE_URL, BETA_URL, GLOBAL_STATE_CACHE_KEY, PRODUCTION_URL,
+  APP_ENV, BASE_URL, BETA_URL, GLOBAL_STATE_CACHE_KEY, PRODUCTION_URL,
 } from '../config';
 
 const ALLOWED_URL_ORIGINS = [BASE_URL!, BETA_URL, PRODUCTION_URL].map((url) => (new URL(url).origin));
@@ -33,6 +33,7 @@ export const IS_WINDOWS = process.platform === 'win32';
 export const IS_LINUX = process.platform === 'linux';
 export const IS_PREVIEW = process.env.IS_PREVIEW === 'true';
 export const IS_FIRST_RUN = !fs.existsSync(`${app.getPath('userData')}/${WINDOW_STATE_FILE}`);
+export const IS_PRODUCTION = APP_ENV === 'production';
 
 // Fix for users who updated to version 1.17.4, which was by mistake loading Beta URL. Can be removed after 31.01.2024.
 export function getIsForceStorageCaptureRequired(): Promise<boolean> {

@@ -54,6 +54,7 @@ interface StateProps {
 
 const ESTIMATE_REQUEST_INTERVAL = 5_000;
 const ESTIMATE_REQUEST_DEBOUNCE_TIME = 500;
+const SET_AMOUNT_DEBOUNCE_TIME = 500;
 const DEFAULT_SWAP_FEE = 500000000n; // 0.5 TON
 
 function SwapInitial({
@@ -143,7 +144,7 @@ function SwapInitial({
 
   const amountInBig = useMemo(() => Big(amountIn || 0), [amountIn]);
   const amountOutBig = useMemo(() => Big(amountOut || 0), [amountOut]);
-  const tokenInAmountBig = useMemo(() => toDecimal(tokenIn?.amount ?? 0n), [tokenIn]);
+  const tokenInAmountBig = useMemo(() => toDecimal(tokenIn?.amount ?? 0n, tokenIn?.decimals), [tokenIn]);
 
   const isErrorExist = errorType !== undefined;
   const isEnoughTON = TON.amount > totalTonAmount;
@@ -176,6 +177,12 @@ function SwapInitial({
 
   const debounceEstimateSwap = useDebouncedCallback(
     handleEstimateSwap, [handleEstimateSwap], ESTIMATE_REQUEST_DEBOUNCE_TIME, true,
+  );
+  const debounceSetAmountIn = useDebouncedCallback(
+    setSwapAmountIn, [setSwapAmountIn], SET_AMOUNT_DEBOUNCE_TIME, true,
+  );
+  const debounceSetAmountOut = useDebouncedCallback(
+    setSwapAmountOut, [setSwapAmountOut], SET_AMOUNT_DEBOUNCE_TIME, true,
   );
 
   const createEstimateTimer = useLastCallback(() => {
@@ -244,24 +251,24 @@ function SwapInitial({
   }, [amountIn, tokenIn, validateAmountIn, swapType]);
 
   const handleAmountInChange = useLastCallback(
-    (value: string | undefined, noReset = false) => {
+    (amount: string | undefined, noReset = false) => {
       if (!noReset) {
         setHasAmountInError(false);
       }
 
-      if (!value) {
-        setSwapAmountIn({ amount: undefined });
+      if (!amount) {
+        debounceSetAmountIn({ amount: undefined });
         return;
       }
 
-      validateAmountIn(value);
-      setSwapAmountIn({ amount: value });
+      validateAmountIn(amount);
+      debounceSetAmountIn({ amount });
     },
   );
 
   const handleAmountOutChange = useLastCallback(
-    (value: string | undefined) => {
-      setSwapAmountOut({ amount: value });
+    (amount: string | undefined) => {
+      debounceSetAmountOut({ amount });
     },
   );
 

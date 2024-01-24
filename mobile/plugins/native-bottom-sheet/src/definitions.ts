@@ -27,6 +27,10 @@ export interface BottomSheetPlugin {
 
   clearScrollPatch(): Promise<void>;
 
+  disable(): Promise<void>;
+
+  enable(): Promise<void>;
+
   delegate(options: { key: BottomSheetKeys, globalJson: string }): Promise<void>;
 
   release(options: { key: BottomSheetKeys | '*' }): Promise<void>;

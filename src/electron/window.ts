@@ -6,15 +6,15 @@ import path from 'path';
 
 import { ElectronAction } from './types';
 
-import { APP_ENV, BASE_URL, BETA_URL } from '../config';
+import { BASE_URL, BETA_URL } from '../config';
 import { AUTO_UPDATE_SETTING_KEY, getIsAutoUpdateEnabled, setupAutoUpdates } from './autoUpdates';
 import { processDeeplink } from './deeplink';
 import { captureStorage, restoreStorage } from './storageUtils';
 import tray from './tray';
 import {
   checkIsWebContentsUrlAllowed, FORCE_STORAGE_CAPTURED_SETTINGS_KEY, forceQuit,
-  getIsForceStorageCaptureRequired, IS_FIRST_RUN, IS_MAC_OS, IS_PREVIEW, IS_WINDOWS,
-  mainWindow, setMainWindow, store, WINDOW_STATE_FILE,
+  getIsForceStorageCaptureRequired, IS_FIRST_RUN, IS_MAC_OS, IS_PREVIEW, IS_PRODUCTION,
+  IS_WINDOWS, mainWindow, setMainWindow, store, WINDOW_STATE_FILE,
 } from './utils';
 
 const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://', BASE_URL];
@@ -37,7 +37,7 @@ export function createWindow() {
     title: 'MyTonWallet',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      devTools: APP_ENV !== 'production',
+      devTools: !IS_PRODUCTION,
     },
     titleBarStyle: 'hidden',
     ...(IS_MAC_OS && {
@@ -79,7 +79,7 @@ export function createWindow() {
   mainWindow.webContents.once('dom-ready', async () => {
     processDeeplink();
 
-    if (APP_ENV === 'production') {
+    if (IS_PRODUCTION) {
       setupAutoUpdates();
     }
 

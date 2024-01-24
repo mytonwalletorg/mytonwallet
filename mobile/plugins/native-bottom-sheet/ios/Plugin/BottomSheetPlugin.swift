@@ -61,6 +61,45 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
         }
     }
 
+    @objc func disable(_ call: CAPPluginCall) {
+        ensureLocalOrigin()
+        ensureDelegating()
+
+        DispatchQueue.main.async { [self] in
+            if let presentingVc = self.fpc.presentingViewController {
+                presentingVc.dismiss(animated: false) {
+                    call.resolve()
+                }
+            } else {
+                call.resolve()
+            }
+        }
+    }
+
+    @objc func enable(_ call: CAPPluginCall) {
+        ensureLocalOrigin()
+        ensureDelegating()
+
+        DispatchQueue.main.async { [self] in
+            if (self.fpc.presentingViewController != nil) {
+                call.resolve()
+                return
+            }
+
+            if let presentedVc = self.bridge!.viewController!.presentedViewController {
+                presentedVc.dismiss(animated: false) {
+                    self.bridge?.viewController?.present(self.fpc, animated: false) {
+                        call.resolve()
+                    }
+                }
+            } else {
+                self.bridge?.viewController?.present(self.fpc, animated: false) {
+                    call.resolve()
+                }
+            }
+        }
+    }
+
     @objc func applyScrollPatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [self] in
             let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController

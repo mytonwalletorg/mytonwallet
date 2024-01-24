@@ -69,7 +69,7 @@ function InvoiceModal({
   const handleAmountInput = useLastCallback((stringValue?: string) => {
     setHasAmountError(false);
 
-    if (stringValue === undefined) {
+    if (!stringValue) {
       setAmount(undefined);
       return;
     }

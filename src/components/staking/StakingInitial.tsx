@@ -226,7 +226,7 @@ function StakingInitial({
 
     const minusOneLink = (
       <a href="#" onClick={handleMinusOneClick} className={styles.balanceLink}>
-        {formatCurrency(toDecimal(ONE_TON), symbol)}
+        {formatCurrency(toDecimal(-ONE_TON), symbol)}
       </a>
     );
 

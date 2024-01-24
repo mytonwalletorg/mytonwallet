@@ -11,16 +11,19 @@ let apiByNetwork: Record<ApiNetwork, Api<unknown>> | undefined;
 
 function getApi(network: ApiNetwork) {
   if (!apiByNetwork) {
-    const headers = getEnvironment().apiHeaders;
+    const headers = {
+      ...getEnvironment().apiHeaders,
+      'Content-Type': 'application/json',
+    };
 
     apiByNetwork = {
       mainnet: new Api(new HttpClient({
         baseUrl: TONAPIIO_MAINNET_URL,
-        ...(headers && { baseApiParams: { headers } }),
+        baseApiParams: { headers },
       })),
       testnet: new Api(new HttpClient({
         baseUrl: TONAPIIO_TESTNET_URL,
-        ...(headers && { baseApiParams: { headers } }),
+        baseApiParams: { headers },
       })),
     };
   }

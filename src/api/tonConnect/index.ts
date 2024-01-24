@@ -107,11 +107,6 @@ export async function connect(
 
     await openExtensionPopup(true);
 
-    onPopupUpdate({
-      type: 'dappLoading',
-      connectionType: 'connect',
-    });
-
     let accountId = await getCurrentAccountOrFail();
     const isConnected = await isDappConnected(accountId, origin);
 
@@ -122,6 +117,11 @@ export async function connect(
     } | undefined;
 
     if (!isConnected || proof) {
+      onPopupUpdate({
+        type: 'dappLoading',
+        connectionType: 'connect',
+      });
+
       const { promiseId, promise } = createDappPromise();
 
       const dapp = {

@@ -107,10 +107,6 @@ function RichNumberInput({
 
     const newValue = clearValue(inputValue, decimals);
 
-    // TODO Убрать
-    // eslint-disable-next-line no-console
-    console.log({ value, inputValue, newValue });
-
     const parts = getParts(newValue, decimals);
     const isEmpty = inputValue === '';
 

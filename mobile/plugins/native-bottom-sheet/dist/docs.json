@@ -36,6 +36,26 @@
         "slug": "clearscrollpatch"
       },
       {
+        "name": "disable",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "disable"
+      },
+      {
+        "name": "enable",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "enable"
+      },
+      {
         "name": "delegate",
         "signature": "(options: { key: BottomSheetKeys; globalJson: string; }) => Promise<void>",
         "parameters": [

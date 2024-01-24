@@ -89,7 +89,7 @@ export async function processDeeplink(url: string) {
   if (isTonConnectDeeplink(url)) {
     const deviceInfo = tonConnectGetDeviceInfo();
     const returnStrategy = await callApi('startSseConnection', url, deviceInfo);
-    if (returnStrategy === 'ret') {
+    if (returnStrategy === 'back') {
       await App.minimizeApp();
     }
   }

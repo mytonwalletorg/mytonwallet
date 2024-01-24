@@ -38,6 +38,7 @@ interface StateProps {
   isNftSupported: boolean;
   tokensCount: number;
   activeContentTab?: ContentTab;
+  currentTokenSlug?: string;
 }
 
 function Content({
@@ -45,6 +46,7 @@ function Content({
   tokensCount,
   onStakedTokenClick,
   isNftSupported,
+  currentTokenSlug,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -125,6 +127,13 @@ function Content({
       },
     });
   }, [TABS, handleSwitchTab, activeTabIndex]);
+
+  useEffect(() => {
+    if (currentTokenSlug !== undefined) return;
+
+    setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined });
+    changeTransferToken({ tokenSlug: TON_TOKEN_SLUG });
+  }, [currentTokenSlug]);
 
   const handleClickAsset = useLastCallback((slug: string) => {
     selectToken({ slug });
@@ -221,6 +230,7 @@ export default memo(
         tokensCount,
         isNftSupported: !isLedger,
         activeContentTab: accountState?.activeContentTab,
+        currentTokenSlug: accountState?.currentTokenSlug,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

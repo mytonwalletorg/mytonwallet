@@ -1,7 +1,7 @@
 import { Lethargy } from './lethargy';
 import { clamp, round } from './math';
 import { debounce } from './schedulers';
-import { IS_IOS } from './windowEnvironment';
+import { IS_IOS, IS_WINDOWS } from './windowEnvironment';
 import windowSize from './windowSize';
 
 export enum SwipeDirection {
@@ -46,8 +46,8 @@ interface CaptureOptions {
   }) => void;
   onClick?: (e: MouseEvent | TouchEvent) => void;
   onDoubleClick?: (e: MouseEvent | RealTouchEvent | WheelEvent, params: { centerX: number; centerY: number }) => void;
-  includedClosestSelector?: string;
   excludedClosestSelector?: string;
+  includedClosestSelector?: string;
   selectorToPreventScroll?: string;
   withNativeDrag?: boolean;
   maxZoom?: number;
@@ -57,6 +57,7 @@ interface CaptureOptions {
   isNotPassive?: boolean;
   withCursor?: boolean;
   swipeThreshold?: number;
+  withWheelDrag?: boolean;
 }
 
 // https://stackoverflow.com/questions/11287877/how-can-i-get-e-offsetx-on-mobile-ipad
@@ -72,6 +73,7 @@ type TSwipeAxis =
   | undefined;
 
 export const IOS_SCREEN_EDGE_THRESHOLD = 20;
+
 const MOVE_THRESHOLD = 15;
 const SWIPE_THRESHOLD_DEFAULT = 20;
 const RELEASE_WHEEL_ZOOM_DELAY = 150;
@@ -93,7 +95,7 @@ let lastClickTime = 0;
 const lethargy = new Lethargy({
   stability: 5,
   sensitivity: 25,
-  tolerance: 0.6,
+  tolerance: IS_WINDOWS ? 1 : 0.6, // Windows `scrollDelta` does not die down to 0
   delay: 150,
 });
 
@@ -130,6 +132,14 @@ export function captureEvents(element: HTMLElement, options: CaptureOptions) {
       withCursor,
       onDrag,
     } = options;
+
+    if (element !== target && !element.contains(target)) {
+      return;
+    }
+
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      return;
+    }
 
     if (
       (excludedClosestSelector && (target.matches(excludedClosestSelector) || target.closest(excludedClosestSelector)))
@@ -416,15 +426,18 @@ export function captureEvents(element: HTMLElement, options: CaptureOptions) {
     }
   }
 
-  element.addEventListener('wheel', onWheel);
+  if (options.withWheelDrag) {
+    element.addEventListener('wheel', onWheel);
+  }
+
   element.addEventListener('mousedown', onCapture);
   document.body.addEventListener('touchstart', onCapture, { passive: !options.isNotPassive });
 
   return () => {
     onRelease();
-    element.removeEventListener('wheel', onWheel);
     document.body.removeEventListener('touchstart', onCapture);
     element.removeEventListener('mousedown', onCapture);
+    element.removeEventListener('wheel', onWheel);
   };
 }
 

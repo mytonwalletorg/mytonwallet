@@ -6,7 +6,7 @@ import path from 'path';
 
 import { initDeeplink } from './deeplink';
 import { setupSecrets } from './secrets';
-import { IS_MAC_OS } from './utils';
+import { IS_MAC_OS, IS_PRODUCTION } from './utils';
 import { createWindow, setupCloseHandlers, setupElectronActionHandlers } from './window';
 
 initDeeplink();
@@ -17,6 +17,7 @@ contextMenu({
   showSearchWithGoogle: false,
   showCopyImage: false,
   showSelectAll: true,
+  showInspectElement: !IS_PRODUCTION,
 });
 
 app.on('ready', () => {

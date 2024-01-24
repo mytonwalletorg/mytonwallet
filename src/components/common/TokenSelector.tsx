@@ -243,6 +243,8 @@ function TokenSelector({
   }, [isActive]);
 
   const handleTokenClick = useLastCallback((selectedToken: Token) => {
+    searchInputRef.current?.blur();
+
     if (isPortrait) {
       onBack();
     } else {

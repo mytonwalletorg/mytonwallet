@@ -1,4 +1,5 @@
 import type { ApiTransactionExtra } from '../blockchains/ton/types';
+import type { ApiDbSseConnection } from '../db';
 import type { StorageKey } from '../storages/types';
 import type {
   AccountIdParsed,
@@ -12,6 +13,8 @@ import type {
 import { IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { toBase64Address } from '../blockchains/ton/util/tonweb';
+import { apiDb } from '../db';
+import { getEnvironment } from '../environment';
 import { storage } from '../storages';
 import idbStorage from '../storages/idb';
 import { getKnownAddresses, getScamMarkers } from './addresses';
@@ -19,7 +22,7 @@ import { getKnownAddresses, getScamMarkers } from './addresses';
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 8;
+const actualStateVersion = 9;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -247,5 +250,30 @@ export async function migrateStorage(onUpdate: OnApiUpdate) {
 
     version = 8;
     await storage.setItem('stateVersion', version);
+  }
+
+  if (version === 8) {
+    if (getEnvironment().isSseSupported) {
+      const dapps = await storage.getItem('dapps');
+
+      if (dapps) {
+        const items: ApiDbSseConnection[] = [];
+
+        for (const accountDapps of Object.values(dapps) as any[]) {
+          for (const dapp of Object.values(accountDapps) as any[]) {
+            if (dapp.sse?.appClientId) {
+              items.push({ clientId: dapp.sse?.appClientId });
+            }
+          }
+        }
+
+        if (items.length) {
+          await apiDb.sseConnections.bulkPut(items);
+        }
+      }
+
+      version = 9;
+      await storage.setItem('stateVersion', version);
+    }
   }
 }
