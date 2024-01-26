@@ -23,10 +23,11 @@ export function initTransactions(_onUpdate: OnApiUpdate) {
 }
 
 export async function fetchTokenActivitySlice(accountId: string, slug: string, fromTxId?: string, limit?: number) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+  const { network, blockchain } = parseAccountId(accountId);
+  const activeBlockchain = blockchains[blockchain];
   try {
-    const transactions = await blockchain.getTokenTransactionSlice(accountId, slug, fromTxId, undefined, limit);
-    return await swapReplaceTransactions(accountId, transactions, slug);
+    const transactions = await activeBlockchain.getTokenTransactionSlice(accountId, slug, fromTxId, undefined, limit);
+    return await swapReplaceTransactions(accountId, transactions, network, slug);
   } catch (err) {
     logDebugError('fetchTokenActivitySlice', err);
     return handleServerError(err);
@@ -34,10 +35,11 @@ export async function fetchTokenActivitySlice(accountId: string, slug: string, f
 }
 
 export async function fetchAllActivitySlice(accountId: string, lastTxIds: ApiTxIdBySlug, limit: number) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+  const { network, blockchain } = parseAccountId(accountId);
+  const activeBlockchain = blockchains[blockchain];
   try {
-    const transactions = await blockchain.getMergedTransactionSlice(accountId, lastTxIds, limit);
-    return await swapReplaceTransactions(accountId, transactions);
+    const transactions = await activeBlockchain.getMergedTransactionSlice(accountId, lastTxIds, limit);
+    return await swapReplaceTransactions(accountId, transactions, network);
   } catch (err) {
     logDebugError('fetchAllActivitySlice', err);
     return handleServerError(err);

@@ -457,8 +457,7 @@ export type GlobalState = {
     isPasswordNumeric?: boolean; // Backwards compatibility for non-numeric passwords from older versions
     isTestnet?: boolean;
     isSecurityWarningHidden?: boolean;
-    areTokensWithNoBalanceHidden: boolean;
-    areTokensWithNoPriceHidden: boolean;
+    areTokensWithNoCostHidden: boolean;
     isSortByValueEnabled?: boolean;
     importToken?: {
       isLoading?: boolean;
@@ -645,8 +644,7 @@ export interface ActionPayloads {
   changeNetwork: { network: ApiNetwork };
   changeLanguage: { langCode: LangCode };
   closeSecurityWarning: undefined;
-  toggleTokensWithNoBalance: { isEnabled: boolean };
-  toggleTokensWithNoPrice: { isEnabled: boolean };
+  toggleTokensWithNoCost: { isEnabled: boolean };
   toggleSortByValue: { isEnabled: boolean };
   initTokensOrder: undefined;
   updateDeletionListForActiveTokens: { accountId: string } | undefined;

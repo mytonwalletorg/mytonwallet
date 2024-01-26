@@ -199,6 +199,10 @@ export function toRawAddress(address: string) {
   return new TonWeb.utils.Address(address).toString(false);
 }
 
+export function getIsRawAddress(address: string) {
+  return !(new TonWeb.utils.Address(address)).isUserFriendly;
+}
+
 export function buildTokenTransferBody(params: TokenTransferBodyParams) {
   const {
     queryId, tokenAmount, toAddress, responseAddress, forwardAmount,

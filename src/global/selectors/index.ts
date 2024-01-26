@@ -18,6 +18,8 @@ import memoized from '../../util/memoized';
 import { round } from '../../util/round';
 import { getIsSwapId, getIsTxIdLocal } from '../helpers';
 
+const HIDDEN_TOKENS_COST = 0.01;
+
 export function selectHasSession(global: GlobalState) {
   return Boolean(global.currentAccountId);
 }
@@ -27,8 +29,7 @@ const selectAccountTokensMemoized = memoized((
   tokenInfo: GlobalState['tokenInfo'],
   accountSettings: AccountSettings,
   isSortByValueEnabled: boolean = false,
-  areTokensWithNoBalanceHidden: boolean = false,
-  areTokensWithNoPriceHidden: boolean = false,
+  areTokensWithNoCostHidden: boolean = false,
 ) => {
   return Object
     .entries(balancesBySlug)
@@ -44,8 +45,7 @@ const selectAccountTokensMemoized = memoized((
       const totalValue = toBig(balance, decimals).mul(price).round(decimals).toString();
 
       const isException = accountSettings.exceptionSlugs?.includes(slug);
-      let isDisabled = (areTokensWithNoPriceHidden && price === 0)
-        || (areTokensWithNoBalanceHidden && amount === 0n);
+      let isDisabled = areTokensWithNoCostHidden && toBig(amount, decimals).mul(price).lt(HIDDEN_TOKENS_COST);
 
       if (isException) {
         isDisabled = !isDisabled;
@@ -96,15 +96,14 @@ export function selectCurrentAccountTokens(global: GlobalState) {
   }
 
   const accountSettings = selectAccountSettings(global, global.currentAccountId!) ?? {};
-  const { areTokensWithNoBalanceHidden, areTokensWithNoPriceHidden, isSortByValueEnabled } = global.settings;
+  const { areTokensWithNoCostHidden, isSortByValueEnabled } = global.settings;
 
   return selectAccountTokensMemoized(
     balancesBySlug,
     global.tokenInfo,
     accountSettings,
     isSortByValueEnabled,
-    areTokensWithNoBalanceHidden,
-    areTokensWithNoPriceHidden,
+    areTokensWithNoCostHidden,
   );
 }
 
@@ -179,16 +178,14 @@ const selectAccountTokensForSwapMemoized = memoized((
   swapTokenInfo: GlobalState['swapTokenInfo'],
   accountSettings: AccountSettings,
   isSortByValueEnabled = false,
-  areTokensWithNoBalanceHidden = false,
-  areTokensWithNoPriceHidden = false,
+  areTokensWithNoCostHidden = false,
 ) => {
   return selectAccountTokensMemoized(
     balancesBySlug,
     tokenInfo,
     accountSettings,
     isSortByValueEnabled,
-    areTokensWithNoBalanceHidden,
-    areTokensWithNoPriceHidden,
+    areTokensWithNoCostHidden,
   ).filter((token) => token.slug in swapTokenInfo.bySlug && !token.isDisabled);
 });
 
@@ -199,7 +196,7 @@ export function selectAvailableUserForSwapTokens(global: GlobalState) {
   }
 
   const accountSettings = selectAccountSettings(global, global.currentAccountId!) ?? {};
-  const { areTokensWithNoBalanceHidden, areTokensWithNoPriceHidden, isSortByValueEnabled } = global.settings;
+  const { areTokensWithNoCostHidden, isSortByValueEnabled } = global.settings;
 
   return selectAccountTokensForSwapMemoized(
     balancesBySlug,
@@ -207,8 +204,7 @@ export function selectAvailableUserForSwapTokens(global: GlobalState) {
     global.swapTokenInfo,
     accountSettings,
     isSortByValueEnabled,
-    areTokensWithNoBalanceHidden,
-    areTokensWithNoPriceHidden,
+    areTokensWithNoCostHidden,
   );
 }
 

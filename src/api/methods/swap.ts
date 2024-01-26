@@ -1,5 +1,6 @@
 import type {
   ApiActivity,
+  ApiNetwork,
   ApiSwapActivity,
   ApiSwapAsset,
   ApiSwapBuildRequest,
@@ -124,9 +125,10 @@ function getSwapItemSlug(item: ApiSwapHistoryItem, asset: string) {
 export async function swapReplaceTransactions(
   accountId: string,
   transactions: ApiTransactionActivity[],
+  network: ApiNetwork,
   slug?: string,
 ): Promise<ApiActivity[]> {
-  if (!transactions.length) {
+  if (!transactions.length || network === 'testnet') {
     return transactions;
   }
 

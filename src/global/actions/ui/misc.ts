@@ -343,28 +343,12 @@ addActionHandler('closeSecurityWarning', (global) => {
   };
 });
 
-addActionHandler('toggleTokensWithNoBalance', (global, actions, { isEnabled }) => {
+addActionHandler('toggleTokensWithNoCost', (global, actions, { isEnabled }) => {
   const accountId = global.currentAccountId!;
   const accountSettings = selectAccountSettings(global, accountId) ?? {};
 
   setGlobal(updateSettings(global, {
-    areTokensWithNoBalanceHidden: isEnabled,
-    byAccountId: {
-      ...global.settings.byAccountId,
-      [accountId]: {
-        ...accountSettings,
-        exceptionSlugs: [],
-      },
-    },
-  }));
-});
-
-addActionHandler('toggleTokensWithNoPrice', (global, actions, { isEnabled }) => {
-  const accountId = global.currentAccountId!;
-  const accountSettings = selectAccountSettings(global, accountId) ?? {};
-
-  setGlobal(updateSettings(global, {
-    areTokensWithNoPriceHidden: isEnabled,
+    areTokensWithNoCostHidden: isEnabled,
     byAccountId: {
       ...global.settings.byAccountId,
       [accountId]: {

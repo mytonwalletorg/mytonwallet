@@ -109,8 +109,7 @@ function Settings({
     isTonProxyEnabled,
     isTonMagicEnabled,
     isDeeplinkHookEnabled,
-    areTokensWithNoBalanceHidden,
-    areTokensWithNoPriceHidden,
+    areTokensWithNoCostHidden,
     isSortByValueEnabled,
     dapps,
     baseCurrency,
@@ -519,8 +518,7 @@ function Settings({
             orderedSlugs={orderedSlugs}
             isInvestorViewEnabled={isInvestorViewEnabled}
             areTinyTransfersHidden={areTinyTransfersHidden}
-            areTokensWithNoBalanceHidden={areTokensWithNoBalanceHidden}
-            areTokensWithNoPriceHidden={areTokensWithNoPriceHidden}
+            areTokensWithNoCostHidden={areTokensWithNoCostHidden}
             isSortByValueEnabled={isSortByValueEnabled}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}

@@ -6,9 +6,8 @@
   }
 
   :global(.is-native-bottom-sheet) & {
-    height: calc(30rem + var(--safe-area-bottom, 0rem)) !important;
+    height: auto;
   }
-
 }
 
 .passwordFormContent {

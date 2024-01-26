@@ -295,8 +295,7 @@ Your Tokens: Tus fichas
 Add Token: Agregar token
 Delete Token: Eliminar token
 Are you sure you want to delete?: ¿Está seguro de que desea eliminar %token%?
-Hide Tokens With No Balance: Ocultar tokens sin saldo
-Hide Tokens With No Price: Ocultar tokens sin precio
+Hide Tokens With No Cost: Ocultar tokens sin costo
 Sort By Value: Ordenar por valor
 Update: Actualizar
 Restart: Reanudar

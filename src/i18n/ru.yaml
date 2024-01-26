@@ -290,8 +290,7 @@ Your Tokens: Ваши токены
 Add Token: Добавить токен
 Delete Token: Удалить токен
 Are you sure you want to delete?: Вы уверены, что хотите удалить %token%?
-Hide Tokens With No Balance: Скрыть токены без баланса
-Hide Tokens With No Price: Скрыть токены без цены
+Hide Tokens With No Cost: Скрыть токены без стоимости
 Sort By Value: Сортировать по сумме
 Update: Обновить
 Restart: Перезапустить

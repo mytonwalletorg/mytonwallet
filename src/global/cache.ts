@@ -344,8 +344,8 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   }
 
   if (cached.stateVersion === 10) {
-    if (cached.settings.areTokensWithNoBalanceHidden === undefined) {
-      cached.settings.areTokensWithNoBalanceHidden = true;
+    if ((cached.settings as any).areTokensWithNoBalanceHidden === undefined) {
+      (cached.settings as any).areTokensWithNoBalanceHidden = true;
     }
     cached.stateVersion = 11;
   }
@@ -375,6 +375,16 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
       }
     }
     cached.stateVersion = 13;
+  }
+
+  if (cached.stateVersion === 13) {
+    const { areTokensWithNoPriceHidden, areTokensWithNoBalanceHidden } = cached.settings as any as {
+      areTokensWithNoPriceHidden?: boolean;
+      areTokensWithNoBalanceHidden?: boolean;
+    };
+
+    cached.settings.areTokensWithNoCostHidden = Boolean(areTokensWithNoPriceHidden || areTokensWithNoBalanceHidden);
+    cached.stateVersion = 14;
   }
 
   // When adding migration here, increase `STATE_VERSION`

@@ -295,8 +295,7 @@ Your Tokens: Your Tokens
 Add Token: Add Token
 Delete Token: Delete Token
 Are you sure you want to delete?: Are you sure you want to delete %token%?
-Hide Tokens With No Balance: Hide Tokens With No Balance
-Hide Tokens With No Price: Hide Tokens With No Price
+Hide Tokens With No Cost: Hide Tokens With No Cost
 Sort By Value: Sort By Value
 Update: Update
 Restart: Restart

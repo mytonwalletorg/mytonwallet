@@ -63,6 +63,7 @@ export const IS_DELEGATING_BOTTOM_SHEET = IS_CAPACITOR && IS_IOS && !IS_DELEGATE
 export const IS_MULTITAB_SUPPORTED = 'BroadcastChannel' in window && !IS_LEDGER_EXTENSION_TAB;
 export const IS_DAPP_SUPPORTED = IS_EXTENSION || IS_ELECTRON || IS_CAPACITOR;
 export const IS_IOS_APP = IS_IOS && IS_CAPACITOR;
+export const IS_ANDROID_APP = IS_ANDROID && IS_CAPACITOR;
 
 export function setScrollbarWidthProperty() {
   const el = document.createElement('div');

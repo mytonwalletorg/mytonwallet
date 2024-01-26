@@ -1,11 +1,12 @@
 import type {
-  ApiDapp, ApiDappsState, ApiNetwork, OnApiUpdate,
+  ApiBackendDapp, ApiDapp, ApiDappsState, ApiNetwork, OnApiUpdate,
 } from '../types';
 
 import { buildAccountId, parseAccountId } from '../../util/account';
 import {
   getAccountValue, removeAccountValue, removeNetworkAccountsValue, setAccountValue,
 } from '../common/accounts';
+import { callBackendGet } from '../common/backend';
 import { isUpdaterAlive } from '../common/helpers';
 import { callHook } from '../hooks';
 import { storage } from '../storages';
@@ -232,4 +233,8 @@ export function getSseLastEventId(): Promise<string | undefined> {
 
 export function setSseLastEventId(lastEventId: string) {
   return storage.setItem('sseLastEventId', lastEventId);
+}
+
+export function fetchDappCatalog(): Promise<ApiBackendDapp[]> {
+  return callBackendGet('/dapp/catalog');
 }

@@ -279,8 +279,7 @@ Your Tokens: 你的代币
 Add Token: 添加令牌
 Delete Token: 删除令牌
 Are you sure you want to delete?: 您确定要删除 %token% 吗？
-Hide Tokens With No Balance: 隐藏没有余额的代币
-Hide Tokens With No Price: 隐藏没有价格的代币
+Hide Tokens With No Cost: 无需掩盖令牌
 Sort By Value: 按值排序
 Update: 更新
 Restart: 重新开始

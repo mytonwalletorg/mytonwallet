@@ -296,8 +296,7 @@ Your Tokens: Token'larınız
 Add Token: Token ekle
 Delete Token: Token sil
 Are you sure you want to delete?: "%token%'ı silmek istediğinizden emin misiniz?"
-Hide Tokens With No Balance: Sıfır bakiyeli tokenları gizle
-Hide Tokens With No Price: Fiyatı olmayan tokenları gizle
+Hide Tokens With No Cost: Tokenleri ücretsiz olarak saklayın
 Sort By Value: Değere göre sırala
 Update: Güncelle
 Restart: Yeniden başlat

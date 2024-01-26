@@ -163,14 +163,20 @@ export function setupElectronActionHandlers() {
 
 export function setupCloseHandlers() {
   mainWindow.on('close', (event: Event) => {
-    if (IS_MAC_OS || (IS_WINDOWS && tray.isEnabled)) {
-      if (forceQuit.isEnabled) {
-        app.exit(0);
-        forceQuit.disable();
-      } else {
-        event.preventDefault();
-        mainWindow.hide();
-      }
+    if (forceQuit.isEnabled) {
+      app.exit(0);
+      return;
+    }
+
+    if (mainWindow.isFullScreen()) {
+      event.preventDefault();
+      mainWindow.once('leave-full-screen', () => {
+        mainWindow.close();
+      });
+      mainWindow.setFullScreen(false);
+    } else if (IS_MAC_OS || (IS_WINDOWS && tray.isEnabled)) {
+      event.preventDefault();
+      mainWindow.hide();
     }
   });
 

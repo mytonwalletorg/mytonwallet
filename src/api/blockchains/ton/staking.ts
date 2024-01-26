@@ -10,7 +10,7 @@ import type { TonTransferParams } from './types';
 import { ApiCommonError, ApiLiquidUnstakeMode, ApiTransactionDraftError } from '../../types';
 
 import {
-  LIQUID_JETTON, LIQUID_POOL, ONE_TON, TON_TOKEN_SLUG,
+  LIQUID_JETTON, LIQUID_POOL, ONE_TON, TON_TOKEN_SLUG, VALIDATION_PERIOD_MS,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintDivideToNumber, bigintMultiplyToNumber } from '../../../util/bigint';
@@ -156,7 +156,11 @@ export async function submitUnstake(
   let result: SubmitTransferResult;
 
   if (type === 'liquid') {
-    const params = await buildLiquidStakingWithdraw(network, address, amount);
+    const mode = (backendState.stakedAt ?? 0) > Date.now() - VALIDATION_PERIOD_MS
+      ? ApiLiquidUnstakeMode.BestRate
+      : ApiLiquidUnstakeMode.Default;
+    const params = await buildLiquidStakingWithdraw(network, address, amount, mode);
+
     result = await submitTransfer(
       accountId,
       password,
@@ -230,7 +234,10 @@ export async function getStakingState(
 
   const { loyaltyType, shouldUseNominators } = backendState;
 
-  const liquidAvailable = commonData.liquid.collection ? 0n : commonData.liquid.available;
+  const isInstantUnstake = !commonData.liquid.collection
+    && Date.now() - (backendState.stakedAt ?? 0) > VALIDATION_PERIOD_MS;
+  const liquidAvailable = isInstantUnstake ? commonData.liquid.available : 0n;
+
   let liquidApy = commonData.liquid.apy;
   if (loyaltyType && loyaltyType in commonData.liquid.loyaltyApy) {
     liquidApy = commonData.liquid.loyaltyApy[loyaltyType];

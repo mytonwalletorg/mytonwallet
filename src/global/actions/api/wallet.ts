@@ -550,7 +550,7 @@ addActionHandler('cancelSignature', (global) => {
 
 addActionHandler('addToken', (global, actions, { token }) => {
   const accountId = global.currentAccountId!;
-  const { areTokensWithNoPriceHidden, areTokensWithNoBalanceHidden } = global.settings;
+  const { areTokensWithNoCostHidden } = global.settings;
   const { balances } = selectAccountState(global, accountId) || {};
   const accountSettings = selectAccountSettings(global, accountId) ?? {};
   const { orderedSlugs = [], exceptionSlugs = [], deletedSlugs } = accountSettings;
@@ -582,7 +582,7 @@ addActionHandler('addToken', (global, actions, { token }) => {
   const exceptionSlugsCopy = exceptionSlugs.slice();
   const deletedSlugsCopy = deletedSlugs?.filter((slug) => slug !== token.slug);
 
-  if ((areTokensWithNoBalanceHidden && token.amount === 0n) || (areTokensWithNoPriceHidden && token.price === 0)) {
+  if (areTokensWithNoCostHidden && token.price === 0) {
     exceptionSlugsCopy.push(token.slug);
   }
 

@@ -30,8 +30,7 @@ interface OwnProps {
   orderedSlugs?: string[];
   areTinyTransfersHidden?: boolean;
   isInvestorViewEnabled?: boolean;
-  areTokensWithNoBalanceHidden?: boolean;
-  areTokensWithNoPriceHidden?: boolean;
+  areTokensWithNoCostHidden?: boolean;
   isSortByValueEnabled?: boolean;
   isInsideModal?: boolean;
   handleBackClick: NoneToVoidFunction;
@@ -71,8 +70,7 @@ function SettingsAssets({
   orderedSlugs,
   areTinyTransfersHidden,
   isInvestorViewEnabled,
-  areTokensWithNoBalanceHidden,
-  areTokensWithNoPriceHidden,
+  areTokensWithNoCostHidden,
   isSortByValueEnabled,
   handleBackClick,
   isInsideModal,
@@ -81,8 +79,7 @@ function SettingsAssets({
   const {
     toggleTinyTransfersHidden,
     toggleInvestorView,
-    toggleTokensWithNoBalance,
-    toggleTokensWithNoPrice,
+    toggleTokensWithNoCost,
     toggleSortByValue,
     changeBaseCurrency,
   } = getActions();
@@ -109,12 +106,8 @@ function SettingsAssets({
     toggleInvestorView({ isEnabled: !isInvestorViewEnabled });
   });
 
-  const handleTokensWithNoBalanceToggle = useLastCallback(() => {
-    toggleTokensWithNoBalance({ isEnabled: !areTokensWithNoBalanceHidden });
-  });
-
   const handleTokensWithNoPriceToggle = useLastCallback(() => {
-    toggleTokensWithNoPrice({ isEnabled: !areTokensWithNoPriceHidden });
+    toggleTokensWithNoCost({ isEnabled: !areTokensWithNoCostHidden });
   });
 
   const handleSortByValueToggle = useLastCallback(() => {
@@ -207,22 +200,13 @@ function SettingsAssets({
         </div>
         <p className={styles.blockTitle}>{lang('Tokens Settings')}</p>
         <div className={styles.settingsBlock}>
-          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTokensWithNoBalanceToggle}>
-            {lang('Hide Tokens With No Balance')}
-
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Hide Tokens With No Balance')}
-              checked={areTokensWithNoBalanceHidden}
-            />
-          </div>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTokensWithNoPriceToggle}>
-            {lang('Hide Tokens With No Price')}
+            {lang('Hide Tokens With No Cost')}
 
             <Switcher
               className={styles.menuSwitcher}
-              label={lang('Hide Tokens With No Price')}
-              checked={areTokensWithNoPriceHidden}
+              label={lang('Hide Tokens With No Cost')}
+              checked={areTokensWithNoCostHidden}
             />
           </div>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleSortByValueToggle}>

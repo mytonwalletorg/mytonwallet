@@ -39,7 +39,7 @@ import blockchains from '../blockchains';
 import { parsePayloadBase64 } from '../blockchains/ton';
 import { fetchKeyPair } from '../blockchains/ton/auth';
 import { LEDGER_SUPPORTED_PAYLOADS } from '../blockchains/ton/constants';
-import { toBase64Address, toRawAddress } from '../blockchains/ton/util/tonweb';
+import { getIsRawAddress, toBase64Address, toRawAddress } from '../blockchains/ton/util/tonweb';
 import {
   fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey, getCurrentAccountId, getCurrentAccountIdOrFail,
 } from '../common/accounts';
@@ -385,7 +385,7 @@ async function checkTransactionMessages(accountId: string, messages: Transaction
     } = msg;
 
     return {
-      toAddress: address,
+      toAddress: getIsRawAddress(address) ? toBase64Address(address, true) : address,
       amount: BigInt(amount),
       payload: payload ? ton.oneCellFromBoc(base64ToBytes(payload)) : undefined,
       stateInit: stateInit ? ton.oneCellFromBoc(base64ToBytes(stateInit)) : undefined,
@@ -415,9 +415,7 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       payload: rawPayload,
       stateInit,
     }) => {
-      const isActiveContract = await ton.isAddressInitialized(network, address);
-      // Force non-bounceable for non-initialized recipients
-      const toAddress = toBase64Address(address, isActiveContract);
+      const toAddress = getIsRawAddress(address) ? toBase64Address(address, true) : address;
       // Fix address format for `waitTxComplete` to work properly
       const normalizedAddress = toBase64Address(address);
       const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;

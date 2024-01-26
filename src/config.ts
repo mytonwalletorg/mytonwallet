@@ -106,7 +106,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-57';
+export const LANG_CACHE_NAME = 'mtw-lang-59';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -146,6 +146,7 @@ export const LANG_LIST: LangItem[] = [{
 }];
 
 export const STAKING_CYCLE_DURATION_MS = 131072000; // 36.4 hours
+export const VALIDATION_PERIOD_MS = 65536000; // 18.2 h.
 export const ONE_TON = 1000000000n;
 export const MIN_BALANCE_FOR_UNSTAKE = 1020000000n; // 1.02 TON
 export const STAKING_FORWARD_AMOUNT = ONE_TON;

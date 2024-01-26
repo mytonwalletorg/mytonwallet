@@ -297,8 +297,7 @@ Your Tokens: Ihre Token
 Add Token: Token hinzufügen
 Delete Token: Token löschen
 Are you sure you want to delete?: Sind Sie sicher, dass Sie %token% löschen möchten?
-Hide Tokens With No Balance: Token ohne Guthaben ausblenden
-Hide Tokens With No Price: Token ohne Preis ausblenden
+Hide Tokens With No Cost: Token ohne Preis ausblenden
 Sort By Value: Nach Wert sortieren
 Update: Aktualisieren
 Restart: Neustart

@@ -8,7 +8,7 @@
   }
 
   :global(.is-native-bottom-sheet) & {
-    height: calc(35.5rem + var(--safe-area-bottom, 0rem)) !important;
+    height: calc(35.5rem + var(--safe-area-bottom, 0rem));
   }
 }
 

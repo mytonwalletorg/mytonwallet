@@ -6,7 +6,7 @@ import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
 import {
-  IS_CAPACITOR, TON_TOKEN_SLUG, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
+  IS_CAPACITOR, IS_EXTENSION, TON_TOKEN_SLUG, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
 import {
   selectAccount,
@@ -111,9 +111,11 @@ function Card({
   }, [tokens, stakingBalance]);
 
   const {
-    shouldRender: shouldRenderDapp,
+    shouldRender: shouldRenderDappElement,
     transitionClassNames: dappClassNames,
   } = useShowTransition(Boolean(dappDomain));
+
+  const shouldRenderDapp = IS_EXTENSION && shouldRenderDappElement;
 
   useHistoryBack({
     isActive: Boolean(currentTokenSlug),

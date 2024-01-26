@@ -296,7 +296,8 @@ async function processNewActivities(
   tokenSlugs: string[],
   tokenBalances?: TokenBalanceParsed[],
 ): Promise<ApiTxIdBySlug> {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+  const { network, blockchain } = parseAccountId(accountId);
+  const activeBlockchain = blockchains[blockchain];
 
   let allTransactions: ApiTransactionActivity[] = [];
   let allActivities: ApiActivity[] = [];
@@ -308,10 +309,10 @@ async function processNewActivities(
     const slug = TON_TOKEN_SLUG;
     let newestTxId = newestTxIds[slug];
 
-    const transactions = await blockchain.getTokenTransactionSlice(
+    const transactions = await activeBlockchain.getTokenTransactionSlice(
       accountId, slug, undefined, newestTxId, FIRST_TRANSACTIONS_LIMIT,
     );
-    const activities = await swapReplaceTransactions(accountId, transactions, slug);
+    const activities = await swapReplaceTransactions(accountId, transactions, network, slug);
 
     if (transactions.length) {
       newestTxId = transactions[0]!.txId;
@@ -337,10 +338,10 @@ async function processNewActivities(
   await Promise.all(tokenSlugs.map(async (slug) => {
     let newestTxId = newestTxIds[slug];
 
-    const transactions = await blockchain.getTokenTransactionSlice(
+    const transactions = await activeBlockchain.getTokenTransactionSlice(
       accountId, slug, undefined, newestTxId, FIRST_TRANSACTIONS_LIMIT,
     );
-    const activities = await swapReplaceTransactions(accountId, transactions, slug);
+    const activities = await swapReplaceTransactions(accountId, transactions, network, slug);
 
     if (transactions.length) {
       newestTxId = transactions[0]!.txId;

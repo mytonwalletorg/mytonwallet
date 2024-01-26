@@ -142,3 +142,11 @@ export type ApiStakingCommonData = {
   };
   bigInt: bigint;
 };
+
+export type ApiBackendDapp = {
+  url: string;
+  name: string;
+  iconUrl: string;
+  manifestUrl: string;
+  description: string;
+};

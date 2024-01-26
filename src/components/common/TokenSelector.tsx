@@ -30,7 +30,6 @@ import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
-import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -130,7 +129,6 @@ function TokenSelector({
   const {
     handleScroll: handleContentScroll,
   } = useScrolledState();
-  const { isPortrait } = useDeviceScreen();
 
   const [searchValue, setSearchValue] = useState('');
   const [isResetButtonVisible, setIsResetButtonVisible] = useState(false);
@@ -245,11 +243,7 @@ function TokenSelector({
   const handleTokenClick = useLastCallback((selectedToken: Token) => {
     searchInputRef.current?.blur();
 
-    if (isPortrait) {
-      onBack();
-    } else {
-      onClose();
-    }
+    onBack();
 
     if (isInsideSettings) {
       addToken({ token: selectedToken as UserToken });

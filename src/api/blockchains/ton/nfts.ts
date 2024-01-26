@@ -30,14 +30,14 @@ export function buildNft(rawNft: NftItem): ApiNft | undefined {
       metadata: {
         name,
         image,
-        attributes,
         description,
+        render_type: renderType,
       },
       previews,
       sale,
     } = rawNft;
 
-    const isHidden = attributes?.render_type === 'hidden' || description === 'SCAM';
+    const isHidden = renderType === 'hidden' || description === 'SCAM';
 
     return {
       index,

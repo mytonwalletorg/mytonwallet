@@ -119,6 +119,7 @@ export interface ApiBackendStakingState {
   nominatorsPool: ApiNominatorsPool;
   loyaltyType?: ApiLoyaltyType;
   shouldUseNominators?: boolean;
+  stakedAt?: number;
 }
 
 export type ApiStakingHistory = {

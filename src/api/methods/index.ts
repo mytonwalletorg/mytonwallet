@@ -15,6 +15,7 @@ export {
   deleteDapp,
   deleteAllDapps,
   deactivateDapp,
+  fetchDappCatalog,
 } from './dapps';
 export {
   startSseConnection,

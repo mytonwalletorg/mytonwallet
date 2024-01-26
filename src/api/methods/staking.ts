@@ -16,7 +16,7 @@ import { resolveBlockchainKey } from '../common/helpers';
 import { isKnownStakingPool } from '../common/utils';
 import { createLocalTransaction } from './transactions';
 
-const CACHE_TTL = 60000; // 1 m.
+const CACHE_TTL = 5000; // 5 s.
 let backendStakingStateByAddress: Record<string, [number, ApiBackendStakingState]> = {};
 let stakingCommonData: ApiStakingCommonData;
 
