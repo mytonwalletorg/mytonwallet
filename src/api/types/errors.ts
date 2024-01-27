@@ -9,7 +9,7 @@ export enum ApiTransactionDraftError {
   InsufficientBalance = 'InsufficientBalance',
   DomainNotResolved = 'DomainNotResolved',
   WalletNotInitialized = 'WalletNotInitialized',
-  UnsupportedHardwarePayload = 'UnsupportedHardwarePayload',
+  UnsupportedHardwareOperation = 'UnsupportedHardwareOperation',
   InvalidAddressFormat = 'InvalidAddressFormat',
 }
 
@@ -18,7 +18,7 @@ export enum ApiTransactionError {
   IncorrectDeviceTime = 'IncorrectDeviceTime',
   InsufficientBalance = 'InsufficientBalance',
   UnsuccesfulTransfer = 'UnsuccesfulTransfer',
-  UnsupportedHardwarePayload = 'UnsupportedHardwarePayload',
+  UnsupportedHardwareOperation = 'UnsupportedHardwareOperation',
 }
 
 export type ApiAnyDisplayError = ApiCommonError | ApiTransactionDraftError | ApiTransactionError;

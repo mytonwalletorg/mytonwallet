@@ -10,7 +10,7 @@ import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from '../blockchains/ton/constants';
-import { fetchStoredAddress } from '../common/accounts';
+import { fetchStoredAccount, fetchStoredAddress } from '../common/accounts';
 import { callBackendGet } from '../common/backend';
 import { resolveBlockchainKey } from '../common/helpers';
 import { isKnownStakingPool } from '../common/utils';
@@ -107,8 +107,8 @@ export async function submitUnstake(
 }
 
 export async function getBackendStakingState(accountId: string): Promise<ApiBackendStakingState> {
-  const address = await fetchStoredAddress(accountId);
-  const state = await fetchBackendStakingState(address);
+  const { address, ledger } = await fetchStoredAccount(accountId);
+  const state = await fetchBackendStakingState(address, Boolean(ledger));
   return {
     ...state,
     nominatorsPool: {
@@ -119,13 +119,13 @@ export async function getBackendStakingState(accountId: string): Promise<ApiBack
   };
 }
 
-export async function fetchBackendStakingState(address: string): Promise<ApiBackendStakingState> {
+export async function fetchBackendStakingState(address: string, isLedger: boolean): Promise<ApiBackendStakingState> {
   const cacheItem = backendStakingStateByAddress[address];
   if (cacheItem && cacheItem[0] > Date.now()) {
     return cacheItem[1];
   }
 
-  const stakingState = await callBackendGet(`/staking/state/${address}`);
+  const stakingState = await callBackendGet(`/staking/state/${address}`, { isLedger });
   stakingState.balance = fromDecimal(stakingState.balance);
   stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
 

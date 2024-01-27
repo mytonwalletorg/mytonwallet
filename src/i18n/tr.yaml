@@ -153,6 +153,7 @@ No NFTs yet: Henüz NFT'niz yok
 $nft_explore_offer: |
   Mevcut NFT koleksiyonlarını görmek 
   için NFT pazaryerini inceleyin.
+$nft_hardware_unsupported: Ne yazık ki, NFT aktarımı henüz Ledger cüzdanı tarafından desteklenmiyor.
 Open Getgems: Getgems'i aç
 Transaction is not completed: İşlem tamamlanmadı
 Received: Alındı
@@ -337,7 +338,7 @@ Message is encrypted.: Mesaj şifrelenmiştir.
 $dapp_ledger_warning1: "**Ledger** cüzdanınızı kullanarak çok yönlü bir işlem göndermek üzeresiniz. İlgili her işlemi **tek tek manuel olarak** imzalamanız gerekecektir."
 $dapp_ledger_warning2: Lütfen acele etmeyin ve süreci kesintiye uğratmayın.
 Agree: Kabul et
-The hardware wallet does not support this data format: Donanım cüzdanı bu veri biçimini desteklemiyor
+Unfortunately, this operation is not yet supported by Ledger wallet: Donanım cüzdanı bu veri biçimini desteklemiyor
 Swap: Takas
 You sell: Satıyorsunuz
 You buy: Alıyorsunuz

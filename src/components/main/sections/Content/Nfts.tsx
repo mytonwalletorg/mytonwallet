@@ -5,10 +5,10 @@ import type { ApiNft } from '../../../../api/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, GETGEMS_BASE_MAINNET_URL, GETGEMS_BASE_TESTNET_URL } from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
-import { selectCurrentAccountState } from '../../../../global/selectors';
+import { selectCurrentAccountState, selectIsHardwareAccount } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { getCapacitorPlatform } from '../../../../util/capacitor';
 import { shortenAddress } from '../../../../util/shortenAddress';
+import { IS_IOS_APP } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -27,11 +27,12 @@ interface OwnProps {
 interface StateProps {
   orderedAddresses?: string[];
   byAddress?: Record<string, ApiNft>;
+  isHardware?: boolean;
   isTestnet?: boolean;
 }
 
 function Nfts({
-  isActive, orderedAddresses, byAddress, isTestnet,
+  isActive, orderedAddresses, byAddress, isHardware, isTestnet,
 }: OwnProps & StateProps) {
   const { isLandscape } = useDeviceScreen();
   const lang = useLang();
@@ -57,24 +58,41 @@ function Nfts({
   if (nfts.length === 0) {
     return (
       <div className={styles.emptyList}>
-        <AnimatedIconWithPreview
-          play={isActive}
-          tgsUrl={ANIMATED_STICKERS_PATHS.happy}
-          previewUrl={ANIMATED_STICKERS_PATHS.happyPreview}
-          size={ANIMATED_STICKER_BIG_SIZE_PX}
-          className={styles.sticker}
-          noLoop={false}
-          nonInteractive
-        />
-        <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
-        { getCapacitorPlatform() !== 'ios' && (
+        {!isHardware ? (
           <>
-            <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
-            <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">
-              {lang('Open Getgems')}
-            </a>
+            <AnimatedIconWithPreview
+              play={isActive}
+              tgsUrl={ANIMATED_STICKERS_PATHS.happy}
+              previewUrl={ANIMATED_STICKERS_PATHS.happyPreview}
+              size={ANIMATED_STICKER_BIG_SIZE_PX}
+              className={styles.sticker}
+              noLoop={false}
+              nonInteractive
+            />
+            <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
+            {!IS_IOS_APP && (
+              <>
+                <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
+                <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">
+                  {lang('Open Getgems')}
+                </a>
+              </>
+            )}
           </>
-        ) }
+        ) : (
+          <>
+            <AnimatedIconWithPreview
+              play={isActive}
+              tgsUrl={ANIMATED_STICKERS_PATHS.noData}
+              previewUrl={ANIMATED_STICKERS_PATHS.noDataPreview}
+              size={ANIMATED_STICKER_BIG_SIZE_PX}
+              className={styles.sticker}
+              noLoop={false}
+              nonInteractive
+            />
+            <p className={styles.emptyListText}>{lang('$nft_hardware_unsupported')}</p>
+          </>
+        )}
       </div>
     );
   }
@@ -106,6 +124,7 @@ export default memo(
       return {
         orderedAddresses,
         byAddress,
+        isHardware: selectIsHardwareAccount(global),
         isTestnet: global.settings.isTestnet,
       };
     },

@@ -154,6 +154,7 @@ No NFTs yet: Noch keine NFTs vorhanden
 $nft_explore_offer: |
   Erkunden Sie einen Marktplatz, um 
   bestehende NFT-Sammlungen zu entdecken.
+$nft_hardware_unsupported: Leider wird die Übertragung von NFT von der Ledger-Wallet noch nicht unterstützt.
 Open Getgems: Getgems öffnen
 Transaction is not completed: Die Transaktion ist nicht abgeschlossen.
 Received: Empfangen
@@ -213,8 +214,8 @@ System: System
 Stake TON: TON staken
 Earn from your tokens while holding them: Verdienen Sie mit Ihren Token, während Sie sie halten.
 $est_apy_val: Geschätzte jährliche Rendite (APY) %1$d%
-Why this is safe: Warum ist dies sicher 
-Why staking is safe?: Warum ist das Staken sicher 
+Why this is safe: Warum ist dies sicher
+Why staking is safe?: Warum ist das Staken sicher
 $safe_staking_description1: Das Staken erfolgt **vollständig dezentral** und wird von den **offiziellen TON Liquid Staking**-Smart Contracts betrieben.
 $safe_staking_description2: Der hinterlegte Einsatz wird für die Validierung des TON-Netzwerks als Teil seiner **Proof-of-Stake**-Essenz verwendet.
 $safe_staking_description3: Sie können Ihren Einsatz **jederzeit** abheben, und er wird innerhalb von **zwei Tagen** wieder auf Ihr Konto eingezahlt.
@@ -339,7 +340,7 @@ Message is encrypted.: Die Nachricht ist verschlüsselt.
 $dapp_ledger_warning1: Sie sind dabei, eine Mehrweg-Transaktion mit Ihrer **Ledger**-Wallet durchzuführen. Sie müssen jede zugrunde liegende Transaktion **manuell nacheinander** signieren.
 $dapp_ledger_warning2: Bitte nehmen Sie sich Zeit und unterbrechen Sie den Prozess nicht.
 Agree: Zustimmen
-The hardware wallet does not support this data format: Die Hardware-Wallet unterstützt dieses Datenformat nicht
+Unfortunately, this operation is not yet supported by Ledger wallet: Die Hardware-Wallet unterstützt dieses Datenformat nicht
 Swap: Tausch
 You sell: Sie verkaufen
 You buy: Sie kaufen

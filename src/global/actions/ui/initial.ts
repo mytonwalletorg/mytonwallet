@@ -159,8 +159,8 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       actions.showDialog({ message: 'Transfer was unsuccessful. Try again later' });
       break;
 
-    case ApiTransactionError.UnsupportedHardwarePayload:
-      actions.showDialog({ message: 'The hardware wallet does not support this data format' });
+    case ApiTransactionError.UnsupportedHardwareOperation:
+      actions.showDialog({ message: 'Unfortunately, this operation is not yet supported by Ledger wallet' });
       break;
 
     case ApiCommonError.ServerError:

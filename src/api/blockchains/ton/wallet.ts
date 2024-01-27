@@ -1,6 +1,7 @@
 import type { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
 
 import type { ApiNetwork, ApiWalletVersion } from '../../types';
+import type { ContractInfo, GetAddressInfoResponse } from './types';
 
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
@@ -8,7 +9,10 @@ import withCacheAsync from '../../../util/withCacheAsync';
 import { stringifyTxId } from './util';
 import { getTonWeb, toBase64Address } from './util/tonweb';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
-import { bytesToBase64, hexToBytes } from '../../common/utils';
+import {
+  base64ToBytes, bytesToBase64, hexToBytes, sha256,
+} from '../../common/utils';
+import { KnownContracts } from './constants';
 
 const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
 
@@ -70,6 +74,31 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: Wallet
     lastTxId: lt === '0'
       ? undefined
       : stringifyTxId({ lt, hash }),
+  };
+}
+
+export async function getContractInfo(network: ApiNetwork, address: string): Promise<{
+  isInitialized: boolean;
+  isLedgerAllowed: boolean;
+  isWallet?: boolean;
+  contractInfo?: ContractInfo;
+}> {
+  const data: GetAddressInfoResponse = await getTonWeb(network).provider.getAddressInfo(address);
+
+  const { code, state } = data;
+
+  const codeHash = Buffer.from(await sha256(base64ToBytes(code))).toString('hex');
+  const contractInfo = Object.values(KnownContracts).find((info) => info.hash === codeHash);
+
+  const isInitialized = state === 'active';
+  const isWallet = state === 'active' ? contractInfo?.type === 'wallet' : undefined;
+  const isLedgerAllowed = !isInitialized || isWallet || contractInfo?.name === 'nominatorPool';
+
+  return {
+    isInitialized,
+    isWallet,
+    isLedgerAllowed,
+    contractInfo,
   };
 }
 

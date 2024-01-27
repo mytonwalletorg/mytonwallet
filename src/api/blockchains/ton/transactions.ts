@@ -54,7 +54,11 @@ import {
   buildTokenTransfer, getTokenWalletBalance, parseTokenTransaction, resolveTokenBySlug,
 } from './tokens';
 import {
-  getWalletBalance, getWalletInfo, isAddressInitialized, pickAccountWallet,
+  getContractInfo,
+  getWalletBalance,
+  getWalletInfo,
+  isAddressInitialized,
+  pickAccountWallet,
 } from './wallet';
 
 export type CheckTransactionDraftResult = {
@@ -156,7 +160,7 @@ export async function checkTransactionDraft(
       };
     }
 
-    const isInitialized = await isAddressInitialized(network, toAddress);
+    const { isInitialized, isLedgerAllowed } = await getContractInfo(network, toAddress);
 
     if (isBounceable) {
       if (!isInitialized) {
@@ -208,6 +212,13 @@ export async function checkTransactionDraft(
     const account = await fetchStoredAccount(accountId);
     const isLedger = !!account.ledger;
 
+    if (isLedger && !isLedgerAllowed) {
+      return {
+        ...result,
+        error: ApiTransactionDraftError.UnsupportedHardwareOperation,
+      };
+    }
+
     if (data && typeof data === 'string' && !isBase64Data && !isLedger) {
       data = commentToBytes(data);
     }
@@ -216,7 +227,7 @@ export async function checkTransactionDraft(
       if (data && isLedger && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))) {
         return {
           ...result,
-          error: ApiTransactionDraftError.UnsupportedHardwarePayload,
+          error: ApiTransactionDraftError.UnsupportedHardwareOperation,
         };
       }
 

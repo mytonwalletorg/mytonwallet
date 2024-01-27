@@ -10,7 +10,6 @@ import {
   selectAccountState,
   selectCurrentAccountTokens,
   selectEnabledTokensCountMemoized,
-  selectIsHardwareAccount,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
@@ -35,7 +34,6 @@ interface OwnProps {
 }
 
 interface StateProps {
-  isNftSupported: boolean;
   tokensCount: number;
   activeContentTab?: ContentTab;
   currentTokenSlug?: string;
@@ -45,7 +43,6 @@ function Content({
   activeContentTab,
   tokensCount,
   onStakedTokenClick,
-  isNftSupported,
   currentTokenSlug,
 }: OwnProps & StateProps) {
   const {
@@ -63,22 +60,22 @@ function Content({
   const transitionRef = useRef<HTMLDivElement>(null);
 
   const shouldShowSeparateAssetsPanel = tokensCount > 0 && tokensCount < MIN_ASSETS_TAB_VIEW;
-  const TABS = useMemo(
+  const tabs = useMemo(
     () => [
-      ...(!shouldShowSeparateAssetsPanel
-        ? [{ id: ContentTab.Assets, title: lang('Assets') as string, className: styles.tab }]
-        : []),
+      ...(
+        !shouldShowSeparateAssetsPanel
+          ? [{ id: ContentTab.Assets, title: lang('Assets') as string, className: styles.tab }]
+          : []
+      ),
       { id: ContentTab.Activity, title: lang('Activity') as string, className: styles.tab },
-      ...(isNftSupported
-        ? [{ id: ContentTab.Nft, title: lang('NFT') as string, className: styles.tab }]
-        : []),
+      { id: ContentTab.Nft, title: lang('NFT') as string, className: styles.tab },
     ],
-    [lang, shouldShowSeparateAssetsPanel, isNftSupported],
+    [lang, shouldShowSeparateAssetsPanel],
   );
 
   const activeTabIndex = useMemo(
     () => {
-      const tabIndex = TABS.findIndex((tab) => tab.id === activeContentTab);
+      const tabIndex = tabs.findIndex((tab) => tab.id === activeContentTab);
 
       if (tabIndex === -1) {
         return ContentTab.Assets;
@@ -86,7 +83,7 @@ function Content({
 
       return tabIndex;
     },
-    [TABS, activeContentTab],
+    [tabs, activeContentTab],
   );
 
   useEffectOnce(() => {
@@ -114,11 +111,11 @@ function Content({
       includedClosestSelector: '.swipe-container',
       onSwipe: (e, direction) => {
         if (direction === SwipeDirection.Left) {
-          const tab = TABS[Math.min(TABS.length - 1, activeTabIndex + 1)];
+          const tab = tabs[Math.min(tabs.length - 1, activeTabIndex + 1)];
           handleSwitchTab(tab.id);
           return true;
         } else if (direction === SwipeDirection.Right) {
-          const tab = TABS[Math.max(0, activeTabIndex - 1)];
+          const tab = tabs[Math.max(0, activeTabIndex - 1)];
           handleSwitchTab(tab.id);
           return true;
         }
@@ -126,7 +123,7 @@ function Content({
         return false;
       },
     });
-  }, [TABS, handleSwitchTab, activeTabIndex]);
+  }, [tabs, handleSwitchTab, activeTabIndex]);
 
   useEffect(() => {
     if (currentTokenSlug !== undefined) return;
@@ -163,7 +160,7 @@ function Content({
       return <Activity isActive={isActive} mobileRef={containerRef} />;
     }
 
-    switch (TABS[activeTabIndex].id) {
+    switch (tabs[activeTabIndex].id) {
       case ContentTab.Assets:
         return <Assets isActive={isActive} onTokenClick={handleClickAsset} onStakedTokenClick={onStakedTokenClick} />;
       case ContentTab.Activity:
@@ -179,7 +176,7 @@ function Content({
     return (
       <>
         <TabList
-          tabs={TABS}
+          tabs={tabs}
           activeTab={activeTabIndex}
           onSwitchTab={handleSwitchTab}
           className={buildClassName(styles.tabs, 'content-tabslist')}
@@ -188,7 +185,7 @@ function Content({
           ref={transitionRef}
           name={isLandscape ? 'slideFade' : 'slide'}
           activeKey={activeTabIndex}
-          renderCount={TABS.length}
+          renderCount={tabs.length}
           className={buildClassName(styles.slides, 'content-transition')}
           slideClassName={buildClassName(styles.slide, 'custom-scroll')}
         >
@@ -224,11 +221,9 @@ export default memo(
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
       const tokens = selectCurrentAccountTokens(global);
       const tokensCount = selectEnabledTokensCountMemoized(tokens);
-      const isLedger = selectIsHardwareAccount(global);
 
       return {
         tokensCount,
-        isNftSupported: !isLedger,
         activeContentTab: accountState?.activeContentTab,
         currentTokenSlug: accountState?.currentTokenSlug,
       };

@@ -40,7 +40,7 @@ function PortraitActions({
   const lang = useLang();
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
-  const isStakingAllowed = !isTestnet && !isLedger;
+  const isStakingAllowed = !isTestnet;
 
   useEffect(() => {
     return window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {

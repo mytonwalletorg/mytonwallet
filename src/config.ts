@@ -156,6 +156,7 @@ export const STAKING_POOLS = process.env.STAKING_POOLS ? process.env.STAKING_POO
 export const LIQUID_POOL = process.env.LIQUID_POOL || 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o';
 export const LIQUID_JETTON = process.env.LIQUID_JETTON || 'EQCqC6EhRJ_tpWngKxL6dV0k6DSnRUrs9GSVkLbfdCqsj6TE';
 export const STAKING_MIN_AMOUNT = ONE_TON;
+export const NOMINATORS_STAKING_MIN_AMOUNT = ONE_TON * 10001n;
 
 export const TON_PROTOCOL = 'ton://';
 export const TONCONNECT_PROTOCOL = 'tc://';

@@ -11,7 +11,9 @@ import {
   ANIMATED_STICKER_SMALL_SIZE_PX,
   DEFAULT_DECIMAL_PLACES,
   DEFAULT_FEE,
-  MIN_BALANCE_FOR_UNSTAKE, ONE_TON,
+  MIN_BALANCE_FOR_UNSTAKE,
+  NOMINATORS_STAKING_MIN_AMOUNT,
+  ONE_TON,
   STAKING_FORWARD_AMOUNT,
   STAKING_MIN_AMOUNT,
   TON_TOKEN_SLUG,
@@ -53,6 +55,7 @@ interface StateProps {
   fee?: bigint;
   stakingBalance: bigint;
   apyValue: number;
+  shouldUseNominators?: boolean;
 }
 
 export const STAKING_DECIMAL = 2;
@@ -68,6 +71,7 @@ function StakingInitial({
   fee,
   stakingBalance,
   apyValue,
+  shouldUseNominators,
 }: OwnProps & StateProps) {
   const { submitStakingInitial, fetchStakingFee } = getActions();
 
@@ -86,6 +90,8 @@ function StakingInitial({
   const calculatedFee = fee ?? DEFAULT_FEE;
   const decimals = DEFAULT_DECIMAL_PLACES;
 
+  const minAmount = shouldUseNominators ? NOMINATORS_STAKING_MIN_AMOUNT : STAKING_MIN_AMOUNT;
+
   const validateAndSetAmount = useLastCallback((newAmount: bigint | undefined, noReset = false) => {
     if (!noReset) {
       setShouldUseAllBalance(false);
@@ -103,9 +109,9 @@ function StakingInitial({
       return;
     }
 
-    if (!balance || newAmount + STAKING_MIN_AMOUNT + calculatedFee > balance) {
+    if (!balance || newAmount + minAmount + calculatedFee > balance) {
       setIsInsufficientBalance(true);
-    } else if (balance + stakingBalance < STAKING_MIN_AMOUNT) {
+    } else if (balance + stakingBalance < minAmount) {
       setIsNotEnough(true);
     }
 
@@ -151,7 +157,7 @@ function StakingInitial({
   }, [isStakingInfoModalOpen, lang]);
 
   const handleAmountBlur = useLastCallback(() => {
-    if (amount && amount + stakingBalance < STAKING_MIN_AMOUNT) {
+    if (amount && amount + stakingBalance < minAmount) {
       setIsNotEnough(true);
     }
   });
@@ -181,7 +187,7 @@ function StakingInitial({
 
   const canSubmit = amount && balance && !isNotEnough
     && amount <= balance
-    && (amount + stakingBalance >= STAKING_MIN_AMOUNT);
+    && (amount + stakingBalance >= minAmount);
 
   const handleSubmit = useLastCallback((e) => {
     e.preventDefault();
@@ -390,6 +396,7 @@ export default memo(
       } = global.staking;
       const tokens = selectCurrentAccountTokens(global);
       const accountState = selectCurrentAccountState(global);
+      const shouldUseNominators = accountState?.staking?.type === 'nominators';
 
       return {
         isLoading,
@@ -398,6 +405,7 @@ export default memo(
         fee,
         stakingBalance: accountState?.staking?.balance || 0n,
         apyValue: accountState?.staking?.apy || 0,
+        shouldUseNominators,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

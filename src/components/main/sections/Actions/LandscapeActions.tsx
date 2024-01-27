@@ -60,7 +60,7 @@ function LandscapeActions({
   );
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
-  const isStakingAllowed = !isTestnet && !isLedger;
+  const isStakingAllowed = !isTestnet;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
 
   useEffect(() => {

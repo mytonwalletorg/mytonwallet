@@ -154,6 +154,7 @@ No NFTs yet: Пока у вас нет NFT
 $nft_explore_offer: |
   Но вы можете просмотреть
   существующие коллекции.
+$nft_hardware_unsupported: К сожалению, работа с NFT пока не поддерживается кошельком Ledger.
 Open Getgems: Открыть Getgems
 Transaction is not completed: Перевод не выполнен
 Received: Получено
@@ -194,7 +195,7 @@ View Address on TON Explorer: Открыть в TON Explorer
 No suggestions, you're on your own!: Ничего не найдено :(
 Play Sounds: Включить звуки
 Focus on asset value rather than current balance: Фокус на стоимости активов вместо текущего баланса
-$tiny_transfers_help: Выключите этот параметр, чтобы отображать сделки менее %1$d %2$s. Имейте в виду, что такие сделки часто используются для спама и мошенничества.
+$tiny_transfers_help: Отключите эту опцию, чтобы показывать переводы стоимостью менее %1$d %2$s. Имейте в виду, что такие переводы часто используются для спама и мошенничества.
 Today: Сегодня
 Yesterday: Вчера
 Now: Сейчас
@@ -284,7 +285,7 @@ Logged in with MyTonWallet: Подключены с помощью MyTonWallet
 No active connections: Нет активных подключений
 Unstaked successfully: Депозит выведен успешно
 Other: Другие
-Assets & Activity: Активы & Лента
+Assets & Activity: Активы и Лента
 Tokens Settings: Настройки токенов
 Your Tokens: Ваши токены
 Add Token: Добавить токен
@@ -331,7 +332,7 @@ Message is encrypted.: Сообщение зашифровано.
 $dapp_ledger_warning1: Вы собираетесь отправить многоадресную транзакцию, используя свой кошелёк **Ledger**. Вам нужно будет подписать каждую базовую транзакцию **по одной вручную**.
 $dapp_ledger_warning2: Пожалуйста, не торопитесь и не прерывайте процесс.
 Agree: Согласен
-The hardware wallet does not support this data format: Аппаратный кошелёк не поддерживает данный формат данных
+Unfortunately, this operation is not yet supported by Ledger wallet: К сожалению, эта операция еще не поддерживается Ledger кошельком
 Swap: Обмен
 You sell: Вы продаёте
 You buy: Вы покупаете

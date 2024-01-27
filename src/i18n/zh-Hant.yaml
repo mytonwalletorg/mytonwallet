@@ -144,6 +144,7 @@ NFT: NFT
 No NFTs yet: 尚未有 NFT
 $nft_explore_offer: |
   探索市場來尋找現有的 NFT 收藏.
+$nft_hardware_unsupported: 不幸的是，Ledger 錢包尚不支援傳輸 NFT。
 Open Getgems: 開啟 Getgems
 Transaction is not completed: 交易未完成
 Received: 已收到
@@ -320,7 +321,7 @@ Message is encrypted.: 消息已加密。
 $dapp_ledger_warning1: 您即將使用您的**Ledger**錢包發送多方交易。您需要手動**一一**簽署每筆底層交易。
 $dapp_ledger_warning2: 請慢慢來，不要中斷過程。
 Agree: 同意
-The hardware wallet does not support this data format: 硬件錢包不支持該數據格式
+Unfortunately, this operation is not yet supported by Ledger wallet: 不幸的是，該操作尚未由Ledger Wallet支持
 Swap: 交換
 You sell: 您賣出
 You buy: 您購買

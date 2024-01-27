@@ -115,10 +115,6 @@ export function clearLaunchUrl() {
   launchUrl = undefined;
 }
 
-export function getCapacitorPlatform() {
-  return platform;
-}
-
 export function getStatusBarHeight() {
   return statusBarHeight;
 }

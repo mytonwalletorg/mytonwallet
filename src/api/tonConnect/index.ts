@@ -40,6 +40,7 @@ import { parsePayloadBase64 } from '../blockchains/ton';
 import { fetchKeyPair } from '../blockchains/ton/auth';
 import { LEDGER_SUPPORTED_PAYLOADS } from '../blockchains/ton/constants';
 import { getIsRawAddress, toBase64Address, toRawAddress } from '../blockchains/ton/util/tonweb';
+import { getContractInfo } from '../blockchains/ton/wallet';
 import {
   fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey, getCurrentAccountId, getCurrentAccountIdOrFail,
 } from '../common/accounts';
@@ -418,15 +419,20 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       const toAddress = getIsRawAddress(address) ? toBase64Address(address, true) : address;
       // Fix address format for `waitTxComplete` to work properly
       const normalizedAddress = toBase64Address(address);
-      const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
 
-      if (isLedger && payload) {
-        if (
+      const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
+      const { isLedgerAllowed } = await getContractInfo(network, toAddress);
+
+      if (isLedger) {
+        if (!isLedgerAllowed) {
+          throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwareOperation);
+        } else if (payload && (
           !LEDGER_SUPPORTED_PAYLOADS.includes(payload.type)
-          || (payload.type === 'comment' && !isValidLedgerComment(payload.comment))
-          || (payload.type === 'nft:transfer' && !!payload.forwardPayload)
+            || (payload.type === 'comment' && !isValidLedgerComment(payload.comment))
+            || (payload.type === 'nft:transfer' && !!payload.forwardPayload)
+        )
         ) {
-          throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwarePayload);
+          throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwareOperation);
         }
       }
 

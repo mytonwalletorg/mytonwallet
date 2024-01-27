@@ -153,6 +153,7 @@ No NFTs yet: No NFTs yet
 $nft_explore_offer: |
   Explore a marketplace to discover
   existing NFT collections.
+$nft_hardware_unsupported: Unfortunately, transferring NFT is not yet supported by Ledger wallet.
 Open Getgems: Open Getgems
 Transaction is not completed: Transaction is not completed
 Received: Received
@@ -336,7 +337,7 @@ Message is encrypted.: Message is encrypted.
 $dapp_ledger_warning1: You are about to send a multi-way transaction using your **Ledger** wallet. You will need to sign each underlying transaction **one by one manually**.
 $dapp_ledger_warning2: Please take your time and do not interrupt the process.
 Agree: Agree
-The hardware wallet does not support this data format: The hardware wallet does not support this data format
+Unfortunately, this operation is not yet supported by Ledger wallet: Unfortunately, this operation is not yet supported by Ledger wallet
 Swap: Swap
 You sell: You sell
 You buy: You buy

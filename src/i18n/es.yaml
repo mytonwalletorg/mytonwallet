@@ -153,6 +153,7 @@ No NFTs yet: Aún no tienes NFT
 $nft_explore_offer: |
   Explore los mercados para descubrir
   nuevas colecciones NFT.
+$nft_hardware_unsupported: Desafortunadamente, la billetera Ledger aún no admite la transferencia de NFT.
 Open Getgems: Abrir Getgems
 Transaction is not completed: La transacción no se ha completado
 Received: Recibido
@@ -336,7 +337,7 @@ Message is encrypted.: El mensaje está encriptado.
 $dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccional utilizando tu monedero **Ledger**. Necesitarás firmar cada transacción subyacente **una por una manualmente**.
 $dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
 Agree: Aceptar
-The hardware wallet does not support this data format: La billetera de hardware no admite este formato de datos
+Unfortunately, this operation is not yet supported by Ledger wallet: Desafortunadamente, esta operación aún no es compatible con Ledger wallet
 Swap: Intercambiar
 You sell: Usted vende
 You buy: Usted compra
