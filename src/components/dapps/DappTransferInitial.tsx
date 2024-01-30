@@ -102,7 +102,7 @@ function DappTransferInitial({
 
     return (
       <div
-        key={`${transaction.toAddress}_${transaction.amount}`}
+        key={`${transaction.toAddress}_${transaction.amount}_${i}`}
         className={styles.transactionRow}
         onClick={() => { showDappTransaction({ transactionIdx: i }); }}
       >

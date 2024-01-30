@@ -13,6 +13,7 @@ import {
 } from '../../../../config';
 import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../../../global/helpers';
 import {
+  selectAccountSettings,
   selectCurrentAccountState, selectCurrentAccountTokens, selectEnabledTokensCountMemoized, selectIsNewWallet,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -55,6 +56,7 @@ type StateProps = {
   savedAddresses?: Record<string, string>;
   isMainHistoryEndReached?: boolean;
   isHistoryEndReachedBySlug?: Record<string, boolean>;
+  exceptionSlugs?: string[];
 };
 
 interface ActivityOffsetInfo {
@@ -90,6 +92,7 @@ function Activities({
   savedAddresses,
   isMainHistoryEndReached,
   isHistoryEndReachedBySlug,
+  exceptionSlugs,
 }: OwnProps & StateProps) {
   const {
     fetchTokenTransactions, fetchAllTransactions, showActivityInfo,
@@ -151,7 +154,11 @@ function Activities({
           return Boolean(
             activity?.slug
             && (!slug || activity.slug === slug)
-            && (!areTinyTransfersHidden || !getIsTinyTransaction(activity, tokensBySlug![activity.slug])),
+            && (
+              !areTinyTransfersHidden
+              || !getIsTinyTransaction(activity, tokensBySlug![activity.slug])
+              || exceptionSlugs?.includes(activity.slug)
+            ),
           );
         }
       }) as ApiActivity[];
@@ -161,7 +168,7 @@ function Activities({
     }
 
     return allActivities;
-  }, [areTinyTransfersHidden, byId, ids, slug, tokensBySlug]);
+  }, [areTinyTransfersHidden, byId, exceptionSlugs, ids, slug, tokensBySlug]);
 
   const { activityIds, activitiesById } = useMemo(() => {
     const activityIdList: string[] = [];
@@ -400,6 +407,7 @@ export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
       const accountState = selectCurrentAccountState(global);
+      const accountSettings = selectAccountSettings(global, global.currentAccountId!);
       const isNewWallet = selectIsNewWallet(global);
       const slug = accountState?.currentTokenSlug;
       const {
@@ -419,6 +427,7 @@ export default memo(
         isMainHistoryEndReached,
         isHistoryEndReachedBySlug,
         currentActivityId: accountState?.currentActivityId,
+        exceptionSlugs: accountSettings?.exceptionSlugs,
       };
     },
     (global, _, stickToFirst) => {

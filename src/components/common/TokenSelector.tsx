@@ -34,7 +34,6 @@ import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import usePrevious from '../../hooks/usePrevious';
 import useScrolledState from '../../hooks/useScrolledState';
 import useSyncEffect from '../../hooks/useSyncEffect';
 
@@ -135,25 +134,16 @@ function TokenSelector({
   const [renderingKey, setRenderingKey] = useState(SearchState.Initial);
   const [searchTokenList, setSearchTokenList] = useState<Token[]>([]);
 
-  const balancesBySlugPrev = usePrevious(balancesBySlug);
-
   // It is necessary to use useCallback instead of useLastCallback here
   const filterTokens = useCallback((tokens: Token[]) => {
     return filterAndSortTokens(tokens, tokenInSlug, pairsBySlug);
   }, [pairsBySlug, tokenInSlug]);
 
   const allUnimportedTonTokens = useMemo(() => {
-    const balances = balancesBySlugPrev ?? balancesBySlug ?? {};
-    const tokens = (swapTokens ?? EMPTY_ARRAY).filter(
-      (popularToken) => {
-        const isTonBlockchain = 'blockchain' in popularToken && popularToken.blockchain === TON_BLOCKCHAIN;
-        const isTokenUnimported = balances[popularToken.slug] === undefined;
-        return isTonBlockchain && isTokenUnimported;
-      },
+    return (swapTokens ?? EMPTY_ARRAY).filter(
+      (popularToken) => 'blockchain' in popularToken && popularToken.blockchain === TON_BLOCKCHAIN,
     );
-
-    return tokens;
-  }, [balancesBySlug, balancesBySlugPrev, swapTokens]);
+  }, [swapTokens]);
 
   const { userTokensWithFilter, popularTokensWithFilter, swapTokensWithFilter } = useMemo(() => {
     const currentUserTokens = userTokens ?? EMPTY_ARRAY;
@@ -245,7 +235,9 @@ function TokenSelector({
 
     onBack();
 
-    if (isInsideSettings) {
+    const isTokenUnimported = balancesBySlug?.[selectedToken.slug] === undefined;
+
+    if (isInsideSettings && isTokenUnimported) {
       addToken({ token: selectedToken as UserToken });
     } else {
       addSwapToken({ token: selectedToken as UserSwapToken });

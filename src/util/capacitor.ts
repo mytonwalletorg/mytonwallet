@@ -14,9 +14,7 @@ import { callApi } from '../api';
 import { isTonConnectDeeplink } from './ton/deeplinks';
 import { pause } from './schedulers';
 import { tonConnectGetDeviceInfo } from './tonConnectEnvironment';
-import {
-  IS_ANDROID_APP, IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET,
-} from './windowEnvironment';
+import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET } from './windowEnvironment';
 
 let launchUrl: string | undefined;
 const IOS_SPLASH_SCREEN_HIDE_DELAY = 500;
@@ -90,10 +88,7 @@ export async function initCapacitor() {
 export async function processDeeplink(url: string) {
   if (isTonConnectDeeplink(url)) {
     const deviceInfo = tonConnectGetDeviceInfo();
-    const returnStrategy = await callApi('startSseConnection', url, deviceInfo);
-    if (returnStrategy === 'back' && IS_ANDROID_APP) {
-      await App.minimizeApp();
-    }
+    await callApi('startSseConnection', url, deviceInfo);
   }
 }
 

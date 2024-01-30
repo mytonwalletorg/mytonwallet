@@ -99,29 +99,22 @@
 
   font-size: 0.9375rem;
   font-weight: 600;
-  text-decoration: none;
+
+  &,
+  &:hover,
+  &:focus,
+  &:active {
+    text-decoration: none;
+  }
 
   @media (hover: hover) {
     &:hover,
     &:focus {
-      text-decoration: none;
-
       .image {
         transform: scale(1.05);
       }
     }
   }
-
-  @media (pointer: coarse) {
-    &:active {
-      text-decoration: none;
-
-      .image {
-        transform: scale(1.05);
-      }
-    }
-  }
-
   &_onSale {
     position: relative;
 

@@ -2,6 +2,7 @@ import React, { memo, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiToken, ApiTransactionActivity } from '../../../api/types';
+import { ActiveTab } from '../../../global/types';
 
 import {
   ANIMATION_END_DELAY,
@@ -78,6 +79,7 @@ function TransactionModal({
     closeActivityInfo,
     setIsPinAccepted,
     clearIsPinAccepted,
+    setLandscapeActionsActiveTabIndex,
   } = getActions();
 
   const lang = useLang();
@@ -172,6 +174,12 @@ function TransactionModal({
 
   const handleStartStakingClick = useLastCallback(() => {
     closeActivityInfo({ id: id! });
+
+    if (!isPortrait) {
+      setLandscapeActionsActiveTabIndex({ index: ActiveTab.Stake });
+      return;
+    }
+
     startStaking();
   });
 

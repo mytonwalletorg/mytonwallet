@@ -490,7 +490,7 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
 
   let type: ApiTransactionType | undefined;
 
-  if (isKnownStakingPool(fromAddress) && amount > ONE_TON) {
+  if (isKnownStakingPool(toBase64Address(fromAddress, true)) && amount > ONE_TON) {
     type = 'unstake';
   } else if (isKnownStakingPool(toBase64Address(toAddress, true))) {
     if (comment === STAKE_COMMENT) {

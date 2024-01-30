@@ -32,7 +32,7 @@ import {
   setIsPinAccepted,
   updateCurrentSwap,
 } from '../../reducers';
-import { selectAccount } from '../../selectors';
+import { selectAccount, selectCurrentAccount } from '../../selectors';
 
 const PAIRS_CACHE: Record<string, { data: ApiSwapPairAsset[]; timestamp: number }> = {};
 
@@ -75,7 +75,8 @@ function getSwapBuildOptions(global: GlobalState): ApiSwapBuildRequest {
 }
 
 addActionHandler('startSwap', (global, actions, payload) => {
-  if (IS_DELEGATED_BOTTOM_SHEET) {
+  const isOpen = global.currentSwap.state !== SwapState.None;
+  if (IS_DELEGATED_BOTTOM_SHEET && !isOpen) {
     callActionInMain('startSwap', payload);
     return;
   }
@@ -528,6 +529,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
   const to = tokenOut.slug === TON_TOKEN_SLUG ? tokenOut.symbol : tokenOut.contract!;
   const fromAmount = global.currentSwap.amountIn ?? '0';
   const toAmount = global.currentSwap.amountOut ?? '0';
+  const fromAddress = selectCurrentAccount(global)!.address;
 
   const estimateAmount = global.currentSwap.inputSource === SwapInputSource.In ? { fromAmount } : { toAmount };
 
@@ -536,6 +538,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
     from,
     to,
     slippage: global.currentSwap.slippage,
+    fromAddress,
   });
 
   global = getGlobal();

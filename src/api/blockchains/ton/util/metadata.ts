@@ -382,7 +382,7 @@ function dataToSlice(data: string | Buffer | Uint8Array): Slice {
 export function readSnakeBytes(slice: Slice) {
   let buffer = Buffer.alloc(0);
 
-  while (slice.remainingBits > 8) {
+  while (slice.remainingBits >= 8) {
     buffer = Buffer.concat([buffer, slice.loadBuffer(slice.remainingBits / 8)]);
     if (slice.remainingRefs) {
       slice = slice.loadRef().beginParse();

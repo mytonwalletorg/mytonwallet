@@ -19,6 +19,7 @@ import modalStyles from '../../ui/Modal.module.scss';
 import styles from '../Settings.module.scss';
 
 import biometricsImg from '../../../assets/settings/settings_biometrics.svg';
+import faceIdImg from '../../../assets/settings/settings_face-id.svg';
 
 interface OwnProps {
   onEnable: NoneToVoidFunction;
@@ -42,6 +43,8 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
   const warningDescription = isFaceId
     ? 'Are you sure you want to disable Face ID?'
     : (isTouchId ? 'Are you sure you want to disable Touch ID?' : 'Are you sure you want to disable biometrics?');
+
+  const icon = isFaceId ? faceIdImg : biometricsImg;
 
   const handleConfirmDisableBiometrics = useLastCallback(() => {
     closeWarningModal();
@@ -100,7 +103,7 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
   return (
     <div className={styles.block}>
       <div className={styles.item} onClick={handleBiometricAuthToggle}>
-        <img className={styles.menuIcon} src={biometricsImg} alt="" />
+        <img className={styles.menuIcon} src={icon} alt="" />
         {switcherTitle}
 
         <Switcher

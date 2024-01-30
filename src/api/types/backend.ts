@@ -7,6 +7,7 @@ export type ApiSwapEstimateRequest = {
   slippage: number;
   fromAmount?: string;
   toAmount?: string;
+  fromAddress: string;
 };
 
 export type ApiSwapEstimateResponse = ApiSwapEstimateRequest & {

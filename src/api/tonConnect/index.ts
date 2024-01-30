@@ -228,7 +228,12 @@ export async function sendTransaction(
     const { origin, accountId } = await validateRequest(request);
 
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
-    const messages = txPayload.messages.slice(0, 3);
+
+    if (txPayload.messages.length > 4) {
+      throw new errors.BadRequestError('Payload contains more than 4 messages, which exceeds limit');
+    }
+
+    const messages = txPayload.messages;
     let validUntil = txPayload.valid_until;
     if (validUntil && validUntil > 10 ** 10) {
       // If milliseconds were passed instead of seconds
