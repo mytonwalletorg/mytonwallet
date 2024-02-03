@@ -1,5 +1,3 @@
-import { randomBytes } from 'tweetnacl';
-
 import type { TokenBalanceParsed } from '../blockchains/ton/tokens';
 import type {
   ApiActivity,
@@ -19,9 +17,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import {
-  APP_ENV, APP_VERSION, DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG,
-} from '../../config';
+import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { compareActivities } from '../../util/compareActivities';
@@ -35,8 +31,6 @@ import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet } from '../common/backend';
 import { isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
 import { txCallbacks } from '../common/txCallbacks';
-import { getEnvironment } from '../environment';
-import { storage } from '../storages';
 import { processNftUpdates, updateNfts } from './nfts';
 import { getBaseCurrency } from './prices';
 import { getBackendStakingState, getStakingCommonData, tryUpdateStakingCommonData } from './staking';
@@ -61,7 +55,6 @@ const SWAP_FINISHED_STATUSES = new Set(['failed', 'completed', 'expired']);
 
 let onUpdate: OnApiUpdate;
 let isAccountActive: IsAccountActiveFn;
-let clientId: string | undefined;
 
 let preloadEnsurePromise: Promise<any>;
 const prices: {
@@ -404,18 +397,11 @@ export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
 
   try {
     const baseCurrency = await getBaseCurrency();
-    const pricesHeaders: AnyLiteral = {
-      ...getEnvironment().apiHeaders,
-      'X-App-Version': APP_VERSION,
-      'X-App-ClientID': clientId ?? await getClientId(),
-      'X-App-Env': APP_ENV,
-    };
-
     const [pricesData, tokens] = await Promise.all([
       callBackendGet<Record<string, {
         slugs: string[];
         quote: ApiTokenPrice;
-      }>>('/prices', { base: baseCurrency }, pricesHeaders),
+      }>>('/prices', { base: baseCurrency }),
       callBackendGet<ApiBaseToken[]>('/known-tokens'),
     ]);
 
@@ -473,15 +459,6 @@ export async function tryUpdateRegion(localOnUpdate: OnApiUpdate) {
   } catch (err) {
     logDebugError('tryUpdateRegion', err);
   }
-}
-
-async function getClientId() {
-  clientId = await storage.getItem('clientId');
-  if (!clientId) {
-    clientId = Buffer.from(randomBytes(10)).toString('hex');
-    await storage.setItem('clientId', clientId);
-  }
-  return clientId;
 }
 
 export function sendUpdateTokens() {

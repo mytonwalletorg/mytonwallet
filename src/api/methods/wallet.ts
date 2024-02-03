@@ -6,7 +6,7 @@ import { parseAccountId } from '../../util/account';
 import blockchains from '../blockchains';
 import {
   fetchStoredAddress,
-  getMainAccountId,
+  getAccountIdWithMnemonic,
 } from '../common/accounts';
 import * as dappPromises from '../common/dappPromises';
 import { resolveBlockchainKey } from '../common/helpers';
@@ -24,7 +24,7 @@ export function getMnemonicWordList() {
 }
 
 export async function verifyPassword(password: string) {
-  const accountId = await getMainAccountId();
+  const accountId = await getAccountIdWithMnemonic();
   if (!accountId) {
     throw new Error('The user is not authorized in the wallet');
   }

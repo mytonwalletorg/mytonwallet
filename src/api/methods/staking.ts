@@ -5,7 +5,7 @@ import type {
   ApiStakingType,
 } from '../types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { APP_ENV, APP_VERSION, TON_TOKEN_SLUG } from '../../config';
 import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
@@ -14,6 +14,8 @@ import { fetchStoredAccount, fetchStoredAddress } from '../common/accounts';
 import { callBackendGet } from '../common/backend';
 import { resolveBlockchainKey } from '../common/helpers';
 import { isKnownStakingPool } from '../common/utils';
+import { getEnvironment } from '../environment';
+import { getClientId } from './other';
 import { createLocalTransaction } from './transactions';
 
 const CACHE_TTL = 5000; // 5 s.
@@ -125,7 +127,18 @@ export async function fetchBackendStakingState(address: string, isLedger: boolea
     return cacheItem[1];
   }
 
-  const stakingState = await callBackendGet(`/staking/state/${address}`, { isLedger });
+  const headers: AnyLiteral = {
+    ...getEnvironment().apiHeaders,
+    'X-App-Version': APP_VERSION,
+    'X-App-ClientID': await getClientId(),
+    'X-App-Env': APP_ENV,
+  };
+
+  const stakingState = await callBackendGet(`/staking/state/${address}`, {
+    isLedger,
+  }, {
+    headers,
+  });
   stakingState.balance = fromDecimal(stakingState.balance);
   stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
 

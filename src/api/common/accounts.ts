@@ -2,7 +2,6 @@ import type { StorageKey } from '../storages/types';
 import type { ApiAccount, ApiNetwork } from '../types';
 
 import { buildAccountId, parseAccountId } from '../../util/account';
-import { buildCollectionByKey } from '../../util/iteratees';
 import { storage } from '../storages';
 
 const MIN_ACCOUNT_NUMBER = 0;
@@ -17,39 +16,10 @@ export async function getAccountIds(): Promise<string[]> {
   return Object.keys(await storage.getItem('accounts') || {});
 }
 
-export async function getMainAccountId() {
-  const accountIds = await getAccountIds();
+export async function getAccountIdWithMnemonic() {
+  const byId = await fetchStoredAccounts();
 
-  const accounts = await Promise.all(
-    accountIds.map(async (accountId) => {
-      const info = await fetchStoredAccount(accountId);
-      return {
-        ...parseAccountId(accountId),
-        accountId,
-        hasLedger: !!info?.ledger,
-      };
-    }),
-  );
-
-  const nonHardwareAccounts = accounts.filter((account) => !account.hasLedger);
-
-  if (!nonHardwareAccounts.length) {
-    return undefined;
-  }
-
-  const accountById = buildCollectionByKey(
-    nonHardwareAccounts,
-    'id',
-  );
-
-  const keys = Object.keys(accountById);
-  if (!keys.length) {
-    return undefined;
-  }
-
-  const id = Math.min(...keys.map(Number));
-
-  return accountById[id].accountId;
+  return Object.entries(byId).find(([,account]) => !account.ledger)?.[0];
 }
 
 export async function getNewAccountId(network: ApiNetwork) {
@@ -72,6 +42,10 @@ export async function fetchStoredAddress(accountId: string): Promise<string> {
 
 export function fetchStoredAccount(accountId: string): Promise<ApiAccount> {
   return getAccountValue(accountId, 'accounts');
+}
+
+export function fetchStoredAccounts(): Promise<Record<string, ApiAccount>> {
+  return storage.getItem('accounts');
 }
 
 export async function updateStoredAccount(accountId: string, partial: Partial<ApiAccount>): Promise<void> {

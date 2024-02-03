@@ -11,12 +11,10 @@ import {
 import { parseAccountId } from '../../../util/account';
 import authApi from '../../../util/authApi';
 import webAuthn from '../../../util/authApi/webAuthn';
-import {
-  getIsNativeBiometricAuthSupported,
-  vibrateOnError,
-  vibrateOnSuccess,
-} from '../../../util/capacitor';
+import { getIsNativeBiometricAuthSupported, vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { copyTextToClipboard } from '../../../util/clipboard';
 import { cloneDeep } from '../../../util/iteratees';
+import { getTranslation } from '../../../util/langProvider';
 import { callActionInMain } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
 import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
@@ -929,3 +927,32 @@ addActionHandler('closeAuthBackupWalletModal', (global, actions, props) => {
     actions.afterCheckMnemonic();
   }
 });
+
+addActionHandler('copyStorageData', async (global, actions) => {
+  const accountConfigJson = await callApi('fetchAccountConfigForDebugPurposesOnly');
+
+  if (accountConfigJson) {
+    const storageData = JSON.stringify({
+      ...JSON.parse(accountConfigJson),
+      global: reduceGlobalForDebug(),
+    });
+
+    await copyTextToClipboard(storageData);
+
+    actions.showNotification({ message: getTranslation('Copied') });
+  } else {
+    actions.showError({ error: ApiCommonError.Unexpected });
+  }
+});
+
+function reduceGlobalForDebug() {
+  const reduced = cloneDeep(getGlobal());
+
+  reduced.tokenInfo = {} as any;
+  reduced.swapTokenInfo = {} as any;
+  Object.entries(reduced.byAccountId).forEach(([, state]) => {
+    state.activities = {} as any;
+  });
+
+  return reduced;
+}

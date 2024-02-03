@@ -664,6 +664,7 @@ export interface ActionPayloads {
   disableNativeBiometrics: undefined;
   changeBaseCurrency: { currency: ApiBaseCurrency };
   clearNativeBiometricsError: undefined;
+  copyStorageData: undefined;
 
   // TON Connect
   submitDappConnectRequestConfirm: { accountId: string; password?: string };

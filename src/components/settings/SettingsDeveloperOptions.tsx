@@ -31,6 +31,7 @@ const NETWORK_OPTIONS = [{
 function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
   const {
     startChangingNetwork,
+    copyStorageData,
   } = getActions();
   const lang = useLang();
 
@@ -58,6 +59,15 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
           className={buildClassName(styles.item, styles.item_small)}
           onChange={handleNetworkChange}
         />
+      </div>
+
+      <p className={styles.blockTitle}>{lang('Dangerous')}</p>
+      <div className={styles.settingsBlock}>
+        <div className={buildClassName(styles.item, styles.item_small)} onClick={() => copyStorageData()}>
+          {lang('Copy Storage Data')}
+
+          <i className={buildClassName(styles.iconChevronRight, 'icon-copy')} aria-hidden />
+        </div>
       </div>
       <Button
         className={styles.developerCloseButton}
