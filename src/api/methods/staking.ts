@@ -136,9 +136,7 @@ export async function fetchBackendStakingState(address: string, isLedger: boolea
 
   const stakingState = await callBackendGet(`/staking/state/${address}`, {
     isLedger,
-  }, {
-    headers,
-  });
+  }, headers);
   stakingState.balance = fromDecimal(stakingState.balance);
   stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
 

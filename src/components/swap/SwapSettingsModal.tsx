@@ -32,7 +32,7 @@ interface StateProps {
   amountOutMin?: string;
 }
 
-const SLIPPAGE_VALUES = [0.1, 0.5, 1, 5];
+const SLIPPAGE_VALUES = [0.5, 1, 2, 5, 10];
 const MAX_SLIPPAGE_VALUE = 50;
 
 export const MAX_PRICE_IMPACT_VALUE = 5;

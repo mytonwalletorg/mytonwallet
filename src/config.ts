@@ -51,7 +51,7 @@ export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 1;
 
 export const DEFAULT_DECIMAL_PLACES = 9;
 
-export const DEFAULT_SLIPPAGE_VALUE = 0.5;
+export const DEFAULT_SLIPPAGE_VALUE = 5;
 
 export const GLOBAL_STATE_CACHE_DISABLED = false;
 export const GLOBAL_STATE_CACHE_KEY = 'mytonwallet-global-state';

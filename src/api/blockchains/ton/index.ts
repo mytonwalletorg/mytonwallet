@@ -1,5 +1,6 @@
 export {
   encryptMnemonic,
+  decryptMnemonic,
   fetchMnemonic,
   generateMnemonic,
   mnemonicToSeed,

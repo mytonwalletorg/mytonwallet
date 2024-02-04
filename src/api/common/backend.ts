@@ -21,7 +21,7 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
   return response.json();
 }
 
-export async function callBackendGet<T = any>(path: string, data?: AnyLiteral, headers?: AnyLiteral): Promise<T> {
+export async function callBackendGet<T = any>(path: string, data?: AnyLiteral, headers?: HeadersInit): Promise<T> {
   const url = new URL(`${BRILLIANT_API_BASE_URL}${path}`);
   if (data) {
     Object.entries(data).forEach(([key, value]) => {

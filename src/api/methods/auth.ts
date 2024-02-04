@@ -1,5 +1,6 @@
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { ApiAccount, ApiNetwork, ApiTxIdBySlug } from '../types';
+import { ApiCommonError } from '../types';
 
 import blockchains from '../blockchains';
 import { toBase64Address } from '../blockchains/ton/util/tonweb';
@@ -38,10 +39,14 @@ export async function createWallet(network: ApiNetwork, mnemonic: string[], pass
   const address = await publicKeyToAddress(network, publicKey);
 
   const accountId = await getNewAccountId(network);
-  await storeAccount(accountId, mnemonic, password, {
+  const result = await storeAccount(accountId, mnemonic, password, {
     address,
     publicKey: bytesToHex(publicKey),
   });
+  if ('error' in result) {
+    return result as { error: string };
+  }
+
   void activateAccount(accountId);
 
   return {
@@ -78,10 +83,14 @@ export async function importMnemonic(network: ApiNetwork, mnemonic: string[], pa
   const address = toBase64Address(await wallet.getAddress(), false);
 
   const accountId: string = await getNewAccountId(network);
-  await storeAccount(accountId, mnemonic, password, {
+  const result = await storeAccount(accountId, mnemonic, password, {
     publicKey: bytesToHex(publicKey),
     address,
   });
+  if ('error' in result) {
+    return result as { error: string };
+  }
+
   void activateAccount(accountId);
 
   return {
@@ -119,10 +128,20 @@ function storeHardwareAccount(accountId: string, account?: ApiAccount) {
 async function storeAccount(accountId: string, mnemonic: string[], password: string, account: ApiAccount) {
   const mnemonicEncrypted = await blockchains.ton.encryptMnemonic(mnemonic, password);
 
+  // This is a defensive approach against potential corrupted encryption reported by some users
+  const decryptedMnemonic = await blockchains.ton.decryptMnemonic(mnemonicEncrypted, password)
+    .catch(() => undefined);
+
+  if (!password || !decryptedMnemonic) {
+    return { error: ApiCommonError.DebugError };
+  }
+
   await Promise.all([
     setAccountValue(accountId, 'mnemonicsEncrypted', mnemonicEncrypted),
     setAccountValue(accountId, 'accounts', account),
   ]);
+
+  return {};
 }
 
 export async function removeNetworkAccounts(network: ApiNetwork) {

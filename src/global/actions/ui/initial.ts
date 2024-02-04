@@ -167,6 +167,10 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       actions.showDialog({ message: 'An error on the server side. Please try again.' });
       break;
 
+    case ApiCommonError.DebugError:
+      actions.showDialog({ message: 'Unexpected error. Please let the support know.' });
+      break;
+
     case ApiCommonError.Unexpected:
     case undefined:
       actions.showDialog({ message: 'Unexpected' });

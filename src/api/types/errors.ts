@@ -1,6 +1,7 @@
 export enum ApiCommonError {
   Unexpected = 'Unexpected',
   ServerError = 'ServerError',
+  DebugError = 'DebugError',
 }
 
 export enum ApiTransactionDraftError {
