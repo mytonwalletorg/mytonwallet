@@ -15,6 +15,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import SettingsAbout from '../settings/SettingsAbout';
 import Transition from '../ui/Transition';
 import AuthBackupWalletModal from './AuthBackupWalletModal';
+import AuthCheckPassword from './AuthCheckPassword';
 import AuthConfirmBiometrics from './AuthConfirmBiometrics';
 import AuthConfirmPin from './AuthConfirmPin';
 import AuthCreateBackup from './AuthCreateBackup';
@@ -72,6 +73,15 @@ const Auth = ({
         return <AuthStart />;
       case AuthState.creatingWallet:
         return <AuthCreatingWallet isActive={isActive} />;
+      case AuthState.checkPassword:
+        return (
+          <AuthCheckPassword
+            isActive={isActive}
+            isLoading={isLoading}
+            method="createAccount"
+            error={error}
+          />
+        );
       case AuthState.createPin:
         return <AuthCreatePin isActive={isActive} method="createAccount" />;
       case AuthState.confirmPin:
@@ -105,6 +115,15 @@ const Auth = ({
         return <AuthCreatePin isActive={isActive} method="importMnemonic" />;
       case AuthState.importWalletConfirmPin:
         return <AuthConfirmPin isActive={isActive} method="importMnemonic" />;
+      case AuthState.importWalletCheckPassword:
+        return (
+          <AuthCheckPassword
+            isActive={isActive}
+            isLoading={isLoading}
+            method="importMnemonic"
+            error={error}
+          />
+        );
       case AuthState.disclaimer:
         return (
           <AuthDisclaimer

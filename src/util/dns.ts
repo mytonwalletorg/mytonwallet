@@ -18,10 +18,15 @@ function removeVipZone(value: string) {
   return value.match(zonesRegex.vip)?.groups?.base;
 }
 
+function removeTonZone(value: string) {
+  return value.replace(/\.ton$/i, '');
+}
+
 export default {
   zones,
   zonesRegex,
   isDnsDomain,
   isVipDnsDomain,
   removeVipZone,
+  removeTonZone,
 };

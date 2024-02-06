@@ -1,5 +1,5 @@
 import React, { memo } from '../../lib/teact/teact';
-import { getActions } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
 import { APP_NAME, MNEMONIC_COUNT } from '../../config';
 import renderText from '../../global/helpers/renderText';
@@ -16,12 +16,17 @@ import styles from './Auth.module.scss';
 
 import logoPath from '../../assets/logo.svg';
 
-const AuthStart = () => {
+interface StateProps {
+  hasAccounts?: boolean;
+}
+
+function AuthStart({ hasAccounts }: StateProps) {
   const {
     startCreatingWallet,
     startImportingWallet,
     openAbout,
     openHardwareWalletModal,
+    restartAuth,
   } = getActions();
 
   const lang = useLang();
@@ -30,6 +35,13 @@ const AuthStart = () => {
 
   return (
     <div className={buildClassName(styles.container, 'custom-scroll')}>
+      {hasAccounts && (
+        <Button isSimple isText onClick={restartAuth} className={styles.headerBack}>
+          <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
+          <span>{lang('Back')}</span>
+        </Button>
+      )}
+
       <img
         src={logoPath}
         alt={APP_NAME}
@@ -76,6 +88,10 @@ const AuthStart = () => {
       </div>
     </div>
   );
-};
+}
 
-export default memo(AuthStart);
+export default memo(withGlobal((global): StateProps => {
+  return {
+    hasAccounts: Boolean(global.currentAccountId),
+  };
+})(AuthStart));

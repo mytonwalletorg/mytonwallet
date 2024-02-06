@@ -66,7 +66,10 @@ addActionHandler('restartAuth', (global) => {
 addActionHandler('startCreatingWallet', async (global, actions) => {
   const accounts = selectAccounts(global) ?? {};
   const isFirstAccount = !Object.values(accounts).length;
-  const methodState = isFirstAccount ? AuthState.creatingWallet : AuthState.createBackup;
+  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
+  const methodState = !firstNonHardwareAccount
+    ? AuthState.creatingWallet
+    : AuthState.createBackup;
 
   const network = selectCurrentNetwork(global);
   const checkResult = await callApi('checkApiAvailability', {
@@ -81,9 +84,17 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
 
   global = getGlobal();
 
+  if (Boolean(firstNonHardwareAccount) && !global.auth.password) {
+    setGlobal(updateAuth(global, {
+      state: AuthState.checkPassword,
+      error: undefined,
+    }));
+    return;
+  }
+
   const promiseCalls = [
     callApi('generateMnemonic'),
-    ...(isFirstAccount ? [pause(CREATING_DURATION)] : []),
+    ...(!firstNonHardwareAccount ? [pause(CREATING_DURATION)] : []),
   ] as [Promise<Promise<string[]> | undefined>, Promise<void> | undefined];
 
   setGlobal(
@@ -100,8 +111,6 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
     mnemonic,
     mnemonicCheckIndexes: selectMnemonicForCheck(),
   });
-
-  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
 
   if (firstNonHardwareAccount) {
     setGlobal(global);
@@ -426,9 +435,14 @@ addActionHandler('skipCheckMnemonic', (global, actions) => {
 });
 
 addActionHandler('startImportingWallet', (global) => {
+  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
+  const state = firstNonHardwareAccount && !global.auth.password
+    ? AuthState.importWalletCheckPassword
+    : AuthState.importWallet;
+
   setGlobal(
     updateAuth(global, {
-      state: AuthState.importWallet,
+      state,
       error: undefined,
       method: 'importMnemonic',
     }),
@@ -445,33 +459,34 @@ addActionHandler('closeAbout', (global) => {
 
 addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) => {
   const isValid = await callApi('validateMnemonic', mnemonic);
+  global = getGlobal();
   if (!isValid) {
-    setGlobal(
-      updateAuth(getGlobal(), {
-        error: 'Your mnemonic words are invalid.',
-      }),
-    );
+    setGlobal(updateAuth(global, {
+      error: 'Your mnemonic words are invalid.',
+    }));
 
     return;
   }
 
-  global = getGlobal();
+  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
   const hasAccounts = Object.keys(selectAccounts(global) || {}).length > 0;
+  const state = IS_CAPACITOR
+    ? AuthState.importWalletCreatePin
+    : (IS_BIOMETRIC_AUTH_SUPPORTED
+      ? AuthState.importWalletCreateBiometrics
+      : AuthState.importWalletCreatePassword);
+
   global = updateAuth(global, {
     mnemonic,
     error: undefined,
-    ...(!hasAccounts && {
-      state: IS_CAPACITOR
-        ? AuthState.importWalletCreatePin
-        : (IS_BIOMETRIC_AUTH_SUPPORTED
-          ? AuthState.importWalletCreateBiometrics
-          : AuthState.importWalletCreatePassword),
-    }),
+    ...(!firstNonHardwareAccount && { state }),
   });
   setGlobal(global);
 
-  if (!hasAccounts) {
-    actions.requestConfetti();
+  if (!firstNonHardwareAccount) {
+    if (!hasAccounts) {
+      actions.requestConfetti();
+    }
 
     if (IS_CAPACITOR) {
       void vibrateOnSuccess();

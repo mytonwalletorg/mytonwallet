@@ -52,7 +52,8 @@ const CSP = `
   object-src 'none';
   base-uri 'none';
   font-src 'self' https://fonts.gstatic.com/;
-  form-action 'none';`
+  form-action 'none';
+  frame-src 'self' https://widget.changelly.com/`
   .replace(/\s+/g, ' ').trim();
 
 const appVersion = require('./package.json').version;

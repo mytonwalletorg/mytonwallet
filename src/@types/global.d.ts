@@ -122,6 +122,10 @@ interface HTMLElement {
 interface Navigator {
   // PWA badging extensions https://w3c.github.io/badging/
   setAppBadge?(count: number): Promise<void>;
+  // https://wicg.github.io/ua-client-hints/#dictdef-uadatavalues
+  userAgentData?: {
+    platform: string;
+  };
 }
 
 // Fix to make Boolean() work as !!
@@ -162,3 +166,7 @@ interface FileSystemSyncAccessHandle {
 type FilesystemReadWriteOptions = {
   at: number;
 };
+
+interface Cordova {
+  InAppBrowser: InAppBrowser;
+}

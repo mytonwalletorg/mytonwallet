@@ -1,7 +1,9 @@
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
   ApiActivity,
-  ApiAnyDisplayError, ApiBalanceBySlug,
+  ApiAnyDisplayError,
+  ApiBackendDapp,
+  ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiDapp,
   ApiDappPermissions,
@@ -60,6 +62,7 @@ export enum AppState {
 export enum AuthState {
   none,
   creatingWallet,
+  checkPassword,
   createPin,
   confirmPin,
   createBiometrics,
@@ -68,6 +71,7 @@ export enum AuthState {
   createPassword,
   createBackup,
   disclaimerAndBackup,
+  importWalletCheckPassword,
   importWallet,
   importWalletCreatePin,
   importWalletConfirmPin,
@@ -190,6 +194,7 @@ export enum ActiveTab {
 export enum ContentTab {
   Assets,
   Activity,
+  Explore,
   Nft,
 }
 
@@ -387,6 +392,8 @@ export type GlobalState = {
     isSigned?: boolean;
   };
 
+  dappCatalog?: ApiBackendDapp[];
+
   currentDappTransfer: {
     state: TransferState;
     promiseId?: string;
@@ -480,11 +487,13 @@ export type GlobalState = {
   isAppUpdateAvailable?: boolean;
   confettiRequestedAt?: number;
   isPinAccepted?: boolean;
+  isOnRampWidgetModalOpen?: boolean;
 
   stateVersion: number;
   restrictions: {
     isLimitedRegion: boolean;
     isSwapDisabled: boolean;
+    isOnRampDisabled: boolean;
   };
 };
 
@@ -578,7 +587,7 @@ export interface ActionPayloads {
   signOut: { isFromAllAccounts?: boolean } | undefined;
   cancelCaching: undefined;
   afterSignOut: { isFromAllAccounts?: boolean } | undefined;
-  addAccount: { method: AuthMethod; password: string };
+  addAccount: { method: AuthMethod; password: string; isAuthFlow?: boolean };
   addAccount2: { method: AuthMethod; password: string };
   switchAccount: { accountId: string; newNetwork?: ApiNetwork };
   renameAccount: { accountId: string; title: string };
@@ -683,6 +692,7 @@ export interface ActionPayloads {
   getDapps: undefined;
   deleteAllDapps: undefined;
   deleteDapp: { origin: string };
+  loadDappCatalog: undefined;
 
   apiUpdateDappConnect: ApiUpdateDappConnect;
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
@@ -711,6 +721,9 @@ export interface ActionPayloads {
   setSwapCexAddress: { toAddress: string };
   addSwapToken: { token: UserSwapToken };
   toggleSwapSettingsModal: { isOpen: boolean };
+
+  openOnRampWidgetModal: undefined;
+  closeOnRampWidgetModal: undefined;
 }
 
 export enum LoadMoreDirection {

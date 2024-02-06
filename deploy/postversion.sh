@@ -3,7 +3,7 @@
 set -e
 
 VERSION=$(node -p "require('./package.json').version")
-DEFAULT_CHANGELOG="Bug fixes"
+DEFAULT_CHANGELOG="Bug fixes and performance improvements"
 
 echo $VERSION > public/version.txt
 

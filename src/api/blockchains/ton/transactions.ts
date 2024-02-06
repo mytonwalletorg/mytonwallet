@@ -1,8 +1,5 @@
-import type { Method } from 'tonweb';
-import TonWeb from 'tonweb';
-import type { Cell } from 'tonweb/dist/types/boc/cell';
-import type { WalletContract } from 'tonweb/dist/types/contract/wallet/wallet-contract';
-import { Cell as TonCell } from '@ton/core/dist/boc/Cell';
+import type { OpenedContract } from '@ton/core';
+import { Cell, internal, SendMode } from '@ton/core';
 
 import type {
   ApiAnyDisplayError,
@@ -13,8 +10,9 @@ import type {
   ApiTransactionType,
   ApiTxIdBySlug,
 } from '../../types';
-import type { JettonWalletType } from './tokens';
+import type { JettonWallet } from './contracts/JettonWallet';
 import type { AnyPayload, ApiTransactionExtra, TonTransferParams } from './types';
+import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
 import { ONE_TON, TON_TOKEN_SLUG } from '../../../config';
@@ -28,22 +26,22 @@ import { pause } from '../../../util/schedulers';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
+import { fetchTransactions } from './util/indexer';
 import { parseWalletTransactionBody } from './util/metadata';
-import { getTonClient, getTonWalletContract } from './util/tonCore';
 import {
   commentToBytes,
-  fetchNewestTxId,
-  fetchTransactions,
+  getTonClient,
+  getTonWalletContract,
   getWalletPublicKey,
   packBytesAsSnake,
-  parseBase64,
+  parseAddress, parseBase64,
   resolveTokenWalletAddress,
   toBase64Address,
-} from './util/tonweb';
+} from './util/tonCore';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
 import { getAddressInfo } from '../../common/addresses';
 import { updateTransactionMetadata } from '../../common/helpers';
-import { bytesToBase64, isKnownStakingPool } from '../../common/utils';
+import { base64ToBytes, isKnownStakingPool } from '../../common/utils';
 import { ApiServerError, handleServerError } from '../../errors';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
@@ -51,13 +49,12 @@ import {
   ATTEMPTS, FEE_FACTOR, STAKE_COMMENT, UNSTAKE_COMMENT,
 } from './constants';
 import {
-  buildTokenTransfer, getTokenWalletBalance, parseTokenTransaction, resolveTokenBySlug,
+  buildTokenTransfer, parseTokenTransaction, resolveTokenBySlug,
 } from './tokens';
 import {
   getContractInfo,
   getWalletBalance,
   getWalletInfo,
-  isAddressInitialized,
   pickAccountWallet,
 } from './wallet';
 
@@ -88,9 +85,6 @@ type SubmitMultiTransferResult = {
   error: string;
 };
 
-const { Address } = TonWeb.utils;
-
-const DEFAULT_FEE = 15000000n;
 const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 60; // 60 sec.
 const GET_TRANSACTIONS_LIMIT = 50;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;
@@ -137,18 +131,16 @@ export async function checkTransactionDraft(
       };
     }
 
-    if (!Address.isValid(toAddress)) {
+    const {
+      isValid, isUserFriendly, isTestOnly, isBounceable,
+    } = parseAddress(toAddress);
+
+    if (!isValid) {
       return {
         ...result,
         error: ApiTransactionDraftError.InvalidToAddress,
       };
     }
-
-    const {
-      isUserFriendly,
-      isTestOnly,
-      isBounceable,
-    } = new Address(toAddress);
 
     const regex = /[+=/]/; // Temp check for `isUrlSafe`. Remove after TonWeb fixes the issue
     const isUrlSafe = !regex.test(toAddress);
@@ -196,7 +188,7 @@ export async function checkTransactionDraft(
     }
 
     if (typeof data === 'string' && isBase64Data) {
-      data = parseBase64(data);
+      data = base64ToBytes(data);
     }
 
     if (data && typeof data === 'string' && shouldEncrypt) {
@@ -237,7 +229,7 @@ export async function checkTransactionDraft(
     } else {
       const address = await fetchStoredAddress(accountId);
       const tokenAmount: bigint = amount;
-      let tokenWallet: JettonWalletType;
+      let tokenWallet: OpenedContract<JettonWallet>;
       ({
         tokenWallet,
         amount,
@@ -245,7 +237,7 @@ export async function checkTransactionDraft(
         payload: data,
       } = await buildTokenTransfer(network, tokenSlug, address, toAddress, amount, data));
 
-      const tokenBalance = await getTokenWalletBalance(tokenWallet!);
+      const tokenBalance = await tokenWallet!.getJettonBalance();
       if (tokenBalance < tokenAmount!) {
         return {
           ...result,
@@ -254,10 +246,11 @@ export async function checkTransactionDraft(
       }
     }
 
-    const isOurWalletInitialized = await isAddressInitialized(network, wallet);
-    const realFee = await calculateFee(isOurWalletInitialized, async () => (await signTransaction(
+    const { transaction } = await signTransaction(
       network, wallet, toAddress, amount, data, stateInit,
-    )).query);
+    );
+
+    const realFee = await calculateFee(network, wallet, transaction);
     result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
 
     const balance = await getWalletBalance(network, wallet);
@@ -335,16 +328,18 @@ export async function submitTransfer(
 
     await waitLastTransfer(network, fromAddress);
 
-    const { isInitialized, balance } = await getWalletInfo(network, wallet!);
+    const { balance } = await getWalletInfo(network, wallet!);
 
-    const { seqno, query } = await signTransaction(network, wallet!, toAddress, amount, data, stateInit, secretKey);
+    const { seqno, transaction } = await signTransaction(
+      network, wallet!, toAddress, amount, data, stateInit, secretKey,
+    );
 
-    const fee = await calculateFee(isInitialized, query);
+    const fee = await calculateFee(network, wallet!, transaction);
     if (balance < amount + fee) {
       return { error: ApiTransactionError.InsufficientBalance };
     }
 
-    await query.send();
+    wallet!.send(transaction);
 
     updateLastTransfer(network, fromAddress, seqno);
 
@@ -371,26 +366,36 @@ export function resolveTransactionError(error: any): ApiAnyDisplayError {
 
 async function signTransaction(
   network: ApiNetwork,
-  wallet: WalletContract,
+  wallet: TonWallet,
   toAddress: string,
   amount: bigint,
-  payload?: string | Uint8Array | Cell,
+  payload?: AnyPayload,
   stateInit?: Cell,
-  privateKey?: Uint8Array,
+  privateKey: Uint8Array = new Uint8Array(64),
 ) {
   const { seqno } = await getWalletInfo(network, wallet);
 
-  const query = wallet.methods.transfer({
-    secretKey: privateKey as any, // Workaround for wrong typing
-    toAddress,
-    amount: amount.toString(),
-    payload,
-    seqno: seqno || 0,
-    sendMode: 3,
-    stateInit,
+  if (payload instanceof Uint8Array) {
+    payload = packBytesAsSnake(payload, 0) as Cell;
+  }
+
+  const transaction = wallet.createTransfer({
+    seqno,
+    secretKey: Buffer.from(privateKey),
+    messages: [internal({
+      value: amount,
+      to: toAddress,
+      body: payload,
+      init: {
+        code: stateInit?.refs[0],
+        data: stateInit?.refs[1],
+      },
+      bounce: parseAddress(toAddress).isBounceable,
+    })],
+    sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
   });
 
-  return { seqno, query };
+  return { seqno, transaction };
 }
 
 export async function getAccountNewestTxId(accountId: string) {
@@ -536,7 +541,7 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
       if (amount < 0n) {
         return { ...result, error: ApiTransactionDraftError.InvalidAmount };
       }
-      if (!Address.isValid(toAddress)) {
+      if (!parseAddress(toAddress).isValid) {
         return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
       }
       totalAmount += amount;
@@ -548,11 +553,11 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
       return { ...result, error: ApiCommonError.Unexpected };
     }
 
-    const { isInitialized, balance } = await getWalletInfo(network, wallet);
+    const { balance } = await getWalletInfo(network, wallet);
 
-    const realFee = await calculateFee(isInitialized, async () => (await signMultiTransaction(
-      network, wallet, messages,
-    )).query);
+    const { transaction } = await signMultiTransaction(network, wallet, messages);
+
+    const realFee = await calculateFee(network, wallet, transaction);
     result.totalAmount = totalAmount;
     result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
 
@@ -588,18 +593,18 @@ export async function submitMultiTransfer(
 
     await waitLastTransfer(network, fromAddress);
 
-    const { isInitialized, balance } = await getWalletInfo(network, wallet!);
+    const { balance } = await getWalletInfo(network, wallet!);
 
-    const { seqno, query } = await signMultiTransaction(network, wallet!, messages, privateKey, expireAt);
+    const { seqno, transaction } = await signMultiTransaction(network, wallet!, messages, privateKey, expireAt);
 
-    const boc = bytesToBase64(await (await query.getQuery()).toBoc());
+    const boc = transaction.toBoc().toString('base64');
 
-    const fee = await calculateFee(isInitialized, query);
+    const fee = await calculateFee(network, wallet!, transaction);
     if (BigInt(balance) < BigInt(totalAmount) + BigInt(fee)) {
       return { error: ApiTransactionError.InsufficientBalance };
     }
 
-    await query.send();
+    wallet!.send(transaction);
 
     updateLastTransfer(network, fromAddress, seqno);
 
@@ -617,9 +622,9 @@ export async function submitMultiTransfer(
 
 async function signMultiTransaction(
   network: ApiNetwork,
-  wallet: WalletContract,
+  wallet: TonWallet,
   messages: TonTransferParams[],
-  privateKey?: Uint8Array,
+  privateKey: Uint8Array = new Uint8Array(64),
   expireAt?: number,
 ) {
   const { seqno } = await getWalletInfo(network, wallet);
@@ -627,23 +632,37 @@ async function signMultiTransaction(
     expireAt = Math.round(Date.now() / 1000) + DEFAULT_EXPIRE_AT_TIMEOUT_SEC;
   }
 
-  for (const message of messages) {
-    if (message.payload && typeof message.payload === 'string' && message.isBase64Payload) {
-      message.payload = parseBase64(message.payload);
+  const preparedMessages = messages.map((message) => {
+    const {
+      amount, toAddress, stateInit, isBase64Payload,
+    } = message;
+    let { payload } = message;
+
+    if (isBase64Payload && typeof payload === 'string') {
+      payload = Cell.fromBase64(payload);
     }
-  }
 
-  // TODO Uncomment after fixing types in tonweb
-  // @ts-ignore
-  const query = wallet.methods.transfers({
-    secretKey: privateKey as any,
-    seqno: seqno || 0,
-    messages,
-    sendMode: 3,
-    expireAt,
-  }) as Method;
+    return internal({
+      value: amount,
+      to: toAddress,
+      body: payload as Cell | string | undefined, // TODO
+      bounce: parseAddress(toAddress).isBounceable,
+      init: {
+        code: stateInit?.refs[0],
+        data: stateInit?.refs[1],
+      },
+    });
+  });
 
-  return { query, seqno };
+  const transaction = wallet.createTransfer({
+    seqno,
+    secretKey: Buffer.from(privateKey),
+    messages: preparedMessages,
+    sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    timeout: expireAt,
+  });
+
+  return { seqno, transaction };
 }
 
 function updateLastTransfer(network: ApiNetwork, address: string, seqno: number) {
@@ -687,17 +706,16 @@ async function waitIncrementSeqno(network: ApiNetwork, address: string, seqno: n
   return false;
 }
 
-async function calculateFee(isInitialized: boolean, query: Method | (() => Promise<Method>)) {
-  if (typeof query === 'function') {
-    query = await query();
-  }
-  if (isInitialized) {
-    const allFees = await query.estimateFee();
-    const fees = allFees.source_fees;
-    return BigInt(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
-  } else {
-    return DEFAULT_FEE;
-  }
+async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction: Cell) {
+  const { source_fees: fees } = await getTonClient('mainnet').estimateExternalMessageFee(wallet.address, {
+    body: transaction,
+    // eslint-disable-next-line no-null/no-null
+    initCode: null,
+    // eslint-disable-next-line no-null/no-null
+    initData: null,
+    ignoreSignature: true,
+  });
+  return BigInt(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
 }
 
 export async function sendSignedMessage(accountId: string, message: ApiSignedTransfer) {
@@ -708,7 +726,7 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
   const contract = client.open(wallet);
 
   const { base64, seqno } = message;
-  await contract.send(TonCell.fromBase64(base64));
+  await contract.send(Cell.fromBase64(base64));
 
   updateLastTransfer(network, fromAddress, seqno);
 }
@@ -729,7 +747,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     try {
       await waitLastTransfer(network, fromAddress);
 
-      await contract.send(TonCell.fromBase64(base64));
+      await contract.send(Cell.fromBase64(base64));
 
       updateLastTransfer(network, fromAddress, seqno);
 
@@ -773,4 +791,14 @@ export async function waitUntilTransactionAppears(network: ApiNetwork, address: 
     }
     await pause(WAIT_TRANSACTION_PAUSE);
   }
+}
+
+export async function fetchNewestTxId(network: ApiNetwork, address: string) {
+  const transactions = await fetchTransactions(network, address, 1);
+
+  if (!transactions.length) {
+    return undefined;
+  }
+
+  return transactions[0].txId;
 }

@@ -1,10 +1,12 @@
+import { Address } from '@ton/core';
+
 import type { ApiNetwork } from '../../types';
 
 import dns from '../../../util/dns';
-import { getTonWeb, toBase64Address } from './util/tonweb';
+import { DnsCategory, dnsResolve } from './util/dns';
+import { getTonClient, toBase64Address } from './util/tonCore';
 
-const { DnsCollection } = require('tonweb/src/contract/dns/DnsCollection');
-
+const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
 const VIP_DNS_COLLECTION = 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS';
 
 export async function resolveAddress(network: ApiNetwork, address: string): Promise<{
@@ -16,23 +18,30 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
   }
 
   const domain = address;
-  const tonweb = await getTonWeb(network);
 
   try {
+    let base: string;
+    let collection: string;
     if (dns.isVipDnsDomain(domain)) {
-      const base = dns.removeVipZone(domain)!;
-
-      return (await new DnsCollection(tonweb.provider, {
-        address: VIP_DNS_COLLECTION,
-      }).resolve(base, 'wallet'))?.toString(true, true, true);
+      base = dns.removeVipZone(domain)!;
+      collection = VIP_DNS_COLLECTION;
+    } else {
+      base = dns.removeTonZone(domain);
+      collection = TON_DNS_COLLECTION;
     }
 
-    const addressObj = await tonweb.dns.getWalletAddress(domain);
-    if (!addressObj) {
+    const result = await dnsResolve(
+      getTonClient(network),
+      collection,
+      base,
+      DnsCategory.Wallet,
+    );
+
+    if (!(result instanceof Address)) {
       return undefined;
     }
 
-    return { address: toBase64Address(addressObj), domain };
+    return { address: toBase64Address(result), domain };
   } catch (err: any) {
     if (err.message !== 'http provider parse response error') {
       throw err;

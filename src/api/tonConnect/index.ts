@@ -1,5 +1,5 @@
 // eslint-disable-next-line max-classes-per-file
-import TonWeb from 'tonweb';
+import { Address, Cell } from '@ton/core';
 import type {
   ConnectEventError,
   ConnectItemReply,
@@ -39,7 +39,7 @@ import blockchains from '../blockchains';
 import { parsePayloadBase64 } from '../blockchains/ton';
 import { fetchKeyPair } from '../blockchains/ton/auth';
 import { LEDGER_SUPPORTED_PAYLOADS } from '../blockchains/ton/constants';
-import { getIsRawAddress, toBase64Address, toRawAddress } from '../blockchains/ton/util/tonweb';
+import { getIsRawAddress, toBase64Address, toRawAddress } from '../blockchains/ton/util/tonCore';
 import { getContractInfo } from '../blockchains/ton/wallet';
 import {
   fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey, getCurrentAccountId, getCurrentAccountIdOrFail,
@@ -47,7 +47,7 @@ import {
 import { createDappPromise } from '../common/dappPromises';
 import { isUpdaterAlive } from '../common/helpers';
 import {
-  base64ToBytes, bytesToBase64, sha256,
+  bytesToBase64, sha256,
 } from '../common/utils';
 import * as apiErrors from '../errors';
 import { ApiServerError } from '../errors';
@@ -59,16 +59,15 @@ import {
   deactivateDapp,
   deleteDapp,
   findLastConnectedAccount,
+  getDapp,
   getDappsByOrigin,
   isDappConnected,
   updateDapp,
 } from '../methods/dapps';
 import { createLocalTransaction } from '../methods/transactions';
 import * as errors from './errors';
-import { BadRequestError } from './errors';
+import { BadRequestError, UnknownAppError } from './errors';
 import { isValidString, isValidUrl } from './utils';
-
-const { Address } = TonWeb.utils;
 
 const ton = blockchains.ton;
 
@@ -184,6 +183,10 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Lo
     const { origin, accountId } = await validateRequest(request);
 
     activateDapp(accountId, origin);
+    const currentDapp = await getDapp(accountId, origin);
+    if (!currentDapp) {
+      throw new UnknownAppError();
+    }
     await updateDapp(accountId, origin, (dapp) => ({ ...dapp, connectedAt: Date.now() }));
 
     const address = await fetchStoredAddress(accountId);
@@ -393,8 +396,8 @@ async function checkTransactionMessages(accountId: string, messages: Transaction
     return {
       toAddress: getIsRawAddress(address) ? toBase64Address(address, true) : address,
       amount: BigInt(amount),
-      payload: payload ? ton.oneCellFromBoc(base64ToBytes(payload)) : undefined,
-      stateInit: stateInit ? ton.oneCellFromBoc(base64ToBytes(stateInit)) : undefined,
+      payload: payload ? Cell.fromBase64(payload) : undefined,
+      stateInit: stateInit ? Cell.fromBase64(stateInit) : undefined,
     };
   });
 
@@ -487,6 +490,7 @@ function formatConnectError(id: number, error: Error): ConnectEventError {
 
 async function buildTonAddressReplyItem(accountId: string, address: string): Promise<ConnectItemReply> {
   const { network } = parseAccountId(accountId);
+
   const [stateInit, publicKey] = await Promise.all([
     ton.getWalletStateInit(accountId),
     fetchStoredPublicKey(accountId),
@@ -496,7 +500,9 @@ async function buildTonAddressReplyItem(accountId: string, address: string): Pro
     address: toRawAddress(address),
     network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
     publicKey,
-    walletStateInit: stateInit,
+    walletStateInit: stateInit
+      .toBoc({ idx: true, crc32: true })
+      .toString('base64'),
   };
 }
 
@@ -516,14 +522,14 @@ async function signTonProof(
   const domainLengthBuffer = Buffer.allocUnsafe(4);
   domainLengthBuffer.writeInt32LE(domainBuffer.byteLength);
 
-  const address = new Address(walletAddress);
+  const address = Address.parse(walletAddress);
 
   const addressWorkchainBuffer = Buffer.allocUnsafe(4);
-  addressWorkchainBuffer.writeInt32BE(address.wc);
+  addressWorkchainBuffer.writeInt32BE(address.workChain);
 
   const addressBuffer = Buffer.concat([
     addressWorkchainBuffer,
-    Buffer.from(address.hashPart),
+    address.hash,
   ]);
 
   const messageBuffer = Buffer.concat([

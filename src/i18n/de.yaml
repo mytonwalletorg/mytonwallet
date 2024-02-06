@@ -1,6 +1,6 @@
 $auth_intro: |
-  **Sicher** Krypto speichern 
-  und Blockchain-Zahlungen mit der 
+  **Sicher** Krypto speichern
+  und Blockchain-Zahlungen mit der
   **Geschwindigkeit des Lichts** durchführen.
 Create New Wallet: Neue Wallet erstellen
 Import From %1$d Secret Words: Importieren von %1$d Geheimwörtern
@@ -80,7 +80,7 @@ $about_wallet_community: Natürlich, willkommen in unserer %community_link%.
 $about_community_link_text: "**Telegram Kanal**"
 Currency History: Währungsgeschichte
 $add_account_description1: |
-  **MyTonWallet** ermöglicht es Ihnen, nahtlos 
+  **MyTonWallet** ermöglicht es Ihnen, nahtlos
   zwischen **mehreren Konten** zu wechseln.
 $add_account_description2: |
   Probieren Sie es aus, indem Sie eine neue Wallet
@@ -106,7 +106,7 @@ Show QR Code: QR-Code anzeigen
 Create Deposit Link: Einzahlungslink erstellen
 QR Code: QR-Code
 $receive_invoice_description: |
-  Sie können den Betrag und den Zweck der 
+  Sie können den Betrag und den Zweck der
   Zahlung angeben, um dem Sender Zeit zu sparen.
 Amount: Betrag
 Comment: Memo
@@ -126,7 +126,7 @@ Confirmation: Bestätigung
 Data to sign: Zu signierende Daten
 $signature_warning: |
   Das Signieren von benutzerdefinierten Daten ist sehr
-  gefährlich. 
+  gefährlich.
   Verwenden Sie dies nur, wenn Sie wissen, was Sie tun.
 Sign: Signieren
 Done!: Erledigt!
@@ -152,7 +152,7 @@ Activity: Aktivität
 NFT: NFT
 No NFTs yet: Noch keine NFTs vorhanden
 $nft_explore_offer: |
-  Erkunden Sie einen Marktplatz, um 
+  Erkunden Sie einen Marktplatz, um
   bestehende NFT-Sammlungen zu entdecken.
 $nft_hardware_unsupported: Leider wird die Übertragung von NFT von der Ledger-Wallet noch nicht unterstützt.
 Open Getgems: Getgems öffnen
@@ -203,7 +203,7 @@ Yesterday: Gestern
 Now: Jetzt
 $receive_ton_description: |
   Sie können Ihre Adresse teilen, einen QR-Code scannen oder
-  einen Einzahlungslink erstellen, um Kryptowährung zu   
+  einen Einzahlungslink erstellen, um Kryptowährung zu
   erhalten.
 Your address: Ihre Adresse
 Wrong password, please try again.: Falsches Passwort, bitte versuchen Sie es erneut.
@@ -327,8 +327,8 @@ The time on your device is incorrect, sync it and try again: Die Uhrzeit auf Ihr
 Name or Address...: Name oder Adresse...
 Such error, many tabs: Ein solcher Fehler, viele Registerkarten
 $many_tabs_error_description: |
-  MyTonWallet unterstützt nur eine aktive Registerkarte mit  
-  der App. Bitte laden Sie diese Seite neu, um die Verwendung  
+  MyTonWallet unterstützt nur eine aktive Registerkarte mit
+  der App. Bitte laden Sie diese Seite neu, um die Verwendung
   dieser Registerkarte fortzusetzen, oder schließen Sie sie.
 Reload App: App neu laden
 Please confirm operation on your Ledger: Bitte bestätigen Sie die Operation auf Ihrem Ledger
@@ -386,7 +386,7 @@ $ledger_not_ready: Ledger ist nicht verbunden oder die TON-App ist nicht geöffn
 Verify now: Jetzt überprüfen
 Invalid address format. Only URL Safe Base64 format is allowed.: Ungültiges Adressformat. Nur das URL-sichere Base64-Format ist zulässig.
 $auth_backup_description1: |
-  "Dies ist eine **sichere Wallet** und 
+  "Dies ist eine **sichere Wallet** und
   wird nur **von Ihnen kontrolliert**.
 $auth_backup_description2: "Und mit großer Macht kommt **große Verantwortung**."
 $auth_backup_description3: |
@@ -510,7 +510,6 @@ Confirm Operation: Operation bestätigen
 Confirm Swap: Swap bestätigen
 "%amount% to %address%": "%amount% zu %address%"
 "%amount_from% to %amount_to%": "%amount_from% zu %amount_to%"
-
 Failed to enable biometrics.: Fehler beim Aktivieren der Biometrie.
 Please try to confirm your biometrics again.: Bitte versuchen Sie erneut, Ihre Biometrie zu bestätigen.
 Unknown error.: Unbekannter Fehler.
@@ -520,3 +519,12 @@ Are you sure you want to disable biometrics?: Sind Sie sicher, dass Sie die Biom
 Yes: Ja
 Declined. Please try to confirm transaction using biometrics again.: Abgelehnt. Versuchen Sie bitte, die Transaktion erneut mit Biometrie zu bestätigen.
 No Activity: Keine aktivität
+Add / Buy: Aufladen
+Buy with Card: Mit Karte kaufen
+Buy with Crypto: Mit Krypto kaufen
+Receive with QR or Invoice: Mit QR oder Rechnung empfangen
+Cannot load widget: Widget kann nicht geladen werden
+Explore: Erkunden
+No partners yet: Noch keine Partner
+Get TON: TON erhalten
+Declined. Please try to confirm operation using biometrics again.: Abgelehnt. Versuchen Sie bitte, die Vorgang erneut mit Biometrie zu bestätigen.

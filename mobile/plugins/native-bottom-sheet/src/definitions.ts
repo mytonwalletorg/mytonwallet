@@ -18,7 +18,8 @@ export type BottomSheetKeys =
   | 'dapp-connect'
   | 'dapp-transaction'
   | 'disclaimer'
-  | 'backup-warning';
+  | 'backup-warning'
+  | 'onramp-widget';
 
 export interface BottomSheetPlugin {
   prepare(): Promise<void>;

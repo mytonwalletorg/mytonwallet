@@ -1,17 +1,23 @@
+import type { ActionSheetButton } from '@capacitor/action-sheet';
+import { ActionSheet, ActionSheetButtonStyle } from '@capacitor/action-sheet';
 import type { URLOpenListenerEvent } from '@capacitor/app';
 import { App as CapacitorApp } from '@capacitor/app';
+import { BottomSheet } from 'native-bottom-sheet';
 import React, { memo, useEffect } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
 import { ElectronEvent } from '../../../../electron/types';
 
+import { IS_CAPACITOR, TON_TOKEN_SLUG, USDT_TRON_TOKEN_SLUG } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { clearLaunchUrl, getLaunchUrl } from '../../../../util/capacitor';
 import { processDeeplink } from '../../../../util/processDeeplink';
 
+import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
+import AddBuyModal from '../../../addbuy/AddBuyModal';
 import Button from '../../../ui/Button';
 
 import styles from './PortraitActions.module.scss';
@@ -24,6 +30,7 @@ interface OwnProps {
   onReceiveClick: NoneToVoidFunction;
   isLedger?: boolean;
   isSwapDisabled?: boolean;
+  isOnRampDisabled?: boolean;
 }
 
 function PortraitActions({
@@ -34,12 +41,16 @@ function PortraitActions({
   onReceiveClick,
   isLedger,
   isSwapDisabled,
+  isOnRampDisabled,
 }: OwnProps) {
-  const { startTransfer, startSwap } = getActions();
+  const { startTransfer, startSwap, openOnRampWidgetModal } = getActions();
+
+  const [isAddBuyModalOpened, openAddBuyModal, closeAddBuyModal] = useFlag();
 
   const lang = useLang();
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
+  const isOnRampAllowed = !isTestnet && !isLedger && !isOnRampDisabled;
   const isStakingAllowed = !isTestnet;
 
   useEffect(() => {
@@ -64,16 +75,54 @@ function PortraitActions({
     startSwap({ isPortrait: true });
   });
 
+  const handleStartSwapWidget = () => {
+    startSwap({
+      isPortrait: true,
+      tokenInSlug: USDT_TRON_TOKEN_SLUG,
+      tokenOutSlug: TON_TOKEN_SLUG,
+      amountIn: '100',
+    });
+  };
+
   const handleStartTransfer = useLastCallback(() => {
     startTransfer({ isPortrait: true });
+  });
+
+  const handleAddBuyClick = useLastCallback(async () => {
+    if (!IS_CAPACITOR) {
+      openAddBuyModal();
+      return;
+    }
+
+    const options: ActionSheetButton[] = [
+      ...(isOnRampAllowed ? [{ title: lang('Buy with Card') }] : []),
+      ...(isSwapAllowed ? [{ title: lang('Buy with Crypto') }] : []),
+      { title: lang('Receive with QR or Invoice') },
+      {
+        title: lang('Cancel'),
+        style: ActionSheetButtonStyle.Cancel,
+      },
+    ];
+
+    const actionByIndex = [
+      ...(isOnRampAllowed ? [openOnRampWidgetModal] : []),
+      ...(isSwapAllowed ? [handleStartSwapWidget] : []),
+      onReceiveClick,
+    ];
+
+    await BottomSheet.disable();
+    const result = await ActionSheet.showActions({ options });
+    await BottomSheet.enable();
+
+    actionByIndex[result.index]?.();
   });
 
   return (
     <div className={styles.container}>
       <div className={styles.buttons}>
-        <Button className={styles.button} onClick={onReceiveClick} isSimple>
-          <i className={buildClassName(styles.buttonIcon, 'icon-receive')} aria-hidden />
-          {lang('Receive')}
+        <Button className={styles.button} onClick={handleAddBuyClick} isSimple>
+          <i className={buildClassName(styles.buttonIcon, 'icon-add-buy')} aria-hidden />
+          {lang('Add / Buy')}
         </Button>
         <Button className={styles.button} onClick={handleStartTransfer} isSimple>
           <i className={buildClassName(styles.buttonIcon, 'icon-send')} aria-hidden />
@@ -96,6 +145,16 @@ function PortraitActions({
           </Button>
         )}
       </div>
+
+      <AddBuyModal
+        isOpen={isAddBuyModalOpened}
+        isTestnet={isTestnet}
+        isLedgerWallet={isLedger}
+        isSwapDisabled={isSwapDisabled}
+        isOnRampDisabled={isOnRampDisabled}
+        onReceiveClick={onReceiveClick}
+        onClose={closeAddBuyModal}
+      />
     </div>
   );
 }

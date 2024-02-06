@@ -239,6 +239,8 @@ Invalid amount: 非法数额
 Invalid address: 非法地址
 Domain is not connected to a wallet: 此域名没有链接至任何钱包地址
 Unexpected error: 预期外的错误
+Earn: 赚取
+Earning: 赚取中
 You can save this address for quick access while sending.: 您可以保存此地址以便在发送时快速访问。
 Stake Again: 再次质押
 Earned: 获得
@@ -498,3 +500,12 @@ Are you sure you want to disable biometrics?: 您确定要禁用生物识别技�
 Yes: 是的
 Declined. Please try to confirm transaction using biometrics again.: 拒绝了。 请尝试再次使用生物识别技术确认交易。
 No Activity: 无活动
+Add / Buy: 添加 / 购买
+Buy with Card: 用卡购买
+Buy with Crypto: 用加密货币购买
+Receive with QR or Invoice: 通过 QR 码或发票接收
+Cannot load widget: 无法加载小部件
+Explore: 探索
+No partners yet: 还没有伴侣
+Get TON: 获取TON
+Declined. Please try to confirm operation using biometrics again.: 拒绝了。 请再次尝试使用生物识别来确认操作。

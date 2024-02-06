@@ -5,15 +5,13 @@
 // - aes-js - 3.1.2 - https://github.com/ricmoo/aes-js/releases/tag/v3.1.2 - for aes-cbc without padding
 // - noble-ed25519 - 1.7.3 - // https://github.com/paulmillr/noble-ed25519/releases/tag/1.7.3 - for getSharedKey
 
-import type { AddressType } from 'tonweb';
-import TonWeb from 'tonweb';
+import type { Address } from '@ton/core';
 
 import { OpCode } from '../constants';
+import { toBase64Address } from './tonCore';
 
 const ed25519 = require('../../../../lib/noble-ed25519');
 const aesjs = require('../../../../lib/aes-js');
-
-const { Address } = TonWeb.utils;
 
 async function hmacSha512(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
   const hmacAlgo = { name: 'HMAC', hash: 'SHA-512' };
@@ -93,7 +91,7 @@ export async function encryptMessageComment(
   myPublicKey: Uint8Array,
   theirPublicKey: Uint8Array,
   myPrivateKey: Uint8Array,
-  senderAddress: AddressType,
+  senderAddress: Address | string,
 ) {
   if (!comment || !comment.length) throw new Error('empty comment');
 
@@ -103,7 +101,7 @@ export async function encryptMessageComment(
 
   const commentBytes = new TextEncoder().encode(comment);
 
-  const salt = new TextEncoder().encode(new Address(senderAddress).toString(true, true, true, false));
+  const salt = new TextEncoder().encode(toBase64Address(senderAddress, true));
 
   const encryptedBytes = await encryptData(commentBytes, myPublicKey, theirPublicKey, myPrivateKey, salt);
 
@@ -162,13 +160,13 @@ export async function decryptData(data: Uint8Array, publicKey: Uint8Array, priva
 }
 
 export async function decryptMessageComment(
-  encryptedData: Uint8Array, myPublicKey: Uint8Array, myPrivateKey: Uint8Array, senderAddress: AddressType,
+  encryptedData: Uint8Array, myPublicKey: Uint8Array, myPrivateKey: Uint8Array, senderAddress: Address | string,
 ) {
   if (myPrivateKey.length === 64) {
     myPrivateKey = myPrivateKey.slice(0, 32); // convert nacl private key
   }
 
-  const salt = new TextEncoder().encode(new Address(senderAddress).toString(true, true, true, false));
+  const salt = new TextEncoder().encode(toBase64Address(senderAddress, true));
 
   const decryptedBytes = await decryptData(encryptedData, myPublicKey, myPrivateKey, salt);
   return new TextDecoder().decode(decryptedBytes);

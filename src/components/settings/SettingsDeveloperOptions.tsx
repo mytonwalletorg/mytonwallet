@@ -34,9 +34,15 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
     copyStorageData,
   } = getActions();
   const lang = useLang();
+  const currentNetwork = NETWORK_OPTIONS[isTestnet ? 1 : 0].value;
 
   const handleNetworkChange = useLastCallback((newNetwork: string) => {
+    if (currentNetwork === newNetwork) {
+      return;
+    }
+
     startChangingNetwork({ network: newNetwork as ApiNetwork });
+    onClose();
   });
 
   return (
@@ -53,7 +59,7 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
         <Dropdown
           label={lang('Network')}
           items={NETWORK_OPTIONS}
-          selectedValue={NETWORK_OPTIONS[isTestnet ? 1 : 0].value}
+          selectedValue={currentNetwork}
           theme="light"
           arrow="chevron"
           className={buildClassName(styles.item, styles.item_small)}

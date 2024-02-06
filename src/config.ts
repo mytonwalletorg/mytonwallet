@@ -47,7 +47,7 @@ export const ANIMATED_STICKER_HUGE_SIZE_PX = 192;
 
 export const TON_SYMBOL = 'TON';
 
-export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 1;
+export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 0;
 
 export const DEFAULT_DECIMAL_PLACES = 9;
 
@@ -101,12 +101,13 @@ export const CHANGELLY_WAITING_DEADLINE = 3 * 60 * 60 * 1000; // 3 hour
 export const TON_TOKEN_SLUG = 'toncoin';
 export const JWBTC_TOKEN_SLUG = 'ton-eqdcbkghmc';
 export const JUSDT_TOKEN_SLUG = 'ton-eqbynbo23y';
+export const USDT_TRON_TOKEN_SLUG = 'usdtrx';
 
 export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-59';
+export const LANG_CACHE_NAME = 'mtw-lang-63';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -161,6 +162,10 @@ export const NOMINATORS_STAKING_MIN_AMOUNT = ONE_TON * 10001n;
 export const TON_PROTOCOL = 'ton://';
 export const TONCONNECT_PROTOCOL = 'tc://';
 export const TONCONNECT_UNIVERSAL_URL = 'https://connect.mytonwallet.org';
+export const TONCONNECT_PROTOCOL_VERSION = 2;
+export const TONCONNECT_WALLET_JSBRIDGE_KEY = 'mytonwallet';
+
+export const DEFAULT_API_TIMEOUT = 5000;
 
 export const TOKEN_INFO = {
   toncoin: {

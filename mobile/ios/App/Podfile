@@ -1,15 +1,4 @@
-def assertDeploymentTarget(installer)
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      # ensure IPHONEOS_DEPLOYMENT_TARGET is at least 13.0
-      deployment_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f
-      should_upgrade = deployment_target < 13.0 && deployment_target != 0.0
-      if should_upgrade
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
-      end
-    end
-  end
-end
+require_relative '../../../node_modules/@capacitor/ios/scripts/pods_helpers'
 
 platform :ios, '13.0'
 use_frameworks!
@@ -23,6 +12,7 @@ def capacitor_pods
   pod 'Capacitor', :path => '../../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../../node_modules/@capacitor/ios'
   pod 'CapacitorMlkitBarcodeScanning', :path => '../../../node_modules/@capacitor-mlkit/barcode-scanning'
+  pod 'CapacitorActionSheet', :path => '../../../node_modules/@capacitor/action-sheet'
   pod 'CapacitorApp', :path => '../../../node_modules/@capacitor/app'
   pod 'CapacitorClipboard', :path => '../../../node_modules/@capacitor/clipboard'
   pod 'CapacitorDialog', :path => '../../../node_modules/@capacitor/dialog'
@@ -33,6 +23,7 @@ def capacitor_pods
   pod 'CapacitorPluginSafeArea', :path => '../../../node_modules/capacitor-plugin-safe-area'
   pod 'CapacitorSplashScreen', :path => '../../plugins/capacitor-splash-screen'
   pod 'NativeBottomSheet', :path => '../../plugins/native-bottom-sheet'
+  pod 'CordovaPlugins', :path => '../capacitor-cordova-ios-plugins'
 end
 
 target 'MyTonWallet' do

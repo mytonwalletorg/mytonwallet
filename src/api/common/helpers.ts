@@ -12,7 +12,7 @@ import type {
 
 import { IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
 import { buildAccountId, parseAccountId } from '../../util/account';
-import { toBase64Address } from '../blockchains/ton/util/tonweb';
+import { toBase64Address } from '../blockchains/ton/util/tonCore';
 import { apiDb } from '../db';
 import { getEnvironment } from '../environment';
 import { storage } from '../storages';

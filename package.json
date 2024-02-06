@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "1.17.22",
+  "version": "1.18.0",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -53,7 +53,7 @@
     "*.{ts,tsx,js}": "eslint --fix",
     "*.{css,scss}": "stylelint --fix"
   },
-  "author": "My Ton Wallet",
+  "author": "MyTonWallet",
   "license": "GPL-3.0-or-later",
   "protocols": [
     {
@@ -79,14 +79,13 @@
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.21.0",
     "@babel/register": "^7.21.0",
-    "@capacitor/cli": "^5.3.0",
+    "@capacitor/cli": "^5.6.0",
     "@peculiar/webcrypto": "^1.3.2",
     "@playwright/test": "^1.31.2",
     "@statoscope/cli": "^5.27.0",
     "@statoscope/webpack-plugin": "^5.27.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@tonconnect/protocol": "^2.2.6",
-    "@types/bn.js": "^5.1.1",
     "@types/chrome": "^0.0.191",
     "@types/croppie": "^2.6.1",
     "@types/jest": "^29.5.0",
@@ -94,6 +93,7 @@
     "@types/node": "^18.15.10",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
+    "@types/sha256": "^0.2.2",
     "@types/webextension-polyfill": "^0.10.1",
     "@types/webpack": "^5.28.0",
     "@types/webpack-bundle-analyzer": "^4.6.0",
@@ -168,14 +168,17 @@
     "webpack-dev-server": "^4.13.1"
   },
   "dependencies": {
+    "@awesome-cordova-plugins/core": "^6.6.0",
+    "@awesome-cordova-plugins/in-app-browser": "^6.6.0",
     "@capacitor-mlkit/barcode-scanning": "^5.3.0",
-    "@capacitor/android": "^5.3.0",
+    "@capacitor/action-sheet": "^5.0.6",
+    "@capacitor/android": "^5.6.0",
     "@capacitor/app": "^5.0.6",
     "@capacitor/clipboard": "^5.0.6",
-    "@capacitor/core": "^5.5.1",
+    "@capacitor/core": "^5.6.0",
     "@capacitor/dialog": "^5.0.6",
     "@capacitor/haptics": "^5.0.6",
-    "@capacitor/ios": "^5.5.1",
+    "@capacitor/ios": "^5.6.0",
     "@capacitor/status-bar": "^5.0.6",
     "@capgo/capacitor-native-biometric": "^5.1.0",
     "@ledgerhq/hw-transport-webhid": "^6.28.1",
@@ -187,16 +190,16 @@
     "buffer": "^6.0.3",
     "capacitor-plugin-safe-area": "^2.0.5",
     "capacitor-splash-screen": "file:mobile/plugins/capacitor-splash-screen",
+    "cordova-plugin-inappbrowser": "^6.0.0",
     "idb-keyval": "^6.2.0",
     "native-bottom-sheet": "file:mobile/plugins/native-bottom-sheet",
     "pako": "^2.1.0",
     "qr-code-styling": "github:troman29/qr-code-styling#c00d0",
     "qrcode-generator": "^1.4.4",
     "tonapi-sdk-js": "^1.0.1",
-    "tonweb": "github:troman29/tonweb#8376c1c4eb003412d873dee6600cb9ea91cf6163",
     "tonweb-mnemonic": "^1.0.1",
     "tweetnacl": "^1.0.3",
-    "v8-compile-cache": "^2.3.0",
+    "v8-compile-cache": "^2.4.0",
     "webextension-polyfill": "^0.10.0"
   }
 }

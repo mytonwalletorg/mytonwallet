@@ -99,7 +99,11 @@ function PasswordForm({
     try {
       const biometricPassword = await authApi.getPassword(authConfig!);
       if (!biometricPassword) {
-        setLocalError('Declined. Please try to confirm transaction using biometrics again.');
+        setLocalError(
+          operationType === 'transfer'
+            ? 'Declined. Please try to confirm transaction using biometrics again.'
+            : 'Declined. Please try to confirm operation using biometrics again.',
+        );
       } else {
         onSubmit(biometricPassword);
       }
@@ -284,7 +288,7 @@ function PasswordForm({
           <Button
             isPrimary
             isLoading={isLoading}
-            isDisabled={isSubmitDisabled}
+            isDisabled={isLoading}
             onClick={!isLoading ? handleBiometrics : undefined}
             className={modalStyles.buttonHalfWidth}
           >

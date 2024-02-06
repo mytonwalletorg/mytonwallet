@@ -1,5 +1,6 @@
 import { bigintReviver } from './bigint';
 import generateUniqueId from './generateUniqueId';
+import { logDebugError } from './logs';
 
 export interface CancellableCallback {
   (
@@ -165,7 +166,12 @@ class ConnectorClass<T extends InputRequestTypes> {
 
   onMessage(data: WorkerMessageData | string) {
     if (typeof data === 'string') {
-      data = JSON.parse(data, bigintReviver) as WorkerMessageData;
+      try {
+        data = JSON.parse(data, bigintReviver) as WorkerMessageData;
+      } catch (err: any) {
+        logDebugError('PostMessageConnector: Failed to parse message', err);
+        return;
+      }
     }
 
     const { requestStates, channel } = this;

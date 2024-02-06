@@ -1,0 +1,152 @@
+@import "../../../../styles/mixins";
+
+.list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  align-content: start;
+
+  padding: 0.5rem;
+
+  &.landscapeList {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.item {
+  cursor: var(--custom-cursor, pointer);
+
+  padding-bottom: 0.125rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      text-decoration: none;
+
+      .image {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  @media (pointer: coarse) {
+    &:active {
+      text-decoration: none;
+
+      .image {
+        transform: scale(1.05);
+      }
+    }
+  }
+}
+
+:global(html.is-ios) .itemShown::after {
+  pointer-events: none;
+  content: '';
+
+  position: fixed;
+  z-index: var(--z-modal);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  opacity: 0;
+  background-color: var(--color-tint);
+
+  transition: opacity 200ms;
+}
+
+:global(html.is-ios) .itemOpen::after {
+  opacity: 1;
+}
+
+.imageWrapper {
+  /* Fix for `border-radius` missing during transform on Safari. See https://stackoverflow.com/a/58283449 */
+  isolation: isolate;
+  position: relative;
+
+  overflow: hidden;
+  display: block !important;
+
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 0.4375rem;
+
+  border-radius: var(--border-radius-tiny);
+
+  @supports not (aspect-ratio: 1) {
+    height: auto;
+    max-height: 100%;
+  }
+}
+
+.image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: center;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition: transform 300ms, opacity 300ms ease;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.infoWrapper {
+  padding: 0 0.25rem;
+
+  line-height: 1.0625rem;
+}
+
+.title {
+  font-weight: 700;
+  color: var(--color-black);
+  word-break: break-word;
+}
+
+.description {
+  overflow: hidden;
+
+  padding: 0.125rem 0.25rem 0;
+
+  font-size: 0.75rem;
+  line-height: 0.875rem;
+  color: var(--color-gray-2);
+  text-overflow: ellipsis;
+}
+
+.emptyList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  height: 100%;
+  padding-top: 1.875rem;
+  padding-bottom: 2rem;
+
+  color: var(--color-gray-2);
+
+  @include respond-above(xs) {
+    justify-content: center;
+  }
+}
+
+.emptyListLoading {
+  padding-top: 8rem;
+
+  @include respond-above(xs) {
+    padding-bottom: 8rem;
+  }
+}

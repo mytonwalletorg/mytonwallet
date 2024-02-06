@@ -94,15 +94,24 @@ addActionHandler('setCurrentTokenPeriod', (global, actions, { period }) => {
   });
 });
 
-addActionHandler('addAccount', async (global, actions, { method, password }) => {
+addActionHandler('addAccount', async (global, actions, { method, password, isAuthFlow }) => {
   const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
 
   if (firstNonHardwareAccount) {
     if (!(await callApi('verifyPassword', password))) {
-      setGlobal(updateAccounts(getGlobal(), {
-        isLoading: undefined,
-        error: 'Wrong password, please try again.',
-      }));
+      global = getGlobal();
+      if (isAuthFlow) {
+        global = updateAuth(global, {
+          isLoading: undefined,
+          error: 'Wrong password, please try again.',
+        });
+      } else {
+        global = updateAccounts(getGlobal(), {
+          isLoading: undefined,
+          error: 'Wrong password, please try again.',
+        });
+      }
+      setGlobal(global);
       return;
     }
 
@@ -127,7 +136,12 @@ addActionHandler('addAccount', async (global, actions, { method, password }) => 
 
 addActionHandler('addAccount2', (global, actions, { method, password }) => {
   const isMnemonicImport = method === 'importMnemonic';
-  const authState = isMnemonicImport ? AuthState.importWallet : AuthState.createBackup;
+  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
+  const authState = firstNonHardwareAccount
+    ? isMnemonicImport
+      ? AuthState.importWallet
+      : AuthState.createBackup
+    : AuthState.createBiometrics;
 
   global = { ...global, appState: AppState.Auth };
   global = updateAuth(global, { password, state: authState });
@@ -593,4 +607,12 @@ addActionHandler('setIsPinAccepted', (global) => {
 
 addActionHandler('clearIsPinAccepted', (global) => {
   return clearIsPinAccepted(global);
+});
+
+addActionHandler('openOnRampWidgetModal', (global) => {
+  setGlobal({ ...global, isOnRampWidgetModalOpen: true });
+});
+
+addActionHandler('closeOnRampWidgetModal', (global) => {
+  setGlobal({ ...global, isOnRampWidgetModalOpen: undefined });
 });

@@ -1,33 +1,33 @@
-import TonWeb from 'tonweb';
-import type { Cell as CellType } from 'tonweb/dist/types/boc/cell';
+import { Builder, Cell } from '@ton/core';
 
 import type { ApiNetwork } from '../../types';
 
-import { getTonWeb } from './util/tonweb';
-import { bytesToBase64 } from '../../common/utils';
+import { getTonClient } from './util/tonCore';
 
-const { Cell } = TonWeb.boc;
-
-export async function packPayloadToBoc(payload: string | Uint8Array | CellType) {
-  let payloadCell = new Cell();
+export function packPayloadToBoc(payload: string | Uint8Array) {
+  let cell = new Cell();
   if (payload) {
     if (payload instanceof Cell) {
-      payloadCell = payload;
+      cell = payload;
     } else if (typeof payload === 'string') {
       if (payload.length > 0) {
-        payloadCell.bits.writeUint(0, 32);
-        payloadCell.bits.writeString(payload);
+        cell = new Builder()
+          .storeUint(0, 32)
+          .storeStringTail(payload)
+          .asCell();
       }
     } else {
-      payloadCell.bits.writeBytes(payload);
+      cell = new Builder()
+        .storeBuffer(Buffer.from(payload))
+        .asCell();
     }
   }
-  return bytesToBase64(await payloadCell.toBoc());
+  return cell.toBoc().toString('base64');
 }
 
 export async function checkApiAvailability(network: ApiNetwork) {
   try {
-    await getTonWeb(network).provider.getMasterchainInfo();
+    await getTonClient(network).getMasterchainInfo();
     return true;
   } catch (err: any) {
     return false;

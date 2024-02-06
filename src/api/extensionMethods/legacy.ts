@@ -1,3 +1,6 @@
+import { Cell } from '@ton/core';
+
+import type { AnyPayload } from '../blockchains/ton/types';
 import type { ApiSignedTransfer, OnApiUpdate } from '../types';
 import type { OnApiSiteUpdate } from '../types/dappUpdates';
 
@@ -81,7 +84,7 @@ export async function sendTransaction(params: {
   } = params;
   const amount = BigInt(value);
 
-  let processedData;
+  let processedData: AnyPayload | undefined;
   if (data) {
     switch (dataType) {
       case 'hex':
@@ -91,14 +94,14 @@ export async function sendTransaction(params: {
         processedData = base64ToBytes(data);
         break;
       case 'boc':
-        processedData = ton.oneCellFromBoc(base64ToBytes(data));
+        processedData = Cell.fromBase64(data);
         break;
       default:
         processedData = data;
     }
   }
 
-  const processedStateInit = stateInit ? ton.oneCellFromBoc(base64ToBytes(stateInit)) : undefined;
+  const processedStateInit = stateInit ? Cell.fromBase64(stateInit) : undefined;
 
   await openPopupWindow();
   await waitLogin();

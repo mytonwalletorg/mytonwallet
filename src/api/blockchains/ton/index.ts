@@ -11,7 +11,7 @@ export {
   fetchPrivateKey,
 } from './auth';
 export { getAccountNfts, getNftUpdates } from './nfts';
-export { oneCellFromBoc } from './util/tonweb';
+export { oneCellFromBoc } from './util/tonCore';
 export { buildTokenSlug } from './util';
 export {
   checkTransactionDraft,
@@ -60,7 +60,7 @@ export {
 export {
   resolveTokenWalletAddress,
   resolveTokenMinterAddress,
-} from './util/tonweb';
+} from './util/tonCore';
 export {
   parsePayloadBase64,
 } from './util/metadata';

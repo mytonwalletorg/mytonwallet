@@ -1,0 +1,5 @@
+What's New:
+- New "Explore" section presenting interesting TON projects.
+- Tokens with value less that $0.01 are now automatically hidden.
+- You can now opt-out from auto-updates for better security.
+

@@ -331,6 +331,10 @@
         {
           "text": "'backup-warning'",
           "complexTypes": []
+        },
+        {
+          "text": "'onramp-widget'",
+          "complexTypes": []
         }
       ]
     }

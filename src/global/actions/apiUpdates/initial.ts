@@ -162,6 +162,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = updateRestrictions(global, {
         isLimitedRegion,
         isSwapDisabled: IS_IOS_APP && isLimitedRegion,
+        isOnRampDisabled: IS_IOS_APP && isLimitedRegion,
       });
       setGlobal(global);
     }

@@ -1,5 +1,5 @@
 import type { JettonBalance } from 'tonapi-sdk-js';
-import TonWeb from 'tonweb';
+import { Address } from '@ton/core';
 
 import type {
   ApiBaseToken, ApiNetwork, ApiToken, ApiTokenSimple,
@@ -19,11 +19,12 @@ import {
 import { fetchJettonBalances } from './util/tonapiio';
 import {
   buildTokenTransferBody,
-  getTonWeb,
+  getTonClient,
   resolveTokenMinterAddress,
   resolveTokenWalletAddress,
   toBase64Address,
-} from './util/tonweb';
+} from './util/tonCore';
+import { JettonWallet } from './contracts/JettonWallet';
 import { fetchStoredAddress } from '../../common/accounts';
 import {
   DEFAULT_DECIMALS,
@@ -31,9 +32,6 @@ import {
   TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
 } from './constants';
 
-const { JettonWallet } = TonWeb.token.jetton;
-
-export type JettonWalletType = InstanceType<typeof JettonWallet>;
 export type TokenBalanceParsed = {
   slug: string;
   balance: bigint;
@@ -154,11 +152,7 @@ export function resolveTokenBySlug(slug: string) {
 }
 
 export function getTokenWallet(network: ApiNetwork, tokenAddress: string) {
-  return new JettonWallet(getTonWeb(network).provider, { address: tokenAddress });
-}
-
-export async function getTokenWalletBalance(tokenWallet: JettonWalletType) {
-  return BigInt((await tokenWallet.getData()).balance.toString());
+  return getTonClient(network).open(new JettonWallet(Address.parse(tokenAddress)));
 }
 
 export function getKnownTokens() {

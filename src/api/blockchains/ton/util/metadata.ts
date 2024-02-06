@@ -1,4 +1,4 @@
-import type { Address, DictionaryValue } from '@ton/core';
+import type { DictionaryValue } from '@ton/core';
 import { BitReader } from '@ton/core/dist/boc/BitReader';
 import { BitString } from '@ton/core/dist/boc/BitString';
 import { Builder } from '@ton/core/dist/boc/Builder';
@@ -15,13 +15,13 @@ import { logDebugError } from '../../../../util/logs';
 import { fetchJsonMetadata } from '../../../../util/metadata';
 import { base64ToString, sha256 } from '../../../common/utils';
 import {
-  DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, NftOpCode, OpCode,
+  JettonOpCode, LiquidStakingOpCode, NftOpCode, OpCode,
 } from '../constants';
 import { buildTokenSlug } from './index';
 import { fetchNftItems } from './tonapiio';
-import { getJettonMinterData, resolveTokenMinterAddress } from './tonweb';
+import { getJettonMinterData, resolveTokenMinterAddress, toBase64Address } from './tonCore';
 
-const ONCHAIN_CONTENT_PREFIX = 0x00;
+const OFFCHAIN_CONTENT_PREFIX = 0x01;
 const SNAKE_PREFIX = 0x00;
 
 export function parseJettonWalletMsgBody(body?: string) {
@@ -125,16 +125,20 @@ const jettonOnChainMetadataSpec: {
 };
 
 export async function fetchJettonMetadata(network: ApiNetwork, address: string) {
-  const { jettonContentUri, jettonContentCell } = await getJettonMinterData(network, address);
+  const { content } = await getJettonMinterData(network, address);
 
   let metadata: JettonMetadata;
 
-  if (jettonContentUri) {
-    // Off-chain content
-    metadata = await fetchJettonOffchainMetadata(jettonContentUri);
+  const slice = content.asSlice();
+  const prefix = slice.loadUint(8);
+
+  if (prefix === OFFCHAIN_CONTENT_PREFIX) {
+    const bytes = readSnakeBytes(slice);
+    const contentUri = bytes.toString('utf-8');
+    metadata = await fetchJettonOffchainMetadata(contentUri);
   } else {
     // On-chain content
-    metadata = await parseJettonOnchainMetadata(await jettonContentCell.toBoc());
+    metadata = await parseJettonOnchainMetadata(slice);
     if (metadata.uri) {
       // Semi-chain content
       const offchainMetadata = await fetchJettonOffchainMetadata(metadata.uri);
@@ -145,15 +149,8 @@ export async function fetchJettonMetadata(network: ApiNetwork, address: string) 
   return metadata;
 }
 
-export async function parseJettonOnchainMetadata(array: Uint8Array): Promise<JettonMetadata> {
-  const contentCell = Cell.fromBoc(Buffer.from(array))[0];
-  const contentSlice = contentCell.beginParse();
-
-  if (contentSlice.loadUint(8) !== ONCHAIN_CONTENT_PREFIX) {
-    throw new Error('Expected onchain content marker');
-  }
-
-  const dict = contentSlice.loadDict(Dictionary.Keys.Buffer(32), dictSnakeBufferValue);
+export async function parseJettonOnchainMetadata(slice: Slice): Promise<JettonMetadata> {
+  const dict = slice.loadDict(Dictionary.Keys.Buffer(32), dictSnakeBufferValue);
 
   const res: { [s in keyof JettonMetadata]?: string } = {};
 
@@ -352,10 +349,6 @@ export async function parsePayloadSlice(
   }
 
   return undefined;
-}
-
-function toBase64Address(address: Address, isBounceable = DEFAULT_IS_BOUNCEABLE) {
-  return address.toString({ urlSafe: true, bounceable: isBounceable });
 }
 
 function dataToSlice(data: string | Buffer | Uint8Array): Slice {

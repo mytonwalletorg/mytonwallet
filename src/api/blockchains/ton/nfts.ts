@@ -5,7 +5,7 @@ import type { ApiNft, ApiNftUpdate } from '../../types';
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
 import { fetchAccountEvents, fetchAccountNfts, fetchNftItems } from './util/tonapiio';
-import { toBase64Address } from './util/tonweb';
+import { toBase64Address } from './util/tonCore';
 import { fetchStoredAddress } from '../../common/accounts';
 import { isActiveSmartContract } from './wallet';
 

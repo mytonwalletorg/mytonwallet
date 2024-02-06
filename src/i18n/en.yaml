@@ -413,7 +413,7 @@ Please provide an address of your wallet in another blockchain to receive bought
 The time for sending coins is over: The time for sending coins is over
 Please wait a few moments...: Please wait a few moments...
 You have not sent the coins to the specified address.: You have not sent the coins to the specified address.
-$swap_changelly_to_ton_description1: "You must send %value% to this address in %blockchain% blockchain within %time%"
+$swap_changelly_to_ton_description1: "Send %value% to this address in %blockchain% blockchain within %time%"
 Please contact support and provide a transaction ID.: Please contact support and provide a transaction ID.
 Exchange failed and coins were refunded to your wallet.: Exchange failed and coins were refunded to your wallet.
 Please contact security team to pass the KYC procedure.: Please contact security team to pass the KYC procedure.
@@ -517,3 +517,12 @@ Are you sure you want to disable biometrics?: Are you sure you want to disable b
 Yes: Yes
 Declined. Please try to confirm transaction using biometrics again.: Declined. Please try to confirm transaction using biometrics again.
 No Activity: No Activity
+Add / Buy: Add / Buy
+Buy with Card: Buy with Card
+Buy with Crypto: Buy with Crypto
+Receive with QR or Invoice: Receive with QR or Invoice
+Cannot load widget: Cannot load widget
+Explore: Explore
+No partners yet: No partners yet
+Get TON: Get TON
+Declined. Please try to confirm operation using biometrics again.: Declined. Please try to confirm operation using biometrics again.

@@ -1,3 +1,5 @@
+import { Address } from '@ton/core';
+
 import type {
   ApiBackendStakingState,
   ApiNetwork,
@@ -19,10 +21,10 @@ import {
   buildLiquidStakingDepositBody,
   buildLiquidStakingWithdrawBody,
   getTokenBalance,
-  getTonWeb,
+  getTonClient,
   resolveTokenWalletAddress,
   toBase64Address,
-} from './util/tonweb';
+} from './util/tonCore';
 import { NominatorPool } from './contracts/NominatorPool';
 import { fetchStoredAddress } from '../../common/accounts';
 import { apiDb } from '../../db';
@@ -265,8 +267,8 @@ export async function getStakingState(
   if (currentNominator) {
     return {
       type: 'nominators',
-      amount: fromDecimal(currentNominator.amount),
-      pendingDepositAmount: fromDecimal(currentNominator.pendingDepositAmount),
+      amount: currentNominator.amount,
+      pendingDepositAmount: currentNominator.pendingDepositAmount,
       isUnstakeRequested: currentNominator.withdrawRequested,
     };
   } else if (shouldUseNominators) {
@@ -289,7 +291,7 @@ export async function getStakingState(
 }
 
 function getPoolContract(network: ApiNetwork, poolAddress: string) {
-  return new NominatorPool(getTonWeb(network).provider, { address: poolAddress });
+  return getTonClient(network).open(new NominatorPool(Address.parse(poolAddress)));
 }
 
 async function getLiquidStakingTokenBalance(accountId: string) {

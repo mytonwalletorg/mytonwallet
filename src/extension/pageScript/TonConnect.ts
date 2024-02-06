@@ -12,11 +12,12 @@ import type {
 
 import type { Connector } from '../../util/PostMessageConnector';
 
-import { TONCONNECT_VERSION, tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
+import { TONCONNECT_PROTOCOL_VERSION, TONCONNECT_WALLET_JSBRIDGE_KEY } from '../../config';
+import { tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
 
 declare global {
   interface Window {
-    mytonwallet: {
+    [TONCONNECT_WALLET_JSBRIDGE_KEY] : {
       tonconnect: TonConnect;
     };
   }
@@ -39,7 +40,7 @@ type AppMethodMessage = AppRequest<keyof RpcRequests>;
 type WalletMethodMessage = WalletResponse<RpcMethod>;
 type RequestMethods = 'connect' | 'reconnect' | keyof RpcRequests | 'deactivate';
 
-interface TonConnectBridge {
+export interface ExtensionTonConnectBridge {
   deviceInfo: DeviceInfo; // see Requests/Responses spec
   protocolVersion: number; // max supported Ton Connect version (e.g. 2)
   isWalletBrowser: boolean; // if the page is opened into wallet's browser
@@ -52,10 +53,10 @@ interface TonConnectBridge {
   listen(callback: TonConnectCallback): () => void;
 }
 
-class TonConnect implements TonConnectBridge {
+class TonConnect implements ExtensionTonConnectBridge {
   deviceInfo: DeviceInfo = tonConnectGetDeviceInfo();
 
-  protocolVersion = TONCONNECT_VERSION;
+  protocolVersion = TONCONNECT_PROTOCOL_VERSION;
 
   isWalletBrowser = false;
 
@@ -116,6 +117,14 @@ class TonConnect implements TonConnectBridge {
       },
       id,
     };
+  }
+
+  disconnect() {
+    return this.send({
+      method: 'disconnect',
+      params: [],
+      id: '0',
+    });
   }
 
   listen(callback: (event: WalletEvent) => void): (() => void) {
@@ -185,7 +194,7 @@ class TonConnect implements TonConnectBridge {
 export function initTonConnect(apiConnector: Connector) {
   const tonConnect = new TonConnect(apiConnector);
 
-  window.mytonwallet = {
+  window[TONCONNECT_WALLET_JSBRIDGE_KEY] = {
     tonconnect: tonConnect,
   };
 

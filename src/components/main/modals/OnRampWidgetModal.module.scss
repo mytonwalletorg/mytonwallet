@@ -1,0 +1,75 @@
+@import '../../../styles/variables';
+
+@import '../../../styles/mixins';
+
+.modalDialog {
+  overflow: hidden;
+
+  height: 28rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(28rem + env(safe-area-inset-bottom));
+  }
+
+  :global(.is-native-bottom-sheet) & {
+    height: calc(28rem + var(--safe-area-bottom, 0rem)) !important;
+  }
+}
+
+.content {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+}
+
+.loaderContainer {
+  position: absolute;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  background-color: var(--color-background-second);
+}
+
+.fadeOut {
+  opacity: 1;
+
+  animation: fade-out-opacity 0.15s ease forwards;
+}
+
+.fadeIn {
+  opacity: 0;
+
+  animation: fade-in-opacity 0.15s ease forwards;
+}
+
+.inactive {
+  display: none;
+}
+
+@keyframes fade-in-opacity {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out-opacity {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

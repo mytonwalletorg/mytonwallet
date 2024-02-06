@@ -3,7 +3,7 @@ import type { ApiAccount, ApiNetwork, ApiTxIdBySlug } from '../types';
 import { ApiCommonError } from '../types';
 
 import blockchains from '../blockchains';
-import { toBase64Address } from '../blockchains/ton/util/tonweb';
+import { toBase64Address } from '../blockchains/ton/util/tonCore';
 import {
   getAccountIds,
   getNewAccountId,
@@ -80,7 +80,7 @@ export async function importMnemonic(network: ApiNetwork, mnemonic: string[], pa
     return handleServerError(err);
   }
 
-  const address = toBase64Address(await wallet.getAddress(), false);
+  const address = toBase64Address(wallet.address, false);
 
   const accountId: string = await getNewAccountId(network);
   const result = await storeAccount(accountId, mnemonic, password, {

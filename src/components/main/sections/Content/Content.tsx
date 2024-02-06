@@ -25,6 +25,7 @@ import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
 import Activity from './Activities';
 import Assets from './Assets';
+import Explore from './Explore';
 import Nfts from './Nfts';
 
 import styles from './Content.module.scss';
@@ -68,6 +69,7 @@ function Content({
           : []
       ),
       { id: ContentTab.Activity, title: lang('Activity') as string, className: styles.tab },
+      { id: ContentTab.Explore, title: lang('Explore') as string, className: styles.tab },
       { id: ContentTab.Nft, title: lang('NFT') as string, className: styles.tab },
     ],
     [lang, shouldShowSeparateAssetsPanel],
@@ -167,6 +169,8 @@ function Content({
         return <Activity isActive={isActive} mobileRef={containerRef} />;
       case ContentTab.Nft:
         return <Nfts isActive={isActive} />;
+      case ContentTab.Explore:
+        return <Explore isActive={isActive} />;
       default:
         return undefined;
     }

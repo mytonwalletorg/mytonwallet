@@ -34,7 +34,7 @@ $mnemonic_check_words_list: "**%1$s** numaralı kelimeleri aşağıya girin."
 $mnemonic_check_error: Girdiğiniz gizli kelimeler listedekilerle eşleşmiyor. Lütfen tekrar deneyin.
 $mnemonic_list_description: |
   Bu kelimeleri
-  **doğru sırada** yazın ve 
+  **doğru sırada** yazın ve
   **gizli bir yerde** saklayın.
 Let's Check: Kontrol edelim
 Let's Check!: Kontrol edelim!
@@ -84,7 +84,7 @@ $add_account_description1: |
   arasında sorunsuz şekilde geçiş yapmanıza imkan verir.
 $add_account_description2: |
   Bu özelliği yeni bir cüzdan **yaratarak**
-  ya da mevcut cüzdanınızın 24 gizli kelimesini 
+  ya da mevcut cüzdanınızın 24 gizli kelimesini
   **içeri aktararak** deneyebilirsiniz.
 Enter Password: Şifre girin
 Send: Gönder
@@ -151,7 +151,7 @@ Activity: Etkinlik
 NFT: NFT
 No NFTs yet: Henüz NFT'niz yok
 $nft_explore_offer: |
-  Mevcut NFT koleksiyonlarını görmek 
+  Mevcut NFT koleksiyonlarını görmek
   için NFT pazaryerini inceleyin.
 $nft_hardware_unsupported: Ne yazık ki, NFT aktarımı henüz Ledger cüzdanı tarafından desteklenmiyor.
 Open Getgems: Getgems'i aç
@@ -201,8 +201,8 @@ Today: Bugün
 Yesterday: Dün
 Now: Şimdi
 $receive_ton_description: |
-  Kripto almak için adresinizi paylaşabilir, 
-  QR kodunu tarayabilir veya bir para yatırma 
+  Kripto almak için adresinizi paylaşabilir,
+  QR kodunu tarayabilir veya bir para yatırma
   bağlantısı oluşturabilirsiniz.
 Your address: Adresiniz
 Wrong password, please try again.: Yanlış parola, lütfen tekrar deneyin.
@@ -517,3 +517,12 @@ Are you sure you want to disable biometrics?: Biyometrik korumayı devre dışı
 Yes: Evet
 Declined. Please try to confirm transaction using biometrics again.: Reddedildi. Lütfen biyometrik koruma kullanarak işlemi tekrar onaylamayı deneyin.
 No Activity: Etkinlik yok
+Add / Buy: Yükleme
+Buy with Card: Kart ile Satın Al
+Buy with Crypto: Kripto ile Satın Al
+Receive with QR or Invoice: QR ya da Fatura ile Almak
+Cannot load widget: Widget yüklenemiyor
+Explore: Keşfetmek
+No partners yet: Henüz ortak yok
+Get TON: TON Almak
+Declined. Please try to confirm operation using biometrics again.: Reddedildi. Lütfen biyometrik koruma kullanarak işlemi tekrar onaylamayı deneyin.

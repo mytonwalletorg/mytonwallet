@@ -1,78 +1,56 @@
-import TonWeb from 'tonweb';
-import type { ContractMethods, ContractOptions } from 'tonweb/dist/types/contract/contract';
-import type { HttpProvider } from 'tonweb/dist/types/providers/http-provider';
+import type {
+  Address, Cell, Contract, ContractProvider, TupleItem,
+} from '@ton/core';
+import { beginCell, contractAddress, TupleReader } from '@ton/core';
 
-import { bnToAddress } from '../util/tonweb';
+import { toBase64Address } from '../util/tonCore';
 
-// const { parseAddress } = require('tonweb/src/contract/token/nft/NftUtils');
+export type NominatorPoolConfig = {};
 
-const { fromNano } = TonWeb.utils;
-
-interface NominatorPoolOptions {}
-
-interface NominatorPoolMethods extends ContractMethods {
-  getListNominators: () => Promise<any>;
-  getPoolData: () => Promise<any>;
-  getMaxPunishment: (a: number) => Promise<number>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function nominatorPoolConfigToCell(config: NominatorPoolConfig): Cell {
+  return beginCell().endCell();
 }
 
-export class NominatorPool extends TonWeb.Contract<NominatorPoolOptions, NominatorPoolMethods> {
-  constructor(provider: HttpProvider, options: ContractOptions) {
-    options.wc = 0;
-    super(provider, options);
+export class NominatorPool implements Contract {
+  constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
 
-    if (!options.address) throw new Error('required address');
-
-    this.methods.getListNominators = this.getListNominators.bind(this);
-    this.methods.getPoolData = this.getPoolData.bind(this);
-    this.methods.getMaxPunishment = this.getMaxPunishment.bind(this);
+  static createFromAddress(address: Address) {
+    return new NominatorPool(address);
   }
 
-  async getListNominators(): Promise<{
+  static createFromConfig(config: NominatorPoolConfig, code: Cell, workchain = 0) {
+    const data = nominatorPoolConfigToCell(config);
+    const init = { code, data };
+    return new NominatorPool(contractAddress(workchain, init), init);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async getListNominators(provider: ContractProvider): Promise<{
     address: string;
-    amount: string;
-    pendingDepositAmount: string;
+    amount: bigint;
+    pendingDepositAmount: bigint;
     withdrawRequested: boolean;
   }[]> {
-    const myAddress = await this.getAddress();
-    const result = await this.provider.call2(myAddress.toString(), 'list_nominators');
-    return (result as any[]).map((item) => {
+    const res = await provider.get('list_nominators', []);
+
+    const items = (res.stack as any).items[0].items;
+
+    return items.map((item: { items: TupleItem[] }) => {
+      const tuple = new TupleReader(item.items);
+
+      const hash = tuple.readBigNumber().toString(16).padStart(64, '0');
+      const address = toBase64Address(`0:${hash}`, true);
+      const amount = tuple.readBigNumber();
+      const pendingDepositAmount = tuple.readBigNumber();
+      const withdrawRequested = Boolean(tuple.readNumber());
+
       return {
-        address: bnToAddress(item[0]),
-        amount: fromNano(item[1]),
-        pendingDepositAmount: fromNano(item[2]),
-        withdrawRequested: item[3].toNumber()!!,
+        address,
+        amount,
+        pendingDepositAmount,
+        withdrawRequested,
       };
     });
-  }
-
-  async getPoolData() {
-    const myAddress = await this.getAddress();
-    const result = await this.provider.call2(myAddress.toString(), 'get_pool_data');
-
-    return {
-      state: result[0].toString(), // ds~load_uint(8), ;; state
-      nominatorsCount: result[1].toNumber(), // ds~load_uint(16), ;; nominators_count
-      stakeAmountSent: fromNano(result[2]), // ds~load_coins(), ;; stake_amount_sent
-      validatorAmount: fromNano(result[3]), // ds~load_coins(), ;; validator_amount
-      validatorAddress: bnToAddress(result[4]), // ds~load_uint(ADDR_SIZE()), ;; validator_address
-      validatorRewardShare: Math.round(result[5].toNumber() / 100), // ds~load_uint(16), ;; validator_reward_share
-      maxNominatorsCount: result[6].toNumber(), // ds~load_uint(16), ;; max_nominators_count
-      minValidatorStake: fromNano(result[7]), // ds~load_coins(), ;; min_validator_stake
-      minNominatorStake: fromNano(result[8]), // ds~load_coins() ;; min_nominator_stake
-      nominators: result[9].toString(), // ds~load_dict(), ;; nominators
-      withdrawRequests: result[10].toString(), // ds~load_dict(), ;; withdraw_requests
-      stakeAt: result[11].toNumber(), // ds~load_uint(32), ;; stake_at
-      // savedValidatorSetHash: result[12].toString(), // ds~load_uint(256), ;; saved_validator_set_hash
-      validatorSetChangesCount: result[13].toNumber(), // ds~load_uint(8), ;; validator_set_changes_count
-      validatorSetChangeTime: result[14].toNumber(), // ds~load_uint(32), ;; validator_set_change_time
-      stakeHeldFor: result[15].toString(), // ds~load_uint(32), ;; stake_held_for
-      configProposalVotings: result[16].toString(), // ds~load_dict() ;; config_proposal_votings
-    };
-  }
-
-  async getMaxPunishment(stake: number) {
-    const myAddress = await this.getAddress();
-    return this.provider.call2(myAddress.toString(), 'get_max_punishment', [['num', stake.toString()]]);
   }
 }

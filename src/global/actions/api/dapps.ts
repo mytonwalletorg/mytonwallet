@@ -402,3 +402,13 @@ addActionHandler('apiUpdateDappCloseLoading', async (global) => {
   }
   setGlobal(global);
 });
+
+addActionHandler('loadDappCatalog', async (global) => {
+  const dapps = await callApi('fetchDappCatalog');
+  global = getGlobal();
+  global = {
+    ...global,
+    dappCatalog: dapps,
+  };
+  setGlobal(global);
+});

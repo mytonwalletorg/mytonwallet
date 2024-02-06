@@ -1,26 +1,45 @@
-import TonWeb from 'tonweb';
-import type { HttpProviderOptions } from 'tonweb/dist/types/providers/http-provider';
+import axios from 'axios';
+import type { TonClientParameters } from '@ton/ton/dist/client/TonClient';
+import { TonClient as TonCoreClient } from '@ton/ton/dist/client/TonClient';
 
+import type { GetAddressInfoResponse } from '../types';
+
+import axiosRetry from '../../../../lib/axios-retry';
 import { pause } from '../../../../util/schedulers';
 import { ApiServerError } from '../../../errors';
-
-type Options = HttpProviderOptions & {
-  headers?: AnyLiteral;
-};
 
 const ATTEMPTS = 5;
 const ERROR_PAUSE = 200; // 200 ms
 
-class CustomHttpProvider extends TonWeb.HttpProvider {
-  options: Options;
+axiosRetry(axios, {
+  retries: ATTEMPTS,
+  retryDelay: (retryCount) => {
+    return retryCount * ERROR_PAUSE;
+  },
+});
 
-  constructor(host: string, options?: Options) {
-    super(host, options);
-    this.options = options ?? {};
+type Parameters = TonClientParameters & {
+  headers?: AnyLiteral;
+};
+
+export class TonClient extends TonCoreClient {
+  private initParameters: Parameters;
+
+  constructor(parameters: Parameters) {
+    super(parameters);
+    this.initParameters = parameters;
   }
 
-  send(method: string, params: any): Promise<Response> {
-    return this.sendRequest(this.host, {
+  getWalletInfo(address: string) {
+    return this.callRpc('getWalletInformation', { address });
+  }
+
+  getAddressInfo(address: string): Promise<GetAddressInfoResponse> {
+    return this.callRpc('getAddressInformation', { address });
+  }
+
+  callRpc(method: string, params: any): Promise<any> {
+    return this.sendRequest(this.parameters.endpoint, {
       id: 1, jsonrpc: '2.0', method, params,
     });
   }
@@ -29,11 +48,11 @@ class CustomHttpProvider extends TonWeb.HttpProvider {
     const method: string = request.method;
 
     const headers: AnyLiteral = {
-      ...this.options.headers,
+      ...this.initParameters.headers,
       'Content-Type': 'application/json',
     };
-    if (this.options.apiKey) {
-      headers['X-API-Key'] = this.options.apiKey;
+    if (this.parameters.apiKey) {
+      headers['X-API-Key'] = this.parameters.apiKey;
     }
     const body = JSON.stringify(request);
 
@@ -77,5 +96,3 @@ class CustomHttpProvider extends TonWeb.HttpProvider {
 function isNotTemporaryError(method: string, message: string, statusCode?: number) {
   return statusCode === 422 || (method === 'sendBoc' && message?.includes('exitcode='));
 }
-
-export default CustomHttpProvider;

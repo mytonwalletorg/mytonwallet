@@ -438,6 +438,8 @@ function reduceByAccountId(global: GlobalState) {
       'savedAddresses',
       'staking',
       'stakingHistory',
+      'activeContentTab',
+      'landscapeActionsActiveTabIndex',
     ]);
 
     const { idsBySlug, newestTransactionsBySlug, byId } = state.activities || {};

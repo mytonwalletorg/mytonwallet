@@ -102,9 +102,12 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
 
     @objc func applyScrollPatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [self] in
-            let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
-            let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
-            topBottomSheetPlugin.setupScrollReducers()
+            guard let topVc = bridge?.viewController?.parent?.presentingViewController as? CAPBridgeViewController else {
+                call.reject("Error: presentingViewController is nil")
+                return
+            }
+            let topBottomSheetPlugin = topVc.bridge?.plugin(withName: "BottomSheet") as? BottomSheetPlugin
+            topBottomSheetPlugin?.setupScrollReducers()
             call.resolve()
         }
     }

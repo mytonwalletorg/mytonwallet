@@ -32,6 +32,7 @@ import LedgerModal from './ledger/LedgerModal';
 import Main from './main/Main';
 import AddAccountModal from './main/modals/AddAccountModal';
 import BackupModal from './main/modals/BackupModal';
+import OnRampWidgetModal from './main/modals/OnRampWidgetModal';
 import QrScannerModal from './main/modals/QrScannerModal';
 import SignatureModal from './main/modals/SignatureModal';
 import SwapActivityModal from './main/modals/SwapActivityModal';
@@ -220,6 +221,7 @@ function App({
           <DappConnectModal />
           <DappTransactionModal />
           <AddAccountModal />
+          <OnRampWidgetModal />
           {!IS_DELEGATED_BOTTOM_SHEET && <Notifications />}
           {IS_CAPACITOR && (
             <QrScannerModal

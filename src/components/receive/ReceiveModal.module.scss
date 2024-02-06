@@ -116,3 +116,13 @@
     text-decoration: none;
   }
 }
+
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.actionButton {
+  max-width: 100% !important;
+}

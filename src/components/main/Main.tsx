@@ -45,6 +45,7 @@ type StateProps = {
   isLedger?: boolean;
   isStakingInfoModalOpen?: boolean;
   isSwapDisabled?: boolean;
+  isOnRampDisabled?: boolean;
 };
 
 const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
@@ -59,6 +60,7 @@ function Main({
   onQrScanPress,
   isStakingInfoModalOpen,
   isSwapDisabled,
+  isOnRampDisabled,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -185,6 +187,7 @@ function Main({
             onReceiveClick={openReceiveModal}
             isLedger={isLedger}
             isSwapDisabled={isSwapDisabled}
+            isOnRampDisabled={isOnRampDisabled}
           />
         </div>
 
@@ -202,6 +205,7 @@ function Main({
           <LandscapeActions
             hasStaking={isStakingActive}
             isUnstakeRequested={isUnstakeRequested}
+            onReceiveClick={openReceiveModal}
             isLedger={isLedger}
           />
         </div>
@@ -230,6 +234,8 @@ export default memo(
       const accountState = selectCurrentAccountState(global);
       const account = selectCurrentAccount(global);
 
+      const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
+
       return {
         isStakingActive: Boolean(accountState?.staking?.balance),
         isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
@@ -237,7 +243,8 @@ export default memo(
         isTestnet: global.settings.isTestnet,
         isLedger: !!account?.ledger,
         isStakingInfoModalOpen: global.isStakingInfoModalOpen,
-        isSwapDisabled: global.restrictions.isSwapDisabled,
+        isSwapDisabled,
+        isOnRampDisabled,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

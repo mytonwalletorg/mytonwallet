@@ -337,6 +337,16 @@
   margin-bottom: 1.25rem;
 }
 
+.passwordForm {
+  width: 100%;
+  margin-top: 3.375rem;
+  padding: 0 !important;
+
+  :global(html.is-electron) & {
+    margin-top: 0;
+  }
+}
+
 .errors {
   width: 100%;
   padding: 0 0.5rem;

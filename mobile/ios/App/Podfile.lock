@@ -1,11 +1,13 @@
 PODS:
-  - Capacitor (5.5.1):
+  - Capacitor (5.6.0):
     - CapacitorCordova
+  - CapacitorActionSheet (5.0.6):
+    - Capacitor
   - CapacitorApp (5.0.6):
     - Capacitor
   - CapacitorClipboard (5.0.6):
     - Capacitor
-  - CapacitorCordova (5.5.1)
+  - CapacitorCordova (5.6.0)
   - CapacitorDialog (5.0.6):
     - Capacitor
   - CapacitorHaptics (5.0.6):
@@ -21,6 +23,8 @@ PODS:
     - Capacitor
   - CapgoCapacitorNativeBiometric (0.0.1):
     - Capacitor
+  - CordovaPlugins (5.6.0):
+    - CapacitorCordova
   - FloatingPanel (2.8.0)
   - GoogleDataTransport (9.2.5):
     - GoogleUtilities/Environment (~> 7.7)
@@ -84,6 +88,7 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../../node_modules/@capacitor/ios`)"
+  - "CapacitorActionSheet (from `../../../node_modules/@capacitor/action-sheet`)"
   - "CapacitorApp (from `../../../node_modules/@capacitor/app`)"
   - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCordova (from `../../../node_modules/@capacitor/ios`)"
@@ -94,6 +99,7 @@ DEPENDENCIES:
   - CapacitorSplashScreen (from `../../plugins/capacitor-splash-screen`)
   - "CapacitorStatusBar (from `../../../node_modules/@capacitor/status-bar`)"
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
+  - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
   - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
 
@@ -116,6 +122,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../../node_modules/@capacitor/ios"
+  CapacitorActionSheet:
+    :path: "../../../node_modules/@capacitor/action-sheet"
   CapacitorApp:
     :path: "../../../node_modules/@capacitor/app"
   CapacitorClipboard:
@@ -136,16 +144,19 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/status-bar"
   CapgoCapacitorNativeBiometric:
     :path: "../../../node_modules/@capgo/capacitor-native-biometric"
+  CordovaPlugins:
+    :path: "../capacitor-cordova-ios-plugins"
   MauricewegnerCapacitorNavigationBar:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
   NativeBottomSheet:
     :path: "../../plugins/native-bottom-sheet"
 
 SPEC CHECKSUMS:
-  Capacitor: 9da0a2415e3b6098511f8b5ffdb578d91ee79f8f
+  Capacitor: ebfc16cdb8116d04c101686b080342872da42d43
+  CapacitorActionSheet: ffcdc28d01d731661745efd5cb75f9117e18530e
   CapacitorApp: 024e1b1bea5f883d79f6330d309bc441c88ad04a
   CapacitorClipboard: 77edf49827ea21da2a9c05c690a4a6a4d07199c4
-  CapacitorCordova: e128cc7688c070ca0bfa439898a5f609da8dbcfe
+  CapacitorCordova: 931b48fcdbc9bc985fc2f16cec9f77c794a27729
   CapacitorDialog: 0f3c15dfe9414b83bc64aef4078f1b92bcfead26
   CapacitorHaptics: 1fffc1217c7e64a472d7845be50fb0c2f7d4204c
   CapacitorMlkitBarcodeScanning: ea08ef246e5d3511d5a231a59fae36b16ad9acb3
@@ -153,6 +164,7 @@ SPEC CHECKSUMS:
   CapacitorSplashScreen: 6fce4269c6f7dc7591cc28760d1f85255e5edb1b
   CapacitorStatusBar: 565c0a1ebd79bb40d797606a8992b4a105885309
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
+  CordovaPlugins: 149708b4353176a65688a5aed237f7c3054e7702
   FloatingPanel: f585be005983e66f8f4932f93ca46bf9f09dae3a
   GoogleDataTransport: 54dee9d48d14580407f8f5fbf2f496e92437a2f2
   GoogleMLKit: 2bd0dc6253c4d4f227aad460f69215a504b2980e
@@ -169,6 +181,6 @@ SPEC CHECKSUMS:
   NativeBottomSheet: edfc1f70d3517ea92e70392db8c2de5ea3e6f15e
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
 
-PODFILE CHECKSUM: 05d9e9b62e3a715491a0613182dd0784570842b7
+PODFILE CHECKSUM: 675004c5a0f43d75bb4b1750d8d39da5766efaa5
 
 COCOAPODS: 1.14.3

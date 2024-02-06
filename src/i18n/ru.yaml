@@ -262,7 +262,7 @@ Send Transaction: Отправить перевод
 Payload: Служебные данные
 $many_transactions: "%1$d перевода"
 Total Amount: Общая сумма
-Unstaking: Unstaking
+Unstaking: Вывод
 "Handle ton:// links": Обрабатывать ссылки ton://
 Back up wallet to have full access to it: Сделайте резервную копию кошелька, чтобы иметь к нему полный доступ
 Consider More Secure Version: Повысьте безопасность кошелька
@@ -414,7 +414,7 @@ Please provide an address of your wallet in another blockchain to receive bought
 The time for sending coins is over: Время отправки монет истекло
 Please wait a few moments...: Пожалуйста, подождите некоторое время...
 You have not sent the coins to the specified address.: Вы не отправили монеты на указанный адрес.
-$swap_changelly_to_ton_description1: "Вы должны отправить %value% на этот адрес в блокчейне %blockchain% в течение %time%"
+$swap_changelly_to_ton_description1: "Отправьте %value% на этот адрес в блокчейне %blockchain% в течение %time%"
 Please contact support and provide a transaction ID.: Пожалуйста, свяжитесь с поддержкой и предоставьте идентификатор транзакции.
 Exchange failed and coins were refunded to your wallet.: Обмен не удался и монеты были возвращены на ваш кошелёк.
 Please contact security team to pass the KYC procedure.: Пожалуйста, свяжитесь с командой безопасности, чтобы пройти процедуру KYC.
@@ -516,3 +516,12 @@ Are you sure you want to disable biometrics?: Вы уверены, что хот
 Yes: Да
 Declined. Please try to confirm transaction using biometrics again.: Отклонено. Пожалуйста, попробуйте ещё раз подтвердить транзакцию с помощью биометрии.
 No Activity: Нет активности
+Add / Buy: Пополнить
+Buy with Card: Покупка с карты
+Buy with Crypto: Покупка за криптовалюту
+Receive with QR or Invoice: Пополнение через QR или счёт
+Cannot load widget: Невозможно загрузить виджет
+Explore: Обзор
+No partners yet: Ещё нет партнеров
+Get TON: Получить TON
+Declined. Please try to confirm operation using biometrics again.: Отклонено. Пожалуйста, попробуйте ещё раз подтвердить операцию с помощью биометрии.

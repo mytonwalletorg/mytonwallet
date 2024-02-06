@@ -1,17 +1,16 @@
 import type { DeviceInfo } from '@tonconnect/protocol';
 
+import { APP_NAME, TONCONNECT_PROTOCOL_VERSION } from '../config';
 import packageJson from '../../package.json';
 
 type DevicePlatform = DeviceInfo['platform'];
 
-export const TONCONNECT_VERSION = 2;
-
 export function tonConnectGetDeviceInfo(): DeviceInfo {
   return {
     platform: getPlatform()!,
-    appName: 'MyTonWallet',
+    appName: APP_NAME,
     appVersion: packageJson.version,
-    maxProtocolVersion: TONCONNECT_VERSION,
+    maxProtocolVersion: TONCONNECT_PROTOCOL_VERSION,
     features: [
       'SendTransaction', // TODO DEPRECATED
       { name: 'SendTransaction', maxMessages: 4 },
@@ -20,28 +19,31 @@ export function tonConnectGetDeviceInfo(): DeviceInfo {
 }
 
 function getPlatform(): DevicePlatform {
-  const { userAgent, platform } = window.navigator;
+  const { userAgent } = window.navigator;
+  const platform = window.navigator.platform || window.navigator?.userAgentData?.platform || '';
 
   const macosPlatforms = ['macOS', 'Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
   const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];
   const iphonePlatforms = ['iPhone'];
   const ipadPlatforms = ['iPad', 'iPod'];
 
-  let os: DevicePlatform | undefined;
+  let devicePlatform: DevicePlatform | undefined;
 
   if (macosPlatforms.indexOf(platform) !== -1) {
-    os = 'mac';
+    devicePlatform = 'mac';
   } else if (iphonePlatforms.indexOf(platform) !== -1) {
-    os = 'iphone';
+    devicePlatform = 'iphone';
   } else if (ipadPlatforms.indexOf(platform) !== -1) {
-    os = 'ipad';
+    devicePlatform = 'ipad';
   } else if (windowsPlatforms.indexOf(platform) !== -1) {
-    os = 'windows';
+    devicePlatform = 'windows';
   } else if (/Android/.test(userAgent)) {
-    os = 'linux';
+    devicePlatform = 'linux';
   } else if (/Linux/.test(platform)) {
-    os = 'linux';
+    devicePlatform = 'linux';
+  } else {
+    devicePlatform = 'browser';
   }
 
-  return os!;
+  return devicePlatform;
 }

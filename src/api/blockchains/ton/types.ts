@@ -1,24 +1,9 @@
-// eslint-disable-next-line max-classes-per-file
-import TonWeb from 'tonweb';
-import type { Cell } from 'tonweb/dist/types/boc/cell';
-import type { HttpProvider } from 'tonweb/dist/types/providers/http-provider';
-import type { Address as AddressType } from 'tonweb/dist/types/utils/address';
+import type { Cell } from '@ton/core';
 
 import type { ApiParsedPayload, ApiTransaction, ApiWalletVersion } from '../../types';
 import type { ContractType } from './constants';
 
-declare class Dns {
-  readonly provider: HttpProvider;
-
-  constructor(provider: HttpProvider);
-  getWalletAddress(domain: string): Promise<AddressType | null>;
-}
-
-export declare class MyTonWeb extends TonWeb {
-  dns: Dns;
-}
-
-export type AnyPayload = string | Uint8Array | Cell;
+export type AnyPayload = string | Cell | Uint8Array;
 
 export interface ApiTransactionExtra extends ApiTransaction {
   extraData: {
@@ -55,7 +40,12 @@ export interface JettonMetadata {
   uri?: string;
 }
 
-export type ContractName = ApiWalletVersion | 'highloadV2' | 'nominatorPool';
+export interface InitData {
+  code?: Cell;
+  data?: Cell;
+}
+
+export type ContractName = ApiWalletVersion | 'v4R1' | 'highloadV2' | 'nominatorPool';
 
 export type ContractInfo = {
   name: ContractName;

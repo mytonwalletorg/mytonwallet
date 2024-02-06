@@ -10,11 +10,11 @@ import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import { selectAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { ReceiveStatic } from '../../../receive';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
+import AddBuyStatic from '../../../addbuy/AddBuyStatic';
 import StakingInfoContent from '../../../staking/StakingInfoContent';
 import StakingInitial from '../../../staking/StakingInitial';
 import SwapInitial from '../../../swap/SwapInitial';
@@ -29,12 +29,14 @@ interface OwnProps {
   hasStaking?: boolean;
   isUnstakeRequested?: boolean;
   isLedger?: boolean;
+  onReceiveClick: NoneToVoidFunction;
 }
 
 interface StateProps {
   activeTabIndex?: ActiveTab;
   isTestnet?: boolean;
   isSwapDisabled: boolean;
+  isOnRampDisabled: boolean;
 }
 
 function LandscapeActions({
@@ -44,6 +46,8 @@ function LandscapeActions({
   isTestnet,
   isLedger,
   isSwapDisabled,
+  isOnRampDisabled,
+  onReceiveClick,
 }: OwnProps & StateProps) {
   const { setLandscapeActionsActiveTabIndex: setActiveTabIndex } = getActions();
   const lang = useLang();
@@ -75,7 +79,17 @@ function LandscapeActions({
   function renderCurrentTab(isActive: boolean) {
     switch (activeTabIndex) {
       case ActiveTab.Receive:
-        return <ReceiveStatic className={styles.slideContent} />;
+        return (
+          <AddBuyStatic
+            className={styles.slideContent}
+            isStatic
+            isTestnet={isTestnet}
+            isLedger={isLedger}
+            isSwapDisabled={isSwapDisabled}
+            isOnRampDisabled={isOnRampDisabled}
+            onReceiveClick={onReceiveClick}
+          />
+        );
 
       case ActiveTab.Transfer:
         return (
@@ -131,8 +145,8 @@ function LandscapeActions({
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Receive && styles.active)}
           onClick={() => setActiveTabIndex({ index: ActiveTab.Receive })}
         >
-          <i className={buildClassName(styles.tabIcon, 'icon-receive')} aria-hidden />
-          <span className={styles.tabText}>{lang('Receive')}</span>
+          <i className={buildClassName(styles.tabIcon, 'icon-add-buy')} aria-hidden />
+          <span className={styles.tabText}>{lang('Add / Buy')}</span>
 
           <span className={styles.tabDecoration} aria-hidden />
         </div>
@@ -286,10 +300,13 @@ export default memo(
     (global): StateProps => {
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
+      const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
+
       return {
         activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
         isTestnet: global.settings.isTestnet,
-        isSwapDisabled: global.restrictions.isSwapDisabled,
+        isSwapDisabled,
+        isOnRampDisabled,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

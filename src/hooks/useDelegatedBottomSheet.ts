@@ -124,7 +124,7 @@ export function useDelegatedBottomSheet(
     }
 
     function onBlur(e: FocusEvent) {
-      if (!isInput(e.target) || noResetHeightOnBlur) {
+      if (!isInput(e.target) || noResetHeightOnBlur || forceFullNative) {
         return;
       }
 
@@ -141,7 +141,7 @@ export function useDelegatedBottomSheet(
       document.removeEventListener('focusout', onBlur);
       document.removeEventListener('focusin', onFocus);
     };
-  }, [dialogRef, isDelegatedAndOpen, noResetHeightOnBlur]);
+  }, [dialogRef, forceFullNative, isDelegatedAndOpen, noResetHeightOnBlur]);
 }
 
 export function useOpenFromMainBottomSheet(

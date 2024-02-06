@@ -147,7 +147,9 @@ export type ApiStakingCommonData = {
 export type ApiBackendDapp = {
   url: string;
   name: string;
-  iconUrl: string;
+  icon: string;
   manifestUrl: string;
   description: string;
+  canBeRestricted: boolean;
+  isExternal: boolean;
 };

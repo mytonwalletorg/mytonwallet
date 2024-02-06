@@ -1,34 +1,28 @@
-import TonWeb from 'tonweb';
-
 import { STAKING_POOLS } from '../../config';
 import { ApiServerError } from '../errors';
 
+export function sha256(bytes: Uint8Array) {
+  return crypto.subtle.digest('SHA-256', bytes);
+}
+
 export function bytesToHex(bytes: Uint8Array) {
-  return TonWeb.utils.bytesToHex(bytes);
+  return Buffer.from(bytes).toString('hex');
 }
 
 export function hexToBytes(hex: string) {
-  return TonWeb.utils.hexToBytes(hex);
+  return Uint8Array.from(Buffer.from(hex, 'hex'));
 }
 
 export function bytesToBase64(bytes: Uint8Array) {
-  return TonWeb.utils.bytesToBase64(bytes);
+  return Buffer.from(bytes).toString('base64');
 }
 
 export function base64ToBytes(base64: string) {
-  return TonWeb.utils.base64ToBytes(base64);
-}
-
-export function hexToBase64(hex: string) {
-  return bytesToBase64(hexToBytes(hex));
+  return Uint8Array.from(Buffer.from(base64, 'base64'));
 }
 
 export function base64ToString(base64: string) {
-  return TonWeb.utils.base64toString(base64);
-}
-
-export function sha256(bytes: Uint8Array) {
-  return TonWeb.utils.sha256(bytes);
+  return Buffer.from(base64, 'base64').toString('utf-8');
 }
 
 export function handleFetchErrors(response: Response, ignoreHttpCodes?: number[]) {
@@ -36,10 +30,6 @@ export function handleFetchErrors(response: Response, ignoreHttpCodes?: number[]
     throw new Error(response.statusText);
   }
   return response;
-}
-
-export function sumBigString(a: string, b: string) {
-  return (BigInt(a) + BigInt(b)).toString();
 }
 
 export function isKnownStakingPool(address: string) {

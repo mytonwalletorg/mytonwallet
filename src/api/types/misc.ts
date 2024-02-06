@@ -1,9 +1,14 @@
-import type TonWeb from 'tonweb';
-
 import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions } from './storage';
 
-export type ApiWalletVersion = keyof typeof TonWeb.Wallets['all'];
+export type ApiWalletVersion = 'simpleR1'
+| 'simpleR2'
+| 'simpleR3'
+| 'v2R1'
+| 'v2R2'
+| 'v3R1'
+| 'v3R2'
+| 'v4R2';
 
 export type ApiBlockchainKey = 'ton';
 export type ApiNetwork = 'mainnet' | 'testnet';
