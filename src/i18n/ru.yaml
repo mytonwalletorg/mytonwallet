@@ -62,6 +62,7 @@ About: О MyTonWallet
 Exit: Выйти
 Remove Wallet: Выход
 Something went wrong.: Упс, что-то пошло не так.
+Something went wrong: Упс, что-то пошло не так
 Logo: Логотип
 $about_description1: Безопасно храните криптовалюту, пользуйтесь децентрализованными приложениями и совершайте платежи в блокчейне **со скоростью света**.
 $about_description2: Кошелёк **управляется только вами**. Разработчики **не имеют доступа** к вашим средствам, истории браузера или любой другой информации.
@@ -238,9 +239,9 @@ Staked: Стейкинг
 Unstake Requested: Запрос депозита
 Unstaked: Вывод стейка
 The network fee has slightly changed, try sending again.: Комиссия за сеть немного изменилась, попробуйте отправить ещё раз.
-Transfer was unsuccessful. Try again later: С переводом что-то пошло не так. Попробуйте ещё раз.
-Unstaking was unsuccessful. Try again later: Не удалось вывести депозит. Попробуйте ещё раз.
-Staking was unsuccessful. Try again later: Не удалось внести депозит. Попробуйте ещё раз.
+Transfer was unsuccessful. Try again later.: С переводом что-то пошло не так. Попробуйте ещё раз.
+Unstaking was unsuccessful. Try again later.: Не удалось вывести депозит. Попробуйте ещё раз.
+Staking was unsuccessful. Try again later.: Не удалось внести депозит. Попробуйте ещё раз.
 Invalid amount: Некорректная сумма
 Invalid address: Некорректный адрес
 Domain is not connected to a wallet: Домен не подключён к кошельку
@@ -332,7 +333,7 @@ Message is encrypted.: Сообщение зашифровано.
 $dapp_ledger_warning1: Вы собираетесь отправить многоадресную транзакцию, используя свой кошелёк **Ledger**. Вам нужно будет подписать каждую базовую транзакцию **по одной вручную**.
 $dapp_ledger_warning2: Пожалуйста, не торопитесь и не прерывайте процесс.
 Agree: Согласен
-Unfortunately, this operation is not yet supported by Ledger wallet: К сожалению, эта операция еще не поддерживается Ledger кошельком
+Unfortunately, this operation is not yet supported by Ledger wallet.: К сожалению, эта операция еще не поддерживается Ledger кошельком.
 Swap: Обмен
 You sell: Вы продаёте
 You buy: Вы покупаете

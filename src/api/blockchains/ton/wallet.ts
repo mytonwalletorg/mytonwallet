@@ -61,7 +61,7 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: TonWal
   const {
     account_state: accountState,
     wallet: isWallet,
-    seqno,
+    seqno = 0,
     balance,
     last_transaction_id: {
       lt,

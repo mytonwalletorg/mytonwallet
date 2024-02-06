@@ -61,6 +61,7 @@ About: About
 Exit: Exit
 Remove Wallet: Remove Wallet
 Something went wrong.: Something went wrong.
+Something went wrong: Something went wrong
 Logo: Logo
 $about_description1: Securely store crypto, explore decentralized apps, and make blockchain payments at the **speed of light**.
 $about_description2: The wallet is **non-custodial and safe**. The developers **do not** have access to your funds, browser history or any other information.
@@ -243,9 +244,9 @@ Staked: Staked
 Unstake Requested: Unstake Requested
 Unstaked: Unstaked
 The network fee has slightly changed, try sending again.: The network fee has slightly changed, try sending again.
-Transfer was unsuccessful. Try again later: Transfer was unsuccessful. Try again later
-Unstaking was unsuccessful. Try again later: Unstaking was unsuccessful. Try again later
-Staking was unsuccessful. Try again later: Staking was unsuccessful. Try again later
+Transfer was unsuccessful. Try again later.: Transfer was unsuccessful. Try again later.
+Unstaking was unsuccessful. Try again later.: Unstaking was unsuccessful. Try again later.
+Staking was unsuccessful. Try again later.: Staking was unsuccessful. Try again later.
 Invalid amount: Invalid amount
 Invalid address: Invalid address
 Domain is not connected to a wallet: Domain is not connected to a wallet
@@ -337,7 +338,7 @@ Message is encrypted.: Message is encrypted.
 $dapp_ledger_warning1: You are about to send a multi-way transaction using your **Ledger** wallet. You will need to sign each underlying transaction **one by one manually**.
 $dapp_ledger_warning2: Please take your time and do not interrupt the process.
 Agree: Agree
-Unfortunately, this operation is not yet supported by Ledger wallet: Unfortunately, this operation is not yet supported by Ledger wallet
+Unfortunately, this operation is not yet supported by Ledger wallet.: Unfortunately, this operation is not yet supported by Ledger wallet.
 Swap: Swap
 You sell: You sell
 You buy: You buy

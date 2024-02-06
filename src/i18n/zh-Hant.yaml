@@ -57,7 +57,8 @@ Settings: 設定
 About: 關於
 Exit: 斷開連結
 Remove Wallet: 斷開連結
-Something went wrong: 狀況異常。
+Something went wrong.: 狀況異常。
+Something went wrong: 狀況異常
 Logo: Logo
 $about_description1: 安全地存儲加密貨幣、探索 dAPP 並以**光速**進行區塊鏈支付
 $about_description2: 錢包是**非託管且安全的**。開發人員無權使用您的資金、瀏覽器歷史記錄或任何其他資訊
@@ -232,9 +233,9 @@ at APY %1$s%: at APY %1$s%
 Staked: 已質押
 Unstaked: 已解除質押
 The network fee has slightly changed, try sending again.: 網路費略有變化，請重新發送交易。
-Transfer was unsuccessful. Try again later: 轉帳未成功，請稍後再試
-Unstaking was unsuccessful. Try again later: 解除質押未成功，請稍後再試
-Staking was unsuccessful. Try again later: 質押未成功，請稍後再試
+Transfer was unsuccessful. Try again later.: 轉帳未成功，請稍後再試。
+Unstaking was unsuccessful. Try again later.: 解除質押未成功，請稍後再試。
+Staking was unsuccessful. Try again later.: 質押未成功，請稍後再試。
 Invalid amount: 無效金額
 Invalid address: 無效地址
 Domain is not connected to a wallet: 域名未與錢包連結
@@ -323,7 +324,7 @@ Message is encrypted.: 消息已加密。
 $dapp_ledger_warning1: 您即將使用您的**Ledger**錢包發送多方交易。您需要手動**一一**簽署每筆底層交易。
 $dapp_ledger_warning2: 請慢慢來，不要中斷過程。
 Agree: 同意
-Unfortunately, this operation is not yet supported by Ledger wallet: 不幸的是，該操作尚未由Ledger Wallet支持
+Unfortunately, this operation is not yet supported by Ledger wallet.: 不幸的是，該操作尚未由Ledger Wallet支持。
 Swap: 交換
 You sell: 您賣出
 You buy: 您購買

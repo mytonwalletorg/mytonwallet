@@ -88,7 +88,7 @@ function Content({
       <div className={buildClassName(styles.qrCode, !qrCode && styles.qrCodeHidden)} ref={qrCodeRef} />
 
       {isLedger && (
-        <div className={buildClassName(styles.contentTitle, styles.c)}>
+        <div className={styles.contentTitle}>
           {renderText(lang('$ledger_verify_address'))}
           {' '}
           <a href="#" onClick={handleVerify} className={styles.dottedLink}>

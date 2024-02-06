@@ -21,6 +21,11 @@
   text-align: center;
 }
 
+.qrCode:not(.qrCodeHidden) + .contentTitle {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
 .qrCode {
   position: relative;
 

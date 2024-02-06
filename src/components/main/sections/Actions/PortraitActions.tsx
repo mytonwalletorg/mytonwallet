@@ -12,6 +12,7 @@ import { IS_CAPACITOR, TON_TOKEN_SLUG, USDT_TRON_TOKEN_SLUG } from '../../../../
 import buildClassName from '../../../../util/buildClassName';
 import { clearLaunchUrl, getLaunchUrl } from '../../../../util/capacitor';
 import { processDeeplink } from '../../../../util/processDeeplink';
+import { IS_DELEGATING_BOTTOM_SHEET } from '../../../../util/windowEnvironment';
 
 import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
@@ -110,9 +111,13 @@ function PortraitActions({
       onReceiveClick,
     ];
 
-    await BottomSheet.disable();
+    if (IS_DELEGATING_BOTTOM_SHEET) {
+      await BottomSheet.disable();
+    }
     const result = await ActionSheet.showActions({ options });
-    await BottomSheet.enable();
+    if (IS_DELEGATING_BOTTOM_SHEET) {
+      await BottomSheet.enable();
+    }
 
     actionByIndex[result.index]?.();
   });

@@ -156,11 +156,11 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       break;
 
     case ApiTransactionError.UnsuccesfulTransfer:
-      actions.showDialog({ message: 'Transfer was unsuccessful. Try again later' });
+      actions.showDialog({ message: 'Transfer was unsuccessful. Try again later.' });
       break;
 
     case ApiTransactionError.UnsupportedHardwareOperation:
-      actions.showDialog({ message: 'Unfortunately, this operation is not yet supported by Ledger wallet' });
+      actions.showDialog({ message: 'Unfortunately, this operation is not yet supported by Ledger wallet.' });
       break;
 
     case ApiCommonError.ServerError:

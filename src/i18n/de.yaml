@@ -61,6 +61,7 @@ About: Über
 Exit: Beenden
 Remove Wallet: Wallet entfernen
 Something went wrong.: Etwas ist schiefgegangen.
+Something went wrong: Etwas ist schiefgegangen
 Logo: Logo
 $about_description1: Kryptowährungen sicher speichern, dezentrale Apps erkunden und Blockchain-Zahlungen mit der **Geschwindigkeit des Lichts** durchführen.
 $about_description2: Die wallet ist **nicht treuhänderisch und sicher**. Die Entwickler haben **keinen** Zugriff auf Ihre Gelder, Browserverlauf oder andere Informationen.
@@ -245,9 +246,9 @@ Staked: Gestakt
 Unstake Requested: Unstaking angefordert
 Unstaked: Ungestakt
 The network fee has slightly changed, try sending again.: Die Netzwerkgebühr hat sich geringfügig geändert, versuchen Sie es erneut zu senden.
-Transfer was unsuccessful. Try again later: Die Überweisung war nicht erfolgreich. Versuchen Sie es später erneut.
-Unstaking was unsuccessful. Try again later: Das unstaken war nicht erfolgreich. Versuchen Sie es später erneut.
-Staking was unsuccessful. Try again later: Das Staken war nicht erfolgreich. Versuchen Sie es später erneut.
+Transfer was unsuccessful. Try again later.: Die Überweisung war nicht erfolgreich. Versuchen Sie es später erneut.
+Unstaking was unsuccessful. Try again later.: Das unstaken war nicht erfolgreich. Versuchen Sie es später erneut.
+Staking was unsuccessful. Try again later.: Das Staken war nicht erfolgreich. Versuchen Sie es später erneut.
 Invalid amount: Ungültiger Betrag
 Invalid address: Ungültige Adresse
 Domain is not connected to a wallet: Die Domain ist nicht mit einer Wallet verbunden.
@@ -340,7 +341,7 @@ Message is encrypted.: Die Nachricht ist verschlüsselt.
 $dapp_ledger_warning1: Sie sind dabei, eine Mehrweg-Transaktion mit Ihrer **Ledger**-Wallet durchzuführen. Sie müssen jede zugrunde liegende Transaktion **manuell nacheinander** signieren.
 $dapp_ledger_warning2: Bitte nehmen Sie sich Zeit und unterbrechen Sie den Prozess nicht.
 Agree: Zustimmen
-Unfortunately, this operation is not yet supported by Ledger wallet: Die Hardware-Wallet unterstützt dieses Datenformat nicht
+Unfortunately, this operation is not yet supported by Ledger wallet.: Die Hardware-Wallet unterstützt dieses Datenformat nicht.
 Swap: Tausch
 You sell: Sie verkaufen
 You buy: Sie kaufen

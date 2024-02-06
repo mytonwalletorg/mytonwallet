@@ -61,6 +61,7 @@ About: Acerca de
 Exit: Salir
 Remove Wallet: Salir
 Something went wrong.: Oops! Algo salió mal.
+Something went wrong: Oops! Algo salió mal
 Logo: Logotipo
 $about_description1: Almacene criptomonedas de forma segura, explore aplicaciones descentralizadas y realice pagos blockchain a la **velocidad de la luz**.
 $about_description2: Un monedero **sin custodia y seguro**. Los desarrolladores **no** tienen acceso a sus activos, historial del navegador o cualquier otra información.
@@ -242,9 +243,9 @@ Staked: Apostado
 Unstake Requested: Retiro solicitado
 Unstaked: Retirado
 The network fee has slightly changed, try sending again.: La comisión de red ha cambiado ligeramente, inténtalo de nuevo.
-Transfer was unsuccessful. Try again later: La transferencia no tuvo éxito. Inténtalo de nuevo más tarde
-Unstaking was unsuccessful. Try again later: El retiro no tuvo éxito. Inténtalo de nuevo más tarde
-Staking was unsuccessful. Try again later: El staking no tuvo éxito. Inténtalo de nuevo más tarde
+Transfer was unsuccessful. Try again later.: La transferencia no tuvo éxito. Inténtalo de nuevo más tarde.
+Unstaking was unsuccessful. Try again later.: El retiro no tuvo éxito. Inténtalo de nuevo más tarde.
+Staking was unsuccessful. Try again later.: El staking no tuvo éxito. Inténtalo de nuevo más tarde.
 Invalid amount: Cantidad no válida
 Invalid address: Dirección no válida
 Domain is not connected to a wallet: El dominio no está conectado a un monedero
@@ -337,7 +338,7 @@ Message is encrypted.: El mensaje está encriptado.
 $dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccional utilizando tu monedero **Ledger**. Necesitarás firmar cada transacción subyacente **una por una manualmente**.
 $dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
 Agree: Aceptar
-Unfortunately, this operation is not yet supported by Ledger wallet: Desafortunadamente, esta operación aún no es compatible con Ledger wallet
+Unfortunately, this operation is not yet supported by Ledger wallet.: Desafortunadamente, esta operación aún no es compatible con Ledger wallet.
 Swap: Intercambiar
 You sell: Usted vende
 You buy: Usted compra

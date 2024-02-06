@@ -13,7 +13,6 @@ import useLang from '../hooks/useLang';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 
-import styles from './Dialogs.module.scss';
 import modalStyles from './ui/Modal.module.scss';
 
 type StateProps = {
@@ -27,7 +26,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const [isModalOpen, openModal, closeModal] = useFlag();
 
   const message = dialogs[dialogs.length - 1];
-  const title = lang('Something went wrong.');
+  const title = lang('Something went wrong');
 
   useEffect(() => {
     if (IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
@@ -58,7 +57,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
       onClose={closeModal}
       onCloseAnimationEnd={dismissDialog}
     >
-      <div className={styles.content}>
+      <div>
         {renderText(lang(message))}
       </div>
       <div className={modalStyles.buttons}>

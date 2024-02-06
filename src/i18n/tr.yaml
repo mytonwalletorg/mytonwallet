@@ -61,6 +61,7 @@ About: Hakkında
 Exit: Çıkış
 Remove Wallet: Cüzdanı kaldırın
 Something went wrong.: Bir şeyler ters gitti.
+Something went wrong: Bir şeyler ters gitti
 Logo: Logo
 $about_description1: Kriptoyu güvenle saklayın, merkeziyetsiz uygulamaları keşfedin ve **ışık hızında** blok zinciri ödemeleri yapın.
 $about_description2: Cüzdan **non-custodial ve güvenli** bir cüzdandır. Geliştiricilerin paranıza, tarayıcı geçmişinize veya diğer bilgilerinize erişimi **yoktur**.
@@ -244,9 +245,9 @@ Staked: Stake edildi
 Unstake Requested: Unstake talep edildi
 Unstaked: Unstake gerçekleşti
 The network fee has slightly changed, try sending again.: Ağ ücreti bir miktar değişti, tekrar göndermeyi deneyin.
-Transfer was unsuccessful. Try again later: Transfer başarısız oldu. Daha sonra tekrar deneyin
-Unstaking was unsuccessful. Try again later: Unstake işlemi başarısız oldu. Daha sonra tekrar deneyin
-Staking was unsuccessful. Try again later: Staking işlemi başarısız oldu. Daha sonra tekrar deneyin
+Transfer was unsuccessful. Try again later.: Transfer başarısız oldu. Daha sonra tekrar deneyin.
+Unstaking was unsuccessful. Try again later.: Unstake işlemi başarısız oldu. Daha sonra tekrar deneyin.
+Staking was unsuccessful. Try again later.: Staking işlemi başarısız oldu. Daha sonra tekrar deneyin.
 Invalid amount: Geçersiz tutar
 Invalid address: Geçersiz adres
 Domain is not connected to a wallet: Alan adı bir cüzdana bağlı değil
@@ -338,7 +339,7 @@ Message is encrypted.: Mesaj şifrelenmiştir.
 $dapp_ledger_warning1: "**Ledger** cüzdanınızı kullanarak çok yönlü bir işlem göndermek üzeresiniz. İlgili her işlemi **tek tek manuel olarak** imzalamanız gerekecektir."
 $dapp_ledger_warning2: Lütfen acele etmeyin ve süreci kesintiye uğratmayın.
 Agree: Kabul et
-Unfortunately, this operation is not yet supported by Ledger wallet: Donanım cüzdanı bu veri biçimini desteklemiyor
+Unfortunately, this operation is not yet supported by Ledger wallet.: Donanım cüzdanı bu veri biçimini desteklemiyor.
 Swap: Takas
 You sell: Satıyorsunuz
 You buy: Alıyorsunuz
