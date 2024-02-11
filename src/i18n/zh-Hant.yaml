@@ -104,6 +104,7 @@ QR Code: QR Code
 $receive_invoice_description: 您可以指定付款金額和地址來節省發送人的一些時間。
 Amount: 數量
 Comment: 註記欄
+Comment or Memo: 註記欄 (Memo)
 Share this URL to receive TON: 分享此連結來接收 TON
 Invoice link was copied!: 發票連結已複製！
 Theme: 主題

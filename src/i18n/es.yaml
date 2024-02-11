@@ -111,6 +111,7 @@ $receive_invoice_description: |
   el propósito del pago para ahorrar tiempo al remitente.
 Amount: Cantidad
 Comment: Comentario
+Comment or Memo: Comentario o Memo
 Share this URL to receive TON: Comparte esta URL para recibir TON
 Invoice link was copied!: ¡Se copió el enlace de la factura!
 Theme: Tema

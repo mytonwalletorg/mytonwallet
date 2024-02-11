@@ -23,7 +23,7 @@ import { areDeepEqual } from '../../util/areDeepEqual';
 import { compareActivities } from '../../util/compareActivities';
 import { buildCollectionByKey } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
-import { pause } from '../../util/schedulers';
+import { pauseOrFocus } from '../../util/pauseOrFocus';
 import blockchains from '../blockchains';
 import { addKnownTokens, getKnownTokens } from '../blockchains/ton/tokens';
 import { fetchStoredAccount, updateStoredAccount } from '../common/accounts';
@@ -40,18 +40,20 @@ import {
 
 type IsAccountActiveFn = (accountId: string) => boolean;
 
-const POLLING_INTERVAL = 1100; // 1.1 sec
-const BACKEND_POLLING_INTERVAL = 30000; // 30 sec
-const LONG_BACKEND_POLLING_INTERVAL = 60000; // 1 min
+const SEC = 1000;
+const BALANCE_BASED_INTERVAL = 1.1 * SEC;
+const BALANCE_BASED_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
+const STAKING_INTERVAL = 1.1 * SEC;
+const STAKING_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
+const BACKEND_INTERVAL = 30 * SEC;
+const LONG_BACKEND_INTERVAL = 60 * SEC;
+const NFT_FULL_INTERVAL = 60 * SEC;
+const SWAP_POLLING_INTERVAL = 3 * SEC;
+const SWAP_POLLING_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
+const SWAP_FINISHED_STATUSES = new Set(['failed', 'completed', 'expired']);
 
 const FIRST_TRANSACTIONS_LIMIT = 50;
-
-const NFT_FULL_POLLING_INTERVAL = 60000; // 60 sec
-const NFT_FULL_UPDATE_FREQUNCY = Math.round(NFT_FULL_POLLING_INTERVAL / POLLING_INTERVAL);
-const DOUBLE_CHECK_TOKENS_PAUSE = 30000; // 30 sec
-
-const SWAP_POLLING_INTERVAL = 3000; // 3 sec
-const SWAP_FINISHED_STATUSES = new Set(['failed', 'completed', 'expired']);
+const DOUBLE_CHECK_TOKENS_PAUSE = 30 * SEC;
 
 let onUpdate: OnApiUpdate;
 let isAccountActive: IsAccountActiveFn;
@@ -124,7 +126,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
   let nftFromSec = Math.round(Date.now() / 1000);
   let nftUpdates: ApiNftUpdate[];
-  let i = 0;
+  let lastNftFullUpdate = 0;
   let doubleCheckTokensTime: number | undefined;
   let tokenBalances: TokenBalanceParsed[] | undefined;
 
@@ -137,9 +139,11 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
       const { balance, lastTxId } = walletInfo ?? {};
 
-      // Full update NFTs every ~30 seconds
-      if (i % NFT_FULL_UPDATE_FREQUNCY === 0) {
+      if (Date.now() - lastNftFullUpdate > NFT_FULL_INTERVAL) {
         const nfts = await blockchain.getAccountNfts(accountId).catch(logAndRescue);
+
+        lastNftFullUpdate = Date.now();
+
         if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
 
         if (nfts) {
@@ -227,13 +231,11 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
         isInitialized = true;
         await updateStoredAccount(accountId, { isInitialized });
       }
-
-      i++;
     } catch (err) {
       logDebugError('setupBalanceBasedPolling', err);
     }
 
-    await pause(POLLING_INTERVAL);
+    await pauseOrFocus(BALANCE_BASED_INTERVAL, BALANCE_BASED_INTERVAL_WHEN_NOT_FOCUSED);
   }
 }
 
@@ -280,7 +282,7 @@ export async function setupStakingPolling(accountId: string) {
       logDebugError('setupStakingPolling', err);
     }
 
-    await pause(POLLING_INTERVAL);
+    await pauseOrFocus(STAKING_INTERVAL, STAKING_INTERVAL_WHEN_NOT_FOCUSED);
   }
 }
 
@@ -366,7 +368,7 @@ export async function setupBackendPolling() {
   const localOnUpdate = onUpdate;
 
   while (isUpdaterAlive(localOnUpdate)) {
-    await pause(BACKEND_POLLING_INTERVAL);
+    await pauseOrFocus(BACKEND_INTERVAL);
     if (!isUpdaterAlive(localOnUpdate)) return;
 
     try {
@@ -381,7 +383,7 @@ export async function setupLongBackendPolling() {
   const localOnUpdate = onUpdate;
 
   while (isUpdaterAlive(localOnUpdate)) {
-    await pause(LONG_BACKEND_POLLING_INTERVAL);
+    await pauseOrFocus(LONG_BACKEND_INTERVAL);
 
     await Promise.all([
       tryUpdateKnownAddresses(),
@@ -538,7 +540,7 @@ export async function setupSwapPolling(accountId: string) {
       logDebugError('setupSwapPolling', err);
     }
 
-    await pause(SWAP_POLLING_INTERVAL);
+    await pauseOrFocus(SWAP_POLLING_INTERVAL, SWAP_POLLING_INTERVAL_WHEN_NOT_FOCUSED);
   }
 
   if (accountId === swapPollingAccountId) {

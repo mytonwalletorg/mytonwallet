@@ -76,7 +76,10 @@ interface StateProps {
 const COMMENT_MAX_SIZE_BYTES = 5000;
 const SHORT_ADDRESS_SHIFT = 14;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
-const COMMENT_DROPDOWN_ITEMS = [{ value: 'raw', name: 'Comment' }, { value: 'encrypted', name: 'Encrypted Message' }];
+const COMMENT_DROPDOWN_ITEMS = [
+  { value: 'raw', name: 'Comment or Memo' },
+  { value: 'encrypted', name: 'Encrypted Message' },
+];
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 

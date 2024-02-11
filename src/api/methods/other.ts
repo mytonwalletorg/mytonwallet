@@ -3,6 +3,7 @@ import nacl, { randomBytes } from 'tweetnacl';
 import type { ApiBlockchainKey, ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
+import { setIsAppFocused } from '../../util/pauseOrFocus';
 import blockchains from '../blockchains';
 import { fetchStoredAccount, fetchStoredAccounts, updateStoredAccount } from '../common/accounts';
 import { storage } from '../storages';
@@ -72,3 +73,5 @@ export async function fetchAccountConfigForDebugPurposesOnly() {
     return undefined;
   }
 }
+
+export { setIsAppFocused };

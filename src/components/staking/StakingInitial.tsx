@@ -73,7 +73,7 @@ function StakingInitial({
   apyValue,
   shouldUseNominators,
 }: OwnProps & StateProps) {
-  const { submitStakingInitial, fetchStakingFee, cancelStaking } = getActions();
+  const { submitStakingInitial, fetchStakingFee } = getActions();
 
   const lang = useLang();
 
@@ -264,7 +264,7 @@ function StakingInitial({
           lang('$min_value', {
             value: (
               <span className={styles.minAmountValue}>
-                {formatCurrency(toDecimal(STAKING_MIN_AMOUNT), 'TON')}
+                {formatCurrency(toDecimal(minAmount), 'TON')}
               </span>
             ),
           })
@@ -372,14 +372,11 @@ function StakingInitial({
       {renderStakingResult()}
 
       <div className={modalStyles.buttons}>
-        <Button className={modalStyles.button} onClick={cancelStaking}>{lang('Cancel')}</Button>
-
         <Button
           isPrimary
           isSubmit
           isDisabled={!canSubmit}
           isLoading={isLoading}
-          className={modalStyles.button}
         >
           {lang('Stake TON')}
         </Button>

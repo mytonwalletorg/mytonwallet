@@ -111,6 +111,7 @@ $receive_invoice_description: |
   Zahlung angeben, um dem Sender Zeit zu sparen.
 Amount: Betrag
 Comment: Memo
+Comment or Memo: Memo
 Share this URL to receive TON: Teilen Sie diese URL, um TON zu empfangen
 Invoice link was copied!: Die Rechnungslink wurde kopiert!
 Theme: Design

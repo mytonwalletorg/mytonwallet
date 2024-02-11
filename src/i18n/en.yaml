@@ -111,6 +111,7 @@ $receive_invoice_description: |
   the payment to save the sender some time.
 Amount: Amount
 Comment: Comment
+Comment or Memo: Comment or Memo
 Share this URL to receive TON: Share this URL to receive TON
 Invoice link was copied!: Invoice link was copied!
 Theme: Theme

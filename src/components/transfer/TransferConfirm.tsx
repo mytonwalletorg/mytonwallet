@@ -72,7 +72,7 @@ function TransferConfirm({
 
     return (
       <>
-        <div className={styles.label}>{shouldEncrypt ? lang('Encrypted Message') : lang('Comment')}</div>
+        <div className={styles.label}>{shouldEncrypt ? lang('Encrypted Message') : lang('Comment or Memo')}</div>
         <div className={buildClassName(styles.inputReadOnly, styles.inputReadOnly_words, styles.commentInputWrapper)}>
           {comment}
         </div>

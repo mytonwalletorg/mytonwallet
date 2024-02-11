@@ -10,10 +10,17 @@ import { INACTIVE_MARKER, IS_CAPACITOR } from '../config';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
 import {
-  IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON, IS_IOS, IS_LINUX,
+  IS_ANDROID,
+  IS_DELEGATED_BOTTOM_SHEET,
+  IS_DELEGATING_BOTTOM_SHEET,
+  IS_ELECTRON,
+  IS_IOS,
+  IS_LINUX,
 } from '../util/windowEnvironment';
 import { updateSizes } from '../util/windowSize';
+import { callApi } from '../api';
 
+import useBackgroundMode from '../hooks/useBackgroundMode';
 import { useDeviceScreen } from '../hooks/useDeviceScreen';
 import useEffectOnce from '../hooks/useEffectOnce';
 import useFlag from '../hooks/useFlag';
@@ -119,6 +126,12 @@ function App({
       cancelCaching();
     });
   }, [markInactive]);
+
+  useBackgroundMode(() => {
+    void callApi('setIsAppFocused', false);
+  }, () => {
+    void callApi('setIsAppFocused', true);
+  });
 
   useLayoutEffect(() => {
     document.documentElement.classList.add('is-rendered');

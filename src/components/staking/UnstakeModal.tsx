@@ -201,12 +201,10 @@ function UnstakeModal({
           )}
 
           <div className={modalStyles.buttons}>
-            <Button className={modalStyles.button} onClick={cancelStaking}>{lang('Cancel')}</Button>
             <Button
               isPrimary
               isLoading={isLoading}
               isDisabled={!hasBalanceForUnstake}
-              className={modalStyles.button}
               onClick={handleStartUnstakeClick}
             >
               {lang('Unstake')}

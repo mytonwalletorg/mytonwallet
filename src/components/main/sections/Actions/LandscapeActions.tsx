@@ -127,7 +127,7 @@ function LandscapeActions({
 
   useEffect(() => {
     return window.electron?.on(ElectronEvent.DEEPLINK, () => {
-      setActiveTabIndex({ index: DEFAULT_LANDSCAPE_ACTION_TAB_ID });
+      setActiveTabIndex({ index: ActiveTab.Transfer });
     });
   }, [setActiveTabIndex]);
 

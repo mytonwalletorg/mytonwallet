@@ -111,6 +111,7 @@ $receive_invoice_description: |
   tutarını ve amacını belirtebilirsiniz.
 Amount: Tutar
 Comment: Memo (Açıklama)
+Comment or Memo: Memo (Açıklama)
 Share this URL to receive TON: TON almak için bu URL'yi paylaşın
 Invoice link was copied!: Fatura bağlantısı kopyalandı!
 Theme: Tema

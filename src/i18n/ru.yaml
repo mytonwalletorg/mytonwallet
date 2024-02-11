@@ -112,6 +112,7 @@ $receive_invoice_description: |
   если это необходимо.
 Amount: Сумма
 Comment: Комментарий
+Comment or Memo: Комментарий или Memo
 Share this URL to receive TON: Поделиться ссылкой
 Invoice link was copied!: Ссылка скопирована!
 Theme: Тема
@@ -174,7 +175,7 @@ Incorrect address.: Неверный адрес.
 Paste: Вставить
 Insufficient balance: Недостаточный баланс
 InsufficientBalance: Недостаточный баланс
-Optional: Необязательно
+Optional: При необходимости
 $send_token_symbol: Отправить %1$s
 Is it all ok?: Всё верно?
 Receiving Address: Адрес получателя

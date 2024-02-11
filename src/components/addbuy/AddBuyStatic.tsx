@@ -43,7 +43,7 @@ function AddBuyStatic({
   const { isPortrait } = useDeviceScreen();
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
-  const isOnRampAllowed = !isTestnet && !isLedger && !isOnRampDisabled;
+  const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
 
   const handleBuyFiat = useLastCallback(() => {
     openOnRampWidgetModal();
