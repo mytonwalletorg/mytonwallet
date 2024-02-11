@@ -1,6 +1,7 @@
 import { DappConnectState, TransferState } from '../../types';
 
 import { IS_CAPACITOR } from '../../../config';
+import { areDeepEqual } from '../../../util/areDeepEqual';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { callActionInMain } from '../../../util/multitab';
 import { pause, waitFor } from '../../../util/schedulers';
@@ -406,6 +407,10 @@ addActionHandler('apiUpdateDappCloseLoading', async (global) => {
 addActionHandler('loadDappCatalog', async (global) => {
   const dapps = await callApi('fetchDappCatalog');
   global = getGlobal();
+  if (areDeepEqual(dapps, global.dappCatalog)) {
+    return;
+  }
+
   global = {
     ...global,
     dappCatalog: dapps,

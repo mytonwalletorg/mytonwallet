@@ -5,8 +5,10 @@ import type { ApiBaseCurrency } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
 import {
+  CURRENCY_LIST,
   DEFAULT_PRICE_CURRENCY,
-  TINY_TRANSFER_MAX_COST, TON_SYMBOL,
+  TINY_TRANSFER_MAX_COST,
+  TON_SYMBOL,
 } from '../../config';
 import buildClassName from '../../util/buildClassName';
 
@@ -36,33 +38,6 @@ interface OwnProps {
   handleBackClick: NoneToVoidFunction;
   baseCurrency?: ApiBaseCurrency;
 }
-
-const CURRENCY_OPTIONS = [
-  {
-    value: 'USD',
-    name: 'US Dollar',
-  },
-  {
-    value: 'EUR',
-    name: 'Euro',
-  },
-  {
-    value: 'RUB',
-    name: 'Ruble',
-  },
-  {
-    value: 'CNY',
-    name: 'Yuan',
-  },
-  {
-    value: 'BTC',
-    name: 'Bitcoin',
-  },
-  {
-    value: 'TON',
-    name: 'Toncoin',
-  },
-];
 
 function SettingsAssets({
   isActive,
@@ -149,7 +124,7 @@ function SettingsAssets({
         <div className={styles.settingsBlock}>
           <Dropdown
             label={lang('Base Currency')}
-            items={CURRENCY_OPTIONS}
+            items={CURRENCY_LIST}
             selectedValue={baseCurrency ?? DEFAULT_PRICE_CURRENCY}
             theme="light"
             shouldTranslateOptions

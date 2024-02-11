@@ -78,6 +78,8 @@ const SHORT_ADDRESS_SHIFT = 14;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
 const COMMENT_DROPDOWN_ITEMS = [{ value: 'raw', name: 'Comment' }, { value: 'encrypted', name: 'Encrypted Message' }];
 
+const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
+
 const runThrottled = throttle((cb) => cb(), 1500, true);
 
 function TransferInitial({
@@ -136,11 +138,14 @@ function TransferInitial({
     symbol,
   } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
 
-  const amountInCurrency = price && amount ? toBig(amount).mul(price).round(decimals).toString() : undefined;
+  const tonToken = useMemo(() => tokens?.find((token) => token.slug === TON_TOKEN_SLUG), [tokens])!;
+
+  const amountInCurrency = price && amount ? toBig(amount, decimals).mul(price).round(decimals).toString() : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const renderingFee = useCurrentOrPrev(fee, true);
   const withPasteButton = shouldRenderPasteButton && toAddress === '';
   const withQrScanButton = Boolean(onQrScanPress);
+  const withAddressClearButton = !!toAddress.length;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
@@ -279,13 +284,16 @@ function TransferInitial({
     }
   });
 
-  const handleAddressBlur = useLastCallback(() => {
+  const handleAddressBlur = useLastCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    unmarkAddressFocused();
+
+    if (e.relatedTarget?.id === INPUT_CLEAR_BUTTON_ID) return;
+
     if (dns.isDnsDomain(toAddress) && toAddress !== toAddress.toLowerCase()) {
       setTransferToAddress({ toAddress: toAddress.toLowerCase() });
     }
 
     validateToAddress();
-    unmarkAddressFocused();
 
     if (hasSavedAddresses && isSavedAddressesOpen) {
       closeSavedAddresses();
@@ -294,6 +302,11 @@ function TransferInitial({
 
   const handleAddressInput = useLastCallback((newToAddress: string) => {
     setTransferToAddress({ toAddress: newToAddress });
+  });
+
+  const handleAddressClearClick = useLastCallback(() => {
+    setTransferToAddress({ toAddress: undefined });
+    setHasToAddressError(false);
   });
 
   const handleQrScanClick = useLastCallback(() => {
@@ -355,8 +368,9 @@ function TransferInitial({
     onCommentChange?.();
   });
 
+  const isEnoughTon = fee && fee < tonToken.amount;
   const canSubmit = toAddress.length && amount && balance && amount > 0
-    && amount <= balance && !hasToAddressError && !hasAmountError;
+    && amount <= balance && !hasToAddressError && !hasAmountError && isEnoughTon;
 
   const handleSubmit = useLastCallback((e) => {
     e.preventDefault();
@@ -427,6 +441,42 @@ function TransferInitial({
     );
   }
 
+  function renderInputActions() {
+    return (
+      <Transition className={styles.inputButtonTransition} activeKey={toAddress.length ? 0 : 1} name="fade">
+        {toAddress.length ? (
+          <Button
+            isSimple
+            id={INPUT_CLEAR_BUTTON_ID}
+            className={buildClassName(styles.inputButton, styles.inputButtonClear)}
+            onClick={handleAddressClearClick}
+            ariaLabel={lang('Clear')}
+          >
+            <i className="icon-close-filled" aria-hidden />
+          </Button>
+        ) : (
+          <>
+            {withQrScanButton && (
+              <Button
+                isSimple
+                className={buildClassName(styles.inputButton, withPasteButton && styles.inputButtonShifted)}
+                onClick={handleQrScanClick}
+                ariaLabel={lang('Scan QR Code')}
+              >
+                <i className="icon-qr-scanner-alt" aria-hidden />
+              </Button>
+            )}
+            {withPasteButton && (
+              <Button isSimple className={styles.inputButton} onClick={handlePasteClick} ariaLabel={lang('Paste')}>
+                <i className="icon-paste" aria-hidden />
+              </Button>
+            )}
+          </>
+        )}
+      </Transition>
+    );
+  }
+
   function renderBalance() {
     if (!symbol) {
       return undefined;
@@ -480,12 +530,14 @@ function TransferInitial({
     );
   }
 
+  const withButton = withQrScanButton || withPasteButton || withAddressClearButton;
+
   return (
     <>
       <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
         <Input
           ref={toAddressRef}
-          className={buildClassName(isStatic && styles.inputStatic, withQrScanButton && styles.inputWithIcon)}
+          className={buildClassName(isStatic && styles.inputStatic, withButton && styles.inputWithIcon)}
           isRequired
           label={lang('Recipient Address')}
           placeholder={lang('Wallet address or domain')}
@@ -495,21 +547,7 @@ function TransferInitial({
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}
         >
-          {withQrScanButton && (
-            <Button
-              isSimple
-              className={buildClassName(styles.inputButton, withPasteButton && styles.inputButtonShifted)}
-              onClick={handleQrScanClick}
-              ariaLabel={lang('Scan QR Code')}
-            >
-              <i className="icon-qr-scanner-alt" aria-hidden />
-            </Button>
-          )}
-          {withPasteButton && (
-            <Button isSimple className={styles.inputButton} onClick={handlePasteClick} ariaLabel={lang('Paste')}>
-              <i className="icon-paste" aria-hidden />
-            </Button>
-          )}
+          {renderInputActions()}
         </Input>
 
         {hasSavedAddresses && renderSavedAddresses()}

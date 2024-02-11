@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import { TON_TOKEN_SLUG } from '../../../../config';
+import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
@@ -15,6 +15,7 @@ import { round } from '../../../../util/round';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
+import useFlag from '../../../../hooks/useFlag';
 import useForceUpdate from '../../../../hooks/useForceUpdate';
 import useLang from '../../../../hooks/useLang';
 import useTimeout from '../../../../hooks/useTimeout';
@@ -22,6 +23,7 @@ import useTimeout from '../../../../hooks/useTimeout';
 import TokenPriceChart from '../../../common/TokenPriceChart';
 import Button from '../../../ui/Button';
 import Transition from '../../../ui/Transition';
+import CurrencySwitcher from './CurrencySwitcher';
 
 import styles from './Card.module.scss';
 
@@ -66,8 +68,11 @@ function TokenCard({
   const { isPortrait } = useDeviceScreen();
   const lang = useLang();
   const forceUpdate = useForceUpdate();
+  const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
+  const shouldUseDefaultCurrency = baseCurrency === undefined || baseCurrency === token.symbol;
+  const chartCurrency = shouldUseDefaultCurrency ? DEFAULT_PRICE_CURRENCY : baseCurrency;
 
-  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
+  const currencySymbol = getShortCurrencySymbol(chartCurrency);
   const currentHistoryPeriod = HISTORY_PERIODS[period].historyKey;
   const currentChangePeriod = HISTORY_PERIODS[period].changeKey;
 
@@ -84,8 +89,11 @@ function TokenCard({
   const history = currentHistoryPeriod in token ? token[currentHistoryPeriod] : undefined;
 
   const tokenLastUpdatedAt = history?.length ? history[history.length - 1][0] * 1000 : undefined;
+  const tokenLastHistoryPrice = history?.length ? history[history.length - 1][1] : lastPrice;
   const selectedHistoryPoint = history?.[selectedHistoryIndex];
-  const price = selectedHistoryPoint?.[1] || lastPrice;
+  const price = selectedHistoryPoint?.[1]
+    || (shouldUseDefaultCurrency ? tokenLastHistoryPrice : undefined)
+    || lastPrice;
   const isLoading = !tokenLastUpdatedAt || (Date.now() - tokenLastUpdatedAt > OFFLINE_TIMEOUT);
   const dateStr = selectedHistoryPoint
     ? formatShortDay(lang.code!, selectedHistoryPoint[0] * 1000, true, true)
@@ -146,12 +154,22 @@ function TokenCard({
 
       {withChange && (
         <div className={styles.tokenPrice}>
-          ≈&thinsp;{formatCurrency(value, shortBaseSymbol)}
+          <span className={styles.currencySwitcher} role="button" tabIndex={0} onClick={openCurrencyMenu}>
+            ≈&thinsp;{formatCurrency(value, currencySymbol)}
+            <i className={buildClassName('icon', 'icon-caret-down', styles.iconCaretSmall)} aria-hidden />
+          </span>
+          <CurrencySwitcher
+            isOpen={isCurrencyMenuOpen}
+            menuPositionHorizontal="right"
+            excludedCurrency={token.symbol}
+            onClose={closeCurrencyMenu}
+          />
+
           {Boolean(changeValue) && (
             <div className={styles.tokenChange}>
               {changePrefix}
               &thinsp;
-              {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), shortBaseSymbol)}
+              {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), currencySymbol)}
             </div>
           )}
         </div>
@@ -164,7 +182,7 @@ function TokenCard({
           </Transition>
 
           <div className={styles.tokenHistoryPrice}>
-            {formatCurrency(history![0][1], shortBaseSymbol)}
+            {formatCurrency(history![0][1], currencySymbol)}
             <div className={styles.tokenPriceDate}>{formatShortDay(lang.code!, historyStartDay!)}</div>
           </div>
 
@@ -193,7 +211,7 @@ function TokenCard({
       )}
 
       <div className={styles.tokenCurrentPrice}>
-        {formatCurrency(price, shortBaseSymbol, selectedHistoryIndex === -1 ? 2 : 4)}
+        {formatCurrency(price, currencySymbol, selectedHistoryIndex === -1 ? 2 : 4)}
         <div className={styles.tokenPriceDate}>
           {dateStr}
           {withCmcButton && (

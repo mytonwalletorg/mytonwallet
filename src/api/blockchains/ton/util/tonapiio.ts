@@ -6,7 +6,8 @@ import { TONAPIIO_MAINNET_URL, TONAPIIO_TESTNET_URL } from '../../../../config';
 import fetchWithTimeout from '../../../../util/fetchWithTimeout';
 import { getEnvironment } from '../../../environment';
 
-const MAX_LIMIT = 1000;
+const MAX_LIMIT = 500;
+const EVENTS_LIMIT = 100;
 
 let apiByNetwork: Record<ApiNetwork, Api<unknown>> | undefined;
 
@@ -64,7 +65,7 @@ export async function fetchAccountNfts(network: ApiNetwork, address: string, opt
 
 export async function fetchAccountEvents(network: ApiNetwork, address: string, fromSec: number, limit?: number) {
   return (await getApi(network).accounts.getAccountEvents(address, {
-    limit: limit ?? MAX_LIMIT,
+    limit: limit ?? EVENTS_LIMIT,
     start_date: fromSec,
   })).events;
 }

@@ -48,6 +48,35 @@
   }
 }
 
+.inputButtonClear {
+  color: var(--color-gray-2);
+
+  &:active {
+    color: var(--color-gray-2);
+
+    opacity: 0.85;
+    background-color: unset;
+
+    // Optimization
+    transition: none;
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      color: var(--color-gray-2);
+
+      opacity: 0.85;
+      background-color: unset;
+    }
+  }
+}
+
+.inputButtonTransition {
+  width: auto;
+  height: auto;
+}
+
 .inputButtonShifted {
   right: 2.5rem;
 }

@@ -302,8 +302,10 @@ export async function submitTransfer(
     // Fix address format for `waitTxComplete` to work properly
     const normalizedAddress = toBase64Address(toAddress);
 
-    if (data && typeof data === 'string') {
-      if (isBase64Data) {
+    if (typeof data === 'string') {
+      if (!data) {
+        data = undefined;
+      } else if (isBase64Data) {
         data = parseBase64(data);
       } else if (shouldEncrypt) {
         const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
@@ -379,6 +381,11 @@ async function signTransaction(
     payload = packBytesAsSnake(payload, 0) as Cell;
   }
 
+  const init = stateInit ? {
+    code: stateInit.refs[0],
+    data: stateInit.refs[1],
+  } : undefined;
+
   const transaction = wallet.createTransfer({
     seqno,
     secretKey: Buffer.from(privateKey),
@@ -386,10 +393,7 @@ async function signTransaction(
       value: amount,
       to: toAddress,
       body: payload,
-      init: {
-        code: stateInit?.refs[0],
-        data: stateInit?.refs[1],
-      },
+      init,
       bounce: parseAddress(toAddress).isBounceable,
     })],
     sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
@@ -642,15 +646,17 @@ async function signMultiTransaction(
       payload = Cell.fromBase64(payload);
     }
 
+    const init = stateInit ? {
+      code: stateInit.refs[0],
+      data: stateInit.refs[1],
+    } : undefined;
+
     return internal({
       value: amount,
       to: toAddress,
-      body: payload as Cell | string | undefined, // TODO
+      body: payload as Cell | string | undefined, // TODO Fix Uint8Array type
       bounce: parseAddress(toAddress).isBounceable,
-      init: {
-        code: stateInit?.refs[0],
-        data: stateInit?.refs[1],
-      },
+      init,
     });
   });
 
@@ -707,7 +713,7 @@ async function waitIncrementSeqno(network: ApiNetwork, address: string, seqno: n
 }
 
 async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction: Cell) {
-  const { source_fees: fees } = await getTonClient('mainnet').estimateExternalMessageFee(wallet.address, {
+  const { source_fees: fees } = await getTonClient(network).estimateExternalMessageFee(wallet.address, {
     body: transaction,
     // eslint-disable-next-line no-null/no-null
     initCode: null,

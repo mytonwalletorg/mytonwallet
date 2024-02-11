@@ -24,7 +24,7 @@ import {
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import {
-  addActionHandler, getActions, getGlobal, setGlobal,
+  addActionHandler, getGlobal, setGlobal,
 } from '../../index';
 import { updateCurrentAccountId, updateCurrentAccountState } from '../../reducers';
 import {
@@ -86,15 +86,15 @@ addActionHandler('afterInit', (global) => {
 });
 
 addActionHandler('showDialog', (global, actions, payload) => {
-  const { message } = payload;
+  const { message, title } = payload;
 
   const newDialogs = [...global.dialogs];
-  const existingMessageIndex = newDialogs.findIndex((value) => value === message);
+  const existingMessageIndex = newDialogs.findIndex((dialog) => dialog.message === message);
   if (existingMessageIndex !== -1) {
     newDialogs.splice(existingMessageIndex, 1);
   }
 
-  newDialogs.push(message);
+  newDialogs.push({ message, title });
 
   return {
     ...global,
@@ -301,13 +301,14 @@ addActionHandler('signOut', async (global, actions, payload) => {
 
       setGlobal(global);
 
-      getActions().switchAccount({ accountId: nextAccountId, newNetwork: otherNetwork });
-      getActions().afterSignOut();
+      actions.switchAccount({ accountId: nextAccountId, newNetwork: otherNetwork });
+      actions.closeSettings();
+      actions.afterSignOut();
     } else {
       await callApi('resetAccounts');
 
-      getActions().afterSignOut({ isFromAllAccounts: true });
-      getActions().init();
+      actions.afterSignOut({ isFromAllAccounts: true });
+      actions.init();
     }
   } else {
     const prevAccountId = global.currentAccountId!;
@@ -334,6 +335,6 @@ addActionHandler('signOut', async (global, actions, payload) => {
 
     setGlobal(global);
 
-    getActions().afterSignOut();
+    actions.afterSignOut();
   }
 });

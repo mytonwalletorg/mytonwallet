@@ -222,3 +222,19 @@ a {
     display: none;
   }
 }
+
+/*
+ See the article for more information on this visually-hidden pattern.
+ https://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+*/
+.visually-hidden {
+  position: absolute !important;
+  z-index: -1;
+
+  overflow: hidden;
+
+  width: 0;
+  height: 0;
+
+  clip: rect(0, 0, 0, 0);
+}

@@ -6,6 +6,7 @@
 
 .containerWrapper {
   position: relative;
+  z-index: var(--z-card);
 
   box-sizing: border-box;
   width: 100%;
@@ -157,6 +158,33 @@
   font-size: 1.1875rem;
   font-weight: 800;
   color: var(--color-card-second-text);
+}
+
+.iconCaret {
+  position: relative;
+  top: -0.1875rem;
+  left: -0.0625rem;
+
+  font-size: 1.125rem;
+}
+
+.iconCaretSmall {
+  font-size: 0.875rem;
+  line-height: 0.875rem;
+  vertical-align: -1px;
+}
+
+.iconCaretFraction {
+  position: relative;
+  top: 0.0625rem;
+  left: 0.0625rem;
+
+  font-size: 0.875rem;
+  color: var(--color-card-second-text);
+}
+
+.currencySwitcher {
+  cursor: var(--custom-cursor, pointer);
 }
 
 .addressContainer {

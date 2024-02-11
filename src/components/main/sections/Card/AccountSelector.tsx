@@ -38,6 +38,7 @@ interface StateProps {
   accounts?: Record<string, Account>;
 }
 
+const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
 const ACCOUNT_ADDRESS_SHIFT = 4;
 const ACCOUNTS_AMOUNT_FOR_COMPACT_DIALOG = 3;
 
@@ -141,7 +142,11 @@ function AccountSelector({
         <div className={styles.accountAddressBlock}>
           {isHardware && <i className="icon-ledger" aria-hidden />}
           <span>
-            {shortenAddress(address, ACCOUNT_ADDRESS_SHIFT)}
+            {shortenAddress(
+              address,
+              isHardware ? HARDWARE_ACCOUNT_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
+              ACCOUNT_ADDRESS_SHIFT,
+            )}
           </span>
         </div>
 

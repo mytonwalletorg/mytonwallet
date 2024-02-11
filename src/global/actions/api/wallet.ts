@@ -18,7 +18,7 @@ import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../helpers';
 import {
-  addActionHandler, getActions, getGlobal, setGlobal,
+  addActionHandler, getGlobal, setGlobal,
 } from '../../index';
 import {
   clearCurrentTransfer,
@@ -30,6 +30,7 @@ import {
   updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
+  updateCurrentTransferFee,
   updateSendingLoading,
   updateSettings,
 } from '../../reducers';
@@ -130,7 +131,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
       global = updateCurrentTransfer(global, { toAddressName: result.addressName });
     }
     if (result?.fee) {
-      global = updateCurrentTransfer(global, { fee: result.fee });
+      global = updateCurrentTransferFee(global, result.fee);
     }
 
     setGlobal(global);
@@ -175,7 +176,9 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   );
 
   if (result?.fee) {
-    setGlobal(updateCurrentTransfer(getGlobal(), { fee: result.fee }));
+    global = getGlobal();
+    global = updateCurrentTransferFee(global, result.fee);
+    setGlobal(global);
   }
 });
 
@@ -695,20 +698,21 @@ addActionHandler('resetImportToken', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('verifyHardwareAddress', async (global) => {
+addActionHandler('verifyHardwareAddress', async (global, actions) => {
   const accountId = global.currentAccountId!;
 
   const ledgerApi = await import('../../../util/ledger');
 
   if (!(await ledgerApi.reconnectLedger())) {
-    getActions().showError({ error: '$ledger_not_ready' });
+    actions.showError({ error: '$ledger_not_ready' });
     return;
   }
 
   try {
+    actions.showDialog({ title: 'Ledger', message: '$ledger_verify_address_on_device' });
     await ledgerApi.verifyAddress(accountId);
   } catch (err) {
-    getActions().showError({ error: err as string });
+    actions.showError({ error: err as string });
   }
 });
 

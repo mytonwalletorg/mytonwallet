@@ -24,6 +24,7 @@ import { getTokenCardColor } from '../../helpers/card_colors';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
+import useFlag from '../../../../hooks/useFlag';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -32,6 +33,7 @@ import useShowTransition from '../../../../hooks/useShowTransition';
 import AnimatedCounter from '../../../ui/AnimatedCounter';
 import Loading from '../../../ui/Loading';
 import AccountSelector from './AccountSelector';
+import CurrencySwitcher from './CurrencySwitcher';
 import TokenCard from './TokenCard';
 
 import styles from './Card.module.scss';
@@ -75,6 +77,7 @@ function Card({
   const tonscanAddressUrl = `${tonscanBaseUrl}address/${address}`;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
+  const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
   const currentToken = useMemo(() => {
     return tokens ? tokens.find((token) => token.slug === currentTokenSlug) : undefined;
   }, [currentTokenSlug, tokens]);
@@ -150,22 +153,31 @@ function Card({
   }
 
   function renderBalance() {
+    const iconCaretClassNames = buildClassName(
+      'icon',
+      'icon-caret-down',
+      primaryFractionPart || shortBaseSymbol.length > 1 ? styles.iconCaretFraction : styles.iconCaret,
+    );
     return (
       <>
         <div className={styles.primaryValue}>
-          {shortBaseSymbol.length === 1 && shortBaseSymbol}
-          <AnimatedCounter text={primaryWholePart ?? ''} />
-          {primaryFractionPart && (
-            <span className={styles.primaryFractionPart}>
-              <AnimatedCounter text={`.${primaryFractionPart}`} />
-            </span>
-          )}
-          {shortBaseSymbol.length > 1 && (
-            <span className={styles.primaryFractionPart}>
+          <span className={styles.currencySwitcher} role="button" tabIndex={0} onClick={openCurrencyMenu}>
+            {shortBaseSymbol.length === 1 && shortBaseSymbol}
+            <AnimatedCounter text={primaryWholePart ?? ''} />
+            {primaryFractionPart && (
+              <span className={styles.primaryFractionPart}>
+                <AnimatedCounter text={`.${primaryFractionPart}`} />
+              </span>
+            )}
+            {shortBaseSymbol.length > 1 && (
+              <span className={styles.primaryFractionPart}>
                 &nbsp;{shortBaseSymbol}
-            </span>
-          )}
+              </span>
+            )}
+            <i className={iconCaretClassNames} aria-hidden />
+          </span>
         </div>
+        <CurrencySwitcher isOpen={isCurrencyMenuOpen} onClose={closeCurrencyMenu} />
         {primaryValue !== '0' && (
           <div className={buildClassName(styles.change, changeClassName)}>
             {changePrefix}

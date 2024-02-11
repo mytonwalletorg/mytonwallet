@@ -508,5 +508,7 @@ Receive with QR or Invoice: 通过 QR 码或发票接收
 Cannot load widget: 无法加载小部件
 Explore: 探索
 No partners yet: 还没有伴侣
+Clear: 清除
 Get TON: 获取TON
 Declined. Please try to confirm operation using biometrics again.: 拒绝了。 请再次尝试使用生物识别来确认操作。
+$ledger_verify_address_on_device: 请验证您的 Ledger 上的地址。

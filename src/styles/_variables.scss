@@ -167,6 +167,8 @@
   --safe-area-top-value: env(safe-area-inset-top);
 
   --z-below: -1;
+  --z-card: 10;
+  --z-sticky-card: 10;
   --z-modal: 100;
   --z-menu-backdrop: 199;
   --z-menu-bubble: 200;

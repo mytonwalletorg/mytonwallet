@@ -525,5 +525,7 @@ Receive with QR or Invoice: Receive with QR or Invoice
 Cannot load widget: Cannot load widget
 Explore: Explore
 No partners yet: No partners yet
+Clear: Clear
 Get TON: Get TON
 Declined. Please try to confirm operation using biometrics again.: Declined. Please try to confirm operation using biometrics again.
+$ledger_verify_address_on_device: Please, verify the address on your Ledger.

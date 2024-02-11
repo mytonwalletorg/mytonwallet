@@ -11,7 +11,6 @@ import formatTransferUrl from '../../util/ton/formatTransferUrl';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
-import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import InteractiveTextField from '../ui/InteractiveTextField';
@@ -67,9 +66,12 @@ function Content({
 
   const { verifyHardwareAddress } = getActions();
 
-  const handleVerify = useLastCallback(() => {
+  const handleVerify = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     verifyHardwareAddress();
-  });
+  };
 
   return (
     <>

@@ -1,4 +1,4 @@
-import type { ApiSwapAsset } from './api/types';
+import type { ApiBaseCurrency, ApiSwapAsset } from './api/types';
 import type { LangItem } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
@@ -107,7 +107,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-64';
+export const LANG_CACHE_NAME = 'mtw-lang-65';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -224,3 +224,24 @@ export const SHORT_CURRENCY_SYMBOL_MAP = {
   RUB: '₽',
   CNY: '¥',
 };
+export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
+  {
+    value: 'USD',
+    name: 'US Dollar',
+  }, {
+    value: 'EUR',
+    name: 'Euro',
+  }, {
+    value: 'RUB',
+    name: 'Ruble',
+  }, {
+    value: 'CNY',
+    name: 'Yuan',
+  }, {
+    value: 'BTC',
+    name: 'Bitcoin',
+  }, {
+    value: TON_SYMBOL,
+    name: 'Toncoin',
+  },
+];

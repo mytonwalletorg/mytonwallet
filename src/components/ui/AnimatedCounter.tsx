@@ -3,6 +3,7 @@ import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
 import { getGlobal } from '../../global';
 
 import { ANIMATION_LEVEL_MAX } from '../../config';
+import { throttleWithTickEnd } from '../../util/schedulers';
 
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useLang from '../../hooks/useLang';
@@ -15,6 +16,13 @@ type OwnProps = {
 };
 
 const ANIMATION_TIME = 200;
+const MAX_SIMULTANEOUS_ANIMATIONS = 10;
+
+let scheduledAnimationsCounter = 0;
+
+const resetCounterOnTickEnd = throttleWithTickEnd(() => {
+  scheduledAnimationsCounter = 0;
+});
 
 const AnimatedCounter: FC<OwnProps> = ({
   text,
@@ -25,9 +33,13 @@ const AnimatedCounter: FC<OwnProps> = ({
   const prevText = usePrevious(text);
   const forceUpdate = useForceUpdate();
 
-  const shouldAnimate = (animationLevel === ANIMATION_LEVEL_MAX) && prevText && prevText !== text;
+  const shouldAnimate = scheduleAnimation(
+    animationLevel === ANIMATION_LEVEL_MAX && prevText !== undefined && prevText !== text,
+  );
 
-  const characters = useMemo(() => generateCharacters(text, prevText), [prevText, text]);
+  const characters = useMemo(() => {
+    return shouldAnimate ? renderAnimatedCharacters(text, prevText) : text;
+  }, [shouldAnimate, prevText, text]);
 
   useEffect(() => {
     if (!shouldAnimate) return undefined;
@@ -50,8 +62,19 @@ const AnimatedCounter: FC<OwnProps> = ({
 
 export default memo(AnimatedCounter);
 
-// Function to generate characters
-function generateCharacters(text: string, prevText?: string) {
+function scheduleAnimation(condition: boolean) {
+  if (!condition || scheduledAnimationsCounter >= MAX_SIMULTANEOUS_ANIMATIONS) return false;
+
+  if (scheduledAnimationsCounter === 0) {
+    resetCounterOnTickEnd();
+  }
+
+  scheduledAnimationsCounter++;
+
+  return true;
+}
+
+function renderAnimatedCharacters(text: string, prevText?: string) {
   const elements: React.ReactNode[] = [];
   const textLength = text.length;
   const prevTextLength = prevText?.length ?? 0;

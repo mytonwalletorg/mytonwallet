@@ -33,6 +33,10 @@ export type NotificationType = {
   icon?: string;
   message: string;
 };
+export type DialogType = {
+  title?: string;
+  message: string;
+};
 
 export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'tr' | 'de';
 
@@ -475,7 +479,7 @@ export type GlobalState = {
     isLimitedRegion?: boolean;
   };
 
-  dialogs: string[];
+  dialogs: DialogType[];
   notifications: NotificationType[];
   currentAccountId?: string;
   isAddAccountModalOpen?: boolean;
@@ -577,7 +581,7 @@ export interface ActionPayloads {
   submitTransferHardware: undefined;
   clearTransferError: undefined;
   cancelTransfer: { shouldReset?: boolean } | undefined;
-  showDialog: { message: string };
+  showDialog: { title?: string; message: string };
   dismissDialog: undefined;
   showError: { error?: ApiAnyDisplayError | string };
   showNotification: { message: string; icon?: string };

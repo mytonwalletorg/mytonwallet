@@ -16,6 +16,7 @@ import windowSize from '../../util/windowSize';
 
 import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useEffectOnce from '../../hooks/useEffectOnce';
 import useFlag from '../../hooks/useFlag';
 import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
@@ -70,6 +71,7 @@ function Main({
     openStakingInfo,
     closeStakingInfo,
     setLandscapeActionsActiveTabIndex,
+    loadDappCatalog,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -88,6 +90,10 @@ function Main({
     shouldRender: shouldRenderStickyCard,
     transitionClassNames: stickyCardTransitionClassNames,
   } = useShowTransition(canRenderStickyCard);
+
+  useEffectOnce(() => {
+    loadDappCatalog();
+  });
 
   useEffect(() => {
     setStatusBarStyle(shouldRenderDarkStatusBar);

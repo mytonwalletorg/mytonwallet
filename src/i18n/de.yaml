@@ -527,5 +527,7 @@ Receive with QR or Invoice: Mit QR oder Rechnung empfangen
 Cannot load widget: Widget kann nicht geladen werden
 Explore: Erkunden
 No partners yet: Noch keine Partner
+Clear: Löschen
 Get TON: TON erhalten
 Declined. Please try to confirm operation using biometrics again.: Abgelehnt. Versuchen Sie bitte, die Vorgang erneut mit Biometrie zu bestätigen.
+$ledger_verify_address_on_device: Bitte überprüfen Sie die Adresse auf Ihrem Ledger.

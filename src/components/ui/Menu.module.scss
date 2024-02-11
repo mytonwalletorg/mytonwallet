@@ -8,7 +8,7 @@
 
 .bubble {
   --offset-y: calc(100% + 0.5rem);
-  --offset-x: 0;
+  --offset-x: -0.25rem;
 
   position: absolute;
   z-index: var(--z-menu-bubble);
@@ -93,7 +93,7 @@
 }
 
 .dropdown {
-  --offset-y: calc(100% - 1.25rem);
+  --offset-y: 0.25rem;
 
   transform: translateY(-0.375rem) !important;
 

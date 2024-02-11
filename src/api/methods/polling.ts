@@ -79,8 +79,9 @@ export function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAccountA
     tryUpdateTokens(_onUpdate),
     tryLoadSwapTokens(_onUpdate),
     tryUpdateStakingCommonData(),
-    tryUpdateRegion(_onUpdate),
   ]);
+
+  void tryUpdateRegion(_onUpdate);
 
   void setupBackendPolling();
   void setupLongBackendPolling();
@@ -229,7 +230,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
       i++;
     } catch (err) {
-      logDebugError('setupBalancePolling', err);
+      logDebugError('setupBalanceBasedPolling', err);
     }
 
     await pause(POLLING_INTERVAL);
@@ -276,7 +277,7 @@ export async function setupStakingPolling(accountId: string) {
         });
       }
     } catch (err) {
-      logDebugError('setupBalancePolling', err);
+      logDebugError('setupStakingPolling', err);
     }
 
     await pause(POLLING_INTERVAL);
@@ -534,7 +535,7 @@ export async function setupSwapPolling(accountId: string) {
         });
       }
     } catch (err) {
-      logDebugError('setupSwapCexPolling', err);
+      logDebugError('setupSwapPolling', err);
     }
 
     await pause(SWAP_POLLING_INTERVAL);

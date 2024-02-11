@@ -62,12 +62,6 @@
         background-color: var(--color-input-button-background-hover);
       }
     }
-
-    @media (pointer: coarse) {
-      &:active {
-        background-color: var(--color-input-button-background-hover);
-      }
-    }
   }
 
   .light & {
@@ -112,15 +106,15 @@
 
   width: 100%;
   margin: 0;
-  padding: 0.5625rem 1rem 0.5rem !important;
+  padding: 0.5625rem 0.625rem 0.5rem !important;
 
   line-height: 1;
-  text-align: center;
+  text-align: left;
 
   background: none;
 
   &:not(:last-of-type) {
-    margin-bottom: 0.125rem;
+    margin-bottom: 0.25rem;
   }
 
   &_selected {
@@ -156,18 +150,15 @@
 .itemName {
   unicode-bidi: plaintext;
 
-  height: 1rem;
+  height: 0.9375rem;
 
   font-size: 0.9375rem;
   font-weight: 700;
   white-space: nowrap;
 
   .light & {
-    margin: auto;
-
-    font-size: 1rem;
     font-weight: 600;
-    line-height: 1rem;
+    line-height: 0.9375rem;
   }
 }
 

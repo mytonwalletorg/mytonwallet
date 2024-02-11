@@ -10,7 +10,7 @@
   overflow: hidden;
 
   max-width: calc(100% - 4rem);
-  padding: 0.75rem;
+  padding: 0.75rem 0.6875rem 0.75rem 0.75rem;
 
   font-size: 1.0625rem;
   font-weight: 700;
@@ -24,7 +24,7 @@
     content: '';
 
     position: absolute;
-    top: calc(50% - 0.0625rem);
+    top: 50%;
     right: 0;
 
     width: 0.4375rem;
@@ -61,7 +61,7 @@
     top: 1.125rem;
     left: 1rem;
 
-    padding: 0 0.75rem 0 0;
+    padding: 0 0.6875rem 0 0;
   }
 }
 
@@ -187,7 +187,7 @@
 .container {
   position: absolute;
   z-index: 3;
-  top: 2.75rem;
+  top: 2.8125rem;
   right: 0.5rem;
   left: 0.5rem;
 

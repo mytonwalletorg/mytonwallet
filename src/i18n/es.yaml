@@ -523,5 +523,7 @@ Receive with QR or Invoice: Recibir con QR o Factura
 Cannot load widget: No se puede cargar el widget
 Explore: Explorar
 No partners yet: No hay socios todavía
+Clear: Borrar
 Get TON: Obtener TON
 Declined. Please try to confirm operation using biometrics again.: Rechazado. Intente confirmar la operación nuevamente utilizando datos biométricos.
+$ledger_verify_address_on_device: Verifique la dirección en su Ledger.

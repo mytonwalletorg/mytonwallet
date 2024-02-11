@@ -3,6 +3,8 @@ import type { FC } from '../lib/teact/teact';
 import React, { memo, useEffect } from '../lib/teact/teact';
 import { getActions, withGlobal } from '../global';
 
+import type { DialogType } from '../global/types';
+
 import renderText from '../global/helpers/renderText';
 import { pick } from '../util/iteratees';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../util/windowEnvironment';
@@ -16,7 +18,7 @@ import Modal from './ui/Modal';
 import modalStyles from './ui/Modal.module.scss';
 
 type StateProps = {
-  dialogs: string[];
+  dialogs: DialogType[];
 };
 
 const Dialogs: FC<StateProps> = ({ dialogs }) => {
@@ -25,27 +27,27 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const lang = useLang();
   const [isModalOpen, openModal, closeModal] = useFlag();
 
-  const message = dialogs[dialogs.length - 1];
-  const title = lang('Something went wrong');
+  const dialog = dialogs[dialogs.length - 1];
+  const title = lang(dialog?.title ?? 'Something went wrong');
 
   useEffect(() => {
     if (IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
-      if (message) {
+      if (dialog) {
         Dialog.alert({
           title,
-          message: lang(message),
+          message: lang(dialog.message),
         }).then(() => {
           dismissDialog();
         });
       }
-    } else if (message) {
+    } else if (dialog) {
       openModal();
     } else {
       closeModal();
     }
-  }, [dialogs, lang, message, openModal, title]);
+  }, [dialogs, lang, dialog, openModal, title]);
 
-  if (!message || IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
+  if (!dialog || IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
     return undefined;
   }
 
@@ -58,10 +60,10 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
       onCloseAnimationEnd={dismissDialog}
     >
       <div>
-        {renderText(lang(message))}
+        {renderText(lang(dialog.message))}
       </div>
       <div className={modalStyles.buttons}>
-        <Button onClick={closeModal}>OK</Button>
+        <Button onClick={closeModal}>{lang('OK')}</Button>
       </div>
     </Modal>
   );

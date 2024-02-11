@@ -525,5 +525,7 @@ Receive with QR or Invoice: QR ya da Fatura ile Almak
 Cannot load widget: Widget yüklenemiyor
 Explore: Keşfetmek
 No partners yet: Henüz ortak yok
+Clear: Temizle
 Get TON: TON Almak
 Declined. Please try to confirm operation using biometrics again.: Reddedildi. Lütfen biyometrik koruma kullanarak işlemi tekrar onaylamayı deneyin.
+$ledger_verify_address_on_device: Lütfen Ledger'ınızdaki adresi doğrulayın.

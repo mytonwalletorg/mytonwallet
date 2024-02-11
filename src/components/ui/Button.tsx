@@ -11,6 +11,7 @@ import styles from './Button.module.scss';
 type OwnProps = {
   ref?: RefObject<HTMLButtonElement>;
   children: React.ReactNode;
+  id?: string;
   className?: string;
   ariaLabel?: string;
   forFormId?: string;
@@ -35,6 +36,7 @@ const LOADING_CLOSE_DURATION = 200;
 function Button({
   ref,
   children,
+  id,
   className,
   ariaLabel,
   forFormId,
@@ -75,6 +77,7 @@ function Button({
 
   return (
     <button
+      id={id}
       ref={ref}
       type={isSubmit || forFormId ? 'submit' : 'button'}
       className={buildClassName(

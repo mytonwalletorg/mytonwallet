@@ -224,7 +224,7 @@ View: Обзор
 Stake More: Добавить
 Staking: Стейкинг
 Currently Staked: Текущий депозит
-Unstake: Вывести депозит
+Unstake: Вывести
 Earning History: История начислений
 $total: "Всего: %value%"
 Unstake TON: Вывести депозит
@@ -524,5 +524,7 @@ Receive with QR or Invoice: Пополнение через QR или счёт
 Cannot load widget: Невозможно загрузить виджет
 Explore: Обзор
 No partners yet: Ещё нет партнеров
+Clear: Очистить
 Get TON: Получить TON
 Declined. Please try to confirm operation using biometrics again.: Отклонено. Пожалуйста, попробуйте ещё раз подтвердить операцию с помощью биометрии.
+$ledger_verify_address_on_device: Пожалуйста, проверьте адрес в вашем Ledger.

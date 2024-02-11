@@ -204,7 +204,7 @@ function DappConnectModal({
       <>
         <ModalHeader title={lang('Connect Dapp')} onClose={closeModal} />
         <div className={modalStyles.transitionContent}>
-          <div className={styles.dappInfoSkeleton}>
+          <div className={buildClassName(styles.dappInfoSkeleton, styles.dapp_first)}>
             <div className={styles.dappInfoIconSkeleton} />
             <div className={styles.dappInfoTextSkeleton}>
               <div className={styles.nameSkeleton} />
@@ -221,7 +221,7 @@ function DappConnectModal({
 
   function renderDappInfoWithSkeleton() {
     return (
-      <Transition name="fade" activeKey={isLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
+      <Transition name="semiFade" activeKey={isLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
         {isLoading ? renderWaitForConnection() : renderDappInfo()}
       </Transition>
     );

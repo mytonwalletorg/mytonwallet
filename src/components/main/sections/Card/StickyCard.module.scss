@@ -2,6 +2,7 @@
 
 .root {
   position: fixed;
+  z-index: var(--z-sticky-card);
   top: 0;
   left: 0;
 
@@ -101,10 +102,28 @@
   font-size: 1.1875rem;
   font-weight: 800;
   font-style: normal;
+  line-height: 1;
   color: var(--color-card-text);
 }
 
 .balanceFractionPart {
   font-size: 0.9375rem;
   color: var(--color-card-second-text);
+}
+
+.iconCaret {
+  font-size: 0.875rem;
+  line-height: 0.875rem;
+  vertical-align: -1px;
+}
+
+.iconCaretFraction {
+  position: relative;
+  top: 0.0625rem;
+
+  color: var(--color-card-second-text);
+}
+
+.currencySwitcher {
+  cursor: var(--custom-cursor, pointer);
 }

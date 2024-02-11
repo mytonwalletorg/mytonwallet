@@ -337,7 +337,7 @@ function Activities({
       const isNewDay = activityInfo.date !== activityDayStart;
 
       const nextActivityDayStart = nextActivity ? getDayStartAt(nextActivity.timestamp) : 0;
-      const isLast = (!nextActivityId || activityInfo.date !== nextActivityDayStart) && !isNewDay;
+      const isLast = activityDayStart !== nextActivityDayStart;
 
       const isActivityActive = activity.id === currentActivityId;
 

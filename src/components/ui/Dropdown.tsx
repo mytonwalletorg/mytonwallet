@@ -5,8 +5,8 @@ import buildClassName from '../../util/buildClassName';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 
+import DropdownMenu from './DropdownMenu';
 import Loading from './Loading';
-import Menu from './Menu';
 
 import styles from './Dropdown.module.scss';
 
@@ -54,12 +54,6 @@ function Dropdown({
   const selectedItem = useMemo(() => {
     return items.find((item) => item.value === selectedValue);
   }, [items, selectedValue]);
-
-  const handleItemClick = (e: React.MouseEvent, value: string) => {
-    e.stopPropagation();
-    onChange?.(value);
-    closeMenu();
-  };
 
   if (!items.length) {
     return undefined;
@@ -110,33 +104,16 @@ function Dropdown({
       )}
 
       {withMenu && (
-        <Menu
-          positionX={menuPositionHorizontal}
-          positionY={menuPosition}
+        <DropdownMenu
           isOpen={isMenuOpen && !isLoading}
+          menuPositionHorizontal={menuPositionHorizontal}
+          menuPosition={menuPosition}
+          items={items}
+          shouldTranslateOptions={shouldTranslateOptions}
+          selectedValue={selectedValue}
+          onSelect={onChange}
           onClose={closeMenu}
-          type="dropdown"
-        >
-          {items.map((item) => {
-            const buttonClassName = buildClassName(
-              styles.item,
-              item.icon && styles.item_with_icon,
-              selectedValue === item.value && styles.item_selected,
-            );
-            return (
-              <button
-                type="button"
-                onClick={(e) => handleItemClick(e, item.value)}
-                className={buttonClassName}
-              >
-                {item.icon && <img src={item.icon} alt="" className={styles.itemIcon} />}
-                <span className={buildClassName(styles.itemName, 'menuItemName')}>
-                  {shouldTranslateOptions ? lang(item.name) : item.name}
-                </span>
-              </button>
-            );
-          })}
-        </Menu>
+        />
       )}
     </div>
   );
