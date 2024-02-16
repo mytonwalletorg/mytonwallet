@@ -45,12 +45,14 @@ export interface InitData {
   data?: Cell;
 }
 
-export type ContractName = ApiWalletVersion | 'v4R1' | 'highloadV2' | 'nominatorPool';
+export type ContractName = ApiWalletVersion | 'v4R1' | 'highloadV2' | 'multisig' | 'multisigV2'
+| 'nominatorPool' | 'vesting';
 
 export type ContractInfo = {
   name: ContractName;
   type: ContractType;
   hash: string;
+  isLedgerAllowed?: boolean;
 };
 
 export type GetAddressInfoResponse = {

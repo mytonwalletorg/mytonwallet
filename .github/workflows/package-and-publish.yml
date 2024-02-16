@@ -345,10 +345,10 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
 
-      - name: Calculate sha256 hashes
+      - name: Calculate sha256 hashes # */*.apk
         run: |
           mkdir release
-          mv */*.dmg */*.exe */*.AppImage */*.apk release/
+          mv */*.dmg */*.exe */*.AppImage release/
           sha256sum release/* >${{ env.HASH_FILENAME }}
 
       - name: Upload hash artifact
@@ -430,7 +430,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.APP_NAME }}.apk
-          path: mobile/android/app/release/app-release.apk
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
 
   ios-release:
     name: Release iOS app
@@ -523,6 +523,8 @@ jobs:
       - android-release
       - electron-sign-for-windows
     if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master' && vars.PUBLISH_REPO != ''
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - name: Set environment variables
         id: variables
@@ -537,11 +539,11 @@ jobs:
         with:
           name: ${{ env.WINDOWS_FILE_NAME }}
 
-      - name: Download Android package
-        id: download-android
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ env.ANDROID_FILE_NAME }}
+#      - name: Download Android package
+#        id: download-android
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: ${{ env.ANDROID_FILE_NAME }}
 
       - name: Get latest release ID
         id: release-id
@@ -569,7 +571,7 @@ jobs:
           PUBLISH_FILE_NAME=${WINDOWS_FILE_NAME// /-} # Consistency with electron-builder
           curl -X POST -H "Authorization: Bearer $GH_TOKEN" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary "@$FILE_PATH\\$FILE_NAME" \
+            --data-binary "@$FILE_PATH/$FILE_NAME" \
             "https://uploads.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets?name=$PUBLISH_FILE_NAME"
 
 #      - name: Push new Android asset
@@ -582,7 +584,7 @@ jobs:
 #          PUBLISH_FILE_NAME=${ANDROID_FILE_NAME// /-} # Consistency with electron-builder
 #          curl -X POST -H "Authorization: Bearer $GH_TOKEN" \
 #            -H "Content-Type: application/octet-stream" \
-#            --data-binary "@$FILE_PATH\\$FILE_NAME" \
+#            --data-binary "@$FILE_PATH/$FILE_NAME" \
 #            "https://uploads.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets?name=$PUBLISH_FILE_NAME"
 
       - name: Publish release

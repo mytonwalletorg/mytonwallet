@@ -95,7 +95,7 @@ export async function getContractInfo(network: ApiNetwork, address: string): Pro
 
   const isInitialized = state === 'active';
   const isWallet = state === 'active' ? contractInfo?.type === 'wallet' : undefined;
-  const isLedgerAllowed = !isInitialized || isWallet || contractInfo?.name === 'nominatorPool';
+  const isLedgerAllowed = Boolean(!isInitialized || contractInfo?.isLedgerAllowed);
 
   return {
     isInitialized,

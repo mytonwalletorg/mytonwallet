@@ -35,7 +35,7 @@ platform :android do
     keystore_path = Dir.pwd + "/../android.keystore"
 
     gradle(
-      task: "clean bundle",
+      task: "clean assemble bundle",
       build_type: "Release",
       properties: {
         "android.injected.signing.store.file" => keystore_path,
@@ -45,7 +45,7 @@ platform :android do
       }
     )
 
-    upload_to_play_store(track: "beta")
+    upload_to_play_store(track: "beta", skip_upload_apk: true)
   end
 
   desc "Release a new version to the Google Play"
@@ -55,7 +55,7 @@ platform :android do
     keystore_path = Dir.pwd + "/../android.keystore"
 
     gradle(
-      task: "clean bundle",
+      task: "clean assemble bundle",
       build_type: "Release",
       properties: {
         "android.injected.signing.store.file" => keystore_path,
@@ -65,7 +65,7 @@ platform :android do
       }
     )
 
-    upload_to_play_store(track: "production")
+    upload_to_play_store(track: "production", skip_upload_apk: true)
   end
 
   after_all do |lane|
