@@ -310,9 +310,15 @@ function TransactionModal({
     return (
       <div className={buildClassName(styles.unstakeTime, unstakeTimerClassNames)}>
         <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
-        {lang('$unstaking_when_receive', {
-          time: <strong>{formatRelativeHumanDateTime(lang.code, unstakeDate)}</strong>,
-        })}
+        <div>
+          {lang('$unstaking_when_receive', {
+            time: (
+              <strong>
+                {formatRelativeHumanDateTime(lang.code, unstakeDate)}
+              </strong>
+            ),
+          })}
+        </div>
       </div>
     );
   }

@@ -26,6 +26,9 @@ project(':capacitor-status-bar').projectDir = new File('../../node_modules/@capa
 include ':capgo-capacitor-native-biometric'
 project(':capgo-capacitor-native-biometric').projectDir = new File('../../node_modules/@capgo/capacitor-native-biometric/android')
 
+include ':capgo-native-audio'
+project(':capgo-native-audio').projectDir = new File('../../node_modules/@capgo/native-audio/android')
+
 include ':mauricewegner-capacitor-navigation-bar'
 project(':mauricewegner-capacitor-navigation-bar').projectDir = new File('../../node_modules/@mauricewegner/capacitor-navigation-bar/android')
 
@@ -34,3 +37,6 @@ project(':capacitor-plugin-safe-area').projectDir = new File('../../node_modules
 
 include ':native-bottom-sheet'
 project(':native-bottom-sheet').projectDir = new File('../plugins/native-bottom-sheet/android')
+
+include ':capacitor-secure-storage-plugin'
+project(':capacitor-secure-storage-plugin').projectDir = new File('../../node_modules/capacitor-secure-storage-plugin/android')

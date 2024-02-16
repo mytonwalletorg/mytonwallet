@@ -19,7 +19,6 @@ type Props = {
   isLedger?: boolean;
   isSwapDisabled?: boolean;
   isOnRampDisabled?: boolean;
-  onReceiveClick: NoneToVoidFunction;
   onClose?: NoneToVoidFunction;
 };
 
@@ -30,12 +29,12 @@ function AddBuyStatic({
   isLedger,
   isSwapDisabled,
   isOnRampDisabled,
-  onReceiveClick,
   onClose,
 }: Props) {
   const {
     startSwap,
     openOnRampWidgetModal,
+    openReceiveModal,
   } = getActions();
 
   const lang = useLang();
@@ -61,7 +60,7 @@ function AddBuyStatic({
   });
 
   const handleReceiveClick = useLastCallback(() => {
-    onReceiveClick();
+    openReceiveModal();
     onClose?.();
   });
 

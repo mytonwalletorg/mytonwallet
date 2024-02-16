@@ -5,8 +5,8 @@ import {
   TON_TOKEN_SLUG,
   TONHTTPAPI_MAINNET_API_KEY,
   TONHTTPAPI_TESTNET_API_KEY,
-  TONINDEXER_MAINNET_URL,
-  TONINDEXER_TESTNET_URL,
+  TONHTTPAPI_V3_MAINNET_API_KEY,
+  TONHTTPAPI_V3_TESTNET_API_KEY,
 } from '../../../../config';
 import { fetchJson } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
@@ -20,13 +20,13 @@ export async function fetchTransactions(
   toTxId?: string,
   fromTxId?: string,
 ): Promise<ApiTransactionExtra[]> {
-  const indexerUrl = network === 'testnet' ? TONINDEXER_TESTNET_URL : TONINDEXER_MAINNET_URL;
+  const indexerUrl = network === 'testnet' ? TONHTTPAPI_V3_TESTNET_API_KEY : TONHTTPAPI_V3_MAINNET_API_KEY;
   const apiKey = network === 'testnet' ? TONHTTPAPI_TESTNET_API_KEY : TONHTTPAPI_MAINNET_API_KEY;
 
   const fromLt = fromTxId ? parseTxId(fromTxId).lt.toString() : undefined;
   const toLt = toTxId ? parseTxId(toTxId).lt.toString() : undefined;
 
-  let rawTransactions: any[] = await fetchJson(`${indexerUrl}/transactions`, {
+  let { transactions: rawTransactions }: { transactions: any[] } = await fetchJson(`${indexerUrl}/transactions`, {
     account: address,
     limit,
     start_lt: fromLt,

@@ -69,6 +69,7 @@ declare module '*.png';
 declare module '*.svg';
 declare module '*.tgs';
 declare module '*.wasm';
+declare module '*.mp3';
 
 declare module '*.txt' {
   const content: string;
@@ -103,6 +104,10 @@ interface TEncodedImage {
 interface IWebpWorker extends Worker {
   wasmReady?: boolean;
   requests: Map<string, (value: PromiseLike<TEncodedImage>) => void>;
+}
+
+interface Window {
+  webkitAudioContext: typeof AudioContext;
 }
 
 interface Document {

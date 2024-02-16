@@ -52,9 +52,10 @@ function PinPad({
 
   const isFaceId = getIsFaceIdAvailable();
   const canRenderBackspace = value.length > 0;
-  const arePinButtonsDisabled = value.length === length
-    && type !== 'error'; // Allow pincode entry in case of an error
   const isSuccess = type === 'success' || isPinAccepted;
+  const arePinButtonsDisabled = isSuccess
+    || (value.length === length && type !== 'error'); // Allow pincode entry in case of an error
+
   const titleClassName = buildClassName(
     styles.title,
     type === 'error' && styles.error,

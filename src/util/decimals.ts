@@ -15,8 +15,7 @@ export function toDecimal(value: bigint | number, decimals?: number) {
   return toBig(value, decimals ?? DEFAULT_DECIMAL_PLACES).toString();
 }
 
-export function toBig(value: bigint | number, decimals?: number) {
-  if (decimals === undefined) decimals = DEFAULT_DECIMAL_PLACES;
+export function toBig(value: bigint | number, decimals = DEFAULT_DECIMAL_PLACES) {
   return Big(value.toString()).div(ten.pow(decimals)).round(decimals);
 }
 

@@ -1,7 +1,7 @@
 import type { ApiParsedPayload } from '../../types';
 import type { ContractInfo, ContractName } from './types';
 
-export const TOKEN_TRANSFER_TON_AMOUNT = 50000000n; // 0.05 TON
+export const TOKEN_TRANSFER_TON_AMOUNT = 100000000n; // 0.1 TON
 export const TOKEN_TRANSFER_TON_FORWARD_AMOUNT = 1n; // 0.000000001 TON
 
 export const STAKE_COMMENT = 'd';

@@ -1,5 +1,6 @@
 import { BottomSheet } from 'native-bottom-sheet';
 import React, { memo } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
@@ -15,12 +16,16 @@ import InvoiceModal from './InvoiceModal';
 
 import styles from './ReceiveModal.module.scss';
 
-type Props = {
-  isOpen: boolean;
-  onClose: () => void;
+type StateProps = {
+  isOpen?: boolean;
 };
 
-function ReceiveModal({ isOpen, onClose }: Props) {
+function ReceiveModal({
+  isOpen,
+}: StateProps) {
+  const {
+    closeReceiveModal,
+  } = getActions();
   const lang = useLang();
   const [isInvoiceModalOpen, openInvoiceModal, closeInvoiceModal] = useFlag(false);
 
@@ -28,7 +33,7 @@ function ReceiveModal({ isOpen, onClose }: Props) {
   useOpenFromMainBottomSheet('invoice', openInvoiceModal);
 
   const handleOpenInvoiceModal = useLastCallback(() => {
-    onClose();
+    closeReceiveModal();
 
     if (IS_DELEGATED_BOTTOM_SHEET) {
       BottomSheet.openInMain({ key: 'invoice' });
@@ -38,7 +43,7 @@ function ReceiveModal({ isOpen, onClose }: Props) {
   });
 
   const handleClose = useLastCallback(() => {
-    onClose();
+    closeReceiveModal();
     closeInvoiceModal();
   });
 
@@ -50,7 +55,7 @@ function ReceiveModal({ isOpen, onClose }: Props) {
         hasCloseButton
         contentClassName={styles.content}
         nativeBottomSheetKey="receive"
-        onClose={onClose}
+        onClose={closeReceiveModal}
       >
         <Content
           isOpen={isOpen}
@@ -62,4 +67,8 @@ function ReceiveModal({ isOpen, onClose }: Props) {
   );
 }
 
-export default memo(ReceiveModal);
+export default memo(withGlobal((global): StateProps => {
+  return {
+    isOpen: global.isReceiveModalOpen,
+  };
+})(ReceiveModal));

@@ -6,7 +6,9 @@ import React from './lib/teact/teact';
 import TeactDOM from './lib/teact/teact-dom';
 import { getActions, getGlobal } from './global';
 
-import { DEBUG, IS_CAPACITOR, STRICTERDOM_ENABLED } from './config';
+import {
+  DEBUG, IS_CAPACITOR, STRICTERDOM_ENABLED,
+} from './config';
 import { requestMutation } from './lib/fasterdom/fasterdom';
 import { enableStrict } from './lib/fasterdom/stricterdom';
 import { betterView } from './util/betterView';

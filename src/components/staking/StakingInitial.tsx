@@ -1,3 +1,4 @@
+import type { MouseEventHandler } from 'react';
 import { Dialog } from '@capacitor/dialog';
 import React, {
   memo, useEffect, useMemo, useState,
@@ -22,7 +23,7 @@ import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
-import { formatCurrency, formatCurrencySimple } from '../../util/formatNumber';
+import { formatCurrency } from '../../util/formatNumber';
 import { throttle } from '../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -162,7 +163,7 @@ function StakingInitial({
     }
   });
 
-  const handleBalanceLinkClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
+  const handleMaxAmountClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -213,28 +214,37 @@ function StakingInitial({
   }
 
   function renderTopRight() {
-    if (!symbol) {
-      return undefined;
-    }
+    if (!symbol) return undefined;
 
-    const isFullBalanceSelected = balance && amount
-      && (balance >= amount && balance - amount < MIN_BALANCE_FOR_UNSTAKE);
+    const hasBalance = balance !== undefined;
+    const isFullBalanceSelected = hasBalance && amount
+      && balance >= amount
+      && (balance - amount < MIN_BALANCE_FOR_UNSTAKE);
 
-    const balanceLink = lang('$max_balance', {
-      balance: (
-        <a href="#" onClick={handleBalanceLinkClick} className={styles.balanceLink}>
-          {balance !== undefined
-            ? formatCurrencySimple(balance, symbol, decimals)
-            : lang('Loading...')}
-        </a>
+    const getButton = (text: string, onClick: MouseEventHandler) => (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onClick}
+        className={styles.balanceLink}
+      >
+        {text}
+      </div>
+    );
+
+    const balanceButton = lang('$max_balance', {
+      balance: getButton(
+        hasBalance ? formatCurrency(toDecimal(balance, decimals), symbol) : lang('Loading...'),
+        handleMaxAmountClick,
       ),
     });
 
-    const minusOneLink = (
-      <a href="#" onClick={handleMinusOneClick} className={styles.balanceLink}>
-        {formatCurrency(toDecimal(-ONE_TON), symbol)}
-      </a>
+    const minusOneButton = getButton(
+      formatCurrency(toDecimal(-ONE_TON), symbol),
+      handleMinusOneClick,
     );
+
+    const button = isFullBalanceSelected ? minusOneButton : balanceButton;
 
     return (
       <Transition
@@ -243,7 +253,11 @@ function StakingInitial({
         name="fade"
         activeKey={isFullBalanceSelected ? 1 : 0}
       >
-        {isFullBalanceSelected ? minusOneLink : balanceLink}
+        <div className={styles.balanceContainer}>
+          <span className={styles.balance}>
+            {button}
+          </span>
+        </div>
       </Transition>
     );
   }

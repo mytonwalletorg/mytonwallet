@@ -86,6 +86,12 @@
   justify-self: start;
 
   max-width: 100%;
+
+  @media not (hover: hover) {
+    left: -0.75rem;
+
+    padding-right: 1rem;
+  }
 }
 
 .menuButton {

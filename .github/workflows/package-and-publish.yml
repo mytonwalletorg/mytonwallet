@@ -169,41 +169,6 @@ jobs:
           name: ${{ env.FILE_NAME }}
           path: ${{ env.FILE_NAME }}
 
-      - name: Get latest release ID
-        id: release-id
-        shell: bash
-        run: |
-          RELEASE_ID=$(curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases?per_page=1" | jq -r '.[0].id')
-          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
-
-      - name: Delete existing asset
-        env:
-          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
-        shell: bash
-        run: |
-          PUBLISH_FILE_NAME=${FILE_NAME// /-} # Consistency with electron-builder
-          ASSET_ID=$(curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets" | jq -r --arg PUBLISH_FILE_NAME "$PUBLISH_FILE_NAME" '.[] | select(.name == $PUBLISH_FILE_NAME) | .id')
-          curl -X DELETE -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/assets/$ASSET_ID"
-
-      - name: Push new asset
-        env:
-          FILE_PATH: ${{ steps.download-artifact.outputs.download-path }}
-          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
-        shell: bash
-        run: |
-          PUBLISH_FILE_NAME=${FILE_NAME// /-} # Consistency with electron-builder
-          curl -X POST -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary "@$FILE_PATH\\$FILE_NAME" \
-            "https://uploads.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets?name=$PUBLISH_FILE_NAME"
-
-      - name: Publish release
-        env:
-          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
-        shell: bash
-        run: |
-          curl -X PATCH -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID" -d '{"draft": false}'
-
   extensions-package:
     name: Build and package extensions
     runs-on: ubuntu-latest
@@ -374,6 +339,7 @@ jobs:
     needs:
       - electron-sign-for-windows
       - extensions-package
+      - android-release
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
@@ -382,7 +348,7 @@ jobs:
       - name: Calculate sha256 hashes
         run: |
           mkdir release
-          mv */*.dmg */*.exe */*.AppImage release/
+          mv */*.dmg */*.exe */*.AppImage */*.apk release/
           sha256sum release/* >${{ env.HASH_FILENAME }}
 
       - name: Upload hash artifact
@@ -459,6 +425,12 @@ jobs:
           else
             bundle exec fastlane release
           fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.APP_NAME }}.apk
+          path: mobile/android/app/release/app-release.apk
 
   ios-release:
     name: Release iOS app
@@ -542,3 +514,80 @@ jobs:
           else
             bundle exec fastlane release
           fi
+
+  publish-release:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs:
+      - android-release
+      - electron-sign-for-windows
+    if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master' && vars.PUBLISH_REPO != ''
+    steps:
+      - name: Set environment variables
+        id: variables
+        shell: bash
+        run: |
+          echo "WINDOWS_FILE_NAME=${{ env.APP_NAME }}-x64.exe" >> "$GITHUB_ENV"
+          echo "ANDROID_FILE_NAME=${{ env.APP_NAME }}.apk" >> "$GITHUB_ENV"
+
+      - name: Download Windows package
+        id: download-windows
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.WINDOWS_FILE_NAME }}
+
+      - name: Download Android package
+        id: download-android
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.ANDROID_FILE_NAME }}
+
+      - name: Get latest release ID
+        id: release-id
+        shell: bash
+        run: |
+          RELEASE_ID=$(curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases?per_page=1" | jq -r '.[0].id')
+          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
+
+      - name: Delete existing asset
+        env:
+          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
+        shell: bash
+        run: |
+          PUBLISH_FILE_NAME=${WINDOWS_FILE_NAME// /-} # Consistency with electron-builder
+          ASSET_ID=$(curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets" | jq -r --arg PUBLISH_FILE_NAME "$PUBLISH_FILE_NAME" '.[] | select(.name == $PUBLISH_FILE_NAME) | .id')
+          curl -X DELETE -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/assets/$ASSET_ID"
+
+      - name: Push new Windows asset
+        env:
+          FILE_PATH: ${{ steps.download-windows.outputs.download-path }}
+          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
+        shell: bash
+        run: |
+          FILE_NAME=$WINDOWS_FILE_NAME
+          PUBLISH_FILE_NAME=${WINDOWS_FILE_NAME// /-} # Consistency with electron-builder
+          curl -X POST -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@$FILE_PATH\\$FILE_NAME" \
+            "https://uploads.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets?name=$PUBLISH_FILE_NAME"
+
+#      - name: Push new Android asset
+#        env:
+#          FILE_PATH: ${{ steps.download-android.outputs.download-path }}
+#          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
+#        shell: bash
+#        run: |
+#          FILE_NAME=$ANDROID_FILE_NAME
+#          PUBLISH_FILE_NAME=${ANDROID_FILE_NAME// /-} # Consistency with electron-builder
+#          curl -X POST -H "Authorization: Bearer $GH_TOKEN" \
+#            -H "Content-Type: application/octet-stream" \
+#            --data-binary "@$FILE_PATH\\$FILE_NAME" \
+#            "https://uploads.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets?name=$PUBLISH_FILE_NAME"
+
+      - name: Publish release
+        env:
+          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
+        shell: bash
+        run: |
+          curl -X PATCH -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID" -d '{"draft": false}'

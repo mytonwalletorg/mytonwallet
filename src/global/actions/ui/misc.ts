@@ -616,3 +616,11 @@ addActionHandler('openOnRampWidgetModal', (global) => {
 addActionHandler('closeOnRampWidgetModal', (global) => {
   setGlobal({ ...global, isOnRampWidgetModalOpen: undefined });
 });
+
+addActionHandler('openReceiveModal', (global) => {
+  setGlobal({ ...global, isReceiveModalOpen: true });
+});
+
+addActionHandler('closeReceiveModal', (global) => {
+  setGlobal({ ...global, isReceiveModalOpen: undefined });
+});

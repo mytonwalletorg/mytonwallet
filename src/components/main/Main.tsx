@@ -17,14 +17,13 @@ import windowSize from '../../util/windowSize';
 import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectOnce from '../../hooks/useEffectOnce';
-import useFlag from '../../hooks/useFlag';
 import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import ReceiveModal from '../receive/ReceiveModal';
 import StakeModal from '../staking/StakeModal';
 import StakingInfoModal from '../staking/StakingInfoModal';
-import UnstakingModal from '../staking/UnstakeModal';
+import UnstakeModal from '../staking/UnstakeModal';
 import { LandscapeActions, PortraitActions } from './sections/Actions';
 import Card from './sections/Card';
 import StickyCard from './sections/Card/StickyCard';
@@ -72,6 +71,7 @@ function Main({
     closeStakingInfo,
     setLandscapeActionsActiveTabIndex,
     loadDappCatalog,
+    openReceiveModal,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -80,7 +80,6 @@ function Main({
   const portraitContainerRef = useRef<HTMLDivElement>(null);
   const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
   const [shouldRenderDarkStatusBar, setShouldRenderDarkStatusBar] = useState(false);
-  const [isReceiveModalOpened, openReceiveModal, closeReceiveModal] = useFlag();
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
 
   useOpenFromMainBottomSheet('receive', openReceiveModal);
@@ -190,7 +189,6 @@ function Main({
             isTestnet={isTestnet}
             isUnstakeRequested={isUnstakeRequested}
             onEarnClick={handleEarnClick}
-            onReceiveClick={openReceiveModal}
             isLedger={isLedger}
             isSwapDisabled={isSwapDisabled}
             isOnRampDisabled={isOnRampDisabled}
@@ -211,7 +209,6 @@ function Main({
           <LandscapeActions
             hasStaking={isStakingActive}
             isUnstakeRequested={isUnstakeRequested}
-            onReceiveClick={openReceiveModal}
             isLedger={isLedger}
           />
         </div>
@@ -228,8 +225,8 @@ function Main({
 
       <StakeModal />
       <StakingInfoModal isOpen={isStakingInfoModalOpen} onClose={closeStakingInfo} />
-      <ReceiveModal isOpen={isReceiveModalOpened} onClose={closeReceiveModal} />
-      <UnstakingModal />
+      <ReceiveModal />
+      <UnstakeModal />
     </>
   );
 }

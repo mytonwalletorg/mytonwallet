@@ -238,7 +238,7 @@ $unstake_information_with_time: |
 Amount to unstake: Amount to unstake
 Confirm Unstaking: Confirm Unstaking
 Request for unstaking is sent!: Request for unstaking is sent!
-$unstaking_when_receive: You will receive your unstaked deposit in %time%
+$unstaking_when_receive: You will receive your unstaked deposit in %time%.
 $unstake_insufficient_balance: You need to have %balance% on your main balance to proceed with unstaking.
 at APY %1$s%: at APY %1$s%
 Staked: Staked
@@ -435,11 +435,10 @@ Maximum amount: Maximum %value%
 Display Tray Icon: Display Tray Icon
 Enable Auto-Updates: Enable Auto-Updates
 Biometric Authentication: Biometric Authentication
-Turn off biometrics?: Turn off biometrics?
 If you turn off biometric protection, you will need to create a password.: If you turn off biometric protection, you will need to create a password.
 Enter your current password: Enter your current password
 Turn On Biometrics: Turn On Biometrics
-Please confirm transaction using biometrics: Please confirm transaction using biometrics
+Please confirm transaction using biometrics.: Please confirm transaction using biometrics.
 Enabling biometric confirmation will reset the password.: Enabling biometric confirmation will reset the password.
 Biometric Registration: Biometric Registration
 Step 1 of 2. Registration: Step 1 of 2. Registration
@@ -458,7 +457,7 @@ Use Password: Use Password
 Biometrics Disabled: Biometrics Disabled
 Biometrics Enabled: Biometrics Enabled
 A request is already pending: A request is already pending
-Please confirm operation using biometrics: Please confirm operation using biometrics
+Please confirm operation using biometrics.: Please confirm operation using biometrics.
 Scan QR Code: Scan QR Code
 Permission denied. Please grant camera permission to use the QR code scanner.: Permission denied. Please grant camera permission to use the QR code scanner.
 Unsupported barcode format: Unsupported barcode format
@@ -495,9 +494,9 @@ Not Now: Not Now
 Biometric Authentification: Biometric Authentification
 Touch ID: Touch ID
 Face ID: Face ID
-Turn Off Touch ID?: Turn Off Touch ID?
-Turn Off Face ID?: Turn Off Face ID?
-Turn Off Biometrics?: Turn Off Biometrics?
+Turn Off Touch ID: Turn Off Touch ID
+Turn Off Face ID: Turn Off Face ID
+Turn Off Biometrics: Turn Off Biometrics
 Enter code: Enter code
 Enter code or use Face ID: Enter code or use Face ID
 Enter code or use Touch ID: Enter code or use Touch ID
@@ -529,4 +528,9 @@ No partners yet: No partners yet
 Clear: Clear
 Get TON: Get TON
 Declined. Please try to confirm operation using biometrics again.: Declined. Please try to confirm operation using biometrics again.
+$unstake_up_to_information: Instantly – up to %value%
+$all_balance: "All: %balance%"
+$unstaking_not_enough_balance: You need to have %value% on your main balance to proceed with unstaking.
 $ledger_verify_address_on_device: Please, verify the address on your Ledger.
+$insufficient_fee: "Insufficient fee: %fee%"
+Required: Required

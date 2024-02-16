@@ -10,8 +10,8 @@
   text-decoration: none;
   white-space: nowrap;
 
-  &.loadingInit::after {
-    border-top-color: var(--color-gray-button-text);
+  &.loadingInit {
+    --color-dot: var(--color-gray-button-text);
   }
 
   background: none;
@@ -103,8 +103,8 @@
 
   background-color: var(--color-blue-button-background);
 
-  &.loadingInit::after {
-    border-top-color: var(--color-blue-button-text);
+  &.loadingInit {
+    --color-dot: var(--color-blue-button-text);
   }
 
   @media (hover: hover) {
@@ -137,8 +137,8 @@
 
   background-color: var(--color-red-button-background);
 
-  &.loadingInit::after {
-    border-top-color: var(--color-red-button-text);
+  &.loadingInit {
+    --color-dot: var(--color-red-button-text);
   }
 
   @media (hover: hover) {
@@ -200,50 +200,55 @@
 
 .loadingInit {
   position: relative;
-
-  &::after {
-    content: "";
-
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-
-    width: 1rem;
-    height: 1rem;
-    margin: auto;
-
-    opacity: 0;
-    border: 0.25rem solid transparent;
-    border-radius: 50%;
-
-    transition: opacity 150ms;
-  }
 }
 
 .loadingStart {
   color: rgba(0,0,0,0) !important;
-
-  &::after {
-    content: "";
-
-    opacity: 1;
-  }
 }
 
-.loadingAnimation {
-  &::after {
-    animation: button-loading-spinner 1s linear infinite;
-  }
+.loadingDots {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 100%;
+
+  opacity: 0;
+
+  transition: opacity 150ms;
 }
 
-@keyframes button-loading-spinner {
-  from {
-    transform: rotate(0turn);
-  }
-
-  to {
-    transform: rotate(1turn);
-  }
+.loadingDotsVisible {
+  opacity: 1;
 }
+
+.loadingDot {
+  width: 0.375rem;
+  height: 0.375rem;
+  margin: 0 0.25rem;
+
+  opacity: 0.8;
+  background-color: var(--color-dot);
+  border-radius: 0.375rem;
+
+  animation: typingAnimation 1000ms infinite linear;
+
+  &:nth-child(2) { animation-delay: 200ms; }
+  &:nth-child(3) { animation-delay: 400ms; }
+}
+
+/* stylelint-disable order/properties-order */
+
+@keyframes typingAnimation {
+  0% { transform: scale(1); opacity: 0.8; }
+  20% { transform: scale(1.2); opacity: 0.9; }
+  40% { transform: scale(1.6); opacity: 1; }
+  60% { transform: scale(1.2); opacity: 0.9; }
+  80% { transform: scale(1); opacity: 0.8; }
+}
+/* stylelint-enable order/properties-order */

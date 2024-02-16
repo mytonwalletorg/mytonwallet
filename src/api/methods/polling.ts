@@ -132,10 +132,10 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
   const localOnUpdate = onUpdate;
 
-  while (isUpdaterAlive(localOnUpdate) && isAccountActive(accountId)) {
+  while (isAlive(localOnUpdate, accountId)) {
     try {
       const walletInfo = await blockchain.getWalletInfo(network, address);
-      if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
+      if (!isAlive(localOnUpdate, accountId)) return;
 
       const { balance, lastTxId } = walletInfo ?? {};
 
@@ -144,11 +144,11 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
         lastNftFullUpdate = Date.now();
 
-        if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
+        if (!isAlive(localOnUpdate, accountId)) return;
 
         if (nfts) {
           nftFromSec = Math.round(Date.now() / 1000);
-          if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
+          if (!isAlive(localOnUpdate, accountId)) return;
 
           void updateNfts(accountId, nfts);
         }
@@ -176,7 +176,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
         tokenBalances = await blockchain.getAccountTokenBalances(accountId).catch(logAndRescue);
 
-        if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
+        if (!isAlive(localOnUpdate, accountId)) return;
 
         if (tokenBalances) {
           registerNewTokens(tokenBalances);
@@ -219,7 +219,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
       // Fetch NFT updates
       if (isTonBalanceChanged) {
         const nftResult = await blockchain.getNftUpdates(accountId, nftFromSec).catch(logAndRescue);
-        if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
+        if (!isAlive(localOnUpdate, accountId)) return;
 
         if (nftResult) {
           [nftFromSec, nftUpdates] = nftResult;
@@ -254,7 +254,7 @@ export async function setupStakingPolling(accountId: string) {
     stakingState: ApiStakingState;
   } | undefined;
 
-  while (isUpdaterAlive(localOnUpdate) && isAccountActive(accountId)) {
+  while (isAlive(localOnUpdate, accountId)) {
     try {
       const stakingCommonData = getStakingCommonData();
       const backendStakingState = await getBackendStakingState(accountId);
@@ -262,7 +262,7 @@ export async function setupStakingPolling(accountId: string) {
         accountId, stakingCommonData, backendStakingState,
       );
 
-      if (!isUpdaterAlive(localOnUpdate) || !isAccountActive(accountId)) return;
+      if (!isAlive(localOnUpdate, accountId)) return;
 
       const state = {
         stakingCommonData,
@@ -490,12 +490,12 @@ export async function setupSwapPolling(accountId: string) {
   const localOnUpdate = onUpdate;
   const swapById: Record<string, ApiSwapHistoryItem> = {};
 
-  while (isUpdaterAlive(localOnUpdate) && isAccountActive(accountId)) {
+  while (isAlive(localOnUpdate, accountId)) {
     try {
       const swaps = await swapGetHistory(address, {
         fromTimestamp,
       });
-      if (!isUpdaterAlive(onUpdate) || !isAccountActive(accountId)) break;
+      if (!isAlive(localOnUpdate, accountId)) break;
       if (!swaps.length) break;
 
       swaps.reverse();
@@ -546,6 +546,10 @@ export async function setupSwapPolling(accountId: string) {
   if (accountId === swapPollingAccountId) {
     swapPollingAccountId = undefined;
   }
+}
+
+function isAlive(localOnUpdate: OnApiUpdate, accountId: string) {
+  return isUpdaterAlive(localOnUpdate) && isAccountActive(accountId);
 }
 
 async function getActualLastFinishedSwapTimestamp(accountId: string, address: string) {

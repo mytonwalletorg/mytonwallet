@@ -68,15 +68,16 @@ export const TONHTTPAPI_MAINNET_URL = process.env.TONHTTPAPI_MAINNET_URL
   || 'https://tonhttpapi.mytonwallet.org/api/v2/jsonRPC';
 export const TONHTTPAPI_MAINNET_API_KEY = process.env.TONHTTPAPI_MAINNET_API_KEY;
 export const ELECTRON_TONHTTPAPI_MAINNET_API_KEY = process.env.ELECTRON_TONHTTPAPI_MAINNET_API_KEY;
-export const TONINDEXER_MAINNET_URL = process.env.TONINDEXER_MAINNET_URL || 'https://tonhttpapi.mytonwallet.org/api/v3';
+export const TONHTTPAPI_V3_MAINNET_API_KEY = process.env.TONHTTPAPI_V3_MAINNET_API_KEY
+  || 'https://tonhttpapi-v3.mytonwallet.org/api/v3';
 export const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapiio.mytonwallet.org';
 
 export const TONHTTPAPI_TESTNET_URL = process.env.TONHTTPAPI_TESTNET_URL
   || 'https://tonhttpapi-testnet.mytonwallet.org/api/v2/jsonRPC';
 export const TONHTTPAPI_TESTNET_API_KEY = process.env.TONHTTPAPI_TESTNET_API_KEY;
 export const ELECTRON_TONHTTPAPI_TESTNET_API_KEY = process.env.ELECTRON_TONHTTPAPI_TESTNET_API_KEY;
-export const TONINDEXER_TESTNET_URL = process.env.TONINDEXER_TESTNET_URL
-  || 'https://tonhttpapi-testnet.mytonwallet.org/api/v3';
+export const TONHTTPAPI_V3_TESTNET_API_KEY = process.env.TONHTTPAPI_V3_TESTNET_API_KEY
+  || 'https://tonhttpapi-v3-testnet.mytonwallet.org/api/v3';
 export const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://tonapiio-testnet.mytonwallet.org';
 
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://api.mytonwallet.org';
@@ -107,7 +108,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-66';
+export const LANG_CACHE_NAME = 'mtw-lang-70';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -215,6 +216,8 @@ export const ACTIVE_TAB_STORAGE_KEY = 'mtw-active-tab';
 export const INDEXED_DB_NAME = 'keyval-store';
 export const INDEXED_DB_STORE_NAME = 'keyval';
 
+export const WINDOW_PROVIDER_CHANNEL = 'windowProvider';
+
 export const MIN_ASSETS_TAB_VIEW = 5;
 
 export const DEFAULT_PRICE_CURRENCY = 'USD';
@@ -245,3 +248,12 @@ export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
     name: 'Toncoin',
   },
 ];
+
+export const EXCHANGE_ADDRESSES = new Set([
+  'EQBfAN7LfaUYgXZNw5Wc7GBgkEX2yhuJ5ka95J1JJwXXf4a8', 'UQBfAN7LfaUYgXZNw5Wc7GBgkEX2yhuJ5ka95J1JJwXXf9t5', // OKX
+  'EQBBlxK8VBxEidbxw4oQVyLSk7iEf9VPJxetaRQpEbi-XG4U', 'UQBBlxK8VBxEidbxw4oQVyLSk7iEf9VPJxetaRQpEbi-XDPR', // Bitfinex
+  'EQBX63RAdgShn34EAFMV73Cut7Z15lUZd1hnVva68SEl7sxi', 'UQBX63RAdgShn34EAFMV73Cut7Z15lUZd1hnVva68SEl7pGn', // MEXC
+  'EQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fPQb', 'UQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fKne', // Bybit
+  'EQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwj1f', 'UQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwmCa', // Huobi
+  'EQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6dZl', 'UQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6Yug', // KuCoin
+]);

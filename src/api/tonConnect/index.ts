@@ -61,7 +61,6 @@ import {
   findLastConnectedAccount,
   getDapp,
   getDappsByOrigin,
-  isDappConnected,
   updateDapp,
 } from '../methods/dapps';
 import { createLocalTransaction } from '../methods/transactions';
@@ -89,9 +88,16 @@ export async function connect(
   id: number,
 ): Promise<LocalConnectEvent> {
   try {
-    const { origin } = await validateRequest(request, true);
+    onPopupUpdate({
+      type: 'dappLoading',
+      connectionType: 'connect',
+    });
 
-    const dappMetadata = fetchDappMetadata(message.manifestUrl, origin);
+    const dappMetadata = await fetchDappMetadata(message.manifestUrl);
+    // Take origin from manifest metadata
+    request.origin = dappMetadata.origin;
+
+    const { origin } = await validateRequest(request, true);
 
     const addressItem = message.items.find(({ name }) => name === 'ton_addr');
     const proofItem = message.items.find(({ name }) => name === 'ton_proof') as TonProofItem | undefined;
@@ -108,45 +114,35 @@ export async function connect(
     await openExtensionPopup(true);
 
     let accountId = await getCurrentAccountOrFail();
-    const isConnected = await isDappConnected(accountId, origin);
 
-    let promiseResult: {
+    const { promiseId, promise } = createDappPromise();
+
+    const dapp = {
+      ...await dappMetadata,
+      connectedAt: Date.now(),
+      ...('sseOptions' in request && { sse: request.sseOptions }),
+    };
+
+    onPopupUpdate({
+      type: 'dappConnect',
+      promiseId,
+      accountId,
+      dapp,
+      permissions: {
+        address: true,
+        proof: !!proof,
+      },
+      proof,
+    });
+
+    const promiseResult: {
       accountId?: string;
       password?: string;
       signature?: string;
-    } | undefined;
+    } | undefined = await promise;
 
-    if (!isConnected || proof) {
-      onPopupUpdate({
-        type: 'dappLoading',
-        connectionType: 'connect',
-      });
-
-      const { promiseId, promise } = createDappPromise();
-
-      const dapp = {
-        ...await dappMetadata,
-        connectedAt: Date.now(),
-        ...('sseOptions' in request && { sse: request.sseOptions }),
-      };
-
-      onPopupUpdate({
-        type: 'dappConnect',
-        promiseId,
-        accountId,
-        dapp,
-        permissions: {
-          address: true,
-          proof: !!proof,
-        },
-        proof,
-      });
-
-      promiseResult = await promise;
-
-      accountId = promiseResult!.accountId!;
-      await addDapp(accountId, dapp);
-    }
+    accountId = promiseResult!.accountId!;
+    await addDapp(accountId, dapp);
 
     const result = await reconnect(request, id);
 

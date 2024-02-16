@@ -2,7 +2,7 @@ import { inflate } from 'pako/dist/pako_inflate';
 
 import type { CancellableCallback } from '../../util/PostMessageConnector';
 
-import { createWorkerInterface } from '../../util/createPostMessageInterface';
+import { createPostMessageInterface } from '../../util/createPostMessageInterface';
 
 declare const Module: any;
 
@@ -175,6 +175,6 @@ const api = {
   'rlottie:destroy': destroy,
 };
 
-createWorkerInterface(api);
+createPostMessageInterface(api);
 
 export type RLottieApi = typeof api;

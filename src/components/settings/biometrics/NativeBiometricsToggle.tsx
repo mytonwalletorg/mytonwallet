@@ -38,8 +38,8 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
   const [isWarningModalOpen, openWarningModal, closeWarningModal] = useFlag();
   const switcherTitle = isFaceId ? 'Face ID' : (isTouchId ? 'Touch ID' : lang('Biometric Authentication'));
   const warningTitle = isFaceId
-    ? 'Turn Off Face ID?'
-    : (isTouchId ? 'Turn Off Touch ID?' : 'Turn Off Biometrics?');
+    ? 'Turn Off Face ID'
+    : (isTouchId ? 'Turn Off Touch ID' : 'Turn Off Biometrics');
   const warningDescription = isFaceId
     ? 'Are you sure you want to disable Face ID?'
     : (isTouchId ? 'Are you sure you want to disable Touch ID?' : 'Are you sure you want to disable biometrics?');

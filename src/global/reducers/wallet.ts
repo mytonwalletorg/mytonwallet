@@ -89,11 +89,17 @@ export function updateActivitiesIsLoadingByAccount(global: GlobalState, accountI
   });
 }
 
-export function updateCurrentTransferFee(global: GlobalState, fee: Partial<GlobalState['currentTransfer']['fee']>) {
+export function updateCurrentTransferFee(
+  global: GlobalState,
+  fee: Partial<GlobalState['currentTransfer']['fee']>,
+  amount: bigint,
+  isTon: boolean,
+) {
   const accountState = selectAccountState(global, global.currentAccountId!);
   const balance = accountState?.balances?.bySlug[TON_TOKEN_SLUG] ?? 0n;
   const baseFee = fee ?? 0n;
-  const compositeFee = baseFee + TOKEN_TRANSFER_TON_AMOUNT;
+  const compositeFee = baseFee + (isTon ? 0n : TOKEN_TRANSFER_TON_AMOUNT);
+  const updatedBalance = balance - (isTon ? amount : 0n);
 
-  return updateCurrentTransfer(global, { fee: balance < compositeFee ? compositeFee : baseFee });
+  return updateCurrentTransfer(global, { fee: updatedBalance < compositeFee ? compositeFee : baseFee });
 }

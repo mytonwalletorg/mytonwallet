@@ -2,10 +2,11 @@ export enum StorageType {
   IndexedDb,
   LocalStorage,
   ExtensionLocal,
+  CapacitorStorage,
 }
 
 export interface Storage {
-  getItem(name: StorageKey): Promise<any>;
+  getItem(name: StorageKey, force?: boolean): Promise<any>;
 
   setItem(name: StorageKey, value: any): Promise<void>;
 
@@ -13,11 +14,11 @@ export interface Storage {
 
   clear(): Promise<void>;
 
-  getAll(): Promise<AnyLiteral>;
+  getAll?(): Promise<AnyLiteral>;
 
-  setMany(items: AnyLiteral): Promise<void>;
+  setMany?(items: AnyLiteral): Promise<void>;
 
-  getMany(keys: string[]): Promise<AnyLiteral>;
+  getMany?(keys: string[]): Promise<AnyLiteral>;
 }
 
 export type StorageKey = 'mnemonicsEncrypted'

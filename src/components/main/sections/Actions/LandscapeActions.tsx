@@ -29,7 +29,6 @@ interface OwnProps {
   hasStaking?: boolean;
   isUnstakeRequested?: boolean;
   isLedger?: boolean;
-  onReceiveClick: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -47,7 +46,6 @@ function LandscapeActions({
   isLedger,
   isSwapDisabled,
   isOnRampDisabled,
-  onReceiveClick,
 }: OwnProps & StateProps) {
   const { setLandscapeActionsActiveTabIndex: setActiveTabIndex } = getActions();
   const lang = useLang();
@@ -87,7 +85,6 @@ function LandscapeActions({
             isLedger={isLedger}
             isSwapDisabled={isSwapDisabled}
             isOnRampDisabled={isOnRampDisabled}
-            onReceiveClick={onReceiveClick}
           />
         );
 

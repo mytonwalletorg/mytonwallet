@@ -154,16 +154,12 @@ export async function checkTransactionDraft(
 
     const { isInitialized, isLedgerAllowed } = await getContractInfo(network, toAddress);
 
-    if (isBounceable) {
-      if (!isInitialized) {
-        result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
-        if (tokenSlug === TON_TOKEN_SLUG) {
-          // Force non-bounceable for non-initialized recipients
-          toAddress = toBase64Address(toAddress, false);
-        }
+    if (isBounceable && !isInitialized) {
+      result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
+      if (tokenSlug === TON_TOKEN_SLUG) {
+        // Force non-bounceable for non-initialized recipients
+        toAddress = toBase64Address(toAddress, false);
       }
-    } else if (isInitialized) {
-      toAddress = toBase64Address(toAddress, true);
     }
 
     result.resolvedAddress = toAddress;

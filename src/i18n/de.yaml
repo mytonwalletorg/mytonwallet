@@ -240,7 +240,7 @@ $unstake_information_with_time: |
 Amount to unstake: Betrag zum unstaken
 Confirm Unstaking: Unstaking bestätigen
 Request for unstaking is sent!: Die Anfrage zum unstaken wurde gesendet!
-$unstaking_when_receive: Sie erhalten Ihre unstaked Einzahlung in %time%
+$unstaking_when_receive: Sie erhalten Ihre unstaked Einzahlung in %time%.
 $unstake_insufficient_balance: Sie müssen %balance% auf Ihrem Hauptguthaben haben, um mit dem unstaken fortzufahren.
 at APY %1$s%: bei APY %1$s%
 Staked: Gestakt
@@ -437,11 +437,10 @@ Maximum amount: Höchstens %value%
 Display Tray Icon: Tray-Symbol anzeigen
 Enable Auto-Updates: Automatische Aktualisierungen aktivieren
 Biometric Authentication: Biometrische Authentifizierung
-Turn off biometrics?: Biometrie ausschalten?
 If you turn off biometric protection, you will need to create a password.: Wenn Sie den biometrischen Schutz ausschalten, müssen Sie ein Passwort erstellen.
 Enter your current password: Geben Sie Ihr aktuelles Passwort ein
 Turn On Biometrics: Biometrische Authentifizierung aktivieren
-Please confirm transaction using biometrics: Bitte bestätigen Sie die Transaktion mit Hilfe der Biometrie
+Please confirm transaction using biometrics.: Bitte bestätigen Sie die Transaktion mit Hilfe der Biometrie.
 Enabling biometric confirmation will reset the password.: Das Aktivieren der biometrischen Bestätigung setzt das Passwort zurück.
 Biometric Registration: Biometrische Registrierung
 Step 1 of 2. Registration: Schritt 1 von 2. Registrierung
@@ -460,7 +459,7 @@ Use Password: Passwort verwenden
 Biometrics Disabled: Biometrie deaktiviert
 Biometrics Enabled: Biometrie aktiviert
 A request is already pending: Es liegt bereits eine ausstehende Anfrage vor
-Please confirm operation using biometrics: Bitte bestätigen Sie die Operation mit Hilfe der Biometrie
+Please confirm operation using biometrics.: Bitte bestätigen Sie die Operation mit Hilfe der Biometrie.
 Scan QR Code: QR-Code scannen
 Permission denied. Please grant camera permission to use the QR code scanner.: Berechtigung verweigert. Bitte erteilen Sie die Kamera-Berechtigung, um den QR-Code-Scanner zu verwenden.
 Unsupported barcode format: Nicht unterstütztes Barcode-Format
@@ -497,9 +496,9 @@ Not Now: Nicht jetzt
 Biometric Authentification: Biometrische Authentifizierung
 Touch ID: Touch ID
 Face ID: Face ID
-Turn Off Touch ID?: Touch ID deaktivieren?
-Turn Off Face ID?: Face ID deaktivieren?
-Turn Off Biometrics?: Biometrie deaktivieren?
+Turn Off Touch ID: Touch ID deaktivieren
+Turn Off Face ID: Face ID deaktivieren
+Turn Off Biometrics: Biometrie deaktivieren
 Enter code: Code eingeben
 Enter code or use Face ID: Code eingeben oder Face ID verwenden
 Enter code or use Touch ID: Code eingeben oder Touch ID verwenden
@@ -531,4 +530,9 @@ No partners yet: Noch keine Partner
 Clear: Löschen
 Get TON: TON erhalten
 Declined. Please try to confirm operation using biometrics again.: Abgelehnt. Versuchen Sie bitte, die Vorgang erneut mit Biometrie zu bestätigen.
+$unstake_up_to_information: Sofort – bis zu %value%
+$all_balance: "Gesamt: %balance%"
+$unstaking_not_enough_balance: Sie müssen %value% auf Ihrem Hauptkonto haben, um mit dem Entsperrprozess fortzufahren.
 $ledger_verify_address_on_device: Bitte überprüfen Sie die Adresse auf Ihrem Ledger.
+$insufficient_fee: "Unzureichende Gebühren: %fee%"
+Required: Erforderlich

@@ -98,9 +98,15 @@ function StakingInfoContent({
     return (
       <div className={buildClassName(styles.unstakeTime, styles.unstakeTime_purple)}>
         <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
-        {Boolean(endOfStakingCycle) && lang('$unstaking_when_receive', {
-          time: <strong>{formatRelativeHumanDateTime(lang.code, endOfStakingCycle)}</strong>,
-        })}
+        <div>
+          {Boolean(endOfStakingCycle) && lang('$unstaking_when_receive', {
+            time: (
+              <strong>
+                {formatRelativeHumanDateTime(lang.code, endOfStakingCycle)}
+              </strong>
+            ),
+          })}
+        </div>
       </div>
     );
   }

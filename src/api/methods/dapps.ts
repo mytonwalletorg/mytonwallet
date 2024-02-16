@@ -179,12 +179,6 @@ export async function getDappsByOrigin(accountId: string): Promise<Record<string
   return await getAccountValue(accountId, 'dapps') || {};
 }
 
-export async function isDappConnected(accountId: string, origin: string) {
-  const dapps = await getDappsByOrigin(accountId);
-
-  return Object.values(dapps).some((dapp) => dapp.origin === origin);
-}
-
 export async function findLastConnectedAccount(network: ApiNetwork, origin: string) {
   const dapps = await getDappsState() || {};
 

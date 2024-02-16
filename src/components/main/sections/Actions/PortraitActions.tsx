@@ -28,7 +28,6 @@ interface OwnProps {
   isTestnet?: boolean;
   isUnstakeRequested?: boolean;
   onEarnClick: NoneToVoidFunction;
-  onReceiveClick: NoneToVoidFunction;
   isLedger?: boolean;
   isSwapDisabled?: boolean;
   isOnRampDisabled?: boolean;
@@ -39,12 +38,13 @@ function PortraitActions({
   isTestnet,
   isUnstakeRequested,
   onEarnClick,
-  onReceiveClick,
   isLedger,
   isSwapDisabled,
   isOnRampDisabled,
 }: OwnProps) {
-  const { startTransfer, startSwap, openOnRampWidgetModal } = getActions();
+  const {
+    startTransfer, startSwap, openOnRampWidgetModal, openReceiveModal,
+  } = getActions();
 
   const [isAddBuyModalOpened, openAddBuyModal, closeAddBuyModal] = useFlag();
 
@@ -108,7 +108,7 @@ function PortraitActions({
     const actionByIndex = [
       ...(isOnRampAllowed ? [openOnRampWidgetModal] : []),
       ...(isSwapAllowed ? [handleStartSwapWidget] : []),
-      onReceiveClick,
+      openReceiveModal,
     ];
 
     if (IS_DELEGATING_BOTTOM_SHEET) {
@@ -157,7 +157,6 @@ function PortraitActions({
         isLedgerWallet={isLedger}
         isSwapDisabled={isSwapDisabled}
         isOnRampDisabled={isOnRampDisabled}
-        onReceiveClick={onReceiveClick}
         onClose={closeAddBuyModal}
       />
     </div>

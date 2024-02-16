@@ -16,20 +16,24 @@ type ApiConfig =
   | Record<string, Function>;
 type SendToOrigin = (data: WorkerMessageData, transferables?: Transferable[]) => void;
 
-export function createWorkerInterface(api: ApiConfig, channel?: string) {
+export function createPostMessageInterface(
+  api: ApiConfig,
+  channel?: string,
+  target: DedicatedWorkerGlobalScope | Worker = self as DedicatedWorkerGlobalScope,
+) {
   function sendToOrigin(data: WorkerMessageData, transferables?: Transferable[]) {
     data.channel = channel;
 
     if (transferables) {
-      postMessage(data, transferables);
+      target.postMessage(data, transferables);
     } else {
-      postMessage(data);
+      target.postMessage(data);
     }
   }
 
   handleErrors(sendToOrigin);
 
-  onmessage = (message: OriginMessageEvent) => {
+  target.onmessage = (message: OriginMessageEvent) => {
     if (message.data?.channel === channel) {
       onMessage(api, message.data, sendToOrigin);
     }

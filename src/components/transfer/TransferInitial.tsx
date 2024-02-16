@@ -9,8 +9,11 @@ import type { ApiBaseCurrency } from '../../api/types';
 import type { UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { ElectronEvent } from '../../electron/types';
+import { TransferState } from '../../global/types';
 
-import { IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
+import {
+  EXCHANGE_ADDRESSES, IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG,
+} from '../../config';
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
@@ -21,12 +24,7 @@ import { clearLaunchUrl, getLaunchUrl } from '../../util/capacitor';
 import { readClipboardContent } from '../../util/clipboard';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
-import {
-  formatCurrency,
-  formatCurrencyExtended,
-  formatCurrencySimple,
-  getShortCurrencySymbol,
-} from '../../util/formatNumber';
+import { formatCurrency, formatCurrencyExtended, getShortCurrencySymbol } from '../../util/formatNumber';
 import { getIsAddressValid } from '../../util/getIsAddressValid';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
@@ -80,6 +78,7 @@ const COMMENT_DROPDOWN_ITEMS = [
   { value: 'raw', name: 'Comment or Memo' },
   { value: 'encrypted', name: 'Encrypted Message' },
 ];
+const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
@@ -127,6 +126,7 @@ function TransferInitial({
   const [hasToAddressError, setHasToAddressError] = useState<boolean>(false);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
+  const [isInsufficientFee, setIsInsufficientFee] = useState(false);
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
@@ -150,6 +150,9 @@ function TransferInitial({
   const withQrScanButton = Boolean(onQrScanPress);
   const withAddressClearButton = !!toAddress.length;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
+
+  const additionalAmount = amount && tokenSlug === TON_TOKEN_SLUG ? amount : 0n;
+  const isEnoughTon = fee && (fee + additionalAmount) <= tonToken.amount;
 
   const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
     Boolean(amountInCurrency),
@@ -178,6 +181,7 @@ function TransferInitial({
       if (!noReset) {
         setHasAmountError(false);
         setIsInsufficientBalance(false);
+        setIsInsufficientFee(false);
       }
 
       if (newAmount === undefined) {
@@ -190,9 +194,13 @@ function TransferInitial({
         return;
       }
 
+      const tonAmount = tokenSlug === TON_TOKEN_SLUG ? newAmount : 0n;
+
       if (!balance || newAmount > balance) {
         setHasAmountError(true);
         setIsInsufficientBalance(true);
+      } else if (fee && (fee + tonAmount > tonToken.amount)) {
+        setIsInsufficientFee(true);
       }
 
       setTransferAmount({ amount: newAmount });
@@ -200,10 +208,14 @@ function TransferInitial({
   );
 
   useEffect(() => {
-    if (balance && amount === balance) {
-      const reducedAmount = balance - (fee ?? 0n);
-      const newAmount = tokenSlug === TON_TOKEN_SLUG && reducedAmount > 0 ? reducedAmount : balance;
-      validateAndSetAmount(newAmount);
+    if (
+      tokenSlug === TON_TOKEN_SLUG
+      && balance && amount && fee
+      && amount <= balance
+      && fee < balance
+      && amount + fee >= balance
+    ) {
+      validateAndSetAmount(balance - fee);
     } else {
       validateAndSetAmount(amount);
     }
@@ -371,9 +383,11 @@ function TransferInitial({
     onCommentChange?.();
   });
 
-  const isEnoughTon = fee && fee < tonToken.amount;
+  const isCommentRequired = Boolean(toAddress) && EXCHANGE_ADDRESSES.has(toAddress);
+  const hasCommentError = isCommentRequired && !comment;
+
   const canSubmit = toAddress.length && amount && balance && amount > 0
-    && amount <= balance && !hasToAddressError && !hasAmountError && isEnoughTon;
+    && amount <= balance && !hasToAddressError && !hasAmountError && isEnoughTon && !hasCommentError;
 
   const handleSubmit = useLastCallback((e) => {
     e.preventDefault();
@@ -420,26 +434,40 @@ function TransferInitial({
   function renderBottomRight() {
     const withFee = fee && amount && amount > 0;
 
+    const activeKey = isInsufficientBalance ? 0
+      : isInsufficientFee ? 1
+        : withFee ? 2
+          : 3;
+
+    const insufficientBalanceText = <span className={styles.balanceError}>{lang('Insufficient balance')}</span>;
+    const insufficientFeeText = withFee ? (
+      <span className={styles.balanceError}>
+        {lang('$insufficient_fee', {
+          fee: formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true),
+        })}
+      </span>
+    ) : ' ';
+    const feeText = withFee ? lang('$fee_value', {
+      fee: (
+        <span className={styles.feeValue}>
+          {formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true)}
+        </span>
+      ),
+    }) : ' ';
+
+    const content = isInsufficientBalance ? insufficientBalanceText
+      : isInsufficientFee ? insufficientFeeText
+        : withFee ? feeText
+          : ' ';
+
     return (
       <Transition
         className={buildClassName(styles.amountBottomRight, isStatic && styles.amountBottomRight_static)}
         slideClassName={styles.amountBottomRight_slide}
         name="fade"
-        activeKey={isInsufficientBalance ? 2 : withFee ? 1 : 0}
+        activeKey={activeKey}
       >
-        {isInsufficientBalance ? (
-          <span className={styles.balanceError}>{lang('Insufficient balance')}</span>
-        ) : withFee ? (
-          lang('$fee_value', {
-            fee: (
-              <span className={styles.feeValue}>
-                {formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true)}
-              </span>
-            ),
-          })
-        ) : (
-          ' '
-        )}
+        {content}
       </Transition>
     );
   }
@@ -490,9 +518,14 @@ function TransferInitial({
         <span className={styles.balance}>
           {lang('$max_balance', {
             balance: (
-              <a href="#" onClick={handleMaxAmountClick} className={styles.balanceLink}>
-                {balance !== undefined ? formatCurrencySimple(balance, symbol, decimals) : lang('Loading...')}
-              </a>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={handleMaxAmountClick}
+                className={styles.balanceLink}
+              >
+                {balance !== undefined ? formatCurrency(toDecimal(balance, decimals), symbol) : lang('Loading...')}
+              </div>
             ),
           })}
         </span>
@@ -583,11 +616,12 @@ function TransferInitial({
             wrapperClassName={styles.commentInputWrapper}
             className={isStatic ? styles.inputStatic : undefined}
             label={renderCommentLabel()}
-            placeholder={lang('Optional')}
+            placeholder={isCommentRequired ? lang('Required') : lang('Optional')}
             value={comment}
             isControlled
             isMultiline
             onInput={handleCommentChange}
+            isRequired={isCommentRequired}
           />
         )}
 
@@ -617,6 +651,7 @@ export default memo(
         fee,
         tokenSlug,
         isLoading,
+        state,
       } = global.currentTransfer;
 
       const isLedger = selectIsHardwareAccount(global);
@@ -634,7 +669,7 @@ export default memo(
         savedAddresses: accountState?.savedAddresses,
         isEncryptedCommentSupported: !isLedger,
         isCommentSupported: !tokenSlug || tokenSlug === TON_TOKEN_SLUG || !isLedger,
-        isLoading,
+        isLoading: isLoading && ACTIVE_STATES.has(state),
         baseCurrency,
       };
     },

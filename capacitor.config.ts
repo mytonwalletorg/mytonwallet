@@ -19,10 +19,12 @@ const config: CapacitorConfig = {
       '@capacitor/action-sheet',
       '@capacitor/status-bar',
       '@capgo/capacitor-native-biometric',
+      '@capgo/native-audio',
       '@mauricewegner/capacitor-navigation-bar',
       'capacitor-plugin-safe-area',
       'cordova-plugin-inappbrowser',
       'native-bottom-sheet',
+      'capacitor-secure-storage-plugin',
     ],
   },
   ios: {

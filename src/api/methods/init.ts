@@ -1,5 +1,7 @@
 import type { ApiInitArgs, OnApiUpdate } from '../types';
 
+import { IS_CAPACITOR } from '../../config';
+import { initWindowConnector } from '../../util/capacitorStorageProxy/connector';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
 import { setEnvironment } from '../environment';
 import { addHooks } from '../hooks';
@@ -17,6 +19,10 @@ addHooks({
 export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   connectUpdater(onUpdate);
   const environment = setEnvironment(args);
+
+  if (IS_CAPACITOR) {
+    initWindowConnector();
+  }
 
   methods.initPolling(onUpdate, methods.isAccountActive);
   methods.initTransactions(onUpdate);

@@ -31,6 +31,7 @@ import {
   clearIsPinAccepted,
   setIsPinAccepted,
   updateCurrentSwap,
+  updateCurrentSwapFee,
 } from '../../reducers';
 import { selectAccount, selectCurrentAccount } from '../../selectors';
 
@@ -575,6 +576,8 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
     return;
   }
 
+  const additionalTonAmount = tokenIn.slug === TON_TOKEN_SLUG ? fromAmount : '0';
+  global = updateCurrentSwapFee(global, estimate, additionalTonAmount);
   global = updateCurrentSwap(global, {
     ...(
       global.currentSwap.inputSource === SwapInputSource.In
@@ -582,8 +585,6 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
         : { amountIn: estimate.fromAmount }
     ),
     amountOutMin: estimate.toMinAmount,
-    networkFee: estimate.networkFee,
-    realNetworkFee: estimate.realNetworkFee,
     swapFee: estimate.swapFee,
     priceImpact: estimate.impact,
     dexLabel: estimate.dexLabel,

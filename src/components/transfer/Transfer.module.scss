@@ -155,11 +155,13 @@
 
 .balance {
   position: absolute;
-  top: 0;
+  top: -0.125rem;
   right: 0.5rem;
 
+  display: flex;
+  gap: 0.25rem;
+
   font-size: 0.8125rem;
-  line-height: 0.8125rem;
   color: var(--color-gray-1);
 }
 
@@ -167,12 +169,15 @@
   cursor: var(--custom-cursor, pointer);
 
   font-weight: 600;
+  color: var(--color-blue);
   text-decoration: underline;
   text-decoration-style: dotted;
 
-  &:hover,
-  &:focus {
-    text-decoration: none;
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
   }
 }
 

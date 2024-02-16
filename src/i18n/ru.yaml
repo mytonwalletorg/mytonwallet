@@ -233,7 +233,7 @@ $unstake_information_with_time: Текущий депозит будет пол�
 Amount to unstake: Сумма к выводу
 Confirm Unstaking: Подтвердить вывод
 Request for unstaking is sent!: Запрос на вывод отправлен!
-$unstaking_when_receive: Депозит будет выведен через %time%
+$unstaking_when_receive: Депозит будет выведен через %time%.
 $unstake_insufficient_balance: Вам необходимо иметь %balance% на вашем основном балансе, чтобы отправить заявку на вывод депозита.
 at APY %1$s%: при APY %1$s%
 Staked: Стейкинг
@@ -436,11 +436,10 @@ Maximum amount: Максимум %value%
 Display Tray Icon: Иконка на панели задач
 Enable Auto-Updates: Включить автообновления
 Biometric Authentication: Биометрическая аутентификация
-Turn off biometrics?: Отключить биометрию?
 If you turn off biometric protection, you will need to create a password.: Если вы отключите биометрическую защиту, вам потребуется создать пароль.
 Enter your current password: Введите ваш текущий пароль
 Turn On Biometrics: Включение биометрии
-Please confirm transaction using biometrics: Пожалуйста, подтвердите транзакцию с помощью биометрии
+Please confirm transaction using biometrics.: Пожалуйста, подтвердите транзакцию с помощью биометрии.
 Enabling biometric confirmation will reset the password.: Включение биометрического подтверждения приведет к сбросу пароля.
 Biometric Registration: Подключение биометрии
 Step 1 of 2. Registration: Шаг 1 из 2. Регистрация
@@ -459,7 +458,7 @@ Use Password: Использовать пароль
 Biometrics Disabled: Биометрия отключена
 Biometrics Enabled: Биометрия включена
 A request is already pending: Подключение биометрии уже выполняется
-Please confirm operation using biometrics: Пожалуйста, подтвердите операцию с помощью биометрии
+Please confirm operation using biometrics.: Пожалуйста, подтвердите операцию с помощью биометрии.
 Scan QR Code: Сканировать QR-код
 Permission denied. Please grant camera permission to use the QR code scanner.: Доступ запрещён. Пожалуйста, дайте камере разрешение на использование сканера QR-кода.
 Unsupported barcode format: Неподдерживаемый формат штрих-кода
@@ -494,9 +493,9 @@ Not Now: Не сейчас
 Biometric Authentification: Биометрическая аутентификация
 Touch ID: Touch ID
 Face ID: Face ID
-Turn Off Touch ID?: Отключить Touch ID?
-Turn Off Face ID?: Отключить Face ID?
-Turn Off Biometrics?: Отключить биометрию?
+Turn Off Touch ID: Отключить Touch ID
+Turn Off Face ID: Отключить Face ID
+Turn Off Biometrics: Отключить биометрию
 Enter code: Введите код
 Enter code or use Face ID: Введите код или используйте Face ID
 Enter code or use Touch ID: Введите код или используйте Touch ID
@@ -528,4 +527,9 @@ No partners yet: Ещё нет партнеров
 Clear: Очистить
 Get TON: Получить TON
 Declined. Please try to confirm operation using biometrics again.: Отклонено. Пожалуйста, попробуйте ещё раз подтвердить операцию с помощью биометрии.
+$unstake_up_to_information: Мгновенно – до %value%
+$all_balance: "Все: %balance%"
+$unstaking_not_enough_balance: Вам необходимо иметь %value% на вашем основном балансе, чтобы продолжить вывод.
 $ledger_verify_address_on_device: Пожалуйста, проверьте адрес в вашем Ledger.
+$insufficient_fee: "Недостаточно для комиссии: %fee%"
+Required: Обязательно

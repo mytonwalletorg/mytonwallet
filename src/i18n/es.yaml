@@ -237,7 +237,7 @@ $unstake_information_with_time: |
 Amount to unstake: Cantidad a retirar
 Confirm Unstaking: Confirmar retiro
 Request for unstaking is sent!: ¡Se envía una solicitud de retiro!
-$unstaking_when_receive: Recibirá su depósito apostado en %time%
+$unstaking_when_receive: Recibirá su depósito apostado en %time%.
 $unstake_insufficient_balance: Debe tener %balance% en su saldo principal para proceder con la confirmación del retiro.
 at APY %1$s%: en APY %1$s%
 Staked: Apostado
@@ -435,11 +435,10 @@ Maximum amount: Máximo %value%
 Display Tray Icon: Icono de bandeja
 Enable Auto-Updates: Habilitar actualizaciones automáticas
 Biometric Authentication: Autenticación biométrica
-Turn off biometrics?: ¿Desactivar la biometría?
 If you turn off biometric protection, you will need to create a password.: Si desactiva la protección biométrica, deberá crear una contraseña.
 Enter your current password: Introduce tu contraseña actual
 Turn On Biometrics: Activar la biometría
-Please confirm transaction using biometrics: Confirme la transacción utilizando datos biométricos
+Please confirm transaction using biometrics.: Confirme la transacción utilizando datos biométricos.
 Enabling biometric confirmation will reset the password.: Al habilitar la confirmación biométrica se restablecerá la contraseña.
 Biometric Registration: Registro Biométrico
 Step 1 of 2. Registration: Paso 1 de 2. Registro
@@ -458,7 +457,7 @@ Use Password: Usar contraseña
 Biometrics Disabled: Biometría deshabilitada
 Biometrics Enabled: Biometría habilitada
 A request is already pending: Ya hay una solicitud pendiente
-Please confirm operation using biometrics: Confirme la operación mediante datos biométricos.
+Please confirm operation using biometrics.: Confirme la operación mediante datos biométricos.
 Scan QR Code: Escanear código QR
 Permission denied. Please grant camera permission to use the QR code scanner.: Permiso denegado. Otorgue permiso a la cámara para usar el escáner QR.
 Unsupported barcode format: Formato de código de barras no admitido
@@ -493,9 +492,9 @@ Not Now: Ahora no
 Biometric Authentification: Autenticación biométrica
 Touch ID: Touch ID
 Face ID: Face ID
-Turn Off Touch ID?: ¿Desactivar Touch ID?
-Turn Off Face ID?: ¿Desactivar Face ID?
-Turn Off Biometrics?: ¿Desactivar la biometría?
+Turn Off Touch ID: Desactivar Touch ID
+Turn Off Face ID: Desactivar Face ID
+Turn Off Biometrics: Desactivar la biometría
 Enter code: Introduzca el código
 Enter code or use Face ID: Ingresa el código o usa Face ID
 Enter code or use Touch ID: Ingresa el código o usa Touch ID
@@ -527,4 +526,9 @@ No partners yet: No hay socios todavía
 Clear: Borrar
 Get TON: Obtener TON
 Declined. Please try to confirm operation using biometrics again.: Rechazado. Intente confirmar la operación nuevamente utilizando datos biométricos.
+$unstake_up_to_information: Al instante – hasta %value%
+$all_balance: "Todo: %balance%"
+$unstaking_not_enough_balance: Necesitas tener %value% en tu saldo principal para proceder con el desbloqueo.
 $ledger_verify_address_on_device: Verifique la dirección en su Ledger.
+$insufficient_fee: "Comisión insuficiente: %fee%"
+Required: Requerido

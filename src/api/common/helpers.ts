@@ -10,19 +10,21 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
+import { IS_CAPACITOR, IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
 import { buildAccountId, parseAccountId } from '../../util/account';
+import { areDeepEqual } from '../../util/areDeepEqual';
 import { toBase64Address } from '../blockchains/ton/util/tonCore';
 import { apiDb } from '../db';
 import { getEnvironment } from '../environment';
 import { storage } from '../storages';
+import capacitorStorage from '../storages/capacitorStorage';
 import idbStorage from '../storages/idb';
 import { getKnownAddresses, getScamMarkers } from './addresses';
 
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 9;
+const actualStateVersion = 10;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -108,6 +110,13 @@ export async function migrateStorage(onUpdate: OnApiUpdate) {
 
   if (version === actualStateVersion) {
     return;
+  }
+
+  if (IS_CAPACITOR) {
+    const idbVersion = await idbStorage.getItem('stateVersion');
+    if (idbVersion && !version) {
+      version = Number(idbVersion);
+    }
   }
 
   if (!version && !(await storage.getItem('addresses' as StorageKey))) {
@@ -275,5 +284,24 @@ export async function migrateStorage(onUpdate: OnApiUpdate) {
       version = 9;
       await storage.setItem('stateVersion', version);
     }
+  }
+
+  if (version === 9) {
+    if (IS_CAPACITOR) {
+      const data = await idbStorage.getAll!();
+
+      for (const [key, value] of Object.entries(data)) {
+        await capacitorStorage.setItem(key as StorageKey, value);
+        const newValue = await capacitorStorage.getItem(key as StorageKey, true);
+
+        if (!areDeepEqual(value, newValue)) {
+          throw new Error('Migration error!');
+        }
+      }
+      await idbStorage.clear();
+    }
+
+    version = 10;
+    await storage.setItem('stateVersion', version);
   }
 }

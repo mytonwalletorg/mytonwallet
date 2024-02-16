@@ -24,7 +24,7 @@ interface StateProps {
 }
 
 type OwnProps = {
-  isOpen: boolean;
+  isOpen?: boolean;
   isStatic?: boolean;
   onInvoiceModalOpen: NoneToVoidFunction;
 };

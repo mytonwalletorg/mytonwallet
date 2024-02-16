@@ -39,7 +39,7 @@ let sseEventSource: EventSource | undefined;
 let sseDapps: SseDapp[] = [];
 
 export async function startSseConnection(url: string, deviceInfo: DeviceInfo): Promise<ReturnStrategy | undefined> {
-  const params = new URL(url).searchParams;
+  const { searchParams: params, origin } = new URL(url);
 
   const ret: ReturnStrategy = params.get('ret') || 'back';
   const version = Number(params.get('v') as string);
@@ -55,7 +55,6 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
   }
 
   const connectRequest = JSON.parse(params.get('r') as string) as ConnectRequest;
-  const { origin } = await tonConnect.fetchDappMetadata(connectRequest.manifestUrl);
 
   logDebug('SSE Start connection:', {
     version, appClientId, connectRequest, ret, origin,

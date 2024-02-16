@@ -20,7 +20,7 @@ import { Big } from '../../lib/big.js';
 import { selectSwapTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { fromDecimal, toDecimal } from '../../util/decimals';
-import { formatCurrency, formatCurrencySimple } from '../../util/formatNumber';
+import { formatCurrency } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -123,23 +123,23 @@ function SwapInitial({
     [currentTokenOutSlug, tokens],
   );
 
-  const TON = useMemo(
+  const ton = useMemo(
     () => tokens?.find((token) => token.slug === TON_TOKEN_SLUG) ?? { amount: 0 },
     [tokens],
   );
 
-  const isTokenInTON = currentTokenInSlug === TON_TOKEN_SLUG;
+  const isTokenInTon = currentTokenInSlug === TON_TOKEN_SLUG;
   const totalTonAmount = useMemo(
     () => {
       if (!tokenIn || !amountIn) {
         return 0n;
       }
-      if (isTokenInTON) {
+      if (isTokenInTon) {
         return fromDecimal(amountIn) + fromDecimal(networkFee);
       }
       return fromDecimal(networkFee);
     },
-    [tokenIn, amountIn, isTokenInTON, networkFee],
+    [tokenIn, amountIn, isTokenInTon, networkFee],
   );
 
   const amountInBig = useMemo(() => Big(amountIn || 0), [amountIn]);
@@ -147,7 +147,7 @@ function SwapInitial({
   const tokenInAmountBig = useMemo(() => toDecimal(tokenIn?.amount ?? 0n, tokenIn?.decimals), [tokenIn]);
 
   const isErrorExist = errorType !== undefined;
-  const isEnoughTON = TON.amount > totalTonAmount;
+  const isEnoughTon = ton.amount > totalTonAmount;
   // eslint-disable-next-line max-len
   const isCorrectAmountIn = (
     amountIn
@@ -155,7 +155,7 @@ function SwapInitial({
     && tokenIn.amount
     && amountInBig.gt(0)
     && amountInBig.lte(tokenInAmountBig)
-    && isEnoughTON
+    && isEnoughTon
   ) || swapType === SwapType.CrosschainToTon;
   const isCorrectAmountOut = amountOut && amountOutBig.gt(0);
   const canSubmit = Boolean(isCorrectAmountIn && isCorrectAmountOut && !isEstimating && !isErrorExist);
@@ -283,9 +283,11 @@ function SwapInitial({
       const amountWithFee = tokenIn.amount > DEFAULT_SWAP_FEE
         ? tokenIn.amount - DEFAULT_SWAP_FEE
         : tokenIn.amount;
-      const newAmount = isTokenInTON ? amountWithFee : tokenIn.amount;
+      const newAmount = isTokenInTon ? amountWithFee : tokenIn.amount;
+      const amount = toDecimal(newAmount, tokenIn.decimals);
 
-      handleAmountInChange(toDecimal(newAmount, tokenIn.decimals));
+      validateAmountIn(amount);
+      setSwapAmountIn({ amount });
     },
   );
 
@@ -340,7 +342,7 @@ function SwapInitial({
                     onClick={handleMaxAmountClick}
                     className={styles.balanceLink}
                   >
-                    {formatCurrencySimple(tokenIn.amount, tokenIn?.symbol, tokenIn?.decimals)}
+                    {formatCurrency(toDecimal(tokenIn.amount, tokenIn?.decimals), tokenIn?.symbol)}
                   </div>
                 ),
               })}
@@ -545,7 +547,7 @@ function SwapInitial({
             amountOut={amountOut}
             swapType={swapType}
             isEstimating={isEstimating}
-            isEnoughTON={isEnoughTON}
+            isEnoughTon={isEnoughTon}
             isSending={isLoading}
             isPriceImpactError={isPriceImpactError}
             canSubmit={canSubmit}

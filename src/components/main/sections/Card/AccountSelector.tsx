@@ -180,7 +180,10 @@ function AccountSelector({
       <>
         {!noAccountSelector && (
           <div className={accountTitleClassName} onClick={handleOpenAccountSelector}>
-            {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
+            <span className={styles.accountTitleInner}>
+              {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
+            </span>
+            <i className={buildClassName('icon icon-caret-down', styles.arrowIcon)} aria-hidden />
           </div>
         )}
         {!noSettingsButton && (

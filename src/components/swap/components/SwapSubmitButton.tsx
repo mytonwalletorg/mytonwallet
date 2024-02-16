@@ -1,14 +1,15 @@
-import React, {
-  memo, useRef,
-} from '../../../lib/teact/teact';
+import React, { memo, useRef } from '../../../lib/teact/teact';
 
 import type { UserSwapToken } from '../../../global/types';
 import { SwapErrorType, SwapType } from '../../../global/types';
 
+import { ANIMATION_END_DELAY } from '../../../config';
 import { formatCurrencySimple } from '../../../util/formatNumber';
 
+import { useThrottledSignal } from '../../../hooks/useAsyncResolvers';
+import useDerivedSignal from '../../../hooks/useDerivedSignal';
+import useDerivedState from '../../../hooks/useDerivedState';
 import useLang from '../../../hooks/useLang';
-import useSyncEffect from '../../../hooks/useSyncEffect';
 
 import Button from '../../ui/Button';
 import Transition from '../../ui/Transition';
@@ -23,7 +24,7 @@ interface OwnProps {
   swapType?: SwapType;
   isEstimating?: boolean;
   isSending?: boolean;
-  isEnoughTON?: boolean;
+  isEnoughTon?: boolean;
   isPriceImpactError?: boolean;
   canSubmit?: boolean;
   errorType?: SwapErrorType;
@@ -33,6 +34,8 @@ interface OwnProps {
   };
 }
 
+const BUTTON_ANIMATION_DURATION = 250 + ANIMATION_END_DELAY;
+
 function SwapSubmitButton({
   tokenIn,
   tokenOut,
@@ -41,7 +44,7 @@ function SwapSubmitButton({
   swapType,
   isEstimating,
   isSending,
-  isEnoughTON,
+  isEnoughTon,
   isPriceImpactError,
   canSubmit,
   errorType,
@@ -74,28 +77,26 @@ function SwapSubmitButton({
 
   if (isTouched && isErrorExist) {
     text = errorMsgByType[errorType];
-  } else if (isTouched && !isEnoughTON && swapType !== SwapType.CrosschainToTon) {
+  } else if (isTouched && !isEnoughTon && swapType !== SwapType.CrosschainToTon) {
     text = lang('Not enough TON');
   }
 
-  let shouldShowError = !isEstimating && ((isPriceImpactError || isErrorExist || !isEnoughTON));
+  const textStr = Array.isArray(text) ? text.join('') : text;
+
+  let shouldShowError = !isEstimating && ((isPriceImpactError || isErrorExist || !isEnoughTon));
 
   if (swapType === SwapType.CrosschainToTon) {
     shouldShowError = !isEstimating && ((isPriceImpactError || isErrorExist));
   }
 
-  const buttonTransitionKeyRef = useRef(0);
-  const buttonStateStr = `${text}_${!canSubmit}_${isTouched && shouldShowError}`;
+  const isDestructive = isTouched && shouldShowError;
 
-  useSyncEffect(() => {
-    buttonTransitionKeyRef.current++;
-  }, [buttonStateStr]);
-
-  return (
+  const transitionKeyRef = useRef(0);
+  const render = useDerivedSignal(() => (
     <Transition
-      name="fade"
+      name="semiFade"
       className={styles.footerButtonWrapper}
-      activeKey={buttonTransitionKeyRef.current}
+      activeKey={transitionKeyRef.current++}
     >
       <Button
         className={styles.footerButton}
@@ -103,12 +104,16 @@ function SwapSubmitButton({
         isPrimary
         isSubmit
         isLoading={isLoading}
-        isDestructive={isTouched && shouldShowError}
+        isDestructive={isDestructive}
       >
-        {text}
+        {textStr}
       </Button>
     </Transition>
-  );
+  ), [isDestructive, isDisabled, isLoading, textStr]);
+  const renderThrottled = useThrottledSignal(render, BUTTON_ANIMATION_DURATION);
+  const rendered = useDerivedState(renderThrottled);
+
+  return rendered;
 }
 
 export default memo(SwapSubmitButton);

@@ -90,7 +90,7 @@ class ConnectorClass<T extends InputRequestTypes> {
   private requestStatesByCallback = new Map<AnyToVoidFunction, RequestStates>();
 
   constructor(
-    public target: Worker | Window | chrome.runtime.Port,
+    public target: Worker | Window | chrome.runtime.Port | DedicatedWorkerGlobalScope,
     private onUpdate?: (update: ApiUpdate) => void,
     private channel?: string,
     private shouldUseJson?: boolean,
@@ -207,7 +207,7 @@ class ConnectorClass<T extends InputRequestTypes> {
       rawData = JSON.stringify(data);
     }
 
-    if (this.target === window) {
+    if ('open' in this.target) { // Is Window
       this.target.postMessage(rawData, this.targetOrigin);
     } else {
       this.target.postMessage(rawData);
@@ -216,7 +216,7 @@ class ConnectorClass<T extends InputRequestTypes> {
 }
 
 export function createConnector<T extends InputRequestTypes>(
-  worker: Worker | Window,
+  worker: Worker | Window | DedicatedWorkerGlobalScope,
   onUpdate?: (update: ApiUpdate) => void,
   channel?: string,
   targetOrigin?: string,

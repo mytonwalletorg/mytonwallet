@@ -24,7 +24,7 @@ function TurnOffWaning({ isOpen, onClose }: OwnProps) {
     <Modal
       isOpen={isOpen}
       isCompact
-      title={lang('Turn off biometrics?')}
+      title={lang('Turn Off Biometrics')}
       onClose={onClose}
     >
       <p className={modalStyles.text}>

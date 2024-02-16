@@ -227,7 +227,7 @@ function PasswordForm({
     return (
       <div className={styles.verify}>
         {lang(operationType === 'transfer'
-          ? 'Please confirm transaction using biometrics' : 'Please confirm operation using biometrics')}
+          ? 'Please confirm transaction using biometrics.' : 'Please confirm operation using biometrics.')}
       </div>
     );
   }

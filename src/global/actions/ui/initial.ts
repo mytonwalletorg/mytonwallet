@@ -1,13 +1,13 @@
 import type { Account, AccountState, NotificationType } from '../../types';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
 
-import { IS_EXTENSION } from '../../../config';
+import { IS_CAPACITOR, IS_EXTENSION } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
-import { initializeSoundsForSafari } from '../../../util/appSounds';
 import { omit } from '../../../util/iteratees';
 import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
 import { callActionInMain } from '../../../util/multitab';
+import { initializeSounds } from '../../../util/notificationSound';
 import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import switchTheme, { setStatusBarStyle } from '../../../util/switchTheme';
 import {
@@ -80,8 +80,8 @@ addActionHandler('afterInit', (global) => {
   void setLanguage(langCode);
   clearPreviousLangpacks();
 
-  if (IS_SAFARI || IS_IOS) {
-    document.addEventListener('click', initializeSoundsForSafari, { once: true });
+  if (!IS_CAPACITOR && !IS_EXTENSION && !IS_ELECTRON) {
+    document.addEventListener('click', initializeSounds, { once: true });
   }
 });
 

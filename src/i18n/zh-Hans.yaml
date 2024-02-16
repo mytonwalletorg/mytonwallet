@@ -228,7 +228,7 @@ $unstake_information_with_time: |
 Amount to unstake: 解除质押的数量
 Confirm Unstaking: 确认解除质押
 Request for unstaking is sent!: 解除质押请求已发送!
-$unstaking_when_receive: 您将在 %time% 内收到解除质押的代币
+$unstaking_when_receive: 您将在 %time% 内收到解除质押的代币。
 $unstake_insufficient_balance: 您需要有 %balance% 在您的主账户中以进行解除质押的操作。
 at APY %1$s%: 当前年回报率 %1$s%
 Staked: 已质押
@@ -420,11 +420,10 @@ Maximum amount: 最高 %value%
 Display Tray Icon: 显示托盘图标
 Enable Auto-Updates: 启用自动更新
 Biometric Authentication: 生物识别认证
-Turn off biometrics?: 关闭生物识别？
 If you turn off biometric protection, you will need to create a password.: 如果您关闭生物识别保护，则需要创建密码。
 Enter your current password: 输入当前密码
 Turn On Biometrics: 打开生物识别
-Please confirm transaction using biometrics: 请使用生物识别技术确认交易
+Please confirm transaction using biometrics.: 请使用生物识别技术确认交易。
 Enabling biometric confirmation will reset the password.: 启用生物识别确认将重置密码。
 Biometric Registration: 生物识别注册
 Step 1 of 2. Registration: 第 1 步（共 2 步）：注册
@@ -443,7 +442,7 @@ Use Password: 使用密码
 Biometrics Disabled: 生物识别已禁用
 Biometrics Enabled: 启用生物识别
 A request is already pending: 请求已待处理
-Please confirm operation using biometrics: 请使用生物识别确认操作
+Please confirm operation using biometrics.: 请使用生物识别确认操作。
 Scan QR Code: 扫描二维码
 Permission denied. Please grant camera permission to use the QR code scanner.: 没有权限。 请授予相机使用 QR 扫描仪的权限。
 Unsupported barcode format: 不支持的条形码格式
@@ -478,9 +477,9 @@ Not Now: 现在不要
 Biometric Authentification: 生物识别认证
 Touch ID: Touch ID
 Face ID: Face ID
-Turn Off Touch ID?: 关闭 Touch ID？
-Turn Off Face ID?: 关闭 Face ID?
-Turn Off Biometrics?: 关闭生物识别技术？
+Turn Off Touch ID: 关闭 Touch ID
+Turn Off Face ID: 关闭 Face ID
+Turn Off Biometrics: 关闭生物识别技术
 Enter code: 输入代码
 Enter code or use Face ID: 输入代码或使用 Face ID
 Enter code or use Touch ID: 输入代码或使用 Touch ID
@@ -512,4 +511,9 @@ No partners yet: 还没有伴侣
 Clear: 清除
 Get TON: 获取TON
 Declined. Please try to confirm operation using biometrics again.: 拒绝了。 请再次尝试使用生物识别来确认操作。
+$unstake_up_to_information: 立即 – 高达 %value%
+$all_balance: "全部: %balance%"
+$unstaking_not_enough_balance: 您需要在主要余额中有 %value% 才能继续解押。
 $ledger_verify_address_on_device: 请验证您的 Ledger 上的地址。
+$insufficient_fee: "手续费不足: %fee%"
+Required: 必需的

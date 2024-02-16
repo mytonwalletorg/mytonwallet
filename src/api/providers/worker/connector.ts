@@ -2,6 +2,8 @@ import type { Connector } from '../../../util/PostMessageConnector';
 import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/methods';
 
+import { IS_CAPACITOR } from '../../../config';
+import { createWindowProvider } from '../../../util/capacitorStorageProxy';
 import { logDebugError } from '../../../util/logs';
 import { createConnector } from '../../../util/PostMessageConnector';
 
@@ -9,9 +11,14 @@ let connector: Connector;
 
 export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => ApiInitArgs)) {
   if (!connector) {
-    connector = createConnector(new Worker(
+    const worker = new Worker(
       /* webpackChunkName: "worker" */ new URL('./provider.ts', import.meta.url),
-    ), onUpdate);
+    );
+    connector = createConnector(worker, onUpdate);
+
+    if (IS_CAPACITOR) {
+      createWindowProvider(worker);
+    }
   }
 
   const args = typeof initArgs === 'function' ? initArgs() : initArgs;

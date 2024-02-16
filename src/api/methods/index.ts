@@ -8,7 +8,6 @@ export * from './staking';
 export * from './tokens';
 export {
   initDapps,
-  isDappConnected,
   getActiveDapp,
   getDapps,
   getDappsByOrigin,

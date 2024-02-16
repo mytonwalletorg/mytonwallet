@@ -15,8 +15,7 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
 import type { Compiler, Configuration } from 'webpack';
 import {
-  DefinePlugin, EnvironmentPlugin, NormalModuleReplacementPlugin,
-  ProvidePlugin,
+  DefinePlugin, EnvironmentPlugin, NormalModuleReplacementPlugin, ProvidePlugin,
 } from 'webpack';
 
 import { PRODUCTION_URL } from './src/config';
@@ -26,7 +25,11 @@ dotenv.config();
 // GitHub workflow uses an empty string as the default value if it's not in repository variables, so we cannot define a default value here
 process.env.BASE_URL = process.env.BASE_URL || PRODUCTION_URL;
 
-const { APP_ENV, BASE_URL, HEAD } = process.env;
+const {
+  APP_ENV = 'production',
+  BASE_URL,
+  HEAD,
+} = process.env;
 const IS_EXTENSION = process.env.IS_EXTENSION === '1';
 const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
@@ -36,7 +39,9 @@ const gitRevisionPlugin = new GitRevisionPlugin();
 const branch = HEAD || gitRevisionPlugin.branch();
 const appRevision = !branch || branch === 'HEAD' ? gitRevisionPlugin.commithash()?.substring(0, 7) : branch;
 const canUseStatoscope = !IS_EXTENSION && !IS_PACKAGED_ELECTRON;
-const connectSrcExtraUrl = APP_ENV === 'development' ? process.env.CSP_CONNECT_SRC_EXTRA_URL ?? '' : '';
+const cspConnectSrcExtra = APP_ENV === 'development'
+  ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
+  : '';
 
 // The `connect-src` rule contains `https:` due to arbitrary requests are needed for jetton JSON configs.
 // The `img-src` rule contains `https:` due to arbitrary image URLs being used as jetton logos.
@@ -44,7 +49,7 @@ const connectSrcExtraUrl = APP_ENV === 'development' ? process.env.CSP_CONNECT_S
 const CSP = `
   default-src 'none';
   manifest-src 'self';
-  connect-src 'self' https: http://localhost:3000 ${connectSrcExtraUrl};
+  connect-src 'self' https: ${cspConnectSrcExtra};
   script-src 'self' 'wasm-unsafe-eval';
   style-src 'self' https://fonts.googleapis.com/;
   img-src 'self' data: https:;
@@ -53,7 +58,8 @@ const CSP = `
   base-uri 'none';
   font-src 'self' https://fonts.gstatic.com/;
   form-action 'none';
-  frame-src 'self' https://widget.changelly.com/`
+  frame-src 'self' https://widget.changelly.com/;
+  frame-ancestors 'none'`
   .replace(/\s+/g, ' ').trim();
 
 const appVersion = require('./package.json').version;
@@ -146,7 +152,7 @@ export default function createConfig(
                 modules: {
                   exportLocalsConvention: 'camelCase',
                   auto: true,
-                  localIdentName: APP_ENV === 'production' ? '[hash:base64]' : '[name]__[local]',
+                  localIdentName: APP_ENV === 'production' ? '[sha1:hash:hex:6]' : '[name]__[local]',
                 },
               },
             },
@@ -160,7 +166,7 @@ export default function createConfig(
           use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader'],
         },
         {
-          test: /\.(woff(2)?|ttf|eot|svg|png|jpg|tgs|webp)(\?v=\d+\.\d+\.\d+)?$/,
+          test: /\.(woff(2)?|ttf|eot|svg|png|jpg|tgs|webp|mp3)(\?v=\d+\.\d+\.\d+)?$/,
           type: 'asset/resource',
         },
         {
@@ -256,8 +262,8 @@ export default function createConfig(
         TONHTTPAPI_TESTNET_API_KEY: null,
         TONAPIIO_MAINNET_URL: null,
         TONAPIIO_TESTNET_URL: null,
-        TONINDEXER_MAINNET_URL: null,
-        TONINDEXER_TESTNET_URL: null,
+        TONHTTPAPI_V3_MAINNET_API_KEY: null,
+        TONHTTPAPI_V3_TESTNET_API_KEY: null,
         BRILLIANT_API_BASE_URL: null,
         PROXY_HOSTS: null,
         STAKING_POOLS: null,

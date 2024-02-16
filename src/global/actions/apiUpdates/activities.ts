@@ -1,8 +1,8 @@
 import { TransferState } from '../../types';
 
 import { IS_CAPACITOR } from '../../../config';
-import { playIncomingTransactionSound } from '../../../util/appSounds';
 import { compareActivities } from '../../../util/compareActivities';
+import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTinyTransaction } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {

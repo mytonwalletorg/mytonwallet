@@ -56,6 +56,7 @@ function Button({
 
   const {
     shouldRender: shouldRenderLoading,
+    hasOpenClass: isLoadingVisible,
   } = useShowTransition(isLoading, undefined, undefined, undefined, undefined, LOADING_CLOSE_DURATION);
 
   const handleClick = useLastCallback(() => {
@@ -72,8 +73,17 @@ function Button({
   const loadingClassName = buildClassName(
     isLoading !== undefined && styles.loadingInit,
     isLoading && styles.loadingStart,
-    shouldRenderLoading && styles.loadingAnimation,
   );
+
+  function renderLoading() {
+    return (
+      <div className={buildClassName(styles.loadingDots, isLoadingVisible && styles.loadingDotsVisible)}>
+        <span className={styles.loadingDot} />
+        <span className={styles.loadingDot} />
+        <span className={styles.loadingDot} />
+      </div>
+    );
+  }
 
   return (
     <button
@@ -100,6 +110,7 @@ function Button({
       form={forFormId}
     >
       {children}
+      {shouldRenderLoading && renderLoading()}
     </button>
   );
 }

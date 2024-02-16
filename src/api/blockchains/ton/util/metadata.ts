@@ -230,6 +230,8 @@ export async function parsePayloadSlice(
       const buffer = readSnakeBytes(slice);
       const encryptedComment = buffer.toString('base64');
       return { type: 'encrypted-comment', encryptedComment };
+    } else if (slice.remainingBits < 64) {
+      return undefined;
     }
 
     const queryId = slice.loadUintBig(64);

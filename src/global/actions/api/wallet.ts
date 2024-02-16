@@ -131,7 +131,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
       global = updateCurrentTransfer(global, { toAddressName: result.addressName });
     }
     if (result?.fee) {
-      global = updateCurrentTransferFee(global, result.fee);
+      global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TON_TOKEN_SLUG);
     }
 
     setGlobal(global);
@@ -145,6 +145,8 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     return;
   }
 
+  global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TON_TOKEN_SLUG);
+
   setGlobal(updateCurrentTransfer(global, {
     state: TransferState.Confirm,
     error: undefined,
@@ -153,7 +155,6 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     amount,
     comment,
     shouldEncrypt,
-    fee: result.fee,
     toAddressName: result.addressName,
     tokenSlug,
     isToNewAddress: result.isToAddressNew,
@@ -177,7 +178,7 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
 
   if (result?.fee) {
     global = getGlobal();
-    global = updateCurrentTransferFee(global, result.fee);
+    global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TON_TOKEN_SLUG);
     setGlobal(global);
   }
 });

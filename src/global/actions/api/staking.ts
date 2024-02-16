@@ -1,6 +1,8 @@
 import { StakingState } from '../../types';
 
-import { IS_CAPACITOR } from '../../../config';
+import {
+  IS_CAPACITOR, MIN_BALANCE_FOR_UNSTAKE, TON_TOKEN_SLUG,
+} from '../../../config';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
@@ -24,8 +26,18 @@ addActionHandler('startStaking', (global, actions, payload) => {
 
   const { isUnstaking } = payload || {};
 
+  const accountState = selectAccountState(global, global.currentAccountId!);
+  const balance = accountState?.balances?.bySlug[TON_TOKEN_SLUG] ?? 0n;
+  const isNotEnoughBalance = balance < MIN_BALANCE_FOR_UNSTAKE;
+
+  const state = isUnstaking
+    ? isNotEnoughBalance
+      ? StakingState.NotEnoughBalance
+      : StakingState.UnstakeInitial
+    : StakingState.StakeInitial;
+
   setGlobal(updateStaking(global, {
-    state: isUnstaking ? StakingState.UnstakeInitial : StakingState.StakeInitial,
+    state,
     error: undefined,
   }));
 });
@@ -55,8 +67,7 @@ addActionHandler('fetchStakingFee', async (global, actions, payload) => {
 });
 
 addActionHandler('submitStakingInitial', async (global, actions, payload) => {
-  const { isUnstaking } = payload || {};
-  let { amount } = payload ?? {};
+  const { isUnstaking, amount } = payload ?? {};
   const { currentAccountId } = global;
 
   if (!currentAccountId) {
@@ -66,8 +77,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
   setGlobal(updateStaking(global, { isLoading: true, error: undefined }));
 
   if (isUnstaking) {
-    amount = selectAccountState(global, currentAccountId)!.staking!.balance;
-    const result = await callApi('checkUnstakeDraft', currentAccountId, amount);
+    const result = await callApi('checkUnstakeDraft', currentAccountId, amount!);
     global = getGlobal();
     global = updateStaking(global, { isLoading: false });
 

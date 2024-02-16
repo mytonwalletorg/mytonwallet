@@ -390,6 +390,10 @@
 
   margin-top: auto; // Used to pull down when modal has fixed height
   padding-top: 2rem;
+
+  .compact & {
+    padding-top: 0;
+  }
 }
 
 .footerButtons {

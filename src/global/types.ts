@@ -174,6 +174,8 @@ export enum StakingState {
   UnstakeInitial,
   UnstakePassword,
   UnstakeComplete,
+
+  NotEnoughBalance,
 }
 
 export enum SettingsState {
@@ -492,6 +494,7 @@ export type GlobalState = {
   confettiRequestedAt?: number;
   isPinAccepted?: boolean;
   isOnRampWidgetModalOpen?: boolean;
+  isReceiveModalOpen?: boolean;
 
   stateVersion: number;
   restrictions: {
@@ -728,6 +731,9 @@ export interface ActionPayloads {
 
   openOnRampWidgetModal: undefined;
   closeOnRampWidgetModal: undefined;
+
+  openReceiveModal: undefined;
+  closeReceiveModal: undefined;
 }
 
 export enum LoadMoreDirection {

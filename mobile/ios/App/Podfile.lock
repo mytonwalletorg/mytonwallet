@@ -17,11 +17,16 @@ PODS:
     - GoogleMLKit/BarcodeScanning (= 4.0.0)
   - CapacitorPluginSafeArea (2.0.5):
     - Capacitor
+  - CapacitorSecureStoragePlugin (0.9.0):
+    - Capacitor
+    - SwiftKeychainWrapper
   - CapacitorSplashScreen (5.0.6.1):
     - Capacitor
   - CapacitorStatusBar (5.0.6):
     - Capacitor
   - CapgoCapacitorNativeBiometric (0.0.1):
+    - Capacitor
+  - CapgoNativeAudio (6.2.5):
     - Capacitor
   - CordovaPlugins (5.6.0):
     - CapacitorCordova
@@ -85,6 +90,7 @@ PODS:
     - Capacitor
     - FloatingPanel
   - PromisesObjC (2.3.1)
+  - SwiftKeychainWrapper (4.0.1)
 
 DEPENDENCIES:
   - "Capacitor (from `../../../node_modules/@capacitor/ios`)"
@@ -96,9 +102,11 @@ DEPENDENCIES:
   - "CapacitorHaptics (from `../../../node_modules/@capacitor/haptics`)"
   - "CapacitorMlkitBarcodeScanning (from `../../../node_modules/@capacitor-mlkit/barcode-scanning`)"
   - CapacitorPluginSafeArea (from `../../../node_modules/capacitor-plugin-safe-area`)
+  - CapacitorSecureStoragePlugin (from `../../../node_modules/capacitor-secure-storage-plugin`)
   - CapacitorSplashScreen (from `../../plugins/capacitor-splash-screen`)
   - "CapacitorStatusBar (from `../../../node_modules/@capacitor/status-bar`)"
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
+  - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
   - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
@@ -118,6 +126,7 @@ SPEC REPOS:
     - MLKitVision
     - nanopb
     - PromisesObjC
+    - SwiftKeychainWrapper
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -138,12 +147,16 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor-mlkit/barcode-scanning"
   CapacitorPluginSafeArea:
     :path: "../../../node_modules/capacitor-plugin-safe-area"
+  CapacitorSecureStoragePlugin:
+    :path: "../../../node_modules/capacitor-secure-storage-plugin"
   CapacitorSplashScreen:
     :path: "../../plugins/capacitor-splash-screen"
   CapacitorStatusBar:
     :path: "../../../node_modules/@capacitor/status-bar"
   CapgoCapacitorNativeBiometric:
     :path: "../../../node_modules/@capgo/capacitor-native-biometric"
+  CapgoNativeAudio:
+    :path: "../../../node_modules/@capgo/native-audio"
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
   MauricewegnerCapacitorNavigationBar:
@@ -161,9 +174,11 @@ SPEC CHECKSUMS:
   CapacitorHaptics: 1fffc1217c7e64a472d7845be50fb0c2f7d4204c
   CapacitorMlkitBarcodeScanning: ea08ef246e5d3511d5a231a59fae36b16ad9acb3
   CapacitorPluginSafeArea: bfdd714827dbd89fb44fea286beec996e1b0c5c4
+  CapacitorSecureStoragePlugin: e91d7df060f2495a1acff9583641a6953e3aacba
   CapacitorSplashScreen: 6fce4269c6f7dc7591cc28760d1f85255e5edb1b
   CapacitorStatusBar: 565c0a1ebd79bb40d797606a8992b4a105885309
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
+  CapgoNativeAudio: 39352d6942679bd6ee15b6a458534723b78e3f47
   CordovaPlugins: 149708b4353176a65688a5aed237f7c3054e7702
   FloatingPanel: f585be005983e66f8f4932f93ca46bf9f09dae3a
   GoogleDataTransport: 54dee9d48d14580407f8f5fbf2f496e92437a2f2
@@ -180,7 +195,8 @@ SPEC CHECKSUMS:
   nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431
   NativeBottomSheet: edfc1f70d3517ea92e70392db8c2de5ea3e6f15e
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
+  SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 675004c5a0f43d75bb4b1750d8d39da5766efaa5
+PODFILE CHECKSUM: e63dced6818dad4a58f37de66ce670ccd9a5c334
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.15.2

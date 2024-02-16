@@ -13,7 +13,6 @@ interface OwnProps {
   isLedgerWallet?: boolean;
   isSwapDisabled?: boolean;
   isOnRampDisabled?: boolean;
-  onReceiveClick: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
 
@@ -23,7 +22,6 @@ function AddBuyModal({
   isLedgerWallet,
   isSwapDisabled,
   isOnRampDisabled,
-  onReceiveClick,
   onClose,
 }: OwnProps) {
   const lang = useLang();
@@ -41,7 +39,6 @@ function AddBuyModal({
         isTestnet={isTestnet}
         isSwapDisabled={isSwapDisabled}
         isOnRampDisabled={isOnRampDisabled}
-        onReceiveClick={onReceiveClick}
         onClose={onClose}
       />
     </Modal>
