@@ -40,7 +40,7 @@ export interface BottomSheetPlugin {
 
   closeSelf(options: { key: BottomSheetKeys }): Promise<void>;
 
-  setSelfSize(options: { size: 'half' | 'full' }): Promise<void>;
+  setFullSize(options: { isEnabled: boolean }): Promise<void>;
 
   openInMain(options: { key: BottomSheetKeys }): Promise<void>;
 

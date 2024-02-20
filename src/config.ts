@@ -68,7 +68,7 @@ export const TONHTTPAPI_MAINNET_URL = process.env.TONHTTPAPI_MAINNET_URL
   || 'https://tonhttpapi.mytonwallet.org/api/v2/jsonRPC';
 export const TONHTTPAPI_MAINNET_API_KEY = process.env.TONHTTPAPI_MAINNET_API_KEY;
 export const ELECTRON_TONHTTPAPI_MAINNET_API_KEY = process.env.ELECTRON_TONHTTPAPI_MAINNET_API_KEY;
-export const TONHTTPAPI_V3_MAINNET_API_KEY = process.env.TONHTTPAPI_V3_MAINNET_API_KEY
+export const TONHTTPAPI_V3_MAINNET_API_URL = process.env.TONHTTPAPI_V3_MAINNET_API_KEY
   || 'https://tonhttpapi-v3.mytonwallet.org/api/v3';
 export const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapiio.mytonwallet.org';
 
@@ -76,7 +76,7 @@ export const TONHTTPAPI_TESTNET_URL = process.env.TONHTTPAPI_TESTNET_URL
   || 'https://tonhttpapi-testnet.mytonwallet.org/api/v2/jsonRPC';
 export const TONHTTPAPI_TESTNET_API_KEY = process.env.TONHTTPAPI_TESTNET_API_KEY;
 export const ELECTRON_TONHTTPAPI_TESTNET_API_KEY = process.env.ELECTRON_TONHTTPAPI_TESTNET_API_KEY;
-export const TONHTTPAPI_V3_TESTNET_API_KEY = process.env.TONHTTPAPI_V3_TESTNET_API_KEY
+export const TONHTTPAPI_V3_TESTNET_API_URL = process.env.TONHTTPAPI_V3_TESTNET_API_KEY
   || 'https://tonhttpapi-v3-testnet.mytonwallet.org/api/v3';
 export const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://tonapiio-testnet.mytonwallet.org';
 

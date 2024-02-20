@@ -17,6 +17,7 @@ import { useDeviceScreen } from './useDeviceScreen';
 import useEffectWithPrevDeps from './useEffectWithPrevDeps';
 
 const BLUR_TIMEOUT = 50;
+const COMPACT_MODAL_CSS_SELECTOR = '.is-compact-modal';
 
 const controlledByMain = new Map<BottomSheetKeys, NoneToVoidFunction>();
 
@@ -98,7 +99,7 @@ export function useDelegatedBottomSheet(
     // Skip initial opening
     if (forceFullNative !== undefined && prevForceFullNative === undefined) return;
 
-    BottomSheet.setSelfSize({ size: forceFullNative ? 'full' : 'half' });
+    BottomSheet.setFullSize({ isEnabled: forceFullNative });
   }, [forceFullNative, isDelegatedAndOpen]);
 
   useLayoutEffect(() => {
@@ -120,17 +121,17 @@ export function useDelegatedBottomSheet(
 
       preventScrollOnFocus(dialogEl);
 
-      BottomSheet.setSelfSize({ size: 'full' });
+      BottomSheet.setFullSize({ isEnabled: true });
     }
 
     function onBlur(e: FocusEvent) {
-      if (!isInput(e.target) || noResetHeightOnBlur || forceFullNative) {
+      if (!isInput(e.target) || noResetHeightOnBlur || forceFullNative || isInCompactModal(e.target)) {
         return;
       }
 
       blurTimeout = window.setTimeout(() => {
         blurTimeout = undefined;
-        BottomSheet.setSelfSize({ size: 'half' });
+        BottomSheet.setFullSize({ isEnabled: false });
       }, BLUR_TIMEOUT);
     }
 
@@ -175,6 +176,12 @@ function isInput(el?: EventTarget | null) {
   return (el.tagName === 'INPUT' && textInputTypes.has((el as HTMLInputElement).type))
     || el.tagName === 'TEXTAREA'
     || (el.tagName === 'DIV' && el.isContentEditable);
+}
+
+function isInCompactModal(el?: EventTarget | null) {
+  if (!el || !(el instanceof HTMLElement)) return false;
+
+  return el.matches(COMPACT_MODAL_CSS_SELECTOR) || !!el.closest('.is-compact-modal');
 }
 
 function preventScrollOnFocus(el: HTMLDivElement) {

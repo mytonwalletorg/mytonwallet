@@ -8,6 +8,7 @@ import { ActiveTab, TransferState } from '../../types';
 import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { compareActivities } from '../../../util/compareActivities';
+import { fromDecimal, toDecimal } from '../../../util/decimals';
 import {
   buildCollectionByKey, findLast, mapValues, pick, unique,
 } from '../../../util/iteratees';
@@ -65,6 +66,15 @@ addActionHandler('startTransfer', (global, actions, payload) => {
 });
 
 addActionHandler('changeTransferToken', (global, actions, { tokenSlug }) => {
+  const { amount, tokenSlug: currentTokenSlug } = global.currentTransfer;
+  const currentToken = currentTokenSlug ? global.tokenInfo.bySlug[currentTokenSlug] : undefined;
+  const newToken = global.tokenInfo.bySlug[tokenSlug];
+
+  if (amount && currentToken?.decimals !== newToken?.decimals) {
+    global = updateCurrentTransfer(global, {
+      amount: fromDecimal(toDecimal(amount, currentToken?.decimals), newToken?.decimals),
+    });
+  }
   setGlobal(updateCurrentTransfer(global, { tokenSlug }));
 });
 

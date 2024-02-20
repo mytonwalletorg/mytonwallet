@@ -1,5 +1,6 @@
 import type { RefObject } from 'react';
 import type { BottomSheetKeys } from 'native-bottom-sheet';
+import { BottomSheet } from 'native-bottom-sheet';
 import type { TeactNode } from '../../lib/teact/teact';
 import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
@@ -99,6 +100,13 @@ function Modal({
     onBack: onClose,
   });
 
+  useEffect(() => {
+    if (!IS_DELEGATED_BOTTOM_SHEET || !isCompact) return;
+
+    // Expand NBS to full size for a compact modal window inside NBS
+    BottomSheet.setFullSize({ isEnabled: !!isOpen });
+  }, [isCompact, isOpen]);
+
   useEffect(
     () => (isOpen ? captureKeyboardListeners({
       onEnter,
@@ -173,6 +181,7 @@ function Modal({
     transitionClassNames,
     isSlideUp && styles.slideUpAnimation,
     isCompact && styles.compact,
+    isCompact && 'is-compact-modal',
     forceBottomSheet && styles.forceBottomSheet,
     isDelegatingToNative && styles.delegatingToNative,
   );

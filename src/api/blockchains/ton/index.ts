@@ -27,6 +27,7 @@ export {
   sendSignedMessages,
   decryptComment,
   waitUntilTransactionAppears,
+  fixTokenActivitiesAddressForm,
 } from './transactions';
 export {
   getAccountBalance,

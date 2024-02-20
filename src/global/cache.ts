@@ -32,7 +32,8 @@ const UPDATE_THROTTLE = IS_CAPACITOR ? 500 : 5000;
 const ACTIVITIES_LIMIT = 50;
 const ANIMATION_DELAY_MS = 320;
 
-const updateCacheThrottled = throttle(() => onIdle(updateCache), UPDATE_THROTTLE, false);
+const updateCacheThrottled = throttle(() => onIdle(() => updateCache()), UPDATE_THROTTLE, false);
+const updateCacheForced = () => updateCache(true);
 
 let isCaching = false;
 let unsubscribeFromBeforeUnload: NoneToVoidFunction | undefined;
@@ -54,6 +55,7 @@ export function initCache() {
       return;
     }
     setupCaching();
+    updateCache(true);
   });
 
   addActionHandler('afterSignOut', (global, actions, payload) => {
@@ -111,16 +113,16 @@ function setupCaching() {
       return;
     }
 
-    updateCache();
+    updateCache(true);
   }, true);
-  window.addEventListener('blur', updateCache);
+  window.addEventListener('blur', updateCacheForced);
   addCallback(updateCacheThrottled);
 }
 
 function clearCaching() {
   isCaching = false;
   removeCallback(updateCacheThrottled);
-  window.removeEventListener('blur', updateCache);
+  window.removeEventListener('blur', updateCacheForced);
   if (unsubscribeFromBeforeUnload) {
     unsubscribeFromBeforeUnload();
   }
@@ -334,12 +336,16 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 9;
   }
 
-  if (cached.stateVersion === 9) {
+  function clearActivities() {
     if (cached.byAccountId) {
       for (const accountId of Object.keys(cached.byAccountId)) {
         delete (cached.byAccountId[accountId] as any).activities;
       }
     }
+  }
+
+  if (cached.stateVersion === 9) {
+    clearActivities();
     cached.stateVersion = 10;
   }
 
@@ -351,11 +357,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   }
 
   if (cached.stateVersion === 11) {
-    if (cached.byAccountId) {
-      for (const accountId of Object.keys(cached.byAccountId)) {
-        delete cached.byAccountId[accountId].activities;
-      }
-    }
+    clearActivities();
     cached.stateVersion = 12;
   }
 
@@ -388,32 +390,29 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   }
 
   if (cached.stateVersion === 14) {
-    if (cached.byAccountId) {
-      for (const accountId of Object.keys(cached.byAccountId)) {
-        delete cached.byAccountId[accountId].activities;
-      }
-    }
+    clearActivities();
     cached.stateVersion = 15;
   }
 
   if (cached.stateVersion === 15) {
-    if (cached.byAccountId) {
-      for (const accountId of Object.keys(cached.byAccountId)) {
-        delete cached.byAccountId[accountId].activities;
-      }
-    }
+    clearActivities();
     cached.stateVersion = 16;
+  }
+
+  if (cached.stateVersion === 16) {
+    clearActivities();
+    cached.stateVersion = 17;
   }
 
   // When adding migration here, increase `STATE_VERSION`
 }
 
-function updateCache() {
+function updateCache(force?: boolean) {
   if (GLOBAL_STATE_CACHE_DISABLED) {
     return;
   }
 
-  if (!isCaching || isHeavyAnimating()) {
+  if (!isCaching || (!force && isHeavyAnimating())) {
     return;
   }
 

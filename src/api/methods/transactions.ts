@@ -27,7 +27,9 @@ export async function fetchTokenActivitySlice(accountId: string, slug: string, f
   const activeBlockchain = blockchains[blockchain];
   try {
     const transactions = await activeBlockchain.getTokenTransactionSlice(accountId, slug, fromTxId, undefined, limit);
-    return await swapReplaceTransactions(accountId, transactions, network, slug);
+    const activities = await swapReplaceTransactions(accountId, transactions, network, slug);
+    await activeBlockchain.fixTokenActivitiesAddressForm(network, activities);
+    return activities;
   } catch (err) {
     logDebugError('fetchTokenActivitySlice', err);
     return handleServerError(err);
@@ -39,7 +41,9 @@ export async function fetchAllActivitySlice(accountId: string, lastTxIds: ApiTxI
   const activeBlockchain = blockchains[blockchain];
   try {
     const transactions = await activeBlockchain.getMergedTransactionSlice(accountId, lastTxIds, limit);
-    return await swapReplaceTransactions(accountId, transactions, network);
+    const activities = await swapReplaceTransactions(accountId, transactions, network);
+    await activeBlockchain.fixTokenActivitiesAddressForm(network, activities);
+    return activities;
   } catch (err) {
     logDebugError('fetchAllActivitySlice', err);
     return handleServerError(err);
@@ -80,7 +84,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCr
   const localTransaction = createLocalTransaction(accountId, {
     amount,
     fromAddress,
-    toAddress: result.normalizedAddress,
+    toAddress,
     comment: shouldEncrypt ? undefined : comment,
     encryptedComment,
     fee: fee || 0n,

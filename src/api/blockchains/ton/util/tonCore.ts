@@ -15,8 +15,7 @@ import type { TokenTransferBodyParams } from '../types';
 import { WORKCHAIN } from '../../../types';
 
 import {
-  DEFAULT_API_TIMEOUT,
-  TONHTTPAPI_MAINNET_API_KEY,
+  DEFAULT_API_TIMEOUT, TONHTTPAPI_MAINNET_API_KEY,
   TONHTTPAPI_MAINNET_URL,
   TONHTTPAPI_TESTNET_API_KEY,
   TONHTTPAPI_TESTNET_URL,

@@ -7,7 +7,6 @@ export type AnyPayload = string | Cell | Uint8Array;
 
 export interface ApiTransactionExtra extends ApiTransaction {
   extraData: {
-    normalizedAddress: string;
     body?: string;
     parsedPayload?: ApiParsedPayload;
   };

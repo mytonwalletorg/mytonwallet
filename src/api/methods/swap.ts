@@ -86,6 +86,8 @@ export async function swapSubmit(
 
   const { amount, toAddress } = transfers[0];
 
+  const normalizedAddress = ton.normalizeAddress(toAddress);
+
   const from = getSwapItemSlug(historyItem, historyItem.from);
   const to = getSwapItemSlug(historyItem, historyItem.to);
 
@@ -102,7 +104,7 @@ export async function swapSubmit(
     pendingLtRanges.push([lt, lt + SWAP_MAX_LT]);
   }
 
-  whenTxComplete(toAddress, fromDecimal(amount)) // TODO
+  whenTxComplete(normalizedAddress, fromDecimal(amount)) // TODO
     .then(({ transaction }) => onTxComplete(transaction));
 
   onUpdate({

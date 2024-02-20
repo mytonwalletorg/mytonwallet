@@ -73,6 +73,7 @@ export interface ApiTransaction {
   fee: bigint;
   slug: string;
   isIncoming: boolean;
+  normalizedAddress: string;
   type?: ApiTransactionType;
   metadata?: ApiTransactionMetadata;
 }
@@ -179,7 +180,7 @@ export interface ApiSignedTransfer {
   params: ApiLocalTransactionParams;
 }
 
-export type ApiLocalTransactionParams = Omit<ApiTransaction, 'txId' | 'timestamp' | 'isIncoming'>;
+export type ApiLocalTransactionParams = Omit<ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'>;
 
 export type ApiBaseCurrency = 'USD' | 'EUR' | 'RUB' | 'CNY' | 'BTC' | 'TON';
 

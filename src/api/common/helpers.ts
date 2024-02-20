@@ -47,14 +47,13 @@ export function buildLocalTransaction(
   const { amount, ...restParams } = params;
 
   const transaction: ApiTransaction = updateTransactionMetadata({
+    ...restParams,
     txId: getNextLocalId(),
     timestamp: Date.now(),
     isIncoming: false,
     amount: -amount,
-    ...restParams,
-    extraData: {
-      normalizedAddress,
-    },
+    normalizedAddress,
+    extraData: {},
   });
 
   return {
@@ -65,14 +64,14 @@ export function buildLocalTransaction(
 }
 
 export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {
-  const { extraData, comment } = transaction;
+  const { normalizedAddress, comment } = transaction;
   let { metadata = {} } = transaction;
 
   const knownAddresses = getKnownAddresses();
   const scamMarkers = getScamMarkers();
 
-  if (extraData.normalizedAddress in knownAddresses) {
-    metadata = { ...metadata, ...knownAddresses[extraData.normalizedAddress] };
+  if (normalizedAddress in knownAddresses) {
+    metadata = { ...metadata, ...knownAddresses[normalizedAddress] };
   }
 
   if (comment && scamMarkers.map((sm) => sm.test(comment)).find(Boolean)) {

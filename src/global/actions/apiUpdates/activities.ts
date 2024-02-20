@@ -59,8 +59,11 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
       for (const activity of activities) {
         if (activity.kind === 'transaction') {
-          const localTransaction = localTransactions.find(({ amount, isIncoming, slug }) => {
-            return amount === activity.amount && !isIncoming && slug === activity.slug;
+          const localTransaction = localTransactions.find(({
+            amount, isIncoming, slug, normalizedAddress,
+          }) => {
+            return amount === activity.amount && !isIncoming && slug === activity.slug
+              && normalizedAddress === activity.normalizedAddress;
           });
 
           if (localTransaction) {

@@ -3,15 +3,15 @@ import type { ApiTransactionExtra } from '../types';
 
 import {
   TON_TOKEN_SLUG,
-  TONHTTPAPI_MAINNET_API_KEY,
-  TONHTTPAPI_TESTNET_API_KEY,
-  TONHTTPAPI_V3_MAINNET_API_KEY,
-  TONHTTPAPI_V3_TESTNET_API_KEY,
+  TONHTTPAPI_V3_MAINNET_API_URL,
+  TONHTTPAPI_V3_TESTNET_API_URL,
 } from '../../../../config';
 import { fetchJson } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
 import { parseTxId, stringifyTxId } from './index';
 import { toBase64Address } from './tonCore';
+
+type AddressBook = Record<string, { user_friendly: string }>;
 
 export async function fetchTransactions(
   network: ApiNetwork,
@@ -20,24 +20,22 @@ export async function fetchTransactions(
   toTxId?: string,
   fromTxId?: string,
 ): Promise<ApiTransactionExtra[]> {
-  const indexerUrl = network === 'testnet' ? TONHTTPAPI_V3_TESTNET_API_KEY : TONHTTPAPI_V3_MAINNET_API_KEY;
-  const apiKey = network === 'testnet' ? TONHTTPAPI_TESTNET_API_KEY : TONHTTPAPI_MAINNET_API_KEY;
-
   const fromLt = fromTxId ? parseTxId(fromTxId).lt.toString() : undefined;
   const toLt = toTxId ? parseTxId(toTxId).lt.toString() : undefined;
 
-  let { transactions: rawTransactions }: { transactions: any[] } = await fetchJson(`${indexerUrl}/transactions`, {
+  const data: {
+    transactions: any[];
+    address_book: AddressBook;
+  } = await callApiV3(network, '/transactions', {
     account: address,
     limit,
     start_lt: fromLt,
     end_lt: toLt,
     sort: 'desc',
-  }, {
-    headers: {
-      ...(apiKey && { 'X-Api-Key': apiKey }),
-      ...getEnvironment().apiHeaders,
-    },
   });
+
+  let { transactions: rawTransactions } = data;
+  const { address_book: addressBook } = data;
 
   if (!rawTransactions.length) {
     return [];
@@ -53,10 +51,12 @@ export async function fetchTransactions(
     }
   }
 
-  return rawTransactions.map(parseRawTransaction).flat();
+  return rawTransactions
+    .map((rawTx) => parseRawTransaction(rawTx, addressBook))
+    .flat();
 }
 
-function parseRawTransaction(rawTx: any): ApiTransactionExtra[] {
+function parseRawTransaction(rawTx: any, addressBook: AddressBook): ApiTransactionExtra[] {
   const {
     now,
     lt,
@@ -73,18 +73,21 @@ function parseRawTransaction(rawTx: any): ApiTransactionExtra[] {
 
   return msgs.map((msg, i) => {
     const { source, destination, value } = msg;
+    const fromAddress = addressBook[source].user_friendly;
+    const toAddress = addressBook[destination].user_friendly;
     const normalizedAddress = toBase64Address(isIncoming ? source : destination, true);
+
     return {
       txId: msgs.length > 1 ? `${txId}:${i + 1}` : txId,
       timestamp,
       isIncoming,
-      fromAddress: toBase64Address(source),
-      toAddress: toBase64Address(destination),
+      fromAddress,
+      toAddress,
       amount: isIncoming ? BigInt(value) : -BigInt(value),
       slug: TON_TOKEN_SLUG,
       fee: BigInt(fee),
+      normalizedAddress,
       extraData: {
-        normalizedAddress,
         body: getRawBody(msg),
       },
     };
@@ -94,4 +97,22 @@ function parseRawTransaction(rawTx: any): ApiTransactionExtra[] {
 function getRawBody(msg: any) {
   if (!msg.message_content) return undefined;
   return msg.message_content.body;
+}
+
+export function fetchAddressBook(network: ApiNetwork, addresses: string[]): Promise<AddressBook> {
+  return callApiV3(network, '/addressBook', {
+    address: addresses,
+  });
+}
+function callApiV3(network: ApiNetwork, path: string, data?: AnyLiteral) {
+  const { apiHeaders, tonhttpapiMainnetKey, tonhttpapiTestnetKey } = getEnvironment();
+  const baseUrl = network === 'testnet' ? TONHTTPAPI_V3_TESTNET_API_URL : TONHTTPAPI_V3_MAINNET_API_URL;
+  const apiKey = network === 'testnet' ? tonhttpapiTestnetKey : tonhttpapiMainnetKey;
+
+  return fetchJson(`${baseUrl}${path}`, data, {
+    headers: {
+      ...(apiKey && { 'X-Api-Key': apiKey }),
+      ...apiHeaders,
+    },
+  });
 }

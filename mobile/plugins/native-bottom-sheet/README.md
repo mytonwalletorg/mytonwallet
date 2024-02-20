@@ -22,7 +22,7 @@ npx cap sync
 * [`release(...)`](#release)
 * [`openSelf(...)`](#openself)
 * [`closeSelf(...)`](#closeself)
-* [`setSelfSize(...)`](#setselfsize)
+* [`setFullSize(...)`](#setfullsize)
 * [`openInMain(...)`](#openinmain)
 * [`addListener('delegate', ...)`](#addlistenerdelegate)
 * [`addListener('move', ...)`](#addlistenermove)
@@ -132,15 +132,15 @@ closeSelf(options: { key: BottomSheetKeys; }) => Promise<void>
 --------------------
 
 
-### setSelfSize(...)
+### setFullSize(...)
 
 ```typescript
-setSelfSize(options: { size: 'half' | 'full'; }) => Promise<void>
+setFullSize(options: { isEnabled: boolean; }) => Promise<void>
 ```
 
-| Param         | Type                                     |
-| ------------- | ---------------------------------------- |
-| **`options`** | <code>{ size: 'half' \| 'full'; }</code> |
+| Param         | Type                                 |
+| ------------- | ------------------------------------ |
+| **`options`** | <code>{ isEnabled: boolean; }</code> |
 
 --------------------
 

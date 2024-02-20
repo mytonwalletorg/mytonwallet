@@ -61,7 +61,7 @@ export async function submitStake(
   const localTransaction = createLocalTransaction(accountId, {
     amount: result.amount,
     fromAddress,
-    toAddress: result.normalizedAddress,
+    toAddress: result.toAddress,
     comment: STAKE_COMMENT,
     fee: fee || 0n,
     type: 'stake',
@@ -95,7 +95,7 @@ export async function submitUnstake(
   const localTransaction = createLocalTransaction(accountId, {
     amount: result.amount,
     fromAddress,
-    toAddress: result.normalizedAddress,
+    toAddress: result.toAddress,
     comment: UNSTAKE_COMMENT,
     fee: fee || 0n,
     type: 'unstakeRequest',

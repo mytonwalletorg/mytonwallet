@@ -2,6 +2,7 @@ import type { OpenedContract } from '@ton/core';
 import { Cell, internal, SendMode } from '@ton/core';
 
 import type {
+  ApiActivity,
   ApiAnyDisplayError,
   ApiNetwork,
   ApiSignedTransfer,
@@ -25,8 +26,8 @@ import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
+import { fetchAddressBook, fetchTransactions } from './util/apiV3';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
-import { fetchTransactions } from './util/indexer';
 import { parseWalletTransactionBody } from './util/metadata';
 import {
   commentToBytes,
@@ -68,7 +69,7 @@ export type CheckTransactionDraftResult = {
 };
 
 export type SubmitTransferResult = {
-  normalizedAddress: string;
+  toAddress: string;
   amount: bigint;
   seqno: number;
   encryptedComment?: string;
@@ -246,7 +247,7 @@ export async function checkTransactionDraft(
       network, wallet, toAddress, amount, data, stateInit,
     );
 
-    const realFee = await calculateFee(network, wallet, transaction);
+    const realFee = await calculateFee(network, wallet, transaction, account.isInitialized);
     result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
 
     const balance = await getWalletBalance(network, wallet);
@@ -287,16 +288,15 @@ export async function submitTransfer(
   const { network } = parseAccountId(accountId);
 
   try {
-    const [wallet, fromAddress, keyPair] = await Promise.all([
+    const [wallet, account, keyPair] = await Promise.all([
       pickAccountWallet(accountId),
-      fetchStoredAddress(accountId),
+      fetchStoredAccount(accountId),
       fetchKeyPair(accountId, password),
     ]);
+    const { address: fromAddress } = account;
     const { publicKey, secretKey } = keyPair!;
 
     let encryptedComment: string | undefined;
-    // Fix address format for `waitTxComplete` to work properly
-    const normalizedAddress = toBase64Address(toAddress);
 
     if (typeof data === 'string') {
       if (!data) {
@@ -332,7 +332,7 @@ export async function submitTransfer(
       network, wallet!, toAddress, amount, data, stateInit, secretKey,
     );
 
-    const fee = await calculateFee(network, wallet!, transaction);
+    const fee = await calculateFee(network, wallet!, transaction, account.isInitialized);
     if (balance < amount + fee) {
       return { error: ApiTransactionError.InsufficientBalance };
     }
@@ -342,7 +342,7 @@ export async function submitTransfer(
     updateLastTransfer(network, fromAddress, seqno);
 
     return {
-      normalizedAddress, amount, seqno, encryptedComment,
+      amount, seqno, encryptedComment, toAddress,
     };
   } catch (err: any) {
     logDebugError('submitTransfer', err);
@@ -536,6 +536,8 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
 
   let totalAmount: bigint = 0n;
 
+  const account = await fetchStoredAccount(accountId);
+
   try {
     for (const { toAddress, amount } of messages) {
       if (amount < 0n) {
@@ -557,7 +559,7 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
 
     const { transaction } = await signMultiTransaction(network, wallet, messages);
 
-    const realFee = await calculateFee(network, wallet, transaction);
+    const realFee = await calculateFee(network, wallet, transaction, account.isInitialized);
     result.totalAmount = totalAmount;
     result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
 
@@ -580,11 +582,13 @@ export async function submitMultiTransfer(
   const { network } = parseAccountId(accountId);
 
   try {
-    const [wallet, fromAddress, privateKey] = await Promise.all([
+    const [wallet, account, privateKey] = await Promise.all([
       pickAccountWallet(accountId),
-      fetchStoredAddress(accountId),
+      fetchStoredAccount(accountId),
       fetchPrivateKey(accountId, password),
     ]);
+
+    const { address: fromAddress } = account;
 
     let totalAmount = 0n;
     messages.forEach((message) => {
@@ -599,7 +603,7 @@ export async function submitMultiTransfer(
 
     const boc = transaction.toBoc().toString('base64');
 
-    const fee = await calculateFee(network, wallet!, transaction);
+    const fee = await calculateFee(network, wallet!, transaction, account.isInitialized);
     if (BigInt(balance) < BigInt(totalAmount) + BigInt(fee)) {
       return { error: ApiTransactionError.InsufficientBalance };
     }
@@ -708,15 +712,17 @@ async function waitIncrementSeqno(network: ApiNetwork, address: string, seqno: n
   return false;
 }
 
-async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction: Cell) {
+async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction: Cell, isInitialized?: boolean) {
+  // eslint-disable-next-line no-null/no-null
+  const { code = null, data = null } = !isInitialized ? wallet.init : {};
+
   const { source_fees: fees } = await getTonClient(network).estimateExternalMessageFee(wallet.address, {
     body: transaction,
-    // eslint-disable-next-line no-null/no-null
-    initCode: null,
-    // eslint-disable-next-line no-null/no-null
-    initData: null,
+    initCode: code,
+    initData: data,
     ignoreSignature: true,
   });
+
   return BigInt(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
 }
 
@@ -803,4 +809,28 @@ export async function fetchNewestTxId(network: ApiNetwork, address: string) {
   }
 
   return transactions[0].txId;
+}
+
+export async function fixTokenActivitiesAddressForm(network: ApiNetwork, activities: ApiActivity[]) {
+  const tokenAddresses: Set<string> = new Set();
+
+  for (const activity of activities) {
+    if (activity.kind === 'transaction' && activity.slug !== TON_TOKEN_SLUG) {
+      tokenAddresses.add(activity.fromAddress);
+      tokenAddresses.add(activity.toAddress);
+    }
+  }
+
+  if (!tokenAddresses.size) {
+    return;
+  }
+
+  const addressBook = await fetchAddressBook(network, Array.from(tokenAddresses));
+
+  for (const activity of activities) {
+    if (activity.kind === 'transaction' && activity.slug !== TON_TOKEN_SLUG) {
+      activity.fromAddress = addressBook[activity.fromAddress].user_friendly;
+      activity.toAddress = addressBook[activity.toAddress].user_friendly;
+    }
+  }
 }

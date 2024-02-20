@@ -355,6 +355,8 @@ async function processNewActivities(
     txCallbacks.runCallbacks(transaction);
   });
 
+  await activeBlockchain.fixTokenActivitiesAddressForm(network, allActivities);
+
   onUpdate({
     type: 'newActivities',
     activities: allActivities,

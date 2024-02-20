@@ -22,6 +22,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
     public var currentOpenSelfCall: CAPPluginCall?
     var currentHalfY: CGFloat?
     var prevStatusBarStyle: UIStatusBarStyle?
+    var wasHalfSize = true
 
     @objc func prepare(_ call: CAPPluginCall) {
         ensureLocalOrigin()
@@ -191,7 +192,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
         }
     }
 
-    @objc func setSelfSize(_ call: CAPPluginCall) {
+    @objc func setFullSize(_ call: CAPPluginCall) {
         ensureLocalOrigin()
         ensureDelegated()
 
@@ -202,18 +203,30 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
                 return
             }
 
-            let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
+            let topVc = self.bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
             let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
-            let toFull = call.getString("size") == "full"
+            let isFullSizeEnabled = call.getBool("isEnabled") == true
             let layout = topBottomSheetPlugin.fpc.layout as! MyPanelLayout
 
-            if toFull && layout.anchors[.full] == nil {
-                layout.anchors[.full] = layout.fullAnchor
-            }
+            if isFullSizeEnabled {
+                if layout.anchors[.full] != nil {
+                    return
+                }
 
-            topBottomSheetPlugin.animateTo(to: toFull ? .full : .half)
+                wasHalfSize = true
+                layout.anchors[.full] = layout.fullAnchor
+                topBottomSheetPlugin.animateTo(to: .full)
+            } else {
+                if !wasHalfSize {
+                    return
+                }
+
+                layout.anchors[.full] = nil
+                topBottomSheetPlugin.animateTo(to: .half)
+            }
         }
     }
+
 
     @objc func openInMain(_ call: CAPPluginCall) {
         ensureLocalOrigin()
@@ -272,6 +285,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             return
         }
 
+        wasHalfSize = false
         animateTo(to: .hidden)
     }
 

@@ -80,7 +80,7 @@ addActionHandler('afterInit', (global) => {
   void setLanguage(langCode);
   clearPreviousLangpacks();
 
-  if (!IS_CAPACITOR && !IS_EXTENSION && !IS_ELECTRON) {
+  if (!IS_CAPACITOR) {
     document.addEventListener('click', initializeSounds, { once: true });
   }
 });

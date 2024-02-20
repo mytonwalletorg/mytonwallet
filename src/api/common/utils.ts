@@ -36,12 +36,23 @@ export function isKnownStakingPool(address: string) {
   return STAKING_POOLS.some((poolPart) => address.endsWith(poolPart));
 }
 
-export async function fetchJson(url: string, data?: AnyLiteral, init?: RequestInit) {
+type QueryParams = Record<string, string | number | boolean | string[]>;
+
+export async function fetchJson(url: string, data?: QueryParams, init?: RequestInit) {
   const urlObject = new URL(url);
   if (data) {
     Object.entries(data).forEach(([key, value]) => {
-      if (value === undefined) return;
-      urlObject.searchParams.set(key, value.toString());
+      if (value === undefined) {
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          urlObject.searchParams.append(key, item.toString());
+        });
+      } else {
+        urlObject.searchParams.set(key, value.toString());
+      }
     });
   }
 
