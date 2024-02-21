@@ -1,6 +1,5 @@
 import type { TokenBalanceParsed } from '../blockchains/ton/tokens';
 import type {
-  ApiActivity,
   ApiBackendStakingState,
   ApiBalanceBySlug,
   ApiBaseCurrency,
@@ -35,7 +34,7 @@ import { processNftUpdates, updateNfts } from './nfts';
 import { getBaseCurrency } from './prices';
 import { getBackendStakingState, getStakingCommonData, tryUpdateStakingCommonData } from './staking';
 import {
-  swapGetAssets, swapGetHistory, swapItemToActivity, swapReplaceTransactions,
+  swapGetAssets, swapGetHistory, swapItemToActivity, swapReplaceTransactionsByRanges,
 } from './swap';
 
 type IsAccountActiveFn = (accountId: string) => boolean;
@@ -295,9 +294,7 @@ async function processNewActivities(
   const { network, blockchain } = parseAccountId(accountId);
   const activeBlockchain = blockchains[blockchain];
 
-  let allTransactions: ApiTransactionActivity[] = [];
-  let allActivities: ApiActivity[] = [];
-
+  const chunks: ApiTransactionActivity[][] = [];
   const result: [string, string | undefined][] = [];
 
   // Process TON transactions first
@@ -308,13 +305,10 @@ async function processNewActivities(
     const transactions = await activeBlockchain.getTokenTransactionSlice(
       accountId, slug, undefined, newestTxId, FIRST_TRANSACTIONS_LIMIT,
     );
-    const activities = await swapReplaceTransactions(accountId, transactions, network, slug);
 
     if (transactions.length) {
       newestTxId = transactions[0]!.txId;
-
-      allActivities = allActivities.concat(activities);
-      allTransactions = allTransactions.concat(transactions);
+      chunks.push(transactions);
     }
 
     result.push([slug, newestTxId]);
@@ -331,35 +325,36 @@ async function processNewActivities(
     });
   }
 
+  // Process token transactions
   await Promise.all(tokenSlugs.map(async (slug) => {
     let newestTxId = newestTxIds[slug];
 
     const transactions = await activeBlockchain.getTokenTransactionSlice(
       accountId, slug, undefined, newestTxId, FIRST_TRANSACTIONS_LIMIT,
     );
-    const activities = await swapReplaceTransactions(accountId, transactions, network, slug);
 
     if (transactions.length) {
       newestTxId = transactions[0]!.txId;
-
-      allActivities = allActivities.concat(activities);
-      allTransactions = allTransactions.concat(transactions);
+      chunks.push(transactions);
     }
 
     result.push([slug, newestTxId]);
   }));
 
-  allTransactions.sort((a, b) => compareActivities(a, b, true));
+  const allTransactions = chunks.flat().sort((a, b) => compareActivities(a, b));
+  const isFirstRun = !Object.keys(newestTxIds).length;
+  const activities = await swapReplaceTransactionsByRanges(accountId, allTransactions, chunks, isFirstRun);
 
+  allTransactions.sort((a, b) => compareActivities(a, b, true));
   allTransactions.forEach((transaction) => {
     txCallbacks.runCallbacks(transaction);
   });
 
-  await activeBlockchain.fixTokenActivitiesAddressForm(network, allActivities);
+  await activeBlockchain.fixTokenActivitiesAddressForm(network, activities);
 
   onUpdate({
     type: 'newActivities',
-    activities: allActivities,
+    activities,
     accountId,
   });
 

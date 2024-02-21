@@ -73,7 +73,7 @@ export type ApiSwapHistoryItem = {
   networkFee: number;
   swapFee: string;
   status: 'pending' | 'completed' | 'failed' | 'expired';
-  txId?: string;
+  txIds: string[];
   cex?: {
     payinAddress: string;
     payinExtraId?: string;

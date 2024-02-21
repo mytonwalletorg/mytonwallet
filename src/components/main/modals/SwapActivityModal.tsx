@@ -62,7 +62,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     : (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
   const renderedActivity = usePrevDuringAnimation(activity, animationDuration);
 
-  const { txId, timestamp, networkFee = 0 } = renderedActivity ?? {};
+  const { txIds, timestamp, networkFee = 0 } = renderedActivity ?? {};
 
   let fromToken: ApiSwapAsset | undefined;
   let toToken: ApiSwapAsset | undefined;
@@ -125,7 +125,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     }
   }
 
-  const [, transactionHash] = (txId || '').split(':');
+  const [, transactionHash] = (txIds?.[0] || '').split(':');
   const tonscanBaseUrl = TONSCAN_BASE_MAINNET_URL;
   const tonscanTransactionUrl = transactionHash ? `${tonscanBaseUrl}tx/${transactionHash}` : undefined;
 

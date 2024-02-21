@@ -6,12 +6,15 @@ import {
   TONHTTPAPI_V3_MAINNET_API_URL,
   TONHTTPAPI_V3_TESTNET_API_URL,
 } from '../../../../config';
+import { split } from '../../../../util/iteratees';
 import { fetchJson } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
 import { parseTxId, stringifyTxId } from './index';
 import { toBase64Address } from './tonCore';
 
 type AddressBook = Record<string, { user_friendly: string }>;
+
+const ADDRESS_BOOK_CHUNK_SIZE = 128;
 
 export async function fetchTransactions(
   network: ApiNetwork,
@@ -99,11 +102,20 @@ function getRawBody(msg: any) {
   return msg.message_content.body;
 }
 
-export function fetchAddressBook(network: ApiNetwork, addresses: string[]): Promise<AddressBook> {
-  return callApiV3(network, '/addressBook', {
-    address: addresses,
-  });
+export async function fetchAddressBook(network: ApiNetwork, addresses: string[]): Promise<AddressBook> {
+  const chunks = split(addresses, ADDRESS_BOOK_CHUNK_SIZE);
+
+  const results = await Promise.all(chunks.map((chunk) => {
+    return callApiV3(network, '/addressBook', {
+      address: chunk,
+    });
+  }));
+
+  return results.reduce((acc, value) => {
+    return Object.assign(acc, value);
+  }, {} as AddressBook);
 }
+
 function callApiV3(network: ApiNetwork, path: string, data?: AnyLiteral) {
   const { apiHeaders, tonhttpapiMainnetKey, tonhttpapiTestnetKey } = getEnvironment();
   const baseUrl = network === 'testnet' ? TONHTTPAPI_V3_TESTNET_API_URL : TONHTTPAPI_V3_MAINNET_API_URL;

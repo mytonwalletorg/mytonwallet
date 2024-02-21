@@ -215,6 +215,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     toAmount: options.toAmount,
     networkFee: global.currentSwap.networkFee!,
     swapFee: global.currentSwap.swapFee!,
+    txIds: [],
   };
 
   const result = await callApi(
