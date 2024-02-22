@@ -279,10 +279,10 @@ export async function migrateStorage(onUpdate: OnApiUpdate) {
           await apiDb.sseConnections.bulkPut(items);
         }
       }
-
-      version = 9;
-      await storage.setItem('stateVersion', version);
     }
+
+    version = 9;
+    await storage.setItem('stateVersion', version);
   }
 
   if (version === 9) {

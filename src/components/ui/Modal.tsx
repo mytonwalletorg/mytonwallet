@@ -103,8 +103,8 @@ function Modal({
   useEffect(() => {
     if (!IS_DELEGATED_BOTTOM_SHEET || !isCompact) return;
 
-    // Expand NBS to full size for a compact modal window inside NBS
-    BottomSheet.setFullSize({ isEnabled: !!isOpen });
+    // Expand NBS to full size for a compact modal inside NBS
+    BottomSheet.toggleSelfFullSize({ isFullSize: !!isOpen });
   }, [isCompact, isOpen]);
 
   useEffect(

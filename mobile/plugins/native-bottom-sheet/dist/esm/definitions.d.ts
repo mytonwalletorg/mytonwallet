@@ -21,8 +21,8 @@ export interface BottomSheetPlugin {
     closeSelf(options: {
         key: BottomSheetKeys;
     }): Promise<void>;
-    setFullSize(options: {
-        isEnabled: boolean;
+    toggleSelfFullSize(options: {
+        isFullSize: boolean;
     }): Promise<void>;
     openInMain(options: {
         key: BottomSheetKeys;

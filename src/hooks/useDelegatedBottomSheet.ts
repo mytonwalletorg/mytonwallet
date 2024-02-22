@@ -99,7 +99,7 @@ export function useDelegatedBottomSheet(
     // Skip initial opening
     if (forceFullNative !== undefined && prevForceFullNative === undefined) return;
 
-    BottomSheet.setFullSize({ isEnabled: forceFullNative });
+    BottomSheet.toggleSelfFullSize({ isFullSize: forceFullNative });
   }, [forceFullNative, isDelegatedAndOpen]);
 
   useLayoutEffect(() => {
@@ -121,7 +121,7 @@ export function useDelegatedBottomSheet(
 
       preventScrollOnFocus(dialogEl);
 
-      BottomSheet.setFullSize({ isEnabled: true });
+      BottomSheet.toggleSelfFullSize({ isFullSize: true });
     }
 
     function onBlur(e: FocusEvent) {
@@ -131,7 +131,7 @@ export function useDelegatedBottomSheet(
 
       blurTimeout = window.setTimeout(() => {
         blurTimeout = undefined;
-        BottomSheet.setFullSize({ isEnabled: false });
+        BottomSheet.toggleSelfFullSize({ isFullSize: false });
       }, BLUR_TIMEOUT);
     }
 

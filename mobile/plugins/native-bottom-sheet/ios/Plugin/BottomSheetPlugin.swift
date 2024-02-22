@@ -22,7 +22,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
     public var currentOpenSelfCall: CAPPluginCall?
     var currentHalfY: CGFloat?
     var prevStatusBarStyle: UIStatusBarStyle?
-    var wasHalfSize = true
+    public var isHalfSize = false
 
     @objc func prepare(_ call: CAPPluginCall) {
         ensureLocalOrigin()
@@ -192,7 +192,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
         }
     }
 
-    @objc func setFullSize(_ call: CAPPluginCall) {
+    @objc func toggleSelfFullSize(_ call: CAPPluginCall) {
         ensureLocalOrigin()
         ensureDelegated()
 
@@ -205,25 +205,19 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
 
             let topVc = self.bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
             let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
-            let isFullSizeEnabled = call.getBool("isEnabled") == true
+
+            if !topBottomSheetPlugin.isHalfSize {
+                return
+            }
+
+            let isFullSize = call.getBool("isFullSize") == true
             let layout = topBottomSheetPlugin.fpc.layout as! MyPanelLayout
 
-            if isFullSizeEnabled {
-                if layout.anchors[.full] != nil {
-                    return
-                }
-
-                wasHalfSize = true
+            if isFullSize && layout.anchors[.full] == nil {
                 layout.anchors[.full] = layout.fullAnchor
-                topBottomSheetPlugin.animateTo(to: .full)
-            } else {
-                if !wasHalfSize {
-                    return
-                }
-
-                layout.anchors[.full] = nil
-                topBottomSheetPlugin.animateTo(to: .half)
             }
+
+            topBottomSheetPlugin.animateTo(to: isFullSize ? .full : .half)
         }
     }
 
@@ -269,12 +263,14 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             currentHalfY = screenHeight - screenHeight * newFractionalInset
             toggleExtraScroll(false)
             animateTo(to: .half)
+            isHalfSize = true
         } else {
             layout.anchors[.half] = nil
             layout.anchors[.full] = layout.fullAnchor
             currentHalfY = screenHeight - screenHeight * HALF_FRACTIONAL_INSET
             toggleExtraScroll(true)
             animateTo(to: .full)
+            isHalfSize = false
         }
     }
 
@@ -285,7 +281,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             return
         }
 
-        wasHalfSize = false
+        isHalfSize = false
         animateTo(to: .hidden)
     }
 

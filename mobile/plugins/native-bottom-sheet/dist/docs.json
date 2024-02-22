@@ -128,20 +128,20 @@
         "slug": "closeself"
       },
       {
-        "name": "setFullSize",
-        "signature": "(options: { isEnabled: boolean; }) => Promise<void>",
+        "name": "toggleSelfFullSize",
+        "signature": "(options: { isFullSize: boolean; }) => Promise<void>",
         "parameters": [
           {
             "name": "options",
             "docs": "",
-            "type": "{ isEnabled: boolean; }"
+            "type": "{ isFullSize: boolean; }"
           }
         ],
         "returns": "Promise<void>",
         "tags": [],
         "docs": "",
         "complexTypes": [],
-        "slug": "setfullsize"
+        "slug": "toggleselffullsize"
       },
       {
         "name": "openInMain",

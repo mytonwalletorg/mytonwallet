@@ -264,6 +264,8 @@
 }
 
 .footerBlock {
+  --background-color: var(--color-background-window);
+
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -273,6 +275,8 @@
 }
 
 .footerBlockStatic {
+  --background-color: var(--color-background-first);
+
   margin-top: 2rem;
 }
 
@@ -409,7 +413,7 @@
   height: 2.75rem;
 
   :global(.Transition_slide) {
-    background: var(--color-background-first);
+    background: var(--background-color);
   }
 }
 
