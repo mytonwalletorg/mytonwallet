@@ -23,6 +23,8 @@ import type {
   ApiUpdateDappConnect,
   ApiUpdateDappLoading,
   ApiUpdateDappSendTransactions,
+  ApiWalletInfo,
+  ApiWalletVersion,
 } from '../api/types';
 import type { AuthConfig } from '../util/authApi/types';
 import type { LedgerWalletInfo } from '../util/ledger/types';
@@ -188,6 +190,7 @@ export enum SettingsState {
   Disclaimer,
   NativeBiometricsTurnOn,
   SelectTokenList,
+  WalletVersion,
 }
 
 export enum ActiveTab {
@@ -454,6 +457,11 @@ export type GlobalState = {
 
   byAccountId: Record<string, AccountState>;
 
+  walletVersions?: {
+    currentVersion: ApiWalletVersion;
+    byId: Record<string, ApiWalletInfo[]>;
+  };
+
   settings: {
     state: SettingsState;
     theme: Theme;
@@ -544,6 +552,7 @@ export interface ActionPayloads {
   afterSelectHardwareWallets: { hardwareSelectedIndices: number[] };
   resetApiSettings: { areAllDisabled?: boolean } | undefined;
   checkAppVersion: undefined;
+  importAccountByVersion: { version: ApiWalletVersion };
 
   selectToken: { slug?: string } | undefined;
   openBackupWalletModal: undefined;

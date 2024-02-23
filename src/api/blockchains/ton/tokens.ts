@@ -60,6 +60,11 @@ export async function getAccountTokenBalances(accountId: string) {
   return balancesRaw.map(parseTokenBalance).filter(Boolean);
 }
 
+export async function getAddressTokenBalances(address: string, network: ApiNetwork) {
+  const balancesRaw: Array<JettonBalance> = await fetchJettonBalances(network, address);
+  return balancesRaw.map(parseTokenBalance).filter(Boolean);
+}
+
 function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed | undefined {
   if (!balanceRaw.jetton) {
     return undefined;

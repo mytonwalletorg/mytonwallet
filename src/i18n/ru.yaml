@@ -83,10 +83,6 @@ $about_community_link_text: "**Telegram-канал**"
 Currency History: График курса
 $add_account_description1: |
   **MyTonWallet** позволяет легко переключаться между **несколькими учётными записями**.
-$add_account_description2: |
-  Добавьте **новый кошелёк** или
-  **восстановите** любой из существующих,
-  используя 24 секретных слова.
 Enter Password: Введите пароль
 Send: Отправить
 Add Wallet: Добавить
@@ -531,5 +527,12 @@ $unstake_up_to_information: Мгновенно – до %value%
 $all_balance: "Все: %balance%"
 $unstaking_not_enough_balance: Вам необходимо иметь %value% на вашем основном балансе, чтобы продолжить вывод.
 $ledger_verify_address_on_device: Пожалуйста, проверьте адрес в вашем Ledger.
+Wallet Versions: Версии кошельков
+$read_more_about_wallet_version: Узнайте больше о типах контрактов кошельков на %ton_link%.
+$current_wallet_version: Ваша текущая версия кошелька %version%.
+You have tokens on other versions of your wallet. You can import them from here.: У вас есть токены на других версиях вашего кошелька. Вы можете импортировать их отсюда.
+$wallet_switch_version_1: Вы также можете %action%.
+$wallet_switch_version_2: переключиться на другую версию кошелька
+or import from: или импортировать из
 $insufficient_fee: "Недостаточно для комиссии: %fee%"
 Required: Обязательно

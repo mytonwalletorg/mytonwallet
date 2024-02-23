@@ -165,6 +165,24 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         isOnRampDisabled: IS_IOS_APP && isLimitedRegion,
       });
       setGlobal(global);
+      break;
+    }
+
+    case 'updateWalletVersions': {
+      const { accountId, versions, currentVersion } = update;
+      global = {
+        ...global,
+        walletVersions: {
+          ...global.walletVersions,
+          currentVersion,
+          byId: {
+            ...global.walletVersions?.byId,
+            [accountId]: versions,
+          },
+        },
+      };
+      setGlobal(global);
+      break;
     }
   }
 });

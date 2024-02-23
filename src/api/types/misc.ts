@@ -193,3 +193,11 @@ export enum ApiLiquidUnstakeMode {
 export type ApiLoyaltyType = 'black' | 'platinum' | 'gold' | 'silver' | 'standard';
 
 export type ApiBalanceBySlug = Record<string, bigint>;
+
+export type ApiWalletInfo = {
+  address: string;
+  version: ApiWalletVersion;
+  balance: bigint;
+  isInitialized: boolean;
+  lastTxId?: string;
+};

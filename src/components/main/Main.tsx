@@ -107,7 +107,7 @@ function Main({
     const rootMarginTop = STICKY_CARD_INTERSECTION_THRESHOLD - safeAreaTop;
     const observer = new IntersectionObserver((entries) => {
       const { isIntersecting, boundingClientRect: { left, width } } = entries[0];
-      setCanRenderStickyCard(entries.length > 0 && !isIntersecting && left >= 0 && left < width);
+      setCanRenderStickyCard(entries.length > 0 && !isIntersecting && left < width);
     }, { rootMargin: `${rootMarginTop}px 0px 0px` });
 
     const cardTopSideObserver = new IntersectionObserver((entries) => {

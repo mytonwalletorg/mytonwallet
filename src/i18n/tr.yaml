@@ -83,10 +83,6 @@ Currency History: Para birimi geçmişi
 $add_account_description1: |
   **MyTonWallet** **birden fazla cüzdan hesabı**
   arasında sorunsuz şekilde geçiş yapmanıza imkan verir.
-$add_account_description2: |
-  Bu özelliği yeni bir cüzdan **yaratarak**
-  ya da mevcut cüzdanınızın 24 gizli kelimesini
-  **içeri aktararak** deneyebilirsiniz.
 Enter Password: Şifre girin
 Send: Gönder
 Add Wallet: Cüzdan ekleyin
@@ -532,5 +528,12 @@ $unstake_up_to_information: Anında – en fazla %value%
 $all_balance: "Tümü: %balance%"
 $unstaking_not_enough_balance: Stake iptal işlemine devam etmek için ana bakiyenizde %value% olması gerekmektedir.
 $ledger_verify_address_on_device: Lütfen Ledger'ınızdaki adresi doğrulayın.
+Wallet Versions: Cüzdan Versiyonları
+$read_more_about_wallet_version: "%ton_link% üzerinde cüzdan sözleşmeleri türleri hakkında daha fazla bilgi edinin."
+$current_wallet_version: Mevcut cüzdan versiyonunuz %version%.
+You have tokens on other versions of your wallet. You can import them from here.: Cüzdanınızın diğer versiyonlarında tokenleriniz var. Buradan içe aktarabilirsiniz.
+$wallet_switch_version_1: Ayrıca %action% yapabilirsiniz.
+$wallet_switch_version_2: başka bir cüzdan versiyonuna geçiş yap
+or import from: veya şuradan içe aktar
 $insufficient_fee: "Yetersiz ücret: %fee%"
 Required: Gerekli

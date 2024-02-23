@@ -13,10 +13,11 @@ import type {
   ApiTokenPrice,
   ApiTransactionActivity,
   ApiTxIdBySlug,
+  ApiWalletInfo,
   OnApiUpdate,
 } from '../types';
 
-import { DEFAULT_PRICE_CURRENCY, TON_TOKEN_SLUG } from '../../config';
+import { DEFAULT_PRICE_CURRENCY, POPULAR_WALLET_VERSIONS, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { compareActivities } from '../../util/compareActivities';
@@ -30,6 +31,7 @@ import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet } from '../common/backend';
 import { isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
 import { txCallbacks } from '../common/txCallbacks';
+import { hexToBytes } from '../common/utils';
 import { processNftUpdates, updateNfts } from './nfts';
 import { getBaseCurrency } from './prices';
 import { getBackendStakingState, getStakingCommonData, tryUpdateStakingCommonData } from './staking';
@@ -50,6 +52,8 @@ const NFT_FULL_INTERVAL = 60 * SEC;
 const SWAP_POLLING_INTERVAL = 3 * SEC;
 const SWAP_POLLING_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
 const SWAP_FINISHED_STATUSES = new Set(['failed', 'completed', 'expired']);
+const VERSIONS_INTERVAL = 5 * 60 * SEC;
+const VERSIONS_INTERVAL_WHEN_NOT_FOCUSED = 15 * 60 * SEC;
 
 const FIRST_TRANSACTIONS_LIMIT = 50;
 const DOUBLE_CHECK_TOKENS_PAUSE = 30 * SEC;
@@ -578,4 +582,43 @@ function logAndRescue(err: Error) {
 
 export async function waitDataPreload() {
   await preloadEnsurePromise;
+}
+
+export async function setupWalletVersionsPolling(accountId: string) {
+  const { ton } = blockchains;
+
+  const localOnUpdate = onUpdate;
+
+  const { publicKey, version } = await fetchStoredAccount(accountId);
+  const publicKeyBytes = hexToBytes(publicKey);
+  const { network } = parseAccountId(accountId);
+
+  const versions = POPULAR_WALLET_VERSIONS.filter((value) => value !== version);
+  let lastResult: ApiWalletInfo[] | undefined;
+
+  while (isAlive(localOnUpdate, accountId)) {
+    try {
+      const versionInfos = (await ton.getWalletVersionInfos(
+        network, publicKeyBytes, versions,
+      )).filter(({ lastTxId }) => !!lastTxId);
+
+      const filteredVersions = versionInfos.map(({ wallet, ...rest }) => rest);
+
+      if (!isAlive(localOnUpdate, accountId)) return;
+
+      if (!areDeepEqual(versionInfos, lastResult)) {
+        lastResult = versionInfos;
+        onUpdate({
+          type: 'updateWalletVersions',
+          accountId,
+          currentVersion: version,
+          versions: filteredVersions,
+        });
+      }
+    } catch (err) {
+      logDebugError('setupWalletVersionsPolling', err);
+    }
+
+    await pauseOrFocus(VERSIONS_INTERVAL, VERSIONS_INTERVAL_WHEN_NOT_FOCUSED);
+  }
 }

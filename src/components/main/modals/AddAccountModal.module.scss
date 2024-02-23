@@ -1,10 +1,10 @@
 @import "../../../styles/mixins";
 
 .modalDialog {
-  height: 38.5rem;
+  height: 35rem;
 
   @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(38.5rem + env(safe-area-inset-bottom));
+    height: calc(35rem + env(safe-area-inset-bottom));
   }
 }
 
@@ -40,18 +40,41 @@
 .modalButtons {
   display: flex;
   flex-direction: column;
+  gap: 2rem;
   align-items: center;
+  justify-content: flex-end;
 
-  margin-top: auto;
+  height: 100%;
 }
 
 .importText {
-  margin-top: 1.875rem;
+  position: relative;
 
-  font-size: 1.0625rem !important;
-  font-weight: 600;
+  font-size: 0.9375rem !important;
+  font-weight: 400;
   line-height: 1.0625rem;
   color: var(--color-gray-3);
+
+  &::before,
+  &::after {
+    content: '';
+
+    position: absolute;
+    right: 0;
+    bottom: 0.5rem;
+    left: -5.125rem;
+
+    width: 4.5rem;
+    height: 0.0625rem;
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: inset 0 -0.0375rem 0 0 var(--color-separator);
+  }
+
+  &::after {
+    position: absolute;
+    right: -5.125rem;
+    left: auto;
+  }
 }
 
 .importButtons {
@@ -62,12 +85,15 @@
   justify-items: center;
 
   width: 100%;
-  margin: 0.875rem 0 1rem;
   padding: 0 1rem;
+}
+
+.importButtonsWithMargin {
+  margin-bottom: 1rem;
 
   @include respond-below(xs) {
-    @supports (margin-bottom: max(env(safe-area-inset-bottom), 1rem)) {
-      margin-bottom: max(env(safe-area-inset-bottom), 1rem);
+    @supports (margin-bottom: max(env(safe-area-inset-bottom), 1.5rem)) {
+      margin-bottom: max(env(safe-area-inset-bottom), 1.5rem);
     }
   }
 }
@@ -84,3 +110,27 @@
     width: stretch;
   }
 }
+
+.walletVersionBlock {
+  display: flex;
+
+  margin-bottom: 1rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-gray-2);
+  text-align: center;
+
+  @include respond-below(xs) {
+    @supports (margin-bottom: max(env(safe-area-inset-bottom), 1.5rem)) {
+      margin-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+    }
+  }
+}
+
+.walletVersionText {
+  display: inline;
+
+  color: var(--color-blue);
+}
+

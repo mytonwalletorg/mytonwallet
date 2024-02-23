@@ -77,6 +77,11 @@
     :global(html.is-windows.is-opera.is-extension) & {
       top: 4.75rem;
     }
+
+    // Sticky header height - electron header height
+    :global(html.is-electron) & {
+      top: 0.75rem;
+    }
   }
 }
 

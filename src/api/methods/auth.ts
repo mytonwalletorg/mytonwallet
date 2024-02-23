@@ -1,17 +1,23 @@
 import type { LedgerWalletInfo } from '../../util/ledger/types';
-import type { ApiAccount, ApiNetwork, ApiTxIdBySlug } from '../types';
+import type { TonWallet } from '../blockchains/ton/util/tonCore';
+import type {
+  ApiAccount, ApiNetwork, ApiTxIdBySlug, ApiWalletVersion,
+} from '../types';
 import { ApiCommonError } from '../types';
 
+import { DEFAULT_WALLET_VERSION } from '../../config';
+import { parseAccountId } from '../../util/account';
 import blockchains from '../blockchains';
 import { toBase64Address } from '../blockchains/ton/util/tonCore';
 import {
-  getAccountIds,
+  fetchStoredAccount,
+  getAccountIds, getAccountValue,
   getNewAccountId,
   removeAccountValue,
   removeNetworkAccountsValue,
   setAccountValue,
 } from '../common/accounts';
-import { bytesToHex } from '../common/utils';
+import { bytesToHex, hexToBytes } from '../common/utils';
 import { apiDb } from '../db';
 import { getEnvironment } from '../environment';
 import { handleServerError } from '../errors';
@@ -36,13 +42,16 @@ export async function createWallet(network: ApiNetwork, mnemonic: string[], pass
 
   const seedBase64 = await mnemonicToSeed(mnemonic);
   const { publicKey } = seedToKeyPair(seedBase64);
-  const address = await publicKeyToAddress(network, publicKey);
+  const version = DEFAULT_WALLET_VERSION;
+  const address = publicKeyToAddress(network, publicKey, version);
 
   const accountId = await getNewAccountId(network);
   const result = await storeAccount(accountId, mnemonic, password, {
     address,
     publicKey: bytesToHex(publicKey),
+    version,
   });
+
   if ('error' in result) {
     return result as { error: string };
   }
@@ -72,10 +81,11 @@ export async function importMnemonic(network: ApiNetwork, mnemonic: string[], pa
 
   const seedBase64 = await mnemonicToSeed(mnemonic);
   const { publicKey } = seedToKeyPair(seedBase64);
-  let wallet: Awaited<ReturnType<typeof pickBestWallet>>;
+  let wallet: TonWallet;
+  let version: ApiWalletVersion;
 
   try {
-    wallet = await pickBestWallet(network, publicKey);
+    ({ wallet, version } = await pickBestWallet(network, publicKey));
   } catch (err: any) {
     return handleServerError(err);
   }
@@ -86,7 +96,9 @@ export async function importMnemonic(network: ApiNetwork, mnemonic: string[], pa
   const result = await storeAccount(accountId, mnemonic, password, {
     publicKey: bytesToHex(publicKey),
     address,
+    version,
   });
+
   if ('error' in result) {
     return result as { error: string };
   }
@@ -119,6 +131,35 @@ export async function importLedgerWallet(network: ApiNetwork, walletInfo: Ledger
   void activateAccount(accountId);
 
   return { accountId, address, walletInfo };
+}
+
+export async function importNewWalletVersion(accountId: string, version: ApiWalletVersion) {
+  const { publicKeyToAddress } = blockchains.ton;
+  const { network } = parseAccountId(accountId);
+
+  const account = await fetchStoredAccount(accountId);
+  const mnemonicEncrypted = await getAccountValue(accountId, 'mnemonicsEncrypted');
+  const publicKey = hexToBytes(account.publicKey);
+
+  const newAddress = publicKeyToAddress(network, publicKey, version);
+  const newAccountId = await getNewAccountId(network);
+  const newAccount: ApiAccount = {
+    address: newAddress,
+    publicKey: account.publicKey,
+    version,
+  };
+
+  await Promise.all([
+    setAccountValue(newAccountId, 'mnemonicsEncrypted', mnemonicEncrypted),
+    setAccountValue(newAccountId, 'accounts', newAccount),
+  ]);
+
+  void activateAccount(newAccountId);
+
+  return {
+    accountId: newAccountId,
+    address: newAddress,
+  };
 }
 
 function storeHardwareAccount(accountId: string, account?: ApiAccount) {

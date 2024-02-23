@@ -1,20 +1,21 @@
 import { beginCell, storeStateInit } from '@ton/core';
 
 import type { ApiNetwork, ApiWalletVersion } from '../../types';
-import type { ContractInfo } from './types';
+import type { ContractInfo, WalletInfo } from './types';
 import type { TonWallet } from './util/tonCore';
 import { WORKCHAIN } from '../../types';
 
+import { DEFAULT_WALLET_VERSION } from '../../../config';
 import { parseAccountId } from '../../../util/account';
-import { compact } from '../../../util/iteratees';
+import { pick } from '../../../util/iteratees';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { stringifyTxId } from './util';
-import { getTonClient, toBase64Address, walletClassMap } from './util/tonCore';
+import {
+  getTonClient, toBase64Address, walletClassMap,
+} from './util/tonCore';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
 import { base64ToBytes, hexToBytes, sha256 } from '../../common/utils';
-import { KnownContracts } from './constants';
-
-const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
+import { ALL_WALLET_VERSIONS, KnownContracts } from './constants';
 
 export const isAddressInitialized = withCacheAsync(
   async (network: ApiNetwork, walletOrAddress: TonWallet | string) => {
@@ -30,7 +31,7 @@ export const isActiveSmartContract = withCacheAsync(async (network: ApiNetwork, 
 export function publicKeyToAddress(
   network: ApiNetwork,
   publicKey: Uint8Array,
-  walletVersion: ApiWalletVersion = DEFAULT_WALLET_VERSION,
+  walletVersion: ApiWalletVersion,
 ) {
   const wallet = buildWallet(network, publicKey, walletVersion);
   return toBase64Address(wallet.address, false);
@@ -121,26 +122,64 @@ export async function getWalletSeqno(network: ApiNetwork, walletOrAddress: TonWa
   return seqno || 0;
 }
 
-export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array) {
-  const walletClasses = Object.values(walletClassMap);
-  const allWallets = await Promise.all(walletClasses.map(async (WalletClass) => {
-    const wallet = WalletClass.create({ publicKey: Buffer.from(publicKey), workchain: WORKCHAIN });
-    const balance = await getTonClient(network).getBalance(wallet.address);
-    if (balance === 0n) {
-      return undefined;
-    }
+export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array): Promise<{
+  wallet: TonWallet;
+  version: ApiWalletVersion;
+  balance: bigint;
+}> {
+  const allWallets = await getWalletVersionInfos(network, publicKey);
+
+  const withBiggestBalance = allWallets.reduce<typeof allWallets[0] | undefined>((best, current) => {
+    return best && best.balance > current.balance ? best : current;
+  }, undefined);
+
+  if (!withBiggestBalance || !withBiggestBalance.balance) {
+    const version = DEFAULT_WALLET_VERSION;
+    const wallet = buildWallet(network, publicKey, version);
+    return { wallet, version, balance: 0n };
+  }
+
+  return withBiggestBalance;
+}
+
+export function getWalletVersionInfos(
+  network: ApiNetwork,
+  publicKey: Uint8Array,
+  versions: ApiWalletVersion[] = ALL_WALLET_VERSIONS,
+): Promise<WalletInfo[]> {
+  return Promise.all(versions.map(async (version) => {
+    const wallet = buildWallet(network, publicKey, version);
+    const address = toBase64Address(wallet.address, false);
+    const walletInfo = await getWalletInfo(network, wallet);
 
     return {
       wallet,
-      balance: BigInt(balance),
+      address,
+      version,
+      ...pick(walletInfo, ['isInitialized', 'balance', 'lastTxId']),
     };
   }));
-  const walletsWithBalances = compact(allWallets);
-  const withBiggestBalance = walletsWithBalances.reduce<typeof walletsWithBalances[0] | undefined>((best, current) => {
-    return best && best?.balance > current.balance ? best : current;
-  }, undefined);
+}
 
-  return withBiggestBalance?.wallet || buildWallet(network, publicKey, DEFAULT_WALLET_VERSION);
+export function getWalletVersions(
+  network: ApiNetwork,
+  publicKey: Uint8Array,
+  versions: ApiWalletVersion[] = ALL_WALLET_VERSIONS,
+): {
+    wallet: TonWallet;
+    address: string;
+    version: ApiWalletVersion;
+  }[] {
+  return versions.map((version) => {
+    const wallet = buildWallet(network, publicKey, version);
+    const address = toBase64Address(wallet.address, false);
+
+    return {
+      wallet,
+      address,
+      version,
+    };
+  });
 }
 
 export async function getWalletStateInit(accountId: string) {
@@ -154,33 +193,19 @@ export async function getWalletStateInit(accountId: string) {
 export function pickWalletByAddress(network: ApiNetwork, publicKey: Uint8Array, address: string) {
   address = toBase64Address(address, false);
 
-  const client = getTonClient(network);
+  const allWallets = getWalletVersions(network, publicKey);
 
-  const walletClasses = Object.values(walletClassMap);
-  const allWallets = walletClasses.map((WalletClass) => {
-    const wallet = WalletClass.create({ publicKey: Buffer.from(publicKey), workchain: WORKCHAIN });
-    return {
-      wallet: client.open(wallet),
-      address: toBase64Address(wallet.address, false),
-    };
-  });
-
-  return allWallets.find((w) => w.address === address)?.wallet;
+  return allWallets.find((w) => w.address === address)!;
 }
 
-// TODO Cache
 export async function pickAccountWallet(accountId: string) {
   const { network } = parseAccountId(accountId);
 
-  const { address, publicKey, version } = await fetchStoredAccount(accountId);
+  const { publicKey, version } = await fetchStoredAccount(accountId);
 
   const publicKeyBytes = hexToBytes(publicKey);
 
-  if (version) {
-    return buildWallet(network, publicKeyBytes, version);
-  }
-
-  return pickWalletByAddress(network, publicKeyBytes, address);
+  return buildWallet(network, publicKeyBytes, version);
 }
 
 export function resolveWalletVersion(wallet: TonWallet) {

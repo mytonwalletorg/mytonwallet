@@ -2,6 +2,7 @@ import type { ApiInitArgs, OnApiUpdate } from '../types';
 
 import { IS_CAPACITOR } from '../../config';
 import { initWindowConnector } from '../../util/capacitorStorageProxy/connector';
+import blockchains from '../blockchains';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
 import { setEnvironment } from '../environment';
 import { addHooks } from '../hooks';
@@ -35,7 +36,7 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
     tonConnect.initTonConnect(onUpdate);
   }
 
-  await startStorageMigration(onUpdate);
+  await startStorageMigration(onUpdate, blockchains.ton);
 
   if (environment.isSseSupported) {
     void resetupSseConnection();

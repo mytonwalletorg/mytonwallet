@@ -35,6 +35,7 @@ import {
   updateSettings,
 } from '../../reducers';
 import {
+  selectAccountIdByAddress,
   selectAccounts,
   selectAllHardwareAccounts,
   selectCurrentNetwork,
@@ -958,6 +959,29 @@ addActionHandler('copyStorageData', async (global, actions) => {
   } else {
     actions.showError({ error: ApiCommonError.Unexpected });
   }
+});
+
+addActionHandler('importAccountByVersion', async (global, actions, { version }) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('importAccountByVersion', { version });
+    return;
+  }
+
+  const accountId = global.currentAccountId!;
+
+  const wallet = await callApi('importNewWalletVersion', accountId, version);
+  global = getGlobal();
+
+  const existAccountId = selectAccountIdByAddress(global, wallet!.address);
+
+  if (existAccountId) {
+    actions.switchAccount({ accountId: existAccountId });
+    return;
+  }
+
+  global = updateCurrentAccountId(global, wallet!.accountId);
+  global = createAccount(global, wallet!.accountId, wallet!.address, undefined, version);
+  setGlobal(global);
 });
 
 function reduceGlobalForDebug() {

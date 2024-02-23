@@ -359,3 +359,14 @@ export function selectLocalTransactions(global: GlobalState, accountId: string) 
 export function selectIsPasswordPresent(global: GlobalState) {
   return !!selectFirstNonHardwareAccount(global);
 }
+
+export function selectAccountIdByAddress(global: GlobalState, address: string): string | undefined {
+  const accounts = selectAccounts(global);
+
+  if (!accounts) return undefined;
+
+  const requiredAccount = Object.entries(accounts)
+    .find(([accountId, account]) => (account.address === address ? accountId : undefined));
+
+  return requiredAccount?.[0];
+}

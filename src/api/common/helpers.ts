@@ -1,3 +1,4 @@
+import type blockchains from '../blockchains';
 import type { ApiTransactionExtra } from '../blockchains/ton/types';
 import type { ApiDbSseConnection } from '../db';
 import type { StorageKey } from '../storages/types';
@@ -20,11 +21,12 @@ import { storage } from '../storages';
 import capacitorStorage from '../storages/capacitorStorage';
 import idbStorage from '../storages/idb';
 import { getKnownAddresses, getScamMarkers } from './addresses';
+import { hexToBytes } from './utils';
 
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 10;
+const actualStateVersion = 11;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -95,8 +97,8 @@ export function isUpdaterAlive(onUpdate: OnApiUpdate) {
   return currentOnUpdate === onUpdate;
 }
 
-export function startStorageMigration(onUpdate: OnApiUpdate) {
-  migrationEnsurePromise = migrateStorage(onUpdate);
+export function startStorageMigration(onUpdate: OnApiUpdate, ton: typeof blockchains.ton) {
+  migrationEnsurePromise = migrateStorage(onUpdate, ton);
   return migrationEnsurePromise;
 }
 
@@ -104,7 +106,7 @@ export function waitStorageMigration() {
   return migrationEnsurePromise;
 }
 
-export async function migrateStorage(onUpdate: OnApiUpdate) {
+export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockchains.ton) {
   let version = Number(await storage.getItem('stateVersion'));
 
   if (version === actualStateVersion) {
@@ -301,6 +303,32 @@ export async function migrateStorage(onUpdate: OnApiUpdate) {
     }
 
     version = 10;
+    await storage.setItem('stateVersion', version);
+  }
+
+  if (version === 10) {
+    const accounts: Record<string, {
+      publicKey: string;
+      address: string;
+      version?: string;
+    }> | undefined = await storage.getItem('accounts');
+
+    if (accounts) {
+      for (const account of Object.values(accounts)) {
+        const { publicKey, address, version: walletVersion } = account;
+
+        if (walletVersion) continue;
+
+        const publicKeyBytes = hexToBytes(publicKey);
+        const walletInfo = ton.pickWalletByAddress('mainnet', publicKeyBytes, address);
+
+        account.version = walletInfo.version;
+      }
+
+      await storage.setItem('accounts', accounts);
+    }
+
+    version = 11;
     await storage.setItem('stateVersion', version);
   }
 }

@@ -47,12 +47,19 @@ export function clearIsPinAccepted(global: GlobalState): GlobalState {
   };
 }
 
-export function createAccount(global: GlobalState, accountId: string, address: string, partial?: Partial<Account>) {
+export function createAccount(
+  global: GlobalState,
+  accountId: string,
+  address: string,
+  partial?: Partial<Account>,
+  titlePostfix?: string,
+) {
   if (!partial?.title) {
     const network = selectCurrentNetwork(global);
     const accounts = selectNetworkAccounts(global) || {};
     const titlePrefix = network === 'mainnet' ? 'Wallet' : 'Testnet Wallet';
-    partial = { ...partial, title: `${titlePrefix} ${Object.keys(accounts).length + 1}` };
+    const postfix = titlePostfix ? ` ${titlePostfix}` : '';
+    partial = { ...partial, title: `${titlePrefix} ${Object.keys(accounts).length + 1}${postfix}` };
   }
 
   return updateAccount(global, accountId, { ...partial, address });

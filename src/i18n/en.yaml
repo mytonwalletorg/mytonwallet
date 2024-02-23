@@ -83,10 +83,6 @@ Currency History: Currency History
 $add_account_description1: |
   **MyTonWallet** allows you to seamlessly
   switch between **multiple accounts**.
-$add_account_description2: |
-  Try it by **creating** a new wallet,
-  or **importing** any of your existing ones
-  using 24 secret words.
 Enter Password: Enter Password
 Send: Send
 Add Wallet: Add Wallet
@@ -532,5 +528,12 @@ $unstake_up_to_information: Instantly – up to %value%
 $all_balance: "All: %balance%"
 $unstaking_not_enough_balance: You need to have %value% on your main balance to proceed with unstaking.
 $ledger_verify_address_on_device: Please, verify the address on your Ledger.
+Wallet Versions: Wallet Versions
+$read_more_about_wallet_version: Read more about types of wallet contracts on %ton_link%.
+$current_wallet_version: Your current wallet version is %version%.
+You have tokens on other versions of your wallet. You can import them from here.: You have tokens on other versions of your wallet. You can import them from here.
+$wallet_switch_version_1: You can also %action%.
+$wallet_switch_version_2: switch to another wallet version
+or import from: or import from
 $insufficient_fee: "Insufficient fee: %fee%"
 Required: Required

@@ -1,4 +1,4 @@
-import type { ApiBaseCurrency, ApiSwapAsset } from './api/types';
+import type { ApiBaseCurrency, ApiSwapAsset, ApiWalletVersion } from './api/types';
 import type { LangItem } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
@@ -108,7 +108,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-70';
+export const LANG_CACHE_NAME = 'mtw-lang-71';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -257,3 +257,6 @@ export const EXCHANGE_ADDRESSES = new Set([
   'EQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwj1f', 'UQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwmCa', // Huobi
   'EQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6dZl', 'UQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6Yug', // KuCoin
 ]);
+
+export const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
+export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R2'];

@@ -1,7 +1,10 @@
 import type { Cell } from '@ton/core';
 
-import type { ApiParsedPayload, ApiTransaction, ApiWalletVersion } from '../../types';
+import type {
+  ApiParsedPayload, ApiTransaction, ApiWalletInfo, ApiWalletVersion,
+} from '../../types';
 import type { ContractType } from './constants';
+import type { TonWallet } from './util/tonCore';
 
 export type AnyPayload = string | Cell | Uint8Array;
 
@@ -76,4 +79,8 @@ export type GetAddressInfoResponse = {
   sync_utime: number;
   '@extra': string;
   state: 'uninitialized' | 'active';
+};
+
+export type WalletInfo = ApiWalletInfo & {
+  wallet: TonWallet;
 };

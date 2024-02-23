@@ -33,3 +33,15 @@ export function buildTokenSlug(address: string) {
 
   return blockchain.buildTokenSlug(address);
 }
+
+export function fetchTokenBalances(accountId: string) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.getAccountTokenBalances(accountId);
+}
+
+export function fetchTokenBalancesByAddress(address: string, network: ApiNetwork) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.getAddressTokenBalances(address, network);
+}

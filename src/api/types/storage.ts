@@ -3,7 +3,7 @@ import type { ApiLedgerDriver, ApiWalletVersion } from './misc';
 export interface ApiAccount {
   address: string;
   publicKey: string;
-  version?: ApiWalletVersion;
+  version: ApiWalletVersion;
   ledger?: {
     index: number;
     driver: ApiLedgerDriver;

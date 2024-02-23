@@ -1,4 +1,4 @@
-import type { ApiParsedPayload } from '../../types';
+import type { ApiParsedPayload, ApiWalletVersion } from '../../types';
 import type { ContractInfo, ContractName } from './types';
 
 export const TOKEN_TRANSFER_TON_AMOUNT = 100000000n; // 0.1 TON
@@ -19,6 +19,10 @@ export const LEDGER_SUPPORTED_PAYLOADS: ApiParsedPayload['type'][] = [
   'nft:transfer',
   'tokens:transfer',
   'comment',
+];
+
+export const ALL_WALLET_VERSIONS: ApiWalletVersion[] = [
+  'simpleR1', 'simpleR2', 'simpleR3', 'v2R1', 'v2R2', 'v3R1', 'v3R2', 'v4R2',
 ];
 
 export enum OpCode {

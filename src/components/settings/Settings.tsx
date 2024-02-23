@@ -3,6 +3,8 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import type { ApiWalletInfo, ApiWalletVersion } from '../../api/types';
+import type { Wallet } from './SettingsWalletVersion';
 import { type GlobalState, SettingsState, type UserToken } from '../../global/types';
 
 import {
@@ -14,6 +16,7 @@ import {
   LANG_LIST,
   PROXY_HOSTS,
   TELEGRAM_WEB_URL,
+  TON_TOKEN_SLUG,
 } from '../../config';
 import {
   selectAccountSettings,
@@ -24,6 +27,8 @@ import {
 import buildClassName from '../../util/buildClassName';
 import { getIsNativeBiometricAuthSupported } from '../../util/capacitor';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
+import { toBig, toDecimal } from '../../util/decimals';
+import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
 import {
@@ -35,6 +40,7 @@ import {
   IS_TOUCH_ENV,
 } from '../../util/windowEnvironment';
 
+import useEffectOnce from '../../hooks/useEffectOnce';
 import useFlag from '../../hooks/useFlag';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -61,6 +67,7 @@ import SettingsDeveloperOptions from './SettingsDeveloperOptions';
 import SettingsDisclaimer from './SettingsDisclaimer';
 import SettingsLanguage from './SettingsLanguage';
 import SettingsTokenList from './SettingsTokenList';
+import SettingsWalletVersion from './SettingsWalletVersion';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Settings.module.scss';
@@ -79,6 +86,7 @@ import telegramImg from '../../assets/settings/settings_telegram-menu.svg';
 import tonLinksImg from '../../assets/settings/settings_ton-links.svg';
 import tonMagicImg from '../../assets/settings/settings_ton-magic.svg';
 import tonProxyImg from '../../assets/settings/settings_ton-proxy.svg';
+import walletVersionImg from '../../assets/settings/settings_wallet-version.svg';
 
 type OwnProps = {
   isInsideModal?: boolean;
@@ -92,6 +100,8 @@ type StateProps = {
   isBiometricAuthEnabled: boolean;
   isPasswordPresent?: boolean;
   isHardwareAccount?: boolean;
+  currentVersion?: ApiWalletVersion;
+  versions?: ApiWalletInfo[];
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -121,6 +131,8 @@ function Settings({
   isBiometricAuthEnabled,
   isPasswordPresent,
   isHardwareAccount,
+  currentVersion,
+  versions,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
@@ -149,14 +161,37 @@ function Settings({
 
   const activeLang = useMemo(() => LANG_LIST.find((l) => l.langCode === langCode), [langCode]);
 
+  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
+
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
+
+  const wallets = useMemo(() => {
+    return versions?.map((v) => {
+      const tonBalance = formatCurrency(toDecimal(v.balance), tonToken?.symbol ?? '');
+      const balanceInCurrency = formatCurrency(
+        toBig(v.balance).mul(tonToken?.price ?? 0).round(tonToken?.decimals),
+        shortBaseSymbol,
+      );
+
+      const accountTokens = [tonBalance];
+
+      return {
+        address: v.address,
+        version: v.version,
+        totalBalance: balanceInCurrency,
+        tokens: accountTokens,
+      } satisfies Wallet;
+    }) ?? [];
+  }, [shortBaseSymbol, tonToken, versions]);
+
   const {
     transitionClassNames: telegramLinkClassNames,
     shouldRender: isTelegramLinkRendered,
   } = useShowTransition(isTonMagicEnabled);
 
-  useEffect(() => {
+  useEffectOnce(() => {
     initTokensOrder();
-  }, []);
+  });
 
   const {
     handleScroll: handleContentScroll,
@@ -213,6 +248,10 @@ function Settings({
 
   const handleBackClickToAssets = useLastCallback(() => {
     setSettingsState({ state: SettingsState.Assets });
+  });
+
+  const handleOpenWalletVersion = useLastCallback(() => {
+    setSettingsState({ state: SettingsState.WalletVersion });
   });
 
   const handleDeeplinkHookToggle = useLastCallback(() => {
@@ -450,6 +489,17 @@ function Settings({
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
+            {!!versions?.length && (
+              <div className={styles.item} onClick={handleOpenWalletVersion}>
+                <img className={styles.menuIcon} src={walletVersionImg} alt={lang('Wallet Versions')} />
+                {lang('Wallet Versions')}
+
+                <div className={styles.itemInfo}>
+                  {currentVersion}
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                </div>
+              </div>
+            )}
             {IS_LEDGER_SUPPORTED && (
               <div className={styles.item} onClick={handleOpenHardwareModal}>
                 <img className={styles.menuIcon} src={ledgerImg} alt={lang('Connect Ledger')} />
@@ -567,6 +617,15 @@ function Settings({
             handleBackClick={handleBackClickToAssets}
           />
         );
+      case SettingsState.WalletVersion:
+        return (
+          <SettingsWalletVersion
+            currentVersion={currentVersion}
+            handleBackClick={handleBackClick}
+            isInsideModal={isInsideModal}
+            wallets={wallets}
+          />
+        );
     }
   }
 
@@ -597,6 +656,9 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const isHardwareAccount = selectIsHardwareAccount(global);
   const isPasswordPresent = selectIsPasswordPresent(global);
 
+  const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
+  const versions = versionsById?.[global.currentAccountId!];
+
   return {
     settings: global.settings,
     isOpen: global.areSettingsOpen,
@@ -605,6 +667,8 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isBiometricAuthEnabled: !!authConfig && authConfig.kind !== 'password',
     isPasswordPresent,
     isHardwareAccount,
+    currentVersion,
+    versions,
   };
 })(Settings));
 

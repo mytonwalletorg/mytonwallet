@@ -41,6 +41,9 @@ export {
   isAddressInitialized,
   isActiveSmartContract,
   getWalletInfo,
+  pickWalletByAddress,
+  getWalletVersions,
+  getWalletVersionInfos,
 } from './wallet';
 export {
   checkStakeDraft,
@@ -55,6 +58,7 @@ export {
 } from './other';
 export {
   getAccountTokenBalances,
+  getAddressTokenBalances,
   fetchToken,
   resolveTokenBySlug,
 } from './tokens';

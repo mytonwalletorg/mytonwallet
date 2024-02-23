@@ -79,9 +79,6 @@ $about_community_link_text: "**Telegram 频道**"
 Currency History: 代币历史记录
 $add_account_description1: |
   **MyTonWallet** 让您无缝在**多账户间**自由转换。
-$add_account_description2: |
-  通过创建一个新钱包来尝试，
-  或者通过24个助记词**导入**现有钱包
 Enter Password: 输入密码
 Send: 发送
 Add Wallet: 添加钱包
@@ -515,5 +512,12 @@ $unstake_up_to_information: 立即 – 高达 %value%
 $all_balance: "全部: %balance%"
 $unstaking_not_enough_balance: 您需要在主要余额中有 %value% 才能继续解押。
 $ledger_verify_address_on_device: 请验证您的 Ledger 上的地址。
+Wallet Versions: 钱包版本
+$read_more_about_wallet_version: 在%ton_link%上阅读更多关于钱包合约类型的信息。
+$current_wallet_version: 您当前的钱包版本是%version%。
+You have tokens on other versions of your wallet. You can import them from here.: 您在钱包的其他版本上有代币。您可以从这里导入它们。
+$wallet_switch_version_1: 您也可以%action%。
+$wallet_switch_version_2: 切换到另一个钱包版本
+or import from: 或从中导入
 $insufficient_fee: "手续费不足: %fee%"
 Required: 必需的

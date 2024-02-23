@@ -83,10 +83,6 @@ Currency History: Historia del activo
 $add_account_description1: |
   **MyTonWallet** te permite cambiar sin problemas
   entre **varios monederos**.
-$add_account_description2: |
-  Pruébalo **creando** un nuevo monedero,
-  o **importando** otro
-  usando la frase semilla.
 Enter Password: Introduce la contraseña
 Send: Enviar
 Add Wallet: Agregar monedero
@@ -530,5 +526,12 @@ $unstake_up_to_information: Al instante – hasta %value%
 $all_balance: "Todo: %balance%"
 $unstaking_not_enough_balance: Necesitas tener %value% en tu saldo principal para proceder con el desbloqueo.
 $ledger_verify_address_on_device: Verifique la dirección en su Ledger.
+Wallet Versions: Versiones de Cartera
+$read_more_about_wallet_version: Lee más sobre los tipos de contratos de cartera en %ton_link%.
+$current_wallet_version: La versión actual de tu cartera es %version%.
+You have tokens on other versions of your wallet. You can import them from here.: Tienes tokens en otras versiones de tu cartera. Puedes importarlos desde aquí.
+$wallet_switch_version_1: También puedes %action%.
+$wallet_switch_version_2: cambiar a otra versión de cartera
+or import from: o importar desde
 $insufficient_fee: "Comisión insuficiente: %fee%"
 Required: Requerido

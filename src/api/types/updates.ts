@@ -10,6 +10,8 @@ import type {
   ApiNft,
   ApiStakingState,
   ApiToken,
+  ApiWalletInfo,
+  ApiWalletVersion,
 } from './misc';
 import type { ApiParsedPayload } from './payload';
 import type { ApiAccount, ApiDapp } from './storage';
@@ -161,6 +163,13 @@ export type ApiUpdateRegion = {
   isLimited: boolean;
 };
 
+export type ApiUpdateWalletVersions = {
+  type: 'updateWalletVersions';
+  accountId: string;
+  currentVersion: ApiWalletVersion;
+  versions: ApiWalletInfo[];
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateNewActivities
@@ -181,6 +190,7 @@ export type ApiUpdate =
   | ApiUpdateNfts
   | ApiNftUpdate
   | ApiUpdateAccount
-  | ApiUpdateRegion;
+  | ApiUpdateRegion
+  | ApiUpdateWalletVersions;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;
