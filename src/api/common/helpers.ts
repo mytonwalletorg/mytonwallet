@@ -26,7 +26,7 @@ import { hexToBytes } from './utils';
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 11;
+const actualStateVersion = 13;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -107,30 +107,39 @@ export function waitStorageMigration() {
 }
 
 export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockchains.ton) {
-  let version = Number(await storage.getItem('stateVersion'));
+  let version = Number(await storage.getItem('stateVersion', true));
 
   if (version === actualStateVersion) {
     return;
   }
 
-  if (IS_CAPACITOR) {
-    const idbVersion = await idbStorage.getItem('stateVersion');
-    if (idbVersion && !version) {
-      version = Number(idbVersion);
+  if (IS_CAPACITOR && !version) {
+    if (await storage.getItem('accounts' as StorageKey, true)) {
+      // Fix broken version
+      version = 10;
+    } else {
+      // Prepare for migration to secure storage
+      const idbVersion = await idbStorage.getItem('stateVersion');
+      if (idbVersion) {
+        version = Number(idbVersion);
+      }
     }
   }
 
-  if (!version && !(await storage.getItem('addresses' as StorageKey))) {
+  // Migration to chrome.storage
+  if (IS_EXTENSION && !version && !(await storage.getItem('addresses' as StorageKey))) {
     version = await idbStorage.getItem('stateVersion');
 
-    if (IS_EXTENSION && version) {
+    if (version) {
       // Switching from IndexedDB to `chrome.storage.local`
       const idbData = await idbStorage.getAll!();
       await storage.setMany!(idbData);
-    } else {
-      await storage.setItem('stateVersion', actualStateVersion);
-      return;
     }
+  }
+
+  if (!version) {
+    await storage.setItem('stateVersion', actualStateVersion);
+    return;
   }
 
   // First version (v1)
@@ -306,12 +315,12 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
     await storage.setItem('stateVersion', version);
   }
 
-  if (version === 10) {
+  if (version === 10 || version === 11 || version === 12) {
     const accounts: Record<string, {
       publicKey: string;
       address: string;
       version?: string;
-    }> | undefined = await storage.getItem('accounts');
+    }> | undefined = await storage.getItem('accounts', true);
 
     if (accounts) {
       for (const account of Object.values(accounts)) {
@@ -328,7 +337,7 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
       await storage.setItem('accounts', accounts);
     }
 
-    version = 11;
+    version = 13;
     await storage.setItem('stateVersion', version);
   }
 }

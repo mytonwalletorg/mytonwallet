@@ -62,7 +62,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
       <div>
         {renderText(lang(dialog.message))}
       </div>
-      <div className={modalStyles.buttons}>
+      <div className={modalStyles.footerButtons}>
         <Button onClick={closeModal}>{lang('OK')}</Button>
       </div>
     </Modal>

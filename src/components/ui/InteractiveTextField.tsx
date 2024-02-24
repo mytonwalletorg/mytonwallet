@@ -3,10 +3,9 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { IS_CAPACITOR, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL } from '../../config';
+import { TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL } from '../../config';
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { vibrateOnSuccess } from '../../util/capacitor';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { shortenAddress } from '../../util/shortenAddress';
@@ -103,9 +102,6 @@ function InteractiveTextField({
   const handleCopy = useLastCallback(() => {
     showNotification({ message: copyNotification, icon: 'icon-copy' });
     void copyTextToClipboard(address || text || '');
-    if (IS_CAPACITOR) {
-      void vibrateOnSuccess();
-    }
   });
 
   const handleRevealSpoiler = useLastCallback(() => {

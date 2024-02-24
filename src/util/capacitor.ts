@@ -119,16 +119,14 @@ export async function vibrate() {
 }
 
 export async function vibrateOnError() {
-  for (let i = 0; i < 3; i++) {
-    await Haptics.impact({ style: ImpactStyle.Medium });
-    await pause(150);
-  }
+  await Haptics.impact({ style: ImpactStyle.Medium });
+  await pause(100);
+  await Haptics.impact({ style: ImpactStyle.Medium });
+  await pause(75);
+  await Haptics.impact({ style: ImpactStyle.Light });
 }
 
 export async function vibrateOnSuccess(withPauseOnEnd = false) {
-  await pause(300);
-  await Haptics.impact({ style: ImpactStyle.Heavy });
-  await pause(150);
   await Haptics.impact({ style: ImpactStyle.Light });
 
   if (withPauseOnEnd) {

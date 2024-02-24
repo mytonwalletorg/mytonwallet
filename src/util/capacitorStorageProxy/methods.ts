@@ -2,26 +2,36 @@ import type { SecureStoragePluginPlugin } from 'capacitor-secure-storage-plugin'
 
 import type { StorageKey } from '../../api/storages/types';
 
-let SecureStoragePlugin: SecureStoragePluginPlugin;
+let SecureStoragePlugin: SecureStoragePluginPlugin | undefined;
+let resolvePromise: AnyFunction;
+
+const promise = new Promise((resolve) => {
+  resolvePromise = resolve;
+});
 
 export async function init() {
   ({ SecureStoragePlugin } = await import(
     /* webpackChunkName: "capacitorSecureStorage" */ 'capacitor-secure-storage-plugin'
   ));
+  resolvePromise();
 }
 
 export async function getItem(key: StorageKey) {
-  return (await SecureStoragePlugin.get({ key }).catch(() => undefined))?.value;
+  await promise;
+  return (await SecureStoragePlugin!.get({ key }).catch(() => undefined))?.value;
 }
 
-export function setItem(key: StorageKey, value: string) {
-  return SecureStoragePlugin.set({ key, value });
+export async function setItem(key: StorageKey, value: string) {
+  await promise;
+  return SecureStoragePlugin!.set({ key, value });
 }
 
-export function removeItem(key: StorageKey) {
-  return SecureStoragePlugin.remove({ key });
+export async function removeItem(key: StorageKey) {
+  await promise;
+  return SecureStoragePlugin!.remove({ key });
 }
 
-export function clear() {
-  return SecureStoragePlugin.clear();
+export async function clear() {
+  await promise;
+  return SecureStoragePlugin!.clear();
 }

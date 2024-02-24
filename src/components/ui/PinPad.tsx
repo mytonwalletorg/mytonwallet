@@ -95,9 +95,12 @@ function PinPad({
   }, [length, onChange, onClearError, type, value.length]);
 
   const handleClick = useLastCallback((char: string) => {
+    if (value.length === length || value.length === 0) {
+      onClearError?.();
+    }
+
     if (value.length === length) {
       onChange(char);
-      onClearError?.();
 
       return;
     }

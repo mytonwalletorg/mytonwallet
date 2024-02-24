@@ -6,7 +6,7 @@ import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
 import {
-  IS_CAPACITOR, IS_EXTENSION, TON_TOKEN_SLUG, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
+  IS_EXTENSION, TON_TOKEN_SLUG, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
 import {
   selectAccount,
@@ -15,7 +15,6 @@ import {
   selectCurrentNetwork,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { vibrateOnSuccess } from '../../../../util/capacitor';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { copyTextToClipboard } from '../../../../util/clipboard';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
@@ -135,9 +134,6 @@ function Card({
 
     showNotification({ message: lang('Address was copied!') as string, icon: 'icon-copy' });
     void copyTextToClipboard(address);
-    if (IS_CAPACITOR) {
-      void vibrateOnSuccess();
-    }
   });
 
   const {
