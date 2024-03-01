@@ -58,8 +58,7 @@ const CSP = `
   base-uri 'none';
   font-src 'self' https://fonts.gstatic.com/;
   form-action 'none';
-  frame-src 'self' https://widget.changelly.com/;
-  frame-ancestors 'none'`
+  frame-src 'self' https://widget.changelly.com/`
   .replace(/\s+/g, ' ').trim();
 
 const appVersion = require('./package.json').version;
@@ -368,7 +367,7 @@ function convertI18nYamlToJson(content: string, shouldThrowException: boolean): 
 
     const json: AnyLiteral = Object.entries(i18n).reduce((acc: AnyLiteral, [key, value]) => {
       if (typeof value === 'string') {
-        acc[key] = { value };
+        acc[key] = value;
       }
       if (typeof value === 'object') {
         acc[key] = { ...value };

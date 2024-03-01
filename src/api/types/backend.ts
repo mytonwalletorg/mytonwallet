@@ -46,9 +46,11 @@ export type ApiSwapAsset = {
   slug: string;
   decimals: number;
   isPopular: boolean;
+  price: number;
   image?: string;
   contract?: string;
   keywords?: string[];
+  color?: string;
 };
 
 export type ApiSwapTonAsset = ApiSwapAsset & {

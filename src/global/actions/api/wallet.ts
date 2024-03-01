@@ -168,6 +168,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     toAddressName: result.addressName,
     tokenSlug,
     isToNewAddress: result.isToAddressNew,
+    isScam: result.isScam,
   }));
 });
 
@@ -751,6 +752,7 @@ addActionHandler('addSwapToken', (global, actions, { token }) => {
     contract: token.contract,
     keywords: token.keywords,
     isPopular: false,
+    price: 0,
   };
 
   setGlobal({

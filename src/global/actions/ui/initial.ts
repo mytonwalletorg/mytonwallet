@@ -159,8 +159,43 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       actions.showDialog({ message: 'Transfer was unsuccessful. Try again later.' });
       break;
 
-    case ApiTransactionError.UnsupportedHardwareOperation:
+    case ApiTransactionDraftError.UnsupportedHardwareOperation:
       actions.showDialog({ message: 'Unfortunately, this operation is not yet supported by Ledger wallet.' });
+      break;
+
+    case ApiTransactionDraftError.EncryptedDataNotSupported:
+      actions.showDialog({ message: 'Encrypted comments are not yet supported by Ledger.' });
+      break;
+
+    case ApiTransactionError.UnsupportedHardwareNftOperation:
+      actions.showDialog({
+        message: 'Transferring NFT is not yet supported by Ledger.',
+      });
+      break;
+
+    case ApiTransactionDraftError.UnsupportedHardwareContract:
+    case ApiTransactionError.UnsupportedHardwareContract:
+      actions.showDialog({
+        message: 'Transaction to this smart contract is not yet supported by Ledger.',
+      });
+      break;
+
+    case ApiTransactionDraftError.NonAsciiCommentForHardwareOperation:
+    case ApiTransactionError.NonAsciiCommentForHardwareOperation:
+      actions.showDialog({
+        message: 'The current version of Ledger only supports English-language comments without special characters.',
+      });
+      break;
+
+    case ApiTransactionDraftError.TooLongCommentForHardwareOperation:
+    case ApiTransactionError.TooLongCommentForHardwareOperation:
+      actions.showDialog({ message: 'Comment is too long.' });
+      break;
+
+    case ApiTransactionError.UnsupportedHardwarePayload:
+      actions.showDialog({
+        message: 'This type of transaction is not yet supported by Ledger.',
+      });
       break;
 
     case ApiCommonError.ServerError:

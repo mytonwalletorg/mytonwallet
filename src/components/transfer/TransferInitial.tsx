@@ -30,7 +30,7 @@ import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
 import { parseTonDeeplink } from '../../util/ton/deeplinks';
-import { IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
+import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -71,6 +71,7 @@ interface StateProps {
   baseCurrency?: ApiBaseCurrency;
 }
 
+const SAVED_ADDRESS_OPEN_DELAY = 300;
 const COMMENT_MAX_SIZE_BYTES = 5000;
 const SHORT_ADDRESS_SHIFT = 14;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
@@ -115,6 +116,8 @@ function TransferInitial({
 
   // eslint-disable-next-line no-null/no-null
   const toAddressRef = useRef<HTMLInputElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const savedAddressesTimeoutRef = useRef<number>(null);
 
   const lang = useLang();
 
@@ -295,7 +298,12 @@ function TransferInitial({
     });
 
     if (hasSavedAddresses) {
-      openSavedAddresses();
+      // Simultaneous opening of the virtual keyboard and display of Saved Addresses causes animation degradation
+      if (IS_ANDROID) {
+        savedAddressesTimeoutRef.current = window.setTimeout(openSavedAddresses, SAVED_ADDRESS_OPEN_DELAY);
+      } else {
+        openSavedAddresses();
+      }
     }
   });
 
@@ -312,6 +320,9 @@ function TransferInitial({
 
     if (hasSavedAddresses && isSavedAddressesOpen) {
       closeSavedAddresses();
+      if (savedAddressesTimeoutRef.current) {
+        window.clearTimeout(savedAddressesTimeoutRef.current);
+      }
     }
   });
 

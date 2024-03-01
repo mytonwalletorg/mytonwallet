@@ -8,7 +8,6 @@ import {
   CURRENCY_LIST,
   DEFAULT_PRICE_CURRENCY,
   TINY_TRANSFER_MAX_COST,
-  TON_SYMBOL,
 } from '../../config';
 import buildClassName from '../../util/buildClassName';
 
@@ -92,10 +91,10 @@ function SettingsAssets({
   const [localBaseCurrency, setLocalBaseCurrency] = useState(baseCurrency);
 
   const handleBaseCurrencyChange = useLastCallback((currency: string) => {
-    if (currency !== baseCurrency) {
-      setLocalBaseCurrency(currency as ApiBaseCurrency);
-      changeBaseCurrency({ currency: currency as ApiBaseCurrency });
-    }
+    if (currency === baseCurrency) return;
+
+    setLocalBaseCurrency(currency as ApiBaseCurrency);
+    changeBaseCurrency({ currency: currency as ApiBaseCurrency });
   });
 
   return (
@@ -158,7 +157,7 @@ function SettingsAssets({
                 message={
                   lang(
                     '$tiny_transfers_help',
-                    [TINY_TRANSFER_MAX_COST, TON_SYMBOL],
+                    { value: TINY_TRANSFER_MAX_COST },
                   ) as string
                 }
                 tooltipClassName={buildClassName(styles.tooltip, styles.tooltip_wide)}
@@ -176,7 +175,20 @@ function SettingsAssets({
         <p className={styles.blockTitle}>{lang('Tokens Settings')}</p>
         <div className={styles.settingsBlock}>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTokensWithNoPriceToggle}>
-            {lang('Hide Tokens With No Cost')}
+            <div className={styles.blockWithTooltip}>
+              {lang('Hide Tokens With No Cost')}
+
+              <IconWithTooltip
+                message={
+                  lang(
+                    '$hide_tokens_no_cost_help',
+                    { value: TINY_TRANSFER_MAX_COST },
+                  ) as string
+                }
+                tooltipClassName={buildClassName(styles.tooltip, styles.tooltip_wide)}
+                iconClassName={styles.iconQuestion}
+              />
+            </div>
 
             <Switcher
               className={styles.menuSwitcher}
@@ -185,11 +197,11 @@ function SettingsAssets({
             />
           </div>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleSortByValueToggle}>
-            {lang('Sort By Value')}
+            {lang('Sort By Cost')}
 
             <Switcher
               className={styles.menuSwitcher}
-              label={lang('Sort By Value')}
+              label={lang('Sort By Cost')}
               checked={isSortByValueEnabled}
             />
           </div>

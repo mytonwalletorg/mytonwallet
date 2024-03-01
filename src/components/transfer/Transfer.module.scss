@@ -517,3 +517,18 @@ textarea.inputStatic {
 
   border-radius: 50%;
 }
+
+.scamContainer {
+  display: flex;
+
+  width: 2.75rem;
+}
+
+.scamImage {
+  width: 2.75rem;
+  height: 1.0625rem;
+}
+
+.scamAddress {
+  color: var(--color-red);
+}

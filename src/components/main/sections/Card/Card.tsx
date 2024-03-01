@@ -6,7 +6,7 @@ import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
 import {
-  IS_EXTENSION, TON_TOKEN_SLUG, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
+  IS_EXTENSION, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
 import {
   selectAccount,
@@ -19,7 +19,6 @@ import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { copyTextToClipboard } from '../../../../util/clipboard';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
-import { getTokenCardColor } from '../../helpers/card_colors';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
@@ -85,13 +84,7 @@ function Card({
     shouldRender: shouldRenderTokenCard,
     transitionClassNames: tokenCardTransitionClassNames,
   } = useShowTransition(Boolean(currentTokenSlug), undefined, true);
-  const tokenCardColor = useMemo(() => {
-    if (!renderedToken || renderedToken.slug === TON_TOKEN_SLUG) {
-      return undefined;
-    }
 
-    return getTokenCardColor(renderedToken.slug);
-  }, [renderedToken]);
   const dappDomain = useMemo(() => {
     if (!activeDappOrigin) {
       return undefined;
@@ -223,7 +216,6 @@ function Card({
         <TokenCard
           token={renderedToken!}
           classNames={tokenCardTransitionClassNames}
-          color={tokenCardColor}
           onApyClick={onApyClick}
           onClose={onTokenCardClose}
         />

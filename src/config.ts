@@ -108,7 +108,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-71';
+export const LANG_CACHE_NAME = 'mtw-lang-73';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -176,6 +176,7 @@ export const TOKEN_INFO = {
     cmcSlug: TON_TOKEN_SLUG,
     quote: {
       price: 1.95,
+      priceUsd: 1.95,
       percentChange1h: 0,
       percentChange24h: 0,
       percentChange7d: 0,
@@ -194,6 +195,7 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
     blockchain: TON_BLOCKCHAIN,
     slug: TON_TOKEN_SLUG,
     decimals: DEFAULT_DECIMAL_PLACES,
+    price: 0,
     isPopular: true,
   },
   'ton-eqdcbkghmc': {
@@ -205,6 +207,7 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
     // eslint-disable-next-line max-len
     image: 'https://cache.tonapi.io/imgproxy/LaFKdzahVX9epWT067gyVLd8aCa1lFrZd7Rp9siViEE/rs:fill:200:200:1/g:no/aHR0cHM6Ly9icmlkZ2UudG9uLm9yZy90b2tlbi8xLzB4MjI2MGZhYzVlNTU0MmE3NzNhYTQ0ZmJjZmVkZjdjMTkzYmMyYzU5OS5wbmc.webp',
     contract: 'EQDcBkGHmC4pTf34x3Gm05XvepO5w60DNxZ-XT4I6-UGG5L5',
+    price: 0,
     isPopular: false,
     keywords: ['bitcoin'],
   },

@@ -76,6 +76,7 @@
 }
 
 .suggestion {
+  --offset-x: 0;
   --offset-y: calc(100% - 0.5rem);
 
   transform: scaleY(0.5) !important;

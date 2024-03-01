@@ -194,7 +194,7 @@ Play Sounds: Play Sounds
 Focus on asset value rather than current balance: Focus on asset value rather than current balance
 $logout_confirm: Remove **all** wallets
 $logout_warning2: Wallets are located in the decentralized TON Blockchain. If you want the wallet to be deleted simply transfer all the TON from it and leave it empty.
-$tiny_transfers_help: Turn this off to display transactions of less than %1$d %2$s. Please be aware that such transactions are often used for spam and scam purposes.
+$tiny_transfers_help: Turn this off to display transactions of less than $%value%. Please be aware that such transactions are often used for spam and scam purposes.
 Today: Today
 Yesterday: Yesterday
 Now: Now
@@ -295,7 +295,7 @@ Add Token: Add Token
 Delete Token: Delete Token
 Are you sure you want to delete?: Are you sure you want to delete %token%?
 Hide Tokens With No Cost: Hide Tokens With No Cost
-Sort By Value: Sort By Value
+Sort By Cost: Sort By Cost
 Update: Update
 Restart: Restart
 Update MyTonWallet: Update MyTonWallet
@@ -537,3 +537,12 @@ $wallet_switch_version_2: switch to another wallet version
 or import from: or import from
 $insufficient_fee: "Insufficient fee: %fee%"
 Required: Required
+Transaction to this smart contract is not yet supported by Ledger.: Transaction to this smart contract is not yet supported by Ledger.
+This type of transaction is not yet supported by Ledger.: This type of transaction is not yet supported by Ledger.
+The current version of Ledger only supports English-language comments without special characters.: The current version of Ledger only supports English-language comments without special characters.
+Comment is too long.: Comment is too long.
+Transferring NFT is not yet supported by Ledger.: Transferring NFT is not yet supported by Ledger.
+Encrypted comments are not yet supported by Ledger.: Encrypted comments are not yet supported by Ledger.
+$hide_tokens_no_cost_help: |
+  Turn this off to display tokens on your account with value less than $%value%. Please be aware that such tokens are often used for spam and scam purposed.
+  You can also selectively enable and disable particular tokens using the list below on this screen.

@@ -1,4 +1,4 @@
-import React, { memo, useState } from '../../../../lib/teact/teact';
+import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiBaseCurrency } from '../../../../api/types';
@@ -13,6 +13,7 @@ import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
+import { calculateTokenCardColor } from '../../helpers/cardColors';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useFlag from '../../../../hooks/useFlag';
@@ -32,7 +33,6 @@ import tonUrl from '../../../../assets/coins/ton.svg';
 interface OwnProps {
   token: UserToken;
   classNames: string;
-  color?: string;
   onApyClick?: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -57,7 +57,6 @@ const CHART_DIMENSIONS = { width: 300, height: 64 };
 function TokenCard({
   token,
   classNames,
-  color,
   period = DEFAULT_PERIOD,
   apyValue,
   onApyClick,
@@ -117,6 +116,8 @@ function TokenCard({
   const withHistory = Boolean(history?.length);
   const historyStartDay = withHistory ? new Date(history![0][0] * 1000) : undefined;
   const withCmcButton = Boolean(token.cmcSlug);
+
+  const color = useMemo(() => calculateTokenCardColor(token), [token]);
 
   function renderChart() {
     return (

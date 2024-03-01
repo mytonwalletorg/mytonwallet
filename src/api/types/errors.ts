@@ -11,6 +11,10 @@ export enum ApiTransactionDraftError {
   DomainNotResolved = 'DomainNotResolved',
   WalletNotInitialized = 'WalletNotInitialized',
   UnsupportedHardwareOperation = 'UnsupportedHardwareOperation',
+  UnsupportedHardwareContract = 'UnsupportedHardwareContract',
+  EncryptedDataNotSupported = 'EncryptedDataNotSupported',
+  NonAsciiCommentForHardwareOperation = 'NonAsciiCommentForHardwareOperation',
+  TooLongCommentForHardwareOperation = 'TooLongCommentForHardwareOperation',
   InvalidAddressFormat = 'InvalidAddressFormat',
 }
 
@@ -19,7 +23,11 @@ export enum ApiTransactionError {
   IncorrectDeviceTime = 'IncorrectDeviceTime',
   InsufficientBalance = 'InsufficientBalance',
   UnsuccesfulTransfer = 'UnsuccesfulTransfer',
-  UnsupportedHardwareOperation = 'UnsupportedHardwareOperation',
+  UnsupportedHardwareContract = 'UnsupportedHardwareContract',
+  UnsupportedHardwarePayload = 'UnsupportedHardwarePayload',
+  NonAsciiCommentForHardwareOperation = 'NonAsciiCommentForHardwareOperation',
+  TooLongCommentForHardwareOperation = 'TooLongCommentForHardwareOperation',
+  UnsupportedHardwareNftOperation = 'UnsupportedHardwareNftOperation',
 }
 
 export type ApiAnyDisplayError = ApiCommonError | ApiTransactionDraftError | ApiTransactionError;

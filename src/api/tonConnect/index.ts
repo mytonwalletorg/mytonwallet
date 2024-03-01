@@ -31,10 +31,11 @@ import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERRO
 
 import { IS_EXTENSION, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
-import { isValidLedgerComment } from '../../util/ledger/utils';
+import { isLedgerCommentLengthValid } from '../../util/ledger/utils';
 import { logDebugError } from '../../util/logs';
 import { fetchJsonMetadata } from '../../util/metadata';
 import safeExec from '../../util/safeExec';
+import { isAscii } from '../../util/stringFormat';
 import blockchains from '../blockchains';
 import { parsePayloadBase64 } from '../blockchains/ton';
 import { fetchKeyPair } from '../blockchains/ton/auth';
@@ -88,6 +89,8 @@ export async function connect(
   id: number,
 ): Promise<LocalConnectEvent> {
   try {
+    await openExtensionPopup(true);
+
     onPopupUpdate({
       type: 'dappLoading',
       connectionType: 'connect',
@@ -110,8 +113,6 @@ export async function connect(
     if (!addressItem) {
       throw new errors.BadRequestError("Missing 'ton_addr'");
     }
-
-    await openExtensionPopup(true);
 
     let accountId = await getCurrentAccountOrFail();
 
@@ -429,14 +430,20 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
 
       if (isLedger) {
         if (!isLedgerAllowed) {
-          throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwareOperation);
-        } else if (payload && (
-          !LEDGER_SUPPORTED_PAYLOADS.includes(payload.type)
-            || (payload.type === 'comment' && !isValidLedgerComment(payload.comment))
-            || (payload.type === 'nft:transfer' && !!payload.forwardPayload)
-        )
-        ) {
-          throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwareOperation);
+          throw new BadRequestError('Unsupported contract', ApiTransactionError.UnsupportedHardwareContract);
+        } else if (payload) {
+          if (!LEDGER_SUPPORTED_PAYLOADS.includes(payload.type)) {
+            throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwarePayload);
+          }
+          if (payload.type === 'comment' && !isAscii(payload.comment)) {
+            throw new BadRequestError('Unsupported payload', ApiTransactionError.NonAsciiCommentForHardwareOperation);
+          }
+          if (payload.type === 'comment' && !isLedgerCommentLengthValid(payload.comment)) {
+            throw new BadRequestError('Unsupported payload', ApiTransactionError.TooLongCommentForHardwareOperation);
+          }
+          if (payload.type === 'nft:transfer' && !!payload.forwardPayload) {
+            throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwareNftOperation);
+          }
         }
       }
 

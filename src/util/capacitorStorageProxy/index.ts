@@ -10,5 +10,5 @@ export function createWindowProvider(worker: Worker) {
 
     // @ts-ignore
     return method(...args as WindowMethodArgs<keyof WindowMethods>);
-  }, WINDOW_PROVIDER_CHANNEL, worker);
+  }, WINDOW_PROVIDER_CHANNEL, worker, true);
 }

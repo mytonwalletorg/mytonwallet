@@ -186,7 +186,7 @@ Play Sounds: 播放聲音
 Focus on asset value rather than current balance: 關注資產價值而非當前餘額
 $logout_confirm: 登出**所有**錢包
 $logout_warning2: 錢包位於去中心化的 TON 區塊鏈中。 如果你只是想簡單的清空錢包，只需將所有 TON 轉移出去即可。
-$tiny_transfers_help: 開啟此功能，隱藏少於 %1$d %2$s 的交易。 請注意，此類交易通常用於垃圾郵件和詐騙目的。
+$tiny_transfers_help: 開啟此功能，隱藏少於 $%value% 的交易。 請注意，此類交易通常用於垃圾郵件和詐騙目的。
 Understood: 了解
 Today: 今天
 Yesterday: 昨天
@@ -282,7 +282,7 @@ Add Token: 添加令牌
 Delete Token: 刪除令牌
 Are you sure you want to delete?: 您確定要刪除 %token% 嗎？
 Hide Tokens With No Cost: 無需掩蓋令牌
-Sort By Value: 按值排序
+Sort By Cost: 按成本排序
 Update: 更新
 Restart: 重新開始
 Update MyTonWallet: 更新 MyTonWallet
@@ -521,3 +521,12 @@ $wallet_switch_version_2: 切換到另一個錢包版本
 or import from: 或從中導入
 $insufficient_fee: "手续费不足: %fee%"
 Required: 必需的
+Transaction to this smart contract is not yet supported by Ledger.: Ledger 尚不支援對此智能合約的交易。
+This type of transaction is not yet supported by Ledger.: Ledger 尚不支援此類交易。
+The current version of Ledger only supports English-language comments without special characters.: 目前版本的 Ledger 僅支援不含特殊字元的英文註釋。
+Comment is too long.: 評論太長了。
+Transferring NFT is not yet supported by Ledger.: Ledger 尚不支援傳輸 NFT。
+Encrypted comments are not yet supported by Ledger.: Ledger 尚不支援加密評論。
+$hide_tokens_no_cost_help: |
+  將其關閉以在您的帳戶上顯示為價值小於 $%value% 的代幣。請注意，這種令牌通常用於垃圾郵件和騙局。
+  您還可以使用下面在此屏幕上的列表選擇性地啟用和禁用特定令牌。

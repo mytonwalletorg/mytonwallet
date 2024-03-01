@@ -24,6 +24,7 @@ import { omit } from '../../../util/iteratees';
 import { isValidLedgerComment } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
+import { isAscii } from '../../../util/stringFormat';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
 import { fetchAddressBook, fetchTransactions } from './util/apiV3';
@@ -35,7 +36,8 @@ import {
   getTonWalletContract,
   getWalletPublicKey,
   packBytesAsSnake,
-  parseAddress, parseBase64,
+  parseAddress,
+  parseBase64,
   resolveTokenWalletAddress,
   toBase64Address,
 } from './util/tonCore';
@@ -49,14 +51,9 @@ import { fetchKeyPair, fetchPrivateKey } from './auth';
 import {
   ATTEMPTS, FEE_FACTOR, STAKE_COMMENT, UNSTAKE_COMMENT,
 } from './constants';
+import { buildTokenTransfer, parseTokenTransaction, resolveTokenBySlug } from './tokens';
 import {
-  buildTokenTransfer, parseTokenTransaction, resolveTokenBySlug,
-} from './tokens';
-import {
-  getContractInfo,
-  getWalletBalance,
-  getWalletInfo,
-  pickAccountWallet,
+  getContractInfo, getWalletBalance, getWalletInfo, pickAccountWallet,
 } from './wallet';
 
 export type CheckTransactionDraftResult = {
@@ -165,7 +162,7 @@ export async function checkTransactionDraft(
 
     result.resolvedAddress = toAddress;
 
-    const addressInfo = await getAddressInfo(toAddress);
+    const addressInfo = await getAddressInfo(toBase64Address(toAddress, true));
     if (addressInfo?.name) result.addressName = addressInfo.name;
     if (addressInfo?.isScam) result.isScam = addressInfo.isScam;
 
@@ -204,7 +201,7 @@ export async function checkTransactionDraft(
     if (isLedger && !isLedgerAllowed) {
       return {
         ...result,
-        error: ApiTransactionDraftError.UnsupportedHardwareOperation,
+        error: ApiTransactionDraftError.UnsupportedHardwareContract,
       };
     }
 
@@ -214,10 +211,18 @@ export async function checkTransactionDraft(
 
     if (tokenSlug === TON_TOKEN_SLUG) {
       if (data && isLedger && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))) {
-        return {
-          ...result,
-          error: ApiTransactionDraftError.UnsupportedHardwareOperation,
-        };
+        let error: ApiTransactionDraftError;
+        if (typeof data !== 'string') {
+          error = ApiTransactionDraftError.UnsupportedHardwareOperation;
+        } else if (shouldEncrypt) {
+          error = ApiTransactionDraftError.EncryptedDataNotSupported;
+        } else {
+          error = !isAscii(data)
+            ? ApiTransactionDraftError.NonAsciiCommentForHardwareOperation
+            : ApiTransactionDraftError.TooLongCommentForHardwareOperation;
+        }
+
+        return { ...result, error };
       }
 
       if (data instanceof Uint8Array) {

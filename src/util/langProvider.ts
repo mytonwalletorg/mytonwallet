@@ -142,24 +142,21 @@ function processTemplateJsx(template: string, value: Record<string, TeactNode>) 
 }
 
 function processTranslation(
-  langString: LangString | undefined, key: string, value?: any, format?: 'i', pluralValue?: number,
+  langString: LangString | string | undefined, key: string, value?: any, format?: 'i', pluralValue?: number,
 ) {
-  const template = langString?.value;
-  if (!template || !template.trim()) {
-    return langString;
+  const template = typeof langString === 'string' ? langString : langString?.value;
+  if (!template || !template.trim() || value === undefined) {
+    return template;
   }
 
-  if (value !== undefined) {
-    const formattedValue = format === 'i' ? formatInteger(value) : value;
-    const result = typeof value === 'object' && !Array.isArray(value)
-      ? processTemplateJsx(template, formattedValue)
-      : processTemplate(template, formattedValue);
-    if (typeof value !== 'object' && typeof result === 'string') {
-      const cacheValue = Array.isArray(value) ? JSON.stringify(value) : value;
-      cache.set(`${key}_${cacheValue}_${format}${pluralValue ? `_${pluralValue}` : ''}`, result);
-    }
-    return result;
+  const formattedValue = format === 'i' ? formatInteger(value) : value;
+  const result = typeof value === 'object' && !Array.isArray(value)
+    ? processTemplateJsx(template, formattedValue)
+    : processTemplate(template, formattedValue);
+  if (typeof value !== 'object' && typeof result === 'string') {
+    const cacheValue = Array.isArray(value) ? JSON.stringify(value) : value;
+    cache.set(`${key}_${cacheValue}_${format}${pluralValue ? `_${pluralValue}` : ''}`, result);
   }
 
-  return template;
+  return result;
 }

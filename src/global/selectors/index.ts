@@ -12,7 +12,7 @@ import type {
 
 import { TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
-import { toBig, toDecimal } from '../../util/decimals';
+import { toBig } from '../../util/decimals';
 import { findLast, mapValues } from '../../util/iteratees';
 import memoized from '../../util/memoized';
 import { round } from '../../util/round';
@@ -36,7 +36,7 @@ const selectAccountTokensMemoized = memoized((
     .filter(([slug]) => (slug in tokenInfo.bySlug))
     .map(([slug, balance]) => {
       const {
-        symbol, name, image, decimals, cmcSlug, quote: {
+        symbol, name, image, decimals, cmcSlug, color, quote: {
           price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
         },
       } = tokenInfo.bySlug[slug];
@@ -72,6 +72,7 @@ const selectAccountTokensMemoized = memoized((
         isDisabled,
         cmcSlug,
         totalValue,
+        color,
       } as UserToken;
     })
     .sort((tokenA, tokenB) => {
@@ -116,15 +117,18 @@ function createTokenList(
   return Object.entries(swapTokenInfo.bySlug)
     .filter(([, token]) => !filterFn || filterFn(token))
     .map(([slug, {
-      symbol, name, image, decimals, keywords, blockchain, contract, isPopular,
+      symbol, name, image,
+      decimals, keywords, blockchain,
+      contract, isPopular, color, price = 0,
     }]) => {
       const amount = balancesBySlug[slug] ?? 0n;
-      const totalValue = toDecimal(amount, decimals);
+      const totalValue = toBig(amount, decimals).mul(price).toString();
 
       return {
         symbol,
         slug,
         amount,
+        price,
         name,
         image,
         decimals,
@@ -135,6 +139,7 @@ function createTokenList(
         blockchain,
         contract,
         totalValue,
+        color,
       } satisfies UserSwapToken;
     })
     .sort(sortFn);

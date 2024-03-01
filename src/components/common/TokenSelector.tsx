@@ -344,7 +344,7 @@ function TokenSelector({
             !isAvailable && styles.tokenTextDisabled,
           )}
           >
-            {formatCurrency(toDecimal(currentToken.amount, token?.decimals), currentToken.symbol)}
+            {formatCurrency(toDecimal(currentToken.amount, currentToken?.decimals), currentToken.symbol)}
           </span>
           <span className={buildClassName(
             styles.tokenValue,

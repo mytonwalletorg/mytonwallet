@@ -16,7 +16,7 @@ import {
 
 import { IS_CAPACITOR, JWBTC_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../../config';
 import { Big } from '../../../lib/big.js';
-import { vibrateOnSuccess } from '../../../util/capacitor';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import {
   fromDecimal, getIsPositiveDecimal, roundDecimal, toDecimal,
 } from '../../../util/decimals';
@@ -197,6 +197,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     global = getGlobal();
     if (IS_CAPACITOR) {
       global = clearIsPinAccepted(global);
+      void vibrateOnError();
     }
     global = updateCurrentSwap(global, {
       isLoading: false,
@@ -233,6 +234,10 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     global = updateCurrentSwap(global, {
       isLoading: false,
     });
+    if (IS_CAPACITOR) {
+      global = clearIsPinAccepted(global);
+      void vibrateOnError();
+    }
     setGlobal(global);
     actions.showError({ error: result?.error });
     return;
@@ -244,6 +249,9 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     activityId: buildSwapId(buildResult.id),
   });
   setGlobal(global);
+  if (IS_CAPACITOR) {
+    void vibrateOnSuccess();
+  }
 });
 
 addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) => {
@@ -290,6 +298,10 @@ addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) =
     global = updateCurrentSwap(global, {
       isLoading: false,
     });
+    if (IS_CAPACITOR) {
+      global = clearIsPinAccepted(global);
+      void vibrateOnError();
+    }
     setGlobal(global);
     actions.showError({ error: ApiCommonError.Unexpected });
     return;
@@ -318,6 +330,10 @@ addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) =
     global = updateCurrentSwap(global, {
       isLoading: false,
     });
+    if (IS_CAPACITOR) {
+      global = clearIsPinAccepted(global);
+      void vibrateOnError();
+    }
     setGlobal(global);
     actions.showError({ error: result?.error });
     return;
@@ -330,6 +346,9 @@ addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) =
     activityId: swapItem.activity.id,
   });
   setGlobal(global);
+  if (IS_CAPACITOR) {
+    void vibrateOnSuccess();
+  }
 });
 
 addActionHandler('submitSwapCexToTon', async (global, actions, { password }) => {
@@ -347,7 +366,15 @@ addActionHandler('submitSwapCexToTon', async (global, actions, { password }) => 
     isLoading: true,
     error: undefined,
   });
+  if (IS_CAPACITOR) {
+    global = setIsPinAccepted(global);
+  }
   setGlobal(global);
+
+  if (IS_CAPACITOR) {
+    await vibrateOnSuccess(true);
+    global = getGlobal();
+  }
 
   const swapOptions = getSwapBuildOptions(global);
   const swapItem = await callApi(
@@ -371,6 +398,10 @@ addActionHandler('submitSwapCexToTon', async (global, actions, { password }) => 
     global = updateCurrentSwap(global, {
       isLoading: false,
     });
+    if (IS_CAPACITOR) {
+      global = clearIsPinAccepted(global);
+      void vibrateOnError();
+    }
     setGlobal(global);
     actions.showError({ error: ApiCommonError.Unexpected });
     return;
@@ -384,6 +415,9 @@ addActionHandler('submitSwapCexToTon', async (global, actions, { password }) => 
     activityId: swapItem.activity.id,
   });
   setGlobal(global);
+  if (IS_CAPACITOR) {
+    void vibrateOnSuccess();
+  }
 });
 
 addActionHandler('switchSwapTokens', (global) => {

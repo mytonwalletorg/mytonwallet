@@ -10,6 +10,7 @@ import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useLastCallback from '../../hooks/useLastCallback';
+import usePrevious from '../../hooks/usePrevious';
 
 import PinPadButton from './PinPadButton';
 
@@ -53,6 +54,7 @@ function PinPad({
   const isFaceId = getIsFaceIdAvailable();
   const canRenderBackspace = value.length > 0;
   const isSuccess = type === 'success' || isPinAccepted;
+  const prevIsPinAccepted = usePrevious(isPinAccepted);
   const arePinButtonsDisabled = isSuccess
     || (value.length === length && type !== 'error'); // Allow pincode entry in case of an error
 
@@ -61,6 +63,12 @@ function PinPad({
     type === 'error' && styles.error,
     isSuccess && styles.success,
   );
+
+  useEffect(() => {
+    if (prevIsPinAccepted && !isPinAccepted && length === value.length) {
+      onChange('');
+    }
+  }, [isPinAccepted, length, onChange, prevIsPinAccepted, value.length]);
 
   useEffect(() => {
     return () => {

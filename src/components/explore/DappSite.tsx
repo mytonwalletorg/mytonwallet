@@ -4,7 +4,7 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import type { ApiDapp } from '../../api/types';
 
-import { APP_NAME, IS_CAPACITOR } from '../../config';
+import { IS_CAPACITOR } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { logDebugError } from '../../util/logs';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
@@ -28,7 +28,6 @@ interface OwnProps {
 }
 
 let inAppBrowser: Cordova['InAppBrowser'] | undefined;
-const UTM_PARAM = `utm_source=${encodeURIComponent(APP_NAME.toLowerCase())}`;
 // Full list of options can be found at https://github.com/apache/cordova-plugin-inappbrowser#cordovainappbrowseropen
 const BROWSER_OPTIONS = [
   'location=no',
@@ -105,14 +104,8 @@ function DappSite({
   });
 
   const handleClick = useLastCallback(async () => {
-    const finalUrl = url.includes('utm_source=')
-      ? url
-      : url.includes('?')
-        ? `${url}&${UTM_PARAM}`
-        : `${url}?${UTM_PARAM}`;
-
     if (!IS_CAPACITOR || isExternal) {
-      window.open(finalUrl, '_blank', 'noopener');
+      window.open(url, '_blank', 'noopener');
       return;
     }
 

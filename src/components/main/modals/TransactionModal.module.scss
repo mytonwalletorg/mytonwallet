@@ -1,8 +1,8 @@
 .modalDialog {
-  height: 30rem;
+  height: 36rem;
 
   @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(30rem + env(safe-area-inset-bottom));
+    height: calc(36rem + env(safe-area-inset-bottom));
   }
 
   :global(.is-native-bottom-sheet) & {

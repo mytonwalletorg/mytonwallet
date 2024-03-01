@@ -195,7 +195,7 @@ Play Sounds: Sounds abspielen
 Focus on asset value rather than current balance: Fokus auf den Vermögenswert anstatt auf den aktuellen Kontostand legen
 $logout_confirm: Alle Wallets entfernen
 $logout_warning2: Wallet befinden sich in der dezentralen TON-Blockchain. Wenn Sie möchten, dass die Wallet gelöscht wird, übertragen Sie einfach alle TON davon und lassen Sie sie leer.
-$tiny_transfers_help: Schalten Sie dies aus, um Transaktionen von weniger als %1$d %2$s anzuzeigen. Bitte beachten Sie, dass solche Transaktionen oft für Spam- und Betrugszwecke verwendet werden.
+$tiny_transfers_help: Schalten Sie dies aus, um Transaktionen von weniger als $%value% anzuzeigen. Bitte beachten Sie, dass solche Transaktionen oft für Spam- und Betrugszwecke verwendet werden.
 Today: Heute
 Yesterday: Gestern
 Now: Jetzt
@@ -297,7 +297,7 @@ Add Token: Token hinzufügen
 Delete Token: Token löschen
 Are you sure you want to delete?: Sind Sie sicher, dass Sie %token% löschen möchten?
 Hide Tokens With No Cost: Token ohne Preis ausblenden
-Sort By Value: Nach Wert sortieren
+Sort By Cost: Nach Kosten sortieren
 Update: Aktualisieren
 Restart: Neustart
 Update MyTonWallet: MeinTonWallet aktualisieren
@@ -539,3 +539,12 @@ $wallet_switch_version_2: zu einer anderen Wallet-Version wechseln
 or import from: oder importieren von
 $insufficient_fee: "Unzureichende Gebühren: %fee%"
 Required: Erforderlich
+Transaction to this smart contract is not yet supported by Ledger.: Die Transaktion zu diesem Smart Contract wird von Ledger noch nicht unterstützt.
+This type of transaction is not yet supported by Ledger.: Diese Art von Transaktion wird von Ledger noch nicht unterstützt.
+The current version of Ledger only supports English-language comments without special characters.: Die aktuelle Version von Ledger unterstützt nur englischsprachige Kommentare ohne Sonderzeichen.
+Comment is too long.: Der Kommentar ist zu lang.
+Transferring NFT is not yet supported by Ledger.: Die Übertragung von NFT wird von Ledger noch nicht unterstützt.
+Encrypted comments are not yet supported by Ledger.: Verschlüsselte Kommentare werden von Ledger noch nicht unterstützt.
+$hide_tokens_no_cost_help: |
+  Schalten Sie dies aus, um Token auf Ihrem Konto mit einem Wert von weniger als $%value% anzuzeigen. Bitte beachten Sie, dass solche Token häufig für Spam- und Betrugszwecke verwendet werden.
+  Sie können bestimmte Token auch selektiv aktivieren und deaktivieren, indem Sie die folgende Liste auf diesem Bildschirm verwenden.

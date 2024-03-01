@@ -3,7 +3,6 @@ import { Address } from '@ton/core';
 import type {
   ApiBackendStakingState,
   ApiNetwork,
-  ApiStakingCommonData,
   ApiStakingState,
   ApiStakingType,
 } from '../../types';
@@ -27,6 +26,7 @@ import {
 } from './util/tonCore';
 import { NominatorPool } from './contracts/NominatorPool';
 import { fetchStoredAddress } from '../../common/accounts';
+import { getAccountCache, getStakingCommonCache, updateAccountCache } from '../../common/cache';
 import { apiDb } from '../../db';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
 import { checkTransactionDraft, submitTransfer } from './transactions';
@@ -35,10 +35,9 @@ import { isAddressInitialized } from './wallet';
 export async function checkStakeDraft(
   accountId: string,
   amount: bigint,
-  commonData: ApiStakingCommonData,
   backendState: ApiBackendStakingState,
 ) {
-  const staked = await getStakingState(accountId, commonData, backendState);
+  const staked = await getStakingState(accountId, backendState);
 
   let type: ApiStakingType;
   let result: CheckTransactionDraftResult;
@@ -67,12 +66,12 @@ export async function checkStakeDraft(
 export async function checkUnstakeDraft(
   accountId: string,
   amount: bigint,
-  commonData: ApiStakingCommonData,
   backendState: ApiBackendStakingState,
 ) {
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
-  const staked = await getStakingState(accountId, commonData, backendState);
+  const commonData = getStakingCommonCache();
+  const staked = await getStakingState(accountId, backendState);
 
   let type: ApiStakingType;
   let result: CheckTransactionDraftResult;
@@ -120,6 +119,8 @@ export async function submitStake(
 ) {
   let result: SubmitTransferResult;
 
+  const address = await fetchStoredAddress(accountId);
+
   if (type === 'liquid') {
     amount += ONE_TON;
     result = await submitTransfer(
@@ -142,6 +143,10 @@ export async function submitStake(
     );
   }
 
+  if (!('error' in result)) {
+    updateAccountCache(accountId, address, { stakedAt: Date.now() });
+  }
+
   return result;
 }
 
@@ -155,12 +160,15 @@ export async function submitUnstake(
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 
+  const staked = await getStakingState(accountId, backendState);
+
   let result: SubmitTransferResult;
 
   if (type === 'liquid') {
-    const mode = (backendState.stakedAt ?? 0) > Date.now() - VALIDATION_PERIOD_MS
+    const mode = staked.type === 'liquid' && !staked.instantAvailable
       ? ApiLiquidUnstakeMode.BestRate
       : ApiLiquidUnstakeMode.Default;
+
     const params = await buildLiquidStakingWithdraw(network, address, amount, mode);
 
     result = await submitTransfer(
@@ -210,9 +218,9 @@ export async function buildLiquidStakingWithdraw(
 
 export async function getStakingState(
   accountId: string,
-  commonData: ApiStakingCommonData,
   backendState: ApiBackendStakingState,
 ): Promise<ApiStakingState> {
+  const commonData = getStakingCommonCache();
   const { network } = parseAccountId(accountId);
   const address = toBase64Address(await fetchStoredAddress(accountId), true);
 
@@ -236,8 +244,11 @@ export async function getStakingState(
 
   const { loyaltyType, shouldUseNominators } = backendState;
 
+  const accountCache = getAccountCache(accountId, address);
+  const stakedAt = Math.max(accountCache.stakedAt ?? 0, backendState.stakedAt ?? 0);
+
   const isInstantUnstake = !commonData.liquid.collection
-    && Date.now() - (backendState.stakedAt ?? 0) > VALIDATION_PERIOD_MS;
+    && Date.now() - stakedAt > VALIDATION_PERIOD_MS;
   const liquidAvailable = isInstantUnstake ? commonData.liquid.available : 0n;
 
   let liquidApy = commonData.liquid.apy;

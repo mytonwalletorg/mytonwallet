@@ -107,7 +107,10 @@ function DappConnectModal({
     } else if (accounts![currentAccountId].isHardware && requiredProof) {
       setDappConnectRequestState({ state: DappConnectState.ConnectHardware });
     } else if (requiredPermissions?.isPasswordRequired) {
-      setDappConnectRequestState({ state: DappConnectState.Password });
+      // The confirmation window must be closed before the password screen is displayed
+      requestAnimationFrame(() => {
+        setDappConnectRequestState({ state: DappConnectState.Password });
+      });
     }
   });
 

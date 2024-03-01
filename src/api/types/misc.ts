@@ -35,6 +35,7 @@ export interface ApiBaseToken {
   isPopular?: boolean;
   keywords?: string[];
   cmcSlug?: string;
+  color?: string;
 }
 
 export interface ApiToken extends ApiBaseToken {
@@ -43,6 +44,7 @@ export interface ApiToken extends ApiBaseToken {
 
 export interface ApiTokenPrice {
   price: number;
+  priceUsd: number;
   percentChange1h: number;
   percentChange24h: number;
   percentChange7d: number;

@@ -194,7 +194,7 @@ Play Sounds: Sesleri çal
 Focus on asset value rather than current balance: Mevcut bakiyeden ziyade varlık değerine odaklanır
 $logout_confirm: "**Tüm** cüzdanları kaldırın"
 $logout_warning2: Cüzdanlar merkeziyetsiz TON Blockchain'inde bulunmaktadır. Cüzdanın silinmesini istiyorsanız, içindeki tüm TON'u aktarmanız ve cüzdanı boş bırakmanız yeterlidir.
-$tiny_transfers_help: Tutarı %1$d %2$s'den az olan işlemleri görüntülemek için bu düğmeyi kapalı konuma getirin. Lütfen bu tür işlemlerin genellikle spam ve dolandırıcılık amacıyla kullanıldığını unutmayın.
+$tiny_transfers_help: Tutarı $%value%'den az olan işlemleri görüntülemek için bu düğmeyi kapalı konuma getirin. Lütfen bu tür işlemlerin genellikle spam ve dolandırıcılık amacıyla kullanıldığını unutmayın.
 Today: Bugün
 Yesterday: Dün
 Now: Şimdi
@@ -296,7 +296,7 @@ Add Token: Token ekle
 Delete Token: Token sil
 Are you sure you want to delete?: "%token%'ı silmek istediğinizden emin misiniz?"
 Hide Tokens With No Cost: Tokenleri ücretsiz olarak saklayın
-Sort By Value: Değere göre sırala
+Sort By Cost: Maliyete göre sıralayın
 Update: Güncelle
 Restart: Yeniden başlat
 Update MyTonWallet: MyTonWallet'ı güncelle
@@ -537,3 +537,12 @@ $wallet_switch_version_2: başka bir cüzdan versiyonuna geçiş yap
 or import from: veya şuradan içe aktar
 $insufficient_fee: "Yetersiz ücret: %fee%"
 Required: Gerekli
+Transaction to this smart contract is not yet supported by Ledger.: Bu akıllı sözleşmeye yönelik işlemler henüz Ledger tarafından desteklenmiyor.
+This type of transaction is not yet supported by Ledger.: Bu tür işlemler henüz Ledger tarafından desteklenmemektedir.
+The current version of Ledger only supports English-language comments without special characters.: Ledger'ın mevcut sürümü, özel karakterler içermeyen yalnızca İngilizce dilindeki yorumları desteklemektedir.
+Comment is too long.: Yorum çok uzun.
+Transferring NFT is not yet supported by Ledger.: NFT'nin aktarılması henüz Ledger tarafından desteklenmiyor.
+Encrypted comments are not yet supported by Ledger.: Şifrelenmiş yorumlar henüz Ledger tarafından desteklenmemektedir.
+$hide_tokens_no_cost_help: |
+  Hesabınızdaki jetonları $%value% 'dan daha düşük bir değerle görüntülemek için bunu kapatın. Lütfen bu tür jetonların genellikle spam ve aldatmaca için kullanıldığını unutmayın.
+  Ayrıca, bu ekranda aşağıdaki listeyi kullanarak belirli jetonları seçici olarak etkinleştirebilir ve devre dışı bırakabilirsiniz.

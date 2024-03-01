@@ -29,12 +29,13 @@ import { addKnownTokens, getKnownTokens } from '../blockchains/ton/tokens';
 import { fetchStoredAccount, updateStoredAccount } from '../common/accounts';
 import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet } from '../common/backend';
+import { getStakingCommonCache } from '../common/cache';
 import { isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
 import { txCallbacks } from '../common/txCallbacks';
 import { hexToBytes } from '../common/utils';
 import { processNftUpdates, updateNfts } from './nfts';
 import { getBaseCurrency } from './prices';
-import { getBackendStakingState, getStakingCommonData, tryUpdateStakingCommonData } from './staking';
+import { getBackendStakingState, tryUpdateStakingCommonData } from './staking';
 import {
   swapGetAssets, swapGetHistory, swapItemToActivity, swapReplaceTransactionsByRanges,
 } from './swap';
@@ -75,9 +76,11 @@ const lastBalanceCache: Record<string, {
   tokenBalances?: ApiBalanceBySlug;
 }> = {};
 
-export function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAccountActiveFn) {
+export async function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAccountActiveFn) {
   onUpdate = _onUpdate;
   isAccountActive = _isAccountActive;
+
+  await tryUpdatePrices();
 
   preloadEnsurePromise = Promise.all([
     tryUpdateKnownAddresses(),
@@ -259,11 +262,9 @@ export async function setupStakingPolling(accountId: string) {
 
   while (isAlive(localOnUpdate, accountId)) {
     try {
-      const stakingCommonData = getStakingCommonData();
+      const stakingCommonData = getStakingCommonCache();
       const backendStakingState = await getBackendStakingState(accountId);
-      const stakingState = await blockchain.getStakingState(
-        accountId, stakingCommonData, backendStakingState,
-      );
+      const stakingState = await blockchain.getStakingState(accountId, backendStakingState);
 
       if (!isAlive(localOnUpdate, accountId)) return;
 
@@ -373,6 +374,7 @@ export async function setupBackendPolling() {
     if (!isUpdaterAlive(localOnUpdate)) return;
 
     try {
+      await tryUpdatePrices(localOnUpdate);
       await tryUpdateTokens(localOnUpdate);
     } catch (err) {
       logDebugError('setupBackendPolling', err);
@@ -394,24 +396,19 @@ export async function setupLongBackendPolling() {
   }
 }
 
-export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
+export async function tryUpdatePrices(localOnUpdate?: OnApiUpdate) {
   if (!localOnUpdate) {
     localOnUpdate = onUpdate;
   }
 
   try {
     const baseCurrency = await getBaseCurrency();
-    const [pricesData, tokens] = await Promise.all([
-      callBackendGet<Record<string, {
-        slugs: string[];
-        quote: ApiTokenPrice;
-      }>>('/prices', { base: baseCurrency }),
-      callBackendGet<ApiBaseToken[]>('/known-tokens'),
-    ]);
+    const pricesData = await callBackendGet<Record<string, {
+      slugs: string[];
+      quote: ApiTokenPrice;
+    }>>('/prices', { base: baseCurrency });
 
     if (!isUpdaterAlive(localOnUpdate)) return;
-
-    addKnownTokens(tokens);
 
     prices.bySlug = Object.values(pricesData).reduce((acc, { slugs, quote }) => {
       for (const slug of slugs) {
@@ -420,6 +417,22 @@ export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
       return acc;
     }, {} as Record<string, ApiTokenPrice>);
     prices.baseCurrency = baseCurrency;
+  } catch (err) {
+    logDebugError('tryUpdatePrices', err);
+  }
+}
+
+export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
+  if (!localOnUpdate) {
+    localOnUpdate = onUpdate;
+  }
+
+  try {
+    const tokens = await callBackendGet<ApiBaseToken[]>('/known-tokens');
+
+    if (!isUpdaterAlive(localOnUpdate)) return;
+
+    addKnownTokens(tokens);
 
     sendUpdateTokens();
   } catch (err) {
@@ -437,6 +450,7 @@ export async function tryLoadSwapTokens(localOnUpdate: OnApiUpdate) {
       acc[asset.slug] = {
         ...asset,
         contract: asset.contract ?? asset.slug,
+        price: prices.bySlug[asset.slug]?.price ?? 0,
       };
       return acc;
     }, {});

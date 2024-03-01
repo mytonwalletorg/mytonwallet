@@ -172,6 +172,7 @@ export function addKnownTokens(tokens: ApiBaseToken[]) {
       ...token,
       quote: {
         price: 0,
+        priceUsd: 0,
         percentChange1h: 0,
         percentChange24h: 0,
         percentChange7d: 0,

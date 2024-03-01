@@ -20,6 +20,7 @@ export function createPostMessageInterface(
   api: ApiConfig,
   channel?: string,
   target: DedicatedWorkerGlobalScope | Worker = self as DedicatedWorkerGlobalScope,
+  shouldIgnoreErrors?: boolean,
 ) {
   function sendToOrigin(data: WorkerMessageData, transferables?: Transferable[]) {
     data.channel = channel;
@@ -31,7 +32,9 @@ export function createPostMessageInterface(
     }
   }
 
-  handleErrors(sendToOrigin);
+  if (!shouldIgnoreErrors) {
+    handleErrors(sendToOrigin);
+  }
 
   target.onmessage = (message: OriginMessageEvent) => {
     if (message.data?.channel === channel) {

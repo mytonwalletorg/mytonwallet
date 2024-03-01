@@ -53,7 +53,7 @@ export interface LangString {
   value?: string;
 }
 
-export type LangPack = Record<string, LangString>;
+export type LangPack = Record<string, string | LangString>;
 
 export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWallet';
 
@@ -226,13 +226,14 @@ export type UserToken = {
   keywords?: string[];
   cmcSlug?: string;
   totalValue: string;
+  color?: string;
 };
 
 export type UserSwapToken = {
   blockchain: string;
   isPopular: boolean;
   contract?: string;
-} & Omit<UserToken, 'price' | 'change24h' | 'change7d' | 'change30d' | 'history24h' | 'history7d' | 'history30d'>;
+} & Omit<UserToken, 'change24h' | 'change7d' | 'change30d' | 'history24h' | 'history7d' | 'history30d'>;
 
 export type TokenPeriod = '24h' | '7d' | '30d';
 
@@ -357,6 +358,7 @@ export type GlobalState = {
     stateInit?: string;
     shouldEncrypt?: boolean;
     isToNewAddress?: boolean;
+    isScam?: boolean;
   };
 
   currentSwap: {

@@ -11,7 +11,7 @@ import {
   IS_CAPACITOR,
   MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TON_TOKEN_SLUG,
 } from '../../config';
-import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
+import { selectAccountState, selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
@@ -50,6 +50,7 @@ type StateProps = GlobalState['staking'] & {
   endOfStakingCycle?: number;
   stakingInfo: GlobalState['stakingInfo'];
   baseCurrency?: ApiBaseCurrency;
+  shouldUseNominators?: boolean;
 };
 
 const IS_OPEN_STATES = new Set([
@@ -71,6 +72,7 @@ function UnstakeModal({
   endOfStakingCycle,
   stakingInfo,
   baseCurrency,
+  shouldUseNominators,
 }: StateProps) {
   const {
     setStakingScreen,
@@ -94,7 +96,7 @@ function UnstakeModal({
 
   const [isInsufficientBalance, setIsInsufficientBalance] = useState(false);
 
-  const [unstakeAmount, setUnstakeAmount] = useState<bigint>();
+  const [unstakeAmount, setUnstakeAmount] = useState(shouldUseNominators ? stakingBalance : undefined);
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
@@ -125,11 +127,11 @@ function UnstakeModal({
   useEffect(() => {
     if (isOpen) {
       fetchStakingHistory();
-      setUnstakeAmount(undefined);
+      setUnstakeAmount(shouldUseNominators ? stakingBalance : undefined);
       setHasAmountError(false);
       setIsInsufficientBalance(false);
     }
-  }, [isOpen, fetchStakingHistory]);
+  }, [isOpen, fetchStakingHistory, shouldUseNominators, stakingBalance]);
 
   useSyncEffect(() => {
     if (endOfStakingCycle) {
@@ -383,6 +385,7 @@ function UnstakeModal({
             onChange={handleAmountChange}
             className={styles.amountInput}
             decimals={tonToken?.decimals}
+            disabled={shouldUseNominators}
           >
             <div className={styles.ton}>
               <img src={ASSET_LOGO_PATHS.ton} alt="" className={styles.tonIcon} />
@@ -510,6 +513,8 @@ export default memo(withGlobal((global): StateProps => {
   const tokens = selectCurrentAccountTokens(global);
   const currentAccountState = selectCurrentAccountState(global);
   const baseCurrency = global.settings.baseCurrency;
+  const accountState = selectAccountState(global, global.currentAccountId!);
+  const shouldUseNominators = accountState?.staking?.type === 'nominators';
 
   return {
     ...global.staking,
@@ -519,5 +524,6 @@ export default memo(withGlobal((global): StateProps => {
     endOfStakingCycle: currentAccountState?.staking?.end,
     stakingInfo: global.stakingInfo,
     baseCurrency,
+    shouldUseNominators,
   };
 })(UnstakeModal));

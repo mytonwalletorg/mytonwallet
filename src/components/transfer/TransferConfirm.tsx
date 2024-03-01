@@ -17,9 +17,12 @@ import Button from '../ui/Button';
 import IconWithTooltip from '../ui/IconWithTooltip';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import ModalHeader from '../ui/ModalHeader';
+import Transition from '../ui/Transition';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
+
+import scamImg from '../../assets/scam.svg';
 
 interface OwnProps {
   isActive: boolean;
@@ -46,6 +49,7 @@ function TransferConfirm({
     isLoading,
     toAddressName,
     isToNewAddress,
+    isScam,
   },
   symbol,
   decimals,
@@ -95,6 +99,9 @@ function TransferConfirm({
         />
         <div className={styles.label}>
           {lang('Receiving Address')}
+          <Transition name="fade" activeKey={isScam ? 0 : 1} className={styles.scamContainer}>
+            {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
+          </Transition>
 
           {isToNewAddress && (
             <IconWithTooltip
@@ -109,6 +116,7 @@ function TransferConfirm({
           addressName={addressName}
           copyNotification={lang('Address was copied!')}
           className={styles.addressWidget}
+          textClassName={isScam ? styles.scamAddress : undefined}
         />
 
         <AmountWithFeeTextField

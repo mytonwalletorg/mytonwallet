@@ -161,6 +161,14 @@ function TransactionModal({
     setNextKey(SLIDES.password);
   });
 
+  const openHiddenComment = useLastCallback(() => {
+    if (!encryptedComment) {
+      return;
+    }
+
+    openPasswordSlide();
+  });
+
   const handleSendClick = useLastCallback(() => {
     closeActivityInfo({ id: id! });
     startTransfer({
@@ -297,7 +305,7 @@ function TransactionModal({
           text={encryptedComment ? decryptedComment : comment}
           spoiler={spoiler}
           spoilerRevealText={encryptedComment ? lang('Decrypt') : lang('Display')}
-          spoilerCallback={openPasswordSlide}
+          spoilerCallback={openHiddenComment}
           copyNotification={lang('Comment was copied!')}
           className={styles.copyButtonWrapper}
           textClassName={styles.comment}

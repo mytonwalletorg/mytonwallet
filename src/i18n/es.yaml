@@ -194,7 +194,7 @@ Play Sounds: Reproducir sonidos
 Focus on asset value rather than current balance: Centrarse en el valor de los activos en lugar del saldo actual
 $logout_confirm: Cerrar sesión en **todos** los monederos
 $logout_warning2: Los monederos se encuentran en la cadena de bloques descentralizada de TON. Si desea que se elimine el monedero, simplemente transfiera todos los activos y déjela completamente vacía.
-$tiny_transfers_help: Desactive esta opción para mostrar transacciones de menos de %1$d %2$s. Tenga en cuenta que tales transacciones se utilizan a menudo con fines de spam y estafa.
+$tiny_transfers_help: Desactive esta opción para mostrar transacciones de menos de $%value%. Tenga en cuenta que tales transacciones se utilizan a menudo con fines de spam y estafa.
 Today: Hoy
 Yesterday: Ayer
 Now: Ahora
@@ -295,7 +295,7 @@ Add Token: Agregar token
 Delete Token: Eliminar token
 Are you sure you want to delete?: ¿Está seguro de que desea eliminar %token%?
 Hide Tokens With No Cost: Ocultar tokens sin costo
-Sort By Value: Ordenar por valor
+Sort By Cost: Ordenar por costo
 Update: Actualizar
 Restart: Reanudar
 Update MyTonWallet: Actualizar MyTonWallet
@@ -535,3 +535,12 @@ $wallet_switch_version_2: cambiar a otra versión de cartera
 or import from: o importar desde
 $insufficient_fee: "Comisión insuficiente: %fee%"
 Required: Requerido
+Transaction to this smart contract is not yet supported by Ledger.: Ledger aún no admite la transacción de este contrato inteligente.
+This type of transaction is not yet supported by Ledger.: Ledger aún no admite este tipo de transacción.
+The current version of Ledger only supports English-language comments without special characters.: La versión actual de Ledger sólo admite comentarios en inglés sin caracteres especiales.
+Comment is too long.: El comentario es demasiado largo.
+Transferring NFT is not yet supported by Ledger.: Ledger aún no admite la transferencia de NFT.
+Encrypted comments are not yet supported by Ledger.: Ledger aún no admite comentarios cifrados.
+$hide_tokens_no_cost_help: |
+  Apague esto para mostrar tokens en su cuenta con un valor inferior a $%value%. Tenga en cuenta que tales tokens a menudo se usan para el spam y la estafa.
+  También puede habilitar y deshabilitar selectivamente tokens particulares utilizando la lista a continuación en esta pantalla.

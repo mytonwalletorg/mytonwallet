@@ -12,6 +12,7 @@ import blockchains from '../blockchains';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from '../blockchains/ton/constants';
 import { fetchStoredAccount, fetchStoredAddress } from '../common/accounts';
 import { callBackendGet } from '../common/backend';
+import { setStakingCommonCache } from '../common/cache';
 import { resolveBlockchainKey } from '../common/helpers';
 import { isKnownStakingPool } from '../common/utils';
 import { getEnvironment } from '../environment';
@@ -20,7 +21,6 @@ import { createLocalTransaction } from './transactions';
 
 const CACHE_TTL = 5000; // 5 s.
 let backendStakingStateByAddress: Record<string, [number, ApiBackendStakingState]> = {};
-let stakingCommonData: ApiStakingCommonData;
 
 // let onUpdate: OnApiUpdate;
 
@@ -32,14 +32,14 @@ export async function checkStakeDraft(accountId: string, amount: bigint) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   const backendState = await getBackendStakingState(accountId);
-  return blockchain.checkStakeDraft(accountId, amount, stakingCommonData!, backendState!);
+  return blockchain.checkStakeDraft(accountId, amount, backendState!);
 }
 
 export async function checkUnstakeDraft(accountId: string, amount: bigint) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   const backendState = await getBackendStakingState(accountId);
-  return blockchain.checkUnstakeDraft(accountId, amount, stakingCommonData!, backendState!);
+  return blockchain.checkUnstakeDraft(accountId, amount, backendState!);
 }
 
 export async function submitStake(
@@ -170,12 +170,9 @@ export async function tryUpdateStakingCommonData() {
     data.prevRound.end *= 1000;
     data.prevRound.unlock *= 1000;
     data.liquid.available = fromDecimal(data.liquid.available);
-    stakingCommonData = data as ApiStakingCommonData;
+
+    setStakingCommonCache(data as ApiStakingCommonData);
   } catch (err) {
     logDebugError('tryUpdateLiquidStakingState', err);
   }
-}
-
-export function getStakingCommonData() {
-  return stakingCommonData!;
 }

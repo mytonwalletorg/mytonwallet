@@ -597,8 +597,13 @@ addActionHandler('openDeeplink', async (global, actions, params) => {
 });
 
 addActionHandler('changeBaseCurrency', async (global, actions, { currency }) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('changeBaseCurrency', { currency });
+  }
+
   await callApi('setBaseCurrency', currency);
-  void callApi('tryUpdateTokens');
+  await callApi('tryUpdatePrices');
+  await callApi('tryUpdateTokens');
 });
 
 addActionHandler('setIsPinAccepted', (global) => {
