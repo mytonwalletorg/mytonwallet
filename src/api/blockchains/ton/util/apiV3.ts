@@ -97,6 +97,22 @@ function parseRawTransaction(rawTx: any, addressBook: AddressBook): ApiTransacti
   });
 }
 
+export async function fetchLatestTxId(network: ApiNetwork, address: string): Promise<string | undefined> {
+  const { transactions }: { transactions: any[] } = await callApiV3(network, '/transactions', {
+    account: address,
+    limit: 1,
+    sort: 'desc',
+  });
+
+  if (!transactions.length) {
+    return undefined;
+  }
+
+  const { lt, hash } = transactions[0];
+
+  return stringifyTxId({ lt, hash });
+}
+
 function getRawBody(msg: any) {
   if (!msg.message_content) return undefined;
   return msg.message_content.body;

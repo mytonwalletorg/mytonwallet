@@ -72,3 +72,6 @@ export {
 export {
   normalizeAddress,
 } from './address';
+export {
+  validateDexSwapTransfers,
+} from './swap';

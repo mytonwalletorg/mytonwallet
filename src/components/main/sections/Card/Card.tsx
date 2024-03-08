@@ -41,7 +41,6 @@ interface OwnProps {
   forceCloseAccountSelector?: boolean;
   onTokenCardClose: NoneToVoidFunction;
   onApyClick: NoneToVoidFunction;
-  onQrScanPress?: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -63,7 +62,6 @@ function Card({
   forceCloseAccountSelector,
   onTokenCardClose,
   onApyClick,
-  onQrScanPress,
   isTestnet,
   baseCurrency,
   stakingBalance,
@@ -183,7 +181,7 @@ function Card({
   return (
     <div className={styles.containerWrapper} ref={ref}>
       <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
-        <AccountSelector forceClose={forceCloseAccountSelector} canEdit onQrScanPress={onQrScanPress} />
+        <AccountSelector forceClose={forceCloseAccountSelector} canEdit />
         {shouldRenderDapp && (
           <div className={buildClassName(styles.dapp, dappClassNames)}>
             <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />

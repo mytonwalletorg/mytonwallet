@@ -83,9 +83,11 @@ addActionHandler('startSwap', (global, actions, payload) => {
   }
 
   const { isPortrait, ...rest } = payload ?? {};
-  const { tokenInSlug, tokenOutSlug, amountIn } = rest;
+  const {
+    state, tokenInSlug, tokenOutSlug, amountIn, toAddress,
+  } = rest;
 
-  if (tokenInSlug || tokenOutSlug || amountIn) {
+  if (tokenInSlug || tokenOutSlug || amountIn || toAddress) {
     const tokenIn = global.swapTokenInfo?.bySlug[tokenInSlug!];
     const tokenOut = global.swapTokenInfo?.bySlug[tokenOutSlug!];
 
@@ -105,8 +107,10 @@ addActionHandler('startSwap', (global, actions, payload) => {
     });
   }
 
+  const requiredState = state || (isPortrait ? SwapState.Initial : SwapState.None);
+
   global = updateCurrentSwap(global, {
-    state: isPortrait ? SwapState.Initial : SwapState.None,
+    state: requiredState,
   });
   setGlobal(global);
 
@@ -315,9 +319,8 @@ addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) =
     password,
     accountId: global.currentAccountId!,
     slug: global.currentSwap.tokenInSlug!,
-    toAddress: swapItem.swap.cex!.payinAddress,
-    amount: fromDecimal(swapItem.swap.fromAmount, asset.decimals), // TODO
     fee: fromDecimal(swapItem.swap.swapFee, asset.decimals), // TODO
+    ...swapItem.transfer!,
   };
 
   await pause(WAIT_FOR_CHANGELLY);
@@ -412,6 +415,7 @@ addActionHandler('submitSwapCexToTon', async (global, actions, { password }) => 
     isLoading: false,
     state: SwapState.WaitTokens,
     payinAddress: swapItem.swap.cex!.payinAddress,
+    payinExtraId: swapItem.swap.cex!.payinExtraId,
     activityId: swapItem.activity.id,
   });
   setGlobal(global);

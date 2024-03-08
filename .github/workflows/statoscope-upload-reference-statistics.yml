@@ -9,23 +9,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [18]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         persist-credentials: false
     - name: Reconfigure git to use HTTPS authentication
       uses: GuillaumeFalourd/SSH-to-HTTPS@v1
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install
       run: npm ci
     - name: Build
       run: npm run build:production; mv ./public/statoscope-build-statistics.json ./statoscope-reference.json
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: statoscope-reference
         path: ./statoscope-reference.json

@@ -3,10 +3,10 @@
 .modalDialog {
   overflow: hidden;
 
-  height: 35rem;
+  height: 39rem;
 
   @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(35rem + env(safe-area-inset-bottom));
+    height: calc(39rem + env(safe-area-inset-bottom));
   }
 }
 
@@ -435,10 +435,6 @@
   border-radius: var(--border-radius-default);
 }
 
-.priceImpactStatic {
-  padding: 0;
-}
-
 .priceImpactSticker {
   width: 4.3125rem;
   height: 4.3125rem;
@@ -614,6 +610,10 @@
   }
 }
 
+.inputButtonShifted {
+  right: 2.5rem;
+}
+
 .changellyInfo {
   display: flex;
   gap: 1rem;
@@ -625,7 +625,9 @@
   border-radius: var(--border-radius-default);
 }
 
-.changellyInfoStatic {
+.changellyInfoStatic,
+.blockchainButtons,
+.priceImpactStatic {
   padding: 0;
 }
 
@@ -658,9 +660,6 @@
   color: var(--color-green);
 }
 
-.blockchainButtons {
-  padding: 0;
-}
 
 .changellyInfoBlock {
   display: flex;
@@ -678,7 +677,8 @@
   text-align: center;
 }
 
-.changellyTextField {
+.changellyTextField,
+.textFieldWrapperFullWidth {
   width: 100%;
 }
 
@@ -687,10 +687,6 @@
   font-weight: 700;
   color: var(--color-red);
   text-align: center;
-}
-
-.changellyDescriptionBold {
-  font-weight: 700;
 }
 
 .arrowContainer,
@@ -775,7 +771,8 @@ $animation-time: 350ms;
   margin-bottom: 2rem;
 }
 
-.swapShortAmount {
+.swapShortAmount,
+.changellyDescriptionBold {
   font-weight: 700;
 }
 
@@ -805,4 +802,52 @@ $animation-time: 350ms;
   border-radius: 50%;
   box-shadow: 0 0 0 0.0625rem var(--color-activity-blue-background),
               0 0 0 0.0625rem var(--color-background-second);
+}
+
+.qrCode {
+  position: relative;
+
+  overflow: hidden;
+
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 11rem;
+  margin: 0 auto;
+
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-card);
+
+  transition: opacity 350ms ease-in-out;
+
+  canvas {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+
+    display: block;
+
+    width: calc(100% - 1rem);
+    height: calc(100% - 1rem);
+  }
+}
+
+.qrCodeHidden {
+  opacity: 0;
+}
+
+.textFieldWrapperFullWidth {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.textFieldLabel {
+  display: flex;
+  align-items: center;
+
+  padding-left: 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight:  700;
+  color: var(--color-gray-2);
 }

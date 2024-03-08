@@ -381,14 +381,16 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
   global = updateActivitiesIsLoading(global, true);
   setGlobal(global);
 
-  let { idsBySlug } = selectCurrentAccountState(global)?.activities || {};
+  const accountId = global.currentAccountId!;
+
+  let { idsBySlug } = selectAccountState(global, accountId)?.activities || {};
   let shouldFetchMore = true;
   let fetchedActivities: ApiActivity[] = [];
   let tokenIds = (idsBySlug && idsBySlug[slug]) || [];
   let offsetId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
 
   while (shouldFetchMore) {
-    const result = await callApi('fetchTokenActivitySlice', global.currentAccountId!, slug, offsetId, limit);
+    const result = await callApi('fetchTokenActivitySlice', accountId, slug, offsetId, limit);
 
     global = getGlobal();
 
@@ -418,7 +420,7 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
 
   const newById = buildCollectionByKey(fetchedActivities, 'id');
   const newOrderedIds = Object.keys(newById);
-  const currentActivities = selectCurrentAccountState(global)?.activities;
+  const currentActivities = selectAccountState(global, accountId)?.activities;
   const byId = { ...(currentActivities?.byId || {}), ...newById };
 
   idsBySlug = currentActivities?.idsBySlug || {};
@@ -426,7 +428,7 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
 
   tokenIds.sort((a, b) => compareActivities(byId[a], byId[b]));
 
-  global = updateCurrentAccountState(global, {
+  global = updateAccountState(global, accountId, {
     activities: {
       ...currentActivities,
       byId,
@@ -480,7 +482,7 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
   global = updateActivitiesIsLoading(global, false);
 
   const newById = buildCollectionByKey(fetchedActivities, 'id');
-  const currentActivities = selectCurrentAccountState(global)?.activities;
+  const currentActivities = selectAccountState(global, accountId)?.activities;
   const byId = { ...(currentActivities?.byId || {}), ...newById };
   let idsBySlug = { ...currentActivities?.idsBySlug };
 
@@ -501,7 +503,7 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
   idsBySlug = mapValues(idsBySlug, (txIds) => unique(txIds));
   idsBySlug[TON_TOKEN_SLUG]?.sort((a, b) => compareActivities(byId[a], byId[b]));
 
-  global = updateCurrentAccountState(global, {
+  global = updateAccountState(global, accountId, {
     activities: {
       ...currentActivities,
       byId,

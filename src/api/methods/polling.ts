@@ -62,7 +62,11 @@ const DOUBLE_CHECK_TOKENS_PAUSE = 30 * SEC;
 let onUpdate: OnApiUpdate;
 let isAccountActive: IsAccountActiveFn;
 
-let preloadEnsurePromise: Promise<any>;
+let resolvePreloadPromise: Function;
+const preloadEnsurePromise = new Promise((resolve) => {
+  resolvePreloadPromise = resolve;
+});
+
 const prices: {
   baseCurrency: ApiBaseCurrency;
   bySlug: Record<string, ApiTokenPrice>;
@@ -82,12 +86,12 @@ export async function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAc
 
   await tryUpdatePrices();
 
-  preloadEnsurePromise = Promise.all([
+  Promise.all([
     tryUpdateKnownAddresses(),
     tryUpdateTokens(_onUpdate),
     tryLoadSwapTokens(_onUpdate),
     tryUpdateStakingCommonData(),
-  ]);
+  ]).then(() => resolvePreloadPromise());
 
   void tryUpdateRegion(_onUpdate);
 

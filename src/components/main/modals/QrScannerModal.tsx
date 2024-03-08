@@ -4,6 +4,9 @@ import React, {
   memo, useRef, useState,
 } from '../../../lib/teact/teact';
 import { addExtraClass, removeExtraClass } from '../../../lib/teact/teact-dom';
+import { getActions } from '../../../global';
+
+import { QrScanType } from '../../../global/types';
 
 import buildClassName from '../../../util/buildClassName';
 import { vibrateOnSuccess } from '../../../util/capacitor';
@@ -24,7 +27,7 @@ import styles from './QrScannerModal.module.scss';
 
 interface OwnProps {
   isOpen?: boolean;
-  onScan: (scanResult: string) => void;
+  qrScanType?: QrScanType;
   onClose: NoneToVoidFunction;
 }
 
@@ -35,7 +38,11 @@ const START_SCAN_DELAY_MS = IS_IOS ? 160 : 360;
 const MODAL_ANIMATION_DURATION_MS = IS_IOS ? 650 : 500;
 const DESTROY_SCANNER_DELAY_MS = IS_IOS ? 250 : 500;
 
-function QrScannerModal({ isOpen, onScan, onClose }: OwnProps) {
+function QrScannerModal({ isOpen, qrScanType, onClose }: OwnProps) {
+  const {
+    scanQrCode,
+  } = getActions();
+
   const [isFlashlightAvailable, setIsFlashlightAvailable] = useState(false);
   const [isFlashlightEnabled, setIsFlashlightEnabled] = useState(false);
   const [isScannerStarted, setIsScannerStarted] = useState(false);
@@ -67,6 +74,14 @@ function QrScannerModal({ isOpen, onScan, onClose }: OwnProps) {
     onClose();
   });
 
+  const handleScan = useLastCallback((data: string) => {
+    if (qrScanType === QrScanType.Transfer) {
+      scanQrCode({ url: data });
+    } else if (qrScanType === QrScanType.Swap) {
+      scanQrCode({ toAddress: data });
+    }
+  });
+
   const startScan = useLastCallback(async () => {
     const options: StartScanOptions = {
       formats: [BarcodeFormat.QrCode],
@@ -96,7 +111,7 @@ function QrScannerModal({ isOpen, onScan, onClose }: OwnProps) {
         if (IS_IOS) {
           removeExtraClass(document.documentElement, styles.documentRoot);
         }
-        onScan(event.barcode.rawValue);
+        handleScan(event.barcode.rawValue);
       },
     );
 

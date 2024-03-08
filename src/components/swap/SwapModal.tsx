@@ -52,6 +52,7 @@ function SwapModal({
     swapType,
     toAddress,
     payinAddress,
+    payinExtraId,
     isSettingsModalOpen,
   },
   swapTokens,
@@ -231,6 +232,7 @@ function SwapModal({
             amountIn={renderedTransactionAmountIn}
             amountOut={renderedTransactionAmountOut}
             payinAddress={payinAddress}
+            payinExtraId={payinExtraId}
             onClose={handleModalCloseWithReset}
           />
         );

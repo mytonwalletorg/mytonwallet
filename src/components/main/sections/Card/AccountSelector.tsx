@@ -3,7 +3,7 @@ import React, {
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { Account } from '../../../../global/types';
+import { type Account, QrScanType } from '../../../../global/types';
 
 import { selectNetworkAccounts } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -15,6 +15,7 @@ import useFlag from '../../../../hooks/useFlag';
 import useFocusAfterAnimation from '../../../../hooks/useFocusAfterAnimation';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
+import useQrScannerSupport from '../../../../hooks/useQrScannerSupport';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
 import Button from '../../../ui/Button';
@@ -29,13 +30,14 @@ interface OwnProps {
   menuButtonClassName?: string;
   noSettingsButton?: boolean;
   noAccountSelector?: boolean;
-  onQrScanPress?: NoneToVoidFunction;
+  isInsideSticky?: boolean;
 }
 
 interface StateProps {
   currentAccountId: string;
   currentAccount?: Account;
   accounts?: Record<string, Account>;
+  shouldForceAccountEdit?: boolean;
 }
 
 const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
@@ -53,10 +55,11 @@ function AccountSelector({
   noSettingsButton,
   noAccountSelector,
   accounts,
-  onQrScanPress,
+  isInsideSticky,
+  shouldForceAccountEdit,
 }: OwnProps & StateProps) {
   const {
-    switchAccount, renameAccount, openAddAccountModal, openSettings,
+    switchAccount, renameAccount, openAddAccountModal, openSettings, requestOpenQrScanner,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -66,12 +69,15 @@ function AccountSelector({
 
   const lang = useLang();
   const [isOpen, openAccountSelector, closeAccountSelector] = useFlag(false);
-  const [isEdit, openEdit, closeEdit] = useFlag(false);
+  const [isEdit, openEdit, closeEdit] = useFlag(shouldForceAccountEdit);
   const { shouldRender, transitionClassNames } = useShowTransition(isOpen && !isEdit, undefined, undefined, 'slow');
   const [inputValue, setInputValue] = useState<string>(currentAccount?.title || '');
 
+  const isQrScannerSupported = useQrScannerSupport();
+
+  const noSettingsOrQrSupported = noSettingsButton || (isInsideSticky && isQrScannerSupported);
+
   const accountsAmount = useMemo(() => Object.keys(accounts || {}).length, [accounts]);
-  const shouldRenderQrScannerButton = Boolean(onQrScanPress);
 
   useEffect(() => {
     if (isOpen && forceClose) {
@@ -129,6 +135,11 @@ function AccountSelector({
     }
   });
 
+  const handleQrScanClick = useLastCallback(() => {
+    closeAccountSelector();
+    requestOpenQrScanner({ info: QrScanType.Transfer });
+  });
+
   function renderButton(accountId: string, address: string, isHardware?: boolean, title?: string) {
     const isActive = accountId === currentAccountId;
 
@@ -167,12 +178,12 @@ function AccountSelector({
   const accountTitleClassName = buildClassName(
     styles.accountTitle,
     accountClassName,
-    shouldRenderQrScannerButton && !noSettingsButton && styles.accountTitleShort,
+    isQrScannerSupported && !noSettingsOrQrSupported && styles.accountTitleShort,
   );
   const settingsButtonClassName = buildClassName(
     styles.menuButton,
     menuButtonClassName,
-    shouldRenderQrScannerButton && styles.menuButtonFirst,
+    isQrScannerSupported && styles.menuButtonFirst,
   );
 
   function renderCurrentAccount() {
@@ -186,7 +197,7 @@ function AccountSelector({
             <i className={buildClassName('icon icon-caret-down', styles.arrowIcon)} aria-hidden />
           </div>
         )}
-        {!noSettingsButton && (
+        {!noSettingsOrQrSupported && (
           <Button
             className={settingsButtonClassName}
             isText
@@ -198,14 +209,14 @@ function AccountSelector({
             <i className="icon-cog" aria-hidden />
           </Button>
         )}
-        {shouldRenderQrScannerButton && (
+        {isQrScannerSupported && (
           <Button
             className={buildClassName(styles.menuButton, menuButtonClassName)}
             isText
             isSimple
             kind="transparent"
             ariaLabel={lang('Scan QR Code')}
-            onClick={onQrScanPress}
+            onClick={handleQrScanClick}
           >
             <i className="icon-qr-scanner" aria-hidden />
           </Button>
@@ -275,6 +286,7 @@ export default memo(withGlobal<OwnProps>(
       currentAccountId: global.currentAccountId!,
       currentAccount: accounts?.[global.currentAccountId!],
       accounts,
+      shouldForceAccountEdit: global.shouldForceAccountEdit,
     };
   },
   (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

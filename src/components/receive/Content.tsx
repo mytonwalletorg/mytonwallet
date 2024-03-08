@@ -1,16 +1,12 @@
-import type QRCodeStyling from 'qr-code-styling/lib/core/QRCodeStyling';
-import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
-import { removeExtraClass } from '../../lib/teact/teact-dom';
+import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import renderText from '../../global/helpers/renderText';
 import { selectAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import formatTransferUrl from '../../util/ton/formatTransferUrl';
 
-import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useQrCode from '../../hooks/useQrCode';
 
 import Button from '../ui/Button';
 import InteractiveTextField from '../ui/InteractiveTextField';
@@ -29,41 +25,12 @@ type OwnProps = {
   onInvoiceModalOpen: NoneToVoidFunction;
 };
 
-const QR_SIZE = 600;
-let qrCode: QRCodeStyling;
-
 function Content({
   isOpen, address, isStatic, onInvoiceModalOpen, isLedger,
 }: StateProps & OwnProps) {
   const lang = useLang();
-  // eslint-disable-next-line no-null/no-null
-  const qrCodeRef = useRef<HTMLDivElement>(null);
-  const [isInitialized, markAsInitialized] = useFlag(false);
 
-  useEffect(() => {
-    if (isInitialized) return;
-
-    initializeQrCode(markAsInitialized);
-  }, [isInitialized]);
-
-  useEffect(() => {
-    if (!isOpen || !isInitialized) return;
-
-    requestMutation(() => {
-      if (qrCodeRef.current) removeExtraClass(qrCodeRef.current, styles.qrCodeHidden);
-    });
-
-    qrCode.append(qrCodeRef.current || undefined);
-  }, [isInitialized, isOpen]);
-
-  useEffect(() => {
-    if (!address || !qrCode || !isOpen || !isInitialized) {
-      return;
-    }
-
-    qrCode.update({ data: formatTransferUrl(address) });
-  }, [address, isInitialized, isOpen]);
-
+  const { qrCodeRef, isInitialized } = useQrCode(address, isOpen, styles.qrCodeHidden, false);
   const { verifyHardwareAddress } = getActions();
 
   const handleVerify = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -87,7 +54,7 @@ function Content({
         noSavedAddress
       />
 
-      <div className={buildClassName(styles.qrCode, !qrCode && styles.qrCodeHidden)} ref={qrCodeRef} />
+      <div className={buildClassName(styles.qrCode, !isInitialized && styles.qrCodeHidden)} ref={qrCodeRef} />
 
       {isLedger && (
         <div className={styles.contentTitle}>
@@ -118,33 +85,3 @@ export default memo(
     };
   })(Content),
 );
-
-function initializeQrCode(cb: NoneToVoidFunction) {
-  import('qr-code-styling')
-    .then(({ default: QrCodeStyling }) => {
-      qrCode = new QrCodeStyling({
-        width: QR_SIZE,
-        height: QR_SIZE,
-        image: './logo.svg',
-        margin: 0,
-        type: 'canvas',
-        dotsOptions: {
-          type: 'rounded',
-        },
-        cornersSquareOptions: {
-          type: 'extra-rounded',
-        },
-        imageOptions: {
-          imageSize: 0.4,
-          margin: 8,
-          crossOrigin: 'anonymous',
-        },
-        qrOptions: {
-          errorCorrectionLevel: 'M',
-        },
-        data: formatTransferUrl(''),
-      });
-
-      cb();
-    });
-}

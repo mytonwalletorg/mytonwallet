@@ -18,7 +18,7 @@ import {
 } from '../config';
 import { IS_IOS_APP, USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 17;
+export const STATE_VERSION = 18;
 
 export const INITIAL_STATE: GlobalState = {
   appState: AppState.Auth,

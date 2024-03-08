@@ -456,7 +456,7 @@ A request is already pending: A request is already pending
 Please confirm operation using biometrics.: Please confirm operation using biometrics.
 Scan QR Code: Scan QR Code
 Permission denied. Please grant camera permission to use the QR code scanner.: Permission denied. Please grant camera permission to use the QR code scanner.
-Unsupported barcode format: Unsupported barcode format
+Unsupported QR code format: Unsupported QR code format
 An error on the server side. Please try again.: An error on the server side. Please try again.
 Unrecognized QR Code: Unrecognized QR Code
 $fee_value_almost_equal: Fee ≈ %fee%
@@ -543,6 +543,8 @@ The current version of Ledger only supports English-language comments without sp
 Comment is too long.: Comment is too long.
 Transferring NFT is not yet supported by Ledger.: Transferring NFT is not yet supported by Ledger.
 Encrypted comments are not yet supported by Ledger.: Encrypted comments are not yet supported by Ledger.
+Memo: Memo
+Memo was copied!: Memo was copied!
 $hide_tokens_no_cost_help: |
   Turn this off to display tokens on your account with value less than $%value%. Please be aware that such tokens are often used for spam and scam purposed.
   You can also selectively enable and disable particular tokens using the list below on this screen.

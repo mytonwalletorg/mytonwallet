@@ -27,7 +27,7 @@ import { pause } from '../../../util/schedulers';
 import { isAscii } from '../../../util/stringFormat';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
-import { fetchAddressBook, fetchTransactions } from './util/apiV3';
+import { fetchAddressBook, fetchLatestTxId, fetchTransactions } from './util/apiV3';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
 import { parseWalletTransactionBody } from './util/metadata';
 import {
@@ -798,8 +798,8 @@ export async function waitUntilTransactionAppears(network: ApiNetwork, address: 
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const transaction = (await fetchTransactions(network, address, 1))[0];
-    if (parseTxId(transaction.txId).lt >= lt) {
+    const latestTxId = await fetchLatestTxId(network, address);
+    if (latestTxId && parseTxId(latestTxId).lt >= lt) {
       return;
     }
     await pause(WAIT_TRANSACTION_PAUSE);

@@ -10,6 +10,7 @@ import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useQrCode from '../../hooks/useQrCode';
 
 import Countdown from '../common/Countdown';
 import SwapTokensInfo from '../common/SwapTokensInfo';
@@ -28,6 +29,7 @@ interface OwnProps {
   amountIn?: string;
   amountOut?: string;
   payinAddress?: string;
+  payinExtraId?: string;
   onClose: NoneToVoidFunction;
 }
 
@@ -38,6 +40,7 @@ function SwapWaitTokens({
   amountIn,
   amountOut,
   payinAddress,
+  payinExtraId,
   onClose,
 }: OwnProps) {
   const lang = useLang();
@@ -45,6 +48,10 @@ function SwapWaitTokens({
   const [isExpired, setIsExpired] = useState(false);
 
   const timestamp = useMemo(() => Date.now(), []);
+
+  const { qrCodeRef, isInitialized } = useQrCode(payinAddress, isActive, styles.qrCodeHidden, true);
+
+  const shouldShowQrCode = !payinExtraId;
 
   useHistoryBack({
     isActive,
@@ -54,6 +61,25 @@ function SwapWaitTokens({
   const handleTimeout = useLastCallback(() => {
     setIsExpired(true);
   });
+
+  function renderMemo() {
+    if (!payinExtraId) return undefined;
+
+    return (
+      <div className={styles.textFieldWrapperFullWidth}>
+        <span className={styles.textFieldLabel}>
+          {lang('Memo')}
+        </span>
+        <InteractiveTextField
+          address={payinExtraId}
+          copyNotification={lang('Memo was copied!')}
+          noSavedAddress
+          noExplorer
+          className={styles.changellyTextField}
+        />
+      </div>
+    );
+  }
 
   function renderInfo() {
     if (isExpired) {
@@ -96,6 +122,10 @@ function SwapWaitTokens({
           noExplorer
           className={styles.changellyTextField}
         />
+        {renderMemo()}
+        {shouldShowQrCode && (
+          <div className={buildClassName(styles.qrCode, !isInitialized && styles.qrCodeHidden)} ref={qrCodeRef} />
+        )}
       </div>
     );
   }
@@ -123,7 +153,7 @@ function SwapWaitTokens({
         </Transition>
 
         <div className={modalStyles.buttons}>
-          <Button onClick={onClose} isPrimary>{lang('Close')}</Button>
+          <Button onClick={onClose}>{lang('Close')}</Button>
         </div>
       </div>
     </>

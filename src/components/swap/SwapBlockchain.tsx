@@ -1,10 +1,12 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
-  memo, useRef, useState,
+  memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import { SwapState, SwapType, type UserSwapToken } from '../../global/types';
+import {
+  QrScanType, SwapState, SwapType, type UserSwapToken,
+} from '../../global/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, IS_FIREFOX_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -20,6 +22,7 @@ import useFlag from '../../hooks/useFlag';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useQrScannerSupport from '../../hooks/useQrScannerSupport';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
@@ -49,7 +52,9 @@ function SwapBlockchain({
   tokenOut,
 }: OwnProps) {
   const {
-    cancelSwap, setSwapCexAddress, showNotification, setSwapScreen,
+    cancelSwap, setSwapCexAddress,
+    showNotification, setSwapScreen,
+    requestOpenQrScanner,
   } = getActions();
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
@@ -62,6 +67,10 @@ function SwapBlockchain({
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [hasToAddressError, setHasToAddressError] = useState(false);
   const [canContinue, setCanContinue] = useState(swapType !== SwapType.CrosschainFromTon);
+
+  const isQrScannerSupported = useQrScannerSupport();
+
+  const withPasteButton = shouldRenderPasteButton && toAddress === '';
 
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
@@ -105,6 +114,12 @@ function SwapBlockchain({
   });
 
   const validateToAddress = useLastCallback(async (address: string) => {
+    if (!address.length) {
+      setHasToAddressError(false);
+      setCanContinue(false);
+      return;
+    }
+
     const response = await callApi('swapCexValidateAddress', {
       slug: tokenOut?.slug!,
       address,
@@ -125,7 +140,6 @@ function SwapBlockchain({
   });
 
   const handleAddressInput = useLastCallback((newToAddress: string) => {
-    validateToAddress(newToAddress.trim());
     setSwapCexAddress({ toAddress: newToAddress.trim() });
   });
 
@@ -145,8 +159,17 @@ function SwapBlockchain({
     }
   });
 
+  useEffect(() => {
+    validateToAddress(toAddress);
+  }, [toAddress, validateToAddress]);
+
   const submitPassword = useLastCallback(() => {
     setSwapScreen({ state: SwapState.Password });
+  });
+
+  const handleQrScanClick = useLastCallback(() => {
+    cancelSwap();
+    requestOpenQrScanner({ info: QrScanType.Swap });
   });
 
   function renderInfo() {
@@ -187,7 +210,17 @@ function SwapBlockchain({
             onBlur={handleAddressBlur}
             wrapperClassName={styles.inputAddressWrapper}
           >
-            {shouldRenderPasteButton && toAddress === '' && (
+            {isQrScannerSupported && (
+              <Button
+                isSimple
+                className={buildClassName(styles.inputButton, withPasteButton && styles.inputButtonShifted)}
+                onClick={handleQrScanClick}
+                ariaLabel={lang('Scan QR Code')}
+              >
+                <i className="icon-qr-scanner-alt" aria-hidden />
+              </Button>
+            )}
+            {withPasteButton && (
               <Button isSimple className={styles.inputButton} onClick={handlePasteClick} ariaLabel={lang('Paste')}>
                 <i className="icon-paste" aria-hidden />
               </Button>

@@ -5,17 +5,15 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { UserToken } from '../../global/types';
+import { StakingState, type UserToken } from '../../global/types';
 
 import {
   ANIMATED_STICKER_MIDDLE_SIZE_PX,
   ANIMATED_STICKER_SMALL_SIZE_PX,
   DEFAULT_DECIMAL_PLACES,
   DEFAULT_FEE,
-  MIN_BALANCE_FOR_UNSTAKE,
   NOMINATORS_STAKING_MIN_AMOUNT,
   ONE_TON,
-  STAKING_FORWARD_AMOUNT,
   STAKING_MIN_AMOUNT,
   TON_TOKEN_SLUG,
 } from '../../config';
@@ -61,7 +59,12 @@ interface StateProps {
 
 export const STAKING_DECIMAL = 2;
 
+const ACTIVE_STATES = new Set([StakingState.StakeInitial, StakingState.None]);
+
 const runThrottled = throttle((cb) => cb(), 1500, true);
+
+const TWO_TON = 2n * ONE_TON;
+const MINIMUM_REQUIRED_AMOUNT_TON = 3n * ONE_TON + (ONE_TON / 10n);
 
 function StakingInitial({
   isActive,
@@ -82,6 +85,8 @@ function StakingInitial({
   const [amount, setAmount] = useState<bigint | undefined>();
   const [isNotEnough, setIsNotEnough] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
+  const [isInsufficientFee, setIsInsufficientFee] = useState(false);
+  const [isBelowMinimumAmount, setIsBelowMinimumAmount] = useState(false);
   const [shouldUseAllBalance, setShouldUseAllBalance] = useState<boolean>(false);
 
   const {
@@ -93,11 +98,20 @@ function StakingInitial({
 
   const minAmount = shouldUseNominators ? NOMINATORS_STAKING_MIN_AMOUNT : STAKING_MIN_AMOUNT;
 
+  const shouldRenderBalanceWithSmallFee = balance && balance >= MINIMUM_REQUIRED_AMOUNT_TON;
+  const availableBalance = shouldRenderBalanceWithSmallFee
+    ? balance - TWO_TON
+    : balance && balance > ONE_TON
+      ? balance - ONE_TON
+      : balance;
+
   const validateAndSetAmount = useLastCallback((newAmount: bigint | undefined, noReset = false) => {
     if (!noReset) {
       setShouldUseAllBalance(false);
       setIsNotEnough(false);
       setIsInsufficientBalance(false);
+      setIsBelowMinimumAmount(false);
+      setIsInsufficientFee(false);
     }
 
     if (newAmount === undefined) {
@@ -110,9 +124,13 @@ function StakingInitial({
       return;
     }
 
-    if (!balance || newAmount + minAmount + calculatedFee > balance) {
+    if (newAmount < minAmount) {
+      setIsBelowMinimumAmount(true);
+    } else if (!availableBalance || newAmount + calculatedFee > availableBalance) {
       setIsInsufficientBalance(true);
-    } else if (balance + stakingBalance < minAmount) {
+    } else if (newAmount >= minAmount && newAmount < TWO_TON && !shouldRenderBalanceWithSmallFee) {
+      setIsInsufficientFee(true);
+    } else if (availableBalance + stakingBalance < minAmount) {
       setIsNotEnough(true);
     }
 
@@ -120,14 +138,14 @@ function StakingInitial({
   });
 
   useEffect(() => {
-    if (shouldUseAllBalance && balance) {
-      const newAmount = balance - STAKING_FORWARD_AMOUNT - calculatedFee;
+    if (shouldUseAllBalance && availableBalance) {
+      const newAmount = availableBalance - calculatedFee;
 
       validateAndSetAmount(newAmount, true);
     } else {
       validateAndSetAmount(amount, true);
     }
-  }, [amount, balance, fee, shouldUseAllBalance, validateAndSetAmount, calculatedFee]);
+  }, [amount, fee, shouldUseAllBalance, validateAndSetAmount, calculatedFee, availableBalance]);
 
   useEffect(() => {
     if (!amount) {
@@ -167,27 +185,15 @@ function StakingInitial({
     e.preventDefault();
     e.stopPropagation();
 
-    if (!balance) {
+    if (!availableBalance) {
       return;
     }
 
     setShouldUseAllBalance(true);
   });
 
-  const handleMinusOneClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!balance || !amount || amount <= MIN_BALANCE_FOR_UNSTAKE) {
-      return;
-    }
-
-    validateAndSetAmount(amount - MIN_BALANCE_FOR_UNSTAKE);
-    setShouldUseAllBalance(false);
-  });
-
-  const canSubmit = amount && balance && !isNotEnough
-    && amount <= balance
+  const canSubmit = amount && availableBalance && !isNotEnough && !isBelowMinimumAmount && !isInsufficientFee
+    && amount <= availableBalance
     && (amount + stakingBalance >= minAmount);
 
   const handleSubmit = useLastCallback((e) => {
@@ -210,16 +216,27 @@ function StakingInitial({
       return lang('Insufficient balance');
     }
 
+    if (isInsufficientFee) {
+      return lang('$insufficient_fee', { fee: formatCurrency(toDecimal(ONE_TON), symbol ?? '') });
+    }
+
+    if (isBelowMinimumAmount) {
+      return lang('$min_value', {
+        value: (
+          <span className={styles.minAmountValue}>
+            {formatCurrency(toDecimal(minAmount), symbol ?? '')}
+          </span>
+        ),
+      });
+    }
+
     return apiError ? lang(apiError) : undefined;
   }
 
   function renderTopRight() {
     if (!symbol) return undefined;
 
-    const hasBalance = balance !== undefined;
-    const isFullBalanceSelected = hasBalance && amount
-      && balance >= amount
-      && (balance - amount < MIN_BALANCE_FOR_UNSTAKE);
+    const hasBalance = availableBalance !== undefined;
 
     const getButton = (text: string, onClick: MouseEventHandler) => (
       <div
@@ -234,28 +251,21 @@ function StakingInitial({
 
     const balanceButton = lang('$max_balance', {
       balance: getButton(
-        hasBalance ? formatCurrency(toDecimal(balance, decimals), symbol) : lang('Loading...'),
+        hasBalance ? formatCurrency(toDecimal(availableBalance, decimals), symbol) : lang('Loading...'),
         handleMaxAmountClick,
       ),
     });
-
-    const minusOneButton = getButton(
-      formatCurrency(toDecimal(-ONE_TON), symbol),
-      handleMinusOneClick,
-    );
-
-    const button = isFullBalanceSelected ? minusOneButton : balanceButton;
 
     return (
       <Transition
         className={buildClassName(styles.amountTopRight, isStatic && styles.amountTopRight_static)}
         slideClassName={styles.amountTopRight_slide}
         name="fade"
-        activeKey={isFullBalanceSelected ? 1 : 0}
+        activeKey={0}
       >
         <div className={styles.balanceContainer}>
           <span className={styles.balance}>
-            {button}
+            {balanceButton}
           </span>
         </div>
       </Transition>
@@ -265,12 +275,19 @@ function StakingInitial({
   function renderBottomRight() {
     const error = getError();
 
+    const activeKey = isInsufficientBalance ? 0
+      : isInsufficientFee ? 1
+        : isBelowMinimumAmount ? 2
+          : apiError ? 3
+            : !stakingBalance && !hasAmountError ? 4
+              : 5;
+
     return (
       <Transition
         className={buildClassName(styles.amountBottomRight, isNotEnough && styles.amountBottomRight_error)}
         slideClassName={styles.amountBottomRight_slide}
         name="fade"
-        activeKey={error ? 2 : !stakingBalance && !hasAmountError ? 1 : 0}
+        activeKey={activeKey}
       >
         {error ? (
           <span className={styles.balanceError}>{error}</span>
@@ -404,6 +421,7 @@ export default memo(
   withGlobal(
     (global): StateProps => {
       const {
+        state,
         isLoading,
         fee,
         error: apiError,
@@ -413,7 +431,7 @@ export default memo(
       const shouldUseNominators = accountState?.staking?.type === 'nominators';
 
       return {
-        isLoading,
+        isLoading: isLoading && ACTIVE_STATES.has(state),
         tokens,
         apiError,
         fee,

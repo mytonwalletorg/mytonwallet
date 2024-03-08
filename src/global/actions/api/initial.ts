@@ -1,7 +1,5 @@
-import { ElectronEvent } from '../../../electron/types';
-
 import { DEFAULT_PRICE_CURRENCY, IS_EXTENSION } from '../../../config';
-import { tonConnectGetDeviceInfo } from '../../../util/tonConnectEnvironment';
+import { initElectron } from '../../../util/electron';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi, initApi } from '../../../api';
 import { addActionHandler, getGlobal } from '../../index';
@@ -13,10 +11,9 @@ addActionHandler('initApi', async (global, actions) => {
     isNativeBottomSheet: IS_DELEGATED_BOTTOM_SHEET,
   });
 
-  window.electron?.on(ElectronEvent.DEEPLINK_TONCONNECT, (params: { url: string }) => {
-    const deviceInfo = tonConnectGetDeviceInfo();
-    void callApi('startSseConnection', params.url, deviceInfo);
-  });
+  if (IS_ELECTRON) {
+    initElectron();
+  }
 
   await callApi('waitDataPreload');
 

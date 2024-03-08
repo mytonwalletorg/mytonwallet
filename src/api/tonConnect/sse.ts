@@ -90,6 +90,11 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
     await resetupSseConnection();
   }
 
+  if (ret === 'none' || ret === 'back') {
+    // `back` strategy cannot be implemented
+    return undefined;
+  }
+
   return ret;
 }
 

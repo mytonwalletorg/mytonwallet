@@ -36,10 +36,6 @@ import TransferPassword from './TransferPassword';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
 
-interface OwnProps {
-  onQrScanPress?: NoneToVoidFunction;
-}
-
 interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
   tokens?: UserToken[];
@@ -62,8 +58,8 @@ function TransferModal({
     isLoading,
     txId,
     tokenSlug,
-  }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, onQrScanPress,
-}: OwnProps & StateProps) {
+  }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected,
+}: StateProps) {
   const {
     submitTransferConfirm,
     submitTransferPassword,
@@ -156,7 +152,7 @@ function TransferModal({
         return (
           <>
             <ModalHeader title={lang('Send')} onClose={handleModalCloseWithReset} />
-            <TransferInitial onQrScanPress={onQrScanPress} />
+            <TransferInitial />
           </>
         );
       case TransferState.Confirm:
@@ -247,7 +243,7 @@ function TransferModal({
   );
 }
 
-export default memo(withGlobal<OwnProps>((global): StateProps => {
+export default memo(withGlobal((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
 
   const {

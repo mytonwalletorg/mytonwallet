@@ -24,6 +24,7 @@ import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 import usePrevDuringAnimation from '../../../hooks/usePrevDuringAnimation';
+import useQrCode from '../../../hooks/useQrCode';
 
 import Countdown from '../../common/Countdown';
 import SwapTokensInfo from '../../common/SwapTokensInfo';
@@ -129,6 +130,16 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
   const tonscanBaseUrl = TONSCAN_BASE_MAINNET_URL;
   const tonscanTransactionUrl = transactionHash ? `${tonscanBaseUrl}tx/${transactionHash}` : undefined;
 
+  const payinAddress = renderedActivity?.cex?.payinAddress;
+  const payinExtraId = renderedActivity?.cex?.payinExtraId;
+  const shouldShowQrCode = !payinExtraId;
+  const { qrCodeRef, isInitialized } = useQrCode(
+    payinAddress,
+    !!payinAddress,
+    styles.qrCodeHidden,
+    true,
+  );
+
   const handleClose = useLastCallback(() => {
     closeActivityInfo({ id: renderedActivity!.id });
   });
@@ -171,7 +182,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
 
     if (isCexWaiting) {
       return (
-        <Button onClick={handleClose} className={styles.button} isPrimary>
+        <Button onClick={handleClose} className={styles.button}>
           {lang('Close')}
         </Button>
       );
@@ -210,9 +221,42 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     );
   }
 
-  function renderSwapInfo() {
-    const payinAddress = renderedActivity?.cex?.payinAddress;
+  function renderMemo() {
+    if (!payinExtraId) return undefined;
 
+    return (
+      <div className={styles.textFieldWrapperFullWidth}>
+        <span className={styles.textFieldLabel}>
+          {lang('Memo')}
+        </span>
+        <InteractiveTextField
+          address={payinExtraId}
+          copyNotification={lang('Memo was copied!')}
+          noSavedAddress
+          noExplorer
+          className={styles.changellyTextField}
+        />
+      </div>
+    );
+  }
+
+  function renderAddress() {
+    if (!payinAddress) return undefined;
+
+    return (
+      <div className={styles.textFieldWrapper}>
+        <span className={styles.textFieldLabel}>{lang('Changelly Payment Address')}</span>
+        <InteractiveTextField
+          address={payinAddress}
+          copyNotification={lang('Address was copied!')}
+          noSavedAddress
+          noExplorer
+        />
+      </div>
+    );
+  }
+
+  function renderSwapInfo() {
     if (isCexWaiting) {
       return (
         <div className={styles.changellyInfoBlock}>
@@ -237,37 +281,27 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
             noExplorer
             className={styles.changellyTextField}
           />
+          {renderMemo()}
+          {shouldShowQrCode && (
+            <div className={buildClassName(styles.qrCode, !isInitialized && styles.qrCodeHidden)} ref={qrCodeRef} />
+          )}
         </div>
       );
     }
 
     if (isCexError || isCexHold) {
       return (
-        <div className={styles.textFieldWrapper}>
-          <span className={styles.textFieldLabel}>{lang('Changelly Payment Address')}</span>
-          <InteractiveTextField
-            address={payinAddress}
-            copyNotification={lang('Address was copied!')}
-            noSavedAddress
-            noExplorer
-          />
-        </div>
+        <>
+          {renderAddress()}
+          {renderMemo()}
+        </>
       );
     }
 
     return (
       <>
-        {payinAddress && (
-          <div className={styles.textFieldWrapper}>
-            <span className={styles.textFieldLabel}>{lang('Changelly Payment Address')}</span>
-            <InteractiveTextField
-              address={payinAddress}
-              copyNotification={lang('Address was copied!')}
-              noSavedAddress
-              noExplorer
-            />
-          </div>
-        )}
+        {renderAddress()}
+        {renderMemo()}
         <div className={styles.textFieldWrapper}>
           <span className={styles.textFieldLabel}>{lang('Exchange rate')}</span>
           {renderCurrency(renderedActivity, fromToken, toToken)}

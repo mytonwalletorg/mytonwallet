@@ -1,3 +1,4 @@
+import type { TonTransferParams } from '../blockchains/ton/types';
 import type {
   ApiActivity,
   ApiNetwork,
@@ -22,6 +23,8 @@ import type {
 
 import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
+import { assert } from '../../util/assert';
+import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
 import { buildSwapId } from '../../util/swap/buildSwapId';
@@ -57,8 +60,10 @@ export function initSwap(_onUpdate: OnApiUpdate) {
 }
 
 export async function swapBuildTransfer(accountId: string, password: string, params: ApiSwapBuildRequest) {
+  const { network } = parseAccountId(accountId);
   const authToken = await getBackendAuthToken(accountId, password);
 
+  const address = await fetchStoredAddress(accountId);
   const { id, transfers } = await swapBuild(authToken, params);
 
   const transferList = transfers.map((transfer) => ({
@@ -66,6 +71,9 @@ export async function swapBuildTransfer(accountId: string, password: string, par
     amount: BigInt(transfer.amount),
     isBase64Payload: true,
   }));
+
+  await ton.validateDexSwapTransfers(network, address, params, transferList);
+
   const result = await ton.checkMultiTransactionDraft(accountId, transferList);
 
   if ('error' in result) {
@@ -335,13 +343,31 @@ export async function swapCexCreateTransaction(
   accountId: string,
   password: string,
   params: ApiSwapCexCreateTransactionRequest,
-): Promise<{ swap: ApiSwapHistoryItem; activity: ApiSwapActivity }> {
+): Promise<{
+    swap: ApiSwapHistoryItem;
+    activity: ApiSwapActivity;
+    transfer?: TonTransferParams;
+  }> {
   const authToken = await getBackendAuthToken(accountId, password);
 
   const { swap } = await callBackendPost<ApiSwapCexCreateTransactionResponse>('/swap/cex/createTransaction', params, {
     authToken,
   });
   const activity = swapItemToActivity(swap);
+
+  let transfer: {
+    toAddress: string;
+    amount: bigint;
+  } | undefined;
+
+  if (params.from === TON_SYMBOL) {
+    transfer = {
+      toAddress: swap.cex!.payinAddress,
+      amount: fromDecimal(swap.fromAmount),
+    };
+
+    assert(transfer.amount <= fromDecimal(params.fromAmount));
+  }
 
   onUpdate({
     type: 'newActivities',
@@ -351,5 +377,5 @@ export async function swapCexCreateTransaction(
 
   void callHook('onSwapCreated', accountId, swap.timestamp - 1);
 
-  return { swap, activity };
+  return { swap, activity, transfer };
 }

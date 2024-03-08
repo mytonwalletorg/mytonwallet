@@ -304,6 +304,11 @@ export interface AccountSettings {
   deletedSlugs?: string[];
 }
 
+export enum QrScanType {
+  Transfer,
+  Swap,
+}
+
 export type GlobalState = {
   DEBUG_capturedId?: number;
 
@@ -386,6 +391,7 @@ export type GlobalState = {
     feeSource?: SwapFeeSource;
     toAddress?: string;
     payinAddress?: string;
+    payinExtraId?: string;
     pairs?: {
       bySlug: Record<string, AssetPairs>;
     };
@@ -505,6 +511,13 @@ export type GlobalState = {
   isPinAccepted?: boolean;
   isOnRampWidgetModalOpen?: boolean;
   isReceiveModalOpen?: boolean;
+  shouldForceAccountEdit?: boolean;
+
+  currentQrScan?: {
+    state: QrScanType;
+    currentTransfer?: GlobalState['currentTransfer'];
+    currentSwap?: GlobalState['currentSwap'];
+  };
 
   stateVersion: number;
   restrictions: {
@@ -641,6 +654,8 @@ export interface ActionPayloads {
   openQrScanner: undefined;
   closeQrScanner: undefined;
   openDeeplink: { url: string };
+  requestOpenQrScanner: { info: QrScanType };
+  scanQrCode: { url: string } | { toAddress: string };
 
   // Staking
   startStaking: { isUnstaking?: boolean } | undefined;
@@ -719,7 +734,14 @@ export interface ActionPayloads {
 
   // Swap
   submitSwap: { password: string };
-  startSwap: { tokenInSlug?: string; tokenOutSlug?: string; amountIn?: string; isPortrait?: boolean } | undefined;
+  startSwap: {
+    state?: SwapState;
+    tokenInSlug?: string;
+    tokenOutSlug?: string;
+    amountIn?: string;
+    isPortrait?: boolean;
+    toAddress?: string;
+  } | undefined;
   cancelSwap: { shouldReset?: boolean } | undefined;
   setDefaultSwapParams: { tokenInSlug?: string; tokenOutSlug?: string } | undefined;
   switchSwapTokens: undefined;

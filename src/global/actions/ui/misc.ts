@@ -1,5 +1,7 @@
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+
 import {
-  AppState, AuthState, HardwareConnectState, SettingsState,
+  AppState, AuthState, HardwareConnectState, QrScanType, SettingsState, SwapState,
 } from '../../types';
 
 import {
@@ -12,6 +14,7 @@ import {
 import { getIsAddressValid } from '../../../util/getIsAddressValid';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { unique } from '../../../util/iteratees';
+import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { callActionInMain } from '../../../util/multitab';
 import { processDeeplink } from '../../../util/processDeeplink';
@@ -158,6 +161,7 @@ addActionHandler('addAccount2', (global, actions, { method, password }) => {
 });
 
 addActionHandler('renameAccount', (global, actions, { accountId, title }) => {
+  global = { ...global, shouldForceAccountEdit: false };
   return renameAccount(global, accountId, title);
 });
 
@@ -569,6 +573,51 @@ addActionHandler('closeQrScanner', (global) => {
     ...global,
     isQrScannerOpen: undefined,
   };
+});
+
+addActionHandler('requestOpenQrScanner', async (global, actions, { info }) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('requestOpenQrScanner', { info });
+    return;
+  }
+
+  const { camera } = await BarcodeScanner.requestPermissions();
+  global = getGlobal();
+
+  const isGranted = camera === 'granted' || camera === 'limited';
+
+  if (!isGranted) {
+    actions.showNotification({
+      message: getTranslation('Permission denied. Please grant camera permission to use the QR code scanner.'),
+    });
+    return;
+  }
+
+  global = {
+    ...global,
+    currentQrScan: {
+      state: info,
+      currentSwap: global.currentSwap,
+    },
+  };
+  setGlobal(global);
+
+  actions.openQrScanner();
+});
+
+addActionHandler('scanQrCode', (global, actions, params) => {
+  const info = global.currentQrScan?.state;
+
+  if (info === QrScanType.Transfer) {
+    actions.openDeeplink(params as { url: string });
+  } else if (info === QrScanType.Swap) {
+    const { toAddress } = params as { toAddress: string };
+    actions.startSwap({
+      ...global.currentQrScan?.currentSwap,
+      state: SwapState.Blockchain,
+      toAddress,
+    });
+  }
 });
 
 addActionHandler('openDeeplink', async (global, actions, params) => {

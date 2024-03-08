@@ -19,7 +19,6 @@ import styles from './StickyCard.module.scss';
 
 interface OwnProps {
   classNames?: string;
-  onQrScanPress?: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -31,7 +30,6 @@ interface StateProps {
 function StickyCard({
   classNames,
   tokens,
-  onQrScanPress,
   baseCurrency,
   stakingBalance,
 }: OwnProps & StateProps) {
@@ -54,12 +52,12 @@ function StickyCard({
       <div className={buildClassName(styles.background, classNames)}>
         <div className={styles.content}>
           <AccountSelector
+            isInsideSticky
             accountClassName={styles.account}
             accountSelectorClassName="sticky-card-account-selector"
             menuButtonClassName={styles.menuButton}
-            noSettingsButton={(IS_ELECTRON && IS_WINDOWS) || Boolean(onQrScanPress)}
+            noSettingsButton={(IS_ELECTRON && IS_WINDOWS)}
             noAccountSelector={IS_ELECTRON && IS_MAC_OS}
-            onQrScanPress={onQrScanPress}
           />
           <div className={styles.balance}>
             <span className={styles.currencySwitcher} role="button" tabIndex={0} onClick={openCurrencyMenu}>

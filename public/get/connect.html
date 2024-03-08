@@ -28,7 +28,12 @@
     </div>
 </div>
 <script>
-  location.href = 'tc://' + window.location.search;
+  const query = location.search;
+
+  if (query && !query.includes('redirected')) {
+    location.href = 'tc://' + query;
+    history.replaceState({}, '', `${location.pathname}${query}&redirected=true`);
+  }
 </script>
 </body>
 </html>

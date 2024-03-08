@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "1.18.11",
+  "version": "1.18.12",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -65,7 +65,8 @@
     {
       "name": "TonConnect",
       "schemes": [
-        "tc"
+        "tc",
+        "mytonwallet-tc"
       ]
     }
   ],
@@ -174,6 +175,7 @@
     "@capacitor/action-sheet": "^5.0.6",
     "@capacitor/android": "^5.6.0",
     "@capacitor/app": "^5.0.6",
+    "@capacitor/app-launcher": "^5.0.7",
     "@capacitor/clipboard": "^5.0.6",
     "@capacitor/core": "^5.6.0",
     "@capacitor/dialog": "^5.0.6",

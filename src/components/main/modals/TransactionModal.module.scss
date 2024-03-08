@@ -179,10 +179,16 @@
   margin-top: 2rem;
 }
 
-.textFieldWrapper {
+.textFieldWrapper,
+.textFieldWrapperFullWidth {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.textFieldWrapperFullWidth,
+.changellyTextField {
+  width: 100%;
 }
 
 .textFieldLabel {
@@ -267,10 +273,37 @@
   text-align: center;
 }
 
-.changellyTextField {
-  width: 100%;
-}
-
 .changellyDescriptionBold {
   font-weight: 700;
+}
+
+.qrCode {
+  position: relative;
+
+  overflow: hidden;
+
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 11rem;
+  margin: 0 auto;
+
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-card);
+
+  transition: opacity 350ms ease-in-out;
+
+  canvas {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+
+    display: block;
+
+    width: calc(100% - 1rem);
+    height: calc(100% - 1rem);
+  }
+}
+
+.qrCodeHidden {
+  opacity: 0;
 }

@@ -124,6 +124,7 @@ export interface ApiNominatorsPool {
 export interface ApiBackendStakingState {
   balance: bigint;
   totalProfit: bigint;
+  type?: ApiStakingType;
   nominatorsPool: ApiNominatorsPool;
   loyaltyType?: ApiLoyaltyType;
   shouldUseNominators?: boolean;
@@ -132,7 +133,7 @@ export interface ApiBackendStakingState {
 
 export type ApiStakingHistory = {
   timestamp: number;
-  profit: number;
+  profit: string;
 }[];
 
 export interface ApiDappPermissions {

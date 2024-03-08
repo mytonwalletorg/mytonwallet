@@ -442,7 +442,7 @@ A request is already pending: 请求已待处理
 Please confirm operation using biometrics.: 请使用生物识别确认操作。
 Scan QR Code: 扫描二维码
 Permission denied. Please grant camera permission to use the QR code scanner.: 没有权限。 请授予相机使用 QR 扫描仪的权限。
-Unsupported barcode format: 不支持的条形码格式
+Unsupported QR code format: 不支持的QR码格式
 An error on the server side. Please try again.: 服务器端的错误。请再试一次。
 Unrecognized QR Code: 无法识别的二维码
 $fee_value_almost_equal: 手续费 ≈ %fee%
@@ -527,6 +527,8 @@ The current version of Ledger only supports English-language comments without sp
 Comment is too long.: 评论太长了。
 Transferring NFT is not yet supported by Ledger.: Ledger 尚不支持传输 NFT。
 Encrypted comments are not yet supported by Ledger.: Ledger 尚不支持加密评论。
+Memo: Memo
+Memo was copied!: Memo 被复制了！
 $hide_tokens_no_cost_help: |
   将其关闭以在您的帐户上显示为价值小于 $%value% 的代币。请注意，这种令牌通常用于垃圾邮件和骗局。
   您还可以使用下面在此屏幕上的列表选择性地启用和禁用特定令牌。

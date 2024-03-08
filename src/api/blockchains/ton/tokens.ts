@@ -156,6 +156,10 @@ export function resolveTokenBySlug(slug: string) {
   return knownTokens[slug]!;
 }
 
+export function findTokenByMinter(minter: string) {
+  return Object.values(knownTokens).find((token) => token.minterAddress === minter);
+}
+
 export function getTokenWallet(network: ApiNetwork, tokenAddress: string) {
   return getTonClient(network).open(new JettonWallet(Address.parse(tokenAddress)));
 }

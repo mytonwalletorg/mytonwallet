@@ -54,13 +54,26 @@ export function createAccount(
   partial?: Partial<Account>,
   titlePostfix?: string,
 ) {
+  let shouldForceAccountEdit = true;
+
   if (!partial?.title) {
     const network = selectCurrentNetwork(global);
     const accounts = selectNetworkAccounts(global) || {};
-    const titlePrefix = network === 'mainnet' ? 'Wallet' : 'Testnet Wallet';
+    const accountAmount = Object.keys(accounts).length;
+    const isMainnet = network === 'mainnet';
+    const titlePrefix = isMainnet ? 'Wallet' : 'Testnet Wallet';
     const postfix = titlePostfix ? ` ${titlePostfix}` : '';
-    partial = { ...partial, title: `${titlePrefix} ${Object.keys(accounts).length + 1}${postfix}` };
+    let title = `${titlePrefix} ${accountAmount + 1}${postfix}`;
+
+    if (accountAmount === 0) {
+      title = isMainnet ? 'MyTonWallet' : 'Testnet MyTonWallet';
+      shouldForceAccountEdit = false;
+    }
+
+    partial = { ...partial, title };
   }
+
+  global = { ...global, shouldForceAccountEdit };
 
   return updateAccount(global, accountId, { ...partial, address });
 }

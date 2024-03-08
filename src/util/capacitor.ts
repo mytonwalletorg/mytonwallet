@@ -1,5 +1,6 @@
 import type { URLOpenListenerEvent } from '@capacitor/app';
 import { App } from '@capacitor/app';
+import { AppLauncher } from '@capacitor/app-launcher';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -88,7 +89,11 @@ export async function initCapacitor() {
 export async function processDeeplink(url: string) {
   if (isTonConnectDeeplink(url)) {
     const deviceInfo = tonConnectGetDeviceInfo();
-    await callApi('startSseConnection', url, deviceInfo);
+    const returnUrl = await callApi('startSseConnection', url, deviceInfo);
+
+    if (returnUrl) {
+      await AppLauncher.openUrl({ url: returnUrl });
+    }
   }
 }
 

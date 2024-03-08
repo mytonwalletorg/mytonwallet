@@ -30,6 +30,7 @@ const {
   BASE_URL,
   HEAD,
 } = process.env;
+const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
 const IS_EXTENSION = process.env.IS_EXTENSION === '1';
 const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
@@ -38,7 +39,7 @@ const IS_OPERA_EXTENSION = process.env.IS_OPERA_EXTENSION === '1';
 const gitRevisionPlugin = new GitRevisionPlugin();
 const branch = HEAD || gitRevisionPlugin.branch();
 const appRevision = !branch || branch === 'HEAD' ? gitRevisionPlugin.commithash()?.substring(0, 7) : branch;
-const canUseStatoscope = !IS_EXTENSION && !IS_PACKAGED_ELECTRON;
+const canUseStatoscope = !IS_EXTENSION && !IS_PACKAGED_ELECTRON && !IS_CAPACITOR;
 const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
   : '';
@@ -275,6 +276,7 @@ export default function createConfig(
         IS_EXTENSION: false,
         IS_FIREFOX_EXTENSION: false,
         IS_CAPACITOR: false,
+        SWAP_FEE_ADDRESS: null,
       }),
       /* eslint-enable no-null/no-null */
       new DefinePlugin({

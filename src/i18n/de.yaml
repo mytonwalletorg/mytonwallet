@@ -458,7 +458,7 @@ A request is already pending: Es liegt bereits eine ausstehende Anfrage vor
 Please confirm operation using biometrics.: Bitte bestätigen Sie die Operation mit Hilfe der Biometrie.
 Scan QR Code: QR-Code scannen
 Permission denied. Please grant camera permission to use the QR code scanner.: Berechtigung verweigert. Bitte erteilen Sie die Kamera-Berechtigung, um den QR-Code-Scanner zu verwenden.
-Unsupported barcode format: Nicht unterstütztes Barcode-Format
+Unsupported QR code format: Nicht unterstütztes QR-Code-Format
 An error on the server side. Please try again.: Ein Fehler auf der Serverseite. Bitte versuchen Sie es erneut.
 Unrecognized QR Code: Nicht erkannter QR-Code
 $fee_value_almost_equal: Gebühr ≈ %fee%
@@ -545,6 +545,8 @@ The current version of Ledger only supports English-language comments without sp
 Comment is too long.: Der Kommentar ist zu lang.
 Transferring NFT is not yet supported by Ledger.: Die Übertragung von NFT wird von Ledger noch nicht unterstützt.
 Encrypted comments are not yet supported by Ledger.: Verschlüsselte Kommentare werden von Ledger noch nicht unterstützt.
+Memo: Memo
+Memo was copied!: Memo wurde kopiert!
 $hide_tokens_no_cost_help: |
   Schalten Sie dies aus, um Token auf Ihrem Konto mit einem Wert von weniger als $%value% anzuzeigen. Bitte beachten Sie, dass solche Token häufig für Spam- und Betrugszwecke verwendet werden.
   Sie können bestimmte Token auch selektiv aktivieren und deaktivieren, indem Sie die folgende Liste auf diesem Bildschirm verwenden.

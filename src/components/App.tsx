@@ -1,9 +1,9 @@
-import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import React, {
-  memo, useEffect, useLayoutEffect, useState,
+  memo, useEffect, useLayoutEffect,
 } from '../lib/teact/teact';
 import { getActions, withGlobal } from '../global';
 
+import type { GlobalState } from '../global/types';
 import { AppState } from '../global/types';
 
 import { INACTIVE_MARKER, IS_CAPACITOR } from '../config';
@@ -22,10 +22,7 @@ import { callApi } from '../api';
 
 import useBackgroundMode from '../hooks/useBackgroundMode';
 import { useDeviceScreen } from '../hooks/useDeviceScreen';
-import useEffectOnce from '../hooks/useEffectOnce';
 import useFlag from '../hooks/useFlag';
-import useLang from '../hooks/useLang';
-import useLastCallback from '../hooks/useLastCallback';
 import useSyncEffect from '../hooks/useSyncEffect';
 import useTimeout from '../hooks/useTimeout';
 
@@ -62,6 +59,7 @@ interface StateProps {
   isQrScannerOpen?: boolean;
   isHardwareModalOpen?: boolean;
   areSettingsOpen?: boolean;
+  currentQrScan?: GlobalState['currentQrScan'];
 }
 
 const PRERENDER_MAIN_DELAY = 1200;
@@ -74,6 +72,7 @@ function App({
   isHardwareModalOpen,
   isQrScannerOpen,
   areSettingsOpen,
+  currentQrScan,
 }: StateProps) {
   // return <Test />;
   const {
@@ -81,16 +80,11 @@ function App({
     closeHardwareWalletModal,
     closeSettings,
     cancelCaching,
-    openQrScanner,
     closeQrScanner,
-    showNotification,
-    openDeeplink,
   } = getActions();
 
-  const lang = useLang();
   const { isPortrait } = useDeviceScreen();
   const areSettingsInModal = !isPortrait || IS_ELECTRON || IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET;
-  const [isBarcodeSupported, setIsBarcodeSupported] = useState<boolean>(false);
 
   const [isInactive, markInactive] = useFlag(false);
   const [canPrerenderMain, prerenderMain] = useFlag();
@@ -105,16 +99,6 @@ function App({
     prerenderMain,
     renderingKey === AppState.Auth && !canPrerenderMain ? PRERENDER_MAIN_DELAY : undefined,
   );
-
-  useEffectOnce(() => {
-    if (!IS_CAPACITOR) return;
-
-    BarcodeScanner
-      .isSupported()
-      .then((result) => {
-        setIsBarcodeSupported(result.supported);
-      });
-  });
 
   useEffect(() => {
     updateSizes();
@@ -143,23 +127,6 @@ function App({
     }
   }, [accountId]);
 
-  const handleOpenQrScanner = useLastCallback(async () => {
-    const granted = await requestCameraPermissions();
-
-    if (!granted) {
-      showNotification({
-        message: lang('Permission denied. Please grant camera permission to use the QR code scanner.'),
-      });
-      return;
-    }
-
-    openQrScanner();
-  });
-
-  const handleQrScan = useLastCallback((scanResult) => {
-    openDeeplink({ url: scanResult });
-  });
-
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
@@ -183,7 +150,6 @@ function App({
             <Main
               key={mainKey}
               isActive={isActive}
-              onQrScanPress={isBarcodeSupported ? handleOpenQrScanner : undefined}
             />
           </Transition>
         );
@@ -226,7 +192,7 @@ function App({
             isOpen={isBackupWalletModalOpen}
             onClose={closeBackupWalletModal}
           />
-          <TransferModal onQrScanPress={isBarcodeSupported ? handleOpenQrScanner : undefined} />
+          <TransferModal />
           <SwapModal />
           <SignatureModal />
           <TransactionModal />
@@ -239,8 +205,8 @@ function App({
           {IS_CAPACITOR && (
             <QrScannerModal
               isOpen={isQrScannerOpen}
+              qrScanType={currentQrScan?.state}
               onClose={closeQrScanner}
-              onScan={handleQrScan}
             />
           )}
           <Dialogs />
@@ -259,16 +225,11 @@ export default memo(withGlobal((global): StateProps => {
     isHardwareModalOpen: global.isHardwareModalOpen,
     areSettingsOpen: global.areSettingsOpen,
     isQrScannerOpen: global.isQrScannerOpen,
+    currentQrScan: global.currentQrScan,
   };
 })(App));
 
 async function handleCloseBrowserTab() {
   const tab = await chrome.tabs.getCurrent();
   await chrome.tabs.remove(tab.id!);
-}
-
-async function requestCameraPermissions(): Promise<boolean> {
-  const { camera } = await BarcodeScanner.requestPermissions();
-
-  return camera === 'granted' || camera === 'limited';
 }

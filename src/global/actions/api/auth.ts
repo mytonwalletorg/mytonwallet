@@ -384,7 +384,13 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
     return currentGlobal;
   }, getGlobal());
 
-  setGlobal(updateAuth(updatedGlobal, { isLoading: false }));
+  global = updateAuth(updatedGlobal, { isLoading: false });
+  global = {
+    ...global,
+    shouldForceAccountEdit: true,
+  };
+
+  setGlobal(global);
 
   if (getGlobal().areSettingsOpen) {
     actions.closeSettings();

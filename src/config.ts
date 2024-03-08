@@ -23,6 +23,8 @@ export const PRODUCTION_URL = 'https://mytonwallet.app';
 export const BETA_URL = 'https://beta.mytonwallet.app';
 export const BASE_URL = process.env.BASE_URL;
 
+export const SWAP_FEE_ADDRESS = process.env.SWAP_FEE_ADDRESS || 'UQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0GOp';
+
 export const STRICTERDOM_ENABLED = DEBUG && !IS_PACKAGED_ELECTRON;
 
 export const DEBUG_ALERT_MSG = 'Shoot!\nSomething went wrong, please see the error details in Dev Tools Console.';
@@ -108,7 +110,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-73';
+export const LANG_CACHE_NAME = 'mtw-lang-74';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',

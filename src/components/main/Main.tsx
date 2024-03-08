@@ -34,7 +34,6 @@ import styles from './Main.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
-  onQrScanPress?: NoneToVoidFunction;
 }
 
 type StateProps = {
@@ -57,7 +56,6 @@ function Main({
   isUnstakeRequested,
   isTestnet,
   isLedger,
-  onQrScanPress,
   isStakingInfoModalOpen,
   isSwapDisabled,
   isOnRampDisabled,
@@ -176,12 +174,10 @@ function Main({
             forceCloseAccountSelector={shouldRenderStickyCard}
             onTokenCardClose={handleTokenCardClose}
             onApyClick={handleEarnClick}
-            onQrScanPress={onQrScanPress}
           />
           {shouldRenderStickyCard && (
             <StickyCard
               classNames={stickyCardTransitionClassNames}
-              onQrScanPress={onQrScanPress}
             />
           )}
           <PortraitActions
@@ -205,7 +201,7 @@ function Main({
       <div className={styles.landscapeContainer}>
         <div className={buildClassName(styles.sidebar, 'custom-scroll')}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
-          <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} onQrScanPress={onQrScanPress} />
+          <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
           <LandscapeActions
             hasStaking={isStakingActive}
             isUnstakeRequested={isUnstakeRequested}

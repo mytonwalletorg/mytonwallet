@@ -13,7 +13,7 @@ import styles from './StakingProfileItem.module.scss';
 interface OwnProps {
   tonToken: UserToken;
   timestamp: number;
-  profit: number;
+  profit: string;
 }
 
 function StakingProfitItem({ tonToken, timestamp, profit }: OwnProps) {

@@ -271,18 +271,23 @@ export async function getStakingState(
   }
 
   const poolAddress = backendState.nominatorsPool.address;
-  const nominatorPool = getPoolContract(network, poolAddress);
-  const nominators = await nominatorPool.getListNominators();
-  const currentNominator = nominators.find((n) => n.address === address);
 
-  if (currentNominator) {
-    return {
-      type: 'nominators',
-      amount: currentNominator.amount,
-      pendingDepositAmount: currentNominator.pendingDepositAmount,
-      isUnstakeRequested: currentNominator.withdrawRequested,
-    };
-  } else if (shouldUseNominators) {
+  if (backendState.type === 'nominators') {
+    const nominatorPool = getPoolContract(network, poolAddress);
+    const nominators = await nominatorPool.getListNominators();
+    const currentNominator = nominators.find((n) => n.address === address);
+
+    if (currentNominator) {
+      return {
+        type: 'nominators',
+        amount: backendState.balance,
+        pendingDepositAmount: currentNominator.pendingDepositAmount,
+        isUnstakeRequested: currentNominator.withdrawRequested,
+      };
+    }
+  }
+
+  if (shouldUseNominators) {
     return {
       type: 'nominators',
       amount: 0n,

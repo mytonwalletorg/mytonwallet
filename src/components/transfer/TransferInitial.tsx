@@ -9,7 +9,7 @@ import type { ApiBaseCurrency } from '../../api/types';
 import type { UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { ElectronEvent } from '../../electron/types';
-import { TransferState } from '../../global/types';
+import { QrScanType, TransferState } from '../../global/types';
 
 import {
   EXCHANGE_ADDRESSES, IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG,
@@ -37,6 +37,7 @@ import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useQrScannerSupport from '../../hooks/useQrScannerSupport';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
@@ -52,7 +53,6 @@ import styles from './Transfer.module.scss';
 
 interface OwnProps {
   isStatic?: boolean;
-  onQrScanPress?: NoneToVoidFunction;
   onCommentChange?: NoneToVoidFunction;
 }
 
@@ -99,7 +99,6 @@ function TransferInitial({
   isCommentSupported,
   isLoading,
   onCommentChange,
-  onQrScanPress,
   baseCurrency,
 }: OwnProps & StateProps) {
   const {
@@ -112,6 +111,7 @@ function TransferInitial({
     setTransferComment,
     setTransferShouldEncrypt,
     cancelTransfer,
+    requestOpenQrScanner,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -146,11 +146,12 @@ function TransferInitial({
 
   const tonToken = useMemo(() => tokens?.find((token) => token.slug === TON_TOKEN_SLUG), [tokens])!;
 
+  const isQrScannerSupported = useQrScannerSupport();
+
   const amountInCurrency = price && amount ? toBig(amount, decimals).mul(price).round(decimals).toString() : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const renderingFee = useCurrentOrPrev(fee, true);
   const withPasteButton = shouldRenderPasteButton && toAddress === '';
-  const withQrScanButton = Boolean(onQrScanPress);
   const withAddressClearButton = !!toAddress.length;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
@@ -337,7 +338,7 @@ function TransferInitial({
 
   const handleQrScanClick = useLastCallback(() => {
     cancelTransfer();
-    onQrScanPress!();
+    requestOpenQrScanner({ info: QrScanType.Transfer });
   });
 
   const handlePasteClick = useLastCallback(async () => {
@@ -498,7 +499,7 @@ function TransferInitial({
           </Button>
         ) : (
           <>
-            {withQrScanButton && (
+            {isQrScannerSupported && (
               <Button
                 isSimple
                 className={buildClassName(styles.inputButton, withPasteButton && styles.inputButtonShifted)}
@@ -577,7 +578,7 @@ function TransferInitial({
     );
   }
 
-  const withButton = withQrScanButton || withPasteButton || withAddressClearButton;
+  const withButton = isQrScannerSupported || withPasteButton || withAddressClearButton;
 
   return (
     <>

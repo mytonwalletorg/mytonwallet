@@ -456,7 +456,7 @@ A request is already pending: Bir istek zaten beklemede
 Please confirm operation using biometrics.: Lütfen biyometri kullanarak işlemi onaylayın.
 Scan QR Code: QR kodunu tarayın
 Permission denied. Please grant camera permission to use the QR code scanner.: İzin reddedildi. Lütfen kameraya QR kod tarayıcısını kullanma izni verin.
-Unsupported barcode format: Desteklenmeyen barkod biçimi
+Unsupported QR code format: Desteklenmeyen QR kod formatı
 An error on the server side. Please try again.: Sunucu tarafında bir hata oluştu. Lütfen tekrar deneyin.
 Unrecognized QR Code: Tanınmayan QR Kodu
 $fee_value_almost_equal: Ücret ≈ %fee%
@@ -543,6 +543,8 @@ The current version of Ledger only supports English-language comments without sp
 Comment is too long.: Yorum çok uzun.
 Transferring NFT is not yet supported by Ledger.: NFT'nin aktarılması henüz Ledger tarafından desteklenmiyor.
 Encrypted comments are not yet supported by Ledger.: Şifrelenmiş yorumlar henüz Ledger tarafından desteklenmemektedir.
+Memo: Memo
+Memo was copied!: Memo kopyalandı!
 $hide_tokens_no_cost_help: |
   Hesabınızdaki jetonları $%value% 'dan daha düşük bir değerle görüntülemek için bunu kapatın. Lütfen bu tür jetonların genellikle spam ve aldatmaca için kullanıldığını unutmayın.
   Ayrıca, bu ekranda aşağıdaki listeyi kullanarak belirli jetonları seçici olarak etkinleştirebilir ve devre dışı bırakabilirsiniz.
