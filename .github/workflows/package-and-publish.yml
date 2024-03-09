@@ -153,7 +153,7 @@ jobs:
 
       - name: Download Windows package
         id: download-artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.FILE_NAME }}
 
@@ -240,7 +240,7 @@ jobs:
           echo "FIREFOX_FILE_NAME=${{ env.APP_NAME }}-firefox.zip" >> "$GITHUB_ENV"
 
       - name: Download Chrome extension artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.CHROME_FILE_NAME }}
 
@@ -274,7 +274,7 @@ jobs:
           echo "FIREFOX_FILE_NAME=${{ env.APP_NAME }}-firefox.zip" >> "$GITHUB_ENV"
 
       - name: Download Firefox extension artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.FIREFOX_FILE_NAME }}
 
@@ -317,7 +317,7 @@ jobs:
           echo "CHROME_FILE_NAME=${{ env.APP_NAME }}-chrome.zip" >> "$GITHUB_ENV"
 
       - name: Download Chrome extension artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.CHROME_FILE_NAME }}
 
@@ -343,7 +343,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Calculate sha256 hashes # */*.apk
         run: |
@@ -535,13 +535,13 @@ jobs:
 
       - name: Download Windows package
         id: download-windows
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.WINDOWS_FILE_NAME }}
 
 #      - name: Download Android package
 #        id: download-android
-#        uses: actions/download-artifact@v3
+#        uses: actions/download-artifact@v4
 #        with:
 #          name: ${{ env.ANDROID_FILE_NAME }}
 
