@@ -88,6 +88,7 @@ platform :ios do
       submission_information: {
         add_id_info_uses_idfa: false
       },
+      force: true,
       release_notes: {
         "default" => changelog,
         "en-US" => changelog,
