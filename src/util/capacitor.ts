@@ -11,17 +11,28 @@ import { SplashScreen } from 'capacitor-splash-screen';
 
 import type { Theme } from '../global/types';
 
-import { callApi } from '../api';
-import { isTonConnectDeeplink } from './ton/deeplinks';
+import { processDeeplink } from './deeplink';
 import { pause } from './schedulers';
-import { tonConnectGetDeviceInfo } from './tonConnectEnvironment';
 import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET } from './windowEnvironment';
 
-let launchUrl: string | undefined;
+// Full list of options can be found at https://github.com/apache/cordova-plugin-inappbrowser#cordovainappbrowseropen
+export const INAPP_BROWSER_OPTIONS = [
+  'location=no',
+  'usewkwebview=yes',
+  'clearcache=yes',
+  'clearsessioncache=yes',
+  'hidden=yes',
+  'toolbarposition=top',
+  'hidenavigationbuttons=yes',
+  'hideurlbar=yes',
+  'closebuttoncaption=✕',
+  'allowInlineMediaPlayback=yes',
+].join(',');
 const IOS_SPLASH_SCREEN_HIDE_DELAY = 500;
 const IOS_SPLASH_SCREEN_HIDE_DURATION = 600;
 export const VIBRATE_SUCCESS_END_PAUSE_MS = 1300;
 
+let launchUrl: string | undefined;
 let platform: 'ios' | 'android' | undefined;
 let isNativeBiometricAuthSupported = false;
 let isFaceIdAvailable = false;
@@ -57,15 +68,17 @@ export async function initCapacitor() {
     }, IOS_SPLASH_SCREEN_HIDE_DELAY);
   }
 
-  launchUrl = (await App.getLaunchUrl())?.url;
-
   App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
-    processDeeplink(event.url);
+    processDeeplink(event.url, capacitorOpenUrl);
   });
 
-  if (launchUrl) {
-    void processDeeplink(launchUrl);
-  }
+  App.addListener('backButton', ({ canGoBack }) => {
+    if (canGoBack) {
+      window.history.back();
+    } else {
+      App.exitApp();
+    }
+  });
 
   if (platform === 'android') {
     // Until this bug is fixed, the `overlay` must be `false`
@@ -84,16 +97,11 @@ export async function initCapacitor() {
       );
     }
   });
-}
 
-export async function processDeeplink(url: string) {
-  if (isTonConnectDeeplink(url)) {
-    const deviceInfo = tonConnectGetDeviceInfo();
-    const returnUrl = await callApi('startSseConnection', url, deviceInfo);
+  launchUrl = (await App.getLaunchUrl())?.url;
 
-    if (returnUrl) {
-      await AppLauncher.openUrl({ url: returnUrl });
-    }
+  if (launchUrl) {
+    void processDeeplink(launchUrl, capacitorOpenUrl);
   }
 }
 
@@ -153,4 +161,8 @@ export function getIsFaceIdAvailable() {
 
 export function getIsTouchIdAvailable() {
   return isTouchIdAvailable;
+}
+
+export async function capacitorOpenUrl(url: string) {
+  await AppLauncher.openUrl({ url });
 }

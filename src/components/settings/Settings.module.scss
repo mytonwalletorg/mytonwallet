@@ -23,10 +23,12 @@
   background-color: var(--color-background-second);
 }
 
-@supports (padding-top: env(safe-area-inset-top)) {
-  html:global(:not(.is-native-bottom-sheet)) {
-    .transitionSlide {
-      padding-top: env(safe-area-inset-top);
+@include respond-below(xs) {
+  @supports (padding-top: env(safe-area-inset-top)) {
+    html:global(:not(.is-native-bottom-sheet)) {
+      .transitionSlide {
+        padding-top: env(safe-area-inset-top);
+      }
     }
   }
 }
@@ -681,7 +683,7 @@
   // Hidden is needed for animating screen transition on the desktop
   overflow: hidden;
 
-  height: 46rem;
+  height: 47rem;
 
   @supports (height: env(safe-area-inset-bottom)) {
     html:global(:not(.is-native-bottom-sheet)) {

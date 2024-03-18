@@ -1,6 +1,6 @@
 import type { NftItem } from 'tonapi-sdk-js';
 
-import type { ApiNft, ApiNftUpdate } from '../../types';
+import type { ApiNetwork, ApiNft, ApiNftUpdate } from '../../types';
 
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
@@ -14,10 +14,10 @@ export async function getAccountNfts(accountId: string, offset?: number, limit?:
   const address = await fetchStoredAddress(accountId);
 
   const rawNfts = await fetchAccountNfts(network, address, { offset, limit });
-  return compact(rawNfts.map(buildNft));
+  return compact(rawNfts.map((rawNft) => buildNft(network, rawNft)));
 }
 
-export function buildNft(rawNft: NftItem): ApiNft | undefined {
+export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefined {
   if (!rawNft.metadata) {
     return undefined;
   }
@@ -42,13 +42,13 @@ export function buildNft(rawNft: NftItem): ApiNft | undefined {
     return {
       index,
       name,
-      address: toBase64Address(address, true),
+      address: toBase64Address(address, true, network),
       image,
       thumbnail: previews!.find((x) => x.resolution === '500x500')!.url,
       isOnSale: Boolean(sale),
       isHidden,
       ...(collection && {
-        collectionAddress: toBase64Address(collection.address, true),
+        collectionAddress: toBase64Address(collection.address, true, network),
         collectionName: collection.name,
       }),
     };
@@ -76,16 +76,16 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
       if (action.NftItemTransfer) {
         const { sender, recipient, nft: rawNftAddress } = action.NftItemTransfer;
         if (!sender || !recipient) continue;
-        to = toBase64Address(recipient.address);
-        nftAddress = toBase64Address(rawNftAddress, true);
+        to = toBase64Address(recipient.address, undefined, network);
+        nftAddress = toBase64Address(rawNftAddress, true, network);
       } else if (action.NftPurchase) {
         const { buyer } = action.NftPurchase;
-        to = toBase64Address(buyer.address);
+        to = toBase64Address(buyer.address, undefined, network);
         rawNft = action.NftPurchase.nft;
         if (!rawNft) {
           continue;
         }
-        nftAddress = toBase64Address(rawNft.address, true);
+        nftAddress = toBase64Address(rawNft.address, true, network);
       } else {
         continue;
       }
@@ -96,7 +96,7 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         }
 
         if (rawNft) {
-          const nft = buildNft(rawNft);
+          const nft = buildNft(network, rawNft);
 
           if (nft) {
             updates.push({

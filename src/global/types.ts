@@ -13,6 +13,7 @@ import type {
   ApiNetwork,
   ApiNft,
   ApiParsedPayload,
+  ApiPriceHistoryPeriod,
   ApiStakingHistory,
   ApiStakingType,
   ApiSwapAsset,
@@ -67,7 +68,7 @@ export enum AppState {
 
 export enum AuthState {
   none,
-  creatingWallet,
+  createWallet,
   checkPassword,
   createPin,
   confirmPin,
@@ -214,13 +215,9 @@ export type UserToken = {
   image?: string;
   slug: string;
   price: number;
+  priceUsd: number;
   decimals: number;
   change24h: number;
-  change7d: number;
-  change30d: number;
-  history24h?: ApiHistoryList;
-  history7d?: ApiHistoryList;
-  history30d?: ApiHistoryList;
   isDisabled?: boolean;
   canSwap?: boolean;
   keywords?: string[];
@@ -233,9 +230,11 @@ export type UserSwapToken = {
   blockchain: string;
   isPopular: boolean;
   contract?: string;
-} & Omit<UserToken, 'change24h' | 'change7d' | 'change30d' | 'history24h' | 'history7d' | 'history30d'>;
+} & Omit<UserToken, 'change24h'>;
 
-export type TokenPeriod = '24h' | '7d' | '30d';
+export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
+
+export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
 export interface Account {
   title?: string;
@@ -424,6 +423,7 @@ export type GlobalState = {
 
   dappConnectRequest?: {
     state: DappConnectState;
+    isSse?: boolean;
     promiseId?: string;
     accountId?: string;
     dapp: ApiDapp;
@@ -461,6 +461,10 @@ export type GlobalState = {
 
   swapTokenInfo: {
     bySlug: Record<string, ApiSwapAsset>;
+  };
+
+  tokenPriceHistory: {
+    bySlug: Record<string, PriceHistoryPeriods>;
   };
 
   byAccountId: Record<string, AccountState>;
@@ -519,6 +523,7 @@ export type GlobalState = {
     currentSwap?: GlobalState['currentSwap'];
   };
 
+  latestAppVersion?: string;
   stateVersion: number;
   restrictions: {
     isLimitedRegion: boolean;
@@ -767,6 +772,8 @@ export interface ActionPayloads {
 
   openReceiveModal: undefined;
   closeReceiveModal: undefined;
+
+  loadPriceHistory: { slug: string; period: ApiPriceHistoryPeriod };
 }
 
 export enum LoadMoreDirection {

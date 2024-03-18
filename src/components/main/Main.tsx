@@ -24,6 +24,7 @@ import ReceiveModal from '../receive/ReceiveModal';
 import StakeModal from '../staking/StakeModal';
 import StakingInfoModal from '../staking/StakingInfoModal';
 import UnstakeModal from '../staking/UnstakeModal';
+import UpdateAvailable from '../ui/UpdateAvailable';
 import { LandscapeActions, PortraitActions } from './sections/Actions';
 import Card from './sections/Card';
 import StickyCard from './sections/Card/StickyCard';
@@ -223,6 +224,7 @@ function Main({
       <StakingInfoModal isOpen={isStakingInfoModalOpen} onClose={closeStakingInfo} />
       <ReceiveModal />
       <UnstakeModal />
+      <UpdateAvailable />
     </>
   );
 }

@@ -90,7 +90,7 @@ export async function importMnemonic(network: ApiNetwork, mnemonic: string[], pa
     return handleServerError(err);
   }
 
-  const address = toBase64Address(wallet.address, false);
+  const address = toBase64Address(wallet.address, false, network);
 
   const accountId: string = await getNewAccountId(network);
   const result = await storeAccount(accountId, mnemonic, password, {

@@ -47,6 +47,7 @@ export type ApiSwapAsset = {
   decimals: number;
   isPopular: boolean;
   price: number;
+  priceUsd: number;
   image?: string;
   contract?: string;
   keywords?: string[];
@@ -155,3 +156,6 @@ export type ApiBackendDapp = {
   canBeRestricted: boolean;
   isExternal: boolean;
 };
+
+// Prices
+export type ApiPriceHistoryPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';

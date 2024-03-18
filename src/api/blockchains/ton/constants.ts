@@ -147,4 +147,39 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
     type: ContractType.Wallet,
     isLedgerAllowed: true,
   },
+  dedustPool: {
+    name: 'dedustPool',
+    hash: 'af6a1790ccd322e9b996733cce5618901a99d76c4c5a219309deef9b0910b238',
+    isSwapAllowed: true,
+  },
+  dedustVaultNative: {
+    name: 'dedustVaultNative',
+    hash: '8ecbfbe7642ebceec39712a4b3e7b3d1ffc2cfbb1b712fbf1f27f1051afb5220',
+    isSwapAllowed: true,
+  },
+  dedustVaultJetton: {
+    name: 'dedustVaultJetton',
+    hash: '54f0c2a249ea3c5fc844c48e2586d8a72e6fc188a1ccaec609fac58248b8c8e3',
+    isSwapAllowed: true,
+  },
+  stonPtonWallet: {
+    name: 'stonPtonWallet',
+    hash: '6ccbf71a3ed9c7355f84a698a44a7406574bfb8aa34d4bbd86ab75ee9c994880',
+    isSwapAllowed: true,
+  },
+  stonRouter: {
+    name: 'stonRouter',
+    hash: '14ce618a0e9a94adc99fa6e975219ddd675425b30dfa9728f98714c8dc55f9da',
+    isSwapAllowed: true,
+  },
+  megatonWtonMaster: {
+    name: 'megatonWtonMaster',
+    hash: '4c9790d808ea4470614e021f76c40529efe2fbce8138da4284a29b5f1943ef19',
+    isSwapAllowed: true,
+  },
+  megatonRouter: {
+    name: 'megatonRouter',
+    hash: '5d5f0e3ed9602d1ba96006ead98cb5e9b53f49ce4a5cf675e06e4d440b7d267c',
+    isSwapAllowed: true,
+  },
 };

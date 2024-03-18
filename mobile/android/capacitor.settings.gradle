@@ -40,3 +40,6 @@ project(':native-bottom-sheet').projectDir = new File('../plugins/native-bottom-
 
 include ':capacitor-secure-storage-plugin'
 project(':capacitor-secure-storage-plugin').projectDir = new File('../../node_modules/capacitor-secure-storage-plugin/android')
+
+include ':capacitor-app-launcher'
+project(':capacitor-app-launcher').projectDir = new File('../../node_modules/@capacitor/app-launcher/android')

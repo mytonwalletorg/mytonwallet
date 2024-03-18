@@ -42,7 +42,7 @@ Safety Rules: Güvenlik Kuralları
 $safety_rules_one: |
   Bir sonraki ekranda **gizli kelimeleri** göreceksiniz. Bunları doğru sırayla yazın ve **güvenli bir yerde saklayın**.
 $safety_rules_two: Bu kelimeler, şifrenizi veya bu cihaza erişiminizi kaybederseniz **cüzdanınızı açmanızı** sağlar.
-$safety_rules_three: Bu kelimeleri başka birinin görmesi halinde paranız **çalınabilir**. Etrafınıza bir bakının!
+$safety_rules_three: Bu kelimeleri başka birinin görmesi halinde paranız **çalınabilir**. Kimseye, hatta geliştiricilere veya teknik desteğe bile göndermeyin.
 Understood: Anladım
 Congratulations!: Tebrikler!
 Continue: Devam
@@ -135,7 +135,6 @@ View Transaction on TON Explorer: TON Explorer'da işlemi görüntüleyin
 Sender: Gönderici
 Recipient: Alıcı
 Address was copied!: Adres kopyalandı!
-Send Back: Geri gönder
 Repeat: Tekrarla
 Receive: Kabul et
 Switch Account: Hesap değiştir
@@ -426,6 +425,7 @@ $swap_changelly_privacy_policy: gizlilik politikası
 Password must contain %length% digits.: Parola %length% hane içermelidir.
 Deposit Link: Para yatırma bağlantısı
 $swap_changelly_from_ton_description: "Tokenlar birkaç dakika içinde %blockchain% blok zincirindeki adresinize gönderilecektir:"
+Please note that it may take up to a few hours for tokens to appear in your wallet.: Lütfen, token'ların cüzdanınızda görünmesinin birkaç saat sürebileceğini unutmayın.
 Minimum amount: Minimum %value%
 Maximum amount: Maksimum %value%
 Display Tray Icon: Sistem çubuğu simgesini göster
@@ -548,3 +548,4 @@ Memo was copied!: Memo kopyalandı!
 $hide_tokens_no_cost_help: |
   Hesabınızdaki jetonları $%value% 'dan daha düşük bir değerle görüntülemek için bunu kapatın. Lütfen bu tür jetonların genellikle spam ve aldatmaca için kullanıldığını unutmayın.
   Ayrıca, bu ekranda aşağıdaki listeyi kullanarak belirli jetonları seçici olarak etkinleştirebilir ve devre dışı bırakabilirsiniz.
+No internet connection. Please check your connection and try again.: İnternet bağlantısı yok. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.

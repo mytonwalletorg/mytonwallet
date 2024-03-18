@@ -140,7 +140,7 @@ function LandscapeActions({
       >
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Receive && styles.active)}
-          onClick={() => setActiveTabIndex({ index: ActiveTab.Receive })}
+          onClick={() => setActiveTabIndex({ index: ActiveTab.Receive }, { forceOnHeavyAnimation: true })}
         >
           <i className={buildClassName(styles.tabIcon, 'icon-add-buy')} aria-hidden />
           <span className={styles.tabText}>{lang('Add / Buy')}</span>
@@ -149,7 +149,7 @@ function LandscapeActions({
         </div>
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Transfer && styles.active)}
-          onClick={() => setActiveTabIndex({ index: ActiveTab.Transfer })}
+          onClick={() => setActiveTabIndex({ index: ActiveTab.Transfer }, { forceOnHeavyAnimation: true })}
         >
           <i className={buildClassName(styles.tabIcon, 'icon-send')} aria-hidden />
           <span className={styles.tabText}>{lang('Send')}</span>
@@ -159,7 +159,7 @@ function LandscapeActions({
         {isSwapAllowed && (
           <div
             className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Swap && styles.active)}
-            onClick={() => setActiveTabIndex({ index: ActiveTab.Swap })}
+            onClick={() => setActiveTabIndex({ index: ActiveTab.Swap }, { forceOnHeavyAnimation: true })}
           >
             <i className={buildClassName(styles.tabIcon, 'icon-swap')} aria-hidden />
             <span className={styles.tabText}>{lang('Swap')}</span>
@@ -174,7 +174,7 @@ function LandscapeActions({
               activeTabIndex === ActiveTab.Stake && styles.active,
               isStaking && styles.tab_purple,
             )}
-            onClick={() => setActiveTabIndex({ index: ActiveTab.Stake })}
+            onClick={() => setActiveTabIndex({ index: ActiveTab.Stake }, { forceOnHeavyAnimation: true })}
           >
             <i className={buildClassName(styles.tabIcon, 'icon-earn')} aria-hidden />
             <span className={styles.tabText}>

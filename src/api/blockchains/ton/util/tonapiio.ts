@@ -3,7 +3,7 @@ import { Api, HttpClient } from 'tonapi-sdk-js';
 import type { ApiNetwork } from '../../../types';
 
 import { TONAPIIO_MAINNET_URL, TONAPIIO_TESTNET_URL } from '../../../../config';
-import fetchWithTimeout from '../../../../util/fetchWithTimeout';
+import { fetchWithRetry } from '../../../../util/fetch';
 import { getEnvironment } from '../../../environment';
 
 const MAX_LIMIT = 500;
@@ -22,12 +22,12 @@ function getApi(network: ApiNetwork) {
       mainnet: new Api(new HttpClient({
         baseUrl: TONAPIIO_MAINNET_URL,
         baseApiParams: { headers },
-        customFetch: fetchWithTimeout as typeof fetch,
+        customFetch: fetchWithRetry as typeof fetch,
       })),
       testnet: new Api(new HttpClient({
         baseUrl: TONAPIIO_TESTNET_URL,
         baseApiParams: { headers },
-        customFetch: fetchWithTimeout as typeof fetch,
+        customFetch: fetchWithRetry as typeof fetch,
       })),
     };
   }

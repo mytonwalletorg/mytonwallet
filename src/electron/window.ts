@@ -6,14 +6,14 @@ import path from 'path';
 
 import { ElectronAction } from './types';
 
-import { BASE_URL, BETA_URL } from '../config';
+import { BASE_URL, BETA_URL, IS_PRODUCTION } from '../config';
 import { AUTO_UPDATE_SETTING_KEY, getIsAutoUpdateEnabled, setupAutoUpdates } from './autoUpdates';
 import { processDeeplink } from './deeplink';
 import { captureStorage, restoreStorage } from './storageUtils';
 import tray from './tray';
 import {
   checkIsWebContentsUrlAllowed, FORCE_STORAGE_CAPTURED_SETTINGS_KEY, forceQuit,
-  getIsForceStorageCaptureRequired, IS_FIRST_RUN, IS_MAC_OS, IS_PREVIEW, IS_PRODUCTION,
+  getIsForceStorageCaptureRequired, IS_FIRST_RUN, IS_MAC_OS, IS_PREVIEW,
   IS_WINDOWS, mainWindow, setMainWindow, store, WINDOW_STATE_FILE,
 } from './utils';
 

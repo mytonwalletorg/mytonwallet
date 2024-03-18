@@ -6,9 +6,10 @@ import { getActions, withGlobal } from '../global';
 import type { GlobalState } from '../global/types';
 import { AppState } from '../global/types';
 
-import { INACTIVE_MARKER, IS_CAPACITOR } from '../config';
+import { INACTIVE_MARKER, IS_ANDROID_DIRECT, IS_CAPACITOR } from '../config';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
+import { resolveRender } from '../util/renderPromise';
 import {
   IS_ANDROID,
   IS_DELEGATED_BOTTOM_SHEET,
@@ -23,6 +24,7 @@ import { callApi } from '../api';
 import useBackgroundMode from '../hooks/useBackgroundMode';
 import { useDeviceScreen } from '../hooks/useDeviceScreen';
 import useFlag from '../hooks/useFlag';
+import useInterval from '../hooks/useInterval';
 import useSyncEffect from '../hooks/useSyncEffect';
 import useTimeout from '../hooks/useTimeout';
 
@@ -62,6 +64,9 @@ interface StateProps {
   currentQrScan?: GlobalState['currentQrScan'];
 }
 
+const APP_UPDATE_INTERVAL = (IS_ELECTRON && !IS_LINUX) || IS_ANDROID_DIRECT
+  ? 5 * 60 * 1000 // 5 min
+  : undefined;
 const PRERENDER_MAIN_DELAY = 1200;
 let mainKey = 0;
 
@@ -81,6 +86,7 @@ function App({
     closeSettings,
     cancelCaching,
     closeQrScanner,
+    checkAppVersion,
   } = getActions();
 
   const { isPortrait } = useDeviceScreen();
@@ -99,6 +105,8 @@ function App({
     prerenderMain,
     renderingKey === AppState.Auth && !canPrerenderMain ? PRERENDER_MAIN_DELAY : undefined,
   );
+
+  useInterval(checkAppVersion, APP_UPDATE_INTERVAL);
 
   useEffect(() => {
     updateSizes();
@@ -119,6 +127,7 @@ function App({
 
   useLayoutEffect(() => {
     document.documentElement.classList.add('is-rendered');
+    resolveRender();
   }, []);
 
   useSyncEffect(() => {

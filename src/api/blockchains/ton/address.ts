@@ -41,7 +41,7 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
       return undefined;
     }
 
-    return { address: toBase64Address(result), domain };
+    return { address: toBase64Address(result, undefined, network), domain };
   } catch (err: any) {
     if (err.message !== 'http provider parse response error') {
       throw err;
@@ -50,6 +50,6 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
   }
 }
 
-export function normalizeAddress(address: string) {
-  return toBase64Address(address, true);
+export function normalizeAddress(address: string, network?: ApiNetwork) {
+  return toBase64Address(address, true, network);
 }

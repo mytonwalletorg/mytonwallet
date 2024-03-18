@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 
 import {
-  APP_ENV_MARKER, APP_NAME, APP_VERSION, IS_EXTENSION,
+  APP_ENV_MARKER, APP_NAME, APP_REPO_URL, APP_VERSION, IS_EXTENSION,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
@@ -127,7 +127,7 @@ function SettingsAbout({ isActive, handleBackClick, isInsideModal }: OwnProps) {
           <p className={styles.text}>
             {lang('$about_wallet_github', {
               github_link: (
-                <a href="https://github.com/mytonwalletorg/mytonwallet" target="_blank" rel="noreferrer">
+                <a href={APP_REPO_URL} target="_blank" rel="noreferrer">
                   {renderText(lang('$about_github_link_text'))}
                 </a>
               ),

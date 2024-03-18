@@ -270,6 +270,7 @@ export default function createConfig(
         LIQUID_POOL: null,
         LIQUID_JETTON: null,
         IS_PACKAGED_ELECTRON: false,
+        IS_ANDROID_DIRECT: false,
         ELECTRON_TONHTTPAPI_MAINNET_API_KEY: null,
         ELECTRON_TONHTTPAPI_TESTNET_API_KEY: null,
         BASE_URL,

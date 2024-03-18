@@ -1,6 +1,12 @@
 import { parseTonDeeplink } from '../../util/ton/deeplinks';
 import { callApi } from '../../api/providers/extension/connectorForPageScript';
 
+type DeeplinkParams = {
+  to: string;
+  amount?: string | bigint;
+  comment?: string;
+} | undefined;
+
 const originalOpenFn = window.open;
 let isDeeplinkHookEnabled: boolean | undefined;
 
@@ -37,8 +43,11 @@ function patchedOpenFn(url?: string | URL, ...args: any[]) {
 }
 
 function tryHandleDeeplink(value: any) {
-  const params = parseTonDeeplink(value);
+  const params: DeeplinkParams = parseTonDeeplink(value);
   if (!params) return false;
+  if (typeof params.amount === 'bigint') {
+    params.amount = params.amount.toString();
+  }
 
   void callApi('prepareTransaction', params);
   return true;

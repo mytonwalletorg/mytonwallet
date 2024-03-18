@@ -356,7 +356,7 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
   setGlobal(global);
 });
 
-addActionHandler('apiUpdateDappLoading', async (global, actions, { connectionType }) => {
+addActionHandler('apiUpdateDappLoading', async (global, actions, { connectionType, isSse }) => {
   // We only need to apply changes in NBS when Dapp Connect Modal is already open
   if (IS_DELEGATED_BOTTOM_SHEET) {
     if (!(await waitFor(() => {
@@ -373,6 +373,7 @@ addActionHandler('apiUpdateDappLoading', async (global, actions, { connectionTyp
   if (connectionType === 'connect') {
     global = updateDappConnectRequest(global, {
       state: DappConnectState.Info,
+      isSse,
     });
   } else if (connectionType === 'sendTransaction') {
     global = updateCurrentDappTransfer(global, {

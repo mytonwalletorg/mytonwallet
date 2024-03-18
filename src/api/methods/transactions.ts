@@ -135,12 +135,12 @@ export function decryptComment(accountId: string, encryptedComment: string, from
 }
 
 export function createLocalTransaction(accountId: string, params: ApiLocalTransactionParams) {
-  const blockchainKey = parseAccountId(accountId).blockchain;
+  const { blockchain: blockchainKey, network } = parseAccountId(accountId);
   const blockchain = blockchains[blockchainKey];
 
   const { toAddress } = params;
 
-  const normalizedAddress = blockchain.normalizeAddress(toAddress);
+  const normalizedAddress = blockchain.normalizeAddress(toAddress, network);
 
   const localTransaction = buildLocalTransaction(params, normalizedAddress);
 

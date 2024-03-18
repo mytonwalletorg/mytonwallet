@@ -15,7 +15,8 @@ import type { TokenTransferBodyParams } from '../types';
 import { WORKCHAIN } from '../../../types';
 
 import {
-  DEFAULT_API_TIMEOUT, TONHTTPAPI_MAINNET_API_KEY,
+  DEFAULT_TIMEOUT,
+  TONHTTPAPI_MAINNET_API_KEY,
   TONHTTPAPI_MAINNET_URL,
   TONHTTPAPI_TESTNET_API_KEY,
   TONHTTPAPI_TESTNET_URL,
@@ -72,13 +73,13 @@ export function getTonClient(network: ApiNetwork = 'mainnet') {
     clientByNetwork = {
       mainnet: new TonClient({
         endpoint: TONHTTPAPI_MAINNET_URL,
-        timeout: DEFAULT_API_TIMEOUT,
+        timeout: DEFAULT_TIMEOUT,
         apiKey: TONHTTPAPI_MAINNET_API_KEY,
         headers: getEnvironment().apiHeaders,
       }),
       testnet: new TonClient({
         endpoint: TONHTTPAPI_TESTNET_URL,
-        timeout: DEFAULT_API_TIMEOUT,
+        timeout: DEFAULT_TIMEOUT,
         apiKey: TONHTTPAPI_TESTNET_API_KEY,
         headers: getEnvironment().apiHeaders,
       }),
@@ -102,14 +103,14 @@ export const resolveTokenWalletAddress = withCacheAsync(
   async (network: ApiNetwork, address: string, minterAddress: string) => {
     const minter = getTonClient(network).open(new JettonMinter(Address.parse(minterAddress)));
     const walletAddress = await minter.getWalletAddress(Address.parse(address));
-    return toBase64Address(walletAddress, true);
+    return toBase64Address(walletAddress, true, network);
   },
 );
 
 export const resolveTokenMinterAddress = withCacheAsync(async (network: ApiNetwork, tokenWalletAddress: string) => {
   const tokenWallet = getTonClient(network).open(new JettonWallet(Address.parse(tokenWalletAddress)));
   const data = await tokenWallet.getWalletData();
-  return toBase64Address(data.minter, true);
+  return toBase64Address(data.minter, true, network);
 });
 
 export const getWalletPublicKey = withCacheAsync(async (network: ApiNetwork, address: string) => {
@@ -133,11 +134,15 @@ export function oneCellFromBoc(bytes: Uint8Array) {
   return Cell.fromBoc(Buffer.from(bytes));
 }
 
-export function toBase64Address(address: Address | string, isBounceable = DEFAULT_IS_BOUNCEABLE) {
+export function toBase64Address(address: Address | string, isBounceable = DEFAULT_IS_BOUNCEABLE, network?: ApiNetwork) {
   if (typeof address === 'string') {
     address = Address.parse(address);
   }
-  return address.toString({ urlSafe: true, bounceable: isBounceable });
+  return address.toString({
+    urlSafe: true,
+    bounceable: isBounceable,
+    testOnly: network === 'testnet',
+  });
 }
 
 export function toRawAddress(address: Address | string) {

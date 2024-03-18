@@ -22,3 +22,4 @@ export {
 export * from './swap';
 export * from './other';
 export * from './prices';
+export * from './preload';

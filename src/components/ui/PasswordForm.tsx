@@ -85,7 +85,7 @@ function PasswordForm({
   const passwordRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState<string>('');
   const [localError, setLocalError] = useState<string>('');
-  const { isSmallHeight } = useDeviceScreen();
+  const { isSmallHeight, isPortrait } = useDeviceScreen();
   const isSubmitDisabled = !password.length;
 
   useEffect(() => {
@@ -191,13 +191,15 @@ function PasswordForm({
           </Button>
         )}
         <div className={styles.pinPadHeader}>
-          <AnimatedIconWithPreview
-            play={isActive}
-            tgsUrl={ANIMATED_STICKERS_PATHS.guard}
-            previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}
-            noLoop={false}
-            nonInteractive
-          />
+          {isPortrait && (
+            <AnimatedIconWithPreview
+              play={isActive}
+              tgsUrl={ANIMATED_STICKERS_PATHS.guard}
+              previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}
+              noLoop={false}
+              nonInteractive
+            />
+          )}
           {!isSmallHeight && <div className={styles.title}>{lang(title)}</div>}
           {children}
         </div>

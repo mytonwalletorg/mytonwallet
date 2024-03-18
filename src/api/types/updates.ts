@@ -112,6 +112,7 @@ export type ApiUpdateDappDisconnect = {
 export type ApiUpdateDappLoading = {
   type: 'dappLoading';
   connectionType: 'connect' | 'sendTransaction';
+  isSse?: boolean;
 };
 
 export type ApiUpdateDappCloseLoading = {
@@ -170,6 +171,11 @@ export type ApiUpdateWalletVersions = {
   versions: ApiWalletInfo[];
 };
 
+export type ApiOpenUrl = {
+  type: 'openUrl';
+  url: string;
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateNewActivities
@@ -191,6 +197,7 @@ export type ApiUpdate =
   | ApiNftUpdate
   | ApiUpdateAccount
   | ApiUpdateRegion
-  | ApiUpdateWalletVersions;
+  | ApiUpdateWalletVersions
+  | ApiOpenUrl;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

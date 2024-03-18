@@ -1,17 +1,11 @@
 import type { ActionSheetButton } from '@capacitor/action-sheet';
 import { ActionSheet, ActionSheetButtonStyle } from '@capacitor/action-sheet';
-import type { URLOpenListenerEvent } from '@capacitor/app';
-import { App as CapacitorApp } from '@capacitor/app';
 import { BottomSheet } from 'native-bottom-sheet';
-import React, { memo, useEffect } from '../../../../lib/teact/teact';
+import React, { memo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
-
-import { ElectronEvent } from '../../../../electron/types';
 
 import { IS_CAPACITOR, TON_TOKEN_SLUG, USDT_TRON_TOKEN_SLUG } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
-import { clearLaunchUrl, getLaunchUrl } from '../../../../util/capacitor';
-import { processDeeplink } from '../../../../util/processDeeplink';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../../util/windowEnvironment';
 
 import useFlag from '../../../../hooks/useFlag';
@@ -53,24 +47,6 @@ function PortraitActions({
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isOnRampAllowed = !isTestnet && !isLedger && !isOnRampDisabled;
   const isStakingAllowed = !isTestnet;
-
-  useEffect(() => {
-    return window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {
-      processDeeplink(url);
-    });
-  }, [startTransfer]);
-
-  useEffect(() => {
-    const launchUrl = getLaunchUrl();
-    if (launchUrl) {
-      processDeeplink(launchUrl);
-      clearLaunchUrl();
-    }
-
-    return CapacitorApp.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
-      processDeeplink(event.url);
-    }).remove;
-  }, [startTransfer]);
 
   const handleStartSwap = useLastCallback(() => {
     startSwap({ isPortrait: true });

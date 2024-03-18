@@ -29,7 +29,7 @@ import { updateHardware } from './reducers';
 import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
 
 const UPDATE_THROTTLE = IS_CAPACITOR ? 500 : 5000;
-const ACTIVITIES_LIMIT = 50;
+const ACTIVITIES_LIMIT = 20;
 const ANIMATION_DELAY_MS = 320;
 
 const updateCacheThrottled = throttle(() => onIdle(() => updateCache()), UPDATE_THROTTLE, false);
@@ -407,6 +407,13 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   if (cached.stateVersion === 17) {
     clearActivities();
     cached.stateVersion = 18;
+  }
+
+  if (cached.stateVersion === 18 || cached.stateVersion === 19) {
+    for (const accountId of Object.keys(cached.byAccountId)) {
+      cached.byAccountId[accountId].currentTokenPeriod = '1D';
+    }
+    cached.stateVersion++;
   }
 
   // When adding migration here, increase `STATE_VERSION`

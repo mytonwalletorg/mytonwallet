@@ -1,9 +1,15 @@
 import type { InAppBrowserObject } from '@awesome-cordova-plugins/in-app-browser';
 import { useCallback, useMemo } from '../../../lib/teact/teact';
 
-import type { UseWebViewBridgeReturnType, WebViewBridgeMessage } from '../helpers';
+import type { WebViewBridgeMessage } from '../helpers';
 
 import { getInjectableJsMessage, objectToInjection, WebViewBridgeMessageType } from '../helpers';
+
+type UseWebViewBridgeReturnType<Event> = [
+  string,
+  (e: MessageEvent) => void,
+  (event: Event) => void,
+];
 
 export const useWebViewBridge = <
   BridgeObject extends { [key: string]: any } = {},
@@ -13,7 +19,7 @@ export const useWebViewBridge = <
     bridgeObj: BridgeObject,
     timeout?: number,
   ): UseWebViewBridgeReturnType<Event> => {
-  const injectedJavaScriptBeforeContentLoaded = useMemo(
+  const bridgeInjectionCode = useMemo(
     () => objectToInjection(bridgeObj, timeout),
     [bridgeObj, timeout],
   );
@@ -32,7 +38,21 @@ export const useWebViewBridge = <
 
       if (message.type === WebViewBridgeMessageType.invokeCapFunc) {
         try {
-          const result = await bridgeObj[message.name](...message.args);
+          let result: any;
+          switch (message.name) {
+            case 'window:open': {
+              const { url, target, options } = message.args;
+
+              window.open(url, target, options);
+              result = true;
+              break;
+            }
+
+            default: {
+              const methodName = message.name.replace('bridge:', '');
+              result = await bridgeObj[methodName](...message.args);
+            }
+          }
 
           postMessage({
             type: WebViewBridgeMessageType.functionResponse,
@@ -60,5 +80,5 @@ export const useWebViewBridge = <
     [postMessage],
   );
 
-  return [injectedJavaScriptBeforeContentLoaded, onMessage, sendEvent];
+  return [bridgeInjectionCode, onMessage, sendEvent];
 };

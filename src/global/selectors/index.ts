@@ -37,7 +37,7 @@ const selectAccountTokensMemoized = memoized((
     .map(([slug, balance]) => {
       const {
         symbol, name, image, decimals, cmcSlug, color, quote: {
-          price, percentChange24h, percentChange7d, percentChange30d, history7d, history24h, history30d,
+          price, percentChange24h, priceUsd,
         },
       } = tokenInfo.bySlug[slug];
 
@@ -45,7 +45,7 @@ const selectAccountTokensMemoized = memoized((
       const totalValue = toBig(balance, decimals).mul(price).round(decimals).toString();
 
       const isException = accountSettings.exceptionSlugs?.includes(slug);
-      let isDisabled = areTokensWithNoCostHidden && toBig(amount, decimals).mul(price).lt(HIDDEN_TOKENS_COST);
+      let isDisabled = areTokensWithNoCostHidden && toBig(amount, decimals).mul(priceUsd ?? 0).lt(HIDDEN_TOKENS_COST);
 
       if (isException) {
         isDisabled = !isDisabled;
@@ -64,11 +64,6 @@ const selectAccountTokensMemoized = memoized((
         price,
         decimals,
         change24h: round(percentChange24h / 100, 4),
-        change7d: round(percentChange7d / 100, 4),
-        change30d: round(percentChange30d / 100, 4),
-        history24h,
-        history7d,
-        history30d,
         isDisabled,
         cmcSlug,
         totalValue,
@@ -119,7 +114,7 @@ function createTokenList(
     .map(([slug, {
       symbol, name, image,
       decimals, keywords, blockchain,
-      contract, isPopular, color, price = 0,
+      contract, isPopular, color, price = 0, priceUsd = 0,
     }]) => {
       const amount = balancesBySlug[slug] ?? 0n;
       const totalValue = toBig(amount, decimals).mul(price).toString();
@@ -129,6 +124,7 @@ function createTokenList(
         slug,
         amount,
         price,
+        priceUsd,
         name,
         image,
         decimals,

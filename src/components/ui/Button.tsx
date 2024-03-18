@@ -95,7 +95,7 @@ function Button({
         isSimple && styles.isSimple,
         isSmall && styles.sizeSmall,
         isPrimary && styles.primary,
-        isDisabled && styles.disabled,
+        (isDisabled || isLoading) && styles.disabled,
         loadingClassName,
         isRound && styles.round,
         isText && styles.isText,
@@ -106,7 +106,7 @@ function Button({
       )}
       aria-label={ariaLabel}
       onClick={handleClick}
-      disabled={isDisabled}
+      disabled={isDisabled || isLoading}
       form={forFormId}
     >
       {children}

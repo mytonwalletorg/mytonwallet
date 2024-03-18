@@ -173,7 +173,7 @@ function SettingsTokens({
             {name}
           </div>
           <div className={styles.tokenDescription}>
-            <AnimatedCounter text={formatCurrency(toDecimal(totalAmount, token.decimals), shortBaseSymbol)} />
+            <AnimatedCounter text={formatCurrency(toDecimal(totalAmount, token.decimals, true), shortBaseSymbol)} />
             <i className={styles.dot} aria-hidden />
             <AnimatedCounter text={formatCurrency(toDecimal(amount, token.decimals), symbol)} />
             {isDeleteButtonVisible && (

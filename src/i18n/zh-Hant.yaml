@@ -128,7 +128,6 @@ View Transaction on TON Explorer: 在 TON Explorer 上查看此交易
 Sender: 發送人
 Recipient: 接收人
 Address was copied!: 地址已被複製!
-Send Back: 退還
 Repeat: 重複
 Receive: 接收
 Switch Account: 切換帳戶
@@ -412,6 +411,7 @@ $swap_changelly_privacy_policy: 隱私政策
 Password must contain %length% digits.: 密碼必須包含%length%位數字。
 Deposit Link: 儲值連結
 $swap_changelly_from_ton_description: "代幣將在幾分鐘內發送到您在%blockchain%區塊鏈上的地址："
+Please note that it may take up to a few hours for tokens to appear in your wallet.: 請注意，代幣顯示在您的錢包中可能需要幾個小時。
 Minimum amount: 最低 %value%
 Maximum amount: 最高 %value%
 Display Tray Icon: 顯示托盤圖標
@@ -532,3 +532,4 @@ Memo was copied!: Memo 被複製了！
 $hide_tokens_no_cost_help: |
   將其關閉以在您的帳戶上顯示為價值小於 $%value% 的代幣。請注意，這種令牌通常用於垃圾郵件和騙局。
   您還可以使用下面在此屏幕上的列表選擇性地啟用和禁用特定令牌。
+No internet connection. Please check your connection and try again.: 沒有網路連線。 請檢查您的連線並重試。

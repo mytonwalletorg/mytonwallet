@@ -89,14 +89,19 @@
 }
 
 .buttonIcon {
-  margin-right: -0.3125rem;
+  margin-right: -0.0625rem;
+
+  font-size: 0.75rem;
 
   .light & {
+    margin-right: -0.3125rem;
+
     font-size: 1rem;
     color: var(--color-gray-3);
   }
 
   &:global(.icon-chevron-down) {
+    margin-right: -0.3125rem;
     margin-left: 0.375rem;
   }
 }

@@ -1,34 +1,34 @@
 PODS:
-  - Capacitor (5.6.0):
+  - Capacitor (5.7.2):
     - CapacitorCordova
-  - CapacitorActionSheet (5.0.6):
+  - CapacitorActionSheet (5.0.7):
     - Capacitor
-  - CapacitorApp (5.0.6):
+  - CapacitorApp (5.0.7):
     - Capacitor
   - CapacitorAppLauncher (5.0.7):
     - Capacitor
-  - CapacitorClipboard (5.0.6):
+  - CapacitorClipboard (5.0.7):
     - Capacitor
-  - CapacitorCordova (5.6.0)
-  - CapacitorDialog (5.0.6):
+  - CapacitorCordova (5.7.2)
+  - CapacitorDialog (5.0.7):
     - Capacitor
-  - CapacitorHaptics (5.0.6):
+  - CapacitorHaptics (5.0.7):
     - Capacitor
-  - CapacitorMlkitBarcodeScanning (5.3.0):
+  - CapacitorMlkitBarcodeScanning (5.4.0):
     - Capacitor
     - GoogleMLKit/BarcodeScanning (= 4.0.0)
-  - CapacitorPluginSafeArea (2.0.5):
+  - CapacitorPluginSafeArea (2.0.6):
     - Capacitor
   - CapacitorSecureStoragePlugin (0.9.0):
     - Capacitor
     - SwiftKeychainWrapper
   - CapacitorSplashScreen (5.0.6.1):
     - Capacitor
-  - CapacitorStatusBar (5.0.6):
+  - CapacitorStatusBar (5.0.7):
     - Capacitor
   - CapgoCapacitorNativeBiometric (0.0.1):
     - Capacitor
-  - CapgoNativeAudio (6.2.5):
+  - CapgoNativeAudio (6.2.7):
     - Capacitor
   - CordovaPlugins (5.6.0):
     - CapacitorCordova
@@ -170,21 +170,21 @@ EXTERNAL SOURCES:
     :path: "../../plugins/native-bottom-sheet"
 
 SPEC CHECKSUMS:
-  Capacitor: ebfc16cdb8116d04c101686b080342872da42d43
-  CapacitorActionSheet: ffcdc28d01d731661745efd5cb75f9117e18530e
-  CapacitorApp: 024e1b1bea5f883d79f6330d309bc441c88ad04a
+  Capacitor: fc7ef6d935eafb0df9eaaf109ca69be16c51a2d2
+  CapacitorActionSheet: 8096e5cb8a3dfa89b03a40a62ea4836111263cb4
+  CapacitorApp: 17fecd0e6cb23feafac7eb0939417389038b0979
   CapacitorAppLauncher: 7b2705481a74cbe322441bd374f56194de59ab1a
-  CapacitorClipboard: 77edf49827ea21da2a9c05c690a4a6a4d07199c4
-  CapacitorCordova: 931b48fcdbc9bc985fc2f16cec9f77c794a27729
-  CapacitorDialog: 0f3c15dfe9414b83bc64aef4078f1b92bcfead26
-  CapacitorHaptics: 1fffc1217c7e64a472d7845be50fb0c2f7d4204c
-  CapacitorMlkitBarcodeScanning: ea08ef246e5d3511d5a231a59fae36b16ad9acb3
-  CapacitorPluginSafeArea: bfdd714827dbd89fb44fea286beec996e1b0c5c4
+  CapacitorClipboard: 45e5e25f2271f98712985d422776cdc5a779cca1
+  CapacitorCordova: 70b13b8fddb6f35d8adcfe06cb5045c07f35f6de
+  CapacitorDialog: ea1beaccb7f825191aa18b72cba8981b881b3b2d
+  CapacitorHaptics: 7c7c206f0c96a628fed073830c96d28c4b2e772e
+  CapacitorMlkitBarcodeScanning: 8fb81cbef3c6ffe0c0e2dbd15ed6dca889a5a062
+  CapacitorPluginSafeArea: d55e4d4e70c98f611240f11dd80561438d0d70cb
   CapacitorSecureStoragePlugin: e91d7df060f2495a1acff9583641a6953e3aacba
   CapacitorSplashScreen: 6fce4269c6f7dc7591cc28760d1f85255e5edb1b
-  CapacitorStatusBar: 565c0a1ebd79bb40d797606a8992b4a105885309
+  CapacitorStatusBar: f390fbb49b82ffb754ea4b3cf71dc8b048baf3e7
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
-  CapgoNativeAudio: 39352d6942679bd6ee15b6a458534723b78e3f47
+  CapgoNativeAudio: 9c9d2ee1683c5e7091d59c3aa7ff5c30c66b9598
   CordovaPlugins: 149708b4353176a65688a5aed237f7c3054e7702
   FloatingPanel: f585be005983e66f8f4932f93ca46bf9f09dae3a
   GoogleDataTransport: 54dee9d48d14580407f8f5fbf2f496e92437a2f2
@@ -203,6 +203,6 @@ SPEC CHECKSUMS:
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 2003f4405b331426fc46e652819f067a25e77215
+PODFILE CHECKSUM: d79d062cb6b0a6bab2e56fcd74e516fdc51f8641
 
 COCOAPODS: 1.15.2

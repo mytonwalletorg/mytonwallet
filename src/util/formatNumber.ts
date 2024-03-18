@@ -1,16 +1,25 @@
 import type { ApiBaseCurrency } from '../api/types';
 
-import { DEFAULT_DECIMAL_PLACES, DEFAULT_PRICE_CURRENCY, SHORT_CURRENCY_SYMBOL_MAP } from '../config';
+import {
+  DEFAULT_DECIMAL_PLACES,
+  DEFAULT_PRICE_CURRENCY,
+  SHORT_CURRENCY_SYMBOL_MAP,
+} from '../config';
 import { Big } from '../lib/big.js';
 import { toDecimal } from './decimals';
 import withCache from './withCache';
 
 const SHORT_SYMBOLS = new Set(Object.values(SHORT_CURRENCY_SYMBOL_MAP));
 
-export const formatInteger = withCache((value: number | Big | string, fractionDigits = 2, noRadix = false) => {
+export const formatInteger = withCache((
+  value: number | Big | string,
+  fractionDigits = 2,
+  noRadix = false,
+  noFloor?: boolean,
+) => {
   value = Big(value);
   const dp = value.gte(1) ? fractionDigits : DEFAULT_DECIMAL_PLACES;
-  const fixed = value.round(dp).toString();
+  const fixed = value.round(dp, noFloor ? Big.roundHalfUp : undefined).toString();
 
   let [wholePart, fractionPart = ''] = fixed.split('.');
 
@@ -28,8 +37,13 @@ export const formatInteger = withCache((value: number | Big | string, fractionDi
   ].filter(Boolean).join('.');
 });
 
-export function formatCurrency(value: number | string | Big, currency: string, fractionDigits?: number) {
-  const formatted = formatInteger(value, fractionDigits);
+export function formatCurrency(
+  value: number | string | Big,
+  currency: string,
+  fractionDigits?: number,
+  noFloor?: boolean,
+) {
+  const formatted = formatInteger(value, fractionDigits, undefined, noFloor);
   return addCurrency(formatted, currency);
 }
 

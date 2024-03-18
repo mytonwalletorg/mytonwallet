@@ -288,6 +288,10 @@
   animation: button-loading-spinner 1s linear infinite;
 }
 
+.savedAddressBubble {
+  --offset-y-value: -0.75rem;
+}
+
 .savedAddressItem {
   cursor: var(--custom-cursor, pointer);
 
@@ -323,6 +327,16 @@
   color: var(--color-black);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.iconLedger {
+  position: relative;
+  top: 0.0625rem;
+
+  margin-inline-start: 0.25rem;
+
+  font-size: 0.8125rem;
+  color: var(--color-gray-3)
 }
 
 .savedAddressAddress {
@@ -415,7 +429,10 @@
     overflow: hidden;
 
     max-width: 5rem;
+    height: 1.25rem;
+    margin-bottom: -0.125rem;
 
+    line-height: 1.25rem;
     text-overflow: ellipsis;
   }
 
@@ -423,7 +440,10 @@
     overflow: hidden;
 
     max-width: 15rem;
+    height: 1.25rem;
+    margin-bottom: -0.125rem;
 
+    line-height: 1.25rem;
     text-overflow: ellipsis;
   }
 }

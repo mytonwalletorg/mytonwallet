@@ -7,12 +7,12 @@ import { connectUpdater, startStorageMigration } from '../common/helpers';
 import { setEnvironment } from '../environment';
 import { addHooks } from '../hooks';
 import * as tonConnect from '../tonConnect';
-import { resetupSseConnection, sendSseDisconnect } from '../tonConnect/sse';
+import * as tonConnectSse from '../tonConnect/sse';
 import * as methods from '.';
 
 addHooks({
-  onDappDisconnected: sendSseDisconnect,
-  onDappsChanged: resetupSseConnection,
+  onDappDisconnected: tonConnectSse.sendSseDisconnect,
+  onDappsChanged: tonConnectSse.resetupSseConnection,
   onSwapCreated: methods.setupSwapPolling,
 });
 
@@ -36,9 +36,13 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
     tonConnect.initTonConnect(onUpdate);
   }
 
+  if (environment.isSseSupported) {
+    tonConnectSse.initSse(onUpdate);
+  }
+
   await startStorageMigration(onUpdate, blockchains.ton);
 
   if (environment.isSseSupported) {
-    void resetupSseConnection();
+    void tonConnectSse.resetupSseConnection();
   }
 }

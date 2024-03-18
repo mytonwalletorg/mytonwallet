@@ -42,7 +42,7 @@ Safety Rules: Normas de seguridad
 $safety_rules_one: |
   En la siguiente pantalla verás las palabras de la **frase semilla**. Escríbalas en el mismo orden y **guárdelas en un lugar seguro**.
 $safety_rules_two: Permiten **acceder a su mondero** si pierde su contraseña o el acceso a este dispositivo.
-$safety_rules_three: Si alguien más las ve, sus activos **pueden ser robados**. ¡Mire a su alrededor!
+$safety_rules_three: Si alguien más las ve, sus activos **pueden ser robados**. **No se lo envíe a nadie**, ni siquiera a los desarrolladores o al soporte técnico.
 Understood: Entiendo
 Congratulations!: ¡Felicidades!
 Continue: Continuar
@@ -135,7 +135,6 @@ View Transaction on TON Explorer: Ver transacción en TON Explorer
 Sender: Remitente
 Recipient: Receptor
 Address was copied!: ¡Se copió la dirección!
-Send Back: Devolver
 Repeat: Repetir
 Receive: Recibir
 Switch Account: Cambiar de monedero
@@ -426,6 +425,7 @@ $swap_changelly_privacy_policy: política de privacidad
 Password must contain %length% digits.: La contraseña debe contener %length% dígitos.
 Deposit Link: Enlace de depósito
 $swap_changelly_from_ton_description: "Los tokens serán enviados a tu dirección en la blockchain de %blockchain% en unos momentos:"
+Please note that it may take up to a few hours for tokens to appear in your wallet.: Tenga en cuenta que pueden pasar hasta unas horas para que los tokens aparezcan en su billetera.
 Minimum amount: Mínimo %value%
 Maximum amount: Máximo %value%
 Display Tray Icon: Icono de bandeja
@@ -546,3 +546,4 @@ Memo was copied!: ¡El memo fue copiado!
 $hide_tokens_no_cost_help: |
   Apague esto para mostrar tokens en su cuenta con un valor inferior a $%value%. Tenga en cuenta que tales tokens a menudo se usan para el spam y la estafa.
   También puede habilitar y deshabilitar selectivamente tokens particulares utilizando la lista a continuación en esta pantalla.
+No internet connection. Please check your connection and try again.: Sin conexión a Internet. Por favor, compruebe la conexión y vuelva a intentarlo.

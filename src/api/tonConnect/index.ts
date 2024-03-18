@@ -94,6 +94,7 @@ export async function connect(
     onPopupUpdate({
       type: 'dappLoading',
       connectionType: 'connect',
+      isSse: request && 'sseOptions' in request,
     });
 
     const dappMetadata = await fetchDappMetadata(message.manifestUrl);
@@ -251,7 +252,10 @@ export async function sendTransaction(
       connectionType: 'sendTransaction',
     });
 
-    const { preparedMessages, checkResult } = await checkTransactionMessages(accountId, messages);
+    const {
+      preparedMessages,
+      checkResult,
+    } = await checkTransactionMessages(accountId, messages, network);
 
     const dapp = (await getDappsByOrigin(accountId))[origin];
     const transactionsForRequest = await prepareTransactionForRequest(network, messages, isLedger);
@@ -281,7 +285,7 @@ export async function sendTransaction(
     if (isLedger) {
       const signedTransfers = response as ApiSignedTransfer[];
       const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
-      boc = signedTransfers[0].base64;
+      boc = submitResult.externalMessage.toBoc().toString('base64');
       successNumber = submitResult.successNumber;
 
       if (successNumber > 0) {
@@ -381,7 +385,7 @@ export function signData(request: ApiDappRequest, message: SignDataRpcRequest) {
   };
 }
 
-async function checkTransactionMessages(accountId: string, messages: TransactionPayloadMessage[]) {
+async function checkTransactionMessages(accountId: string, messages: TransactionPayloadMessage[], network: ApiNetwork) {
   const preparedMessages = messages.map((msg) => {
     const {
       address,
@@ -391,7 +395,7 @@ async function checkTransactionMessages(accountId: string, messages: Transaction
     } = msg;
 
     return {
-      toAddress: getIsRawAddress(address) ? toBase64Address(address, true) : address,
+      toAddress: getIsRawAddress(address) ? toBase64Address(address, true, network) : address,
       amount: BigInt(amount),
       payload: payload ? Cell.fromBase64(payload) : undefined,
       stateInit: stateInit ? Cell.fromBase64(stateInit) : undefined,
@@ -421,9 +425,9 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       payload: rawPayload,
       stateInit,
     }) => {
-      const toAddress = getIsRawAddress(address) ? toBase64Address(address, true) : address;
+      const toAddress = getIsRawAddress(address) ? toBase64Address(address, true, network) : address;
       // Fix address format for `waitTxComplete` to work properly
-      const normalizedAddress = toBase64Address(address);
+      const normalizedAddress = toBase64Address(address, undefined, network);
 
       const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
       const { isLedgerAllowed } = await getContractInfo(network, toAddress);

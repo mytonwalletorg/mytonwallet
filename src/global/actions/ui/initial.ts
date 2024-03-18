@@ -199,7 +199,11 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       break;
 
     case ApiCommonError.ServerError:
-      actions.showDialog({ message: 'An error on the server side. Please try again.' });
+      actions.showDialog({
+        message: window.navigator.onLine
+          ? 'An error on the server side. Please try again.'
+          : 'No internet connection. Please check your connection and try again.',
+      });
       break;
 
     case ApiCommonError.DebugError:

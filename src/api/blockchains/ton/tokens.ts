@@ -57,29 +57,29 @@ export async function getAccountTokenBalances(accountId: string) {
   const address = await fetchStoredAddress(accountId);
 
   const balancesRaw: Array<JettonBalance> = await fetchJettonBalances(network, address);
-  return balancesRaw.map(parseTokenBalance).filter(Boolean);
+  return balancesRaw.map((balance) => parseTokenBalance(network, balance)).filter(Boolean);
 }
 
 export async function getAddressTokenBalances(address: string, network: ApiNetwork) {
   const balancesRaw: Array<JettonBalance> = await fetchJettonBalances(network, address);
-  return balancesRaw.map(parseTokenBalance).filter(Boolean);
+  return balancesRaw.map((balance) => parseTokenBalance(network, balance)).filter(Boolean);
 }
 
-function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed | undefined {
+function parseTokenBalance(network: ApiNetwork, balanceRaw: JettonBalance): TokenBalanceParsed | undefined {
   if (!balanceRaw.jetton) {
     return undefined;
   }
 
   try {
     const { balance, jetton, wallet_address: walletAddress } = balanceRaw;
-    const minterAddress = toBase64Address(jetton.address, true);
+    const minterAddress = toBase64Address(jetton.address, true, network);
     const token = buildTokenByMetadata(minterAddress, jetton);
 
     return {
       slug: token.slug,
       balance: BigInt(balance),
       token,
-      jettonWallet: toBase64Address(walletAddress.address),
+      jettonWallet: toBase64Address(walletAddress.address, undefined, network),
     };
   } catch (err) {
     logDebugError('parseTokenBalance', err);
@@ -88,6 +88,7 @@ function parseTokenBalance(balanceRaw: JettonBalance): TokenBalanceParsed | unde
 }
 
 export function parseTokenTransaction(
+  network: ApiNetwork,
   tx: ApiTransactionExtra,
   slug: string,
   walletAddress: string,
@@ -97,7 +98,7 @@ export function parseTokenTransaction(
     return undefined;
   }
 
-  const parsedData = parseJettonWalletMsgBody(extraData.body);
+  const parsedData = parseJettonWalletMsgBody(network, extraData.body);
   if (!parsedData) {
     return undefined;
   }
@@ -175,12 +176,10 @@ export function addKnownTokens(tokens: ApiBaseToken[]) {
     knownTokens[token.slug] = {
       ...token,
       quote: {
+        slug: token.slug,
         price: 0,
         priceUsd: 0,
-        percentChange1h: 0,
         percentChange24h: 0,
-        percentChange7d: 0,
-        percentChange30d: 0,
       },
     };
   }

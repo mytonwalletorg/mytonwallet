@@ -1,0 +1,39 @@
+.wrapper {
+  cursor: var(--custom-cursor, pointer);
+
+  position: fixed;
+  bottom: max(env(safe-area-inset-bottom), 1rem);
+  left: 50%;
+  transform: translateX(-50%);
+
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+
+  height: 2.5rem;
+  margin: 0;
+  padding: 0 0.75rem;
+
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-blue-button-text);
+  white-space: nowrap;
+
+  background: var(--color-blue-button-background);
+  border: none;
+  border-radius: 1.25rem;
+
+  transition: background-color 150ms, color 150ms, opacity 300ms !important;
+
+  &:hover,
+  &:focus {
+    color: var(--color-blue-button-text-hover);
+
+    background: var(--color-blue-button-background-hover);
+  }
+}
+
+.icon {
+  font-size: 1rem;
+}

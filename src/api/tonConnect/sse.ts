@@ -8,14 +8,15 @@ import type {
 } from '@tonconnect/protocol';
 import nacl, { randomBytes } from 'tweetnacl';
 
-import type { ApiDappRequest, ApiSseOptions } from '../types';
+import type { ApiDappRequest, ApiSseOptions, OnApiUpdate } from '../types';
 
 import { parseAccountId } from '../../util/account';
+import { handleFetchErrors } from '../../util/fetch';
 import { extractKey } from '../../util/iteratees';
 import { logDebug, logDebugError } from '../../util/logs';
 import safeExec from '../../util/safeExec';
 import { getCurrentNetwork, waitLogin } from '../common/accounts';
-import { bytesToHex, handleFetchErrors } from '../common/utils';
+import { bytesToHex } from '../common/utils';
 import { apiDb } from '../db';
 import {
   getDappsState,
@@ -34,9 +35,20 @@ type ReturnStrategy = 'back' | 'none' | string;
 const BRIDGE_URL = 'https://tonconnectbridge.mytonwallet.org/bridge';
 const TTL_SEC = 300;
 const NONCE_SIZE = 24;
+const MAX_CONFIRM_DURATION = 60 * 1000;
 
 let sseEventSource: EventSource | undefined;
 let sseDapps: SseDapp[] = [];
+let delayedReturnParams: {
+  validUntil: number;
+  url: string;
+} | undefined;
+
+let onUpdate: OnApiUpdate;
+
+export function initSse(_onUpdate: OnApiUpdate) {
+  onUpdate = _onUpdate;
+}
 
 export async function startSseConnection(url: string, deviceInfo: DeviceInfo): Promise<ReturnStrategy | undefined> {
   const { searchParams: params, origin } = new URL(url);
@@ -44,8 +56,16 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
   const ret: ReturnStrategy = params.get('ret') || 'back';
   const version = Number(params.get('v') as string);
   const appClientId = params.get('id') as string;
+  // `back` strategy cannot be implemented
+  const shouldOpenUrl = ret !== 'back' && ret !== 'none';
 
   if (!params.get('r')) {
+    if (shouldOpenUrl) {
+      delayedReturnParams = {
+        validUntil: Date.now() + MAX_CONFIRM_DURATION,
+        url: ret,
+      };
+    }
     return undefined;
   }
 
@@ -90,8 +110,7 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
     await resetupSseConnection();
   }
 
-  if (ret === 'none' || ret === 'back') {
-    // `back` strategy cannot be implemented
+  if (!shouldOpenUrl) {
     return undefined;
   }
 
@@ -164,6 +183,14 @@ export async function resetupSseConnection() {
     const result = await tonConnect[message.method]({ origin, accountId }, message);
 
     await sendMessage(result, secretKey, clientId, appClientId);
+
+    if (delayedReturnParams) {
+      const { validUntil, url } = delayedReturnParams;
+      if (validUntil > Date.now()) {
+        onUpdate({ type: 'openUrl', url });
+      }
+      delayedReturnParams = undefined;
+    }
   };
 }
 

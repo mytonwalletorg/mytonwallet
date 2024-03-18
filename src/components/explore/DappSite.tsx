@@ -1,4 +1,3 @@
-import type { InAppBrowserEvent } from '@awesome-cordova-plugins/in-app-browser';
 import { BottomSheet } from 'native-bottom-sheet';
 import React, { memo, useMemo } from '../../lib/teact/teact';
 
@@ -6,7 +5,9 @@ import type { ApiDapp } from '../../api/types';
 
 import { IS_CAPACITOR } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { INAPP_BROWSER_OPTIONS } from '../../util/capacitor';
 import { logDebugError } from '../../util/logs';
+import { pause } from '../../util/schedulers';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
@@ -27,18 +28,10 @@ interface OwnProps {
   dapps?: ApiDapp[];
 }
 
+const FIRST_INJECTION_DELAY = 2500;
+const SECOND_INJECTION_DELAY = 10000;
+
 let inAppBrowser: Cordova['InAppBrowser'] | undefined;
-// Full list of options can be found at https://github.com/apache/cordova-plugin-inappbrowser#cordovainappbrowseropen
-const BROWSER_OPTIONS = [
-  'location=no',
-  'hidden=yes',
-  'beforeload=yes',
-  'toolbarposition=top',
-  'hidenavigationbuttons=yes',
-  'hideurlbar=yes',
-  'closebuttoncaption=✕',
-  'allowInlineMediaPlayback=yes',
-].join(',');
 
 function DappSite({
   url, icon, title, description, isExternal, dapps,
@@ -51,17 +44,9 @@ function DappSite({
     return dapps?.some((dapp) => dapp.origin === origin);
   }, [dapps, url]);
 
-  const handleBeforeLoadCallback = useLastCallback((e: InAppBrowserEvent, cb: (url: string) => void) => {
-    if (e.url.startsWith(url)) {
-      cb(url);
-    } else {
-      logDebugError('Unexpected URL', e.url);
-    }
-  });
-
   const {
     inAppBrowserRef,
-    injectedJavaScriptBeforeContentLoaded,
+    bridgeInjectionCode,
     onMessage,
     disconnect,
   } = useDappBridge({
@@ -71,19 +56,30 @@ function DappSite({
     onHideBrowser: unmarkIsOpen,
   });
 
-  const handleOnLoad = useLastCallback(() => {
+  const handleLoadStart = useLastCallback(async () => {
+    await pause(FIRST_INJECTION_DELAY);
     if (!inAppBrowser) return;
 
     inAppBrowser.executeScript({
-      code: injectedJavaScriptBeforeContentLoaded,
+      code: bridgeInjectionCode,
+    });
+    await pause(SECOND_INJECTION_DELAY);
+    if (!inAppBrowser) return;
+
+    inAppBrowser.executeScript({
+      code: bridgeInjectionCode,
+    });
+  });
+
+  const handleInjectJsBridge = useLastCallback(() => {
+    if (!inAppBrowser) return;
+
+    inAppBrowser.executeScript({
+      code: bridgeInjectionCode,
     });
   });
 
   const handleError = useLastCallback((err: any) => {
-    const scriptErrorMessage = 'window.alert(\'Sorry we cannot open that page. Server error.\');';
-    inAppBrowser.executeScript({ code: scriptErrorMessage });
-    inAppBrowser.close();
-
     logDebugError('inAppBrowser error', err);
   });
 
@@ -93,9 +89,9 @@ function DappSite({
     }
 
     disconnect();
-    inAppBrowser.removeEventListener('loadstop', handleOnLoad);
+    inAppBrowser.removeEventListener('loadstart', handleLoadStart);
+    inAppBrowser.removeEventListener('loadstop', handleInjectJsBridge);
     inAppBrowser.removeEventListener('loaderror', handleError);
-    inAppBrowser.removeEventListener('beforeload', handleBeforeLoadCallback);
     inAppBrowser.removeEventListener('message', onMessage);
     inAppBrowser = undefined;
     // eslint-disable-next-line no-null/no-null
@@ -106,7 +102,6 @@ function DappSite({
   const handleClick = useLastCallback(async () => {
     if (!IS_CAPACITOR || isExternal) {
       window.open(url, '_blank', 'noopener');
-      return;
     }
 
     if (IS_DELEGATING_BOTTOM_SHEET) {
@@ -114,11 +109,11 @@ function DappSite({
     }
 
     markIsOpen();
-    inAppBrowser = cordova.InAppBrowser.open(url, '_blank', BROWSER_OPTIONS);
+    inAppBrowser = cordova.InAppBrowser.open(url, '_blank', INAPP_BROWSER_OPTIONS);
     inAppBrowserRef.current = inAppBrowser;
-    inAppBrowser.addEventListener('loadstop', handleOnLoad);
+    inAppBrowser.addEventListener('loadstart', handleLoadStart);
+    inAppBrowser.addEventListener('loadstop', handleInjectJsBridge);
     inAppBrowser.addEventListener('loaderror', handleError);
-    inAppBrowser.addEventListener('beforeload', handleBeforeLoadCallback);
     inAppBrowser.addEventListener('message', onMessage);
     inAppBrowser.addEventListener('exit', handleBrowserClose);
     inAppBrowser.show();
@@ -141,3 +136,7 @@ function DappSite({
 }
 
 export default memo(DappSite);
+
+export function getInAppBrowser(): Cordova['InAppBrowser'] | undefined {
+  return inAppBrowser;
+}

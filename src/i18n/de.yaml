@@ -42,7 +42,7 @@ Safety Rules: Sicherheitsregeln
 $safety_rules_one: |
   Auf dem nächsten Bildschirm sehen Sie die **geheimen Wörter**. Notieren Sie sie in der richtigen Reihenfolge und **bewahren Sie sie an einem sicheren Ort auf**.
 $safety_rules_two: Sie ermöglichen es, Ihre **wallet zu öffnen**, falls Sie Ihr Passwort vergessen oder den Zugang zu diesem Gerät verlieren.
-$safety_rules_three: Wenn jemand anderes diese Wörter sieht, könnten Ihre **Gelder gestohlen werden**. Schauen Sie sich um!
+$safety_rules_three: Wenn jemand anderes diese Wörter sieht, könnten Ihre **Gelder gestohlen werden**. **Senden Sie es an niemanden**, nicht einmal an Entwickler oder den technischen Support.
 Understood: Verstanden.
 Congratulations!: Herzlichen Glückwunsch!
 Continue: Fortfahren
@@ -136,7 +136,6 @@ View Transaction on TON Explorer: Transaktion im TON Explorer anzeigen
 Sender: Absender
 Recipient: Empfänger
 Address was copied!: Adresse wurde kopiert!
-Send Back: Zurücksenden
 Repeat: Wiederholen
 Receive: Empfangen
 Switch Account: Konto wechseln
@@ -428,6 +427,7 @@ $swap_changelly_privacy_policy: Datenschutzrichtlinie
 Password must contain %length% digits.: Das Passwort muss %length% Ziffern enthalten.
 Deposit Link: Einzahlungslink
 $swap_changelly_from_ton_description: "Die Tokens werden in wenigen Momenten an Ihre Adresse in der %Blockchain%-Blockchain gesendet:"
+Please note that it may take up to a few hours for tokens to appear in your wallet.: Bitte beachten Sie, dass es bis zu einigen Stunden dauern kann, bis Tokens in Ihrer Wallet angezeigt werden.
 Minimum amount: Mindestens %value%
 Maximum amount: Höchstens %value%
 Display Tray Icon: Tray-Symbol anzeigen
@@ -550,3 +550,4 @@ Memo was copied!: Memo wurde kopiert!
 $hide_tokens_no_cost_help: |
   Schalten Sie dies aus, um Token auf Ihrem Konto mit einem Wert von weniger als $%value% anzuzeigen. Bitte beachten Sie, dass solche Token häufig für Spam- und Betrugszwecke verwendet werden.
   Sie können bestimmte Token auch selektiv aktivieren und deaktivieren, indem Sie die folgende Liste auf diesem Bildschirm verwenden.
+No internet connection. Please check your connection and try again.: Keine Internetverbindung. Bitte überprüfe deine Verbindung und versuche es erneut.

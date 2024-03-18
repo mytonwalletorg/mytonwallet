@@ -51,6 +51,7 @@ type OwnProps = {
 
 export const CLOSE_DURATION = 350;
 export const CLOSE_DURATION_PORTRAIT = IS_ANDROID ? 200 : 500;
+const SCROLL_CONTENT_CHECK_THRESHOLD_MS = 500;
 
 function Modal({
   dialogRef,
@@ -79,6 +80,8 @@ function Modal({
 
   // eslint-disable-next-line no-null/no-null
   const localDialogRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const swipeDownDateRef = useRef<number>(null);
   dialogRef ||= localDialogRef;
 
   const { isPortrait } = useDeviceScreen();
@@ -132,8 +135,8 @@ function Modal({
     }
 
     return captureEvents(modalRef.current!, {
-      onSwipe: (e, direction) => {
-        if (direction === SwipeDirection.Down && !windowSize.getIsKeyboardVisible() && !getIsSwipeToCloseDisabled()) {
+      onSwipe: (e: Event, direction: SwipeDirection) => {
+        if (direction === SwipeDirection.Down && getCanCloseModal(swipeDownDateRef, e.target as HTMLElement)) {
           onClose();
           return true;
         }
@@ -214,3 +217,19 @@ function Modal({
 }
 
 export default freezeWhenClosed(Modal);
+
+function getCanCloseModal(lastScrollRef: { current: number | null }, el?: HTMLElement) {
+  if (windowSize.getIsKeyboardVisible() || getIsSwipeToCloseDisabled()) {
+    return false;
+  }
+
+  const now = Date.now();
+  if (lastScrollRef.current && now - lastScrollRef.current < SCROLL_CONTENT_CHECK_THRESHOLD_MS) {
+    return false;
+  }
+
+  lastScrollRef.current = now;
+  const scrollEl = el?.closest('.custom-scroll');
+
+  return !scrollEl || scrollEl.scrollTop === 0;
+}

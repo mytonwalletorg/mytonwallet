@@ -26,7 +26,7 @@ import { hexToBytes } from './utils';
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 13;
+const actualStateVersion = 14;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -338,6 +338,36 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
     }
 
     version = 13;
+    await storage.setItem('stateVersion', version);
+  }
+
+  if (version === 13) {
+    const accounts: Record<string, {
+      publicKey: string;
+      address: string;
+      version?: string;
+    }> | undefined = await storage.getItem('accounts', true);
+
+    if (accounts) {
+      for (const [accountId, account] of Object.entries(accounts)) {
+        const { network } = parseAccountId(accountId);
+        if (network === 'testnet') {
+          account.address = toBase64Address(account.address, false, network);
+
+          onUpdate({
+            type: 'updateAccount',
+            accountId,
+            partial: {
+              address: account.address,
+            },
+          });
+        }
+      }
+
+      await storage.setItem('accounts', accounts);
+    }
+
+    version = 14;
     await storage.setItem('stateVersion', version);
   }
 }

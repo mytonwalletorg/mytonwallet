@@ -68,15 +68,27 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   const accounts = selectAccounts(global) ?? {};
   const isFirstAccount = !Object.values(accounts).length;
   const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
-  const methodState = !firstNonHardwareAccount
-    ? AuthState.creatingWallet
-    : AuthState.createBackup;
+  const nextAuthState = firstNonHardwareAccount
+    ? AuthState.createBackup
+    : (isFirstAccount
+      ? AuthState.createWallet
+      // The app only has hardware wallets accounts, which means we need to create a password or biometrics
+      : IS_CAPACITOR
+        ? AuthState.createPin
+        : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword)
+    );
+
+  global = updateAuth(global, { isLoading: true });
+  setGlobal(global);
 
   const network = selectCurrentNetwork(global);
   const checkResult = await callApi('checkApiAvailability', {
     blockchainKey: 'ton',
     network,
   });
+  global = getGlobal();
+  global = updateAuth(global, { isLoading: undefined });
+  setGlobal(global);
 
   if (!checkResult) {
     actions.showError({ error: ApiCommonError.ServerError });
@@ -100,7 +112,7 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
 
   setGlobal(
     updateAuth(global, {
-      state: methodState,
+      state: nextAuthState,
       method: 'createAccount',
       error: undefined,
     }),
@@ -320,6 +332,9 @@ addActionHandler('createAccount', async (global, actions, { password, isImportin
   }
 
   const { accountId, address } = result;
+  if (!isImporting) {
+    global = { ...global, appState: AppState.Auth, isAddAccountModalOpen: undefined };
+  }
   global = updateAuth(global, {
     address,
     accountId,

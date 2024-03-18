@@ -34,6 +34,7 @@ import { isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
 import { txCallbacks } from '../common/txCallbacks';
 import { hexToBytes } from '../common/utils';
 import { processNftUpdates, updateNfts } from './nfts';
+import { resolveDataPreloadPromise } from './preload';
 import { getBaseCurrency } from './prices';
 import { getBackendStakingState, tryUpdateStakingCommonData } from './staking';
 import {
@@ -62,11 +63,6 @@ const DOUBLE_CHECK_TOKENS_PAUSE = 30 * SEC;
 let onUpdate: OnApiUpdate;
 let isAccountActive: IsAccountActiveFn;
 
-let resolvePreloadPromise: Function;
-const preloadEnsurePromise = new Promise((resolve) => {
-  resolvePreloadPromise = resolve;
-});
-
 const prices: {
   baseCurrency: ApiBaseCurrency;
   bySlug: Record<string, ApiTokenPrice>;
@@ -91,7 +87,7 @@ export async function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAc
     tryUpdateTokens(_onUpdate),
     tryLoadSwapTokens(_onUpdate),
     tryUpdateStakingCommonData(),
-  ]).then(() => resolvePreloadPromise());
+  ]).then(() => resolveDataPreloadPromise());
 
   void tryUpdateRegion(_onUpdate);
 
@@ -111,10 +107,8 @@ function registerNewTokens(tokenBalances: TokenBalanceParsed[]) {
       ...token,
       quote: prices.bySlug[token.slug] || {
         price: 0.0,
-        percentChange1h: 0.0,
+        priceUsd: 0.0,
         percentChange24h: 0.0,
-        percentChange7d: 0.0,
-        percentChange30d: 0.0,
       },
     } as ApiToken;
   }
@@ -407,19 +401,13 @@ export async function tryUpdatePrices(localOnUpdate?: OnApiUpdate) {
 
   try {
     const baseCurrency = await getBaseCurrency();
-    const pricesData = await callBackendGet<Record<string, {
-      slugs: string[];
-      quote: ApiTokenPrice;
-    }>>('/prices', { base: baseCurrency });
+    const pricesData = await callBackendGet<Record<string, ApiTokenPrice>>('/prices/current', {
+      base: baseCurrency,
+    });
 
     if (!isUpdaterAlive(localOnUpdate)) return;
 
-    prices.bySlug = Object.values(pricesData).reduce((acc, { slugs, quote }) => {
-      for (const slug of slugs) {
-        acc[slug] = quote;
-      }
-      return acc;
-    }, {} as Record<string, ApiTokenPrice>);
+    prices.bySlug = buildCollectionByKey(Object.values(pricesData), 'slug');
     prices.baseCurrency = baseCurrency;
   } catch (err) {
     logDebugError('tryUpdatePrices', err);
@@ -596,10 +584,6 @@ function logAndRescue(err: Error) {
   logDebugError('Polling error', err);
 
   return undefined;
-}
-
-export async function waitDataPreload() {
-  await preloadEnsurePromise;
 }
 
 export async function setupWalletVersionsPolling(accountId: string) {

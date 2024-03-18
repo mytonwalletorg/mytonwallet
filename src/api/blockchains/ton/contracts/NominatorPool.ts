@@ -1,9 +1,9 @@
 import type {
-  Address, Cell, Contract, ContractProvider, TupleItem,
+  Cell, Contract, ContractProvider, TupleItem,
 } from '@ton/core';
-import { beginCell, contractAddress, TupleReader } from '@ton/core';
-
-import { toBase64Address } from '../util/tonCore';
+import {
+  Address, beginCell, contractAddress, TupleReader,
+} from '@ton/core';
 
 export type NominatorPoolConfig = {};
 
@@ -27,7 +27,7 @@ export class NominatorPool implements Contract {
 
   // eslint-disable-next-line class-methods-use-this
   async getListNominators(provider: ContractProvider): Promise<{
-    address: string;
+    address: Address;
     amount: bigint;
     pendingDepositAmount: bigint;
     withdrawRequested: boolean;
@@ -40,7 +40,7 @@ export class NominatorPool implements Contract {
       const tuple = new TupleReader(item.items);
 
       const hash = tuple.readBigNumber().toString(16).padStart(64, '0');
-      const address = toBase64Address(`0:${hash}`, true);
+      const address = Address.parse(`0:${hash}`);
       const amount = tuple.readBigNumber();
       const pendingDepositAmount = tuple.readBigNumber();
       const withdrawRequested = Boolean(tuple.readNumber());

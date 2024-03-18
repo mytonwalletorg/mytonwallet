@@ -10,22 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [18]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Reconfigure git to use HTTPS authentication
         uses: GuillaumeFalourd/SSH-to-HTTPS@v1
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install
         run: npm ci
       - name: Cache results
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-results
         with:
           path: |
@@ -37,10 +37,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [18]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Reconfigure git to use HTTPS authentication
@@ -50,7 +50,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Restore cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: restore-cache
         with:
           path: |

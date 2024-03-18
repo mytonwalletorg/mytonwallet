@@ -586,13 +586,8 @@ addActionHandler('addToken', (global, actions, { token }) => {
     keywords: token.keywords,
     quote: {
       price: token.price ?? 0,
-      percentChange1h: 0,
+      priceUsd: token.priceUsd ?? 0,
       percentChange24h: token.change24h ?? 0,
-      percentChange7d: token.change7d ?? 0,
-      percentChange30d: token.change30d ?? 0,
-      history24h: token.history24h ?? [],
-      history7d: token.history7d ?? [],
-      history30d: token.history30d ?? [],
     },
   };
 
@@ -683,9 +678,8 @@ addActionHandler('importToken', async (global, actions, { address, isSwap }) => 
     amount: 0n,
     totalValue: '0',
     price: 0,
+    priceUsd: 0,
     change24h: 0,
-    change7d: 0,
-    change30d: 0,
     ...(isSwap && {
       blockchain: 'ton',
       contract: token.minterAddress,
@@ -731,10 +725,9 @@ addActionHandler('verifyHardwareAddress', async (global, actions) => {
 });
 
 addActionHandler('setActiveContentTab', (global, actions, { tab }) => {
-  global = updateCurrentAccountState(global, {
+  return updateCurrentAccountState(global, {
     activeContentTab: tab,
   });
-  setGlobal(global);
 });
 
 addActionHandler('addSwapToken', (global, actions, { token }) => {
@@ -755,6 +748,7 @@ addActionHandler('addSwapToken', (global, actions, { token }) => {
     keywords: token.keywords,
     isPopular: false,
     price: 0,
+    priceUsd: 0,
   };
 
   setGlobal({

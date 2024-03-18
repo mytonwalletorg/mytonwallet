@@ -28,6 +28,8 @@ const NETWORK_OPTIONS = [{
   name: 'Testnet',
 }];
 
+const COPY_STORAGE_ENABLED = false;
+
 function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
   const {
     startChangingNetwork,
@@ -55,6 +57,7 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
       <div className={styles.developerTitle}>
         {lang('Developer Options')}
       </div>
+
       <div className={styles.settingsBlock}>
         <Dropdown
           label={lang('Network')}
@@ -67,14 +70,19 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
         />
       </div>
 
-      <p className={styles.blockTitle}>{lang('Dangerous')}</p>
-      <div className={styles.settingsBlock}>
-        <div className={buildClassName(styles.item, styles.item_small)} onClick={() => copyStorageData()}>
-          {lang('Copy Storage Data')}
+      {COPY_STORAGE_ENABLED && (
+        <>
+          <p className={styles.blockTitle}>{lang('Dangerous')}</p>
+          <div className={styles.settingsBlock}>
+            <div className={buildClassName(styles.item, styles.item_small)} onClick={() => copyStorageData()}>
+              {lang('Copy Storage Data')}
 
-          <i className={buildClassName(styles.iconChevronRight, 'icon-copy')} aria-hidden />
-        </div>
-      </div>
+              <i className={buildClassName(styles.iconChevronRight, 'icon-copy')} aria-hidden />
+            </div>
+          </div>
+        </>
+      )}
+
       <Button
         className={styles.developerCloseButton}
         onClick={onClose}

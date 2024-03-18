@@ -10,17 +10,20 @@ export const APP_ENV_MARKER = APP_ENV === 'staging' ? 'Beta' : APP_ENV === 'deve
 export const DEBUG = APP_ENV !== 'production' && APP_ENV !== 'perf' && APP_ENV !== 'test';
 export const DEBUG_MORE = false;
 
+export const IS_PRODUCTION = APP_ENV === 'production';
 export const IS_TEST = APP_ENV === 'test';
 export const IS_PERF = APP_ENV === 'perf';
 export const IS_EXTENSION = process.env.IS_EXTENSION === '1';
 export const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
 export const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 export const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
+export const IS_ANDROID_DIRECT = process.env.IS_ANDROID_DIRECT === '1';
 
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
 export const PRODUCTION_URL = 'https://mytonwallet.app';
 export const BETA_URL = 'https://beta.mytonwallet.app';
+export const APP_REPO_URL = 'https://github.com/mytonwalletorg/mytonwallet';
 export const BASE_URL = process.env.BASE_URL;
 
 export const SWAP_FEE_ADDRESS = process.env.SWAP_FEE_ADDRESS || 'UQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0GOp';
@@ -110,7 +113,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-74';
+export const LANG_CACHE_NAME = 'mtw-lang-76';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -168,8 +171,6 @@ export const TONCONNECT_UNIVERSAL_URL = 'https://connect.mytonwallet.org';
 export const TONCONNECT_PROTOCOL_VERSION = 2;
 export const TONCONNECT_WALLET_JSBRIDGE_KEY = 'mytonwallet';
 
-export const DEFAULT_API_TIMEOUT = 5000;
-
 export const TOKEN_INFO = {
   toncoin: {
     name: 'Toncoin',
@@ -177,12 +178,10 @@ export const TOKEN_INFO = {
     slug: TON_TOKEN_SLUG,
     cmcSlug: TON_TOKEN_SLUG,
     quote: {
+      slug: TON_TOKEN_SLUG,
       price: 1.95,
       priceUsd: 1.95,
-      percentChange1h: 0,
       percentChange24h: 0,
-      percentChange7d: 0,
-      percentChange30d: 0,
     },
     decimals: DEFAULT_DECIMAL_PLACES,
   },
@@ -198,6 +197,7 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
     slug: TON_TOKEN_SLUG,
     decimals: DEFAULT_DECIMAL_PLACES,
     price: 0,
+    priceUsd: 0,
     isPopular: true,
   },
   'ton-eqdcbkghmc': {
@@ -210,6 +210,7 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
     image: 'https://cache.tonapi.io/imgproxy/LaFKdzahVX9epWT067gyVLd8aCa1lFrZd7Rp9siViEE/rs:fill:200:200:1/g:no/aHR0cHM6Ly9icmlkZ2UudG9uLm9yZy90b2tlbi8xLzB4MjI2MGZhYzVlNTU0MmE3NzNhYTQ0ZmJjZmVkZjdjMTkzYmMyYzU5OS5wbmc.webp',
     contract: 'EQDcBkGHmC4pTf34x3Gm05XvepO5w60DNxZ-XT4I6-UGG5L5',
     price: 0,
+    priceUsd: 0,
     isPopular: false,
     keywords: ['bitcoin'],
   },
@@ -265,3 +266,7 @@ export const EXCHANGE_ADDRESSES = new Set([
 
 export const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
 export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R2'];
+
+export const DEFAULT_TIMEOUT = 5000;
+export const DEFAULT_RETRIES = 3;
+export const DEFAULT_ERROR_PAUSE = 200;

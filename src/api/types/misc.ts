@@ -43,15 +43,10 @@ export interface ApiToken extends ApiBaseToken {
 }
 
 export interface ApiTokenPrice {
+  slug: string;
   price: number;
   priceUsd: number;
-  percentChange1h: number;
   percentChange24h: number;
-  percentChange7d: number;
-  percentChange30d: number;
-  history24h?: ApiHistoryList;
-  history7d?: ApiHistoryList;
-  history30d?: ApiHistoryList;
 }
 
 export type ApiKnownAddresses = Record<string, ApiAddressInfo>;

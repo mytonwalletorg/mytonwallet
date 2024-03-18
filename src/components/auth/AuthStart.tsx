@@ -18,9 +18,10 @@ import logoPath from '../../assets/logo.svg';
 
 interface StateProps {
   hasAccounts?: boolean;
+  isLoading?: boolean;
 }
 
-function AuthStart({ hasAccounts }: StateProps) {
+function AuthStart({ hasAccounts, isLoading }: StateProps) {
   const {
     startCreatingWallet,
     startImportingWallet,
@@ -64,7 +65,8 @@ function AuthStart({ hasAccounts }: StateProps) {
         <Button
           isPrimary
           className={styles.btn}
-          onClick={startCreatingWallet}
+          isLoading={isLoading}
+          onClick={!isLoading ? startCreatingWallet : undefined}
         >
           {lang('Create Wallet')}
         </Button>
@@ -72,14 +74,14 @@ function AuthStart({ hasAccounts }: StateProps) {
         <div className={styles.importButtons}>
           <Button
             className={buildClassName(styles.btn, !IS_LEDGER_SUPPORTED && styles.btn_single)}
-            onClick={startImportingWallet}
+            onClick={!isLoading ? startImportingWallet : undefined}
           >
             {lang('%1$d Secret Words', MNEMONIC_COUNT)}
           </Button>
           {IS_LEDGER_SUPPORTED && (
             <Button
               className={buildClassName(styles.btn, styles.btn_mini)}
-              onClick={openHardwareWalletModal}
+              onClick={!isLoading ? openHardwareWalletModal : undefined}
             >
               {lang('Ledger')}
             </Button>
@@ -93,5 +95,6 @@ function AuthStart({ hasAccounts }: StateProps) {
 export default memo(withGlobal((global): StateProps => {
   return {
     hasAccounts: Boolean(global.currentAccountId),
+    isLoading: global.auth.isLoading,
   };
 })(AuthStart));

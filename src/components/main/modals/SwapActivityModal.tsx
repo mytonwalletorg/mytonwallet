@@ -311,7 +311,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
             {lang('Blockchain Fee')}
           </span>
           <div className={styles.textField}>
-            {formatCurrency(networkFee, TON_SYMBOL)}
+            {formatCurrency(networkFee, TON_SYMBOL, undefined, true)}
           </div>
         </div>
       </>
@@ -331,6 +331,9 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
         <div className={styles.infoBlock}>
           {renderSwapInfo()}
           {renderErrorMessage()}
+          <span className={buildClassName(styles.changellyDescription)}>
+            {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
+          </span>
         </div>
         <div className={styles.footer}>
           {renderFooterButton()}

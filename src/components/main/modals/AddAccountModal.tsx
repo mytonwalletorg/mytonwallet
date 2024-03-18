@@ -14,6 +14,7 @@ import { IS_LEDGER_SUPPORTED } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
+import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -76,6 +77,7 @@ function AddAccountModal({
   const [renderingKey, setRenderingKey] = useState<number>(RenderingState.Initial);
 
   const [isNewAccountImporting, setIsNewAccountImporting] = useState<boolean>(false);
+  const [isCheckingApiAvailability, markCheckingApiAvailability, unmarkCheckingApiAvailability] = useFlag(false);
 
   const handleBackClick = useLastCallback(() => {
     setRenderingKey(RenderingState.Initial);
@@ -96,9 +98,11 @@ function AddAccountModal({
       return;
     }
 
+    markCheckingApiAvailability();
     const isApiAvailable = await callApi('checkApiAvailability', {
       accountId: getGlobal().currentAccountId!,
     });
+    unmarkCheckingApiAvailability();
 
     if (isApiAvailable) {
       setRenderingKey(RenderingState.Password);
@@ -168,6 +172,7 @@ function AddAccountModal({
           <Button
             isPrimary
             className={buildClassName(styles.button, styles.button_single)}
+            isLoading={isCheckingApiAvailability}
             onClick={handleNewAccountClick}
           >
             {lang('Create Wallet')}

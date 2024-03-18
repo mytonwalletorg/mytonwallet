@@ -48,13 +48,15 @@ export interface InitData {
 }
 
 export type ContractName = ApiWalletVersion | 'v4R1' | 'highloadV2' | 'multisig' | 'multisigV2'
-| 'nominatorPool' | 'vesting';
+| 'nominatorPool' | 'vesting' | 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton'
+| 'stonPtonWallet' | 'stonRouter' | 'megatonWtonMaster' | 'megatonRouter';
 
 export type ContractInfo = {
   name: ContractName;
-  type: ContractType;
+  type?: ContractType;
   hash: string;
   isLedgerAllowed?: boolean;
+  isSwapAllowed?: boolean;
 };
 
 export type GetAddressInfoResponse = {

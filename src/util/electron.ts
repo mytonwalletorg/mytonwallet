@@ -1,15 +1,17 @@
 import { ElectronEvent } from '../electron/types';
 
-import { callApi } from '../api';
-import { tonConnectGetDeviceInfo } from './tonConnectEnvironment';
+import { processTonConnectDeeplink, processTonDeeplink } from './deeplink';
 
 export function initElectron() {
-  window.electron?.on(ElectronEvent.DEEPLINK_TONCONNECT, async (params: { url: string }) => {
-    const deviceInfo = tonConnectGetDeviceInfo();
-    const returnUrl = await callApi('startSseConnection', params.url, deviceInfo);
-
-    if (returnUrl) {
-      window.open(returnUrl, '_blank');
-    }
+  window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {
+    void processTonDeeplink(url);
   });
+
+  window.electron?.on(ElectronEvent.DEEPLINK_TONCONNECT, (params: { url: string }) => {
+    void processTonConnectDeeplink(params.url, electronOpenUrl);
+  });
+}
+
+export function electronOpenUrl(url: string) {
+  window.open(url, '_blank');
 }

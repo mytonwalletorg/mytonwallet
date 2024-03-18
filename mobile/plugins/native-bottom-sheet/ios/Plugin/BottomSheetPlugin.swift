@@ -103,6 +103,11 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
 
     @objc func applyScrollPatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [self] in
+            if (self.fpc.presentingViewController == nil) {
+                call.resolve()
+                return
+            }
+
             guard let topVc = bridge?.viewController?.parent?.presentingViewController as? CAPBridgeViewController else {
                 call.reject("Error: presentingViewController is nil")
                 return

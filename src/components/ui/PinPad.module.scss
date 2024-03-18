@@ -1,3 +1,5 @@
+@import "../../styles/mixins";
+
 .root {
   width: 100%;
   margin-top: auto;
@@ -7,6 +9,10 @@
 
   @supports (padding-bottom: max(1rem, env(safe-area-inset-bottom))) {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  @include respond-above(xs) {
+    border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
   }
 }
 

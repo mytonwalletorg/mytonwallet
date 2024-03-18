@@ -82,14 +82,15 @@ platform :ios do
 
     upload_to_app_store(
       skip_screenshots: true,
-      skip_metadata: true,
+      skip_metadata: false,
       precheck_include_in_app_purchases: false,
       submit_for_review: true,
       submission_information: {
         add_id_info_uses_idfa: false
       },
       release_notes: {
-        "default" => changelog
+        "default" => changelog,
+        "en-US" => changelog,
       }
     )
   end

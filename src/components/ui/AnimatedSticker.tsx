@@ -11,7 +11,7 @@ import { ensureRLottie, getRLottie } from '../../lib/rlottie/RLottie.async';
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
 import generateUniqueId from '../../util/generateUniqueId';
-import { IS_ELECTRON } from '../../util/windowEnvironment';
+import { IS_ELECTRON, IS_IOS } from '../../util/windowEnvironment';
 
 import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
@@ -224,7 +224,7 @@ const AnimatedSticker: FC<OwnProps> = ({
     }
   }, [playAnimation, animation, tgsUrl]);
 
-  useHeavyAnimationCheck(pauseAnimation, playAnimation, !playKey || forceOnHeavyAnimation);
+  useHeavyAnimationCheck(pauseAnimation, playAnimation, forceOnHeavyAnimation || IS_IOS || !playKey);
   usePriorityPlaybackCheck(pauseAnimation, playAnimation, !playKey);
   // Pausing frame may not happen in background,
   // so we need to make sure it happens right after focusing,
@@ -252,7 +252,7 @@ const AnimatedSticker: FC<OwnProps> = ({
 export default memo(AnimatedSticker);
 
 function isFrozen(forceOnHeavyAnimation = false, forceInBackground = false) {
-  return (!forceOnHeavyAnimation && isHeavyAnimating())
+  return (!forceOnHeavyAnimation && !IS_IOS && isHeavyAnimating())
     || isPriorityPlaybackActive()
     || (!forceInBackground && isBackgroundModeActive());
 }

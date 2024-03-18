@@ -1,26 +1,24 @@
-import type { URLOpenListenerEvent } from '@capacitor/app';
-import { App as CapacitorApp } from '@capacitor/app';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiBaseCurrency } from '../../api/types';
-import type { UserToken } from '../../global/types';
+import type { Account, UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
-import { ElectronEvent } from '../../electron/types';
 import { QrScanType, TransferState } from '../../global/types';
 
 import {
   EXCHANGE_ADDRESSES, IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG,
 } from '../../config';
+import { Big } from '../../lib/big.js';
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectIsHardwareAccount,
+  selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { clearLaunchUrl, getLaunchUrl } from '../../util/capacitor';
 import { readClipboardContent } from '../../util/clipboard';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
@@ -29,7 +27,6 @@ import { getIsAddressValid } from '../../util/getIsAddressValid';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
-import { parseTonDeeplink } from '../../util/ton/deeplinks';
 import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
@@ -66,6 +63,8 @@ interface StateProps {
   tokenSlug?: string;
   tokens?: UserToken[];
   savedAddresses?: Record<string, string>;
+  currentAccountId?: string;
+  accounts?: Record<string, Account>;
   isEncryptedCommentSupported: boolean;
   isCommentSupported: boolean;
   baseCurrency?: ApiBaseCurrency;
@@ -95,6 +94,8 @@ function TransferInitial({
   tokens,
   fee,
   savedAddresses,
+  accounts,
+  currentAccountId,
   isEncryptedCommentSupported,
   isCommentSupported,
   isLoading,
@@ -117,14 +118,14 @@ function TransferInitial({
   // eslint-disable-next-line no-null/no-null
   const toAddressRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line no-null/no-null
-  const savedAddressesTimeoutRef = useRef<number>(null);
+  const addressBookTimeoutRef = useRef<number>(null);
 
   const lang = useLang();
 
   // Note: As of 27-11-2023, Firefox does not support readText()
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(!(IS_FIREFOX || IS_FIREFOX_EXTENSION));
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
-  const [isSavedAddressesOpen, openSavedAddresses, closeSavedAddresses] = useFlag();
+  const [isAddressBookOpen, openAddressBook, closeAddressBook] = useFlag();
   const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
   const [hasToAddressError, setHasToAddressError] = useState<boolean>(false);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
@@ -134,9 +135,12 @@ function TransferInitial({
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
   const isAddressValid = getIsAddressValid(toAddress);
-  const hasSavedAddresses = useMemo(() => {
-    return savedAddresses && Object.keys(savedAddresses).length > 0;
-  }, [savedAddresses]);
+  const otherAccountIds = useMemo(() => {
+    return accounts ? Object.keys(accounts).filter((accountId) => accountId !== currentAccountId) : [];
+  }, [currentAccountId, accounts]);
+  const shouldUseAddressBook = useMemo(() => {
+    return otherAccountIds.length > 0 || Object.keys(savedAddresses || {}).length > 0;
+  }, [otherAccountIds.length, savedAddresses]);
   const {
     amount: balance,
     decimals,
@@ -148,7 +152,9 @@ function TransferInitial({
 
   const isQrScannerSupported = useQrScannerSupport();
 
-  const amountInCurrency = price && amount ? toBig(amount, decimals).mul(price).round(decimals).toString() : undefined;
+  const amountInCurrency = price && amount
+    ? toBig(amount, decimals).mul(price).round(decimals, Big.roundHalfUp).toString()
+    : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const renderingFee = useCurrentOrPrev(fee, true);
   const withPasteButton = shouldRenderPasteButton && toAddress === '';
@@ -240,33 +246,6 @@ function TransferInitial({
     });
   }, [amount, comment, fetchFee, hasToAddressError, isAddressValid, toAddress, tokenSlug]);
 
-  const processDeeplink = useLastCallback((url: string) => {
-    const params = parseTonDeeplink(url);
-    if (!params) return;
-
-    setTransferToAddress({ toAddress: params.to });
-    setTransferAmount({ amount: params.amount });
-    setTransferComment({ comment: params.comment });
-  });
-
-  useEffect(() => {
-    return window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {
-      processDeeplink(url);
-    });
-  }, [processDeeplink]);
-
-  useEffect(() => {
-    const launchUrl = getLaunchUrl();
-    if (launchUrl) {
-      processDeeplink(launchUrl);
-      clearLaunchUrl();
-    }
-
-    return CapacitorApp.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
-      processDeeplink(event.url);
-    }).remove;
-  }, [processDeeplink]);
-
   const handleTokenChange = useLastCallback(
     (slug: string) => {
       changeTransferToken({ tokenSlug: slug });
@@ -298,12 +277,12 @@ function TransferInitial({
       });
     });
 
-    if (hasSavedAddresses) {
+    if (shouldUseAddressBook) {
       // Simultaneous opening of the virtual keyboard and display of Saved Addresses causes animation degradation
       if (IS_ANDROID) {
-        savedAddressesTimeoutRef.current = window.setTimeout(openSavedAddresses, SAVED_ADDRESS_OPEN_DELAY);
+        addressBookTimeoutRef.current = window.setTimeout(openAddressBook, SAVED_ADDRESS_OPEN_DELAY);
       } else {
-        openSavedAddresses();
+        openAddressBook();
       }
     }
   });
@@ -314,17 +293,21 @@ function TransferInitial({
     if (e.relatedTarget?.id === INPUT_CLEAR_BUTTON_ID) return;
 
     if (dns.isDnsDomain(toAddress) && toAddress !== toAddress.toLowerCase()) {
-      setTransferToAddress({ toAddress: toAddress.toLowerCase() });
+      setTransferToAddress({ toAddress: toAddress.toLowerCase().trim() });
+    } else if (toAddress !== toAddress.trim()) {
+      setTransferToAddress({ toAddress: toAddress.trim() });
     }
 
-    validateToAddress();
+    requestAnimationFrame(() => {
+      validateToAddress();
 
-    if (hasSavedAddresses && isSavedAddressesOpen) {
-      closeSavedAddresses();
-      if (savedAddressesTimeoutRef.current) {
-        window.clearTimeout(savedAddressesTimeoutRef.current);
+      if (shouldUseAddressBook && isAddressBookOpen) {
+        closeAddressBook();
+        if (addressBookTimeoutRef.current) {
+          window.clearTimeout(addressBookTimeoutRef.current);
+        }
       }
-    }
+    });
   });
 
   const handleAddressInput = useLastCallback((newToAddress: string) => {
@@ -355,17 +338,17 @@ function TransferInitial({
     }
   });
 
-  const handleSavedAddressClick = useLastCallback(
+  const handleAddressBookItemClick = useLastCallback(
     (address: string) => {
       setTransferToAddress({ toAddress: address });
-      closeSavedAddresses();
+      closeAddressBook();
     },
   );
 
   const handleDeleteSavedAddressClick = useLastCallback(
     (address: string) => {
       setSavedAddressForDeletion(address);
-      closeSavedAddresses();
+      closeAddressBook();
     },
   );
 
@@ -421,23 +404,48 @@ function TransferInitial({
     setTransferShouldEncrypt({ shouldEncrypt: option === 'encrypted' });
   });
 
+  const renderedOtherAccounts = useMemo(() => {
+    if (otherAccountIds.length === 0) {
+      return undefined;
+    }
+
+    const addressesToBeIgnored = Object.keys(savedAddresses || {});
+
+    return otherAccountIds
+      .filter((id) => !addressesToBeIgnored.includes(accounts![id].address))
+      .map((id) => renderAddressItem({
+        address: accounts![id].address,
+        name: accounts![id].title,
+        isHardware: accounts![id].isHardware,
+        onClick: handleAddressBookItemClick,
+      }));
+  }, [otherAccountIds, savedAddresses, accounts, handleAddressBookItemClick]);
+
   const renderedSavedAddresses = useMemo(() => {
     if (!savedAddresses) {
       return undefined;
     }
 
-    return Object.keys(savedAddresses).map((address) => renderSavedAddress(
+    return Object.keys(savedAddresses).map((address) => renderAddressItem({
       address,
-      savedAddresses[address],
-      lang('Delete') as string,
-      handleSavedAddressClick,
-      handleDeleteSavedAddressClick,
-    ));
-  }, [savedAddresses, lang, handleSavedAddressClick, handleDeleteSavedAddressClick]);
+      name: savedAddresses[address],
+      deleteLabel: lang('Delete'),
+      onClick: handleAddressBookItemClick,
+      onDeleteClick: handleDeleteSavedAddressClick,
+    }));
+  }, [savedAddresses, lang, handleAddressBookItemClick, handleDeleteSavedAddressClick]);
 
-  function renderSavedAddresses() {
+  function renderAddressBook() {
     return (
-      <Menu positionX="right" type="suggestion" noBackdrop isOpen={isSavedAddressesOpen} onClose={closeSavedAddresses}>
+      <Menu
+        positionX="right"
+        type="suggestion"
+        noBackdrop
+        bubbleClassName={styles.savedAddressBubble}
+        isOpen={isAddressBookOpen}
+        onClose={closeAddressBook}
+      >
+        {renderedOtherAccounts}
         {renderedSavedAddresses}
       </Menu>
     );
@@ -559,7 +567,7 @@ function TransferInitial({
   function renderCurrencyValue() {
     return (
       <span className={buildClassName(styles.amountInCurrency, currencyClassNames)}>
-        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol)}
+        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol, undefined, true)}
       </span>
     );
   }
@@ -598,7 +606,7 @@ function TransferInitial({
           {renderInputActions()}
         </Input>
 
-        {hasSavedAddresses && renderSavedAddresses()}
+        {shouldUseAddressBook && renderAddressBook()}
 
         {renderBalance()}
         <RichNumberInput
@@ -683,6 +691,8 @@ export default memo(
         isCommentSupported: !tokenSlug || tokenSlug === TON_TOKEN_SLUG || !isLedger,
         isLoading: isLoading && ACTIVE_STATES.has(state),
         baseCurrency,
+        currentAccountId: global.currentAccountId,
+        accounts: selectNetworkAccounts(global),
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
@@ -696,46 +706,62 @@ function trimStringByMaxBytes(str: string, maxBytes: number) {
   return decoder.decode(encoded.slice(0, maxBytes)).replace(/\uFFFD/g, '');
 }
 
-function renderSavedAddress(
-  address: string,
-  name: string,
-  deleteLabel: string,
-  onClick: (address: string) => void,
-  onDeleteClick: (address: string) => void,
-) {
+function renderAddressItem({
+  address,
+  name,
+  isHardware,
+  deleteLabel,
+  onClick,
+  onDeleteClick,
+}: {
+  address: string;
+  name?: string;
+  isHardware?: boolean;
+  deleteLabel?: string;
+  onClick: (address: string) => void;
+  onDeleteClick?: (address: string) => void;
+}) {
+  const isSavedAddress = !!onDeleteClick;
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    onDeleteClick(address);
+    onDeleteClick!(address);
   };
 
   return (
     <div
-      key={address}
+      key={`${isSavedAddress ? 'saved-' : ''}${address}`}
       tabIndex={-1}
       role="button"
       onMouseDown={IS_TOUCH_ENV ? undefined : () => onClick(address)}
       onClick={IS_TOUCH_ENV ? () => onClick(address) : undefined}
       className={styles.savedAddressItem}
     >
-      <span className={styles.savedAddressName}>{name}</span>
-      <span className={styles.savedAddressDelete}>
-        <span tabIndex={-1} role="button" className={styles.savedAddressDeleteInner} onMouseDown={handleDeleteClick}>
-          {deleteLabel}
+      <span className={styles.savedAddressName}>
+        {name || shortenAddress(address)}
+        {isHardware && <i className={buildClassName(styles.iconLedger, 'icon-ledger')} aria-hidden />}
+      </span>
+      {isSavedAddress && (
+        <span className={styles.savedAddressDelete}>
+          <span tabIndex={-1} role="button" className={styles.savedAddressDeleteInner} onMouseDown={handleDeleteClick}>
+            {deleteLabel}
+          </span>
         </span>
-      </span>
-      <span className={styles.savedAddressAddress}>{shortenAddress(address)}</span>
-      <span
-        className={styles.savedAddressDeleteIcon}
-        role="button"
-        tabIndex={-1}
-        onMouseDown={handleDeleteClick}
-        onClick={stopEvent}
-        aria-label={deleteLabel}
-      >
-        <i className="icon-trash" aria-hidden />
-      </span>
+      )}
+      {name && <span className={styles.savedAddressAddress}>{shortenAddress(address)}</span>}
+      {isSavedAddress && (
+        <span
+          className={styles.savedAddressDeleteIcon}
+          role="button"
+          tabIndex={-1}
+          onMouseDown={handleDeleteClick}
+          onClick={stopEvent}
+          aria-label={deleteLabel}
+        >
+          <i className="icon-trash" aria-hidden />
+        </span>
+      )}
     </div>
   );
 }

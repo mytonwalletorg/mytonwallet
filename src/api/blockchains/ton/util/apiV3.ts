@@ -6,8 +6,8 @@ import {
   TONHTTPAPI_V3_MAINNET_API_URL,
   TONHTTPAPI_V3_TESTNET_API_URL,
 } from '../../../../config';
+import { fetchJson } from '../../../../util/fetch';
 import { split } from '../../../../util/iteratees';
-import { fetchJson } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
 import { parseTxId, stringifyTxId } from './index';
 import { toBase64Address } from './tonCore';
@@ -55,11 +55,11 @@ export async function fetchTransactions(
   }
 
   return rawTransactions
-    .map((rawTx) => parseRawTransaction(rawTx, addressBook))
+    .map((rawTx) => parseRawTransaction(network, rawTx, addressBook))
     .flat();
 }
 
-function parseRawTransaction(rawTx: any, addressBook: AddressBook): ApiTransactionExtra[] {
+function parseRawTransaction(network: ApiNetwork, rawTx: any, addressBook: AddressBook): ApiTransactionExtra[] {
   const {
     now,
     lt,
@@ -78,7 +78,7 @@ function parseRawTransaction(rawTx: any, addressBook: AddressBook): ApiTransacti
     const { source, destination, value } = msg;
     const fromAddress = addressBook[source].user_friendly;
     const toAddress = addressBook[destination].user_friendly;
-    const normalizedAddress = toBase64Address(isIncoming ? source : destination, true);
+    const normalizedAddress = toBase64Address(isIncoming ? source : destination, true, network);
 
     return {
       txId: msgs.length > 1 ? `${txId}:${i + 1}` : txId,

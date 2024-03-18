@@ -359,9 +359,9 @@ function TransactionModal({
         {shouldRenderUnstakeTimer && renderUnstakeTimer()}
 
         <div className={styles.footer}>
-          {!isStaking && (
+          {!isStaking && !isIncoming && (
             <Button onClick={handleSendClick} className={styles.button}>
-              {lang(isIncoming ? 'Send Back' : 'Repeat')}
+              {lang('Repeat')}
             </Button>
           )}
           {isStaking && (

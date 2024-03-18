@@ -1,5 +1,7 @@
 import type { OpenedContract } from '@ton/core';
-import { Cell, internal, SendMode } from '@ton/core';
+import {
+  beginCell, Cell, external, internal, SendMode, storeMessage,
+} from '@ton/core';
 
 import type {
   ApiActivity,
@@ -156,7 +158,7 @@ export async function checkTransactionDraft(
       result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
       if (tokenSlug === TON_TOKEN_SLUG) {
         // Force non-bounceable for non-initialized recipients
-        toAddress = toBase64Address(toAddress, false);
+        toAddress = toBase64Address(toAddress, false, network);
       }
     }
 
@@ -482,7 +484,7 @@ export async function getTokenTransactionSlice(
   );
 
   return transactions
-    .map((tx) => parseTokenTransaction(tx, tokenSlug, address))
+    .map((tx) => parseTokenTransaction(network, tx, tokenSlug, address))
     .filter(Boolean)
     .map(updateTransactionMetadata)
     .map(omitExtraData)
@@ -495,14 +497,17 @@ function omitExtraData(tx: ApiTransactionExtra): ApiTransaction {
 
 function updateTransactionType(transaction: ApiTransactionExtra) {
   const {
-    fromAddress, toAddress, comment, amount, extraData,
+    comment, amount, extraData,
   } = transaction;
+
+  const fromAddress = toBase64Address(transaction.fromAddress, true);
+  const toAddress = toBase64Address(transaction.toAddress, true);
 
   let type: ApiTransactionType | undefined;
 
-  if (isKnownStakingPool(toBase64Address(fromAddress, true)) && amount > ONE_TON) {
+  if (isKnownStakingPool(fromAddress) && amount > ONE_TON) {
     type = 'unstake';
-  } else if (isKnownStakingPool(toBase64Address(toAddress, true))) {
+  } else if (isKnownStakingPool(toAddress)) {
     if (comment === STAKE_COMMENT) {
       type = 'stake';
     } else if (comment === UNSTAKE_COMMENT) {
@@ -548,7 +553,11 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
       if (amount < 0n) {
         return { ...result, error: ApiTransactionDraftError.InvalidAmount };
       }
-      if (!parseAddress(toAddress).isValid) {
+
+      const isMainnet = network === 'mainnet';
+      const { isValid, isTestOnly } = parseAddress(toAddress);
+
+      if (!isValid || (isMainnet && isTestOnly)) {
         return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
       }
       totalAmount += amount;
@@ -604,9 +613,11 @@ export async function submitMultiTransfer(
 
     const { balance } = await getWalletInfo(network, wallet!);
 
-    const { seqno, transaction } = await signMultiTransaction(network, wallet!, messages, privateKey, expireAt);
+    const { seqno, transaction, externalMessage } = await signMultiTransaction(
+      network, wallet!, messages, privateKey, expireAt,
+    );
 
-    const boc = transaction.toBoc().toString('base64');
+    const boc = externalMessage.toBoc().toString('base64');
 
     const fee = await calculateFee(network, wallet!, transaction, account.isInitialized);
     if (BigInt(balance) < BigInt(totalAmount) + BigInt(fee)) {
@@ -673,7 +684,27 @@ async function signMultiTransaction(
     timeout: expireAt,
   });
 
-  return { seqno, transaction };
+  const externalMessage = toExternalMessage(wallet, seqno, transaction);
+
+  return { seqno, transaction, externalMessage };
+}
+
+function toExternalMessage(
+  contract: TonWallet,
+  seqno: number,
+  body: Cell,
+) {
+  return beginCell()
+    .storeWritable(
+      storeMessage(
+        external({
+          to: contract.address,
+          init: seqno === 0 ? contract.init : undefined,
+          body,
+        }),
+      ),
+    )
+    .endCell();
 }
 
 function updateLastTransfer(network: ApiNetwork, address: string, seqno: number) {
@@ -755,6 +786,10 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
   let index = 0;
   let attempt = 0;
 
+  const firstExternalMessage = toExternalMessage(
+    contract, messages[0].seqno, Cell.fromBase64(messages[0].base64),
+  );
+
   while (index < messages.length && attempt < attempts) {
     const { base64, seqno } = messages[index];
     try {
@@ -771,7 +806,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     attempt++;
   }
 
-  return { successNumber: index };
+  return { successNumber: index, externalMessage: firstExternalMessage };
 }
 
 export async function decryptComment(

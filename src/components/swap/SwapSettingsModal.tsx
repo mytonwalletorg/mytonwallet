@@ -161,7 +161,7 @@ function SwapSettingsModal({
             {lang('Blockchain Fee')}
           </span>
           <span className={styles.advancedValue}>
-            ≈ {formatCurrency(fee, TON_SYMBOL)}
+            ≈ {formatCurrency(fee, TON_SYMBOL, undefined, true)}
           </span>
         </div>
         <div className={styles.advancedRow}>

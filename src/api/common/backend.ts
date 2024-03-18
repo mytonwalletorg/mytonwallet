@@ -1,5 +1,5 @@
 import { BRILLIANT_API_BASE_URL } from '../../config';
-import { handleFetchErrors } from './utils';
+import { fetchJson, handleFetchErrors } from '../../util/fetch';
 
 const BAD_REQUEST_CODE = 400;
 
@@ -21,16 +21,8 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
   return response.json();
 }
 
-export async function callBackendGet<T = any>(path: string, data?: AnyLiteral, headers?: HeadersInit): Promise<T> {
+export function callBackendGet<T = any>(path: string, data?: AnyLiteral, headers?: HeadersInit): Promise<T> {
   const url = new URL(`${BRILLIANT_API_BASE_URL}${path}`);
-  if (data) {
-    Object.entries(data).forEach(([key, value]) => {
-      if (value === undefined) return;
-      url.searchParams.set(key, value.toString());
-    });
-  }
 
-  const response = await fetch(url, { headers });
-  handleFetchErrors(response);
-  return response.json();
+  return fetchJson(url, data, { headers });
 }

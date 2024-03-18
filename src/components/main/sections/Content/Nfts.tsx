@@ -8,7 +8,7 @@ import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState, selectIsHardwareAccount } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { shortenAddress } from '../../../../util/shortenAddress';
-import { IS_IOS_APP } from '../../../../util/windowEnvironment';
+import { IS_ANDROID_APP, IS_IOS_APP } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -30,6 +30,8 @@ interface StateProps {
   isHardware?: boolean;
   isTestnet?: boolean;
 }
+
+const GETGEMS_ENABLED = !IS_IOS_APP && !IS_ANDROID_APP;
 
 function Nfts({
   isActive, orderedAddresses, byAddress, isHardware, isTestnet,
@@ -70,7 +72,7 @@ function Nfts({
               nonInteractive
             />
             <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
-            {!IS_IOS_APP && (
+            {GETGEMS_ENABLED && (
               <>
                 <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
                 <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">

@@ -147,6 +147,8 @@
 }
 
 .tokenSelectorIcon {
+  margin-top: -0.0625rem;
+
   font-size: 1rem;
   color: var(--color-gray-3);
 }
@@ -181,6 +183,8 @@
 .tokenContent {
   display: flex;
   align-items: center;
+
+  margin-top: 0.125rem;
 
   font-size: 0.9375rem;
   font-weight: 700;

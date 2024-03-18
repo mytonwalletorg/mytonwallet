@@ -42,7 +42,7 @@ Safety Rules: Safety Rules
 $safety_rules_one: |
   On the next screen you will see the **secret words**. Write them down in the correct order and **store in a secure place**.
 $safety_rules_two: They allow to **open your wallet** if you lose your password or access to this device.
-$safety_rules_three: If anybody else sees these words your funds **may be stolen**. Look around!
+$safety_rules_three: If anybody else sees these words your funds **may be stolen**. **Do not send it to anyone**, not even developers or technical support.
 Understood: Understood
 Congratulations!: Congratulations!
 Continue: Continue
@@ -135,7 +135,6 @@ View Transaction on TON Explorer: View Transaction on TON Explorer
 Sender: Sender
 Recipient: Recipient
 Address was copied!: Address was copied!
-Send Back: Send Back
 Repeat: Repeat
 Receive: Receive
 Switch Account: Switch Account
@@ -426,6 +425,7 @@ $swap_changelly_privacy_policy: privacy policy
 Password must contain %length% digits.: Password must contain %length% digits.
 Deposit Link: Deposit Link
 $swap_changelly_from_ton_description: "Tokens will be sent to your address in %blockchain% blockchain in a few moments:"
+Please note that it may take up to a few hours for tokens to appear in your wallet.: Please note that it may take up to a few hours for tokens to appear in your wallet.
 Minimum amount: Minimum %value%
 Maximum amount: Maximum %value%
 Display Tray Icon: Display Tray Icon
@@ -548,3 +548,4 @@ Memo was copied!: Memo was copied!
 $hide_tokens_no_cost_help: |
   Turn this off to display tokens on your account with value less than $%value%. Please be aware that such tokens are often used for spam and scam purposed.
   You can also selectively enable and disable particular tokens using the list below on this screen.
+No internet connection. Please check your connection and try again.: No internet connection. Please check your connection and try again.

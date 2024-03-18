@@ -174,7 +174,7 @@ export async function swapReplaceTransactionsByRanges(
   const { network } = parseAccountId(accountId);
 
   if (!chunks.length || network === 'testnet') {
-    return [];
+    return transactions;
   }
 
   try {

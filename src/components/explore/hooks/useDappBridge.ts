@@ -250,12 +250,12 @@ export function useDappBridge({
   }, [isConnected, onHideBrowser, onShowBrowser, origin, requestId]);
 
   const [
-    injectedJavaScriptBeforeContentLoaded,
+    bridgeInjectionCode,
     onMessage,
     sendEvent,
   ] = useWebViewBridge<WebViewTonConnectBridge, WalletEvent>(inAppBrowserRef, bridgeObject);
 
-  const disconnect = useLastCallback(async () => {
+  const disconnect = useLastCallback(() => {
     try {
       // onDisconnect(endpoint, requestId);
       sendEvent({ event: 'disconnect', payload: {}, id: requestId });
@@ -266,7 +266,7 @@ export function useDappBridge({
 
   return {
     inAppBrowserRef,
-    injectedJavaScriptBeforeContentLoaded,
+    bridgeInjectionCode,
     onMessage,
     disconnect,
   };

@@ -1,5 +1,6 @@
+import { BottomSheet } from 'native-bottom-sheet';
 import React, {
-  memo, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -12,12 +13,14 @@ import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { shortenAddress } from '../../util/shortenAddress';
+import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
+import { getInAppBrowser } from '../explore/DappSite';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import Button from '../ui/Button';
@@ -33,6 +36,7 @@ import styles from './Dapp.module.scss';
 interface StateProps {
   state?: DappConnectState;
   hasConnectRequest: boolean;
+  isSse?: boolean;
   dapp?: ApiDapp;
   error?: string;
   requiredPermissions?: ApiDappPermissions;
@@ -50,6 +54,7 @@ const ACCOUNT_ADDRESS_SHIFT_END = 4;
 function DappConnectModal({
   state,
   hasConnectRequest,
+  isSse,
   dapp,
   error,
   requiredPermissions,
@@ -71,6 +76,7 @@ function DappConnectModal({
   const [selectedAccount, setSelectedAccount] = useState<string>(currentAccountId);
   const [isModalOpen, openModal, closeModal] = useFlag(hasConnectRequest);
   const [isConfirmOpen, openConfirm, closeConfirm] = useFlag(false);
+  const shouldReopenInAppBrowserRef = useRef(false);
 
   const { renderingKey, nextKey } = useModalTransitionKeys(state ?? 0, isModalOpen);
 
@@ -78,11 +84,21 @@ function DappConnectModal({
 
   useEffect(() => {
     if (hasConnectRequest) {
-      openModal();
+      (async () => {
+        const browser = getInAppBrowser();
+        if (browser && isSse) {
+          shouldReopenInAppBrowserRef.current = true;
+          await browser.hide();
+          if (IS_DELEGATING_BOTTOM_SHEET) {
+            await BottomSheet.enable();
+          }
+        }
+        openModal();
+      })();
     } else {
       closeModal();
     }
-  }, [closeModal, hasConnectRequest, openModal]);
+  }, [hasConnectRequest, isSse]);
 
   useEffect(() => {
     if (!currentAccountId) return;
@@ -112,6 +128,18 @@ function DappConnectModal({
         setDappConnectRequestState({ state: DappConnectState.Password });
       });
     }
+  });
+
+  const handleCloseAnimationEnd = useLastCallback(async () => {
+    cancelDappConnectRequestConfirm();
+    const browser = getInAppBrowser();
+    if (shouldReopenInAppBrowserRef.current && browser) {
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        await BottomSheet.disable();
+      }
+      browser.show();
+    }
+    shouldReopenInAppBrowserRef.current = false;
   });
 
   const handlePasswordCancel = useLastCallback(() => {
@@ -277,7 +305,7 @@ function DappConnectModal({
         nativeBottomSheetKey="dapp-connect"
         forceFullNative={renderingKey === DappConnectState.Password}
         onClose={cancelDappConnectRequestConfirm}
-        onCloseAnimationEnd={cancelDappConnectRequestConfirm}
+        onCloseAnimationEnd={handleCloseAnimationEnd}
       >
         <Transition
           name={resolveModalTransitionName()}
@@ -314,7 +342,7 @@ export default memo(withGlobal((global): StateProps => {
   const hasConnectRequest = global.dappConnectRequest?.state !== undefined;
 
   const {
-    state, dapp, error, accountId, permissions, proof,
+    state, isSse, dapp, error, accountId, permissions, proof,
   } = global.dappConnectRequest || {};
 
   const currentAccountId = accountId || global.currentAccountId!;
@@ -328,6 +356,7 @@ export default memo(withGlobal((global): StateProps => {
   return {
     state,
     hasConnectRequest,
+    isSse,
     dapp,
     error,
     requiredPermissions: permissions,

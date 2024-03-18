@@ -4,6 +4,7 @@ import './api/wallet';
 import './api/staking';
 import './api/dapps';
 import './api/swap';
+import './api/tokens';
 import './apiUpdates/initial';
 import './apiUpdates/activities';
 import './apiUpdates/dapp';

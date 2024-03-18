@@ -11,6 +11,7 @@ import {
   IS_CAPACITOR,
   MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TON_TOKEN_SLUG,
 } from '../../config';
+import { Big } from '../../lib/big.js';
 import { selectAccountState, selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
@@ -115,7 +116,7 @@ function UnstakeModal({
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
   const amountInCurrency = tonToken && tonToken.price && unstakeAmount
-    ? toBig(unstakeAmount, tonToken.decimals).mul(tonToken.price).round(tonToken.decimals).toString()
+    ? toBig(unstakeAmount, tonToken.decimals).mul(tonToken.price).round(tonToken.decimals, Big.roundHalfUp).toString()
     : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const isUnstakeDisabled = !hasBalanceForUnstake || isInsufficientBalance || !unstakeAmount;

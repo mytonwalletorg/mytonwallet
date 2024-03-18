@@ -4,17 +4,18 @@ import { TonClient as TonCoreClient } from '@ton/ton/dist/client/TonClient';
 
 import type { GetAddressInfoResponse } from '../types';
 
+import { DEFAULT_ERROR_PAUSE, DEFAULT_RETRIES } from '../../../../config';
 import axiosRetry from '../../../../lib/axios-retry';
-import { pause } from '../../../../util/schedulers';
-import { ApiServerError } from '../../../errors';
-
-const ATTEMPTS = 5;
-const ERROR_PAUSE = 200; // 200 ms
+import { fetchWithRetry } from '../../../../util/fetch';
+import { logDebug } from '../../../../util/logs';
 
 axiosRetry(axios, {
-  retries: ATTEMPTS,
+  retries: DEFAULT_RETRIES,
   retryDelay: (retryCount) => {
-    return retryCount * ERROR_PAUSE;
+    return retryCount * DEFAULT_ERROR_PAUSE;
+  },
+  onRetry: (retryNumber, error, requestConfig) => {
+    logDebug(`Retry request #${retryNumber}:`, requestConfig.url);
   },
 });
 
@@ -56,43 +57,20 @@ export class TonClient extends TonCoreClient {
     }
     const body = JSON.stringify(request);
 
-    let message = 'Unknown error.';
-    let statusCode: number | undefined;
+    const response = await fetchWithRetry(apiUrl, {
+      method: 'POST',
+      body,
+      headers,
+    }, {
+      conditionFn: (message, statusCode) => isNotTemporaryError(method, message, statusCode),
+    });
 
-    for (let i = 1; i <= ATTEMPTS; i++) {
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST', headers, body,
-        });
-        statusCode = response.status;
+    const data = await response.json();
 
-        if (statusCode >= 400) {
-          if (response.headers.get('content-type') !== 'application/json') {
-            throw new Error(`HTTP Error ${statusCode}`);
-          }
-          const { error } = await response.json();
-          throw new Error(error);
-        }
-
-        const { result } = await response.json();
-        return result;
-      } catch (err: any) {
-        message = typeof err === 'string' ? err : err.message ?? message;
-
-        if (isNotTemporaryError(method, message, statusCode)) {
-          throw new ApiServerError(message);
-        }
-
-        if (i < ATTEMPTS) {
-          await pause(ERROR_PAUSE * i);
-        }
-      }
-    }
-
-    throw new ApiServerError(message);
+    return data.result;
   }
 }
 
-function isNotTemporaryError(method: string, message: string, statusCode?: number) {
-  return statusCode === 422 || (method === 'sendBoc' && message?.includes('exitcode='));
+function isNotTemporaryError(method: string, message?: string, statusCode?: number) {
+  return Boolean(statusCode === 422 || (method === 'sendBoc' && message?.includes('exitcode=')));
 }

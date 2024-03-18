@@ -54,7 +54,7 @@ function Token({
     decimals,
   } = token;
 
-  const renderedAmount = amount ?? toDecimal(tokenAmount, decimals);
+  const renderedAmount = amount ?? toDecimal(tokenAmount, decimals, true);
   const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
   const value = Big(renderedAmount).mul(price).toString();
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
@@ -115,7 +115,7 @@ function Token({
               key={isInvestorView ? 'investor' : 'default'}
             />
             <i className={styles.dot} aria-hidden />
-            <AnimatedCounter text={formatCurrency(price, shortBaseSymbol)} />
+            <AnimatedCounter text={formatCurrency(price, shortBaseSymbol, undefined, true)} />
           </div>
         </div>
         <div className={styles.secondaryCell}>
@@ -125,7 +125,7 @@ function Token({
           <div className={buildClassName(styles.change, changeClassName)}>
             {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
             <i className={styles.dot} aria-hidden />
-            <AnimatedCounter text={formatCurrency(changeValue, shortBaseSymbol)} />
+            <AnimatedCounter text={formatCurrency(changeValue, shortBaseSymbol, undefined, true)} />
           </div>
         </div>
         <i className={buildClassName(styles.iconChevron, 'icon-chevron-right')} aria-hidden />
@@ -152,7 +152,7 @@ function Token({
             {canRenderApy && renderApy()}
           </div>
           <div className={styles.subtitle}>
-            <AnimatedCounter text={formatCurrency(price, shortBaseSymbol)} />
+            <AnimatedCounter text={formatCurrency(price, shortBaseSymbol, undefined, true)} />
             {!stakingStatus && (
               <>
                 <i className={styles.dot} aria-hidden />
@@ -172,7 +172,7 @@ function Token({
           </div>
           <div className={styles.subtitle}>
             {totalAmount.gt(0) ? '≈' : ''}&thinsp;
-            <AnimatedCounter text={formatCurrency(totalAmount, shortBaseSymbol)} />
+            <AnimatedCounter text={formatCurrency(totalAmount, shortBaseSymbol, undefined, true)} />
           </div>
         </div>
         <i className={buildClassName(styles.iconChevron, 'icon-chevron-right')} aria-hidden />

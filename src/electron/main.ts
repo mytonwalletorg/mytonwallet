@@ -4,9 +4,10 @@ import { app, nativeImage } from 'electron';
 import contextMenu from 'electron-context-menu';
 import path from 'path';
 
+import { IS_PRODUCTION } from '../config';
 import { initDeeplink } from './deeplink';
 import { setupSecrets } from './secrets';
-import { IS_MAC_OS, IS_PRODUCTION } from './utils';
+import { IS_MAC_OS } from './utils';
 import { createWindow, setupCloseHandlers, setupElectronActionHandlers } from './window';
 
 initDeeplink();

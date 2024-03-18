@@ -34,7 +34,7 @@ export function publicKeyToAddress(
   walletVersion: ApiWalletVersion,
 ) {
   const wallet = buildWallet(network, publicKey, walletVersion);
-  return toBase64Address(wallet.address, false);
+  return toBase64Address(wallet.address, false, network);
 }
 
 export function buildWallet(network: ApiNetwork, publicKey: Uint8Array, walletVersion: ApiWalletVersion): TonWallet {
@@ -57,7 +57,7 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: TonWal
 }> {
   const address = typeof walletOrAddress === 'string'
     ? walletOrAddress
-    : toBase64Address(walletOrAddress.address);
+    : toBase64Address(walletOrAddress.address, undefined, network);
 
   const {
     account_state: accountState,
@@ -84,6 +84,7 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: TonWal
 export async function getContractInfo(network: ApiNetwork, address: string): Promise<{
   isInitialized: boolean;
   isLedgerAllowed: boolean;
+  isSwapAllowed?: boolean;
   isWallet?: boolean;
   contractInfo?: ContractInfo;
 }> {
@@ -97,11 +98,13 @@ export async function getContractInfo(network: ApiNetwork, address: string): Pro
   const isInitialized = state === 'active';
   const isWallet = state === 'active' ? contractInfo?.type === 'wallet' : undefined;
   const isLedgerAllowed = Boolean(!isInitialized || contractInfo?.isLedgerAllowed);
+  const isSwapAllowed = contractInfo?.isSwapAllowed;
 
   return {
     isInitialized,
     isWallet,
     isLedgerAllowed,
+    isSwapAllowed,
     contractInfo,
   };
 }
@@ -149,7 +152,7 @@ export function getWalletVersionInfos(
 ): Promise<WalletInfo[]> {
   return Promise.all(versions.map(async (version) => {
     const wallet = buildWallet(network, publicKey, version);
-    const address = toBase64Address(wallet.address, false);
+    const address = toBase64Address(wallet.address, false, network);
     const walletInfo = await getWalletInfo(network, wallet);
 
     return {
@@ -172,7 +175,7 @@ export function getWalletVersions(
   }[] {
   return versions.map((version) => {
     const wallet = buildWallet(network, publicKey, version);
-    const address = toBase64Address(wallet.address, false);
+    const address = toBase64Address(wallet.address, false, network);
 
     return {
       wallet,
@@ -191,7 +194,7 @@ export async function getWalletStateInit(accountId: string) {
 }
 
 export function pickWalletByAddress(network: ApiNetwork, publicKey: Uint8Array, address: string) {
-  address = toBase64Address(address, false);
+  address = toBase64Address(address, false, network);
 
   const allWallets = getWalletVersions(network, publicKey);
 

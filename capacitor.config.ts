@@ -1,5 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+const { APP_ENV = 'production' } = process.env;
+
 const config: CapacitorConfig = {
   appId: 'org.mytonwallet.app',
   appName: 'MyTonWallet',
@@ -25,11 +27,14 @@ const config: CapacitorConfig = {
       'cordova-plugin-inappbrowser',
       'native-bottom-sheet',
       'capacitor-secure-storage-plugin',
+      '@capacitor/app-launcher',
     ],
+    webContentsDebuggingEnabled: APP_ENV !== 'production',
   },
   ios: {
     path: 'mobile/ios',
     scheme: 'MyTonWallet',
+    webContentsDebuggingEnabled: APP_ENV !== 'production',
   },
   plugins: {
     SplashScreen: {

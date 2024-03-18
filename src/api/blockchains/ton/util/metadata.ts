@@ -24,7 +24,7 @@ import { getJettonMinterData, resolveTokenMinterAddress, toBase64Address } from 
 const OFFCHAIN_CONTENT_PREFIX = 0x01;
 const SNAKE_PREFIX = 0x00;
 
-export function parseJettonWalletMsgBody(body?: string) {
+export function parseJettonWalletMsgBody(network: ApiNetwork, body?: string) {
   if (!body) return undefined;
 
   try {
@@ -69,7 +69,7 @@ export function parseJettonWalletMsgBody(body?: string) {
       queryId,
       jettonAmount,
       responseAddress,
-      address: address ? toBase64Address(address) : undefined,
+      address: address ? toBase64Address(address, undefined, network) : undefined,
       forwardAmount,
       comment,
       encryptedComment,
@@ -249,7 +249,7 @@ export async function parsePayloadSlice(
           return {
             type: 'tokens:transfer-non-standard',
             queryId,
-            destination: toBase64Address(destination),
+            destination: toBase64Address(destination, undefined, network),
             amount,
             slug,
           };
@@ -270,8 +270,8 @@ export async function parsePayloadSlice(
           type: 'tokens:transfer',
           queryId,
           amount,
-          destination: toBase64Address(destination),
-          responseDestination: toBase64Address(responseDestination),
+          destination: toBase64Address(destination, undefined, network),
+          responseDestination: toBase64Address(responseDestination, undefined, network),
           customPayload: customPayload?.toBoc().toString('base64'),
           forwardAmount,
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
@@ -298,8 +298,8 @@ export async function parsePayloadSlice(
         return {
           type: 'nft:transfer',
           queryId,
-          newOwner: toBase64Address(newOwner),
-          responseDestination: toBase64Address(responseDestination),
+          newOwner: toBase64Address(newOwner, undefined, network),
+          responseDestination: toBase64Address(responseDestination, undefined, network),
           customPayload: customPayload?.toBoc().toString('base64'),
           forwardAmount,
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
@@ -320,7 +320,7 @@ export async function parsePayloadSlice(
           type: 'tokens:burn',
           queryId,
           amount,
-          address: toBase64Address(address),
+          address: toBase64Address(address, undefined, network),
           customPayload: customPayload?.toBoc().toString('base64'),
           slug,
           isLiquidUnstakeRequest,

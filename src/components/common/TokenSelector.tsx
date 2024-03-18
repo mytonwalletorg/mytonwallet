@@ -351,7 +351,7 @@ function TokenSelector({
             !isAvailable && styles.tokenTextDisabled,
           )}
           >
-            {formatCurrency(currencyHoldings, shortBaseSymbol)}
+            {formatCurrency(currencyHoldings, shortBaseSymbol, undefined, true)}
           </span>
         </div>
       </div>

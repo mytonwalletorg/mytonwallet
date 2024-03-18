@@ -22,6 +22,7 @@ dependencies {
     implementation project(':capacitor-plugin-safe-area')
     implementation project(':native-bottom-sheet')
     implementation project(':capacitor-secure-storage-plugin')
+    implementation project(':capacitor-app-launcher')
 
 }
 

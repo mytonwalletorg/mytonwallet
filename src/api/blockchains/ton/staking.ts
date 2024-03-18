@@ -119,6 +119,7 @@ export async function submitStake(
 ) {
   let result: SubmitTransferResult;
 
+  const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 
   if (type === 'liquid') {
@@ -137,7 +138,7 @@ export async function submitStake(
       accountId,
       password,
       TON_TOKEN_SLUG,
-      toBase64Address(poolAddress, true),
+      toBase64Address(poolAddress, true, network),
       amount,
       STAKE_COMMENT,
     );
@@ -185,7 +186,7 @@ export async function submitUnstake(
       accountId,
       password,
       TON_TOKEN_SLUG,
-      toBase64Address(poolAddress, true),
+      toBase64Address(poolAddress, true, network),
       ONE_TON,
       UNSTAKE_COMMENT,
     );
@@ -222,7 +223,7 @@ export async function getStakingState(
 ): Promise<ApiStakingState> {
   const commonData = getStakingCommonCache();
   const { network } = parseAccountId(accountId);
-  const address = toBase64Address(await fetchStoredAddress(accountId), true);
+  const address = await fetchStoredAddress(accountId);
 
   const { currentRate, collection } = commonData.liquid;
   const tokenBalance = await getLiquidStakingTokenBalance(accountId);
@@ -275,7 +276,8 @@ export async function getStakingState(
   if (backendState.type === 'nominators') {
     const nominatorPool = getPoolContract(network, poolAddress);
     const nominators = await nominatorPool.getListNominators();
-    const currentNominator = nominators.find((n) => n.address === address);
+    const addressObject = Address.parse(address);
+    const currentNominator = nominators.find((n) => n.address.equals(addressObject));
 
     if (currentNominator) {
       return {

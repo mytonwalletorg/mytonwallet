@@ -323,8 +323,7 @@
 }
 
 .tokenHistoryPrice {
-  bottom: 1rem;
-  left: 1rem;
+  bottom: 0;
 }
 
 .tokenCurrentPrice {
@@ -453,17 +452,19 @@
 }
 
 .periodChooser {
+  cursor: pointer;
+
   position: absolute;
   bottom: 0.625rem;
   left: 50%;
   transform: translateX(-50%);
 
   display: flex;
-  gap: 0.25rem;
+  align-items: center;
 
-  &.compact {
-    gap: 0.1875rem;
-  }
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-card-text);
 }
 
 .periodItem {
