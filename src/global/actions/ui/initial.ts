@@ -1,9 +1,11 @@
 import type { Account, AccountState, NotificationType } from '../../types';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
+import { AppState } from '../../types';
 
 import { IS_CAPACITOR, IS_EXTENSION } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
+import authApi from '../../../util/authApi';
 import { omit } from '../../../util/iteratees';
 import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
 import { callActionInMain } from '../../../util/multitab';
@@ -23,9 +25,7 @@ import {
   setScrollbarWidthProperty,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
-import {
-  addActionHandler, getGlobal, setGlobal,
-} from '../../index';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { updateCurrentAccountId, updateCurrentAccountState } from '../../reducers';
 import {
   selectCurrentNetwork,
@@ -33,6 +33,8 @@ import {
   selectNetworkAccountsMemoized,
   selectNewestTxIds,
 } from '../../selectors';
+
+const ANIMATION_DELAY_MS = 320;
 
 addActionHandler('init', (_, actions) => {
   requestMutation(() => {
@@ -82,6 +84,24 @@ addActionHandler('afterInit', (global) => {
 
   if (!IS_CAPACITOR) {
     document.addEventListener('click', initializeSounds, { once: true });
+  }
+});
+
+addActionHandler('afterSignIn', (global, actions) => {
+  setGlobal({ ...global, appState: AppState.Main });
+
+  setTimeout(() => {
+    actions.restartAuth();
+  }, ANIMATION_DELAY_MS);
+});
+
+addActionHandler('afterSignOut', (global, actions, payload) => {
+  if (payload?.isFromAllAccounts) {
+    if (IS_CAPACITOR && global.settings.authConfig?.kind === 'native-biometrics') {
+      authApi.removeNativeBiometrics();
+    }
+
+    actions.resetApiSettings({ areAllDisabled: true });
   }
 });
 

@@ -56,20 +56,20 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
       const response = await fetchWithTimeout(url, init, timeout);
       statusCode = response.status;
 
-      if (statusCode > 400) {
+      if (statusCode >= 400) {
         if (response.headers.get('content-type') !== 'application/json') {
           throw new Error(`HTTP Error ${statusCode}`);
         }
         const { error } = await response.json();
-        throw new Error(error);
+        throw new Error(error ?? `HTTP Error ${statusCode}`);
       }
 
       return response;
     } catch (err: any) {
       message = typeof err === 'string' ? err : err.message ?? message;
 
-      if (conditionFn?.(message, statusCode)) {
-        throw new ApiServerError(message);
+      if (statusCode === 400 || conditionFn?.(message, statusCode)) {
+        throw new ApiServerError(message, statusCode);
       }
 
       if (i < retries) {

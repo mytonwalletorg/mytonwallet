@@ -120,6 +120,7 @@ function TokenCard({
 
   const withChange = Boolean(change !== undefined);
   const withHistory = Boolean(history?.length);
+  const isEmptyHistory = history && !history.length;
   const historyStartDay = withHistory ? new Date(history![0][0] * 1000) : undefined;
   const withCmcButton = Boolean(token.cmcSlug);
 
@@ -215,8 +216,8 @@ function TokenCard({
         </div>
       )}
 
-      <Transition activeKey={!withHistory ? 0 : 1} name="fade">
-        {!withHistory ? renderLoader() : renderChartContainer()}
+      <Transition activeKey={!withHistory ? isEmptyHistory ? 0 : 1 : 2} name="fade">
+        {!withHistory ? !isEmptyHistory && renderLoader() : renderChartContainer()}
       </Transition>
 
       <div className={styles.tokenCurrentPrice}>

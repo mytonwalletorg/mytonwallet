@@ -1,9 +1,7 @@
-import { addCallback, removeCallback, setGlobal } from '../lib/teact/teactn';
+import { addCallback, removeCallback } from '../lib/teact/teactn';
 
 import type { GlobalState, TokenPeriod } from './types';
-import {
-  AppState,
-} from './types';
+import { AppState } from './types';
 
 import {
   DEBUG,
@@ -14,15 +12,12 @@ import {
   MAIN_ACCOUNT_ID,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
-import authApi from '../util/authApi';
 import { bigintReviver } from '../util/bigint';
 import { cloneDeep, mapValues, pick } from '../util/iteratees';
-import {
-  onBeforeUnload, onIdle, throttle,
-} from '../util/schedulers';
+import { onBeforeUnload, onIdle, throttle } from '../util/schedulers';
 import { IS_ELECTRON } from '../util/windowEnvironment';
 import { getIsTxIdLocal } from './helpers';
-import { addActionHandler, getGlobal } from './index';
+import { addActionHandler, getGlobal, setGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
 import { updateHardware } from './reducers';
 
@@ -30,7 +25,6 @@ import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
 
 const UPDATE_THROTTLE = IS_CAPACITOR ? 500 : 5000;
 const ACTIVITIES_LIMIT = 20;
-const ANIMATION_DELAY_MS = 320;
 
 const updateCacheThrottled = throttle(() => onIdle(() => updateCache()), UPDATE_THROTTLE, false);
 const updateCacheForced = () => updateCache(true);
@@ -44,16 +38,11 @@ export function initCache() {
     return;
   }
 
-  addActionHandler('afterSignIn', (global, actions) => {
-    setGlobal({ ...global, appState: AppState.Main });
-
-    setTimeout(() => {
-      actions.restartAuth();
-    }, ANIMATION_DELAY_MS);
-
+  addActionHandler('afterSignIn', () => {
     if (isCaching) {
       return;
     }
+
     setupCaching();
     updateCache(true);
   });
@@ -62,18 +51,7 @@ export function initCache() {
     const { isFromAllAccounts } = payload || {};
 
     if (isFromAllAccounts) {
-      setGlobal({
-        ...global,
-        state: AppState.Auth,
-      });
-      global = getGlobal();
-      if (IS_CAPACITOR && global.settings.authConfig?.kind === 'native-biometrics') {
-        authApi.removeNativeBiometrics();
-      }
-
       preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo', 'restrictions']);
-
-      actions.resetApiSettings({ areAllDisabled: true });
 
       localStorage.removeItem(GLOBAL_STATE_CACHE_KEY);
 

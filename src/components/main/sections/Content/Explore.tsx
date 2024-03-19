@@ -5,7 +5,7 @@ import type { ApiBackendDapp, ApiDapp } from '../../../../api/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
-import { IS_IOS_APP } from '../../../../util/windowEnvironment';
+import { IS_ANDROID_APP, IS_IOS_APP } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -88,6 +88,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   return {
     dapps: global.settings.dapps,
     dappCatalog: global.dappCatalog,
-    shouldRestrict: global.restrictions.isLimitedRegion && IS_IOS_APP,
+    shouldRestrict: global.restrictions.isLimitedRegion && (IS_IOS_APP || IS_ANDROID_APP),
   };
 })(Explore));

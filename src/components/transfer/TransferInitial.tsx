@@ -24,6 +24,7 @@ import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
 import { formatCurrency, formatCurrencyExtended, getShortCurrencySymbol } from '../../util/formatNumber';
 import { getIsAddressValid } from '../../util/getIsAddressValid';
+import { unique } from '../../util/iteratees';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
@@ -79,6 +80,7 @@ const COMMENT_DROPDOWN_ITEMS = [
   { value: 'encrypted', name: 'Encrypted Message' },
 ];
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
+const STAKED_TOKEN_SLUG = 'ton-eqcqc6ehrj';
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
@@ -113,6 +115,7 @@ function TransferInitial({
     setTransferShouldEncrypt,
     cancelTransfer,
     requestOpenQrScanner,
+    showDialog,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -249,6 +252,13 @@ function TransferInitial({
   const handleTokenChange = useLastCallback(
     (slug: string) => {
       changeTransferToken({ tokenSlug: slug });
+      if (slug === STAKED_TOKEN_SLUG) {
+        showDialog({
+          title: lang('Warning!'),
+          // eslint-disable-next-line max-len
+          message: lang('You are about to transfer an important service token, which is needed to withdraw your deposit from staking.'),
+        });
+      }
     },
   );
 
@@ -404,23 +414,6 @@ function TransferInitial({
     setTransferShouldEncrypt({ shouldEncrypt: option === 'encrypted' });
   });
 
-  const renderedOtherAccounts = useMemo(() => {
-    if (otherAccountIds.length === 0) {
-      return undefined;
-    }
-
-    const addressesToBeIgnored = Object.keys(savedAddresses || {});
-
-    return otherAccountIds
-      .filter((id) => !addressesToBeIgnored.includes(accounts![id].address))
-      .map((id) => renderAddressItem({
-        address: accounts![id].address,
-        name: accounts![id].title,
-        isHardware: accounts![id].isHardware,
-        onClick: handleAddressBookItemClick,
-      }));
-  }, [otherAccountIds, savedAddresses, accounts, handleAddressBookItemClick]);
-
   const renderedSavedAddresses = useMemo(() => {
     if (!savedAddresses) {
       return undefined;
@@ -435,6 +428,23 @@ function TransferInitial({
     }));
   }, [savedAddresses, lang, handleAddressBookItemClick, handleDeleteSavedAddressClick]);
 
+  const renderedOtherAccounts = useMemo(() => {
+    if (otherAccountIds.length === 0) {
+      return undefined;
+    }
+
+    const addressesToBeIgnored = Object.keys(savedAddresses || {});
+
+    return unique(otherAccountIds)
+      .filter((id) => !addressesToBeIgnored.includes(accounts![id].address))
+      .map((id) => renderAddressItem({
+        address: accounts![id].address,
+        name: accounts![id].title,
+        isHardware: accounts![id].isHardware,
+        onClick: handleAddressBookItemClick,
+      }));
+  }, [otherAccountIds, savedAddresses, accounts, handleAddressBookItemClick]);
+
   function renderAddressBook() {
     return (
       <Menu
@@ -445,8 +455,8 @@ function TransferInitial({
         isOpen={isAddressBookOpen}
         onClose={closeAddressBook}
       >
-        {renderedOtherAccounts}
         {renderedSavedAddresses}
+        {renderedOtherAccounts}
       </Menu>
     );
   }

@@ -23,7 +23,7 @@ export async function fetchPriceHistory(
   const token = resolveTokenBySlug(slug);
 
   if (!token) {
-    return undefined;
+    return [];
   }
 
   return callBackendGet(`/prices/chart/${token.minterAddress ?? TON_SYMBOL}`, {
