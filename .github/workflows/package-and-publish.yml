@@ -130,7 +130,7 @@ jobs:
         shell: bash
         run: |
           echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          echo "FILE_NAME=${{ env.APP_NAME }}-x64-unsigned.exe" >> "$GITHUB_ENV"
+          echo "FILE_NAME=${{ env.APP_NAME }}-x64.exe" >> "$GITHUB_ENV"
           echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
           echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
           echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV"
@@ -155,7 +155,7 @@ jobs:
         id: download-artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.FILE_NAME }}
+          name: ${{ env.APP_NAME }}-x64-unsigned.exe
 
       - name: Sign package
         env:
@@ -166,7 +166,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-x64.exe
+          name: ${{ env.FILE_NAME }}
           path: ${{ env.FILE_NAME }}
 
   extensions-package:
