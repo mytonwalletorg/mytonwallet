@@ -3,11 +3,9 @@ import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { updateTokenPriceHistory } from '../../reducers/tokens';
 
 addActionHandler('loadPriceHistory', async (global, actions, payload) => {
-  const { slug, period } = payload ?? {};
+  const { slug, period, currency = global.settings.baseCurrency } = payload ?? {};
 
-  const { baseCurrency } = global.settings;
-
-  const history = await callApi('fetchPriceHistory', slug, period, baseCurrency);
+  const history = await callApi('fetchPriceHistory', slug, period, currency);
 
   if (!history) {
     return;

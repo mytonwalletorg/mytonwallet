@@ -176,6 +176,10 @@ export type ApiOpenUrl = {
   url: string;
 };
 
+export type ApiRequestReconnect = {
+  type: 'requestReconnectApi';
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateNewActivities
@@ -198,6 +202,7 @@ export type ApiUpdate =
   | ApiUpdateAccount
   | ApiUpdateRegion
   | ApiUpdateWalletVersions
-  | ApiOpenUrl;
+  | ApiOpenUrl
+  | ApiRequestReconnect;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

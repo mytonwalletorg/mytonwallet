@@ -1,5 +1,5 @@
 import type { ApiBaseCurrency, ApiSwapAsset, ApiWalletVersion } from './api/types';
-import type { LangItem } from './global/types';
+import type { LangItem, TokenPeriod } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
 
@@ -270,3 +270,5 @@ export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R
 export const DEFAULT_TIMEOUT = 5000;
 export const DEFAULT_RETRIES = 3;
 export const DEFAULT_ERROR_PAUSE = 200;
+
+export const HISTORY_PERIODS: TokenPeriod[] = ['1D', '7D', '1M', '3M', '1Y'];

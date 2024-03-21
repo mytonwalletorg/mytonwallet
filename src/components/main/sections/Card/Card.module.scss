@@ -455,7 +455,7 @@
   cursor: pointer;
 
   position: absolute;
-  bottom: 0.625rem;
+  bottom: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
 
@@ -465,6 +465,14 @@
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--color-card-text);
+
+  transition: opacity 150ms;
+
+  &_disabled {
+    pointer-events: none;
+
+    opacity: 0.8;
+  }
 }
 
 .periodItem {

@@ -1,5 +1,4 @@
 import { DEFAULT_PRICE_CURRENCY, IS_EXTENSION } from '../../../config';
-import { initElectron } from '../../../util/electron';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi, initApi } from '../../../api';
 import { addActionHandler, getGlobal } from '../../index';
@@ -10,10 +9,6 @@ addActionHandler('initApi', async (global, actions) => {
     isElectron: IS_ELECTRON,
     isNativeBottomSheet: IS_DELEGATED_BOTTOM_SHEET,
   });
-
-  if (IS_ELECTRON) {
-    initElectron();
-  }
 
   await callApi('waitDataPreload');
 

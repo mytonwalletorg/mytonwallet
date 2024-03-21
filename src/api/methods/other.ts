@@ -74,4 +74,8 @@ export async function fetchAccountConfigForDebugPurposesOnly() {
   }
 }
 
+export function ping() {
+  return true;
+}
+
 export { setIsAppFocused };

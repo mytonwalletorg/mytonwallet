@@ -232,7 +232,7 @@ export type UserSwapToken = {
   contract?: string;
 } & Omit<UserToken, 'change24h'>;
 
-export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
+export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y';
 
 export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
@@ -773,7 +773,7 @@ export interface ActionPayloads {
   openReceiveModal: undefined;
   closeReceiveModal: undefined;
 
-  loadPriceHistory: { slug: string; period: ApiPriceHistoryPeriod };
+  loadPriceHistory: { slug: string; period: ApiPriceHistoryPeriod; currency?: ApiBaseCurrency };
 }
 
 export enum LoadMoreDirection {

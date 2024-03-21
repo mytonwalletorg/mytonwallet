@@ -48,6 +48,7 @@ $scrollOffset: 0.1875rem;
   display: grid;
   grid-template-columns: 21.5rem 1fr;
 
+  /* 948px + 1rem padding on both sides */
   max-width: 61.25rem;
   height: 100%;
   max-height: calc(var(--vh, 1vh) * 100);
@@ -59,14 +60,13 @@ $scrollOffset: 0.1875rem;
     padding-top: 0;
   }
 
-  // Fix for opera, dead zone of 37 pixels in extension window on windows
+  // Fix for Opera, dead zone of 37 pixels in extension window on Windows
   :global(html.is-windows.is-opera.is-extension) & {
     padding-top: 2.3125rem;
   }
 
   :global(html.is-ios) {
-    /* iPad 10th in landscape mode */
-    max-width: 73.75rem;
+    max-width: none;
   }
 
   .sidebar {

@@ -14,6 +14,7 @@ interface OwnProps {
   excludedCurrency?: string;
   menuPositionHorizontal?: 'right' | 'left';
   onClose: NoneToVoidFunction;
+  onChange?: (currency: ApiBaseCurrency) => void;
 }
 
 interface StateProps {
@@ -26,6 +27,7 @@ function CurrencySwitcher({
   excludedCurrency,
   menuPositionHorizontal,
   onClose,
+  onChange,
 }: OwnProps & StateProps) {
   const { changeBaseCurrency } = getActions();
 
@@ -40,6 +42,7 @@ function CurrencySwitcher({
     if (currency === currentCurrency) return;
 
     changeBaseCurrency({ currency: currency as ApiBaseCurrency });
+    onChange?.(currency as ApiBaseCurrency);
   });
 
   return (

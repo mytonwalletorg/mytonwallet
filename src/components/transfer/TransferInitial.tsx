@@ -24,7 +24,6 @@ import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
 import { formatCurrency, formatCurrencyExtended, getShortCurrencySymbol } from '../../util/formatNumber';
 import { getIsAddressValid } from '../../util/getIsAddressValid';
-import { unique } from '../../util/iteratees';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
@@ -420,6 +419,7 @@ function TransferInitial({
     }
 
     return Object.keys(savedAddresses).map((address) => renderAddressItem({
+      key: `saved-${address}`,
       address,
       name: savedAddresses[address],
       deleteLabel: lang('Delete'),
@@ -435,9 +435,10 @@ function TransferInitial({
 
     const addressesToBeIgnored = Object.keys(savedAddresses || {});
 
-    return unique(otherAccountIds)
+    return otherAccountIds
       .filter((id) => !addressesToBeIgnored.includes(accounts![id].address))
       .map((id) => renderAddressItem({
+        key: id,
         address: accounts![id].address,
         name: accounts![id].title,
         isHardware: accounts![id].isHardware,
@@ -717,6 +718,7 @@ function trimStringByMaxBytes(str: string, maxBytes: number) {
 }
 
 function renderAddressItem({
+  key,
   address,
   name,
   isHardware,
@@ -724,6 +726,7 @@ function renderAddressItem({
   onClick,
   onDeleteClick,
 }: {
+  key: string;
   address: string;
   name?: string;
   isHardware?: boolean;
@@ -741,7 +744,7 @@ function renderAddressItem({
 
   return (
     <div
-      key={`${isSavedAddress ? 'saved-' : ''}${address}`}
+      key={key}
       tabIndex={-1}
       role="button"
       onMouseDown={IS_TOUCH_ENV ? undefined : () => onClick(address)}

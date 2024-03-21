@@ -197,5 +197,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       }
       break;
     }
+
+    case 'requestReconnectApi': {
+      actions.initApi();
+    }
   }
 });

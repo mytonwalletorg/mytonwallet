@@ -13,9 +13,10 @@ import { requestMutation } from './lib/fasterdom/fasterdom';
 import { enableStrict } from './lib/fasterdom/stricterdom';
 import { betterView } from './util/betterView';
 import { initCapacitor } from './util/capacitor';
+import { initElectron } from './util/electron';
 import { forceLoadFonts } from './util/fonts';
 import { initMultitab } from './util/multitab';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from './util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON } from './util/windowEnvironment';
 
 import App from './components/App';
 
@@ -32,6 +33,10 @@ if (STRICTERDOM_ENABLED) {
 
 if (IS_CAPACITOR) {
   void initCapacitor();
+}
+
+if (IS_ELECTRON) {
+  void initElectron();
 }
 
 if (IS_DELEGATING_BOTTOM_SHEET) {

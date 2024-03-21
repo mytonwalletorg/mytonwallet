@@ -1,6 +1,7 @@
 import { StatusCodes } from '@ledgerhq/errors';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
+import { loadStateInit } from '@ton/core';
 import type { TonPayloadFormat } from '@ton-community/ton-ledger';
 import { TonTransport } from '@ton-community/ton-ledger';
 import { Address } from '@ton/core/dist/address/Address';
@@ -28,6 +29,7 @@ import {
   DEFAULT_IS_BOUNCEABLE,
   TOKEN_TRANSFER_TON_AMOUNT,
   TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
+  WALLET_IS_BOUNCEABLE,
 } from '../../api/blockchains/ton/constants';
 import { ApiUserRejectsError, handleServerError } from '../../api/errors';
 import { parseAccountId } from '../account';
@@ -45,7 +47,7 @@ let transport: TransportWebHID | TransportWebUSB | undefined;
 let tonTransport: TonTransport | undefined;
 
 export async function importLedgerWallet(network: ApiNetwork, accountIndex: number) {
-  const walletInfo = await getLedgerWalletInfo(network, accountIndex, IS_BOUNCEABLE);
+  const walletInfo = await getLedgerWalletInfo(network, accountIndex);
   return callApi('importLedgerWallet', network, walletInfo);
 }
 
@@ -282,10 +284,12 @@ export async function signLedgerTransactions(
 
   const preparedOptions = messages.map((message, index) => {
     const {
-      toAddress, amount, payload,
+      toAddress, amount, payload, stateInit: stateInitBase64,
     } = message;
 
-    let isBounceable = IS_BOUNCEABLE;
+    let isBounceable = Address.isFriendly(toAddress)
+      ? Address.parseFriendly(toAddress).isBounceable
+      : DEFAULT_IS_BOUNCEABLE;
     let ledgerPayload: TonPayloadFormat | undefined;
 
     switch (payload?.type) {
@@ -358,6 +362,10 @@ export async function signLedgerTransactions(
       }
     }
 
+    const stateInit = stateInitBase64 ? loadStateInit(
+      Cell.fromBase64(stateInitBase64).asSlice(),
+    ) : undefined;
+
     return {
       to: Address.parse(toAddress),
       sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
@@ -366,6 +374,7 @@ export async function signLedgerTransactions(
       bounce: isBounceable,
       amount: BigInt(amount),
       payload: ledgerPayload,
+      stateInit,
     };
   });
 
@@ -430,7 +439,7 @@ export async function getNextLedgerWallets(
   try {
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const walletInfo = await getLedgerWalletInfo(network, index, IS_BOUNCEABLE);
+      const walletInfo = await getLedgerWalletInfo(network, index);
 
       if (alreadyImportedAddresses.includes(walletInfo.address)) {
         index += 1;
@@ -454,12 +463,8 @@ export async function getNextLedgerWallets(
   }
 }
 
-export async function getLedgerWalletInfo(
-  network: ApiNetwork,
-  accountIndex: number,
-  isBounceable: boolean,
-): Promise<LedgerWalletInfo> {
-  const { address, publicKey } = await getLedgerWalletAddress(accountIndex, isBounceable);
+export async function getLedgerWalletInfo(network: ApiNetwork, accountIndex: number): Promise<LedgerWalletInfo> {
+  const { address, publicKey } = await getLedgerWalletAddress(accountIndex);
   const balance = (await callApi('getWalletBalance', network, address))!;
 
   return {
@@ -474,12 +479,12 @@ export async function getLedgerWalletInfo(
   };
 }
 
-export function getLedgerWalletAddress(index: number, isBounceable: boolean, isTestnet?: boolean) {
+export function getLedgerWalletAddress(index: number, isTestnet?: boolean) {
   const path = getLedgerAccountPathByIndex(index, isTestnet);
 
   return tonTransport!.getAddress(path, {
     chain: CHAIN,
-    bounceable: isBounceable,
+    bounceable: WALLET_IS_BOUNCEABLE,
   });
 }
 
