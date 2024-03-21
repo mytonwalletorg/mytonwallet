@@ -24,9 +24,9 @@ export async function validateDexSwapTransfers(
 
   if (params.from === TON_SYMBOL) {
     const maxAmount = fromDecimal(params.fromAmount) + MAX_NETWORK_FEE;
-    const { isSwapAllowed } = await getContractInfo(network, mainTransfer.toAddress);
+    const { isSwapAllowed, codeHash } = await getContractInfo(network, mainTransfer.toAddress);
 
-    assert(!!isSwapAllowed);
+    assert(!!isSwapAllowed, `Not allowed swap contract: ${codeHash} ${mainTransfer.toAddress}`);
     assert(mainTransfer.amount <= maxAmount);
 
     if (feeTransfer) {

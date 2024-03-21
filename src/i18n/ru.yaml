@@ -550,3 +550,4 @@ $hide_tokens_no_cost_help: |
   Вы также можете выборочно включить и отключить конкретные токены, используя список ниже на этом экране.
 No internet connection. Please check your connection and try again.: Отсутствует подключение к интернету. Пожалуйста, проверьте своё соединение и попробуйте снова.
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Вы собираетесь передать важный сервисный токен, который необходим для вывода вашего депозита из стейкинга.
+No Price: Нет цены

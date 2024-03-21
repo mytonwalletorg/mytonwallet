@@ -158,6 +158,11 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
     hash: '8ecbfbe7642ebceec39712a4b3e7b3d1ffc2cfbb1b712fbf1f27f1051afb5220',
     isSwapAllowed: true,
   },
+  dedustVaultNative2: {
+    name: 'dedustVaultNative2',
+    hash: '546ea179831fd6bda3d7515f07a5322486ae4ea4685125e6034758b8cca5b917',
+    isSwapAllowed: true,
+  },
   dedustVaultJetton: {
     name: 'dedustVaultJetton',
     hash: '54f0c2a249ea3c5fc844c48e2586d8a72e6fc188a1ccaec609fac58248b8c8e3',

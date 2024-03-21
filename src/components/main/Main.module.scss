@@ -65,8 +65,12 @@ $scrollOffset: 0.1875rem;
     padding-top: 2.3125rem;
   }
 
-  :global(html.is-ios) {
+  :global(html.is-ios) & {
     max-width: none;
+
+    @media (min-width: 1100px) and (min-height: 700px) {
+      grid-template-columns: 24.5rem 1fr;
+    }
   }
 
   .sidebar {

@@ -1,5 +1,7 @@
 import { DEFAULT_PRICE_CURRENCY, IS_EXTENSION } from '../../../config';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
+import {
+  IS_ANDROID_APP, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_IOS_APP,
+} from '../../../util/windowEnvironment';
 import { callApi, initApi } from '../../../api';
 import { addActionHandler, getGlobal } from '../../index';
 import { selectNewestTxIds } from '../../selectors';
@@ -8,6 +10,8 @@ addActionHandler('initApi', async (global, actions) => {
   initApi(actions.apiUpdate, {
     isElectron: IS_ELECTRON,
     isNativeBottomSheet: IS_DELEGATED_BOTTOM_SHEET,
+    isIosApp: IS_IOS_APP,
+    isAndroidApp: IS_ANDROID_APP,
   });
 
   await callApi('waitDataPreload');

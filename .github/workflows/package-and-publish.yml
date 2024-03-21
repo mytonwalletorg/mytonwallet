@@ -345,10 +345,10 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
-      - name: Calculate sha256 hashes # */*.apk
+      - name: Calculate sha256 hashes
         run: |
           mkdir release
-          mv */*.dmg MyTonWallet-x64.exe/MyTonWallet-x64.exe */*.AppImage release/
+          mv */*.dmg MyTonWallet-x64.exe/MyTonWallet-x64.exe */*.AppImage */*.apk release/
           sha256sum release/* >${{ env.HASH_FILENAME }}
 
       - name: Upload hash artifact
@@ -558,11 +558,11 @@ jobs:
         with:
           name: ${{ env.WINDOWS_FILE_NAME }}
 
-#      - name: Download Android package
-#        id: download-android
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: ${{ env.ANDROID_FILE_NAME }}
+      - name: Download Android package
+        id: download-android
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ANDROID_FILE_NAME }}
 
       - name: Get latest release ID
         id: release-id
@@ -593,18 +593,18 @@ jobs:
             --data-binary "@$FILE_PATH/$FILE_NAME" \
             "https://uploads.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets?name=$PUBLISH_FILE_NAME"
 
-#      - name: Push new Android asset
-#        env:
-#          FILE_PATH: ${{ steps.download-android.outputs.download-path }}
-#          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
-#        shell: bash
-#        run: |
-#          FILE_NAME=$ANDROID_FILE_NAME
-#          PUBLISH_FILE_NAME=${ANDROID_FILE_NAME// /-} # Consistency with electron-builder
-#          curl -X POST -H "Authorization: Bearer $GH_TOKEN" \
-#            -H "Content-Type: application/octet-stream" \
-#            --data-binary "@$FILE_PATH/$FILE_NAME" \
-#            "https://uploads.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets?name=$PUBLISH_FILE_NAME"
+      - name: Push new Android asset
+        env:
+          FILE_PATH: ${{ steps.download-android.outputs.download-path }}
+          RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
+        shell: bash
+        run: |
+          FILE_NAME=$ANDROID_FILE_NAME
+          PUBLISH_FILE_NAME=${ANDROID_FILE_NAME// /-}
+          curl -X POST -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@$FILE_PATH/$FILE_NAME" \
+            "https://uploads.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets?name=$PUBLISH_FILE_NAME"
 
       - name: Publish release
         env:

@@ -295,8 +295,11 @@ function TokenSelector({
     const descriptionText = isAvailable
       ? getBlockchainNetworkName(blockchain)
       : lang('Unavailable');
-    const currencyHoldings = currentToken.totalValue;
     const handleClick = isAvailable ? () => handleTokenClick(currentToken) : undefined;
+
+    const tokenPrice = currentToken.price === 0
+      ? lang('No Price')
+      : formatCurrency(currentToken.price, shortBaseSymbol, undefined, true);
 
     return (
       <div
@@ -351,7 +354,7 @@ function TokenSelector({
             !isAvailable && styles.tokenTextDisabled,
           )}
           >
-            {formatCurrency(currencyHoldings, shortBaseSymbol, undefined, true)}
+            {tokenPrice}
           </span>
         </div>
       </div>

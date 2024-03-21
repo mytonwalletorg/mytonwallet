@@ -11,6 +11,8 @@ import { SplashScreen } from 'capacitor-splash-screen';
 
 import type { Theme } from '../global/types';
 
+import { GLOBAL_STATE_CACHE_KEY } from '../config';
+import * as storageMethods from './capacitorStorageProxy/methods';
 import { processDeeplink } from './deeplink';
 import { pause } from './schedulers';
 import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET } from './windowEnvironment';
@@ -161,6 +163,21 @@ export function getIsFaceIdAvailable() {
 
 export function getIsTouchIdAvailable() {
   return isTouchIdAvailable;
+}
+
+export async function fixIosAppStorage() {
+  await storageMethods.init();
+
+  const isLocalStorageDataExists = Boolean(window.localStorage.getItem(GLOBAL_STATE_CACHE_KEY));
+  const isApiStorageDataExists = Boolean(await storageMethods.getItem('accounts'));
+
+  if (isLocalStorageDataExists && !isApiStorageDataExists) {
+    window.localStorage.clear();
+  }
+
+  if (!isLocalStorageDataExists && isApiStorageDataExists) {
+    await storageMethods.clear();
+  }
 }
 
 export async function capacitorOpenUrl(url: string) {

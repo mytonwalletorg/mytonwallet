@@ -48,7 +48,7 @@ export interface InitData {
 }
 
 export type ContractName = ApiWalletVersion | 'v4R1' | 'highloadV2' | 'multisig' | 'multisigV2'
-| 'nominatorPool' | 'vesting' | 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton'
+| 'nominatorPool' | 'vesting' | 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton' | 'dedustVaultNative2'
 | 'stonPtonWallet' | 'stonRouter' | 'megatonWtonMaster' | 'megatonRouter';
 
 export type ContractInfo = {

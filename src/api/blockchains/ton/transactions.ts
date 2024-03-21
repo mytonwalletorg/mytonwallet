@@ -344,7 +344,7 @@ export async function submitTransfer(
       return { error: ApiTransactionError.InsufficientBalance };
     }
 
-    wallet!.send(transaction);
+    await wallet!.send(transaction);
 
     updateLastTransfer(network, fromAddress, seqno);
 
@@ -624,7 +624,7 @@ export async function submitMultiTransfer(
       return { error: ApiTransactionError.InsufficientBalance };
     }
 
-    wallet!.send(transaction);
+    await wallet!.send(transaction);
 
     updateLastTransfer(network, fromAddress, seqno);
 

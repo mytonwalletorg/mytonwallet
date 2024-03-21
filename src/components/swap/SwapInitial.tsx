@@ -30,6 +30,7 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePrevious from '../../hooks/usePrevious';
 import useSyncEffect from '../../hooks/useSyncEffect';
+import useThrottledCallback from '../../hooks/useThrottledCallback';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import RichNumberInput from '../ui/RichNumberInput';
@@ -52,8 +53,7 @@ interface StateProps {
   tokens?: UserSwapToken[];
 }
 
-const ESTIMATE_REQUEST_INTERVAL = 5_000;
-const ESTIMATE_REQUEST_DEBOUNCE_TIME = 500;
+const ESTIMATE_REQUEST_INTERVAL = 1_000;
 const SET_AMOUNT_DEBOUNCE_TIME = 500;
 const DEFAULT_SWAP_FEE = 500000000n; // 0.5 TON
 
@@ -100,7 +100,6 @@ function SwapInitial({
   const inputInRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   const inputOutRef = useRef<HTMLDivElement>(null);
-
   // eslint-disable-next-line no-null/no-null
   const estimateIntervalId = useRef<number>(null);
 
@@ -175,8 +174,8 @@ function SwapInitial({
     estimateSwap({ shouldBlock });
   });
 
-  const debounceEstimateSwap = useDebouncedCallback(
-    handleEstimateSwap, [handleEstimateSwap], ESTIMATE_REQUEST_DEBOUNCE_TIME, true,
+  const throttledEstimateSwap = useThrottledCallback(
+    handleEstimateSwap, [handleEstimateSwap], ESTIMATE_REQUEST_INTERVAL, true,
   );
   const debounceSetAmountIn = useDebouncedCallback(
     setSwapAmountIn, [setSwapAmountIn], SET_AMOUNT_DEBOUNCE_TIME, true,
@@ -184,10 +183,9 @@ function SwapInitial({
   const debounceSetAmountOut = useDebouncedCallback(
     setSwapAmountOut, [setSwapAmountOut], SET_AMOUNT_DEBOUNCE_TIME, true,
   );
-
   const createEstimateTimer = useLastCallback(() => {
     estimateIntervalId.current = window.setInterval(() => {
-      debounceEstimateSwap(false);
+      throttledEstimateSwap(false);
     }, ESTIMATE_REQUEST_INTERVAL);
   });
 
@@ -202,13 +200,13 @@ function SwapInitial({
 
     if (shouldEstimate) {
       clearEstimateTimer();
-      debounceEstimateSwap(true);
+      throttledEstimateSwap(true);
     }
 
     createEstimateTimer();
 
     return clearEstimateTimer;
-  }, [shouldEstimate, debounceEstimateSwap, createEstimateTimer]);
+  }, [shouldEstimate, createEstimateTimer, throttledEstimateSwap]);
 
   useEffect(() => {
     const shouldForceUpdate = accountId !== accountIdPrev;

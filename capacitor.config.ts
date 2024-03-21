@@ -40,6 +40,9 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchAutoHide: false,
     },
+    CapacitorHttp: {
+      enabled: true,
+    },
   },
 };
 

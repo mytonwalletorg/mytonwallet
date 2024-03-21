@@ -10,6 +10,7 @@ const promise = new Promise((resolve) => {
 });
 
 export async function init() {
+  if (SecureStoragePlugin) return;
   ({ SecureStoragePlugin } = await import(
     /* webpackChunkName: "capacitorSecureStorage" */ 'capacitor-secure-storage-plugin'
   ));
@@ -34,4 +35,9 @@ export async function removeItem(key: StorageKey) {
 export async function clear() {
   await promise;
   return SecureStoragePlugin!.clear();
+}
+
+export async function keys() {
+  await promise;
+  return SecureStoragePlugin!.keys();
 }

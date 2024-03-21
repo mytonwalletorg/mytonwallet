@@ -102,6 +102,7 @@ function DappSite({
   const handleClick = useLastCallback(async () => {
     if (!IS_CAPACITOR || isExternal) {
       window.open(url, '_blank', 'noopener');
+      return;
     }
 
     if (IS_DELEGATING_BOTTOM_SHEET) {

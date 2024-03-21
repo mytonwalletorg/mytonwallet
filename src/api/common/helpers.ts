@@ -26,7 +26,7 @@ import { hexToBytes } from './utils';
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 14;
+const actualStateVersion = 15;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -366,8 +366,22 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
 
       await storage.setItem('accounts', accounts);
     }
+  }
 
-    version = 14;
+  if (version === 14) {
+    if (getEnvironment().isIosApp) {
+      const keys = await capacitorStorage.getKeys();
+
+      if (keys?.length) {
+        for (const key of keys) {
+          const value = await capacitorStorage.getItem(key as StorageKey, true);
+          await capacitorStorage.removeItem(key as StorageKey);
+          await capacitorStorage.setItem(key as StorageKey, value);
+        }
+      }
+    }
+
+    version = 15;
     await storage.setItem('stateVersion', version);
   }
 }

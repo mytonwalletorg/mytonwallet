@@ -446,7 +446,7 @@ function reduceByAccountId(global: GlobalState) {
       const reducedIdsBySlug = mapValues(idsBySlug, (ids) => {
         const result: string[] = [];
         let visibleIdCount = 0;
-        ids.filter((id) => !getIsTxIdLocal(id)).forEach((id) => {
+        ids.filter((id) => !getIsTxIdLocal(id) && Boolean(byId[id])).forEach((id) => {
           if (visibleIdCount === ACTIVITIES_LIMIT) return;
 
           if (!byId[id].shouldHide) {

@@ -23,6 +23,8 @@ export interface AccountIdParsed {
 export interface ApiInitArgs {
   isElectron: boolean;
   isNativeBottomSheet: boolean;
+  isIosApp: boolean;
+  isAndroidApp: boolean;
 }
 
 export interface ApiBaseToken {

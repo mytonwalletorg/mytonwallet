@@ -657,7 +657,11 @@ addActionHandler('changeBaseCurrency', async (global, actions, { currency }) => 
 
   await callApi('setBaseCurrency', currency);
   await callApi('tryUpdatePrices');
-  await callApi('tryUpdateTokens');
+
+  await Promise.all([
+    callApi('tryUpdateTokens'),
+    callApi('tryLoadSwapTokens'),
+  ]);
 });
 
 addActionHandler('setIsPinAccepted', (global) => {

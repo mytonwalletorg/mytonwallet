@@ -5,7 +5,7 @@ import { getActions, withGlobal } from '../../global';
 
 import { ActiveTab, ContentTab } from '../../global/types';
 
-import { IS_CAPACITOR } from '../../config';
+import { IS_ANDROID_DIRECT, IS_CAPACITOR } from '../../config';
 import { selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { getStatusBarHeight } from '../../util/capacitor';
@@ -224,7 +224,7 @@ function Main({
       <StakingInfoModal isOpen={isStakingInfoModalOpen} onClose={closeStakingInfo} />
       <ReceiveModal />
       <UnstakeModal />
-      <UpdateAvailable />
+      {IS_ANDROID_DIRECT && <UpdateAvailable />}
     </>
   );
 }

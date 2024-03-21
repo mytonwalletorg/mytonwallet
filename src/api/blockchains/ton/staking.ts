@@ -248,8 +248,7 @@ export async function getStakingState(
   const accountCache = getAccountCache(accountId, address);
   const stakedAt = Math.max(accountCache.stakedAt ?? 0, backendState.stakedAt ?? 0);
 
-  const isInstantUnstake = !commonData.liquid.collection
-    && Date.now() - stakedAt > VALIDATION_PERIOD_MS;
+  const isInstantUnstake = Date.now() - stakedAt > VALIDATION_PERIOD_MS;
   const liquidAvailable = isInstantUnstake ? commonData.liquid.available : 0n;
 
   let liquidApy = commonData.liquid.apy;

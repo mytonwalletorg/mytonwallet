@@ -432,7 +432,11 @@ export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
   }
 }
 
-export async function tryLoadSwapTokens(localOnUpdate: OnApiUpdate) {
+export async function tryLoadSwapTokens(localOnUpdate?: OnApiUpdate) {
+  if (!localOnUpdate) {
+    localOnUpdate = onUpdate;
+  }
+
   try {
     const assets = await swapGetAssets();
 
