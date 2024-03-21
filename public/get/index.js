@@ -1,17 +1,19 @@
 const REPO = 'mytonwalletorg/mytonwallet';
 const LATEST_RELEASE_API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
 const LATEST_RELEASE_WEB_URL = `https://github.com/${REPO}/releases/latest`;
+const LATEST_RELEASE_DOWNLOAD_URL = `https://github.com/${REPO}/releases/download/v%VERSION%`;
 const WEB_APP_URL = '/';
 const MOBILE_URLS = {
   ios: 'https://apps.apple.com/ru/app/mytonwallet-anyway-ton-wallet/id6464677844',
   android: 'https://play.google.com/store/apps/details?id=org.mytonwallet.app',
+  androidDirect: `${LATEST_RELEASE_DOWNLOAD_URL}/MyTonWallet.apk`,
 };
 
 const platform = getPlatform();
-const currentPage = location.href.includes('mac.html')
-  ? 'mac'
-  : location.href.includes('unsupported.html')
-    ? 'unsupported'
+const currentPage = location.href.includes('/android')
+  ? 'android'
+  : location.href.includes('/mac')
+    ? 'mac'
     : 'index';
 
 // Request the latest release information from GitHub
@@ -52,20 +54,17 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
   });
 
 (function init() {
-  if (['Windows', 'Linux', 'iOS', 'Android'].includes(platform)) {
-    if (currentPage === 'index') {
+  if (currentPage === 'index') {
+    if (['Windows', 'Linux', 'iOS'].includes(platform)) {
       setupDownloadButton();
-      setupVersion();
-    }
-  } else if (platform === 'macOS') {
-    if (currentPage !== 'mac') {
+    } else if (platform === 'Android') {
+      redirectToAndroid();
+    } else if (platform === 'macOS') {
       redirectToMac();
-    } else {
-      setupVersion();
     }
-  } else if (currentPage !== 'unsupported') {
-    redirectToUnsupported();
   }
+
+  setupVersion();
 }());
 
 function getPlatform() {
@@ -122,12 +121,12 @@ function setupVersion() {
   });
 }
 
-function redirectToMac() {
-  location.href = './mac.html';
+function redirectToAndroid() {
+  location.href = './android';
 }
 
-function redirectToUnsupported() {
-  location.href = './unsupported.html';
+function redirectToMac() {
+  location.href = './mac';
 }
 
 function redirectToWeb() {
@@ -147,13 +146,19 @@ function downloadDefault() {
     download('win');
   } else if (platform === 'Linux') {
     download('linux');
+  } else if (platform === 'Android') {
+    redirectToAndroid();
   } else if (platform === 'macOS') {
     redirectToMac();
   } else if (platform === 'iOS' || platform === 'Android') {
     redirectToStore(platform);
-  } else {
-    redirectToUnsupported();
   }
+}
+
+function downloadAndroidDirect() {
+  packagesPromise.then((packages) => {
+    location.href = MOBILE_URLS.androidDirect.replace('%VERSION%', packages.$version);
+  });
 }
 
 function download(platformKey) {

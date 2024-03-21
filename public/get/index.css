@@ -172,6 +172,10 @@ body {
   margin: 32px 0;
 }
 
+.download-btn.single ~ .download-btn.single {
+  margin-top: -12px;
+}
+
 .footer {
   font-size: small;
   color: #A9A9A9;
