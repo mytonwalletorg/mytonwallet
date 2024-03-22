@@ -443,6 +443,11 @@ addActionHandler('restartCheckMnemonicIndexes', (global) => {
 });
 
 addActionHandler('skipCheckMnemonic', (global, actions) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('skipCheckMnemonic');
+    return;
+  }
+
   global = updateCurrentAccountId(global, global.auth.accountId!);
   global = updateCurrentAccountState(global, {
     isBackupRequired: true,

@@ -444,12 +444,13 @@ jobs:
         run: |
           cd mobile/android
           bundle exec fastlane direct
+          mv app/build/outputs/apk/release/app-release.apk $APP_NAME.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}.apk
-          path: mobile/android/app/build/outputs/apk/release/app-release.apk
+          path: ${{ env.APP_NAME }}.apk
 
   ios-release:
     name: Release iOS app

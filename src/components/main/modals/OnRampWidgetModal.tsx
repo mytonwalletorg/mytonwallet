@@ -20,7 +20,7 @@ interface StateProps {
 
 const INITIAL_AMOUNT_USD = 50;
 // eslint-disable-next-line max-len
-const IFRAME_URL = `https://widget.changelly.com?from=usd%2Ceur&to=ton&amount=${INITIAL_AMOUNT_USD}&address={address}&fromDefault=usd&toDefault=ton&merchant_id=rgj4eQVncv5-1Z0Z&payment_id=&v=3&type=no-rev-share&color=5f41ff&headerId=1&logo=hide&buyButtonTextId=1`;
+const IFRAME_URL = `https://widget.changelly.com?from=usd%2Ceur&to=ton&amount=${INITIAL_AMOUNT_USD}&address={address}&fromDefault=usd&toDefault=ton&merchant_id=DdrqYH0dBHq6kGlj&payment_id=&v=3&color=5f41ff&headerId=1&logo=hide&buyButtonTextId=1`;
 const ANIMATION_TIMEOUT = 200;
 
 function OnRampWidgetModal({ isOpen, address }: StateProps) {
