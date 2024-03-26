@@ -246,6 +246,7 @@ Invalid amount: Cantidad no válida
 Invalid address: Dirección no válida
 Domain is not connected to a wallet: El dominio no está conectado a un monedero
 Unexpected error: Error inesperado
+Unexpected Error: Error inesperado
 Earn: Ganar
 Earning: Ganando
 InvalidAmount: Cantidad no válida
@@ -547,5 +548,9 @@ $hide_tokens_no_cost_help: |
   Apague esto para mostrar tokens en su cuenta con un valor inferior a $%value%. Tenga en cuenta que tales tokens a menudo se usan para el spam y la estafa.
   También puede habilitar y deshabilitar selectivamente tokens particulares utilizando la lista a continuación en esta pantalla.
 No internet connection. Please check your connection and try again.: Sin conexión a Internet. Por favor, compruebe la conexión y vuelva a intentarlo.
+To use this feature, first enable Face ID in your phone settings.: Para utilizar esta función, primero habilite Face ID en la configuración de su teléfono.
+To use this feature, first enable biometrics in your phone settings.: Para utilizar esta función, primero habilite la biometría en la configuración de su teléfono.
+Open Settings: Configuración abierta
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Está a punto de transferir un token de servicio importante, que es necesario para retirar su depósito de la apuesta.
 No Price: Sin precio
+Connecting dapps is not yet supported by Ledger.: Ledger aún no admite la conexión de dapps.

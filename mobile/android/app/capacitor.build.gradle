@@ -19,6 +19,7 @@ dependencies {
     implementation project(':capgo-capacitor-native-biometric')
     implementation project(':capgo-native-audio')
     implementation project(':mauricewegner-capacitor-navigation-bar')
+    implementation project(':capacitor-native-settings')
     implementation project(':capacitor-plugin-safe-area')
     implementation project(':native-bottom-sheet')
     implementation project(':capacitor-secure-storage-plugin')

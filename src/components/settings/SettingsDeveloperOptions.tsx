@@ -18,6 +18,7 @@ interface OwnProps {
   isOpen: boolean;
   onClose: () => void;
   isTestnet?: boolean;
+  isCopyStorageEnabled?: boolean;
 }
 
 const NETWORK_OPTIONS = [{
@@ -28,9 +29,9 @@ const NETWORK_OPTIONS = [{
   name: 'Testnet',
 }];
 
-const COPY_STORAGE_ENABLED = false;
-
-function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
+function SettingsDeveloperOptions({
+  isOpen, onClose, isTestnet, isCopyStorageEnabled,
+}: OwnProps) {
   const {
     startChangingNetwork,
     copyStorageData,
@@ -70,7 +71,7 @@ function SettingsDeveloperOptions({ isOpen, onClose, isTestnet }: OwnProps) {
         />
       </div>
 
-      {COPY_STORAGE_ENABLED && (
+      {isCopyStorageEnabled && (
         <>
           <p className={styles.blockTitle}>{lang('Dangerous')}</p>
           <div className={styles.settingsBlock}>

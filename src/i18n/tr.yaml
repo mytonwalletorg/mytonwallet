@@ -248,6 +248,7 @@ Invalid amount: Geçersiz tutar
 Invalid address: Geçersiz adres
 Domain is not connected to a wallet: Alan adı bir cüzdana bağlı değil
 Unexpected error: Beklenmedik hata
+Unexpected Error: Beklenmedik hata
 Earn: Kazan
 Earning: Kazanıyor
 InvalidAmount: Geçersiz tutar
@@ -549,5 +550,9 @@ $hide_tokens_no_cost_help: |
   Hesabınızdaki jetonları $%value% 'dan daha düşük bir değerle görüntülemek için bunu kapatın. Lütfen bu tür jetonların genellikle spam ve aldatmaca için kullanıldığını unutmayın.
   Ayrıca, bu ekranda aşağıdaki listeyi kullanarak belirli jetonları seçici olarak etkinleştirebilir ve devre dışı bırakabilirsiniz.
 No internet connection. Please check your connection and try again.: İnternet bağlantısı yok. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.
+To use this feature, first enable Face ID in your phone settings.: Bu özelliği kullanmak için öncelikle telefon ayarlarınızda Face ID'yi etkinleştirin.
+To use this feature, first enable biometrics in your phone settings.: Bu özelliği kullanmak için öncelikle telefon ayarlarınızda biyometriyi etkinleştirin.
+Open Settings: Ayarları aç
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Yatırdığınız tutarı stake işleminden çekmek için gerekli olan önemli bir hizmet tokenını aktarmak üzeresiniz.
 No Price: Fiyat yok
+Connecting dapps is not yet supported by Ledger.: Dapp'lerin bağlanması henüz Ledger tarafından desteklenmiyor.

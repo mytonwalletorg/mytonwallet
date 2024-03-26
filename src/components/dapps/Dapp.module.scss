@@ -14,7 +14,9 @@
 
 .dapp {
   display: flex;
+  gap: 0.5rem;
   align-items: center;
+  justify-self: center;
 
   padding: 0.875rem 1rem;
 
@@ -38,7 +40,6 @@
 .dappLogo {
   width: 2.25rem;
   height: 2.25rem;
-  margin-right: 0.625rem;
 
   object-fit: cover;
   border-radius: var(--border-radius-tiny);
@@ -105,7 +106,10 @@
 
   font-size: 0.8125rem;
   font-weight: 700;
+  line-height: unset;
   color: var(--color-gray-2);
+
+  background-color: var(--color-background-second);
 }
 
 .accounts {
@@ -184,6 +188,13 @@
 
   &_disabled {
     cursor: auto;
+  }
+
+  &_inactive {
+    cursor: auto;
+
+    background-image: url('../../assets/account_button_bg.jpg');
+    filter: grayscale(100%);
   }
 
   .accounts_single & {
@@ -483,7 +494,9 @@
   position: relative;
   z-index: 1;
 
-  min-width: 0; // Allows the grid cell to be clamped
+  justify-self: center;
+
+  width: 8.125rem;
   height: 100%;
   margin: 0 0.25rem;
   padding: 0 !important;
@@ -629,6 +642,8 @@
   gap: 0.5rem;
   align-items: center;
   justify-self: center;
+
+  width: 8.125rem;
 }
 
 .dappInfoDataSkeleton {
@@ -645,6 +660,10 @@
   margin-bottom: 1.25rem;
 }
 
+.rowContainerLargeSkeleton {
+  margin-bottom: 1.125rem;
+}
+
 .rowSkeleton {
   @include skeleton(
     var(--color-background-second)
@@ -658,7 +677,7 @@
 }
 
 .rowLargeSkeleton {
-  height: 4.25rem;
+  height: 3.75rem;
 }
 
 .rowTextSkeleton {
@@ -667,7 +686,7 @@
   );
 
   width: 3.0625rem;
-  height: 0.8125rem;
+  height: 1rem;
   margin-left: 0.5rem;
 
   background-color: var(--color-separator-input-stroke);
@@ -681,4 +700,18 @@
 .skeletonTransitionWrapper {
   display: flex;
   flex-direction: column;
+}
+
+.contentWithBackground {
+  background-color: var(--color-background-second);
+}
+
+.warningForSingeHardwareAccount {
+  width: 100%;
+  padding: 0 0.5rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-red);
+  text-align: center;
 }

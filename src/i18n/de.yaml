@@ -249,6 +249,7 @@ Invalid amount: Ungültiger Betrag
 Invalid address: Ungültige Adresse
 Domain is not connected to a wallet: Die Domain ist nicht mit einer Wallet verbunden.
 Unexpected error: Unerwarteter Fehler
+Unexpected Error: Unerwarteter Fehler
 Earn: Verdienen
 Earning: Verdienend
 InvalidAmount: Ungültiger Betrag
@@ -551,5 +552,9 @@ $hide_tokens_no_cost_help: |
   Schalten Sie dies aus, um Token auf Ihrem Konto mit einem Wert von weniger als $%value% anzuzeigen. Bitte beachten Sie, dass solche Token häufig für Spam- und Betrugszwecke verwendet werden.
   Sie können bestimmte Token auch selektiv aktivieren und deaktivieren, indem Sie die folgende Liste auf diesem Bildschirm verwenden.
 No internet connection. Please check your connection and try again.: Keine Internetverbindung. Bitte überprüfe deine Verbindung und versuche es erneut.
+To use this feature, first enable Face ID in your phone settings.: Um diese Funktion zu nutzen, aktivieren Sie zunächst Face ID in Ihren Telefoneinstellungen.
+To use this feature, first enable biometrics in your phone settings.: Um diese Funktion zu nutzen, aktivieren Sie zunächst die Biometrie in Ihren Telefoneinstellungen.
+Open Settings: Einstellungen öffnen
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Sie sind dabei, einen wichtigen Service-Token zu übertragen, der benötigt wird, um Ihre Einzahlung vom Einsatz abzuheben.
 No Price: Kein preis
+Connecting dapps is not yet supported by Ledger.: Das Verbinden von Dapps wird von Ledger noch nicht unterstützt.

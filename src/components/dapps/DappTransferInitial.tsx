@@ -27,6 +27,7 @@ import styles from './Dapp.module.scss';
 
 interface OwnProps {
   tonToken: UserToken;
+  onClose?: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -46,8 +47,9 @@ function DappTransferInitial({
   dapp,
   isLoading,
   tokens,
+  onClose,
 }: OwnProps & StateProps) {
-  const { showDappTransaction, submitDappTransferConfirm, cancelDappTransfer } = getActions();
+  const { showDappTransaction, submitDappTransferConfirm } = getActions();
 
   const lang = useLang();
   const isSingleTransaction = transactions?.length === 1;
@@ -132,6 +134,7 @@ function DappTransferInitial({
           label={lang('Total Amount')}
           amount={toDecimal(totalAmount)}
           symbol={tonToken.symbol}
+          labelClassName={styles.label}
         />
       </>
     );
@@ -145,10 +148,12 @@ function DappTransferInitial({
     <div className={modalStyles.transitionContent}>
       {renderDapp()}
 
-      {isSingleTransaction ? renderTransaction() : renderTransactions()}
+      <div className={styles.contentWithBackground}>
+        {isSingleTransaction ? renderTransaction() : renderTransactions()}
+      </div>
 
       <div className={modalStyles.buttons}>
-        <Button className={modalStyles.button} onClick={cancelDappTransfer}>{lang('Cancel')}</Button>
+        <Button className={modalStyles.button} onClick={onClose}>{lang('Cancel')}</Button>
         <Button
           isPrimary
           isSubmit

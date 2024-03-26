@@ -23,6 +23,7 @@ const config: CapacitorConfig = {
       '@capgo/capacitor-native-biometric',
       '@capgo/native-audio',
       '@mauricewegner/capacitor-navigation-bar',
+      'capacitor-native-settings',
       'capacitor-plugin-safe-area',
       'cordova-plugin-inappbrowser',
       'native-bottom-sheet',

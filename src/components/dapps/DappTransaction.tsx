@@ -100,6 +100,7 @@ function DappTransaction({
         symbol={tonToken.symbol}
         fee={fee ? toDecimal(fee, tonToken.decimals) : undefined}
         className={styles.dataField}
+        labelClassName={styles.label}
       />
 
       {transaction.payload && (

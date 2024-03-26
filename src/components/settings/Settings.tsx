@@ -1,3 +1,5 @@
+import { Dialog } from '@capacitor/dialog';
+import { AndroidSettings, IOSSettings, NativeSettings } from 'capacitor-native-settings';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
@@ -36,6 +38,8 @@ import {
   IS_DAPP_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
   IS_ELECTRON,
+  IS_IOS,
+  IS_IOS_APP,
   IS_LEDGER_SUPPORTED,
   IS_TOUCH_ENV,
 } from '../../util/windowEnvironment';
@@ -102,6 +106,7 @@ type StateProps = {
   isHardwareAccount?: boolean;
   currentVersion?: ApiWalletVersion;
   versions?: ApiWalletInfo[];
+  isCopyStorageEnabled?: boolean;
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -133,6 +138,7 @@ function Settings({
   isHardwareAccount,
   currentVersion,
   versions,
+  isCopyStorageEnabled,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
@@ -160,6 +166,7 @@ function Settings({
   const [isLogOutModalOpened, openLogOutModal, closeLogOutModal] = useFlag();
 
   const activeLang = useMemo(() => LANG_LIST.find((l) => l.langCode === langCode), [langCode]);
+  const shouldRenderNativeBiometrics = isPasswordPresent && (getIsNativeBiometricAuthSupported() || IS_IOS_APP);
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
@@ -239,7 +246,27 @@ function Settings({
   }
 
   const handleNativeBiometricsTurnOnOpen = useLastCallback(() => {
-    setSettingsState({ state: SettingsState.NativeBiometricsTurnOn });
+    if (!getIsNativeBiometricAuthSupported()) {
+      const warningDescription = IS_IOS
+        ? 'To use this feature, first enable Face ID in your phone settings.'
+        : 'To use this feature, first enable biometrics in your phone settings.';
+      Dialog.confirm({
+        title: lang('Warning!'),
+        message: lang(warningDescription),
+        okButtonTitle: lang('Open Settings'),
+        cancelButtonTitle: lang('Cancel'),
+      })
+        .then(({ value }) => {
+          if (value) {
+            NativeSettings.open({
+              optionAndroid: AndroidSettings.ApplicationDetails,
+              optionIOS: IOSSettings.App,
+            });
+          }
+        });
+    } else {
+      setSettingsState({ state: SettingsState.NativeBiometricsTurnOn });
+    }
   });
 
   const handleBackClick = useLastCallback(() => {
@@ -386,7 +413,7 @@ function Settings({
           className={buildClassName(styles.content, 'custom-scroll')}
           onScroll={handleContentScroll}
         >
-          {isPasswordPresent && getIsNativeBiometricAuthSupported() && (
+          {shouldRenderNativeBiometrics && (
             <NativeBiometricsToggle
               onEnable={handleNativeBiometricsTurnOnOpen}
             />
@@ -459,7 +486,7 @@ function Settings({
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-            {IS_DAPP_SUPPORTED && (
+            {IS_DAPP_SUPPORTED && !isHardwareAccount && (
               <div className={styles.item} onClick={handleConnectedDappsOpen}>
                 <img className={styles.menuIcon} src={connectedDappsImg} alt={lang('Connected Dapps')} />
                 {lang('Connected Dapps')}
@@ -535,7 +562,12 @@ function Settings({
             {APP_NAME} {APP_VERSION} {APP_ENV_MARKER}
           </div>
         </div>
-        <SettingsDeveloperOptions isOpen={isDeveloperModalOpen} onClose={closeDeveloperModal} isTestnet={isTestnet} />
+        <SettingsDeveloperOptions
+          isOpen={isDeveloperModalOpen}
+          onClose={closeDeveloperModal}
+          isTestnet={isTestnet}
+          isCopyStorageEnabled={isCopyStorageEnabled}
+        />
       </div>
     );
   }
@@ -655,6 +687,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { orderedSlugs } = selectAccountSettings(global, global.currentAccountId!) ?? {};
   const isHardwareAccount = selectIsHardwareAccount(global);
   const isPasswordPresent = selectIsPasswordPresent(global);
+  const { isCopyStorageEnabled } = global.restrictions;
 
   const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
   const versions = versionsById?.[global.currentAccountId!];
@@ -669,6 +702,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isHardwareAccount,
     currentVersion,
     versions,
+    isCopyStorageEnabled,
   };
 })(Settings));
 

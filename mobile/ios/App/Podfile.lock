@@ -17,6 +17,8 @@ PODS:
   - CapacitorMlkitBarcodeScanning (5.4.0):
     - Capacitor
     - GoogleMLKit/BarcodeScanning (= 4.0.0)
+  - CapacitorNativeSettings (5.0.1):
+    - Capacitor
   - CapacitorPluginSafeArea (2.0.6):
     - Capacitor
   - CapacitorSecureStoragePlugin (0.9.0):
@@ -104,6 +106,7 @@ DEPENDENCIES:
   - "CapacitorDialog (from `../../../node_modules/@capacitor/dialog`)"
   - "CapacitorHaptics (from `../../../node_modules/@capacitor/haptics`)"
   - "CapacitorMlkitBarcodeScanning (from `../../../node_modules/@capacitor-mlkit/barcode-scanning`)"
+  - CapacitorNativeSettings (from `../../../node_modules/capacitor-native-settings`)
   - CapacitorPluginSafeArea (from `../../../node_modules/capacitor-plugin-safe-area`)
   - CapacitorSecureStoragePlugin (from `../../../node_modules/capacitor-secure-storage-plugin`)
   - CapacitorSplashScreen (from `../../plugins/capacitor-splash-screen`)
@@ -150,6 +153,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/haptics"
   CapacitorMlkitBarcodeScanning:
     :path: "../../../node_modules/@capacitor-mlkit/barcode-scanning"
+  CapacitorNativeSettings:
+    :path: "../../../node_modules/capacitor-native-settings"
   CapacitorPluginSafeArea:
     :path: "../../../node_modules/capacitor-plugin-safe-area"
   CapacitorSecureStoragePlugin:
@@ -179,6 +184,7 @@ SPEC CHECKSUMS:
   CapacitorDialog: ea1beaccb7f825191aa18b72cba8981b881b3b2d
   CapacitorHaptics: 7c7c206f0c96a628fed073830c96d28c4b2e772e
   CapacitorMlkitBarcodeScanning: 8fb81cbef3c6ffe0c0e2dbd15ed6dca889a5a062
+  CapacitorNativeSettings: 6e94ed3c0465206756f320df18efc52f053ce3c7
   CapacitorPluginSafeArea: d55e4d4e70c98f611240f11dd80561438d0d70cb
   CapacitorSecureStoragePlugin: e91d7df060f2495a1acff9583641a6953e3aacba
   CapacitorSplashScreen: 6fce4269c6f7dc7591cc28760d1f85255e5edb1b
@@ -203,6 +209,6 @@ SPEC CHECKSUMS:
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: d79d062cb6b0a6bab2e56fcd74e516fdc51f8641
+PODFILE CHECKSUM: d968f1882629794ffac5e21b3cd3b75c11b48646
 
 COCOAPODS: 1.15.2

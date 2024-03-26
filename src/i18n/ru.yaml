@@ -242,6 +242,7 @@ Invalid amount: Некорректная сумма
 Invalid address: Некорректный адрес
 Domain is not connected to a wallet: Домен не подключён к кошельку
 Unexpected error: Ошибочка вышла
+Unexpected Error: Непредвиденная ошибка
 Earn: Стейкинг
 Earning: Стейкинг
 InvalidAmount: Некорректная сумма
@@ -549,5 +550,9 @@ $hide_tokens_no_cost_help: |
   Пожалуйста, имейте в виду, что такие жетоны часто используются для спама и мошенничества.
   Вы также можете выборочно включить и отключить конкретные токены, используя список ниже на этом экране.
 No internet connection. Please check your connection and try again.: Отсутствует подключение к интернету. Пожалуйста, проверьте своё соединение и попробуйте снова.
+To use this feature, first enable Face ID in your phone settings.: Чтобы использовать эту функцию, сначала активируйте идентификацию лица в настройках телефона.
+To use this feature, first enable biometrics in your phone settings.: Чтобы использовать эту функцию, сначала активируйте биометрию в настройках телефона.
+Open Settings: Открыть настройки
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Вы собираетесь передать важный сервисный токен, который необходим для вывода вашего депозита из стейкинга.
 No Price: Нет цены
+Connecting dapps is not yet supported by Ledger.: Ledger пока не поддерживает подключение приложений.

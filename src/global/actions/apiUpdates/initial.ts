@@ -159,13 +159,14 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
-    case 'updateRegion': {
-      const { isLimited: isLimitedRegion } = update;
+    case 'updateConfig': {
+      const { isLimited: isLimitedRegion, isCopyStorageEnabled } = update;
 
       global = updateRestrictions(global, {
         isLimitedRegion,
         isSwapDisabled: IS_IOS_APP && isLimitedRegion,
         isOnRampDisabled: IS_IOS_APP && isLimitedRegion,
+        isCopyStorageEnabled,
       });
       setGlobal(global);
       break;

@@ -58,6 +58,7 @@ function SwapSubmitButton({
   const isLoading = isEstimating || shouldSendingBeVisible;
 
   const errorMsgByType = {
+    [SwapErrorType.UnexpectedError]: lang('Unexpected Error'),
     [SwapErrorType.InvalidPair]: lang('Invalid Pair'),
     [SwapErrorType.NotEnoughLiquidity]: lang('Insufficient liquidity'),
     [SwapErrorType.ChangellyMinSwap]: lang('Minimum amount', {

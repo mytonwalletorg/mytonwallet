@@ -159,9 +159,10 @@ export type ApiUpdateAccount = {
   partial: Partial<ApiAccount>;
 };
 
-export type ApiUpdateRegion = {
-  type: 'updateRegion';
+export type ApiUpdateConfig = {
+  type: 'updateConfig';
   isLimited: boolean;
+  isCopyStorageEnabled: boolean;
 };
 
 export type ApiUpdateWalletVersions = {
@@ -200,7 +201,7 @@ export type ApiUpdate =
   | ApiUpdateNfts
   | ApiNftUpdate
   | ApiUpdateAccount
-  | ApiUpdateRegion
+  | ApiUpdateConfig
   | ApiUpdateWalletVersions
   | ApiOpenUrl
   | ApiRequestReconnect;

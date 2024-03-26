@@ -1,6 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
+import { IS_PRODUCTION } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -21,6 +22,8 @@ const AuthCreateBackup = ({ isActive }: OwnProps) => {
 
   const lang = useLang();
 
+  const canSkipMnemonicCheck = !IS_PRODUCTION;
+
   return (
     <div className={styles.wrapper}>
       <div className={buildClassName(styles.container, 'custom-scroll')}>
@@ -39,17 +42,23 @@ const AuthCreateBackup = ({ isActive }: OwnProps) => {
           <p>{renderText(lang('$auth_backup_description3'))}</p>
         </div>
         <div className={styles.buttons}>
-          <Button isPrimary className={styles.btn} onClick={openAuthBackupWalletModal}>
+          <Button
+            isPrimary
+            className={buildClassName(styles.btn, styles.btn_wide, !canSkipMnemonicCheck && styles.btn_single)}
+            onClick={openAuthBackupWalletModal}
+          >
             {lang('Back Up')}
           </Button>
-          <Button
-            isDestructive
-            isText
-            className={buildClassName(styles.btn, styles.btn_push)}
-            onClick={skipCheckMnemonic}
-          >
-            {lang('Later')}
-          </Button>
+          {canSkipMnemonicCheck && (
+            <Button
+              isDestructive
+              isText
+              className={buildClassName(styles.btn, styles.btn_push)}
+              onClick={skipCheckMnemonic}
+            >
+              {lang('Later')}
+            </Button>
+          )}
         </div>
       </div>
     </div>

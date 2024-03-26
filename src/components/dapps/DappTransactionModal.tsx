@@ -56,6 +56,7 @@ function DappTransactionModal({
     clearDappTransferError,
     submitDappTransferPassword,
     submitDappTransferHardware,
+    closeDappTransfer,
     cancelDappTransfer,
   } = getActions();
 
@@ -82,12 +83,17 @@ function DappTransactionModal({
     submitDappTransferHardware();
   });
 
+  const handleResetTransfer = useLastCallback(() => {
+    cancelDappTransfer();
+    updateNextKey();
+  });
+
   function renderSingleTransaction(isActive: boolean) {
     const transaction = viewTransactionOnIdx !== undefined ? transactions?.[viewTransactionOnIdx] : undefined;
 
     return (
       <>
-        <ModalHeader title={lang('Is it all ok?')} onClose={cancelDappTransfer} />
+        <ModalHeader title={lang('Is it all ok?')} onClose={closeDappTransfer} />
         <div className={modalStyles.transitionContent}>
           <AnimatedIconWithPreview
             size={ANIMATED_STICKER_SMALL_SIZE_PX}
@@ -117,7 +123,7 @@ function DappTransactionModal({
   function renderPassword(isActive: boolean) {
     return (
       <>
-        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Transaction')} onClose={cancelDappTransfer} />}
+        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Transaction')} onClose={closeDappTransfer} />}
         <PasswordForm
           isActive={isActive}
           isLoading={isLoading}
@@ -136,7 +142,7 @@ function DappTransactionModal({
 
   function renderWaitForConnection() {
     const renderRow = (isLarge?: boolean) => (
-      <div className={styles.rowContainerSkeleton}>
+      <div className={buildClassName(styles.rowContainerSkeleton, isLarge && styles.rowContainerLargeSkeleton)}>
         <div className={buildClassName(styles.rowTextSkeleton, isLarge && styles.rowTextLargeSkeleton)} />
         <div className={buildClassName(styles.rowSkeleton, isLarge && styles.rowLargeSkeleton)} />
       </div>
@@ -144,7 +150,7 @@ function DappTransactionModal({
 
     return (
       <>
-        <ModalHeader title={lang('Send Transaction')} onClose={cancelDappTransfer} />
+        <ModalHeader title={lang('Send Transaction')} onClose={closeDappTransfer} />
         <div className={modalStyles.transitionContent}>
           <div className={styles.transactionDirection}>
             <div className={styles.transactionDirectionLeftSkeleton}>
@@ -169,11 +175,11 @@ function DappTransactionModal({
 
   function renderTransferInitialWithSkeleton() {
     return (
-      <Transition name="fade" activeKey={isDappLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
+      <Transition name="semiFade" activeKey={isDappLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
         {isDappLoading ? renderWaitForConnection() : (
           <>
-            <ModalHeader title={lang('Send Transaction')} onClose={cancelDappTransfer} />
-            <DappTransferInitial tonToken={tonToken} />
+            <ModalHeader title={lang('Send Transaction')} onClose={closeDappTransfer} />
+            <DappTransferInitial onClose={closeDappTransfer} tonToken={tonToken} />
           </>
         )}
       </Transition>
@@ -188,7 +194,7 @@ function DappTransactionModal({
       case TransferState.WarningHardware:
         return (
           <>
-            <ModalHeader title={lang('Send Transaction')} onClose={cancelDappTransfer} />
+            <ModalHeader title={lang('Send Transaction')} onClose={closeDappTransfer} />
             <DappLedgerWarning tonToken={tonToken} />
           </>
         );
@@ -204,7 +210,7 @@ function DappTransactionModal({
             isTonAppConnected={isTonAppConnected}
             isLedgerConnected={isLedgerConnected}
             onConnected={handleLedgerConnect}
-            onClose={cancelDappTransfer}
+            onClose={closeDappTransfer}
           />
         );
       case TransferState.ConfirmHardware:
@@ -213,7 +219,7 @@ function DappTransactionModal({
             text={lang('Please confirm transaction on your Ledger')}
             error={error}
             onTryAgain={submitDappTransferHardware}
-            onClose={cancelDappTransfer}
+            onClose={closeDappTransfer}
           />
         );
     }
@@ -227,8 +233,8 @@ function DappTransactionModal({
       dialogClassName={styles.modalDialog}
       nativeBottomSheetKey="dapp-transaction"
       forceFullNative={renderingKey === TransferState.Password}
-      onClose={cancelDappTransfer}
-      onCloseAnimationEnd={updateNextKey}
+      onClose={closeDappTransfer}
+      onCloseAnimationEnd={handleResetTransfer}
     >
       <Transition
         name={resolveModalTransitionName()}

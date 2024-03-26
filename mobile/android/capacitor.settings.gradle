@@ -32,6 +32,9 @@ project(':capgo-native-audio').projectDir = new File('../../node_modules/@capgo/
 include ':mauricewegner-capacitor-navigation-bar'
 project(':mauricewegner-capacitor-navigation-bar').projectDir = new File('../../node_modules/@mauricewegner/capacitor-navigation-bar/android')
 
+include ':capacitor-native-settings'
+project(':capacitor-native-settings').projectDir = new File('../../node_modules/capacitor-native-settings/android')
+
 include ':capacitor-plugin-safe-area'
 project(':capacitor-plugin-safe-area').projectDir = new File('../../node_modules/capacitor-plugin-safe-area/android')
 

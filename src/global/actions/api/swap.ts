@@ -595,7 +595,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
 
     global = updateCurrentSwap(global, {
       ...resetParams,
-      errorType: SwapErrorType.InvalidPair,
+      errorType: window.navigator.onLine ? SwapErrorType.InvalidPair : SwapErrorType.UnexpectedError,
     });
     setGlobal(global);
     return;
@@ -707,7 +707,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   if (!estimate) {
     global = updateCurrentSwap(global, {
       ...resetParams,
-      errorType: SwapErrorType.InvalidPair,
+      errorType: window.navigator.onLine ? SwapErrorType.InvalidPair : SwapErrorType.UnexpectedError,
     });
     setGlobal(global);
     return;

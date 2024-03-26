@@ -149,11 +149,7 @@ addActionHandler('setDappConnectRequestState', (global, actions, { state }) => {
 });
 
 addActionHandler('cancelDappTransfer', (global) => {
-  const { promiseId, state } = global.currentDappTransfer;
-
-  if (state === TransferState.None) {
-    return;
-  }
+  const { promiseId } = global.currentDappTransfer;
 
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('cancelDappTransfer');
@@ -165,6 +161,11 @@ addActionHandler('cancelDappTransfer', (global) => {
     global = clearIsPinAccepted(global);
   }
   global = clearCurrentDappTransfer(global);
+  setGlobal(global);
+});
+
+addActionHandler('closeDappTransfer', (global) => {
+  global = updateCurrentDappTransfer(global, { state: TransferState.None });
   setGlobal(global);
 });
 

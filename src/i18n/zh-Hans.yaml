@@ -237,6 +237,7 @@ Invalid amount: 非法数额
 Invalid address: 非法地址
 Domain is not connected to a wallet: 此域名没有链接至任何钱包地址
 Unexpected error: 预期外的错误
+Unexpected Error: 预期外的错误
 Earn: 赚取
 Earning: 赚取中
 You can save this address for quick access while sending.: 您可以保存此地址以便在发送时快速访问。
@@ -533,5 +534,9 @@ $hide_tokens_no_cost_help: |
   将其关闭以在您的帐户上显示为价值小于 $%value% 的代币。请注意，这种令牌通常用于垃圾邮件和骗局。
   您还可以使用下面在此屏幕上的列表选择性地启用和禁用特定令牌。
 No internet connection. Please check your connection and try again.: 没有网络连接。 请检查您的连接并重试。
+To use this feature, first enable Face ID in your phone settings.: 要使用此功能，请首先在手机设置中启用面容 ID。
+To use this feature, first enable biometrics in your phone settings.: 要使用此功能，请首先在手机设置中启用生物识别功能。
+Open Settings: 打开设置
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: 您即将转移一个重要的服务代币，这是从质押中提取押金所必需的。
 No Price: 无价格
+Connecting dapps is not yet supported by Ledger.: Ledger 尚不支持连接 dapp。

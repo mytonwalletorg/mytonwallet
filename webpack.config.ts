@@ -327,6 +327,10 @@ export default function createConfig(
               content as unknown as string, mode === 'production',
             ) as any,
           },
+          {
+            from: 'src/_headers',
+            transform: (content: Buffer) => content.toString().replace('{{CSP}}', CSP),
+          },
         ],
       }),
       ...(canUseStatoscope ? [new StatoscopeWebpackPlugin({

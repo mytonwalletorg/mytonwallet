@@ -89,7 +89,7 @@ export async function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAc
     tryUpdateStakingCommonData(),
   ]).then(() => resolveDataPreloadPromise());
 
-  void tryUpdateRegion(_onUpdate);
+  void tryUpdateConfig(_onUpdate);
 
   void setupBackendPolling();
   void setupLongBackendPolling();
@@ -389,7 +389,7 @@ export async function setupLongBackendPolling() {
     await Promise.all([
       tryUpdateKnownAddresses(),
       tryUpdateStakingCommonData(),
-      tryUpdateRegion(localOnUpdate),
+      tryUpdateConfig(localOnUpdate),
     ]);
   }
 }
@@ -460,15 +460,19 @@ export async function tryLoadSwapTokens(localOnUpdate?: OnApiUpdate) {
   }
 }
 
-export async function tryUpdateRegion(localOnUpdate: OnApiUpdate) {
+export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
   try {
-    const { isLimited } = await callBackendGet<{ isLimited: boolean }>('/utils/check-region');
+    const { isLimited, isCopyStorageEnabled = false } = await callBackendGet<{
+      isLimited: boolean;
+      isCopyStorageEnabled?: boolean;
+    }>('/utils/get-config');
 
     if (!isUpdaterAlive(localOnUpdate)) return;
 
     onUpdate({
-      type: 'updateRegion',
+      type: 'updateConfig',
       isLimited,
+      isCopyStorageEnabled,
     });
   } catch (err) {
     logDebugError('tryUpdateRegion', err);

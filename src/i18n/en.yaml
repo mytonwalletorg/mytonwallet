@@ -247,6 +247,7 @@ Invalid amount: Invalid amount
 Invalid address: Invalid address
 Domain is not connected to a wallet: Domain is not connected to a wallet
 Unexpected error: Unexpected error
+Unexpected Error: Unexpected Error
 Earn: Earn
 Earning: Earning
 InvalidAmount: Invalid amount
@@ -549,5 +550,9 @@ $hide_tokens_no_cost_help: |
   Turn this off to display tokens on your account with value less than $%value%. Please be aware that such tokens are often used for spam and scam purposed.
   You can also selectively enable and disable particular tokens using the list below on this screen.
 No internet connection. Please check your connection and try again.: No internet connection. Please check your connection and try again.
+To use this feature, first enable Face ID in your phone settings.: To use this feature, first enable Face ID in your phone settings.
+To use this feature, first enable biometrics in your phone settings.: To use this feature, first enable biometrics in your phone settings.
+Open Settings: Open Settings
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: You are about to transfer an important service token, which is needed to withdraw your deposit from staking.
 No Price: No Price
+Connecting dapps is not yet supported by Ledger.: Connecting dapps is not yet supported by Ledger.

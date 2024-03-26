@@ -80,6 +80,10 @@ function DappConnectModal({
 
   const { renderingKey, nextKey } = useModalTransitionKeys(state ?? 0, isModalOpen);
 
+  const iterableAccounts = useMemo(() => {
+    return Object.entries(accounts || {});
+  }, [accounts]);
+  const isHardwareAccountSelected = accounts?.[selectedAccount]?.isHardware;
   const isLoading = dapp === undefined;
 
   useEffect(() => {
@@ -159,17 +163,14 @@ function DappConnectModal({
     });
   });
 
-  const iterableAccounts = useMemo(() => {
-    return Object.entries(accounts || {});
-  }, [accounts]);
-
-  function renderAccount(accountId: string, address: string, title?: string) {
+  function renderAccount(accountId: string, address: string, title?: string, isHardware?: boolean) {
     const isActive = accountId === selectedAccount;
-    const onClick = isActive || isLoading ? undefined : () => setSelectedAccount(accountId);
+    const onClick = isActive || isLoading || isHardware ? undefined : () => setSelectedAccount(accountId);
     const fullClassName = buildClassName(
       styles.account,
       isActive && styles.account_current,
       isLoading && styles.account_disabled,
+      isHardware && styles.account_inactive,
     );
 
     return (
@@ -177,6 +178,7 @@ function DappConnectModal({
         key={accountId}
         className={fullClassName}
         aria-label={lang('Switch Account')}
+        title={isHardware ? lang('Connecting dapps is not yet supported by Ledger.') : undefined}
         onClick={onClick}
       >
         {title && <span className={styles.accountName}>{title}</span>}
@@ -201,7 +203,7 @@ function DappConnectModal({
         <p className={styles.label}>{lang('Select wallets to use on this dapp')}</p>
         <div className={fullClassName}>
           {iterableAccounts.map(
-            ([accountId, { title, address }]) => renderAccount(accountId, address, title),
+            ([accountId, { title, address, isHardware }]) => renderAccount(accountId, address, title, isHardware),
           )}
         </div>
       </>
@@ -220,10 +222,20 @@ function DappConnectModal({
             url={url}
             className={buildClassName(styles.dapp_first, styles.dapp_push)}
           />
-          {shouldRenderAccounts && renderAccounts()}
+          {shouldRenderAccounts ? renderAccounts() : (
+            <div className={styles.warningForSingeHardwareAccount}>
+              {lang('Connecting dapps is not yet supported by Ledger.')}
+            </div>
+          )}
 
           <div className={styles.footer}>
-            <Button onClick={openConfirm} isPrimary>{lang('Connect')}</Button>
+            <Button
+              isPrimary
+              isDisabled={isHardwareAccountSelected}
+              onClick={openConfirm}
+            >
+              {lang('Connect')}
+            </Button>
           </div>
         </div>
       </>

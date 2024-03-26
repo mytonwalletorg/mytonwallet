@@ -3,8 +3,12 @@ import React, { memo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import renderText from '../../../global/helpers/renderText';
-import { getIsFaceIdAvailable, getIsTouchIdAvailable } from '../../../util/capacitor';
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import {
+  getIsFaceIdAvailable,
+  getIsNativeBiometricAuthSupported,
+  getIsTouchIdAvailable,
+} from '../../../util/capacitor';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_IOS } from '../../../util/windowEnvironment';
 
 import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
@@ -31,7 +35,7 @@ interface StateProps {
 
 function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps & StateProps) {
   const { disableNativeBiometrics } = getActions();
-  const isFaceId = getIsFaceIdAvailable();
+  const isFaceId = getIsFaceIdAvailable() || (!getIsNativeBiometricAuthSupported() && IS_IOS);
   const isTouchId = getIsTouchIdAvailable();
 
   const lang = useLang();
@@ -59,6 +63,7 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
         title: lang(warningTitle),
         message: lang(warningDescription),
         okButtonTitle: lang('Yes'),
+        cancelButtonTitle: lang('Cancel'),
       })
         .then(({ value }) => {
           if (value) {

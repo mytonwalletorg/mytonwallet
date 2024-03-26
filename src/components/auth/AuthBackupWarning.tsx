@@ -1,6 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
+import { IS_PRODUCTION } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 
@@ -22,6 +23,8 @@ function AuthBackupWarning({ isOpen, onSkip, onClose }: OwnProps) {
 
   const lang = useLang();
 
+  const canSkipMnemonicCheck = !IS_PRODUCTION;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -32,16 +35,22 @@ function AuthBackupWarning({ isOpen, onSkip, onClose }: OwnProps) {
     >
       <p className={styles.backupNotice}>{renderText(lang('$auth_backup_warning_notice'))}</p>
       <div className={styles.backupNoticeButtons}>
-        <Button isPrimary className={buildClassName(styles.btn, styles.btn_wide)} onClick={openAuthBackupWalletModal}>
+        <Button
+          isPrimary
+          className={buildClassName(styles.btn, styles.btn_wide, !canSkipMnemonicCheck && styles.btn_single)}
+          onClick={openAuthBackupWalletModal}
+        >
           {lang('Back Up Now')}
         </Button>
-        <Button
-          isDestructive
-          className={buildClassName(styles.btn, styles.btn_mini)}
-          onClick={onSkip}
-        >
-          {lang('Later')}
-        </Button>
+        {canSkipMnemonicCheck && (
+          <Button
+            isDestructive
+            className={buildClassName(styles.btn, styles.btn_mini)}
+            onClick={onSkip}
+          >
+            {lang('Later')}
+          </Button>
+        )}
       </div>
     </Modal>
   );

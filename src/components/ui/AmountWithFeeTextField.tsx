@@ -15,6 +15,7 @@ interface OwnProps {
   symbol?: string;
   fee?: string;
   className?: string;
+  labelClassName?: string;
 }
 
 function AmountWithFeeTextField({
@@ -24,12 +25,13 @@ function AmountWithFeeTextField({
   symbol,
   fee,
   className,
+  labelClassName,
 }: OwnProps) {
   const lang = useLang();
 
   return (
     <>
-      <div className={styles.label}>{label}</div>
+      <div className={buildClassName(styles.label, labelClassName)}>{label}</div>
       <div className={buildClassName(styles.root, className)}>
         {formatCurrencyExtended(amount, currency, true)}
         {symbol && <span className={styles.suffix}>{symbol}</span>}

@@ -138,6 +138,7 @@ export enum SwapInputSource {
 }
 
 export enum SwapErrorType {
+  UnexpectedError,
   InvalidPair,
   NotEnoughLiquidity,
 
@@ -529,6 +530,7 @@ export type GlobalState = {
     isLimitedRegion: boolean;
     isSwapDisabled: boolean;
     isOnRampDisabled: boolean;
+    isCopyStorageEnabled?: boolean;
   };
 };
 
@@ -726,6 +728,7 @@ export interface ActionPayloads {
   submitDappTransferPassword: { password: string };
   submitDappTransferHardware: undefined;
   cancelDappTransfer: undefined;
+  closeDappTransfer: undefined;
 
   getDapps: undefined;
   deleteAllDapps: undefined;
