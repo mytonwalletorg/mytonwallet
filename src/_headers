@@ -1,5 +1,5 @@
 # This file is for (beta.)mytonwallet.app hosted on Netlify
-/*
+/
   Content-Security-Policy: {{CSP}}
   X-Content-Type-Options: nosniff
   X-Frame-Options: Deny
