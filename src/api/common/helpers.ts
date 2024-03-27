@@ -14,6 +14,8 @@ import type {
 import { IS_CAPACITOR, IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
+import { assert } from '../../util/assert';
+import { logDebugError } from '../../util/logs';
 import { toBase64Address } from '../blockchains/ton/util/tonCore';
 import { apiDb } from '../db';
 import { getEnvironment } from '../environment';
@@ -26,7 +28,7 @@ import { hexToBytes } from './utils';
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 15;
+const actualStateVersion = 16;
 let migrationEnsurePromise: Promise<void>;
 
 export function resolveBlockchainKey(accountId: string) {
@@ -98,7 +100,14 @@ export function isUpdaterAlive(onUpdate: OnApiUpdate) {
 }
 
 export function startStorageMigration(onUpdate: OnApiUpdate, ton: typeof blockchains.ton) {
-  migrationEnsurePromise = migrateStorage(onUpdate, ton);
+  migrationEnsurePromise = migrateStorage(onUpdate, ton)
+    .catch((err) => {
+      logDebugError('Migration error', err);
+      currentOnUpdate?.({
+        type: 'showError',
+        error: 'Migration error',
+      });
+    });
   return migrationEnsurePromise;
 }
 
@@ -368,20 +377,44 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
     }
   }
 
-  if (version === 14) {
+  if (version === 14 || version === 15) {
     if (getEnvironment().isIosApp) {
       const keys = await capacitorStorage.getKeys();
 
       if (keys?.length) {
+        const items: [string, any][] = [];
+
         for (const key of keys) {
+          if (key.startsWith('backup_')) {
+            continue;
+          }
+
+          const backupKey = `backup_${key}` as StorageKey;
           const value = await capacitorStorage.getItem(key as StorageKey, true);
-          await capacitorStorage.removeItem(key as StorageKey);
-          await capacitorStorage.setItem(key as StorageKey, value);
+
+          assert(value !== undefined, 'Empty value!');
+          await capacitorStorage.setItem(backupKey, value);
+          const backupValue = await capacitorStorage.getItem(backupKey);
+          assert(areDeepEqual(value, backupValue), 'Data has not been saved!');
+
+          items.push([key, value]);
+        }
+
+        for (const [key, value] of items) {
+          let shouldRewrite = false;
+          await capacitorStorage.setItem(key as StorageKey, value).catch(() => {
+            shouldRewrite = true;
+          });
+
+          if (shouldRewrite) {
+            await capacitorStorage.removeItem(key as StorageKey);
+            await capacitorStorage.setItem(key as StorageKey, value);
+          }
         }
       }
     }
 
-    version = 15;
+    version = 16;
     await storage.setItem('stateVersion', version);
   }
 }

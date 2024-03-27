@@ -65,7 +65,7 @@ export type ApiUpdateCreateSignature = {
 
 export type ApiUpdateShowError = {
   type: 'showError';
-  error?: ApiAnyDisplayError;
+  error?: ApiAnyDisplayError | string;
 };
 
 export type ApiUpdateStaking = {

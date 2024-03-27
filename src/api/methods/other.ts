@@ -60,12 +60,13 @@ export async function getClientId() {
 
 export async function fetchAccountConfigForDebugPurposesOnly() {
   try {
-    const [accounts, mnemonicsEncrypted] = await Promise.all([
+    const [accounts, mnemonicsEncrypted, stateVersion] = await Promise.all([
       fetchStoredAccounts(),
       storage.getItem('mnemonicsEncrypted'),
+      storage.getItem('stateVersion'),
     ]);
 
-    return JSON.stringify({ accounts, mnemonicsEncrypted });
+    return JSON.stringify({ accounts, mnemonicsEncrypted, stateVersion });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(err);

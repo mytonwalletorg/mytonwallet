@@ -2,7 +2,6 @@
 
 DESTINATION=${1:-"dist"}
 
-
 cp -R ./public/* "$DESTINATION"
 
 cp ./src/lib/rlottie/rlottie-wasm.js "$DESTINATION"

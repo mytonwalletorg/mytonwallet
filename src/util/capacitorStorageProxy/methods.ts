@@ -19,7 +19,14 @@ export async function init() {
 
 export async function getItem(key: StorageKey) {
   await promise;
-  return (await SecureStoragePlugin!.get({ key }).catch(() => undefined))?.value;
+  return (await SecureStoragePlugin!.get({ key }).catch((err) => {
+    const message = typeof err === 'string' ? err : err.message;
+    if (message.includes('key does not exist')) {
+      return undefined;
+    } else {
+      throw err;
+    }
+  }))?.value;
 }
 
 export async function setItem(key: StorageKey, value: string) {

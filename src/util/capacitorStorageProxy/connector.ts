@@ -22,12 +22,8 @@ export async function callWindow<T extends keyof WindowMethods>(methodName: T, .
     return undefined;
   }
 
-  try {
-    return await (connector.request({
-      name: methodName,
-      args,
-    }) as WindowMethodResponse<T>);
-  } catch (err) {
-    return undefined;
-  }
+  return (connector.request({
+    name: methodName,
+    args,
+  }) as WindowMethodResponse<T>);
 }
