@@ -141,7 +141,9 @@ function Transaction({
           {!isStaking && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
             address: <span className={styles.addressValue}>{addressName || shortenAddress(address)}</span>,
           })}
-          {isStake && lang('at APY %1$s%', apyValue)}
+          {isStake && lang('at %apy_value%', {
+            apy_value: <span className={styles.apyValue}>APY {apyValue}%</span>,
+          })}
           {(isUnstake || isUnstakeRequest) && '\u00A0'}
         </div>
       </div>
@@ -150,7 +152,7 @@ function Transaction({
 
   const waitingIconClassName = buildClassName(
     styles.iconWaiting,
-    isStaking && styles.iconWaitingStake,
+    isStake && styles.iconWaitingStake,
     'icon-clock',
   );
 

@@ -75,7 +75,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCr
     return result;
   }
 
-  const { encryptedComment } = result;
+  const { encryptedComment, msgHash } = result;
 
   if (!shouldCreateLocalTransaction) {
     return result;
@@ -89,6 +89,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCr
     encryptedComment,
     fee: fee || 0n,
     slug,
+    inMsgHash: msgHash,
   });
 
   return {
@@ -109,9 +110,12 @@ export async function waitLastTransfer(accountId: string) {
 export async function sendSignedTransferMessage(accountId: string, message: ApiSignedTransfer) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  await blockchain.sendSignedMessage(accountId, message);
+  const msgHash = await blockchain.sendSignedMessage(accountId, message);
 
-  const localTransaction = createLocalTransaction(accountId, message.params);
+  const localTransaction = createLocalTransaction(accountId, {
+    ...message.params,
+    inMsgHash: msgHash,
+  });
 
   return localTransaction.txId;
 }
@@ -122,7 +126,10 @@ export async function sendSignedTransferMessages(accountId: string, messages: Ap
   const result = await blockchain.sendSignedMessages(accountId, messages);
 
   for (let i = 0; i < result.successNumber; i++) {
-    createLocalTransaction(accountId, messages[i].params);
+    createLocalTransaction(accountId, {
+      ...messages[i].params,
+      inMsgHash: result.msgHashes[i],
+    });
   }
 
   return result;

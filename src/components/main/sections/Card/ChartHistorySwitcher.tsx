@@ -4,10 +4,13 @@ import { getActions, withGlobal } from '../../../../global';
 import type { TokenPeriod } from '../../../../global/types';
 
 import { HISTORY_PERIODS } from '../../../../config';
+import { selectCurrentAccountState } from '../../../../global/selectors';
 
 import useLastCallback from '../../../../hooks/useLastCallback';
 
 import DropdownMenu from '../../../ui/DropdownMenu';
+
+import styles from './ChartHistorySwitcher.module.scss';
 
 interface OwnProps {
   isOpen: boolean;
@@ -43,7 +46,9 @@ function ChartHistorySwitcher({
       isOpen={isOpen}
       onClose={onClose}
       items={ITEMS}
-      shouldTranslateOptions
+      className={styles.menuWrapper}
+      bubbleClassName={styles.menu}
+      buttonClassName={styles.menuItem}
       selectedValue={currentPeriod}
       menuPositionHorizontal="right"
       onSelect={handlePeriodChange}
@@ -51,8 +56,10 @@ function ChartHistorySwitcher({
   );
 }
 
-export default memo(withGlobal<OwnProps>((global) => {
+export default memo(withGlobal<OwnProps>((global): StateProps => {
+  const accountState = selectCurrentAccountState(global);
+
   return {
-    currentCurrency: global.settings.baseCurrency,
+    currentPeriod: accountState?.currentTokenPeriod,
   };
 })(ChartHistorySwitcher));

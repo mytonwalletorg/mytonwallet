@@ -169,11 +169,14 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
 
   await callApi('waitLastTransfer', accountId);
 
-  const [path, fromAddress, seqno] = await Promise.all([
+  const fromAddress = await callApi('fetchAddress', accountId);
+
+  const [path, walletInfo] = await Promise.all([
     getLedgerAccountPath(accountId),
-    callApi('fetchAddress', accountId),
-    callApi('getWalletSeqno', accountId),
+    callApi('getWalletInfo', network, fromAddress!),
   ]);
+
+  const { seqno, balance } = walletInfo!;
 
   let payload: TonPayloadFormat | undefined;
   const parsedAddress = Address.parseFriendly(toAddress);
@@ -194,10 +197,16 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
     }
   }
 
+  const isFullTonBalance = slug === TON_TOKEN_SLUG && balance === amount;
+
+  const sendMode = isFullTonBalance
+    ? SendMode.CARRY_ALL_REMAINING_BALANCE
+    : SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS;
+
   try {
     const signedCell = await tonTransport!.signTransaction(path, {
       to: Address.parse(toAddress),
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+      sendMode,
       seqno: seqno!,
       timeout: getTransferExpirationTime(),
       bounce: isBounceable,

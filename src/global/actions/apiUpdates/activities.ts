@@ -1,6 +1,6 @@
 import { TransferState } from '../../types';
 
-import { IS_CAPACITOR } from '../../../config';
+import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../config';
 import { compareActivities } from '../../../util/compareActivities';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTinyTransaction } from '../../helpers';
@@ -60,10 +60,14 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       for (const activity of activities) {
         if (activity.kind === 'transaction') {
           const localTransaction = localTransactions.find(({
-            amount, isIncoming, slug, normalizedAddress,
+            amount, isIncoming, slug, normalizedAddress, inMsgHash,
           }) => {
-            return amount === activity.amount && !isIncoming && slug === activity.slug
-              && normalizedAddress === activity.normalizedAddress;
+            if (slug === TON_TOKEN_SLUG) {
+              return inMsgHash === activity.inMsgHash;
+            } else {
+              return amount === activity.amount && !isIncoming && slug === activity.slug
+                && normalizedAddress === activity.normalizedAddress;
+            }
           });
 
           if (localTransaction) {

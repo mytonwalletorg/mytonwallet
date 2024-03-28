@@ -714,4 +714,8 @@
   font-weight: 600;
   color: var(--color-red);
   text-align: center;
+
+  .accounts + & {
+    margin-top: 1.25rem;
+  }
 }

@@ -57,8 +57,6 @@
   --color-gray-button-background-hover: #E7EAF1;
   --color-gray-button-background-light: #E5E9F0;
   --color-gray-button-background-light-hover: #EBEEF4;
-  --color-gray-button-background-desktop: #EAEDF3;
-  --color-gray-button-background-desktop-hover: #F4F6FA;
 
   --color-purple-button-text: #FFFFFF;
   --color-purple-button-text-hover: #FFFFFF;
@@ -112,7 +110,7 @@
   --color-interactive-popup-menu-hover: #F0F6FB;
   --color-interactive-popup-menu-descructive-hover: #FEF4F4;
   --color-interactive-drop-down-menu-hover: #F7F9FB;
-  --color-interactive-drop-down-menu-active: #EFF2F7;
+  --color-interactive-drop-down-menu-active: #EFF2F6;
 
   --color-tint: rgba(12, 12, 12, 0.4);
 
@@ -172,6 +170,7 @@
   --z-modal: 100;
   --z-menu-backdrop: 199;
   --z-menu-bubble: 200;
+  --z-over-menu-bubble: 201;
   --z-notification: 250;
   --z-tooltip: 300;
   --z-confetti: 400;
@@ -234,8 +233,6 @@
     --color-gray-button-background-hover: #525F6C;
     --color-gray-button-background-light: #293038;
     --color-gray-button-background-light-hover: #525F6C;
-    --color-gray-button-background-desktop: #39444F;
-    --color-gray-button-background-desktop-hover: #4B5A69;
 
     --color-purple-button-text: #FFFFFF;
     --color-purple-button-text-hover: #FFFFFF;

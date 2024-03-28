@@ -281,12 +281,14 @@ export async function sendTransaction(
     let boc: string | undefined;
     let successNumber: number | undefined;
     let error: string | undefined;
+    let msgHashes: string[] = [];
 
     if (isLedger) {
       const signedTransfers = response as ApiSignedTransfer[];
       const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
       boc = submitResult.externalMessage.toBoc().toString('base64');
       successNumber = submitResult.successNumber;
+      msgHashes = submitResult.msgHashes;
 
       if (successNumber > 0) {
         if (successNumber < messages.length) {
@@ -306,6 +308,7 @@ export async function sendTransaction(
       } else {
         boc = submitResult.boc;
         successNumber = messages.length;
+        msgHashes = [submitResult.msgHash];
       }
     }
 
@@ -316,8 +319,9 @@ export async function sendTransaction(
     const fromAddress = await fetchStoredAddress(accountId);
     const successTransactions = transactionsForRequest.slice(0, successNumber!);
 
-    successTransactions.forEach(({ amount, normalizedAddress, payload }) => {
+    successTransactions.forEach(({ amount, normalizedAddress, payload }, index) => {
       const comment = payload?.type === 'comment' ? payload.comment : undefined;
+      const msgHash = isLedger ? msgHashes[index] : msgHashes[0];
       createLocalTransaction(accountId, {
         amount,
         fromAddress,
@@ -325,6 +329,7 @@ export async function sendTransaction(
         comment,
         fee: checkResult.fee!,
         slug: TON_TOKEN_SLUG,
+        inMsgHash: msgHash,
       });
     });
 

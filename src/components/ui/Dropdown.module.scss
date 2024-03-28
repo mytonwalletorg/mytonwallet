@@ -11,7 +11,7 @@
   border-radius: var(--border-radius-small);
   outline: none;
 
-  transition: background-color 150ms;
+  transition: background-color 150ms, color 150ms;
 
   :global(html.animation-level-0) & {
     transition: none !important;
@@ -123,6 +123,8 @@
   }
 
   &_selected {
+    color: var(--color-selected-drop-down-item, var(--color-input-button-text));
+
     background-color: var(--color-interactive-drop-down-menu-active) !important;
   }
 

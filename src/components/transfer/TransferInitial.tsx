@@ -150,6 +150,8 @@ function TransferInitial({
     symbol,
   } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
 
+  const isTon = tokenSlug === TON_TOKEN_SLUG;
+  const isTonFullBalance = isTon && balance === amount;
   const tonToken = useMemo(() => tokens?.find((token) => token.slug === TON_TOKEN_SLUG), [tokens])!;
 
   const isQrScannerSupported = useQrScannerSupport();
@@ -164,7 +166,9 @@ function TransferInitial({
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const additionalAmount = amount && tokenSlug === TON_TOKEN_SLUG ? amount : 0n;
-  const isEnoughTon = fee && (fee + additionalAmount) <= tonToken.amount;
+  const isEnoughTon = isTonFullBalance
+    ? (fee && fee < tonToken.amount)
+    : (fee && (fee + additionalAmount) <= tonToken.amount);
 
   const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
     Boolean(amountInCurrency),
@@ -206,12 +210,15 @@ function TransferInitial({
         return;
       }
 
-      const tonAmount = tokenSlug === TON_TOKEN_SLUG ? newAmount : 0n;
+      const tonBalance = tonToken.amount;
+      const tonAmount = isTon ? newAmount : 0n;
 
       if (!balance || newAmount > balance) {
         setHasAmountError(true);
         setIsInsufficientBalance(true);
-      } else if (fee && (fee + tonAmount > tonToken.amount)) {
+      } else if (isTon && tonAmount === tonToken.amount) {
+        // Do nothing
+      } else if (fee && (fee >= tonBalance || (fee + tonAmount > tonBalance))) {
         setIsInsufficientFee(true);
       }
 
@@ -221,9 +228,9 @@ function TransferInitial({
 
   useEffect(() => {
     if (
-      tokenSlug === TON_TOKEN_SLUG
+      isTon
       && balance && amount && fee
-      && amount <= balance
+      && amount < balance
       && fee < balance
       && amount + fee >= balance
     ) {
@@ -231,7 +238,7 @@ function TransferInitial({
     } else {
       validateAndSetAmount(amount);
     }
-  }, [tokenSlug, amount, balance, fee, decimals, validateAndSetAmount]);
+  }, [isTon, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount]);
 
   useEffect(() => {
     if (!toAddress || hasToAddressError || !amount || !isAddressValid) {

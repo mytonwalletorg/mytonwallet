@@ -235,7 +235,7 @@ Confirm Unstaking: Confirm Unstaking
 Request for unstaking is sent!: Request for unstaking is sent!
 $unstaking_when_receive: You will receive your unstaked deposit in %time%.
 $unstake_insufficient_balance: You need to have %balance% on your main balance to proceed with unstaking.
-at APY %1$s%: at APY %1$s%
+at %apy_value%: at %apy_value%
 Staked: Staked
 Unstake Requested: Unstake Requested
 Unstaked: Unstaked

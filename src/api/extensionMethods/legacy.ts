@@ -154,6 +154,7 @@ export async function sendTransaction(params: {
     toAddress,
     fee: checkResult.fee!,
     slug: TON_TOKEN_SLUG,
+    inMsgHash: result.msgHash,
     ...(dataType === 'text' && {
       comment: data,
     }),
@@ -219,10 +220,12 @@ async function sendLedgerTransaction(
     parsedPayload,
   });
 
+  let msgHash: string;
+
   try {
     const [signedMessage] = await promise as ApiSignedTransfer[];
 
-    await ton.sendSignedMessage(accountId, signedMessage);
+    msgHash = await ton.sendSignedMessage(accountId, signedMessage);
   } catch (err) {
     logDebugError('sendLedgerTransaction', err);
     return false;
@@ -234,6 +237,7 @@ async function sendLedgerTransaction(
     toAddress,
     fee,
     slug: TON_TOKEN_SLUG,
+    inMsgHash: msgHash,
     ...(dataType === 'text' && {
       comment: data,
     }),

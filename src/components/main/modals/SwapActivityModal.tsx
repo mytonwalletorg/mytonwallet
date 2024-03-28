@@ -331,9 +331,11 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
         <div className={styles.infoBlock}>
           {renderSwapInfo()}
           {renderErrorMessage()}
-          <span className={buildClassName(styles.changellyDescription)}>
-            {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
-          </span>
+          {isCexWaiting && (
+            <span className={buildClassName(styles.changellyDescription)}>
+              {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
+            </span>
+          )}
         </div>
         <div className={styles.footer}>
           {renderFooterButton()}

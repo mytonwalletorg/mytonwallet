@@ -226,7 +226,7 @@ Confirm Unstaking: 确认解除质押
 Request for unstaking is sent!: 解除质押请求已发送!
 $unstaking_when_receive: 您将在 %time% 内收到解除质押的代币。
 $unstake_insufficient_balance: 您需要有 %balance% 在您的主账户中以进行解除质押的操作。
-at APY %1$s%: 当前年回报率 %1$s%
+at %apy_value%: 在%apy_value%
 Staked: 已质押
 Unstaked: 已解除质押
 The network fee has slightly changed, try sending again.: 网络费用已有细微变动，请尝试重新发送。

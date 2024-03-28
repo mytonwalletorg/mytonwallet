@@ -226,7 +226,7 @@ Confirm Unstaking: 確認解除質押
 Request for unstaking is sent!: 解除質押申請已送出!
 $unstaking_when_receive: 你將會在 %time% 後收到解除的質押數量。
 $unstake_insufficient_balance: 您的主帳戶餘額需要有 %balance% 才能繼續取消質押。
-at APY %1$s%: at APY %1$s%
+at %apy_value%: 在%apy_value%
 Staked: 已質押
 Unstaked: 已解除質押
 The network fee has slightly changed, try sending again.: 網路費略有變化，請重新發送交易。

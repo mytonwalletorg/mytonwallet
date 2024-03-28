@@ -4,7 +4,9 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TON_TOKEN_SLUG } from '../../../../config';
+import {
+  DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TON_TOKEN_SLUG,
+} from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { formatShortDay } from '../../../../util/dateFormat';

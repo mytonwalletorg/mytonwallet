@@ -70,6 +70,7 @@ function parseRawTransaction(network: ApiNetwork, rawTx: any, addressBook: Addre
   const txId = stringifyTxId({ lt, hash });
   const timestamp = now as number * 1000;
   const isIncoming = !!rawTx.in_msg.source;
+  const inMsgHash = rawTx.in_msg.hash;
   const msgs: any[] = isIncoming ? [rawTx.in_msg] : rawTx.out_msgs;
 
   if (!msgs.length) return [];
@@ -89,6 +90,7 @@ function parseRawTransaction(network: ApiNetwork, rawTx: any, addressBook: Addre
       amount: isIncoming ? BigInt(value) : -BigInt(value),
       slug: TON_TOKEN_SLUG,
       fee: BigInt(fee),
+      inMsgHash,
       normalizedAddress,
       extraData: {
         body: getRawBody(msg),

@@ -234,7 +234,7 @@ Confirm Unstaking: Confirmar retiro
 Request for unstaking is sent!: ¡Se envía una solicitud de retiro!
 $unstaking_when_receive: Recibirá su depósito apostado en %time%.
 $unstake_insufficient_balance: Debe tener %balance% en su saldo principal para proceder con la confirmación del retiro.
-at APY %1$s%: en APY %1$s%
+at %apy_value%: en %apy_value%
 Staked: Apostado
 Unstake Requested: Retiro solicitado
 Unstaked: Retirado

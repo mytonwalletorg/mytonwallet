@@ -222,7 +222,9 @@ function DappConnectModal({
             url={url}
             className={buildClassName(styles.dapp_first, styles.dapp_push)}
           />
-          {shouldRenderAccounts ? renderAccounts() : (
+          {shouldRenderAccounts && renderAccounts()}
+
+          {isHardwareAccountSelected && (
             <div className={styles.warningForSingeHardwareAccount}>
               {lang('Connecting dapps is not yet supported by Ledger.')}
             </div>

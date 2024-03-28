@@ -237,7 +237,7 @@ Confirm Unstaking: Unstaking bestätigen
 Request for unstaking is sent!: Die Anfrage zum unstaken wurde gesendet!
 $unstaking_when_receive: Sie erhalten Ihre unstaked Einzahlung in %time%.
 $unstake_insufficient_balance: Sie müssen %balance% auf Ihrem Hauptguthaben haben, um mit dem unstaken fortzufahren.
-at APY %1$s%: bei APY %1$s%
+at %apy_value%: bei %apy_value%
 Staked: Gestakt
 Unstake Requested: Unstaking angefordert
 Unstaked: Ungestakt

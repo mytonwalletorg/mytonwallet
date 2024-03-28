@@ -66,6 +66,7 @@ export async function submitStake(
     fee: fee || 0n,
     type: 'stake',
     slug: TON_TOKEN_SLUG,
+    inMsgHash: result.msgHash,
   });
 
   return {
@@ -100,6 +101,7 @@ export async function submitUnstake(
     fee: fee || 0n,
     type: 'unstakeRequest',
     slug: TON_TOKEN_SLUG,
+    inMsgHash: result.msgHash,
   });
 
   return {

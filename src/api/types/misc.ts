@@ -73,6 +73,7 @@ export interface ApiTransaction {
   slug: string;
   isIncoming: boolean;
   normalizedAddress: string;
+  inMsgHash: string;
   type?: ApiTransactionType;
   metadata?: ApiTransactionMetadata;
 }
@@ -177,7 +178,7 @@ export const TRANSFER_TIMEOUT_SEC = 60; // 1 min.
 export interface ApiSignedTransfer {
   base64: string;
   seqno: number;
-  params: ApiLocalTransactionParams;
+  params: Omit<ApiLocalTransactionParams, 'inMsgHash'>;
 }
 
 export type ApiLocalTransactionParams = Omit<ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'>;

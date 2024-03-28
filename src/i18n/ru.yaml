@@ -230,7 +230,7 @@ Confirm Unstaking: Подтвердить вывод
 Request for unstaking is sent!: Запрос на вывод отправлен!
 $unstaking_when_receive: Депозит будет выведен через %time%.
 $unstake_insufficient_balance: Вам необходимо иметь %balance% на вашем основном балансе, чтобы отправить заявку на вывод депозита.
-at APY %1$s%: при APY %1$s%
+at %apy_value%: при %apy_value%
 Staked: Стейкинг
 Unstake Requested: Запрос депозита
 Unstaked: Вывод стейка

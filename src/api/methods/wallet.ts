@@ -71,3 +71,9 @@ export function getWalletBalance(network: ApiNetwork, address: string) {
 
   return blockchain.getWalletBalance(network, address);
 }
+
+export function getWalletInfo(network: ApiNetwork, address: string) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.getWalletInfo(network, address);
+}

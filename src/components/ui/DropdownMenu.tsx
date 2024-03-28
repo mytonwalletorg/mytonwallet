@@ -17,6 +17,9 @@ interface OwnProps {
   menuPosition?: 'top' | 'bottom';
   menuPositionHorizontal?: 'right' | 'left';
   shouldTranslateOptions?: boolean;
+  className?: string;
+  bubbleClassName?: string;
+  buttonClassName?: string;
   onSelect?: (value: string) => void;
   onClose: NoneToVoidFunction;
 }
@@ -28,6 +31,9 @@ function DropdownMenu({
   menuPosition,
   menuPositionHorizontal,
   shouldTranslateOptions,
+  className,
+  bubbleClassName,
+  buttonClassName,
   onSelect,
   onClose,
 }: OwnProps) {
@@ -41,24 +47,27 @@ function DropdownMenu({
 
   return (
     <Menu
+      isOpen={isOpen}
       positionX={menuPositionHorizontal}
       positionY={menuPosition}
-      isOpen={isOpen}
-      onClose={onClose}
       type="dropdown"
+      className={className}
+      bubbleClassName={bubbleClassName}
+      onClose={onClose}
     >
       {items.map((item) => {
-        const buttonClassName = buildClassName(
+        const fullButtonClassName = buildClassName(
           styles.item,
           item.icon && styles.item_with_icon,
           selectedValue === item.value && styles.item_selected,
+          buttonClassName,
         );
         return (
           <button
             key={item.value}
             type="button"
             onClick={(e) => handleItemClick(e, item.value)}
-            className={buttonClassName}
+            className={fullButtonClassName}
           >
             {item.icon && <img src={item.icon} alt="" className={styles.itemIcon} />}
             <span className={buildClassName(styles.itemName, 'menuItemName')}>

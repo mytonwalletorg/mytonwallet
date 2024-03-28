@@ -324,6 +324,12 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
     await storage.setItem('stateVersion', version);
   }
 
+  let isIosKeychainModeMigrated = false;
+  if (getEnvironment().isIosApp && version >= 10 && version <= 13) {
+    await iosBackupAndMigrateKeychainMode();
+    isIosKeychainModeMigrated = true;
+  }
+
   if (version === 10 || version === 11 || version === 12) {
     const accounts: Record<string, {
       publicKey: string;
@@ -378,43 +384,47 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
   }
 
   if (version === 14 || version === 15) {
-    if (getEnvironment().isIosApp) {
-      const keys = await capacitorStorage.getKeys();
-
-      if (keys?.length) {
-        const items: [string, any][] = [];
-
-        for (const key of keys) {
-          if (key.startsWith('backup_')) {
-            continue;
-          }
-
-          const backupKey = `backup_${key}` as StorageKey;
-          const value = await capacitorStorage.getItem(key as StorageKey, true);
-
-          assert(value !== undefined, 'Empty value!');
-          await capacitorStorage.setItem(backupKey, value);
-          const backupValue = await capacitorStorage.getItem(backupKey);
-          assert(areDeepEqual(value, backupValue), 'Data has not been saved!');
-
-          items.push([key, value]);
-        }
-
-        for (const [key, value] of items) {
-          let shouldRewrite = false;
-          await capacitorStorage.setItem(key as StorageKey, value).catch(() => {
-            shouldRewrite = true;
-          });
-
-          if (shouldRewrite) {
-            await capacitorStorage.removeItem(key as StorageKey);
-            await capacitorStorage.setItem(key as StorageKey, value);
-          }
-        }
-      }
+    if (getEnvironment().isIosApp && !isIosKeychainModeMigrated) {
+      await iosBackupAndMigrateKeychainMode();
     }
 
     version = 16;
     await storage.setItem('stateVersion', version);
+  }
+}
+
+async function iosBackupAndMigrateKeychainMode() {
+  const keys = await capacitorStorage.getKeys();
+
+  if (keys?.length) {
+    const items: [string, any][] = [];
+
+    for (const key of keys) {
+      if (key.startsWith('backup_')) {
+        continue;
+      }
+
+      const backupKey = `backup_${key}` as StorageKey;
+      const value = await capacitorStorage.getItem(key as StorageKey, true);
+
+      assert(value !== undefined, 'Empty value!');
+      await capacitorStorage.setItem(backupKey, value);
+      const backupValue = await capacitorStorage.getItem(backupKey);
+      assert(areDeepEqual(value, backupValue), 'Data has not been saved!');
+
+      items.push([key, value]);
+    }
+
+    for (const [key, value] of items) {
+      let shouldRewrite = false;
+      await capacitorStorage.setItem(key as StorageKey, value).catch(() => {
+        shouldRewrite = true;
+      });
+
+      if (shouldRewrite) {
+        await capacitorStorage.removeItem(key as StorageKey);
+        await capacitorStorage.setItem(key as StorageKey, value);
+      }
+    }
   }
 }

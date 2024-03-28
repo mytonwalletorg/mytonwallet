@@ -45,11 +45,11 @@
   }
 
   &.bottom {
-    bottom: var(--offset-y);
+    bottom: var(--offset-y-value, var(--offset-y));
   }
 
   &.left {
-    left: var(--offset-x);
+    left: var(--offset-x-value, var(--offset-x));
   }
 
   &.right {
@@ -96,7 +96,7 @@
 .dropdown {
   --offset-y: 0.25rem;
 
-  transform: translateY(-0.375rem) !important;
+  transform: translate(var(--translate-x, 0), -0.375rem) !important;
 
   overflow: auto;
   overflow-y: scroll;
@@ -109,7 +109,7 @@
 
   :global(html.animation-level-0) &,
   &:global(.open) {
-    transform: translateY(0) !important;
+    transform: translate(var(--translate-x, 0), 0) !important;
   }
 
   &.right {
@@ -118,10 +118,10 @@
   }
 
   &.bottom {
-    transform: translateY(0.375rem) !important;
+    transform: translate(var(--translate-x, 0), 0.375rem) !important;
 
     &:global(.open) {
-      transform: translateY(0) !important;
+      transform: translate(var(--translate-x, 0), 0) !important;
     }
   }
 }

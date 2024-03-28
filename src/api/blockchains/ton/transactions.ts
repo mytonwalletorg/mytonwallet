@@ -71,6 +71,7 @@ export type SubmitTransferResult = {
   toAddress: string;
   amount: bigint;
   seqno: number;
+  msgHash: string;
   encryptedComment?: string;
 } | {
   error: string;
@@ -81,6 +82,7 @@ type SubmitMultiTransferResult = {
   amount: string;
   seqno: number;
   boc: string;
+  msgHash: string;
 } | {
   error: string;
 };
@@ -259,7 +261,12 @@ export async function checkTransactionDraft(
 
     const balance = await getWalletBalance(network, wallet);
 
-    if (balance < amount + realFee) {
+    const isFullTonBalance = tokenSlug === TON_TOKEN_SLUG && balance === amount;
+    const isEnoughBalance = isFullTonBalance
+      ? balance > realFee
+      : balance >= amount + realFee;
+
+    if (!isEnoughBalance) {
       return {
         ...result,
         error: ApiTransactionDraftError.InsufficientBalance,
@@ -334,22 +341,30 @@ export async function submitTransfer(
     await waitLastTransfer(network, fromAddress);
 
     const { balance } = await getWalletInfo(network, wallet!);
+    const isFullTonBalance = tokenSlug === TON_TOKEN_SLUG && balance === amount;
 
     const { seqno, transaction } = await signTransaction(
-      network, wallet!, toAddress, amount, data, stateInit, secretKey,
+      network, wallet!, toAddress, amount, data, stateInit, secretKey, isFullTonBalance,
     );
 
     const fee = await calculateFee(network, wallet!, transaction, account.isInitialized);
-    if (balance < amount + fee) {
+
+    const isEnoughBalance = isFullTonBalance
+      ? balance > fee
+      : balance >= amount + fee;
+
+    if (!isEnoughBalance) {
       return { error: ApiTransactionError.InsufficientBalance };
     }
 
+    const client = getTonClient(network);
     await wallet!.send(transaction);
+    const msgHash = client.popLastMessageHash();
 
     updateLastTransfer(network, fromAddress, seqno);
 
     return {
-      amount, seqno, encryptedComment, toAddress,
+      amount, seqno, encryptedComment, toAddress, msgHash,
     };
   } catch (err: any) {
     logDebugError('submitTransfer', err);
@@ -377,6 +392,7 @@ async function signTransaction(
   payload?: AnyPayload,
   stateInit?: Cell,
   privateKey: Uint8Array = new Uint8Array(64),
+  isFullBalance?: boolean,
 ) {
   const { seqno } = await getWalletInfo(network, wallet);
 
@@ -389,6 +405,10 @@ async function signTransaction(
     data: stateInit.refs[1],
   } : undefined;
 
+  const sendMode = isFullBalance
+    ? SendMode.CARRY_ALL_REMAINING_BALANCE
+    : SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS;
+
   const transaction = wallet.createTransfer({
     seqno,
     secretKey: Buffer.from(privateKey),
@@ -399,7 +419,7 @@ async function signTransaction(
       init,
       bounce: parseAddress(toAddress).isBounceable,
     })],
-    sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    sendMode,
   });
 
   return { seqno, transaction };
@@ -624,7 +644,9 @@ export async function submitMultiTransfer(
       return { error: ApiTransactionError.InsufficientBalance };
     }
 
+    const tonClient = getTonClient(network);
     await wallet!.send(transaction);
+    const msgHash = tonClient.lastMessageHash!;
 
     updateLastTransfer(network, fromAddress, seqno);
 
@@ -633,6 +655,7 @@ export async function submitMultiTransfer(
       amount: totalAmount.toString(),
       messages,
       boc,
+      msgHash,
     };
   } catch (err) {
     logDebugError('submitMultiTransfer', err);
@@ -771,8 +794,11 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
 
   const { base64, seqno } = message;
   await contract.send(Cell.fromBase64(base64));
+  const msgHash = client.popLastMessageHash();
 
   updateLastTransfer(network, fromAddress, seqno);
+
+  return msgHash;
 }
 
 export async function sendSignedMessages(accountId: string, messages: ApiSignedTransfer[]) {
@@ -790,12 +816,14 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     contract, messages[0].seqno, Cell.fromBase64(messages[0].base64),
   );
 
+  const msgHashes: string[] = [];
   while (index < messages.length && attempt < attempts) {
     const { base64, seqno } = messages[index];
     try {
       await waitLastTransfer(network, fromAddress);
 
       await contract.send(Cell.fromBase64(base64));
+      msgHashes.push(client.popLastMessageHash());
 
       updateLastTransfer(network, fromAddress, seqno);
 
@@ -806,7 +834,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     attempt++;
   }
 
-  return { successNumber: index, externalMessage: firstExternalMessage };
+  return { successNumber: index, externalMessage: firstExternalMessage, msgHashes };
 }
 
 export async function decryptComment(
