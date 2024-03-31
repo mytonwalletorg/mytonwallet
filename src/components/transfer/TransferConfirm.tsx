@@ -50,6 +50,7 @@ function TransferConfirm({
     toAddressName,
     isToNewAddress,
     isScam,
+    binPayload,
   },
   symbol,
   decimals,
@@ -70,6 +71,19 @@ function TransferConfirm({
   });
 
   function renderComment() {
+    if (binPayload) {
+      return (
+        <>
+          <div className={styles.label}>{lang('Data to sign')}</div>
+          <InteractiveTextField
+            text={binPayload!}
+            copyNotification={lang('Data was copied!')}
+            className={styles.addressWidget}
+          />
+        </>
+      );
+    }
+
     if (!comment) {
       return undefined;
     }

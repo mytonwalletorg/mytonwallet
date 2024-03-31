@@ -12,6 +12,7 @@ import {
   EXCHANGE_ADDRESSES, IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG,
 } from '../../config';
 import { Big } from '../../lib/big.js';
+import renderText from '../../global/helpers/renderText';
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
@@ -41,6 +42,7 @@ import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
+import InteractiveTextField from '../ui/InteractiveTextField';
 import Menu from '../ui/Menu';
 import RichNumberInput from '../ui/RichNumberInput';
 import Transition from '../ui/Transition';
@@ -68,6 +70,7 @@ interface StateProps {
   isEncryptedCommentSupported: boolean;
   isCommentSupported: boolean;
   baseCurrency?: ApiBaseCurrency;
+  binPayload?: string;
 }
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
@@ -102,6 +105,7 @@ function TransferInitial({
   isLoading,
   onCommentChange,
   baseCurrency,
+  binPayload,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -251,9 +255,10 @@ function TransferInitial({
         toAddress,
         amount,
         comment,
+        binPayload,
       });
     });
-  }, [amount, comment, fetchFee, hasToAddressError, isAddressValid, toAddress, tokenSlug]);
+  }, [amount, binPayload, comment, fetchFee, hasToAddressError, isAddressValid, toAddress, tokenSlug]);
 
   const handleTokenChange = useLastCallback(
     (slug: string) => {
@@ -649,7 +654,7 @@ function TransferInitial({
           </div>
         </div>
 
-        {isCommentSupported && (
+        {isCommentSupported && !binPayload && (
           <Input
             wrapperClassName={styles.commentInputWrapper}
             className={isStatic ? styles.inputStatic : undefined}
@@ -661,6 +666,21 @@ function TransferInitial({
             onInput={handleCommentChange}
             isRequired={isCommentRequired}
           />
+        )}
+
+        {Boolean(binPayload) && (
+          <>
+            <div className={styles.label}>{lang('Data to sign')}</div>
+            <InteractiveTextField
+              text={binPayload!}
+              copyNotification={lang('Data was copied!')}
+              className={styles.addressWidget}
+            />
+
+            <div className={styles.error}>
+              {renderText(lang('$signature_warning'))}
+            </div>
+          </>
         )}
 
         <div className={modalStyles.buttons}>
@@ -690,6 +710,7 @@ export default memo(
         tokenSlug,
         isLoading,
         state,
+        binPayload,
       } = global.currentTransfer;
 
       const isLedger = selectIsHardwareAccount(global);
@@ -703,6 +724,7 @@ export default memo(
         shouldEncrypt,
         fee,
         tokenSlug,
+        binPayload,
         tokens: selectCurrentAccountTokens(global),
         savedAddresses: accountState?.savedAddresses,
         isEncryptedCommentSupported: !isLedger,

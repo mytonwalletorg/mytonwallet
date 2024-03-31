@@ -1,4 +1,4 @@
-import React, { memo } from '../../../../lib/teact/teact';
+import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { TokenPeriod } from '../../../../global/types';
@@ -14,6 +14,7 @@ import styles from './ChartHistorySwitcher.module.scss';
 
 interface OwnProps {
   isOpen: boolean;
+  isTon: boolean;
   onClose: NoneToVoidFunction;
   onChange?: (period: TokenPeriod) => void;
 }
@@ -22,15 +23,21 @@ interface StateProps {
   currentPeriod?: TokenPeriod;
 }
 
-const ITEMS = HISTORY_PERIODS.map((key) => ({ value: key, name: key }));
+const ITEMS = HISTORY_PERIODS.map((key) => ({ value: key, name: key === 'ALL' ? 'All' : key }));
 
 function ChartHistorySwitcher({
   isOpen,
+  isTon,
   currentPeriod,
   onClose,
   onChange,
 }: OwnProps & StateProps) {
   const { setCurrentTokenPeriod } = getActions();
+
+  const RENDERED_ITEMS = useMemo(() => {
+    // The `ALL` range is only available for TON
+    return ITEMS.map(({ value, name }) => ({ value, name, isDisabled: value === 'ALL' && !isTon }));
+  }, [isTon]);
 
   const handlePeriodChange = useLastCallback((period: string) => {
     onClose();
@@ -45,7 +52,7 @@ function ChartHistorySwitcher({
     <DropdownMenu
       isOpen={isOpen}
       onClose={onClose}
-      items={ITEMS}
+      items={RENDERED_ITEMS}
       className={styles.menuWrapper}
       bubbleClassName={styles.menu}
       buttonClassName={styles.menuItem}

@@ -124,6 +124,7 @@ export type ApiUpdatePrepareTransaction = {
   toAddress: string;
   amount?: bigint;
   comment?: string;
+  binPayload?: string;
 };
 
 export type ApiUpdateNfts = {

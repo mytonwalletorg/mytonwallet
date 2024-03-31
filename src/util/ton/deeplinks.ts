@@ -11,11 +11,13 @@ export function parseTonDeeplink(value: string | unknown) {
     const to = url.pathname.replace(/.*\//, '');
     const amount = url.searchParams.get('amount') ?? undefined;
     const comment = url.searchParams.get('text') ?? undefined;
+    const binPayload = url.searchParams.get('bin') ?? undefined;
 
     return {
       to,
       amount: amount ? BigInt(amount) : undefined,
       comment,
+      binPayload,
     };
   } catch (err) {
     return undefined;

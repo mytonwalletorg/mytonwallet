@@ -60,7 +60,13 @@ export function updateActivity(global: GlobalState, accountId: string, activity:
   });
 }
 
-export function assignRemoteTxId(global: GlobalState, accountId: string, txId: string, newTxId: string) {
+export function assignRemoteTxId(
+  global: GlobalState,
+  accountId: string,
+  txId: string,
+  newTxId: string,
+  newAmount: bigint,
+) {
   const { activities } = selectAccountState(global, accountId) || {};
   const { byId, idsBySlug } = activities || { byId: {}, idsBySlug: {} };
   const replacedActivity: ApiActivity | undefined = byId[txId];
@@ -83,7 +89,12 @@ export function assignRemoteTxId(global: GlobalState, accountId: string, txId: s
 
   const updatedByTxId = {
     ...byId,
-    [newTxId]: { ...replacedActivity, id: newTxId, txId: newTxId },
+    [newTxId]: {
+      ...replacedActivity,
+      id: newTxId,
+      txId: newTxId,
+      amount: newAmount,
+    },
   };
 
   delete updatedByTxId[txId];

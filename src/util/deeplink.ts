@@ -55,6 +55,7 @@ export async function processTonDeeplink(url: string) {
       toAddress: params.to,
       amount: params.amount,
       comment: params.comment,
+      binPayload: params.binPayload,
     });
   } else {
     actions.setTransferToAddress({ toAddress: params.to });

@@ -97,7 +97,6 @@ Log Out: Cüzdanı kaldırın
 $logout_without_backup_warning: Bu cüzdanı yedeklemediniz. Cüzdanı kaldırırsanız tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz.
 $logout_accounts_without_backup_warning: "%links% için yedekleme yapmadınız. Devam ederseniz tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz."
 $logout_warning: Bu işlem, mevcut cüzdanı uygulamadan kaldıracaktır. **%1$d gizli kelimenizi** yedeklediğinizden emin olun.
-Receive TON: TON al
 Your address was copied!: Adresiniz kopyalandı!
 Show QR Code: QR Kodunu Göster
 Create Deposit Link: Para Yatırma Bağlantısı Oluşturun
@@ -122,9 +121,7 @@ Network: Ağ
 Developer Options: Geliştirici Seçenekleri
 Confirmation: Onay
 Data to sign: İmzalanacak veriler
-$signature_warning: |
-  Özelleştirilmiş verilerin imzalanması çok tehlikelidir.
-  Sadece ne yaptığınızı biliyorsanız bu işlevi kullanın.
+$signature_warning: Özelleştirilmiş verilerin imzalanması çok tehlikelidir. Yalnızca kaynağına güveniyorsanız kullanın.
 Sign: İmzala
 Done!: Tamamlandı!
 Signing was confirmed!: İmza onaylandı!
@@ -556,3 +553,4 @@ Open Settings: Ayarları aç
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Yatırdığınız tutarı stake işleminden çekmek için gerekli olan önemli bir hizmet tokenını aktarmak üzeresiniz.
 No Price: Fiyat yok
 Connecting dapps is not yet supported by Ledger.: Dapp'lerin bağlanması henüz Ledger tarafından desteklenmiyor.
+Data was copied!: Veri kopyalandı!

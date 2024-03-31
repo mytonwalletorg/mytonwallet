@@ -165,6 +165,7 @@ export interface ApiSubmitTransferOptions {
   comment?: string;
   fee?: bigint;
   shouldEncrypt?: boolean;
+  isBase64Data?: boolean;
 }
 
 export enum Workchain {

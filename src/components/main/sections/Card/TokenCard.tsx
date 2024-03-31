@@ -1,4 +1,6 @@
-import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo, useState,
+} from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiBaseCurrency } from '../../../../api/types';
@@ -65,7 +67,7 @@ function TokenCard({
   baseCurrency,
   historyPeriods,
 }: OwnProps & StateProps) {
-  const { loadPriceHistory } = getActions();
+  const { loadPriceHistory, setCurrentTokenPeriod } = getActions();
   const lang = useLang();
   const forceUpdate = useForceUpdate();
   const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
@@ -86,8 +88,8 @@ function TokenCard({
     ? tonUrl
     : image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
 
-  const refreshHistory = useLastCallback((_period?: TokenPeriod) => {
-    loadPriceHistory({ slug, period: _period ?? period });
+  const refreshHistory = useLastCallback((newPeriod?: TokenPeriod) => {
+    loadPriceHistory({ slug, period: newPeriod ?? period });
   });
 
   const handleCurrencyChange = useLastCallback((currency: ApiBaseCurrency) => {
@@ -95,6 +97,13 @@ function TokenCard({
   });
 
   useInterval(refreshHistory, INTERVAL);
+
+  useEffect(() => {
+    // The `ALL` range is only available for TON
+    if (period === 'ALL' && token.slug !== TON_TOKEN_SLUG) {
+      setCurrentTokenPeriod({ period: HISTORY_PERIODS[HISTORY_PERIODS.length - 2] });
+    }
+  }, [period, token.slug]);
 
   const history = historyPeriods?.[period];
 
@@ -204,10 +213,11 @@ function TokenCard({
         tabIndex={0}
         onClick={openHistoryMenu}
       >
-        {period}
+        {period === 'ALL' ? 'All' : period}
         <i className={buildClassName('icon', 'icon-caret-down', styles.iconCaretSmall)} aria-hidden />
         <ChartHistorySwitcher
           isOpen={isHistoryMenuOpen}
+          isTon={token.slug === TON_TOKEN_SLUG}
           onChange={refreshHistory}
           onClose={closeHistoryMenu}
         />

@@ -1,5 +1,5 @@
 import type {
-  ApiActivity, ApiBaseToken, ApiDappTransaction, ApiSwapAsset, ApiToken,
+  ApiActivity, ApiBaseToken, ApiDappTransaction, ApiSubmitTransferOptions, ApiSwapAsset, ApiToken,
 } from '../../../api/types';
 import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
@@ -174,7 +174,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
 
 addActionHandler('fetchFee', async (global, actions, payload) => {
   const {
-    tokenSlug, toAddress, amount, comment, shouldEncrypt,
+    tokenSlug, toAddress, amount, comment, shouldEncrypt, binPayload,
   } = payload;
 
   const result = await callApi(
@@ -183,8 +183,9 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
     tokenSlug,
     toAddress,
     amount,
-    comment,
+    binPayload ?? comment,
     shouldEncrypt,
+    Boolean(binPayload),
   );
 
   if (result?.fee) {
@@ -217,6 +218,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     tokenSlug,
     fee,
     shouldEncrypt,
+    binPayload,
   } = global.currentTransfer;
 
   if (!(await callApi('verifyPassword', password))) {
@@ -250,15 +252,16 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     return;
   }
 
-  const options = {
+  const options: ApiSubmitTransferOptions = {
     accountId: global.currentAccountId!,
     password,
     slug: tokenSlug!,
     toAddress: resolvedAddress!,
     amount: amount!,
-    comment,
+    comment: binPayload ?? comment,
     fee,
     shouldEncrypt,
+    isBase64Data: Boolean(binPayload),
   };
 
   const result = await callApi('submitTransfer', options);

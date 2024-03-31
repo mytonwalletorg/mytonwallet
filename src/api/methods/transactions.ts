@@ -51,24 +51,30 @@ export async function fetchAllActivitySlice(accountId: string, lastTxIds: ApiTxI
 }
 
 export function checkTransactionDraft(
-  accountId: string, slug: string, toAddress: string, amount: bigint, comment?: string, shouldEncrypt?: boolean,
+  accountId: string,
+  slug: string,
+  toAddress: string,
+  amount: bigint,
+  comment?: string,
+  shouldEncrypt?: boolean,
+  isBase64Data?: boolean,
 ) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   return blockchain.checkTransactionDraft(
-    accountId, slug, toAddress, amount, comment, undefined, shouldEncrypt,
+    accountId, slug, toAddress, amount, comment, undefined, shouldEncrypt, isBase64Data,
   );
 }
 
 export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCreateLocalTransaction = true) {
   const {
-    accountId, password, slug, toAddress, amount, comment, fee, shouldEncrypt,
+    accountId, password, slug, toAddress, amount, comment, fee, shouldEncrypt, isBase64Data,
   } = options;
 
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
   const fromAddress = await fetchStoredAddress(accountId);
   const result = await blockchain.submitTransfer(
-    accountId, password, slug, toAddress, amount, comment, undefined, shouldEncrypt,
+    accountId, password, slug, toAddress, amount, comment, undefined, shouldEncrypt, isBase64Data,
   );
 
   if ('error' in result) {

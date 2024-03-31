@@ -62,10 +62,16 @@ export async function prepareTransaction(params: {
   to: string;
   amount?: string;
   comment?: string;
+  binPayload?: string;
 }) {
   await getCurrentAccountIdOrFail();
 
-  const { to: toAddress, amount, comment } = params;
+  const {
+    to: toAddress,
+    amount,
+    comment,
+    binPayload,
+  } = params;
 
   await openPopupWindow();
   await waitLogin();
@@ -75,6 +81,7 @@ export async function prepareTransaction(params: {
     toAddress,
     amount: amount ? BigInt(amount) : undefined,
     comment,
+    binPayload,
   });
 }
 

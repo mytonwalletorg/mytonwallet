@@ -93,7 +93,6 @@ Log Out: 退出登录
 $logout_without_backup_warning: 您尚未备份钱包！如果您注销，您将永远丧失您的代币和 NFT ！
 $logout_accounts_without_backup_warning: 您还没有备份此账户 %links%。 如果您注销，您将永远丧失您的代币和 NFT ！
 $logout_warning: 这将断开钱包与此应用程序的连接，您将能使用 **%1$d 个密钥** 恢复您的钱包 - 或导入另一个钱包。
-Receive TON: 接收 TON
 Your address was copied!: 您的地址已复制！
 Show QR Code: 显示二维码
 Create Deposit Link: 创建存款链接
@@ -117,7 +116,7 @@ Developer Options: 开发者选项
 Confirmation: 确认
 Data to sign: 签署数据
 $signature_warning: |
-  签署自定义数据是**非常危险**的！如果您不知道自己在做什么，请不要使用此功能！
+  签署自定义数据是**非常危险**的！仅当您信任其来源时才使用它！
 Sign: 签署
 Done!: 完成!
 Signing was confirmed!: 签署已确认!
@@ -540,3 +539,4 @@ Open Settings: 打开设置
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: 您即将转移一个重要的服务代币，这是从质押中提取押金所必需的。
 No Price: 无价格
 Connecting dapps is not yet supported by Ledger.: Ledger 尚不支持连接 dapp。
+Data was copied!: 数据被复制！

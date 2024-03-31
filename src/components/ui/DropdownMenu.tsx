@@ -59,6 +59,7 @@ function DropdownMenu({
         const fullButtonClassName = buildClassName(
           styles.item,
           item.icon && styles.item_with_icon,
+          item.isDisabled && styles.disabled,
           selectedValue === item.value && styles.item_selected,
           buttonClassName,
         );
@@ -66,8 +67,9 @@ function DropdownMenu({
           <button
             key={item.value}
             type="button"
-            onClick={(e) => handleItemClick(e, item.value)}
             className={fullButtonClassName}
+            disabled={item.isDisabled}
+            onClick={(e) => handleItemClick(e, item.value)}
           >
             {item.icon && <img src={item.icon} alt="" className={styles.itemIcon} />}
             <span className={buildClassName(styles.itemName, 'menuItemName')}>

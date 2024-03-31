@@ -113,7 +113,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-80';
+export const LANG_CACHE_NAME = 'mtw-lang-82';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -271,4 +271,4 @@ export const DEFAULT_TIMEOUT = 5000;
 export const DEFAULT_RETRIES = 3;
 export const DEFAULT_ERROR_PAUSE = 200;
 
-export const HISTORY_PERIODS: TokenPeriod[] = ['1D', '7D', '1M', '3M', '1Y'];
+export const HISTORY_PERIODS: TokenPeriod[] = ['1D', '7D', '1M', '3M', '1Y', 'ALL'];

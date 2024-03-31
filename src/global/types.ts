@@ -233,7 +233,7 @@ export type UserSwapToken = {
   contract?: string;
 } & Omit<UserToken, 'change24h'>;
 
-export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y';
+export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
 
 export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
@@ -356,6 +356,7 @@ export type GlobalState = {
     amount?: bigint;
     fee?: bigint;
     comment?: string;
+    binPayload?: string;
     promiseId?: string;
     txId?: string;
     rawPayload?: string;
@@ -594,6 +595,7 @@ export interface ActionPayloads {
     amount?: bigint;
     toAddress?: string;
     comment?: string;
+    binPayload?: string;
   } | undefined;
   changeTransferToken: { tokenSlug: string };
   fetchFee: {
@@ -602,6 +604,7 @@ export interface ActionPayloads {
     toAddress: string;
     comment?: string;
     shouldEncrypt?: boolean;
+    binPayload?: string;
   };
   submitTransferInitial: {
     tokenSlug: string;

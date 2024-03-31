@@ -16,7 +16,8 @@ rm -rf ./dist/statoscope-* \
   ./dist/background-electron-dmg.tiff \
   ./dist/electron-entitlements.mac.plist \
   ./dist/icon-electron-* \
-  ./dist/site.webmanifest
+  ./dist/site.webmanifest \
+  ./dist/_headers
 
 rm -f "MyTonWallet-$TARGET.zip"
 

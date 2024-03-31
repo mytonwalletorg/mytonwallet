@@ -71,9 +71,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           });
 
           if (localTransaction) {
-            const { txId } = activity;
+            const { txId, amount } = activity;
             const localTxId = localTransaction.txId;
-            global = assignRemoteTxId(global, accountId, localTxId, txId);
+            global = assignRemoteTxId(global, accountId, localTxId, txId, amount);
 
             if (global.currentTransfer.txId === localTxId) {
               global = updateCurrentTransfer(global, { txId });

@@ -97,7 +97,6 @@ Log Out: Cerrar sesión
 $logout_without_backup_warning: No ha realizado copia de seguridad de este monedero. Si cierra sesión, perderá el acceso a sus activos.
 $logout_accounts_without_backup_warning: No ha realizado copia de seguridad de %links%. Si cierra sesión, perderá el acceso a sus activos.
 $logout_warning: Esto desconectará el monedero de esta aplicación. Podrá restaurar su monedero usando la frase semilla...
-Receive TON: Recibir TON
 Your address was copied!: ¡Su dirección fue copiada!
 Show QR Code: Mostrar código QR
 Create Deposit Link: Crear enlace de depósito
@@ -122,9 +121,7 @@ Network: Red
 Developer Options: Opciones de desarrollador
 Confirmation: Confirmar
 Data to sign: Datos a firmar
-$signature_warning: |
-  Firmar datos personalizados es muy peligroso.
-  Úselo solo si sabe lo que está haciendo.
+$signature_warning: Firmar datos personalizados es muy peligroso. Úselo sólo si confía en su fuente.
 Sign: Firmar
 Done!: ¡Listo!
 Signing was confirmed!: ¡La firma fue confirmada!
@@ -554,3 +551,4 @@ Open Settings: Configuración abierta
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Está a punto de transferir un token de servicio importante, que es necesario para retirar su depósito de la apuesta.
 No Price: Sin precio
 Connecting dapps is not yet supported by Ledger.: Ledger aún no admite la conexión de dapps.
+Data was copied!: ¡Los datos fueron copiados!

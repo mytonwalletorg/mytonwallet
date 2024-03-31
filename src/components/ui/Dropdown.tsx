@@ -14,6 +14,7 @@ export interface DropdownItem {
   value: string;
   name: string;
   icon?: string;
+  isDisabled?: boolean;
 }
 
 interface OwnProps {

@@ -51,7 +51,7 @@ function ReceiveModal({
     <>
       <Modal
         isOpen={isOpen}
-        title={lang('Receive TON')}
+        title={lang('Receive')}
         hasCloseButton
         contentClassName={styles.content}
         nativeBottomSheetKey="receive"

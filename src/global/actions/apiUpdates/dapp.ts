@@ -137,6 +137,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         amount,
         toAddress,
         comment,
+        binPayload,
       } = update;
 
       global = clearCurrentTransfer(global);
@@ -146,6 +147,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         amount: amount ?? 0n,
         comment,
         tokenSlug: TON_TOKEN_SLUG,
+        binPayload,
       });
 
       setGlobal(global);
