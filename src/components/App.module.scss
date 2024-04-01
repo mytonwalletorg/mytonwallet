@@ -50,6 +50,10 @@
   @supports (padding-top: env(safe-area-inset-top)) {
     padding-top: env(safe-area-inset-top);
   }
+
+  :global(body.is-media-viewer-open) & {
+    overflow: hidden !important;
+  }
 }
 
 :global(html.is-electron) .transitionContainer {

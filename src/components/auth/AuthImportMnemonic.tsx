@@ -40,7 +40,7 @@ const SLIDE_ANIMATION_DURATION_MS = 250;
 const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProps) => {
   const {
     afterImportMnemonic,
-    restartAuth,
+    resetAuth,
   } = getActions();
 
   const lang = useLang();
@@ -100,7 +100,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
 
   const handleCancel = useLastCallback(() => {
     setTimeout(() => {
-      restartAuth();
+      resetAuth();
     }, SLIDE_ANIMATION_DURATION_MS);
   });
 

@@ -72,6 +72,7 @@ function DropdownMenu({
             onClick={(e) => handleItemClick(e, item.value)}
           >
             {item.icon && <img src={item.icon} alt="" className={styles.itemIcon} />}
+            {item.fontIcon && <i className={buildClassName(`icon-${item.fontIcon}`, styles.fontIcon)} aria-hidden />}
             <span className={buildClassName(styles.itemName, 'menuItemName')}>
               {shouldTranslateOptions ? lang(item.name) : item.name}
             </span>

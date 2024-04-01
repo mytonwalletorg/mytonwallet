@@ -148,6 +148,12 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
     type: ContractType.Wallet,
     isLedgerAllowed: true,
   },
+  multisigNew: {
+    name: 'multisigNew',
+    hash: '7cb3678880388acff45d74b2e7e7544caa8039d20b49f57c75b53c051b6fa30f',
+    type: ContractType.Wallet,
+    isLedgerAllowed: true,
+  },
   dedustPool: {
     name: 'dedustPool',
     hash: 'af6a1790ccd322e9b996733cce5618901a99d76c4c5a219309deef9b0910b238',

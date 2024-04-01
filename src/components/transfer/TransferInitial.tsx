@@ -157,6 +157,7 @@ function TransferInitial({
   const isTon = tokenSlug === TON_TOKEN_SLUG;
   const isTonFullBalance = isTon && balance === amount;
   const tonToken = useMemo(() => tokens?.find((token) => token.slug === TON_TOKEN_SLUG), [tokens])!;
+  const shouldDisableClearButton = !toAddress && !amount && !(comment || binPayload) && !shouldEncrypt;
 
   const isQrScannerSupported = useQrScannerSupport();
 
@@ -343,6 +344,10 @@ function TransferInitial({
   const handleQrScanClick = useLastCallback(() => {
     cancelTransfer();
     requestOpenQrScanner({ info: QrScanType.Transfer });
+  });
+
+  const handleClear = useLastCallback(() => {
+    cancelTransfer({ shouldReset: true });
   });
 
   const handlePasteClick = useLastCallback(async () => {
@@ -674,7 +679,7 @@ function TransferInitial({
             <InteractiveTextField
               text={binPayload!}
               copyNotification={lang('Data was copied!')}
-              className={styles.addressWidget}
+              className={buildClassName(styles.addressWidget, isStatic && styles.inputStatic)}
             />
 
             <div className={styles.error}>
@@ -683,8 +688,23 @@ function TransferInitial({
           </>
         )}
 
-        <div className={modalStyles.buttons}>
-          <Button isPrimary isSubmit isDisabled={!canSubmit} isLoading={isLoading}>
+        <div className={modalStyles.footerButtons}>
+          {isStatic && (
+            <Button
+              isDisabled={shouldDisableClearButton || isLoading}
+              className={modalStyles.button}
+              onClick={handleClear}
+            >
+              {lang('Clear')}
+            </Button>
+          )}
+          <Button
+            isPrimary
+            isSubmit
+            isDisabled={!canSubmit}
+            isLoading={isLoading}
+            className={modalStyles.button}
+          >
             {lang('$send_token_symbol', symbol || 'TON')}
           </Button>
         </div>

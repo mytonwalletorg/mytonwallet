@@ -18,8 +18,10 @@ import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet'
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectOnce from '../../hooks/useEffectOnce';
 import useLastCallback from '../../hooks/useLastCallback';
+import usePreventPinchZoomGesture from '../../hooks/usePreventPinchZoomGesture';
 import useShowTransition from '../../hooks/useShowTransition';
 
+import MediaViewer from '../mediaViewer/MediaViewer';
 import ReceiveModal from '../receive/ReceiveModal';
 import StakeModal from '../staking/StakeModal';
 import StakingInfoModal from '../staking/StakingInfoModal';
@@ -46,6 +48,7 @@ type StateProps = {
   isStakingInfoModalOpen?: boolean;
   isSwapDisabled?: boolean;
   isOnRampDisabled?: boolean;
+  isMediaViewerOpen?: boolean;
 };
 
 const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
@@ -60,6 +63,7 @@ function Main({
   isStakingInfoModalOpen,
   isSwapDisabled,
   isOnRampDisabled,
+  isMediaViewerOpen,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -82,6 +86,7 @@ function Main({
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
 
   useOpenFromMainBottomSheet('receive', openReceiveModal);
+  usePreventPinchZoomGesture(isMediaViewerOpen);
 
   const { isPortrait } = useDeviceScreen();
   const {
@@ -224,6 +229,7 @@ function Main({
       <StakingInfoModal isOpen={isStakingInfoModalOpen} onClose={closeStakingInfo} />
       <ReceiveModal />
       <UnstakeModal />
+      <MediaViewer />
       {IS_ANDROID_DIRECT && <UpdateAvailable />}
     </>
   );
@@ -244,6 +250,7 @@ export default memo(
         isTestnet: global.settings.isTestnet,
         isLedger: !!account?.ledger,
         isStakingInfoModalOpen: global.isStakingInfoModalOpen,
+        isMediaViewerOpen: Boolean(global.mediaViewer?.mediaId),
         isSwapDisabled,
         isOnRampDisabled,
       };

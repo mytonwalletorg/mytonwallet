@@ -105,15 +105,14 @@ export const CHANGELLY_AML_KYC = 'https://changelly.com/aml-kyc';
 export const CHANGELLY_WAITING_DEADLINE = 3 * 60 * 60 * 1000; // 3 hour
 
 export const TON_TOKEN_SLUG = 'toncoin';
-export const JWBTC_TOKEN_SLUG = 'ton-eqdcbkghmc';
-export const JUSDT_TOKEN_SLUG = 'ton-eqbynbo23y';
-export const USDT_TRON_TOKEN_SLUG = 'usdtrx';
+export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = 'ton-eqc47093ox'; // To be updated with the most popular token, according to https://ton.app/jettons
+export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = 'usdtrx';
 
 export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-82';
+export const LANG_CACHE_NAME = 'mtw-lang-83';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -200,19 +199,18 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
     priceUsd: 0,
     isPopular: true,
   },
-  'ton-eqdcbkghmc': {
-    name: 'jWBTC',
-    symbol: 'jWBTC',
+  'ton-eqc47093ox': {
+    name: 'Gram',
+    symbol: 'GRAM',
     blockchain: TON_BLOCKCHAIN,
-    slug: 'ton-eqdcbkghmc',
-    decimals: 8,
+    slug: 'ton-eqc47093ox',
+    decimals: 9,
     // eslint-disable-next-line max-len
-    image: 'https://cache.tonapi.io/imgproxy/LaFKdzahVX9epWT067gyVLd8aCa1lFrZd7Rp9siViEE/rs:fill:200:200:1/g:no/aHR0cHM6Ly9icmlkZ2UudG9uLm9yZy90b2tlbi8xLzB4MjI2MGZhYzVlNTU0MmE3NzNhYTQ0ZmJjZmVkZjdjMTkzYmMyYzU5OS5wbmc.webp',
-    contract: 'EQDcBkGHmC4pTf34x3Gm05XvepO5w60DNxZ-XT4I6-UGG5L5',
+    image: 'https://cache.tonapi.io/imgproxy/lNoY3YdNeBug53ixjK6hxT6XIX3_xoIYNqv-ykIQ1Aw/rs:fill:200:200:1/g:no/aHR0cHM6Ly9ncmFtY29pbi5vcmcvaW1nL2ljb24ucG5n.webp',
+    contract: 'EQC47093oX5Xhb0xuk2lCr2RhS8rj-vul61u4W2UH5ORmG_O',
     price: 0,
     priceUsd: 0,
-    isPopular: false,
-    keywords: ['bitcoin'],
+    isPopular: true,
   },
 };
 

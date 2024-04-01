@@ -207,7 +207,7 @@ Stake TON: Stake TON
 Earn from your tokens while holding them: Earn from your tokens while holding them
 $est_apy_val: Est. APY %1$d%
 Why this is safe: Why this is safe
-Why staking is safe?: Why staking is safe?
+Why is staking safe?: Why is staking safe?
 $safe_staking_description1: Staking is **fully decentralized** and operated by the **official TON Liquid Staking** smart contracts.
 $safe_staking_description2: The deposited stake will be used for the TON network validation as part of its **proof-of-stake** essence.
 $safe_staking_description3: You can withdraw your stake at **any time** and it will be deposited back to your account within **two days**.
@@ -554,3 +554,7 @@ You are about to transfer an important service token, which is needed to withdra
 No Price: No Price
 Connecting dapps is not yet supported by Ledger.: Connecting dapps is not yet supported by Ledger.
 Data was copied!: Data was copied!
+Open NFT Collection: Open NFT Collection
+Open TON Explorer: Open TON Explorer
+Previous: Previous
+Next: Next

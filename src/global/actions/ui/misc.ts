@@ -680,10 +680,37 @@ addActionHandler('closeOnRampWidgetModal', (global) => {
   setGlobal({ ...global, isOnRampWidgetModalOpen: undefined });
 });
 
+addActionHandler('openMediaViewer', (global, actions, { mediaId, mediaType }) => {
+  return {
+    ...global,
+    mediaViewer: {
+      mediaId,
+      mediaType,
+    },
+  };
+});
+
+addActionHandler('closeMediaViewer', (global) => {
+  return {
+    ...global,
+    mediaViewer: {
+      mediaId: undefined,
+      mediaType: undefined,
+    },
+  };
+});
+
 addActionHandler('openReceiveModal', (global) => {
   setGlobal({ ...global, isReceiveModalOpen: true });
 });
 
 addActionHandler('closeReceiveModal', (global) => {
   setGlobal({ ...global, isReceiveModalOpen: undefined });
+});
+
+addActionHandler('initLedgerPage', (global) => {
+  global = updateHardware(global, {
+    isRemoteTab: true,
+  });
+  setGlobal({ ...global, appState: AppState.Ledger });
 });

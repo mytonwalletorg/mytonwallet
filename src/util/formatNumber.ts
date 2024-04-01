@@ -10,6 +10,7 @@ import { toDecimal } from './decimals';
 import withCache from './withCache';
 
 const SHORT_SYMBOLS = new Set(Object.values(SHORT_CURRENCY_SYMBOL_MAP));
+const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
 
 export const formatInteger = withCache((
   value: number | Big | string,
@@ -28,7 +29,7 @@ export const formatInteger = withCache((
     wholePart = wholePart.replace(/^-0$/, '0');
   }
   if (!noRadix) {
-    wholePart = wholePart.replace(/\d(?=(\d{3})+($|\.))/g, '$&,');
+    wholePart = wholePart.replace(/\d(?=(\d{3})+($|\.))/g, `$&${WHOLE_PART_DELIMITER}`);
   }
 
   return [

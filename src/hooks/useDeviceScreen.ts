@@ -18,3 +18,7 @@ export function useDeviceScreen() {
 export function getIsPortrait() {
   return isPortrait;
 }
+
+export function getIsLandscape() {
+  return !isPortrait;
+}

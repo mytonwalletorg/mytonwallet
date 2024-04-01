@@ -3,7 +3,6 @@ import React, {
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import { ElectronEvent } from '../../../../electron/types';
 import { ActiveTab } from '../../../../global/types';
 
 import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
@@ -121,12 +120,6 @@ function LandscapeActions({
         return undefined;
     }
   }
-
-  useEffect(() => {
-    return window.electron?.on(ElectronEvent.DEEPLINK, () => {
-      setActiveTabIndex({ index: ActiveTab.Transfer });
-    });
-  }, [setActiveTabIndex]);
 
   useEffect(() => {
     handleTransitionStart();

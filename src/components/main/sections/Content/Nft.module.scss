@@ -93,6 +93,8 @@
 }
 
 .item {
+  cursor: var(--custom-cursor, pointer);
+
   z-index: 0;
 
   padding-bottom: 0.125rem;
@@ -125,12 +127,24 @@
       z-index: 1;
       top: -0.125rem;
       right: 0.75rem;
+      transform: translateY(0) scale(1);
 
       width: 1.75rem;
       height: 2rem;
 
+      opacity: 1;
       background: url("../../../../assets/sale.png") no-repeat;
       background-size: contain;
+
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    &:global(.ghost-target)::before {
+      transform: translateY(-15%) scale(0.8);
+
+      opacity: 0;
+
+      transition: none;
     }
   }
 }
@@ -172,6 +186,10 @@
   :global(html.animation-level-0) & {
     transition: none !important;
   }
+}
+
+.fullImage {
+  display: none;
 }
 
 .infoWrapper {

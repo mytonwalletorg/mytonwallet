@@ -51,6 +51,11 @@ interface StateProps {
 const ACCOUNT_ADDRESS_SHIFT = 4;
 const ACCOUNT_ADDRESS_SHIFT_END = 4;
 
+const LEDGER_ALLOWED_DAPPS = new Set([
+  'https://multisig.ton.org',
+  'https://ton.ninja',
+]);
+
 function DappConnectModal({
   state,
   hasConnectRequest,
@@ -85,6 +90,8 @@ function DappConnectModal({
   }, [accounts]);
   const isHardwareAccountSelected = accounts?.[selectedAccount]?.isHardware;
   const isLoading = dapp === undefined;
+
+  const isHardwareAllowed = dapp && LEDGER_ALLOWED_DAPPS.has(dapp.url);
 
   useEffect(() => {
     if (hasConnectRequest) {
@@ -170,7 +177,7 @@ function DappConnectModal({
       styles.account,
       isActive && styles.account_current,
       isLoading && styles.account_disabled,
-      isHardware && styles.account_inactive,
+      isHardware && !isHardwareAllowed && styles.account_inactive,
     );
 
     return (
@@ -178,7 +185,7 @@ function DappConnectModal({
         key={accountId}
         className={fullClassName}
         aria-label={lang('Switch Account')}
-        title={isHardware ? lang('Connecting dapps is not yet supported by Ledger.') : undefined}
+        title={isHardware && !isHardwareAllowed ? lang('Connecting dapps is not yet supported by Ledger.') : undefined}
         onClick={onClick}
       >
         {title && <span className={styles.accountName}>{title}</span>}
@@ -224,7 +231,7 @@ function DappConnectModal({
           />
           {shouldRenderAccounts && renderAccounts()}
 
-          {isHardwareAccountSelected && (
+          {isHardwareAccountSelected && !isHardwareAllowed && (
             <div className={styles.warningForSingeHardwareAccount}>
               {lang('Connecting dapps is not yet supported by Ledger.')}
             </div>
@@ -233,7 +240,7 @@ function DappConnectModal({
           <div className={styles.footer}>
             <Button
               isPrimary
-              isDisabled={isHardwareAccountSelected}
+              isDisabled={isHardwareAccountSelected && !isHardwareAllowed}
               onClick={openConfirm}
             >
               {lang('Connect')}

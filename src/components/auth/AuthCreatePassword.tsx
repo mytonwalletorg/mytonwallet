@@ -27,7 +27,7 @@ const AuthCreatePassword = ({
   method,
   isLoading,
 }: OwnProps) => {
-  const { afterCreatePassword, restartAuth } = getActions();
+  const { afterCreatePassword, resetAuth } = getActions();
 
   const lang = useLang();
   const isImporting = method !== 'createAccount';
@@ -36,7 +36,7 @@ const AuthCreatePassword = ({
 
   useHistoryBack({
     isActive,
-    onBack: restartAuth,
+    onBack: resetAuth,
   });
 
   const handleSubmit = useLastCallback((password: string, isPasswordNumeric: boolean) => {
@@ -71,7 +71,7 @@ const AuthCreatePassword = ({
         isActive={isActive}
         isLoading={isLoading}
         formId={formId}
-        onCancel={restartAuth}
+        onCancel={resetAuth}
         onSubmit={handleSubmit}
       />
     </div>

@@ -209,6 +209,10 @@ export enum ContentTab {
   Nft,
 }
 
+export enum MediaType {
+  Nft,
+}
+
 export type UserToken = {
   amount: bigint;
   name: string;
@@ -533,6 +537,11 @@ export type GlobalState = {
     isOnRampDisabled: boolean;
     isCopyStorageEnabled?: boolean;
   };
+
+  mediaViewer: {
+    mediaId?: string;
+    mediaType?: MediaType;
+  };
 };
 
 export interface ActionPayloads {
@@ -541,7 +550,7 @@ export interface ActionPayloads {
   initApi: undefined;
   afterInit: undefined;
   apiUpdate: ApiUpdate;
-  restartAuth: undefined;
+  resetAuth: undefined;
   startCreatingWallet: undefined;
   afterCheckMnemonic: undefined;
   skipCheckMnemonic: undefined;
@@ -775,6 +784,10 @@ export interface ActionPayloads {
 
   openOnRampWidgetModal: undefined;
   closeOnRampWidgetModal: undefined;
+
+  // MediaViewer
+  openMediaViewer: { mediaId: string; mediaType: MediaType };
+  closeMediaViewer: undefined;
 
   openReceiveModal: undefined;
   closeReceiveModal: undefined;

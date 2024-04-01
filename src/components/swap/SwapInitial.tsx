@@ -12,7 +12,7 @@ import {
   CHANGELLY_AML_KYC,
   CHANGELLY_PRIVACY_POLICY,
   CHANGELLY_TERMS_OF_USE,
-  JWBTC_TOKEN_SLUG,
+  DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   TON_SYMBOL,
   TON_TOKEN_SLUG,
 } from '../../config';
@@ -106,7 +106,7 @@ function SwapInitial({
   const [hasAmountInError, setHasAmountInError] = useState(false);
 
   const currentTokenInSlug = tokenInSlug ?? TON_TOKEN_SLUG;
-  const currentTokenOutSlug = tokenOutSlug ?? JWBTC_TOKEN_SLUG;
+  const currentTokenOutSlug = tokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG;
 
   const tokenInTransitionKey = useTokenTransitionKey(currentTokenInSlug ?? '');
 

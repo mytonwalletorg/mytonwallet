@@ -1,7 +1,8 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
-import { withGlobal } from '../../../../global';
+import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
+import { MediaType } from '../../../../global/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, GETGEMS_BASE_MAINNET_URL, GETGEMS_BASE_TESTNET_URL } from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
@@ -15,8 +16,8 @@ import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
-import Image from '../../../ui/Image';
 import Loading from '../../../ui/Loading';
+import NftImage from './NftImage';
 
 import styles from './Nft.module.scss';
 
@@ -38,6 +39,8 @@ function Nfts({
 }: OwnProps & StateProps) {
   const { isLandscape } = useDeviceScreen();
   const lang = useLang();
+
+  const { openMediaViewer } = getActions();
 
   const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
 
@@ -102,18 +105,22 @@ function Nfts({
   return (
     <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
       {nfts.map((nft) => (
-        <a
-          href={`${getgemsBaseUrl}collection/${nft.collectionAddress}/${nft.address}`}
+        <div
+          key={nft.address}
+          id={`nft-${nft.address}`}
+          onClick={() => openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft })}
           className={buildClassName(styles.item, nft.isOnSale && styles.item_onSale)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
-          <Image url={nft.thumbnail} className={styles.imageWrapper} imageClassName={styles.image} />
+          <NftImage
+            nft={nft}
+            className={styles.imageWrapper}
+            imageClassName={styles.image}
+          />
           <div className={styles.infoWrapper}>
             <b className={styles.title}>{nft.name || shortenAddress(nft.address, 4)}</b>
           </div>
           <div className={styles.collection}>{nft.collectionName}</div>
-        </a>
+        </div>
       ))}
     </div>
   );

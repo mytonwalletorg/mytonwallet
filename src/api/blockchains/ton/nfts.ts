@@ -4,6 +4,7 @@ import type { ApiNetwork, ApiNft, ApiNftUpdate } from '../../types';
 
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
+import { fixIpfsUrl } from '../../../util/metadata';
 import { fetchAccountEvents, fetchAccountNfts, fetchNftItems } from './util/tonapiio';
 import { toBase64Address } from './util/tonCore';
 import { fetchStoredAddress } from '../../common/accounts';
@@ -43,7 +44,7 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       index,
       name,
       address: toBase64Address(address, true, network),
-      image,
+      image: fixIpfsUrl(image),
       thumbnail: previews!.find((x) => x.resolution === '500x500')!.url,
       isOnSale: Boolean(sale),
       isHidden,

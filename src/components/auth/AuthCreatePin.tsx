@@ -29,7 +29,7 @@ const AuthCreatePin = ({
   isActive,
   method,
 }: OwnProps) => {
-  const { createPin, restartAuth } = getActions();
+  const { createPin, resetAuth } = getActions();
 
   const lang = useLang();
   const [pin, setPin] = useState<string>('');
@@ -43,7 +43,7 @@ const AuthCreatePin = ({
 
   useHistoryBack({
     isActive,
-    onBack: restartAuth,
+    onBack: resetAuth,
   });
 
   const handleSubmit = useLastCallback(async (value: string) => {
@@ -53,7 +53,7 @@ const AuthCreatePin = ({
 
   return (
     <div className={buildClassName(styles.container, styles.containerFullSize)}>
-      <Button isSimple isText onClick={restartAuth} className={styles.headerBack}>
+      <Button isSimple isText onClick={resetAuth} className={styles.headerBack}>
         <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
         <span>{lang('Back')}</span>
       </Button>

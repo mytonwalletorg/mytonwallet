@@ -87,4 +87,6 @@ export const INITIAL_STATE: GlobalState = {
     isSwapDisabled: IS_IOS_APP,
     isOnRampDisabled: IS_IOS_APP,
   },
+
+  mediaViewer: {},
 };

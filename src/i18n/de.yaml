@@ -208,7 +208,7 @@ Stake TON: TON staken
 Earn from your tokens while holding them: Verdienen Sie mit Ihren Token, während Sie sie halten.
 $est_apy_val: Geschätzte jährliche Rendite (APY) %1$d%
 Why this is safe: Warum ist dies sicher
-Why staking is safe?: Warum ist das Staken sicher
+Why is staking safe?: Warum ist das Staken sicher
 $safe_staking_description1: Das Staken erfolgt **vollständig dezentral** und wird von den **offiziellen TON Liquid Staking**-Smart Contracts betrieben.
 $safe_staking_description2: Der hinterlegte Einsatz wird für die Validierung des TON-Netzwerks als Teil seiner **Proof-of-Stake**-Essenz verwendet.
 $safe_staking_description3: Sie können Ihren Einsatz **jederzeit** abheben, und er wird innerhalb von **zwei Tagen** wieder auf Ihr Konto eingezahlt.
@@ -555,3 +555,7 @@ You are about to transfer an important service token, which is needed to withdra
 No Price: Kein preis
 Connecting dapps is not yet supported by Ledger.: Das Verbinden von Dapps wird von Ledger noch nicht unterstützt.
 Data was copied!: Daten wurden kopiert!
+Open NFT Collection: NFT-Sammlung öffnen
+Open TON Explorer: TON Explorer öffnen
+Previous: Zurück
+Next: Weiter

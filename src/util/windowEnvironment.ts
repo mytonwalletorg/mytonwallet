@@ -36,6 +36,12 @@ function getBrowserLanguage(): LangCode {
   return (LANG_LIST.some(({ langCode }) => langCode === lang) ? lang : 'en') as LangCode;
 }
 
+export const IS_PWA = (
+  window.matchMedia('(display-mode: standalone)').matches
+  || (window.navigator as any).standalone
+  || document.referrer.includes('android-app://')
+);
+
 export const PLATFORM_ENV = getPlatform();
 export const IS_MAC_OS = PLATFORM_ENV === 'macOS';
 export const IS_WINDOWS = PLATFORM_ENV === 'Windows';

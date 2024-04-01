@@ -5,7 +5,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import { ContentTab } from '../../../../global/types';
 
-import { JUSDT_TOKEN_SLUG, MIN_ASSETS_TAB_VIEW, TON_TOKEN_SLUG } from '../../../../config';
+import { DEFAULT_SWAP_SECOND_TOKEN_SLUG, MIN_ASSETS_TAB_VIEW, TON_TOKEN_SLUG } from '../../../../config';
 import {
   selectAccountState,
   selectCurrentAccountTokens,
@@ -52,7 +52,7 @@ function Content({
     setDefaultSwapParams,
     changeTransferToken,
   } = getActions();
-  const { isLandscape } = useDeviceScreen();
+  const { isPortrait } = useDeviceScreen();
 
   const lang = useLang();
   // eslint-disable-next-line no-null/no-null
@@ -139,7 +139,7 @@ function Content({
 
     if (slug) {
       if (slug === TON_TOKEN_SLUG) {
-        setDefaultSwapParams({ tokenInSlug: JUSDT_TOKEN_SLUG, tokenOutSlug: slug });
+        setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
       } else {
         setDefaultSwapParams({ tokenOutSlug: slug });
       }
@@ -152,7 +152,7 @@ function Content({
   const containerClassName = buildClassName(
     styles.container,
     IS_TOUCH_ENV && 'swipe-container',
-    isLandscape ? styles.landscapeContainer : styles.portraitContainer,
+    isPortrait ? styles.portraitContainer : styles.landscapeContainer,
   );
 
   function renderCurrentTab(isActive: boolean) {
@@ -187,7 +187,7 @@ function Content({
         />
         <Transition
           ref={transitionRef}
-          name={isLandscape ? 'slideFade' : 'slide'}
+          name={isPortrait ? 'slide' : 'slideFade'}
           activeKey={activeTabIndex}
           renderCount={tabs.length}
           className={buildClassName(styles.slides, 'content-transition')}
@@ -214,7 +214,9 @@ function Content({
           />
         </div>
       )}
-      {isLandscape ? renderContent() : (<div className={styles.contentPanel}>{renderContent()}</div>)}
+      <div className={buildClassName(isPortrait ? styles.contentPanel : styles.landscapeContentPanel)}>
+        {renderContent()}
+      </div>
     </div>
   );
 }

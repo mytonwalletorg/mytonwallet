@@ -208,7 +208,7 @@ Stake TON: TON stake et
 Earn from your tokens while holding them: Tokenlarınızı tutarken pasif gelir elde edin
 $est_apy_val: Tahmini APY %1$d%
 Why this is safe: Neden güvenlidir?
-Why staking is safe?: Staking neden güvenlidir?
+Why is staking safe?: Staking neden güvenlidir?
 $safe_staking_description1: Staking **tamamen merkeziyetsiz** bir işlemdir ve **resmi TON Likit Staking** akıllı sözleşmeleri tarafından yürütülür.
 $safe_staking_description2: Stake edilen tutar, **hisse kanıtı** esası kapsamında TON ağındaki işlemlerin doğrulanması için kullanılacaktır.
 $safe_staking_description3: Stake edilen tutarı **istediğiniz zaman** çekebilirsiniz; bu tutar **iki gün** içinde hesabınıza geri yatırılacaktır.
@@ -554,3 +554,7 @@ You are about to transfer an important service token, which is needed to withdra
 No Price: Fiyat yok
 Connecting dapps is not yet supported by Ledger.: Dapp'lerin bağlanması henüz Ledger tarafından desteklenmiyor.
 Data was copied!: Veri kopyalandı!
+Open NFT Collection: NFT Koleksiyonunu Aç
+Open TON Explorer: TON Explorer'i Aç
+Previous: Önceki
+Next: Sonraki

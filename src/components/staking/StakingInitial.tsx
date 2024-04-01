@@ -164,7 +164,7 @@ function StakingInitial({
 
     if (isStakingInfoModalOpen) {
       Dialog.alert({
-        title: lang('Why staking is safe?'),
+        title: lang('Why is staking safe?'),
         message: [
           `1. ${lang('$safe_staking_description1')}`,
           `2. ${lang('$safe_staking_description2')}`,
@@ -311,7 +311,7 @@ function StakingInitial({
       <Modal
         isCompact
         isOpen={isStakingInfoModalOpen}
-        title={lang('Why staking is safe?')}
+        title={lang('Why is staking safe?')}
         onClose={closeStakingInfoModal}
         dialogClassName={styles.stakingSafeDialog}
       >

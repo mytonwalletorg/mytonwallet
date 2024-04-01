@@ -31,7 +31,7 @@ function AuthConfirmBiometrics({
 }: OwnProps) {
   const {
     afterCreateBiometrics,
-    restartAuth,
+    resetAuth,
     cancelCreateBiometrics,
   } = getActions();
 
@@ -44,7 +44,7 @@ function AuthConfirmBiometrics({
 
   useHistoryBack({
     isActive,
-    onBack: restartAuth,
+    onBack: resetAuth,
   });
 
   return (

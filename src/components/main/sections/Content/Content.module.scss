@@ -1,6 +1,7 @@
 @import "../../../../styles/mixins";
 
 .contentPanel,
+.landscapeContentPanel,
 .container {
   display: flex;
   flex: 1 1 auto;
@@ -150,6 +151,10 @@
 
     min-height: 0;
   }
+}
+
+.landscapeContentPanel {
+  overflow: hidden;
 }
 
 .contentPanel {

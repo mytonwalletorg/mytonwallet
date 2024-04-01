@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import { TON_TOKEN_SLUG, USDT_TRON_TOKEN_SLUG } from '../../config';
+import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../config';
 import buildClassName from '../../util/buildClassName';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
@@ -52,7 +52,7 @@ function AddBuyStatic({
   const handleSwapClick = useLastCallback(() => {
     startSwap({
       isPortrait,
-      tokenInSlug: USDT_TRON_TOKEN_SLUG,
+      tokenInSlug: DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
       tokenOutSlug: TON_TOKEN_SLUG,
       amountIn: '100',
     });

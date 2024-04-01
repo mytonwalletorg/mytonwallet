@@ -1,7 +1,6 @@
 import { addCallback, removeCallback } from '../lib/teact/teactn';
 
 import type { GlobalState, TokenPeriod } from './types';
-import { AppState } from './types';
 
 import {
   DEBUG,
@@ -17,9 +16,8 @@ import { cloneDeep, mapValues, pick } from '../util/iteratees';
 import { onBeforeUnload, onIdle, throttle } from '../util/schedulers';
 import { IS_ELECTRON } from '../util/windowEnvironment';
 import { getIsTxIdLocal } from './helpers';
-import { addActionHandler, getGlobal, setGlobal } from './index';
+import { addActionHandler, getGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
-import { updateHardware } from './reducers';
 
 import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
 
@@ -38,75 +36,49 @@ export function initCache() {
     return;
   }
 
-  addActionHandler('afterSignIn', () => {
-    if (isCaching) {
-      return;
-    }
-
-    setupCaching();
-    updateCache(true);
-  });
+  addActionHandler('afterSignIn', setupCaching);
 
   addActionHandler('afterSignOut', (global, actions, payload) => {
     const { isFromAllAccounts } = payload || {};
+    if (!isFromAllAccounts) return;
 
-    if (isFromAllAccounts) {
-      preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo', 'restrictions']);
-
-      localStorage.removeItem(GLOBAL_STATE_CACHE_KEY);
-
-      if (!isCaching) {
-        return;
-      }
-
-      clearCaching();
-    }
-  });
-
-  addActionHandler('cancelCaching', () => {
-    if (!isCaching) {
-      return;
-    }
+    preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo', 'restrictions']);
 
     clearCaching();
+
+    localStorage.removeItem(GLOBAL_STATE_CACHE_KEY);
   });
 
-  addActionHandler('initLedgerPage', (global) => {
-    global = updateHardware(global, {
-      isRemoteTab: true,
-    });
-    setGlobal({ ...global, appState: AppState.Ledger });
-  });
-}
-
-export function loadCache(initialState: GlobalState) {
-  return readCache(initialState);
+  addActionHandler('cancelCaching', clearCaching);
 }
 
 function setupCaching() {
-  isCaching = true;
-  unsubscribeFromBeforeUnload = onBeforeUnload(() => {
-    // Allow to manually delete cache
-    if (DEBUG && !localStorage.getItem(GLOBAL_STATE_CACHE_KEY)) {
-      return;
-    }
+  if (isCaching) return;
 
-    updateCache(true);
-  }, true);
-  window.addEventListener('blur', updateCacheForced);
+  isCaching = true;
+
   addCallback(updateCacheThrottled);
+  unsubscribeFromBeforeUnload = onBeforeUnload(updateCacheForced, true);
+  window.addEventListener('blur', updateCacheForced);
+
+  updateCacheForced();
 }
 
 function clearCaching() {
-  isCaching = false;
-  removeCallback(updateCacheThrottled);
+  if (!isCaching) return;
+
   window.removeEventListener('blur', updateCacheForced);
-  if (unsubscribeFromBeforeUnload) {
-    unsubscribeFromBeforeUnload();
-  }
+  unsubscribeFromBeforeUnload?.();
+  removeCallback(updateCacheThrottled);
+
+  isCaching = false;
 }
 
-function readCache(initialState: GlobalState): GlobalState {
+export function loadCache(initialState: GlobalState): GlobalState {
+  if (GLOBAL_STATE_CACHE_DISABLED) {
+    return initialState;
+  }
+
   if (DEBUG) {
     // eslint-disable-next-line no-console
     console.time('global-state-cache-read');
@@ -398,11 +370,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
 }
 
 function updateCache(force?: boolean) {
-  if (GLOBAL_STATE_CACHE_DISABLED) {
-    return;
-  }
-
-  if (!isCaching || (!force && isHeavyAnimating())) {
+  if (GLOBAL_STATE_CACHE_DISABLED || !isCaching || (!force && isHeavyAnimating())) {
     return;
   }
 

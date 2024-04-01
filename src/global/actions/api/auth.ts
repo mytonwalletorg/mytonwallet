@@ -49,7 +49,7 @@ import {
 const CREATING_DURATION = 3300;
 const NATIVE_BIOMETRICS_PAUSE_MS = 750;
 
-addActionHandler('restartAuth', (global) => {
+addActionHandler('resetAuth', (global) => {
   if (global.currentAccountId) {
     global = { ...global, appState: AppState.Main };
 

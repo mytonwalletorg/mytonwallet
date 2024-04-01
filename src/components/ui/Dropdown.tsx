@@ -14,6 +14,7 @@ export interface DropdownItem {
   value: string;
   name: string;
   icon?: string;
+  fontIcon?: string;
   isDisabled?: boolean;
 }
 
@@ -97,6 +98,12 @@ function Dropdown({
           disabled={disabled}
         >
           {selectedItem?.icon && <img src={selectedItem.icon} alt="" className={styles.itemIcon} />}
+          {selectedItem?.fontIcon && (
+            <i
+              className={buildClassName(`icon-${selectedItem.fontIcon}`, styles.fontIcon)}
+              aria-hidden
+            />
+          )}
           <span className={buildClassName(styles.itemName, 'itemName')}>
             {shouldTranslateOptions ? lang(selectedItem!.name) : selectedItem!.name}
           </span>

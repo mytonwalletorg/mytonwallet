@@ -204,7 +204,7 @@ Stake TON: Стейкинг
 Earn from your tokens while holding them: Получайте пассивный доход от хранения TON на надёжном официальном смарт-контракте
 $est_apy_val: Доходность ~%1$d%
 Why this is safe: Почему это безопасно
-Why staking is safe?: Это точно безопасно?
+Why is staking safe?: Это точно безопасно?
 $safe_staking_description1: Стейкинг **полностью децентрализован** и управляется **официальными смарт-контрактами** TON Liquid Staking.
 $safe_staking_description2: Ваш депозит будет использован для валидации транзакций в блокчейне в рамках механизма **proof-of-stake**.
 $safe_staking_description3: Вы можете вывести депозит с заработанными процентами **в любой момент** — средства переведутся на ваш основной счёт **в течение двух дней**.
@@ -554,3 +554,7 @@ You are about to transfer an important service token, which is needed to withdra
 No Price: Нет цены
 Connecting dapps is not yet supported by Ledger.: Ledger пока не поддерживает подключение приложений.
 Data was copied!: Данные скопированы!
+Open NFT Collection: Открыть коллекцию NFT
+Open TON Explorer: Открыть TON Explorer
+Previous: Предыдущий
+Next: Следующий

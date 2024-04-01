@@ -4,7 +4,6 @@ import { getActions, getGlobal } from '../global';
 import { ActiveTab } from '../global/types';
 
 import { TON_TOKEN_SLUG } from '../config';
-import { selectCurrentAccountState } from '../global/selectors';
 import { callApi } from '../api';
 import { isTonConnectDeeplink, parseTonDeeplink } from './ton/deeplinks';
 import { waitRender } from './renderPromise';
@@ -12,7 +11,7 @@ import { pause } from './schedulers';
 import { tonConnectGetDeviceInfo } from './tonConnectEnvironment';
 import { IS_DELEGATING_BOTTOM_SHEET } from './windowEnvironment';
 
-import { getIsPortrait } from '../hooks/useDeviceScreen';
+import { getIsLandscape, getIsPortrait } from '../hooks/useDeviceScreen';
 
 type UrlOpener = (url: string) => void | Promise<void>;
 
@@ -40,27 +39,22 @@ export async function processTonDeeplink(url: string) {
     return false;
   }
 
-  const accountState = selectCurrentAccountState(global);
-  const isPortrait = getIsPortrait();
+  if (IS_DELEGATING_BOTTOM_SHEET) {
+    await BottomSheet.release({ key: '*' });
+    await pause(PAUSE);
+  }
 
-  if (isPortrait || accountState?.landscapeActionsActiveTabIndex !== ActiveTab.Transfer) {
-    if (IS_DELEGATING_BOTTOM_SHEET) {
-      await BottomSheet.release({ key: '*' });
-      await pause(PAUSE);
-    }
+  actions.startTransfer({
+    isPortrait: getIsPortrait(),
+    tokenSlug: TON_TOKEN_SLUG,
+    toAddress: params.to,
+    amount: params.amount,
+    comment: params.comment,
+    binPayload: params.binPayload,
+  });
 
-    getActions().startTransfer({
-      isPortrait: true,
-      tokenSlug: TON_TOKEN_SLUG,
-      toAddress: params.to,
-      amount: params.amount,
-      comment: params.comment,
-      binPayload: params.binPayload,
-    });
-  } else {
-    actions.setTransferToAddress({ toAddress: params.to });
-    actions.setTransferAmount({ amount: params.amount });
-    actions.setTransferComment({ comment: params.comment });
+  if (getIsLandscape()) {
+    actions.setLandscapeActionsActiveTabIndex({ index: ActiveTab.Transfer });
   }
 
   return true;

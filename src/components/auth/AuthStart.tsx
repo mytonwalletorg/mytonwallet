@@ -27,7 +27,7 @@ function AuthStart({ hasAccounts, isLoading }: StateProps) {
     startImportingWallet,
     openAbout,
     openHardwareWalletModal,
-    restartAuth,
+    resetAuth,
   } = getActions();
 
   const lang = useLang();
@@ -37,7 +37,7 @@ function AuthStart({ hasAccounts, isLoading }: StateProps) {
   return (
     <div className={buildClassName(styles.container, 'custom-scroll')}>
       {hasAccounts && (
-        <Button isSimple isText onClick={restartAuth} className={styles.headerBack}>
+        <Button isSimple isText onClick={resetAuth} className={styles.headerBack}>
           <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
           <span>{lang('Back')}</span>
         </Button>

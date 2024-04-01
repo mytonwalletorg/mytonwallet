@@ -73,6 +73,8 @@ type TSwipeAxis =
   | undefined;
 
 export const IOS_SCREEN_EDGE_THRESHOLD = 20;
+export const SWIPE_DIRECTION_THRESHOLD = 10;
+export const SWIPE_DIRECTION_TOLERANCE = 1.5;
 
 const MOVE_THRESHOLD = 15;
 const SWIPE_THRESHOLD_DEFAULT = 20;

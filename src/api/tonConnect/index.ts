@@ -32,7 +32,7 @@ import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERRO
 import { IS_EXTENSION, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { isLedgerCommentLengthValid } from '../../util/ledger/utils';
-import { logDebugError } from '../../util/logs';
+import { logDebug, logDebugError } from '../../util/logs';
 import { fetchJsonMetadata } from '../../util/metadata';
 import safeExec from '../../util/safeExec';
 import { isAscii } from '../../util/stringFormat';
@@ -435,10 +435,11 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       const normalizedAddress = toBase64Address(address, undefined, network);
 
       const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
-      const { isLedgerAllowed } = await getContractInfo(network, toAddress);
+      const { isLedgerAllowed, codeHash } = await getContractInfo(network, toAddress);
 
       if (isLedger) {
         if (!isLedgerAllowed) {
+          logDebug('Unsupported contract', toAddress, codeHash);
           throw new BadRequestError('Unsupported contract', ApiTransactionError.UnsupportedHardwareContract);
         } else if (payload) {
           if (!LEDGER_SUPPORTED_PAYLOADS.includes(payload.type)) {

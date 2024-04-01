@@ -4,6 +4,7 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState } from '../../global/types';
 
 import { ANIMATED_STICKER_SMALL_SIZE_PX } from '../../config';
+import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -80,6 +81,10 @@ function TransferConfirm({
             copyNotification={lang('Data was copied!')}
             className={styles.addressWidget}
           />
+
+          <div className={styles.error}>
+            {renderText(lang('$signature_warning'))}
+          </div>
         </>
       );
     }

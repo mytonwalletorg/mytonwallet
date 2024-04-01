@@ -14,7 +14,7 @@ import {
   SwapType,
 } from '../../types';
 
-import { IS_CAPACITOR, JWBTC_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../../config';
+import { DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../config';
 import { Big } from '../../../lib/big.js';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import {
@@ -124,7 +124,7 @@ addActionHandler('setDefaultSwapParams', (global, actions, payload) => {
 
   global = updateCurrentSwap(global, {
     tokenInSlug: requiredTokenInSlug ?? TON_TOKEN_SLUG,
-    tokenOutSlug: requiredTokenOutSlug ?? JWBTC_TOKEN_SLUG,
+    tokenOutSlug: requiredTokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG,
     priceImpact: 0,
     transactionFee: '0',
     swapFee: '0',

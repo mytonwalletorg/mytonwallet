@@ -20,7 +20,7 @@ interface OwnProps {
 }
 
 const AuthCreateNativeBiometrics = ({ isActive, isLoading }: OwnProps) => {
-  const { afterCreateNativeBiometrics, skipCreateNativeBiometrics, restartAuth } = getActions();
+  const { afterCreateNativeBiometrics, skipCreateNativeBiometrics, resetAuth } = getActions();
 
   const lang = useLang();
 
@@ -29,12 +29,12 @@ const AuthCreateNativeBiometrics = ({ isActive, isLoading }: OwnProps) => {
 
   useHistoryBack({
     isActive,
-    onBack: restartAuth,
+    onBack: resetAuth,
   });
 
   return (
     <div className={styles.container}>
-      <Button isSimple isText onClick={restartAuth} className={styles.headerBack}>
+      <Button isSimple isText onClick={resetAuth} className={styles.headerBack}>
         <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
         <span>{lang('Back')}</span>
       </Button>

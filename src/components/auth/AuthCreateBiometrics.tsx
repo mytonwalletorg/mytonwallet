@@ -25,7 +25,7 @@ const AuthCreateBiometrics = ({
 }: OwnProps) => {
   const {
     startCreatingBiometrics,
-    restartAuth,
+    resetAuth,
     skipCreateBiometrics,
   } = getActions();
 
@@ -34,7 +34,7 @@ const AuthCreateBiometrics = ({
 
   useHistoryBack({
     isActive,
-    onBack: restartAuth,
+    onBack: resetAuth,
   });
 
   return (

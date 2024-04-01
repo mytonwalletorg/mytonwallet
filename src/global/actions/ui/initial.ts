@@ -91,7 +91,7 @@ addActionHandler('afterSignIn', (global, actions) => {
   setGlobal({ ...global, appState: AppState.Main });
 
   setTimeout(() => {
-    actions.restartAuth();
+    actions.resetAuth();
   }, ANIMATION_DELAY_MS);
 });
 

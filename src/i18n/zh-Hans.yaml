@@ -200,7 +200,7 @@ Stake TON: 质押 TON
 Earn from your tokens while holding them: 从您持有的代币身上赚一笔。
 $est_apy_val: 期望年回报率 %1$d%
 Why this is safe: 为什么这很安全
-Why staking is safe?: 为什么质押是安全的？
+Why is staking safe?: 为什么质押是安全的？
 $safe_staking_description1: TON 质押是**完全去中心化的**，由官方 TON Liquid Staking 智能合约运营。
 $safe_staking_description2: 作为其 **权益证明** 的一部分，您存入的 TON 将用于 TON 区块网络验证。
 $safe_staking_description3: 您可以在 **任何时候** 解除您 TON 的质押，它会在 **36小时** 内存入您的账户。
@@ -540,3 +540,7 @@ You are about to transfer an important service token, which is needed to withdra
 No Price: 无价格
 Connecting dapps is not yet supported by Ledger.: Ledger 尚不支持连接 dapp。
 Data was copied!: 数据被复制！
+Open NFT Collection: 打开 NFT 收藏
+Open TON Explorer: 打开 TON Explorer
+Previous: 上一页
+Next: 下一页

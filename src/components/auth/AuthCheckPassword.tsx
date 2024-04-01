@@ -22,7 +22,7 @@ interface OwnProps {
 function AuthCheckPassword({
   isActive, isLoading, error, method,
 }: OwnProps) {
-  const { restartAuth, cleanAuthError, addAccount } = getActions();
+  const { resetAuth, cleanAuthError, addAccount } = getActions();
   const lang = useLang();
 
   const isImporting = method !== 'createAccount';
@@ -42,7 +42,7 @@ function AuthCheckPassword({
         onUpdate={cleanAuthError}
         onSubmit={handleSubmit}
         submitLabel={lang('Send')}
-        onCancel={restartAuth}
+        onCancel={resetAuth}
         cancelLabel={lang('Back')}
       >
         <div className={styles.title}>{lang('Enter your password')}</div>

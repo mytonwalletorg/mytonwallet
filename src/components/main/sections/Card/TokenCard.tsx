@@ -1,5 +1,5 @@
 import React, {
-  memo, useEffect, useMemo, useState,
+  memo, useMemo, useState,
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
@@ -67,7 +67,7 @@ function TokenCard({
   baseCurrency,
   historyPeriods,
 }: OwnProps & StateProps) {
-  const { loadPriceHistory, setCurrentTokenPeriod } = getActions();
+  const { loadPriceHistory } = getActions();
   const lang = useLang();
   const forceUpdate = useForceUpdate();
   const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
@@ -97,13 +97,6 @@ function TokenCard({
   });
 
   useInterval(refreshHistory, INTERVAL);
-
-  useEffect(() => {
-    // The `ALL` range is only available for TON
-    if (period === 'ALL' && token.slug !== TON_TOKEN_SLUG) {
-      setCurrentTokenPeriod({ period: HISTORY_PERIODS[HISTORY_PERIODS.length - 2] });
-    }
-  }, [period, token.slug]);
 
   const history = historyPeriods?.[period];
 
@@ -217,7 +210,6 @@ function TokenCard({
         <i className={buildClassName('icon', 'icon-caret-down', styles.iconCaretSmall)} aria-hidden />
         <ChartHistorySwitcher
           isOpen={isHistoryMenuOpen}
-          isTon={token.slug === TON_TOKEN_SLUG}
           onChange={refreshHistory}
           onClose={closeHistoryMenu}
         />
