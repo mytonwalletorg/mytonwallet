@@ -2,7 +2,6 @@ import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
   ApiActivity,
   ApiAnyDisplayError,
-  ApiBackendDapp,
   ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiDapp,
@@ -14,6 +13,7 @@ import type {
   ApiNft,
   ApiParsedPayload,
   ApiPriceHistoryPeriod,
+  ApiSite,
   ApiStakingHistory,
   ApiStakingType,
   ApiSwapAsset,
@@ -282,6 +282,7 @@ export interface AccountState {
   savedAddresses?: Record<string, string>;
   activeContentTab?: ContentTab;
   landscapeActionsActiveTabIndex?: ActiveTab;
+  currentBrowserUrl?: string;
 
   // Staking
   staking?: {
@@ -298,6 +299,7 @@ export interface AccountState {
     isInstantUnstakeRequested?: boolean;
   };
   stakingHistory?: ApiStakingHistory;
+  browserHistory?: string[];
 
   isLongUnstakeRequested?: boolean;
 }
@@ -308,8 +310,16 @@ export interface AccountSettings {
   deletedSlugs?: string[];
 }
 
+export interface NftTransfer {
+  name?: string;
+  address: string;
+  thumbnail: string;
+  collectionName?: string;
+}
+
 export enum QrScanType {
   Transfer,
+  TransferNft,
   Swap,
 }
 
@@ -369,6 +379,7 @@ export type GlobalState = {
     shouldEncrypt?: boolean;
     isToNewAddress?: boolean;
     isScam?: boolean;
+    nft?: ApiNft;
   };
 
   currentSwap: {
@@ -414,7 +425,7 @@ export type GlobalState = {
     isSigned?: boolean;
   };
 
-  dappCatalog?: ApiBackendDapp[];
+  exploreSites?: ApiSite[];
 
   currentDappTransfer: {
     state: TransferState;
@@ -522,11 +533,13 @@ export type GlobalState = {
   isOnRampWidgetModalOpen?: boolean;
   isReceiveModalOpen?: boolean;
   shouldForceAccountEdit?: boolean;
+  isIncorrectTimeNotificationReceived?: boolean;
 
   currentQrScan?: {
     state: QrScanType;
     currentTransfer?: GlobalState['currentTransfer'];
     currentSwap?: GlobalState['currentSwap'];
+    nft?: ApiNft;
   };
 
   latestAppVersion?: string;
@@ -604,6 +617,7 @@ export interface ActionPayloads {
     amount?: bigint;
     toAddress?: string;
     comment?: string;
+    nft?: ApiNft;
     binPayload?: string;
   } | undefined;
   changeTransferToken: { tokenSlug: string };
@@ -615,12 +629,18 @@ export interface ActionPayloads {
     shouldEncrypt?: boolean;
     binPayload?: string;
   };
+  fetchNftFee: {
+    toAddress: string;
+    nftAddress: string;
+    comment?: string;
+  };
   submitTransferInitial: {
     tokenSlug: string;
     amount: bigint;
     toAddress: string;
     comment?: string;
     shouldEncrypt?: boolean;
+    nftAddress?: string;
   };
   submitTransferConfirm: undefined;
   submitTransferPassword: { password: string };
@@ -673,7 +693,7 @@ export interface ActionPayloads {
   openQrScanner: undefined;
   closeQrScanner: undefined;
   openDeeplink: { url: string };
-  requestOpenQrScanner: { info: QrScanType };
+  requestOpenQrScanner: { info: QrScanType; nft?: ApiNft };
   scanQrCode: { url: string } | { toAddress: string };
 
   // Staking
@@ -745,7 +765,12 @@ export interface ActionPayloads {
   getDapps: undefined;
   deleteAllDapps: undefined;
   deleteDapp: { origin: string };
-  loadDappCatalog: undefined;
+  loadExploreSites: undefined;
+
+  addSiteToBrowserHistory: { url: string };
+  removeSiteFromBrowserHistory: { url: string };
+  openBrowser: { url: string };
+  closeBrowser: undefined;
 
   apiUpdateDappConnect: ApiUpdateDappConnect;
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
@@ -793,6 +818,8 @@ export interface ActionPayloads {
   closeReceiveModal: undefined;
 
   loadPriceHistory: { slug: string; period: ApiPriceHistoryPeriod; currency?: ApiBaseCurrency };
+
+  showIncorrectTimeError: undefined;
 }
 
 export enum LoadMoreDirection {

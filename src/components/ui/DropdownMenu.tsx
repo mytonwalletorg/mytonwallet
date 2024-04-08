@@ -71,10 +71,17 @@ function DropdownMenu({
             disabled={item.isDisabled}
             onClick={(e) => handleItemClick(e, item.value)}
           >
-            {item.icon && <img src={item.icon} alt="" className={styles.itemIcon} />}
-            {item.fontIcon && <i className={buildClassName(`icon-${item.fontIcon}`, styles.fontIcon)} aria-hidden />}
+            {item.icon && <img src={buildClassName('icon', item.icon)} alt="" className={styles.itemIcon} />}
+            {item.fontIcon && (
+              <i className={buildClassName(`icon icon-${item.fontIcon}`, styles.fontIcon)} aria-hidden />
+            )}
             <span className={buildClassName(styles.itemName, 'menuItemName')}>
               {shouldTranslateOptions ? lang(item.name) : item.name}
+              {item.description && (
+                <span className={styles.itemDescription}>
+                  {shouldTranslateOptions ? lang(item.description) : item.description}
+                </span>
+              )}
             </span>
           </button>
         );

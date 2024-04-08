@@ -1,4 +1,4 @@
-import { bigintReviver } from '../../../../util/bigint';
+import { bigintRandom, bigintReviver } from '../../../../util/bigint';
 
 export function cloneDeep<T>(value: T): T {
   return JSON.parse(JSON.stringify(value), bigintReviver);
@@ -16,4 +16,8 @@ export function parseTxId(txId: string): { lt: number; hash: string } {
 export function buildTokenSlug(minterAddress: string) {
   const addressPart = minterAddress.replace(/[^a-z\d]/gi, '').slice(0, 10);
   return `ton-${addressPart}`.toLowerCase();
+}
+
+export function generateQueryId() {
+  return bigintRandom(8);
 }

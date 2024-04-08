@@ -406,6 +406,7 @@ function reduceByAccountId(global: GlobalState) {
       'stakingHistory',
       'activeContentTab',
       'landscapeActionsActiveTabIndex',
+      'browserHistory',
     ]);
 
     const { idsBySlug, newestTransactionsBySlug, byId } = state.activities || {};

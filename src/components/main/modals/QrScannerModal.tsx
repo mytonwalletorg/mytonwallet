@@ -75,7 +75,7 @@ function QrScannerModal({ isOpen, qrScanType, onClose }: OwnProps) {
   });
 
   const handleScan = useLastCallback((data: string) => {
-    if (qrScanType === QrScanType.Transfer) {
+    if (qrScanType === QrScanType.Transfer || qrScanType === QrScanType.TransferNft) {
       scanQrCode({ url: data });
     } else if (qrScanType === QrScanType.Swap) {
       scanQrCode({ toAddress: data });

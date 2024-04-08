@@ -1,5 +1,5 @@
 import type {
-  ApiBackendDapp, ApiDapp, ApiDappsState, ApiNetwork, OnApiUpdate,
+  ApiDapp, ApiDappsState, ApiNetwork, ApiSite, OnApiUpdate,
 } from '../types';
 
 import { buildAccountId, parseAccountId } from '../../util/account';
@@ -229,6 +229,6 @@ export function setSseLastEventId(lastEventId: string) {
   return storage.setItem('sseLastEventId', lastEventId);
 }
 
-export function fetchDappCatalog(): Promise<ApiBackendDapp[]> {
+export function loadExploreSites(): Promise<ApiSite[]> {
   return callBackendGet('/dapp/catalog');
 }

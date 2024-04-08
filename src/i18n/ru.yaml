@@ -122,14 +122,14 @@ Network: Сеть
 Developer Options: Инструменты разработчика
 Confirmation: Подтверждение
 Data to sign: Данные для подтверждения и подписи
-$signature_warning: Подписание данных влечет риски. Используйте эту опцию только, если вы доверяете их источнику.
+$signature_warning: Подписание данных влечёт риски. Используйте эту опцию, только если вы доверяете их источнику.
 Sign: Подписать
 Done!: Готово!
 Signing was confirmed!: Подпись подтверждена!
 Transaction Info: Информация о переводе
 Transaction in progress: Перевод выполняется
 Comment was copied!: Комментарий скопирован!
-View Transaction on TON Explorer: Посмотреть перевод в TON Explorer
+View Transaction on TONScan: Посмотреть перевод в TONScan
 Sender: Отправитель
 Recipient: Получатель
 Address was copied!: Адрес скопирован!
@@ -137,7 +137,7 @@ Repeat: Повторить
 Receive: Получить
 Switch Account: Сменить аккаунт
 Copy wallet address: Скопировать адрес
-View address on TON Explorer: Посмотреть адрес в TON Explorer
+View address on TONScan: Посмотреть адрес в TONScan
 Open on CoinMarketCap: Открыть в CoinMarketCap
 You have just created a new wallet: Поздравляем! Вы только что создали новый кошелёк
 You can now transfer your tokens from another wallet or exchange.: Теперь вы можете пополнить его с другого кошелька или биржи.
@@ -185,7 +185,7 @@ Save: Сохранить
 Copy: Скопировать
 Remove From Saved Addresses: Удалить сохранённый адрес
 Add To Saved Addresses: Добавить в Сохранённые адреса
-View Address on TON Explorer: Открыть в TON Explorer
+View Address on TONScan: Открыть в TONScan
 No suggestions, you're on your own!: Ничего не найдено :(
 Play Sounds: Включить звуки
 Focus on asset value rather than current balance: Фокус на стоимости активов вместо текущего баланса
@@ -266,7 +266,6 @@ Scam: Скам
 Scam comment is hidden.: Комментарий скрыт.
 Display: Показать
 $dapp_transfer_tokens_payload: Перевод %amount% с вашего аккаунта на %address%
-$dapp_transfer_nft_payload: Отправка NFT "%nft%" с вашего аккаунта на %address%
 Nested Transaction: Вложенная транзакция
 Connected Dapps: Подключённые приложения
 Disconnect All Dapps: Отключить все приложения
@@ -552,9 +551,17 @@ To use this feature, first enable biometrics in your phone settings.: Чтобы
 Open Settings: Открыть настройки
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Вы собираетесь передать важный сервисный токен, который необходим для вывода вашего депозита из стейкинга.
 No Price: Нет цены
+Search or enter address...: Введите адрес или запрос...
 Connecting dapps is not yet supported by Ledger.: Ledger пока не поддерживает подключение приложений.
+Time synchronization issue. Please ensure your device's time settings are correct.: Проблема с синхронизацией времени. Пожалуйста, убедитесь, что настройки времени на вашем устройстве верны.
 Data was copied!: Данные скопированы!
 Open NFT Collection: Открыть коллекцию NFT
-Open TON Explorer: Открыть TON Explorer
 Previous: Предыдущий
 Next: Следующий
+NftInsufficientBalance: Недостаточно TON для комиссии.
+Send NFT: Отправить NFT
+NFT has been sent!: NFT отправлен!
+Cannot be sent: Нельзя отправить
+NFT is for sale: NFT на продаже
+More actions: Больше действий
+Open on TONScan: Открыть на TONScan

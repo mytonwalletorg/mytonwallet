@@ -1,6 +1,7 @@
 import { BottomSheet } from 'native-bottom-sheet';
 import { getActions, getGlobal } from '../global';
 
+import type { ApiNft } from '../api/types';
 import { ActiveTab } from '../global/types';
 
 import { TON_TOKEN_SLUG } from '../config';
@@ -18,15 +19,15 @@ type UrlOpener = (url: string) => void | Promise<void>;
 // Both to close current Transfer Modal and delay when app launch
 const PAUSE = 700;
 
-export function processDeeplink(url: string, urlOpener?: UrlOpener) {
+export function processDeeplink(url: string, urlOpener?: UrlOpener, nft?: ApiNft) {
   if (isTonConnectDeeplink(url)) {
     return processTonConnectDeeplink(url, urlOpener);
   } else {
-    return processTonDeeplink(url);
+    return processTonDeeplink(url, nft);
   }
 }
 
-export async function processTonDeeplink(url: string) {
+export async function processTonDeeplink(url: string, nft?: ApiNft) {
   const params = parseTonDeeplink(url);
   if (!params) return false;
 
@@ -48,9 +49,10 @@ export async function processTonDeeplink(url: string) {
     isPortrait: getIsPortrait(),
     tokenSlug: TON_TOKEN_SLUG,
     toAddress: params.to,
-    amount: params.amount,
+    amount: !nft ? params.amount : undefined,
     comment: params.comment,
-    binPayload: params.binPayload,
+    binPayload: !nft ? params.binPayload : undefined,
+    nft,
   });
 
   if (getIsLandscape()) {

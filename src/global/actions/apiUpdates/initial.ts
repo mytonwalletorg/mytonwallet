@@ -201,6 +201,14 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
     case 'requestReconnectApi': {
       actions.initApi();
+      break;
+    }
+
+    case 'incorrectTime': {
+      if (!global.isIncorrectTimeNotificationReceived) {
+        actions.showIncorrectTimeError();
+      }
+      break;
     }
   }
 });

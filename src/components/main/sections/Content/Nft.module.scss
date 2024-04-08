@@ -95,6 +95,7 @@
 .item {
   cursor: var(--custom-cursor, pointer);
 
+  position: relative;
   z-index: 0;
 
   padding-bottom: 0.125rem;
@@ -117,6 +118,7 @@
       }
     }
   }
+
   &_onSale {
     position: relative;
 
@@ -125,15 +127,15 @@
 
       position: absolute;
       z-index: 1;
-      top: -0.125rem;
-      right: 0.75rem;
+      top: 0;
+      right: 1.875rem;
       transform: translateY(0) scale(1);
 
       width: 1.75rem;
-      height: 2rem;
+      height: 1.875rem;
 
       opacity: 1;
-      background: url("../../../../assets/sale.png") no-repeat;
+      background: url("../../../../assets/sale.svg") no-repeat;
       background-size: contain;
 
       transition: opacity 0.2s ease, transform 0.2s ease;
@@ -149,6 +151,10 @@
   }
 }
 
+.itemWithMenu {
+  z-index: 3;
+}
+
 .imageWrapper {
   /* Fix for border-radius missing during transform on Safari. See https://stackoverflow.com/a/58283449 */
   isolation: isolate;
@@ -162,7 +168,7 @@
   max-width: 100%;
   margin-bottom: 0.4375rem;
 
-  border-radius: var(--border-radius-tiny);
+  border-radius: var(--border-radius-normal);
 
   @supports not (aspect-ratio: 1) {
     height: auto;

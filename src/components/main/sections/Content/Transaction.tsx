@@ -56,12 +56,14 @@ function Transaction({
     type,
     metadata,
     slug,
+    nft,
   } = transaction;
 
   const isStake = type === 'stake';
   const isUnstake = type === 'unstake';
   const isUnstakeRequest = type === 'unstakeRequest';
   const isStaking = isStake || isUnstake || isUnstakeRequest;
+  const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived';
 
   const token = tokensBySlug?.[slug];
   const address = isIncoming ? fromAddress : toAddress;
@@ -87,6 +89,18 @@ function Transaction({
     }
 
     return isIncoming ? 'Received' : 'Sent';
+  }
+
+  function renderNft() {
+    return (
+      <div className={buildClassName(styles.nft, isIncoming && styles.received, comment && styles.nftWithComment)}>
+        <img src={nft!.thumbnail} alt={nft!.name} className={styles.nftImage} />
+        <div className={styles.nftData}>
+          <div className={styles.nftName}>{nft!.name}</div>
+          <div className={styles.nftCollection}>{nft!.collectionName}</div>
+        </div>
+      </div>
+    );
   }
 
   function renderComment() {
@@ -131,7 +145,7 @@ function Transaction({
     return (
       <div className={styles.amountWrapper}>
         <div className={amountOtherClass}>
-          {formatCurrencyExtended(
+          {isNftTransfer ? 'NFT' : formatCurrencyExtended(
             toDecimal(isStaking ? bigintAbs(amount) : amount, token!.decimals),
             token?.symbol || TON_SYMBOL,
             isStaking,
@@ -164,6 +178,8 @@ function Transaction({
         styles.item,
         isLast && styles.itemLast,
         isActive && styles.active,
+        isNftTransfer && styles.withNft,
+        isNftTransfer && comment && styles.withNftAndComment,
       )}
       onClick={handleClick}
       isSimple
@@ -184,6 +200,7 @@ function Transaction({
         <div className={styles.date}>{formatTime(timestamp)}</div>
       </div>
       {renderAmount()}
+      {nft && renderNft()}
       {renderComment()}
       <i className={buildClassName(styles.iconArrow, 'icon-chevron-right')} aria-hidden />
     </Button>

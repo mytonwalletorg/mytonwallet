@@ -13,8 +13,8 @@ import styles from '../MediaViewer.module.scss';
 export const ANIMATION_DURATION = 200;
 
 // Header height + bottom padding, keep in sync with styles.image max-height
-const OCCUPIED_HEIGHT = 11 * REM;
-const OFFSET_TOP = OCCUPIED_HEIGHT / 2;
+const OCCUPIED_HEIGHT = 6 * REM;
+const OFFSET_TOP = OCCUPIED_HEIGHT / 2 + REM;
 
 export function animateOpening(type: MediaType, mediaId: string, mediaUrl?: string) {
   const { image: fromImage } = getNode(type, mediaId);

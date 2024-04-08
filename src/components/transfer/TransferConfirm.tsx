@@ -3,10 +3,12 @@ import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX } from '../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_SYMBOL } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
+import { formatCurrencySimple } from '../../util/formatNumber';
+import { NFT_TRANSFER_TON_AMOUNT } from '../../api/blockchains/ton/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -19,6 +21,7 @@ import IconWithTooltip from '../ui/IconWithTooltip';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import ModalHeader from '../ui/ModalHeader';
 import Transition from '../ui/Transition';
+import NftInfo from './NftInfo';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
@@ -52,6 +55,7 @@ function TransferConfirm({
     isToNewAddress,
     isScam,
     binPayload,
+    nft,
   },
   symbol,
   decimals,
@@ -65,11 +69,24 @@ function TransferConfirm({
   const lang = useLang();
 
   const addressName = savedAddresses?.[toAddress!] || toAddressName;
+  const isNftTransfer = Boolean(nft);
 
   useHistoryBack({
     isActive,
     onBack,
   });
+
+  function renderFeeForNft() {
+    return (
+      <>
+        <div className={styles.label}>{lang('Fee')}</div>
+        <div className={styles.inputReadOnly}>
+          ≈ {formatCurrencySimple(NFT_TRANSFER_TON_AMOUNT + (fee ?? 0n), '')}
+          <span className={styles.currencySymbol}>{TON_SYMBOL}</span>
+        </div>
+      </>
+    );
+  }
 
   function renderComment() {
     if (binPayload) {
@@ -107,15 +124,17 @@ function TransferConfirm({
     <>
       <ModalHeader title={lang('Is it all ok?')} onClose={onClose} />
       <div className={modalStyles.transitionContent}>
-        <AnimatedIconWithPreview
-          size={ANIMATED_STICKER_SMALL_SIZE_PX}
-          play={isActive}
-          noLoop={false}
-          nonInteractive
-          className={buildClassName(styles.sticker, styles.sticker_sizeSmall)}
-          tgsUrl={ANIMATED_STICKERS_PATHS.bill}
-          previewUrl={ANIMATED_STICKERS_PATHS.billPreview}
-        />
+        {isNftTransfer ? <NftInfo nft={nft} /> : (
+          <AnimatedIconWithPreview
+            size={ANIMATED_STICKER_SMALL_SIZE_PX}
+            play={isActive}
+            noLoop={false}
+            nonInteractive
+            className={buildClassName(styles.sticker, styles.sticker_sizeSmall)}
+            tgsUrl={ANIMATED_STICKERS_PATHS.bill}
+            previewUrl={ANIMATED_STICKERS_PATHS.billPreview}
+          />
+        )}
         <div className={styles.label}>
           {lang('Receiving Address')}
           <Transition name="fade" activeKey={isScam ? 0 : 1} className={styles.scamContainer}>
@@ -138,12 +157,14 @@ function TransferConfirm({
           textClassName={isScam ? styles.scamAddress : undefined}
         />
 
-        <AmountWithFeeTextField
-          label={lang('Amount')}
-          amount={toDecimal(amount ?? 0n, decimals)}
-          symbol={symbol}
-          fee={fee ? toDecimal(fee) : undefined}
-        />
+        {isNftTransfer ? renderFeeForNft() : (
+          <AmountWithFeeTextField
+            label={lang('Amount')}
+            amount={toDecimal(amount ?? 0n, decimals)}
+            symbol={symbol}
+            fee={fee ? toDecimal(fee) : undefined}
+          />
+        )}
 
         {renderComment()}
 

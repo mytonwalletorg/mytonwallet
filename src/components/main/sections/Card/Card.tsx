@@ -202,7 +202,7 @@ function Card({
           <a
             href={tonscanAddressUrl}
             className={styles.tonscanButton}
-            title={lang('View address on TON Explorer')}
+            title={lang('View address on TONScan')}
             target="_blank"
             rel="noreferrer noopener"
           >

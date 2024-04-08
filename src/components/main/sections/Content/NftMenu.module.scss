@@ -1,0 +1,84 @@
+.button {
+  cursor: var(--custom-cursor, pointer);
+
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 1.5rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0;
+
+  color: var(--color-white);
+
+  background: rgba(0, 0, 0, 0.26);
+  border: none;
+  border-top-right-radius: var(--border-radius-normal);
+  border-bottom-left-radius: var(--border-radius-normal);
+
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  appearance: none;
+
+  @media (hover: hover) {
+    &:hover .icon,
+    &:focus-visible .icon,
+    &:active .icon {
+      opacity: 0.6;
+    }
+  }
+
+  @media (pointer: coarse) {
+    &:active .icon {
+      opacity: 0.6;
+    }
+  }
+
+  :global(.ghost-target) & {
+    transform: translateY(-15%) scale(0.8);
+
+    opacity: 0;
+
+    transition: none;
+  }
+}
+
+.icon {
+  position: relative;
+  z-index: 2;
+
+  transition: opacity 300ms;
+}
+
+.menu {
+  --offset-y-value: 2rem;
+  --offset-x-value: 0.25rem;
+}
+
+.item {
+  > :global(.icon) {
+    order: 2;
+
+    margin-inline-start: 0.25rem;
+    margin-inline-end: 0;
+
+    font-size: 1rem;
+    color: var(--color-gray-3);
+
+    transition: color 150ms;
+  }
+
+  &:hover,
+  &:focus {
+    > :global(.icon) {
+      color: var(--color-blue);
+    }
+  }
+}

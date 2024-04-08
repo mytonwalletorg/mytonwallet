@@ -128,7 +128,7 @@ Signing was confirmed!: Die Signatur wurde bestätigt!
 Transaction Info: Transaktions informationen
 Transaction in progress: Transaktion in Bearbeitung
 Comment was copied!: Der Kommentar wurde kopiert!
-View Transaction on TON Explorer: Transaktion im TON Explorer anzeigen
+View Transaction on TONScan: Transaktion im TONScan anzeigen
 Sender: Absender
 Recipient: Empfänger
 Address was copied!: Adresse wurde kopiert!
@@ -136,7 +136,7 @@ Repeat: Wiederholen
 Receive: Empfangen
 Switch Account: Konto wechseln
 Copy wallet address: Wallet adresse kopieren
-View address on TON Explorer: Adresse im TON Explorer anzeigen
+View address on TONScan: Adresse im TONScan anzeigen
 Open on CoinMarketCap: Auf CoinMarketCap öffnen
 You have just created a new wallet: Sie haben gerade eine neue Wallet erstellt.
 You can now transfer your tokens from another wallet or exchange.: Sie können jetzt Ihre Token von einer anderen Wallet oder Börse übertragen.
@@ -184,7 +184,7 @@ Save: Speichern
 Copy: Kopieren
 Remove From Saved Addresses: Aus den gespeicherten Adressen entfernen
 Add To Saved Addresses: Zu den gespeicherten Adressen hinzufügen
-View Address on TON Explorer: Adresse im TON Explorer anzeigen
+View Address on TONScan: Adresse im TONScan anzeigen
 No suggestions, you're on your own!: Keine Vorschläge, Sie sind auf sich allein gestellt!
 Play Sounds: Sounds abspielen
 Focus on asset value rather than current balance: Fokus auf den Vermögenswert anstatt auf den aktuellen Kontostand legen
@@ -273,7 +273,6 @@ Scam: Scam
 Scam comment is hidden.: Betrügerischer Kommentar ist versteckt.
 Display: Anzeigen
 $dapp_transfer_tokens_payload: Senden von %amount% von Ihrem Konto an %address%
-$dapp_transfer_nft_payload: Senden von NFT "%nft%" von Ihrem Konto an %address%
 Connected Dapps: Verbundene Dapps
 Disconnect All Dapps: Alle Dapps trennen
 Disconnect: Trennen
@@ -553,9 +552,17 @@ To use this feature, first enable biometrics in your phone settings.: Um diese F
 Open Settings: Einstellungen öffnen
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Sie sind dabei, einen wichtigen Service-Token zu übertragen, der benötigt wird, um Ihre Einzahlung vom Einsatz abzuheben.
 No Price: Kein preis
+Search or enter address...: Adresse suchen oder eingeben...
 Connecting dapps is not yet supported by Ledger.: Das Verbinden von Dapps wird von Ledger noch nicht unterstützt.
+Time synchronization issue. Please ensure your device's time settings are correct.: Problem mit der Zeitsynchronisierung. Bitte stellen Sie sicher, dass die Zeiteinstellungen Ihres Geräts korrekt sind.
 Data was copied!: Daten wurden kopiert!
 Open NFT Collection: NFT-Sammlung öffnen
-Open TON Explorer: TON Explorer öffnen
 Previous: Zurück
 Next: Weiter
+NftInsufficientBalance: Unzureichende TON für Gebühr.
+Send NFT: Senden von NFT
+NFT has been sent!: NFT wurde gesendet!
+Cannot be sent: Kann nicht gesendet werden
+NFT is for sale: NFT steht zum Verkauf
+More actions: Mehr Aktionen
+Open on TONScan: Auf TONScan öffnen

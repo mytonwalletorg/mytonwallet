@@ -16,11 +16,11 @@ export const useWebViewBridge = <
   Event extends object = {},
 >(
     inAppBrowserRef: React.RefObject<InAppBrowserObject>,
-    bridgeObj: BridgeObject,
+    bridgeObj?: BridgeObject,
     timeout?: number,
   ): UseWebViewBridgeReturnType<Event> => {
   const bridgeInjectionCode = useMemo(
-    () => objectToInjection(bridgeObj, timeout),
+    () => (bridgeObj ? objectToInjection(bridgeObj, timeout) : ''),
     [bridgeObj, timeout],
   );
 
@@ -32,6 +32,8 @@ export const useWebViewBridge = <
 
   const onMessage = useCallback(
     async (event: MessageEvent) => {
+      if (!bridgeObj) return;
+
       const message = typeof event.data === 'string'
         ? JSON.parse(event.data)
         : event.data as WebViewBridgeMessage;

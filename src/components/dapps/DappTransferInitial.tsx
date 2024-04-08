@@ -17,6 +17,7 @@ import { shortenAddress } from '../../util/shortenAddress';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useLang from '../../hooks/useLang';
 
+import NftInfo from '../transfer/NftInfo';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import Button from '../ui/Button';
 import DappInfo from './DappInfo';
@@ -54,6 +55,10 @@ function DappTransferInitial({
   const lang = useLang();
   const isSingleTransaction = transactions?.length === 1;
   const renderingTransactions = useCurrentOrPrev(transactions, true);
+  const isNftTransfer = renderingTransactions?.[0].payload?.type === 'nft:transfer';
+  const nft = isNftTransfer && 'nft' in renderingTransactions![0].payload!
+    ? renderingTransactions[0].payload.nft
+    : undefined;
 
   const totalAmount = useMemo(() => {
     return renderingTransactions?.reduce((acc, { amount }) => {
@@ -147,6 +152,8 @@ function DappTransferInitial({
   return (
     <div className={modalStyles.transitionContent}>
       {renderDapp()}
+
+      {isNftTransfer && <NftInfo nft={nft} /> }
 
       <div className={styles.contentWithBackground}>
         {isSingleTransaction ? renderTransaction() : renderTransactions()}

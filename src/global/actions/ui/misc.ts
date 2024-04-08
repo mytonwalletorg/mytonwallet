@@ -5,7 +5,14 @@ import {
 } from '../../types';
 
 import {
-  ANIMATION_LEVEL_MIN, APP_VERSION, BETA_URL, DEBUG, IS_CAPACITOR, IS_EXTENSION, IS_PRODUCTION, PRODUCTION_URL,
+  ANIMATION_LEVEL_MIN,
+  APP_VERSION,
+  BETA_URL,
+  DEBUG,
+  IS_CAPACITOR,
+  IS_EXTENSION,
+  IS_PRODUCTION,
+  PRODUCTION_URL,
 } from '../../../config';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { processDeeplink } from '../../../util/deeplink';
@@ -585,9 +592,9 @@ addActionHandler('closeQrScanner', (global) => {
   };
 });
 
-addActionHandler('requestOpenQrScanner', async (global, actions, { info }) => {
+addActionHandler('requestOpenQrScanner', async (global, actions, { info, nft }) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('requestOpenQrScanner', { info });
+    callActionInMain('requestOpenQrScanner', { info, nft });
     return;
   }
 
@@ -608,6 +615,7 @@ addActionHandler('requestOpenQrScanner', async (global, actions, { info }) => {
     currentQrScan: {
       state: info,
       currentSwap: global.currentSwap,
+      nft,
     },
   };
   setGlobal(global);
@@ -615,18 +623,24 @@ addActionHandler('requestOpenQrScanner', async (global, actions, { info }) => {
   actions.openQrScanner();
 });
 
-addActionHandler('scanQrCode', (global, actions, params) => {
+addActionHandler('scanQrCode', async (global, actions, params) => {
   const info = global.currentQrScan?.state;
 
-  if (info === QrScanType.Transfer) {
-    actions.openDeeplink(params as { url: string });
-  } else if (info === QrScanType.Swap) {
-    const { toAddress } = params as { toAddress: string };
-    actions.startSwap({
-      ...global.currentQrScan?.currentSwap,
-      state: SwapState.Blockchain,
-      toAddress,
-    });
+  switch (info) {
+    case QrScanType.Transfer:
+    case QrScanType.TransferNft:
+      actions.openDeeplink(params as { url: string });
+      break;
+
+    case QrScanType.Swap: {
+      const { toAddress } = params as { toAddress: string };
+      actions.startSwap({
+        ...global.currentQrScan?.currentSwap,
+        state: SwapState.Blockchain,
+        toAddress,
+      });
+      break;
+    }
   }
 });
 
@@ -640,8 +654,9 @@ addActionHandler('openDeeplink', async (global, actions, params) => {
   if (getIsAddressValid(url)) {
     url = `ton://transfer/${url}`;
   }
+  const { state, nft } = global.currentQrScan ?? {};
 
-  const result = await processDeeplink(url);
+  const result = await processDeeplink(url, undefined, state === QrScanType.TransferNft ? nft : undefined);
 
   if (!result) {
     actions.showNotification({
@@ -706,6 +721,14 @@ addActionHandler('openReceiveModal', (global) => {
 
 addActionHandler('closeReceiveModal', (global) => {
   setGlobal({ ...global, isReceiveModalOpen: undefined });
+});
+
+addActionHandler('showIncorrectTimeError', (global, actions) => {
+  actions.showDialog({
+    message: getTranslation('Time synchronization issue. Please ensure your device\'s time settings are correct.'),
+  });
+
+  return { ...global, isIncorrectTimeNotificationReceived: true };
 });
 
 addActionHandler('initLedgerPage', (global) => {

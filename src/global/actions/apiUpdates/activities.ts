@@ -2,7 +2,9 @@ import { TransferState } from '../../types';
 
 import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../config';
 import { compareActivities } from '../../../util/compareActivities';
+import { callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
+import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { getIsTinyTransaction } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
@@ -48,6 +50,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'newActivities': {
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        callActionInNative('apiUpdate', update);
+      }
       const { accountId } = update;
       const activities = update.activities.sort((a, b) => compareActivities(a, b, true));
 

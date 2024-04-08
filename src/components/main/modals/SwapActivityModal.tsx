@@ -359,7 +359,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
             target="_blank"
             rel="noreferrer noopener"
             className={styles.tonscan}
-            title={lang('View Transaction on TON Explorer')}
+            title={lang('View Transaction on TONScan')}
           >
             <i className="icon-tonscan" aria-hidden />
           </a>

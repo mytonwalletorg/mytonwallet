@@ -4,14 +4,12 @@ import { getActions, withGlobal } from '../../global';
 import { MediaType } from '../../global/types';
 
 import { ANIMATION_END_DELAY } from '../../config';
-import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 import { animateClosing, animateOpening, ANIMATION_DURATION } from './helpers/ghostAnimation';
 
-import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -39,7 +37,6 @@ function MediaViewer({
   const isOpen = Boolean(mediaId);
   const lang = useLang();
   const prevMediaId = usePrevious(mediaId);
-  const { isPortrait } = useDeviceScreen();
   const headerAnimation = withAnimation ? 'slideFade' : 'none';
   const shouldAnimateOpening = withAnimation && isOpen && !prevMediaId;
   const shouldAnimateClosing = withAnimation && !isOpen && !!prevMediaId;
@@ -64,12 +61,8 @@ function MediaViewer({
   });
 
   useLayoutEffect(() => {
-    if (isPortrait) {
-      requestMutation(() => {
-        document.body.classList.toggle('is-media-viewer-open', isOpen);
-      });
-    }
-  }, [isPortrait, isOpen]);
+    document.body.classList.toggle('is-media-viewer-open', isOpen);
+  }, [isOpen]);
 
   useEffect(() => (isOpen ? captureEscKeyListener(handleClose) : undefined), [handleClose, isOpen]);
 
@@ -92,14 +85,6 @@ function MediaViewer({
       isCustom
     >
       <div className={styles.header} dir={lang.isRtl ? 'rtl' : undefined}>
-        <button
-          type="button"
-          className={buildClassName(styles.actionButton, styles.mobileCloseButton)}
-          aria-label={lang('Close')}
-          onClick={handleClose}
-        >
-          <i className={buildClassName('icon-windows-close', styles.actionIcon)} aria-hidden />
-        </button>
         <Transition activeKey={selectedMediaIndex} name={headerAnimation} className={styles.headerTransition}>
           <MediaInfo mediaId={mediaId} />
         </Transition>

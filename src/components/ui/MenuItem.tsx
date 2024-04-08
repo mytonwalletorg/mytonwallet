@@ -7,13 +7,14 @@ import useLastCallback from '../../hooks/useLastCallback';
 
 import styles from './MenuItem.module.scss';
 
-type OnClickHandler = (e: React.SyntheticEvent<HTMLDivElement | HTMLAnchorElement>) => void;
+type OnClickHandler = (e: React.SyntheticEvent<HTMLDivElement | HTMLAnchorElement>, arg?: any) => void;
 
 interface OwnProps {
   className?: string;
   href?: string;
   children: React.ReactNode;
   onClick?: OnClickHandler;
+  clickArg?: string;
   isDestructive?: boolean;
   isSeparator?: boolean;
 }
@@ -24,6 +25,7 @@ const MenuItem: FC<OwnProps> = (props) => {
     href,
     children,
     onClick,
+    clickArg,
     isDestructive,
     isSeparator,
   } = props;
@@ -36,7 +38,7 @@ const MenuItem: FC<OwnProps> = (props) => {
       return;
     }
 
-    onClick(e);
+    onClick(e, clickArg);
   });
 
   const handleKeyDown = useLastCallback((e: React.KeyboardEvent<HTMLDivElement>) => {

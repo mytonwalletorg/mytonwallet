@@ -59,7 +59,8 @@ export interface ApiAddressInfo {
 }
 
 export type ApiTxIdBySlug = Record<string, string | undefined>;
-export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | 'swap' | undefined;
+export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | 'swap'
+| 'nftTransferred' | 'nftReceived' | undefined;
 
 export interface ApiTransaction {
   txId: string;
@@ -76,6 +77,7 @@ export interface ApiTransaction {
   inMsgHash: string;
   type?: ApiTransactionType;
   metadata?: ApiTransactionMetadata;
+  nft?: ApiNft;
 }
 
 export interface ApiTransactionMetadata extends ApiAddressInfo {
@@ -91,6 +93,7 @@ export interface ApiNft {
   collectionAddress?: string;
   isOnSale: boolean;
   isHidden?: boolean;
+  isOnFragment?: boolean;
 }
 
 export type ApiHistoryList = Array<[number, number]>;

@@ -13,6 +13,7 @@ import useLang from '../../hooks/useLang';
 import styles from './MediaViewer.module.scss';
 
 type OwnProps = {
+  // eslint-disable-next-line react/no-unused-prop-types
   mediaId?: string;
 };
 
@@ -22,7 +23,7 @@ type StateProps = {
   descriptionUrl?: string;
 };
 
-function MediaInfo({ title, description, descriptionUrl }: StateProps) {
+function MediaInfo({ title, description, descriptionUrl }: OwnProps & StateProps) {
   const lang = useLang();
 
   return (
@@ -43,24 +44,21 @@ function MediaInfo({ title, description, descriptionUrl }: StateProps) {
 }
 
 export default memo(withGlobal<OwnProps>((global, { mediaId }): StateProps => {
-  if (!mediaId) return {};
-
   const { mediaType = MediaType.Nft } = global.mediaViewer || {};
+
+  if (!mediaId || mediaType !== MediaType.Nft) return {};
+
   const isTestnet = global.settings.isTestnet;
 
-  const getGemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
+  const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
 
-  if (mediaType === MediaType.Nft) {
-    const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
-    const nft = byAddress?.[mediaId];
-    if (!nft) return {};
+  const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
+  const nft = byAddress?.[mediaId];
+  if (!nft) return {};
 
-    return {
-      title: nft.name || shortenAddress(nft.address, 4),
-      description: nft.collectionName,
-      descriptionUrl: `${getGemsBaseUrl}collection/${nft.collectionAddress}`,
-    };
-  }
-
-  return {};
+  return {
+    title: nft.name || shortenAddress(nft.address, 4),
+    description: nft.collectionName,
+    descriptionUrl: `${getgemsBaseUrl}collection/${nft.collectionAddress}`,
+  };
 })(MediaInfo));

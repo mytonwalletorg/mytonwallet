@@ -14,11 +14,10 @@ import {
 } from '../../util/captureEvents';
 import { clamp, isBetween, round } from '../../util/math';
 import { debounce } from '../../util/schedulers';
-import { IS_IOS, IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
+import { IS_IOS, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
 import useDebouncedCallback from '../../hooks/useDebouncedCallback';
 import useDerivedState from '../../hooks/useDerivedState';
-import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -93,9 +92,6 @@ function Slides({
   const isScaled = useDerivedState(() => getTransform().scale !== 1, [getTransform]);
   const activeMediaId = useDerivedState(getActiveMediaId);
   const { height: windowHeight, width: windowWidth, isResizing } = useWindowSize();
-  const { isPortrait } = useDeviceScreen();
-
-  const headerHeight = (isPortrait ? 4.5 : 5.5) * REM;
 
   useHistoryBack({
     isActive: isOpen,
@@ -305,7 +301,7 @@ function Slides({
           y1 -= Math.abs(lastDragOffset.y) * Vy * k * panDelta.y;
         }
 
-        [lastTransform] = calculateOffsetBoundaries({ x: x1, y: y1, scale: s1 }, headerHeight);
+        [lastTransform] = calculateOffsetBoundaries({ x: x1, y: y1, scale: s1 });
         cancelAnimation = animateNumber({
           from: [x, y, scale],
           to: [lastTransform.x, lastTransform.y, lastTransform.scale],
@@ -432,7 +428,7 @@ function Slides({
           const x1 = lastTransform.x + dragOffsetX;
           const y1 = lastTransform.y + dragOffsetY;
           if (['wheel', 'mousemove'].includes(event.type)) {
-            const [transform, inBoundsX, inBoundsY] = calculateOffsetBoundaries({ x: x1, y: y1, scale }, headerHeight);
+            const [transform, inBoundsX, inBoundsY] = calculateOffsetBoundaries({ x: x1, y: y1, scale });
             if (cancelDrag) cancelDrag(!inBoundsX, !inBoundsY);
             setTransform(transform);
             return;
@@ -608,7 +604,6 @@ function Slides({
     transformRef,
     setActiveMediaId,
     activeMediaIdRef,
-    headerHeight,
     changeSlide,
   ]);
 

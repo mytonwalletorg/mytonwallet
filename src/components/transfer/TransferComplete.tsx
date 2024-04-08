@@ -1,7 +1,11 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
+import type { NftTransfer } from '../../global/types';
+
 import { TON_TOKEN_SLUG } from '../../config';
+import buildClassName from '../../util/buildClassName';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -9,9 +13,12 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import TransferResult from '../common/TransferResult';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
+import NftInfo from './NftInfo';
 
+import styles from '../common/TransferResult.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
 
 interface OwnProps {
@@ -26,6 +33,7 @@ interface OwnProps {
   toAddress?: string;
   comment?: string;
   decimals?: number;
+  nft?: NftTransfer;
   onInfoClick: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -44,6 +52,7 @@ function TransferComplete({
   toAddress,
   comment,
   decimals,
+  nft,
   onInfoClick,
   onClose,
 }: OwnProps) {
@@ -51,6 +60,7 @@ function TransferComplete({
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
+  const isNftTransfer = Boolean(nft);
 
   useHistoryBack({
     isActive,
@@ -69,23 +79,42 @@ function TransferComplete({
 
   return (
     <>
-      <ModalHeader title={lang('Coins have been sent!')} onClose={onClose} />
+      <ModalHeader title={lang(isNftTransfer ? 'NFT has been sent!' : 'Coins have been sent!')} onClose={onClose} />
 
       <div className={modalStyles.transitionContent}>
-        <TransferResult
-          playAnimation={isActive}
-          amount={amount ? -amount : undefined}
-          tokenSymbol={symbol}
-          precision={AMOUNT_PRECISION}
-          balance={balance}
-          fee={fee ?? 0n}
-          operationAmount={operationAmount ? -operationAmount : undefined}
-          firstButtonText={txId ? lang('Details') : undefined}
-          secondButtonText={lang('Repeat')}
-          onFirstButtonClick={onInfoClick}
-          onSecondButtonClick={handleTransactionRepeatClick}
-          decimals={decimals}
-        />
+        {isNftTransfer ? (
+          <>
+            <AnimatedIconWithPreview
+              play={isActive}
+              noLoop={false}
+              nonInteractive
+              className={styles.sticker}
+              tgsUrl={ANIMATED_STICKERS_PATHS.thumbUp}
+              previewUrl={ANIMATED_STICKERS_PATHS.thumbUpPreview}
+            />
+            <NftInfo nft={nft} />
+            {Boolean(txId) && (
+              <div className={buildClassName(styles.buttons, styles.buttonsAfterNft)}>
+                <Button className={styles.button} onClick={onInfoClick}>{lang('Details')}</Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <TransferResult
+            playAnimation={isActive}
+            amount={amount ? -amount : undefined}
+            tokenSymbol={symbol}
+            precision={AMOUNT_PRECISION}
+            balance={balance}
+            fee={fee ?? 0n}
+            operationAmount={operationAmount ? -operationAmount : undefined}
+            firstButtonText={txId ? lang('Details') : undefined}
+            secondButtonText={lang('Repeat')}
+            onFirstButtonClick={onInfoClick}
+            onSecondButtonClick={handleTransactionRepeatClick}
+            decimals={decimals}
+          />
+        )}
 
         <div className={modalStyles.buttons}>
           <Button onClick={onClose} isPrimary>{lang('Close')}</Button>

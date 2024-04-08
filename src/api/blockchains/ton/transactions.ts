@@ -7,6 +7,7 @@ import type {
   ApiActivity,
   ApiAnyDisplayError,
   ApiNetwork,
+  ApiNft,
   ApiSignedTransfer,
   ApiTransaction,
   ApiTransactionActivity,
@@ -22,7 +23,7 @@ import { ONE_TON, TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
-import { omit } from '../../../util/iteratees';
+import { buildCollectionByKey, omit, unique } from '../../../util/iteratees';
 import { isValidLedgerComment } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
@@ -31,7 +32,8 @@ import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
 import { fetchAddressBook, fetchLatestTxId, fetchTransactions } from './util/apiV3';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
-import { parseWalletTransactionBody } from './util/metadata';
+import { buildNft, parseWalletTransactionBody } from './util/metadata';
+import { fetchNftItems } from './util/tonapiio';
 import {
   commentToBytes,
   getTonClient,
@@ -44,7 +46,6 @@ import {
   toBase64Address,
 } from './util/tonCore';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
-import { getAddressInfo } from '../../common/addresses';
 import { updateTransactionMetadata } from '../../common/helpers';
 import { base64ToBytes, isKnownStakingPool } from '../../common/utils';
 import { ApiServerError, handleServerError } from '../../errors';
@@ -64,6 +65,7 @@ export type CheckTransactionDraftResult = {
   isScam?: boolean;
   resolvedAddress?: string;
   isToAddressNew?: boolean;
+  isBounceable?: boolean;
   error?: ApiAnyDisplayError;
 };
 
@@ -119,44 +121,20 @@ export async function checkTransactionDraft(
 ): Promise<CheckTransactionDraftResult> {
   const { network } = parseAccountId(accountId);
 
-  const result: CheckTransactionDraftResult = {};
+  let result: CheckTransactionDraftResult = {};
 
   try {
-    const resolved = await resolveAddress(network, toAddress);
-    if (resolved) {
-      result.addressName = resolved.domain;
-      toAddress = resolved.address;
-    } else {
-      return {
-        ...result,
-        error: ApiTransactionDraftError.DomainNotResolved,
-      };
+    result = await checkToAddress(network, toAddress);
+
+    if ('error' in result) {
+      return result;
     }
 
-    const {
-      isValid, isUserFriendly, isTestOnly, isBounceable,
-    } = parseAddress(toAddress);
-
-    if (!isValid) {
-      return {
-        ...result,
-        error: ApiTransactionDraftError.InvalidToAddress,
-      };
-    }
-
-    const regex = /[+=/]/; // Temp check for `isUrlSafe`. Remove after TonWeb fixes the issue
-    const isUrlSafe = !regex.test(toAddress);
-
-    if (!isUserFriendly || !isUrlSafe || (network === 'mainnet' && isTestOnly)) {
-      return {
-        ...result,
-        error: ApiTransactionDraftError.InvalidAddressFormat,
-      };
-    }
+    toAddress = result.resolvedAddress!;
 
     const { isInitialized, isLedgerAllowed } = await getContractInfo(network, toAddress);
 
-    if (isBounceable && !isInitialized) {
+    if (result.isBounceable && !isInitialized) {
       result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
       if (tokenSlug === TON_TOKEN_SLUG) {
         // Force non-bounceable for non-initialized recipients
@@ -165,10 +143,6 @@ export async function checkTransactionDraft(
     }
 
     result.resolvedAddress = toAddress;
-
-    const addressInfo = await getAddressInfo(toBase64Address(toAddress, true));
-    if (addressInfo?.name) result.addressName = addressInfo.name;
-    if (addressInfo?.isScam) result.isScam = addressInfo.isScam;
 
     if (amount < 0n) {
       return {
@@ -286,6 +260,54 @@ export async function checkTransactionDraft(
       ...result,
     };
   }
+}
+
+export async function checkToAddress(network: ApiNetwork, toAddress: string) {
+  const result: {
+    addressName?: string;
+    isScam?: boolean;
+    resolvedAddress?: string;
+    isToAddressNew?: boolean;
+    isBounceable?: boolean;
+    error?: ApiAnyDisplayError;
+  } = {};
+
+  const resolved = await resolveAddress(network, toAddress);
+  if (resolved) {
+    result.addressName = resolved.domain;
+    result.resolvedAddress = resolved.address;
+    toAddress = resolved.address;
+  } else {
+    return {
+      ...result,
+      error: ApiTransactionDraftError.DomainNotResolved,
+    };
+  }
+
+  const {
+    isValid, isUserFriendly, isTestOnly, isBounceable,
+  } = parseAddress(toAddress);
+
+  result.isBounceable = isBounceable;
+
+  if (!isValid) {
+    return {
+      ...result,
+      error: ApiTransactionDraftError.InvalidToAddress,
+    };
+  }
+
+  const regex = /[+=/]/;
+  const isUrlSafe = !regex.test(toAddress);
+
+  if (!isUserFriendly || !isUrlSafe || (network === 'mainnet' && isTestOnly)) {
+    return {
+      ...result,
+      error: ApiTransactionDraftError.InvalidAddressFormat,
+    };
+  }
+
+  return result;
 }
 
 export async function submitTransfer(
@@ -449,11 +471,37 @@ export async function getAccountTransactionSlice(
     transactions.map((transaction) => parseWalletTransactionBody(network, transaction)),
   );
 
+  await populateTransactionRelatedItems(network, transactions);
+
   return transactions
     .map(updateTransactionType)
     .map(updateTransactionMetadata)
     .map(omitExtraData)
     .map(transactionToActivity);
+}
+
+async function populateTransactionRelatedItems(network: ApiNetwork, transactions: ApiTransactionExtra[]) {
+  const nftAddresses = unique(
+    transactions.map(({ extraData: { parsedPayload } }) => {
+      return (parsedPayload && 'nftAddress' in parsedPayload)
+        ? parsedPayload.nftAddress
+        : undefined;
+    }).filter(Boolean) as string[],
+  );
+
+  if (nftAddresses.length) {
+    const nfts = (await fetchNftItems(network, nftAddresses))
+      .map((rawNft) => buildNft(network, rawNft))
+      .filter(Boolean) as ApiNft[];
+    const nftsByAddress = buildCollectionByKey(nfts, 'address');
+
+    for (const { extraData: { parsedPayload } } of transactions) {
+      if (!parsedPayload) continue;
+      if ('nftAddress' in parsedPayload) {
+        parsedPayload.nft = nftsByAddress[parsedPayload.nftAddress];
+      }
+    }
+  }
 }
 
 export async function getMergedTransactionSlice(accountId: string, lastTxIds: ApiTxIdBySlug, limit: number) {
@@ -516,14 +564,14 @@ function omitExtraData(tx: ApiTransactionExtra): ApiTransaction {
 }
 
 function updateTransactionType(transaction: ApiTransactionExtra) {
-  const {
-    comment, amount, extraData,
-  } = transaction;
+  const { amount, extraData } = transaction;
+  let { comment } = transaction;
 
   const fromAddress = toBase64Address(transaction.fromAddress, true);
   const toAddress = toBase64Address(transaction.toAddress, true);
 
   let type: ApiTransactionType | undefined;
+  let nft: ApiNft | undefined;
 
   if (isKnownStakingPool(fromAddress) && amount > ONE_TON) {
     type = 'unstake';
@@ -542,10 +590,23 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
       type = 'stake';
     } else if (payload.type === 'liquid-staking:withdrawal' || payload.type === 'liquid-staking:withdrawal-nft') {
       type = 'unstake';
+    } else if (payload.type === 'nft:transfer') {
+      type = 'nftTransferred';
+      nft = payload.nft;
+      comment = payload.comment;
+    } else if (payload.type === 'nft:ownership-assigned') {
+      type = 'nftReceived';
+      nft = payload.nft;
+      comment = payload.comment;
     }
   }
 
-  return { ...transaction, type };
+  return {
+    ...transaction,
+    type,
+    comment,
+    nft,
+  };
 }
 
 function transactionToActivity(transaction: ApiTransaction): ApiTransactionActivity {

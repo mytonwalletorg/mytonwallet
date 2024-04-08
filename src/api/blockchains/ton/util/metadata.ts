@@ -1,3 +1,4 @@
+import type { NftItem } from 'tonapi-sdk-js';
 import type { DictionaryValue } from '@ton/core';
 import { BitReader } from '@ton/core/dist/boc/BitReader';
 import { BitString } from '@ton/core/dist/boc/BitString';
@@ -6,13 +7,13 @@ import { Cell } from '@ton/core/dist/boc/Cell';
 import { Slice } from '@ton/core/dist/boc/Slice';
 import { Dictionary } from '@ton/core/dist/dict/Dictionary';
 
-import type { ApiNetwork, ApiParsedPayload } from '../../../types';
+import type { ApiNetwork, ApiNft, ApiParsedPayload } from '../../../types';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
-import { LIQUID_JETTON } from '../../../../config';
+import { DEBUG, LIQUID_JETTON, NFT_FRAGMENT_COLLECTIONS } from '../../../../config';
 import { pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
-import { fetchJsonMetadata } from '../../../../util/metadata';
+import { fetchJsonMetadata, fixIpfsUrl } from '../../../../util/metadata';
 import { base64ToString, sha256 } from '../../../common/utils';
 import {
   JettonOpCode, LiquidStakingOpCode, NftOpCode, OpCode,
@@ -183,7 +184,11 @@ export async function parseWalletTransactionBody(
     const slice = dataToSlice(body);
 
     if (slice.remainingBits > 32) {
-      const parsedPayload = await parsePayloadSlice(network, transaction.toAddress, slice);
+      const address = transaction.isIncoming ? transaction.fromAddress : transaction.toAddress;
+
+      const parsedPayload = await parsePayloadSlice(
+        network, address, slice, false, transaction,
+      );
       transaction.extraData!.parsedPayload = parsedPayload;
 
       if (parsedPayload?.type === 'comment') {
@@ -206,21 +211,28 @@ export async function parseWalletTransactionBody(
 }
 
 export async function parsePayloadBase64(
-  network: ApiNetwork, toAddress: string, base64: string,
+  network: ApiNetwork,
+  address: string,
+  base64: string,
 ): Promise<ApiParsedPayload> {
   const slice = dataToSlice(base64);
   const result: ApiParsedPayload = { type: 'unknown', base64 };
 
   if (!slice) return result;
 
-  return await parsePayloadSlice(network, toAddress, slice) ?? result;
+  return await parsePayloadSlice(network, address, slice, true) ?? result;
 }
 
 export async function parsePayloadSlice(
-  network: ApiNetwork, toAddress: string, slice: Slice,
+  network: ApiNetwork,
+  address: string,
+  slice: Slice,
+  shouldLoadItems?: boolean,
+  transactionDebug?: ApiTransactionExtra,
 ): Promise<ApiParsedPayload | undefined> {
+  let opCode: number | undefined;
   try {
-    const opCode = slice.loadUint(32);
+    opCode = slice.loadUint(32);
 
     if (opCode === OpCode.Comment) {
       const buffer = readSnakeBytes(slice);
@@ -238,7 +250,7 @@ export async function parsePayloadSlice(
 
     switch (opCode) {
       case JettonOpCode.Transfer: {
-        const minterAddress = await resolveTokenMinterAddress(network, toAddress);
+        const minterAddress = await resolveTokenMinterAddress(network, address);
         const slug = buildTokenSlug(minterAddress);
 
         const amount = slice.loadCoins();
@@ -283,18 +295,17 @@ export async function parsePayloadSlice(
         const responseDestination = slice.loadAddress();
         const customPayload = slice.loadMaybeRef();
         const forwardAmount = slice.loadCoins();
+        const forwardPayload = readForwardPayloadCell(slice);
+        const comment = forwardPayload ? readComment(forwardPayload.asSlice()) : undefined;
 
-        let forwardPayload = slice.loadMaybeRef();
-        if (!forwardPayload && slice.remainingBits) {
-          const builder = new Builder().storeBits(slice.loadBits(slice.remainingBits));
-          range(0, slice.remainingRefs).forEach(() => {
-            builder.storeRef(slice.loadRef());
-          });
-          forwardPayload = builder.endCell();
+        let nft: ApiNft | undefined;
+        if (shouldLoadItems) {
+          const [rawNft] = await fetchNftItems(network, [address]);
+          if (rawNft) {
+            nft = buildNft(network, rawNft);
+          }
         }
 
-        const nftAddress = toAddress;
-        const [nft] = await fetchNftItems(network, [nftAddress]);
         return {
           type: 'nft:transfer',
           queryId,
@@ -303,16 +314,40 @@ export async function parsePayloadSlice(
           customPayload: customPayload?.toBoc().toString('base64'),
           forwardAmount,
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
-          nftAddress,
-          nftName: nft?.metadata?.name,
+          nftAddress: address,
+          nftName: nft?.name,
+          nft,
+          comment,
+        };
+      }
+      case NftOpCode.OwnershipAssigned: {
+        const prevOwner = slice.loadAddress();
+        const forwardPayload = readForwardPayloadCell(slice);
+        const comment = forwardPayload ? readComment(forwardPayload.asSlice()) : undefined;
+
+        let nft: ApiNft | undefined;
+        if (shouldLoadItems) {
+          const [rawNft] = await fetchNftItems(network, [address]);
+          if (rawNft) {
+            nft = buildNft(network, rawNft);
+          }
+        }
+
+        return {
+          type: 'nft:ownership-assigned',
+          queryId,
+          prevOwner: toBase64Address(prevOwner, undefined, network),
+          comment,
+          nftAddress: address,
+          nft,
         };
       }
       case JettonOpCode.Burn: {
-        const minterAddress = await resolveTokenMinterAddress(network, toAddress);
+        const minterAddress = await resolveTokenMinterAddress(network, address);
         const slug = buildTokenSlug(minterAddress);
 
         const amount = slice.loadCoins();
-        const address = slice.loadAddress();
+        const addressObj = slice.loadAddress();
         const customPayload = slice.loadMaybeRef();
         const isLiquidUnstakeRequest = minterAddress === LIQUID_JETTON;
 
@@ -320,7 +355,7 @@ export async function parsePayloadSlice(
           type: 'tokens:burn',
           queryId,
           amount,
-          address: toBase64Address(address, undefined, network),
+          address: toBase64Address(addressObj, undefined, network),
           customPayload: customPayload?.toBoc().toString('base64'),
           slug,
           isLiquidUnstakeRequest,
@@ -347,7 +382,12 @@ export async function parsePayloadSlice(
       }
     }
   } catch (err) {
-    logDebugError('parsePayload', err);
+    if (DEBUG) {
+      const debugTxString = transactionDebug
+        && `${transactionDebug.txId} ${new Date(transactionDebug.timestamp)}`;
+      const opCodeHex = `0x${opCode?.toString(16).padStart(8, '0')}`;
+      logDebugError('parsePayload', opCodeHex, debugTxString, '\n', err);
+    }
   }
 
   return undefined;
@@ -374,6 +414,34 @@ function dataToSlice(data: string | Buffer | Uint8Array): Slice {
   return new Slice(new BitReader(new BitString(buffer, 0, buffer.length * 8)), []);
 }
 
+function readComment(slice: Slice) {
+  if (slice.remainingBits < 32) {
+    return undefined;
+  }
+
+  const opCode = slice.loadUint(32);
+  if (opCode !== OpCode.Comment || (!slice.remainingBits && !slice.remainingRefs)) {
+    return undefined;
+  }
+
+  const buffer = readSnakeBytes(slice);
+  return buffer.toString('utf-8');
+}
+
+function readForwardPayloadCell(slice: Slice) {
+  let forwardPayload = slice.loadBit() && slice.remainingRefs ? slice.loadRef() : undefined;
+
+  if (!forwardPayload && slice.remainingBits) {
+    const builder = new Builder().storeBits(slice.loadBits(slice.remainingBits));
+    range(0, slice.remainingRefs).forEach(() => {
+      builder.storeRef(slice.loadRef());
+    });
+    forwardPayload = builder.endCell();
+  }
+
+  return forwardPayload ?? undefined;
+}
+
 export function readSnakeBytes(slice: Slice) {
   let buffer = Buffer.alloc(0);
 
@@ -387,4 +455,46 @@ export function readSnakeBytes(slice: Slice) {
   }
 
   return buffer;
+}
+
+export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefined {
+  if (!rawNft.metadata) {
+    return undefined;
+  }
+
+  try {
+    const {
+      address,
+      index,
+      collection,
+      metadata: {
+        name,
+        image,
+        description,
+        render_type: renderType,
+      },
+      previews,
+      sale,
+    } = rawNft;
+
+    const isHidden = renderType === 'hidden' || description === 'SCAM';
+    const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
+
+    return {
+      index,
+      name,
+      address: toBase64Address(address, true, network),
+      image: fixIpfsUrl(imageFromPreview || image || ''),
+      thumbnail: previews!.find((x) => x.resolution === '500x500')!.url,
+      isOnSale: Boolean(sale),
+      isHidden,
+      ...(collection && {
+        collectionAddress: toBase64Address(collection.address, true, network),
+        collectionName: collection.name,
+        isOnFragment: NFT_FRAGMENT_COLLECTIONS.has(collection.address),
+      }),
+    };
+  } catch (err) {
+    return undefined;
+  }
 }

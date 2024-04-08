@@ -3,6 +3,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import { MY_TON_WALLET_PROMO_URL } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
+import { openUrl } from '../../../../util/openUrl';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
@@ -24,7 +25,7 @@ function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
   const lang = useLang();
 
   function handleClick() {
-    window.open(MY_TON_WALLET_PROMO_URL, '_blank', 'noopener');
+    openUrl(MY_TON_WALLET_PROMO_URL);
   }
 
   const handleClose = useLastCallback((e: React.MouseEvent<HTMLButtonElement>) => {

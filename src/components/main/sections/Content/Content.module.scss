@@ -30,7 +30,7 @@
 
 .tabs {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 
   height: 2.75rem;
   padding: 0 1.5rem;
@@ -59,9 +59,9 @@
       content: '';
 
       position: absolute;
-      bottom: 0.0625rem;
+      bottom: 0;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -0.015625rem);
 
       width: 100vw;
       height: 0.0625rem;

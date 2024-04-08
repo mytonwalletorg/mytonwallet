@@ -18,6 +18,15 @@
   color: var(--color-black);
   text-align: left;
 
+  &.withNft {
+    grid-template-areas: "icon left right" "useless center center";
+  }
+
+  &.withNftAndComment {
+    grid-template-areas: "icon left right" "useless center center" "useless bottom bottom";
+    grid-template-rows: 2.25rem auto auto;
+  }
+
   &::after {
     content: '';
 
@@ -305,4 +314,78 @@
   font-size: 0.75rem;
   font-weight: 400;
   color: var(--color-red);
+}
+
+.nft {
+  overflow: hidden;
+  display: flex;
+  grid-area: center;
+
+  max-width: 100%;
+  height: 3.5rem;
+  margin-top: 0.5rem;
+  margin-inline-start: auto;
+
+  background-color: var(--color-activity-gray-background);
+  border-radius: var(--border-radius-normal) 0.3125rem var(--border-radius-normal) var(--border-radius-normal);
+
+  &.received {
+    margin-inline-start: 0;
+    margin-inline-end: auto;
+
+    background-color: var(--color-activity-green-background);
+    border-top-left-radius: 0.3125rem;
+    border-top-right-radius: var(--border-radius-normal);
+  }
+}
+
+.nftWithComment {
+  border-bottom-right-radius: 0.3125rem;
+
+  &.received {
+    border-bottom-right-radius: var(--border-radius-normal);
+    border-bottom-left-radius: 0.3125rem;
+  }
+}
+
+.nftImage {
+  width: 3.5rem;
+  height: 3.5rem;
+
+  object-fit: cover;
+}
+
+.nftData {
+  max-width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 0.5rem;
+}
+
+.nftName,
+.nftCollection {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nftName {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  color: var(--color-activity-gray-text);
+
+  .received & {
+    color: var(--color-activity-green-text);
+  }
+}
+
+.nftCollection {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: var(--color-gray-2);
+
+  .received & {
+    color: var(--color-green-2);
+  }
 }

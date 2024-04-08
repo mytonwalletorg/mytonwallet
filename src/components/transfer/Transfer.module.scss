@@ -137,6 +137,7 @@
   }
 }
 
+.scamAddress,
 .balanceError {
   color: var(--color-red);
 }
@@ -221,6 +222,14 @@
   color: var(--color-red);
 }
 
+.nftError {
+  margin-top: 1.25rem;
+  padding-left: 0.5rem;
+
+  font-size: 0.9375rem;
+  color: var(--color-red);
+}
+
 .addressWidget {
   margin-bottom: 1.25rem;
 }
@@ -249,6 +258,12 @@
   &_words {
     word-break: break-word !important;
   }
+}
+
+.currencySymbol {
+  margin-left: 0.25rem;
+
+  color: var(--color-gray-3);
 }
 
 .commentInputWrapper {
@@ -482,11 +497,21 @@ textarea.inputStatic {
   margin: unset;
 }
 
-.buttonsStatic {
-  display: flex;
-  justify-content: center;
+.buttons {
+  display: grid;
+  grid-auto-columns: minmax(max-content, auto);
+  grid-auto-flow: column;
+  gap: 1rem;
 
-  margin-top: 2rem;
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+.button {
+  width: 100%;
+  min-width: 4rem !important;
+  max-width: 100% !important;
+  padding: 0.5rem !important;
 }
 
 @keyframes button-loading-spinner {
@@ -510,6 +535,7 @@ textarea.inputStatic {
   gap: 0.25rem;
   align-items: center;
 
+  max-width: 100%;
   height: 2rem;
   padding: 0 0.5rem 0 0.375rem;
 
@@ -519,6 +545,15 @@ textarea.inputStatic {
 
   background-color: var(--color-activity-blue-background);
   border-radius: 1rem;
+}
+
+.transferShortInfoText {
+  overflow: hidden;
+
+  max-width: 100%;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .transferShortInfoInsidePasswordForm {
@@ -547,8 +582,4 @@ textarea.inputStatic {
 .scamImage {
   width: 2.75rem;
   height: 1.0625rem;
-}
-
-.scamAddress {
-  color: var(--color-red);
 }

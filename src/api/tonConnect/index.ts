@@ -434,7 +434,9 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       // Fix address format for `waitTxComplete` to work properly
       const normalizedAddress = toBase64Address(address, undefined, network);
 
-      const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
+      const payload = rawPayload
+        ? await parsePayloadBase64(network, toAddress, rawPayload)
+        : undefined;
       const { isLedgerAllowed, codeHash } = await getContractInfo(network, toAddress);
 
       if (isLedger) {

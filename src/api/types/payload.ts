@@ -1,3 +1,5 @@
+import type { ApiNft } from './misc';
+
 export type ApiCommentPayload = {
   type: 'comment';
   comment: string;
@@ -19,6 +21,18 @@ export type ApiNftTransferPayload = {
   // Specific to UI
   nftAddress: string;
   nftName?: string;
+  nft?: ApiNft;
+  comment?: string;
+};
+
+export type ApiNftOwnershipAssignedPayload = {
+  type: 'nft:ownership-assigned';
+  queryId: bigint;
+  prevOwner: string;
+  // Specific to UI
+  nftAddress: string;
+  nft?: ApiNft;
+  comment?: string;
 };
 
 export type ApiTokensTransferPayload = {
@@ -77,6 +91,7 @@ export type ApiLiquidStakingWithdrawalPayload = {
 export type ApiParsedPayload = ApiCommentPayload
 | ApiEncryptedCommentPayload
 | ApiNftTransferPayload
+| ApiNftOwnershipAssignedPayload
 | ApiTokensTransferPayload
 | ApiTokensTransferNonStandardPayload
 | ApiUnknownPayload

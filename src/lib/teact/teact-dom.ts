@@ -42,6 +42,7 @@ const CONTROLLABLE_TAGS = ['INPUT', 'TEXTAREA', 'SELECT'];
 const MAPPED_ATTRIBUTES: { [k: string]: string } = {
   autoPlay: 'autoplay',
   autoComplete: 'autocomplete',
+  autoCapitalize: 'autocapitalize',
 };
 const INDEX_KEY_PREFIX = '__indexKey#';
 

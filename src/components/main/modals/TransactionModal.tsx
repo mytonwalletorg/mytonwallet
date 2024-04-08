@@ -32,6 +32,7 @@ import useShowTransition from '../../../hooks/useShowTransition';
 import useSyncEffect from '../../../hooks/useSyncEffect';
 
 import TransactionAmount from '../../common/TransactionAmount';
+import NftInfo from '../../transfer/NftInfo';
 import AmountWithFeeTextField from '../../ui/AmountWithFeeTextField';
 import Button from '../../ui/Button';
 import InteractiveTextField from '../../ui/InteractiveTextField';
@@ -104,9 +105,11 @@ function TransactionModal({
     isIncoming,
     slug,
     timestamp,
+    nft,
   } = renderedTransaction || {};
   const [, transactionHash] = (id || '').split(':');
-  const isStaking = Boolean(transaction?.type);
+  const isStaking = renderedTransaction?.type === 'stake' || renderedTransaction?.type === 'unstake';
+  const isNftTransfer = renderedTransaction?.type === 'nftTransferred' || renderedTransaction?.type === 'nftReceived';
 
   const token = slug ? tokensBySlug?.[slug] : undefined;
   const address = isIncoming ? fromAddress : toAddress;
@@ -248,7 +251,7 @@ function TransactionModal({
             {title}
             {isLocal && (
               <i
-                className={buildClassName(styles.clockIcon, 'icon-clock')}
+                className="icon-clock"
                 title={lang('Transaction in progress')}
                 aria-hidden
               />
@@ -288,7 +291,7 @@ function TransactionModal({
   }
 
   function renderComment() {
-    if ((!comment && !encryptedComment) || transaction?.type) {
+    if ((!comment && !encryptedComment) || (transaction?.type && !isNftTransfer)) {
       return undefined;
     }
 
@@ -334,13 +337,17 @@ function TransactionModal({
   function renderTransactionContent() {
     return (
       <>
-        <TransactionAmount
-          isIncoming={isIncoming}
-          isScam={isScam}
-          amount={amount ?? 0n}
-          decimals={token?.decimals}
-          tokenSymbol={token?.symbol}
-        />
+        {isNftTransfer ? (
+          <NftInfo nft={nft} withTonscan />
+        ) : (
+          <TransactionAmount
+            isIncoming={isIncoming}
+            isScam={isScam}
+            amount={amount ?? 0n}
+            decimals={token?.decimals}
+            tokenSymbol={token?.symbol}
+          />
+        )}
 
         <div className={transferStyles.label}>{lang(isIncoming ? 'Sender' : 'Recipient')}</div>
         <InteractiveTextField
@@ -359,7 +366,7 @@ function TransactionModal({
         {shouldRenderUnstakeTimer && renderUnstakeTimer()}
 
         <div className={styles.footer}>
-          {!isStaking && !isIncoming && (
+          {!isStaking && !isIncoming && !isNftTransfer && (
             <Button onClick={handleSendClick} className={styles.button}>
               {lang('Repeat')}
             </Button>
@@ -367,6 +374,11 @@ function TransactionModal({
           {isStaking && (
             <Button onClick={handleStartStakingClick} className={styles.button}>
               {lang('Stake Again')}
+            </Button>
+          )}
+          {isNftTransfer && (
+            <Button onClick={handleClose} className={styles.button}>
+              {lang('Close')}
             </Button>
           )}
         </div>
@@ -388,7 +400,7 @@ function TransactionModal({
                   target="_blank"
                   rel="noreferrer noopener"
                   className={styles.tonscan}
-                  title={lang('View Transaction on TON Explorer')}
+                  title={lang('View Transaction on TONScan')}
                 >
                   <i className="icon-tonscan" aria-hidden />
                 </a>

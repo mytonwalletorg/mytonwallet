@@ -123,7 +123,7 @@ Signing was confirmed!: 签署已确认!
 Transaction Info: 交易资讯
 Transaction in progress: 交易进行中···
 Comment was copied!: 留言栏已复制
-View Transaction on TON Explorer: 在 TON Explorer 上查看这笔交易
+View Transaction on TONScan: 在 TONScan 上查看这笔交易
 Sender: 发送者
 Recipient: 接收者
 Address was copied!: 地址已被复制!
@@ -131,7 +131,7 @@ Repeat: 重复
 Receive: 接收
 Switch Account: 切换账户
 Copy wallet address: 复制钱包地址
-View address on TON Explorer: 在 TON Explorer 上查看此地址
+View address on TONScan: 在 TONScan 上查看此地址
 Open on CoinMarketCap: 在 CoinMarketCap 打开
 You have just created a new wallet: 您刚刚创建了一个新钱包
 You can now transfer your tokens from another wallet or exchange.: 您现在可以从另一个钱包或交易所转移您的代币
@@ -178,7 +178,7 @@ Save: 储存
 Copy: 复制
 Remove From Saved Addresses: 从保存的地址中删除
 Add To Saved Addresses: 新增至保存的地址
-View Address on TON Explorer: 在 TON Explorer 上查看此地址
+View Address on TONScan: 在 TONScan 上查看此地址
 No suggestions, you're on your own!: 没有建议，请靠自己！
 Play Sounds: 播放声音
 Focus on asset value rather than current balance: 关注资产价值而非当前余额。
@@ -260,7 +260,6 @@ Scam: 骗局
 Scam comment is hidden.: 诈骗评论被隐藏。
 Display: 展示
 $dapp_transfer_tokens_payload: 从您的账户发送 %amount% 到 %address%
-$dapp_transfer_nft_payload: 从您的账户发送 "%nft%" 到 %address%
 Nested Transaction: 嵌套事务
 Connected Dapps: 连接的 Dapps
 Disconnect All Dapps: 断开所有 Dapps
@@ -538,9 +537,17 @@ To use this feature, first enable biometrics in your phone settings.: 要使用�
 Open Settings: 打开设置
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: 您即将转移一个重要的服务代币，这是从质押中提取押金所必需的。
 No Price: 无价格
+Search or enter address...: 搜索或输入地址...
 Connecting dapps is not yet supported by Ledger.: Ledger 尚不支持连接 dapp。
+Time synchronization issue. Please ensure your device's time settings are correct.: 时间同步问题。 请确保您设备的时间设置正确。
 Data was copied!: 数据被复制！
 Open NFT Collection: 打开 NFT 收藏
-Open TON Explorer: 打开 TON Explorer
 Previous: 上一页
 Next: 下一页
+NftInsufficientBalance: TON 不足以支付费用。
+Send NFT: 发送 NFT
+NFT has been sent!: NFT已发送！
+Cannot be sent: 无法发送
+NFT is for sale: NFT 正在出售
+More actions: 更多操作
+Open on TONScan: 在 TONScan 上打开

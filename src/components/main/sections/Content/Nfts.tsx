@@ -1,14 +1,12 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../../global';
+import { withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
-import { MediaType } from '../../../../global/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, GETGEMS_BASE_MAINNET_URL, GETGEMS_BASE_TESTNET_URL } from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState, selectIsHardwareAccount } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { shortenAddress } from '../../../../util/shortenAddress';
 import { IS_ANDROID_APP, IS_IOS_APP } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
@@ -17,7 +15,7 @@ import useLang from '../../../../hooks/useLang';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Loading from '../../../ui/Loading';
-import NftImage from './NftImage';
+import Nft from './Nft';
 
 import styles from './Nft.module.scss';
 
@@ -37,10 +35,8 @@ const GETGEMS_ENABLED = !IS_IOS_APP && !IS_ANDROID_APP;
 function Nfts({
   isActive, orderedAddresses, byAddress, isHardware, isTestnet,
 }: OwnProps & StateProps) {
-  const { isLandscape } = useDeviceScreen();
   const lang = useLang();
-
-  const { openMediaViewer } = getActions();
+  const { isLandscape } = useDeviceScreen();
 
   const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
 
@@ -104,24 +100,7 @@ function Nfts({
 
   return (
     <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
-      {nfts.map((nft) => (
-        <div
-          key={nft.address}
-          id={`nft-${nft.address}`}
-          onClick={() => openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft })}
-          className={buildClassName(styles.item, nft.isOnSale && styles.item_onSale)}
-        >
-          <NftImage
-            nft={nft}
-            className={styles.imageWrapper}
-            imageClassName={styles.image}
-          />
-          <div className={styles.infoWrapper}>
-            <b className={styles.title}>{nft.name || shortenAddress(nft.address, 4)}</b>
-          </div>
-          <div className={styles.collection}>{nft.collectionName}</div>
-        </div>
-      ))}
+      {nfts.map((nft) => <Nft key={nft.address} nft={nft} />)}
     </div>
   );
 }

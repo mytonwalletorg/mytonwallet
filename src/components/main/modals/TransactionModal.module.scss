@@ -1,8 +1,8 @@
 .modalDialog {
-  height: 36rem;
+  height: 36.5rem;
 
   @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(36rem + env(safe-area-inset-bottom));
+    height: calc(36.5rem + env(safe-area-inset-bottom));
   }
 
   :global(.is-native-bottom-sheet) & {
@@ -49,12 +49,6 @@
   padding: 0.5rem 1.5rem;
 
   white-space: nowrap;
-}
-
-.clockIcon {
-  margin-inline-start: 0.25rem;
-
-  vertical-align: -0.125rem;
 }
 
 .tonscan {

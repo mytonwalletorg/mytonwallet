@@ -315,6 +315,8 @@ addActionHandler('apiUpdateDappConnect', async (global, actions, {
     proof,
   });
   setGlobal(global);
+
+  actions.addSiteToBrowserHistory({ url: dapp.url });
 });
 
 addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
@@ -406,16 +408,16 @@ addActionHandler('apiUpdateDappCloseLoading', async (global) => {
   setGlobal(global);
 });
 
-addActionHandler('loadDappCatalog', async (global) => {
-  const dapps = await callApi('fetchDappCatalog');
+addActionHandler('loadExploreSites', async (global) => {
+  const sites = await callApi('loadExploreSites');
   global = getGlobal();
-  if (areDeepEqual(dapps, global.dappCatalog)) {
+  if (areDeepEqual(sites, global.exploreSites)) {
     return;
   }
 
   global = {
     ...global,
-    dappCatalog: dapps,
+    exploreSites: sites,
   };
   setGlobal(global);
 });

@@ -5,13 +5,14 @@ import { getActions, withGlobal } from '../../../../global';
 
 import { ActiveTab } from '../../../../global/types';
 
-import { DEFAULT_LANDSCAPE_ACTION_TAB_ID } from '../../../../config';
+import { DEFAULT_LANDSCAPE_ACTION_TAB_ID, TON_TOKEN_SLUG } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import { selectAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
+import useSyncEffect from '../../../../hooks/useSyncEffect';
 
 import AddBuyStatic from '../../../addbuy/AddBuyStatic';
 import StakingInfoContent from '../../../staking/StakingInfoContent';
@@ -22,8 +23,6 @@ import Transition, { ACTIVE_SLIDE_CLASS_NAME, TO_SLIDE_CLASS_NAME } from '../../
 
 import styles from './LandscapeActions.module.scss';
 
-const TABS = [ActiveTab.Receive, ActiveTab.Transfer, ActiveTab.Swap, ActiveTab.Stake];
-
 interface OwnProps {
   hasStaking?: boolean;
   isUnstakeRequested?: boolean;
@@ -32,21 +31,27 @@ interface OwnProps {
 
 interface StateProps {
   activeTabIndex?: ActiveTab;
+  transferKey: string;
   isTestnet?: boolean;
   isSwapDisabled: boolean;
   isOnRampDisabled: boolean;
 }
 
+const TABS = [ActiveTab.Receive, ActiveTab.Transfer, ActiveTab.Swap, ActiveTab.Stake];
+let activeTransferKey = 0;
+
 function LandscapeActions({
   hasStaking,
   activeTabIndex = DEFAULT_LANDSCAPE_ACTION_TAB_ID,
   isUnstakeRequested,
+  transferKey,
   isTestnet,
   isLedger,
   isSwapDisabled,
   isOnRampDisabled,
 }: OwnProps & StateProps) {
   const { setLandscapeActionsActiveTabIndex: setActiveTabIndex } = getActions();
+
   const lang = useLang();
 
   const isStaking = activeTabIndex === ActiveTab.Stake && (hasStaking || isUnstakeRequested);
@@ -64,6 +69,10 @@ function LandscapeActions({
   const isStakingAllowed = !isTestnet;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
 
+  useSyncEffect(() => {
+    activeTransferKey += 1;
+  }, [transferKey]);
+
   useEffect(() => {
     if (
       (!isSwapAllowed && activeTabIndex === ActiveTab.Swap)
@@ -73,7 +82,7 @@ function LandscapeActions({
     }
   }, [activeTabIndex, isTestnet, isLedger, isSwapAllowed, isStakingAllowed]);
 
-  function renderCurrentTab(isActive: boolean) {
+  function renderCurrentTab(isActive: boolean, isPrev: boolean) {
     switch (activeTabIndex) {
       case ActiveTab.Receive:
         return (
@@ -89,8 +98,15 @@ function LandscapeActions({
 
       case ActiveTab.Transfer:
         return (
-          <div className={styles.slideContent}>
-            <TransferInitial isStatic onCommentChange={handleTransitionStart} />
+          <div className={buildClassName(styles.slideContent, styles.slideContentTransfer)}>
+            <Transition
+              activeKey={activeTransferKey}
+              name={isPrev ? 'semiFade' : 'none'}
+              shouldCleanup
+              slideClassName={styles.slideContentInner}
+            >
+              <TransferInitial key={activeTransferKey} isStatic onCommentChange={handleTransitionStart} />
+            </Transition>
           </div>
         );
 
@@ -291,10 +307,13 @@ export default memo(
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
       const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
+      const { nft, tokenSlug = TON_TOKEN_SLUG } = global.currentTransfer;
+      const transferKey = nft?.address ?? tokenSlug;
 
       return {
         activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
         isTestnet: global.settings.isTestnet,
+        transferKey,
         isSwapDisabled,
         isOnRampDisabled,
       };

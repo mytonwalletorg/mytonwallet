@@ -1,10 +1,12 @@
 import { TransferState } from '../../types';
 
+import { BROWSER_HISTORY_LIMIT } from '../../../config';
+import { unique } from '../../../util/iteratees';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
-  clearDappConnectRequestError, updateCurrentDappTransfer,
+  clearDappConnectRequestError, updateCurrentAccountState, updateCurrentDappTransfer,
 } from '../../reducers';
-import { selectAccount } from '../../selectors';
+import { selectAccount, selectCurrentAccountState } from '../../selectors';
 
 addActionHandler('clearDappConnectRequestError', (global) => {
   global = clearDappConnectRequestError(global);
@@ -45,6 +47,41 @@ addActionHandler('submitDappTransferConfirm', (global, actions) => {
 addActionHandler('clearDappTransferError', (global) => {
   global = updateCurrentDappTransfer(global, {
     error: undefined,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('openBrowser', (global, actions, { url }) => {
+  global = updateCurrentAccountState(global, { currentBrowserUrl: url });
+  setGlobal(global);
+});
+
+addActionHandler('closeBrowser', (global) => {
+  global = updateCurrentAccountState(global, { currentBrowserUrl: undefined });
+  setGlobal(global);
+});
+
+addActionHandler('addSiteToBrowserHistory', (global, actions, { url }) => {
+  const accountState = selectCurrentAccountState(global);
+
+  const newHistory = unique([
+    url,
+    ...accountState?.browserHistory || [],
+  ]).slice(0, BROWSER_HISTORY_LIMIT);
+
+  global = updateCurrentAccountState(global, {
+    browserHistory: newHistory,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('removeSiteFromBrowserHistory', (global, actions, { url }) => {
+  const accountState = selectCurrentAccountState(global);
+
+  const newHistory = accountState?.browserHistory?.filter((currentUrl) => currentUrl !== url);
+
+  global = updateCurrentAccountState(global, {
+    browserHistory: newHistory?.length ? newHistory : undefined,
   });
   setGlobal(global);
 });

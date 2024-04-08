@@ -81,7 +81,7 @@
 .disabled {
   cursor: not-allowed !important;
 
-  opacity: 0.5;
+  opacity: 0.6;
 
   .button {
     cursor: not-allowed !important;
@@ -163,16 +163,26 @@
 .itemName {
   unicode-bidi: plaintext;
 
-  height: 0.9375rem;
-
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 
   .light & {
     font-weight: 600;
     line-height: 0.9375rem;
   }
+}
+
+.itemDescription {
+  unicode-bidi: plaintext;
+  display: block;
+
+  margin-top: 0.125rem;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 0.75rem;
+  color: var(--color-gray-3);
 }
 
 .dropdownButtonWrapper {

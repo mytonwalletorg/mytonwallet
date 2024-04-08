@@ -1,5 +1,9 @@
 @import "../../../../styles/mixins";
 
+.wrapper {
+  padding-top: 0.75rem;
+}
+
 .list {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -10,6 +14,74 @@
 
   &.landscapeList {
     grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  @include adapt-padding-to-scrollbar(0.5rem);
+}
+
+.suggestions {
+  --offset-y-value: 0;
+
+  z-index: 1;
+
+  margin: 0 0.5rem;
+
+  @include adapt-margin-to-scrollbar(0.5rem);
+}
+
+@include respond-below(xs) {
+  .suggestionsMenu {
+    max-height: 9.5rem;
+  }
+}
+
+.suggestion {
+  align-items: center;
+
+  padding: 0.5rem 2.25rem 0.5rem 0.5rem !important;
+}
+
+.suggestionIcon {
+  margin-inline-end: 0.5rem;
+
+  font-size: 1.25rem !important;
+  color: var(--color-gray-3);
+}
+
+.suggestionAddress {
+  overflow: hidden;
+
+  font-size: 1rem;
+  text-overflow: ellipsis;
+}
+
+.clearSuggestion {
+  cursor: var(--custom-cursor, pointer);
+
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+
+  font-size: 1.25rem;
+  line-height: 1rem;
+  color: var(--color-gray-4);
+
+  background: none;
+  border: none;
+
+  transition: color 150ms;
+
+  &:hover,
+  &:focus {
+    color: var(--color-gray-3);
   }
 }
 
@@ -44,27 +116,6 @@
   }
 }
 
-:global(html.is-ios) .itemShown::after {
-  pointer-events: none;
-  content: '';
-
-  position: fixed;
-  z-index: var(--z-modal);
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-
-  opacity: 0;
-  background-color: var(--color-tint);
-
-  transition: opacity 200ms;
-}
-
-:global(html.is-ios) .itemOpen::after {
-  opacity: 1;
-}
-
 .imageWrapper {
   /* Fix for `border-radius` missing during transform on Safari. See https://stackoverflow.com/a/58283449 */
   isolation: isolate;
@@ -78,7 +129,7 @@
   max-width: 100%;
   margin-bottom: 0.4375rem;
 
-  border-radius: var(--border-radius-tiny);
+  border-radius: var(--border-radius-normal);
 
   @supports not (aspect-ratio: 1) {
     height: auto;
@@ -148,5 +199,56 @@
 
   @include respond-above(xs) {
     padding-bottom: 8rem;
+  }
+}
+
+.searchWrapper {
+  position: relative;
+
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+
+  height: 2.25rem;
+  margin: 0 0.75rem 0.5rem;
+
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-gray-3);
+
+  background-color: var(--color-background-second);
+  border-radius: var(--border-radius-big);
+
+  @include adapt-margin-to-scrollbar(0.75rem);
+}
+
+.searchIcon {
+  margin-left: 0.5rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0 0.25rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-black);
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  appearance: none;
+
+  &::placeholder {
+    font-weight: 600;
+    color: var(--color-gray-2);
+  }
+
+  &:hover,
+  &:focus {
+    &::placeholder {
+      color: var(--color-interactive-input-text-hover-active);
+    }
   }
 }

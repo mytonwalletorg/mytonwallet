@@ -20,6 +20,7 @@ import buildClassName from '../../../../util/buildClassName';
 import { compareActivities } from '../../../../util/compareActivities';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
 import { findLast, unique } from '../../../../util/iteratees';
+import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -64,15 +65,17 @@ interface ActivityOffsetInfo {
   offsetNext: number;
   dateCount: number;
   commentCount: number;
+  nftCount: number;
   date: number;
 }
 
 const FURTHER_SLICE = 30;
 const THROTTLE_TIME = 1000;
 
-const DATE_HEADER_HEIGHT = 40;
-const TRANSACTION_COMMENT_HEIGHT = 35;
-const TRANSACTION_HEIGHT = 64;
+const DATE_HEADER_HEIGHT = 2.5 * REM;
+const TRANSACTION_COMMENT_HEIGHT = 2.1875 * REM;
+const TRANSACTION_NFT_HEIGHT = 4 * REM;
+const TRANSACTION_HEIGHT = 4 * REM;
 
 const TIME_BETWEEN_SWAP_AND_TX = 3600000; // 1 hour
 
@@ -210,6 +213,7 @@ function Activities({
     const offsetMap: Record<string, ActivityOffsetInfo> = {};
 
     let dateCount = 0;
+    let nftCount = 0;
     let commentCount = 0;
     let lastActivityDayStart = 0;
 
@@ -222,27 +226,36 @@ function Activities({
         offsetNext: 0,
         dateCount: 0,
         commentCount: 0,
+        nftCount: 0,
         date: lastActivityDayStart,
       };
 
-      const offsetTop = calculateOffset(index, dateCount, commentCount);
+      const offsetTop = calculateOffset(index, dateCount, commentCount, nftCount);
       const activityDayStart = getDayStartAt(activity.timestamp);
       const isNewDay = lastActivityDayStart !== activityDayStart;
+      const isNftTransfer = activity.kind === 'transaction'
+        && (activity.type === 'nftTransferred' || activity.type === 'nftReceived');
+      const canCountComment = activity.kind === 'transaction' && (!activity.type || isNftTransfer);
       if (isNewDay) {
         lastActivityDayStart = activityDayStart;
         dateCount += 1;
       }
 
-      if (activity.kind === 'transaction' && !activity.type && (activity.comment || activity.encryptedComment)) {
+      if (canCountComment && (activity.comment || activity.encryptedComment)) {
         commentCount += 1;
+      }
+
+      if (isNftTransfer && activity.nft) {
+        nftCount += 1;
       }
 
       offsetMap[id] = {
         ...offsetMap[id],
         offset: offsetTop,
-        offsetNext: calculateOffset(index + 1, dateCount, commentCount),
+        offsetNext: calculateOffset(index + 1, dateCount, commentCount, nftCount),
         dateCount,
         commentCount,
+        nftCount,
       };
     });
 
@@ -444,8 +457,9 @@ export default memo(
   )(Activities),
 );
 
-function calculateOffset(index: number, dateCount: number, commentCount: number) {
+function calculateOffset(index: number, dateCount: number, commentCount: number, nftCount: number) {
   const commentOffset = commentCount * TRANSACTION_COMMENT_HEIGHT;
   const dateOffset = dateCount * DATE_HEADER_HEIGHT;
-  return index * TRANSACTION_HEIGHT + dateOffset + commentOffset;
+  const nftOffset = nftCount * TRANSACTION_NFT_HEIGHT;
+  return index * TRANSACTION_HEIGHT + dateOffset + commentOffset + nftOffset;
 }

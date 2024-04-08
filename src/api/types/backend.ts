@@ -147,7 +147,7 @@ export type ApiStakingCommonData = {
   bigInt: bigint;
 };
 
-export type ApiBackendDapp = {
+export type ApiSite = {
   url: string;
   name: string;
   icon: string;

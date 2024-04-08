@@ -1,45 +1,39 @@
 import { BottomSheet } from 'native-bottom-sheet';
-import React, { memo, useMemo } from '../../lib/teact/teact';
+import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
 import type { ApiDapp } from '../../api/types';
 
-import { IS_CAPACITOR } from '../../config';
+import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { INAPP_BROWSER_OPTIONS } from '../../util/capacitor';
 import { logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
-import useFlag from '../../hooks/useFlag';
 import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
-import { useDappBridge } from './hooks/useDappBridge';
+import { useDappBridge } from '../explore/hooks/useDappBridge';
 
-import Image from '../ui/Image';
+import styles from './InAppBrowser.module.scss';
 
-import styles from '../main/sections/Content/Explore.module.scss';
-
-interface OwnProps {
-  url: string;
-  icon: string;
-  title: string;
-  description: string;
-  isExternal: boolean;
+interface StateProps {
+  url?: string;
   dapps?: ApiDapp[];
 }
 
-const FIRST_INJECTION_DELAY = 2500;
-const SECOND_INJECTION_DELAY = 10000;
+const REINJECTION_DELAY = 3000;
 
 let inAppBrowser: Cordova['InAppBrowser'] | undefined;
 
-function DappSite({
-  url, icon, title, description, isExternal, dapps,
-}: OwnProps) {
-  const [isOpen, markIsOpen, unmarkIsOpen] = useFlag(false);
-  const { hasOpenClass, hasShownClass } = useShowTransition(isOpen);
+function InAppBrowser({ url, dapps }: StateProps) {
+  const { closeBrowser } = getActions();
+
+  const { hasOpenClass, hasShownClass } = useShowTransition(Boolean(url));
 
   const isConnected = useMemo(() => {
+    if (!url) return false;
+
     const origin = new URL(url).origin.toLowerCase();
     return dapps?.some((dapp) => dapp.origin === origin);
   }, [dapps, url]);
@@ -52,18 +46,14 @@ function DappSite({
   } = useDappBridge({
     endpoint: url,
     isConnected,
-    onShowBrowser: markIsOpen,
-    onHideBrowser: unmarkIsOpen,
   });
 
   const handleLoadStart = useLastCallback(async () => {
-    await pause(FIRST_INJECTION_DELAY);
-    if (!inAppBrowser) return;
-
     inAppBrowser.executeScript({
       code: bridgeInjectionCode,
     });
-    await pause(SECOND_INJECTION_DELAY);
+
+    await pause(REINJECTION_DELAY);
     if (!inAppBrowser) return;
 
     inAppBrowser.executeScript({
@@ -96,20 +86,14 @@ function DappSite({
     inAppBrowser = undefined;
     // eslint-disable-next-line no-null/no-null
     inAppBrowserRef.current = null;
-    unmarkIsOpen();
+    closeBrowser();
   });
 
-  const handleClick = useLastCallback(async () => {
-    if (!IS_CAPACITOR || isExternal) {
-      window.open(url, '_blank', 'noopener');
-      return;
-    }
-
+  const openBrowser = useLastCallback(async () => {
     if (IS_DELEGATING_BOTTOM_SHEET) {
       await BottomSheet.disable();
     }
 
-    markIsOpen();
     inAppBrowser = cordova.InAppBrowser.open(url, '_blank', INAPP_BROWSER_OPTIONS);
     inAppBrowserRef.current = inAppBrowser;
     inAppBrowser.addEventListener('loadstart', handleLoadStart);
@@ -120,23 +104,25 @@ function DappSite({
     inAppBrowser.show();
   });
 
+  useEffect(() => {
+    if (!url) return;
+
+    void openBrowser();
+  }, [url]);
+
   return (
-    <div
-      className={buildClassName(styles.item, hasShownClass && styles.itemShown, hasOpenClass && styles.itemOpen)}
-      tabIndex={0}
-      role="button"
-      onClick={handleClick}
-    >
-      <Image url={icon} className={styles.imageWrapper} imageClassName={styles.image} />
-      <div className={styles.infoWrapper}>
-        <b className={styles.title}>{title}</b>
-      </div>
-      <div className={styles.description}>{description}</div>
-    </div>
+    <div className={buildClassName(hasShownClass && styles.browserShown, hasOpenClass && styles.browserOpen)} />
   );
 }
 
-export default memo(DappSite);
+export default memo(withGlobal((global): StateProps => {
+  const { currentBrowserUrl } = selectCurrentAccountState(global) || {};
+
+  return {
+    dapps: global.settings.dapps,
+    url: currentBrowserUrl,
+  };
+})(InAppBrowser));
 
 export function getInAppBrowser(): Cordova['InAppBrowser'] | undefined {
   return inAppBrowser;

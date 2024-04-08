@@ -1,5 +1,5 @@
 import { BottomSheet } from 'native-bottom-sheet';
-import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
+import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
@@ -35,7 +35,6 @@ type StateProps = Pick<GlobalState['settings'], 'authConfig'> & {
 
 const DEFAULT_PIN_LENGTH = 4;
 const RESET_STATE_DELAY_MS = 1500;
-const CLOSE_MODAL_DURATION_MS = 500;
 
 function PinPad({
   isActive,
@@ -52,8 +51,6 @@ function PinPad({
 }: OwnProps & StateProps) {
   const { clearIsPinAccepted } = getActions();
 
-  // eslint-disable-next-line no-null/no-null
-  const applyScrollPatchTimeoutRef = useRef<number>(null);
   const isFaceId = getIsFaceIdAvailable();
   const canRenderBackspace = value.length > 0;
   const isSuccess = type === 'success' || isPinAccepted;
@@ -83,12 +80,9 @@ function PinPad({
   useEffectWithPrevDeps(([prevIsActive]) => {
     if (!IS_DELEGATED_BOTTOM_SHEET) return;
     if (isActive) {
-      if (applyScrollPatchTimeoutRef.current) {
-        window.clearTimeout(applyScrollPatchTimeoutRef.current);
-      }
       void BottomSheet.clearScrollPatch();
     } else if (prevIsActive) {
-      applyScrollPatchTimeoutRef.current = window.setTimeout(BottomSheet.applyScrollPatch, CLOSE_MODAL_DURATION_MS);
+      void BottomSheet.applyScrollPatch();
     }
   }, [isActive]);
 

@@ -3,6 +3,8 @@ import type { ContractInfo, ContractName } from './types';
 
 export const TOKEN_TRANSFER_TON_AMOUNT = 100000000n; // 0.1 TON
 export const TOKEN_TRANSFER_TON_FORWARD_AMOUNT = 1n; // 0.000000001 TON
+export const NFT_TRANSFER_TON_AMOUNT = 100000000n; // 0.1 TON
+export const NFT_TRANSFER_TON_FORWARD_AMOUNT = 1n; // 0.000000001 TON
 
 export const STAKE_COMMENT = 'd';
 export const UNSTAKE_COMMENT = 'w';
@@ -42,6 +44,7 @@ export enum JettonOpCode {
 
 export enum NftOpCode {
   TransferOwnership = 0x5fcc3d14,
+  OwnershipAssigned = 0x05138d91,
 }
 
 export enum LiquidStakingOpCode {

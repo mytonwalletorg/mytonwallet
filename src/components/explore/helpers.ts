@@ -34,8 +34,9 @@ export const objectToInjection = (obj: Record<string, any>, timeout?: number) =>
         const timeoutId = timeoutMs
           ? setTimeout(() => reject(new Error(\`bridge timeout for function with name: \${name}\`)), timeoutMs)
           : null;
-        window.capPromises[invocationId] = { resolve, reject, timeoutId }
-        webkit.messageHandlers.cordova_iab.postMessage(JSON.stringify({
+        window.capPromises[invocationId] = { resolve, reject, timeoutId };
+        const target = 'cordova_iab' in window ? window.cordova_iab : window.webkit.messageHandlers.cordova_iab;
+        target.postMessage(JSON.stringify({
           type: '${WebViewBridgeMessageType.invokeCapFunc}',
           invocationId: invocationId,
           name,

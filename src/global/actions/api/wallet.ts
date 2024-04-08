@@ -1,3 +1,4 @@
+import type { CheckTransactionDraftResult, SubmitTransferResult } from '../../../api/blockchains/ton/transactions';
 import type {
   ApiActivity, ApiBaseToken, ApiDappTransaction, ApiSubmitTransferOptions, ApiSwapAsset, ApiToken,
 } from '../../../api/types';
@@ -118,20 +119,32 @@ addActionHandler('setTransferShouldEncrypt', (global, actions, { shouldEncrypt }
 
 addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   const {
-    tokenSlug, toAddress, amount, comment, shouldEncrypt,
+    tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddress,
   } = payload;
 
   setGlobal(updateSendingLoading(global, true));
 
-  const result = await callApi(
-    'checkTransactionDraft',
-    global.currentAccountId!,
-    tokenSlug,
-    toAddress,
-    amount,
-    comment,
-    shouldEncrypt,
-  );
+  let result: CheckTransactionDraftResult | undefined;
+
+  if (nftAddress) {
+    result = await callApi(
+      'checkNftTransferDraft',
+      global.currentAccountId!,
+      nftAddress,
+      toAddress,
+      comment,
+    );
+  } else {
+    result = await callApi(
+      'checkTransactionDraft',
+      global.currentAccountId!,
+      tokenSlug,
+      toAddress,
+      amount,
+      comment,
+      shouldEncrypt,
+    );
+  }
 
   global = getGlobal();
   global = updateSendingLoading(global, false);
@@ -195,6 +208,37 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   }
 });
 
+addActionHandler('fetchNftFee', async (global, actions, payload) => {
+  const { toAddress, nftAddress, comment } = payload;
+
+  global = updateCurrentTransfer(global, { error: undefined });
+  setGlobal(global);
+
+  const result = await callApi(
+    'checkNftTransferDraft',
+    global.currentAccountId!,
+    nftAddress,
+    toAddress,
+    comment,
+  );
+
+  if (result && 'error' in result) {
+    global = getGlobal();
+    if (result?.error === ApiTransactionDraftError.InsufficientBalance) {
+      global = updateCurrentTransfer(global, { error: 'NftInsufficientBalance' });
+    } else {
+      global = updateCurrentTransfer(global, { error: result.error });
+    }
+    setGlobal(global);
+  }
+
+  if (result && 'fee' in result) {
+    global = getGlobal();
+    global = updateCurrentTransfer(global, { fee: result.fee });
+    setGlobal(global);
+  }
+});
+
 addActionHandler('submitTransferConfirm', (global, actions) => {
   const accountId = global.currentAccountId!;
   const account = selectAccount(global, accountId)!;
@@ -219,6 +263,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     fee,
     shouldEncrypt,
     binPayload,
+    nft,
   } = global.currentTransfer;
 
   if (!(await callApi('verifyPassword', password))) {
@@ -252,19 +297,33 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     return;
   }
 
-  const options: ApiSubmitTransferOptions = {
-    accountId: global.currentAccountId!,
-    password,
-    slug: tokenSlug!,
-    toAddress: resolvedAddress!,
-    amount: amount!,
-    comment: binPayload ?? comment,
-    fee,
-    shouldEncrypt,
-    isBase64Data: Boolean(binPayload),
-  };
+  let result: SubmitTransferResult | undefined;
 
-  const result = await callApi('submitTransfer', options);
+  if (nft) {
+    result = await callApi(
+      'submitNftTransfer',
+      global.currentAccountId!,
+      password,
+      nft.address,
+      resolvedAddress!,
+      comment,
+      nft,
+      fee,
+    );
+  } else {
+    const options: ApiSubmitTransferOptions = {
+      accountId: global.currentAccountId!,
+      password,
+      slug: tokenSlug!,
+      toAddress: resolvedAddress!,
+      amount: amount!,
+      comment: binPayload ?? comment,
+      fee,
+      shouldEncrypt,
+      isBase64Data: Boolean(binPayload),
+    };
+    result = await callApi('submitTransfer', options);
+  }
 
   global = getGlobal();
   global = updateCurrentTransfer(global, {

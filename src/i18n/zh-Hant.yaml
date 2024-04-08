@@ -123,7 +123,7 @@ Signing was confirmed!: 簽署已確認!
 Transaction Info: 交易資訊
 Transaction in progress: 交易進行中
 Comment was copied!: 註記欄已被複製!
-View Transaction on TON Explorer: 在 TON Explorer 上查看此交易
+View Transaction on TONScan: 在 TONScan 上查看此交易
 Sender: 發送人
 Recipient: 接收人
 Address was copied!: 地址已被複製!
@@ -131,7 +131,7 @@ Repeat: 重複
 Receive: 接收
 Switch Account: 切換帳戶
 Copy wallet address: 複製錢包地址
-View address on TON Explorer: 在 TON Explorer 上查看此地址
+View address on TONScan: 在 TONScan 上查看此地址
 Open on CoinMarketCap: 在 CoinMarketCap 打開
 You have just created a new wallet: 您剛剛創建了一個新錢包
 You can now transfer your tokens from another wallet or exchange.: 您現在可以從另一個錢包或交易所轉移您的代幣。
@@ -178,7 +178,7 @@ Save: 儲存
 Copy: 複製
 Remove From Saved Addresses: 從保存的地址中刪除
 Add To Saved Addresses: 新增到保存的地址
-View Address on TON Explorer: 在 TON Explorer 上查看此地址
+View Address on TONScan: 在 TONScan 上查看此地址
 No suggestions, you're on your own!: 沒有建議，請靠自己！
 Play Sounds: 播放聲音
 Focus on asset value rather than current balance: 關注資產價值而非當前餘額
@@ -260,7 +260,6 @@ Scam: 騙局
 Scam comment is hidden.: 詐騙評論被隱藏。
 Display: 展示
 $dapp_transfer_tokens_payload: 從您的帳戶發送 %amount% 到 %address%
-$dapp_transfer_nft_payload: 從您的帳戶發送 "%nft%" 到 %address%
 Nested Transaction: 嵌套事務
 Connected Dapps: 連接的 Dapps
 Disconnect All Dapps: 斷開所有 Dapps
@@ -538,9 +537,17 @@ To use this feature, first enable biometrics in your phone settings.: 若要使�
 Open Settings: 開啟設定
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: 您即將轉移一個重要的服務代幣，這是從質押中提取押金所必需的。
 No Price: 無價格
+Search or enter address...: 搜尋或輸入地址...
 Connecting dapps is not yet supported by Ledger.: Ledger 尚不支援連接 dapp。
+Time synchronization issue. Please ensure your device's time settings are correct.: 時間同步問題。 請確保您設備的時間設定正確。
 Data was copied!: 資料被複製！
 Open NFT Collection: 打開 NFT 收藏
-Open TON Explorer: 打開 TON Explorer
 Previous: 上一個
 Next: 下一個
+NftInsufficientBalance: TON 不足以支付費用。
+Send NFT: 發送 NFT
+NFT has been sent!: NFT已發送！
+Cannot be sent: 無法發送
+NFT is for sale: NFT 正在出售
+More actions: 更多操作
+Open on TONScan: 在 TONScan 上打開

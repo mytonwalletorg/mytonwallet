@@ -10,7 +10,12 @@ export {
   verifyPassword,
   fetchPrivateKey,
 } from './auth';
-export { getAccountNfts, getNftUpdates } from './nfts';
+export {
+  getAccountNfts,
+  getNftUpdates,
+  checkNftTransferDraft,
+  submitNftTransfer,
+} from './nfts';
 export { oneCellFromBoc } from './util/tonCore';
 export { buildTokenSlug } from './util';
 export {

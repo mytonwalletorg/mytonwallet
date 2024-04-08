@@ -20,10 +20,10 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
-import { getInAppBrowser } from '../explore/DappSite';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import Button from '../ui/Button';
+import { getInAppBrowser } from '../ui/InAppBrowser';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import Transition from '../ui/Transition';
@@ -54,6 +54,7 @@ const ACCOUNT_ADDRESS_SHIFT_END = 4;
 const LEDGER_ALLOWED_DAPPS = new Set([
   'https://multisig.ton.org',
   'https://ton.ninja',
+  'https://tontogether.com',
 ]);
 
 function DappConnectModal({

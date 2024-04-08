@@ -215,7 +215,7 @@ function InteractiveTextField({
           <a
             href={tonscanAddressUrl}
             className={styles.button}
-            title={lang('View Address on TON Explorer')}
+            title={lang('View Address on TONScan')}
             target="_blank"
             rel="noreferrer noopener"
           >

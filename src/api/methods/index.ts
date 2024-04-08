@@ -14,7 +14,7 @@ export {
   deleteDapp,
   deleteAllDapps,
   deactivateDapp,
-  fetchDappCatalog,
+  loadExploreSites,
 } from './dapps';
 export {
   startSseConnection,

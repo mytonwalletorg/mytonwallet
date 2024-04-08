@@ -6,7 +6,17 @@
 
   background-color: var(--color-background-second);
 
+  transition: background-color  300ms, color 300ms, opacity 300ms;
+
   -webkit-app-region: drag;
+
+  :global(body.is-media-viewer-open) & {
+    pointer-events: none;
+
+    opacity: 0;
+
+    -webkit-app-region: no-drag;
+  }
 }
 
 .wrapper {

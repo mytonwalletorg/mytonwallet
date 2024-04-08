@@ -1,5 +1,6 @@
 import { ONE_TON } from '../config';
 import { fromDecimal } from './decimals';
+import { randomBytes } from './random';
 
 const PREFIX = 'bigint:';
 
@@ -25,4 +26,19 @@ export function bigintDivideToNumber(value: bigint, num: number) {
 
 export function bigintMultiplyToNumber(value: bigint, num: number) {
   return (value * fromDecimal(num)) / ONE_TON;
+}
+
+export function bigintRandom(bytes: number) {
+  let value = BigInt(0);
+  for (const randomNumber of randomBytes(bytes)) {
+    const randomBigInt = BigInt(randomNumber);
+    // eslint-disable-next-line no-bitwise
+    value = (value << BigInt(8)) + randomBigInt;
+  }
+  return value;
+}
+
+export function bigintCountBits(value: bigint) {
+  const binaryString = value.toString(2);
+  return binaryString.length;
 }

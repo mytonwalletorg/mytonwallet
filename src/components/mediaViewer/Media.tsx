@@ -31,19 +31,15 @@ function Media({ alt, thumbnail, image }: OwnProps & StateProps) {
 export default memo(withGlobal<OwnProps>((global, { mediaId }): StateProps => {
   const { mediaType = MediaType.Nft } = global.mediaViewer || {};
 
-  if (mediaType === MediaType.Nft) {
-    const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
-    const nft = byAddress?.[mediaId];
-    if (!nft) {
-      return {};
-    }
+  if (mediaType !== MediaType.Nft) return {};
 
-    return {
-      alt: nft.name,
-      thumbnail: nft.thumbnail,
-      image: nft.image,
-    };
-  }
+  const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
+  const nft = byAddress?.[mediaId];
+  if (!nft) return {};
 
-  return {};
+  return {
+    alt: nft.name,
+    thumbnail: nft.thumbnail,
+    image: nft.image,
+  };
 })(Media));

@@ -30,26 +30,24 @@ interface WebViewTonConnectBridge {
 }
 
 interface OwnProps {
-  endpoint: string;
+  endpoint?: string;
   isConnected?: boolean;
-  onHideBrowser: NoneToVoidFunction;
-  onShowBrowser: NoneToVoidFunction;
 }
 
 export function useDappBridge({
   endpoint,
   isConnected,
-  onHideBrowser,
-  onShowBrowser,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const inAppBrowserRef = useRef<InAppBrowserObject>(null);
   const [requestId, setRequestId] = useState(0);
   const origin = useMemo(() => {
-    return new URL(endpoint).origin.toLowerCase();
+    return endpoint ? new URL(endpoint).origin.toLowerCase() : undefined;
   }, [endpoint]);
 
-  const bridgeObject = useMemo((): WebViewTonConnectBridge => {
+  const bridgeObject = useMemo((): WebViewTonConnectBridge | undefined => {
+    if (!origin) return undefined;
+
     const dappRequest = {
       origin,
       accountId: getGlobal().currentAccountId,
@@ -72,7 +70,6 @@ export function useDappBridge({
           verifyConnectRequest(request);
 
           inAppBrowserRef.current?.hide();
-          onHideBrowser();
           if (IS_DELEGATING_BOTTOM_SHEET) {
             await BottomSheet.enable();
           }
@@ -88,7 +85,6 @@ export function useDappBridge({
           }
 
           inAppBrowserRef.current?.show();
-          onShowBrowser();
           setRequestId(requestId + 1);
 
           if (response?.event === 'connect') {
@@ -102,7 +98,6 @@ export function useDappBridge({
             await BottomSheet.disable();
           }
           inAppBrowserRef.current?.show();
-          onShowBrowser();
 
           if ('event' in err && 'id' in err && 'payload' in err) {
             return err;
@@ -171,7 +166,6 @@ export function useDappBridge({
           switch (request.method) {
             case 'sendTransaction': {
               inAppBrowserRef.current?.hide();
-              onHideBrowser();
               if (IS_DELEGATING_BOTTOM_SHEET) {
                 await BottomSheet.enable();
               }
@@ -185,7 +179,6 @@ export function useDappBridge({
                 await BottomSheet.disable();
               }
               inAppBrowserRef.current?.show();
-              onShowBrowser();
 
               return callResponse!;
             }
@@ -202,7 +195,6 @@ export function useDappBridge({
 
             case 'signData': {
               inAppBrowserRef.current?.hide();
-              onHideBrowser();
               if (IS_DELEGATING_BOTTOM_SHEET) {
                 await BottomSheet.enable();
               }
@@ -215,7 +207,6 @@ export function useDappBridge({
                 await BottomSheet.disable();
               }
               inAppBrowserRef.current?.show();
-              onShowBrowser();
 
               return callResponse!;
             }
@@ -235,7 +226,6 @@ export function useDappBridge({
             await BottomSheet.disable();
           }
           inAppBrowserRef.current?.show();
-          onShowBrowser();
 
           return {
             error: {
@@ -247,7 +237,7 @@ export function useDappBridge({
         }
       },
     };
-  }, [isConnected, onHideBrowser, onShowBrowser, origin, requestId]);
+  }, [isConnected, origin, requestId]);
 
   const [
     bridgeInjectionCode,

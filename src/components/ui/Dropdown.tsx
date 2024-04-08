@@ -13,6 +13,7 @@ import styles from './Dropdown.module.scss';
 export interface DropdownItem {
   value: string;
   name: string;
+  description?: string;
   icon?: string;
   fontIcon?: string;
   isDisabled?: boolean;

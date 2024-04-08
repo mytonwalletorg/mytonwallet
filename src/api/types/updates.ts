@@ -182,6 +182,10 @@ export type ApiRequestReconnect = {
   type: 'requestReconnectApi';
 };
 
+export type ApiUpdateIncorrectTime = {
+  type: 'incorrectTime';
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateNewActivities
@@ -205,6 +209,7 @@ export type ApiUpdate =
   | ApiUpdateConfig
   | ApiUpdateWalletVersions
   | ApiOpenUrl
-  | ApiRequestReconnect;
+  | ApiRequestReconnect
+  | ApiUpdateIncorrectTime;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

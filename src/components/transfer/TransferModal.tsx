@@ -58,6 +58,7 @@ function TransferModal({
     isLoading,
     txId,
     tokenSlug,
+    nft,
   }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected,
 }: StateProps) {
   const {
@@ -79,6 +80,7 @@ function TransferModal({
   const [renderedTokenBalance, setRenderedTokenBalance] = useState(selectedToken?.amount);
   const renderedTransactionAmount = usePrevious(amount, true);
   const symbol = selectedToken?.symbol || '';
+  const isNftTransfer = Boolean(nft);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
@@ -126,18 +128,24 @@ function TransferModal({
   });
 
   function renderTransferShortInfo() {
-    const logoPath = selectedToken?.image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
     const transferInfoClassName = buildClassName(
       styles.transferShortInfo,
       !IS_CAPACITOR && styles.transferShortInfoInsidePasswordForm,
     );
+    const logoPath = isNftTransfer
+      ? nft?.thumbnail
+      : selectedToken?.image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
 
     return (
       <div className={transferInfoClassName}>
-        <img src={logoPath} alt={symbol} className={styles.tokenIcon} />
-        <span>
+        {logoPath && <img src={logoPath} alt={symbol} className={styles.tokenIcon} />}
+        <span className={styles.transferShortInfoText}>
           {lang('%amount% to %address%', {
-            amount: <span className={styles.bold}>{formatCurrency(toDecimal(amount!, decimals), symbol)}</span>,
+            amount: (
+              <span className={styles.bold}>
+                {isNftTransfer ? nft?.name || 'NFT' : formatCurrency(toDecimal(amount!, decimals), symbol)}
+              </span>
+            ),
             address: <span className={styles.bold}>{shortenAddress(toAddress!)}</span>,
           })}
         </span>
@@ -151,7 +159,7 @@ function TransferModal({
       case TransferState.Initial:
         return (
           <>
-            <ModalHeader title={lang('Send')} onClose={handleModalCloseWithReset} />
+            <ModalHeader title={lang(isNftTransfer ? 'Send NFT' : 'Send')} onClose={handleModalCloseWithReset} />
             <TransferInitial />
           </>
         );
@@ -202,6 +210,7 @@ function TransferModal({
         return (
           <TransferComplete
             isActive={isActive}
+            nft={nft}
             amount={renderedTransactionAmount}
             symbol={symbol}
             balance={renderedTokenBalance}
