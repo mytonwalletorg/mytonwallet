@@ -26,7 +26,6 @@ import ReceiveModal from '../receive/ReceiveModal';
 import StakeModal from '../staking/StakeModal';
 import StakingInfoModal from '../staking/StakingInfoModal';
 import UnstakeModal from '../staking/UnstakeModal';
-import InAppBrowser from '../ui/InAppBrowser';
 import UpdateAvailable from '../ui/UpdateAvailable';
 import { LandscapeActions, PortraitActions } from './sections/Actions';
 import Card from './sections/Card';
@@ -230,7 +229,6 @@ function Main({
       <UnstakeModal />
       <MediaViewer />
       {IS_ANDROID_DIRECT && <UpdateAvailable />}
-      {IS_CAPACITOR && !IS_DELEGATED_BOTTOM_SHEET && <InAppBrowser />}
     </>
   );
 }

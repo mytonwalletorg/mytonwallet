@@ -21,8 +21,8 @@ import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET } from './window
 export const INAPP_BROWSER_OPTIONS = [
   'location=no',
   'usewkwebview=yes',
-  'clearcache=yes',
-  'clearsessioncache=yes',
+  'clearcache=no',
+  'clearsessioncache=no',
   'hidden=yes',
   'toolbarposition=top',
   'hidenavigationbuttons=yes',

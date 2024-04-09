@@ -52,12 +52,12 @@ addActionHandler('clearDappTransferError', (global) => {
 });
 
 addActionHandler('openBrowser', (global, actions, { url }) => {
-  global = updateCurrentAccountState(global, { currentBrowserUrl: url });
+  global = { ...global, currentBrowserUrl: url };
   setGlobal(global);
 });
 
 addActionHandler('closeBrowser', (global) => {
-  global = updateCurrentAccountState(global, { currentBrowserUrl: undefined });
+  global = { ...global, currentBrowserUrl: undefined };
   setGlobal(global);
 });
 

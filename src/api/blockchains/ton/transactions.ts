@@ -23,7 +23,7 @@ import { ONE_TON, TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
-import { buildCollectionByKey, omit, unique } from '../../../util/iteratees';
+import { buildCollectionByKey, omit } from '../../../util/iteratees';
 import { isValidLedgerComment } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
@@ -471,7 +471,7 @@ export async function getAccountTransactionSlice(
     transactions.map((transaction) => parseWalletTransactionBody(network, transaction)),
   );
 
-  await populateTransactionRelatedItems(network, transactions);
+  await populateTransactions(network, transactions);
 
   return transactions
     .map(updateTransactionType)
@@ -480,25 +480,41 @@ export async function getAccountTransactionSlice(
     .map(transactionToActivity);
 }
 
-async function populateTransactionRelatedItems(network: ApiNetwork, transactions: ApiTransactionExtra[]) {
-  const nftAddresses = unique(
-    transactions.map(({ extraData: { parsedPayload } }) => {
-      return (parsedPayload && 'nftAddress' in parsedPayload)
-        ? parsedPayload.nftAddress
-        : undefined;
-    }).filter(Boolean) as string[],
-  );
+async function populateTransactions(network: ApiNetwork, transactions: ApiTransactionExtra[]) {
+  const nftAddresses = new Set<string>();
+  const addressesForFixFormat = new Set<string>();
 
-  if (nftAddresses.length) {
-    const nfts = (await fetchNftItems(network, nftAddresses))
+  for (const { extraData: { parsedPayload } } of transactions) {
+    if (parsedPayload?.type === 'nft:ownership-assigned') {
+      nftAddresses.add(parsedPayload.nftAddress);
+      addressesForFixFormat.add(parsedPayload.prevOwner);
+    } else if (parsedPayload?.type === 'nft:transfer') {
+      nftAddresses.add(parsedPayload.nftAddress);
+      addressesForFixFormat.add(parsedPayload.newOwner);
+    }
+  }
+
+  if (nftAddresses.size) {
+    const [rawNfts, addressBook] = await Promise.all([
+      fetchNftItems(network, [...nftAddresses]),
+      fetchAddressBook(network, [...addressesForFixFormat]),
+    ]);
+
+    const nfts = rawNfts
       .map((rawNft) => buildNft(network, rawNft))
       .filter(Boolean) as ApiNft[];
+
     const nftsByAddress = buildCollectionByKey(nfts, 'address');
 
-    for (const { extraData: { parsedPayload } } of transactions) {
-      if (!parsedPayload) continue;
-      if ('nftAddress' in parsedPayload) {
-        parsedPayload.nft = nftsByAddress[parsedPayload.nftAddress];
+    for (const transaction of transactions) {
+      const { extraData: { parsedPayload } } = transaction;
+
+      if (parsedPayload?.type === 'nft:ownership-assigned') {
+        transaction.nft = nftsByAddress[parsedPayload.nftAddress];
+        transaction.fromAddress = addressBook[parsedPayload.prevOwner].user_friendly;
+      } else if (parsedPayload?.type === 'nft:transfer') {
+        transaction.nft = nftsByAddress[parsedPayload.nftAddress];
+        transaction.toAddress = addressBook[parsedPayload.newOwner].user_friendly;
       }
     }
   }
@@ -567,15 +583,14 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
   const { amount, extraData } = transaction;
   let { comment } = transaction;
 
-  const fromAddress = toBase64Address(transaction.fromAddress, true);
-  const toAddress = toBase64Address(transaction.toAddress, true);
+  const normalizedFromAddress = toBase64Address(transaction.fromAddress, true);
+  const normalizedToAddress = toBase64Address(transaction.toAddress, true);
 
   let type: ApiTransactionType | undefined;
-  let nft: ApiNft | undefined;
 
-  if (isKnownStakingPool(fromAddress) && amount > ONE_TON) {
+  if (isKnownStakingPool(normalizedFromAddress) && amount > ONE_TON) {
     type = 'unstake';
-  } else if (isKnownStakingPool(toAddress)) {
+  } else if (isKnownStakingPool(normalizedToAddress)) {
     if (comment === STAKE_COMMENT) {
       type = 'stake';
     } else if (comment === UNSTAKE_COMMENT) {
@@ -592,11 +607,9 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
       type = 'unstake';
     } else if (payload.type === 'nft:transfer') {
       type = 'nftTransferred';
-      nft = payload.nft;
       comment = payload.comment;
     } else if (payload.type === 'nft:ownership-assigned') {
       type = 'nftReceived';
-      nft = payload.nft;
       comment = payload.comment;
     }
   }
@@ -605,7 +618,6 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
     ...transaction,
     type,
     comment,
-    nft,
   };
 }
 

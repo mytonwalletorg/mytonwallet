@@ -104,13 +104,14 @@ export async function checkNftTransferDraft(
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 
-  const payload = buildNftTransferPayload(address, toAddress, comment);
-
   const checkAddressResult = await checkToAddress(network, toAddress);
 
   if ('error' in checkAddressResult) {
     return checkAddressResult;
   }
+
+  toAddress = checkAddressResult.resolvedAddress!;
+  const payload = buildNftTransferPayload(address, toAddress, comment);
 
   const result = await checkTransactionDraft(
     accountId, TON_TOKEN_SLUG, nftAddress, NFT_TRANSFER_TON_AMOUNT, payload,

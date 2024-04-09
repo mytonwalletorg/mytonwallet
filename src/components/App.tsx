@@ -49,6 +49,7 @@ import SettingsModal from './settings/SettingsModal';
 import SwapModal from './swap/SwapModal';
 import TransferModal from './transfer/TransferModal';
 import ConfettiContainer from './ui/ConfettiContainer';
+import InAppBrowser from './ui/InAppBrowser';
 import Transition from './ui/Transition';
 
 // import Test from './components/test/TestNoRedundancy';
@@ -220,6 +221,7 @@ function App({
           )}
           <Dialogs />
           {!IS_DELEGATED_BOTTOM_SHEET && <ConfettiContainer />}
+          {IS_CAPACITOR && !IS_DELEGATED_BOTTOM_SHEET && <InAppBrowser />}
         </>
       )}
     </>

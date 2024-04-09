@@ -71,7 +71,7 @@ function DropdownMenu({
             disabled={item.isDisabled}
             onClick={(e) => handleItemClick(e, item.value)}
           >
-            {item.icon && <img src={buildClassName('icon', item.icon)} alt="" className={styles.itemIcon} />}
+            {item.icon && <img src={item.icon} alt="" className={buildClassName('icon', styles.itemIcon)} />}
             {item.fontIcon && (
               <i className={buildClassName(`icon icon-${item.fontIcon}`, styles.fontIcon)} aria-hidden />
             )}

@@ -801,7 +801,11 @@ export default memo(
         error,
       };
     },
-    (global, _, stickToFirst) => {
+    (global, { isStatic }, stickToFirst) => {
+      if (!isStatic) {
+        return stickToFirst(global.currentAccountId);
+      }
+
       const { nft, tokenSlug = TON_TOKEN_SLUG } = global.currentTransfer;
       const key = nft?.address ?? tokenSlug;
 

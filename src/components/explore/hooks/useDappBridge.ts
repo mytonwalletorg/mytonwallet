@@ -31,12 +31,10 @@ interface WebViewTonConnectBridge {
 
 interface OwnProps {
   endpoint?: string;
-  isConnected?: boolean;
 }
 
 export function useDappBridge({
   endpoint,
-  isConnected,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const inAppBrowserRef = useRef<InAppBrowserObject>(null);
@@ -151,6 +149,7 @@ export function useDappBridge({
 
       send: async <T extends RpcMethod>(request: AppRequest<T>) => {
         setRequestId(requestId + 1);
+        const isConnected = getGlobal().settings.dapps?.some((dapp) => dapp.origin === origin);
 
         if (!isConnected) {
           return {
@@ -237,7 +236,7 @@ export function useDappBridge({
         }
       },
     };
-  }, [isConnected, origin, requestId]);
+  }, [origin, requestId]);
 
   const [
     bridgeInjectionCode,

@@ -1,10 +1,7 @@
 import { BottomSheet } from 'native-bottom-sheet';
-import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
+import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiDapp } from '../../api/types';
-
-import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { INAPP_BROWSER_OPTIONS } from '../../util/capacitor';
 import { logDebugError } from '../../util/logs';
@@ -19,24 +16,16 @@ import styles from './InAppBrowser.module.scss';
 
 interface StateProps {
   url?: string;
-  dapps?: ApiDapp[];
 }
 
 const REINJECTION_DELAY = 3000;
 
 let inAppBrowser: Cordova['InAppBrowser'] | undefined;
 
-function InAppBrowser({ url, dapps }: StateProps) {
+function InAppBrowser({ url }: StateProps) {
   const { closeBrowser } = getActions();
 
   const { hasOpenClass, hasShownClass } = useShowTransition(Boolean(url));
-
-  const isConnected = useMemo(() => {
-    if (!url) return false;
-
-    const origin = new URL(url).origin.toLowerCase();
-    return dapps?.some((dapp) => dapp.origin === origin);
-  }, [dapps, url]);
 
   const {
     inAppBrowserRef,
@@ -45,7 +34,6 @@ function InAppBrowser({ url, dapps }: StateProps) {
     disconnect,
   } = useDappBridge({
     endpoint: url,
-    isConnected,
   });
 
   const handleLoadStart = useLastCallback(async () => {
@@ -116,10 +104,9 @@ function InAppBrowser({ url, dapps }: StateProps) {
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { currentBrowserUrl } = selectCurrentAccountState(global) || {};
+  const { currentBrowserUrl } = global;
 
   return {
-    dapps: global.settings.dapps,
     url: currentBrowserUrl,
   };
 })(InAppBrowser));

@@ -43,7 +43,7 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
 
     return { address: toBase64Address(result, undefined, network), domain };
   } catch (err: any) {
-    if (err.message !== 'http provider parse response error') {
+    if (!err.message?.includes('exit_code')) {
       throw err;
     }
     return undefined;

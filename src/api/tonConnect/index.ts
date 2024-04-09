@@ -144,6 +144,7 @@ export async function connect(
     } | undefined = await promise;
 
     accountId = promiseResult!.accountId!;
+    request.accountId = accountId;
     await addDapp(accountId, dapp);
 
     const result = await reconnect(request, id);

@@ -282,7 +282,6 @@ export interface AccountState {
   savedAddresses?: Record<string, string>;
   activeContentTab?: ContentTab;
   landscapeActionsActiveTabIndex?: ActiveTab;
-  currentBrowserUrl?: string;
 
   // Staking
   staking?: {
@@ -534,6 +533,7 @@ export type GlobalState = {
   isReceiveModalOpen?: boolean;
   shouldForceAccountEdit?: boolean;
   isIncorrectTimeNotificationReceived?: boolean;
+  currentBrowserUrl?: string;
 
   currentQrScan?: {
     state: QrScanType;

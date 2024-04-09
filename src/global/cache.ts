@@ -363,7 +363,12 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     for (const accountId of Object.keys(cached.byAccountId)) {
       cached.byAccountId[accountId].currentTokenPeriod = '1D';
     }
-    cached.stateVersion++;
+    cached.stateVersion = 20;
+  }
+
+  if (cached.stateVersion === 20) {
+    clearActivities();
+    cached.stateVersion = 21;
   }
 
   // When adding migration here, increase `STATE_VERSION`
