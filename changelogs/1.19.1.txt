@@ -1,6 +1,10 @@
-Expanded Chart Ranges: Now track historical token prices with added ranges: 1 day, 1 week, 1 month, 6 months, 1 year, and All-time.
+🪩 In-App Browser: Explore the Web 3.0 directly from the address bar without leaving the app.
 
-Other Improvements:
+💌 NFT Functionality: Send NFTs effortlessly and enjoy our new Media Viewer for a richer experience.
+
+📈 Expanded Chart Ranges: Now track historical token prices with added ranges: 1 day, 1 week, 1 month, 6 months, 1 year, and All-time.
+
+✨ Other Improvements:
 · Improved currency formatting for better readability.
 · Swap Feature Enhancements: By default, use the most popular tokens for quicker transactions.
 · Full Transfer Mode: Transfer all your funds seamlessly without leaving any remainder.

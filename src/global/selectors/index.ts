@@ -2,12 +2,7 @@ import type {
   ApiBalanceBySlug, ApiNetwork, ApiSwapAsset, ApiTxIdBySlug,
 } from '../../api/types';
 import type {
-  Account,
-  AccountSettings,
-  AccountState,
-  GlobalState,
-  UserSwapToken,
-  UserToken,
+  Account, AccountSettings, AccountState, GlobalState, UserSwapToken, UserToken,
 } from '../types';
 
 import { TON_TOKEN_SLUG } from '../../config';
@@ -86,12 +81,16 @@ const selectAccountTokensMemoized = memoized((
 });
 
 export function selectCurrentAccountTokens(global: GlobalState) {
-  const balancesBySlug = selectCurrentAccountState(global)?.balances?.bySlug;
+  return selectAccountTokens(global, global.currentAccountId!);
+}
+
+export function selectAccountTokens(global: GlobalState, accountId: string) {
+  const balancesBySlug = selectAccountState(global, accountId)?.balances?.bySlug;
   if (!balancesBySlug || !global.tokenInfo) {
     return undefined;
   }
 
-  const accountSettings = selectAccountSettings(global, global.currentAccountId!) ?? {};
+  const accountSettings = selectAccountSettings(global, accountId) ?? {};
   const { areTokensWithNoCostHidden, isSortByValueEnabled } = global.settings;
 
   return selectAccountTokensMemoized(

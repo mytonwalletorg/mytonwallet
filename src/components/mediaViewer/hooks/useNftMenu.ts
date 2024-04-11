@@ -7,6 +7,7 @@ import type { DropdownItem } from '../../ui/Dropdown';
 import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
+  TON_DNS_COLLECTION,
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../config';
@@ -40,6 +41,11 @@ const TONSCAN_ITEM: DropdownItem = {
   value: 'tonscan',
   fontIcon: 'external',
 };
+const TON_DNS_ITEM: DropdownItem = {
+  name: 'Configure DNS',
+  value: 'tondns',
+  fontIcon: 'external',
+};
 
 export default function useNftMenu(nft?: ApiNft) {
   const handleMenuItemSelect = useLastCallback((value: string) => {
@@ -69,6 +75,13 @@ export default function useNftMenu(nft?: ApiNft) {
         break;
       }
 
+      case 'tondns': {
+        const url = `https://dns.ton.org/#${(nft!.name || '').replace(/\.ton$/i, '')}`;
+
+        openUrl(url);
+        break;
+      }
+
       case 'fragment': {
         let url: string;
         if (nft!.collectionName?.toLowerCase().includes('numbers')) {
@@ -88,6 +101,9 @@ export default function useNftMenu(nft?: ApiNft) {
 
     const result: DropdownItem[] = [];
     result.push(nft.isOnSale ? ON_SALE_ITEM : SEND_ITEM);
+    if (nft.collectionAddress === TON_DNS_COLLECTION) {
+      result.push(TON_DNS_ITEM);
+    }
     result.push(GETGEMS_ITEM);
     result.push(TONSCAN_ITEM);
     if (nft.isOnFragment) {

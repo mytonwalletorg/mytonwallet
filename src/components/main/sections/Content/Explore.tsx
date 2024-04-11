@@ -8,6 +8,7 @@ import type { ApiSite } from '../../../../api/types';
 import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { vibrate } from '../../../../util/capacitor';
 import { openUrl } from '../../../../util/openUrl';
 import stopEvent from '../../../../util/stopEvent';
 import { getHostnameFromUrl, isValidUrl } from '../../../../util/url';
@@ -84,6 +85,7 @@ function Explore({
     e: React.SyntheticEvent<HTMLDivElement | HTMLAnchorElement>,
     url: string,
   ) => {
+    vibrate();
     hideSuggestions();
     const site = sites?.find(({ url: currentUrl }) => currentUrl === url);
     openSite(url, site?.isExternal);

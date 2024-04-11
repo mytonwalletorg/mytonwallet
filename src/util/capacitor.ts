@@ -11,15 +11,15 @@ import { SplashScreen } from 'capacitor-splash-screen';
 
 import type { Theme } from '../global/types';
 
-import { GLOBAL_STATE_CACHE_KEY } from '../config';
+import { GLOBAL_STATE_CACHE_KEY, IS_CAPACITOR } from '../config';
 import * as storageMethods from './capacitorStorageProxy/methods';
 import { processDeeplink } from './deeplink';
 import { pause } from './schedulers';
-import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET } from './windowEnvironment';
+import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_IOS } from './windowEnvironment';
 
 // Full list of options can be found at https://github.com/apache/cordova-plugin-inappbrowser#cordovainappbrowseropen
 export const INAPP_BROWSER_OPTIONS = [
-  'location=no',
+  `location=${IS_IOS ? 'no' : 'yes'}`,
   'usewkwebview=yes',
   'clearcache=no',
   'clearsessioncache=no',
@@ -130,10 +130,14 @@ export function getStatusBarHeight() {
 }
 
 export async function vibrate() {
+  if (!IS_CAPACITOR) return;
+
   await Haptics.impact({ style: ImpactStyle.Light });
 }
 
 export async function vibrateOnError() {
+  if (!IS_CAPACITOR) return;
+
   await Haptics.impact({ style: ImpactStyle.Medium });
   await pause(100);
   await Haptics.impact({ style: ImpactStyle.Medium });
@@ -142,6 +146,8 @@ export async function vibrateOnError() {
 }
 
 export async function vibrateOnSuccess(withPauseOnEnd = false) {
+  if (!IS_CAPACITOR) return;
+
   await Haptics.impact({ style: ImpactStyle.Light });
 
   if (withPauseOnEnd) {

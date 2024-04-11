@@ -8,13 +8,14 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiActivity, ApiSwapAsset, ApiToken } from '../../../../api/types';
 import { ContentTab } from '../../../../global/types';
 
-import {
-  ANIMATED_STICKER_BIG_SIZE_PX, MIN_ASSETS_TAB_VIEW, TON_TOKEN_SLUG,
-} from '../../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, MIN_ASSETS_TAB_VIEW, TON_TOKEN_SLUG } from '../../../../config';
 import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../../../global/helpers';
 import {
   selectAccountSettings,
-  selectCurrentAccountState, selectCurrentAccountTokens, selectEnabledTokensCountMemoized, selectIsNewWallet,
+  selectCurrentAccountState,
+  selectCurrentAccountTokens,
+  selectEnabledTokensCountMemoized,
+  selectIsNewWallet,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { compareActivities } from '../../../../util/compareActivities';

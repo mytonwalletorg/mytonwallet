@@ -1,6 +1,8 @@
 import { addCallback, removeCallback } from '../lib/teact/teactn';
 
-import type { GlobalState, TokenPeriod } from './types';
+import type {
+  AccountState, GlobalState, TokenPeriod, UserToken,
+} from './types';
 
 import {
   DEBUG,
@@ -9,20 +11,25 @@ import {
   GLOBAL_STATE_CACHE_KEY,
   IS_CAPACITOR,
   MAIN_ACCOUNT_ID,
+  TON_TOKEN_SLUG,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
 import { bigintReviver } from '../util/bigint';
-import { cloneDeep, mapValues, pick } from '../util/iteratees';
+import {
+  cloneDeep, mapValues, pick, pickTruthy,
+} from '../util/iteratees';
 import { onBeforeUnload, onIdle, throttle } from '../util/schedulers';
 import { IS_ELECTRON } from '../util/windowEnvironment';
 import { getIsTxIdLocal } from './helpers';
 import { addActionHandler, getGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
+import { selectAccountTokens } from './selectors';
 
 import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
 
 const UPDATE_THROTTLE = IS_CAPACITOR ? 500 : 5000;
 const ACTIVITIES_LIMIT = 20;
+const ACTIVITY_TOKENS_LIMIT = 30;
 
 const updateCacheThrottled = throttle(() => onIdle(() => updateCache()), UPDATE_THROTTLE, false);
 const updateCacheForced = () => updateCache(true);
@@ -414,31 +421,52 @@ function reduceByAccountId(global: GlobalState) {
       'browserHistory',
     ]);
 
-    const { idsBySlug, newestTransactionsBySlug, byId } = state.activities || {};
-
-    if (byId && idsBySlug && Object.keys(idsBySlug).length) {
-      const reducedIdsBySlug = mapValues(idsBySlug, (ids) => {
-        const result: string[] = [];
-        let visibleIdCount = 0;
-        ids.filter((id) => !getIsTxIdLocal(id) && Boolean(byId[id])).forEach((id) => {
-          if (visibleIdCount === ACTIVITIES_LIMIT) return;
-
-          if (!byId[id].shouldHide) {
-            visibleIdCount += 1;
-          }
-          result.push(id);
-        });
-
-        return result;
-      });
-
-      acc[accountId].activities = {
-        byId: pick(state.activities!.byId, Object.values(reducedIdsBySlug).flat()),
-        idsBySlug: reducedIdsBySlug,
-        newestTransactionsBySlug,
-      };
-    }
+    const accountTokens = selectAccountTokens(global, accountId);
+    acc[accountId].activities = reduceAccountActivities(state.activities, accountTokens);
 
     return acc;
   }, {} as GlobalState['byAccountId']);
+}
+
+function reduceAccountActivities(activities?: AccountState['activities'], tokens?: UserToken[]) {
+  const { idsBySlug, newestTransactionsBySlug, byId } = activities || {};
+  if (!tokens || !idsBySlug || !byId) return undefined;
+
+  const reducedSlugs = tokens.slice(0, ACTIVITY_TOKENS_LIMIT).map(({ slug }) => slug);
+  if (!reducedSlugs.includes(TON_TOKEN_SLUG)) {
+    reducedSlugs.push(TON_TOKEN_SLUG);
+  }
+
+  const reducedIdsBySlug = mapValues(pickTruthy(idsBySlug, reducedSlugs), (ids) => {
+    const result: string[] = [];
+
+    let visibleIdCount = 0;
+
+    ids
+      .filter((id) => !getIsTxIdLocal(id) && Boolean(byId[id]))
+      .forEach((id) => {
+        if (visibleIdCount === ACTIVITIES_LIMIT) return;
+
+        if (!byId[id].shouldHide) {
+          visibleIdCount += 1;
+        }
+
+        result.push(id);
+      });
+
+    return result;
+  });
+
+  const reducedNewestTransactionsBySlug = newestTransactionsBySlug
+    ? pick(newestTransactionsBySlug, reducedSlugs)
+    : undefined;
+
+  const reducedIds = Object.values(reducedIdsBySlug).flat();
+  const reducedById = pick(byId, reducedIds);
+
+  return {
+    byId: reducedById,
+    idsBySlug: reducedIdsBySlug,
+    newestTransactionsBySlug: reducedNewestTransactionsBySlug,
+  };
 }

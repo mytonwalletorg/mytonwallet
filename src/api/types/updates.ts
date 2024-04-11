@@ -103,6 +103,10 @@ export type ApiUpdateDappConnect = {
   proof?: ApiTonConnectProof;
 };
 
+export type ApiUpdateDappConnectComplete = {
+  type: 'dappConnectComplete';
+};
+
 export type ApiUpdateDappDisconnect = {
   type: 'dappDisconnect';
   accountId: string;
@@ -117,6 +121,10 @@ export type ApiUpdateDappLoading = {
 
 export type ApiUpdateDappCloseLoading = {
   type: 'dappCloseLoading';
+};
+
+export type ApiUpdateDapps = {
+  type: 'updateDapps';
 };
 
 export type ApiUpdatePrepareTransaction = {
@@ -198,9 +206,11 @@ export type ApiUpdate =
   | ApiUpdateActiveDapp
   | ApiUpdateDappSendTransactions
   | ApiUpdateDappConnect
+  | ApiUpdateDappConnectComplete
   | ApiUpdateDappDisconnect
   | ApiUpdateDappLoading
   | ApiUpdateDappCloseLoading
+  | ApiUpdateDapps
   | ApiUpdatePrepareTransaction
   | ApiUpdateShowError
   | ApiUpdateNfts

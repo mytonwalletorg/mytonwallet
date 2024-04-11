@@ -1,5 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
+import { vibrate } from '../../util/capacitor';
 import { openUrl } from '../../util/openUrl';
 
 import Image from '../ui/Image';
@@ -17,12 +18,17 @@ interface OwnProps {
 function Site({
   url, icon, title, description, isExternal,
 }: OwnProps) {
+  function handleClick() {
+    vibrate();
+    openUrl(url, isExternal);
+  }
+
   return (
     <div
       className={styles.item}
       tabIndex={0}
       role="button"
-      onClick={() => { openUrl(url, isExternal); }}
+      onClick={handleClick}
     >
       <Image url={icon} className={styles.imageWrapper} imageClassName={styles.image} />
       <div className={styles.infoWrapper}>

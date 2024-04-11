@@ -6,6 +6,7 @@ import { getActions } from '../../../../global';
 
 import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
+import { vibrate } from '../../../../util/capacitor';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../../util/windowEnvironment';
 
 import useFlag from '../../../../hooks/useFlag';
@@ -49,6 +50,8 @@ function PortraitActions({
   const isStakingAllowed = !isTestnet;
 
   const handleStartSwap = useLastCallback(() => {
+    vibrate();
+
     startSwap({ isPortrait: true });
   });
 
@@ -62,10 +65,14 @@ function PortraitActions({
   };
 
   const handleStartTransfer = useLastCallback(() => {
+    vibrate();
+
     startTransfer({ isPortrait: true });
   });
 
   const handleAddBuyClick = useLastCallback(async () => {
+    vibrate();
+
     if (!IS_CAPACITOR) {
       openAddBuyModal();
       return;
@@ -98,6 +105,11 @@ function PortraitActions({
     actionByIndex[result.index]?.();
   });
 
+  const handleEarnClick = useLastCallback(() => {
+    vibrate();
+    onEarnClick();
+  });
+
   return (
     <div className={styles.container}>
       <div className={styles.buttons}>
@@ -118,7 +130,7 @@ function PortraitActions({
         {isStakingAllowed && (
           <Button
             className={buildClassName(styles.button, hasStaking && styles.button_purple)}
-            onClick={onEarnClick}
+            onClick={handleEarnClick}
             isSimple
           >
             <i className={buildClassName(styles.buttonIcon, 'icon-earn')} aria-hidden />

@@ -175,6 +175,8 @@ export const NFT_FRAGMENT_COLLECTIONS = new Set([
   '0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2', // Telegram Usernames
 ]);
 
+export const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
+
 export const TOKEN_INFO = {
   toncoin: {
     name: 'Toncoin',
@@ -265,6 +267,8 @@ export const EXCHANGE_ADDRESSES = new Set([
   'EQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fPQb', 'UQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fKne', // Bybit
   'EQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwj1f', 'UQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwmCa', // Huobi
   'EQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6dZl', 'UQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6Yug', // KuCoin
+  'EQCkoRp4OE-SFUoMEnYfL3vF43T3AzNfW8jyTC4yzk8cJqMS', 'UQCkoRp4OE-SFUoMEnYfL3vF43T3AzNfW8jyTC4yzk8cJv7X', // @wallet 1
+  'EQA2JYPGPywx6Sn590nUd06B2HgOkFvJ-cCnTO6yTEdacbUG', 'UQA2JYPGPywx6Sn590nUd06B2HgOkFvJ-cCnTO6yTEdacejD', // @wallet 2
 ]);
 
 export const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';

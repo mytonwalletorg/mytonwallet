@@ -5,6 +5,7 @@ import type { ApiNft } from '../../../../api/types';
 import { MediaType } from '../../../../global/types';
 
 import buildClassName from '../../../../util/buildClassName';
+import { vibrate } from '../../../../util/capacitor';
 import { shortenAddress } from '../../../../util/shortenAddress';
 
 import useFlag from '../../../../hooks/useFlag';
@@ -22,11 +23,16 @@ function Nft({ nft }: OwnProps) {
   const { openMediaViewer } = getActions();
   const [isMenuOpen, openMenu, closeMenu] = useFlag(false);
 
+  function handleClick() {
+    vibrate();
+    openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft });
+  }
+
   return (
     <div
       key={nft.address}
       id={`nft-${nft.address}`}
-      onClick={() => openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft })}
+      onClick={handleClick}
       className={buildClassName(styles.item, nft.isOnSale && styles.item_onSale, isMenuOpen && styles.itemWithMenu)}
     >
       <NftMenu nft={nft} isOpen={isMenuOpen} onOpen={openMenu} onClose={closeMenu} />

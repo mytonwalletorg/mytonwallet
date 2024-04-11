@@ -5,7 +5,7 @@ import { areDeepEqual } from '../../../util/areDeepEqual';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { callActionInMain } from '../../../util/multitab';
 import { pause, waitFor } from '../../../util/schedulers';
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_IOS_APP } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
@@ -58,22 +58,14 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
     password,
   });
 
-  global = getGlobal();
-  global = clearDappConnectRequest(global);
-  setGlobal(global);
-
-  const { currentAccountId } = global;
-
-  await pause(GET_DAPPS_PAUSE);
-  const result = await callApi('getDapps', currentAccountId!);
-
-  if (!result) {
-    return;
+  if (IS_IOS_APP) {
+    global = getGlobal();
+    global = clearDappConnectRequest(global);
+    setGlobal(global);
   }
 
-  global = getGlobal();
-  global = updateConnectedDapps(global, { dapps: result });
-  setGlobal(global);
+  await pause(GET_DAPPS_PAUSE);
+  actions.getDapps();
 });
 
 addActionHandler(
@@ -106,22 +98,14 @@ addActionHandler(
       return;
     }
 
-    global = getGlobal();
-    global = clearDappConnectRequest(global);
-    setGlobal(global);
-
-    const { currentAccountId } = global;
-
-    await pause(GET_DAPPS_PAUSE);
-    const result = await callApi('getDapps', currentAccountId!);
-
-    if (!result) {
-      return;
+    if (IS_IOS_APP) {
+      global = getGlobal();
+      global = clearDappConnectRequest(global);
+      setGlobal(global);
     }
 
-    global = getGlobal();
-    global = updateConnectedDapps(global, { dapps: result });
-    setGlobal(global);
+    await pause(GET_DAPPS_PAUSE);
+    actions.getDapps();
   },
 );
 

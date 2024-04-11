@@ -8,6 +8,7 @@ import {
   clearCurrentDappTransfer,
   clearCurrentSignature,
   clearCurrentTransfer,
+  clearDappConnectRequest,
   updateAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
@@ -78,6 +79,13 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
+    case 'dappConnectComplete': {
+      global = clearDappConnectRequest(global);
+      setGlobal(global);
+
+      break;
+    }
+
     case 'updateActiveDapp': {
       const { accountId, origin } = update;
 
@@ -129,6 +137,15 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
       actions.apiUpdateDappSendTransaction(update);
 
+      break;
+    }
+
+    case 'updateDapps': {
+      if (IS_DELEGATING_BOTTOM_SHEET) {
+        callActionInNative('getDapps');
+      }
+
+      actions.getDapps();
       break;
     }
 

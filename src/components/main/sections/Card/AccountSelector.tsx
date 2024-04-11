@@ -7,6 +7,7 @@ import { type Account, QrScanType } from '../../../../global/types';
 
 import { selectNetworkAccounts } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { vibrate } from '../../../../util/capacitor';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import trapFocus from '../../../../util/trapFocus';
@@ -106,6 +107,7 @@ function AccountSelector({
   };
 
   const handleSwitchAccount = (value: string) => {
+    vibrate();
     closeAccountSelector();
     switchAccount({ accountId: value });
   };
@@ -123,6 +125,7 @@ function AccountSelector({
   });
 
   const handleAddWalletClick = useLastCallback(() => {
+    vibrate();
     closeAccountSelector();
     openAddAccountModal();
   });

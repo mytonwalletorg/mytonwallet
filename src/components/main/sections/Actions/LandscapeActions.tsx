@@ -141,6 +141,10 @@ function LandscapeActions({
     handleTransitionStart();
   }, [activeTabIndex, handleTransitionStart, lang]);
 
+  function handleSelectTab(index: ActiveTab) {
+    setActiveTabIndex({ index }, { forceOnHeavyAnimation: true });
+  }
+
   return (
     <div className={styles.container}>
       <div className={
@@ -149,7 +153,7 @@ function LandscapeActions({
       >
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Receive && styles.active)}
-          onClick={() => setActiveTabIndex({ index: ActiveTab.Receive }, { forceOnHeavyAnimation: true })}
+          onClick={() => handleSelectTab(ActiveTab.Receive)}
         >
           <i className={buildClassName(styles.tabIcon, 'icon-add-buy')} aria-hidden />
           <span className={styles.tabText}>{lang('Add / Buy')}</span>
@@ -158,7 +162,7 @@ function LandscapeActions({
         </div>
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Transfer && styles.active)}
-          onClick={() => setActiveTabIndex({ index: ActiveTab.Transfer }, { forceOnHeavyAnimation: true })}
+          onClick={() => handleSelectTab(ActiveTab.Transfer)}
         >
           <i className={buildClassName(styles.tabIcon, 'icon-send')} aria-hidden />
           <span className={styles.tabText}>{lang('Send')}</span>
@@ -168,7 +172,7 @@ function LandscapeActions({
         {isSwapAllowed && (
           <div
             className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Swap && styles.active)}
-            onClick={() => setActiveTabIndex({ index: ActiveTab.Swap }, { forceOnHeavyAnimation: true })}
+            onClick={() => handleSelectTab(ActiveTab.Swap)}
           >
             <i className={buildClassName(styles.tabIcon, 'icon-swap')} aria-hidden />
             <span className={styles.tabText}>{lang('Swap')}</span>
@@ -183,7 +187,7 @@ function LandscapeActions({
               activeTabIndex === ActiveTab.Stake && styles.active,
               isStaking && styles.tab_purple,
             )}
-            onClick={() => setActiveTabIndex({ index: ActiveTab.Stake }, { forceOnHeavyAnimation: true })}
+            onClick={() => handleSelectTab(ActiveTab.Stake)}
           >
             <i className={buildClassName(styles.tabIcon, 'icon-earn')} aria-hidden />
             <span className={styles.tabText}>

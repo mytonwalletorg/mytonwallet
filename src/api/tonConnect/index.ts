@@ -163,6 +163,9 @@ export async function connect(
       result.payload.items.push(proofReplyItem);
     }
 
+    onPopupUpdate({ type: 'updateDapps' });
+    onPopupUpdate({ type: 'dappConnectComplete' });
+
     return result;
   } catch (err) {
     logDebugError('tonConnect:connect', err);
@@ -213,6 +216,7 @@ export async function disconnect(
 
     await deleteDapp(accountId, origin, true);
     deactivateAccountDapp(accountId);
+    onPopupUpdate({ type: 'updateDapps' });
   } catch (err) {
     logDebugError('tonConnect:disconnect', err);
   }
