@@ -1,4 +1,3 @@
-import type { MouseEventHandler } from 'react';
 import { Dialog } from '@capacitor/dialog';
 import React, {
   memo, useEffect, useMemo, useState,
@@ -20,6 +19,7 @@ import {
 import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { vibrate } from '../../util/capacitor';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import { throttle } from '../../util/schedulers';
@@ -189,6 +189,8 @@ function StakingInitial({
       return;
     }
 
+    vibrate();
+
     setShouldUseAllBalance(true);
   });
 
@@ -202,6 +204,8 @@ function StakingInitial({
     if (!canSubmit) {
       return;
     }
+
+    vibrate();
 
     submitStakingInitial({ amount });
   });
@@ -237,22 +241,16 @@ function StakingInitial({
     if (!symbol) return undefined;
 
     const hasBalance = availableBalance !== undefined;
-
-    const getButton = (text: string, onClick: MouseEventHandler) => (
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={onClick}
-        className={styles.balanceLink}
-      >
-        {text}
-      </div>
-    );
-
     const balanceButton = lang('$max_balance', {
-      balance: getButton(
-        hasBalance ? formatCurrency(toDecimal(availableBalance, decimals), symbol) : lang('Loading...'),
-        handleMaxAmountClick,
+      balance: (
+        <div
+          role="button"
+          tabIndex={0}
+          className={styles.balanceLink}
+          onClick={handleMaxAmountClick}
+        >
+          {hasBalance ? formatCurrency(toDecimal(availableBalance, decimals), symbol) : lang('Loading...')}
+        </div>
       ),
     });
 

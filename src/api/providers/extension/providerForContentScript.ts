@@ -21,6 +21,7 @@ const ALLOWED_METHODS = new Set([
   'ton_rawSign',
   'flushMemoryCache',
   'prepareTransaction',
+  'processDeeplink',
   'tonConnect_connect',
   'tonConnect_reconnect',
   'tonConnect_disconnect',

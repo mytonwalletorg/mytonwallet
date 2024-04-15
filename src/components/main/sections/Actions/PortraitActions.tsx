@@ -46,18 +46,17 @@ function PortraitActions({
   const lang = useLang();
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
-  const isOnRampAllowed = !isTestnet && !isLedger && !isOnRampDisabled;
+  const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
   const isStakingAllowed = !isTestnet;
 
   const handleStartSwap = useLastCallback(() => {
     vibrate();
 
-    startSwap({ isPortrait: true });
+    startSwap();
   });
 
   const handleStartSwapWidget = () => {
     startSwap({
-      isPortrait: true,
       tokenInSlug: DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
       tokenOutSlug: TON_TOKEN_SLUG,
       amountIn: '100',

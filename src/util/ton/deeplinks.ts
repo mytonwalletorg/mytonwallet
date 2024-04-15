@@ -1,4 +1,9 @@
-import { TON_PROTOCOL, TONCONNECT_PROTOCOL, TONCONNECT_UNIVERSAL_URL } from '../../config';
+import {
+  TON_PROTOCOL,
+  TONCONNECT_PROTOCOL,
+  TONCONNECT_PROTOCOL_SELF,
+  TONCONNECT_UNIVERSAL_URL,
+} from '../../config';
 
 export function parseTonDeeplink(value: string | unknown) {
   if (typeof value !== 'string' || !isTonDeeplink(value) || !value.includes('/transfer/')) {
@@ -29,5 +34,7 @@ export function isTonDeeplink(url: string) {
 }
 
 export function isTonConnectDeeplink(url: string) {
-  return url.startsWith(TONCONNECT_PROTOCOL) || url.startsWith(TONCONNECT_UNIVERSAL_URL);
+  return url.startsWith(TONCONNECT_PROTOCOL)
+    || url.startsWith(TONCONNECT_PROTOCOL_SELF)
+    || url.startsWith(TONCONNECT_UNIVERSAL_URL);
 }

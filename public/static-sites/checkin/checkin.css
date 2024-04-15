@@ -1,0 +1,76 @@
+.animate-opacity {
+  transition: opacity 200ms ease;
+}
+
+.disabled {
+  pointer-events: none;
+
+  opacity: 0.5;
+}
+
+.faded {
+  pointer-events: none;
+
+  opacity: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.success {
+  color: #065B00;
+}
+
+.container {
+  min-width: 20rem;
+  max-width: 20rem;
+  padding: 2rem;
+}
+
+#slide-container {
+  position: relative;
+
+  height: 10rem;
+}
+
+.slide {
+  position: absolute;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+
+  width: 100%;
+  height: 10rem;
+
+  transition: opacity 200ms ease;
+}
+
+#cf-turnstile iframe {
+  border-radius: 1rem;
+}
+
+#error {
+  color: #B03737;
+}
+
+#ref-container p {
+  margin-top: 0;
+}
+
+#ref-container .text-link {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #007BFF;
+  text-decoration: none;
+}
+
+#ref-container .text-link:hover {
+  opacity: 0.8;
+}
+
+#ref-container .download-btn {
+  margin: 0 0.5rem;
+}

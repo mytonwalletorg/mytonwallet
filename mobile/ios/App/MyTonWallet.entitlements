@@ -5,6 +5,8 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:connect.mytonwallet.org</string>
+		<string>applinks:go.mytonwallet.org</string>
+		<string>applinks:my.tt</string>
 	</array>
 </dict>
 </plist>

@@ -149,7 +149,7 @@ function SwapModal({
   });
 
   const handleStartSwap = useLastCallback(() => {
-    startSwap({ isPortrait });
+    startSwap();
   });
 
   function renderSwapShortInfo() {

@@ -35,6 +35,8 @@ import {
 } from '../../reducers';
 import { selectAccount, selectCurrentAccount } from '../../selectors';
 
+import { getIsPortrait } from '../../../hooks/useDeviceScreen';
+
 const PAIRS_CACHE: Record<string, { data: ApiSwapPairAsset[]; timestamp: number }> = {};
 
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
@@ -82,10 +84,10 @@ addActionHandler('startSwap', (global, actions, payload) => {
     return;
   }
 
-  const { isPortrait, ...rest } = payload ?? {};
   const {
     state, tokenInSlug, tokenOutSlug, amountIn, toAddress,
-  } = rest;
+  } = payload ?? {};
+  const isPortrait = getIsPortrait();
 
   if (tokenInSlug || tokenOutSlug || amountIn || toAddress) {
     const tokenIn = global.swapTokenInfo?.bySlug[tokenInSlug!];
@@ -99,7 +101,7 @@ addActionHandler('startSwap', (global, actions, payload) => {
       : SwapType.OnChain;
 
     global = updateCurrentSwap(global, {
-      ...rest,
+      ...payload,
       isEstimating: true,
       shouldEstimate: true,
       inputSource: SwapInputSource.In,

@@ -150,7 +150,6 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
       tokenInSlug: activity!.from,
       tokenOutSlug: activity!.to,
       amountIn: fromAmount,
-      isPortrait,
     });
   });
 

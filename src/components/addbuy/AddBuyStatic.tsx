@@ -4,7 +4,6 @@ import { getActions } from '../../global';
 import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../config';
 import buildClassName from '../../util/buildClassName';
 
-import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -39,8 +38,6 @@ function AddBuyStatic({
 
   const lang = useLang();
 
-  const { isPortrait } = useDeviceScreen();
-
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
 
@@ -51,7 +48,6 @@ function AddBuyStatic({
 
   const handleSwapClick = useLastCallback(() => {
     startSwap({
-      isPortrait,
       tokenInSlug: DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
       tokenOutSlug: TON_TOKEN_SLUG,
       amountIn: '100',

@@ -6,6 +6,7 @@ import type { GlobalState } from '../../global/types';
 import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_SYMBOL } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
+import { vibrate } from '../../util/capacitor';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrencySimple } from '../../util/formatNumber';
 import { NFT_TRANSFER_TON_AMOUNT } from '../../api/blockchains/ton/constants';
@@ -13,6 +14,7 @@ import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -74,6 +76,11 @@ function TransferConfirm({
   useHistoryBack({
     isActive,
     onBack,
+  });
+
+  const handleConfirm = useLastCallback(() => {
+    vibrate();
+    submitTransferConfirm();
   });
 
   function renderFeeForNft() {
@@ -177,8 +184,8 @@ function TransferConfirm({
           <Button
             isPrimary
             isLoading={isLoading}
-            onClick={submitTransferConfirm}
             className={modalStyles.button}
+            onClick={handleConfirm}
           >
             {lang('Confirm')}
           </Button>

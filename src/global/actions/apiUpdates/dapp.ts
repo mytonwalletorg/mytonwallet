@@ -1,6 +1,7 @@
 import { TransferState } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
+import { isSelfDeeplink, processSelfDeeplink } from '../../../util/deeplink';
 import { callActionInNative } from '../../../util/multitab';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, setGlobal } from '../../index';
@@ -13,9 +14,7 @@ import {
   updateCurrentSignature,
   updateCurrentTransfer,
 } from '../../reducers';
-import {
-  selectAccountState,
-} from '../../selectors';
+import { selectAccountState } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -168,6 +167,17 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       });
 
       setGlobal(global);
+      break;
+    }
+
+    case 'processDeeplink': {
+      const { url } = update;
+
+      if (isSelfDeeplink(url)) {
+        processSelfDeeplink(url);
+      }
+
+      break;
     }
   }
 });

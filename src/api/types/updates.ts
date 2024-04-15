@@ -135,6 +135,11 @@ export type ApiUpdatePrepareTransaction = {
   binPayload?: string;
 };
 
+export type ApiUpdateProcessDeeplink = {
+  type: 'processDeeplink';
+  url: string;
+};
+
 export type ApiUpdateNfts = {
   type: 'updateNfts';
   accountId: string;
@@ -212,6 +217,7 @@ export type ApiUpdate =
   | ApiUpdateDappCloseLoading
   | ApiUpdateDapps
   | ApiUpdatePrepareTransaction
+  | ApiUpdateProcessDeeplink
   | ApiUpdateShowError
   | ApiUpdateNfts
   | ApiNftUpdate

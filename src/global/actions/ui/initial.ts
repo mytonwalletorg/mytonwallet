@@ -6,6 +6,7 @@ import { IS_CAPACITOR, IS_EXTENSION } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
 import authApi from '../../../util/authApi';
+import { processDeeplinkAfterSignIn } from '../../../util/deeplink';
 import { omit } from '../../../util/iteratees';
 import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
 import { callActionInMain } from '../../../util/multitab';
@@ -92,6 +93,7 @@ addActionHandler('afterSignIn', (global, actions) => {
 
   setTimeout(() => {
     actions.resetAuth();
+    processDeeplinkAfterSignIn();
   }, ANIMATION_DELAY_MS);
 });
 

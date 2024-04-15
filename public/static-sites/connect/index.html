@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyTonWallet Connect</title>
-    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="/index.css">
 </head>
 <body>
 <div class="container">
-    <h1>Sign In with <span class="gradient-text">MyTonWallet</span></h1>
+    <h1>Connect <span class="gradient-text">MyTonWallet</span></h1>
     <div class="info">
         <p>
             Launch the app and log into your wallet.
@@ -19,8 +19,8 @@
         <p>
             Once you have done it, proceed by clicking the button below.
         </p>
-        <a href="javascript: location.href = 'tc://' + window.location.search;" id="btn-sign-in" class="download-btn">
-            Sign In
+        <a href="tc://" id="btn-sign-in" class="download-btn">
+            Continue
         </a>
     </div>
     <div class="footer">
@@ -28,11 +28,16 @@
     </div>
 </div>
 <script>
-  const query = location.search;
+  const {
+    pathname,
+    search,
+  } = location;
 
-  if (query && !query.includes('redirected')) {
-    location.href = 'tc://' + query;
-    history.replaceState({}, '', `${location.pathname}${query}&redirected=true`);
+  document.getElementById('btn-sign-in').href = `tc://${search}`;
+
+  if (search && !search.includes('redirected=true')) {
+    location.href = `tc://${search}`;
+    history.replaceState({}, '', `${pathname}${search}&redirected=true`);
   }
 </script>
 </body>

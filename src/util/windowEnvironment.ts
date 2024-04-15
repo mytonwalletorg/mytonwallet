@@ -29,9 +29,10 @@ export function getPlatform() {
 }
 
 function getBrowserLanguage(): LangCode {
-  const lang = navigator.language.startsWith('zh')
-    ? (navigator.language.endsWith('TW') || navigator.language.endsWith('HK') ? 'zh-Hant' : 'zh-Hans')
-    : navigator.language.substring(0, 2);
+  const { language } = navigator;
+  const lang = language.startsWith('zh')
+    ? (language.endsWith('TW') || language.endsWith('HK') ? 'zh-Hant' : 'zh-Hans')
+    : language.substring(0, 2);
 
   return (LANG_LIST.some(({ langCode }) => langCode === lang) ? lang : 'en') as LangCode;
 }

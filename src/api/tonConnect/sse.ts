@@ -18,11 +18,7 @@ import safeExec from '../../util/safeExec';
 import { getCurrentNetwork, waitLogin } from '../common/accounts';
 import { bytesToHex } from '../common/utils';
 import { apiDb } from '../db';
-import {
-  getDappsState,
-  getSseLastEventId,
-  setSseLastEventId,
-} from '../methods/dapps';
+import { getDappsState, getSseLastEventId, setSseLastEventId } from '../methods/dapps';
 import * as tonConnect from './index';
 
 type SseDapp = {
@@ -58,8 +54,9 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
   const appClientId = params.get('id') as string;
   // `back` strategy cannot be implemented
   const shouldOpenUrl = ret !== 'back' && ret !== 'none';
+  const r = params.get('r');
 
-  if (!params.get('r')) {
+  if (!r) {
     if (shouldOpenUrl) {
       delayedReturnParams = {
         validUntil: Date.now() + MAX_CONFIRM_DURATION,
@@ -74,7 +71,7 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
     return ret ?? undefined;
   }
 
-  const connectRequest = JSON.parse(params.get('r') as string) as ConnectRequest;
+  const connectRequest: ConnectRequest | null = safeExec(() => JSON.parse(r)) || JSON.parse(decodeURIComponent(r));
 
   logDebug('SSE Start connection:', {
     version, appClientId, connectRequest, ret, origin,
@@ -96,6 +93,15 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
   };
 
   await waitLogin();
+
+  if (!connectRequest) {
+    onUpdate({
+      type: 'showError',
+      error: 'Invalid TON Connect link',
+    });
+
+    return undefined;
+  }
 
   const result = await tonConnect.connect(request, connectRequest, lastOutputId) as ConnectEvent;
   if (result.event === 'connect') {

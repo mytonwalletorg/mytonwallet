@@ -19,6 +19,7 @@ import {
 import { Big } from '../../lib/big.js';
 import { selectSwapTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { vibrate } from '../../util/capacitor';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
@@ -278,6 +279,8 @@ function SwapInitial({
         return;
       }
 
+      vibrate();
+
       const amountWithFee = tokenIn.amount > DEFAULT_SWAP_FEE
         ? tokenIn.amount - DEFAULT_SWAP_FEE
         : tokenIn.amount;
@@ -296,6 +299,8 @@ function SwapInitial({
       return;
     }
 
+    vibrate();
+
     if (isCrosschain) {
       setSwapCexAddress({ toAddress: '' });
       if (swapType === SwapType.CrosschainToTon) {
@@ -310,6 +315,7 @@ function SwapInitial({
   });
 
   const handleSwitchTokens = useLastCallback(() => {
+    vibrate();
     switchSwapTokens();
   });
 

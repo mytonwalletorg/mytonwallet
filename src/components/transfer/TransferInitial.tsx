@@ -20,6 +20,7 @@ import {
   selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { vibrate } from '../../util/capacitor';
 import { readClipboardContent } from '../../util/clipboard';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
@@ -420,17 +421,17 @@ function TransferInitial({
     validateAndSetAmount(value);
   });
 
-  const handleMaxAmountClick = useLastCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      e.preventDefault();
+  const handleMaxAmountClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
 
-      if (!balance) {
-        return;
-      }
+    if (!balance) {
+      return;
+    }
 
-      setTransferAmount({ amount: balance });
-    },
-  );
+    vibrate();
+
+    setTransferAmount({ amount: balance });
+  });
 
   const handleCommentChange = useLastCallback((value) => {
     setTransferComment({ comment: trimStringByMaxBytes(value, COMMENT_MAX_SIZE_BYTES) });
@@ -451,6 +452,8 @@ function TransferInitial({
     if (!canSubmit) {
       return;
     }
+
+    vibrate();
 
     submitTransferInitial({
       tokenSlug,

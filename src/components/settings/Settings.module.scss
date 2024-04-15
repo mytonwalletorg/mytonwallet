@@ -273,6 +273,7 @@
   font-weight: 600;
   line-height: 1rem;
   color: var(--color-black);
+  text-decoration: none !important;
 
   transition: background-color 200ms;
 
@@ -379,12 +380,16 @@
   @media (hover: hover) {
     &:focus,
     &:hover {
+      color: var(--color-black);
+
       background-color: var(--color-interactive-item-hover);
     }
   }
 
   @media (pointer: coarse) {
     &:active {
+      color: var(--color-black);
+
       background-color: var(--color-interactive-item-hover);
     }
   }

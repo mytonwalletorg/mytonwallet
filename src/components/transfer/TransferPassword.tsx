@@ -43,11 +43,11 @@ function TransferPassword({
         error={error}
         placeholder={lang('Enter your password')}
         withCloseButton={Boolean(children)}
+        submitLabel={lang('Send')}
+        cancelLabel={lang('Back')}
         onUpdate={clearTransferError}
         onSubmit={onSubmit}
-        submitLabel={lang('Send')}
         onCancel={onCancel}
-        cancelLabel={lang('Back')}
       >
         {children}
       </PasswordForm>

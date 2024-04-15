@@ -85,6 +85,19 @@ export async function prepareTransaction(params: {
   });
 }
 
+export async function processDeeplink({ url }: {
+  url: string;
+}) {
+  await getCurrentAccountIdOrFail();
+  await openPopupWindow();
+  await waitLogin();
+
+  onPopupUpdate({
+    type: 'processDeeplink',
+    url,
+  });
+}
+
 export async function flushMemoryCache() {
   await clearCache();
 }

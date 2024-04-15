@@ -1,3 +1,4 @@
+import { isSelfDeeplink } from '../../util/deeplink';
 import { parseTonDeeplink } from '../../util/ton/deeplinks';
 import { callApi } from '../../api/providers/extension/connectorForPageScript';
 
@@ -42,8 +43,13 @@ function patchedOpenFn(url?: string | URL, ...args: any[]) {
   return originalOpenFn(url, ...args);
 }
 
-function tryHandleDeeplink(value: any) {
-  const params: DeeplinkParams = parseTonDeeplink(value);
+function tryHandleDeeplink(url: any) {
+  if (isSelfDeeplink(url)) {
+    void callApi('processDeeplink', { url });
+    return true;
+  }
+
+  const params: DeeplinkParams = parseTonDeeplink(url);
   if (!params) return false;
   if (typeof params.amount === 'bigint') {
     params.amount = params.amount.toString();

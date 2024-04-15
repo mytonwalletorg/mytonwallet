@@ -784,7 +784,6 @@ export interface ActionPayloads {
     tokenInSlug?: string;
     tokenOutSlug?: string;
     amountIn?: string;
-    isPortrait?: boolean;
     toAddress?: string;
   } | undefined;
   cancelSwap: { shouldReset?: boolean } | undefined;

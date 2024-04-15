@@ -5,6 +5,7 @@ import type { TokenPeriod } from '../../../../global/types';
 
 import { HISTORY_PERIODS } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
+import { vibrate } from '../../../../util/capacitor';
 
 import useLastCallback from '../../../../hooks/useLastCallback';
 
@@ -36,6 +37,8 @@ function ChartHistorySwitcher({
     onClose();
 
     if (period === currentPeriod) return;
+
+    vibrate();
 
     setCurrentTokenPeriod({ period: period as TokenPeriod });
     onChange?.(period as TokenPeriod);

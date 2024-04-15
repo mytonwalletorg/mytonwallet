@@ -90,6 +90,8 @@ export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'htt
 export const FRACTION_DIGITS = 9;
 export const SHORT_FRACTION_DIGITS = 2;
 
+export const SUPPORT_USERNAME = 'MyTonWalletSupport';
+export const SUPPORT_URL = `https://t.me/${SUPPORT_USERNAME}`;
 export const MY_TON_WALLET_PROMO_URL = 'https://mytonwallet.io';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
 export const TONSCAN_BASE_MAINNET_URL = 'https://tonscan.org/';
@@ -112,7 +114,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-87';
+export const LANG_CACHE_NAME = 'mtw-lang-88';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -166,9 +168,13 @@ export const NOMINATORS_STAKING_MIN_AMOUNT = ONE_TON * 10001n;
 
 export const TON_PROTOCOL = 'ton://';
 export const TONCONNECT_PROTOCOL = 'tc://';
+export const TONCONNECT_PROTOCOL_SELF = 'mytonwallet-tc://';
+export const SELF_PROTOCOL = 'mtw://';
+export const SELF_UNIVERSAL_URLS = ['https://my.tt', 'https://go.mytonwallet.org'];
 export const TONCONNECT_UNIVERSAL_URL = 'https://connect.mytonwallet.org';
 export const TONCONNECT_PROTOCOL_VERSION = 2;
 export const TONCONNECT_WALLET_JSBRIDGE_KEY = 'mytonwallet';
+export const CHECKIN_URL = 'https://checkin.mytonwallet.org';
 
 export const NFT_FRAGMENT_COLLECTIONS = new Set([
   '0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2', // Anonymous Telegram Numbers

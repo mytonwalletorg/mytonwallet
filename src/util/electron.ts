@@ -1,14 +1,10 @@
 import { ElectronEvent } from '../electron/types';
 
-import { processTonConnectDeeplink, processTonDeeplink } from './deeplink';
+import { processDeeplink } from './deeplink';
 
 export function initElectron() {
   window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {
-    void processTonDeeplink(url);
-  });
-
-  window.electron?.on(ElectronEvent.DEEPLINK_TONCONNECT, (params: { url: string }) => {
-    void processTonConnectDeeplink(params.url, electronOpenUrl);
+    void processDeeplink(url, electronOpenUrl);
   });
 }
 

@@ -10,6 +10,7 @@ import {
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, IS_FIREFOX_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { vibrate } from '../../util/capacitor';
 import { readClipboardContent } from '../../util/clipboard';
 import { shortenAddress } from '../../util/shortenAddress';
 import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
@@ -164,6 +165,7 @@ function SwapBlockchain({
   }, [toAddress, validateToAddress]);
 
   const submitPassword = useLastCallback(() => {
+    vibrate();
     setSwapScreen({ state: SwapState.Password });
   });
 

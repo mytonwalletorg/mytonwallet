@@ -1,16 +1,13 @@
-import React, {
-  memo, useMemo, useState,
-} from '../../../../lib/teact/teact';
+import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../global/types';
 
-import {
-  DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TON_TOKEN_SLUG,
-} from '../../../../config';
+import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TON_TOKEN_SLUG } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { vibrate } from '../../../../util/capacitor';
 import { formatShortDay } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
@@ -23,6 +20,7 @@ import useForceUpdate from '../../../../hooks/useForceUpdate';
 import useInterval from '../../../../hooks/useInterval';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
+import useSyncEffect from '../../../../hooks/useSyncEffect';
 import useTimeout from '../../../../hooks/useTimeout';
 
 import TokenPriceChart from '../../../common/TokenPriceChart';
@@ -79,6 +77,12 @@ function TokenCard({
   const currencySymbol = getShortCurrencySymbol(chartCurrency);
 
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState(-1);
+
+  useSyncEffect(([prevHistoryIndex]) => {
+    if (prevHistoryIndex !== undefined) {
+      vibrate();
+    }
+  }, [selectedHistoryIndex]);
 
   const {
     slug, symbol, amount, image, name, price: lastPrice, decimals,

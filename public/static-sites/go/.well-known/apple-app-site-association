@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "Y54Z4K69Z9.org.mytonwallet.app",
+        "paths": ["*"]
+      }
+    ]
+  }
+}

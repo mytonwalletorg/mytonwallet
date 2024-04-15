@@ -1,0 +1,2 @@
+/get/*  https://mytonwallet.app/get/:splat  302
+/*      /index.html                         200

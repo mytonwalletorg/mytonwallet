@@ -17,6 +17,7 @@ import {
   IS_EXTENSION,
   LANG_LIST,
   PROXY_HOSTS,
+  SUPPORT_URL, SUPPORT_USERNAME,
   TELEGRAM_WEB_URL,
   TON_TOKEN_SLUG,
 } from '../../config';
@@ -86,6 +87,7 @@ import disclaimerImg from '../../assets/settings/settings_disclaimer.svg';
 import exitImg from '../../assets/settings/settings_exit.svg';
 import languageImg from '../../assets/settings/settings_language.svg';
 import ledgerImg from '../../assets/settings/settings_ledger.svg';
+import supportImg from '../../assets/settings/settings_support.svg';
 import telegramImg from '../../assets/settings/settings_telegram-menu.svg';
 import tonLinksImg from '../../assets/settings/settings_ton-links.svg';
 import tonMagicImg from '../../assets/settings/settings_ton-magic.svg';
@@ -538,15 +540,24 @@ function Settings({
           </div>
 
           <div className={styles.block}>
-            <div className={styles.item} onClick={handleAboutOpen}>
-              <img className={styles.menuIcon} src={aboutImg} alt={lang('About')} />
-              {lang('About')}
-
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </div>
             <div className={styles.item} onClick={handleDisclaimerOpen}>
               <img className={styles.menuIcon} src={disclaimerImg} alt={lang('Use Responsibly')} />
               {lang('Use Responsibly')}
+
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </div>
+            <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className={styles.item}>
+              <img className={styles.menuIcon} src={supportImg} alt={lang('Get Support')} />
+              {lang('Get Support')}
+
+              <div className={styles.itemInfo}>
+                @{SUPPORT_USERNAME}
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            </a>
+            <div className={styles.item} onClick={handleAboutOpen}>
+              <img className={styles.menuIcon} src={aboutImg} alt={lang('About')} />
+              {lang('About')}
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>

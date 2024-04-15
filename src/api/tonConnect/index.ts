@@ -98,8 +98,10 @@ export async function connect(
     });
 
     const dappMetadata = await fetchDappMetadata(message.manifestUrl);
-    // Take origin from manifest metadata
-    request.origin = dappMetadata.origin;
+
+    if (!IS_EXTENSION) {
+      request.origin = dappMetadata.origin;
+    }
 
     const { origin } = await validateRequest(request, true);
 
@@ -120,9 +122,12 @@ export async function connect(
     const { promiseId, promise } = createDappPromise();
 
     const dapp = {
-      ...await dappMetadata,
+      ...dappMetadata,
+      origin,
       connectedAt: Date.now(),
-      ...('sseOptions' in request && { sse: request.sseOptions }),
+      ...('sseOptions' in request && {
+        sse: request.sseOptions,
+      }),
     };
 
     onPopupUpdate({

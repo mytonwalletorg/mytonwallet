@@ -1,14 +1,15 @@
 {
   "name": "mytonwallet",
-  "version": "1.19.2",
+  "version": "1.19.3",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
     "dev": "cross-env APP_ENV=development webpack serve --mode development",
     "build": "webpack && bash ./deploy/copy_to_dist.sh",
+    "build:dev": "APP_ENV=development webpack --mode development && bash ./deploy/copy_to_dist.sh",
     "build:staging": "cross-env APP_ENV=staging npm run build",
     "build:production": "npm run build",
-    "extension:dev": "cross-env IS_EXTENSION=1 APP_ENV=development webpack --mode development && bash ./deploy/copy_to_dist.sh",
+    "extension:dev": "cross-env IS_EXTENSION=1 npm run build:dev",
     "extension-chrome:package": "cross-env IS_EXTENSION=1 webpack && bash ./deploy/package_extension.sh chrome",
     "extension-chrome:package:staging": "APP_ENV=staging npm run extension-chrome:package",
     "extension-chrome:package:production": "npm run extension-chrome:package",
@@ -67,6 +68,12 @@
       "schemes": [
         "tc",
         "mytonwallet-tc"
+      ]
+    },
+    {
+      "name": "MyTonWallet",
+      "schemes": [
+        "mtw"
       ]
     }
   ],
