@@ -2,15 +2,10 @@ import { ONE_TON } from '../config';
 import { fromDecimal } from './decimals';
 import { randomBytes } from './random';
 
-const PREFIX = 'bigint:';
-
-// @ts-ignore
-BigInt.prototype.toJSON = function toJSON() {
-  return `${PREFIX}${this}`;
-};
+export const BIGINT_PREFIX = 'bigint:';
 
 export function bigintReviver(this: any, key: string, value: any) {
-  if (typeof value === 'string' && value.startsWith(PREFIX)) {
+  if (typeof value === 'string' && value.startsWith(BIGINT_PREFIX)) {
     return BigInt(value.slice(7));
   }
   return value;

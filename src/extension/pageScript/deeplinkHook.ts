@@ -1,12 +1,5 @@
-import { isSelfDeeplink } from '../../util/deeplink';
-import { parseTonDeeplink } from '../../util/ton/deeplinks';
+import { ALL_PROTOCOLS } from '../../util/deeplink/constants';
 import { callApi } from '../../api/providers/extension/connectorForPageScript';
-
-type DeeplinkParams = {
-  to: string;
-  amount?: string | bigint;
-  comment?: string;
-} | undefined;
 
 const originalOpenFn = window.open;
 let isDeeplinkHookEnabled: boolean | undefined;
@@ -36,25 +29,19 @@ function clickHandler(e: MouseEvent) {
 }
 
 function patchedOpenFn(url?: string | URL, ...args: any[]) {
-  if (tryHandleDeeplink(url)) {
+  if (url && tryHandleDeeplink(String(url))) {
     // eslint-disable-next-line no-null/no-null
     return null;
   }
   return originalOpenFn(url, ...args);
 }
 
-function tryHandleDeeplink(url: any) {
-  if (isSelfDeeplink(url)) {
-    void callApi('processDeeplink', { url });
-    return true;
+function tryHandleDeeplink(url: string) {
+  url = url.replace(/^http:\/\//, 'https://');
+  if (!ALL_PROTOCOLS.some((protocol) => url.startsWith(protocol))) {
+    return false;
   }
 
-  const params: DeeplinkParams = parseTonDeeplink(url);
-  if (!params) return false;
-  if (typeof params.amount === 'bigint') {
-    params.amount = params.amount.toString();
-  }
-
-  void callApi('prepareTransaction', params);
+  void callApi('processDeeplink', { url });
   return true;
 }

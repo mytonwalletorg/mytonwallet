@@ -68,6 +68,10 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+.container.small-padding {
+  padding: 1rem;
+}
+
 .logo-container {
   display: flex;
   gap: 5px;

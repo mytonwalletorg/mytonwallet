@@ -1,34 +1,33 @@
 import { BottomSheet } from 'native-bottom-sheet';
-import { getActions, getGlobal } from '../global';
+import { getActions, getGlobal } from '../../global';
 
-import type { ApiNft } from '../api/types';
-import { ActiveTab } from '../global/types';
+import type { ApiNft } from '../../api/types';
+import { ActiveTab } from '../../global/types';
 
+import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../config';
+import { selectCurrentAccount } from '../../global/selectors';
+import { callApi } from '../../api';
+import { logDebug, logDebugError } from '../logs';
+import { openUrl } from '../openUrl';
+import { waitRender } from '../renderPromise';
+import { pause } from '../schedulers';
+import { tonConnectGetDeviceInfo } from '../tonConnectEnvironment';
+import { IS_DELEGATING_BOTTOM_SHEET } from '../windowEnvironment';
 import {
   CHECKIN_URL,
-  DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
   SELF_PROTOCOL,
   SELF_UNIVERSAL_URLS,
-  TON_TOKEN_SLUG,
-} from '../config';
-import { selectCurrentAccount } from '../global/selectors';
-import { callApi } from '../api';
-import { isTonConnectDeeplink, parseTonDeeplink } from './ton/deeplinks';
-import { logDebug, logDebugError } from './logs';
-import { openUrl } from './openUrl';
-import { waitRender } from './renderPromise';
-import { pause } from './schedulers';
-import { tonConnectGetDeviceInfo } from './tonConnectEnvironment';
-import { isValidHttpsUrl } from './url';
-import { IS_DELEGATING_BOTTOM_SHEET } from './windowEnvironment';
+  TON_PROTOCOL,
+  TONCONNECT_PROTOCOL,
+  TONCONNECT_PROTOCOL_SELF,
+  TONCONNECT_UNIVERSAL_URL,
+} from './constants';
 
-import { getIsLandscape, getIsPortrait } from '../hooks/useDeviceScreen';
+import { getIsLandscape, getIsPortrait } from '../../hooks/useDeviceScreen';
 
 type UrlOpener = (url: string) => void | Promise<void>;
 
 enum DeeplinkCommand {
-  Browse = 'browse',
-  Checkin = 'checkin',
   CheckinWithR = 'r',
   Swap = 'swap',
   BuyWithCrypto = 'buy-with-crypto',
@@ -66,7 +65,35 @@ export function processDeeplink(url: string, urlOpener?: UrlOpener, nft?: ApiNft
   }
 }
 
-export async function processTonDeeplink(url: string, nft?: ApiNft) {
+function isTonDeeplink(url: string) {
+  return url.startsWith(TON_PROTOCOL);
+}
+
+export function parseTonDeeplink(value: string | unknown) {
+  if (typeof value !== 'string' || !isTonDeeplink(value) || !value.includes('/transfer/')) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(value);
+
+    const to = url.pathname.replace(/.*\//, '');
+    const amount = url.searchParams.get('amount') ?? undefined;
+    const comment = url.searchParams.get('text') ?? undefined;
+    const binPayload = url.searchParams.get('bin') ?? undefined;
+
+    return {
+      to,
+      amount: amount ? BigInt(amount) : undefined,
+      comment,
+      binPayload,
+    };
+  } catch (err) {
+    return undefined;
+  }
+}
+
+async function processTonDeeplink(url: string, nft?: ApiNft) {
   const params = parseTonDeeplink(url);
   if (!params) return false;
 
@@ -101,7 +128,13 @@ export async function processTonDeeplink(url: string, nft?: ApiNft) {
   return true;
 }
 
-export async function processTonConnectDeeplink(url: string, urlOpener?: UrlOpener) {
+function isTonConnectDeeplink(url: string) {
+  return url.startsWith(TONCONNECT_PROTOCOL)
+    || url.startsWith(TONCONNECT_PROTOCOL_SELF)
+    || omitProtocol(url).startsWith(omitProtocol(TONCONNECT_UNIVERSAL_URL));
+}
+
+async function processTonConnectDeeplink(url: string, urlOpener?: UrlOpener) {
   if (!isTonConnectDeeplink(url)) {
     return false;
   }
@@ -116,12 +149,19 @@ export async function processTonConnectDeeplink(url: string, urlOpener?: UrlOpen
   return true;
 }
 
+export function isSelfDeeplink(url: string) {
+  return url.startsWith(SELF_PROTOCOL)
+    || SELF_UNIVERSAL_URLS.some((u) => omitProtocol(url).startsWith(omitProtocol(u)));
+}
+
 export function processSelfDeeplink(deeplink: string) {
   try {
-    deeplink = SELF_UNIVERSAL_URLS.reduce((result, url) => result.replace(url, SELF_PROTOCOL), deeplink);
-    const deeplinkObject = new URL(deeplink);
-    const command = (deeplinkObject.hostname || deeplinkObject.pathname) // Behavior is different in browsers
-      .split('/').find(Boolean) as string | undefined;
+    if (deeplink.startsWith(SELF_PROTOCOL)) {
+      deeplink = deeplink.replace(SELF_PROTOCOL, `${SELF_UNIVERSAL_URLS[0]}/`);
+    }
+
+    const { pathname, searchParams } = new URL(deeplink);
+    const command = pathname.split('/').find(Boolean);
     const actions = getActions();
     const global = getGlobal();
     const { isTestnet } = global.settings;
@@ -130,26 +170,9 @@ export function processSelfDeeplink(deeplink: string) {
     logDebug('Processing deeplink', deeplink);
 
     switch (command) {
-      case DeeplinkCommand.Browse: {
-        const url = deeplinkObject.searchParams.get('url');
-        if (!url || !isValidHttpsUrl(url)) {
-          actions.showError({ error: 'Invalid url' });
-          return;
-        }
-
-        openUrl(url);
-        break;
-      }
-
-      case DeeplinkCommand.Checkin: {
-        const url = `${CHECKIN_URL}/${deeplinkObject.search}`;
-        openUrl(url);
-        break;
-      }
-
       case DeeplinkCommand.CheckinWithR: {
-        const parts = deeplinkObject.pathname.split('/');
-        const url = `${CHECKIN_URL}/?r=${parts[parts.length - 1]}`;
+        const r = pathname.match(/r\/(.*)$/)?.[1];
+        const url = `${CHECKIN_URL}${r ? `?r=${r}` : ''}`;
         openUrl(url);
         break;
       }
@@ -160,7 +183,11 @@ export function processSelfDeeplink(deeplink: string) {
         } else if (isLedger) {
           actions.showError({ error: 'Swap is not yet supported by Ledger.' });
         } else {
-          actions.startSwap();
+          actions.startSwap({
+            tokenInSlug: searchParams.get('in') || TON_TOKEN_SLUG,
+            tokenOutSlug: searchParams.get('out') || DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+            amountIn: toNumberOrEmptyString(searchParams.get('amount')) || '10',
+          });
         }
         break;
       }
@@ -172,9 +199,9 @@ export function processSelfDeeplink(deeplink: string) {
           actions.showError({ error: 'Swap is not yet supported by Ledger.' });
         } else {
           actions.startSwap({
-            tokenInSlug: DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
-            tokenOutSlug: TON_TOKEN_SLUG,
-            amountIn: '100',
+            tokenInSlug: searchParams.get('in') || DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
+            tokenOutSlug: searchParams.get('out') || TON_TOKEN_SLUG,
+            amountIn: toNumberOrEmptyString(searchParams.get('amount')) || '100',
           });
         }
         break;
@@ -203,6 +230,10 @@ export function processSelfDeeplink(deeplink: string) {
   }
 }
 
-export function isSelfDeeplink(url: string) {
-  return url.startsWith(SELF_PROTOCOL) || SELF_UNIVERSAL_URLS.some((u) => url.startsWith(u));
+function omitProtocol(url: string) {
+  return url.replace(/^https?:\/\//, '');
+}
+
+function toNumberOrEmptyString(input?: string | null) {
+  return String(Number(input) || '');
 }

@@ -1,6 +1,7 @@
 import './global/actions';
 import './global/init';
 import './util/handleError';
+import './util/bigintPatch';
 
 import React from './lib/teact/teact';
 import TeactDOM from './lib/teact/teact-dom';

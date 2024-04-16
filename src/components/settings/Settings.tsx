@@ -551,7 +551,7 @@ function Settings({
               {lang('Get Support')}
 
               <div className={styles.itemInfo}>
-                @{SUPPORT_USERNAME}
+                <span className={styles.small}>@{SUPPORT_USERNAME}</span>
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             </a>

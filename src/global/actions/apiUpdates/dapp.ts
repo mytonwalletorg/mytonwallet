@@ -1,7 +1,7 @@
 import { TransferState } from '../../types';
 
 import { TON_TOKEN_SLUG } from '../../../config';
-import { isSelfDeeplink, processSelfDeeplink } from '../../../util/deeplink';
+import { processDeeplink } from '../../../util/deeplink';
 import { callActionInNative } from '../../../util/multitab';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, setGlobal } from '../../index';
@@ -173,10 +173,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     case 'processDeeplink': {
       const { url } = update;
 
-      if (isSelfDeeplink(url)) {
-        processSelfDeeplink(url);
-      }
-
+      processDeeplink(url);
       break;
     }
   }

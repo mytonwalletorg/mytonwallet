@@ -83,7 +83,6 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
 
   const lastOutputId = 0;
   const request: ApiDappRequest = {
-    origin,
     sseOptions: {
       clientId,
       appClientId,

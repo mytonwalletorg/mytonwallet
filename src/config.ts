@@ -166,15 +166,8 @@ export const LIQUID_JETTON = process.env.LIQUID_JETTON || 'EQCqC6EhRJ_tpWngKxL6d
 export const STAKING_MIN_AMOUNT = ONE_TON;
 export const NOMINATORS_STAKING_MIN_AMOUNT = ONE_TON * 10001n;
 
-export const TON_PROTOCOL = 'ton://';
-export const TONCONNECT_PROTOCOL = 'tc://';
-export const TONCONNECT_PROTOCOL_SELF = 'mytonwallet-tc://';
-export const SELF_PROTOCOL = 'mtw://';
-export const SELF_UNIVERSAL_URLS = ['https://my.tt', 'https://go.mytonwallet.org'];
-export const TONCONNECT_UNIVERSAL_URL = 'https://connect.mytonwallet.org';
 export const TONCONNECT_PROTOCOL_VERSION = 2;
 export const TONCONNECT_WALLET_JSBRIDGE_KEY = 'mytonwallet';
-export const CHECKIN_URL = 'https://checkin.mytonwallet.org';
 
 export const NFT_FRAGMENT_COLLECTIONS = new Set([
   '0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2', // Anonymous Telegram Numbers

@@ -23,9 +23,7 @@
 }
 
 .container {
-  min-width: 20rem;
-  max-width: 20rem;
-  padding: 2rem;
+  min-width: 18rem;
 }
 
 #slide-container {

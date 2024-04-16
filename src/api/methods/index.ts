@@ -1,3 +1,5 @@
+import '../../util/bigintPatch';
+
 export * from './auth';
 export * from './wallet';
 export * from './transactions';
