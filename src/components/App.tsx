@@ -219,7 +219,7 @@ function App({
               onClose={closeQrScanner}
             />
           )}
-          <Dialogs />
+          {!IS_DELEGATED_BOTTOM_SHEET && <Dialogs />}
           {!IS_DELEGATED_BOTTOM_SHEET && <ConfettiContainer />}
           {IS_CAPACITOR && !IS_DELEGATED_BOTTOM_SHEET && <InAppBrowser />}
         </>

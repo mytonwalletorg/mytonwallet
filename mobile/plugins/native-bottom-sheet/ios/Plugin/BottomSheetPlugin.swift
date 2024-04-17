@@ -68,6 +68,9 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
 
         DispatchQueue.main.async { [self] in
             if let presentingVc = self.fpc.presentingViewController {
+                let topBottomSheetPlugin = self.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
+                topBottomSheetPlugin.setupScrollReducers()
+
                 presentingVc.dismiss(animated: false) {
                     call.resolve()
                 }
@@ -104,7 +107,7 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
     @objc func applyScrollPatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [self] in
             guard let topVc = bridge?.viewController?.parent?.presentingViewController as? CAPBridgeViewController else {
-                call.reject("Error: presentingViewController is nil")
+                call.resolve()
                 return
             }
             let topBottomSheetPlugin = topVc.bridge?.plugin(withName: "BottomSheet") as? BottomSheetPlugin
@@ -281,6 +284,8 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             return
         }
 
+        self.setupScrollReducers()
+
         isHalfSize = false
         animateTo(to: .hidden)
     }
@@ -370,6 +375,7 @@ extension BottomSheetPlugin: UIGestureRecognizerDelegate {
     private static let REDUCED_ANGLE = 45.0
 
     private func setupScrollReducers() {
+        if (fpc.panGestureRecognizer.isEnabled) { return }
         let mainGestureRecognizer = UIPanGestureRecognizer()
         mainGestureRecognizer.delegate = self
         bridge!.webView!.scrollView.addGestureRecognizer(mainGestureRecognizer)

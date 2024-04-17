@@ -271,14 +271,14 @@ function TokenSelector({
           className={styles.tokenSelectSearchResetWrapper}
         >
           {isResetButtonVisible && (
-            <i
-              className={buildClassName(
-                styles.tokenSelectSearchReset,
-                'icon-close',
-              )}
-              aria-hidden
+            <button
+              type="button"
+              className={styles.tokenSelectSearchReset}
+              aria-label={lang('Clear')}
               onClick={resetSearch}
-            />
+            >
+              <i className={buildClassName(styles.tokenSelectSearchResetIcon, 'icon-close')} aria-hidden />
+            </button>
           )}
         </Transition>
       </div>

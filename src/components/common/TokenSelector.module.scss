@@ -24,21 +24,43 @@
 
 .tokenSelectSearchResetWrapper {
   position: absolute;
-  right: 0.5rem;
+  top: 0.125rem;
+  right: 0;
 
   display: flex;
 
-  width: 1rem;
-  height: 1rem;
+  width: 2rem;
+  height: 2rem;
 }
 
 .tokenSelectSearchReset {
   cursor: var(--custom-cursor, pointer);
 
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+
+  background-color: transparent;
+  border: none;
+}
+
+.tokenSelectSearchResetIcon {
+  cursor: var(--custom-cursor, pointer);
+
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+
+  width: 1rem;
+  height: 1rem;
+
   font-size: 1rem;
   color: var(--color-close-button-background);
 
   background-color: var(--color-gray-2);
+  border: none;
   border-radius: 50%;
 }
 

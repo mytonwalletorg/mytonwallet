@@ -5,7 +5,7 @@ import { areDeepEqual } from '../../../util/areDeepEqual';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { callActionInMain } from '../../../util/multitab';
 import { pause, waitFor } from '../../../util/schedulers';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_IOS_APP } from '../../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
@@ -48,7 +48,9 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
     callActionInMain('submitDappConnectRequestConfirm', { password, accountId });
 
     return;
-  } else if (IS_CAPACITOR) {
+  }
+
+  if (IS_CAPACITOR) {
     void vibrateOnSuccess();
   }
 
@@ -57,12 +59,6 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
     accountId,
     password,
   });
-
-  if (IS_IOS_APP) {
-    global = getGlobal();
-    global = clearDappConnectRequest(global);
-    setGlobal(global);
-  }
 
   await pause(GET_DAPPS_PAUSE);
   actions.getDapps();
@@ -96,12 +92,6 @@ addActionHandler(
         error: 'Canceled by the user',
       }));
       return;
-    }
-
-    if (IS_IOS_APP) {
-      global = getGlobal();
-      global = clearDappConnectRequest(global);
-      setGlobal(global);
     }
 
     await pause(GET_DAPPS_PAUSE);
@@ -170,6 +160,12 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
     return;
   }
 
+  if (IS_CAPACITOR) {
+    global = getGlobal();
+    global = setIsPinAccepted(global);
+    setGlobal(global);
+  }
+
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('submitDappTransferPassword', { password });
 
@@ -177,9 +173,6 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
   }
 
   global = getGlobal();
-  if (IS_CAPACITOR) {
-    global = setIsPinAccepted(global);
-  }
   global = updateCurrentDappTransfer(global, {
     isLoading: true,
     error: undefined,
@@ -191,10 +184,6 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
   }
 
   void callApi('confirmDappRequest', promiseId, password);
-
-  global = getGlobal();
-  global = clearCurrentDappTransfer(global);
-  setGlobal(global);
 });
 
 addActionHandler('submitDappTransferHardware', async (global) => {
@@ -365,6 +354,7 @@ addActionHandler('apiUpdateDappLoading', async (global, actions, { connectionTyp
   } else if (connectionType === 'sendTransaction') {
     global = updateCurrentDappTransfer(global, {
       state: TransferState.Initial,
+      isSse,
     });
   }
   setGlobal(global);

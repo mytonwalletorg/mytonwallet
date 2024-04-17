@@ -298,6 +298,16 @@ function TransferInitial({
     setHasToAddressError(Boolean(toAddress) && !isAddressValid);
   });
 
+  const handleAddressBookClose = useLastCallback(() => {
+    if (!shouldUseAddressBook || !isAddressBookOpen) return;
+
+    closeAddressBook();
+
+    if (addressBookTimeoutRef.current) {
+      window.clearTimeout(addressBookTimeoutRef.current);
+    }
+  });
+
   const handleAddressFocus = useLastCallback(() => {
     const el = toAddressRef.current!;
 
@@ -332,7 +342,11 @@ function TransferInitial({
   const handleAddressBlur = useLastCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     unmarkAddressFocused();
 
-    if (e.relatedTarget?.id === INPUT_CLEAR_BUTTON_ID) return;
+    if (e.relatedTarget?.id === INPUT_CLEAR_BUTTON_ID) {
+      handleAddressBookClose();
+
+      return;
+    }
 
     if (dns.isDnsDomain(toAddress) && toAddress !== toAddress.toLowerCase()) {
       setTransferToAddress({ toAddress: toAddress.toLowerCase().trim() });
@@ -342,13 +356,7 @@ function TransferInitial({
 
     requestAnimationFrame(() => {
       validateToAddress();
-
-      if (shouldUseAddressBook && isAddressBookOpen) {
-        closeAddressBook();
-        if (addressBookTimeoutRef.current) {
-          window.clearTimeout(addressBookTimeoutRef.current);
-        }
-      }
+      handleAddressBookClose();
     });
   });
 

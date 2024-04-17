@@ -17,7 +17,6 @@ import { logDebug, logDebugError } from '../../util/logs';
 import safeExec from '../../util/safeExec';
 import { getCurrentNetwork, waitLogin } from '../common/accounts';
 import { bytesToHex } from '../common/utils';
-import { apiDb } from '../db';
 import { getDappsState, getSseLastEventId, setSseLastEventId } from '../methods/dapps';
 import * as tonConnect from './index';
 
@@ -66,11 +65,6 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
     return undefined;
   }
 
-  if (await apiDb.sseConnections.get(appClientId)) {
-    // Avoid re-processing link
-    return ret ?? undefined;
-  }
-
   const connectRequest: ConnectRequest | null = safeExec(() => JSON.parse(r)) || JSON.parse(decodeURIComponent(r));
 
   logDebug('SSE Start connection:', {
@@ -108,8 +102,6 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
   }
 
   await sendMessage(result, secretKey, clientId, appClientId);
-
-  await apiDb.sseConnections.put({ clientId: appClientId });
 
   if (result.event !== 'connect_error') {
     await resetupSseConnection();
@@ -176,16 +168,22 @@ export async function resetupSseConnection() {
     }
 
     const {
-      accountId, clientId, appClientId, secretKey, origin,
+      accountId, clientId, appClientId, secretKey, origin, lastOutputId,
     } = sseDapp;
     const message = decryptMessage(encryptedMessage, appClientId, secretKey) as AppRequest<keyof RpcRequests>;
 
     logDebug('SSE Event:', message);
 
     await setSseLastEventId(event.lastEventId);
+    const sseOptions = {
+      clientId,
+      appClientId,
+      secretKey,
+      lastOutputId,
+    };
 
     // @ts-ignore
-    const result = await tonConnect[message.method]({ origin, accountId }, message);
+    const result = await tonConnect[message.method]({ origin, accountId, sseOptions }, message);
 
     await sendMessage(result, secretKey, clientId, appClientId);
 

@@ -10,8 +10,6 @@ PODS:
   - CapacitorClipboard (5.0.7):
     - Capacitor
   - CapacitorCordova (5.7.2)
-  - CapacitorDialog (5.0.7):
-    - Capacitor
   - CapacitorHaptics (5.0.7):
     - Capacitor
   - CapacitorMlkitBarcodeScanning (5.4.0):
@@ -93,6 +91,8 @@ PODS:
   - NativeBottomSheet (0.0.1):
     - Capacitor
     - FloatingPanel
+  - NativeDialog (5.0.7.1):
+    - Capacitor
   - PromisesObjC (2.3.1)
   - SwiftKeychainWrapper (4.0.1)
 
@@ -103,7 +103,6 @@ DEPENDENCIES:
   - "CapacitorAppLauncher (from `../../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCordova (from `../../../node_modules/@capacitor/ios`)"
-  - "CapacitorDialog (from `../../../node_modules/@capacitor/dialog`)"
   - "CapacitorHaptics (from `../../../node_modules/@capacitor/haptics`)"
   - "CapacitorMlkitBarcodeScanning (from `../../../node_modules/@capacitor-mlkit/barcode-scanning`)"
   - CapacitorNativeSettings (from `../../../node_modules/capacitor-native-settings`)
@@ -116,6 +115,7 @@ DEPENDENCIES:
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
   - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
+  - NativeDialog (from `../../plugins/native-dialog`)
 
 SPEC REPOS:
   trunk:
@@ -147,8 +147,6 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/clipboard"
   CapacitorCordova:
     :path: "../../../node_modules/@capacitor/ios"
-  CapacitorDialog:
-    :path: "../../../node_modules/@capacitor/dialog"
   CapacitorHaptics:
     :path: "../../../node_modules/@capacitor/haptics"
   CapacitorMlkitBarcodeScanning:
@@ -173,6 +171,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
   NativeBottomSheet:
     :path: "../../plugins/native-bottom-sheet"
+  NativeDialog:
+    :path: "../../plugins/native-dialog"
 
 SPEC CHECKSUMS:
   Capacitor: fc7ef6d935eafb0df9eaaf109ca69be16c51a2d2
@@ -181,7 +181,6 @@ SPEC CHECKSUMS:
   CapacitorAppLauncher: 7b2705481a74cbe322441bd374f56194de59ab1a
   CapacitorClipboard: 45e5e25f2271f98712985d422776cdc5a779cca1
   CapacitorCordova: 70b13b8fddb6f35d8adcfe06cb5045c07f35f6de
-  CapacitorDialog: ea1beaccb7f825191aa18b72cba8981b881b3b2d
   CapacitorHaptics: 7c7c206f0c96a628fed073830c96d28c4b2e772e
   CapacitorMlkitBarcodeScanning: 8fb81cbef3c6ffe0c0e2dbd15ed6dca889a5a062
   CapacitorNativeSettings: 6e94ed3c0465206756f320df18efc52f053ce3c7
@@ -206,9 +205,10 @@ SPEC CHECKSUMS:
   MLKitVision: 8baa5f46ee3352614169b85250574fde38c36f49
   nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431
   NativeBottomSheet: edfc1f70d3517ea92e70392db8c2de5ea3e6f15e
+  NativeDialog: 6d8b52ddf3b76921a05aad3309c5c00aad6bf4bd
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: d968f1882629794ffac5e21b3cd3b75c11b48646
+PODFILE CHECKSUM: 5f195dfced71a557839e0cb747291f91b6f05133
 
 COCOAPODS: 1.15.2

@@ -62,7 +62,10 @@ function NftInfo({ nft, isStatic, withTonscan }: OwnProps) {
         <img src={nft!.thumbnail} alt={name} className={styles.thumbnail} />
 
         <div className={styles.info}>
-          <div className={styles.title}>{name}</div>
+          <div className={styles.title}>
+            {name}
+            {withTonscan && <i className={buildClassName(styles.icon, 'icon-tonscan')} aria-hidden />}
+          </div>
           <div className={styles.description}>{nft!.collectionName}</div>
         </div>
       </>

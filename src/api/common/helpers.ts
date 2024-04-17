@@ -17,7 +17,6 @@ import { areDeepEqual } from '../../util/areDeepEqual';
 import { assert } from '../../util/assert';
 import { logDebugError } from '../../util/logs';
 import { toBase64Address } from '../blockchains/ton/util/tonCore';
-import { apiDb } from '../db';
 import { getEnvironment } from '../environment';
 import { storage } from '../storages';
 import capacitorStorage from '../storages/capacitorStorage';
@@ -293,10 +292,6 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
               items.push({ clientId: dapp.sse?.appClientId });
             }
           }
-        }
-
-        if (items.length) {
-          await apiDb.sseConnections.bulkPut(items);
         }
       }
     }

@@ -1,6 +1,7 @@
 .root {
   display: flex;
 
+  max-width: 100%;
   margin-bottom: 1.25rem;
   padding: 0.75rem;
 
@@ -23,6 +24,13 @@
 
 .interactive {
   cursor: var(--custom-cursor, pointer);
+
+  &:focus,
+  &:hover {
+    .icon {
+      color: var(--color-blue);
+    }
+  }
 }
 
 .thumbnail {
@@ -33,19 +41,44 @@
   border-radius: var(--border-radius-tiny);
 }
 
+.info {
+  overflow: hidden;
+
+  min-width: 0;
+  max-width: 100%;
+}
+
 .title {
+  overflow: hidden;
+
   margin-top: 0.125rem;
 
   font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.125rem;
   color: var(--color-gray-1);
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.icon {
+  margin-inline-start: 0.125rem;
+
+  font-size: 1rem;
+  color: var(--color-gray-3);
+  vertical-align: -0.1875rem;
+
+  transition: color 150ms;
 }
 
 .description {
+  overflow: hidden;
+
   margin-top: 0.125rem;
 
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-gray-2);
+  text-overflow: ellipsis;
+  word-break: break-word;
 }

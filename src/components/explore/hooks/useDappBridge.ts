@@ -13,7 +13,7 @@ import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from '../../.
 import { TONCONNECT_PROTOCOL_VERSION } from '../../../config';
 import { logDebugError } from '../../../util/logs';
 import { tonConnectGetDeviceInfo } from '../../../util/tonConnectEnvironment';
-import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { useWebViewBridge } from './useWebViewBridge';
 
@@ -176,6 +176,9 @@ export function useDappBridge({
               );
               if (IS_DELEGATING_BOTTOM_SHEET) {
                 await BottomSheet.disable();
+              }
+              if (IS_DELEGATED_BOTTOM_SHEET) {
+                void BottomSheet.applyScrollPatch();
               }
               inAppBrowserRef.current?.show();
 

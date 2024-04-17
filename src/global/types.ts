@@ -428,6 +428,7 @@ export type GlobalState = {
 
   currentDappTransfer: {
     state: TransferState;
+    isSse?: boolean;
     promiseId?: string;
     isLoading?: boolean;
     transactions?: ApiDappTransaction[];

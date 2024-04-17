@@ -47,6 +47,7 @@ interface StateProps {
 function DappTransactionModal({
   currentDappTransfer: {
     dapp,
+    isSse,
     transactions,
     isLoading,
     viewTransactionOnIdx,
@@ -76,12 +77,13 @@ function DappTransactionModal({
   const renderingTransactions = useCurrentOrPrev(transactions, true);
   const isNftTransfer = renderingTransactions?.[0].payload?.type === 'nft:transfer';
   const isDappLoading = dapp === undefined;
+  const hasTransferRequest = state !== TransferState.None;
 
   useEffect(() => {
-    if (state !== TransferState.None) {
+    if (hasTransferRequest) {
       (async () => {
         const browser = getInAppBrowser();
-        if (browser) {
+        if (browser && isSse) {
           shouldReopenInAppBrowserRef.current = true;
           await browser.hide();
           if (IS_DELEGATING_BOTTOM_SHEET) {
@@ -93,7 +95,7 @@ function DappTransactionModal({
     } else {
       closeModal();
     }
-  }, [state]);
+  }, [hasTransferRequest, isSse]);
 
   const handleBackClick = useLastCallback(() => {
     if (state === TransferState.Confirm || state === TransferState.Password) {

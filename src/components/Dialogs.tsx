@@ -1,13 +1,13 @@
-import { Dialog } from '@capacitor/dialog';
+import { Dialog } from 'native-dialog';
 import type { FC } from '../lib/teact/teact';
 import React, { memo, useEffect } from '../lib/teact/teact';
 import { getActions, withGlobal } from '../global';
 
 import type { DialogType } from '../global/types';
 
+import { IS_CAPACITOR } from '../config';
 import renderText from '../global/helpers/renderText';
 import { pick } from '../util/iteratees';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../util/windowEnvironment';
 
 import useFlag from '../hooks/useFlag';
 import useLang from '../hooks/useLang';
@@ -31,7 +31,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   const title = lang(dialog?.title ?? 'Something went wrong');
 
   useEffect(() => {
-    if (IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
+    if (IS_CAPACITOR) {
       if (dialog) {
         Dialog.alert({
           title,
@@ -47,7 +47,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
     }
   }, [dialogs, lang, dialog, openModal, title]);
 
-  if (!dialog || IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET) {
+  if (!dialog || IS_CAPACITOR) {
     return undefined;
   }
 

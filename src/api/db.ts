@@ -17,8 +17,6 @@ const DB_NANE = 'tables';
 export class ApiDb extends Dexie {
   nfts!: Table<ApiDbNft>;
 
-  sseConnections!: Table<ApiDbSseConnection>;
-
   constructor() {
     super(DB_NANE);
     this.version(1).stores({

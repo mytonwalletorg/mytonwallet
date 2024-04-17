@@ -53,6 +53,8 @@
 
   :global(body.is-media-viewer-open) & {
     overflow: hidden !important;
+
+    padding-right: var(--scrollbar-width);
   }
 }
 

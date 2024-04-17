@@ -11,9 +11,6 @@ project(':capacitor-app').projectDir = new File('../../node_modules/@capacitor/a
 include ':capacitor-clipboard'
 project(':capacitor-clipboard').projectDir = new File('../../node_modules/@capacitor/clipboard/android')
 
-include ':capacitor-dialog'
-project(':capacitor-dialog').projectDir = new File('../../node_modules/@capacitor/dialog/android')
-
 include ':capacitor-haptics'
 project(':capacitor-haptics').projectDir = new File('../../node_modules/@capacitor/haptics/android')
 
@@ -37,6 +34,9 @@ project(':capacitor-native-settings').projectDir = new File('../../node_modules/
 
 include ':capacitor-plugin-safe-area'
 project(':capacitor-plugin-safe-area').projectDir = new File('../../node_modules/capacitor-plugin-safe-area/android')
+
+include ':native-dialog'
+project(':native-dialog').projectDir = new File('../plugins/native-dialog/android')
 
 include ':native-bottom-sheet'
 project(':native-bottom-sheet').projectDir = new File('../plugins/native-bottom-sheet/android')

@@ -16,7 +16,6 @@ def capacitor_pods
   pod 'CapacitorApp', :path => '../../../node_modules/@capacitor/app'
   pod 'CapacitorAppLauncher', :path => '../../../node_modules/@capacitor/app-launcher'
   pod 'CapacitorClipboard', :path => '../../../node_modules/@capacitor/clipboard'
-  pod 'CapacitorDialog', :path => '../../../node_modules/@capacitor/dialog'
   pod 'CapacitorHaptics', :path => '../../../node_modules/@capacitor/haptics'
   pod 'CapacitorStatusBar', :path => '../../../node_modules/@capacitor/status-bar'
   pod 'CapgoCapacitorNativeBiometric', :path => '../../../node_modules/@capgo/capacitor-native-biometric'
@@ -26,6 +25,7 @@ def capacitor_pods
   pod 'CapacitorPluginSafeArea', :path => '../../../node_modules/capacitor-plugin-safe-area'
   pod 'CapacitorSecureStoragePlugin', :path => '../../../node_modules/capacitor-secure-storage-plugin'
   pod 'CapacitorSplashScreen', :path => '../../plugins/capacitor-splash-screen'
+  pod 'NativeDialog', :path => '../../plugins/native-dialog'
   pod 'NativeBottomSheet', :path => '../../plugins/native-bottom-sheet'
   pod 'CordovaPlugins', :path => '../capacitor-cordova-ios-plugins'
 end

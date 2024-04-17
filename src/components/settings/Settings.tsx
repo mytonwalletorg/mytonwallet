@@ -1,5 +1,5 @@
-import { Dialog } from '@capacitor/dialog';
 import { AndroidSettings, IOSSettings, NativeSettings } from 'capacitor-native-settings';
+import { Dialog } from 'native-dialog';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';

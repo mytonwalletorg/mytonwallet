@@ -260,6 +260,7 @@ export async function sendTransaction(
     onPopupUpdate({
       type: 'dappLoading',
       connectionType: 'sendTransaction',
+      isSse: Boolean('sseOptions' in request && request.sseOptions),
     });
 
     const {
