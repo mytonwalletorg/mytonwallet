@@ -202,7 +202,7 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
   // In native applications the Dapp Transfer Modal closes automatically when the Browser is shown
   if (!IS_CAPACITOR) {
     global = getGlobal();
-    global = clearDappConnectRequest(global);
+    global = clearCurrentDappTransfer(global);
     setGlobal(global);
   }
 });
