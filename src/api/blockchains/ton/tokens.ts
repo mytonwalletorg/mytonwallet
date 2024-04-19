@@ -108,11 +108,16 @@ export function parseTokenTransaction(
   } = parsedData;
   const isIncoming = operation === 'InternalTransfer';
 
+  const fromAddress = isIncoming ? (address ?? tx.fromAddress) : walletAddress;
+  const toAddress = isIncoming ? walletAddress : address!;
+  const normalizedAddress = toBase64Address(isIncoming ? fromAddress : toAddress, true);
+
   return {
     ...tx,
     slug,
-    fromAddress: isIncoming ? (address ?? tx.fromAddress) : walletAddress,
-    toAddress: isIncoming ? walletAddress : address!,
+    fromAddress,
+    toAddress,
+    normalizedAddress,
     amount: isIncoming ? jettonAmount : -jettonAmount,
     comment,
     encryptedComment,

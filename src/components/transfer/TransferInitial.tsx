@@ -804,7 +804,7 @@ export default memo(
         tokens: selectCurrentAccountTokens(global),
         savedAddresses: accountState?.savedAddresses,
         isEncryptedCommentSupported: !isLedger && !nft,
-        isCommentSupported: !tokenSlug || tokenSlug === TON_TOKEN_SLUG || !isLedger,
+        isCommentSupported: true,
         isLoading: isLoading && ACTIVE_STATES.has(state),
         baseCurrency,
         currentAccountId: global.currentAccountId,
