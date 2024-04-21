@@ -3,6 +3,7 @@ import { useCallback, useMemo } from '../../../lib/teact/teact';
 
 import type { WebViewBridgeMessage } from '../helpers';
 
+import { openUrl } from '../../../util/openUrl';
 import { getInjectableJsMessage, objectToInjection, WebViewBridgeMessageType } from '../helpers';
 
 type UseWebViewBridgeReturnType<Event> = [
@@ -43,9 +44,8 @@ export const useWebViewBridge = <
           let result: any;
           switch (message.name) {
             case 'window:open': {
-              const { url, target, options } = message.args;
-
-              window.open(url, target, options);
+              const { url } = message.args;
+              openUrl(url, true);
               result = true;
               break;
             }

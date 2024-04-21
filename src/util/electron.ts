@@ -4,10 +4,6 @@ import { processDeeplink } from './deeplink';
 
 export function initElectron() {
   window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {
-    void processDeeplink(url, electronOpenUrl);
+    processDeeplink(url);
   });
-}
-
-export function electronOpenUrl(url: string) {
-  window.open(url, '_blank');
 }

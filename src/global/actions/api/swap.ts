@@ -20,10 +20,10 @@ import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import {
   fromDecimal, getIsPositiveDecimal, roundDecimal, toDecimal,
 } from '../../../util/decimals';
-import { callActionInMain } from '../../../util/multitab';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
 import { buildSwapId } from '../../../util/swap/buildSwapId';
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
 import {
@@ -41,6 +41,7 @@ const PAIRS_CACHE: Record<string, { data: ApiSwapPairAsset[]; timestamp: number 
 
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 const WAIT_FOR_CHANGELLY = 5 * 1000;
+const CLOSING_BOTTOM_SHEET_DURATION = 100; // Like in `useDelegatingBottomSheet`
 
 function getSwapBuildOptions(global: GlobalState): ApiSwapBuildRequest {
   const {
@@ -77,9 +78,15 @@ function getSwapBuildOptions(global: GlobalState): ApiSwapBuildRequest {
   };
 }
 
-addActionHandler('startSwap', (global, actions, payload) => {
+addActionHandler('startSwap', async (global, actions, payload) => {
   const isOpen = global.currentSwap.state !== SwapState.None;
-  if (IS_DELEGATED_BOTTOM_SHEET && !isOpen) {
+  if (IS_DELEGATING_BOTTOM_SHEET && isOpen) {
+    callActionInNative('cancelSwap');
+    await pause(CLOSING_BOTTOM_SHEET_DURATION);
+    global = getGlobal();
+  }
+
+  if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('startSwap', payload);
     return;
   }
@@ -710,6 +717,32 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
     global = updateCurrentSwap(global, {
       ...resetParams,
       errorType: window.navigator.onLine ? SwapErrorType.InvalidPair : SwapErrorType.UnexpectedError,
+    });
+    setGlobal(global);
+    return;
+  }
+
+  if ('error' in estimate) {
+    const { error } = estimate as { error: string };
+    if (error.includes('requests limit')) return;
+
+    if (error.includes('Invalid amount')) {
+      const [, mode, matchedAmount] = error.match(/(Maximum|Minimal) amount is ([\d.]+) .*/) || [];
+      if (mode && matchedAmount) {
+        const isLessThanMin = mode === 'Minimal';
+        global = updateCurrentSwap(global, {
+          ...resetParams,
+          limits: isLessThanMin ? { fromMin: matchedAmount } : { fromMax: matchedAmount },
+          errorType: isLessThanMin ? SwapErrorType.ChangellyMinSwap : SwapErrorType.ChangellyMaxSwap,
+        });
+        setGlobal(global);
+        return;
+      }
+    }
+
+    global = updateCurrentSwap(global, {
+      ...resetParams,
+      errorType: SwapErrorType.UnexpectedError,
     });
     setGlobal(global);
     return;

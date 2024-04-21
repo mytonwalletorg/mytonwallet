@@ -316,12 +316,6 @@ export interface NftTransfer {
   collectionName?: string;
 }
 
-export enum QrScanType {
-  Transfer,
-  TransferNft,
-  Swap,
-}
-
 export type GlobalState = {
   DEBUG_capturedId?: number;
 
@@ -537,10 +531,8 @@ export type GlobalState = {
   currentBrowserUrl?: string;
 
   currentQrScan?: {
-    state: QrScanType;
     currentTransfer?: GlobalState['currentTransfer'];
     currentSwap?: GlobalState['currentSwap'];
-    nft?: ApiNft;
   };
 
   latestAppVersion?: string;
@@ -691,11 +683,9 @@ export interface ActionPayloads {
   setIsPinAccepted: undefined;
   clearIsPinAccepted: undefined;
 
-  openQrScanner: undefined;
+  requestOpenQrScanner: undefined;
   closeQrScanner: undefined;
-  openDeeplink: { url: string };
-  requestOpenQrScanner: { info: QrScanType; nft?: ApiNft };
-  scanQrCode: { url: string } | { toAddress: string };
+  handleQrCode: { data: string };
 
   // Staking
   startStaking: { isUnstaking?: boolean } | undefined;

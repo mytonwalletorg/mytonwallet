@@ -1,8 +1,13 @@
-import { ALL_PROTOCOLS } from '../../util/deeplink/constants';
+import { SELF_PROTOCOL, SELF_UNIVERSAL_URLS, TON_PROTOCOL } from '../../util/deeplink/constants';
 import { callApi } from '../../api/providers/extension/connectorForPageScript';
 
 const originalOpenFn = window.open;
 let isDeeplinkHookEnabled: boolean | undefined;
+
+// Avoid handling `click` and `window.open` at the same time
+let justHandledUrl: string | undefined;
+
+const JUST_HANDLED_TIMEOUT = 100;
 
 export function doDeeplinkHook(isTurnedOn: boolean) {
   if (isTurnedOn === Boolean(isDeeplinkHookEnabled)) {
@@ -22,26 +27,42 @@ export function doDeeplinkHook(isTurnedOn: boolean) {
 
 function clickHandler(e: MouseEvent) {
   const linkEl = (e.target as HTMLElement)?.closest('a');
+  const href = linkEl?.href;
 
-  if (linkEl && tryHandleDeeplink(linkEl.href)) {
+  if (href && href !== justHandledUrl && isDeeplink(href)) {
     e.preventDefault();
+
+    void callApi('processDeeplink', { url: href });
+
+    justHandledUrl = linkEl.href;
+    setTimeout(() => {
+      justHandledUrl = undefined;
+    }, JUST_HANDLED_TIMEOUT);
   }
 }
 
 function patchedOpenFn(url?: string | URL, ...args: any[]) {
-  if (url && tryHandleDeeplink(String(url))) {
+  if (url && url !== justHandledUrl && isDeeplink(String(url))) {
+    void callApi('processDeeplink', { url });
+
+    justHandledUrl = url.toString();
+    setTimeout(() => {
+      justHandledUrl = undefined;
+    }, JUST_HANDLED_TIMEOUT);
+
     // eslint-disable-next-line no-null/no-null
     return null;
   }
+
   return originalOpenFn(url, ...args);
 }
 
-function tryHandleDeeplink(url: string) {
+function isDeeplink(url: string) {
   url = url.replace(/^http:\/\//, 'https://');
-  if (!ALL_PROTOCOLS.some((protocol) => url.startsWith(protocol))) {
-    return false;
-  }
 
-  void callApi('processDeeplink', { url });
-  return true;
+  return (
+    url.startsWith(TON_PROTOCOL)
+    || url.startsWith(SELF_PROTOCOL)
+    || SELF_UNIVERSAL_URLS.some((universalUrl) => url.startsWith(universalUrl))
+  );
 }

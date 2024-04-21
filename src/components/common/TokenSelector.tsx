@@ -23,7 +23,7 @@ import { toDecimal } from '../../util/decimals';
 import {
   formatCurrency, getShortCurrencySymbol,
 } from '../../util/formatNumber';
-import { getIsAddressValid } from '../../util/getIsAddressValid';
+import { isTonAddressOrDomain } from '../../util/isTonAddressOrDomain';
 import { disableSwipeToClose, enableSwipeToClose } from '../../util/modalSwipeManager';
 import getBlockchainNetworkIcon from '../../util/swap/getBlockchainNetworkIcon';
 import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
@@ -195,7 +195,7 @@ function TokenSelector({
   useSyncEffect(() => {
     setIsResetButtonVisible(Boolean(searchValue.length));
 
-    const isValidAddress = getIsAddressValid(searchValue);
+    const isValidAddress = isTonAddressOrDomain(searchValue);
     let newRenderingKey = SearchState.Initial;
 
     if (isLoading && isValidAddress) {
@@ -216,7 +216,7 @@ function TokenSelector({
   }, [searchTokenList.length, isLoading, searchValue, token, filteredTokenList]);
 
   useEffect(() => {
-    if (getIsAddressValid(searchValue)) {
+    if (isTonAddressOrDomain(searchValue)) {
       importToken({ address: searchValue, isSwap: true });
       setRenderingKey(SearchState.Loading);
     } else {

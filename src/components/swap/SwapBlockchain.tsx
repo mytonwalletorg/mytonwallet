@@ -4,9 +4,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import {
-  QrScanType, SwapState, SwapType, type UserSwapToken,
-} from '../../global/types';
+import { SwapState, SwapType, type UserSwapToken } from '../../global/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, IS_FIREFOX_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -170,8 +168,8 @@ function SwapBlockchain({
   });
 
   const handleQrScanClick = useLastCallback(() => {
+    requestOpenQrScanner();
     cancelSwap();
-    requestOpenQrScanner({ info: QrScanType.Swap });
   });
 
   function renderInfo() {

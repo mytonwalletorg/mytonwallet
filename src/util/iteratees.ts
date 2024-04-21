@@ -51,6 +51,16 @@ export function omit<T extends object, K extends keyof T>(object: T, keys: K[]):
   return pick(object, savedKeys);
 }
 
+export function omitUndefined<T extends object>(object: T): T {
+  return Object.keys(object).reduce((result, stringKey) => {
+    const key = stringKey as keyof T;
+    if (object[key] !== undefined) {
+      result[key as keyof T] = object[key];
+    }
+    return result;
+  }, {} as T);
+}
+
 export function orderBy<T>(
   collection: T[],
   orderRule: (keyof T) | OrderCallback<T> | ((keyof T) | OrderCallback<T>)[],

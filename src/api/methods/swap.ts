@@ -329,7 +329,7 @@ export function swapGetHistoryItem(address: string, id: number): Promise<ApiSwap
 }
 
 export function swapCexEstimate(params: ApiSwapCexEstimateRequest): Promise<ApiSwapCexEstimateResponse> {
-  return callBackendPost('/swap/cex/estimate', params);
+  return callBackendPost('/swap/cex/estimate', params, { isAllowBadRequest: true });
 }
 
 export function swapCexValidateAddress(params: { slug: string; address: string }): Promise<{

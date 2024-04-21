@@ -21,6 +21,10 @@ protocols:
     schemes: ["ton"]
   - name: "TonConnect"
     schemes: ["tc"]
+  - name: "TonConnect MyTonWallet"
+    schemes: ["mytonwallet-tc"]
+  - name: "MyTonWallet"
+    schemes: ["mtw"]
 publish:
   provider: "github"
   owner: "mytonwalletorg"

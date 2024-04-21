@@ -9,7 +9,6 @@ import type {
   ApiStakingState,
   ApiSwapAsset,
   ApiSwapHistoryItem,
-  ApiToken,
   ApiTokenPrice,
   ApiTransactionActivity,
   ApiTxIdBySlug,
@@ -25,7 +24,7 @@ import { buildCollectionByKey } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { pauseOrFocus } from '../../util/pauseOrFocus';
 import blockchains from '../blockchains';
-import { addKnownTokens, getKnownTokens } from '../blockchains/ton/tokens';
+import { addKnownToken, addKnownTokens, getKnownTokens } from '../blockchains/ton/tokens';
 import { fetchStoredAccount, updateStoredAccount } from '../common/accounts';
 import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet } from '../common/backend';
@@ -104,14 +103,15 @@ function registerNewTokens(tokenBalances: TokenBalanceParsed[]) {
     if (token.slug in tokens) continue;
 
     areNewTokensFound = true;
-    tokens[token.slug] = {
+    addKnownToken({
       ...token,
       quote: prices.bySlug[token.slug] || {
+        slug: token.slug,
         price: 0.0,
         priceUsd: 0.0,
         percentChange24h: 0.0,
       },
-    } as ApiToken;
+    });
   }
 
   if (areNewTokensFound) {

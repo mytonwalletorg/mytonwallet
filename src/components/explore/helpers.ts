@@ -43,9 +43,16 @@ export const objectToInjection = (obj: Record<string, any>, timeout?: number) =>
           args,
         }));
       };
-      window.open = (url, target, options) => {
-        window.invokeCapFunc('window:open', { url, target, options });
+      window.open = (url) => {
+        window.invokeCapFunc('window:open', { url });
       };
+      window.addEventListener('click', (e) => {
+        const { href, target } = e.target.closest('a') || {};
+        if (href && (target === '_blank' || !href.startsWith('http'))) {
+          e.preventDefault();
+          window.invokeCapFunc('window:open', { url: href });
+        }
+      }, false);
       window.addEventListener('message', ({ data }) => {
         try {
           const message = JSON.parse(data);

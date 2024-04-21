@@ -74,6 +74,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
   let isCexError = false;
   let isCexHold = false;
   let isCexWaiting = false;
+  let isCexPending = false;
   let title = '';
   let errorMessage = '';
   let emailType: EmailType | undefined;
@@ -91,9 +92,10 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
 
     if (cex) {
       isPending = CHANGELLY_PENDING_STATUSES.has(cex.status);
+      isCexPending = isPending;
       isCexError = CHANGELLY_ERROR_STATUSES.has(cex.status);
       isCexHold = cex.status === 'hold';
-      // Skip the 'waiting' status for transactions from TON to account for delayed status updates from changelly.
+      // Skip the 'waiting' status for transactions from TON to account for delayed status updates from Сhangelly
       isCexWaiting = cex.status === 'waiting' && !isFromTon;
     } else {
       isPending = status === 'pending';
@@ -330,7 +332,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
         <div className={styles.infoBlock}>
           {renderSwapInfo()}
           {renderErrorMessage()}
-          {isCexWaiting && (
+          {isCexPending && (
             <span className={buildClassName(styles.changellyDescription)}>
               {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
             </span>

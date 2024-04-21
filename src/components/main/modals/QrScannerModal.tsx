@@ -1,19 +1,13 @@
 import type { StartScanOptions } from '@capacitor-mlkit/barcode-scanning';
 import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
-import React, {
-  memo, useRef, useState,
-} from '../../../lib/teact/teact';
+import React, { memo, useRef, useState } from '../../../lib/teact/teact';
 import { addExtraClass, removeExtraClass } from '../../../lib/teact/teact-dom';
 import { getActions } from '../../../global';
-
-import { QrScanType } from '../../../global/types';
 
 import buildClassName from '../../../util/buildClassName';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { pause } from '../../../util/schedulers';
-import {
-  DPR, IS_DELEGATING_BOTTOM_SHEET, IS_IOS,
-} from '../../../util/windowEnvironment';
+import { DPR, IS_DELEGATING_BOTTOM_SHEET, IS_IOS } from '../../../util/windowEnvironment';
 
 import useEffectOnce from '../../../hooks/useEffectOnce';
 import useEffectWithPrevDeps from '../../../hooks/useEffectWithPrevDeps';
@@ -27,7 +21,6 @@ import styles from './QrScannerModal.module.scss';
 
 interface OwnProps {
   isOpen?: boolean;
-  qrScanType?: QrScanType;
   onClose: NoneToVoidFunction;
 }
 
@@ -38,9 +31,9 @@ const START_SCAN_DELAY_MS = IS_IOS ? 160 : 360;
 const MODAL_ANIMATION_DURATION_MS = IS_IOS ? 650 : 500;
 const DESTROY_SCANNER_DELAY_MS = IS_IOS ? 250 : 500;
 
-function QrScannerModal({ isOpen, qrScanType, onClose }: OwnProps) {
+function QrScannerModal({ isOpen, onClose }: OwnProps) {
   const {
-    scanQrCode,
+    handleQrCode,
   } = getActions();
 
   const [isFlashlightAvailable, setIsFlashlightAvailable] = useState(false);
@@ -74,14 +67,6 @@ function QrScannerModal({ isOpen, qrScanType, onClose }: OwnProps) {
     onClose();
   });
 
-  const handleScan = useLastCallback((data: string) => {
-    if (qrScanType === QrScanType.Transfer || qrScanType === QrScanType.TransferNft) {
-      scanQrCode({ url: data });
-    } else if (qrScanType === QrScanType.Swap) {
-      scanQrCode({ toAddress: data });
-    }
-  });
-
   const startScan = useLastCallback(async () => {
     const options: StartScanOptions = {
       formats: [BarcodeFormat.QrCode],
@@ -106,12 +91,12 @@ function QrScannerModal({ isOpen, qrScanType, onClose }: OwnProps) {
 
         await listener.remove();
         await vibrateOnSuccess();
+        handleQrCode({ data: event.barcode.rawValue });
         handleClose();
         await pause(DESTROY_SCANNER_DELAY_MS);
         if (IS_IOS) {
           removeExtraClass(document.documentElement, styles.documentRoot);
         }
-        handleScan(event.barcode.rawValue);
       },
     );
 

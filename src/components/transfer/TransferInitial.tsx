@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiBaseCurrency, ApiNft } from '../../api/types';
 import type { Account, UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
-import { QrScanType, TransferState } from '../../global/types';
+import { TransferState } from '../../global/types';
 
 import {
   EXCHANGE_ADDRESSES, IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG,
@@ -25,7 +25,7 @@ import { readClipboardContent } from '../../util/clipboard';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
 import { formatCurrency, formatCurrencyExtended, getShortCurrencySymbol } from '../../util/formatNumber';
-import { getIsAddressValid } from '../../util/getIsAddressValid';
+import { isTonAddressOrDomain } from '../../util/isTonAddressOrDomain';
 import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
@@ -149,7 +149,7 @@ function TransferInitial({
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
-  const isAddressValid = getIsAddressValid(toAddress);
+  const isAddressValid = isTonAddressOrDomain(toAddress);
   const otherAccountIds = useMemo(() => {
     return accounts ? Object.keys(accounts).filter((accountId) => accountId !== currentAccountId) : [];
   }, [currentAccountId, accounts]);
@@ -370,12 +370,8 @@ function TransferInitial({
   });
 
   const handleQrScanClick = useLastCallback(() => {
+    requestOpenQrScanner();
     cancelTransfer();
-    if (isNftTransfer) {
-      requestOpenQrScanner({ info: QrScanType.TransferNft, nft });
-    } else {
-      requestOpenQrScanner({ info: QrScanType.Transfer });
-    }
   });
 
   const handleClear = useLastCallback(() => {
@@ -396,7 +392,7 @@ function TransferInitial({
     try {
       const { type, text } = await readClipboardContent();
 
-      if (type === 'text/plain' && getIsAddressValid(text.trim())) {
+      if (type === 'text/plain' && isTonAddressOrDomain(text.trim())) {
         setTransferToAddress({ toAddress: text.trim() });
         validateToAddress();
       }

@@ -1,6 +1,5 @@
 import type { URLOpenListenerEvent } from '@capacitor/app';
 import { App } from '@capacitor/app';
-import { AppLauncher } from '@capacitor/app-launcher';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -71,7 +70,7 @@ export async function initCapacitor() {
   }
 
   App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
-    processDeeplink(event.url, capacitorOpenUrl);
+    processDeeplink(event.url);
   });
 
   App.addListener('backButton', ({ canGoBack }) => {
@@ -103,7 +102,7 @@ export async function initCapacitor() {
   launchUrl = (await App.getLaunchUrl())?.url;
 
   if (launchUrl) {
-    void processDeeplink(launchUrl, capacitorOpenUrl);
+    void processDeeplink(launchUrl);
   }
 }
 
@@ -184,8 +183,4 @@ export async function fixIosAppStorage() {
   if (!isLocalStorageDataExists && isApiStorageDataExists) {
     await storageMethods.clear();
   }
-}
-
-export async function capacitorOpenUrl(url: string) {
-  await AppLauncher.openUrl({ url });
 }

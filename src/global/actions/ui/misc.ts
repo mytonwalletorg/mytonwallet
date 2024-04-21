@@ -1,7 +1,8 @@
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
+import type { GlobalState } from '../../types';
 import {
-  AppState, AuthState, HardwareConnectState, QrScanType, SettingsState, SwapState,
+  AppState, AuthState, HardwareConnectState, SettingsState, SwapState, TransferState,
 } from '../../types';
 
 import {
@@ -15,10 +16,10 @@ import {
   PRODUCTION_URL,
 } from '../../../config';
 import { vibrateOnSuccess } from '../../../util/capacitor';
-import { processDeeplink } from '../../../util/deeplink';
-import { getIsAddressValid } from '../../../util/getIsAddressValid';
+import { isTonDeeplink, parseTonDeeplink, processDeeplink } from '../../../util/deeplink';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
-import { unique } from '../../../util/iteratees';
+import { isTonAddressOrDomain } from '../../../util/isTonAddressOrDomain';
+import { omitUndefined, pick, unique } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { callActionInMain } from '../../../util/multitab';
@@ -40,6 +41,8 @@ import {
   updateAccountState,
   updateAuth,
   updateCurrentAccountState,
+  updateCurrentSwap,
+  updateCurrentTransfer,
   updateHardware,
   updateSettings,
 } from '../../reducers';
@@ -573,36 +576,21 @@ addActionHandler('requestConfetti', (global) => {
   };
 });
 
-addActionHandler('openQrScanner', (global) => {
+addActionHandler('requestOpenQrScanner', async (global, actions) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('openQrScanner');
-    return undefined;
-  }
-
-  return {
-    ...global,
-    isQrScannerOpen: true,
-  };
-});
-
-addActionHandler('closeQrScanner', (global) => {
-  return {
-    ...global,
-    isQrScannerOpen: undefined,
-  };
-});
-
-addActionHandler('requestOpenQrScanner', async (global, actions, { info, nft }) => {
-  if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('requestOpenQrScanner', { info, nft });
+    callActionInMain('requestOpenQrScanner');
     return;
   }
 
+  let currentQrScan: GlobalState['currentQrScan'];
+  if (global.currentTransfer.state === TransferState.Initial) {
+    currentQrScan = { currentTransfer: global.currentTransfer };
+  } else if (global.currentSwap.state === SwapState.Blockchain) {
+    currentQrScan = { currentSwap: global.currentSwap };
+  }
+
   const { camera } = await BarcodeScanner.requestPermissions();
-  global = getGlobal();
-
   const isGranted = camera === 'granted' || camera === 'limited';
-
   if (!isGranted) {
     actions.showNotification({
       message: getTranslation('Permission denied. Please grant camera permission to use the QR code scanner.'),
@@ -610,59 +598,65 @@ addActionHandler('requestOpenQrScanner', async (global, actions, { info, nft }) 
     return;
   }
 
+  global = getGlobal();
   global = {
     ...global,
-    currentQrScan: {
-      state: info,
-      currentSwap: global.currentSwap,
-      nft,
-    },
+    isQrScannerOpen: true,
+    currentQrScan,
   };
-  setGlobal(global);
 
-  actions.openQrScanner();
+  setGlobal(global);
 });
 
-addActionHandler('scanQrCode', async (global, actions, params) => {
-  const info = global.currentQrScan?.state;
+addActionHandler('closeQrScanner', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('closeQrScanner');
+    return undefined;
+  }
 
-  switch (info) {
-    case QrScanType.Transfer:
-    case QrScanType.TransferNft:
-      actions.openDeeplink(params as { url: string });
-      break;
+  return {
+    ...global,
+    isQrScannerOpen: undefined,
+    currentQrScan: undefined,
+  };
+});
 
-    case QrScanType.Swap: {
-      const { toAddress } = params as { toAddress: string };
-      actions.startSwap({
-        ...global.currentQrScan?.currentSwap,
-        state: SwapState.Blockchain,
-        toAddress,
+addActionHandler('handleQrCode', (global, actions, { data }) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('handleQrCode', { data });
+    return undefined;
+  }
+
+  const { currentTransfer, currentSwap } = global.currentQrScan || {};
+
+  if (currentTransfer) {
+    if (isTonAddressOrDomain(data)) {
+      return updateCurrentTransfer(global, {
+        ...currentTransfer,
+        toAddress: data,
       });
-      break;
+    }
+
+    const linkParams = isTonDeeplink(data) ? parseTonDeeplink(data) : undefined;
+    if (linkParams) {
+      return updateCurrentTransfer(global, {
+        ...currentTransfer,
+        // For NFT transfer we only extract address from a ton:// link
+        ...(currentTransfer.nft ? pick(linkParams, ['toAddress']) : omitUndefined(linkParams)),
+      });
     }
   }
-});
 
-addActionHandler('openDeeplink', async (global, actions, params) => {
-  let { url } = params;
-  if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('openDeeplink', { url });
-    return;
-  }
-
-  if (getIsAddressValid(url)) {
-    url = `ton://transfer/${url}`;
-  }
-  const { state, nft } = global.currentQrScan ?? {};
-
-  const result = await processDeeplink(url, undefined, state === QrScanType.TransferNft ? nft : undefined);
-
-  if (!result) {
-    actions.showNotification({
-      message: 'Unrecognized QR Code',
+  if (currentSwap) {
+    return updateCurrentSwap(global, {
+      ...currentSwap,
+      toAddress: data,
     });
   }
+
+  processDeeplink(data);
+
+  return undefined;
 });
 
 addActionHandler('changeBaseCurrency', async (global, actions, { currency }) => {

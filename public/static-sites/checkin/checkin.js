@@ -24,7 +24,7 @@ connector.onStatusChange(handleConnectorStatusChange);
 
 const checkinBtn = document.getElementById('checkin-btn');
 
-setupRefButtons();
+setupButtons();
 setTimeout(connect, 1000);
 
 async function connect() {
@@ -140,7 +140,6 @@ function handleSuccess() {
   const refContainerEl = document.getElementById('ref-container');
   const linkEl = refContainerEl.querySelector('a');
   linkEl.addEventListener('click', handleCopy);
-  linkEl.href = getRefLink();
   linkEl.innerHTML = [
     REF_LINK_PREFIX.replace('https://', ''),
     address.slice(0, 24),
@@ -155,26 +154,31 @@ function showError(msg) {
   showSlide('error');
 }
 
-function setupRefButtons() {
+function setupButtons() {
   if (navigator.clipboard) {
     const copyBtnEl = document.getElementById('copy-btn');
-    copyBtnEl.classList.remove('hidden');
     copyBtnEl.addEventListener('click', handleCopy);
+    copyBtnEl.classList.remove('hidden');
   }
 
   if (navigator.canShare) {
     const shareBtnEl = document.getElementById('share-btn');
+    shareBtnEl.addEventListener('click', handleShare);
     shareBtnEl.classList.remove('hidden');
-    shareBtnEl.addEventListener('click', () => {
-      navigator.share({ url: getRefLink() });
-    });
   }
+
+  // Hack to allow `useWebViewBridge` intercept the link
+  document.querySelector('#join-giveaway a').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    window.open(e.currentTarget.href);
+  });
 }
 
 function handleCopy(e) {
-  if (!navigator.clipboard) return;
-
   e.preventDefault();
+
+  if (!navigator.clipboard) return;
 
   navigator.clipboard.writeText(getRefLink());
 
@@ -186,6 +190,11 @@ function handleCopy(e) {
     copyBtnEl.classList.remove('disabled');
     copyBtnEl.textContent = 'Copy';
   }, 3000);
+}
+
+function handleShare(e) {
+  e.preventDefault();
+  navigator.share({ url: getRefLink() });
 }
 
 function getRefLink() {

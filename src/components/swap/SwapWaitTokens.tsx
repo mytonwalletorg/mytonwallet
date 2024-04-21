@@ -126,6 +126,9 @@ function SwapWaitTokens({
         {shouldShowQrCode && (
           <div className={buildClassName(styles.qrCode, !isInitialized && styles.qrCodeHidden)} ref={qrCodeRef} />
         )}
+        <span className={styles.changellyDescription}>
+          {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
+        </span>
       </div>
     );
   }

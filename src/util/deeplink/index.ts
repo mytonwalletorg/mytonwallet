@@ -1,18 +1,15 @@
-import { BottomSheet } from 'native-bottom-sheet';
 import { getActions, getGlobal } from '../../global';
 
-import type { ApiNft } from '../../api/types';
 import { ActiveTab } from '../../global/types';
 
 import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../config';
 import { selectCurrentAccount } from '../../global/selectors';
 import { callApi } from '../../api';
+import { omitUndefined } from '../iteratees';
 import { logDebug, logDebugError } from '../logs';
 import { openUrl } from '../openUrl';
 import { waitRender } from '../renderPromise';
-import { pause } from '../schedulers';
 import { tonConnectGetDeviceInfo } from '../tonConnectEnvironment';
-import { IS_DELEGATING_BOTTOM_SHEET } from '../windowEnvironment';
 import {
   CHECKIN_URL,
   SELF_PROTOCOL,
@@ -25,8 +22,6 @@ import {
 
 import { getIsLandscape, getIsPortrait } from '../../hooks/useDeviceScreen';
 
-type UrlOpener = (url: string) => void | Promise<void>;
-
 enum DeeplinkCommand {
   CheckinWithR = 'r',
   Swap = 'swap',
@@ -35,38 +30,62 @@ enum DeeplinkCommand {
   Stake = 'stake',
 }
 
-// Both to close current Transfer Modal and delay when app launch
-const PAUSE = 700;
-
 let urlAfterSignIn: string | undefined;
-let urlOpenerAfterSignIn: UrlOpener | undefined;
 
 export function processDeeplinkAfterSignIn() {
   if (!urlAfterSignIn) return;
 
-  processDeeplink(urlAfterSignIn, urlOpenerAfterSignIn);
+  processDeeplink(urlAfterSignIn);
 
   urlAfterSignIn = undefined;
-  urlOpenerAfterSignIn = undefined;
 }
 
-export function processDeeplink(url: string, urlOpener?: UrlOpener, nft?: ApiNft) {
+export function processDeeplink(url: string) {
   if (!getGlobal().currentAccountId) {
     urlAfterSignIn = url;
-    urlOpenerAfterSignIn = urlOpener;
   }
 
   if (isTonConnectDeeplink(url)) {
-    return processTonConnectDeeplink(url, urlOpener);
+    void processTonConnectDeeplink(url);
   } else if (isSelfDeeplink(url)) {
-    return processSelfDeeplink(url);
+    processSelfDeeplink(url);
   } else {
-    return processTonDeeplink(url, nft);
+    void processTonDeeplink(url);
   }
 }
 
-function isTonDeeplink(url: string) {
+export function isTonDeeplink(url: string) {
   return url.startsWith(TON_PROTOCOL);
+}
+
+async function processTonDeeplink(url: string) {
+  const params = parseTonDeeplink(url);
+  if (!params) return;
+
+  await waitRender();
+
+  const actions = getActions();
+  const global = getGlobal();
+  if (!global.currentAccountId) {
+    return;
+  }
+
+  const {
+    toAddress, amount, comment, binPayload,
+  } = params;
+
+  actions.startTransfer(omitUndefined({
+    isPortrait: getIsPortrait(),
+    tokenSlug: TON_TOKEN_SLUG,
+    toAddress,
+    amount,
+    comment,
+    binPayload,
+  }));
+
+  if (getIsLandscape()) {
+    actions.setLandscapeActionsActiveTabIndex({ index: ActiveTab.Transfer });
+  }
 }
 
 export function parseTonDeeplink(value: string | unknown) {
@@ -77,13 +96,13 @@ export function parseTonDeeplink(value: string | unknown) {
   try {
     const url = new URL(value);
 
-    const to = url.pathname.replace(/.*\//, '');
+    const toAddress = url.pathname.replace(/.*\//, '');
     const amount = url.searchParams.get('amount') ?? undefined;
     const comment = url.searchParams.get('text') ?? undefined;
     const binPayload = url.searchParams.get('bin') ?? undefined;
 
     return {
-      to,
+      toAddress,
       amount: amount ? BigInt(amount) : undefined,
       comment,
       binPayload,
@@ -93,60 +112,23 @@ export function parseTonDeeplink(value: string | unknown) {
   }
 }
 
-async function processTonDeeplink(url: string, nft?: ApiNft) {
-  const params = parseTonDeeplink(url);
-  if (!params) return false;
-
-  await waitRender();
-
-  const actions = getActions();
-  const global = getGlobal();
-
-  if (!global.currentAccountId) {
-    return false;
-  }
-
-  if (IS_DELEGATING_BOTTOM_SHEET) {
-    await BottomSheet.release({ key: '*' });
-    await pause(PAUSE);
-  }
-
-  actions.startTransfer({
-    isPortrait: getIsPortrait(),
-    tokenSlug: TON_TOKEN_SLUG,
-    toAddress: params.to,
-    amount: !nft ? params.amount : undefined,
-    comment: params.comment,
-    binPayload: !nft ? params.binPayload : undefined,
-    nft,
-  });
-
-  if (getIsLandscape()) {
-    actions.setLandscapeActionsActiveTabIndex({ index: ActiveTab.Transfer });
-  }
-
-  return true;
-}
-
 function isTonConnectDeeplink(url: string) {
   return url.startsWith(TONCONNECT_PROTOCOL)
     || url.startsWith(TONCONNECT_PROTOCOL_SELF)
     || omitProtocol(url).startsWith(omitProtocol(TONCONNECT_UNIVERSAL_URL));
 }
 
-async function processTonConnectDeeplink(url: string, urlOpener?: UrlOpener) {
+async function processTonConnectDeeplink(url: string) {
   if (!isTonConnectDeeplink(url)) {
-    return false;
+    return;
   }
 
   const deviceInfo = tonConnectGetDeviceInfo();
   const returnUrl = await callApi('startSseConnection', url, deviceInfo);
 
-  if (returnUrl && urlOpener) {
-    urlOpener(returnUrl);
+  if (returnUrl) {
+    openUrl(returnUrl);
   }
-
-  return true;
 }
 
 export function isSelfDeeplink(url: string) {

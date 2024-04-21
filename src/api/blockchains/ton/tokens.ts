@@ -178,7 +178,7 @@ export function addKnownTokens(tokens: ApiBaseToken[]) {
   for (const token of tokens) {
     if (token.slug in knownTokens) continue;
 
-    knownTokens[token.slug] = {
+    addKnownToken({
       ...token,
       quote: {
         slug: token.slug,
@@ -186,8 +186,12 @@ export function addKnownTokens(tokens: ApiBaseToken[]) {
         priceUsd: 0,
         percentChange24h: 0,
       },
-    };
+    });
   }
+}
+
+export function addKnownToken(token: ApiToken) {
+  knownTokens[token.slug] = token;
 }
 
 export async function fetchToken(network: ApiNetwork, address: string) {

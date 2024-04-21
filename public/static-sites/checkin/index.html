@@ -10,26 +10,31 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" defer></script>
 </head>
 <body>
-<div class="container small-padding">
+<div class="container">
   <div id="slide-container">
     <div id="checkin" class="slide">
       <a href="#" target="_blank" id="checkin-btn" class="download-btn disabled animate-opacity">Checking In...</a>
     </div>
-    <div id="cf-turnstile" class="slide faded"></div>
+    <div id="cf-turnstile" class="slide faded">Loading...</div>
     <div id="error" class="slide faded"></div>
-    <div id="processing" class="slide faded">...</div>
+    <div id="processing" class="slide faded">Loading...</div>
     <div id="ref-container" class="slide faded">
       <div>
         <b>Your referral link</b>
       </div>
-      <a href="https://my.tt/r/" target="_blank" class="text-link animate-opacity">my.tt/r/</a>
-      <div>
-        <a href="#" id="copy-btn" class="download-btn hidden animate-opacity">
-          Copy
-        </a>
-        <a href="#" id="share-btn" class="download-btn hidden animate-opacity">
-          Share
-        </a>
+      <div id="ref-link-container">
+        <a href="about:blank" target="_blank" class="text-link animate-opacity">my.tt/r/</a>
+        <div>
+          <a href="about:blank" id="copy-btn" class="download-btn hidden animate-opacity">
+            Copy
+          </a>
+          <a href="about:blank" id="share-btn" class="download-btn hidden animate-opacity">
+            Share
+          </a>
+        </div>
+      </div>
+      <div id="join-giveaway">
+        <a href="https://t.me/community_bot/join?startapp=id_389" target="_blank">Join the giveaway</a> on <b>Community Bot</b>.
       </div>
     </div>
   </div>

@@ -25,6 +25,7 @@ import { formatCurrency } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
+import { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
 import useDebouncedCallback from '../../hooks/useDebouncedCallback';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
@@ -54,7 +55,7 @@ interface StateProps {
   tokens?: UserSwapToken[];
 }
 
-const ESTIMATE_REQUEST_INTERVAL = 1_000;
+const ESTIMATE_REQUEST_INTERVAL = 3_000;
 const SET_AMOUNT_DEBOUNCE_TIME = 500;
 const DEFAULT_SWAP_FEE = 500000000n; // 0.5 TON
 
@@ -186,7 +187,9 @@ function SwapInitial({
   );
   const createEstimateTimer = useLastCallback(() => {
     estimateIntervalId.current = window.setInterval(() => {
-      throttledEstimateSwap(false);
+      if (!isBackgroundModeActive()) {
+        throttledEstimateSwap(false);
+      }
     }, ESTIMATE_REQUEST_INTERVAL);
   });
 

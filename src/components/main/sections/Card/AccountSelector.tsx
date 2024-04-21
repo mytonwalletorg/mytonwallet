@@ -3,7 +3,7 @@ import React, {
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import { type Account, QrScanType } from '../../../../global/types';
+import { type Account } from '../../../../global/types';
 
 import { selectNetworkAccounts } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -140,7 +140,7 @@ function AccountSelector({
 
   const handleQrScanClick = useLastCallback(() => {
     closeAccountSelector();
-    requestOpenQrScanner({ info: QrScanType.Transfer });
+    requestOpenQrScanner();
   });
 
   function renderButton(accountId: string, address: string, isHardware?: boolean, title?: string) {

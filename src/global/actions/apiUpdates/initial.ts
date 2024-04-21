@@ -1,10 +1,8 @@
 import { StakingState } from '../../types';
 
-import { IS_CAPACITOR } from '../../../config';
-import { capacitorOpenUrl } from '../../../util/capacitor';
-import { electronOpenUrl } from '../../../util/electron';
 import { buildCollectionByKey, pick } from '../../../util/iteratees';
-import { IS_ELECTRON, IS_IOS_APP } from '../../../util/windowEnvironment';
+import { openUrl } from '../../../util/openUrl';
+import { IS_IOS_APP } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   addNft,
@@ -190,12 +188,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'openUrl': {
-      const { url } = update;
-      if (IS_CAPACITOR) {
-        void capacitorOpenUrl(url);
-      } else if (IS_ELECTRON) {
-        void electronOpenUrl(url);
-      }
+      openUrl(update.url);
       break;
     }
 

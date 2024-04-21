@@ -3,7 +3,6 @@ import React, {
 } from '../lib/teact/teact';
 import { getActions, withGlobal } from '../global';
 
-import type { GlobalState } from '../global/types';
 import { AppState } from '../global/types';
 
 import { INACTIVE_MARKER, IS_ANDROID_DIRECT, IS_CAPACITOR } from '../config';
@@ -62,7 +61,6 @@ interface StateProps {
   isQrScannerOpen?: boolean;
   isHardwareModalOpen?: boolean;
   areSettingsOpen?: boolean;
-  currentQrScan?: GlobalState['currentQrScan'];
 }
 
 const APP_UPDATE_INTERVAL = (IS_ELECTRON && !IS_LINUX) || IS_ANDROID_DIRECT
@@ -78,7 +76,6 @@ function App({
   isHardwareModalOpen,
   isQrScannerOpen,
   areSettingsOpen,
-  currentQrScan,
 }: StateProps) {
   // return <Test />;
   const {
@@ -215,7 +212,6 @@ function App({
           {IS_CAPACITOR && (
             <QrScannerModal
               isOpen={isQrScannerOpen}
-              qrScanType={currentQrScan?.state}
               onClose={closeQrScanner}
             />
           )}
@@ -236,7 +232,6 @@ export default memo(withGlobal((global): StateProps => {
     isHardwareModalOpen: global.isHardwareModalOpen,
     areSettingsOpen: global.areSettingsOpen,
     isQrScannerOpen: global.isQrScannerOpen,
-    currentQrScan: global.currentQrScan,
   };
 })(App));
 

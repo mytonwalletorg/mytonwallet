@@ -33,11 +33,13 @@
     search,
   } = location;
 
-  document.getElementById('btn-sign-in').href = `tc://${search}`;
+  const redirectTo = search;
 
-  if (search && !search.includes('redirected=true')) {
-    location.href = `tc://${search}`;
-    history.replaceState({}, '', `${pathname}${search}&redirected=true`);
+  document.getElementById('btn-sign-in').href = `tc://${redirectTo}`;
+
+  if (!search?.includes('no-redirect')) {
+    location.href = `tc://${redirectTo}`;
+    history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
   }
 </script>
 </body>
