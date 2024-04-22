@@ -12,6 +12,7 @@ import { formatShortDay } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
+import { IS_IOS } from '../../../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 import { calculateTokenCardColor } from '../../helpers/cardColors';
 
@@ -79,6 +80,8 @@ function TokenCard({
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState(-1);
 
   useSyncEffect(([prevHistoryIndex]) => {
+    if (!IS_IOS) return;
+
     if (prevHistoryIndex !== undefined) {
       vibrate();
     }

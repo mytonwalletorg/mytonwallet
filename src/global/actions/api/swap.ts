@@ -713,7 +713,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
 
   global = getGlobal();
 
-  if (!estimate) {
+  if (!estimate || 'errors' in estimate) {
     global = updateCurrentSwap(global, {
       ...resetParams,
       errorType: window.navigator.onLine ? SwapErrorType.InvalidPair : SwapErrorType.UnexpectedError,
