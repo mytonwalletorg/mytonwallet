@@ -60,12 +60,9 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
     password,
   });
 
-  // In native applications the Dapp Connect Modal closes automatically when the Browser is shown
-  if (!IS_CAPACITOR) {
-    global = getGlobal();
-    global = clearDappConnectRequest(global);
-    setGlobal(global);
-  }
+  global = getGlobal();
+  global = clearDappConnectRequest(global);
+  setGlobal(global);
 
   await pause(GET_DAPPS_PAUSE);
   actions.getDapps();
@@ -101,12 +98,9 @@ addActionHandler(
       return;
     }
 
-    // In native applications the Dapp Connect Modal closes automatically when the Browser is shown
-    if (!IS_CAPACITOR) {
-      global = getGlobal();
-      global = clearDappConnectRequest(global);
-      setGlobal(global);
-    }
+    global = getGlobal();
+    global = clearDappConnectRequest(global);
+    setGlobal(global);
 
     await pause(GET_DAPPS_PAUSE);
     actions.getDapps();
@@ -199,12 +193,9 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
 
   void callApi('confirmDappRequest', promiseId, password);
 
-  // In native applications the Dapp Transfer Modal closes automatically when the Browser is shown
-  if (!IS_CAPACITOR) {
-    global = getGlobal();
-    global = clearCurrentDappTransfer(global);
-    setGlobal(global);
-  }
+  global = getGlobal();
+  global = clearCurrentDappTransfer(global);
+  setGlobal(global);
 });
 
 addActionHandler('submitDappTransferHardware', async (global) => {
