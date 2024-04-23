@@ -1,6 +1,5 @@
 .amount {
   overflow: hidden;
-  display: inline-block;
 
   max-width: 100%;
   margin: 1rem auto;
@@ -8,6 +7,25 @@
 
   font-size: 3rem;
   font-weight: 600;
+
+  border-radius: var(--border-radius-default);
+
+  @media (prefers-color-scheme: dark) {
+    :global(.theme-system) & {
+      box-shadow: none;
+    }
+  }
+
+  &.withStatus {
+    margin-bottom: 0.25rem;
+
+    border-bottom-right-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+  }
+}
+
+.amount,
+.status {
   line-height: 1;
   color: var(--color-transaction-gray-text);
   text-align: center;
@@ -15,25 +33,6 @@
   white-space: nowrap;
 
   background-color: var(--color-transaction-gray-background);
-  border-radius: var(--border-radius-default);
-
-  &_operationPositive {
-    color: var(--color-transaction-green-text);
-
-    background-color: var(--color-transaction-green-background);
-  }
-
-  &_operationScam {
-    color: var(--color-transaction-red-text);
-
-    background-color: var(--color-transaction-red-background);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :global(.theme-system) & {
-      box-shadow: none;
-    }
-  }
 }
 
 .amountSymbol,
@@ -44,6 +43,18 @@
 
 .amountSymbol {
   margin-inline-start: 0.25rem;
+}
+
+.operationPositive {
+  color: var(--color-transaction-green-text);
+
+  background-color: var(--color-transaction-green-background);
+}
+
+.operationScam {
+  color: var(--color-transaction-red-text);
+
+  background-color: var(--color-transaction-red-background);
 }
 
 .balanceChange {
@@ -65,4 +76,18 @@
   border-radius: 0 0 1rem 1rem;
   /* stylelint-disable-next-line plugin/whole-pixel */
   box-shadow: 0 -0.025rem 0 0 var(--color-separator);
+}
+
+.wrapper {
+  margin: 0 auto;
+}
+
+.status {
+  margin: 0 auto;
+  padding: 0.75rem;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+
+  border-radius: 0.375rem 0.375rem var(--border-radius-default) var(--border-radius-default);
 }

@@ -283,7 +283,6 @@ Are you sure you want to disconnect all websites?: Sind Sie sicher, dass Sie all
 $dapps-description: Sie können sich bei Dapps anmelden, die MyTonWallet unterstützen. Sie können Ihre Wallet-Adresse und Ihr Guthaben einsehen und Operationen anfordern.
 Logged in with MyTonWallet: Mit MyTonWallet angemeldet
 No active connections: Keine aktiven Verbindungen
-Unstaked successfully: Erfolgreich entsperrt
 Other: Sonstige
 Assets & Activity: Vermögenswerte und Aktivitäten
 Tokens Settings: Token-Einstellungen
@@ -571,3 +570,5 @@ Swap is not yet supported by Ledger.: Swap wird von Ledger noch nicht unterstüt
 Buying with card is not supported in Testnet.: Der Kauf mit Karte wird in Testnet nicht unterstützt.
 Staking is not supported in Testnet.: Das Abstecken wird in Testnet nicht unterstützt.
 Get Support: Hole dir Unterstützung
+Successfully: Erfolgreich
+Unstake More: Mehr abstecken

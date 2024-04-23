@@ -18,6 +18,7 @@ import { useDelegatedBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDelegatingBottomSheet } from '../../hooks/useDelegatingBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
+import useHideBrowser from '../../hooks/useHideBrowser';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useShowTransition from '../../hooks/useShowTransition';
@@ -85,6 +86,8 @@ function Modal({
   dialogRef ||= localDialogRef;
 
   const { isPortrait } = useDeviceScreen();
+
+  onCloseAnimationEnd = useHideBrowser(isOpen, isCompact, onCloseAnimationEnd);
 
   const animationDuration = isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION;
   const { shouldRender, transitionClassNames } = useShowTransition(

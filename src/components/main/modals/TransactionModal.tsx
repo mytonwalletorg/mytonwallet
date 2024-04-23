@@ -2,6 +2,7 @@ import React, { memo, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiToken, ApiTransactionActivity } from '../../../api/types';
+import type { StakingStatus } from '../../../global/types';
 import { ActiveTab } from '../../../global/types';
 
 import {
@@ -15,7 +16,7 @@ import {
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../config';
 import { getIsTxIdLocal } from '../../../global/helpers';
-import { selectCurrentAccountState } from '../../../global/selectors';
+import { selectCurrentAccountStakingStatus, selectCurrentAccountState } from '../../../global/selectors';
 import { bigintAbs } from '../../../util/bigint';
 import buildClassName from '../../../util/buildClassName';
 import { vibrateOnSuccess } from '../../../util/capacitor';
@@ -56,6 +57,7 @@ type StateProps = {
   endOfStakingCycle?: number;
   isUnstakeRequested?: boolean;
   isLongUnstakeRequested?: boolean;
+  stakingStatus?: StakingStatus;
 };
 const enum SLIDES {
   initial,
@@ -73,6 +75,7 @@ function TransactionModal({
   endOfStakingCycle,
   isUnstakeRequested,
   isLongUnstakeRequested,
+  stakingStatus,
 }: StateProps) {
   const {
     startTransfer,
@@ -109,6 +112,7 @@ function TransactionModal({
   } = renderedTransaction || {};
   const [, transactionHash] = (id || '').split(':');
   const isStaking = renderedTransaction?.type === 'stake' || renderedTransaction?.type === 'unstake';
+  const isUnstaking = renderedTransaction?.type === 'unstake';
   const isNftTransfer = renderedTransaction?.type === 'nftTransferred' || renderedTransaction?.type === 'nftReceived';
 
   const token = slug ? tokensBySlug?.[slug] : undefined;
@@ -194,6 +198,16 @@ function TransactionModal({
     startStaking();
   });
 
+  const handleUnstakeMoreClick = useLastCallback(() => {
+    closeActivityInfo({ id: id! });
+
+    if (!isPortrait) {
+      setLandscapeActionsActiveTabIndex({ index: ActiveTab.Stake });
+    }
+
+    startStaking({ isUnstaking: true });
+  });
+
   const handlePasswordSubmit = useLastCallback(async (password: string) => {
     setIsLoading(true);
     const result = await callApi(
@@ -230,14 +244,17 @@ function TransactionModal({
     setPasswordError(undefined);
   });
 
-  function renderHeader() {
-    const isLocal = id && getIsTxIdLocal(id);
+  function getTitle(isLocal: boolean) {
+    if (isUnstaking) {
+      return isLocal ? 'Unstaking' : 'Unstaked';
+    }
+    if (isIncoming) return 'Received';
 
-    const title = isIncoming
-      ? lang('Received')
-      : isLocal
-        ? lang('Sending')
-        : lang('Sent');
+    return isLocal ? 'Sending' : 'Sent';
+  }
+
+  function renderHeader() {
+    const isLocal = Boolean(id && getIsTxIdLocal(id));
 
     return (
       <div
@@ -248,7 +265,7 @@ function TransactionModal({
       >
         <div className={modalStyles.title}>
           <div className={styles.headerTitle}>
-            {title}
+            {lang(getTitle(isLocal))}
             {isLocal && (
               <i
                 className="icon-clock"
@@ -346,23 +363,25 @@ function TransactionModal({
             amount={amount ?? 0n}
             decimals={token?.decimals}
             tokenSymbol={token?.symbol}
+            status={isUnstaking && !shouldRenderUnstakeTimer ? lang('Successfully') : undefined}
           />
         )}
 
-        <div className={transferStyles.label}>{lang(isIncoming ? 'Sender' : 'Recipient')}</div>
-        <InteractiveTextField
-          addressName={addressName}
-          address={address!}
-          copyNotification={lang('Address was copied!')}
-          className={styles.copyButtonWrapper}
-          textClassName={isScam ? styles.scamAddress : undefined}
-        />
+        {!isUnstaking && (
+          <>
+            <div className={transferStyles.label}>{lang(isIncoming ? 'Sender' : 'Recipient')}</div>
+            <InteractiveTextField
+              addressName={addressName}
+              address={address!}
+              copyNotification={lang('Address was copied!')}
+              className={styles.copyButtonWrapper}
+              textClassName={isScam ? styles.scamAddress : undefined}
+            />
+          </>
+        )}
 
         {renderFee()}
         {renderComment()}
-        {isStaking && isIncoming && !shouldRenderUnstakeTimer && (
-          <div className={styles.unstakeNotice}>{lang('Unstaked successfully')}</div>
-        )}
         {shouldRenderUnstakeTimer && renderUnstakeTimer()}
 
         <div className={styles.footer}>
@@ -372,8 +391,16 @@ function TransactionModal({
             </Button>
           )}
           {isStaking && (
-            <Button onClick={handleStartStakingClick} className={styles.button}>
+            <Button
+              onClick={handleStartStakingClick}
+              className={buildClassName(styles.button, isUnstaking && stakingStatus === 'active' && styles.buttonWide)}
+            >
               {lang('Stake Again')}
+            </Button>
+          )}
+          {isUnstaking && stakingStatus === 'active' && (
+            <Button onClick={handleUnstakeMoreClick} className={buildClassName(styles.button, styles.buttonWide)}>
+              {lang('Unstake More')}
             </Button>
           )}
           {isNftTransfer && (
@@ -438,7 +465,7 @@ function TransactionModal({
       hasCloseButton
       nativeBottomSheetKey="transaction-info"
       forceFullNative={currentSlide === SLIDES.password}
-      dialogClassName={styles.modalDialog}
+      dialogClassName={buildClassName(styles.modalDialog, isUnstaking && styles.unstakeModal)}
       onClose={handleClose}
       onCloseAnimationEnd={closePasswordSlide}
     >
@@ -466,6 +493,7 @@ export default memo(
       end: endOfStakingCycle,
     } = accountState?.staking || {};
     const savedAddresses = accountState?.savedAddresses;
+    const stakingStatus = selectCurrentAccountStakingStatus(global);
 
     return {
       transaction: activity?.kind === 'transaction' ? activity : undefined,
@@ -476,6 +504,7 @@ export default memo(
       endOfStakingCycle,
       isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
       isLongUnstakeRequested: accountState?.isLongUnstakeRequested,
+      stakingStatus,
     };
   })(TransactionModal),
 );

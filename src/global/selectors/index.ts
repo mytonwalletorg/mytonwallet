@@ -2,7 +2,7 @@ import type {
   ApiBalanceBySlug, ApiNetwork, ApiSwapAsset, ApiTxIdBySlug,
 } from '../../api/types';
 import type {
-  Account, AccountSettings, AccountState, GlobalState, UserSwapToken, UserToken,
+  Account, AccountSettings, AccountState, GlobalState, StakingStatus, UserSwapToken, UserToken,
 } from '../types';
 
 import { TON_TOKEN_SLUG } from '../../config';
@@ -369,4 +369,14 @@ export function selectAccountIdByAddress(global: GlobalState, address: string): 
     .find(([accountId, account]) => (account.address === address ? accountId : undefined));
 
   return requiredAccount?.[0];
+}
+
+export function selectCurrentAccountStakingStatus(global: GlobalState): StakingStatus | undefined {
+  const accountState = selectCurrentAccountState(global);
+
+  return accountState?.staking?.balance
+    ? accountState.staking.isUnstakeRequested
+      ? 'unstakeRequested'
+      : 'active'
+    : undefined;
 }

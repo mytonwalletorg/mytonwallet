@@ -6,15 +6,15 @@ import path from 'path';
 
 import { ElectronAction } from './types';
 
-import { BASE_URL, BETA_URL, IS_PRODUCTION } from '../config';
+import { BASE_URL, IS_PRODUCTION } from '../config';
 import { AUTO_UPDATE_SETTING_KEY, getIsAutoUpdateEnabled, setupAutoUpdates } from './autoUpdates';
 import { processDeeplink } from './deeplink';
 import { captureStorage, restoreStorage } from './storageUtils';
 import tray from './tray';
 import {
-  checkIsWebContentsUrlAllowed, FORCE_STORAGE_CAPTURED_SETTINGS_KEY, forceQuit,
-  getIsForceStorageCaptureRequired, IS_FIRST_RUN, IS_MAC_OS, IS_PREVIEW,
-  IS_WINDOWS, mainWindow, setMainWindow, store, WINDOW_STATE_FILE,
+  checkIsWebContentsUrlAllowed, forceQuit, IS_FIRST_RUN,
+  IS_MAC_OS, IS_PREVIEW, IS_WINDOWS, mainWindow, setMainWindow,
+  store, WINDOW_STATE_FILE,
 } from './utils';
 
 const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://', BASE_URL];
@@ -89,28 +89,18 @@ export function createWindow() {
       loadWindowUrl();
     }
 
-    if (await getIsForceStorageCaptureRequired()) {
-      await captureStorage();
-      store.set(FORCE_STORAGE_CAPTURED_SETTINGS_KEY, true);
-      loadWindowUrl();
-    }
-
     mainWindow.show();
   });
 
   loadWindowUrl();
 }
 
-async function loadWindowUrl(): Promise<void> {
+function loadWindowUrl(): void {
   if (!app.isPackaged) {
     mainWindow.loadURL('http://localhost:4321');
     mainWindow.webContents.openDevTools();
   } else if (getIsAutoUpdateEnabled()) {
-    if (await getIsForceStorageCaptureRequired()) {
-      mainWindow.loadURL(BETA_URL);
-    } else {
-      mainWindow.loadURL(BASE_URL!);
-    }
+    mainWindow.loadURL(BASE_URL!);
   } else if (getIsAutoUpdateEnabled() === undefined && IS_FIRST_RUN) {
     store.set(AUTO_UPDATE_SETTING_KEY, true);
     mainWindow.loadURL(BASE_URL!);

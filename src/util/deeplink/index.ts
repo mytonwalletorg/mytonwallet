@@ -40,13 +40,21 @@ export function processDeeplinkAfterSignIn() {
   urlAfterSignIn = undefined;
 }
 
-export function processDeeplink(url: string) {
+export function openDeeplinkOrUrl(url: string, isExternal = false, isFromInAppBrowser = false) {
+  if (isTonDeeplink(url) || isTonConnectDeeplink(url) || isSelfDeeplink(url)) {
+    processDeeplink(url, isFromInAppBrowser);
+  } else {
+    void openUrl(url, isExternal);
+  }
+}
+
+export function processDeeplink(url: string, isFromInAppBrowser = false) {
   if (!getGlobal().currentAccountId) {
     urlAfterSignIn = url;
   }
 
   if (isTonConnectDeeplink(url)) {
-    void processTonConnectDeeplink(url);
+    void processTonConnectDeeplink(url, isFromInAppBrowser);
   } else if (isSelfDeeplink(url)) {
     processSelfDeeplink(url);
   } else {
@@ -118,16 +126,20 @@ function isTonConnectDeeplink(url: string) {
     || omitProtocol(url).startsWith(omitProtocol(TONCONNECT_UNIVERSAL_URL));
 }
 
-async function processTonConnectDeeplink(url: string) {
+async function processTonConnectDeeplink(url: string, isFromInAppBrowser = false) {
   if (!isTonConnectDeeplink(url)) {
     return;
   }
 
   const deviceInfo = tonConnectGetDeviceInfo();
-  const returnUrl = await callApi('startSseConnection', url, deviceInfo);
+  const returnUrl = await callApi('startSseConnection', {
+    url,
+    deviceInfo,
+    isFromInAppBrowser,
+  });
 
   if (returnUrl) {
-    openUrl(returnUrl);
+    openUrl(returnUrl, !isFromInAppBrowser);
   }
 }
 

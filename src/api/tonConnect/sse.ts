@@ -37,6 +37,7 @@ let sseDapps: SseDapp[] = [];
 let delayedReturnParams: {
   validUntil: number;
   url: string;
+  isFromInAppBrowser?: boolean;
 } | undefined;
 
 let onUpdate: OnApiUpdate;
@@ -45,7 +46,11 @@ export function initSse(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 }
 
-export async function startSseConnection(url: string, deviceInfo: DeviceInfo): Promise<ReturnStrategy | undefined> {
+export async function startSseConnection({ url, deviceInfo, isFromInAppBrowser }: {
+  url: string;
+  deviceInfo: DeviceInfo;
+  isFromInAppBrowser?: boolean;
+}): Promise<ReturnStrategy | undefined> {
   const { searchParams: params, origin } = new URL(url);
 
   const ret: ReturnStrategy = params.get('ret') || 'back';
@@ -60,6 +65,7 @@ export async function startSseConnection(url: string, deviceInfo: DeviceInfo): P
       delayedReturnParams = {
         validUntil: Date.now() + MAX_CONFIRM_DURATION,
         url: ret,
+        isFromInAppBrowser,
       };
     }
     return undefined;
@@ -188,9 +194,9 @@ export async function resetupSseConnection() {
     await sendMessage(result, secretKey, clientId, appClientId);
 
     if (delayedReturnParams) {
-      const { validUntil, url } = delayedReturnParams;
+      const { validUntil, url, isFromInAppBrowser } = delayedReturnParams;
       if (validUntil > Date.now()) {
-        onUpdate({ type: 'openUrl', url });
+        onUpdate({ type: 'openUrl', url, isExternal: !isFromInAppBrowser });
       }
       delayedReturnParams = undefined;
     }

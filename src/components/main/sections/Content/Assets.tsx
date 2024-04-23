@@ -2,10 +2,15 @@ import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
 import type { ApiBaseCurrency } from '../../../../api/types';
-import type { UserToken } from '../../../../global/types';
+import type { StakingStatus, UserToken } from '../../../../global/types';
 
 import { TON_TOKEN_SLUG } from '../../../../config';
-import { selectCurrentAccountState, selectCurrentAccountTokens, selectIsNewWallet } from '../../../../global/selectors';
+import {
+  selectCurrentAccountStakingStatus,
+  selectCurrentAccountState,
+  selectCurrentAccountTokens,
+  selectIsNewWallet,
+} from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { toDecimal } from '../../../../util/decimals';
 
@@ -28,7 +33,7 @@ type OwnProps = {
 interface StateProps {
   tokens?: UserToken[];
   isNewWallet: boolean;
-  stakingStatus?: 'active' | 'unstakeRequested';
+  stakingStatus?: StakingStatus;
   stakingBalance?: bigint;
   isInvestorViewEnabled?: boolean;
   apyValue: number;
@@ -111,11 +116,7 @@ export default memo(
       const isNewWallet = selectIsNewWallet(global);
       const accountState = selectCurrentAccountState(global);
       const { isInvestorViewEnabled } = global.settings;
-      const stakingStatus = accountState?.staking?.balance
-        ? accountState.staking.isUnstakeRequested
-          ? 'unstakeRequested'
-          : 'active'
-        : undefined;
+      const stakingStatus = selectCurrentAccountStakingStatus(global);
 
       return {
         tokens,

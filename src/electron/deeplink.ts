@@ -93,7 +93,7 @@ function findDeeplink(args: string[]) {
 }
 
 function getIsDeeplink(url: string) {
-  return url.match(`${TON_PROTOCOL}://`)
+  return url.startsWith(`${TON_PROTOCOL}://`)
     || url.startsWith(`${TONCONNECT_PROTOCOL}://`)
     || url.startsWith(`${TONCONNECT_PROTOCOL_SELF}://`)
     || url.startsWith(`${SELF_PROTOCOL}://`);

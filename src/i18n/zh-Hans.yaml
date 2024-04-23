@@ -271,7 +271,6 @@ Are you sure you want to disconnect all websites?: 您确定要断开所有网�
 $dapps-description: 您可以登录支持 MyTonWallet 的 dapp。 它们可以查看钱包地址、余额并请求操作。
 Logged in with MyTonWallet: 使用 MyTonWallet 登录
 No active connections: 没有活动连接
-Unstaked successfully: 解除质押成功
 Other: 其他的
 Assets & Activity: 资产 & 活动记录
 Tokens Settings: 代币设置
@@ -556,3 +555,5 @@ Swap is not yet supported by Ledger.: Ledger 尚不支持该交易所。
 Buying with card is not supported in Testnet.: 测试网不支持刷卡购买。
 Staking is not supported in Testnet.: 测试网不支持质押。
 Get Support: 得到支持
+Successfully: 成功地
+Unstake More: 解除质押更多

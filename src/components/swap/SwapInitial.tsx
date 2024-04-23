@@ -55,7 +55,7 @@ interface StateProps {
   tokens?: UserSwapToken[];
 }
 
-const ESTIMATE_REQUEST_INTERVAL = 3_000;
+const ESTIMATE_REQUEST_INTERVAL = 1_000;
 const SET_AMOUNT_DEBOUNCE_TIME = 500;
 const DEFAULT_SWAP_FEE = 500000000n; // 0.5 TON
 
@@ -169,6 +169,8 @@ function SwapInitial({
   }, [currentTokenInSlug, currentTokenOutSlug, isCrosschain, pairs?.bySlug]);
 
   const handleEstimateSwap = useLastCallback((shouldBlock: boolean) => {
+    if (!isActive || isBackgroundModeActive()) return;
+
     if (isCrosschain) {
       estimateSwapCex({ shouldBlock });
       return;
@@ -187,9 +189,7 @@ function SwapInitial({
   );
   const createEstimateTimer = useLastCallback(() => {
     estimateIntervalId.current = window.setInterval(() => {
-      if (!isBackgroundModeActive()) {
-        throttledEstimateSwap(false);
-      }
+      throttledEstimateSwap(false);
     }, ESTIMATE_REQUEST_INTERVAL);
   });
 

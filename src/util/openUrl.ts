@@ -5,7 +5,7 @@ import { IS_CAPACITOR } from '../config';
 import safeExec from './safeExec';
 
 export async function openUrl(url: string, isExternal?: boolean) {
-  if (IS_CAPACITOR && !isExternal) {
+  if (IS_CAPACITOR && !isExternal && url.startsWith('http')) {
     getActions().openBrowser({ url });
   } else if (IS_CAPACITOR && await canOpenApp(url)) {
     AppLauncher.openUrl({ url });

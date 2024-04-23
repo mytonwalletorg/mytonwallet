@@ -283,7 +283,6 @@ Are you sure you want to disconnect all websites?: Tüm web sitelerinin bağlant
 $dapps-description: MyTonWallet'ı destekleyen Dapp'lerde oturum açabilirsiniz. Bu Dapp'ler, cüzdan adresini, bakiyeyi görüntüleyebilir ve işlem talep edebilirler.
 Logged in with MyTonWallet: MyTonWallet ile oturum açıldı
 No active connections: Aktif bağlantı yok
-Unstaked successfully: Başarılı şekilde unstake edildi
 Other: Diğer
 Assets & Activity: Varlıklar ve Etkinlik
 Tokens Settings: Token ayarları
@@ -570,3 +569,5 @@ Swap is not yet supported by Ledger.: Takas henüz Ledger tarafından desteklenm
 Buying with card is not supported in Testnet.: Testnet'te kartla satın alma desteklenmemektedir.
 Staking is not supported in Testnet.: Staking Testnet'te desteklenmemektedir.
 Get Support: Destek almak
+Successfully: Başarıyla
+Unstake More: Unstake daha fazla

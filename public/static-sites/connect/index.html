@@ -35,10 +35,10 @@
 
   const redirectTo = search;
 
-  document.getElementById('btn-sign-in').href = `tc://${redirectTo}`;
+  document.getElementById('btn-sign-in').href = `mytonwallet-tc://${redirectTo}`;
 
   if (!search?.includes('no-redirect')) {
-    location.href = `tc://${redirectTo}`;
+    location.href = `mytonwallet-tc://${redirectTo}`;
     history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
   }
 </script>

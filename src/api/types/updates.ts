@@ -189,6 +189,7 @@ export type ApiUpdateWalletVersions = {
 export type ApiOpenUrl = {
   type: 'openUrl';
   url: string;
+  isExternal?: boolean;
 };
 
 export type ApiRequestReconnect = {

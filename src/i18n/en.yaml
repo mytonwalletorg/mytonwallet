@@ -282,7 +282,6 @@ Are you sure you want to disconnect all websites?: Are you sure you want to disc
 $dapps-description: You can log in on dapps that support MyTonWallet. They can view wallet address, balance, and request operations.
 Logged in with MyTonWallet: Logged in with MyTonWallet
 No active connections: No active connections
-Unstaked successfully: Unstaked successfully
 Other: Other
 Assets & Activity: Assets & Activity
 Tokens Settings: Tokens Settings
@@ -570,3 +569,5 @@ Swap is not yet supported by Ledger.: Swap is not yet supported by Ledger.
 Buying with card is not supported in Testnet.: Buying with card is not supported in Testnet.
 Staking is not supported in Testnet.: Staking is not supported in Testnet.
 Get Support: Get Support
+Successfully: Successfully
+Unstake More: Unstake More

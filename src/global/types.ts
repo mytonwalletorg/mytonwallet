@@ -56,6 +56,8 @@ export interface LangString {
 
 export type LangPack = Record<string, string | LangString>;
 
+export type StakingStatus = 'active' | 'unstakeRequested';
+
 export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWallet';
 
 export enum AppState {
