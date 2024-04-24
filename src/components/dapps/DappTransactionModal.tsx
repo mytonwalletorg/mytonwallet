@@ -1,7 +1,4 @@
-import { BottomSheet } from 'native-bottom-sheet';
-import React, {
-  memo, useEffect, useMemo, useRef,
-} from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
@@ -11,11 +8,9 @@ import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CAPACITOR, TON_TOKEN_SLUG } from '..
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
-import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
-import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
@@ -24,7 +19,6 @@ import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
-import { getInAppBrowser } from '../ui/InAppBrowser';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
@@ -47,7 +41,6 @@ interface StateProps {
 function DappTransactionModal({
   currentDappTransfer: {
     dapp,
-    isSse,
     transactions,
     isLoading,
     viewTransactionOnIdx,
@@ -70,32 +63,13 @@ function DappTransactionModal({
 
   const lang = useLang();
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens])!;
-  const [isOpen, openModal, closeModal] = useFlag(state !== TransferState.None);
-  const shouldReopenInAppBrowserRef = useRef(false);
+
+  const isOpen = state !== TransferState.None;
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
   const renderingTransactions = useCurrentOrPrev(transactions, true);
   const isNftTransfer = renderingTransactions?.[0].payload?.type === 'nft:transfer';
   const isDappLoading = dapp === undefined;
-  const hasTransferRequest = state !== TransferState.None;
-
-  useEffect(() => {
-    if (hasTransferRequest) {
-      (async () => {
-        const browser = getInAppBrowser();
-        if (browser && isSse) {
-          shouldReopenInAppBrowserRef.current = true;
-          await browser.hide();
-          if (IS_DELEGATING_BOTTOM_SHEET) {
-            await BottomSheet.enable();
-          }
-        }
-        openModal();
-      })();
-    } else {
-      closeModal();
-    }
-  }, [hasTransferRequest, isSse]);
 
   const handleBackClick = useLastCallback(() => {
     if (state === TransferState.Confirm || state === TransferState.Password) {
@@ -114,15 +88,6 @@ function DappTransactionModal({
   const handleResetTransfer = useLastCallback(async () => {
     cancelDappTransfer();
     updateNextKey();
-
-    const browser = getInAppBrowser();
-    if (shouldReopenInAppBrowserRef.current && browser) {
-      if (IS_DELEGATING_BOTTOM_SHEET) {
-        await BottomSheet.disable();
-      }
-      browser.show();
-    }
-    shouldReopenInAppBrowserRef.current = false;
   });
 
   function renderSingleTransaction(isActive: boolean) {
