@@ -169,168 +169,165 @@ jobs:
           name: ${{ env.FILE_NAME }}
           path: ${{ env.FILE_NAME }}
 
-#  extensions-package:
-#    name: Build and package extensions
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 10
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#
-#      - name: Use Node.js 18
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 18
-#
-#      - name: Cache node modules
-#        id: npm-cache
-#        uses: actions/cache@v4
-#        with:
-#          path: node_modules
-#          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
-#          restore-keys: |
-#            ${{ runner.os }}-build-
-#
-#      - name: Install dependencies
-#        if: steps.npm-cache.outputs.cache-hit != 'true'
-#        run: npm ci
-#
-#      - name: Build and package
-#        run: |
-#          if [ -z "$PUBLISH_REPO" ]; then
-#            npm run extension-chrome:package:staging
-#            npm run extension-firefox:package:staging
-#          else
-#            npm run extension-chrome:package:production
-#            npm run extension-firefox:package:production
-#          fi
-#
-#      - name: Upload Chrome extension artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ${{ env.APP_NAME }}-chrome.zip
-#          path: ${{ env.APP_NAME }}-chrome.zip
-#
-#      - name: Upload Firefox extension artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ${{ env.APP_NAME }}-firefox.zip
-#          path: ${{ env.APP_NAME }}-firefox.zip
-#
-#  chrome-publish:
-#    name: Publish Chrome extension
-#    needs: extensions-package
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 5
-#    if: vars.PUBLISH_REPO != ''
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#
-#      - name: Use Node.js 18
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 18
-#
-#      - name: Set environment variables
-#        id: variables
-#        shell: bash
-#        run: |
-#          echo "CHROME_FILE_NAME=${{ env.APP_NAME }}-chrome.zip" >> "$GITHUB_ENV"
-#          echo "FIREFOX_FILE_NAME=${{ env.APP_NAME }}-firefox.zip" >> "$GITHUB_ENV"
-#
-#      - name: Download Chrome extension artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: ${{ env.CHROME_FILE_NAME }}
-#
-#      - name: Publish to Chrome store
-#        env:
-#          EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
-#          CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-#          CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-#          REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-#        run: npx --yes chrome-webstore-upload-cli@2 upload --auto-publish --source ${{ env.CHROME_FILE_NAME }}
-#
-#  firefox-publish:
-#    name: Publish Firefox extension
-#    needs: extensions-package
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 5
-#    if: vars.PUBLISH_REPO != ''
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#
-#      - name: Use Node.js 18
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 18
-#
-#      - name: Set environment variables
-#        id: variables
-#        shell: bash
-#        run: |
-#          echo "FIREFOX_FILE_NAME=${{ env.APP_NAME }}-firefox.zip" >> "$GITHUB_ENV"
-#
-#      - name: Download Firefox extension artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: ${{ env.FIREFOX_FILE_NAME }}
-#
-#      - name: Publish to Firefox addons
-#        env:
-#          WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
-#          WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
-#          FIREFOX_EXTENSION_ID: ${{ vars.FIREFOX_EXTENSION_ID }}
-#        run: |
-#          npm i jsonwebtoken@9 web-ext-submit@7
-#          UNZIP_DIR=/tmp/${{ env.APP_NAME }}-firefox
-#          mkdir $UNZIP_DIR
-#          unzip ${{ env.FIREFOX_FILE_NAME }} -d $UNZIP_DIR
-#          npx web-ext-submit --source-dir=$UNZIP_DIR
-#          echo "APP_NAME=\"${APP_NAME}\"
-#          PROXY_HOSTS=\"${PROXY_HOSTS}\"
-#          STAKING_POOLS=\"${STAKING_POOLS}\"" >.env
-#          bash deploy/firefox_pack_sources.sh
-#          node deploy/firefoxPatchVersion.js
-#
-#  edge-publish:
-#    name: Publish Edge extension
-#    needs: extensions-package
-#    runs-on: ubuntu-latest
-#    if: vars.PUBLISH_REPO != ''
-#    timeout-minutes: 5
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#
-#      - name: Use Node.js 18
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 18
-#
-#      - name: Set environment variables
-#        id: variables
-#        shell: bash
-#        run: |
-#          echo "CHROME_FILE_NAME=${{ env.APP_NAME }}-chrome.zip" >> "$GITHUB_ENV"
-#
-#      - name: Download Chrome extension artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: ${{ env.CHROME_FILE_NAME }}
-#
-#      - name: Publish to Edge store
-#        env:
-#          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
-#          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
-#          EDGE_CLIENT_SECRET: ${{ secrets.EDGE_CLIENT_SECRET }}
-#          EDGE_ACCESS_TOKEN_URL: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
-#        run: |
-#          npm i @plasmohq/edge-addons-api@1.3.2
-#          export EDGE_FILE_PATH="./$CHROME_FILE_NAME"
-#          node deploy/edgePublish.js
+  extensions-package:
+    name: Build and package extensions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Cache node modules
+        id: npm-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Build and package
+        run: |
+          if [ -z "$PUBLISH_REPO" ]; then
+            npm run extension-chrome:package:staging
+            npm run extension-firefox:package:staging
+          else
+            npm run extension-chrome:package:production
+            npm run extension-firefox:package:production
+          fi
+
+      - name: Upload Chrome extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-chrome.zip
+          path: ${{ env.APP_NAME }}-chrome.zip
+
+      - name: Upload Firefox extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-firefox.zip
+          path: ${{ env.APP_NAME }}-firefox.zip
+
+  chrome-publish:
+    name: Publish Chrome extension
+    needs: extensions-package
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: vars.PUBLISH_REPO != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Set environment variables
+        id: variables
+        run: |
+          echo "CHROME_FILE_NAME=${{ env.APP_NAME }}-chrome.zip" >> "$GITHUB_ENV"
+          echo "FIREFOX_FILE_NAME=${{ env.APP_NAME }}-firefox.zip" >> "$GITHUB_ENV"
+
+      - name: Download Chrome extension artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CHROME_FILE_NAME }}
+
+      - name: Publish to Chrome store
+        env:
+          EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: npx --yes chrome-webstore-upload-cli@2 upload --auto-publish --source ${{ env.CHROME_FILE_NAME }}
+
+  firefox-publish:
+    name: Publish Firefox extension
+    needs: extensions-package
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: vars.PUBLISH_REPO != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Set environment variables
+        id: variables
+        run: |
+          echo "FIREFOX_FILE_NAME=${{ env.APP_NAME }}-firefox.zip" >> "$GITHUB_ENV"
+
+      - name: Download Firefox extension artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.FIREFOX_FILE_NAME }}
+
+      - name: Publish to Firefox addons
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
+          FIREFOX_EXTENSION_ID: ${{ vars.FIREFOX_EXTENSION_ID }}
+        run: |
+          npm i jsonwebtoken@9 web-ext-submit@7
+          UNZIP_DIR=/tmp/${{ env.APP_NAME }}-firefox
+          mkdir $UNZIP_DIR
+          unzip ${{ env.FIREFOX_FILE_NAME }} -d $UNZIP_DIR
+          npx web-ext-submit --source-dir=$UNZIP_DIR
+          echo "APP_NAME=\"${APP_NAME}\"
+          PROXY_HOSTS=\"${PROXY_HOSTS}\"
+          STAKING_POOLS=\"${STAKING_POOLS}\"" >.env
+          bash deploy/firefox_pack_sources.sh
+          node deploy/firefoxPatchVersion.js
+
+  edge-publish:
+    name: Publish Edge extension
+    needs: extensions-package
+    runs-on: ubuntu-latest
+    if: vars.PUBLISH_REPO != ''
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Set environment variables
+        id: variables
+        run: |
+          echo "CHROME_FILE_NAME=${{ env.APP_NAME }}-chrome.zip" >> "$GITHUB_ENV"
+
+      - name: Download Chrome extension artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CHROME_FILE_NAME }}
+
+      - name: Publish to Edge store
+        env:
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_CLIENT_SECRET: ${{ secrets.EDGE_CLIENT_SECRET }}
+          EDGE_ACCESS_TOKEN_URL: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
+        run: |
+          npm i @plasmohq/edge-addons-api@1.3.2
+          export EDGE_FILE_PATH="./$CHROME_FILE_NAME"
+          node deploy/edgePublish.js
 
   calculate-hash:
     name: Calculate sha256 hashes
@@ -338,6 +335,7 @@ jobs:
       HASH_FILENAME: checksum.sha256
     needs:
       - electron-sign-for-windows
+      - extensions-package
       - android-release
     runs-on: ubuntu-latest
     steps:
@@ -358,7 +356,7 @@ jobs:
 
   android-release:
     name: Release Android app
-    runs-on: macos-13
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master'
     steps:
@@ -416,8 +414,8 @@ jobs:
         run: |
           cd mobile/android
 
-          echo -n "$ANDROID_API_KEY_BASE64" | base64 --decode -o ./api-key.json
-          echo -n "$ANDROID_KEYSTORE_BASE64" | base64 --decode -o ./android.keystore
+          echo -n "$ANDROID_API_KEY_BASE64" | base64 --decode > ./api-key.json
+          echo -n "$ANDROID_KEYSTORE_BASE64" | base64 --decode > ./android.keystore
 
           if [ -z "$PUBLISH_REPO" ]; then
             bundle exec fastlane beta
@@ -548,7 +546,6 @@ jobs:
     steps:
       - name: Set environment variables
         id: variables
-        shell: bash
         run: |
           echo "WINDOWS_FILE_NAME=${{ env.APP_NAME }}-x64.exe" >> "$GITHUB_ENV"
           echo "ANDROID_FILE_NAME=${{ env.APP_NAME }}.apk" >> "$GITHUB_ENV"
@@ -567,7 +564,6 @@ jobs:
 
       - name: Get latest release ID
         id: release-id
-        shell: bash
         run: |
           RELEASE_ID=$(curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases?per_page=1" | jq -r '.[0].id')
           echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
@@ -575,7 +571,6 @@ jobs:
       - name: Delete existing asset
         env:
           RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
-        shell: bash
         run: |
           PUBLISH_FILE_NAME=${WINDOWS_FILE_NAME// /-} # Consistency with electron-builder
           ASSET_ID=$(curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID/assets" | jq -r --arg PUBLISH_FILE_NAME "$PUBLISH_FILE_NAME" '.[] | select(.name == $PUBLISH_FILE_NAME) | .id')
@@ -585,7 +580,6 @@ jobs:
         env:
           FILE_PATH: ${{ steps.download-windows.outputs.download-path }}
           RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
-        shell: bash
         run: |
           FILE_NAME=$WINDOWS_FILE_NAME
           PUBLISH_FILE_NAME=${WINDOWS_FILE_NAME// /-} # Consistency with electron-builder
@@ -598,7 +592,6 @@ jobs:
         env:
           FILE_PATH: ${{ steps.download-android.outputs.download-path }}
           RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
-        shell: bash
         run: |
           FILE_NAME=$ANDROID_FILE_NAME
           PUBLISH_FILE_NAME=${ANDROID_FILE_NAME// /-}
@@ -610,6 +603,5 @@ jobs:
       - name: Publish release
         env:
           RELEASE_ID: ${{ steps.release-id.outputs.release_id }}
-        shell: bash
         run: |
           curl -X PATCH -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$PUBLISH_REPO/releases/$RELEASE_ID" -d '{"draft": false}'
