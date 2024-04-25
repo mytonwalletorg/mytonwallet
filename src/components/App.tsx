@@ -1,6 +1,4 @@
-import React, {
-  memo, useEffect, useLayoutEffect,
-} from '../lib/teact/teact';
+import React, { memo, useEffect, useLayoutEffect } from '../lib/teact/teact';
 import { getActions, withGlobal } from '../global';
 
 import { AppState } from '../global/types';
@@ -49,6 +47,7 @@ import SwapModal from './swap/SwapModal';
 import TransferModal from './transfer/TransferModal';
 import ConfettiContainer from './ui/ConfettiContainer';
 import InAppBrowser from './ui/InAppBrowser';
+import LoadingOverlay from './ui/LoadingOverlay';
 import Transition from './ui/Transition';
 
 // import Test from './components/test/TestNoRedundancy';
@@ -218,6 +217,7 @@ function App({
           {!IS_DELEGATED_BOTTOM_SHEET && <Dialogs />}
           {!IS_DELEGATED_BOTTOM_SHEET && <ConfettiContainer />}
           {IS_CAPACITOR && !IS_DELEGATED_BOTTOM_SHEET && <InAppBrowser />}
+          {!IS_DELEGATED_BOTTOM_SHEET && <LoadingOverlay />}
         </>
       )}
     </>

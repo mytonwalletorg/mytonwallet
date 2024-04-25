@@ -550,6 +550,8 @@ export type GlobalState = {
     mediaId?: string;
     mediaType?: MediaType;
   };
+
+  isLoadingOverlayOpen?: boolean;
 };
 
 export interface ActionPayloads {
@@ -812,6 +814,9 @@ export interface ActionPayloads {
   loadPriceHistory: { slug: string; period: ApiPriceHistoryPeriod; currency?: ApiBaseCurrency };
 
   showIncorrectTimeError: undefined;
+
+  openLoadingOverlay: undefined;
+  closeLoadingOverlay: undefined;
 }
 
 export enum LoadMoreDirection {

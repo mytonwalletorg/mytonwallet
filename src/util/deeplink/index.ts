@@ -131,12 +131,18 @@ async function processTonConnectDeeplink(url: string, isFromInAppBrowser = false
     return;
   }
 
+  const { openLoadingOverlay, closeLoadingOverlay } = getActions();
+
+  openLoadingOverlay();
+
   const deviceInfo = tonConnectGetDeviceInfo();
   const returnUrl = await callApi('startSseConnection', {
     url,
     deviceInfo,
     isFromInAppBrowser,
   });
+
+  closeLoadingOverlay();
 
   if (returnUrl) {
     openUrl(returnUrl, !isFromInAppBrowser);

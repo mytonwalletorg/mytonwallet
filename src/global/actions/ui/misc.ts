@@ -731,3 +731,11 @@ addActionHandler('initLedgerPage', (global) => {
   });
   setGlobal({ ...global, appState: AppState.Ledger });
 });
+
+addActionHandler('openLoadingOverlay', (global) => {
+  setGlobal({ ...global, isLoadingOverlayOpen: true });
+});
+
+addActionHandler('closeLoadingOverlay', (global) => {
+  setGlobal({ ...global, isLoadingOverlayOpen: undefined });
+});
