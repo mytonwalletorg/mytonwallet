@@ -1,0 +1,573 @@
+$auth_intro: |
+  เก็บคริปโต **อย่างปลอดภัย**
+  และ ชำระผ่านบล็อกเชน
+  ด้วย **ความเร็วแสง**.
+Create New Wallet: สร้างวอลเล็ตใหม่
+Import From %1$d Secret Words: นำเข้าด้วย %1$d ซีเคร็ทเวิร์ด
+More about MyTonWallet: เพิ่มเติมเกี่ยวกับ MyTonWallet
+Creating Wallet...: กำลังสร้างวอลเล็ต...
+On the count of three...: จากการแค่นับถึงสาม...
+Back Up: สำรองข้อมูล
+Passwords must be equal.: รหัสผ่านจะต้องเหมือนกัน.
+To protect your wallet as much as possible, use a password with: เพื่อที่จะปกป้องวอลเล็ตของคุณให้ได้มากที่สุด, โปรดตั้งรหัสผ่านด้วย
+$auth_password_rule_8chars: อย่างน้อย 8 ตัวอักษร
+$auth_password_rule_one_small_char: อักษรตัวเล็กตัวหนึ่งตัวอักษร
+$auth_password_rule_one_capital_char: อักษรตัวใหญ่ตัวหนึ่งตัวอักษร
+$auth_password_rule_one_digit: หนึ่งตัวเลข
+$auth_password_rule_one_special_char: และ หนึ่งอักขระพิเศษ
+The wallet is imported: นำเข้าวอลเล็ตเรียบร้อยแล้ว
+The wallet is ready: วอลเล็ตพร้อมแล้ว
+Create a password to protect it.: สร้างรหัสผ่านเพื่อป้องกันวอลเล็ตของคุณ.
+Enter your password: กรอกรหัสผ่านของคุณ
+Enter your password...: กรอกรหัสผ่านของคุณ...
+...and repeat it: ...และกรอกรหัสผ่านของคุณอีกครั้ง
+Cancel: ยกเลิก
+Insecure Password: รหัสผ่านไม่ปลอดภัย
+Your have entered an insecure password, which can be easily guessed by scammers.: คุณกรอกรหัสผ่านไม่ปลอดภัย, ซึ่งผู้ไม่หวังดีสามารถคาดเดาได้ง่าย.
+Continue or change password to something more secure?: ต้องการดำเนินการต่อ หรือ เปลี่ยนรหัสผ่านให้ความปลอดภัยมากกว่านั้น?
+Change: เปลี่ยน
+"%1$d Secret Words": "%1$d ซีเคร็ทเวิร์ด"
+$auth_import_mnemonic_description: |
+  คุณสามารถกู้คืนการวอลเล็ตของคุณได้โดยการกรอก %1$d ซีเคร็ทเวิร์ดที่คุณเขียนไว้เมื่อตอนสร้างวอลเล็ต.
+Let’s make sure your secrets words are recorded correctly.: โปรดตรวจสอบว่าคุณได้เขียนซีเคร็ทเวิร์ดของคุณอย่างถูกต้อง.
+$mnemonic_check_words_list: โปรดกรอกซีเคร็ทเวิร์ด **%1$s** ด้านล่าง.
+$mnemonic_check_error: ซีเคร็ทเวิร์ดที่คุณกรอกไม่ตรงกับซีเคร็ทเวิร์ดที่แสดงบนรายการ. โปรดลองใหม่อีกครั้ง.
+$mnemonic_list_description: |
+  บันทึกซีเคร็ทเวิร์ดนี้
+  ตาม **ลำดับให้ถูกต้อง** และจัดเก็บ
+  ใน **ที่ปลอดภัย**.
+Let's Check: ตรวจสอบ
+Let's Check!: ตรวจสอบ!
+Safety Rules: กฎความปลอดภัย
+$safety_rules_one: |
+  ในหน้าถัดไปคุณจะเห็น **ซีเคร็ทเวิร์ด** จดบันทึกตามลำดับที่ถูกต้องและ **เก็บในที่ปลอดภัย**.
+$safety_rules_two: ซีเคร็ทเวิร์ดนี้จะช่วยให้คุณ **เปิดวอลเล็ต** ถ้าคุณลืมรหัสผ่านหรือไม่มีสิทธิ์เข้าถึงบนอุปกรณ์นี้.
+$safety_rules_three: หากผู้อื่นเห็นซีเคร็ทเวิร์ดนี้ คุณอาจจะมีสิทธิ **โดนขโมยได้** **อย่าส่งให้ใครโดยเด็ดขาด** ไม่เว้นแม่แต่นักพัฒนาหรือฝ่ายสนับสนุนด้านเทคนิค.
+Understood: เข้าใจแล้ว
+Congratulations!: ยินดีด้วย!
+Continue: ต่อไป
+Close: ปิด
+Back: ย้อนกลับ
+Search...: ค้นหา...
+Main menu: เมนูหลัก
+TON Proxy: TON Proxy
+Toggle TON Proxy: เปิด/ปิด TON Proxy
+TON Magic: TON Magic
+Toggle TON Magic: เปิด/ปิด TON Magic
+Open Telegram Web: เปิดเว็บ Telegram
+Back Up Secret Words: สำรองข้อมูลด้วยซีเคร็ทเวิร์ด
+Settings: การตั้งค่า
+About: เกี่ยวกับ
+Exit: ออกจากระบบ
+Remove Wallet: ลบวอลเล็ต
+Something went wrong.: เกิดข้อผิดพลาดบางอย่าง.
+Something went wrong: เกิดข้อผิดพลาดบางอย่าง
+Logo: โลโก้
+$about_description1: เก็บคริปโตอย่างปลอดภัย และ ชำระผ่านผ่านบล็อกเชนด้วย **ความเร็วแสง**.
+$about_description2: วอลเล็ตนี้ **ไม่เป็นแบบผู้ให้บริการ และ ปลอดภัย**. ผู้พัฒนา **ไม่สามารถ**เข้าถึงที่อยู่บัญชีของคุณ, ประวัติการเข้าชมเว็บหรือข้อมูลอื่นๆ.
+What is TON Proxy?: TON Proxy คืออะไร?
+$about_extension_description1: TON Proxy ช่วยให้คุณสามารถเข้าถึง *เครือข่ายแบบกระจายศูนย์* โดยอนุญาตให้เข้าถึงไซต์ของ TON โดยไม่เปิดเผยตัวตน.
+More info and demo.: ข้อมูลเพิ่มเติมและการสาธิต.
+$about_extension_description2: TON Magic สนับสนุนการเข้าถึง **ส่วนเสริมของ Telegram** โดยเชื่อมต่อกับกับเว็บแอปที่เป็นทางการของ Telegram.
+$about_extension_description3: เปิด TON Magic เพื่อที่จะสามารถส่งและรับ Toncoin จากผู้ใช้จาก Telegram ได้.
+$about_proxy_magic_title: "%ninja% TON Proxy และ %unicorn% TON Magic คืออะไร?"
+$about_proxy_magic_description: เพื่อให้ได้รับ **เครือข่ายแบบกระจายศูนย์**, เข้าถึง **ไซต์ของ TON**, และ **ส่วนเสริมของ Telegram**, โปรดติดตั้ง %extension_link%.
+$about_extension_link_text: "**MyTonWallet extension**"
+Is it open source?: สิ่งนี้เป็นโอเพนซอร์สไหม?
+$about_wallet_github: ใช่, เราเป็นโอเพนซอร์ส. สามารถสำรวจเราได้ที่ %github_link%.
+$about_github_link_text: "**GitHub repository**"
+Is there a community?: แล้วมีกลุ่มชุมชนหรือไม่?
+$about_wallet_community: แน่นอน, สามารถสื่อสารกับเราได้ที่ %telegram_link%.
+$about_community_link_text: "**Telegram channel**"
+Currency History: ประวัติทางการเงิน
+$add_account_description1: |
+  **MyTonWallet** ช่วยให้คุณสามารถ
+  สลับระหว่าง **ที่อยู่บัญชี** ได้ง่ายๆ.
+Enter Password: กรอกรหัสผ่าน
+Send: ส่ง
+Add Wallet: เพิ่มวอลเล็ต
+Done: เสร็จสิ้น
+Delete: ลบ
+Delete Saved Address: ลบที่ที่อยู่ที่บันทึกไว้
+Are you sure you want to remove this address from your saved ones?: คุณแน่ใจหรือไม่ ว่าต้องการลบที่อยู่บัญชีนี้ออกจากบันทึกของคุณ?
+You will be able to save it again via Transaction Info with this address.: คุณจะสามารถบันทึกที่อยู่บัญชีนี้อีกครั้งได้ที่ ข้อมูลการทำรายการ ของที่อยู่บัญชีนี้.
+Address removed from saved: ที่อยู่บัญชีถูกลบออกจากบันทึก
+Warning!: คำเตือน!
+Log Out: ลบวอลเล็ต
+$logout_without_backup_warning: หากคุณไม่ได้สำรองข้อมูลในวอลเล็ตของคุณ. เมื่อคุณลบวอลเล็ตนี้, คุณจะไม่สามารถเข้าถึงโทเคน และ NFT ในวอลเล็ตนี้ได้อีกต่อไป.
+$logout_accounts_without_backup_warning: หากคุณไม่ได้สำรอง %links% ของคุณ. เมื่อคุณลบวอลเล็ตนี้, คุณจะไม่สามารถเข้าถึงโทเคนและ NFT ในวอลเล็ตนี้ได้อีกต่อไป.
+$logout_warning: การดำเนินการนี้จะลบวอลเล็ตนี้ออกจากแอป. โปรดสำรอง **%1$d ซีเคร็ทเวิร์ด** ของคุณ ไว้ในความปลอดภัย.
+Your address was copied!: ที่อยู่บัญชีของคุณถูกคัดลอกแล้ว!
+Show QR Code: แสดงคิวอาร์โค้ด
+Create Deposit Link: สร้างลิงก์สำหรับการฝาก
+QR Code: คิวอาร์โค้ด
+$receive_invoice_description: |
+  คุณสามารถระบุจำนวนและเหตุผลของการชำระเงินได้
+  จะทำให้ผู้ส่งเงินสามารถเข้าใจและชำระเงินได้เร็วขึ้น.
+Amount: จำนวน
+Comment: หมายเหตุ
+Comment or Memo: หมายเหตุ หรือ จดบันทึก
+Share this URL to receive TON: แชร์ลิงก์นี้เพื่อรับ TON
+Invoice link was copied!: ลิงก์ใบแจ้งหนี้ถูกคัดลอกแล้ว!
+Theme: ธีม
+Language: ภาษา
+Enable Animations: เปิดการเล่นอนิเมชั่น
+Base Currency: สกุลเงินหลัก
+Investor View: มุมมองนักลงทุน
+Toggle Investor View: เปิด/ปิด มุมมองนักลงทุนงทุน
+Hide Tiny Transfers: ซ่อนรายการโอนขนาดเล็ก
+Toggle Hide Tiny Transfers: เปิด/ปิด ซ่อนรายการโอนขนาดเล็ก
+Network: เครือข่าย
+Developer Options: ตัวเลือกสำหรับผู้พัฒนา
+Confirmation: การยืนยัน
+Data to sign: ข้อมูลที่เซ็น
+$signature_warning: การเซ็นข้อมูลที่กำหนดเองอาจมีความเสี่ยงสูง. โปรดใช้เมื่อคุณใว้ใจแหล่งที่มาของข้อมูลนั้น.
+Sign: เซ็น
+Done!: เสร็จสิ้น!
+Signing was confirmed!: การเซ็นข้อมูลถูกยืนยันแล้ว!
+Transaction Info: ข้อมูลการทำรายการ
+Transaction in progress: กำลังทำรายการ
+Comment was copied!: หมายเหตุถูกคัดลอกแล้ว!
+View Transaction on TONScan: ดูรายการทำรายการที่ TONScan
+Sender: ผู้ส่ง
+Recipient: ผู้รับ
+Address was copied!: ที่อยู่บัญชีถูกคัดลอกแล้ว!
+Repeat: ทำซ้ำ
+Receive: รับ
+Switch Account: สลับที่อยู่บัญชี
+Copy wallet address: คัดลอกที่อยู่บัญชีวอลเล็ต
+View address on TONScan: ดูที่อยู่บัญชีที่ TONScan
+Open on CoinMarketCap: เปิดที่ CoinMarketCap
+You have just created a new wallet: คุณได้สร้างวอลเล็ตใหม่
+You can now transfer your tokens from another wallet or exchange.: คุณสามารถโอนโทเคน และ NFT จากวอลเล็ตอื่นหรือเอ็กซ์เชนจ์ได้.
+Assets: สินทรัพย์
+Activity: กิจกรรม
+NFT: NFT
+No NFTs yet: ยังไม่มี NFT
+$nft_explore_offer: |
+  สำรวจมาร์เก็ตเพลสเพื่อค้นพบ
+  แหล่งของ NFT คอลเลกชัน.
+$nft_hardware_unsupported: ขออภัย, การโอน NFT ยังไม่รองรับการใช้งานด้วย Ledger.
+Open Getgems: เปิด Getgems
+Transaction is not completed: การทำรายการไม่สำเร็จ
+Received: ได้รับ
+Sent: ส่ง
+$transaction_from: จาก %address%
+$transaction_to: ถึง %address%
+Wallet is not backed up: วอลเล็ตไม่ได้สำรองข้อมูล
+Testnet Version: เวอร์ชั้น Testnet
+Error reading clipboard: อ่านคลิปบอร์ดผิดพลาด
+$fee_value: "ค่าธรรมเนียม: %fee%"
+Loading...: กำลังโหลด...
+Recipient Address: ที่อยู่บัญชีผู้รับ
+Wallet address or domain: ที่อยู่บัญชีวอลเล็ตหรือโดเมน
+Incorrect address: ที่อยู่บัญชีไม่ถูกต้อง
+Incorrect address.: ที่อยู่บัญชีไม่ถูกต้อง.
+Paste: วาง
+Insufficient balance: ยอดคงเหลือไม่เพียงพอ
+InsufficientBalance: ยอดคงเหลือไม่เพียงพอ
+Optional: ไม่จำเป็น
+$send_token_symbol: ส่ง %1$s
+Is it all ok?: ทุกอย่างเรียบร้อยดีใช่ไหม?
+Receiving Address: ที่อยู่บัญชีผู้รับ
+Fee: ค่าธรรมเนียม
+Edit: แก้ไข
+Confirm: ยืนยัน
+Confirm Transaction: ยืนยันการทำรายการ
+Coins have been sent!: โทเคนได้ถูกส่งแล้ว!
+Details: รายละเอียด
+Change password visibility: เปลี่ยนการแสดงรหัสผ่าน
+Amount value: มูลค่า
+Save Address: บันทึกที่อยู่บัญชี
+Name: ชื่อ
+Save: บันทึก
+Copy: คัดลอก
+Remove From Saved Addresses: ลบออกจากที่อยู่ที่บันทึกไว้
+Add To Saved Addresses: เพิ่มไปยังที่อยู่ที่บันทึกไว้
+View Address on TONScan: ดูที่อยู่บัญชีที่ TONScan
+No suggestions, you're on your own!: ไม่มีคำแนะนำ, คุณเองเป็นเจ้าของ!
+Play Sounds: เล่นเสียง
+Focus on asset value rather than current balance: มุ่งเน้นไปที่มูลค่าสินทรัพย์มากกว่ายอดคงเหลือปัจจุบัน
+$logout_confirm: ลบวอลเล็ต *ทั้งหมด**
+$logout_warning2: มูลค่าในวอลเล็ตจะยังอยู่ที่บล็อกเชน. หากคุณต้องการลบวอลเล็ต เราแนะนำให้โอนเงินทั้งหมดจากวอลเล็ตนั้นไปยังที่อยู่บัญชีอื่น และ ปล่อยวอลเล็ตนั้นว่างไว้ก่อนดำเนินการ.
+$tiny_transfers_help: ปิดการแสดงรายการที่มีมูลค่าไม่เกิน $%value%. โปรดทราบว่าธุรกรรมดังกล่าวมักมีวัตถุประสงค์ในการสแปมและการหลอกลวง.
+Today: วันนี้
+Yesterday: เมื่อวาน
+Now: ตอนนี้
+$receive_ton_description: |
+  คุณสามารถแชร์ที่อยู่บัญชีของคุณ, สแกนคิวอาร์โค้ด
+  หรือสร้างลิงก์สำหรับการฝากเพื่อรับคริปโต.
+Your address: ที่อยู่บัญชีของคุณ
+Wrong password, please try again.: รหัสผ่านไม่ถูกต้อง, โปรดลองอีกครั้ง.
+Appearance: คุณลักษณะ
+Light: ไลค์
+Dark: ดาร์ค
+System: ระบบ
+Stake TON: สเต็ก TON
+Earn from your tokens while holding them: รับโทเคนของคุณที่ได้จากการที่ถือมันไว้
+$est_apy_val: ≈ ได้ต่อปี %1$d%
+Why this is safe: ทำไมสิ่งนี้ถึงปลอดถัย
+Why is staking safe?: เหตุใดการสเต็กจึงปลอดภัย?
+$safe_staking_description1: การสเต็กนั้นทำอยู่บน **เครือข่ายกระจายศูนย์** และดำเนินการโดยสมาร์ทคอนแทรคใน **สัญญาของ TON ที่เป็นทางการ**.
+$safe_staking_description2: ทรัพย์สินที่ได้รับจากการสเต็กจะถูกใช้เพื่อเป็นตัวชี้แจงสำหรับการทำรายการในเครือข่ายกระจายศูนย์ของ TON สิ่งเป็นส่วนหนึ่งของหลักการ **proof-of-stake**.
+$safe_staking_description3: คุณสามารถถอนการสเต็กได้ **ตลอดเวลา** และเมื่อคุณต้องการถอนทรัพย์สินจากการสเต็ก ทรัพย์สินจะถูกโอนเงินกลับมาที่บัญชีของคุณภายใน **สองวัน**.
+$min_value: ต่ำที่สุด %value%
+Est. balance in a year: ≈ มูลค่าเมื่อถึงรอบปีถัดไป
+Confirm Staking: ยืนยันการสเต็ก
+Confirm operation with your password: ยืนยันการทำรายการด้วยรหัสผ่านของคุณ
+Coins have been staked!: ทรัพย์สินได้ถูกสเต็กแล้ว!
+View: ดู
+Stake More: สเต็กเพิ่มเติม
+Staking: สเต็ก
+Currently Staked: ทรัพย์สินที่สเต็กปัจจุบัน
+Unstake: ถอนการสเต็ก
+Earning History: ประวัติการได้รับ
+$total: "ทั้งหมด: %value%"
+Unstake TON: ถอนการสเต็ก TON
+$unstake_information_with_time: |
+  ทรัพย์สินในการสเต็กของคุณจะถูกส่งกลับไปยังวอลเล็ตของคุณเต็มจำนวนใน %time%.
+  การสเต็กของคุณจะหยุดลง.
+Amount to unstake: จำนวนที่ถอนจากการสเต็ก
+Confirm Unstaking: ยืนยันการถอนการสเต็ก
+Request for unstaking is sent!: คำขอการถอนการสเต็กได้ถูกส่งแล้ว!
+$unstaking_when_receive: คุณจะได้รับทรัพย์สินจากการสเต็กใน %time%.
+$unstake_insufficient_balance: คุณต้องมี %balance% ในบัญชีสำหรับการดำเนินการถอนการสเต็ก.
+at %apy_value%: ที่ %apy_value%
+Staked: สเต็กแล้ว
+Unstake Requested: คำขอถอนการสเต็ก
+Unstaked: ถอนการสเต็กแล้ว
+The network fee has slightly changed, try sending again.: ค่าธรรมเนียมของเครือข่ายมีการเปลี่ยนแปลงเล็กน้อย, โปรดลองส่งใหม่อีกครั้ง.
+Transfer was unsuccessful. Try again later.: การโอนไม่สำเร็จ. โปรดลองใหม่อีกครั้งในภายหลัง.
+Unstaking was unsuccessful. Try again later.: การถอนการสเต็กไม่สำเร็จ. โปรดลองใหม่อีกครั้งในภายหลัง.
+Staking was unsuccessful. Try again later.: การสเต็กไม่สำเร็จ. โปรดลองใหม่อีกครั้งในภายหลัง.
+Invalid amount: จำนวนไม่ถูกต้อง
+Invalid address: ที่อยู่บัญชีไม่ถูกต้อง
+Domain is not connected to a wallet: โดเมนไม่ได้เชื่อมต่อกับวอลเล็ต
+Unexpected error: เกิดข้อผิดพลาดที่ไม่คาดคิด
+Unexpected Error: เกิดข้อผิดพลาดที่ไม่คาดคิด
+Earn: ได้รับ
+Earning: กำลังได้รับ
+InvalidAmount: จำนวนไม่ถูกต้อง
+InvalidToAddress: ที่อยู่บัญชีผู้รับไม่ถูกต้อง
+Unexpected: เกิดข้อผิดพลาดที่ไม่คาดคิด
+DomainNotResolved: โดเมนไม่ได้เชื่อมต่อกับวอลเล็ต
+You can save this address for quick access while sending.: คุณสามารถบันทึกที่อยู่บัญชีนี้ไว้ได้เพื่อเข้าถึงได้ง่ายขึ้นเมื่อทำการส่ง.
+Stake Again: สเต็กอีกครั้ง
+Earned: ได้รับแล้ว
+Connect Dapp: เชื่อมต่อ Dapp
+Select wallets to use on this dapp: เลือกวอลเล็ตที่จะใช้ใน Dapp
+Connect: เชื่อมต่อ
+Dapp Permissions: สิทธิในการใช้ Dapp
+$dapp_can_view_balance: "%dappname% จะสามารถดูที่อยู่บัญชีและยอดเงินของวอลเล็ตของคุณได้."
+Send Transaction: ส่งการทำรายการ
+Payload: เปย์โหลด
+$many_transactions: "%1$d รายการ"
+Total Amount: มูลค่าสุทธิ
+Unstaking: ถอนการสเต็ก
+"Handle ton:// links": "รับลิงก์ ton://"
+Back up wallet to have full access to it: สำรองวอลเล็ตเพื่อให้เข้าถึงได้อย่างเต็มที่
+Consider More Secure Version: พิจารณาเวอร์ชันที่ปลอดภัยยิ่งขึ้น
+Install our native app or browser extension.: ติดตั้งแอปหรือส่วนขยายเบราว์เซอร์ของเรา.
+Scam: สแกม
+Scam comment is hidden.: หมายเหตุหลอกลวงถูกซ่อนอยู่.
+Display: แสดง
+$dapp_transfer_tokens_payload: กำลังส่ง %amount% จากบัญชีของคุณไปยัง %address%
+Connected Dapps: dApps ที่เชื่อมต่อแล้ว
+Disconnect All Dapps: ยกเลิกการเชื่อมต่อทั้งหมด
+Disconnect: ยกเลิกการเชื่อมต่อ
+Disconnect Dapp: ยกเลิกการเชื่อมต่อ dApp
+Disconnect Dapps: ยกเลิกการเชื่อมต่อ dApps
+Are you sure you want to disconnect?: คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการเชื่อมต่อ %dappname%?
+Are you sure you want to disconnect all websites?: คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการเชื่อมต่อทั้งหมด?
+$dapps-description: คุณสามารถล็อกอินไปยัง dApps ที่รองรับ MyTonWallet ได้. โดย Dapp นั้นจะสามารถดูที่อยู่บัญชี, ยอดเงิน, และส่งคำขอการทำรายการได้.
+Logged in with MyTonWallet: เข้าสู่ระบบด้วย MyTonWallet
+No active connections: ไม่มีการเชื่อมต่อ
+Other: อื่นๆ
+Assets & Activity: สินทรัพย์และกิจกรรม
+Tokens Settings: ตั้งค่าโทเคน
+Your Tokens: โทเคนของคุณ
+Add Token: เพิ่มโทเคน
+Delete Token: ลบโทเคน
+Are you sure you want to delete?: คุณแน่ใจหรือไม่ว่าต้องการลบโทเคน %token%?
+Hide Tokens With No Cost: ซ่อนโทเคนที่ไม่มีค่าใช้จ่าย
+Sort By Cost: เรียงตามมูลค่า
+Update: อัพเดต
+Restart: รีสตาร์ท
+Update MyTonWallet: อัพเดต MyTonWallet
+Connect Ledger: เชื่อมต่อ Ledger
+Connecting to your Ledger...: กำลังเชื่อมต่อกับ Ledger ของคุณ...
+Failed to connect: เชื่อมต่อไม่สำเร็จ
+Ledger Connected!: เชื่อมต่อ Ledger แล้ว!
+Select Ledger Wallets: เลือก Ledger วอลเล็ต
+"%1$d Selected": "%1$d ถูกเลือก"
+Add: เพิ่ม
+Try Again: ลองอีกครั้ง
+Driver: ไดรเวอร์
+Connect your Ledger to PC: เชื่อมต่อ Ledger ของคุณเข้ากับคอมพิวเตอร์
+Unlock it and open the TON App: ปิดล็อกและเปิดแอป TON
+Maybe you need to check the password or change the driver.: บางทีคุณอาจต้องตรวจสอบรหัสผ่านหรือเปลี่ยนเวอร์ชั่นของไดรเวอร์.
+Or import from...: หรือนำเข้าด้วย...
+Confirm via Ledger: ยืนยันด้วย Ledger
+Please confirm transaction on your Ledger: โปรดยืนยันการทำรายการบน Ledger ของคุณ
+Declined: ปฏิเสธ
+Create Wallet: สร้างวอลเล็ต
+Switch to the newly opened tab to connect Ledger.: สลับไปที่แท็บที่เพิ่งเปิดใหม่เพื่อเชื่อมต่อ Ledger.
+Once connected, switch back to this window to proceed.: หลังจากที่เชื่อมต่อแล้ว, สลับกลับไปยังหน้าต่างนี้เพื่อดำเนินการต่อ.
+Not all transactions were sent successfully: ไม่สามารถส่งการทำรายการได้ทั้งหมด
+The time on your device is incorrect, sync it and try again: เวลาของเครื่องของคุณไม่ถูกต้อง, โปรดทำการตั้งเวลาและลองใหม่อีกครั้ง
+Name or Address...: ชื่อหรือที่อยู่...
+Such error, many tabs: ข้อผิดพลาดเนื่องจากเปิดหลายแท็บ
+$many_tabs_error_description: |
+  MyTonWallet รองรับเพียงแท็บเดียวที่ใช้งานกับแอป.
+  โปรดโหลดหน้านี้ซ้ำเพื่อใช้แท็บนี้ต่อไปหรือปิดหน้านี้.
+Reload App: รีโหลดแอป
+Please confirm operation on your Ledger: โปรดยืนยันการทำรายการบน Ledger ของคุณ
+Token Not Found: ไม่พบโทเคน
+Try another keyword or address.: ลองค้นหาชื่อโทเคนหรือที่อยู่บัญชีอื่น.
+Decrypt: ถอดรหัส
+Encrypted Message: ข้อความที่ถูกเข้ารหัส
+Message is encrypted.: ข้อความถูกเข้ารหัสแล้ว.
+$dapp_ledger_warning1: คุณกำลังจะส่งธุรกรรมแบบหลายทางโดยใช้วอลเล็ต **Ledger** ของคุณ. คุณจำเป็นต้องลงนามในธุรกรรมที่เกี่ยวข้องกัน **ทีละรายการด้วยตนเอง**.
+$dapp_ledger_warning2: โปรดสละเวลาของคุณและอย่าขัดขวางกระบวนการนี้.
+Agree: ยอมรับ
+Unfortunately, this operation is not yet supported by Ledger wallet.: ขออภัย, ฟังก์ชันนี้ยังไม่รองรับการใช้งานผ่าน Ledger วอลเล็ต.
+Swap: สับเปลี่ยน
+You sell: การขายของคุณ
+You buy: การซื้อของคุณ
+Swap Details: รายละเอียดการสับเปลี่ยน
+Blockchain Fee: ค่าธรรมเนียมบล็อกเชน
+Routing Fees: ค่าธรรมเนียมเส้นทาง
+Included: รวมอยู่ด้วย
+Price Impact: ผลกระทบด้านราคา
+Minimum Received: ขั้นต่ำที่ได้รับ
+Slippage: ค่าความคลาดเคลื่อน
+$swap_from_to: จาก %from% เป็น %to%
+The exchange rate is below market value!: อัตราการแลกเปลี่ยนที่ %value% ต่ำกว่ามูลค่าตลาด!
+Invalid Pair: การจับคู่ไม่ถูกต้อง
+We do not recommend to perform an exchange, try to specify a lower amount.: เราไม่แนะนำให้ทำการแลกเปลี่ยน, โปรดระบุจำนวนที่ต่ำกว่านี้.
+$swap_minimum_received_tooltip1: นี่คือจำนวนโทเค็นใหม่ที่ตำ่สุดที่คุณจะได้รับจากการแลกเปลี่ยนนี้ โดยพิจารณาจากสภาวะตลาดในปัจจุบัน การยอมรับความคลาดเคลื่อนของราคา และผลกระทบด้านราคาที่อาจเกิดขึ้น.
+$swap_minimum_received_tooltip2: ซึ่งเป็นจำนวนขั้นต่ำที่คาดไว้, แต่อาจจะเงื่อนไขเปลี่ยนแปลงไปในขณะที่กำลังประมวลผลระหว่างสับเปลี่ยน จำนวนมูลค่าที่ได้รับอาจจะลดลง.
+$swap_routing_fees_tooltip: ทั้งนี้อัตราแลกเปลี่ยนและค่าธรรมเนียมแอป (~0.875%) รวมอยู่ในราคาที่คุณเห็นแล้วและจะไม่ถูกเรียกเพิ่มเติม.
+$swap_price_impact_tooltip1: นี่แสดงให้เห็นว่าการแลกเปลี่ยนของคุณอาจเปลี่ยนแปลงราคาโทเค็นได้มากเพียงใด.
+$swap_price_impact_tooltip2: หากมีซื้อขายขนาดใหญ่เกิดขึ้นอาจทำให้ราคาขึ้นหรือลงอย่างรวดเร็ว, ซื้อขายขนาดเล็กจะมีผลดีกว่า.
+$swap_slippage_tooltip1: นี่เป็นราคาที่กำหนดที่อนุญาตให้เปลี่ยนแปลงได้ก่อนที่การสับเปลี่ยนของคุณจะถูกประมวลผล.
+$swap_slippage_tooltip2: หากระหว่างการประมวลผลสับเปลี่ยนของคุณ, แล้วมีราคาเปลี่ยนแปลงเกิดขึ้น, ออเดอร์ของคุณจะถูกยกเลิก.
+Coins have been swapped!: โทเคนถูกสับเปลี่ยนแล้ว!
+Slippage not specified: ค่าความคลาดเคลื่อนไม่ได้ถูกระบุ
+Slippage too high: ค่าความคลาดเคลื่อนสูงเกินไป
+Not enough TON: TON มีไม่เพียงพอ
+Use Responsibly: ใช้อย่างมีความรับผิดชอบ
+$auth_responsibly_description1: |
+  MyTonWallet เป็นกระเป๋าเงินแบบ **จัดการด้วยตัวเอง** ซึ่งหมายความว่า **มีเพียงคุณเท่านั้น** ที่สามารถควบคุมได้อย่างเต็มที่, และที่สำคัญที่สุด, คุณเท่านั้นที่ **ความรับผิดชอบต่อสิ่งที่เกิดขึ้น** ต่อทรัพย์สินของคุณ.
+$auth_responsibly_description2: |
+  รหัสส่วนตัวของคุณจะถูกเก็บไว้ในอุปกรณ์ของคุณและอยู่ภายใต้ **การโจมตีของแฮ็กเกอร์** หากคอมพิวเตอร์ของคุณติด **มัลแวร์** เงินของคุณอาจถูกขโมยได้.
+$auth_responsibly_description3: |
+  ทีมงาน MyTonWallet **ไม่รับผิดชอบ** ต่อความปลอดภัยของทรัพย์สินของคุณ เช่นเดียวกับผู้ผลิตคอมพิวเตอร์หรือผู้ให้บริการอินเทอร์เน็ตของคุณ.
+$auth_responsibly_description4: |
+  **อย่า** เก็บเงินทั้งหมดของคุณไว้ในที่เดียวกัน. จง **กระจายความเสี่ยง** และใช้ซอฟต์แวร์และฮาร์ดแวร์ที่หลากหลาย **ทำการค้นคว้าของคุณเอง** และเรียนรู้เพิ่มเติมเกี่ยวกับความปลอดภัยของคริปโตอยู่เสมอ.
+Start Wallet: เริ่มใช้งานวอลเล็ต
+$auth_backup_warning_notice: |
+  Now you need to manually **back up secret keys** in case you forget your password or lose access to this device.
+Later: ภายหลัง
+Back Up Now: สํารองข้อมูลตอนนี้
+I have read and accept this information: ฉันได้อ่านและยอมรับข้อมูลนี้
+$ledger_verify_address: โปรดยืนยันที่อยู่บัญชีที่วางไว้โดยใช้ Ledger ของคุณ.
+$ledger_not_ready: Ledger ไม่ได้เชื่อมต่อหรือแอป TON ยังไม่เปิด.
+Verify now: ยืนยันตอนนี้
+Invalid address format. Only URL Safe Base64 format is allowed.: รูปแบบที่กรอกไม่ถูกต้อง. กรอกเฉพาะ URL Safe Base64 ที่อนุญาตเท่านั้น.
+$auth_backup_description1: |
+  นี้เป็น **วอลเล็ตที่ปลอดภัย**
+  และเป็น **จัดการด้วยโดยตัวคุณเท่านั้น**.
+$auth_backup_description2: "และ พลังอันยิ่งใหญ่มาพร้อมกับ **ความรับผิดชอบที่ใหญ่ยิ่ง**."
+$auth_backup_description3: |
+  คุณต้อง **สำรองซีเคร็ทคีย์** ด้วยตนเอง ในกรณีที่คุณลืมรหัสผ่านหรือสูญเสียการเข้าถึงอุปกรณ์นี้.
+Swap Placed: สับเปลี่ยนการวางแล้ว
+Swapping: กำลังสับเปลี่ยน
+Swapped: สับเปลี่ยนแล้ว
+Swap Failed: สับเปลี่ยนไม่สำเร็จ
+Exchange rate: อัตราการแลกเปลี่ยน
+Swap Again: สับเปลี่ยนอีกครั้ง
+Terms of Use: ข้อกำหนดการใช้งาน
+Privacy Policy: นโยบายความเป็นส่วนตัว
+Insufficient liquidity: สภาพคล่องไม่เพียงพอ
+This address is new and never received transfers before.: ที่อยู่บัญชีนี้เป็นบัญชีใหม่และไปเคยมีการโอนมาก่อน.
+Create Backup: สร้างการสํารองข้อมูล
+Sending: กำลังส่ง
+Failed: ไม่สำเร็จ
+Refunded: คืนเงินแล้ว
+On hold: หยุดชั่วคราว
+Expired: หมดอายุ
+In progress: กำลังดำเนินการ
+Waiting for Payment: กำลังรอการชำระ
+Waiting for payment: กำลังรอการชำระ
+Blockchain: บล็อกเชน
+Receiving address in blockchain: กำลังรับที่อยู่บัญชีใน %blockchain% บล็อกเชน
+Please provide an address of your wallet in another blockchain to receive bought tokens.: โปรดระบุที่อยู่บัญชีของคุณในบล็อกเชนอื่น ๆ เพื่อรับโทเคนที่ซื้อได้.
+The time for sending coins is over: เวลาส่งโทเคนหมดลงแล้ว
+Please wait a few moments...: กรุณารอสักครู่...
+You have not sent the coins to the specified address.: คุณยังไม่ได้ส่งโทเคนไปยังที่อยู่ที่กำหนดไว้.
+$swap_changelly_to_ton_description1: "ส่ง %value% ไปยังที่อยู่นี้ใน %blockchain% บล็อกเชนภายใน %time%"
+Please contact support and provide a transaction ID.: โปรดติดต่อผู้ดูแลระบบและระบุเลขที่ของการทำรายการ.
+Exchange failed and coins were refunded to your wallet.: การแลกเปลี่ยนไม่สำเร็จและโทเคนถูกคืนเงินไปยังวอลเล็ตของคุณ.
+Please contact security team to pass the KYC procedure.: โปรดติดต่อทีมที่ดูแลเรื่องความปลอดภัยเพื่อทำการยืนยันตัวตน.
+Swap Expired: การสับเปลี่ยนได้หมดอายุ
+Swap On Hold: การสับเปลี่ยนได้หยุดชั่วคราว
+Swap Refunded: การสับเปลี่ยนถูกคืนเงินแล้ว
+Changelly Payment Address: ที่อยู่ในการชำระของ Changelly
+Cross-chain exchange provided by Changelly: การแลกเปลี่ยนระหว่างเชนทำอยู่บน Changelly 
+$swap_changelly_agreement_message: การดำเนินการต่อ, แสดงว่าคุณยอมรับ %terms% และ %policy% และเข้าใจว่าธุรกรรมอาจเกิดการทริกเกอร์การยืนยันตาม %kyc%
+$swap_changelly_terms_of_use: ข้อกำหนดการใช้งาน 
+$swap_changelly_privacy_policy: นโยบายความเป็นส่วนตัว
+Password must contain %length% digits.: รหัสผ่านต้องมีอย่างน้อย %length% หลัก.
+Deposit Link: ลิงก์การฝาก 
+$swap_changelly_from_ton_description: "โทเคนจะถูกส่งไปยังที่อยู่ของคุณใน %blockchain% บล็อกเชนในอีกสักครู่:"
+Please note that it may take up to a few hours for tokens to appear in your wallet.: โปรดทราบว่าอาจใช้เวลาสองสามชั่วโมงก่อนที่โทเค็นจะปรากฏในวอลเล็ตของคุณ.
+Minimum amount: ขั้นต่ำที่ %value%
+Maximum amount: สูงสุดที่ %value%
+Display Tray Icon: แสดงไอคอนของแถบเมนู
+Enable Auto-Updates: เปิดการอัพเดทอัตโนมัติ
+Biometric Authentication: รับรองความปลอดภัยด้วย Biometric
+If you turn off biometric protection, you will need to create a password.: หากคุณปิดการรับรองความปลอดภัย Biometric คุณจะต้องสร้างรหัสผ่าน.
+Enter your current password: กรอกรหัสผ่านของคุณ
+Turn On Biometrics: เปิดการใช้งาน Biometrics
+Please confirm transaction using biometrics.: โปรดยืนยันการทำรายการด้วย Biometrics.
+Enabling biometric confirmation will reset the password.: การเปิดใช้งานการยืนยันด้วย Biometric จะรีเซ็ตรหัสผ่านของคุณ.
+Biometric Registration: ลงทะเบียนด้วย Biometric
+Step 1 of 2. Registration: ขั้นตอน 1 จาก 2. ลงทะเบียน
+Step 2 of 2. Verification: ขั้นตอน 2 จาก 2. ยืนยันความถูกต้อง
+Biometric setup failed.: การตั้งค่าความปลอดภัยด้วย Biometric ล้มเหลว.
+Biometric confirmation failed.: การยืนยันด้วย Biometric ล้มเหลว.
+Failed to disable biometrics.:  การปิดการใช้งาน Biometrics ล้มเหลว.
+Biometric Confirmation: การยืนยันด้วย Biometric
+Please verify the operation.: โปรดยืนยันการทำรายการ.
+Create Password: สร้างรหัสผ่าน
+Complete: สำเร็จ
+Verification: ยืนยันความถูกต้อง
+Create a password or use biometric authentication to protect it.: คุณสามารถสร้างรหัส หรือใช้ Biometric ในการปกป้องวอลเล็ตของคุณ.
+Connect Biometrics: เซื่อมต่อ Biometrics
+Use Password: ใช้รหัสผ่าน
+Biometrics Disabled: Biometrics ได้ถูกปิดใช้งาน
+Biometrics Enabled: Biometrics ได้ถูกเปิดใช้งาน
+A request is already pending: คำขอเคยส่งไปแล้ว
+Please confirm operation using biometrics.: โปรดยืนยันการทำรายการด้วย Biometrics.
+Scan QR Code: สแกน QR Code
+Permission denied. Please grant camera permission to use the QR code scanner.: ไม่ได้รับการอนุญาต. โปรดอนุญาตให้แอปใช้กล้องเพื่อใช้งานในการสแกน QR Code.
+Unsupported QR code format: รูปแบบ QR Code ไม่ได้รองรับ
+An error on the server side. Please try again.: เกิดข้อผิดพลาดบนเซิร์ฟเวอร์. โปรดลองใหม่อีกครั้ง.
+Unrecognized QR Code: ไม่รู้จัก QR Code นี้
+$fee_value_almost_equal: ค่าธรรมเนียม ≈ %fee%
+Address was saved!: ที่อยู่บัญชีถูกบันทึกแล้ว!
+US Dollar: ยูเอส ดอลลาร์
+Euro: ยูโร
+Ruble: รูเบิล
+Yuan: หยวน
+Bitcoin: บิทคอยน์
+Toncoin: ทอนคอยน์
+$max_balance: "สูงสุด: %balance%" 
+$unstake_information_instantly: คุณจะได้รับฝากภายในอีกที่สักครู่.
+Select Token: เลือกโทเคน
+MY: ของฉัน
+POPULAR: เป็นที่นิยม
+A-Z: A-Z
+Not Found: ไม่พบป
+Wallet is ready!: วอลเล็ตพร้อมใช้งานแล้ว!
+Wallet is imported!: นำเข้าวอลเล็ตเรียบร้อยแล้ว!
+Create a code to protect it: สร้างรหัสผ่านเพื่อปกป้องวอลเล็ตของคุณ
+Enter your code again: กรอกรหัสผ่านอีกครั้ง
+Codes don't match: รหัสผ่านไม่ตรงกัน
+Code set successfully: รหัสผ่านถูกตั้งค่าสำเร็จ
+Use Biometrics: ใช้ Biometrics
+Use Touch ID: ใช้ Touch ID
+Use Face ID: ใช้ Face ID
+You can connect your biometric data for more convenience: คุณสามารถเชื่อมต่อข้อมูล Biometric ของคุณเพื่อใช้งานได้อย่างเต็มที่
+Connect Touch ID: เชื่อมต่อ Touch ID
+Connect Face ID: เชื่อมต่อ Face ID
+Not Now: ไม่ตอนนี้
+Biometric Authentification: รับรองความปลอดภัยด้วย Biometric
+Touch ID: Touch ID
+Face ID: Face ID
+Turn Off Touch ID: ปิดการใช้งาน Touch ID
+Turn Off Face ID:  ปิดการใช้งาน Face ID
+Turn Off Biometrics: ปิดการใช้งาน Biometrics
+Enter code: กรอกรหัสผ่าน
+Enter code or use Face ID: กรอกรหัสผ่านหรือใช้ Face ID
+Enter code or use Touch ID: กรอกรหัสผ่านหรือใช้ Touch ID
+Enter code or use biometrics: กรอกรหัสผ่านหรือใช้ Biometrics
+Wrong code, please try again: รหัสผ่านไม่ถูกต้อง, โปรดลองใหม่อีกครั้ง
+Scan your fingerprint: สแกนลายนิ้วมือของคุณ
+Incorrect code, please try again.:  รหัสผ่านไม่ถูกต้อง, โปรดลองใหม่อีกครั้ง.
+Correct: ถูกต้อง
+Confirm Operation: ยืนยันการทำรายการ
+Confirm Swap: ยืนยันการสับเปลี่ยน
+"%amount% to %address%": "%amount% ไปที่ %address%"
+"%amount_from% to %amount_to%": "%amount_from% ไปที่ %amount_to%"
+Failed to enable biometrics.: เปิดการใช้งาน Biometrics ไม่สำเร็จ.
+Please try to confirm your biometrics again.: กรุณาลองเชื่อมต่อ Biometrics ของคุณใหม่อีกครั้ง.
+Unknown error.: ข้อผิดพลาดที่ไม่รู้จัก.
+Are you sure you want to disable Face ID?: คุณแน่ใจหรือไม่ว่าจะปิดใช้งาน Face ID?
+Are you sure you want to disable Touch ID?: คุณแน่ใจหรือไม่ว่าจะปิดใช้งาน Touch ID?
+Are you sure you want to disable biometrics?: คุณแน่ใจหรือไม่ว่าจะปิดใช้งาน Biometrics?
+Yes: ใช่
+Declined. Please try to confirm transaction using biometrics again.: ไม่อนุญาต. โปรดลองยืนยันการทำรายการด้วย Biometrics ของคุณใหม่อีกครั้ง.
+No Activity: ไม่มีกิจกรรม
+Add / Buy: เพิ่ม / ซื้อ
+Buy with Card: ซื้อด้วยบัตร
+Buy with Crypto: ซื้อด้วยคริปโต
+Receive with QR or Invoice: รับด้วย QR หรือ Invoice
+Cannot load widget: ไม่สามารถโหลดวิดเจ็ตได้
+Explore: สำรวจ
+No partners yet: ยังไม่มีพาร์ทเนอร์
+Clear: ล้าง
+Get TON: รับ TON 
+Declined. Please try to confirm operation using biometrics again.: ไม่อนุญาต. โปรดลองยืนยันการทำรายการด้วย Biometrics ของคุณใหม่อีกครั้ง.
+$unstake_up_to_information: ทันที – ถึง %value%
+$all_balance: "ทั้งหมด: %balance%" 
+$unstaking_not_enough_balance: คุณจำเป็นต้องมี %value% ในบัญชีหลักของคุณเพื่อดำเนินการการถอน.
+$ledger_verify_address_on_device: ตรวจสอบที่อยู่บัญชีในอุปกรณ์ Ledger ของคุณ.
+Wallet Versions: วอลเล็ตเวอร์ชัน 
+$read_more_about_wallet_version: อ่านเพิ่มเติมเกี่ยวกับประเภทของวอลเล็ตได้ที่ %ton_link%.
+$current_wallet_version: เวอร์ชั่นของวอลเล็ตของคุณคือ %version%.
+You have tokens on other versions of your wallet. You can import them from here.: คุณมีโทเคนในวอลเล็ตเวอร์ชั่นอื่น ๆ ของคุณ. คุณสามารถนำเข้าได้จากที่นี้.
+$wallet_switch_version_1: คุณสามารถ %action% ได้.  
+$wallet_switch_version_2: สับเปลี่ยนเวอร์ชั่นของวอลเล็ต
+or import from: หรือนำเข้า 
+$insufficient_fee: "ค่าธรรมเนียมไม่เพียงพอ: %fee%"
+Required: จำเป็น
+Transaction to this smart contract is not yet supported by Ledger.: การทำธุรกรรมไปยังสมาร์ทคอนแทรคนี้ยังไม่รองรับบน Ledger.
+This type of transaction is not yet supported by Ledger.: การทำธุรกรรมประเภทนี้นี้ยังไม่รองรับบน Ledger.
+The current version of Ledger only supports English-language comments without special characters.: Ledger เวอร์ชั่นนี้รองรับการหมายเหตุแค่ภาษาอังกฤษและไม่ใช้อักขระพิเศษ เท่านั้น.
+Comment is too long.: หมายเหตุยาวเกินไป.
+Transferring NFT is not yet supported by Ledger.: การโอน NFT ยังไม่รองรับบน Ledger.
+Encrypted comments are not yet supported by Ledger.: การเข้ารหัสหมายเหตุยังไม่รองรับบน Ledger.
+Memo: จดบันทึก
+Memo was copied!: บันทึกถูกคัดลอกแล้ว!
+$hide_tokens_no_cost_help: |
+  ปิดการแสดงรายการที่มีมูลค่าไม่เกิน $%value%. โปรดทราบว่าธุรกรรมดังกล่าวมักมีวัตถุประสงค์ในการสแปมและการหลอกลวง.
+  คุณยังสามารถเลือกเปิดใช้งานและปิดใช้งานโทเค็นโดยเฉพาะได้จากรายการด้านล่างจอบนนี้.
+No internet connection. Please check your connection and try again.: ไม่มีการเชื่อมต่ออินเตอร์เน็ต. โปรดตรวจสอบการเชื่อมต่อของคุณและลองใหม่อีกครั้ง.
+To use this feature, first enable Face ID in your phone settings.: เพื่อที่จะใช้ฟีเจอร์นี้, คุณต้องเปิดใช้งาน Face ID ในการตั้งค่าบนโทรศัพท์ของคุณ.
+To use this feature, first enable biometrics in your phone settings.: เพื่อที่จะใช้ฟีเจอร์นี้, คุณต้องเปิดใช้งาน Biometrics ในการตั้งค่าบนโทรศัพท์ของคุณ.
+Open Settings: เปิดการตั้งค่า
+You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: คุณกำลังจะโอนโทเค็นบริการที่สำคัญ, ซึ่งจำเป็นในการถอนจากทรัพย์สินจากการสเต็กของคุณ.
+No Price: ไม่มีราคา
+Search or enter address...: ค้นหา หรือ กรอกที่อยู่บัญชี...
+Connecting dapps is not yet supported by Ledger.: การเชื่อมต่อ dApps ยังไม่รองรับบน Ledger.
+Time synchronization issue. Please ensure your device's time settings are correct.: การซิงโครไนซ์เวลามีปัญหา, โปรดตรวจสอบให้แน่ใจว่าได้ตั้งค่าเวลาของอุปกรณ์ของคุณถูกต้อง.
+Data was copied!: ข้อมูลถูกคัดลอกแล้ว!
+Open NFT Collection: เปิด NFT คอลเลกชัน
+Previous: ก่อน
+Next: ถัดไป
+NftInsufficientBalance: TON ไม่พอสำหรับค่าธรรมเนียม.
+Send NFT: ส่ง NFT
+NFT has been sent!: NFT ถูกส่งแล้ว!
+Cannot be sent: ไม่สามารถส่งได้
+NFT is for sale: NFT สำหรับขาย
+More actions: เพิ่มเติม
+Open on TONScan: เปิดบน TONScan
+Swap is not supported in Testnet.: การสับเปลี่ยนยังไม่รองรับบน Testnet.
+Swap is not yet supported by Ledger.: การสับเปลี่ยนยังไม่รองรับบน Ledger.
+Buying with card is not supported in Testnet.: การซื้อด้วยบัตรยังไม่รองรับบน Testnet.
+Staking is not supported in Testnet.: การสเต็กยังไม่รองรับบน Testnet.
+Get Support: ขอความช่วยเหลือ
+Successfully: สำเร็จแล้ว
+Unstake More: ถอนการสเต็กเพิ่ม
