@@ -13,6 +13,7 @@ import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
   ApiDappTransaction,
   ApiNetwork,
+  ApiNft,
   ApiSignedTransfer,
   ApiSubmitTransferOptions,
   Workchain,
@@ -27,6 +28,8 @@ import { TON_TOKEN_SLUG } from '../../config';
 import { callApi } from '../../api';
 import {
   DEFAULT_IS_BOUNCEABLE,
+  NFT_TRANSFER_TON_AMOUNT,
+  NFT_TRANSFER_TON_FORWARD_AMOUNT,
   TOKEN_TRANSFER_TON_AMOUNT,
   TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
   WALLET_IS_BOUNCEABLE,
@@ -181,7 +184,6 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
   let payload: TonPayloadFormat | undefined;
   const parsedAddress = Address.parseFriendly(toAddress);
   let isBounceable = parsedAddress.isBounceable;
-  // Force default bounceable address for `waitTxComplete` to work properly
   const normalizedAddress = parsedAddress.address.toString({ urlSafe: true, bounceable: DEFAULT_IS_BOUNCEABLE });
 
   if (slug !== TON_TOKEN_SLUG) {
@@ -250,13 +252,7 @@ export async function buildLedgerTokenTransfer(
   }
 
   // eslint-disable-next-line no-null/no-null
-  let forwardPayload: Cell | null = null;
-  if (comment) {
-    forwardPayload = new Builder()
-      .storeUint(0, 32)
-      .storeStringTail(comment)
-      .endCell();
-  }
+  const forwardPayload = comment ? buildCommentPayload(comment) : null;
 
   const payload: TonPayloadFormat = {
     type: 'jetton-transfer',
@@ -275,6 +271,84 @@ export async function buildLedgerTokenTransfer(
     toAddress: tokenWalletAddress!,
     payload,
   };
+}
+
+export async function submitLedgerNftTransfer(
+  accountId: string,
+  nftAddress: string,
+  toAddress: string,
+  nft: ApiNft,
+  comment?: string,
+  fee?: bigint,
+) {
+  const { network } = parseAccountId(accountId);
+
+  await callApi('waitLastTransfer', accountId);
+
+  const fromAddress = await callApi('fetchAddress', accountId);
+
+  const [path, walletInfo] = await Promise.all([
+    getLedgerAccountPath(accountId),
+    callApi('getWalletInfo', network, fromAddress!),
+  ]);
+
+  const { seqno } = walletInfo!;
+
+  // eslint-disable-next-line no-null/no-null
+  const forwardPayload = comment ? buildCommentPayload(comment) : null;
+
+  const payload: TonPayloadFormat = {
+    type: 'nft-transfer',
+    queryId: 0n,
+    newOwner: Address.parse(toAddress),
+    responseDestination: Address.parse(fromAddress!),
+    // eslint-disable-next-line no-null/no-null
+    customPayload: null,
+    forwardAmount: NFT_TRANSFER_TON_FORWARD_AMOUNT,
+    forwardPayload,
+  };
+
+  const slug = TON_TOKEN_SLUG;
+  const amount = NFT_TRANSFER_TON_AMOUNT;
+
+  try {
+    const signedCell = await tonTransport!.signTransaction(path, {
+      to: Address.parse(nftAddress),
+      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+      seqno: seqno!,
+      timeout: getTransferExpirationTime(),
+      bounce: true,
+      amount,
+      payload,
+    });
+
+    const message: ApiSignedTransfer = {
+      base64: signedCell.toBoc().toString('base64'),
+      seqno: seqno!,
+      params: {
+        amount,
+        fromAddress: fromAddress!,
+        toAddress,
+        comment,
+        fee: fee ?? 0n,
+        slug,
+        nft,
+        type: 'nftTransferred',
+      },
+    };
+
+    return await callApi('sendSignedTransferMessage', accountId, message);
+  } catch (error) {
+    logDebugError('submitLedgerNftTransfer', error);
+    return undefined;
+  }
+}
+
+function buildCommentPayload(comment: string) {
+  return new Builder()
+    .storeUint(0, 32)
+    .storeStringTail(comment)
+    .endCell();
 }
 
 export async function signLedgerTransactions(

@@ -356,6 +356,7 @@ addActionHandler('submitTransferHardware', async (global) => {
     rawPayload,
     parsedPayload,
     stateInit,
+    nft,
   } = global.currentTransfer;
 
   const accountId = global.currentAccountId!;
@@ -403,7 +404,20 @@ addActionHandler('submitTransferHardware', async (global) => {
     fee,
   };
 
-  const result = await ledgerApi.submitLedgerTransfer(options);
+  let result: string | undefined;
+
+  if (nft) {
+    result = await ledgerApi.submitLedgerNftTransfer(
+      accountId,
+      nft.address,
+      resolvedAddress!,
+      nft,
+      comment,
+      fee,
+    );
+  } else {
+    result = await ledgerApi.submitLedgerTransfer(options);
+  }
 
   const error = result === undefined ? 'Transfer error' : undefined;
 

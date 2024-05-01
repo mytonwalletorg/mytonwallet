@@ -141,7 +141,6 @@ NFT: NFT
 No NFTs yet: NFT 空空如也···
 $nft_explore_offer: |
   在市场中寻找心仪的 NFT 收藏。
-$nft_hardware_unsupported: 不幸的是，Ledger 钱包尚不支持传输 NFT。
 Open Getgems: 打开 Getgems
 Transaction is not completed: 交易未完成
 Received: 已收到

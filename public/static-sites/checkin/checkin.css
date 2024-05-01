@@ -1,3 +1,7 @@
+a:hover {
+  opacity: 0.8;
+}
+
 .animate-opacity {
   transition: opacity 200ms ease;
 }
@@ -25,6 +29,29 @@
 .container {
   min-width: 18rem;
   padding: 0.5rem 1rem;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.mono {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #007BFF;
+  text-decoration: none;
+}
+
+.white-link {
+  font-size: 0.75rem;
+  color: white;
+  text-decoration: none;
+
+  border-bottom: 1px dotted white;
+}
+
+.white-link:hover {
+  border-bottom-color: transparent;
 }
 
 #slide-container {
@@ -59,17 +86,6 @@
 
 #error {
   color: #B03737;
-}
-
-#ref-container .text-link {
-  font-family: monospace;
-  font-size: 1rem;
-  color: #007BFF;
-  text-decoration: none;
-}
-
-#ref-container .text-link:hover {
-  opacity: 0.8;
 }
 
 #ref-container .download-btn {

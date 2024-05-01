@@ -106,9 +106,14 @@ export async function sendTransaction(params: {
   await openPopupWindow();
   await waitLogin();
 
-  const checkResult = await ton.checkTransactionDraft(
-    accountId, TON_TOKEN_SLUG, toAddress, amount, processedData, processedStateInit,
-  );
+  const checkResult = await ton.checkTransactionDraft({
+    accountId,
+    slug: TON_TOKEN_SLUG,
+    toAddress,
+    amount,
+    data: processedData,
+    stateInit: processedStateInit,
+  });
 
   if ('error' in checkResult) {
     onPopupUpdate({

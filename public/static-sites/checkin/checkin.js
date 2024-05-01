@@ -22,10 +22,14 @@ connector.disconnect();
 // connector.restoreConnection();
 connector.onStatusChange(handleConnectorStatusChange);
 
-const checkinBtn = document.getElementById('checkin-btn');
+const checkinBtn = $('checkin-btn');
 
 setupButtons();
 setTimeout(connect, 1000);
+
+function $(id) {
+  return document.getElementById(id);
+}
 
 async function connect() {
   const walletsList = await connector.getWallets();
@@ -95,7 +99,7 @@ function createCaptchaWidget() {
 }
 
 function showSlide(id) {
-  Array.from(document.getElementById('slide-container').children)
+  Array.from($('slide-container').children)
     .forEach((child) => {
       child.classList.toggle('faded', child.id !== id);
     });
@@ -118,6 +122,8 @@ async function submitCheckin(captchaToken) {
     showError(err.toString());
   });
 
+  if (!response) return;
+
   if (!response.ok) {
     const json = await response.json();
     showError(`${response.error || response.status}. Response: ${json?.error ?? JSON.stringify(json)}`);
@@ -131,13 +137,13 @@ async function submitCheckin(captchaToken) {
     return;
   }
 
-  handleSuccess();
+  handleSuccess(data.refAddress, data.refCount);
 }
 
-function handleSuccess() {
+function handleSuccess(refAddress, refCount) {
   showSlide('ref-container');
 
-  const refContainerEl = document.getElementById('ref-container');
+  const refContainerEl = $('ref-container');
   const linkEl = refContainerEl.querySelector('a');
   linkEl.addEventListener('click', handleCopy);
   linkEl.innerHTML = [
@@ -145,10 +151,14 @@ function handleSuccess() {
     address.slice(0, 24),
     address.slice(24),
   ].join('<br />');
+
+  $('show-referral-stats').classList.remove('faded');
+  $('invited-me').textContent = shortenAddress(refAddress);
+  $('invited-by-me').textContent = refCount;
 }
 
 function showError(msg) {
-  const errorEl = document.getElementById('error');
+  const errorEl = $('error');
   errorEl.textContent = msg;
 
   showSlide('error');
@@ -156,13 +166,13 @@ function showError(msg) {
 
 function setupButtons() {
   if (navigator.clipboard) {
-    const copyBtnEl = document.getElementById('copy-btn');
+    const copyBtnEl = $('copy-btn');
     copyBtnEl.addEventListener('click', handleCopy);
     copyBtnEl.classList.remove('hidden');
   }
 
   if (navigator.canShare) {
-    const shareBtnEl = document.getElementById('share-btn');
+    const shareBtnEl = $('share-btn');
     shareBtnEl.addEventListener('click', handleShare);
     shareBtnEl.classList.remove('hidden');
   }
@@ -173,6 +183,9 @@ function setupButtons() {
 
     window.open(e.currentTarget.href);
   });
+
+  $('show-referral-stats').addEventListener('click', showReferralStats);
+  document.body.addEventListener('dblclick', showReferralStats);
 }
 
 function handleCopy(e) {
@@ -182,7 +195,7 @@ function handleCopy(e) {
 
   navigator.clipboard.writeText(getRefLink());
 
-  const copyBtnEl = document.getElementById('copy-btn');
+  const copyBtnEl = $('copy-btn');
   copyBtnEl.textContent = 'Copied!';
   copyBtnEl.classList.add('disabled');
 
@@ -227,4 +240,20 @@ function getPlatform() {
   if (windowsPlatforms.indexOf(platform) !== -1) return 'Windows';
 
   return undefined;
+}
+
+function showReferralStats() {
+  $('show-referral-stats').classList.add('hidden');
+
+  const referralStatsEl = $('referral-stats');
+  referralStatsEl.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    referralStatsEl.classList.remove('faded');
+  });
+}
+
+function shortenAddress(address, shift = 6, fromRight = shift) {
+  if (!address) return undefined;
+
+  return `${address.slice(0, shift)}…${address.slice(-fromRight)}`;
 }

@@ -61,9 +61,15 @@ export function checkTransactionDraft(
 ) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
-  return blockchain.checkTransactionDraft(
-    accountId, slug, toAddress, amount, comment, undefined, shouldEncrypt, isBase64Data,
-  );
+  return blockchain.checkTransactionDraft({
+    accountId,
+    slug,
+    toAddress,
+    amount,
+    data: comment,
+    shouldEncrypt,
+    isBase64Data,
+  });
 }
 
 export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCreateLocalTransaction = true) {

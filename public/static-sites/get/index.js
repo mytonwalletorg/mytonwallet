@@ -74,6 +74,10 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
   setupVersion();
 }());
 
+function $(id) {
+  return document.getElementById(id);
+}
+
 function getPlatform() {
   const {
     userAgent,
@@ -183,14 +187,28 @@ function areSignaturesPresent() {
 }
 
 function setupRateButtons() {
-  if (platform === 'iOS') {
-    document.getElementById('rate-google-play').classList.add('secondary-btn');
-    document.getElementById('rate-chrome-web-store').classList.add('secondary-btn');
-  } else if (platform === 'Android') {
-    document.getElementById('rate-app-store').classList.add('secondary-btn');
-    document.getElementById('rate-chrome-web-store').classList.add('secondary-btn');
+  $('vote-certik').classList.remove('hidden');
+
+  const rand = Math.random();
+  if (rand < 0.5) {
+    Array.from(document.body.querySelectorAll('.store')).forEach((btnEl) => {
+      btnEl.classList.remove('hidden');
+    });
+
+    if (platform === 'iOS') {
+      $('rate-google-play').classList.add('secondary-btn');
+      $('rate-chrome-web-store').classList.add('secondary-btn');
+    } else if (platform === 'Android') {
+      $('rate-app-store').classList.add('secondary-btn');
+      $('rate-chrome-web-store').classList.add('secondary-btn');
+    } else {
+      $('rate-app-store').classList.add('secondary-btn');
+      $('rate-google-play').classList.add('secondary-btn');
+    }
   } else {
-    document.getElementById('rate-app-store').classList.add('secondary-btn');
-    document.getElementById('rate-google-play').classList.add('secondary-btn');
+    // Hide store buttons
+    Array.from(document.body.querySelectorAll('.non-store')).forEach((btnEl) => {
+      btnEl.classList.remove('hidden');
+    });
   }
 }

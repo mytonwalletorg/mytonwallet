@@ -109,16 +109,27 @@ export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, ad
   return Boolean(transactions.length);
 });
 
-export async function checkTransactionDraft(
-  accountId: string,
-  tokenSlug: string,
-  toAddress: string,
-  amount: bigint,
-  data?: AnyPayload,
-  stateInit?: Cell,
-  shouldEncrypt?: boolean,
-  isBase64Data?: boolean,
-): Promise<CheckTransactionDraftResult> {
+export async function checkTransactionDraft(options: {
+  accountId: string;
+  slug: string;
+  toAddress: string;
+  amount: bigint;
+  data?: AnyPayload;
+  stateInit?: Cell;
+  shouldEncrypt?: boolean;
+  isBase64Data?: boolean;
+  shouldSkipHardwareChecking?: boolean;
+}): Promise<CheckTransactionDraftResult> {
+  const {
+    accountId,
+    slug,
+    stateInit,
+    shouldEncrypt,
+    isBase64Data,
+    shouldSkipHardwareChecking,
+  } = options;
+  let { toAddress, amount, data } = options;
+
   const { network } = parseAccountId(accountId);
 
   let result: CheckTransactionDraftResult = {};
@@ -136,7 +147,7 @@ export async function checkTransactionDraft(
 
     if (result.isBounceable && !isInitialized) {
       result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
-      if (tokenSlug === TON_TOKEN_SLUG) {
+      if (slug === TON_TOKEN_SLUG) {
         // Force non-bounceable for non-initialized recipients
         toAddress = toBase64Address(toAddress, false, network);
       }
@@ -176,7 +187,7 @@ export async function checkTransactionDraft(
     const account = await fetchStoredAccount(accountId);
     const isLedger = !!account.ledger;
 
-    if (isLedger && !isLedgerAllowed) {
+    if (isLedger && !isLedgerAllowed && !shouldSkipHardwareChecking) {
       return {
         ...result,
         error: ApiTransactionDraftError.UnsupportedHardwareContract,
@@ -187,8 +198,13 @@ export async function checkTransactionDraft(
       data = commentToBytes(data);
     }
 
-    if (tokenSlug === TON_TOKEN_SLUG) {
-      if (data && isLedger && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))) {
+    if (slug === TON_TOKEN_SLUG) {
+      if (
+        data
+        && isLedger
+        && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))
+        && !shouldSkipHardwareChecking
+      ) {
         let error: ApiTransactionDraftError;
         if (typeof data !== 'string') {
           error = ApiTransactionDraftError.UnsupportedHardwareOperation;
@@ -215,7 +231,7 @@ export async function checkTransactionDraft(
         amount,
         toAddress,
         payload: data,
-      } = await buildTokenTransfer(network, tokenSlug, address, toAddress, amount, data));
+      } = await buildTokenTransfer(network, slug, address, toAddress, amount, data));
 
       const tokenBalance = await tokenWallet!.getJettonBalance();
       if (tokenBalance < tokenAmount!) {
@@ -235,7 +251,7 @@ export async function checkTransactionDraft(
 
     const balance = await getWalletBalance(network, wallet);
 
-    const isFullTonBalance = tokenSlug === TON_TOKEN_SLUG && balance === amount;
+    const isFullTonBalance = slug === TON_TOKEN_SLUG && balance === amount;
     const isEnoughBalance = isFullTonBalance
       ? balance > realFee
       : balance >= amount + realFee;

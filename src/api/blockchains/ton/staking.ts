@@ -47,14 +47,26 @@ export async function checkStakeDraft(
 
     const poolAddress = backendState.nominatorsPool.address;
     amount += ONE_TON;
-    result = await checkTransactionDraft(accountId, TON_TOKEN_SLUG, poolAddress, amount, STAKE_COMMENT);
+    result = await checkTransactionDraft({
+      accountId,
+      slug: TON_TOKEN_SLUG,
+      toAddress: poolAddress,
+      amount,
+      data: STAKE_COMMENT,
+    });
   } else if (amount < ONE_TON) {
     return { error: ApiTransactionDraftError.InvalidAmount };
   } else {
     type = 'liquid';
 
     const body = buildLiquidStakingDepositBody();
-    result = await checkTransactionDraft(accountId, TON_TOKEN_SLUG, LIQUID_POOL, amount, body);
+    result = await checkTransactionDraft({
+      accountId,
+      slug: TON_TOKEN_SLUG,
+      toAddress: LIQUID_POOL,
+      amount,
+      data: body,
+    });
   }
 
   return {
@@ -81,9 +93,13 @@ export async function checkUnstakeDraft(
     type = 'nominators';
 
     const poolAddress = backendState.nominatorsPool.address;
-    result = await checkTransactionDraft(
-      accountId, TON_TOKEN_SLUG, poolAddress, ONE_TON, UNSTAKE_COMMENT,
-    );
+    result = await checkTransactionDraft({
+      accountId,
+      slug: TON_TOKEN_SLUG,
+      toAddress: poolAddress,
+      amount: ONE_TON,
+      data: UNSTAKE_COMMENT,
+    });
   } else if (staked.type === 'liquid') {
     type = 'liquid';
 
@@ -96,9 +112,13 @@ export async function checkUnstakeDraft(
     }
 
     const params = await buildLiquidStakingWithdraw(network, address, tokenAmount);
-    result = await checkTransactionDraft(
-      accountId, TON_TOKEN_SLUG, params.toAddress, params.amount, params.payload,
-    );
+    result = await checkTransactionDraft({
+      accountId,
+      slug: TON_TOKEN_SLUG,
+      toAddress: params.toAddress,
+      amount: params.amount,
+      data: params.payload,
+    });
   } else {
     return { error: ApiCommonError.Unexpected };
   }
