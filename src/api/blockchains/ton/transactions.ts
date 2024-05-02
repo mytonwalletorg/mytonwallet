@@ -111,9 +111,9 @@ export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, ad
 
 export async function checkTransactionDraft(options: {
   accountId: string;
-  slug: string;
   toAddress: string;
   amount: bigint;
+  tokenAddress?: string;
   data?: AnyPayload;
   stateInit?: Cell;
   shouldEncrypt?: boolean;
@@ -122,7 +122,7 @@ export async function checkTransactionDraft(options: {
 }): Promise<CheckTransactionDraftResult> {
   const {
     accountId,
-    slug,
+    tokenAddress,
     stateInit,
     shouldEncrypt,
     isBase64Data,
@@ -147,10 +147,10 @@ export async function checkTransactionDraft(options: {
 
     if (result.isBounceable && !isInitialized) {
       result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
-      if (slug === TON_TOKEN_SLUG) {
-        // Force non-bounceable for non-initialized recipients
-        toAddress = toBase64Address(toAddress, false, network);
-      }
+      return {
+        ...result,
+        error: ApiTransactionDraftError.InactiveContract,
+      };
     }
 
     result.resolvedAddress = toAddress;
@@ -198,7 +198,7 @@ export async function checkTransactionDraft(options: {
       data = commentToBytes(data);
     }
 
-    if (slug === TON_TOKEN_SLUG) {
+    if (!tokenAddress) {
       if (
         data
         && isLedger
@@ -231,7 +231,7 @@ export async function checkTransactionDraft(options: {
         amount,
         toAddress,
         payload: data,
-      } = await buildTokenTransfer(network, slug, address, toAddress, amount, data));
+      } = await buildTokenTransfer(network, tokenAddress, address, toAddress, amount, data));
 
       const tokenBalance = await tokenWallet!.getJettonBalance();
       if (tokenBalance < tokenAmount!) {
@@ -251,7 +251,7 @@ export async function checkTransactionDraft(options: {
 
     const balance = await getWalletBalance(network, wallet);
 
-    const isFullTonBalance = slug === TON_TOKEN_SLUG && balance === amount;
+    const isFullTonBalance = !tokenAddress && balance === amount;
     const isEnoughBalance = isFullTonBalance
       ? balance > realFee
       : balance >= amount + realFee;
@@ -326,17 +326,28 @@ export async function checkToAddress(network: ApiNetwork, toAddress: string) {
   return result;
 }
 
-export async function submitTransfer(
-  accountId: string,
-  password: string,
-  tokenSlug: string,
-  toAddress: string,
-  amount: bigint,
-  data?: AnyPayload,
-  stateInit?: Cell,
-  shouldEncrypt?: boolean,
-  isBase64Data?: boolean,
-): Promise<SubmitTransferResult> {
+export async function submitTransfer(options: {
+  accountId: string;
+  password: string;
+  toAddress: string;
+  amount: bigint;
+  data?: AnyPayload;
+  tokenAddress?: string;
+  stateInit?: Cell;
+  shouldEncrypt?: boolean;
+  isBase64Data?: boolean;
+}): Promise<SubmitTransferResult> {
+  const {
+    accountId,
+    password,
+    tokenAddress,
+    stateInit,
+    shouldEncrypt,
+    isBase64Data,
+  } = options;
+
+  let { toAddress, amount, data } = options;
+
   const { network } = parseAccountId(accountId);
 
   try {
@@ -364,7 +375,7 @@ export async function submitTransfer(
       }
     }
 
-    if (tokenSlug === TON_TOKEN_SLUG) {
+    if (!tokenAddress) {
       if (data instanceof Uint8Array) {
         data = packBytesAsSnake(data);
       }
@@ -373,13 +384,13 @@ export async function submitTransfer(
         amount,
         toAddress,
         payload: data,
-      } = await buildTokenTransfer(network, tokenSlug, fromAddress, toAddress, amount, data));
+      } = await buildTokenTransfer(network, tokenAddress, fromAddress, toAddress, amount, data));
     }
 
     await waitLastTransfer(network, fromAddress);
 
     const { balance } = await getWalletInfo(network, wallet!);
-    const isFullTonBalance = tokenSlug === TON_TOKEN_SLUG && balance === amount;
+    const isFullTonBalance = !tokenAddress && balance === amount;
 
     const { seqno, transaction } = await signTransaction(
       network, wallet!, toAddress, amount, data, stateInit, secretKey, isFullTonBalance,

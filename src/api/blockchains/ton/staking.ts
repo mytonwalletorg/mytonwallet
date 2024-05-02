@@ -11,7 +11,7 @@ import type { TonTransferParams } from './types';
 import { ApiCommonError, ApiLiquidUnstakeMode, ApiTransactionDraftError } from '../../types';
 
 import {
-  LIQUID_JETTON, LIQUID_POOL, ONE_TON, TON_TOKEN_SLUG, VALIDATION_PERIOD_MS,
+  LIQUID_JETTON, LIQUID_POOL, ONE_TON, VALIDATION_PERIOD_MS,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintDivideToNumber, bigintMultiplyToNumber } from '../../../util/bigint';
@@ -47,9 +47,9 @@ export async function checkStakeDraft(
 
     const poolAddress = backendState.nominatorsPool.address;
     amount += ONE_TON;
+
     result = await checkTransactionDraft({
       accountId,
-      slug: TON_TOKEN_SLUG,
       toAddress: poolAddress,
       amount,
       data: STAKE_COMMENT,
@@ -62,7 +62,6 @@ export async function checkStakeDraft(
     const body = buildLiquidStakingDepositBody();
     result = await checkTransactionDraft({
       accountId,
-      slug: TON_TOKEN_SLUG,
       toAddress: LIQUID_POOL,
       amount,
       data: body,
@@ -95,7 +94,6 @@ export async function checkUnstakeDraft(
     const poolAddress = backendState.nominatorsPool.address;
     result = await checkTransactionDraft({
       accountId,
-      slug: TON_TOKEN_SLUG,
       toAddress: poolAddress,
       amount: ONE_TON,
       data: UNSTAKE_COMMENT,
@@ -114,7 +112,6 @@ export async function checkUnstakeDraft(
     const params = await buildLiquidStakingWithdraw(network, address, tokenAmount);
     result = await checkTransactionDraft({
       accountId,
-      slug: TON_TOKEN_SLUG,
       toAddress: params.toAddress,
       amount: params.amount,
       data: params.payload,
@@ -144,24 +141,22 @@ export async function submitStake(
 
   if (type === 'liquid') {
     amount += ONE_TON;
-    result = await submitTransfer(
+    result = await submitTransfer({
       accountId,
       password,
-      TON_TOKEN_SLUG,
-      LIQUID_POOL,
+      toAddress: LIQUID_POOL,
       amount,
-      buildLiquidStakingDepositBody(),
-    );
+      data: buildLiquidStakingDepositBody(),
+    });
   } else {
     const poolAddress = backendState.nominatorsPool.address;
-    result = await submitTransfer(
+    result = await submitTransfer({
       accountId,
       password,
-      TON_TOKEN_SLUG,
-      toBase64Address(poolAddress, true, network),
+      toAddress: toBase64Address(poolAddress, true, network),
       amount,
-      STAKE_COMMENT,
-    );
+      data: STAKE_COMMENT,
+    });
   }
 
   if (!('error' in result)) {
@@ -192,24 +187,22 @@ export async function submitUnstake(
 
     const params = await buildLiquidStakingWithdraw(network, address, amount, mode);
 
-    result = await submitTransfer(
+    result = await submitTransfer({
       accountId,
       password,
-      TON_TOKEN_SLUG,
-      params.toAddress,
-      params.amount,
-      params.payload,
-    );
+      toAddress: params.toAddress,
+      amount: params.amount,
+      data: params.payload,
+    });
   } else {
     const poolAddress = backendState.nominatorsPool.address;
-    result = await submitTransfer(
+    result = await submitTransfer({
       accountId,
       password,
-      TON_TOKEN_SLUG,
-      toBase64Address(poolAddress, true, network),
-      ONE_TON,
-      UNSTAKE_COMMENT,
-    );
+      toAddress: toBase64Address(poolAddress, true, network),
+      amount: ONE_TON,
+      data: UNSTAKE_COMMENT,
+    });
   }
 
   return result;

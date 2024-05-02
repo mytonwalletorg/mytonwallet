@@ -455,7 +455,6 @@ function TokenSelector({
       <>
         {renderTokenGroup(userTokensWithFilter, lang('MY'), true)}
         {renderTokenGroup(popularTokensWithFilter, lang('POPULAR'))}
-        {renderTokenGroup(swapTokensWithFilter, lang('A-Z'))}
       </>
     );
   }

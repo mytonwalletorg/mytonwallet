@@ -1,6 +1,6 @@
 import type { CheckTransactionDraftResult, SubmitTransferResult } from '../../../api/blockchains/ton/transactions';
 import type {
-  ApiActivity, ApiBaseToken, ApiDappTransaction, ApiSubmitTransferOptions, ApiSwapAsset, ApiToken,
+  ApiActivity, ApiBaseToken, ApiDappTransfer, ApiSubmitTransferOptions, ApiSwapAsset, ApiToken,
 } from '../../../api/types';
 import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
@@ -41,7 +41,7 @@ import {
   selectAccountSettings,
   selectAccountState,
   selectCurrentAccountState,
-  selectLastTxIds,
+  selectLastTxIds, selectTokenAddress,
 } from '../../selectors';
 
 const IMPORT_TOKEN_PAUSE = 250;
@@ -135,12 +135,14 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
       comment,
     );
   } else {
+    const tokenAddress = selectTokenAddress(global, tokenSlug);
+
     result = await callApi(
       'checkTransactionDraft',
       global.currentAccountId!,
-      tokenSlug,
       toAddress,
       amount,
+      tokenAddress,
       comment,
       shouldEncrypt,
     );
@@ -190,21 +192,26 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
     tokenSlug, toAddress, amount, comment, shouldEncrypt, binPayload,
   } = payload;
 
+  const tokenAddress = selectTokenAddress(global, tokenSlug);
   const result = await callApi(
     'checkTransactionDraft',
     global.currentAccountId!,
-    tokenSlug,
     toAddress,
     amount,
     binPayload ?? comment,
+    tokenAddress,
     shouldEncrypt,
     Boolean(binPayload),
   );
 
   if (result?.fee) {
     global = getGlobal();
-    global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TON_TOKEN_SLUG);
+    global = updateCurrentTransferFee(global, result.fee, amount, !tokenAddress);
     setGlobal(global);
+  }
+
+  if (result?.error) {
+    actions.showError({ error: result.error });
   }
 });
 
@@ -311,13 +318,15 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       fee,
     );
   } else {
+    const tokenAddress = selectTokenAddress(global, tokenSlug!);
+
     const options: ApiSubmitTransferOptions = {
       accountId: global.currentAccountId!,
       password,
-      slug: tokenSlug!,
       toAddress: resolvedAddress!,
       amount: amount!,
       comment: binPayload ?? comment,
+      tokenAddress,
       fee,
       shouldEncrypt,
       isBase64Data: Boolean(binPayload),
@@ -370,7 +379,7 @@ addActionHandler('submitTransferHardware', async (global) => {
   const ledgerApi = await import('../../../util/ledger');
 
   if (promiseId) {
-    const message: ApiDappTransaction = {
+    const message: ApiDappTransfer = {
       toAddress: toAddress!,
       amount: amount!,
       rawPayload,
@@ -394,15 +403,7 @@ addActionHandler('submitTransferHardware', async (global) => {
     return;
   }
 
-  const options = {
-    accountId: global.currentAccountId!,
-    password: '',
-    slug: tokenSlug!,
-    toAddress: resolvedAddress!,
-    amount: amount!,
-    comment,
-    fee,
-  };
+  const tokenAddress = selectTokenAddress(global, tokenSlug!);
 
   let result: string | undefined;
 
@@ -416,7 +417,15 @@ addActionHandler('submitTransferHardware', async (global) => {
       fee,
     );
   } else {
-    result = await ledgerApi.submitLedgerTransfer(options);
+    result = await ledgerApi.submitLedgerTransfer({
+      accountId: global.currentAccountId!,
+      password: '',
+      toAddress: resolvedAddress!,
+      amount: amount!,
+      comment,
+      tokenAddress,
+      fee,
+    }, tokenSlug!);
   }
 
   const error = result === undefined ? 'Transfer error' : undefined;

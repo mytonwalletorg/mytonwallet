@@ -189,6 +189,12 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       actions.showDialog({ message: 'Encrypted comments are not yet supported by Ledger.' });
       break;
 
+    case ApiTransactionDraftError.InactiveContract:
+      actions.showDialog({
+        message: '$transfer_inactive_contract_error',
+      });
+      break;
+
     case ApiTransactionError.UnsupportedHardwareNftOperation:
       actions.showDialog({
         message: 'Transferring NFT is not yet supported by Ledger.',

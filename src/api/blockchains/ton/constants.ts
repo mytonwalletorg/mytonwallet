@@ -129,7 +129,7 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
   },
   nominatorPool: {
     name: 'nominatorPool',
-    hash: 'bffbc2310c6c535fe7271667fd3352a1151d097905c052701c5c98bf45487f08',
+    hash: '26faa2d0fd2a8197ea36ded8dc50ad081cce5244207e9b05c08c1bb655527bff',
     type: ContractType.Staking,
     isLedgerAllowed: true,
   },

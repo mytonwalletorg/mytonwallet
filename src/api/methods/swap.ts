@@ -90,6 +90,7 @@ export async function swapSubmit(
   transfers: ApiSwapTransfer[],
   historyItem: ApiSwapHistoryItem,
 ) {
+  const address = await fetchStoredAddress(accountId);
   const transferList = transfers.map((transfer) => ({
     ...transfer,
     amount: BigInt(transfer.amount),
@@ -111,6 +112,15 @@ export async function swapSubmit(
     to,
     kind: 'swap',
   };
+
+  const authToken = await getBackendAuthToken(accountId, password);
+
+  await callBackendPost(`/swap/history/${address}/${historyItem.id}/update`, {
+    msgHash: result.msgHash,
+  }, {
+    method: 'PATCH',
+    authToken,
+  });
 
   onUpdate({
     type: 'newActivities',
@@ -291,7 +301,10 @@ export function swapEstimate(params: ApiSwapEstimateRequest): Promise<ApiSwapEst
 }
 
 export function swapBuild(authToken: string, params: ApiSwapBuildRequest): Promise<ApiSwapBuildResponse> {
-  return callBackendPost('/swap/ton/build', params, {
+  return callBackendPost('/swap/ton/build', {
+    ...params,
+    isMsgHashMode: true,
+  }, {
     authToken,
   });
 }

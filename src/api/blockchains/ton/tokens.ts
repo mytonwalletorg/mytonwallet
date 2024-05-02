@@ -127,16 +127,15 @@ export function parseTokenTransaction(
 
 export async function buildTokenTransfer(
   network: ApiNetwork,
-  slug: string,
+  tokenAddress: string,
   fromAddress: string,
   toAddress: string,
   amount: bigint,
   payload?: AnyPayload,
 ) {
-  const minterAddress = resolveTokenBySlug(slug).minterAddress!;
-  const tokenWalletAddress = await resolveTokenWalletAddress(network, fromAddress, minterAddress);
-  const realMinterAddress = await resolveTokenMinterAddress(network, tokenWalletAddress);
-  if (minterAddress !== realMinterAddress) {
+  const tokenWalletAddress = await resolveTokenWalletAddress(network, fromAddress, tokenAddress);
+  const realTokenAddress = await resolveTokenMinterAddress(network, tokenWalletAddress);
+  if (tokenAddress !== realTokenAddress) {
     throw new Error('Invalid contract');
   }
 

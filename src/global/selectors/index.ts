@@ -371,6 +371,13 @@ export function selectAccountIdByAddress(global: GlobalState, address: string): 
   return requiredAccount?.[0];
 }
 
+export function selectTokenAddress(global: GlobalState, slug: string) {
+  if (slug === TON_TOKEN_SLUG) return undefined;
+  return Object.values(global.tokenInfo.bySlug)
+    .find((token) => slug === token.slug)!
+    .minterAddress!;
+}
+
 export function selectCurrentAccountStakingStatus(global: GlobalState): StakingStatus | undefined {
   const accountState = selectCurrentAccountState(global);
 

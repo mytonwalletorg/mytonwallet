@@ -13,7 +13,7 @@ addActionHandler('clearDappConnectRequestError', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('showDappTransaction', (global, actions, payload) => {
+addActionHandler('showDappTransfer', (global, actions, payload) => {
   const { transactionIdx } = payload;
 
   global = updateCurrentDappTransfer(global, {

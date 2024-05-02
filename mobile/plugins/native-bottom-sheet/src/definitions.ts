@@ -16,7 +16,7 @@ export type BottomSheetKeys =
   | 'settings'
   | 'qr-scanner'
   | 'dapp-connect'
-  | 'dapp-transaction'
+  | 'dapp-transfer'
   | 'disclaimer'
   | 'backup-warning'
   | 'onramp-widget';

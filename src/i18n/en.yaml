@@ -290,8 +290,6 @@ Delete Token: Delete Token
 Are you sure you want to delete?: Are you sure you want to delete %token%?
 Hide Tokens With No Cost: Hide Tokens With No Cost
 Sort By Cost: Sort By Cost
-Update: Update
-Restart: Restart
 Update MyTonWallet: Update MyTonWallet
 Connect Ledger: Connect Ledger
 Connecting to your Ledger...: Connecting to your Ledger...
@@ -467,7 +465,6 @@ $unstake_information_instantly: You will get your deposit instantly.
 Select Token: Select Token
 MY: MY
 POPULAR: POPULAR
-A-Z: A-Z
 Not Found: Not Found
 Wallet is ready!: Wallet is ready!
 Wallet is imported!: Wallet is imported!
@@ -568,5 +565,8 @@ Swap is not yet supported by Ledger.: Swap is not yet supported by Ledger.
 Buying with card is not supported in Testnet.: Buying with card is not supported in Testnet.
 Staking is not supported in Testnet.: Staking is not supported in Testnet.
 Get Support: Get Support
+$transfer_inactive_contract_error: |
+  You entered an address in the "EQ..." format, but the address is not active, so the transaction will not be completed.
+  If you definitely want to send to this address, then enter the address in the "UQ..." format.
 Successfully: Successfully
 Unstake More: Unstake More

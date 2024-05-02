@@ -4,7 +4,6 @@ import { Address, Builder } from '@ton/core';
 
 import type { ApiNft, ApiNftUpdate } from '../../types';
 
-import { TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
 import { generateQueryId } from './util';
@@ -115,7 +114,6 @@ export async function checkNftTransferDraft(
 
   const result = await checkTransactionDraft({
     accountId,
-    slug: TON_TOKEN_SLUG,
     toAddress: nftAddress,
     amount: NFT_TRANSFER_TON_AMOUNT,
     data: payload,
@@ -134,7 +132,6 @@ export async function checkNftTransferDraft(
     resolvedAddress: string;
     addressName?: string;
     isScam?: boolean;
-    isToAddressNew?: boolean;
   };
 }
 
@@ -147,19 +144,16 @@ export async function submitNftTransfer(
 ) {
   const fromAddress = await fetchStoredAddress(accountId);
   const payload = buildNftTransferPayload(fromAddress, toAddress, comment);
-
-  const slug = TON_TOKEN_SLUG;
   const amount = NFT_TRANSFER_TON_AMOUNT;
   toAddress = nftAddress;
 
-  const result = await submitTransfer(
-    accountId, password, slug, toAddress, amount, payload,
-  );
+  const result = await submitTransfer({
+    accountId, password, toAddress, amount, data: payload,
+  });
 
   return {
     ...result,
     amount,
-    slug,
   };
 }
 

@@ -151,7 +151,7 @@ export type ApiDappRequest = {
   accountId: string;
 };
 
-export interface ApiDappTransaction {
+export interface ApiDappTransfer {
   toAddress: string;
   amount: bigint;
   rawPayload?: string;
@@ -162,10 +162,10 @@ export interface ApiDappTransaction {
 export interface ApiSubmitTransferOptions {
   accountId: string;
   password: string;
-  slug: string;
   toAddress: string;
   amount: bigint;
   comment?: string;
+  tokenAddress?: string;
   fee?: bigint;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;

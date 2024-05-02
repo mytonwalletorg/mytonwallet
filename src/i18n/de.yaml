@@ -291,8 +291,6 @@ Delete Token: Token löschen
 Are you sure you want to delete?: Sind Sie sicher, dass Sie %token% löschen möchten?
 Hide Tokens With No Cost: Token ohne Preis ausblenden
 Sort By Cost: Nach Kosten sortieren
-Update: Aktualisieren
-Restart: Neustart
 Update MyTonWallet: MeinTonWallet aktualisieren
 Connect Ledger: Ledger verbinden
 Connecting to your Ledger...: Mit Ihrem Ledger verbinden...
@@ -468,7 +466,6 @@ $unstake_information_instantly: Sie erhalten Ihre Einzahlung sofort.
 Select Token: Token auswählen
 MY: MEINE
 POPULAR: POPULAR
-A-Z: A-Z
 Not Found: Nicht gefunden
 Wallet is ready!: Die Wallet ist bereit!
 Wallet is imported!: Die Wallet wurde importiert!
@@ -569,5 +566,8 @@ Swap is not yet supported by Ledger.: Swap wird von Ledger noch nicht unterstüt
 Buying with card is not supported in Testnet.: Der Kauf mit Karte wird in Testnet nicht unterstützt.
 Staking is not supported in Testnet.: Das Abstecken wird in Testnet nicht unterstützt.
 Get Support: Hole dir Unterstützung
+$transfer_inactive_contract_error: |
+  Sie haben eine Adresse im Format „EQ…“ eingegeben, aber die Adresse ist nicht aktiv, sodass die Transaktion nicht abgeschlossen wird.
+  Wenn Sie unbedingt an diese Adresse senden möchten, dann geben Sie die Adresse im Format „UQ...“ ein.
 Successfully: Erfolgreich
 Unstake More: Mehr abstecken

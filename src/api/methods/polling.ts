@@ -82,7 +82,7 @@ export async function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAc
 
   await tryUpdatePrices();
 
-  Promise.all([
+  Promise.allSettled([
     tryUpdateKnownAddresses(),
     tryUpdateTokens(_onUpdate),
     tryLoadSwapTokens(_onUpdate),

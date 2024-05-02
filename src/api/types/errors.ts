@@ -16,6 +16,7 @@ export enum ApiTransactionDraftError {
   NonAsciiCommentForHardwareOperation = 'NonAsciiCommentForHardwareOperation',
   TooLongCommentForHardwareOperation = 'TooLongCommentForHardwareOperation',
   InvalidAddressFormat = 'InvalidAddressFormat',
+  InactiveContract = 'InactiveContract',
 }
 
 export enum ApiTransactionError {

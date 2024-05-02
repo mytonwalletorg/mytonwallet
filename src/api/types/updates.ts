@@ -6,7 +6,7 @@ import type {
   ApiBackendStakingState,
   ApiBalanceBySlug,
   ApiBaseCurrency,
-  ApiDappTransaction,
+  ApiDappTransfer,
   ApiNft,
   ApiStakingState,
   ApiToken,
@@ -87,7 +87,7 @@ export type ApiUpdateDappSendTransactions = {
   promiseId: string;
   accountId: string;
   dapp: ApiDapp;
-  transactions: ApiDappTransaction[];
+  transactions: ApiDappTransfer[];
   fee: bigint;
 };
 

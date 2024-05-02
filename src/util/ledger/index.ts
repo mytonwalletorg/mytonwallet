@@ -11,7 +11,7 @@ import { SendMode } from '@ton/core/dist/types/SendMode';
 
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
-  ApiDappTransaction,
+  ApiDappTransfer,
   ApiNetwork,
   ApiNft,
   ApiSignedTransfer,
@@ -163,9 +163,9 @@ async function connectUSB() {
   throw new Error('Failed to connect');
 }
 
-export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
+export async function submitLedgerTransfer(options: ApiSubmitTransferOptions, slug: string) {
   const {
-    accountId, slug, comment, fee,
+    accountId, tokenAddress, comment, fee,
   } = options;
   let { toAddress, amount } = options;
   const { network } = parseAccountId(accountId);
@@ -186,9 +186,9 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
   let isBounceable = parsedAddress.isBounceable;
   const normalizedAddress = parsedAddress.address.toString({ urlSafe: true, bounceable: DEFAULT_IS_BOUNCEABLE });
 
-  if (slug !== TON_TOKEN_SLUG) {
+  if (tokenAddress) {
     ({ toAddress, amount, payload } = await buildLedgerTokenTransfer(
-      network, slug, fromAddress!, toAddress, amount, comment,
+      network, tokenAddress, fromAddress!, toAddress, amount, comment,
     ));
     isBounceable = true;
   } else if (comment) {
@@ -199,7 +199,7 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
     }
   }
 
-  const isFullTonBalance = slug === TON_TOKEN_SLUG && balance === amount;
+  const isFullTonBalance = !tokenAddress && balance === amount;
 
   const sendMode = isFullTonBalance
     ? SendMode.CARRY_ALL_REMAINING_BALANCE
@@ -238,16 +238,15 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions) {
 
 export async function buildLedgerTokenTransfer(
   network: ApiNetwork,
-  slug: string,
+  tokenAddress: string,
   fromAddress: string,
   toAddress: string,
   amount: bigint,
   comment?: string,
 ) {
-  const { minterAddress } = (await callApi('resolveTokenBySlug', slug))!;
-  const tokenWalletAddress = await callApi('resolveTokenWalletAddress', network, fromAddress, minterAddress!);
-  const realMinterAddress = await callApi('resolveTokenMinterAddress', network, tokenWalletAddress!);
-  if (minterAddress !== realMinterAddress) {
+  const tokenWalletAddress = await callApi('resolveTokenWalletAddress', network, fromAddress, tokenAddress);
+  const realTokenAddress = await callApi('resolveTokenMinterAddress', network, tokenWalletAddress!);
+  if (tokenAddress !== realTokenAddress) {
     throw new Error('Invalid contract');
   }
 
@@ -352,7 +351,7 @@ function buildCommentPayload(comment: string) {
 }
 
 export async function signLedgerTransactions(
-  accountId: string, messages: ApiDappTransaction[], seqno?: number,
+  accountId: string, messages: ApiDappTransfer[], seqno?: number,
 ): Promise<ApiSignedTransfer[]> {
   await callApi('waitLastTransfer', accountId);
 

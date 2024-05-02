@@ -279,8 +279,6 @@ Delete Token: 删除令牌
 Are you sure you want to delete?: 您确定要删除 %token% 吗？
 Hide Tokens With No Cost: 无需掩盖令牌
 Sort By Cost: 按成本排序
-Update: 更新
-Restart: 重新开始
 Update MyTonWallet: 更新 MyTonWallet
 Connect Ledger: 连接账本
 Connecting to your Ledger...: 连接到您的分类帐...
@@ -453,7 +451,6 @@ $unstake_information_instantly: 您将立即获得存款。
 Select Token: 选择代币
 MY: 我的
 POPULAR: 流行
-A-Z: A-Z
 Not Found: 未找到
 Wallet is ready!: 钱包准备好了！
 Wallet is imported!: 钱包是进口的！
@@ -554,5 +551,7 @@ Swap is not yet supported by Ledger.: Ledger 尚不支持该交易所。
 Buying with card is not supported in Testnet.: 测试网不支持刷卡购买。
 Staking is not supported in Testnet.: 测试网不支持质押。
 Get Support: 得到支持
+$transfer_inactive_contract_error: |
+  您以“EQ...”格式输入了地址，但该地址未激活，因此交易将无法完成。如果您确实要发送到该地址，请以“UQ...”格式输入该地址。
 Successfully: 成功地
 Unstake More: 解除质押更多

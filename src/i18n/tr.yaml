@@ -291,8 +291,6 @@ Delete Token: Token sil
 Are you sure you want to delete?: "%token%'ı silmek istediğinizden emin misiniz?"
 Hide Tokens With No Cost: Tokenleri ücretsiz olarak saklayın
 Sort By Cost: Maliyete göre sıralayın
-Update: Güncelle
-Restart: Yeniden başlat
 Update MyTonWallet: MyTonWallet'ı güncelle
 Connect Ledger: Ledger'i bağla
 Connecting to your Ledger...: Ledger'ınıza bağlanıyor...
@@ -467,7 +465,6 @@ $unstake_information_instantly: Yatırdığınız tutarı anında alacaksınız.
 Select Token: Token seçin
 MY: Cüzdanımdakiler
 POPULAR: POPÜLER
-A-Z: A-Z
 Not Found: Bulunamadı
 Wallet is ready!: Cüzdan hazır!
 Wallet is imported!: Cüzdan içeri aktarıldı!
@@ -568,5 +565,8 @@ Swap is not yet supported by Ledger.: Takas henüz Ledger tarafından desteklenm
 Buying with card is not supported in Testnet.: Testnet'te kartla satın alma desteklenmemektedir.
 Staking is not supported in Testnet.: Staking Testnet'te desteklenmemektedir.
 Get Support: Destek almak
+$transfer_inactive_contract_error: |
+  "EQ..." formatında bir adres girdiniz ancak adres aktif olmadığından işlem tamamlanamayacaktır.
+  Eğer mutlaka bu adrese gönderim yapmak istiyorsanız adresi "UQ..." formatında giriniz.
 Successfully: Başarıyla
 Unstake More: Unstake daha fazla

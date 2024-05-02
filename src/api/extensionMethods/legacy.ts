@@ -108,7 +108,6 @@ export async function sendTransaction(params: {
 
   const checkResult = await ton.checkTransactionDraft({
     accountId,
-    slug: TON_TOKEN_SLUG,
     toAddress,
     amount,
     data: processedData,
@@ -144,9 +143,14 @@ export async function sendTransaction(params: {
 
   const password = await promise;
 
-  const result = await ton.submitTransfer(
-    accountId, password, TON_TOKEN_SLUG, toAddress, amount, processedData, processedStateInit,
-  );
+  const result = await ton.submitTransfer({
+    accountId,
+    password,
+    toAddress,
+    amount,
+    data: processedData,
+    stateInit: processedStateInit,
+  });
 
   if ('error' in result) {
     return false;

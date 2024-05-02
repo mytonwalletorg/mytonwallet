@@ -290,8 +290,6 @@ Delete Token: Eliminar token
 Are you sure you want to delete?: ¿Está seguro de que desea eliminar %token%?
 Hide Tokens With No Cost: Ocultar tokens sin costo
 Sort By Cost: Ordenar por costo
-Update: Actualizar
-Restart: Reanudar
 Update MyTonWallet: Actualizar MyTonWallet
 Connect Ledger: Conectar libro mayor
 Connecting to your Ledger...: Conectándose a su libro mayor...
@@ -465,7 +463,6 @@ $unstake_information_instantly: Obtendrá su depósito al instante.
 Select Token: Seleccionar Token
 MY: MI
 POPULAR: POPULAR
-A-Z: A-Z
 Not Found: No Encontrado
 Wallet is ready!: ¡La billetera está lista!
 Wallet is imported!: ¡La billetera es importada!
@@ -566,5 +563,8 @@ Swap is not yet supported by Ledger.: Ledger aún no admite el intercambio.
 Buying with card is not supported in Testnet.: La compra con tarjeta no es compatible con Testnet.
 Staking is not supported in Testnet.: Testnet no admite apuestas.
 Get Support: Obtener apoyo
+$transfer_inactive_contract_error: |
+  Ingresó una dirección en el formato "EQ...", pero la dirección no está activa, por lo que la transacción no se completará.
+  Si definitivamente desea enviar a esta dirección, ingrese la dirección en el formato "UQ...".
 Successfully: Exitosamente
 Unstake More: Retirar más

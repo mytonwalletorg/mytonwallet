@@ -85,6 +85,8 @@ function SwapModal({
 
   const [renderedTransactionAmountIn, setRenderedTransactionAmountIn] = useState(amountIn);
   const [renderedTransactionAmountOut, setRenderedTransactionAmountOut] = useState(amountOut);
+  const [renderedTransactionTokenIn, setRenderedTransactionTokenIn] = useState(tokenIn);
+  const [renderedTransactionTokenOut, setRenderedTransactionTokenOut] = useState(tokenOut);
 
   useEffect(() => {
     if (!isOpen || !activityById || !activityId || swapType !== SwapType.CrosschainToTon) return;
@@ -102,6 +104,8 @@ function SwapModal({
   const handleTransferSubmit = useLastCallback((password: string) => {
     setRenderedTransactionAmountIn(amountIn);
     setRenderedTransactionAmountOut(amountOut);
+    setRenderedTransactionTokenIn(tokenIn);
+    setRenderedTransactionTokenOut(tokenOut);
 
     if (swapType === SwapType.OnChain) {
       submitSwap({ password });
@@ -227,8 +231,8 @@ function SwapModal({
         return (
           <SwapWaitTokens
             isActive={isActive}
-            tokenIn={tokenIn}
-            tokenOut={tokenOut}
+            tokenIn={renderedTransactionTokenIn}
+            tokenOut={renderedTransactionTokenOut}
             amountIn={renderedTransactionAmountIn}
             amountOut={renderedTransactionAmountOut}
             payinAddress={payinAddress}
@@ -252,8 +256,8 @@ function SwapModal({
         return (
           <SwapComplete
             isActive={isActive}
-            tokenIn={tokenIn}
-            tokenOut={tokenOut}
+            tokenIn={renderedTransactionTokenIn}
+            tokenOut={renderedTransactionTokenOut}
             amountIn={renderedTransactionAmountIn}
             amountOut={renderedTransactionAmountOut}
             onInfoClick={handleTransactionInfoClick}

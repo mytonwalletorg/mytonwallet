@@ -5,7 +5,7 @@ import { Big } from '../../lib/big.js';
 import { formatInteger } from '../formatNumber';
 
 const BTC = new Set(['jWBTC', 'oWBTC', 'BTC']);
-const USD = new Set(['jUSDT', 'oUSDT', 'USDT', 'jUSDC', 'oUSDC', 'USDC']);
+const USD = new Set(['jUSDT', 'oUSDT', 'USDT', 'jUSDC', 'oUSDC', 'USDC', 'USD₮']);
 
 const LARGE_NUMBER = 1000;
 

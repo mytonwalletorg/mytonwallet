@@ -6,11 +6,12 @@ const BAD_REQUEST_CODE = 400;
 export async function callBackendPost<T>(path: string, data: AnyLiteral, options?: {
   authToken?: string;
   isAllowBadRequest?: boolean;
+  method?: string;
 }): Promise<T> {
-  const { authToken, isAllowBadRequest } = options ?? {};
+  const { authToken, isAllowBadRequest, method } = options ?? {};
 
   const response = await fetch(`${BRILLIANT_API_BASE_URL}${path}`, {
-    method: 'POST',
+    method: method ?? 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(authToken && { 'X-Auth-Token': authToken }),

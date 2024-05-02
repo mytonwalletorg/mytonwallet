@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import type { ApiDappTransaction, ApiParsedPayload } from '../../api/types';
+import type { ApiDappTransfer, ApiParsedPayload } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
 import { TON_SYMBOL } from '../../config';
@@ -19,14 +19,14 @@ import styles from './Dapp.module.scss';
 
 interface OwnProps {
   tonToken: UserToken;
-  transaction: ApiDappTransaction;
+  transaction: ApiDappTransfer;
   fee?: bigint;
   tokens?: UserToken[];
 }
 
 const FRACTION_DIGITS = 2;
 
-function DappTransaction({
+function DappTransfer({
   tonToken,
   transaction,
   fee,
@@ -128,4 +128,4 @@ function DappTransaction({
   );
 }
 
-export default memo(DappTransaction);
+export default memo(DappTransfer);

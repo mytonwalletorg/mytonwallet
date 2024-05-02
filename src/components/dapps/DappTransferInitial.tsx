@@ -4,7 +4,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiDapp, ApiDappTransaction } from '../../api/types';
+import type { ApiDapp, ApiDappTransfer } from '../../api/types';
 import type { Account, UserToken } from '../../global/types';
 
 import { SHORT_FRACTION_DIGITS } from '../../config';
@@ -21,7 +21,7 @@ import NftInfo from '../transfer/NftInfo';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import Button from '../ui/Button';
 import DappInfo from './DappInfo';
-import DappTransaction from './DappTransaction';
+import DappTransfer from './DappTransfer';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
@@ -33,7 +33,7 @@ interface OwnProps {
 
 interface StateProps {
   currentAccount?: Account;
-  transactions?: ApiDappTransaction[];
+  transactions?: ApiDappTransfer[];
   fee?: bigint;
   dapp?: ApiDapp;
   isLoading?: boolean;
@@ -50,7 +50,7 @@ function DappTransferInitial({
   tokens,
   onClose,
 }: OwnProps & StateProps) {
-  const { showDappTransaction, submitDappTransferConfirm } = getActions();
+  const { showDappTransfer, submitDappTransferConfirm } = getActions();
 
   const lang = useLang();
   const isSingleTransaction = transactions?.length === 1;
@@ -86,7 +86,7 @@ function DappTransferInitial({
 
   function renderTransaction() {
     return (
-      <DappTransaction
+      <DappTransfer
         transaction={renderingTransactions![0]}
         tonToken={tonToken}
         fee={fee}
@@ -95,7 +95,7 @@ function DappTransferInitial({
     );
   }
 
-  function renderTransactionRow(transaction: ApiDappTransaction, i: number) {
+  function renderTransactionRow(transaction: ApiDappTransfer, i: number) {
     const { payload } = transaction;
 
     let extraText: string = '';
@@ -111,7 +111,7 @@ function DappTransferInitial({
       <div
         key={`${transaction.toAddress}_${transaction.amount}_${i}`}
         className={styles.transactionRow}
-        onClick={() => { showDappTransaction({ transactionIdx: i }); }}
+        onClick={() => { showDappTransfer({ transactionIdx: i }); }}
       >
         <span className={styles.transactionRowAmount}>
           {extraText}

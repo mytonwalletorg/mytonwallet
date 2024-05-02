@@ -11,8 +11,6 @@ const electronApi: ElectronApi = {
   unmaximize: () => ipcRenderer.invoke(ElectronAction.UNMAXIMIZE),
   getIsMaximized: () => ipcRenderer.invoke(ElectronAction.GET_IS_MAXIMIZED),
 
-  downloadUpdate: () => ipcRenderer.invoke(ElectronAction.DOWNLOAD_UPDATE),
-  cancelUpdate: () => ipcRenderer.invoke(ElectronAction.CANCEL_UPDATE),
   installUpdate: () => ipcRenderer.invoke(ElectronAction.INSTALL_UPDATE),
   handleDoubleClick: () => ipcRenderer.invoke(ElectronAction.HANDLE_DOUBLE_CLICK),
 

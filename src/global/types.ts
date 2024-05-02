@@ -6,7 +6,7 @@ import type {
   ApiBaseCurrency,
   ApiDapp,
   ApiDappPermissions,
-  ApiDappTransaction,
+  ApiDappTransfer,
   ApiHistoryList,
   ApiLedgerDriver,
   ApiNetwork,
@@ -427,7 +427,7 @@ export type GlobalState = {
     isSse?: boolean;
     promiseId?: string;
     isLoading?: boolean;
-    transactions?: ApiDappTransaction[];
+    transactions?: ApiDappTransfer[];
     viewTransactionOnIdx?: number;
     fee?: bigint;
     dapp?: ApiDapp;
@@ -748,7 +748,7 @@ export interface ActionPayloads {
   clearDappConnectRequestError: undefined;
   cancelDappConnectRequestConfirm: undefined;
   setDappConnectRequestState: { state: DappConnectState };
-  showDappTransaction: { transactionIdx: number };
+  showDappTransfer: { transactionIdx: number };
   setDappTransferScreen: { state: TransferState };
   clearDappTransferError: undefined;
   submitDappTransferConfirm: undefined;

@@ -1,6 +1,7 @@
 import type { ApiDbNft } from '../db';
 import type { ApiNft, ApiUpdate, OnApiUpdate } from '../types';
 
+import { TON_TOKEN_SLUG } from '../../config';
 import blockchains from '../blockchains';
 import { fetchStoredAddress } from '../common/accounts';
 import { resolveBlockchainKey } from '../common/helpers';
@@ -89,7 +90,7 @@ export async function submitNftTransfer(
     toAddress,
     comment,
     fee,
-    slug: result.slug,
+    slug: TON_TOKEN_SLUG,
     inMsgHash: result.msgHash,
     type: 'nftTransferred',
     nft,

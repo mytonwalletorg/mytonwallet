@@ -257,6 +257,10 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   }
 
   global = updateCurrentSwap(global, {
+    tokenInSlug: undefined,
+    tokenOutSlug: undefined,
+    amountIn: undefined,
+    amountOut: undefined,
     isLoading: false,
     state: SwapState.Complete,
     activityId: buildSwapId(buildResult.id),
@@ -353,6 +357,10 @@ addActionHandler('submitSwapCexFromTon', async (global, actions, { password }) =
 
   global = getGlobal();
   global = updateCurrentSwap(global, {
+    tokenInSlug: undefined,
+    tokenOutSlug: undefined,
+    amountIn: undefined,
+    amountOut: undefined,
     isLoading: false,
     state: SwapState.Complete,
     activityId: swapItem.activity.id,
@@ -786,7 +794,6 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
     const txDraft = await callApi(
       'checkTransactionDraft',
       global.currentAccountId!,
-      global.currentSwap.tokenInSlug!,
       account?.address!,
       fromDecimal(global.currentSwap.amountIn ?? 0, tokenIn.decimals),
     );

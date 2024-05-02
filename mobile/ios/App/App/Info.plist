@@ -65,5 +65,7 @@
 	<string>The app enables the scanning of various barcodes.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>For an easier and faster operation verification.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need access to your photo library to save your awesome NFTs!</string>
 </dict>
 </plist>

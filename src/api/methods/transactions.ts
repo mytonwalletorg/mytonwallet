@@ -6,6 +6,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
+import { TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
@@ -15,6 +16,7 @@ import {
 } from '../common/helpers';
 import { handleServerError } from '../errors';
 import { swapReplaceTransactions } from './swap';
+import { buildTokenSlug } from './tokens';
 
 let onUpdate: OnApiUpdate;
 
@@ -52,10 +54,10 @@ export async function fetchAllActivitySlice(accountId: string, lastTxIds: ApiTxI
 
 export function checkTransactionDraft(
   accountId: string,
-  slug: string,
   toAddress: string,
   amount: bigint,
   comment?: string,
+  tokenAddress?: string,
   shouldEncrypt?: boolean,
   isBase64Data?: boolean,
 ) {
@@ -63,9 +65,9 @@ export function checkTransactionDraft(
 
   return blockchain.checkTransactionDraft({
     accountId,
-    slug,
     toAddress,
     amount,
+    tokenAddress,
     data: comment,
     shouldEncrypt,
     isBase64Data,
@@ -74,14 +76,21 @@ export function checkTransactionDraft(
 
 export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCreateLocalTransaction = true) {
   const {
-    accountId, password, slug, toAddress, amount, comment, fee, shouldEncrypt, isBase64Data,
+    accountId, password, toAddress, amount, tokenAddress, comment, fee, shouldEncrypt, isBase64Data,
   } = options;
 
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
   const fromAddress = await fetchStoredAddress(accountId);
-  const result = await blockchain.submitTransfer(
-    accountId, password, slug, toAddress, amount, comment, undefined, shouldEncrypt, isBase64Data,
-  );
+  const result = await blockchain.submitTransfer({
+    accountId,
+    password,
+    toAddress,
+    amount,
+    tokenAddress,
+    data: comment,
+    shouldEncrypt,
+    isBase64Data,
+  });
 
   if ('error' in result) {
     return result;
@@ -92,6 +101,8 @@ export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCr
   if (!shouldCreateLocalTransaction) {
     return result;
   }
+
+  const slug = tokenAddress ? buildTokenSlug(tokenAddress) : TON_TOKEN_SLUG;
 
   const localTransaction = createLocalTransaction(accountId, {
     amount,

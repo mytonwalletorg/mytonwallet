@@ -28,7 +28,7 @@ import useTimeout from '../hooks/useTimeout';
 import AppInactive from './AppInactive';
 import Auth from './auth/Auth';
 import DappConnectModal from './dapps/DappConnectModal';
-import DappTransactionModal from './dapps/DappTransactionModal';
+import DappTransferModal from './dapps/DappTransferModal';
 import Dialogs from './Dialogs';
 import ElectronHeader from './electron/ElectronHeader';
 import LedgerModal from './ledger/LedgerModal';
@@ -204,7 +204,7 @@ function App({
           <TransactionModal />
           <SwapActivityModal />
           <DappConnectModal />
-          <DappTransactionModal />
+          <DappTransferModal />
           <AddAccountModal />
           <OnRampWidgetModal />
           {!IS_DELEGATED_BOTTOM_SHEET && <Notifications />}

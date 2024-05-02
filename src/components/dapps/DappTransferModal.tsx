@@ -24,7 +24,7 @@ import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
 import DappLedgerWarning from './DappLedgerWarning';
-import DappTransaction from './DappTransaction';
+import DappTransfer from './DappTransfer';
 import DappTransferInitial from './DappTransferInitial';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -38,7 +38,7 @@ interface StateProps {
   isTonAppConnected?: boolean;
 }
 
-function DappTransactionModal({
+function DappTransferModal({
   currentDappTransfer: {
     dapp,
     transactions,
@@ -108,7 +108,7 @@ function DappTransactionModal({
           />
 
           {Boolean(transaction) && (
-            <DappTransaction
+            <DappTransfer
               transaction={transaction}
               tonToken={tonToken}
               tokens={tokens}
@@ -233,7 +233,7 @@ function DappTransactionModal({
       isOpen={isOpen}
       noBackdropClose
       dialogClassName={styles.modalDialog}
-      nativeBottomSheetKey="dapp-transaction"
+      nativeBottomSheetKey="dapp-transfer"
       forceFullNative={renderingKey === TransferState.Password}
       onClose={closeDappTransfer}
       onCloseAnimationEnd={handleResetTransfer}
@@ -266,4 +266,4 @@ export default memo(withGlobal((global): StateProps => {
     isLedgerConnected,
     isTonAppConnected,
   };
-})(DappTransactionModal));
+})(DappTransferModal));
