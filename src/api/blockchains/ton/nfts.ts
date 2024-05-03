@@ -11,9 +11,7 @@ import { buildNft } from './util/metadata';
 import { fetchAccountEvents, fetchAccountNfts, fetchNftItems } from './util/tonapiio';
 import { commentToBytes, packBytesAsSnake, toBase64Address } from './util/tonCore';
 import { fetchStoredAddress } from '../../common/accounts';
-import {
-  NFT_TRANSFER_TON_AMOUNT, NFT_TRANSFER_TON_FORWARD_AMOUNT, NftOpCode,
-} from './constants';
+import { NFT_TRANSFER_TON_AMOUNT, NFT_TRANSFER_TON_FORWARD_AMOUNT, NftOpCode } from './constants';
 import { checkToAddress, checkTransactionDraft, submitTransfer } from './transactions';
 import { isActiveSmartContract } from './wallet';
 
@@ -94,12 +92,15 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
   return [fromSec, updates] as [number, ApiNftUpdate[]];
 }
 
-export async function checkNftTransferDraft(
-  accountId: string,
-  nftAddress: string,
-  toAddress: string,
-  comment?: string,
-) {
+export async function checkNftTransferDraft(options: {
+  accountId: string;
+  nftAddress: string;
+  toAddress: string;
+  comment?: string;
+}) {
+  const { accountId, nftAddress, comment } = options;
+  let { toAddress } = options;
+
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 

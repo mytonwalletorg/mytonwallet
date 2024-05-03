@@ -1,6 +1,11 @@
 import type { CheckTransactionDraftResult, SubmitTransferResult } from '../../../api/blockchains/ton/transactions';
 import type {
-  ApiActivity, ApiBaseToken, ApiDappTransfer, ApiSubmitTransferOptions, ApiSwapAsset, ApiToken,
+  ApiActivity,
+  ApiBaseToken,
+  ApiDappTransfer,
+  ApiSubmitTransferOptions,
+  ApiSwapAsset,
+  ApiToken,
 } from '../../../api/types';
 import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
@@ -19,9 +24,7 @@ import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../helpers';
-import {
-  addActionHandler, getGlobal, setGlobal,
-} from '../../index';
+import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentTransfer,
   clearIsPinAccepted,
@@ -41,7 +44,8 @@ import {
   selectAccountSettings,
   selectAccountState,
   selectCurrentAccountState,
-  selectLastTxIds, selectTokenAddress,
+  selectLastTxIds,
+  selectTokenAddress,
 } from '../../selectors';
 
 const IMPORT_TOKEN_PAUSE = 250;
@@ -127,25 +131,23 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   let result: CheckTransactionDraftResult | undefined;
 
   if (nftAddress) {
-    result = await callApi(
-      'checkNftTransferDraft',
-      global.currentAccountId!,
+    result = await callApi('checkNftTransferDraft', {
+      accountId: global.currentAccountId!,
       nftAddress,
       toAddress,
       comment,
-    );
+    });
   } else {
     const tokenAddress = selectTokenAddress(global, tokenSlug);
 
-    result = await callApi(
-      'checkTransactionDraft',
-      global.currentAccountId!,
+    result = await callApi('checkTransactionDraft', {
+      accountId: global.currentAccountId!,
+      tokenAddress,
       toAddress,
       amount,
-      tokenAddress,
-      comment,
+      data: comment,
       shouldEncrypt,
-    );
+    });
   }
 
   global = getGlobal();
@@ -193,16 +195,15 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   } = payload;
 
   const tokenAddress = selectTokenAddress(global, tokenSlug);
-  const result = await callApi(
-    'checkTransactionDraft',
-    global.currentAccountId!,
+  const result = await callApi('checkTransactionDraft', {
+    accountId: global.currentAccountId!,
     toAddress,
     amount,
-    binPayload ?? comment,
+    data: binPayload ?? comment,
     tokenAddress,
     shouldEncrypt,
-    Boolean(binPayload),
-  );
+    isBase64Data: Boolean(binPayload),
+  });
 
   if (result?.fee) {
     global = getGlobal();
@@ -221,13 +222,12 @@ addActionHandler('fetchNftFee', async (global, actions, payload) => {
   global = updateCurrentTransfer(global, { error: undefined });
   setGlobal(global);
 
-  const result = await callApi(
-    'checkNftTransferDraft',
-    global.currentAccountId!,
+  const result = await callApi('checkNftTransferDraft', {
+    accountId: global.currentAccountId!,
     nftAddress,
     toAddress,
     comment,
-  );
+  });
 
   if (result && 'error' in result) {
     global = getGlobal();

@@ -11,9 +11,7 @@ import { parseAccountId } from '../../util/account';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
 import { fetchStoredAddress } from '../common/accounts';
-import {
-  buildLocalTransaction, resolveBlockchainKey,
-} from '../common/helpers';
+import { buildLocalTransaction, resolveBlockchainKey } from '../common/helpers';
 import { handleServerError } from '../errors';
 import { swapReplaceTransactions } from './swap';
 import { buildTokenSlug } from './tokens';
@@ -52,26 +50,18 @@ export async function fetchAllActivitySlice(accountId: string, lastTxIds: ApiTxI
   }
 }
 
-export function checkTransactionDraft(
-  accountId: string,
-  toAddress: string,
-  amount: bigint,
-  comment?: string,
-  tokenAddress?: string,
-  shouldEncrypt?: boolean,
-  isBase64Data?: boolean,
-) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+export function checkTransactionDraft(options: {
+  accountId: string;
+  tokenAddress?: string;
+  toAddress: string;
+  amount: bigint;
+  data?: string;
+  shouldEncrypt?: boolean;
+  isBase64Data?: boolean;
+}) {
+  const blockchain = blockchains[resolveBlockchainKey(options.accountId)!];
 
-  return blockchain.checkTransactionDraft({
-    accountId,
-    toAddress,
-    amount,
-    tokenAddress,
-    data: comment,
-    shouldEncrypt,
-    isBase64Data,
-  });
+  return blockchain.checkTransactionDraft(options);
 }
 
 export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCreateLocalTransaction = true) {

@@ -59,10 +59,15 @@ function convertToDbEntity(accountId: string, nft: ApiNft): ApiDbNft {
   };
 }
 
-export function checkNftTransferDraft(accountId: string, nftAddress: string, toAddress: string, comment?: string) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+export function checkNftTransferDraft(options: {
+  accountId: string;
+  nftAddress: string;
+  toAddress: string;
+  comment?: string;
+}) {
+  const blockchain = blockchains[resolveBlockchainKey(options.accountId)!];
 
-  return blockchain.checkNftTransferDraft(accountId, nftAddress, toAddress, comment);
+  return blockchain.checkNftTransferDraft(options);
 }
 
 export async function submitNftTransfer(

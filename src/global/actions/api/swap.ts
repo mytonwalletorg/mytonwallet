@@ -6,12 +6,7 @@ import {
   type ApiSwapPairAsset,
 } from '../../../api/types';
 import {
-  ActiveTab,
-  SwapErrorType,
-  SwapFeeSource,
-  SwapInputSource,
-  SwapState,
-  SwapType,
+  ActiveTab, SwapErrorType, SwapFeeSource, SwapInputSource, SwapState, SwapType,
 } from '../../types';
 
 import { DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../config';
@@ -791,12 +786,11 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   if (global.currentSwap.swapType === SwapType.CrosschainFromTon) {
     const account = global.accounts?.byId[global.currentAccountId!];
 
-    const txDraft = await callApi(
-      'checkTransactionDraft',
-      global.currentAccountId!,
-      account?.address!,
-      fromDecimal(global.currentSwap.amountIn ?? 0, tokenIn.decimals),
-    );
+    const txDraft = await callApi('checkTransactionDraft', {
+      accountId: global.currentAccountId!,
+      toAddress: account?.address!,
+      amount: fromDecimal(global.currentSwap.amountIn ?? 0, tokenIn.decimals),
+    });
     networkFee = Number(toDecimal(txDraft?.fee ?? 0n));
   }
 
