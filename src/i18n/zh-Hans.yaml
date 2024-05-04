@@ -186,7 +186,7 @@ $logout_warning2: 钱包位于去中心化的 TON 区块链中。如果您只是
 $tiny_transfers_help: 关闭此功能以显示少于 $%value% 的交易。 请注意，此类交易通常用于垃圾信息和诈骗目的。
 Understood: 明白
 Today: 今天
-Yesterday: 明天
+Yesterday: 昨天
 Now: 现在
 $receive_ton_description: 您可以分享您的地址、扫描二维码或创建存款链接来接收加密货币。
 Your address: 您的地址
