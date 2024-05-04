@@ -148,6 +148,7 @@ No NFTs yet: Пока у вас нет NFT
 $nft_explore_offer: |
   Но вы можете просмотреть
   существующие коллекции.
+$nft_hardware_unsupported: К сожалению, работа с NFT пока не поддерживается кошельком Ledger.
 Open Getgems: Открыть Getgems
 Transaction is not completed: Перевод не выполнен
 Received: Получено
@@ -570,3 +571,6 @@ $transfer_inactive_contract_error: |
   Если вы точно хотите отправить токены на этот адрес, то укажите его в формате "UQ...".'
 Successfully: Успешно
 Unstake More: Вывести ещё
+Are you sure you want to burn this NFT? It will be lost forever.: Вы уверены, что хотите сжечь этот NFT? Он будет потерян навсегда.
+Burn NFT: Сжечь NFT
+Burn: Сжечь

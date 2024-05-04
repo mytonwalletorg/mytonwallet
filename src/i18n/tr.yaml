@@ -147,6 +147,7 @@ No NFTs yet: Henüz NFT'niz yok
 $nft_explore_offer: |
   Mevcut NFT koleksiyonlarını görmek
   için NFT pazaryerini inceleyin.
+$nft_hardware_unsupported: Ne yazık ki, NFT aktarımı henüz Ledger cüzdanı tarafından desteklenmiyor.
 Open Getgems: Getgems'i aç
 Transaction is not completed: İşlem tamamlanmadı
 Received: Alındı
@@ -570,3 +571,6 @@ $transfer_inactive_contract_error: |
   Eğer mutlaka bu adrese gönderim yapmak istiyorsanız adresi "UQ..." formatında giriniz.
 Successfully: Başarıyla
 Unstake More: Unstake daha fazla
+Are you sure you want to burn this NFT? It will be lost forever.: Bu NFT'yi yakmak istediğinizden emin misiniz? Sonsuza kadar kaybolacak.
+Burn NFT: NFT'yi yaz
+Burn: Yakmak

@@ -141,6 +141,7 @@ NFT: NFT
 No NFTs yet: NFT 空空如也···
 $nft_explore_offer: |
   在市场中寻找心仪的 NFT 收藏。
+$nft_hardware_unsupported: 不幸的是，Ledger 钱包尚不支持传输 NFT。
 Open Getgems: 打开 Getgems
 Transaction is not completed: 交易未完成
 Received: 已收到
@@ -555,3 +556,6 @@ $transfer_inactive_contract_error: |
   您以“EQ...”格式输入了地址，但该地址未激活，因此交易将无法完成。如果您确实要发送到该地址，请以“UQ...”格式输入该地址。
 Successfully: 成功地
 Unstake More: 解除质押更多
+Are you sure you want to burn this NFT? It will be lost forever.: 您确定要烧毁这个 NFT 吗？ 它将永远失去。
+Burn NFT: 烧毁NFT
+Burn: 烧伤

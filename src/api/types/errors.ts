@@ -15,6 +15,7 @@ export enum ApiTransactionDraftError {
   EncryptedDataNotSupported = 'EncryptedDataNotSupported',
   NonAsciiCommentForHardwareOperation = 'NonAsciiCommentForHardwareOperation',
   TooLongCommentForHardwareOperation = 'TooLongCommentForHardwareOperation',
+  UnsupportedHardwareNftOperation = 'UnsupportedHardwareNftOperation',
   InvalidAddressFormat = 'InvalidAddressFormat',
   InactiveContract = 'InactiveContract',
 }

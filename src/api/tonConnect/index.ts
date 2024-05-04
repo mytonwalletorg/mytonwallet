@@ -29,7 +29,7 @@ import type {
 import { ApiCommonError, ApiTransactionError } from '../types';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
 
-import { IS_EXTENSION, TON_TOKEN_SLUG } from '../../config';
+import { IS_EXTENSION, LEDGER_NFT_TRANSFER_DISABLED, TON_TOKEN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { isLedgerCommentLengthValid } from '../../util/ledger/utils';
 import { logDebug, logDebugError } from '../../util/logs';
@@ -43,13 +43,15 @@ import { LEDGER_SUPPORTED_PAYLOADS } from '../blockchains/ton/constants';
 import { getIsRawAddress, toBase64Address, toRawAddress } from '../blockchains/ton/util/tonCore';
 import { getContractInfo } from '../blockchains/ton/wallet';
 import {
-  fetchStoredAccount, fetchStoredAddress, fetchStoredPublicKey, getCurrentAccountId, getCurrentAccountIdOrFail,
+  fetchStoredAccount,
+  fetchStoredAddress,
+  fetchStoredPublicKey,
+  getCurrentAccountId,
+  getCurrentAccountIdOrFail,
 } from '../common/accounts';
 import { createDappPromise } from '../common/dappPromises';
 import { isUpdaterAlive } from '../common/helpers';
-import {
-  bytesToBase64, sha256,
-} from '../common/utils';
+import { bytesToBase64, sha256 } from '../common/utils';
 import * as apiErrors from '../errors';
 import { ApiServerError } from '../errors';
 import { callHook } from '../hooks';
@@ -448,24 +450,30 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       const payload = rawPayload
         ? await parsePayloadBase64(network, toAddress, rawPayload)
         : undefined;
-      const { isLedgerAllowed, codeHash } = await getContractInfo(network, toAddress);
 
       if (isLedger) {
-        if (!isLedgerAllowed) {
-          logDebug('Unsupported contract', toAddress, codeHash);
-          throw new BadRequestError('Unsupported contract', ApiTransactionError.UnsupportedHardwareContract);
-        } else if (payload) {
-          if (!LEDGER_SUPPORTED_PAYLOADS.includes(payload.type)) {
-            throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwarePayload);
-          }
-          if (payload.type === 'comment' && !isAscii(payload.comment)) {
-            throw new BadRequestError('Unsupported payload', ApiTransactionError.NonAsciiCommentForHardwareOperation);
-          }
-          if (payload.type === 'comment' && !isLedgerCommentLengthValid(payload.comment)) {
-            throw new BadRequestError('Unsupported payload', ApiTransactionError.TooLongCommentForHardwareOperation);
-          }
-          if (payload.type === 'nft:transfer' && !!payload.forwardPayload) {
+        const isNft = payload?.type === 'nft:transfer';
+        if (isNft) {
+          if (payload.forwardPayload || LEDGER_NFT_TRANSFER_DISABLED) {
             throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwareNftOperation);
+          }
+        } else {
+          const { isLedgerAllowed, codeHash } = await getContractInfo(network, toAddress);
+          if (!isLedgerAllowed) {
+            logDebug('Unsupported contract', toAddress, codeHash);
+            throw new BadRequestError('Unsupported contract', ApiTransactionError.UnsupportedHardwareContract);
+          }
+
+          if (payload) {
+            if (!LEDGER_SUPPORTED_PAYLOADS.includes(payload.type)) {
+              throw new BadRequestError('Unsupported payload', ApiTransactionError.UnsupportedHardwarePayload);
+            }
+            if (payload.type === 'comment' && !isAscii(payload.comment)) {
+              throw new BadRequestError('Unsupported payload', ApiTransactionError.NonAsciiCommentForHardwareOperation);
+            }
+            if (payload.type === 'comment' && !isLedgerCommentLengthValid(payload.comment)) {
+              throw new BadRequestError('Unsupported payload', ApiTransactionError.TooLongCommentForHardwareOperation);
+            }
           }
         }
       }

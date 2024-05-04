@@ -144,9 +144,10 @@ const selectPopularTokensMemoized = memoized(
   (balancesBySlug: ApiBalanceBySlug, swapTokenInfo: GlobalState['swapTokenInfo']) => {
     const popularTokenOrder = [
       'TON',
+      'USD₮',
+      'USDT',
       'BTC',
       'ETH',
-      'USDT',
       'jUSDT',
       'jWBTC',
     ];

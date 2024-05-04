@@ -1,7 +1,8 @@
 import { Address } from '@ton/core';
 
-import type { ApiNetwork } from '../../types';
+import type { ApiKnownAddresses, ApiNetwork } from '../../types';
 
+import { BURN_ADDRESS, EXCHANGE_ADDRESSES, EXCHANGE_ADDRESSES_FLAT } from '../../../config';
 import dns from '../../../util/dns';
 import { DnsCategory, dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
@@ -9,10 +10,40 @@ import { getTonClient, toBase64Address } from './util/tonCore';
 const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
 const VIP_DNS_COLLECTION = 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS';
 
-export async function resolveAddress(network: ApiNetwork, address: string): Promise<{
-  address: string;
-  domain?: string;
-} | undefined> {
+export async function resolveAddress(
+  network: ApiNetwork,
+  address: string,
+  knownAddresses?: ApiKnownAddresses,
+): Promise<{
+    address: string;
+    name?: string;
+  } | undefined> {
+  if (address === BURN_ADDRESS) {
+    return {
+      address,
+      name: 'Burn Address',
+    };
+  }
+
+  if (EXCHANGE_ADDRESSES_FLAT.has(address)) {
+    const [name] = Object
+      .entries(EXCHANGE_ADDRESSES)
+      .find(([, addresses]) => addresses.includes(address))!;
+
+    return {
+      name,
+      address,
+    };
+  }
+
+  const known = knownAddresses?.[address];
+  if (known) {
+    return {
+      address,
+      name: known.name,
+    };
+  }
+
   if (!dns.isDnsDomain(address)) {
     return { address };
   }
@@ -41,7 +72,10 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
       return undefined;
     }
 
-    return { address: toBase64Address(result, undefined, network), domain };
+    return {
+      address: toBase64Address(result, undefined, network),
+      name: domain,
+    };
   } catch (err: any) {
     if (!err.message?.includes('exit_code')) {
       throw err;

@@ -6,6 +6,7 @@ import {
 import type {
   ApiActivity,
   ApiAnyDisplayError,
+  ApiKnownAddresses,
   ApiNetwork,
   ApiNft,
   ApiSignedTransfer,
@@ -19,7 +20,7 @@ import type { AnyPayload, ApiTransactionExtra, TonTransferParams } from './types
 import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import { ONE_TON, TON_TOKEN_SLUG } from '../../../config';
+import { LEDGER_NFT_TRANSFER_DISABLED, ONE_TON, TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
@@ -109,24 +110,26 @@ export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, ad
   return Boolean(transactions.length);
 });
 
-export async function checkTransactionDraft(options: {
-  accountId: string;
-  toAddress: string;
-  amount: bigint;
-  tokenAddress?: string;
-  data?: AnyPayload;
-  stateInit?: Cell;
-  shouldEncrypt?: boolean;
-  isBase64Data?: boolean;
-  shouldSkipHardwareChecking?: boolean;
-}): Promise<CheckTransactionDraftResult> {
+export async function checkTransactionDraft(
+  options: {
+    accountId: string;
+    toAddress: string;
+    amount: bigint;
+    tokenAddress?: string;
+    data?: AnyPayload;
+    stateInit?: Cell;
+    shouldEncrypt?: boolean;
+    isBase64Data?: boolean;
+  },
+  knownAddresses?: ApiKnownAddresses,
+  isNft = false,
+): Promise<CheckTransactionDraftResult> {
   const {
     accountId,
     tokenAddress,
     stateInit,
     shouldEncrypt,
     isBase64Data,
-    shouldSkipHardwareChecking,
   } = options;
   let { toAddress, amount, data } = options;
 
@@ -135,7 +138,7 @@ export async function checkTransactionDraft(options: {
   let result: CheckTransactionDraftResult = {};
 
   try {
-    result = await checkToAddress(network, toAddress);
+    result = await checkToAddress(network, toAddress, knownAddresses);
 
     if ('error' in result) {
       return result;
@@ -187,7 +190,14 @@ export async function checkTransactionDraft(options: {
     const account = await fetchStoredAccount(accountId);
     const isLedger = !!account.ledger;
 
-    if (isLedger && !isLedgerAllowed && !shouldSkipHardwareChecking) {
+    if (isLedger && isNft && LEDGER_NFT_TRANSFER_DISABLED) {
+      return {
+        ...result,
+        error: ApiTransactionDraftError.UnsupportedHardwareNftOperation,
+      };
+    }
+
+    if (isLedger && !isNft && !isLedgerAllowed) {
       return {
         ...result,
         error: ApiTransactionDraftError.UnsupportedHardwareContract,
@@ -203,7 +213,6 @@ export async function checkTransactionDraft(options: {
         data
         && isLedger
         && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))
-        && !shouldSkipHardwareChecking
       ) {
         let error: ApiTransactionDraftError;
         if (typeof data !== 'string') {
@@ -278,7 +287,7 @@ export async function checkTransactionDraft(options: {
   }
 }
 
-export async function checkToAddress(network: ApiNetwork, toAddress: string) {
+export async function checkToAddress(network: ApiNetwork, toAddress: string, knownAddresses?: ApiKnownAddresses) {
   const result: {
     addressName?: string;
     isScam?: boolean;
@@ -288,9 +297,9 @@ export async function checkToAddress(network: ApiNetwork, toAddress: string) {
     error?: ApiAnyDisplayError;
   } = {};
 
-  const resolved = await resolveAddress(network, toAddress);
+  const resolved = await resolveAddress(network, toAddress, knownAddresses);
   if (resolved) {
-    result.addressName = resolved.domain;
+    result.addressName = resolved.name;
     result.resolvedAddress = resolved.address;
     toAddress = resolved.address;
   } else {

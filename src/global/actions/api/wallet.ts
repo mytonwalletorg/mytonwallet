@@ -163,7 +163,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
 
     setGlobal(global);
 
-    if (result?.error === ApiTransactionDraftError.InsufficientBalance) {
+    if (result?.error === ApiTransactionDraftError.InsufficientBalance && !nftAddress) {
       actions.showDialog({ message: 'The network fee has slightly changed, try sending again.' });
     } else {
       actions.showError({ error: result?.error });
@@ -365,7 +365,6 @@ addActionHandler('submitTransferHardware', async (global) => {
     rawPayload,
     parsedPayload,
     stateInit,
-    nft,
   } = global.currentTransfer;
 
   const accountId = global.currentAccountId!;
@@ -404,30 +403,15 @@ addActionHandler('submitTransferHardware', async (global) => {
   }
 
   const tokenAddress = selectTokenAddress(global, tokenSlug!);
-
-  let result: string | undefined;
-
-  if (nft) {
-    result = await ledgerApi.submitLedgerNftTransfer(
-      accountId,
-      nft.address,
-      resolvedAddress!,
-      nft,
-      comment,
-      fee,
-    );
-  } else {
-    result = await ledgerApi.submitLedgerTransfer({
-      accountId: global.currentAccountId!,
-      password: '',
-      toAddress: resolvedAddress!,
-      amount: amount!,
-      comment,
-      tokenAddress,
-      fee,
-    }, tokenSlug!);
-  }
-
+  const result = await ledgerApi.submitLedgerTransfer({
+    accountId: global.currentAccountId!,
+    password: '',
+    toAddress: resolvedAddress!,
+    amount: amount!,
+    comment,
+    tokenAddress,
+    fee,
+  }, tokenSlug!);
   const error = result === undefined ? 'Transfer error' : undefined;
 
   setGlobal(updateCurrentTransfer(getGlobal(), {

@@ -195,6 +195,7 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       });
       break;
 
+    case ApiTransactionDraftError.UnsupportedHardwareNftOperation:
     case ApiTransactionError.UnsupportedHardwareNftOperation:
       actions.showDialog({
         message: 'Transferring NFT is not yet supported by Ledger.',

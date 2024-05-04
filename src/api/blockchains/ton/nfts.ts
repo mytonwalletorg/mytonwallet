@@ -2,7 +2,7 @@ import type { NftItem } from 'tonapi-sdk-js';
 import type { Cell } from '@ton/core';
 import { Address, Builder } from '@ton/core';
 
-import type { ApiNft, ApiNftUpdate } from '../../types';
+import type { ApiKnownAddresses, ApiNft, ApiNftUpdate } from '../../types';
 
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
@@ -97,14 +97,14 @@ export async function checkNftTransferDraft(options: {
   nftAddress: string;
   toAddress: string;
   comment?: string;
-}) {
+}, knownAddresses?: ApiKnownAddresses) {
   const { accountId, nftAddress, comment } = options;
   let { toAddress } = options;
 
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 
-  const checkAddressResult = await checkToAddress(network, toAddress);
+  const checkAddressResult = await checkToAddress(network, toAddress, knownAddresses);
 
   if ('error' in checkAddressResult) {
     return checkAddressResult;
@@ -118,8 +118,7 @@ export async function checkNftTransferDraft(options: {
     toAddress: nftAddress,
     amount: NFT_TRANSFER_TON_AMOUNT,
     data: payload,
-    shouldSkipHardwareChecking: true,
-  });
+  }, undefined, true);
 
   if ('error' in result) {
     return result;

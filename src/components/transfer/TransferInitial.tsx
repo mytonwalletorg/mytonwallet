@@ -9,7 +9,10 @@ import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
 import {
-  EXCHANGE_ADDRESSES, IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG,
+  EXCHANGE_ADDRESSES_FLAT,
+  IS_FIREFOX_EXTENSION,
+  TON_SYMBOL,
+  TON_TOKEN_SLUG,
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
@@ -80,7 +83,7 @@ interface StateProps {
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
 const COMMENT_MAX_SIZE_BYTES = 5000;
-const SHORT_ADDRESS_SHIFT = 14;
+const SHORT_ADDRESS_SHIFT = 12;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
 const COMMENT_DROPDOWN_ITEMS = [
   { value: 'raw', name: 'Comment or Memo' },
@@ -442,7 +445,7 @@ function TransferInitial({
     onCommentChange?.();
   });
 
-  const isCommentRequired = Boolean(toAddress) && EXCHANGE_ADDRESSES.has(toAddress);
+  const isCommentRequired = Boolean(toAddress) && EXCHANGE_ADDRESSES_FLAT.has(toAddress);
   const hasCommentError = isCommentRequired && !comment;
   const requiredAmount = isNftTransfer ? NFT_TRANSFER_TON_AMOUNT : amount;
 

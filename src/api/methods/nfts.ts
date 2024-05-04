@@ -4,6 +4,7 @@ import type { ApiNft, ApiUpdate, OnApiUpdate } from '../types';
 import { TON_TOKEN_SLUG } from '../../config';
 import blockchains from '../blockchains';
 import { fetchStoredAddress } from '../common/accounts';
+import { getKnownAddresses } from '../common/addresses';
 import { resolveBlockchainKey } from '../common/helpers';
 import { apiDb } from '../db';
 import { createLocalTransaction } from './transactions';
@@ -67,7 +68,7 @@ export function checkNftTransferDraft(options: {
 }) {
   const blockchain = blockchains[resolveBlockchainKey(options.accountId)!];
 
-  return blockchain.checkNftTransferDraft(options);
+  return blockchain.checkNftTransferDraft(options, getKnownAddresses());
 }
 
 export async function submitNftTransfer(

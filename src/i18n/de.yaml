@@ -147,6 +147,7 @@ No NFTs yet: Noch keine NFTs vorhanden
 $nft_explore_offer: |
   Erkunden Sie einen Marktplatz, um
   bestehende NFT-Sammlungen zu entdecken.
+$nft_hardware_unsupported: Leider wird die Übertragung von NFT von der Ledger-Wallet noch nicht unterstützt.
 Open Getgems: Getgems öffnen
 Transaction is not completed: Die Transaktion ist nicht abgeschlossen.
 Received: Empfangen
@@ -571,3 +572,6 @@ $transfer_inactive_contract_error: |
   Wenn Sie unbedingt an diese Adresse senden möchten, dann geben Sie die Adresse im Format „UQ...“ ein.
 Successfully: Erfolgreich
 Unstake More: Mehr abstecken
+Are you sure you want to burn this NFT? It will be lost forever.: Sind Sie sicher, dass Sie diese NFT verbrennen wollen? Es wird für immer verloren sein.
+Burn NFT: NFT brennen
+Burn: Brennen

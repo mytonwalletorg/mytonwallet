@@ -3,7 +3,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, TON_SYMBOL } from '../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, BURN_ADDRESS, TON_SYMBOL } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
@@ -19,6 +19,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
+import Emoji from '../ui/Emoji';
 import IconWithTooltip from '../ui/IconWithTooltip';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import ModalHeader from '../ui/ModalHeader';
@@ -72,6 +73,7 @@ function TransferConfirm({
 
   const addressName = savedAddresses?.[toAddress!] || toAddressName;
   const isNftTransfer = Boolean(nft);
+  const isBurning = resolvedAddress === BURN_ADDRESS;
 
   useHistoryBack({
     isActive,
@@ -175,6 +177,14 @@ function TransferConfirm({
 
         {renderComment()}
 
+        {isBurning && (
+          <p>
+            <Emoji from="⚠️" />
+            {' '}
+            {lang('Are you sure you want to burn this NFT? It will be lost forever.')}
+          </p>
+        )}
+
         <div className={buildClassName(modalStyles.buttons, modalStyles.buttonsInsideContentWithScroll)}>
           {promiseId ? (
             <Button onClick={onClose} className={modalStyles.button}>{lang('Cancel')}</Button>
@@ -184,10 +194,11 @@ function TransferConfirm({
           <Button
             isPrimary
             isLoading={isLoading}
+            isDestructive={isBurning}
             className={modalStyles.button}
             onClick={handleConfirm}
           >
-            {lang('Confirm')}
+            {lang(isBurning ? 'Burn NFT' : 'Confirm')}
           </Button>
         </div>
       </div>

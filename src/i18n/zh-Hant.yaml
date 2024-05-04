@@ -141,6 +141,7 @@ NFT: NFT
 No NFTs yet: 尚未有 NFT
 $nft_explore_offer: |
   探索市場來尋找現有的 NFT 收藏.
+$nft_hardware_unsupported: 不幸的是，Ledger 錢包尚不支援傳輸 NFT。
 Open Getgems: 開啟 Getgems
 Transaction is not completed: 交易未完成
 Received: 已收到
@@ -555,3 +556,6 @@ $transfer_inactive_contract_error: |
   您以“EQ...”格式輸入了地址，但該地址未激活，因此交易將無法完成。如果您確實要傳送到該位址，請以「UQ...」格式輸入該位址。
 Successfully: 成功地
 Unstake More: 解除質押更多
+Are you sure you want to burn this NFT? It will be lost forever.: 您確定要燒掉這個 NFT 嗎？ 它將永遠失去。
+Burn NFT: 燒毀NFT
+Burn: 燒傷

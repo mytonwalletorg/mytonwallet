@@ -114,7 +114,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-90';
+export const LANG_CACHE_NAME = 'mtw-lang-91';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -259,16 +259,31 @@ export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
   },
 ];
 
-export const EXCHANGE_ADDRESSES = new Set([
-  'EQBfAN7LfaUYgXZNw5Wc7GBgkEX2yhuJ5ka95J1JJwXXf4a8', 'UQBfAN7LfaUYgXZNw5Wc7GBgkEX2yhuJ5ka95J1JJwXXf9t5', // OKX
-  'EQBBlxK8VBxEidbxw4oQVyLSk7iEf9VPJxetaRQpEbi-XG4U', 'UQBBlxK8VBxEidbxw4oQVyLSk7iEf9VPJxetaRQpEbi-XDPR', // Bitfinex
-  'EQBX63RAdgShn34EAFMV73Cut7Z15lUZd1hnVva68SEl7sxi', 'UQBX63RAdgShn34EAFMV73Cut7Z15lUZd1hnVva68SEl7pGn', // MEXC
-  'EQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fPQb', 'UQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fKne', // Bybit
-  'EQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwj1f', 'UQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwmCa', // Huobi
-  'EQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6dZl', 'UQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6Yug', // KuCoin
-  'EQCkoRp4OE-SFUoMEnYfL3vF43T3AzNfW8jyTC4yzk8cJqMS', 'UQCkoRp4OE-SFUoMEnYfL3vF43T3AzNfW8jyTC4yzk8cJv7X', // @wallet 1
-  'EQA2JYPGPywx6Sn590nUd06B2HgOkFvJ-cCnTO6yTEdacbUG', 'UQA2JYPGPywx6Sn590nUd06B2HgOkFvJ-cCnTO6yTEdacejD', // @wallet 2
-]);
+export const EXCHANGE_ADDRESSES = {
+  OKX: [
+    'EQBfAN7LfaUYgXZNw5Wc7GBgkEX2yhuJ5ka95J1JJwXXf4a8', 'UQBfAN7LfaUYgXZNw5Wc7GBgkEX2yhuJ5ka95J1JJwXXf9t5',
+    'EQCFTsRSHv1SrUO88ZiOTETr35omrRj6Uav9toX8OzSKXGkS', 'UQCFTsRSHv1SrUO88ZiOTETr35omrRj6Uav9toX8OzSKXDTX',
+    'EQDn6G2gh0LtkzQ0_-uPCKY8fhAO6ELiX1manL8IkVdKbGzr', 'UQDn6G2gh0LtkzQ0_-uPCKY8fhAO6ELiX1manL8IkVdKbDEu',
+    'EQADON7zS4TG7pE0oEqxYBRQvkRjQKN64lneV8s3vbWQzWUO', 'UQADON7zS4TG7pE0oEqxYBRQvkRjQKN64lneV8s3vbWQzTjL',
+  ],
+  Bitfinex: ['EQBBlxK8VBxEidbxw4oQVyLSk7iEf9VPJxetaRQpEbi-XG4U', 'UQBBlxK8VBxEidbxw4oQVyLSk7iEf9VPJxetaRQpEbi-XDPR'],
+  MEXC: ['EQBX63RAdgShn34EAFMV73Cut7Z15lUZd1hnVva68SEl7sxi', 'UQBX63RAdgShn34EAFMV73Cut7Z15lUZd1hnVva68SEl7pGn'],
+  ByBit: [
+    'EQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fPQb', 'UQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fKne',
+    'EQCuYqGS2pbiZhYacCzJ9t6RwMNEHxfOulG8RC37IDGjCmeU', 'UQCuYqGS2pbiZhYacCzJ9t6RwMNEHxfOulG8RC37IDGjCjpR',
+  ],
+  Huobi: ['EQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwj1f', 'UQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwmCa'],
+  KuCoin: ['EQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6dZl', 'UQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6Yug'],
+  'Telegram Wallet': [
+    'EQCkoRp4OE-SFUoMEnYfL3vF43T3AzNfW8jyTC4yzk8cJqMS', 'UQCkoRp4OE-SFUoMEnYfL3vF43T3AzNfW8jyTC4yzk8cJv7X',
+    'EQA2JYPGPywx6Sn590nUd06B2HgOkFvJ-cCnTO6yTEdacbUG', 'UQA2JYPGPywx6Sn590nUd06B2HgOkFvJ-cCnTO6yTEdacejD',
+    'EQAfWAbHPQO7yW637r8WBn8fLo4nDPoW1XABqp6vdFbwCAb0', 'UQAfWAbHPQO7yW637r8WBn8fLo4nDPoW1XABqp6vdFbwCFsx',
+    'EQCXrZNESRUInoEiOP8Qq-kGbQsD6j26KoYw-5yfiKpFXPqY', 'UQCXrZNESRUInoEiOP8Qq-kGbQsD6j26KoYw-5yfiKpFXKdd',
+  ],
+};
+export const EXCHANGE_ADDRESSES_FLAT = new Set(Object.values(EXCHANGE_ADDRESSES).flat());
+
+export const BURN_ADDRESS = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
 
 export const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
 export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R2'];
@@ -280,3 +295,5 @@ export const DEFAULT_ERROR_PAUSE = 200;
 export const HISTORY_PERIODS: TokenPeriod[] = ['1D', '7D', '1M', '3M', '1Y', 'ALL'];
 
 export const BROWSER_HISTORY_LIMIT = 10;
+
+export const LEDGER_NFT_TRANSFER_DISABLED = true;
