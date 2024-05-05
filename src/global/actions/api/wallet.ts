@@ -18,9 +18,9 @@ import { fromDecimal, toDecimal } from '../../../util/decimals';
 import {
   buildCollectionByKey, findLast, mapValues, pick, unique,
 } from '../../../util/iteratees';
-import { callActionInMain } from '../../../util/multitab';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { onTickEnd, pause } from '../../../util/schedulers';
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiUserRejectsError } from '../../../api/errors';
 import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../helpers';
@@ -122,6 +122,11 @@ addActionHandler('setTransferShouldEncrypt', (global, actions, { shouldEncrypt }
 });
 
 addActionHandler('submitTransferInitial', async (global, actions, payload) => {
+  if (IS_DELEGATING_BOTTOM_SHEET) {
+    callActionInNative('submitTransferInitial', payload);
+    return;
+  }
+
   const {
     tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddress,
   } = payload;

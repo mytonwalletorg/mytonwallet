@@ -255,9 +255,18 @@ async function waitPendingDexSwap(address: string) {
       status: 'pending',
       isCex: false,
     });
+
     if (!pendingSwaps.length) {
       break;
     }
+
+    const areAllStale = pendingSwaps.every((swap) => (
+      Date.now() - swap.timestamp > SWAP_WAITING_TIME * 2
+    ));
+    if (areAllStale) {
+      break;
+    }
+
     await pause(SWAP_WAITING_PAUSE);
   }
 }
