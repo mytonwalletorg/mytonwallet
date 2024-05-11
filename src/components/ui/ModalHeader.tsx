@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -9,7 +10,7 @@ import Button from './Button';
 import modalStyles from './Modal.module.scss';
 
 type OwnProps = {
-  title: string;
+  title: string | TeactNode;
   className?: string;
   withNotch?: boolean;
   closeClassName?: string;

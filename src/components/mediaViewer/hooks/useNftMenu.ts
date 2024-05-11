@@ -49,6 +49,10 @@ const TON_DNS_ITEM: DropdownItem = {
   value: 'tondns',
   fontIcon: 'external',
 };
+const COLLECTION_ITEM: DropdownItem = {
+  name: 'Collection',
+  value: 'collection',
+};
 const BURN_ITEM: DropdownItem = {
   name: 'Burn',
   value: 'burn',
@@ -61,7 +65,9 @@ const SELECT_ITEM: DropdownItem = {
 };
 
 export default function useNftMenu(nft?: ApiNft) {
-  const { startTransfer, submitTransferInitial, selectNfts } = getActions();
+  const {
+    startTransfer, submitTransferInitial, selectNfts, openNftCollection,
+  } = getActions();
 
   const handleMenuItemSelect = useLastCallback((value: string) => {
     const { isTestnet } = getGlobal().settings;
@@ -109,6 +115,12 @@ export default function useNftMenu(nft?: ApiNft) {
         break;
       }
 
+      case 'collection': {
+        openNftCollection({ address: nft!.collectionAddress! }, { forceOnHeavyAnimation: true });
+
+        break;
+      }
+
       case 'burn': {
         startTransfer({
           isPortrait: getIsPortrait(),
@@ -141,7 +153,11 @@ export default function useNftMenu(nft?: ApiNft) {
       GETGEMS_ITEM,
       TONSCAN_ITEM,
       ...(nft.isOnFragment ? [FRAGMENT_ITEM] : []),
-      ...(!nft.isOnSale ? [BURN_ITEM, SELECT_ITEM] : []),
+      ...(nft.collectionAddress ? [COLLECTION_ITEM] : []),
+      ...(!nft.isOnSale ? [
+        BURN_ITEM,
+        SELECT_ITEM,
+      ] : []),
     ];
   }, [nft]);
 

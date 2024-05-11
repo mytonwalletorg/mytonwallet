@@ -271,4 +271,14 @@
   margin: 0.75rem auto;
 
   background-color: black !important;
+
+  transition: opacity 250ms ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.notcoinVoucherIcon {
+  margin-right: 0.5rem;
 }

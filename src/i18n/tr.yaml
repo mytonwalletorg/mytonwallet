@@ -575,7 +575,8 @@ $transfer_inactive_contract_error: |
 Successfully: Başarıyla
 Unstake More: Unstake daha fazla
 Are you sure you want to burn this NFT? It will be lost forever.: Bu NFT'yi yakmak istediğinizden emin misiniz? Sonsuza kadar kaybolacak.
-$multi_burn_nft_warning: "%amount% NFT yakacaksınız. İşlem ~%duration% dakika sürebilir. Lütfen işlem tamamlanana kadar uygulamayı kapatmayın ve hesap değiştirmeyin."
+$multi_burn_nft_warning_1: "%amount% NFT yakacaksınız."
+$multi_burn_nft_warning_2: "İşlem ~%duration% dakika sürebilir. Lütfen işlem tamamlanana kadar uygulamayı kapatmayın ve hesap değiştirmeyin."
 Burn NFT: NFT'yi yaz
 Burn: Yakmak
 Private Key: Gizli anahtar
@@ -588,3 +589,4 @@ Select: Seçme
 Send All: Hepsini gönder
 Burn All: Hepsini yak
 Select All: Hepsini seç
+Collection: Koleksiyon

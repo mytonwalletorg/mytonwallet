@@ -64,18 +64,21 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
       for (const activity of activities) {
         if (activity.kind === 'transaction') {
-          const localTransaction = localTransactions.find(({
+          const index = localTransactions.findIndex(({
             amount, isIncoming, slug, normalizedAddress, inMsgHash,
           }) => {
             if (slug === TON_TOKEN_SLUG) {
-              return inMsgHash === activity.inMsgHash;
+              return inMsgHash === activity.inMsgHash && amount === activity.amount
+                && normalizedAddress === activity.normalizedAddress;
             } else {
               return amount === activity.amount && !isIncoming && slug === activity.slug
                 && normalizedAddress === activity.normalizedAddress;
             }
           });
 
-          if (localTransaction) {
+          if (index !== -1) {
+            const [localTransaction] = localTransactions.splice(index, 1);
+
             const { txId, amount } = activity;
             const localTxId = localTransaction.txId;
             global = assignRemoteTxId(global, accountId, localTxId, txId, amount);

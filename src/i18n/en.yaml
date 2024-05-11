@@ -577,7 +577,8 @@ Unstake More: Unstake More
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Are you sure you want to burn this NFT?
   It will be lost forever.
-$multi_burn_nft_warning: "You are going to burn %amount% NFTs. The process may take ~%duration% minute(s). Please do not close the app and do not switch accounts until it is finished."
+$multi_burn_nft_warning_1: "You are going to burn %amount% NFTs."
+$multi_burn_nft_warning_2: "The process may take ~%duration% minute(s). Please do not close the app and do not switch accounts until it is finished."
 Burn NFT: Burn NFT
 Burn: Burn
 Private Key: Private Key
@@ -590,3 +591,4 @@ Select: Select
 Send All: Send All
 Burn All: Burn All
 Select All: Select All
+Collection: Collection

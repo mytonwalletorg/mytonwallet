@@ -34,7 +34,7 @@ import Transition from '../../../ui/Transition';
 import Activity from './Activities';
 import Assets from './Assets';
 import Explore from './Explore';
-import NftHeader from './NftHeader';
+import NftCollectionHeader from './NftCollectionHeader';
 import Nfts from './Nfts';
 import NftSelectionHeader from './NftSelectionHeader';
 
@@ -222,7 +222,7 @@ function Content({
       return <NftSelectionHeader />;
     }
 
-    return currentCollectionAddress ? <NftHeader key="collection" /> : (
+    return currentCollectionAddress ? <NftCollectionHeader key="collection" /> : (
       <TabList
         tabs={tabs}
         activeTab={activeTabIndex}

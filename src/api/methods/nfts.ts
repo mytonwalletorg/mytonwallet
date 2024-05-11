@@ -93,7 +93,7 @@ export async function submitNftTransfers(
     createLocalTransaction(accountId, {
       amount: message.amount,
       fromAddress,
-      toAddress,
+      toAddress: message.toAddress,
       comment,
       fee,
       slug: TON_TOKEN_SLUG,

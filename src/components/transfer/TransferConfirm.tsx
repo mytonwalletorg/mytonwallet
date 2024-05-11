@@ -3,7 +3,9 @@ import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, BURN_ADDRESS, TON_SYMBOL } from '../../config';
+import {
+  ANIMATED_STICKER_SMALL_SIZE_PX, BURN_ADDRESS, BURN_CHUNK_DURATION_APPROX_SEC, TON_SYMBOL,
+} from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
@@ -43,8 +45,6 @@ interface OwnProps {
 interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
 }
-
-const BURN_CHUNK_DURATION_APPROX_SEC = 30;
 
 function TransferConfirm({
   currentTransfer: {
@@ -199,10 +199,11 @@ function TransferConfirm({
               nfts?.length === 1
                 ? renderText(lang('Are you sure you want to burn this NFT? It will be lost forever.'))
                 // eslint-disable-next-line max-len
-                : renderText(lang('$multi_burn_nft_warning', {
-                  amount: nfts.length,
-                  duration: burningDurationMin,
-                }))
+                : [
+                  renderText(lang('$multi_burn_nft_warning_1', { amount: nfts.length })),
+                  ' ',
+                  renderText(lang('$multi_burn_nft_warning_2', { duration: burningDurationMin })),
+                ]
             )}
           </div>
         )}

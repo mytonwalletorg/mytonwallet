@@ -22,6 +22,8 @@ type OwnProps = {
   onClick: (arg: number) => void;
   clickArg: number;
   onMenuItemClick?: (value: string) => void;
+  onOpenMenu?: NoneToVoidFunction;
+  onCloseMenu?: NoneToVoidFunction;
 };
 
 function Tab({
@@ -33,6 +35,8 @@ function Tab({
   onClick,
   clickArg,
   onMenuItemClick,
+  onOpenMenu,
+  onCloseMenu,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const tabRef = useRef<HTMLDivElement>(null);
@@ -49,7 +53,9 @@ function Tab({
 
     if (isMenuOpen) {
       closeMenu();
+      onCloseMenu?.();
     } else {
+      onOpenMenu?.();
       openMenu();
     }
   });
@@ -104,6 +110,11 @@ function Tab({
     });
   }, [isActive, previousActiveTab]);
 
+  const handleClose = useLastCallback(() => {
+    closeMenu();
+    onCloseMenu?.();
+  });
+
   return (
     <div
       className={buildClassName(styles.Tab, className, hasMenu && styles.interactive)}
@@ -120,7 +131,7 @@ function Tab({
           isOpen={isMenuOpen}
           items={menuItems}
           onSelect={onMenuItemClick}
-          onClose={closeMenu}
+          onClose={handleClose}
           buttonClassName={styles.menuItem}
           menuPositionHorizontal="right"
         />

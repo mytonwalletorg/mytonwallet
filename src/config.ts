@@ -115,7 +115,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-96';
+export const LANG_CACHE_NAME = 'mtw-lang-98';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -300,3 +300,4 @@ export const BROWSER_HISTORY_LIMIT = 10;
 export const LEDGER_NFT_TRANSFER_DISABLED = true;
 export const NFT_BATCH_SIZE = 4;
 export const NOTCOIN_VOUCHERS_ADDRESS = 'EQDmkj65Ab_m0aZaW8IpKw4kYqIgITw_HRstYEkVQ6NIYCyW';
+export const BURN_CHUNK_DURATION_APPROX_SEC = 30;

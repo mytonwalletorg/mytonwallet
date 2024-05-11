@@ -1,4 +1,4 @@
-import React, { memo } from '../../../../lib/teact/teact';
+import React, { memo, useEffect } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
@@ -6,15 +6,17 @@ import type { ApiNft } from '../../../../api/types';
 import { BURN_ADDRESS, TON_TOKEN_SLUG } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { NFT_TRANSFER_TON_AMOUNT } from '../../../../api/blockchains/ton/constants';
 
 import { getIsPortrait } from '../../../../hooks/useDeviceScreen';
+import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
 import Button from '../../../ui/Button';
 
-import styles from './NftHeader.module.scss';
+import styles from './NftCollectionHeader.module.scss';
 
 interface StateProps {
   byAddress?: Record<string, ApiNft>;
@@ -26,10 +28,20 @@ function NftSelectionHeader({ selectedAddresses, byAddress }: StateProps) {
 
   const lang = useLang();
   const amount = selectedAddresses?.length ?? 1;
+  const isActive = Boolean(selectedAddresses?.length);
+
+  useHistoryBack({
+    isActive,
+    onBack: clearNftsSelection,
+  });
+
+  useEffect(() => (isActive ? captureEscKeyListener(clearNftsSelection) : undefined), [isActive]);
 
   const handleSendClick = useLastCallback(() => {
     const nfts = selectedAddresses!.map((address) => byAddress![address]) ?? [];
     if (!nfts.length) return;
+
+    clearNftsSelection();
 
     startTransfer({
       isPortrait: getIsPortrait(),
@@ -40,6 +52,8 @@ function NftSelectionHeader({ selectedAddresses, byAddress }: StateProps) {
   const handleBurnClick = useLastCallback(() => {
     const nfts = selectedAddresses!.map((address) => byAddress![address]) ?? [];
     if (!nfts.length) return;
+
+    clearNftsSelection();
 
     startTransfer({
       isPortrait: getIsPortrait(),

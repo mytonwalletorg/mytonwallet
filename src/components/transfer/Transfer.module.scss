@@ -576,7 +576,7 @@ textarea.inputStatic {
   height: 1.0625rem;
 }
 
-.burnWarning {
+.infoBox, .burnWarning {
   align-self: center;
 
   width: 100%;
@@ -585,9 +585,22 @@ textarea.inputStatic {
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.3125rem;
-  color: var(--color-transaction-red-text);
   text-align: center;
 
-  background-color: var(--color-transaction-red-background);
+  background-color: var(--color-background-first);
   border-radius: var(--border-radius-buttons);
+}
+
+.infoBox {
+  margin: 1rem 0;
+}
+
+.burnWarning {
+  color: var(--color-transaction-red-text);
+
+  background-color: var(--color-transaction-red-background);
+}
+
+.spinner {
+  margin: 2rem auto;
 }

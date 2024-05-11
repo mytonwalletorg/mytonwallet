@@ -31,6 +31,7 @@ import Transition from '../ui/Transition';
 import TransferComplete from './TransferComplete';
 import TransferConfirm from './TransferConfirm';
 import TransferInitial from './TransferInitial';
+import TransferMultiNftProcess from './TransferMultiNftProcess';
 import TransferPassword from './TransferPassword';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -59,6 +60,7 @@ function TransferModal({
     txId,
     tokenSlug,
     nfts,
+    sentNftsCount,
   }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected,
 }: StateProps) {
   const {
@@ -209,7 +211,7 @@ function TransferModal({
           />
         );
       case TransferState.Complete:
-        return (
+        return (nfts?.length || 0) > 4 ? (
           <TransferComplete
             isActive={isActive}
             nfts={nfts}
@@ -225,6 +227,12 @@ function TransferModal({
             onInfoClick={handleTransactionInfoClick}
             onClose={handleModalCloseWithReset}
             decimals={decimals}
+          />
+        ) : (
+          <TransferMultiNftProcess
+            nfts={nfts!}
+            sentNftsCount={sentNftsCount}
+            toAddress={toAddress}
           />
         );
     }

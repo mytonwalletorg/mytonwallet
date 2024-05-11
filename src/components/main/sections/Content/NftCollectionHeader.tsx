@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from '../../../../lib/teact/teact';
+import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
@@ -14,19 +14,21 @@ import {
 } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { openUrl } from '../../../../util/openUrl';
 import { NFT_TRANSFER_TON_AMOUNT } from '../../../../api/blockchains/ton/constants';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { getIsPortrait } from '../../../../hooks/useDeviceScreen';
 import useFlag from '../../../../hooks/useFlag';
+import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
 import Button from '../../../ui/Button';
 import DropdownMenu from '../../../ui/DropdownMenu';
 
-import styles from './NftHeader.module.scss';
+import styles from './NftCollectionHeader.module.scss';
 
 interface StateProps {
   isTestnet?: boolean;
@@ -55,7 +57,7 @@ const MENU_ITEMS: DropdownItem[] = [{
   withSeparator: true,
 }];
 
-function NftHeader({
+function NftCollectionHeader({
   isTestnet,
   nfts,
   currentCollectionAddress,
@@ -88,6 +90,15 @@ function NftHeader({
   }, [currentCollectionAddress, nfts]);
   const renderedNft = useCurrentOrPrev(nftFromCurrentCollection, true);
   const renderedAmount = useCurrentOrPrev(amount, true);
+
+  const isActive = Boolean(currentCollectionAddress);
+
+  useHistoryBack({
+    isActive,
+    onBack: closeNftCollection,
+  });
+
+  useEffect(() => (isActive ? captureEscKeyListener(closeNftCollection) : undefined), [isActive]);
 
   const handleMenuItemClick = useLastCallback((value: string) => {
     switch (value) {
@@ -189,4 +200,4 @@ export default memo(withGlobal((global): StateProps => {
     nfts,
     currentCollectionAddress,
   };
-})(NftHeader));
+})(NftCollectionHeader));
