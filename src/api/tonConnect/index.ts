@@ -262,6 +262,7 @@ export async function sendTransaction(
     onPopupUpdate({
       type: 'dappLoading',
       connectionType: 'sendTransaction',
+      accountId,
       isSse: Boolean('sseOptions' in request && request.sseOptions),
     });
 

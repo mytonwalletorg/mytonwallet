@@ -117,6 +117,7 @@ export type ApiUpdateDappLoading = {
   type: 'dappLoading';
   connectionType: 'connect' | 'sendTransaction';
   isSse?: boolean;
+  accountId?: string;
 };
 
 export type ApiUpdateDappCloseLoading = {

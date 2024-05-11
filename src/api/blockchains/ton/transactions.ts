@@ -272,13 +272,7 @@ export async function checkTransactionDraft(
       };
     }
 
-    return result as {
-      fee: bigint;
-      resolvedAddress: string;
-      addressName?: string;
-      isScam?: boolean;
-      isToAddressNew?: boolean;
-    };
+    return result;
   } catch (err: any) {
     return {
       ...handleServerError(err),

@@ -57,6 +57,7 @@ const selectAccountTokensMemoized = memoized((
         name,
         image,
         price,
+        priceUsd,
         decimals,
         change24h: round(percentChange24h / 100, 4),
         isDisabled,

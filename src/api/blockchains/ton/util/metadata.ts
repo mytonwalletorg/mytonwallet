@@ -488,6 +488,7 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       thumbnail: previews!.find((x) => x.resolution === '500x500')!.url,
       isOnSale: Boolean(sale),
       isHidden,
+      description,
       ...(collection && {
         collectionAddress: toBase64Address(collection.address, true, network),
         collectionName: collection.name,

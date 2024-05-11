@@ -4,10 +4,10 @@ import { BottomSheet } from 'native-bottom-sheet';
 import React, { memo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../../config';
+import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
-import { IS_DELEGATING_BOTTOM_SHEET } from '../../../../util/windowEnvironment';
+import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS_APP } from '../../../../util/windowEnvironment';
 
 import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
@@ -72,7 +72,7 @@ function PortraitActions({
   const handleAddBuyClick = useLastCallback(async () => {
     vibrate();
 
-    if (!IS_CAPACITOR) {
+    if (!IS_IOS_APP) {
       openAddBuyModal();
       return;
     }

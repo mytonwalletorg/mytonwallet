@@ -33,6 +33,9 @@ $mnemonic_check_words_list: 请输入以下单词
 $mnemonic_check_error: 您输入的单词与列表中的单词不符，请再试一次。
 $mnemonic_list_description: |
   按照**正确的顺序**写下这些单词，并将它们存放在一个**安全**的地方。
+$mnemonic_warning: |
+  **不要** 发送或向任何人展示，
+  **不要** 在任何地方输入。
 Let's Check: 再确认一次。
 Let's Check!: 请再确认一次！
 Safety Rules: 安全守则
@@ -540,7 +543,7 @@ Data was copied!: 数据被复制！
 Open NFT Collection: 打开 NFT 收藏
 Previous: 上一页
 Next: 下一页
-NftInsufficientBalance: TON 不足以支付费用。
+Insufficient TON for fee.: TON 不足以支付费用。
 Send NFT: 发送 NFT
 NFT has been sent!: NFT已发送！
 Cannot be sent: 无法发送
@@ -559,3 +562,4 @@ Unstake More: 解除质押更多
 Are you sure you want to burn this NFT? It will be lost forever.: 您确定要烧毁这个 NFT 吗？ 它将永远失去。
 Burn NFT: 烧毁NFT
 Burn: 烧伤
+Private Key: 私钥

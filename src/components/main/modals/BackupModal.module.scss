@@ -1,8 +1,8 @@
 .modalDialog {
-  height: 34rem;
+  height: 38.5rem;
 
   @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(34rem + env(safe-area-inset-bottom));
+    height: calc(38.5rem + env(safe-area-inset-bottom));
   }
 
   @media (min-width: 416.01px) {

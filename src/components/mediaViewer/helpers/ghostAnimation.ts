@@ -1,6 +1,6 @@
 import { MediaType } from '../../../global/types';
 
-import { ANIMATION_END_DELAY } from '../../../config';
+import { ANIMATION_END_DELAY, MOBILE_SCREEN_MAX_WIDTH } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { applyStyles } from '../../../util/animation';
 import { isElementInViewport } from '../../../util/isElementInViewport';
@@ -13,8 +13,7 @@ import styles from '../MediaViewer.module.scss';
 export const ANIMATION_DURATION = 200;
 
 // Header height + bottom padding, keep in sync with styles.image max-height
-const OCCUPIED_HEIGHT = 6 * REM;
-const OFFSET_TOP = OCCUPIED_HEIGHT / 2 + REM;
+const OCCUPIED_HEIGHT = 14 * REM;
 
 export function animateOpening(type: MediaType, mediaId: string, mediaUrl?: string) {
   const { image: fromImage } = getNode(type, mediaId);
@@ -29,6 +28,7 @@ export function animateOpening(type: MediaType, mediaId: string, mediaUrl?: stri
     const { width: mediaWidth, height: mediaHeight } = await getImageDimension(mediaUrl);
 
     const availableHeight = windowHeight - OCCUPIED_HEIGHT;
+    const offsetTop = (windowWidth <= MOBILE_SCREEN_MAX_WIDTH ? 8 : 6) * REM;
 
     const { width: toWidth, height: toHeight } = calculateDimensions(
       windowWidth,
@@ -38,7 +38,7 @@ export function animateOpening(type: MediaType, mediaId: string, mediaUrl?: stri
     );
 
     const toLeft = (windowWidth - toWidth) / 2;
-    const toTop = OFFSET_TOP + (availableHeight - toHeight) / 2;
+    const toTop = offsetTop + (availableHeight - toHeight) / 2;
 
     const {
       top: fromTop, left: fromLeft, width: fromWidth, height: fromHeight,

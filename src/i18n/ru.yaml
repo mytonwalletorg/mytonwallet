@@ -36,6 +36,9 @@ $mnemonic_list_description: |
   Запишите слова
   в **правильном порядке** и сохраните их
   **в надёжном месте**.
+$mnemonic_warning: |
+  **Никому** не сообщайте, не показывайте
+  и не вводите **нигде**.
 Let's Check: Давайте проверим
 Let's Check!: Давайте проверим!
 Safety Rules: Правила безопасности
@@ -554,7 +557,7 @@ Data was copied!: Данные скопированы!
 Open NFT Collection: Открыть коллекцию NFT
 Previous: Предыдущий
 Next: Следующий
-NftInsufficientBalance: Недостаточно TON для комиссии.
+Insufficient TON for fee.: Недостаточно TON для комиссии.
 Send NFT: Отправить NFT
 NFT has been sent!: NFT отправлен!
 Cannot be sent: Нельзя отправить
@@ -574,3 +577,4 @@ Unstake More: Вывести ещё
 Are you sure you want to burn this NFT? It will be lost forever.: Вы уверены, что хотите сжечь этот NFT? Он будет потерян навсегда.
 Burn NFT: Сжечь NFT
 Burn: Сжечь
+Private Key: Приватный ключ

@@ -36,6 +36,9 @@ $mnemonic_list_description: |
   Bu kelimeleri
   **doğru sırada** yazın ve
   **gizli bir yerde** saklayın.
+$mnemonic_warning: |
+  Kimseye **göndermeyin** veya göstermeyin,
+  Hiçbir yere **girmeyin**.
 Let's Check: Kontrol edelim
 Let's Check!: Kontrol edelim!
 Safety Rules: Güvenlik Kuralları
@@ -554,7 +557,7 @@ Data was copied!: Veri kopyalandı!
 Open NFT Collection: NFT Koleksiyonunu Aç
 Previous: Önceki
 Next: Sonraki
-NftInsufficientBalance: Ücret için yetersiz TON.
+Insufficient TON for fee.: Ücret için yetersiz TON.
 Send NFT: NFT gönder
 NFT has been sent!: NFT gönderildi!
 Cannot be sent: Gönderilemiyor
@@ -574,3 +577,4 @@ Unstake More: Unstake daha fazla
 Are you sure you want to burn this NFT? It will be lost forever.: Bu NFT'yi yakmak istediğinizden emin misiniz? Sonsuza kadar kaybolacak.
 Burn NFT: NFT'yi yaz
 Burn: Yakmak
+Private Key: Gizli anahtar

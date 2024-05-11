@@ -372,7 +372,7 @@ function Slides({
     const cleanup = captureEvents(containerRef.current, {
       isNotPassive: true,
       withNativeDrag: true,
-      excludedClosestSelector: styles.header,
+      excludedClosestSelector: `${styles.header}, .${styles.contentDescription}`,
       minZoom: MIN_ZOOM,
       maxZoom: MAX_ZOOM,
       doubleTapZoom: DOUBLE_TAP_ZOOM,

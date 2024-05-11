@@ -89,6 +89,7 @@ export interface ApiNft {
   address: string;
   thumbnail: string;
   image: string;
+  description?: string;
   collectionName?: string;
   collectionAddress?: string;
   isOnSale: boolean;

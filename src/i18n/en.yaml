@@ -36,6 +36,9 @@ $mnemonic_list_description: |
   Write down these words
   in the **correct order** and store them
   in a **secret place**.
+$mnemonic_warning: |
+  **Do not** send or show it to anyone,
+  **do not** enter it anywhere.
 Let's Check: Let's Check
 Let's Check!: Let's Check!
 Safety Rules: Safety Rules
@@ -554,7 +557,7 @@ Data was copied!: Data was copied!
 Open NFT Collection: Open NFT Collection
 Previous: Previous
 Next: Next
-NftInsufficientBalance: Insufficient TON for fee.
+Insufficient TON for fee.: Insufficient TON for fee.
 Send NFT: Send NFT
 NFT has been sent!: NFT has been sent!
 Cannot be sent: Cannot be sent
@@ -574,3 +577,4 @@ Unstake More: Unstake More
 Are you sure you want to burn this NFT? It will be lost forever.: Are you sure you want to burn this NFT? It will be lost forever.
 Burn NFT: Burn NFT
 Burn: Burn
+Private Key: Private Key

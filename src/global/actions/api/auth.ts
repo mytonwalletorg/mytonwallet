@@ -13,7 +13,8 @@ import authApi from '../../../util/authApi';
 import webAuthn from '../../../util/authApi/webAuthn';
 import { getIsNativeBiometricAuthSupported, vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { copyTextToClipboard } from '../../../util/clipboard';
-import { cloneDeep } from '../../../util/iteratees';
+import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
+import { cloneDeep, compact } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { callActionInMain } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
@@ -485,15 +486,19 @@ addActionHandler('closeAbout', (global) => {
 });
 
 addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) => {
-  const isValid = await callApi('validateMnemonic', mnemonic);
-  global = getGlobal();
-  if (!isValid) {
-    setGlobal(updateAuth(global, {
-      error: 'Your mnemonic words are invalid.',
-    }));
+  mnemonic = compact(mnemonic);
 
-    return;
+  if (!isMnemonicPrivateKey(mnemonic)) {
+    if (!await callApi('validateMnemonic', mnemonic)) {
+      setGlobal(updateAuth(getGlobal(), {
+        error: 'Your mnemonic words are invalid.',
+      }));
+
+      return;
+    }
   }
+
+  global = getGlobal();
 
   const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
   const hasAccounts = Object.keys(selectAccounts(global) || {}).length > 0;

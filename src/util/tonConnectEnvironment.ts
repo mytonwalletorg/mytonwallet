@@ -38,7 +38,7 @@ function getPlatform(): DevicePlatform {
   } else if (windowsPlatforms.indexOf(platform) !== -1) {
     devicePlatform = 'windows';
   } else if (/Android/.test(userAgent)) {
-    devicePlatform = 'linux';
+    devicePlatform = 'android';
   } else if (/Linux/.test(platform)) {
     devicePlatform = 'linux';
   } else {

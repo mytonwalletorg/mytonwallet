@@ -8,6 +8,7 @@ import type { ApiDapp, ApiDappTransfer } from '../../api/types';
 import type { Account, UserToken } from '../../global/types';
 
 import { SHORT_FRACTION_DIGITS } from '../../config';
+import { Big } from '../../lib/big.js';
 import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
@@ -18,8 +19,8 @@ import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useLang from '../../hooks/useLang';
 
 import NftInfo from '../transfer/NftInfo';
-import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import Button from '../ui/Button';
+import InteractiveTextField from '../ui/InteractiveTextField';
 import DappInfo from './DappInfo';
 import DappTransfer from './DappTransfer';
 
@@ -60,11 +61,40 @@ function DappTransferInitial({
     ? renderingTransactions[0].payload.nft
     : undefined;
 
-  const totalAmount = useMemo(() => {
-    return renderingTransactions?.reduce((acc, { amount }) => {
-      return acc + amount;
-    }, fee ?? 0n) || 0n;
-  }, [renderingTransactions, fee]);
+  const totalAmountText = useMemo(() => {
+    const feeDecimal = fee ? toDecimal(fee) : '0';
+    let tonAmount = Big(feeDecimal);
+    let cost = 0;
+
+    const bySymbol: Record<string, Big> = (renderingTransactions ?? []).reduce((acc, transaction) => {
+      const { payload, amount } = transaction;
+      const amountDecimal = toDecimal(amount);
+
+      tonAmount = tonAmount.plus(amountDecimal);
+      cost += Number(amountDecimal) * tonToken.priceUsd ?? 0;
+
+      if (payload?.type === 'tokens:transfer' || payload?.type === 'tokens:transfer-non-standard') {
+        const { slug: tokenSlug, amount: tokenAmount } = payload;
+
+        const token = tokens?.find(({ slug }) => tokenSlug === slug);
+        if (token) {
+          const { decimals, symbol } = token;
+          const tokenAmountDecimal = toDecimal(tokenAmount, decimals);
+
+          acc[symbol] = (acc[symbol] ?? Big(0)).plus(tokenAmountDecimal);
+          cost += Number(amountDecimal) * tonToken.priceUsd;
+        }
+      }
+
+      return acc;
+    }, {} as Record<string, Big>);
+
+    const text = Object.entries(bySymbol).reduce((acc, [symbol, amountBig]) => {
+      return `${acc} + ${formatCurrency(amountBig.toString(), symbol, SHORT_FRACTION_DIGITS)}`;
+    }, formatCurrency(tonAmount.toString(), tonToken.symbol, SHORT_FRACTION_DIGITS));
+
+    return `${text} (${formatCurrency(cost, '$')})`;
+  }, [renderingTransactions, fee, tokens, tonToken]);
 
   function renderDapp() {
     return (
@@ -101,10 +131,13 @@ function DappTransferInitial({
     let extraText: string = '';
     if (payload?.type === 'nft:transfer') {
       extraText = '1 NFT + ';
-    } else if (payload?.type === 'tokens:transfer') {
-      const { slug, amount } = payload;
-      const { decimals, symbol } = tokens!.find((token) => token.slug === slug)!;
-      extraText = `${formatCurrency(toDecimal(amount, decimals), symbol, SHORT_FRACTION_DIGITS)} + `;
+    } else if (payload?.type === 'tokens:transfer' || payload?.type === 'tokens:transfer-non-standard') {
+      const { slug: tokenSlug, amount } = payload;
+      const token = tokens?.find(({ slug }) => tokenSlug === slug);
+      if (token) {
+        const { decimals, symbol } = token;
+        extraText = `${formatCurrency(toDecimal(amount, decimals), symbol, SHORT_FRACTION_DIGITS)} + `;
+      }
     }
 
     return (
@@ -135,12 +168,10 @@ function DappTransferInitial({
         <div className={styles.transactionList}>
           {renderingTransactions?.map(renderTransactionRow)}
         </div>
-        <AmountWithFeeTextField
-          label={lang('Total Amount')}
-          amount={toDecimal(totalAmount)}
-          symbol={tonToken.symbol}
-          labelClassName={styles.label}
-        />
+        <span className={styles.label}>
+          {lang('Total Amount')}
+        </span>
+        <InteractiveTextField text={totalAmountText} />
       </>
     );
   }

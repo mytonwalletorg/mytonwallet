@@ -36,6 +36,9 @@ $mnemonic_list_description: |
   Escriba estas palabras en
   el **mismo orden** y guárdelas
   en un **lugar seguro**.
+$mnemonic_warning: |
+  **No** lo envíes ni lo muestres a nadie,
+  **no** lo ingreses en ningún lugar.
 Let's Check: Revisemos
 Let's Check!: ¡Revisemos!
 Safety Rules: Normas de seguridad
@@ -552,7 +555,7 @@ Data was copied!: ¡Los datos fueron copiados!
 Open NFT Collection: Abrir colección NFT
 Previous: Anterior
 Next: Siguiente
-NftInsufficientBalance: TON insuficiente para la comisión.
+Insufficient TON for fee.: TON insuficiente para la comisión.
 Send NFT: Enviar NFT
 NFT has been sent!: NFT ha sido enviado!
 Cannot be sent: No se puede enviar
@@ -572,3 +575,4 @@ Unstake More: Retirar más
 Are you sure you want to burn this NFT? It will be lost forever.: ¿Estás seguro de que quieres quemar este NFT? Se perderá para siempre.
 Burn NFT: Quemar NFT
 Burn: Quemar
+Private Key: Clave Privada

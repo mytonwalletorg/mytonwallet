@@ -3,10 +3,12 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT } from '../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT, PRIVATE_KEY_HEX_LENGTH } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
+import isMnemonicPrivateKey from '../../util/isMnemonicPrivateKey';
+import { compact } from '../../util/iteratees';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useClipboardPaste from '../../hooks/useClipboardPaste';
@@ -34,7 +36,7 @@ const MNEMONIC_INPUTS = [...Array(MNEMONIC_COUNT)].map((_, index) => ({
   id: index,
   label: `${index + 1}`,
 }));
-
+const MAX_LENGTH = PRIVATE_KEY_HEX_LENGTH;
 const SLIDE_ANIMATION_DURATION_MS = 250;
 
 const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProps) => {
@@ -48,7 +50,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   const { isPortrait } = useDeviceScreen();
 
   const handleMnemonicSet = useLastCallback((pastedMnemonic: string[]) => {
-    if (pastedMnemonic.length !== MNEMONIC_COUNT) {
+    if (pastedMnemonic.length !== MNEMONIC_COUNT && !isMnemonicPrivateKey(pastedMnemonic)) {
       return;
     }
 
@@ -80,9 +82,9 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   useClipboardPaste(Boolean(isActive), handlePasteMnemonic);
 
   const isSubmitDisabled = useMemo(() => {
-    const mnemonicValues = Object.values(mnemonic);
+    const mnemonicValues = compact(Object.values(mnemonic));
 
-    return mnemonicValues.length !== MNEMONIC_COUNT || mnemonicValues.some((word) => !word);
+    return mnemonicValues.length !== MNEMONIC_COUNT && !isMnemonicPrivateKey(mnemonicValues);
   }, [mnemonic]);
 
   const handleSetWord = useLastCallback((value: string, index: number) => {
@@ -94,7 +96,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
 
     setMnemonic({
       ...mnemonic,
-      [index]: value?.toLowerCase(),
+      [index]: pastedMnemonic[0].toLowerCase(),
     });
   });
 
@@ -185,7 +187,11 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
 })(AuthImportMnemonic));
 
 function parsePastedText(str: string) {
-  return str.replace(/(?:\r\n)+|[\r\n\s;,\t]+/g, ' ').trim().split(' ');
+  return str
+    .replace(/(?:\r\n)+|[\r\n\s;,\t]+/g, ' ')
+    .trim()
+    .split(' ')
+    .map((w) => w.slice(0, MAX_LENGTH));
 }
 
 function getSuggestPosition(id: number, isPortrait: boolean = false) {

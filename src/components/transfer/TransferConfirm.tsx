@@ -179,9 +179,7 @@ function TransferConfirm({
 
         {isBurning && (
           <p>
-            <Emoji from="⚠️" />
-            {' '}
-            {lang('Are you sure you want to burn this NFT? It will be lost forever.')}
+            <Emoji from="⚠️" />{' '}{lang('Are you sure you want to burn this NFT? It will be lost forever.')}
           </p>
         )}
 

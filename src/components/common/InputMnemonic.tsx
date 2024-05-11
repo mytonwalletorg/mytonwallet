@@ -1,7 +1,6 @@
-import React, {
-  memo, useEffect, useState,
-} from '../../lib/teact/teact';
+import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 
+import { PRIVATE_KEY_HEX_LENGTH } from '../../config';
 import { requestMeasure } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { callApi } from '../../api';
@@ -34,9 +33,9 @@ function InputMnemonic({
   const [hasError, setHasError] = useState<boolean>(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number>(0);
-  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [areSuggestionsShown, setAreSuggestionsShown] = useState<boolean>(false);
   const [wordlist, setWordlist] = useState<string[]>([]);
-  const shouldRenderSuggestions = showSuggestions && value && filteredSuggestions.length > 0;
+  const shouldRenderSuggestions = areSuggestionsShown && value && filteredSuggestions.length > 0;
 
   useEffect(() => {
     (async () => {
@@ -46,14 +45,11 @@ function InputMnemonic({
   }, []);
 
   useEffect(() => {
-    if (showSuggestions && value && filteredSuggestions.length === 0) {
-      setHasError(true);
-    } else if (!hasFocus && value && !isCorrectMnemonic(value, wordlist)) {
-      setHasError(true);
-    } else {
-      setHasError(false);
-    }
-  }, [filteredSuggestions.length, hasFocus, showSuggestions, value, wordlist]);
+    const noError = !value
+      || (areSuggestionsShown && filteredSuggestions.length > 0)
+      || isCorrectMnemonic(value, wordlist);
+    setHasError(!noError);
+  }, [areSuggestionsShown, filteredSuggestions.length, value, wordlist]);
 
   const processSuggestions = (userInput: string) => {
     // Filter our suggestions that don't contain the user's input
@@ -64,7 +60,7 @@ function InputMnemonic({
     onInput(userInput, inputArg);
     setFilteredSuggestions(unLinked);
     setActiveSuggestionIndex(0);
-    setShowSuggestions(true);
+    setAreSuggestionsShown(true);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,9 +84,9 @@ function InputMnemonic({
       onInput(filteredSuggestions[activeSuggestionIndex], inputArg);
       setFilteredSuggestions([filteredSuggestions[activeSuggestionIndex]]);
       setActiveSuggestionIndex(0);
-      setShowSuggestions(false);
+      setAreSuggestionsShown(false);
 
-      if (showSuggestions) {
+      if (areSuggestionsShown) {
         e.preventDefault();
       }
 
@@ -122,7 +118,7 @@ function InputMnemonic({
 
   const handleClick = useLastCallback((suggestion: string) => {
     onInput(suggestion, inputArg);
-    setShowSuggestions(false);
+    setAreSuggestionsShown(false);
     setActiveSuggestionIndex(0);
     setFilteredSuggestions([]);
 
@@ -148,7 +144,7 @@ function InputMnemonic({
 
     unmarkFocus();
     requestAnimationFrame(() => {
-      setShowSuggestions(false);
+      setAreSuggestionsShown(false);
       setFilteredSuggestions([]);
     });
   };
@@ -189,7 +185,7 @@ function InputMnemonic({
 }
 
 function isCorrectMnemonic(mnemonic: string, wordlist: string[]) {
-  return wordlist.includes(mnemonic);
+  return mnemonic.length === PRIVATE_KEY_HEX_LENGTH || wordlist.includes(mnemonic);
 }
 
 export default memo(InputMnemonic);

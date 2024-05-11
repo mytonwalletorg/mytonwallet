@@ -31,7 +31,7 @@ interface OwnProps {
   spoiler?: string;
   spoilerRevealText?: string;
   spoilerCallback?: NoneToVoidFunction;
-  copyNotification: string;
+  copyNotification?: string;
   className?: string;
   textClassName?: string;
   noSavedAddress?: boolean;
@@ -100,6 +100,7 @@ function InteractiveTextField({
   useFocusAfterAnimation(addressNameRef, !isSaveAddressModalOpen);
 
   const handleCopy = useLastCallback(() => {
+    if (!copyNotification) return;
     showNotification({ message: copyNotification, icon: 'icon-copy' });
     void copyTextToClipboard(address || text || '');
   });
@@ -149,7 +150,9 @@ function InteractiveTextField({
         {Boolean(addressName) && (
           <span className={styles.shortAddress}>{shortenAddress(address!)}</span>
         )}
-        <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
+        {Boolean(copyNotification) && (
+          <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
+        )}
       </span>
     );
   }

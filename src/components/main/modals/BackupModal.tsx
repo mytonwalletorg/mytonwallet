@@ -7,6 +7,7 @@ import { IS_CAPACITOR } from '../../../config';
 import { selectMnemonicForCheck } from '../../../global/actions/api/auth';
 import buildClassName from '../../../util/buildClassName';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
 import { callApi } from '../../../api';
 
@@ -15,6 +16,7 @@ import useLastCallback from '../../../hooks/useLastCallback';
 
 import MnemonicCheck from '../../auth/MnemonicCheck';
 import MnemonicList from '../../auth/MnemonicList';
+import MnemonicPrivateKey from '../../auth/MnemonicPrivateKey';
 import SafetyRules from '../../auth/SafetyRules';
 import Modal from '../../ui/Modal';
 import ModalHeader from '../../ui/ModalHeader';
@@ -118,6 +120,8 @@ function BackupModal({
 
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+    const mnemonic = mnemonicRef.current;
+
     switch (currentKey) {
       case SLIDES.confirm:
         return (
@@ -148,9 +152,14 @@ function BackupModal({
         );
 
       case SLIDES.mnemonic:
-        return (
+        return mnemonic && isMnemonicPrivateKey(mnemonic) ? (
+          <MnemonicPrivateKey
+            privateKeyHex={mnemonic![0]}
+            onClose={onClose}
+          />
+        ) : (
           <MnemonicList
-            mnemonic={mnemonicRef.current}
+            mnemonic={mnemonic}
             onNext={handleCheckMnemonic}
             onClose={onClose}
           />
@@ -161,7 +170,7 @@ function BackupModal({
           <MnemonicCheck
             isActive={isActive}
             isInModal
-            mnemonic={mnemonicRef.current}
+            mnemonic={mnemonicRef.current as string[]}
             checkIndexes={checkIndexes}
             buttonLabel={lang('Done')}
             onSubmit={handleCheckMnemonicSubmit}

@@ -234,20 +234,18 @@ addActionHandler('fetchNftFee', async (global, actions, payload) => {
     comment,
   });
 
-  if (result && 'error' in result) {
-    global = getGlobal();
-    if (result?.error === ApiTransactionDraftError.InsufficientBalance) {
-      global = updateCurrentTransfer(global, { error: 'NftInsufficientBalance' });
-    } else {
-      global = updateCurrentTransfer(global, { error: result.error });
-    }
-    setGlobal(global);
-  }
-
-  if (result && 'fee' in result) {
+  if (result?.fee) {
     global = getGlobal();
     global = updateCurrentTransfer(global, { fee: result.fee });
     setGlobal(global);
+  }
+
+  if (result?.error) {
+    actions.showError({
+      error: result?.error === ApiTransactionDraftError.InsufficientBalance
+        ? 'Insufficient TON for fee.'
+        : result.error,
+    });
   }
 });
 

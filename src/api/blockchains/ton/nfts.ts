@@ -3,6 +3,7 @@ import type { Cell } from '@ton/core';
 import { Address, Builder } from '@ton/core';
 
 import type { ApiKnownAddresses, ApiNft, ApiNftUpdate } from '../../types';
+import type { CheckTransactionDraftResult } from './transactions';
 
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
@@ -92,12 +93,15 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
   return [fromSec, updates] as [number, ApiNftUpdate[]];
 }
 
-export async function checkNftTransferDraft(options: {
-  accountId: string;
-  nftAddress: string;
-  toAddress: string;
-  comment?: string;
-}, knownAddresses?: ApiKnownAddresses) {
+export async function checkNftTransferDraft(
+  options: {
+    accountId: string;
+    nftAddress: string;
+    toAddress: string;
+    comment?: string;
+  },
+  knownAddresses?: ApiKnownAddresses,
+): Promise<CheckTransactionDraftResult> {
   const { accountId, nftAddress, comment } = options;
   let { toAddress } = options;
 
@@ -127,11 +131,6 @@ export async function checkNftTransferDraft(options: {
   return {
     ...result,
     ...checkAddressResult,
-  } as {
-    fee: bigint;
-    resolvedAddress: string;
-    addressName?: string;
-    isScam?: boolean;
   };
 }
 

@@ -33,9 +33,12 @@ Let’s make sure your secrets words are recorded correctly.: Stellen Sie sicher
 $mnemonic_check_words_list: Bitte geben Sie die Wörter **%1$s** unten ein.
 $mnemonic_check_error: Die eingegebenen geheimen Wörter stimmen nicht mit denen in der Liste überein. Bitte versuchen Sie es erneut.
 $mnemonic_list_description: |
-  Write down these words
-  in the **correct order** and store them
-  in a **secret place**.
+  Schreiben Sie diese Wörter in der
+  **richtigen Reihenfolge** auf und bewahren Sie
+  sie an einem **geheimen Ort** auf.
+$mnemonic_warning: |
+  **Senden** oder zeigen Sie es niemandem,
+  **geben** Sie es nirgendwo ein.
 Let's Check: Lass uns nachprüfen.
 Let's Check!: Lass uns nachprüfen!
 Safety Rules: Sicherheitsregeln
@@ -43,7 +46,7 @@ $safety_rules_one: |
   Auf dem nächsten Bildschirm sehen Sie die **geheimen Wörter**. Notieren Sie sie in der richtigen Reihenfolge und **bewahren Sie sie an einem sicheren Ort auf**.
 $safety_rules_two: Sie ermöglichen es, Ihre **wallet zu öffnen**, falls Sie Ihr Passwort vergessen oder den Zugang zu diesem Gerät verlieren.
 $safety_rules_three: Wenn jemand anderes diese Wörter sieht, könnten Ihre **Gelder gestohlen werden**. **Senden Sie es an niemanden**, nicht einmal an Entwickler oder den technischen Support.
-Understood: Verstanden.
+Understood: Verstanden
 Congratulations!: Herzlichen Glückwunsch!
 Continue: Fortfahren
 Close: Schließen
@@ -55,7 +58,7 @@ Toggle TON Proxy: TON Proxy aktivieren/deaktivieren
 TON Magic: TON Magic
 Toggle TON Magic:  TON Magic aktivieren/deaktivieren
 Open Telegram Web: Telegram Web öffnen.
-Back Up Secret Words: Geheime Wörter sichern.
+Back Up Secret Words: Geheime Wörter sichern
 Settings: Einstellungen
 About: Über
 Exit: Beenden
@@ -555,7 +558,7 @@ Data was copied!: Daten wurden kopiert!
 Open NFT Collection: NFT-Sammlung öffnen
 Previous: Zurück
 Next: Weiter
-NftInsufficientBalance: Unzureichende TON für Gebühr.
+Insufficient TON for fee.: Unzureichende TON für Gebühr.
 Send NFT: Senden von NFT
 NFT has been sent!: NFT wurde gesendet!
 Cannot be sent: Kann nicht gesendet werden
@@ -575,3 +578,4 @@ Unstake More: Mehr abstecken
 Are you sure you want to burn this NFT? It will be lost forever.: Sind Sie sicher, dass Sie diese NFT verbrennen wollen? Es wird für immer verloren sein.
 Burn NFT: NFT brennen
 Burn: Brennen
+Private Key: Privater Schlüssel

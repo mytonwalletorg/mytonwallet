@@ -3,11 +3,10 @@ import nacl from 'tweetnacl';
 
 import { ApiCommonError } from '../../types';
 
+import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import { logDebugError } from '../../../util/logs';
 import { getAccountValue, setAccountValue } from '../../common/accounts';
-import {
-  base64ToBytes, bytesToBase64, bytesToHex, hexToBytes,
-} from '../../common/utils';
+import { bytesToHex, hexToBytes } from '../../common/utils';
 
 const PBKDF2_IMPORT_KEY_ARGS = [
   { name: 'PBKDF2' },
@@ -31,13 +30,12 @@ export function validateMnemonic(mnemonic: string[]) {
   return tonWebMnemonic.validateMnemonic(mnemonic);
 }
 
-export async function mnemonicToSeed(mnemonic: string[]) {
-  const keyPair = await tonWebMnemonic.mnemonicToKeyPair(mnemonic);
-  return bytesToBase64(keyPair.secretKey.slice(0, 32));
+export function privateKeyHexToKeyPair(privateKeyHex: string) {
+  return nacl.sign.keyPair.fromSeed(hexToBytes(privateKeyHex));
 }
 
-export function seedToKeyPair(seed: string) {
-  return nacl.sign.keyPair.fromSeed(base64ToBytes(seed));
+export function mnemonicToKeyPair(mnemonic: string[]) {
+  return tonWebMnemonic.mnemonicToKeyPair(mnemonic);
 }
 
 export async function encryptMnemonic(mnemonic: string[], password: string) {
@@ -154,13 +152,7 @@ async function tryMigratingMnemonicEncryption(accountId: string, mnemonic: strin
 
 export async function fetchPrivateKey(accountId: string, password: string) {
   try {
-    const mnemonic = await fetchMnemonic(accountId, password);
-    if (!mnemonic) {
-      return undefined;
-    }
-
-    const seedBase64 = await mnemonicToSeed(mnemonic);
-    const { secretKey: privateKey } = seedToKeyPair(seedBase64);
+    const { secretKey: privateKey } = await fetchKeyPair(accountId, password) || {};
 
     return privateKey;
   } catch (err) {
@@ -178,7 +170,7 @@ export async function fetchKeyPair(accountId: string, password: string) {
       return undefined;
     }
 
-    return await tonWebMnemonic.mnemonicToKeyPair(mnemonic);
+    return isMnemonicPrivateKey(mnemonic) ? privateKeyHexToKeyPair(mnemonic[0]) : await mnemonicToKeyPair(mnemonic);
   } catch (err) {
     logDebugError('fetchKeyPair', err);
 
@@ -198,7 +190,5 @@ export async function rawSign(accountId: string, password: string, dataHex: stri
 }
 
 export async function verifyPassword(accountId: string, password: string) {
-  const mnemonic = await fetchMnemonic(accountId, password);
-
-  return Boolean(mnemonic);
+  return Boolean(await fetchMnemonic(accountId, password));
 }

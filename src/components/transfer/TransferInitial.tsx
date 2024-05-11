@@ -78,7 +78,6 @@ interface StateProps {
   baseCurrency?: ApiBaseCurrency;
   nft?: ApiNft;
   binPayload?: string;
-  error?: string;
 }
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
@@ -115,7 +114,6 @@ function TransferInitial({
   baseCurrency,
   nft,
   binPayload,
-  error,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -450,7 +448,7 @@ function TransferInitial({
   const requiredAmount = isNftTransfer ? NFT_TRANSFER_TON_AMOUNT : amount;
 
   const canSubmit = toAddress.length && requiredAmount && balance && requiredAmount > 0
-    && requiredAmount <= balance && !hasToAddressError && !hasAmountError && isEnoughTon && !hasCommentError && !error
+    && requiredAmount <= balance && !hasToAddressError && !hasAmountError && isEnoughTon && !hasCommentError
     && (!isNftTransfer || !nft?.isOnSale);
 
   const handleSubmit = useLastCallback((e) => {
@@ -739,7 +737,6 @@ function TransferInitial({
             </div>
           </>
         )}
-        {error && <div className={styles.nftError}>{lang(error)}</div>}
 
         <div className={styles.buttons}>
           <Button
@@ -783,7 +780,6 @@ export default memo(
         state,
         nft,
         binPayload,
-        error,
       } = global.currentTransfer;
 
       const isLedger = selectIsHardwareAccount(global);
@@ -808,7 +804,6 @@ export default memo(
         baseCurrency,
         currentAccountId: global.currentAccountId,
         accounts: selectNetworkAccounts(global),
-        error,
       };
     },
     (global, { isStatic }, stickToFirst) => {
