@@ -562,6 +562,7 @@ Unstake More: 解除質押更多
 Are you sure you want to burn this NFT? It will be lost forever.: 您確定要燒掉這個 NFT 嗎？ 它將永遠失去。
 $multi_burn_nft_warning_1: "您即將銷毀 %amount% 個 NFT。"
 $multi_burn_nft_warning_2: "該過程可能需要 ~%duration% 分鐘。請勿關閉應用程式，也不要在完成之前切換賬戶。"
+$multi_burn_nft_warning_3: "完成後，打開 %notcoin_bot% 以接收 NOT。"
 Burn NFT: 燒毀NFT
 Burn: 燒傷
 Private Key: 私鑰

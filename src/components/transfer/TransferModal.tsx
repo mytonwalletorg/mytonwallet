@@ -233,6 +233,7 @@ function TransferModal({
             nfts={nfts!}
             sentNftsCount={sentNftsCount}
             toAddress={toAddress}
+            onClose={handleModalCloseWithReset}
           />
         );
     }

@@ -595,6 +595,10 @@ textarea.inputStatic {
   margin: 1rem 0;
 }
 
+.infoBox ~ .infoBox {
+  margin-top: 0;
+}
+
 .burnWarning {
   color: var(--color-transaction-red-text);
 
