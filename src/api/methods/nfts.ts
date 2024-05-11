@@ -4,7 +4,6 @@ import type { ApiNft, ApiUpdate, OnApiUpdate } from '../types';
 import { TON_TOKEN_SLUG } from '../../config';
 import blockchains from '../blockchains';
 import { fetchStoredAddress } from '../common/accounts';
-import { getKnownAddresses } from '../common/addresses';
 import { resolveBlockchainKey } from '../common/helpers';
 import { apiDb } from '../db';
 import { createLocalTransaction } from './transactions';
@@ -62,48 +61,47 @@ function convertToDbEntity(accountId: string, nft: ApiNft): ApiDbNft {
 
 export function checkNftTransferDraft(options: {
   accountId: string;
-  nftAddress: string;
+  nftAddresses: string[];
   toAddress: string;
   comment?: string;
 }) {
   const blockchain = blockchains[resolveBlockchainKey(options.accountId)!];
 
-  return blockchain.checkNftTransferDraft(options, getKnownAddresses());
+  return blockchain.checkNftTransferDraft(options);
 }
 
-export async function submitNftTransfer(
+export async function submitNftTransfers(
   accountId: string,
   password: string,
-  nftAddress: string,
+  nftAddresses: string[],
   toAddress: string,
   comment?: string,
-  nft?: ApiNft,
+  nfts?: ApiNft[],
   fee = 0n,
 ) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
 
   const fromAddress = await fetchStoredAddress(accountId);
 
-  const result = await blockchain.submitNftTransfer(accountId, password, nftAddress, toAddress, comment);
+  const result = await blockchain.submitNftTransfers(accountId, password, nftAddresses, toAddress, comment);
 
   if ('error' in result) {
     return result;
   }
 
-  const localTransaction = createLocalTransaction(accountId, {
-    amount: result.amount,
-    fromAddress,
-    toAddress,
-    comment,
-    fee,
-    slug: TON_TOKEN_SLUG,
-    inMsgHash: result.msgHash,
-    type: 'nftTransferred',
-    nft,
-  });
+  for (const [i, message] of result.messages.entries()) {
+    createLocalTransaction(accountId, {
+      amount: message.amount,
+      fromAddress,
+      toAddress,
+      comment,
+      fee,
+      slug: TON_TOKEN_SLUG,
+      inMsgHash: result.msgHash,
+      type: 'nftTransferred',
+      nft: nfts?.[i],
+    });
+  }
 
-  return {
-    ...result,
-    txId: localTransaction.txId,
-  };
+  return result;
 }

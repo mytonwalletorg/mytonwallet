@@ -19,11 +19,11 @@ import useLastCallback from '../../hooks/useLastCallback';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
-import Emoji from '../ui/Emoji';
 import IconWithTooltip from '../ui/IconWithTooltip';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import ModalHeader from '../ui/ModalHeader';
 import Transition from '../ui/Transition';
+import NftChips from './NftChips';
 import NftInfo from './NftInfo';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -44,6 +44,8 @@ interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
 }
 
+const BURN_CHUNK_DURATION_APPROX_SEC = 30;
+
 function TransferConfirm({
   currentTransfer: {
     amount,
@@ -58,7 +60,7 @@ function TransferConfirm({
     isToNewAddress,
     isScam,
     binPayload,
-    nft,
+    nfts,
   },
   symbol,
   decimals,
@@ -72,7 +74,7 @@ function TransferConfirm({
   const lang = useLang();
 
   const addressName = savedAddresses?.[toAddress!] || toAddressName;
-  const isNftTransfer = Boolean(nft);
+  const isNftTransfer = Boolean(nfts?.length);
   const isBurning = resolvedAddress === BURN_ADDRESS;
 
   useHistoryBack({
@@ -85,12 +87,22 @@ function TransferConfirm({
     submitTransferConfirm();
   });
 
+  function renderNfts() {
+    if (nfts!.length === 1) {
+      return <NftInfo nft={nfts![0]} />;
+    }
+
+    return <NftChips nfts={nfts!} />;
+  }
+
   function renderFeeForNft() {
+    const totalFee = (NFT_TRANSFER_TON_AMOUNT + (fee ?? 0n)) * BigInt(Math.ceil(nfts!.length / 4));
+
     return (
       <>
         <div className={styles.label}>{lang('Fee')}</div>
         <div className={styles.inputReadOnly}>
-          ≈ {formatCurrencySimple(NFT_TRANSFER_TON_AMOUNT + (fee ?? 0n), '')}
+          ≈ {formatCurrencySimple(totalFee, '')}
           <span className={styles.currencySymbol}>{TON_SYMBOL}</span>
         </div>
       </>
@@ -129,11 +141,15 @@ function TransferConfirm({
     );
   }
 
+  const burningDurationMin = nfts?.length
+    ? (Math.ceil(nfts.length / 4) * BURN_CHUNK_DURATION_APPROX_SEC) / 60
+    : undefined;
+
   return (
     <>
       <ModalHeader title={lang('Is it all ok?')} onClose={onClose} />
       <div className={modalStyles.transitionContent}>
-        {isNftTransfer ? <NftInfo nft={nft} /> : (
+        {isNftTransfer ? renderNfts() : (
           <AnimatedIconWithPreview
             size={ANIMATED_STICKER_SMALL_SIZE_PX}
             play={isActive}
@@ -177,10 +193,18 @@ function TransferConfirm({
 
         {renderComment()}
 
-        {isBurning && (
-          <p>
-            <Emoji from="⚠️" />{' '}{lang('Are you sure you want to burn this NFT? It will be lost forever.')}
-          </p>
+        {isBurning && nfts && (
+          <div className={styles.burnWarning}>
+            {(
+              nfts?.length === 1
+                ? renderText(lang('Are you sure you want to burn this NFT? It will be lost forever.'))
+                // eslint-disable-next-line max-len
+                : renderText(lang('$multi_burn_nft_warning', {
+                  amount: nfts.length,
+                  duration: burningDurationMin,
+                }))
+            )}
+          </div>
         )}
 
         <div className={buildClassName(modalStyles.buttons, modalStyles.buttonsInsideContentWithScroll)}>

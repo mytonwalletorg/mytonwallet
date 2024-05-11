@@ -58,7 +58,7 @@ function TransferModal({
     isLoading,
     txId,
     tokenSlug,
-    nft,
+    nfts,
   }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected,
 }: StateProps) {
   const {
@@ -80,7 +80,7 @@ function TransferModal({
   const [renderedTokenBalance, setRenderedTokenBalance] = useState(selectedToken?.amount);
   const renderedTransactionAmount = usePrevious(amount, true);
   const symbol = selectedToken?.symbol || '';
-  const isNftTransfer = Boolean(nft);
+  const isNftTransfer = Boolean(nfts?.length);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
@@ -133,7 +133,7 @@ function TransferModal({
       !IS_CAPACITOR && styles.transferShortInfoInsidePasswordForm,
     );
     const logoPath = isNftTransfer
-      ? nft?.thumbnail
+      ? nfts![0]?.thumbnail
       : selectedToken?.image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
 
     return (
@@ -143,7 +143,9 @@ function TransferModal({
           {lang('%amount% to %address%', {
             amount: (
               <span className={styles.bold}>
-                {isNftTransfer ? nft?.name || 'NFT' : formatCurrency(toDecimal(amount!, decimals), symbol)}
+                {isNftTransfer
+                  ? (nfts!.length > 1 ? lang('%amount% NFTs', { amount: nfts!.length }) : nfts![0]?.name || 'NFT')
+                  : formatCurrency(toDecimal(amount!, decimals), symbol)}
               </span>
             ),
             address: <span className={styles.bold}>{shortenAddress(toAddress!)}</span>,
@@ -210,7 +212,7 @@ function TransferModal({
         return (
           <TransferComplete
             isActive={isActive}
-            nft={nft}
+            nfts={nfts}
             amount={renderedTransactionAmount}
             symbol={symbol}
             balance={renderedTokenBalance}

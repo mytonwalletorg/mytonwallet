@@ -642,7 +642,7 @@ addActionHandler('handleQrCode', (global, actions, { data }) => {
       return updateCurrentTransfer(global, {
         ...currentTransfer,
         // For NFT transfer we only extract address from a ton:// link
-        ...(currentTransfer.nft ? pick(linkParams, ['toAddress']) : omitUndefined(linkParams)),
+        ...(currentTransfer.nfts?.length ? pick(linkParams, ['toAddress']) : omitUndefined(linkParams)),
       });
     }
   }

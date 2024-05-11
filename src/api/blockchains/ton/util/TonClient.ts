@@ -15,7 +15,7 @@ axiosRetry(axios, {
     return retryCount * DEFAULT_ERROR_PAUSE;
   },
   onRetry: (retryNumber, error, requestConfig) => {
-    logDebug(`Retry request #${retryNumber}:`, requestConfig.url);
+    logDebug(`Retry request #${retryNumber}:`, requestConfig.url, error.response?.status);
   },
 });
 
@@ -26,7 +26,10 @@ type Parameters = TonClientParameters & {
 export class TonClient extends TonCoreClient {
   private initParameters: Parameters;
 
-  public lastMessageHash?: string;
+  public lastSendBoc?: {
+    msgHash: string;
+    boc: string;
+  };
 
   constructor(parameters: Parameters) {
     super(parameters);
@@ -47,17 +50,19 @@ export class TonClient extends TonCoreClient {
     });
   }
 
-  async sendFile(src: Buffer): Promise<any> {
-    const { hash } = await this.callRpc('sendBocReturnHash', {
-      boc: src.toString('base64'),
-    });
-    this.lastMessageHash = hash;
+  async sendFile(src: Buffer | string): Promise<any> {
+    const boc = typeof src === 'object' ? src.toString('base64') : src;
+    const { hash } = await this.callRpc('sendBocReturnHash', { boc });
+    this.lastSendBoc = {
+      boc,
+      msgHash: hash,
+    };
   }
 
-  popLastMessageHash() {
-    const hash = this.lastMessageHash!;
-    this.lastMessageHash = undefined;
-    return hash;
+  popLastSendBoc() {
+    const lastSendBoc = this.lastSendBoc!;
+    this.lastSendBoc = undefined;
+    return lastSendBoc;
   }
 
   async sendRequest(apiUrl: string, request: any) {
@@ -87,5 +92,5 @@ export class TonClient extends TonCoreClient {
 }
 
 function isNotTemporaryError(method: string, message?: string, statusCode?: number) {
-  return Boolean(statusCode === 422 || (method.startsWith('sendBoc') && message?.includes('exitcode=')));
+  return Boolean(statusCode === 422 || message?.match(/(exit code|exitcode=|duplicate message)/));
 }

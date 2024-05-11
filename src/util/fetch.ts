@@ -47,7 +47,7 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
   for (let i = 1; i <= retries; i++) {
     try {
       if (i > 1) {
-        logDebug(`Retry request #${i}:`, url.toString());
+        logDebug(`Retry request #${i}:`, url.toString(), statusCode);
       }
 
       const timeout = Array.isArray(timeouts)

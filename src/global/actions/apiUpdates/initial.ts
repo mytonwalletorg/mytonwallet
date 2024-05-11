@@ -117,8 +117,10 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       const { accountId } = update;
       const nfts = buildCollectionByKey(update.nfts, 'address');
       global = getGlobal();
+      const currentNfts = selectAccountState(global, accountId)?.nfts;
       global = updateAccountState(global, accountId, {
         nfts: {
+          ...currentNfts,
           byAddress: nfts,
           orderedAddresses: Object.keys(nfts),
         },

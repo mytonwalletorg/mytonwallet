@@ -1,4 +1,8 @@
-import type { CheckTransactionDraftResult, SubmitTransferResult } from '../../../api/blockchains/ton/transactions';
+import type {
+  ApiCheckTransactionDraftResult,
+  ApiSubmitMultiTransferResult,
+  ApiSubmitTransferResult,
+} from '../../../api/blockchains/ton/types';
 import type {
   ApiActivity,
   ApiBaseToken,
@@ -11,7 +15,7 @@ import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
 import { ActiveTab, TransferState } from '../../types';
 
-import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../config';
+import { IS_CAPACITOR, NFT_BATCH_SIZE, TON_TOKEN_SLUG } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
@@ -128,17 +132,17 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   }
 
   const {
-    tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddress,
+    tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddresses,
   } = payload;
 
   setGlobal(updateSendingLoading(global, true));
 
-  let result: CheckTransactionDraftResult | undefined;
+  let result: ApiCheckTransactionDraftResult | undefined;
 
-  if (nftAddress) {
+  if (nftAddresses?.length) {
     result = await callApi('checkNftTransferDraft', {
       accountId: global.currentAccountId!,
-      nftAddress,
+      nftAddresses,
       toAddress,
       comment,
     });
@@ -168,7 +172,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
 
     setGlobal(global);
 
-    if (result?.error === ApiTransactionDraftError.InsufficientBalance && !nftAddress) {
+    if (result?.error === ApiTransactionDraftError.InsufficientBalance && !nftAddresses?.length) {
       actions.showDialog({ message: 'The network fee has slightly changed, try sending again.' });
     } else {
       actions.showError({ error: result?.error });
@@ -222,14 +226,14 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
 });
 
 addActionHandler('fetchNftFee', async (global, actions, payload) => {
-  const { toAddress, nftAddress, comment } = payload;
+  const { toAddress, nftAddresses, comment } = payload;
 
   global = updateCurrentTransfer(global, { error: undefined });
   setGlobal(global);
 
   const result = await callApi('checkNftTransferDraft', {
     accountId: global.currentAccountId!,
-    nftAddress,
+    nftAddresses,
     toAddress,
     comment,
   });
@@ -273,7 +277,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     fee,
     shouldEncrypt,
     binPayload,
-    nft,
+    nfts,
   } = global.currentTransfer;
 
   if (!(await callApi('verifyPassword', password))) {
@@ -307,19 +311,35 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     return;
   }
 
-  let result: SubmitTransferResult | undefined;
+  let result: ApiSubmitTransferResult | ApiSubmitMultiTransferResult | undefined;
 
-  if (nft) {
-    result = await callApi(
-      'submitNftTransfer',
-      global.currentAccountId!,
-      password,
-      nft.address,
-      resolvedAddress!,
-      comment,
-      nft,
-      fee,
-    );
+  if (nfts?.length) {
+    const chunks = [];
+    for (let i = 0; i < nfts.length; i += NFT_BATCH_SIZE) {
+      chunks.push(nfts.slice(i, i + NFT_BATCH_SIZE));
+    }
+
+    for (const chunk of chunks) {
+      const addresses = chunk.map(({ address }) => address);
+      const batchResult = await callApi(
+        'submitNftTransfers',
+        global.currentAccountId!,
+        password,
+        addresses,
+        resolvedAddress!,
+        comment,
+        chunk,
+        fee,
+      );
+
+      global = getGlobal();
+      global = updateCurrentTransfer(global, {
+        sentNftsCount: (global.currentTransfer.sentNftsCount || 0) + chunk.length,
+      });
+      setGlobal(global);
+      // TODO - process all responses from the API
+      result = batchResult;
+    }
   } else {
     const tokenAddress = selectTokenAddress(global, tokenSlug!);
 

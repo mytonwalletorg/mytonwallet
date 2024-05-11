@@ -573,6 +573,16 @@ $transfer_inactive_contract_error: |
 Successfully: Exitosamente
 Unstake More: Retirar más
 Are you sure you want to burn this NFT? It will be lost forever.: ¿Estás seguro de que quieres quemar este NFT? Se perderá para siempre.
+$multi_burn_nft_warning: "Vas a quemar %amount% NFTs. El proceso puede tardar ~%duration% minutos. Por favor, no cierres la aplicación y no cambies de cuenta hasta que haya terminado."
 Burn NFT: Quemar NFT
 Burn: Quemar
 Private Key: Clave Privada
+"%amount% NFTs": "%amount% NFTs"
+1 NFT: 1 NFT
+1 NFT Selected: 1 NFT seleccionado
+"%amount% NFTs Selected": "%amount% NFT seleccionados"
+For sale. Cannot be sent and burned: En venta. No se puede enviar y quemar
+Select: Seleccionar
+Send All: Envia todo
+Burn All: Quemar todo
+Select All: Seleccionar todo

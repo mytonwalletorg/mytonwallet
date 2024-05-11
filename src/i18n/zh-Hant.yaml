@@ -560,6 +560,16 @@ $transfer_inactive_contract_error: |
 Successfully: 成功地
 Unstake More: 解除質押更多
 Are you sure you want to burn this NFT? It will be lost forever.: 您確定要燒掉這個 NFT 嗎？ 它將永遠失去。
+$multi_burn_nft_warning: "您即將銷毀 %amount% 個 NFT。該過程可能需要 ~%duration% 分鐘。請勿關閉應用程式，也不要在完成之前切換賬戶。"
 Burn NFT: 燒毀NFT
 Burn: 燒傷
 Private Key: 私鑰
+"%amount% NFTs": "%amount% NFT"
+1 NFT: 1 NFT
+1 NFT Selected: 已選擇 1 個 NFT
+"%amount% NFTs Selected": "已選擇 %amount% 個 NFT"
+For sale. Cannot be sent and burned: 出售。 無法發送和燒毀
+Select: 選擇
+Send All: 全部發送
+Burn All: 全部燒掉
+Select All: 全選

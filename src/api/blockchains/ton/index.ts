@@ -13,7 +13,7 @@ export {
   getAccountNfts,
   getNftUpdates,
   checkNftTransferDraft,
-  submitNftTransfer,
+  submitNftTransfers,
 } from './nfts';
 export { oneCellFromBoc } from './util/tonCore';
 export { buildTokenSlug } from './util';
@@ -23,7 +23,7 @@ export {
   getAccountTransactionSlice,
   getTokenTransactionSlice,
   submitTransfer,
-  waitLastTransfer,
+  waitPendingTransfer,
   checkMultiTransactionDraft,
   submitMultiTransfer,
   getMergedTransactionSlice,

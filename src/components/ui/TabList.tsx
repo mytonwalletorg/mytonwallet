@@ -1,5 +1,7 @@
 import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
 
+import type { DropdownItem } from './Dropdown';
+
 import animateHorizontalScroll from '../../util/animateHorizontalScroll';
 import buildClassName from '../../util/buildClassName';
 import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
@@ -15,6 +17,8 @@ export type TabWithProperties = {
   id: number;
   title: string;
   className?: string;
+  menuItems?: DropdownItem[];
+  onMenuItemClick?: (value: string) => void;
 };
 
 type OwnProps = {
@@ -74,6 +78,8 @@ function TabList({
           isActive={i === activeTab}
           previousActiveTab={previousActiveTab}
           className={tab?.className}
+          menuItems={tab?.menuItems}
+          onMenuItemClick={tab?.onMenuItemClick}
           onClick={onSwitchTab}
           clickArg={tab.id}
         />

@@ -575,3 +575,19 @@ textarea.inputStatic {
   width: 2.75rem;
   height: 1.0625rem;
 }
+
+.burnWarning {
+  align-self: center;
+
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3125rem;
+  color: var(--color-transaction-red-text);
+  text-align: center;
+
+  background-color: var(--color-transaction-red-background);
+  border-radius: var(--border-radius-buttons);
+}

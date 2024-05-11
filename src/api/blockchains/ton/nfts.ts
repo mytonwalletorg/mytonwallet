@@ -2,18 +2,20 @@ import type { NftItem } from 'tonapi-sdk-js';
 import type { Cell } from '@ton/core';
 import { Address, Builder } from '@ton/core';
 
-import type { ApiKnownAddresses, ApiNft, ApiNftUpdate } from '../../types';
-import type { CheckTransactionDraftResult } from './transactions';
+import type { ApiNft, ApiNftUpdate } from '../../types';
+import type { ApiCheckTransactionDraftResult } from './types';
+import { ApiTransactionDraftError } from '../../types';
 
+import { LEDGER_NFT_TRANSFER_DISABLED, NFT_BATCH_SIZE } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
 import { generateQueryId } from './util';
 import { buildNft } from './util/metadata';
 import { fetchAccountEvents, fetchAccountNfts, fetchNftItems } from './util/tonapiio';
 import { commentToBytes, packBytesAsSnake, toBase64Address } from './util/tonCore';
-import { fetchStoredAddress } from '../../common/accounts';
+import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
 import { NFT_TRANSFER_TON_AMOUNT, NFT_TRANSFER_TON_FORWARD_AMOUNT, NftOpCode } from './constants';
-import { checkToAddress, checkTransactionDraft, submitTransfer } from './transactions';
+import { checkMultiTransactionDraft, checkToAddress, submitMultiTransfer } from './transactions';
 import { isActiveSmartContract } from './wallet';
 
 export async function getAccountNfts(accountId: string, offset?: number, limit?: number): Promise<ApiNft[]> {
@@ -93,36 +95,43 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
   return [fromSec, updates] as [number, ApiNftUpdate[]];
 }
 
-export async function checkNftTransferDraft(
-  options: {
-    accountId: string;
-    nftAddress: string;
-    toAddress: string;
-    comment?: string;
-  },
-  knownAddresses?: ApiKnownAddresses,
-): Promise<CheckTransactionDraftResult> {
-  const { accountId, nftAddress, comment } = options;
+export async function checkNftTransferDraft(options: {
+  accountId: string;
+  nftAddresses: string[];
+  toAddress: string;
+  comment?: string;
+}): Promise<ApiCheckTransactionDraftResult> {
+  const { accountId, nftAddresses, comment } = options;
   let { toAddress } = options;
 
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(accountId);
+  const { address: fromAddress, ledger } = await fetchStoredAccount(accountId);
+  const isLedger = !!ledger;
 
-  const checkAddressResult = await checkToAddress(network, toAddress, knownAddresses);
+  const checkAddressResult = await checkToAddress(network, toAddress);
 
   if ('error' in checkAddressResult) {
     return checkAddressResult;
   }
 
   toAddress = checkAddressResult.resolvedAddress!;
-  const payload = buildNftTransferPayload(address, toAddress, comment);
 
-  const result = await checkTransactionDraft({
-    accountId,
-    toAddress: nftAddress,
-    amount: NFT_TRANSFER_TON_AMOUNT,
-    data: payload,
-  }, undefined, true);
+  if (isLedger && LEDGER_NFT_TRANSFER_DISABLED) {
+    return {
+      error: ApiTransactionDraftError.UnsupportedHardwareNftOperation,
+    };
+  }
+
+  // We only need to check the first batch of a multi-transaction
+  const messages = nftAddresses.slice(0, NFT_BATCH_SIZE).map((nftAddress) => {
+    return {
+      payload: buildNftTransferPayload(fromAddress, toAddress, comment),
+      amount: NFT_TRANSFER_TON_AMOUNT,
+      toAddress: nftAddress,
+    };
+  });
+
+  const result = await checkMultiTransactionDraft(accountId, messages);
 
   if ('error' in result) {
     return result;
@@ -134,26 +143,24 @@ export async function checkNftTransferDraft(
   };
 }
 
-export async function submitNftTransfer(
+export async function submitNftTransfers(
   accountId: string,
   password: string,
-  nftAddress: string,
+  nftAddresses: string[],
   toAddress: string,
   comment?: string,
 ) {
   const fromAddress = await fetchStoredAddress(accountId);
-  const payload = buildNftTransferPayload(fromAddress, toAddress, comment);
-  const amount = NFT_TRANSFER_TON_AMOUNT;
-  toAddress = nftAddress;
 
-  const result = await submitTransfer({
-    accountId, password, toAddress, amount, data: payload,
+  const messages = nftAddresses.map((nftAddress) => {
+    return {
+      payload: buildNftTransferPayload(fromAddress, toAddress, comment),
+      amount: NFT_TRANSFER_TON_AMOUNT,
+      toAddress: nftAddress,
+    };
   });
 
-  return {
-    ...result,
-    amount,
-  };
+  return submitMultiTransfer(accountId, password, messages);
 }
 
 function buildNftTransferPayload(fromAddress: string, toAddress: string, comment?: string) {

@@ -6,7 +6,6 @@ import {
 import type {
   ApiActivity,
   ApiAnyDisplayError,
-  ApiKnownAddresses,
   ApiNetwork,
   ApiNft,
   ApiSignedTransfer,
@@ -16,11 +15,18 @@ import type {
   ApiTxIdBySlug,
 } from '../../types';
 import type { JettonWallet } from './contracts/JettonWallet';
-import type { AnyPayload, ApiTransactionExtra, TonTransferParams } from './types';
+import type {
+  AnyPayload,
+  ApiCheckTransactionDraftResult,
+  ApiSubmitMultiTransferResult,
+  ApiSubmitTransferResult,
+  ApiTransactionExtra,
+  TonTransferParams,
+} from './types';
 import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import { LEDGER_NFT_TRANSFER_DISABLED, ONE_TON, TON_TOKEN_SLUG } from '../../../config';
+import { ONE_TON, TON_TOKEN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
@@ -60,50 +66,18 @@ import {
   getContractInfo, getWalletBalance, getWalletInfo, pickAccountWallet,
 } from './wallet';
 
-export type CheckTransactionDraftResult = {
-  fee?: bigint;
-  addressName?: string;
-  isScam?: boolean;
-  resolvedAddress?: string;
-  isToAddressNew?: boolean;
-  isBounceable?: boolean;
-  error?: ApiAnyDisplayError;
-};
-
-export type SubmitTransferResult = {
-  toAddress: string;
-  amount: bigint;
-  seqno: number;
-  msgHash: string;
-  encryptedComment?: string;
-} | {
-  error: string;
-};
-
-type SubmitMultiTransferResult = {
-  messages: TonTransferParams[];
-  amount: string;
-  seqno: number;
-  boc: string;
-  msgHash: string;
-} | {
-  error: string;
-};
-
 const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 60; // 60 sec.
 const GET_TRANSACTIONS_LIMIT = 50;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;
-const WAIT_SEQNO_TIMEOUT = 40000; // 40 sec.
-const WAIT_SEQNO_PAUSE = 5000; // 5 sec.
+const WAIT_TRANSFER_TIMEOUT = 40000; // 40 sec.
+const WAIT_TRANSFER_PAUSE = 1000; // 1 sec.
 const WAIT_TRANSACTION_PAUSE = 500; // 0.5 sec.
 
-const lastTransfers: Record<ApiNetwork, Record<string, {
+const pendingTransfers: Record<string, {
   timestamp: number;
   seqno: number;
-}>> = {
-  mainnet: {},
-  testnet: {},
-};
+  promise: Promise<any>;
+}> = {};
 
 export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, address: string) => {
   const transactions = await fetchTransactions(network, address, 1);
@@ -121,9 +95,7 @@ export async function checkTransactionDraft(
     shouldEncrypt?: boolean;
     isBase64Data?: boolean;
   },
-  knownAddresses?: ApiKnownAddresses,
-  isNft = false,
-): Promise<CheckTransactionDraftResult> {
+): Promise<ApiCheckTransactionDraftResult> {
   const {
     accountId,
     tokenAddress,
@@ -135,10 +107,10 @@ export async function checkTransactionDraft(
 
   const { network } = parseAccountId(accountId);
 
-  let result: CheckTransactionDraftResult = {};
+  let result: ApiCheckTransactionDraftResult = {};
 
   try {
-    result = await checkToAddress(network, toAddress, knownAddresses);
+    result = await checkToAddress(network, toAddress);
 
     if ('error' in result) {
       return result;
@@ -190,14 +162,7 @@ export async function checkTransactionDraft(
     const account = await fetchStoredAccount(accountId);
     const isLedger = !!account.ledger;
 
-    if (isLedger && isNft && LEDGER_NFT_TRANSFER_DISABLED) {
-      return {
-        ...result,
-        error: ApiTransactionDraftError.UnsupportedHardwareNftOperation,
-      };
-    }
-
-    if (isLedger && !isNft && !isLedgerAllowed) {
+    if (isLedger && !isLedgerAllowed) {
       return {
         ...result,
         error: ApiTransactionDraftError.UnsupportedHardwareContract,
@@ -281,17 +246,16 @@ export async function checkTransactionDraft(
   }
 }
 
-export async function checkToAddress(network: ApiNetwork, toAddress: string, knownAddresses?: ApiKnownAddresses) {
+export async function checkToAddress(network: ApiNetwork, toAddress: string) {
   const result: {
     addressName?: string;
     isScam?: boolean;
     resolvedAddress?: string;
     isToAddressNew?: boolean;
     isBounceable?: boolean;
-    error?: ApiAnyDisplayError;
   } = {};
 
-  const resolved = await resolveAddress(network, toAddress, knownAddresses);
+  const resolved = await resolveAddress(network, toAddress);
   if (resolved) {
     result.addressName = resolved.name;
     result.resolvedAddress = resolved.address;
@@ -339,7 +303,7 @@ export async function submitTransfer(options: {
   stateInit?: Cell;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
-}): Promise<SubmitTransferResult> {
+}): Promise<ApiSubmitTransferResult> {
   const {
     accountId,
     password,
@@ -390,7 +354,7 @@ export async function submitTransfer(options: {
       } = await buildTokenTransfer(network, tokenAddress, fromAddress, toAddress, amount, data));
     }
 
-    await waitLastTransfer(network, fromAddress);
+    await waitPendingTransfer(network, fromAddress);
 
     const { balance } = await getWalletInfo(network, wallet!);
     const isFullTonBalance = !tokenAddress && balance === amount;
@@ -411,9 +375,9 @@ export async function submitTransfer(options: {
 
     const client = getTonClient(network);
     await wallet!.send(transaction);
-    const msgHash = client.popLastMessageHash();
+    const { msgHash, boc } = client.popLastSendBoc();
 
-    updateLastTransfer(network, fromAddress, seqno);
+    addPendingTransfer(network, fromAddress, seqno, boc);
 
     return {
       amount, seqno, encryptedComment, toAddress, msgHash,
@@ -715,7 +679,7 @@ export async function submitMultiTransfer(
   password: string,
   messages: TonTransferParams[],
   expireAt?: number,
-): Promise<SubmitMultiTransferResult> {
+): Promise<ApiSubmitMultiTransferResult> {
   const { network } = parseAccountId(accountId);
 
   try {
@@ -732,15 +696,13 @@ export async function submitMultiTransfer(
       totalAmount += BigInt(message.amount);
     });
 
-    await waitLastTransfer(network, fromAddress);
+    await waitPendingTransfer(network, fromAddress);
 
     const { balance } = await getWalletInfo(network, wallet!);
 
-    const { seqno, transaction, externalMessage } = await signMultiTransaction(
+    const { seqno, transaction } = await signMultiTransaction(
       network, wallet!, messages, privateKey, expireAt,
     );
-
-    const boc = externalMessage.toBoc().toString('base64');
 
     const fee = await calculateFee(network, wallet!, transaction, account.isInitialized);
     if (BigInt(balance) < BigInt(totalAmount) + BigInt(fee)) {
@@ -749,14 +711,21 @@ export async function submitMultiTransfer(
 
     const tonClient = getTonClient(network);
     await wallet!.send(transaction);
-    const msgHash = tonClient.lastMessageHash!;
+    const { msgHash, boc } = tonClient.popLastSendBoc();
 
-    updateLastTransfer(network, fromAddress, seqno);
+    addPendingTransfer(network, fromAddress, seqno, boc);
+
+    const clearedMessages = messages.map((message) => {
+      if (typeof message.payload !== 'string' && typeof message.payload !== 'undefined') {
+        return omit(message, ['payload']);
+      }
+      return message;
+    });
 
     return {
       seqno,
       amount: totalAmount.toString(),
-      messages,
+      messages: clearedMessages,
       boc,
       msgHash,
     };
@@ -833,45 +802,45 @@ function toExternalMessage(
     .endCell();
 }
 
-function updateLastTransfer(network: ApiNetwork, address: string, seqno: number) {
-  lastTransfers[network][address] = {
-    timestamp: Date.now(),
+function addPendingTransfer(network: ApiNetwork, address: string, seqno: number, boc: string) {
+  const key = buildPendingTransferKey(network, address);
+  const timestamp = Date.now();
+  const promise = retrySendBoc(network, boc, timestamp);
+
+  pendingTransfers[key] = {
+    timestamp,
     seqno,
+    promise,
   };
 }
 
-export async function waitLastTransfer(network: ApiNetwork, address: string) {
-  const lastTransfer = lastTransfers[network][address];
-  if (!lastTransfer) return;
+async function retrySendBoc(network: ApiNetwork, boc: string, timestamp: number) {
+  const tonClient = getTonClient(network);
+  const waitUntil = timestamp + WAIT_TRANSFER_TIMEOUT;
 
-  const { seqno, timestamp } = lastTransfer;
-  const waitUntil = timestamp + WAIT_SEQNO_TIMEOUT;
+  while (Date.now() < waitUntil) {
+    const error = await tonClient.sendFile(boc).catch((err) => String(err));
 
-  const result = await waitIncrementSeqno(network, address, seqno, waitUntil);
-  if (result) {
-    delete lastTransfers[network][address];
+    if (!error || !error.includes('exitcode=33')) {
+      await pause(WAIT_TRANSFER_PAUSE);
+    } else {
+      break;
+    }
   }
 }
 
-async function waitIncrementSeqno(network: ApiNetwork, address: string, seqno: number, waitUntil?: number) {
-  if (!waitUntil) {
-    waitUntil = Date.now() + WAIT_SEQNO_TIMEOUT;
-  }
+export async function waitPendingTransfer(network: ApiNetwork, address: string) {
+  const key = buildPendingTransferKey(network, address);
+  const pendingTransfer = pendingTransfers[key];
+  if (!pendingTransfer) return;
 
-  while (Date.now() < waitUntil) {
-    try {
-      const { seqno: currentSeqno } = await getWalletInfo(network, address);
-      if (currentSeqno > seqno) {
-        return true;
-      }
+  await pendingTransfer.promise;
 
-      await pause(WAIT_SEQNO_PAUSE);
-    } catch (err) {
-      logDebugError('waitIncrementSeqno', err);
-    }
-  }
+  delete pendingTransfers[key];
+}
 
-  return false;
+function buildPendingTransferKey(network: ApiNetwork, address: string) {
+  return `${network}:${address}`;
 }
 
 async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction: Cell, isInitialized?: boolean) {
@@ -897,9 +866,9 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
 
   const { base64, seqno } = message;
   await contract.send(Cell.fromBase64(base64));
-  const msgHash = client.popLastMessageHash();
+  const { msgHash, boc } = client.popLastSendBoc();
 
-  updateLastTransfer(network, fromAddress, seqno);
+  addPendingTransfer(network, fromAddress, seqno, boc);
 
   return msgHash;
 }
@@ -923,12 +892,14 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
   while (index < messages.length && attempt < attempts) {
     const { base64, seqno } = messages[index];
     try {
-      await waitLastTransfer(network, fromAddress);
+      await waitPendingTransfer(network, fromAddress);
 
       await contract.send(Cell.fromBase64(base64));
-      msgHashes.push(client.popLastMessageHash());
 
-      updateLastTransfer(network, fromAddress, seqno);
+      const { msgHash, boc } = client.popLastSendBoc();
+      msgHashes.push(msgHash);
+
+      addPendingTransfer(network, fromAddress, seqno, boc);
 
       index++;
     } catch (err) {

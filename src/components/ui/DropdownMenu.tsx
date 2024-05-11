@@ -60,6 +60,8 @@ function DropdownMenu({
           styles.item,
           item.icon && styles.item_with_icon,
           item.isDisabled && styles.disabled,
+          item.isDangerous && styles.dangerous,
+          item.withSeparator && styles.separator,
           selectedValue === item.value && styles.item_selected,
           buttonClassName,
         );

@@ -62,6 +62,12 @@
   --offset-x-value: 0.25rem;
 }
 
+.menuBubble {
+  overflow: hidden;
+
+  padding-right: 0.5rem !important;
+}
+
 .item {
   > :global(.icon) {
     order: 2;

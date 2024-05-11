@@ -47,6 +47,10 @@
   }
 }
 
+.interactive {
+  cursor: var(--custom-cursor, pointer) !important;
+}
+
 .content {
   position: relative;
 
@@ -88,5 +92,19 @@
     :global(html.animation-level-0) & {
       transition: none !important;
     }
+  }
+}
+
+.menuItem {
+  overflow: hidden;
+
+  max-width: 14rem;
+
+  & > :global(.menuItemName) {
+    overflow: hidden;
+
+    max-width: 100%;
+
+    text-overflow: ellipsis;
   }
 }

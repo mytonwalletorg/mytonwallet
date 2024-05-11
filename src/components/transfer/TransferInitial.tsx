@@ -51,6 +51,7 @@ import InteractiveTextField from '../ui/InteractiveTextField';
 import Menu from '../ui/Menu';
 import RichNumberInput from '../ui/RichNumberInput';
 import Transition from '../ui/Transition';
+import NftChips from './NftChips';
 import NftInfo from './NftInfo';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -76,7 +77,7 @@ interface StateProps {
   isEncryptedCommentSupported: boolean;
   isCommentSupported: boolean;
   baseCurrency?: ApiBaseCurrency;
-  nft?: ApiNft;
+  nfts?: ApiNft[];
   binPayload?: string;
 }
 
@@ -112,7 +113,7 @@ function TransferInitial({
   isLoading,
   onCommentChange,
   baseCurrency,
-  nft,
+  nfts,
   binPayload,
 }: OwnProps & StateProps) {
   const {
@@ -146,7 +147,7 @@ function TransferInitial({
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
   const [isInsufficientFee, setIsInsufficientFee] = useState(false);
-  const isNftTransfer = Boolean(nft);
+  const isNftTransfer = Boolean(nfts?.length);
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
@@ -168,7 +169,7 @@ function TransferInitial({
   const isTonFullBalance = isTon && balance === amount;
   const tonToken = useMemo(() => tokens?.find((token) => token.slug === TON_TOKEN_SLUG), [tokens])!;
   const shouldDisableClearButton = !toAddress && !amount && !(comment || binPayload) && !shouldEncrypt
-    && !(nft && isStatic);
+    && !(nfts?.length && isStatic);
 
   const isQrScannerSupported = useQrScannerSupport();
 
@@ -257,7 +258,7 @@ function TransferInitial({
   }, [isTon, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount]);
 
   useEffect(() => {
-    if (!toAddress || hasToAddressError || !(amount || nft?.address) || !isAddressValid) {
+    if (!toAddress || hasToAddressError || !(amount || nfts?.length) || !isAddressValid) {
       return;
     }
 
@@ -266,7 +267,7 @@ function TransferInitial({
         fetchNftFee({
           toAddress,
           comment,
-          nftAddress: nft.address,
+          nftAddresses: nfts?.map(({ address }) => address) || [],
         });
       } else {
         fetchFee({
@@ -279,7 +280,7 @@ function TransferInitial({
       }
     });
   }, [
-    amount, binPayload, comment, hasToAddressError, isAddressValid, isNftTransfer, nft?.address, toAddress, tokenSlug,
+    amount, binPayload, comment, hasToAddressError, isAddressValid, isNftTransfer, nfts, toAddress, tokenSlug,
   ]);
 
   const handleTokenChange = useLastCallback(
@@ -447,9 +448,9 @@ function TransferInitial({
   const hasCommentError = isCommentRequired && !comment;
   const requiredAmount = isNftTransfer ? NFT_TRANSFER_TON_AMOUNT : amount;
 
-  const canSubmit = toAddress.length && requiredAmount && balance && requiredAmount > 0
+  const canSubmit = Boolean(toAddress.length && requiredAmount && balance && requiredAmount > 0
     && requiredAmount <= balance && !hasToAddressError && !hasAmountError && isEnoughTon && !hasCommentError
-    && (!isNftTransfer || !nft?.isOnSale);
+    && (!isNftTransfer || Boolean(nfts?.length)));
 
   const handleSubmit = useLastCallback((e) => {
     e.preventDefault();
@@ -466,7 +467,7 @@ function TransferInitial({
       toAddress,
       comment,
       shouldEncrypt,
-      nftAddress: nft?.address,
+      nftAddresses: isNftTransfer ? nfts!.map(({ address }) => address) : undefined,
     });
   });
 
@@ -601,7 +602,7 @@ function TransferInitial({
   }
 
   function renderBalance() {
-    if (!symbol || nft) {
+    if (!symbol || nfts?.length) {
       return undefined;
     }
 
@@ -663,7 +664,8 @@ function TransferInitial({
   return (
     <>
       <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
-        {nft && <NftInfo nft={nft} isStatic={isStatic} />}
+        {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} />}
+        {Boolean(nfts?.length) && nfts!.length > 1 && <NftChips nfts={nfts!} isStatic={isStatic} />}
 
         <Input
           ref={toAddressRef}
@@ -778,7 +780,7 @@ export default memo(
         tokenSlug,
         isLoading,
         state,
-        nft,
+        nfts,
         binPayload,
       } = global.currentTransfer;
 
@@ -793,12 +795,12 @@ export default memo(
         comment,
         shouldEncrypt,
         fee,
-        nft,
+        nfts,
         tokenSlug,
         binPayload,
         tokens: selectCurrentAccountTokens(global),
         savedAddresses: accountState?.savedAddresses,
-        isEncryptedCommentSupported: !isLedger && !nft,
+        isEncryptedCommentSupported: !isLedger && !nfts?.length,
         isCommentSupported: true,
         isLoading: isLoading && ACTIVE_STATES.has(state),
         baseCurrency,
@@ -811,8 +813,8 @@ export default memo(
         return stickToFirst(global.currentAccountId);
       }
 
-      const { nft, tokenSlug = TON_TOKEN_SLUG } = global.currentTransfer;
-      const key = nft?.address ?? tokenSlug;
+      const { nfts, tokenSlug = TON_TOKEN_SLUG } = global.currentTransfer;
+      const key = nfts?.length ? `${nfts[0].address}_${nfts.length}` : tokenSlug;
 
       return stickToFirst(`${global.currentAccountId}_${key}`);
     },

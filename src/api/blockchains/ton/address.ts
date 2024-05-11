@@ -1,23 +1,20 @@
 import { Address } from '@ton/core';
 
-import type { ApiKnownAddresses, ApiNetwork } from '../../types';
+import type { ApiNetwork } from '../../types';
 
 import { BURN_ADDRESS, EXCHANGE_ADDRESSES, EXCHANGE_ADDRESSES_FLAT } from '../../../config';
 import dns from '../../../util/dns';
 import { DnsCategory, dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
+import { getKnownAddresses } from '../../common/addresses';
 
 const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
 const VIP_DNS_COLLECTION = 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS';
 
-export async function resolveAddress(
-  network: ApiNetwork,
-  address: string,
-  knownAddresses?: ApiKnownAddresses,
-): Promise<{
-    address: string;
-    name?: string;
-  } | undefined> {
+export async function resolveAddress(network: ApiNetwork, address: string): Promise<{
+  address: string;
+  name?: string;
+} | undefined> {
   if (address === BURN_ADDRESS) {
     return {
       address,
@@ -36,7 +33,7 @@ export async function resolveAddress(
     };
   }
 
-  const known = knownAddresses?.[address];
+  const known = getKnownAddresses()[address];
   if (known) {
     return {
       address,

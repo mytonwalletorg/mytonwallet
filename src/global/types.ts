@@ -209,6 +209,7 @@ export enum ContentTab {
   Activity,
   Explore,
   Nft,
+  NotcoinVouchers,
 }
 
 export enum MediaType {
@@ -275,6 +276,8 @@ export interface AccountState {
   nfts?: {
     byAddress: Record<string, ApiNft>;
     orderedAddresses?: string[];
+    currentCollectionAddress?: string;
+    selectedAddresses?: string[];
   };
   isBackupRequired?: boolean;
   activeDappOrigin?: string;
@@ -374,7 +377,8 @@ export type GlobalState = {
     shouldEncrypt?: boolean;
     isToNewAddress?: boolean;
     isScam?: boolean;
-    nft?: ApiNft;
+    nfts?: ApiNft[];
+    sentNftsCount?: number;
   };
 
   currentSwap: {
@@ -614,7 +618,7 @@ export interface ActionPayloads {
     amount?: bigint;
     toAddress?: string;
     comment?: string;
-    nft?: ApiNft;
+    nfts?: ApiNft[];
     binPayload?: string;
   } | undefined;
   changeTransferToken: { tokenSlug: string };
@@ -628,7 +632,7 @@ export interface ActionPayloads {
   };
   fetchNftFee: {
     toAddress: string;
-    nftAddress: string;
+    nftAddresses: string[];
     comment?: string;
   };
   submitTransferInitial: {
@@ -637,7 +641,7 @@ export interface ActionPayloads {
     toAddress: string;
     comment?: string;
     shouldEncrypt?: boolean;
-    nftAddress?: string;
+    nftAddresses?: string[];
   };
   submitTransferConfirm: undefined;
   submitTransferPassword: { password: string };
@@ -668,6 +672,11 @@ export interface ActionPayloads {
   fetchNfts: undefined;
   showActivityInfo: { id: string };
   closeActivityInfo: { id: string };
+  openNftCollection: { address: string };
+  closeNftCollection: undefined;
+  selectNfts: { addresses: string[] };
+  clearNftSelection: { address: string };
+  clearNftsSelection: undefined;
 
   submitSignature: { password: string };
   clearSignatureError: undefined;

@@ -1,0 +1,67 @@
+.root {
+  overflow: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  max-height: 7.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.5rem;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+
+  &.static {
+    border: 1px solid var(--color-separator-input-stroke);
+  }
+}
+
+.nft {
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+
+  max-width: 100%;
+  height: 1.75rem;
+
+  background: var(--color-background-second);
+  border-radius: 0.375rem;
+}
+
+.image {
+  aspect-ratio: 1;
+  width: 1.75rem;
+  height: 1.75rem;
+
+  object-fit: cover;
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.name {
+  overflow: hidden;
+
+  margin: 0 0.375rem;
+
+  font-size: 0.8125rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expander {
+  cursor: var(--custom-cursor, pointer);
+
+  margin: 0;
+  padding: 0 0.375rem;
+
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--color-gray-2);
+
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+
+  appearance: none;
+}

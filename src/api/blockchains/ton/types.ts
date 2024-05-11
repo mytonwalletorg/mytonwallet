@@ -1,7 +1,7 @@
 import type { Cell } from '@ton/core';
 
 import type {
-  ApiParsedPayload, ApiTransaction, ApiWalletInfo, ApiWalletVersion,
+  ApiAnyDisplayError, ApiParsedPayload, ApiTransaction, ApiWalletInfo, ApiWalletVersion,
 } from '../../types';
 import type { ContractType } from './constants';
 import type { TonWallet } from './util/tonCore';
@@ -85,4 +85,34 @@ export type GetAddressInfoResponse = {
 
 export type WalletInfo = ApiWalletInfo & {
   wallet: TonWallet;
+};
+
+export type ApiSubmitTransferResult = {
+  toAddress: string;
+  amount: bigint;
+  seqno: number;
+  msgHash: string;
+  encryptedComment?: string;
+} | {
+  error: string;
+};
+
+export type ApiSubmitMultiTransferResult = {
+  messages: TonTransferParams[];
+  amount: string;
+  seqno: number;
+  boc: string;
+  msgHash: string;
+} | {
+  error: string;
+};
+
+export type ApiCheckTransactionDraftResult = {
+  fee?: bigint;
+  addressName?: string;
+  isScam?: boolean;
+  resolvedAddress?: string;
+  isToAddressNew?: boolean;
+  isBounceable?: boolean;
+  error?: ApiAnyDisplayError;
 };

@@ -1,8 +1,15 @@
 import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
+import type { DropdownItem } from './Dropdown';
+
 import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import forceReflow from '../../util/forceReflow';
+
+import useFlag from '../../hooks/useFlag';
+import useLastCallback from '../../hooks/useLastCallback';
+
+import DropdownMenu from './DropdownMenu';
 
 import styles from './Tab.module.scss';
 
@@ -11,8 +18,10 @@ type OwnProps = {
   title: string;
   isActive?: boolean;
   previousActiveTab?: number;
+  menuItems?: DropdownItem[];
   onClick: (arg: number) => void;
   clickArg: number;
+  onMenuItemClick?: (value: string) => void;
 };
 
 function Tab({
@@ -20,11 +29,30 @@ function Tab({
   title,
   isActive,
   previousActiveTab,
+  menuItems,
   onClick,
   clickArg,
+  onMenuItemClick,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const tabRef = useRef<HTMLDivElement>(null);
+  const [isMenuOpen, openMenu, closeMenu] = useFlag();
+  const hasMenu = Boolean(menuItems);
+
+  const handleClick = useLastCallback(() => {
+    if (isActive && !menuItems?.length) return;
+
+    if (!isActive) {
+      onClick(clickArg);
+      return;
+    }
+
+    if (isMenuOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
 
   useLayoutEffect(() => {
     // Set initial active state
@@ -78,14 +106,25 @@ function Tab({
 
   return (
     <div
-      className={buildClassName(styles.Tab, className)}
-      onClick={!isActive ? () => onClick(clickArg) : undefined}
+      className={buildClassName(styles.Tab, className, hasMenu && styles.interactive)}
+      onClick={handleClick}
       ref={tabRef}
     >
       <span className={styles.content}>
         {title}
+        {Boolean(menuItems?.length) && <i className="icon-caret-down" aria-hidden />}
         <i className={styles.platform} aria-hidden />
       </span>
+      {hasMenu && (
+        <DropdownMenu
+          isOpen={isMenuOpen}
+          items={menuItems}
+          onSelect={onMenuItemClick}
+          onClose={closeMenu}
+          buttonClassName={styles.menuItem}
+          menuPositionHorizontal="right"
+        />
+      )}
     </div>
   );
 }

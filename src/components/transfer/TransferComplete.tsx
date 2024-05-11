@@ -16,6 +16,7 @@ import TransferResult from '../common/TransferResult';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
+import NftChips from './NftChips';
 import NftInfo from './NftInfo';
 
 import styles from '../common/TransferResult.module.scss';
@@ -33,7 +34,7 @@ interface OwnProps {
   toAddress?: string;
   comment?: string;
   decimals?: number;
-  nft?: NftTransfer;
+  nfts?: NftTransfer[];
   onInfoClick: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -52,7 +53,7 @@ function TransferComplete({
   toAddress,
   comment,
   decimals,
-  nft,
+  nfts,
   onInfoClick,
   onClose,
 }: OwnProps) {
@@ -60,7 +61,7 @@ function TransferComplete({
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
-  const isNftTransfer = Boolean(nft);
+  const isNftTransfer = Boolean(nfts?.length);
 
   useHistoryBack({
     isActive,
@@ -92,7 +93,7 @@ function TransferComplete({
               tgsUrl={ANIMATED_STICKERS_PATHS.thumbUp}
               previewUrl={ANIMATED_STICKERS_PATHS.thumbUpPreview}
             />
-            <NftInfo nft={nft} />
+            {nfts!.length === 1 ? <NftInfo nft={nfts![0]} /> : <NftChips nfts={nfts!} />}
             {Boolean(txId) && (
               <div className={buildClassName(styles.buttons, styles.buttonsAfterNft)}>
                 <Button className={styles.button} onClick={onInfoClick}>{lang('Details')}</Button>

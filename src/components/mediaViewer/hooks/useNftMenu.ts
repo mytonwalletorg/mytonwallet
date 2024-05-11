@@ -52,10 +52,16 @@ const TON_DNS_ITEM: DropdownItem = {
 const BURN_ITEM: DropdownItem = {
   name: 'Burn',
   value: 'burn',
+  isDangerous: true,
+};
+const SELECT_ITEM: DropdownItem = {
+  name: 'Select',
+  value: 'select',
+  withSeparator: true,
 };
 
 export default function useNftMenu(nft?: ApiNft) {
-  const { startTransfer, submitTransferInitial } = getActions();
+  const { startTransfer, submitTransferInitial, selectNfts } = getActions();
 
   const handleMenuItemSelect = useLastCallback((value: string) => {
     const { isTestnet } = getGlobal().settings;
@@ -63,7 +69,7 @@ export default function useNftMenu(nft?: ApiNft) {
       case 'send': {
         startTransfer({
           isPortrait: getIsPortrait(),
-          nft,
+          nfts: [nft!],
         });
         break;
       }
@@ -106,16 +112,21 @@ export default function useNftMenu(nft?: ApiNft) {
       case 'burn': {
         startTransfer({
           isPortrait: getIsPortrait(),
-          nft,
+          nfts: [nft!],
         });
 
         submitTransferInitial({
           tokenSlug: TON_TOKEN_SLUG,
           amount: NFT_TRANSFER_TON_AMOUNT,
           toAddress: BURN_ADDRESS,
-          nftAddress: nft!.address,
+          nftAddresses: [nft!.address],
         });
 
+        break;
+      }
+
+      case 'select': {
+        selectNfts({ addresses: [nft!.address] });
         break;
       }
     }
@@ -130,7 +141,7 @@ export default function useNftMenu(nft?: ApiNft) {
       GETGEMS_ITEM,
       TONSCAN_ITEM,
       ...(nft.isOnFragment ? [FRAGMENT_ITEM] : []),
-      BURN_ITEM,
+      ...(!nft.isOnSale ? [BURN_ITEM, SELECT_ITEM] : []),
     ];
   }, [nft]);
 

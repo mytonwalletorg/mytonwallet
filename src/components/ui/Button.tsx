@@ -25,7 +25,7 @@ type OwnProps = {
   isRound?: boolean;
   isSmall?: boolean;
   isDestructive?: boolean;
-  onClick?: () => void;
+  onClick?: NoneToVoidFunction;
 };
 
 // Longest animation duration

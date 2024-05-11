@@ -17,6 +17,8 @@ export interface DropdownItem {
   icon?: string;
   fontIcon?: string;
   isDisabled?: boolean;
+  isDangerous?: boolean;
+  withSeparator?: boolean;
 }
 
 interface OwnProps {

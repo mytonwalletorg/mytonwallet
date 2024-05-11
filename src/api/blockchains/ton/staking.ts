@@ -6,8 +6,7 @@ import type {
   ApiStakingState,
   ApiStakingType,
 } from '../../types';
-import type { CheckTransactionDraftResult, SubmitTransferResult } from './transactions';
-import type { TonTransferParams } from './types';
+import type { ApiCheckTransactionDraftResult, ApiSubmitTransferResult, TonTransferParams } from './types';
 import { ApiCommonError, ApiLiquidUnstakeMode, ApiTransactionDraftError } from '../../types';
 
 import {
@@ -40,7 +39,7 @@ export async function checkStakeDraft(
   const staked = await getStakingState(accountId, backendState);
 
   let type: ApiStakingType;
-  let result: CheckTransactionDraftResult;
+  let result: ApiCheckTransactionDraftResult;
 
   if (staked?.type === 'nominators' && amount >= ONE_TON) {
     type = 'nominators';
@@ -85,7 +84,7 @@ export async function checkUnstakeDraft(
   const staked = await getStakingState(accountId, backendState);
 
   let type: ApiStakingType;
-  let result: CheckTransactionDraftResult;
+  let result: ApiCheckTransactionDraftResult;
   let tokenAmount: bigint | undefined;
 
   if (staked.type === 'nominators') {
@@ -134,7 +133,7 @@ export async function submitStake(
   type: ApiStakingType,
   backendState: ApiBackendStakingState,
 ) {
-  let result: SubmitTransferResult;
+  let result: ApiSubmitTransferResult;
 
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
@@ -178,7 +177,7 @@ export async function submitUnstake(
 
   const staked = await getStakingState(accountId, backendState);
 
-  let result: SubmitTransferResult;
+  let result: ApiSubmitTransferResult;
 
   if (type === 'liquid') {
     const mode = staked.type === 'liquid' && !staked.instantAvailable

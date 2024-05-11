@@ -28,10 +28,24 @@
   }
 }
 
-.tabs {
+.tabsContainer {
   position: relative;
   z-index: 2;
 
+  flex-shrink: 0;
+
+  height: 2.75rem;
+
+  .portraitContainer & {
+    position: sticky;
+    top: 3.75rem;
+
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+.tabs {
   height: 2.75rem;
   padding: 0 1.5rem;
 
@@ -49,11 +63,8 @@
     position: sticky;
     top: 3.75rem;
 
-    overflow: visible;
-
     width: 100%;
     max-width: 27rem;
-    margin: 0 auto;
 
     &::after {
       content: '';

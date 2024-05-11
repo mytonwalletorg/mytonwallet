@@ -11,7 +11,6 @@ import { parseAccountId } from '../../util/account';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
 import { fetchStoredAddress } from '../common/accounts';
-import { getKnownAddresses } from '../common/addresses';
 import { buildLocalTransaction, resolveBlockchainKey } from '../common/helpers';
 import { handleServerError } from '../errors';
 import { swapReplaceTransactions } from './swap';
@@ -62,7 +61,7 @@ export function checkTransactionDraft(options: {
 }) {
   const blockchain = blockchains[resolveBlockchainKey(options.accountId)!];
 
-  return blockchain.checkTransactionDraft(options, getKnownAddresses());
+  return blockchain.checkTransactionDraft(options);
 }
 
 export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCreateLocalTransaction = true) {
@@ -118,7 +117,7 @@ export async function waitLastTransfer(accountId: string) {
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 
-  return blockchain.waitLastTransfer(network, address);
+  return blockchain.waitPendingTransfer(network, address);
 }
 
 export async function sendSignedTransferMessage(accountId: string, message: ApiSignedTransfer) {

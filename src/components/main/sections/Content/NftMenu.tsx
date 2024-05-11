@@ -45,6 +45,7 @@ function NftMenu({
         menuPositionHorizontal="right"
         className={styles.menu}
         buttonClassName={styles.item}
+        bubbleClassName={styles.menuBubble}
         onClose={onClose}
         onSelect={handleMenuItemSelect}
       />

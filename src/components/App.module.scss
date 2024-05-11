@@ -45,16 +45,16 @@
 
   @include respond-below(xs) {
     overflow-y: scroll;
+
+    :global(body.is-media-viewer-open) & {
+      overflow: hidden !important;
+
+      padding-right: var(--scrollbar-width);
+    }
   }
 
   @supports (padding-top: env(safe-area-inset-top)) {
     padding-top: env(safe-area-inset-top);
-  }
-
-  :global(body.is-media-viewer-open) & {
-    overflow: hidden !important;
-
-    padding-right: var(--scrollbar-width);
   }
 }
 

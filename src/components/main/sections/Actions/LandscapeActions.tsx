@@ -3,6 +3,7 @@ import React, {
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
+import type { ApiNft } from '../../../../api/types';
 import { ActiveTab } from '../../../../global/types';
 
 import { DEFAULT_LANDSCAPE_ACTION_TAB_ID, TON_TOKEN_SLUG } from '../../../../config';
@@ -31,7 +32,8 @@ interface OwnProps {
 
 interface StateProps {
   activeTabIndex?: ActiveTab;
-  transferKey: string;
+  nfts?: ApiNft[];
+  tokenSlug: string;
   isTestnet?: boolean;
   isSwapDisabled: boolean;
   isOnRampDisabled: boolean;
@@ -44,7 +46,8 @@ function LandscapeActions({
   hasStaking,
   activeTabIndex = DEFAULT_LANDSCAPE_ACTION_TAB_ID,
   isUnstakeRequested,
-  transferKey,
+  nfts,
+  tokenSlug,
   isTestnet,
   isLedger,
   isSwapDisabled,
@@ -68,6 +71,7 @@ function LandscapeActions({
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isStakingAllowed = !isTestnet;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
+  const transferKey = useMemo(() => nfts?.map((nft) => nft.address).join(',') || tokenSlug, [nfts, tokenSlug]);
 
   useSyncEffect(() => {
     activeTransferKey += 1;
@@ -311,13 +315,13 @@ export default memo(
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
       const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
-      const { nft, tokenSlug = TON_TOKEN_SLUG } = global.currentTransfer;
-      const transferKey = nft?.address ?? tokenSlug;
+      const { nfts, tokenSlug = TON_TOKEN_SLUG } = global.currentTransfer;
 
       return {
         activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
         isTestnet: global.settings.isTestnet,
-        transferKey,
+        nfts,
+        tokenSlug,
         isSwapDisabled,
         isOnRampDisabled,
       };
