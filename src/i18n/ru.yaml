@@ -575,9 +575,9 @@ $transfer_inactive_contract_error: |
 Successfully: Успешно
 Unstake More: Вывести ещё
 Are you sure you want to burn this NFT? It will be lost forever.: Вы уверены, что хотите сжечь этот NFT? Он будет потерян навсегда.
-$multi_burn_nft_warning_1: "Вы собираетесь сжечь %amount% NFT."
-$multi_burn_nft_warning_2: "Процесс может занять ~%duration% мин. Пожалуйста, не закрывайте приложение и не переключайтесь на другие аккаунты, пока он не завершится."
-$multi_burn_nft_warning_3: "После завершения откройте %notcoin_bot%, чтобы получить NOT."
+$multi_burn_nft_warning: "Вы собираетесь сжечь %amount% NFT."
+$multi_send_nft_warning: "Процесс может занять ~%duration% мин. Пожалуйста, не закрывайте приложение и не переключайтесь на другие аккаунты, пока он не завершится."
+$multi_burn_nft_warning_notcoin: "После завершения откройте %notcoin_bot%, чтобы получить NOT."
 Burn NFT: Сжечь NFT
 Burn: Сжечь
 Private Key: Приватный ключ

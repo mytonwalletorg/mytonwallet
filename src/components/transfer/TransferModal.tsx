@@ -211,7 +211,7 @@ function TransferModal({
           />
         );
       case TransferState.Complete:
-        return (nfts?.length || 0) > 4 ? (
+        return (nfts?.length || 0) <= 4 ? (
           <TransferComplete
             isActive={isActive}
             nfts={nfts}

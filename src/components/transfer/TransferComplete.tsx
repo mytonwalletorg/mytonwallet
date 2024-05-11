@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import type { NftTransfer } from '../../global/types';
+import type { ApiNft } from '../../api/types';
 
 import { TON_TOKEN_SLUG } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -34,7 +34,7 @@ interface OwnProps {
   toAddress?: string;
   comment?: string;
   decimals?: number;
-  nfts?: NftTransfer[];
+  nfts?: ApiNft[];
   onInfoClick: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }

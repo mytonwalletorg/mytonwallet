@@ -576,9 +576,9 @@ $transfer_inactive_contract_error: |
 Successfully: Erfolgreich
 Unstake More: Mehr abstecken
 Are you sure you want to burn this NFT? It will be lost forever.: Sind Sie sicher, dass Sie diese NFT verbrennen wollen? Es wird für immer verloren sein.
-$multi_burn_nft_warning_1: "Sie werden %amount% NFTs verbrennen."
-$multi_burn_nft_warning_2: "Der Vorgang kann ~%duration% Minuten dauern. Bitte schließen Sie die App nicht und wechseln Sie nicht das Konto, bis es abgeschlossen ist."
-$multi_burn_nft_warning_3: "Nach Abschluss öffne %notcoin_bot%, um NOT zu erhalten."
+$multi_burn_nft_warning: "Sie werden %amount% NFTs verbrennen."
+$multi_send_nft_warning: "Der Vorgang kann ~%duration% Minuten dauern. Bitte schließen Sie die App nicht und wechseln Sie nicht das Konto, bis es abgeschlossen ist."
+$multi_burn_nft_warning_notcoin: "Nach Abschluss öffne %notcoin_bot%, um NOT zu erhalten."
 Burn NFT: NFT brennen
 Burn: Brennen
 Private Key: Privater Schlüssel

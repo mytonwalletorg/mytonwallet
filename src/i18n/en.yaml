@@ -577,9 +577,9 @@ Unstake More: Unstake More
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Are you sure you want to burn this NFT?
   It will be lost forever.
-$multi_burn_nft_warning_1: "You are going to burn %amount% NFTs."
-$multi_burn_nft_warning_2: "The process may take ~%duration% minute(s). Please do not close the app and do not switch accounts until it is finished."
-$multi_burn_nft_warning_3: "Once completed, open %notcoin_bot% to receive NOT."
+$multi_burn_nft_warning: "You are going to burn %amount% NFTs."
+$multi_send_nft_warning: "The process may take ~%duration% minute(s). Please do not close the app and do not switch accounts until it is finished."
+$multi_burn_nft_warning_notcoin: "Once completed, open %notcoin_bot% to receive NOT."
 Burn NFT: Burn NFT
 Burn: Burn
 Private Key: Private Key

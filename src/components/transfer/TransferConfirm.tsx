@@ -200,9 +200,9 @@ function TransferConfirm({
                 ? renderText(lang('Are you sure you want to burn this NFT? It will be lost forever.'))
                 // eslint-disable-next-line max-len
                 : [
-                  renderText(lang('$multi_burn_nft_warning_1', { amount: nfts.length })),
+                  renderText(lang('$multi_burn_nft_warning', { amount: nfts.length })),
                   ' ',
-                  renderText(lang('$multi_burn_nft_warning_2', { duration: burningDurationMin })),
+                  renderText(lang('$multi_send_nft_warning', { duration: burningDurationMin })),
                 ]
             )}
           </div>
