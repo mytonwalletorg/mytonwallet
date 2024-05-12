@@ -36,6 +36,9 @@ $mnemonic_list_description: |
   บันทึกซีเคร็ทเวิร์ดนี้
   ตาม **ลำดับให้ถูกต้อง** และจัดเก็บ
   ใน **ที่ปลอดภัย**.
+$mnemonic_warning: |
+  **ไม่ควร** ส่งหรือแสดงให้ใครเห็น,
+  **ไม่ควร** เอาไปใช้ที่อื่นได.
 Let's Check: ตรวจสอบ
 Let's Check!: ตรวจสอบ!
 Safety Rules: กฎความปลอดภัย
@@ -291,8 +294,6 @@ Delete Token: ลบโทเคน
 Are you sure you want to delete?: คุณแน่ใจหรือไม่ว่าต้องการลบโทเคน %token%?
 Hide Tokens With No Cost: ซ่อนโทเคนที่ไม่มีค่าใช้จ่าย
 Sort By Cost: เรียงตามมูลค่า
-Update: อัพเดต
-Restart: รีสตาร์ท
 Update MyTonWallet: อัพเดต MyTonWallet
 Connect Ledger: เชื่อมต่อ Ledger
 Connecting to your Ledger...: กำลังเชื่อมต่อกับ Ledger ของคุณ...
@@ -468,7 +469,6 @@ $unstake_information_instantly: คุณจะได้รับฝากภา
 Select Token: เลือกโทเคน
 MY: ของฉัน
 POPULAR: เป็นที่นิยม
-A-Z: A-Z
 Not Found: ไม่พบป
 Wallet is ready!: วอลเล็ตพร้อมใช้งานแล้ว!
 Wallet is imported!: นำเข้าวอลเล็ตเรียบร้อยแล้ว!
@@ -569,5 +569,27 @@ Swap is not yet supported by Ledger.: การสับเปลี่ยนย
 Buying with card is not supported in Testnet.: การซื้อด้วยบัตรยังไม่รองรับบน Testnet.
 Staking is not supported in Testnet.: การสเต็กยังไม่รองรับบน Testnet.
 Get Support: ขอความช่วยเหลือ
+$transfer_inactive_contract_error: |
+  You entered an address in the "EQ..." format, but the address is not active, so the transaction will not be completed.
+  If you definitely want to send to this address, then enter the address in the "UQ..." format.
 Successfully: สำเร็จแล้ว
 Unstake More: ถอนการสเต็กเพิ่ม
+Are you sure you want to burn this NFT? It will be lost forever.: |
+  คุณแน่ใจหรือไม่ว่าต้องการเบิร์น NFT นี้?
+  มันจะสูญสลายไปตลอดกาล.
+$multi_burn_nft_warning: "คุณกำลังเบิร์นจำนวน %amount% NFTs."
+$multi_send_nft_warning: "กระบวนการนี้อาจใช้เวลา ~%duration% นาที โปรดอย่าปิดแอปและอย่าเปลี่ยนบัญชีจนกว่าจะเสร็จสิ้น."
+$multi_burn_nft_warning_notcoin: "เมื่อเสร็จแล้ว, เปิด %notcoin_bot% เพื่อรับ NOT."
+Burn NFT: เบิร์น NFT
+Burn: เบิร์น
+Private Key: ไพรเวท คีย์
+"%amount% NFTs": "%amount% NFTs"
+1 NFT: 1 NFT
+1 NFT Selected: ได้เลือก 1 NFT แล้ว
+"%amount% NFTs Selected": " ได้เลือก %amount% NFTs แล้ว"
+For sale. Cannot be sent and burned: สำหรับขายเท่านั้น. ไม่สามารถส่งและเบิร์นได้
+Select: เลือก
+Send All: ส่งทั้งหมด
+Burn All: เบิร์นทั้งหมด
+Select All: เลือกทั้งหมด
+Collection: คอลเลกชัน
