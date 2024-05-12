@@ -17,7 +17,9 @@ export function getPlatform() {
     iosPlatforms.indexOf(platform) !== -1
     // For new IPads with M1 chip and IPadOS platform returns "MacIntel"
     || (platform === 'MacIntel' && ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2))
-  ) return 'iOS';
+  ) {
+    return 'iOS';
+  }
 
   const macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
   if (macosPlatforms.indexOf(platform) !== -1) return 'macOS';
@@ -26,6 +28,13 @@ export function getPlatform() {
   if (windowsPlatforms.indexOf(platform) !== -1) return 'Windows';
 
   return undefined;
+}
+
+function isIPad() {
+  const { userAgent, platform } = window.navigator;
+  return platform === 'iPad'
+    || userAgent.includes('iPad')
+    || (platform === 'MacIntel' && ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2));
 }
 
 function getBrowserLanguage(): LangCode {
@@ -66,7 +75,7 @@ export const IS_BIOMETRIC_AUTH_SUPPORTED = Boolean(
   !IS_CAPACITOR && window.navigator.credentials && (!IS_ELECTRON || IS_MAC_OS),
 );
 export const IS_DELEGATED_BOTTOM_SHEET = IS_CAPACITOR && global.location.search.startsWith('?bottom-sheet');
-export const IS_DELEGATING_BOTTOM_SHEET = IS_CAPACITOR && IS_IOS && !IS_DELEGATED_BOTTOM_SHEET;
+export const IS_DELEGATING_BOTTOM_SHEET = IS_CAPACITOR && IS_IOS && !IS_DELEGATED_BOTTOM_SHEET && !isIPad();
 export const IS_MULTITAB_SUPPORTED = 'BroadcastChannel' in window && !IS_LEDGER_EXTENSION_TAB;
 export const IS_DAPP_SUPPORTED = IS_EXTENSION || IS_ELECTRON || IS_CAPACITOR;
 export const IS_IOS_APP = IS_IOS && IS_CAPACITOR;
