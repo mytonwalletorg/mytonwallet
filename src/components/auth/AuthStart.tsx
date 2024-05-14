@@ -70,7 +70,7 @@ function AuthStart({ hasAccounts, isLoading }: StateProps) {
         >
           {lang('Create Wallet')}
         </Button>
-        <span className={styles.importText}>{lang('Or import from...')}</span>
+        <span className={styles.importText}>{lang('or import from')}</span>
         <div className={styles.importButtons}>
           <Button
             className={buildClassName(styles.btn, !IS_LEDGER_SUPPORTED && styles.btn_single)}

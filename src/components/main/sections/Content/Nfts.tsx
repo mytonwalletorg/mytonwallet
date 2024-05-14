@@ -39,6 +39,7 @@ interface StateProps {
   selectedAddresses?: string[];
   byAddress?: Record<string, ApiNft>;
   currentCollectionAddress?: string;
+  isBurnNotcoinDisabled?: boolean;
   isHardware?: boolean;
   isTestnet?: boolean;
 }
@@ -46,7 +47,14 @@ interface StateProps {
 const GETGEMS_ENABLED = !IS_IOS_APP && !IS_ANDROID_APP;
 
 function Nfts({
-  isActive, orderedAddresses, selectedAddresses, byAddress, currentCollectionAddress, isHardware, isTestnet,
+  isActive,
+  orderedAddresses,
+  selectedAddresses,
+  byAddress,
+  currentCollectionAddress,
+  isHardware,
+  isTestnet,
+  isBurnNotcoinDisabled,
 }: OwnProps & StateProps) {
   const { clearNftsSelection, startTransfer, submitTransferInitial } = getActions();
 
@@ -143,7 +151,7 @@ function Nfts({
 
   return (
     <div>
-      {currentCollectionAddress === NOTCOIN_VOUCHERS_ADDRESS && (
+      {currentCollectionAddress === NOTCOIN_VOUCHERS_ADDRESS && !isBurnNotcoinDisabled && (
         <Button
           isPrimary
           className={styles.notcoinVoucherButton}
@@ -163,6 +171,7 @@ function Nfts({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
+      const { isBurnNotcoinDisabled } = global.restrictions;
       const {
         orderedAddresses,
         byAddress,
@@ -174,6 +183,7 @@ export default memo(
         orderedAddresses,
         selectedAddresses,
         byAddress,
+        isBurnNotcoinDisabled,
         isHardware: selectIsHardwareAccount(global),
         currentCollectionAddress,
         isTestnet: global.settings.isTestnet,

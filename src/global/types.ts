@@ -548,6 +548,7 @@ export type GlobalState = {
     isSwapDisabled: boolean;
     isOnRampDisabled: boolean;
     isCopyStorageEnabled?: boolean;
+    isBurnNotcoinDisabled?: boolean;
   };
 
   mediaViewer: {

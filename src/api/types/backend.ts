@@ -159,3 +159,18 @@ export type ApiSite = {
 
 // Prices
 export type ApiPriceHistoryPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
+
+// Vesting
+export type ApiVestingPartStatus = 'frozen' | 'ready' | 'unfrozen' | 'missed';
+
+export type ApiVestingInfo = {
+  id: number;
+  startsAt: Date;
+  initialAmount: number;
+  parts: {
+    id: number;
+    time: Date;
+    amount: number;
+    status: ApiVestingPartStatus;
+  }[];
+};

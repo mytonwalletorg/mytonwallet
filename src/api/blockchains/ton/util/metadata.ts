@@ -10,7 +10,13 @@ import { Dictionary } from '@ton/core/dist/dict/Dictionary';
 import type { ApiNetwork, ApiNft, ApiParsedPayload } from '../../../types';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
-import { DEBUG, LIQUID_JETTON, NFT_FRAGMENT_COLLECTIONS } from '../../../../config';
+import {
+  COLLECTIONS_WITH_LINK,
+  DEBUG,
+  LIQUID_JETTON,
+  NFT_FRAGMENT_COLLECTIONS,
+  RE_LINK_TEMPLATE,
+} from '../../../../config';
 import { pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import { fetchJsonMetadata, fixIpfsUrl } from '../../../../util/metadata';
@@ -467,17 +473,26 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       address,
       index,
       collection,
-      metadata: {
-        name,
-        image,
-        description,
-        render_type: renderType,
-      },
+      metadata,
       previews,
       sale,
     } = rawNft;
 
-    const isHidden = renderType === 'hidden' || description === 'SCAM';
+    const {
+      name, image, description, render_type: renderType,
+    } = metadata as {
+      name?: string;
+      image?: string;
+      description?: string;
+      render_type?: string;
+    };
+
+    const collectionAddress = collection && toBase64Address(collection.address, true, network);
+    const hasLink = Boolean(name?.match(RE_LINK_TEMPLATE) || description?.match(RE_LINK_TEMPLATE));
+    const hasScamLink = hasLink && (!collectionAddress || !COLLECTIONS_WITH_LINK.has(collectionAddress));
+
+    const isScam = description === 'SCAM' || hasScamLink;
+    const isHidden = renderType === 'hidden' || isScam;
     const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
 
     return {
@@ -488,6 +503,7 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       thumbnail: previews!.find((x) => x.resolution === '500x500')!.url,
       isOnSale: Boolean(sale),
       isHidden,
+      isScam,
       description,
       ...(collection && {
         collectionAddress: toBase64Address(collection.address, true, network),

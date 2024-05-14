@@ -463,9 +463,15 @@ export async function tryLoadSwapTokens(localOnUpdate?: OnApiUpdate) {
 
 export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
   try {
-    const { isLimited, isCopyStorageEnabled = false, now: serverUtc } = await callBackendGet<{
+    const {
+      isLimited,
+      isCopyStorageEnabled = false,
+      isBurnNotcoinDisabled = false,
+      now: serverUtc,
+    } = await callBackendGet<{
       isLimited: boolean;
       isCopyStorageEnabled?: boolean;
+      isBurnNotcoinDisabled?: boolean;
       now: number;
     }>('/utils/get-config');
 
@@ -475,6 +481,7 @@ export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
       type: 'updateConfig',
       isLimited,
       isCopyStorageEnabled,
+      isBurnNotcoinDisabled,
     });
 
     const localUtc = (new Date()).getTime();

@@ -51,6 +51,7 @@ interface StateProps {
   selectedAddresses?: string[];
   activeContentTab?: ContentTab;
   currentTokenSlug?: string;
+  isBurnNotcoinDisabled?: boolean;
 }
 
 function Content({
@@ -61,6 +62,7 @@ function Content({
   selectedAddresses,
   onStakedTokenClick,
   currentTokenSlug,
+  isBurnNotcoinDisabled,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -120,13 +122,13 @@ function Content({
         menuItems: nftCollections,
         onMenuItemClick: handleNftCollectionClick,
       },
-      ...(nftCollections.some(({ value }) => value === NOTCOIN_VOUCHERS_ADDRESS) ? [{
+      ...(!isBurnNotcoinDisabled && nftCollections.some(({ value }) => value === NOTCOIN_VOUCHERS_ADDRESS) ? [{
         id: ContentTab.NotcoinVouchers,
         title: 'NOT Vouchers',
         className: styles.tab,
       }] : []),
     ],
-    [lang, nftCollections, shouldShowSeparateAssetsPanel],
+    [isBurnNotcoinDisabled, lang, nftCollections, shouldShowSeparateAssetsPanel],
   );
 
   const activeTabIndex = useMemo(
@@ -308,6 +310,7 @@ export default memo(
         currentCollectionAddress,
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
+      const { isBurnNotcoinDisabled } = global.restrictions;
 
       return {
         nfts,
@@ -316,6 +319,7 @@ export default memo(
         tokensCount,
         activeContentTab: accountState?.activeContentTab,
         currentTokenSlug: accountState?.currentTokenSlug,
+        isBurnNotcoinDisabled,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

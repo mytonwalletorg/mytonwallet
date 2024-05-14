@@ -25,6 +25,11 @@ const ON_SALE_ITEM: DropdownItem = {
   description: 'NFT is for sale',
   isDisabled: true,
 };
+const TON_DNS_ITEM: DropdownItem = {
+  name: 'Configure DNS',
+  value: 'tondns',
+  fontIcon: 'external',
+};
 const SEND_ITEM: DropdownItem = {
   name: 'Send',
   value: 'send',
@@ -42,11 +47,6 @@ const GETGEMS_ITEM: DropdownItem = {
 const TONSCAN_ITEM: DropdownItem = {
   name: 'TONScan',
   value: 'tonscan',
-  fontIcon: 'external',
-};
-const TON_DNS_ITEM: DropdownItem = {
-  name: 'Configure DNS',
-  value: 'tondns',
   fontIcon: 'external',
 };
 const COLLECTION_ITEM: DropdownItem = {
@@ -148,11 +148,11 @@ export default function useNftMenu(nft?: ApiNft) {
     if (!nft) return [];
 
     return [
-      nft.isOnSale ? ON_SALE_ITEM : SEND_ITEM,
       ...(nft.collectionAddress === TON_DNS_COLLECTION ? [TON_DNS_ITEM] : []),
+      nft.isOnSale ? ON_SALE_ITEM : SEND_ITEM,
+      ...(nft.isOnFragment ? [FRAGMENT_ITEM] : []),
       GETGEMS_ITEM,
       TONSCAN_ITEM,
-      ...(nft.isOnFragment ? [FRAGMENT_ITEM] : []),
       ...(nft.collectionAddress ? [COLLECTION_ITEM] : []),
       ...(!nft.isOnSale ? [
         BURN_ITEM,

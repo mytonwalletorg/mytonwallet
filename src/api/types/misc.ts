@@ -95,6 +95,7 @@ export interface ApiNft {
   isOnSale: boolean;
   isHidden?: boolean;
   isOnFragment?: boolean;
+  isScam?: boolean;
 }
 
 export type ApiHistoryList = Array<[number, number]>;

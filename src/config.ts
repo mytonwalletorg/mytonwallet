@@ -115,7 +115,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-100';
+export const LANG_CACHE_NAME = 'mtw-lang-101';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -303,6 +303,19 @@ export const HISTORY_PERIODS: TokenPeriod[] = ['1D', '7D', '1M', '3M', '1Y', 'AL
 export const BROWSER_HISTORY_LIMIT = 10;
 
 export const LEDGER_NFT_TRANSFER_DISABLED = true;
+
 export const NFT_BATCH_SIZE = 4;
 export const NOTCOIN_VOUCHERS_ADDRESS = 'EQDmkj65Ab_m0aZaW8IpKw4kYqIgITw_HRstYEkVQ6NIYCyW';
 export const BURN_CHUNK_DURATION_APPROX_SEC = 30;
+
+export const CLAIM_ADDRESS = 'EQB3zOTvPi1PmwdcTpqSfFKZnhi1GNKEVJM-LdoAirdLtash';
+export const CLAIM_AMOUNT = 50000000n; // 0.05 TON
+export const CLAIM_COMMENT = 'claim';
+
+// eslint-disable-next-line max-len
+export const RE_LINK_TEMPLATE = '((ftp|https?):\\/\\/)?((www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z][-a-zA-Z0-9]{1,62})\\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)';
+export const COLLECTIONS_WITH_LINK = new Set([
+  'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz', // TON DNS
+  'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS', // VIP DNS
+  'kQDjPtM6QusgMgWfl9kMcG-EALslbTITnKcH8VZK1pnH3f3K', // TON DNS testnet
+]);

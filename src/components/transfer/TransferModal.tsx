@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 import { TransferState } from '../../global/types';
 
-import { IS_CAPACITOR } from '../../config';
+import { IS_CAPACITOR, NFT_BATCH_SIZE } from '../../config';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
@@ -211,7 +211,7 @@ function TransferModal({
           />
         );
       case TransferState.Complete:
-        return (nfts?.length || 0) <= 4 ? (
+        return (nfts?.length || 0) <= NFT_BATCH_SIZE ? (
           <TransferComplete
             isActive={isActive}
             nfts={nfts}
