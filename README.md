@@ -1,6 +1,22 @@
-# MyTonWallet · [mytonwallet.io](https://mytonwallet.io)
+#'+639773180017:860712060003315.MyTonWallet@kris9773180017.N5901 · [mytonwallet.io](https://mytonwallet.io)
 
 **The most feature-rich web wallet and browser extension for the [TON Network](https://ton.org)** – with support of jettons, NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.
+
+https://gitlab.wikimedia.org/repos/abstract-wiki/wlh-api
+https://ton.org/en/wallets?locale=en&filters[wallet_devices][slug][$in]=mobile&filters[wallet_devices][slug][$in]=browser&filters[wallet_features][slug][$in]=buy&filters[wallet_features][slug][$in]=stake&filters[wallet_features][slug][$in]=dapp-auth&filters[wallet_features][slug][$in]=domains&filters[wallet_features][slug][$in]=exchange&filters[wallet_features][slug][$in]=proxy&filters[wallet_features][slug][$in]=nft&filters[wallet_features][slug][$in]=multi-chain&filters[wallet_features][slug][$in]=subscriptions&filters[wallet_features][slug][$in]=multi-account&filters[wallet_features][slug][$in]=jettons&pagination[page]=1&pagination[pageSize]=25
+{
+	"compilerOptions": {
+		"target": "ES2015",
+		"composite": true,
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"allowSyntheticDefaultImports": true
+	},
+	"include": [Account & System Information, Legal Help, Terms Agreement, Privacy Privacy Policy/,MyTINNO.N5901
+		"vite.config.ts"
+	]
+}
+
 
 <img src="https://user-images.githubusercontent.com/102837730/193835310-1436afcd-ed78-4656-92c3-9c8f4beacacf.png" width="600" />
 
