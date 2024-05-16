@@ -28,6 +28,7 @@ import useEffectOnce from '../../../../hooks/useEffectOnce';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
+import useSyncEffect from '../../../../hooks/useSyncEffect';
 
 import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
@@ -51,8 +52,9 @@ interface StateProps {
   selectedAddresses?: string[];
   activeContentTab?: ContentTab;
   currentTokenSlug?: string;
-  isBurnNotcoinDisabled?: boolean;
 }
+
+let activeNftKey = 0;
 
 function Content({
   activeContentTab,
@@ -62,7 +64,6 @@ function Content({
   selectedAddresses,
   onStakedTokenClick,
   currentTokenSlug,
-  isBurnNotcoinDisabled,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -70,11 +71,20 @@ function Content({
     setDefaultSwapParams,
     changeTransferToken,
     openNftCollection,
+    closeNftCollection,
   } = getActions();
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
   const hasNftSelection = Boolean(selectedAddresses?.length);
+
+  useSyncEffect(() => {
+    if (currentCollectionAddress) {
+      activeNftKey += 1;
+    } else {
+      activeNftKey = 0;
+    }
+  }, [currentCollectionAddress]);
 
   const handleNftCollectionClick = useLastCallback((address: string) => {
     openNftCollection({ address }, { forceOnHeavyAnimation: true });
@@ -122,13 +132,13 @@ function Content({
         menuItems: nftCollections,
         onMenuItemClick: handleNftCollectionClick,
       },
-      ...(!isBurnNotcoinDisabled && nftCollections.some(({ value }) => value === NOTCOIN_VOUCHERS_ADDRESS) ? [{
+      ...(nftCollections.some(({ value }) => value === NOTCOIN_VOUCHERS_ADDRESS) ? [{
         id: ContentTab.NotcoinVouchers,
         title: 'NOT Vouchers',
         className: styles.tab,
       }] : []),
     ],
-    [isBurnNotcoinDisabled, lang, nftCollections, shouldShowSeparateAssetsPanel],
+    [lang, nftCollections, shouldShowSeparateAssetsPanel],
   );
 
   const activeTabIndex = useMemo(
@@ -181,15 +191,19 @@ function Content({
           handleSwitchTab(tab.id);
           return true;
         } else if (direction === SwipeDirection.Right) {
-          const tab = tabs[Math.max(0, activeTabIndex - 1)];
-          handleSwitchTab(tab.id);
+          if (currentCollectionAddress) {
+            closeNftCollection();
+          } else {
+            const tab = tabs[Math.max(0, activeTabIndex - 1)];
+            handleSwitchTab(tab.id);
+          }
           return true;
         }
 
         return false;
       },
     });
-  }, [tabs, handleSwitchTab, activeTabIndex]);
+  }, [tabs, handleSwitchTab, activeTabIndex, currentCollectionAddress]);
 
   useEffect(() => {
     if (currentTokenSlug !== undefined) return;
@@ -247,7 +261,14 @@ function Content({
       case ContentTab.Activity:
         return <Activity isActive={isActive} mobileRef={containerRef} />;
       case ContentTab.Nft:
-        return <Nfts isActive={isActive} />;
+        return (
+          <Transition
+            activeKey={activeNftKey}
+            name={isPortrait ? 'slide' : 'slideFade'}
+          >
+            <Nfts key={currentCollectionAddress || 'all'} isActive={isActive} />
+          </Transition>
+        );
       case ContentTab.Explore:
         return <Explore isActive={isActive} />;
       default:
@@ -260,7 +281,7 @@ function Content({
 
     return (
       <>
-        <Transition activeKey={activeKey} name="semiFade" className={styles.tabsContainer}>
+        <Transition activeKey={activeKey} name="slideFade" className={styles.tabsContainer}>
           {renderTabsPanel()}
         </Transition>
         <Transition
@@ -310,7 +331,6 @@ export default memo(
         currentCollectionAddress,
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
-      const { isBurnNotcoinDisabled } = global.restrictions;
 
       return {
         nfts,
@@ -319,7 +339,6 @@ export default memo(
         tokensCount,
         activeContentTab: accountState?.activeContentTab,
         currentTokenSlug: accountState?.currentTokenSlug,
-        isBurnNotcoinDisabled,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

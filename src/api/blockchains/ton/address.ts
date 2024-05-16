@@ -2,7 +2,9 @@ import { Address } from '@ton/core';
 
 import type { ApiNetwork } from '../../types';
 
-import { BURN_ADDRESS, EXCHANGE_ADDRESSES, EXCHANGE_ADDRESSES_FLAT } from '../../../config';
+import {
+  BURN_ADDRESS, EXCHANGE_ADDRESSES, EXCHANGE_ADDRESSES_FLAT, NOTCOIN_EXCHANGERS,
+} from '../../../config';
 import dns from '../../../util/dns';
 import { DnsCategory, dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
@@ -19,6 +21,11 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
     return {
       address,
       name: 'Burn Address',
+    };
+  } else if (address === NOTCOIN_EXCHANGERS[0]) {
+    return {
+      address,
+      name: 'Notcoin Minter',
     };
   }
 

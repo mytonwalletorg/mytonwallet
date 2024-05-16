@@ -80,10 +80,11 @@ export async function submitNftTransfers(
   fee = 0n,
 ) {
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
   const fromAddress = await fetchStoredAddress(accountId);
 
-  const result = await blockchain.submitNftTransfers(accountId, password, nftAddresses, toAddress, comment);
+  const result = await blockchain.submitNftTransfers({
+    accountId, password, nftAddresses, toAddress, comment, nfts,
+  });
 
   if ('error' in result) {
     return result;

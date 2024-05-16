@@ -6,7 +6,6 @@ import animateHorizontalScroll from '../../util/animateHorizontalScroll';
 import buildClassName from '../../util/buildClassName';
 import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
 
-import useFlag from '../../hooks/useFlag';
 import useHorizontalScroll from '../../hooks/useHorizontalScroll';
 import usePrevious from '../../hooks/usePrevious';
 
@@ -40,7 +39,6 @@ function TabList({
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
   const previousActiveTab = usePrevious(activeTab);
-  const [isMenuOpen, openMenu, closeMenu] = useFlag();
 
   useHorizontalScroll(containerRef, undefined, true);
 
@@ -70,9 +68,7 @@ function TabList({
 
   return (
     <div
-      className={
-        buildClassName(styles.container, 'no-scrollbar', big && styles.big, isMenuOpen && styles.withMenu, className)
-      }
+      className={buildClassName(styles.container, 'no-scrollbar', big && styles.big, className)}
       ref={containerRef}
     >
       {tabs.map((tab, i) => (
@@ -86,8 +82,6 @@ function TabList({
           onMenuItemClick={tab?.onMenuItemClick}
           onClick={onSwitchTab}
           clickArg={tab.id}
-          onOpenMenu={openMenu}
-          onCloseMenu={closeMenu}
         />
       ))}
     </div>

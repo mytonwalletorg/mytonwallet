@@ -574,7 +574,6 @@ Unstake More: Retirar más
 Are you sure you want to burn this NFT? It will be lost forever.: ¿Estás seguro de que quieres quemar este NFT? Se perderá para siempre.
 $multi_burn_nft_warning: "Vas a quemar %amount% NFTs."
 $multi_send_nft_warning: "El proceso puede tardar ~%duration% minutos. Por favor, no cierres la aplicación y no cambies de cuenta hasta que haya terminado."
-$multi_burn_nft_warning_notcoin: "Una vez completado, abre %notcoin_bot% para recibir NOT."
 Burn NFT: Quemar NFT
 Burn: Quemar
 Private Key: Clave Privada

@@ -1,14 +1,15 @@
-import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo, useRef, useState,
+} from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
+import type { IAnchorPosition } from '../../../../global/types';
 import type { DropdownItem } from '../../../ui/Dropdown';
 
 import {
-  BURN_ADDRESS,
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
-  TON_TOKEN_SLUG,
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../../config';
@@ -16,14 +17,13 @@ import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { openUrl } from '../../../../util/openUrl';
-import { NFT_TRANSFER_TON_AMOUNT } from '../../../../api/blockchains/ton/constants';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { getIsPortrait } from '../../../../hooks/useDeviceScreen';
-import useFlag from '../../../../hooks/useFlag';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
+import useMenuPosition from '../../../../hooks/useMenuPosition';
 
 import Button from '../../../ui/Button';
 import DropdownMenu from '../../../ui/DropdownMenu';
@@ -66,11 +66,14 @@ function NftCollectionHeader({
     closeNftCollection,
     selectNfts,
     startTransfer,
-    submitTransferInitial,
+    burnNfts,
   } = getActions();
 
   const lang = useLang();
-  const [isMenuOpen, openMenu, closeMenu] = useFlag();
+  const [menuPosition, setMenuPosition] = useState<IAnchorPosition>();
+  const isMenuOpen = Boolean(menuPosition);
+  // eslint-disable-next-line no-null/no-null
+  const ref = useRef<HTMLButtonElement>(null);
 
   const nftFromCurrentCollection = useMemo(() => {
     if (!currentCollectionAddress || !nfts) {
@@ -99,6 +102,21 @@ function NftCollectionHeader({
   });
 
   useEffect(() => (isActive ? captureEscKeyListener(closeNftCollection) : undefined), [isActive]);
+
+  const getTriggerElement = useLastCallback(() => ref.current);
+  const getRootElement = useLastCallback(() => document.body);
+  const getMenuElement = useLastCallback(() => document.querySelector('#portals .menu-bubble'));
+  const getLayout = useLastCallback(() => ({ withPortal: true }));
+
+  const {
+    positionY, transformOriginX, transformOriginY, style: menuStyle,
+  } = useMenuPosition(
+    menuPosition,
+    getTriggerElement,
+    getRootElement,
+    getMenuElement,
+    getLayout,
+  );
 
   const handleMenuItemClick = useLastCallback((value: string) => {
     switch (value) {
@@ -138,21 +156,18 @@ function NftCollectionHeader({
         const collectionNfts = Object.values(nfts!).filter((nft) => {
           return nft.collectionAddress === currentCollectionAddress && !nft.isOnSale;
         });
+        burnNfts({ nfts: collectionNfts });
 
-        startTransfer({
-          isPortrait: getIsPortrait(),
-          nfts: collectionNfts,
-        });
-
-        submitTransferInitial({
-          tokenSlug: TON_TOKEN_SLUG,
-          amount: NFT_TRANSFER_TON_AMOUNT,
-          toAddress: BURN_ADDRESS,
-          nftAddresses: collectionNfts.map(({ address }) => address),
-        });
         break;
       }
     }
+  });
+  const handleMenuOpen = useLastCallback(() => {
+    const { right: x, bottom: y } = ref.current!.getBoundingClientRect();
+    setMenuPosition({ x, y });
+  });
+  const handleMenuClose = useLastCallback(() => {
+    setMenuPosition(undefined);
   });
 
   if (!renderedNft) {
@@ -173,17 +188,22 @@ function NftCollectionHeader({
         </div>
       </div>
 
-      <Button isSimple className={styles.menuButton} onClick={openMenu} ariaLabel={lang('Open Menu')}>
+      <Button isSimple ref={ref} className={styles.menuButton} onClick={handleMenuOpen} ariaLabel={lang('Open Menu')}>
         <i className="icon-menu-dots" aria-hidden />
       </Button>
       <DropdownMenu
         isOpen={isMenuOpen}
+        withPortal
         menuPositionHorizontal="right"
+        menuPosition={positionY}
+        menuStyle={menuStyle}
+        transformOriginX={transformOriginX}
+        transformOriginY={transformOriginY}
         buttonClassName={styles.menuItem}
         bubbleClassName={styles.menu}
         items={MENU_ITEMS}
         onSelect={handleMenuItemClick}
-        onClose={closeMenu}
+        onClose={handleMenuClose}
       />
     </div>
   );

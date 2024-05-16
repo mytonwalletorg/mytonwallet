@@ -415,12 +415,12 @@ Swap Expired: การสับเปลี่ยนได้หมดอาย
 Swap On Hold: การสับเปลี่ยนได้หยุดชั่วคราว
 Swap Refunded: การสับเปลี่ยนถูกคืนเงินแล้ว
 Changelly Payment Address: ที่อยู่ในการชำระของ Changelly
-Cross-chain exchange provided by Changelly: การแลกเปลี่ยนระหว่างเชนทำอยู่บน Changelly 
+Cross-chain exchange provided by Changelly: การแลกเปลี่ยนระหว่างเชนทำอยู่บน Changelly
 $swap_changelly_agreement_message: การดำเนินการต่อ, แสดงว่าคุณยอมรับ %terms% และ %policy% และเข้าใจว่าธุรกรรมอาจเกิดการทริกเกอร์การยืนยันตาม %kyc%
-$swap_changelly_terms_of_use: ข้อกำหนดการใช้งาน 
+$swap_changelly_terms_of_use: ข้อกำหนดการใช้งาน
 $swap_changelly_privacy_policy: นโยบายความเป็นส่วนตัว
 Password must contain %length% digits.: รหัสผ่านต้องมีอย่างน้อย %length% หลัก.
-Deposit Link: ลิงก์การฝาก 
+Deposit Link: ลิงก์การฝาก
 $swap_changelly_from_ton_description: "โทเคนจะถูกส่งไปยังที่อยู่ของคุณใน %blockchain% บล็อกเชนในอีกสักครู่:"
 Please note that it may take up to a few hours for tokens to appear in your wallet.: โปรดทราบว่าอาจใช้เวลาสองสามชั่วโมงก่อนที่โทเค็นจะปรากฏในวอลเล็ตของคุณ.
 Minimum amount: ขั้นต่ำที่ %value%
@@ -464,7 +464,7 @@ Ruble: รูเบิล
 Yuan: หยวน
 Bitcoin: บิทคอยน์
 Toncoin: ทอนคอยน์
-$max_balance: "สูงสุด: %balance%" 
+$max_balance: "สูงสุด: %balance%"
 $unstake_information_instantly: คุณจะได้รับฝากภายในอีกที่สักครู่.
 Select Token: เลือกโทเคน
 MY: ของฉัน
@@ -518,19 +518,19 @@ Cannot load widget: ไม่สามารถโหลดวิดเจ็ต
 Explore: สำรวจ
 No partners yet: ยังไม่มีพาร์ทเนอร์
 Clear: ล้าง
-Get TON: รับ TON 
+Get TON: รับ TON
 Declined. Please try to confirm operation using biometrics again.: ไม่อนุญาต. โปรดลองยืนยันการทำรายการด้วย Biometrics ของคุณใหม่อีกครั้ง.
 $unstake_up_to_information: ทันที – ถึง %value%
-$all_balance: "ทั้งหมด: %balance%" 
+$all_balance: "ทั้งหมด: %balance%"
 $unstaking_not_enough_balance: คุณจำเป็นต้องมี %value% ในบัญชีหลักของคุณเพื่อดำเนินการการถอน.
 $ledger_verify_address_on_device: ตรวจสอบที่อยู่บัญชีในอุปกรณ์ Ledger ของคุณ.
-Wallet Versions: วอลเล็ตเวอร์ชัน 
+Wallet Versions: วอลเล็ตเวอร์ชัน
 $read_more_about_wallet_version: อ่านเพิ่มเติมเกี่ยวกับประเภทของวอลเล็ตได้ที่ %ton_link%.
 $current_wallet_version: เวอร์ชั่นของวอลเล็ตของคุณคือ %version%.
 You have tokens on other versions of your wallet. You can import them from here.: คุณมีโทเคนในวอลเล็ตเวอร์ชั่นอื่น ๆ ของคุณ. คุณสามารถนำเข้าได้จากที่นี้.
-$wallet_switch_version_1: คุณสามารถ %action% ได้.  
+$wallet_switch_version_1: คุณสามารถ %action% ได้.
 $wallet_switch_version_2: สับเปลี่ยนเวอร์ชั่นของวอลเล็ต
-or import from: หรือนำเข้า 
+or import from: หรือนำเข้า
 $insufficient_fee: "ค่าธรรมเนียมไม่เพียงพอ: %fee%"
 Required: จำเป็น
 Transaction to this smart contract is not yet supported by Ledger.: การทำธุรกรรมไปยังสมาร์ทคอนแทรคนี้ยังไม่รองรับบน Ledger.
@@ -579,7 +579,6 @@ Are you sure you want to burn this NFT? It will be lost forever.: |
   มันจะสูญสลายไปตลอดกาล.
 $multi_burn_nft_warning: "คุณกำลังเบิร์นจำนวน %amount% NFTs."
 $multi_send_nft_warning: "กระบวนการนี้อาจใช้เวลา ~%duration% นาที โปรดอย่าปิดแอปและอย่าเปลี่ยนบัญชีจนกว่าจะเสร็จสิ้น."
-$multi_burn_nft_warning_notcoin: "เมื่อเสร็จแล้ว, เปิด %notcoin_bot% เพื่อรับ NOT."
 Burn NFT: เบิร์น NFT
 Burn: เบิร์น
 Private Key: ไพรเวท คีย์

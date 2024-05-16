@@ -14,8 +14,12 @@ interface OwnProps {
   isOpen: boolean;
   selectedValue?: string;
   items: DropdownItem[];
+  withPortal?: boolean;
   menuPosition?: 'top' | 'bottom';
   menuPositionHorizontal?: 'right' | 'left';
+  transformOriginX?: number;
+  transformOriginY?: number;
+  menuStyle?: string;
   shouldTranslateOptions?: boolean;
   className?: string;
   bubbleClassName?: string;
@@ -28,8 +32,12 @@ function DropdownMenu({
   isOpen,
   selectedValue,
   items,
+  withPortal,
   menuPosition,
   menuPositionHorizontal,
+  menuStyle,
+  transformOriginX,
+  transformOriginY,
   shouldTranslateOptions,
   className,
   bubbleClassName,
@@ -48,9 +56,13 @@ function DropdownMenu({
   return (
     <Menu
       isOpen={isOpen}
+      type="dropdown"
+      style={menuStyle}
+      withPortal={withPortal}
       positionX={menuPositionHorizontal}
       positionY={menuPosition}
-      type="dropdown"
+      transformOriginX={transformOriginX}
+      transformOriginY={transformOriginY}
       className={className}
       bubbleClassName={bubbleClassName}
       onClose={onClose}

@@ -6,7 +6,13 @@ import type { ApiNft, ApiNftUpdate } from '../../types';
 import type { ApiCheckTransactionDraftResult } from './types';
 import { ApiTransactionDraftError } from '../../types';
 
-import { LEDGER_NFT_TRANSFER_DISABLED, NFT_BATCH_SIZE } from '../../../config';
+import {
+  LEDGER_NFT_TRANSFER_DISABLED,
+  NFT_BATCH_SIZE,
+  NOTCOIN_EXCHANGERS,
+  NOTCOIN_FORWARD_TON_AMOUNT,
+  NOTCOIN_VOUCHERS_ADDRESS,
+} from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
 import { generateQueryId } from './util';
@@ -143,18 +149,29 @@ export async function checkNftTransferDraft(options: {
   };
 }
 
-export async function submitNftTransfers(
-  accountId: string,
-  password: string,
-  nftAddresses: string[],
-  toAddress: string,
-  comment?: string,
-) {
+export async function submitNftTransfers(options: {
+  accountId: string;
+  password: string;
+  nftAddresses: string[];
+  toAddress: string;
+  comment?: string;
+  nfts?: ApiNft[];
+}) {
+  const {
+    accountId, password, nftAddresses, toAddress, comment, nfts,
+  } = options;
+
   const fromAddress = await fetchStoredAddress(accountId);
 
-  const messages = nftAddresses.map((nftAddress) => {
+  const messages = nftAddresses.map((nftAddress, index) => {
+    const nft = nfts?.[index];
+    const isNotcoinBurn = nft?.collectionAddress === NOTCOIN_VOUCHERS_ADDRESS;
+    const payload = isNotcoinBurn
+      ? buildNotcoinVoucherExchange(fromAddress, nftAddress, nft!.index)
+      : buildNftTransferPayload(fromAddress, toAddress, comment);
+
     return {
-      payload: buildNftTransferPayload(fromAddress, toAddress, comment),
+      payload,
       amount: NFT_TRANSFER_TON_AMOUNT,
       toAddress: nftAddress,
     };
@@ -163,9 +180,25 @@ export async function submitNftTransfers(
   return submitMultiTransfer(accountId, password, messages);
 }
 
-function buildNftTransferPayload(fromAddress: string, toAddress: string, comment?: string) {
-  const forwardAmount = NFT_TRANSFER_TON_FORWARD_AMOUNT;
+function buildNotcoinVoucherExchange(fromAddress: string, nftAddress: string, nftIndex: number) {
+  // eslint-disable-next-line no-bitwise
+  const first4Bits = Address.parse(nftAddress).hash.readUint8() >> 4;
+  const toAddress = NOTCOIN_EXCHANGERS[first4Bits];
 
+  const payload = new Builder()
+    .storeUint(0x5fec6642, 32)
+    .storeUint(nftIndex, 64)
+    .endCell();
+
+  return buildNftTransferPayload(fromAddress, toAddress, payload, NOTCOIN_FORWARD_TON_AMOUNT);
+}
+
+function buildNftTransferPayload(
+  fromAddress: string,
+  toAddress: string,
+  payload?: string | Cell,
+  forwardAmount = NFT_TRANSFER_TON_FORWARD_AMOUNT,
+) {
   let builder = new Builder()
     .storeUint(NftOpCode.TransferOwnership, 32)
     .storeUint(generateQueryId(), 64)
@@ -176,10 +209,14 @@ function buildNftTransferPayload(fromAddress: string, toAddress: string, comment
 
   let forwardPayload: Cell | Uint8Array | undefined;
 
-  if (comment) {
-    const bytes = commentToBytes(comment);
-    const freeBytes = Math.floor(builder.availableBits / 8);
-    forwardPayload = packBytesAsSnake(bytes, freeBytes);
+  if (payload) {
+    if (typeof payload === 'string') {
+      const bytes = commentToBytes(payload);
+      const freeBytes = Math.floor(builder.availableBits / 8);
+      forwardPayload = packBytesAsSnake(bytes, freeBytes);
+    } else {
+      forwardPayload = payload;
+    }
   }
 
   if (forwardPayload instanceof Uint8Array) {

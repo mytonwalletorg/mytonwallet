@@ -5,21 +5,18 @@ import type { ApiNft } from '../../../../api/types';
 
 import {
   ANIMATED_STICKER_BIG_SIZE_PX,
-  BURN_ADDRESS,
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
   NOTCOIN_VOUCHERS_ADDRESS,
-  TON_TOKEN_SLUG,
 } from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState, selectIsHardwareAccount } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { IS_ANDROID_APP, IS_IOS_APP } from '../../../../util/windowEnvironment';
-import { NFT_TRANSFER_TON_AMOUNT } from '../../../../api/blockchains/ton/constants';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
-import { getIsPortrait, useDeviceScreen } from '../../../../hooks/useDeviceScreen';
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
@@ -39,7 +36,6 @@ interface StateProps {
   selectedAddresses?: string[];
   byAddress?: Record<string, ApiNft>;
   currentCollectionAddress?: string;
-  isBurnNotcoinDisabled?: boolean;
   isHardware?: boolean;
   isTestnet?: boolean;
 }
@@ -54,9 +50,8 @@ function Nfts({
   currentCollectionAddress,
   isHardware,
   isTestnet,
-  isBurnNotcoinDisabled,
 }: OwnProps & StateProps) {
-  const { clearNftsSelection, startTransfer, submitTransferInitial } = getActions();
+  const { clearNftsSelection, burnNfts } = getActions();
 
   const lang = useLang();
   const { isLandscape } = useDeviceScreen();
@@ -82,21 +77,7 @@ function Nfts({
   }, [byAddress, currentCollectionAddress, orderedAddresses]);
 
   const handleBurnNotcoinVouchersClick = useLastCallback(() => {
-    const collectionNfts = Object.values(nfts!).filter((nft) => {
-      return nft.collectionAddress === NOTCOIN_VOUCHERS_ADDRESS && !nft.isOnSale;
-    });
-
-    startTransfer({
-      isPortrait: getIsPortrait(),
-      nfts: collectionNfts,
-    });
-
-    submitTransferInitial({
-      tokenSlug: TON_TOKEN_SLUG,
-      amount: NFT_TRANSFER_TON_AMOUNT,
-      toAddress: BURN_ADDRESS,
-      nftAddresses: collectionNfts.map(({ address }) => address),
-    });
+    burnNfts({ nfts: nfts! });
   });
 
   if (nfts === undefined) {
@@ -151,7 +132,7 @@ function Nfts({
 
   return (
     <div>
-      {currentCollectionAddress === NOTCOIN_VOUCHERS_ADDRESS && !isBurnNotcoinDisabled && (
+      {currentCollectionAddress === NOTCOIN_VOUCHERS_ADDRESS && (
         <Button
           isPrimary
           className={styles.notcoinVoucherButton}
@@ -171,7 +152,6 @@ function Nfts({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
-      const { isBurnNotcoinDisabled } = global.restrictions;
       const {
         orderedAddresses,
         byAddress,
@@ -183,12 +163,17 @@ export default memo(
         orderedAddresses,
         selectedAddresses,
         byAddress,
-        isBurnNotcoinDisabled,
         isHardware: selectIsHardwareAccount(global),
         currentCollectionAddress,
         isTestnet: global.settings.isTestnet,
       };
     },
-    (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
+    (global, _, stickToFirst) => {
+      const {
+        currentCollectionAddress,
+      } = selectCurrentAccountState(global)?.nfts || {};
+
+      return stickToFirst(`${global.currentAccountId}_${currentCollectionAddress || 'all'}`);
+    },
   )(Nfts),
 );

@@ -137,10 +137,10 @@ async function submitCheckin(captchaToken) {
     return;
   }
 
-  handleSuccess(data.refAddress, data.refCount);
+  handleSuccess(data.refAddress, data.referrals);
 }
 
-function handleSuccess(refAddress, refCount) {
+function handleSuccess(refAddress, referrals) {
   showSlide('ref-container');
 
   const refContainerEl = $('ref-container');
@@ -154,7 +154,9 @@ function handleSuccess(refAddress, refCount) {
 
   $('show-referral-stats').classList.remove('faded');
   $('invited-me').textContent = shortenAddress(refAddress);
-  $('invited-by-me').textContent = refCount;
+  $('invited-by-me').innerHTML = '<br />' + referrals
+    .map(({ friendlyAddress }) => shortenAddress(friendlyAddress))
+    .join('<br />');
 }
 
 function showError(msg) {
@@ -185,7 +187,6 @@ function setupButtons() {
   });
 
   $('show-referral-stats').addEventListener('click', showReferralStats);
-  document.body.addEventListener('dblclick', showReferralStats);
 }
 
 function handleCopy(e) {

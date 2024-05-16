@@ -178,7 +178,6 @@ export type ApiUpdateConfig = {
   type: 'updateConfig';
   isLimited: boolean;
   isCopyStorageEnabled: boolean;
-  isBurnNotcoinDisabled: boolean;
 };
 
 export type ApiUpdateWalletVersions = {

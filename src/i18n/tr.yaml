@@ -576,7 +576,6 @@ Unstake More: Unstake daha fazla
 Are you sure you want to burn this NFT? It will be lost forever.: Bu NFT'yi yakmak istediğinizden emin misiniz? Sonsuza kadar kaybolacak.
 $multi_burn_nft_warning: "%amount% NFT yakacaksınız."
 $multi_send_nft_warning: "İşlem ~%duration% dakika sürebilir. Lütfen işlem tamamlanana kadar uygulamayı kapatmayın ve hesap değiştirmeyin."
-$multi_burn_nft_warning_notcoin: "Tamamlandığında, NOT almak için %notcoin_bot% açın."
 Burn NFT: NFT'yi yaz
 Burn: Yakmak
 Private Key: Gizli anahtar

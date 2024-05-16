@@ -1,15 +1,16 @@
-import React, { memo, useMemo } from '../../../../lib/teact/teact';
+import React, {
+  memo, useMemo, useRef, useState,
+} from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
-import { MediaType } from '../../../../global/types';
+import { type IAnchorPosition, MediaType } from '../../../../global/types';
 
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
 import { preloadImage } from '../../../../util/preloadImage';
 import { shortenAddress } from '../../../../util/shortenAddress';
 
-import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
@@ -29,9 +30,12 @@ function Nft({ nft, selectedAddresses }: OwnProps) {
   const { openMediaViewer, selectNfts, clearNftSelection } = getActions();
 
   const lang = useLang();
-  const [isMenuOpen, openMenu, closeMenu] = useFlag(false);
+  // eslint-disable-next-line no-null/no-null
+  const ref = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<IAnchorPosition>();
   const isSelectionEnabled = !!selectedAddresses && selectedAddresses.length > 0;
   const isSelected = useMemo(() => selectedAddresses?.includes(nft.address), [selectedAddresses, nft.address]);
+  const isMenuOpen = Boolean(menuPosition);
   const {
     shouldRender: shouldRenderWarning,
     transitionClassNames: warningTransitionClassNames,
@@ -57,6 +61,15 @@ function Nft({ nft, selectedAddresses }: OwnProps) {
     openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft });
   }
 
+  const handleOpenMenu = useLastCallback(() => {
+    const { right: x, y } = ref.current!.getBoundingClientRect();
+    setMenuPosition({ x, y });
+  });
+
+  const handleCloseMenu = useLastCallback(() => {
+    setMenuPosition(undefined);
+  });
+
   const handleIntersect = useLastCallback(() => {
     preloadImage(nft.image).catch(() => {
     });
@@ -65,6 +78,7 @@ function Nft({ nft, selectedAddresses }: OwnProps) {
   return (
     <div
       key={nft.address}
+      ref={ref}
       id={`nft-${nft.address}`}
       onClick={!isSelectionEnabled || !nft.isOnSale ? handleClick : undefined}
       className={fullClassName}
@@ -77,7 +91,14 @@ function Nft({ nft, selectedAddresses }: OwnProps) {
           className={styles.radio}
         />
       )}
-      {!isSelectionEnabled && <NftMenu nft={nft} isOpen={isMenuOpen} onOpen={openMenu} onClose={closeMenu} />}
+      {!isSelectionEnabled && (
+        <NftMenu
+          nft={nft}
+          menuPosition={menuPosition}
+          onOpen={handleOpenMenu}
+          onClose={handleCloseMenu}
+        />
+      )}
       <Image
         url={nft.thumbnail}
         className={styles.imageWrapper}

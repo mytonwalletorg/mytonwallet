@@ -739,3 +739,7 @@ addActionHandler('openLoadingOverlay', (global) => {
 addActionHandler('closeLoadingOverlay', (global) => {
   setGlobal({ ...global, isLoadingOverlayOpen: undefined });
 });
+
+addActionHandler('clearAccountLoading', (global) => {
+  setGlobal(updateAccounts(global, { isLoading: undefined }));
+});

@@ -30,6 +30,11 @@ import type {
 import type { AuthConfig } from '../util/authApi/types';
 import type { LedgerWalletInfo } from '../util/ledger/types';
 
+export type IAnchorPosition = {
+  x: number;
+  y: number;
+};
+
 export type AnimationLevel = 0 | 1 | 2;
 export type Theme = 'light' | 'dark' | 'system';
 export type NotificationType = {
@@ -548,7 +553,6 @@ export type GlobalState = {
     isSwapDisabled: boolean;
     isOnRampDisabled: boolean;
     isCopyStorageEnabled?: boolean;
-    isBurnNotcoinDisabled?: boolean;
   };
 
   mediaViewer: {
@@ -664,6 +668,7 @@ export interface ActionPayloads {
   switchAccount: { accountId: string; newNetwork?: ApiNetwork };
   renameAccount: { accountId: string; title: string };
   clearAccountError: undefined;
+  clearAccountLoading: undefined;
   validatePassword: { password: string };
   verifyHardwareAddress: undefined;
 
@@ -678,6 +683,7 @@ export interface ActionPayloads {
   selectNfts: { addresses: string[] };
   clearNftSelection: { address: string };
   clearNftsSelection: undefined;
+  burnNfts: { nfts: ApiNft[] };
 
   submitSignature: { password: string };
   clearSignatureError: undefined;

@@ -5,16 +5,13 @@ import type { ApiNft } from '../../../api/types';
 import type { DropdownItem } from '../../ui/Dropdown';
 
 import {
-  BURN_ADDRESS,
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
   TON_DNS_COLLECTION,
-  TON_TOKEN_SLUG,
   TONSCAN_BASE_MAINNET_URL,
   TONSCAN_BASE_TESTNET_URL,
 } from '../../../config';
 import { openUrl } from '../../../util/openUrl';
-import { NFT_TRANSFER_TON_AMOUNT } from '../../../api/blockchains/ton/constants';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -66,7 +63,7 @@ const SELECT_ITEM: DropdownItem = {
 
 export default function useNftMenu(nft?: ApiNft) {
   const {
-    startTransfer, submitTransferInitial, selectNfts, openNftCollection,
+    startTransfer, selectNfts, openNftCollection, burnNfts,
   } = getActions();
 
   const handleMenuItemSelect = useLastCallback((value: string) => {
@@ -122,17 +119,7 @@ export default function useNftMenu(nft?: ApiNft) {
       }
 
       case 'burn': {
-        startTransfer({
-          isPortrait: getIsPortrait(),
-          nfts: [nft!],
-        });
-
-        submitTransferInitial({
-          tokenSlug: TON_TOKEN_SLUG,
-          amount: NFT_TRANSFER_TON_AMOUNT,
-          toAddress: BURN_ADDRESS,
-          nftAddresses: [nft!.address],
-        });
+        burnNfts({ nfts: [nft!] });
 
         break;
       }

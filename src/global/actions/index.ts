@@ -5,6 +5,7 @@ import './api/staking';
 import './api/dapps';
 import './api/swap';
 import './api/tokens';
+import './api/nfts';
 import './apiUpdates/initial';
 import './apiUpdates/activities';
 import './apiUpdates/dapp';

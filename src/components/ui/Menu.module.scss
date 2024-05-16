@@ -4,6 +4,11 @@
   user-select: none;
 
   position: relative;
+
+  &.inPortal {
+    position: absolute;
+    z-index: var(--z-portal-menu);
+  }
 }
 
 .bubble {
@@ -114,7 +119,7 @@
 
   &.right {
     --offset-x: -0.75rem;
-    --offset-y: 0.625rem;
+    --offset-y: 0;
   }
 
   &.bottom {

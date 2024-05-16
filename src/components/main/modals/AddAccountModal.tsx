@@ -71,6 +71,7 @@ function AddAccountModal({
     afterSelectHardwareWallets,
     showError,
     openSettingsWithState,
+    clearAccountLoading,
   } = getActions();
 
   const lang = useLang();
@@ -87,6 +88,7 @@ function AddAccountModal({
   const handleModalClose = useLastCallback(() => {
     setRenderingKey(RenderingState.Initial);
     setIsNewAccountImporting(false);
+    clearAccountLoading();
   });
 
   const handleNewAccountClick = useLastCallback(async () => {

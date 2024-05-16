@@ -4,7 +4,12 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState } from '../../global/types';
 
 import {
-  ANIMATED_STICKER_SMALL_SIZE_PX, BURN_ADDRESS, BURN_CHUNK_DURATION_APPROX_SEC, NFT_BATCH_SIZE, TON_SYMBOL,
+  ANIMATED_STICKER_SMALL_SIZE_PX,
+  BURN_ADDRESS,
+  BURN_CHUNK_DURATION_APPROX_SEC,
+  NFT_BATCH_SIZE,
+  NOTCOIN_EXCHANGERS,
+  TON_SYMBOL,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
@@ -76,6 +81,7 @@ function TransferConfirm({
   const addressName = savedAddresses?.[toAddress!] || toAddressName;
   const isNftTransfer = Boolean(nfts?.length);
   const isBurning = resolvedAddress === BURN_ADDRESS;
+  const isNotcoinBurning = resolvedAddress === NOTCOIN_EXCHANGERS[0];
 
   useHistoryBack({
     isActive,
@@ -193,16 +199,16 @@ function TransferConfirm({
 
         {renderComment()}
 
-        {isBurning && nfts && (
+        {nfts && (isBurning || (isNotcoinBurning && nfts?.length > 1)) && (
           <div className={styles.burnWarning}>
             {(
-              nfts?.length === 1
-                ? renderText(lang('Are you sure you want to burn this NFT? It will be lost forever.'))
-                : [
-                  renderText(lang('$multi_burn_nft_warning', { amount: nfts.length })),
-                  ' ',
-                  renderText(lang('$multi_send_nft_warning', { duration: burningDurationMin })),
-                ]
+              nfts?.length === 1 ? (
+                renderText(lang('Are you sure you want to burn this NFT? It will be lost forever.'))
+              ) : ([
+                renderText(lang('$multi_burn_nft_warning', { amount: nfts.length })),
+                ' ',
+                renderText(lang('$multi_send_nft_warning', { duration: burningDurationMin })),
+              ])
             )}
           </div>
         )}
@@ -220,7 +226,7 @@ function TransferConfirm({
             className={modalStyles.button}
             onClick={handleConfirm}
           >
-            {lang(isBurning ? 'Burn NFT' : 'Confirm')}
+            {lang((isBurning || isNotcoinBurning) ? 'Burn NFT' : 'Confirm')}
           </Button>
         </div>
       </div>

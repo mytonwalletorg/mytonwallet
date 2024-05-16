@@ -11,6 +11,8 @@ import useHistoryBack from '../../hooks/useHistoryBack';
 import useShowTransition from '../../hooks/useShowTransition';
 import useVirtualBackdrop from '../../hooks/useVirtualBackdrop';
 
+import Portal from './Portal';
+
 import styles from './Menu.module.scss';
 
 type OwnProps = {
@@ -19,12 +21,16 @@ type OwnProps = {
   id?: string;
   className?: string;
   bubbleClassName?: string;
+  style?: string;
   type?: 'menu' | 'suggestion' | 'dropdown';
   positionX?: 'left' | 'right';
   positionY?: 'top' | 'bottom';
+  transformOriginX?: number;
+  transformOriginY?: number;
   autoClose?: boolean;
   shouldSkipTransition?: boolean;
   noBackdrop?: boolean;
+  withPortal?: boolean;
   noCloseOnBackdrop?: boolean;
   onCloseAnimationEnd?: () => void;
   onClose?: () => void;
@@ -40,12 +46,16 @@ const Menu: FC<OwnProps> = ({
   id,
   className,
   bubbleClassName,
+  style,
   positionX = 'left',
   positionY = 'top',
+  transformOriginX,
+  transformOriginY,
   type = 'menu',
   autoClose = false,
   shouldSkipTransition,
   noBackdrop = false,
+  withPortal,
   noCloseOnBackdrop = false,
   onCloseAnimationEnd,
   onClose,
@@ -88,16 +98,21 @@ const Menu: FC<OwnProps> = ({
     styles.bubble,
     bubbleClassName,
     'custom-scroll',
+    'menu-bubble',
     styles[positionY],
     styles[positionX],
     styles[type],
     transitionClassNames,
   );
 
-  return (
+  const transformOriginYStyle = transformOriginY !== undefined ? `${transformOriginY}px` : undefined;
+  const transformOriginXStyle = transformOriginX !== undefined ? `${transformOriginX}px` : undefined;
+
+  const menu = (
     <div
       id={id}
-      className={buildClassName(styles.wrapper, className)}
+      className={buildClassName(styles.wrapper, className, withPortal && styles.inPortal)}
+      style={style}
       onMouseEnter={onMouseEnter}
       onMouseLeave={isOpen ? onMouseLeave : undefined}
     >
@@ -108,13 +123,19 @@ const Menu: FC<OwnProps> = ({
       <div
         ref={menuRef}
         className={fullBubbleClassName}
-        style={`transform-origin: ${positionX} ${positionY}`}
+        style={`transform-origin: ${transformOriginXStyle || positionX} ${transformOriginYStyle || positionY}`}
         onClick={autoClose ? onClose : undefined}
       >
         {children}
       </div>
     </div>
   );
+
+  if (withPortal) {
+    return <Portal>{menu}</Portal>;
+  }
+
+  return menu;
 };
 
 export default Menu;

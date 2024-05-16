@@ -3,11 +3,9 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 
-import { BURN_ADDRESS, TON_TOKEN_SLUG } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
-import { NFT_TRANSFER_TON_AMOUNT } from '../../../../api/blockchains/ton/constants';
 
 import { getIsPortrait } from '../../../../hooks/useDeviceScreen';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
@@ -24,7 +22,7 @@ interface StateProps {
 }
 
 function NftSelectionHeader({ selectedAddresses, byAddress }: StateProps) {
-  const { clearNftsSelection, startTransfer, submitTransferInitial } = getActions();
+  const { clearNftsSelection, startTransfer, burnNfts } = getActions();
 
   const lang = useLang();
   const amount = selectedAddresses?.length ?? 1;
@@ -55,17 +53,7 @@ function NftSelectionHeader({ selectedAddresses, byAddress }: StateProps) {
 
     clearNftsSelection();
 
-    startTransfer({
-      isPortrait: getIsPortrait(),
-      nfts,
-    });
-
-    submitTransferInitial({
-      tokenSlug: TON_TOKEN_SLUG,
-      amount: NFT_TRANSFER_TON_AMOUNT,
-      toAddress: BURN_ADDRESS,
-      nftAddresses: nfts.map(({ address }) => address),
-    });
+    burnNfts({ nfts });
   });
 
   return (
