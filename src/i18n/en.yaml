@@ -573,6 +573,7 @@ $transfer_inactive_contract_error: |
   If you definitely want to send to this address, then enter the address in the "UQ..." format.
 Successfully: Successfully
 Unstake More: Unstake More
+WrongAddress: Transaction from address does not match account address.
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Are you sure you want to burn this NFT?
   It will be lost forever.

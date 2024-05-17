@@ -56,6 +56,7 @@ export type ApiKnownAddresses = Record<string, ApiAddressInfo>;
 export interface ApiAddressInfo {
   name?: string;
   isScam?: boolean;
+  isMemoRequired?: boolean;
 }
 
 export type ApiTxIdBySlug = Record<string, string | undefined>;

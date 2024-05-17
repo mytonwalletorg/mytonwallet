@@ -1,20 +1,23 @@
-import type { ApiKnownAddresses } from '../types';
+import type { ApiAddressInfo, ApiKnownAddresses } from '../types';
 
-import { mapValues } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { callBackendGet } from './backend';
 
 let knownAddresses: ApiKnownAddresses = {};
 let scamMarkers: RegExp[] = [];
+let trustedSites: Set<string> = new Set();
 
 export async function tryUpdateKnownAddresses() {
   try {
-    const data = await callBackendGet('/known-addresses');
+    const data = await callBackendGet<{
+      knownAddresses: Record<string, ApiKnownAddresses>;
+      scamMarkers: string[];
+      trustedSites: string[];
+    }>('/known-addresses');
 
-    knownAddresses = mapValues(data.knownAddresses as Record<string, string | any>, (value) => {
-      return typeof value === 'string' ? { name: value } : value;
-    });
-    scamMarkers = (data.scamMarkers as string[]).map((x) => new RegExp(x, 'i'));
+    knownAddresses = data.knownAddresses;
+    scamMarkers = data.scamMarkers.map((x) => new RegExp(x, 'i'));
+    trustedSites = new Set(data.trustedSites);
   } catch (err) {
     logDebugError('tryUpdateKnownAddresses', err);
   }
@@ -28,6 +31,10 @@ export function getScamMarkers() {
   return scamMarkers;
 }
 
-export function getAddressInfo(address: string) {
+export function getKnownAddressInfo(address: string): ApiAddressInfo | undefined {
   return knownAddresses[address];
+}
+
+export function checkIsTrustedSite(domain: string) {
+  return trustedSites.has(domain.toLowerCase());
 }

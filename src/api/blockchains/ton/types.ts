@@ -114,5 +114,6 @@ export type ApiCheckTransactionDraftResult = {
   resolvedAddress?: string;
   isToAddressNew?: boolean;
   isBounceable?: boolean;
+  isMemoRequired?: boolean;
   error?: ApiAnyDisplayError;
 };

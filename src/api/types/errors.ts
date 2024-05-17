@@ -30,6 +30,7 @@ export enum ApiTransactionError {
   NonAsciiCommentForHardwareOperation = 'NonAsciiCommentForHardwareOperation',
   TooLongCommentForHardwareOperation = 'TooLongCommentForHardwareOperation',
   UnsupportedHardwareNftOperation = 'UnsupportedHardwareNftOperation',
+  WrongAddress = 'WrongAddress',
 }
 
 export type ApiAnyDisplayError = ApiCommonError | ApiTransactionDraftError | ApiTransactionError;

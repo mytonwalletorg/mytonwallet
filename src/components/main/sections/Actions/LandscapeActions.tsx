@@ -69,6 +69,8 @@ function LandscapeActions({
   );
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
+  const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
+
   const isStakingAllowed = !isTestnet;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
   const transferKey = useMemo(() => nfts?.map((nft) => nft.address).join(',') || tokenSlug, [nfts, tokenSlug]);
@@ -160,7 +162,7 @@ function LandscapeActions({
           onClick={() => handleSelectTab(ActiveTab.Receive)}
         >
           <i className={buildClassName(styles.tabIcon, 'icon-add-buy')} aria-hidden />
-          <span className={styles.tabText}>{lang('Add / Buy')}</span>
+          <span className={styles.tabText}>{lang(isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add')}</span>
 
           <span className={styles.tabDecoration} aria-hidden />
         </div>

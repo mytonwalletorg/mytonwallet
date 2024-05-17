@@ -163,8 +163,12 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   global = updateSendingLoading(global, false);
 
   if (!result || 'error' in result) {
-    if (result?.addressName) {
-      global = updateCurrentTransfer(global, { toAddressName: result.addressName });
+    if (result?.addressName || result?.isScam || result?.isMemoRequired) {
+      global = updateCurrentTransfer(global, {
+        toAddressName: result.addressName,
+        isScam: result.isScam,
+        isMemoRequired: result.isMemoRequired,
+      });
     }
     if (result?.fee) {
       global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TON_TOKEN_SLUG);
@@ -195,6 +199,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     tokenSlug,
     isToNewAddress: result.isToAddressNew,
     isScam: result.isScam,
+    isMemoRequired: result.isMemoRequired,
   }));
 });
 
@@ -217,6 +222,16 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   if (result?.fee) {
     global = getGlobal();
     global = updateCurrentTransferFee(global, result.fee, amount, !tokenAddress);
+    setGlobal(global);
+  }
+
+  if (result?.addressName || result?.isScam || result?.isMemoRequired) {
+    global = getGlobal();
+    global = updateCurrentTransfer(global, {
+      toAddressName: result.addressName,
+      isScam: result.isScam,
+      isMemoRequired: result.isMemoRequired,
+    });
     setGlobal(global);
   }
 

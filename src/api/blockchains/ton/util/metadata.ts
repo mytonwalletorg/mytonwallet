@@ -18,8 +18,9 @@ import {
   RE_LINK_TEMPLATE,
 } from '../../../../config';
 import { pick, range } from '../../../../util/iteratees';
-import { logDebugError } from '../../../../util/logs';
+import { logDebug, logDebugError } from '../../../../util/logs';
 import { fetchJsonMetadata, fixIpfsUrl } from '../../../../util/metadata';
+import { checkIsTrustedSite } from '../../../common/addresses';
 import { base64ToString, sha256 } from '../../../common/utils';
 import {
   JettonOpCode, LiquidStakingOpCode, NftOpCode, OpCode,
@@ -488,8 +489,19 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
     };
 
     const collectionAddress = collection && toBase64Address(collection.address, true, network);
-    const hasLink = Boolean(name?.match(RE_LINK_TEMPLATE) || description?.match(RE_LINK_TEMPLATE));
-    const hasScamLink = hasLink && (!collectionAddress || !COLLECTIONS_WITH_LINK.has(collectionAddress));
+    let hasScamLink = false;
+
+    if (!collectionAddress || !COLLECTIONS_WITH_LINK.has(collectionAddress)) {
+      for (const text of [name, description].filter(Boolean)) {
+        for (const match of text.matchAll(RE_LINK_TEMPLATE)) {
+          const host = match.groups?.host;
+          if (host && !checkIsTrustedSite(host)) {
+            hasScamLink = true;
+            logDebug(`NFT '${name}' contains scam host ${host}`);
+          }
+        }
+      }
+    }
 
     const isScam = description === 'SCAM' || hasScamLink;
     const isHidden = renderType === 'hidden' || isScam;
@@ -512,6 +524,7 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       }),
     };
   } catch (err) {
+    logDebugError('buildNft', err);
     return undefined;
   }
 }

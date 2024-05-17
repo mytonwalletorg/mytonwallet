@@ -574,6 +574,7 @@ $transfer_inactive_contract_error: |
   Wenn Sie unbedingt an diese Adresse senden möchten, dann geben Sie die Adresse im Format „UQ...“ ein.
 Successfully: Erfolgreich
 Unstake More: Mehr abstecken
+WrongAddress: Die Transaktionsadresse stimmt nicht mit der Kontoadresse überein.
 Are you sure you want to burn this NFT? It will be lost forever.: Sind Sie sicher, dass Sie diese NFT verbrennen wollen? Es wird für immer verloren sein.
 $multi_burn_nft_warning: "Sie werden %amount% NFTs verbrennen."
 $multi_send_nft_warning: "Der Vorgang kann ~%duration% Minuten dauern. Bitte schließen Sie die App nicht und wechseln Sie nicht das Konto, bis es abgeschlossen ist."

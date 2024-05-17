@@ -17,7 +17,7 @@ import {
   IS_EXTENSION,
   LANG_LIST,
   PROXY_HOSTS,
-  SUPPORT_URL, SUPPORT_USERNAME,
+  SUPPORT_USERNAME,
   TELEGRAM_WEB_URL,
   TON_TOKEN_SLUG,
 } from '../../config';
@@ -109,9 +109,11 @@ type StateProps = {
   currentVersion?: ApiWalletVersion;
   versions?: ApiWalletInfo[];
   isCopyStorageEnabled?: boolean;
+  supportAccountsCount?: number;
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
+const SUPPORT_ACCOUNTS_COUNT_DEFAULT = 1;
 
 function Settings({
   settings: {
@@ -141,6 +143,7 @@ function Settings({
   currentVersion,
   versions,
   isCopyStorageEnabled,
+  supportAccountsCount = SUPPORT_ACCOUNTS_COUNT_DEFAULT,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
@@ -546,15 +549,22 @@ function Settings({
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-            <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className={styles.item}>
-              <img className={styles.menuIcon} src={supportImg} alt={lang('Get Support')} />
-              {lang('Get Support')}
+            {supportAccountsCount > 0 && (
+              <a
+                href={`https://t.me/${SUPPORT_USERNAME}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.item}
+              >
+                <img className={styles.menuIcon} src={supportImg} alt={lang('Get Support')} />
+                {lang('Get Support')}
 
-              <div className={styles.itemInfo}>
-                <span className={styles.small}>@{SUPPORT_USERNAME}</span>
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </div>
-            </a>
+                <div className={styles.itemInfo}>
+                  <span className={styles.small}>@{SUPPORT_USERNAME}</span>
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                </div>
+              </a>
+            )}
             <div className={styles.item} onClick={handleAboutOpen}>
               <img className={styles.menuIcon} src={aboutImg} alt={lang('About')} />
               {lang('About')}
@@ -698,7 +708,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { orderedSlugs } = selectAccountSettings(global, global.currentAccountId!) ?? {};
   const isHardwareAccount = selectIsHardwareAccount(global);
   const isPasswordPresent = selectIsPasswordPresent(global);
-  const { isCopyStorageEnabled } = global.restrictions;
+  const { isCopyStorageEnabled, supportAccountsCount = 1 } = global.restrictions;
 
   const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
   const versions = versionsById?.[global.currentAccountId!];
@@ -714,6 +724,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     currentVersion,
     versions,
     isCopyStorageEnabled,
+    supportAccountsCount,
   };
 })(Settings));
 

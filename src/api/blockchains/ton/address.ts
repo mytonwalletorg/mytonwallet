@@ -2,13 +2,10 @@ import { Address } from '@ton/core';
 
 import type { ApiNetwork } from '../../types';
 
-import {
-  BURN_ADDRESS, EXCHANGE_ADDRESSES, EXCHANGE_ADDRESSES_FLAT, NOTCOIN_EXCHANGERS,
-} from '../../../config';
 import dns from '../../../util/dns';
 import { DnsCategory, dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
-import { getKnownAddresses } from '../../common/addresses';
+import { getKnownAddressInfo } from '../../common/addresses';
 
 const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
 const VIP_DNS_COLLECTION = 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS';
@@ -16,44 +13,37 @@ const VIP_DNS_COLLECTION = 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS';
 export async function resolveAddress(network: ApiNetwork, address: string): Promise<{
   address: string;
   name?: string;
+  isMemoRequired?: boolean;
+  isScam?: boolean;
 } | undefined> {
-  if (address === BURN_ADDRESS) {
-    return {
-      address,
-      name: 'Burn Address',
-    };
-  } else if (address === NOTCOIN_EXCHANGERS[0]) {
-    return {
-      address,
-      name: 'Notcoin Minter',
-    };
+  const isDomain = dns.isDnsDomain(address);
+  let domain: string | undefined;
+
+  if (isDomain) {
+    const resolvedAddress = await resolveAddressByDomain(network, address);
+    if (!resolvedAddress) {
+      return undefined;
+    }
+
+    domain = address;
+    address = resolvedAddress;
   }
 
-  if (EXCHANGE_ADDRESSES_FLAT.has(address)) {
-    const [name] = Object
-      .entries(EXCHANGE_ADDRESSES)
-      .find(([, addresses]) => addresses.includes(address))!;
+  const normalizedAddress = normalizeAddress(address);
+  const known = getKnownAddressInfo(normalizedAddress);
 
-    return {
-      name,
-      address,
-    };
-  }
-
-  const known = getKnownAddresses()[address];
   if (known) {
     return {
       address,
-      name: known.name,
+      ...known,
+      name: domain ?? known.name,
     };
   }
 
-  if (!dns.isDnsDomain(address)) {
-    return { address };
-  }
+  return { address, name: domain };
+}
 
-  const domain = address;
-
+async function resolveAddressByDomain(network: ApiNetwork, domain: string) {
   try {
     let base: string;
     let collection: string;
@@ -76,10 +66,7 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
       return undefined;
     }
 
-    return {
-      address: toBase64Address(result, undefined, network),
-      name: domain,
-    };
+    return toBase64Address(result, undefined, network);
   } catch (err: any) {
     if (!err.message?.includes('exit_code')) {
       throw err;

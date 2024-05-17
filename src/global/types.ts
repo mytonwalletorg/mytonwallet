@@ -384,6 +384,7 @@ export type GlobalState = {
     isScam?: boolean;
     nfts?: ApiNft[];
     sentNftsCount?: number;
+    isMemoRequired?: boolean;
   };
 
   currentSwap: {
@@ -553,6 +554,7 @@ export type GlobalState = {
     isSwapDisabled: boolean;
     isOnRampDisabled: boolean;
     isCopyStorageEnabled?: boolean;
+    supportAccountsCount?: number;
   };
 
   mediaViewer: {

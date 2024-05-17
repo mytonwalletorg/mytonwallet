@@ -257,6 +257,10 @@ export async function sendTransaction(
     const account = await fetchStoredAccount(accountId);
     const isLedger = !!account.ledger;
 
+    if (txPayload.from && toBase64Address(txPayload.from, false) !== toBase64Address(account.address, false)) {
+      throw new errors.BadRequestError(undefined, ApiTransactionError.WrongAddress);
+    }
+
     await openExtensionPopup(true);
 
     onPopupUpdate({

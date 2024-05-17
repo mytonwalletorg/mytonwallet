@@ -92,7 +92,6 @@ export const FRACTION_DIGITS = 9;
 export const SHORT_FRACTION_DIGITS = 2;
 
 export const SUPPORT_USERNAME = 'MyTonWalletSupport';
-export const SUPPORT_URL = `https://t.me/${SUPPORT_USERNAME}`;
 export const MY_TON_WALLET_PROMO_URL = 'https://mytonwallet.io';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
 export const TONSCAN_BASE_MAINNET_URL = 'https://tonscan.org/';
@@ -115,7 +114,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-101';
+export const LANG_CACHE_NAME = 'mtw-lang-102';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -265,30 +264,6 @@ export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
   },
 ];
 
-export const EXCHANGE_ADDRESSES = {
-  OKX: [
-    'EQBfAN7LfaUYgXZNw5Wc7GBgkEX2yhuJ5ka95J1JJwXXf4a8', 'UQBfAN7LfaUYgXZNw5Wc7GBgkEX2yhuJ5ka95J1JJwXXf9t5',
-    'EQCFTsRSHv1SrUO88ZiOTETr35omrRj6Uav9toX8OzSKXGkS', 'UQCFTsRSHv1SrUO88ZiOTETr35omrRj6Uav9toX8OzSKXDTX',
-    'EQDn6G2gh0LtkzQ0_-uPCKY8fhAO6ELiX1manL8IkVdKbGzr', 'UQDn6G2gh0LtkzQ0_-uPCKY8fhAO6ELiX1manL8IkVdKbDEu',
-    'EQADON7zS4TG7pE0oEqxYBRQvkRjQKN64lneV8s3vbWQzWUO', 'UQADON7zS4TG7pE0oEqxYBRQvkRjQKN64lneV8s3vbWQzTjL',
-  ],
-  Bitfinex: ['EQBBlxK8VBxEidbxw4oQVyLSk7iEf9VPJxetaRQpEbi-XG4U', 'UQBBlxK8VBxEidbxw4oQVyLSk7iEf9VPJxetaRQpEbi-XDPR'],
-  MEXC: ['EQBX63RAdgShn34EAFMV73Cut7Z15lUZd1hnVva68SEl7sxi', 'UQBX63RAdgShn34EAFMV73Cut7Z15lUZd1hnVva68SEl7pGn'],
-  ByBit: [
-    'EQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fPQb', 'UQDD8dqOzaj4zUK6ziJOo_G2lx6qf1TEktTRkFJ7T1c_fKne',
-    'EQCuYqGS2pbiZhYacCzJ9t6RwMNEHxfOulG8RC37IDGjCmeU', 'UQCuYqGS2pbiZhYacCzJ9t6RwMNEHxfOulG8RC37IDGjCjpR',
-  ],
-  Huobi: ['EQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwj1f', 'UQBVXzBT4lcTA3S7gxrg4hnl5fnsDKj4oNEzNp09aQxkwmCa'],
-  KuCoin: ['EQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6dZl', 'UQCA1BI4QRZ8qYmskSRDzJmkucGodYRTZCf_b9hckjla6Yug'],
-  'Telegram Wallet': [
-    'EQCkoRp4OE-SFUoMEnYfL3vF43T3AzNfW8jyTC4yzk8cJqMS', 'UQCkoRp4OE-SFUoMEnYfL3vF43T3AzNfW8jyTC4yzk8cJv7X',
-    'EQA2JYPGPywx6Sn590nUd06B2HgOkFvJ-cCnTO6yTEdacbUG', 'UQA2JYPGPywx6Sn590nUd06B2HgOkFvJ-cCnTO6yTEdacejD',
-    'EQAfWAbHPQO7yW637r8WBn8fLo4nDPoW1XABqp6vdFbwCAb0', 'UQAfWAbHPQO7yW637r8WBn8fLo4nDPoW1XABqp6vdFbwCFsx',
-    'EQCXrZNESRUInoEiOP8Qq-kGbQsD6j26KoYw-5yfiKpFXPqY', 'UQCXrZNESRUInoEiOP8Qq-kGbQsD6j26KoYw-5yfiKpFXKdd',
-  ],
-};
-export const EXCHANGE_ADDRESSES_FLAT = new Set(Object.values(EXCHANGE_ADDRESSES).flat());
-
 export const BURN_ADDRESS = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
 
 export const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
@@ -296,7 +271,7 @@ export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R
 
 export const DEFAULT_TIMEOUT = 5000;
 export const DEFAULT_RETRIES = 3;
-export const DEFAULT_ERROR_PAUSE = 200;
+export const DEFAULT_ERROR_PAUSE = 500;
 
 export const HISTORY_PERIODS: TokenPeriod[] = ['1D', '7D', '1M', '3M', '1Y', 'ALL'];
 
@@ -332,9 +307,11 @@ export const CLAIM_AMOUNT = 50000000n; // 0.05 TON
 export const CLAIM_COMMENT = 'claim';
 
 // eslint-disable-next-line max-len
-export const RE_LINK_TEMPLATE = '((ftp|https?):\\/\\/)?((www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z][-a-zA-Z0-9]{1,62})\\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)';
+export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z][-a-zA-Z0-9]{1,62})\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)/g;
 export const COLLECTIONS_WITH_LINK = new Set([
   'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz', // TON DNS
   'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS', // VIP DNS
   'kQDjPtM6QusgMgWfl9kMcG-EALslbTITnKcH8VZK1pnH3f3K', // TON DNS testnet
+  'EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi', // Telegram Usernames
+  'EQDAbngYJKa7b1cGzxwLqziw8iGBZCTx364E1HWWrdn7oBqV', // Tersoma/Manutra
 ]);

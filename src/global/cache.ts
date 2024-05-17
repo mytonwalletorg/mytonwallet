@@ -1,6 +1,8 @@
 import { addCallback, removeCallback } from '../lib/teact/teactn';
 
-import type { AccountState, GlobalState, TokenPeriod, UserToken } from './types';
+import type {
+  AccountState, GlobalState, TokenPeriod, UserToken,
+} from './types';
 
 import {
   DEBUG,
@@ -13,7 +15,9 @@ import {
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
 import { bigintReviver } from '../util/bigint';
-import { cloneDeep, mapValues, pick, pickTruthy } from '../util/iteratees';
+import {
+  cloneDeep, mapValues, pick, pickTruthy,
+} from '../util/iteratees';
 import { onBeforeUnload, onIdle, throttle } from '../util/schedulers';
 import { IS_ELECTRON } from '../util/windowEnvironment';
 import { getIsTxIdLocal } from './helpers';
@@ -372,6 +376,11 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   if (cached.stateVersion === 20) {
     clearActivities();
     cached.stateVersion = 21;
+  }
+
+  if (cached.stateVersion === 21) {
+    clearActivities();
+    cached.stateVersion = 22;
   }
 
   // When adding migration here, increase `STATE_VERSION`

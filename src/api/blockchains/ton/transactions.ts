@@ -253,12 +253,15 @@ export async function checkToAddress(network: ApiNetwork, toAddress: string) {
     resolvedAddress?: string;
     isToAddressNew?: boolean;
     isBounceable?: boolean;
+    isMemoRequired?: boolean;
   } = {};
 
   const resolved = await resolveAddress(network, toAddress);
   if (resolved) {
     result.addressName = resolved.name;
     result.resolvedAddress = resolved.address;
+    result.isMemoRequired = resolved.isMemoRequired;
+    result.isScam = resolved.isScam;
     toAddress = resolved.address;
   } else {
     return {
@@ -504,11 +507,21 @@ async function populateTransactions(network: ApiNetwork, transactions: ApiTransa
       const { extraData: { parsedPayload } } = transaction;
 
       if (parsedPayload?.type === 'nft:ownership-assigned') {
-        transaction.nft = nftsByAddress[parsedPayload.nftAddress];
-        transaction.fromAddress = addressBook[parsedPayload.prevOwner].user_friendly;
+        const nft = nftsByAddress[parsedPayload.nftAddress];
+        if (nft.isScam) {
+          transaction.metadata = { ...transaction.metadata, isScam: true };
+        } else {
+          transaction.nft = nft;
+          transaction.fromAddress = addressBook[parsedPayload.prevOwner].user_friendly;
+        }
       } else if (parsedPayload?.type === 'nft:transfer') {
-        transaction.nft = nftsByAddress[parsedPayload.nftAddress];
-        transaction.toAddress = addressBook[parsedPayload.newOwner].user_friendly;
+        const nft = nftsByAddress[parsedPayload.nftAddress];
+        if (nft.isScam) {
+          transaction.metadata = { ...transaction.metadata, isScam: true };
+        } else {
+          transaction.nft = nft;
+          transaction.toAddress = addressBook[parsedPayload.newOwner].user_friendly;
+        }
       }
     }
   }
@@ -590,7 +603,7 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
     } else if (comment === UNSTAKE_COMMENT) {
       type = 'unstakeRequest';
     }
-  } else if (extraData?.parsedPayload) {
+  } else if (extraData?.parsedPayload && !transaction.metadata?.isScam) {
     const payload = extraData.parsedPayload;
 
     if (payload.type === 'tokens:burn' && payload.isLiquidUnstakeRequest) {

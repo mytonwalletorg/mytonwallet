@@ -178,6 +178,7 @@ export type ApiUpdateConfig = {
   type: 'updateConfig';
   isLimited: boolean;
   isCopyStorageEnabled: boolean;
+  supportAccountsCount?: number;
 };
 
 export type ApiUpdateWalletVersions = {

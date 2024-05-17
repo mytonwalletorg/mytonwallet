@@ -8,12 +8,7 @@ import type { Account, UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
-import {
-  EXCHANGE_ADDRESSES_FLAT,
-  IS_FIREFOX_EXTENSION,
-  TON_SYMBOL,
-  TON_TOKEN_SLUG,
-} from '../../config';
+import { IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
 import {
@@ -76,6 +71,7 @@ interface StateProps {
   accounts?: Record<string, Account>;
   isEncryptedCommentSupported: boolean;
   isCommentSupported: boolean;
+  isMemoRequired?: boolean;
   baseCurrency?: ApiBaseCurrency;
   nfts?: ApiNft[];
   binPayload?: string;
@@ -110,6 +106,7 @@ function TransferInitial({
   currentAccountId,
   isEncryptedCommentSupported,
   isCommentSupported,
+  isMemoRequired,
   isLoading,
   onCommentChange,
   baseCurrency,
@@ -444,7 +441,7 @@ function TransferInitial({
     onCommentChange?.();
   });
 
-  const isCommentRequired = Boolean(toAddress) && EXCHANGE_ADDRESSES_FLAT.has(toAddress);
+  const isCommentRequired = Boolean(toAddress) && isMemoRequired;
   const hasCommentError = isCommentRequired && !comment;
   const requiredAmount = isNftTransfer ? NFT_TRANSFER_TON_AMOUNT : amount;
 
@@ -782,6 +779,7 @@ export default memo(
         state,
         nfts,
         binPayload,
+        isMemoRequired,
       } = global.currentTransfer;
 
       const isLedger = selectIsHardwareAccount(global);
@@ -802,6 +800,7 @@ export default memo(
         savedAddresses: accountState?.savedAddresses,
         isEncryptedCommentSupported: !isLedger && !nfts?.length,
         isCommentSupported: true,
+        isMemoRequired,
         isLoading: isLoading && ACTIVE_STATES.has(state),
         baseCurrency,
         currentAccountId: global.currentAccountId,

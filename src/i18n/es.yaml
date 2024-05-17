@@ -571,6 +571,7 @@ $transfer_inactive_contract_error: |
   Si definitivamente desea enviar a esta dirección, ingrese la dirección en el formato "UQ...".
 Successfully: Exitosamente
 Unstake More: Retirar más
+WrongAddress: La transacción desde la dirección no coincide con la dirección de la cuenta.
 Are you sure you want to burn this NFT? It will be lost forever.: ¿Estás seguro de que quieres quemar este NFT? Se perderá para siempre.
 $multi_burn_nft_warning: "Vas a quemar %amount% NFTs."
 $multi_send_nft_warning: "El proceso puede tardar ~%duration% minutos. Por favor, no cierres la aplicación y no cambies de cuenta hasta que haya terminado."

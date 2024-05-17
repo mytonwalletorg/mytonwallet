@@ -558,6 +558,7 @@ $transfer_inactive_contract_error: |
   您以“EQ...”格式輸入了地址，但該地址未激活，因此交易將無法完成。如果您確實要傳送到該位址，請以「UQ...」格式輸入該位址。
 Successfully: 成功地
 Unstake More: 解除質押更多
+WrongAddress: 交易地址與帳戶地址不符。
 Are you sure you want to burn this NFT? It will be lost forever.: 您確定要燒掉這個 NFT 嗎？ 它將永遠失去。
 $multi_burn_nft_warning: "您即將銷毀 %amount% 個 NFT。"
 $multi_send_nft_warning: "該過程可能需要 ~%duration% 分鐘。請勿關閉應用程式，也不要在完成之前切換賬戶。"

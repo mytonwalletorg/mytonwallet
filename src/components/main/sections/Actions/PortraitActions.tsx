@@ -114,7 +114,7 @@ function PortraitActions({
       <div className={styles.buttons}>
         <Button className={styles.button} onClick={handleAddBuyClick} isSimple>
           <i className={buildClassName(styles.buttonIcon, 'icon-add-buy')} aria-hidden />
-          {lang('Add / Buy')}
+          {lang(isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add')}
         </Button>
         <Button className={styles.button} onClick={handleStartTransfer} isSimple>
           <i className={buildClassName(styles.buttonIcon, 'icon-send')} aria-hidden />
