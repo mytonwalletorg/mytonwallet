@@ -1,0 +1,591 @@
+$auth_intro: |
+  **Безпечно** зберігайте криптовалюту і
+  здійснюйте платежі в блокчейні
+  **зі швидкістю світла**.
+Create New Wallet: Створити новий гаманець
+Import From %1$d Secret Words: Відновити з %1$d секретних слів
+More about MyTonWallet: Детальніше про MyTonWallet
+Creating Wallet...: Створюємо гаманець...
+On the count of three...: Порахуйте до трьох...
+Back Up: Показати слова
+Passwords must be equal.: Паролі не збігаються.
+To protect your wallet as much as possible, use a password with: Для забезпечення максимальної безпеки гаманця пароль повинен містити
+$auth_password_rule_8chars: не менше 8 символів
+$auth_password_rule_one_small_char: одну малу літеру
+$auth_password_rule_one_capital_char: одну велику літеру
+$auth_password_rule_one_digit: одну цифру
+$auth_password_rule_one_special_char: один символ
+The wallet is imported: Гаманець імпортовано
+The wallet is ready: Все готово
+Create a password to protect it.: А тепер створіть надійний пароль.
+Enter your password: Введіть пароль
+Enter your password...: Введіть пароль...
+...and repeat it: ...і ще раз
+Cancel: Скасувати
+Insecure Password: Ненадійний пароль
+Your have entered an insecure password, which can be easily guessed by scammers.: Ваш пароль недостатньо надійний і може бути скомпрометований.
+Continue or change password to something more secure?: Продовжити або змінити пароль на більш надійний?
+Change: Редагувати
+"%1$d Secret Words": "%1$d секретних слів"
+$auth_import_mnemonic_description: |
+  Ви можете відновити доступ до гаманця, використовуючи %1$d секретних слова, які ви зберегли під час створення гаманця.
+Let’s make sure your secrets words are recorded correctly.: Давайте переконаємося, що всі слова записані правильно.
+$mnemonic_check_words_list: Будь ласка, введіть слова **%1$s** у відповідні поля.
+$mnemonic_check_error: Введені слова не збігаються зі словами зі списку. Спробуйте ще раз.
+$mnemonic_list_description: |
+  Запишіть слова
+  у **правильному порядку** і збережіть їх
+  **в надійному місці**.
+$mnemonic_warning: |
+  **Нікому** не повідомляйте, не показуйте
+  і не вводьте **ніде**.
+Let's Check: Давайте перевіримо
+Let's Check!: Давайте перевіримо!
+Safety Rules: Правила безпеки
+$safety_rules_one: |
+  Зараз з'являться **секретні слова**.
+  Запишіть їх у **правильному порядку** і збережіть у **надійному місці**.
+$safety_rules_two: Вони дозволяють **отримати доступ до гаманця**, якщо ви забудете свій пароль або втратите доступ до цього пристрою.
+$safety_rules_three: Якщо хтось побачить ці слова, ваші кошти **можуть бути вкрадені**. **Нікому їх не надсилайте** - навіть розробникам і техпідтримці.
+Understood: Зрозуміло
+Congratulations!: Вітаємо!
+Continue: Продовжити
+Close: Закрити
+Back: Назад
+Search...: Пошук...
+Main menu: Основне меню
+TON Proxy: TON Proxy
+Toggle TON Proxy: Переключити TON Proxy
+TON Magic: TON Magic
+Toggle TON Magic: Переключити TON Magic
+Open Telegram Web: Відкрити Telegram Web
+Back Up Secret Words: Резервна копія
+Settings: Налаштування
+About: Про MyTonWallet
+Exit: Вийти
+Remove Wallet: Вихід
+Something went wrong.: Упс, щось пішло не так.
+Something went wrong: Упс, щось пішло не так
+Logo: Логотип
+$about_description1: Безпечно зберігайте криптовалюту, користуйтеся децентралізованими додатками та здійснюйте платежі в блокчейні **зі швидкістю світла**.
+$about_description2: Гаманець **керується тільки вами**. Розробники **не мають доступу** до ваших коштів, історії браузера або будь-якої іншої інформації.
+What is TON Proxy?: Що таке TON Proxy?
+$about_extension_description1: TON Proxy надає доступ до **децентралізованого інтернету** і сайтів TON.
+More info and demo.: Більше інформації та демо-версія.
+$about_extension_description2: TON Magic забезпечує вбудовану **інтеграцію з Telegram**, використовуючи офіційну веб-версію.
+$about_extension_description3: Увімкнути, щоб відправляти й отримувати перекази від будь-якого користувача Telegram.
+$about_proxy_magic_title: А як щодо %ninja% TON Proxy і %unicorn% TON Magic?
+$about_proxy_magic_description: Щоб насолоджуватися **децентралізованим інтернетом**, **сайтами TON** і вбудованою **інтеграцією з Telegram**, встановіть %extension_link%.
+$about_extension_link_text: "**Розширення MyTonWallet**"
+Is it open source?: А вихідний код відкритий?
+$about_wallet_github: Так, ось наш %github_link%.
+$about_github_link_text: "**репозиторій у GitHub**"
+Is there a community?: Чи існує ком'юніті?
+$about_wallet_community: А як же, ласкаво просимо в наш %community_link%.
+$about_community_link_text: "**Telegram-канал**"
+Currency History: Графік курсу
+$add_account_description1: |
+  **MyTonWallet** дає змогу легко перемикатися між **кількома обліковими записами**.
+Enter Password: Введіть пароль
+Send: Відправити
+Add Wallet: Додати
+Done: Готово
+Delete: Видалити
+Delete Saved Address: Видалити збережену адресу
+Are you sure you want to remove this address from your saved ones?: Упевнені, що хочете видалити збережену адресу гаманця?
+You will be able to save it again via Transaction Info with this address.: Ви зможете зберегти його знову, відкривши будь-який переклад із цією адресою.
+Address removed from saved: Адресу гаманця видалено зі збережених
+Warning!: Важливо!
+Log Out: Вихід є
+$logout_without_backup_warning: Резервної копії гаманця не створено. Доступ до токенів і NFT буде обмежено, якщо ви вийдете із системи.
+$logout_accounts_without_backup_warning: Резервну копію не було створено для %links%. Якщо ви продовжите вихід, доступ **може бути втрачено**.
+$logout_warning: Гаманець буде видалено тільки **на цьому пристрої**. Ви завжди можете відновити його, використовуючи **%1$d секретних слова**.
+$logout_confirm: Вийти зі **всіх** гаманців
+Your address was copied!: Адресу скопійовано!
+Show QR Code: Показати QR-код
+Create Deposit Link: Посилання на депозит
+QR Code: QR-код
+$receive_invoice_description: |
+  Вкажіть суму та призначення платежу,
+  якщо це необхідно.
+Amount: Сума
+Comment: Коментар
+Comment or Memo: Коментар або Memo
+Share this URL to receive TON: Поділитися посиланням
+Invoice link was copied!: Посилання скопійовано!
+Theme: Тема
+Language: Мова
+Enable Animations: Увімкнути анімацію
+Base Currency: Базова валюта
+Investor View: Режим інвестора
+Toggle Investor View: Переключити в режим інвестора
+Hide Tiny Transfers: Приховувати дрібні перекази
+Toggle Hide Tiny Transfers: Переключити відображення дрібних переказів
+Network: Мережа
+Developer Options: Інструменти розробника
+Confirmation: Підтвердження
+Data to sign: Дані для підтвердження та підпису
+$signature_warning: Підписання даних тягне за собою ризики. Використовуйте цю опцію, тільки якщо ви довіряєте джерелу.
+Sign: Підписати
+Done!: Готово!
+Signing was confirmed!: Підпис підтверджено!
+Transaction Info: Інформація про переказ
+Transaction in progress: Переклад виконується
+Comment was copied!: Коментар скопійовано!
+View Transaction on TONScan: Переглянути переклад у TONScan
+Sender: Відправник
+Recipient: Одержувач
+Address was copied!: Адресу скопійовано!
+Repeat: Повторити
+Receive: Отримати
+Switch Account: Змінити акаунт
+Copy wallet address: Скопіювати адресу
+View address on TONScan: Подивитися адресу в TONScan
+Open on CoinMarketCap: Відкрити в CoinMarketCap
+You have just created a new wallet: Вітаємо! Ви щойно створили новий гаманець
+You can now transfer your tokens from another wallet or exchange.: Тепер ви можете поповнити його з іншого гаманця або біржі.
+Assets: Активи
+Activity: Стрічка
+NFT: NFT
+No NFTs yet: Поки у вас немає NFT
+$nft_explore_offer: |
+  Але ви можете переглянути
+  наявні колекції.
+$nft_hardware_unsupported: На жаль, робота з NFT поки що не підтримується гаманцем Ledger.
+Open Getgems: Відкрити Getgems
+Transaction is not completed: Переказ не виконано
+Received: Отримано
+Sent: Відправлено
+$transaction_from: від %address%
+$transaction_to: на %address%
+Wallet is not backed up: Резервну копію гаманця не створено
+Testnet Version: Версія Testnet
+Error reading clipboard: Помилка буфера обміну
+$fee_value: "Комісія: %fee%"
+Loading...: Завантаження...
+Recipient Address: Адреса одержувача
+Wallet address or domain: Адреса гаманця або домен
+Incorrect address: Неправильна адреса
+Incorrect address.: Неправильна адреса.
+Paste: Вставити
+Insufficient balance: Недостатній баланс
+InsufficientBalance: Недостатній баланс
+Optional: За необхідності
+$send_token_symbol: Надіслати %1$s
+Is it all ok?: Все вірно?
+Receiving Address: Адреса одержувача
+Fee: Комісія
+Edit: Виправити
+Confirm: Підтвердити
+Confirm Transaction: Підтвердіть переказ
+Coins have been sent!: Переказ надіслано!
+Details: Інфо
+Change password visibility: Змінити видимість пароля
+Amount value: Значення
+Save Address: Зберегти адресу
+Name: Ім'я
+Save: Зберегти
+Copy: Скопіювати
+Remove From Saved Addresses: Видалити збережену адресу
+Add To Saved Addresses: Додати в Збережені адреси
+View Address on TONScan: Відкрити в TONScan
+No suggestions, you're on your own!: Нічого не знайдено :(
+Play Sounds: Включити звуки
+Focus on asset value rather than current balance: Фокус на вартості активів замість поточного балансу
+$tiny_transfers_help: Вимкніть цю опцію, щоб показувати перекази вартістю менше $%value%. Майте на увазі, що такі перекази часто використовуються для спаму та шахрайства.
+Today: Сьогодні
+Yesterday: Вчора
+Now: Зараз
+$receive_ton_description: Ви можете поділитися своєю адресою, відсканувати QR-код або створити посилання на депозит для отримання криптовалюти.
+Your address: Ваша адреса
+Wrong password, please try again.: Неправильний пароль, спробуйте ще раз.
+Appearance: Зовнішній вигляд
+Light: Світла
+Dark: Темна
+System: Системна
+Stake TON: Стейкінг
+Earn from your tokens while holding them: Отримуйте пасивний дохід від зберігання TON на надійному офіційному смарт-контракті
+$est_apy_val: Прибутковість ~%1$d%
+Why this is safe: Чому це безпечно
+Why is staking safe?: Це точно безпечно?
+$safe_staking_description1: Стейкінг **повністю децентралізований** і управляється **офіційними смарт-контрактами** TON Liquid Staking.
+$safe_staking_description2: Ваш депозит буде використано для валідації транзакцій у блокчейні в рамках механізму **proof-of-stake**.
+$safe_staking_description3: Ви можете вивести депозит із заробленими відсотками **в будь-який момент** - кошти переведуться на ваш основний рахунок **протягом двох днів**.
+$min_value: Мін. %value%
+Est. balance in a year: Очікуваний баланс через рік
+Confirm Staking: Підтвердити
+Confirm operation with your password: Введіть пароль для підтвердження
+Coins have been staked!: Депозит відправлено!
+View: Огляд
+Stake More: Додати
+Staking: Стейкінг
+Currently Staked: Поточний депозит
+Unstake: Вивести
+Earning History: Історія нарахувань
+$total: "Усього: %value%"
+Unstake TON: Вивести депозит
+$unstake_information_with_time: Поточний депозит буде повністю відправлено назад на ваш гаманець через %time%.
+Amount to unstake: Сума до виведення
+Confirm Unstaking: Підтвердити виведення
+Request for unstaking is sent!: Запит на виведення відправлено!
+$unstaking_when_receive: Депозит буде виведено через %time%.
+$unstake_insufficient_balance: Вам необхідно мати %balance% на вашому основному балансі, щоб відправити заявку на виведення депозиту.
+at %apy_value%: при %apy_value%
+Staked: Стейкінг
+Unstake Requested: Запит депозиту
+Unstaked: Виведення стейка
+The network fee has slightly changed, try sending again.: Комісія за мережу трохи змінилася, спробуйте відправити ще раз.
+Transfer was unsuccessful. Try again later.: З переказом щось пішло не так. Спробуйте ще раз.
+Unstaking was unsuccessful. Try again later.: Не вдалося вивести депозит. Спробуйте ще раз.
+Staking was unsuccessful. Try again later.: Не вдалося внести депозит. Спробуйте ще раз.
+Invalid amount: Некоректна сума
+Invalid address: Некоректна адреса
+Domain is not connected to a wallet: Домен не підключений до гаманця
+Unexpected error: Помилочка вийшла
+Unexpected Error: Непередбачена помилка
+Earn: Стейкінг
+Earning: Стейкінг
+InvalidAmount: Некоректна сума
+InvalidToAddress: Некоректна адреса одержувача
+DomainNotResolved: Помилка резолвінгу домену
+You can save this address for quick access while sending.: Ви можете зберегти цю адресу для швидкого доступу під час надсилання.
+Stake Again: Повторити депозит
+Earned: Зароблено
+Connect Dapp: Підключити додаток
+Select wallets to use on this dapp: Виберіть гаманці для використання з цим додатком
+Connect: Підключити
+Dapp Permissions: Дозволи для програми
+$dapp_can_view_balance: "Для %dappname% буде доступна ваша адреса гаманця і баланс."
+Send Transaction: Надіслати переказ
+Payload: Службові дані
+$many_transactions: "%1$d переказу"
+Total Amount: Загальна сума
+Unstaking: Зняти
+"Handle ton:// links": Обробляти посилання ton://
+Back up wallet to have full access to it: Зробіть резервну копію гаманця, щоб мати до нього повний доступ
+Consider More Secure Version: Підвищіть безпеку гаманця
+Install our native app or browser extension.: Встановіть наш додаток або браузерне розширення.
+Scam: Скам
+Scam comment is hidden.: Коментар приховано.
+Display: Показати
+$dapp_transfer_tokens_payload: Переказ %amount% з вашого акаунта на %address%
+Nested Transaction: Вкладена транзакція
+Connected Dapps: Підключені додатки
+Disconnect All Dapps: Відключити всі додатки
+Disconnect: Відключити
+Disconnect Dapp: Відключити додаток
+Disconnect Dapps: Відключити додатки
+Are you sure you want to disconnect?: Ви впевнені, що хочете відключити %dappname%?
+Are you sure you want to disconnect all websites?: Ви впевнені, що хочете відключити всі сайти?
+$dapps-description: Ви можете підключитися до децентралізованих додатків, що підтримують MyTonWallet. Вони можуть переглядати адресу гаманця, баланс і запитувати операції.
+Logged in with MyTonWallet: Підключені за допомогою MyTonWallet
+No active connections: Немає активних підключень
+Other: Інші
+Assets & Activity: Активи та Стрічка
+Tokens Settings: Налаштування токенів
+Your Tokens: Ваші токени
+Add Token: Додати токен
+Delete Token: Видалити токен
+Are you sure you want to delete?: Ви впевнені, що хочете видалити %token%?
+Hide Tokens With No Cost: Приховати токени без вартості
+Sort By Cost: Сортувати за вартістю
+Update MyTonWallet: Оновити MyTonWallet
+Connect Ledger: Підключити Ledger
+Connecting to your Ledger...: Підключення до Ledger...
+Failed to connect: Не вдалося підключитися
+Ledger Connected!: Ledger підключено!
+Select Ledger Wallets: Виберіть гаманці Ledger
+"%1$d Selected": "%1$d Обрано"
+Add: Додати
+Try Again: Повторити
+Driver: Драйвер
+Connect your Ledger to PC: Підключіть ваш Ledger до комп'ютера
+Unlock it and open the TON App: Розблокуйте його і відкрийте додаток TON
+Maybe you need to check the password or change the driver.: Можливо, вам потрібно перевірити пароль або змінити драйвер.
+Confirm via Ledger: Підтвердити через Ledger
+Please confirm transaction on your Ledger: Будь ласка, підтвердіть транзакцію у вашому Ledger
+Declined: Відхилено
+Create Wallet: Створити гаманець
+Switch to the newly opened tab to connect Ledger.: Перейдіть на щойно відкриту вкладку, щоб підключити Ledger.
+Once connected, switch back to this window to proceed.: Після підключення поверніться в це вікно, щоб продовжити.
+Not all transactions were sent successfully: Не всі транзакції були успішно відправлені
+The time on your device is incorrect, sync it and try again: Время на вашем устройстве некорректно, синхронизируйте его и попробуйте снова
+Name or Address...: Ім'я або адреса...
+Such error, many tabs: Неактивна вкладка
+$many_tabs_error_description: |
+  MyTonWallet підтримує тільки одну активну вкладку з додатком.
+  Будь ласка, перезавантажте цю сторінку, щоб продовжити використовувати цю вкладку, або закрийте її.
+Reload App: Перезавантажити додаток
+Please confirm operation on your Ledger: Будь ласка, підтвердіть операцію на вашому Ledger
+Token Not Found: Токен не знайдено
+Try another keyword or address.: Спробуйте інше ключове слово або адресу.
+Decrypt: Розшифрувати
+Encrypted Message: Зашифроване повідомлення
+Message is encrypted.: Повідомлення зашифровано.
+$dapp_ledger_warning1: Ви збираєтеся відправити багатоадресну транзакцію, використовуючи свій гаманець **Ledger**. Вам потрібно буде підписати кожну базову транзакцію **по одній вручну**.
+$dapp_ledger_warning2: Будь ласка, не поспішайте і не переривайте процес.
+Agree: Згоден
+Unfortunately, this operation is not yet supported by Ledger wallet.: На жаль, ця операція ще не підтримується Ledger гаманцем.
+Swap: Обмін
+You sell: Ви продаєте
+You buy: Ви купуєте
+Swap Details: Деталі обміну
+Blockchain Fee: Комісія блокчейну
+Routing Fees: Комісії маршрутизації
+Included: Вкл. у ціну
+Price Impact: Вплив на ціну
+Minimum Received: Мінімально отримаєте
+Slippage: Прослизання
+$swap_from_to: Обміняти %from% на %to%
+The exchange rate is below market value!: Курс обміну на %value% нижче за ринкову вартість!
+Invalid Pair: Неприпустима пара
+We do not recommend to perform an exchange, try to specify a lower amount.: Не рекомендуємо виконувати обмін, спробуйте вказати меншу суму.
+$swap_routing_fees_tooltip: Комісії децентралізованої біржі та додатка (~0,875%) вже включені в ціну, яку ви бачите, і не стягуються додатково.
+$swap_minimum_received_tooltip1: Це найменша кількість нових токенів, яку ви отримаєте від цього обміну, враховуючи поточні умови ринку, допустиме прослизання і потенційний вплив на ціну.
+$swap_minimum_received_tooltip2: Це очікуване мінімальне значення, але, якщо умови сильно зміняться під час обробки вашого обміну, підсумкова сума може бути меншою.
+$swap_price_impact_tooltip1: Це показує, наскільки ваша угода може змінити ціну токена.
+$swap_price_impact_tooltip2: Великі угоди можуть сильніше вплинути на ціну. Загалом, менше значення краще.
+$swap_slippage_tooltip1: Тут встановлюється, наскільки ціна може змінитися, перш ніж ваш обмін буде оброблено.
+$swap_slippage_tooltip2: Якщо під час обробки вашого обміну ціна зміниться більше, ніж на це значення, ваше замовлення буде скасовано.
+Coins have been swapped!: Токени були обміняні!
+Slippage not specified: Прослизання не вказано
+Slippage too high: Прослизання занадто велике
+Not enough TON: Недостатньо TON
+Use Responsibly: Використовуйте відповідально
+$auth_responsibly_description1: |
+  MyTonWallet - це **некастодіальний** гаманець, що означає, що **тільки ви** маєте повний контроль і, найголовніше, **повну відповідальність** за свої кошти.
+$auth_responsibly_description2: |
+  Ваші закриті ключі зберігаються на вашому пристрої і можуть бути схильні до **хакерських атак**. Якщо ваш комп'ютер заражений **шкідливою програмою**, ваші кошти можуть бути вкрадені.
+$auth_responsibly_description3: |
+  Команда MyTonWallet **не несе відповідальності** за збереження ваших коштів, як і виробник вашого комп'ютера або інтернет-провайдер.
+$auth_responsibly_description4: |
+  **Ніколи** не зберігайте всі свої кошти в одному місці. **Урізноманітьте** і використовуйте різне програмне та апаратне забезпечення. Завжди **проводьте власні дослідження** і дізнавайтеся більше про криптобезпеку.
+Start Wallet: Почати використання
+$auth_backup_warning_notice: |
+  Тепер вам потрібно вручну **зробити резервну копію** секретних слів на випадок, якщо ви забудете пароль або втратите доступ до цього пристрою.
+Later: Пізніше
+Back Up Now: Показати слова зараз
+I have read and accept this information: Я прочитав і приймаю цю інформацію.
+$ledger_verify_address: Завжди перевіряйте вставлену адресу, використовуючи Ledger.
+$ledger_not_ready: Ledger не підключений або застосунок TON не відкритий.
+Verify now: Перевірити зараз
+Invalid address format. Only URL Safe Base64 format is allowed.: Некоректний формат адреси. Дозволено тільки URL Safe Base64 формат.
+$auth_backup_description1: |
+  Ви створили новий **безпечний гаманець**,
+  доступ до якого **є тільки у вас**.
+$auth_backup_description2: |
+  Однак важливо пам'ятати:
+  **особливі можливості**
+  вимагають **особливої відповідальності**!
+$auth_backup_description3: |
+  Зараз необхідно зробити
+  **резервну копію** секретних слів.
+  Це допоможе, якщо ви втратите доступ
+  до цього пристрою або забудете пароль.
+Swap Placed: Обмін розміщено
+Swapping: Йде обмін
+Swapped: Обмін
+Swap Failed: Обмін не виконано
+Exchange rate: Обмінний курс
+Swap Again: Повторити обмін
+Terms of Use: Умови використання
+Privacy Policy: Умови використання
+Insufficient liquidity: Недостатньо ліквідності
+This address is new and never received transfers before.: Ця адреса нова і раніше не отримувала переказів.
+Create Backup: Створення резервної копії
+Sending: Відправлення
+Failed: Помилка
+Refunded: Повернуто
+On hold: Утримано
+Expired: Закінчився
+In progress: У процесі
+Waiting for Payment: Очікування оплати
+Waiting for payment: Очікування оплати
+Blockchain: Блокчейн
+Receiving address in blockchain: Адреса для отримання в блокчейні %blockchain%
+Please provide an address of your wallet in another blockchain to receive bought tokens.: Будь ласка, вкажіть адресу вашого гаманця в іншому блокчейні для отримання куплених токенів.
+The time for sending coins is over: Час відправлення монет минув
+Please wait a few moments...: Будь ласка, зачекайте деякий час...
+You have not sent the coins to the specified address.: Ви не відправили монети на вказану адресу.
+$swap_changelly_to_ton_description1: "Надішліть %value% на цю адресу в блокчейні %blockchain% протягом %time%"
+Please contact support and provide a transaction ID.: Будь ласка, зв'яжіться з підтримкою та надайте ідентифікатор транзакції.
+Exchange failed and coins were refunded to your wallet.: Обмін не вдався і монети були повернуті на ваш гаманець.
+Please contact security team to pass the KYC procedure.: Будь ласка, зв'яжіться з командою безпеки, щоб пройти процедуру KYC.
+Swap Expired: Обмін закінчився
+Swap On Hold: Обмін утримано
+Swap Refunded: Обмін повернуто
+Changelly Payment Address: Адреса оплати Changelly
+Cross-chain exchange provided by Changelly: Сервіс надано Changelly
+$swap_changelly_agreement_message: Продовжуючи, ви погоджуєтеся з %terms% і %policy% і розумієте, що транзакція може викликати перевірку відповідно до %kyc%.
+$swap_changelly_terms_of_use: умовами використання
+$swap_changelly_privacy_policy: політикою конфіденційності
+Password must contain %length% digits.: Пароль має містити %length% цифри.
+Deposit Link: Посилання для поповнення
+$swap_changelly_from_ton_description: "Токени буде відправлено на вашу адресу в блокчейні %blockchain% найближчим часом:"
+Please note that it may take up to a few hours for tokens to appear in your wallet.: Поява куплених токенів у вашому гаманці може зайняти до кількох годин.
+Minimum amount: Мінімум %value%
+Maximum amount: Максимум %value%
+Display Tray Icon: Іконка на панелі завдань
+Enable Auto-Updates: Увімкнути автооновлення
+Biometric Authentication: Біометрична аутентифікація
+If you turn off biometric protection, you will need to create a password.: Якщо ви вимкнете біометричний захист, вам буде потрібно створити пароль.
+Enter your current password: Введіть ваш поточний пароль
+Turn On Biometrics: Увімкнення біометрії
+Please confirm transaction using biometrics.: Будь ласка, підтвердіть транзакцію за допомогою біометрії.
+Enabling biometric confirmation will reset the password.: Увімкнення біометричного підтвердження призведе до скидання пароля.
+Biometric Registration: Підключення біометрії
+Step 1 of 2. Registration: Крок 1 із 2. Реєстрація
+Step 2 of 2. Verification: Крок 2 з 2. Перевірка
+Biometric setup failed.: Налаштувати біометрію не вдалося.
+Biometric confirmation failed.: Підтвердити біометрію не вдалося.
+Failed to disable biometrics.: Не вдалося відключити біометрію.
+Biometric Confirmation: Підтвердження біометрії
+Please verify the operation.: Будь ласка, підтвердіть операцію.
+Create Password: Придумайте пароль
+Complete: Завершити
+Verification: Перевірка
+Create a password or use biometric authentication to protect it.: Створіть пароль або використовуйте біометричну аутентифікацію для його захисту.
+Connect Biometrics: Підключити біометрію
+Use Password: Використовувати пароль
+Biometrics Disabled: Біометрія вимкнена
+Biometrics Enabled: Біометрія ввімкнена
+A request is already pending: Підключення біометрії вже виконується
+Please confirm operation using biometrics.: Будь ласка, підтвердіть операцію за допомогою біометрії.
+Scan QR Code: Сканувати QR-код
+Permission denied. Please grant camera permission to use the QR code scanner.: Доступ заборонено. Будь ласка, дайте камері дозвіл на використання сканера QR-коду.
+Unsupported QR code format: Непідтримуваний формат QR-коду
+An error on the server side. Please try again.: Помилка на стороні сервера. Будь ласка, спробуйте ще раз.
+Unrecognized QR Code: Нерозпізнаний QR-код
+$fee_value_almost_equal: Комісія ≈ %fee%
+Address was saved!: Адреса збережена!
+US Dollar: Долар США
+Euro: Євро
+Ruble: Рубль
+Yuan: Юань
+$max_balance: "Максимум: %balance%"
+$unstake_information_instantly: Ви отримаєте свій депозит миттєво.
+Select Token: Вибрати токен
+MY: МОЇ
+POPULAR: ПОПУЛЯРНІ
+Not Found: Не знайдено
+Wallet is ready!: Гаманець готовий!
+Wallet is imported!: Гаманець імпортовано!
+Create a code to protect it: Створіть код для його захисту
+Enter your code again: Введіть свій код ще раз
+Codes don't match: Коди не збігаються
+Code set successfully: Код успішно встановлено
+Use Biometrics: Використовуйте біометрію
+Use Touch ID: Використовуйте Touch ID
+Use Face ID: Використовуйте Face ID
+You can connect your biometric data for more convenience: Для більшої зручності ви можете підключити свої біометричні дані
+Connect Touch ID: Підключити Touch ID
+Connect Face ID: Підключити Face ID
+Not Now: Не зараз
+Biometric Authentification: Біометрична аутентифікація
+Touch ID: Touch ID
+Face ID: Face ID
+Turn Off Touch ID: Відключити Touch ID
+Turn Off Face ID: Вимкнути Face ID
+Turn Off Biometrics: Відключити біометрію
+Enter code: Введіть код
+Enter code or use Face ID: Введіть код або використовуйте Face ID
+Enter code or use Touch ID: Введіть код або використовуйте Touch ID
+Enter code or use biometrics: Введіть код або використовуйте біометрію
+Wrong code, please try again: Неправильний код, спробуйте ще раз
+Scan your fingerprint: Відскануйте свій відбиток пальця
+Incorrect code, please try again.: Неправильний код, будь ласка, спробуйте знову.
+Correct: Правильно
+Confirm Operation: Підтвердіть операцію
+Confirm Swap: Підтвердити обмін
+"%amount% to %address%": "%amount% на %address%"
+"%amount_from% to %amount_to%": "%amount_from% на %amount_to%"
+Failed to enable biometrics.: Не вдалося ввімкнути біометрію.
+Please try to confirm your biometrics again.: Будь ласка, спробуйте ще раз.
+Unknown error.: Невідома помилка.
+Are you sure you want to disable Face ID?: Ви впевнені, що хочете відключити Face ID?
+Are you sure you want to disable Touch ID?: Ви впевнені, що хочете відключити Touch ID?
+Are you sure you want to disable biometrics?: Ви впевнені, що хочете відключити біометрію?
+Yes: Так
+Declined. Please try to confirm transaction using biometrics again.: Відхилено. Будь ласка, спробуйте ще раз підтвердити транзакцію за допомогою біометрії.
+No Activity: Немає активності
+Add / Buy: Поповнити
+Buy with Card: Купівля з картки
+Buy with Crypto: Купівля за криптовалюту
+Receive with QR or Invoice: Поповнення через QR або рахунок
+Cannot load widget: Неможливо завантажити віджет
+Explore: Огляд
+No partners yet: Ще немає партнерів
+Clear: Очистити
+Get TON: Отримати TON
+Declined. Please try to confirm operation using biometrics again.: Відхилено. Будь ласка, спробуйте ще раз підтвердити операцію за допомогою біометрії.
+$unstake_up_to_information: Миттєво - до %value%
+$all_balance: "Все: %balance%"
+$unstaking_not_enough_balance: Вам необхідно мати %value% на вашому основному балансі, щоб продовжити виведення.
+$ledger_verify_address_on_device: Будь ласка, перевірте адресу у вашому Ledger.
+Wallet Versions: Версії гаманців
+$read_more_about_wallet_version: Дізнайтеся більше про типи контрактів гаманців на %ton_link%.
+$current_wallet_version: Ваша поточна версія гаманця %version%.
+You have tokens on other versions of your wallet. You can import them from here.: У вас є токени на інших версіях вашого гаманця. Ви можете імпортувати їх звідси.
+$wallet_switch_version_1: Ви також можете %action%.
+$wallet_switch_version_2: переключитися на іншу версію гаманця
+or import from: або імпортувати з
+$insufficient_fee: "Недостатньо для комісії: %fee%"
+Required: Обов'язково
+Transaction to this smart contract is not yet supported by Ledger.: Транзакція за цим смарт-контрактом поки не підтримується Ledger.
+This type of transaction is not yet supported by Ledger.: Цей тип транзакції ще не підтримується Ledger.
+The current version of Ledger only supports English-language comments without special characters.: У поточній версії Ledger підтримуються тільки англомовні коментарі без спецсимволів.
+Comment is too long.: Коментар занадто довгий.
+Transferring NFT is not yet supported by Ledger.: Передача NFT поки що не підтримується Ledger.
+Encrypted comments are not yet supported by Ledger.: Зашифровані коментарі поки що не підтримуються Ledger.
+Memo: Memo
+Memo was copied!: Memo було скопійовано!
+$hide_tokens_no_cost_help: |
+  Вимкніть цю опцію, щоб відображати у вашому обліковому записі токени із вартістю менше $%value%.
+  Будь ласка, майте на увазі, що такі токени часто використовуються для спаму і шахрайства.
+  Ви також можете вибірково ввімкнути та вимкнути конкретні токени, використовуючи список нижче на цьому екрані.
+No internet connection. Please check your connection and try again.: Відсутнє підключення до інтернету. Будь ласка, перевірте своє з'єднання і спробуйте знову.
+To use this feature, first enable Face ID in your phone settings.: Щоб використовувати цю функцію, спочатку активуйте ідентифікацію обличчя в налаштуваннях телефону.
+To use this feature, first enable biometrics in your phone settings.: Щоб використовувати цю функцію, спочатку активуйте біометрію в налаштуваннях телефону.
+Open Settings: Відкрити налаштування
+You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Ви збираєтеся передати важливий сервісний токен, який необхідний для виведення вашого депозиту зі стейкінгу.
+No Price: Немає ціни
+Search or enter address...: Введіть адресу або запит...
+Connecting dapps is not yet supported by Ledger.: Ledger поки що не підтримує підключення додатків.
+Time synchronization issue. Please ensure your device's time settings are correct.: Проблема із синхронізацією часу. Будь ласка, переконайтеся, що налаштування часу на вашому пристрої правильні.
+Data was copied!: Дані скопійовано!
+Open NFT Collection: Відкрити колекцію NFT
+Previous: Попередній
+Next: Наступний
+Insufficient TON for fee.: Недостатньо TON для комісії.
+Send NFT: Надіслати NFT
+NFT has been sent!: NFT відправлено!
+Cannot be sent: Не можна відправити
+NFT is for sale: NFT на продажу
+More actions: Більше дій
+Open on TONScan: Відкрити на TONScan
+Swap is not supported in Testnet.: Обмін не підтримується в Testnet.
+Swap is not yet supported by Ledger.: Обмін ще не підтримується Ledger.
+Buying with card is not supported in Testnet.: Купівля за допомогою картки не підтримується в Testnet.
+Staking is not supported in Testnet.: Стейкінг не підтримується в Testnet.
+Get Support: Підтримка
+$transfer_inactive_contract_error: |
+  Ви вказали адресу у форматі "EQ...", але вона неактивна, тому транзакцію не буде виконано.
+  Якщо ви точно хочете надіслати токени на цю адресу, то вкажіть її у форматі "UQ...".'
+Successfully: Успішно
+Unstake More: Вивести ще
+Are you sure you want to burn this NFT? It will be lost forever.: Ви впевнені, що хочете спалити цей NFT? Його буде втрачено назавжди.
+$multi_burn_nft_warning: "Ви збираєтеся спалити %amount% NFT."
+$multi_send_nft_warning: "Процес може зайняти ~%duration% хв. Будь ласка, не закривайте додаток і не перемикайтеся на інші акаунти, поки він не завершиться."
+Burn NFT: Спалити NFT
+Burn: Спалити
+Private Key: Приватний ключ
+"%amount% NFTs": "%amount% NFT"
+1 NFT: 1 NFT
+1 NFT Selected: 1 NFT обрано
+"%amount% NFTs Selected": "%amount% NFTs обрано"
+For sale. Cannot be sent and burned: На продажу. Не можна відправити і спалити
+Select: Вибрати
+Send All: Надіслати все
+Burn All: Спалити все
+Select All: Вибрати все
+Collection: Колекція

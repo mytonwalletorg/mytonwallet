@@ -46,7 +46,7 @@ export type DialogType = {
   message: string;
 };
 
-export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'tr' | 'de' | 'th';
+export type LangCode = 'en' | 'es' | 'ru' | 'zh-Hant' | 'zh-Hans' | 'tr' | 'de' | 'th' | 'uk';
 
 export interface LangItem {
   langCode: LangCode;
