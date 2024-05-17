@@ -573,6 +573,7 @@ $transfer_inactive_contract_error: |
   Якщо ви точно хочете надіслати токени на цю адресу, то вкажіть її у форматі "UQ...".'
 Successfully: Успішно
 Unstake More: Вивести ще
+WrongAddress: Транзакція з адреси, що не збігається з адресою акаунта.
 Are you sure you want to burn this NFT? It will be lost forever.: Ви впевнені, що хочете спалити цей NFT? Його буде втрачено назавжди.
 $multi_burn_nft_warning: "Ви збираєтеся спалити %amount% NFT."
 $multi_send_nft_warning: "Процес може зайняти ~%duration% хв. Будь ласка, не закривайте додаток і не перемикайтеся на інші акаунти, поки він не завершиться."
