@@ -156,6 +156,11 @@ export const LANG_LIST: LangItem[] = [{
   name: 'Thai',
   nativeName: 'ไทย',
   rtl: false,
+}, {
+  langCode: 'uk',
+  name: 'Ukrainian',
+  nativeName: 'Українська',
+  rtl: false,
 }];
 
 export const STAKING_CYCLE_DURATION_MS = 131072000; // 36.4 hours
