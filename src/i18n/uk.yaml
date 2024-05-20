@@ -93,7 +93,7 @@ Done: Готово
 Delete: Видалити
 Delete Saved Address: Видалити збережену адресу
 Are you sure you want to remove this address from your saved ones?: Упевнені, що хочете видалити збережену адресу гаманця?
-You will be able to save it again via Transaction Info with this address.: Ви зможете зберегти його знову, відкривши будь-який переклад із цією адресою.
+You will be able to save it again via Transaction Info with this address.: Ви зможете зберегти його знову, відкривши будь-який переказ із цією адресою.
 Address removed from saved: Адресу гаманця видалено зі збережених
 Warning!: Важливо!
 Log Out: Вихід є
@@ -130,9 +130,9 @@ Sign: Підписати
 Done!: Готово!
 Signing was confirmed!: Підпис підтверджено!
 Transaction Info: Інформація про переказ
-Transaction in progress: Переклад виконується
+Transaction in progress: Переказ виконується
 Comment was copied!: Коментар скопійовано!
-View Transaction on TONScan: Переглянути переклад у TONScan
+View Transaction on TONScan: Переглянути переказ у TONScan
 Sender: Відправник
 Recipient: Одержувач
 Address was copied!: Адресу скопійовано!
