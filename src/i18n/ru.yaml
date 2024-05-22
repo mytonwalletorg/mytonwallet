@@ -460,6 +460,7 @@ $fee_value_almost_equal: Комиссия ≈ %fee%
 Address was saved!: Адрес сохранён!
 US Dollar: Доллар США
 Euro: Евро
+Hryvnia: Гривна
 Ruble: Рубль
 Yuan: Юань
 $max_balance: "Максимум: %balance%"

@@ -447,6 +447,7 @@ $fee_value_almost_equal: 手续费 ≈ %fee%
 Address was saved!: 地址已保存！
 US Dollar: 美元
 Euro: 欧元
+Hryvnia: 格里夫纳
 Ruble: 卢布
 Yuan: 元
 $max_balance: "最大: %balance%"
