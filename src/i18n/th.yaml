@@ -80,7 +80,7 @@ Is it open source?: สิ่งนี้เป็นโอเพนซอร์
 $about_wallet_github: ใช่, เราเป็นโอเพนซอร์ส. สามารถสำรวจเราได้ที่ %github_link%.
 $about_github_link_text: "**GitHub repository**"
 Is there a community?: แล้วมีกลุ่มชุมชนหรือไม่?
-$about_wallet_community: แน่นอน, สามารถสื่อสารกับเราได้ที่ %telegram_link%.
+$about_wallet_community: แน่นอน, สามารถสื่อสารกับเราได้ที่ %community_link%.
 $about_community_link_text: "**Telegram channel**"
 Currency History: ประวัติทางการเงิน
 $add_account_description1: |
