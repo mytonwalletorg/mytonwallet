@@ -76,6 +76,7 @@ export interface ApiTransaction {
   isIncoming: boolean;
   normalizedAddress: string;
   inMsgHash: string;
+  shouldHide?: boolean;
   type?: ApiTransactionType;
   metadata?: ApiTransactionMetadata;
   nft?: ApiNft;

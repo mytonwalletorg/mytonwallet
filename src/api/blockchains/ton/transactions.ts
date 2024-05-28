@@ -26,7 +26,7 @@ import type {
 import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import { ONE_TON, TON_TOKEN_SLUG } from '../../../config';
+import { ONE_TON, TONCOIN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
@@ -50,6 +50,7 @@ import {
   parseAddress,
   parseBase64,
   resolveTokenWalletAddress,
+  sendExternal,
   toBase64Address,
 } from './util/tonCore';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
@@ -66,10 +67,10 @@ import {
   getContractInfo, getWalletBalance, getWalletInfo, pickAccountWallet,
 } from './wallet';
 
-const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 60; // 60 sec.
+const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 120; // 2 min (extended for diesel payment)
 const GET_TRANSACTIONS_LIMIT = 50;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;
-const WAIT_TRANSFER_TIMEOUT = 40000; // 40 sec.
+const WAIT_TRANSFER_TIMEOUT = 120000; // 2 min
 const WAIT_TRANSFER_PAUSE = 1000; // 1 sec.
 const WAIT_TRANSACTION_PAUSE = 500; // 0.5 sec.
 
@@ -377,8 +378,7 @@ export async function submitTransfer(options: {
     }
 
     const client = getTonClient(network);
-    await wallet!.send(transaction);
-    const { msgHash, boc } = client.popLastSendBoc();
+    const { msgHash, boc } = await sendExternal(client, wallet!, transaction);
 
     addPendingTransfer(network, fromAddress, seqno, boc);
 
@@ -548,7 +548,7 @@ export async function getMergedTransactionSlice(accountId: string, lastTxIds: Ap
   }));
 
   const allTxs = [...tonTxs, ...results.flat()];
-  allTxs.sort((a, b) => compareActivities(a, b));
+  allTxs.sort(compareActivities);
 
   return allTxs;
 }
@@ -560,7 +560,7 @@ export async function getTokenTransactionSlice(
   fromTxId?: string,
   limit?: number,
 ): Promise<ApiTransactionActivity[]> {
-  if (tokenSlug === TON_TOKEN_SLUG) {
+  if (tokenSlug === TONCOIN_SLUG) {
     return getAccountTransactionSlice(accountId, toTxId, fromTxId, limit);
   }
 
@@ -636,7 +636,11 @@ function transactionToActivity(transaction: ApiTransaction): ApiTransactionActiv
   };
 }
 
-export async function checkMultiTransactionDraft(accountId: string, messages: TonTransferParams[]) {
+export async function checkMultiTransactionDraft(
+  accountId: string,
+  messages: TonTransferParams[],
+  withDiesel = false,
+) {
   const { network } = parseAccountId(accountId);
 
   const result: {
@@ -674,10 +678,12 @@ export async function checkMultiTransactionDraft(accountId: string, messages: To
     const { transaction } = await signMultiTransaction(network, wallet, messages);
 
     const realFee = await calculateFee(network, wallet, transaction, account.isInitialized);
+
+    // TODO Should be `0` for `withDiesel`?
     result.totalAmount = totalAmount;
     result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
 
-    if (balance < totalAmount + realFee) {
+    if (!withDiesel && balance < totalAmount + realFee) {
       return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
     }
 
@@ -692,6 +698,7 @@ export async function submitMultiTransfer(
   password: string,
   messages: TonTransferParams[],
   expireAt?: number,
+  withDiesel = false,
 ): Promise<ApiSubmitMultiTransferResult> {
   const { network } = parseAccountId(accountId);
 
@@ -717,16 +724,19 @@ export async function submitMultiTransfer(
       network, wallet!, messages, privateKey, expireAt,
     );
 
-    const fee = await calculateFee(network, wallet!, transaction, account.isInitialized);
-    if (BigInt(balance) < BigInt(totalAmount) + BigInt(fee)) {
-      return { error: ApiTransactionError.InsufficientBalance };
+    if (!withDiesel) {
+      const fee = await calculateFee(network, wallet!, transaction, account.isInitialized);
+      if (balance < totalAmount + fee) {
+        return { error: ApiTransactionError.InsufficientBalance };
+      }
     }
 
-    const tonClient = getTonClient(network);
-    await wallet!.send(transaction);
-    const { msgHash, boc } = tonClient.popLastSendBoc();
+    const client = getTonClient(network);
+    const { msgHash, boc } = await sendExternal(client, wallet!, transaction, withDiesel);
 
-    addPendingTransfer(network, fromAddress, seqno, boc);
+    if (!withDiesel) {
+      addPendingTransfer(network, fromAddress, seqno, boc);
+    }
 
     const clearedMessages = messages.map((message) => {
       if (typeof message.payload !== 'string' && typeof message.payload !== 'undefined') {
@@ -873,13 +883,11 @@ async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction:
 export async function sendSignedMessage(accountId: string, message: ApiSignedTransfer) {
   const { network } = parseAccountId(accountId);
   const { address: fromAddress, publicKey, version } = await fetchStoredAccount(accountId);
-  const wallet = getTonWalletContract(publicKey, version!);
   const client = getTonClient(network);
-  const contract = client.open(wallet);
+  const wallet = client.open(getTonWalletContract(publicKey, version!));
 
   const { base64, seqno } = message;
-  await contract.send(Cell.fromBase64(base64));
-  const { msgHash, boc } = client.popLastSendBoc();
+  const { msgHash, boc } = await sendExternal(client, wallet, Cell.fromBase64(base64));
 
   addPendingTransfer(network, fromAddress, seqno, boc);
 
@@ -889,17 +897,14 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
 export async function sendSignedMessages(accountId: string, messages: ApiSignedTransfer[]) {
   const { network } = parseAccountId(accountId);
   const { address: fromAddress, publicKey, version } = await fetchStoredAccount(accountId);
-  const wallet = getTonWalletContract(publicKey, version!);
   const client = getTonClient(network);
-  const contract = client.open(wallet);
+  const wallet = client.open(getTonWalletContract(publicKey, version!));
 
   const attempts = ATTEMPTS + messages.length;
   let index = 0;
   let attempt = 0;
 
-  const firstExternalMessage = toExternalMessage(
-    contract, messages[0].seqno, Cell.fromBase64(messages[0].base64),
-  );
+  let firstBoc: string | undefined;
 
   const msgHashes: string[] = [];
   while (index < messages.length && attempt < attempts) {
@@ -907,10 +912,12 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     try {
       await waitPendingTransfer(network, fromAddress);
 
-      await contract.send(Cell.fromBase64(base64));
-
-      const { msgHash, boc } = client.popLastSendBoc();
+      const { msgHash, boc } = await sendExternal(client, wallet, Cell.fromBase64(base64));
       msgHashes.push(msgHash);
+
+      if (index === 0) {
+        firstBoc = boc;
+      }
 
       addPendingTransfer(network, fromAddress, seqno, boc);
 
@@ -921,7 +928,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     attempt++;
   }
 
-  return { successNumber: index, externalMessage: firstExternalMessage, msgHashes };
+  return { successNumber: index, firstBoc, msgHashes };
 }
 
 export async function decryptComment(
@@ -970,7 +977,7 @@ export async function fixTokenActivitiesAddressForm(network: ApiNetwork, activit
   const tokenAddresses: Set<string> = new Set();
 
   for (const activity of activities) {
-    if (activity.kind === 'transaction' && activity.slug !== TON_TOKEN_SLUG) {
+    if (activity.kind === 'transaction' && activity.slug !== TONCOIN_SLUG) {
       tokenAddresses.add(activity.fromAddress);
       tokenAddresses.add(activity.toAddress);
     }
@@ -983,7 +990,7 @@ export async function fixTokenActivitiesAddressForm(network: ApiNetwork, activit
   const addressBook = await fetchAddressBook(network, Array.from(tokenAddresses));
 
   for (const activity of activities) {
-    if (activity.kind === 'transaction' && activity.slug !== TON_TOKEN_SLUG) {
+    if (activity.kind === 'transaction' && activity.slug !== TONCOIN_SLUG) {
       activity.fromAddress = addressBook[activity.fromAddress].user_friendly;
       activity.toAddress = addressBook[activity.toAddress].user_friendly;
     }

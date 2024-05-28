@@ -1,7 +1,8 @@
+import type { ApiTransactionActivity } from '../../../api/types';
 import { TransferState } from '../../types';
 
-import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../../config';
-import { compareActivities } from '../../../util/compareActivities';
+import { IS_CAPACITOR, TONCOIN_SLUG } from '../../../config';
+import { groupBy } from '../../../util/iteratees';
 import { callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
@@ -9,6 +10,7 @@ import { getIsTinyTransaction } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   addLocalTransaction,
+  addNewActivities,
   assignRemoteTxId,
   clearIsPinAccepted,
   removeLocalTransaction,
@@ -53,72 +55,71 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       if (IS_DELEGATING_BOTTOM_SHEET) {
         callActionInNative('apiUpdate', update);
       }
-      const { accountId } = update;
-      const activities = update.activities.sort((a, b) => compareActivities(a, b, true));
-
-      let shouldPlaySound = false;
+      const { accountId, activities } = update;
 
       global = updateActivitiesIsLoadingByAccount(global, accountId, false);
 
       const localTransactions = selectLocalTransactions(global, accountId) ?? [];
+      const withLocalIndex = activities.map((activity) => {
+        if (activity.kind !== 'transaction') {
+          return { activity, localIndex: -1, groupName: 'newActivities' };
+        }
 
-      for (const activity of activities) {
-        if (activity.kind === 'transaction') {
-          const index = localTransactions.findIndex(({
-            amount, isIncoming, slug, normalizedAddress, inMsgHash,
-          }) => {
-            if (slug === TON_TOKEN_SLUG) {
-              return inMsgHash === activity.inMsgHash && amount === activity.amount
-                && normalizedAddress === activity.normalizedAddress;
-            } else {
-              return amount === activity.amount && !isIncoming && slug === activity.slug
-                && normalizedAddress === activity.normalizedAddress;
-            }
-          });
-
-          if (index !== -1) {
-            const [localTransaction] = localTransactions.splice(index, 1);
-
-            const { txId, amount } = activity;
-            const localTxId = localTransaction.txId;
-            global = assignRemoteTxId(global, accountId, localTxId, txId, amount);
-
-            if (global.currentTransfer.txId === localTxId) {
-              global = updateCurrentTransfer(global, { txId });
-            }
-
-            const { currentActivityId } = selectAccountState(global, accountId) || {};
-            if (currentActivityId === localTxId) {
-              global = updateAccountState(global, accountId, { currentActivityId: txId });
-            }
-
-            global = removeLocalTransaction(global, accountId, localTxId);
-
-            continue;
+        const localIndex = localTransactions.findIndex(({
+          amount, isIncoming, slug, normalizedAddress, inMsgHash,
+        }) => {
+          if (slug === TONCOIN_SLUG) {
+            return inMsgHash === activity.inMsgHash && amount === activity.amount
+              && normalizedAddress === activity.normalizedAddress;
+          } else {
+            return amount === activity.amount && !isIncoming && slug === activity.slug
+              && normalizedAddress === activity.normalizedAddress;
           }
+        });
+
+        return { activity, localIndex, groupName: localIndex >= 0 ? 'localUpdates' : 'newActivities' };
+      });
+
+      const groups = groupBy(withLocalIndex, 'groupName');
+
+      groups.localUpdates?.forEach(({ activity, localIndex }) => {
+        const [localTransaction] = localTransactions.splice(localIndex, 1);
+
+        const { txId, amount, shouldHide } = activity as ApiTransactionActivity;
+        const localTxId = localTransaction.txId;
+        global = assignRemoteTxId(global, accountId, localTxId, txId, amount, shouldHide);
+
+        if (global.currentTransfer.txId === localTxId) {
+          global = updateCurrentTransfer(global, { txId });
         }
 
-        global = updateActivity(global, accountId, activity);
-
-        if (activity.kind === 'swap') {
-          continue;
+        const { currentActivityId } = selectAccountState(global, accountId) || {};
+        if (currentActivityId === localTxId) {
+          global = updateAccountState(global, accountId, { currentActivityId: txId });
         }
 
-        if (
-          activity.isIncoming
-          && global.settings.canPlaySounds
-          && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
-          && !(
-            global.settings.areTinyTransfersHidden
-            && getIsTinyTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
-          )
-        ) {
-          shouldPlaySound = true;
-        }
-      }
+        global = removeLocalTransaction(global, accountId, localTxId);
+      });
 
-      if (shouldPlaySound) {
-        playIncomingTransactionSound();
+      if (groups.newActivities) {
+        const newActivities = groups.newActivities.map(({ activity }) => activity);
+
+        global = addNewActivities(global, accountId, newActivities);
+
+        const shouldPlaySound = newActivities.some((activity) => {
+          return activity.kind === 'transaction'
+            && activity.isIncoming
+            && global.settings.canPlaySounds
+            && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
+            && !(
+              global.settings.areTinyTransfersHidden
+              && getIsTinyTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
+            );
+        });
+
+        if (shouldPlaySound) {
+          playIncomingTransactionSound();
+        }
       }
 
       setGlobal(global);

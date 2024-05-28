@@ -2,9 +2,10 @@ import { getActions, getGlobal } from '../../global';
 
 import { ActiveTab } from '../../global/types';
 
-import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../config';
+import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG, TONCOIN_SLUG } from '../../config';
 import { selectCurrentAccount } from '../../global/selectors';
 import { callApi } from '../../api';
+import { isTonAddressOrDomain } from '../isTonAddressOrDomain';
 import { omitUndefined } from '../iteratees';
 import { logDebug, logDebugError } from '../logs';
 import { openUrl } from '../openUrl';
@@ -82,10 +83,12 @@ async function processTonDeeplink(url: string) {
     toAddress, amount, comment, binPayload,
   } = params;
 
+  const verifiedAddress = isTonAddressOrDomain(toAddress) ? toAddress : undefined;
+
   actions.startTransfer(omitUndefined({
     isPortrait: getIsPortrait(),
-    tokenSlug: TON_TOKEN_SLUG,
-    toAddress,
+    tokenSlug: TONCOIN_SLUG,
+    toAddress: verifiedAddress,
     amount,
     comment,
     binPayload,
@@ -184,7 +187,7 @@ export function processSelfDeeplink(deeplink: string) {
           actions.showError({ error: 'Swap is not yet supported by Ledger.' });
         } else {
           actions.startSwap({
-            tokenInSlug: searchParams.get('in') || TON_TOKEN_SLUG,
+            tokenInSlug: searchParams.get('in') || TONCOIN_SLUG,
             tokenOutSlug: searchParams.get('out') || DEFAULT_SWAP_SECOND_TOKEN_SLUG,
             amountIn: toNumberOrEmptyString(searchParams.get('amount')) || '10',
           });
@@ -200,7 +203,7 @@ export function processSelfDeeplink(deeplink: string) {
         } else {
           actions.startSwap({
             tokenInSlug: searchParams.get('in') || DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
-            tokenOutSlug: searchParams.get('out') || TON_TOKEN_SLUG,
+            tokenOutSlug: searchParams.get('out') || TONCOIN_SLUG,
             amountIn: toNumberOrEmptyString(searchParams.get('amount')) || '100',
           });
         }

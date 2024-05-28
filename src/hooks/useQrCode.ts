@@ -20,6 +20,7 @@ export default function useQrCode(
   isOpen?: boolean,
   hiddenClassName?: string,
   hideLogo?: boolean,
+  withFormatTransferUrl?: boolean,
 ): UseQRCodeHook {
   const [isInitialized, setIsInitialized] = useState(!!qrCode);
 
@@ -63,8 +64,8 @@ export default function useQrCode(
   useEffect(() => {
     if (!address || !isOpen || !qrCode || !isInitialized) return;
 
-    qrCode.update({ data: formatTransferUrl(address) });
-  }, [address, isOpen, isInitialized]);
+    qrCode.update({ data: withFormatTransferUrl ? formatTransferUrl(address) : address });
+  }, [address, isOpen, isInitialized, withFormatTransferUrl]);
 
   return { qrCodeRef, isInitialized };
 }

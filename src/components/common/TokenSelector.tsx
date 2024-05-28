@@ -447,10 +447,6 @@ function TokenSelector({
   }
 
   function renderTokenGroups() {
-    if (isInsideSettings) {
-      return renderTokenGroup(allUnimportedTonTokens, lang('A-Z'));
-    }
-
     return (
       <>
         {renderTokenGroup(userTokensWithFilter, lang('MY'), true)}

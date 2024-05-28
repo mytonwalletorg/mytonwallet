@@ -27,6 +27,8 @@ import StakeModal from '../staking/StakeModal';
 import StakingInfoModal from '../staking/StakingInfoModal';
 import UnstakeModal from '../staking/UnstakeModal';
 import UpdateAvailable from '../ui/UpdateAvailable';
+import VestingModal from '../vesting/VestingModal';
+import VestingPasswordModal from '../vesting/VestingPasswordModal';
 import { LandscapeActions, PortraitActions } from './sections/Actions';
 import Card from './sections/Card';
 import StickyCard from './sections/Card/StickyCard';
@@ -229,6 +231,8 @@ function Main({
       <UnstakeModal />
       <MediaViewer />
       {IS_ANDROID_DIRECT && <UpdateAvailable />}
+      <VestingModal />
+      <VestingPasswordModal />
     </>
   );
 }

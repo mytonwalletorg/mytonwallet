@@ -1,6 +1,6 @@
 import { TransferState } from '../../types';
 
-import { TON_TOKEN_SLUG } from '../../../config';
+import { TONCOIN_SLUG } from '../../../config';
 import { processDeeplink } from '../../../util/deeplink';
 import { callActionInNative } from '../../../util/multitab';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
@@ -38,7 +38,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         fee,
         comment,
         promiseId,
-        tokenSlug: TON_TOKEN_SLUG,
+        tokenSlug: TONCOIN_SLUG,
         rawPayload,
         parsedPayload,
         stateInit,
@@ -162,7 +162,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         toAddress,
         amount: amount ?? 0n,
         comment,
-        tokenSlug: TON_TOKEN_SLUG,
+        tokenSlug: TONCOIN_SLUG,
         binPayload,
       });
 

@@ -3,7 +3,7 @@ import React, { memo } from '../../../../lib/teact/teact';
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import { TON_TOKEN_SLUG } from '../../../../config';
+import { TONCOIN_SLUG } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
@@ -23,25 +23,29 @@ import styles from './Token.module.scss';
 interface OwnProps {
   token: UserToken;
   stakingStatus?: 'active' | 'unstakeRequested';
+  vestingStatus?: 'frozen' | 'readyToUnfreeze';
   amount?: string;
   isInvestorView?: boolean;
   classNames?: string;
+  style?: string;
   apyValue?: number;
   isActive?: boolean;
-  onClick: (slug: string) => void;
   baseCurrency?: ApiBaseCurrency;
+  onClick: (slug: string) => void;
 }
 
 function Token({
   token,
   amount,
   stakingStatus,
+  vestingStatus,
   apyValue,
   isInvestorView,
   classNames,
+  style,
   isActive,
-  onClick,
   baseCurrency,
+  onClick,
 }: OwnProps) {
   const {
     name,
@@ -54,13 +58,14 @@ function Token({
     decimals,
   } = token;
 
+  const isVesting = Boolean(vestingStatus?.length);
   const renderedAmount = amount ?? toDecimal(tokenAmount, decimals, true);
   const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
   const value = Big(renderedAmount).mul(price).toString();
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
   const changeValue = Math.abs(round(calcChangeValue(Number(value), change), 4));
   const changePercent = Math.abs(round(change * 100, 2));
-  const withApy = Boolean(apyValue) && slug === TON_TOKEN_SLUG;
+  const withApy = Boolean(apyValue) && slug === TONCOIN_SLUG;
   const fullClassName = buildClassName(styles.container, isActive && styles.active, classNames);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
@@ -96,11 +101,17 @@ function Token({
 
   function renderInvestorView() {
     return (
-      <Button className={fullClassName} onClick={handleClick} isSimple>
+      <Button className={fullClassName} isSimple style={style} onClick={handleClick}>
         <img src={logoPath} alt={symbol} className={styles.icon} />
         {stakingStatus && (
           <i
             className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)}
+            aria-hidden
+          />
+        )}
+        {vestingStatus && (
+          <i
+            className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
             aria-hidden
           />
         )}
@@ -119,7 +130,13 @@ function Token({
           </div>
         </div>
         <div className={styles.secondaryCell}>
-          <div className={buildClassName(styles.secondaryValue, stakingStatus && styles.secondaryValue_staked)}>
+          <div className={buildClassName(
+            styles.secondaryValue,
+            stakingStatus && styles.secondaryValue_staked,
+            isVesting && styles.secondaryValue_vesting,
+            isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
+          )}
+          >
             <AnimatedCounter text={formatCurrency(value, shortBaseSymbol)} />
           </div>
           <div className={buildClassName(styles.change, changeClassName)}>
@@ -135,14 +152,20 @@ function Token({
 
   function renderDefaultView() {
     const totalAmount = Big(renderedAmount).mul(price);
-    const canRenderApy = Boolean(apyValue) && slug === TON_TOKEN_SLUG;
+    const canRenderApy = Boolean(apyValue) && slug === TONCOIN_SLUG;
 
     return (
-      <Button className={fullClassName} onClick={handleClick} isSimple>
+      <Button className={fullClassName} style={style} onClick={handleClick} isSimple>
         <img src={logoPath} alt={symbol} className={styles.icon} />
         {stakingStatus && (
           <i
             className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)}
+            aria-hidden
+          />
+        )}
+        {vestingStatus && (
+          <i
+            className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
             aria-hidden
           />
         )}
@@ -164,7 +187,13 @@ function Token({
           </div>
         </div>
         <div className={styles.secondaryCell}>
-          <div className={buildClassName(styles.secondaryValue, stakingStatus && styles.secondaryValue_staked)}>
+          <div className={buildClassName(
+            styles.secondaryValue,
+            stakingStatus && styles.secondaryValue_staked,
+            isVesting && styles.secondaryValue_vesting,
+            isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
+          )}
+          >
             <AnimatedCounter
               text={formatCurrency(renderedAmount, symbol)}
               key={isInvestorView ? 'investor' : 'default'}

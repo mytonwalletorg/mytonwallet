@@ -1,5 +1,7 @@
 import type { OpenedContract } from '@ton/core';
-import { Address, Builder, Cell } from '@ton/core';
+import {
+  Address, beginCell, Builder, Cell, external, storeMessage,
+} from '@ton/core';
 import axios from 'axios';
 import { WalletContractV1R1 } from '@ton/ton/dist/wallets/WalletContractV1R1';
 import { WalletContractV1R2 } from '@ton/ton/dist/wallets/WalletContractV1R2';
@@ -30,6 +32,7 @@ import { getEnvironment } from '../../../environment';
 import {
   DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, OpCode,
 } from '../constants';
+import { dieselSendBoc } from './diesel';
 
 import { TonClient } from './TonClient';
 
@@ -307,4 +310,39 @@ export function parseAddress(address: string): {
 
 export function getIsRawAddress(address: string) {
   return Boolean(parseAddress(address).isRaw);
+}
+
+export async function sendExternal(
+  client: TonClient,
+  wallet: TonWallet,
+  message: Cell,
+  withDiesel?: boolean,
+) {
+  const { address, init } = wallet;
+
+  let neededInit: { data: Cell; code: Cell } | undefined;
+  if (init && !await client.isContractDeployed(address)) {
+    neededInit = init;
+  }
+
+  const ext = external({
+    to: address,
+    init: neededInit ? { code: neededInit.code, data: neededInit.data } : undefined,
+    body: message,
+  });
+
+  const cell = beginCell()
+    .store(storeMessage(ext))
+    .endCell();
+
+  const msgHash = cell.hash().toString('base64');
+  const boc = cell.toBoc().toString('base64');
+
+  if (withDiesel) {
+    await dieselSendBoc(boc);
+  } else {
+    await client.sendFile(boc);
+  }
+
+  return { boc, msgHash };
 }

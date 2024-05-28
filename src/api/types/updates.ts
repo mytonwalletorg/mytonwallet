@@ -1,6 +1,6 @@
 import type { ApiTonConnectProof } from '../tonConnect/types';
 import type { ApiActivity, ApiTransactionActivity } from './activity';
-import type { ApiStakingCommonData, ApiSwapAsset } from './backend';
+import type { ApiStakingCommonData, ApiSwapAsset, ApiVestingInfo } from './backend';
 import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBackendStakingState,
@@ -202,6 +202,12 @@ export type ApiUpdateIncorrectTime = {
   type: 'incorrectTime';
 };
 
+export type ApiUpdateVesting = {
+  type: 'updateVesting';
+  accountId: string;
+  vestingInfo: ApiVestingInfo[];
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateNewActivities
@@ -229,6 +235,7 @@ export type ApiUpdate =
   | ApiUpdateWalletVersions
   | ApiOpenUrl
   | ApiRequestReconnect
-  | ApiUpdateIncorrectTime;
+  | ApiUpdateIncorrectTime
+  | ApiUpdateVesting;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

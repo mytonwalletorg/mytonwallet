@@ -18,7 +18,7 @@ interface OwnProps {
 }
 
 const AuthCreateBackup = ({ isActive }: OwnProps) => {
-  const { skipCheckMnemonic, openAuthBackupWalletModal } = getActions();
+  const { skipCheckMnemonic, openAuthBackupWalletModal, resetAuth } = getActions();
 
   const lang = useLang();
 
@@ -27,6 +27,11 @@ const AuthCreateBackup = ({ isActive }: OwnProps) => {
   return (
     <div className={styles.wrapper}>
       <div className={buildClassName(styles.container, 'custom-scroll')}>
+        <Button isSimple isText onClick={resetAuth} className={styles.headerBack}>
+          <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
+          <span>{lang('Back')}</span>
+        </Button>
+
         <AnimatedIconWithPreview
           play={isActive}
           tgsUrl={ANIMATED_STICKERS_PATHS.snitch}

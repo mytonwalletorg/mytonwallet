@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TON_TOKEN_SLUG } from '../../../../config';
+import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TONCOIN_SLUG } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
@@ -91,7 +91,7 @@ function TokenCard({
     slug, symbol, amount, image, name, price: lastPrice, decimals,
   } = token;
 
-  const logoPath = slug === TON_TOKEN_SLUG
+  const logoPath = slug === TONCOIN_SLUG
     ? tonUrl
     : image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
 
@@ -135,6 +135,7 @@ function TokenCard({
   const withChange = Boolean(change !== undefined);
   const historyStartDay = history?.length ? new Date(history![0][0] * 1000) : undefined;
   const withCmcButton = Boolean(token.cmcSlug);
+  const shouldHideChartPeriodSwitcher = !history?.length && token.priceUsd === 0;
 
   const color = useMemo(() => calculateTokenCardColor(token), [token]);
 
@@ -149,7 +150,7 @@ function TokenCard({
           <b className={styles.tokenAmount}>{formatCurrency(toDecimal(amount, token.decimals), symbol)}</b>
           <span className={styles.tokenName}>
             {name}
-            {token.slug === TON_TOKEN_SLUG && (
+            {token.slug === TONCOIN_SLUG && (
               <span className={styles.apy} onClick={onApyClick}>
                 APY {apyValue}%
               </span>
@@ -208,7 +209,7 @@ function TokenCard({
       </Transition>
 
       <span
-        className={buildClassName(styles.periodChooser, !history?.length && styles.periodChooser_disabled)}
+        className={buildClassName(styles.periodChooser, shouldHideChartPeriodSwitcher && styles.periodChooserHidden)}
         role="button"
         tabIndex={0}
         onClick={openHistoryMenu}

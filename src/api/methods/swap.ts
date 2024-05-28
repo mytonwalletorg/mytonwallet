@@ -21,7 +21,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
+import { TON_SYMBOL, TONCOIN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { assert } from '../../util/assert';
 import { fromDecimal } from '../../util/decimals';
@@ -59,12 +59,17 @@ export function initSwap(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 }
 
-export async function swapBuildTransfer(accountId: string, password: string, params: ApiSwapBuildRequest) {
+export async function swapBuildTransfer(
+  accountId: string,
+  password: string,
+  request: ApiSwapBuildRequest,
+  withDiesel: boolean,
+) {
   const { network } = parseAccountId(accountId);
   const authToken = await getBackendAuthToken(accountId, password);
 
   const address = await fetchStoredAddress(accountId);
-  const { id, transfers } = await swapBuild(authToken, params);
+  const { id, transfers } = await swapBuild(authToken, request);
 
   const transferList = transfers.map((transfer) => ({
     ...transfer,
@@ -72,9 +77,9 @@ export async function swapBuildTransfer(accountId: string, password: string, par
     isBase64Payload: true,
   }));
 
-  await ton.validateDexSwapTransfers(network, address, params, transferList);
+  await ton.validateDexSwapTransfers(network, address, request, transferList);
 
-  const result = await ton.checkMultiTransactionDraft(accountId, transferList);
+  const result = await ton.checkMultiTransactionDraft(accountId, transferList, withDiesel);
 
   if ('error' in result) {
     return result;
@@ -86,9 +91,9 @@ export async function swapBuildTransfer(accountId: string, password: string, par
 export async function swapSubmit(
   accountId: string,
   password: string,
-  fee: bigint,
   transfers: ApiSwapTransfer[],
   historyItem: ApiSwapHistoryItem,
+  withDiesel?: boolean,
 ) {
   const address = await fetchStoredAddress(accountId);
   const transferList = transfers.map((transfer) => ({
@@ -96,7 +101,10 @@ export async function swapSubmit(
     amount: BigInt(transfer.amount),
     isBase64Payload: true,
   }));
-  const result = await ton.submitMultiTransfer(accountId, password, transferList);
+
+  const result = await ton.submitMultiTransfer(
+    accountId, password, transferList, undefined, withDiesel,
+  );
 
   if ('error' in result) {
     return result;
@@ -134,7 +142,7 @@ export async function swapSubmit(
 }
 
 function getSwapItemSlug(item: ApiSwapHistoryItem, asset: string) {
-  if (asset === TON_SYMBOL) return TON_TOKEN_SLUG;
+  if (asset === TON_SYMBOL) return TONCOIN_SLUG;
   if (item.cex) return asset;
   return buildTokenSlug(asset);
 }
@@ -181,6 +189,8 @@ export async function swapReplaceTransactionsByRanges(
   chunks: ApiTransactionActivity[][],
   isFirstLoad?: boolean,
 ): Promise<ApiActivity[]> {
+  transactions = transactions.slice();
+
   const { network } = parseAccountId(accountId);
 
   if (!chunks.length || network === 'testnet') {
@@ -198,13 +208,13 @@ export async function swapReplaceTransactionsByRanges(
     const swaps = await swapGetHistoryByRanges(address, ranges);
 
     if (!swaps.length) {
-      return [...transactions];
+      return transactions;
     }
 
     return replaceTransactions(transactions, swaps);
   } catch (err) {
     logDebugError('swapReplaceTransactionsByRanges', err);
-    return [...transactions];
+    return transactions;
   }
 }
 
@@ -282,7 +292,7 @@ function buildSwapHistoryRange(transactions: ApiTransaction[]): SwapHistoryRange
   const [toLt, toTime] = firstLt > lastLt ? [firstLt, firstTimestamp] : [lastLt, lastTimestamp];
 
   const slug = transactions[0].slug;
-  const asset = slug === TON_TOKEN_SLUG ? TON_SYMBOL : resolveTokenBySlug(slug).minterAddress!;
+  const asset = slug === TONCOIN_SLUG ? TON_SYMBOL : resolveTokenBySlug(slug).minterAddress!;
 
   return {
     asset,
@@ -303,15 +313,15 @@ export function swapItemToActivity(swap: ApiSwapHistoryItem): ApiSwapActivity {
   };
 }
 
-export function swapEstimate(params: ApiSwapEstimateRequest): Promise<ApiSwapEstimateResponse | { error: string }> {
-  return callBackendPost('/swap/ton/estimate', params, {
+export function swapEstimate(request: ApiSwapEstimateRequest): Promise<ApiSwapEstimateResponse | { error: string }> {
+  return callBackendPost('/swap/ton/estimate', request, {
     isAllowBadRequest: true,
   });
 }
 
-export function swapBuild(authToken: string, params: ApiSwapBuildRequest): Promise<ApiSwapBuildResponse> {
+export function swapBuild(authToken: string, request: ApiSwapBuildRequest): Promise<ApiSwapBuildResponse> {
   return callBackendPost('/swap/ton/build', {
-    ...params,
+    ...request,
     isMsgHashMode: true,
   }, {
     authToken,
@@ -350,8 +360,8 @@ export function swapGetHistoryItem(address: string, id: number): Promise<ApiSwap
   return callBackendGet(`/swap/history/${address}/${id}`);
 }
 
-export function swapCexEstimate(params: ApiSwapCexEstimateRequest): Promise<ApiSwapCexEstimateResponse> {
-  return callBackendPost('/swap/cex/estimate', params, { isAllowBadRequest: true });
+export function swapCexEstimate(request: ApiSwapCexEstimateRequest): Promise<ApiSwapCexEstimateResponse> {
+  return callBackendPost('/swap/cex/estimate', request, { isAllowBadRequest: true });
 }
 
 export function swapCexValidateAddress(params: { slug: string; address: string }): Promise<{
@@ -364,7 +374,7 @@ export function swapCexValidateAddress(params: { slug: string; address: string }
 export async function swapCexCreateTransaction(
   accountId: string,
   password: string,
-  params: ApiSwapCexCreateTransactionRequest,
+  request: ApiSwapCexCreateTransactionRequest,
 ): Promise<{
     swap: ApiSwapHistoryItem;
     activity: ApiSwapActivity;
@@ -372,7 +382,7 @@ export async function swapCexCreateTransaction(
   }> {
   const authToken = await getBackendAuthToken(accountId, password);
 
-  const { swap } = await callBackendPost<ApiSwapCexCreateTransactionResponse>('/swap/cex/createTransaction', params, {
+  const { swap } = await callBackendPost<ApiSwapCexCreateTransactionResponse>('/swap/cex/createTransaction', request, {
     authToken,
   });
   const activity = swapItemToActivity(swap);
@@ -382,13 +392,13 @@ export async function swapCexCreateTransaction(
     amount: bigint;
   } | undefined;
 
-  if (params.from === TON_SYMBOL) {
+  if (request.from === TON_SYMBOL) {
     transfer = {
       toAddress: swap.cex!.payinAddress,
       amount: fromDecimal(swap.fromAmount),
     };
 
-    assert(transfer.amount <= fromDecimal(params.fromAmount));
+    assert(transfer.amount <= fromDecimal(request.fromAmount));
   }
 
   onUpdate({

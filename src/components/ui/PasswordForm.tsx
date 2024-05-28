@@ -220,9 +220,10 @@ function PasswordForm({
   }
 
   function renderBiometricPrompt() {
-    if (localError) {
+    const renderingError = localError || error;
+    if (renderingError) {
       return (
-        <div className={styles.error}>{lang(localError)}</div>
+        <div className={styles.error}>{lang(renderingError)}</div>
       );
     }
 

@@ -36,16 +36,11 @@
 }
 
 .menuItem {
-  --color-input-button-text: var(--color-gray-3);
+  --color-input-button-text: var(--color-gray-1);
   --color-selected-drop-down-item: var(--color-gray-1);
 
   justify-content: center;
 
   margin-bottom: 0 !important;
   padding: 0.5625rem 0.75rem !important;
-
-  &:hover,
-  &:focus {
-    color: var(--color-gray-1);
-  }
 }

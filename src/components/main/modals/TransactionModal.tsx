@@ -1,4 +1,6 @@
-import React, { memo, useEffect, useState } from '../../../lib/teact/teact';
+import React, {
+  memo, type TeactNode, useEffect, useMemo, useState,
+} from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiToken, ApiTransactionActivity } from '../../../api/types';
@@ -10,10 +12,9 @@ import {
   ANIMATION_LEVEL_MIN,
   IS_CAPACITOR,
   STAKING_CYCLE_DURATION_MS,
+  TON_EXPLORER_NAME,
   TON_SYMBOL,
-  TON_TOKEN_SLUG,
-  TONSCAN_BASE_MAINNET_URL,
-  TONSCAN_BASE_TESTNET_URL,
+  TONCOIN_SLUG,
 } from '../../../config';
 import { getIsTxIdLocal } from '../../../global/helpers';
 import { selectCurrentAccountStakingStatus, selectCurrentAccountState } from '../../../global/selectors';
@@ -23,6 +24,7 @@ import { vibrateOnSuccess } from '../../../util/capacitor';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
 import { toDecimal } from '../../../util/decimals';
 import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
+import { getTonExplorerTransactionUrl } from '../../../util/url';
 import { callApi } from '../../../api';
 
 import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
@@ -63,8 +65,6 @@ const enum SLIDES {
   initial,
   password,
 }
-
-const EMPTY_HASH_VALUE = 'NOHASH';
 
 function TransactionModal({
   transaction,
@@ -124,10 +124,13 @@ function TransactionModal({
   const [decryptedComment, setDecryptedComment] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
-  const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;
-  const tonscanTransactionUrl = transactionHash && transactionHash !== EMPTY_HASH_VALUE
-    ? `${tonscanBaseUrl}tx/${transactionHash}`
-    : undefined;
+  const transactionUrl = getTonExplorerTransactionUrl(transactionHash, isTestnet);
+  const tonExplorerTitle = useMemo(() => {
+    return (lang('View Transaction on %ton_explorer_name%', {
+      ton_explorer_name: TON_EXPLORER_NAME,
+    }) as TeactNode[]
+    ).join('');
+  }, [lang]);
 
   const [withUnstakeTimer, setWithUnstakeTimer] = useState(false);
 
@@ -180,7 +183,7 @@ function TransactionModal({
     closeActivityInfo({ id: id! });
     startTransfer({
       isPortrait,
-      tokenSlug: slug || TON_TOKEN_SLUG,
+      tokenSlug: slug || TONCOIN_SLUG,
       toAddress: address,
       amount: bigintAbs(amount!),
       comment: !isIncoming ? comment : undefined,
@@ -273,7 +276,7 @@ function TransactionModal({
                 aria-hidden
               />
             )}
-            {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
+            {isScam && isIncoming && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
           </div>
           {!!timestamp && (
             <div className={styles.headerDate}>
@@ -355,7 +358,7 @@ function TransactionModal({
     return (
       <>
         {isNftTransfer ? (
-          <NftInfo nft={nft} withTonscan />
+          <NftInfo nft={nft} withTonExplorer />
         ) : (
           <TransactionAmount
             isIncoming={isIncoming}
@@ -373,9 +376,10 @@ function TransactionModal({
             <InteractiveTextField
               addressName={addressName}
               address={address!}
+              isScam={isScam && !isIncoming}
               copyNotification={lang('Address was copied!')}
               className={styles.copyButtonWrapper}
-              textClassName={isScam ? styles.scamAddress : undefined}
+              textClassName={isScam && isIncoming ? styles.scamAddress : undefined}
             />
           </>
         )}
@@ -421,15 +425,15 @@ function TransactionModal({
           <>
             {renderHeader()}
             <div className={modalStyles.transitionContent}>
-              {tonscanTransactionUrl && (
+              {transactionUrl && (
                 <a
-                  href={tonscanTransactionUrl}
+                  href={transactionUrl}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className={styles.tonscan}
-                  title={lang('View Transaction on TONScan')}
+                  className={styles.tonExplorer}
+                  title={tonExplorerTitle}
                 >
-                  <i className="icon-tonscan" aria-hidden />
+                  <i className="icon-tonexplorer" aria-hidden />
                 </a>
               )}
               {renderTransactionContent()}

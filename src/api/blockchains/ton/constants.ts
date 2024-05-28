@@ -1,10 +1,10 @@
 import type { ApiParsedPayload, ApiWalletVersion } from '../../types';
 import type { ContractInfo, ContractName } from './types';
 
-export const TOKEN_TRANSFER_TON_AMOUNT = 100000000n; // 0.1 TON
-export const TOKEN_TRANSFER_TON_FORWARD_AMOUNT = 1n; // 0.000000001 TON
-export const NFT_TRANSFER_TON_AMOUNT = 100000000n; // 0.1 TON
-export const NFT_TRANSFER_TON_FORWARD_AMOUNT = 1n; // 0.000000001 TON
+export const TOKEN_TRANSFER_TONCOIN_AMOUNT = 100000000n; // 0.1 TON
+export const TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT = 1n; // 0.000000001 TON
+export const NFT_TRANSFER_TONCOIN_AMOUNT = 100000000n; // 0.1 TON
+export const NFT_TRANSFER_TONCOIN_FORWARD_AMOUNT = 1n; // 0.000000001 TON
 export const DEFAULT_FEE = 30000000n; // 0.03 TON
 
 export const STAKE_COMMENT = 'd';

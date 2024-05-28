@@ -16,7 +16,7 @@ import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrencySimple } from '../../util/formatNumber';
-import { NFT_TRANSFER_TON_AMOUNT } from '../../api/blockchains/ton/constants';
+import { NFT_TRANSFER_TONCOIN_AMOUNT } from '../../api/blockchains/ton/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -29,14 +29,11 @@ import Button from '../ui/Button';
 import IconWithTooltip from '../ui/IconWithTooltip';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import ModalHeader from '../ui/ModalHeader';
-import Transition from '../ui/Transition';
 import NftChips from './NftChips';
 import NftInfo from './NftInfo';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
-
-import scamImg from '../../assets/scam.svg';
 
 interface OwnProps {
   isActive: boolean;
@@ -102,7 +99,7 @@ function TransferConfirm({
   }
 
   function renderFeeForNft() {
-    const totalFee = (NFT_TRANSFER_TON_AMOUNT + (fee ?? 0n)) * BigInt(Math.ceil(nfts!.length / NFT_BATCH_SIZE));
+    const totalFee = (NFT_TRANSFER_TONCOIN_AMOUNT + (fee ?? 0n)) * BigInt(Math.ceil(nfts!.length / NFT_BATCH_SIZE));
 
     return (
       <>
@@ -168,10 +165,6 @@ function TransferConfirm({
         )}
         <div className={styles.label}>
           {lang('Receiving Address')}
-          <Transition name="fade" activeKey={isScam ? 0 : 1} className={styles.scamContainer}>
-            {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
-          </Transition>
-
           {isToNewAddress && (
             <IconWithTooltip
               emoji="⚠️"
@@ -183,9 +176,9 @@ function TransferConfirm({
         <InteractiveTextField
           address={resolvedAddress!}
           addressName={addressName}
+          isScam={isScam}
           copyNotification={lang('Address was copied!')}
           className={styles.addressWidget}
-          textClassName={isScam ? styles.scamAddress : undefined}
         />
 
         {isNftTransfer ? renderFeeForNft() : (
@@ -222,7 +215,7 @@ function TransferConfirm({
           <Button
             isPrimary
             isLoading={isLoading}
-            isDestructive={isBurning}
+            isDestructive={isBurning || isScam}
             className={modalStyles.button}
             onClick={handleConfirm}
           >

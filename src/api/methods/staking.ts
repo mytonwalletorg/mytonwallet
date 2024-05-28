@@ -5,7 +5,7 @@ import type {
   ApiStakingType,
 } from '../types';
 
-import { APP_ENV, APP_VERSION, TON_TOKEN_SLUG } from '../../config';
+import { APP_ENV, APP_VERSION, TONCOIN_SLUG } from '../../config';
 import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
@@ -65,7 +65,7 @@ export async function submitStake(
     comment: STAKE_COMMENT,
     fee: fee || 0n,
     type: 'stake',
-    slug: TON_TOKEN_SLUG,
+    slug: TONCOIN_SLUG,
     inMsgHash: result.msgHash,
   });
 
@@ -100,7 +100,7 @@ export async function submitUnstake(
     comment: UNSTAKE_COMMENT,
     fee: fee || 0n,
     type: 'unstakeRequest',
-    slug: TON_TOKEN_SLUG,
+    slug: TONCOIN_SLUG,
     inMsgHash: result.msgHash,
   });
 

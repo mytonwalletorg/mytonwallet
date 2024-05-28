@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState, UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
-import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../config';
+import { IS_CAPACITOR, TONCOIN_SLUG } from '../../config';
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
@@ -55,7 +55,7 @@ function StakeModal({
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]);
   const [renderedStakingAmount, setRenderedStakingAmount] = useState(amount);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);

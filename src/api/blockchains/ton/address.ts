@@ -3,6 +3,7 @@ import { Address } from '@ton/core';
 import type { ApiNetwork } from '../../types';
 
 import dns from '../../../util/dns';
+import { fetchAddressBook } from './util/apiV3';
 import { DnsCategory, dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
 import { getKnownAddressInfo } from '../../common/addresses';
@@ -25,8 +26,10 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
       return undefined;
     }
 
+    const addressBook = await fetchAddressBook(network, [resolvedAddress]);
+
     domain = address;
-    address = resolvedAddress;
+    address = addressBook[resolvedAddress].user_friendly;
   }
 
   const normalizedAddress = normalizeAddress(address);

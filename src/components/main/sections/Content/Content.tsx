@@ -11,7 +11,7 @@ import {
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   MIN_ASSETS_TAB_VIEW,
   NOTCOIN_VOUCHERS_ADDRESS,
-  TON_TOKEN_SLUG,
+  TONCOIN_SLUG,
 } from '../../../../config';
 import {
   selectAccountState,
@@ -111,8 +111,6 @@ function Content({
   }, [lang, nfts]);
 
   // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
 
   const shouldShowSeparateAssetsPanel = tokensCount > 0 && tokensCount < MIN_ASSETS_TAB_VIEW;
@@ -209,14 +207,14 @@ function Content({
     if (currentTokenSlug !== undefined) return;
 
     setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined });
-    changeTransferToken({ tokenSlug: TON_TOKEN_SLUG });
+    changeTransferToken({ tokenSlug: TONCOIN_SLUG });
   }, [currentTokenSlug]);
 
   const handleClickAsset = useLastCallback((slug: string) => {
     selectToken({ slug });
 
     if (slug) {
-      if (slug === TON_TOKEN_SLUG) {
+      if (slug === TONCOIN_SLUG) {
         setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
       } else {
         setDefaultSwapParams({ tokenOutSlug: slug });
@@ -252,14 +250,14 @@ function Content({
     // When assets are shown separately, there is effectively no tab with index 0,
     // so we fall back to next tab to not break parent's component logic.
     if (activeTabIndex === 0 && shouldShowSeparateAssetsPanel) {
-      return <Activity isActive={isActive} mobileRef={containerRef} />;
+      return <Activity isActive={isActive} />;
     }
 
     switch (tabs[activeTabIndex].id) {
       case ContentTab.Assets:
         return <Assets isActive={isActive} onTokenClick={handleClickAsset} onStakedTokenClick={onStakedTokenClick} />;
       case ContentTab.Activity:
-        return <Activity isActive={isActive} mobileRef={containerRef} />;
+        return <Activity isActive={isActive} />;
       case ContentTab.Nft:
         return (
           <Transition
@@ -299,10 +297,7 @@ function Content({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={containerClassName}
-    >
+    <div className={containerClassName}>
       {shouldShowSeparateAssetsPanel && (
         <div className={styles.assetsPanel}>
           <Assets

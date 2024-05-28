@@ -5,7 +5,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiWalletInfo, ApiWalletVersion } from '../../api/types';
+import type { ApiToken, ApiWalletInfo, ApiWalletVersion } from '../../api/types';
 import type { Wallet } from './SettingsWalletVersion';
 import { type GlobalState, SettingsState, type UserToken } from '../../global/types';
 
@@ -19,13 +19,14 @@ import {
   PROXY_HOSTS,
   SUPPORT_USERNAME,
   TELEGRAM_WEB_URL,
-  TON_TOKEN_SLUG,
+  TONCOIN_SLUG,
 } from '../../config';
 import {
   selectAccountSettings,
   selectCurrentAccountTokens,
   selectIsHardwareAccount,
   selectIsPasswordPresent,
+  selectMycoin,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { getIsNativeBiometricAuthSupported } from '../../util/capacitor';
@@ -110,6 +111,7 @@ type StateProps = {
   versions?: ApiWalletInfo[];
   isCopyStorageEnabled?: boolean;
   supportAccountsCount?: number;
+  mycoin?: ApiToken;
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -144,6 +146,7 @@ function Settings({
   versions,
   isCopyStorageEnabled,
   supportAccountsCount = SUPPORT_ACCOUNTS_COUNT_DEFAULT,
+  mycoin,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
@@ -175,7 +178,10 @@ function Settings({
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]);
+  const renderingOrderedSlugs = useMemo(() => {
+    return orderedSlugs?.filter((slug) => slug !== mycoin?.slug);
+  }, [mycoin?.slug, orderedSlugs]);
 
   const wallets = useMemo(() => {
     return versions?.map((v) => {
@@ -618,7 +624,7 @@ function Settings({
           <SettingsAssets
             isActive={isActive}
             tokens={tokens}
-            orderedSlugs={orderedSlugs}
+            orderedSlugs={renderingOrderedSlugs}
             isInvestorViewEnabled={isInvestorViewEnabled}
             areTinyTransfersHidden={areTinyTransfersHidden}
             areTokensWithNoCostHidden={areTokensWithNoCostHidden}
@@ -725,6 +731,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     versions,
     isCopyStorageEnabled,
     supportAccountsCount,
+    mycoin: selectMycoin(global),
   };
 })(Settings));
 

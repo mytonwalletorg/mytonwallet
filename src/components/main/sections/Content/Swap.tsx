@@ -4,7 +4,7 @@ import React, { memo } from '../../../../lib/teact/teact';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../../api/types';
 
-import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../../../config';
+import { TON_SYMBOL, TONCOIN_SLUG } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
@@ -59,7 +59,7 @@ function Swap({
     || CHANGELLY_EXPIRED_STATUSES.has(cex?.status ?? '');
   const isHold = cex?.status === 'hold';
 
-  const isFromTon = from === TON_TOKEN_SLUG;
+  const isFromToncoin = from === TONCOIN_SLUG;
 
   const handleClick = useLastCallback(() => {
     onClick(id);
@@ -131,7 +131,7 @@ function Swap({
       text = lang('On hold');
     } else if (cexStatus === 'failed' || isError) {
       text = lang('Failed');
-    } else if (cexStatus === 'waiting' && !isFromTon) {
+    } else if (cexStatus === 'waiting' && !isFromToncoin) {
       // Skip the 'waiting' status for transactions from TON to account for delayed status updates from changelly.
       text = lang('Waiting for payment');
     } else if (isPending) {
@@ -151,7 +151,7 @@ function Swap({
 
   function renderTitle() {
     if (isHold || isError) {
-      return lang('Swap');
+      return lang('SwapTitle');
     } else if (isPending) {
       return lang('Swapping');
     }

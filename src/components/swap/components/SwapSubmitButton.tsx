@@ -1,6 +1,6 @@
 import React, { memo, useRef } from '../../../lib/teact/teact';
 
-import type { UserSwapToken } from '../../../global/types';
+import type { DieselStatus, UserSwapToken } from '../../../global/types';
 import { SwapErrorType, SwapType } from '../../../global/types';
 
 import { ANIMATION_END_DELAY } from '../../../config';
@@ -24,7 +24,8 @@ interface OwnProps {
   swapType?: SwapType;
   isEstimating?: boolean;
   isSending?: boolean;
-  isEnoughTon?: boolean;
+  isEnoughToncoin?: boolean;
+  dieselStatus?: DieselStatus;
   isPriceImpactError?: boolean;
   canSubmit?: boolean;
   errorType?: SwapErrorType;
@@ -44,7 +45,8 @@ function SwapSubmitButton({
   swapType,
   isEstimating,
   isSending,
-  isEnoughTon,
+  isEnoughToncoin,
+  dieselStatus,
   isPriceImpactError,
   canSubmit,
   errorType,
@@ -53,7 +55,7 @@ function SwapSubmitButton({
   const lang = useLang();
 
   const isErrorExist = errorType !== undefined;
-  const shouldSendingBeVisible = isSending && swapType === SwapType.CrosschainToTon;
+  const shouldSendingBeVisible = isSending && swapType === SwapType.CrosschainToToncoin;
   const isDisabled = !canSubmit || shouldSendingBeVisible;
   const isLoading = isEstimating || shouldSendingBeVisible;
 
@@ -78,16 +80,26 @@ function SwapSubmitButton({
 
   if (isTouched && isErrorExist) {
     text = errorMsgByType[errorType];
-  } else if (isTouched && !isEnoughTon && swapType !== SwapType.CrosschainToTon) {
-    text = lang('Not enough TON');
+  } else if (isTouched && !isEnoughToncoin && swapType !== SwapType.CrosschainToToncoin) {
+    if (dieselStatus === 'not-available') {
+      text = lang('Not Enough TON');
+    } else if (dieselStatus === 'pending-previous') {
+      text = lang('Awaiting Previous Fee');
+    } else if (dieselStatus === 'not-authorized') {
+      text = lang('Authorize %token% Fee', { token: tokenIn?.symbol });
+    }
   }
 
   const textStr = Array.isArray(text) ? text.join('') : text;
 
-  let shouldShowError = !isEstimating && ((isPriceImpactError || isErrorExist || !isEnoughTon));
+  let shouldShowError = !isEstimating && (
+    isPriceImpactError
+    || isErrorExist
+    || (!isEnoughToncoin && (dieselStatus === 'not-available' || dieselStatus === 'pending-previous'))
+  );
 
-  if (swapType === SwapType.CrosschainToTon) {
-    shouldShowError = !isEstimating && ((isPriceImpactError || isErrorExist));
+  if (swapType === SwapType.CrosschainToToncoin) {
+    shouldShowError = !isEstimating && (isPriceImpactError || isErrorExist);
   }
 
   const isDestructive = isTouched && shouldShowError;

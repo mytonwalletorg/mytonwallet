@@ -274,6 +274,7 @@ export default function createConfig(
         ELECTRON_TONHTTPAPI_MAINNET_API_KEY: null,
         ELECTRON_TONHTTPAPI_TESTNET_API_KEY: null,
         BASE_URL,
+        BOT_USERNAME: null,
         IS_EXTENSION: false,
         IS_FIREFOX_EXTENSION: false,
         IS_CAPACITOR: false,

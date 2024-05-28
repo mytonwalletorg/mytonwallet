@@ -6,7 +6,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { TONCOIN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
@@ -92,7 +92,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCr
     return result;
   }
 
-  const slug = tokenAddress ? buildTokenSlug(tokenAddress) : TON_TOKEN_SLUG;
+  const slug = tokenAddress ? buildTokenSlug(tokenAddress) : TONCOIN_SLUG;
 
   const localTransaction = createLocalTransaction(accountId, {
     amount,

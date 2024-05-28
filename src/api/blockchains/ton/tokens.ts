@@ -6,7 +6,7 @@ import type {
 } from '../../types';
 import type { AnyPayload, ApiTransactionExtra, JettonMetadata } from './types';
 
-import { DEFAULT_DECIMAL_PLACES, TON_SYMBOL, TON_TOKEN_SLUG } from '../../../config';
+import { DEFAULT_DECIMAL_PLACES, TON_SYMBOL, TONCOIN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { logDebugError } from '../../../util/logs';
 import { fixIpfsUrl } from '../../../util/metadata';
@@ -28,8 +28,8 @@ import { JettonWallet } from './contracts/JettonWallet';
 import { fetchStoredAddress } from '../../common/accounts';
 import {
   DEFAULT_DECIMALS,
-  TOKEN_TRANSFER_TON_AMOUNT,
-  TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
+  TOKEN_TRANSFER_TONCOIN_AMOUNT,
+  TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
 } from './constants';
 
 export type TokenBalanceParsed = {
@@ -41,9 +41,9 @@ export type TokenBalanceParsed = {
 
 const KNOWN_TOKENS: ApiBaseToken[] = [
   {
-    slug: TON_TOKEN_SLUG,
+    slug: TONCOIN_SLUG,
     name: 'Toncoin',
-    cmcSlug: TON_TOKEN_SLUG,
+    cmcSlug: TONCOIN_SLUG,
     symbol: TON_SYMBOL,
     decimals: DEFAULT_DECIMAL_PLACES,
   },
@@ -144,14 +144,14 @@ export async function buildTokenTransfer(
   payload = buildTokenTransferBody({
     tokenAmount: amount,
     toAddress,
-    forwardAmount: TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
+    forwardAmount: TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
     forwardPayload: payload,
     responseAddress: fromAddress,
   });
 
   return {
     tokenWallet,
-    amount: TOKEN_TRANSFER_TON_AMOUNT,
+    amount: TOKEN_TRANSFER_TONCOIN_AMOUNT,
     toAddress: tokenWalletAddress,
     payload,
   };

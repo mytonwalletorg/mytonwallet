@@ -1,7 +1,7 @@
 import type { UserToken } from '../../../global/types';
 import type { RGBColor } from '../../../util/colors';
 
-import { TON_TOKEN_SLUG } from '../../../config';
+import { TONCOIN_SLUG } from '../../../config';
 import { deltaE, hex2rgb } from '../../../util/colors';
 
 const TOKEN_CARD_COLORS: Record<string, RGBColor> = {
@@ -16,7 +16,7 @@ const TOKEN_CARD_COLORS: Record<string, RGBColor> = {
 };
 
 export const TOKEN_EXCEPTION_COLORS: Record<string, string> = {
-  [TON_TOKEN_SLUG]: 'blue',
+  [TONCOIN_SLUG]: 'blue',
   'ton-eqcqc6ehrj': 'green', // STAKED
 };
 

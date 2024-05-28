@@ -31,7 +31,7 @@ function Content({
 }: StateProps & OwnProps) {
   const lang = useLang();
 
-  const { qrCodeRef, isInitialized } = useQrCode(address, isOpen, styles.qrCodeHidden, false);
+  const { qrCodeRef, isInitialized } = useQrCode(address, isOpen, styles.qrCodeHidden, undefined, true);
   const { verifyHardwareAddress } = getActions();
 
   const handleVerify = (e: React.MouseEvent<HTMLAnchorElement>) => {

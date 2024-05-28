@@ -9,6 +9,8 @@ export type BottomSheetKeys =
   | 'stake'
   | 'unstake'
   | 'staking-info'
+  | 'vesting-info'
+  | 'vesting-confirm'
   | 'transaction-info'
   | 'swap-activity'
   | 'backup'

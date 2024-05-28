@@ -26,6 +26,7 @@ def capacitor_pods
   pod 'CapacitorSecureStoragePlugin', :path => '../../../node_modules/capacitor-secure-storage-plugin'
   pod 'CapacitorSplashScreen', :path => '../../plugins/capacitor-splash-screen'
   pod 'NativeDialog', :path => '../../plugins/native-dialog'
+  pod 'FloatingPanel', :git => 'https://github.com/scenee/FloatingPanel.git', :commit => 'f45b6aaa3f058f408945df80f15fa86150682e8b'
   pod 'NativeBottomSheet', :path => '../../plugins/native-bottom-sheet'
   pod 'CordovaPlugins', :path => '../capacitor-cordova-ios-plugins'
 end

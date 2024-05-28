@@ -24,6 +24,7 @@ import type {
   ApiUpdateDappConnect,
   ApiUpdateDappLoading,
   ApiUpdateDappSendTransactions,
+  ApiVestingInfo,
   ApiWalletInfo,
   ApiWalletVersion,
 } from '../api/types';
@@ -155,8 +156,8 @@ export enum SwapErrorType {
 
 export enum SwapType {
   OnChain,
-  CrosschainFromTon,
-  CrosschainToTon,
+  CrosschainFromToncoin,
+  CrosschainToToncoin,
 }
 
 export enum DappConnectState {
@@ -249,6 +250,8 @@ export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
 
 export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
+export type DieselStatus = 'not-available' | 'not-authorized' | 'pending-previous' | 'available';
+
 export interface Account {
   title?: string;
   address: string;
@@ -307,6 +310,15 @@ export interface AccountState {
     tokenBalance?: bigint;
     isInstantUnstakeRequested?: boolean;
   };
+
+  vesting?: {
+    info: ApiVestingInfo[];
+    isLoading?: boolean;
+    isConfirmRequested?: boolean;
+    error?: string;
+    unfreezeRequestedIds?: { id: number; partId: number }[];
+  };
+
   stakingHistory?: ApiStakingHistory;
   browserHistory?: string[];
 
@@ -421,6 +433,7 @@ export type GlobalState = {
       fromMax?: string;
     };
     isSettingsModalOpen?: boolean;
+    dieselStatus?: DieselStatus;
   };
 
   currentSignature?: {
@@ -538,6 +551,7 @@ export type GlobalState = {
   isPinAccepted?: boolean;
   isOnRampWidgetModalOpen?: boolean;
   isReceiveModalOpen?: boolean;
+  isVestingModalOpen?: boolean;
   shouldForceAccountEdit?: boolean;
   isIncorrectTimeNotificationReceived?: boolean;
   currentBrowserUrl?: string;
@@ -673,6 +687,7 @@ export interface ActionPayloads {
   clearAccountLoading: undefined;
   validatePassword: { password: string };
   verifyHardwareAddress: undefined;
+  authorizeDiesel: undefined;
 
   fetchTokenTransactions: { limit: number; slug: string; shouldLoadWithBudget?: boolean };
   fetchAllTransactions: { limit: number; shouldLoadWithBudget?: boolean };
@@ -812,8 +827,8 @@ export interface ActionPayloads {
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
   estimateSwapCex: { shouldBlock: boolean };
-  submitSwapCexFromTon: { password: string };
-  submitSwapCexToTon: { password: string };
+  submitSwapCexFromToncoin: { password: string };
+  submitSwapCexToToncoin: { password: string };
   setSwapType: { type: SwapType };
   setSwapCexAddress: { toAddress: string };
   addSwapToken: { token: UserSwapToken };
@@ -835,6 +850,14 @@ export interface ActionPayloads {
 
   openLoadingOverlay: undefined;
   closeLoadingOverlay: undefined;
+
+  loadMycoin: undefined;
+  openVestingModal: undefined;
+  closeVestingModal: undefined;
+  startClaimingVesting: undefined;
+  submitClaimingVesting: { password: string };
+  clearVestingError: undefined;
+  cancelClaimingVesting: undefined;
 }
 
 export enum LoadMoreDirection {

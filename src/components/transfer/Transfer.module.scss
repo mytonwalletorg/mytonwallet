@@ -137,7 +137,6 @@
   }
 }
 
-.scamAddress,
 .balanceError {
   color: var(--color-red);
 }
@@ -563,17 +562,6 @@ textarea.inputStatic {
   height: 1.25rem;
 
   border-radius: 50%;
-}
-
-.scamContainer {
-  display: flex;
-
-  width: 2.75rem;
-}
-
-.scamImage {
-  width: 2.75rem;
-  height: 1.0625rem;
 }
 
 .infoBox, .burnWarning {

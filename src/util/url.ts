@@ -1,3 +1,5 @@
+import { EMPTY_HASH_VALUE, TON_EXPLORER_BASE_MAINNET_URL, TON_EXPLORER_BASE_TESTNET_URL } from '../config';
+import { base64ToHex } from './base64toHex';
 import { logDebugError } from './logs';
 
 // Regexp from https://stackoverflow.com/a/3809435
@@ -31,4 +33,32 @@ export function getHostnameFromUrl(url: string) {
     logDebugError('getHostnameFromUrl', e);
     return url;
   }
+}
+
+function getTonExplorerBaseUrl(isTestnet = false) {
+  return isTestnet ? TON_EXPLORER_BASE_TESTNET_URL : TON_EXPLORER_BASE_MAINNET_URL;
+}
+
+export function getTonExplorerTransactionUrl(transactionHash: string | undefined, isTestnet?: boolean) {
+  if (!transactionHash || transactionHash === EMPTY_HASH_VALUE) return undefined;
+
+  return `${getTonExplorerBaseUrl(isTestnet)}transaction/${base64ToHex(transactionHash)}`;
+}
+
+export function getTonExplorerAddressUrl(address?: string, isTestnet?: boolean) {
+  if (!address) return undefined;
+
+  return `${getTonExplorerBaseUrl(isTestnet)}${address}`;
+}
+
+export function getTonExplorerNftCollectionUrl(nftCollectionAddress?: string, isTestnet?: boolean) {
+  if (!nftCollectionAddress) return undefined;
+
+  return `${getTonExplorerBaseUrl(isTestnet)}${nftCollectionAddress}?section=overview`;
+}
+
+export function getTonExplorerNftUrl(nftAddress?: string, isTestnet?: boolean) {
+  if (!nftAddress) return undefined;
+
+  return `${getTonExplorerBaseUrl(isTestnet)}${nftAddress}?section=nft`;
 }

@@ -8,10 +8,10 @@ import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
   TON_DNS_COLLECTION,
-  TONSCAN_BASE_MAINNET_URL,
-  TONSCAN_BASE_TESTNET_URL,
+  TON_EXPLORER_NAME,
 } from '../../../config';
 import { openUrl } from '../../../util/openUrl';
+import { getTonExplorerNftUrl } from '../../../util/url';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -41,9 +41,9 @@ const GETGEMS_ITEM: DropdownItem = {
   value: 'getgems',
   fontIcon: 'external',
 };
-const TONSCAN_ITEM: DropdownItem = {
-  name: 'TONScan',
-  value: 'tonscan',
+const TON_EXPLORER_ITEM: DropdownItem = {
+  name: TON_EXPLORER_NAME,
+  value: 'tonExplorer',
   fontIcon: 'external',
 };
 const COLLECTION_ITEM: DropdownItem = {
@@ -77,11 +77,10 @@ export default function useNftMenu(nft?: ApiNft) {
         break;
       }
 
-      case 'tonscan': {
-        const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;
-        const tonscanUrl = `${tonscanBaseUrl}nft/${nft!.address}`;
+      case 'tonExplorer': {
+        const url = getTonExplorerNftUrl(nft!.address, isTestnet)!;
 
-        openUrl(tonscanUrl);
+        openUrl(url);
         break;
       }
 
@@ -139,7 +138,7 @@ export default function useNftMenu(nft?: ApiNft) {
       nft.isOnSale ? ON_SALE_ITEM : SEND_ITEM,
       ...(nft.isOnFragment ? [FRAGMENT_ITEM] : []),
       GETGEMS_ITEM,
-      TONSCAN_ITEM,
+      TON_EXPLORER_ITEM,
       ...(nft.collectionAddress ? [COLLECTION_ITEM] : []),
       ...(!nft.isOnSale ? [
         BURN_ITEM,

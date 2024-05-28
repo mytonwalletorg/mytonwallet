@@ -231,7 +231,7 @@
   vertical-align: -0.1875rem;
 }
 
-.tonscanButton {
+.tonExplorerButton {
   font-size: 1.25rem;
   line-height: 1;
   color: var(--color-card-second-text);
@@ -466,13 +466,13 @@
   font-weight: 700;
   color: var(--color-card-text);
 
-  transition: opacity 150ms;
+  transition: opacity 0.15s ease;
+}
 
-  &_disabled {
-    pointer-events: none;
+.periodChooserHidden {
+  pointer-events: none;
 
-    opacity: 0.8;
-  }
+  opacity: 0;
 }
 
 .periodItem {

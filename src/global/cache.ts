@@ -11,7 +11,7 @@ import {
   GLOBAL_STATE_CACHE_KEY,
   IS_CAPACITOR,
   MAIN_ACCOUNT_ID,
-  TON_TOKEN_SLUG,
+  TONCOIN_SLUG,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
 import { bigintReviver } from '../util/bigint';
@@ -438,8 +438,8 @@ function reduceAccountActivities(activities?: AccountState['activities'], tokens
   if (!tokens || !idsBySlug || !byId) return undefined;
 
   const reducedSlugs = tokens.slice(0, ACTIVITY_TOKENS_LIMIT).map(({ slug }) => slug);
-  if (!reducedSlugs.includes(TON_TOKEN_SLUG)) {
-    reducedSlugs.push(TON_TOKEN_SLUG);
+  if (!reducedSlugs.includes(TONCOIN_SLUG)) {
+    reducedSlugs.push(TONCOIN_SLUG);
   }
 
   const reducedIdsBySlug = mapValues(pickTruthy(idsBySlug, reducedSlugs), (ids) => {

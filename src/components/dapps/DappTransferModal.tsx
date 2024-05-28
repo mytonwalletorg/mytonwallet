@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 import { TransferState } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CAPACITOR, TON_TOKEN_SLUG } from '../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CAPACITOR, TONCOIN_SLUG } from '../../config';
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
@@ -62,7 +62,7 @@ function DappTransferModal({
   } = getActions();
 
   const lang = useLang();
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens])!;
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens])!;
 
   const isOpen = state !== TransferState.None;
 

@@ -9,7 +9,7 @@ import { StakingState } from '../../global/types';
 
 import {
   IS_CAPACITOR,
-  MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TON_TOKEN_SLUG,
+  MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TONCOIN_SLUG,
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import { selectAccountState, selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
@@ -88,7 +88,7 @@ function UnstakeModal({
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
 
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]);
 
   const [renderedBalance, setRenderedBalance] = useState(tonToken?.amount);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);

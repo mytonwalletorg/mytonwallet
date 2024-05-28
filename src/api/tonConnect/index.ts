@@ -29,7 +29,7 @@ import type {
 import { ApiCommonError, ApiTransactionError } from '../types';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
 
-import { IS_EXTENSION, LEDGER_NFT_TRANSFER_DISABLED, TON_TOKEN_SLUG } from '../../config';
+import { IS_EXTENSION, LEDGER_NFT_TRANSFER_DISABLED, TONCOIN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { isLedgerCommentLengthValid } from '../../util/ledger/utils';
 import { logDebug, logDebugError } from '../../util/logs';
@@ -304,7 +304,7 @@ export async function sendTransaction(
     if (isLedger) {
       const signedTransfers = response as ApiSignedTransfer[];
       const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
-      boc = submitResult.externalMessage.toBoc().toString('base64');
+      boc = submitResult.firstBoc;
       successNumber = submitResult.successNumber;
       msgHashes = submitResult.msgHashes;
 
@@ -346,7 +346,7 @@ export async function sendTransaction(
         toAddress: normalizedAddress,
         comment,
         fee: checkResult.fee!,
-        slug: TON_TOKEN_SLUG,
+        slug: TONCOIN_SLUG,
         inMsgHash: msgHash,
       });
     });

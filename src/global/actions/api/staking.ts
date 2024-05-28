@@ -1,7 +1,7 @@
 import { StakingState } from '../../types';
 
 import {
-  IS_CAPACITOR, MIN_BALANCE_FOR_UNSTAKE, TON_TOKEN_SLUG,
+  IS_CAPACITOR, MIN_BALANCE_FOR_UNSTAKE, TONCOIN_SLUG,
 } from '../../../config';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { callActionInMain } from '../../../util/multitab';
@@ -27,7 +27,7 @@ addActionHandler('startStaking', (global, actions, payload) => {
   const { isUnstaking } = payload || {};
 
   const accountState = selectAccountState(global, global.currentAccountId!);
-  const balance = accountState?.balances?.bySlug[TON_TOKEN_SLUG] ?? 0n;
+  const balance = accountState?.balances?.bySlug[TONCOIN_SLUG] ?? 0n;
   const isNotEnoughBalance = balance < MIN_BALANCE_FOR_UNSTAKE;
 
   const state = isUnstaking

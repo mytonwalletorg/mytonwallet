@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiNft } from '../../../../api/types';
 import { ActiveTab } from '../../../../global/types';
 
-import { DEFAULT_LANDSCAPE_ACTION_TAB_ID, TON_TOKEN_SLUG } from '../../../../config';
+import { DEFAULT_LANDSCAPE_ACTION_TAB_ID, TONCOIN_SLUG } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import { selectAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -317,7 +317,7 @@ export default memo(
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
       const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
-      const { nfts, tokenSlug = TON_TOKEN_SLUG } = global.currentTransfer;
+      const { nfts, tokenSlug = TONCOIN_SLUG } = global.currentTransfer;
 
       return {
         activeTabIndex: accountState?.landscapeActionsActiveTabIndex,

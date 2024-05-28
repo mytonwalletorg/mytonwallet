@@ -126,7 +126,7 @@ Signing was confirmed!: 簽署已確認!
 Transaction Info: 交易資訊
 Transaction in progress: 交易進行中
 Comment was copied!: 註記欄已被複製!
-View Transaction on TONScan: 在 TONScan 上查看此交易
+View Transaction on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此交易
 Sender: 發送人
 Recipient: 接收人
 Address was copied!: 地址已被複製!
@@ -134,7 +134,7 @@ Repeat: 重複
 Receive: 接收
 Switch Account: 切換帳戶
 Copy wallet address: 複製錢包地址
-View address on TONScan: 在 TONScan 上查看此地址
+View address on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此地址
 Open on CoinMarketCap: 在 CoinMarketCap 打開
 You have just created a new wallet: 您剛剛創建了一個新錢包
 You can now transfer your tokens from another wallet or exchange.: 您現在可以從另一個錢包或交易所轉移您的代幣。
@@ -181,7 +181,7 @@ Save: 儲存
 Copy: 複製
 Remove From Saved Addresses: 從保存的地址中刪除
 Add To Saved Addresses: 新增到保存的地址
-View Address on TONScan: 在 TONScan 上查看此地址
+View Address on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此地址
 No suggestions, you're on your own!: 沒有建議，請靠自己！
 Play Sounds: 播放聲音
 Focus on asset value rather than current balance: 關注資產價值而非當前餘額
@@ -320,6 +320,7 @@ $dapp_ledger_warning1: 您即將使用您的**Ledger**錢包發送多方交易�
 $dapp_ledger_warning2: 請慢慢來，不要中斷過程。
 Agree: 同意
 Unfortunately, this operation is not yet supported by Ledger wallet.: 不幸的是，該操作尚未由Ledger Wallet支持。
+SwapTitle: 交換
 Swap: 交換
 You sell: 您賣出
 You buy: 您購買
@@ -548,7 +549,7 @@ NFT has been sent!: NFT已發送！
 Cannot be sent: 無法發送
 NFT is for sale: NFT 正在出售
 More actions: 更多操作
-Open on TONScan: 在 TONScan 上打開
+Open on %ton_explorer_name%: 在 %ton_explorer_name% 上打開
 Swap is not supported in Testnet.: 測試網不支援共享。
 Swap is not yet supported by Ledger.: Ledger 尚不支援該交易所。
 Buying with card is not supported in Testnet.: 測試網不支援刷卡購買。
@@ -558,7 +559,7 @@ $transfer_inactive_contract_error: |
   您以“EQ...”格式輸入了地址，但該地址未激活，因此交易將無法完成。如果您確實要傳送到該位址，請以「UQ...」格式輸入該位址。
 Successfully: 成功地
 Unstake More: 解除質押更多
-WrongAddress: 交易地址與帳戶地址不符。
+WrongAddress: 該 dapp 請求另一個錢包進行交易。
 Are you sure you want to burn this NFT? It will be lost forever.: 您確定要燒掉這個 NFT 嗎？ 它將永遠失去。
 $multi_burn_nft_warning: "您即將銷毀 %amount% 個 NFT。"
 $multi_send_nft_warning: "該過程可能需要 ~%duration% 分鐘。請勿關閉應用程式，也不要在完成之前切換賬戶。"
@@ -575,3 +576,19 @@ Send All: 全部發送
 Burn All: 全部燒掉
 Select All: 全選
 Collection: 集合
+Vesting: 歸屬
+Vesting Balance: 歸屬餘額
+Ready to Unfreeze: 準備解凍
+You will receive your unfrozen coins in a few minutes.: 您將在幾分鐘內收到解凍的硬幣。
+Vesting Schedule: 歸屬時間表
+Loyalty Users Reward: 忠誠用戶獎勵
+Unfrozen: 解凍
+Missed: 錯過了
+Frozen: 冷凍
+Until %date%: 截至 %date%
+"%volume% in %amount% parts": "%volume% 分成 %amount% 份"
+Unfreeze: 解凍
+Claim: 索賠
+Confirm Unfreezing: 確認解凍
+Insufficient Balance for Fee.: 費用餘額不足。
+$fee_value_bold: "**手續費:** %fee%"

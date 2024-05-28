@@ -4,7 +4,7 @@ import { BottomSheet } from 'native-bottom-sheet';
 import React, { memo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../../../config';
+import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, TONCOIN_SLUG } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
 import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS_APP } from '../../../../util/windowEnvironment';
@@ -58,7 +58,7 @@ function PortraitActions({
   const handleStartSwapWidget = () => {
     startSwap({
       tokenInSlug: DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
-      tokenOutSlug: TON_TOKEN_SLUG,
+      tokenOutSlug: TONCOIN_SLUG,
       amountIn: '100',
     });
   };

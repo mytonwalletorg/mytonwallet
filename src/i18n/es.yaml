@@ -131,7 +131,7 @@ Signing was confirmed!: ¡La firma fue confirmada!
 Transaction Info: Información de la transacción
 Transaction in progress: Transacción en curso
 Comment was copied!: ¡El comentario fue copiado!
-View Transaction on TONScan: Ver transacción en TONScan
+View Transaction on %ton_explorer_name%: Ver transacción en %ton_explorer_name%
 Sender: Remitente
 Recipient: Receptor
 Address was copied!: ¡Se copió la dirección!
@@ -139,7 +139,7 @@ Repeat: Repetir
 Receive: Recibir
 Switch Account: Cambiar de monedero
 Copy wallet address: Copiar la dirección del monedero
-View address on TONScan: Ver dirección en TONScan
+View address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
 Open on CoinMarketCap: Abrir en CoinMarketCap
 You have just created a new wallet: Acabas de crear un nuevo monedero
 You can now transfer your tokens from another wallet or exchange.: Ahora puede transferir sus tokens desde otro monedero o intercambio.
@@ -187,7 +187,7 @@ Save: Guardar
 Copy: Copiar
 Remove From Saved Addresses: Eliminar de direcciones guardadas
 Add To Saved Addresses: Agregar a direcciones guardadas
-View Address on TONScan: Ver dirección en TONScan
+View Address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
 No suggestions, you're on your own!: Sin sugerencias, ¡estás solo!
 Play Sounds: Reproducir sonidos
 Focus on asset value rather than current balance: Centrarse en el valor de los activos en lugar del saldo actual
@@ -331,6 +331,7 @@ $dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccion
 $dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
 Agree: Aceptar
 Unfortunately, this operation is not yet supported by Ledger wallet.: Desafortunadamente, esta operación aún no es compatible con Ledger wallet.
+SwapTitle: Intercambiar
 Swap: Intercambiar
 You sell: Usted vende
 You buy: Usted compra
@@ -560,7 +561,7 @@ NFT has been sent!: NFT ha sido enviado!
 Cannot be sent: No se puede enviar
 NFT is for sale: NFT está a la venta
 More actions: Mas acciones
-Open on TONScan: Abrir en TONScan
+Open on %ton_explorer_name%: Abrir en %ton_explorer_name%
 Swap is not supported in Testnet.: El intercambio no es compatible con Testnet.
 Swap is not yet supported by Ledger.: Ledger aún no admite el intercambio.
 Buying with card is not supported in Testnet.: La compra con tarjeta no es compatible con Testnet.
@@ -571,7 +572,7 @@ $transfer_inactive_contract_error: |
   Si definitivamente desea enviar a esta dirección, ingrese la dirección en el formato "UQ...".
 Successfully: Exitosamente
 Unstake More: Retirar más
-WrongAddress: La transacción desde la dirección no coincide con la dirección de la cuenta.
+WrongAddress: El dapp solicitó una transacción desde otra billetera.
 Are you sure you want to burn this NFT? It will be lost forever.: ¿Estás seguro de que quieres quemar este NFT? Se perderá para siempre.
 $multi_burn_nft_warning: "Vas a quemar %amount% NFTs."
 $multi_send_nft_warning: "El proceso puede tardar ~%duration% minutos. Por favor, no cierres la aplicación y no cambies de cuenta hasta que haya terminado."
@@ -588,3 +589,19 @@ Send All: Envia todo
 Burn All: Quemar todo
 Select All: Seleccionar todo
 Collection: Colección
+Vesting: Adquisición de derechos
+Vesting Balance: Saldo adquirido
+Ready to Unfreeze: Listo para descongelar
+You will receive your unfrozen coins in a few minutes.: Recibirás tus monedas descongeladas en unos minutos.
+Vesting Schedule: Calendario de adquisición de derechos
+Loyalty Users Reward: Recompensa para usuarios leales
+Unfrozen: Descongelado
+Missed: Omitido
+Frozen: Congelado
+Until %date%: Hasta el %date%
+"%volume% in %amount% parts": "%volume% en %amount% partes"
+Unfreeze: Descongelar
+Claim: Afirmar
+Confirm Unfreezing: Confirmar descongelación
+Insufficient Balance for Fee.: Saldo insuficiente para pagar la tarifa.
+$fee_value_bold: "**Comisión:** %fee%"

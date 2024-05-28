@@ -1,5 +1,6 @@
 import { StakingState } from '../../types';
 
+import { areDeepEqual } from '../../../util/areDeepEqual';
 import { buildCollectionByKey, pick } from '../../../util/iteratees';
 import { openUrl } from '../../../util/openUrl';
 import { IS_IOS_APP } from '../../../util/windowEnvironment';
@@ -18,8 +19,10 @@ import {
   updateStakingInfo,
   updateSwapTokens,
   updateTokens,
+  updateVesting,
+  updateVestingInfo,
 } from '../../reducers';
-import { selectAccountState } from '../../selectors';
+import { selectAccountState, selectVestingPartsReadyToUnfreeze } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -204,6 +207,18 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       if (!global.isIncorrectTimeNotificationReceived) {
         actions.showIncorrectTimeError();
       }
+      break;
+    }
+
+    case 'updateVesting': {
+      const { accountId, vestingInfo } = update;
+      const unfreezeRequestedIds = selectVestingPartsReadyToUnfreeze(global, accountId);
+      global = updateVestingInfo(global, accountId, vestingInfo);
+      const newUnfreezeRequestedIds = selectVestingPartsReadyToUnfreeze(global, accountId);
+      if (!areDeepEqual(unfreezeRequestedIds, newUnfreezeRequestedIds)) {
+        global = updateVesting(global, accountId, { unfreezeRequestedIds: undefined });
+      }
+      setGlobal(global);
       break;
     }
   }

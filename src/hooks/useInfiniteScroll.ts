@@ -22,6 +22,7 @@ const useInfiniteScroll = <ListId extends string | number>(
   listSlice = DEFAULT_LIST_SLICE,
   slug?: string,
   isActive?: boolean,
+  withResetOnInactive = false,
 ): [ListId[]?, GetMore?, ResetScroll?] => {
   const requestParamsRef = useRef<{
     direction?: LoadMoreDirection;
@@ -43,12 +44,6 @@ const useInfiniteScroll = <ListId extends string | number>(
     requestParamsRef.current = {};
   }
 
-  const prevListIds = usePrevious(listIds);
-  const prevIsDisabled = usePrevious(isDisabled);
-  const areListsEqual = listIds && prevListIds
-    && listIds.length > 0 && prevListIds.length > 0
-    && listIds[0] === prevListIds[0]
-    && listIds[listIds.length - 1] === prevListIds[prevListIds.length - 1];
   const prevSlug = usePrevious2(slug);
 
   const resetScroll: ResetScroll = useLastCallback(() => {
@@ -64,12 +59,14 @@ const useInfiniteScroll = <ListId extends string | number>(
   });
 
   useSyncEffect(() => {
-    if (!isActive || slug !== prevSlug) {
+    if (slug !== prevSlug || (withResetOnInactive && !isActive)) {
       resetScroll();
     }
-  }, [isActive, prevSlug, resetScroll, slug]);
+  }, [isActive, prevSlug, slug, withResetOnInactive]);
 
-  if (listIds && !isDisabled && (!areListsEqual || isDisabled !== prevIsDisabled)) {
+  const prevListIds = usePrevious(listIds);
+  const prevIsDisabled = usePrevious(isDisabled);
+  if (listIds && !isDisabled && (listIds !== prevListIds || isDisabled !== prevIsDisabled)) {
     const { viewportIds, isOnTop } = currentStateRef.current || {};
     const currentMiddleId = viewportIds && !isOnTop ? viewportIds[Math.round(viewportIds.length / 2)] : undefined;
     const defaultOffsetId = currentMiddleId && listIds.includes(currentMiddleId) ? currentMiddleId : listIds[0];
@@ -88,6 +85,8 @@ const useInfiniteScroll = <ListId extends string | number>(
   const getMore: GetMore = useLastCallback(({
     direction,
   }: { direction: LoadMoreDirection; noScroll?: boolean }) => {
+    if (!isActive) return;
+
     const { viewportIds } = currentStateRef.current || {};
 
     const offsetId = viewportIds

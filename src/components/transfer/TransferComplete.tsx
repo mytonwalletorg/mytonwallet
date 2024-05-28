@@ -3,7 +3,7 @@ import { getActions } from '../../global';
 
 import type { ApiNft } from '../../api/types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { TONCOIN_SLUG } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -71,7 +71,7 @@ function TransferComplete({
   const handleTransactionRepeatClick = useLastCallback(() => {
     startTransfer({
       isPortrait,
-      tokenSlug: tokenSlug || TON_TOKEN_SLUG,
+      tokenSlug: tokenSlug || TONCOIN_SLUG,
       toAddress,
       amount,
       comment,

@@ -1,4 +1,4 @@
-import React, { memo } from '../../../lib/teact/teact';
+import React, { memo, type TeactNode, useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../api/types';
@@ -9,9 +9,9 @@ import {
   CHANGELLY_SECURITY_EMAIL,
   CHANGELLY_SUPPORT_EMAIL,
   CHANGELLY_WAITING_DEADLINE,
+  TON_EXPLORER_NAME,
   TON_SYMBOL,
-  TON_TOKEN_SLUG,
-  TONSCAN_BASE_MAINNET_URL,
+  TONCOIN_SLUG,
 } from '../../../config';
 import { selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
@@ -19,6 +19,7 @@ import { formatFullDay, formatTime } from '../../../util/dateFormat';
 import { formatCurrency, formatCurrencyExtended } from '../../../util/formatNumber';
 import getBlockchainNetworkName from '../../../util/swap/getBlockchainNetworkName';
 import getSwapRate from '../../../util/swap/getSwapRate';
+import { getTonExplorerTransactionUrl } from '../../../util/url';
 
 import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
 import useLang from '../../../hooks/useLang';
@@ -62,6 +63,12 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     ? 0
     : (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
   const renderedActivity = usePrevDuringAnimation(activity, animationDuration);
+  const tonExplorerTitle = useMemo(() => {
+    return (lang('View Transaction on %ton_explorer_name%', {
+      ton_explorer_name: TON_EXPLORER_NAME,
+    }) as TeactNode[]
+    ).join('');
+  }, [lang]);
 
   const { txIds, timestamp, networkFee = 0 } = renderedActivity ?? {};
 
@@ -88,15 +95,15 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     fromAmount = renderedActivity.fromAmount;
     toAmount = renderedActivity.toAmount;
 
-    const isFromTon = from === TON_TOKEN_SLUG;
+    const isFromToncoin = from === TONCOIN_SLUG;
 
     if (cex) {
       isPending = CHANGELLY_PENDING_STATUSES.has(cex.status);
       isCexPending = isPending;
       isCexError = CHANGELLY_ERROR_STATUSES.has(cex.status);
       isCexHold = cex.status === 'hold';
-      // Skip the 'waiting' status for transactions from TON to account for delayed status updates from Сhangelly
-      isCexWaiting = cex.status === 'waiting' && !isFromTon;
+      // Skip the 'waiting' status for transactions from Toncoin to account for delayed status updates from Сhangelly
+      isCexWaiting = cex.status === 'waiting' && !isFromToncoin;
     } else {
       isPending = status === 'pending';
       isError = ONCHAIN_ERROR_STATUSES.has(status!);
@@ -129,8 +136,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
   }
 
   const [, transactionHash] = (txIds?.[0] || '').split(':');
-  const tonscanBaseUrl = TONSCAN_BASE_MAINNET_URL;
-  const tonscanTransactionUrl = transactionHash ? `${tonscanBaseUrl}tx/${transactionHash}` : undefined;
+  const transactionUrl = getTonExplorerTransactionUrl(transactionHash);
 
   const payinAddress = renderedActivity?.cex?.payinAddress;
   const payinExtraId = renderedActivity?.cex?.payinExtraId;
@@ -354,15 +360,15 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
       onClose={handleClose}
     >
       <div className={modalStyles.transitionContent}>
-        {tonscanTransactionUrl && (
+        {transactionUrl && (
           <a
-            href={tonscanTransactionUrl}
+            href={transactionUrl}
             target="_blank"
             rel="noreferrer noopener"
-            className={styles.tonscan}
-            title={lang('View Transaction on TONScan')}
+            className={styles.tonExplorer}
+            title={tonExplorerTitle}
           >
-            <i className="icon-tonscan" aria-hidden />
+            <i className="icon-tonexplorer" aria-hidden />
           </a>
         )}
         {renderContent()}

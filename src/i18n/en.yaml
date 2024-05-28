@@ -131,7 +131,7 @@ Signing was confirmed!: Signing was confirmed!
 Transaction Info: Transaction Info
 Transaction in progress: Transaction in progress
 Comment was copied!: Comment was copied!
-View Transaction on TONScan: View Transaction on TONScan
+View Transaction on %ton_explorer_name%: View Transaction on %ton_explorer_name%
 Sender: Sender
 Recipient: Recipient
 Address was copied!: Address was copied!
@@ -139,7 +139,7 @@ Repeat: Repeat
 Receive: Receive
 Switch Account: Switch Account
 Copy wallet address: Copy wallet address
-View address on TONScan: View address on TONScan
+View address on %ton_explorer_name%: View address on %ton_explorer_name%
 Open on CoinMarketCap: Open on CoinMarketCap
 You have just created a new wallet: You have just created a new wallet
 You can now transfer your tokens from another wallet or exchange.: You can now transfer your tokens from another wallet or exchange.
@@ -187,7 +187,7 @@ Save: Save
 Copy: Copy
 Remove From Saved Addresses: Remove From Saved Addresses
 Add To Saved Addresses: Add To Saved Addresses
-View Address on TONScan: View Address on TONScan
+View Address on %ton_explorer_name%: View Address on %ton_explorer_name%
 No suggestions, you're on your own!: No suggestions, you're on your own!
 Play Sounds: Play Sounds
 Focus on asset value rather than current balance: Focus on asset value rather than current balance
@@ -331,6 +331,7 @@ $dapp_ledger_warning1: You are about to send a multi-way transaction using your 
 $dapp_ledger_warning2: Please take your time and do not interrupt the process.
 Agree: Agree
 Unfortunately, this operation is not yet supported by Ledger wallet.: Unfortunately, this operation is not yet supported by Ledger wallet.
+SwapTitle: Swap
 Swap: Swap
 You sell: You sell
 You buy: You buy
@@ -562,7 +563,7 @@ NFT has been sent!: NFT has been sent!
 Cannot be sent: Cannot be sent
 NFT is for sale: NFT is for sale
 More actions: More actions
-Open on TONScan: Open on TONScan
+Open on %ton_explorer_name%: Open on %ton_explorer_name%
 Swap is not supported in Testnet.: Swap is not supported in Testnet.
 Swap is not yet supported by Ledger.: Swap is not yet supported by Ledger.
 Buying with card is not supported in Testnet.: Buying with card is not supported in Testnet.
@@ -573,7 +574,7 @@ $transfer_inactive_contract_error: |
   If you definitely want to send to this address, then enter the address in the "UQ..." format.
 Successfully: Successfully
 Unstake More: Unstake More
-WrongAddress: Transaction from address does not match account address.
+WrongAddress: The dapp requested a transaction from another wallet.
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Are you sure you want to burn this NFT?
   It will be lost forever.
@@ -592,3 +593,19 @@ Send All: Send All
 Burn All: Burn All
 Select All: Select All
 Collection: Collection
+Vesting: Vesting
+Vesting Balance: Vesting Balance
+Ready to Unfreeze: Ready to Unfreeze
+You will receive your unfrozen coins in a few minutes.: You will receive your unfrozen coins in a few minutes.
+Vesting Schedule: Vesting Schedule
+Loyalty Users Reward: Loyalty Users Reward
+Unfrozen: Unfrozen
+Missed: Missed
+Frozen: Frozen
+Until %date%: Until %date%
+"%volume% in %amount% parts": "%volume% in %amount% parts"
+Unfreeze: Unfreeze
+Claim: Claim
+Confirm Unfreezing: Confirm Unfreezing
+Insufficient Balance for Fee.: Insufficient Balance for Fee.
+$fee_value_bold: "**Fee:** %fee%"

@@ -132,7 +132,7 @@ Signing was confirmed!: Підпис підтверджено!
 Transaction Info: Інформація про переказ
 Transaction in progress: Переказ виконується
 Comment was copied!: Коментар скопійовано!
-View Transaction on TONScan: Переглянути переказ у TONScan
+View Transaction on %ton_explorer_name%: Переглянути переказ у %ton_explorer_name%
 Sender: Відправник
 Recipient: Одержувач
 Address was copied!: Адресу скопійовано!
@@ -140,7 +140,7 @@ Repeat: Повторити
 Receive: Отримати
 Switch Account: Змінити акаунт
 Copy wallet address: Скопіювати адресу
-View address on TONScan: Подивитися адресу в TONScan
+View address on %ton_explorer_name%: Подивитися адресу в %ton_explorer_name%
 Open on CoinMarketCap: Відкрити в CoinMarketCap
 You have just created a new wallet: Вітаємо! Ви щойно створили новий гаманець
 You can now transfer your tokens from another wallet or exchange.: Тепер ви можете поповнити його з іншого гаманця або біржі.
@@ -188,7 +188,7 @@ Save: Зберегти
 Copy: Скопіювати
 Remove From Saved Addresses: Видалити збережену адресу
 Add To Saved Addresses: Додати в Збережені адреси
-View Address on TONScan: Відкрити в TONScan
+View Address on %ton_explorer_name%: Відкрити в %ton_explorer_name%
 No suggestions, you're on your own!: Нічого не знайдено :(
 Play Sounds: Включити звуки
 Focus on asset value rather than current balance: Фокус на вартості активів замість поточного балансу
@@ -562,7 +562,7 @@ NFT has been sent!: NFT відправлено!
 Cannot be sent: Не можна відправити
 NFT is for sale: NFT на продажу
 More actions: Більше дій
-Open on TONScan: Відкрити на TONScan
+Open on %ton_explorer_name%: Відкрити на %ton_explorer_name%
 Swap is not supported in Testnet.: Обмін не підтримується в Testnet.
 Swap is not yet supported by Ledger.: Обмін ще не підтримується Ledger.
 Buying with card is not supported in Testnet.: Купівля за допомогою картки не підтримується в Testnet.
@@ -573,7 +573,7 @@ $transfer_inactive_contract_error: |
   Якщо ви точно хочете надіслати токени на цю адресу, то вкажіть її у форматі "UQ...".'
 Successfully: Успішно
 Unstake More: Вивести ще
-WrongAddress: Транзакція з адреси, що не збігається з адресою акаунта.
+WrongAddress: Dapp запитав транзакцію з іншого гаманця.
 Are you sure you want to burn this NFT? It will be lost forever.: Ви впевнені, що хочете спалити цей NFT? Його буде втрачено назавжди.
 $multi_burn_nft_warning: "Ви збираєтеся спалити %amount% NFT."
 $multi_send_nft_warning: "Процес може зайняти ~%duration% хв. Будь ласка, не закривайте додаток і не перемикайтеся на інші акаунти, поки він не завершиться."
@@ -590,3 +590,19 @@ Send All: Надіслати все
 Burn All: Спалити все
 Select All: Вибрати все
 Collection: Колекція
+Vesting: Надання прав
+Vesting Balance: Вестинговий баланс
+Ready to Unfreeze: Готовий до розморожування
+You will receive your unfrozen coins in a few minutes.: Ви отримаєте незаморожені монети через кілька хвилин.
+Vesting Schedule: Графік надання прав
+Loyalty Users Reward: Нагорода за лояльність користувачів
+Unfrozen: Розморожений
+Missed: Пропущений
+Frozen: Заморожені
+Until %date%: До %date%
+"%volume% in %amount% parts": "%volume% на %amount% частин"
+Unfreeze: Розморозити
+Claim: Позов
+Confirm Unfreezing: Підтвердити розморожування
+Insufficient Balance for Fee.: Недостатній баланс для комісії.
+$fee_value_bold: "**Комісія:** %fee%"

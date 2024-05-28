@@ -4,6 +4,7 @@ import React, {
 } from '../../lib/teact/teact';
 
 import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS } from '../../config';
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
@@ -104,21 +105,21 @@ function RichNumberInput({
 
   function handleChange(e: React.FormEvent<HTMLDivElement>) {
     const inputValue = e.currentTarget.innerText.trim();
-
     const newValue = clearValue(inputValue, decimals);
-
     const parts = getParts(newValue, decimals);
     const isEmpty = inputValue === '';
 
-    if (!parts && !isEmpty && value) {
-      updateHtml(getParts(value, decimals));
-    } else {
-      updateHtml(parts);
-    }
+    requestMutation(() => {
+      if (!parts && !isEmpty && value) {
+        updateHtml(getParts(value, decimals));
+      } else {
+        updateHtml(parts);
+      }
 
-    if ((newValue || isEmpty) && newValue !== value) {
-      onChange?.(newValue);
-    }
+      if ((newValue || isEmpty) && newValue !== value) {
+        onChange?.(newValue);
+      }
+    });
   }
 
   const handleFocus = useLastCallback(() => {
@@ -226,7 +227,7 @@ export function buildContentHtml(values: RegExpMatchArray, suffix?: string, deci
   const [, wholePart, dotPart, fractionPart] = values;
 
   const fractionStr = (fractionPart || dotPart) ? `.${(fractionPart || '').substring(0, decimals)}` : '';
-  const suffixStr = suffix ? ` ${suffix}` : '';
+  const suffixStr = suffix ? `&thinsp;${suffix}` : '';
 
   return `${wholePart}<span class="${styles.fractional}">${fractionStr}${suffixStr}</span>`;
 }

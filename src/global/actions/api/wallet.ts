@@ -15,7 +15,7 @@ import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
 import { ActiveTab, TransferState } from '../../types';
 
-import { IS_CAPACITOR, NFT_BATCH_SIZE, TON_TOKEN_SLUG } from '../../../config';
+import { IS_CAPACITOR, NFT_BATCH_SIZE, TONCOIN_SLUG } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
@@ -36,6 +36,7 @@ import {
   updateAccountState,
   updateActivitiesIsHistoryEndReached,
   updateActivitiesIsLoading,
+  updateBalances,
   updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
@@ -43,6 +44,7 @@ import {
   updateSendingLoading,
   updateSettings,
 } from '../../reducers';
+import { updateTokenInfo } from '../../reducers/tokens';
 import {
   selectAccount,
   selectAccountSettings,
@@ -171,7 +173,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
       });
     }
     if (result?.fee) {
-      global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TON_TOKEN_SLUG);
+      global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TONCOIN_SLUG);
     }
 
     setGlobal(global);
@@ -185,7 +187,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     return;
   }
 
-  global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TON_TOKEN_SLUG);
+  global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TONCOIN_SLUG);
 
   setGlobal(updateCurrentTransfer(global, {
     state: TransferState.Confirm,
@@ -521,7 +523,7 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
     offsetId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
   }
 
-  fetchedActivities.sort((a, b) => compareActivities(a, b));
+  fetchedActivities.sort(compareActivities);
 
   global = updateActivitiesIsLoading(global, false);
 
@@ -593,7 +595,7 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
   const byId = { ...(currentActivities?.byId || {}), ...newById };
   let idsBySlug = { ...currentActivities?.idsBySlug };
 
-  fetchedActivities = fetchedActivities.sort((a, b) => compareActivities(a, b));
+  fetchedActivities.sort(compareActivities);
 
   idsBySlug = fetchedActivities.reduce((acc, activity) => {
     if (activity.kind === 'swap') {
@@ -608,7 +610,7 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
   }, idsBySlug);
 
   idsBySlug = mapValues(idsBySlug, (txIds) => unique(txIds));
-  idsBySlug[TON_TOKEN_SLUG]?.sort((a, b) => compareActivities(byId[a], byId[b]));
+  idsBySlug[TONCOIN_SLUG]?.sort((a, b) => compareActivities(byId[a], byId[b]));
 
   global = updateAccountState(global, accountId, {
     activities: {
@@ -674,7 +676,6 @@ addActionHandler('cancelSignature', (global) => {
 
 addActionHandler('addToken', (global, actions, { token }) => {
   const accountId = global.currentAccountId!;
-  const { areTokensWithNoCostHidden } = global.settings;
   const { balances } = selectAccountState(global, accountId) || {};
   const accountSettings = selectAccountSettings(global, accountId) ?? {};
   const { orderedSlugs = [], exceptionSlugs = [], deletedSlugs } = accountSettings;
@@ -692,18 +693,15 @@ addActionHandler('addToken', (global, actions, { token }) => {
     image: token.image,
     keywords: token.keywords,
     quote: {
+      slug: token.slug,
       price: token.price ?? 0,
       priceUsd: token.priceUsd ?? 0,
       percentChange24h: token.change24h ?? 0,
     },
   };
 
-  const exceptionSlugsCopy = exceptionSlugs.slice();
+  const exceptionSlugsCopy = unique([...exceptionSlugs, token.slug]);
   const deletedSlugsCopy = deletedSlugs?.filter((slug) => slug !== token.slug);
-
-  if (areTokensWithNoCostHidden && token.price === 0) {
-    exceptionSlugsCopy.push(token.slug);
-  }
 
   global = updateAccountState(global, accountId, {
     balances: {
@@ -729,20 +727,12 @@ addActionHandler('addToken', (global, actions, { token }) => {
       },
     },
   });
-
-  setGlobal({
-    ...global,
-    tokenInfo: {
-      ...global.tokenInfo,
-      bySlug: {
-        ...global.tokenInfo.bySlug,
-        [apiToken.slug]: apiToken,
-      },
-    },
-  });
+  global = updateTokenInfo(global, { [apiToken.slug]: apiToken });
+  setGlobal(global);
 });
 
 addActionHandler('importToken', async (global, actions, { address, isSwap }) => {
+  const { currentAccountId } = global;
   global = updateSettings(global, {
     importToken: {
       isLoading: true,
@@ -760,8 +750,8 @@ addActionHandler('importToken', async (global, actions, { address, isSwap }) => 
     token = await callApi('fetchToken', global.currentAccountId!, address);
     await pause(IMPORT_TOKEN_PAUSE);
 
+    global = getGlobal();
     if (!token) {
-      global = getGlobal();
       global = updateSettings(global, {
         importToken: {
           isLoading: false,
@@ -770,8 +760,23 @@ addActionHandler('importToken', async (global, actions, { address, isSwap }) => 
       });
       setGlobal(global);
       return;
+    } else {
+      const apiToken: ApiToken = {
+        ...token,
+        quote: {
+          slug: token.slug,
+          price: 0,
+          priceUsd: 0,
+          percentChange24h: 0,
+        },
+      };
+      global = updateTokenInfo(global, { [apiToken.slug]: apiToken });
+      setGlobal(global);
     }
   }
+
+  const balances = selectAccountState(global, currentAccountId!)?.balances?.bySlug ?? {};
+  const shouldUpdateBalance = !(token.slug in balances);
 
   const userToken: UserToken | UserSwapToken = {
     ...pick(token, [
@@ -800,6 +805,9 @@ addActionHandler('importToken', async (global, actions, { address, isSwap }) => 
       token: userToken,
     },
   });
+  if (shouldUpdateBalance) {
+    global = updateBalances(global, global.currentAccountId!, { [token.slug]: 0n });
+  }
   setGlobal(global);
 });
 

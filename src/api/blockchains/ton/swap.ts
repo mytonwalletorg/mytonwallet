@@ -15,15 +15,15 @@ const MAX_NETWORK_FEE = 1000000000n; // 1 TON
 export async function validateDexSwapTransfers(
   network: ApiNetwork,
   address: string,
-  params: ApiSwapBuildRequest,
+  request: ApiSwapBuildRequest,
   transfers: TonTransferParams[],
 ) {
   assert(transfers.length <= 2);
 
   const [mainTransfer, feeTransfer] = transfers;
 
-  if (params.from === TON_SYMBOL) {
-    const maxAmount = fromDecimal(params.fromAmount) + MAX_NETWORK_FEE;
+  if (request.from === TON_SYMBOL) {
+    const maxAmount = fromDecimal(request.fromAmount) + MAX_NETWORK_FEE;
     const { isSwapAllowed, codeHash } = await getContractInfo(network, mainTransfer.toAddress);
 
     assert(!!isSwapAllowed, `Not allowed swap contract: ${codeHash} ${mainTransfer.toAddress}`);
@@ -35,10 +35,10 @@ export async function validateDexSwapTransfers(
       assert(toBase64Address(feeTransfer.toAddress, false) === SWAP_FEE_ADDRESS);
     }
   } else {
-    const token = findTokenByMinter(params.from)!;
+    const token = findTokenByMinter(request.from)!;
     assert(!!token);
 
-    const maxAmount = fromDecimal(params.fromAmount, token.decimals);
+    const maxAmount = fromDecimal(request.fromAmount, token.decimals);
     const maxTonAmount = MAX_NETWORK_FEE;
 
     const walletAddress = await resolveTokenWalletAddress(network, address, token.minterAddress!);
@@ -73,7 +73,6 @@ export async function validateDexSwapTransfers(
 
       const { amount: tokenFeeAmount, destination: feeDestination } = feePayload as ApiTokensTransferPayload;
 
-      assert(tokenFeeAmount < tokenAmount);
       assert(tokenAmount + tokenFeeAmount <= maxAmount);
       assert(toBase64Address(feeDestination, false) === SWAP_FEE_ADDRESS);
     }

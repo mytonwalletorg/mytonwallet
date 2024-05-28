@@ -20,12 +20,12 @@ import type {
 import type { LedgerWalletInfo } from './types';
 import { TRANSFER_TIMEOUT_SEC, WORKCHAIN } from '../../api/types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { TONCOIN_SLUG } from '../../config';
 import { callApi } from '../../api';
 import {
   DEFAULT_IS_BOUNCEABLE,
-  TOKEN_TRANSFER_TON_AMOUNT,
-  TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
+  TOKEN_TRANSFER_TONCOIN_AMOUNT,
+  TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
   WALLET_IS_BOUNCEABLE,
 } from '../../api/blockchains/ton/constants';
 import { ApiUserRejectsError, handleServerError } from '../../api/errors';
@@ -255,12 +255,12 @@ export async function buildLedgerTokenTransfer(
     responseDestination: Address.parse(fromAddress),
     // eslint-disable-next-line no-null/no-null
     customPayload: null,
-    forwardAmount: TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
+    forwardAmount: TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
     forwardPayload,
   };
 
   return {
-    amount: TOKEN_TRANSFER_TON_AMOUNT,
+    amount: TOKEN_TRANSFER_TONCOIN_AMOUNT,
     toAddress: tokenWalletAddress!,
     payload,
   };
@@ -404,7 +404,7 @@ export async function signLedgerTransactions(
           toAddress: message.toAddress,
           comment: message.payload?.type === 'comment' ? message.payload.comment : undefined,
           fee: 0n,
-          slug: TON_TOKEN_SLUG,
+          slug: TONCOIN_SLUG,
         },
       });
       index++;

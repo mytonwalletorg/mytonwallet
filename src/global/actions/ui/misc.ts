@@ -9,6 +9,7 @@ import {
   ANIMATION_LEVEL_MIN,
   APP_VERSION,
   BETA_URL,
+  BOT_USERNAME,
   DEBUG,
   IS_CAPACITOR,
   IS_EXTENSION,
@@ -23,6 +24,7 @@ import { omitUndefined, pick, unique } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { callActionInMain } from '../../../util/multitab';
+import { openUrl } from '../../../util/openUrl';
 import { pause } from '../../../util/schedulers';
 import {
   IS_ANDROID_APP,
@@ -49,6 +51,7 @@ import {
 import {
   selectAccountSettings,
   selectAccountState,
+  selectCurrentAccount,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectFirstNonHardwareAccount,
@@ -742,4 +745,9 @@ addActionHandler('closeLoadingOverlay', (global) => {
 
 addActionHandler('clearAccountLoading', (global) => {
   setGlobal(updateAccounts(global, { isLoading: undefined }));
+});
+
+addActionHandler('authorizeDiesel', (global) => {
+  const address = selectCurrentAccount(global)!.address;
+  openUrl(`https://t.me/${BOT_USERNAME}?start=auth-${address}`, true);
 });

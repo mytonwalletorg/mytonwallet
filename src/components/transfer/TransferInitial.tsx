@@ -8,7 +8,7 @@ import type { Account, UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
-import { IS_FIREFOX_EXTENSION, TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
+import { IS_FIREFOX_EXTENSION, TON_SYMBOL, TONCOIN_SLUG } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
 import {
@@ -28,7 +28,7 @@ import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
 import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
-import { NFT_TRANSFER_TON_AMOUNT } from '../../api/blockchains/ton/constants';
+import { NFT_TRANSFER_TONCOIN_AMOUNT } from '../../api/blockchains/ton/constants';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -94,7 +94,7 @@ const runThrottled = throttle((cb) => cb(), 1500, true);
 
 function TransferInitial({
   isStatic,
-  tokenSlug = TON_TOKEN_SLUG,
+  tokenSlug = TONCOIN_SLUG,
   toAddress = '',
   amount,
   comment = '',
@@ -162,9 +162,9 @@ function TransferInitial({
     symbol,
   } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
 
-  const isTon = tokenSlug === TON_TOKEN_SLUG;
-  const isTonFullBalance = isTon && balance === amount;
-  const tonToken = useMemo(() => tokens?.find((token) => token.slug === TON_TOKEN_SLUG), [tokens])!;
+  const isToncoin = tokenSlug === TONCOIN_SLUG;
+  const isTonFullBalance = isToncoin && balance === amount;
+  const tonToken = useMemo(() => tokens?.find((token) => token.slug === TONCOIN_SLUG), [tokens])!;
   const shouldDisableClearButton = !toAddress && !amount && !(comment || binPayload) && !shouldEncrypt
     && !(nfts?.length && isStatic);
 
@@ -179,8 +179,8 @@ function TransferInitial({
   const withAddressClearButton = !!toAddress.length;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
-  const additionalAmount = amount && tokenSlug === TON_TOKEN_SLUG ? amount : 0n;
-  const isEnoughTon = isTonFullBalance
+  const additionalAmount = amount && tokenSlug === TONCOIN_SLUG ? amount : 0n;
+  const isEnoughToncoin = isTonFullBalance
     ? (fee && fee < tonToken.amount)
     : (fee && (fee + additionalAmount) <= tonToken.amount);
 
@@ -225,12 +225,12 @@ function TransferInitial({
       }
 
       const tonBalance = tonToken.amount;
-      const tonAmount = isTon ? newAmount : 0n;
+      const tonAmount = isToncoin ? newAmount : 0n;
 
       if (!balance || newAmount > balance) {
         setHasAmountError(true);
         setIsInsufficientBalance(true);
-      } else if (isTon && tonAmount === tonToken.amount) {
+      } else if (isToncoin && tonAmount === tonToken.amount) {
         // Do nothing
       } else if (fee && (fee >= tonBalance || (fee + tonAmount > tonBalance))) {
         setIsInsufficientFee(true);
@@ -242,7 +242,7 @@ function TransferInitial({
 
   useEffect(() => {
     if (
-      isTon
+      isToncoin
       && balance && amount && fee
       && amount < balance
       && fee < balance
@@ -252,7 +252,7 @@ function TransferInitial({
     } else {
       validateAndSetAmount(amount);
     }
-  }, [isTon, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount]);
+  }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount]);
 
   useEffect(() => {
     if (!toAddress || hasToAddressError || !(amount || nfts?.length) || !isAddressValid) {
@@ -443,10 +443,10 @@ function TransferInitial({
 
   const isCommentRequired = Boolean(toAddress) && isMemoRequired;
   const hasCommentError = isCommentRequired && !comment;
-  const requiredAmount = isNftTransfer ? NFT_TRANSFER_TON_AMOUNT : amount;
+  const requiredAmount = isNftTransfer ? NFT_TRANSFER_TONCOIN_AMOUNT : amount;
 
   const canSubmit = Boolean(toAddress.length && requiredAmount && balance && requiredAmount > 0
-    && requiredAmount <= balance && !hasToAddressError && !hasAmountError && isEnoughTon && !hasCommentError
+    && requiredAmount <= balance && !hasToAddressError && !hasAmountError && isEnoughToncoin && !hasCommentError
     && (!isNftTransfer || Boolean(nfts?.length)));
 
   const handleSubmit = useLastCallback((e) => {
@@ -460,7 +460,7 @@ function TransferInitial({
 
     submitTransferInitial({
       tokenSlug,
-      amount: isNftTransfer ? NFT_TRANSFER_TON_AMOUNT : amount!,
+      amount: isNftTransfer ? NFT_TRANSFER_TONCOIN_AMOUNT : amount!,
       toAddress,
       comment,
       shouldEncrypt,
@@ -540,7 +540,7 @@ function TransferInitial({
     const feeText = withFee ? lang('$fee_value', {
       fee: (
         <span className={styles.feeValue}>
-          {formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true)}
+          {formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true, tonToken.decimals)}
         </span>
       ),
     }) : ' ';
@@ -812,7 +812,7 @@ export default memo(
         return stickToFirst(global.currentAccountId);
       }
 
-      const { nfts, tokenSlug = TON_TOKEN_SLUG } = global.currentTransfer;
+      const { nfts, tokenSlug = TONCOIN_SLUG } = global.currentTransfer;
       const key = nfts?.length ? `${nfts[0].address}_${nfts.length}` : tokenSlug;
 
       return stickToFirst(`${global.currentAccountId}_${key}`);

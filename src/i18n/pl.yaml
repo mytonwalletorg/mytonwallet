@@ -131,7 +131,7 @@ Signing was confirmed!: Podpisanie umowy zostało potwierdzone!
 Transaction Info: Informacje o transakcji
 Transaction in progress: Transakcja w toku
 Comment was copied!: Komentarz został skopiowany!
-View Transaction on TONScan: Wyświetlanie transakcji na TONScan
+View Transaction on %ton_explorer_name%: Wyświetlanie transakcji na %ton_explorer_name%
 Sender: Nadawca
 Recipient: Odbiorca
 Address was copied!: Adres został skopiowany!
@@ -139,7 +139,7 @@ Repeat: Powtórzenie
 Receive: Odbiór
 Switch Account: Konto Switch
 Copy wallet address: Kopiowanie adresu portfela
-View address on TONScan: Wyświetl adres w TONScan
+View address on %ton_explorer_name%: Wyświetl adres w %ton_explorer_name%
 Open on CoinMarketCap: Otwarte na CoinMarketCap
 You have just created a new wallet: Właśnie utworzyłeś nowy portfel
 You can now transfer your tokens from another wallet or exchange.: Możesz teraz przenieść swoje tokeny z innego portfela lub giełdy.
@@ -187,7 +187,7 @@ Save: Zapisz
 Copy: Kopia
 Remove From Saved Addresses: Usuń z zapisanych adresów
 Add To Saved Addresses: Dodaj do zapisanych adresów
-View Address on TONScan: Wyświetlanie adresu w TONScan
+View Address on %ton_explorer_name%: Wyświetlanie adresu w %ton_explorer_name%
 No suggestions, you're on your own!: Żadnych sugestii, jesteś zdany na siebie!
 Play Sounds: Odtwarzaj dźwięki
 Focus on asset value rather than current balance: Skup się na wartości aktywów zamiast bieżącego salda
@@ -562,7 +562,7 @@ NFT has been sent!: NFT został wysłany!
 Cannot be sent: Nie można wysłać
 NFT is for sale: NFT jest na sprzedaż
 More actions: Więcej działań
-Open on TONScan: Otwórz na TONScan
+Open on %ton_explorer_name%: Otwórz na %ton_explorer_name%
 Swap is not supported in Testnet.: Swap nie jest obsługiwany w sieci testowej.
 Swap is not yet supported by Ledger.: Swap nie jest jeszcze obsługiwany przez Ledger.
 Buying with card is not supported in Testnet.: Zakup za pomocą karty nie jest obsługiwany w sieci testowej.
@@ -573,7 +573,7 @@ $transfer_inactive_contract_error: |
   Jeśli na pewno chcesz wysłać na ten adres, wprowadź adres w formacie „UQ...”.
 Successfully: Pomyślnie
 Unstake More: Cofnij więcej
-WrongAddress: Transakcja z adresu nie pasuje do adresu konta.
+WrongAddress: Dapp zażądał transakcji z innego portfela.
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Czy na pewno chcesz spalić ten NFT?
   Zostanie on stracony na zawsze.
@@ -592,3 +592,19 @@ Send All: Wyślij wszystko
 Burn All: Spal wszystko
 Select All: Zaznacz wszystko
 Collection: Kolekcja
+Vesting: Nabywanie uprawnień
+Vesting Balance: Bilans uprawnień
+Ready to Unfreeze: Gotowy do odmrożenia
+You will receive your unfrozen coins in a few minutes.: W ciągu kilku minut otrzymasz niezamrożone monety.
+Vesting Schedule: Harmonogram nabywania uprawnień
+Loyalty Users Reward: Nagroda dla użytkowników lojalnościowych
+Unfrozen: Niezamrożone
+Missed: Pominięty
+Frozen: Mrożony
+Until %date%: Do %date%
+"%volume% in %amount% parts": "%volume% w %amount% częściach"
+Unfreeze: Odmrozić
+Claim: Prawo
+Confirm Unfreezing: Potwierdź Odmrożenie
+Insufficient Balance for Fee.: Niewystarczające saldo na opłatę.
+$fee_value_bold: "**Opłata:** %fee%"
