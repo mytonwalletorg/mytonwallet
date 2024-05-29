@@ -99,9 +99,9 @@ function Assets({
 
   const tokenSlugs = useMemo(() => (
     tokens
-      ?.filter(({ isDisabled, slug }) => !isDisabled && (slug && mycoin?.slug !== slug))
+      ?.filter(({ isDisabled }) => !isDisabled)
       .map(({ slug }) => slug)
-  ), [mycoin, tokens]);
+  ), [tokens]);
   const [viewportSlugs, getMore] = useInfiniteScroll(
     undefined, tokenSlugs, undefined, undefined, undefined, isActive, isPortrait,
   );

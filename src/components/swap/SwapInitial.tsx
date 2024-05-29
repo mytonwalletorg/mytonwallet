@@ -152,12 +152,12 @@ function SwapInitial({
   const isErrorExist = errorType !== undefined;
   const isEnoughToncoin = toncoin.amount > totalToncoinAmount;
   // eslint-disable-next-line max-len
-  const isCorrectAmountIn = (
+  const isCorrectAmountIn = Boolean(
     amountIn
     && tokenIn?.amount
     && amountInBig.gt(0)
-    && amountInBig.lte(tokenInAmountBig)
-  );
+    && amountInBig.lte(tokenInAmountBig),
+  ) || swapType === SwapType.CrosschainToToncoin;
   const isEnoughFee = swapType === SwapType.CrosschainToToncoin || isEnoughToncoin || (
     dieselStatus === 'available' || dieselStatus === 'not-authorized'
   );
