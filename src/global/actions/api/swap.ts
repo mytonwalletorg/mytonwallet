@@ -718,6 +718,12 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
     return;
   }
 
+  if ('errors' in estimate) {
+    global = updateCurrentSwap(global, { ...resetParams, errorType: SwapErrorType.UnexpectedError });
+    setGlobal(global);
+    return;
+  }
+
   if ('error' in estimate) {
     const { error } = estimate as { error: string };
     if (error.includes('requests limit')) return;

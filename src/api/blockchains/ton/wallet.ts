@@ -3,7 +3,6 @@ import { beginCell, storeStateInit } from '@ton/core';
 import type { ApiNetwork, ApiWalletVersion } from '../../types';
 import type { ContractInfo, WalletInfo } from './types';
 import type { TonWallet } from './util/tonCore';
-import { WORKCHAIN } from '../../types';
 
 import { DEFAULT_WALLET_VERSION } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -15,7 +14,7 @@ import {
 } from './util/tonCore';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
 import { base64ToBytes, hexToBytes, sha256 } from '../../common/utils';
-import { ALL_WALLET_VERSIONS, KnownContracts } from './constants';
+import { ALL_WALLET_VERSIONS, KnownContracts, WORKCHAIN } from './constants';
 
 export const isAddressInitialized = withCacheAsync(
   async (network: ApiNetwork, walletOrAddress: TonWallet | string) => {

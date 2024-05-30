@@ -161,6 +161,7 @@ export interface ApiDappTransfer {
   rawPayload?: string;
   payload?: ApiParsedPayload;
   stateInit?: string;
+  isScam?: boolean;
 }
 
 export interface ApiSubmitTransferOptions {
@@ -173,15 +174,14 @@ export interface ApiSubmitTransferOptions {
   fee?: bigint;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
+  withDiesel?: boolean;
+  dieselAmount?: bigint;
 }
 
 export enum Workchain {
   MasterChain = -1,
   BaseChain = 0,
 }
-
-export const WORKCHAIN = Workchain.BaseChain;
-export const TRANSFER_TIMEOUT_SEC = 60; // 1 min.
 
 export interface ApiSignedTransfer {
   base64: string;

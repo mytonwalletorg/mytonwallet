@@ -1,10 +1,11 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiBaseCurrency, ApiNft } from '../../api/types';
-import type { Account, UserToken } from '../../global/types';
+import type { Account, DieselStatus, UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
@@ -75,6 +76,8 @@ interface StateProps {
   baseCurrency?: ApiBaseCurrency;
   nfts?: ApiNft[];
   binPayload?: string;
+  dieselAmount?: bigint;
+  dieselStatus?: DieselStatus;
 }
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
@@ -112,6 +115,8 @@ function TransferInitial({
   baseCurrency,
   nfts,
   binPayload,
+  dieselAmount,
+  dieselStatus,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -126,6 +131,7 @@ function TransferInitial({
     cancelTransfer,
     requestOpenQrScanner,
     showDialog,
+    authorizeDiesel,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -184,6 +190,13 @@ function TransferInitial({
     ? (fee && fee < tonToken.amount)
     : (fee && (fee + additionalAmount) <= tonToken.amount);
 
+  const isDieselAvailable = dieselStatus === 'available';
+  const isDieselNotAuthorized = dieselStatus === 'not-authorized';
+  const withDiesel = dieselStatus && dieselStatus !== 'not-available';
+  const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
+    ? balance - amount > dieselAmount
+    : undefined;
+
   const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
     Boolean(amountInCurrency),
   );
@@ -232,7 +245,7 @@ function TransferInitial({
         setIsInsufficientBalance(true);
       } else if (isToncoin && tonAmount === tonToken.amount) {
         // Do nothing
-      } else if (fee && (fee >= tonBalance || (fee + tonAmount > tonBalance))) {
+      } else if (fee && (fee >= tonBalance || (fee + tonAmount > tonBalance)) && !isDieselAvailable) {
         setIsInsufficientFee(true);
       }
 
@@ -446,11 +459,17 @@ function TransferInitial({
   const requiredAmount = isNftTransfer ? NFT_TRANSFER_TONCOIN_AMOUNT : amount;
 
   const canSubmit = Boolean(toAddress.length && requiredAmount && balance && requiredAmount > 0
-    && requiredAmount <= balance && !hasToAddressError && !hasAmountError && isEnoughToncoin && !hasCommentError
+    && requiredAmount <= balance && !hasToAddressError && !hasAmountError
+    && (isEnoughToncoin || isEnoughDiesel || isDieselNotAuthorized) && !hasCommentError
     && (!isNftTransfer || Boolean(nfts?.length)));
 
   const handleSubmit = useLastCallback((e) => {
     e.preventDefault();
+
+    if (withDiesel && dieselStatus === 'not-authorized') {
+      authorizeDiesel();
+      return;
+    }
 
     if (!canSubmit) {
       return;
@@ -465,6 +484,7 @@ function TransferInitial({
       comment,
       shouldEncrypt,
       nftAddresses: isNftTransfer ? nfts!.map(({ address }) => address) : undefined,
+      withDiesel,
     });
   });
 
@@ -537,18 +557,40 @@ function TransferInitial({
         })}
       </span>
     ) : ' ';
-    const feeText = withFee ? lang('$fee_value', {
-      fee: (
-        <span className={styles.feeValue}>
-          {formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true, tonToken.decimals)}
-        </span>
-      ),
-    }) : ' ';
+
+    const insufficientDieselText = withFee && dieselAmount && symbol ? (
+      <span className={styles.balanceError}>
+        {lang('$insufficient_fee', {
+          fee: formatCurrencyExtended(toDecimal(dieselAmount!, decimals), symbol, true),
+        })}
+      </span>
+    ) : ' ';
+
+    let feeText: string | TeactNode[] = ' ';
+
+    if (withDiesel && dieselAmount && symbol) {
+      feeText = lang('$fee_value', {
+        fee: (
+          <span className={styles.feeValue}>
+            {formatCurrencyExtended(toDecimal(dieselAmount!, decimals), symbol, true, decimals)}
+          </span>
+        ),
+      });
+    } else if (withFee) {
+      feeText = lang('$fee_value', {
+        fee: (
+          <span className={styles.feeValue}>
+            {formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true, tonToken.decimals)}
+          </span>
+        ),
+      });
+    }
 
     const content = isInsufficientBalance ? insufficientBalanceText
-      : isInsufficientFee ? insufficientFeeText
-        : withFee ? feeText
-          : ' ';
+      : withDiesel && !isEnoughDiesel ? insufficientDieselText
+        : isInsufficientFee ? insufficientFeeText
+          : withFee ? feeText
+            : ' ';
 
     return (
       <Transition
@@ -658,6 +700,18 @@ function TransferInitial({
 
   const withButton = isQrScannerSupported || withPasteButton || withAddressClearButton;
 
+  function renderButtonText() {
+    if (!isEnoughToncoin && withDiesel && !isDieselAvailable) {
+      if (dieselStatus === 'pending-previous') {
+        return lang('Awaiting Previous Fee');
+      } else {
+        return lang('Authorize %token% Fee', { token: symbol! });
+      }
+    } else {
+      return lang('$send_token_symbol', isNftTransfer ? 'NFT' : symbol || 'TON');
+    }
+  }
+
   return (
     <>
       <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
@@ -752,7 +806,7 @@ function TransferInitial({
             isLoading={isLoading}
             className={styles.button}
           >
-            {lang('$send_token_symbol', isNftTransfer ? 'NFT' : symbol || 'TON')}
+            {renderButtonText()}
           </Button>
         </div>
       </form>
@@ -780,10 +834,11 @@ export default memo(
         nfts,
         binPayload,
         isMemoRequired,
+        dieselStatus,
+        dieselAmount,
       } = global.currentTransfer;
 
       const isLedger = selectIsHardwareAccount(global);
-
       const accountState = selectCurrentAccountState(global);
       const baseCurrency = global.settings.baseCurrency;
 
@@ -805,6 +860,8 @@ export default memo(
         baseCurrency,
         currentAccountId: global.currentAccountId,
         accounts: selectNetworkAccounts(global),
+        dieselAmount,
+        dieselStatus,
       };
     },
     (global, { isStatic }, stickToFirst) => {

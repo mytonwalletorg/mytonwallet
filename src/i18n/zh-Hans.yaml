@@ -374,7 +374,6 @@ Swap Placed: 已提交交换
 Swapping: 进行交换
 Swapped: 已交换
 Swap Failed: 交换失败
-Exchange rate: 汇率
 Swap Again: 再次进行交换
 Terms of Use: 使用条款
 Privacy Policy: 隐私政策
@@ -390,26 +389,24 @@ In progress: 进行中
 Waiting for Payment: 等待付款
 Waiting for payment: 等待付款
 Blockchain: 区块链
-Receiving address in blockchain: 在 %blockchain% 区块链中的接收地址
-Please provide an address of your wallet in another blockchain to receive bought tokens.: 请提供您在另一个区块链上的钱包地址以接收已购买的代币。
-The time for sending coins is over: 发送硬币的时间已结束
-Please wait a few moments...: 请稍等片刻...
+Your address on another blockchain: 您在另一个区块链上的地址
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: 请提供您在%blockchain%区块链中的钱包地址，以接收购买的代币。
+The time for sending coins is over.: 发送硬币的时间已结束。
 You have not sent the coins to the specified address.: 您尚未将硬币发送到指定地址。
 $swap_changelly_to_ton_description1: "您必须在 %time% 内将 %value% 发送到此地址 在 %blockchain% 区块链中"
-Please contact support and provide a transaction ID.: 请联系支持并提供交易ID。
 Exchange failed and coins were refunded to your wallet.: 交换失败，硬币已退还到您的钱包。
-Please contact security team to pass the KYC procedure.: 请联系安全团队以完成KYC程序。
+$swap_changelly_kyc_security: "请联系**%email%**并提供**交易ID**以通过KYC程序："
 Swap Expired: 交换已过期
 Swap On Hold: 交换暂停
 Swap Refunded: 交换已退款
-Changelly Payment Address: Changelly 付款地址
+Address for %blockchain% transfer: "%blockchain% 传输地址"
 Cross-chain exchange provided by Changelly: 由Changelly提供的跨链交换
 $swap_changelly_agreement_message: 继续操作，即表示您同意 %terms% 和 %policy%，并理解该交易可能会触发根据 %kyc% 进行的验证。
 $swap_changelly_terms_of_use: 使用条款
 $swap_changelly_privacy_policy: 隐私政策
 Password must contain %length% digits.: 密码必须包含%length%位数字。
 Deposit Link: 充值链接
-$swap_changelly_from_ton_description: "代币将在几分钟内发送到您在%blockchain%区块链上的地址："
+$swap_changelly_from_ton_description: "代币将很快发送到您在%blockchain%区块链中的地址："
 Please note that it may take up to a few hours for tokens to appear in your wallet.: 请注意，代币显示在您的钱包中可能需要几个小时。
 Minimum amount: 最低 %value%
 Maximum amount: 最高 %value%
@@ -576,12 +573,16 @@ Send All: 全部发送
 Burn All: 全部烧掉
 Select All: 全选
 Collection: 集合
+Transaction ID was copied!: 交易ID已被复制！
+$swap_changelly_support: "如果有任何问题，请联系%livechat%或%email%并提供**交易ID**："
+Changelly Live Chat: Changelly 实时聊天
+Your %blockchain% Address: 您的%blockchain% 地址
 Vesting: 归属
 Vesting Balance: 归属余额
 Ready to Unfreeze: 准备解冻
 You will receive your unfrozen coins in a few minutes.: 您将在几分钟内收到解冻的硬币。
 Vesting Schedule: 归属时间表
-Loyalty Users Reward: 忠诚用户奖励
+Loyal User Airdrop: 忠诚用户奖励
 Unfrozen: 解冻
 Missed: 错过了
 Frozen: 冷冻

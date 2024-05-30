@@ -279,6 +279,7 @@ export default function createConfig(
         IS_FIREFOX_EXTENSION: false,
         IS_CAPACITOR: false,
         SWAP_FEE_ADDRESS: null,
+        DIESEL_ADDRESS: null,
       }),
       /* eslint-enable no-null/no-null */
       new DefinePlugin({

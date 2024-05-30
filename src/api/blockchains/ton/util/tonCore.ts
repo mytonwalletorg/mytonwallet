@@ -14,7 +14,6 @@ import { WalletContractV4 } from '@ton/ton/dist/wallets/WalletContractV4';
 
 import type { ApiNetwork, ApiWalletVersion } from '../../../types';
 import type { TokenTransferBodyParams } from '../types';
-import { WORKCHAIN } from '../../../types';
 
 import {
   DEFAULT_TIMEOUT,
@@ -30,9 +29,10 @@ import { JettonWallet } from '../contracts/JettonWallet';
 import { hexToBytes } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
 import {
-  DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, OpCode,
+  DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, OpCode, WORKCHAIN,
 } from '../constants';
 import { dieselSendBoc } from './diesel';
+import { generateQueryId } from './index';
 
 import { TonClient } from './TonClient';
 
@@ -163,7 +163,7 @@ export function buildTokenTransferBody(params: TokenTransferBodyParams) {
 
   let builder = new Builder()
     .storeUint(JettonOpCode.Transfer, 32)
-    .storeUint(queryId || 0, 64)
+    .storeUint(queryId || generateQueryId(), 64)
     .storeCoins(tokenAmount)
     .storeAddress(Address.parse(toAddress))
     .storeAddress(Address.parse(responseAddress))

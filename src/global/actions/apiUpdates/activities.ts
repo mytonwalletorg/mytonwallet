@@ -69,8 +69,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           amount, isIncoming, slug, normalizedAddress, inMsgHash,
         }) => {
           if (slug === TONCOIN_SLUG) {
-            return inMsgHash === activity.inMsgHash && amount === activity.amount
-              && normalizedAddress === activity.normalizedAddress;
+            return inMsgHash === activity.inMsgHash && normalizedAddress === activity.normalizedAddress;
           } else {
             return amount === activity.amount && !isIncoming && slug === activity.slug
               && normalizedAddress === activity.normalizedAddress;

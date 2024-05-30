@@ -435,6 +435,18 @@
   transform: translateY(-50%);
 }
 
+.scam {
+  color: var(--color-red) !important;
+}
+
+.scamImage {
+  width: 2.75rem;
+  height: 1.0625rem;
+  margin-right: 0.25rem;
+
+  vertical-align: bottom;
+}
+
 .transactionDirection {
   position: relative;
 

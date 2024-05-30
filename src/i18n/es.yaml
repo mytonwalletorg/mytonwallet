@@ -386,7 +386,6 @@ Swap Placed: Intercambio Colocado
 Swapping: Intercambiando
 Swapped: Intercambiado
 Swap Failed: Intercambio Fallido
-Exchange rate: Tasa de Cambio
 Swap Again: Intercambiar de Nuevo
 Terms of Use: Términos de Uso
 Privacy Policy: Política de Privacidad
@@ -402,26 +401,24 @@ In progress: En progreso
 Waiting for Payment: Esperando el pago
 Waiting for payment: Esperando el pago
 Blockchain: Blockchain
-Receiving address in blockchain: Dirección en %blockchain%
-Please provide an address of your wallet in another blockchain to receive bought tokens.: Por favor, proporcione una dirección de su billetera en otra cadena de bloques para recibir tokens comprados.
-The time for sending coins is over: El tiempo para enviar monedas ha terminado
-Please wait a few moments...: Por favor, espere unos momentos...
+Your address on another blockchain: Tu dirección en otra blockchain
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Proporcione una dirección de su billetera en %blockchain% blockchain para recibir los tokens comprados.
+The time for sending coins is over.: El tiempo para enviar monedas ha terminado.
 You have not sent the coins to the specified address.: Usted no ha enviado las monedas a la dirección especificada.
 $swap_changelly_to_ton_description1: "Debe enviar %value% a esta dirección en la cadena de bloques %blockchain% dentro de %time%"
-Please contact support and provide a transaction ID.: Por favor, póngase en contacto con el soporte y proporcione un ID de transacción.
 Exchange failed and coins were refunded to your wallet.: El intercambio falló y las monedas fueron reembolsadas a su billetera.
-Please contact security team to pass the KYC procedure.: Por favor, póngase en contacto con el equipo de seguridad para completar el procedimiento de KYC.
+$swap_changelly_kyc_security: "Comuníquese con **%email%** y proporcione **ID de transacción** para pasar el procedimiento KYC:"
 Swap Expired: Intercambio vencido
 Swap On Hold: Intercambio en Espera
 Swap Refunded: Intercambio reembolsado
-Changelly Payment Address: Dirección de Pago de Changelly
+Address for %blockchain% transfer: Dirección para transferencia %blockchain%
 Cross-chain exchange provided by Changelly: Proporcionado por Changelly
 $swap_changelly_agreement_message: Al continuar, usted acepta los %terms% y %policy% y comprende que la transacción puede desencadenar una verificación según el %kyc%.
 $swap_changelly_terms_of_use: términos de uso
 $swap_changelly_privacy_policy: política de privacidad
 Password must contain %length% digits.: La contraseña debe contener %length% dígitos.
 Deposit Link: Enlace de depósito
-$swap_changelly_from_ton_description: "Los tokens serán enviados a tu dirección en la blockchain de %blockchain% en unos momentos:"
+$swap_changelly_from_ton_description: "Los tokens se enviarán pronto a su dirección en %blockchain% blockchain:"
 Please note that it may take up to a few hours for tokens to appear in your wallet.: Tenga en cuenta que pueden pasar hasta unas horas para que los tokens aparezcan en su billetera.
 Minimum amount: Mínimo %value%
 Maximum amount: Máximo %value%
@@ -589,12 +586,16 @@ Send All: Envia todo
 Burn All: Quemar todo
 Select All: Seleccionar todo
 Collection: Colección
+Transaction ID was copied!: ¡Se copió el ID de la transacción!
+$swap_changelly_support: "Si hay algún problema, comuníquese con %livechat% o %email% y proporcione **ID de transacción**:"
+Changelly Live Chat: Chat en vivo de Changelly
+Your %blockchain% Address: Su dirección de %blockchain%
 Vesting: Adquisición de derechos
 Vesting Balance: Saldo adquirido
 Ready to Unfreeze: Listo para descongelar
 You will receive your unfrozen coins in a few minutes.: Recibirás tus monedas descongeladas en unos minutos.
 Vesting Schedule: Calendario de adquisición de derechos
-Loyalty Users Reward: Recompensa para usuarios leales
+Loyal User Airdrop: Recompensa para usuarios leales
 Unfrozen: Descongelado
 Missed: Omitido
 Frozen: Congelado

@@ -15,7 +15,7 @@ import {
   updateAccountState,
   updateStaking,
 } from '../../reducers';
-import { selectAccountState } from '../../selectors';
+import { selectAccount, selectAccountState } from '../../selectors';
 
 addActionHandler('startStaking', (global, actions, payload) => {
   const isOpen = global.staking.state !== StakingState.None;
@@ -85,8 +85,15 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
       if ('error' in result) {
         global = updateStaking(global, { error: result.error });
       } else {
+        const account = selectAccount(global, currentAccountId)!;
+        if (account.isHardware) {
+          actions.resetHardwareWalletConnect();
+          global = updateStaking(getGlobal(), { state: StakingState.UnstakeConnectHardware });
+        } else {
+          global = updateStaking(global, { state: StakingState.UnstakePassword });
+        }
+
         global = updateStaking(global, {
-          state: StakingState.UnstakePassword,
           fee: result.fee,
           amount,
           error: undefined,
@@ -108,8 +115,15 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
       if ('error' in result) {
         global = updateStaking(global, { error: result.error });
       } else {
+        const account = selectAccount(global, currentAccountId)!;
+        if (account.isHardware) {
+          actions.resetHardwareWalletConnect();
+          global = updateStaking(getGlobal(), { state: StakingState.StakeConnectHardware });
+        } else {
+          global = updateStaking(global, { state: StakingState.StakePassword });
+        }
+
         global = updateStaking(global, {
-          state: StakingState.StakePassword,
           fee: result.fee,
           amount,
           error: undefined,
@@ -222,6 +236,52 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
   }
 
   setGlobal(global);
+});
+
+addActionHandler('submitStakingHardware', async (global, actions, payload) => {
+  const { isUnstaking } = payload || {};
+  const { fee, amount } = global.staking;
+
+  global = updateStaking(global, {
+    isLoading: true,
+    error: undefined,
+    state: StakingState.StakeConfirmHardware,
+  });
+  setGlobal(global);
+
+  const ledgerApi = await import('../../../util/ledger');
+  global = getGlobal();
+
+  let result: string | undefined;
+  const accountId = global.currentAccountId!;
+
+  if (isUnstaking) {
+    result = await ledgerApi.submitLedgerUnstake(accountId);
+  } else {
+    result = await ledgerApi.submitLedgerStake(
+      accountId,
+      amount!,
+      fee,
+    );
+  }
+
+  global = getGlobal();
+  global = updateStaking(global, { isLoading: false });
+  setGlobal(global);
+
+  if (!result) {
+    actions.showDialog({
+      message: isUnstaking
+        ? 'Unstaking was unsuccessful. Try again later.'
+        : 'Staking was unsuccessful. Try again later.',
+    });
+  } else {
+    global = getGlobal();
+    global = updateStaking(global, {
+      state: isUnstaking ? StakingState.UnstakeComplete : StakingState.StakeComplete,
+    });
+    setGlobal(global);
+  }
 });
 
 addActionHandler('clearStakingError', (global) => {

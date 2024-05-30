@@ -63,6 +63,8 @@ function TransferConfirm({
     isScam,
     binPayload,
     nfts,
+    withDiesel,
+    dieselAmount,
   },
   symbol,
   decimals,
@@ -109,6 +111,18 @@ function TransferConfirm({
           <span className={styles.currencySymbol}>{TON_SYMBOL}</span>
         </div>
       </>
+    );
+  }
+
+  function renderFeeWithDiesel() {
+    return (
+      <AmountWithFeeTextField
+        label={lang('Amount')}
+        amount={toDecimal(amount ?? 0n, decimals)}
+        symbol={symbol}
+        fee={dieselAmount ? toDecimal(dieselAmount, decimals) : undefined}
+        feeSymbol={symbol}
+      />
     );
   }
 
@@ -181,14 +195,18 @@ function TransferConfirm({
           className={styles.addressWidget}
         />
 
-        {isNftTransfer ? renderFeeForNft() : (
-          <AmountWithFeeTextField
-            label={lang('Amount')}
-            amount={toDecimal(amount ?? 0n, decimals)}
-            symbol={symbol}
-            fee={fee ? toDecimal(fee) : undefined}
-          />
-        )}
+        {
+          isNftTransfer ? renderFeeForNft()
+            : withDiesel ? renderFeeWithDiesel()
+              : (
+                <AmountWithFeeTextField
+                  label={lang('Amount')}
+                  amount={toDecimal(amount ?? 0n, decimals)}
+                  symbol={symbol}
+                  fee={fee ? toDecimal(fee) : undefined}
+                />
+              )
+        }
 
         {renderComment()}
 

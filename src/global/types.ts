@@ -126,8 +126,8 @@ export enum SwapState {
   None,
   Initial,
   Blockchain,
-  WaitTokens,
   Password,
+  WaitTokens,
   ConnectHardware,
   ConfirmHardware,
   Complete,
@@ -181,10 +181,14 @@ export enum StakingState {
 
   StakeInitial,
   StakePassword,
+  StakeConnectHardware,
+  StakeConfirmHardware,
   StakeComplete,
 
   UnstakeInitial,
   UnstakePassword,
+  UnstakeConnectHardware,
+  UnstakeConfirmHardware,
   UnstakeComplete,
 
   NotEnoughBalance,
@@ -397,6 +401,9 @@ export type GlobalState = {
     nfts?: ApiNft[];
     sentNftsCount?: number;
     isMemoRequired?: boolean;
+    dieselStatus?: DieselStatus;
+    dieselAmount?: bigint;
+    withDiesel?: boolean;
   };
 
   currentSwap: {
@@ -663,6 +670,7 @@ export interface ActionPayloads {
     comment?: string;
     shouldEncrypt?: boolean;
     nftAddresses?: string[];
+    withDiesel?: boolean;
   };
   submitTransferConfirm: undefined;
   submitTransferPassword: { password: string };
@@ -729,6 +737,7 @@ export interface ActionPayloads {
   setStakingScreen: { state: StakingState };
   submitStakingInitial: { amount?: bigint; isUnstaking?: boolean } | undefined;
   submitStakingPassword: { password: string; isUnstaking?: boolean };
+  submitStakingHardware: { isUnstaking?: boolean } | undefined;
   clearStakingError: undefined;
   cancelStaking: undefined;
   fetchStakingHistory: { limit?: number; offset?: number } | undefined;

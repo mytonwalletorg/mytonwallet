@@ -32,6 +32,7 @@ export {
   decryptComment,
   waitUntilTransactionAppears,
   fixTokenActivitiesAddressForm,
+  submitTransferWithDiesel,
 } from './transactions';
 export {
   getAccountBalance,

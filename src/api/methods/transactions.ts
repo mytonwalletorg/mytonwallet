@@ -1,3 +1,4 @@
+import type { ApiSubmitTransferResult, ApiSubmitTransferWithDieselResult } from '../blockchains/ton/types';
 import type {
   ApiLocalTransactionParams,
   ApiSignedTransfer,
@@ -67,20 +68,37 @@ export function checkTransactionDraft(options: {
 export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCreateLocalTransaction = true) {
   const {
     accountId, password, toAddress, amount, tokenAddress, comment, fee, shouldEncrypt, isBase64Data,
+    withDiesel, dieselAmount,
   } = options;
 
   const blockchain = blockchains[resolveBlockchainKey(accountId)!];
   const fromAddress = await fetchStoredAddress(accountId);
-  const result = await blockchain.submitTransfer({
-    accountId,
-    password,
-    toAddress,
-    amount,
-    tokenAddress,
-    data: comment,
-    shouldEncrypt,
-    isBase64Data,
-  });
+
+  let result: ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult;
+
+  if (withDiesel) {
+    result = await blockchain.submitTransferWithDiesel({
+      accountId,
+      password,
+      toAddress,
+      amount,
+      tokenAddress: tokenAddress!,
+      data: comment,
+      shouldEncrypt,
+      dieselAmount: dieselAmount!,
+    });
+  } else {
+    result = await blockchain.submitTransfer({
+      accountId,
+      password,
+      toAddress,
+      amount,
+      tokenAddress,
+      data: comment,
+      shouldEncrypt,
+      isBase64Data,
+    });
+  }
 
   if ('error' in result) {
     return result;

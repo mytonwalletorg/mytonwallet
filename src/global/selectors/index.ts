@@ -42,17 +42,23 @@ const selectAccountTokensMemoized = memoized((
         },
       } = tokenInfo.bySlug[slug];
 
-      const amount = balance;
-      const totalValue = toBig(balance, decimals).mul(price).round(decimals).toString();
-      const isDisabled = slug !== TONCOIN_SLUG && (
-        (areTokensWithNoCostHidden && toBig(amount, decimals).mul(priceUsd ?? 0).lt(HIDDEN_TOKENS_COST))
-        || accountSettings.exceptionSlugs?.includes(slug)
+      const balanceBig = toBig(balance, decimals);
+      const totalValue = balanceBig.mul(price).round(decimals).toString();
+      const hasCost = balanceBig.mul(priceUsd ?? 0).gte(HIDDEN_TOKENS_COST);
+      const isExcepted = accountSettings.exceptionSlugs?.includes(slug);
+      const isMycoinWithBalance = slug === MYCOIN_SLUG && balance;
+      const isDisabled = !(
+        slug === TONCOIN_SLUG
+        || (areTokensWithNoCostHidden && hasCost && !isExcepted)
+        || (areTokensWithNoCostHidden && !hasCost && !isMycoinWithBalance && isExcepted)
+        || (areTokensWithNoCostHidden && !hasCost && isMycoinWithBalance && !isExcepted)
+        || (!areTokensWithNoCostHidden && !isExcepted)
       );
 
       return {
         symbol,
         slug,
-        amount,
+        amount: balance,
         name,
         image,
         price,

@@ -3,6 +3,7 @@ import {
   beginCell, Cell, external, internal, SendMode, storeMessage,
 } from '@ton/core';
 
+import type { DieselStatus } from '../../../global/types';
 import type {
   ApiActivity,
   ApiAnyDisplayError,
@@ -20,16 +21,18 @@ import type {
   ApiCheckTransactionDraftResult,
   ApiSubmitMultiTransferResult,
   ApiSubmitTransferResult,
+  ApiSubmitTransferWithDieselResult,
   ApiTransactionExtra,
   TonTransferParams,
 } from './types';
 import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import { ONE_TON, TONCOIN_SLUG } from '../../../config';
+import { DIESEL_ADDRESS, ONE_TON, TONCOIN_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
+import { fromDecimal } from '../../../util/decimals';
 import { buildCollectionByKey, omit } from '../../../util/iteratees';
 import { isValidLedgerComment } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
@@ -54,6 +57,7 @@ import {
   toBase64Address,
 } from './util/tonCore';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
+import { callBackendGet } from '../../common/backend';
 import { updateTransactionMetadata } from '../../common/helpers';
 import { base64ToBytes, isKnownStakingPool } from '../../common/utils';
 import { ApiServerError, handleServerError } from '../../errors';
@@ -62,12 +66,14 @@ import { fetchKeyPair, fetchPrivateKey } from './auth';
 import {
   ATTEMPTS, FEE_FACTOR, STAKE_COMMENT, UNSTAKE_COMMENT,
 } from './constants';
-import { buildTokenTransfer, parseTokenTransaction, resolveTokenBySlug } from './tokens';
+import {
+  buildTokenTransfer, findTokenByMinter, parseTokenTransaction, resolveTokenBySlug,
+} from './tokens';
 import {
   getContractInfo, getWalletBalance, getWalletInfo, pickAccountWallet,
 } from './wallet';
 
-const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 120; // 2 min (extended for diesel payment)
+const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 600; // 10 min
 const GET_TRANSACTIONS_LIMIT = 50;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;
 const WAIT_TRANSFER_TIMEOUT = 120000; // 2 min
@@ -161,6 +167,7 @@ export async function checkTransactionDraft(
     }
 
     const account = await fetchStoredAccount(accountId);
+    const { address } = account;
     const isLedger = !!account.ledger;
 
     if (isLedger && !isLedgerAllowed) {
@@ -173,6 +180,8 @@ export async function checkTransactionDraft(
     if (data && typeof data === 'string' && !isBase64Data && !isLedger) {
       data = commentToBytes(data);
     }
+
+    let tokenBalance: bigint | undefined;
 
     if (!tokenAddress) {
       if (
@@ -198,7 +207,6 @@ export async function checkTransactionDraft(
         data = packBytesAsSnake(data);
       }
     } else {
-      const address = await fetchStoredAddress(accountId);
       const tokenAmount: bigint = amount;
       let tokenWallet: OpenedContract<JettonWallet>;
       ({
@@ -208,7 +216,7 @@ export async function checkTransactionDraft(
         payload: data,
       } = await buildTokenTransfer(network, tokenAddress, address, toAddress, amount, data));
 
-      const tokenBalance = await tokenWallet!.getJettonBalance();
+      tokenBalance = await tokenWallet!.getJettonBalance();
       if (tokenBalance < tokenAmount!) {
         return {
           ...result,
@@ -232,6 +240,17 @@ export async function checkTransactionDraft(
       : balance >= amount + realFee;
 
     if (!isEnoughBalance) {
+      if (network === 'mainnet' && tokenAddress) {
+        const { decimals } = findTokenByMinter(tokenAddress)!;
+        const { status: dieselStatus, amount: dieselAmount } = await estimateDiesel(address, tokenAddress);
+        result.dieselStatus = dieselStatus;
+        result.dieselAmount = dieselAmount ? fromDecimal(dieselAmount, decimals) : undefined;
+
+        if (dieselStatus !== 'not-available') {
+          return result;
+        }
+      }
+
       return {
         ...result,
         error: ApiTransactionDraftError.InsufficientBalance,
@@ -245,6 +264,13 @@ export async function checkTransactionDraft(
       ...result,
     };
   }
+}
+
+function estimateDiesel(address: string, tokenAddress: string) {
+  return callBackendGet<{
+    status: DieselStatus;
+    amount?: string;
+  }>('/diesel/estimate', { address, tokenAddress });
 }
 
 export async function checkToAddress(network: ApiNetwork, toAddress: string) {
@@ -333,17 +359,9 @@ export async function submitTransfer(options: {
     let encryptedComment: string | undefined;
 
     if (typeof data === 'string') {
-      if (!data) {
-        data = undefined;
-      } else if (isBase64Data) {
-        data = parseBase64(data);
-      } else if (shouldEncrypt) {
-        const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
-        data = await encryptMessageComment(data, publicKey, toPublicKey, secretKey, fromAddress);
-        encryptedComment = Buffer.from(data.slice(4)).toString('base64');
-      } else {
-        data = commentToBytes(data);
-      }
+      ({ payload: data, encryptedComment } = await stringToPayload({
+        network, toAddress, fromAddress, data, secretKey, publicKey, shouldEncrypt, isBase64Data,
+      }));
     }
 
     if (!tokenAddress) {
@@ -392,10 +410,95 @@ export async function submitTransfer(options: {
   }
 }
 
-export function resolveTransactionError(error: any): ApiAnyDisplayError {
+export async function submitTransferWithDiesel(options: {
+  accountId: string;
+  password: string;
+  toAddress: string;
+  amount: bigint;
+  data?: AnyPayload;
+  tokenAddress: string;
+  shouldEncrypt?: boolean;
+  dieselAmount: bigint;
+}): Promise<ApiSubmitTransferWithDieselResult> {
+  const {
+    toAddress,
+    amount,
+    accountId,
+    password,
+    tokenAddress,
+    shouldEncrypt,
+    dieselAmount,
+  } = options;
+
+  let { data } = options;
+
+  const { network } = parseAccountId(accountId);
+
+  const [account, keyPair] = await Promise.all([
+    fetchStoredAccount(accountId),
+    fetchKeyPair(accountId, password),
+  ]);
+
+  const { address: fromAddress } = account;
+  const { publicKey, secretKey } = keyPair!;
+
+  let encryptedComment: string | undefined;
+
+  if (typeof data === 'string') {
+    ({ payload: data, encryptedComment } = await stringToPayload({
+      network, toAddress, fromAddress, data, secretKey, publicKey, shouldEncrypt,
+    }));
+  }
+
+  const messages: TonTransferParams[] = [
+    omit(await buildTokenTransfer(network, tokenAddress, fromAddress, toAddress, amount, data), ['tokenWallet']),
+    omit(await buildTokenTransfer(network, tokenAddress, fromAddress, DIESEL_ADDRESS, dieselAmount), ['tokenWallet']),
+  ];
+
+  const result = await submitMultiTransfer(accountId, password, messages, undefined, true);
+
+  return { ...result, encryptedComment };
+}
+
+async function stringToPayload({
+  network, toAddress, data, shouldEncrypt, publicKey, secretKey, fromAddress, isBase64Data,
+}: {
+  network: ApiNetwork;
+  data: string;
+  shouldEncrypt?: boolean;
+  toAddress: string;
+  publicKey: Uint8Array;
+  secretKey: Uint8Array;
+  fromAddress: string;
+  isBase64Data?: boolean;
+}): Promise<{
+    payload?: Uint8Array | Cell;
+    encryptedComment?: string;
+  }> {
+  let payload: Uint8Array | Cell | undefined;
+  let encryptedComment: string | undefined;
+
+  if (!data) {
+    payload = undefined;
+  } else if (isBase64Data) {
+    payload = parseBase64(data);
+  } else if (shouldEncrypt) {
+    const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
+    payload = await encryptMessageComment(data, publicKey, toPublicKey, secretKey, fromAddress);
+    encryptedComment = Buffer.from(data.slice(4)).toString('base64');
+  } else {
+    payload = commentToBytes(data);
+  }
+
+  return { payload, encryptedComment };
+}
+
+export function resolveTransactionError(error: any): ApiAnyDisplayError | string {
   if (error instanceof ApiServerError) {
     if (error.message.includes('exitcode=35,')) {
       return ApiTransactionError.IncorrectDeviceTime;
+    } else if (error.statusCode === 400) {
+      return error.message;
     } else if (error.displayError) {
       return error.displayError;
     }
@@ -844,7 +947,8 @@ async function retrySendBoc(network: ApiNetwork, boc: string, timestamp: number)
   while (Date.now() < waitUntil) {
     const error = await tonClient.sendFile(boc).catch((err) => String(err));
 
-    if (!error || !error.includes('exitcode=33')) {
+    // Errors mean seqno change and not enough of balance
+    if (!error || (!error.includes('exitcode=33') && !error.includes('inbound external message rejected by account'))) {
       await pause(WAIT_TRANSFER_PAUSE);
     } else {
       break;

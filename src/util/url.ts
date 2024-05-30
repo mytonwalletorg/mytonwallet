@@ -6,10 +6,6 @@ import { logDebugError } from './logs';
 const URL_REGEX = /[-a-z0-9@:%._+~#=]{1,256}\.[a-z0-9()]{1,6}\b([-a-z0-9()@:%_+.~#?&/=]*)/gi;
 const VALID_PROTOCOLS = new Set(['http:', 'https:']);
 
-export function isValidHttpsUrl(url: string) {
-  return isValidUrl(url, new Set(['https:']));
-}
-
 export function isValidUrl(url: string, validProtocols = VALID_PROTOCOLS) {
   try {
     const match = url.match(URL_REGEX);

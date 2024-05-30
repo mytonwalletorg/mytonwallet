@@ -97,6 +97,7 @@ function DappTransfer({
       <p className={styles.label}>{lang('Receiving Address')}</p>
       <InteractiveTextField
         address={transaction.toAddress}
+        isScam={transaction.isScam}
         className={buildClassName(styles.dataField, styles.receivingAddress)}
         copyNotification={lang('Address was copied!')}
       />

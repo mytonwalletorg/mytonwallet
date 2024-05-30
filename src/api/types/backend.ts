@@ -79,6 +79,7 @@ export type ApiSwapHistoryItem = {
   txIds: string[];
   cex?: {
     payinAddress: string;
+    payoutAddress: string;
     payinExtraId?: string;
     status: ApiSwapCexTransactionStatus;
     transactionId: string;

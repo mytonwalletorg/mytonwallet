@@ -40,6 +40,10 @@
   justify-content: center;
 }
 
+.infoRowTextRight {
+  align-items: flex-end;
+}
+
 .infoRowTitle {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -64,6 +68,18 @@
 
 .infoRowAmountError {
   color: var(--color-gray-3)
+}
+
+.infoRowCurrency {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-3);
+}
+
+.infoRowCurrencyValue {
+  margin-inline-start: 0.25rem;
+
+  font-weight: 650;
 }
 
 .infoSeparator {

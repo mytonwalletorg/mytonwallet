@@ -104,6 +104,7 @@ export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const EMPTY_HASH_VALUE = 'NOHASH';
 
 export const CHANGELLY_SUPPORT_EMAIL = 'support@changelly.com';
+export const CHANGELLY_LIVE_CHAT_URL = 'https://changelly.com/';
 export const CHANGELLY_SECURITY_EMAIL = 'security@changelly.com';
 export const CHANGELLY_TERMS_OF_USE = 'https://changelly.com/terms-of-use';
 export const CHANGELLY_PRIVACY_POLICY = 'https://changelly.com/privacy-policy';
@@ -118,7 +119,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-106';
+export const LANG_CACHE_NAME = 'mtw-lang-107';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -326,3 +327,5 @@ export const CLAIM_COMMENT = 'claim';
 
 // eslint-disable-next-line max-len
 export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z][-a-zA-Z0-9]{1,62})\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)/g;
+
+export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';

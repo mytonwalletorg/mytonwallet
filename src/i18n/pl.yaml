@@ -401,10 +401,9 @@ In progress: W trakcie
 Waiting for Payment: Oczekiwanie na płatność
 Waiting for payment: Oczekiwanie na płatność
 Blockchain: Blockchain
-Receiving address in blockchain: Adres odbiorczy w blockchainie %blockchain%
-Please provide an address of your wallet in another blockchain to receive bought tokens.: Proszę podać adres portfela w innym blockchainie, aby otrzymać zakupione tokeny.
-The time for sending coins is over: Czas wysyłki monet minął
-Please wait a few moments...: Proszę czekać kilka chwil...
+Your address on another blockchain: Twój adres na innym blockchainie
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Podaj adres swojego portfela w blockchainie %blockchain%, aby otrzymać zakupione tokeny.
+The time for sending coins is over.: Czas wysyłki monet minął.
 You have not sent the coins to the specified address.: Nie wysłałeś monet na podany adres.
 $swap_changelly_to_ton_description1: "Wyślij %value% na ten adres w blockchainie %blockchain% w ciągu %time%"
 Please contact support and provide a transaction ID.: Skontaktuj się z pomocą techniczną i podaj identyfikator transakcji.
@@ -413,7 +412,7 @@ Please contact security team to pass the KYC procedure.: Skontaktuj się z zespo
 Swap Expired: Wymiana wygasła
 Swap On Hold: Wymiana wstrzymana
 Swap Refunded: Wymiana zwrócona
-Changelly Payment Address: Adres płatności Changelly
+Address for %blockchain% transfer: Adres do przelewu %blockchain%
 Cross-chain exchange provided by Changelly: Wymiana międzyłańcuchowa dostarczana przez Changelly
 $swap_changelly_agreement_message: Kontynuując, zgadzasz się na %terms% i %policy% oraz rozumiesz, że transakcja może wymagać weryfikacji zgodnie z %kyc%.
 $swap_changelly_terms_of_use: warunki korzystania
@@ -592,12 +591,16 @@ Send All: Wyślij wszystko
 Burn All: Spal wszystko
 Select All: Zaznacz wszystko
 Collection: Kolekcja
+Transaction ID was copied!: Identyfikator transakcji został skopiowany!
+$swap_changelly_support: "W przypadku jakichkolwiek problemów skontaktuj się z %livechat% lub %email% i podaj **ID transakcji**:"
+Changelly Live Chat: Czat na żywo Changelly
+Your %blockchain% Address: Twój adres %blockchain%
 Vesting: Nabywanie uprawnień
 Vesting Balance: Bilans uprawnień
 Ready to Unfreeze: Gotowy do odmrożenia
 You will receive your unfrozen coins in a few minutes.: W ciągu kilku minut otrzymasz niezamrożone monety.
 Vesting Schedule: Harmonogram nabywania uprawnień
-Loyalty Users Reward: Nagroda dla użytkowników lojalnościowych
+Loyal User Airdrop: Nagroda dla użytkowników lojalnościowych
 Unfrozen: Niezamrożone
 Missed: Pominięty
 Frozen: Mrożony

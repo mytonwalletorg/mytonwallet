@@ -12,7 +12,9 @@ import type {
   ApiToken,
 } from '../../../api/types';
 import type { UserSwapToken, UserToken } from '../../types';
-import { ApiTransactionDraftError } from '../../../api/types';
+import {
+  ApiTransactionDraftError,
+} from '../../../api/types';
 import { ActiveTab, TransferState } from '../../types';
 
 import { IS_CAPACITOR, NFT_BATCH_SIZE, TONCOIN_SLUG } from '../../../config';
@@ -134,7 +136,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   }
 
   const {
-    tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddresses,
+    tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddresses, withDiesel,
   } = payload;
 
   setGlobal(updateSendingLoading(global, true));
@@ -165,11 +167,13 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   global = updateSendingLoading(global, false);
 
   if (!result || 'error' in result) {
-    if (result?.addressName || result?.isScam || result?.isMemoRequired) {
+    if (result?.addressName || result?.isScam || result?.isMemoRequired || result?.dieselStatus) {
       global = updateCurrentTransfer(global, {
         toAddressName: result.addressName,
         isScam: result.isScam,
         isMemoRequired: result.isMemoRequired,
+        dieselStatus: result.dieselStatus,
+        dieselAmount: result.dieselAmount,
       });
     }
     if (result?.fee) {
@@ -202,6 +206,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     isToNewAddress: result.isToAddressNew,
     isScam: result.isScam,
     isMemoRequired: result.isMemoRequired,
+    withDiesel,
   }));
 });
 
@@ -227,12 +232,14 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
     setGlobal(global);
   }
 
-  if (result?.addressName || result?.isScam || result?.isMemoRequired) {
+  if (result?.addressName || result?.isScam || result?.isMemoRequired || result?.dieselStatus) {
     global = getGlobal();
     global = updateCurrentTransfer(global, {
       toAddressName: result.addressName,
       isScam: result.isScam,
       isMemoRequired: result.isMemoRequired,
+      dieselStatus: result.dieselStatus,
+      dieselAmount: result.dieselAmount,
     });
     setGlobal(global);
   }
@@ -295,6 +302,8 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     shouldEncrypt,
     binPayload,
     nfts,
+    withDiesel,
+    dieselAmount,
   } = global.currentTransfer;
 
   if (!(await callApi('verifyPassword', password))) {
@@ -370,6 +379,8 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       fee,
       shouldEncrypt,
       isBase64Data: Boolean(binPayload),
+      withDiesel,
+      dieselAmount,
     };
     result = await callApi('submitTransfer', options);
   }

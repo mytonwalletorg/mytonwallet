@@ -387,7 +387,6 @@ Swap Placed: สับเปลี่ยนการวางแล้ว
 Swapping: กำลังสับเปลี่ยน
 Swapped: สับเปลี่ยนแล้ว
 Swap Failed: สับเปลี่ยนไม่สำเร็จ
-Exchange rate: อัตราการแลกเปลี่ยน
 Swap Again: สับเปลี่ยนอีกครั้ง
 Terms of Use: ข้อกำหนดการใช้งาน
 Privacy Policy: นโยบายความเป็นส่วนตัว
@@ -403,26 +402,24 @@ In progress: กำลังดำเนินการ
 Waiting for Payment: กำลังรอการชำระ
 Waiting for payment: กำลังรอการชำระ
 Blockchain: บล็อกเชน
-Receiving address in blockchain: กำลังรับที่อยู่บัญชีใน %blockchain% บล็อกเชน
-Please provide an address of your wallet in another blockchain to receive bought tokens.: โปรดระบุที่อยู่บัญชีของคุณในบล็อกเชนอื่น ๆ เพื่อรับโทเคนที่ซื้อได้.
-The time for sending coins is over: เวลาส่งโทเคนหมดลงแล้ว
-Please wait a few moments...: กรุณารอสักครู่...
+Your address on another blockchain: ที่อยู่ของคุณบนบล็อกเชนอื่น
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: โปรดระบุที่อยู่กระเป๋าเงินของคุณใน %blockchain% blockchain เพื่อรับโทเค็นที่ซื้อ
+The time for sending coins is over.: เวลาส่งโทเคนหมดลงแล้ว.
 You have not sent the coins to the specified address.: คุณยังไม่ได้ส่งโทเคนไปยังที่อยู่ที่กำหนดไว้.
 $swap_changelly_to_ton_description1: "ส่ง %value% ไปยังที่อยู่นี้ใน %blockchain% บล็อกเชนภายใน %time%"
-Please contact support and provide a transaction ID.: โปรดติดต่อผู้ดูแลระบบและระบุเลขที่ของการทำรายการ.
 Exchange failed and coins were refunded to your wallet.: การแลกเปลี่ยนไม่สำเร็จและโทเคนถูกคืนเงินไปยังวอลเล็ตของคุณ.
-Please contact security team to pass the KYC procedure.: โปรดติดต่อทีมที่ดูแลเรื่องความปลอดภัยเพื่อทำการยืนยันตัวตน.
+$swap_changelly_kyc_security: "โปรดติดต่อ **%email%** และระบุ **รหัสธุรกรรม** เพื่อผ่านขั้นตอน KYC:"
 Swap Expired: การสับเปลี่ยนได้หมดอายุ
 Swap On Hold: การสับเปลี่ยนได้หยุดชั่วคราว
 Swap Refunded: การสับเปลี่ยนถูกคืนเงินแล้ว
-Changelly Payment Address: ที่อยู่ในการชำระของ Changelly
+Address for %blockchain% transfer: ที่อยู่สำหรับการโอน %blockchain%
 Cross-chain exchange provided by Changelly: การแลกเปลี่ยนระหว่างเชนทำอยู่บน Changelly
 $swap_changelly_agreement_message: การดำเนินการต่อ, แสดงว่าคุณยอมรับ %terms% และ %policy% และเข้าใจว่าธุรกรรมอาจเกิดการทริกเกอร์การยืนยันตาม %kyc%
 $swap_changelly_terms_of_use: ข้อกำหนดการใช้งาน
 $swap_changelly_privacy_policy: นโยบายความเป็นส่วนตัว
 Password must contain %length% digits.: รหัสผ่านต้องมีอย่างน้อย %length% หลัก.
 Deposit Link: ลิงก์การฝาก
-$swap_changelly_from_ton_description: "โทเคนจะถูกส่งไปยังที่อยู่ของคุณใน %blockchain% บล็อกเชนในอีกสักครู่:"
+$swap_changelly_from_ton_description: "โทเค็นจะถูกส่งไปยังที่อยู่ %blockchain% ของคุณเร็วๆ นี้:"
 Please note that it may take up to a few hours for tokens to appear in your wallet.: โปรดทราบว่าอาจใช้เวลาสองสามชั่วโมงก่อนที่โทเค็นจะปรากฏในวอลเล็ตของคุณ.
 Minimum amount: ขั้นต่ำที่ %value%
 Maximum amount: สูงสุดที่ %value%
@@ -594,12 +591,16 @@ Send All: ส่งทั้งหมด
 Burn All: เบิร์นทั้งหมด
 Select All: เลือกทั้งหมด
 Collection: คอลเลกชัน
+Transaction ID was copied!: คัดลอกรหัสธุรกรรมแล้ว!
+$swap_changelly_support: "หากมีปัญหาใดๆ โปรดติดต่อ %livechat% หรือ %email% และแจ้ง **รหัสธุรกรรม**:"
+Changelly Live Chat: แชทสด Changelly
+Your %blockchain% Address: ที่อยู่ %blockchain% ของคุณ
 Vesting: การได้รับสิทธิ
 Vesting Balance: การได้รับยอดคงเหลือ
 Ready to Unfreeze: พร้อมที่จะยกเลิกการแช่แข็ง
 You will receive your unfrozen coins in a few minutes.: คุณจะได้รับเหรียญที่ยังไม่แข็งตัวภายในไม่กี่นาที
 Vesting Schedule: ตารางการให้สิทธิ
-Loyalty Users Reward: รางวัลผู้ใช้ความภักดี
+Loyal User Airdrop: รางวัลผู้ใช้ความภักดี
 Unfrozen: ยกเลิกการแช่แข็ง
 Missed: พลาด
 Frozen: แช่แข็ง

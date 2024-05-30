@@ -386,7 +386,6 @@ Swap Placed: Swap Placed
 Swapping: Swapping
 Swapped: Swapped
 Swap Failed: Swap Failed
-Exchange rate: Exchange rate
 Swap Again: Swap Again
 Terms of Use: Terms of Use
 Privacy Policy: Privacy Policy
@@ -402,26 +401,24 @@ In progress: In progress
 Waiting for Payment: Waiting for Payment
 Waiting for payment: Waiting for payment
 Blockchain: Blockchain
-Receiving address in blockchain: Receiving address in %blockchain% blockchain
-Please provide an address of your wallet in another blockchain to receive bought tokens.: Please provide an address of your wallet in another blockchain to receive bought tokens.
-The time for sending coins is over: The time for sending coins is over
-Please wait a few moments...: Please wait a few moments...
+Your address on another blockchain: Your address on another blockchain
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.
+The time for sending coins is over.: The time for sending coins is over.
 You have not sent the coins to the specified address.: You have not sent the coins to the specified address.
 $swap_changelly_to_ton_description1: "Send %value% to this address in %blockchain% blockchain within %time%"
-Please contact support and provide a transaction ID.: Please contact support and provide a transaction ID.
 Exchange failed and coins were refunded to your wallet.: Exchange failed and coins were refunded to your wallet.
-Please contact security team to pass the KYC procedure.: Please contact security team to pass the KYC procedure.
+$swap_changelly_kyc_security: "Please contact **%email%** and provide **Transaction ID** to pass the KYC procedure:"
 Swap Expired: Swap Expired
 Swap On Hold: Swap On Hold
 Swap Refunded: Swap Refunded
-Changelly Payment Address: Changelly Payment Address
+Address for %blockchain% transfer: Address for %blockchain% transfer
 Cross-chain exchange provided by Changelly: Cross-chain exchange provided by Changelly
 $swap_changelly_agreement_message: By continuing, you agree to the %terms% and %policy% and understand that the transaction may trigger verification according to %kyc%.
 $swap_changelly_terms_of_use: terms of use
 $swap_changelly_privacy_policy: privacy policy
 Password must contain %length% digits.: Password must contain %length% digits.
 Deposit Link: Deposit Link
-$swap_changelly_from_ton_description: "Tokens will be sent to your address in %blockchain% blockchain in a few moments:"
+$swap_changelly_from_ton_description: "Tokens will be sent to your address in %blockchain% blockchain soon:"
 Please note that it may take up to a few hours for tokens to appear in your wallet.: Please note that it may take up to a few hours for tokens to appear in your wallet.
 Minimum amount: Minimum %value%
 Maximum amount: Maximum %value%
@@ -593,12 +590,16 @@ Send All: Send All
 Burn All: Burn All
 Select All: Select All
 Collection: Collection
+Transaction ID was copied!: Transaction ID was copied!
+$swap_changelly_support: "If there are any problems, please contact %livechat% or %email% and provide **Transaction ID**:"
+Changelly Live Chat: Changelly Live Chat
+Your %blockchain% Address: Your %blockchain% Address
 Vesting: Vesting
 Vesting Balance: Vesting Balance
 Ready to Unfreeze: Ready to Unfreeze
 You will receive your unfrozen coins in a few minutes.: You will receive your unfrozen coins in a few minutes.
 Vesting Schedule: Vesting Schedule
-Loyalty Users Reward: Loyalty Users Reward
+Loyal User Airdrop: Loyal User Airdrop
 Unfrozen: Unfrozen
 Missed: Missed
 Frozen: Frozen

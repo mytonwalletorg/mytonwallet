@@ -49,6 +49,7 @@ import {
   getCurrentAccountId,
   getCurrentAccountIdOrFail,
 } from '../common/accounts';
+import { getKnownAddressInfo } from '../common/addresses';
 import { createDappPromise } from '../common/dappPromises';
 import { isUpdaterAlive } from '../common/helpers';
 import { bytesToBase64, sha256 } from '../common/utils';
@@ -451,6 +452,7 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       const toAddress = getIsRawAddress(address) ? toBase64Address(address, true, network) : address;
       // Fix address format for `waitTxComplete` to work properly
       const normalizedAddress = toBase64Address(address, undefined, network);
+      const { isScam } = getKnownAddressInfo(normalizedAddress) || {};
 
       const payload = rawPayload
         ? await parsePayloadBase64(network, toAddress, rawPayload)
@@ -490,6 +492,7 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
         payload,
         stateInit,
         normalizedAddress,
+        isScam,
       };
     },
   ));

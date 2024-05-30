@@ -1,5 +1,6 @@
 import type { ApiParsedPayload, ApiWalletVersion } from '../../types';
 import type { ContractInfo, ContractName } from './types';
+import { Workchain } from '../../types';
 
 export const TOKEN_TRANSFER_TONCOIN_AMOUNT = 100000000n; // 0.1 TON
 export const TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT = 1n; // 0.000000001 TON
@@ -28,6 +29,9 @@ export const LEDGER_SUPPORTED_PAYLOADS: ApiParsedPayload['type'][] = [
 export const ALL_WALLET_VERSIONS: ApiWalletVersion[] = [
   'simpleR1', 'simpleR2', 'simpleR3', 'v2R1', 'v2R2', 'v3R1', 'v3R2', 'v4R2',
 ];
+
+export const WORKCHAIN = Workchain.BaseChain;
+export const TRANSFER_TIMEOUT_SEC = 60; // 1 min.
 
 export enum OpCode {
   Comment = 0,

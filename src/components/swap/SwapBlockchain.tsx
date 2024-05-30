@@ -75,10 +75,6 @@ function SwapBlockchain({
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
 
-  const addressPlaceholder = (lang('Receiving address in blockchain', {
-    blockchain: getBlockchainNetworkName(tokenOut?.blockchain),
-  }) as TeactNode[]).join('');
-
   const handleCancelClick = useLastCallback(() => {
     setHasToAddressError(false);
     setCanContinue(false);
@@ -175,7 +171,9 @@ function SwapBlockchain({
   function renderInfo() {
     const text = hasToAddressError
       ? lang('Incorrect address.')
-      : lang('Please provide an address of your wallet in another blockchain to receive bought tokens.');
+      : lang('Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.', {
+        blockchain: getBlockchainNetworkName(tokenOut?.blockchain),
+      });
 
     return (
       <Transition
@@ -203,7 +201,7 @@ function SwapBlockchain({
           <Input
             ref={toAddressRef}
             isRequired
-            placeholder={addressPlaceholder}
+            placeholder={lang('Your address on another blockchain')}
             value={isAddressFocused ? toAddress : toAddressShort}
             onInput={handleAddressInput}
             onFocus={handleAddressFocus}
@@ -252,12 +250,13 @@ function SwapBlockchain({
 
         {renderInputAddress()}
 
-        <div className={buildClassName(modalStyles.buttons, styles.blockchainButtons)}>
-          <Button onClick={handleCancelClick}>{lang('Close')}</Button>
+        <div className={buildClassName(styles.blockchainButtons, modalStyles.footerButtons)}>
+          <Button onClick={handleCancelClick} className={modalStyles.buttonHalfWidth}>{lang('Close')}</Button>
           <Button
-            isDisabled={!canContinue}
-            onClick={submitPassword}
             isPrimary
+            isDisabled={!canContinue}
+            className={modalStyles.buttonHalfWidth}
+            onClick={submitPassword}
           >
             {lang('Continue')}
           </Button>

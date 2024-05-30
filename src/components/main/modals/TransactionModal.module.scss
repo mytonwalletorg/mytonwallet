@@ -180,6 +180,10 @@
   width: 100%;
 }
 
+.swapSupportBlock {
+  gap: 1rem;
+}
+
 .textFieldLabel {
   display: flex;
   align-items: center;
@@ -273,7 +277,7 @@
 
   aspect-ratio: 1;
   width: 100%;
-  max-width: 11rem;
+  max-width: 8rem;
   margin: 0 auto;
 
   background-color: var(--color-white);

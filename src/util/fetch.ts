@@ -57,10 +57,7 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
       statusCode = response.status;
 
       if (statusCode >= 400) {
-        if (response.headers.get('content-type') !== 'application/json') {
-          throw new Error(`HTTP Error ${statusCode}`);
-        }
-        const { error } = await response.json();
+        const { error } = await response.json().catch(() => undefined);
         throw new Error(error ?? `HTTP Error ${statusCode}`);
       }
 
@@ -97,9 +94,10 @@ export async function fetchWithTimeout(url: string | URL, init?: RequestInit, ti
   }
 }
 
-export function handleFetchErrors(response: Response, ignoreHttpCodes?: number[]) {
+export async function handleFetchErrors(response: Response, ignoreHttpCodes?: number[]) {
   if (!response.ok && (!ignoreHttpCodes?.includes(response.status))) {
-    throw new Error(response.statusText);
+    const { error } = await response.json().catch(() => undefined);
+    throw new ApiServerError(error ?? `HTTP Error ${response.status}`, response.status);
   }
   return response;
 }

@@ -27,6 +27,8 @@ import DappTransfer from './DappTransfer';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
 
+import scamImg from '../../assets/scam.svg';
+
 interface OwnProps {
   tonToken: UserToken;
   onClose?: NoneToVoidFunction;
@@ -60,6 +62,9 @@ function DappTransferInitial({
   const nft = isNftTransfer && 'nft' in renderingTransactions![0].payload!
     ? renderingTransactions[0].payload.nft
     : undefined;
+  const hasScamAddresses = useMemo(() => {
+    return renderingTransactions?.some(({ isScam }) => isScam);
+  }, [renderingTransactions]);
 
   const totalAmountText = useMemo(() => {
     const feeDecimal = fee ? toDecimal(fee) : '0';
@@ -146,12 +151,13 @@ function DappTransferInitial({
         className={styles.transactionRow}
         onClick={() => { showDappTransfer({ transactionIdx: i }); }}
       >
-        <span className={styles.transactionRowAmount}>
+        {transaction.isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
+        <span className={buildClassName(styles.transactionRowAmount, transaction.isScam && styles.scam)}>
           {extraText}
           {formatCurrency(toDecimal(transaction.amount), tonToken.symbol, SHORT_FRACTION_DIGITS)}
         </span>
         {' '}
-        <span className={styles.transactionRowAddress}>
+        <span className={buildClassName(styles.transactionRowAddress, transaction.isScam && styles.scam)}>
           {lang('$transaction_to', {
             address: shortenAddress(transaction.toAddress),
           })}
@@ -196,8 +202,9 @@ function DappTransferInitial({
           isPrimary
           isSubmit
           isLoading={isLoading}
+          isDisabled={hasScamAddresses}
           className={modalStyles.button}
-          onClick={submitDappTransferConfirm}
+          onClick={!hasScamAddresses ? submitDappTransferConfirm : undefined}
         >
           {lang('Send')}
         </Button>
