@@ -140,7 +140,6 @@ Receive: Odbiór
 Switch Account: Konto Switch
 Copy wallet address: Kopiowanie adresu portfela
 View address on %ton_explorer_name%: Wyświetl adres w %ton_explorer_name%
-Open on CoinMarketCap: Otwarte na CoinMarketCap
 You have just created a new wallet: Właśnie utworzyłeś nowy portfel
 You can now transfer your tokens from another wallet or exchange.: Możesz teraz przenieść swoje tokeny z innego portfela lub giełdy.
 Assets: Aktywa
@@ -604,7 +603,7 @@ Loyal User Airdrop: Nagroda dla użytkowników lojalnościowych
 Unfrozen: Niezamrożone
 Missed: Pominięty
 Frozen: Mrożony
-Until %date%: Do %date%
+until %date%: do %date%
 "%volume% in %amount% parts": "%volume% w %amount% częściach"
 Unfreeze: Odmrozić
 Claim: Prawo

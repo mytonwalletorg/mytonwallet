@@ -45,9 +45,9 @@ export class TonClient extends TonCoreClient {
     });
   }
 
-  async sendFile(src: Buffer | string): Promise<any> {
+  async sendFile(src: Buffer | string): Promise<void> {
     const boc = typeof src === 'object' ? src.toString('base64') : src;
-    await this.callRpc('sendBoc', { boc });
+    await this.callRpc('sendBocReturnHashNoError', { boc });
   }
 
   async sendRequest(apiUrl: string, request: any) {
@@ -67,7 +67,7 @@ export class TonClient extends TonCoreClient {
       body,
       headers,
     }, {
-      conditionFn: (message, statusCode) => isNotTemporaryError(method, message, statusCode),
+      shouldSkipRetryFn: (message, statusCode) => isNotTemporaryError(method, message, statusCode),
     });
 
     const data = await response.json();

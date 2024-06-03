@@ -31,7 +31,7 @@ export const ALL_WALLET_VERSIONS: ApiWalletVersion[] = [
 ];
 
 export const WORKCHAIN = Workchain.BaseChain;
-export const TRANSFER_TIMEOUT_SEC = 60; // 1 min.
+export const TRANSFER_TIMEOUT_SEC = 600; // 10 min.
 
 export enum OpCode {
   Comment = 0,

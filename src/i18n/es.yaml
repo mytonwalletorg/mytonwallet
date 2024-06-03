@@ -140,7 +140,6 @@ Receive: Recibir
 Switch Account: Cambiar de monedero
 Copy wallet address: Copiar la dirección del monedero
 View address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
-Open on CoinMarketCap: Abrir en CoinMarketCap
 You have just created a new wallet: Acabas de crear un nuevo monedero
 You can now transfer your tokens from another wallet or exchange.: Ahora puede transferir sus tokens desde otro monedero o intercambio.
 Assets: Activos
@@ -599,7 +598,7 @@ Loyal User Airdrop: Recompensa para usuarios leales
 Unfrozen: Descongelado
 Missed: Omitido
 Frozen: Congelado
-Until %date%: Hasta el %date%
+until %date%: hasta el %date%
 "%volume% in %amount% parts": "%volume% en %amount% partes"
 Unfreeze: Descongelar
 Claim: Afirmar

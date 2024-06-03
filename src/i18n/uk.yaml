@@ -141,7 +141,6 @@ Receive: Отримати
 Switch Account: Змінити акаунт
 Copy wallet address: Скопіювати адресу
 View address on %ton_explorer_name%: Подивитися адресу в %ton_explorer_name%
-Open on CoinMarketCap: Відкрити в CoinMarketCap
 You have just created a new wallet: Вітаємо! Ви щойно створили новий гаманець
 You can now transfer your tokens from another wallet or exchange.: Тепер ви можете поповнити його з іншого гаманця або біржі.
 Assets: Активи
@@ -602,7 +601,7 @@ Loyal User Airdrop: Нагорода за лояльність користув�
 Unfrozen: Розморожений
 Missed: Пропущений
 Frozen: Заморожені
-Until %date%: До %date%
+until %date%: до %date%
 "%volume% in %amount% parts": "%volume% на %amount% частин"
 Unfreeze: Розморозити
 Claim: Позов

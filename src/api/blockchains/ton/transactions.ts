@@ -64,7 +64,7 @@ import { ApiServerError, handleServerError } from '../../errors';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
 import {
-  ATTEMPTS, FEE_FACTOR, STAKE_COMMENT, UNSTAKE_COMMENT,
+  ATTEMPTS, FEE_FACTOR, STAKE_COMMENT, TRANSFER_TIMEOUT_SEC, UNSTAKE_COMMENT,
 } from './constants';
 import {
   buildTokenTransfer, findTokenByMinter, parseTokenTransaction, resolveTokenBySlug,
@@ -73,12 +73,14 @@ import {
   getContractInfo, getWalletBalance, getWalletInfo, pickAccountWallet,
 } from './wallet';
 
-const DEFAULT_EXPIRE_AT_TIMEOUT_SEC = 600; // 10 min
 const GET_TRANSACTIONS_LIMIT = 50;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;
-const WAIT_TRANSFER_TIMEOUT = 120000; // 2 min
+const WAIT_TRANSFER_TIMEOUT = 5 * 60 * 1000; // 5 min
 const WAIT_TRANSFER_PAUSE = 1000; // 1 sec.
 const WAIT_TRANSACTION_PAUSE = 500; // 0.5 sec.
+
+const MAX_BALANCE_WITH_CHECK_DIESEL = 220000000n; // 0.22 TON
+const PENDING_DIESEL_TIMEOUT = 15 * 60 * 1000; // 15 min
 
 const pendingTransfers: Record<string, {
   timestamp: number;
@@ -239,10 +241,20 @@ export async function checkTransactionDraft(
       ? balance > realFee
       : balance >= amount + realFee;
 
-    if (!isEnoughBalance) {
-      if (network === 'mainnet' && tokenAddress) {
-        const { decimals } = findTokenByMinter(tokenAddress)!;
-        const { status: dieselStatus, amount: dieselAmount } = await estimateDiesel(address, tokenAddress);
+    if (network === 'mainnet' && tokenAddress && balance < MAX_BALANCE_WITH_CHECK_DIESEL) {
+      const { decimals } = findTokenByMinter(tokenAddress)!;
+      const {
+        status: dieselStatus,
+        amount: dieselAmount,
+        pendingCreatedAt,
+      } = await estimateDiesel(address, tokenAddress);
+
+      const isAwaitingNotExpiredPreviousDiesel = Boolean(
+        pendingCreatedAt
+        && Date.now() - new Date(pendingCreatedAt).getTime() > PENDING_DIESEL_TIMEOUT,
+      );
+
+      if (!isEnoughBalance || isAwaitingNotExpiredPreviousDiesel) {
         result.dieselStatus = dieselStatus;
         result.dieselAmount = dieselAmount ? fromDecimal(dieselAmount, decimals) : undefined;
 
@@ -250,7 +262,9 @@ export async function checkTransactionDraft(
           return result;
         }
       }
+    }
 
+    if (!isEnoughBalance) {
       return {
         ...result,
         error: ApiTransactionDraftError.InsufficientBalance,
@@ -270,6 +284,7 @@ function estimateDiesel(address: string, tokenAddress: string) {
   return callBackendGet<{
     status: DieselStatus;
     amount?: string;
+    pendingCreatedAt?: string;
   }>('/diesel/estimate', { address, tokenAddress });
 }
 
@@ -515,8 +530,13 @@ async function signTransaction(
   stateInit?: Cell,
   privateKey: Uint8Array = new Uint8Array(64),
   isFullBalance?: boolean,
+  expireAt?: number,
 ) {
   const { seqno } = await getWalletInfo(network, wallet);
+
+  if (!expireAt) {
+    expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC;
+  }
 
   if (payload instanceof Uint8Array) {
     payload = packBytesAsSnake(payload, 0) as Cell;
@@ -542,6 +562,7 @@ async function signTransaction(
       bounce: parseAddress(toAddress).isBounceable,
     })],
     sendMode,
+    timeout: expireAt,
   });
 
   return { seqno, transaction };
@@ -870,7 +891,7 @@ async function signMultiTransaction(
 ) {
   const { seqno } = await getWalletInfo(network, wallet);
   if (!expireAt) {
-    expireAt = Math.round(Date.now() / 1000) + DEFAULT_EXPIRE_AT_TIMEOUT_SEC;
+    expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC;
   }
 
   const preparedMessages = messages.map((message) => {
@@ -931,7 +952,9 @@ function toExternalMessage(
 function addPendingTransfer(network: ApiNetwork, address: string, seqno: number, boc: string) {
   const key = buildPendingTransferKey(network, address);
   const timestamp = Date.now();
-  const promise = retrySendBoc(network, boc, timestamp);
+  const promise = retrySendBoc({
+    network, address, boc, seqno, timestamp,
+  });
 
   pendingTransfers[key] = {
     timestamp,
@@ -940,19 +963,35 @@ function addPendingTransfer(network: ApiNetwork, address: string, seqno: number,
   };
 }
 
-async function retrySendBoc(network: ApiNetwork, boc: string, timestamp: number) {
+async function retrySendBoc({
+  network, address, boc, seqno, timestamp,
+}: {
+  network: ApiNetwork;
+  address: string;
+  boc: string;
+  seqno: number;
+  timestamp: number;
+}) {
   const tonClient = getTonClient(network);
   const waitUntil = timestamp + WAIT_TRANSFER_TIMEOUT;
 
   while (Date.now() < waitUntil) {
     const error = await tonClient.sendFile(boc).catch((err) => String(err));
 
-    // Errors mean seqno change and not enough of balance
-    if (!error || (!error.includes('exitcode=33') && !error.includes('inbound external message rejected by account'))) {
-      await pause(WAIT_TRANSFER_PAUSE);
-    } else {
-      break;
+    // Errors mean that `seqno` was changed or not enough of balance
+    if (error?.includes('exitcode=33') || error?.includes('inbound external message rejected by account')) {
+      return;
     }
+
+    await pause(WAIT_TRANSFER_PAUSE);
+    const walletInfo = await getWalletInfo(network, address).catch(() => undefined);
+
+    // seqno here may change before exit code appears
+    if (walletInfo && walletInfo.seqno > seqno) {
+      return;
+    }
+
+    await pause(WAIT_TRANSFER_PAUSE);
   }
 }
 

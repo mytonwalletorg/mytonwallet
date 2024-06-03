@@ -140,7 +140,6 @@ Receive: Receive
 Switch Account: Switch Account
 Copy wallet address: Copy wallet address
 View address on %ton_explorer_name%: View address on %ton_explorer_name%
-Open on CoinMarketCap: Open on CoinMarketCap
 You have just created a new wallet: You have just created a new wallet
 You can now transfer your tokens from another wallet or exchange.: You can now transfer your tokens from another wallet or exchange.
 Assets: Assets
@@ -603,7 +602,7 @@ Loyal User Airdrop: Loyal User Airdrop
 Unfrozen: Unfrozen
 Missed: Missed
 Frozen: Frozen
-Until %date%: Until %date%
+until %date%: until %date%
 "%volume% in %amount% parts": "%volume% in %amount% parts"
 Unfreeze: Unfreeze
 Claim: Claim

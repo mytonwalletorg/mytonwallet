@@ -36,6 +36,8 @@ type OwnProps = {
   isStatic?: boolean;
 };
 
+const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
+
 function RichNumberInput({
   id,
   labelText,
@@ -64,7 +66,7 @@ function RichNumberInput({
   const [isContentEditable, setContentEditable] = useState(!disabled);
 
   const handleLoadingHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
-    const newHtml = parts ? buildContentHtml(parts, suffix, decimals) : '';
+    const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
     input.innerHTML = newHtml;
     setContentEditable(false);
 
@@ -72,7 +74,7 @@ function RichNumberInput({
   });
 
   const handleNumberHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
-    const newHtml = parts ? buildContentHtml(parts, suffix, decimals) : '';
+    const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
     const restoreCaretPosition = document.activeElement === inputRef.current
       ? saveCaretPosition(input, decimals)
       : undefined;
@@ -223,11 +225,26 @@ function clearValue(value: string, decimals: number) {
     ?? '';
 }
 
-export function buildContentHtml(values: RegExpMatchArray, suffix?: string, decimals = FRACTION_DIGITS) {
-  const [, wholePart, dotPart, fractionPart] = values;
+export function buildContentHtml({
+  values,
+  suffix,
+  decimals = FRACTION_DIGITS,
+  withRadix = false,
+}: {
+  values: RegExpMatchArray;
+  suffix?: string;
+  decimals?: number;
+  withRadix?: boolean;
+}) {
+  let [, wholePart] = values;
+  const [, , dotPart, fractionPart] = values;
 
   const fractionStr = (fractionPart || dotPart) ? `.${(fractionPart || '').substring(0, decimals)}` : '';
   const suffixStr = suffix ? `&thinsp;${suffix}` : '';
+
+  if (withRadix) {
+    wholePart = wholePart.replace(/\d(?=(\d{3})+($|\.))/g, `$&${WHOLE_PART_DELIMITER}`);
+  }
 
   return `${wholePart}<span class="${styles.fractional}">${fractionStr}${suffixStr}</span>`;
 }

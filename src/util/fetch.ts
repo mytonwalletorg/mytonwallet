@@ -33,12 +33,12 @@ export async function fetchJson(url: string | URL, data?: QueryParams, init?: Re
 export async function fetchWithRetry(url: string | URL, init?: RequestInit, options?: {
   retries?: number;
   timeouts?: number | number[];
-  conditionFn?: (message?: string, statusCode?: number) => boolean;
+  shouldSkipRetryFn?: (message?: string, statusCode?: number) => boolean;
 }) {
   const {
     retries = DEFAULT_RETRIES,
     timeouts = DEFAULT_TIMEOUTS,
-    conditionFn,
+    shouldSkipRetryFn = isNotTemporaryError,
   } = options ?? {};
 
   let message = 'Unknown error.';
@@ -65,7 +65,9 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
     } catch (err: any) {
       message = typeof err === 'string' ? err : err.message ?? message;
 
-      if (statusCode === 400 || conditionFn?.(message, statusCode)) {
+      const shouldSkipRetry = shouldSkipRetryFn(message, statusCode);
+
+      if (shouldSkipRetry) {
         throw new ApiServerError(message, statusCode);
       }
 
@@ -100,4 +102,8 @@ export async function handleFetchErrors(response: Response, ignoreHttpCodes?: nu
     throw new ApiServerError(error ?? `HTTP Error ${response.status}`, response.status);
   }
   return response;
+}
+
+function isNotTemporaryError(message?: string, statusCode?: number) {
+  return statusCode === 400;
 }

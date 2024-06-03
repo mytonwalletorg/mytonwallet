@@ -99,6 +99,9 @@ export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
 export const TON_EXPLORER_BASE_MAINNET_URL = 'https://tonviewer.com/';
 export const TON_EXPLORER_BASE_TESTNET_URL = 'https://testnet.tonviewer.com/';
 export const TON_EXPLORER_NAME = 'Tonviewer';
+export const TOKEN_EXPLORER_MAINNET_URL = 'https://tonviewer.com/{address}?section=jetton';
+export const TOKEN_EXPLORER_TESTNET_URL = 'https://testnet.tonviewer.com/{address}?section=jetton';
+export const TOKEN_EXPLORER_NAME = 'TonViewer';
 export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const EMPTY_HASH_VALUE = 'NOHASH';
@@ -119,7 +122,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-107';
+export const LANG_CACHE_NAME = 'mtw-lang-108';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',

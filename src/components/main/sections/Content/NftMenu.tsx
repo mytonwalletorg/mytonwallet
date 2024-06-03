@@ -71,7 +71,6 @@ function NftMenu({
         shouldTranslateOptions
         className={styles.menu}
         buttonClassName={styles.item}
-        bubbleClassName={styles.menuBubble}
         onClose={onClose}
         onSelect={handleMenuItemSelect}
       />

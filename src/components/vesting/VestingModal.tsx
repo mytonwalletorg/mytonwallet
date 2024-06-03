@@ -12,6 +12,7 @@ import { calcVestingAmountByStatus } from '../main/helpers/calcVestingAmountBySt
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import { STAKING_DECIMAL } from '../staking/StakingInitial';
 import Button from '../ui/Button';
@@ -63,6 +64,10 @@ function VestingModal({
     }
   }, [fetchStakingHistory, isOpen]);
 
+  const handleStartClaimingVesting = useLastCallback(() => {
+    startClaimingVesting();
+  });
+
   if (!mycoin) {
     return undefined;
   }
@@ -97,8 +102,15 @@ function VestingModal({
           const title = part.status === 'frozen'
             ? 'Frozen'
             : (part.status === 'missed' ? 'Missed' : part.status === 'unfrozen' ? 'Unfrozen' : 'Ready to Unfreeze');
+          const isInteractive = part.status === 'ready';
+
           return (
-            <div key={part.id} className={buildClassName(styles.part, part.status)}>
+            <div
+              key={part.id}
+              role={isInteractive ? 'button' : undefined}
+              className={buildClassName(styles.part, part.status, isInteractive && styles.partInteractive)}
+              onClick={isInteractive ? handleStartClaimingVesting : undefined}
+            >
               <i
                 className={buildClassName(styles.partIcon, icon, part.status)}
                 aria-hidden
@@ -106,9 +118,13 @@ function VestingModal({
               <div className={styles.partName}>
                 {lang(title)}
                 {part.status === 'frozen' && (
-                  <div>
-                    {lang('Until %date%', {
-                      date: `${formatFullDay(lang.code!, part.time)}, ${formatTime(part.time)}`,
+                  <div className={styles.date}>
+                    {lang('until %date%', {
+                      date: (
+                        <>
+                          <span className={styles.bold}>{formatFullDay(lang.code!, part.time)}</span>,
+                          {' '}{formatTime(part.time)}
+                        </>),
                     })}
                   </div>
                 )}
@@ -174,7 +190,7 @@ function VestingModal({
                     className={styles.button}
                     isPrimary
                     isDisabled={isDisabledUnfreeze}
-                    onClick={!isDisabledUnfreeze ? startClaimingVesting : undefined}
+                    onClick={!isDisabledUnfreeze ? handleStartClaimingVesting : undefined}
                   >
                     {lang('Unfreeze')}
                   </Button>

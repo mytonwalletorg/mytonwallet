@@ -135,7 +135,6 @@ Receive: 接收
 Switch Account: 切換帳戶
 Copy wallet address: 複製錢包地址
 View address on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此地址
-Open on CoinMarketCap: 在 CoinMarketCap 打開
 You have just created a new wallet: 您剛剛創建了一個新錢包
 You can now transfer your tokens from another wallet or exchange.: 您現在可以從另一個錢包或交易所轉移您的代幣。
 Assets: 資產
@@ -586,7 +585,7 @@ Loyal User Airdrop: 忠誠用戶獎勵
 Unfrozen: 解凍
 Missed: 錯過了
 Frozen: 冷凍
-Until %date%: 截至 %date%
+until %date%: 截至 %date%
 "%volume% in %amount% parts": "%volume% 分成 %amount% 份"
 Unfreeze: 解凍
 Claim: 索賠

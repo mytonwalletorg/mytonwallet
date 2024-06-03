@@ -180,6 +180,7 @@
 .blockSubtitle {
   font-size: 0.75rem;
   font-weight: 600;
+  color: var(--color-gray-2);
 }
 
 .part {
@@ -218,6 +219,28 @@
   }
 }
 
+.partInteractive {
+  cursor: pointer;
+
+  transition: background-color 150ms;
+
+  @media (hover: hover) {
+    &:focus,
+    &:hover {
+      background-color: var(--color-interactive-item-hover);
+    }
+  }
+
+  &.active {
+    background-color: var(--color-interactive-item-hover);
+  }
+
+  &:active {
+    // Optimization
+    transition: none;
+  }
+}
+
 .partIcon {
   display: flex;
   align-items: center;
@@ -233,6 +256,7 @@
   border-radius: 50%;
 
   &:global(.frozen) {
+    font-size: 1.6875rem;
     color: var(--color-activity-blue);
 
     background: var(--color-activity-blue-background);
@@ -345,4 +369,10 @@
 
 .bold {
   font-weight: 700;
+}
+
+.date {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-2);
 }

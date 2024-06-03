@@ -97,7 +97,6 @@ const Menu: FC<OwnProps> = ({
   const fullBubbleClassName = buildClassName(
     styles.bubble,
     bubbleClassName,
-    'custom-scroll',
     'menu-bubble',
     styles[positionY],
     styles[positionX],

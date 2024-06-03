@@ -1,4 +1,10 @@
-import { EMPTY_HASH_VALUE, TON_EXPLORER_BASE_MAINNET_URL, TON_EXPLORER_BASE_TESTNET_URL } from '../config';
+import {
+  EMPTY_HASH_VALUE,
+  TOKEN_EXPLORER_MAINNET_URL,
+  TOKEN_EXPLORER_TESTNET_URL,
+  TON_EXPLORER_BASE_MAINNET_URL,
+  TON_EXPLORER_BASE_TESTNET_URL,
+} from '../config';
 import { base64ToHex } from './base64toHex';
 import { logDebugError } from './logs';
 
@@ -35,6 +41,10 @@ function getTonExplorerBaseUrl(isTestnet = false) {
   return isTestnet ? TON_EXPLORER_BASE_TESTNET_URL : TON_EXPLORER_BASE_MAINNET_URL;
 }
 
+function getTokenExplorerBaseUrl(isTestnet = false) {
+  return isTestnet ? TOKEN_EXPLORER_TESTNET_URL : TOKEN_EXPLORER_MAINNET_URL;
+}
+
 export function getTonExplorerTransactionUrl(transactionHash: string | undefined, isTestnet?: boolean) {
   if (!transactionHash || transactionHash === EMPTY_HASH_VALUE) return undefined;
 
@@ -57,4 +67,12 @@ export function getTonExplorerNftUrl(nftAddress?: string, isTestnet?: boolean) {
   if (!nftAddress) return undefined;
 
   return `${getTonExplorerBaseUrl(isTestnet)}${nftAddress}?section=nft`;
+}
+
+export function getTonExplorerTokenUrl(slug?: string, address?: string, isTestnet?: boolean) {
+  if (!slug && !address) return undefined;
+
+  return address
+    ? getTokenExplorerBaseUrl(isTestnet).replace('{address}', address)
+    : `https://coinmarketcap.com/currencies/${slug}/`;
 }

@@ -140,7 +140,6 @@ Receive: รับ
 Switch Account: สลับที่อยู่บัญชี
 Copy wallet address: คัดลอกที่อยู่บัญชีวอลเล็ต
 View address on %ton_explorer_name%: ดูที่อยู่บัญชีที่ %ton_explorer_name%
-Open on CoinMarketCap: เปิดที่ CoinMarketCap
 You have just created a new wallet: คุณได้สร้างวอลเล็ตใหม่
 You can now transfer your tokens from another wallet or exchange.: คุณสามารถโอนโทเคน และ NFT จากวอลเล็ตอื่นหรือเอ็กซ์เชนจ์ได้.
 Assets: สินทรัพย์
@@ -604,7 +603,7 @@ Loyal User Airdrop: รางวัลผู้ใช้ความภักด
 Unfrozen: ยกเลิกการแช่แข็ง
 Missed: พลาด
 Frozen: แช่แข็ง
-Until %date%: ถึง %date%
+until %date%: ถึง %date%
 "%volume% in %amount% parts": "%volume% มี %amount% ส่วน"
 Unfreeze: เลิกตรึง
 Claim: เรียกร้อง

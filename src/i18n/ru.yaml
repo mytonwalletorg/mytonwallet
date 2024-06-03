@@ -141,7 +141,6 @@ Receive: Получить
 Switch Account: Сменить аккаунт
 Copy wallet address: Скопировать адрес
 View address on %ton_explorer_name%: Посмотреть адрес в %ton_explorer_name%
-Open on CoinMarketCap: Открыть в CoinMarketCap
 You have just created a new wallet: Поздравляем! Вы только что создали новый кошелёк
 You can now transfer your tokens from another wallet or exchange.: Теперь вы можете пополнить его с другого кошелька или биржи.
 Assets: Активы
@@ -601,7 +600,7 @@ Loyal User Airdrop: Вознаграждение лояльных пользов
 Unfrozen: Разморожено
 Missed: Пропущено
 Frozen: Заморожено
-Until %date%: До %date%
+until %date%: до %date%
 "%volume% in %amount% parts": "%volume% в %amount% частях"
 Unfreeze: Разморозить
 Claim: Заклеймить

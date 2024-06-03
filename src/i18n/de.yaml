@@ -140,7 +140,6 @@ Receive: Empfangen
 Switch Account: Konto wechseln
 Copy wallet address: Wallet adresse kopieren
 View address on %ton_explorer_name%: Adresse im %ton_explorer_name% anzeigen
-Open on CoinMarketCap: Auf CoinMarketCap öffnen
 You have just created a new wallet: Sie haben gerade eine neue Wallet erstellt.
 You can now transfer your tokens from another wallet or exchange.: Sie können jetzt Ihre Token von einer anderen Wallet oder Börse übertragen.
 Assets: Vermögenswerte
@@ -602,7 +601,7 @@ Loyal User Airdrop: Belohnung für Treuebenutzer
 Unfrozen: Auftauen
 Missed: Verpasst
 Frozen: Gefroren
-Until %date%: Bis %date%
+until %date%: bis %date%
 "%volume% in %amount% parts": "%volume% in %amount% Teilen"
 Unfreeze: Auftauen
 Claim: Beanspruchen
