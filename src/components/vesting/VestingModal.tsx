@@ -102,7 +102,7 @@ function VestingModal({
           const title = part.status === 'frozen'
             ? 'Frozen'
             : (part.status === 'missed' ? 'Missed' : part.status === 'unfrozen' ? 'Unfrozen' : 'Ready to Unfreeze');
-          const isInteractive = part.status === 'ready';
+          const isInteractive = !isUnfreezeRequested && part.status === 'ready';
 
           return (
             <div

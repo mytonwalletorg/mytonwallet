@@ -5,7 +5,7 @@ import { pause } from './schedulers';
 
 type QueryParams = Record<string, string | number | boolean | string[]>;
 
-const DEFAULT_TIMEOUTS = [5000, 10000, 30000]; // 5, 10, 30 sec
+const DEFAULT_TIMEOUTS = [15000, 30000]; // 15, 15, 30 sec
 
 export async function fetchJson(url: string | URL, data?: QueryParams, init?: RequestInit) {
   const urlObject = new URL(url);

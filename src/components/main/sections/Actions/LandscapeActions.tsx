@@ -73,6 +73,9 @@ function LandscapeActions({
 
   const isStakingAllowed = !isTestnet;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
+  const isLastTab = (!isStakingAllowed && !isSwapAllowed && activeTabIndex === ActiveTab.Transfer)
+    || (!isStakingAllowed && isSwapAllowed && activeTabIndex === ActiveTab.Swap)
+    || (isStakingAllowed && activeTabIndex === ActiveTab.Stake);
   const transferKey = useMemo(() => nfts?.map((nft) => nft.address).join(',') || tokenSlug, [nfts, tokenSlug]);
 
   useSyncEffect(() => {
@@ -210,7 +213,7 @@ function LandscapeActions({
         className={buildClassName(
           styles.contentHeader,
           activeTabIndex === ActiveTab.Receive && styles.firstActive,
-          activeTabIndex === ActiveTab.Stake && styles.lastActive,
+          isLastTab && styles.lastActive,
         )}
       >
         <div className={buildClassName(styles.contentHeaderInner, isStaking && styles.contentSlideStaked)} />

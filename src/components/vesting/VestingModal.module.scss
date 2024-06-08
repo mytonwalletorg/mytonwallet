@@ -220,7 +220,7 @@
 }
 
 .partInteractive {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   transition: background-color 150ms;
 

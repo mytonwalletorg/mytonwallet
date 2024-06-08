@@ -132,7 +132,7 @@ function TokenCard({
     return history?.find(([, value]) => Boolean(value))?.[1];
   }, [history]);
 
-  const change = (initialPrice && lastPrice) ? lastPrice - initialPrice : 0;
+  const change = (initialPrice && price) ? price - initialPrice : 0;
 
   const value = toBig(amount, decimals).mul(price).toString();
   const changePrefix = change === undefined ? change : change > 0 ? '↑' : change < 0 ? '↓' : 0;
