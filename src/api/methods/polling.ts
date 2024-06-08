@@ -47,7 +47,7 @@ type IsAccountActiveFn = (accountId: string) => boolean;
 const SEC = 1000;
 const BALANCE_BASED_INTERVAL = 1.1 * SEC;
 const BALANCE_BASED_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
-const STAKING_INTERVAL = 1.1 * SEC;
+const STAKING_INTERVAL = 5 * SEC;
 const STAKING_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
 const BACKEND_INTERVAL = 30 * SEC;
 const LONG_BACKEND_INTERVAL = 60 * SEC;
