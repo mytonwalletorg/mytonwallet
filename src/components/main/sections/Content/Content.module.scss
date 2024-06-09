@@ -42,6 +42,10 @@
 
     width: 100%;
     margin: 0 auto;
+
+    :global(html.is-electron) & {
+      top: 0.75rem;
+    }
   }
 }
 
@@ -64,7 +68,6 @@
     top: 3.75rem;
 
     width: 100%;
-    max-width: 27rem;
 
     &::after {
       content: '';
