@@ -609,3 +609,9 @@ Claim: Claim
 Confirm Unfreezing: Confirm Unfreezing
 Insufficient Balance for Fee.: Insufficient Balance for Fee.
 $fee_value_bold: "**Fee:** %fee%"
+MyTonWallet Features: MyTonWallet Features
+Install on Desktop: Install on Desktop
+Install on Mobile: Install on Mobile
+Install App: Install App
+WrongNetwork: The dapp requested a transaction from another network.
+Hide: Hide

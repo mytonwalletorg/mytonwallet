@@ -213,32 +213,39 @@ export function commentToBytes(comment: string): Uint8Array {
   return bytes;
 }
 
-export function packBytesAsSnake(bytes: Uint8Array, maxBytes = TON_MAX_COMMENT_BYTES): Uint8Array | Cell {
-  const buffer = Buffer.from(bytes);
+function createNestedCell(data: Uint8Array, maxCellSize: number): Cell {
+  const builder = new Builder();
+  const dataSlice = Buffer.from(data.slice(0, maxCellSize));
+
+  builder.storeBuffer(dataSlice);
+
+  if (data.length > maxCellSize) {
+    const remainingData = data.slice(maxCellSize);
+    builder.storeRef(createNestedCell(remainingData, maxCellSize));
+  }
+
+  return builder.endCell();
+}
+
+export function packBytesAsSnake(data: Uint8Array, maxBytes = TON_MAX_COMMENT_BYTES): Uint8Array | Cell {
+  const buffer = Buffer.from(data);
   if (buffer.length <= maxBytes) {
-    return bytes;
+    return data;
   }
 
-  const mainBuilder = new Builder();
-  let prevBuilder: Builder | undefined;
-  let currentBuilder = mainBuilder;
+  const ROOT_BUILDER_BYTES = 39;
+  const MAX_CELLS_AMOUNT = 16;
 
-  for (const [i, byte] of buffer.entries()) {
-    if (currentBuilder.availableBits < 8) {
-      prevBuilder?.storeRef(currentBuilder);
+  const rootBuilder = new Builder();
+  rootBuilder.storeBuffer(Buffer.from(data.slice(0, Math.min(data.length, ROOT_BUILDER_BYTES))));
 
-      prevBuilder = currentBuilder;
-      currentBuilder = new Builder();
-    }
-
-    currentBuilder = currentBuilder.storeUint(byte, 8);
-
-    if (i === buffer.length - 1) {
-      prevBuilder?.storeRef(currentBuilder);
-    }
+  if (data.length > ROOT_BUILDER_BYTES + MAX_CELLS_AMOUNT * TON_MAX_COMMENT_BYTES) {
+    throw new Error('Input text is too long');
   }
 
-  return mainBuilder.asCell();
+  rootBuilder.storeRef(createNestedCell(Buffer.from(data.slice(ROOT_BUILDER_BYTES)), TON_MAX_COMMENT_BYTES));
+
+  return rootBuilder.endCell();
 }
 
 export function buildLiquidStakingDepositBody(queryId?: number) {

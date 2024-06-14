@@ -608,3 +608,9 @@ Claim: Beanspruchen
 Confirm Unfreezing: Bestätigen Sie das Auftauen
 Insufficient Balance for Fee.: Unzureichendes Guthaben für Gebühr.
 $fee_value_bold: "**Gebühr:** %fee%"
+MyTonWallet Features: MyTonWallet Funktionen
+Install on Desktop: Auf dem Desktop installieren
+Install on Mobile: Auf dem Mobilgerät installieren
+Install App: App installieren
+WrongNetwork: Die Dapp hat eine Transaktion von einem anderen Netzwerk angefordert.
+Hide: Verstecken

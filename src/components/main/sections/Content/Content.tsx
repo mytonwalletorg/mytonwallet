@@ -52,6 +52,7 @@ interface StateProps {
   selectedAddresses?: string[];
   activeContentTab?: ContentTab;
   currentTokenSlug?: string;
+  blacklistedNftAddresses?: string[];
 }
 
 let activeNftKey = 0;
@@ -64,6 +65,7 @@ function Content({
   selectedAddresses,
   onStakedTokenClick,
   currentTokenSlug,
+  blacklistedNftAddresses,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -91,13 +93,16 @@ function Content({
   });
 
   const nftCollections = useMemo(() => {
-    const collections = Object.values(nfts ?? {}).reduce((acc, nft) => {
-      if (nft.collectionAddress) {
-        acc[nft.collectionAddress] = nft.collectionName || lang('Unnamed collection');
-      }
+    const collections = Object.values(nfts ?? {})
+      .filter((nft) => !nft.isHidden)
+      .filter((nft) => !blacklistedNftAddresses?.includes(nft.address))
+      .reduce((acc, nft) => {
+        if (nft.collectionAddress) {
+          acc[nft.collectionAddress] = nft.collectionName || lang('Unnamed collection');
+        }
 
-      return acc;
-    }, {} as Record<string, string>);
+        return acc;
+      }, {} as Record<string, string>);
     const collentionAddresses = Object.keys(collections);
     collentionAddresses.sort((left, right) => collections[left].localeCompare(collections[right]));
 
@@ -108,7 +113,7 @@ function Content({
         value: key,
       };
     });
-  }, [lang, nfts]);
+  }, [lang, nfts, blacklistedNftAddresses]);
 
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
@@ -326,6 +331,7 @@ export default memo(
         currentCollectionAddress,
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
+      const { blacklistedNftAddresses } = selectCurrentAccountState(global) ?? {};
 
       return {
         nfts,
@@ -334,6 +340,7 @@ export default memo(
         tokensCount,
         activeContentTab: accountState?.activeContentTab,
         currentTokenSlug: accountState?.currentTokenSlug,
+        blacklistedNftAddresses,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

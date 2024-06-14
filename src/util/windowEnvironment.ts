@@ -64,6 +64,7 @@ export const IS_FIREFOX = navigator.userAgent.includes('Firefox/');
 export const IS_TOUCH_ENV = window.matchMedia('(pointer: coarse)').matches;
 export const IS_CHROME_EXTENSION = Boolean(window.chrome?.system);
 export const IS_ELECTRON = Boolean(window.electron);
+export const IS_WEB = !IS_CAPACITOR && !IS_ELECTRON && !IS_EXTENSION;
 export const DEFAULT_LANG_CODE = 'en';
 export const USER_AGENT_LANG_CODE = getBrowserLanguage();
 export const DPR = window.devicePixelRatio || 1;

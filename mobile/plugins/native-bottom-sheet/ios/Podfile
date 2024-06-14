@@ -10,7 +10,7 @@ end
 target 'Plugin' do
   capacitor_pods
 
-  pod 'FloatingPanel', :git => 'https://github.com/scenee/FloatingPanel.git', :commit => 'f45b6aaa3f058f408945df80f15fa86150682e8b'
+  pod 'FloatingPanel'
 end
 
 target 'PluginTests' do

@@ -247,7 +247,10 @@ export async function sendTransaction(
       throw new errors.BadRequestError('Payload contains more than 4 messages, which exceeds limit');
     }
 
-    const messages = txPayload.messages;
+    const { messages, network: dappNetworkRaw } = txPayload;
+    const dappNetwork = dappNetworkRaw
+      ? (dappNetworkRaw === CHAIN.MAINNET ? 'mainnet' : 'testnet')
+      : undefined;
     let validUntil = txPayload.valid_until;
     if (validUntil && validUntil > 10 ** 10) {
       // If milliseconds were passed instead of seconds
@@ -257,6 +260,10 @@ export async function sendTransaction(
     const { network } = parseAccountId(accountId);
     const account = await fetchStoredAccount(accountId);
     const isLedger = !!account.ledger;
+
+    if (dappNetwork && network !== dappNetwork) {
+      throw new errors.BadRequestError(undefined, ApiTransactionError.WrongNetwork);
+    }
 
     if (txPayload.from && toBase64Address(txPayload.from, false) !== toBase64Address(account.address, false)) {
       throw new errors.BadRequestError(undefined, ApiTransactionError.WrongAddress);

@@ -120,7 +120,6 @@ function TransactionModal({
   const addressName = (address && savedAddresses?.[address]) || transaction?.metadata?.name;
   const isScam = Boolean(transaction?.metadata?.isScam);
 
-  const [isLoading, setIsLoading] = useState(false);
   const [decryptedComment, setDecryptedComment] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
@@ -161,6 +160,10 @@ function TransactionModal({
     }
   }, [endOfStakingCycle]);
 
+  const clearPasswordError = useLastCallback(() => {
+    setPasswordError(undefined);
+  });
+
   const openPasswordSlide = useLastCallback(() => {
     setCurrentSlide(SLIDES.password);
     setNextKey(undefined);
@@ -169,6 +172,7 @@ function TransactionModal({
   const closePasswordSlide = useLastCallback(() => {
     setCurrentSlide(SLIDES.initial);
     setNextKey(SLIDES.password);
+    clearPasswordError();
   });
 
   const openHiddenComment = useLastCallback(() => {
@@ -212,7 +216,6 @@ function TransactionModal({
   });
 
   const handlePasswordSubmit = useLastCallback(async (password: string) => {
-    setIsLoading(true);
     const result = await callApi(
       'decryptComment',
       getGlobal().currentAccountId!,
@@ -220,7 +223,6 @@ function TransactionModal({
       fromAddress!,
       password,
     );
-    setIsLoading(false);
 
     if (!result) {
       setPasswordError('Wrong password, please try again.');
@@ -241,10 +243,6 @@ function TransactionModal({
     if (IS_CAPACITOR) {
       clearIsPinAccepted();
     }
-  });
-
-  const clearPasswordError = useLastCallback(() => {
-    setPasswordError(undefined);
   });
 
   function getTitle(isLocal: boolean) {
@@ -448,7 +446,6 @@ function TransactionModal({
             {!IS_CAPACITOR && <ModalHeader title={lang('Enter Password')} onClose={handleClose} />}
             <PasswordForm
               isActive={isActive}
-              isLoading={isLoading}
               submitLabel={lang('Send')}
               placeholder={lang('Enter your password')}
               error={passwordError}

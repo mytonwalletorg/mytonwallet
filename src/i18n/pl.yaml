@@ -610,3 +610,9 @@ Claim: Prawo
 Confirm Unfreezing: Potwierdź Odmrożenie
 Insufficient Balance for Fee.: Niewystarczające saldo na opłatę.
 $fee_value_bold: "**Opłata:** %fee%"
+MyTonWallet Features: Funkcje MyTonWallet
+Install on Desktop: Zainstaluj na pulpicie
+Install on Mobile: Zainstaluj na telefonie komórkowym
+Install App: Zainstaluj aplikację
+WrongNetwork: Dapp zażądał transakcji z innej sieci.
+Hide: Ukryj

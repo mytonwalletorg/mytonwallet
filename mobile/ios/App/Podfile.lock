@@ -32,7 +32,7 @@ PODS:
     - Capacitor
   - CordovaPlugins (5.6.0):
     - CapacitorCordova
-  - FloatingPanel (2.8.2)
+  - FloatingPanel (2.8.3)
   - GoogleDataTransport (9.4.1):
     - GoogleUtilities/Environment (~> 7.7)
     - nanopb (< 2.30911.0, >= 2.30908.0)
@@ -117,13 +117,13 @@ DEPENDENCIES:
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
   - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
-  - FloatingPanel (from `https://github.com/scenee/FloatingPanel.git`, commit `f45b6aaa3f058f408945df80f15fa86150682e8b`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
   - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
   - NativeDialog (from `../../plugins/native-dialog`)
 
 SPEC REPOS:
   trunk:
+    - FloatingPanel
     - GoogleDataTransport
     - GoogleMLKit
     - GoogleToolboxForMac
@@ -171,20 +171,12 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capgo/native-audio"
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
-  FloatingPanel:
-    :commit: f45b6aaa3f058f408945df80f15fa86150682e8b
-    :git: https://github.com/scenee/FloatingPanel.git
   MauricewegnerCapacitorNavigationBar:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
   NativeBottomSheet:
     :path: "../../plugins/native-bottom-sheet"
   NativeDialog:
     :path: "../../plugins/native-dialog"
-
-CHECKOUT OPTIONS:
-  FloatingPanel:
-    :commit: f45b6aaa3f058f408945df80f15fa86150682e8b
-    :git: https://github.com/scenee/FloatingPanel.git
 
 SPEC CHECKSUMS:
   Capacitor: fc7ef6d935eafb0df9eaaf109ca69be16c51a2d2
@@ -203,7 +195,7 @@ SPEC CHECKSUMS:
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
   CapgoNativeAudio: 9c9d2ee1683c5e7091d59c3aa7ff5c30c66b9598
   CordovaPlugins: 149708b4353176a65688a5aed237f7c3054e7702
-  FloatingPanel: 99b72651e5e607a6a4e0c9831e30f02d145beeb6
+  FloatingPanel: 0f9b89c6d4318842311bec6f6026fb18ca2a2c90
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleMLKit: 2bd0dc6253c4d4f227aad460f69215a504b2980e
   GoogleToolboxForMac: 8bef7c7c5cf7291c687cf5354f39f9db6399ad34
@@ -221,6 +213,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 5b193aca044f45709662673225ba6cd3f6def650
+PODFILE CHECKSUM: e69f690459876b6968eb7d1623935bb964362175
 
 COCOAPODS: 1.15.2

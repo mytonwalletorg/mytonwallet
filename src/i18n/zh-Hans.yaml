@@ -592,3 +592,9 @@ Claim: 宣称
 Confirm Unfreezing: 确认解冻
 Insufficient Balance for Fee.: 费用余额不足。
 $fee_value_bold: "**手续费:** %fee%"
+MyTonWallet Features: MyTonWallet 功能
+Install on Desktop: 安装在桌面
+Install on Mobile: 安装在手机
+Install App: 安装应用
+WrongNetwork: Dapp 从另一个网络请求交易。
+Hide: 隐藏

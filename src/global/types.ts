@@ -194,6 +194,12 @@ export enum StakingState {
   NotEnoughBalance,
 }
 
+export enum VestingUnfreezeState {
+  Password,
+  ConnectHardware,
+  ConfirmHardware,
+}
+
 export enum SettingsState {
   Initial,
   Appearance,
@@ -321,12 +327,14 @@ export interface AccountState {
     isConfirmRequested?: boolean;
     error?: string;
     unfreezeRequestedIds?: { id: number; partId: number }[];
+    unfreezeState?: VestingUnfreezeState;
   };
 
   stakingHistory?: ApiStakingHistory;
   browserHistory?: string[];
 
   isLongUnstakeRequested?: boolean;
+  blacklistedNftAddresses?: string[];
 }
 
 export interface AccountSettings {
@@ -709,6 +717,7 @@ export interface ActionPayloads {
   clearNftSelection: { address: string };
   clearNftsSelection: undefined;
   burnNfts: { nfts: ApiNft[] };
+  hideNft: { nftAddress: ApiNft['address'] };
 
   submitSignature: { password: string };
   clearSignatureError: undefined;
@@ -865,6 +874,7 @@ export interface ActionPayloads {
   closeVestingModal: undefined;
   startClaimingVesting: undefined;
   submitClaimingVesting: { password: string };
+  submitClaimingVestingHardware: undefined;
   clearVestingError: undefined;
   cancelClaimingVesting: undefined;
 }

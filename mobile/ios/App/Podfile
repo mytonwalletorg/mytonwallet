@@ -25,15 +25,14 @@ def capacitor_pods
   pod 'CapacitorPluginSafeArea', :path => '../../../node_modules/capacitor-plugin-safe-area'
   pod 'CapacitorSecureStoragePlugin', :path => '../../../node_modules/capacitor-secure-storage-plugin'
   pod 'CapacitorSplashScreen', :path => '../../plugins/capacitor-splash-screen'
-  pod 'NativeDialog', :path => '../../plugins/native-dialog'
   pod 'NativeBottomSheet', :path => '../../plugins/native-bottom-sheet'
+  pod 'NativeDialog', :path => '../../plugins/native-dialog'
   pod 'CordovaPlugins', :path => '../capacitor-cordova-ios-plugins'
 end
 
 target 'MyTonWallet' do
   capacitor_pods
   # Add your Pods here
-  pod 'FloatingPanel', :git => 'https://github.com/scenee/FloatingPanel.git', :commit => 'f45b6aaa3f058f408945df80f15fa86150682e8b'
 end
 
 post_install do |installer|

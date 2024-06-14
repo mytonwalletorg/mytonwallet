@@ -38,6 +38,7 @@ interface StateProps {
   currentCollectionAddress?: string;
   isHardware?: boolean;
   isTestnet?: boolean;
+  blacklistedNftAddresses?: string[];
 }
 
 const GETGEMS_ENABLED = !IS_IOS_APP && !IS_ANDROID_APP;
@@ -50,6 +51,7 @@ function Nfts({
   currentCollectionAddress,
   isHardware,
   isTestnet,
+  blacklistedNftAddresses,
 }: OwnProps & StateProps) {
   const { clearNftsSelection, burnNfts } = getActions();
 
@@ -73,8 +75,12 @@ function Nfts({
         if (!nft) return false;
 
         return !currentCollectionAddress || nft.collectionAddress === currentCollectionAddress;
-      });
-  }, [byAddress, currentCollectionAddress, orderedAddresses]);
+      })
+      .filter((nft) => !nft.isHidden)
+      .filter((nft) => !blacklistedNftAddresses?.includes(nft.address));
+  }, [
+    byAddress, currentCollectionAddress, orderedAddresses, blacklistedNftAddresses,
+  ]);
 
   const handleBurnNotcoinVouchersClick = useLastCallback(() => {
     burnNfts({ nfts: nfts! });
@@ -159,6 +165,8 @@ export default memo(
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
 
+      const { blacklistedNftAddresses } = selectCurrentAccountState(global) || {};
+
       return {
         orderedAddresses,
         selectedAddresses,
@@ -166,6 +174,7 @@ export default memo(
         isHardware: selectIsHardwareAccount(global),
         currentCollectionAddress,
         isTestnet: global.settings.isTestnet,
+        blacklistedNftAddresses,
       };
     },
     (global, _, stickToFirst) => {

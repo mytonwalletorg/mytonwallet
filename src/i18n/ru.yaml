@@ -607,3 +607,9 @@ Claim: Заклеймить
 Confirm Unfreezing: Подтверждение размораживания
 Insufficient Balance for Fee.: Недостаточный баланс для комиссии.
 $fee_value_bold: "**Комиссия:** %fee%"
+MyTonWallet Features: Функции MyTonWallet
+Install on Desktop: Установить на компьютер
+Install on Mobile: Установить на мобильное устройство
+Install App: Установить приложение
+WrongNetwork: Приложение запрашивает транзакцию из другой сети.
+Hide: Скрыть

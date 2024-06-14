@@ -500,7 +500,7 @@ async function stringToPayload({
   } else if (shouldEncrypt) {
     const toPublicKey = (await getWalletPublicKey(network, toAddress))!;
     payload = await encryptMessageComment(data, publicKey, toPublicKey, secretKey, fromAddress);
-    encryptedComment = Buffer.from(data.slice(4)).toString('base64');
+    encryptedComment = Buffer.from(payload.slice(4)).toString('base64');
   } else {
     payload = commentToBytes(data);
   }

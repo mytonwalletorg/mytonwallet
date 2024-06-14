@@ -16,7 +16,11 @@ const currentPage = location.href.includes('/android')
     ? 'mac'
     : location.href.includes('/rate')
       ? 'rate'
-      : 'index';
+      : location.href.includes('/mobile')
+        ? 'mobile'
+        : location.href.includes('/desktop')
+          ? 'desktop'
+          : 'index';
 
 // Request the latest release information from GitHub
 const packagesPromise = fetch(LATEST_RELEASE_API_URL)
@@ -55,10 +59,25 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
     console.error('Error:', error);
   });
 
+const IS_DESKTOP = ['Windows', 'Linux', 'macOS'].includes(platform);
+const IS_MOBILE = !IS_DESKTOP;
+
 (function init() {
   if (currentPage === 'rate') {
     setupRateButtons();
     return;
+  }
+
+  // Handling subpages /get/desktop and /get/mobile
+  const isTargetPlatform = (currentPage === 'mobile' && IS_MOBILE) || (currentPage === 'desktop' && IS_DESKTOP);
+  if (isTargetPlatform) {
+    // If we are on the target platform, redirect to the universal page
+    redirectToUniversalPage();
+    return;
+  }
+  if (currentPage === 'mobile') {
+    // Version is only needed for /get/mobile
+    setupVersion();
   }
 
   if (currentPage === 'index') {
@@ -119,7 +138,7 @@ function setupVersion() {
       const versionEl = document.querySelector('.version');
 
       let html = `v. ${packages.$version}`;
-      if (['Windows', 'macOS', 'Linux'].includes(platform)) {
+      if (currentPage !== "mobile" && IS_DESKTOP) {
         const signaturesHtml = areSignaturesPresentResult
           ? '<a href="javascript:redirectToFullList();">Signatures</a>'
           : '<span class="missing-signatures">Missing signatures!</span>';
@@ -130,6 +149,10 @@ function setupVersion() {
       versionEl.innerHTML = html;
     });
   });
+}
+
+function redirectToUniversalPage() {
+  location.href = './';
 }
 
 function redirectToAndroid() {

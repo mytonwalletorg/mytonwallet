@@ -610,3 +610,9 @@ Claim: เรียกร้อง
 Confirm Unfreezing: ยืนยันการเลิกแช่แข็ง
 Insufficient Balance for Fee.: Insufficient Balance for Fee.
 $fee_value_bold: "**ค่าธรรมเนียม:** %fee%"
+MyTonWallet Features: คุณสมบัติของ MyTonWallet
+Install on Desktop: ติดตั้งบนเดสก์ท็อป
+Install on Mobile: ติดตั้งบนมือถือ
+Install App: ติดตั้งแอป
+WrongNetwork: Dapp ร้องขอธุรกรรมจากเครือข่ายอื่น
+Hide: ซ่อน

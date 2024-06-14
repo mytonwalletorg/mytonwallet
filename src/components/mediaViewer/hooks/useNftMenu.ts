@@ -50,6 +50,10 @@ const COLLECTION_ITEM: DropdownItem = {
   name: 'Collection',
   value: 'collection',
 };
+const HIDE_ITEM: DropdownItem = {
+  name: 'Hide',
+  value: 'hide',
+};
 const BURN_ITEM: DropdownItem = {
   name: 'Burn',
   value: 'burn',
@@ -63,7 +67,7 @@ const SELECT_ITEM: DropdownItem = {
 
 export default function useNftMenu(nft?: ApiNft) {
   const {
-    startTransfer, selectNfts, openNftCollection, burnNfts,
+    startTransfer, selectNfts, openNftCollection, burnNfts, hideNft,
   } = getActions();
 
   const handleMenuItemSelect = useLastCallback((value: string) => {
@@ -86,7 +90,9 @@ export default function useNftMenu(nft?: ApiNft) {
 
       case 'getgems': {
         const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
-        const getgemsUrl = `${getgemsBaseUrl}collection/${nft!.collectionAddress}/${nft!.address}`;
+        const getgemsUrl = nft!.collectionAddress
+          ? `${getgemsBaseUrl}collection/${nft!.collectionAddress}/${nft!.address}`
+          : `${getgemsBaseUrl}nft/${nft!.address}`;
 
         openUrl(getgemsUrl);
         break;
@@ -117,6 +123,12 @@ export default function useNftMenu(nft?: ApiNft) {
         break;
       }
 
+      case 'hide': {
+        hideNft({ nftAddress: nft!.address });
+
+        break;
+      }
+
       case 'burn': {
         burnNfts({ nfts: [nft!] });
 
@@ -140,6 +152,7 @@ export default function useNftMenu(nft?: ApiNft) {
       GETGEMS_ITEM,
       TON_EXPLORER_ITEM,
       ...(nft.collectionAddress ? [COLLECTION_ITEM] : []),
+      HIDE_ITEM,
       ...(!nft.isOnSale ? [
         BURN_ITEM,
         SELECT_ITEM,

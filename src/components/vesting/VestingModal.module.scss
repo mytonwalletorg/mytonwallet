@@ -36,6 +36,11 @@
     background-image: url("../../assets/vesting_bg_dark.png");
   }
 
+  :global(.is-android) & {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
   @media (min-resolution: 1.5dppx) {
     background-image: url("../../assets/vesting_bg@2x.png");
 

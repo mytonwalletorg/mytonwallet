@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "1.20.2",
+  "version": "1.20.3",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -202,13 +202,13 @@
     "capacitor-secure-storage-plugin": "github:troman29/capacitor-secure-storage-plugin#22a5a9e3b368b5d9703a3011e5b7af5f0f0c7596",
     "capacitor-splash-screen": "file:mobile/plugins/capacitor-splash-screen",
     "cordova-plugin-inappbrowser": "^6.0.0",
-    "native-dialog": "file:mobile/plugins/native-dialog",
     "idb-keyval": "^6.2.0",
     "native-bottom-sheet": "file:mobile/plugins/native-bottom-sheet",
+    "native-dialog": "file:mobile/plugins/native-dialog",
     "pako": "^2.1.0",
     "qr-code-styling": "github:troman29/qr-code-styling#c00d0",
     "qrcode-generator": "^1.4.4",
-    "tonapi-sdk-js": "^1.0.1",
+    "tonapi-sdk-js": "^1.0.10",
     "tonweb-mnemonic": "^1.0.1",
     "tweetnacl": "^1.0.3",
     "v8-compile-cache": "^2.4.0",

@@ -424,6 +424,7 @@ function reduceByAccountId(global: GlobalState) {
       'activeContentTab',
       'landscapeActionsActiveTabIndex',
       'browserHistory',
+      'blacklistedNftAddresses',
     ]);
 
     const accountTokens = selectAccountTokens(global, accountId);

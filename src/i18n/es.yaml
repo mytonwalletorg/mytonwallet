@@ -605,3 +605,9 @@ Claim: Afirmar
 Confirm Unfreezing: Confirmar descongelación
 Insufficient Balance for Fee.: Saldo insuficiente para pagar la tarifa.
 $fee_value_bold: "**Comisión:** %fee%"
+MyTonWallet Features: Funciones de MyTonWallet
+Install on Desktop: Instalar en el escritorio
+Install on Mobile: Instalar en el móvil
+Install App: Instalar la aplicación
+WrongNetwork: El dapp solicitó una transacción de otra red.
+Hide: Ocultar

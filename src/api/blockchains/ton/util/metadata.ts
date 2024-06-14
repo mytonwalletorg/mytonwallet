@@ -476,6 +476,7 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       metadata,
       previews,
       sale,
+      trust,
     } = rawNft;
 
     const {
@@ -501,7 +502,7 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       }
     }
 
-    const isScam = description === 'SCAM' || hasScamLink;
+    const isScam = hasScamLink || description === 'SCAM' || trust === 'blacklist';
     const isHidden = renderType === 'hidden' || isScam;
     const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
 

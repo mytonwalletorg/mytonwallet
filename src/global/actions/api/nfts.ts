@@ -4,6 +4,8 @@ import {
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { NFT_TRANSFER_TONCOIN_AMOUNT } from '../../../api/blockchains/ton/constants';
 import { addActionHandler } from '../../index';
+import { updateCurrentAccountState } from '../../reducers';
+import { selectCurrentAccountState } from '../../selectors';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
@@ -25,4 +27,14 @@ addActionHandler('burnNfts', (global, actions, { nfts }) => {
       nftAddresses: nfts.map(({ address }) => address),
     });
   }, NBS_INIT_TIMEOUT);
+});
+
+addActionHandler('hideNft', (global, actions, { nftAddress }) => {
+  let { blacklistedNftAddresses = [] } = selectCurrentAccountState(global) || {};
+
+  blacklistedNftAddresses = blacklistedNftAddresses.filter((address) => address !== nftAddress);
+
+  return updateCurrentAccountState(global, {
+    blacklistedNftAddresses: [...blacklistedNftAddresses, nftAddress],
+  });
 });

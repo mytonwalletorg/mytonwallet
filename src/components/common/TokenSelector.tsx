@@ -173,6 +173,10 @@ function TokenSelector({
     const tokensToFilter = isInsideSettings ? allUnimportedTonTokens : swapTokensWithFilter;
     const lowerCaseSearchValue = searchValue.toLowerCase().trim();
 
+    if (!lowerCaseSearchValue.length) {
+      return [];
+    }
+
     return tokensToFilter.filter(({
       name, symbol, keywords, isDisabled,
     }) => {
