@@ -2,10 +2,16 @@ import type {
   ApiBalanceBySlug, ApiNetwork, ApiSwapAsset, ApiTxIdBySlug,
 } from '../../api/types';
 import type {
-  Account, AccountSettings, AccountState, GlobalState, StakingStatus, UserSwapToken, UserToken,
+  Account,
+  AccountSettings,
+  AccountState,
+  GlobalState,
+  StakingStatus,
+  UserSwapToken,
+  UserToken,
 } from '../types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { MYCOIN_SLUG, MYCOIN_SLUG_TESTNET, TONCOIN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { toBig } from '../../util/decimals';
 import { findLast, mapValues } from '../../util/iteratees';
@@ -36,24 +42,23 @@ const selectAccountTokensMemoized = memoized((
         },
       } = tokenInfo.bySlug[slug];
 
-      const amount = balance;
-      const totalValue = toBig(balance, decimals).mul(price).round(decimals).toString();
-
-      const isException = accountSettings.exceptionSlugs?.includes(slug);
-      let isDisabled = areTokensWithNoCostHidden && toBig(amount, decimals).mul(priceUsd ?? 0).lt(HIDDEN_TOKENS_COST);
-
-      if (isException) {
-        isDisabled = !isDisabled;
-      }
-
-      if (slug === TON_TOKEN_SLUG) {
-        isDisabled = false;
-      }
+      const balanceBig = toBig(balance, decimals);
+      const totalValue = balanceBig.mul(price).round(decimals).toString();
+      const hasCost = balanceBig.mul(priceUsd ?? 0).gte(HIDDEN_TOKENS_COST);
+      const isExcepted = accountSettings.exceptionSlugs?.includes(slug);
+      const isMycoinWithBalance = slug === MYCOIN_SLUG && balance;
+      const isDisabled = !(
+        slug === TONCOIN_SLUG
+        || (areTokensWithNoCostHidden && hasCost && !isExcepted)
+        || (areTokensWithNoCostHidden && !hasCost && !isMycoinWithBalance && isExcepted)
+        || (areTokensWithNoCostHidden && !hasCost && isMycoinWithBalance && !isExcepted)
+        || (!areTokensWithNoCostHidden && !isExcepted)
+      );
 
       return {
         symbol,
         slug,
-        amount,
+        amount: balance,
         name,
         image,
         price,
@@ -83,6 +88,10 @@ const selectAccountTokensMemoized = memoized((
 
 export function selectCurrentAccountTokens(global: GlobalState) {
   return selectAccountTokens(global, global.currentAccountId!);
+}
+
+export function selectCurrentToncoinBalance(global: GlobalState) {
+  return selectCurrentAccountState(global)?.balances?.bySlug[TONCOIN_SLUG] ?? 0n;
 }
 
 export function selectAccountTokens(global: GlobalState, accountId: string) {
@@ -374,7 +383,7 @@ export function selectAccountIdByAddress(global: GlobalState, address: string): 
 }
 
 export function selectTokenAddress(global: GlobalState, slug: string) {
-  if (slug === TON_TOKEN_SLUG) return undefined;
+  if (slug === TONCOIN_SLUG) return undefined;
   return Object.values(global.tokenInfo.bySlug)
     .find((token) => slug === token.slug)!
     .minterAddress!;
@@ -388,4 +397,28 @@ export function selectCurrentAccountStakingStatus(global: GlobalState): StakingS
       ? 'unstakeRequested'
       : 'active'
     : undefined;
+}
+
+// Slow, not to be used in `withGlobal`
+export function selectVestingPartsReadyToUnfreeze(global: GlobalState, accountId: string) {
+  const vesting = selectAccountState(global, accountId)?.vesting?.info || [];
+
+  return vesting.reduce((acc, currentVesting) => {
+    currentVesting.parts.forEach((part) => {
+      if (part.status === 'ready') {
+        acc.push({
+          id: currentVesting.id,
+          partId: part.id,
+        });
+      }
+    });
+
+    return acc;
+  }, [] as { id: number; partId: number }[]);
+}
+
+export function selectMycoin(global: GlobalState) {
+  const { isTestnet } = global.settings;
+
+  return global.tokenInfo.bySlug[isTestnet ? MYCOIN_SLUG_TESTNET : MYCOIN_SLUG];
 }

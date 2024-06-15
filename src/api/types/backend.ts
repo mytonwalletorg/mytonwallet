@@ -1,4 +1,4 @@
-// Decentralized swap of TON and tokens
+import type { DieselStatus } from '../../global/types';
 import type { ApiLoyaltyType } from './misc';
 
 export type ApiSwapEstimateRequest = {
@@ -8,6 +8,7 @@ export type ApiSwapEstimateRequest = {
   fromAmount?: string;
   toAmount?: string;
   fromAddress: string;
+  shouldTryDiesel?: boolean;
 };
 
 export type ApiSwapEstimateResponse = ApiSwapEstimateRequest & {
@@ -20,11 +21,11 @@ export type ApiSwapEstimateResponse = ApiSwapEstimateRequest & {
   swapFeePercent: number;
   impact: number;
   dexLabel: string;
+  dieselStatus: DieselStatus;
 };
 
-export type ApiSwapBuildRequest = Omit<ApiSwapEstimateResponse, 'impact' | 'swapFeePercent' | 'realNetworkFee'> & {
-  fromAddress: string;
-};
+export type ApiSwapBuildRequest
+  = Omit<ApiSwapEstimateResponse, 'impact' | 'swapFeePercent' | 'realNetworkFee' | 'dieselStatus'>;
 
 export type ApiSwapTransfer = {
   toAddress: string;
@@ -34,7 +35,6 @@ export type ApiSwapTransfer = {
 
 export type ApiSwapBuildResponse = {
   id: string;
-  request: ApiSwapBuildRequest;
   transfers: ApiSwapTransfer[];
 };
 
@@ -79,6 +79,7 @@ export type ApiSwapHistoryItem = {
   txIds: string[];
   cex?: {
     payinAddress: string;
+    payoutAddress: string;
     payinExtraId?: string;
     status: ApiSwapCexTransactionStatus;
     transactionId: string;
@@ -165,11 +166,12 @@ export type ApiVestingPartStatus = 'frozen' | 'ready' | 'unfrozen' | 'missed';
 
 export type ApiVestingInfo = {
   id: number;
+  title: string;
   startsAt: Date;
   initialAmount: number;
   parts: {
     id: number;
-    time: Date;
+    time: string;
     amount: number;
     status: ApiVestingPartStatus;
   }[];

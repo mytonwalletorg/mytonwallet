@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?b2b7f17c4bf17aac28b89244d39ce6ed") format("woff"),
-url("./brilliant-icons.woff2?b2b7f17c4bf17aac28b89244d39ce6ed") format("woff2");
+    src: url("./brilliant-icons.woff?b7146202ed85eedaea92d1c028f5b46e") format("woff"),
+url("./brilliant-icons.woff2?b7146202ed85eedaea92d1c028f5b46e") format("woff2");
     font-weight: normal;
     font-style: normal;
 }
@@ -47,28 +47,28 @@ url("./brilliant-icons.woff2?b2b7f17c4bf17aac28b89244d39ce6ed") format("woff2");
 .icon-changelly::before {
     content: "\f10b";
 }
-.icon-chevron-down::before {
+.icon-check::before {
     content: "\f10c";
 }
-.icon-chevron-left::before {
+.icon-chevron-down::before {
     content: "\f10d";
 }
-.icon-chevron-right::before {
+.icon-chevron-left::before {
     content: "\f10e";
 }
-.icon-clock::before {
+.icon-chevron-right::before {
     content: "\f10f";
 }
-.icon-close-filled::before {
+.icon-clock::before {
     content: "\f110";
 }
-.icon-close::before {
+.icon-close-filled::before {
     content: "\f111";
 }
-.icon-cog::before {
+.icon-close::before {
     content: "\f112";
 }
-.icon-coinmarket::before {
+.icon-cog::before {
     content: "\f113";
 }
 .icon-copy::before {
@@ -101,120 +101,132 @@ url("./brilliant-icons.woff2?b2b7f17c4bf17aac28b89244d39ce6ed") format("woff2");
 .icon-face-id::before {
     content: "\f11d";
 }
-.icon-flashlight::before {
+.icon-fire::before {
     content: "\f11e";
 }
-.icon-github::before {
+.icon-flashlight::before {
     content: "\f11f";
 }
-.icon-globe::before {
+.icon-github::before {
     content: "\f120";
 }
-.icon-laptop::before {
+.icon-globe::before {
     content: "\f121";
 }
-.icon-ledger::before {
+.icon-laptop::before {
     content: "\f122";
 }
-.icon-lock::before {
+.icon-ledger::before {
     content: "\f123";
 }
-.icon-menu-dots::before {
+.icon-lock::before {
     content: "\f124";
 }
-.icon-more::before {
+.icon-menu-dots::before {
     content: "\f125";
 }
-.icon-params::before {
+.icon-missed::before {
     content: "\f126";
 }
-.icon-paste::before {
+.icon-more::before {
     content: "\f127";
 }
-.icon-pen::before {
+.icon-params::before {
     content: "\f128";
 }
-.icon-percent::before {
+.icon-paste::before {
     content: "\f129";
 }
-.icon-plus::before {
+.icon-pen::before {
     content: "\f12a";
 }
-.icon-qr-scanner-alt::before {
+.icon-percent::before {
     content: "\f12b";
 }
-.icon-qr-scanner::before {
+.icon-plus::before {
     content: "\f12c";
 }
-.icon-question::before {
+.icon-qr-scanner-alt::before {
     content: "\f12d";
 }
-.icon-receive-alt::before {
+.icon-qr-scanner::before {
     content: "\f12e";
 }
-.icon-receive::before {
+.icon-question::before {
     content: "\f12f";
 }
-.icon-replace::before {
+.icon-receive-alt::before {
     content: "\f130";
 }
-.icon-search::before {
+.icon-receive::before {
     content: "\f131";
 }
-.icon-send-alt::before {
+.icon-replace::before {
     content: "\f132";
 }
-.icon-send-small::before {
+.icon-search::before {
     content: "\f133";
 }
-.icon-send::before {
+.icon-send-alt::before {
     content: "\f134";
 }
-.icon-share::before {
+.icon-send-small::before {
     content: "\f135";
 }
-.icon-sort::before {
+.icon-send::before {
     content: "\f136";
 }
-.icon-star-filled::before {
+.icon-share::before {
     content: "\f137";
 }
-.icon-star::before {
+.icon-snow::before {
     content: "\f138";
 }
-.icon-swap::before {
+.icon-sort::before {
     content: "\f139";
 }
-.icon-telegram::before {
+.icon-star-filled::before {
     content: "\f13a";
 }
-.icon-ton::before {
+.icon-star::before {
     content: "\f13b";
 }
-.icon-tonscan::before {
+.icon-swap::before {
     content: "\f13c";
 }
-.icon-tooltip::before {
+.icon-telegram::before {
     content: "\f13d";
 }
-.icon-touch-id::before {
+.icon-ton::before {
     content: "\f13e";
 }
-.icon-trash-small::before {
+.icon-tonexplorer-small::before {
     content: "\f13f";
 }
-.icon-trash::before {
+.icon-tonexplorer::before {
     content: "\f140";
 }
-.icon-update::before {
+.icon-tooltip::before {
     content: "\f141";
 }
-.icon-windows-close::before {
+.icon-touch-id::before {
     content: "\f142";
 }
-.icon-windows-maximize::before {
+.icon-trash-small::before {
     content: "\f143";
 }
-.icon-windows-minimize::before {
+.icon-trash::before {
     content: "\f144";
+}
+.icon-update::before {
+    content: "\f145";
+}
+.icon-windows-close::before {
+    content: "\f146";
+}
+.icon-windows-maximize::before {
+    content: "\f147";
+}
+.icon-windows-minimize::before {
+    content: "\f148";
 }

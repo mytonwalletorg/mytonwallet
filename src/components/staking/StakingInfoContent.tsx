@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiStakingHistory } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
-import { TON_SYMBOL, TON_TOKEN_SLUG } from '../../config';
+import { TON_SYMBOL, TONCOIN_SLUG } from '../../config';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
@@ -69,7 +69,7 @@ function StakingInfoContent({
     shouldRender: shouldRenderSpinner,
     transitionClassNames: spinnerClassNames,
   } = useShowTransition(isLoading && isActive);
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG)!, [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG)!, [tokens]);
   const forceUpdate = useForceUpdate();
   const { height } = useWindowSize();
 

@@ -1,5 +1,6 @@
 import type { Cell } from '@ton/core';
 
+import type { DieselStatus } from '../../../global/types';
 import type {
   ApiAnyDisplayError, ApiParsedPayload, ApiTransaction, ApiWalletInfo, ApiWalletVersion,
 } from '../../types';
@@ -116,4 +117,10 @@ export type ApiCheckTransactionDraftResult = {
   isBounceable?: boolean;
   isMemoRequired?: boolean;
   error?: ApiAnyDisplayError;
+  dieselStatus?: DieselStatus;
+  dieselAmount?: bigint;
+};
+
+export type ApiSubmitTransferWithDieselResult = ApiSubmitMultiTransferResult & {
+  encryptedComment?: string;
 };

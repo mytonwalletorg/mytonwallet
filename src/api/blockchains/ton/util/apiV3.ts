@@ -2,12 +2,12 @@ import type { ApiNetwork } from '../../../types';
 import type { ApiTransactionExtra } from '../types';
 
 import {
-  TON_TOKEN_SLUG,
+  TONCOIN_SLUG,
   TONHTTPAPI_V3_MAINNET_API_URL,
   TONHTTPAPI_V3_TESTNET_API_URL,
 } from '../../../../config';
 import { fetchJson } from '../../../../util/fetch';
-import { split } from '../../../../util/iteratees';
+import { omitUndefined, split } from '../../../../util/iteratees';
 import { getEnvironment } from '../../../environment';
 import { parseTxId, stringifyTxId } from './index';
 import { toBase64Address } from './tonCore';
@@ -65,6 +65,11 @@ function parseRawTransaction(network: ApiNetwork, rawTx: any, addressBook: Addre
     lt,
     hash,
     total_fees: fee,
+    description: {
+      compute_ph: {
+        exit_code: exitCode,
+      },
+    },
   } = rawTx;
 
   const txId = stringifyTxId({ lt, hash });
@@ -81,21 +86,22 @@ function parseRawTransaction(network: ApiNetwork, rawTx: any, addressBook: Addre
     const toAddress = addressBook[destination].user_friendly;
     const normalizedAddress = toBase64Address(isIncoming ? source : destination, true, network);
 
-    return {
+    return omitUndefined({
       txId: msgs.length > 1 ? `${txId}:${i + 1}` : txId,
       timestamp,
       isIncoming,
       fromAddress,
       toAddress,
       amount: isIncoming ? BigInt(value) : -BigInt(value),
-      slug: TON_TOKEN_SLUG,
+      slug: TONCOIN_SLUG,
       fee: BigInt(fee),
       inMsgHash,
       normalizedAddress,
+      shouldHide: exitCode ? true : undefined,
       extraData: {
         body: getRawBody(msg),
       },
-    };
+    });
   });
 }
 

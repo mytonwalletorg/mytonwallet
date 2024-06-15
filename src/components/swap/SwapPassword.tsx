@@ -37,7 +37,7 @@ function SwapPassword({
 
   return (
     <>
-      {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Transaction')} onClose={cancelSwap} />}
+      {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Swap')} onClose={cancelSwap} />}
       <PasswordForm
         isActive={isActive}
         isLoading={isLoading}

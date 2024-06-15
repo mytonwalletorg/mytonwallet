@@ -46,6 +46,9 @@ export const objectToInjection = (obj: Record<string, any>, timeout?: number) =>
       window.open = (url) => {
         window.invokeCapFunc('window:open', { url });
       };
+      window.close = () => {
+        window.invokeCapFunc('window:close');
+      };
       window.addEventListener('click', (e) => {
         const { href, target } = e.target.closest('a') || {};
         if (href && (target === '_blank' || !href.startsWith('http'))) {

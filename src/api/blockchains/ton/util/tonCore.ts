@@ -1,5 +1,7 @@
 import type { OpenedContract } from '@ton/core';
-import { Address, Builder, Cell } from '@ton/core';
+import {
+  Address, beginCell, Builder, Cell, external, storeMessage,
+} from '@ton/core';
 import axios from 'axios';
 import { WalletContractV1R1 } from '@ton/ton/dist/wallets/WalletContractV1R1';
 import { WalletContractV1R2 } from '@ton/ton/dist/wallets/WalletContractV1R2';
@@ -12,7 +14,6 @@ import { WalletContractV4 } from '@ton/ton/dist/wallets/WalletContractV4';
 
 import type { ApiNetwork, ApiWalletVersion } from '../../../types';
 import type { TokenTransferBodyParams } from '../types';
-import { WORKCHAIN } from '../../../types';
 
 import {
   DEFAULT_TIMEOUT,
@@ -28,8 +29,10 @@ import { JettonWallet } from '../contracts/JettonWallet';
 import { hexToBytes } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
 import {
-  DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, OpCode,
+  DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, OpCode, WORKCHAIN,
 } from '../constants';
+import { dieselSendBoc } from './diesel';
+import { generateQueryId } from './index';
 
 import { TonClient } from './TonClient';
 
@@ -160,7 +163,7 @@ export function buildTokenTransferBody(params: TokenTransferBodyParams) {
 
   let builder = new Builder()
     .storeUint(JettonOpCode.Transfer, 32)
-    .storeUint(queryId || 0, 64)
+    .storeUint(queryId || generateQueryId(), 64)
     .storeCoins(tokenAmount)
     .storeAddress(Address.parse(toAddress))
     .storeAddress(Address.parse(responseAddress))
@@ -210,32 +213,39 @@ export function commentToBytes(comment: string): Uint8Array {
   return bytes;
 }
 
-export function packBytesAsSnake(bytes: Uint8Array, maxBytes = TON_MAX_COMMENT_BYTES): Uint8Array | Cell {
-  const buffer = Buffer.from(bytes);
+function createNestedCell(data: Uint8Array, maxCellSize: number): Cell {
+  const builder = new Builder();
+  const dataSlice = Buffer.from(data.slice(0, maxCellSize));
+
+  builder.storeBuffer(dataSlice);
+
+  if (data.length > maxCellSize) {
+    const remainingData = data.slice(maxCellSize);
+    builder.storeRef(createNestedCell(remainingData, maxCellSize));
+  }
+
+  return builder.endCell();
+}
+
+export function packBytesAsSnake(data: Uint8Array, maxBytes = TON_MAX_COMMENT_BYTES): Uint8Array | Cell {
+  const buffer = Buffer.from(data);
   if (buffer.length <= maxBytes) {
-    return bytes;
+    return data;
   }
 
-  const mainBuilder = new Builder();
-  let prevBuilder: Builder | undefined;
-  let currentBuilder = mainBuilder;
+  const ROOT_BUILDER_BYTES = 39;
+  const MAX_CELLS_AMOUNT = 16;
 
-  for (const [i, byte] of buffer.entries()) {
-    if (currentBuilder.availableBits < 8) {
-      prevBuilder?.storeRef(currentBuilder);
+  const rootBuilder = new Builder();
+  rootBuilder.storeBuffer(Buffer.from(data.slice(0, Math.min(data.length, ROOT_BUILDER_BYTES))));
 
-      prevBuilder = currentBuilder;
-      currentBuilder = new Builder();
-    }
-
-    currentBuilder = currentBuilder.storeUint(byte, 8);
-
-    if (i === buffer.length - 1) {
-      prevBuilder?.storeRef(currentBuilder);
-    }
+  if (data.length > ROOT_BUILDER_BYTES + MAX_CELLS_AMOUNT * TON_MAX_COMMENT_BYTES) {
+    throw new Error('Input text is too long');
   }
 
-  return mainBuilder.asCell();
+  rootBuilder.storeRef(createNestedCell(Buffer.from(data.slice(ROOT_BUILDER_BYTES)), TON_MAX_COMMENT_BYTES));
+
+  return rootBuilder.endCell();
 }
 
 export function buildLiquidStakingDepositBody(queryId?: number) {
@@ -307,4 +317,39 @@ export function parseAddress(address: string): {
 
 export function getIsRawAddress(address: string) {
   return Boolean(parseAddress(address).isRaw);
+}
+
+export async function sendExternal(
+  client: TonClient,
+  wallet: TonWallet,
+  message: Cell,
+  withDiesel?: boolean,
+) {
+  const { address, init } = wallet;
+
+  let neededInit: { data: Cell; code: Cell } | undefined;
+  if (init && !await client.isContractDeployed(address)) {
+    neededInit = init;
+  }
+
+  const ext = external({
+    to: address,
+    init: neededInit ? { code: neededInit.code, data: neededInit.data } : undefined,
+    body: message,
+  });
+
+  const cell = beginCell()
+    .store(storeMessage(ext))
+    .endCell();
+
+  const msgHash = cell.hash().toString('base64');
+  const boc = cell.toBoc().toString('base64');
+
+  if (withDiesel) {
+    await dieselSendBoc(boc);
+  } else {
+    await client.sendFile(boc);
+  }
+
+  return { boc, msgHash };
 }

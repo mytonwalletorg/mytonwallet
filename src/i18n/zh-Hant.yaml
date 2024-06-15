@@ -126,7 +126,7 @@ Signing was confirmed!: 簽署已確認!
 Transaction Info: 交易資訊
 Transaction in progress: 交易進行中
 Comment was copied!: 註記欄已被複製!
-View Transaction on TONScan: 在 TONScan 上查看此交易
+View Transaction on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此交易
 Sender: 發送人
 Recipient: 接收人
 Address was copied!: 地址已被複製!
@@ -134,8 +134,7 @@ Repeat: 重複
 Receive: 接收
 Switch Account: 切換帳戶
 Copy wallet address: 複製錢包地址
-View address on TONScan: 在 TONScan 上查看此地址
-Open on CoinMarketCap: 在 CoinMarketCap 打開
+View address on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此地址
 You have just created a new wallet: 您剛剛創建了一個新錢包
 You can now transfer your tokens from another wallet or exchange.: 您現在可以從另一個錢包或交易所轉移您的代幣。
 Assets: 資產
@@ -181,7 +180,7 @@ Save: 儲存
 Copy: 複製
 Remove From Saved Addresses: 從保存的地址中刪除
 Add To Saved Addresses: 新增到保存的地址
-View Address on TONScan: 在 TONScan 上查看此地址
+View Address on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此地址
 No suggestions, you're on your own!: 沒有建議，請靠自己！
 Play Sounds: 播放聲音
 Focus on asset value rather than current balance: 關注資產價值而非當前餘額
@@ -320,6 +319,7 @@ $dapp_ledger_warning1: 您即將使用您的**Ledger**錢包發送多方交易�
 $dapp_ledger_warning2: 請慢慢來，不要中斷過程。
 Agree: 同意
 Unfortunately, this operation is not yet supported by Ledger wallet.: 不幸的是，該操作尚未由Ledger Wallet支持。
+SwapTitle: 交換
 Swap: 交換
 You sell: 您賣出
 You buy: 您購買
@@ -373,7 +373,6 @@ Swap Placed: 已提交交換
 Swapping: 進行交換
 Swapped: 已交換
 Swap Failed: 交換失敗
-Exchange rate: 兌換率
 Swap Again: 再次進行交換
 Terms of Use: 使用條款
 Privacy Policy: 隱私政策
@@ -389,26 +388,24 @@ In progress: 進行中
 Waiting for Payment: 等待付款
 Waiting for payment: 等待付款
 Blockchain: 區塊鏈
-Receiving address in blockchain: 在 %blockchain% 區塊鏈中的接收地址
-Please provide an address of your wallet in another blockchain to receive bought tokens.: 請提供您在另一個區塊鏈上的錢包地址以接收已購買的代幣。
-The time for sending coins is over: 發送硬幣的時間已結束
-Please wait a few moments...: 請稍等片刻...
+Your address on another blockchain: 您在另一個區塊鏈上的地址
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: 請提供您在%blockchain%區塊鏈中的錢包地址，以接收購買的代幣。
+The time for sending coins is over.: 發送硬幣的時間已結束。
 You have not sent the coins to the specified address.: 您尚未將硬幣發送到指定地址。
 $swap_changelly_to_ton_description1: "您必須在 %time% 內將 %value% 發送到此地址 在 %blockchain% 區塊鏈中"
-Please contact support and provide a transaction ID.: 請聯繫支援並提供交易ID。
 Exchange failed and coins were refunded to your wallet.: 交換失敗，硬幣已退還到您的錢包。
-Please contact security team to pass the KYC procedure.: 請聯繫安全團隊以通過KYC程序。
+$swap_changelly_kyc_security: "請聯絡**%email%**並提供**交易ID**以通過KYC程序："
 Swap Expired: 交換過期
 Swap On Hold: 交換暫停
 Swap Refunded: 交換退款
-Changelly Payment Address: Changelly 付款地址
+Address for %blockchain% transfer: "%blockchain% 傳輸位址"
 Cross-chain exchange provided by Changelly: Changelly提供的跨鏈交換
 $swap_changelly_agreement_message: 繼續操作即表示您同意 %terms% 和 %policy%，並理解該交易可能會觸發根據 %kyc% 的驗證。
 $swap_changelly_terms_of_use: 使用條款
 $swap_changelly_privacy_policy: 隱私政策
 Password must contain %length% digits.: 密碼必須包含%length%位數字。
 Deposit Link: 儲值連結
-$swap_changelly_from_ton_description: "代幣將在幾分鐘內發送到您在%blockchain%區塊鏈上的地址："
+$swap_changelly_from_ton_description: "代幣將很快發送到您在%blockchain%區塊鏈中的地址："
 Please note that it may take up to a few hours for tokens to appear in your wallet.: 請注意，代幣顯示在您的錢包中可能需要幾個小時。
 Minimum amount: 最低 %value%
 Maximum amount: 最高 %value%
@@ -548,7 +545,7 @@ NFT has been sent!: NFT已發送！
 Cannot be sent: 無法發送
 NFT is for sale: NFT 正在出售
 More actions: 更多操作
-Open on TONScan: 在 TONScan 上打開
+Open on %ton_explorer_name%: 在 %ton_explorer_name% 上打開
 Swap is not supported in Testnet.: 測試網不支援共享。
 Swap is not yet supported by Ledger.: Ledger 尚不支援該交易所。
 Buying with card is not supported in Testnet.: 測試網不支援刷卡購買。
@@ -558,7 +555,7 @@ $transfer_inactive_contract_error: |
   您以“EQ...”格式輸入了地址，但該地址未激活，因此交易將無法完成。如果您確實要傳送到該位址，請以「UQ...」格式輸入該位址。
 Successfully: 成功地
 Unstake More: 解除質押更多
-WrongAddress: 交易地址與帳戶地址不符。
+WrongAddress: 該 dapp 請求另一個錢包進行交易。
 Are you sure you want to burn this NFT? It will be lost forever.: 您確定要燒掉這個 NFT 嗎？ 它將永遠失去。
 $multi_burn_nft_warning: "您即將銷毀 %amount% 個 NFT。"
 $multi_send_nft_warning: "該過程可能需要 ~%duration% 分鐘。請勿關閉應用程式，也不要在完成之前切換賬戶。"
@@ -575,3 +572,29 @@ Send All: 全部發送
 Burn All: 全部燒掉
 Select All: 全選
 Collection: 集合
+Transaction ID was copied!: 交易ID已被複製！
+$swap_changelly_support: "如果有任何問題，請聯絡%livechat%或%email%並提供**交易ID**："
+Changelly Live Chat: Changelly 即時聊天
+Your %blockchain% Address: 您的%blockchain% 地址
+Vesting: 歸屬
+Vesting Balance: 歸屬餘額
+Ready to Unfreeze: 準備解凍
+You will receive your unfrozen coins in a few minutes.: 您將在幾分鐘內收到解凍的硬幣。
+Vesting Schedule: 歸屬時間表
+Loyal User Airdrop: 忠誠用戶獎勵
+Unfrozen: 解凍
+Missed: 錯過了
+Frozen: 冷凍
+until %date%: 截至 %date%
+"%volume% in %amount% parts": "%volume% 分成 %amount% 份"
+Unfreeze: 解凍
+Claim: 索賠
+Confirm Unfreezing: 確認解凍
+Insufficient Balance for Fee.: 費用餘額不足。
+$fee_value_bold: "**手續費:** %fee%"
+MyTonWallet Features: MyTonWallet 功能
+Install on Desktop: 安裝在桌面
+Install on Mobile: 安裝在手機
+Install App: 安裝應用程式
+WrongNetwork: Dapp 要求來自另一個網路的交易。
+Hide: 隱藏

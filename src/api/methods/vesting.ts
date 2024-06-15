@@ -9,5 +9,5 @@ export async function fetchVestings(accountId: string) {
   const isTestnet = network === 'testnet';
   const address = await fetchStoredAddress(accountId);
 
-  return callBackendGet<ApiVestingInfo>(`/vesting/${address}`, { isTestnet });
+  return callBackendGet<ApiVestingInfo[]>(`/vesting/${address}`, { isTestnet });
 }

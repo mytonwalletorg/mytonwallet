@@ -26,11 +26,6 @@ type Parameters = TonClientParameters & {
 export class TonClient extends TonCoreClient {
   private initParameters: Parameters;
 
-  public lastSendBoc?: {
-    msgHash: string;
-    boc: string;
-  };
-
   constructor(parameters: Parameters) {
     super(parameters);
     this.initParameters = parameters;
@@ -50,19 +45,9 @@ export class TonClient extends TonCoreClient {
     });
   }
 
-  async sendFile(src: Buffer | string): Promise<any> {
+  async sendFile(src: Buffer | string): Promise<void> {
     const boc = typeof src === 'object' ? src.toString('base64') : src;
-    const { hash } = await this.callRpc('sendBocReturnHash', { boc });
-    this.lastSendBoc = {
-      boc,
-      msgHash: hash,
-    };
-  }
-
-  popLastSendBoc() {
-    const lastSendBoc = this.lastSendBoc!;
-    this.lastSendBoc = undefined;
-    return lastSendBoc;
+    await this.callRpc('sendBocReturnHashNoError', { boc });
   }
 
   async sendRequest(apiUrl: string, request: any) {
@@ -82,7 +67,7 @@ export class TonClient extends TonCoreClient {
       body,
       headers,
     }, {
-      conditionFn: (message, statusCode) => isNotTemporaryError(method, message, statusCode),
+      shouldSkipRetryFn: (message, statusCode) => isNotTemporaryError(method, message, statusCode),
     });
 
     const data = await response.json();

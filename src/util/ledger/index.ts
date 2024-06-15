@@ -12,21 +12,25 @@ import { SendMode } from '@ton/core/dist/types/SendMode';
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
   ApiDappTransfer,
+  ApiLocalTransactionParams,
   ApiNetwork,
   ApiSignedTransfer,
   ApiSubmitTransferOptions,
   Workchain,
 } from '../../api/types';
 import type { LedgerWalletInfo } from './types';
-import { TRANSFER_TIMEOUT_SEC, WORKCHAIN } from '../../api/types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { ONE_TON, TONCOIN_SLUG } from '../../config';
 import { callApi } from '../../api';
 import {
   DEFAULT_IS_BOUNCEABLE,
-  TOKEN_TRANSFER_TON_AMOUNT,
-  TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
+  STAKE_COMMENT,
+  TOKEN_TRANSFER_TONCOIN_AMOUNT,
+  TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
+  TRANSFER_TIMEOUT_SEC,
+  UNSTAKE_COMMENT,
   WALLET_IS_BOUNCEABLE,
+  WORKCHAIN,
 } from '../../api/blockchains/ton/constants';
 import { ApiUserRejectsError, handleServerError } from '../../api/errors';
 import { parseAccountId } from '../account';
@@ -157,7 +161,59 @@ async function connectUSB() {
   throw new Error('Failed to connect');
 }
 
-export async function submitLedgerTransfer(options: ApiSubmitTransferOptions, slug: string) {
+export async function submitLedgerStake(
+  accountId: string,
+  amount: bigint,
+  fee?: bigint,
+) {
+  const { network } = parseAccountId(accountId);
+  const address = await callApi('fetchAddress', accountId);
+  const backendState = await callApi('fetchBackendStakingState', address!, true);
+
+  const poolAddress = toBase64Address(backendState!.nominatorsPool.address, true, network);
+
+  const result = await submitLedgerTransfer({
+    accountId,
+    password: '',
+    toAddress: poolAddress,
+    amount,
+    comment: STAKE_COMMENT,
+    fee,
+  }, TONCOIN_SLUG, { type: 'stake' });
+
+  if (result) {
+    await callApi('updateAccountMemoryCache', accountId, address!, { stakedAt: Date.now() });
+  }
+
+  await callApi('onStakingChangeExpected');
+
+  return result;
+}
+
+export async function submitLedgerUnstake(accountId: string) {
+  const { network } = parseAccountId(accountId);
+  const address = await callApi('fetchAddress', accountId);
+  const backendState = await callApi('fetchBackendStakingState', address!, true);
+
+  const poolAddress = toBase64Address(backendState!.nominatorsPool.address, true, network);
+  const result = await submitLedgerTransfer({
+    accountId,
+    password: '',
+    toAddress: poolAddress,
+    amount: ONE_TON,
+    comment: UNSTAKE_COMMENT,
+  }, TONCOIN_SLUG, { type: 'unstakeRequest' });
+
+  await callApi('onStakingChangeExpected');
+
+  return result;
+}
+
+export async function submitLedgerTransfer(
+  options: ApiSubmitTransferOptions,
+  slug: string,
+  localTransactionParams?: Partial<ApiLocalTransactionParams>,
+) {
   const {
     accountId, tokenAddress, comment, fee,
   } = options;
@@ -220,6 +276,7 @@ export async function submitLedgerTransfer(options: ApiSubmitTransferOptions, sl
         comment,
         fee: fee!,
         slug,
+        ...localTransactionParams,
       },
     };
 
@@ -255,12 +312,12 @@ export async function buildLedgerTokenTransfer(
     responseDestination: Address.parse(fromAddress),
     // eslint-disable-next-line no-null/no-null
     customPayload: null,
-    forwardAmount: TOKEN_TRANSFER_TON_FORWARD_AMOUNT,
+    forwardAmount: TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
     forwardPayload,
   };
 
   return {
-    amount: TOKEN_TRANSFER_TON_AMOUNT,
+    amount: TOKEN_TRANSFER_TONCOIN_AMOUNT,
     toAddress: tokenWalletAddress!,
     payload,
   };
@@ -404,7 +461,7 @@ export async function signLedgerTransactions(
           toAddress: message.toAddress,
           comment: message.payload?.type === 'comment' ? message.payload.comment : undefined,
           fee: 0n,
-          slug: TON_TOKEN_SLUG,
+          slug: TONCOIN_SLUG,
         },
       });
       index++;
@@ -514,4 +571,15 @@ function getLedgerAccountPathByIndex(index: number, isTestnet?: boolean, workcha
 
 function getTransferExpirationTime() {
   return Math.floor(Date.now() / 1000 + TRANSFER_TIMEOUT_SEC);
+}
+
+function toBase64Address(address: Address | string, isBounceable = DEFAULT_IS_BOUNCEABLE, network?: ApiNetwork) {
+  if (typeof address === 'string') {
+    address = Address.parse(address);
+  }
+  return address.toString({
+    urlSafe: true,
+    bounceable: isBounceable,
+    testOnly: network === 'testnet',
+  });
 }

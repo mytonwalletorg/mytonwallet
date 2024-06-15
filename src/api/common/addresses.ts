@@ -6,6 +6,7 @@ import { callBackendGet } from './backend';
 let knownAddresses: ApiKnownAddresses = {};
 let scamMarkers: RegExp[] = [];
 let trustedSites: Set<string> = new Set();
+let trustedCollections: Set<string> = new Set();
 
 export async function tryUpdateKnownAddresses() {
   try {
@@ -13,11 +14,13 @@ export async function tryUpdateKnownAddresses() {
       knownAddresses: Record<string, ApiKnownAddresses>;
       scamMarkers: string[];
       trustedSites: string[];
+      trustedCollections: string[];
     }>('/known-addresses');
 
     knownAddresses = data.knownAddresses;
     scamMarkers = data.scamMarkers.map((x) => new RegExp(x, 'i'));
     trustedSites = new Set(data.trustedSites);
+    trustedCollections = new Set(data.trustedCollections);
   } catch (err) {
     logDebugError('tryUpdateKnownAddresses', err);
   }
@@ -37,4 +40,8 @@ export function getKnownAddressInfo(address: string): ApiAddressInfo | undefined
 
 export function checkIsTrustedSite(domain: string) {
   return trustedSites.has(domain.toLowerCase());
+}
+
+export function checkIsTrustedCollection(address: string) {
+  return trustedCollections.has(address);
 }

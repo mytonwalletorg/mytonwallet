@@ -12,6 +12,7 @@ import {
   setupBalanceBasedPolling,
   setupStakingPolling,
   setupSwapPolling,
+  setupVestingPolling,
   setupWalletVersionsPolling,
 } from './polling';
 
@@ -45,6 +46,7 @@ export async function activateAccount(accountId: string, newestTxIds?: ApiTxIdBy
   void setupStakingPolling(accountId);
   void setupSwapPolling(accountId);
   void setupWalletVersionsPolling(accountId);
+  void setupVestingPolling(accountId);
 }
 
 export function deactivateAllAccounts() {

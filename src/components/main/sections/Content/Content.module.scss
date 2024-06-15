@@ -146,7 +146,7 @@
       min-height: calc(100vh - 5.375rem - var(--status-bar-height, 0px)) !important;
     }
 
-    // Fix for opera, dead zone of 37 pixels in extension window on windows
+    // Fix for opera, dead zone of 37 pixels in extension window on Windows
     :global(html.is-windows.is-opera.is-extension) & {
       min-height: calc(100vh - 7.5rem) !important;
     }

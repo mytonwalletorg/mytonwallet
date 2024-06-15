@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, TON_TOKEN_SLUG } from '../../config';
+import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, TONCOIN_SLUG } from '../../config';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
@@ -49,7 +49,7 @@ function AddBuyStatic({
   const handleSwapClick = useLastCallback(() => {
     startSwap({
       tokenInSlug: DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
-      tokenOutSlug: TON_TOKEN_SLUG,
+      tokenOutSlug: TONCOIN_SLUG,
       amountIn: '100',
     });
     onClose?.();

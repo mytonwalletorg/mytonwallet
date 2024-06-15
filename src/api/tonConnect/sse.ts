@@ -237,7 +237,7 @@ async function sendRawMessage(body: string, clientId: string, toId: string, topi
   }
 
   const response = await fetch(url, { method: 'POST', body });
-  handleFetchErrors(response);
+  await handleFetchErrors(response);
 }
 
 function closeEventSource() {

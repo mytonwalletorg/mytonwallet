@@ -1,6 +1,9 @@
 import type { ApiActivity, ApiTransactionActivity } from '../../api/types';
 import type { GlobalState } from '../types';
 
+import {
+  buildCollectionByKey, groupBy, mapValues, unique,
+} from '../../util/iteratees';
 import { getIsTxIdLocal } from '../helpers';
 import { selectAccountState } from '../selectors';
 import { updateAccountState } from './misc';
@@ -44,20 +47,78 @@ export function updateActivity(global: GlobalState, accountId: string, activity:
     }
   }
 
-  let tokenIds = idsBySlug[slug] || [];
+  let tokenTxIds = idsBySlug[slug] || [];
 
-  if (!tokenIds.includes(id)) {
-    tokenIds = [id].concat(tokenIds);
+  if (!tokenTxIds.includes(id)) {
+    tokenTxIds = [id].concat(tokenTxIds);
   }
 
   return updateAccountState(global, accountId, {
     activities: {
       ...activities,
       byId: { ...activities?.byId, [id]: activity },
-      idsBySlug: { ...idsBySlug, [slug]: tokenIds },
+      idsBySlug: { ...idsBySlug, [slug]: tokenTxIds },
       newestTransactionsBySlug,
     },
   });
+}
+
+export function addNewActivities(global: GlobalState, accountId: string, newActivities: ApiActivity[]) {
+  let { activities } = selectAccountState(global, accountId) || {};
+
+  const newById = buildCollectionByKey(newActivities, 'id');
+
+  const newIdsBySlug = buildActivityIdsBySlug(newActivities);
+  const replacedIdsBySlug = mapValues(newIdsBySlug, (newIds, slug) => {
+    const currentActivityIds = activities?.idsBySlug?.[slug];
+
+    return currentActivityIds ? unique(newIds.concat(currentActivityIds)) : newIds;
+  });
+
+  const newTxs = newActivities.filter(({ kind }) => kind === 'transaction') as ApiTransactionActivity[];
+  const newTxsBySlug = groupBy(newTxs, 'slug');
+  const newNewestTxsBySlug = mapValues(newTxsBySlug, (txs) => txs[0]);
+
+  activities = {
+    ...activities,
+    byId: { ...activities?.byId, ...newById },
+    idsBySlug: { ...activities?.idsBySlug, ...replacedIdsBySlug },
+    newestTransactionsBySlug: { ...activities?.newestTransactionsBySlug, ...newNewestTxsBySlug },
+  };
+
+  return updateAccountState(global, accountId, { activities });
+}
+
+function buildActivityIdsBySlug(activities: ApiActivity[]) {
+  return activities.reduce<Record<string, string[]>>((acc, activity) => {
+    const { id } = activity;
+
+    if ('slug' in activity) {
+      if (!acc[activity.slug]) {
+        acc[activity.slug] = [id];
+      } else {
+        acc[activity.slug].push(id);
+      }
+    }
+
+    if ('from' in activity) {
+      if (!acc[activity.from]) {
+        acc[activity.from] = [id];
+      } else {
+        acc[activity.from].push(id);
+      }
+    }
+
+    if ('to' in activity) {
+      if (!acc[activity.to]) {
+        acc[activity.to] = [id];
+      } else {
+        acc[activity.to].push(id);
+      }
+    }
+
+    return acc;
+  }, {});
 }
 
 export function assignRemoteTxId(
@@ -66,6 +127,7 @@ export function assignRemoteTxId(
   txId: string,
   newTxId: string,
   newAmount: bigint,
+  shouldHide?: boolean,
 ) {
   const { activities } = selectAccountState(global, accountId) || {};
   const { byId, idsBySlug } = activities || { byId: {}, idsBySlug: {} };
@@ -94,6 +156,7 @@ export function assignRemoteTxId(
       id: newTxId,
       txId: newTxId,
       amount: newAmount,
+      shouldHide,
     },
   };
 

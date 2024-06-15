@@ -131,7 +131,7 @@ Signing was confirmed!: Signing was confirmed!
 Transaction Info: Transaction Info
 Transaction in progress: Transaction in progress
 Comment was copied!: Comment was copied!
-View Transaction on TONScan: View Transaction on TONScan
+View Transaction on %ton_explorer_name%: View Transaction on %ton_explorer_name%
 Sender: Sender
 Recipient: Recipient
 Address was copied!: Address was copied!
@@ -139,8 +139,7 @@ Repeat: Repeat
 Receive: Receive
 Switch Account: Switch Account
 Copy wallet address: Copy wallet address
-View address on TONScan: View address on TONScan
-Open on CoinMarketCap: Open on CoinMarketCap
+View address on %ton_explorer_name%: View address on %ton_explorer_name%
 You have just created a new wallet: You have just created a new wallet
 You can now transfer your tokens from another wallet or exchange.: You can now transfer your tokens from another wallet or exchange.
 Assets: Assets
@@ -187,7 +186,7 @@ Save: Save
 Copy: Copy
 Remove From Saved Addresses: Remove From Saved Addresses
 Add To Saved Addresses: Add To Saved Addresses
-View Address on TONScan: View Address on TONScan
+View Address on %ton_explorer_name%: View Address on %ton_explorer_name%
 No suggestions, you're on your own!: No suggestions, you're on your own!
 Play Sounds: Play Sounds
 Focus on asset value rather than current balance: Focus on asset value rather than current balance
@@ -331,6 +330,7 @@ $dapp_ledger_warning1: You are about to send a multi-way transaction using your 
 $dapp_ledger_warning2: Please take your time and do not interrupt the process.
 Agree: Agree
 Unfortunately, this operation is not yet supported by Ledger wallet.: Unfortunately, this operation is not yet supported by Ledger wallet.
+SwapTitle: Swap
 Swap: Swap
 You sell: You sell
 You buy: You buy
@@ -385,7 +385,6 @@ Swap Placed: Swap Placed
 Swapping: Swapping
 Swapped: Swapped
 Swap Failed: Swap Failed
-Exchange rate: Exchange rate
 Swap Again: Swap Again
 Terms of Use: Terms of Use
 Privacy Policy: Privacy Policy
@@ -401,26 +400,24 @@ In progress: In progress
 Waiting for Payment: Waiting for Payment
 Waiting for payment: Waiting for payment
 Blockchain: Blockchain
-Receiving address in blockchain: Receiving address in %blockchain% blockchain
-Please provide an address of your wallet in another blockchain to receive bought tokens.: Please provide an address of your wallet in another blockchain to receive bought tokens.
-The time for sending coins is over: The time for sending coins is over
-Please wait a few moments...: Please wait a few moments...
+Your address on another blockchain: Your address on another blockchain
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.
+The time for sending coins is over.: The time for sending coins is over.
 You have not sent the coins to the specified address.: You have not sent the coins to the specified address.
 $swap_changelly_to_ton_description1: "Send %value% to this address in %blockchain% blockchain within %time%"
-Please contact support and provide a transaction ID.: Please contact support and provide a transaction ID.
 Exchange failed and coins were refunded to your wallet.: Exchange failed and coins were refunded to your wallet.
-Please contact security team to pass the KYC procedure.: Please contact security team to pass the KYC procedure.
+$swap_changelly_kyc_security: "Please contact **%email%** and provide **Transaction ID** to pass the KYC procedure:"
 Swap Expired: Swap Expired
 Swap On Hold: Swap On Hold
 Swap Refunded: Swap Refunded
-Changelly Payment Address: Changelly Payment Address
+Address for %blockchain% transfer: Address for %blockchain% transfer
 Cross-chain exchange provided by Changelly: Cross-chain exchange provided by Changelly
 $swap_changelly_agreement_message: By continuing, you agree to the %terms% and %policy% and understand that the transaction may trigger verification according to %kyc%.
 $swap_changelly_terms_of_use: terms of use
 $swap_changelly_privacy_policy: privacy policy
 Password must contain %length% digits.: Password must contain %length% digits.
 Deposit Link: Deposit Link
-$swap_changelly_from_ton_description: "Tokens will be sent to your address in %blockchain% blockchain in a few moments:"
+$swap_changelly_from_ton_description: "Tokens will be sent to your address in %blockchain% blockchain soon:"
 Please note that it may take up to a few hours for tokens to appear in your wallet.: Please note that it may take up to a few hours for tokens to appear in your wallet.
 Minimum amount: Minimum %value%
 Maximum amount: Maximum %value%
@@ -562,7 +559,7 @@ NFT has been sent!: NFT has been sent!
 Cannot be sent: Cannot be sent
 NFT is for sale: NFT is for sale
 More actions: More actions
-Open on TONScan: Open on TONScan
+Open on %ton_explorer_name%: Open on %ton_explorer_name%
 Swap is not supported in Testnet.: Swap is not supported in Testnet.
 Swap is not yet supported by Ledger.: Swap is not yet supported by Ledger.
 Buying with card is not supported in Testnet.: Buying with card is not supported in Testnet.
@@ -573,7 +570,7 @@ $transfer_inactive_contract_error: |
   If you definitely want to send to this address, then enter the address in the "UQ..." format.
 Successfully: Successfully
 Unstake More: Unstake More
-WrongAddress: Transaction from address does not match account address.
+WrongAddress: The dapp requested a transaction from another wallet.
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Are you sure you want to burn this NFT?
   It will be lost forever.
@@ -592,3 +589,29 @@ Send All: Send All
 Burn All: Burn All
 Select All: Select All
 Collection: Collection
+Transaction ID was copied!: Transaction ID was copied!
+$swap_changelly_support: "If there are any problems, please contact %livechat% or %email% and provide **Transaction ID**:"
+Changelly Live Chat: Changelly Live Chat
+Your %blockchain% Address: Your %blockchain% Address
+Vesting: Vesting
+Vesting Balance: Vesting Balance
+Ready to Unfreeze: Ready to Unfreeze
+You will receive your unfrozen coins in a few minutes.: You will receive your unfrozen coins in a few minutes.
+Vesting Schedule: Vesting Schedule
+Loyal User Airdrop: Loyal User Airdrop
+Unfrozen: Unfrozen
+Missed: Missed
+Frozen: Frozen
+until %date%: until %date%
+"%volume% in %amount% parts": "%volume% in %amount% parts"
+Unfreeze: Unfreeze
+Claim: Claim
+Confirm Unfreezing: Confirm Unfreezing
+Insufficient Balance for Fee.: Insufficient Balance for Fee.
+$fee_value_bold: "**Fee:** %fee%"
+MyTonWallet Features: MyTonWallet Features
+Install on Desktop: Install on Desktop
+Install on Mobile: Install on Mobile
+Install App: Install App
+WrongNetwork: The dapp requested a transaction from another network.
+Hide: Hide

@@ -14,7 +14,7 @@ import {
   NOMINATORS_STAKING_MIN_AMOUNT,
   ONE_TON,
   STAKING_MIN_AMOUNT,
-  TON_TOKEN_SLUG,
+  TONCOIN_SLUG,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
@@ -91,7 +91,7 @@ function StakingInitial({
 
   const {
     amount: balance, symbol,
-  } = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]) || {};
+  } = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]) || {};
   const hasAmountError = Boolean(isInsufficientBalance || apiError);
   const calculatedFee = fee ?? DEFAULT_FEE;
   const decimals = DEFAULT_DECIMAL_PLACES;

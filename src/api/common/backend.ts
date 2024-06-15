@@ -18,7 +18,9 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
     },
     body: JSON.stringify(data),
   });
-  handleFetchErrors(response, isAllowBadRequest ? [BAD_REQUEST_CODE] : undefined);
+
+  await handleFetchErrors(response, isAllowBadRequest ? [BAD_REQUEST_CODE] : undefined);
+
   return response.json();
 }
 

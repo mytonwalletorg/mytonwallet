@@ -83,6 +83,10 @@
     background-color: var(--color-gray-3);
     border-radius: 50%;
   }
+
+  &.scam {
+    --color-gray-3: var(--color-red);
+  }
 }
 
 .revealSpoiler {
@@ -95,4 +99,16 @@
   &:hover {
     opacity: 0.8;
   }
+}
+
+.scam {
+  color: var(--color-red) !important;
+}
+
+.scamImage {
+  width: 2.75rem;
+  height: 1.0625rem;
+  margin-right: 0.25rem;
+
+  vertical-align: bottom;
 }

@@ -7,7 +7,7 @@ import { TON_SYMBOL } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency, formatCurrencySimple } from '../../util/formatNumber';
-import { DEFAULT_DECIMALS, NFT_TRANSFER_TON_AMOUNT } from '../../api/blockchains/ton/constants';
+import { DEFAULT_DECIMALS, NFT_TRANSFER_TONCOIN_AMOUNT } from '../../api/blockchains/ton/constants';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
@@ -41,7 +41,7 @@ function DappTransfer({
       <>
         <div className={styles.label}>{lang('Fee')}</div>
         <div className={styles.payloadField}>
-          ≈ {formatCurrencySimple(NFT_TRANSFER_TON_AMOUNT + (fee ?? 0n), '')}
+          ≈ {formatCurrencySimple(NFT_TRANSFER_TONCOIN_AMOUNT + (fee ?? 0n), '')}
           <span className={styles.currencySymbol}>{TON_SYMBOL}</span>
         </div>
       </>
@@ -97,6 +97,7 @@ function DappTransfer({
       <p className={styles.label}>{lang('Receiving Address')}</p>
       <InteractiveTextField
         address={transaction.toAddress}
+        isScam={transaction.isScam}
         className={buildClassName(styles.dataField, styles.receivingAddress)}
         copyNotification={lang('Address was copied!')}
       />

@@ -358,10 +358,6 @@
   }
 }
 
-.currencySymbol {
-  color: var(--color-gray-3);
-}
-
 .transactionList {
   margin-bottom: 1.25rem;
 
@@ -372,12 +368,15 @@
 .transactionRow {
   cursor: var(--custom-cursor, pointer);
 
+  position: relative;
+
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
 
   min-height: 3rem;
-  padding: 0 0.75rem 0 1rem;
+  padding: 0.75rem 2rem 0.75rem 1rem;
 
   font-size: 1rem;
   font-weight: 600;
@@ -404,8 +403,6 @@
 }
 
 .transactionRow + .transactionRow {
-  position: relative;
-
   &:before {
     content: '';
 
@@ -426,12 +423,28 @@
   color: var(--color-black);
 }
 
+.currencySymbol,
 .transactionRowAddress {
   color: var(--color-gray-3);
 }
 
 .transactionRowChevron {
-  margin-left: auto;
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+}
+
+.scam {
+  color: var(--color-red) !important;
+}
+
+.scamImage {
+  width: 2.75rem;
+  height: 1.0625rem;
+  margin-right: 0.25rem;
+
+  vertical-align: bottom;
 }
 
 .transactionDirection {

@@ -132,7 +132,7 @@ Signing was confirmed!: Подпись подтверждена!
 Transaction Info: Информация о переводе
 Transaction in progress: Перевод выполняется
 Comment was copied!: Комментарий скопирован!
-View Transaction on TONScan: Посмотреть перевод в TONScan
+View Transaction on %ton_explorer_name%: Посмотреть перевод в %ton_explorer_name%
 Sender: Отправитель
 Recipient: Получатель
 Address was copied!: Адрес скопирован!
@@ -140,8 +140,7 @@ Repeat: Повторить
 Receive: Получить
 Switch Account: Сменить аккаунт
 Copy wallet address: Скопировать адрес
-View address on TONScan: Посмотреть адрес в TONScan
-Open on CoinMarketCap: Открыть в CoinMarketCap
+View address on %ton_explorer_name%: Посмотреть адрес в %ton_explorer_name%
 You have just created a new wallet: Поздравляем! Вы только что создали новый кошелёк
 You can now transfer your tokens from another wallet or exchange.: Теперь вы можете пополнить его с другого кошелька или биржи.
 Assets: Активы
@@ -188,7 +187,7 @@ Save: Сохранить
 Copy: Скопировать
 Remove From Saved Addresses: Удалить сохранённый адрес
 Add To Saved Addresses: Добавить в Сохранённые адреса
-View Address on TONScan: Открыть в TONScan
+View Address on %ton_explorer_name%: Открыть в %ton_explorer_name%
 No suggestions, you're on your own!: Ничего не найдено :(
 Play Sounds: Включить звуки
 Focus on asset value rather than current balance: Фокус на стоимости активов вместо текущего баланса
@@ -326,7 +325,8 @@ $dapp_ledger_warning1: Вы собираетесь отправить много
 $dapp_ledger_warning2: Пожалуйста, не торопитесь и не прерывайте процесс.
 Agree: Согласен
 Unfortunately, this operation is not yet supported by Ledger wallet.: К сожалению, эта операция еще не поддерживается Ledger кошельком.
-Swap: Обмен
+SwapTitle: Обмен
+Swap: Обменять
 You sell: Вы продаёте
 You buy: Вы покупаете
 Swap Details: Детали обмена
@@ -386,7 +386,6 @@ Swap Placed: Обмен размещён
 Swapping: Идёт обмен
 Swapped: Обмен
 Swap Failed: Обмен не выполнен
-Exchange rate: Обменный курс
 Swap Again: Повторить обмен
 Terms of Use: Условия использования
 Privacy Policy: Политика конфиденциальности
@@ -402,26 +401,24 @@ In progress: В процессе
 Waiting for Payment: Ожидание оплаты
 Waiting for payment: Ожидание оплаты
 Blockchain: Блокчейн
-Receiving address in blockchain: Адрес для получения в блокчейне %blockchain%
-Please provide an address of your wallet in another blockchain to receive bought tokens.: Пожалуйста, укажите адрес вашего кошелька в другом блокчейне для получения купленных токенов.
-The time for sending coins is over: Время отправки монет истекло
-Please wait a few moments...: Пожалуйста, подождите некоторое время...
+Your address on another blockchain: Ваш адрес в другом блокчейне
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Пожалуйста, укажите адрес вашего кошелька в блокчейне %blockchain% для получения купленных токенов.
+The time for sending coins is over.: Время отправки монет истекло.
 You have not sent the coins to the specified address.: Вы не отправили монеты на указанный адрес.
 $swap_changelly_to_ton_description1: "Отправьте %value% на этот адрес в блокчейне %blockchain% в течение %time%"
-Please contact support and provide a transaction ID.: Пожалуйста, свяжитесь с поддержкой и предоставьте идентификатор транзакции.
 Exchange failed and coins were refunded to your wallet.: Обмен не удался и монеты были возвращены на ваш кошелёк.
-Please contact security team to pass the KYC procedure.: Пожалуйста, свяжитесь с командой безопасности, чтобы пройти процедуру KYC.
+$swap_changelly_kyc_security: "Пожалуйста, свяжитесь с командой безопасности по адресу **%email%** и предоставьте идентификатор транзакции, чтобы пройти процедуру KYC:"
 Swap Expired: Обмен истёк
 Swap On Hold: Обмен удержан
 Swap Refunded: Обмен возвращен
-Changelly Payment Address: Адрес оплаты Changelly
+Address for %blockchain% transfer: Адрес для перевода %blockchain%
 Cross-chain exchange provided by Changelly: Сервис предоставлен Changelly
 $swap_changelly_agreement_message: Продолжая, вы соглашаетесь с %terms% и %policy% и понимаете, что транзакция может вызвать проверку в соответствии с %kyc%.
 $swap_changelly_terms_of_use: условиями использования
 $swap_changelly_privacy_policy: политикой конфиденциальности
 Password must contain %length% digits.: Пароль должен содержать %length% цифры.
 Deposit Link: Ссылка для пополнения
-$swap_changelly_from_ton_description: "Токены будут отправлены на ваш адрес в блокчейне %blockchain% в ближайшее время:"
+$swap_changelly_from_ton_description: "Токены скоро будут отправлены на ваш адрес в блокчейне %blockchain%:"
 Please note that it may take up to a few hours for tokens to appear in your wallet.: Появление купленных токенов в вашем кошельке может занять до нескольких часов.
 Minimum amount: Минимум %value%
 Maximum amount: Максимум %value%
@@ -496,7 +493,7 @@ Scan your fingerprint: Отсканируйте свой отпечаток па
 Incorrect code, please try again.: Неверный код, пожалуйста, попробуйте снова.
 Correct: Правильно
 Confirm Operation: Подтвердите операцию
-Confirm Swap: Подтвердить обмен
+Confirm Swap: Подтвердите обмен
 "%amount% to %address%": "%amount% на %address%"
 "%amount_from% to %amount_to%": "%amount_from% на %amount_to%"
 Failed to enable biometrics.: Не удалось включить биометрию.
@@ -562,7 +559,7 @@ NFT has been sent!: NFT отправлен!
 Cannot be sent: Нельзя отправить
 NFT is for sale: NFT на продаже
 More actions: Больше действий
-Open on TONScan: Открыть на TONScan
+Open on %ton_explorer_name%: Открыть на %ton_explorer_name%
 Swap is not supported in Testnet.: Обмен не поддерживается в Testnet.
 Swap is not yet supported by Ledger.: Обмен ещё не поддерживается Ledger.
 Buying with card is not supported in Testnet.: Покупка с помощью карты не поддерживается в Testnet.
@@ -573,7 +570,7 @@ $transfer_inactive_contract_error: |
   Если вы точно хотите отправить токены на этот адрес, то укажите его в формате "UQ...".'
 Successfully: Успешно
 Unstake More: Вывести ещё
-WrongAddress: Транзакция с адреса, не совпадающего с адресом аккаунта.
+WrongAddress: Приложение запрашивает транзакцию с другого кошелька.
 Are you sure you want to burn this NFT? It will be lost forever.: Вы уверены, что хотите сжечь этот NFT? Он будет потерян навсегда.
 $multi_burn_nft_warning: "Вы собираетесь сжечь %amount% NFT."
 $multi_send_nft_warning: "Процесс может занять ~%duration% мин. Пожалуйста, не закрывайте приложение и не переключайтесь на другие аккаунты, пока он не завершится."
@@ -590,3 +587,29 @@ Send All: Отправить все
 Burn All: Сжечь все
 Select All: Выбрать все
 Collection: Коллекция
+Transaction ID was copied!: Идентификатор транзакции скопирован!
+$swap_changelly_support: "В случае возникновения проблем свяжитесь с Changelly через %livechat% или %email% и сообщите **идентификатор транзакции**:"
+Changelly Live Chat: онлайн-чат
+Your %blockchain% Address: Ваш адрес %blockchain%
+Vesting: Вестинг
+Vesting Balance: Баланс вестинга
+Ready to Unfreeze: Готово к разморозке
+You will receive your unfrozen coins in a few minutes.: Вы получите размороженные монеты через несколько минут.
+Vesting Schedule: Расписание вестинга
+Loyal User Airdrop: Вознаграждение лояльных пользователей
+Unfrozen: Разморожено
+Missed: Пропущено
+Frozen: Заморожено
+until %date%: до %date%
+"%volume% in %amount% parts": "%volume% в %amount% частях"
+Unfreeze: Разморозить
+Claim: Заклеймить
+Confirm Unfreezing: Подтверждение размораживания
+Insufficient Balance for Fee.: Недостаточный баланс для комиссии.
+$fee_value_bold: "**Комиссия:** %fee%"
+MyTonWallet Features: Функции MyTonWallet
+Install on Desktop: Установить на компьютер
+Install on Mobile: Установить на мобильное устройство
+Install App: Установить приложение
+WrongNetwork: Приложение запрашивает транзакцию из другой сети.
+Hide: Скрыть

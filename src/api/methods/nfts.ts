@@ -1,7 +1,7 @@
 import type { ApiDbNft } from '../db';
 import type { ApiNft, ApiUpdate, OnApiUpdate } from '../types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { TONCOIN_SLUG } from '../../config';
 import blockchains from '../blockchains';
 import { fetchStoredAddress } from '../common/accounts';
 import { resolveBlockchainKey } from '../common/helpers';
@@ -38,11 +38,10 @@ export async function processNftUpdates(accountId: string, updates: ApiUpdate[])
 }
 
 export async function updateNfts(accountId: string, nfts: ApiNft[]) {
-  const visibleNfts = nfts.filter((nft) => !nft.isHidden);
   onUpdate({
     type: 'updateNfts',
     accountId,
-    nfts: visibleNfts,
+    nfts,
   });
 
   const dbNfts = nfts.map((nft) => convertToDbEntity(accountId, nft));
@@ -97,7 +96,7 @@ export async function submitNftTransfers(
       toAddress: message.toAddress,
       comment,
       fee,
-      slug: TON_TOKEN_SLUG,
+      slug: TONCOIN_SLUG,
       inMsgHash: result.msgHash,
       type: 'nftTransferred',
       nft: nfts?.[i],

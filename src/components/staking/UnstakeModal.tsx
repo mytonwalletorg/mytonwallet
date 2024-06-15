@@ -4,15 +4,20 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiBaseCurrency, ApiStakingType } from '../../api/types';
-import type { GlobalState, UserToken } from '../../global/types';
+import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
 import {
   IS_CAPACITOR,
-  MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TON_TOKEN_SLUG,
+  MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TONCOIN_SLUG,
 } from '../../config';
 import { Big } from '../../lib/big.js';
-import { selectAccountState, selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
+import {
+  selectAccountState,
+  selectCurrentAccountState,
+  selectCurrentAccountTokens,
+  selectIsHardwareAccount,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
@@ -33,6 +38,8 @@ import useShowTransition from '../../hooks/useShowTransition';
 import useSyncEffect from '../../hooks/useSyncEffect';
 
 import TransferResult from '../common/TransferResult';
+import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
+import LedgerConnect from '../ledger/LedgerConnect';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -52,13 +59,25 @@ type StateProps = GlobalState['staking'] & {
   stakingInfo: GlobalState['stakingInfo'];
   baseCurrency?: ApiBaseCurrency;
   shouldUseNominators?: boolean;
+  isHardwareAccount?: boolean;
+  hardwareState?: HardwareConnectState;
+  isLedgerConnected?: boolean;
+  isTonAppConnected?: boolean;
 };
 
 const IS_OPEN_STATES = new Set([
   StakingState.UnstakeInitial,
   StakingState.UnstakePassword,
+  StakingState.UnstakeConnectHardware,
+  StakingState.UnstakeConfirmHardware,
   StakingState.UnstakeComplete,
   StakingState.NotEnoughBalance,
+]);
+
+const FULL_SIZE_NBS_STATES = new Set([
+  StakingState.UnstakePassword,
+  StakingState.UnstakeConnectHardware,
+  StakingState.UnstakeConfirmHardware,
 ]);
 
 const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
@@ -74,6 +93,10 @@ function UnstakeModal({
   stakingInfo,
   baseCurrency,
   shouldUseNominators,
+  isHardwareAccount,
+  hardwareState,
+  isLedgerConnected,
+  isTonAppConnected,
 }: StateProps) {
   const {
     setStakingScreen,
@@ -81,6 +104,7 @@ function UnstakeModal({
     clearStakingError,
     submitStakingInitial,
     submitStakingPassword,
+    submitStakingHardware,
     fetchStakingHistory,
     openReceiveModal,
   } = getActions();
@@ -88,7 +112,7 @@ function UnstakeModal({
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
 
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]);
 
   const [renderedBalance, setRenderedBalance] = useState(tonToken?.amount);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
@@ -163,6 +187,10 @@ function UnstakeModal({
     setRenderedBalance(tonToken?.amount);
 
     submitStakingPassword({ password, isUnstaking: true });
+  });
+
+  const handleLedgerConnect = useLastCallback(() => {
+    submitStakingHardware({ isUnstaking: true });
   });
 
   const handleGetTon = useLastCallback(() => {
@@ -376,7 +404,7 @@ function UnstakeModal({
       <>
         <ModalHeader title={lang('Unstake TON')} onClose={cancelStaking} />
         <div className={modalStyles.transitionContent}>
-          {renderBalance()}
+          {!isHardwareAccount && renderBalance()}
           <RichNumberInput
             key="unstaking_amount"
             id="unstaking_amount"
@@ -480,6 +508,28 @@ function UnstakeModal({
       case StakingState.UnstakePassword:
         return renderPassword(isActive);
 
+      case StakingState.UnstakeConnectHardware:
+        return (
+          <LedgerConnect
+            isActive={isActive}
+            state={hardwareState}
+            isLedgerConnected={isLedgerConnected}
+            isTonAppConnected={isTonAppConnected}
+            onConnected={handleLedgerConnect}
+            onClose={cancelStaking}
+          />
+        );
+
+      case StakingState.UnstakeConfirmHardware:
+        return (
+          <LedgerConfirmOperation
+            text={lang('Please confirm operation on your Ledger')}
+            error={error}
+            onClose={cancelStaking}
+            onTryAgain={handleLedgerConnect}
+          />
+        );
+
       case StakingState.UnstakeComplete:
         return renderComplete(isActive);
     }
@@ -492,7 +542,7 @@ function UnstakeModal({
       noBackdropClose
       dialogClassName={styles.modalDialog}
       nativeBottomSheetKey="unstake"
-      forceFullNative={renderingKey === StakingState.UnstakePassword}
+      forceFullNative={FULL_SIZE_NBS_STATES.has(renderingKey)}
       onClose={cancelStaking}
       onCloseAnimationEnd={updateNextKey}
     >
@@ -516,6 +566,13 @@ export default memo(withGlobal((global): StateProps => {
   const baseCurrency = global.settings.baseCurrency;
   const accountState = selectAccountState(global, global.currentAccountId!);
   const shouldUseNominators = accountState?.staking?.type === 'nominators';
+  const isHardwareAccount = selectIsHardwareAccount(global);
+
+  const {
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
+  } = global.hardware;
 
   return {
     ...global.staking,
@@ -526,5 +583,9 @@ export default memo(withGlobal((global): StateProps => {
     stakingInfo: global.stakingInfo,
     baseCurrency,
     shouldUseNominators,
+    isHardwareAccount,
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
   };
 })(UnstakeModal));

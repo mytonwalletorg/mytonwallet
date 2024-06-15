@@ -42,11 +42,21 @@
     &:focus,
     &:hover {
       background-color: var(--color-interactive-item-hover);
+
+      .vestingIcon,
+      .percent {
+        background-color: var(--color-interactive-item-hover);
+      }
     }
   }
 
   &.active {
     background-color: var(--color-interactive-item-hover);
+
+    .vestingIcon,
+    .percent {
+      background-color: var(--color-interactive-item-hover);
+    }
   }
 
   &:active {
@@ -201,6 +211,7 @@
   }
 }
 
+.vestingIcon,
 .percent {
   position: absolute;
   top: 2.25rem;
@@ -215,4 +226,25 @@
 
   background-color: var(--color-background-first);
   border-radius: 50%;
+}
+
+.percent {
+  color: var(--color-purple-2);
+}
+
+.secondaryValue_vesting,
+.vestingIcon {
+  color: var(--color-vesting-blue);
+}
+
+.secondaryValue_vestingUnfreeze,
+.vestingIcon:global(.icon-fire)::before {
+  background: linear-gradient(81.88deg, var(--color-blue) 19.42%, #1EC160 71.55%);
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+
+  :global(.theme-dark) & {
+    background-image: linear-gradient(81.88deg, #44B5ED 19.42%, #2CD36F 71.55%);
+  }
 }

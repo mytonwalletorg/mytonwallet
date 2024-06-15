@@ -131,7 +131,7 @@ Signing was confirmed!: ¡La firma fue confirmada!
 Transaction Info: Información de la transacción
 Transaction in progress: Transacción en curso
 Comment was copied!: ¡El comentario fue copiado!
-View Transaction on TONScan: Ver transacción en TONScan
+View Transaction on %ton_explorer_name%: Ver transacción en %ton_explorer_name%
 Sender: Remitente
 Recipient: Receptor
 Address was copied!: ¡Se copió la dirección!
@@ -139,8 +139,7 @@ Repeat: Repetir
 Receive: Recibir
 Switch Account: Cambiar de monedero
 Copy wallet address: Copiar la dirección del monedero
-View address on TONScan: Ver dirección en TONScan
-Open on CoinMarketCap: Abrir en CoinMarketCap
+View address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
 You have just created a new wallet: Acabas de crear un nuevo monedero
 You can now transfer your tokens from another wallet or exchange.: Ahora puede transferir sus tokens desde otro monedero o intercambio.
 Assets: Activos
@@ -187,7 +186,7 @@ Save: Guardar
 Copy: Copiar
 Remove From Saved Addresses: Eliminar de direcciones guardadas
 Add To Saved Addresses: Agregar a direcciones guardadas
-View Address on TONScan: Ver dirección en TONScan
+View Address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
 No suggestions, you're on your own!: Sin sugerencias, ¡estás solo!
 Play Sounds: Reproducir sonidos
 Focus on asset value rather than current balance: Centrarse en el valor de los activos en lugar del saldo actual
@@ -331,6 +330,7 @@ $dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccion
 $dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
 Agree: Aceptar
 Unfortunately, this operation is not yet supported by Ledger wallet.: Desafortunadamente, esta operación aún no es compatible con Ledger wallet.
+SwapTitle: Intercambiar
 Swap: Intercambiar
 You sell: Usted vende
 You buy: Usted compra
@@ -385,7 +385,6 @@ Swap Placed: Intercambio Colocado
 Swapping: Intercambiando
 Swapped: Intercambiado
 Swap Failed: Intercambio Fallido
-Exchange rate: Tasa de Cambio
 Swap Again: Intercambiar de Nuevo
 Terms of Use: Términos de Uso
 Privacy Policy: Política de Privacidad
@@ -401,26 +400,24 @@ In progress: En progreso
 Waiting for Payment: Esperando el pago
 Waiting for payment: Esperando el pago
 Blockchain: Blockchain
-Receiving address in blockchain: Dirección en %blockchain%
-Please provide an address of your wallet in another blockchain to receive bought tokens.: Por favor, proporcione una dirección de su billetera en otra cadena de bloques para recibir tokens comprados.
-The time for sending coins is over: El tiempo para enviar monedas ha terminado
-Please wait a few moments...: Por favor, espere unos momentos...
+Your address on another blockchain: Tu dirección en otra blockchain
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Proporcione una dirección de su billetera en %blockchain% blockchain para recibir los tokens comprados.
+The time for sending coins is over.: El tiempo para enviar monedas ha terminado.
 You have not sent the coins to the specified address.: Usted no ha enviado las monedas a la dirección especificada.
 $swap_changelly_to_ton_description1: "Debe enviar %value% a esta dirección en la cadena de bloques %blockchain% dentro de %time%"
-Please contact support and provide a transaction ID.: Por favor, póngase en contacto con el soporte y proporcione un ID de transacción.
 Exchange failed and coins were refunded to your wallet.: El intercambio falló y las monedas fueron reembolsadas a su billetera.
-Please contact security team to pass the KYC procedure.: Por favor, póngase en contacto con el equipo de seguridad para completar el procedimiento de KYC.
+$swap_changelly_kyc_security: "Comuníquese con **%email%** y proporcione **ID de transacción** para pasar el procedimiento KYC:"
 Swap Expired: Intercambio vencido
 Swap On Hold: Intercambio en Espera
 Swap Refunded: Intercambio reembolsado
-Changelly Payment Address: Dirección de Pago de Changelly
+Address for %blockchain% transfer: Dirección para transferencia %blockchain%
 Cross-chain exchange provided by Changelly: Proporcionado por Changelly
 $swap_changelly_agreement_message: Al continuar, usted acepta los %terms% y %policy% y comprende que la transacción puede desencadenar una verificación según el %kyc%.
 $swap_changelly_terms_of_use: términos de uso
 $swap_changelly_privacy_policy: política de privacidad
 Password must contain %length% digits.: La contraseña debe contener %length% dígitos.
 Deposit Link: Enlace de depósito
-$swap_changelly_from_ton_description: "Los tokens serán enviados a tu dirección en la blockchain de %blockchain% en unos momentos:"
+$swap_changelly_from_ton_description: "Los tokens se enviarán pronto a su dirección en %blockchain% blockchain:"
 Please note that it may take up to a few hours for tokens to appear in your wallet.: Tenga en cuenta que pueden pasar hasta unas horas para que los tokens aparezcan en su billetera.
 Minimum amount: Mínimo %value%
 Maximum amount: Máximo %value%
@@ -560,7 +557,7 @@ NFT has been sent!: NFT ha sido enviado!
 Cannot be sent: No se puede enviar
 NFT is for sale: NFT está a la venta
 More actions: Mas acciones
-Open on TONScan: Abrir en TONScan
+Open on %ton_explorer_name%: Abrir en %ton_explorer_name%
 Swap is not supported in Testnet.: El intercambio no es compatible con Testnet.
 Swap is not yet supported by Ledger.: Ledger aún no admite el intercambio.
 Buying with card is not supported in Testnet.: La compra con tarjeta no es compatible con Testnet.
@@ -571,7 +568,7 @@ $transfer_inactive_contract_error: |
   Si definitivamente desea enviar a esta dirección, ingrese la dirección en el formato "UQ...".
 Successfully: Exitosamente
 Unstake More: Retirar más
-WrongAddress: La transacción desde la dirección no coincide con la dirección de la cuenta.
+WrongAddress: El dapp solicitó una transacción desde otra billetera.
 Are you sure you want to burn this NFT? It will be lost forever.: ¿Estás seguro de que quieres quemar este NFT? Se perderá para siempre.
 $multi_burn_nft_warning: "Vas a quemar %amount% NFTs."
 $multi_send_nft_warning: "El proceso puede tardar ~%duration% minutos. Por favor, no cierres la aplicación y no cambies de cuenta hasta que haya terminado."
@@ -588,3 +585,29 @@ Send All: Envia todo
 Burn All: Quemar todo
 Select All: Seleccionar todo
 Collection: Colección
+Transaction ID was copied!: ¡Se copió el ID de la transacción!
+$swap_changelly_support: "Si hay algún problema, comuníquese con %livechat% o %email% y proporcione **ID de transacción**:"
+Changelly Live Chat: Chat en vivo de Changelly
+Your %blockchain% Address: Su dirección de %blockchain%
+Vesting: Adquisición de derechos
+Vesting Balance: Saldo adquirido
+Ready to Unfreeze: Listo para descongelar
+You will receive your unfrozen coins in a few minutes.: Recibirás tus monedas descongeladas en unos minutos.
+Vesting Schedule: Calendario de adquisición de derechos
+Loyal User Airdrop: Recompensa para usuarios leales
+Unfrozen: Descongelado
+Missed: Omitido
+Frozen: Congelado
+until %date%: hasta el %date%
+"%volume% in %amount% parts": "%volume% en %amount% partes"
+Unfreeze: Descongelar
+Claim: Afirmar
+Confirm Unfreezing: Confirmar descongelación
+Insufficient Balance for Fee.: Saldo insuficiente para pagar la tarifa.
+$fee_value_bold: "**Comisión:** %fee%"
+MyTonWallet Features: Funciones de MyTonWallet
+Install on Desktop: Instalar en el escritorio
+Install on Mobile: Instalar en el móvil
+Install App: Instalar la aplicación
+WrongNetwork: El dapp solicitó una transacción de otra red.
+Hide: Ocultar

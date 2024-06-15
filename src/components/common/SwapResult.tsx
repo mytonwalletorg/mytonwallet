@@ -62,7 +62,7 @@ function SwapResult({
   }
 
   function renderSticker() {
-    if (swapType === SwapType.CrosschainFromTon) return undefined;
+    if (swapType === SwapType.CrosschainFromToncoin) return undefined;
 
     return (
       <AnimatedIconWithPreview
@@ -77,7 +77,7 @@ function SwapResult({
   }
 
   function renderChangellyInfo() {
-    if (swapType !== SwapType.CrosschainFromTon) return undefined;
+    if (swapType !== SwapType.CrosschainFromToncoin) return undefined;
 
     return (
       <div className={styles.changellyInfoBlock}>

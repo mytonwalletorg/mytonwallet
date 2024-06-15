@@ -50,6 +50,12 @@ export const useWebViewBridge = <
               break;
             }
 
+            case 'window:close': {
+              inAppBrowserRef.current?.close();
+
+              break;
+            }
+
             default: {
               const methodName = message.name.replace('bridge:', '');
               result = await bridgeObj[methodName](...message.args);
@@ -72,7 +78,7 @@ export const useWebViewBridge = <
         }
       }
     },
-    [bridgeObj, postMessage],
+    [bridgeObj, inAppBrowserRef, postMessage],
   );
 
   const sendEvent = useCallback(

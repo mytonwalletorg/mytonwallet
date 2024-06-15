@@ -231,7 +231,7 @@
   vertical-align: -0.1875rem;
 }
 
-.tonscanButton {
+.tonExplorerButton {
   font-size: 1.25rem;
   line-height: 1;
   color: var(--color-card-second-text);
@@ -371,27 +371,25 @@
   border-radius: 0.25rem;
 }
 
-.cmcButton {
+.tokenTonExplorerButton {
   position: relative;
   top: 0.25rem;
 
   font-size: 1rem;
   line-height: 0.625rem;
-  color: var(--color-card-text);
+  color: var(--color-card-second-text) !important;
   text-decoration: none !important;
 
-  transition: opacity 150ms;
-
-  &:hover,
-  &:focus {
-    color: var(--color-card-text);
-
-    opacity: 0.8;
-  }
+  transition: color 150ms;
 
   &:active {
     // Optimization
     transition: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-card-text) !important;
   }
 
   :global(html.animation-level-0) & {
@@ -466,13 +464,13 @@
   font-weight: 700;
   color: var(--color-card-text);
 
-  transition: opacity 150ms;
+  transition: opacity 0.15s ease;
+}
 
-  &_disabled {
-    pointer-events: none;
+.periodChooserHidden {
+  pointer-events: none;
 
-    opacity: 0.8;
-  }
+  opacity: 0;
 }
 
 .periodItem {

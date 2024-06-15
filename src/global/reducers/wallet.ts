@@ -1,8 +1,8 @@
 import type { GlobalState } from '../types';
 import { TransferState } from '../types';
 
-import { TON_TOKEN_SLUG } from '../../config';
-import { TOKEN_TRANSFER_TON_AMOUNT } from '../../api/blockchains/ton/constants';
+import { TONCOIN_SLUG } from '../../config';
+import { TOKEN_TRANSFER_TONCOIN_AMOUNT } from '../../api/blockchains/ton/constants';
 import { selectAccountState, selectCurrentAccountState } from '../selectors';
 import { updateAccountState, updateCurrentAccountState } from './misc';
 
@@ -93,13 +93,13 @@ export function updateCurrentTransferFee(
   global: GlobalState,
   fee: Partial<GlobalState['currentTransfer']['fee']>,
   amount: bigint,
-  isTon: boolean,
+  isToncoin: boolean,
 ) {
   const accountState = selectAccountState(global, global.currentAccountId!);
-  const balance = accountState?.balances?.bySlug[TON_TOKEN_SLUG] ?? 0n;
+  const balance = accountState?.balances?.bySlug[TONCOIN_SLUG] ?? 0n;
   const baseFee = fee ?? 0n;
-  const compositeFee = baseFee + (isTon ? 0n : TOKEN_TRANSFER_TON_AMOUNT);
-  const updatedBalance = balance - (isTon ? amount : 0n);
+  const compositeFee = baseFee + (isToncoin ? 0n : TOKEN_TRANSFER_TONCOIN_AMOUNT);
+  const updatedBalance = balance - (isToncoin ? amount : 0n);
 
   return updateCurrentTransfer(global, { fee: updatedBalance < compositeFee ? compositeFee : baseFee });
 }

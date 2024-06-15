@@ -1,11 +1,13 @@
 import nacl, { randomBytes } from 'tweetnacl';
 
+import type { AccountCache } from '../common/cache';
 import type { ApiBlockchainKey, ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
 import { setIsAppFocused } from '../../util/pauseOrFocus';
 import blockchains from '../blockchains';
 import { fetchStoredAccount, fetchStoredAccounts, updateStoredAccount } from '../common/accounts';
+import { updateAccountCache } from '../common/cache';
 import { storage } from '../storages';
 
 const SIGN_MESSAGE = Buffer.from('MyTonWallet_AuthToken_n6i0k4w8pb');
@@ -77,6 +79,10 @@ export async function fetchAccountConfigForDebugPurposesOnly() {
 
 export function ping() {
   return true;
+}
+
+export function updateAccountMemoryCache(accountId: string, address: string, partial: Partial<AccountCache>) {
+  updateAccountCache(accountId, address, partial);
 }
 
 export { setIsAppFocused };

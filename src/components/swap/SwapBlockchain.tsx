@@ -65,7 +65,7 @@ function SwapBlockchain({
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(!(IS_FIREFOX || IS_FIREFOX_EXTENSION));
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [hasToAddressError, setHasToAddressError] = useState(false);
-  const [canContinue, setCanContinue] = useState(swapType !== SwapType.CrosschainFromTon);
+  const [canContinue, setCanContinue] = useState(swapType !== SwapType.CrosschainFromToncoin);
 
   const isQrScannerSupported = useQrScannerSupport();
 
@@ -74,10 +74,6 @@ function SwapBlockchain({
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
-
-  const addressPlaceholder = (lang('Receiving address in blockchain', {
-    blockchain: getBlockchainNetworkName(tokenOut?.blockchain),
-  }) as TeactNode[]).join('');
 
   const handleCancelClick = useLastCallback(() => {
     setHasToAddressError(false);
@@ -175,7 +171,9 @@ function SwapBlockchain({
   function renderInfo() {
     const text = hasToAddressError
       ? lang('Incorrect address.')
-      : lang('Please provide an address of your wallet in another blockchain to receive bought tokens.');
+      : lang('Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.', {
+        blockchain: getBlockchainNetworkName(tokenOut?.blockchain),
+      });
 
     return (
       <Transition
@@ -195,7 +193,7 @@ function SwapBlockchain({
   }
 
   function renderInputAddress() {
-    if (swapType !== SwapType.CrosschainFromTon) return undefined;
+    if (swapType !== SwapType.CrosschainFromToncoin) return undefined;
 
     return (
       <>
@@ -203,7 +201,7 @@ function SwapBlockchain({
           <Input
             ref={toAddressRef}
             isRequired
-            placeholder={addressPlaceholder}
+            placeholder={lang('Your address on another blockchain')}
             value={isAddressFocused ? toAddress : toAddressShort}
             onInput={handleAddressInput}
             onFocus={handleAddressFocus}
@@ -252,12 +250,13 @@ function SwapBlockchain({
 
         {renderInputAddress()}
 
-        <div className={buildClassName(modalStyles.buttons, styles.blockchainButtons)}>
-          <Button onClick={handleCancelClick}>{lang('Close')}</Button>
+        <div className={buildClassName(styles.blockchainButtons, modalStyles.footerButtons)}>
+          <Button onClick={handleCancelClick} className={modalStyles.buttonHalfWidth}>{lang('Close')}</Button>
           <Button
-            isDisabled={!canContinue}
-            onClick={submitPassword}
             isPrimary
+            isDisabled={!canContinue}
+            className={modalStyles.buttonHalfWidth}
+            onClick={submitPassword}
           >
             {lang('Continue')}
           </Button>

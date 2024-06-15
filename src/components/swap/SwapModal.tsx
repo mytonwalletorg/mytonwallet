@@ -64,8 +64,8 @@ function SwapModal({
     setSwapScreen,
     submitSwap,
     showActivityInfo,
-    submitSwapCexFromTon,
-    submitSwapCexToTon,
+    submitSwapCexFromToncoin,
+    submitSwapCexToToncoin,
   } = getActions();
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
@@ -83,15 +83,21 @@ function SwapModal({
     [swapTokens, tokenOutSlug],
   );
 
+  const [renderedSwapType, setRenderedSwapType] = useState(swapType);
   const [renderedTransactionAmountIn, setRenderedTransactionAmountIn] = useState(amountIn);
   const [renderedTransactionAmountOut, setRenderedTransactionAmountOut] = useState(amountOut);
   const [renderedTransactionTokenIn, setRenderedTransactionTokenIn] = useState(tokenIn);
   const [renderedTransactionTokenOut, setRenderedTransactionTokenOut] = useState(tokenOut);
+  const [renderedActivity, setRenderedActivity] = useState<ApiActivity | undefined>();
 
   useEffect(() => {
-    if (!isOpen || !activityById || !activityId || swapType !== SwapType.CrosschainToTon) return;
+    if (!isOpen || !activityById || !activityId || swapType !== SwapType.CrosschainToToncoin) {
+      setRenderedActivity(undefined);
+      return;
+    }
 
     const activity = activityById[activityId];
+    setRenderedActivity(activity);
 
     if (activity.kind === 'swap') {
       const status = activity.cex?.status;
@@ -106,22 +112,23 @@ function SwapModal({
     setRenderedTransactionAmountOut(amountOut);
     setRenderedTransactionTokenIn(tokenIn);
     setRenderedTransactionTokenOut(tokenOut);
+    setRenderedSwapType(swapType);
 
     if (swapType === SwapType.OnChain) {
       submitSwap({ password });
       return;
     }
 
-    if (swapType === SwapType.CrosschainToTon) {
-      submitSwapCexToTon({ password });
+    if (swapType === SwapType.CrosschainToToncoin) {
+      submitSwapCexToToncoin({ password });
     } else {
-      submitSwapCexFromTon({ password });
+      submitSwapCexFromToncoin({ password });
     }
   });
 
   const handleBackClick = useLastCallback(() => {
     if (state === SwapState.Password) {
-      if (swapType === SwapType.CrosschainFromTon) {
+      if (swapType === SwapType.CrosschainFromToncoin) {
         setSwapScreen({ state: SwapState.Blockchain });
       } else {
         setSwapScreen({ state: isPortrait ? SwapState.Initial : SwapState.None });
@@ -211,7 +218,7 @@ function SwapModal({
         return (
           <>
             <ModalHeader
-              title={lang('Swap')}
+              title={lang('SwapTitle')}
               onClose={cancelSwap}
             />
             <SwapInitial isActive={isActive} />
@@ -237,6 +244,7 @@ function SwapModal({
             amountOut={renderedTransactionAmountOut}
             payinAddress={payinAddress}
             payinExtraId={payinExtraId}
+            activity={renderedActivity}
             onClose={handleModalCloseWithReset}
           />
         );
@@ -262,7 +270,7 @@ function SwapModal({
             amountOut={renderedTransactionAmountOut}
             onInfoClick={handleTransactionInfoClick}
             onStartSwap={handleStartSwap}
-            swapType={swapType}
+            swapType={renderedSwapType}
             toAddress={toAddress}
             onClose={handleModalCloseWithReset}
           />

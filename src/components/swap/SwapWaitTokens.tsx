@@ -1,8 +1,9 @@
 import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 
+import type { ApiActivity } from '../../api/types';
 import type { UserSwapToken } from '../../global/types';
 
-import { CHANGELLY_WAITING_DEADLINE } from '../../config';
+import { CHANGELLY_LIVE_CHAT_URL, CHANGELLY_SUPPORT_EMAIL, CHANGELLY_WAITING_DEADLINE } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
@@ -30,6 +31,7 @@ interface OwnProps {
   amountOut?: string;
   payinAddress?: string;
   payinExtraId?: string;
+  activity?: ApiActivity;
   onClose: NoneToVoidFunction;
 }
 
@@ -41,6 +43,7 @@ function SwapWaitTokens({
   amountOut,
   payinAddress,
   payinExtraId,
+  activity,
   onClose,
 }: OwnProps) {
   const lang = useLang();
@@ -83,14 +86,44 @@ function SwapWaitTokens({
 
   function renderInfo() {
     if (isExpired) {
+      const cexTransactionId = activity && 'cex' in activity ? activity.cex?.transactionId : undefined;
+
       return (
         <div className={styles.changellyInfoBlock}>
           <span className={styles.changellyImportantRed}>
-            {lang('The time for sending coins is over')}
+            {lang('The time for sending coins is over.')}
           </span>
           <span className={styles.changellyDescription}>
-            {lang('Please wait a few moments...')}
+            {lang('$swap_changelly_support', {
+              livechat: (
+                <a
+                  href={CHANGELLY_LIVE_CHAT_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.changellyDescriptionBold}
+                >
+                  {lang('Changelly Live Chat')}
+                </a>),
+              email: (
+                <a
+                  href={`mailto:${CHANGELLY_SUPPORT_EMAIL}?body=Transaction ID: ${cexTransactionId || ''}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.changellyDescriptionBold}
+                >
+                  {CHANGELLY_SUPPORT_EMAIL}
+                </a>),
+            })}
           </span>
+          {cexTransactionId && (
+            <InteractiveTextField
+              text={cexTransactionId}
+              copyNotification={lang('Transaction ID was copied!')}
+              noSavedAddress
+              noExplorer
+              className={styles.changellyTextField}
+            />
+          )}
         </div>
       );
     }
@@ -136,7 +169,7 @@ function SwapWaitTokens({
   return (
     <>
       <ModalHeader
-        title={lang('Waiting for Payment')}
+        title={lang(isExpired ? 'Swap Expired' : 'Waiting for Payment')}
         onClose={onClose}
       />
 
@@ -156,7 +189,7 @@ function SwapWaitTokens({
         </Transition>
 
         <div className={modalStyles.buttons}>
-          <Button onClick={onClose}>{lang('Close')}</Button>
+          <Button isPrimary onClick={onClose}>{lang('Close')}</Button>
         </div>
       </div>
     </>

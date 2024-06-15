@@ -10,13 +10,13 @@ import type { DropdownItem } from '../../../ui/Dropdown';
 import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
-  TONSCAN_BASE_MAINNET_URL,
-  TONSCAN_BASE_TESTNET_URL,
+  TON_EXPLORER_NAME,
 } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { openUrl } from '../../../../util/openUrl';
+import { getTonExplorerNftCollectionUrl } from '../../../../util/url';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { getIsPortrait } from '../../../../hooks/useDeviceScreen';
@@ -44,8 +44,8 @@ const MENU_ITEMS: DropdownItem[] = [{
   value: 'getgems',
   fontIcon: 'external',
 }, {
-  name: 'TONScan',
-  value: 'tonscan',
+  name: TON_EXPLORER_NAME,
+  value: 'tonExplorer',
   fontIcon: 'external',
 }, {
   name: 'Burn All',
@@ -138,9 +138,11 @@ function NftCollectionHeader({
         break;
       }
 
-      case 'tonscan': {
-        const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;
-        openUrl(`${tonscanBaseUrl}nft/${renderedNft?.collectionAddress}`);
+      case 'tonExplorer': {
+        const url = getTonExplorerNftCollectionUrl(renderedNft?.collectionAddress, isTestnet);
+        if (url) {
+          openUrl(url);
+        }
         break;
       }
 
@@ -194,6 +196,7 @@ function NftCollectionHeader({
       <DropdownMenu
         isOpen={isMenuOpen}
         withPortal
+        shouldTranslateOptions
         menuPositionHorizontal="right"
         menuPosition={positionY}
         menuStyle={menuStyle}

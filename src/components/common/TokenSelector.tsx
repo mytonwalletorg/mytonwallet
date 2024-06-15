@@ -173,6 +173,10 @@ function TokenSelector({
     const tokensToFilter = isInsideSettings ? allUnimportedTonTokens : swapTokensWithFilter;
     const lowerCaseSearchValue = searchValue.toLowerCase().trim();
 
+    if (!lowerCaseSearchValue.length) {
+      return [];
+    }
+
     return tokensToFilter.filter(({
       name, symbol, keywords, isDisabled,
     }) => {
@@ -447,10 +451,6 @@ function TokenSelector({
   }
 
   function renderTokenGroups() {
-    if (isInsideSettings) {
-      return renderTokenGroup(allUnimportedTonTokens, lang('A-Z'));
-    }
-
     return (
       <>
         {renderTokenGroup(userTokensWithFilter, lang('MY'), true)}

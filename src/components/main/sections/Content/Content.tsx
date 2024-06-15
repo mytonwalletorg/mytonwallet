@@ -11,7 +11,7 @@ import {
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   MIN_ASSETS_TAB_VIEW,
   NOTCOIN_VOUCHERS_ADDRESS,
-  TON_TOKEN_SLUG,
+  TONCOIN_SLUG,
 } from '../../../../config';
 import {
   selectAccountState,
@@ -52,6 +52,7 @@ interface StateProps {
   selectedAddresses?: string[];
   activeContentTab?: ContentTab;
   currentTokenSlug?: string;
+  blacklistedNftAddresses?: string[];
 }
 
 let activeNftKey = 0;
@@ -64,6 +65,7 @@ function Content({
   selectedAddresses,
   onStakedTokenClick,
   currentTokenSlug,
+  blacklistedNftAddresses,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -91,13 +93,16 @@ function Content({
   });
 
   const nftCollections = useMemo(() => {
-    const collections = Object.values(nfts ?? {}).reduce((acc, nft) => {
-      if (nft.collectionAddress) {
-        acc[nft.collectionAddress] = nft.collectionName || lang('Unnamed collection');
-      }
+    const collections = Object.values(nfts ?? {})
+      .filter((nft) => !nft.isHidden)
+      .filter((nft) => !blacklistedNftAddresses?.includes(nft.address))
+      .reduce((acc, nft) => {
+        if (nft.collectionAddress) {
+          acc[nft.collectionAddress] = nft.collectionName || lang('Unnamed collection');
+        }
 
-      return acc;
-    }, {} as Record<string, string>);
+        return acc;
+      }, {} as Record<string, string>);
     const collentionAddresses = Object.keys(collections);
     collentionAddresses.sort((left, right) => collections[left].localeCompare(collections[right]));
 
@@ -108,10 +113,8 @@ function Content({
         value: key,
       };
     });
-  }, [lang, nfts]);
+  }, [lang, nfts, blacklistedNftAddresses]);
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
 
@@ -209,14 +212,14 @@ function Content({
     if (currentTokenSlug !== undefined) return;
 
     setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined });
-    changeTransferToken({ tokenSlug: TON_TOKEN_SLUG });
+    changeTransferToken({ tokenSlug: TONCOIN_SLUG });
   }, [currentTokenSlug]);
 
   const handleClickAsset = useLastCallback((slug: string) => {
     selectToken({ slug });
 
     if (slug) {
-      if (slug === TON_TOKEN_SLUG) {
+      if (slug === TONCOIN_SLUG) {
         setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
       } else {
         setDefaultSwapParams({ tokenOutSlug: slug });
@@ -252,14 +255,14 @@ function Content({
     // When assets are shown separately, there is effectively no tab with index 0,
     // so we fall back to next tab to not break parent's component logic.
     if (activeTabIndex === 0 && shouldShowSeparateAssetsPanel) {
-      return <Activity isActive={isActive} mobileRef={containerRef} />;
+      return <Activity isActive={isActive} />;
     }
 
     switch (tabs[activeTabIndex].id) {
       case ContentTab.Assets:
         return <Assets isActive={isActive} onTokenClick={handleClickAsset} onStakedTokenClick={onStakedTokenClick} />;
       case ContentTab.Activity:
-        return <Activity isActive={isActive} mobileRef={containerRef} />;
+        return <Activity isActive={isActive} />;
       case ContentTab.Nft:
         return (
           <Transition
@@ -299,10 +302,7 @@ function Content({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={containerClassName}
-    >
+    <div className={containerClassName}>
       {shouldShowSeparateAssetsPanel && (
         <div className={styles.assetsPanel}>
           <Assets
@@ -331,6 +331,7 @@ export default memo(
         currentCollectionAddress,
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
+      const { blacklistedNftAddresses } = selectCurrentAccountState(global) ?? {};
 
       return {
         nfts,
@@ -339,6 +340,7 @@ export default memo(
         tokensCount,
         activeContentTab: accountState?.activeContentTab,
         currentTokenSlug: accountState?.currentTokenSlug,
+        blacklistedNftAddresses,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

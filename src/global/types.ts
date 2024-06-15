@@ -24,6 +24,7 @@ import type {
   ApiUpdateDappConnect,
   ApiUpdateDappLoading,
   ApiUpdateDappSendTransactions,
+  ApiVestingInfo,
   ApiWalletInfo,
   ApiWalletVersion,
 } from '../api/types';
@@ -125,8 +126,8 @@ export enum SwapState {
   None,
   Initial,
   Blockchain,
-  WaitTokens,
   Password,
+  WaitTokens,
   ConnectHardware,
   ConfirmHardware,
   Complete,
@@ -155,8 +156,8 @@ export enum SwapErrorType {
 
 export enum SwapType {
   OnChain,
-  CrosschainFromTon,
-  CrosschainToTon,
+  CrosschainFromToncoin,
+  CrosschainToToncoin,
 }
 
 export enum DappConnectState {
@@ -180,13 +181,23 @@ export enum StakingState {
 
   StakeInitial,
   StakePassword,
+  StakeConnectHardware,
+  StakeConfirmHardware,
   StakeComplete,
 
   UnstakeInitial,
   UnstakePassword,
+  UnstakeConnectHardware,
+  UnstakeConfirmHardware,
   UnstakeComplete,
 
   NotEnoughBalance,
+}
+
+export enum VestingUnfreezeState {
+  Password,
+  ConnectHardware,
+  ConfirmHardware,
 }
 
 export enum SettingsState {
@@ -249,6 +260,8 @@ export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
 
 export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
+export type DieselStatus = 'not-available' | 'not-authorized' | 'pending-previous' | 'available';
+
 export interface Account {
   title?: string;
   address: string;
@@ -307,10 +320,21 @@ export interface AccountState {
     tokenBalance?: bigint;
     isInstantUnstakeRequested?: boolean;
   };
+
+  vesting?: {
+    info: ApiVestingInfo[];
+    isLoading?: boolean;
+    isConfirmRequested?: boolean;
+    error?: string;
+    unfreezeRequestedIds?: { id: number; partId: number }[];
+    unfreezeState?: VestingUnfreezeState;
+  };
+
   stakingHistory?: ApiStakingHistory;
   browserHistory?: string[];
 
   isLongUnstakeRequested?: boolean;
+  blacklistedNftAddresses?: string[];
 }
 
 export interface AccountSettings {
@@ -385,6 +409,9 @@ export type GlobalState = {
     nfts?: ApiNft[];
     sentNftsCount?: number;
     isMemoRequired?: boolean;
+    dieselStatus?: DieselStatus;
+    dieselAmount?: bigint;
+    withDiesel?: boolean;
   };
 
   currentSwap: {
@@ -421,6 +448,7 @@ export type GlobalState = {
       fromMax?: string;
     };
     isSettingsModalOpen?: boolean;
+    dieselStatus?: DieselStatus;
   };
 
   currentSignature?: {
@@ -538,6 +566,7 @@ export type GlobalState = {
   isPinAccepted?: boolean;
   isOnRampWidgetModalOpen?: boolean;
   isReceiveModalOpen?: boolean;
+  isVestingModalOpen?: boolean;
   shouldForceAccountEdit?: boolean;
   isIncorrectTimeNotificationReceived?: boolean;
   currentBrowserUrl?: string;
@@ -649,6 +678,7 @@ export interface ActionPayloads {
     comment?: string;
     shouldEncrypt?: boolean;
     nftAddresses?: string[];
+    withDiesel?: boolean;
   };
   submitTransferConfirm: undefined;
   submitTransferPassword: { password: string };
@@ -673,6 +703,7 @@ export interface ActionPayloads {
   clearAccountLoading: undefined;
   validatePassword: { password: string };
   verifyHardwareAddress: undefined;
+  authorizeDiesel: undefined;
 
   fetchTokenTransactions: { limit: number; slug: string; shouldLoadWithBudget?: boolean };
   fetchAllTransactions: { limit: number; shouldLoadWithBudget?: boolean };
@@ -686,6 +717,7 @@ export interface ActionPayloads {
   clearNftSelection: { address: string };
   clearNftsSelection: undefined;
   burnNfts: { nfts: ApiNft[] };
+  hideNft: { nftAddress: ApiNft['address'] };
 
   submitSignature: { password: string };
   clearSignatureError: undefined;
@@ -714,6 +746,7 @@ export interface ActionPayloads {
   setStakingScreen: { state: StakingState };
   submitStakingInitial: { amount?: bigint; isUnstaking?: boolean } | undefined;
   submitStakingPassword: { password: string; isUnstaking?: boolean };
+  submitStakingHardware: { isUnstaking?: boolean } | undefined;
   clearStakingError: undefined;
   cancelStaking: undefined;
   fetchStakingHistory: { limit?: number; offset?: number } | undefined;
@@ -812,8 +845,8 @@ export interface ActionPayloads {
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
   estimateSwapCex: { shouldBlock: boolean };
-  submitSwapCexFromTon: { password: string };
-  submitSwapCexToTon: { password: string };
+  submitSwapCexFromToncoin: { password: string };
+  submitSwapCexToToncoin: { password: string };
   setSwapType: { type: SwapType };
   setSwapCexAddress: { toAddress: string };
   addSwapToken: { token: UserSwapToken };
@@ -835,6 +868,15 @@ export interface ActionPayloads {
 
   openLoadingOverlay: undefined;
   closeLoadingOverlay: undefined;
+
+  loadMycoin: undefined;
+  openVestingModal: undefined;
+  closeVestingModal: undefined;
+  startClaimingVesting: undefined;
+  submitClaimingVesting: { password: string };
+  submitClaimingVestingHardware: undefined;
+  clearVestingError: undefined;
+  cancelClaimingVesting: undefined;
 }
 
 export enum LoadMoreDirection {

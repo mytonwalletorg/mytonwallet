@@ -4,6 +4,7 @@ import React, {
 } from '../../lib/teact/teact';
 
 import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS } from '../../config';
+import { forceMutation, requestMeasure, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
@@ -35,6 +36,11 @@ type OwnProps = {
   isStatic?: boolean;
 };
 
+const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
+const MIN_LENGTH_FOR_SHRINK = 5;
+const MIN_SIZE_SCALE = 0.25; // 12px
+const measureEl = document.createElement('div');
+
 function RichNumberInput({
   id,
   labelText,
@@ -61,9 +67,39 @@ function RichNumberInput({
   const lang = useLang();
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
   const [isContentEditable, setContentEditable] = useState(!disabled);
+  const isFontShrinkedRef = useRef(false);
+
+  const updateFontScale = useLastCallback((content: string) => {
+    requestMeasure(() => {
+      const input = inputRef.current;
+      if (!input) return;
+
+      const { clientWidth: width } = input;
+      forceMutation(() => {
+        measureEl.className = buildClassName(input.className, 'measure-hidden');
+        measureEl.style.width = `${width}px`;
+        measureEl.innerHTML = content;
+        document.body.appendChild(measureEl);
+        let delta = 1;
+
+        while (delta > MIN_SIZE_SCALE) {
+          measureEl.style.setProperty('--base-font-size', delta.toString());
+          if (measureEl.scrollWidth <= width) {
+            break;
+          }
+          delta -= 0.05;
+        }
+
+        isFontShrinkedRef.current = delta < 1;
+        document.body.removeChild(measureEl);
+        measureEl.className = '';
+        input.style.setProperty('--base-font-size', delta.toString());
+      }, [measureEl, input]);
+    });
+  });
 
   const handleLoadingHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
-    const newHtml = parts ? buildContentHtml(parts, suffix, decimals) : '';
+    const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
     input.innerHTML = newHtml;
     setContentEditable(false);
 
@@ -71,7 +107,7 @@ function RichNumberInput({
   });
 
   const handleNumberHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
-    const newHtml = parts ? buildContentHtml(parts, suffix, decimals) : '';
+    const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
     const restoreCaretPosition = document.activeElement === inputRef.current
       ? saveCaretPosition(input, decimals)
       : undefined;
@@ -86,7 +122,11 @@ function RichNumberInput({
   const updateHtml = useLastCallback((parts?: RegExpMatchArray) => {
     const input = inputRef.current!;
     const content = isLoading ? handleLoadingHtml(input, parts) : handleNumberHtml(input, parts);
+    const textContent = parts?.[0] || '';
 
+    if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontShrinkedRef.current) {
+      updateFontScale(content);
+    }
     if (content.length) {
       input.classList.remove(styles.isEmpty);
     } else {
@@ -104,21 +144,21 @@ function RichNumberInput({
 
   function handleChange(e: React.FormEvent<HTMLDivElement>) {
     const inputValue = e.currentTarget.innerText.trim();
-
     const newValue = clearValue(inputValue, decimals);
-
     const parts = getParts(newValue, decimals);
     const isEmpty = inputValue === '';
 
-    if (!parts && !isEmpty && value) {
-      updateHtml(getParts(value, decimals));
-    } else {
-      updateHtml(parts);
-    }
+    requestMutation(() => {
+      if (!parts && !isEmpty && value) {
+        updateHtml(getParts(value, decimals));
+      } else {
+        updateHtml(parts);
+      }
 
-    if ((newValue || isEmpty) && newValue !== value) {
-      onChange?.(newValue);
-    }
+      if ((newValue || isEmpty) && newValue !== value) {
+        onChange?.(newValue);
+      }
+    });
   }
 
   const handleFocus = useLastCallback(() => {
@@ -222,11 +262,26 @@ function clearValue(value: string, decimals: number) {
     ?? '';
 }
 
-export function buildContentHtml(values: RegExpMatchArray, suffix?: string, decimals = FRACTION_DIGITS) {
-  const [, wholePart, dotPart, fractionPart] = values;
+export function buildContentHtml({
+  values,
+  suffix,
+  decimals = FRACTION_DIGITS,
+  withRadix = false,
+}: {
+  values: RegExpMatchArray;
+  suffix?: string;
+  decimals?: number;
+  withRadix?: boolean;
+}) {
+  let [, wholePart] = values;
+  const [, , dotPart, fractionPart] = values;
 
   const fractionStr = (fractionPart || dotPart) ? `.${(fractionPart || '').substring(0, decimals)}` : '';
-  const suffixStr = suffix ? ` ${suffix}` : '';
+  const suffixStr = suffix ? `&thinsp;${suffix}` : '';
+
+  if (withRadix) {
+    wholePart = wholePart.replace(/\d(?=(\d{3})+($|\.))/g, `$&${WHOLE_PART_DELIMITER}`);
+  }
 
   return `${wholePart}<span class="${styles.fractional}">${fractionStr}${suffixStr}</span>`;
 }

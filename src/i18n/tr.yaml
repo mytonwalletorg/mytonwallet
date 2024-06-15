@@ -131,7 +131,7 @@ Signing was confirmed!: İmza onaylandı!
 Transaction Info: İşlem bilgileri
 Transaction in progress: İşlem devam ediyor
 Comment was copied!: Açıklama kopyalandı!
-View Transaction on TONScan: TONScan'da işlemi görüntüleyin
+View Transaction on %ton_explorer_name%: "%ton_explorer_name%'da işlemi görüntüleyin"
 Sender: Gönderici
 Recipient: Alıcı
 Address was copied!: Adres kopyalandı!
@@ -139,8 +139,7 @@ Repeat: Tekrarla
 Receive: Kabul et
 Switch Account: Hesap değiştir
 Copy wallet address: Cüzdan adresini kopyala
-View address on TONScan: TONScan'da adresi görüntüleyin
-Open on CoinMarketCap: CoinMarketCap'te açın
+View address on %ton_explorer_name%: "%ton_explorer_name%'da adresi görüntüleyin"
 You have just created a new wallet: Az önce yeni bir cüzdan oluşturdunuz
 You can now transfer your tokens from another wallet or exchange.: Artık tokenlarınızı başka bir cüzdandan veya borsadan aktarabilirsiniz.
 Assets: Varlıklar
@@ -187,7 +186,7 @@ Save: Kaydet
 Copy: Kopyala
 Remove From Saved Addresses: Kayıtlı adreslerden kaldır
 Add To Saved Addresses: Kayıtlı adreslere ekle
-View Address on TONScan: TONScan'da adresi görüntüle
+View Address on %ton_explorer_name%: "%ton_explorer_name%'da adresi görüntüle"
 No suggestions, you're on your own!: Önerimiz bulunmuyor, tek başınasınız!
 Play Sounds: Sesleri çal
 Focus on asset value rather than current balance: Mevcut bakiyeden ziyade varlık değerine odaklanır
@@ -332,6 +331,7 @@ $dapp_ledger_warning1: "**Ledger** cüzdanınızı kullanarak çok yönlü bir i
 $dapp_ledger_warning2: Lütfen acele etmeyin ve süreci kesintiye uğratmayın.
 Agree: Kabul et
 Unfortunately, this operation is not yet supported by Ledger wallet.: Donanım cüzdanı bu veri biçimini desteklemiyor.
+SwapTitle: Takas
 Swap: Takas
 You sell: Satıyorsunuz
 You buy: Alıyorsunuz
@@ -386,7 +386,6 @@ Swap Placed: Takas emri gönderildi
 Swapping: Takas devam ediyor
 Swapped: Takas gerçekleşti
 Swap Failed: Takas başarısız oldu
-Exchange rate: Takas oranı
 Swap Again: Yeniden takas edin
 Terms of Use: Kullanım Şartları
 Privacy Policy: Gizlilik Politikası
@@ -401,26 +400,24 @@ Expired: Süresi doldu
 Waiting for Payment: Ödeme bekleniyor
 Waiting for payment: Ödeme bekleniyor
 Blockchain: Blockchain
-Receiving address in blockchain: "%blockchain% blok zincirindeki alıcı adresi"
-Please provide an address of your wallet in another blockchain to receive bought tokens.: Satın alınan tokenları almak için lütfen başka bir blok zincirindeki cüzdanınızın adresini belirtin.
-The time for sending coins is over: Coin'leri gönderme süresi sona erdi
-Please wait a few moments...: Bir süre bekleyiniz...
+Your address on another blockchain: Başka bir blockchaindeki adresiniz
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Satın alınan jetonları almak için lütfen %blockchain% blockchain'deki cüzdanınızın adresini girin.
+The time for sending coins is over.: Coin'leri gönderme süresi sona erdi.
 You have not sent the coins to the specified address.: Coin'leri belirtilen adrese göndermediniz.
 $swap_changelly_to_ton_description1: "%value% tutarını %time% içinde %blockchain% blok zincirindeki bu adrese göndermelisiniz"
-Please contact support and provide a transaction ID.: Lütfen destek birimiyle iletişime geçin ve bir işlem ID'si sağlayın.
 Exchange failed and coins were refunded to your wallet.: Takas başarısız oldu ve işlem tutarı cüzdanınıza iade edildi.
-Please contact security team to pass the KYC procedure.: KYC prosedürünü tamamlamak için lütfen güvenlik ekibiyle iletişime geçin.
+$swap_changelly_kyc_security: "Lütfen **%email%** ile iletişime geçin ve KYC prosedürünü geçmek için **İşlem Kimliğini** sağlayın:"
 Swap Expired: Takas işleminin süresi doldu
 Swap On Hold: Takas işlemi beklemede
 Swap Refunded: Takasa konu tutar iade edildi
-Changelly Payment Address: Changelly ödeme adresi
+Address for %blockchain% transfer: "%blockchain% aktarımının adresi"
 Cross-chain exchange provided by Changelly: Changelly tarafından sağlanan cross-chain takası
 $swap_changelly_agreement_message: Devam ederek, %terms% ve %policy%'yi kabul etmiş ve işlemin %kyc% kurallarına göre doğrulama sürecini başlatabileceğini anlamış olursunuz.
 $swap_changelly_terms_of_use: kullanım şartları
 $swap_changelly_privacy_policy: gizlilik politikası
 Password must contain %length% digits.: Parola %length% hane içermelidir.
 Deposit Link: Para yatırma bağlantısı
-$swap_changelly_from_ton_description: "Tokenlar birkaç dakika içinde %blockchain% blok zincirindeki adresinize gönderilecektir:"
+$swap_changelly_from_ton_description: "Yakında %blockchain% blockchain'deki adresinize jetonlar gönderilecek:"
 Please note that it may take up to a few hours for tokens to appear in your wallet.: Lütfen, token'ların cüzdanınızda görünmesinin birkaç saat sürebileceğini unutmayın.
 Minimum amount: Minimum %value%
 Maximum amount: Maksimum %value%
@@ -562,7 +559,7 @@ NFT has been sent!: NFT gönderildi!
 Cannot be sent: Gönderilemiyor
 NFT is for sale: NFT satılık
 More actions: Daha fazla hareket
-Open on TONScan: TONScan'da aç
+Open on %ton_explorer_name%: "%ton_explorer_name%'da aç"
 Swap is not supported in Testnet.: Takas Testnet'te desteklenmemektedir.
 Swap is not yet supported by Ledger.: Takas henüz Ledger tarafından desteklenmiyor.
 Buying with card is not supported in Testnet.: Testnet'te kartla satın alma desteklenmemektedir.
@@ -573,7 +570,7 @@ $transfer_inactive_contract_error: |
   Eğer mutlaka bu adrese gönderim yapmak istiyorsanız adresi "UQ..." formatında giriniz.
 Successfully: Başarıyla
 Unstake More: Unstake daha fazla
-WrongAddress: Adresten yapılan işlem hesap adresiyle eşleşmiyor.
+WrongAddress: Dapp başka bir cüzdandan bir işlem talep etti.
 Are you sure you want to burn this NFT? It will be lost forever.: Bu NFT'yi yakmak istediğinizden emin misiniz? Sonsuza kadar kaybolacak.
 $multi_burn_nft_warning: "%amount% NFT yakacaksınız."
 $multi_send_nft_warning: "İşlem ~%duration% dakika sürebilir. Lütfen işlem tamamlanana kadar uygulamayı kapatmayın ve hesap değiştirmeyin."
@@ -590,3 +587,29 @@ Send All: Hepsini gönder
 Burn All: Hepsini yak
 Select All: Hepsini seç
 Collection: Koleksiyon
+Transaction ID was copied!: İşlem kimliği kopyalandı!
+$swap_changelly_support: "Herhangi bir sorun varsa lütfen %livechat% veya %email% ile iletişime geçin ve **İşlem Kimliğini** sağlayın:"
+Changelly Live Chat: Changelly Canlı Sohbet
+Your %blockchain% Address: "%blockchain% Adresiniz"
+Vesting: Hak Kazanma
+Vesting Balance: Hak Kazanma Bakiyesi
+Ready to Unfreeze: Çözülmeye Hazır
+You will receive your unfrozen coins in a few minutes.: Dondurulmamış paralarınızı birkaç dakika içinde alacaksınız.
+Vesting Schedule: Hak Kazanma Programı
+Loyal User Airdrop: Sadakat Kullanıcıları Ödülü
+Unfrozen: Dondurulmamış
+Missed: Kaçırıldı
+Frozen: Dondurulmuş
+until %date%: "%date%'a kadar"
+"%volume% in %amount% parts": "%amount% parça halinde %volume%"
+Unfreeze: Çöz
+Claim: İddia
+Confirm Unfreezing: Çözmeyi Onayla
+Insufficient Balance for Fee.: Ücret Bakiyesi Yetersiz.
+$fee_value_bold: "**Ücret:** %fee%"
+MyTonWallet Features: MyTonWallet Özellikleri
+Install on Desktop: Masaüstüne Kur
+Install on Mobile: Mobile Kur
+Install App: Uygulamayı Yükle
+WrongNetwork: Dapp başka bir ağdan bir işlem talep etti.
+Hide: Gizle

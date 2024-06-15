@@ -246,7 +246,6 @@ function AccountSelector({
   function renderAccountsChooser() {
     const dialogFullClassName = buildClassName(
       styles.dialog,
-      'custom-scroll',
       accountsAmount <= ACCOUNTS_AMOUNT_FOR_COMPACT_DIALOG && styles.dialog_compact,
     );
 

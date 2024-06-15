@@ -16,7 +16,7 @@ import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrencySimple } from '../../util/formatNumber';
-import { NFT_TRANSFER_TON_AMOUNT } from '../../api/blockchains/ton/constants';
+import { NFT_TRANSFER_TONCOIN_AMOUNT } from '../../api/blockchains/ton/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -29,14 +29,11 @@ import Button from '../ui/Button';
 import IconWithTooltip from '../ui/IconWithTooltip';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import ModalHeader from '../ui/ModalHeader';
-import Transition from '../ui/Transition';
 import NftChips from './NftChips';
 import NftInfo from './NftInfo';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
-
-import scamImg from '../../assets/scam.svg';
 
 interface OwnProps {
   isActive: boolean;
@@ -66,6 +63,8 @@ function TransferConfirm({
     isScam,
     binPayload,
     nfts,
+    withDiesel,
+    dieselAmount,
   },
   symbol,
   decimals,
@@ -102,7 +101,7 @@ function TransferConfirm({
   }
 
   function renderFeeForNft() {
-    const totalFee = (NFT_TRANSFER_TON_AMOUNT + (fee ?? 0n)) * BigInt(Math.ceil(nfts!.length / NFT_BATCH_SIZE));
+    const totalFee = (NFT_TRANSFER_TONCOIN_AMOUNT + (fee ?? 0n)) * BigInt(Math.ceil(nfts!.length / NFT_BATCH_SIZE));
 
     return (
       <>
@@ -112,6 +111,18 @@ function TransferConfirm({
           <span className={styles.currencySymbol}>{TON_SYMBOL}</span>
         </div>
       </>
+    );
+  }
+
+  function renderFeeWithDiesel() {
+    return (
+      <AmountWithFeeTextField
+        label={lang('Amount')}
+        amount={toDecimal(amount ?? 0n, decimals)}
+        symbol={symbol}
+        fee={dieselAmount ? toDecimal(dieselAmount, decimals) : undefined}
+        feeSymbol={symbol}
+      />
     );
   }
 
@@ -168,10 +179,6 @@ function TransferConfirm({
         )}
         <div className={styles.label}>
           {lang('Receiving Address')}
-          <Transition name="fade" activeKey={isScam ? 0 : 1} className={styles.scamContainer}>
-            {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
-          </Transition>
-
           {isToNewAddress && (
             <IconWithTooltip
               emoji="⚠️"
@@ -183,19 +190,23 @@ function TransferConfirm({
         <InteractiveTextField
           address={resolvedAddress!}
           addressName={addressName}
+          isScam={isScam}
           copyNotification={lang('Address was copied!')}
           className={styles.addressWidget}
-          textClassName={isScam ? styles.scamAddress : undefined}
         />
 
-        {isNftTransfer ? renderFeeForNft() : (
-          <AmountWithFeeTextField
-            label={lang('Amount')}
-            amount={toDecimal(amount ?? 0n, decimals)}
-            symbol={symbol}
-            fee={fee ? toDecimal(fee) : undefined}
-          />
-        )}
+        {
+          isNftTransfer ? renderFeeForNft()
+            : withDiesel ? renderFeeWithDiesel()
+              : (
+                <AmountWithFeeTextField
+                  label={lang('Amount')}
+                  amount={toDecimal(amount ?? 0n, decimals)}
+                  symbol={symbol}
+                  fee={fee ? toDecimal(fee) : undefined}
+                />
+              )
+        }
 
         {renderComment()}
 
@@ -222,7 +233,7 @@ function TransferConfirm({
           <Button
             isPrimary
             isLoading={isLoading}
-            isDestructive={isBurning}
+            isDestructive={isBurning || isScam}
             className={modalStyles.button}
             onClick={handleConfirm}
           >

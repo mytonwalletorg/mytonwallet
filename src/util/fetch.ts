@@ -5,7 +5,7 @@ import { pause } from './schedulers';
 
 type QueryParams = Record<string, string | number | boolean | string[]>;
 
-const DEFAULT_TIMEOUTS = [5000, 10000, 30000]; // 5, 10, 30 sec
+const DEFAULT_TIMEOUTS = [15000, 30000]; // 15, 15, 30 sec
 
 export async function fetchJson(url: string | URL, data?: QueryParams, init?: RequestInit) {
   const urlObject = new URL(url);
@@ -33,12 +33,12 @@ export async function fetchJson(url: string | URL, data?: QueryParams, init?: Re
 export async function fetchWithRetry(url: string | URL, init?: RequestInit, options?: {
   retries?: number;
   timeouts?: number | number[];
-  conditionFn?: (message?: string, statusCode?: number) => boolean;
+  shouldSkipRetryFn?: (message?: string, statusCode?: number) => boolean;
 }) {
   const {
     retries = DEFAULT_RETRIES,
     timeouts = DEFAULT_TIMEOUTS,
-    conditionFn,
+    shouldSkipRetryFn = isNotTemporaryError,
   } = options ?? {};
 
   let message = 'Unknown error.';
@@ -57,10 +57,7 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
       statusCode = response.status;
 
       if (statusCode >= 400) {
-        if (response.headers.get('content-type') !== 'application/json') {
-          throw new Error(`HTTP Error ${statusCode}`);
-        }
-        const { error } = await response.json();
+        const { error } = await response.json().catch(() => undefined);
         throw new Error(error ?? `HTTP Error ${statusCode}`);
       }
 
@@ -68,7 +65,9 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
     } catch (err: any) {
       message = typeof err === 'string' ? err : err.message ?? message;
 
-      if (statusCode === 400 || conditionFn?.(message, statusCode)) {
+      const shouldSkipRetry = shouldSkipRetryFn(message, statusCode);
+
+      if (shouldSkipRetry) {
         throw new ApiServerError(message, statusCode);
       }
 
@@ -97,9 +96,14 @@ export async function fetchWithTimeout(url: string | URL, init?: RequestInit, ti
   }
 }
 
-export function handleFetchErrors(response: Response, ignoreHttpCodes?: number[]) {
+export async function handleFetchErrors(response: Response, ignoreHttpCodes?: number[]) {
   if (!response.ok && (!ignoreHttpCodes?.includes(response.status))) {
-    throw new Error(response.statusText);
+    const { error } = await response.json().catch(() => undefined);
+    throw new ApiServerError(error ?? `HTTP Error ${response.status}`, response.status);
   }
   return response;
+}
+
+function isNotTemporaryError(message?: string, statusCode?: number) {
+  return statusCode === 400;
 }

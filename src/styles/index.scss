@@ -238,3 +238,16 @@ a {
 
   clip: rect(0, 0, 0, 0);
 }
+
+/* A class for visually hiding elements used for various measurements. For example, the font size in `RichNumberInput`. */
+.measure-hidden {
+  pointer-events: none;
+
+  position: absolute !important;
+  z-index: -1;
+  top: 0;
+  left: 0;
+
+  visibility: hidden;
+  opacity: 0;
+}

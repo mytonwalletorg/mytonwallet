@@ -4,7 +4,7 @@ import { withGlobal } from '../../global';
 import type { UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 
-import { DEFAULT_DECIMAL_PLACES, TON_TOKEN_SLUG } from '../../config';
+import { DEFAULT_DECIMAL_PLACES, TONCOIN_SLUG } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import { selectAccount, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -54,7 +54,7 @@ function InvoiceModal({
     }
 
     return tokens.reduce<DropdownItem[]>((acc, token) => {
-      if (token.slug === TON_TOKEN_SLUG) {
+      if (token.slug === TONCOIN_SLUG) {
         acc.push({
           value: token.slug,
           icon: token.image || ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS],
@@ -85,7 +85,7 @@ function InvoiceModal({
   });
 
   function renderTokens() {
-    return <Dropdown items={dropdownItems} selectedValue={TON_TOKEN_SLUG} className={styles.tokenDropdown} />;
+    return <Dropdown items={dropdownItems} selectedValue={TONCOIN_SLUG} className={styles.tokenDropdown} />;
   }
 
   return (

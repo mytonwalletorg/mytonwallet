@@ -29,7 +29,7 @@ import type {
 import { ApiCommonError, ApiTransactionError } from '../types';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
 
-import { IS_EXTENSION, LEDGER_NFT_TRANSFER_DISABLED, TON_TOKEN_SLUG } from '../../config';
+import { IS_EXTENSION, LEDGER_NFT_TRANSFER_DISABLED, TONCOIN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { isLedgerCommentLengthValid } from '../../util/ledger/utils';
 import { logDebug, logDebugError } from '../../util/logs';
@@ -49,6 +49,7 @@ import {
   getCurrentAccountId,
   getCurrentAccountIdOrFail,
 } from '../common/accounts';
+import { getKnownAddressInfo } from '../common/addresses';
 import { createDappPromise } from '../common/dappPromises';
 import { isUpdaterAlive } from '../common/helpers';
 import { bytesToBase64, sha256 } from '../common/utils';
@@ -246,7 +247,10 @@ export async function sendTransaction(
       throw new errors.BadRequestError('Payload contains more than 4 messages, which exceeds limit');
     }
 
-    const messages = txPayload.messages;
+    const { messages, network: dappNetworkRaw } = txPayload;
+    const dappNetwork = dappNetworkRaw
+      ? (dappNetworkRaw === CHAIN.MAINNET ? 'mainnet' : 'testnet')
+      : undefined;
     let validUntil = txPayload.valid_until;
     if (validUntil && validUntil > 10 ** 10) {
       // If milliseconds were passed instead of seconds
@@ -256,6 +260,10 @@ export async function sendTransaction(
     const { network } = parseAccountId(accountId);
     const account = await fetchStoredAccount(accountId);
     const isLedger = !!account.ledger;
+
+    if (dappNetwork && network !== dappNetwork) {
+      throw new errors.BadRequestError(undefined, ApiTransactionError.WrongNetwork);
+    }
 
     if (txPayload.from && toBase64Address(txPayload.from, false) !== toBase64Address(account.address, false)) {
       throw new errors.BadRequestError(undefined, ApiTransactionError.WrongAddress);
@@ -304,7 +312,7 @@ export async function sendTransaction(
     if (isLedger) {
       const signedTransfers = response as ApiSignedTransfer[];
       const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
-      boc = submitResult.externalMessage.toBoc().toString('base64');
+      boc = submitResult.firstBoc;
       successNumber = submitResult.successNumber;
       msgHashes = submitResult.msgHashes;
 
@@ -346,7 +354,7 @@ export async function sendTransaction(
         toAddress: normalizedAddress,
         comment,
         fee: checkResult.fee!,
-        slug: TON_TOKEN_SLUG,
+        slug: TONCOIN_SLUG,
         inMsgHash: msgHash,
       });
     });
@@ -451,6 +459,7 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
       const toAddress = getIsRawAddress(address) ? toBase64Address(address, true, network) : address;
       // Fix address format for `waitTxComplete` to work properly
       const normalizedAddress = toBase64Address(address, undefined, network);
+      const { isScam } = getKnownAddressInfo(normalizedAddress) || {};
 
       const payload = rawPayload
         ? await parsePayloadBase64(network, toAddress, rawPayload)
@@ -490,6 +499,7 @@ function prepareTransactionForRequest(network: ApiNetwork, messages: Transaction
         payload,
         stateInit,
         normalizedAddress,
+        isScam,
       };
     },
   ));

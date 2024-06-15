@@ -4,7 +4,7 @@ import type { AnyPayload } from '../blockchains/ton/types';
 import type { ApiSignedTransfer, OnApiUpdate } from '../types';
 import type { OnApiSiteUpdate } from '../types/dappUpdates';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { TONCOIN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
@@ -162,7 +162,7 @@ export async function sendTransaction(params: {
     fromAddress,
     toAddress,
     fee: checkResult.fee!,
-    slug: TON_TOKEN_SLUG,
+    slug: TONCOIN_SLUG,
     inMsgHash: result.msgHash,
     ...(dataType === 'text' && {
       comment: data,
@@ -245,7 +245,7 @@ async function sendLedgerTransaction(
     fromAddress,
     toAddress,
     fee,
-    slug: TON_TOKEN_SLUG,
+    slug: TONCOIN_SLUG,
     inMsgHash: msgHash,
     ...(dataType === 'text' && {
       comment: data,

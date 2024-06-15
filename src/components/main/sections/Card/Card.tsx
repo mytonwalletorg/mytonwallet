@@ -1,13 +1,12 @@
 import type { Ref } from 'react';
+import type { TeactNode } from '../../../../lib/teact/teact';
 import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import {
-  IS_EXTENSION, TONSCAN_BASE_MAINNET_URL, TONSCAN_BASE_TESTNET_URL,
-} from '../../../../config';
+import { IS_EXTENSION, TON_EXPLORER_NAME } from '../../../../config';
 import {
   selectAccount,
   selectCurrentAccountState,
@@ -19,6 +18,7 @@ import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { copyTextToClipboard } from '../../../../util/clipboard';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
+import { getTonExplorerAddressUrl } from '../../../../util/url';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
@@ -69,9 +69,14 @@ function Card({
   const { showNotification } = getActions();
 
   const lang = useLang();
-  const tonscanBaseUrl = isTestnet ? TONSCAN_BASE_TESTNET_URL : TONSCAN_BASE_MAINNET_URL;
-  const tonscanAddressUrl = `${tonscanBaseUrl}address/${address}`;
+  const addressUrl = getTonExplorerAddressUrl(address, isTestnet);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
+  const tonExplorerTitle = useMemo(() => {
+    return (lang('View address on %ton_explorer_name%', {
+      ton_explorer_name: TON_EXPLORER_NAME,
+    }) as TeactNode[]
+    ).join('');
+  }, [lang]);
 
   const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
   const currentToken = useMemo(() => {
@@ -200,13 +205,13 @@ function Card({
             <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
           </button>
           <a
-            href={tonscanAddressUrl}
-            className={styles.tonscanButton}
-            title={lang('View address on TONScan')}
+            href={addressUrl}
+            className={styles.tonExplorerButton}
+            title={tonExplorerTitle}
             target="_blank"
             rel="noreferrer noopener"
           >
-            <i className={buildClassName(styles.icon, 'icon-tonscan')} aria-hidden />
+            <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />
           </a>
         </div>
       </div>

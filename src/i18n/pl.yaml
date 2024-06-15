@@ -131,7 +131,7 @@ Signing was confirmed!: Podpisanie umowy zostało potwierdzone!
 Transaction Info: Informacje o transakcji
 Transaction in progress: Transakcja w toku
 Comment was copied!: Komentarz został skopiowany!
-View Transaction on TONScan: Wyświetlanie transakcji na TONScan
+View Transaction on %ton_explorer_name%: Wyświetlanie transakcji na %ton_explorer_name%
 Sender: Nadawca
 Recipient: Odbiorca
 Address was copied!: Adres został skopiowany!
@@ -139,8 +139,7 @@ Repeat: Powtórzenie
 Receive: Odbiór
 Switch Account: Konto Switch
 Copy wallet address: Kopiowanie adresu portfela
-View address on TONScan: Wyświetl adres w TONScan
-Open on CoinMarketCap: Otwarte na CoinMarketCap
+View address on %ton_explorer_name%: Wyświetl adres w %ton_explorer_name%
 You have just created a new wallet: Właśnie utworzyłeś nowy portfel
 You can now transfer your tokens from another wallet or exchange.: Możesz teraz przenieść swoje tokeny z innego portfela lub giełdy.
 Assets: Aktywa
@@ -187,7 +186,7 @@ Save: Zapisz
 Copy: Kopia
 Remove From Saved Addresses: Usuń z zapisanych adresów
 Add To Saved Addresses: Dodaj do zapisanych adresów
-View Address on TONScan: Wyświetlanie adresu w TONScan
+View Address on %ton_explorer_name%: Wyświetlanie adresu w %ton_explorer_name%
 No suggestions, you're on your own!: Żadnych sugestii, jesteś zdany na siebie!
 Play Sounds: Odtwarzaj dźwięki
 Focus on asset value rather than current balance: Skup się na wartości aktywów zamiast bieżącego salda
@@ -401,10 +400,9 @@ In progress: W trakcie
 Waiting for Payment: Oczekiwanie na płatność
 Waiting for payment: Oczekiwanie na płatność
 Blockchain: Blockchain
-Receiving address in blockchain: Adres odbiorczy w blockchainie %blockchain%
-Please provide an address of your wallet in another blockchain to receive bought tokens.: Proszę podać adres portfela w innym blockchainie, aby otrzymać zakupione tokeny.
-The time for sending coins is over: Czas wysyłki monet minął
-Please wait a few moments...: Proszę czekać kilka chwil...
+Your address on another blockchain: Twój adres na innym blockchainie
+Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Podaj adres swojego portfela w blockchainie %blockchain%, aby otrzymać zakupione tokeny.
+The time for sending coins is over.: Czas wysyłki monet minął.
 You have not sent the coins to the specified address.: Nie wysłałeś monet na podany adres.
 $swap_changelly_to_ton_description1: "Wyślij %value% na ten adres w blockchainie %blockchain% w ciągu %time%"
 Please contact support and provide a transaction ID.: Skontaktuj się z pomocą techniczną i podaj identyfikator transakcji.
@@ -413,7 +411,7 @@ Please contact security team to pass the KYC procedure.: Skontaktuj się z zespo
 Swap Expired: Wymiana wygasła
 Swap On Hold: Wymiana wstrzymana
 Swap Refunded: Wymiana zwrócona
-Changelly Payment Address: Adres płatności Changelly
+Address for %blockchain% transfer: Adres do przelewu %blockchain%
 Cross-chain exchange provided by Changelly: Wymiana międzyłańcuchowa dostarczana przez Changelly
 $swap_changelly_agreement_message: Kontynuując, zgadzasz się na %terms% i %policy% oraz rozumiesz, że transakcja może wymagać weryfikacji zgodnie z %kyc%.
 $swap_changelly_terms_of_use: warunki korzystania
@@ -562,7 +560,7 @@ NFT has been sent!: NFT został wysłany!
 Cannot be sent: Nie można wysłać
 NFT is for sale: NFT jest na sprzedaż
 More actions: Więcej działań
-Open on TONScan: Otwórz na TONScan
+Open on %ton_explorer_name%: Otwórz na %ton_explorer_name%
 Swap is not supported in Testnet.: Swap nie jest obsługiwany w sieci testowej.
 Swap is not yet supported by Ledger.: Swap nie jest jeszcze obsługiwany przez Ledger.
 Buying with card is not supported in Testnet.: Zakup za pomocą karty nie jest obsługiwany w sieci testowej.
@@ -573,7 +571,7 @@ $transfer_inactive_contract_error: |
   Jeśli na pewno chcesz wysłać na ten adres, wprowadź adres w formacie „UQ...”.
 Successfully: Pomyślnie
 Unstake More: Cofnij więcej
-WrongAddress: Transakcja z adresu nie pasuje do adresu konta.
+WrongAddress: Dapp zażądał transakcji z innego portfela.
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Czy na pewno chcesz spalić ten NFT?
   Zostanie on stracony na zawsze.
@@ -592,3 +590,29 @@ Send All: Wyślij wszystko
 Burn All: Spal wszystko
 Select All: Zaznacz wszystko
 Collection: Kolekcja
+Transaction ID was copied!: Identyfikator transakcji został skopiowany!
+$swap_changelly_support: "W przypadku jakichkolwiek problemów skontaktuj się z %livechat% lub %email% i podaj **ID transakcji**:"
+Changelly Live Chat: Czat na żywo Changelly
+Your %blockchain% Address: Twój adres %blockchain%
+Vesting: Nabywanie uprawnień
+Vesting Balance: Bilans uprawnień
+Ready to Unfreeze: Gotowy do odmrożenia
+You will receive your unfrozen coins in a few minutes.: W ciągu kilku minut otrzymasz niezamrożone monety.
+Vesting Schedule: Harmonogram nabywania uprawnień
+Loyal User Airdrop: Nagroda dla użytkowników lojalnościowych
+Unfrozen: Niezamrożone
+Missed: Pominięty
+Frozen: Mrożony
+until %date%: do %date%
+"%volume% in %amount% parts": "%volume% w %amount% częściach"
+Unfreeze: Odmrozić
+Claim: Prawo
+Confirm Unfreezing: Potwierdź Odmrożenie
+Insufficient Balance for Fee.: Niewystarczające saldo na opłatę.
+$fee_value_bold: "**Opłata:** %fee%"
+MyTonWallet Features: Funkcje MyTonWallet
+Install on Desktop: Zainstaluj na pulpicie
+Install on Mobile: Zainstaluj na telefonie komórkowym
+Install App: Zainstaluj aplikację
+WrongNetwork: Dapp zażądał transakcji z innej sieci.
+Hide: Ukryj

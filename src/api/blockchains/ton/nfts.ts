@@ -20,7 +20,7 @@ import { buildNft } from './util/metadata';
 import { fetchAccountEvents, fetchAccountNfts, fetchNftItems } from './util/tonapiio';
 import { commentToBytes, packBytesAsSnake, toBase64Address } from './util/tonCore';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
-import { NFT_TRANSFER_TON_AMOUNT, NFT_TRANSFER_TON_FORWARD_AMOUNT, NftOpCode } from './constants';
+import { NFT_TRANSFER_TONCOIN_AMOUNT, NFT_TRANSFER_TONCOIN_FORWARD_AMOUNT, NftOpCode } from './constants';
 import { checkMultiTransactionDraft, checkToAddress, submitMultiTransfer } from './transactions';
 import { isActiveSmartContract } from './wallet';
 
@@ -132,7 +132,7 @@ export async function checkNftTransferDraft(options: {
   const messages = nftAddresses.slice(0, NFT_BATCH_SIZE).map((nftAddress) => {
     return {
       payload: buildNftTransferPayload(fromAddress, toAddress, comment),
-      amount: NFT_TRANSFER_TON_AMOUNT,
+      amount: NFT_TRANSFER_TONCOIN_AMOUNT,
       toAddress: nftAddress,
     };
   });
@@ -172,7 +172,7 @@ export async function submitNftTransfers(options: {
 
     return {
       payload,
-      amount: NFT_TRANSFER_TON_AMOUNT,
+      amount: NFT_TRANSFER_TONCOIN_AMOUNT,
       toAddress: nftAddress,
     };
   });
@@ -197,7 +197,7 @@ function buildNftTransferPayload(
   fromAddress: string,
   toAddress: string,
   payload?: string | Cell,
-  forwardAmount = NFT_TRANSFER_TON_FORWARD_AMOUNT,
+  forwardAmount = NFT_TRANSFER_TONCOIN_FORWARD_AMOUNT,
 ) {
   let builder = new Builder()
     .storeUint(NftOpCode.TransferOwnership, 32)

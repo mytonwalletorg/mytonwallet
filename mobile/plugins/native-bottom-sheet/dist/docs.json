@@ -293,6 +293,14 @@
           "complexTypes": []
         },
         {
+          "text": "'vesting-info'",
+          "complexTypes": []
+        },
+        {
+          "text": "'vesting-confirm'",
+          "complexTypes": []
+        },
+        {
           "text": "'transaction-info'",
           "complexTypes": []
         },

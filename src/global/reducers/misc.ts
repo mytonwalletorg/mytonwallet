@@ -1,7 +1,7 @@
 import type { ApiBalanceBySlug, ApiSwapAsset, ApiToken } from '../../api/types';
 import type { Account, AccountState, GlobalState } from '../types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { TONCOIN_SLUG } from '../../config';
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 import {
   selectAccount,
@@ -145,7 +145,7 @@ export function updateTokens(
   const currentTokens = global.tokenInfo?.bySlug;
 
   // If the backend does not work, then we won't delete the old prices
-  if (!partial[TON_TOKEN_SLUG].quote.price) {
+  if (!partial[TONCOIN_SLUG].quote.price) {
     partial = Object.values(partial).reduce((result, token) => {
       result[token.slug] = {
         ...token,

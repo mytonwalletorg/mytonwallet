@@ -13,6 +13,7 @@ type OwnProps = {
   children: React.ReactNode;
   id?: string;
   className?: string;
+  style?: string;
   ariaLabel?: string;
   forFormId?: string;
   kind?: 'transparent';
@@ -38,6 +39,7 @@ function Button({
   children,
   id,
   className,
+  style,
   ariaLabel,
   forFormId,
   kind,
@@ -104,6 +106,7 @@ function Button({
         className,
         kind && styles[kind],
       )}
+      style={style}
       aria-label={ariaLabel}
       onClick={handleClick}
       disabled={isDisabled || isLoading}

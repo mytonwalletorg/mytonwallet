@@ -1,10 +1,10 @@
 import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { GlobalState, UserToken } from '../../global/types';
+import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
-import { IS_CAPACITOR, TON_TOKEN_SLUG } from '../../config';
+import { IS_CAPACITOR, TONCOIN_SLUG } from '../../config';
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
@@ -17,6 +17,8 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
 import TransferResult from '../common/TransferResult';
+import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
+import LedgerConnect from '../ledger/LedgerConnect';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -29,11 +31,16 @@ import styles from './Staking.module.scss';
 
 type StateProps = GlobalState['staking'] & {
   tokens?: UserToken[];
+  hardwareState?: HardwareConnectState;
+  isLedgerConnected?: boolean;
+  isTonAppConnected?: boolean;
 };
 
 const IS_OPEN_STATES = new Set([
   StakingState.StakeInitial,
   StakingState.StakePassword,
+  StakingState.StakeConnectHardware,
+  StakingState.StakeConfirmHardware,
   StakingState.StakeComplete,
 ]);
 
@@ -43,6 +50,9 @@ function StakeModal({
   amount,
   error,
   tokens,
+  hardwareState,
+  isLedgerConnected,
+  isTonAppConnected,
 }: StateProps) {
   const {
     startStaking,
@@ -50,12 +60,13 @@ function StakeModal({
     cancelStaking,
     clearStakingError,
     submitStakingPassword,
+    submitStakingHardware,
     openStakingInfo,
   } = getActions();
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TON_TOKEN_SLUG), [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]);
   const [renderedStakingAmount, setRenderedStakingAmount] = useState(amount);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
@@ -65,6 +76,10 @@ function StakeModal({
       clearStakingError();
       setStakingScreen({ state: StakingState.StakeInitial });
     }
+  });
+
+  const handleLedgerConnect = useLastCallback(() => {
+    submitStakingHardware();
   });
 
   const handleTransferSubmit = useLastCallback((password: string) => {
@@ -158,6 +173,28 @@ function StakeModal({
       case StakingState.StakePassword:
         return renderPassword(isActive);
 
+      case StakingState.StakeConnectHardware:
+        return (
+          <LedgerConnect
+            isActive={isActive}
+            state={hardwareState}
+            isLedgerConnected={isLedgerConnected}
+            isTonAppConnected={isTonAppConnected}
+            onConnected={handleLedgerConnect}
+            onClose={cancelStaking}
+          />
+        );
+
+      case StakingState.StakeConfirmHardware:
+        return (
+          <LedgerConfirmOperation
+            text={lang('Please confirm operation on your Ledger')}
+            error={error}
+            onClose={cancelStaking}
+            onTryAgain={handleLedgerConnect}
+          />
+        );
+
       case StakingState.StakeComplete:
         return renderComplete(isActive);
     }
@@ -191,8 +228,17 @@ function StakeModal({
 export default memo(withGlobal((global) => {
   const tokens = selectCurrentAccountTokens(global);
 
+  const {
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
+  } = global.hardware;
+
   return {
     ...global.staking,
     tokens,
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
   };
 })(StakeModal));

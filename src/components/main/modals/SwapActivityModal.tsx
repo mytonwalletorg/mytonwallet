@@ -1,4 +1,4 @@
-import React, { memo } from '../../../lib/teact/teact';
+import React, { memo, type TeactNode, useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../api/types';
@@ -6,19 +6,20 @@ import type { ApiSwapActivity, ApiSwapAsset } from '../../../api/types';
 import {
   ANIMATION_END_DELAY,
   ANIMATION_LEVEL_MIN,
+  CHANGELLY_LIVE_CHAT_URL,
   CHANGELLY_SECURITY_EMAIL,
   CHANGELLY_SUPPORT_EMAIL,
   CHANGELLY_WAITING_DEADLINE,
+  TON_EXPLORER_NAME,
   TON_SYMBOL,
-  TON_TOKEN_SLUG,
-  TONSCAN_BASE_MAINNET_URL,
+  TONCOIN_SLUG,
 } from '../../../config';
 import { selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatTime } from '../../../util/dateFormat';
 import { formatCurrency, formatCurrencyExtended } from '../../../util/formatNumber';
 import getBlockchainNetworkName from '../../../util/swap/getBlockchainNetworkName';
-import getSwapRate from '../../../util/swap/getSwapRate';
+import { getTonExplorerTransactionUrl } from '../../../util/url';
 
 import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
 import useLang from '../../../hooks/useLang';
@@ -40,11 +41,7 @@ type StateProps = {
   tokensBySlug?: Record<string, ApiSwapAsset>;
 };
 
-enum EmailType {
-  Support,
-  Security,
-}
-
+const CHANGELLY_EXPIRE_CHECK_STATUSES = new Set(['new', 'waiting']);
 const CHANGELLY_PENDING_STATUSES = new Set(['new', 'waiting', 'confirming', 'exchanging', 'sending']);
 const CHANGELLY_ERROR_STATUSES = new Set(['failed', 'expired', 'refunded', 'overdue']);
 const ONCHAIN_ERROR_STATUSES = new Set(['failed', 'expired']);
@@ -62,6 +59,12 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     ? 0
     : (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
   const renderedActivity = usePrevDuringAnimation(activity, animationDuration);
+  const tonExplorerTitle = useMemo(() => {
+    return (lang('View Transaction on %ton_explorer_name%', {
+      ton_explorer_name: TON_EXPLORER_NAME,
+    }) as TeactNode[]
+    ).join('');
+  }, [lang]);
 
   const { txIds, timestamp, networkFee = 0 } = renderedActivity ?? {};
 
@@ -71,13 +74,17 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
   let toAmount = '0';
   let isPending = true;
   let isError = false;
+  let isCexSwap = false;
   let isCexError = false;
   let isCexHold = false;
   let isCexWaiting = false;
   let isCexPending = false;
+  let isExpired = false;
+  let cexTransactionId = '';
   let title = '';
-  let errorMessage = '';
-  let emailType: EmailType | undefined;
+  let cexErrorMessage = '';
+  let isFromToncoin = true;
+  let isCountdownFinished = false;
 
   if (renderedActivity) {
     const {
@@ -87,16 +94,21 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     toToken = tokensBySlug?.[to];
     fromAmount = renderedActivity.fromAmount;
     toAmount = renderedActivity.toAmount;
-
-    const isFromTon = from === TON_TOKEN_SLUG;
+    isFromToncoin = from === TONCOIN_SLUG;
 
     if (cex) {
-      isPending = CHANGELLY_PENDING_STATUSES.has(cex.status);
+      isCountdownFinished = timestamp
+        ? (timestamp + CHANGELLY_WAITING_DEADLINE - Date.now() < 0)
+        : false;
+      isExpired = CHANGELLY_EXPIRE_CHECK_STATUSES.has(cex.status) && isCountdownFinished;
+      isCexSwap = true;
+      isPending = !isExpired && CHANGELLY_PENDING_STATUSES.has(cex.status);
       isCexPending = isPending;
-      isCexError = CHANGELLY_ERROR_STATUSES.has(cex.status);
+      isCexError = isExpired || CHANGELLY_ERROR_STATUSES.has(cex.status);
       isCexHold = cex.status === 'hold';
-      // Skip the 'waiting' status for transactions from TON to account for delayed status updates from Сhangelly
-      isCexWaiting = cex.status === 'waiting' && !isFromTon;
+      // Skip the 'waiting' status for transactions from Toncoin to account for delayed status updates from Сhangelly
+      isCexWaiting = cex.status === 'waiting' && !isFromToncoin && !isExpired;
+      cexTransactionId = cex.transactionId;
     } else {
       isPending = status === 'pending';
       isError = ONCHAIN_ERROR_STATUSES.has(status!);
@@ -105,21 +117,17 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     if (isPending) {
       title = lang('Swapping');
     } else if (isCexHold) {
-      title = lang('Swap Hold');
-      errorMessage = lang('Please contact security team to pass the KYC procedure.');
-      emailType = EmailType.Security;
+      title = lang('Swap On Hold');
     } else if (isCexError) {
       const { status: cexStatus } = renderedActivity?.cex ?? {};
       if (cexStatus === 'expired' || cexStatus === 'overdue') {
         title = lang('Swap Expired');
-        errorMessage = lang('You have not sent the coins to the specified address.');
+        cexErrorMessage = lang('You have not sent the coins to the specified address.');
       } else if (cexStatus === 'refunded') {
         title = lang('Swap Refunded');
-        errorMessage = lang('Exchange failed and coins were refunded to your wallet.');
+        cexErrorMessage = lang('Exchange failed and coins were refunded to your wallet.');
       } else {
         title = lang('Swap Failed');
-        errorMessage = lang('Please contact support and provide a transaction ID.');
-        emailType = EmailType.Support;
       }
     } else if (isError) {
       title = lang('Swap Failed');
@@ -129,11 +137,9 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
   }
 
   const [, transactionHash] = (txIds?.[0] || '').split(':');
-  const tonscanBaseUrl = TONSCAN_BASE_MAINNET_URL;
-  const tonscanTransactionUrl = transactionHash ? `${tonscanBaseUrl}tx/${transactionHash}` : undefined;
+  const transactionUrl = getTonExplorerTransactionUrl(transactionHash);
 
-  const payinAddress = renderedActivity?.cex?.payinAddress;
-  const payinExtraId = renderedActivity?.cex?.payinExtraId;
+  const { payinAddress, payoutAddress, payinExtraId } = renderedActivity?.cex || {};
   const shouldShowQrCode = !payinExtraId;
   const { qrCodeRef, isInitialized } = useQrCode(
     payinAddress,
@@ -193,7 +199,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
       isButtonVisible = false;
     } else if (isCexError) {
       const { status: cexStatus } = renderedActivity?.cex ?? {};
-      if (cexStatus === 'expired' || cexStatus === 'refunded') {
+      if (cexStatus === 'expired' || cexStatus === 'refunded' || cexStatus === 'overdue') {
         buttonText = 'Try Again';
       }
     }
@@ -209,15 +215,80 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     );
   }
 
-  function renderErrorMessage() {
-    const email = emailType === EmailType.Support
-      ? CHANGELLY_SUPPORT_EMAIL
-      : CHANGELLY_SECURITY_EMAIL;
+  function renderCexInformation() {
+    if (isCexHold) {
+      return (
+        <div className={styles.textFieldWrapperFullWidth}>
+          <span className={styles.changellyDescription}>
+            {lang('$swap_changelly_kyc_security', {
+              email: (
+                <a
+                  href={`mailto:${CHANGELLY_SECURITY_EMAIL}?body=Transaction ID: ${cexTransactionId || ''}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.changellyDescriptionBold}
+                >
+                  {CHANGELLY_SECURITY_EMAIL}
+                </a>),
+            })}
+          </span>
+          {cexTransactionId && (
+            <InteractiveTextField
+              text={cexTransactionId}
+              copyNotification={lang('Transaction ID was copied!')}
+              noSavedAddress
+              noExplorer
+              className={styles.changellyTextField}
+            />
+          )}
+        </div>
+      );
+    }
 
     return (
-      <div className={styles.errorCexBlock}>
-        <span className={styles.errorCexMessage}>{errorMessage}</span>
-        {emailType !== undefined && <a className={styles.errorCexEmail} href={`mailto:${email}`}>{email}</a>}
+      <div className={buildClassName(styles.textFieldWrapperFullWidth, styles.swapSupportBlock)}>
+        {cexErrorMessage && <span className={styles.errorCexMessage}>{cexErrorMessage}</span>}
+
+        {isCexPending && (
+          <span className={buildClassName(styles.changellyDescription)}>
+            {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
+          </span>
+        )}
+        {isCountdownFinished && (
+          <>
+            <span className={styles.changellyDescription}>
+              {lang('$swap_changelly_support', {
+                livechat: (
+                  <a
+                    href={CHANGELLY_LIVE_CHAT_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.changellyDescriptionBold}
+                  >
+                    {lang('Changelly Live Chat')}
+                  </a>),
+                email: (
+                  <a
+                    href={`mailto:${CHANGELLY_SUPPORT_EMAIL}?body=Transaction ID: ${cexTransactionId || ''}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.changellyDescriptionBold}
+                  >
+                    {CHANGELLY_SUPPORT_EMAIL}
+                  </a>),
+              })}
+            </span>
+            {cexTransactionId && (
+              <InteractiveTextField
+                text={cexTransactionId}
+                copyNotification={lang('Transaction ID was copied!')}
+                noSavedAddress
+                noExplorer
+                className={styles.changellyTextField}
+              />
+            )}
+          </>
+        )}
       </div>
     );
   }
@@ -241,14 +312,31 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     );
   }
 
+  function renderFee() {
+    return (
+      <div className={styles.textFieldWrapper}>
+        <span className={styles.textFieldLabel}>
+          {lang('Blockchain Fee')}
+        </span>
+        <div className={styles.textField}>
+          {formatCurrency(networkFee, TON_SYMBOL, undefined, true)}
+        </div>
+      </div>
+    );
+  }
+
   function renderAddress() {
     if (!payinAddress) return undefined;
 
     return (
       <div className={styles.textFieldWrapper}>
-        <span className={styles.textFieldLabel}>{lang('Changelly Payment Address')}</span>
+        <span className={styles.textFieldLabel}>
+          {isFromToncoin
+            ? lang('Your %blockchain% Address', { blockchain: toToken?.name })
+            : lang('Address for %blockchain% transfer', { blockchain: fromToken?.name })}
+        </span>
         <InteractiveTextField
-          address={payinAddress}
+          address={isFromToncoin ? payoutAddress : payinAddress}
           copyNotification={lang('Address was copied!')}
           noSavedAddress
           noExplorer
@@ -261,6 +349,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     if (isCexWaiting) {
       return (
         <div className={styles.changellyInfoBlock}>
+          {networkFee > 0 && renderFee()}
           <span className={styles.changellyDescription}>{lang('$swap_changelly_to_ton_description1', {
             value: (
               <span className={styles.changellyDescriptionBold}>
@@ -290,31 +379,13 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
       );
     }
 
-    if (isCexError || isCexHold) {
-      return (
-        <>
-          {renderAddress()}
-          {renderMemo()}
-        </>
-      );
-    }
+    const shouldRenderFee = !(isCexError || isCexHold) || networkFee > 0;
 
     return (
       <>
+        {shouldRenderFee && renderFee()}
         {renderAddress()}
         {renderMemo()}
-        <div className={styles.textFieldWrapper}>
-          <span className={styles.textFieldLabel}>{lang('Exchange rate')}</span>
-          {renderCurrency(renderedActivity, fromToken, toToken)}
-        </div>
-        <div className={styles.textFieldWrapper}>
-          <span className={styles.textFieldLabel}>
-            {lang('Blockchain Fee')}
-          </span>
-          <div className={styles.textField}>
-            {formatCurrency(networkFee, TON_SYMBOL, undefined, true)}
-          </div>
-        </div>
       </>
     );
   }
@@ -331,12 +402,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
         />
         <div className={styles.infoBlock}>
           {renderSwapInfo()}
-          {renderErrorMessage()}
-          {isCexPending && (
-            <span className={buildClassName(styles.changellyDescription)}>
-              {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
-            </span>
-          )}
+          {isCexSwap && renderCexInformation()}
         </div>
         <div className={styles.footer}>
           {renderFooterButton()}
@@ -354,15 +420,15 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
       onClose={handleClose}
     >
       <div className={modalStyles.transitionContent}>
-        {tonscanTransactionUrl && (
+        {transactionUrl && (
           <a
-            href={tonscanTransactionUrl}
+            href={transactionUrl}
             target="_blank"
             rel="noreferrer noopener"
-            className={styles.tonscan}
-            title={lang('View Transaction on TONScan')}
+            className={styles.tonExplorer}
+            title={tonExplorerTitle}
           >
-            <i className="icon-tonscan" aria-hidden />
+            <i className="icon-tonexplorer" aria-hidden />
           </a>
         )}
         {renderContent()}
@@ -384,16 +450,3 @@ export default memo(
     };
   })(SwapActivityModal),
 );
-
-function renderCurrency(activity?: ApiSwapActivity, fromToken?: ApiSwapAsset, toToken?: ApiSwapAsset) {
-  const rate = getSwapRate(activity?.fromAmount, activity?.toAmount, fromToken, toToken);
-
-  if (!rate) return undefined;
-
-  return (
-    <div className={styles.textField}>
-      1 {rate.firstCurrencySymbol}{' ≈ '}
-      {rate.price}{' '}{rate.secondCurrencySymbol}
-    </div>
-  );
-}

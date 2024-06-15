@@ -42,7 +42,7 @@ function Tab({
   // eslint-disable-next-line no-null/no-null
   const contentRef = useRef<HTMLDivElement>(null);
   const [menuPosition, setMenuPosition] = useState<IAnchorPosition | undefined>();
-  const hasMenu = Boolean(menuItems);
+  const hasMenu = Boolean(menuItems?.length);
   const isMenuOpen = Boolean(menuPosition);
 
   const getTriggerElement = useLastCallback(() => contentRef.current);
@@ -62,7 +62,7 @@ function Tab({
   );
 
   const handleClick = useLastCallback(() => {
-    if (isActive && !menuItems?.length) return;
+    if (isActive && !hasMenu) return;
 
     if (!isActive) {
       onClick(clickArg);
@@ -135,13 +135,13 @@ function Tab({
     >
       <span className={styles.content} ref={contentRef}>
         {title}
-        {Boolean(menuItems?.length) && <i className="icon-caret-down" aria-hidden />}
+        {hasMenu && isActive && <i className="icon-caret-down" aria-hidden />}
         <i className={styles.platform} aria-hidden />
       </span>
       {hasMenu && (
         <DropdownMenu
           isOpen={isMenuOpen}
-          items={menuItems}
+          items={menuItems!}
           withPortal
           buttonClassName={styles.menuItem}
           menuPositionHorizontal="right"

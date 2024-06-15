@@ -336,7 +336,7 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
       for (const account of Object.values(accounts)) {
         const { publicKey, address, version: walletVersion } = account;
 
-        if (walletVersion) continue;
+        if (walletVersion || !publicKey) continue;
 
         const publicKeyBytes = hexToBytes(publicKey);
         const walletInfo = ton.pickWalletByAddress('mainnet', publicKeyBytes, address);

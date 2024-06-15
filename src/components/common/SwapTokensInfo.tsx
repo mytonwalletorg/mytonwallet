@@ -6,6 +6,7 @@ import type { UserSwapToken } from '../../global/types';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
+import getSwapRate from '../../util/swap/getSwapRate';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import styles from './SwapTokensInfo.module.scss';
@@ -32,19 +33,21 @@ function SwapTokensInfo({
             alt={token?.symbol}
             className={styles.infoRowIcon}
           />
-          <div className={styles.infoRowText}>
+          <div className={buildClassName(styles.infoRowText, styles.infoRowTextCenter)}>
             <span className={styles.infoRowTitle}>{token?.name}</span>
             <span className={styles.infoRowDescription}>{getBlockchainNetworkName(token?.blockchain)}</span>
           </div>
         </div>
-        <div className={buildClassName(styles.infoRowText, styles.infoRowTextCenter)}>
+        <div className={buildClassName(styles.infoRowText, styles.infoRowTextRight, styles.infoRowTextCenter)}>
           <span className={buildClassName(
             styles.infoRowAmount,
             isReceived && styles.infoRowAmountGreen,
             isError && styles.infoRowAmountError,
           )}
-          >{formatCurrencyExtended(amountWithSign, token?.symbol ?? '')}
+          >
+            {formatCurrencyExtended(amountWithSign, token?.symbol ?? '')}
           </span>
+          {!isReceived && renderCurrency(amountIn, amountOut, tokenIn, tokenOut)}
         </div>
       </div>
     );
@@ -69,3 +72,17 @@ function SwapTokensInfo({
 }
 
 export default memo(SwapTokensInfo);
+
+function renderCurrency(amountIn?: string, amountOut?: string, fromToken?: ApiSwapAsset, toToken?: ApiSwapAsset) {
+  const rate = getSwapRate(amountIn, amountOut, fromToken, toToken);
+  if (!rate) return undefined;
+
+  return (
+    <span className={styles.infoRowCurrency}>
+      {rate.firstCurrencySymbol} ≈
+      <span className={styles.infoRowCurrencyValue}>
+        {rate.price}{' '}{rate.secondCurrencySymbol}
+      </span>
+    </span>
+  );
+}

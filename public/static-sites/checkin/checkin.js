@@ -6,6 +6,7 @@ const BRIDGE_URL = 'https://tonconnectbridge.mytonwallet.org/bridge';
 const CAPTCHA_KEY = '0x4AAAAAAAWP-ib_cL3bojOS';
 
 const REF_LINK_PREFIX = 'https://my.tt/r/';
+const BOT_USERNAME = 'MyTonWalletBot';
 
 let captchaLoadedResolve = undefined;
 let captchaLoadedPromise = new Promise((resolve) => {
@@ -107,6 +108,12 @@ function showSlide(id) {
 
 async function submitCheckin(captchaToken) {
   const queryParams = new URLSearchParams(window.location.search);
+
+  if (queryParams.get('r') === 'connect-bot') {
+    processConnectBot();
+    return;
+  }
+
   const response = await fetch('https://api.mytonwallet.org/checkin', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -138,6 +145,21 @@ async function submitCheckin(captchaToken) {
   }
 
   handleSuccess(data.refAddress, data.referrals);
+}
+
+function processConnectBot() {
+  const botUrl = `https://t.me/${BOT_USERNAME}/?start=auth-${address}`;
+
+  if (window.open(botUrl)) {
+    window.close();
+  }
+
+  $('connect-bot-btn').addEventListener('click', () => {
+    window.open(botUrl);
+    window.close();
+  });
+
+  showSlide('connect-bot');
 }
 
 function handleSuccess(refAddress, referrals) {

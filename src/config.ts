@@ -26,6 +26,8 @@ export const BETA_URL = 'https://beta.mytonwallet.app';
 export const APP_REPO_URL = 'https://github.com/mytonwalletorg/mytonwallet';
 export const BASE_URL = process.env.BASE_URL;
 
+export const BOT_USERNAME = process.env.BOT_USERNAME || 'MyTonWalletBot';
+
 export const SWAP_FEE_ADDRESS = process.env.SWAP_FEE_ADDRESS || 'UQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0GOp';
 
 export const STRICTERDOM_ENABLED = DEBUG && !IS_PACKAGED_ELECTRON;
@@ -94,19 +96,25 @@ export const SHORT_FRACTION_DIGITS = 2;
 export const SUPPORT_USERNAME = 'MyTonWalletSupport';
 export const MY_TON_WALLET_PROMO_URL = 'https://mytonwallet.io';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
-export const TONSCAN_BASE_MAINNET_URL = 'https://tonscan.org/';
-export const TONSCAN_BASE_TESTNET_URL = 'https://testnet.tonscan.org/';
+export const TON_EXPLORER_BASE_MAINNET_URL = 'https://tonviewer.com/';
+export const TON_EXPLORER_BASE_TESTNET_URL = 'https://testnet.tonviewer.com/';
+export const TON_EXPLORER_NAME = 'Tonviewer';
+export const TOKEN_EXPLORER_MAINNET_URL = 'https://tonviewer.com/{address}?section=jetton';
+export const TOKEN_EXPLORER_TESTNET_URL = 'https://testnet.tonviewer.com/{address}?section=jetton';
+export const TOKEN_EXPLORER_NAME = 'TonViewer';
 export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
+export const EMPTY_HASH_VALUE = 'NOHASH';
 
 export const CHANGELLY_SUPPORT_EMAIL = 'support@changelly.com';
+export const CHANGELLY_LIVE_CHAT_URL = 'https://changelly.com/';
 export const CHANGELLY_SECURITY_EMAIL = 'security@changelly.com';
 export const CHANGELLY_TERMS_OF_USE = 'https://changelly.com/terms-of-use';
 export const CHANGELLY_PRIVACY_POLICY = 'https://changelly.com/privacy-policy';
 export const CHANGELLY_AML_KYC = 'https://changelly.com/aml-kyc';
 export const CHANGELLY_WAITING_DEADLINE = 3 * 60 * 60 * 1000; // 3 hour
 
-export const TON_TOKEN_SLUG = 'toncoin';
+export const TONCOIN_SLUG = 'toncoin';
 export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = 'ton-eqc47093ox'; // To be updated with the most popular token, according to https://ton.app/jettons
 export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = 'usdtrx';
 
@@ -114,7 +122,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-102';
+export const LANG_CACHE_NAME = 'mtw-lang-110';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -195,15 +203,19 @@ export const NFT_FRAGMENT_COLLECTIONS = new Set([
 ]);
 
 export const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
+export const MYCOIN_TOKEN = 'EQCFVNlRb-NHHDQfv3Q9xvDXBLJlay855_xREsq5ZDX6KN-w';
+export const MYCOIN_SLUG = 'ton-eqcfvnlrbn';
+export const MYCOIN_TOKEN_TESTNET = 'kQAWlxpEbwhCDFX9gp824ee2xVBhAh5VRSGWfbNFDddAbQoQ';
+export const MYCOIN_SLUG_TESTNET = 'ton-kqawlxpebw';
 
 export const TOKEN_INFO = {
   toncoin: {
     name: 'Toncoin',
     symbol: TON_SYMBOL,
-    slug: TON_TOKEN_SLUG,
-    cmcSlug: TON_TOKEN_SLUG,
+    slug: TONCOIN_SLUG,
+    cmcSlug: TONCOIN_SLUG,
     quote: {
-      slug: TON_TOKEN_SLUG,
+      slug: TONCOIN_SLUG,
       price: 1.95,
       priceUsd: 1.95,
       percentChange24h: 0,
@@ -219,7 +231,7 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
     name: 'Toncoin',
     symbol: TON_SYMBOL,
     blockchain: TON_BLOCKCHAIN,
-    slug: TON_TOKEN_SLUG,
+    slug: TONCOIN_SLUG,
     decimals: DEFAULT_DECIMAL_PLACES,
     price: 0,
     priceUsd: 0,
@@ -323,10 +335,5 @@ export const CLAIM_COMMENT = 'claim';
 
 // eslint-disable-next-line max-len
 export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z][-a-zA-Z0-9]{1,62})\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)/g;
-export const COLLECTIONS_WITH_LINK = new Set([
-  'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz', // TON DNS
-  'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS', // VIP DNS
-  'kQDjPtM6QusgMgWfl9kMcG-EALslbTITnKcH8VZK1pnH3f3K', // TON DNS testnet
-  'EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi', // Telegram Usernames
-  'EQDAbngYJKa7b1cGzxwLqziw8iGBZCTx364E1HWWrdn7oBqV', // Tersoma/Manutra
-]);
+
+export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';

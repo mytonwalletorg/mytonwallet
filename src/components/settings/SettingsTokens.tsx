@@ -7,7 +7,7 @@ import { getActions } from '../../global';
 import type { ApiBaseCurrency } from '../../api/types';
 import { SettingsState, type UserToken } from '../../global/types';
 
-import { TON_TOKEN_SLUG } from '../../config';
+import { TONCOIN_SLUG } from '../../config';
 import { bigintMultiplyToNumber } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
@@ -115,7 +115,7 @@ function SettingsTokens({
   });
 
   const handleExceptionToken = useLastCallback((slug: string, e: React.MouseEvent | React.TouchEvent) => {
-    if (slug === TON_TOKEN_SLUG) return;
+    if (slug === TONCOIN_SLUG) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -132,7 +132,7 @@ function SettingsTokens({
       symbol, image, name, amount, price, slug, isDisabled,
     } = token;
 
-    const isTON = slug === TON_TOKEN_SLUG;
+    const isToncoin = slug === TONCOIN_SLUG;
     const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
     const totalAmount = bigintMultiplyToNumber(amount, price);
     const isDragged = state.draggedIndex === index;
@@ -143,7 +143,7 @@ function SettingsTokens({
     const style = `top: ${isDragged ? draggedTop : top}px;`;
     const knobStyle = 'left: 1rem;';
 
-    const isDeleteButtonVisible = amount === 0n && !isTON;
+    const isDeleteButtonVisible = amount === 0n && !isToncoin;
 
     const isDragDisabled = isSortByValueEnabled || tokens!.length <= 1;
 
@@ -186,7 +186,7 @@ function SettingsTokens({
             )}
           </div>
         </div>
-        {!isTON && (
+        {!isToncoin && (
           <Switcher
             className={styles.menuSwitcher}
             checked={!isDisabled}

@@ -1,4 +1,3 @@
-import type { RefObject } from 'react';
 import React, {
   memo, useEffect, useLayoutEffect, useMemo, useRef,
 } from '../../../../lib/teact/teact';
@@ -8,7 +7,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiActivity, ApiSwapAsset, ApiToken } from '../../../../api/types';
 import { ContentTab } from '../../../../global/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, MIN_ASSETS_TAB_VIEW, TON_TOKEN_SLUG } from '../../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, MIN_ASSETS_TAB_VIEW, TONCOIN_SLUG } from '../../../../config';
 import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../../../global/helpers';
 import {
   selectAccountSettings,
@@ -41,7 +40,6 @@ import styles from './Activities.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
-  mobileRef?: RefObject<HTMLDivElement>;
 }
 
 type StateProps = {
@@ -82,7 +80,6 @@ const TIME_BETWEEN_SWAP_AND_TX = 3600000; // 1 hour
 
 function Activities({
   isActive,
-  mobileRef,
   currentAccountId,
   isNewWallet,
   slug,
@@ -107,8 +104,6 @@ function Activities({
 
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const portraitContainerRef = useRef<HTMLDivElement>(null);
 
   const ids = useMemo(() => {
     let idList: string[] | undefined;
@@ -125,7 +120,7 @@ function Activities({
           idList = idList.filter((txId) => byId[txId].timestamp >= lastTokenTxTimestamp);
         }
       } else {
-        const lastTonTxId = findLast(bySlug[TON_TOKEN_SLUG] ?? [], (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
+        const lastTonTxId = findLast(bySlug[TONCOIN_SLUG] ?? [], (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
         idList = unique(Object.values(bySlug).flat());
         if (lastTonTxId) {
           idList = idList.filter((txId) => byId[txId].timestamp >= byId[lastTonTxId].timestamp);
@@ -266,14 +261,18 @@ function Activities({
   const currentContainerHeight = useMemo(
     () => {
       const lastViewportId = viewportIds![viewportIds!.length - 1];
-      const activityInfo = activityOffsetInfoById[lastViewportId];
 
-      if (!activityInfo) return 0;
-
-      return activityInfo.offsetNext;
+      return activityOffsetInfoById[lastViewportId]?.offsetNext || 0;
     },
     [activityOffsetInfoById, viewportIds],
   );
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    setExtraStyles(container, { height: isLandscape ? '' : `${currentContainerHeight}px` });
+  }, [isLandscape, currentContainerHeight]);
 
   useEffect(() => {
     if (!isHistoryEndReached && ids && isActivitiesEmpty) {
@@ -286,19 +285,6 @@ function Activities({
       resetScroll?.();
     }
   }, [isActive, isLandscape, resetScroll]);
-
-  useLayoutEffect(() => {
-    if (isLandscape && containerRef.current) {
-      setExtraStyles(containerRef.current, { height: '' });
-      return;
-    }
-
-    if (!containerRef.current || !mobileRef?.current) return;
-
-    portraitContainerRef.current = mobileRef.current?.closest<HTMLDivElement>('.app-slide-content');
-
-    setExtraStyles(containerRef.current, { height: `${currentContainerHeight}px` });
-  }, [isLandscape, currentContainerHeight, mobileRef]);
 
   const handleActivityClick = useLastCallback((id: string) => {
     showActivityInfo({ id });
@@ -403,9 +389,9 @@ function Activities({
 
   return (
     <InfiniteScroll
-      className={buildClassName('custom-scroll', styles.listGroup)}
       ref={containerRef}
-      scrollRef={isLandscape ? undefined : portraitContainerRef}
+      className={buildClassName('custom-scroll', styles.listGroup)}
+      scrollContainerClosest={!isLandscape && isActive ? '.app-slide-content' : undefined}
       items={viewportIds}
       preloadBackwards={FURTHER_SLICE}
       withAbsolutePositioning
