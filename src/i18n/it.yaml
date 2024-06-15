@@ -590,3 +590,29 @@ Send All: Invia tutto
 Burn All: Brucia tutto
 Select All: Seleziona tutto
 Collection: Collezione
+Transaction ID was copied!: L'ID della transazione è stato copiato!
+$swap_changelly_support: "In caso di problemi, contattare %livechat% o %email% e fornire **l'ID della transazione**:"
+Changelly Live Chat: Chat live di Changelly
+Your %blockchain% Address: Il vostro indirizzo %blockchain%
+Vesting: Maturazione
+Vesting Balance: Saldo di maturazione
+Ready to Unfreeze: Pronti a scongelare
+You will receive your unfrozen coins in a few minutes.: Riceverete le monete non congelate in pochi minuti.
+Vesting Schedule: Programma di maturazione
+Loyal User Airdrop: Utente fedele Airdrop
+Unfrozen: Non congelato
+Missed: Mancato
+Frozen: Congelato
+until %date%: fino a %date%
+"%volume% in %amount% parts": "%volume% in %quantità% di parti"
+Unfreeze: Scongelare
+Claim: Rivendicazione
+Confirm Unfreezing: Confermare lo scongelamento
+Insufficient Balance for Fee.: Saldo insufficiente per la tassa.
+$fee_value_bold: "**Tassa:** %tassa%"
+MyTonWallet Features: Caratteristiche di MyTonWallet
+Install on Desktop: Installare sul Desktop
+Install on Mobile: Installare su Mobile
+Install App: Installare l'applicazione
+WrongNetwork: La dapp ha richiesto una transazione da un'altra rete.
+Hide: Nascondere
