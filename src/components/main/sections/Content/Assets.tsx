@@ -94,6 +94,7 @@ function Assets({
     transitionClassNames: vestingTokenClassNames,
     amount: vestingAmount,
     vestingStatus,
+    unfreezeEndDate,
     onVestingTokenClick,
   } = useVesting({ vesting, userMycoin });
 
@@ -144,6 +145,7 @@ function Assets({
         key="vesting"
         token={userMycoin!}
         vestingStatus={vestingStatus}
+        unfreezeEndDate={unfreezeEndDate}
         amount={vestingAmount}
         isInvestorView={isInvestorViewEnabled}
         classNames={vestingTokenClassNames}

@@ -7,11 +7,13 @@ import { TONCOIN_SLUG } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
+import { formatFullDay } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 
+import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
@@ -24,6 +26,7 @@ interface OwnProps {
   token: UserToken;
   stakingStatus?: 'active' | 'unstakeRequested';
   vestingStatus?: 'frozen' | 'readyToUnfreeze';
+  unfreezeEndDate?: number;
   amount?: string;
   isInvestorView?: boolean;
   classNames?: string;
@@ -34,11 +37,15 @@ interface OwnProps {
   onClick: (slug: string) => void;
 }
 
+const DAY = 1000 * 60 * 60 * 24;
+const UNFREEZE_DANGER_DURATION = 7 * DAY;
+
 function Token({
   token,
   amount,
   stakingStatus,
   vestingStatus,
+  unfreezeEndDate,
   apyValue,
   isInvestorView,
   classNames,
@@ -57,6 +64,8 @@ function Token({
     image,
     decimals,
   } = token;
+
+  const lang = useLang();
 
   const isVesting = Boolean(vestingStatus?.length);
   const renderedAmount = amount ?? toDecimal(tokenAmount, decimals, true);
@@ -139,11 +148,24 @@ function Token({
           >
             <AnimatedCounter text={formatCurrency(value, shortBaseSymbol)} />
           </div>
-          <div className={buildClassName(styles.change, changeClassName)}>
-            {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
-            <i className={styles.dot} aria-hidden />
-            <AnimatedCounter text={formatCurrency(changeValue, shortBaseSymbol, undefined, true)} />
-          </div>
+          {unfreezeEndDate ? (
+            <div
+              className={buildClassName(
+                styles.change,
+                (unfreezeEndDate - Date.now() < UNFREEZE_DANGER_DURATION) && styles.change_down,
+              )}
+            >
+              {lang('Unfreeze')}
+              {' '}
+              {lang('until %date%', { date: `${formatFullDay(lang.code!, unfreezeEndDate)}` })}
+            </div>
+          ) : (
+            <div className={buildClassName(styles.change, changeClassName)}>
+              {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
+              <i className={styles.dot} aria-hidden />
+              <AnimatedCounter text={formatCurrency(changeValue, shortBaseSymbol, undefined, true)} />
+            </div>
+          )}
         </div>
         <i className={buildClassName(styles.iconChevron, 'icon-chevron-right')} aria-hidden />
       </Button>
@@ -179,9 +201,17 @@ function Token({
             {!stakingStatus && (
               <>
                 <i className={styles.dot} aria-hidden />
-                <span className={changeClassName}>
-                  {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
-                </span>
+                {unfreezeEndDate ? (
+                  <span className={(unfreezeEndDate - Date.now() < UNFREEZE_DANGER_DURATION) && styles.change_down}>
+                    {lang('Unfreeze')}
+                    {' '}
+                    {lang('until %date%', { date: `${formatFullDay(lang.code!, unfreezeEndDate)}` })}
+                  </span>
+                ) : (
+                  <span className={changeClassName}>
+                    {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
+                  </span>
+                )}
               </>
             )}
           </div>

@@ -569,7 +569,11 @@ export type GlobalState = {
   isVestingModalOpen?: boolean;
   shouldForceAccountEdit?: boolean;
   isIncorrectTimeNotificationReceived?: boolean;
-  currentBrowserUrl?: string;
+  currentBrowserOptions?: {
+    url: string;
+    title?: string;
+    subtitle?: string;
+  };
 
   currentQrScan?: {
     currentTransfer?: GlobalState['currentTransfer'];
@@ -815,7 +819,7 @@ export interface ActionPayloads {
 
   addSiteToBrowserHistory: { url: string };
   removeSiteFromBrowserHistory: { url: string };
-  openBrowser: { url: string };
+  openBrowser: { url: string; title?: string; subtitle?: string };
   closeBrowser: undefined;
 
   apiUpdateDappConnect: ApiUpdateDappConnect;

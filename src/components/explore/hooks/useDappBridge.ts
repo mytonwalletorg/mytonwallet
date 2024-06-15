@@ -1,4 +1,3 @@
-import type { InAppBrowserObject } from '@awesome-cordova-plugins/in-app-browser';
 import type {
   AppRequest, ConnectEvent,
   ConnectEventError, ConnectRequest, DeviceInfo, RpcMethod, WalletEvent,
@@ -8,6 +7,7 @@ import { BottomSheet } from 'native-bottom-sheet';
 import { useMemo, useRef, useState } from '../../../lib/teact/teact';
 import { getGlobal } from '../../../global';
 
+import type { CustomInAppBrowserObject } from './useWebViewBridge';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from '../../../api/tonConnect/types';
 
 import { TONCONNECT_PROTOCOL_VERSION } from '../../../config';
@@ -37,7 +37,7 @@ export function useDappBridge({
   endpoint,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
-  const inAppBrowserRef = useRef<InAppBrowserObject>(null);
+  const inAppBrowserRef = useRef<CustomInAppBrowserObject>(null);
   const [requestId, setRequestId] = useState(0);
   const origin = useMemo(() => {
     return endpoint ? new URL(endpoint).origin.toLowerCase() : undefined;
@@ -67,7 +67,7 @@ export function useDappBridge({
           }
           verifyConnectRequest(request);
 
-          inAppBrowserRef.current?.hide();
+          await inAppBrowserRef.current?.hide();
           if (IS_DELEGATING_BOTTOM_SHEET) {
             await BottomSheet.enable();
           }
@@ -164,7 +164,7 @@ export function useDappBridge({
         try {
           switch (request.method) {
             case 'sendTransaction': {
-              inAppBrowserRef.current?.hide();
+              await inAppBrowserRef.current?.hide();
               if (IS_DELEGATING_BOTTOM_SHEET) {
                 await BottomSheet.enable();
               }
@@ -196,7 +196,7 @@ export function useDappBridge({
             }
 
             case 'signData': {
-              inAppBrowserRef.current?.hide();
+              await inAppBrowserRef.current?.hide();
               if (IS_DELEGATING_BOTTOM_SHEET) {
                 await BottomSheet.enable();
               }

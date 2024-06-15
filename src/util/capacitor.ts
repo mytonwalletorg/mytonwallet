@@ -26,7 +26,8 @@ export const INAPP_BROWSER_OPTIONS = [
   'toolbarposition=top',
   'hidenavigationbuttons=yes',
   'hideurlbar=yes',
-  'closebuttoncaption=✕',
+  `closebuttoncaption=${IS_IOS ? 'Close' : 'x'}`,
+  'backbuttoncaption=Back',
   'allowInlineMediaPlayback=yes',
 ].join(',');
 const IOS_SPLASH_SCREEN_HIDE_DELAY = 500;

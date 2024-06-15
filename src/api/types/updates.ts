@@ -192,6 +192,8 @@ export type ApiOpenUrl = {
   type: 'openUrl';
   url: string;
   isExternal?: boolean;
+  title?: string;
+  subtitle?: string;
 };
 
 export type ApiRequestReconnect = {

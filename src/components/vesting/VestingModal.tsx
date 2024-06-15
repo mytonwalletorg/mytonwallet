@@ -5,6 +5,7 @@ import type { ApiToken, ApiVestingInfo } from '../../api/types';
 
 import { selectCurrentAccountState, selectMycoin } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import calcUnfreezeEndDates from '../../util/calcUnfreezeEndDates';
 import { formatFullDay, formatTime } from '../../util/dateFormat';
 import { formatCurrency } from '../../util/formatNumber';
 import { calcVestingAmountByStatus } from '../main/helpers/calcVestingAmountByStatus';
@@ -54,6 +55,8 @@ function VestingModal({
     return calcVestingAmountByStatus(vesting, ['ready']);
   }, [vesting]);
 
+  const unfreezeEndDates = useMemo(() => (vesting ? calcUnfreezeEndDates(vesting) : undefined), [vesting]);
+
   const isDisabledUnfreeze = currentlyReadyToUnfreezeAmount === '0';
 
   useInterval(forceUpdate, isUnfreezeRequested ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined);
@@ -83,7 +86,7 @@ function VestingModal({
     );
   }
 
-  function renderVestingInfo(info: ApiVestingInfo) {
+  function renderVestingInfo(info: ApiVestingInfo, index: number) {
     return (
       <div key={info.id} className={styles.block}>
         <div className={styles.vestingInfo}>
@@ -103,6 +106,11 @@ function VestingModal({
             ? 'Frozen'
             : (part.status === 'missed' ? 'Missed' : part.status === 'unfrozen' ? 'Unfrozen' : 'Ready to Unfreeze');
           const isInteractive = !isUnfreezeRequested && part.status === 'ready';
+          const endsAt = part.status === 'frozen'
+            ? part.time
+            : part.status === 'ready'
+              ? unfreezeEndDates![index]
+              : undefined;
 
           return (
             <div
@@ -117,13 +125,13 @@ function VestingModal({
               />
               <div className={styles.partName}>
                 {lang(title)}
-                {part.status === 'frozen' && (
+                {Boolean(endsAt) && (
                   <div className={styles.date}>
                     {lang('until %date%', {
                       date: (
                         <>
-                          <span className={styles.bold}>{formatFullDay(lang.code!, part.time)}</span>,
-                          {' '}{formatTime(part.time)}
+                          <span className={styles.bold}>{formatFullDay(lang.code!, endsAt)}</span>,
+                          {' '}{formatTime(endsAt)}
                         </>),
                     })}
                   </div>

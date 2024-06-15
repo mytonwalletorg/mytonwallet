@@ -4,6 +4,8 @@ import { getActions } from '../global';
 import type { ApiVestingInfo } from '../api/types';
 import type { UserToken } from '../global/types';
 
+import calcUnfreezeEndDates from '../util/calcUnfreezeEndDates';
+import { compact } from '../util/iteratees';
 import { calcVestingAmountByStatus } from '../components/main/helpers/calcVestingAmountByStatus';
 import useLastCallback from './useLastCallback';
 import useShowTransition from './useShowTransition';
@@ -32,6 +34,12 @@ export default function useVesting({ vesting, userMycoin }: { vesting?: ApiVesti
     return vesting!.some((currentVesting) => currentVesting.parts.some(({ status }) => status === 'ready'));
   }, [hasVesting, vesting]);
 
+  const unfreezeEndDate = useMemo(() => {
+    if (!canBeUnfrozen) return undefined;
+
+    return Math.min(...compact(calcUnfreezeEndDates(vesting!)));
+  }, [canBeUnfrozen, vesting]);
+
   const {
     shouldRender,
     transitionClassNames,
@@ -45,7 +53,8 @@ export default function useVesting({ vesting, userMycoin }: { vesting?: ApiVesti
     shouldRender,
     transitionClassNames,
     amount,
-    vestingStatus: (canBeUnfrozen ? 'readyToUnfreeze' : 'frozen') as 'frozen' | 'readyToUnfreeze',
+    vestingStatus: canBeUnfrozen ? 'readyToUnfreeze' as const : 'frozen' as const,
+    unfreezeEndDate,
     onVestingTokenClick,
   };
 }

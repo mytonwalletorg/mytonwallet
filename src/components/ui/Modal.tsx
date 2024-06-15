@@ -2,7 +2,9 @@ import type { RefObject } from 'react';
 import type { BottomSheetKeys } from 'native-bottom-sheet';
 import { BottomSheet } from 'native-bottom-sheet';
 import type { TeactNode } from '../../lib/teact/teact';
-import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
+import React, {
+  useEffect, useLayoutEffect, useRef, useState,
+} from '../../lib/teact/teact';
 
 import { ANIMATION_END_DELAY, IS_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -24,6 +26,7 @@ import useLang from '../../hooks/useLang';
 import useShowTransition from '../../hooks/useShowTransition';
 
 import Button from './Button';
+import { getInAppBrowser } from './InAppBrowser';
 import Portal from './Portal';
 
 import styles from './Modal.module.scss';
@@ -149,9 +152,31 @@ function Modal({
     });
   }, [isOpen, isPortrait, isSlideUp, onClose]);
 
-  const isDelegatingToNative = useDelegatingBottomSheet(nativeBottomSheetKey, isPortrait, isOpen, onClose);
+  // Make sure to hide browser before presenting modals
+  const [isBrowserHidden, setIsBrowserHidden] = useState(false);
+  useEffect(() => {
+    if (!isOpen) {
+      setIsBrowserHidden(false); // Reset to re-hide it next time
+      return;
+    }
+    const browser = getInAppBrowser();
+    browser?.hide().then(() => {
+      setIsBrowserHidden(true);
+    });
+  }, [isOpen]);
+
+  const isDelegatingToNative = useDelegatingBottomSheet(nativeBottomSheetKey,
+    isPortrait,
+    isOpen && (!getInAppBrowser() || isBrowserHidden),
+    onClose);
+
   useDelegatedBottomSheet(
-    nativeBottomSheetKey, isOpen, onClose, dialogRef, forceFullNative, noResetFullNativeOnBlur,
+    nativeBottomSheetKey,
+    isOpen && (!getInAppBrowser() || isBrowserHidden),
+    onClose,
+    dialogRef,
+    forceFullNative,
+    noResetFullNativeOnBlur,
   );
 
   if (!shouldRender) {

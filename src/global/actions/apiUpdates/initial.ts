@@ -194,7 +194,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'openUrl': {
-      openUrl(update.url, update.isExternal);
+      openUrl(update.url, update.isExternal, update.title, update.subtitle);
       break;
     }
 
