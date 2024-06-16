@@ -46,11 +46,6 @@ export function useDappBridge({
   const bridgeObject = useMemo((): WebViewTonConnectBridge | undefined => {
     if (!origin) return undefined;
 
-    const dappRequest = {
-      origin,
-      accountId: getGlobal().currentAccountId,
-    };
-
     return {
       deviceInfo: tonConnectGetDeviceInfo(),
       protocolVersion: TONCONNECT_PROTOCOL_VERSION,
@@ -74,7 +69,7 @@ export function useDappBridge({
 
           const response = await callApi(
             'tonConnect_connect',
-            dappRequest,
+            buildDappRequest(origin),
             request,
             requestId,
           );
@@ -113,7 +108,7 @@ export function useDappBridge({
         try {
           const response = await callApi(
             'tonConnect_reconnect',
-            dappRequest,
+            buildDappRequest(origin),
             requestId,
           );
           setRequestId(requestId + 1);
@@ -140,9 +135,10 @@ export function useDappBridge({
 
       disconnect: async () => {
         setRequestId(0);
+
         await callApi(
           'tonConnect_disconnect',
-          dappRequest,
+          buildDappRequest(origin),
           { id: requestId.toString(), method: 'disconnect', params: [] },
         );
       },
@@ -160,6 +156,8 @@ export function useDappBridge({
             id: request.id.toString(),
           };
         }
+
+        const dappRequest = buildDappRequest(origin);
 
         try {
           switch (request.method) {
@@ -283,4 +281,11 @@ function verifyConnectRequest(request: ConnectRequest) {
   if (!(request && request.manifestUrl && request.items?.length)) {
     throw new Error('Wrong request data');
   }
+}
+
+function buildDappRequest(origin: string) {
+  return {
+    origin,
+    accountId: getGlobal().currentAccountId,
+  };
 }
