@@ -50,6 +50,7 @@ import {
   getTonWalletContract,
   getWalletPublicKey,
   packBytesAsSnake,
+  packBytesAsSnakeForEncryptedData,
   parseAddress,
   parseBase64,
   resolveTokenWalletAddress,
@@ -206,7 +207,7 @@ export async function checkTransactionDraft(
       }
 
       if (data instanceof Uint8Array) {
-        data = packBytesAsSnake(data);
+        data = shouldEncrypt ? packBytesAsSnakeForEncryptedData(data) : packBytesAsSnake(data);
       }
     } else {
       const tokenAmount: bigint = amount;
@@ -227,9 +228,15 @@ export async function checkTransactionDraft(
       }
     }
 
-    const { transaction } = await signTransaction(
-      network, wallet, toAddress, amount, data, stateInit,
-    );
+    const { transaction } = await signTransaction({
+      network,
+      wallet,
+      toAddress,
+      amount,
+      payload: data,
+      stateInit,
+      shouldEncrypt,
+    });
 
     const realFee = await calculateFee(network, wallet, transaction, account.isInitialized);
     result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
@@ -381,7 +388,7 @@ export async function submitTransfer(options: {
 
     if (!tokenAddress) {
       if (data instanceof Uint8Array) {
-        data = packBytesAsSnake(data);
+        data = shouldEncrypt ? packBytesAsSnakeForEncryptedData(data) : packBytesAsSnake(data);
       }
     } else {
       ({
@@ -396,9 +403,17 @@ export async function submitTransfer(options: {
     const { balance } = await getWalletInfo(network, wallet!);
     const isFullTonBalance = !tokenAddress && balance === amount;
 
-    const { seqno, transaction } = await signTransaction(
-      network, wallet!, toAddress, amount, data, stateInit, secretKey, isFullTonBalance,
-    );
+    const { seqno, transaction } = await signTransaction({
+      network,
+      wallet,
+      toAddress,
+      amount,
+      payload: data,
+      stateInit,
+      privateKey: secretKey,
+      isFullBalance: isFullTonBalance,
+      shouldEncrypt,
+    });
 
     const fee = await calculateFee(network, wallet!, transaction, account.isInitialized);
 
@@ -521,17 +536,29 @@ export function resolveTransactionError(error: any): ApiAnyDisplayError | string
   return ApiTransactionError.UnsuccesfulTransfer;
 }
 
-async function signTransaction(
-  network: ApiNetwork,
-  wallet: TonWallet,
-  toAddress: string,
-  amount: bigint,
-  payload?: AnyPayload,
-  stateInit?: Cell,
-  privateKey: Uint8Array = new Uint8Array(64),
-  isFullBalance?: boolean,
-  expireAt?: number,
-) {
+async function signTransaction({
+  network,
+  wallet,
+  toAddress,
+  amount,
+  payload,
+  stateInit,
+  privateKey = new Uint8Array(64),
+  isFullBalance,
+  expireAt,
+  shouldEncrypt,
+}: {
+  network: ApiNetwork;
+  wallet: TonWallet;
+  toAddress: string;
+  amount: bigint;
+  payload?: AnyPayload;
+  stateInit?: Cell;
+  privateKey?: Uint8Array;
+  isFullBalance?: boolean;
+  expireAt?: number;
+  shouldEncrypt?: boolean;
+}) {
   const { seqno } = await getWalletInfo(network, wallet);
 
   if (!expireAt) {
@@ -539,7 +566,9 @@ async function signTransaction(
   }
 
   if (payload instanceof Uint8Array) {
-    payload = packBytesAsSnake(payload, 0) as Cell;
+    payload = shouldEncrypt
+      ? packBytesAsSnakeForEncryptedData(payload) as Cell
+      : packBytesAsSnake(payload, 0) as Cell;
   }
 
   const init = stateInit ? {
@@ -632,7 +661,7 @@ async function populateTransactions(network: ApiNetwork, transactions: ApiTransa
 
       if (parsedPayload?.type === 'nft:ownership-assigned') {
         const nft = nftsByAddress[parsedPayload.nftAddress];
-        if (nft.isScam) {
+        if (nft?.isScam) {
           transaction.metadata = { ...transaction.metadata, isScam: true };
         } else {
           transaction.nft = nft;
@@ -640,7 +669,7 @@ async function populateTransactions(network: ApiNetwork, transactions: ApiTransa
         }
       } else if (parsedPayload?.type === 'nft:transfer') {
         const nft = nftsByAddress[parsedPayload.nftAddress];
-        if (nft.isScam) {
+        if (nft?.isScam) {
           transaction.metadata = { ...transaction.metadata, isScam: true };
         } else {
           transaction.nft = nft;

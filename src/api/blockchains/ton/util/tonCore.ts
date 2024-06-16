@@ -213,6 +213,34 @@ export function commentToBytes(comment: string): Uint8Array {
   return bytes;
 }
 
+export function packBytesAsSnake(bytes: Uint8Array, maxBytes = TON_MAX_COMMENT_BYTES): Uint8Array | Cell {
+  const buffer = Buffer.from(bytes);
+  if (buffer.length <= maxBytes) {
+    return bytes;
+  }
+
+  const mainBuilder = new Builder();
+  let prevBuilder: Builder | undefined;
+  let currentBuilder = mainBuilder;
+
+  for (const [i, byte] of buffer.entries()) {
+    if (currentBuilder.availableBits < 8) {
+      prevBuilder?.storeRef(currentBuilder);
+
+      prevBuilder = currentBuilder;
+      currentBuilder = new Builder();
+    }
+
+    currentBuilder = currentBuilder.storeUint(byte, 8);
+
+    if (i === buffer.length - 1) {
+      prevBuilder?.storeRef(currentBuilder);
+    }
+  }
+
+  return mainBuilder.asCell();
+}
+
 function createNestedCell(data: Uint8Array, maxCellSize: number): Cell {
   const builder = new Builder();
   const dataSlice = Buffer.from(data.slice(0, maxCellSize));
@@ -227,12 +255,7 @@ function createNestedCell(data: Uint8Array, maxCellSize: number): Cell {
   return builder.endCell();
 }
 
-export function packBytesAsSnake(data: Uint8Array, maxBytes = TON_MAX_COMMENT_BYTES): Uint8Array | Cell {
-  const buffer = Buffer.from(data);
-  if (buffer.length <= maxBytes) {
-    return data;
-  }
-
+export function packBytesAsSnakeForEncryptedData(data: Uint8Array): Uint8Array | Cell {
   const ROOT_BUILDER_BYTES = 39;
   const MAX_CELLS_AMOUNT = 16;
 
