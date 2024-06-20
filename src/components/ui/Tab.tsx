@@ -1,6 +1,7 @@
 import React, {
   useEffect, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';
+import { addExtraClass, removeExtraClass, setExtraStyles } from '../../lib/teact/teact-dom';
 
 import type { IAnchorPosition } from '../../global/types';
 import type { DropdownItem } from './Dropdown';
@@ -80,7 +81,7 @@ function Tab({
   useLayoutEffect(() => {
     // Set initial active state
     if (isActive && previousActiveTab === undefined && tabRef.current) {
-      tabRef.current!.classList.add(styles.Tab_active);
+      addExtraClass(tabRef.current, styles.Tab_active);
     }
   }, [isActive, previousActiveTab]);
 
@@ -90,12 +91,12 @@ function Tab({
     }
 
     const tabEl = tabRef.current!;
-    const prevTabEl = tabEl.parentElement!.children[previousActiveTab];
+    const prevTabEl = tabEl.parentElement!.children[previousActiveTab] as HTMLElement;
     if (!prevTabEl) {
       // The number of tabs in the parent component has decreased. It is necessary to add the active tab class name.
       if (isActive && !tabEl.classList.contains(styles.Tab_active)) {
         requestMutation(() => {
-          tabEl.classList.add(styles.Tab_active);
+          addExtraClass(tabEl, styles.Tab_active);
         });
       }
       return;
@@ -109,19 +110,22 @@ function Tab({
     const scaleFactor = prevPlatformEl.clientWidth / platformEl.clientWidth;
 
     requestMutation(() => {
-      prevPlatformEl.classList.remove(styles.platform_animate);
-      platformEl.classList.remove(styles.platform_animate);
-      platformEl.style.transform = `translate3d(${shiftLeft}px, 0, 0) scale3d(${scaleFactor}, 1, 1)`;
+      removeExtraClass(prevPlatformEl, styles.platform_animate);
+      removeExtraClass(platformEl, styles.platform_animate);
+      setExtraStyles(platformEl, {
+        transform:
+        `translate3d(${shiftLeft}px, 0, 0) scale3d(${scaleFactor}, 1, 1)`,
+      });
 
       requestForcedReflow(() => {
         forceReflow(platformEl);
 
         return () => {
-          platformEl.classList.add(styles.platform_animate);
-          platformEl.style.transform = 'none';
+          addExtraClass(platformEl, styles.platform_animate);
+          setExtraStyles(platformEl, { transform: 'none' });
 
-          prevTabEl.classList.remove(styles.Tab_active);
-          tabEl.classList.add(styles.Tab_active);
+          removeExtraClass(prevTabEl, styles.Tab_active);
+          addExtraClass(tabEl, styles.Tab_active);
         };
       });
     });

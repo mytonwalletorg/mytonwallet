@@ -708,6 +708,7 @@ export interface ActionPayloads {
   validatePassword: { password: string };
   verifyHardwareAddress: undefined;
   authorizeDiesel: undefined;
+  fetchDieselState: { tokenSlug: string };
 
   fetchTokenTransactions: { limit: number; slug: string; shouldLoadWithBudget?: boolean };
   fetchAllTransactions: { limit: number; shouldLoadWithBudget?: boolean };

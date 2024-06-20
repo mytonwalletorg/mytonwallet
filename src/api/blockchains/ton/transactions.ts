@@ -249,21 +249,15 @@ export async function checkTransactionDraft(
       : balance >= amount + realFee;
 
     if (network === 'mainnet' && tokenAddress && balance < MAX_BALANCE_WITH_CHECK_DIESEL) {
-      const { decimals } = findTokenByMinter(tokenAddress)!;
       const {
         status: dieselStatus,
         amount: dieselAmount,
-        pendingCreatedAt,
-      } = await estimateDiesel(address, tokenAddress);
+        isAwaitingNotExpiredPrevious,
+      } = await fetchEstimateDiesel(accountId, tokenAddress) || {};
 
-      const isAwaitingNotExpiredPreviousDiesel = Boolean(
-        pendingCreatedAt
-        && Date.now() - new Date(pendingCreatedAt).getTime() > PENDING_DIESEL_TIMEOUT,
-      );
-
-      if (!isEnoughBalance || isAwaitingNotExpiredPreviousDiesel) {
+      if (!isEnoughBalance || isAwaitingNotExpiredPrevious) {
         result.dieselStatus = dieselStatus;
-        result.dieselAmount = dieselAmount ? fromDecimal(dieselAmount, decimals) : undefined;
+        result.dieselAmount = dieselAmount;
 
         if (dieselStatus !== 'not-available') {
           return result;
@@ -1167,4 +1161,37 @@ export async function fixTokenActivitiesAddressForm(network: ApiNetwork, activit
       activity.toAddress = addressBook[activity.toAddress].user_friendly;
     }
   }
+}
+
+export async function fetchEstimateDiesel(accountId: string, tokenAddress: string) {
+  const { network } = parseAccountId(accountId);
+  if (network !== 'mainnet') return undefined;
+
+  const wallet = await pickAccountWallet(accountId);
+  if (!wallet) return undefined;
+
+  const account = await fetchStoredAccount(accountId);
+  const { address } = account;
+  const balance = await getWalletBalance(network, wallet);
+
+  if (balance >= MAX_BALANCE_WITH_CHECK_DIESEL) return undefined;
+
+  const {
+    status,
+    amount,
+    pendingCreatedAt,
+  } = await estimateDiesel(address, tokenAddress);
+  const { decimals } = findTokenByMinter(tokenAddress)!;
+
+  const isAwaitingNotExpiredPrevious = Boolean(
+    pendingCreatedAt
+      && Date.now() - new Date(pendingCreatedAt).getTime() > PENDING_DIESEL_TIMEOUT,
+  );
+
+  return {
+    status,
+    amount: amount ? fromDecimal(amount, decimals) : undefined,
+    pendingCreatedAt,
+    isAwaitingNotExpiredPrevious,
+  };
 }

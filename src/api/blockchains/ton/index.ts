@@ -33,6 +33,7 @@ export {
   waitUntilTransactionAppears,
   fixTokenActivitiesAddressForm,
   submitTransferWithDiesel,
+  fetchEstimateDiesel,
 } from './transactions';
 export {
   getAccountBalance,

@@ -299,11 +299,15 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
 
         let timing = UICubicTimingParameters(controlPoint1: EASING_1, controlPoint2: EASING_2)
         let animator = UIViewPropertyAnimator(duration: ANIMATION_DURATION, timingParameters: timing)
+        fpc.isAnimating = true
 
         animator.addAnimations { [self] in
             fpc.move(to: to, animated: false)
         }
 
+        animator.addCompletion { [weak self] _ in
+            self?.fpc.isAnimating = false
+        }
         animator.startAnimation()
     }
 

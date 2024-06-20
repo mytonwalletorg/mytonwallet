@@ -190,3 +190,9 @@ export function createLocalTransaction(accountId: string, params: ApiLocalTransa
 
   return localTransaction;
 }
+
+export function fetchDieselState(accountId: string, tokenAddress: string) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.fetchEstimateDiesel(accountId, tokenAddress);
+}

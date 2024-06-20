@@ -1,7 +1,8 @@
 import type { DeviceInfo } from '@tonconnect/protocol';
 
-import { APP_NAME, TONCONNECT_PROTOCOL_VERSION } from '../config';
+import { APP_NAME, IS_CAPACITOR, TONCONNECT_PROTOCOL_VERSION } from '../config';
 import packageJson from '../../package.json';
+import { IS_ELECTRON } from './windowEnvironment';
 
 type DevicePlatform = DeviceInfo['platform'];
 
@@ -29,16 +30,18 @@ function getPlatform(): DevicePlatform {
 
   let devicePlatform: DevicePlatform | undefined;
 
-  if (macosPlatforms.indexOf(platform) !== -1) {
-    devicePlatform = 'mac';
+  if (!IS_CAPACITOR && !IS_ELECTRON) {
+    devicePlatform = 'browser';
+  } else if (/Android/.test(userAgent)) {
+    devicePlatform = 'android';
   } else if (iphonePlatforms.indexOf(platform) !== -1) {
     devicePlatform = 'iphone';
   } else if (ipadPlatforms.indexOf(platform) !== -1) {
     devicePlatform = 'ipad';
+  } else if (macosPlatforms.indexOf(platform) !== -1) {
+    devicePlatform = 'mac';
   } else if (windowsPlatforms.indexOf(platform) !== -1) {
     devicePlatform = 'windows';
-  } else if (/Android/.test(userAgent)) {
-    devicePlatform = 'android';
   } else if (/Linux/.test(platform)) {
     devicePlatform = 'linux';
   } else {

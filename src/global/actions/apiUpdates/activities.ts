@@ -44,6 +44,10 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         if (IS_CAPACITOR) {
           global = clearIsPinAccepted(global);
         }
+
+        if (transaction.slug && transaction.slug !== TONCOIN_SLUG) {
+          actions.fetchDieselState({ tokenSlug: transaction.slug });
+        }
       }
 
       setGlobal(global);

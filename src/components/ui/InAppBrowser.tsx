@@ -7,8 +7,9 @@ import type { CustomInAppBrowserObject } from '../explore/hooks/useWebViewBridge
 import buildClassName from '../../util/buildClassName';
 import { INAPP_BROWSER_OPTIONS } from '../../util/capacitor';
 import { logDebugError } from '../../util/logs';
-import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS_APP } from '../../util/windowEnvironment';
+import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP } from '../../util/windowEnvironment';
 
+import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 import { useDappBridge } from '../explore/hooks/useDappBridge';
@@ -31,6 +32,8 @@ function InAppBrowser({
   const { closeBrowser } = getActions();
 
   const { hasOpenClass, hasShownClass } = useShowTransition(Boolean(url));
+
+  const lang = useLang();
 
   const {
     inAppBrowserRef,
@@ -74,6 +77,13 @@ function InAppBrowser({
       `title=${title || ''}`,
       `subtitle=${subtitle || ''}`,
       `shareurl=${encodeURIComponent(url || '')}`,
+      `theme=${theme}`,
+      `closebuttoncaption=${IS_IOS ? lang('Close') : 'x'}`,
+      `backbuttoncaption=${lang('Back')}`,
+      `reloadcaption=${lang('Reload Page')}`,
+      `openinbrowsercaption=${lang(IS_IOS ? 'Open in Safari' : 'Open in Browser')}`,
+      `copyurlcaption=${lang('CopyURL')}`,
+      `sharecaption=${lang('Share')}`,
       `theme=${theme}`,
     ].join(',')}`;
     inAppBrowser = cordova.InAppBrowser.open(url,

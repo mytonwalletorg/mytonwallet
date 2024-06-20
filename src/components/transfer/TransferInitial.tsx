@@ -71,7 +71,6 @@ interface StateProps {
   currentAccountId?: string;
   accounts?: Record<string, Account>;
   isEncryptedCommentSupported: boolean;
-  isCommentSupported: boolean;
   isMemoRequired?: boolean;
   baseCurrency?: ApiBaseCurrency;
   nfts?: ApiNft[];
@@ -108,7 +107,6 @@ function TransferInitial({
   accounts,
   currentAccountId,
   isEncryptedCommentSupported,
-  isCommentSupported,
   isMemoRequired,
   isLoading,
   onCommentChange,
@@ -762,7 +760,20 @@ function TransferInitial({
           </>
         )}
 
-        {isCommentSupported && !binPayload && (
+        {binPayload ? (
+          <>
+            <div className={styles.label}>{lang('Data to sign')}</div>
+            <InteractiveTextField
+              text={binPayload}
+              copyNotification={lang('Data was copied!')}
+              className={buildClassName(styles.addressWidget, isStatic && styles.inputStatic)}
+            />
+
+            <div className={styles.error}>
+              {renderText(lang('$signature_warning'))}
+            </div>
+          </>
+        ) : (
           <Input
             wrapperClassName={styles.commentInputWrapper}
             className={isStatic ? styles.inputStatic : undefined}
@@ -774,21 +785,6 @@ function TransferInitial({
             onInput={handleCommentChange}
             isRequired={isCommentRequired}
           />
-        )}
-
-        {Boolean(binPayload) && (
-          <>
-            <div className={styles.label}>{lang('Data to sign')}</div>
-            <InteractiveTextField
-              text={binPayload!}
-              copyNotification={lang('Data was copied!')}
-              className={buildClassName(styles.addressWidget, isStatic && styles.inputStatic)}
-            />
-
-            <div className={styles.error}>
-              {renderText(lang('$signature_warning'))}
-            </div>
-          </>
         )}
 
         <div className={styles.buttons}>
@@ -853,8 +849,7 @@ export default memo(
         binPayload,
         tokens: selectCurrentAccountTokens(global),
         savedAddresses: accountState?.savedAddresses,
-        isEncryptedCommentSupported: !isLedger && !nfts?.length,
-        isCommentSupported: true,
+        isEncryptedCommentSupported: !isLedger && !nfts?.length && !isMemoRequired,
         isMemoRequired,
         isLoading: isLoading && ACTIVE_STATES.has(state),
         baseCurrency,
