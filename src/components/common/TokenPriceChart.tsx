@@ -2,7 +2,11 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import type { ApiHistoryList } from '../../api/types';
 
+import buildClassName from '../../util/buildClassName';
+
 import useLang from '../../hooks/useLang';
+
+import Transition from '../ui/Transition';
 
 interface OwnProps {
   width: number;
@@ -12,6 +16,7 @@ interface OwnProps {
   className?: string;
   imgClassName?: string;
   onSelectIndex: (index: number) => void;
+  isUpdating?: boolean;
 }
 
 const IS_SMOOTH = true;
@@ -26,6 +31,7 @@ function TokenPriceChart({
   className,
   imgClassName,
   onSelectIndex,
+  isUpdating,
 }: OwnProps) {
   const lang = useLang();
 
@@ -141,11 +147,13 @@ function TokenPriceChart({
       onTouchEnd={handleMouseLeave}
       onTouchCancel={handleMouseLeave}
     >
-      <img
-        src={renderSvg()}
-        className={imgClassName}
-        alt={lang('Currency History')}
-      />
+      <Transition activeKey={isUpdating ? 1 : 0} name="semiFade" shouldCleanup>
+        <img
+          src={renderSvg()}
+          className={buildClassName(imgClassName, isUpdating && 'glare-image')}
+          alt={lang('Currency History')}
+        />
+      </Transition>
     </div>
   );
 }

@@ -4,7 +4,8 @@ import React, { memo, useState } from '../../lib/teact/teact';
 import buildClassName from '../../util/buildClassName';
 
 import useLastCallback from '../../hooks/useLastCallback';
-import useShowTransition from '../../hooks/useShowTransition';
+
+import LoadingDots from './LoadingDots';
 
 import styles from './Button.module.scss';
 
@@ -32,8 +33,6 @@ type OwnProps = {
 // Longest animation duration
 const CLICKED_TIMEOUT = 400;
 
-const LOADING_CLOSE_DURATION = 200;
-
 function Button({
   ref,
   children,
@@ -56,11 +55,6 @@ function Button({
 }: OwnProps) {
   const [isClicked, setIsClicked] = useState(false);
 
-  const {
-    shouldRender: shouldRenderLoading,
-    hasOpenClass: isLoadingVisible,
-  } = useShowTransition(isLoading, undefined, undefined, undefined, undefined, LOADING_CLOSE_DURATION);
-
   const handleClick = useLastCallback(() => {
     if (!isDisabled && onClick) {
       onClick();
@@ -76,16 +70,6 @@ function Button({
     isLoading !== undefined && styles.loadingInit,
     isLoading && styles.loadingStart,
   );
-
-  function renderLoading() {
-    return (
-      <div className={buildClassName(styles.loadingDots, isLoadingVisible && styles.loadingDotsVisible)}>
-        <span className={styles.loadingDot} />
-        <span className={styles.loadingDot} />
-        <span className={styles.loadingDot} />
-      </div>
-    );
-  }
 
   return (
     <button
@@ -113,7 +97,7 @@ function Button({
       form={forFormId}
     >
       {children}
-      {shouldRenderLoading && renderLoading()}
+      <LoadingDots isActive={isLoading} className={styles.loadingDots} />
     </button>
   );
 }

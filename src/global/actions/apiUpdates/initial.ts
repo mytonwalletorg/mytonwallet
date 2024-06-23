@@ -221,5 +221,17 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       setGlobal(global);
       break;
     }
+
+    case 'updatingStatus': {
+      const { kind, isUpdating } = update;
+      const key = kind === 'balance' ? 'balanceUpdateStartedAt' : 'activitiesUpdateStartedAt';
+      if (isUpdating && global[key]) break;
+
+      setGlobal({
+        ...global,
+        [key]: isUpdating ? Date.now() : undefined,
+      });
+      break;
+    }
   }
 });

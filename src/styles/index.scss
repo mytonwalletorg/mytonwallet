@@ -251,3 +251,58 @@ a {
   visibility: hidden;
   opacity: 0;
 }
+
+.glare-text {
+  --glare-main: rgba(255, 255, 255, 0.3);
+  --glare-accent: rgba(255, 255, 255, 0.7);
+
+  color: transparent;
+
+  background: linear-gradient(
+                  45deg,
+                  var(--glare-main) 0%,
+                  var(--glare-main) 25%,
+                  var(--glare-accent) 50%,
+                  var(--glare-main) 75%,
+                  var(--glare-main) 100%
+  );
+  background-clip: text;
+  background-size: 200% 100%;
+
+  animation: glare 2s ease-in-out infinite;
+}
+
+@keyframes glare {
+  0% {
+    background-position: -50% 0;
+  }
+  100% {
+    background-position: -450% 0;
+  }
+}
+
+.glare-image {
+  --glare-main: rgba(255, 255, 255, 0.3);
+  --glare-accent: rgba(255, 255, 255, 0.7);
+
+  animation: glare-mask-image 2s ease-in-out infinite;
+
+  mask-image: linear-gradient(
+                  45deg,
+                  var(--glare-main) 0%,
+                  var(--glare-main) 25%,
+                  var(--glare-accent) 50%,
+                  var(--glare-main) 75%,
+                  var(--glare-main) 100%
+  );
+  mask-size: 200% 100%;
+}
+
+@keyframes glare-mask-image {
+  0% {
+    mask-position: -50% 0;
+  }
+  100% {
+    mask-position: -450% 0;
+  }
+}

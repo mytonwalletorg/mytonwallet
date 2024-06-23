@@ -4,7 +4,7 @@ import React, {
 } from '../../lib/teact/teact';
 
 import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS } from '../../config';
-import { forceMutation, requestMeasure, requestMutation } from '../../lib/fasterdom/fasterdom';
+import { forceMeasure, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
@@ -70,31 +70,28 @@ function RichNumberInput({
   const isFontShrinkedRef = useRef(false);
 
   const updateFontScale = useLastCallback((content: string) => {
-    requestMeasure(() => {
-      const input = inputRef.current;
-      if (!input) return;
+    const input = inputRef.current!;
 
+    forceMeasure(() => {
       const { clientWidth: width } = input;
-      forceMutation(() => {
-        measureEl.className = buildClassName(input.className, 'measure-hidden');
-        measureEl.style.width = `${width}px`;
-        measureEl.innerHTML = content;
-        document.body.appendChild(measureEl);
-        let delta = 1;
+      measureEl.className = buildClassName(input.className, 'measure-hidden');
+      measureEl.style.width = `${width}px`;
+      measureEl.innerHTML = content;
+      document.body.appendChild(measureEl);
+      let delta = 1;
 
-        while (delta > MIN_SIZE_SCALE) {
-          measureEl.style.setProperty('--base-font-size', delta.toString());
-          if (measureEl.scrollWidth <= width) {
-            break;
-          }
-          delta -= 0.05;
+      while (delta > MIN_SIZE_SCALE) {
+        measureEl.style.setProperty('--base-font-size', delta.toString());
+        if (measureEl.scrollWidth <= width) {
+          break;
         }
+        delta -= 0.05;
+      }
 
-        isFontShrinkedRef.current = delta < 1;
-        document.body.removeChild(measureEl);
-        measureEl.className = '';
-        input.style.setProperty('--base-font-size', delta.toString());
-      }, [measureEl, input]);
+      isFontShrinkedRef.current = delta < 1;
+      document.body.removeChild(measureEl);
+      measureEl.className = '';
+      input.style.setProperty('--base-font-size', delta.toString());
     });
   });
 

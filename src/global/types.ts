@@ -596,6 +596,8 @@ export type GlobalState = {
   };
 
   isLoadingOverlayOpen?: boolean;
+  activitiesUpdateStartedAt?: number;
+  balanceUpdateStartedAt?: number;
 };
 
 export interface ActionPayloads {

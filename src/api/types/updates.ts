@@ -210,6 +210,12 @@ export type ApiUpdateVesting = {
   vestingInfo: ApiVestingInfo[];
 };
 
+export type ApiUpdatingStatus = {
+  type: 'updatingStatus';
+  kind: 'balance' | 'activities';
+  isUpdating?: boolean;
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateNewActivities
@@ -238,6 +244,7 @@ export type ApiUpdate =
   | ApiOpenUrl
   | ApiRequestReconnect
   | ApiUpdateIncorrectTime
-  | ApiUpdateVesting;
+  | ApiUpdateVesting
+  | ApiUpdatingStatus;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

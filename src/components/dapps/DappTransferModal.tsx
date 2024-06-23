@@ -85,7 +85,7 @@ function DappTransferModal({
     submitDappTransferHardware();
   });
 
-  const handleResetTransfer = useLastCallback(async () => {
+  const handleResetTransfer = useLastCallback(() => {
     cancelDappTransfer();
     updateNextKey();
   });

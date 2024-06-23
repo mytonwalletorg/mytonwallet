@@ -143,6 +143,9 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
   while (isAlive(localOnUpdate, accountId)) {
     try {
+      onUpdate({ type: 'updatingStatus', kind: 'activities', isUpdating: true });
+      onUpdate({ type: 'updatingStatus', kind: 'balance', isUpdating: true });
+
       const walletInfo = await blockchain.getWalletInfo(network, address);
       if (!isAlive(localOnUpdate, accountId)) return;
 
@@ -215,6 +218,8 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
         }
       }
 
+      onUpdate({ type: 'updatingStatus', kind: 'balance', isUpdating: false });
+
       // Fetch transactions for tokens with a changed balance
       if (isToncoinBalanceChanged || changedTokenSlugs.length) {
         if (lastTxId) {
@@ -224,6 +229,7 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
         const newTxIds = await processNewActivities(accountId, newestTxIds, changedTokenSlugs, tokenBalances);
         newestTxIds = { ...newestTxIds, ...newTxIds };
       }
+      onUpdate({ type: 'updatingStatus', kind: 'activities', isUpdating: false });
 
       // Fetch NFT updates
       if (isToncoinBalanceChanged) {

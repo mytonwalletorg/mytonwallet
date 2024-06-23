@@ -130,10 +130,7 @@ function Token({
             {shouldRenderApy && renderApy()}
           </div>
           <div className={styles.subtitle}>
-            <AnimatedCounter
-              text={formatCurrency(renderedAmount, symbol)}
-              key={isInvestorView ? 'investor' : 'default'}
-            />
+            <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
             <i className={styles.dot} aria-hidden />
             <AnimatedCounter text={formatCurrency(price, shortBaseSymbol, undefined, true)} />
           </div>
@@ -224,10 +221,7 @@ function Token({
             isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
           )}
           >
-            <AnimatedCounter
-              text={formatCurrency(renderedAmount, symbol)}
-              key={isInvestorView ? 'investor' : 'default'}
-            />
+            <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
           </div>
           <div className={styles.subtitle}>
             {totalAmount.gt(0) ? '≈' : ''}&thinsp;
