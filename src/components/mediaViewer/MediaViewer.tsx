@@ -1,6 +1,9 @@
-import React, { memo, useEffect, useLayoutEffect } from '../../lib/teact/teact';
+import React, {
+  memo, useEffect, useLayoutEffect, useMemo,
+} from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import type { ApiNft } from '../../api/types';
 import { MediaType } from '../../global/types';
 
 import { ANIMATION_END_DELAY } from '../../config';
@@ -28,12 +31,16 @@ interface StateProps {
   mediaIds: string[];
   mediaUrl?: string;
   mediaType: MediaType;
+  mediaByIds?: Record<string, ApiNft>;
+  blacklistedIds: string[];
   withAnimation: boolean;
 }
 
 function MediaViewer({
-  mediaId, mediaIds, mediaType, mediaUrl, withAnimation,
+  mediaId, mediaIds, mediaType, mediaUrl, withAnimation, mediaByIds, blacklistedIds,
 }: StateProps) {
+  const { closeMediaViewer, openMediaViewer } = getActions();
+
   const isOpen = Boolean(mediaId);
   const lang = useLang();
   const prevMediaId = usePrevious(mediaId);
@@ -41,17 +48,21 @@ function MediaViewer({
   const shouldAnimateOpening = withAnimation && isOpen && !prevMediaId;
   const shouldAnimateClosing = withAnimation && !isOpen && !!prevMediaId;
 
-  const { closeMediaViewer, openMediaViewer } = getActions();
-
   const handleClose = useLastCallback(() => closeMediaViewer());
 
-  const selectedMediaIndex = mediaIds.indexOf(mediaId!);
+  const renderedMediaIds = useMemo(() => {
+    return mediaIds.filter((id) => {
+      const media = mediaByIds?.[id];
+      return media && !media.isHidden && !blacklistedIds.includes(id);
+    });
+  }, [blacklistedIds, mediaByIds, mediaIds]);
+  const selectedMediaIndex = renderedMediaIds.indexOf(mediaId!);
 
   const getMediaId = useLastCallback((fromId?: string, direction?: number): string | undefined => {
     if (fromId === undefined) return undefined;
-    const index = mediaIds.indexOf(fromId);
-    if ((direction === -1 && index > 0) || (direction === 1 && index < mediaIds.length - 1)) {
-      return mediaIds[index + direction];
+    const index = renderedMediaIds.indexOf(fromId);
+    if ((direction === -1 && index > 0) || (direction === 1 && index < renderedMediaIds.length - 1)) {
+      return renderedMediaIds[index + direction];
     }
     return undefined;
   });
@@ -105,15 +116,23 @@ function MediaViewer({
 export default memo(withGlobal((global): StateProps => {
   const { mediaId, mediaType = MediaType.Nft } = global.mediaViewer || {};
   const animationLevel = global.settings?.animationLevel;
+  const accountState = selectCurrentAccountState(global);
 
   let mediaIds: string[] = MEMO_EMPTY_ARRAY;
   let mediaUrl: string | undefined;
+  let mediaByIds: Record<string, ApiNft> | undefined;
+  let blacklistedIds: string[] = MEMO_EMPTY_ARRAY;
 
   if (mediaType === MediaType.Nft) {
-    const { orderedAddresses, byAddress } = selectCurrentAccountState(global)?.nfts || {};
+    const { orderedAddresses, byAddress } = accountState?.nfts || {};
+    const { blacklistedNftAddresses } = accountState || {};
     const nft = byAddress?.[mediaId!];
     mediaUrl = nft?.image || nft?.thumbnail;
     mediaIds = orderedAddresses || MEMO_EMPTY_ARRAY;
+    mediaByIds = byAddress;
+    if (blacklistedNftAddresses?.length) {
+      blacklistedIds = blacklistedNftAddresses;
+    }
   }
 
   return {
@@ -121,6 +140,8 @@ export default memo(withGlobal((global): StateProps => {
     mediaIds,
     mediaType,
     mediaUrl,
+    mediaByIds,
+    blacklistedIds,
     withAnimation: animationLevel > 0,
   };
 })(MediaViewer));

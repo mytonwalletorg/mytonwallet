@@ -23,6 +23,7 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import Loading from '../../../ui/Loading';
+import HideNftModal from '../../modals/HideNftModal';
 import Nft from './Nft';
 
 import styles from './Nft.module.scss';
@@ -39,6 +40,8 @@ interface StateProps {
   isHardware?: boolean;
   isTestnet?: boolean;
   blacklistedNftAddresses?: string[];
+  isHideNftModalOpened?: boolean;
+  nftWithOpenedMenuAddress?: string;
 }
 
 const GETGEMS_ENABLED = !IS_IOS_APP && !IS_ANDROID_APP;
@@ -52,8 +55,10 @@ function Nfts({
   isHardware,
   isTestnet,
   blacklistedNftAddresses,
+  isHideNftModalOpened,
+  nftWithOpenedMenuAddress,
 }: OwnProps & StateProps) {
-  const { clearNftsSelection, burnNfts } = getActions();
+  const { clearNftsSelection, burnNfts, closeHideNftModal } = getActions();
 
   const lang = useLang();
   const { isLandscape } = useDeviceScreen();
@@ -152,6 +157,7 @@ function Nfts({
       <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
         {nfts.map((nft) => <Nft key={nft.address} nft={nft} selectedAddresses={selectedAddresses} />)}
       </div>
+      <HideNftModal isOpen={isHideNftModalOpened} onClose={closeHideNftModal} nftAddress={nftWithOpenedMenuAddress} />
     </div>
   );
 }
@@ -165,7 +171,11 @@ export default memo(
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
 
-      const { blacklistedNftAddresses } = selectCurrentAccountState(global) || {};
+      const {
+        blacklistedNftAddresses,
+        isHideNftModalOpened,
+        nftWithOpenedMenuAddress,
+      } = selectCurrentAccountState(global) || {};
 
       return {
         orderedAddresses,
@@ -175,6 +185,8 @@ export default memo(
         currentCollectionAddress,
         isTestnet: global.settings.isTestnet,
         blacklistedNftAddresses,
+        isHideNftModalOpened,
+        nftWithOpenedMenuAddress,
       };
     },
     (global, _, stickToFirst) => {

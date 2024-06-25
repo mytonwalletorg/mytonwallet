@@ -142,7 +142,7 @@
   padding: 0 1rem;
 
   &:not(:last-of-type) {
-      &::after {
+    &::after {
       content: "";
 
       position: absolute;

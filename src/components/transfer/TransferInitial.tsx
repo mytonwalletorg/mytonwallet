@@ -34,6 +34,7 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
+import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useQrScannerSupport from '../../hooks/useQrScannerSupport';
@@ -77,6 +78,7 @@ interface StateProps {
   binPayload?: string;
   dieselAmount?: bigint;
   dieselStatus?: DieselStatus;
+  isDieselAuthorizationStarted?: boolean;
 }
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
@@ -89,6 +91,7 @@ const COMMENT_DROPDOWN_ITEMS = [
 ];
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
 const STAKED_TOKEN_SLUG = 'ton-eqcqc6ehrj';
+const AUTHORIZE_DIESEL_INTERVAL_MS = 1000;
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
@@ -115,6 +118,7 @@ function TransferInitial({
   binPayload,
   dieselAmount,
   dieselStatus,
+  isDieselAuthorizationStarted,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -130,6 +134,7 @@ function TransferInitial({
     requestOpenQrScanner,
     showDialog,
     authorizeDiesel,
+    fetchDieselState,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -194,10 +199,19 @@ function TransferInitial({
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
     ? balance - amount > dieselAmount
     : undefined;
+  const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
+    ? AUTHORIZE_DIESEL_INTERVAL_MS
+    : undefined;
 
   const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
     Boolean(amountInCurrency),
   );
+
+  const updateDieselState = useLastCallback(() => {
+    fetchDieselState({ tokenSlug });
+  });
+
+  useInterval(updateDieselState, authorizeDieselInterval);
 
   const dropDownItems = useMemo(() => {
     if (!tokens) {
@@ -263,7 +277,7 @@ function TransferInitial({
     } else {
       validateAndSetAmount(amount);
     }
-  }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount]);
+  }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount, isDieselAvailable]);
 
   useEffect(() => {
     if (!toAddress || hasToAddressError || !(amount || nfts?.length) || !isAddressValid) {
@@ -857,6 +871,7 @@ export default memo(
         accounts: selectNetworkAccounts(global),
         dieselAmount,
         dieselStatus,
+        isDieselAuthorizationStarted: accountState?.isDieselAuthorizationStarted,
       };
     },
     (global, { isStatic }, stickToFirst) => {

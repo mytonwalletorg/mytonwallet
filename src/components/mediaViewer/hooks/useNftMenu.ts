@@ -67,7 +67,7 @@ const SELECT_ITEM: DropdownItem = {
 
 export default function useNftMenu(nft?: ApiNft) {
   const {
-    startTransfer, selectNfts, openNftCollection, burnNfts, hideNft,
+    startTransfer, selectNfts, openNftCollection, burnNfts, openHideNftModal,
   } = getActions();
 
   const handleMenuItemSelect = useLastCallback((value: string) => {
@@ -124,7 +124,7 @@ export default function useNftMenu(nft?: ApiNft) {
       }
 
       case 'hide': {
-        hideNft({ nftAddress: nft!.address });
+        openHideNftModal();
 
         break;
       }
