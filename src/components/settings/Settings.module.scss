@@ -300,7 +300,6 @@
 
     padding: 1rem;
 
-
     &:not(:last-child):after {
       content: '';
 
@@ -320,7 +319,6 @@
     grid-template-columns: 1fr min-content;
 
     padding: 0.8125rem 0.75rem 0.75rem 1rem;
-
 
     &:not(:last-child):after {
       content: '';
@@ -344,7 +342,6 @@
     justify-content: flex-start;
 
     padding: 0.9375rem 0.5rem 1rem 1rem;
-
 
     &:not(:last-child):after {
       content: '';
@@ -636,7 +633,7 @@
 
   @media (pointer: coarse) {
     &:not(.tokenIconVisible) {
-     opacity: 0;
+      opacity: 0;
     }
   }
 }

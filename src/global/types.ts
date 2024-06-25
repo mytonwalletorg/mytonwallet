@@ -333,8 +333,11 @@ export interface AccountState {
   stakingHistory?: ApiStakingHistory;
   browserHistory?: string[];
 
+  isDieselAuthorizationStarted?: boolean;
   isLongUnstakeRequested?: boolean;
   blacklistedNftAddresses?: string[];
+  nftWithOpenedMenuAddress?: string;
+  isHideNftModalOpened?: boolean;
 }
 
 export interface AccountSettings {
@@ -725,6 +728,9 @@ export interface ActionPayloads {
   clearNftsSelection: undefined;
   burnNfts: { nfts: ApiNft[] };
   hideNft: { nftAddress: ApiNft['address'] };
+  openHideNftModal: undefined;
+  closeHideNftModal: undefined;
+  openNftMenu: { nftAddress: ApiNft['address'] };
 
   submitSignature: { password: string };
   clearSignatureError: undefined;

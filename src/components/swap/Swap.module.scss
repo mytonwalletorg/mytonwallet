@@ -160,10 +160,6 @@
   border-radius: 50%;
 }
 
-.tokenIconWrapper {
-  position: relative;
-}
-
 .tokenBlockchainIcon {
   position: absolute;
   z-index: 1;
@@ -564,6 +560,7 @@
   padding: 0 2rem;
 }
 
+.changellyDescription,
 .blockchainHintText {
   font-size: 0.8125rem;
   font-weight: 500;
@@ -629,10 +626,6 @@
   border-radius: var(--border-radius-default);
 }
 
-.blockchainButtons {
-  width: 100%;
-}
-
 .changellyInfoStatic,
 .priceImpactStatic {
   padding: 0;
@@ -655,6 +648,7 @@
   line-height: 0.8125rem;
   text-align: center;
 }
+
 .changellyInfoDescription {
   font-size: 0.75rem;
   font-weight: 500;
@@ -667,7 +661,6 @@
   color: var(--color-green);
 }
 
-
 .changellyInfoBlock {
   display: flex;
   flex-direction: column;
@@ -677,13 +670,7 @@
   margin-top: 2rem;
 }
 
-.changellyDescription {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--color-gray-2);
-  text-align: center;
-}
-
+.blockchainButtons,
 .changellyTextField,
 .textFieldWrapperFullWidth {
   width: 100%;
@@ -696,6 +683,7 @@
   text-align: center;
 }
 
+.tokenIconWrapper,
 .arrowContainer,
 .arrowContainerInverted {
   position: relative;

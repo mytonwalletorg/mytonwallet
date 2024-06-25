@@ -38,3 +38,21 @@ addActionHandler('hideNft', (global, actions, { nftAddress }) => {
     blacklistedNftAddresses: [...blacklistedNftAddresses, nftAddress],
   });
 });
+
+addActionHandler('openHideNftModal', (global) => {
+  return updateCurrentAccountState(global, {
+    isHideNftModalOpened: true,
+  });
+});
+
+addActionHandler('closeHideNftModal', (global) => {
+  return updateCurrentAccountState(global, {
+    isHideNftModalOpened: undefined,
+  });
+});
+
+addActionHandler('openNftMenu', (global, actions, { nftAddress }) => {
+  return updateCurrentAccountState(global, {
+    nftWithOpenedMenuAddress: nftAddress,
+  });
+});

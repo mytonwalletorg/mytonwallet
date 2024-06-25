@@ -1,5 +1,6 @@
 import type { ApiAddressInfo, ApiKnownAddresses } from '../types';
 
+import { RE_LINK_TEMPLATE } from '../../config';
 import { logDebugError } from '../../util/logs';
 import { callBackendGet } from './backend';
 
@@ -44,4 +45,15 @@ export function checkIsTrustedSite(domain: string) {
 
 export function checkIsTrustedCollection(address: string) {
   return trustedCollections.has(address);
+}
+
+export function checkHasScamLink(text: string) {
+  for (const match of text.replace(/[\u200B-\u200D\uFEFF]/g, '').matchAll(RE_LINK_TEMPLATE)) {
+    const host = match.groups?.host;
+    if (host && !checkIsTrustedSite(host)) {
+      return true;
+    }
+  }
+
+  return false;
 }

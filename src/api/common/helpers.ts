@@ -11,7 +11,9 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { IS_CAPACITOR, IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
+import {
+  IS_CAPACITOR, IS_EXTENSION, MAIN_ACCOUNT_ID, TINY_TRANSFER_MAX_COST,
+} from '../../config';
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { assert } from '../../util/assert';
@@ -21,7 +23,7 @@ import { getEnvironment } from '../environment';
 import { storage } from '../storages';
 import capacitorStorage from '../storages/capacitorStorage';
 import idbStorage from '../storages/idb';
-import { getKnownAddresses, getScamMarkers } from './addresses';
+import { checkHasScamLink, getKnownAddresses, getScamMarkers } from './addresses';
 import { hexToBytes } from './utils';
 
 let localCounter = 0;
@@ -67,9 +69,12 @@ export function buildLocalTransaction(
 }
 
 export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {
-  const { normalizedAddress, comment } = transaction;
+  const {
+    normalizedAddress, comment, type, amount,
+  } = transaction;
   let { metadata = {} } = transaction;
 
+  const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived';
   const knownAddresses = getKnownAddresses();
   const scamMarkers = getScamMarkers();
 
@@ -77,7 +82,13 @@ export function updateTransactionMetadata(transaction: ApiTransactionExtra): Api
     metadata = { ...metadata, ...knownAddresses[normalizedAddress] };
   }
 
-  if (comment && scamMarkers.map((sm) => sm.test(comment)).find(Boolean)) {
+  if (
+    comment
+    && (
+      scamMarkers.some((sm) => sm.test(comment))
+      || ((isNftTransfer || amount < TINY_TRANSFER_MAX_COST) && checkHasScamLink(comment))
+    )
+  ) {
     metadata.isScam = true;
   }
 

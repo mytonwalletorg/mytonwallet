@@ -164,22 +164,17 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
   },
   dedustPool: {
     name: 'dedustPool',
-    hash: 'af6a1790ccd322e9b996733cce5618901a99d76c4c5a219309deef9b0910b238',
+    hash: 'f216ded2b43d32e2d487db6fa6e4d2387f0ef1d7b53ec1ad85f0b4feb8e4ed62',
     isSwapAllowed: true,
   },
   dedustVaultNative: {
     name: 'dedustVaultNative',
-    hash: '8ecbfbe7642ebceec39712a4b3e7b3d1ffc2cfbb1b712fbf1f27f1051afb5220',
-    isSwapAllowed: true,
-  },
-  dedustVaultNative2: {
-    name: 'dedustVaultNative2',
-    hash: '546ea179831fd6bda3d7515f07a5322486ae4ea4685125e6034758b8cca5b917',
+    hash: '64a42ad66688097422901ae6188670f0d6292ad3bdb4139289666f24187e86cb',
     isSwapAllowed: true,
   },
   dedustVaultJetton: {
     name: 'dedustVaultJetton',
-    hash: '54f0c2a249ea3c5fc844c48e2586d8a72e6fc188a1ccaec609fac58248b8c8e3',
+    hash: '5bc82f0c5972ccc6732e98cbe31ea4795da818f9e06c991331568182a8362307',
     isSwapAllowed: true,
   },
   stonPtonWallet: {

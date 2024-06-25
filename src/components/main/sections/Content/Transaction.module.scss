@@ -294,10 +294,6 @@
   }
 }
 
-.swapSell {
-  color: var(--color-gray-2);
-}
-
 .swapBuy {
   color: var(--color-green);
 }
@@ -306,6 +302,7 @@
   color: var(--color-red);
 }
 
+.swapSell,
 .swapHold {
   color: var(--color-gray-2);
 }
