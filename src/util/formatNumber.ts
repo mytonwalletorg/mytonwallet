@@ -4,13 +4,13 @@ import {
   DEFAULT_DECIMAL_PLACES,
   DEFAULT_PRICE_CURRENCY,
   SHORT_CURRENCY_SYMBOL_MAP,
+  WHOLE_PART_DELIMITER,
 } from '../config';
 import { Big } from '../lib/big.js';
 import { toDecimal } from './decimals';
 import withCache from './withCache';
 
 const SHORT_SYMBOLS = new Set(Object.values(SHORT_CURRENCY_SYMBOL_MAP));
-const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
 
 export const formatInteger = withCache((
   value: number | Big | string,

@@ -394,11 +394,10 @@ Create Backup: Create Backup
 Sending: Sending
 Failed: Failed
 Refunded: Refunded
-On hold: On hold
+On Hold: On Hold
 Expired: Expired
-In progress: In progress
+In Progress: In Progress
 Waiting for Payment: Waiting for Payment
-Waiting for payment: Waiting for payment
 Blockchain: Blockchain
 Your address on another blockchain: Your address on another blockchain
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.

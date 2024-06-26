@@ -395,11 +395,10 @@ Create Backup: สร้างการสํารองข้อมูล
 Sending: กำลังส่ง
 Failed: ไม่สำเร็จ
 Refunded: คืนเงินแล้ว
-On hold: หยุดชั่วคราว
+On Hold: หยุดชั่วคราว
 Expired: หมดอายุ
-In progress: กำลังดำเนินการ
+In Progress: กำลังดำเนินการ
 Waiting for Payment: กำลังรอการชำระ
-Waiting for payment: กำลังรอการชำระ
 Blockchain: บล็อกเชน
 Your address on another blockchain: ที่อยู่ของคุณบนบล็อกเชนอื่น
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: โปรดระบุที่อยู่กระเป๋าเงินของคุณใน %blockchain% blockchain เพื่อรับโทเค็นที่ซื้อ

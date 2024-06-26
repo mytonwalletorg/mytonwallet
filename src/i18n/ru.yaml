@@ -395,11 +395,10 @@ Create Backup: Создание резервной копии
 Sending: Отправка
 Failed: Ошибка
 Refunded: Возвращено
-On hold: Удержан
+On Hold: Удержан
 Expired: Истёк
-In progress: В процессе
+In Progress: В процессе
 Waiting for Payment: Ожидание оплаты
-Waiting for payment: Ожидание оплаты
 Blockchain: Блокчейн
 Your address on another blockchain: Ваш адрес в другом блокчейне
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Пожалуйста, укажите адрес вашего кошелька в блокчейне %blockchain% для получения купленных токенов.

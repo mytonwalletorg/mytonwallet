@@ -382,11 +382,10 @@ Create Backup: 建立備份
 Sending: 傳送
 Failed: 失敗
 Refunded: 退款
-On hold: 持有
+On Hold: 持有
 Expired: 過期
-In progress: 進行中
+In Progress: 進行中
 Waiting for Payment: 等待付款
-Waiting for payment: 等待付款
 Blockchain: 區塊鏈
 Your address on another blockchain: 您在另一個區塊鏈上的地址
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: 請提供您在%blockchain%區塊鏈中的錢包地址，以接收購買的代幣。

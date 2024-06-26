@@ -396,10 +396,10 @@ Create Backup: Sicherung erstellen
 Sending: Senden
 Failed: Fehlgeschlagen
 Refunded: Erstattet
-On hold: In Wartestellung
+On Hold: In Wartestellung
 Expired: Abgelaufen
+In Progress: In Bearbeitung
 Waiting for Payment: Auf Zahlung warten
-Waiting for payment: Auf Zahlung warten
 Blockchain: Blockchain
 Your address on another blockchain: Ihre Adresse auf einer anderen Blockchain
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Bitte geben Sie eine Adresse Ihres Wallets in der %blockchain%-Blockchain an, um gekaufte Token zu erhalten.

@@ -3,7 +3,7 @@ import React, {
   memo, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS } from '../../config';
+import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS, WHOLE_PART_DELIMITER } from '../../config';
 import { forceMeasure, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
@@ -36,7 +36,6 @@ type OwnProps = {
   isStatic?: boolean;
 };
 
-const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
 const MIN_LENGTH_FOR_SHRINK = 5;
 const MIN_SIZE_SCALE = 0.25; // 12px
 const measureEl = document.createElement('div');

@@ -26,7 +26,7 @@ Insecure Password: Ненадійний пароль
 Your have entered an insecure password, which can be easily guessed by scammers.: Ваш пароль недостатньо надійний і може бути скомпрометований.
 Continue or change password to something more secure?: Продовжити або змінити пароль на більш надійний?
 Change: Редагувати
-"%1$d Secret Words": "%1$d секретних слів"
+"%1$d Secret Words": "%1$d секретних слова"
 $auth_import_mnemonic_description: |
   Ви можете відновити доступ до гаманця, використовуючи %1$d секретних слова, які ви зберегли під час створення гаманця.
 Let’s make sure your secrets words are recorded correctly.: Давайте переконаємося, що всі слова записані правильно.
@@ -395,11 +395,10 @@ Create Backup: Створення резервної копії
 Sending: Відправлення
 Failed: Помилка
 Refunded: Повернуто
-On hold: Утримано
+On Hold: Утримано
 Expired: Закінчився
-In progress: У процесі
+In Progress: У процесі
 Waiting for Payment: Очікування оплати
-Waiting for payment: Очікування оплати
 Blockchain: Блокчейн
 Your address on another blockchain: Ваша адреса в іншому блокчейні
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Будь ласка, вкажіть адресу вашого гаманця в блокчейні %blockchain% для отримання куплених токенів.

@@ -11,9 +11,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import {
-  IS_CAPACITOR, IS_EXTENSION, MAIN_ACCOUNT_ID, TINY_TRANSFER_MAX_COST,
-} from '../../config';
+import { IS_CAPACITOR, IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { assert } from '../../util/assert';
@@ -23,7 +21,9 @@ import { getEnvironment } from '../environment';
 import { storage } from '../storages';
 import capacitorStorage from '../storages/capacitorStorage';
 import idbStorage from '../storages/idb';
-import { checkHasScamLink, getKnownAddresses, getScamMarkers } from './addresses';
+import {
+  checkHasScamLink, checkHasTelegramBotMention, getKnownAddresses, getScamMarkers,
+} from './addresses';
 import { hexToBytes } from './utils';
 
 let localCounter = 0;
@@ -70,25 +70,24 @@ export function buildLocalTransaction(
 
 export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {
   const {
-    normalizedAddress, comment, type, amount,
+    normalizedAddress, comment, type, isIncoming,
   } = transaction;
   let { metadata = {} } = transaction;
 
   const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived';
   const knownAddresses = getKnownAddresses();
-  const scamMarkers = getScamMarkers();
+  const hasScamMarkers = comment ? getScamMarkers().some((sm) => sm.test(comment)) : false;
+  const shouldCheckComment = !hasScamMarkers && comment && isIncoming
+    && (isNftTransfer || comment.toLowerCase().includes('claim'));
+  const hasScamInComment = shouldCheckComment
+    ? (checkHasScamLink(comment) || checkHasTelegramBotMention(comment))
+    : false;
 
   if (normalizedAddress in knownAddresses) {
     metadata = { ...metadata, ...knownAddresses[normalizedAddress] };
   }
 
-  if (
-    comment
-    && (
-      scamMarkers.some((sm) => sm.test(comment))
-      || ((isNftTransfer || amount < TINY_TRANSFER_MAX_COST) && checkHasScamLink(comment))
-    )
-  ) {
+  if (hasScamMarkers || hasScamInComment) {
     metadata.isScam = true;
   }
 

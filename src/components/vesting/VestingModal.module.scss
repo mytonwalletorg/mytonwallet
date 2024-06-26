@@ -372,6 +372,12 @@
   text-align: center;
 }
 
+.partName {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 .bold {
   font-weight: 700;
 }

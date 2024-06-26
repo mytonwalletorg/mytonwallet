@@ -6,7 +6,9 @@ import type { CustomInAppBrowserObject } from '../explore/hooks/useWebViewBridge
 
 import buildClassName from '../../util/buildClassName';
 import { INAPP_BROWSER_OPTIONS } from '../../util/capacitor';
+import { compact } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
+import { getHostnameFromUrl } from '../../util/url';
 import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP } from '../../util/windowEnvironment';
 
 import useLang from '../../hooks/useLang';
@@ -73,10 +75,13 @@ function InAppBrowser({
       await BottomSheet.disable();
     }
 
-    const ADDITIONAL_INAPP_BROWSER_OPTIONS = `,${[
-      `title=${title || ''}`,
-      `subtitle=${subtitle || ''}`,
-      `shareurl=${encodeURIComponent(url || '')}`,
+    const browserTitle = !title && url ? getHostnameFromUrl(url) : title;
+    const browserSubtitle = subtitle === browserTitle ? undefined : subtitle;
+
+    const ADDITIONAL_INAPP_BROWSER_OPTIONS = `,${compact([
+      IS_IOS || browserTitle ? `title=${browserTitle || ''}` : undefined,
+      IS_IOS || browserSubtitle ? `subtitle=${browserSubtitle || ''}` : undefined,
+      url ? `shareurl=${encodeURIComponent(url)}` : undefined,
       `theme=${theme}`,
       `closebuttoncaption=${IS_IOS ? lang('Close') : 'x'}`,
       `backbuttoncaption=${lang('Back')}`,
@@ -85,7 +90,7 @@ function InAppBrowser({
       `copyurlcaption=${lang('CopyURL')}`,
       `sharecaption=${lang('Share')}`,
       `theme=${theme}`,
-    ].join(',')}`;
+    ]).join(',')}`;
     inAppBrowser = cordova.InAppBrowser.open(url,
       '_blank',
       INAPP_BROWSER_OPTIONS + ADDITIONAL_INAPP_BROWSER_OPTIONS,

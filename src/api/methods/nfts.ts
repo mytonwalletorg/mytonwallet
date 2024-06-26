@@ -37,7 +37,7 @@ export async function processNftUpdates(accountId: string, updates: ApiUpdate[])
   }
 }
 
-export async function updateNfts(accountId: string, nfts: ApiNft[]) {
+export async function updateAccountNfts(accountId: string, nfts: ApiNft[]) {
   onUpdate({
     type: 'updateNfts',
     accountId,

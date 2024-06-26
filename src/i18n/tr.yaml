@@ -395,10 +395,10 @@ Create Backup: Yedek oluştur
 Sending: Gönderiliyor
 Failed: Başarısız
 Refunded: İade edildi
-On hold: Beklemede
+On Hold: Beklemede
 Expired: Süresi doldu
+In Progress: Devam etmekte
 Waiting for Payment: Ödeme bekleniyor
-Waiting for payment: Ödeme bekleniyor
 Blockchain: Blockchain
 Your address on another blockchain: Başka bir blockchaindeki adresiniz
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Satın alınan jetonları almak için lütfen %blockchain% blockchain'deki cüzdanınızın adresini girin.
