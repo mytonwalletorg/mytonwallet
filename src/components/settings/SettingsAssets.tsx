@@ -172,8 +172,17 @@ function SettingsAssets({
             />
           </div>
         </div>
-        <p className={styles.blockTitle}>{lang('Tokens Settings')}</p>
+        <p className={styles.blockTitle}>{lang('Token Settings')}</p>
         <div className={styles.settingsBlock}>
+          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleSortByValueToggle}>
+            {lang('Sort By Cost')}
+
+            <Switcher
+              className={styles.menuSwitcher}
+              label={lang('Sort By Cost')}
+              checked={isSortByValueEnabled}
+            />
+          </div>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTokensWithNoPriceToggle}>
             <div className={styles.blockWithTooltip}>
               {lang('Hide Tokens With No Cost')}
@@ -194,15 +203,6 @@ function SettingsAssets({
               className={styles.menuSwitcher}
               label={lang('Hide Tokens With No Cost')}
               checked={areTokensWithNoCostHidden}
-            />
-          </div>
-          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleSortByValueToggle}>
-            {lang('Sort By Cost')}
-
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Sort By Cost')}
-              checked={isSortByValueEnabled}
             />
           </div>
         </div>

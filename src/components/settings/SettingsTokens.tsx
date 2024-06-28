@@ -156,7 +156,7 @@ function SettingsTokens({
         style={style}
         knobStyle={knobStyle}
         isDisabled={isDragDisabled}
-        className={buildClassName(styles.item, styles.item_token)}
+        className={buildClassName(styles.item, styles.item_token, !isSortByValueEnabled && styles.draggable)}
         offset={{ top: TOP_OFFSET }}
         parentRef={tokensRef}
         scrollRef={parentContainer}
@@ -166,7 +166,7 @@ function SettingsTokens({
         <img
           src={logoPath}
           alt={symbol}
-          className={buildClassName(styles.tokenIcon, isDragDisabled && styles.tokenIconVisible)}
+          className={styles.tokenIcon}
         />
         <div className={styles.tokenInfo}>
           <div className={styles.tokenTitle}>
@@ -198,7 +198,7 @@ function SettingsTokens({
 
   return (
     <>
-      <p className={styles.blockTitle}>{lang('Your Tokens')}</p>
+      <p className={styles.blockTitle}>{lang('My Tokens')}</p>
       <div className={styles.contentRelative} ref={sortableContainerRef}>
         <div
           className={buildClassName(styles.settingsBlock, styles.sortableContainer)}

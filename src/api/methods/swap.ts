@@ -63,7 +63,6 @@ export async function swapBuildTransfer(
   accountId: string,
   password: string,
   request: ApiSwapBuildRequest,
-  withDiesel: boolean,
 ) {
   const { network } = parseAccountId(accountId);
   const authToken = await getBackendAuthToken(accountId, password);
@@ -79,7 +78,7 @@ export async function swapBuildTransfer(
 
   await ton.validateDexSwapTransfers(network, address, request, transferList);
 
-  const result = await ton.checkMultiTransactionDraft(accountId, transferList, withDiesel);
+  const result = await ton.checkMultiTransactionDraft(accountId, transferList, request.shouldTryDiesel);
 
   if ('error' in result) {
     return result;

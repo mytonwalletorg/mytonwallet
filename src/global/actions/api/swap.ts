@@ -9,7 +9,9 @@ import {
   ActiveTab, SwapErrorType, SwapFeeSource, SwapInputSource, SwapState, SwapType,
 } from '../../types';
 
-import { DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TONCOIN_SLUG } from '../../../config';
+import {
+  DEFAULT_FEE, DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TONCOIN_SLUG,
+} from '../../../config';
 import { Big } from '../../../lib/big.js';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import {
@@ -27,7 +29,6 @@ import {
   clearIsPinAccepted,
   setIsPinAccepted,
   updateCurrentSwap,
-  updateCurrentSwapFee,
 } from '../../reducers';
 import { selectAccount, selectCurrentAccount, selectCurrentToncoinBalance } from '../../selectors';
 
@@ -38,7 +39,6 @@ const PAIRS_CACHE: Record<string, { data: ApiSwapPairAsset[]; timestamp: number 
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 const WAIT_FOR_CHANGELLY = 5 * 1000;
 const CLOSING_BOTTOM_SHEET_DURATION = 100; // Like in `useDelegatingBottomSheet`
-const MIN_TONCOIN_BALANCE = 0.5e9;
 
 function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
   const {
@@ -60,6 +60,10 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
   const fromAmount = amountIn!;
   const toAmount = amountOut!;
   const account = selectAccount(global, global.currentAccountId!);
+  const shouldTryDiesel = networkFee
+    ? selectCurrentToncoinBalance(global) < (fromDecimal(networkFee) + DEFAULT_FEE)
+    && global.currentSwap.dieselStatus === 'available'
+    : undefined;
 
   return {
     from,
@@ -72,7 +76,7 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
     dexLabel: dexLabel!,
     networkFee: networkFee!,
     swapFee: swapFee!,
-    shouldTryDiesel: selectCurrentToncoinBalance(global) < MIN_TONCOIN_BALANCE,
+    shouldTryDiesel,
   };
 }
 
@@ -201,9 +205,8 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   }
 
   const swapBuildRequest = buildSwapBuildRequest(global);
-  const withDiesel = global.currentSwap.dieselStatus === 'available';
   const buildResult = await callApi(
-    'swapBuildTransfer', global.currentAccountId!, password, swapBuildRequest, withDiesel,
+    'swapBuildTransfer', global.currentAccountId!, password, swapBuildRequest,
   );
 
   if (!buildResult || 'error' in buildResult) {
@@ -234,7 +237,12 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   };
 
   const result = await callApi(
-    'swapSubmit', global.currentAccountId!, password, buildResult.transfers, swapHistoryItem, withDiesel,
+    'swapSubmit',
+    global.currentAccountId!,
+    password,
+    buildResult.transfers,
+    swapHistoryItem,
+    swapBuildRequest.shouldTryDiesel,
   );
 
   global = getGlobal();
@@ -514,7 +522,7 @@ addActionHandler('setSlippage', (global, actions, { slippage }) => {
   setGlobal(global);
 });
 
-addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
+addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnoughToncoin }) => {
   const resetParams = {
     amountOutMin: '0',
     transactionFee: '0',
@@ -582,7 +590,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
     to,
     slippage: global.currentSwap.slippage,
     fromAddress,
-    shouldTryDiesel: selectCurrentToncoinBalance(global) < MIN_TONCOIN_BALANCE,
+    shouldTryDiesel: isEnoughToncoin === false,
   });
 
   global = getGlobal();
@@ -619,8 +627,6 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
     return;
   }
 
-  const additionalTonAmount = tokenIn.slug === TONCOIN_SLUG ? fromAmount : '0';
-  global = updateCurrentSwapFee(global, estimate, additionalTonAmount);
   global = updateCurrentSwap(global, {
     ...(
       global.currentSwap.inputSource === SwapInputSource.In
@@ -635,6 +641,8 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock }) => {
     isEstimating: false,
     errorType: undefined,
     dieselStatus: estimate.dieselStatus,
+    networkFee: estimate.networkFee,
+    realNetworkFee: estimate.realNetworkFee,
   });
   setGlobal(global);
 });

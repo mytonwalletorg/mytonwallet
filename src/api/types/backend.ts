@@ -172,6 +172,7 @@ export type ApiVestingInfo = {
   parts: {
     id: number;
     time: string;
+    timeEnd: string;
     amount: number;
     status: ApiVestingPartStatus;
   }[];

@@ -854,7 +854,7 @@ export interface ActionPayloads {
   setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
   loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
-  estimateSwap: { shouldBlock: boolean };
+  estimateSwap: { shouldBlock: boolean; isEnoughToncoin?: boolean };
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
   estimateSwapCex: { shouldBlock: boolean };

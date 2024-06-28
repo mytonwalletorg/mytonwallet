@@ -123,7 +123,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-113';
+export const LANG_CACHE_NAME = 'mtw-lang-114';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -326,7 +326,7 @@ export const NOTCOIN_EXCHANGERS = [
 ] as const;
 
 export const CLAIM_ADDRESS = 'EQB3zOTvPi1PmwdcTpqSfFKZnhi1GNKEVJM-LdoAirdLtash';
-export const CLAIM_AMOUNT = 50000000n; // 0.05 TON
+export const CLAIM_AMOUNT = 30000000n; // 0.03 TON
 export const CLAIM_COMMENT = 'claim';
 
 // eslint-disable-next-line max-len
