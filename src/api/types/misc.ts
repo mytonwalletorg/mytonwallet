@@ -191,7 +191,7 @@ export interface ApiSignedTransfer {
 
 export type ApiLocalTransactionParams = Omit<ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'>;
 
-export type ApiBaseCurrency = 'USD' | 'EUR' | 'RUB' | 'CNY' | 'BTC' | 'TON';
+export type ApiBaseCurrency = 'USD' | 'EUR' | 'UAH' | 'RUB' | 'CNY' | 'BTC' | 'TON';
 
 export enum ApiLiquidUnstakeMode {
   Default,
