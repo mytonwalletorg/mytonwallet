@@ -67,7 +67,7 @@ function Explore({
   }, [browserHistory, searchValue]);
   const renderingBrowserHistory = useCurrentOrPrev(filteredBrowserHistory, true);
 
-  const openSite = (originalUrl: string, isExternal?: boolean) => {
+  const openSite = (originalUrl: string, isExternal?: boolean, title?: string) => {
     let url = originalUrl;
     if (!url.startsWith('http:') && !url.startsWith('https:')) {
       url = `https://${url}`;
@@ -78,7 +78,7 @@ function Explore({
       addSiteToBrowserHistory({ url });
     }
 
-    openUrl(url, isExternal);
+    openUrl(url, isExternal, title, getHostnameFromUrl(url));
   };
 
   const handleSiteClick = useLastCallback((
@@ -88,7 +88,7 @@ function Explore({
     vibrate();
     hideSuggestions();
     const site = sites?.find(({ url: currentUrl }) => currentUrl === url);
-    openSite(url, site?.isExternal);
+    openSite(url, site?.isExternal, site?.name);
   });
 
   const handleSiteClear = (e: React.MouseEvent, url: string) => {

@@ -275,8 +275,8 @@ Logged in with MyTonWallet: 使用 MyTonWallet 登录
 No active connections: 没有活动连接
 Other: 其他的
 Assets & Activity: 资产 & 活动记录
-Tokens Settings: 代币设置
-Your Tokens: 你的代币
+Token Settings: 代币设置
+My Tokens: 我的代币
 Add Token: 添加令牌
 Delete Token: 删除令牌
 Are you sure you want to delete?: 您确定要删除 %token% 吗？
@@ -382,11 +382,10 @@ Create Backup: 创建备份
 Sending: 发送
 Failed: 失败
 Refunded: 退款
-On hold: 持有
+On Hold: 持有
 Expired: 过期
-In progress: 进行中
+In Progress: 进行中
 Waiting for Payment: 等待付款
-Waiting for payment: 等待付款
 Blockchain: 区块链
 Your address on another blockchain: 您在另一个区块链上的地址
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: 请提供您在%blockchain%区块链中的钱包地址，以接收购买的代币。
@@ -592,3 +591,16 @@ Claim: 宣称
 Confirm Unfreezing: 确认解冻
 Insufficient Balance for Fee.: 费用余额不足。
 $fee_value_bold: "**手续费:** %fee%"
+MyTonWallet Features: MyTonWallet 功能
+Install on Desktop: 安装在桌面
+Install on Mobile: 安装在手机
+Install App: 安装应用
+WrongNetwork: Dapp 从另一个网络请求交易。
+Hide: 隐藏
+Hide NFT: 隐藏 NFT
+Are you sure you want to hide this NFT? This action cannot be undone.: 您确定要隐藏这个 NFT 吗？此操作无法撤消。
+Reload Page: 重新加载页面
+Open in Safari: 在 Safari 中打开
+Open in Browser: 在浏览器中打开
+CopyURL: 复制链接
+Share: 分享

@@ -194,7 +194,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'openUrl': {
-      openUrl(update.url, update.isExternal);
+      openUrl(update.url, update.isExternal, update.title, update.subtitle);
       break;
     }
 
@@ -219,6 +219,18 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         global = updateVesting(global, accountId, { unfreezeRequestedIds: undefined });
       }
       setGlobal(global);
+      break;
+    }
+
+    case 'updatingStatus': {
+      const { kind, isUpdating } = update;
+      const key = kind === 'balance' ? 'balanceUpdateStartedAt' : 'activitiesUpdateStartedAt';
+      if (isUpdating && global[key]) break;
+
+      setGlobal({
+        ...global,
+        [key]: isUpdating ? Date.now() : undefined,
+      });
       break;
     }
   }

@@ -33,7 +33,8 @@ import { getStakingCommonCache } from '../common/cache';
 import { isUpdaterAlive, resolveBlockchainKey } from '../common/helpers';
 import { txCallbacks } from '../common/txCallbacks';
 import { hexToBytes } from '../common/utils';
-import { processNftUpdates, updateNfts } from './nfts';
+import { AbortOperationError } from '../errors';
+import { processNftUpdates, updateAccountNfts } from './nfts';
 import { resolveDataPreloadPromise } from './preload';
 import { getBaseCurrency } from './prices';
 import { getBackendStakingState, tryUpdateStakingCommonData } from './staking';
@@ -43,6 +44,11 @@ import {
 import { fetchVestings } from './vesting';
 
 type IsAccountActiveFn = (accountId: string) => boolean;
+
+type AccountBalanceCache = {
+  balance?: bigint;
+  tokenBalances?: ApiBalanceBySlug;
+};
 
 const SEC = 1000;
 const BALANCE_BASED_INTERVAL = 1.1 * SEC;
@@ -75,10 +81,7 @@ const prices: {
   bySlug: {},
 };
 let swapPollingAccountId: string | undefined;
-const lastBalanceCache: Record<string, {
-  balance?: bigint;
-  tokenBalances?: ApiBalanceBySlug;
-}> = {};
+const lastBalanceCache: Record<string, AccountBalanceCache> = {};
 
 export async function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAccountActiveFn) {
   onUpdate = _onUpdate;
@@ -141,110 +144,152 @@ export async function setupBalanceBasedPolling(accountId: string, newestTxIds: A
 
   const localOnUpdate = onUpdate;
 
-  while (isAlive(localOnUpdate, accountId)) {
-    try {
-      const walletInfo = await blockchain.getWalletInfo(network, address);
-      if (!isAlive(localOnUpdate, accountId)) return;
+  async function updateBalance(cache: AccountBalanceCache) {
+    const walletInfo = await blockchain.getWalletInfo(network, address);
+    const { balance, lastTxId } = walletInfo ?? {};
+    const isToncoinBalanceChanged = balance !== undefined && balance !== cache?.balance;
+    const balancesToUpdate: ApiBalanceBySlug = {};
 
-      const { balance, lastTxId } = walletInfo ?? {};
+    if (isToncoinBalanceChanged) {
+      balancesToUpdate[TONCOIN_SLUG] = balance;
 
-      if (Date.now() - lastNftFullUpdate > NFT_FULL_INTERVAL) {
-        const nfts = await blockchain.getAccountNfts(accountId).catch(logAndRescue);
+      lastBalanceCache[accountId] = {
+        ...lastBalanceCache[accountId],
+        balance,
+      };
+    }
 
-        lastNftFullUpdate = Date.now();
+    return {
+      lastTxId, isToncoinBalanceChanged, balancesToUpdate,
+    };
+  }
 
-        if (!isAlive(localOnUpdate, accountId)) return;
-
-        if (nfts) {
-          nftFromSec = Math.round(Date.now() / 1000);
-          if (!isAlive(localOnUpdate, accountId)) return;
-
-          void updateNfts(accountId, nfts);
-        }
-      }
-
-      // Process TON balance
-      const cache = lastBalanceCache[accountId];
-      const changedTokenSlugs: string[] = [];
-      const isToncoinBalanceChanged = balance !== undefined && balance !== cache?.balance;
-
-      const balancesToUpdate: ApiBalanceBySlug = {};
-
-      if (isToncoinBalanceChanged) {
-        balancesToUpdate[TONCOIN_SLUG] = balance;
-
-        lastBalanceCache[accountId] = {
-          ...lastBalanceCache[accountId],
-          balance,
-        };
-      }
-
-      // Fetch and process token balances
-      if (isToncoinBalanceChanged || (doubleCheckTokensTime && doubleCheckTokensTime < Date.now())) {
-        doubleCheckTokensTime = isToncoinBalanceChanged ? Date.now() + DOUBLE_CHECK_TOKENS_PAUSE : undefined;
-
-        tokenBalances = await blockchain.getAccountTokenBalances(accountId).catch(logAndRescue);
-
-        if (!isAlive(localOnUpdate, accountId)) return;
-
-        if (tokenBalances) {
-          registerNewTokens(tokenBalances);
-
-          tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
-            const cachedBalance = cache?.tokenBalances && cache.tokenBalances[slug];
-            if (cachedBalance === tokenBalance) return;
-
-            changedTokenSlugs.push(slug);
-            balancesToUpdate[slug] = tokenBalance;
-          });
-
-          lastBalanceCache[accountId] = {
-            ...lastBalanceCache[accountId],
-            tokenBalances: Object.fromEntries(tokenBalances.map(
-              ({ slug, balance: tokenBalance }) => [slug, tokenBalance],
-            )),
-          };
-        }
-
-        if (Object.keys(balancesToUpdate).length > 0) {
-          onUpdate({
-            type: 'updateBalances',
-            accountId,
-            balancesToUpdate,
-          });
-        }
-      }
-
-      // Fetch transactions for tokens with a changed balance
-      if (isToncoinBalanceChanged || changedTokenSlugs.length) {
-        if (lastTxId) {
-          await blockchain.waitUntilTransactionAppears(network, address, lastTxId);
-        }
-
-        const newTxIds = await processNewActivities(accountId, newestTxIds, changedTokenSlugs, tokenBalances);
-        newestTxIds = { ...newestTxIds, ...newTxIds };
-      }
-
-      // Fetch NFT updates
+  async function updateNfts(isToncoinBalanceChanged: boolean) {
+    if (Date.now() - lastNftFullUpdate < NFT_FULL_INTERVAL) {
+      // Partial update
       if (isToncoinBalanceChanged) {
         const nftResult = await blockchain.getNftUpdates(accountId, nftFromSec).catch(logAndRescue);
-        if (!isAlive(localOnUpdate, accountId)) return;
+
+        throwErrorIfUpdaterNotAlive(localOnUpdate, accountId);
 
         if (nftResult) {
           [nftFromSec, nftUpdates] = nftResult;
           void processNftUpdates(accountId, nftUpdates);
         }
       }
+    } else {
+      // Full update
+      const nfts = await blockchain.getAccountNfts(accountId).catch(logAndRescue);
+      lastNftFullUpdate = Date.now();
+
+      throwErrorIfUpdaterNotAlive(localOnUpdate, accountId);
+
+      if (nfts) {
+        nftFromSec = Math.round(Date.now() / 1000);
+        void updateAccountNfts(accountId, nfts);
+      }
+    }
+  }
+
+  async function updateTokenBalances(
+    isToncoinBalanceChanged: boolean,
+    cache: AccountBalanceCache,
+    balancesToUpdate: ApiBalanceBySlug,
+  ) {
+    const changedTokenSlugs: string[] = [];
+
+    if (isToncoinBalanceChanged || (doubleCheckTokensTime && doubleCheckTokensTime < Date.now())) {
+      doubleCheckTokensTime = isToncoinBalanceChanged ? Date.now() + DOUBLE_CHECK_TOKENS_PAUSE : undefined;
+      tokenBalances = await blockchain.getAccountTokenBalances(accountId).catch(logAndRescue);
+
+      throwErrorIfUpdaterNotAlive(localOnUpdate, accountId);
+
+      if (tokenBalances) {
+        registerNewTokens(tokenBalances);
+
+        tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
+          const cachedBalance = cache?.tokenBalances && cache.tokenBalances[slug];
+          if (cachedBalance === tokenBalance) return;
+
+          changedTokenSlugs.push(slug);
+          balancesToUpdate[slug] = tokenBalance;
+        });
+
+        lastBalanceCache[accountId] = {
+          ...lastBalanceCache[accountId],
+          tokenBalances: Object.fromEntries(tokenBalances.map(
+            ({ slug, balance: tokenBalance }) => [slug, tokenBalance],
+          )),
+        };
+      }
+
+      if (Object.keys(balancesToUpdate).length > 0) {
+        onUpdate({
+          type: 'updateBalances',
+          accountId,
+          balancesToUpdate,
+        });
+      }
+    }
+
+    onUpdate({ type: 'updatingStatus', kind: 'balance', isUpdating: false });
+
+    return changedTokenSlugs;
+  }
+
+  async function updateActivities(isToncoinBalanceChanged: boolean, changedTokenSlugs: string[], lastTxId?: string) {
+    if (isToncoinBalanceChanged || changedTokenSlugs.length) {
+      if (lastTxId) {
+        await blockchain.waitUntilTransactionAppears(network, address, lastTxId);
+      }
+
+      const newTxIds = await processNewActivities(accountId, newestTxIds, changedTokenSlugs, tokenBalances);
+      newestTxIds = { ...newestTxIds, ...newTxIds };
+    }
+
+    onUpdate({ type: 'updatingStatus', kind: 'activities', isUpdating: false });
+  }
+
+  while (isAlive(localOnUpdate, accountId)) {
+    try {
+      onUpdate({ type: 'updatingStatus', kind: 'activities', isUpdating: true });
+      onUpdate({ type: 'updatingStatus', kind: 'balance', isUpdating: true });
+
+      const cache = lastBalanceCache[accountId];
+
+      const {
+        lastTxId,
+        isToncoinBalanceChanged,
+        balancesToUpdate,
+      } = await updateBalance(cache);
+
+      throwErrorIfUpdaterNotAlive(localOnUpdate, accountId);
+
+      const changedTokenSlugs = await updateTokenBalances(isToncoinBalanceChanged, cache, balancesToUpdate);
+
+      await Promise.all([
+        updateActivities(isToncoinBalanceChanged, changedTokenSlugs, lastTxId),
+        updateNfts(isToncoinBalanceChanged),
+      ]);
 
       if (isToncoinBalanceChanged && !isInitialized && await blockchain.isAddressInitialized(network, address)) {
         isInitialized = true;
         await updateStoredAccount(accountId, { isInitialized });
       }
     } catch (err) {
+      if (err instanceof AbortOperationError) {
+        return;
+      }
       logDebugError('setupBalanceBasedPolling', err);
     }
 
     await pauseOrFocus(BALANCE_BASED_INTERVAL, BALANCE_BASED_INTERVAL_WHEN_NOT_FOCUSED);
+  }
+}
+
+function throwErrorIfUpdaterNotAlive(localOnUpdate: OnApiUpdate, accountId: string) {
+  if (!isAlive(localOnUpdate, accountId)) {
+    throw new AbortOperationError();
   }
 }
 

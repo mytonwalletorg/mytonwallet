@@ -10,6 +10,7 @@ import { getKnownAddressInfo } from '../../common/addresses';
 
 const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
 const VIP_DNS_COLLECTION = 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS';
+const GRAM_DNS_COLLECTION = 'EQAic3zPce496ukFDhbco28FVsKKl2WUX_iJwaL87CBxSiLQ';
 
 export async function resolveAddress(network: ApiNetwork, address: string): Promise<{
   address: string;
@@ -53,6 +54,9 @@ async function resolveAddressByDomain(network: ApiNetwork, domain: string) {
     if (dns.isVipDnsDomain(domain)) {
       base = dns.removeVipZone(domain)!;
       collection = VIP_DNS_COLLECTION;
+    } else if (dns.isGramDnsDomain(domain)) {
+      base = dns.removeGramZone(domain)!;
+      collection = GRAM_DNS_COLLECTION;
     } else {
       base = dns.removeTonZone(domain);
       collection = TON_DNS_COLLECTION;

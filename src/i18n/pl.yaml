@@ -286,8 +286,8 @@ Logged in with MyTonWallet: Zalogowany za pomocą MyTonWallet
 No active connections: Brak aktywnych połączeń
 Other: Inne
 Assets & Activity: Aktywa i aktywność
-Tokens Settings: Ustawienia tokenów
-Your Tokens: Twoje tokeny
+Token Settings: Ustawienia tokenów
+My Tokens: Moje Tokeny
 Add Token: Dodaj token
 Delete Token: Usuń token
 Are you sure you want to delete?: Czy na pewno chcesz usunąć %token%?
@@ -394,11 +394,10 @@ Create Backup: Utwórz kopię zapasową
 Sending: Wysyłanie
 Failed: Nieudane
 Refunded: Zwrócone
-On hold: Wstrzymane
+On Hold: Wstrzymane
 Expired: Wygasłe
-In progress: W trakcie
+In Progress: W trakcie
 Waiting for Payment: Oczekiwanie na płatność
-Waiting for payment: Oczekiwanie na płatność
 Blockchain: Blockchain
 Your address on another blockchain: Twój adres na innym blockchainie
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Podaj adres swojego portfela w blockchainie %blockchain%, aby otrzymać zakupione tokeny.
@@ -610,3 +609,16 @@ Claim: Prawo
 Confirm Unfreezing: Potwierdź Odmrożenie
 Insufficient Balance for Fee.: Niewystarczające saldo na opłatę.
 $fee_value_bold: "**Opłata:** %fee%"
+MyTonWallet Features: Funkcje MyTonWallet
+Install on Desktop: Zainstaluj na pulpicie
+Install on Mobile: Zainstaluj na telefonie komórkowym
+Install App: Zainstaluj aplikację
+WrongNetwork: Dapp zażądał transakcji z innej sieci.
+Hide: Ukryj
+Hide NFT: Ukryj NFT
+Are you sure you want to hide this NFT? This action cannot be undone.: Czy na pewno chcesz ukryć ten NFT? Ta akcja jest nieodwracalna.
+Reload Page: Przeładuj stronę
+Open in Safari: Otwórz w Safari
+Open in Browser: Otwórz w przeglądarce
+CopyURL: Kopiuj URL
+Share: Udostępnij

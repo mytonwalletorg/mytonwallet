@@ -32,6 +32,7 @@ import { getIsNativeBiometricAuthSupported } from '../../util/capacitor';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import { openUrl } from '../../util/openUrl';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
 import {
@@ -43,6 +44,7 @@ import {
   IS_IOS_APP,
   IS_LEDGER_SUPPORTED,
   IS_TOUCH_ENV,
+  IS_WEB,
 } from '../../util/windowEnvironment';
 
 import useEffectOnce from '../../hooks/useEffectOnce';
@@ -85,6 +87,9 @@ import biometricsImg from '../../assets/settings/settings_biometrics.svg';
 import connectedDappsImg from '../../assets/settings/settings_connected-dapps.svg';
 import disclaimerImg from '../../assets/settings/settings_disclaimer.svg';
 import exitImg from '../../assets/settings/settings_exit.svg';
+import installAppImg from '../../assets/settings/settings_install-app.svg';
+import installDesktopImg from '../../assets/settings/settings_install-desktop.svg';
+import installMobileImg from '../../assets/settings/settings_install-mobile.svg';
 import languageImg from '../../assets/settings/settings_language.svg';
 import ledgerImg from '../../assets/settings/settings_ledger.svg';
 import supportImg from '../../assets/settings/settings_support.svg';
@@ -306,6 +311,18 @@ function Settings({
     }
   });
 
+  function handleClickInstallApp() {
+    openUrl('https://mytonwallet.io/get', true);
+  }
+
+  function handleClickInstallOnDesktop() {
+    openUrl('https://mytonwallet.io/get/desktop', true);
+  }
+
+  function handleClickInstallOnMobile() {
+    openUrl('https://mytonwallet.io/get/mobile', true);
+  }
+
   function handleOpenBackupWallet() {
     if (IS_DELEGATED_BOTTOM_SHEET) {
       handleCloseSettings();
@@ -418,6 +435,16 @@ function Settings({
           className={buildClassName(styles.content, 'custom-scroll')}
           onScroll={handleContentScroll}
         >
+          {IS_WEB && (
+            <div className={styles.block}>
+              <div className={styles.item} onClick={handleClickInstallApp}>
+                <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
+                {lang('Install App')}
+
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            </div>
+          )}
           {shouldRenderNativeBiometrics && (
             <NativeBiometricsToggle
               onEnable={handleNativeBiometricsTurnOnOpen}
@@ -571,6 +598,41 @@ function Settings({
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
+          </div>
+
+          {IS_CAPACITOR && (
+            <div className={styles.block}>
+              <div className={styles.item} onClick={handleClickInstallOnDesktop}>
+                <img className={styles.menuIcon} src={installDesktopImg} alt={lang('Install on Desktop')} />
+                {lang('Install on Desktop')}
+
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            </div>
+          )}
+
+          {IS_ELECTRON && (
+            <div className={styles.block}>
+              <div className={styles.item} onClick={handleClickInstallOnMobile}>
+                <img className={styles.menuIcon} src={installMobileImg} alt={lang('Install on Mobile')} />
+                {lang('Install on Mobile')}
+
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            </div>
+          )}
+
+          {IS_EXTENSION && (
+            <div className={styles.block}>
+              <div className={styles.item} onClick={handleClickInstallApp}>
+                <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
+                {lang('Install App')}
+
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            </div>
+          )}
+          <div className={styles.block}>
             <div className={buildClassName(styles.item, styles.item_red)} onClick={openLogOutModal}>
               <img className={styles.menuIcon} src={exitImg} alt={lang('Exit')} />
               {lang('Exit')}

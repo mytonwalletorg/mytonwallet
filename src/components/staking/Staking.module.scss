@@ -358,6 +358,11 @@
       border-radius: var(--border-radius-default) 0 var(--border-radius-default) var(--border-radius-default);
     }
   }
+
+  :global(.is-android) & {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
 }
 
 @include respond-below(xs) {
@@ -552,13 +557,11 @@
   }
 }
 
-
 .stakingShortInfoInsidePasswordForm {
   align-self: center;
 
   margin-bottom: 2rem;
 }
-
 
 .tokenIcon {
   width: 1.25rem;

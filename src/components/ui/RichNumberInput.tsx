@@ -3,8 +3,8 @@ import React, {
   memo, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS } from '../../config';
-import { requestMutation } from '../../lib/fasterdom/fasterdom';
+import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS, WHOLE_PART_DELIMITER } from '../../config';
+import { forceMeasure, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
@@ -36,7 +36,9 @@ type OwnProps = {
   isStatic?: boolean;
 };
 
-const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
+const MIN_LENGTH_FOR_SHRINK = 5;
+const MIN_SIZE_SCALE = 0.25; // 12px
+const measureEl = document.createElement('div');
 
 function RichNumberInput({
   id,
@@ -64,6 +66,33 @@ function RichNumberInput({
   const lang = useLang();
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
   const [isContentEditable, setContentEditable] = useState(!disabled);
+  const isFontShrinkedRef = useRef(false);
+
+  const updateFontScale = useLastCallback((content: string) => {
+    const input = inputRef.current!;
+
+    forceMeasure(() => {
+      const { clientWidth: width } = input;
+      measureEl.className = buildClassName(input.className, 'measure-hidden');
+      measureEl.style.width = `${width}px`;
+      measureEl.innerHTML = content;
+      document.body.appendChild(measureEl);
+      let delta = 1;
+
+      while (delta > MIN_SIZE_SCALE) {
+        measureEl.style.setProperty('--base-font-size', delta.toString());
+        if (measureEl.scrollWidth <= width) {
+          break;
+        }
+        delta -= 0.05;
+      }
+
+      isFontShrinkedRef.current = delta < 1;
+      document.body.removeChild(measureEl);
+      measureEl.className = '';
+      input.style.setProperty('--base-font-size', delta.toString());
+    });
+  });
 
   const handleLoadingHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
     const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
@@ -89,7 +118,11 @@ function RichNumberInput({
   const updateHtml = useLastCallback((parts?: RegExpMatchArray) => {
     const input = inputRef.current!;
     const content = isLoading ? handleLoadingHtml(input, parts) : handleNumberHtml(input, parts);
+    const textContent = parts?.[0] || '';
 
+    if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontShrinkedRef.current) {
+      updateFontScale(content);
+    }
     if (content.length) {
       input.classList.remove(styles.isEmpty);
     } else {

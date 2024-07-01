@@ -749,5 +749,6 @@ addActionHandler('clearAccountLoading', (global) => {
 
 addActionHandler('authorizeDiesel', (global) => {
   const address = selectCurrentAccount(global)!.address;
+  setGlobal(updateCurrentAccountState(global, { isDieselAuthorizationStarted: true }));
   openUrl(`https://t.me/${BOT_USERNAME}?start=auth-${address}`, true);
 });

@@ -217,6 +217,10 @@
   top: 2.25rem;
   left: 2.375rem;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   width: 1rem;
   height: 1rem;
 
@@ -226,6 +230,17 @@
 
   background-color: var(--color-background-first);
   border-radius: 50%;
+
+  :global(html.is-android) &,
+  :global(html.is-ios) & {
+    top: 2.375rem;
+    left: 2.5rem;
+  }
+
+  :global(html.is-android) &::before {
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    padding-top: 0.5px;
+  }
 }
 
 .percent {

@@ -1,4 +1,6 @@
-import type { ConnectEventError, ConnectItemReply, DeviceInfo } from '@tonconnect/protocol';
+import type {
+  CHAIN, ConnectEventError, ConnectItemReply, DeviceInfo,
+} from '@tonconnect/protocol';
 
 export interface LocalConnectEventSuccess {
   event: 'connect';
@@ -11,6 +13,7 @@ export interface LocalConnectEventSuccess {
 
 export interface TransactionPayload {
   valid_until?: number;
+  network?: CHAIN;
   messages: TransactionPayloadMessage[];
   from?: string; // https://github.com/ton-blockchain/ton-connect/blob/main/wallet-guidelines.md#multi-accounts
 }

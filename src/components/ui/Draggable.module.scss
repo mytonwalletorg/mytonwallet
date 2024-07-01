@@ -16,40 +16,17 @@
 .knob {
   cursor: grab !important;
 
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
 
   font-size: 1.5rem;
-  line-height: 2.25rem;
-  color: var(--color-black);
+  line-height: 1.5rem;
+  color: var(--color-gray-3);
   text-align: center;
-
-  opacity: 0;
-  background: var(--color-interactive-item-hover);
-  border-radius: 50%;
-  box-shadow: 0 0 0 0.0625rem var(--color-interactive-item-hover);
 
   transition: opacity 150ms;
 
-  .container:hover & {
-    opacity: 1;
-  }
-
   .isDragging & {
     cursor: grabbing !important;
-
-    opacity: 1;
-  }
-
-  @media (pointer: coarse) {
-    touch-action: none;
-
-    opacity: 1 !important;
-    background: none;
-    box-shadow: none;
   }
 }

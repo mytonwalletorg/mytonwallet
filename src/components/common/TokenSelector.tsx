@@ -171,7 +171,12 @@ function TokenSelector({
 
   const filteredTokenList = useMemo(() => {
     const tokensToFilter = isInsideSettings ? allUnimportedTonTokens : swapTokensWithFilter;
-    const lowerCaseSearchValue = searchValue.toLowerCase().trim();
+    const untrimmedSearchValue = searchValue.toLowerCase();
+    const lowerCaseSearchValue = untrimmedSearchValue.trim();
+
+    if (untrimmedSearchValue.length && !lowerCaseSearchValue.length) {
+      return [];
+    }
 
     return tokensToFilter.filter(({
       name, symbol, keywords, isDisabled,

@@ -37,12 +37,11 @@ export async function processNftUpdates(accountId: string, updates: ApiUpdate[])
   }
 }
 
-export async function updateNfts(accountId: string, nfts: ApiNft[]) {
-  const visibleNfts = nfts.filter((nft) => !nft.isHidden);
+export async function updateAccountNfts(accountId: string, nfts: ApiNft[]) {
   onUpdate({
     type: 'updateNfts',
     accountId,
-    nfts: visibleNfts,
+    nfts,
   });
 
   const dbNfts = nfts.map((nft) => convertToDbEntity(accountId, nft));

@@ -58,6 +58,7 @@ export const TON_SYMBOL = 'TON';
 export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 0;
 
 export const DEFAULT_DECIMAL_PLACES = 9;
+export const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
 
 export const DEFAULT_SLIPPAGE_VALUE = 5;
 
@@ -122,7 +123,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-108';
+export const LANG_CACHE_NAME = 'mtw-lang-114';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -325,10 +326,14 @@ export const NOTCOIN_EXCHANGERS = [
 ] as const;
 
 export const CLAIM_ADDRESS = 'EQB3zOTvPi1PmwdcTpqSfFKZnhi1GNKEVJM-LdoAirdLtash';
-export const CLAIM_AMOUNT = 50000000n; // 0.05 TON
+export const CLAIM_AMOUNT = 30000000n; // 0.03 TON
 export const CLAIM_COMMENT = 'claim';
 
 // eslint-disable-next-line max-len
 export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z][-a-zA-Z0-9]{1,62})\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)/g;
+// eslint-disable-next-line max-len
+export const RE_TG_BOT_MENTION = /telegram[:\s-]*((@[a-z0-9_]+)|(https:\/\/)?(t\.me|telegram\.me|telegram\.dog)\/[a-z0-9_]+)/mig;
+export const RE_ZERO_WIDTH_SPACE = /[\u200B-\u200D\uFEFF]/g;
+export const RE_FAKE_DOTS = /[\u0702\u0701]/g;
 
 export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';

@@ -1,6 +1,6 @@
 {
   "name": "native-bottom-sheet",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Allows to open a native BottomSheet/FloatingPanel on iOS",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",

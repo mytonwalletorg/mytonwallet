@@ -26,10 +26,18 @@ export default function useVesting({ vesting, userMycoin }: { vesting?: ApiVesti
     return calcVestingAmountByStatus(vesting!, ['frozen', 'ready']);
   }, [hasVesting, vesting]);
 
-  const canBeUnfrozen = useMemo(() => {
-    if (!hasVesting) return false;
+  const unfreezeEndDate = useMemo(() => {
+    if (!hasVesting) return undefined;
 
-    return vesting!.some((currentVesting) => currentVesting.parts.some(({ status }) => status === 'ready'));
+    for (const { parts } of vesting!) {
+      for (const part of parts) {
+        if (part.status === 'ready') {
+          return new Date(part.timeEnd).getTime();
+        }
+      }
+    }
+
+    return undefined;
   }, [hasVesting, vesting]);
 
   const {
@@ -45,7 +53,8 @@ export default function useVesting({ vesting, userMycoin }: { vesting?: ApiVesti
     shouldRender,
     transitionClassNames,
     amount,
-    vestingStatus: (canBeUnfrozen ? 'readyToUnfreeze' : 'frozen') as 'frozen' | 'readyToUnfreeze',
+    vestingStatus: unfreezeEndDate ? 'readyToUnfreeze' as const : 'frozen' as const,
+    unfreezeEndDate,
     onVestingTokenClick,
   };
 }

@@ -12,6 +12,7 @@ import {
   CHANGELLY_AML_KYC,
   CHANGELLY_PRIVACY_POLICY,
   CHANGELLY_TERMS_OF_USE,
+  DEFAULT_FEE,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   TON_SYMBOL,
   TONCOIN_SLUG,
@@ -138,9 +139,9 @@ function SwapInitial({
         return 0n;
       }
       if (isToncoinIn) {
-        return fromDecimal(amountIn) + fromDecimal(networkFee);
+        return fromDecimal(amountIn) + fromDecimal(networkFee) + DEFAULT_FEE;
       }
-      return fromDecimal(networkFee);
+      return fromDecimal(networkFee) + DEFAULT_FEE;
     },
     [tokenIn, amountIn, isToncoinIn, networkFee],
   );
@@ -151,6 +152,7 @@ function SwapInitial({
 
   const isErrorExist = errorType !== undefined;
   const isEnoughToncoin = toncoin.amount > totalToncoinAmount;
+
   // eslint-disable-next-line max-len
   const isCorrectAmountIn = Boolean(
     amountIn
@@ -178,7 +180,7 @@ function SwapInitial({
       estimateSwapCex({ shouldBlock });
       return;
     }
-    estimateSwap({ shouldBlock });
+    estimateSwap({ shouldBlock, isEnoughToncoin });
   });
 
   const throttledEstimateSwap = useThrottledCallback(

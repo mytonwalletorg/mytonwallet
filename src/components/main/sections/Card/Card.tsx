@@ -19,6 +19,7 @@ import { copyTextToClipboard } from '../../../../util/clipboard';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { getTonExplorerAddressUrl } from '../../../../util/url';
+import { IS_IOS, IS_SAFARI } from '../../../../util/windowEnvironment';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
@@ -27,9 +28,12 @@ import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
+import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
 
 import AnimatedCounter from '../../../ui/AnimatedCounter';
 import Loading from '../../../ui/Loading';
+import LoadingDots from '../../../ui/LoadingDots';
+import Transition from '../../../ui/Transition';
 import AccountSelector from './AccountSelector';
 import CurrencySwitcher from './CurrencySwitcher';
 import TokenCard from './TokenCard';
@@ -51,6 +55,7 @@ interface StateProps {
   isTestnet?: boolean;
   baseCurrency?: ApiBaseCurrency;
   stakingBalance?: bigint;
+  balanceUpdateStartedAt?: number;
 }
 
 function Card({
@@ -65,6 +70,7 @@ function Card({
   isTestnet,
   baseCurrency,
   stakingBalance,
+  balanceUpdateStartedAt,
 }: OwnProps & StateProps) {
   const { showNotification } = getActions();
 
@@ -77,6 +83,8 @@ function Card({
     }) as TeactNode[]
     ).join('');
   }, [lang]);
+
+  const isUpdating = useUpdateIndicator(balanceUpdateStartedAt);
 
   const [isCurrencyMenuOpen, openCurrencyMenu, closeCurrencyMenu] = useFlag(false);
   const currentToken = useMemo(() => {
@@ -150,25 +158,33 @@ function Card({
       'icon-caret-down',
       primaryFractionPart || shortBaseSymbol.length > 1 ? styles.iconCaretFraction : styles.iconCaret,
     );
+    const noAnimationCounter = !isUpdating || IS_SAFARI || IS_IOS;
     return (
       <>
-        <div className={styles.primaryValue}>
-          <span className={styles.currencySwitcher} role="button" tabIndex={0} onClick={openCurrencyMenu}>
-            {shortBaseSymbol.length === 1 && shortBaseSymbol}
-            <AnimatedCounter text={primaryWholePart ?? ''} />
-            {primaryFractionPart && (
-              <span className={styles.primaryFractionPart}>
-                <AnimatedCounter text={`.${primaryFractionPart}`} />
-              </span>
-            )}
-            {shortBaseSymbol.length > 1 && (
-              <span className={styles.primaryFractionPart}>
+        <Transition activeKey={isUpdating ? 1 : 0} name="fade" shouldCleanup className={styles.balanceTransition}>
+          <div className={styles.primaryValue}>
+            <span
+              className={buildClassName(styles.currencySwitcher, isUpdating && 'glare-text')}
+              role="button"
+              tabIndex={0}
+              onClick={openCurrencyMenu}
+            >
+              {shortBaseSymbol.length === 1 && shortBaseSymbol}
+              <AnimatedCounter isDisabled={noAnimationCounter} text={primaryWholePart ?? ''} />
+              {primaryFractionPart && (
+                <span className={styles.primaryFractionPart}>
+                  <AnimatedCounter isDisabled={noAnimationCounter} text={`.${primaryFractionPart}`} />
+                </span>
+              )}
+              {shortBaseSymbol.length > 1 && (
+                <span className={styles.primaryFractionPart}>
                 &nbsp;{shortBaseSymbol}
-              </span>
-            )}
-            <i className={iconCaretClassNames} aria-hidden />
-          </span>
-        </div>
+                </span>
+              )}
+              <i className={iconCaretClassNames} aria-hidden />
+            </span>
+          </div>
+        </Transition>
         <CurrencySwitcher isOpen={isCurrencyMenuOpen} onClose={closeCurrencyMenu} />
         {primaryValue !== '0' && (
           <div className={buildClassName(styles.change, changeClassName)}>
@@ -185,6 +201,9 @@ function Card({
 
   return (
     <div className={styles.containerWrapper} ref={ref}>
+      <Transition activeKey={isUpdating ? 1 : 0} name="fade" shouldCleanup className={styles.loadingDotsContainer}>
+        {isUpdating ? <LoadingDots isActive isDoubled /> : undefined}
+      </Transition>
       <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
         <AccountSelector forceClose={forceCloseAccountSelector} canEdit />
         {shouldRenderDapp && (
@@ -219,6 +238,7 @@ function Card({
         <TokenCard
           token={renderedToken!}
           classNames={tokenCardTransitionClassNames}
+          isUpdating={isUpdating}
           onApyClick={onApyClick}
           onClose={onTokenCardClose}
         />
@@ -244,6 +264,7 @@ export default memo(
         isTestnet: global.settings.isTestnet,
         baseCurrency: global.settings.baseCurrency,
         stakingBalance,
+        balanceUpdateStartedAt: global.balanceUpdateStartedAt,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

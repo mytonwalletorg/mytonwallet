@@ -21,6 +21,12 @@ export class ApiServerError extends ApiBaseError {
   }
 }
 
+export class AbortOperationError extends ApiBaseError {
+  constructor(message: string = 'Abort operation') {
+    super(message);
+  }
+}
+
 export function maybeApiErrors(fn: AnyAsyncFunction) {
   return async (...args: any) => {
     try {

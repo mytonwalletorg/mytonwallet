@@ -6,6 +6,8 @@ import type { WebViewBridgeMessage } from '../helpers';
 import { openDeeplinkOrUrl } from '../../../util/deeplink';
 import { getInjectableJsMessage, objectToInjection, WebViewBridgeMessageType } from '../helpers';
 
+export type CustomInAppBrowserObject = Omit<InAppBrowserObject, 'hide'> & { hide: () => Promise<void> };
+
 type UseWebViewBridgeReturnType<Event> = [
   string,
   (e: MessageEvent) => void,
@@ -16,7 +18,7 @@ export const useWebViewBridge = <
   BridgeObject extends { [key: string]: any } = {},
   Event extends object = {},
 >(
-    inAppBrowserRef: React.RefObject<InAppBrowserObject>,
+    inAppBrowserRef: React.RefObject<CustomInAppBrowserObject>,
     bridgeObj?: BridgeObject,
     timeout?: number,
   ): UseWebViewBridgeReturnType<Event> => {

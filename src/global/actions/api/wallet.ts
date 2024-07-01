@@ -888,3 +888,22 @@ addActionHandler('addSwapToken', (global, actions, { token }) => {
     },
   });
 });
+
+addActionHandler('fetchDieselState', async (global, actions, { tokenSlug }) => {
+  const tokenAddress = selectTokenAddress(global, tokenSlug);
+  if (!tokenAddress) return;
+
+  const result = await callApi('fetchDieselState', global.currentAccountId!, tokenAddress);
+  if (!result || !result.status) return;
+
+  global = getGlobal();
+  const accountState = selectAccountState(global, global.currentAccountId!);
+  global = updateCurrentTransfer(global, {
+    dieselStatus: result.status,
+    dieselAmount: result.amount,
+  });
+  if (accountState?.isDieselAuthorizationStarted && result.status !== 'not-authorized') {
+    global = updateAccountState(global, global.currentAccountId!, { isDieselAuthorizationStarted: undefined });
+  }
+  setGlobal(global);
+});

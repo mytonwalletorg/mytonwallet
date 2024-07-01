@@ -94,6 +94,7 @@ function Assets({
     transitionClassNames: vestingTokenClassNames,
     amount: vestingAmount,
     vestingStatus,
+    unfreezeEndDate,
     onVestingTokenClick,
   } = useVesting({ vesting, userMycoin });
 
@@ -144,6 +145,7 @@ function Assets({
         key="vesting"
         token={userMycoin!}
         vestingStatus={vestingStatus}
+        unfreezeEndDate={unfreezeEndDate}
         amount={vestingAmount}
         isInvestorView={isInvestorViewEnabled}
         classNames={vestingTokenClassNames}
@@ -201,11 +203,11 @@ function Assets({
       onLoadMore={getMore}
     >
       {!tokens && (
-        <div className={isSeparatePanel ? styles.emptyListSeparate : styles.emptyList}>
+        <div key="loading" className={isSeparatePanel ? styles.emptyListSeparate : styles.emptyList}>
           <Loading />
         </div>
       )}
-      {shouldShowGreeting && <NewWalletGreeting isActive={isActive} mode="panel" />}
+      {shouldShowGreeting && <NewWalletGreeting key="new-wallet-greeting" isActive={isActive} mode="panel" />}
       {shouldRenderVestingToken && renderVestingToken()}
       {shouldRenderStakedToken && renderStakedToken()}
       {viewportSlugs?.map((tokenSlug, i) => renderToken(tokensBySlug![tokenSlug], i))}

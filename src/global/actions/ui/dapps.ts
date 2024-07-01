@@ -51,13 +51,13 @@ addActionHandler('clearDappTransferError', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('openBrowser', (global, actions, { url }) => {
-  global = { ...global, currentBrowserUrl: url };
+addActionHandler('openBrowser', (global, actions, { url, title, subtitle }) => {
+  global = { ...global, currentBrowserOptions: { url, title, subtitle } };
   setGlobal(global);
 });
 
 addActionHandler('closeBrowser', (global) => {
-  global = { ...global, currentBrowserUrl: undefined };
+  global = { ...global, currentBrowserOptions: undefined };
   setGlobal(global);
 });
 

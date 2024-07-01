@@ -160,7 +160,11 @@ function SwapModal({
   });
 
   const handleStartSwap = useLastCallback(() => {
-    startSwap();
+    startSwap({
+      amountIn: renderedTransactionAmountIn,
+      tokenInSlug: renderedTransactionTokenIn?.slug,
+      tokenOutSlug: renderedTransactionTokenOut?.slug,
+    });
   });
 
   function renderSwapShortInfo() {

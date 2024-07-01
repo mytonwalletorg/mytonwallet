@@ -19,11 +19,11 @@ export default function useHideBrowser(isOpen?: boolean, isCompact?: boolean, on
     if (isOpen && browser && !isBrowserHidden) {
       isBrowserHidden = true;
 
-      browser.hide();
-
-      if (IS_DELEGATING_BOTTOM_SHEET) {
-        BottomSheet.enable();
-      }
+      browser.hide().then(async () => {
+        if (IS_DELEGATING_BOTTOM_SHEET) {
+          await BottomSheet.enable();
+        }
+      });
     }
   }, [isCompact, isOpen]);
 

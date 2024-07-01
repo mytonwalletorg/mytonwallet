@@ -635,6 +635,7 @@
 
   background-color: var(--color-card-button);
 }
+
 .descDappSkeleton {
   @include skeleton(
     var(--color-background-first),

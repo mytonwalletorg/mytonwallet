@@ -281,8 +281,8 @@ Logged in with MyTonWallet: Подключены с помощью MyTonWallet
 No active connections: Нет активных подключений
 Other: Другие
 Assets & Activity: Активы и Лента
-Tokens Settings: Настройки токенов
-Your Tokens: Ваши токены
+Token Settings: Настройки токенов
+My Tokens: Мои Токены
 Add Token: Добавить токен
 Delete Token: Удалить токен
 Are you sure you want to delete?: Вы уверены, что хотите удалить %token%?
@@ -395,11 +395,10 @@ Create Backup: Создание резервной копии
 Sending: Отправка
 Failed: Ошибка
 Refunded: Возвращено
-On hold: Удержан
+On Hold: Удержан
 Expired: Истёк
-In progress: В процессе
+In Progress: В процессе
 Waiting for Payment: Ожидание оплаты
-Waiting for payment: Ожидание оплаты
 Blockchain: Блокчейн
 Your address on another blockchain: Ваш адрес в другом блокчейне
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Пожалуйста, укажите адрес вашего кошелька в блокчейне %blockchain% для получения купленных токенов.
@@ -607,3 +606,16 @@ Claim: Заклеймить
 Confirm Unfreezing: Подтверждение размораживания
 Insufficient Balance for Fee.: Недостаточный баланс для комиссии.
 $fee_value_bold: "**Комиссия:** %fee%"
+MyTonWallet Features: Функции MyTonWallet
+Install on Desktop: Установить на компьютер
+Install on Mobile: Установить на мобильное устройство
+Install App: Установить приложение
+WrongNetwork: Приложение запрашивает транзакцию из другой сети.
+Hide: Скрыть
+Hide NFT: Скрыть NFT
+Are you sure you want to hide this NFT? This action cannot be undone.: Вы уверены, что хотите скрыть этот NFT? Это действие нельзя отменить.
+Reload Page: Перезагрузить страницу
+Open in Safari: Открыть в Safari
+Open in Browser: Открыть в браузере
+CopyURL: Скопировать URL
+Share: Поделиться

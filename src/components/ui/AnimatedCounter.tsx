@@ -13,6 +13,7 @@ import styles from './AnimatedCounter.module.scss';
 
 type OwnProps = {
   text: string;
+  isDisabled?: boolean;
 };
 
 const ANIMATION_TIME = 200;
@@ -26,6 +27,7 @@ const resetCounterOnTickEnd = throttleWithTickEnd(() => {
 
 const AnimatedCounter: FC<OwnProps> = ({
   text,
+  isDisabled,
 }) => {
   const animationLevel = getGlobal().settings.animationLevel;
   const { isRtl } = useLang();
@@ -34,7 +36,7 @@ const AnimatedCounter: FC<OwnProps> = ({
   const forceUpdate = useForceUpdate();
 
   const shouldAnimate = scheduleAnimation(
-    animationLevel === ANIMATION_LEVEL_MAX && prevText !== undefined && prevText !== text,
+    !isDisabled && animationLevel === ANIMATION_LEVEL_MAX && prevText !== undefined && prevText !== text,
   );
 
   const characters = useMemo(() => {
@@ -54,7 +56,7 @@ const AnimatedCounter: FC<OwnProps> = ({
   }, [shouldAnimate, text]);
 
   return (
-    <span className={styles.root} dir={isRtl ? 'rtl' : undefined}>
+    <span className={!isDisabled && styles.root} dir={isRtl ? 'rtl' : undefined}>
       {characters}
     </span>
   );

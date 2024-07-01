@@ -103,6 +103,11 @@ function VestingModal({
             ? 'Frozen'
             : (part.status === 'missed' ? 'Missed' : part.status === 'unfrozen' ? 'Unfrozen' : 'Ready to Unfreeze');
           const isInteractive = !isUnfreezeRequested && part.status === 'ready';
+          const endsAt = part.status === 'frozen'
+            ? part.time
+            : part.status === 'ready'
+              ? part.timeEnd
+              : undefined;
 
           return (
             <div
@@ -117,13 +122,13 @@ function VestingModal({
               />
               <div className={styles.partName}>
                 {lang(title)}
-                {part.status === 'frozen' && (
+                {Boolean(endsAt) && (
                   <div className={styles.date}>
                     {lang('until %date%', {
                       date: (
                         <>
-                          <span className={styles.bold}>{formatFullDay(lang.code!, part.time)}</span>,
-                          {' '}{formatTime(part.time)}
+                          <span className={styles.bold}>{formatFullDay(lang.code!, endsAt)}</span>,
+                          {' '}{formatTime(endsAt)}
                         </>),
                     })}
                   </div>

@@ -26,7 +26,7 @@ Insecure Password: Ненадійний пароль
 Your have entered an insecure password, which can be easily guessed by scammers.: Ваш пароль недостатньо надійний і може бути скомпрометований.
 Continue or change password to something more secure?: Продовжити або змінити пароль на більш надійний?
 Change: Редагувати
-"%1$d Secret Words": "%1$d секретних слів"
+"%1$d Secret Words": "%1$d секретних слова"
 $auth_import_mnemonic_description: |
   Ви можете відновити доступ до гаманця, використовуючи %1$d секретних слова, які ви зберегли під час створення гаманця.
 Let’s make sure your secrets words are recorded correctly.: Давайте переконаємося, що всі слова записані правильно.
@@ -281,8 +281,8 @@ Logged in with MyTonWallet: Підключені за допомогою MyTonWa
 No active connections: Немає активних підключень
 Other: Інші
 Assets & Activity: Активи та Стрічка
-Tokens Settings: Налаштування токенів
-Your Tokens: Ваші токени
+Token Settings: Налаштування токенів
+My Tokens: Мої Токени
 Add Token: Додати токен
 Delete Token: Видалити токен
 Are you sure you want to delete?: Ви впевнені, що хочете видалити %token%?
@@ -395,11 +395,10 @@ Create Backup: Створення резервної копії
 Sending: Відправлення
 Failed: Помилка
 Refunded: Повернуто
-On hold: Утримано
+On Hold: Утримано
 Expired: Закінчився
-In progress: У процесі
+In Progress: У процесі
 Waiting for Payment: Очікування оплати
-Waiting for payment: Очікування оплати
 Blockchain: Блокчейн
 Your address on another blockchain: Ваша адреса в іншому блокчейні
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Будь ласка, вкажіть адресу вашого гаманця в блокчейні %blockchain% для отримання куплених токенів.
@@ -608,3 +607,16 @@ Claim: Позов
 Confirm Unfreezing: Підтвердити розморожування
 Insufficient Balance for Fee.: Недостатній баланс для комісії.
 $fee_value_bold: "**Комісія:** %fee%"
+MyTonWallet Features: Функції MyTonWallet
+Install on Desktop: Встановити на робочий стіл
+Install on Mobile: Встановити на мобільний пристрій
+Install App: Встановити додаток
+WrongNetwork: Dapp запитав транзакцію з іншої мережі.
+Hide: Сховати
+Hide NFT: Сховати NFT
+Are you sure you want to hide this NFT? This action cannot be undone.: Ви впевнені, що хочете сховати цей NFT? Цю дію не можна буде скасувати.
+Reload Page: Перезавантажити сторінку
+Open in Safari: Відкрити в Safari
+Open in Browser: Відкрити в браузері
+CopyURL: Скопіювати URL
+Share: Поділитися

@@ -13,6 +13,7 @@ import { debounce } from '../../util/schedulers';
 import { IS_ANDROID } from '../../util/windowEnvironment';
 
 import useLastCallback from '../../hooks/useLastCallback';
+import useLayoutEffectWithPrevDeps from '../../hooks/useLayoutEffectWithPrevDeps';
 
 type OwnProps = {
   ref?: RefObject<HTMLDivElement>;
@@ -122,23 +123,26 @@ const InfiniteScroll: FC<OwnProps> = ({
   }, [items, loadMoreBackwards, preloadBackwards, scrollContainerClosest]);
 
   // Restore `scrollTop` after adding items
-  useLayoutEffect(() => {
+  useLayoutEffectWithPrevDeps(([prevItems]) => {
+    const scrollContainer = scrollContainerClosest
+      ? containerRef.current!.closest<HTMLDivElement>(scrollContainerClosest)!
+      : containerRef.current!;
+    const state = stateRef.current;
+
+    const listItemElements = scrollContainer.querySelectorAll<HTMLDivElement>(itemSelector);
+    state.listItemElements = listItemElements;
+
+    if (!prevItems?.length) return;
+
     requestForcedReflow(() => {
-      const scrollContainer = scrollContainerClosest
-        ? containerRef.current!.closest<HTMLDivElement>(scrollContainerClosest)!
-        : containerRef.current!;
-      const state = stateRef.current;
-
-      state.listItemElements = scrollContainer.querySelectorAll<HTMLDivElement>(itemSelector);
-
       let newScrollTop: number;
 
-      if (state.currentAnchor && Array.from(state.listItemElements).includes(state.currentAnchor)) {
+      if (state.currentAnchor && Array.from(listItemElements).includes(state.currentAnchor)) {
         const { scrollTop } = scrollContainer;
         const newAnchorTop = state.currentAnchor!.getBoundingClientRect().top;
         newScrollTop = scrollTop + (newAnchorTop - state.currentAnchorTop!);
       } else {
-        const nextAnchor = state.listItemElements[0];
+        const nextAnchor = listItemElements[0];
         if (nextAnchor) {
           state.currentAnchor = nextAnchor;
           state.currentAnchorTop = nextAnchor.getBoundingClientRect().top;

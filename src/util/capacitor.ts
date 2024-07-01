@@ -19,14 +19,15 @@ import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_IOS } from '
 // Full list of options can be found at https://github.com/apache/cordova-plugin-inappbrowser#cordovainappbrowseropen
 export const INAPP_BROWSER_OPTIONS = [
   `location=${IS_IOS ? 'no' : 'yes'}`,
+  `lefttoright=${IS_IOS ? 'no' : 'yes'}`,
   'usewkwebview=yes',
   'clearcache=no',
   'clearsessioncache=no',
   'hidden=yes',
   'toolbarposition=top',
   'hidenavigationbuttons=yes',
-  'hideurlbar=yes',
-  'closebuttoncaption=✕',
+  'hideurlbar=no',
+  'backbuttoncaption=Back',
   'allowInlineMediaPlayback=yes',
 ].join(',');
 const IOS_SPLASH_SCREEN_HIDE_DELAY = 500;

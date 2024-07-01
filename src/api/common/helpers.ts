@@ -21,7 +21,9 @@ import { getEnvironment } from '../environment';
 import { storage } from '../storages';
 import capacitorStorage from '../storages/capacitorStorage';
 import idbStorage from '../storages/idb';
-import { getKnownAddresses, getScamMarkers } from './addresses';
+import {
+  checkHasScamLink, checkHasTelegramBotMention, getKnownAddresses, getScamMarkers,
+} from './addresses';
 import { hexToBytes } from './utils';
 
 let localCounter = 0;
@@ -67,17 +69,25 @@ export function buildLocalTransaction(
 }
 
 export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {
-  const { normalizedAddress, comment } = transaction;
+  const {
+    normalizedAddress, comment, type, isIncoming,
+  } = transaction;
   let { metadata = {} } = transaction;
 
+  const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived';
   const knownAddresses = getKnownAddresses();
-  const scamMarkers = getScamMarkers();
+  const hasScamMarkers = comment ? getScamMarkers().some((sm) => sm.test(comment)) : false;
+  const shouldCheckComment = !hasScamMarkers && comment && isIncoming
+    && (isNftTransfer || comment.toLowerCase().includes('claim'));
+  const hasScamInComment = shouldCheckComment
+    ? (checkHasScamLink(comment) || checkHasTelegramBotMention(comment))
+    : false;
 
   if (normalizedAddress in knownAddresses) {
     metadata = { ...metadata, ...knownAddresses[normalizedAddress] };
   }
 
-  if (comment && scamMarkers.map((sm) => sm.test(comment)).find(Boolean)) {
+  if (hasScamMarkers || hasScamInComment) {
     metadata.isScam = true;
   }
 

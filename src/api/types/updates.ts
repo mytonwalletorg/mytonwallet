@@ -192,6 +192,8 @@ export type ApiOpenUrl = {
   type: 'openUrl';
   url: string;
   isExternal?: boolean;
+  title?: string;
+  subtitle?: string;
 };
 
 export type ApiRequestReconnect = {
@@ -206,6 +208,12 @@ export type ApiUpdateVesting = {
   type: 'updateVesting';
   accountId: string;
   vestingInfo: ApiVestingInfo[];
+};
+
+export type ApiUpdatingStatus = {
+  type: 'updatingStatus';
+  kind: 'balance' | 'activities';
+  isUpdating?: boolean;
 };
 
 export type ApiUpdate =
@@ -236,6 +244,7 @@ export type ApiUpdate =
   | ApiOpenUrl
   | ApiRequestReconnect
   | ApiUpdateIncorrectTime
-  | ApiUpdateVesting;
+  | ApiUpdateVesting
+  | ApiUpdatingStatus;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

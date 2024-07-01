@@ -34,6 +34,7 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
+import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useQrScannerSupport from '../../hooks/useQrScannerSupport';
@@ -71,13 +72,13 @@ interface StateProps {
   currentAccountId?: string;
   accounts?: Record<string, Account>;
   isEncryptedCommentSupported: boolean;
-  isCommentSupported: boolean;
   isMemoRequired?: boolean;
   baseCurrency?: ApiBaseCurrency;
   nfts?: ApiNft[];
   binPayload?: string;
   dieselAmount?: bigint;
   dieselStatus?: DieselStatus;
+  isDieselAuthorizationStarted?: boolean;
 }
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
@@ -90,6 +91,7 @@ const COMMENT_DROPDOWN_ITEMS = [
 ];
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
 const STAKED_TOKEN_SLUG = 'ton-eqcqc6ehrj';
+const AUTHORIZE_DIESEL_INTERVAL_MS = 1000;
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
@@ -108,7 +110,6 @@ function TransferInitial({
   accounts,
   currentAccountId,
   isEncryptedCommentSupported,
-  isCommentSupported,
   isMemoRequired,
   isLoading,
   onCommentChange,
@@ -117,6 +118,7 @@ function TransferInitial({
   binPayload,
   dieselAmount,
   dieselStatus,
+  isDieselAuthorizationStarted,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -132,6 +134,7 @@ function TransferInitial({
     requestOpenQrScanner,
     showDialog,
     authorizeDiesel,
+    fetchDieselState,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -196,10 +199,19 @@ function TransferInitial({
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
     ? balance - amount > dieselAmount
     : undefined;
+  const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
+    ? AUTHORIZE_DIESEL_INTERVAL_MS
+    : undefined;
 
   const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
     Boolean(amountInCurrency),
   );
+
+  const updateDieselState = useLastCallback(() => {
+    fetchDieselState({ tokenSlug });
+  });
+
+  useInterval(updateDieselState, authorizeDieselInterval);
 
   const dropDownItems = useMemo(() => {
     if (!tokens) {
@@ -265,7 +277,7 @@ function TransferInitial({
     } else {
       validateAndSetAmount(amount);
     }
-  }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount]);
+  }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount, isDieselAvailable]);
 
   useEffect(() => {
     if (!toAddress || hasToAddressError || !(amount || nfts?.length) || !isAddressValid) {
@@ -762,7 +774,20 @@ function TransferInitial({
           </>
         )}
 
-        {isCommentSupported && !binPayload && (
+        {binPayload ? (
+          <>
+            <div className={styles.label}>{lang('Data to sign')}</div>
+            <InteractiveTextField
+              text={binPayload}
+              copyNotification={lang('Data was copied!')}
+              className={buildClassName(styles.addressWidget, isStatic && styles.inputStatic)}
+            />
+
+            <div className={styles.error}>
+              {renderText(lang('$signature_warning'))}
+            </div>
+          </>
+        ) : (
           <Input
             wrapperClassName={styles.commentInputWrapper}
             className={isStatic ? styles.inputStatic : undefined}
@@ -774,21 +799,6 @@ function TransferInitial({
             onInput={handleCommentChange}
             isRequired={isCommentRequired}
           />
-        )}
-
-        {Boolean(binPayload) && (
-          <>
-            <div className={styles.label}>{lang('Data to sign')}</div>
-            <InteractiveTextField
-              text={binPayload!}
-              copyNotification={lang('Data was copied!')}
-              className={buildClassName(styles.addressWidget, isStatic && styles.inputStatic)}
-            />
-
-            <div className={styles.error}>
-              {renderText(lang('$signature_warning'))}
-            </div>
-          </>
         )}
 
         <div className={styles.buttons}>
@@ -853,8 +863,7 @@ export default memo(
         binPayload,
         tokens: selectCurrentAccountTokens(global),
         savedAddresses: accountState?.savedAddresses,
-        isEncryptedCommentSupported: !isLedger && !nfts?.length,
-        isCommentSupported: true,
+        isEncryptedCommentSupported: !isLedger && !nfts?.length && !isMemoRequired,
         isMemoRequired,
         isLoading: isLoading && ACTIVE_STATES.has(state),
         baseCurrency,
@@ -862,6 +871,7 @@ export default memo(
         accounts: selectNetworkAccounts(global),
         dieselAmount,
         dieselStatus,
+        isDieselAuthorizationStarted: accountState?.isDieselAuthorizationStarted,
       };
     },
     (global, { isStatic }, stickToFirst) => {

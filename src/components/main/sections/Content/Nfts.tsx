@@ -23,6 +23,7 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import Loading from '../../../ui/Loading';
+import HideNftModal from '../../modals/HideNftModal';
 import Nft from './Nft';
 
 import styles from './Nft.module.scss';
@@ -38,6 +39,9 @@ interface StateProps {
   currentCollectionAddress?: string;
   isHardware?: boolean;
   isTestnet?: boolean;
+  blacklistedNftAddresses?: string[];
+  isHideNftModalOpened?: boolean;
+  nftWithOpenedMenuAddress?: string;
 }
 
 const GETGEMS_ENABLED = !IS_IOS_APP && !IS_ANDROID_APP;
@@ -50,8 +54,11 @@ function Nfts({
   currentCollectionAddress,
   isHardware,
   isTestnet,
+  blacklistedNftAddresses,
+  isHideNftModalOpened,
+  nftWithOpenedMenuAddress,
 }: OwnProps & StateProps) {
-  const { clearNftsSelection, burnNfts } = getActions();
+  const { clearNftsSelection, burnNfts, closeHideNftModal } = getActions();
 
   const lang = useLang();
   const { isLandscape } = useDeviceScreen();
@@ -73,8 +80,12 @@ function Nfts({
         if (!nft) return false;
 
         return !currentCollectionAddress || nft.collectionAddress === currentCollectionAddress;
-      });
-  }, [byAddress, currentCollectionAddress, orderedAddresses]);
+      })
+      .filter((nft) => !nft.isHidden)
+      .filter((nft) => !blacklistedNftAddresses?.includes(nft.address));
+  }, [
+    byAddress, currentCollectionAddress, orderedAddresses, blacklistedNftAddresses,
+  ]);
 
   const handleBurnNotcoinVouchersClick = useLastCallback(() => {
     burnNfts({ nfts: nfts! });
@@ -146,6 +157,7 @@ function Nfts({
       <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
         {nfts.map((nft) => <Nft key={nft.address} nft={nft} selectedAddresses={selectedAddresses} />)}
       </div>
+      <HideNftModal isOpen={isHideNftModalOpened} onClose={closeHideNftModal} nftAddress={nftWithOpenedMenuAddress} />
     </div>
   );
 }
@@ -159,6 +171,12 @@ export default memo(
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
 
+      const {
+        blacklistedNftAddresses,
+        isHideNftModalOpened,
+        nftWithOpenedMenuAddress,
+      } = selectCurrentAccountState(global) || {};
+
       return {
         orderedAddresses,
         selectedAddresses,
@@ -166,6 +184,9 @@ export default memo(
         isHardware: selectIsHardwareAccount(global),
         currentCollectionAddress,
         isTestnet: global.settings.isTestnet,
+        blacklistedNftAddresses,
+        isHideNftModalOpened,
+        nftWithOpenedMenuAddress,
       };
     },
     (global, _, stickToFirst) => {

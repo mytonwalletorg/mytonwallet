@@ -278,8 +278,6 @@ function Draggable({
 
   return (
     <div style={cssStyles} className={fullClassName} ref={ref} onClick={handleClick}>
-      {children}
-
       {!isDisabled && (
         <div
           ref={buttonRef}
@@ -293,6 +291,7 @@ function Draggable({
           <i className="icon icon-sort" aria-hidden />
         </div>
       )}
+      {children}
     </div>
   );
 }

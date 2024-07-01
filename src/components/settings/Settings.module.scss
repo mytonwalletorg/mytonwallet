@@ -277,6 +277,10 @@
 
   transition: background-color 200ms;
 
+  &.draggable {
+    grid-template-columns: min-content min-content 1fr min-content;
+  }
+
   &:not(:last-child):after {
     content: '';
 
@@ -300,7 +304,6 @@
 
     padding: 1rem;
 
-
     &:not(:last-child):after {
       content: '';
 
@@ -320,7 +323,6 @@
     grid-template-columns: 1fr min-content;
 
     padding: 0.8125rem 0.75rem 0.75rem 1rem;
-
 
     &:not(:last-child):after {
       content: '';
@@ -345,7 +347,6 @@
 
     padding: 0.9375rem 0.5rem 1rem 1rem;
 
-
     &:not(:last-child):after {
       content: '';
 
@@ -361,7 +362,10 @@
   }
 
   &_token {
-    padding: 0.875rem 1rem;
+    overflow: hidden;
+
+    height: 4rem;
+    padding: 0.6875rem 1rem;
 
     &:not(:last-child):after {
       content: '';
@@ -629,16 +633,10 @@
 }
 
 .tokenIcon {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.625rem;
+  height: 2.625rem;
 
   border-radius: 100%;
-
-  @media (pointer: coarse) {
-    &:not(.tokenIconVisible) {
-     opacity: 0;
-    }
-  }
 }
 
 .tokenSortIcon {
@@ -650,8 +648,12 @@
 }
 
 .tokenTitle {
+  overflow: hidden;
+
   font-size: 0.9375rem;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tokenDescription {
@@ -659,7 +661,7 @@
   align-items: center;
 
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-gray-2);
 }
 
@@ -732,7 +734,9 @@
 .tokenInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3125rem;
+
+  min-width: 0;
 }
 
 .stickerAndTitle {

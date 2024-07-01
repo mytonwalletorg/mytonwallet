@@ -286,8 +286,8 @@ Logged in with MyTonWallet: Logged in with MyTonWallet
 No active connections: No active connections
 Other: Other
 Assets & Activity: Assets & Activity
-Tokens Settings: Tokens Settings
-Your Tokens: Your Tokens
+Token Settings: Token Settings
+My Tokens: My Tokens
 Add Token: Add Token
 Delete Token: Delete Token
 Are you sure you want to delete?: Are you sure you want to delete %token%?
@@ -394,11 +394,10 @@ Create Backup: Create Backup
 Sending: Sending
 Failed: Failed
 Refunded: Refunded
-On hold: On hold
+On Hold: On Hold
 Expired: Expired
-In progress: In progress
+In Progress: In Progress
 Waiting for Payment: Waiting for Payment
-Waiting for payment: Waiting for payment
 Blockchain: Blockchain
 Your address on another blockchain: Your address on another blockchain
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.
@@ -609,3 +608,16 @@ Claim: Claim
 Confirm Unfreezing: Confirm Unfreezing
 Insufficient Balance for Fee.: Insufficient Balance for Fee.
 $fee_value_bold: "**Fee:** %fee%"
+MyTonWallet Features: MyTonWallet Features
+Install on Desktop: Install on Desktop
+Install on Mobile: Install on Mobile
+Install App: Install App
+WrongNetwork: The dapp requested a transaction from another network.
+Hide: Hide
+Hide NFT: Hide NFT
+Are you sure you want to hide this NFT? This action cannot be undone.: Are you sure you want to hide this NFT? This action cannot be undone.
+Reload Page: Reload Page
+Open in Safari: Open in Safari
+Open in Browser: Open in browser
+CopyURL: Copy URL
+Share: Share

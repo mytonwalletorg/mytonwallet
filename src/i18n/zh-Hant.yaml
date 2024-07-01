@@ -275,8 +275,8 @@ Logged in with MyTonWallet: 使用 MyTonWallet 登錄
 No active connections: 沒有活動連接
 Other: 其他的
 Assets & Activity: 資產 & 活動紀錄
-Tokens Settings: 代幣設置
-Your Tokens: 你的代幣
+Token Settings: 代幣設置
+My Tokens: 我的代幣
 Add Token: 添加令牌
 Delete Token: 刪除令牌
 Are you sure you want to delete?: 您確定要刪除 %token% 嗎？
@@ -382,11 +382,10 @@ Create Backup: 建立備份
 Sending: 傳送
 Failed: 失敗
 Refunded: 退款
-On hold: 持有
+On Hold: 持有
 Expired: 過期
-In progress: 進行中
+In Progress: 進行中
 Waiting for Payment: 等待付款
-Waiting for payment: 等待付款
 Blockchain: 區塊鏈
 Your address on another blockchain: 您在另一個區塊鏈上的地址
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: 請提供您在%blockchain%區塊鏈中的錢包地址，以接收購買的代幣。
@@ -592,3 +591,16 @@ Claim: 索賠
 Confirm Unfreezing: 確認解凍
 Insufficient Balance for Fee.: 費用餘額不足。
 $fee_value_bold: "**手續費:** %fee%"
+MyTonWallet Features: MyTonWallet 功能
+Install on Desktop: 安裝在桌面
+Install on Mobile: 安裝在手機
+Install App: 安裝應用程式
+WrongNetwork: Dapp 要求來自另一個網路的交易。
+Hide: 隱藏
+Hide NFT: 隱藏 NFT
+Are you sure you want to hide this NFT? This action cannot be undone.: 您確定要隱藏這個 NFT 嗎？此操作無法撤消。
+Reload Page: 重新加載頁面
+Open in Safari: 在 Safari 中打開
+Open in Browser: 在瀏覽器中打開
+CopyURL: 複製鏈接
+Share: 分享

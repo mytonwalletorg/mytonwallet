@@ -42,6 +42,7 @@ import tonUrl from '../../../../assets/coins/ton.svg';
 interface OwnProps {
   token: UserToken;
   classNames: string;
+  isUpdating?: boolean;
   onApyClick?: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -68,6 +69,7 @@ function TokenCard({
   classNames,
   period = DEFAULT_PERIOD,
   apyValue,
+  isUpdating,
   onApyClick,
   onClose,
   baseCurrency,
@@ -231,6 +233,7 @@ function TokenCard({
               prices={history!}
               selectedIndex={selectedHistoryIndex}
               onSelectIndex={setSelectedHistoryIndex}
+              isUpdating={isUpdating}
             />
 
             <div className={styles.tokenHistoryPrice}>

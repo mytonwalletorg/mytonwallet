@@ -2,6 +2,7 @@ import React, { memo } from '../../lib/teact/teact';
 
 import { vibrate } from '../../util/capacitor';
 import { openUrl } from '../../util/openUrl';
+import { getHostnameFromUrl } from '../../util/url';
 
 import Image from '../ui/Image';
 
@@ -20,7 +21,7 @@ function Site({
 }: OwnProps) {
   function handleClick() {
     vibrate();
-    openUrl(url, isExternal);
+    openUrl(url, isExternal, title, getHostnameFromUrl(url));
   }
 
   return (

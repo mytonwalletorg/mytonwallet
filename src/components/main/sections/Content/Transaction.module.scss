@@ -294,10 +294,6 @@
   }
 }
 
-.swapSell {
-  color: var(--color-gray-2);
-}
-
 .swapBuy {
   color: var(--color-green);
 }
@@ -306,13 +302,13 @@
   color: var(--color-red);
 }
 
+.swapSell,
 .swapHold {
   color: var(--color-gray-2);
 }
 
 .isSwapErrorMessage {
   font-size: 0.75rem;
-  font-weight: 400;
   color: var(--color-red);
 }
 

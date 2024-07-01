@@ -287,8 +287,8 @@ Logged in with MyTonWallet: MyTonWallet ile oturum açıldı
 No active connections: Aktif bağlantı yok
 Other: Diğer
 Assets & Activity: Varlıklar ve Etkinlik
-Tokens Settings: Token ayarları
-Your Tokens: Token'larınız
+Token Settings: Token ayarları
+My Tokens: Benim Jetonlarım
 Add Token: Token ekle
 Delete Token: Token sil
 Are you sure you want to delete?: "%token%'ı silmek istediğinizden emin misiniz?"
@@ -395,10 +395,10 @@ Create Backup: Yedek oluştur
 Sending: Gönderiliyor
 Failed: Başarısız
 Refunded: İade edildi
-On hold: Beklemede
+On Hold: Beklemede
 Expired: Süresi doldu
+In Progress: Devam etmekte
 Waiting for Payment: Ödeme bekleniyor
-Waiting for payment: Ödeme bekleniyor
 Blockchain: Blockchain
 Your address on another blockchain: Başka bir blockchaindeki adresiniz
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Satın alınan jetonları almak için lütfen %blockchain% blockchain'deki cüzdanınızın adresini girin.
@@ -607,3 +607,16 @@ Claim: İddia
 Confirm Unfreezing: Çözmeyi Onayla
 Insufficient Balance for Fee.: Ücret Bakiyesi Yetersiz.
 $fee_value_bold: "**Ücret:** %fee%"
+MyTonWallet Features: MyTonWallet Özellikleri
+Install on Desktop: Masaüstüne Kur
+Install on Mobile: Mobile Kur
+Install App: Uygulamayı Yükle
+WrongNetwork: Dapp başka bir ağdan bir işlem talep etti.
+Hide: Gizle
+Hide NFT: NFT'yi Gizle
+Are you sure you want to hide this NFT? This action cannot be undone.: Bu NFT'yi gizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+Reload Page: Sayfayı Yenile
+Open in Safari: Safari'de Aç
+Open in Browser: Tarayıcıda Aç
+CopyURL: URL'yi Kopyala
+Share: Paylaş

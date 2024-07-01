@@ -1,6 +1,6 @@
 import { DappConnectState, TransferState } from '../../types';
 
-import { IS_CAPACITOR } from '../../../config';
+import { ANIMATION_END_DELAY, IS_CAPACITOR } from '../../../config';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { callActionInMain } from '../../../util/multitab';
@@ -22,6 +22,10 @@ import {
   updateDappConnectRequest,
 } from '../../reducers';
 import { selectAccount, selectIsHardwareAccount, selectNewestTxIds } from '../../selectors';
+
+import { getIsPortrait } from '../../../hooks/useDeviceScreen';
+
+import { CLOSE_DURATION, CLOSE_DURATION_PORTRAIT } from '../../../components/ui/Modal';
 
 const GET_DAPPS_PAUSE = 250;
 
@@ -311,12 +315,18 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
   accountId,
   dapp,
 }) => {
-  const { currentAccountId } = global;
+  const { currentAccountId, currentDappTransfer: { promiseId: currentPromiseId } } = global;
   if (currentAccountId !== accountId) {
     const newestTxIds = selectNewestTxIds(global, accountId);
     await callApi('activateAccount', accountId, newestTxIds);
     global = getGlobal();
     setGlobal(updateCurrentAccountId(global, accountId));
+  }
+
+  if (currentPromiseId && !IS_DELEGATED_BOTTOM_SHEET) {
+    actions.closeDappTransfer();
+    const closeDuration = getIsPortrait() ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION;
+    await pause(closeDuration + ANIMATION_END_DELAY);
   }
 
   // We only need to apply changes in NBS when Dapp Transaction Modal is already open

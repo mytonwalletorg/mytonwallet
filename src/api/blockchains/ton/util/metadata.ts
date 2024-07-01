@@ -14,12 +14,11 @@ import {
   DEBUG,
   LIQUID_JETTON,
   NFT_FRAGMENT_COLLECTIONS,
-  RE_LINK_TEMPLATE,
 } from '../../../../config';
 import { pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import { fetchJsonMetadata, fixIpfsUrl } from '../../../../util/metadata';
-import { checkIsTrustedCollection, checkIsTrustedSite } from '../../../common/addresses';
+import { checkHasScamLink, checkIsTrustedCollection } from '../../../common/addresses';
 import { base64ToString, sha256 } from '../../../common/utils';
 import {
   JettonOpCode, LiquidStakingOpCode, NftOpCode, OpCode,
@@ -476,6 +475,7 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       metadata,
       previews,
       sale,
+      trust,
     } = rawNft;
 
     const {
@@ -492,16 +492,13 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
 
     if (!collectionAddress || !checkIsTrustedCollection(collectionAddress)) {
       for (const text of [name, description].filter(Boolean)) {
-        for (const match of text.matchAll(RE_LINK_TEMPLATE)) {
-          const host = match.groups?.host;
-          if (host && !checkIsTrustedSite(host)) {
-            hasScamLink = true;
-          }
+        if (checkHasScamLink(text)) {
+          hasScamLink = true;
         }
       }
     }
 
-    const isScam = description === 'SCAM' || hasScamLink;
+    const isScam = hasScamLink || description === 'SCAM' || trust === 'blacklist';
     const isHidden = renderType === 'hidden' || isScam;
     const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
 

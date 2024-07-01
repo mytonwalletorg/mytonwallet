@@ -154,7 +154,6 @@
     opacity: 0.4;
   }
 
-
   &.isText {
     font-weight: 600;
     color: var(--color-red-button-background);
@@ -212,43 +211,5 @@
   right: 0;
   left: 0;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   height: 100%;
-
-  opacity: 0;
-
-  transition: opacity 150ms;
 }
-
-.loadingDotsVisible {
-  opacity: 1;
-}
-
-.loadingDot {
-  width: 0.375rem;
-  height: 0.375rem;
-  margin: 0 0.25rem;
-
-  opacity: 0.8;
-  background-color: var(--color-dot);
-  border-radius: 0.375rem;
-
-  animation: typingAnimation 800ms infinite linear;
-
-  &:nth-child(2) { animation-delay: 100ms; }
-  &:nth-child(3) { animation-delay: 200ms; }
-}
-
-/* stylelint-disable order/properties-order */
-
-@keyframes typingAnimation {
-  0% { transform: scale(1); opacity: 0.8; }
-  20% { transform: scale(1.1); opacity: 0.9; }
-  40% { transform: scale(1.75); opacity: 1; }
-  60% { transform: scale(1.25); opacity: 0.9; }
-  80% { transform: scale(1); opacity: 0.8; }
-}
-/* stylelint-enable order/properties-order */

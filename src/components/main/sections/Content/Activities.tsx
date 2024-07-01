@@ -28,10 +28,13 @@ import useInfiniteScroll from '../../../../hooks/useInfiniteScroll';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useThrottledCallback from '../../../../hooks/useThrottledCallback';
+import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import InfiniteScroll from '../../../ui/InfiniteScroll';
 import Loading from '../../../ui/Loading';
+import LoadingDots from '../../../ui/LoadingDots';
+import Transition from '../../../ui/Transition';
 import NewWalletGreeting from './NewWalletGreeting';
 import Swap from './Swap';
 import Transaction from './Transaction';
@@ -57,6 +60,7 @@ type StateProps = {
   isMainHistoryEndReached?: boolean;
   isHistoryEndReachedBySlug?: Record<string, boolean>;
   exceptionSlugs?: string[];
+  activitiesUpdateStartedAt?: number;
 };
 
 interface ActivityOffsetInfo {
@@ -94,6 +98,7 @@ function Activities({
   isMainHistoryEndReached,
   isHistoryEndReachedBySlug,
   exceptionSlugs,
+  activitiesUpdateStartedAt = 0,
 }: OwnProps & StateProps) {
   const {
     fetchTokenTransactions, fetchAllTransactions, showActivityInfo,
@@ -104,6 +109,7 @@ function Activities({
 
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
+  const isUpdating = useUpdateIndicator(activitiesUpdateStartedAt);
 
   const ids = useMemo(() => {
     let idList: string[] | undefined;
@@ -324,6 +330,33 @@ function Activities({
     }
   }
 
+  function renderDate(dateValue: number, isFirst?: boolean) {
+    const formattedDate = formatHumanDay(lang, dateValue);
+    const date = <div className={styles.date}>{formattedDate}</div>;
+
+    if (!isFirst) {
+      return date;
+    }
+
+    const dateWithLoader = (
+      <div className={buildClassName(styles.date, styles.date_withLoadingDots)}>
+        {formattedDate}
+        <LoadingDots isActive isDoubled className={styles.loadingDots} />
+      </div>
+    );
+
+    return (
+      <Transition
+        name="semiFade"
+        activeKey={isUpdating ? 1 : 0}
+        className={styles.dateContainer}
+        slideClassName={styles.dateSlide}
+      >
+        {isUpdating ? dateWithLoader : date}
+      </Transition>
+    );
+  }
+
   function renderHistory() {
     return viewportIds!.map((id, index) => {
       const activityInfo = activityOffsetInfoById[id];
@@ -337,6 +370,7 @@ function Activities({
       const isNewDay = activityInfo.date !== activityDayStart;
 
       const nextActivityDayStart = nextActivity ? getDayStartAt(nextActivity.timestamp) : 0;
+      const isFirst = index === 0;
       const isLast = activityDayStart !== nextActivityDayStart;
 
       const isActivityActive = activity.id === currentActivityId;
@@ -347,7 +381,7 @@ function Activities({
           style={`top: ${activityInfo.offset}px`}
           className={buildClassName('ListItem', styles.listItem)}
         >
-          {isNewDay && <div className={styles.date}>{formatHumanDay(lang, activityDayStart)}</div>}
+          {isNewDay && renderDate(activityDayStart, isFirst)}
           {renderActivity(activity, isLast, isActivityActive)}
         </div>
       );
@@ -428,6 +462,7 @@ export default memo(
         isHistoryEndReachedBySlug,
         currentActivityId: accountState?.currentActivityId,
         exceptionSlugs: accountSettings?.exceptionSlugs,
+        activitiesUpdateStartedAt: global.activitiesUpdateStartedAt,
       };
     },
     (global, _, stickToFirst) => {

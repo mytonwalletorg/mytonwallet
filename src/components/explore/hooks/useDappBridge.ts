@@ -1,4 +1,3 @@
-import type { InAppBrowserObject } from '@awesome-cordova-plugins/in-app-browser';
 import type {
   AppRequest, ConnectEvent,
   ConnectEventError, ConnectRequest, DeviceInfo, RpcMethod, WalletEvent,
@@ -8,6 +7,7 @@ import { BottomSheet } from 'native-bottom-sheet';
 import { useMemo, useRef, useState } from '../../../lib/teact/teact';
 import { getGlobal } from '../../../global';
 
+import type { CustomInAppBrowserObject } from './useWebViewBridge';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from '../../../api/tonConnect/types';
 
 import { TONCONNECT_PROTOCOL_VERSION } from '../../../config';
@@ -37,7 +37,7 @@ export function useDappBridge({
   endpoint,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
-  const inAppBrowserRef = useRef<InAppBrowserObject>(null);
+  const inAppBrowserRef = useRef<CustomInAppBrowserObject>(null);
   const [requestId, setRequestId] = useState(0);
   const origin = useMemo(() => {
     return endpoint ? new URL(endpoint).origin.toLowerCase() : undefined;
@@ -45,11 +45,6 @@ export function useDappBridge({
 
   const bridgeObject = useMemo((): WebViewTonConnectBridge | undefined => {
     if (!origin) return undefined;
-
-    const dappRequest = {
-      origin,
-      accountId: getGlobal().currentAccountId,
-    };
 
     return {
       deviceInfo: tonConnectGetDeviceInfo(),
@@ -67,14 +62,14 @@ export function useDappBridge({
           }
           verifyConnectRequest(request);
 
-          inAppBrowserRef.current?.hide();
+          await inAppBrowserRef.current?.hide();
           if (IS_DELEGATING_BOTTOM_SHEET) {
             await BottomSheet.enable();
           }
 
           const response = await callApi(
             'tonConnect_connect',
-            dappRequest,
+            buildDappRequest(origin),
             request,
             requestId,
           );
@@ -113,7 +108,7 @@ export function useDappBridge({
         try {
           const response = await callApi(
             'tonConnect_reconnect',
-            dappRequest,
+            buildDappRequest(origin),
             requestId,
           );
           setRequestId(requestId + 1);
@@ -140,9 +135,10 @@ export function useDappBridge({
 
       disconnect: async () => {
         setRequestId(0);
+
         await callApi(
           'tonConnect_disconnect',
-          dappRequest,
+          buildDappRequest(origin),
           { id: requestId.toString(), method: 'disconnect', params: [] },
         );
       },
@@ -161,10 +157,12 @@ export function useDappBridge({
           };
         }
 
+        const dappRequest = buildDappRequest(origin);
+
         try {
           switch (request.method) {
             case 'sendTransaction': {
-              inAppBrowserRef.current?.hide();
+              await inAppBrowserRef.current?.hide();
               if (IS_DELEGATING_BOTTOM_SHEET) {
                 await BottomSheet.enable();
               }
@@ -196,7 +194,7 @@ export function useDappBridge({
             }
 
             case 'signData': {
-              inAppBrowserRef.current?.hide();
+              await inAppBrowserRef.current?.hide();
               if (IS_DELEGATING_BOTTOM_SHEET) {
                 await BottomSheet.enable();
               }
@@ -283,4 +281,11 @@ function verifyConnectRequest(request: ConnectRequest) {
   if (!(request && request.manifestUrl && request.items?.length)) {
     throw new Error('Wrong request data');
   }
+}
+
+function buildDappRequest(origin: string) {
+  return {
+    origin,
+    accountId: getGlobal().currentAccountId,
+  };
 }

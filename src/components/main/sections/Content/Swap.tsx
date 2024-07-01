@@ -4,7 +4,7 @@ import React, { memo } from '../../../../lib/teact/teact';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../../api/types';
 
-import { TON_SYMBOL, TONCOIN_SLUG } from '../../../../config';
+import { TON_SYMBOL, TONCOIN_SLUG, WHOLE_PART_DELIMITER } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
@@ -120,22 +120,23 @@ function Swap({
   }
 
   function renderErrorMessage() {
-    let text: string | TeactNode[] = formatTime(timestamp);
+    const date: string | TeactNode[] = formatTime(timestamp);
+    let state = '';
     const cexStatus = cex?.status;
 
     if (cexStatus === 'expired' || cexStatus === 'overdue') {
-      text = lang('Expired');
+      state = lang('Expired');
     } else if (cexStatus === 'refunded') {
-      text = lang('Refunded');
+      state = lang('Refunded');
     } else if (cexStatus === 'hold') {
-      text = lang('On hold');
+      state = lang('On Hold');
     } else if (cexStatus === 'failed' || isError) {
-      text = lang('Failed');
+      state = lang('Failed');
     } else if (cexStatus === 'waiting' && !isFromToncoin) {
-      // Skip the 'waiting' status for transactions from TON to account for delayed status updates from changelly.
-      text = lang('Waiting for payment');
+      // Skip the `waiting` status for transactions from TON to account for delayed status updates from Changelly
+      state = lang('Waiting for Payment');
     } else if (isPending) {
-      text = lang('In progress');
+      state = lang('In Progress');
     }
 
     return (
@@ -144,7 +145,7 @@ function Swap({
         isError && styles.isSwapErrorMessage,
       )}
       >
-        {text}
+        {date}{state ? `${WHOLE_PART_DELIMITER}∙${WHOLE_PART_DELIMITER}${state}` : ''}
       </div>
     );
   }

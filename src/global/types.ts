@@ -194,6 +194,12 @@ export enum StakingState {
   NotEnoughBalance,
 }
 
+export enum VestingUnfreezeState {
+  Password,
+  ConnectHardware,
+  ConfirmHardware,
+}
+
 export enum SettingsState {
   Initial,
   Appearance,
@@ -321,12 +327,17 @@ export interface AccountState {
     isConfirmRequested?: boolean;
     error?: string;
     unfreezeRequestedIds?: { id: number; partId: number }[];
+    unfreezeState?: VestingUnfreezeState;
   };
 
   stakingHistory?: ApiStakingHistory;
   browserHistory?: string[];
 
+  isDieselAuthorizationStarted?: boolean;
   isLongUnstakeRequested?: boolean;
+  blacklistedNftAddresses?: string[];
+  nftWithOpenedMenuAddress?: string;
+  isHideNftModalOpened?: boolean;
 }
 
 export interface AccountSettings {
@@ -561,7 +572,11 @@ export type GlobalState = {
   isVestingModalOpen?: boolean;
   shouldForceAccountEdit?: boolean;
   isIncorrectTimeNotificationReceived?: boolean;
-  currentBrowserUrl?: string;
+  currentBrowserOptions?: {
+    url: string;
+    title?: string;
+    subtitle?: string;
+  };
 
   currentQrScan?: {
     currentTransfer?: GlobalState['currentTransfer'];
@@ -584,6 +599,8 @@ export type GlobalState = {
   };
 
   isLoadingOverlayOpen?: boolean;
+  activitiesUpdateStartedAt?: number;
+  balanceUpdateStartedAt?: number;
 };
 
 export interface ActionPayloads {
@@ -696,6 +713,7 @@ export interface ActionPayloads {
   validatePassword: { password: string };
   verifyHardwareAddress: undefined;
   authorizeDiesel: undefined;
+  fetchDieselState: { tokenSlug: string };
 
   fetchTokenTransactions: { limit: number; slug: string; shouldLoadWithBudget?: boolean };
   fetchAllTransactions: { limit: number; shouldLoadWithBudget?: boolean };
@@ -709,6 +727,10 @@ export interface ActionPayloads {
   clearNftSelection: { address: string };
   clearNftsSelection: undefined;
   burnNfts: { nfts: ApiNft[] };
+  hideNft: { nftAddress: ApiNft['address'] };
+  openHideNftModal: undefined;
+  closeHideNftModal: undefined;
+  openNftMenu: { nftAddress: ApiNft['address'] };
 
   submitSignature: { password: string };
   clearSignatureError: undefined;
@@ -806,7 +828,7 @@ export interface ActionPayloads {
 
   addSiteToBrowserHistory: { url: string };
   removeSiteFromBrowserHistory: { url: string };
-  openBrowser: { url: string };
+  openBrowser: { url: string; title?: string; subtitle?: string };
   closeBrowser: undefined;
 
   apiUpdateDappConnect: ApiUpdateDappConnect;
@@ -832,7 +854,7 @@ export interface ActionPayloads {
   setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
   loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
-  estimateSwap: { shouldBlock: boolean };
+  estimateSwap: { shouldBlock: boolean; isEnoughToncoin?: boolean };
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
   estimateSwapCex: { shouldBlock: boolean };
@@ -865,6 +887,7 @@ export interface ActionPayloads {
   closeVestingModal: undefined;
   startClaimingVesting: undefined;
   submitClaimingVesting: { password: string };
+  submitClaimingVestingHardware: undefined;
   clearVestingError: undefined;
   cancelClaimingVesting: undefined;
 }

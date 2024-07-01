@@ -383,6 +383,17 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 22;
   }
 
+  if (cached.stateVersion === 22) {
+    clearActivities();
+    cached.stateVersion = 23;
+  }
+
+  if (cached.stateVersion === 23) {
+    if (!('isSortByValueEnabled' in cached.settings)) {
+      cached.settings.isSortByValueEnabled = initialState.settings.isSortByValueEnabled;
+    }
+    cached.stateVersion = 24;
+  }
   // When adding migration here, increase `STATE_VERSION`
 }
 
@@ -424,6 +435,7 @@ function reduceByAccountId(global: GlobalState) {
       'activeContentTab',
       'landscapeActionsActiveTabIndex',
       'browserHistory',
+      'blacklistedNftAddresses',
     ]);
 
     const accountTokens = selectAccountTokens(global, accountId);
