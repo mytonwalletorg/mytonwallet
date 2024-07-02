@@ -73,14 +73,14 @@ function TurnOn({
             <ModalHeader title={lang('Turn On Biometrics')} onClose={onClose} />
             <PasswordForm
               isActive={isActive}
-              error={error || localError}
-              help={lang('Enabling biometric confirmation will reset the password.')}
-              placeholder={lang('Enter your password')}
               isLoading={false}
+              error={error || localError}
+              operationType="passcode"
+              help={lang('Enabling biometric confirmation will reset the password.')}
+              submitLabel={lang('Continue')}
               onSubmit={handleSubmit}
               onCancel={onClose}
               onUpdate={handleClearError}
-              submitLabel={lang('Continue')}
             />
           </>
         );

@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 import { TransferState } from '../../global/types';
 
-import { IS_CAPACITOR, NFT_BATCH_SIZE } from '../../config';
+import { BURN_ADDRESS, IS_CAPACITOR, NFT_BATCH_SIZE } from '../../config';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
@@ -83,6 +83,7 @@ function TransferModal({
   const renderedTransactionAmount = usePrevious(amount, true);
   const symbol = selectedToken?.symbol || '';
   const isNftTransfer = Boolean(nfts?.length);
+  const isBurning = toAddress === BURN_ADDRESS;
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
@@ -183,6 +184,7 @@ function TransferModal({
           <TransferPassword
             isActive={isActive}
             isLoading={isLoading}
+            isBurning={isBurning}
             error={error}
             onSubmit={handleTransferSubmit}
             onCancel={handleModalCloseWithReset}

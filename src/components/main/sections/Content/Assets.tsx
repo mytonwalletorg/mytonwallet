@@ -20,6 +20,7 @@ import { toDecimal } from '../../../../util/decimals';
 import { buildCollectionByKey } from '../../../../util/iteratees';
 import { REM } from '../../../../util/windowEnvironment';
 
+import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteScroll from '../../../../hooks/useInfiniteScroll';
 import useShowTransition from '../../../../hooks/useShowTransition';
@@ -73,13 +74,15 @@ function Assets({
 }: OwnProps & StateProps) {
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
+  const renderedTokens = useCurrentOrPrev(tokens, true);
+  const renderedMycoin = useCurrentOrPrev(mycoin, true);
 
-  const toncoin = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens])!;
+  const toncoin = useMemo(() => renderedTokens?.find(({ slug }) => slug === TONCOIN_SLUG), [renderedTokens])!;
   const userMycoin = useMemo(() => {
-    if (!tokens || !mycoin) return undefined;
+    if (!renderedTokens || !renderedMycoin) return undefined;
 
-    return tokens.find(({ slug }) => slug === mycoin.slug);
-  }, [mycoin, tokens]);
+    return renderedTokens.find(({ slug }) => slug === renderedMycoin.slug);
+  }, [renderedMycoin, renderedTokens]);
 
   const { isLandscape, isPortrait } = useDeviceScreen();
 
@@ -99,10 +102,10 @@ function Assets({
   } = useVesting({ vesting, userMycoin });
 
   const tokenSlugs = useMemo(() => (
-    tokens
+    renderedTokens
       ?.filter(({ isDisabled }) => !isDisabled)
       .map(({ slug }) => slug)
-  ), [tokens]);
+  ), [renderedTokens]);
   const [viewportSlugs, getMore] = useInfiniteScroll(
     undefined, tokenSlugs, undefined, undefined, undefined, isActive, isPortrait,
   );
@@ -120,8 +123,8 @@ function Assets({
     return index;
   }, [shouldRenderStakedToken, shouldRenderVestingToken, tokenSlugs, viewportSlugs]);
   const tokensBySlug = useMemo(() => (
-    tokens ? buildCollectionByKey(tokens, 'slug') : undefined
-  ), [tokens]);
+    renderedTokens ? buildCollectionByKey(renderedTokens, 'slug') : undefined
+  ), [renderedTokens]);
   const withAbsolutePositioning = tokenSlugs && tokenSlugs.length > LIST_SLICE;
 
   const currentContainerHeight = useMemo(() => {
@@ -194,7 +197,7 @@ function Assets({
   return (
     <InfiniteScroll
       ref={containerRef}
-      className={buildClassName(styles.wrapper, isSeparatePanel && !tokens && styles.wrapperLoading)}
+      className={buildClassName(styles.wrapper, isSeparatePanel && !renderedTokens && styles.wrapperLoading)}
       scrollContainerClosest={!isLandscape && isActive ? '.app-slide-content' : undefined}
       items={viewportSlugs}
       itemSelector=".token-list-item"
@@ -202,7 +205,7 @@ function Assets({
       maxHeight={currentContainerHeight}
       onLoadMore={getMore}
     >
-      {!tokens && (
+      {!renderedTokens && (
         <div key="loading" className={isSeparatePanel ? styles.emptyListSeparate : styles.emptyList}>
           <Loading />
         </div>

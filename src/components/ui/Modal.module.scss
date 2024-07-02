@@ -303,7 +303,7 @@
   transition: background-color 150ms;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-close-button-text-hover) !important;
 
     background-color: var(--color-close-button-background-hover) !important;

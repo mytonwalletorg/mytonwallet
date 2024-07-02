@@ -237,7 +237,7 @@
 
   @media (hover: hover) {
     &:hover,
-    &:focus {
+    &:focus-visible {
       text-decoration: none;
     }
   }

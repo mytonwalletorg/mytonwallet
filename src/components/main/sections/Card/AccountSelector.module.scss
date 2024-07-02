@@ -19,7 +19,7 @@
 
   transition: color 150ms;
 
-  &:focus,
+  &:focus-visible,
   &:hover {
     color: var(--color-card-text-hover);
   }
@@ -81,7 +81,7 @@
   font-size: 1.5rem;
   color: var(--color-card-second-text);
 
-  &:focus,
+  &:focus-visible,
   &:hover {
     color: var(--color-card-text);
   }
@@ -112,7 +112,7 @@
   transition: opacity 150ms;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     opacity: 1;
   }
 
@@ -165,7 +165,7 @@
   transition: background-color 150ms;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     background-color: var(--color-card-button-hover);
   }
 
@@ -356,7 +356,7 @@
   background-color: var(--color-add-wallet-background) !important;
   border-radius: 0.5rem !important;
 
-  &:focus,
+  &:focus-visible,
   &:hover {
     color: var(--color-add-wallet-text-hover) !important;
 

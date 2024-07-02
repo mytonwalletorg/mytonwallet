@@ -27,7 +27,7 @@
   transition: background-color 150ms, color 150ms, opacity 300ms !important;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-blue-button-text-hover);
 
     background: var(--color-blue-button-background-hover);

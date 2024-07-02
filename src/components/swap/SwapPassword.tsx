@@ -41,15 +41,14 @@ function SwapPassword({
       <PasswordForm
         isActive={isActive}
         isLoading={isLoading}
+        withCloseButton={IS_CAPACITOR}
         error={error}
         operationType="swap"
-        placeholder={lang('Enter your password')}
-        withCloseButton={IS_CAPACITOR}
-        onUpdate={clearSwapError}
-        onSubmit={onSubmit}
         submitLabel={lang('Send')}
-        onCancel={onBack}
         cancelLabel={lang('Back')}
+        onSubmit={onSubmit}
+        onCancel={onBack}
+        onUpdate={clearSwapError}
       >
         {children}
       </PasswordForm>

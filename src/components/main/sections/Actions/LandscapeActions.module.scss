@@ -54,7 +54,7 @@ $tab-1-height: 348;
   @media (hover: hover) {
     &:not(.active) {
       &:hover,
-      &:focus {
+      &:focus-visible {
         color: var(--color-blue);
       }
     }

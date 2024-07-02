@@ -109,12 +109,11 @@ function SignatureModal({
         <PasswordForm
           isActive={isActive}
           error={error}
-          placeholder={lang('Enter your password')}
           submitLabel={lang('Sign')}
-          onUpdate={clearSignatureError}
-          onSubmit={handlePasswordSubmit}
           cancelLabel={lang('Cancel')}
+          onSubmit={handlePasswordSubmit}
           onCancel={closeModal}
+          onUpdate={clearSignatureError}
         />
       </>
     );

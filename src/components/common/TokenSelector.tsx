@@ -45,6 +45,12 @@ import styles from './TokenSelector.module.scss';
 
 type Token = UserToken | UserSwapToken;
 
+type TokenSortFactors = {
+  tickerExactMatch: number;
+  tickerMatchLength: number;
+  nameMatchLength: number;
+};
+
 interface StateProps {
   token?: Token;
   userTokens?: Token[];
@@ -178,7 +184,7 @@ function TokenSelector({
       return [];
     }
 
-    return tokensToFilter.filter(({
+    const filteredTokens = tokensToFilter.filter(({
       name, symbol, keywords, isDisabled,
     }) => {
       if (isDisabled) {
@@ -190,7 +196,43 @@ function TokenSelector({
       const isKeyword = keywords?.some((key) => key.toLowerCase().includes(lowerCaseSearchValue));
 
       return isName || isSymbol || isKeyword;
-    }).sort((a, b) => Number(b.amount - a.amount)) ?? [];
+    }) ?? [];
+
+    const sortFactors = filteredTokens.reduce((acc, searchResultToken) => {
+      const factors = {
+        tickerExactMatch: 0,
+        tickerMatchLength: 0,
+        nameMatchLength: 0,
+      };
+
+      const tokenSymbol = searchResultToken.symbol.toLowerCase();
+      const tokenName = searchResultToken.name.toLowerCase();
+
+      if (tokenSymbol === lowerCaseSearchValue) {
+        factors.tickerExactMatch = 1;
+      }
+
+      if (tokenSymbol.includes(lowerCaseSearchValue)) {
+        factors.tickerMatchLength = lowerCaseSearchValue.length;
+      }
+
+      if (tokenName.includes(lowerCaseSearchValue)) {
+        factors.nameMatchLength = lowerCaseSearchValue.length;
+      }
+
+      acc[searchResultToken.slug] = factors;
+
+      return acc;
+    }, {} as Record<string, TokenSortFactors>);
+
+    return filteredTokens.sort((a, b) => {
+      const factorA = sortFactors[a.slug];
+      const factorB = sortFactors[b.slug];
+      const comparisonResult = compareTokens(factorA, factorB);
+      if (comparisonResult !== 0) return comparisonResult;
+
+      return Number(b.amount - a.amount);
+    });
   }, [allUnimportedTonTokens, isInsideSettings, searchValue, swapTokensWithFilter]);
 
   const resetSearch = () => {
@@ -530,4 +572,14 @@ function filterAndSortTokens(tokens: Token[], tokenInSlug?: string, pairsBySlug?
     const canSwap = Boolean(pairsBySlug?.[tokenInSlug]?.[token.slug]);
     return { ...token, canSwap };
   }).sort((a, b) => Number(b.canSwap) - Number(a.canSwap));
+}
+
+function compareTokens(a: TokenSortFactors, b: TokenSortFactors) {
+  if (a.tickerExactMatch !== b.tickerExactMatch) {
+    return b.tickerExactMatch - a.tickerExactMatch;
+  }
+  if (a.tickerMatchLength !== b.tickerMatchLength) {
+    return b.tickerMatchLength - a.tickerMatchLength;
+  }
+  return b.nameMatchLength - a.nameMatchLength;
 }

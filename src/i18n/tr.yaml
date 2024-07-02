@@ -175,7 +175,6 @@ Receiving Address: Alıcı adresi
 Fee: Ücret
 Edit: Düzenle
 Confirm: Onayla
-Confirm Transaction: İşlemi onayla
 Coins have been sent!: Coin'ler gönderildi!
 Details: Detaylar
 Change password visibility: Parola görünürlüğünü değiştir
@@ -258,7 +257,7 @@ You can save this address for quick access while sending.: Gönderirken hızlı 
 Stake Again: Yeniden stake edin
 Earned: Kazanıldı
 Connect Dapp: Dapp'ı bağla
-Select wallets to use on this dapp: Bu Dapp üzerinde kullanılacak cüzdanları seçin
+Select wallet to use on this dapp: Bu dapp üzerinde kullanılacak cüzdanı seçin
 Connect: Bağlan
 Dapp Permissions: Dapp İzinleri
 $dapp_can_view_balance: "%dappname% cüzdan adresini ve bakiyesini görüntüleyebilecek."
@@ -620,3 +619,7 @@ Open in Safari: Safari'de Aç
 Open in Browser: Tarayıcıda Aç
 CopyURL: URL'yi Kopyala
 Share: Paylaş
+Confirm Sending: Göndermeyi Onayla
+Confirm Burning: Yazmayı Onayla
+Confirm Passcode: Şifreyi Onayla
+Enter your code: Kodunuzu girin

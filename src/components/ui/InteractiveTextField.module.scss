@@ -30,7 +30,7 @@
     transition: none;
   }
 
-  &:focus,
+  &:focus-visible,
   &:hover {
     .icon {
       color: var(--color-blue);

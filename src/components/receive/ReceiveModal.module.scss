@@ -80,7 +80,7 @@
 
   background-color: var(--color-gray-button-background) !important;
 
-  &:focus,
+  &:focus-visible,
   &:hover {
     background-color: var(--color-gray-button-background-hover) !important;
   }
@@ -107,7 +107,7 @@
   text-decoration-style: dotted;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     text-decoration: none;
   }
 }

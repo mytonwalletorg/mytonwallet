@@ -107,7 +107,7 @@
   height: 1.875rem !important;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-flashlight-button-enabled-text) !important;
 
     background-color: var(--color-flashlight-button-enabled-background) !important;

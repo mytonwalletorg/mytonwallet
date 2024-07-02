@@ -175,7 +175,6 @@ Receiving Address: Empfangs adresse
 Fee: Gebühr
 Edit: Bearbeiten
 Confirm: Bestätigen
-Confirm Transaction: Transaktion bestätigen
 Coins have been sent!: Die Coins wurden gesendet!
 Details: Details
 Change password visibility: Sichtbarkeit des Passworts ändern
@@ -258,7 +257,7 @@ You can save this address for quick access while sending.: Sie können diese Adr
 Stake Again: Erneut staken
 Earned: Verdient
 Connect Dapp: Dapp verbinden
-Select wallets to use on this dapp: Wählen Sie Wallet aus, die Sie auf dieser Dapp verwenden möchten.
+Select wallet to use on this dapp: Wählen Sie die Brieftasche aus, die Sie für diese Dapp verwenden möchten.
 Connect: Verbinden
 Dapp Permissions: Dapp-Berechtigungen
 $dapp_can_view_balance: "%dappname% wird die Wallet adresse und den Kontostand anzeigen können."
@@ -621,3 +620,7 @@ Open in Safari: In Safari öffnen
 Open in Browser: Im Browser öffnen
 CopyURL: URL kopieren
 Share: Teilen
+Confirm Sending: Senden bestätigen
+Confirm Burning: Brennen bestätigen
+Confirm Passcode: Passcode bestätigen
+Enter your code: Gib deinen Code ein

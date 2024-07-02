@@ -55,7 +55,7 @@
 
     @media (hover: hover) {
       &:hover,
-      &:focus {
+      &:focus-visible {
         color: var(--color-gray-button-text-hover);
 
         background-color: var(--color-gray-button-background-hover);
@@ -84,7 +84,7 @@
 
   @media (hover: hover) {
     &:hover,
-    &:focus{
+    &:focus-visible {
       color: var(--color-blue-button-background-hover);
     }
   }
@@ -109,7 +109,7 @@
 
   @media (hover: hover) {
     &:hover,
-    &:focus {
+    &:focus-visible {
       color: var(--color-blue-button-text-hover);
 
       background-color: var(--color-blue-button-background-hover);
@@ -143,7 +143,7 @@
 
   @media (hover: hover) {
     &:hover,
-    &:focus {
+    &:focus-visible {
       color: var(--color-red-button-text-hover);
 
       background-color: var(--color-red-button-background-hover);
@@ -164,7 +164,7 @@
 
     @media (hover: hover) {
       &:hover,
-      &:focus {
+      &:focus-visible {
         color: var(--color-red-button-background-hover);
       }
     }

@@ -28,7 +28,7 @@ import PinPad from './PinPad';
 import modalStyles from './Modal.module.scss';
 import styles from './PasswordForm.module.scss';
 
-type OperationType = 'transfer' | 'staking' | 'unstaking' | 'swap';
+type OperationType = 'transfer' | 'sending' | 'staking' | 'unstaking' | 'swap' | 'unfreeze' | 'passcode';
 
 interface OwnProps {
   isActive: boolean;
@@ -69,7 +69,7 @@ function PasswordForm({
   cancelLabel,
   submitLabel,
   stickerSize = STICKER_SIZE,
-  placeholder,
+  placeholder = 'Enter your password',
   error,
   help,
   containerClassName,
@@ -151,8 +151,13 @@ function PasswordForm({
 
   function getPinPadTitle() {
     switch (operationType) {
+      case 'unfreeze':
+        return 'Confirm Unfreezing';
+      case 'passcode':
+        return 'Confirm Passcode';
       case 'transfer':
-        return 'Confirm Transaction';
+      case 'sending':
+        return 'Confirm Sending';
       case 'staking':
         return 'Confirm Staking';
       case 'unstaking':
@@ -245,7 +250,7 @@ function PasswordForm({
           id="first-password"
           inputMode={isPasswordNumeric ? 'numeric' : undefined}
           error={error ? lang(error) : localError}
-          placeholder={placeholder}
+          placeholder={lang(placeholder)}
           value={password}
           onInput={handleInput}
           maxLength={isPasswordNumeric ? PIN_LENGTH : undefined}

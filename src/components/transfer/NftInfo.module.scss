@@ -25,7 +25,7 @@
 .interactive {
   cursor: var(--custom-cursor, pointer);
 
-  &:focus,
+  &:focus-visible,
   &:hover {
     .icon {
       color: var(--color-blue);

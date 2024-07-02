@@ -169,7 +169,9 @@ function getNode(type: MediaType, mediaId: string) {
   let image: HTMLImageElement | undefined;
   let container: HTMLElement | undefined;
   if (type === MediaType.Nft) {
-    container = document.querySelector(`#nft-${mediaId}`) as HTMLElement;
+    container = document.querySelector(
+      `.nfts-container > .Transition_slide-active [data-nft-address="${mediaId}"]`,
+    ) as HTMLElement;
     image = container?.querySelector('img') as HTMLImageElement;
   }
   return { container, image };

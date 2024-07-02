@@ -175,7 +175,6 @@ Receiving Address: Adres odbioru
 Fee: Opłata
 Edit: Edytuj
 Confirm: Potwierdzenie
-Confirm Transaction: Potwierdź transakcję
 Coins have been sent!: Monety zostały wysłane!
 Details: Szczegóły
 Change password visibility: Zmiana widoczności hasła
@@ -257,7 +256,7 @@ You can save this address for quick access while sending.: Możesz zapisać ten 
 Stake Again: Zastaw ponownie
 Earned: Zarobione
 Connect Dapp: Połącz aplikację
-Select wallets to use on this dapp: Wybierz portfele do użycia w tej aplikacji
+Select wallet to use on this dapp: Wybierz portfel, którego chcesz używać w tym dappie
 Connect: Połącz
 Dapp Permissions: Uprawnienia aplikacji
 $dapp_can_view_balance: "%dappname% będzie mógł zobaczyć adres portfela i saldo."
@@ -622,3 +621,7 @@ Open in Safari: Otwórz w Safari
 Open in Browser: Otwórz w przeglądarce
 CopyURL: Kopiuj URL
 Share: Udostępnij
+Confirm Sending: Potwierdź wysłanie
+Confirm Burning: Potwierdź spalanie
+Confirm Passcode: Potwierdź hasło
+Enter your code: Wpisz swój kod

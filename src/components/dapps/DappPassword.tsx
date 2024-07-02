@@ -39,13 +39,12 @@ function DappPassword({
       <PasswordForm
         isActive={isActive}
         error={error}
-        placeholder={lang('Enter your password')}
-        submitLabel={lang('Connect')}
         withCloseButton={IS_CAPACITOR}
-        onUpdate={clearDappConnectRequestError}
-        onSubmit={onSubmit}
+        submitLabel={lang('Connect')}
         cancelLabel={lang('Cancel')}
+        onSubmit={onSubmit}
         onCancel={onCancel}
+        onUpdate={clearDappConnectRequestError}
       />
     </>
   );

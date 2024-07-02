@@ -175,7 +175,6 @@ Receiving Address: Dirección del receptor
 Fee: Comisión
 Edit: Editar
 Confirm: Confirmar
-Confirm Transaction: Confirmar transacción
 Coins have been sent!: ¡Se han enviado monedas!
 Details: Detalles
 Change password visibility: Cambiar la visibilidad de la contraseña
@@ -256,7 +255,7 @@ You can save this address for quick access while sending.: Puede guardar esta di
 Stake Again: Apostar de nuevo
 Earned: Ganado
 Connect Dapp: Conectar Dapp
-Select wallets to use on this dapp: Seleccione monederos para usar en esta dapp
+Select wallet to use on this dapp: Seleccione la billetera para usar en esta dapp
 Connect: Conectar
 Dapp Permissions: Permisos de la Dapp
 $dapp_can_view_balance: "%dappname% podrá ver la dirección y el saldo del monedero."
@@ -617,3 +616,7 @@ Open in Safari: Abrir en Safari
 Open in Browser: Abrir en el navegador
 CopyURL: Copiar URL
 Share: Compartir
+Confirm Sending: Confirmar envío
+Confirm Burning: Confirmar quema
+Confirm Passcode: Confirmar contraseña
+Enter your code: Ingrese su código

@@ -91,7 +91,7 @@
   transition: background-color 0.15s, color 0.15s;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: white;
     text-decoration: none;
 
@@ -129,7 +129,7 @@
     background-color: rgba(0, 0, 0, 0.32);
 
     &:hover,
-    &:focus {
+    &:focus-visible {
       color: #A3A3A3;
 
       background-color: rgba(0, 0, 0, 0.32);
@@ -157,7 +157,7 @@
   }
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     > :global(.icon) {
       color: var(--color-blue);
     }
@@ -355,7 +355,8 @@
     width: 20vw;
   }
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus-visible {
     opacity: 1;
   }
 
@@ -426,7 +427,8 @@
 
   transition: color 0.15s;
 
-  &:focus, &:hover {
+  &:focus-visible,
+  &:hover {
     color: rgba(255, 255, 255, 1);
     text-decoration: none;
 

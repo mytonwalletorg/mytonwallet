@@ -169,7 +169,6 @@ Receiving Address: 接收地址
 Fee: 手续费
 Edit: 编辑
 Confirm: 确认
-Confirm Transaction: 确认交易
 Coins have been sent!: 代币已送出!
 Details: 明细
 Change password visibility: 改变密码可见
@@ -245,7 +244,7 @@ You can save this address for quick access while sending.: 您可以保存此地
 Stake Again: 再次质押
 Earned: 获得
 Connect Dapp: 连接Dapp
-Select wallets to use on this dapp: 选择要在此 dapp 上使用的钱包
+Select wallet to use on this dapp: 选择在此 dapp 上使用的钱包
 Connect: 连接
 Dapp Permissions: Dapp 权限
 $dapp_can_view_balance: "%dappname% 将能够查看钱包地址和余额。"
@@ -604,3 +603,7 @@ Open in Safari: 在 Safari 中打开
 Open in Browser: 在浏览器中打开
 CopyURL: 复制链接
 Share: 分享
+Confirm Sending: 确认发送
+Confirm Burning: 确认刻录
+Confirm Passcode: 确认密码
+Enter your code: 输入您的代码

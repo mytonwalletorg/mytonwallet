@@ -424,7 +424,8 @@
     font-weight: 600;
     color: var(--color-gray-3);
 
-    &:hover, &:focus {
+    &:hover,
+    &:focus-visible {
       color: var(--color-gray-1);
     }
   }

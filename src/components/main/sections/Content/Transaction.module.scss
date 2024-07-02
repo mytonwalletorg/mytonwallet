@@ -41,7 +41,7 @@
   }
 
   @media (hover: hover) {
-    &:focus,
+    &:focus-visible,
     &:hover {
       background-color: var(--color-interactive-item-hover);
     }

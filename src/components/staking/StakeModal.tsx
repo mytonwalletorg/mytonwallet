@@ -117,14 +117,14 @@ function StakeModal({
           isActive={isActive}
           isLoading={isLoading}
           error={error}
-          operationType="staking"
-          placeholder={lang('Confirm operation with your password')}
           withCloseButton={IS_CAPACITOR}
-          onUpdate={clearStakingError}
-          onSubmit={handleTransferSubmit}
+          operationType="staking"
+          placeholder="Confirm operation with your password"
           submitLabel={lang('Confirm')}
-          onCancel={handleBackClick}
           cancelLabel={lang('Back')}
+          onSubmit={handleTransferSubmit}
+          onCancel={handleBackClick}
+          onUpdate={clearStakingError}
         >
           {renderStakingShortInfo()}
         </PasswordForm>

@@ -237,7 +237,7 @@
   background-color: var(--color-add-wallet-background) !important;
   border-radius: 0.5rem !important;
 
-  &:focus,
+  &:focus-visible,
   &:hover {
     color: var(--color-add-wallet-text-hover) !important;
 

@@ -446,11 +446,11 @@ function TransactionModal({
             {!IS_CAPACITOR && <ModalHeader title={lang('Enter Password')} onClose={handleClose} />}
             <PasswordForm
               isActive={isActive}
-              submitLabel={lang('Send')}
-              placeholder={lang('Enter your password')}
               error={passwordError}
               withCloseButton={IS_CAPACITOR}
+              operationType="transfer"
               containerClassName={IS_CAPACITOR ? styles.passwordFormContent : styles.passwordFormContentInModal}
+              submitLabel={lang('Send')}
               onSubmit={handlePasswordSubmit}
               onCancel={closePasswordSlide}
               onUpdate={clearPasswordError}

@@ -175,7 +175,6 @@ Receiving Address: Receiving Address
 Fee: Fee
 Edit: Edit
 Confirm: Confirm
-Confirm Transaction: Confirm Transaction
 Coins have been sent!: Coins have been sent!
 Details: Details
 Change password visibility: Change password visibility
@@ -257,7 +256,7 @@ You can save this address for quick access while sending.: You can save this add
 Stake Again: Stake Again
 Earned: Earned
 Connect Dapp: Connect Dapp
-Select wallets to use on this dapp: Select wallets to use on this dapp
+Select wallet to use on this dapp: Select wallet to use on this dapp
 Connect: Connect
 Dapp Permissions: Dapp Permissions
 $dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."
@@ -621,3 +620,7 @@ Open in Safari: Open in Safari
 Open in Browser: Open in browser
 CopyURL: Copy URL
 Share: Share
+Confirm Sending: Confirm Sending
+Confirm Burning: Confirm Burning
+Confirm Passcode: Confirm Passcode
+Enter your code: Enter your code

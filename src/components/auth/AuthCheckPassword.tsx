@@ -38,12 +38,11 @@ function AuthCheckPassword({
         isLoading={isLoading}
         error={error}
         containerClassName={styles.passwordForm}
-        placeholder={lang('Enter your password')}
-        onUpdate={cleanAuthError}
-        onSubmit={handleSubmit}
         submitLabel={lang('Send')}
-        onCancel={resetAuth}
         cancelLabel={lang('Back')}
+        onSubmit={handleSubmit}
+        onCancel={resetAuth}
+        onUpdate={cleanAuthError}
       >
         <div className={styles.title}>{lang('Enter your password')}</div>
       </PasswordForm>

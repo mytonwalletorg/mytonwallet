@@ -91,7 +91,7 @@
   }
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-blue);
     text-decoration: none;
   }

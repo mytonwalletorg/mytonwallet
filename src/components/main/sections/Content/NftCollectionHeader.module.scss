@@ -70,7 +70,7 @@
   color: var(--color-blue);
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-blue-button-background-hover);
   }
 }

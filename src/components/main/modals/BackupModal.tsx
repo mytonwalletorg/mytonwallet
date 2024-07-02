@@ -140,13 +140,12 @@ function BackupModal({
               isActive={isActive}
               isLoading={isLoading}
               error={error}
-              placeholder={lang('Enter your password')}
-              submitLabel={lang('Back Up')}
               withCloseButton={IS_CAPACITOR}
-              onUpdate={handleBackupErrorUpdate}
-              onSubmit={handlePasswordSubmit}
+              submitLabel={lang('Back Up')}
               cancelLabel={lang('Cancel')}
+              onSubmit={handlePasswordSubmit}
               onCancel={onClose}
+              onUpdate={handleBackupErrorUpdate}
             />
           </>
         );

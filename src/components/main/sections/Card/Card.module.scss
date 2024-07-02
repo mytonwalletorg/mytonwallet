@@ -226,7 +226,7 @@
   }
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-card-text);
   }
 
@@ -254,7 +254,7 @@
   }
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-card-text);
   }
 

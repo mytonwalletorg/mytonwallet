@@ -58,7 +58,7 @@
 
     @media (hover: hover) {
       &:hover,
-      &:focus {
+      &:focus-visible {
         background-color: var(--color-input-button-background-hover);
       }
     }
@@ -72,7 +72,7 @@
     background: none;
 
     &:hover,
-    &:focus {
+    &:focus-visible {
       background: none;
     }
   }
@@ -165,7 +165,7 @@
   }
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     background-color: var(--color-interactive-drop-down-menu-hover) !important;
   }
 }

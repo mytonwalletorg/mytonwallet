@@ -57,7 +57,7 @@
   transition: background-color 150ms, color 150ms;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-blue-button-text-hover);
     text-decoration: none;
 
@@ -105,14 +105,14 @@
 
   &,
   &:hover,
-  &:focus,
+  &:focus-visible,
   &:active {
     text-decoration: none;
   }
 
   @media (hover: hover) {
     &:hover,
-    &:focus {
+    &:focus-visible {
       .image {
         transform: scale(1.05);
       }

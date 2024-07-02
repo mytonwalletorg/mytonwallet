@@ -79,7 +79,7 @@ function Nft({ nft, selectedAddresses }: OwnProps) {
     <div
       key={nft.address}
       ref={ref}
-      id={`nft-${nft.address}`}
+      data-nft-address={nft.address}
       onClick={!isSelectionEnabled || !nft.isOnSale ? handleClick : undefined}
       className={fullClassName}
     >

@@ -125,18 +125,17 @@ function DappTransferModal({
   function renderPassword(isActive: boolean) {
     return (
       <>
-        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Transaction')} onClose={closeDappTransfer} />}
+        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Operation')} onClose={closeDappTransfer} />}
         <PasswordForm
           isActive={isActive}
           isLoading={isLoading}
           error={error}
-          placeholder={lang('Enter your password')}
           withCloseButton={IS_CAPACITOR}
-          onUpdate={clearDappTransferError}
-          onSubmit={handleTransferPasswordSubmit}
           submitLabel={lang('Send')}
-          onCancel={handleBackClick}
           cancelLabel={lang('Back')}
+          onSubmit={handleTransferPasswordSubmit}
+          onCancel={handleBackClick}
+          onUpdate={clearDappTransferError}
         />
       </>
     );

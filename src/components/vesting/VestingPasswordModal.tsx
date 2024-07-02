@@ -7,6 +7,7 @@ import { VestingUnfreezeState } from '../../global/types';
 
 import {
   CLAIM_AMOUNT,
+  IS_CAPACITOR,
   TON_SYMBOL,
   TONCOIN_SLUG,
 } from '../../config';
@@ -79,6 +80,7 @@ function VestingPasswordModal({
   const claimAmount = toBig(CLAIM_AMOUNT);
   const hasAmountError = !balance || balance < CLAIM_AMOUNT;
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, Boolean(isOpen));
+  const withModalHeader = !isHardwareAccount && !IS_CAPACITOR;
 
   const currentlyReadyToUnfreezeAmount = useMemo(() => {
     if (!vesting) return '0';
@@ -103,7 +105,7 @@ function VestingPasswordModal({
   function renderInfo() {
     return (
       <>
-        <div className={styles.operationInfo}>
+        <div className={buildClassName(styles.operationInfo, !IS_CAPACITOR && styles.operationInfoWithGap)}>
           <img src={mycoin!.image} alt="" className={styles.tokenIcon} />
           <span className={styles.operationInfoText}>
             {lang('%amount% to %address%', {
@@ -116,7 +118,7 @@ function VestingPasswordModal({
             })}
           </span>
         </div>
-        <div className={styles.operationInfoFee}>
+        <div className={buildClassName(styles.operationInfoFee, !IS_CAPACITOR && styles.operationInfoFeeWithGap)}>
           {renderText(lang('$fee_value_bold', { fee: formatCurrency(claimAmount, TON_SYMBOL) }))}
         </div>
       </>
@@ -152,14 +154,14 @@ function VestingPasswordModal({
         return (
           <PasswordForm
             isActive={Boolean(isOpen)}
-            placeholder={lang('Enter your password')}
+            isLoading={isLoading}
             withCloseButton
+            operationType="unfreeze"
             error={hasAmountError ? lang('Insufficient Balance for Fee.') : error}
             submitLabel={lang('Confirm')}
-            isLoading={isLoading}
-            onUpdate={clearVestingError}
             onSubmit={handleSubmit}
             onCancel={cancelClaimingVesting}
+            onUpdate={clearVestingError}
           >
             {renderInfo()}
           </PasswordForm>
@@ -170,8 +172,8 @@ function VestingPasswordModal({
   return (
     <Modal
       isOpen={isOpen}
-      title={!isHardwareAccount ? lang('Confirm Unfreezing') : undefined}
-      hasCloseButton={!isHardwareAccount}
+      title={withModalHeader ? lang('Confirm Unfreezing') : undefined}
+      hasCloseButton={withModalHeader}
       forceFullNative
       nativeBottomSheetKey="vesting-confirm"
       contentClassName={styles.passwordModalDialog}
@@ -187,7 +189,6 @@ function VestingPasswordModal({
       >
         {renderContent}
       </Transition>
-
     </Modal>
   );
 }

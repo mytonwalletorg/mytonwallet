@@ -382,7 +382,7 @@
   }
 
   @media (hover: hover) {
-    &:focus,
+    &:focus-visible,
     &:hover {
       color: var(--color-black);
 
@@ -495,7 +495,7 @@
   background: var(--color-background-first);
   border-radius: var(--border-radius-default);
 
-  &:focus,
+  &:focus-visible,
   &:hover {
     background-color: var(--color-interactive-item-hover);
   }
@@ -558,6 +558,22 @@
 
 .stickerNativeBiometric {
   margin-top: auto;
+}
+
+.pinPadHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+
+  margin-top: auto;
+}
+
+.pinPadTitle {
+  font-size: 1.6875rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
 }
 
 .title {

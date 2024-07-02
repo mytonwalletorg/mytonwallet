@@ -79,7 +79,7 @@
 
   @media (hover: hover) {
     &:hover,
-    &:focus {
+    &:focus-visible {
       text-decoration: none;
     }
   }
@@ -593,7 +593,7 @@
 
   @media (hover: hover) {
     &:hover,
-    &:focus {
+    &:focus-visible {
       color: var(--color-input-button-text);
 
       background-color: var(--color-input-button-background);

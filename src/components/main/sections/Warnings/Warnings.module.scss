@@ -109,7 +109,7 @@
   transition: background-color 150ms;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     background-color: var(--color-red-warning-button-background-hover) !important;
   }
 

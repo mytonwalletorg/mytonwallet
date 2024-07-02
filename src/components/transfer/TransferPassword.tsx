@@ -12,6 +12,7 @@ import PasswordForm from '../ui/PasswordForm';
 interface OwnProps {
   isActive: boolean;
   isLoading?: boolean;
+  isBurning?: boolean;
   error?: string;
   children?: TeactNode;
   onSubmit: (password: string) => void;
@@ -19,7 +20,7 @@ interface OwnProps {
 }
 
 function TransferPassword({
-  isActive, isLoading, error, children, onSubmit, onCancel,
+  isActive, isLoading, isBurning, error, children, onSubmit, onCancel,
 }: OwnProps) {
   const {
     cancelTransfer,
@@ -33,21 +34,22 @@ function TransferPassword({
     onBack: onCancel,
   });
 
+  const title = isBurning ? 'Confirm Burning' : 'Confirm Sending';
+
   return (
     <>
-      {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Transaction')} onClose={cancelTransfer} />}
+      {!IS_CAPACITOR && <ModalHeader title={lang(title)} onClose={cancelTransfer} />}
       <PasswordForm
         isActive={isActive}
         isLoading={isLoading}
+        withCloseButton={Boolean(children)}
         operationType="transfer"
         error={error}
-        placeholder={lang('Enter your password')}
-        withCloseButton={Boolean(children)}
         submitLabel={lang('Send')}
         cancelLabel={lang('Back')}
-        onUpdate={clearTransferError}
         onSubmit={onSubmit}
         onCancel={onCancel}
+        onUpdate={clearTransferError}
       >
         {children}
       </PasswordForm>

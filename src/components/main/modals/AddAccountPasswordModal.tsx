@@ -41,13 +41,13 @@ function AddAccountPasswordModal({
         isActive={isActive}
         isLoading={isLoading}
         error={error}
-        placeholder={lang('Enter your password')}
+        operationType="passcode"
         withCloseButton={IS_CAPACITOR}
-        onUpdate={onClearError}
-        onSubmit={onSubmit}
         submitLabel={lang('Send')}
-        onCancel={onBack}
         cancelLabel={lang('Back')}
+        onSubmit={onSubmit}
+        onCancel={onBack}
+        onUpdate={onClearError}
       />
     </>
   );

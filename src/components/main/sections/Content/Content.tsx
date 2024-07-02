@@ -268,6 +268,7 @@ function Content({
           <Transition
             activeKey={activeNftKey}
             name={isPortrait ? 'slide' : 'slideFade'}
+            className="nfts-container"
           >
             <Nfts key={currentCollectionAddress || 'all'} isActive={isActive} />
           </Transition>

@@ -39,7 +39,7 @@
   transition: background-color 150ms, color 150ms;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-blue);
   }
 

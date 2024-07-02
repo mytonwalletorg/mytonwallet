@@ -5,6 +5,7 @@ import { PIN_LENGTH } from '../../../config';
 import buildClassName from '../../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
+import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
 import useEffectWithPrevDeps from '../../../hooks/useEffectWithPrevDeps';
 import useHistoryBack from '../../../hooks/useHistoryBack';
 import useLang from '../../../hooks/useLang';
@@ -37,13 +38,14 @@ function NativeBiometricsTurnOn({
   const { enableNativeBiometrics, clearNativeBiometricsError } = getActions();
 
   const lang = useLang();
+  const { isSmallHeight } = useDeviceScreen();
   const [pin, setPin] = useState<string>('');
   const pinPadType = pin.length !== PIN_LENGTH
     ? undefined
     : (isPinAccepted ? 'success' : (error ? 'error' : undefined));
   const pinTitle = isPinAccepted
     ? 'Correct'
-    : (error && pin.length === PIN_LENGTH ? error : 'Enter code');
+    : (error && pin.length === PIN_LENGTH ? error : 'Enter your code');
 
   useEffect(() => {
     if (!isActive) return;
@@ -78,14 +80,19 @@ function NativeBiometricsTurnOn({
           <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
           <span>{lang('Back')}</span>
         </Button>
-        <AnimatedIconWithPreview
-          play={isActive}
-          tgsUrl={ANIMATED_STICKERS_PATHS.guard}
-          previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}
-          noLoop={false}
-          nonInteractive
-          className={styles.stickerNativeBiometric}
-        />
+
+        <div className={styles.pinPadHeader}>
+          <AnimatedIconWithPreview
+            play={isActive}
+            tgsUrl={ANIMATED_STICKERS_PATHS.guard}
+            previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}
+            noLoop={false}
+            nonInteractive
+            className={styles.stickerNativeBiometric}
+          />
+
+          {!isSmallHeight && <div className={styles.pinPadTitle}>{lang('Confirm Passcode')}</div>}
+        </div>
 
         <PinPad
           isActive={isActive}

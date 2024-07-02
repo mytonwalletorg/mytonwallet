@@ -175,7 +175,6 @@ Receiving Address: ที่อยู่บัญชีผู้รับ
 Fee: ค่าธรรมเนียม
 Edit: แก้ไข
 Confirm: ยืนยัน
-Confirm Transaction: ยืนยันการทำรายการ
 Coins have been sent!: โทเคนได้ถูกส่งแล้ว!
 Details: รายละเอียด
 Change password visibility: เปลี่ยนการแสดงรหัสผ่าน
@@ -257,7 +256,7 @@ You can save this address for quick access while sending.: คุณสามา
 Stake Again: สเต็กอีกครั้ง
 Earned: ได้รับแล้ว
 Connect Dapp: เชื่อมต่อ Dapp
-Select wallets to use on this dapp: เลือกวอลเล็ตที่จะใช้ใน Dapp
+Select wallet to use on this dapp: เลือกกระเป๋าเงินที่จะใช้กับ dapp นี้
 Connect: เชื่อมต่อ
 Dapp Permissions: สิทธิในการใช้ Dapp
 $dapp_can_view_balance: "%dappname% จะสามารถดูที่อยู่บัญชีและยอดเงินของวอลเล็ตของคุณได้."
@@ -622,3 +621,7 @@ Open in Safari: เปิดใน Safari
 Open in Browser: เปิดในเบราว์เซอร์
 CopyURL: คัดลอก URL
 Share: แชร์
+Confirm Sending: ยืนยันการส่ง
+Confirm Burning: ยืนยันการเผาไหม้
+Confirm Passcode: ยืนยันรหัสผ่าน
+Enter your code: ใส่รหัสของคุณ

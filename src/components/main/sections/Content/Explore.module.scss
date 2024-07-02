@@ -80,7 +80,7 @@
   transition: color 150ms;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-gray-3);
   }
 }
@@ -96,7 +96,7 @@
 
   @media (hover: hover) {
     &:hover,
-    &:focus {
+    &:focus-visible {
       text-decoration: none;
 
       .image {

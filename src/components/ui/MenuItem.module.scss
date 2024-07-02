@@ -46,7 +46,7 @@
 
   @media (hover: hover) {
     &:hover,
-    &:focus {
+    &:focus-visible {
       color: var(--color-blue);
       text-decoration: none;
 
@@ -77,8 +77,7 @@
   color: var(--color-red) !important;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     background-color: var(--color-interactive-popup-menu-descructive-hover);
   }
-
 }
