@@ -4,9 +4,10 @@ import type { ApiNetwork } from '../../types';
 
 import dns from '../../../util/dns';
 import { fetchAddressBook } from './util/apiV3';
-import { DnsCategory, dnsResolve } from './util/dns';
+import { dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
 import { getKnownAddressInfo } from '../../common/addresses';
+import { DnsCategory } from './constants';
 
 const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
 const VIP_DNS_COLLECTION = 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS';

@@ -70,6 +70,7 @@ function DappTransferModal({
   const renderingTransactions = useCurrentOrPrev(transactions, true);
   const isNftTransfer = renderingTransactions?.[0].payload?.type === 'nft:transfer';
   const isDappLoading = dapp === undefined;
+  const withPayloadWarning = renderingTransactions?.[0].payload?.type === 'unknown';
 
   const handleBackClick = useLastCallback(() => {
     if (state === TransferState.Confirm || state === TransferState.Password) {
@@ -231,7 +232,7 @@ function DappTransferModal({
       hasCloseButton
       isOpen={isOpen}
       noBackdropClose
-      dialogClassName={styles.modalDialog}
+      dialogClassName={buildClassName(styles.modalDialog, withPayloadWarning && styles.modalDialogExtraHeight)}
       nativeBottomSheetKey="dapp-transfer"
       forceFullNative={renderingKey === TransferState.Password}
       onClose={closeDappTransfer}

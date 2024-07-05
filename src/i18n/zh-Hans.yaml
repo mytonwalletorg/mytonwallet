@@ -317,7 +317,6 @@ Message is encrypted.: 消息已加密。
 $dapp_ledger_warning1: 您即将使用您的**Ledger**钱包发送多方交易。您需要手动**逐个**签署每笔底层交易。
 $dapp_ledger_warning2: 请慢慢来，不要中断过程。
 Agree: 同意
-Unfortunately, this operation is not yet supported by Ledger wallet.: 不幸的是，该操作尚未由Ledger Wallet支持。
 SwapTitle: 交换
 Swap: 交换
 You sell: 您卖出
@@ -513,12 +512,7 @@ $wallet_switch_version_2: 切换到另一个钱包版本
 or import from: 或从中导入
 $insufficient_fee: "手续费不足: %fee%"
 Required: 必需的
-Transaction to this smart contract is not yet supported by Ledger.: Ledger 尚不支持对此智能合约的交易。
-This type of transaction is not yet supported by Ledger.: Ledger 尚不支持此类交易。
-The current version of Ledger only supports English-language comments without special characters.: 当前版本的 Ledger 仅支持不带特殊字符的英文注释。
 Comment is too long.: 评论太长了。
-Transferring NFT is not yet supported by Ledger.: Ledger 尚不支持传输 NFT。
-Encrypted comments are not yet supported by Ledger.: Ledger 尚不支持加密评论。
 Memo: Memo
 Memo was copied!: Memo 被复制了！
 $hide_tokens_no_cost_help: |
@@ -530,6 +524,19 @@ To use this feature, first enable biometrics in your phone settings.: 要使用�
 Open Settings: 打开设置
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: 您即将转移一个重要的服务代币，这是从质押中提取押金所必需的。
 No Price: 无价格
+$ledger_not_supported_operation: 此操作不支持您当前版本的 Ledger TON 应用程序。请使用 Ledger Live 进行更新。
+$ledger_unsupported_ton_connect: TonConnect不受您的Ledger Ton应用程序的支持。请使用Ledger Live更新它。
+$dapp_transfer_tokens_burn: 燃烧%amount%
+$dapp_dns_set_wallet_payload: 将域 %domain% 的链接钱包更改为 %address%
+$dapp_dns_delete_wallet_payload: 删除域 %domain% 的链接钱包
+$dapp_dns_change_record_payload: 将域 %domain% 的“%category%”记录更改为 %value%
+$dapp_dns_delete_record_payload: 删除域 %domain% 的“%category%”记录
+$dapp_token_bridge_pay_swap_payload: 通过跨链桥确认交易
+$dapp_liquid_staking_deposit_payload: 存款到流动质押
+$dapp_liquid_staking_vote_payload: 对提案 %votingAddress% 投票“%vote%”
+$dapp_single_nominator_change_validator_payload: 将 SingleNominator 质押合约验证者的地址更改为 %address%
+$dapp_single_nominator_withdraw_payload: 从 SingleNominator 质押合约中提取 %amount% TON
+$dapp_vesting_add_whitelist_payload: 将 %address% 添加到归属钱包白名单
 Search or enter address...: 搜索或输入地址...
 Connecting dapps is not yet supported by Ledger.: Ledger 尚不支持连接 dapp。
 Time synchronization issue. Please ensure your device's time settings are correct.: 时间同步问题。 请确保您设备的时间设置正确。
@@ -607,3 +614,8 @@ Confirm Sending: 确认发送
 Confirm Burning: 确认刻录
 Confirm Passcode: 确认密码
 Enter your code: 输入您的代码
+$hardware_payload_warning: 第三方服务正在请求访问您的钱包 — 这可能会导致资金损失。如果您不确定此服务的可靠性，请取消操作。
+$hardware_blind_sign_not_enabled: |
+  第三方服务正在请求访问您的钱包 — 这可能会导致资金损失。如果您不确定此服务的可靠性，请取消操作。
+
+  要继续，请在 Ledger 的 TON 应用程序设置中启用“盲签名”选项。

@@ -469,6 +469,7 @@ export type GlobalState = {
     promiseId?: string;
     isLoading?: boolean;
     transactions?: ApiDappTransfer[];
+    vestingAddress?: string;
     viewTransactionOnIdx?: number;
     fee?: bigint;
     dapp?: ApiDapp;

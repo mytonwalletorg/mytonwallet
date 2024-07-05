@@ -326,13 +326,17 @@
   align-items: center;
 
   margin: 0.75rem auto 0;
-  padding: 0.375rem 0.5rem;
+  padding: 0.75rem;
 
-  font-size: 1.0625rem;
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--color-transaction-red-text);
   text-align: center;
 
   background-color: var(--color-transaction-red-background);
-  border-radius: var(--border-radius-tiny);
+  border-radius: var(--border-radius-normal);
+}
+
+.declinedLabelDetailed {
+  text-align: left;
 }

@@ -34,10 +34,8 @@ import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal } from '../../../util/decimals';
 import { buildCollectionByKey, omit } from '../../../util/iteratees';
-import { isValidLedgerComment } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
-import { isAscii } from '../../../util/stringFormat';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
 import { fetchAddressBook, fetchLatestTxId, fetchTransactions } from './util/apiV3';
@@ -128,7 +126,7 @@ export async function checkTransactionDraft(
 
     toAddress = result.resolvedAddress!;
 
-    const { isInitialized, isLedgerAllowed } = await getContractInfo(network, toAddress);
+    const { isInitialized } = await getContractInfo(network, toAddress);
 
     if (result.isBounceable && !isInitialized) {
       result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
@@ -173,13 +171,6 @@ export async function checkTransactionDraft(
     const { address } = account;
     const isLedger = !!account.ledger;
 
-    if (isLedger && !isLedgerAllowed) {
-      return {
-        ...result,
-        error: ApiTransactionDraftError.UnsupportedHardwareContract,
-      };
-    }
-
     if (data && typeof data === 'string' && !isBase64Data && !isLedger) {
       data = commentToBytes(data);
     }
@@ -187,25 +178,6 @@ export async function checkTransactionDraft(
     let tokenBalance: bigint | undefined;
 
     if (!tokenAddress) {
-      if (
-        data
-        && isLedger
-        && (typeof data !== 'string' || shouldEncrypt || !isValidLedgerComment(data))
-      ) {
-        let error: ApiTransactionDraftError;
-        if (typeof data !== 'string') {
-          error = ApiTransactionDraftError.UnsupportedHardwareOperation;
-        } else if (shouldEncrypt) {
-          error = ApiTransactionDraftError.EncryptedDataNotSupported;
-        } else {
-          error = !isAscii(data)
-            ? ApiTransactionDraftError.NonAsciiCommentForHardwareOperation
-            : ApiTransactionDraftError.TooLongCommentForHardwareOperation;
-        }
-
-        return { ...result, error };
-      }
-
       if (data instanceof Uint8Array) {
         data = shouldEncrypt ? packBytesAsSnakeForEncryptedData(data) : packBytesAsSnake(data);
       }

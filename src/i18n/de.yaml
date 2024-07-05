@@ -330,7 +330,6 @@ Message is encrypted.: Die Nachricht ist verschlüsselt.
 $dapp_ledger_warning1: Sie sind dabei, eine Mehrweg-Transaktion mit Ihrer **Ledger**-Wallet durchzuführen. Sie müssen jede zugrunde liegende Transaktion **manuell nacheinander** signieren.
 $dapp_ledger_warning2: Bitte nehmen Sie sich Zeit und unterbrechen Sie den Prozess nicht.
 Agree: Zustimmen
-Unfortunately, this operation is not yet supported by Ledger wallet.: Die Hardware-Wallet unterstützt dieses Datenformat nicht.
 SwapTitle: Tausch
 Swap: Tausch
 You sell: Sie verkaufen
@@ -529,12 +528,7 @@ $wallet_switch_version_2: zu einer anderen Wallet-Version wechseln
 or import from: oder importieren von
 $insufficient_fee: "Unzureichende Gebühren: %fee%"
 Required: Erforderlich
-Transaction to this smart contract is not yet supported by Ledger.: Die Transaktion zu diesem Smart Contract wird von Ledger noch nicht unterstützt.
-This type of transaction is not yet supported by Ledger.: Diese Art von Transaktion wird von Ledger noch nicht unterstützt.
-The current version of Ledger only supports English-language comments without special characters.: Die aktuelle Version von Ledger unterstützt nur englischsprachige Kommentare ohne Sonderzeichen.
 Comment is too long.: Der Kommentar ist zu lang.
-Transferring NFT is not yet supported by Ledger.: Die Übertragung von NFT wird von Ledger noch nicht unterstützt.
-Encrypted comments are not yet supported by Ledger.: Verschlüsselte Kommentare werden von Ledger noch nicht unterstützt.
 Memo: Memo
 Memo was copied!: Memo wurde kopiert!
 $hide_tokens_no_cost_help: |
@@ -546,6 +540,19 @@ To use this feature, first enable biometrics in your phone settings.: Um diese F
 Open Settings: Einstellungen öffnen
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Sie sind dabei, einen wichtigen Service-Token zu übertragen, der benötigt wird, um Ihre Einzahlung vom Einsatz abzuheben.
 No Price: Kein preis
+$ledger_not_supported_operation: Diese Operation wird von Ihrer Version der Ledger TON App nicht unterstützt. Bitte aktualisieren Sie sie mit Ledger Live.
+$ledger_unsupported_ton_connect: TonConnect wird nicht durch die Version Ihrer Ledger Ton App unterstützt. Bitte aktualisieren Sie es mit Ledger Live.
+$dapp_transfer_tokens_burn: Brennen von %amount%
+$dapp_dns_set_wallet_payload: Ändern der verknüpften Brieftasche der Domäne %domain% in %address%
+$dapp_dns_delete_wallet_payload: Verknüpfte Brieftasche der Domäne %domain% wird gelöscht
+$dapp_dns_change_record_payload: Ändern des „%category%“-Eintrags der Domäne %domain% in %value%
+$dapp_dns_delete_record_payload: „%category%“-Eintrag der Domäne %domain% wird gelöscht
+$dapp_token_bridge_pay_swap_payload: Bestätigung des Austauschs über die Cross-Chain-Bridge
+$dapp_liquid_staking_deposit_payload: Einzahlung zum Liquid Staking
+$dapp_liquid_staking_vote_payload: Abstimmung „%vote%“ für Vorschlag %votingAddress%
+$dapp_single_nominator_change_validator_payload: Adresse des SingleNominator-Staking-Vertragsvalidators in %address% ändern
+$dapp_single_nominator_withdraw_payload: Abhebung von %amount% TON vom SingleNominator-Staking-Vertrag
+$dapp_vesting_add_whitelist_payload: "%address% zur Vesting Wallet-Whitelist hinzufügen"
 Search or enter address...: Adresse suchen oder eingeben...
 Connecting dapps is not yet supported by Ledger.: Das Verbinden von Dapps wird von Ledger noch nicht unterstützt.
 Time synchronization issue. Please ensure your device's time settings are correct.: Problem mit der Zeitsynchronisierung. Bitte stellen Sie sicher, dass die Zeiteinstellungen Ihres Geräts korrekt sind.
@@ -624,3 +631,9 @@ Confirm Sending: Senden bestätigen
 Confirm Burning: Brennen bestätigen
 Confirm Passcode: Passcode bestätigen
 Enter your code: Gib deinen Code ein
+$hardware_payload_warning: Ein externer Dienst fordert Zugriff auf Ihre Wallet an – dies kann zum Verlust von Mitteln führen. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
+$hardware_blind_sign_not_enabled: |
+  Ein externer Dienst fordert Zugriff auf Ihre Wallet an – dies kann zum Verlust von Mitteln führen. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
+
+  Um fortzufahren, aktivieren Sie die Option „Blindsignatur“ in den Einstellungen der TON App auf dem Ledger.
+

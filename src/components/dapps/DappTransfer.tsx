@@ -4,6 +4,7 @@ import type { ApiDappTransfer, ApiParsedPayload } from '../../api/types';
 import type { UserToken } from '../../global/types';
 
 import { TON_SYMBOL } from '../../config';
+import { BIGINT_PREFIX } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency, formatCurrencySimple } from '../../util/formatNumber';
@@ -35,6 +36,7 @@ function DappTransfer({
   const lang = useLang();
   const [isPayloadExpanded, expandPayload] = useFlag(false);
   const isNftTransfer = transaction.payload?.type === 'nft:transfer';
+  const shouldRenderPayloadWarning = transaction.payload?.type === 'unknown';
 
   function renderFeeForNft() {
     return (
@@ -70,11 +72,81 @@ function DappTransfer({
         });
       }
 
-      case 'encrypted-comment':
-        return payload.encryptedComment;
+      case 'tokens:burn': {
+        const { slug: tokenSlug, amount } = payload;
+        const token = tokens?.find(({ slug }) => slug === tokenSlug);
+        const decimals = token?.decimals ?? DEFAULT_DECIMALS;
+        const symbol = token?.symbol ?? '';
+
+        return lang('$dapp_transfer_tokens_burn', {
+          amount: formatCurrency(toDecimal(amount, decimals), symbol, FRACTION_DIGITS),
+        });
+      }
+
+      case 'dns:change-record': {
+        const { record } = payload;
+        const category = record.type !== 'unknown' ? record.type : record.key;
+
+        if (record.type === 'wallet' && record.value) {
+          return lang('$dapp_dns_set_wallet_payload', {
+            address: record.value,
+          });
+        } else if (record.type === 'wallet' && !record.value) {
+          return lang('$dapp_dns_delete_wallet_payload');
+        } else if (record.value) {
+          return lang('$dapp_dns_change_record_payload', {
+            category,
+            value: record.value,
+          });
+        } else {
+          return lang('$dapp_dns_delete_record_payload', {
+            category,
+          });
+        }
+      }
+
+      case 'token-bridge:pay-swap': {
+        return lang('$dapp_token_bridge_pay_swap_payload', {
+          swapId: payload.swapId,
+        });
+      }
+
+      case 'liquid-staking:deposit': {
+        return lang('$dapp_liquid_staking_deposit_payload');
+      }
+
+      case 'liquid-staking:vote': {
+        return lang('$dapp_liquid_staking_vote_payload', {
+          votingAddress: payload.votingAddress,
+          vote: payload.vote,
+        });
+      }
+
+      case 'single-nominator:change-validator': {
+        return lang('$dapp_single_nominator_change_validator_payload', {
+          address: payload.address,
+        });
+      }
+
+      case 'single-nominator:withdraw': {
+        return lang('$dapp_single_nominator_withdraw_payload', {
+          amount: toDecimal(payload.amount),
+        });
+      }
+
+      case 'vesting:add-whitelist': {
+        return lang('$dapp_vesting_add_whitelist_payload', {
+          address: payload.address,
+        });
+      }
+
+      case 'unknown': {
+        return rawPayload;
+      }
 
       default:
-        return rawPayload;
+        return JSON.stringify(payload, undefined, 2)
+          .replace(`/"${BIGINT_PREFIX}/g`, '"');
     }
   }
 
@@ -82,13 +154,10 @@ function DappTransfer({
     switch (payload.type) {
       case 'comment':
         return lang('Comment');
-      case 'tokens:transfer-non-standard':
-      case 'tokens:transfer':
-      case 'nft:transfer':
-      case 'encrypted-comment':
-        return lang('Nested Transaction');
-      default:
+      case 'unknown':
         return lang('Payload');
+      default:
+        return lang('Nested Transaction');
     }
   }
 
@@ -123,6 +192,9 @@ function DappTransfer({
               </div>
             )}
           </div>
+          {shouldRenderPayloadWarning && (
+            <div className={styles.warningForPayload}>{lang('$hardware_payload_warning')}</div>
+          )}
         </>
       )}
     </>

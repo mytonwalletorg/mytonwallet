@@ -329,7 +329,6 @@ Message is encrypted.: Mesaj şifrelenmiştir.
 $dapp_ledger_warning1: "**Ledger** cüzdanınızı kullanarak çok yönlü bir işlem göndermek üzeresiniz. İlgili her işlemi **tek tek manuel olarak** imzalamanız gerekecektir."
 $dapp_ledger_warning2: Lütfen acele etmeyin ve süreci kesintiye uğratmayın.
 Agree: Kabul et
-Unfortunately, this operation is not yet supported by Ledger wallet.: Donanım cüzdanı bu veri biçimini desteklemiyor.
 SwapTitle: Takas
 Swap: Takas
 You sell: Satıyorsunuz
@@ -528,12 +527,7 @@ $wallet_switch_version_2: başka bir cüzdan versiyonuna geçiş yap
 or import from: veya şuradan içe aktar
 $insufficient_fee: "Yetersiz ücret: %fee%"
 Required: Gerekli
-Transaction to this smart contract is not yet supported by Ledger.: Bu akıllı sözleşmeye yönelik işlemler henüz Ledger tarafından desteklenmiyor.
-This type of transaction is not yet supported by Ledger.: Bu tür işlemler henüz Ledger tarafından desteklenmemektedir.
-The current version of Ledger only supports English-language comments without special characters.: Ledger'ın mevcut sürümü, özel karakterler içermeyen yalnızca İngilizce dilindeki yorumları desteklemektedir.
 Comment is too long.: Yorum çok uzun.
-Transferring NFT is not yet supported by Ledger.: NFT'nin aktarılması henüz Ledger tarafından desteklenmiyor.
-Encrypted comments are not yet supported by Ledger.: Şifrelenmiş yorumlar henüz Ledger tarafından desteklenmemektedir.
 Memo: Memo
 Memo was copied!: Memo kopyalandı!
 $hide_tokens_no_cost_help: |
@@ -545,6 +539,19 @@ To use this feature, first enable biometrics in your phone settings.: Bu özelli
 Open Settings: Ayarları aç
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Yatırdığınız tutarı stake işleminden çekmek için gerekli olan önemli bir hizmet tokenını aktarmak üzeresiniz.
 No Price: Fiyat yok
+$ledger_not_supported_operation: Bu işlem, kullandığınız Ledger TON App sürümü tarafından desteklenmiyor. Lütfen Ledger Live kullanarak güncelleyin.
+$ledger_unsupported_ton_connect: TonConnect, Ledger Ton uygulamanızın sürümü tarafından desteklenmez. Lütfen Ledger Live kullanarak güncelleyin.
+$dapp_transfer_tokens_burn: "%amount% yakılıyor"
+$dapp_dns_set_wallet_payload: "%domain% alanının bağlı cüzdanını %address% olarak değiştirme"
+$dapp_dns_delete_wallet_payload: "Deleting linked wallet of domain %domain%"
+$dapp_dns_change_record_payload: "%domain% alanının \"%category%\" kaydı %value% olarak değiştiriliyor"
+$dapp_dns_delete_record_payload: "%domain% alan adının \"%category%\" kaydı siliniyor"
+$dapp_token_bridge_pay_swap_payload: Zincirler arası köprü aracılığıyla değişim onayı
+$dapp_liquid_staking_deposit_payload: Likit staking'e para yatırma
+$dapp_liquid_staking_vote_payload: "%votingAddress% teklifi için \"%vote%\" oyu veriliyor"
+$dapp_single_nominator_change_validator_payload: SingleNominator staking sözleşmesi doğrulayıcısının adresi %address% olarak değiştiriliyor
+$dapp_single_nominator_withdraw_payload: "%amount% TON'un SingleNominator staking sözleşmesinden çekilmesi"
+$dapp_vesting_add_whitelist_payload: Vesting cüzdanı beyaz listesine %address% ekleniyor
 Search or enter address...: Adresi arayın veya girin...
 Connecting dapps is not yet supported by Ledger.: Dapp'lerin bağlanması henüz Ledger tarafından desteklenmiyor.
 Time synchronization issue. Please ensure your device's time settings are correct.: Time synchronization issue. Zaman senkronizasyonu sorunu. Lütfen cihazınızın saat ayarlarının doğru olduğundan emin olun.
@@ -623,3 +630,8 @@ Confirm Sending: Göndermeyi Onayla
 Confirm Burning: Yazmayı Onayla
 Confirm Passcode: Şifreyi Onayla
 Enter your code: Kodunuzu girin
+$hardware_payload_warning: Üçüncü taraf bir hizmet cüzdanınıza erişim istiyor — bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
+$hardware_blind_sign_not_enabled: |
+  Üçüncü taraf bir hizmet cüzdanınıza erişim istiyor — bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
+
+  Devam etmek için, Ledger üzerindeki TON Uygulamasının ayarlarında "Kör İmzalama" seçeneğini etkinleştirin.

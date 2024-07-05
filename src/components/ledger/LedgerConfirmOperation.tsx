@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
+import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -78,6 +79,8 @@ function LedgerConfirmOperation({
   }
 
   function renderTryAgain(isActiveSlide: boolean) {
+    const isErrorDetailed = error === '$hardware_blind_sign_not_enabled';
+
     return (
       <>
         <ModalHeader title={lang('Confirm via Ledger')} onClose={onClose} />
@@ -91,10 +94,9 @@ function LedgerConfirmOperation({
             tgsUrl={ANIMATED_STICKERS_PATHS.holdTon}
             previewUrl={ANIMATED_STICKERS_PATHS.holdTonPreview}
           />
-          <div className={buildClassName(styles.textBlock, styles.textBlock_small)}>
-            <span className={styles.text}>{text}</span>
+          <div className={buildClassName(styles.declinedLabel, isErrorDetailed && styles.declinedLabelDetailed)}>
+            {renderText(lang(error!))}
           </div>
-          <span className={styles.declinedLabel}>{lang('Declined')}</span>
           <div className={styles.actionBlock}>
             <Button onClick={onClose} className={styles.button}>{lang('Cancel')}</Button>
             <Button isPrimary onClick={onTryAgain} className={styles.button}>{lang('Try Again')}</Button>

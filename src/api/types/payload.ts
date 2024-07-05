@@ -1,3 +1,4 @@
+import type { DNS_CATEGORY_HASH_MAP } from '../blockchains/ton/constants';
 import type { ApiNft } from './misc';
 
 export type ApiCommentPayload = {
@@ -76,6 +77,7 @@ export type ApiTokensBurnPayload = {
 export type ApiLiquidStakingDepositPayload = {
   type: 'liquid-staking:deposit';
   queryId: bigint;
+  appId?: bigint;
 };
 
 export type ApiLiquidStakingWithdrawalNftPayload = {
@@ -88,6 +90,55 @@ export type ApiLiquidStakingWithdrawalPayload = {
   queryId: bigint;
 };
 
+export type ApiTokenBridgePaySwap = {
+  type: 'token-bridge:pay-swap';
+  queryId: bigint;
+  swapId: string;
+};
+
+export type ApiDnsChangeRecord = {
+  type: 'dns:change-record';
+  queryId: bigint;
+  record: {
+    type: keyof typeof DNS_CATEGORY_HASH_MAP;
+    value?: string;
+    flags?: number;
+  } | {
+    type: 'unknown';
+    key: string;
+    value?: string;
+  };
+  // Specific to UI
+  domain: string;
+};
+
+export type ApiVestingAddWhitelistPayload = {
+  type: 'vesting:add-whitelist';
+  queryId: bigint;
+  address: string;
+};
+
+export type ApiSingleNominatorWithdrawPayload = {
+  type: 'single-nominator:withdraw';
+  queryId: bigint;
+  amount: bigint;
+};
+
+export type ApiSingleNominatorChangeValidatorPayload = {
+  type: 'single-nominator:change-validator';
+  queryId: bigint;
+  address: string;
+};
+
+export type ApiLiquidStakingVotePayload = {
+  type: 'liquid-staking:vote';
+  queryId: bigint;
+  votingAddress: string;
+  expirationDate: number;
+  vote: boolean;
+  needConfirmation: boolean;
+};
+
 export type ApiParsedPayload = ApiCommentPayload
 | ApiEncryptedCommentPayload
 | ApiNftTransferPayload
@@ -98,4 +149,10 @@ export type ApiParsedPayload = ApiCommentPayload
 | ApiTokensBurnPayload
 | ApiLiquidStakingDepositPayload
 | ApiLiquidStakingWithdrawalPayload
-| ApiLiquidStakingWithdrawalNftPayload;
+| ApiLiquidStakingWithdrawalNftPayload
+| ApiTokenBridgePaySwap
+| ApiDnsChangeRecord
+| ApiVestingAddWhitelistPayload
+| ApiSingleNominatorWithdrawPayload
+| ApiSingleNominatorChangeValidatorPayload
+| ApiLiquidStakingVotePayload;

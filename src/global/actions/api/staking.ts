@@ -1,3 +1,4 @@
+import type { ApiTransactionError } from '../../../api/types';
 import { StakingState } from '../../types';
 
 import {
@@ -252,7 +253,7 @@ addActionHandler('submitStakingHardware', async (global, actions, payload) => {
   const ledgerApi = await import('../../../util/ledger');
   global = getGlobal();
 
-  let result: string | undefined;
+  let result: string | { error: ApiTransactionError } | undefined;
   const accountId = global.currentAccountId!;
 
   if (isUnstaking) {
@@ -275,6 +276,8 @@ addActionHandler('submitStakingHardware', async (global, actions, payload) => {
         ? 'Unstaking was unsuccessful. Try again later.'
         : 'Staking was unsuccessful. Try again later.',
     });
+  } else if (typeof result !== 'string' && 'error' in result) {
+    actions.showError({ error: result.error });
   } else {
     global = getGlobal();
     global = updateStaking(global, {

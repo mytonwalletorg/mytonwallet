@@ -140,6 +140,11 @@ export async function fetchAddressBook(network: ApiNetwork, addresses: string[])
   }, {} as AddressBook);
 }
 
+export async function fixAddressFormat(network: ApiNetwork, address: string): Promise<string> {
+  const result: { address_book: Record<string, string> } = await callApiV3(network, '/addressBook', { address });
+  return result.address_book[address];
+}
+
 function callApiV3(network: ApiNetwork, path: string, data?: AnyLiteral) {
   const { apiHeaders, tonhttpapiMainnetKey, tonhttpapiTestnetKey } = getEnvironment();
   const baseUrl = network === 'testnet' ? TONHTTPAPI_V3_TESTNET_API_URL : TONHTTPAPI_V3_MAINNET_API_URL;

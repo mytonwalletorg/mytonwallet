@@ -2,6 +2,7 @@ export enum ApiCommonError {
   Unexpected = 'Unexpected',
   ServerError = 'ServerError',
   DebugError = 'DebugError',
+  UnsupportedVersion = 'UnsupportedVersion',
 }
 
 export enum ApiTransactionDraftError {
@@ -10,12 +11,6 @@ export enum ApiTransactionDraftError {
   InsufficientBalance = 'InsufficientBalance',
   DomainNotResolved = 'DomainNotResolved',
   WalletNotInitialized = 'WalletNotInitialized',
-  UnsupportedHardwareOperation = 'UnsupportedHardwareOperation',
-  UnsupportedHardwareContract = 'UnsupportedHardwareContract',
-  EncryptedDataNotSupported = 'EncryptedDataNotSupported',
-  NonAsciiCommentForHardwareOperation = 'NonAsciiCommentForHardwareOperation',
-  TooLongCommentForHardwareOperation = 'TooLongCommentForHardwareOperation',
-  UnsupportedHardwareNftOperation = 'UnsupportedHardwareNftOperation',
   InvalidAddressFormat = 'InvalidAddressFormat',
   InactiveContract = 'InactiveContract',
 }
@@ -25,11 +20,8 @@ export enum ApiTransactionError {
   IncorrectDeviceTime = 'IncorrectDeviceTime',
   InsufficientBalance = 'InsufficientBalance',
   UnsuccesfulTransfer = 'UnsuccesfulTransfer',
-  UnsupportedHardwareContract = 'UnsupportedHardwareContract',
-  UnsupportedHardwarePayload = 'UnsupportedHardwarePayload',
-  NonAsciiCommentForHardwareOperation = 'NonAsciiCommentForHardwareOperation',
-  TooLongCommentForHardwareOperation = 'TooLongCommentForHardwareOperation',
-  UnsupportedHardwareNftOperation = 'UnsupportedHardwareNftOperation',
+  NotSupportedHardwareOperation = 'NotSupportedHardwareOperation',
+  HardwareBlindSigningNotEnabled = 'HardwareBlindSigningNotEnabled',
   WrongAddress = 'WrongAddress',
   WrongNetwork = 'WrongNetwork',
 }

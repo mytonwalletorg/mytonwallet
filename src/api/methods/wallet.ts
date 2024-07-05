@@ -50,9 +50,11 @@ export function cancelDappRequest(promiseId: string, reason?: string) {
   dappPromises.rejectDappPromise(promiseId, reason);
 }
 
-export async function getWalletSeqno(accountId: string) {
+export async function getWalletSeqno(accountId: string, address?: string) {
   const { network } = parseAccountId(accountId);
-  const address = await fetchStoredAddress(accountId);
+  if (!address) {
+    address = await fetchStoredAddress(accountId);
+  }
   return ton.getWalletSeqno(network, address);
 }
 
@@ -70,6 +72,12 @@ export function getWalletBalance(network: ApiNetwork, address: string) {
   const blockchain = blockchains.ton;
 
   return blockchain.getWalletBalance(network, address);
+}
+
+export function getContractInfo(network: ApiNetwork, address: string) {
+  const blockchain = blockchains.ton;
+
+  return blockchain.getContractInfo(network, address);
 }
 
 export function getWalletInfo(network: ApiNetwork, address: string) {

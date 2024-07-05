@@ -50,6 +50,7 @@ export {
   pickWalletByAddress,
   getWalletVersions,
   getWalletVersionInfos,
+  getContractInfo,
 } from './wallet';
 export {
   checkStakeDraft,

@@ -405,11 +405,6 @@ function TransactionModal({
               {lang('Unstake More')}
             </Button>
           )}
-          {isNftTransfer && (
-            <Button onClick={handleClose} className={styles.button}>
-              {lang('Close')}
-            </Button>
-          )}
         </div>
       </>
     );

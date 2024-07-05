@@ -7,7 +7,9 @@ import { callActionInMain } from '../../../util/multitab';
 import { pause, waitFor } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
-import { ApiUserRejectsError } from '../../../api/errors';
+import {
+  ApiHardwareBlindSigningNotEnabled, ApiUnsupportedVersionError, ApiUserRejectsError,
+} from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearConnectedDapps,
@@ -202,8 +204,8 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
   setGlobal(global);
 });
 
-addActionHandler('submitDappTransferHardware', async (global) => {
-  const { promiseId, transactions } = global.currentDappTransfer;
+addActionHandler('submitDappTransferHardware', async (global, actions) => {
+  const { promiseId, transactions, vestingAddress } = global.currentDappTransfer;
 
   if (!promiseId) {
     return;
@@ -221,10 +223,24 @@ addActionHandler('submitDappTransferHardware', async (global) => {
   const ledgerApi = await import('../../../util/ledger');
 
   try {
-    const signedMessages = await ledgerApi.signLedgerTransactions(accountId, transactions!);
+    const signedMessages = await ledgerApi.signLedgerTransactions(accountId, transactions!, {
+      isTonConnect: true,
+      vestingAddress,
+    });
     void callApi('confirmDappRequest', promiseId, signedMessages);
   } catch (err) {
-    if (err instanceof ApiUserRejectsError) {
+    if (err instanceof ApiHardwareBlindSigningNotEnabled) {
+      setGlobal(updateCurrentDappTransfer(getGlobal(), {
+        isLoading: false,
+        error: '$hardware_blind_sign_not_enabled',
+      }));
+      return;
+    } else if (err instanceof ApiUnsupportedVersionError) {
+      actions.showError({
+        error: '$ledger_unsupported_ton_connect',
+      });
+      void callApi('cancelDappRequest', promiseId, err.message);
+    } else if (err instanceof ApiUserRejectsError) {
       setGlobal(updateCurrentDappTransfer(getGlobal(), {
         isLoading: false,
         error: 'Canceled by the user',
@@ -314,6 +330,7 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
   fee,
   accountId,
   dapp,
+  vestingAddress,
 }) => {
   const { currentAccountId, currentDappTransfer: { promiseId: currentPromiseId } } = global;
   if (currentAccountId !== accountId) {
@@ -350,6 +367,7 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
     transactions,
     fee,
     dapp,
+    vestingAddress,
   });
   setGlobal(global);
 });

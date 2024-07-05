@@ -14,8 +14,8 @@ export interface LocalConnectEventSuccess {
 export interface TransactionPayload {
   valid_until?: number;
   network?: CHAIN;
-  messages: TransactionPayloadMessage[];
   from?: string; // https://github.com/ton-blockchain/ton-connect/blob/main/wallet-guidelines.md#multi-accounts
+  messages: TransactionPayloadMessage[];
 }
 
 export interface TransactionPayloadMessage {

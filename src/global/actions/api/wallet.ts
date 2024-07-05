@@ -10,11 +10,10 @@ import type {
   ApiSubmitTransferOptions,
   ApiSwapAsset,
   ApiToken,
+  ApiTransactionError,
 } from '../../../api/types';
 import type { UserSwapToken, UserToken } from '../../types';
-import {
-  ApiTransactionDraftError,
-} from '../../../api/types';
+import { ApiTransactionDraftError } from '../../../api/types';
 import { ActiveTab, TransferState } from '../../types';
 
 import { IS_CAPACITOR, NFT_BATCH_SIZE, TONCOIN_SLUG } from '../../../config';
@@ -28,7 +27,7 @@ import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { onTickEnd, pause } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
-import { ApiUserRejectsError } from '../../../api/errors';
+import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../../api/errors';
 import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
@@ -404,7 +403,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
   }
 });
 
-addActionHandler('submitTransferHardware', async (global) => {
+addActionHandler('submitTransferHardware', async (global, actions) => {
   const {
     toAddress,
     resolvedAddress,
@@ -416,6 +415,7 @@ addActionHandler('submitTransferHardware', async (global) => {
     rawPayload,
     parsedPayload,
     stateInit,
+    nfts,
   } = global.currentTransfer;
 
   const accountId = global.currentAccountId!;
@@ -453,17 +453,56 @@ addActionHandler('submitTransferHardware', async (global) => {
     return;
   }
 
-  const tokenAddress = selectTokenAddress(global, tokenSlug!);
-  const result = await ledgerApi.submitLedgerTransfer({
-    accountId: global.currentAccountId!,
-    password: '',
-    toAddress: resolvedAddress!,
-    amount: amount!,
-    comment,
-    tokenAddress,
-    fee,
-  }, tokenSlug!);
-  const error = result === undefined ? 'Transfer error' : undefined;
+  let result: string | { error: ApiTransactionError } | undefined;
+  let error: string | undefined;
+
+  if (nfts?.length) {
+    for (const nft of nfts) {
+      const currentResult = await ledgerApi.submitLedgerNftTransfer({
+        accountId: global.currentAccountId!,
+        nftAddress: nft.address,
+        password: '',
+        toAddress: resolvedAddress!,
+        comment,
+        nft,
+        fee,
+      });
+
+      global = getGlobal();
+      global = updateCurrentTransfer(global, {
+        sentNftsCount: (global.currentTransfer.sentNftsCount || 0) + 1,
+      });
+      setGlobal(global);
+      result = currentResult;
+    }
+  } else {
+    const tokenAddress = selectTokenAddress(global, tokenSlug!);
+    const options = {
+      accountId: global.currentAccountId!,
+      password: '',
+      toAddress: resolvedAddress!,
+      amount: amount!,
+      comment,
+      tokenAddress,
+      fee,
+    };
+
+    try {
+      result = await ledgerApi.submitLedgerTransfer(options, tokenSlug!);
+    } catch (err: any) {
+      if (err instanceof ApiHardwareBlindSigningNotEnabled) {
+        error = '$hardware_blind_sign_not_enabled';
+      }
+    }
+  }
+
+  if (!error && result === undefined) {
+    error = 'Declined';
+  } else if (typeof result === 'object' && 'error' in result) {
+    actions.showError({
+      error: result.error,
+    });
+  }
 
   setGlobal(updateCurrentTransfer(getGlobal(), {
     isLoading: false,

@@ -328,7 +328,6 @@ Message is encrypted.: Message is encrypted.
 $dapp_ledger_warning1: You are about to send a multi-way transaction using your **Ledger** wallet. You will need to sign each underlying transaction **one by one manually**.
 $dapp_ledger_warning2: Please take your time and do not interrupt the process.
 Agree: Agree
-Unfortunately, this operation is not yet supported by Ledger wallet.: Unfortunately, this operation is not yet supported by Ledger wallet.
 SwapTitle: Swap
 Swap: Swap
 You sell: You sell
@@ -527,12 +526,7 @@ $wallet_switch_version_2: switch to another wallet version
 or import from: or import from
 $insufficient_fee: "Insufficient fee: %fee%"
 Required: Required
-Transaction to this smart contract is not yet supported by Ledger.: Transaction to this smart contract is not yet supported by Ledger.
-This type of transaction is not yet supported by Ledger.: This type of transaction is not yet supported by Ledger.
-The current version of Ledger only supports English-language comments without special characters.: The current version of Ledger only supports English-language comments without special characters.
 Comment is too long.: Comment is too long.
-Transferring NFT is not yet supported by Ledger.: Transferring NFT is not yet supported by Ledger.
-Encrypted comments are not yet supported by Ledger.: Encrypted comments are not yet supported by Ledger.
 Memo: Memo
 Memo was copied!: Memo was copied!
 $hide_tokens_no_cost_help: |
@@ -544,6 +538,19 @@ To use this feature, first enable biometrics in your phone settings.: To use thi
 Open Settings: Open Settings
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: You are about to transfer an important service token, which is needed to withdraw your deposit from staking.
 No Price: No Price
+$ledger_not_supported_operation: This operation is not supported by your version of the Ledger TON App. Please update it using Ledger Live.
+$ledger_unsupported_ton_connect: TonConnect is not supported by version of your Ledger TON App. Please update it using Ledger Live.
+$dapp_transfer_tokens_burn: Burning %amount%
+$dapp_dns_set_wallet_payload: Changing linked wallet of domain %domain% to %address%
+$dapp_dns_delete_wallet_payload: Deleting linked wallet of domain %domain%
+$dapp_dns_change_record_payload: Changing "%category%" record of domain %domain% to %value%
+$dapp_dns_delete_record_payload: Deleting "%category%" record of domain %domain%
+$dapp_token_bridge_pay_swap_payload: Confirmation of exchange via cross-chain bridge
+$dapp_liquid_staking_deposit_payload: Deposit to liquid staking
+$dapp_liquid_staking_vote_payload: Voting "%vote%" for proposal %votingAddress%
+$dapp_single_nominator_change_validator_payload: Changing address of SingleNominator staking contract validator to %address%
+$dapp_single_nominator_withdraw_payload: Withdrawal of %amount% TON from SingleNominator staking contract
+$dapp_vesting_add_whitelist_payload: Adding %address% to vesting wallet whitelist
 Search or enter address...: Search or enter address...
 Connecting dapps is not yet supported by Ledger.: Connecting dapps is not yet supported by Ledger.
 Time synchronization issue. Please ensure your device's time settings are correct.: Time synchronization issue. Please ensure your device's time settings are correct.
@@ -624,3 +631,9 @@ Confirm Sending: Confirm Sending
 Confirm Burning: Confirm Burning
 Confirm Passcode: Confirm Passcode
 Enter your code: Enter your code
+$hardware_payload_warning: A third-party service is requesting access to your wallet — this could lead to the loss of funds. Cancel the operation if you are not sure about the reliability of this service.
+$hardware_blind_sign_not_enabled: |
+  A third-party service is requesting access to your wallet — this could lead to the loss of funds. Cancel the operation if you are not sure about the reliability of this service.
+
+  To continue, enable the "Blind Signing" option in the settings of the TON App on Ledger.
+

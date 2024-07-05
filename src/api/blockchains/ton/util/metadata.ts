@@ -8,6 +8,7 @@ import { Slice } from '@ton/core/dist/boc/Slice';
 import { Dictionary } from '@ton/core/dist/dict/Dictionary';
 
 import type { ApiNetwork, ApiNft, ApiParsedPayload } from '../../../types';
+import type { DnsCategory } from '../constants';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
 import {
@@ -21,11 +22,22 @@ import { fetchJsonMetadata, fixIpfsUrl } from '../../../../util/metadata';
 import { checkHasScamLink, checkIsTrustedCollection } from '../../../common/addresses';
 import { base64ToString, sha256 } from '../../../common/utils';
 import {
-  JettonOpCode, LiquidStakingOpCode, NftOpCode, OpCode,
+  DNS_CATEGORY_HASH_MAP,
+  DnsOpCode,
+  JettonOpCode,
+  LiquidStakingOpCode,
+  NftOpCode,
+  OpCode,
+  OtherOpCode,
+  SingleNominatorOpCode,
+  VestingV1OpCode,
 } from '../constants';
+import { fixAddressFormat } from './apiV3';
 import { buildTokenSlug } from './index';
 import { fetchNftItems } from './tonapiio';
-import { getJettonMinterData, resolveTokenMinterAddress, toBase64Address } from './tonCore';
+import {
+  getDnsItemDomain, getJettonMinterData, resolveTokenMinterAddress, toBase64Address,
+} from './tonCore';
 
 const OFFCHAIN_CONTENT_PREFIX = 0x01;
 const SNAKE_PREFIX = 0x00;
@@ -379,10 +391,140 @@ export async function parsePayloadSlice(
         };
       }
       case LiquidStakingOpCode.Deposit: {
-        // const amount = slice.loadCoins();
+        let appId: bigint | undefined;
+        if (slice.remainingBits > 0) {
+          appId = slice.loadUintBig(64);
+        }
         return {
           type: 'liquid-staking:deposit',
           queryId,
+          appId,
+        };
+      }
+      case VestingV1OpCode.AddWhitelist: {
+        const toAddress = slice.loadAddress();
+        const addressString = shouldLoadItems
+          ? await fixAddressFormat(network, toAddress.toRawString())
+          : '';
+
+        return {
+          type: 'vesting:add-whitelist',
+          queryId,
+          address: addressString,
+        };
+      }
+      case SingleNominatorOpCode.Withdraw: {
+        const amount = slice.loadCoins();
+        return {
+          type: 'single-nominator:withdraw',
+          queryId,
+          amount,
+        };
+      }
+      case SingleNominatorOpCode.ChangeValidator: {
+        const toAddress = slice.loadAddress();
+        const addressString = shouldLoadItems
+          ? await fixAddressFormat(network, toAddress.toRawString())
+          : '';
+
+        return {
+          type: 'single-nominator:change-validator',
+          queryId,
+          address: addressString,
+        };
+      }
+      case LiquidStakingOpCode.Vote: {
+        const votingAddress = slice.loadAddress();
+        const expirationDate = slice.loadUint(48);
+        const vote = slice.loadBit();
+        const needConfirmation = slice.loadBit();
+
+        return {
+          type: 'liquid-staking:vote',
+          queryId,
+          votingAddress: toBase64Address(votingAddress, true),
+          expirationDate,
+          vote,
+          needConfirmation,
+        };
+      }
+      case DnsOpCode.ChangeRecord: {
+        const hash = slice.loadBuffer(32).toString('hex');
+        const category = Object.entries(DNS_CATEGORY_HASH_MAP)
+          .find(([, value]) => hash === value)?.[0] as DnsCategory ?? 'unknown';
+        const toAddress = slice.loadAddress();
+        const domain = shouldLoadItems
+          ? await getDnsItemDomain(network, toAddress)
+          : '';
+
+        if (category === 'wallet') {
+          if (slice.remainingRefs > 0) {
+            const dataSlice = slice.loadRef().beginParse();
+            slice.endParse();
+
+            const dataAddress = dataSlice.loadAddress();
+            const flags = dataSlice.loadUint(8);
+
+            const addressString = shouldLoadItems
+              ? await fixAddressFormat(network, dataAddress.toRawString())
+              : '';
+
+            return {
+              type: 'dns:change-record',
+              queryId,
+              record: {
+                type: 'wallet',
+                value: addressString,
+                flags,
+              },
+              domain,
+            };
+          } else {
+            return {
+              type: 'dns:change-record',
+              queryId,
+              record: {
+                type: 'wallet',
+                value: undefined,
+              },
+              domain,
+            };
+          }
+        } else if (slice.remainingRefs > 0) {
+          const value = slice.loadRef();
+          return {
+            type: 'dns:change-record',
+            queryId,
+            record: category === 'unknown' ? {
+              type: 'unknown',
+              key: hash,
+              value: value.toBoc().toString('base64'),
+            } : {
+              type: category,
+              value: value.toBoc().toString('base64'),
+            },
+            domain,
+          };
+        } else {
+          return {
+            type: 'dns:change-record',
+            queryId,
+            record: category === 'unknown' ? {
+              type: 'unknown',
+              key: hash,
+            } : {
+              type: category,
+            },
+            domain,
+          };
+        }
+      }
+      case OtherOpCode.TokenBridgePaySwap: {
+        const swapId = slice.loadBuffer(32).toString('hex');
+        return {
+          type: 'token-bridge:pay-swap',
+          queryId,
+          swapId,
         };
       }
     }

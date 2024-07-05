@@ -12,6 +12,14 @@
   }
 }
 
+.modalDialogExtraHeight {
+  height: 40.25rem;
+
+  @supports (height: env(safe-area-inset-bottom)) {
+    height: calc(40.25rem + env(safe-area-inset-bottom));
+  }
+}
+
 .dapp {
   display: flex;
   gap: 0.5rem;
@@ -724,16 +732,14 @@
   background-color: var(--color-background-second);
 }
 
-.warningForSingeHardwareAccount {
+.warningForPayload {
   width: 100%;
-  padding: 0 0.5rem;
+  padding: 0.75rem;
 
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-red);
-  text-align: center;
+  color: var(--color-transaction-red-text);
 
-  .accounts + & {
-    margin-top: 1.25rem;
-  }
+  background-color: var(--color-transaction-red-background);
+  border-radius: var(--border-radius-normal);
 }

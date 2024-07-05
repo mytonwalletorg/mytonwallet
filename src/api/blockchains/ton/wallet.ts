@@ -82,7 +82,6 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: TonWal
 
 export async function getContractInfo(network: ApiNetwork, address: string): Promise<{
   isInitialized: boolean;
-  isLedgerAllowed: boolean;
   isSwapAllowed?: boolean;
   isWallet?: boolean;
   contractInfo?: ContractInfo;
@@ -97,13 +96,11 @@ export async function getContractInfo(network: ApiNetwork, address: string): Pro
 
   const isInitialized = state === 'active';
   const isWallet = state === 'active' ? contractInfo?.type === 'wallet' : undefined;
-  const isLedgerAllowed = Boolean(!isInitialized || contractInfo?.isLedgerAllowed);
   const isSwapAllowed = contractInfo?.isSwapAllowed;
 
   return {
     isInitialized,
     isWallet,
-    isLedgerAllowed,
     isSwapAllowed,
     contractInfo,
     codeHash,

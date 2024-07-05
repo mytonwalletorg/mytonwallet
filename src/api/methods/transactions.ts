@@ -178,7 +178,7 @@ export function createLocalTransaction(accountId: string, params: ApiLocalTransa
 
   const { toAddress } = params;
 
-  const normalizedAddress = blockchain.normalizeAddress(toAddress, network);
+  const normalizedAddress = params.normalizedAddress ?? blockchain.normalizeAddress(toAddress, network);
 
   const localTransaction = buildLocalTransaction(params, normalizedAddress);
 

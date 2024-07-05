@@ -89,6 +89,7 @@ export type ApiUpdateDappSendTransactions = {
   dapp: ApiDapp;
   transactions: ApiDappTransfer[];
   fee: bigint;
+  vestingAddress?: string;
 };
 
 export type ApiUpdateDappConnect = {

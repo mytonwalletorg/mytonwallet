@@ -4,10 +4,8 @@ import { Address, Builder } from '@ton/core';
 
 import type { ApiNft, ApiNftUpdate } from '../../types';
 import type { ApiCheckTransactionDraftResult } from './types';
-import { ApiTransactionDraftError } from '../../types';
 
 import {
-  LEDGER_NFT_TRANSFER_DISABLED,
   NFT_BATCH_SIZE,
   NOTCOIN_EXCHANGERS,
   NOTCOIN_FORWARD_TON_AMOUNT,
@@ -111,8 +109,7 @@ export async function checkNftTransferDraft(options: {
   let { toAddress } = options;
 
   const { network } = parseAccountId(accountId);
-  const { address: fromAddress, ledger } = await fetchStoredAccount(accountId);
-  const isLedger = !!ledger;
+  const { address: fromAddress } = await fetchStoredAccount(accountId);
 
   const checkAddressResult = await checkToAddress(network, toAddress);
 
@@ -121,12 +118,6 @@ export async function checkNftTransferDraft(options: {
   }
 
   toAddress = checkAddressResult.resolvedAddress!;
-
-  if (isLedger && LEDGER_NFT_TRANSFER_DISABLED) {
-    return {
-      error: ApiTransactionDraftError.UnsupportedHardwareNftOperation,
-    };
-  }
 
   // We only need to check the first batch of a multi-transaction
   const messages = nftAddresses.slice(0, NFT_BATCH_SIZE).map((nftAddress) => {

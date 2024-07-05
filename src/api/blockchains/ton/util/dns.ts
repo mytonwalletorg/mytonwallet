@@ -5,15 +5,9 @@ import { Address, Builder } from '@ton/core';
 import type { TonClient } from './TonClient';
 
 import { sha256 } from '../../../common/utils';
+import { DnsCategory } from '../constants';
 
 export type DnsResult = Cell | Address | string | undefined;
-
-export enum DnsCategory {
-  DnsNextResolver = 'dns_next_resolver',
-  Wallet = 'wallet',
-  Site = 'site',
-  BagId = 'storage',
-}
 
 async function categoryToBigInt(category?: string) {
   if (!category) return 0n; // all categories

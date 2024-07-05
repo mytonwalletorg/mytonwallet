@@ -56,7 +56,6 @@ export type ContractInfo = {
   name: ContractName;
   type?: ContractType;
   hash: string;
-  isLedgerAllowed?: boolean;
   isSwapAllowed?: boolean;
 };
 

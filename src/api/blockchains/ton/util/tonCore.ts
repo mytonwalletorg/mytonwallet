@@ -12,7 +12,7 @@ import { WalletContractV3R1 } from '@ton/ton/dist/wallets/WalletContractV3R1';
 import { WalletContractV3R2 } from '@ton/ton/dist/wallets/WalletContractV3R2';
 import { WalletContractV4 } from '@ton/ton/dist/wallets/WalletContractV4';
 
-import type { ApiNetwork, ApiWalletVersion } from '../../../types';
+import type { ApiDnsZone, ApiNetwork, ApiWalletVersion } from '../../../types';
 import type { TokenTransferBodyParams } from '../types';
 
 import {
@@ -24,12 +24,13 @@ import {
 } from '../../../../config';
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
+import { DnsItem } from '../contracts/DnsItem';
 import { JettonMinter } from '../contracts/JettonMaster';
 import { JettonWallet } from '../contracts/JettonWallet';
 import { hexToBytes } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
 import {
-  DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, OpCode, WORKCHAIN,
+  DEFAULT_IS_BOUNCEABLE, DNS_ZONES_MAP, JettonOpCode, LiquidStakingOpCode, OpCode, WORKCHAIN,
 } from '../constants';
 import { dieselSendBoc } from './diesel';
 import { generateQueryId } from './index';
@@ -340,6 +341,24 @@ export function parseAddress(address: string): {
 
 export function getIsRawAddress(address: string) {
   return Boolean(parseAddress(address).isRaw);
+}
+
+export async function getDnsItemDomain(network: ApiNetwork, address: Address | string) {
+  if (typeof address === 'string') address = Address.parse(address);
+
+  const contract = getTonClient(network)
+    .open(new DnsItem(address));
+  const nftData = await contract.getNftData();
+  const collectionAddress = toBase64Address(nftData.collectionAddress, true);
+
+  const zone = Object.entries(DNS_ZONES_MAP)
+    .find(([, collection]) => collection === collectionAddress)?.[0] as ApiDnsZone | undefined;
+
+  const base = zone === '.t.me'
+    ? await contract.getTelemintDomain()
+    : await contract.getDomain();
+
+  return `${base}${zone}`;
 }
 
 export async function sendExternal(

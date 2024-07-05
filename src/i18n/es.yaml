@@ -328,7 +328,6 @@ Message is encrypted.: El mensaje está encriptado.
 $dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccional utilizando tu monedero **Ledger**. Necesitarás firmar cada transacción subyacente **una por una manualmente**.
 $dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
 Agree: Aceptar
-Unfortunately, this operation is not yet supported by Ledger wallet.: Desafortunadamente, esta operación aún no es compatible con Ledger wallet.
 SwapTitle: Intercambiar
 Swap: Intercambiar
 You sell: Usted vende
@@ -525,12 +524,7 @@ $wallet_switch_version_2: cambiar a otra versión de cartera
 or import from: o importar desde
 $insufficient_fee: "Comisión insuficiente: %fee%"
 Required: Requerido
-Transaction to this smart contract is not yet supported by Ledger.: Ledger aún no admite la transacción de este contrato inteligente.
-This type of transaction is not yet supported by Ledger.: Ledger aún no admite este tipo de transacción.
-The current version of Ledger only supports English-language comments without special characters.: La versión actual de Ledger sólo admite comentarios en inglés sin caracteres especiales.
 Comment is too long.: El comentario es demasiado largo.
-Transferring NFT is not yet supported by Ledger.: Ledger aún no admite la transferencia de NFT.
-Encrypted comments are not yet supported by Ledger.: Ledger aún no admite comentarios cifrados.
 Memo: Memo
 Memo was copied!: ¡El memo fue copiado!
 $hide_tokens_no_cost_help: |
@@ -542,6 +536,19 @@ To use this feature, first enable biometrics in your phone settings.: Para utili
 Open Settings: Configuración abierta
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Está a punto de transferir un token de servicio importante, que es necesario para retirar su depósito de la apuesta.
 No Price: Sin precio
+$ledger_not_supported_operation: Esta operación no es compatible con su versión de Ledger TON App. Actualícela utilizando Ledger Live.
+$ledger_unsupported_ton_connect: TonConnect no es compatible con la versión de su Ledger TON App. Actualice con Ledger Live.
+$dapp_transfer_tokens_burn: Quemando %cantidad%
+$dapp_dns_set_wallet_payload: Cambiar la billetera vinculada del dominio %domain% a %address%
+$dapp_dns_delete_wallet_payload: Eliminando la billetera vinculada del dominio %domain%
+$dapp_dns_change_record_payload: Cambiando el registro "%category%" del dominio %domain% a %value%
+$dapp_dns_delete_record_payload: Eliminando el registro "%category%" del dominio %domain%
+$dapp_token_bridge_pay_swap_payload: Confirmación de intercambio a través de un puente entre cadenas
+$dapp_liquid_staking_deposit_payload: Depósito a apuesta líquida
+$dapp_liquid_staking_vote_payload: Votando "%vote%" por la propuesta %votingAddress%
+$dapp_single_nominator_change_validator_payload: Cambiar la dirección del validador de contratos de participación de SingleNominator a %address%
+$dapp_single_nominator_withdraw_payload: Retiro de %amount% TON del contrato de participación de SingleNominator
+$dapp_vesting_add_whitelist_payload: Agregar %address% a la lista blanca de billeteras con derechos de uso
 Search or enter address...: Buscar o ingresar dirección...
 Connecting dapps is not yet supported by Ledger.: Ledger aún no admite la conexión de dapps.
 Time synchronization issue. Please ensure your device's time settings are correct.: Problema de sincronización horaria. Asegúrese de que la configuración de hora de su dispositivo sea correcta.
@@ -620,3 +627,8 @@ Confirm Sending: Confirmar envío
 Confirm Burning: Confirmar quema
 Confirm Passcode: Confirmar contraseña
 Enter your code: Ingrese su código
+$hardware_payload_warning: Un servicio de terceros está solicitando acceso a su billetera — esto podría provocar la pérdida de fondos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
+$hardware_blind_sign_not_enabled: |
+  Un servicio de terceros está solicitando acceso a su billetera — esto podría provocar la pérdida de fondos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
+
+  Para continuar, habilite la opción "Firma Ciega" en la configuración de la aplicación TON en Ledger.

@@ -328,8 +328,8 @@ Message is encrypted.: Wiadomość jest zaszyfrowana.
 $dapp_ledger_warning1: Masz zamiar wysłać transakcję wielokierunkową za pomocą portfela Ledger. Będziesz musiał podpisać każdą związaną transakcję ręcznie, jedną po drugiej.
 $dapp_ledger_warning2: Proszę poświęcić czas i nie przerywać procesu.
 Agree: Zgadzam się
-Unfortunately, this operation is not yet supported by Ledger wallet.: Niestety, ta operacja nie jest jeszcze obsługiwana przez portfel Ledger.
-Swap: Zamień
+SwapTitle: Wymieniać
+Swap: Wymieniać
 You sell: Sprzedajesz
 You buy: Kupujesz
 Swap Details: Szczegóły wymiany
@@ -528,12 +528,7 @@ $wallet_switch_version_2: zmienić na inną wersję portfela
 or import from: lub zaimportować z
 $insufficient_fee: "Niewystarczająca opłata: %fee%"
 Required: Wymagane
-Transaction to this smart contract is not yet supported by Ledger.: Transakcja do tego inteligentnego kontraktu nie jest jeszcze obsługiwana przez Ledger.
-This type of transaction is not yet supported by Ledger.: Ten rodzaj transakcji nie jest jeszcze obsługiwany przez Ledger.
-The current version of Ledger only supports English-language comments without special characters.: Obecna wersja Ledgera obsługuje tylko komentarze w języku angielskim bez znaków specjalnych.
 Comment is too long.: Komentarz jest za długi.
-Transferring NFT is not yet supported by Ledger.: Przekazywanie NFT nie jest jeszcze obsługiwane przez Ledger.
-Encrypted comments are not yet supported by Ledger.: Szyfrowane komentarze nie są jeszcze obsługiwane przez Ledger.
 Memo: Opis
 Memo was copied!: Opis został skopiowany!
 $hide_tokens_no_cost_help: |
@@ -545,6 +540,19 @@ To use this feature, first enable biometrics in your phone settings.: Aby skorzy
 Open Settings: Otwórz ustawienia
 You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Masz zamiar przekazać ważny token usługi, który jest potrzebny do wypłacenia depozytu ze stawki.
 No Price: Brak ceny
+$ledger_not_supported_operation: Ta operacja nie jest obsługiwana przez twoją wersję Ledger TON App. Zaktualizuj ją za pomocą Ledger Live.
+$ledger_unsupported_ton_connect: TonConnect nie jest obsługiwany przez wersję aplikacji Ledger TON. Zaktualizuj go za pomocą Ledger Live.
+$dapp_transfer_tokens_burn: Spalanie %amount%
+$dapp_dns_set_wallet_payload: Zmiana połączonego portfela domeny %domain% na %address%
+$dapp_dns_delete_wallet_payload: Usuwanie połączonego portfela domeny %domain%
+$dapp_dns_change_record_payload: Zmiana rekordu „%category%” domeny %domain% na %value%
+$dapp_dns_delete_record_payload: Usuwanie rekordu „%category%” domeny %domain%
+$dapp_token_bridge_pay_swap_payload: Potwierdzenie wymiany poprzez most krzyżowo-łańcuchowy
+$dapp_liquid_staking_deposit_payload: Wpłać do płynnego stakingu
+$dapp_liquid_staking_vote_payload: Głosowanie „%vote%” na propozycję %votingAddress%
+$dapp_single_nominator_change_validator_payload: Zmiana adresu walidatora umowy stakingowej SingleNominator na %address%
+$dapp_single_nominator_withdraw_payload: Wycofanie %amount% TON z umowy stakingu SingleNominator
+$dapp_vesting_add_whitelist_payload: Dodanie %address% do białej listy portfeli uprawnień
 Search or enter address...: Szukaj lub wprowadź adres...
 Connecting dapps is not yet supported by Ledger.: Łączenie dappów nie jest jeszcze obsługiwane przez Ledger.
 Time synchronization issue. Please ensure your device's time settings are correct.: Problem z synchronizacją czasu. Upewnij się, że ustawienia czasu urządzenia są poprawne.
@@ -625,3 +633,8 @@ Confirm Sending: Potwierdź wysłanie
 Confirm Burning: Potwierdź spalanie
 Confirm Passcode: Potwierdź hasło
 Enter your code: Wpisz swój kod
+$hardware_payload_warning: Zewnętrzna usługa żąda dostępu do twojego portfela — może to prowadzić do utraty środków. Anuluj operację, jeśli nie jesteś pewien niezawodności tej usługi.
+$hardware_blind_sign_not_enabled: |
+  Zewnętrzna usługa żąda dostępu do twojego portfela — może to prowadzić do utraty środków. Anuluj operację, jeśli nie jesteś pewien niezawodności tej usługi.
+
+  Aby kontynuować, włącz opcję „Ślepe Podpisywanie” w ustawieniach aplikacji TON na Ledgerze.

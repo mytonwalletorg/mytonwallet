@@ -1,3 +1,4 @@
+import type { DNS_ZONES_MAP } from '../blockchains/ton/constants';
 import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions } from './storage';
 
@@ -189,7 +190,11 @@ export interface ApiSignedTransfer {
   params: Omit<ApiLocalTransactionParams, 'inMsgHash'>;
 }
 
-export type ApiLocalTransactionParams = Omit<ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'>;
+export type ApiLocalTransactionParams = Omit<
+ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'
+> & {
+  normalizedAddress?: string;
+};
 
 export type ApiBaseCurrency = 'USD' | 'EUR' | 'RUB' | 'CNY' | 'BTC' | 'TON';
 
@@ -210,3 +215,5 @@ export type ApiWalletInfo = {
   isInitialized: boolean;
   lastTxId?: string;
 };
+
+export type ApiDnsZone = keyof typeof DNS_ZONES_MAP;
