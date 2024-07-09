@@ -1,5 +1,4 @@
 import React, { memo, useRef } from '../../../../lib/teact/teact';
-import { getActions } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 import type { IAnchorPosition } from '../../../../global/types';
@@ -34,7 +33,6 @@ function NftMenu({
   const getRootElement = useLastCallback(() => document.body);
   const getMenuElement = useLastCallback(() => document.querySelector('#portals .menu-bubble'));
   const getLayout = useLastCallback(() => ({ withPortal: true }));
-  const { openNftMenu } = getActions();
 
   const {
     positionY, transformOriginX, transformOriginY, style: menuStyle,
@@ -52,7 +50,6 @@ function NftMenu({
     if (isOpen) {
       onClose();
     } else {
-      openNftMenu({ nftAddress: nft!.address });
       onOpen();
     }
   };

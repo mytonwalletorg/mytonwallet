@@ -1,14 +1,17 @@
-import React, { memo, useRef, useState } from '../../lib/teact/teact';
-import { getActions } from '../../global';
+import React, {
+  memo, useMemo, useRef, useState,
+} from '../../lib/teact/teact';
+import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency } from '../../api/types';
-import type { UserToken } from '../../global/types';
+import type { ApiBaseCurrency, ApiNft } from '../../api/types';
+import { SettingsState, type UserToken } from '../../global/types';
 
 import {
   CURRENCY_LIST,
   DEFAULT_PRICE_CURRENCY,
   TINY_TRANSFER_MAX_COST,
 } from '../../config';
+import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -38,6 +41,11 @@ interface OwnProps {
   baseCurrency?: ApiBaseCurrency;
 }
 
+interface StateProps {
+  nftsByAddress?: Record<string, ApiNft>;
+  blacklistedNftAddresses: string[];
+}
+
 function SettingsAssets({
   isActive,
   tokens,
@@ -49,13 +57,16 @@ function SettingsAssets({
   handleBackClick,
   isInsideModal,
   baseCurrency,
-}: OwnProps) {
+  nftsByAddress,
+  blacklistedNftAddresses,
+}: OwnProps & StateProps) {
   const {
     toggleTinyTransfersHidden,
     toggleInvestorView,
     toggleTokensWithNoCost,
     toggleSortByValue,
     changeBaseCurrency,
+    setSettingsState,
   } = getActions();
   const lang = useLang();
 
@@ -80,6 +91,10 @@ function SettingsAssets({
     toggleInvestorView({ isEnabled: !isInvestorViewEnabled });
   });
 
+  const handleOpenHiddenNfts = useLastCallback(() => {
+    setSettingsState({ state: SettingsState.HiddenNfts });
+  });
+
   const handleTokensWithNoPriceToggle = useLastCallback(() => {
     toggleTokensWithNoCost({ isEnabled: !areTokensWithNoCostHidden });
   });
@@ -96,6 +111,21 @@ function SettingsAssets({
     setLocalBaseCurrency(currency as ApiBaseCurrency);
     changeBaseCurrency({ currency: currency as ApiBaseCurrency });
   });
+
+  const {
+    shouldRenderHiddenNftsSection,
+    hiddenNftsCount,
+  } = useMemo(() => {
+    const nfts = Object.values(nftsByAddress || {});
+    const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
+    const hiddenByUserNfts = nfts.filter((nft) => blacklistedNftAddressesSet.has(nft.address));
+    const probablyScamNfts = nfts.filter((nft) => nft.isHidden);
+
+    return {
+      shouldRenderHiddenNftsSection: hiddenByUserNfts.length > 0 || probablyScamNfts.length > 0,
+      hiddenNftsCount: hiddenByUserNfts.length,
+    };
+  }, [nftsByAddress, blacklistedNftAddresses]);
 
   return (
     <div className={styles.slide}>
@@ -172,6 +202,19 @@ function SettingsAssets({
             />
           </div>
         </div>
+        {
+          shouldRenderHiddenNftsSection && (
+            <div className={styles.settingsBlock}>
+              <div className={buildClassName(styles.item, styles.item_small)} onClick={handleOpenHiddenNfts}>
+                {lang('Hidden NFTs')}
+                <div className={styles.itemInfo}>
+                  {hiddenNftsCount}
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                </div>
+              </div>
+            </div>
+          )
+        }
         <p className={styles.blockTitle}>{lang('Token Settings')}</p>
         <div className={styles.settingsBlock}>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleSortByValueToggle}>
@@ -219,4 +262,12 @@ function SettingsAssets({
   );
 }
 
-export default memo(SettingsAssets);
+export default memo(withGlobal<OwnProps>((global): StateProps => {
+  const { blacklistedNftAddresses = [] } = selectCurrentAccountState(global) || {};
+  const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
+
+  return {
+    nftsByAddress: byAddress,
+    blacklistedNftAddresses,
+  };
+})(SettingsAssets));

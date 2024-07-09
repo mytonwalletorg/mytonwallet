@@ -67,15 +67,16 @@ function DropdownMenu({
       bubbleClassName={bubbleClassName}
       onClose={onClose}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const fullButtonClassName = buildClassName(
           styles.item,
           item.icon && styles.item_with_icon,
           item.isDisabled && styles.disabled,
           item.isDangerous && styles.dangerous,
-          item.withSeparator && styles.separator,
+          item.withSeparator && index > 0 && styles.separator,
           selectedValue === item.value && styles.item_selected,
           buttonClassName,
+          'capture-scroll',
         );
         return (
           <button

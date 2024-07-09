@@ -27,6 +27,7 @@ function SettingsTokenList({
         onBack={handleBackClick}
         onClose={handleBackClick}
         isInsideSettings
+        shouldHideMyTokens
       />
     </div>
   );

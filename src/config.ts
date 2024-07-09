@@ -123,7 +123,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-117';
+export const LANG_CACHE_NAME = 'mtw-lang-118';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -290,7 +290,7 @@ export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
 export const BURN_ADDRESS = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
 
 export const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'v4R2';
-export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R2'];
+export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R2', 'W5'];
 
 export const DEFAULT_TIMEOUT = 5000;
 export const DEFAULT_RETRIES = 3;
@@ -331,7 +331,8 @@ export const CLAIM_COMMENT = 'claim';
 export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z][-a-zA-Z0-9]{1,62})\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)/g;
 // eslint-disable-next-line max-len
 export const RE_TG_BOT_MENTION = /telegram[:\s-]*((@[a-z0-9_]+)|(https:\/\/)?(t\.me|telegram\.me|telegram\.dog)\/[a-z0-9_]+)/mig;
-export const RE_ZERO_WIDTH_SPACE = /[\u200B-\u200D\uFEFF]/g;
-export const RE_FAKE_DOTS = /[\u0702\u0701]/g;
+export const RE_EMPTY_CHARS = /[\u200B-\u200D\uFEFF]/g;
+export const RE_SPACE_CHARS = /[\n\r]/g;
+export const RE_FAKE_DOTS = /[\u0702\u0701\u2024\u00B7\u02D9\u0971\u1427\u18DF\u22C5\u2027]/g;
 
 export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';

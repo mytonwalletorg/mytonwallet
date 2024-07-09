@@ -6,6 +6,7 @@ import type {
   ApiBackendStakingState,
   ApiBalanceBySlug,
   ApiBaseCurrency,
+  ApiCountryCode,
   ApiDappTransfer,
   ApiNft,
   ApiStakingState,
@@ -180,6 +181,7 @@ export type ApiUpdateConfig = {
   isLimited: boolean;
   isCopyStorageEnabled: boolean;
   supportAccountsCount?: number;
+  countryCode?: ApiCountryCode;
 };
 
 export type ApiUpdateWalletVersions = {

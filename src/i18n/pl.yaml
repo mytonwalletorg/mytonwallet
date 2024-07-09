@@ -622,13 +622,24 @@ Install on Mobile: Zainstaluj na telefonie komórkowym
 Install App: Zainstaluj aplikację
 WrongNetwork: Dapp zażądał transakcji z innej sieci.
 Hide: Ukryj
+Hidden NFTs: Ukryte NFT
+Hidden By Me: Ukryte przeze mnie
+Probably Scam: Prawdopodobnie oszustwo
+$settings_nft_probably_scam_description: Te NFT zostały automatycznie wyłączone przez Ochronę przed Oszustwami. Możesz przywrócić potrzebne z powrotem na Stronę Główną, jeśli uważasz, że zostały one omyłkowo dodane do tej listy.
+Unhide: Pokaż
+Hide All: Ukryj wszystko
 Hide NFT: Ukryj NFT
-Are you sure you want to hide this NFT? This action cannot be undone.: Czy na pewno chcesz ukryć ten NFT? Ta akcja jest nieodwracalna.
 Reload Page: Przeładuj stronę
 Open in Safari: Otwórz w Safari
 Open in Browser: Otwórz w przeglądarce
 CopyURL: Kopiuj URL
 Share: Udostępnij
+Unhide NFT: Pokaż NFT
+$unhide_nft_warning: Czy na pewno chcesz pokazać %name%? To NFT wygląda podejrzanie i może nie odpowiadać swojej nazwie i opisowi.
+Hide NFTs: Ukryj NFT
+Are you sure you want to hide this NFT collection containing %number% NFTs?: Czy na pewno chcesz ukryć tę kolekcję NFT zawierającą %number% NFT?
+Are you sure you want to hide these %number% NFTs?: Czy na pewno chcesz ukryć te %number% NFT?
+Show: Pokaż
 Confirm Sending: Potwierdź wysłanie
 Confirm Burning: Potwierdź spalanie
 Confirm Passcode: Potwierdź hasło
@@ -638,3 +649,4 @@ $hardware_blind_sign_not_enabled: |
   Zewnętrzna usługa żąda dostępu do twojego portfela — może to prowadzić do utraty środków. Anuluj operację, jeśli nie jesteś pewien niezawodności tej usługi.
 
   Aby kontynuować, włącz opcję „Ślepe Podpisywanie” w ustawieniach aplikacji TON na Ledgerze.
+Switch to W5: Przełącz na W5

@@ -141,6 +141,7 @@ function Modal({
     }
 
     return captureEvents(modalRef.current!, {
+      excludedClosestSelector: '.capture-scroll',
       onSwipe: (e: Event, direction: SwipeDirection) => {
         if (direction === SwipeDirection.Down && getCanCloseModal(swipeDownDateRef, e.target as HTMLElement)) {
           onClose();

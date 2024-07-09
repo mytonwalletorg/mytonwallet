@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?b7146202ed85eedaea92d1c028f5b46e") format("woff"),
-url("./brilliant-icons.woff2?b7146202ed85eedaea92d1c028f5b46e") format("woff2");
+    src: url("./brilliant-icons.woff?1bf6715ffed52e64b9e76450240f1142") format("woff"),
+url("./brilliant-icons.woff2?1bf6715ffed52e64b9e76450240f1142") format("woff2");
     font-weight: normal;
     font-style: normal;
 }
@@ -221,12 +221,15 @@ url("./brilliant-icons.woff2?b7146202ed85eedaea92d1c028f5b46e") format("woff2");
 .icon-update::before {
     content: "\f145";
 }
-.icon-windows-close::before {
+.icon-versions::before {
     content: "\f146";
 }
-.icon-windows-maximize::before {
+.icon-windows-close::before {
     content: "\f147";
 }
-.icon-windows-minimize::before {
+.icon-windows-maximize::before {
     content: "\f148";
+}
+.icon-windows-minimize::before {
+    content: "\f149";
 }

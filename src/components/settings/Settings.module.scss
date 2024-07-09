@@ -138,13 +138,20 @@
 
 .blockTitle {
   margin-bottom: 0.5rem;
-  padding: 0 1rem;
+  padding: 0 0.5rem;
 
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 0.8125rem;
   color: var(--color-gray-2);
-  text-transform: uppercase;
+
+  :global(html.is-macos) &,
+  :global(html.is-ios) & {
+    padding: 0 1rem;
+
+    font-weight: 600;
+    text-transform: uppercase;
+  }
 }
 
 .menuIcon {
@@ -235,6 +242,10 @@
 
   background: var(--color-background-first);
   border-radius: var(--border-radius-default);
+}
+
+.settingsBlockWithDescription {
+  margin-bottom: 0;
 }
 
 .settingsBlock {
@@ -503,7 +514,7 @@
 
 .blockDescription {
   margin: 0.5rem 0 2rem;
-  padding: 0 1rem;
+  padding: 0 0.5rem;
 
   font-size: 0.8125rem;
   font-weight: 600;
@@ -835,4 +846,42 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-gray-2);
+}
+
+.nftPrimaryCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+
+.nftName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-black-1);
+}
+
+.nftCollection {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-2);
+}
+
+.nftImage {
+  width: 2.625rem;
+  height: 2.625rem;
+
+  border-radius: var(--border-radius-normal);
+}
+
+.nftButtonUnhide {
+  justify-self: end;
+
+  height: unset !important;
+  padding: 0.4375rem 0.625rem !important;
+
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  line-height: 0.875rem !important;
+
+  border-radius: 0.875rem !important;
 }

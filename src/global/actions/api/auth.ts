@@ -312,7 +312,9 @@ addActionHandler('skipCreateNativeBiometrics', (global, actions) => {
   actions.afterCreatePassword({ password: password!, isPasswordNumeric: true });
 });
 
-addActionHandler('createAccount', async (global, actions, { password, isImporting, isPasswordNumeric }) => {
+addActionHandler('createAccount', async (global, actions, {
+  password, isImporting, isPasswordNumeric, version,
+}) => {
   setGlobal(updateAuth(global, { isLoading: true }));
 
   const network = selectCurrentNetwork(getGlobal());
@@ -322,6 +324,7 @@ addActionHandler('createAccount', async (global, actions, { password, isImportin
     network,
     global.auth.mnemonic!,
     password,
+    version,
   );
 
   global = getGlobal();

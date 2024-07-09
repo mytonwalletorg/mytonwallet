@@ -48,6 +48,9 @@ const MENU_ITEMS: DropdownItem[] = [{
   value: 'tonExplorer',
   fontIcon: 'external',
 }, {
+  name: 'Hide All',
+  value: 'hideAll',
+}, {
   name: 'Burn All',
   value: 'burnAll',
   isDangerous: true,
@@ -67,6 +70,7 @@ function NftCollectionHeader({
     selectNfts,
     startTransfer,
     burnNfts,
+    openHideNftModal,
   } = getActions();
 
   const lang = useLang();
@@ -161,6 +165,15 @@ function NftCollectionHeader({
         burnNfts({ nfts: collectionNfts });
 
         break;
+      }
+
+      case 'hideAll': {
+        const collectionNfts = Object.values(nfts!)
+          .filter((nft) => {
+            return nft.collectionAddress === currentCollectionAddress;
+          })
+          .map((nft) => nft.address);
+        openHideNftModal({ addresses: collectionNfts, isCollection: true });
       }
     }
   });

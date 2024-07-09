@@ -603,13 +603,24 @@ Install on Mobile: 安裝在手機
 Install App: 安裝應用程式
 WrongNetwork: Dapp 要求來自另一個網路的交易。
 Hide: 隱藏
+Hidden NFTs: 隱藏的NFT
+Hidden By Me: 我隱藏的
+Probably Scam: 可能是騙局
+$settings_nft_probably_scam_description: 這些NFT被反詐騙保護自動禁用。如果您認為它們被錯誤地包含在此列表中，您可以將必要的返回主頁。
+Unhide: 顯示
+Hide All: 隱藏全部
 Hide NFT: 隱藏 NFT
-Are you sure you want to hide this NFT? This action cannot be undone.: 您確定要隱藏這個 NFT 嗎？此操作無法撤消。
 Reload Page: 重新加載頁面
 Open in Safari: 在 Safari 中打開
 Open in Browser: 在瀏覽器中打開
 CopyURL: 複製鏈接
 Share: 分享
+Unhide NFT: 顯示 NFT
+$unhide_nft_warning: 你確定要顯示 %name% 嗎？這個 NFT 看起來很可疑，可能與其名稱和描述不符。
+Hide NFTs: 隱藏 NFT
+Are you sure you want to hide this NFT collection containing %number% NFTs?: 你確定要隱藏這個包含 %number% 個 NFT 的收藏嗎？
+Are you sure you want to hide these %number% NFTs?: 您確定要隱藏這 %number% 個NFT嗎？
+Show: 顯示
 Confirm Sending: 確認發送
 Confirm Burning: 確認刻錄
 Confirm Passcode: 確認密碼
@@ -619,3 +630,4 @@ $hardware_blind_sign_not_enabled: |
   第三方服務正在請求訪問您的錢包 — 這可能會導致資金損失。如果您不確定此服務的可靠性，請取消操作。
 
   要繼續，請在 Ledger 的 TON 應用程序設置中啟用“盲簽名”選項。
+Switch to W5: 切換到 W5

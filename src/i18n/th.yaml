@@ -621,13 +621,24 @@ Install on Mobile: ติดตั้งบนมือถือ
 Install App: ติดตั้งแอป
 WrongNetwork: Dapp ร้องขอธุรกรรมจากเครือข่ายอื่น
 Hide: ซ่อน
+Hidden NFTs: NFT ที่ซ่อนไว้
+Hidden By Me: ซ่อนไว้โดยฉัน
+Probably Scam: อาจเป็นการหลอกลวง
+$settings_nft_probably_scam_description: NFT เหล่านี้ถูกปิดใช้งานโดยอัตโนมัติโดยการป้องกันการหลอกลวง คุณสามารถคืนที่จำเป็นไปยังหน้าแรกหากคุณคิดว่าพวกมันถูกเพิ่มในรายการนี้โดยความผิดพลาด
+Unhide: แสดง
+Hide All: ซ่อนทั้งหมด
 Hide NFT: ซ่อน NFT
-Are you sure you want to hide this NFT? This action cannot be undone.: คุณแน่ใจหรือไม่ว่าต้องการซ่อน NFT นี้? การกระทำนี้ไม่สามารถยกเลิกได้
 Reload Page: โหลดหน้าใหม่
 Open in Safari: เปิดใน Safari
 Open in Browser: เปิดในเบราว์เซอร์
 CopyURL: คัดลอก URL
 Share: แชร์
+Unhide NFT: เปิดเผย NFT
+$unhide_nft_warning: คุณแน่ใจหรือไม่ว่าต้องการเปิดเผย %name%? NFT นี้ดูน่าสงสัยและอาจไม่ตรงกับชื่อและคำอธิบายของมัน
+Hide NFTs: ซ่อน NFT
+Are you sure you want to hide this NFT collection containing %number% NFTs?: คุณแน่ใจหรือไม่ว่าต้องการซ่อนคอลเล็กชัน NFT ที่มี %number% NFT นี้
+Are you sure you want to hide these %number% NFTs?: คุณแน่ใจหรือว่าต้องการซ่อน %number% NFTs นี้?
+Show: แสดง
 Confirm Sending: ยืนยันการส่ง
 Confirm Burning: ยืนยันการเผาไหม้
 Confirm Passcode: ยืนยันรหัสผ่าน
@@ -637,3 +648,4 @@ $hardware_blind_sign_not_enabled: |
   บริการของบุคคลที่สามกำลังขอเข้าถึงกระเป๋าเงินของคุณ — อาจทำให้สูญเสียเงินได้ ยกเลิกการดำเนินการหากคุณไม่แน่ใจเกี่ยวกับความน่าเชื่อถือของบริการนี้
 
   ในการดำเนินการต่อ ให้เปิดใช้งานตัวเลือก "การลงนามแบบบอด" ในการตั้งค่าแอป TON บน Ledger
+Switch to W5: เปลี่ยนเป็น W5

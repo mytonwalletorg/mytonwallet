@@ -4,6 +4,7 @@ import type {
   ApiAnyDisplayError,
   ApiBalanceBySlug,
   ApiBaseCurrency,
+  ApiCountryCode,
   ApiDapp,
   ApiDappPermissions,
   ApiDappTransfer,
@@ -211,6 +212,7 @@ export enum SettingsState {
   NativeBiometricsTurnOn,
   SelectTokenList,
   WalletVersion,
+  HiddenNfts,
 }
 
 export enum ActiveTab {
@@ -297,6 +299,13 @@ export interface AccountState {
     currentCollectionAddress?: string;
     selectedAddresses?: string[];
   };
+  blacklistedNftAddresses?: string[];
+  whitelistedNftAddresses?: string[];
+  selectedNftsToHide?: {
+    addresses: string[];
+    isCollection: boolean;
+  };
+  isUnhideNftModalOpen?: boolean;
   isBackupRequired?: boolean;
   activeDappOrigin?: string;
   currentTokenSlug?: string;
@@ -335,9 +344,6 @@ export interface AccountState {
 
   isDieselAuthorizationStarted?: boolean;
   isLongUnstakeRequested?: boolean;
-  blacklistedNftAddresses?: string[];
-  nftWithOpenedMenuAddress?: string;
-  isHideNftModalOpened?: boolean;
 }
 
 export interface AccountSettings {
@@ -553,7 +559,6 @@ export type GlobalState = {
     };
     authConfig?: AuthConfig;
     baseCurrency?: ApiBaseCurrency;
-    isLimitedRegion?: boolean;
   };
 
   dialogs: DialogType[];
@@ -592,6 +597,7 @@ export type GlobalState = {
     isOnRampDisabled: boolean;
     isCopyStorageEnabled?: boolean;
     supportAccountsCount?: number;
+    countryCode?: ApiCountryCode;
   };
 
   mediaViewer: {
@@ -640,7 +646,7 @@ export interface ActionPayloads {
   connectHardwareWallet: undefined;
   createHardwareAccounts: undefined;
   loadMoreHardwareWallets: { lastIndex: number };
-  createAccount: { password: string; isImporting: boolean; isPasswordNumeric?: boolean };
+  createAccount: { password: string; isImporting: boolean; isPasswordNumeric?: boolean; version?: ApiWalletVersion };
   afterSelectHardwareWallets: { hardwareSelectedIndices: number[] };
   resetApiSettings: { areAllDisabled?: boolean } | undefined;
   checkAppVersion: undefined;
@@ -728,10 +734,16 @@ export interface ActionPayloads {
   clearNftSelection: { address: string };
   clearNftsSelection: undefined;
   burnNfts: { nfts: ApiNft[] };
-  hideNft: { nftAddress: ApiNft['address'] };
-  openHideNftModal: undefined;
+  addNftsToBlacklist: { addresses: ApiNft['address'][] };
+  addNftsToWhitelist: { addresses: ApiNft['address'][] };
+  removeNftSpecialStatus: { address: ApiNft['address'] };
+  openUnhideNftModal: undefined;
+  closeUnhideNftModal: undefined;
+  openHideNftModal: {
+    addresses: ApiNft['address'][];
+    isCollection: boolean;
+  };
   closeHideNftModal: undefined;
-  openNftMenu: { nftAddress: ApiNft['address'] };
 
   submitSignature: { password: string };
   clearSignatureError: undefined;

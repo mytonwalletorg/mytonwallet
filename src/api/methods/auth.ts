@@ -32,7 +32,12 @@ export function generateMnemonic() {
   return blockchains.ton.generateMnemonic();
 }
 
-export async function createWallet(network: ApiNetwork, mnemonic: string[], password: string) {
+export async function createWallet(
+  network: ApiNetwork,
+  mnemonic: string[],
+  password: string,
+  version: ApiWalletVersion = DEFAULT_WALLET_VERSION,
+) {
   const {
     mnemonicToKeyPair,
     publicKeyToAddress,
@@ -43,7 +48,6 @@ export async function createWallet(network: ApiNetwork, mnemonic: string[], pass
   }
 
   const { publicKey } = await mnemonicToKeyPair(mnemonic);
-  const version = DEFAULT_WALLET_VERSION;
   const address = publicKeyToAddress(network, publicKey, version);
 
   const accountId = await getNewAccountId(network);

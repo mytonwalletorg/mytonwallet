@@ -5,7 +5,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 import type { DropdownItem } from '../../../ui/Dropdown';
-import { ContentTab } from '../../../../global/types';
+import { ContentTab, SettingsState } from '../../../../global/types';
 
 import {
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
@@ -32,6 +32,7 @@ import useSyncEffect from '../../../../hooks/useSyncEffect';
 
 import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
+import HideNftModal from '../../modals/HideNftModal';
 import Activity from './Activities';
 import Assets from './Assets';
 import Explore from './Explore';
@@ -53,6 +54,11 @@ interface StateProps {
   activeContentTab?: ContentTab;
   currentTokenSlug?: string;
   blacklistedNftAddresses?: string[];
+  whitelistedNftAddresses?: string[];
+  selectedNftsToHide?: {
+    addresses: string[];
+    isCollection: boolean;
+  };
 }
 
 let activeNftKey = 0;
@@ -66,6 +72,8 @@ function Content({
   onStakedTokenClick,
   currentTokenSlug,
   blacklistedNftAddresses,
+  whitelistedNftAddresses,
+  selectedNftsToHide,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -74,6 +82,7 @@ function Content({
     changeTransferToken,
     openNftCollection,
     closeNftCollection,
+    openSettingsWithState,
   } = getActions();
 
   const lang = useLang();
@@ -92,10 +101,21 @@ function Content({
     openNftCollection({ address }, { forceOnHeavyAnimation: true });
   });
 
+  const handleNftsMenuButtonClick = useLastCallback((value: string) => {
+    if (value === 'hidden_nfts') {
+      openSettingsWithState({ state: SettingsState.HiddenNfts });
+    } else {
+      handleNftCollectionClick(value);
+    }
+  });
+
   const nftCollections = useMemo(() => {
+    const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
+    const whitelistedNftAddressesSet = new Set(whitelistedNftAddresses);
     const collections = Object.values(nfts ?? {})
-      .filter((nft) => !nft.isHidden)
-      .filter((nft) => !blacklistedNftAddresses?.includes(nft.address))
+      .filter((nft) => (
+        !nft.isHidden || whitelistedNftAddressesSet.has(nft.address)
+      ) && !blacklistedNftAddressesSet.has(nft.address))
       .reduce((acc, nft) => {
         if (nft.collectionAddress) {
           acc[nft.collectionAddress] = nft.collectionName || lang('Unnamed collection');
@@ -113,7 +133,18 @@ function Content({
         value: key,
       };
     });
-  }, [lang, nfts, blacklistedNftAddresses]);
+  }, [lang, nfts, blacklistedNftAddresses, whitelistedNftAddresses]);
+
+  const hiddenByUserNfts = useMemo(() => {
+    const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
+    return Object.values(nfts ?? {}).filter((nft) => blacklistedNftAddressesSet.has(nft.address));
+  }, [nfts, blacklistedNftAddresses]);
+
+  const probablyScamNfts = useMemo(() => {
+    return Object.values(nfts ?? {}).filter((nft) => nft.isHidden);
+  }, [nfts]);
+
+  const shouldRenderHiddenNftsSection = hiddenByUserNfts.length > 0 || probablyScamNfts.length > 0;
 
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
@@ -132,8 +163,17 @@ function Content({
         id: ContentTab.Nft,
         title: lang('NFT'),
         className: styles.tab,
-        menuItems: nftCollections,
-        onMenuItemClick: handleNftCollectionClick,
+        menuItems: shouldRenderHiddenNftsSection
+          ? [
+            ...nftCollections,
+            {
+              name: lang('Hidden NFTs'),
+              value: 'hidden_nfts',
+              withSeparator: true,
+            } as DropdownItem,
+          ]
+          : nftCollections,
+        onMenuItemClick: handleNftsMenuButtonClick,
       },
       ...(nftCollections.some(({ value }) => value === NOTCOIN_VOUCHERS_ADDRESS) ? [{
         id: ContentTab.NotcoinVouchers,
@@ -141,7 +181,7 @@ function Content({
         className: styles.tab,
       }] : []),
     ],
-    [lang, nftCollections, shouldShowSeparateAssetsPanel],
+    [lang, nftCollections, shouldShowSeparateAssetsPanel, shouldRenderHiddenNftsSection],
   );
 
   const activeTabIndex = useMemo(
@@ -317,6 +357,11 @@ function Content({
       <div className={buildClassName(isPortrait ? styles.contentPanel : styles.landscapeContentPanel)}>
         {renderContent()}
       </div>
+      <HideNftModal
+        isOpen={Boolean(selectedNftsToHide?.addresses.length)}
+        selectedNftsToHide={selectedNftsToHide}
+      />
+
     </div>
   );
 }
@@ -332,7 +377,11 @@ export default memo(
         currentCollectionAddress,
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
-      const { blacklistedNftAddresses } = selectCurrentAccountState(global) ?? {};
+      const {
+        blacklistedNftAddresses,
+        whitelistedNftAddresses,
+        selectedNftsToHide,
+      } = selectCurrentAccountState(global) ?? {};
 
       return {
         nfts,
@@ -342,6 +391,8 @@ export default memo(
         activeContentTab: accountState?.activeContentTab,
         currentTokenSlug: accountState?.currentTokenSlug,
         blacklistedNftAddresses,
+        whitelistedNftAddresses,
+        selectedNftsToHide,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

@@ -187,3 +187,9 @@ export function fromKeyValueArrays<T>(keys: string[], values: T[] | T) {
 export function extractKey<T, K extends keyof T>(array: T[], key: K): T[K][] {
   return array.map((value) => value[key]);
 }
+
+export function findDifference<T>(array1: T[], array2: T[]): T[] {
+  const set2 = new Set(array2);
+
+  return array1.filter((element) => !set2.has(element));
+}

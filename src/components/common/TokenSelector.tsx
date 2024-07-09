@@ -69,6 +69,7 @@ interface OwnProps {
   isInsideSettings?: boolean;
   onClose: NoneToVoidFunction;
   onBack: NoneToVoidFunction;
+  shouldHideMyTokens?: boolean;
 }
 
 enum SearchState {
@@ -96,6 +97,7 @@ function TokenSelector({
   isLoading,
   onBack,
   onClose,
+  shouldHideMyTokens,
 }: OwnProps & StateProps) {
   const {
     importToken,
@@ -496,7 +498,7 @@ function TokenSelector({
   function renderTokenGroups() {
     return (
       <>
-        {renderTokenGroup(userTokensWithFilter, lang('MY'), true)}
+        {!shouldHideMyTokens && renderTokenGroup(userTokensWithFilter, lang('MY'), true)}
         {renderTokenGroup(popularTokensWithFilter, lang('POPULAR'))}
       </>
     );

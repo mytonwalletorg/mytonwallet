@@ -72,6 +72,7 @@ import SettingsAssets from './SettingsAssets';
 import SettingsDapps from './SettingsDapps';
 import SettingsDeveloperOptions from './SettingsDeveloperOptions';
 import SettingsDisclaimer from './SettingsDisclaimer';
+import SettingsHiddenNfts from './SettingsHiddenNfts';
 import SettingsLanguage from './SettingsLanguage';
 import SettingsTokenList from './SettingsTokenList';
 import SettingsWalletVersion from './SettingsWalletVersion';
@@ -739,6 +740,14 @@ function Settings({
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
             wallets={wallets}
+          />
+        );
+      case SettingsState.HiddenNfts:
+        return (
+          <SettingsHiddenNfts
+            isActive={isActive}
+            handleBackClick={handleBackClickToAssets}
+            isInsideModal={isInsideModal}
           />
         );
     }

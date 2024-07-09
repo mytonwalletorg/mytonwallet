@@ -32,7 +32,7 @@ PODS:
     - Capacitor
   - CordovaPlugins (5.6.0):
     - CapacitorCordova
-  - FloatingPanel (2.8.3)
+  - FloatingPanel (2.8.4)
   - GoogleDataTransport (9.4.1):
     - GoogleUtilities/Environment (~> 7.7)
     - nanopb (< 2.30911.0, >= 2.30908.0)
@@ -117,7 +117,7 @@ DEPENDENCIES:
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
   - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
-  - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `03567b7dd75a00a5e5374518490417628a8919ce`)
+  - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
   - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
   - NativeDialog (from `../../plugins/native-dialog`)
@@ -172,7 +172,7 @@ EXTERNAL SOURCES:
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
   FloatingPanel:
-    :commit: 03567b7dd75a00a5e5374518490417628a8919ce
+    :commit: 1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b
     :git: https://github.com/mytonwalletorg/FloatingPanel
   MauricewegnerCapacitorNavigationBar:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
@@ -183,7 +183,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FloatingPanel:
-    :commit: 03567b7dd75a00a5e5374518490417628a8919ce
+    :commit: 1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b
     :git: https://github.com/mytonwalletorg/FloatingPanel
 
 SPEC CHECKSUMS:
@@ -203,7 +203,7 @@ SPEC CHECKSUMS:
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
   CapgoNativeAudio: 9c9d2ee1683c5e7091d59c3aa7ff5c30c66b9598
   CordovaPlugins: 149708b4353176a65688a5aed237f7c3054e7702
-  FloatingPanel: 0f9b89c6d4318842311bec6f6026fb18ca2a2c90
+  FloatingPanel: e00e106bf97b04d0de00bb360dc626459b0735ef
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleMLKit: 2bd0dc6253c4d4f227aad460f69215a504b2980e
   GoogleToolboxForMac: 8bef7c7c5cf7291c687cf5354f39f9db6399ad34
@@ -221,6 +221,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 236195177a93cbbb82dfe036d9274c059295de52
+PODFILE CHECKSUM: 56fea863ce90e3e1147867deec851c6930ae9b6c
 
 COCOAPODS: 1.15.2

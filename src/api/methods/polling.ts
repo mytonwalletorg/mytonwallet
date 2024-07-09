@@ -4,6 +4,7 @@ import type {
   ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiBaseToken,
+  ApiCountryCode,
   ApiNftUpdate,
   ApiStakingCommonData,
   ApiStakingState,
@@ -517,11 +518,13 @@ export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
       isCopyStorageEnabled = false,
       supportAccountsCount = 1,
       now: serverUtc,
+      country: countryCode,
     } = await callBackendGet<{
       isLimited: boolean;
       isCopyStorageEnabled?: boolean;
       supportAccountsCount?: number;
       now: number;
+      country: ApiCountryCode;
     }>('/utils/get-config');
 
     if (!isUpdaterAlive(localOnUpdate)) return;
@@ -531,6 +534,7 @@ export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
       isLimited,
       isCopyStorageEnabled,
       supportAccountsCount,
+      countryCode,
     });
 
     const localUtc = (new Date()).getTime();
@@ -675,7 +679,7 @@ export async function setupWalletVersionsPolling(accountId: string) {
     try {
       const versionInfos = (await ton.getWalletVersionInfos(
         network, publicKeyBytes, versions,
-      )).filter(({ lastTxId }) => !!lastTxId);
+      )).filter((versionInfo) => !!versionInfo.lastTxId || versionInfo.version === 'W5');
 
       const filteredVersions = versionInfos.map(({ wallet, ...rest }) => rest);
 

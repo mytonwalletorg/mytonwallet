@@ -23,7 +23,6 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import Loading from '../../../ui/Loading';
-import HideNftModal from '../../modals/HideNftModal';
 import Nft from './Nft';
 
 import styles from './Nft.module.scss';
@@ -40,8 +39,7 @@ interface StateProps {
   isHardware?: boolean;
   isTestnet?: boolean;
   blacklistedNftAddresses?: string[];
-  isHideNftModalOpened?: boolean;
-  nftWithOpenedMenuAddress?: string;
+  whitelistedNftAddresses?: string[];
 }
 
 const GETGEMS_ENABLED = !IS_IOS_APP && !IS_ANDROID_APP;
@@ -55,10 +53,9 @@ function Nfts({
   isHardware,
   isTestnet,
   blacklistedNftAddresses,
-  isHideNftModalOpened,
-  nftWithOpenedMenuAddress,
+  whitelistedNftAddresses,
 }: OwnProps & StateProps) {
-  const { clearNftsSelection, burnNfts, closeHideNftModal } = getActions();
+  const { clearNftsSelection, burnNfts } = getActions();
 
   const lang = useLang();
   const { isLandscape } = useDeviceScreen();
@@ -74,6 +71,9 @@ function Nfts({
       return undefined;
     }
 
+    const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
+    const whitelistedNftAddressesSet = new Set(whitelistedNftAddresses);
+
     return orderedAddresses
       .map((address) => byAddress[address])
       .filter((nft) => {
@@ -81,10 +81,11 @@ function Nfts({
 
         return !currentCollectionAddress || nft.collectionAddress === currentCollectionAddress;
       })
-      .filter((nft) => !nft.isHidden)
-      .filter((nft) => !blacklistedNftAddresses?.includes(nft.address));
+      .filter((nft) => (
+        !nft.isHidden || whitelistedNftAddressesSet.has(nft.address)
+      ) && !blacklistedNftAddressesSet.has(nft.address));
   }, [
-    byAddress, currentCollectionAddress, orderedAddresses, blacklistedNftAddresses,
+    byAddress, currentCollectionAddress, orderedAddresses, blacklistedNftAddresses, whitelistedNftAddresses,
   ]);
 
   const handleBurnNotcoinVouchersClick = useLastCallback(() => {
@@ -157,7 +158,6 @@ function Nfts({
       <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
         {nfts.map((nft) => <Nft key={nft.address} nft={nft} selectedAddresses={selectedAddresses} />)}
       </div>
-      <HideNftModal isOpen={isHideNftModalOpened} onClose={closeHideNftModal} nftAddress={nftWithOpenedMenuAddress} />
     </div>
   );
 }
@@ -173,8 +173,7 @@ export default memo(
 
       const {
         blacklistedNftAddresses,
-        isHideNftModalOpened,
-        nftWithOpenedMenuAddress,
+        whitelistedNftAddresses,
       } = selectCurrentAccountState(global) || {};
 
       return {
@@ -185,8 +184,7 @@ export default memo(
         currentCollectionAddress,
         isTestnet: global.settings.isTestnet,
         blacklistedNftAddresses,
-        isHideNftModalOpened,
-        nftWithOpenedMenuAddress,
+        whitelistedNftAddresses,
       };
     },
     (global, _, stickToFirst) => {

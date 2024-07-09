@@ -619,13 +619,24 @@ Install on Mobile: Mobile Kur
 Install App: Uygulamayı Yükle
 WrongNetwork: Dapp başka bir ağdan bir işlem talep etti.
 Hide: Gizle
+Hidden NFTs: Gizli NFT'ler
+Hidden By Me: Benim Tarafımdan Gizlendi
+Probably Scam: Muhtemelen Dolandırıcılık
+$settings_nft_probably_scam_description: Bu NFT'ler Dolandırıcılık Koruması tarafından otomatik olarak devre dışı bırakıldı. Yanlışlıkla bu listeye eklendiklerini düşünüyorsanız gerekli olanları Ana Sayfa'ya geri döndürebilirsiniz.
+Unhide: Göster
+Hide All: Hepsini gizle
 Hide NFT: NFT'yi Gizle
-Are you sure you want to hide this NFT? This action cannot be undone.: Bu NFT'yi gizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.
 Reload Page: Sayfayı Yenile
 Open in Safari: Safari'de Aç
 Open in Browser: Tarayıcıda Aç
 CopyURL: URL'yi Kopyala
 Share: Paylaş
+Unhide NFT: NFT'yi Göster
+$unhide_nft_warning: "%name%'yi göstermek istediğinizden emin misiniz? Bu NFT şüpheli görünüyor ve adı ve açıklamasıyla eşleşmeyebilir."
+Hide NFTs: NFT'leri Gizle
+Are you sure you want to hide this NFT collection containing %number% NFTs?: "%number% NFT içeren bu NFT koleksiyonunu gizlemek istediğinizden emin misiniz?"
+Are you sure you want to hide these %number% NFTs?: Bu %number% NFT'yi gizlemek istediğinizden emin misiniz?
+Show: Göster
 Confirm Sending: Göndermeyi Onayla
 Confirm Burning: Yazmayı Onayla
 Confirm Passcode: Şifreyi Onayla
@@ -635,3 +646,4 @@ $hardware_blind_sign_not_enabled: |
   Üçüncü taraf bir hizmet cüzdanınıza erişim istiyor — bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
 
   Devam etmek için, Ledger üzerindeki TON Uygulamasının ayarlarında "Kör İmzalama" seçeneğini etkinleştirin.
+Switch to W5: W5'e Geç

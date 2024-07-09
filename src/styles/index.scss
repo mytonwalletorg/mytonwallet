@@ -164,7 +164,7 @@ a {
   color: var(--color-blue);
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--color-blue);
     text-decoration: underline;
   }

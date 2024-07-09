@@ -620,13 +620,24 @@ Install on Mobile: Install on Mobile
 Install App: Install App
 WrongNetwork: The dapp requested a transaction from another network.
 Hide: Hide
+Hidden NFTs: Hidden NFTs
+Hidden By Me: Hidden By Me
+Probably Scam: Probably Scam
+$settings_nft_probably_scam_description: These NFTs were automatically disabled by Anti-Scam Protection. You can return the necessary ones to Home if you think they were included in this list by mistake.
+Unhide: Unhide
+Hide All: Hide All
 Hide NFT: Hide NFT
-Are you sure you want to hide this NFT? This action cannot be undone.: Are you sure you want to hide this NFT? This action cannot be undone.
 Reload Page: Reload Page
 Open in Safari: Open in Safari
 Open in Browser: Open in browser
 CopyURL: Copy URL
 Share: Share
+Unhide NFT: Unhide NFT
+$unhide_nft_warning: Are you sure you want to unhide %name%? This NFT looks suspicious and may not match its name and description.
+Hide NFTs: Hide NFTs
+Are you sure you want to hide this NFT collection containing %number% NFTs?: Are you sure you want to hide this NFT collection containing %number% NFTs?
+Are you sure you want to hide these %number% NFTs?: Are you sure you want to hide these %number% NFTs?
+Show: Show
 Confirm Sending: Confirm Sending
 Confirm Burning: Confirm Burning
 Confirm Passcode: Confirm Passcode
@@ -636,4 +647,4 @@ $hardware_blind_sign_not_enabled: |
   A third-party service is requesting access to your wallet — this could lead to the loss of funds. Cancel the operation if you are not sure about the reliability of this service.
 
   To continue, enable the "Blind Signing" option in the settings of the TON App on Ledger.
-
+Switch to W5: Switch to W5

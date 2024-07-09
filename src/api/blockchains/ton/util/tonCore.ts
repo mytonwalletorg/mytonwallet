@@ -11,6 +11,7 @@ import { WalletContractV2R2 } from '@ton/ton/dist/wallets/WalletContractV2R2';
 import { WalletContractV3R1 } from '@ton/ton/dist/wallets/WalletContractV3R1';
 import { WalletContractV3R2 } from '@ton/ton/dist/wallets/WalletContractV3R2';
 import { WalletContractV4 } from '@ton/ton/dist/wallets/WalletContractV4';
+import { WalletContractV5R1 } from '@ton/ton/dist/wallets/WalletContractV5R1';
 
 import type { ApiDnsZone, ApiNetwork, ApiWalletVersion } from '../../../types';
 import type { TokenTransferBodyParams } from '../types';
@@ -22,6 +23,7 @@ import {
   TONHTTPAPI_TESTNET_API_KEY,
   TONHTTPAPI_TESTNET_URL,
 } from '../../../../config';
+import axiosFetchAdapter from '../../../../lib/axios-fetch-adapter';
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
 import { DnsItem } from '../contracts/DnsItem';
@@ -44,7 +46,8 @@ export type TonWalletType = typeof WalletContractV1R1
 | typeof WalletContractV2R2
 | typeof WalletContractV3R1
 | typeof WalletContractV3R2
-| typeof WalletContractV4;
+| typeof WalletContractV4
+| typeof WalletContractV5R1;
 
 export type TonWallet = OpenedContract<WalletContractV1R1
 | WalletContractV1R2
@@ -53,9 +56,10 @@ export type TonWallet = OpenedContract<WalletContractV1R1
 | WalletContractV2R2
 | WalletContractV3R1
 | WalletContractV3R2
-| WalletContractV4>;
+| WalletContractV4
+| WalletContractV5R1>;
 
-axios.defaults.adapter = require('../../../../lib/axios-fetch-adapter').default;
+axios.defaults.adapter = axiosFetchAdapter;
 
 const TON_MAX_COMMENT_BYTES = 127;
 
@@ -70,6 +74,7 @@ export const walletClassMap: Record<ApiWalletVersion, TonWalletType> = {
   v3R1: WalletContractV3R1,
   v3R2: WalletContractV3R2,
   v4R2: WalletContractV4,
+  W5: WalletContractV5R1,
 };
 
 export function getTonClient(network: ApiNetwork = 'mainnet') {

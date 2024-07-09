@@ -1,6 +1,7 @@
 import {
   BURN_ADDRESS, NOTCOIN_EXCHANGERS, NOTCOIN_VOUCHERS_ADDRESS, TONCOIN_SLUG,
 } from '../../../config';
+import { findDifference } from '../../../util/iteratees';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { NFT_TRANSFER_TONCOIN_AMOUNT } from '../../../api/blockchains/ton/constants';
 import { addActionHandler } from '../../index';
@@ -29,30 +30,63 @@ addActionHandler('burnNfts', (global, actions, { nfts }) => {
   }, NBS_INIT_TIMEOUT);
 });
 
-addActionHandler('hideNft', (global, actions, { nftAddress }) => {
-  let { blacklistedNftAddresses = [] } = selectCurrentAccountState(global) || {};
-
-  blacklistedNftAddresses = blacklistedNftAddresses.filter((address) => address !== nftAddress);
+addActionHandler('addNftsToBlacklist', (global, actions, { addresses: nftAddresses }) => {
+  // Force hide NFT - remove it from whitelist and add to blacklist
+  let { blacklistedNftAddresses = [], whitelistedNftAddresses = [] } = selectCurrentAccountState(global) || {};
+  blacklistedNftAddresses = findDifference(blacklistedNftAddresses, nftAddresses);
+  whitelistedNftAddresses = findDifference(whitelistedNftAddresses, nftAddresses);
 
   return updateCurrentAccountState(global, {
-    blacklistedNftAddresses: [...blacklistedNftAddresses, nftAddress],
+    blacklistedNftAddresses: [...blacklistedNftAddresses, ...nftAddresses],
+    whitelistedNftAddresses,
   });
 });
 
-addActionHandler('openHideNftModal', (global) => {
+addActionHandler('addNftsToWhitelist', (global, actions, { addresses: nftAddresses }) => {
+  // Force show NFT - remove it from blacklist and add to whitelist
+  let { blacklistedNftAddresses = [], whitelistedNftAddresses = [] } = selectCurrentAccountState(global) || {};
+  blacklistedNftAddresses = findDifference(blacklistedNftAddresses, nftAddresses);
+  whitelistedNftAddresses = findDifference(whitelistedNftAddresses, nftAddresses);
+
   return updateCurrentAccountState(global, {
-    isHideNftModalOpened: true,
+    blacklistedNftAddresses,
+    whitelistedNftAddresses: [...whitelistedNftAddresses, ...nftAddresses],
+  });
+});
+
+addActionHandler('removeNftSpecialStatus', (global, actions, { address: nftAddress }) => {
+  // Stop forcing to show/hide NFT if it was in whitelist/blacklist
+  let { blacklistedNftAddresses = [], whitelistedNftAddresses = [] } = selectCurrentAccountState(global) || {};
+
+  blacklistedNftAddresses = blacklistedNftAddresses.filter((address) => address !== nftAddress);
+  whitelistedNftAddresses = whitelistedNftAddresses.filter((address) => address !== nftAddress);
+
+  return updateCurrentAccountState(global, {
+    blacklistedNftAddresses,
+    whitelistedNftAddresses,
+  });
+});
+
+addActionHandler('openUnhideNftModal', (global) => {
+  return updateCurrentAccountState(global, {
+    isUnhideNftModalOpen: true,
+  });
+});
+
+addActionHandler('closeUnhideNftModal', (global) => {
+  return updateCurrentAccountState(global, {
+    isUnhideNftModalOpen: undefined,
+  });
+});
+
+addActionHandler('openHideNftModal', (global, actions, { addresses, isCollection }) => {
+  return updateCurrentAccountState(global, {
+    selectedNftsToHide: { addresses, isCollection },
   });
 });
 
 addActionHandler('closeHideNftModal', (global) => {
   return updateCurrentAccountState(global, {
-    isHideNftModalOpened: undefined,
-  });
-});
-
-addActionHandler('openNftMenu', (global, actions, { nftAddress }) => {
-  return updateCurrentAccountState(global, {
-    nftWithOpenedMenuAddress: nftAddress,
+    selectedNftsToHide: undefined,
   });
 });

@@ -46,7 +46,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       let balance = 0n;
 
       if (stakingState.type === 'nominators') {
-        balance = stakingState.amount + stakingState.pendingDepositAmount;
+        balance = stakingState.amount;
         global = updateAccountStakingState(global, accountId, {
           type: stakingState.type,
           balance,
@@ -163,7 +163,12 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'updateConfig': {
-      const { isLimited: isLimitedRegion, isCopyStorageEnabled, supportAccountsCount } = update;
+      const {
+        isLimited: isLimitedRegion,
+        isCopyStorageEnabled,
+        supportAccountsCount,
+        countryCode,
+      } = update;
 
       global = updateRestrictions(global, {
         isLimitedRegion,
@@ -171,6 +176,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         isOnRampDisabled: IS_IOS_APP && isLimitedRegion,
         isCopyStorageEnabled,
         supportAccountsCount,
+        countryCode,
       });
       setGlobal(global);
       break;

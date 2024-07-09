@@ -616,13 +616,24 @@ Install on Mobile: Instalar en el móvil
 Install App: Instalar la aplicación
 WrongNetwork: El dapp solicitó una transacción de otra red.
 Hide: Ocultar
+Hidden NFTs: NFTs Ocultos
+Hidden By Me: Ocultado por Mí
+Probably Scam: Probablemente Estafa
+$settings_nft_probably_scam_description: Estos NFTs fueron desactivados automáticamente por la Protección Anti-Estafa. Puedes devolver los necesarios a la página principal si crees que fueron incluidos en esta lista por error.
+Unhide: Mostrar
+Hide All: Ocultar todo
 Hide NFT: Ocultar NFT
-Are you sure you want to hide this NFT? This action cannot be undone.: ¿Estás seguro de que quieres ocultar este NFT? Esta acción no se puede deshacer.
 Reload Page: Recargar página
 Open in Safari: Abrir en Safari
 Open in Browser: Abrir en el navegador
 CopyURL: Copiar URL
 Share: Compartir
+Unhide NFT: Mostrar NFT
+$unhide_nft_warning: ¿Estás seguro de que quieres mostrar %name%? Este NFT parece sospechoso y puede que no coincida con su nombre y descripción.
+Hide NFTs: Ocultar NFTs
+Are you sure you want to hide this NFT collection containing %number% NFTs?: ¿Estás seguro de que quieres ocultar esta colección de NFT que contiene %number% NFTs?
+Are you sure you want to hide these %number% NFTs?: ¿Estás seguro de que quieres ocultar estos %number% NFTs?
+Show: Mostrar
 Confirm Sending: Confirmar envío
 Confirm Burning: Confirmar quema
 Confirm Passcode: Confirmar contraseña
@@ -632,3 +643,4 @@ $hardware_blind_sign_not_enabled: |
   Un servicio de terceros está solicitando acceso a su billetera — esto podría provocar la pérdida de fondos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
 
   Para continuar, habilite la opción "Firma Ciega" en la configuración de la aplicación TON en Ledger.
+Switch to W5: Cambiar a W5

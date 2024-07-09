@@ -619,13 +619,24 @@ Install on Mobile: Встановити на мобільний пристрій
 Install App: Встановити додаток
 WrongNetwork: Dapp запитав транзакцію з іншої мережі.
 Hide: Сховати
+Hidden NFTs: Приховані NFT
+Hidden By Me: Приховані мною
+Probably Scam: Ймовірно шахрайство
+$settings_nft_probably_scam_description: Ці NFT були автоматично вимкнені Захистом від шахрайства. Ви можете повернути необхідні на Головну, якщо вважаєте, що вони були включені до цього списку помилково.
+Unhide: Показати
+Hide All: Сховати все
 Hide NFT: Сховати NFT
-Are you sure you want to hide this NFT? This action cannot be undone.: Ви впевнені, що хочете сховати цей NFT? Цю дію не можна буде скасувати.
 Reload Page: Перезавантажити сторінку
 Open in Safari: Відкрити в Safari
 Open in Browser: Відкрити в браузері
 CopyURL: Скопіювати URL
 Share: Поділитися
+Unhide NFT: Показати NFT
+$unhide_nft_warning: Ви впевнені, що хочете показати %name%? Цей NFT виглядає підозріло і може не відповідати своїй назві та опису.
+Hide NFTs: Сховати NFT
+Are you sure you want to hide this NFT collection containing %number% NFTs?: Ви впевнені, що хочете сховати цю колекцію NFT, яка містить %number% NFT?
+Are you sure you want to hide these %number% NFTs?: Ви впевнені, що хочете приховати ці %number% NFT?
+Show: Показати
 Confirm Sending: Підтвердити відправку
 Confirm Burning: Підтвердити запис
 Confirm Passcode: Підтвердьте пароль
@@ -635,3 +646,4 @@ $hardware_blind_sign_not_enabled: |
   Сторонній сервіс запитує доступ до вашого гаманця — це може призвести до втрати коштів. Скасуйте операцію, якщо ви не впевнені в надійності цього сервісу.
 
   Щоб продовжити, увімкніть опцію «Сліпе підписання» в налаштуваннях TON App на Ledger.
+Switch to W5: Версія W5

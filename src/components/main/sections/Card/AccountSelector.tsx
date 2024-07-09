@@ -3,7 +3,8 @@ import React, {
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import { type Account } from '../../../../global/types';
+import type { ApiWalletVersion } from '../../../../api/types';
+import { type Account, SettingsState } from '../../../../global/types';
 
 import { selectNetworkAccounts } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -39,11 +40,12 @@ interface StateProps {
   currentAccount?: Account;
   accounts?: Record<string, Account>;
   shouldForceAccountEdit?: boolean;
+  currentWalletVersion?: ApiWalletVersion;
 }
 
 const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
 const ACCOUNT_ADDRESS_SHIFT = 4;
-const ACCOUNTS_AMOUNT_FOR_COMPACT_DIALOG = 3;
+const ACCOUNTS_AMOUNT_FOR_COMPACT_DIALOG = 2;
 
 function AccountSelector({
   currentAccountId,
@@ -58,9 +60,10 @@ function AccountSelector({
   accounts,
   isInsideSticky,
   shouldForceAccountEdit,
+  currentWalletVersion,
 }: OwnProps & StateProps) {
   const {
-    switchAccount, renameAccount, openAddAccountModal, openSettings, requestOpenQrScanner,
+    switchAccount, renameAccount, openAddAccountModal, openSettings, requestOpenQrScanner, openSettingsWithState,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -77,6 +80,7 @@ function AccountSelector({
   const isQrScannerSupported = useQrScannerSupport();
 
   const noSettingsOrQrSupported = noSettingsButton || (isInsideSticky && isQrScannerSupported);
+  const withAddW5Button = currentWalletVersion !== 'W5';
 
   const accountsAmount = useMemo(() => Object.keys(accounts || {}).length, [accounts]);
 
@@ -128,6 +132,12 @@ function AccountSelector({
     vibrate();
     closeAccountSelector();
     openAddAccountModal();
+  });
+
+  const handleAddV5WalletClick = useLastCallback(() => {
+    vibrate();
+    closeAccountSelector();
+    openSettingsWithState({ state: SettingsState.WalletVersion });
   });
 
   const handleInputKeyDown = useLastCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -261,6 +271,12 @@ function AccountSelector({
           {accounts && Object.entries(accounts).map(
             ([accountId, { title, address, isHardware }]) => renderButton(accountId, address, isHardware, title),
           )}
+          {withAddW5Button && (
+            <Button className={styles.createAccountButton} onClick={handleAddV5WalletClick}>
+              {lang('Switch to W5')}
+              <i className={buildClassName(styles.createAccountIcon, 'icon-versions')} aria-hidden />
+            </Button>
+          )}
           <Button className={styles.createAccountButton} onClick={handleAddWalletClick}>
             {lang('Add Wallet')}
             <i className={buildClassName(styles.createAccountIcon, 'icon-plus')} aria-hidden />
@@ -283,12 +299,14 @@ function AccountSelector({
 export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
     const accounts = selectNetworkAccounts(global);
+    const currentAccountId = global.currentAccountId!;
 
     return {
-      currentAccountId: global.currentAccountId!,
-      currentAccount: accounts?.[global.currentAccountId!],
+      currentAccountId,
+      currentAccount: accounts?.[currentAccountId],
       accounts,
       shouldForceAccountEdit: global.shouldForceAccountEdit,
+      currentWalletVersion: global.walletVersions?.currentVersion,
     };
   },
   (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

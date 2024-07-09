@@ -20,7 +20,7 @@ export const WALLET_IS_BOUNCEABLE = false;
 export const FEE_FACTOR = 1.05;
 
 export const ALL_WALLET_VERSIONS: ApiWalletVersion[] = [
-  'simpleR1', 'simpleR2', 'simpleR3', 'v2R1', 'v2R2', 'v3R1', 'v3R2', 'v4R2',
+  'simpleR1', 'simpleR2', 'simpleR3', 'v2R1', 'v2R2', 'v3R1', 'v3R2', 'v4R2', 'W5',
 ];
 
 export const WORKCHAIN = Workchain.BaseChain;
@@ -149,6 +149,11 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
   v4R2: {
     name: 'v4R2',
     hash: '5659ce2300f4a09a37b0bdee41246ded52474f032c1d6ffce0d7d31b18b7b2b1',
+    type: ContractType.Wallet,
+  },
+  W5: {
+    name: 'W5',
+    hash: '7e94eaaeaaa423b9396e79747038c42edc4fe98dce65094071f0e0ad2df22fd5',
     type: ContractType.Wallet,
   },
   highloadV2: {

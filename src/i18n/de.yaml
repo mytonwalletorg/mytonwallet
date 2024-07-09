@@ -620,13 +620,24 @@ Install on Mobile: Auf dem Mobilgerät installieren
 Install App: App installieren
 WrongNetwork: Die Dapp hat eine Transaktion von einem anderen Netzwerk angefordert.
 Hide: Verstecken
+Hidden NFTs: Versteckte NFTs
+Hidden By Me: Von mir versteckt
+Probably Scam: Wahrscheinlich Betrug
+$settings_nft_probably_scam_description: Diese NFTs wurden automatisch von der Anti-Betrug-Schutz deaktiviert. Sie können die erforderlichen NFTs wieder zur Startseite zurückbringen, wenn Sie denken, dass sie fälschlicherweise in dieser Liste enthalten sind.
+Unhide: Anzeigen
+Hide All: Alle ausblenden
 Hide NFT: Verberge NFT
-Are you sure you want to hide this NFT? This action cannot be undone.: Sind Sie sicher, dass Sie dieses NFT verbergen möchten? Diese Aktion kann nicht rückgängig gemacht werden.
 Reload Page: Seite neu laden
 Open in Safari: In Safari öffnen
 Open in Browser: Im Browser öffnen
 CopyURL: URL kopieren
 Share: Teilen
+Unhide NFT: NFT anzeigen
+$unhide_nft_warning: Sind Sie sicher, dass Sie %name% anzeigen möchten? Dieses NFT sieht verdächtig aus und könnte nicht zu seinem Namen und seiner Beschreibung passen.
+Hide NFTs: NFTs ausblenden
+Are you sure you want to hide this NFT collection containing %number% NFTs?: Sind Sie sicher, dass Sie diese NFT-Sammlung mit %number% NFTs ausblenden möchten?
+Are you sure you want to hide these %number% NFTs?: Bist du sicher, dass du diese %number% NFTs ausblenden möchtest?
+Show: Anzeigen
 Confirm Sending: Senden bestätigen
 Confirm Burning: Brennen bestätigen
 Confirm Passcode: Passcode bestätigen
@@ -636,4 +647,4 @@ $hardware_blind_sign_not_enabled: |
   Ein externer Dienst fordert Zugriff auf Ihre Wallet an – dies kann zum Verlust von Mitteln führen. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
 
   Um fortzufahren, aktivieren Sie die Option „Blindsignatur“ in den Einstellungen der TON App auf dem Ledger.
-
+Switch to W5: Zu W5 wechseln

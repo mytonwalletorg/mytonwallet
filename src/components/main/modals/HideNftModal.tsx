@@ -11,33 +11,55 @@ import modalStyles from '../../ui/Modal.module.scss';
 
 interface OwnProps {
   isOpen?: boolean;
-  nftAddress?: string;
-  onClose: NoneToVoidFunction;
+  selectedNftsToHide?: {
+    addresses: string[];
+    isCollection: boolean;
+  };
 }
 
-function HideNftModal({ isOpen, nftAddress, onClose }: OwnProps) {
-  const { hideNft } = getActions();
+function HideNftModal({
+  isOpen,
+  selectedNftsToHide,
+}: OwnProps) {
+  const {
+    addNftsToBlacklist,
+    closeNftCollection,
+    closeHideNftModal,
+  } = getActions();
 
   const lang = useLang();
 
-  const handleHideNft = useLastCallback(() => {
-    hideNft({ nftAddress: nftAddress! });
-    onClose();
+  const handleHide = useLastCallback(() => {
+    addNftsToBlacklist({
+      addresses: selectedNftsToHide!.addresses,
+    });
+    if (selectedNftsToHide?.isCollection) closeNftCollection();
+    closeHideNftModal();
   });
 
   return (
     <Modal
       isOpen={isOpen}
       isCompact
-      onClose={onClose}
-      title={lang('Hide NFT')}
+      onClose={closeHideNftModal}
+      title={lang('Hide NFTs')}
     >
       <p className={modalStyles.text}>
-        {lang('Are you sure you want to hide this NFT? This action cannot be undone.')}
+        {
+          selectedNftsToHide?.isCollection
+            ? lang(
+              'Are you sure you want to hide this NFT collection containing %number% NFTs?',
+              { number: selectedNftsToHide?.addresses.length },
+            )
+            : lang(
+              'Are you sure you want to hide these %number% NFTs?',
+              { number: selectedNftsToHide?.addresses.length },
+            )
+        }
       </p>
       <div className={modalStyles.buttons}>
-        <Button onClick={onClose} className={modalStyles.button}>{lang('Cancel')}</Button>
-        <Button isDestructive onClick={handleHideNft} className={modalStyles.button}>
+        <Button onClick={closeHideNftModal} className={modalStyles.button}>{lang('Cancel')}</Button>
+        <Button isDestructive onClick={handleHide} className={modalStyles.button}>
           {lang('Hide')}
         </Button>
       </div>

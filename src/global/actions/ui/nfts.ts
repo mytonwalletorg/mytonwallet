@@ -1,6 +1,11 @@
 import { addActionHandler, setGlobal } from '../../index';
-import { addToSelectedAddresses, removeFromSelectedAddresses, updateAccountState } from '../../reducers';
-import { selectAccountState } from '../../selectors';
+import {
+  addToSelectedAddresses,
+  removeFromSelectedAddresses,
+  updateAccountState,
+  updateCurrentAccountState,
+} from '../../reducers';
+import { selectAccountState, selectCurrentAccountState } from '../../selectors';
 
 addActionHandler('openNftCollection', (global, actions, { address }) => {
   const accountId = global.currentAccountId!;
@@ -15,15 +20,15 @@ addActionHandler('openNftCollection', (global, actions, { address }) => {
 });
 
 addActionHandler('closeNftCollection', (global) => {
-  const accountId = global.currentAccountId!;
-  const accountState = selectAccountState(global, accountId);
-  global = updateAccountState(global, accountId, {
+  const accountState = selectCurrentAccountState(global);
+  global = updateCurrentAccountState(global, {
     nfts: {
       ...accountState!.nfts!,
       currentCollectionAddress: undefined,
     },
+    selectedNftsToHide: undefined,
   });
-  setGlobal(global);
+  return global;
 });
 
 addActionHandler('selectNfts', (global, actions, { addresses }) => {

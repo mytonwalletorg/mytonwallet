@@ -59,7 +59,7 @@ const CSP = `
   base-uri 'none';
   font-src 'self' https://fonts.gstatic.com/;
   form-action 'none';
-  frame-src 'self' https://widget.changelly.com/`
+  frame-src 'self' https://widget.changelly.com/ https://dreamwalkers.io/ https://avanchange.com/`
   .replace(/\s+/g, ' ').trim();
 
 const appVersion = require('./package.json').version;
