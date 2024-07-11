@@ -36,8 +36,10 @@ export async function createWallet(
   network: ApiNetwork,
   mnemonic: string[],
   password: string,
-  version: ApiWalletVersion = DEFAULT_WALLET_VERSION,
+  version?: ApiWalletVersion,
 ) {
+  if (!version) version = DEFAULT_WALLET_VERSION;
+
   const {
     mnemonicToKeyPair,
     publicKeyToAddress,
