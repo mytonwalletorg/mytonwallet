@@ -1,4 +1,6 @@
-import React, { memo, useMemo } from '../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo, useState,
+} from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
@@ -66,11 +68,16 @@ function DappTransferModal({
 
   const isOpen = state !== TransferState.None;
 
+  const [forceFullNative, setForceFullNative] = useState(false);
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
   const renderingTransactions = useCurrentOrPrev(transactions, true);
   const isNftTransfer = renderingTransactions?.[0].payload?.type === 'nft:transfer';
   const isDappLoading = dapp === undefined;
   const withPayloadWarning = renderingTransactions?.[0].payload?.type === 'unknown';
+
+  useEffect(() => {
+    setForceFullNative(isOpen && (withPayloadWarning || renderingKey === TransferState.Password));
+  }, [withPayloadWarning, renderingKey, isOpen]);
 
   const handleBackClick = useLastCallback(() => {
     if (state === TransferState.Confirm || state === TransferState.Password) {
@@ -234,7 +241,7 @@ function DappTransferModal({
       noBackdropClose
       dialogClassName={buildClassName(styles.modalDialog, withPayloadWarning && styles.modalDialogExtraHeight)}
       nativeBottomSheetKey="dapp-transfer"
-      forceFullNative={renderingKey === TransferState.Password}
+      forceFullNative={forceFullNative}
       onClose={closeDappTransfer}
       onCloseAnimationEnd={handleResetTransfer}
     >
