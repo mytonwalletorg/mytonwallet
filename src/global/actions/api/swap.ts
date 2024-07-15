@@ -39,6 +39,8 @@ const PAIRS_CACHE: Record<string, { data: ApiSwapPairAsset[]; timestamp: number 
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 const WAIT_FOR_CHANGELLY = 5 * 1000;
 const CLOSING_BOTTOM_SHEET_DURATION = 100; // Like in `useDelegatingBottomSheet`
+let isEstimateSwapBeingExecuted = false;
+let isEstimateCexSwapBeingExecuted = false;
 
 function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
   const {
@@ -523,6 +525,9 @@ addActionHandler('setSlippage', (global, actions, { slippage }) => {
 });
 
 addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnoughToncoin }) => {
+  if (isEstimateSwapBeingExecuted) return;
+
+  isEstimateSwapBeingExecuted = true;
   const resetParams = {
     amountOutMin: '0',
     transactionFee: '0',
@@ -547,6 +552,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
       ...resetParams,
     });
     setGlobal(global);
+    isEstimateSwapBeingExecuted = false;
     return;
   }
 
@@ -565,6 +571,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
       errorType: SwapErrorType.InvalidPair,
     });
     setGlobal(global);
+    isEstimateSwapBeingExecuted = false;
     return;
   }
 
@@ -593,6 +600,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
     shouldTryDiesel: isEnoughToncoin === false,
   });
 
+  isEstimateSwapBeingExecuted = false;
   global = getGlobal();
 
   if (!estimate || 'error' in estimate) {
@@ -648,6 +656,9 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
 });
 
 addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => {
+  if (isEstimateCexSwapBeingExecuted) return;
+
+  isEstimateCexSwapBeingExecuted = true;
   const amount = global.currentSwap.inputSource === SwapInputSource.In
     ? { amountOut: undefined }
     : { amountIn: undefined };
@@ -681,6 +692,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
       ...resetParams,
     });
     setGlobal(global);
+    isEstimateCexSwapBeingExecuted = false;
     return;
   }
 
@@ -716,6 +728,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   });
 
   global = getGlobal();
+  isEstimateCexSwapBeingExecuted = false;
 
   if (!estimate || 'errors' in estimate) {
     global = updateCurrentSwap(global, {

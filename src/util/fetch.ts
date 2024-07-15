@@ -5,7 +5,7 @@ import { pause } from './schedulers';
 
 type QueryParams = Record<string, string | number | boolean | string[]>;
 
-const DEFAULT_TIMEOUTS = [15000, 30000]; // 15, 15, 30 sec
+const MAX_TIMEOUT = 30000; // 30 sec
 
 export async function fetchJson(url: string | URL, data?: QueryParams, init?: RequestInit) {
   const urlObject = new URL(url);
@@ -37,7 +37,7 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
 }) {
   const {
     retries = DEFAULT_RETRIES,
-    timeouts = DEFAULT_TIMEOUTS,
+    timeouts = DEFAULT_TIMEOUT,
     shouldSkipRetryFn = isNotTemporaryError,
   } = options ?? {};
 
@@ -52,7 +52,7 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
 
       const timeout = Array.isArray(timeouts)
         ? timeouts[i - 1] ?? timeouts[timeouts.length - 1]
-        : timeouts;
+        : Math.min(timeouts * i, MAX_TIMEOUT);
       const response = await fetchWithTimeout(url, init, timeout);
       statusCode = response.status;
 

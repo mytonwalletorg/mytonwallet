@@ -6,6 +6,7 @@ import type { ApiNft, ApiNftUpdate } from '../../types';
 import type { ApiCheckTransactionDraftResult } from './types';
 
 import {
+  BURN_ADDRESS,
   NFT_BATCH_SIZE,
   NOTCOIN_EXCHANGERS,
   NOTCOIN_FORWARD_TON_AMOUNT,
@@ -156,7 +157,8 @@ export async function submitNftTransfers(options: {
 
   const messages = nftAddresses.map((nftAddress, index) => {
     const nft = nfts?.[index];
-    const isNotcoinBurn = nft?.collectionAddress === NOTCOIN_VOUCHERS_ADDRESS;
+    const isNotcoinBurn = nft?.collectionAddress === NOTCOIN_VOUCHERS_ADDRESS
+      && (toAddress === BURN_ADDRESS || NOTCOIN_EXCHANGERS.includes(toAddress as any));
     const payload = isNotcoinBurn
       ? buildNotcoinVoucherExchange(fromAddress, nftAddress, nft!.index)
       : buildNftTransferPayload(fromAddress, toAddress, comment);

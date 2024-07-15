@@ -23,6 +23,7 @@ import type { LedgerWalletInfo } from './types';
 import { ApiTransactionError } from '../../api/types';
 
 import {
+  BURN_ADDRESS,
   NOTCOIN_EXCHANGERS, NOTCOIN_VOUCHERS_ADDRESS, ONE_TON, TONCOIN_SLUG,
 } from '../../config';
 import { callApi } from '../../api';
@@ -38,7 +39,11 @@ import {
   WALLET_IS_BOUNCEABLE,
   WORKCHAIN,
 } from '../../api/blockchains/ton/constants';
-import { toBase64Address } from '../../api/blockchains/ton/util/tonCore';
+import {
+  commentToBytes,
+  packBytesAsSnakeCell,
+  toBase64Address,
+} from '../../api/blockchains/ton/util/tonCore';
 import {
   ApiHardwareBlindSigningNotEnabled,
   ApiUnsupportedVersionError,
@@ -49,6 +54,7 @@ import { parseAccountId } from '../account';
 import compareVersions from '../compareVersions';
 import { logDebugError } from '../logs';
 import { pause } from '../schedulers';
+import { isValidLedgerComment } from './utils';
 
 type TransactionParams = {
   to: Address;
@@ -274,8 +280,10 @@ export async function submitLedgerTransfer(
     ));
     isBounceable = true;
   } else if (comment) {
-    if (isUnsafeSupported) {
+    if (isValidLedgerComment(comment)) {
       payload = { type: 'comment', text: comment };
+    } else if (isUnsafeSupported) {
+      payload = { type: 'unsafe', message: buildCommentPayload(comment) };
     } else {
       return {
         error: ApiTransactionError.NotSupportedHardwareOperation,
@@ -355,12 +363,15 @@ export async function submitLedgerNftTransfer(options: {
 
   const { seqno } = walletInfo!;
 
-  const isNotcoinBurn = nft?.collectionAddress === NOTCOIN_VOUCHERS_ADDRESS;
+  const isNotcoinBurn = nft?.collectionAddress === NOTCOIN_VOUCHERS_ADDRESS
+    && (toAddress === BURN_ADDRESS || NOTCOIN_EXCHANGERS.includes(toAddress as any));
   // eslint-disable-next-line no-null/no-null
   let forwardPayload: Cell | null = null;
+  let forwardAmount = NFT_TRANSFER_TONCOIN_FORWARD_AMOUNT;
 
   if (isNotcoinBurn) {
     ({ forwardPayload, toAddress } = buildNotcoinVoucherExchange(nftAddress, nft!.index));
+    forwardAmount = 50000000n;
   } else if (comment) {
     forwardPayload = buildCommentPayload(comment);
   }
@@ -380,7 +391,7 @@ export async function submitLedgerNftTransfer(options: {
         responseDestination: Address.parse(fromAddress!),
         // eslint-disable-next-line no-null/no-null
         customPayload: null,
-        forwardAmount: NFT_TRANSFER_TONCOIN_FORWARD_AMOUNT,
+        forwardAmount,
         forwardPayload,
       },
     });
@@ -458,10 +469,8 @@ export async function buildLedgerTokenTransfer(
 }
 
 function buildCommentPayload(comment: string) {
-  return new Builder()
-    .storeUint(0, 32)
-    .storeStringTail(comment)
-    .endCell();
+  const bytes = commentToBytes(comment);
+  return packBytesAsSnakeCell(bytes);
 }
 
 export async function signLedgerTransactions(accountId: string, messages: ApiDappTransfer[], options?: {

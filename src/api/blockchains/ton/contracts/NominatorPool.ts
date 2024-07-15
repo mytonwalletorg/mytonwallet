@@ -1,5 +1,5 @@
 import type {
-  Cell, Contract, ContractProvider, TupleItem,
+  Cell, Contract, ContractProvider,
 } from '@ton/core';
 import {
   Address, beginCell, contractAddress, TupleReader,
@@ -33,11 +33,12 @@ export class NominatorPool implements Contract {
     withdrawRequested: boolean;
   }[]> {
     const res = await provider.get('list_nominators', []);
+    const tupleReader = (res.stack as TupleReader).readTuple();
+    const itemsArray = (tupleReader as any).items as bigint[][];
 
-    const items = (res.stack as any).items[0].items;
-
-    return items.map((item: { items: TupleItem[] }) => {
-      const tuple = new TupleReader(item.items);
+    return itemsArray.map((items: bigint[]) => {
+      const tupleItems = items.map((value) => ({ type: 'int' as const, value }));
+      const tuple = new TupleReader(tupleItems);
 
       const hash = tuple.readBigNumber().toString(16).padStart(64, '0');
       const address = Address.parse(`0:${hash}`);

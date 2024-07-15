@@ -11,6 +11,7 @@ import { logDebug } from '../../../../util/logs';
 
 axiosRetry(axios, {
   retries: DEFAULT_RETRIES,
+  shouldResetTimeout: true,
   retryDelay: (retryCount) => {
     return retryCount * DEFAULT_ERROR_PAUSE;
   },

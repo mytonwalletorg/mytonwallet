@@ -190,7 +190,7 @@ View Address on %ton_explorer_name%: Открыть в %ton_explorer_name%
 No suggestions, you're on your own!: Ничего не найдено :(
 Play Sounds: Включить звуки
 Focus on asset value rather than current balance: Фокус на стоимости активов вместо текущего баланса
-$tiny_transfers_help: Отключите эту опцию, чтобы показывать переводы стоимостью менее $%value%. Имейте в виду, что такие переводы часто используются для спама и мошенничества.
+$tiny_transfers_help: Скрыть переводы стоимостью менее $%value%. Имейте в виду — такие суммы часто отправляют спамеры и мошенники.
 Today: Сегодня
 Yesterday: Вчера
 Now: Сейчас
@@ -279,9 +279,9 @@ $dapps-description: Вы можете подключиться к децентр
 Logged in with MyTonWallet: Подключены с помощью MyTonWallet
 No active connections: Нет активных подключений
 Other: Другие
-Assets & Activity: Активы и Лента
+Assets & Activity: Активы и лента
 Token Settings: Настройки токенов
-My Tokens: Мои Токены
+My Tokens: Мои токены
 Add Token: Добавить токен
 Delete Token: Удалить токен
 Are you sure you want to delete?: Вы уверены, что хотите удалить %token%?
@@ -528,10 +528,7 @@ Required: Обязательно
 Comment is too long.: Комментарий слишком длинный.
 Memo: Memo
 Memo was copied!: Memo был скопирован!
-$hide_tokens_no_cost_help: |
-  Выключите эту опцию, чтобы отображать в вашей учётной записи токены со стоимостью менее $%value%.
-  Пожалуйста, имейте в виду, что такие жетоны часто используются для спама и мошенничества.
-  Вы также можете выборочно включить и отключить конкретные токены, используя список ниже на этом экране.
+$hide_tokens_no_cost_help: Скрыть токены стоимостью менее $%value%. Имейте в виду — такие токены часто отправляют спамеры и мошенники. На этом же экране ниже вы можете скрыть отдельные токены.
 No internet connection. Please check your connection and try again.: Отсутствует подключение к интернету. Пожалуйста, проверьте своё соединение и попробуйте снова.
 To use this feature, first enable Face ID in your phone settings.: Чтобы использовать эту функцию, сначала активируйте идентификацию лица в настройках телефона.
 To use this feature, first enable biometrics in your phone settings.: Чтобы использовать эту функцию, сначала активируйте биометрию в настройках телефона.
@@ -608,7 +605,7 @@ until %date%: до %date%
 "%volume% in %amount% parts": "%volume% в %amount% частях"
 Unfreeze: Разморозить
 Claim: Заклеймить
-Confirm Unfreezing: Подтверждение размораживания
+Confirm Unfreezing: Подтвердите размораживание
 Insufficient Balance for Fee.: Недостаточный баланс для комиссии.
 $fee_value_bold: "**Комиссия:** %fee%"
 MyTonWallet Features: Функции MyTonWallet

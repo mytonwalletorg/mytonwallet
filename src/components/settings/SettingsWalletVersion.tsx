@@ -117,7 +117,7 @@ function SettingsWalletVersion({
         <div className={styles.blockWalletVersionReadMore}>
           {lang('$read_more_about_wallet_version', {
             ton_link: (
-              <a href="https://docs.ton.org/ko/participate/wallets/contracts" target="_blank" rel="noreferrer">
+              <a href="https://docs.ton.org/participate/wallets/contracts" target="_blank" rel="noreferrer">
                 ton.org
               </a>
             ),

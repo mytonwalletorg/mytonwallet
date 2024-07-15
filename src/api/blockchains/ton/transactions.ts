@@ -41,6 +41,7 @@ import { parseTxId } from './util';
 import { fetchAddressBook, fetchLatestTxId, fetchTransactions } from './util/apiV3';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
 import { buildNft, parseWalletTransactionBody } from './util/metadata';
+import { sendExternal } from './util/sendExternal';
 import { fetchNftItems } from './util/tonapiio';
 import {
   commentToBytes,
@@ -52,7 +53,6 @@ import {
   parseAddress,
   parseBase64,
   resolveTokenWalletAddress,
-  sendExternal,
   toBase64Address,
 } from './util/tonCore';
 import { fetchStoredAccount, fetchStoredAddress } from '../../common/accounts';
@@ -169,9 +169,8 @@ export async function checkTransactionDraft(
 
     const account = await fetchStoredAccount(accountId);
     const { address } = account;
-    const isLedger = !!account.ledger;
 
-    if (data && typeof data === 'string' && !isBase64Data && !isLedger) {
+    if (data && typeof data === 'string' && !isBase64Data) {
       data = commentToBytes(data);
     }
 

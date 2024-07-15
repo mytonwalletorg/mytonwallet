@@ -1,7 +1,5 @@
 import type { OpenedContract } from '@ton/core';
-import {
-  Address, beginCell, Builder, Cell, external, storeMessage,
-} from '@ton/core';
+import { Address, Builder, Cell } from '@ton/core';
 import axios from 'axios';
 import { WalletContractV1R1 } from '@ton/ton/dist/wallets/WalletContractV1R1';
 import { WalletContractV1R2 } from '@ton/ton/dist/wallets/WalletContractV1R2';
@@ -32,9 +30,13 @@ import { JettonWallet } from '../contracts/JettonWallet';
 import { hexToBytes } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
 import {
-  DEFAULT_IS_BOUNCEABLE, DNS_ZONES_MAP, JettonOpCode, LiquidStakingOpCode, OpCode, WORKCHAIN,
+  DEFAULT_IS_BOUNCEABLE,
+  DNS_ZONES_MAP,
+  JettonOpCode,
+  LiquidStakingOpCode,
+  OpCode,
+  WORKCHAIN,
 } from '../constants';
-import { dieselSendBoc } from './diesel';
 import { generateQueryId } from './index';
 
 import { TonClient } from './TonClient';
@@ -225,6 +227,12 @@ export function packBytesAsSnake(bytes: Uint8Array, maxBytes = TON_MAX_COMMENT_B
     return bytes;
   }
 
+  return packBytesAsSnakeCell(bytes);
+}
+
+export function packBytesAsSnakeCell(bytes: Uint8Array): Cell {
+  const buffer = Buffer.from(bytes);
+
   const mainBuilder = new Builder();
   let prevBuilder: Builder | undefined;
   let currentBuilder = mainBuilder;
@@ -364,39 +372,4 @@ export async function getDnsItemDomain(network: ApiNetwork, address: Address | s
     : await contract.getDomain();
 
   return `${base}${zone}`;
-}
-
-export async function sendExternal(
-  client: TonClient,
-  wallet: TonWallet,
-  message: Cell,
-  withDiesel?: boolean,
-) {
-  const { address, init } = wallet;
-
-  let neededInit: { data: Cell; code: Cell } | undefined;
-  if (init && !await client.isContractDeployed(address)) {
-    neededInit = init;
-  }
-
-  const ext = external({
-    to: address,
-    init: neededInit ? { code: neededInit.code, data: neededInit.data } : undefined,
-    body: message,
-  });
-
-  const cell = beginCell()
-    .store(storeMessage(ext))
-    .endCell();
-
-  const msgHash = cell.hash().toString('base64');
-  const boc = cell.toBoc().toString('base64');
-
-  if (withDiesel) {
-    await dieselSendBoc(boc);
-  } else {
-    await client.sendFile(boc);
-  }
-
-  return { boc, msgHash };
 }
