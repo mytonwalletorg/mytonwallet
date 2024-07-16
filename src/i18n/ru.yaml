@@ -150,7 +150,6 @@ No NFTs yet: Пока у вас нет NFT
 $nft_explore_offer: |
   Но вы можете просмотреть
   существующие коллекции.
-$nft_hardware_unsupported: К сожалению, работа с NFT пока не поддерживается кошельком Ledger.
 Open Getgems: Открыть Getgems
 Transaction is not completed: Перевод не выполнен
 Received: Получено

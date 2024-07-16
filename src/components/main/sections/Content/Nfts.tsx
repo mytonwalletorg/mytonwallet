@@ -10,7 +10,7 @@ import {
   NOTCOIN_VOUCHERS_ADDRESS,
 } from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
-import { selectCurrentAccountState, selectIsHardwareAccount } from '../../../../global/selectors';
+import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { IS_ANDROID_APP, IS_IOS_APP } from '../../../../util/windowEnvironment';
@@ -36,7 +36,6 @@ interface StateProps {
   selectedAddresses?: string[];
   byAddress?: Record<string, ApiNft>;
   currentCollectionAddress?: string;
-  isHardware?: boolean;
   isTestnet?: boolean;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
@@ -50,7 +49,6 @@ function Nfts({
   selectedAddresses,
   byAddress,
   currentCollectionAddress,
-  isHardware,
   isTestnet,
   blacklistedNftAddresses,
   whitelistedNftAddresses,
@@ -103,39 +101,22 @@ function Nfts({
   if (nfts.length === 0) {
     return (
       <div className={styles.emptyList}>
-        {!isHardware ? (
+        <AnimatedIconWithPreview
+          play={isActive}
+          tgsUrl={ANIMATED_STICKERS_PATHS.happy}
+          previewUrl={ANIMATED_STICKERS_PATHS.happyPreview}
+          size={ANIMATED_STICKER_BIG_SIZE_PX}
+          className={styles.sticker}
+          noLoop={false}
+          nonInteractive
+        />
+        <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
+        {GETGEMS_ENABLED && (
           <>
-            <AnimatedIconWithPreview
-              play={isActive}
-              tgsUrl={ANIMATED_STICKERS_PATHS.happy}
-              previewUrl={ANIMATED_STICKERS_PATHS.happyPreview}
-              size={ANIMATED_STICKER_BIG_SIZE_PX}
-              className={styles.sticker}
-              noLoop={false}
-              nonInteractive
-            />
-            <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
-            {GETGEMS_ENABLED && (
-              <>
-                <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
-                <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">
-                  {lang('Open Getgems')}
-                </a>
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            <AnimatedIconWithPreview
-              play={isActive}
-              tgsUrl={ANIMATED_STICKERS_PATHS.noData}
-              previewUrl={ANIMATED_STICKERS_PATHS.noDataPreview}
-              size={ANIMATED_STICKER_BIG_SIZE_PX}
-              className={styles.sticker}
-              noLoop={false}
-              nonInteractive
-            />
-            <p className={styles.emptyListText}>{lang('$nft_hardware_unsupported')}</p>
+            <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
+            <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">
+              {lang('Open Getgems')}
+            </a>
           </>
         )}
       </div>
@@ -180,7 +161,6 @@ export default memo(
         orderedAddresses,
         selectedAddresses,
         byAddress,
-        isHardware: selectIsHardwareAccount(global),
         currentCollectionAddress,
         isTestnet: global.settings.isTestnet,
         blacklistedNftAddresses,

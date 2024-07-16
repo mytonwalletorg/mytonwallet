@@ -105,14 +105,9 @@ function SwapWaitTokens({
                   {lang('Changelly Live Chat')}
                 </a>),
               email: (
-                <a
-                  href={`mailto:${CHANGELLY_SUPPORT_EMAIL}?body=Transaction ID: ${cexTransactionId || ''}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.changellyDescriptionBold}
-                >
+                <span className={styles.changellyDescriptionBold}>
                   {CHANGELLY_SUPPORT_EMAIL}
-                </a>),
+                </span>),
             })}
           </span>
           {cexTransactionId && (

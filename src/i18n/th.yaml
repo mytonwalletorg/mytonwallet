@@ -149,7 +149,6 @@ No NFTs yet: ยังไม่มี NFT
 $nft_explore_offer: |
   สำรวจมาร์เก็ตเพลสเพื่อค้นพบ
   แหล่งของ NFT คอลเลกชัน.
-$nft_hardware_unsupported: ขออภัย, การโอน NFT ยังไม่รองรับการใช้งานด้วย Ledger.
 Open Getgems: เปิด Getgems
 Transaction is not completed: การทำรายการไม่สำเร็จ
 Received: ได้รับ

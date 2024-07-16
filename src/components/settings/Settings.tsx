@@ -519,7 +519,7 @@ function Settings({
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-            {IS_DAPP_SUPPORTED && !isHardwareAccount && (
+            {IS_DAPP_SUPPORTED && (
               <div className={styles.item} onClick={handleConnectedDappsOpen}>
                 <img className={styles.menuIcon} src={connectedDappsImg} alt={lang('Connected Dapps')} />
                 {lang('Connected Dapps')}

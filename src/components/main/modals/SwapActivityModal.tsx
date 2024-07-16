@@ -222,14 +222,9 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
           <span className={styles.changellyDescription}>
             {lang('$swap_changelly_kyc_security', {
               email: (
-                <a
-                  href={`mailto:${CHANGELLY_SECURITY_EMAIL}?body=Transaction ID: ${cexTransactionId || ''}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.changellyDescriptionBold}
-                >
+                <span className={styles.changellyDescriptionBold}>
                   {CHANGELLY_SECURITY_EMAIL}
-                </a>),
+                </span>),
             })}
           </span>
           {cexTransactionId && (
@@ -268,14 +263,9 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
                     {lang('Changelly Live Chat')}
                   </a>),
                 email: (
-                  <a
-                    href={`mailto:${CHANGELLY_SUPPORT_EMAIL}?body=Transaction ID: ${cexTransactionId || ''}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={styles.changellyDescriptionBold}
-                  >
+                  <span className={styles.changellyDescriptionBold}>
                     {CHANGELLY_SUPPORT_EMAIL}
-                  </a>),
+                  </span>),
               })}
             </span>
             {cexTransactionId && (

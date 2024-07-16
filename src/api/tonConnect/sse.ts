@@ -136,7 +136,13 @@ export async function resetupSseConnection() {
   sseDapps = Object.entries(dappsState).reduce((result, [accountId, dapps]) => {
     if (parseAccountId(accountId).network === network) {
       for (const dapp of Object.values(dapps)) {
-        result.push({ ...dapp.sse!, accountId, origin: dapp.origin });
+        if (dapp.sse?.clientId) {
+          result.push({
+            ...dapp.sse,
+            accountId,
+            origin: dapp.origin,
+          });
+        }
       }
     }
     return result;

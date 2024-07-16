@@ -9,7 +9,6 @@ import useLang from '../../hooks/useLang';
 import useQrCode from '../../hooks/useQrCode';
 
 import Button from '../ui/Button';
-import Emoji from '../ui/Emoji';
 import InteractiveTextField from '../ui/InteractiveTextField';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -64,9 +63,6 @@ function Content({
           <a href="#" onClick={handleVerify} className={styles.dottedLink}>
             {lang('Verify now')}
           </a>
-          <br />
-          <br />
-          <Emoji from="⚠️" />{' '}{lang('$nft_hardware_unsupported')}
         </div>
       )}
 
