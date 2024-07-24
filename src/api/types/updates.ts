@@ -27,6 +27,7 @@ export type ApiUpdateNewActivities = {
   type: 'newActivities';
   accountId: string;
   activities: ApiActivity[];
+  noForward?: boolean; // Forbid cyclic update redirection to/from NBS
 };
 
 export type ApiUpdateNewLocalTransaction = {

@@ -67,15 +67,17 @@ addActionHandler('removeNftSpecialStatus', (global, actions, { address: nftAddre
   });
 });
 
-addActionHandler('openUnhideNftModal', (global) => {
+addActionHandler('openUnhideNftModal', (global, actions, { address, name }) => {
   return updateCurrentAccountState(global, {
     isUnhideNftModalOpen: true,
+    selectedNftToUnhide: { address, name },
   });
 });
 
 addActionHandler('closeUnhideNftModal', (global) => {
   return updateCurrentAccountState(global, {
     isUnhideNftModalOpen: undefined,
+    selectedNftToUnhide: undefined,
   });
 });
 

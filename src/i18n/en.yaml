@@ -489,7 +489,7 @@ Wrong code, please try again: Wrong code, please try again
 Scan your fingerprint: Scan your fingerprint
 Incorrect code, please try again.: Incorrect code, please try again.
 Correct: Correct
-Confirm Operation: Confirm Operation
+Confirm Action: Confirm Action
 Confirm Swap: Confirm Swap
 "%amount% to %address%": "%amount% to %address%"
 "%amount_from% to %amount_to%": "%amount_from% to %amount_to%"
@@ -647,3 +647,5 @@ $hardware_blind_sign_not_enabled: |
 
   To continue, enable the "Blind Signing" option in the settings of the TON App on Ledger.
 Switch to W5: Switch to W5
+Not a Scam: Not a Scam
+Untitled: Untitled

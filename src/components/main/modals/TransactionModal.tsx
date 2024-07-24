@@ -60,6 +60,7 @@ type StateProps = {
   isUnstakeRequested?: boolean;
   isLongUnstakeRequested?: boolean;
   stakingStatus?: StakingStatus;
+  isMediaViewerOpen?: boolean;
 };
 const enum SLIDES {
   initial,
@@ -76,6 +77,7 @@ function TransactionModal({
   isUnstakeRequested,
   isLongUnstakeRequested,
   stakingStatus,
+  isMediaViewerOpen,
 }: StateProps) {
   const {
     startTransfer,
@@ -113,7 +115,11 @@ function TransactionModal({
   const [, transactionHash] = (id || '').split(':');
   const isStaking = renderedTransaction?.type === 'stake' || renderedTransaction?.type === 'unstake';
   const isUnstaking = renderedTransaction?.type === 'unstake';
-  const isNftTransfer = renderedTransaction?.type === 'nftTransferred' || renderedTransaction?.type === 'nftReceived';
+  const isNftTransfer = (
+    renderedTransaction?.type === 'nftTransferred'
+    || renderedTransaction?.type === 'nftReceived'
+    || Boolean(renderedTransaction?.nft)
+  );
 
   const token = slug ? tokensBySlug?.[slug] : undefined;
   const address = isIncoming ? fromAddress : toAddress;
@@ -443,7 +449,6 @@ function TransactionModal({
               isActive={isActive}
               error={passwordError}
               withCloseButton={IS_CAPACITOR}
-              operationType="transfer"
               containerClassName={IS_CAPACITOR ? styles.passwordFormContent : styles.passwordFormContentInModal}
               submitLabel={lang('Send')}
               onSubmit={handlePasswordSubmit}
@@ -457,7 +462,7 @@ function TransactionModal({
 
   return (
     <Modal
-      isOpen={Boolean(transaction)}
+      isOpen={Boolean(transaction) && !isMediaViewerOpen}
       hasCloseButton
       nativeBottomSheetKey="transaction-info"
       forceFullNative={currentSlide === SLIDES.password}
@@ -501,6 +506,7 @@ export default memo(
       isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
       isLongUnstakeRequested: accountState?.isLongUnstakeRequested,
       stakingStatus,
+      isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
     };
   })(TransactionModal),
 );

@@ -1,8 +1,10 @@
-import React, { memo, useRef } from '../../../../lib/teact/teact';
+import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
+import { withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 import type { IAnchorPosition } from '../../../../global/types';
 
+import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import stopEvent from '../../../../util/stopEvent';
 
@@ -21,10 +23,22 @@ interface OwnProps {
   onClose: NoneToVoidFunction;
 }
 
+interface StateProps {
+  blacklistedNftAddresses?: string[];
+  whitelistedNftAddresses?: string[];
+}
+
 function NftMenu({
-  nft, menuPosition, onOpen, onClose,
-}: OwnProps) {
-  const { menuItems, handleMenuItemSelect } = useNftMenu(nft);
+  nft, menuPosition, onOpen, onClose, blacklistedNftAddresses, whitelistedNftAddresses,
+}: OwnProps & StateProps) {
+  const isNftBlackListed = useMemo(() => {
+    return blacklistedNftAddresses?.includes(nft.address);
+  }, [nft, blacklistedNftAddresses]);
+  const isNftWhiteListed = useMemo(() => {
+    return whitelistedNftAddresses?.includes(nft.address);
+  }, [nft, whitelistedNftAddresses]);
+
+  const { menuItems, handleMenuItemSelect } = useNftMenu(nft, isNftBlackListed, isNftWhiteListed);
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLButtonElement>(null);
   const isOpen = Boolean(menuPosition);
@@ -78,4 +92,11 @@ function NftMenu({
   );
 }
 
-export default memo(NftMenu);
+export default memo(withGlobal((global): StateProps => {
+  const accountState = selectCurrentAccountState(global) || {};
+  const { blacklistedNftAddresses, whitelistedNftAddresses } = accountState;
+  return {
+    blacklistedNftAddresses,
+    whitelistedNftAddresses,
+  };
+})(NftMenu));

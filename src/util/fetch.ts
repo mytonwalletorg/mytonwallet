@@ -106,5 +106,5 @@ export async function handleFetchErrors(response: Response, ignoreHttpCodes?: nu
 }
 
 function isNotTemporaryError(message?: string, statusCode?: number) {
-  return statusCode === 400;
+  return statusCode && [400, 404].includes(statusCode);
 }

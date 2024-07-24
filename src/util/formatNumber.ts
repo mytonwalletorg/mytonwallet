@@ -19,8 +19,12 @@ export const formatInteger = withCache((
   noFloor?: boolean,
 ) => {
   value = Big(value);
-  const dp = value.gte(1) ? fractionDigits : DEFAULT_DECIMAL_PLACES;
-  const fixed = value.round(dp, noFloor ? Big.roundHalfUp : undefined).toString();
+  const dp = value.gte(1) || noFloor ? fractionDigits : DEFAULT_DECIMAL_PLACES;
+  let fixed = value.round(dp, noFloor ? Big.roundHalfUp : undefined).toString();
+
+  if (fixed === '0') {
+    fixed = value.toString();
+  }
 
   let [wholePart, fractionPart = ''] = fixed.split('.');
 

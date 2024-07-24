@@ -148,7 +148,7 @@ export async function resetupSseConnection() {
     return result;
   }, [] as SseDapp[]);
 
-  const clientIds = extractKey(sseDapps, 'clientId');
+  const clientIds = extractKey(sseDapps, 'clientId').filter(Boolean);
   if (!clientIds.length) {
     return;
   }

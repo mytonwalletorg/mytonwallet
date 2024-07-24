@@ -3,7 +3,7 @@ export function isValidString(value: any, maxLength = 100) {
 }
 
 export function isValidUrl(url: string) {
-  const isString = isValidString(url, 150);
+  const isString = isValidString(url, 255);
   if (!isString) return false;
 
   try {

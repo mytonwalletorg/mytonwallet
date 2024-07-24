@@ -1,20 +1,21 @@
-import React, { memo, useMemo, useState } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
+import React, { memo, useMemo } from '../../lib/teact/teact';
+import { withGlobal } from '../../global';
 
 import type { ApiNft } from '../../api/types';
 
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON } from '../../util/windowEnvironment';
 
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
-import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 
-import UnhideNftModal from '../main/modals/UnhideNftModal';
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
-import Switcher from '../ui/Switcher';
+import HiddenByUserNft from './nfts/HiddenByUserNft';
+import ProbablyScamNft from './nfts/ProbablyScamNft';
 
 import styles from './Settings.module.scss';
 
@@ -29,7 +30,6 @@ interface StateProps {
   whitelistedNftAddresses?: string[];
   orderedAddresses?: string[];
   byAddress?: Record<string, ApiNft>;
-  isUnhideNftModalOpen?: boolean;
 }
 
 function SettingsHiddenNfts({
@@ -40,14 +40,7 @@ function SettingsHiddenNfts({
   whitelistedNftAddresses,
   orderedAddresses,
   byAddress,
-  isUnhideNftModalOpen,
 }: OwnProps & StateProps) {
-  const {
-    openUnhideNftModal,
-    removeNftSpecialStatus,
-    closeUnhideNftModal,
-  } = getActions();
-
   const lang = useLang();
 
   useHistoryBack({
@@ -85,44 +78,15 @@ function SettingsHiddenNfts({
     return new Set(whitelistedNftAddresses);
   }, [whitelistedNftAddresses]);
 
-  const [selectedNft, setSelectedNft] = useState<{ address: string; name: string } | undefined>();
-
-  const handleProbablyScamNftClick = useLastCallback((nft: ApiNft) => {
-    const isWhitelisted = whitelistedNftAddressesSet?.has(nft.address);
-    if (isWhitelisted) {
-      removeNftSpecialStatus({ address: nft.address });
-    } else {
-      setSelectedNft({ address: nft.address, name: nft.name! });
-      openUnhideNftModal();
-    }
-  });
+  const { isPortrait } = useDeviceScreen();
+  const areSettingsInModal = !isPortrait || IS_ELECTRON || IS_DELEGATING_BOTTOM_SHEET || IS_DELEGATED_BOTTOM_SHEET;
 
   function renderHiddenByUserNfts() {
     return (
       <>
         <p className={styles.blockTitle}>{lang('Hidden By Me')}</p>
-        <div className={styles.block}>
-          {
-            hiddenByUserNfts!.map((nft) => {
-              return (
-                <div
-                  className={styles.item}
-                  onClick={() => removeNftSpecialStatus({ address: nft.address })}
-                  key={nft.address}
-                >
-                  <img className={styles.nftImage} src={nft.image} alt={nft.name} />
-                  <div className={styles.nftPrimaryCell}>
-                    <span className={styles.nftName}>{nft.name}</span>
-                    {
-                      nft.collectionName && <span className={styles.nftCollection}>{nft.collectionName}</span>
-                    }
-                  </div>
-
-                  <Button isSmall isPrimary isText className={styles.nftButtonUnhide}>{lang('Unhide')}</Button>
-                </div>
-              );
-            })
-          }
+        <div className={buildClassName(styles.block, !areSettingsInModal && 'hidden-nfts-user')}>
+          {hiddenByUserNfts!.map((nft) => <HiddenByUserNft key={nft.address} nft={nft} />)}
         </div>
       </>
     );
@@ -132,32 +96,20 @@ function SettingsHiddenNfts({
     return (
       <>
         <p className={styles.blockTitle}>{lang('Probably Scam')}</p>
-        <div className={buildClassName(styles.block, styles.settingsBlockWithDescription)}>
+        <div className={
+          buildClassName(styles.block, styles.settingsBlockWithDescription, !areSettingsInModal && 'hidden-nfts-scam')
+        }
+        >
           {
-            probablyScamNfts!.map((nft) => {
-              const isWhitelisted = whitelistedNftAddressesSet?.has(nft.address);
-              return (
-                <div
-                  className={styles.item}
-                  onClick={() => handleProbablyScamNftClick(nft)}
+            probablyScamNfts!.map(
+              (nft) => (
+                <ProbablyScamNft
                   key={nft.address}
-                >
-                  <img className={styles.nftImage} src={nft.image} alt={nft.name} />
-                  <div className={styles.nftPrimaryCell}>
-                    <span className={styles.nftName}>{nft.name}</span>
-                    {
-                      nft.collectionName && <span className={styles.nftCollection}>{nft.collectionName}</span>
-                    }
-                  </div>
-
-                  <Switcher
-                    className={styles.menuSwitcher}
-                    label={lang('Show')}
-                    checked={isWhitelisted}
-                  />
-                </div>
-              );
-            })
+                  nft={nft}
+                  isWhitelisted={whitelistedNftAddressesSet.has(nft.address)}
+                />
+              ),
+            )
           }
         </div>
         <p className={styles.blockDescription}>
@@ -193,13 +145,6 @@ function SettingsHiddenNfts({
         {Boolean(hiddenByUserNfts?.length) && renderHiddenByUserNfts()}
         {Boolean(probablyScamNfts?.length) && renderProbablyScamNfts()}
       </div>
-
-      <UnhideNftModal
-        isOpen={isUnhideNftModalOpen}
-        onClose={closeUnhideNftModal}
-        nftAddress={selectedNft?.address}
-        nftName={selectedNft?.name}
-      />
     </div>
   );
 }
@@ -208,7 +153,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
     blacklistedNftAddresses,
     whitelistedNftAddresses,
-    isUnhideNftModalOpen,
   } = selectCurrentAccountState(global) ?? {};
   const {
     orderedAddresses,
@@ -219,6 +163,5 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     whitelistedNftAddresses,
     orderedAddresses,
     byAddress,
-    isUnhideNftModalOpen,
   };
 })(SettingsHiddenNfts));

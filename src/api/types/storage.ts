@@ -10,7 +10,6 @@ export interface ApiAccount {
     deviceId?: string;
     deviceName?: string;
   };
-  lastFinishedSwapTimestamp?: number;
   authToken?: string;
   isInitialized?: boolean;
 }

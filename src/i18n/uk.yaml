@@ -490,7 +490,7 @@ Wrong code, please try again: Неправильний код, спробуйт�
 Scan your fingerprint: Відскануйте свій відбиток пальця
 Incorrect code, please try again.: Неправильний код, будь ласка, спробуйте знову.
 Correct: Правильно
-Confirm Operation: Підтвердіть операцію
+Confirm Action: Підтвердити дію
 Confirm Swap: Підтвердити обмін
 "%amount% to %address%": "%amount% на %address%"
 "%amount_from% to %amount_to%": "%amount_from% на %amount_to%"
@@ -646,3 +646,5 @@ $hardware_blind_sign_not_enabled: |
 
   Щоб продовжити, увімкніть опцію «Сліпе підписання» в налаштуваннях TON App на Ledger.
 Switch to W5: Версія W5
+Not a Scam: Не шахрайство
+Untitled: Без назви

@@ -1,7 +1,9 @@
 import type { Ref, RefObject } from 'react';
 import React, { memo } from '../../../../lib/teact/teact';
+import { getActions } from '../../../../global';
 
 import type { ApiToken, ApiTransactionActivity } from '../../../../api/types';
+import { MediaType } from '../../../../global/types';
 
 import { TON_SYMBOL } from '../../../../config';
 import { getIsTxIdLocal } from '../../../../global/helpers';
@@ -42,6 +44,7 @@ function Transaction({
   isLast,
   onClick,
 }: OwnProps) {
+  const { openMediaViewer } = getActions();
   const lang = useLang();
 
   const {
@@ -63,7 +66,7 @@ function Transaction({
   const isUnstake = type === 'unstake';
   const isUnstakeRequest = type === 'unstakeRequest';
   const isStaking = isStake || isUnstake || isUnstakeRequest;
-  const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived';
+  const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived' || Boolean(nft);
 
   const token = tokensBySlug?.[slug];
   const address = isIncoming ? fromAddress : toAddress;
@@ -73,6 +76,11 @@ function Transaction({
 
   const handleClick = useLastCallback(() => {
     onClick(txId);
+  });
+
+  const handleNftClick = useLastCallback((event: React.MouseEvent) => {
+    event.stopPropagation();
+    openMediaViewer({ mediaId: nft!.address, mediaType: MediaType.Nft, txId });
   });
 
   function getOperationName() {
@@ -93,7 +101,17 @@ function Transaction({
 
   function renderNft() {
     return (
-      <div className={buildClassName(styles.nft, isIncoming && styles.received, comment && styles.nftWithComment)}>
+      <div
+        className={buildClassName(
+          styles.nft,
+          isIncoming && styles.received,
+          comment && styles.nftWithComment,
+          'transaction-nft',
+        )}
+        onClick={handleNftClick}
+        data-nft-address={nft?.address}
+        data-tx-id={txId}
+      >
         <img src={nft!.thumbnail} alt={nft!.name} className={styles.nftImage} />
         <div className={styles.nftData}>
           <div className={styles.nftName}>{nft!.name}</div>

@@ -118,12 +118,11 @@ function SettingsAssets({
   } = useMemo(() => {
     const nfts = Object.values(nftsByAddress || {});
     const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
-    const hiddenByUserNfts = nfts.filter((nft) => blacklistedNftAddressesSet.has(nft.address));
-    const probablyScamNfts = nfts.filter((nft) => nft.isHidden);
+    const hiddenNfts = new Set(nfts.filter((nft) => blacklistedNftAddressesSet.has(nft.address) || nft.isHidden));
 
     return {
-      shouldRenderHiddenNftsSection: hiddenByUserNfts.length > 0 || probablyScamNfts.length > 0,
-      hiddenNftsCount: hiddenByUserNfts.length,
+      shouldRenderHiddenNftsSection: Boolean(hiddenNfts.size),
+      hiddenNftsCount: hiddenNfts.size,
     };
   }, [nftsByAddress, blacklistedNftAddresses]);
 

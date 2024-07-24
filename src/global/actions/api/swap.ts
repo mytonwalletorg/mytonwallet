@@ -17,7 +17,8 @@ import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import {
   fromDecimal, getIsPositiveDecimal, roundDecimal, toDecimal,
 } from '../../../util/decimals';
-import { pick } from '../../../util/iteratees';
+import generateUniqueId from '../../../util/generateUniqueId';
+import { buildCollectionByKey, pick } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
 import { buildSwapId } from '../../../util/swap/buildSwapId';
@@ -28,9 +29,15 @@ import {
   clearCurrentSwap,
   clearIsPinAccepted,
   setIsPinAccepted,
+  updateAccountState,
   updateCurrentSwap,
 } from '../../reducers';
-import { selectAccount, selectCurrentAccount, selectCurrentToncoinBalance } from '../../selectors';
+import {
+  selectAccount,
+  selectAccountState,
+  selectCurrentAccount,
+  selectCurrentToncoinBalance,
+} from '../../selectors';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
@@ -124,6 +131,7 @@ addActionHandler('startSwap', async (global, actions, payload) => {
 
   global = updateCurrentSwap(global, {
     state: requiredState,
+    swapId: generateUniqueId(),
   });
   setGlobal(global);
 
@@ -178,6 +186,7 @@ addActionHandler('cancelSwap', (global, actions, { shouldReset } = {}) => {
   }
   global = updateCurrentSwap(global, {
     state: SwapState.None,
+    swapId: undefined,
   });
   setGlobal(global);
 });
@@ -193,6 +202,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   }
 
   global = getGlobal();
+  const currentSwapId = global.currentSwap.swapId;
   if (IS_CAPACITOR) {
     global = setIsPinAccepted(global);
   }
@@ -259,6 +269,11 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     }
     setGlobal(global);
     actions.showError({ error: result?.error });
+    return;
+  }
+
+  if (currentSwapId !== global.currentSwap.swapId) {
+    setGlobal(global);
     return;
   }
 
@@ -833,6 +848,9 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
 });
 
 addActionHandler('setSwapScreen', (global, actions, { state }) => {
+  if (state === SwapState.Initial) {
+    global = updateCurrentSwap(global, { swapId: generateUniqueId() });
+  }
   global = updateCurrentSwap(global, { state });
   setGlobal(global);
 });
@@ -900,5 +918,38 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
 
 addActionHandler('setSwapCexAddress', (global, actions, { toAddress }) => {
   global = updateCurrentSwap(global, { toAddress });
+  setGlobal(global);
+});
+
+addActionHandler('updatePendingSwaps', async (global) => {
+  const accountId = global.currentAccountId;
+  if (!accountId) return;
+
+  let { activities } = selectAccountState(global, accountId) ?? {};
+  if (!activities) return;
+
+  const ids = Object.values(activities.byId)
+    .filter((activity) => activity.kind === 'swap' && activity.status === 'pending')
+    .map(({ id }) => id);
+  if (!ids.length) return;
+
+  const swaps = await callApi('fetchSwaps', accountId, ids);
+  if (!swaps?.length) return;
+
+  global = getGlobal();
+  if (global.currentAccountId !== accountId) return;
+
+  ({ activities } = selectAccountState(global, accountId) ?? {});
+
+  global = updateAccountState(global, accountId, {
+    activities: {
+      ...activities,
+      byId: {
+        ...activities?.byId,
+        ...buildCollectionByKey(swaps, 'id'),
+      },
+    },
+  });
+
   setGlobal(global);
 });

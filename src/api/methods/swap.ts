@@ -302,6 +302,18 @@ function buildSwapHistoryRange(transactions: ApiTransaction[]): SwapHistoryRange
   };
 }
 
+export async function fetchSwaps(accountId: string, ids: string[]) {
+  const address = await fetchStoredAddress(accountId);
+  const results = await Promise.allSettled(
+    ids.map((id) => swapGetHistoryItem(address, id.replace('swap:', ''))),
+  );
+
+  return results
+    .map((result) => (result.status === 'fulfilled' ? result.value : undefined))
+    .filter(Boolean)
+    .map(swapItemToActivity);
+}
+
 export function swapItemToActivity(swap: ApiSwapHistoryItem): ApiSwapActivity {
   return {
     ...swap,
@@ -355,7 +367,7 @@ export function swapGetHistoryByRanges(address: string, ranges: SwapHistoryRange
   return callBackendPost(`/swap/history-ranges/${address}`, { ranges });
 }
 
-export function swapGetHistoryItem(address: string, id: number): Promise<ApiSwapHistoryItem> {
+export function swapGetHistoryItem(address: string, id: string): Promise<ApiSwapHistoryItem> {
   return callBackendGet(`/swap/history/${address}/${id}`);
 }
 

@@ -626,18 +626,18 @@ async function populateTransactions(network: ApiNetwork, transactions: ApiTransa
 
       if (parsedPayload?.type === 'nft:ownership-assigned') {
         const nft = nftsByAddress[parsedPayload.nftAddress];
+        transaction.nft = nft;
         if (nft?.isScam) {
           transaction.metadata = { ...transaction.metadata, isScam: true };
         } else {
-          transaction.nft = nft;
           transaction.fromAddress = addressBook[parsedPayload.prevOwner].user_friendly;
         }
       } else if (parsedPayload?.type === 'nft:transfer') {
         const nft = nftsByAddress[parsedPayload.nftAddress];
+        transaction.nft = nft;
         if (nft?.isScam) {
           transaction.metadata = { ...transaction.metadata, isScam: true };
         } else {
-          transaction.nft = nft;
           transaction.toAddress = addressBook[parsedPayload.newOwner].user_friendly;
         }
       }

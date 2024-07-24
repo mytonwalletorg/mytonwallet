@@ -41,45 +41,8 @@
     top: 3.75rem;
 
     width: 100%;
-    margin: 0 auto;
-  }
-}
-
-.tabs {
-  height: 2.75rem;
-  padding: 0 1.5rem;
-
-  .landscapeContainer & {
-    justify-content: flex-start;
-
-    padding: 0 0.75rem;
-
-    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
-    /* stylelint-disable-next-line plugin/whole-pixel */
-    box-shadow: 0 0.025rem 0 0 var(--color-separator);
-  }
-
-  .portraitContainer & {
-    position: sticky;
-    top: 3.75rem;
-
-    width: 100%;
     max-width: 27rem;
-
-    &::after {
-      content: '';
-
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translate(-50%, -0.015625rem);
-
-      width: 100vw;
-      height: 0.0625rem;
-
-      /* stylelint-disable-next-line plugin/whole-pixel */
-      box-shadow: 0 0.025rem 0 0 var(--color-separator);
-    }
+    margin: 0 auto;
 
     :global(html.with-safe-area-top) & {
       top: 2.625rem;
@@ -94,6 +57,34 @@
     :global(html.is-electron) & {
       top: 0.75rem;
     }
+  }
+}
+
+.tabs {
+  height: 2.75rem;
+  padding: 0 1.5rem;
+
+  &::after {
+    content: '';
+
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, -0.03125rem);
+
+    width: 100vw;
+    height: 0.0625rem;
+
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: 0 0.025rem 0 0 var(--color-separator);
+  }
+
+  .landscapeContainer & {
+    justify-content: flex-start;
+
+    padding: 0 0.75rem;
+
+    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
   }
 }
 

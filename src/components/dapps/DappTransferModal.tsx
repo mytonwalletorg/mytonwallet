@@ -38,6 +38,7 @@ interface StateProps {
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
+  isMediaViewerOpen?: boolean;
 }
 
 function DappTransferModal({
@@ -53,6 +54,7 @@ function DappTransferModal({
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
+  isMediaViewerOpen,
 }: StateProps) {
   const {
     setDappTransferScreen,
@@ -133,7 +135,7 @@ function DappTransferModal({
   function renderPassword(isActive: boolean) {
     return (
       <>
-        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Operation')} onClose={closeDappTransfer} />}
+        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Action')} onClose={closeDappTransfer} />}
         <PasswordForm
           isActive={isActive}
           isLoading={isLoading}
@@ -237,7 +239,7 @@ function DappTransferModal({
   return (
     <Modal
       hasCloseButton
-      isOpen={isOpen}
+      isOpen={isOpen && !isMediaViewerOpen}
       noBackdropClose
       dialogClassName={buildClassName(styles.modalDialog, withPayloadWarning && styles.modalDialogExtraHeight)}
       nativeBottomSheetKey="dapp-transfer"
@@ -272,5 +274,6 @@ export default memo(withGlobal((global): StateProps => {
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,
+    isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
   };
 })(DappTransferModal));

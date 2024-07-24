@@ -44,6 +44,7 @@ interface StateProps {
   isTonAppConnected?: boolean;
 }
 
+const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
 const ACCOUNT_ADDRESS_SHIFT = 4;
 const ACCOUNT_ADDRESS_SHIFT_END = 4;
 
@@ -91,16 +92,18 @@ function DappConnectModal({
 
   const handleSubmit = useLastCallback(() => {
     closeConfirm();
+    const { isHardware } = accounts![selectedAccount];
+    const { isPasswordRequired, isAddressRequired } = requiredPermissions || {};
 
-    if (!requiredProof) {
+    if (!requiredProof || (!isHardware && isAddressRequired && !isPasswordRequired)) {
       submitDappConnectRequestConfirm({
         accountId: selectedAccount,
       });
 
       cancelDappConnectRequestConfirm();
-    } else if (accounts![currentAccountId].isHardware && requiredProof) {
+    } else if (isHardware) {
       setDappConnectRequestState({ state: DappConnectState.ConnectHardware });
-    } else if (requiredPermissions?.isPasswordRequired) {
+    } else {
       // The confirmation window must be closed before the password screen is displayed
       requestAnimationFrame(() => {
         setDappConnectRequestState({ state: DappConnectState.Password });
@@ -127,7 +130,7 @@ function DappConnectModal({
 
   function renderAccount(accountId: string, address: string, title?: string, isHardware?: boolean) {
     const isActive = accountId === selectedAccount;
-    const onClick = isActive || isLoading || isHardware ? undefined : () => setSelectedAccount(accountId);
+    const onClick = isActive || isLoading ? undefined : () => setSelectedAccount(accountId);
     const fullClassName = buildClassName(
       styles.account,
       isActive && styles.account_current,
@@ -143,8 +146,13 @@ function DappConnectModal({
       >
         {title && <span className={styles.accountName}>{title}</span>}
         <div className={styles.accountFooter}>
+          {isHardware && <i className={buildClassName('icon-ledger', isHardware && styles.iconLedger)} aria-hidden />}
           <span className={styles.accountAddress}>
-            {shortenAddress(address, ACCOUNT_ADDRESS_SHIFT, ACCOUNT_ADDRESS_SHIFT_END)}
+            {shortenAddress(
+              address,
+              isHardware ? HARDWARE_ACCOUNT_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
+              ACCOUNT_ADDRESS_SHIFT_END,
+            )}
           </span>
         </div>
       </div>

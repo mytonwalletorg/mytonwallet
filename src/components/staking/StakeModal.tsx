@@ -79,6 +79,7 @@ function StakeModal({
   });
 
   const handleLedgerConnect = useLastCallback(() => {
+    setRenderedStakingAmount(amount);
     submitStakingHardware();
   });
 

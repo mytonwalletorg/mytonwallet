@@ -23,7 +23,7 @@ import {
   updateCurrentDappTransfer,
   updateDappConnectRequest,
 } from '../../reducers';
-import { selectAccount, selectIsHardwareAccount, selectNewestTxIds } from '../../selectors';
+import { selectIsHardwareAccount, selectNewestTxIds } from '../../selectors';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
@@ -78,7 +78,7 @@ addActionHandler(
   'submitDappConnectRequestConfirmHardware',
   async (global, actions, { accountId: connectAccountId }) => {
     const {
-      accountId, promiseId, proof,
+      promiseId, proof,
     } = global.dappConnectRequest!;
 
     global = getGlobal();
@@ -91,7 +91,7 @@ addActionHandler(
     const ledgerApi = await import('../../../util/ledger');
 
     try {
-      const signature = await ledgerApi.signLedgerProof(accountId!, proof!);
+      const signature = await ledgerApi.signLedgerProof(connectAccountId!, proof!);
       actions.switchAccount({ accountId: connectAccountId });
       await callApi('confirmDappRequestConnect', promiseId!, {
         accountId: connectAccountId,
@@ -306,8 +306,6 @@ addActionHandler('apiUpdateDappConnect', async (global, actions, {
     global = getGlobal();
   }
 
-  const { isHardware } = selectAccount(global, accountId)!;
-
   global = updateDappConnectRequest(global, {
     state: DappConnectState.Info,
     promiseId,
@@ -315,7 +313,7 @@ addActionHandler('apiUpdateDappConnect', async (global, actions, {
     dapp,
     permissions: {
       isAddressRequired: permissions.address,
-      isPasswordRequired: permissions.proof && !isHardware,
+      isPasswordRequired: permissions.proof,
     },
     proof,
   });

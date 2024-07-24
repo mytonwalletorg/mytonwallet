@@ -1,4 +1,6 @@
 .root {
+  cursor: var(--custom-cursor, pointer);
+
   display: flex;
 
   max-width: 100%;
@@ -13,6 +15,11 @@
   border-radius: var(--border-radius-default);
 
   appearance: none !important;
+
+  & .icon:focus-visible,
+  & .icon:hover {
+    color: var(--color-blue);
+  }
 }
 
 .rootStatic {
@@ -20,17 +27,6 @@
 
   background: transparent;
   border: 1px solid var(--color-separator-input-stroke);
-}
-
-.interactive {
-  cursor: var(--custom-cursor, pointer);
-
-  &:focus-visible,
-  &:hover {
-    .icon {
-      color: var(--color-blue);
-    }
-  }
 }
 
 .thumbnail {

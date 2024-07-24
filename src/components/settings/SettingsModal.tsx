@@ -1,4 +1,5 @@
 import React, { memo } from '../../lib/teact/teact';
+import { withGlobal } from '../../global';
 
 import { IS_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -8,13 +9,19 @@ import Modal from '../ui/Modal';
 
 import styles from './Settings.module.scss';
 
-type OwnProps = {
+interface OwnProps {
   children: React.ReactNode;
   isOpen?: boolean;
   onClose: () => void;
-};
+}
 
-function SettingsModal({ children, isOpen, onClose }: OwnProps) {
+interface StateProps {
+  isMediaViewerOpen?: boolean;
+}
+
+function SettingsModal({
+  children, isOpen, onClose, isMediaViewerOpen,
+}: OwnProps & StateProps) {
   const fullDialogClassName = buildClassName(
     styles.modalDialog,
     !(IS_ELECTRON || IS_EXTENSION) && styles.modalDialogWeb,
@@ -23,7 +30,7 @@ function SettingsModal({ children, isOpen, onClose }: OwnProps) {
   return (
     <Modal
       hasCloseButton
-      isOpen={isOpen}
+      isOpen={isOpen && !isMediaViewerOpen}
       dialogClassName={fullDialogClassName}
       contentClassName={styles.modalContent}
       nativeBottomSheetKey="settings"
@@ -35,4 +42,8 @@ function SettingsModal({ children, isOpen, onClose }: OwnProps) {
   );
 }
 
-export default memo(SettingsModal);
+export default memo(withGlobal((global): StateProps => {
+  return {
+    isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
+  };
+})(SettingsModal));

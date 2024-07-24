@@ -1,7 +1,7 @@
 import React, { memo, type TeactNode, useMemo } from '../../lib/teact/teact';
-import { getGlobal } from '../../global';
+import { getActions, getGlobal } from '../../global';
 
-import type { NftTransfer } from '../../global/types';
+import { MediaType, type NftTransfer } from '../../global/types';
 
 import { ANIMATED_STICKER_TINY_SIZE_PX, TON_EXPLORER_NAME } from '../../config';
 import buildClassName from '../../util/buildClassName';
@@ -11,6 +11,7 @@ import { getTonExplorerNftUrl } from '../../util/url';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 
@@ -22,7 +23,10 @@ interface OwnProps {
   withTonExplorer?: boolean;
 }
 
-function NftInfo({ nft, isStatic, withTonExplorer }: OwnProps) {
+function NftInfo({
+  nft, isStatic, withTonExplorer,
+}: OwnProps) {
+  const { openMediaViewer } = getActions();
   const lang = useLang();
 
   const tonExplorerTitle = useMemo(() => {
@@ -32,11 +36,16 @@ function NftInfo({ nft, isStatic, withTonExplorer }: OwnProps) {
     ).join('');
   }, [lang]);
 
-  const handleClick = () => {
+  const handleClickInfo = (event: React.MouseEvent) => {
+    event.stopPropagation();
     const url = getTonExplorerNftUrl(nft!.address, getGlobal().settings.isTestnet)!;
 
     openUrl(url);
   };
+
+  const handleClick = useLastCallback(() => {
+    openMediaViewer({ mediaId: nft!.address, mediaType: MediaType.Nft });
+  });
 
   if (!nft) {
     return (
@@ -71,7 +80,18 @@ function NftInfo({ nft, isStatic, withTonExplorer }: OwnProps) {
         <div className={styles.info}>
           <div className={styles.title}>
             {name}
-            {withTonExplorer && <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />}
+            {
+              withTonExplorer && (
+                <i
+                  className={buildClassName(styles.icon, 'icon-tonexplorer-small')}
+                  onClick={handleClickInfo}
+                  title={tonExplorerTitle}
+                  aria-label={tonExplorerTitle}
+                  role="button"
+                  tabIndex={0}
+                />
+              )
+            }
           </div>
           <div className={styles.description}>{nft!.collectionName}</div>
         </div>
@@ -79,21 +99,14 @@ function NftInfo({ nft, isStatic, withTonExplorer }: OwnProps) {
     );
   }
 
-  if (withTonExplorer) {
-    return (
-      <button
-        type="button"
-        className={buildClassName(styles.root, isStatic && styles.rootStatic, styles.interactive)}
-        title={tonExplorerTitle}
-        onClick={handleClick}
-      >
-        {renderContent()}
-      </button>
-    );
-  }
-
   return (
-    <div className={buildClassName(styles.root, isStatic && styles.rootStatic)}>
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={lang('NFT')}
+      className={buildClassName(styles.root, isStatic && styles.rootStatic)}
+      onClick={handleClick}
+    >
       {renderContent()}
     </div>
   );

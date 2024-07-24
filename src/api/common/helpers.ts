@@ -70,11 +70,11 @@ export function buildLocalTransaction(
 
 export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {
   const {
-    normalizedAddress, comment, type, isIncoming,
+    normalizedAddress, comment, type, isIncoming, nft,
   } = transaction;
   let { metadata = {} } = transaction;
 
-  const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived';
+  const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived' || Boolean(nft);
   const knownAddresses = getKnownAddresses();
   const hasScamMarkers = comment ? getScamMarkers().some((sm) => sm.test(comment)) : false;
   const shouldCheckComment = !hasScamMarkers && comment && isIncoming

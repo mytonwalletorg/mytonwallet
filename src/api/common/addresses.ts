@@ -1,9 +1,7 @@
 import type { ApiAddressInfo, ApiKnownAddresses } from '../types';
 
-import {
-  RE_EMPTY_CHARS,
-  RE_FAKE_DOTS, RE_LINK_TEMPLATE, RE_SPACE_CHARS, RE_TG_BOT_MENTION,
-} from '../../config';
+import { RE_LINK_TEMPLATE, RE_TG_BOT_MENTION } from '../../config';
+import { cleanText } from '../../lib/confusables';
 import { logDebugError } from '../../util/logs';
 import { callBackendGet } from './backend';
 
@@ -51,11 +49,7 @@ export function checkIsTrustedCollection(address: string) {
 }
 
 export function checkHasScamLink(text: string) {
-  const matches = text
-    .replace(RE_EMPTY_CHARS, '')
-    .replace(RE_SPACE_CHARS, ' ')
-    .replace(RE_FAKE_DOTS, '.')
-    .matchAll(RE_LINK_TEMPLATE);
+  const matches = cleanText(text).matchAll(RE_LINK_TEMPLATE);
 
   for (const match of matches) {
     const host = match.groups?.host;
@@ -68,5 +62,5 @@ export function checkHasScamLink(text: string) {
 }
 
 export function checkHasTelegramBotMention(text: string) {
-  return RE_TG_BOT_MENTION.test(text.replace(RE_EMPTY_CHARS, '').replace(RE_SPACE_CHARS, ' '));
+  return RE_TG_BOT_MENTION.test(cleanText(text));
 }

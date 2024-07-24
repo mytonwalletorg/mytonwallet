@@ -111,8 +111,8 @@ export async function submitUnstake(
 }
 
 export async function getBackendStakingState(accountId: string): Promise<ApiBackendStakingState> {
-  const { address, ledger } = await fetchStoredAccount(accountId);
-  const state = await fetchBackendStakingState(address, Boolean(ledger));
+  const { address } = await fetchStoredAccount(accountId);
+  const state = await fetchBackendStakingState(address);
   return {
     ...state,
     nominatorsPool: {
@@ -123,7 +123,7 @@ export async function getBackendStakingState(accountId: string): Promise<ApiBack
   };
 }
 
-export async function fetchBackendStakingState(address: string, isLedger: boolean): Promise<ApiBackendStakingState> {
+export async function fetchBackendStakingState(address: string): Promise<ApiBackendStakingState> {
   const cacheItem = backendStakingStateByAddress[address];
   if (cacheItem && cacheItem[0] > Date.now()) {
     return cacheItem[1];
@@ -136,9 +136,7 @@ export async function fetchBackendStakingState(address: string, isLedger: boolea
     'X-App-Env': APP_ENV,
   };
 
-  const stakingState = await callBackendGet(`/staking/state/${address}`, {
-    isLedger,
-  }, headers);
+  const stakingState = await callBackendGet(`/staking/state/${address}`, headers);
   stakingState.balance = fromDecimal(stakingState.balance);
   stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
 
@@ -177,4 +175,12 @@ export async function tryUpdateStakingCommonData() {
   } catch (err) {
     logDebugError('tryUpdateLiquidStakingState', err);
   }
+}
+
+export async function getStakingState(accountId: string) {
+  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+  const backendState = await getBackendStakingState(accountId);
+  const state = await blockchain.getStakingState(accountId, backendState);
+
+  return { backendState, state };
 }

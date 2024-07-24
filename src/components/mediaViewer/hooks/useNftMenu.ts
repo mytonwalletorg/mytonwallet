@@ -54,6 +54,14 @@ const HIDE_ITEM: DropdownItem = {
   name: 'Hide',
   value: 'hide',
 };
+const NOT_A_SCAM: DropdownItem = {
+  name: 'Not a Scam',
+  value: 'not_a_scam',
+};
+const UNHIDE: DropdownItem = {
+  name: 'Unhide',
+  value: 'unhide',
+};
 const BURN_ITEM: DropdownItem = {
   name: 'Burn',
   value: 'burn',
@@ -65,9 +73,16 @@ const SELECT_ITEM: DropdownItem = {
   withSeparator: true,
 };
 
-export default function useNftMenu(nft?: ApiNft) {
+export default function useNftMenu(nft?: ApiNft, isNftBlacklisted?: boolean, isNftWhitelisted?: boolean) {
   const {
-    startTransfer, selectNfts, openNftCollection, burnNfts, addNftsToBlacklist,
+    startTransfer,
+    selectNfts,
+    openNftCollection,
+    burnNfts,
+    addNftsToBlacklist,
+    addNftsToWhitelist,
+    closeMediaViewer,
+    openUnhideNftModal,
   } = getActions();
 
   const handleMenuItemSelect = useLastCallback((value: string) => {
@@ -78,6 +93,8 @@ export default function useNftMenu(nft?: ApiNft) {
           isPortrait: getIsPortrait(),
           nfts: [nft!],
         });
+        closeMediaViewer();
+
         break;
       }
 
@@ -125,12 +142,27 @@ export default function useNftMenu(nft?: ApiNft) {
 
       case 'hide': {
         addNftsToBlacklist({ addresses: [nft!.address] });
+        closeMediaViewer();
+
+        break;
+      }
+
+      case 'not_a_scam': {
+        openUnhideNftModal({ address: nft!.address, name: nft!.name });
+
+        break;
+      }
+
+      case 'unhide': {
+        addNftsToWhitelist({ addresses: [nft!.address] });
+        closeMediaViewer();
 
         break;
       }
 
       case 'burn': {
         burnNfts({ nfts: [nft!] });
+        closeMediaViewer();
 
         break;
       }
@@ -152,13 +184,15 @@ export default function useNftMenu(nft?: ApiNft) {
       GETGEMS_ITEM,
       TON_EXPLORER_ITEM,
       ...(nft.collectionAddress ? [COLLECTION_ITEM] : []),
-      HIDE_ITEM,
+      ...((!nft.isScam && !isNftBlacklisted) || isNftWhitelisted ? [HIDE_ITEM] : []),
+      ...(nft.isScam && !isNftWhitelisted ? [NOT_A_SCAM] : []),
+      ...(!nft.isScam && isNftBlacklisted ? [UNHIDE] : []),
       ...(!nft.isOnSale ? [
         BURN_ITEM,
         SELECT_ITEM,
       ] : []),
     ];
-  }, [nft]);
+  }, [nft, isNftBlacklisted, isNftWhitelisted]);
 
   return { menuItems, handleMenuItemSelect };
 }

@@ -97,6 +97,7 @@ function UnstakeModal({
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
+  amount,
 }: StateProps) {
   const {
     setStakingScreen,
@@ -122,6 +123,7 @@ function UnstakeModal({
   const [isInsufficientBalance, setIsInsufficientBalance] = useState(false);
 
   const [unstakeAmount, setUnstakeAmount] = useState(shouldUseNominators ? stakingBalance : undefined);
+  const [successUnstakeAmount, setSuccessUnstakeAmount] = useState<bigint | undefined>(undefined);
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
@@ -184,12 +186,14 @@ function UnstakeModal({
   });
 
   const handleTransferSubmit = useLastCallback((password: string) => {
+    setSuccessUnstakeAmount(amount);
     setRenderedBalance(tonToken?.amount);
 
     submitStakingPassword({ password, isUnstaking: true });
   });
 
   const handleLedgerConnect = useLastCallback(() => {
+    setSuccessUnstakeAmount(amount);
     submitStakingHardware({ isUnstaking: true });
   });
 
@@ -481,10 +485,10 @@ function UnstakeModal({
           <TransferResult
             color="green"
             playAnimation={isActive}
-            amount={unstakeAmount}
+            amount={successUnstakeAmount}
             noSign
             balance={renderedBalance}
-            operationAmount={unstakeAmount}
+            operationAmount={successUnstakeAmount}
           />
 
           {isLongUnstake && renderUnstakeTimer()}

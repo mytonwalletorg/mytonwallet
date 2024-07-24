@@ -490,7 +490,7 @@ Wrong code, please try again: Hatalı kod, lütfen tekrar deneyin
 Scan your fingerprint: Parmak izinizi tarayın
 Incorrect code, please try again.: Hatalı kod, lütfen tekrar deneyin.
 Correct: Doğru
-Confirm Operation: İşlemi Onaylayın
+Confirm Action: Eylemi Onayla
 Confirm Swap: Takası onaylayın
 "%amount% to %address%": "%address% numaralı adrese %amount%"
 "%amount_from% to %amount_to%": "%amount_from%'den' %amount_to%'e"
@@ -646,3 +646,5 @@ $hardware_blind_sign_not_enabled: |
 
   Devam etmek için, Ledger üzerindeki TON Uygulamasının ayarlarında "Kör İmzalama" seçeneğini etkinleştirin.
 Switch to W5: W5'e Geç
+Not a Scam: Dolandırıcılık Değil
+Untitled: Başlıksız

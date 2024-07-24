@@ -8,7 +8,7 @@ import type { ApiActivity, ApiSwapAsset, ApiToken } from '../../../../api/types'
 import { ContentTab } from '../../../../global/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX, MIN_ASSETS_TAB_VIEW, TONCOIN_SLUG } from '../../../../config';
-import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../../../global/helpers';
+import { getIsSwapId, getIsTinyOrScamTransaction, getIsTxIdLocal } from '../../../../global/helpers';
 import {
   selectAccountSettings,
   selectCurrentAccountState,
@@ -161,7 +161,7 @@ function Activities({
             && (!slug || activity.slug === slug)
             && (
               !areTinyTransfersHidden
-              || !getIsTinyTransaction(activity, tokensBySlug![activity.slug])
+              || !getIsTinyOrScamTransaction(activity, tokensBySlug![activity.slug])
               || exceptionSlugs?.includes(activity.slug)
             ),
           );
@@ -236,14 +236,18 @@ function Activities({
       const activityDayStart = getDayStartAt(activity.timestamp);
       const isNewDay = lastActivityDayStart !== activityDayStart;
       const isNftTransfer = activity.kind === 'transaction'
-        && (activity.type === 'nftTransferred' || activity.type === 'nftReceived');
+        && (
+          activity.type === 'nftTransferred'
+          || activity.type === 'nftReceived'
+          || Boolean(activity.nft)
+        );
       const canCountComment = activity.kind === 'transaction' && (!activity.type || isNftTransfer);
       if (isNewDay) {
         lastActivityDayStart = activityDayStart;
         dateCount += 1;
       }
 
-      if (canCountComment && (activity.comment || activity.encryptedComment)) {
+      if (canCountComment && (activity.comment || activity.encryptedComment) && !activity.metadata?.isScam) {
         commentCount += 1;
       }
 

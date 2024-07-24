@@ -303,10 +303,7 @@ export function buildLiquidStakingWithdrawBody(options: {
     queryId, amount, responseAddress, waitTillRoundEnd, fillOrKill,
   } = options;
 
-  const customPayload = new Builder()
-    .storeUint(Number(waitTillRoundEnd), 1)
-    .storeUint(Number(fillOrKill), 1)
-    .asCell();
+  const customPayload = buildLiquidStakingWithdrawCustomPayload(waitTillRoundEnd, fillOrKill);
 
   return new Builder()
     .storeUint(JettonOpCode.Burn, 32)
@@ -315,6 +312,13 @@ export function buildLiquidStakingWithdrawBody(options: {
     .storeAddress(Address.parse(responseAddress))
     .storeBit(1)
     .storeRef(customPayload)
+    .asCell();
+}
+
+export function buildLiquidStakingWithdrawCustomPayload(waitTillRoundEnd?: boolean, fillOrKill?: boolean) {
+  return new Builder()
+    .storeUint(Number(waitTillRoundEnd), 1)
+    .storeUint(Number(fillOrKill), 1)
     .asCell();
 }
 

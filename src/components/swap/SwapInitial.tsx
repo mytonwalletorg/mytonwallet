@@ -534,7 +534,7 @@ function SwapInitial({
             <RichNumberInput
               id="swap-buy"
               labelText={lang('You buy')}
-              className={styles.amountInput}
+              className={styles.amountInputBuy}
               value={amountOut?.toString()}
               isLoading={isEstimating && inputSource === SwapInputSource.In}
               disabled={isReverseProhibited}

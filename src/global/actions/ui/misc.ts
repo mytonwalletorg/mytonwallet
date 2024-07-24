@@ -692,12 +692,17 @@ addActionHandler('closeOnRampWidgetModal', (global) => {
   setGlobal({ ...global, isOnRampWidgetModalOpen: undefined });
 });
 
-addActionHandler('openMediaViewer', (global, actions, { mediaId, mediaType }) => {
+addActionHandler('openMediaViewer', (global, actions, {
+  mediaId, mediaType, txId, hiddenNfts, noGhostAnimation,
+}) => {
   return {
     ...global,
     mediaViewer: {
       mediaId,
       mediaType,
+      txId,
+      hiddenNfts,
+      noGhostAnimation,
     },
   };
 });

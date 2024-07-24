@@ -14,14 +14,16 @@ import { setStatusBarStyle } from '../../util/switchTheme';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
 import windowSize from '../../util/windowSize';
 
+import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
 import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectOnce from '../../hooks/useEffectOnce';
+import useFlag from '../../hooks/useFlag';
+import useInterval from '../../hooks/useInterval';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePreventPinchZoomGesture from '../../hooks/usePreventPinchZoomGesture';
 import useShowTransition from '../../hooks/useShowTransition';
 
-import MediaViewer from '../mediaViewer/MediaViewer';
 import ReceiveModal from '../receive/ReceiveModal';
 import StakeModal from '../staking/StakeModal';
 import StakingInfoModal from '../staking/StakingInfoModal';
@@ -54,6 +56,8 @@ type StateProps = {
 };
 
 const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
+const UPDATE_SWAPS_INTERVAL_NOT_FOCUSED = 15000; // 15 sec
+const UPDATE_SWAPS_INTERVAL = 3000; // 3 sec
 
 function Main({
   isActive,
@@ -77,6 +81,7 @@ function Main({
     setLandscapeActionsActiveTabIndex,
     loadExploreSites,
     openReceiveModal,
+    updatePendingSwaps,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -86,6 +91,9 @@ function Main({
   const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
   const [shouldRenderDarkStatusBar, setShouldRenderDarkStatusBar] = useState(false);
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
+  const [isFocused, markIsFocused, unmarkIsFocused] = useFlag(!isBackgroundModeActive());
+
+  useBackgroundMode(unmarkIsFocused, markIsFocused);
 
   useOpenFromMainBottomSheet('receive', openReceiveModal);
   usePreventPinchZoomGesture(isMediaViewerOpen);
@@ -101,6 +109,8 @@ function Main({
   useEffect(() => {
     setStatusBarStyle(shouldRenderDarkStatusBar);
   }, [shouldRenderDarkStatusBar]);
+
+  useInterval(updatePendingSwaps, isFocused ? UPDATE_SWAPS_INTERVAL : UPDATE_SWAPS_INTERVAL_NOT_FOCUSED);
 
   useEffect(() => {
     if (!isPortrait || !isActive) {
@@ -229,7 +239,6 @@ function Main({
       <StakingInfoModal isOpen={isStakingInfoModalOpen} onClose={closeStakingInfo} />
       <ReceiveModal />
       <UnstakeModal />
-      <MediaViewer />
       {IS_ANDROID_DIRECT && <UpdateAvailable />}
       <VestingModal />
       <VestingPasswordModal />

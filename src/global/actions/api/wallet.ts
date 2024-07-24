@@ -28,7 +28,7 @@ import { onTickEnd, pause } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../../api/errors';
-import { getIsSwapId, getIsTinyTransaction, getIsTxIdLocal } from '../../helpers';
+import { getIsSwapId, getIsTinyOrScamTransaction, getIsTxIdLocal } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentTransfer,
@@ -563,7 +563,7 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
     }
 
     const filteredResult = global.settings.areTinyTransfersHidden
-      ? result.filter((tx) => tx.kind === 'transaction' && !getIsTinyTransaction(tx))
+      ? result.filter((tx) => tx.kind === 'transaction' && !getIsTinyOrScamTransaction(tx))
       : result;
 
     fetchedActivities = fetchedActivities.concat(result);
@@ -629,7 +629,7 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
     }
 
     const filteredResult = global.settings.areTinyTransfersHidden
-      ? result.filter((tx) => tx.kind === 'transaction' && !getIsTinyTransaction(tx))
+      ? result.filter((tx) => tx.kind === 'transaction' && !getIsTinyOrScamTransaction(tx))
       : result;
 
     fetchedActivities = fetchedActivities.concat(result);

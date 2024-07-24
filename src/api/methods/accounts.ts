@@ -11,7 +11,6 @@ import {
   sendUpdateTokens,
   setupBalanceBasedPolling,
   setupStakingPolling,
-  setupSwapPolling,
   setupVestingPolling,
   setupWalletVersionsPolling,
 } from './polling';
@@ -33,7 +32,7 @@ export async function activateAccount(accountId: string, newestTxIds?: ApiTxIdBy
       deactivateAllDapps();
     }
 
-    callHook('onFirstLogin');
+    void callHook('onFirstLogin');
 
     onActiveDappAccountUpdated(accountId);
   }
@@ -44,7 +43,6 @@ export async function activateAccount(accountId: string, newestTxIds?: ApiTxIdBy
 
   void setupBalanceBasedPolling(accountId, newestTxIds);
   void setupStakingPolling(accountId);
-  void setupSwapPolling(accountId);
   void setupWalletVersionsPolling(accountId);
   void setupVestingPolling(accountId);
 }
@@ -55,7 +53,7 @@ export function deactivateAllAccounts() {
 
   if (IS_EXTENSION) {
     deactivateAllDapps();
-    callHook('onFullLogout');
+    void callHook('onFullLogout');
   }
 }
 

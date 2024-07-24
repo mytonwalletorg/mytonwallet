@@ -165,7 +165,7 @@ export async function deleteAllDapps(accountId: string) {
       accountId,
       origin,
     });
-    callHook('onDappDisconnected', accountId, origin);
+    void callHook('onDappDisconnected', accountId, origin);
   });
 
   await callHook('onDappsChanged');
@@ -208,7 +208,7 @@ export function getDappsState(): Promise<ApiDappsState | undefined> {
 export async function removeAccountDapps(accountId: string) {
   await removeAccountValue(accountId, 'dapps');
 
-  callHook('onDappsChanged');
+  void callHook('onDappsChanged');
 }
 
 export async function removeAllDapps() {

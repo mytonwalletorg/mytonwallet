@@ -116,14 +116,14 @@ export const CHANGELLY_AML_KYC = 'https://changelly.com/aml-kyc';
 export const CHANGELLY_WAITING_DEADLINE = 3 * 60 * 60 * 1000; // 3 hour
 
 export const TONCOIN_SLUG = 'toncoin';
-export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = 'ton-eqc47093ox'; // To be updated with the most popular token, according to https://ton.app/jettons
+export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = 'ton-eqcxe6mutq'; // USD₮
 export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = 'usdtrx';
 
 export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-120';
+export const LANG_CACHE_NAME = 'mtw-lang-122';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -233,15 +233,15 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
     priceUsd: 0,
     isPopular: true,
   },
-  'ton-eqc47093ox': {
-    name: 'Gram',
-    symbol: 'GRAM',
+  'ton-eqcxe6mutq': {
+    name: 'Tether USD',
+    symbol: 'USD₮',
     blockchain: TON_BLOCKCHAIN,
-    slug: 'ton-eqc47093ox',
+    slug: 'ton-eqcxe6mutq',
     decimals: 9,
     // eslint-disable-next-line max-len
-    image: 'https://cache.tonapi.io/imgproxy/lNoY3YdNeBug53ixjK6hxT6XIX3_xoIYNqv-ykIQ1Aw/rs:fill:200:200:1/g:no/aHR0cHM6Ly9ncmFtY29pbi5vcmcvaW1nL2ljb24ucG5n.webp',
-    contract: 'EQC47093oX5Xhb0xuk2lCr2RhS8rj-vul61u4W2UH5ORmG_O',
+    image: 'https://cache.tonapi.io/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
+    contract: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
     price: 0,
     priceUsd: 0,
     isPopular: true,
@@ -331,8 +331,5 @@ export const CLAIM_COMMENT = 'claim';
 export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z][-a-zA-Z0-9]{1,62})\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)/g;
 // eslint-disable-next-line max-len
 export const RE_TG_BOT_MENTION = /telegram[:\s-]*((@[a-z0-9_]+)|(https:\/\/)?(t\.me|telegram\.me|telegram\.dog)\/[a-z0-9_]+)/mig;
-export const RE_EMPTY_CHARS = /[\u200B-\u200D\uFEFF]/g;
-export const RE_SPACE_CHARS = /[\n\r]/g;
-export const RE_FAKE_DOTS = /[\u0702\u0701\u2024\u00B7\u02D9\u0971\u1427\u18DF\u22C5\u2027]/g;
 
 export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';

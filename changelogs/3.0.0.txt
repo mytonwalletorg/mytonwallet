@@ -1,0 +1,8 @@
+- Significantly Improved In-App Browser Interface.
+- Manual NFT Hiding.
+- Enhanced Scam Detection.
+- Ledger v2.1 Support.
+- W5 Wallet Version Support.
+- Boosted Connection Speed & App Performance.
+- Dapp Connection Fixes.
+- Multiple Fixes and Improvements.

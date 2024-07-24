@@ -14,6 +14,7 @@ type OwnProps = {
   className?: string;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   onCheck?: (isChecked: boolean) => void;
+  shouldStopPropagation?: boolean;
 };
 
 function Switcher({
@@ -25,6 +26,7 @@ function Switcher({
   className,
   onChange,
   onCheck,
+  shouldStopPropagation,
 }: OwnProps) {
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     if (onChange) {
@@ -37,7 +39,13 @@ function Switcher({
   }
 
   return (
-    <label className={buildClassName(styles.container, className)} title={label}>
+    <label
+      className={buildClassName(styles.container, className)}
+      title={label}
+      onClick={shouldStopPropagation ? (e) => e.stopPropagation() : undefined}
+      tabIndex={0}
+      role="button"
+    >
       <input
         type="checkbox"
         id={id}
@@ -46,7 +54,7 @@ function Switcher({
         checked={checked}
         className={styles.input}
         onChange={handleChange}
-        teactExperimentControlled={!onChange && !onCheck}
+        teactExperimentControlled={shouldStopPropagation || (!onChange && !onCheck)}
       />
       <span className={styles.widget} />
     </label>

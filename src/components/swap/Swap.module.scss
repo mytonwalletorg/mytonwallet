@@ -31,6 +31,10 @@
   margin-bottom: 0.8125rem;
 }
 
+.amountInputBuy {
+  margin-bottom: 0;
+}
+
 .inputLabel {
   margin-bottom: 0.3125rem;
 }
@@ -193,7 +197,7 @@
   z-index: 1;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -45%);
+  transform: translate(-50%, -31%);
 
   display: flex;
   align-items: center;

@@ -40,7 +40,9 @@ import QrScannerModal from './main/modals/QrScannerModal';
 import SignatureModal from './main/modals/SignatureModal';
 import SwapActivityModal from './main/modals/SwapActivityModal';
 import TransactionModal from './main/modals/TransactionModal';
+import UnhideNftModal from './main/modals/UnhideNftModal';
 import Notifications from './main/Notifications';
+import MediaViewer from './mediaViewer/MediaViewer';
 import Settings from './settings/Settings';
 import SettingsModal from './settings/SettingsModal';
 import SwapModal from './swap/SwapModal';
@@ -60,6 +62,7 @@ interface StateProps {
   isQrScannerOpen?: boolean;
   isHardwareModalOpen?: boolean;
   areSettingsOpen?: boolean;
+  isMediaViewerOpen?: boolean;
 }
 
 const APP_UPDATE_INTERVAL = (IS_ELECTRON && !IS_LINUX) || IS_ANDROID_DIRECT
@@ -75,6 +78,7 @@ function App({
   isHardwareModalOpen,
   isQrScannerOpen,
   areSettingsOpen,
+  isMediaViewerOpen,
 }: StateProps) {
   // return <Test />;
   const {
@@ -176,7 +180,7 @@ function App({
       <Transition
         name={isPortrait ? (IS_ANDROID ? 'slideFadeAndroid' : IS_IOS ? 'slideLayers' : 'slideFade') : 'semiFade'}
         activeKey={renderingKey}
-        shouldCleanup={renderingKey !== AppState.Settings}
+        shouldCleanup={renderingKey !== AppState.Settings && !isMediaViewerOpen}
         className={styles.transitionContainer}
         slideClassName={buildClassName(styles.appSlide, 'custom-scroll')}
       >
@@ -191,6 +195,7 @@ function App({
           <Settings isInsideModal />
         </SettingsModal>
       )}
+      <MediaViewer />
       {!isInactive && (
         <>
           <LedgerModal isOpen={isHardwareModalOpen} onClose={closeHardwareWalletModal} />
@@ -207,6 +212,7 @@ function App({
           <DappTransferModal />
           <AddAccountModal />
           <OnRampWidgetModal />
+          <UnhideNftModal />
           {!IS_DELEGATED_BOTTOM_SHEET && <Notifications />}
           {IS_CAPACITOR && (
             <QrScannerModal
@@ -231,6 +237,7 @@ export default memo(withGlobal((global): StateProps => {
     isBackupWalletModalOpen: global.isBackupWalletModalOpen,
     isHardwareModalOpen: global.isHardwareModalOpen,
     areSettingsOpen: global.areSettingsOpen,
+    isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
     isQrScannerOpen: global.isQrScannerOpen,
   };
 })(App));

@@ -13,7 +13,6 @@ import * as methods from '.';
 addHooks({
   onDappDisconnected: tonConnectSse.sendSseDisconnect,
   onDappsChanged: tonConnectSse.resetupSseConnection,
-  onSwapCreated: methods.setupSwapPolling,
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

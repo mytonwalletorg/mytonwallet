@@ -15,8 +15,10 @@ export const ANIMATION_DURATION = 200;
 // Header height + bottom padding, keep in sync with styles.image max-height
 const OCCUPIED_HEIGHT = 14 * REM;
 
-export function animateOpening(type: MediaType, mediaId: string, mediaUrl?: string) {
-  const { image: fromImage } = getNode(type, mediaId);
+export function animateOpening(
+  type: MediaType, mediaId: string, mediaUrl?: string, txId?: string, hiddenNfts?: 'user' | 'scam',
+) {
+  const { image: fromImage } = getNode(type, mediaId, txId, hiddenNfts);
   if (!fromImage || !mediaUrl) {
     return;
   }
@@ -79,8 +81,8 @@ export function animateOpening(type: MediaType, mediaId: string, mediaUrl?: stri
   });
 }
 
-export function animateClosing(type: MediaType, mediaId: string) {
-  const { container, image: toImage } = getNode(type, mediaId);
+export function animateClosing(type: MediaType, mediaId: string, txId?: string, hiddenNfts?: 'user' | 'scam') {
+  const { container, image: toImage } = getNode(type, mediaId, txId, hiddenNfts);
   const fromImage = document.querySelector<HTMLImageElement>(`.${styles.slide_active} img`);
   if (!fromImage || !toImage) {
     return;
@@ -165,12 +167,16 @@ export function animateClosing(type: MediaType, mediaId: string) {
   });
 }
 
-function getNode(type: MediaType, mediaId: string) {
+function getNode(type: MediaType, mediaId: string, txId?: string, hiddenNfts?: 'user' | 'scam') {
   let image: HTMLImageElement | undefined;
   let container: HTMLElement | undefined;
   if (type === MediaType.Nft) {
     container = document.querySelector(
-      `.nfts-container > .Transition_slide-active [data-nft-address="${mediaId}"]`,
+      txId
+        ? `.transaction-nft[data-tx-id="${txId}"][data-nft-address="${mediaId}"]`
+        : hiddenNfts
+          ? `.hidden-nfts-${hiddenNfts} [data-nft-address="${mediaId}"]`
+          : `.nfts-container > .Transition_slide-active [data-nft-address="${mediaId}"]`,
     ) as HTMLElement;
     image = container?.querySelector('img') as HTMLImageElement;
   }

@@ -28,6 +28,7 @@ type OwnProps = {
   isSmall?: boolean;
   isDestructive?: boolean;
   onClick?: NoneToVoidFunction;
+  shouldStopPropagation?: boolean;
 };
 
 // Longest animation duration
@@ -52,11 +53,15 @@ function Button({
   isSmall,
   isDestructive,
   onClick,
+  shouldStopPropagation,
 }: OwnProps) {
   const [isClicked, setIsClicked] = useState(false);
 
-  const handleClick = useLastCallback(() => {
+  const handleClick = useLastCallback((event: React.MouseEvent) => {
     if (!isDisabled && onClick) {
+      if (shouldStopPropagation) {
+        event.stopPropagation();
+      }
       onClick();
     }
 

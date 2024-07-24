@@ -306,6 +306,10 @@ export interface AccountState {
     isCollection: boolean;
   };
   isUnhideNftModalOpen?: boolean;
+  selectedNftToUnhide?: {
+    address: ApiNft['address'];
+    name: ApiNft['name'];
+  };
   isBackupRequired?: boolean;
   activeDappOrigin?: string;
   currentTokenSlug?: string;
@@ -425,6 +429,7 @@ export type GlobalState = {
 
   currentSwap: {
     state: SwapState;
+    swapId?: string;
     slippage: number;
     tokenInSlug?: string;
     tokenOutSlug?: string;
@@ -603,6 +608,9 @@ export type GlobalState = {
   mediaViewer: {
     mediaId?: string;
     mediaType?: MediaType;
+    txId?: string;
+    hiddenNfts?: 'user' | 'scam';
+    noGhostAnimation?: boolean;
   };
 
   isLoadingOverlayOpen?: boolean;
@@ -737,7 +745,10 @@ export interface ActionPayloads {
   addNftsToBlacklist: { addresses: ApiNft['address'][] };
   addNftsToWhitelist: { addresses: ApiNft['address'][] };
   removeNftSpecialStatus: { address: ApiNft['address'] };
-  openUnhideNftModal: undefined;
+  openUnhideNftModal: {
+    address: ApiNft['address'];
+    name: ApiNft['name'];
+  };
   closeUnhideNftModal: undefined;
   openHideNftModal: {
     addresses: ApiNft['address'][];
@@ -877,12 +888,19 @@ export interface ActionPayloads {
   setSwapCexAddress: { toAddress: string };
   addSwapToken: { token: UserSwapToken };
   toggleSwapSettingsModal: { isOpen: boolean };
+  updatePendingSwaps: undefined;
 
   openOnRampWidgetModal: undefined;
   closeOnRampWidgetModal: undefined;
 
   // MediaViewer
-  openMediaViewer: { mediaId: string; mediaType: MediaType };
+  openMediaViewer: {
+    mediaId: string;
+    mediaType: MediaType;
+    txId?: string;
+    hiddenNfts?: 'user' | 'scam';
+    noGhostAnimation?: boolean;
+  };
   closeMediaViewer: undefined;
 
   openReceiveModal: undefined;

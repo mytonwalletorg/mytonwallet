@@ -475,7 +475,7 @@ Wrong code, please try again: 程式碼錯誤，請重試
 Scan your fingerprint: 掃描您的指紋
 Incorrect code, please try again.: 不正確的代碼，請重試。
 Correct: 不錯
-Confirm Operation: 確認操作
+Confirm Action: 確認操作
 Confirm Swap: 確認兌換
 "%amount% to %address%": "%amount% 至 %address%"
 "%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
@@ -630,3 +630,5 @@ $hardware_blind_sign_not_enabled: |
 
   要繼續，請在 Ledger 的 TON 應用程序設置中啟用“盲簽名”選項。
 Switch to W5: 切換到 W5
+Not a Scam: 不是騙局
+Untitled: 未命名

@@ -491,7 +491,7 @@ Wrong code, please try again: Falscher Code, bitte versuchen Sie es erneut.
 Scan your fingerprint: Legen Sie Ihren Fingerabdruck auf.
 Incorrect code, please try again.: Falscher Code, bitte versuchen Sie es erneut.
 Correct: Korrekt
-Confirm Operation: Operation bestätigen
+Confirm Action: Aktion bestätigen
 Confirm Swap: Swap bestätigen
 "%amount% to %address%": "%amount% zu %address%"
 "%amount_from% to %amount_to%": "%amount_from% zu %amount_to%"
@@ -647,3 +647,5 @@ $hardware_blind_sign_not_enabled: |
 
   Um fortzufahren, aktivieren Sie die Option „Blindsignatur“ in den Einstellungen der TON App auf dem Ledger.
 Switch to W5: Zu W5 wechseln
+Not a Scam: Kein Betrug
+Untitled: Unbenannt

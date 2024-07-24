@@ -1,4 +1,6 @@
-import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo, useRef,
+} from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
 import { MediaType } from '../../global/types';
@@ -8,8 +10,11 @@ import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useLang from '../../hooks/useLang';
 
 import styles from './MediaViewer.module.scss';
+
+import scamImg from '../../assets/scam.svg';
 
 interface OwnProps {
   // eslint-disable-next-line react/no-unused-prop-types
@@ -21,11 +26,14 @@ interface StateProps {
   thumbnail?: string;
   image?: string;
   description?: string;
+  isScam?: boolean;
+  whitelistedMediaIds?: string[];
 }
 
 function Media({
-  alt, thumbnail, image, description,
+  mediaId, alt, thumbnail, image, description, isScam, whitelistedMediaIds,
 }: OwnProps & StateProps) {
+  const lang = useLang();
   const src = image || thumbnail;
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement | null>(null);
@@ -40,6 +48,10 @@ function Media({
     });
   }, [isPortrait]);
 
+  const isNftWhiteListed = useMemo(() => {
+    return whitelistedMediaIds?.includes(mediaId);
+  }, [mediaId, whitelistedMediaIds]);
+
   return (
     <div className={styles.content}>
       <img src={src} alt={alt} className={styles.image} />
@@ -47,6 +59,7 @@ function Media({
         {description && (
           <div className={styles.contentTextWrapper}>
             <div className={buildClassName(styles.contentText, 'custom-scroll')} dir="auto">
+              {isScam && !isNftWhiteListed && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
               {description}
             </div>
           </div>
@@ -65,10 +78,14 @@ export default memo(withGlobal<OwnProps>((global, { mediaId }): StateProps => {
   const nft = byAddress?.[mediaId];
   if (!nft) return {};
 
+  const { whitelistedNftAddresses } = selectCurrentAccountState(global) || {};
+
   return {
     alt: nft.name,
     thumbnail: nft.thumbnail,
     image: nft.image,
     description: nft.description,
+    isScam: nft.isScam,
+    whitelistedMediaIds: whitelistedNftAddresses,
   };
 })(Media));

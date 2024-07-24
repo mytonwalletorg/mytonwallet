@@ -3,7 +3,8 @@ import type { ApiToken, ApiTransaction } from '../../api/types';
 import { TINY_TRANSFER_MAX_COST } from '../../config';
 import { toBig } from '../../util/decimals';
 
-export function getIsTinyTransaction(transaction: ApiTransaction, token?: ApiToken) {
+export function getIsTinyOrScamTransaction(transaction: ApiTransaction, token?: ApiToken) {
+  if (transaction.metadata?.isScam) return true;
   if (!token || transaction.type === 'nftTransferred' || transaction.type === 'nftReceived') return false;
 
   const decimals = token.decimals;

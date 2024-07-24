@@ -57,6 +57,7 @@
         }
       }
     ],
+    "react/jsx-key": [2, { "checkFragmentShorthand": true}],
     "arrow-body-style": "off",
     "no-else-return": "off",
     "no-plusplus": "off",

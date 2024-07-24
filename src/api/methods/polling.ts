@@ -9,7 +9,6 @@ import type {
   ApiStakingCommonData,
   ApiStakingState,
   ApiSwapAsset,
-  ApiSwapHistoryItem,
   ApiTokenPrice,
   ApiTransactionActivity,
   ApiTxIdBySlug,
@@ -39,9 +38,7 @@ import { processNftUpdates, updateAccountNfts } from './nfts';
 import { resolveDataPreloadPromise } from './preload';
 import { getBaseCurrency } from './prices';
 import { getBackendStakingState, tryUpdateStakingCommonData } from './staking';
-import {
-  swapGetAssets, swapGetHistory, swapItemToActivity, swapReplaceTransactionsByRanges,
-} from './swap';
+import { swapGetAssets, swapReplaceTransactionsByRanges } from './swap';
 import { fetchVestings } from './vesting';
 
 type IsAccountActiveFn = (accountId: string) => boolean;
@@ -59,9 +56,6 @@ const STAKING_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
 const BACKEND_INTERVAL = 30 * SEC;
 const LONG_BACKEND_INTERVAL = 60 * SEC;
 const NFT_FULL_INTERVAL = 60 * SEC;
-const SWAP_POLLING_INTERVAL = 3 * SEC;
-const SWAP_POLLING_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
-const SWAP_FINISHED_STATUSES = new Set(['failed', 'completed', 'expired']);
 const VERSIONS_INTERVAL = 5 * 60 * SEC;
 const VERSIONS_INTERVAL_WHEN_NOT_FOCUSED = 15 * 60 * SEC;
 const VESTING_INTERVAL = 10 * SEC;
@@ -81,7 +75,7 @@ const prices: {
   baseCurrency: DEFAULT_PRICE_CURRENCY,
   bySlug: {},
 };
-let swapPollingAccountId: string | undefined;
+
 const lastBalanceCache: Record<string, AccountBalanceCache> = {};
 
 export async function initPolling(_onUpdate: OnApiUpdate, _isAccountActive: IsAccountActiveFn) {
@@ -563,98 +557,8 @@ export function sendUpdateTokens() {
   });
 }
 
-export async function setupSwapPolling(accountId: string) {
-  if (swapPollingAccountId === accountId) return; // Double launch is not allowed
-  swapPollingAccountId = accountId;
-
-  const { address, lastFinishedSwapTimestamp } = await fetchStoredAccount(accountId);
-
-  let fromTimestamp = lastFinishedSwapTimestamp ?? await getActualLastFinishedSwapTimestamp(accountId, address);
-
-  const localOnUpdate = onUpdate;
-  const swapById: Record<string, ApiSwapHistoryItem> = {};
-
-  while (isAlive(localOnUpdate, accountId)) {
-    try {
-      const swaps = await swapGetHistory(address, {
-        fromTimestamp,
-      });
-      if (!isAlive(localOnUpdate, accountId)) break;
-      if (!swaps.length) break;
-
-      swaps.reverse();
-
-      let isLastFinishedSwapUpdated = false;
-      let isPrevFinished = true;
-
-      for (const swap of swaps) {
-        if (swap.cex) {
-          if (swap.cex.status === swapById[swap.id]?.cex!.status) {
-            continue;
-          }
-        } else if (swap.status === swapById[swap.id]?.status) {
-          continue;
-        }
-
-        swapById[swap.id] = swap;
-
-        const isFinished = SWAP_FINISHED_STATUSES.has(swap.status);
-        if (isFinished && isPrevFinished) {
-          fromTimestamp = swap.timestamp;
-          isLastFinishedSwapUpdated = true;
-        }
-        isPrevFinished = isFinished;
-
-        if (swap.cex || swap.status !== 'completed') {
-          // Completed onchain swaps are processed in swapReplaceTransactions
-          onUpdate({
-            type: 'newActivities',
-            accountId,
-            activities: [swapItemToActivity(swap)],
-          });
-        }
-      }
-
-      if (isLastFinishedSwapUpdated) {
-        await updateStoredAccount(accountId, {
-          lastFinishedSwapTimestamp: fromTimestamp,
-        });
-      }
-    } catch (err) {
-      logDebugError('setupSwapPolling', err);
-    }
-
-    await pauseOrFocus(SWAP_POLLING_INTERVAL, SWAP_POLLING_INTERVAL_WHEN_NOT_FOCUSED);
-  }
-
-  if (accountId === swapPollingAccountId) {
-    swapPollingAccountId = undefined;
-  }
-}
-
 function isAlive(localOnUpdate: OnApiUpdate, accountId: string) {
   return isUpdaterAlive(localOnUpdate) && isAccountActive(accountId);
-}
-
-async function getActualLastFinishedSwapTimestamp(accountId: string, address: string) {
-  const swaps = await swapGetHistory(address, {});
-
-  swaps.reverse();
-
-  let timestamp = Date.now();
-  for (const swap of swaps) {
-    if (SWAP_FINISHED_STATUSES.has(swap.status)) {
-      timestamp = swap.timestamp;
-    } else {
-      break;
-    }
-  }
-
-  await updateStoredAccount(accountId, {
-    lastFinishedSwapTimestamp: timestamp,
-  });
-
-  return timestamp;
 }
 
 function logAndRescue(err: Error) {

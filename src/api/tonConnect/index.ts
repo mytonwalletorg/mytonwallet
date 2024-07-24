@@ -71,6 +71,8 @@ import * as errors from './errors';
 import { UnknownAppError } from './errors';
 import { isValidString, isValidUrl } from './utils';
 
+const BLANK_GIF_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
 const ton = blockchains.ton;
 
 let resolveInit: AnyFunction;
@@ -613,7 +615,8 @@ export async function fetchDappMetadata(manifestUrl: string, origin?: string): P
     const data = await fetchJsonMetadata(manifestUrl);
 
     const { url, name, iconUrl } = await data;
-    if (!isValidUrl(url) || !isValidString(name) || !isValidUrl(iconUrl)) {
+    const safeIconUrl = iconUrl.startsWith('data:') ? BLANK_GIF_DATA_URL : iconUrl;
+    if (!isValidUrl(url) || !isValidString(name) || !isValidUrl(safeIconUrl)) {
       throw new Error('Invalid data');
     }
 
@@ -621,7 +624,7 @@ export async function fetchDappMetadata(manifestUrl: string, origin?: string): P
       origin: origin ?? new URL(url).origin,
       url,
       name,
-      iconUrl,
+      iconUrl: safeIconUrl,
       manifestUrl,
     };
   } catch (err) {

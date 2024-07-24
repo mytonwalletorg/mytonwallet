@@ -241,7 +241,13 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
 
 addActionHandler('submitStakingHardware', async (global, actions, payload) => {
   const { isUnstaking } = payload || {};
-  const { fee, amount } = global.staking;
+  const {
+    fee,
+    amount,
+    type,
+    tokenAmount,
+  } = global.staking;
+  const { currentAccountId } = global;
 
   global = updateStaking(global, {
     isLoading: true,
@@ -257,11 +263,24 @@ addActionHandler('submitStakingHardware', async (global, actions, payload) => {
   const accountId = global.currentAccountId!;
 
   if (isUnstaking) {
-    result = await ledgerApi.submitLedgerUnstake(accountId);
+    const { instantAvailable } = global.stakingInfo.liquid ?? {};
+    const stakingBalance = selectAccountState(global, currentAccountId!)!.staking!.balance;
+    const unstakeAmount = type === 'nominators' ? stakingBalance : tokenAmount!;
+
+    result = await ledgerApi.submitLedgerUnstake(accountId, type!, unstakeAmount);
+
+    const isLongUnstakeRequested = Boolean(
+      type === 'nominators' || (type === 'liquid' && instantAvailable && instantAvailable < stakingBalance),
+    );
+
+    global = getGlobal();
+    global = updateAccountState(global, currentAccountId!, { isLongUnstakeRequested });
+    setGlobal(global);
   } else {
     result = await ledgerApi.submitLedgerStake(
       accountId,
       amount!,
+      type!,
       fee,
     );
   }

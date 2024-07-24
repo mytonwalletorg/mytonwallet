@@ -165,7 +165,7 @@ function PasswordForm({
       case 'swap':
         return 'Confirm Swap';
       default:
-        return 'Confirm Operation';
+        return 'Confirm Action';
     }
   }
 

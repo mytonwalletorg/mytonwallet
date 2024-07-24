@@ -1,5 +1,7 @@
 import React, { memo } from '../../../lib/teact/teact';
-import { getActions } from '../../../global';
+import { getActions, withGlobal } from '../../../global';
+
+import { selectCurrentAccountState } from '../../../global/selectors';
 
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -9,40 +11,38 @@ import Modal from '../../ui/Modal';
 
 import modalStyles from '../../ui/Modal.module.scss';
 
-interface OwnProps {
+interface StateProps {
   isOpen?: boolean;
   nftAddress?: string;
   nftName?: string;
-  onClose: NoneToVoidFunction;
 }
 
 function UnhideNftModal({
   isOpen,
   nftAddress,
   nftName,
-  onClose,
-}: OwnProps) {
-  const { addNftsToWhitelist } = getActions();
+}: StateProps) {
+  const { addNftsToWhitelist, closeUnhideNftModal } = getActions();
 
   const lang = useLang();
 
   const handleUnhide = useLastCallback(() => {
     addNftsToWhitelist({ addresses: [nftAddress!] });
-    onClose();
+    closeUnhideNftModal();
   });
 
   return (
     <Modal
       isOpen={isOpen}
       isCompact
-      onClose={onClose}
+      onClose={closeUnhideNftModal}
       title={lang('Unhide NFT')}
     >
       <p className={modalStyles.text}>
         {lang('$unhide_nft_warning', { name: <b>{nftName}</b> })}
       </p>
       <div className={modalStyles.buttons}>
-        <Button onClick={onClose} className={modalStyles.button}>{lang('Cancel')}</Button>
+        <Button onClick={closeUnhideNftModal} className={modalStyles.button}>{lang('Cancel')}</Button>
         <Button isDestructive onClick={handleUnhide} className={modalStyles.button}>
           {lang('Unhide')}
         </Button>
@@ -51,4 +51,15 @@ function UnhideNftModal({
   );
 }
 
-export default memo(UnhideNftModal);
+export default memo(withGlobal((global): StateProps => {
+  const {
+    isUnhideNftModalOpen,
+    selectedNftToUnhide,
+  } = selectCurrentAccountState(global) ?? {};
+
+  return {
+    isOpen: isUnhideNftModalOpen,
+    nftAddress: selectedNftToUnhide?.address,
+    nftName: selectedNftToUnhide?.name,
+  };
+})(UnhideNftModal));

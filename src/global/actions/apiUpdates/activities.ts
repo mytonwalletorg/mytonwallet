@@ -3,10 +3,10 @@ import { TransferState } from '../../types';
 
 import { IS_CAPACITOR, TONCOIN_SLUG } from '../../../config';
 import { groupBy } from '../../../util/iteratees';
-import { callActionInNative } from '../../../util/multitab';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
-import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
-import { getIsTinyTransaction } from '../../helpers';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { getIsTinyOrScamTransaction } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   addLocalTransaction,
@@ -56,8 +56,13 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'newActivities': {
-      if (IS_DELEGATING_BOTTOM_SHEET) {
-        callActionInNative('apiUpdate', update);
+      if (IS_DELEGATING_BOTTOM_SHEET && !update.noForward) {
+        // Local transaction in NBS was not updated after nft/transfer sending was completed
+        callActionInNative('apiUpdate', { ...update, noForward: true });
+      }
+      if (IS_DELEGATED_BOTTOM_SHEET && !update.noForward) {
+        // A local swap transaction is not created if the NBS is closed before the exchange is completed
+        callActionInMain('apiUpdate', { ...update, noForward: true });
       }
       const { accountId, activities } = update;
 
@@ -116,7 +121,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
             && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
             && !(
               global.settings.areTinyTransfersHidden
-              && getIsTinyTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
+              && getIsTinyOrScamTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
             );
         });
 
@@ -126,7 +131,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       }
 
       setGlobal(global);
-
       break;
     }
   }

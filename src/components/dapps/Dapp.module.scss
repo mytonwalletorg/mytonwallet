@@ -269,8 +269,13 @@
   line-height: 0.5rem;
 }
 
+.iconLedger,
 .accountAddress {
   color: var(--color-card-second-text);
+}
+
+.iconLedger {
+  margin-inline-end: 0.25rem;
 }
 
 .description {

@@ -1,4 +1,4 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
 import type { ApiNft } from '../../api/types';
@@ -24,13 +24,24 @@ type OwnProps = {
 
 type StateProps = {
   nft?: ApiNft;
+  blacklistedNftAddresses?: string[];
+  whitelistedNftAddresses?: string[];
 };
 
-function Actions({ onClose, nft }: StateProps & OwnProps) {
+function Actions({
+  onClose, nft, blacklistedNftAddresses, whitelistedNftAddresses,
+}: StateProps & OwnProps) {
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
 
-  const { menuItems, handleMenuItemSelect } = useNftMenu(nft);
+  const isNftBlackListed = useMemo(() => {
+    return blacklistedNftAddresses?.includes(nft!.address);
+  }, [nft, blacklistedNftAddresses]);
+  const isNftWhiteListed = useMemo(() => {
+    return whitelistedNftAddresses?.includes(nft!.address);
+  }, [nft, whitelistedNftAddresses]);
+
+  const { menuItems, handleMenuItemSelect } = useNftMenu(nft, isNftBlackListed, isNftWhiteListed);
 
   const handleSelect = useLastCallback((value: string) => {
     if (value === 'send') {
@@ -83,7 +94,9 @@ export default memo(withGlobal<OwnProps>((global, { mediaId }): StateProps => {
   const nft = byAddress?.[mediaId];
   if (!nft) return {};
 
+  const { blacklistedNftAddresses, whitelistedNftAddresses } = selectCurrentAccountState(global) || {};
+
   return {
-    nft,
+    nft, blacklistedNftAddresses, whitelistedNftAddresses,
   };
 })(Actions));

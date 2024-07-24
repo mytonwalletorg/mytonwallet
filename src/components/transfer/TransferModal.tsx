@@ -44,6 +44,7 @@ interface StateProps {
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
+  isMediaViewerOpen?: boolean;
 }
 
 const SCREEN_HEIGHT_FOR_FORCE_FULLSIZE_NBS = 762; // Computed empirically
@@ -61,7 +62,7 @@ function TransferModal({
     tokenSlug,
     nfts,
     sentNftsCount,
-  }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected,
+  }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, isMediaViewerOpen,
 }: StateProps) {
   const {
     submitTransferConfirm,
@@ -243,7 +244,7 @@ function TransferModal({
 
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen={isOpen && !isMediaViewerOpen}
       noBackdropClose
       dialogClassName={styles.modalDialog}
       nativeBottomSheetKey="transfer"
@@ -281,5 +282,6 @@ export default memo(withGlobal((global): StateProps => {
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,
+    isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
   };
 })(TransferModal));
