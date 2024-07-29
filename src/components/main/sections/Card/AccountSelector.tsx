@@ -80,7 +80,7 @@ function AccountSelector({
   const isQrScannerSupported = useQrScannerSupport();
 
   const noSettingsOrQrSupported = noSettingsButton || (isInsideSticky && isQrScannerSupported);
-  const withAddW5Button = currentWalletVersion !== 'W5';
+  const withAddW5Button = currentWalletVersion !== 'W5' && !currentAccount?.isHardware;
 
   const accountsAmount = useMemo(() => Object.keys(accounts || {}).length, [accounts]);
 

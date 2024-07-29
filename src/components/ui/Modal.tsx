@@ -197,7 +197,7 @@ function Modal({
       <div
         className={buildClassName(styles.header, styles.header_wideContent, !hasCloseButton && styles.header_noClose)}
       >
-        <div className={styles.title}>{title}</div>
+        <div className={buildClassName(styles.title, styles.singleTitle)}>{title}</div>
         {hasCloseButton && (
           <Button isRound className={styles.closeButton} ariaLabel={lang('Close')} onClick={onClose}>
             <i className={buildClassName(styles.closeIcon, 'icon-close')} aria-hidden />

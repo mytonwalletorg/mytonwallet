@@ -39,7 +39,7 @@ function ModalHeader({
           <span>{lang('Back')}</span>
         </Button>
       )}
-      <div className={modalStyles.title}>{title}</div>
+      <div className={buildClassName(modalStyles.title, modalStyles.singleTitle)}>{title}</div>
       {onClose && (
         <Button
           isRound
