@@ -190,7 +190,7 @@ Play Sounds: Play Sounds
 Focus on asset value rather than current balance: Focus on asset value rather than current balance
 $logout_confirm: Remove **all** wallets
 $logout_warning2: Wallets are located in the decentralized TON Blockchain. If you want the wallet to be deleted simply transfer all the TON from it and leave it empty.
-$tiny_transfers_help: Turn this off to display transactions of less than $%value%. Please be aware that such transactions are often used for spam and scam purposes.
+$tiny_transfers_help: Hide transfers worth less than $%value%. Keep in mind - such amounts are often sent by spammers and scammers.
 Today: Today
 Yesterday: Yesterday
 Now: Now
@@ -528,9 +528,7 @@ Required: Required
 Comment is too long.: Comment is too long.
 Memo: Memo
 Memo was copied!: Memo was copied!
-$hide_tokens_no_cost_help: |
-  Turn this off to display tokens on your account with value less than $%value%. Please be aware that such tokens are often used for spam and scam purposed.
-  You can also selectively enable and disable particular tokens using the list below on this screen.
+$hide_tokens_no_cost_help: Hide tokens worth less than $%value%. Keep in mind - these tokens are often sent by spammers and scammers. On the same screen below, you can hide individual tokens.
 No internet connection. Please check your connection and try again.: No internet connection. Please check your connection and try again.
 To use this feature, first enable Face ID in your phone settings.: To use this feature, first enable Face ID in your phone settings.
 To use this feature, first enable biometrics in your phone settings.: To use this feature, first enable biometrics in your phone settings.
@@ -647,5 +645,5 @@ $hardware_blind_sign_not_enabled: |
 
   To continue, enable the "Blind Signing" option in the settings of the TON App on Ledger.
 Switch to W5: Switch to W5
-Not a Scam: Not a Scam
+Not Scam: Not Scam
 Untitled: Untitled

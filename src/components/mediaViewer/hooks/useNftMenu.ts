@@ -54,9 +54,9 @@ const HIDE_ITEM: DropdownItem = {
   name: 'Hide',
   value: 'hide',
 };
-const NOT_A_SCAM: DropdownItem = {
-  name: 'Not a Scam',
-  value: 'not_a_scam',
+const NOT_SCAM: DropdownItem = {
+  name: 'Not Scam',
+  value: 'not_scam',
 };
 const UNHIDE: DropdownItem = {
   name: 'Unhide',
@@ -147,7 +147,7 @@ export default function useNftMenu(nft?: ApiNft, isNftBlacklisted?: boolean, isN
         break;
       }
 
-      case 'not_a_scam': {
+      case 'not_scam': {
         openUnhideNftModal({ address: nft!.address, name: nft!.name });
 
         break;
@@ -185,7 +185,7 @@ export default function useNftMenu(nft?: ApiNft, isNftBlacklisted?: boolean, isN
       TON_EXPLORER_ITEM,
       ...(nft.collectionAddress ? [COLLECTION_ITEM] : []),
       ...((!nft.isScam && !isNftBlacklisted) || isNftWhitelisted ? [HIDE_ITEM] : []),
-      ...(nft.isScam && !isNftWhitelisted ? [NOT_A_SCAM] : []),
+      ...(nft.isScam && !isNftWhitelisted ? [NOT_SCAM] : []),
       ...(!nft.isScam && isNftBlacklisted ? [UNHIDE] : []),
       ...(!nft.isOnSale ? [
         BURN_ITEM,

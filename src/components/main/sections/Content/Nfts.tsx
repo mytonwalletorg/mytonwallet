@@ -23,6 +23,7 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import Loading from '../../../ui/Loading';
+import Transition from '../../../ui/Transition';
 import Nft from './Nft';
 
 import styles from './Nft.module.scss';
@@ -136,9 +137,15 @@ function Nfts({
           {lang('Burn NOT Vouchers')}
         </Button>
       )}
-      <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
-        {nfts.map((nft) => <Nft key={nft.address} nft={nft} selectedAddresses={selectedAddresses} />)}
-      </div>
+      <Transition
+        name="fade"
+        activeKey={nfts.length}
+        shouldCleanup
+      >
+        <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
+          {nfts.map((nft) => <Nft key={nft.address} nft={nft} selectedAddresses={selectedAddresses} />)}
+        </div>
+      </Transition>
     </div>
   );
 }

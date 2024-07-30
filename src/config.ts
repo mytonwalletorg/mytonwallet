@@ -123,7 +123,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-122';
+export const LANG_CACHE_NAME = 'mtw-lang-123';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
