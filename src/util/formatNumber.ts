@@ -22,7 +22,7 @@ export const formatInteger = withCache((
   const dp = value.gte(1) || noFloor ? fractionDigits : DEFAULT_DECIMAL_PLACES;
   let fixed = value.round(dp, noFloor ? Big.roundHalfUp : undefined).toString();
 
-  if (fixed === '0') {
+  if (countSignificantDigits(fixed) < fractionDigits) {
     fixed = value.toString();
   }
 
@@ -96,6 +96,7 @@ export function formatCurrencyForBigValue(value: number, currency: string, thres
  * '000112', 2 => '00011'
  * '100012', 2 => '1'
  * @param value fractionPart of number
+ * @param fractionDigits number of significant digits after decimal point
  */
 function toSignificant(value: string, fractionDigits: number): string {
   let digitsCount = 0;
@@ -116,6 +117,17 @@ function toSignificant(value: string, fractionDigits: number): string {
   }
 
   return value.slice(0, digitsLastIndex).replace(/0+$/, '');
+}
+
+function countSignificantDigits(value: string): number {
+  const decimalIndex = value.indexOf('.');
+
+  if (decimalIndex === -1) {
+    return 0;
+  }
+
+  const fractionalPart = value.slice(decimalIndex + 1).replace(/^0+/, '');
+  return fractionalPart.length;
 }
 
 export function getShortCurrencySymbol(currency?: ApiBaseCurrency) {

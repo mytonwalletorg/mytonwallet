@@ -4,15 +4,15 @@ import type { CancellableCallback } from '../../util/PostMessageConnector';
 
 import { createPostMessageInterface } from '../../util/createPostMessageInterface';
 
-declare const Module: any;
-
-declare function allocate(...args: any[]): string;
-
-declare function intArrayFromString(str: String): string;
-
-declare const self: WorkerGlobalScope;
-
-self.importScripts('rlottie-wasm.js');
+const {
+  Module,
+  allocate,
+  intArrayFromString,
+}: {
+  Module: any;
+  allocate(...args: any[]): string;
+  intArrayFromString(str: String): string;
+} = require('./rlottie-wasm.js');
 
 let rLottieApi: Record<string, Function>;
 const rLottieApiPromise = new Promise<void>((resolve) => {

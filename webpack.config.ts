@@ -82,6 +82,9 @@ export default function createConfig(
       ...(IS_EXTENSION && {
         minimize: false,
       }),
+      ...(IS_CAPACITOR && {
+        splitChunks: false,
+      }),
     },
 
     entry: {
@@ -184,6 +187,9 @@ export default function createConfig(
       extensions: ['.js', '.ts', '.tsx'],
       fallback: {
         crypto: false,
+        path: false,
+        fs: false,
+        browser: false,
       },
       alias: {
         // It is used to remove duplicate dependencies
