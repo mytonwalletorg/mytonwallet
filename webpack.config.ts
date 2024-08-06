@@ -187,9 +187,6 @@ export default function createConfig(
       extensions: ['.js', '.ts', '.tsx'],
       fallback: {
         crypto: false,
-        path: false,
-        fs: false,
-        browser: false,
       },
       alias: {
         // It is used to remove duplicate dependencies

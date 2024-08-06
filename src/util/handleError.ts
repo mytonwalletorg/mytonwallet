@@ -22,11 +22,18 @@ function handleErrorEvent(e: ErrorEvent | PromiseRejectionEvent) {
   handleError(e instanceof ErrorEvent ? (e.error || e.message) : e.reason);
 }
 
-export function handleError(err: Error) {
+export function handleError(err: Error | string) {
   // eslint-disable-next-line no-console
   console.error(err);
 
+  const message = typeof err === 'string' ? err : err.message;
+  const stack = typeof err === 'object' ? err.stack : undefined;
+
+  if (message.endsWith('Failed to import rlottie-wasm.js')) {
+    return;
+  }
+
   if (APP_ENV === 'development' || APP_ENV === 'staging') {
-    throttledAlert(`${DEBUG_ALERT_MSG}\n\n${(err?.message) || err}\n${err?.stack}`);
+    throttledAlert(`${DEBUG_ALERT_MSG}\n\n${(message) || err}\n${stack}`);
   }
 }

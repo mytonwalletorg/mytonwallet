@@ -129,18 +129,27 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
   balance: bigint;
 }> {
   const allWallets = await getWalletVersionInfos(network, publicKey);
+  const defaultWallet = allWallets.filter(({ version }) => version === DEFAULT_WALLET_VERSION)[0];
+
+  if (defaultWallet.lastTxId) {
+    return defaultWallet;
+  }
 
   const withBiggestBalance = allWallets.reduce<typeof allWallets[0] | undefined>((best, current) => {
     return best && best.balance > current.balance ? best : current;
   }, undefined);
 
-  if (!withBiggestBalance || !withBiggestBalance.balance) {
-    const version = DEFAULT_WALLET_VERSION;
-    const wallet = buildWallet(network, publicKey, version);
-    return { wallet, version, balance: 0n };
+  if (withBiggestBalance) {
+    return withBiggestBalance;
   }
 
-  return withBiggestBalance;
+  const withLastTx = allWallets.find(({ lastTxId }) => !!lastTxId);
+
+  if (withLastTx) {
+    return withLastTx;
+  }
+
+  return defaultWallet;
 }
 
 export function getWalletVersionInfos(
