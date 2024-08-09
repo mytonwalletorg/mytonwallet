@@ -197,7 +197,7 @@ ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'
   normalizedAddress?: string;
 };
 
-export type ApiBaseCurrency = 'USD' | 'EUR' | 'RUB' | 'CNY' | 'BTC' | 'TON';
+export type ApiBaseCurrency = 'USD' | 'EUR' | 'UAH' | 'RUB' | 'CNY' | 'BTC' | 'TON';
 
 export enum ApiLiquidUnstakeMode {
   Default,
