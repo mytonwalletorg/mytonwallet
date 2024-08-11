@@ -223,16 +223,17 @@
   align-items: center;
 
   height: 100%;
-  padding: 6rem 0 2rem;
+  padding: 4rem 0 2rem;
+
+  &::before {
+    content: "";
+
+    display: block;
+    flex: 1;
+  }
 
   @include respond-below(xs) {
     padding: 3rem 0 0.5rem;
-    &::before {
-      content: "";
-
-      display: block;
-      flex: 1;
-    }
   }
 }
 
@@ -256,14 +257,14 @@
   --max-height: 4.25rem;
   --background-color: #202020;
 
+  overflow: auto;
+  flex: 1;
+
   max-width: min(50rem, calc(100% - 4rem));
   margin-top: 2rem;
 
   @include respond-below(xs) {
     --background-color: #000;
-
-    overflow: auto;
-    flex: 1;
 
     max-width: 100%;
     margin-top: 0.5rem;

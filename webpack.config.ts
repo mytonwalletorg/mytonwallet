@@ -43,6 +43,13 @@ const canUseStatoscope = !IS_EXTENSION && !IS_PACKAGED_ELECTRON && !IS_CAPACITOR
 const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
   : '';
+const cspFrameSrcExtra = [
+  'https://widget.changelly.com/',
+  'https://dreamwalkers.io/',
+  'https://avanchange.com/',
+  'https://pay.wata.pro/',
+  'https://royalpay.cc/',
+].join(' ');
 
 // The `connect-src` rule contains `https:` due to arbitrary requests are needed for jetton JSON configs.
 // The `img-src` rule contains `https:` due to arbitrary image URLs being used as jetton logos.
@@ -59,7 +66,7 @@ const CSP = `
   base-uri 'none';
   font-src 'self' https://fonts.gstatic.com/;
   form-action 'none';
-  frame-src 'self' https://widget.changelly.com/ https://dreamwalkers.io/ https://avanchange.com/ https://pay.wata.pro/`
+  frame-src 'self' ${cspFrameSrcExtra};`
   .replace(/\s+/g, ' ').trim();
 
 const appVersion = require('./package.json').version;

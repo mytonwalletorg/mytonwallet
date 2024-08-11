@@ -13,6 +13,7 @@ import {
 } from '../../config';
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -44,6 +45,7 @@ interface OwnProps {
 interface StateProps {
   nftsByAddress?: Record<string, ApiNft>;
   blacklistedNftAddresses: string[];
+  whitelistedNftAddresses: string[];
 }
 
 function SettingsAssets({
@@ -59,6 +61,7 @@ function SettingsAssets({
   baseCurrency,
   nftsByAddress,
   blacklistedNftAddresses,
+  whitelistedNftAddresses,
 }: OwnProps & StateProps) {
   const {
     toggleTinyTransfersHidden,
@@ -117,14 +120,18 @@ function SettingsAssets({
     hiddenNftsCount,
   } = useMemo(() => {
     const nfts = Object.values(nftsByAddress || {});
-    const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
-    const hiddenNfts = new Set(nfts.filter((nft) => blacklistedNftAddressesSet.has(nft.address) || nft.isHidden));
+    const blacklistedAddressesSet = new Set(blacklistedNftAddresses);
+    const whitelistedAddressesSet = new Set(whitelistedNftAddresses);
+    const shouldRender = nfts.some((nft) => blacklistedAddressesSet.has(nft.address) || nft.isHidden);
+    const hiddenNfts = nfts.filter(
+      (nft) => !whitelistedAddressesSet.has(nft.address) && (blacklistedAddressesSet.has(nft.address) || nft.isHidden),
+    );
 
     return {
-      shouldRenderHiddenNftsSection: Boolean(hiddenNfts.size),
-      hiddenNftsCount: hiddenNfts.size,
+      shouldRenderHiddenNftsSection: shouldRender,
+      hiddenNftsCount: hiddenNfts.length,
     };
-  }, [nftsByAddress, blacklistedNftAddresses]);
+  }, [nftsByAddress, blacklistedNftAddresses, whitelistedNftAddresses]);
 
   return (
     <div className={styles.slide}>
@@ -262,11 +269,15 @@ function SettingsAssets({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { blacklistedNftAddresses = [] } = selectCurrentAccountState(global) || {};
+  const {
+    blacklistedNftAddresses = MEMO_EMPTY_ARRAY,
+    whitelistedNftAddresses = MEMO_EMPTY_ARRAY,
+  } = selectCurrentAccountState(global) || {};
   const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
 
   return {
     nftsByAddress: byAddress,
     blacklistedNftAddresses,
+    whitelistedNftAddresses,
   };
 })(SettingsAssets));

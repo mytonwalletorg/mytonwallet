@@ -77,6 +77,10 @@ $tab-1-height: 348;
     background-color: var(--color-background-purple-2) !important;
   }
 
+  &_purpleText {
+    color: var(--color-purple-1);
+  }
+
   &.active + & {
     .tabDelimiter {
       display: none;

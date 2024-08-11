@@ -135,16 +135,12 @@ function Content({
     });
   }, [lang, nfts, blacklistedNftAddresses, whitelistedNftAddresses]);
 
-  const hiddenByUserNfts = useMemo(() => {
-    const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
-    return Object.values(nfts ?? {}).filter((nft) => blacklistedNftAddressesSet.has(nft.address));
-  }, [nfts, blacklistedNftAddresses]);
-
-  const probablyScamNfts = useMemo(() => {
-    return Object.values(nfts ?? {}).filter((nft) => nft.isHidden);
-  }, [nfts]);
-
-  const shouldRenderHiddenNftsSection = hiddenByUserNfts.length > 0 || probablyScamNfts.length > 0;
+  const shouldRenderHiddenNftsSection = useMemo(() => {
+    const blacklistedAddressesSet = new Set(blacklistedNftAddresses);
+    return Object.values(nfts ?? {}).some(
+      (nft) => blacklistedAddressesSet.has(nft.address) || nft.isHidden,
+    );
+  }, [blacklistedNftAddresses, nfts]);
 
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);

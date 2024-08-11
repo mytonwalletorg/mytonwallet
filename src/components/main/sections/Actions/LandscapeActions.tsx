@@ -195,6 +195,7 @@ function LandscapeActions({
               styles.tab,
               activeTabIndex === ActiveTab.Stake && styles.active,
               isStaking && styles.tab_purple,
+              (hasStaking || isUnstakeRequested) && styles.tab_purpleText,
             )}
             onClick={() => handleSelectTab(ActiveTab.Stake)}
           >

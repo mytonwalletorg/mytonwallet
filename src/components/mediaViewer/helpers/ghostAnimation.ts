@@ -30,7 +30,7 @@ export function animateOpening(
     const { width: mediaWidth, height: mediaHeight } = await getImageDimension(mediaUrl);
 
     const availableHeight = windowHeight - OCCUPIED_HEIGHT;
-    const offsetTop = (windowWidth <= MOBILE_SCREEN_MAX_WIDTH ? 8 : 6) * REM;
+    const offsetTop = (windowWidth <= MOBILE_SCREEN_MAX_WIDTH ? 8 : 7) * REM;
 
     const { width: toWidth, height: toHeight } = calculateDimensions(
       windowWidth,

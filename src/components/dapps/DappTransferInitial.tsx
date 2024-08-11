@@ -83,11 +83,11 @@ function DappTransferInitial({
 
         const token = tokens?.find(({ slug }) => tokenSlug === slug);
         if (token) {
-          const { decimals, symbol } = token;
+          const { decimals, symbol, priceUsd } = token;
           const tokenAmountDecimal = toDecimal(tokenAmount, decimals);
 
           acc[symbol] = (acc[symbol] ?? Big(0)).plus(tokenAmountDecimal);
-          cost += Number(amountDecimal) * tonToken.priceUsd;
+          cost += Number(tokenAmountDecimal) * priceUsd;
         }
       }
 

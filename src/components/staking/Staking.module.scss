@@ -338,6 +338,13 @@
     padding: 0 1rem 1rem;
 
     border-radius: var(--border-radius-default);
+
+    @include respond-below(xs) {
+      :global(.is-android) & {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+      }
+    }
   }
 
   &:global(.staking-info) {
@@ -357,11 +364,6 @@
       background: var(--color-background-purple-2);
       border-radius: var(--border-radius-default) 0 var(--border-radius-default) var(--border-radius-default);
     }
-  }
-
-  :global(.is-android) & {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
   }
 }
 

@@ -128,7 +128,7 @@ function PortraitActions({
         )}
         {isStakingAllowed && (
           <Button
-            className={buildClassName(styles.button, hasStaking && styles.button_purple)}
+            className={buildClassName(styles.button, (hasStaking || isUnstakeRequested) && styles.button_purple)}
             onClick={handleEarnClick}
             isSimple
           >
