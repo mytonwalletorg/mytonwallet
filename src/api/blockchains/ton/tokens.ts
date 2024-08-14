@@ -56,6 +56,10 @@ export async function getAccountTokenBalances(accountId: string) {
   const { network } = parseAccountId(accountId);
   const address = await fetchStoredAddress(accountId);
 
+  return getTokenBalances(network, address);
+}
+
+export async function getTokenBalances(network: ApiNetwork, address: string) {
   const balancesRaw: Array<JettonBalance> = await fetchJettonBalances(network, address);
   return balancesRaw.map((balance) => parseTokenBalance(network, balance)).filter(Boolean);
 }

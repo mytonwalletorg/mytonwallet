@@ -1,4 +1,7 @@
-import type { AssetPairs, GlobalState } from '../../types';
+import type {
+  AssetPairs,
+  GlobalState,
+} from '../../types';
 import {
   ApiCommonError,
   type ApiSwapBuildRequest,
@@ -6,7 +9,12 @@ import {
   type ApiSwapPairAsset,
 } from '../../../api/types';
 import {
-  ActiveTab, SwapErrorType, SwapFeeSource, SwapInputSource, SwapState, SwapType,
+  ActiveTab,
+  SwapErrorType,
+  SwapFeeSource,
+  SwapInputSource,
+  SwapState,
+  SwapType,
 } from '../../types';
 
 import {
@@ -33,10 +41,7 @@ import {
   updateCurrentSwap,
 } from '../../reducers';
 import {
-  selectAccount,
-  selectAccountState,
-  selectCurrentAccount,
-  selectCurrentToncoinBalance,
+  selectAccount, selectAccountState, selectCurrentAccount, selectCurrentToncoinBalance,
 } from '../../selectors';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
@@ -48,6 +53,13 @@ const WAIT_FOR_CHANGELLY = 5 * 1000;
 const CLOSING_BOTTOM_SHEET_DURATION = 100; // Like in `useDelegatingBottomSheet`
 let isEstimateSwapBeingExecuted = false;
 let isEstimateCexSwapBeingExecuted = false;
+
+const SERVER_ERRORS_MAP = {
+  'Insufficient liquidity': SwapErrorType.NotEnoughLiquidity,
+  'Tokens must be different': SwapErrorType.InvalidPair,
+  'Asset not found': SwapErrorType.InvalidPair,
+  'Too small amount': SwapErrorType.TooSmallAmount,
+};
 
 function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
   const {
@@ -606,31 +618,28 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
 
   const estimateAmount = global.currentSwap.inputSource === SwapInputSource.In ? { fromAmount } : { toAmount };
 
+  const shouldTryDiesel = isEnoughToncoin === false;
+
   const estimate = await callApi('swapEstimate', {
     ...estimateAmount,
     from,
     to,
     slippage: global.currentSwap.slippage,
     fromAddress,
-    shouldTryDiesel: isEnoughToncoin === false,
+    shouldTryDiesel,
   });
 
   isEstimateSwapBeingExecuted = false;
   global = getGlobal();
 
   if (!estimate || 'error' in estimate) {
-    if (estimate?.error === 'Insufficient liquidity') {
-      global = updateCurrentSwap(global, {
-        ...resetParams,
-        errorType: SwapErrorType.NotEnoughLiquidity,
-      });
-      setGlobal(global);
-      return;
-    }
+    const errorType = estimate?.error && estimate?.error in SERVER_ERRORS_MAP
+      ? SERVER_ERRORS_MAP[estimate.error as keyof typeof SERVER_ERRORS_MAP]
+      : SwapErrorType.UnexpectedError;
 
     global = updateCurrentSwap(global, {
       ...resetParams,
-      errorType: window.navigator.onLine ? SwapErrorType.InvalidPair : SwapErrorType.UnexpectedError,
+      errorType,
     });
     setGlobal(global);
     return;
@@ -650,6 +659,10 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
     return;
   }
 
+  const errorType = estimate.toAmount === '0' && shouldTryDiesel
+    ? SwapErrorType.NotEnoughForFee
+    : undefined;
+
   global = updateCurrentSwap(global, {
     ...(
       global.currentSwap.inputSource === SwapInputSource.In
@@ -662,7 +675,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
     dexLabel: estimate.dexLabel,
     feeSource: SwapFeeSource.In,
     isEstimating: false,
-    errorType: undefined,
+    errorType,
     dieselStatus: estimate.dieselStatus,
     networkFee: estimate.networkFee,
     realNetworkFee: estimate.realNetworkFee,

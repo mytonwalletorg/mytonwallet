@@ -339,7 +339,7 @@ Included: Dahil edildi
 Price Impact: Fiyat etkisi
 Minimum Received: Minimum alınan
 Slippage: Kayma toleransı
-$swap_from_to: "%from% ile %to% arasında takas yapın"
+$swap_from_to: "%from% %icon% %to% arasında takas yapın"
 The exchange rate is below market value!: Takas oranı piyasa değerinin %value% altındadır!
 Invalid Pair: Geçersiz işlem çifti
 We do not recommend to perform an exchange, try to specify a lower amount.: Takas yapmanızı tavsiye etmiyoruz, daha düşük bir tutar belirtmeye çalışın.
@@ -648,3 +648,5 @@ $hardware_blind_sign_not_enabled: |
 Switch to W5: W5'e Geç
 Not Scam: Dolandırıcılık Değil
 Untitled: Başlıksız
+$swap_too_small_amount: Çok küçük miktar
+Not enough %symbol%: "Yeterli %symbol% yok"

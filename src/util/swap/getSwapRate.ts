@@ -48,11 +48,11 @@ export default function getSwapRate(
     secondCurrencySymbol = fromToken.symbol;
     const ratio = fromAmountBig.div(toAmount);
     const isLargeNumber = shouldTrimLargeNumber && ratio.gte(LARGE_NUMBER);
-    price = formatInteger(ratio.toNumber(), isLargeNumber ? 0 : 2);
+    price = formatInteger(ratio.toNumber(), isLargeNumber ? 0 : 4);
   } else {
     const ratio = toAmountBig.div(fromAmount);
     const isLargeNumber = shouldTrimLargeNumber && ratio.gte(LARGE_NUMBER);
-    price = formatInteger(ratio.toNumber(), isLargeNumber ? 0 : 2);
+    price = formatInteger(ratio.toNumber(), isLargeNumber ? 0 : 4);
   }
 
   return {

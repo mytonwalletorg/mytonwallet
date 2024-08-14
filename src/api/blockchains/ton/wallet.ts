@@ -9,6 +9,7 @@ import { parseAccountId } from '../../../util/account';
 import { pick } from '../../../util/iteratees';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { stringifyTxId } from './util';
+import { fetchJettonBalances } from './util/tonapiio';
 import {
   getTonClient, toBase64Address, walletClassMap,
 } from './util/tonCore';
@@ -136,7 +137,7 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
   }
 
   const withBiggestBalance = allWallets.reduce<typeof allWallets[0] | undefined>((best, current) => {
-    return best && best.balance > current.balance ? best : current;
+    return current.balance > (best?.balance ?? 0n) ? current : best;
   }, undefined);
 
   if (withBiggestBalance) {
@@ -147,6 +148,13 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
 
   if (withLastTx) {
     return withLastTx;
+  }
+
+  // Workaround for NOT holders who do not have transactions
+  const v4Wallet = allWallets.find(({ version }) => version === 'v4R2')!;
+  const v4JettonBalances = await fetchJettonBalances(network, v4Wallet.address);
+  if (v4JettonBalances.length > 0) {
+    return v4Wallet;
   }
 
   return defaultWallet;

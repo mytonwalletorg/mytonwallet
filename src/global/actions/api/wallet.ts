@@ -41,6 +41,7 @@ import {
   updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
+  updateCurrentTransferByCheckResult,
   updateCurrentTransferFee,
   updateSendingLoading,
   updateSettings,
@@ -166,15 +167,10 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   global = updateSendingLoading(global, false);
 
   if (!result || 'error' in result) {
-    if (result?.addressName || result?.isScam || result?.isMemoRequired || result?.dieselStatus) {
-      global = updateCurrentTransfer(global, {
-        toAddressName: result.addressName,
-        isScam: result.isScam,
-        isMemoRequired: result.isMemoRequired,
-        dieselStatus: result.dieselStatus,
-        dieselAmount: result.dieselAmount,
-      });
+    if (result) {
+      global = updateCurrentTransferByCheckResult(global, result);
     }
+
     if (result?.fee) {
       global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TONCOIN_SLUG);
     }
@@ -231,17 +227,12 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
     setGlobal(global);
   }
 
-  if (result?.addressName || result?.isScam || result?.isMemoRequired || result?.dieselStatus) {
+  if (result) {
     global = getGlobal();
-    global = updateCurrentTransfer(global, {
-      toAddressName: result.addressName,
-      isScam: result.isScam,
-      isMemoRequired: result.isMemoRequired,
-      dieselStatus: result.dieselStatus,
-      dieselAmount: result.dieselAmount,
-    });
-    setGlobal(global);
+    global = updateCurrentTransferByCheckResult(global, result);
   }
+
+  setGlobal(global);
 
   if (result?.error) {
     actions.showError({ error: result.error });

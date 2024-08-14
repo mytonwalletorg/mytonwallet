@@ -99,7 +99,12 @@ export async function fetchWithTimeout(url: string | URL, init?: RequestInit, ti
 
 export async function handleFetchErrors(response: Response, ignoreHttpCodes?: number[]) {
   if (!response.ok && (!ignoreHttpCodes?.includes(response.status))) {
-    const { error } = await response.json().catch(() => undefined);
+    // eslint-disable-next-line prefer-const
+    let { error, errors } = await response.json().catch(() => undefined);
+    if (!error && errors && errors.length) {
+      error = errors[0]?.msg;
+    }
+
     throw new ApiServerError(error ?? `HTTP Error ${response.status}`, response.status);
   }
   return response;

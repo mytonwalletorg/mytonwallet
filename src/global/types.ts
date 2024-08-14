@@ -153,6 +153,8 @@ export enum SwapErrorType {
 
   ChangellyMinSwap,
   ChangellyMaxSwap,
+  NotEnoughForFee,
+  TooSmallAmount,
 }
 
 export enum SwapType {

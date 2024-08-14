@@ -1,7 +1,7 @@
 import type { ApiBalanceBySlug, ApiSwapAsset, ApiToken } from '../../api/types';
 import type { Account, AccountState, GlobalState } from '../types';
 
-import { TONCOIN_SLUG } from '../../config';
+import { POPULAR_WALLET_VERSIONS, TONCOIN_SLUG } from '../../config';
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 import {
   selectAccount,
@@ -71,6 +71,9 @@ export function createAccount(
     }
 
     partial = { ...partial, title };
+  } else if (titlePostfix) {
+    const title = partial.title?.replace(new RegExp(`\\b(${POPULAR_WALLET_VERSIONS.join('|')})\\b`, 'g'), '');
+    partial = { ...partial, title: `${title.trim()} ${titlePostfix}` };
   }
 
   global = { ...global, shouldForceAccountEdit };

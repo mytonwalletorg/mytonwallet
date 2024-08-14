@@ -1,9 +1,11 @@
+import type { TeactNode } from '../../../lib/teact/teact';
 import React, { memo, useRef } from '../../../lib/teact/teact';
 
 import type { DieselStatus, UserSwapToken } from '../../../global/types';
 import { SwapErrorType, SwapType } from '../../../global/types';
 
 import { ANIMATION_END_DELAY } from '../../../config';
+import buildClassName from '../../../util/buildClassName';
 import { formatCurrencySimple } from '../../../util/formatNumber';
 
 import { useThrottledSignal } from '../../../hooks/useAsyncResolvers';
@@ -69,14 +71,15 @@ function SwapSubmitButton({
     [SwapErrorType.ChangellyMaxSwap]: lang('Maximum amount', {
       value: formatCurrencySimple(limits?.fromMax ?? '0', tokenIn?.symbol ?? '', tokenIn?.decimals),
     }),
+    [SwapErrorType.NotEnoughForFee]: lang('Not enough %symbol%', {
+      symbol: tokenIn?.symbol,
+    }),
+    [SwapErrorType.TooSmallAmount]: lang('$swap_too_small_amount'),
   };
 
   const isTouched = Boolean(amountIn || amountOut);
 
-  let text = lang('$swap_from_to', {
-    from: tokenIn?.symbol,
-    to: tokenOut?.symbol,
-  });
+  let text: string | TeactNode[] = '$swap_from_to';
 
   if (isTouched && isErrorExist) {
     text = errorMsgByType[errorType];
@@ -105,24 +108,34 @@ function SwapSubmitButton({
   const isDestructive = isTouched && shouldShowError;
 
   const transitionKeyRef = useRef(0);
-  const render = useDerivedSignal(() => (
-    <Transition
-      name="semiFade"
-      className={styles.footerButtonWrapper}
-      activeKey={transitionKeyRef.current++}
-    >
-      <Button
-        className={styles.footerButton}
-        isDisabled={isDisabled}
-        isPrimary
-        isSubmit
-        isLoading={isLoading}
-        isDestructive={isDestructive}
+  const render = useDerivedSignal(() => {
+    const renderedText = textStr === '$swap_from_to'
+      ? lang('$swap_from_to', {
+        from: tokenIn?.symbol,
+        icon: <i className={buildClassName('icon-arrow-right', styles.swapArrowIcon)} aria-hidden />,
+        to: tokenOut?.symbol,
+      })
+      : textStr;
+
+    return (
+      <Transition
+        name="semiFade"
+        className={styles.footerButtonWrapper}
+        activeKey={transitionKeyRef.current++}
       >
-        {textStr}
-      </Button>
-    </Transition>
-  ), [isDestructive, isDisabled, isLoading, textStr]);
+        <Button
+          className={styles.footerButton}
+          isDisabled={isDisabled}
+          isPrimary
+          isSubmit
+          isLoading={isLoading}
+          isDestructive={isDestructive}
+        >
+          {renderedText}
+        </Button>
+      </Transition>
+    );
+  }, [isDestructive, isDisabled, isLoading, lang, textStr, tokenIn?.symbol, tokenOut?.symbol]);
   const renderThrottled = useThrottledSignal(render, BUTTON_ANIMATION_DURATION);
   const rendered = useDerivedState(renderThrottled);
 

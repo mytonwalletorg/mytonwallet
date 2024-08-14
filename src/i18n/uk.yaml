@@ -333,7 +333,7 @@ Included: Вкл. у ціну
 Price Impact: Вплив на ціну
 Minimum Received: Мінімально отримаєте
 Slippage: Прослизання
-$swap_from_to: Обміняти %from% на %to%
+$swap_from_to: Обміняти %from% %icon% %to%
 The exchange rate is below market value!: Курс обміну на %value% нижче за ринкову вартість!
 Invalid Pair: Неприпустима пара
 We do not recommend to perform an exchange, try to specify a lower amount.: Не рекомендуємо виконувати обмін, спробуйте вказати меншу суму.
@@ -648,3 +648,5 @@ $hardware_blind_sign_not_enabled: |
 Switch to W5: Версія W5
 Not Scam: Не шахрайство
 Untitled: Без назви
+$swap_too_small_amount: Занадто мала сума
+Not enough %symbol%: "Недостатньо %symbol%"

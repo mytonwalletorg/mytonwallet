@@ -21,7 +21,7 @@ import { DEFAULT_PRICE_CURRENCY, POPULAR_WALLET_VERSIONS, TONCOIN_SLUG } from '.
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { compareActivities } from '../../util/compareActivities';
-import { buildCollectionByKey } from '../../util/iteratees';
+import { buildCollectionByKey, omit } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { pauseOrFocus } from '../../util/pauseOrFocus';
 import blockchains from '../blockchains';
@@ -572,30 +572,52 @@ export async function setupWalletVersionsPolling(accountId: string) {
 
   const localOnUpdate = onUpdate;
 
-  const { publicKey, version } = await fetchStoredAccount(accountId);
+  const {
+    address, publicKey, version, isInitialized,
+  } = await fetchStoredAccount(accountId);
   const publicKeyBytes = hexToBytes(publicKey);
   const { network } = parseAccountId(accountId);
 
   const versions = POPULAR_WALLET_VERSIONS.filter((value) => value !== version);
   let lastResult: ApiWalletInfo[] | undefined;
 
+  let shouldCheckV4 = false;
+  let v4HasTokens: boolean | undefined;
+
+  if (version === 'W5' && !isInitialized) {
+    const { lastTxId } = await ton.getWalletInfo(network, address);
+    shouldCheckV4 = !lastTxId;
+  }
+
   while (isAlive(localOnUpdate, accountId)) {
     try {
-      const versionInfos = (await ton.getWalletVersionInfos(
-        network, publicKeyBytes, versions,
-      )).filter((versionInfo) => !!versionInfo.lastTxId || versionInfo.version === 'W5');
+      const allWalletInfos = (await ton.getWalletVersionInfos(network, publicKeyBytes, versions))
+        .map((versionInfo) => omit(versionInfo, ['wallet']));
+      const filteredInfos: ApiWalletInfo[] = [];
 
-      const filteredVersions = versionInfos.map(({ wallet, ...rest }) => rest);
+      for (const walletInfo of allWalletInfos) {
+        if (!!walletInfo.lastTxId || walletInfo.version === 'W5') {
+          filteredInfos.push(walletInfo);
+        } else if (walletInfo.version === 'v4R2' && !walletInfo.lastTxId && shouldCheckV4) {
+          if (v4HasTokens === undefined) {
+            v4HasTokens = !!(await ton.getTokenBalances(network, walletInfo.address)).length;
+          }
+
+          if (v4HasTokens) {
+            filteredInfos.push(walletInfo);
+          }
+        }
+      }
 
       if (!isAlive(localOnUpdate, accountId)) return;
 
-      if (!areDeepEqual(versionInfos, lastResult)) {
-        lastResult = versionInfos;
+      if (!areDeepEqual(allWalletInfos, lastResult)) {
+        lastResult = allWalletInfos;
         onUpdate({
           type: 'updateWalletVersions',
           accountId,
           currentVersion: version,
-          versions: filteredVersions,
+          versions: filteredInfos,
         });
       }
     } catch (err) {

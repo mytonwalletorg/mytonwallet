@@ -1013,8 +1013,10 @@ addActionHandler('importAccountByVersion', async (global, actions, { version }) 
     return;
   }
 
+  const { title: currentWalletTitle } = (global.accounts?.byId ?? {})[accountId];
+
   global = updateCurrentAccountId(global, wallet!.accountId);
-  global = createAccount(global, wallet!.accountId, wallet!.address, undefined, version);
+  global = createAccount(global, wallet!.accountId, wallet!.address, { title: currentWalletTitle }, version);
   setGlobal(global);
 });
 

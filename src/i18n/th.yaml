@@ -650,3 +650,5 @@ $hardware_blind_sign_not_enabled: |
 Switch to W5: เปลี่ยนเป็น W5
 Not Scam: ไม่ใช่การหลอกลวง
 Untitled: ไม่มีชื่อ
+$swap_too_small_amount: จำนวนเงินน้อยเกินไป
+Not enough %symbol%: "%symbol% ไม่เพียงพอ"

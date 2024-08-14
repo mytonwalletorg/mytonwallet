@@ -79,6 +79,7 @@ function SwapInitial({
     pairs,
     isSettingsModalOpen,
     dieselStatus,
+    swapFee,
   },
   accountId,
   tokens,
@@ -373,6 +374,9 @@ function SwapInitial({
   function renderPrice() {
     const isPriceVisible = Boolean(amountIn && amountOut);
     const shouldBeRendered = isPriceVisible && !isEstimating;
+
+    if (!shouldBeRendered) return undefined;
+
     const rate = getSwapRate(
       amountIn ? String(amountIn) : undefined,
       amountOut ? String(amountOut) : undefined,
@@ -384,21 +388,12 @@ function SwapInitial({
     if (!rate) return undefined;
 
     return (
-      <Transition
-        name="fade"
-        activeKey={shouldBeRendered ? 0 : 1}
-      >
-        <div className={styles.priceContainer}>
-          {shouldBeRendered && (
-            <span className={styles.tokenPrice}>
-              {rate.firstCurrencySymbol}{' ≈ '}
-              <span className={styles.tokenPriceBold}>
-                {rate.price}{' '}{rate.secondCurrencySymbol}
-              </span>
-            </span>
-          )}
-        </div>
-      </Transition>
+      <span className={styles.tokenPrice}>
+        {rate.firstCurrencySymbol}{' ≈ '}
+        <span className={styles.tokenPriceBold}>
+          {rate.price}{' '}{rate.secondCurrencySymbol}
+        </span>
+      </span>
     );
   }
 
@@ -469,17 +464,41 @@ function SwapInitial({
   }
 
   function renderFee() {
-    if (swapType === SwapType.CrosschainToToncoin) return undefined;
-
     const isFeeEqualZero = realNetworkFee === 0;
-    const text = lang(isFeeEqualZero ? '$fee_value' : '$fee_value_almost_equal', {
-      fee: formatCurrency(realNetworkFee, TON_SYMBOL),
-    });
+
+    let feeBlock: React.JSX.Element | undefined;
+
+    if (
+      swapType === SwapType.OnChain
+      && !isEnoughToncoin
+      && swapFee
+      && tokenIn
+      && tokenIn?.slug !== TONCOIN_SLUG
+      && !isLoading
+    ) {
+      // Gasless swap
+      feeBlock = (
+        <span className={styles.feeText}>{lang('$fee_value', {
+          fee: formatCurrency(swapFee, tokenIn.symbol),
+        })}
+        </span>
+      );
+    } else if (swapType !== SwapType.CrosschainToToncoin) {
+      feeBlock = (
+        <span className={styles.feeText}>{lang(isFeeEqualZero ? '$fee_value' : '$fee_value_almost_equal', {
+          fee: formatCurrency(realNetworkFee, TON_SYMBOL),
+        })}
+        </span>
+      );
+    }
+
+    const priceBlock = renderPrice();
+    const activeKey = (isFeeEqualZero ? 0 : 1) + (priceBlock ? 2 : 3);
 
     return (
       <Transition
         name="fade"
-        activeKey={isFeeEqualZero ? 0 : 1}
+        activeKey={activeKey}
         className={styles.feeWrapper}
       >
         <div
@@ -489,7 +508,9 @@ function SwapInitial({
           )}
           onClick={isCrosschain ? undefined : openSettingsModal}
         >
-          <span className={styles.feeText}>{text}</span>
+          {priceBlock}
+          {feeBlock}
+
           {
             isCrosschain
               ? undefined
@@ -530,7 +551,6 @@ function SwapInitial({
           </div>
 
           <div ref={inputOutRef} className={styles.inputContainer}>
-            {renderPrice()}
             <RichNumberInput
               id="swap-buy"
               labelText={lang('You buy')}

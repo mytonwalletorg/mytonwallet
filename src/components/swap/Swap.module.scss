@@ -44,7 +44,6 @@
 }
 
 .balanceContainer,
-.priceContainer,
 .advancedSlippageContainer {
   position: relative;
   z-index: 1;
@@ -52,7 +51,6 @@
   width: 100%;
 }
 
-.tokenPrice,
 .balance {
   position: absolute;
   top: -0.125rem;
@@ -63,14 +61,6 @@
 
   font-size: 0.8125rem;
   color: var(--color-gray-1);
-}
-
-.tokenPrice {
-  font-weight: 400;
-}
-
-.tokenPriceBold {
-  font-weight: 600;
 }
 
 .balanceLink {
@@ -256,10 +246,27 @@
   cursor: var(--custom-cursor, pointer);
 }
 
+.tokenPrice,
 .feeText {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-gray-2);
+  white-space: nowrap;
+}
+
+.tokenPrice + .feeText::before {
+  content: '';
+
+  display: inline-block;
+
+  width: 0.125rem;
+  height: 0.125rem;
+  margin: 0 0.3125rem 0 0.0625rem;
+
+  vertical-align: 0.1875rem;
+
+  background-color: var(--color-gray-2);
+  border-radius: 50%;
 }
 
 .feeIcon {
@@ -424,6 +431,16 @@
 .footerButton {
   width: 100%;
   max-width: 100% !important;
+}
+
+.swapArrowIcon {
+  margin: 0 -0.125rem;
+
+  font-size: 1.25rem;
+
+  &:global(.icon-arrow-right) {
+    font-weight: 600 !important;
+  }
 }
 
 .priceImpact {

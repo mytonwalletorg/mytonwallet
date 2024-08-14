@@ -338,7 +338,7 @@ Included: Incluido en el precio
 Price Impact: Impacto en el precio
 Minimum Received: Cantidad mínima recibida
 Slippage: Deslizamiento
-$swap_from_to: Intercambiar de %from% a %to%
+$swap_from_to: Intercambiar %from% %icon% %to%
 The exchange rate is below market value!: La tasa de cambio está un %value% por debajo del valor de mercado.
 Invalid Pair: Par Inválido
 We do not recommend to perform an exchange, try to specify a lower amount.: No recomendamos realizar un intercambio, intente especificar una cantidad menor.
@@ -645,3 +645,5 @@ $hardware_blind_sign_not_enabled: |
 Switch to W5: Cambiar a W5
 Not Scam: No es una estafa
 Untitled: Sin título
+$swap_too_small_amount: Cantidad demasiado pequeña
+Not enough %symbol%: "No hay suficiente %symbol%"

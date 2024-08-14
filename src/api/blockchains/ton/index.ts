@@ -65,6 +65,7 @@ export {
 } from './other';
 export {
   getAccountTokenBalances,
+  getTokenBalances,
   getAddressTokenBalances,
   fetchToken,
   resolveTokenBySlug,
