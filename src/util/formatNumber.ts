@@ -22,7 +22,7 @@ export const formatInteger = withCache((
   const dp = value.gte(1) || noFloor ? fractionDigits : DEFAULT_DECIMAL_PLACES;
   let fixed = value.round(dp, noFloor ? Big.roundHalfUp : undefined).toString();
 
-  if (countSignificantDigits(fixed) < fractionDigits) {
+  if (value.lt(1) && countSignificantDigits(fixed) < fractionDigits) {
     fixed = value.toString();
   }
 

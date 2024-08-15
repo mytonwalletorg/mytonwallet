@@ -14,6 +14,7 @@ import {
   CHANGELLY_TERMS_OF_USE,
   DEFAULT_FEE,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+  DIESEL_TOKENS,
   TON_SYMBOL,
   TONCOIN_SLUG,
 } from '../../config';
@@ -153,6 +154,10 @@ function SwapInitial({
 
   const isErrorExist = errorType !== undefined;
   const isEnoughToncoin = toncoin.amount > totalToncoinAmount;
+  const isDieselSwap = swapType === SwapType.OnChain
+    && !isEnoughToncoin
+    && tokenIn?.slug
+    && DIESEL_TOKENS.has(tokenIn.slug);
 
   // eslint-disable-next-line max-len
   const isCorrectAmountIn = Boolean(
@@ -308,7 +313,7 @@ function SwapInitial({
       return;
     }
 
-    if (!isEnoughToncoin && dieselStatus === 'not-authorized') {
+    if (isDieselSwap && dieselStatus === 'not-authorized') {
       authorizeDiesel();
       return;
     }
@@ -470,13 +475,13 @@ function SwapInitial({
 
     if (
       swapType === SwapType.OnChain
-      && !isEnoughToncoin
+      && isDieselSwap
       && swapFee
       && tokenIn
       && tokenIn?.slug !== TONCOIN_SLUG
       && !isLoading
     ) {
-      // Gasless swap
+      // Diesel swap
       feeBlock = (
         <span className={styles.feeText}>{lang('$fee_value', {
           fee: formatCurrency(swapFee, tokenIn.symbol),
