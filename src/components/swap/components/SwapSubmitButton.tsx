@@ -71,7 +71,7 @@ function SwapSubmitButton({
     [SwapErrorType.ChangellyMaxSwap]: lang('Maximum amount', {
       value: formatCurrencySimple(limits?.fromMax ?? '0', tokenIn?.symbol ?? '', tokenIn?.decimals),
     }),
-    [SwapErrorType.NotEnoughForFee]: lang('Not enough %symbol%', {
+    [SwapErrorType.NotEnoughForFee]: lang('Not Enough %symbol%', {
       symbol: tokenIn?.symbol,
     }),
     [SwapErrorType.TooSmallAmount]: lang('$swap_too_small_amount'),
@@ -85,7 +85,7 @@ function SwapSubmitButton({
     text = errorMsgByType[errorType];
   } else if (isTouched && !isEnoughToncoin && swapType !== SwapType.CrosschainToToncoin) {
     if (dieselStatus === 'not-available') {
-      text = lang('Not Enough TON');
+      text = lang('Not Enough %symbol%', { symbol: 'TON' });
     } else if (dieselStatus === 'pending-previous') {
       text = lang('Awaiting Previous Fee');
     } else if (dieselStatus === 'not-authorized') {

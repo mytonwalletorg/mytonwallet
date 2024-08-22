@@ -204,18 +204,22 @@ export default memo(Swap);
 function renderCurrency(activity: ApiSwapActivity, fromToken?: ApiSwapAsset, toToken?: ApiSwapAsset) {
   const rate = getSwapRate(activity.fromAmount, activity.toAmount, fromToken, toToken);
 
-  if (!rate) return undefined;
-
   return (
     <div
       className={styles.swapPrice}
     >
-      {rate.firstCurrencySymbol}{' ≈ '}
-      <span
-        className={styles.swapPriceValue}
-      >
-        {rate.price}{' '}{rate.secondCurrencySymbol}
-      </span>
+      {
+        rate && (
+          <>
+            {rate.firstCurrencySymbol}{' ≈ '}
+            <span
+              className={styles.swapPriceValue}
+            >
+              {rate.price}{' '}{rate.secondCurrencySymbol}
+            </span>
+          </>
+        )
+      }
     </div>
   );
 }

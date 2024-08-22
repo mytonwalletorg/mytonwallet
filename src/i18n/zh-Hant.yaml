@@ -341,7 +341,7 @@ $swap_slippage_tooltip2: 如果在處理您的交換時，價格變化超過此�
 Coins have been swapped!: 币已交换完成！
 Slippage not specified: 未指定下單誤差
 Slippage too high: 下單誤差過高
-Not enough TON: TON 不足
+Not Enough %symbol%: "%symbol% 不足"
 Use Responsibly: 負責任地使用
 $auth_responsibly_description1: |
   MyTonWallet 是一個**自我託管**錢包，這意味著**只有您**擁有完全控制權，最重要的是，對您的資金**承擔全部責任**。
@@ -443,7 +443,7 @@ Euro: 歐元
 Ruble: 盧布
 Yuan: 元
 $max_balance: "最大: %balance%"
-$unstake_information_instantly: 您將立即收到您的存款。
+$unstake_information_instantly: 您將立即收到您的存款
 Select Token: 選擇代幣
 MY: 我的
 POPULAR: 受歡迎
@@ -594,7 +594,7 @@ until %date%: 截至 %date%
 Unfreeze: 解凍
 Claim: 索賠
 Confirm Unfreezing: 確認解凍
-Insufficient Balance for Fee.: 費用餘額不足。
+Insufficient Balance for Fee: 費用餘額不足
 $fee_value_bold: "**手續費:** %fee%"
 MyTonWallet Features: MyTonWallet 功能
 Install on Desktop: 安裝在桌面
@@ -633,4 +633,3 @@ Switch to W5: 切換到 W5
 Not Scam: 不是騙局
 Untitled: 未命名
 $swap_too_small_amount: 金額太小
-Not enough %symbol%: "%symbol% 不足"

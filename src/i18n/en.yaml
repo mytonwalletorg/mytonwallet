@@ -190,7 +190,7 @@ Play Sounds: Play Sounds
 Focus on asset value rather than current balance: Focus on asset value rather than current balance
 $logout_confirm: Remove **all** wallets
 $logout_warning2: Wallets are located in the decentralized TON Blockchain. If you want the wallet to be deleted simply transfer all the TON from it and leave it empty.
-$tiny_transfers_help: Hide transfers worth less than $%value%. Keep in mind - such amounts are often sent by spammers and scammers.
+$tiny_transfers_help: "Hide transfers worth less than $%value%. Keep in mind: small amounts are often sent by spammers and scammers."
 Today: Today
 Yesterday: Yesterday
 Now: Now
@@ -352,7 +352,7 @@ $swap_slippage_tooltip2: If during the processing of your swap, the price change
 Coins have been swapped!: Coins have been swapped!
 Slippage not specified: Slippage not specified
 Slippage too high: Slippage too high
-Not enough TON: Not enough TON
+Not Enough %symbol%: Not Enough %symbol%
 Use Responsibly: Use Responsibly
 $auth_responsibly_description1: |
   MyTonWallet is a **self-custodial** wallet, which means that **only you** have full control and, most importantly, **full responsibility** for your funds.
@@ -457,7 +457,7 @@ Yuan: Yuan
 Bitcoin: Bitcoin
 Toncoin: Toncoin
 $max_balance: "Max: %balance%"
-$unstake_information_instantly: You will get your deposit instantly.
+$unstake_information_instantly: You will get your deposit instantly
 Select Token: Select Token
 MY: MY
 POPULAR: POPULAR
@@ -528,7 +528,7 @@ Required: Required
 Comment is too long.: Comment is too long.
 Memo: Memo
 Memo was copied!: Memo was copied!
-$hide_tokens_no_cost_help: Hide tokens worth less than $%value%. Keep in mind - these tokens are often sent by spammers and scammers. On the same screen below, you can hide individual tokens.
+$hide_tokens_no_cost_help: "Hide tokens worth less than $%value%. Keep in mind: worthless tokens are often sent by spammers and scammers. On the same screen below, you can hide individual tokens."
 No internet connection. Please check your connection and try again.: No internet connection. Please check your connection and try again.
 To use this feature, first enable Face ID in your phone settings.: To use this feature, first enable Face ID in your phone settings.
 To use this feature, first enable biometrics in your phone settings.: To use this feature, first enable biometrics in your phone settings.
@@ -609,7 +609,7 @@ until %date%: until %date%
 Unfreeze: Unfreeze
 Claim: Claim
 Confirm Unfreezing: Confirm Unfreezing
-Insufficient Balance for Fee.: Insufficient Balance for Fee.
+Insufficient Balance for Fee: Insufficient Balance for Fee
 $fee_value_bold: "**Fee:** %fee%"
 MyTonWallet Features: MyTonWallet Features
 Install on Desktop: Install on Desktop
@@ -648,4 +648,3 @@ Switch to W5: Switch to W5
 Not Scam: Not Scam
 Untitled: Untitled
 $swap_too_small_amount: Too small amount
-Not enough %symbol%: "Not enough %symbol%"

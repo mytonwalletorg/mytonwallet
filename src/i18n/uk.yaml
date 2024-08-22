@@ -347,7 +347,7 @@ $swap_slippage_tooltip2: Якщо під час обробки вашого об
 Coins have been swapped!: Токени були обміняні!
 Slippage not specified: Прослизання не вказано
 Slippage too high: Прослизання занадто велике
-Not enough TON: Недостатньо TON
+Not Enough %symbol%: Недостатньо %symbol%
 Use Responsibly: Використовуйте відповідально
 $auth_responsibly_description1: |
   MyTonWallet - це **некастодіальний** гаманець, що означає, що **тільки ви** маєте повний контроль і, найголовніше, **повну відповідальність** за свої кошти.
@@ -458,7 +458,7 @@ Euro: Євро
 Ruble: Рубль
 Yuan: Юань
 $max_balance: "Максимум: %balance%"
-$unstake_information_instantly: Ви отримаєте свій депозит миттєво.
+$unstake_information_instantly: Ви отримаєте свій депозит миттєво
 Select Token: Вибрати токен
 MY: МОЇ
 POPULAR: ПОПУЛЯРНІ
@@ -610,7 +610,7 @@ until %date%: до %date%
 Unfreeze: Розморозити
 Claim: Позов
 Confirm Unfreezing: Підтвердити розморожування
-Insufficient Balance for Fee.: Недостатній баланс для комісії.
+Insufficient Balance for Fee: Недостатній баланс для комісії
 $fee_value_bold: "**Комісія:** %fee%"
 MyTonWallet Features: Функції MyTonWallet
 Install on Desktop: Встановити на робочий стіл
@@ -649,4 +649,3 @@ Switch to W5: Версія W5
 Not Scam: Не шахрайство
 Untitled: Без назви
 $swap_too_small_amount: Занадто мала сума
-Not enough %symbol%: "Недостатньо %symbol%"

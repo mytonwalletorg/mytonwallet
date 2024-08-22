@@ -85,6 +85,7 @@ function NftMenu({
         shouldTranslateOptions
         className={styles.menu}
         buttonClassName={styles.item}
+        shouldCleanup
         onClose={onClose}
         onSelect={handleMenuItemSelect}
       />

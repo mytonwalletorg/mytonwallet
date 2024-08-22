@@ -14,6 +14,11 @@ export async function openUrl(url: string, isExternal?: boolean, title?: string,
   }
 }
 
+export function handleOpenUrl(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
+  e.preventDefault();
+  openUrl(e.currentTarget.href);
+}
+
 async function openAppSafe(url: string) {
   try {
     return (await AppLauncher.openUrl({ url })).completed;

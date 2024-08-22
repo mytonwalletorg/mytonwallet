@@ -353,7 +353,7 @@ $swap_slippage_tooltip2: Takas işleminiz sırasında fiyat bu değerden daha fa
 Coins have been swapped!: Coin'ler takas edildi!
 Slippage not specified: Kayma toleransı belirtilmemiş
 Slippage too high: Kayma toleransı çok yüksek
-Not enough TON: Yeterli miktarda TON bulunmuyor
+Not Enough %symbol%: Yeterli miktarda %symbol% bulunmuyor
 Use Responsibly: Bilinçli kullanın
 $auth_responsibly_description1: |
   MyTonWallet bir **self-custodial** cüzdandır, bunun anlamı **sadece sizin** fonlarınız üzerinde tam kontrole ve en önemlisi **tam sorumluluğa** sahip olmanızdır.
@@ -458,7 +458,7 @@ Yuan: Yuan
 Bitcoin: Bitcoin
 Toncoin: Toncoin
 $max_balance: "Maks.: %balance%"
-$unstake_information_instantly: Yatırdığınız tutarı anında alacaksınız.
+$unstake_information_instantly: Yatırdığınız tutarı anında alacaksınız
 Select Token: Token seçin
 MY: Cüzdanımdakiler
 POPULAR: POPÜLER
@@ -610,7 +610,7 @@ until %date%: "%date%'a kadar"
 Unfreeze: Çöz
 Claim: İddia
 Confirm Unfreezing: Çözmeyi Onayla
-Insufficient Balance for Fee.: Ücret Bakiyesi Yetersiz.
+Insufficient Balance for Fee: Ücret Bakiyesi Yetersiz
 $fee_value_bold: "**Ücret:** %fee%"
 MyTonWallet Features: MyTonWallet Özellikleri
 Install on Desktop: Masaüstüne Kur
@@ -649,4 +649,3 @@ Switch to W5: W5'e Geç
 Not Scam: Dolandırıcılık Değil
 Untitled: Başlıksız
 $swap_too_small_amount: Çok küçük miktar
-Not enough %symbol%: "Yeterli %symbol% yok"

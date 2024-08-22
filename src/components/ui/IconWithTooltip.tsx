@@ -10,7 +10,9 @@ import stopEvent from '../../util/stopEvent';
 import { IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
+import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
+import useUniqueId from '../../hooks/useUniqueId';
 
 import Emoji from './Emoji';
 import Portal from './Portal';
@@ -43,6 +45,23 @@ const IconWithTooltip: FC<OwnProps> = ({
 
   const tooltipStyle = useRef<string | undefined>();
   const arrowStyle = useRef<string | undefined>();
+
+  const randomTooltipKey = useUniqueId();
+
+  const handleClickOutside = useLastCallback((event: Event) => {
+    if (!(event.target as HTMLElement).closest(`[data-tooltip-key="${randomTooltipKey}"]`)) {
+      close();
+    }
+  });
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen, close, handleClickOutside]);
 
   useEffect(() => {
     if (!iconRef.current || !tooltipRef.current) return;
@@ -93,7 +112,7 @@ const IconWithTooltip: FC<OwnProps> = ({
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} data-tooltip-key={randomTooltipKey}>
       {shouldRender && (
         <Portal>
           <div

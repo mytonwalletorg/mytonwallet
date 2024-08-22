@@ -4,7 +4,7 @@ import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 import type { StateInit } from '@ton/core';
 import { loadStateInit } from '@ton/core';
 import type { TonPayloadFormat } from '@ton-community/ton-ledger';
-import { parseMessage, TonTransport } from '@ton-community/ton-ledger';
+import { KNOWN_JETTONS, parseMessage, TonTransport } from '@ton-community/ton-ledger';
 import { Address } from '@ton/core/dist/address/Address';
 import { Builder } from '@ton/core/dist/boc/Builder';
 import { Cell } from '@ton/core/dist/boc/Cell';
@@ -75,11 +75,17 @@ type TransactionParams = {
 
 const CHAIN = 0; // workchain === -1 ? 255 : 0;
 const WALLET_VERSION = 'v4R2';
+const INTERNAL_WALLET_VERSION = 'v4';
 const ATTEMPTS = 10;
 const PAUSE = 125;
 const IS_BOUNCEABLE = false;
 const VERSION_WITH_UNSAFE = '2.1.0';
+const VERSION_WITH_JETTON_ID = '2.2.0';
 const VESTING_SUBWALLET_ID = 0x10C;
+
+const knownJettonAddresses = KNOWN_JETTONS.map(
+  ({ masterAddress }) => masterAddress.toString({ bounceable: true, urlSafe: true }),
+);
 
 let transport: TransportWebHID | TransportWebUSB | undefined;
 let tonTransport: TonTransport | undefined;
@@ -135,7 +141,9 @@ export async function checkTonApp() {
       if (isTonOpen) {
         // Workaround for Ledger S, this is a way to check if it is unlocked.
         // There will be an error with code 0x530c
-        await tonTransport?.getAddress(getLedgerAccountPathByIndex(0));
+        await tonTransport?.getAddress(getLedgerAccountPathByIndex(0), {
+          walletVersion: INTERNAL_WALLET_VERSION,
+        });
 
         return true;
       }
@@ -322,11 +330,17 @@ export async function submitLedgerTransfer(
   let isBounceable = parsedAddress.isBounceable;
   const normalizedAddress = parsedAddress.address.toString({ urlSafe: true, bounceable: DEFAULT_IS_BOUNCEABLE });
 
-  const { isUnsafeSupported } = appInfo;
+  const { isUnsafeSupported, isJettonIdSupported } = appInfo;
 
   if (tokenAddress) {
     ({ toAddress, amount, payload } = await buildLedgerTokenTransfer(
-      network, tokenAddress, fromAddress!, toAddress, amount, comment,
+      network,
+      tokenAddress,
+      fromAddress!,
+      toAddress,
+      amount,
+      comment,
+      isJettonIdSupported,
     ));
     isBounceable = true;
   } else if (comment) {
@@ -489,6 +503,7 @@ export async function buildLedgerTokenTransfer(
   toAddress: string,
   amount: bigint,
   comment?: string,
+  isJettonIdSupported?: boolean,
 ) {
   const tokenWalletAddress = await callApi('resolveTokenWalletAddress', network, fromAddress, tokenAddress);
   const realTokenAddress = await callApi('resolveTokenMinterAddress', network, tokenWalletAddress!);
@@ -509,6 +524,8 @@ export async function buildLedgerTokenTransfer(
     customPayload: null,
     forwardAmount: TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
     forwardPayload,
+    // eslint-disable-next-line no-null/no-null
+    knownJetton: isJettonIdSupported ? getKnownJettonId(tokenAddress) : null,
   };
 
   return {
@@ -516,6 +533,12 @@ export async function buildLedgerTokenTransfer(
     toAddress: tokenWalletAddress!,
     payload,
   };
+}
+
+function getKnownJettonId(tokenAddress: string) {
+  const index = knownJettonAddresses.indexOf(tokenAddress);
+  // eslint-disable-next-line no-null/no-null
+  return index > -1 ? { jettonId: index, workchain: WORKCHAIN } : null;
 }
 
 function buildCommentPayload(comment: string) {
@@ -529,6 +552,8 @@ export async function signLedgerTransactions(accountId: string, messages: ApiDap
 }): Promise<ApiSignedTransfer[]> {
   const { isTonConnect, vestingAddress } = options ?? {};
 
+  const { network } = parseAccountId(accountId);
+
   await callApi('waitLastTransfer', accountId);
 
   const [path, fromAddress, appInfo] = await Promise.all([
@@ -537,7 +562,7 @@ export async function signLedgerTransactions(accountId: string, messages: ApiDap
     getTonAppInfo(),
   ]);
 
-  const { isUnsafeSupported } = appInfo;
+  const { isUnsafeSupported, isJettonIdSupported } = appInfo;
 
   if (isTonConnect && !isUnsafeSupported) {
     throw new ApiUnsupportedVersionError('Please update Ledger TON app.');
@@ -548,7 +573,7 @@ export async function signLedgerTransactions(accountId: string, messages: ApiDap
     ? { subwalletId: VESTING_SUBWALLET_ID, includeWalletOp: false }
     : undefined;
 
-  const preparedParams: TransactionParams[] = messages.map((message, index) => {
+  const preparedParams: TransactionParams[] = await Promise.all(messages.map(async (message, index) => {
     const {
       toAddress,
       amount,
@@ -566,6 +591,12 @@ export async function signLedgerTransactions(accountId: string, messages: ApiDap
       ledgerPayload = parseMessage(Cell.fromBase64(rawPayload), { disallowModification: true });
     }
 
+    if (ledgerPayload?.type === 'jetton-transfer') {
+      const tokenAddress = await callApi('resolveTokenMinterAddress', network, toAddress);
+      // eslint-disable-next-line no-null/no-null
+      ledgerPayload.knownJetton = isJettonIdSupported ? getKnownJettonId(tokenAddress!) : null;
+    }
+
     const stateInit = stateInitBase64 ? loadStateInit(
       Cell.fromBase64(stateInitBase64).asSlice(),
     ) : undefined;
@@ -581,7 +612,7 @@ export async function signLedgerTransactions(accountId: string, messages: ApiDap
       walletSpecifiers,
       stateInit,
     };
-  });
+  }));
 
   const signedMessages: ApiSignedTransfer[] = [];
 
@@ -688,13 +719,17 @@ export function getLedgerWalletAddress(index: number, isTestnet?: boolean) {
   return tonTransport!.getAddress(path, {
     chain: CHAIN,
     bounceable: WALLET_IS_BOUNCEABLE,
+    walletVersion: INTERNAL_WALLET_VERSION,
   });
 }
 
 export async function verifyAddress(accountId: string) {
   const path = await getLedgerAccountPath(accountId);
 
-  await tonTransport!.validateAddress(path, { bounceable: IS_BOUNCEABLE });
+  await tonTransport!.validateAddress(path, {
+    bounceable: IS_BOUNCEABLE,
+    walletVersion: INTERNAL_WALLET_VERSION,
+  });
 }
 
 async function getLedgerAccountPath(accountId: string) {
@@ -717,7 +752,9 @@ function getTransferExpirationTime() {
 export async function getTonAppInfo() {
   const version = await tonTransport!.getVersion();
   const isUnsafeSupported = compareVersions(version, VERSION_WITH_UNSAFE) >= 0;
-  return { version, isUnsafeSupported };
+  const isJettonIdSupported = compareVersions(version, VERSION_WITH_JETTON_ID) >= 0
+    && transport!.deviceModel?.id !== 'nanoS';
+  return { version, isUnsafeSupported, isJettonIdSupported };
 }
 
 function handleLedgerErrors(err: any) {

@@ -23,6 +23,7 @@ import buildClassName from '../../../util/buildClassName';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
 import { toDecimal } from '../../../util/decimals';
+import { handleOpenUrl } from '../../../util/openUrl';
 import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
 import { getTonExplorerTransactionUrl } from '../../../util/url';
 import { callApi } from '../../../api';
@@ -431,6 +432,7 @@ function TransactionModal({
                   rel="noreferrer noopener"
                   className={styles.tonExplorer}
                   title={tonExplorerTitle}
+                  onClick={handleOpenUrl}
                 >
                   <i className="icon-tonexplorer" aria-hidden />
                 </a>

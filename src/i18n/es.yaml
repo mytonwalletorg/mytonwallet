@@ -352,7 +352,7 @@ $swap_slippage_tooltip2: Si durante el procesamiento de su intercambio, el preci
 Coins have been swapped!: ¡Las monedas han sido intercambiadas!
 Slippage not specified: Deslizamiento no especificado
 Slippage too high: Deslizamiento demasiado alto
-Not enough TON: TON insuficiente
+Not Enough %symbol%: "%symbol% insuficiente"
 Use Responsibly: Usar responsablemente
 $auth_responsibly_description1: |
   MyTonWallet es una billetera con **autocustodia**, lo que significa que **solo usted** tiene el control total y, lo que es más importante, la **total responsabilidad** de sus fondos.
@@ -455,7 +455,7 @@ Euro: Euro
 Ruble: Rublo
 Yuan: Yuan
 $max_balance: "Máximo: %balance%"
-$unstake_information_instantly: Obtendrá su depósito al instante.
+$unstake_information_instantly: Obtendrá su depósito al instante
 Select Token: Seleccionar Token
 MY: MI
 POPULAR: POPULAR
@@ -607,7 +607,7 @@ until %date%: hasta el %date%
 Unfreeze: Descongelar
 Claim: Afirmar
 Confirm Unfreezing: Confirmar descongelación
-Insufficient Balance for Fee.: Saldo insuficiente para pagar la tarifa.
+Insufficient Balance for Fee: Saldo insuficiente para pagar la tarifa
 $fee_value_bold: "**Comisión:** %fee%"
 MyTonWallet Features: Funciones de MyTonWallet
 Install on Desktop: Instalar en el escritorio
@@ -646,4 +646,3 @@ Switch to W5: Cambiar a W5
 Not Scam: No es una estafa
 Untitled: Sin título
 $swap_too_small_amount: Cantidad demasiado pequeña
-Not enough %symbol%: "No hay suficiente %symbol%"

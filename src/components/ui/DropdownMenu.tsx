@@ -24,6 +24,7 @@ interface OwnProps {
   className?: string;
   bubbleClassName?: string;
   buttonClassName?: string;
+  shouldCleanup?: boolean;
   onSelect?: (value: string) => void;
   onClose: NoneToVoidFunction;
 }
@@ -42,6 +43,7 @@ function DropdownMenu({
   className,
   bubbleClassName,
   buttonClassName,
+  shouldCleanup,
   onSelect,
   onClose,
 }: OwnProps) {
@@ -65,6 +67,7 @@ function DropdownMenu({
       transformOriginY={transformOriginY}
       className={className}
       bubbleClassName={bubbleClassName}
+      shouldCleanup={shouldCleanup}
       onClose={onClose}
     >
       {items.map((item, index) => {

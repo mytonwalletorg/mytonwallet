@@ -88,7 +88,13 @@ addActionHandler('changeTransferToken', (global, actions, { tokenSlug }) => {
       amount: fromDecimal(toDecimal(amount, currentToken?.decimals), newToken?.decimals),
     });
   }
-  setGlobal(updateCurrentTransfer(global, { tokenSlug }));
+
+  setGlobal(updateCurrentTransfer(global, {
+    tokenSlug,
+    dieselStatus: undefined,
+    dieselAmount: undefined,
+    fee: undefined,
+  }));
 });
 
 addActionHandler('setTransferScreen', (global, actions, payload) => {

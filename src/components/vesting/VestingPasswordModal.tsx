@@ -157,7 +157,7 @@ function VestingPasswordModal({
             isLoading={isLoading}
             withCloseButton
             operationType="unfreeze"
-            error={hasAmountError ? lang('Insufficient Balance for Fee.') : error}
+            error={hasAmountError ? lang('Insufficient Balance for Fee') : error}
             submitLabel={lang('Confirm')}
             onSubmit={handleSubmit}
             onCancel={cancelClaimingVesting}

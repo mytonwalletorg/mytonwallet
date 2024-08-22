@@ -354,7 +354,7 @@ $swap_slippage_tooltip2: Wenn sich während der Verarbeitung Ihres Tausches der 
 Coins have been swapped!: Die Coins wurden getauscht!
 Slippage not specified: Schlupf nicht angegeben
 Slippage too high: Schlupf zu hoch
-Not enough TON: Nicht genügend TON
+Not Enough %symbol%: Nicht genügend %symbol%
 Use Responsibly: Verantwortungsbewusst nutzen
 $auth_responsibly_description1: |
   MyTonWallet ist eine **selbstverwaltete** Wallet, das bedeutet, dass **nur Sie** die volle Kontrolle und vor allem **volle Verantwortung** für Ihre Gelder haben.
@@ -459,7 +459,7 @@ Yuan: Yuan
 Bitcoin: Bitcoin
 Toncoin: Toncoin
 $max_balance: "Maximal: %balance%"
-$unstake_information_instantly: Sie erhalten Ihre Einzahlung sofort.
+$unstake_information_instantly: Sie erhalten Ihre Einzahlung sofort
 Select Token: Token auswählen
 MY: MEINE
 POPULAR: POPULAR
@@ -611,7 +611,7 @@ until %date%: bis %date%
 Unfreeze: Auftauen
 Claim: Beanspruchen
 Confirm Unfreezing: Bestätigen Sie das Auftauen
-Insufficient Balance for Fee.: Unzureichendes Guthaben für Gebühr.
+Insufficient Balance for Fee: Unzureichendes Guthaben für Gebühr
 $fee_value_bold: "**Gebühr:** %fee%"
 MyTonWallet Features: MyTonWallet Funktionen
 Install on Desktop: Auf dem Desktop installieren
@@ -650,4 +650,3 @@ Switch to W5: Zu W5 wechseln
 Not Scam: Kein Betrug
 Untitled: Unbenannt
 $swap_too_small_amount: Zu kleiner Betrag
-Not enough %symbol%: "Nicht genug %symbol%"

@@ -32,6 +32,7 @@ type OwnProps = {
   noBackdrop?: boolean;
   withPortal?: boolean;
   noCloseOnBackdrop?: boolean;
+  shouldCleanup?: boolean;
   onCloseAnimationEnd?: () => void;
   onClose?: () => void;
   onMouseEnter?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
@@ -57,6 +58,7 @@ const Menu: FC<OwnProps> = ({
   noBackdrop = false,
   withPortal,
   noCloseOnBackdrop = false,
+  shouldCleanup,
   onCloseAnimationEnd,
   onClose,
   onMouseEnter,
@@ -72,6 +74,7 @@ const Menu: FC<OwnProps> = ({
   });
 
   const {
+    shouldRender,
     transitionClassNames,
   } = useShowTransition(
     isOpen,
@@ -106,6 +109,10 @@ const Menu: FC<OwnProps> = ({
 
   const transformOriginYStyle = transformOriginY !== undefined ? `${transformOriginY}px` : undefined;
   const transformOriginXStyle = transformOriginX !== undefined ? `${transformOriginX}px` : undefined;
+
+  if (shouldCleanup && !shouldRender) {
+    return undefined;
+  }
 
   const menu = (
     <div

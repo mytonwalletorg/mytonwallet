@@ -8,6 +8,7 @@ import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { copyTextToClipboard } from '../../util/clipboard';
+import { handleOpenUrl } from '../../util/openUrl';
 import { shortenAddress } from '../../util/shortenAddress';
 import { getTonExplorerAddressUrl } from '../../util/url';
 
@@ -232,6 +233,7 @@ function InteractiveTextField({
             title={tonExplorerTitle}
             target="_blank"
             rel="noreferrer noopener"
+            onClick={handleOpenUrl}
           >
             <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />
           </a>

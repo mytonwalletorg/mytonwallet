@@ -428,6 +428,10 @@
   }
 }
 
+a.item:hover {
+  color: var(--color-black);
+}
+
 .itemInfo {
   display: flex;
   gap: 0.25rem;
@@ -838,6 +842,7 @@
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-gray-2);
+  text-wrap: nowrap;
 }
 
 .blockWalletVersionReadMore {
