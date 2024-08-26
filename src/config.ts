@@ -336,4 +336,5 @@ export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-J
 export const DIESEL_TOKENS = new Set([
   'ton-eqcxe6mutq', // USDT
   'ton-eqavlwfdxg', // Notcoin
+  'ton-eqcvxjy4eg', // DOGS
 ]);

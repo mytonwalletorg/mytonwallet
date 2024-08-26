@@ -136,7 +136,7 @@ export async function fetchBackendStakingState(address: string): Promise<ApiBack
     'X-App-Env': APP_ENV,
   };
 
-  const stakingState = await callBackendGet(`/staking/state/${address}`, headers);
+  const stakingState = await callBackendGet(`/staking/state/${address}`, undefined, headers);
   stakingState.balance = fromDecimal(stakingState.balance);
   stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
 
