@@ -1,10 +1,12 @@
-import React, { memo, type TeactNode } from '../../lib/teact/teact';
+import React, { memo, type TeactNode, useRef } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import { IS_CAPACITOR } from '../../config';
 
+import useEffectOnce from '../../hooks/useEffectOnce';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
@@ -28,6 +30,19 @@ function TransferPassword({
   } = getActions();
 
   const lang = useLang();
+  const shouldSubmit = useRef(true);
+  const onSubmitWrapper = useLastCallback((password: string) => {
+    if (shouldSubmit.current) {
+      shouldSubmit.current = false;
+
+      onSubmit(password);
+    }
+  });
+
+  useEffectOnce(() => {
+    // Reset when the component is mounted, to allow next transfers through
+    shouldSubmit.current = true;
+  });
 
   useHistoryBack({
     isActive,
@@ -47,7 +62,7 @@ function TransferPassword({
         error={error}
         submitLabel={lang('Send')}
         cancelLabel={lang('Back')}
-        onSubmit={onSubmit}
+        onSubmit={onSubmitWrapper}
         onCancel={onCancel}
         onUpdate={clearTransferError}
       >
