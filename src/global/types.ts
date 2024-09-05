@@ -682,6 +682,7 @@ export interface ActionPayloads {
     comment?: string;
     nfts?: ApiNft[];
     binPayload?: string;
+    stateInit?: string;
   } | undefined;
   changeTransferToken: { tokenSlug: string };
   fetchFee: {
@@ -691,6 +692,7 @@ export interface ActionPayloads {
     comment?: string;
     shouldEncrypt?: boolean;
     binPayload?: string;
+    stateInit?: string;
   };
   fetchNftFee: {
     toAddress: string;
@@ -705,6 +707,7 @@ export interface ActionPayloads {
     shouldEncrypt?: boolean;
     nftAddresses?: string[];
     withDiesel?: boolean;
+    stateInit?: string;
   };
   submitTransferConfirm: undefined;
   submitTransferPassword: { password: string };

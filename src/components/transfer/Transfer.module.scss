@@ -212,15 +212,6 @@
   text-align: center;
 }
 
-.error {
-  margin-top: -0.75rem;
-  margin-bottom: 1.25rem;
-  padding-left: 0.5rem;
-
-  font-size: 0.9375rem;
-  color: var(--color-red);
-}
-
 .addressWidget {
   margin-bottom: 1.25rem;
 }
@@ -564,7 +555,7 @@ textarea.inputStatic {
   border-radius: 50%;
 }
 
-.infoBox, .burnWarning {
+.infoBox, .burnWarning, .error {
   align-self: center;
 
   width: 100%;
@@ -587,7 +578,7 @@ textarea.inputStatic {
   margin-top: 0;
 }
 
-.burnWarning {
+.burnWarning, .error {
   color: var(--color-transaction-red-text);
 
   background-color: var(--color-transaction-red-background);

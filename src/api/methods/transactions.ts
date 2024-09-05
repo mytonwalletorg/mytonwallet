@@ -1,3 +1,5 @@
+import { Cell } from '@ton/core';
+
 import type { ApiSubmitTransferResult, ApiSubmitTransferWithDieselResult } from '../blockchains/ton/types';
 import type {
   ApiLocalTransactionParams,
@@ -11,6 +13,7 @@ import { TONCOIN_SLUG } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { logDebugError } from '../../util/logs';
 import blockchains from '../blockchains';
+import { resolveTransactionError } from '../blockchains/ton/transactions';
 import { fetchStoredAddress } from '../common/accounts';
 import { buildLocalTransaction, resolveBlockchainKey } from '../common/helpers';
 import { handleServerError } from '../errors';
@@ -59,6 +62,7 @@ export function checkTransactionDraft(options: {
   data?: string;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
+  stateInit?: string;
 }) {
   const blockchain = blockchains[resolveBlockchainKey(options.accountId)!];
 
@@ -66,67 +70,75 @@ export function checkTransactionDraft(options: {
 }
 
 export async function submitTransfer(options: ApiSubmitTransferOptions, shouldCreateLocalTransaction = true) {
-  const {
-    accountId, password, toAddress, amount, tokenAddress, comment, fee, shouldEncrypt, isBase64Data,
-    withDiesel, dieselAmount,
-  } = options;
+  try {
+    const {
+      accountId, password, toAddress, amount, tokenAddress, comment, fee, shouldEncrypt, isBase64Data,
+      withDiesel, dieselAmount,
+    } = options;
+    const stateInit = typeof options.stateInit === 'string' ? Cell.fromBase64(options.stateInit) : options.stateInit;
 
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const fromAddress = await fetchStoredAddress(accountId);
+    const blockchain = blockchains[resolveBlockchainKey(accountId)!];
+    const fromAddress = await fetchStoredAddress(accountId);
 
-  let result: ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult;
+    let result: ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult;
 
-  if (withDiesel) {
-    result = await blockchain.submitTransferWithDiesel({
-      accountId,
-      password,
-      toAddress,
+    if (withDiesel) {
+      result = await blockchain.submitTransferWithDiesel({
+        accountId,
+        password,
+        toAddress,
+        amount,
+        tokenAddress: tokenAddress!,
+        data: comment,
+        shouldEncrypt,
+        dieselAmount: dieselAmount!,
+      });
+    } else {
+      result = await blockchain.submitTransfer({
+        accountId,
+        password,
+        toAddress,
+        amount,
+        tokenAddress,
+        data: comment,
+        shouldEncrypt,
+        isBase64Data,
+        stateInit,
+      });
+    }
+
+    if ('error' in result) {
+      return result;
+    }
+
+    const { encryptedComment, msgHash } = result;
+
+    if (!shouldCreateLocalTransaction) {
+      return result;
+    }
+
+    const slug = tokenAddress ? buildTokenSlug(tokenAddress) : TONCOIN_SLUG;
+
+    const localTransaction = createLocalTransaction(accountId, {
       amount,
-      tokenAddress: tokenAddress!,
-      data: comment,
-      shouldEncrypt,
-      dieselAmount: dieselAmount!,
-    });
-  } else {
-    result = await blockchain.submitTransfer({
-      accountId,
-      password,
+      fromAddress,
       toAddress,
-      amount,
-      tokenAddress,
-      data: comment,
-      shouldEncrypt,
-      isBase64Data,
+      comment: shouldEncrypt ? undefined : comment,
+      encryptedComment,
+      fee: fee || 0n,
+      slug,
+      inMsgHash: msgHash,
     });
+
+    return {
+      ...result,
+      txId: localTransaction.txId,
+    };
+  } catch (err) {
+    logDebugError('submitTransfer', err);
+
+    return { error: resolveTransactionError(err) };
   }
-
-  if ('error' in result) {
-    return result;
-  }
-
-  const { encryptedComment, msgHash } = result;
-
-  if (!shouldCreateLocalTransaction) {
-    return result;
-  }
-
-  const slug = tokenAddress ? buildTokenSlug(tokenAddress) : TONCOIN_SLUG;
-
-  const localTransaction = createLocalTransaction(accountId, {
-    amount,
-    fromAddress,
-    toAddress,
-    comment: shouldEncrypt ? undefined : comment,
-    encryptedComment,
-    fee: fee || 0n,
-    slug,
-    inMsgHash: msgHash,
-  });
-
-  return {
-    ...result,
-    txId: localTransaction.txId,
-  };
 }
 
 export async function waitLastTransfer(accountId: string) {

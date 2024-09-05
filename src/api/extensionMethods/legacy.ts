@@ -111,7 +111,7 @@ export async function sendTransaction(params: {
     toAddress,
     amount,
     data: processedData,
-    stateInit: processedStateInit,
+    stateInit,
   });
 
   if ('error' in checkResult) {

@@ -1,9 +1,17 @@
 import { getActions, getGlobal } from '../../global';
 
+import type { ActionPayloads } from '../../global/types';
 import { ActiveTab } from '../../global/types';
 
-import { DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG, TONCOIN_SLUG } from '../../config';
-import { selectCurrentAccount } from '../../global/selectors';
+import {
+  DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG, TONCOIN_SLUG,
+} from '../../config';
+import {
+  selectAccountTokenBySlug,
+  selectCurrentAccount,
+  selectCurrentAccountNftByAddress,
+  selectTokenByMinterAddress,
+} from '../../global/selectors';
 import { callApi } from '../../api';
 import { isTonAddressOrDomain } from '../isTonAddressOrDomain';
 import { omitUndefined } from '../iteratees';
@@ -80,19 +88,64 @@ async function processTonDeeplink(url: string) {
   }
 
   const {
-    toAddress, amount, comment, binPayload,
+    toAddress,
+    amount,
+    comment,
+    binPayload,
+    jettonAddress,
+    nftAddress,
+    stateInit,
   } = params;
 
   const verifiedAddress = isTonAddressOrDomain(toAddress) ? toAddress : undefined;
 
-  actions.startTransfer(omitUndefined({
+  const startTransferParams: ActionPayloads['startTransfer'] = {
     isPortrait: getIsPortrait(),
-    tokenSlug: TONCOIN_SLUG,
     toAddress: verifiedAddress,
+    tokenSlug: TONCOIN_SLUG,
     amount,
     comment,
     binPayload,
-  }));
+    stateInit,
+  };
+
+  if (jettonAddress) {
+    const globalToken = jettonAddress
+      ? selectTokenByMinterAddress(global, jettonAddress)
+      : undefined;
+
+    if (!globalToken) {
+      actions.showError({
+        error: '$unknown_token_address',
+      });
+      return;
+    }
+    const accountToken = selectAccountTokenBySlug(global, globalToken.slug);
+
+    if (!accountToken) {
+      actions.showError({
+        error: '$dont_have_required_token',
+      });
+      return;
+    }
+
+    startTransferParams.tokenSlug = globalToken.slug;
+  }
+
+  if (nftAddress) {
+    const accountNft = selectCurrentAccountNftByAddress(global, nftAddress);
+
+    if (!accountNft) {
+      actions.showError({
+        error: '$dont_have_required_nft',
+      });
+      return;
+    }
+
+    startTransferParams.nfts = [accountNft];
+  }
+
+  actions.startTransfer(omitUndefined(startTransferParams));
 
   if (getIsLandscape()) {
     actions.setLandscapeActionsActiveTabIndex({ index: ActiveTab.Transfer });
@@ -108,15 +161,21 @@ export function parseTonDeeplink(value: string | unknown) {
     const url = new URL(value);
 
     const toAddress = url.pathname.replace(/.*\//, '');
-    const amount = url.searchParams.get('amount') ?? undefined;
-    const comment = url.searchParams.get('text') ?? undefined;
-    const binPayload = url.searchParams.get('bin') ?? undefined;
+    const amount = getDeeplinkSearchParam(url, 'amount');
+    const comment = getDeeplinkSearchParam(url, 'text');
+    const binPayload = getDeeplinkSearchParam(url, 'bin');
+    const jettonAddress = getDeeplinkSearchParam(url, 'jetton');
+    const nftAddress = getDeeplinkSearchParam(url, 'nft');
+    const stateInit = getDeeplinkSearchParam(url, 'init') || getDeeplinkSearchParam(url, 'stateInit');
 
     return {
       toAddress,
       amount: amount ? BigInt(amount) : undefined,
       comment,
-      binPayload,
+      jettonAddress,
+      nftAddress,
+      binPayload: binPayload ? replaceAllSpacesWithPlus(binPayload) : undefined,
+      stateInit: stateInit ? replaceAllSpacesWithPlus(stateInit) : undefined,
     };
   } catch (err) {
     return undefined;
@@ -239,4 +298,12 @@ function omitProtocol(url: string) {
 
 function toNumberOrEmptyString(input?: string | null) {
   return String(Number(input) || '');
+}
+
+function replaceAllSpacesWithPlus(value: string) {
+  return value.replace(/ /g, '+');
+}
+
+function getDeeplinkSearchParam(url: URL, param: string) {
+  return url.searchParams.get(param) ?? undefined;
 }

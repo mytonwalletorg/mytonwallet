@@ -117,7 +117,13 @@ Toggle Hide Tiny Transfers: 切換隱藏小額轉帳
 Network: 網路
 Developer Options: 開發者選項
 Confirmation: 確認
-Data to sign: 簽署資訊
+Signing Data: 簽名數據
+Contract Initialization Data: 合約初始化數據
+$dont_have_required_token: 您沒有所需的代幣，但可以交換。
+$unknown_token_address: 未知的代幣地址。
+$dont_have_required_nft: 您沒有所需的NFT來發送。
+$state_init_requires_bin: 合同初始化數據需要"bin"參數。
+$state_init_invalid: 無效的合同初始化數據。
 $signature_warning: |
   簽署自定義資訊是非常危險的。僅當您信任其來源時才使用它。
 Sign: 簽署

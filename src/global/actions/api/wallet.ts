@@ -142,7 +142,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   }
 
   const {
-    tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddresses, withDiesel,
+    tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddresses, withDiesel, stateInit,
   } = payload;
 
   setGlobal(updateSendingLoading(global, true));
@@ -166,6 +166,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
       amount,
       data: comment,
       shouldEncrypt,
+      stateInit,
     });
   }
 
@@ -213,7 +214,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
 
 addActionHandler('fetchFee', async (global, actions, payload) => {
   const {
-    tokenSlug, toAddress, amount, comment, shouldEncrypt, binPayload,
+    tokenSlug, toAddress, amount, comment, shouldEncrypt, binPayload, stateInit,
   } = payload;
 
   const tokenAddress = selectTokenAddress(global, tokenSlug);
@@ -225,6 +226,7 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
     tokenAddress,
     shouldEncrypt,
     isBase64Data: Boolean(binPayload),
+    stateInit,
   });
 
   if (result?.fee) {
@@ -300,6 +302,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     nfts,
     withDiesel,
     dieselAmount,
+    stateInit,
   } = global.currentTransfer;
 
   if (!(await callApi('verifyPassword', password))) {
@@ -377,6 +380,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       isBase64Data: Boolean(binPayload),
       withDiesel,
       dieselAmount,
+      stateInit,
     };
     result = await callApi('submitTransfer', options);
   }

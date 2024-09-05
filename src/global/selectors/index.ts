@@ -112,6 +112,11 @@ export function selectAccountTokens(global: GlobalState, accountId: string) {
   );
 }
 
+export function selectAccountTokenBySlug(global: GlobalState, slug: string) {
+  const accountTokens = selectCurrentAccountTokens(global);
+  return accountTokens?.find((token) => token.slug === slug);
+}
+
 function createTokenList(
   swapTokenInfo: GlobalState['swapTokenInfo'],
   balancesBySlug: ApiBalanceBySlug,
@@ -421,4 +426,16 @@ export function selectMycoin(global: GlobalState) {
   const { isTestnet } = global.settings;
 
   return global.tokenInfo.bySlug[isTestnet ? MYCOIN_SLUG_TESTNET : MYCOIN_SLUG];
+}
+
+export function selectTokenByMinterAddress(global: GlobalState, minter: string) {
+  return Object.values(global.tokenInfo.bySlug).find((token) => token.minterAddress === minter);
+}
+
+export function selectCurrentAccountNftByAddress(global: GlobalState, nftAddress: string) {
+  return selectAccountNftByAddress(global, global.currentAccountId!, nftAddress);
+}
+
+export function selectAccountNftByAddress(global: GlobalState, accountId: string, nftAddress: string) {
+  return selectAccountState(global, accountId)?.nfts?.byAddress[nftAddress];
 }

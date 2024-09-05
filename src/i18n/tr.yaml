@@ -123,7 +123,13 @@ Toggle Hide Tiny Transfers: Küçük Transferleri Gizlemeyi Aç/Kapat
 Network: Ağ
 Developer Options: Geliştirici Seçenekleri
 Confirmation: Onay
-Data to sign: İmzalanacak veriler
+Signing Data: İmza Verisi
+Contract Initialization Data: Sözleşme Başlatma Verileri
+$dont_have_required_token: Gerekli tokena sahip değilsiniz, ancak takas edilebilir.
+$unknown_token_address: Bilinmeyen token adresi.
+$dont_have_required_nft: Göndermek için gerekli NFT'ye sahip değilsiniz.
+$state_init_requires_bin: Sözleşme başlatma verileri "bin" parametresini gerektirir.
+$state_init_invalid: Geçersiz sözleşme başlatma verileri.
 $signature_warning: Özelleştirilmiş verilerin imzalanması çok tehlikelidir. Yalnızca kaynağına güveniyorsanız kullanın.
 Sign: İmzala
 Done!: Tamamlandı!

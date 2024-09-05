@@ -1,3 +1,5 @@
+import type { Cell } from '@ton/core';
+
 import type { DNS_ZONES_MAP } from '../blockchains/ton/constants';
 import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions } from './storage';
@@ -178,6 +180,7 @@ export interface ApiSubmitTransferOptions {
   isBase64Data?: boolean;
   withDiesel?: boolean;
   dieselAmount?: bigint;
+  stateInit?: string | Cell;
 }
 
 export enum Workchain {

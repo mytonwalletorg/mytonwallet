@@ -3,7 +3,7 @@ import {
 } from '../../../config';
 import { findDifference } from '../../../util/iteratees';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
-import { NFT_TRANSFER_TONCOIN_AMOUNT } from '../../../api/blockchains/ton/constants';
+import { NFT_TRANSFER_AMOUNT } from '../../../api/blockchains/ton/constants';
 import { addActionHandler } from '../../index';
 import { updateCurrentAccountState } from '../../reducers';
 import { selectCurrentAccountState } from '../../selectors';
@@ -23,7 +23,7 @@ addActionHandler('burnNfts', (global, actions, { nfts }) => {
   setTimeout(() => {
     actions.submitTransferInitial({
       tokenSlug: TONCOIN_SLUG,
-      amount: NFT_TRANSFER_TONCOIN_AMOUNT,
+      amount: NFT_TRANSFER_AMOUNT,
       toAddress: isNotcoinVouchers ? NOTCOIN_EXCHANGERS[0] : BURN_ADDRESS,
       nftAddresses: nfts.map(({ address }) => address),
     });

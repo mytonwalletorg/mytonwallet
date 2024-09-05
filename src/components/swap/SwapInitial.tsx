@@ -156,8 +156,8 @@ function SwapInitial({
   const isEnoughToncoin = toncoin.amount > totalToncoinAmount;
   const isDieselSwap = swapType === SwapType.OnChain
     && !isEnoughToncoin
-    && tokenIn?.slug
-    && DIESEL_TOKENS.has(tokenIn.slug);
+    && tokenIn?.contract
+    && DIESEL_TOKENS.has(tokenIn.contract);
 
   // eslint-disable-next-line max-len
   const isCorrectAmountIn = Boolean(

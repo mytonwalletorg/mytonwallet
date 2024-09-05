@@ -9,6 +9,8 @@ export enum ApiTransactionDraftError {
   InvalidAmount = 'InvalidAmount',
   InvalidToAddress = 'InvalidToAddress',
   InsufficientBalance = 'InsufficientBalance',
+  InvalidStateInit = 'InvalidStateInit',
+  StateInitWithoutBin = 'StateInitWithoutBin',
   DomainNotResolved = 'DomainNotResolved',
   WalletNotInitialized = 'WalletNotInitialized',
   InvalidAddressFormat = 'InvalidAddressFormat',

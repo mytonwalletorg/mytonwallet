@@ -124,7 +124,13 @@ Toggle Hide Tiny Transfers: Переключити відображення др
 Network: Мережа
 Developer Options: Інструменти розробника
 Confirmation: Підтвердження
-Data to sign: Дані для підтвердження та підпису
+Signing Data: Дані для підпису
+Contract Initialization Data: Дані для ініціалізації контракту
+$dont_have_required_token: У вас немає потрібного токена, але його можна обміняти.
+$unknown_token_address: Невідома адреса токена.
+$dont_have_required_nft: У вас немає потрібного NFT для відправки.
+$state_init_requires_bin: Дані ініціалізації контракту вимагають параметра "bin".
+$state_init_invalid: Невірні дані ініціалізації контракту.
 $signature_warning: Підписання даних тягне за собою ризики. Використовуйте цю опцію, тільки якщо ви довіряєте джерелу.
 Sign: Підписати
 Done!: Готово!

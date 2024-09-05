@@ -16,7 +16,7 @@ import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrencySimple } from '../../util/formatNumber';
-import { NFT_TRANSFER_TONCOIN_AMOUNT } from '../../api/blockchains/ton/constants';
+import { NFT_TRANSFER_AMOUNT } from '../../api/blockchains/ton/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -65,6 +65,7 @@ function TransferConfirm({
     nfts,
     withDiesel,
     dieselAmount,
+    stateInit,
   },
   symbol,
   decimals,
@@ -101,7 +102,7 @@ function TransferConfirm({
   }
 
   function renderFeeForNft() {
-    const totalFee = (NFT_TRANSFER_TONCOIN_AMOUNT + (fee ?? 0n)) * BigInt(Math.ceil(nfts!.length / NFT_BATCH_SIZE));
+    const totalFee = (NFT_TRANSFER_AMOUNT + (fee ?? 0n)) * BigInt(Math.ceil(nfts!.length / NFT_BATCH_SIZE));
 
     return (
       <>
@@ -127,15 +128,30 @@ function TransferConfirm({
   }
 
   function renderComment() {
-    if (binPayload) {
+    if (binPayload || stateInit) {
       return (
         <>
-          <div className={styles.label}>{lang('Data to sign')}</div>
-          <InteractiveTextField
-            text={binPayload!}
-            copyNotification={lang('Data was copied!')}
-            className={styles.addressWidget}
-          />
+          {binPayload && (
+            <>
+              <div className={styles.label}>{lang('Signing Data')}</div>
+              <InteractiveTextField
+                text={binPayload}
+                copyNotification={lang('Data was copied!')}
+                className={styles.addressWidget}
+              />
+            </>
+          )}
+
+          {stateInit && (
+            <>
+              <div className={styles.label}>{lang('Contract Initialization Data')}</div>
+              <InteractiveTextField
+                text={stateInit}
+                copyNotification={lang('Data was copied!')}
+                className={styles.addressWidget}
+              />
+            </>
+          )}
 
           <div className={styles.error}>
             {renderText(lang('$signature_warning'))}

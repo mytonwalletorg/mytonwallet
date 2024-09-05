@@ -123,7 +123,13 @@ Toggle Hide Tiny Transfers: Kleine Überweisungen ausblenden umschalten
 Network: Network
 Developer Options: Entwickleroptionen
 Confirmation: Bestätigung
-Data to sign: Zu signierende Daten
+Signing Data: Signierdaten
+Contract Initialization Data: Vertrag Initialisierung Daten
+$dont_have_required_token: Sie haben den erforderlichen Token nicht, aber er kann umgetauscht werden.
+$unknown_token_address: Unbekannte Token-Adresse.
+$dont_have_required_nft: Sie haben das erforderliche NFT nicht, um es zu senden.
+$state_init_requires_bin: Die Vertragsinitialisierungsdaten erfordern den Parameter "bin".
+$state_init_invalid: Ungültige Vertragsinitialisierungsdaten.
 $signature_warning: Das Signieren von benutzerdefinierten Daten ist sehr gefährlich. Verwenden Sie es nur, wenn Sie der Quelle vertrauen.
 Sign: Signieren
 Done!: Erledigt!

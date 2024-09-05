@@ -4,7 +4,7 @@ import { TransferState } from '../types';
 
 import { TONCOIN_SLUG } from '../../config';
 import { omitUndefined, pick } from '../../util/iteratees';
-import { TOKEN_TRANSFER_TONCOIN_AMOUNT } from '../../api/blockchains/ton/constants';
+import { TOKEN_TRANSFER_AMOUNT } from '../../api/blockchains/ton/constants';
 import { selectAccountState, selectCurrentAccountState } from '../selectors';
 import { updateAccountState, updateCurrentAccountState } from './misc';
 
@@ -113,7 +113,7 @@ export function updateCurrentTransferFee(
   const accountState = selectAccountState(global, global.currentAccountId!);
   const balance = accountState?.balances?.bySlug[TONCOIN_SLUG] ?? 0n;
   const baseFee = fee ?? 0n;
-  const compositeFee = baseFee + (isToncoin ? 0n : TOKEN_TRANSFER_TONCOIN_AMOUNT);
+  const compositeFee = baseFee + (isToncoin ? 0n : TOKEN_TRANSFER_AMOUNT);
   const updatedBalance = balance - (isToncoin ? amount : 0n);
 
   return updateCurrentTransfer(global, { fee: updatedBalance < compositeFee ? compositeFee : baseFee });

@@ -123,7 +123,13 @@ Toggle Hide Tiny Transfers: Toggle Hide Tiny Transfers
 Network: Network
 Developer Options: Developer Options
 Confirmation: Confirmation
-Data to sign: Data to sign
+Signing Data: Signing Data
+Contract Initialization Data: Contract Initialization Data
+$dont_have_required_token: You don’t have the required token to send, but it can be swapped.
+$unknown_token_address: Unknown token address.
+$dont_have_required_nft: You don’t have the required NFT to send.
+$state_init_requires_bin: Contract initialization data requires the bin parameter.
+$state_init_invalid: Invalid contract initialization data.
 $signature_warning: Signing custom data is very dangerous. Use it only if you trust the source of it.
 Sign: Sign
 Done!: Done!

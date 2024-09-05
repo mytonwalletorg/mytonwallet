@@ -30,11 +30,11 @@ import {
 import { callApi } from '../../api';
 import {
   DEFAULT_IS_BOUNCEABLE,
-  NFT_TRANSFER_TONCOIN_AMOUNT,
-  NFT_TRANSFER_TONCOIN_FORWARD_AMOUNT,
+  NFT_TRANSFER_AMOUNT,
+  NFT_TRANSFER_FORWARD_AMOUNT,
   STAKE_COMMENT,
-  TOKEN_TRANSFER_TONCOIN_AMOUNT,
-  TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
+  TOKEN_TRANSFER_AMOUNT,
+  TOKEN_TRANSFER_FORWARD_AMOUNT,
   TRANSFER_TIMEOUT_SEC,
   UNSTAKE_COMMENT,
   WALLET_IS_BOUNCEABLE,
@@ -431,7 +431,7 @@ export async function submitLedgerNftTransfer(options: {
     && (toAddress === BURN_ADDRESS || NOTCOIN_EXCHANGERS.includes(toAddress as any));
   // eslint-disable-next-line no-null/no-null
   let forwardPayload: Cell | null = null;
-  let forwardAmount = NFT_TRANSFER_TONCOIN_FORWARD_AMOUNT;
+  let forwardAmount = NFT_TRANSFER_FORWARD_AMOUNT;
 
   if (isNotcoinBurn) {
     ({ forwardPayload, toAddress } = buildNotcoinVoucherExchange(nftAddress, nft!.index));
@@ -447,7 +447,7 @@ export async function submitLedgerNftTransfer(options: {
       seqno: seqno!,
       timeout: getTransferExpirationTime(),
       bounce: true,
-      amount: NFT_TRANSFER_TONCOIN_AMOUNT,
+      amount: NFT_TRANSFER_AMOUNT,
       payload: {
         type: 'nft-transfer',
         queryId: 0n,
@@ -464,7 +464,7 @@ export async function submitLedgerNftTransfer(options: {
       base64: signedCell.toBoc().toString('base64'),
       seqno: seqno!,
       params: {
-        amount: NFT_TRANSFER_TONCOIN_AMOUNT,
+        amount: NFT_TRANSFER_AMOUNT,
         fromAddress: fromAddress!,
         toAddress: options.toAddress,
         comment,
@@ -522,14 +522,14 @@ export async function buildLedgerTokenTransfer(
     responseDestination: Address.parse(fromAddress),
     // eslint-disable-next-line no-null/no-null
     customPayload: null,
-    forwardAmount: TOKEN_TRANSFER_TONCOIN_FORWARD_AMOUNT,
+    forwardAmount: TOKEN_TRANSFER_FORWARD_AMOUNT,
     forwardPayload,
     // eslint-disable-next-line no-null/no-null
     knownJetton: isJettonIdSupported ? getKnownJettonId(tokenAddress) : null,
   };
 
   return {
-    amount: TOKEN_TRANSFER_TONCOIN_AMOUNT,
+    amount: TOKEN_TRANSFER_AMOUNT,
     toAddress: tokenWalletAddress!,
     payload,
   };

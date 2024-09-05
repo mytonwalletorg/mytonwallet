@@ -123,8 +123,13 @@ Toggle Hide Tiny Transfers: Alternar ocultar transacciones pequeñas
 Network: Red
 Developer Options: Opciones de desarrollador
 Confirmation: Confirmar
-Data to sign: Datos a firmar
-$signature_warning: Firmar datos personalizados es muy peligroso. Úselo sólo si confía en su fuente.
+Signing Data: Datos de Firma
+Contract Initialization Data: Datos de Inicialización del Contrato
+$dont_have_required_token: No tiene el token requerido, pero se puede intercambiar.
+$unknown_token_address: Dirección de token desconocida.
+$dont_have_required_nft: No tiene el NFT requerido para enviar.
+$state_init_requires_bin: Los datos de inicialización del contrato requieren el parámetro "bin".
+$state_init_invalid: Datos de inicialización de contrato inválidos.
 Sign: Firmar
 Done!: ¡Listo!
 Signing was confirmed!: ¡La firma fue confirmada!

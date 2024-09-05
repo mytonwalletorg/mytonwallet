@@ -85,7 +85,7 @@ function SignatureModal({
       <>
         <ModalHeader title={lang('Confirmation')} onClose={closeModal} />
         <div className={modalStyles.transitionContent}>
-          <div className={transferStyles.label}>{lang('Data to sign')}</div>
+          <div className={transferStyles.label}>{lang('Signing Data')}</div>
           <div className={transferStyles.inputReadOnly}>
             {dataHex}
           </div>

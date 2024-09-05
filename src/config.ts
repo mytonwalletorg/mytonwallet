@@ -123,7 +123,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-125';
+export const LANG_CACHE_NAME = 'mtw-lang-126';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -334,7 +334,9 @@ export const RE_TG_BOT_MENTION = /telegram[:\s-]*((@[a-z0-9_]+)|(https:\/\/)?(t\
 
 export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';
 export const DIESEL_TOKENS = new Set([
-  'ton-eqcxe6mutq', // USDT
-  'ton-eqavlwfdxg', // Notcoin
-  'ton-eqcvxjy4eg', // DOGS
+  'EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT', // NOT
+  'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
+  'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS', // DOGS
 ]);
+
+export const TINY_TOKENS = DIESEL_TOKENS;

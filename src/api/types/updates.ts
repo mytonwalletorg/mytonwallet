@@ -137,6 +137,7 @@ export type ApiUpdatePrepareTransaction = {
   amount?: bigint;
   comment?: string;
   binPayload?: string;
+  stateInit?: string;
 };
 
 export type ApiUpdateProcessDeeplink = {

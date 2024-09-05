@@ -1,6 +1,6 @@
 import type { OpenedContract } from '@ton/core';
 import {
-  beginCell, Cell, external, internal, SendMode, storeMessage,
+  beginCell, Cell, external, internal, loadStateInit, SendMode, storeMessage,
 } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
@@ -28,11 +28,13 @@ import type {
 import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import { DIESEL_ADDRESS, ONE_TON, TONCOIN_SLUG } from '../../../config';
+import {
+  DEFAULT_FEE, DIESEL_ADDRESS, DIESEL_TOKENS, ONE_TON, TONCOIN_SLUG,
+} from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
-import { fromDecimal } from '../../../util/decimals';
+import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { buildCollectionByKey, omit } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
@@ -63,7 +65,12 @@ import { ApiServerError, handleServerError } from '../../errors';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
 import {
-  ATTEMPTS, FEE_FACTOR, STAKE_COMMENT, TRANSFER_TIMEOUT_SEC, UNSTAKE_COMMENT,
+  ATTEMPTS,
+  FEE_FACTOR,
+  STAKE_COMMENT,
+  TINY_TOKEN_TRANSFER_AMOUNT,
+  TRANSFER_TIMEOUT_SEC,
+  UNSTAKE_COMMENT,
 } from './constants';
 import {
   buildTokenTransfer, findTokenByMinter, parseTokenTransaction, resolveTokenBySlug,
@@ -78,7 +85,7 @@ const WAIT_TRANSFER_TIMEOUT = 5 * 60 * 1000; // 5 min
 const WAIT_TRANSFER_PAUSE = 1000; // 1 sec.
 const WAIT_TRANSACTION_PAUSE = 500; // 0.5 sec.
 
-const MAX_BALANCE_WITH_CHECK_DIESEL = 220000000n; // 0.22 TON
+const MAX_BALANCE_WITH_CHECK_DIESEL = 100000000n; // 0.1 TON
 const PENDING_DIESEL_TIMEOUT = 15 * 60 * 1000; // 15 min
 
 const pendingTransfers: Record<string, {
@@ -99,7 +106,7 @@ export async function checkTransactionDraft(
     amount: bigint;
     tokenAddress?: string;
     data?: AnyPayload;
-    stateInit?: Cell;
+    stateInit?: string;
     shouldEncrypt?: boolean;
     isBase64Data?: boolean;
   },
@@ -107,7 +114,6 @@ export async function checkTransactionDraft(
   const {
     accountId,
     tokenAddress,
-    stateInit,
     shouldEncrypt,
     isBase64Data,
   } = options;
@@ -128,7 +134,27 @@ export async function checkTransactionDraft(
 
     const { isInitialized } = await getContractInfo(network, toAddress);
 
-    if (result.isBounceable && !isInitialized) {
+    if (options.stateInit && !isBase64Data) {
+      return {
+        ...result,
+        error: ApiTransactionDraftError.StateInitWithoutBin,
+      };
+    }
+
+    let stateInit;
+
+    if (options.stateInit) {
+      try {
+        stateInit = Cell.fromBase64(options.stateInit);
+      } catch {
+        return {
+          ...result,
+          error: ApiTransactionDraftError.InvalidStateInit,
+        };
+      }
+    }
+
+    if (result.isBounceable && !isInitialized && !stateInit) {
       result.isToAddressNew = !(await checkHasTransaction(network, toAddress));
       return {
         ...result,
@@ -219,7 +245,12 @@ export async function checkTransactionDraft(
       ? balance > realFee
       : balance >= amount + realFee;
 
-    if (network === 'mainnet' && tokenAddress && balance < MAX_BALANCE_WITH_CHECK_DIESEL) {
+    if (
+      network === 'mainnet'
+      && tokenAddress
+      && DIESEL_TOKENS.has(tokenAddress)
+      && balance < MAX_BALANCE_WITH_CHECK_DIESEL
+    ) {
       const {
         status: dieselStatus,
         amount: dieselAmount,
@@ -252,12 +283,12 @@ export async function checkTransactionDraft(
   }
 }
 
-function estimateDiesel(address: string, tokenAddress: string) {
+function estimateDiesel(address: string, tokenAddress: string, toncoinAmount: string) {
   return callBackendGet<{
     status: DieselStatus;
     amount?: string;
     pendingCreatedAt?: string;
-  }>('/diesel/estimate', { address, tokenAddress });
+  }>('/diesel/estimate', { address, tokenAddress, toncoinAmount });
 }
 
 export async function checkToAddress(network: ApiNetwork, toAddress: string) {
@@ -536,10 +567,9 @@ async function signTransaction({
       : packBytesAsSnake(payload, 0) as Cell;
   }
 
-  const init = stateInit ? {
-    code: stateInit.refs[0],
-    data: stateInit.refs[1],
-  } : undefined;
+  const init = stateInit ? loadStateInit(
+    stateInit.asSlice(),
+  ) : undefined;
 
   const sendMode = isFullBalance
     ? SendMode.CARRY_ALL_REMAINING_BALANCE
@@ -898,10 +928,9 @@ async function signMultiTransaction(
       payload = Cell.fromBase64(payload);
     }
 
-    const init = stateInit ? {
-      code: stateInit.refs[0],
-      data: stateInit.refs[1],
-    } : undefined;
+    const init = stateInit ? loadStateInit(
+      stateInit.asSlice(),
+    ) : undefined;
 
     return internal({
       value: amount,
@@ -1147,11 +1176,13 @@ export async function fetchEstimateDiesel(accountId: string, tokenAddress: strin
 
   if (balance >= MAX_BALANCE_WITH_CHECK_DIESEL) return undefined;
 
+  const toncoinAmount = toDecimal((TINY_TOKEN_TRANSFER_AMOUNT + DEFAULT_FEE) * 2n);
+
   const {
     status,
     amount,
     pendingCreatedAt,
-  } = await estimateDiesel(address, tokenAddress);
+  } = await estimateDiesel(address, tokenAddress, toncoinAmount);
   const { decimals } = findTokenByMinter(tokenAddress)!;
 
   const isAwaitingNotExpiredPrevious = Boolean(

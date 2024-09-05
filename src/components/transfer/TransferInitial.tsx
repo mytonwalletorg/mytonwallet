@@ -29,7 +29,7 @@ import { throttle } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
 import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
-import { NFT_TRANSFER_TONCOIN_AMOUNT } from '../../api/blockchains/ton/constants';
+import { NFT_TRANSFER_AMOUNT } from '../../api/blockchains/ton/constants';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -76,6 +76,7 @@ interface StateProps {
   baseCurrency?: ApiBaseCurrency;
   nfts?: ApiNft[];
   binPayload?: string;
+  stateInit?: string;
   dieselAmount?: bigint;
   dieselStatus?: DieselStatus;
   isDieselAuthorizationStarted?: boolean;
@@ -116,6 +117,7 @@ function TransferInitial({
   baseCurrency,
   nfts,
   binPayload,
+  stateInit,
   dieselAmount,
   dieselStatus,
   isDieselAuthorizationStarted,
@@ -199,6 +201,7 @@ function TransferInitial({
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
     ? balance - amount > dieselAmount
     : undefined;
+
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
     ? AUTHORIZE_DIESEL_INTERVAL_MS
     : undefined;
@@ -298,11 +301,21 @@ function TransferInitial({
           amount: amount!,
           comment,
           binPayload,
+          stateInit,
         });
       }
     });
   }, [
-    amount, binPayload, comment, hasToAddressError, isAddressValid, isNftTransfer, nfts, toAddress, tokenSlug,
+    amount,
+    binPayload,
+    comment,
+    hasToAddressError,
+    isAddressValid,
+    isNftTransfer,
+    nfts,
+    stateInit,
+    toAddress,
+    tokenSlug,
   ]);
 
   const handleTokenChange = useLastCallback(
@@ -468,7 +481,7 @@ function TransferInitial({
 
   const isCommentRequired = Boolean(toAddress) && isMemoRequired;
   const hasCommentError = isCommentRequired && !comment;
-  const requiredAmount = isNftTransfer ? NFT_TRANSFER_TONCOIN_AMOUNT : amount;
+  const requiredAmount = isNftTransfer ? NFT_TRANSFER_AMOUNT : amount;
 
   const canSubmit = Boolean(toAddress.length && requiredAmount && balance && requiredAmount > 0
     && requiredAmount <= balance && !hasToAddressError && !hasAmountError
@@ -491,12 +504,13 @@ function TransferInitial({
 
     submitTransferInitial({
       tokenSlug,
-      amount: isNftTransfer ? NFT_TRANSFER_TONCOIN_AMOUNT : amount!,
+      amount: isNftTransfer ? NFT_TRANSFER_AMOUNT : amount!,
       toAddress,
       comment,
       shouldEncrypt,
       nftAddresses: isNftTransfer ? nfts!.map(({ address }) => address) : undefined,
       withDiesel,
+      stateInit,
     });
   });
 
@@ -774,14 +788,29 @@ function TransferInitial({
           </>
         )}
 
-        {binPayload ? (
+        {binPayload || stateInit ? (
           <>
-            <div className={styles.label}>{lang('Data to sign')}</div>
-            <InteractiveTextField
-              text={binPayload}
-              copyNotification={lang('Data was copied!')}
-              className={buildClassName(styles.addressWidget, isStatic && styles.inputStatic)}
-            />
+            {binPayload && (
+              <>
+                <div className={styles.label}>{lang('Signing Data')}</div>
+                <InteractiveTextField
+                  text={binPayload}
+                  copyNotification={lang('Data was copied!')}
+                  className={styles.addressWidget}
+                />
+              </>
+            )}
+
+            {stateInit && (
+              <>
+                <div className={styles.label}>{lang('Contract Initialization Data')}</div>
+                <InteractiveTextField
+                  text={stateInit}
+                  copyNotification={lang('Data was copied!')}
+                  className={styles.addressWidget}
+                />
+              </>
+            )}
 
             <div className={styles.error}>
               {renderText(lang('$signature_warning'))}
@@ -846,6 +875,7 @@ export default memo(
         isMemoRequired,
         dieselStatus,
         dieselAmount,
+        stateInit,
       } = global.currentTransfer;
 
       const isLedger = selectIsHardwareAccount(global);
@@ -861,6 +891,7 @@ export default memo(
         nfts,
         tokenSlug,
         binPayload,
+        stateInit,
         tokens: selectCurrentAccountTokens(global),
         savedAddresses: accountState?.savedAddresses,
         isEncryptedCommentSupported: !isLedger && !nfts?.length && !isMemoRequired,
