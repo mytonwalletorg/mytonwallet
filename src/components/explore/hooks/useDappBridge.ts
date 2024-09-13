@@ -1,11 +1,16 @@
 import type {
-  AppRequest, ConnectEvent,
-  ConnectEventError, ConnectRequest, DeviceInfo, RpcMethod, WalletEvent,
+  AppRequest,
+  ConnectEvent,
+  ConnectEventError,
+  ConnectRequest,
+  DeviceInfo,
+  RpcMethod,
+  WalletEvent,
   WalletResponse,
 } from '@tonconnect/protocol';
 import { BottomSheet } from 'native-bottom-sheet';
 import { useMemo, useRef, useState } from '../../../lib/teact/teact';
-import { getGlobal } from '../../../global';
+import { getActions, getGlobal } from '../../../global';
 
 import type { CustomInAppBrowserObject } from './useWebViewBridge';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from '../../../api/tonConnect/types';
@@ -36,6 +41,8 @@ interface OwnProps {
 export function useDappBridge({
   endpoint,
 }: OwnProps) {
+  const { openLoadingOverlay, closeLoadingOverlay } = getActions();
+
   // eslint-disable-next-line no-null/no-null
   const inAppBrowserRef = useRef<CustomInAppBrowserObject>(null);
   const [requestId, setRequestId] = useState(0);
@@ -67,12 +74,17 @@ export function useDappBridge({
             await BottomSheet.enable();
           }
 
+          openLoadingOverlay();
+
           const response = await callApi(
             'tonConnect_connect',
             buildDappRequest(origin),
             request,
             requestId,
           );
+
+          closeLoadingOverlay();
+
           if (IS_DELEGATING_BOTTOM_SHEET) {
             await BottomSheet.disable();
           }

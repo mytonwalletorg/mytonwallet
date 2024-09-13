@@ -118,12 +118,12 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   });
 
   useEffect(() => {
-    return isSubmitDisabled
+    return isSubmitDisabled || isLoading
       ? undefined
       : captureKeyboardListeners({
         onEnter: handleSubmit,
       });
-  }, [afterImportMnemonic, handleSubmit, isSubmitDisabled, mnemonic]);
+  }, [afterImportMnemonic, handleSubmit, isLoading, isSubmitDisabled, mnemonic]);
 
   return (
     <div className={buildClassName(styles.container, styles.container_scrollable, 'custom-scroll')}>

@@ -43,7 +43,7 @@ export default function useVesting({ vesting, userMycoin }: { vesting?: ApiVesti
   const {
     shouldRender,
     transitionClassNames,
-  } = useShowTransition(Boolean(hasVesting && isMycoinLoaded && userMycoin));
+  } = useShowTransition(Boolean(hasVesting && isMycoinLoaded && userMycoin && amount !== '0'));
 
   const onVestingTokenClick = useLastCallback(() => {
     openVestingModal();

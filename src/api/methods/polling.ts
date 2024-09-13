@@ -17,7 +17,9 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { DEFAULT_PRICE_CURRENCY, POPULAR_WALLET_VERSIONS, TONCOIN_SLUG } from '../../config';
+import {
+  DEFAULT_PRICE_CURRENCY, LEDGER_WALLET_VERSIONS, POPULAR_WALLET_VERSIONS, TONCOIN_SLUG,
+} from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { compareActivities } from '../../util/compareActivities';
@@ -573,12 +575,13 @@ export async function setupWalletVersionsPolling(accountId: string) {
   const localOnUpdate = onUpdate;
 
   const {
-    address, publicKey, version, isInitialized,
+    address, publicKey, version, isInitialized, ledger,
   } = await fetchStoredAccount(accountId);
   const publicKeyBytes = hexToBytes(publicKey);
   const { network } = parseAccountId(accountId);
 
-  const versions = POPULAR_WALLET_VERSIONS.filter((value) => value !== version);
+  const walletVersions = ledger ? LEDGER_WALLET_VERSIONS : POPULAR_WALLET_VERSIONS;
+  const versions = walletVersions.filter((value) => value !== version);
   let lastResult: ApiWalletInfo[] | undefined;
 
   let shouldCheckV4 = false;
@@ -587,6 +590,9 @@ export async function setupWalletVersionsPolling(accountId: string) {
   if (version === 'W5' && !isInitialized) {
     const { lastTxId } = await ton.getWalletInfo(network, address);
     shouldCheckV4 = !lastTxId;
+  }
+  if (ledger) {
+    shouldCheckV4 = true;
   }
 
   while (isAlive(localOnUpdate, accountId)) {

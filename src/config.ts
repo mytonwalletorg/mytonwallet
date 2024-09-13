@@ -291,6 +291,7 @@ export const BURN_ADDRESS = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
 
 export const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'W5';
 export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R2', 'W5'];
+export const LEDGER_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R2', 'v4R2'];
 
 export const DEFAULT_TIMEOUT = 10000;
 export const DEFAULT_RETRIES = 3;

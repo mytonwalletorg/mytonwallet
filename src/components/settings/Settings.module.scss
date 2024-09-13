@@ -837,6 +837,10 @@ a.item:hover {
   color: var(--color-black);
 }
 
+.walletVersionAddress {
+  white-space: nowrap;
+}
+
 .walletVersionAddress,
 .walletVersionAmount {
   font-size: 0.75rem;

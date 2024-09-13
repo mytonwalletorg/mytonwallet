@@ -1016,7 +1016,16 @@ addActionHandler('importAccountByVersion', async (global, actions, { version }) 
   const { title: currentWalletTitle } = (global.accounts?.byId ?? {})[accountId];
 
   global = updateCurrentAccountId(global, wallet!.accountId);
-  global = createAccount(global, wallet!.accountId, wallet!.address, { title: currentWalletTitle }, version);
+
+  const ledgerInfo = wallet!.ledger ? {
+    isHardware: true,
+    ledger: wallet?.ledger,
+  } : undefined;
+
+  global = createAccount(global, wallet!.accountId, wallet!.address, {
+    title: currentWalletTitle,
+    ...ledgerInfo,
+  }, version);
   setGlobal(global);
 });
 

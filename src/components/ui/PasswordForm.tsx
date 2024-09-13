@@ -142,12 +142,10 @@ function PasswordForm({
   });
 
   useEffect(() => {
-    return isSubmitDisabled
+    return isSubmitDisabled || isLoading
       ? undefined
-      : captureKeyboardListeners({
-        onEnter: handleSubmit,
-      });
-  }, [handleSubmit, isSubmitDisabled]);
+      : captureKeyboardListeners({ onEnter: handleSubmit });
+  }, [handleSubmit, isLoading, isSubmitDisabled]);
 
   function getPinPadTitle() {
     switch (operationType) {

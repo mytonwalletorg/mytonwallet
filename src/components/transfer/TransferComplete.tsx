@@ -1,10 +1,11 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type { ApiNft } from '../../api/types';
 
 import { TONCOIN_SLUG } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
@@ -67,6 +68,12 @@ function TransferComplete({
     isActive,
     onBack: onClose,
   });
+
+  useEffect(() => {
+    return isActive
+      ? captureKeyboardListeners({ onEnter: onClose })
+      : undefined;
+  }, [isActive, onClose]);
 
   const handleTransactionRepeatClick = useLastCallback(() => {
     startTransfer({

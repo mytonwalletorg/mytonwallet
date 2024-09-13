@@ -209,7 +209,7 @@
 
   &:global(.theme-dark),
   :global(.component-theme-dark) {
-    --color-blue: #0C9EE8;
+    --color-blue: #469CEC;
     --color-black: #DCEEFF;
     --color-gray-1: #A3B8CA;
     --color-gray-2: #8799B3;
@@ -219,7 +219,7 @@
     --color-green-2: #79A28B;
     --color-purple-1: #95A0FE;
     --color-purple-2: #7986F7;
-    --color-blue-10o: #0C9EE81A;
+    --color-blue-10o: #469CEC1A;
 
     --color-background-first: #1E2732;
     --color-background-first-disabled: #1A2129;
@@ -236,8 +236,8 @@
 
     --color-input-hint: #435362;
 
-    --color-blue-button-background: #0C9EE8;
-    --color-blue-button-background-hover: #39BAFB;
+    --color-blue-button-background: #469CEC;
+    --color-blue-button-background-hover: #51A7F7;
 
     --color-red-button-background: #D74A4A;
     --color-red-button-background-hover: #F35B5B;
@@ -317,9 +317,9 @@
     --color-background-blue-second: #133950;
     --color-vesting-close-background: #124B6B;
     --color-vesting-close-background-hover: #105F89;
-    --color-vesting-blue: #0C9EE8;
-    --color-vesting-blue-hover: #28AAEA;
-    --color-vesting-text: #34B5F6;
+    --color-vesting-blue: #469CEC;
+    --color-vesting-blue-hover: #51A7F7;
+    --color-vesting-text: #58AFFF;
     --color-vesting-background: #115073;
   }
 }

@@ -549,7 +549,7 @@ function Settings({
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
-            {!!versions?.length && !isHardwareAccount && (
+            {!!versions?.length && (
               <div className={styles.item} onClick={handleOpenWalletVersion}>
                 <img className={styles.menuIcon} src={walletVersionImg} alt={lang('Wallet Versions')} />
                 {lang('Wallet Versions')}

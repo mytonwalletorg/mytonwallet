@@ -93,10 +93,11 @@ export async function submitNftTransfers(
     createLocalTransaction(accountId, {
       amount: message.amount,
       fromAddress,
-      toAddress: message.toAddress,
+      toAddress,
       comment,
       fee,
       slug: TONCOIN_SLUG,
+      normalizedAddress: message.toAddress,
       inMsgHash: result.msgHash,
       type: 'nftTransferred',
       nft: nfts?.[i],

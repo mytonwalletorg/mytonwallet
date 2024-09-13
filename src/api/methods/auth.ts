@@ -150,10 +150,13 @@ export async function importNewWalletVersion(accountId: string, version: ApiWall
 
   const newAddress = publicKeyToAddress(network, publicKey, version);
   const newAccountId = await getNewAccountId(network);
+
+  const ledger = account.ledger;
   const newAccount: ApiAccount = {
     address: newAddress,
     publicKey: account.publicKey,
     version,
+    ledger,
   };
 
   await Promise.all([
@@ -166,6 +169,7 @@ export async function importNewWalletVersion(accountId: string, version: ApiWall
   return {
     accountId: newAccountId,
     address: newAddress,
+    ledger,
   };
 }
 

@@ -37,6 +37,7 @@ enum DeeplinkCommand {
   BuyWithCrypto = 'buy-with-crypto',
   BuyWithCard = 'buy-with-card',
   Stake = 'stake',
+  Transfer = 'transfer',
 }
 
 let urlAfterSignIn: string | undefined;
@@ -284,6 +285,18 @@ export function processSelfDeeplink(deeplink: string) {
         } else {
           actions.startStaking();
         }
+        break;
+      }
+
+      case DeeplinkCommand.Transfer: {
+        let tonDeeplink = deeplink;
+        SELF_UNIVERSAL_URLS.forEach((prefix) => {
+          if (tonDeeplink.startsWith(prefix)) {
+            tonDeeplink = tonDeeplink.replace(prefix, TON_PROTOCOL);
+          }
+        });
+
+        processTonDeeplink(tonDeeplink);
         break;
       }
     }
