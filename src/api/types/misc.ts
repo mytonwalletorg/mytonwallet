@@ -42,6 +42,7 @@ export interface ApiBaseToken {
   keywords?: string[];
   cmcSlug?: string;
   color?: string;
+  customPayloadApiUrl?: string;
 }
 
 export interface ApiToken extends ApiBaseToken {

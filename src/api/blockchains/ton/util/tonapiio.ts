@@ -36,7 +36,9 @@ function getApi(network: ApiNetwork) {
 }
 
 export async function fetchJettonBalances(network: ApiNetwork, account: string) {
-  return (await getApi(network).accounts.getAccountJettonsBalances(account)).balances;
+  return (await getApi(network).accounts.getAccountJettonsBalances(account, {
+    supported_extensions: ['custom_payload'],
+  })).balances;
 }
 
 export async function fetchNftItems(network: ApiNetwork, addresses: string[]) {

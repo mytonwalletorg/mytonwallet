@@ -165,7 +165,12 @@ export function toRawAddress(address: Address | string) {
 
 export function buildTokenTransferBody(params: TokenTransferBodyParams) {
   const {
-    queryId, tokenAmount, toAddress, responseAddress, forwardAmount,
+    queryId,
+    tokenAmount,
+    toAddress,
+    responseAddress,
+    forwardAmount,
+    customPayload,
   } = params;
   let forwardPayload = params.forwardPayload;
 
@@ -175,7 +180,7 @@ export function buildTokenTransferBody(params: TokenTransferBodyParams) {
     .storeCoins(tokenAmount)
     .storeAddress(Address.parse(toAddress))
     .storeAddress(Address.parse(responseAddress))
-    .storeBit(false)
+    .storeMaybeRef(customPayload)
     .storeCoins(forwardAmount ?? 0n);
 
   if (forwardPayload instanceof Uint8Array) {

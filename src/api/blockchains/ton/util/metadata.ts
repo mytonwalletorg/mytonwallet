@@ -140,6 +140,7 @@ const jettonOnChainMetadataSpec: {
   image: 'ascii',
   symbol: 'utf8',
   decimals: 'utf8',
+  custom_payload_api_uri: 'ascii',
 };
 
 export async function fetchJettonMetadata(network: ApiNetwork, address: string) {
@@ -186,7 +187,15 @@ export async function parseJettonOnchainMetadata(slice: Slice): Promise<JettonMe
 
 export async function fetchJettonOffchainMetadata(uri: string): Promise<JettonMetadata> {
   const metadata = await fetchJsonMetadata(uri);
-  return pick(metadata, ['name', 'description', 'symbol', 'decimals', 'image', 'image_data']);
+  return pick(metadata, [
+    'name',
+    'description',
+    'symbol',
+    'decimals',
+    'image',
+    'image_data',
+    'custom_payload_api_uri',
+  ]);
 }
 
 export async function parseWalletTransactionBody(

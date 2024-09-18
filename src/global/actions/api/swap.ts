@@ -58,6 +58,7 @@ const SERVER_ERRORS_MAP = {
   'Insufficient liquidity': SwapErrorType.NotEnoughLiquidity,
   'Tokens must be different': SwapErrorType.InvalidPair,
   'Asset not found': SwapErrorType.InvalidPair,
+  'Pair not found': SwapErrorType.InvalidPair,
   'Too small amount': SwapErrorType.TooSmallAmount,
 };
 

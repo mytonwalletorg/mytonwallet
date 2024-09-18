@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.0.13",
+  "version": "3.0.14",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -208,7 +208,7 @@
     "pako": "^2.1.0",
     "qr-code-styling": "github:troman29/qr-code-styling#c00d0",
     "qrcode-generator": "^1.4.4",
-    "tonapi-sdk-js": "^1.0.10",
+    "tonapi-sdk-js": "^2.0.1",
     "tonweb-mnemonic": "^1.0.1",
     "tweetnacl": "^1.0.3",
     "v8-compile-cache": "^2.4.0",

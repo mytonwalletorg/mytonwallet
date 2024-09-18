@@ -199,8 +199,12 @@ function TransferInitial({
   const isDieselNotAuthorized = dieselStatus === 'not-authorized';
   const withDiesel = dieselStatus && dieselStatus !== 'not-available';
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
-    ? balance - amount > dieselAmount
+    ? balance - amount >= dieselAmount
     : undefined;
+
+  const maxAmount = withDiesel && dieselAmount && balance
+    ? balance - dieselAmount
+    : balance;
 
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
     ? AUTHORIZE_DIESEL_INTERVAL_MS
@@ -471,7 +475,7 @@ function TransferInitial({
 
     vibrate();
 
-    setTransferAmount({ amount: balance });
+    setTransferAmount({ amount: maxAmount });
   });
 
   const handleCommentChange = useLastCallback((value) => {
@@ -682,7 +686,7 @@ function TransferInitial({
                 onClick={handleMaxAmountClick}
                 className={styles.balanceLink}
               >
-                {balance !== undefined ? formatCurrency(toDecimal(balance, decimals), symbol) : lang('Loading...')}
+                {maxAmount !== undefined ? formatCurrency(toDecimal(maxAmount, decimals), symbol) : lang('Loading...')}
               </div>
             ),
           })}

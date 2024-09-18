@@ -5,6 +5,7 @@ import { Workchain } from '../../types';
 export const TOKEN_TRANSFER_AMOUNT = 50000000n; // 0.05 TON
 export const TINY_TOKEN_TRANSFER_AMOUNT = 18000000n; // 0.018 TON
 export const TOKEN_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
+export const CLAIM_MINTLESS_AMOUNT = 20000000n; // 0.02 TON
 
 export const NFT_TRANSFER_AMOUNT = 100000000n; // 0.1 TON
 export const NFT_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON

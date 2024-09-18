@@ -23,6 +23,7 @@ export interface TokenTransferBodyParams {
   responseAddress: string;
   forwardAmount: bigint;
   forwardPayload?: AnyPayload;
+  customPayload?: Cell;
 }
 
 export interface TonTransferParams {
@@ -41,6 +42,7 @@ export interface JettonMetadata {
   image?: string;
   image_data?: string;
   uri?: string;
+  custom_payload_api_uri?: string;
 }
 
 export interface InitData {

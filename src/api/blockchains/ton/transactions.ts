@@ -1,4 +1,3 @@
-import type { OpenedContract } from '@ton/core';
 import {
   beginCell, Cell, external, internal, loadStateInit, SendMode, storeMessage,
 } from '@ton/core';
@@ -15,7 +14,6 @@ import type {
   ApiTransactionType,
   ApiTxIdBySlug,
 } from '../../types';
-import type { JettonWallet } from './contracts/JettonWallet';
 import type {
   AnyPayload,
   ApiCheckTransactionDraftResult,
@@ -200,7 +198,7 @@ export async function checkTransactionDraft(
       data = commentToBytes(data);
     }
 
-    let tokenBalance: bigint | undefined;
+    let tokenBalance = 0n;
 
     if (!tokenAddress) {
       if (data instanceof Uint8Array) {
@@ -208,15 +206,21 @@ export async function checkTransactionDraft(
       }
     } else {
       const tokenAmount: bigint = amount;
-      let tokenWallet: OpenedContract<JettonWallet>;
-      ({
-        tokenWallet,
-        amount,
-        toAddress,
-        payload: data,
-      } = await buildTokenTransfer(network, tokenAddress, address, toAddress, amount, data));
+      const tokenTransfer = await buildTokenTransfer(
+        network, tokenAddress, address, toAddress, amount, data,
+      );
 
-      tokenBalance = await tokenWallet!.getJettonBalance();
+      ({ amount, toAddress, payload: data } = tokenTransfer);
+      const { tokenWallet, isTokenWalletDeployed, mintlessTokenBalance } = tokenTransfer;
+
+      if (isTokenWalletDeployed) {
+        tokenBalance = await tokenWallet!.getJettonBalance();
+      }
+
+      if (mintlessTokenBalance) {
+        tokenBalance += mintlessTokenBalance;
+      }
+
       if (tokenBalance < tokenAmount!) {
         return {
           ...result,
@@ -356,10 +360,10 @@ export async function submitTransfer(options: {
     accountId,
     password,
     tokenAddress,
-    stateInit,
     shouldEncrypt,
     isBase64Data,
   } = options;
+  let { stateInit } = options;
 
   let { toAddress, amount, data } = options;
 
@@ -391,6 +395,7 @@ export async function submitTransfer(options: {
         amount,
         toAddress,
         payload: data,
+        stateInit,
       } = await buildTokenTransfer(network, tokenAddress, fromAddress, toAddress, amount, data));
     }
 
