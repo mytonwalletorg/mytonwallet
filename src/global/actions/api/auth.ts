@@ -92,7 +92,7 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   }
 
   const promiseCalls = [
-    callApi('generateMnemonic', global.auth.canCreateMultichainWallet),
+    callApi('generateMnemonic'),
     ...(!firstNonHardwareAccount ? [pause(CREATING_DURATION)] : []),
   ] as [Promise<Promise<string[]> | undefined>, Promise<void> | undefined];
 

@@ -743,19 +743,11 @@
 
   padding: 0.25rem 0;
 
-  // Usage of this low-performance height transition is very rare - only when connecting the first dapp and when disconnecting all dapps
-  /* stylelint-disable plugin/no-low-performance-animation-properties */
-  transition: height 300ms;
-
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
     display: none !important;
   }
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
-  /* stylelint-enable plugin/no-low-performance-animation-properties */
 }
 
 .feedTiles {

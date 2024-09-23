@@ -12,7 +12,6 @@ import resolveModalTransitionName from '../../../util/resolveModalTransitionName
 import { IS_LEDGER_SUPPORTED } from '../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
-import useEffectWithPrevDeps from '../../../hooks/useEffectWithPrevDeps';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -40,7 +39,6 @@ interface StateProps {
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isOtherVersionsExist?: boolean;
-  isMultichain?: boolean;
 }
 
 const enum RenderingState {
@@ -62,7 +60,6 @@ function AddAccountModal({
   isLedgerConnected,
   isTonAppConnected,
   isOtherVersionsExist,
-  isMultichain,
 }: StateProps) {
   const {
     addAccount,
@@ -77,12 +74,6 @@ function AddAccountModal({
   const [renderingKey, setRenderingKey] = useState<number>(RenderingState.Initial);
 
   const [isNewAccountImporting, setIsNewAccountImporting] = useState<boolean>(false);
-
-  useEffectWithPrevDeps(([prevOpen]) => {
-    if (isMultichain && !prevOpen && isOpen) {
-      setRenderingKey(RenderingState.Password);
-    }
-  }, [isOpen, isMultichain]);
 
   const handleBackClick = useLastCallback(() => {
     setRenderingKey(RenderingState.Initial);
@@ -287,7 +278,6 @@ export default memo(withGlobal((global): StateProps => {
   const { byId: versionById } = global.walletVersions ?? {};
   const versions = versionById?.[global.currentAccountId!];
   const isOtherVersionsExist = !!versions?.length;
-  const isMultichain = global.auth.canCreateMultichainWallet;
 
   const {
     hardwareWallets,
@@ -308,6 +298,5 @@ export default memo(withGlobal((global): StateProps => {
     isLedgerConnected,
     isTonAppConnected,
     isOtherVersionsExist,
-    isMultichain,
   };
 })(AddAccountModal));

@@ -26,6 +26,7 @@ import type {
   ApiUpdateDappConnect,
   ApiUpdateDappLoading,
   ApiUpdateDappSendTransactions,
+  ApiUpdateWalletVersions,
   ApiVestingInfo,
   ApiWalletInfo,
 } from '../api/types';
@@ -401,7 +402,6 @@ export type GlobalState = {
     error?: string;
     password?: string;
     isBackupModalOpen?: boolean;
-    canCreateMultichainWallet?: boolean;
   };
 
   biometrics: {
@@ -790,7 +790,7 @@ export interface ActionPayloads {
   removeFromSavedAddress: { address: string; chain: ApiChain };
 
   setCurrentTokenPeriod: { period: TokenPeriod };
-  openAddAccountModal: { isMultichain?: boolean } | undefined;
+  openAddAccountModal: undefined;
   closeAddAccountModal: undefined;
 
   setLandscapeActionsActiveTabIndex: { index: ActiveTab };
@@ -884,6 +884,7 @@ export interface ActionPayloads {
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
   apiUpdateDappLoading: ApiUpdateDappLoading;
   apiUpdateDappCloseLoading: undefined;
+  apiUpdateWalletVersions: ApiUpdateWalletVersions;
 
   // Swap
   submitSwap: { password: string };

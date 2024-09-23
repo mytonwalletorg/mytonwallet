@@ -34,7 +34,7 @@ export { importNewWalletVersion } from '../chains/ton';
 
 const { ton, tron } = chains;
 
-export function generateMnemonic(isBip39 = false) {
+export function generateMnemonic(isBip39 = true) {
   if (isBip39) return generateBip39Mnemonic();
   return ton.generateMnemonic();
 }

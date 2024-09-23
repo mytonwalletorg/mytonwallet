@@ -4,7 +4,6 @@ import { getActions } from '../../global';
 import type { ApiNetwork } from '../../api/types';
 
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -36,8 +35,6 @@ function SettingsDeveloperOptions({
   const {
     startChangingNetwork,
     copyStorageData,
-    openAddAccountModal,
-    closeSettings,
   } = getActions();
   const lang = useLang();
   const currentNetwork = NETWORK_OPTIONS[isTestnet ? 1 : 0].value;
@@ -49,13 +46,6 @@ function SettingsDeveloperOptions({
 
     startChangingNetwork({ network: newNetwork as ApiNetwork });
     onClose();
-  });
-
-  const handleAddWalletClick = useLastCallback(() => {
-    vibrate();
-    onClose();
-    closeSettings();
-    openAddAccountModal({ isMultichain: true });
   });
 
   return (
@@ -79,14 +69,6 @@ function SettingsDeveloperOptions({
           className={buildClassName(styles.item, styles.item_small)}
           onChange={handleNetworkChange}
         />
-      </div>
-
-      <div className={buildClassName(styles.settingsBlock, styles.settingsBlockMultichain)}>
-        <div className={buildClassName(styles.item, styles.item_small)} onClick={handleAddWalletClick}>
-          {lang('Create Multichain Wallet')}
-
-          <i className={buildClassName(styles.iconChevronRight, styles.menuIconPlus, 'icon-plus')} aria-hidden />
-        </div>
       </div>
 
       {isCopyStorageEnabled && (

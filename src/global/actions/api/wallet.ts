@@ -935,3 +935,19 @@ addActionHandler('fetchDieselState', async (global, actions, { tokenSlug }) => {
   }
   setGlobal(global);
 });
+
+addActionHandler('apiUpdateWalletVersions', (global, actions, params) => {
+  const { accountId, versions, currentVersion } = params;
+  global = {
+    ...global,
+    walletVersions: {
+      ...global.walletVersions,
+      currentVersion,
+      byId: {
+        ...global.walletVersions?.byId,
+        [accountId]: versions,
+      },
+    },
+  };
+  setGlobal(global);
+});

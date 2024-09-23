@@ -198,9 +198,6 @@ addActionHandler('openAddAccountModal', (global, actions, props) => {
     return;
   }
 
-  const { isMultichain } = props || {};
-
-  global = updateAuth(global, { canCreateMultichainWallet: isMultichain });
   global = { ...global, isAddAccountModalOpen: true };
   setGlobal(global);
 });

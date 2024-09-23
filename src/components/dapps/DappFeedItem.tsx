@@ -7,6 +7,8 @@ import { openUrl } from '../../util/openUrl';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
+import Image from '../ui/Image';
+
 import styles from './Dapp.module.scss';
 
 interface OwnProps {
@@ -17,11 +19,11 @@ interface OwnProps {
   origin: string;
 }
 
-const RERENDER_DAPPS_FEED_DELAY_MS = 300;
+const RERENDER_DAPPS_FEED_DELAY_MS = 1000;
 
 const POPULAR_TELEGRAM_DAPPS_BY_URL: Record<string, string> = {
   'https://onetime.dog': 'https://t.me/dogshouse_bot/join', // https://cdn.onetime.dog/manifest.json
-  'https://hamsterkombatgame.io/': 'https://t.me/hamster_kombaT_bot/start', // https://hamsterkombatgame.io/tonconnect-manifest.json
+  'https://hamsterkombatgame.io/': 'https://t.me/hamster_kombat_bot/start', // https://hamsterkombatgame.io/tonconnect-manifest.json
 };
 
 function DappFeedItem({
@@ -45,11 +47,9 @@ function DappFeedItem({
     }
 
     return (
-      <img
-        src={iconUrl}
-        alt={lang('Logo')}
-        className={iconClassName}
-      />
+      <div className={iconClassName}>
+        <Image url={iconUrl} className={iconClassName} imageClassName={iconClassName} alt={lang('Icon')} />
+      </div>
     );
   }
 
