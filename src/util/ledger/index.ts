@@ -80,7 +80,7 @@ enum LedgerWalletVersion {
 }
 
 const INTERNAL_WORKCHAIN = 0; // workchain === -1 ? 255 : 0;
-const DEFAULT_WALLET_VERSION = 'v3R2';
+const DEFAULT_WALLET_VERSION: PossibleWalletVersion = 'v4R2';
 
 const ATTEMPTS = 10;
 const PAUSE = 125;
@@ -152,7 +152,7 @@ export async function checkTonApp() {
         // Workaround for Ledger S, this is a way to check if it is unlocked.
         // There will be an error with code 0x530c
         await tonTransport?.getAddress(getLedgerAccountPathByIndex(0), {
-          walletVersion: LedgerWalletVersion.v3R2,
+          walletVersion: LedgerWalletVersion[DEFAULT_WALLET_VERSION],
         });
 
         return true;
@@ -746,7 +746,7 @@ export function getLedgerWalletAddress(index: number, isTestnet?: boolean) {
   return tonTransport!.getAddress(path, {
     chain: INTERNAL_WORKCHAIN,
     bounceable: WALLET_IS_BOUNCEABLE,
-    walletVersion: LedgerWalletVersion.v3R2,
+    walletVersion: LedgerWalletVersion[DEFAULT_WALLET_VERSION],
   });
 }
 
