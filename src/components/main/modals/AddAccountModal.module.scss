@@ -3,8 +3,8 @@
 .modalDialog {
   height: 35rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(35rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(35rem + var(--safe-area-bottom));
   }
 }
 
@@ -92,8 +92,8 @@
   margin-bottom: 1rem;
 
   @include respond-below(xs) {
-    @supports (margin-bottom: max(env(safe-area-inset-bottom), 1.5rem)) {
-      margin-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+    @supports (margin-bottom: max(var(--safe-area-bottom), 1.5rem)) {
+      margin-bottom: max(var(--safe-area-bottom), 1.5rem);
     }
   }
 }
@@ -122,8 +122,8 @@
   text-align: center;
 
   @include respond-below(xs) {
-    @supports (margin-bottom: max(env(safe-area-inset-bottom), 1.5rem)) {
-      margin-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+    @supports (margin-bottom: max(var(--safe-area-bottom), 1.5rem)) {
+      margin-bottom: max(var(--safe-area-bottom), 1.5rem);
     }
   }
 }

@@ -3,7 +3,7 @@ import React, {
   memo, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import { DEFAULT_DECIMAL_PLACES, FRACTION_DIGITS, WHOLE_PART_DELIMITER } from '../../config';
+import { FRACTION_DIGITS, TONCOIN, WHOLE_PART_DELIMITER } from '../../config';
 import { forceMeasure, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
@@ -238,7 +238,7 @@ function RichNumberInput({
   );
 }
 
-function getParts(value: string, decimals = DEFAULT_DECIMAL_PLACES) {
+function getParts(value: string, decimals: number = TONCOIN.decimals) {
   const regex = getInputRegex(decimals);
   return value.match(regex) || undefined;
 }

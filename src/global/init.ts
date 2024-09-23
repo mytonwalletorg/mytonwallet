@@ -12,16 +12,28 @@ if (!IS_DELEGATED_BOTTOM_SHEET) {
 addActionHandler('init', (_, actions) => {
   const initial = cloneDeep(INITIAL_STATE);
 
+  const global = loadCache(initial);
+
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    return initial;
+    return {
+      ...initial,
+      settings: {
+        ...initial.settings,
+        theme: global.settings.theme,
+      },
+    };
   }
 
   if (IS_LEDGER_EXTENSION_TAB) {
     actions.initLedgerPage();
-    return initial;
+    return {
+      ...initial,
+      settings: {
+        ...initial.settings,
+        theme: global.settings.theme,
+      },
+    };
   }
-
-  const global = loadCache(initial);
 
   if (selectHasSession(global)) {
     actions.afterSignIn();

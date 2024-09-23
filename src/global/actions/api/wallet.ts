@@ -1,27 +1,23 @@
-import type {
-  ApiCheckTransactionDraftResult,
-  ApiSubmitMultiTransferResult,
-  ApiSubmitTransferResult,
-} from '../../../api/blockchains/ton/types';
+import type { ApiCheckTransactionDraftResult, ApiSubmitMultiTransferResult } from '../../../api/chains/ton/types';
+import type { ApiSubmitTransferOptions, ApiSubmitTransferResult } from '../../../api/methods/types';
 import type {
   ApiActivity,
-  ApiBaseToken,
   ApiDappTransfer,
-  ApiSubmitTransferOptions,
   ApiSwapAsset,
   ApiToken,
+  ApiTokenWithPrice,
   ApiTransactionError,
 } from '../../../api/types';
 import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
 import { ActiveTab, TransferState } from '../../types';
 
-import { IS_CAPACITOR, NFT_BATCH_SIZE, TONCOIN_SLUG } from '../../../config';
+import { IS_CAPACITOR, NFT_BATCH_SIZE } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
 import {
-  buildCollectionByKey, findLast, mapValues, pick, unique,
+  buildCollectionByKey, extractKey, findLast, pick, unique,
 } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { onTickEnd, pause } from '../../../util/schedulers';
@@ -38,21 +34,23 @@ import {
   updateActivitiesIsHistoryEndReached,
   updateActivitiesIsLoading,
   updateBalances,
+  updateCurrentAccountSettings,
   updateCurrentAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
   updateCurrentTransferByCheckResult,
-  updateCurrentTransferFee,
   updateSendingLoading,
   updateSettings,
 } from '../../reducers';
 import { updateTokenInfo } from '../../reducers/tokens';
 import {
   selectAccount,
-  selectAccountSettings,
   selectAccountState,
+  selectAccountTxTokenSlugs,
+  selectCurrentAccountSettings,
   selectCurrentAccountState,
-  selectLastTxIds,
+  selectLastMainTxTimestamp,
+  selectToken,
   selectTokenAddress,
 } from '../../selectors';
 
@@ -147,6 +145,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
 
   setGlobal(updateSendingLoading(global, true));
 
+  const { tokenAddress, chain } = selectToken(global, tokenSlug);
   let result: ApiCheckTransactionDraftResult | undefined;
 
   if (nftAddresses?.length) {
@@ -157,9 +156,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
       comment,
     });
   } else {
-    const tokenAddress = selectTokenAddress(global, tokenSlug);
-
-    result = await callApi('checkTransactionDraft', {
+    result = await callApi('checkTransactionDraft', chain, {
       accountId: global.currentAccountId!,
       tokenAddress,
       toAddress,
@@ -179,7 +176,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     }
 
     if (result?.fee) {
-      global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TONCOIN_SLUG);
+      global = updateCurrentTransfer(global, { fee: result.fee });
     }
 
     setGlobal(global);
@@ -193,12 +190,13 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     return;
   }
 
-  global = updateCurrentTransferFee(global, result.fee, amount, tokenSlug === TONCOIN_SLUG);
+  global = updateCurrentTransfer(global, { fee: result.fee });
 
   setGlobal(updateCurrentTransfer(global, {
     state: TransferState.Confirm,
     error: undefined,
     toAddress,
+    chain,
     resolvedAddress: result.resolvedAddress,
     amount,
     comment,
@@ -213,12 +211,16 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
 });
 
 addActionHandler('fetchFee', async (global, actions, payload) => {
+  global = updateCurrentTransfer(global, { isLoading: true, error: undefined });
+  setGlobal(global);
+
   const {
     tokenSlug, toAddress, amount, comment, shouldEncrypt, binPayload, stateInit,
   } = payload;
 
-  const tokenAddress = selectTokenAddress(global, tokenSlug);
-  const result = await callApi('checkTransactionDraft', {
+  const { tokenAddress, chain } = selectToken(global, tokenSlug);
+
+  const result = await callApi('checkTransactionDraft', chain, {
     accountId: global.currentAccountId!,
     toAddress,
     amount,
@@ -229,20 +231,20 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
     stateInit,
   });
 
-  if (result?.fee) {
-    global = getGlobal();
-    global = updateCurrentTransferFee(global, result.fee, amount, !tokenAddress);
-    setGlobal(global);
-  }
+  global = getGlobal();
+  global = updateCurrentTransfer(global, { isLoading: false });
 
   if (result) {
-    global = getGlobal();
     global = updateCurrentTransferByCheckResult(global, result);
+
+    if (result.fee !== undefined) {
+      global = updateCurrentTransfer(global, { fee: result.fee });
+    }
   }
 
   setGlobal(global);
 
-  if (result?.error) {
+  if (result?.error && result.error !== ApiTransactionDraftError.InsufficientBalance) {
     actions.showError({ error: result.error });
   }
 });
@@ -250,7 +252,7 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
 addActionHandler('fetchNftFee', async (global, actions, payload) => {
   const { toAddress, nftAddresses, comment } = payload;
 
-  global = updateCurrentTransfer(global, { error: undefined });
+  global = updateCurrentTransfer(global, { isLoading: true, error: undefined });
   setGlobal(global);
 
   const result = await callApi('checkNftTransferDraft', {
@@ -260,11 +262,14 @@ addActionHandler('fetchNftFee', async (global, actions, payload) => {
     comment,
   });
 
+  global = getGlobal();
+  global = updateCurrentTransfer(global, { isLoading: false });
+
   if (result?.fee) {
-    global = getGlobal();
     global = updateCurrentTransfer(global, { fee: result.fee });
-    setGlobal(global);
   }
+
+  setGlobal(global);
 
   if (result?.error) {
     actions.showError({
@@ -366,7 +371,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       result = batchResult;
     }
   } else {
-    const tokenAddress = selectTokenAddress(global, tokenSlug!);
+    const { tokenAddress, chain } = selectToken(global, tokenSlug!);
 
     const options: ApiSubmitTransferOptions = {
       accountId: global.currentAccountId!,
@@ -382,7 +387,8 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       dieselAmount,
       stateInit,
     };
-    result = await callApi('submitTransfer', options);
+
+    result = await callApi('submitTransfer', chain, options);
   }
 
   global = getGlobal();
@@ -543,14 +549,16 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
 
   const accountId = global.currentAccountId!;
 
-  let { idsBySlug } = selectAccountState(global, accountId)?.activities || {};
+  let { idsBySlug, byId } = selectAccountState(global, accountId)?.activities || {};
   let shouldFetchMore = true;
   let fetchedActivities: ApiActivity[] = [];
   let tokenIds = (idsBySlug && idsBySlug[slug]) || [];
-  let offsetId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
+  const toTxId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
+  let toTimestamp = toTxId && byId ? byId[toTxId].timestamp : undefined;
+  const { chain } = selectToken(global, slug);
 
   while (shouldFetchMore) {
-    const result = await callApi('fetchTokenActivitySlice', accountId, slug, offsetId, limit);
+    const result = await callApi('fetchTokenActivitySlice', accountId, chain, slug, toTimestamp, limit);
 
     global = getGlobal();
 
@@ -571,7 +579,7 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
     shouldFetchMore = filteredResult.length < limit && fetchedActivities.length < limit;
 
     tokenIds = unique(tokenIds.concat(filteredResult.map((tx) => tx.id)));
-    offsetId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
+    toTimestamp = result[result.length - 1].timestamp;
   }
 
   fetchedActivities.sort(compareActivities);
@@ -581,7 +589,7 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
   const newById = buildCollectionByKey(fetchedActivities, 'id');
   const newOrderedIds = Object.keys(newById);
   const currentActivities = selectAccountState(global, accountId)?.activities;
-  const byId = { ...(currentActivities?.byId || {}), ...newById };
+  byId = { ...(currentActivities?.byId || {}), ...newById };
 
   idsBySlug = currentActivities?.idsBySlug || {};
   tokenIds = unique((idsBySlug[slug] || []).concat(newOrderedIds));
@@ -611,12 +619,21 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
 
   const accountId = global.currentAccountId!;
 
-  let lastTxIds = selectLastTxIds(global, accountId);
+  const tonTokenSlugs = selectAccountTxTokenSlugs(global, accountId, 'ton') ?? [];
+  const tronTokenSlugs = selectAccountTxTokenSlugs(global, accountId, 'tron') ?? [];
+  let toTimestamp = selectLastMainTxTimestamp(global, accountId)!;
   let shouldFetchMore = true;
   let fetchedActivities: ApiActivity[] = [];
 
   while (shouldFetchMore) {
-    const result = await callApi('fetchAllActivitySlice', accountId, lastTxIds, limit);
+    const result = await callApi(
+      'fetchAllActivitySlice',
+      accountId,
+      limit,
+      toTimestamp,
+      tonTokenSlugs,
+      tronTokenSlugs,
+    );
 
     global = getGlobal();
 
@@ -635,8 +652,7 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
 
     fetchedActivities = fetchedActivities.concat(result);
     shouldFetchMore = filteredResult.length < limit && fetchedActivities.length < limit;
-
-    lastTxIds = selectLastTxIds(global, accountId);
+    toTimestamp = result[result.length - 1].timestamp;
   }
 
   global = updateActivitiesIsLoading(global, false);
@@ -644,30 +660,16 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
   const newById = buildCollectionByKey(fetchedActivities, 'id');
   const currentActivities = selectAccountState(global, accountId)?.activities;
   const byId = { ...(currentActivities?.byId || {}), ...newById };
-  let idsBySlug = { ...currentActivities?.idsBySlug };
 
   fetchedActivities.sort(compareActivities);
 
-  idsBySlug = fetchedActivities.reduce((acc, activity) => {
-    if (activity.kind === 'swap') {
-      const { id, from, to } = activity;
-      acc[from] = (acc[from] || []).concat([id]);
-      acc[to] = (acc[to] || []).concat([id]);
-    } else {
-      const { id, slug } = activity;
-      acc[slug] = (acc[slug] || []).concat([id]);
-    }
-    return acc;
-  }, idsBySlug);
-
-  idsBySlug = mapValues(idsBySlug, (txIds) => unique(txIds));
-  idsBySlug[TONCOIN_SLUG]?.sort((a, b) => compareActivities(byId[a], byId[b]));
+  const idsMain = unique((currentActivities?.idsMain ?? []).concat(extractKey(fetchedActivities, 'id')));
 
   global = updateAccountState(global, accountId, {
     activities: {
       ...currentActivities,
       byId,
-      idsBySlug,
+      idsMain,
     },
   });
 
@@ -726,63 +728,51 @@ addActionHandler('cancelSignature', (global) => {
 });
 
 addActionHandler('addToken', (global, actions, { token }) => {
-  const accountId = global.currentAccountId!;
-  const { balances } = selectAccountState(global, accountId) || {};
-  const accountSettings = selectAccountSettings(global, accountId) ?? {};
-  const { orderedSlugs = [], exceptionSlugs = [], deletedSlugs } = accountSettings;
-
-  if (balances?.bySlug[token.slug]) {
-    return;
+  if (!global.tokenInfo?.bySlug?.[token.slug]) {
+    global = updateTokenInfo(global, {
+      [token.slug]: {
+        name: token.name,
+        symbol: token.symbol,
+        slug: token.slug,
+        decimals: token.decimals,
+        chain: token.chain,
+        image: token.image,
+        keywords: token.keywords,
+        quote: {
+          slug: token.slug,
+          price: token.price ?? 0,
+          priceUsd: token.priceUsd ?? 0,
+          percentChange24h: token.change24h ?? 0,
+        },
+      },
+    });
   }
 
-  const existingToken = global.tokenInfo?.bySlug?.[token.slug];
-  const apiToken: ApiToken = existingToken ?? {
-    name: token.name,
-    symbol: token.symbol,
-    slug: token.slug,
-    decimals: token.decimals,
-    image: token.image,
-    keywords: token.keywords,
-    quote: {
-      slug: token.slug,
-      price: token.price ?? 0,
-      priceUsd: token.priceUsd ?? 0,
-      percentChange24h: token.change24h ?? 0,
-    },
-  };
-
-  const exceptionSlugsCopy = unique([...exceptionSlugs, token.slug]);
-  const deletedSlugsCopy = deletedSlugs?.filter((slug) => slug !== token.slug);
-
-  global = updateAccountState(global, accountId, {
-    balances: {
-      ...balances,
-      bySlug: {
-        ...balances?.bySlug,
-        [apiToken.slug]: 0n,
+  const { balances } = selectCurrentAccountState(global) ?? {};
+  if (!balances?.bySlug[token.slug]) {
+    global = updateCurrentAccountState(global, {
+      balances: {
+        ...balances,
+        bySlug: {
+          ...balances?.bySlug,
+          [token.slug]: 0n,
+        },
       },
-    },
+    });
+  }
+
+  const accountSettings = selectCurrentAccountSettings(global) ?? {};
+  global = updateCurrentAccountSettings(global, {
+    ...accountSettings,
+    orderedSlugs: [...accountSettings.orderedSlugs ?? [], token.slug],
+    exceptionSlugs: unique([...accountSettings.exceptionSlugs ?? [], token.slug]),
+    deletedSlugs: accountSettings.deletedSlugs?.filter((slug) => slug !== token.slug),
   });
 
-  global = updateSettings(global, {
-    byAccountId: {
-      ...global.settings.byAccountId,
-      [accountId]: {
-        ...accountSettings,
-        orderedSlugs: [
-          ...orderedSlugs ?? [],
-          apiToken.slug,
-        ],
-        exceptionSlugs: exceptionSlugsCopy,
-        deletedSlugs: deletedSlugsCopy,
-      },
-    },
-  });
-  global = updateTokenInfo(global, { [apiToken.slug]: apiToken });
-  setGlobal(global);
+  return global;
 });
 
-addActionHandler('importToken', async (global, actions, { address, isSwap }) => {
+addActionHandler('importToken', async (global, actions, { address }) => {
   const { currentAccountId } = global;
   global = updateSettings(global, {
     importToken: {
@@ -792,10 +782,10 @@ addActionHandler('importToken', async (global, actions, { address, isSwap }) => 
   });
   setGlobal(global);
 
-  const slug = (await callApi('buildTokenSlug', address))!;
+  const slug = (await callApi('buildTokenSlug', 'ton', address))!;
   global = getGlobal();
 
-  let token: ApiToken | ApiBaseToken | undefined = global.tokenInfo.bySlug?.[slug!];
+  let token: ApiTokenWithPrice | ApiToken | undefined = global.tokenInfo.bySlug?.[slug!];
 
   if (!token) {
     token = await callApi('fetchToken', global.currentAccountId!, address);
@@ -812,7 +802,7 @@ addActionHandler('importToken', async (global, actions, { address, isSwap }) => 
       setGlobal(global);
       return;
     } else {
-      const apiToken: ApiToken = {
+      const apiToken: ApiTokenWithPrice = {
         ...token,
         quote: {
           slug: token.slug,
@@ -837,16 +827,14 @@ addActionHandler('importToken', async (global, actions, { address, isSwap }) => 
       'image',
       'decimals',
       'keywords',
+      'chain',
+      'tokenAddress',
     ]),
     amount: 0n,
     totalValue: '0',
     price: 0,
     priceUsd: 0,
     change24h: 0,
-    ...(isSwap && {
-      blockchain: 'ton',
-      contract: token.minterAddress,
-    }),
   };
 
   global = getGlobal();
@@ -906,11 +894,11 @@ addActionHandler('addSwapToken', (global, actions, { token }) => {
   const apiSwapAsset: ApiSwapAsset = {
     name: token.name,
     symbol: token.symbol,
-    blockchain: token.blockchain,
+    chain: token.chain,
     slug: token.slug,
     decimals: token.decimals,
     image: token.image,
-    contract: token.contract,
+    tokenAddress: token.tokenAddress,
     keywords: token.keywords,
     isPopular: false,
     price: 0,

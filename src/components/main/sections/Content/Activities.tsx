@@ -4,26 +4,31 @@ import React, {
 import { setExtraStyles } from '../../../../lib/teact/teact-dom';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiActivity, ApiSwapAsset, ApiToken } from '../../../../api/types';
+import type { ApiActivity, ApiSwapAsset, ApiTokenWithPrice } from '../../../../api/types';
+import type { SavedAddress, Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, MIN_ASSETS_TAB_VIEW, TONCOIN_SLUG } from '../../../../config';
+import {
+  ANIMATED_STICKER_BIG_SIZE_PX, LANDSCAPE_MIN_ASSETS_TAB_VIEW, PORTRAIT_MIN_ASSETS_TAB_VIEW,
+} from '../../../../config';
 import { getIsSwapId, getIsTinyOrScamTransaction, getIsTxIdLocal } from '../../../../global/helpers';
 import {
-  selectAccountSettings,
+  selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectEnabledTokensCountMemoized,
+  selectEnabledTokensCountMemoizedFor,
+  selectIsFirstTransactionsLoaded,
+  selectIsMultichainAccount,
   selectIsNewWallet,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { compareActivities } from '../../../../util/compareActivities';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
-import { findLast, unique } from '../../../../util/iteratees';
+import { findLast } from '../../../../util/iteratees';
 import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
-import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
+import useAppTheme from '../../../../hooks/useAppTheme';
+import { getIsPortrait, useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteScroll from '../../../../hooks/useInfiniteScroll';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -49,18 +54,22 @@ type StateProps = {
   currentAccountId: string;
   slug?: string;
   isNewWallet: boolean;
+  isMultichainAccount: boolean;
   areTinyTransfersHidden?: boolean;
   byId?: Record<string, ApiActivity>;
   idsBySlug?: Record<string, string[]>;
-  tokensBySlug?: Record<string, ApiToken>;
+  idsMain?: string[];
+  tokensBySlug?: Record<string, ApiTokenWithPrice>;
   swapTokensBySlug?: Record<string, ApiSwapAsset>;
   currentActivityId?: string;
   apyValue: number;
-  savedAddresses?: Record<string, string>;
+  savedAddresses?: SavedAddress[];
   isMainHistoryEndReached?: boolean;
   isHistoryEndReachedBySlug?: Record<string, boolean>;
   exceptionSlugs?: string[];
   activitiesUpdateStartedAt?: number;
+  theme: Theme;
+  isFirstTransactionsLoaded?: boolean;
 };
 
 interface ActivityOffsetInfo {
@@ -86,8 +95,10 @@ function Activities({
   isActive,
   currentAccountId,
   isNewWallet,
+  isMultichainAccount,
   slug,
   idsBySlug,
+  idsMain,
   byId,
   tokensBySlug,
   swapTokensBySlug,
@@ -99,6 +110,8 @@ function Activities({
   isHistoryEndReachedBySlug,
   exceptionSlugs,
   activitiesUpdateStartedAt = 0,
+  theme,
+  isFirstTransactionsLoaded,
 }: OwnProps & StateProps) {
   const {
     fetchTokenTransactions, fetchAllTransactions, showActivityInfo,
@@ -110,6 +123,8 @@ function Activities({
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
   const isUpdating = useUpdateIndicator(activitiesUpdateStartedAt);
+
+  const appTheme = useAppTheme(theme);
 
   const ids = useMemo(() => {
     let idList: string[] | undefined;
@@ -126,21 +141,16 @@ function Activities({
           idList = idList.filter((txId) => byId[txId].timestamp >= lastTokenTxTimestamp);
         }
       } else {
-        const lastTonTxId = findLast(bySlug[TONCOIN_SLUG] ?? [], (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
-        idList = unique(Object.values(bySlug).flat());
-        if (lastTonTxId) {
-          idList = idList.filter((txId) => byId[txId].timestamp >= byId[lastTonTxId].timestamp);
-        }
-
-        idList.sort((a, b) => compareActivities(byId[a], byId[b]));
+        idList = idsMain;
       }
     }
+
     if (!idList) {
       return undefined;
     }
 
     return idList;
-  }, [byId, slug, idsBySlug]);
+  }, [byId, slug, idsBySlug, idsMain]);
 
   const activityList = useMemo(() => {
     if (!ids) {
@@ -315,6 +325,7 @@ function Activities({
           tokensBySlug={swapTokensBySlug}
           isLast={isLast}
           isActive={isActivityActive}
+          appTheme={appTheme}
           onClick={handleActivityClick}
         />
       );
@@ -328,6 +339,8 @@ function Activities({
           apyValue={apyValue}
           isLast={isLast}
           savedAddresses={savedAddresses}
+          withChainIcon={isMultichainAccount}
+          appTheme={appTheme}
           onClick={handleActivityClick}
         />
       );
@@ -392,10 +405,22 @@ function Activities({
     });
   }
 
-  if (isNewWallet && isActivitiesEmpty) {
+  if (isActivitiesEmpty && !isFirstTransactionsLoaded) {
+    return (
+      <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
+        <Loading />
+      </div>
+    );
+  }
+
+  if (isNewWallet) {
     return (
       <div className={buildClassName(isLandscape && styles.greeting)}>
-        <NewWalletGreeting isActive={isActive} mode={isLandscape ? 'emptyList' : 'panel'} />
+        <NewWalletGreeting
+          isActive={isActive}
+          isMutlichainAccount={isMultichainAccount}
+          mode={isLandscape ? 'emptyList' : 'panel'}
+        />
       </div>
     );
   }
@@ -413,14 +438,6 @@ function Activities({
           nonInteractive
         />
         <p className={styles.emptyListTitle}>{lang('No Activity')}</p>
-      </div>
-    );
-  }
-
-  if (!ids || isActivitiesEmpty) {
-    return (
-      <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
-        <Loading />
       </div>
     );
   }
@@ -445,18 +462,22 @@ export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
       const accountState = selectCurrentAccountState(global);
-      const accountSettings = selectAccountSettings(global, global.currentAccountId!);
-      const isNewWallet = selectIsNewWallet(global);
+      const accountSettings = selectCurrentAccountSettings(global);
+      const isFirstTransactionsLoaded = selectIsFirstTransactionsLoaded(global, global.currentAccountId!);
+      const isNewWallet = selectIsNewWallet(global, isFirstTransactionsLoaded);
       const slug = accountState?.currentTokenSlug;
       const {
-        idsBySlug, byId, isMainHistoryEndReached, isHistoryEndReachedBySlug,
+        idsBySlug, byId, isMainHistoryEndReached, isHistoryEndReachedBySlug, idsMain,
       } = accountState?.activities ?? {};
+
       return {
+        isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
         currentAccountId: global.currentAccountId!,
         slug,
         byId,
         isNewWallet,
         idsBySlug,
+        idsMain,
         tokensBySlug: global.tokenInfo?.bySlug,
         swapTokensBySlug: global.swapTokenInfo?.bySlug,
         areTinyTransfersHidden: global.settings.areTinyTransfersHidden,
@@ -467,13 +488,16 @@ export default memo(
         currentActivityId: accountState?.currentActivityId,
         exceptionSlugs: accountSettings?.exceptionSlugs,
         activitiesUpdateStartedAt: global.activitiesUpdateStartedAt,
+        theme: global.settings.theme,
+        isFirstTransactionsLoaded,
       };
     },
     (global, _, stickToFirst) => {
       const tokens = selectCurrentAccountTokens(global);
       const accountState = selectCurrentAccountState(global);
-      const tokensCount = selectEnabledTokensCountMemoized(tokens);
-      const shouldShowSeparateAssetsPanel = tokensCount > 0 && tokensCount < MIN_ASSETS_TAB_VIEW;
+      const tokensCount = selectEnabledTokensCountMemoizedFor(global.currentAccountId!)(tokens);
+      const shouldShowSeparateAssetsPanel = tokensCount > 0
+        && tokensCount <= (getIsPortrait() ? PORTRAIT_MIN_ASSETS_TAB_VIEW : LANDSCAPE_MIN_ASSETS_TAB_VIEW);
 
       return stickToFirst((
         accountState?.activeContentTab === ContentTab.Activity

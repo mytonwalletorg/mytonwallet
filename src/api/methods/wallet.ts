@@ -1,22 +1,21 @@
 import * as tonWebMnemonic from 'tonweb-mnemonic';
 
-import type { ApiNetwork } from '../types';
+import type { ApiChain, ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
-import blockchains from '../blockchains';
+import chains from '../chains';
 import {
   fetchStoredAddress,
+  fetchStoredTonWallet,
   getAccountIdWithMnemonic,
 } from '../common/accounts';
 import * as dappPromises from '../common/dappPromises';
-import { resolveBlockchainKey } from '../common/helpers';
+import { fetchMnemonic } from '../common/mnemonic';
 
-const ton = blockchains.ton;
+const ton = chains.ton;
 
 export function getMnemonic(accountId: string, password: string) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
-  return blockchain.fetchMnemonic(accountId, password);
+  return fetchMnemonic(accountId, password);
 }
 
 export function getMnemonicWordList() {
@@ -29,9 +28,7 @@ export async function verifyPassword(password: string) {
     throw new Error('The user is not authorized in the wallet');
   }
 
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
-  return blockchain.verifyPassword(accountId, password);
+  return Boolean(await fetchMnemonic(accountId, password));
 }
 
 export function confirmDappRequest(promiseId: string, data: any) {
@@ -53,35 +50,33 @@ export function cancelDappRequest(promiseId: string, reason?: string) {
 export async function getWalletSeqno(accountId: string, address?: string) {
   const { network } = parseAccountId(accountId);
   if (!address) {
-    address = await fetchStoredAddress(accountId);
+    ({ address } = await fetchStoredTonWallet(accountId));
   }
   return ton.getWalletSeqno(network, address);
 }
 
-export function fetchAddress(accountId: string) {
-  return fetchStoredAddress(accountId);
+export function fetchAddress(accountId: string, chain: ApiChain) {
+  return fetchStoredAddress(accountId, chain);
 }
 
 export function isWalletInitialized(network: ApiNetwork, address: string) {
-  const blockchain = blockchains.ton;
+  const chain = chains.ton;
 
-  return blockchain.isAddressInitialized(network, address);
+  return chain.isAddressInitialized(network, address);
 }
 
-export function getWalletBalance(network: ApiNetwork, address: string) {
-  const blockchain = blockchains.ton;
-
-  return blockchain.getWalletBalance(network, address);
+export function getWalletBalance(chain: ApiChain, network: ApiNetwork, address: string) {
+  return chains[chain].getWalletBalance(network, address);
 }
 
 export function getContractInfo(network: ApiNetwork, address: string) {
-  const blockchain = blockchains.ton;
+  const chain = chains.ton;
 
-  return blockchain.getContractInfo(network, address);
+  return chain.getContractInfo(network, address);
 }
 
 export function getWalletInfo(network: ApiNetwork, address: string) {
-  const blockchain = blockchains.ton;
+  const chain = chains.ton;
 
-  return blockchain.getWalletInfo(network, address);
+  return chain.getWalletInfo(network, address);
 }

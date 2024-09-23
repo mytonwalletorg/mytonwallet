@@ -66,8 +66,8 @@ function AuthConfirmBiometrics({
       )}
       {shouldRenderError && (
         <div className={buildClassName(styles.biometricsError)}>
-          <div>{lang(renderingError || 'Unknown error.')}</div>
-          <div>{lang('Please try to confirm your biometrics again.')}</div>
+          <div>{lang(renderingError || 'Unknown error')}</div>
+          <div>{lang('Please try to confirm your biometrics again')}</div>
         </div>
       )}
 

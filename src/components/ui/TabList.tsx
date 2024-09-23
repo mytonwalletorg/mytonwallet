@@ -26,6 +26,7 @@ type OwnProps = {
   activeTab: number;
   big?: boolean;
   className?: string;
+  withBorder?: boolean;
   onSwitchTab: (index: number) => void;
 };
 
@@ -34,13 +35,24 @@ const TAB_SCROLL_THRESHOLD_PX = 16;
 const SCROLL_DURATION = IS_IOS ? 450 : IS_ANDROID ? 400 : 300;
 
 function TabList({
-  tabs, activeTab, big, className, onSwitchTab,
+  tabs, activeTab, big, className, withBorder, onSwitchTab,
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
   const previousActiveTab = usePrevious(activeTab);
 
-  useHorizontalScroll(containerRef, undefined, true);
+  const fullClassName = buildClassName(
+    styles.container,
+    big && styles.big,
+    withBorder && styles.withBorder,
+    'no-scrollbar',
+    className,
+  );
+
+  useHorizontalScroll({
+    containerRef,
+    shouldPreventDefault: true,
+  });
 
   // Scroll container to place active tab in the center
   useEffect(() => {
@@ -63,14 +75,11 @@ function TabList({
       return;
     }
 
-    animateHorizontalScroll(container, newLeft, SCROLL_DURATION);
+    void animateHorizontalScroll(container, newLeft, SCROLL_DURATION);
   }, [activeTab]);
 
   return (
-    <div
-      className={buildClassName(styles.container, 'no-scrollbar', big && styles.big, className)}
-      ref={containerRef}
-    >
+    <div ref={containerRef} className={fullClassName}>
       {tabs.map((tab, i) => (
         <Tab
           key={tab.title}

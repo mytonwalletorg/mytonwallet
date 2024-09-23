@@ -71,6 +71,7 @@ async function getPassword(config: AuthConfig) {
       const isVerified = await NativeBiometric.verifyIdentity({
         title: APP_NAME,
         subtitle: '',
+        isWeakAuthenticatorAllowed: true,
       })
         .then(() => true)
         .catch(() => false);

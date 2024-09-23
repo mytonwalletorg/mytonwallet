@@ -3,7 +3,7 @@ import React, { memo } from '../../lib/teact/teact';
 import type { UserSwapToken } from '../../global/types';
 import { SwapType } from '../../global/types';
 
-import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
+import getChainNetworkName from '../../util/swap/getChainNetworkName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useLang from '../../hooks/useLang';
@@ -86,13 +86,14 @@ function SwapResult({
             lang('$swap_changelly_from_ton_description', {
               blockchain: (
                 <span className={styles.changellyDescriptionBold}>
-                  {getBlockchainNetworkName(tokenOut?.blockchain)}
+                  {getChainNetworkName(tokenOut?.chain)}
                 </span>
               ),
             })
           }
         </span>
         <InteractiveTextField
+          chain="ton"
           address={toAddress}
           copyNotification={lang('Address was copied!')}
           noSavedAddress

@@ -1,6 +1,6 @@
 import type { UserToken } from '../../../../../global/types';
 
-import { TONCOIN_SLUG } from '../../../../../config';
+import { TONCOIN } from '../../../../../config';
 import { Big } from '../../../../../lib/big.js';
 import { calcBigChangeValue } from '../../../../../util/calcChangeValue';
 import { toBig } from '../../../../../util/decimals';
@@ -11,7 +11,7 @@ import styles from '../Card.module.scss';
 
 export function calculateFullBalance(tokens: UserToken[], stakingBalance = 0n) {
   const primaryValue = tokens.reduce((acc, token) => {
-    if (token.slug === TONCOIN_SLUG) {
+    if (token.slug === TONCOIN.slug) {
       const stakingAmount = toBig(stakingBalance, token.decimals).mul(token.price);
       acc = acc.plus(stakingAmount);
     }

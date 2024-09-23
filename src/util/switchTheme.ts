@@ -6,11 +6,15 @@ import { switchStatusBar } from './capacitor';
 
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 let currentTheme: Theme;
+let forcedDarkStatusBarBackground: boolean | undefined;
 
-export default function switchTheme(theme: Theme) {
+export default function switchTheme(theme: Theme, isInModal?: boolean) {
   currentTheme = theme;
 
   setThemeValue();
+  setStatusBarStyle({
+    isInModal,
+  });
   setThemeColor();
 }
 
@@ -37,10 +41,11 @@ function setThemeColor() {
   });
 }
 
-export function setStatusBarStyle(forceDarkBackground?: boolean) {
+export function setStatusBarStyle(options?: { forceDarkBackground?: boolean; isInModal?: boolean }) {
   if (!IS_CAPACITOR) return;
 
-  switchStatusBar(currentTheme, prefersDark.matches, forceDarkBackground);
+  if (options?.forceDarkBackground !== undefined) forcedDarkStatusBarBackground = options.forceDarkBackground;
+  switchStatusBar(currentTheme, prefersDark.matches, forcedDarkStatusBarBackground, options?.isInModal);
 }
 
 prefersDark.addEventListener('change', handlePrefersColorSchemeChange);

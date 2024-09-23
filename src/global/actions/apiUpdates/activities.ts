@@ -1,19 +1,21 @@
 import type { ApiTransactionActivity } from '../../../api/types';
 import { TransferState } from '../../types';
 
-import { IS_CAPACITOR, TONCOIN_SLUG } from '../../../config';
+import { IS_CAPACITOR, TONCOIN } from '../../../config';
 import { groupBy } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
-import { getIsTinyOrScamTransaction } from '../../helpers';
+import { getIsTonToken } from '../../../util/tokens';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { getIsTinyOrScamTransaction, getRealTxIdFromLocal } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
   addLocalTransaction,
   addNewActivities,
-  assignRemoteTxId,
   clearIsPinAccepted,
   removeLocalTransaction,
+  replaceLocalTransaction,
+  setIsFirstActivitiesLoadedTrue,
   updateAccountState,
   updateActivitiesIsLoadingByAccount,
   updateActivity,
@@ -45,7 +47,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           global = clearIsPinAccepted(global);
         }
 
-        if (transaction.slug && transaction.slug !== TONCOIN_SLUG) {
+        if (getIsTonToken(transaction.slug)) {
           actions.fetchDieselState({ tokenSlug: transaction.slug });
         }
       }
@@ -64,7 +66,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         // A local swap transaction is not created if the NBS is closed before the exchange is completed
         callActionInMain('apiUpdate', { ...update, noForward: true });
       }
-      const { accountId, activities } = update;
+      const { accountId, activities, chain } = update;
 
       global = updateActivitiesIsLoadingByAccount(global, accountId, false);
 
@@ -75,9 +77,11 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         }
 
         const localIndex = localTransactions.findIndex(({
-          amount, isIncoming, slug, normalizedAddress, inMsgHash,
+          txId, amount, isIncoming, slug, normalizedAddress, inMsgHash,
         }) => {
-          if (slug === TONCOIN_SLUG) {
+          if (getRealTxIdFromLocal(txId) === activity.txId) {
+            return true;
+          } else if (slug === TONCOIN.slug) {
             return inMsgHash === activity.inMsgHash && normalizedAddress === activity.normalizedAddress;
           } else {
             return amount === activity.amount && !isIncoming && slug === activity.slug
@@ -93,9 +97,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       groups.localUpdates?.forEach(({ activity, localIndex }) => {
         const [localTransaction] = localTransactions.splice(localIndex, 1);
 
-        const { txId, amount, shouldHide } = activity as ApiTransactionActivity;
+        const { txId } = activity as ApiTransactionActivity;
         const localTxId = localTransaction.txId;
-        global = assignRemoteTxId(global, accountId, localTxId, txId, amount, shouldHide);
+        global = replaceLocalTransaction(global, accountId, localTxId, activity as ApiTransactionActivity);
 
         if (global.currentTransfer.txId === localTxId) {
           global = updateCurrentTransfer(global, { txId });
@@ -129,6 +133,8 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           playIncomingTransactionSound();
         }
       }
+
+      global = setIsFirstActivitiesLoadedTrue(global, accountId, chain);
 
       setGlobal(global);
       break;

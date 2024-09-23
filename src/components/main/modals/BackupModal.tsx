@@ -3,7 +3,7 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import { IS_CAPACITOR } from '../../../config';
+import { IS_CAPACITOR, MNEMONIC_COUNT } from '../../../config';
 import { selectMnemonicForCheck } from '../../../global/actions/api/auth';
 import buildClassName from '../../../util/buildClassName';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
@@ -96,7 +96,7 @@ function BackupModal({
   });
 
   const handleCheckMnemonic = useLastCallback(() => {
-    setCheckIndexes(selectMnemonicForCheck());
+    setCheckIndexes(selectMnemonicForCheck(mnemonicRef.current?.length || MNEMONIC_COUNT));
     setCurrentSlide(SLIDES.check);
     setNextKey(undefined);
   });

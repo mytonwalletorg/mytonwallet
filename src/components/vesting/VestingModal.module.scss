@@ -14,8 +14,8 @@
 .passwordModalDialog {
   height: 35.5rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(35.5rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(35.5rem + var(--safe-area-bottom));
   }
 
   :global(.is-native-bottom-sheet) & {

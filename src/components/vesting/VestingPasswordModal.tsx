@@ -1,15 +1,14 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiToken, ApiVestingInfo } from '../../api/types';
+import type { ApiTokenWithPrice, ApiVestingInfo } from '../../api/types';
 import type { HardwareConnectState, UserToken } from '../../global/types';
 import { VestingUnfreezeState } from '../../global/types';
 
 import {
   CLAIM_AMOUNT,
   IS_CAPACITOR,
-  TON_SYMBOL,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import {
@@ -46,7 +45,7 @@ interface StateProps {
   address?: string;
   error?: string;
   state?: VestingUnfreezeState;
-  mycoin?: ApiToken;
+  mycoin?: ApiTokenWithPrice;
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
@@ -76,7 +75,7 @@ function VestingPasswordModal({
   const lang = useLang();
   const {
     amount: balance,
-  } = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]) || {};
+  } = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]) || {};
   const claimAmount = toBig(CLAIM_AMOUNT);
   const hasAmountError = !balance || balance < CLAIM_AMOUNT;
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, Boolean(isOpen));
@@ -119,7 +118,7 @@ function VestingPasswordModal({
           </span>
         </div>
         <div className={buildClassName(styles.operationInfoFee, !IS_CAPACITOR && styles.operationInfoFeeWithGap)}>
-          {renderText(lang('$fee_value_bold', { fee: formatCurrency(claimAmount, TON_SYMBOL) }))}
+          {renderText(lang('$fee_value_bold', { fee: formatCurrency(claimAmount, TONCOIN.symbol) }))}
         </div>
       </>
     );
@@ -194,7 +193,7 @@ function VestingPasswordModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { address } = selectAccount(global, global.currentAccountId!) || {};
+  const { addressByChain } = selectAccount(global, global.currentAccountId!) || {};
   const accountState = selectCurrentAccountState(global);
   const isHardwareAccount = selectIsHardwareAccount(global);
 
@@ -219,7 +218,7 @@ export default memo(withGlobal((global): StateProps => {
     tokens,
     isLoading,
     error,
-    address,
+    address: addressByChain?.ton,
     state: unfreezeState,
     mycoin: selectMycoin(global),
     hardwareState,

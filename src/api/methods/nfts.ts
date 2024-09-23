@@ -1,61 +1,14 @@
-import type { ApiDbNft } from '../db';
-import type { ApiNft, ApiUpdate, OnApiUpdate } from '../types';
+import type { ApiNft } from '../types';
 
-import { TONCOIN_SLUG } from '../../config';
-import blockchains from '../blockchains';
-import { fetchStoredAddress } from '../common/accounts';
-import { resolveBlockchainKey } from '../common/helpers';
-import { apiDb } from '../db';
+import { TONCOIN } from '../../config';
+import chains from '../chains';
+import { fetchStoredTonWallet } from '../common/accounts';
 import { createLocalTransaction } from './transactions';
 
-let onUpdate: OnApiUpdate;
-
-export function initNfts(_onUpdate: OnApiUpdate) {
-  onUpdate = _onUpdate;
-}
+const { ton } = chains;
 
 export function fetchNfts(accountId: string) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
-  return blockchain.getAccountNfts(accountId);
-}
-
-export async function processNftUpdates(accountId: string, updates: ApiUpdate[]) {
-  updates.filter((update) => !(update.type === 'nftReceived' && update.nft.isHidden)).forEach(onUpdate);
-
-  for (const update of updates) {
-    if (update.type === 'nftSent') {
-      const key = [accountId, update.nftAddress];
-      await apiDb.nfts.delete(key);
-    } else if (update.type === 'nftReceived') {
-      const dbNft = convertToDbEntity(accountId, update.nft);
-      await apiDb.nfts.put(dbNft);
-    } else if (update.type === 'nftPutUpForSale') {
-      const key = [accountId, update.nftAddress];
-      await apiDb.nfts.update(key, { isOnSale: true });
-    }
-  }
-}
-
-export async function updateAccountNfts(accountId: string, nfts: ApiNft[]) {
-  onUpdate({
-    type: 'updateNfts',
-    accountId,
-    nfts,
-  });
-
-  const dbNfts = nfts.map((nft) => convertToDbEntity(accountId, nft));
-
-  await apiDb.nfts.where({ accountId }).delete();
-  await apiDb.nfts.bulkPut(dbNfts);
-}
-
-function convertToDbEntity(accountId: string, nft: ApiNft): ApiDbNft {
-  return {
-    ...nft,
-    collectionAddress: nft.collectionAddress ?? '',
-    accountId,
-  };
+  return ton.getAccountNfts(accountId);
 }
 
 export function checkNftTransferDraft(options: {
@@ -64,9 +17,7 @@ export function checkNftTransferDraft(options: {
   toAddress: string;
   comment?: string;
 }) {
-  const blockchain = blockchains[resolveBlockchainKey(options.accountId)!];
-
-  return blockchain.checkNftTransferDraft(options);
+  return ton.checkNftTransferDraft(options);
 }
 
 export async function submitNftTransfers(
@@ -78,10 +29,9 @@ export async function submitNftTransfers(
   nfts?: ApiNft[],
   fee = 0n,
 ) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const fromAddress = await fetchStoredAddress(accountId);
+  const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
-  const result = await blockchain.submitNftTransfers({
+  const result = await ton.submitNftTransfers({
     accountId, password, nftAddresses, toAddress, comment, nfts,
   });
 
@@ -90,14 +40,14 @@ export async function submitNftTransfers(
   }
 
   for (const [i, message] of result.messages.entries()) {
-    createLocalTransaction(accountId, {
+    createLocalTransaction(accountId, 'ton', {
       amount: message.amount,
       fromAddress,
       toAddress,
       comment,
       fee,
-      slug: TONCOIN_SLUG,
       normalizedAddress: message.toAddress,
+      slug: TONCOIN.slug,
       inMsgHash: result.msgHash,
       type: 'nftTransferred',
       nft: nfts?.[i],

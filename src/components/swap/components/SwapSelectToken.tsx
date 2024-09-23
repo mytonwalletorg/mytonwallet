@@ -8,15 +8,13 @@ import { getActions } from '../../../global';
 
 import { SwapState, type UserSwapToken } from '../../../global/types';
 
-import { TON_BLOCKCHAIN } from '../../../config';
 import buildClassName from '../../../util/buildClassName';
-import getBlockchainNetworkIcon from '../../../util/swap/getBlockchainNetworkIcon';
 import { REM } from '../../../util/windowEnvironment';
-import { ASSET_LOGO_PATHS } from '../../ui/helpers/assetLogos';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 import useSyncEffect from '../../../hooks/useSyncEffect';
 
+import TokenIcon from '../../common/TokenIcon';
 import Transition from '../../ui/Transition';
 
 import styles from '../Swap.module.scss';
@@ -38,18 +36,13 @@ function SwapSelectToken({ token, shouldFilter }: OwnProps) {
   });
 
   const buttonTransitionKeyRef = useRef(0);
-  const buttonStateStr = `${token?.symbol}_${token?.blockchain}`;
+  const buttonStateStr = `${token?.symbol}_${token?.chain}`;
 
   useSyncEffect(() => {
     buttonTransitionKeyRef.current++;
   }, [buttonStateStr]);
 
   function renderToken(tokenToRender: UserSwapToken | undefined) {
-    const image = ASSET_LOGO_PATHS[
-      tokenToRender?.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS
-    ] ?? tokenToRender?.image;
-    const blockchain = tokenToRender?.blockchain ?? TON_BLOCKCHAIN;
-
     return (
       <Transition
         ref={transitionRef}
@@ -63,14 +56,14 @@ function SwapSelectToken({ token, shouldFilter }: OwnProps) {
           className={styles.tokenSelector}
           onClick={handleOpenSelectTokenModal}
         >
-          <div className={styles.tokenIconWrapper}>
-            <img src={image} alt="" className={styles.tokenIcon} />
-            <img
-              src={getBlockchainNetworkIcon(blockchain)}
-              className={styles.tokenBlockchainIcon}
-              alt={blockchain}
+          {tokenToRender && (
+            <TokenIcon
+              token={tokenToRender}
+              withChainIcon
+              size="middle"
+              className={styles.tokenIcon}
             />
-          </div>
+          )}
           <div className={styles.tokenContent}>
             <span>{tokenToRender?.symbol}</span>
             <i className={buildClassName('icon-chevron-right', styles.tokenSelectorIcon)} aria-hidden />

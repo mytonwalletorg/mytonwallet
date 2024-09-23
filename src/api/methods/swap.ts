@@ -1,7 +1,5 @@
-import type { TonTransferParams } from '../blockchains/ton/types';
+import type { TonTransferParams } from '../chains/ton/types';
 import type {
-  ApiActivity,
-  ApiNetwork,
   ApiSwapActivity,
   ApiSwapAsset,
   ApiSwapBuildRequest,
@@ -16,25 +14,20 @@ import type {
   ApiSwapPairAsset,
   ApiSwapTonAsset,
   ApiSwapTransfer,
-  ApiTransaction,
-  ApiTransactionActivity,
   OnApiUpdate,
 } from '../types';
 
-import { TON_SYMBOL, TONCOIN_SLUG } from '../../config';
+import { TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { assert } from '../../util/assert';
 import { fromDecimal } from '../../util/decimals';
-import { logDebugError } from '../../util/logs';
-import { pause } from '../../util/schedulers';
 import { buildSwapId } from '../../util/swap/buildSwapId';
-import blockchains from '../blockchains';
-import { buildTokenSlug, parseTxId } from '../blockchains/ton/util';
-import { fetchStoredAddress } from '../common/accounts';
+import chains from '../chains';
+import { fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet, callBackendPost } from '../common/backend';
+import { getSwapItemSlug, swapGetHistoryItem, swapItemToActivity } from '../common/swap';
 import { callHook } from '../hooks';
 import { getBackendAuthToken } from './other';
-import { resolveTokenBySlug } from './tokens';
 
 export type SwapHistoryRange = {
   asset: string;
@@ -44,14 +37,7 @@ export type SwapHistoryRange = {
   toTime: number;
 };
 
-type LtRange = [number, number];
-
-const SWAP_MAX_LT = 50;
-const SWAP_WAITING_TIME = 5 * 60 * 1_000; // 5 min
-const SWAP_WAITING_PAUSE = 1_000; // 1 sec
-const MAX_OLD_SWAP_ID = 41276;
-
-const ton = blockchains.ton;
+const ton = chains.ton;
 
 let onUpdate: OnApiUpdate;
 
@@ -67,7 +53,7 @@ export async function swapBuildTransfer(
   const { network } = parseAccountId(accountId);
   const authToken = await getBackendAuthToken(accountId, password);
 
-  const address = await fetchStoredAddress(accountId);
+  const { address } = await fetchStoredTonWallet(accountId);
   const { id, transfers } = await swapBuild(authToken, request);
 
   const transferList = transfers.map((transfer) => ({
@@ -94,7 +80,7 @@ export async function swapSubmit(
   historyItem: ApiSwapHistoryItem,
   withDiesel?: boolean,
 ) {
-  const address = await fetchStoredAddress(accountId);
+  const { address } = await fetchStoredTonWallet(accountId);
   const transferList = transfers.map((transfer) => ({
     ...transfer,
     amount: BigInt(transfer.amount),
@@ -131,6 +117,7 @@ export async function swapSubmit(
 
   onUpdate({
     type: 'newActivities',
+    chain: 'ton',
     accountId,
     activities: [swap],
   });
@@ -140,170 +127,8 @@ export async function swapSubmit(
   return result;
 }
 
-function getSwapItemSlug(item: ApiSwapHistoryItem, asset: string) {
-  if (asset === TON_SYMBOL) return TONCOIN_SLUG;
-  if (item.cex) return asset;
-  return buildTokenSlug(asset);
-}
-
-export async function swapReplaceTransactions(
-  accountId: string,
-  transactions: ApiTransactionActivity[],
-  network: ApiNetwork,
-  slug?: string,
-): Promise<ApiActivity[]> {
-  if (!transactions.length || network === 'testnet') {
-    return transactions;
-  }
-
-  try {
-    const address = await fetchStoredAddress(accountId);
-    const asset = slug ? resolveTokenBySlug(slug).minterAddress ?? TON_SYMBOL : undefined;
-    const {
-      fromLt, toLt, fromTime, toTime,
-    } = buildSwapHistoryRange(transactions);
-
-    const swaps = await swapGetHistory(address, {
-      fromLt,
-      toLt,
-      fromTimestamp: fromTime,
-      toTimestamp: toTime,
-      asset,
-    });
-
-    if (!swaps.length) {
-      return transactions;
-    }
-
-    return replaceTransactions(transactions, swaps);
-  } catch (err) {
-    logDebugError('swapReplaceTransactions', err);
-    return transactions;
-  }
-}
-
-export async function swapReplaceTransactionsByRanges(
-  accountId: string,
-  transactions: ApiTransactionActivity[],
-  chunks: ApiTransactionActivity[][],
-  isFirstLoad?: boolean,
-): Promise<ApiActivity[]> {
-  transactions = transactions.slice();
-
-  const { network } = parseAccountId(accountId);
-
-  if (!chunks.length || network === 'testnet') {
-    return transactions;
-  }
-
-  try {
-    const address = await fetchStoredAddress(accountId);
-
-    if (!isFirstLoad) {
-      await waitPendingDexSwap(address);
-    }
-
-    const ranges = chunks.map((txs) => buildSwapHistoryRange(txs));
-    const swaps = await swapGetHistoryByRanges(address, ranges);
-
-    if (!swaps.length) {
-      return transactions;
-    }
-
-    return replaceTransactions(transactions, swaps);
-  } catch (err) {
-    logDebugError('swapReplaceTransactionsByRanges', err);
-    return transactions;
-  }
-}
-
-function replaceTransactions(transactions: ApiTransactionActivity[], swaps: ApiSwapHistoryItem[]) {
-  const result: ApiActivity[] = [];
-  const hiddenTxIds = new Set<string>();
-
-  const skipLtRanges: LtRange[] = []; // TODO Remove it after applying correcting script in backend
-
-  for (const swap of swaps) {
-    swap.txIds?.forEach((txId) => {
-      hiddenTxIds.add(txId);
-    });
-
-    if (swap.lt && Number(swap.id) < MAX_OLD_SWAP_ID) {
-      skipLtRanges.push([swap.lt, swap.lt + SWAP_MAX_LT]);
-    }
-
-    const swapActivity = swapItemToActivity(swap);
-
-    result.push(swapActivity);
-  }
-
-  for (let transaction of transactions) {
-    const [ltString, hash] = transaction.txId.split(':');
-    const lt = Number(ltString);
-    const shortenedTxId = `${lt}:${hash}`;
-
-    const shouldHide = Boolean(
-      hiddenTxIds.has(shortenedTxId)
-      || skipLtRanges.find(([startLt, endLt]) => lt >= startLt && lt <= endLt),
-    );
-
-    if (shouldHide) {
-      transaction = { ...transaction, shouldHide };
-    }
-    result.push(transaction);
-  }
-
-  return result;
-}
-
-async function waitPendingDexSwap(address: string) {
-  const waitUntil = Date.now() + SWAP_WAITING_TIME;
-
-  while (Date.now() < waitUntil) {
-    const pendingSwaps = await swapGetHistory(address, {
-      status: 'pending',
-      isCex: false,
-    });
-
-    if (!pendingSwaps.length) {
-      break;
-    }
-
-    const areAllStale = pendingSwaps.every((swap) => (
-      Date.now() - swap.timestamp > SWAP_WAITING_TIME * 2
-    ));
-    if (areAllStale) {
-      break;
-    }
-
-    await pause(SWAP_WAITING_PAUSE);
-  }
-}
-
-function buildSwapHistoryRange(transactions: ApiTransaction[]): SwapHistoryRange {
-  const firstLt = parseTxId(transactions[0].txId).lt;
-  const lastLt = parseTxId(transactions[transactions.length - 1].txId).lt;
-
-  const firstTimestamp = transactions[0].timestamp;
-  const lastTimestamp = transactions[transactions.length - 1].timestamp;
-
-  const [fromLt, fromTime] = firstLt > lastLt ? [lastLt, lastTimestamp] : [firstLt, firstTimestamp];
-  const [toLt, toTime] = firstLt > lastLt ? [firstLt, firstTimestamp] : [lastLt, lastTimestamp];
-
-  const slug = transactions[0].slug;
-  const asset = slug === TONCOIN_SLUG ? TON_SYMBOL : resolveTokenBySlug(slug).minterAddress!;
-
-  return {
-    asset,
-    fromLt: Math.floor(fromLt / 100) * 100,
-    toLt,
-    fromTime,
-    toTime,
-  };
-}
-
 export async function fetchSwaps(accountId: string, ids: string[]) {
-  const address = await fetchStoredAddress(accountId);
+  const { address } = await fetchStoredTonWallet(accountId);
   const results = await Promise.allSettled(
     ids.map((id) => swapGetHistoryItem(address, id.replace('swap:', ''))),
   );
@@ -312,16 +137,6 @@ export async function fetchSwaps(accountId: string, ids: string[]) {
     .map((result) => (result.status === 'fulfilled' ? result.value : undefined))
     .filter(Boolean)
     .map(swapItemToActivity);
-}
-
-export function swapItemToActivity(swap: ApiSwapHistoryItem): ApiSwapActivity {
-  return {
-    ...swap,
-    id: buildSwapId(swap.id),
-    kind: 'swap',
-    from: getSwapItemSlug(swap, swap.from),
-    to: getSwapItemSlug(swap, swap.to),
-  };
 }
 
 export function swapEstimate(request: ApiSwapEstimateRequest): Promise<ApiSwapEstimateResponse | { error: string }> {
@@ -347,28 +162,8 @@ export function swapGetTonCurrencies(): Promise<ApiSwapTonAsset[]> {
   return callBackendGet('/swap/ton/tokens');
 }
 
-export function swapGetPairs(symbolOrMinter: string): Promise<ApiSwapPairAsset[]> {
-  return callBackendGet('/swap/pairs', { asset: symbolOrMinter });
-}
-
-export function swapGetHistory(address: string, params: {
-  fromLt?: number;
-  toLt?: number;
-  fromTimestamp?: number;
-  toTimestamp?: number;
-  status?: ApiSwapHistoryItem['status'];
-  isCex?: boolean;
-  asset?: string;
-}): Promise<ApiSwapHistoryItem[]> {
-  return callBackendGet(`/swap/history/${address}`, params);
-}
-
-export function swapGetHistoryByRanges(address: string, ranges: SwapHistoryRange[]): Promise<ApiSwapHistoryItem[]> {
-  return callBackendPost(`/swap/history-ranges/${address}`, { ranges });
-}
-
-export function swapGetHistoryItem(address: string, id: string): Promise<ApiSwapHistoryItem> {
-  return callBackendGet(`/swap/history/${address}/${id}`);
+export function swapGetPairs(symbolOrTokenAddress: string): Promise<ApiSwapPairAsset[]> {
+  return callBackendGet('/swap/pairs', { asset: symbolOrTokenAddress });
 }
 
 export function swapCexEstimate(request: ApiSwapCexEstimateRequest): Promise<ApiSwapCexEstimateResponse> {
@@ -403,7 +198,7 @@ export async function swapCexCreateTransaction(
     amount: bigint;
   } | undefined;
 
-  if (request.from === TON_SYMBOL) {
+  if (request.from === TONCOIN.symbol) {
     transfer = {
       toAddress: swap.cex!.payinAddress,
       amount: fromDecimal(swap.fromAmount),
@@ -414,6 +209,7 @@ export async function swapCexCreateTransaction(
 
   onUpdate({
     type: 'newActivities',
+    chain: 'ton',
     accountId,
     activities: [activity],
   });

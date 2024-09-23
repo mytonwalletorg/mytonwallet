@@ -12,14 +12,13 @@ import { selectCurrentAccountState, selectSwapTokens } from '../../global/select
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
-import getBlockchainNetworkIcon from '../../util/swap/getBlockchainNetworkIcon';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
+import TokenIcon from '../common/TokenIcon';
 import TokenSelector from '../common/TokenSelector';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -170,8 +169,6 @@ function SwapModal({
   function renderSwapShortInfo() {
     if (!tokenIn || !tokenOut || !amountIn || !amountOut) return undefined;
 
-    const logoIn = tokenIn.image ?? ASSET_LOGO_PATHS[tokenIn.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
-    const logoOut = tokenOut.image ?? ASSET_LOGO_PATHS[tokenOut.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
     const swapInfoClassName = buildClassName(
       styles.swapShortInfo,
       !IS_CAPACITOR && styles.swapShortInfoInsidePasswordForm,
@@ -179,16 +176,8 @@ function SwapModal({
 
     return (
       <div className={swapInfoClassName}>
-        <div className={styles.tokenIconWrapper}>
-          <img src={logoIn} alt={tokenIn.symbol} className={styles.swapShortInfoTokenIcon} />
-          {tokenIn.blockchain && (
-            <img
-              src={getBlockchainNetworkIcon(tokenIn.blockchain)}
-              className={styles.swapShortInfoBlockchainIcon}
-              alt={tokenIn.blockchain}
-            />
-          )}
-        </div>
+        <TokenIcon token={tokenIn} withChainIcon size="small" className={styles.swapShortInfoTokenIcon} />
+
         <span className={styles.swapShortValue}>
           {lang('%amount_from% to %amount_to%', {
             amount_from: (
@@ -201,16 +190,7 @@ function SwapModal({
               </span>),
           })}
         </span>
-        <div className={styles.tokenIconWrapper}>
-          <img src={logoOut} alt={tokenOut.symbol} className={styles.swapShortInfoTokenIcon} />
-          {tokenOut.blockchain && (
-            <img
-              src={getBlockchainNetworkIcon(tokenOut.blockchain)}
-              className={styles.swapShortInfoBlockchainIcon}
-              alt={tokenOut.blockchain}
-            />
-          )}
-        </div>
+        <TokenIcon token={tokenOut} withChainIcon size="small" className={styles.swapShortInfoTokenIcon} />
       </div>
     );
   }

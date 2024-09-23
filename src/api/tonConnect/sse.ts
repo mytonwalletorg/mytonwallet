@@ -46,10 +46,13 @@ export function initSse(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 }
 
-export async function startSseConnection({ url, deviceInfo, isFromInAppBrowser }: {
+export async function startSseConnection({
+  url, deviceInfo, isFromInAppBrowser, identifier,
+}: {
   url: string;
   deviceInfo: DeviceInfo;
   isFromInAppBrowser?: boolean;
+  identifier?: string;
 }): Promise<ReturnStrategy | undefined> {
   const { searchParams: params, origin } = new URL(url);
 
@@ -74,7 +77,7 @@ export async function startSseConnection({ url, deviceInfo, isFromInAppBrowser }
   const connectRequest: ConnectRequest | null = safeExec(() => JSON.parse(r)) || JSON.parse(decodeURIComponent(r));
 
   logDebug('SSE Start connection:', {
-    version, appClientId, connectRequest, ret, origin,
+    version, appClientId, connectRequest, ret, origin, identifier,
   });
 
   const { secretKey: secretKeyArray, publicKey: publicKeyArray } = nacl.box.keyPair();
@@ -83,6 +86,7 @@ export async function startSseConnection({ url, deviceInfo, isFromInAppBrowser }
 
   const lastOutputId = 0;
   const request: ApiDappRequest = {
+    identifier,
     sseOptions: {
       clientId,
       appClientId,

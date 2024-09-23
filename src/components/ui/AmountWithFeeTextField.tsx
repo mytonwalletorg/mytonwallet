@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { TON_SYMBOL } from '../../config';
+import { TONCOIN } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 
@@ -25,7 +25,7 @@ function AmountWithFeeTextField({
   currency = '',
   symbol,
   fee,
-  feeSymbol = TON_SYMBOL,
+  feeSymbol = TONCOIN.symbol,
   className,
   labelClassName,
 }: OwnProps) {

@@ -47,7 +47,7 @@ export function createWindow() {
 
   setMainWindow(window);
 
-  mainWindow.on('page-title-updated', (event: Event) => {
+  mainWindow.on('page-title-updated', (event: Electron.Event) => {
     event.preventDefault();
   });
 
@@ -152,7 +152,7 @@ export function setupElectronActionHandlers() {
 }
 
 export function setupCloseHandlers() {
-  mainWindow.on('close', (event: Event) => {
+  mainWindow.on('close', (event: Electron.Event) => {
     if (forceQuit.isEnabled) {
       app.exit(0);
       return;
@@ -176,7 +176,7 @@ export function setupCloseHandlers() {
     }
   });
 
-  app.on('before-quit', (event: Event) => {
+  app.on('before-quit', (event: Electron.Event) => {
     if (IS_MAC_OS && !forceQuit.isEnabled) {
       event.preventDefault();
       forceQuit.enable();

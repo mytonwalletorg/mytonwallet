@@ -15,7 +15,7 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
 import type { Compiler, Configuration } from 'webpack';
 import {
-  DefinePlugin, EnvironmentPlugin, NormalModuleReplacementPlugin, ProvidePlugin,
+  DefinePlugin, EnvironmentPlugin, IgnorePlugin, NormalModuleReplacementPlugin, ProvidePlugin,
 } from 'webpack';
 
 import { PRODUCTION_URL } from './src/config';
@@ -194,10 +194,13 @@ export default function createConfig(
       extensions: ['.js', '.ts', '.tsx'],
       fallback: {
         crypto: false,
+        stream: require.resolve('stream-browserify'),
       },
       alias: {
         // It is used to remove duplicate dependencies
         'bn.js': path.join(__dirname, 'node_modules/bn.js/lib/bn.js'),
+        // By default, the bundle for Node is imported
+        tronweb: path.join(__dirname, 'node_modules/tronweb/dist/TronWeb.js'),
       },
     },
 
@@ -233,6 +236,12 @@ export default function createConfig(
         fs.writeFile(defaultI18nFilename, defaultI18nJson, 'utf-8', () => {
           callback();
         });
+      }),
+      // Do not add the BIP39 word list in other languages
+      new IgnorePlugin({
+        checkResource(resource) {
+          return /.*\/wordlists\/(?!english).*\.json/.test(resource);
+        },
       }),
       new HtmlPlugin({
         template: 'src/index.html',
@@ -288,8 +297,10 @@ export default function createConfig(
         IS_EXTENSION: false,
         IS_FIREFOX_EXTENSION: false,
         IS_CAPACITOR: false,
+        IS_AIR_APP: false,
         SWAP_FEE_ADDRESS: null,
         DIESEL_ADDRESS: null,
+        GIVEAWAY_CHECKIN_URL: null,
       }),
       /* eslint-enable no-null/no-null */
       new DefinePlugin({

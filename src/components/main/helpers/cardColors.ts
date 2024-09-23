@@ -1,7 +1,9 @@
 import type { UserToken } from '../../../global/types';
 import type { RGBColor } from '../../../util/colors';
 
-import { TONCOIN_SLUG } from '../../../config';
+import {
+  TONCOIN, TRC20_USDT_MAINNET_SLUG, TRC20_USDT_TESTNET_SLUG, TRX,
+} from '../../../config';
 import { deltaE, hex2rgb } from '../../../util/colors';
 
 const TOKEN_CARD_COLORS: Record<string, RGBColor> = {
@@ -16,7 +18,10 @@ const TOKEN_CARD_COLORS: Record<string, RGBColor> = {
 };
 
 export const TOKEN_EXCEPTION_COLORS: Record<string, string> = {
-  [TONCOIN_SLUG]: 'blue',
+  [TONCOIN.slug]: 'blue',
+  [TRX.slug]: 'red',
+  [TRC20_USDT_MAINNET_SLUG]: 'green',
+  [TRC20_USDT_TESTNET_SLUG]: 'green',
   'ton-eqcqc6ehrj': 'green', // STAKED
 };
 

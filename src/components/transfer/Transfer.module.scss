@@ -3,8 +3,8 @@
 .modalDialog {
   height: 35.5rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(35.5rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(35.5rem + var(--safe-area-bottom));
   }
 
   :global(.is-native-bottom-sheet) & {
@@ -414,6 +414,12 @@
   }
 }
 
+.chainIcon {
+  margin-right: 0.0625rem;
+
+  vertical-align: -0.125rem;
+}
+
 .tokenDropdown {
   --offset-y-value: calc(100% - 3.25rem);
   --offset-x-value: 0;
@@ -487,6 +493,10 @@ textarea.inputStatic {
 
   margin-top: auto;
   padding-top: 2rem;
+}
+
+.buttonsShifted {
+  margin-top: -2rem;
 }
 
 .button {

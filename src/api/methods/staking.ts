@@ -1,71 +1,62 @@
 import type {
-  ApiBackendStakingState,
   ApiStakingCommonData,
   ApiStakingHistory,
   ApiStakingType,
 } from '../types';
 
-import { APP_ENV, APP_VERSION, TONCOIN_SLUG } from '../../config';
+import { TONCOIN } from '../../config';
 import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
-import blockchains from '../blockchains';
-import { STAKE_COMMENT, UNSTAKE_COMMENT } from '../blockchains/ton/constants';
-import { fetchStoredAccount, fetchStoredAddress } from '../common/accounts';
+import chains from '../chains';
+import { getBackendStakingState } from '../chains/ton';
+import { STAKE_COMMENT, UNSTAKE_COMMENT } from '../chains/ton/constants';
+import { fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet } from '../common/backend';
 import { setStakingCommonCache } from '../common/cache';
-import { resolveBlockchainKey } from '../common/helpers';
-import { isKnownStakingPool } from '../common/utils';
-import { getEnvironment } from '../environment';
-import { getClientId } from './other';
 import { createLocalTransaction } from './transactions';
 
-const CACHE_TTL = 5000; // 5 s.
-let backendStakingStateByAddress: Record<string, [number, ApiBackendStakingState]> = {};
-
-// let onUpdate: OnApiUpdate;
+const { ton } = chains;
 
 export function initStaking() {
-  // onUpdate = _onUpdate;
 }
 
 export async function checkStakeDraft(accountId: string, amount: bigint) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
-  const backendState = await getBackendStakingState(accountId);
-  return blockchain.checkStakeDraft(accountId, amount, backendState!);
+  const backendState = await ton.getBackendStakingState(accountId);
+  return ton.checkStakeDraft(accountId, amount, backendState!);
 }
 
 export async function checkUnstakeDraft(accountId: string, amount: bigint) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-
-  const backendState = await getBackendStakingState(accountId);
-  return blockchain.checkUnstakeDraft(accountId, amount, backendState!);
+  const backendState = await ton.getBackendStakingState(accountId);
+  return ton.checkUnstakeDraft(accountId, amount, backendState!);
 }
 
 export async function submitStake(
-  accountId: string, password: string, amount: bigint, type: ApiStakingType, fee?: bigint,
+  accountId: string,
+  password: string,
+  amount: bigint,
+  type: ApiStakingType,
+  fee?: bigint,
 ) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const fromAddress = await fetchStoredAddress(accountId);
+  const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
   const backendState = await getBackendStakingState(accountId);
-  const result = await blockchain.submitStake(
+  const result = await ton.submitStake(
     accountId, password, amount, type, backendState!,
   );
   if ('error' in result) {
     return false;
   }
 
-  onStakingChangeExpected();
+  ton.onStakingChangeExpected();
 
-  const localTransaction = createLocalTransaction(accountId, {
+  const localTransaction = createLocalTransaction(accountId, 'ton', {
     amount: result.amount,
     fromAddress,
     toAddress: result.toAddress,
     comment: STAKE_COMMENT,
     fee: fee || 0n,
     type: 'stake',
-    slug: TONCOIN_SLUG,
+    slug: TONCOIN.slug,
     inMsgHash: result.msgHash,
   });
 
@@ -82,25 +73,24 @@ export async function submitUnstake(
   amount: bigint,
   fee?: bigint,
 ) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
-  const fromAddress = await fetchStoredAddress(accountId);
+  const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
-  const backendState = await getBackendStakingState(accountId);
-  const result = await blockchain.submitUnstake(accountId, password, type, amount, backendState!);
+  const backendState = await ton.getBackendStakingState(accountId);
+  const result = await ton.submitUnstake(accountId, password, type, amount, backendState!);
   if ('error' in result) {
     return false;
   }
 
-  onStakingChangeExpected();
+  ton.onStakingChangeExpected();
 
-  const localTransaction = createLocalTransaction(accountId, {
+  const localTransaction = createLocalTransaction(accountId, 'ton', {
     amount: result.amount,
     fromAddress,
     toAddress: result.toAddress,
     comment: UNSTAKE_COMMENT,
     fee: fee || 0n,
     type: 'unstakeRequest',
-    slug: TONCOIN_SLUG,
+    slug: TONCOIN.slug,
     inMsgHash: result.msgHash,
   });
 
@@ -110,54 +100,13 @@ export async function submitUnstake(
   };
 }
 
-export async function getBackendStakingState(accountId: string): Promise<ApiBackendStakingState> {
-  const { address } = await fetchStoredAccount(accountId);
-  const state = await fetchBackendStakingState(address);
-  return {
-    ...state,
-    nominatorsPool: {
-      ...state.nominatorsPool,
-      start: state.nominatorsPool.start * 1000,
-      end: state.nominatorsPool.end * 1000,
-    },
-  };
-}
-
-export async function fetchBackendStakingState(address: string): Promise<ApiBackendStakingState> {
-  const cacheItem = backendStakingStateByAddress[address];
-  if (cacheItem && cacheItem[0] > Date.now()) {
-    return cacheItem[1];
-  }
-
-  const headers: AnyLiteral = {
-    ...getEnvironment().apiHeaders,
-    'X-App-Version': APP_VERSION,
-    'X-App-ClientID': await getClientId(),
-    'X-App-Env': APP_ENV,
-  };
-
-  const stakingState = await callBackendGet(`/staking/state/${address}`, undefined, headers);
-  stakingState.balance = fromDecimal(stakingState.balance);
-  stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
-
-  if (!isKnownStakingPool(stakingState.nominatorsPool.address)) {
-    throw Error('Unexpected pool address, likely a malicious activity');
-  }
-
-  backendStakingStateByAddress[address] = [Date.now() + CACHE_TTL, stakingState];
-
-  return stakingState;
-}
-
 export async function getStakingHistory(
-  accountId: string, limit?: number, offset?: number,
+  accountId: string,
+  limit?: number,
+  offset?: number,
 ): Promise<ApiStakingHistory> {
-  const address = await fetchStoredAddress(accountId);
+  const { address } = await fetchStoredTonWallet(accountId);
   return callBackendGet(`/staking/profits/${address}`, { limit, offset });
-}
-
-export function onStakingChangeExpected() {
-  backendStakingStateByAddress = {};
 }
 
 export async function tryUpdateStakingCommonData() {
@@ -178,9 +127,16 @@ export async function tryUpdateStakingCommonData() {
 }
 
 export async function getStakingState(accountId: string) {
-  const blockchain = blockchains[resolveBlockchainKey(accountId)!];
   const backendState = await getBackendStakingState(accountId);
-  const state = await blockchain.getStakingState(accountId, backendState);
+  const state = await chains.ton.getStakingState(accountId, backendState);
 
   return { backendState, state };
+}
+
+export function onStakingChangeExpected() {
+  ton.onStakingChangeExpected();
+}
+
+export function fetchBackendStakingState(address: string) {
+  return ton.getBackendStakingState(address);
 }

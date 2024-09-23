@@ -6,12 +6,13 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiBaseCurrency, ApiNft } from '../../api/types';
 import { SettingsState, type UserToken } from '../../global/types';
 
+import { CURRENCY_LIST, DEFAULT_PRICE_CURRENCY, TINY_TRANSFER_MAX_COST } from '../../config';
 import {
-  CURRENCY_LIST,
-  DEFAULT_PRICE_CURRENCY,
-  TINY_TRANSFER_MAX_COST,
-} from '../../config';
-import { selectCurrentAccountState } from '../../global/selectors';
+  selectCurrentAccountSettings,
+  selectCurrentAccountState,
+  selectCurrentAccountTokens,
+  selectIsMultichainAccount,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 
@@ -31,18 +32,19 @@ import styles from './Settings.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
-  tokens?: UserToken[];
-  orderedSlugs?: string[];
-  areTinyTransfersHidden?: boolean;
-  isInvestorViewEnabled?: boolean;
-  areTokensWithNoCostHidden?: boolean;
-  isSortByValueEnabled?: boolean;
   isInsideModal?: boolean;
-  handleBackClick: NoneToVoidFunction;
-  baseCurrency?: ApiBaseCurrency;
+  onBack: NoneToVoidFunction;
 }
 
 interface StateProps {
+  isInvestorViewEnabled?: boolean;
+  isSortByValueEnabled?: boolean;
+  areTinyTransfersHidden?: boolean;
+  areTokensWithNoCostHidden?: boolean;
+  baseCurrency?: ApiBaseCurrency;
+  isMultichainAccount: boolean;
+  tokens?: UserToken[];
+  orderedSlugs?: string[];
   nftsByAddress?: Record<string, ApiNft>;
   blacklistedNftAddresses: string[];
   whitelistedNftAddresses: string[];
@@ -50,18 +52,19 @@ interface StateProps {
 
 function SettingsAssets({
   isActive,
+  isInsideModal,
+  isInvestorViewEnabled,
+  isSortByValueEnabled,
+  areTinyTransfersHidden,
+  areTokensWithNoCostHidden,
+  baseCurrency,
+  isMultichainAccount,
   tokens,
   orderedSlugs,
-  areTinyTransfersHidden,
-  isInvestorViewEnabled,
-  areTokensWithNoCostHidden,
-  isSortByValueEnabled,
-  handleBackClick,
-  isInsideModal,
-  baseCurrency,
   nftsByAddress,
   blacklistedNftAddresses,
   whitelistedNftAddresses,
+  onBack,
 }: OwnProps & StateProps) {
   const {
     toggleTinyTransfersHidden,
@@ -71,15 +74,13 @@ function SettingsAssets({
     changeBaseCurrency,
     setSettingsState,
   } = getActions();
+
   const lang = useLang();
 
   // eslint-disable-next-line no-null/no-null
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  useHistoryBack({
-    isActive,
-    onBack: handleBackClick,
-  });
+  useHistoryBack({ isActive, onBack });
 
   const {
     handleScroll: handleContentScroll,
@@ -139,12 +140,12 @@ function SettingsAssets({
         <ModalHeader
           title={lang('Assets & Activity')}
           withNotch={isScrolled}
-          onBackButtonClick={handleBackClick}
+          onBackButtonClick={onBack}
           className={styles.modalHeader}
         />
       ) : (
         <div className={buildClassName(styles.header, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
-          <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
+          <Button isSimple isText onClick={onBack} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
           </Button>
@@ -262,6 +263,7 @@ function SettingsAssets({
           orderedSlugs={orderedSlugs}
           isSortByValueEnabled={isSortByValueEnabled}
           baseCurrency={baseCurrency}
+          withChainIcon={isMultichainAccount}
         />
       </div>
     </div>
@@ -270,13 +272,35 @@ function SettingsAssets({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
+    isInvestorViewEnabled,
+    isSortByValueEnabled,
+    areTinyTransfersHidden,
+    areTokensWithNoCostHidden,
+    baseCurrency,
+  } = global.settings;
+
+  const {
+    orderedSlugs,
+  } = selectCurrentAccountSettings(global) ?? {};
+
+  const {
     blacklistedNftAddresses = MEMO_EMPTY_ARRAY,
     whitelistedNftAddresses = MEMO_EMPTY_ARRAY,
+    nfts: {
+      byAddress: nftsByAddress,
+    } = {},
   } = selectCurrentAccountState(global) || {};
-  const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
 
   return {
-    nftsByAddress: byAddress,
+    isInvestorViewEnabled,
+    isSortByValueEnabled,
+    areTinyTransfersHidden,
+    areTokensWithNoCostHidden,
+    baseCurrency,
+    isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
+    tokens: selectCurrentAccountTokens(global),
+    orderedSlugs,
+    nftsByAddress,
     blacklistedNftAddresses,
     whitelistedNftAddresses,
   };

@@ -1,5 +1,14 @@
 import type { StorageKey } from '../storages/types';
-import type { ApiAccount, ApiNetwork } from '../types';
+import type {
+  ApiAccountAny,
+  ApiAccountWithTon,
+  ApiAccountWithTron,
+  ApiBip39Account,
+  ApiChain,
+  ApiNetwork,
+  ApiTonWallet,
+  ApiTronWallet,
+} from '../types';
 
 import { buildAccountId, parseAccountId } from '../../util/account';
 import { storage } from '../storages';
@@ -12,6 +21,20 @@ const loginPromise = new Promise<void>((resolve) => {
   loginResolve = resolve;
 });
 
+let activeAccountId: string | undefined;
+
+export function getActiveAccountId() {
+  return activeAccountId;
+}
+
+export function setActiveAccountId(accountId?: string) {
+  activeAccountId = accountId;
+}
+
+export function isAccountActive(accountId: string) {
+  return activeAccountId === accountId;
+}
+
 export async function getAccountIds(): Promise<string[]> {
   return Object.keys(await storage.getItem('accounts') || {});
 }
@@ -19,40 +42,53 @@ export async function getAccountIds(): Promise<string[]> {
 export async function getAccountIdWithMnemonic() {
   const byId = await fetchStoredAccounts();
 
-  return Object.entries(byId).find(([,account]) => !account.ledger)?.[0];
+  return Object.entries(byId).find(([, { type }]) => type !== 'ledger')?.[0];
 }
 
 export async function getNewAccountId(network: ApiNetwork) {
   const ids = (await getAccountIds()).map((accountId) => parseAccountId(accountId).id);
   const id = ids.length === 0 ? MIN_ACCOUNT_NUMBER : Math.max(...ids) + 1;
-  return buildAccountId({
-    id,
-    network,
-    blockchain: 'ton',
-  });
+  return buildAccountId({ id, network });
 }
 
-export async function fetchStoredPublicKey(accountId: string): Promise<string> {
-  return (await fetchStoredAccount(accountId)).publicKey;
+export async function fetchStoredAddress(accountId: string, chain: ApiChain): Promise<string> {
+  return (await fetchStoredAccount<ApiBip39Account>(accountId))[chain].address;
 }
 
-export async function fetchStoredAddress(accountId: string): Promise<string> {
-  return (await fetchStoredAccount(accountId)).address;
+export async function fetchStoredTonWallet(accountId: string): Promise<ApiTonWallet> {
+  return (await fetchStoredAccount<ApiAccountWithTon>(accountId)).ton;
 }
 
-export function fetchStoredAccount(accountId: string): Promise<ApiAccount> {
+export async function fetchStoredTronWallet(accountId: string): Promise<ApiTronWallet> {
+  return (await fetchStoredAccount<ApiAccountWithTron>(accountId)).tron;
+}
+
+export function fetchStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T> {
   return getAccountValue(accountId, 'accounts');
 }
 
-export function fetchStoredAccounts(): Promise<Record<string, ApiAccount>> {
+export function fetchStoredAccounts(): Promise<Record<string, ApiAccountAny>> {
   return storage.getItem('accounts');
 }
 
-export async function updateStoredAccount(accountId: string, partial: Partial<ApiAccount>): Promise<void> {
-  const account = await fetchStoredAccount(accountId);
+export async function updateStoredAccount<T extends ApiAccountAny>(
+  accountId: string,
+  partial: Partial<T>,
+): Promise<void> {
+  const account = await fetchStoredAccount<T>(accountId);
   return setAccountValue(accountId, 'accounts', {
     ...account,
     ...partial,
+  });
+}
+
+export async function updateStoredTonWallet(accountId: string, partial: Partial<ApiTonWallet>): Promise<void> {
+  const tonWallet = await fetchStoredTonWallet(accountId);
+  return updateStoredAccount(accountId, {
+    ton: {
+      ...tonWallet,
+      ...partial,
+    },
   });
 }
 

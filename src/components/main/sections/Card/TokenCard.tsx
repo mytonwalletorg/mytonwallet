@@ -5,9 +5,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../global/types';
 
-import {
-  DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TOKEN_EXPLORER_NAME, TONCOIN_SLUG,
-} from '../../../../config';
+import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TONCOIN } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
@@ -15,7 +13,7 @@ import { formatShortDay } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
-import { getTonExplorerTokenUrl } from '../../../../util/url';
+import { getExplorerName, getExplorerTokenUrl } from '../../../../util/url';
 import { IS_IOS } from '../../../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
 import { calculateTokenCardColor } from '../../helpers/cardColors';
@@ -52,7 +50,7 @@ interface StateProps {
   apyValue: number;
   baseCurrency?: ApiBaseCurrency;
   historyPeriods?: PriceHistoryPeriods;
-  minterAddress?: string;
+  tokenAddress?: string;
   isTestnet?: boolean;
 }
 
@@ -74,7 +72,7 @@ function TokenCard({
   onClose,
   baseCurrency,
   historyPeriods,
-  minterAddress,
+  tokenAddress,
 }: OwnProps & StateProps) {
   const { loadPriceHistory } = getActions();
   const lang = useLang();
@@ -101,7 +99,7 @@ function TokenCard({
     slug, symbol, amount, image, name, price: lastPrice, decimals,
   } = token;
 
-  const logoPath = slug === TONCOIN_SLUG
+  const logoPath = slug === TONCOIN.slug
     ? tonUrl
     : image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
 
@@ -144,18 +142,18 @@ function TokenCard({
 
   const withChange = Boolean(change !== undefined);
   const historyStartDay = history?.length ? new Date(history![0][0] * 1000) : undefined;
-  const withTonExplorerButton = Boolean(token.cmcSlug || minterAddress);
+  const withExplorerButton = Boolean(token.cmcSlug || tokenAddress);
   const shouldHideChartPeriodSwitcher = !history?.length && token.priceUsd === 0;
 
   const color = useMemo(() => calculateTokenCardColor(token), [token]);
 
-  function renderTonExplorerLink() {
-    const url = getTonExplorerTokenUrl(token.cmcSlug, minterAddress, isTestnet);
+  function renderExplorerLink() {
+    const url = getExplorerTokenUrl(token.chain, token.cmcSlug, tokenAddress, isTestnet);
     if (!url) return undefined;
 
     const title = (lang(
       'Open on %ton_explorer_name%',
-      { ton_explorer_name: TOKEN_EXPLORER_NAME },
+      { ton_explorer_name: getExplorerName(token.chain) },
     ) as TeactNode[]).join('');
 
     return (
@@ -164,9 +162,10 @@ function TokenCard({
         <a
           href={url}
           title={title}
+          aria-label={title}
           target="_blank"
           rel="noreferrer"
-          className={styles.tokenTonExplorerButton}
+          className={styles.tokenExplorerButton}
         >
           <i className="icon-tonexplorer-small" aria-hidden />
         </a>
@@ -185,7 +184,7 @@ function TokenCard({
           <b className={styles.tokenAmount}>{formatCurrency(toDecimal(amount, token.decimals), symbol)}</b>
           <span className={styles.tokenName}>
             {name}
-            {token.slug === TONCOIN_SLUG && (
+            {token.slug === TONCOIN.slug && (
               <span className={styles.apy} onClick={onApyClick}>
                 APY {apyValue}%
               </span>
@@ -263,7 +262,7 @@ function TokenCard({
         {formatCurrency(price, currencySymbol, selectedHistoryIndex === -1 ? 2 : 4, true)}
         <div className={styles.tokenPriceDate}>
           {dateStr}
-          {withTonExplorerButton && renderTonExplorerLink()}
+          {withExplorerButton && renderExplorerLink()}
         </div>
       </div>
     </div>
@@ -273,7 +272,7 @@ function TokenCard({
 export default memo(
   withGlobal<OwnProps>((global, ownProps): StateProps => {
     const accountState = selectCurrentAccountState(global);
-    const minterAddress = global.tokenInfo.bySlug[ownProps.token.slug]?.minterAddress;
+    const tokenAddress = global.tokenInfo.bySlug[ownProps.token.slug]?.tokenAddress;
 
     return {
       isTestnet: global.settings.isTestnet,
@@ -281,7 +280,7 @@ export default memo(
       apyValue: accountState?.staking?.apy || 0,
       baseCurrency: global.settings.baseCurrency,
       historyPeriods: global.tokenPriceHistory.bySlug[ownProps.token.slug],
-      minterAddress,
+      tokenAddress,
     };
   })(TokenCard),
 );

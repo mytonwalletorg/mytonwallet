@@ -10,16 +10,16 @@
   text-decoration: none;
   white-space: nowrap;
 
-  &.loadingInit {
-    --color-dot: var(--color-gray-button-text);
-  }
-
   background: none;
   border: 0;
   border-radius: 0;
   outline: none !important;
 
   transition: background-color 150ms, color 150ms, opacity 150ms;
+
+  &.loadingInit {
+    --color-dot: var(--color-gray-button-text);
+  }
 
   &.clicked,
   &:active {

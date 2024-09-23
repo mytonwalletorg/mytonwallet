@@ -13,7 +13,6 @@ dependencies {
     implementation project(':capacitor-app')
     implementation project(':capacitor-clipboard')
     implementation project(':capacitor-haptics')
-    implementation project(':capacitor-action-sheet')
     implementation project(':capacitor-status-bar')
     implementation project(':capgo-capacitor-native-biometric')
     implementation project(':capgo-native-audio')

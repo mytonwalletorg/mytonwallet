@@ -21,6 +21,8 @@
   background-image: url("../../../../assets/cards/sticky_card_bg.jpg"), linear-gradient(125deg, #71AAEF 10.21%, #3F79CF 29.02%, #2E74B5 49.57%, #2160A1 65.77%);
   background-size: cover;
 
+  -webkit-app-region: no-drag;
+
   &::before {
     pointer-events: none;
     content: '';
@@ -46,8 +48,8 @@
     opacity: 1;
   }
 
-  @supports (padding-top: env(safe-area-inset-top)) {
-    padding-top: env(safe-area-inset-top);
+  @supports (padding-top: var(--safe-area-top)) {
+    padding-top: var(--safe-area-top);
   }
 
   @include respond-below(xs) {

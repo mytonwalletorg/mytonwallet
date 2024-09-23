@@ -163,7 +163,7 @@ The same test scenarios as when "Auto-Updates" is turned on, but instead of relo
 
 #### Toggling "Auto-Updates" feature
 
-Toggle is located in Settings with "Enable Auto-Updates" name.
+Toggle is located in Settings > Security with "Enable Auto-Updates" name.
 
 **Expected behaviour:** application content is being reloaded, application state clears, all settings and session are kept. In case "Update" button is displayed, it's logic changes depending on "Enable Auto-Updates" setting value.
 

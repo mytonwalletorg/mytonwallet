@@ -4,7 +4,7 @@ import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/m
 
 import { IS_CAPACITOR } from '../../../config';
 import { createWindowProvider } from '../../../util/capacitorStorageProxy';
-import { logDebugError } from '../../../util/logs';
+import { logDebugApi, logDebugError } from '../../../util/logs';
 import { createConnector } from '../../../util/PostMessageConnector';
 import { pause } from '../../../util/schedulers';
 import { IS_IOS } from '../../../util/windowEnvironment';
@@ -49,10 +49,14 @@ export async function callApi<T extends keyof AllMethods>(fnName: T, ...args: Al
   }
 
   try {
-    return await (connector.request({
+    const result = await (connector.request({
       name: fnName,
       args,
     }) as AllMethodResponse<T>);
+
+    logDebugApi(`callApi: ${fnName}`, args, result);
+
+    return result;
   } catch (err) {
     return undefined;
   }

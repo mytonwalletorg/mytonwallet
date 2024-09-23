@@ -3,7 +3,7 @@ import React, {
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiWalletVersion } from '../../../../api/types';
+import type { ApiTonWalletVersion } from '../../../../api/chains/ton/types';
 import { type Account, SettingsState } from '../../../../global/types';
 
 import { selectNetworkAccounts } from '../../../../global/selectors';
@@ -13,6 +13,7 @@ import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import trapFocus from '../../../../util/trapFocus';
 
+import useEffectWithPrevDeps from '../../../../hooks/useEffectWithPrevDeps';
 import useFlag from '../../../../hooks/useFlag';
 import useFocusAfterAnimation from '../../../../hooks/useFocusAfterAnimation';
 import useLang from '../../../../hooks/useLang';
@@ -40,7 +41,7 @@ interface StateProps {
   currentAccount?: Account;
   accounts?: Record<string, Account>;
   shouldForceAccountEdit?: boolean;
-  currentWalletVersion?: ApiWalletVersion;
+  currentWalletVersion?: ApiTonWalletVersion;
 }
 
 const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
@@ -79,8 +80,9 @@ function AccountSelector({
 
   const isQrScannerSupported = useQrScannerSupport();
 
+  const isMultichainAccount = Boolean(currentAccount?.addressByChain.tron);
   const noSettingsOrQrSupported = noSettingsButton || (isInsideSticky && isQrScannerSupported);
-  const withAddW5Button = currentWalletVersion !== 'W5' && !currentAccount?.isHardware;
+  const withAddW5Button = currentWalletVersion !== 'W5' && !currentAccount?.isHardware && !isMultichainAccount;
 
   const accountsAmount = useMemo(() => Object.keys(accounts || {}).length, [accounts]);
 
@@ -89,6 +91,12 @@ function AccountSelector({
       closeAccountSelector();
     }
   }, [forceClose, isOpen]);
+
+  useEffectWithPrevDeps(([prevShouldForceAccountEdit]) => {
+    if (prevShouldForceAccountEdit && !shouldForceAccountEdit) {
+      closeEdit();
+    }
+  }, [shouldForceAccountEdit]);
 
   useEffect(
     () => (shouldRender ? captureEscKeyListener(closeAccountSelector) : undefined),
@@ -133,6 +141,9 @@ function AccountSelector({
     closeAccountSelector();
     openAddAccountModal();
   });
+  useEffect(() => {
+    if (isEdit && isInsideSticky) { handleSaveClick(); }
+  }, [isEdit, isInsideSticky]);
 
   const handleAddV5WalletClick = useLastCallback(() => {
     vibrate();
@@ -153,8 +164,20 @@ function AccountSelector({
     requestOpenQrScanner();
   });
 
-  function renderButton(accountId: string, address: string, isHardware?: boolean, title?: string) {
+  function renderButton(
+    accountId: string,
+    addressByChain: Account['addressByChain'],
+    isHardware?: boolean,
+    title?: string,
+  ) {
     const isActive = accountId === currentAccountId;
+    const addressOrMutlichain = Object.keys(addressByChain).length > 1
+      ? lang('Multichain')
+      : shortenAddress(
+        addressByChain.ton,
+        isHardware ? HARDWARE_ACCOUNT_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
+        ACCOUNT_ADDRESS_SHIFT,
+      );
 
     return (
       <div
@@ -165,13 +188,7 @@ function AccountSelector({
         {title && <span className={styles.accountName}>{title}</span>}
         <div className={styles.accountAddressBlock}>
           {isHardware && <i className="icon-ledger" aria-hidden />}
-          <span>
-            {shortenAddress(
-              address,
-              isHardware ? HARDWARE_ACCOUNT_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
-              ACCOUNT_ADDRESS_SHIFT,
-            )}
-          </span>
+          <span>{addressOrMutlichain}</span>
         </div>
 
         {isActive && canEdit && (
@@ -205,7 +222,7 @@ function AccountSelector({
         {!noAccountSelector && (
           <div className={accountTitleClassName} onClick={handleOpenAccountSelector}>
             <span className={styles.accountTitleInner}>
-              {currentAccount?.title || shortenAddress(currentAccount?.address || '')}
+              {currentAccount?.title || shortenAddress(currentAccount?.addressByChain?.ton || '')}
             </span>
             <i className={buildClassName('icon icon-caret-down', styles.arrowIcon)} aria-hidden />
           </div>
@@ -269,7 +286,9 @@ function AccountSelector({
         <div className={styles.backdrop} onClick={() => closeAccountSelector()} />
         <div className={dialogFullClassName}>
           {accounts && Object.entries(accounts).map(
-            ([accountId, { title, address, isHardware }]) => renderButton(accountId, address, isHardware, title),
+            ([accountId, { title, addressByChain, isHardware }]) => {
+              return renderButton(accountId, addressByChain, isHardware, title);
+            },
           )}
           {withAddW5Button && (
             <Button className={styles.createAccountButton} onClick={handleAddV5WalletClick}>
@@ -289,7 +308,7 @@ function AccountSelector({
   return (
     <>
       {!isEdit && renderCurrentAccount()}
-      {isEdit && renderInput()}
+      {isEdit && !isInsideSticky && renderInput()}
 
       {shouldRender && renderAccountsChooser()}
     </>

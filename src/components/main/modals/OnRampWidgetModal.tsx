@@ -90,12 +90,12 @@ function OnRampWidgetModal({ isOpen, address, countryCode }: StateProps) {
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { address } = selectAccount(global, global.currentAccountId!) || {};
+  const { addressByChain } = selectAccount(global, global.currentAccountId!) || {};
   const { countryCode } = global.restrictions;
 
   return {
     isOpen: global.isOnRampWidgetModalOpen,
-    address,
+    address: addressByChain?.ton,
     countryCode,
   };
 })(OnRampWidgetModal));

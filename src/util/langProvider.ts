@@ -32,6 +32,22 @@ const {
 export { addCallback, removeCallback };
 
 const SUBSTITUTION_REGEX = /%\d?\$?[sdf@]/g;
+const PLURAL_OPTIONS = ['value', 'zeroValue', 'oneValue', 'twoValue', 'fewValue', 'manyValue', 'otherValue'] as const;
+// Some rules edited from https://github.com/eemeli/make-plural/blob/master/packages/plurals/cardinals.js
+const PLURAL_RULES = {
+  /* eslint-disable max-len */
+  de: (n: number) => (n !== 1 ? 6 : 2),
+  en: (n: number) => (n !== 1 ? 6 : 2),
+  es: (n: number) => (n !== 1 ? 6 : 2),
+  pl: (n: number) => (n === 1 ? 2 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 4 : 5),
+  ru: (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 2 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 4 : 5),
+  th: () => 6,
+  tr: (n: number) => (n > 1 ? 6 : 2),
+  uk: (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 2 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 4 : 5),
+  'zh-Hans': () => 6,
+  'zh-Hant': () => 6,
+  /* eslint-enable max-len */
+};
 const cache = new Map<string, string>();
 let langPack: LangPack | undefined;
 let currentLangCode: string | undefined;
@@ -126,6 +142,15 @@ async function fetchRemote(langCode: string): Promise<LangPack | undefined> {
   return undefined;
 }
 
+function getPluralOption(amount: number) {
+  const langCode = currentLangCode || DEFAULT_LANG_CODE;
+  const optionIndex = PLURAL_RULES[langCode as keyof typeof PLURAL_RULES]
+    ? PLURAL_RULES[langCode as keyof typeof PLURAL_RULES](amount)
+    : 0;
+
+  return PLURAL_OPTIONS[optionIndex];
+}
+
 function processTemplate(template: string, value: any) {
   value = Array.isArray(value) ? value : [value];
   const translationSlices = template.split(SUBSTITUTION_REGEX);
@@ -144,7 +169,19 @@ function processTemplateJsx(template: string, value: Record<string, TeactNode>) 
 function processTranslation(
   langString: LangString | string | undefined, key: string, value?: any, format?: 'i', pluralValue?: number,
 ) {
-  const template = typeof langString === 'string' ? langString : langString?.value;
+  const preferredPluralOption = typeof value === 'number' || pluralValue !== undefined
+    ? getPluralOption(pluralValue ?? value)
+    : 'value';
+
+  const template = typeof langString === 'string'
+    ? langString
+    : preferredPluralOption === 'value'
+      // Support cached older `langString` interface
+      ? (typeof langString === 'object' ? (langString as any).value : langString)
+      : typeof langString === 'object'
+        ? langString?.[preferredPluralOption] || langString.otherValue
+        : undefined;
+
   if (!template || !template.trim() || value === undefined) {
     return template;
   }

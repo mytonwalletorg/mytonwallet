@@ -1,26 +1,27 @@
-import type blockchains from '../blockchains';
-import type { ApiTransactionExtra } from '../blockchains/ton/types';
+import type chains from '../chains';
+import type { ApiTransactionExtra } from '../chains/ton/types';
 import type { ApiDbSseConnection } from '../db';
 import type { StorageKey } from '../storages/types';
 import type {
-  AccountIdParsed,
-  ApiAccount,
   ApiLocalTransactionParams,
+  ApiTonWallet,
   ApiTransaction,
   ApiTransactionActivity,
   OnApiUpdate,
 } from '../types';
 
 import { IS_CAPACITOR, IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
-import { buildAccountId, parseAccountId } from '../../util/account';
+import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { assert } from '../../util/assert';
 import { logDebugError } from '../../util/logs';
-import { toBase64Address } from '../blockchains/ton/util/tonCore';
+import { toBase64Address } from '../chains/ton/util/tonCore';
 import { getEnvironment } from '../environment';
+import * as migrations from '../migrations';
 import { storage } from '../storages';
 import capacitorStorage from '../storages/capacitorStorage';
 import idbStorage from '../storages/idb';
+import { isAccountActive } from './accounts';
 import {
   checkHasScamLink, checkHasTelegramBotMention, getKnownAddresses, getScamMarkers,
 } from './addresses';
@@ -29,31 +30,18 @@ import { hexToBytes } from './utils';
 let localCounter = 0;
 const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
-const actualStateVersion = 16;
+const actualStateVersion = 17;
 let migrationEnsurePromise: Promise<void>;
-
-export function resolveBlockchainKey(accountId: string) {
-  return parseAccountId(accountId).blockchain;
-}
-
-export function toInternalAccountId(accountId: string) {
-  return buildInternalAccountId(parseAccountId(accountId));
-}
-
-export function buildInternalAccountId(account: Omit<AccountIdParsed, 'network'>) {
-  const { id, blockchain } = account;
-  return `${id}-${blockchain}`;
-}
 
 export function buildLocalTransaction(
   params: ApiLocalTransactionParams,
   normalizedAddress: string,
 ): ApiTransactionActivity {
-  const { amount, ...restParams } = params;
+  const { amount, txId, ...restParams } = params;
 
   const transaction: ApiTransaction = updateTransactionMetadata({
     ...restParams,
-    txId: getNextLocalId(),
+    txId: txId ? `${txId}|` : getNextLocalId(),
     timestamp: Date.now(),
     isIncoming: false,
     amount: -amount,
@@ -104,11 +92,15 @@ export function disconnectUpdater() {
   currentOnUpdate = undefined;
 }
 
+export function isAlive(_onUpdate: OnApiUpdate, accountId: string) {
+  return isUpdaterAlive(_onUpdate) && isAccountActive(accountId);
+}
+
 export function isUpdaterAlive(onUpdate: OnApiUpdate) {
   return currentOnUpdate === onUpdate;
 }
 
-export function startStorageMigration(onUpdate: OnApiUpdate, ton: typeof blockchains.ton) {
+export function startStorageMigration(onUpdate: OnApiUpdate, ton: typeof chains.ton) {
   migrationEnsurePromise = migrateStorage(onUpdate, ton)
     .catch((err) => {
       logDebugError('Migration error', err);
@@ -124,7 +116,7 @@ export function waitStorageMigration() {
   return migrationEnsurePromise;
 }
 
-export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockchains.ton) {
+export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.ton) {
   let version = Number(await storage.getItem('stateVersion', true));
 
   if (version === actualStateVersion) {
@@ -165,7 +157,7 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
     // Support multi-accounts
     const mnemonicEncrypted = await storage.getItem('mnemonicEncrypted' as StorageKey);
     if (mnemonicEncrypted) {
-      await storage.setItem('mnemonicsEncrypted', JSON.stringify({
+      await storage.setItem('mnemonicsEncrypted' as StorageKey, JSON.stringify({
         [MAIN_ACCOUNT_ID]: mnemonicEncrypted,
       }));
       await storage.removeItem('mnemonicEncrypted' as StorageKey);
@@ -173,13 +165,16 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
 
     // Change accountId format ('0' -> '0-ton', '1-ton-mainnet' -> '1-ton')
     if (!mnemonicEncrypted) {
-      for (const field of ['mnemonicsEncrypted', 'addresses', 'publicKeys'] as StorageKey[]) {
+      for (const field of ['mnemonicsEncrypted', 'addresses', 'publicKeys'] as unknown as StorageKey[]) {
         const raw = await storage.getItem(field);
         if (!raw) continue;
 
         const oldItem = JSON.parse(raw);
+
         const newItem = Object.entries(oldItem).reduce((prevValue, [accountId, data]) => {
-          prevValue[toInternalAccountId(accountId)] = data;
+          const [id, chain = 'ton'] = accountId.split('-');
+          const internalAccountId = [id, chain].join('-');
+          prevValue[internalAccountId] = data;
           return prevValue;
         }, {} as any);
 
@@ -194,7 +189,7 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
   if (version === 1) {
     const addresses = await storage.getItem('addresses' as StorageKey) as string | undefined;
     if (addresses && addresses.includes('-undefined')) {
-      for (const field of ['mnemonicsEncrypted', 'addresses', 'publicKeys'] as StorageKey[]) {
+      for (const field of ['mnemonicsEncrypted', 'addresses', 'publicKeys'] as unknown as StorageKey[]) {
         const newValue = (await storage.getItem(field) as string).replace('-undefined', '-ton');
         await storage.setItem(field, newValue);
       }
@@ -238,8 +233,8 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
 
       data = Object.entries(data).reduce((byAccountId, [internalAccountId, accountData]) => {
         const parsed = parseAccountId(internalAccountId);
-        const mainnetAccountId = buildAccountId({ ...parsed, network: 'mainnet' });
-        const testnetAccountId = buildAccountId({ ...parsed, network: 'testnet' });
+        const mainnetAccountId = buildOldAccountId({ ...parsed, network: 'mainnet' });
+        const testnetAccountId = buildOldAccountId({ ...parsed, network: 'testnet' });
         return {
           ...byAccountId,
           [mainnetAccountId]: accountData,
@@ -259,7 +254,7 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
 
     if (addresses) {
       const publicKeys = (await storage.getItem('publicKeys' as StorageKey)) as Record<string, string>;
-      const accounts = (await storage.getItem('accounts') ?? {}) as Record<string, ApiAccount>;
+      const accounts = (await storage.getItem('accounts') ?? {}) as Record<string, ApiTonWallet>;
 
       for (const [accountId, oldAddress] of Object.entries(addresses)) {
         const newAddress = toBase64Address(oldAddress, false);
@@ -396,6 +391,18 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof blockcha
     version = 16;
     await storage.setItem('stateVersion', version);
   }
+
+  if (version === 16) {
+    await migrations.migration16.start();
+
+    version = 17;
+    await storage.setItem('stateVersion', version);
+  }
+}
+
+function buildOldAccountId(account: { id: number; network: string }) {
+  const { id, network } = account;
+  return `${id}-ton-${network}`;
 }
 
 async function iosBackupAndMigrateKeychainMode() {

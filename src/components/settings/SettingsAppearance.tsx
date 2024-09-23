@@ -33,8 +33,6 @@ interface OwnProps {
   isInsideModal?: boolean;
   isTrayIconEnabled: boolean;
   onTrayIconEnabledToggle: VoidFunction;
-  isAutoUpdateEnabled: boolean;
-  onAutoUpdateEnabledToggle: VoidFunction;
 }
 
 const SWITCH_THEME_DURATION_MS = 300;
@@ -48,8 +46,6 @@ function SettingsAppearance({
   isInsideModal,
   isTrayIconEnabled,
   onTrayIconEnabledToggle,
-  isAutoUpdateEnabled,
-  onAutoUpdateEnabledToggle,
 }: OwnProps) {
   const {
     setTheme,
@@ -85,7 +81,7 @@ function SettingsAppearance({
   const handleThemeChange = useLastCallback((newTheme: string) => {
     document.documentElement.classList.add('no-transitions');
     setTheme({ theme: newTheme as Theme });
-    switchTheme(newTheme as Theme);
+    switchTheme(newTheme as Theme, true);
     setTimeout(() => {
       document.documentElement.classList.remove('no-transitions');
     }, SWITCH_THEME_DURATION_MS);
@@ -174,17 +170,6 @@ function SettingsAppearance({
                 className={styles.menuSwitcher}
                 label={lang('Display Tray Icon')}
                 checked={isTrayIconEnabled}
-              />
-            </div>
-          )}
-          {IS_ELECTRON && (
-            <div className={buildClassName(styles.item, styles.item_small)} onClick={onAutoUpdateEnabledToggle}>
-              {lang('Enable Auto-Updates')}
-
-              <Switcher
-                className={styles.menuSwitcher}
-                label={lang('Enable Auto-Updates')}
-                checked={isAutoUpdateEnabled}
               />
             </div>
           )}

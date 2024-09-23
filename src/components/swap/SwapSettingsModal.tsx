@@ -3,7 +3,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { UserSwapToken, UserToken } from '../../global/types';
 
-import { TON_SYMBOL } from '../../config';
+import { TONCOIN } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrency } from '../../util/formatNumber';
 
@@ -74,7 +74,7 @@ function SwapSettingsModal({
   function renderSlippageValues() {
     const slippageList = SLIPPAGE_VALUES.map((value, index) => {
       return (
-        <>
+        <div key={value} className={styles.advancedSlippageButton}>
           <div
             role="button"
             tabIndex={0}
@@ -83,7 +83,7 @@ function SwapSettingsModal({
           >{value}%
           </div>
           {index + 1 !== SLIPPAGE_VALUES.length && <i className={styles.dot} aria-hidden />}
-        </>
+        </div>
       );
     });
 
@@ -161,7 +161,7 @@ function SwapSettingsModal({
             {lang('Blockchain Fee')}
           </span>
           <span className={styles.advancedValue}>
-            ≈ {formatCurrency(fee, TON_SYMBOL, undefined, true)}
+            ≈ {formatCurrency(fee, TONCOIN.symbol, undefined, true)}
           </span>
         </div>
         <div className={styles.advancedRow}>

@@ -1,6 +1,7 @@
 node_modules
 dist
 dist-electron
+dist-giveaways
 MyTonWallet-chrome.zip
 MyTonWallet-firefox.zip
 MyTonWallet-firefox-sources.tgz

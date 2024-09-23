@@ -25,4 +25,3 @@ export * from './swap';
 export * from './other';
 export * from './prices';
 export * from './preload';
-export * from './vesting';

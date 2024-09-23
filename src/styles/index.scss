@@ -39,25 +39,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-html.theme-dark {
-  color-scheme: dark;
-}
+html {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
 
-html.is-ios body,
-html.is-macos body {
-  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Apple Color Emoji", "Helvetica Neue", sans-serif;
-}
+  &.theme-dark {
+    color-scheme: dark;
+  }
 
-html.is-electron {
-  --custom-cursor: default;
-}
+  &.is-electron {
+    --custom-cursor: default;
+  }
 
-// Required for closing over scrollable content (scroll tracking)
-html.is-native-bottom-sheet {
-  overflow: auto;
+  &.is-ios body,
+  &.is-macos body {
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Apple Color Emoji", "Helvetica Neue", sans-serif;
+  }
 
-  body {
+  // Required for closing over scrollable content (scroll tracking)
+  &.is-native-bottom-sheet {
     overflow: auto;
+
+    body {
+      overflow: auto;
+    }
   }
 }
 

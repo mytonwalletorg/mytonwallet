@@ -4,22 +4,29 @@ import React, {
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
+import type { Theme } from '../../../../global/types';
 import { ActiveTab } from '../../../../global/types';
 
-import { DEFAULT_LANDSCAPE_ACTION_TAB_ID, TONCOIN_SLUG } from '../../../../config';
+import { ANIMATED_STICKER_ICON_PX, DEFAULT_LANDSCAPE_ACTION_TAB_ID, TONCOIN } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
-import { selectAccountState } from '../../../../global/selectors';
+import { selectAccountState, selectToken } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
+import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
+import useAppTheme from '../../../../hooks/useAppTheme';
+import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useSyncEffect from '../../../../hooks/useSyncEffect';
 
-import AddBuyStatic from '../../../addbuy/AddBuyStatic';
+import Content from '../../../receive/Content';
+import TonActions from '../../../receive/content/TonActions';
 import StakingInfoContent from '../../../staking/StakingInfoContent';
 import StakingInitial from '../../../staking/StakingInitial';
 import SwapInitial from '../../../swap/SwapInitial';
 import TransferInitial from '../../../transfer/TransferInitial';
+import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Transition, { ACTIVE_SLIDE_CLASS_NAME, TO_SLIDE_CLASS_NAME } from '../../../ui/Transition';
 
 import styles from './LandscapeActions.module.scss';
@@ -28,18 +35,21 @@ interface OwnProps {
   hasStaking?: boolean;
   isUnstakeRequested?: boolean;
   isLedger?: boolean;
+  theme: Theme;
 }
 
 interface StateProps {
   activeTabIndex?: ActiveTab;
   nfts?: ApiNft[];
   tokenSlug: string;
+  isTransferWithComment: boolean;
   isTestnet?: boolean;
   isSwapDisabled: boolean;
   isOnRampDisabled: boolean;
 }
 
 const TABS = [ActiveTab.Receive, ActiveTab.Transfer, ActiveTab.Swap, ActiveTab.Stake];
+const ANIMATED_STICKER_SPEED = 2;
 let activeTransferKey = 0;
 
 function LandscapeActions({
@@ -47,7 +57,9 @@ function LandscapeActions({
   activeTabIndex = DEFAULT_LANDSCAPE_ACTION_TAB_ID,
   isUnstakeRequested,
   nfts,
+  theme,
   tokenSlug,
+  isTransferWithComment,
   isTestnet,
   isLedger,
   isSwapDisabled,
@@ -58,25 +70,32 @@ function LandscapeActions({
   const lang = useLang();
 
   const isStaking = activeTabIndex === ActiveTab.Stake && (hasStaking || isUnstakeRequested);
+
   const {
     renderedBgHelpers,
     transitionRef,
-    handleTransitionStart,
   } = useTabHeightAnimation(
     styles.slideContent,
+    styles.transferSlideContent,
     isStaking ? styles.contentSlideStaked : undefined,
     isStaking,
   );
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
-
   const isStakingAllowed = !isTestnet;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
   const isLastTab = (!isStakingAllowed && !isSwapAllowed && activeTabIndex === ActiveTab.Transfer)
     || (!isStakingAllowed && isSwapAllowed && activeTabIndex === ActiveTab.Swap)
     || (isStakingAllowed && activeTabIndex === ActiveTab.Stake);
   const transferKey = useMemo(() => nfts?.map((nft) => nft.address).join(',') || tokenSlug, [nfts, tokenSlug]);
+
+  const [isAddBuyAnimating, playAddBuyAnimation, stopAddBuyAnimation] = useFlag();
+  const [isSendAnimating, playSendAnimation, stopSendAnimation] = useFlag();
+  const [isSwapAnimating, playSwapAnimation, stopSwapAnimation] = useFlag();
+  const [isStakeAnimating, playStakeAnimation, stopStakeAnimation] = useFlag();
+  const appTheme = useAppTheme(theme);
+  const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
 
   useSyncEffect(() => {
     activeTransferKey += 1;
@@ -95,14 +114,10 @@ function LandscapeActions({
     switch (activeTabIndex) {
       case ActiveTab.Receive:
         return (
-          <AddBuyStatic
-            className={styles.slideContent}
-            isStatic
-            isTestnet={isTestnet}
-            isLedger={isLedger}
-            isSwapDisabled={isSwapDisabled}
-            isOnRampDisabled={isOnRampDisabled}
-          />
+          <div className={buildClassName(styles.slideContent, styles.slideContentAddBuy)}>
+            <TonActions isStatic isLedger={isLedger} />
+            <Content isOpen={isActive} isStatic />
+          </div>
         );
 
       case ActiveTab.Transfer:
@@ -111,10 +126,11 @@ function LandscapeActions({
             <Transition
               activeKey={activeTransferKey}
               name={isPrev ? 'semiFade' : 'none'}
+              direction={!isTransferWithComment ? 'inverse' : undefined}
               shouldCleanup
-              slideClassName={styles.slideContentInner}
+              slideClassName={styles.transferSlideContent}
             >
-              <TransferInitial key={activeTransferKey} isStatic onCommentChange={handleTransitionStart} />
+              <TransferInitial key={activeTransferKey} isStatic />
             </Transition>
           </div>
         );
@@ -146,34 +162,51 @@ function LandscapeActions({
     }
   }
 
-  useEffect(() => {
-    handleTransitionStart();
-  }, [activeTabIndex, handleTransitionStart, lang]);
+  function handleSelectTab(index: ActiveTab, onTouchStart: NoneToVoidFunction) {
+    if (IS_TOUCH_ENV) onTouchStart();
 
-  function handleSelectTab(index: ActiveTab) {
     setActiveTabIndex({ index }, { forceOnHeavyAnimation: true });
   }
 
   return (
     <div className={styles.container}>
-      <div className={
-        buildClassName(styles.tabs, areNotAllTabs && styles.notAllTabs)
-      }
-      >
+      <div className={buildClassName(styles.tabs, areNotAllTabs && styles.notAllTabs)}>
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Receive && styles.active)}
-          onClick={() => handleSelectTab(ActiveTab.Receive)}
+          onMouseEnter={!IS_TOUCH_ENV ? playAddBuyAnimation : undefined}
+          onClick={() => { handleSelectTab(ActiveTab.Receive, playAddBuyAnimation); }}
         >
-          <i className={buildClassName(styles.tabIcon, 'icon-add-buy')} aria-hidden />
+          <AnimatedIconWithPreview
+            play={isAddBuyAnimating}
+            size={ANIMATED_STICKER_ICON_PX}
+            speed={ANIMATED_STICKER_SPEED}
+            className={styles.tabIcon}
+            nonInteractive
+            forceOnHeavyAnimation
+            tgsUrl={stickerPaths.iconAdd}
+            previewUrl={stickerPaths.preview.iconAdd}
+            onEnded={stopAddBuyAnimation}
+          />
           <span className={styles.tabText}>{lang(isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add')}</span>
 
           <span className={styles.tabDecoration} aria-hidden />
         </div>
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Transfer && styles.active)}
-          onClick={() => handleSelectTab(ActiveTab.Transfer)}
+          onMouseEnter={!IS_TOUCH_ENV ? playSendAnimation : undefined}
+          onClick={() => { handleSelectTab(ActiveTab.Transfer, playSendAnimation); }}
         >
-          <i className={buildClassName(styles.tabIcon, 'icon-send')} aria-hidden />
+          <AnimatedIconWithPreview
+            play={isSendAnimating}
+            size={ANIMATED_STICKER_ICON_PX}
+            speed={ANIMATED_STICKER_SPEED}
+            className={styles.tabIcon}
+            nonInteractive
+            forceOnHeavyAnimation
+            tgsUrl={stickerPaths.iconSend}
+            previewUrl={stickerPaths.preview.iconSend}
+            onEnded={stopSendAnimation}
+          />
           <span className={styles.tabText}>{lang('Send')}</span>
           <span className={styles.tabDecoration} aria-hidden />
           <span className={styles.tabDelimiter} aria-hidden />
@@ -181,9 +214,20 @@ function LandscapeActions({
         {isSwapAllowed && (
           <div
             className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Swap && styles.active)}
-            onClick={() => handleSelectTab(ActiveTab.Swap)}
+            onMouseEnter={!IS_TOUCH_ENV ? playSwapAnimation : undefined}
+            onClick={() => { handleSelectTab(ActiveTab.Swap, playSwapAnimation); }}
           >
-            <i className={buildClassName(styles.tabIcon, 'icon-swap')} aria-hidden />
+            <AnimatedIconWithPreview
+              play={isSwapAnimating}
+              size={ANIMATED_STICKER_ICON_PX}
+              speed={ANIMATED_STICKER_SPEED}
+              className={styles.tabIcon}
+              nonInteractive
+              forceOnHeavyAnimation
+              tgsUrl={stickerPaths.iconSwap}
+              previewUrl={stickerPaths.preview.iconSwap}
+              onEnded={stopSwapAnimation}
+            />
             <span className={styles.tabText}>{lang('Swap')}</span>
             <span className={styles.tabDecoration} aria-hidden />
             <span className={styles.tabDelimiter} aria-hidden />
@@ -197,9 +241,20 @@ function LandscapeActions({
               isStaking && styles.tab_purple,
               (hasStaking || isUnstakeRequested) && styles.tab_purpleText,
             )}
-            onClick={() => handleSelectTab(ActiveTab.Stake)}
+            onMouseEnter={!IS_TOUCH_ENV ? playStakeAnimation : undefined}
+            onClick={() => { handleSelectTab(ActiveTab.Stake, playStakeAnimation); }}
           >
-            <i className={buildClassName(styles.tabIcon, 'icon-earn')} aria-hidden />
+            <AnimatedIconWithPreview
+              play={isStakeAnimating}
+              size={ANIMATED_STICKER_ICON_PX}
+              speed={ANIMATED_STICKER_SPEED}
+              className={styles.tabIcon}
+              nonInteractive
+              forceOnHeavyAnimation
+              tgsUrl={stickerPaths[(hasStaking || isUnstakeRequested) ? 'iconEarnPurple' : 'iconEarn']}
+              previewUrl={stickerPaths.preview[(hasStaking || isUnstakeRequested) ? 'iconEarnPurple' : 'iconEarn']}
+              onEnded={stopStakeAnimation}
+            />
             <span className={styles.tabText}>
               {lang(isUnstakeRequested ? 'Unstaking' : (hasStaking ? 'Earning' : 'Earn'))}
             </span>
@@ -207,7 +262,6 @@ function LandscapeActions({
             <span className={styles.tabDelimiter} aria-hidden />
           </div>
         )}
-
       </div>
 
       <div
@@ -234,7 +288,12 @@ function LandscapeActions({
   );
 }
 
-function useTabHeightAnimation(slideClassName: string, contentBackgroundClassName?: string, isUnstaking = false) {
+function useTabHeightAnimation(
+  slideClassName: string,
+  transferSlideClassName: string,
+  contentBackgroundClassName?: string,
+  isUnstaking = false,
+) {
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
@@ -244,12 +303,14 @@ function useTabHeightAnimation(slideClassName: string, contentBackgroundClassNam
 
   const lastHeightRef = useRef<number>();
 
-  const suffix = isUnstaking ? ' .staking-info' : '';
-  // eslint-disable-next-line max-len
-  const query = `.${slideClassName}.${TO_SLIDE_CLASS_NAME}${suffix}, .${slideClassName}.${TO_SLIDE_CLASS_NAME}${suffix}, .${slideClassName}.${ACTIVE_SLIDE_CLASS_NAME}${suffix}, .${slideClassName}.${ACTIVE_SLIDE_CLASS_NAME}${suffix}`;
-
   const adjustBg = useLastCallback((noTransition = false) => {
-    const slide = transitionRef.current?.querySelector(query)!;
+    const activeSlideSelector = `.${slideClassName}.${ACTIVE_SLIDE_CLASS_NAME}`;
+    const toSlideSelector = `.${slideClassName}.${TO_SLIDE_CLASS_NAME}`;
+    const suffix = isUnstaking ? ' .staking-info' : '';
+    // eslint-disable-next-line max-len
+    const transferQuery = `${activeSlideSelector} .${transferSlideClassName}.${TO_SLIDE_CLASS_NAME}, ${activeSlideSelector} .${transferSlideClassName}.${ACTIVE_SLIDE_CLASS_NAME}`;
+    const query = `${toSlideSelector}${suffix}, ${activeSlideSelector}${suffix}`;
+    const slide = transitionRef.current?.querySelector(transferQuery) || transitionRef.current?.querySelector(query)!;
     const rect = slide.getBoundingClientRect();
     const shouldRenderWithoutTransition = !lastHeightRef.current || noTransition;
 
@@ -287,7 +348,7 @@ function useTabHeightAnimation(slideClassName: string, contentBackgroundClassNam
 
     const componentObserver = new ResizeObserver((entries) => {
       if (!entries.length) return;
-      adjustBg(false);
+      adjustBg();
     });
 
     if (transitionRef.current) {
@@ -311,7 +372,6 @@ function useTabHeightAnimation(slideClassName: string, contentBackgroundClassNam
   return {
     renderedBgHelpers,
     transitionRef,
-    handleTransitionStart: adjustBg,
   };
 }
 
@@ -321,13 +381,15 @@ export default memo(
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
       const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
-      const { nfts, tokenSlug = TONCOIN_SLUG } = global.currentTransfer;
+      const { nfts, tokenSlug = TONCOIN.slug } = global.currentTransfer;
+      const isTransferWithComment = selectToken(global, tokenSlug).chain === TONCOIN.chain;
 
       return {
         activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
         isTestnet: global.settings.isTestnet,
         nfts,
         tokenSlug,
+        isTransferWithComment,
         isSwapDisabled,
         isOnRampDisabled,
       };

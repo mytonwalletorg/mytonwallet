@@ -1,20 +1,25 @@
 import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiToken, ApiVestingInfo } from '../../api/types';
+import type { ApiTokenWithPrice, ApiVestingInfo } from '../../api/types';
+import type { Theme } from '../../global/types';
 
+import { ANIMATED_STICKER_TINY_ICON_PX } from '../../config';
 import { selectCurrentAccountState, selectMycoin } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatFullDay, formatTime } from '../../util/dateFormat';
 import { formatCurrency } from '../../util/formatNumber';
 import { calcVestingAmountByStatus } from '../main/helpers/calcVestingAmountByStatus';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
+import useAppTheme from '../../hooks/useAppTheme';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import { STAKING_DECIMAL } from '../staking/StakingInitial';
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -26,7 +31,8 @@ interface StateProps {
   isOpen?: boolean;
   isUnfreezeRequested?: boolean;
   vesting?: ApiVestingInfo[];
-  mycoin?: ApiToken;
+  theme: Theme;
+  mycoin?: ApiTokenWithPrice;
 }
 
 const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
@@ -37,6 +43,7 @@ function VestingModal({
   isUnfreezeRequested,
   vesting,
   mycoin,
+  theme,
 }: StateProps) {
   const { fetchStakingHistory, closeVestingModal, startClaimingVesting } = getActions();
 
@@ -55,6 +62,7 @@ function VestingModal({
   }, [vesting]);
 
   const isDisabledUnfreeze = currentlyReadyToUnfreezeAmount === '0';
+  const appTheme = useAppTheme(theme);
 
   useInterval(forceUpdate, isUnfreezeRequested ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined);
 
@@ -75,7 +83,15 @@ function VestingModal({
   function renderUnfrozenDescription() {
     return (
       <div className={styles.unfreezeTime}>
-        <i className={buildClassName(styles.unfreezeTimeIcon, 'icon-clock')} aria-hidden />
+        <AnimatedIconWithPreview
+          play={isOpen}
+          size={ANIMATED_STICKER_TINY_ICON_PX}
+          className={styles.unfreezeTimeIcon}
+          nonInteractive
+          noLoop={false}
+          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockBlue}
+          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockBlue}
+        />
         <div>
           {lang('You will receive your unfrozen coins in a few minutes.')}
         </div>
@@ -230,5 +246,6 @@ export default memo(withGlobal((global): StateProps => {
     vesting,
     isUnfreezeRequested: Boolean(unfreezeRequestedIds?.length),
     mycoin: selectMycoin(global),
+    theme: global.settings.theme,
   };
 })(VestingModal));

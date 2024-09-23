@@ -12,10 +12,11 @@ import styles from './NewWalletGreeting.module.scss';
 
 interface Props {
   isActive?: boolean;
+  isMutlichainAccount?: boolean;
   mode: 'panel' | 'emptyList';
 }
 
-function NewWalletGreeting({ isActive, mode }: Props) {
+function NewWalletGreeting({ isActive, isMutlichainAccount, mode }: Props) {
   const lang = useLang();
 
   return (
@@ -30,9 +31,17 @@ function NewWalletGreeting({ isActive, mode }: Props) {
       />
 
       <div className={styles.text}>
-        <p className={styles.header}>{lang('You have just created a new wallet')}</p>
+        <p className={styles.header}>
+          {lang(isMutlichainAccount
+            ? 'You have just created a new multichain wallet'
+            : 'You have just created a new wallet')}
+        </p>
         <p className={styles.description}>
-          {lang('You can now transfer your tokens from another wallet or exchange.')}
+          {lang(
+            isMutlichainAccount
+              ? 'Now you can transfer tokens from your TON and TRON wallets.'
+              : 'You can now transfer your tokens from another wallet or exchange.',
+          )}
         </p>
       </div>
     </div>

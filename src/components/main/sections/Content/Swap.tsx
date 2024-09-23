@@ -3,16 +3,19 @@ import type { TeactNode } from '../../../../lib/teact/teact';
 import React, { memo } from '../../../../lib/teact/teact';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../../api/types';
+import type { AppTheme } from '../../../../global/types';
 
-import { TON_SYMBOL, TONCOIN_SLUG, WHOLE_PART_DELIMITER } from '../../../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN, WHOLE_PART_DELIMITER } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
 import getSwapRate from '../../../../util/swap/getSwapRate';
+import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
+import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 
 import styles from './Transaction.module.scss';
@@ -23,6 +26,7 @@ type OwnProps = {
   isLast: boolean;
   activity: ApiSwapActivity;
   isActive: boolean;
+  appTheme: AppTheme;
   onClick: (id: string) => void;
 };
 
@@ -36,6 +40,7 @@ function Swap({
   activity,
   isLast,
   isActive,
+  appTheme,
   onClick,
 }: OwnProps) {
   const lang = useLang();
@@ -59,7 +64,7 @@ function Swap({
     || CHANGELLY_EXPIRED_STATUSES.has(cex?.status ?? '');
   const isHold = cex?.status === 'hold';
 
-  const isFromToncoin = from === TONCOIN_SLUG;
+  const isFromToncoin = from === TONCOIN.slug;
 
   const handleClick = useLastCallback(() => {
     onClick(id);
@@ -88,7 +93,7 @@ function Swap({
           <span className={buildClassName(styles.swapSell, isError && styles.swapError)}>
             {formatCurrencyExtended(
               Math.abs(fromAmount),
-              fromToken?.symbol || TON_SYMBOL,
+              fromToken?.symbol || TONCOIN.symbol,
               true,
             )}
           </span>
@@ -109,7 +114,7 @@ function Swap({
           >
             {formatCurrencyExtended(
               Math.abs(toAmount),
-              toToken?.symbol || TON_SYMBOL,
+              toToken?.symbol || TONCOIN.symbol,
               true,
             )}
           </span>
@@ -172,12 +177,16 @@ function Swap({
       onClick={handleClick}
       isSimple
     >
-      <i className={iconFullClass} aria-hidden />
+      <i className={iconFullClass} title={lang('Swap is not completed')} />
       {isPending && (
-        <i
-          className={buildClassName(styles.iconWaiting, styles.iconWaitingSwap, 'icon-clock')}
-          title={lang('Swap is not completed')}
-          aria-hidden
+        <AnimatedIconWithPreview
+          play
+          size={ANIMATED_STICKER_TINY_ICON_PX}
+          className={styles.iconWaiting}
+          nonInteractive
+          noLoop={false}
+          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGreen}
+          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGreen}
         />
       )}
       {isError && (

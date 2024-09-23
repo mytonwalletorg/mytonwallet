@@ -3,11 +3,11 @@ import { getActions, getGlobal } from '../../global';
 
 import { MediaType, type NftTransfer } from '../../global/types';
 
-import { ANIMATED_STICKER_TINY_SIZE_PX, TON_EXPLORER_NAME } from '../../config';
+import { ANIMATED_STICKER_TINY_SIZE_PX } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { openUrl } from '../../util/openUrl';
 import { shortenAddress } from '../../util/shortenAddress';
-import { getTonExplorerNftUrl } from '../../util/url';
+import { getExplorerName, getExplorerNftUrl } from '../../util/url';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useLang from '../../hooks/useLang';
@@ -31,14 +31,14 @@ function NftInfo({
 
   const tonExplorerTitle = useMemo(() => {
     return (lang('Open on %ton_explorer_name%', {
-      ton_explorer_name: TON_EXPLORER_NAME,
+      ton_explorer_name: getExplorerName('ton'),
     }) as TeactNode[]
     ).join('');
   }, [lang]);
 
   const handleClickInfo = (event: React.MouseEvent) => {
     event.stopPropagation();
-    const url = getTonExplorerNftUrl(nft!.address, getGlobal().settings.isTestnet)!;
+    const url = getExplorerNftUrl(nft!.address, getGlobal().settings.isTestnet)!;
 
     openUrl(url);
   };

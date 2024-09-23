@@ -1,5 +1,7 @@
 import type { RefObject } from 'react';
-import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
+import React, {
+  beginHeavyAnimation, useEffect, useLayoutEffect, useRef,
+} from '../../lib/teact/teact';
 import {
   addExtraClass, removeExtraClass, setExtraStyles, toggleExtraClass,
 } from '../../lib/teact/teact-dom';
@@ -13,7 +15,6 @@ import forceReflow from '../../util/forceReflow';
 import { allowSwipeControlForTransition } from '../../util/swipeController';
 
 import useForceUpdate from '../../hooks/useForceUpdate';
-import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
 import usePrevious from '../../hooks/usePrevious';
 
 import './Transition.scss';
@@ -228,7 +229,7 @@ function Transition({
     });
 
     isAnimatingRef.current = true;
-    const dispatchHeavyAnimationStop = dispatchHeavyAnimationEvent();
+    const endHeavyAnimation = beginHeavyAnimation();
     onStart?.();
 
     toggleExtraClass(container, `Transition-${name}`, !isBackwards);
@@ -240,6 +241,7 @@ function Transition({
 
       requestMutation(() => {
         if (activeKey !== currentKeyRef.current) {
+          endHeavyAnimation();
           return;
         }
 
@@ -263,7 +265,7 @@ function Transition({
         }
 
         onStop?.();
-        dispatchHeavyAnimationStop();
+        endHeavyAnimation();
         isAnimatingRef.current = false;
 
         cleanup();
@@ -285,7 +287,7 @@ function Transition({
             giveUpAnimationEnd();
             isSwipeJustCancelledRef.current = true;
             onStop?.();
-            dispatchHeavyAnimationStop();
+            endHeavyAnimation();
             isAnimatingRef.current = false;
           },
         );
@@ -417,7 +419,7 @@ function performSlideOptimized(
   }
 
   isAnimatingRef.current = true;
-  const dispatchHeavyAnimationStop = dispatchHeavyAnimationEvent();
+  const endHeavyAnimation = beginHeavyAnimation();
   onStart?.();
 
   toggleExtraClass(container, `Transition-${name}`, !isBackwards);
@@ -466,6 +468,7 @@ function performSlideOptimized(
 
     requestMutation(() => {
       if (activeKey !== currentKeyRef.current) {
+        endHeavyAnimation();
         return;
       }
 
@@ -482,7 +485,7 @@ function performSlideOptimized(
       }
 
       onStop?.();
-      dispatchHeavyAnimationStop();
+      endHeavyAnimation();
       isAnimatingRef.current = false;
 
       cleanup();

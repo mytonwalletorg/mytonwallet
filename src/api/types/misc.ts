@@ -1,26 +1,14 @@
-import type { Cell } from '@ton/core';
-
-import type { DNS_ZONES_MAP } from '../blockchains/ton/constants';
+import type { DNS_ZONES_MAP } from '../chains/ton/constants';
+import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions } from './storage';
 
-export type ApiWalletVersion = 'simpleR1'
-| 'simpleR2'
-| 'simpleR3'
-| 'v2R1'
-| 'v2R2'
-| 'v3R1'
-| 'v3R2'
-| 'v4R2'
-| 'W5';
-
-export type ApiBlockchainKey = 'ton';
+export type ApiChain = 'ton' | 'tron';
 export type ApiNetwork = 'mainnet' | 'testnet';
 export type ApiLedgerDriver = 'HID' | 'USB';
 
 export interface AccountIdParsed {
   id: number;
-  blockchain: ApiBlockchainKey;
   network: ApiNetwork;
 }
 
@@ -31,12 +19,13 @@ export interface ApiInitArgs {
   isAndroidApp: boolean;
 }
 
-export interface ApiBaseToken {
+export interface ApiToken {
   name: string;
   symbol: string;
   slug: string;
   decimals: number;
-  minterAddress?: string;
+  chain: ApiChain;
+  tokenAddress?: string;
   image?: string;
   isPopular?: boolean;
   keywords?: string[];
@@ -45,7 +34,7 @@ export interface ApiBaseToken {
   customPayloadApiUrl?: string;
 }
 
-export interface ApiToken extends ApiBaseToken {
+export interface ApiTokenWithPrice extends ApiToken {
   quote: ApiTokenPrice;
 }
 
@@ -64,7 +53,7 @@ export interface ApiAddressInfo {
   isMemoRequired?: boolean;
 }
 
-export type ApiTxIdBySlug = Record<string, string | undefined>;
+export type ApiTxTimestamps = Record<string, number | undefined>;
 export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | 'swap'
 | 'nftTransferred' | 'nftReceived' | undefined;
 
@@ -79,8 +68,8 @@ export interface ApiTransaction {
   fee: bigint;
   slug: string;
   isIncoming: boolean;
-  normalizedAddress: string;
-  inMsgHash: string;
+  normalizedAddress: string; // Only for TON now
+  inMsgHash?: string; // Only for TON
   shouldHide?: boolean;
   type?: ApiTransactionType;
   metadata?: ApiTransactionMetadata;
@@ -106,7 +95,6 @@ export interface ApiNft {
 }
 
 export type ApiHistoryList = Array<[number, number]>;
-export type ApiTokenSimple = Omit<ApiToken, 'quote'>;
 
 export type ApiStakingType = 'nominators' | 'liquid';
 
@@ -154,6 +142,7 @@ export interface ApiDappPermissions {
 export type ApiDappRequest = {
   origin?: string;
   accountId?: string;
+  identifier?: string;
   sseOptions?: ApiSseOptions;
 } | {
   origin: string;
@@ -169,26 +158,6 @@ export interface ApiDappTransfer {
   isScam?: boolean;
 }
 
-export interface ApiSubmitTransferOptions {
-  accountId: string;
-  password: string;
-  toAddress: string;
-  amount: bigint;
-  comment?: string;
-  tokenAddress?: string;
-  fee?: bigint;
-  shouldEncrypt?: boolean;
-  isBase64Data?: boolean;
-  withDiesel?: boolean;
-  dieselAmount?: bigint;
-  stateInit?: string | Cell;
-}
-
-export enum Workchain {
-  MasterChain = -1,
-  BaseChain = 0,
-}
-
 export interface ApiSignedTransfer {
   base64: string;
   seqno: number;
@@ -198,6 +167,7 @@ export interface ApiSignedTransfer {
 export type ApiLocalTransactionParams = Omit<
 ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'
 > & {
+  txId?: string;
   normalizedAddress?: string;
 };
 
@@ -215,7 +185,7 @@ export type ApiBalanceBySlug = Record<string, bigint>;
 
 export type ApiWalletInfo = {
   address: string;
-  version: ApiWalletVersion;
+  version: ApiTonWalletVersion;
   balance: bigint;
   isInitialized: boolean;
   lastTxId?: string;

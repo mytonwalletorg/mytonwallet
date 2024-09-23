@@ -21,6 +21,7 @@ import useFlag from '../../../../hooks/useFlag';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
+import DappFeed from '../../../dapps/DappFeed';
 import Site from '../../../explore/Site';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Loading from '../../../ui/Loading';
@@ -150,7 +151,8 @@ function Explore({
           className={styles.searchInput}
           placeholder={lang('Search or enter address...')}
           value={searchValue}
-          autoCapitalize="off"
+          autoCapitalize="none"
+          autoCorrect="off"
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -222,6 +224,7 @@ function Explore({
     <div className={styles.wrapper}>
       {renderSearch()}
       {renderSearchSuggestions()}
+      <DappFeed />
       <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
         {sites.filter((site) => !(shouldRestrict && site.canBeRestricted)).map((site) => (
           <Site

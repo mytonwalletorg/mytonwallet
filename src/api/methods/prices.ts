@@ -1,18 +1,11 @@
 import type { ApiBaseCurrency, ApiHistoryList, ApiPriceHistoryPeriod } from '../types';
 
-import { DEFAULT_PRICE_CURRENCY, TON_SYMBOL } from '../../config';
+import { DEFAULT_PRICE_CURRENCY, TONCOIN } from '../../config';
 import { callBackendGet } from '../common/backend';
-import { storage } from '../storages';
 import { waitDataPreload } from './preload';
-import { resolveTokenBySlug } from './tokens';
+import { getTokenBySlug } from './tokens';
 
-export async function getBaseCurrency() {
-  return (await storage.getItem('baseCurrency')) ?? DEFAULT_PRICE_CURRENCY;
-}
-
-export function setBaseCurrency(currency: ApiBaseCurrency) {
-  return storage.setItem('baseCurrency', currency);
-}
+export { setBaseCurrency, getBaseCurrency } from '../common/prices';
 
 export async function fetchPriceHistory(
   slug: string,
@@ -20,13 +13,15 @@ export async function fetchPriceHistory(
   baseCurrency: ApiBaseCurrency = DEFAULT_PRICE_CURRENCY,
 ): Promise<ApiHistoryList | undefined> {
   await waitDataPreload();
-  const token = resolveTokenBySlug(slug);
+  const token = getTokenBySlug(slug);
 
   if (!token) {
     return [];
   }
 
-  return callBackendGet(`/prices/chart/${token.minterAddress ?? TON_SYMBOL}`, {
+  const assetId = token.chain === TONCOIN.chain && token.tokenAddress ? token.tokenAddress : token.symbol;
+
+  return callBackendGet(`/prices/chart/${assetId}`, {
     base: baseCurrency,
     period,
   });

@@ -4,7 +4,7 @@ import {
 } from '../../../util/windowEnvironment';
 import { callApi, initApi } from '../../../api';
 import { addActionHandler, getGlobal } from '../../index';
-import { selectNewestTxIds } from '../../selectors';
+import { selectNewestTxTimestamps } from '../../selectors';
 
 addActionHandler('initApi', async (global, actions) => {
   initApi(actions.apiUpdate, {
@@ -22,11 +22,9 @@ addActionHandler('initApi', async (global, actions) => {
     return;
   }
 
-  void callApi(
-    'activateAccount',
-    currentAccountId,
-    selectNewestTxIds(global, currentAccountId),
-  );
+  const newestTxTimestamps = selectNewestTxTimestamps(global, currentAccountId);
+
+  void callApi('activateAccount', currentAccountId, newestTxTimestamps);
 });
 
 addActionHandler('resetApiSettings', (global, actions, params) => {

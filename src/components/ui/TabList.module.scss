@@ -32,6 +32,25 @@
   }
 }
 
+.withBorder {
+  position: relative;
+
+  &::after {
+    content: "";
+
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transform: translateY(-0.03125rem);
+
+    width: 100%;
+    height: 0.0625rem;
+
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+  }
+}
+
 .big {
   font-size: 1rem;
 }

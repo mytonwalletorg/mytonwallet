@@ -1,34 +1,28 @@
 import React, {
-  memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBalanceBySlug, ApiBaseCurrency } from '../../api/types';
+import type { ApiBaseCurrency } from '../../api/types';
 import {
-  type AssetPairs,
-  SettingsState,
-  type UserSwapToken,
-  type UserToken,
+  type AssetPairs, SettingsState, type UserSwapToken, type UserToken,
 } from '../../global/types';
 
-import { ANIMATED_STICKER_MIDDLE_SIZE_PX, TON_BLOCKCHAIN } from '../../config';
-import {
-  selectAvailableUserForSwapTokens,
-  selectCurrentAccountState,
-  selectPopularTokens,
-  selectSwapTokens,
-} from '../../global/selectors';
+import { ANIMATED_STICKER_MIDDLE_SIZE_PX } from '../../config';
+import { selectAvailableUserForSwapTokens, selectPopularTokens, selectSwapTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
-import {
-  formatCurrency, getShortCurrencySymbol,
-} from '../../util/formatNumber';
-import { isTonAddressOrDomain } from '../../util/isTonAddressOrDomain';
+import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { disableSwipeToClose, enableSwipeToClose } from '../../util/modalSwipeManager';
-import getBlockchainNetworkIcon from '../../util/swap/getBlockchainNetworkIcon';
-import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
+import getChainNetworkName from '../../util/swap/getChainNetworkName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -40,6 +34,7 @@ import useSyncEffect from '../../hooks/useSyncEffect';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import ModalHeader from '../ui/ModalHeader';
 import Transition from '../ui/Transition';
+import TokenIcon from './TokenIcon';
 
 import styles from './TokenSelector.module.scss';
 
@@ -58,7 +53,6 @@ interface StateProps {
   swapTokens?: UserSwapToken[];
   tokenInSlug?: string;
   pairsBySlug?: Record<string, AssetPairs>;
-  balancesBySlug?: ApiBalanceBySlug;
   baseCurrency?: ApiBaseCurrency;
   isLoading?: boolean;
 }
@@ -70,6 +64,7 @@ interface OwnProps {
   onClose: NoneToVoidFunction;
   onBack: NoneToVoidFunction;
   shouldHideMyTokens?: boolean;
+  shouldHideNotSupportedTokens?: boolean;
 }
 
 enum SearchState {
@@ -86,18 +81,18 @@ function TokenSelector({
   token,
   userTokens,
   swapTokens,
-  popularTokens,
+  popularTokens: popularTokensProp,
   shouldFilter,
   isInsideSettings,
   baseCurrency,
   tokenInSlug,
   pairsBySlug,
-  balancesBySlug,
   isActive,
   isLoading,
   onBack,
   onClose,
   shouldHideMyTokens,
+  shouldHideNotSupportedTokens,
 }: OwnProps & StateProps) {
   const {
     importToken,
@@ -149,15 +144,24 @@ function TokenSelector({
 
   const allUnimportedTonTokens = useMemo(() => {
     return (swapTokens ?? EMPTY_ARRAY).filter(
-      (popularToken) => 'blockchain' in popularToken && popularToken.blockchain === TON_BLOCKCHAIN,
+      (popularToken) => 'chain' in popularToken && popularToken.chain === 'ton',
     );
   }, [swapTokens]);
+
+  const popularTokens = useMemo(() => {
+    if (shouldHideNotSupportedTokens) {
+      return popularTokensProp?.filter(
+        (popularToken) => 'blockchain' in popularToken && popularToken.blockchain === 'ton',
+      );
+    }
+
+    return popularTokensProp;
+  }, [popularTokensProp, shouldHideNotSupportedTokens]);
 
   const { userTokensWithFilter, popularTokensWithFilter, swapTokensWithFilter } = useMemo(() => {
     const currentUserTokens = userTokens ?? EMPTY_ARRAY;
     const currentSwapTokens = swapTokens ?? EMPTY_ARRAY;
     const currentPopularTokens = popularTokens ?? EMPTY_ARRAY;
-
     if (!shouldFilter) {
       return {
         userTokensWithFilter: currentUserTokens,
@@ -244,7 +248,7 @@ function TokenSelector({
   useSyncEffect(() => {
     setIsResetButtonVisible(Boolean(searchValue.length));
 
-    const isValidAddress = isTonAddressOrDomain(searchValue);
+    const isValidAddress = isValidAddressOrDomain(searchValue, 'ton');
     let newRenderingKey = SearchState.Initial;
 
     if (isLoading && isValidAddress) {
@@ -265,7 +269,7 @@ function TokenSelector({
   }, [searchTokenList.length, isLoading, searchValue, token, filteredTokenList]);
 
   useEffect(() => {
-    if (isTonAddressOrDomain(searchValue)) {
+    if (isValidAddressOrDomain(searchValue, 'ton')) {
       importToken({ address: searchValue, isSwap: true });
       setRenderingKey(SearchState.Loading);
     } else {
@@ -282,11 +286,7 @@ function TokenSelector({
   const handleTokenClick = useLastCallback((selectedToken: Token) => {
     searchInputRef.current?.blur();
 
-    onBack();
-
-    const isTokenUnimported = balancesBySlug?.[selectedToken.slug] === undefined;
-
-    if (isInsideSettings && isTokenUnimported) {
+    if (isInsideSettings) {
       addToken({ token: selectedToken as UserToken });
     } else {
       addSwapToken({ token: selectedToken as UserSwapToken });
@@ -295,6 +295,8 @@ function TokenSelector({
     }
 
     resetSearch();
+
+    onBack();
   });
 
   const handleOpenSettings = useLastCallback(() => {
@@ -335,14 +337,11 @@ function TokenSelector({
   }
 
   function renderToken(currentToken: Token) {
-    const image = ASSET_LOGO_PATHS[
-      currentToken?.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS
-    ] ?? currentToken?.image;
-    const blockchain = 'blockchain' in currentToken ? currentToken.blockchain : TON_BLOCKCHAIN;
+    const blockchain = 'chain' in currentToken ? currentToken.chain : 'ton';
 
     const isAvailable = !shouldFilter || currentToken.canSwap;
     const descriptionText = isAvailable
-      ? getBlockchainNetworkName(blockchain)
+      ? getChainNetworkName(blockchain)
       : lang('Unavailable');
     const handleClick = isAvailable ? () => handleTokenClick(currentToken) : undefined;
 
@@ -360,22 +359,12 @@ function TokenSelector({
         onClick={handleClick}
       >
         <div className={styles.tokenLogoContainer}>
-          <div className={styles.logoContainer}>
-            <img
-              src={image}
-              alt={currentToken.symbol}
-              className={buildClassName(
-                styles.tokenLogo,
-                !isAvailable && styles.tokenLogoDisabled,
-              )}
-            />
-            <img
-              className={styles.tokenNetworkLogo}
-              alt={blockchain}
-              src={getBlockchainNetworkIcon(blockchain)}
-            />
-            {!isAvailable && <span className={styles.tokenNetworkLogoDisabled} />}
-          </div>
+          <TokenIcon
+            token={currentToken}
+            withChainIcon
+            className={buildClassName(styles.tokenLogo, !isAvailable && styles.tokenLogoDisabled)}
+          />
+
           <div className={styles.nameContainer}>
             <span className={buildClassName(styles.tokenName, !isAvailable && styles.tokenTextDisabled)}>
               {currentToken.name}
@@ -545,25 +534,22 @@ function TokenSelector({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const balances = selectCurrentAccountState(global)?.balances;
+  const { baseCurrency } = global.settings;
   const { isLoading, token } = global.settings.importToken ?? {};
-  const { pairs, tokenInSlug } = global.currentSwap ?? {};
-
+  const { pairs: pairsBySlug, tokenInSlug } = global.currentSwap ?? {};
   const userTokens = selectAvailableUserForSwapTokens(global);
   const popularTokens = selectPopularTokens(global);
   const swapTokens = selectSwapTokens(global);
-  const { baseCurrency } = global.settings;
 
   return {
+    baseCurrency,
     isLoading,
     token,
+    pairsBySlug,
+    tokenInSlug,
     userTokens,
     popularTokens,
     swapTokens,
-    tokenInSlug,
-    baseCurrency,
-    pairsBySlug: pairs?.bySlug,
-    balancesBySlug: balances?.bySlug,
   };
 })(TokenSelector));
 

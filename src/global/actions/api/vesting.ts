@@ -1,4 +1,4 @@
-import type { ApiSubmitTransferOptions } from '../../../api/types';
+import type { ApiSubmitTransferOptions } from '../../../api/methods/types';
 import { ApiCommonError } from '../../../api/types';
 import { VestingUnfreezeState } from '../../types';
 
@@ -9,7 +9,7 @@ import {
   IS_CAPACITOR,
   MYCOIN_TOKEN,
   MYCOIN_TOKEN_TESTNET,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { callActionInMain } from '../../../util/multitab';
@@ -61,7 +61,7 @@ addActionHandler('submitClaimingVesting', async (global, actions, { password }) 
     amount: CLAIM_AMOUNT,
     comment: CLAIM_COMMENT,
   };
-  const result = await callApi('submitTransfer', options);
+  const result = await callApi('submitTransfer', 'ton', options);
 
   global = getGlobal();
   global = updateVesting(global, accountId, { isLoading: false });
@@ -102,7 +102,7 @@ addActionHandler('submitClaimingVestingHardware', async (global, actions) => {
   global = getGlobal();
 
   const accountId = global.currentAccountId!;
-  const tokenAddress = selectTokenAddress(global, TONCOIN_SLUG);
+  const tokenAddress = selectTokenAddress(global, TONCOIN.slug);
   const unfreezeRequestedIds = selectVestingPartsReadyToUnfreeze(global, accountId);
   const options: ApiSubmitTransferOptions = {
     accountId,
@@ -113,7 +113,7 @@ addActionHandler('submitClaimingVestingHardware', async (global, actions) => {
     tokenAddress,
   };
 
-  const result = await ledgerApi.submitLedgerTransfer(options, TONCOIN_SLUG);
+  const result = await ledgerApi.submitLedgerTransfer(options, TONCOIN.slug);
 
   global = getGlobal();
   global = updateVesting(global, accountId, { isLoading: false });

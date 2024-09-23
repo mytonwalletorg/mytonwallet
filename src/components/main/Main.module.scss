@@ -22,14 +22,14 @@ $scrollOffset: 0.1875rem;
 
   @include adapt-padding-to-scrollbar(0.75rem, !important);
 
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @supports (padding-bottom: var(--safe-area-bottom)) {
     @include respond-above(xs) {
-      padding-bottom: max(env(safe-area-inset-bottom), 1rem) !important;
+      padding-bottom: max(var(--safe-area-bottom), 1rem) !important;
     }
   }
 
-  @supports (padding-top: env(safe-area-inset-top)) {
-    min-height: calc(var(--vh, 1vh) * 100 - env(safe-area-inset-top));
+  @supports (padding-top: var(--safe-area-top)) {
+    min-height: calc(var(--vh, 1vh) * 100 - var(--safe-area-top));
   }
 
   .head {
@@ -77,11 +77,11 @@ $scrollOffset: 0.1875rem;
     margin-right: #{$scrollOffset};
     padding-right: calc(0.75rem - var(--scrollbar-width) - #{$scrollOffset});
     // Due to the presence of `.LandscapeActions__contentFooter`, which is 1rem high, we increase the indentation at the bottom by its size
-    padding-bottom: calc(max(env(safe-area-inset-bottom), 1rem) + 1rem);
+    padding-bottom: calc(max(var(--safe-area-bottom), 1rem) + 1rem);
   }
 
   .main {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+    padding-bottom: max(var(--safe-area-bottom), 1rem);
   }
 }
 

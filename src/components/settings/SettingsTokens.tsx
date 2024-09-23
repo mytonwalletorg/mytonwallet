@@ -7,17 +7,17 @@ import { getActions } from '../../global';
 import type { ApiBaseCurrency } from '../../api/types';
 import { SettingsState, type UserToken } from '../../global/types';
 
-import { TONCOIN_SLUG } from '../../config';
+import { ENABLED_TOKEN_SLUGS, TONCOIN } from '../../config';
 import { bigintMultiplyToNumber } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { isBetween } from '../../util/math';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
+import TokenIcon from '../common/TokenIcon';
 import DeleteTokenModal from '../main/modals/DeleteTokenModal';
 import AnimatedCounter from '../ui/AnimatedCounter';
 import Draggable from '../ui/Draggable';
@@ -37,6 +37,7 @@ interface OwnProps {
   orderedSlugs?: string[];
   isSortByValueEnabled?: boolean;
   baseCurrency?: ApiBaseCurrency;
+  withChainIcon?: boolean;
 }
 
 const TOKEN_HEIGHT_PX = 64;
@@ -48,10 +49,11 @@ function SettingsTokens({
   orderedSlugs,
   isSortByValueEnabled,
   baseCurrency,
+  withChainIcon,
 }: OwnProps) {
   const {
     openSettingsWithState,
-    sortTokens,
+    updateOrderedSlugs,
     toggleExceptionToken,
   } = getActions();
   const lang = useLang();
@@ -86,23 +88,23 @@ function SettingsTokens({
   const handleDrag = useLastCallback((translation: { x: number; y: number }, id: string | number) => {
     const delta = Math.round(translation.y / TOKEN_HEIGHT_PX);
     const index = state.orderedTokenSlugs?.indexOf(id as string) ?? 0;
-    const dragOrderTokens = state.orderedTokenSlugs?.filter((tokenSlug) => tokenSlug !== id);
+    const dragOrderTokenSlugs = state.orderedTokenSlugs?.filter((tokenSlug) => tokenSlug !== id);
 
-    if (!dragOrderTokens || !isBetween(index + delta, 0, orderedSlugs?.length ?? 0)) {
+    if (!dragOrderTokenSlugs || !isBetween(index + delta, 0, orderedSlugs?.length ?? 0)) {
       return;
     }
 
-    dragOrderTokens.splice(index + delta, 0, id as string);
+    dragOrderTokenSlugs.splice(index + delta, 0, id as string);
     setState((current) => ({
       ...current,
       draggedIndex: index,
-      dragOrderTokenSlugs: dragOrderTokens,
+      dragOrderTokenSlugs,
     }));
   });
 
   const handleDragEnd = useLastCallback(() => {
     setState((current) => {
-      sortTokens({
+      updateOrderedSlugs({
         orderedSlugs: current.dragOrderTokenSlugs!,
       });
 
@@ -115,7 +117,7 @@ function SettingsTokens({
   });
 
   const handleExceptionToken = useLastCallback((slug: string, e: React.MouseEvent | React.TouchEvent) => {
-    if (slug === TONCOIN_SLUG) return;
+    if (slug === TONCOIN.slug) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -129,11 +131,10 @@ function SettingsTokens({
 
   function renderToken(token: UserToken, index: number) {
     const {
-      symbol, image, name, amount, price, slug, isDisabled,
+      symbol, name, amount, price, slug, isDisabled,
     } = token;
 
-    const isToncoin = slug === TONCOIN_SLUG;
-    const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
+    const isAlwaysEnabled = ENABLED_TOKEN_SLUGS.includes(slug);
     const totalAmount = bigintMultiplyToNumber(amount, price);
     const isDragged = state.draggedIndex === index;
 
@@ -143,7 +144,7 @@ function SettingsTokens({
     const style = `top: ${isDragged ? draggedTop : top}px;`;
     const knobStyle = 'left: 1rem;';
 
-    const isDeleteButtonVisible = amount === 0n && !isToncoin;
+    const isDeleteButtonVisible = amount === 0n && !isAlwaysEnabled;
 
     const isDragDisabled = isSortByValueEnabled || tokens!.length <= 1;
 
@@ -163,11 +164,7 @@ function SettingsTokens({
         // eslint-disable-next-line react/jsx-no-bind
         onClick={(e) => handleExceptionToken(slug, e)}
       >
-        <img
-          src={logoPath}
-          alt={symbol}
-          className={styles.tokenIcon}
-        />
+        <TokenIcon token={token} withChainIcon={withChainIcon} />
         <div className={styles.tokenInfo}>
           <div className={styles.tokenTitle}>
             {name}
@@ -186,7 +183,7 @@ function SettingsTokens({
             )}
           </div>
         </div>
-        {!isToncoin && (
+        {!isAlwaysEnabled && (
           <Switcher
             className={styles.menuSwitcher}
             checked={!isDisabled}

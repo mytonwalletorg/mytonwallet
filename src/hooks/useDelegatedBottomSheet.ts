@@ -74,7 +74,9 @@ export function useDelegatedBottomSheet(
       });
     } else if (prevIsOpen) {
       BottomSheet.closeSelf({ key });
-      setStatusBarStyle();
+      setStatusBarStyle({
+        forceDarkBackground: false,
+      });
     }
   }, [isOpen, dialogRef, key, onClose]);
 

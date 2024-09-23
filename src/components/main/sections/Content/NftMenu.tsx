@@ -8,6 +8,7 @@ import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import stopEvent from '../../../../util/stopEvent';
 
+import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useMenuPosition from '../../../../hooks/useMenuPosition';
 import useNftMenu from '../../../mediaViewer/hooks/useNftMenu';
@@ -48,6 +49,8 @@ function NftMenu({
   const getMenuElement = useLastCallback(() => document.querySelector('#portals .menu-bubble'));
   const getLayout = useLastCallback(() => ({ withPortal: true }));
 
+  const lang = useLang();
+
   const {
     positionY, transformOriginX, transformOriginY, style: menuStyle,
   } = useMenuPosition(
@@ -70,7 +73,13 @@ function NftMenu({
 
   return (
     <>
-      <button ref={ref} type="button" className={styles.button} onClick={handleButtonClick}>
+      <button
+        ref={ref}
+        type="button"
+        className={styles.button}
+        aria-label={lang('NFT Menu')}
+        onClick={handleButtonClick}
+      >
         <i className={buildClassName(styles.icon, 'icon-menu-dots')} aria-hidden />
       </button>
       <DropdownMenu

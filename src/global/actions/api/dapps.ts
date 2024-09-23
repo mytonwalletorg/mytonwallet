@@ -23,7 +23,7 @@ import {
   updateCurrentDappTransfer,
   updateDappConnectRequest,
 } from '../../reducers';
-import { selectIsHardwareAccount, selectNewestTxIds } from '../../selectors';
+import { selectIsHardwareAccount, selectNewestTxTimestamps } from '../../selectors';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
@@ -256,13 +256,20 @@ addActionHandler('submitDappTransferHardware', async (global, actions) => {
   setGlobal(global);
 });
 
-addActionHandler('getDapps', async (global) => {
+addActionHandler('getDapps', async (global, actions) => {
   const { currentAccountId } = global;
 
-  const result = await callApi('getDapps', currentAccountId!);
+  let result = await callApi('getDapps', currentAccountId!);
 
   if (!result) {
     return;
+  }
+
+  // Check for broken dapps without origin
+  const brokenDapp = result.find(({ origin }) => !origin);
+  if (brokenDapp) {
+    actions.deleteDapp({ origin: brokenDapp.origin });
+    result = result.filter(({ origin }) => origin);
   }
 
   global = getGlobal();
@@ -332,8 +339,8 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
 }) => {
   const { currentAccountId, currentDappTransfer: { promiseId: currentPromiseId } } = global;
   if (currentAccountId !== accountId) {
-    const newestTxIds = selectNewestTxIds(global, accountId);
-    await callApi('activateAccount', accountId, newestTxIds);
+    const nextNewestTxTimestamps = selectNewestTxTimestamps(global, accountId);
+    await callApi('activateAccount', accountId, nextNewestTxTimestamps);
     global = getGlobal();
     setGlobal(updateCurrentAccountId(global, accountId));
   }

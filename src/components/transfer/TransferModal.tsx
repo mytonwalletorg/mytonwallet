@@ -1,9 +1,11 @@
 import React, {
-  memo, useEffect, useMemo, useState,
+  memo, useEffect, useMemo,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
+import type {
+  GlobalState, HardwareConnectState, SavedAddress, UserToken,
+} from '../../global/types';
 import { TransferState } from '../../global/types';
 
 import { BURN_ADDRESS, IS_CAPACITOR, NFT_BATCH_SIZE } from '../../config';
@@ -40,7 +42,7 @@ import styles from './Transfer.module.scss';
 interface StateProps {
   currentTransfer: GlobalState['currentTransfer'];
   tokens?: UserToken[];
-  savedAddresses?: Record<string, string>;
+  savedAddresses?: SavedAddress[];
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
@@ -54,7 +56,6 @@ function TransferModal({
     state,
     amount,
     toAddress,
-    fee,
     comment,
     error,
     isLoading,
@@ -80,7 +81,6 @@ function TransferModal({
   const { screenHeight } = useWindowSize();
   const selectedToken = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]);
   const decimals = selectedToken?.decimals;
-  const [renderedTokenBalance, setRenderedTokenBalance] = useState(selectedToken?.amount);
   const renderedTransactionAmount = usePrevious(amount, true);
   const symbol = selectedToken?.symbol || '';
   const isNftTransfer = Boolean(nfts?.length);
@@ -90,17 +90,11 @@ function TransferModal({
 
   useEffect(() => (
     state === TransferState.Confirm
-      ? captureKeyboardListeners({
-        onEnter: () => {
-          submitTransferConfirm();
-        },
-      })
+      ? captureKeyboardListeners({ onEnter: () => submitTransferConfirm() })
       : undefined
   ), [state, submitTransferConfirm]);
 
   const handleTransferSubmit = useLastCallback((password: string) => {
-    setRenderedTokenBalance(selectedToken?.amount);
-
     submitTransferPassword({ password });
   });
 
@@ -220,9 +214,6 @@ function TransferModal({
             nfts={nfts}
             amount={renderedTransactionAmount}
             symbol={symbol}
-            balance={renderedTokenBalance}
-            fee={fee}
-            operationAmount={amount}
             txId={txId}
             tokenSlug={tokenSlug}
             toAddress={toAddress}

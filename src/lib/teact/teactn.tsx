@@ -4,12 +4,12 @@ import { DEBUG, DEBUG_MORE } from '../../config';
 import arePropsShallowEqual, { logUnequalProps } from '../../util/arePropsShallowEqual';
 import { handleError } from '../../util/handleError';
 import { orderBy } from '../../util/iteratees';
+import { logActionHandling } from '../../util/logs';
 import { throttleWithTickEnd } from '../../util/schedulers';
 import { requestMeasure } from '../fasterdom/fasterdom';
-import React, { DEBUG_resolveComponentName, useEffect } from './teact';
+import React, { DEBUG_resolveComponentName, getIsHeavyAnimating, useEffect } from './teact';
 
 import useForceUpdate from '../../hooks/useForceUpdate';
-import { isHeavyAnimating } from '../../hooks/useHeavyAnimationCheck';
 import useUniqueId from '../../hooks/useUniqueId';
 
 export default React;
@@ -73,7 +73,7 @@ let forceOnHeavyAnimation = true;
 function runCallbacks() {
   if (forceOnHeavyAnimation) {
     forceOnHeavyAnimation = false;
-  } else if (isHeavyAnimating()) {
+  } else if (getIsHeavyAnimating()) {
     requestMeasure(runCallbacksThrottled);
     return;
   }
@@ -133,6 +133,8 @@ export function forceOnHeavyAnimationOnce() {
 let actionQueue: NoneToVoidFunction[] = [];
 
 function handleAction(name: string, payload?: ActionPayload, options?: ActionOptions) {
+  logActionHandling(name, payload);
+
   actionQueue.push(() => {
     actionHandlers[name]?.forEach((handler) => {
       const response = handler(DEBUG ? getGlobal() : currentGlobal, actions, payload);

@@ -1,8 +1,6 @@
 PODS:
   - Capacitor (5.7.2):
     - CapacitorCordova
-  - CapacitorActionSheet (5.0.7):
-    - Capacitor
   - CapacitorApp (5.0.7):
     - Capacitor
   - CapacitorAppLauncher (5.0.7):
@@ -17,14 +15,14 @@ PODS:
     - GoogleMLKit/BarcodeScanning (= 4.0.0)
   - CapacitorNativeSettings (5.0.1):
     - Capacitor
-  - CapacitorPluginSafeArea (2.0.6):
+  - CapacitorPluginSafeArea (2.0.5):
     - Capacitor
   - CapacitorSecureStoragePlugin (0.9.0):
     - Capacitor
     - SwiftKeychainWrapper
   - CapacitorSplashScreen (5.0.6.1):
     - Capacitor
-  - CapacitorStatusBar (5.0.7):
+  - CapacitorStatusBar (5.0.8):
     - Capacitor
   - CapgoCapacitorNativeBiometric (0.0.1):
     - Capacitor
@@ -102,7 +100,6 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../../node_modules/@capacitor/ios`)"
-  - "CapacitorActionSheet (from `../../../node_modules/@capacitor/action-sheet`)"
   - "CapacitorApp (from `../../../node_modules/@capacitor/app`)"
   - "CapacitorAppLauncher (from `../../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
@@ -117,7 +114,7 @@ DEPENDENCIES:
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
   - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
-  - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b`)
+  - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `133e8c5a266006bfaa30da50e7dd000a5d75882b`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
   - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
   - NativeDialog (from `../../plugins/native-dialog`)
@@ -141,8 +138,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../../node_modules/@capacitor/ios"
-  CapacitorActionSheet:
-    :path: "../../../node_modules/@capacitor/action-sheet"
   CapacitorApp:
     :path: "../../../node_modules/@capacitor/app"
   CapacitorAppLauncher:
@@ -172,7 +167,7 @@ EXTERNAL SOURCES:
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
   FloatingPanel:
-    :commit: 1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b
+    :commit: 133e8c5a266006bfaa30da50e7dd000a5d75882b
     :git: https://github.com/mytonwalletorg/FloatingPanel
   MauricewegnerCapacitorNavigationBar:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
@@ -183,12 +178,11 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FloatingPanel:
-    :commit: 1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b
+    :commit: 133e8c5a266006bfaa30da50e7dd000a5d75882b
     :git: https://github.com/mytonwalletorg/FloatingPanel
 
 SPEC CHECKSUMS:
   Capacitor: fc7ef6d935eafb0df9eaaf109ca69be16c51a2d2
-  CapacitorActionSheet: 8096e5cb8a3dfa89b03a40a62ea4836111263cb4
   CapacitorApp: 17fecd0e6cb23feafac7eb0939417389038b0979
   CapacitorAppLauncher: 7b2705481a74cbe322441bd374f56194de59ab1a
   CapacitorClipboard: 45e5e25f2271f98712985d422776cdc5a779cca1
@@ -196,10 +190,10 @@ SPEC CHECKSUMS:
   CapacitorHaptics: 7c7c206f0c96a628fed073830c96d28c4b2e772e
   CapacitorMlkitBarcodeScanning: 8fb81cbef3c6ffe0c0e2dbd15ed6dca889a5a062
   CapacitorNativeSettings: 6e94ed3c0465206756f320df18efc52f053ce3c7
-  CapacitorPluginSafeArea: d55e4d4e70c98f611240f11dd80561438d0d70cb
+  CapacitorPluginSafeArea: bfdd714827dbd89fb44fea286beec996e1b0c5c4
   CapacitorSecureStoragePlugin: e91d7df060f2495a1acff9583641a6953e3aacba
   CapacitorSplashScreen: 6fce4269c6f7dc7591cc28760d1f85255e5edb1b
-  CapacitorStatusBar: f390fbb49b82ffb754ea4b3cf71dc8b048baf3e7
+  CapacitorStatusBar: 51af549cfcf35aac3ab072b062967ae5971ee485
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
   CapgoNativeAudio: 9c9d2ee1683c5e7091d59c3aa7ff5c30c66b9598
   CordovaPlugins: 149708b4353176a65688a5aed237f7c3054e7702
@@ -221,6 +215,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 56fea863ce90e3e1147867deec851c6930ae9b6c
+PODFILE CHECKSUM: e2dc1cd2032f0252dfcdcf01f1fc9a418307f6ac
 
 COCOAPODS: 1.15.2

@@ -1,74 +1,73 @@
-import { BottomSheet } from 'native-bottom-sheet';
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
+import { selectCurrentAccount } from '../../global/selectors';
+import { IS_IOS_APP } from '../../util/windowEnvironment';
 
-import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
-import { useOpenFromNativeBottomSheet } from '../../hooks/useDelegatingBottomSheet';
-import useFlag from '../../hooks/useFlag';
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
-import useLastCallback from '../../hooks/useLastCallback';
 
 import Modal from '../ui/Modal';
+import ModalHeader from '../ui/ModalHeader';
 import Content from './Content';
-import InvoiceModal from './InvoiceModal';
 
 import styles from './ReceiveModal.module.scss';
 
 type StateProps = {
   isOpen?: boolean;
+  isLedger?: boolean;
+  isTestnet?: boolean;
+  isSwapDisabled: boolean;
+  isOnRampDisabled: boolean;
 };
 
 function ReceiveModal({
   isOpen,
+  isTestnet,
+  isLedger,
+  isSwapDisabled,
+  isOnRampDisabled,
 }: StateProps) {
-  const {
-    closeReceiveModal,
-  } = getActions();
+  const { closeReceiveModal } = getActions();
+
   const lang = useLang();
-  const [isInvoiceModalOpen, openInvoiceModal, closeInvoiceModal] = useFlag(false);
 
-  useOpenFromNativeBottomSheet('invoice', openInvoiceModal);
-  useOpenFromMainBottomSheet('invoice', openInvoiceModal);
+  const { isLandscape } = useDeviceScreen();
+  const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
+  const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
+  const modalTitle = lang(isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add');
 
-  const handleOpenInvoiceModal = useLastCallback(() => {
-    closeReceiveModal();
-
-    if (IS_DELEGATED_BOTTOM_SHEET) {
-      BottomSheet.openInMain({ key: 'invoice' });
-    } else {
-      openInvoiceModal();
+  useEffect(() => {
+    if (isOpen && isLandscape) {
+      closeReceiveModal();
     }
-  });
-
-  const handleClose = useLastCallback(() => {
-    closeReceiveModal();
-    closeInvoiceModal();
-  });
+  }, [isLandscape, isOpen]);
 
   return (
-    <>
-      <Modal
+    <Modal
+      isOpen={isOpen}
+      dialogClassName={IS_IOS_APP ? undefined : styles.modalDialog}
+      nativeBottomSheetKey="receive"
+      onClose={closeReceiveModal}
+    >
+      <ModalHeader title={modalTitle} className={styles.receiveHeader} onClose={closeReceiveModal} />
+      <Content
         isOpen={isOpen}
-        title={lang('Receive')}
-        hasCloseButton
-        contentClassName={styles.content}
-        nativeBottomSheetKey="receive"
         onClose={closeReceiveModal}
-      >
-        <Content
-          isOpen={isOpen}
-          onInvoiceModalOpen={handleOpenInvoiceModal}
-        />
-      </Modal>
-      <InvoiceModal isOpen={isInvoiceModalOpen} onClose={handleClose} />
-    </>
+      />
+    </Modal>
   );
 }
 
 export default memo(withGlobal((global): StateProps => {
+  const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
+  const account = selectCurrentAccount(global);
+
   return {
     isOpen: global.isReceiveModalOpen,
+    isTestnet: global.settings.isTestnet,
+    isSwapDisabled,
+    isOnRampDisabled,
+    isLedger: Boolean(account?.ledger),
   };
 })(ReceiveModal));

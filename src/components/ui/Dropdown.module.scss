@@ -1,6 +1,5 @@
 .button,
 .item {
-  cursor: var(--custom-cursor, pointer);
   user-select: none;
 
   align-items: center;
@@ -131,6 +130,10 @@
 }
 
 .item {
+  cursor: var(--custom-cursor, pointer);
+
+  position: relative;
+
   display: flex;
 
   width: 100%;
@@ -176,6 +179,24 @@
   margin-inline-end: 0.375rem;
 
   border-radius: 50%;
+}
+
+.itemOverlayIcon {
+  position: absolute;
+  top: 1.625rem;
+  left: 1.625rem;
+
+  width: 0.625rem !important;
+  height: 0.625rem !important;
+
+  border-radius: 50%;
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  box-shadow: 0 0 0 0.1rem var(--color-background-first);
+
+  &.insideButton {
+    top: 1.75rem;
+    left: 1.75rem;
+  }
 }
 
 .fontIcon {

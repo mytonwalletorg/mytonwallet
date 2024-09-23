@@ -4,14 +4,16 @@ import React, {
 import { setExtraStyles } from '../../../../lib/teact/teact-dom';
 import { withGlobal } from '../../../../global';
 
-import type { ApiBaseCurrency, ApiToken, ApiVestingInfo } from '../../../../api/types';
-import type { StakingStatus, UserToken } from '../../../../global/types';
+import type { ApiBaseCurrency, ApiTokenWithPrice, ApiVestingInfo } from '../../../../api/types';
+import type { StakingStatus, Theme, UserToken } from '../../../../global/types';
 
-import { TONCOIN_SLUG } from '../../../../config';
+import { TONCOIN } from '../../../../config';
 import {
   selectCurrentAccountStakingStatus,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
+  selectIsFirstTransactionsLoaded,
+  selectIsMultichainAccount,
   selectIsNewWallet,
   selectMycoin,
 } from '../../../../global/selectors';
@@ -20,6 +22,7 @@ import { toDecimal } from '../../../../util/decimals';
 import { buildCollectionByKey } from '../../../../util/iteratees';
 import { REM } from '../../../../util/windowEnvironment';
 
+import useAppTheme from '../../../../hooks/useAppTheme';
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteScroll from '../../../../hooks/useInfiniteScroll';
@@ -50,7 +53,9 @@ interface StateProps {
   apyValue: number;
   currentTokenSlug?: string;
   baseCurrency?: ApiBaseCurrency;
-  mycoin?: ApiToken;
+  theme: Theme;
+  mycoin?: ApiTokenWithPrice;
+  isMultichainAccount: boolean;
 }
 
 const LIST_SLICE = 30;
@@ -71,13 +76,15 @@ function Assets({
   onStakedTokenClick,
   baseCurrency,
   mycoin,
+  isMultichainAccount,
+  theme,
 }: OwnProps & StateProps) {
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
   const renderedTokens = useCurrentOrPrev(tokens, true);
   const renderedMycoin = useCurrentOrPrev(mycoin, true);
 
-  const toncoin = useMemo(() => renderedTokens?.find(({ slug }) => slug === TONCOIN_SLUG), [renderedTokens])!;
+  const toncoin = useMemo(() => renderedTokens?.find(({ slug }) => slug === TONCOIN.slug), [renderedTokens])!;
   const userMycoin = useMemo(() => {
     if (!renderedTokens || !renderedMycoin) return undefined;
 
@@ -85,6 +92,7 @@ function Assets({
   }, [renderedMycoin, renderedTokens]);
 
   const { isLandscape, isPortrait } = useDeviceScreen();
+  const appTheme = useAppTheme(theme);
 
   const shouldShowGreeting = isNewWallet && isPortrait && !isSeparatePanel;
 
@@ -152,8 +160,9 @@ function Assets({
         amount={vestingAmount}
         isInvestorView={isInvestorViewEnabled}
         classNames={vestingTokenClassNames}
-        onClick={onVestingTokenClick}
         baseCurrency={baseCurrency}
+        appTheme={appTheme}
+        onClick={onVestingTokenClick}
       />
     );
   }
@@ -168,8 +177,9 @@ function Assets({
         amount={stakingBalance === undefined ? undefined : toDecimal(stakingBalance)}
         isInvestorView={isInvestorViewEnabled}
         classNames={stakedTokenClassNames}
-        onClick={onStakedTokenClick}
         baseCurrency={baseCurrency}
+        appTheme={appTheme}
+        onClick={onStakedTokenClick}
       />
     );
   }
@@ -185,10 +195,12 @@ function Assets({
         style={style}
         key={token.slug}
         token={token}
-        apyValue={!stakingBalance && token.slug === TONCOIN_SLUG ? apyValue : undefined}
+        apyValue={!stakingBalance && token.slug === TONCOIN.slug ? apyValue : undefined}
         isInvestorView={isInvestorViewEnabled}
         isActive={token.slug === currentTokenSlug}
         baseCurrency={baseCurrency}
+        withChainIcon={isMultichainAccount}
+        appTheme={appTheme}
         onClick={onTokenClick}
       />
     );
@@ -222,7 +234,8 @@ export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
       const tokens = selectCurrentAccountTokens(global);
-      const isNewWallet = selectIsNewWallet(global);
+      const isFirstTransactionLoaded = selectIsFirstTransactionsLoaded(global, global.currentAccountId!);
+      const isNewWallet = selectIsNewWallet(global, isFirstTransactionLoaded);
       const accountState = selectCurrentAccountState(global);
       const { isInvestorViewEnabled } = global.settings;
       const stakingStatus = selectCurrentAccountStakingStatus(global);
@@ -238,6 +251,8 @@ export default memo(
         currentTokenSlug: accountState?.currentTokenSlug,
         baseCurrency: global.settings.baseCurrency,
         mycoin: selectMycoin(global),
+        isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
+        theme: global.settings.theme,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

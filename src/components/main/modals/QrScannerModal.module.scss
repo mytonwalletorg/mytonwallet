@@ -133,8 +133,8 @@
 
   font-size: 2.5rem !important;
 
-  @supports (bottom: max(4rem, env(safe-area-inset-bottom))) {
-    bottom: max(4rem, env(safe-area-inset-bottom));
+  @supports (bottom: max(4rem, var(--safe-area-bottom))) {
+    bottom: max(4rem, var(--safe-area-bottom));
   }
 }
 

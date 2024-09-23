@@ -1,47 +1,37 @@
 import type { ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
-import blockchains from '../blockchains';
+import chains from '../chains';
+
+const { ton } = chains;
+
+export { getTokenBySlug, buildTokenSlug } from '../common/tokens';
 
 export function fetchToken(accountId: string, address: string) {
-  const { network, blockchain: blockchainKey } = parseAccountId(accountId);
-  const blockchain = blockchains[blockchainKey];
-
-  return blockchain.fetchToken(network, address);
+  const { network } = parseAccountId(accountId);
+  return ton.fetchToken(network, address);
 }
 
-export function resolveTokenBySlug(slug: string) {
-  const blockchain = blockchains.ton;
+export function resolveTokenWalletAddress(network: ApiNetwork, address: string, tokenAddress: string) {
+  const chain = chains.ton;
 
-  return blockchain.resolveTokenBySlug(slug);
+  return chain.resolveTokenWalletAddress(network, address, tokenAddress);
 }
 
-export function resolveTokenWalletAddress(network: ApiNetwork, address: string, minterAddress: string) {
-  const blockchain = blockchains.ton;
+export function resolveTokenAddress(network: ApiNetwork, tokenWalletAddress: string) {
+  const chain = chains.ton;
 
-  return blockchain.resolveTokenWalletAddress(network, address, minterAddress);
-}
-
-export function resolveTokenMinterAddress(network: ApiNetwork, tokenWalletAddress: string) {
-  const blockchain = blockchains.ton;
-
-  return blockchain.resolveTokenMinterAddress(network, tokenWalletAddress);
-}
-
-export function buildTokenSlug(address: string) {
-  const blockchain = blockchains.ton;
-
-  return blockchain.buildTokenSlug(address);
+  return chain.resolveTokenAddress(network, tokenWalletAddress);
 }
 
 export function fetchTokenBalances(accountId: string) {
-  const blockchain = blockchains.ton;
+  const chain = chains.ton;
 
-  return blockchain.getAccountTokenBalances(accountId);
+  return chain.getAccountTokenBalances(accountId);
 }
 
 export function fetchTokenBalancesByAddress(address: string, network: ApiNetwork) {
-  const blockchain = blockchains.ton;
+  const chain = chains.ton;
 
-  return blockchain.getAddressTokenBalances(address, network);
+  return chain.getAddressTokenBalances(address, network);
 }

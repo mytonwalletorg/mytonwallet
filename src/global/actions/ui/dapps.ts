@@ -85,3 +85,15 @@ addActionHandler('removeSiteFromBrowserHistory', (global, actions, { url }) => {
   });
   setGlobal(global);
 });
+
+addActionHandler('updateDappLastOpenedAt', (global, actions, { origin }) => {
+  const { dappLastOpenedDatesByOrigin } = selectCurrentAccountState(global)!;
+
+  const newDates = {
+    ...dappLastOpenedDatesByOrigin,
+    [origin]: Date.now(),
+  };
+
+  global = updateCurrentAccountState(global, { dappLastOpenedDatesByOrigin: newDates });
+  setGlobal(global);
+});

@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { APP_NAME, MNEMONIC_COUNT } from '../../config';
+import { APP_NAME } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';
@@ -76,7 +76,7 @@ function AuthStart({ hasAccounts, isLoading }: StateProps) {
             className={buildClassName(styles.btn, !IS_LEDGER_SUPPORTED && styles.btn_single)}
             onClick={!isLoading ? startImportingWallet : undefined}
           >
-            {lang('%1$d Secret Words', MNEMONIC_COUNT)}
+            {lang('Secret Words')}
           </Button>
           {IS_LEDGER_SUPPORTED && (
             <Button

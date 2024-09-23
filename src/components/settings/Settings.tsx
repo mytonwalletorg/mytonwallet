@@ -1,11 +1,10 @@
-import { AndroidSettings, IOSSettings, NativeSettings } from 'capacitor-native-settings';
-import { Dialog } from 'native-dialog';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiWalletInfo, ApiWalletVersion } from '../../api/types';
+import type { ApiTonWalletVersion } from '../../api/chains/ton/types';
+import type { ApiWalletInfo } from '../../api/types';
 import type { Wallet } from './SettingsWalletVersion';
 import { type GlobalState, SettingsState, type UserToken } from '../../global/types';
 
@@ -19,16 +18,10 @@ import {
   PROXY_HOSTS,
   SUPPORT_USERNAME,
   TELEGRAM_WEB_URL,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../../config';
-import {
-  selectAccountSettings,
-  selectCurrentAccountTokens,
-  selectIsHardwareAccount,
-  selectIsPasswordPresent,
-} from '../../global/selectors';
+import { selectCurrentAccountTokens, selectIsHardwareAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { getIsNativeBiometricAuthSupported } from '../../util/capacitor';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
@@ -40,14 +33,11 @@ import {
   IS_DAPP_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
   IS_ELECTRON,
-  IS_IOS,
-  IS_IOS_APP,
   IS_LEDGER_SUPPORTED,
   IS_TOUCH_ENV,
   IS_WEB,
 } from '../../util/windowEnvironment';
 
-import useEffectOnce from '../../hooks/useEffectOnce';
 import useFlag from '../../hooks/useFlag';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -64,7 +54,6 @@ import ModalHeader from '../ui/ModalHeader';
 import Switcher from '../ui/Switcher';
 import Transition from '../ui/Transition';
 import Biometrics from './biometrics/Biometrics';
-import NativeBiometricsToggle from './biometrics/NativeBiometricsToggle';
 import SettingsNativeBiometricsTurnOn from './biometrics/NativeBiometricsTurnOn';
 import SettingsAbout from './SettingsAbout';
 import SettingsAppearance from './SettingsAppearance';
@@ -74,6 +63,7 @@ import SettingsDeveloperOptions from './SettingsDeveloperOptions';
 import SettingsDisclaimer from './SettingsDisclaimer';
 import SettingsHiddenNfts from './SettingsHiddenNfts';
 import SettingsLanguage from './SettingsLanguage';
+import SettingsSecurity from './SettingsSecurity';
 import SettingsTokenList from './SettingsTokenList';
 import SettingsWalletVersion from './SettingsWalletVersion';
 
@@ -84,7 +74,6 @@ import aboutImg from '../../assets/settings/settings_about.svg';
 import appearanceImg from '../../assets/settings/settings_appearance.svg';
 import assetsActivityImg from '../../assets/settings/settings_assets-activity.svg';
 import backupSecretImg from '../../assets/settings/settings_backup-secret.svg';
-import biometricsImg from '../../assets/settings/settings_biometrics.svg';
 import connectedDappsImg from '../../assets/settings/settings_connected-dapps.svg';
 import disclaimerImg from '../../assets/settings/settings_disclaimer.svg';
 import exitImg from '../../assets/settings/settings_exit.svg';
@@ -93,6 +82,7 @@ import installDesktopImg from '../../assets/settings/settings_install-desktop.sv
 import installMobileImg from '../../assets/settings/settings_install-mobile.svg';
 import languageImg from '../../assets/settings/settings_language.svg';
 import ledgerImg from '../../assets/settings/settings_ledger.svg';
+import securityImg from '../../assets/settings/settings_security.svg';
 import supportImg from '../../assets/settings/settings_support.svg';
 import telegramImg from '../../assets/settings/settings_telegram-menu.svg';
 import tonLinksImg from '../../assets/settings/settings_ton-links.svg';
@@ -108,11 +98,8 @@ type StateProps = {
   settings: GlobalState['settings'];
   isOpen?: boolean;
   tokens?: UserToken[];
-  orderedSlugs?: string[];
-  isBiometricAuthEnabled: boolean;
-  isPasswordPresent?: boolean;
   isHardwareAccount?: boolean;
-  currentVersion?: ApiWalletVersion;
+  currentVersion?: ApiTonWalletVersion;
   versions?: ApiWalletInfo[];
   isCopyStorageEnabled?: boolean;
   supportAccountsCount?: number;
@@ -126,25 +113,18 @@ function Settings({
     state,
     theme,
     animationLevel,
-    areTinyTransfersHidden,
     isTestnet,
-    isInvestorViewEnabled,
     canPlaySounds,
     langCode,
     isTonProxyEnabled,
     isTonMagicEnabled,
     isDeeplinkHookEnabled,
-    areTokensWithNoCostHidden,
-    isSortByValueEnabled,
     dapps,
     baseCurrency,
   },
   isOpen = false,
   tokens,
-  orderedSlugs,
   isInsideModal,
-  isBiometricAuthEnabled,
-  isPasswordPresent,
   isHardwareAccount,
   currentVersion,
   versions,
@@ -160,9 +140,6 @@ function Settings({
     toggleTonProxy,
     toggleTonMagic,
     getDapps,
-    initTokensOrder,
-    openBiometricsTurnOn,
-    openBiometricsTurnOffWarning,
     clearIsPinAccepted,
   } = getActions();
 
@@ -177,11 +154,10 @@ function Settings({
   const [isLogOutModalOpened, openLogOutModal, closeLogOutModal] = useFlag();
 
   const activeLang = useMemo(() => LANG_LIST.find((l) => l.langCode === langCode), [langCode]);
-  const shouldRenderNativeBiometrics = isPasswordPresent && (getIsNativeBiometricAuthSupported() || IS_IOS_APP);
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]);
 
   const wallets = useMemo(() => {
     return versions?.map((v) => {
@@ -206,10 +182,6 @@ function Settings({
     transitionClassNames: telegramLinkClassNames,
     shouldRender: isTelegramLinkRendered,
   } = useShowTransition(isTonMagicEnabled);
-
-  useEffectOnce(() => {
-    initTokensOrder();
-  });
 
   const {
     handleScroll: handleContentScroll,
@@ -240,6 +212,10 @@ function Settings({
     setSettingsState({ state: SettingsState.Appearance });
   }
 
+  function handleSecurityOpen() {
+    setSettingsState({ state: SettingsState.Security });
+  }
+
   function handleAssetsOpen() {
     setSettingsState({ state: SettingsState.Assets });
   }
@@ -255,30 +231,6 @@ function Settings({
   function handleDisclaimerOpen() {
     setSettingsState({ state: SettingsState.Disclaimer });
   }
-
-  const handleNativeBiometricsTurnOnOpen = useLastCallback(() => {
-    if (!getIsNativeBiometricAuthSupported()) {
-      const warningDescription = IS_IOS
-        ? 'To use this feature, first enable Face ID in your phone settings.'
-        : 'To use this feature, first enable biometrics in your phone settings.';
-      Dialog.confirm({
-        title: lang('Warning!'),
-        message: lang(warningDescription),
-        okButtonTitle: lang('Open Settings'),
-        cancelButtonTitle: lang('Cancel'),
-      })
-        .then(({ value }) => {
-          if (value) {
-            NativeSettings.open({
-              optionAndroid: AndroidSettings.ApplicationDetails,
-              optionIOS: IOSSettings.App,
-            });
-          }
-        });
-    } else {
-      setSettingsState({ state: SettingsState.NativeBiometricsTurnOn });
-    }
-  });
 
   const handleBackClick = useLastCallback(() => {
     setSettingsState({ state: SettingsState.Initial });
@@ -302,14 +254,6 @@ function Settings({
 
   const handleTonMagicToggle = useLastCallback(() => {
     toggleTonMagic({ isEnabled: !isTonMagicEnabled });
-  });
-
-  const handleBiometricAuthToggle = useLastCallback(() => {
-    if (isBiometricAuthEnabled) {
-      openBiometricsTurnOffWarning();
-    } else {
-      openBiometricsTurnOn();
-    }
   });
 
   function handleClickInstallApp() {
@@ -446,25 +390,6 @@ function Settings({
               </div>
             </div>
           )}
-          {shouldRenderNativeBiometrics && (
-            <NativeBiometricsToggle
-              onEnable={handleNativeBiometricsTurnOnOpen}
-            />
-          )}
-          {isPasswordPresent && IS_BIOMETRIC_AUTH_SUPPORTED && (
-            <div className={styles.block}>
-              <div className={styles.item} onClick={handleBiometricAuthToggle}>
-                <img className={styles.menuIcon} src={biometricsImg} alt={lang('Biometric Authentication')} />
-                {lang('Biometric Authentication')}
-
-                <Switcher
-                  className={styles.menuSwitcher}
-                  label={lang('Biometric Authentication')}
-                  checked={isBiometricAuthEnabled}
-                />
-              </div>
-            </div>
-          )}
           {IS_EXTENSION && (
             <div className={styles.block}>
               {PROXY_HOSTS && (
@@ -516,6 +441,12 @@ function Settings({
             <div className={styles.item} onClick={handleAssetsOpen}>
               <img className={styles.menuIcon} src={assetsActivityImg} alt={lang('Assets & Activity')} />
               {lang('Assets & Activity')}
+
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </div>
+            <div className={styles.item} onClick={handleSecurityOpen}>
+              <img className={styles.menuIcon} src={securityImg} alt={lang('Security')} />
+              {lang('Security')}
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
@@ -672,23 +603,24 @@ function Settings({
             isInsideModal={isInsideModal}
             isTrayIconEnabled={isTrayIconEnabled}
             onTrayIconEnabledToggle={handleTrayIconEnabledToggle}
-            isAutoUpdateEnabled={isAutoUpdateEnabled}
-            onAutoUpdateEnabledToggle={handleAutoUpdateEnabledToggle}
           />
         );
       case SettingsState.Assets:
         return (
           <SettingsAssets
             isActive={isActive}
-            tokens={tokens}
-            orderedSlugs={orderedSlugs}
-            isInvestorViewEnabled={isInvestorViewEnabled}
-            areTinyTransfersHidden={areTinyTransfersHidden}
-            areTokensWithNoCostHidden={areTokensWithNoCostHidden}
-            isSortByValueEnabled={isSortByValueEnabled}
+            isInsideModal={isInsideModal}
+            onBack={handleBackClick}
+          />
+        );
+      case SettingsState.Security:
+        return (
+          <SettingsSecurity
+            isActive={isActive}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
-            baseCurrency={baseCurrency}
+            isAutoUpdateEnabled={isAutoUpdateEnabled}
+            onAutoUpdateEnabledToggle={handleAutoUpdateEnabledToggle}
           />
         );
       case SettingsState.Dapps:
@@ -774,11 +706,7 @@ function Settings({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { authConfig } = global.settings;
-
-  const { orderedSlugs } = selectAccountSettings(global, global.currentAccountId!) ?? {};
   const isHardwareAccount = selectIsHardwareAccount(global);
-  const isPasswordPresent = selectIsPasswordPresent(global);
   const { isCopyStorageEnabled, supportAccountsCount = 1 } = global.restrictions;
 
   const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
@@ -788,9 +716,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     settings: global.settings,
     isOpen: global.areSettingsOpen,
     tokens: selectCurrentAccountTokens(global),
-    orderedSlugs,
-    isBiometricAuthEnabled: !!authConfig && authConfig.kind !== 'password',
-    isPasswordPresent,
     isHardwareAccount,
     currentVersion,
     versions,

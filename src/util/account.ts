@@ -1,19 +1,12 @@
-import type { AccountIdParsed, ApiBlockchainKey, ApiNetwork } from '../api/types';
+import type { AccountIdParsed, ApiNetwork } from '../api/types';
 
 export function parseAccountId(accountId: string): AccountIdParsed {
-  const [
-    id,
-    blockchain = 'ton', // Handle deprecated case when `accountId = '0'`
-    network = 'mainnet',
-  ] = accountId.split('-');
-  return {
-    id: Number(id),
-    blockchain: blockchain as ApiBlockchainKey,
-    network: network as ApiNetwork,
-  };
+  const parts = accountId.split('-');
+  const [id, network = 'mainnet'] = (parts.length === 3 ? [parts[0], parts[2]] : parts) as [string, ApiNetwork];
+  return { id: Number(id), network };
 }
 
 export function buildAccountId(account: AccountIdParsed) {
-  const { id, network, blockchain } = account;
-  return `${id}-${blockchain}-${network}`;
+  const { id, network } = account;
+  return `${id}-${network}`;
 }

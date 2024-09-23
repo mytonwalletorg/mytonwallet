@@ -108,9 +108,9 @@ export function isDappActive(accountId: string, origin: string) {
   return activeDappByAccountId[accountId] === origin;
 }
 
-export async function updateDapp(accountId: string, origin: string, updater: (dapp: ApiDapp) => ApiDapp) {
+export async function updateDapp(accountId: string, origin: string, update: Partial<ApiDapp>) {
   const dapp = await getDapp(accountId, origin);
-  await addDapp(accountId, updater(dapp!));
+  await addDapp(accountId, { ...dapp!, ...update });
 }
 
 export async function getDapp(accountId: string, origin: string): Promise<ApiDapp | undefined> {

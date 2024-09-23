@@ -28,23 +28,21 @@ import type {
 import { ApiCommonError, ApiTransactionError } from '../types';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
 
-import { IS_EXTENSION, TONCOIN_SLUG } from '../../config';
+import { IS_EXTENSION, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { logDebugError } from '../../util/logs';
 import { fetchJsonMetadata } from '../../util/metadata';
 import safeExec from '../../util/safeExec';
-import blockchains from '../blockchains';
-import { parsePayloadBase64 } from '../blockchains/ton';
-import { fetchKeyPair } from '../blockchains/ton/auth';
+import chains from '../chains';
+import { getContractInfo, parsePayloadBase64 } from '../chains/ton';
+import { fetchKeyPair } from '../chains/ton/auth';
 import {
   getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress,
-} from '../blockchains/ton/util/tonCore';
-import { getContractInfo } from '../blockchains/ton/wallet';
+} from '../chains/ton/util/tonCore';
 import {
   fetchStoredAccount,
-  fetchStoredAddress,
-  fetchStoredPublicKey,
+  fetchStoredTonWallet,
   getCurrentAccountId,
   getCurrentAccountIdOrFail,
 } from '../common/accounts';
@@ -73,7 +71,7 @@ import { isValidString, isValidUrl } from './utils';
 
 const BLANK_GIF_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
-const ton = blockchains.ton;
+const ton = chains.ton;
 
 let resolveInit: AnyFunction;
 const initPromise = new Promise((resolve) => {
@@ -136,6 +134,7 @@ export async function connect(
 
     onPopupUpdate({
       type: 'dappConnect',
+      identifier: 'identifier' in request ? request.identifier : undefined,
       promiseId,
       accountId,
       dapp,
@@ -155,11 +154,11 @@ export async function connect(
     accountId = promiseResult!.accountId!;
     request.accountId = accountId;
     await addDapp(accountId, dapp);
+    const { address } = await fetchStoredTonWallet(accountId);
 
     const result = await reconnect(request, id);
 
     if (result.event === 'connect' && proof) {
-      const address = await fetchStoredAddress(accountId);
       const { password, signature } = promiseResult!;
 
       let proofReplyItem: TonProofItemReplySuccess;
@@ -198,9 +197,10 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Lo
     if (!currentDapp) {
       throw new UnknownAppError();
     }
-    await updateDapp(accountId, origin, (dapp) => ({ ...dapp, connectedAt: Date.now() }));
 
-    const address = await fetchStoredAddress(accountId);
+    await updateDapp(accountId, origin, { connectedAt: Date.now() });
+
+    const { address } = await fetchStoredTonWallet(accountId);
     const items: ConnectItemReply[] = [
       await buildTonAddressReplyItem(accountId, address),
     ];
@@ -259,13 +259,19 @@ export async function sendTransaction(
       validUntil = Math.round(validUntil / 1000);
     }
 
-    const account = await fetchStoredAccount(accountId);
-    const isLedger = !!account.ledger;
+    const {
+      type, ton: {
+        address,
+        publicKey: publicKeyHex,
+      },
+    } = await fetchStoredAccount(accountId);
+
+    const isLedger = type === 'ledger';
 
     let vestingAddress: string | undefined;
 
-    if (txPayload.from && toBase64Address(txPayload.from) !== toBase64Address(account.address)) {
-      const publicKey = hexToBytes(account.publicKey);
+    if (txPayload.from && toBase64Address(txPayload.from) !== toBase64Address(address)) {
+      const publicKey = hexToBytes(publicKeyHex);
       if (isLedger && await checkIsHisVestingWallet(network, publicKey, txPayload.from)) {
         vestingAddress = txPayload.from;
       } else {
@@ -351,19 +357,18 @@ export async function sendTransaction(
       throw new errors.UnknownError(error);
     }
 
-    const fromAddress = await fetchStoredAddress(accountId);
     const successTransactions = transactionsForRequest.slice(0, successNumber!);
 
     successTransactions.forEach(({ amount, normalizedAddress, payload }, index) => {
       const comment = payload?.type === 'comment' ? payload.comment : undefined;
       const msgHash = isLedger ? msgHashes[index] : msgHashes[0];
-      createLocalTransaction(accountId, {
+      createLocalTransaction(accountId, 'ton', {
         amount,
-        fromAddress,
+        fromAddress: address,
         toAddress: normalizedAddress,
         comment,
         fee: checkResult.fee!,
-        slug: TONCOIN_SLUG,
+        slug: TONCOIN.slug,
         inMsgHash: msgHash,
       });
     });
@@ -528,10 +533,11 @@ function formatConnectError(id: number, error: Error): ConnectEventError {
 async function buildTonAddressReplyItem(accountId: string, address: string): Promise<ConnectItemReply> {
   const { network } = parseAccountId(accountId);
 
-  const [stateInit, publicKey] = await Promise.all([
+  const [stateInit, { publicKey }] = await Promise.all([
     ton.getWalletStateInit(accountId),
-    fetchStoredPublicKey(accountId),
+    fetchStoredTonWallet(accountId),
   ]);
+
   return {
     name: 'ton_addr',
     address: toRawAddress(address),

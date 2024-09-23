@@ -12,7 +12,6 @@ def capacitor_pods
   pod 'Capacitor', :path => '../../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../../node_modules/@capacitor/ios'
   pod 'CapacitorMlkitBarcodeScanning', :path => '../../../node_modules/@capacitor-mlkit/barcode-scanning'
-  pod 'CapacitorActionSheet', :path => '../../../node_modules/@capacitor/action-sheet'
   pod 'CapacitorApp', :path => '../../../node_modules/@capacitor/app'
   pod 'CapacitorAppLauncher', :path => '../../../node_modules/@capacitor/app-launcher'
   pod 'CapacitorClipboard', :path => '../../../node_modules/@capacitor/clipboard'
@@ -33,7 +32,7 @@ end
 target 'MyTonWallet' do
   capacitor_pods
   # Add your Pods here
-  pod 'FloatingPanel', :git => 'https://github.com/mytonwalletorg/FloatingPanel', :commit => '1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b'
+  pod 'FloatingPanel', :git => 'https://github.com/mytonwalletorg/FloatingPanel', :commit => '133e8c5a266006bfaa30da50e7dd000a5d75882b'
 end
 
 post_install do |installer|

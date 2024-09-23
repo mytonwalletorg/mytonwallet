@@ -140,6 +140,9 @@
   --color-apy-active-text: #FFFFFF;
   --color-apy-active-background: #8892EB;
 
+  --color-default-dapp-logo: #1EC160;
+  --color-default-dapp-logo-background: #EAFBF1;
+
   --color-flashlight-button-background: rgba(255, 255, 255, 0.35);
   --color-flashlight-button-enabled-background: rgba(255, 255, 255, 0.95);
   --color-flashlight-button-text: #000;
@@ -172,8 +175,8 @@
   --border-radius-big: 1.5rem;
 
   --scrollbar-width: 0;
-  --safe-area-bottom-value: env(safe-area-inset-bottom);
-  --safe-area-top-value: env(safe-area-inset-top);
+  --safe-area-bottom-value: var(--safe-area-bottom);
+  --safe-area-top-value: var(--safe-area-top);
 
   --z-below: -1;
   --z-card: 10;
@@ -196,6 +199,8 @@
   --dropdown-transition: opacity 200ms cubic-bezier(0.2, 0, 0.2, 1), transform 200ms cubic-bezier(0.2, 0, 0.2, 1),
   scrollbar-color 300ms;
   --dropdown-transition-backwards: opacity 200ms ease-in, transform 200ms ease-in;
+
+  --color-beidge-background: #D9EAF5;
 
   &.is-ios {
     --layer-transition: 650ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -314,12 +319,17 @@
     --color-apy-active-text: #FFFFFF;
     --color-apy-active-background: #6B78D9;
 
+    --color-default-dapp-logo: #2BC469;
+    --color-default-dapp-logo-background: #1F3838;
+
     --color-background-blue-second: #133950;
     --color-vesting-close-background: #124B6B;
     --color-vesting-close-background-hover: #105F89;
-    --color-vesting-blue: #469CEC;
+    --color-vesting-blue: #58AFFF;
     --color-vesting-blue-hover: #51A7F7;
     --color-vesting-text: #58AFFF;
     --color-vesting-background: #115073;
+
+    --color-beidge-background: #1A2938;
   }
 }

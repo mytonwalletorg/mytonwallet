@@ -17,7 +17,6 @@ const config: CapacitorConfig = {
       '@capacitor/app',
       '@capacitor/clipboard',
       '@capacitor/haptics',
-      '@capacitor/action-sheet',
       '@capacitor/status-bar',
       '@capgo/capacitor-native-biometric',
       '@capgo/native-audio',

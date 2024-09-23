@@ -5,7 +5,7 @@ import type { UserSwapToken } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
-import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
+import getChainNetworkName from '../../util/swap/getChainNetworkName';
 import getSwapRate from '../../util/swap/getSwapRate';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
@@ -35,7 +35,7 @@ function SwapTokensInfo({
           />
           <div className={buildClassName(styles.infoRowText, styles.infoRowTextCenter)}>
             <span className={styles.infoRowTitle}>{token?.name}</span>
-            <span className={styles.infoRowDescription}>{getBlockchainNetworkName(token?.blockchain)}</span>
+            <span className={styles.infoRowDescription}>{getChainNetworkName(token?.chain)}</span>
           </div>
         </div>
         <div className={buildClassName(styles.infoRowText, styles.infoRowTextRight, styles.infoRowTextCenter)}>

@@ -53,8 +53,8 @@
     }
   }
 
-  @supports (padding-top: env(safe-area-inset-top)) {
-    padding-top: env(safe-area-inset-top);
+  @supports (padding-top: var(--safe-area-top)) {
+    padding-top: var(--safe-area-top);
   }
 }
 

@@ -1,29 +1,38 @@
-import type { ApiAccount, ApiTxIdBySlug } from '../types';
+import type {
+  ApiChain, ApiLedgerAccount, ApiTonWallet, ApiTxTimestamps, OnApiUpdate,
+} from '../types';
 
-import { IS_EXTENSION } from '../../config';
+import { getChainConfig, IS_EXTENSION } from '../../config';
 import { parseAccountId } from '../../util/account';
-import { fetchStoredAccount, loginResolve } from '../common/accounts';
+import chains from '../chains';
+import {
+  fetchStoredAccount,
+  fetchStoredTonWallet,
+  getActiveAccountId,
+  loginResolve,
+  setActiveAccountId,
+} from '../common/accounts';
 import { waitStorageMigration } from '../common/helpers';
+import { sendUpdateTokens } from '../common/tokens';
 import { callHook } from '../hooks';
 import { storage } from '../storages';
 import { deactivateAccountDapp, deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
-import {
-  sendUpdateTokens,
-  setupBalanceBasedPolling,
-  setupStakingPolling,
-  setupVestingPolling,
-  setupWalletVersionsPolling,
-} from './polling';
 
-let activeAccountId: string | undefined;
+const { ton, tron } = chains;
 
-export async function activateAccount(accountId: string, newestTxIds?: ApiTxIdBySlug) {
+let onUpdate: OnApiUpdate;
+
+export function initAccounts(_onUpdate: OnApiUpdate) {
+  onUpdate = _onUpdate;
+}
+
+export async function activateAccount(accountId: string, newestTxTimestamps: ApiTxTimestamps = {}) {
   await waitStorageMigration();
 
-  const prevAccountId = activeAccountId;
+  const prevAccountId = getActiveAccountId();
   const isFirstLogin = !prevAccountId;
 
-  activeAccountId = accountId;
+  setActiveAccountId(accountId);
   await storage.setItem('currentAccountId', accountId);
   loginResolve();
 
@@ -33,23 +42,32 @@ export async function activateAccount(accountId: string, newestTxIds?: ApiTxIdBy
     }
 
     void callHook('onFirstLogin');
-
     onActiveDappAccountUpdated(accountId);
   }
 
   if (isFirstLogin) {
-    sendUpdateTokens();
+    sendUpdateTokens(onUpdate);
   }
 
-  void setupBalanceBasedPolling(accountId, newestTxIds);
-  void setupStakingPolling(accountId);
-  void setupWalletVersionsPolling(accountId);
-  void setupVestingPolling(accountId);
+  const account = await fetchStoredAccount(accountId);
+
+  if ('ton' in account) ton.setupPolling(accountId, onUpdate, pickChainTimestamps(newestTxTimestamps, 'ton'));
+  if ('tron' in account) void tron.setupPolling(accountId, onUpdate, pickChainTimestamps(newestTxTimestamps, 'tron'));
+}
+
+function pickChainTimestamps(bySlug: ApiTxTimestamps, chain: ApiChain) {
+  const { slug: nativeSlug } = getChainConfig(chain).nativeToken;
+  return Object.entries(bySlug).reduce((newBySlug, [slug, timestamp]) => {
+    if (slug === nativeSlug || slug.startsWith(`${chain}-`)) {
+      newBySlug[slug] = timestamp;
+    }
+    return newBySlug;
+  }, {} as ApiTxTimestamps);
 }
 
 export function deactivateAllAccounts() {
   deactivateCurrentAccount();
-  activeAccountId = undefined;
+  setActiveAccountId(undefined);
 
   if (IS_EXTENSION) {
     deactivateAllDapps();
@@ -59,18 +77,14 @@ export function deactivateAllAccounts() {
 
 export function deactivateCurrentAccount() {
   if (IS_EXTENSION) {
-    deactivateAccountDapp(activeAccountId!);
+    deactivateAccountDapp(getActiveAccountId()!);
   }
 }
 
-export function isAccountActive(accountId: string) {
-  return activeAccountId === accountId;
+export function fetchTonWallet(accountId: string): Promise<ApiTonWallet> {
+  return fetchStoredTonWallet(accountId);
 }
 
-export function fetchAccount(accountId: string): Promise<ApiAccount> {
-  return fetchStoredAccount(accountId);
-}
-
-export function getActiveAccountId() {
-  return activeAccountId;
+export function fetchLedgerAccount(accountId: string) {
+  return fetchStoredAccount<ApiLedgerAccount>(accountId);
 }

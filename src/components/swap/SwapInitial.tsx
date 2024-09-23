@@ -15,8 +15,7 @@ import {
   DEFAULT_FEE,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   DIESEL_TOKENS,
-  TON_SYMBOL,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import { selectSwapTokens } from '../../global/selectors';
@@ -112,7 +111,7 @@ function SwapInitial({
 
   const [hasAmountInError, setHasAmountInError] = useState(false);
 
-  const currentTokenInSlug = tokenInSlug ?? TONCOIN_SLUG;
+  const currentTokenInSlug = tokenInSlug ?? TONCOIN.slug;
   const currentTokenOutSlug = tokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG;
 
   const tokenInTransitionKey = useTokenTransitionKey(currentTokenInSlug ?? '');
@@ -130,11 +129,11 @@ function SwapInitial({
   );
 
   const toncoin = useMemo(
-    () => tokens?.find((token) => token.slug === TONCOIN_SLUG) ?? { amount: 0 },
+    () => tokens?.find((token) => token.slug === TONCOIN.slug) ?? { amount: 0 },
     [tokens],
   );
 
-  const isToncoinIn = currentTokenInSlug === TONCOIN_SLUG;
+  const isToncoinIn = currentTokenInSlug === TONCOIN.slug;
   const totalToncoinAmount = useMemo(
     () => {
       if (!tokenIn || !amountIn) {
@@ -156,8 +155,8 @@ function SwapInitial({
   const isEnoughToncoin = toncoin.amount > totalToncoinAmount;
   const isDieselSwap = swapType === SwapType.OnChain
     && !isEnoughToncoin
-    && tokenIn?.contract
-    && DIESEL_TOKENS.has(tokenIn.contract);
+    && tokenIn?.tokenAddress
+    && DIESEL_TOKENS.has(tokenIn.tokenAddress);
 
   // eslint-disable-next-line max-len
   const isCorrectAmountIn = Boolean(
@@ -235,10 +234,10 @@ function SwapInitial({
   }, [accountId, accountIdPrev, currentTokenInSlug, currentTokenOutSlug]);
 
   useEffect(() => {
-    if (tokenIn?.blockchain === 'ton' && tokenOut?.blockchain !== 'ton') {
+    if (tokenIn?.chain === 'ton' && tokenOut?.chain !== 'ton') {
       setSwapType({ type: SwapType.CrosschainFromToncoin });
       return;
-    } else if (tokenOut?.blockchain === 'ton' && tokenIn?.blockchain !== 'ton') {
+    } else if (tokenOut?.chain === 'ton' && tokenIn?.chain !== 'ton') {
       setSwapType({ type: SwapType.CrosschainToToncoin });
       return;
     }
@@ -478,7 +477,7 @@ function SwapInitial({
       && isDieselSwap
       && swapFee
       && tokenIn
-      && tokenIn?.slug !== TONCOIN_SLUG
+      && tokenIn?.slug !== TONCOIN.slug
       && !isLoading
     ) {
       // Diesel swap
@@ -491,7 +490,7 @@ function SwapInitial({
     } else if (swapType !== SwapType.CrosschainToToncoin) {
       feeBlock = (
         <span className={styles.feeText}>{lang(isFeeEqualZero ? '$fee_value' : '$fee_value_almost_equal', {
-          fee: formatCurrency(realNetworkFee, TON_SYMBOL),
+          fee: formatCurrency(realNetworkFee, TONCOIN.symbol),
         })}
         </span>
       );

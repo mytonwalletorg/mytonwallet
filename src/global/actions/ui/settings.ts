@@ -17,7 +17,7 @@ addCallback((global: GlobalState) => {
   const { settings } = global;
 
   if (settings.theme !== prevSettings.theme) {
-    switchTheme(settings.theme);
+    switchTheme(settings.theme, true);
   }
 
   if (settings.langCode !== prevSettings.langCode) {

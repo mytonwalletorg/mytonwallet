@@ -240,7 +240,60 @@
   vertical-align: -0.1875rem;
 }
 
-.tonExplorerButton {
+.menuItem {
+  --copy-icon-color: var(--color-gray-3);
+
+  position: relative;
+
+  display: flex;
+
+  width: 100%;
+  padding: 0.375rem !important;
+}
+
+.menuIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.menuItemName {
+  cursor: var(--custom-cursor, pointer);
+
+  display: inline-flex;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      --copy-icon-color: var(--color-blue);
+    }
+  }
+}
+
+.menuFontIcon {
+  margin-top: -0.0625rem;
+  margin-inline-start: 0.25rem;
+  margin-inline-end: 0;
+
+  font-size: 1rem !important;
+  color: var(--copy-icon-color);
+
+  transition: color 150ms;
+}
+
+.menuExplorerIcon {
+  cursor: var(--custom-cursor, pointer);
+
+  order: 3;
+
+  color: var(--color-gray-3);
+
+  &:hover,
+  &:focus {
+    color: var(--color-blue);
+  }
+}
+
+.explorerButton {
   font-size: 1.25rem;
   line-height: 1;
   color: var(--color-card-second-text);
@@ -380,7 +433,7 @@
   border-radius: 0.25rem;
 }
 
-.tokenTonExplorerButton {
+.tokenExplorerButton {
   position: relative;
   top: 0.25rem;
 

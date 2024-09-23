@@ -18,7 +18,7 @@ import {
 } from '../../types';
 
 import {
-  DEFAULT_FEE, DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TONCOIN_SLUG,
+  DEFAULT_FEE, DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TONCOIN,
 } from '../../../config';
 import { Big } from '../../../lib/big.js';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
@@ -33,6 +33,7 @@ import { buildSwapId } from '../../../util/swap/buildSwapId';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
+import { getTokenSlugForSwap } from '../../helpers';
 import {
   clearCurrentSwap,
   clearIsPinAccepted,
@@ -75,10 +76,10 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
     swapFee,
   } = global.currentSwap;
 
-  const tokenIn = global.swapTokenInfo!.bySlug[tokenInSlug!];
-  const tokenOut = global.swapTokenInfo!.bySlug[tokenOutSlug!];
-  const from = tokenIn.slug === TONCOIN_SLUG ? tokenIn.symbol : tokenIn.contract!;
-  const to = tokenOut.slug === TONCOIN_SLUG ? tokenOut.symbol : tokenOut.contract!;
+  const tokenIn = global.swapTokenInfo!.bySlug[getTokenSlugForSwap(tokenInSlug!)];
+  const tokenOut = global.swapTokenInfo!.bySlug[getTokenSlugForSwap(tokenOutSlug!)];
+  const from = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
+  const to = tokenOut.slug === TONCOIN.slug ? tokenOut.symbol : tokenOut.tokenAddress!;
   const fromAmount = amountIn!;
   const toAmount = amountOut!;
   const account = selectAccount(global, global.currentAccountId!);
@@ -94,7 +95,7 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
     toAmount,
     toMinAmount: amountOutMin!,
     slippage,
-    fromAddress: account?.address!,
+    fromAddress: account?.addressByChain.ton!,
     dexLabel: dexLabel!,
     networkFee: networkFee!,
     swapFee: swapFee!,
@@ -121,11 +122,11 @@ addActionHandler('startSwap', async (global, actions, payload) => {
   const isPortrait = getIsPortrait();
 
   if (tokenInSlug || tokenOutSlug || amountIn || toAddress) {
-    const tokenIn = global.swapTokenInfo?.bySlug[tokenInSlug!];
-    const tokenOut = global.swapTokenInfo?.bySlug[tokenOutSlug!];
+    const tokenIn = global.swapTokenInfo?.bySlug[getTokenSlugForSwap(tokenInSlug!)];
+    const tokenOut = global.swapTokenInfo?.bySlug[getTokenSlugForSwap(tokenOutSlug!)];
 
-    const isCrosschain = tokenIn?.blockchain !== 'ton' || tokenOut?.blockchain !== 'ton';
-    const isToTon = tokenOut?.blockchain === 'ton';
+    const isCrosschain = tokenIn?.chain !== 'ton' || tokenOut?.chain !== 'ton';
+    const isToTon = tokenOut?.chain === 'ton';
 
     const swapType = isCrosschain
       ? (isToTon ? SwapType.CrosschainToToncoin : SwapType.CrosschainFromToncoin)
@@ -154,11 +155,16 @@ addActionHandler('startSwap', async (global, actions, payload) => {
 });
 
 addActionHandler('setDefaultSwapParams', (global, actions, payload) => {
-  const { tokenInSlug: requiredTokenInSlug, tokenOutSlug: requiredTokenOutSlug } = payload ?? {};
+  let { tokenInSlug: requiredTokenInSlug, tokenOutSlug: requiredTokenOutSlug } = payload ?? {};
+
+  requiredTokenInSlug = requiredTokenInSlug ? getTokenSlugForSwap(requiredTokenInSlug) : TONCOIN.slug;
+  requiredTokenOutSlug = requiredTokenOutSlug
+    ? getTokenSlugForSwap(requiredTokenOutSlug)
+    : DEFAULT_SWAP_SECOND_TOKEN_SLUG;
 
   global = updateCurrentSwap(global, {
-    tokenInSlug: requiredTokenInSlug ?? TONCOIN_SLUG,
-    tokenOutSlug: requiredTokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+    tokenInSlug: requiredTokenInSlug,
+    tokenOutSlug: requiredTokenOutSlug,
     priceImpact: 0,
     transactionFee: '0',
     swapFee: '0',
@@ -177,8 +183,8 @@ addActionHandler('cancelSwap', (global, actions, { shouldReset } = {}) => {
 
     global = clearCurrentSwap(global);
     global = updateCurrentSwap(global, {
-      tokenInSlug,
-      tokenOutSlug,
+      tokenInSlug: tokenInSlug ? getTokenSlugForSwap(tokenInSlug) : undefined,
+      tokenOutSlug: tokenOutSlug ? getTokenSlugForSwap(tokenOutSlug) : undefined,
       priceImpact: 0,
       transactionFee: '0',
       swapFee: '0',
@@ -369,7 +375,7 @@ addActionHandler('submitSwapCexFromToncoin', async (global, actions, { password 
 
   await pause(WAIT_FOR_CHANGELLY);
 
-  const result = await callApi('submitTransfer', transferOptions, false);
+  const result = await callApi('submitTransfer', 'ton', transferOptions, false);
 
   global = getGlobal();
 
@@ -492,9 +498,11 @@ addActionHandler('switchSwapTokens', (global) => {
 });
 
 addActionHandler('setSwapTokenIn', (global, actions, { tokenSlug }) => {
+  tokenSlug = getTokenSlugForSwap(tokenSlug);
+
   const { amountIn, amountOut } = global.currentSwap;
   const isFilled = Boolean(amountIn || amountOut);
-  const newTokenIn = global.swapTokenInfo!.bySlug[tokenSlug!];
+  const newTokenIn = global.swapTokenInfo!.bySlug[tokenSlug];
   const amount = amountIn ? roundDecimal(amountIn, newTokenIn.decimals) : amountIn;
 
   global = updateCurrentSwap(global, {
@@ -507,6 +515,8 @@ addActionHandler('setSwapTokenIn', (global, actions, { tokenSlug }) => {
 });
 
 addActionHandler('setSwapTokenOut', (global, actions, { tokenSlug }) => {
+  tokenSlug = getTokenSlugForSwap(tokenSlug);
+
   const { amountIn, amountOut } = global.currentSwap;
   const isFilled = Boolean(amountIn || amountOut);
   const newTokenOut = global.swapTokenInfo!.bySlug[tokenSlug!];
@@ -613,11 +623,11 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
   const tokenIn = global.swapTokenInfo!.bySlug[global.currentSwap.tokenInSlug!];
   const tokenOut = global.swapTokenInfo!.bySlug[global.currentSwap.tokenOutSlug!];
 
-  const from = tokenIn.slug === TONCOIN_SLUG ? tokenIn.symbol : tokenIn.contract!;
-  const to = tokenOut.slug === TONCOIN_SLUG ? tokenOut.symbol : tokenOut.contract!;
+  const from = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
+  const to = tokenOut.slug === TONCOIN.slug ? tokenOut.symbol : tokenOut.tokenAddress!;
   const fromAmount = global.currentSwap.amountIn ?? '0';
   const toAmount = global.currentSwap.amountOut ?? '0';
-  const fromAddress = selectCurrentAccount(global)!.address;
+  const fromAddress = selectCurrentAccount(global)!.addressByChain.ton;
 
   const estimateAmount = global.currentSwap.inputSource === SwapInputSource.In ? { fromAmount } : { toAmount };
 
@@ -748,8 +758,8 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   const tokenIn = global.swapTokenInfo!.bySlug[global.currentSwap.tokenInSlug!];
   const tokenOut = global.swapTokenInfo!.bySlug[global.currentSwap.tokenOutSlug!];
 
-  const from = tokenIn.slug === TONCOIN_SLUG ? tokenIn.symbol : tokenIn.contract!;
-  const to = tokenOut.slug === TONCOIN_SLUG ? tokenOut.symbol : tokenOut.contract!;
+  const from = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
+  const to = tokenOut.slug === TONCOIN.slug ? tokenOut.symbol : tokenOut.tokenAddress!;
   const fromAmount = global.currentSwap.amountIn ?? '0';
 
   const estimate = await callApi('swapCexEstimate', {
@@ -837,9 +847,9 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   if (global.currentSwap.swapType === SwapType.CrosschainFromToncoin) {
     const account = global.accounts?.byId[global.currentAccountId!];
 
-    const txDraft = await callApi('checkTransactionDraft', {
+    const txDraft = await callApi('checkTransactionDraft', 'ton', {
       accountId: global.currentAccountId!,
-      toAddress: account?.address!,
+      toAddress: account?.addressByChain.ton!,
       amount: fromDecimal(global.currentSwap.amountIn ?? 0, tokenIn.decimals),
     });
     networkFee = Number(toDecimal(txDraft?.fee ?? 0n));
@@ -887,7 +897,7 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
     return;
   }
 
-  const symbolOrMinter = tokenIn.slug === TONCOIN_SLUG ? tokenIn.symbol : tokenIn.contract!;
+  const symbolOrTokenAddress = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
 
   const cache = PAIRS_CACHE[tokenSlug];
   const isCacheValid = cache && (Date.now() - cache.timestamp <= CACHE_DURATION);
@@ -895,7 +905,7 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
     return;
   }
 
-  const pairs = await callApi('swapGetPairs', symbolOrMinter);
+  const pairs = await callApi('swapGetPairs', symbolOrTokenAddress);
   global = getGlobal();
 
   if (!pairs) {

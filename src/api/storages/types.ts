@@ -21,8 +21,7 @@ export interface Storage {
   getMany?(keys: string[]): Promise<AnyLiteral>;
 }
 
-export type StorageKey = 'mnemonicsEncrypted'
-| 'accounts'
+export type StorageKey = 'accounts'
 | 'stateVersion'
 | 'currentAccountId'
 | 'clientId'

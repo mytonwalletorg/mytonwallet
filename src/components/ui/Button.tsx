@@ -97,9 +97,9 @@ function Button({
       )}
       style={style}
       aria-label={ariaLabel}
-      onClick={handleClick}
       disabled={isDisabled || isLoading}
       form={forFormId}
+      onClick={handleClick}
     >
       {children}
       <LoadingDots isActive={isLoading} className={styles.loadingDots} />

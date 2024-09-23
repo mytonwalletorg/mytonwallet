@@ -7,8 +7,8 @@
 
   height: 28rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(28rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(28rem + var(--safe-area-bottom));
   }
 
   :global(.is-native-bottom-sheet) & {
@@ -19,13 +19,13 @@
 .modalDialogExtraHeight {
   height: 38.5rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(38.5rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(38.5rem + var(--safe-area-bottom));
   }
 
   :global(.is-native-bottom-sheet) & {
     height: 100% !important;
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--safe-area-bottom);
   }
 }
 

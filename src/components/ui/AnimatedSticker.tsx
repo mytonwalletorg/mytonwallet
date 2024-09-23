@@ -1,6 +1,7 @@
 import type { RefObject } from 'react';
 import type { FC } from '../../lib/teact/teact';
 import React, {
+  getIsHeavyAnimating,
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
@@ -8,18 +9,19 @@ import type RLottieInstance from '../../lib/rlottie/RLottie';
 
 import { requestMeasure } from '../../lib/fasterdom/fasterdom';
 import { ensureRLottie, getRLottie } from '../../lib/rlottie/RLottie.async';
-import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
+import { hex2rgb } from '../../util/colors';
 import generateUniqueId from '../../util/generateUniqueId';
 import { IS_ELECTRON, IS_IOS } from '../../util/windowEnvironment';
 
 import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
-import useHeavyAnimationCheck, { isHeavyAnimating } from '../../hooks/useHeavyAnimationCheck';
+import useHeavyAnimation from '../../hooks/useHeavyAnimation';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePriorityPlaybackCheck, { isPriorityPlaybackActive } from '../../hooks/usePriorityPlaybackCheck';
 import useSharedIntersectionObserver from '../../hooks/useSharedIntersectionObserver';
 import { useStateRef } from '../../hooks/useStateRef';
+import useSyncEffect from '../../hooks/useSyncEffect';
 import useThrottledCallback from '../../hooks/useThrottledCallback';
 import useUniqueId from '../../hooks/useUniqueId';
 
@@ -96,6 +98,15 @@ const AnimatedSticker: FC<OwnProps> = ({
       isUnmountedRef.current = true;
     };
   }, []);
+
+  useSyncEffect(() => {
+    if (color) {
+      const [r, g, b] = hex2rgb(color);
+      rgbColor.current = [r, g, b];
+    } else {
+      rgbColor.current = undefined;
+    }
+  }, [color]);
 
   const init = useLastCallback(() => {
     if (
@@ -214,17 +225,17 @@ const AnimatedSticker: FC<OwnProps> = ({
   }, [animation, playKey, noLoop, playAnimation, pauseAnimation, forceOnHeavyAnimation, forceInBackground]);
 
   useEffect(() => {
-    if (animation) {
-      if (isFirstRender.current) {
-        isFirstRender.current = false;
-      } else if (tgsUrl) {
-        animation.changeData(tgsUrl);
-        playAnimation();
-      }
-    }
-  }, [playAnimation, animation, tgsUrl]);
+    if (!animation) return;
 
-  useHeavyAnimationCheck(pauseAnimation, playAnimation, forceOnHeavyAnimation || IS_IOS || !playKey);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+    } else if (tgsUrl) {
+      animation.changeData(tgsUrl);
+      playAnimation(noLoop);
+    }
+  }, [playAnimation, animation, tgsUrl, noLoop]);
+
+  useHeavyAnimation(pauseAnimation, playAnimation, forceOnHeavyAnimation || IS_IOS || !playKey);
   usePriorityPlaybackCheck(pauseAnimation, playAnimation, !playKey);
   // Pausing frame may not happen in background,
   // so we need to make sure it happens right after focusing,
@@ -238,7 +249,7 @@ const AnimatedSticker: FC<OwnProps> = ({
   return (
     <div
       ref={containerRef}
-      className={buildClassName('AnimatedSticker', className)}
+      className={className}
       style={buildStyle(
         size !== undefined && `width: ${size}px; height: ${size}px;`,
         onClick && !IS_ELECTRON && 'cursor: pointer',
@@ -252,7 +263,7 @@ const AnimatedSticker: FC<OwnProps> = ({
 export default memo(AnimatedSticker);
 
 function isFrozen(forceOnHeavyAnimation = false, forceInBackground = false) {
-  return (!forceOnHeavyAnimation && !IS_IOS && isHeavyAnimating())
+  return (!forceOnHeavyAnimation && !IS_IOS && getIsHeavyAnimating())
     || isPriorityPlaybackActive()
     || (!forceInBackground && isBackgroundModeActive());
 }

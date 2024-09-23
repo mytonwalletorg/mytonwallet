@@ -57,7 +57,7 @@
         }
       }
     ],
-    "react/jsx-key": [2, { "checkFragmentShorthand": true}],
+    "react/jsx-key": [2, { "checkFragmentShorthand": false }],
     "arrow-body-style": "off",
     "no-else-return": "off",
     "no-plusplus": "off",
@@ -103,6 +103,7 @@
     // Teact feature
     "react/style-prop-object": "off",
     "react/no-unknown-property": "off",
+    "react/no-is-mounted": "off",
     "react/jsx-no-bind": [
       "error",
       {

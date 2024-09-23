@@ -24,10 +24,10 @@
 }
 
 @include respond-below(xs) {
-  @supports (padding-top: env(safe-area-inset-top)) {
+  @supports (padding-top: var(--safe-area-top)) {
     html:global(:not(.is-native-bottom-sheet)) {
       .transitionSlide {
-        padding-top: env(safe-area-inset-top);
+        padding-top: var(--safe-area-top);
       }
     }
   }
@@ -38,6 +38,7 @@
 
   font-size: 1.0625rem;
   font-weight: 700;
+  color: var(--color-black);
 }
 
 .developerCloseButton {
@@ -66,6 +67,10 @@
 
   :global(html.with-safe-area-top) & {
     padding-top: 0.75rem;
+  }
+
+  &.onlyTextHeader {
+    grid-template-columns: unset;
   }
 }
 
@@ -124,8 +129,8 @@
     overflow: visible;
   }
 
-  @supports (padding-bottom: max(env(safe-area-inset-bottom), 1rem)) {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  @supports (padding-bottom: max(var(--safe-area-bottom), 1rem)) {
+    padding-bottom: max(var(--safe-area-bottom), 1rem);
   }
 }
 
@@ -516,6 +521,41 @@ a.item:hover {
   }
 }
 
+.changePasswordButton {
+  width: 100%;
+  padding: 1rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: var(--color-blue);
+  text-align: left;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+
+  &:focus,
+  &:hover {
+    background-color: var(--color-interactive-item-hover);
+  }
+}
+
+.passwordFormContent {
+  padding: 0 !important;
+}
+
+.passwordFormContentInModal {
+  padding: 0 1rem 1rem;
+
+  @supports (padding-bottom: var(--safe-area-bottom)) {
+    padding-bottom: max(var(--safe-area-bottom), 1rem);
+  }
+}
+
+.sticker {
+  margin: 0 auto 1.25rem;
+}
+
 .blockDescription {
   margin: 0.5rem 0 2rem;
   padding: 0 0.5rem;
@@ -663,13 +703,6 @@ a.item:hover {
   }
 }
 
-.tokenIcon {
-  width: 2.625rem;
-  height: 2.625rem;
-
-  border-radius: 100%;
-}
-
 .tokenSortIcon {
   cursor: var(--custom-cursor, pointer);
 
@@ -727,9 +760,9 @@ a.item:hover {
 
   height: 47rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
+  @supports (height: var(--safe-area-bottom)) {
     html:global(:not(.is-native-bottom-sheet)) {
-      height: calc(46rem + env(safe-area-inset-bottom));
+      height: calc(46rem + var(--safe-area-bottom));
     }
   }
 }
@@ -737,9 +770,9 @@ a.item:hover {
 .modalDialogWeb {
   height: 38rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
+  @supports (height: var(--safe-area-bottom)) {
     html:global(:not(.is-native-bottom-sheet)) {
-      height: calc(38rem + env(safe-area-inset-bottom));
+      height: calc(38rem + var(--safe-area-bottom));
     }
   }
 }
@@ -893,4 +926,13 @@ a.item:hover {
   line-height: 0.875rem !important;
 
   border-radius: 0.875rem !important;
+}
+
+/* Temporary classes for Create Multichain Account in Dev Options  */
+.settingsBlockMultichain {
+  margin-top: -0.75rem;
+}
+
+.menuIconPlus {
+  font-size: 1.375rem;
 }

@@ -193,8 +193,8 @@
     right: -0.5rem;
     left: -0.5rem;
 
-    @supports (top: env(safe-area-inset-top)) {
-      top: max(2.0625rem, calc(3.125rem - env(safe-area-inset-top)));
+    @supports (top: var(--safe-area-top)) {
+      top: max(2.0625rem, calc(3.125rem - var(--safe-area-top)));
     }
   }
 

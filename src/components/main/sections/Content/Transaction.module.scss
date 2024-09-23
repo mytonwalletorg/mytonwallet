@@ -43,11 +43,15 @@
   @media (hover: hover) {
     &:focus-visible,
     &:hover {
+      --color-background-first: var(--color-interactive-item-hover);
+
       background-color: var(--color-interactive-item-hover);
     }
   }
 
   &.active {
+    --color-background-first: var(--color-interactive-item-hover);
+
     background-color: var(--color-interactive-item-hover);
   }
 
@@ -141,9 +145,7 @@
   top: 2.25rem;
   left: 2.125rem;
 
-  font-size: 1rem;
   line-height: 1;
-  color: var(--color-gray-1);
 
   background-color: var(--color-background-first);
   border-radius: 50%;
@@ -152,7 +154,7 @@
 .iconError {
   position: absolute;
   top: 2.25rem;
-  left: 2.375rem;
+  left: 2.125rem;
 
   font-size: 1rem;
   line-height: 1;
@@ -160,10 +162,6 @@
 
   background-color: var(--color-background-first);
   border-radius: 50%;
-}
-
-.iconWaitingSwap {
-  color: var(--color-activity-green-text);
 }
 
 .iconWaitingStake {
@@ -204,6 +202,10 @@
 .addressValue,
 .swapPriceValue {
   font-weight: 650;
+}
+
+.chainIcon {
+  vertical-align: -0.125rem;
 }
 
 .amountWrapper {

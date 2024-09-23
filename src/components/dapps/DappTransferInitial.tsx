@@ -4,7 +4,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiDapp, ApiDappTransfer } from '../../api/types';
+import type { ApiBaseCurrency, ApiDapp, ApiDappTransfer } from '../../api/types';
 import type { Account, UserToken } from '../../global/types';
 
 import { SHORT_FRACTION_DIGITS } from '../../config';
@@ -12,7 +12,7 @@ import { Big } from '../../lib/big.js';
 import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
-import { formatCurrency } from '../../util/formatNumber';
+import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -41,6 +41,7 @@ interface StateProps {
   dapp?: ApiDapp;
   isLoading?: boolean;
   tokens?: UserToken[];
+  baseCurrency?: ApiBaseCurrency;
 }
 
 function DappTransferInitial({
@@ -52,8 +53,10 @@ function DappTransferInitial({
   isLoading,
   tokens,
   onClose,
+  baseCurrency,
 }: OwnProps & StateProps) {
   const { showDappTransfer, submitDappTransferConfirm } = getActions();
+  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const lang = useLang();
   const isSingleTransaction = transactions?.length === 1;
@@ -76,18 +79,18 @@ function DappTransferInitial({
       const amountDecimal = toDecimal(amount);
 
       tonAmount = tonAmount.plus(amountDecimal);
-      cost += Number(amountDecimal) * tonToken.priceUsd ?? 0;
+      cost += Number(amountDecimal) * (tonToken.price ?? 0);
 
       if (payload?.type === 'tokens:transfer' || payload?.type === 'tokens:transfer-non-standard') {
         const { slug: tokenSlug, amount: tokenAmount } = payload;
 
         const token = tokens?.find(({ slug }) => tokenSlug === slug);
         if (token) {
-          const { decimals, symbol, priceUsd } = token;
+          const { decimals, symbol, price } = token;
           const tokenAmountDecimal = toDecimal(tokenAmount, decimals);
 
           acc[symbol] = (acc[symbol] ?? Big(0)).plus(tokenAmountDecimal);
-          cost += Number(tokenAmountDecimal) * priceUsd;
+          cost += Number(tokenAmountDecimal) * price;
         }
       }
 
@@ -98,8 +101,8 @@ function DappTransferInitial({
       return `${acc} + ${formatCurrency(amountBig.toString(), symbol, SHORT_FRACTION_DIGITS)}`;
     }, formatCurrency(tonAmount.toString(), tonToken.symbol, SHORT_FRACTION_DIGITS));
 
-    return `${text} (${formatCurrency(cost, '$')})`;
-  }, [renderingTransactions, fee, tokens, tonToken]);
+    return `${text} (${formatCurrency(cost, shortBaseSymbol)})`;
+  }, [renderingTransactions, fee, tokens, tonToken, shortBaseSymbol]);
 
   function renderDapp() {
     return (
@@ -220,6 +223,8 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isLoading,
     dapp,
   } = global.currentDappTransfer;
+
+  const { baseCurrency } = global.settings;
   const accounts = selectNetworkAccounts(global);
 
   return {
@@ -229,5 +234,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     dapp,
     isLoading,
     tokens: selectCurrentAccountTokens(global),
+    baseCurrency,
   };
 })(DappTransferInitial));

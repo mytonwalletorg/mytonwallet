@@ -1,32 +1,26 @@
 import type { Ref } from 'react';
-import type { TeactNode } from '../../../../lib/teact/teact';
 import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../../global';
+import { withGlobal } from '../../../../global';
 
 import type { ApiBaseCurrency } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import { IS_EXTENSION, TON_EXPLORER_NAME } from '../../../../config';
+import { IS_EXTENSION } from '../../../../config';
 import {
-  selectAccount,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectCurrentNetwork,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
-import { copyTextToClipboard } from '../../../../util/clipboard';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
-import { getTonExplorerAddressUrl } from '../../../../util/url';
 import { IS_IOS, IS_SAFARI } from '../../../../util/windowEnvironment';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import useFlag from '../../../../hooks/useFlag';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
-import useLang from '../../../../hooks/useLang';
-import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
 
@@ -35,6 +29,7 @@ import Loading from '../../../ui/Loading';
 import LoadingDots from '../../../ui/LoadingDots';
 import Transition from '../../../ui/Transition';
 import AccountSelector from './AccountSelector';
+import CardAddress from './CardAddress';
 import CurrencySwitcher from './CurrencySwitcher';
 import TokenCard from './TokenCard';
 
@@ -48,11 +43,9 @@ interface OwnProps {
 }
 
 interface StateProps {
-  address?: string;
   tokens?: UserToken[];
   activeDappOrigin?: string;
   currentTokenSlug?: string;
-  isTestnet?: boolean;
   baseCurrency?: ApiBaseCurrency;
   stakingBalance?: bigint;
   balanceUpdateStartedAt?: number;
@@ -60,29 +53,17 @@ interface StateProps {
 
 function Card({
   ref,
-  address,
   tokens,
   activeDappOrigin,
   currentTokenSlug,
   forceCloseAccountSelector,
   onTokenCardClose,
   onApyClick,
-  isTestnet,
   baseCurrency,
   stakingBalance,
   balanceUpdateStartedAt,
 }: OwnProps & StateProps) {
-  const { showNotification } = getActions();
-
-  const lang = useLang();
-  const addressUrl = getTonExplorerAddressUrl(address, isTestnet);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
-  const tonExplorerTitle = useMemo(() => {
-    return (lang('View address on %ton_explorer_name%', {
-      ton_explorer_name: TON_EXPLORER_NAME,
-    }) as TeactNode[]
-    ).join('');
-  }, [lang]);
 
   const isUpdating = useUpdateIndicator(balanceUpdateStartedAt);
 
@@ -132,13 +113,6 @@ function Card({
     () => (shouldRenderTokenCard ? captureEscKeyListener(onTokenCardClose) : undefined),
     [shouldRenderTokenCard, onTokenCardClose],
   );
-
-  const handleCopyAddress = useLastCallback(() => {
-    if (!address) return;
-
-    showNotification({ message: lang('Address was copied!') as string, icon: 'icon-copy' });
-    void copyTextToClipboard(address);
-  });
 
   const {
     primaryValue, primaryWholePart, primaryFractionPart, changeClassName, changePrefix, changePercent, changeValue,
@@ -213,26 +187,7 @@ function Card({
           </div>
         )}
         {values ? renderBalance() : renderLoader()}
-        <div className={styles.addressContainer}>
-          <button
-            type="button"
-            className={styles.address}
-            aria-label={lang('Copy wallet address')}
-            onClick={handleCopyAddress}
-          >
-            {address && shortenAddress(address)}
-            <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
-          </button>
-          <a
-            href={addressUrl}
-            className={styles.tonExplorerButton}
-            title={tonExplorerTitle}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />
-          </a>
-        </div>
+        <CardAddress />
       </div>
       {shouldRenderTokenCard && (
         <TokenCard
@@ -250,18 +205,15 @@ function Card({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
-      const { address } = selectAccount(global, global.currentAccountId!) || {};
       const accountState = selectCurrentAccountState(global);
       const stakingBalance = selectCurrentNetwork(global) === 'mainnet'
         ? accountState?.staking?.balance
         : 0n;
 
       return {
-        address,
         tokens: selectCurrentAccountTokens(global),
         activeDappOrigin: accountState?.activeDappOrigin,
         currentTokenSlug: accountState?.currentTokenSlug,
-        isTestnet: global.settings.isTestnet,
         baseCurrency: global.settings.baseCurrency,
         stakingBalance,
         balanceUpdateStartedAt: global.balanceUpdateStartedAt,

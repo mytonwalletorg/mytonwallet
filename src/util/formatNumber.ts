@@ -1,9 +1,9 @@
 import type { ApiBaseCurrency } from '../api/types';
 
 import {
-  DEFAULT_DECIMAL_PLACES,
   DEFAULT_PRICE_CURRENCY,
   SHORT_CURRENCY_SYMBOL_MAP,
+  TONCOIN,
   WHOLE_PART_DELIMITER,
 } from '../config';
 import { Big } from '../lib/big.js';
@@ -19,10 +19,10 @@ export const formatInteger = withCache((
   noFloor?: boolean,
 ) => {
   value = Big(value);
-  const dp = value.gte(1) || noFloor ? fractionDigits : DEFAULT_DECIMAL_PLACES;
+  const dp = value.gte(1) || noFloor ? fractionDigits : TONCOIN.decimals;
   let fixed = value.round(dp, noFloor ? Big.roundHalfUp : undefined).toString();
 
-  if (value.lt(1) && countSignificantDigits(fixed) < fractionDigits) {
+  if (value.lt(1) && countSignificantDigits(fixed, dp) < fractionDigits) {
     fixed = value.toString();
   }
 
@@ -119,15 +119,16 @@ function toSignificant(value: string, fractionDigits: number): string {
   return value.slice(0, digitsLastIndex).replace(/0+$/, '');
 }
 
-function countSignificantDigits(value: string): number {
+function countSignificantDigits(value: string, fractionDigits: number): number {
   const decimalIndex = value.indexOf('.');
 
   if (decimalIndex === -1) {
     return 0;
   }
 
-  const fractionalPart = value.slice(decimalIndex + 1).replace(/^0+/, '');
-  return fractionalPart.length;
+  const fractionalPart = value.slice(decimalIndex + 1).padEnd(fractionDigits, '0');
+
+  return fractionalPart.replace(/^0+/, '').length;
 }
 
 export function getShortCurrencySymbol(currency?: ApiBaseCurrency) {

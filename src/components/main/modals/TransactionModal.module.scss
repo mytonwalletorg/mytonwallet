@@ -1,8 +1,8 @@
 .modalDialog {
   height: 36.5rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(36.5rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(36.5rem + var(--safe-area-bottom));
   }
 
   :global(.is-native-bottom-sheet) &,
@@ -18,8 +18,8 @@
 .passwordFormContentInModal {
   padding: 0 1rem 1rem;
 
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  @supports (padding-bottom: var(--safe-area-bottom)) {
+    padding-bottom: max(var(--safe-area-bottom), 1rem);
   }
 }
 
@@ -134,6 +134,12 @@
 
 .scamAddress {
   color: var(--color-red);
+}
+
+.modalTitle {
+  overflow: visible;
+
+  line-height: 1 !important;
 }
 
 .transactionHeader {

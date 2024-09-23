@@ -3,18 +3,17 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
-import type { ApiToken, ApiTransactionActivity } from '../../../api/types';
-import type { StakingStatus } from '../../../global/types';
+import type { ApiTokenWithPrice, ApiTransactionActivity } from '../../../api/types';
+import type { SavedAddress, StakingStatus, Theme } from '../../../global/types';
 import { ActiveTab } from '../../../global/types';
 
 import {
+  ANIMATED_STICKER_TINY_ICON_PX,
   ANIMATION_END_DELAY,
   ANIMATION_LEVEL_MIN,
   IS_CAPACITOR,
   STAKING_CYCLE_DURATION_MS,
-  TON_EXPLORER_NAME,
-  TON_SYMBOL,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../../../config';
 import { getIsTxIdLocal } from '../../../global/helpers';
 import { selectCurrentAccountStakingStatus, selectCurrentAccountState } from '../../../global/selectors';
@@ -25,9 +24,12 @@ import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../..
 import { toDecimal } from '../../../util/decimals';
 import { handleOpenUrl } from '../../../util/openUrl';
 import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
-import { getTonExplorerTransactionUrl } from '../../../util/url';
+import { getNativeToken, getTransactionHashFromTxId } from '../../../util/tokens';
+import { getExplorerName, getExplorerTransactionUrl } from '../../../util/url';
 import { callApi } from '../../../api';
+import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
+import useAppTheme from '../../../hooks/useAppTheme';
 import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -38,6 +40,7 @@ import useSyncEffect from '../../../hooks/useSyncEffect';
 import TransactionAmount from '../../common/TransactionAmount';
 import NftInfo from '../../transfer/NftInfo';
 import AmountWithFeeTextField from '../../ui/AmountWithFeeTextField';
+import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
 import InteractiveTextField from '../../ui/InteractiveTextField';
 import Modal, { CLOSE_DURATION, CLOSE_DURATION_PORTRAIT } from '../../ui/Modal';
@@ -53,8 +56,8 @@ import scamImg from '../../../assets/scam.svg';
 
 type StateProps = {
   transaction?: ApiTransactionActivity;
-  tokensBySlug?: Record<string, ApiToken>;
-  savedAddresses?: Record<string, string>;
+  tokensBySlug?: Record<string, ApiTokenWithPrice>;
+  savedAddresses?: SavedAddress[];
   isTestnet?: boolean;
   startOfStakingCycle?: number;
   endOfStakingCycle?: number;
@@ -62,6 +65,7 @@ type StateProps = {
   isLongUnstakeRequested?: boolean;
   stakingStatus?: StakingStatus;
   isMediaViewerOpen?: boolean;
+  theme: Theme;
 };
 const enum SLIDES {
   initial,
@@ -79,6 +83,7 @@ function TransactionModal({
   isLongUnstakeRequested,
   stakingStatus,
   isMediaViewerOpen,
+  theme,
 }: StateProps) {
   const {
     startTransfer,
@@ -99,6 +104,7 @@ function TransactionModal({
     : (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
   const renderedTransaction = usePrevDuringAnimation(transaction, animationDuration);
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
+  const appTheme = useAppTheme(theme);
 
   const {
     fromAddress,
@@ -113,7 +119,6 @@ function TransactionModal({
     timestamp,
     nft,
   } = renderedTransaction || {};
-  const [, transactionHash] = (id || '').split(':');
   const isStaking = renderedTransaction?.type === 'stake' || renderedTransaction?.type === 'unstake';
   const isUnstaking = renderedTransaction?.type === 'unstake';
   const isNftTransfer = (
@@ -123,20 +128,30 @@ function TransactionModal({
   );
 
   const token = slug ? tokensBySlug?.[slug] : undefined;
+  const chain = token?.chain;
+
+  const nativeToken = token ? getNativeToken(token.chain) : undefined;
   const address = isIncoming ? fromAddress : toAddress;
-  const addressName = (address && savedAddresses?.[address]) || transaction?.metadata?.name;
+  const savedAddressName = useMemo(() => {
+    return address && chain && savedAddresses?.find((item) => item.address === address && item.chain === chain)?.name;
+  }, [address, chain, savedAddresses]);
+  const addressName = savedAddressName || transaction?.metadata?.name;
   const isScam = Boolean(transaction?.metadata?.isScam);
+  const isModalOpen = Boolean(transaction) && !isMediaViewerOpen;
+  const transactionHash = chain && id ? getTransactionHashFromTxId(chain, id) : undefined;
 
   const [decryptedComment, setDecryptedComment] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
-  const transactionUrl = getTonExplorerTransactionUrl(transactionHash, isTestnet);
-  const tonExplorerTitle = useMemo(() => {
-    return (lang('View Transaction on %ton_explorer_name%', {
-      ton_explorer_name: TON_EXPLORER_NAME,
-    }) as TeactNode[]
-    ).join('');
-  }, [lang]);
+  const transactionUrl = chain ? getExplorerTransactionUrl(chain, transactionHash, isTestnet) : undefined;
+  const explorerTitle = useMemo(() => {
+    return chain
+      ? (lang('View Transaction on %ton_explorer_name%', {
+        ton_explorer_name: getExplorerName(chain),
+      }) as TeactNode[]
+      ).join('')
+      : undefined;
+  }, [lang, chain]);
 
   const [withUnstakeTimer, setWithUnstakeTimer] = useState(false);
 
@@ -194,7 +209,7 @@ function TransactionModal({
     closeActivityInfo({ id: id! });
     startTransfer({
       isPortrait,
-      tokenSlug: slug || TONCOIN_SLUG,
+      tokenSlug: slug || TONCOIN.slug,
       toAddress: address,
       amount: bigintAbs(amount!),
       comment: !isIncoming ? comment : undefined,
@@ -271,14 +286,17 @@ function TransactionModal({
           modalStyles.header_wideContent,
         )}
       >
-        <div className={modalStyles.title}>
+        <div className={buildClassName(modalStyles.title, styles.modalTitle)}>
           <div className={styles.headerTitle}>
             {lang(getTitle(isLocal))}
             {isLocal && (
-              <i
-                className="icon-clock"
-                title={lang('Transaction in progress')}
-                aria-hidden
+              <AnimatedIconWithPreview
+                play={isModalOpen}
+                size={ANIMATED_STICKER_TINY_ICON_PX}
+                nonInteractive
+                noLoop={false}
+                tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClock}
+                previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClock}
               />
             )}
             {isScam && isIncoming && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
@@ -302,15 +320,15 @@ function TransactionModal({
   }
 
   function renderFee() {
-    if (isIncoming || !fee) {
+    if (isIncoming || !fee || !nativeToken) {
       return undefined;
     }
 
     return (
       <AmountWithFeeTextField
         label={lang('Fee')}
-        amount={toDecimal(fee)}
-        currency={TON_SYMBOL}
+        amount={toDecimal(fee, nativeToken.decimals)}
+        currency={nativeToken.symbol}
       />
     );
   }
@@ -345,7 +363,15 @@ function TransactionModal({
   function renderUnstakeTimer() {
     return (
       <div className={buildClassName(styles.unstakeTime, unstakeTimerClassNames)}>
-        <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
+        <AnimatedIconWithPreview
+          play={isModalOpen}
+          size={ANIMATED_STICKER_TINY_ICON_PX}
+          className={styles.unstakeTimeIcon}
+          nonInteractive
+          noLoop={false}
+          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGray}
+          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGray}
+        />
         <div>
           {lang('$unstaking_when_receive', {
             time: (
@@ -379,6 +405,7 @@ function TransactionModal({
           <>
             <div className={transferStyles.label}>{lang(isIncoming ? 'Sender' : 'Recipient')}</div>
             <InteractiveTextField
+              chain={chain}
               addressName={addressName}
               address={address!}
               isScam={isScam && !isIncoming}
@@ -431,7 +458,8 @@ function TransactionModal({
                   target="_blank"
                   rel="noreferrer noopener"
                   className={styles.tonExplorer}
-                  title={tonExplorerTitle}
+                  title={explorerTitle}
+                  aria-label={explorerTitle}
                   onClick={handleOpenUrl}
                 >
                   <i className="icon-tonexplorer" aria-hidden />
@@ -464,7 +492,7 @@ function TransactionModal({
 
   return (
     <Modal
-      isOpen={Boolean(transaction) && !isMediaViewerOpen}
+      isOpen={isModalOpen}
       hasCloseButton
       nativeBottomSheetKey="transaction-info"
       forceFullNative={currentSlide === SLIDES.password}
@@ -509,6 +537,7 @@ export default memo(
       isLongUnstakeRequested: accountState?.isLongUnstakeRequested,
       stakingStatus,
       isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
+      theme: global.settings.theme,
     };
   })(TransactionModal),
 );

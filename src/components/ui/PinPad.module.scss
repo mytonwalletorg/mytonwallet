@@ -7,8 +7,8 @@
 
   background-color: var(--color-background-first);
 
-  @supports (padding-bottom: max(1rem, env(safe-area-inset-bottom))) {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  @supports (padding-bottom: max(1rem, var(--safe-area-bottom))) {
+    padding-bottom: max(1rem, var(--safe-area-bottom));
   }
 
   @include respond-above(xs) {

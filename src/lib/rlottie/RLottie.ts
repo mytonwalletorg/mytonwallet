@@ -1,9 +1,10 @@
 import { animate } from '../../util/animation';
 import cycleRestrict from '../../util/cycleRestrict';
+import Deferred from '../../util/Deferred';
 import generateUniqueId from '../../util/generateUniqueId';
 import launchMediaWorkers, { MAX_WORKERS } from '../../util/launchMediaWorkers';
 import {
-  DPR, IS_ANDROID, IS_IOS, IS_SAFARI,
+  IS_ANDROID, IS_IOS, IS_SAFARI,
 } from '../../util/windowEnvironment';
 import { requestMeasure, requestMutation } from '../fasterdom/fasterdom';
 
@@ -29,6 +30,8 @@ const LOW_PRIORITY_CACHE_MODULO = 0;
 
 const workers = launchMediaWorkers().map(({ connector }) => connector);
 const instancesByRenderId = new Map<string, RLottie>();
+
+const PENDING_CANVAS_RESIZES = new WeakMap<HTMLCanvasElement, Promise<void>>();
 
 let lastWorkerIndex = -1;
 
@@ -214,15 +217,21 @@ class RLottie {
     this.params.noLoop = noLoop;
   }
 
-  setSharedCanvasCoords(viewId: string, newCoords: Params['coords']) {
+  async setSharedCanvasCoords(viewId: string, newCoords: Params['coords']) {
     const containerInfo = this.views.get(viewId)!;
     const {
       canvas, ctx,
     } = containerInfo;
 
+    const isCanvasDirty = !canvas.dataset.isJustCleaned || canvas.dataset.isJustCleaned === 'false';
+
+    if (!isCanvasDirty) {
+      await PENDING_CANVAS_RESIZES.get(canvas);
+    }
+
     let [canvasWidth, canvasHeight] = [canvas.width, canvas.height];
 
-    if (!canvas.dataset.isJustCleaned || canvas.dataset.isJustCleaned === 'false') {
+    if (isCanvasDirty) {
       const sizeFactor = this.calcSizeFactor();
       ([canvasWidth, canvasHeight] = ensureCanvasSize(canvas, sizeFactor));
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -274,6 +283,7 @@ class RLottie {
 
         canvas.style.width = `${size}px`;
         canvas.style.height = `${size}px`;
+        canvas.style.display = 'block';
 
         canvas.width = imgSize;
         canvas.height = imgSize;
@@ -328,7 +338,7 @@ class RLottie {
     } = this.params;
 
     // Reduced quality only looks acceptable on high DPR screens
-    return Math.max(DPR * quality, 1);
+    return Math.max(window.devicePixelRatio * quality, 1);
   }
 
   private destroy() {
@@ -594,9 +604,12 @@ function ensureCanvasSize(canvas: HTMLCanvasElement, sizeFactor: number) {
   const expectedHeight = Math.round(canvas.offsetHeight * sizeFactor);
 
   if (canvas.width !== expectedWidth || canvas.height !== expectedHeight) {
+    const deferred = new Deferred<void>();
+    PENDING_CANVAS_RESIZES.set(canvas, deferred.promise);
     requestMutation(() => {
       canvas.width = expectedWidth;
       canvas.height = expectedHeight;
+      deferred.resolve();
     });
   }
 

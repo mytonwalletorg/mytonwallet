@@ -3,12 +3,15 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT, PRIVATE_KEY_HEX_LENGTH } from '../../config';
+import {
+  ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT, MNEMONIC_COUNTS, PRIVATE_KEY_HEX_LENGTH,
+} from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import isMnemonicPrivateKey from '../../util/isMnemonicPrivateKey';
 import { compact } from '../../util/iteratees';
+import { callApi } from '../../api';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useClipboardPaste from '../../hooks/useClipboardPaste';
@@ -50,7 +53,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   const { isPortrait } = useDeviceScreen();
 
   const handleMnemonicSet = useLastCallback((pastedMnemonic: string[]) => {
-    if (pastedMnemonic.length !== MNEMONIC_COUNT && !isMnemonicPrivateKey(pastedMnemonic)) {
+    if (!MNEMONIC_COUNTS.includes(pastedMnemonic.length) && !isMnemonicPrivateKey(pastedMnemonic)) {
       return;
     }
 
@@ -84,12 +87,12 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   const isSubmitDisabled = useMemo(() => {
     const mnemonicValues = compact(Object.values(mnemonic));
 
-    return mnemonicValues.length !== MNEMONIC_COUNT && !isMnemonicPrivateKey(mnemonicValues);
+    return !MNEMONIC_COUNTS.includes(mnemonicValues.length) && !isMnemonicPrivateKey(mnemonicValues);
   }, [mnemonic]);
 
   const handleSetWord = useLastCallback((value: string, index: number) => {
     const pastedMnemonic = parsePastedText(value);
-    if (pastedMnemonic.length === MNEMONIC_COUNT) {
+    if (MNEMONIC_COUNTS.includes(pastedMnemonic.length)) {
       handleMnemonicSet(pastedMnemonic);
       return;
     }
@@ -106,10 +109,16 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
     }, SLIDE_ANIMATION_DURATION_MS);
   });
 
-  const handleSubmit = useLastCallback(() => {
-    if (!isSubmitDisabled) {
-      afterImportMnemonic({ mnemonic: Object.values(mnemonic) });
+  const handleSubmit = useLastCallback(async () => {
+    if (isSubmitDisabled) return;
+
+    const mnemonicValues = compact(Object.values(mnemonic));
+    if (mnemonicValues.length === 12) {
+      const isShortMnemonicValid = await callApi('validateMnemonic', mnemonicValues);
+      if (!isShortMnemonicValid) return;
     }
+
+    afterImportMnemonic({ mnemonic: mnemonicValues });
   });
 
   useHistoryBack({
@@ -121,7 +130,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
     return isSubmitDisabled || isLoading
       ? undefined
       : captureKeyboardListeners({
-        onEnter: handleSubmit,
+        onEnter: { handler: handleSubmit, noStopPropagation: true },
       });
   }, [afterImportMnemonic, handleSubmit, isLoading, isSubmitDisabled, mnemonic]);
 
@@ -137,10 +146,10 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
         className={styles.sticker}
       />
       <div className={buildClassName(styles.title, styles.title_afterSmallSticker)}>
-        {lang('%1$d Secret Words', MNEMONIC_COUNT)}
+        {lang('Enter Secret Words')}
       </div>
       <div className={buildClassName(styles.info, styles.infoSmallFont, styles.infoPull)}>
-        {renderText(lang('$auth_import_mnemonic_description', MNEMONIC_COUNT))}
+        {renderText(lang('$auth_import_mnemonic_description'))}
       </div>
 
       <div className={styles.importingContent}>
@@ -159,7 +168,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
       </div>
 
       <div className={styles.buttons}>
-        {error && <div className={styles.footerError}>{error}</div>}
+        {error && <div className={styles.footerError}>{lang(error)}</div>}
         <div className={styles.buttons__inner}>
           <Button onClick={handleCancel} className={styles.footerButton}>
             {lang('Cancel')}

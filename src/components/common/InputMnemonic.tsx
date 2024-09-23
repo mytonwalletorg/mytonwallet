@@ -72,6 +72,8 @@ function InputMnemonic({
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedValue = e.clipboardData.getData('text');
 
+    if (!pastedValue) return;
+
     processSuggestions(pastedValue);
   };
 
@@ -81,8 +83,10 @@ function InputMnemonic({
     }
 
     if (e.code === 'Enter' || (e.code === 'Tab' && !(e.shiftKey || e.ctrlKey || e.altKey || e.metaKey))) {
-      onInput(filteredSuggestions[activeSuggestionIndex], inputArg);
-      setFilteredSuggestions([filteredSuggestions[activeSuggestionIndex]]);
+      const suggestedValue = filteredSuggestions[activeSuggestionIndex];
+      if (!suggestedValue) return;
+      onInput(suggestedValue, inputArg);
+      setFilteredSuggestions([suggestedValue]);
       setActiveSuggestionIndex(0);
       setAreSuggestionsShown(false);
 

@@ -2,7 +2,7 @@ import type { ApiInitArgs, OnApiUpdate } from '../types';
 
 import { IS_CAPACITOR } from '../../config';
 import { initWindowConnector } from '../../util/capacitorStorageProxy/connector';
-import blockchains from '../blockchains';
+import chains from '../chains';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
 import { setEnvironment } from '../environment';
 import { addHooks } from '../hooks';
@@ -24,11 +24,11 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
     initWindowConnector();
   }
 
-  methods.initPolling(onUpdate, methods.isAccountActive);
+  methods.initAccounts(onUpdate);
+  methods.initPolling(onUpdate);
   methods.initTransactions(onUpdate);
   methods.initStaking();
   methods.initSwap(onUpdate);
-  methods.initNfts(onUpdate);
 
   if (environment.isDappSupported) {
     methods.initDapps(onUpdate);
@@ -39,7 +39,7 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
     tonConnectSse.initSse(onUpdate);
   }
 
-  await startStorageMigration(onUpdate, blockchains.ton);
+  await startStorageMigration(onUpdate, chains.ton);
 
   if (environment.isSseSupported) {
     void tonConnectSse.resetupSseConnection();

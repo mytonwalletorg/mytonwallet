@@ -1,16 +1,34 @@
-import {
-  EMPTY_HASH_VALUE,
-  TOKEN_EXPLORER_MAINNET_URL,
-  TOKEN_EXPLORER_TESTNET_URL,
-  TON_EXPLORER_BASE_MAINNET_URL,
-  TON_EXPLORER_BASE_TESTNET_URL,
-} from '../config';
+import type { ApiChain } from '../api/types';
+
+import { EMPTY_HASH_VALUE } from '../config';
 import { base64ToHex } from './base64toHex';
 import { logDebugError } from './logs';
 
 // Regexp from https://stackoverflow.com/a/3809435
 const URL_REGEX = /[-a-z0-9@:%._+~#=]{1,256}\.[a-z0-9()]{1,6}\b([-a-z0-9()@:%_+.~#?&/=]*)/gi;
 const VALID_PROTOCOLS = new Set(['http:', 'https:']);
+const EXPLORER_CONFIGURATIONS = {
+  ton: {
+    name: 'Tonviewer',
+    base: {
+      mainnet: 'https://tonviewer.com/',
+      testnet: 'https://testnet.tonviewer.com/',
+    },
+    address: '{base}{address}',
+    explorer: '{base}{address}?section=jetton',
+    transaction: '{base}transaction/{hash}',
+  },
+  tron: {
+    name: 'Tronscan',
+    base: {
+      mainnet: 'https://tronscan.org/#/',
+      testnet: 'https://shasta.tronscan.org/#/',
+    },
+    address: '{base}address/{address}',
+    explorer: '{base}token20/{address}',
+    transaction: '{base}transaction/{hash}',
+  },
+};
 
 export function isValidUrl(url: string, validProtocols = VALID_PROTOCOLS) {
   try {
@@ -37,42 +55,54 @@ export function getHostnameFromUrl(url: string) {
   }
 }
 
-function getTonExplorerBaseUrl(isTestnet = false) {
-  return isTestnet ? TON_EXPLORER_BASE_TESTNET_URL : TON_EXPLORER_BASE_MAINNET_URL;
+export function getExplorerName(chain: ApiChain) {
+  return EXPLORER_CONFIGURATIONS[chain].name;
 }
 
-function getTokenExplorerBaseUrl(isTestnet = false) {
-  return isTestnet ? TOKEN_EXPLORER_TESTNET_URL : TOKEN_EXPLORER_MAINNET_URL;
+function getExplorerBaseUrl(chain: ApiChain, isTestnet = false) {
+  return EXPLORER_CONFIGURATIONS[chain].base[isTestnet ? 'testnet' : 'mainnet'];
 }
 
-export function getTonExplorerTransactionUrl(transactionHash: string | undefined, isTestnet?: boolean) {
+function getTokenExplorerBaseUrl(chain: ApiChain, isTestnet = false) {
+  return EXPLORER_CONFIGURATIONS[chain].explorer.replace('{base}', getExplorerBaseUrl(chain, isTestnet));
+}
+
+export function getExplorerTransactionUrl(
+  chain: ApiChain,
+  transactionHash: string | undefined,
+  isTestnet?: boolean,
+) {
   if (!transactionHash || transactionHash === EMPTY_HASH_VALUE) return undefined;
 
-  return `${getTonExplorerBaseUrl(isTestnet)}transaction/${base64ToHex(transactionHash)}`;
+  return EXPLORER_CONFIGURATIONS[chain].transaction
+    .replace('{base}', getExplorerBaseUrl(chain, isTestnet))
+    .replace('{hash}', chain === 'ton' ? base64ToHex(transactionHash) : transactionHash);
 }
 
-export function getTonExplorerAddressUrl(address?: string, isTestnet?: boolean) {
+export function getExplorerAddressUrl(chain: ApiChain, address?: string, isTestnet?: boolean) {
   if (!address) return undefined;
 
-  return `${getTonExplorerBaseUrl(isTestnet)}${address}`;
+  return EXPLORER_CONFIGURATIONS[chain].address
+    .replace('{base}', getExplorerBaseUrl(chain, isTestnet))
+    .replace('{address}', address);
 }
 
-export function getTonExplorerNftCollectionUrl(nftCollectionAddress?: string, isTestnet?: boolean) {
+export function getExplorerNftCollectionUrl(nftCollectionAddress?: string, isTestnet?: boolean) {
   if (!nftCollectionAddress) return undefined;
 
-  return `${getTonExplorerBaseUrl(isTestnet)}${nftCollectionAddress}?section=overview`;
+  return `${getExplorerBaseUrl('ton', isTestnet)}${nftCollectionAddress}?section=overview`;
 }
 
-export function getTonExplorerNftUrl(nftAddress?: string, isTestnet?: boolean) {
+export function getExplorerNftUrl(nftAddress?: string, isTestnet?: boolean) {
   if (!nftAddress) return undefined;
 
-  return `${getTonExplorerBaseUrl(isTestnet)}${nftAddress}?section=nft`;
+  return `${getExplorerBaseUrl('ton', isTestnet)}${nftAddress}?section=nft`;
 }
 
-export function getTonExplorerTokenUrl(slug?: string, address?: string, isTestnet?: boolean) {
+export function getExplorerTokenUrl(chain: ApiChain, slug?: string, address?: string, isTestnet?: boolean) {
   if (!slug && !address) return undefined;
 
   return address
-    ? getTokenExplorerBaseUrl(isTestnet).replace('{address}', address)
+    ? getTokenExplorerBaseUrl(chain, isTestnet).replace('{address}', address)
     : `https://coinmarketcap.com/currencies/${slug}/`;
 }

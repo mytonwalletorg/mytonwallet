@@ -1,6 +1,7 @@
 import React, { memo, useState } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
+import { MNEMONIC_COUNT } from '../../config';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 
 import useLang from '../../hooks/useLang';
@@ -39,6 +40,7 @@ function AuthBackupWalletModal({
   const lang = useLang();
   const [renderingKey, setRenderingKey] = useState<number>(BackupState.Accept);
   const [nextKey, setNextKey] = useState<number | undefined>(BackupState.View);
+  const worldsCount = mnemonic?.length ?? MNEMONIC_COUNT;
 
   const handleModalClose = useLastCallback(() => {
     setRenderingKey(BackupState.Accept);
@@ -53,7 +55,7 @@ function AuthBackupWalletModal({
     handleMnemonicView();
 
     setTimeout(() => {
-      restartCheckMnemonicIndexes();
+      restartCheckMnemonicIndexes({ worldsCount });
     }, SLIDE_ANIMATION_DURATION_MS);
   });
 

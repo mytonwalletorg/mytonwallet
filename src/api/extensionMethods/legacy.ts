@@ -1,16 +1,16 @@
 import { Cell } from '@ton/core';
 
-import type { AnyPayload } from '../blockchains/ton/types';
+import type { AnyPayload } from '../chains/ton/types';
 import type { ApiSignedTransfer, OnApiUpdate } from '../types';
 import type { OnApiSiteUpdate } from '../types/dappUpdates';
 
-import { TONCOIN_SLUG } from '../../config';
+import { TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { logDebugError } from '../../util/logs';
-import blockchains from '../blockchains';
+import chains from '../chains';
 import {
   fetchStoredAccount,
-  fetchStoredAddress,
+  fetchStoredTonWallet,
   getCurrentAccountId,
   getCurrentAccountIdOrFail,
   waitLogin,
@@ -20,7 +20,7 @@ import { base64ToBytes, hexToBytes } from '../common/utils';
 import { createLocalTransaction } from '../methods';
 import { openPopupWindow } from './window';
 
-const ton = blockchains.ton;
+const ton = chains.ton;
 let onPopupUpdate: OnApiUpdate;
 
 export function initLegacyDappMethods(_onPopupUpdate: OnApiUpdate) {
@@ -48,7 +48,7 @@ export async function requestAccounts() {
     return [];
   }
 
-  const address = await fetchStoredAddress(accountId);
+  const { address } = await fetchStoredTonWallet(accountId);
   return [address];
 }
 
@@ -58,10 +58,9 @@ export async function requestWallets() {
     return [];
   }
 
-  const [{ address, publicKey }, wallet] = await Promise.all([
-    fetchStoredAccount(accountId),
-    ton.pickAccountWallet(accountId),
-  ]);
+  const { network } = parseAccountId(accountId);
+  const { address, publicKey, version } = await fetchStoredTonWallet(accountId);
+  const wallet = ton.buildWallet(network, publicKey, version);
 
   return [{
     address,
@@ -125,8 +124,9 @@ export async function sendTransaction(params: {
 
   const { promiseId, promise } = createDappPromise();
 
-  const account = await fetchStoredAccount(accountId);
-  if (account.ledger) {
+  const { type } = await fetchStoredAccount(accountId);
+
+  if (type === 'ledger') {
     return sendLedgerTransaction(accountId, promiseId, promise, checkResult.fee!, params);
   }
 
@@ -156,13 +156,13 @@ export async function sendTransaction(params: {
     return false;
   }
 
-  const fromAddress = await fetchStoredAddress(accountId);
-  createLocalTransaction(accountId, {
+  const { address: fromAddress } = await fetchStoredTonWallet(accountId);
+  createLocalTransaction(accountId, 'ton', {
     amount,
     fromAddress,
     toAddress,
     fee: checkResult.fee!,
-    slug: TONCOIN_SLUG,
+    slug: TONCOIN.slug,
     inMsgHash: result.msgHash,
     ...(dataType === 'text' && {
       comment: data,
@@ -186,7 +186,7 @@ async function sendLedgerTransaction(
   },
 ) {
   const { network } = parseAccountId(accountId);
-  const fromAddress = await fetchStoredAddress(accountId);
+  const { address: fromAddress } = await fetchStoredTonWallet(accountId);
   const {
     to: toAddress, value, data, dataType, stateInit,
   } = params;
@@ -240,12 +240,12 @@ async function sendLedgerTransaction(
     return false;
   }
 
-  createLocalTransaction(accountId, {
+  createLocalTransaction(accountId, 'ton', {
     amount,
     fromAddress,
     toAddress,
     fee,
-    slug: TONCOIN_SLUG,
+    slug: TONCOIN.slug,
     inMsgHash: msgHash,
     ...(dataType === 'text' && {
       comment: data,

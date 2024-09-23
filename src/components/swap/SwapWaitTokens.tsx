@@ -3,10 +3,12 @@ import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 import type { ApiActivity } from '../../api/types';
 import type { UserSwapToken } from '../../global/types';
 
-import { CHANGELLY_LIVE_CHAT_URL, CHANGELLY_SUPPORT_EMAIL, CHANGELLY_WAITING_DEADLINE } from '../../config';
+import {
+  CHANGELLY_LIVE_CHAT_URL, CHANGELLY_SUPPORT_EMAIL, CHANGELLY_WAITING_DEADLINE,
+} from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
-import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
+import getChainNetworkName from '../../util/swap/getChainNetworkName';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -52,7 +54,12 @@ function SwapWaitTokens({
 
   const timestamp = useMemo(() => Date.now(), []);
 
-  const { qrCodeRef, isInitialized } = useQrCode(payinAddress, isActive, styles.qrCodeHidden, true);
+  const { qrCodeRef, isInitialized } = useQrCode({
+    address: payinAddress,
+    isActive,
+    hiddenClassName: styles.qrCodeHidden,
+    hideLogo: true,
+  });
 
   const shouldShowQrCode = !payinExtraId;
 
@@ -74,6 +81,7 @@ function SwapWaitTokens({
           {lang('Memo')}
         </span>
         <InteractiveTextField
+          chain="ton"
           address={payinExtraId}
           copyNotification={lang('Memo was copied!')}
           noSavedAddress
@@ -133,7 +141,7 @@ function SwapWaitTokens({
           ),
           blockchain: (
             <span className={styles.changellyDescriptionBold}>
-              {getBlockchainNetworkName(tokenIn?.blockchain)}
+              {getChainNetworkName(tokenIn?.chain)}
             </span>
           ),
           time: <Countdown
@@ -144,6 +152,7 @@ function SwapWaitTokens({
         })}
         </span>
         <InteractiveTextField
+          chain="ton"
           address={payinAddress}
           copyNotification={lang('Address was copied!')}
           noSavedAddress

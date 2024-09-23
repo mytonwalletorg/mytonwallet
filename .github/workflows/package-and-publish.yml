@@ -76,6 +76,7 @@ jobs:
           ELECTRON_TONHTTPAPI_TESTNET_API_KEY: ${{ secrets.ELECTRON_TONHTTPAPI_TESTNET_API_KEY }}
 
           APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
 
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

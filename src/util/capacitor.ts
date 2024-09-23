@@ -5,16 +5,20 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { BiometryType, NativeBiometric } from '@capgo/capacitor-native-biometric';
 import { NavigationBar } from '@mauricewegner/capacitor-navigation-bar';
+import type { SafeAreaInsets } from 'capacitor-plugin-safe-area';
 import { SafeArea } from 'capacitor-plugin-safe-area';
 import { SplashScreen } from 'capacitor-splash-screen';
 
 import type { Theme } from '../global/types';
+import type { AuthConfig } from './authApi/types';
 
 import { GLOBAL_STATE_CACHE_KEY, IS_CAPACITOR } from '../config';
 import * as storageMethods from './capacitorStorageProxy/methods';
 import { processDeeplink } from './deeplink';
 import { pause } from './schedulers';
-import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_IOS } from './windowEnvironment';
+import {
+  IS_ANDROID_APP, IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_IOS,
+} from './windowEnvironment';
 
 // Full list of options can be found at https://github.com/apache/cordova-plugin-inappbrowser#cordovainappbrowseropen
 export const INAPP_BROWSER_OPTIONS = [
@@ -41,14 +45,17 @@ let isFaceIdAvailable = false;
 let isTouchIdAvailable = false;
 let statusBarHeight = 0;
 
+function updateSafeAreaValues(safeAreaInsets: SafeAreaInsets) {
+  for (const [key, value] of Object.entries(safeAreaInsets.insets)) {
+    document.documentElement.style.setProperty(
+      `--safe-area-${key}`,
+      `${platform === 'android' && key === 'top' ? value + 8 : value}px`,
+    );
+  }
+}
+
 export async function initCapacitor() {
   platform = Capacitor.getPlatform() as 'ios' | 'android';
-
-  const biometricsAvailableResult = await NativeBiometric.isAvailable();
-
-  isNativeBiometricAuthSupported = biometricsAvailableResult.isAvailable;
-  isFaceIdAvailable = biometricsAvailableResult.biometryType === BiometryType.FACE_ID;
-  isTouchIdAvailable = biometricsAvailableResult.biometryType === BiometryType.TOUCH_ID;
 
   SafeArea.getStatusBarHeight().then(({ statusBarHeight: height }) => {
     statusBarHeight = height;
@@ -82,22 +89,10 @@ export async function initCapacitor() {
     }
   });
 
-  if (platform === 'android') {
-    // Until this bug is fixed, the `overlay` must be `false`
-    // https://bugs.chromium.org/p/chromium/issues/detail?id=1094366
-    void StatusBar.setOverlaysWebView({ overlay: false });
-    void NavigationBar.setTransparency({ isTransparent: false });
-  }
+  updateSafeAreaValues(await SafeArea.getSafeAreaInsets());
 
   await SafeArea.addListener('safeAreaChanged', (data) => {
-    const { insets } = data;
-
-    for (const [key, value] of Object.entries(insets)) {
-      document.documentElement.style.setProperty(
-        `--safe-area-${key}`,
-        `${value}px`,
-      );
-    }
+    updateSafeAreaValues(data);
   });
 
   launchUrl = (await App.getLaunchUrl())?.url;
@@ -107,14 +102,33 @@ export async function initCapacitor() {
   }
 }
 
-export function switchStatusBar(currentAppTheme: Theme, isSystemDark: boolean, forceDarkBackground?: boolean) {
-  if (platform !== 'ios') return;
+export async function initCapacitorWithGlobal(authConfig?: AuthConfig) {
+  const isNativeBiometricAuthEnabled = !!authConfig && authConfig.kind === 'native-biometrics';
 
+  const biometricsAvailableResult = await NativeBiometric.isAvailable({
+    isWeakAuthenticatorAllowed: isNativeBiometricAuthEnabled,
+    useFallback: false,
+  });
+
+  isNativeBiometricAuthSupported = biometricsAvailableResult.isAvailable;
+  isFaceIdAvailable = biometricsAvailableResult.biometryType === BiometryType.FACE_ID;
+  isTouchIdAvailable = biometricsAvailableResult.biometryType === BiometryType.TOUCH_ID;
+}
+
+export function switchStatusBar(
+  currentAppTheme: Theme, isSystemDark: boolean, forceDarkBackground?: boolean, isModalOpen?: boolean,
+) {
   const style = forceDarkBackground || currentAppTheme === 'dark'
     ? Style.Dark
     : (isSystemDark && currentAppTheme === 'system' ? Style.Dark : Style.Light);
 
-  void StatusBar.setStyle({ style });
+  void StatusBar.setStyle({ style, isModalOpen });
+  if (IS_ANDROID_APP) {
+    void NavigationBar.setColor({
+      color: '#00000000',
+      darkButtons: currentAppTheme === 'light' || (!isSystemDark && currentAppTheme === 'system'),
+    });
+  }
 }
 
 export function getLaunchUrl() {
