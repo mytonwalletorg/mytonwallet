@@ -654,7 +654,7 @@ function TransferInitial({
     const insufficientFeeText = withFee ? (
       <span className={styles.balanceError}>
         {lang('$insufficient_fee', {
-          fee: formatCurrencyExtended(toDecimal(renderingFee!), TONCOIN.symbol, true),
+          fee: formatCurrencyExtended(toDecimal(renderingFee!, nativeToken.decimals), nativeToken.symbol, true),
         })}
       </span>
     ) : ' ';

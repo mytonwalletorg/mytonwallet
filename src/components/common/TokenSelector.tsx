@@ -545,7 +545,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     baseCurrency,
     isLoading,
     token,
-    pairsBySlug,
+    pairsBySlug: pairsBySlug?.bySlug,
     tokenInSlug,
     userTokens,
     popularTokens,

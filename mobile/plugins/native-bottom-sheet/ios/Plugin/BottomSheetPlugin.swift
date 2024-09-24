@@ -215,6 +215,8 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
 
             if isFullSize && layout.anchors[.full] == nil {
                 layout.anchors[.full] = layout.fullAnchor
+            } else if !isFullSize && layout.anchors[.full] != nil {
+              layout.anchors[.full] = nil
             }
 
             topBottomSheetPlugin.animateTo(to: isFullSize ? .full : .half)

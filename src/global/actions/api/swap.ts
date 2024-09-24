@@ -1,13 +1,14 @@
+import type { ApiSubmitTransferOptions } from '../../../api/methods/types';
+import type {
+  ApiSwapBuildRequest,
+  ApiSwapHistoryItem,
+  ApiSwapPairAsset,
+} from '../../../api/types';
 import type {
   AssetPairs,
   GlobalState,
 } from '../../types';
-import {
-  ApiCommonError,
-  type ApiSwapBuildRequest,
-  type ApiSwapHistoryItem,
-  type ApiSwapPairAsset,
-} from '../../../api/types';
+import { ApiCommonError } from '../../../api/types';
 import {
   ActiveTab,
   SwapErrorType,
@@ -33,7 +34,7 @@ import { buildSwapId } from '../../../util/swap/buildSwapId';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
-import { getTokenSlugForSwap } from '../../helpers';
+import { resolveSwapAssetId } from '../../helpers';
 import {
   clearCurrentSwap,
   clearIsPinAccepted,
@@ -76,10 +77,10 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
     swapFee,
   } = global.currentSwap;
 
-  const tokenIn = global.swapTokenInfo!.bySlug[getTokenSlugForSwap(tokenInSlug!)];
-  const tokenOut = global.swapTokenInfo!.bySlug[getTokenSlugForSwap(tokenOutSlug!)];
-  const from = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
-  const to = tokenOut.slug === TONCOIN.slug ? tokenOut.symbol : tokenOut.tokenAddress!;
+  const tokenIn = global.swapTokenInfo!.bySlug[tokenInSlug!];
+  const tokenOut = global.swapTokenInfo!.bySlug[tokenOutSlug!];
+  const from = resolveSwapAssetId(tokenIn);
+  const to = resolveSwapAssetId(tokenOut);
   const fromAmount = amountIn!;
   const toAmount = amountOut!;
   const account = selectAccount(global, global.currentAccountId!);
@@ -122,8 +123,8 @@ addActionHandler('startSwap', async (global, actions, payload) => {
   const isPortrait = getIsPortrait();
 
   if (tokenInSlug || tokenOutSlug || amountIn || toAddress) {
-    const tokenIn = global.swapTokenInfo?.bySlug[getTokenSlugForSwap(tokenInSlug!)];
-    const tokenOut = global.swapTokenInfo?.bySlug[getTokenSlugForSwap(tokenOutSlug!)];
+    const tokenIn = global.swapTokenInfo?.bySlug[tokenInSlug!];
+    const tokenOut = global.swapTokenInfo?.bySlug[tokenOutSlug!];
 
     const isCrosschain = tokenIn?.chain !== 'ton' || tokenOut?.chain !== 'ton';
     const isToTon = tokenOut?.chain === 'ton';
@@ -157,10 +158,8 @@ addActionHandler('startSwap', async (global, actions, payload) => {
 addActionHandler('setDefaultSwapParams', (global, actions, payload) => {
   let { tokenInSlug: requiredTokenInSlug, tokenOutSlug: requiredTokenOutSlug } = payload ?? {};
 
-  requiredTokenInSlug = requiredTokenInSlug ? getTokenSlugForSwap(requiredTokenInSlug) : TONCOIN.slug;
-  requiredTokenOutSlug = requiredTokenOutSlug
-    ? getTokenSlugForSwap(requiredTokenOutSlug)
-    : DEFAULT_SWAP_SECOND_TOKEN_SLUG;
+  requiredTokenInSlug = requiredTokenInSlug || TONCOIN.slug;
+  requiredTokenOutSlug = requiredTokenOutSlug || DEFAULT_SWAP_SECOND_TOKEN_SLUG;
 
   global = updateCurrentSwap(global, {
     tokenInSlug: requiredTokenInSlug,
@@ -183,8 +182,8 @@ addActionHandler('cancelSwap', (global, actions, { shouldReset } = {}) => {
 
     global = clearCurrentSwap(global);
     global = updateCurrentSwap(global, {
-      tokenInSlug: tokenInSlug ? getTokenSlugForSwap(tokenInSlug) : undefined,
-      tokenOutSlug: tokenOutSlug ? getTokenSlugForSwap(tokenOutSlug) : undefined,
+      tokenInSlug,
+      tokenOutSlug,
       priceImpact: 0,
       transactionFee: '0',
       swapFee: '0',
@@ -348,6 +347,8 @@ addActionHandler('submitSwapCexFromToncoin', async (global, actions, { password 
     },
   );
 
+  global = getGlobal();
+
   if (!swapItem) {
     global = updateCurrentSwap(global, {
       isLoading: false,
@@ -361,16 +362,15 @@ addActionHandler('submitSwapCexFromToncoin', async (global, actions, { password 
     return;
   }
 
-  global = getGlobal();
-
   const asset = global.swapTokenInfo.bySlug[global.currentSwap.tokenInSlug!];
 
-  const transferOptions = {
+  const transferOptions: ApiSubmitTransferOptions = {
     password,
     accountId: global.currentAccountId!,
-    slug: global.currentSwap.tokenInSlug!,
     fee: fromDecimal(swapItem.swap.swapFee, asset.decimals), // TODO
-    ...swapItem.transfer!,
+    amount: fromDecimal(swapItem.swap.fromAmount, asset.decimals),
+    toAddress: swapItem.swap.cex!.payinAddress,
+    tokenAddress: swapBuildRequest.from !== TONCOIN.symbol ? swapBuildRequest.from : undefined,
   };
 
   await pause(WAIT_FOR_CHANGELLY);
@@ -497,34 +497,54 @@ addActionHandler('switchSwapTokens', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('setSwapTokenIn', (global, actions, { tokenSlug }) => {
-  tokenSlug = getTokenSlugForSwap(tokenSlug);
-
-  const { amountIn, amountOut } = global.currentSwap;
+addActionHandler('setSwapTokenIn', (global, actions, { tokenSlug: newTokenInSlug }) => {
+  const {
+    amountIn,
+    amountOut,
+    tokenInSlug,
+    tokenOutSlug,
+  } = global.currentSwap;
   const isFilled = Boolean(amountIn || amountOut);
-  const newTokenIn = global.swapTokenInfo!.bySlug[tokenSlug];
-  const amount = amountIn ? roundDecimal(amountIn, newTokenIn.decimals) : amountIn;
+  const newTokenIn = global.swapTokenInfo!.bySlug[newTokenInSlug];
+  const adjustedAmountIn = amountIn ? roundDecimal(amountIn, newTokenIn.decimals) : amountIn;
+
+  // Don't set the same token in both inputs
+  const newTokenOutSlug = newTokenInSlug === tokenOutSlug ? tokenInSlug : tokenOutSlug;
+  const newTokenOut = newTokenOutSlug ? global.swapTokenInfo!.bySlug[newTokenOutSlug] : undefined;
+  const adjustedAmountOut = amountOut && newTokenOut ? roundDecimal(amountOut, newTokenOut.decimals) : amountOut;
 
   global = updateCurrentSwap(global, {
-    amountIn: amount === '0' ? undefined : amount,
-    tokenInSlug: tokenSlug,
+    amountIn: adjustedAmountIn === '0' ? undefined : adjustedAmountIn,
+    amountOut: adjustedAmountOut === '0' ? undefined : adjustedAmountOut,
+    tokenInSlug: newTokenInSlug,
+    tokenOutSlug: newTokenOutSlug,
     isEstimating: isFilled,
     shouldEstimate: true,
   });
   setGlobal(global);
 });
 
-addActionHandler('setSwapTokenOut', (global, actions, { tokenSlug }) => {
-  tokenSlug = getTokenSlugForSwap(tokenSlug);
-
-  const { amountIn, amountOut } = global.currentSwap;
+addActionHandler('setSwapTokenOut', (global, actions, { tokenSlug: newTokenOutSlug }) => {
+  const {
+    amountIn,
+    amountOut,
+    tokenInSlug,
+    tokenOutSlug,
+  } = global.currentSwap;
   const isFilled = Boolean(amountIn || amountOut);
-  const newTokenOut = global.swapTokenInfo!.bySlug[tokenSlug!];
-  const amount = amountOut ? roundDecimal(amountOut, newTokenOut.decimals) : amountOut;
+  const newTokenOut = global.swapTokenInfo!.bySlug[newTokenOutSlug!];
+  const adjustedAmountOut = amountOut ? roundDecimal(amountOut, newTokenOut.decimals) : amountOut;
+
+  // Don't set the same token in both inputs
+  const newTokenInSlug = newTokenOutSlug === tokenInSlug ? tokenOutSlug : tokenInSlug;
+  const newTokenIn = newTokenInSlug ? global.swapTokenInfo!.bySlug[newTokenInSlug] : undefined;
+  const adjustedAmountIn = amountIn && newTokenIn ? roundDecimal(amountIn, newTokenIn.decimals) : amountIn;
 
   global = updateCurrentSwap(global, {
-    amountOut: amount === '0' ? undefined : amount,
-    tokenOutSlug: tokenSlug,
+    amountOut: adjustedAmountOut === '0' ? undefined : adjustedAmountOut,
+    amountIn: adjustedAmountIn === '0' ? undefined : adjustedAmountIn,
+    tokenOutSlug: newTokenOutSlug,
+    tokenInSlug: newTokenInSlug,
     isEstimating: isFilled,
     shouldEstimate: true,
   });
@@ -725,8 +745,9 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   });
 
   // Check for empty string
-  if ((global.currentSwap.amountIn === undefined && global.currentSwap.inputSource === SwapInputSource.In)
-      || (global.currentSwap.amountOut === undefined && global.currentSwap.inputSource === SwapInputSource.Out)) {
+  const { amountIn, amountOut, inputSource } = global.currentSwap;
+  if (((amountIn === undefined || amountIn === '0') && inputSource === SwapInputSource.In)
+      || ((amountOut === undefined || amountOut === '0') && global.currentSwap.inputSource === SwapInputSource.Out)) {
     global = updateCurrentSwap(global, {
       amountIn: undefined,
       amountOut: undefined,
@@ -758,8 +779,8 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   const tokenIn = global.swapTokenInfo!.bySlug[global.currentSwap.tokenInSlug!];
   const tokenOut = global.swapTokenInfo!.bySlug[global.currentSwap.tokenOutSlug!];
 
-  const from = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
-  const to = tokenOut.slug === TONCOIN.slug ? tokenOut.symbol : tokenOut.tokenAddress!;
+  const from = resolveSwapAssetId(tokenIn);
+  const to = resolveSwapAssetId(tokenOut);
   const fromAmount = global.currentSwap.amountIn ?? '0';
 
   const estimate = await callApi('swapCexEstimate', {

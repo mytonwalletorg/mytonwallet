@@ -265,9 +265,10 @@ export type UserToken = {
   color?: string;
 };
 
-export type UserSwapToken = {
+export type UserSwapToken = Omit<UserToken, 'change24h' | 'chain'> & {
+  chain: string;
   isPopular: boolean;
-} & Omit<UserToken, 'change24h'>;
+};
 
 export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
 

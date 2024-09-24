@@ -1,4 +1,3 @@
-import type { TonTransferParams } from '../chains/ton/types';
 import type {
   ApiSwapActivity,
   ApiSwapAsset,
@@ -17,10 +16,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
-import { assert } from '../../util/assert';
-import { fromDecimal } from '../../util/decimals';
 import { buildSwapId } from '../../util/swap/buildSwapId';
 import chains from '../chains';
 import { fetchStoredTonWallet } from '../common/accounts';
@@ -184,7 +180,6 @@ export async function swapCexCreateTransaction(
 ): Promise<{
     swap: ApiSwapHistoryItem;
     activity: ApiSwapActivity;
-    transfer?: TonTransferParams;
   }> {
   const authToken = await getBackendAuthToken(accountId, password);
 
@@ -192,20 +187,6 @@ export async function swapCexCreateTransaction(
     authToken,
   });
   const activity = swapItemToActivity(swap);
-
-  let transfer: {
-    toAddress: string;
-    amount: bigint;
-  } | undefined;
-
-  if (request.from === TONCOIN.symbol) {
-    transfer = {
-      toAddress: swap.cex!.payinAddress,
-      amount: fromDecimal(swap.fromAmount),
-    };
-
-    assert(transfer.amount <= fromDecimal(request.fromAmount));
-  }
 
   onUpdate({
     type: 'newActivities',
@@ -216,5 +197,5 @@ export async function swapCexCreateTransaction(
 
   void callHook('onSwapCreated', accountId, swap.timestamp - 1);
 
-  return { swap, activity, transfer };
+  return { swap, activity };
 }

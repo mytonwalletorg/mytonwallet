@@ -1,12 +1,7 @@
-import type { ApiTokenWithPrice, ApiTransaction } from '../../api/types';
+import type { ApiSwapAsset, ApiTokenWithPrice, ApiTransaction } from '../../api/types';
 
-import { TINY_TRANSFER_MAX_COST, TRC20_USDT_MAINNET_SLUG, TRC20_USDT_TESTNET_SLUG } from '../../config';
+import { TINY_TRANSFER_MAX_COST, TONCOIN } from '../../config';
 import { toBig } from '../../util/decimals';
-
-const TOKEN_SLUG_SUBSTITUTION: Record<string, string> = {
-  [TRC20_USDT_MAINNET_SLUG]: 'usdtrx',
-  [TRC20_USDT_TESTNET_SLUG]: 'usdtrx',
-};
 
 export function getIsTinyOrScamTransaction(transaction: ApiTransaction, token?: ApiTokenWithPrice) {
   if (transaction.metadata?.isScam) return true;
@@ -29,6 +24,10 @@ export function getIsSwapId(id: string) {
   return id.startsWith('swap:');
 }
 
-export function getTokenSlugForSwap(slug: string) {
-  return TOKEN_SLUG_SUBSTITUTION[slug] || slug;
+export function resolveSwapAssetId(asset: ApiSwapAsset) {
+  return asset.slug === TONCOIN.slug ? asset.symbol : (asset.tokenAddress ?? asset.slug);
+}
+
+export function resolveSwapAsset(bySlug: Record<string, ApiSwapAsset>, anyId: string) {
+  return bySlug[anyId] ?? Object.values(bySlug).find(({ tokenAddress }) => tokenAddress === anyId);
 }

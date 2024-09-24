@@ -1,11 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { ApiBalanceBySlug, ApiChain, ApiSwapAsset } from '../../api/types';
+import type { ApiBalanceBySlug, ApiSwapAsset } from '../../api/types';
 import type {
   AccountSettings, GlobalState, UserSwapToken, UserToken,
 } from '../types';
 
 import {
-  CHAIN_CONFIG,
   ENABLED_TOKEN_SLUGS,
   MYCOIN_SLUG,
   MYCOIN_SLUG_TESTNET,
@@ -166,7 +165,7 @@ function createTokenList(
         keywords,
         totalValue,
         color,
-        chain: chain in CHAIN_CONFIG ? chain as ApiChain : 'ton',
+        chain,
         tokenAddress,
       } satisfies UserSwapToken;
     })

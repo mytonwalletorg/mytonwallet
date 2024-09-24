@@ -51,8 +51,10 @@ function SwapBlockchain({
   tokenOut,
 }: OwnProps) {
   const {
-    cancelSwap, setSwapCexAddress,
-    showNotification, setSwapScreen,
+    cancelSwap,
+    setSwapCexAddress,
+    showNotification,
+    setSwapScreen,
     requestOpenQrScanner,
   } = getActions();
   const lang = useLang();

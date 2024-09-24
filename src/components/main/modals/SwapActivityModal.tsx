@@ -14,6 +14,7 @@ import {
   CHANGELLY_WAITING_DEADLINE,
   TONCOIN,
 } from '../../../config';
+import { resolveSwapAsset } from '../../../global/helpers';
 import { selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatTime } from '../../../util/dateFormat';
@@ -75,8 +76,6 @@ function SwapActivityModal({ activity, tokensBySlug, theme }: StateProps) {
 
   const { txIds, timestamp, networkFee = 0 } = renderedActivity ?? {};
 
-  let fromToken: ApiSwapAsset | undefined;
-  let toToken: ApiSwapAsset | undefined;
   let fromAmount = '0';
   let toAmount = '0';
   let isPending = true;
@@ -93,12 +92,22 @@ function SwapActivityModal({ activity, tokensBySlug, theme }: StateProps) {
   let isFromToncoin = true;
   let isCountdownFinished = false;
 
+  const fromToken = useMemo(() => {
+    if (!renderedActivity?.from || !tokensBySlug) return undefined;
+
+    return resolveSwapAsset(tokensBySlug, renderedActivity.from);
+  }, [renderedActivity?.from, tokensBySlug]);
+
+  const toToken = useMemo(() => {
+    if (!renderedActivity?.to || !tokensBySlug) return undefined;
+
+    return resolveSwapAsset(tokensBySlug, renderedActivity.to);
+  }, [renderedActivity?.to, tokensBySlug]);
+
   if (renderedActivity) {
     const {
-      status, from, to, cex,
+      status, from, cex,
     } = renderedActivity;
-    fromToken = tokensBySlug?.[from];
-    toToken = tokensBySlug?.[to];
     fromAmount = renderedActivity.fromAmount;
     toAmount = renderedActivity.toAmount;
     isFromToncoin = from === TONCOIN.slug;
@@ -162,8 +171,8 @@ function SwapActivityModal({ activity, tokensBySlug, theme }: StateProps) {
   const handleSwapClick = useLastCallback(() => {
     closeActivityInfo({ id: activity!.id });
     startSwap({
-      tokenInSlug: activity!.from,
-      tokenOutSlug: activity!.to,
+      tokenInSlug: fromToken!.slug,
+      tokenOutSlug: toToken!.slug,
       amountIn: fromAmount,
     });
   });

@@ -359,7 +359,7 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
 };
 
 export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = TON_USDT_SLUG;
-export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = 'usdtrx';
+export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = TRC20_USDT_MAINNET_SLUG;
 
 export const MULTITAB_DATA_CHANNEL_NAME = 'mtw-multitab';
 export const ACTIVE_TAB_STORAGE_KEY = 'mtw-active-tab';

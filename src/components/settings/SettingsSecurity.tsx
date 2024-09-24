@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import { SettingsState } from '../../global/types';
 
 import {
-  ANIMATED_STICKER_BIG_SIZE_PX, ANIMATED_STICKER_HUGE_SIZE_PX, IS_CAPACITOR, PIN_LENGTH,
+  ANIMATED_STICKER_BIG_SIZE_PX, ANIMATED_STICKER_HUGE_SIZE_PX, ANIMATED_STICKER_SMALL_SIZE_PX, IS_CAPACITOR, PIN_LENGTH,
 } from '../../config';
 import { selectIsPasswordPresent } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -41,15 +41,16 @@ import styles from './Settings.module.scss';
 import biometricsImg from '../../assets/settings/settings_biometrics.svg';
 
 const enum SLIDES {
-  settings,
   password,
+  settings,
   newPassword,
   createNewPin,
   confirmNewPin,
   passwordChanged,
 }
 
-const SUBMIT_PAUSE_MS = 1500;
+const SWITCH_CONFIRM_PASSCODE_PAUSE_MS = 500;
+const CHANGE_PASSWORD_PAUSE_MS = 1500;
 
 interface OwnProps {
   isActive?: boolean;
@@ -181,19 +182,21 @@ function SettingsSecurity({
     }
   });
 
-  const handlePinSubmit = useLastCallback((enteredPassword: string) => {
+  const handlePinSubmit = useLastCallback(async (enteredPassword: string) => {
     setPinValue(enteredPassword);
+    await vibrateOnSuccess(true);
+    await pause(SWITCH_CONFIRM_PASSCODE_PAUSE_MS);
     openConfirmNewPinSlide();
   });
 
   const handleConfirmPinSubmit = useLastCallback(async (enteredPassword: string) => {
     if (enteredPassword === pinValue) {
       setPasswordError(lang('New code set successfully'));
-      await pause(SUBMIT_PAUSE_MS);
+      await pause(CHANGE_PASSWORD_PAUSE_MS);
       handleNewPasswordSubmit(enteredPassword);
     } else {
       setPasswordError(lang('Codes don’t match'));
-      await pause(SUBMIT_PAUSE_MS);
+      await pause(CHANGE_PASSWORD_PAUSE_MS);
       cleanup(true);
       setCurrentSlide(SLIDES.createNewPin);
     }
@@ -237,6 +240,7 @@ function SettingsSecurity({
       });
   });
   const shouldRenderNativeBiometrics = isPasswordPresent && (getIsNativeBiometricAuthSupported() || IS_IOS_APP);
+  const shouldRenderMinifiedPinPad = isInsideModal && IS_CAPACITOR;
 
   function renderSettings() {
     return (
@@ -400,25 +404,34 @@ function SettingsSecurity({
       case SLIDES.createNewPin:
         return (
           <>
-            <div className={styles.header}>
-              <Button isSimple isText onClick={openSettingsSlide} className={styles.headerBack}>
-                <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
-                <span>{lang('Back')}</span>
-              </Button>
-            </div>
+            {isInsideModal ? (
+              <ModalHeader
+                onBackButtonClick={openSettingsSlide}
+                className={styles.modalHeader}
+                title={shouldRenderMinifiedPinPad && lang('Change Passcode')}
+              />
+            ) : (
+              <div className={styles.header}>
+                <Button isSimple isText onClick={openSettingsSlide} className={styles.headerBack}>
+                  <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
+                  <span>{lang('Back')}</span>
+                </Button>
+              </div>
+            )}
 
-            <div className={styles.pinPadHeader}>
+            <div
+              className={buildClassName(styles.pinPadHeader, shouldRenderMinifiedPinPad && styles.pinPadHeaderMinified)}
+            >
               <AnimatedIconWithPreview
                 play={isActive}
                 tgsUrl={ANIMATED_STICKERS_PATHS.guard}
                 previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}
                 noLoop={false}
-                size={ANIMATED_STICKER_HUGE_SIZE_PX}
+                size={shouldRenderMinifiedPinPad ? ANIMATED_STICKER_SMALL_SIZE_PX : ANIMATED_STICKER_HUGE_SIZE_PX}
                 nonInteractive
               />
-              <div className={styles.pinPadTitle}>{lang('Change Passcode')}</div>
+              {!shouldRenderMinifiedPinPad && <div className={styles.pinPadTitle}>{lang('Change Passcode')}</div>}
             </div>
-
             <PinPad
               isActive={isActive}
               title={lang('Enter your new code')}
@@ -426,35 +439,54 @@ function SettingsSecurity({
               value={pinValue}
               onChange={setPinValue}
               onSubmit={handlePinSubmit}
+              isMinified={shouldRenderMinifiedPinPad}
             />
           </>
         );
       case SLIDES.confirmNewPin:
         return (
           <>
-            <div className={styles.header}>
-              <Button isSimple isText onClick={openSettingsSlide} className={styles.headerBack}>
-                <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
-                <span>{lang('Back')}</span>
-              </Button>
-            </div>
+            {isInsideModal ? (
+              <ModalHeader
+                onBackButtonClick={openSettingsSlide}
+                className={styles.modalHeader}
+                title={shouldRenderMinifiedPinPad && (
+                  passwordError && pinValue === confirmPinValue
+                    ? lang('Passcode Changed!')
+                    : lang('Change Passcode')
+                )}
+              />
+            ) : (
+              <div className={styles.header}>
+                <Button isSimple isText onClick={openSettingsSlide} className={styles.headerBack}>
+                  <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
+                  <span>{lang('Back')}</span>
+                </Button>
+              </div>
+            )}
 
-            <div className={styles.pinPadHeader}>
+            <div
+              className={buildClassName(styles.pinPadHeader, shouldRenderMinifiedPinPad && styles.pinPadHeaderMinified)}
+            >
               <AnimatedIconWithPreview
                 play={isActive}
                 tgsUrl={ANIMATED_STICKERS_PATHS.guard}
                 previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}
                 noLoop={false}
-                size={ANIMATED_STICKER_HUGE_SIZE_PX}
+                size={shouldRenderMinifiedPinPad ? ANIMATED_STICKER_SMALL_SIZE_PX : ANIMATED_STICKER_HUGE_SIZE_PX}
                 nonInteractive
               />
-              <div className={styles.pinPadTitle}>
-                {
-                  passwordError && pinValue === confirmPinValue
-                    ? lang('Passcode Changed!')
-                    : lang('Change Passcode')
-                }
-              </div>
+              {
+                !shouldRenderMinifiedPinPad && (
+                  <div className={styles.pinPadTitle}>
+                    {
+                      passwordError && pinValue === confirmPinValue
+                        ? lang('Passcode Changed!')
+                        : lang('Change Passcode')
+                    }
+                  </div>
+                )
+              }
             </div>
 
             <PinPad
@@ -465,6 +497,7 @@ function SettingsSecurity({
               value={confirmPinValue}
               onChange={setConfirmPinValue}
               onSubmit={handleConfirmPinSubmit}
+              isMinified={shouldRenderMinifiedPinPad}
             />
           </>
         );

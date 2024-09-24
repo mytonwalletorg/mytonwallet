@@ -1,11 +1,12 @@
 import type { Ref, RefObject } from 'react';
 import type { TeactNode } from '../../../../lib/teact/teact';
-import React, { memo } from '../../../../lib/teact/teact';
+import React, { memo, useMemo } from '../../../../lib/teact/teact';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../../api/types';
 import type { AppTheme } from '../../../../global/types';
 
 import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN, WHOLE_PART_DELIMITER } from '../../../../config';
+import { resolveSwapAsset } from '../../../../global/helpers';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
@@ -54,8 +55,17 @@ function Swap({
     cex,
   } = activity;
 
-  const fromToken = tokensBySlug?.[from];
-  const toToken = tokensBySlug?.[to];
+  const fromToken = useMemo(() => {
+    if (!from || !tokensBySlug) return undefined;
+
+    return resolveSwapAsset(tokensBySlug, from);
+  }, [from, tokensBySlug]);
+  const toToken = useMemo(() => {
+    if (!to || !tokensBySlug) return undefined;
+
+    return resolveSwapAsset(tokensBySlug, to);
+  }, [to, tokensBySlug]);
+
   const fromAmount = Number(activity.fromAmount);
   const toAmount = Number(activity.toAmount);
   const isPending = status === 'pending'

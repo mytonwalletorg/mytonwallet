@@ -620,8 +620,13 @@ a.item:hover {
   flex-direction: column;
   gap: 1rem;
   align-items: center;
+  justify-content: center;
 
   margin-top: auto;
+}
+
+.pinPadHeaderMinified {
+  margin-bottom: 1rem;
 }
 
 .pinPadTitle {

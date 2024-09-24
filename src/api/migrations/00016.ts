@@ -17,7 +17,10 @@ type OldAccount = {
 };
 
 export async function start() {
-  const oldAccountById: Record<string, OldAccount> = await storage.getItem('accounts');
+  const oldAccountById: Record<string, OldAccount> | undefined = await storage.getItem('accounts');
+
+  if (!oldAccountById) return;
+
   const mnemonicById: Record<string, string> = await storage.getItem('mnemonicsEncrypted' as StorageKey);
   const newAccountById: Record<string, any> = {};
 

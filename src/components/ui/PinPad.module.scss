@@ -120,6 +120,10 @@
 
   height: 5rem;
 
+  .minified > & {
+    height: 4.75rem;
+  }
+
   font-size: 2rem;
   font-weight: 700;
   line-height: 2rem;

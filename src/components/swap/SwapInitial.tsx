@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../global';
 
-import type { GlobalState, UserSwapToken } from '../../global/types';
+import type { Account, GlobalState, UserSwapToken } from '../../global/types';
 import { SwapInputSource, SwapState, SwapType } from '../../global/types';
 
 import {
@@ -18,7 +18,7 @@ import {
   TONCOIN,
 } from '../../config';
 import { Big } from '../../lib/big.js';
-import { selectSwapTokens } from '../../global/selectors';
+import { selectCurrentAccount, selectSwapTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { fromDecimal, toDecimal } from '../../util/decimals';
@@ -51,6 +51,7 @@ interface OwnProps {
 }
 
 interface StateProps {
+  addressByChain?: Account['addressByChain'];
   currentSwap: GlobalState['currentSwap'];
   accountId?: string;
   tokens?: UserSwapToken[];
@@ -82,6 +83,7 @@ function SwapInitial({
     swapFee,
   },
   accountId,
+  addressByChain,
   tokens,
   isActive,
   isStatic,
@@ -322,6 +324,9 @@ function SwapInitial({
     if (isCrosschain) {
       setSwapCexAddress({ toAddress: '' });
       if (swapType === SwapType.CrosschainToToncoin) {
+        setSwapScreen({ state: SwapState.Password });
+      } else if (tokenOut!.chain === 'tron' && addressByChain?.tron) {
+        setSwapCexAddress({ toAddress: addressByChain.tron });
         setSwapScreen({ state: SwapState.Password });
       } else {
         setSwapScreen({ state: SwapState.Blockchain });
@@ -611,10 +616,13 @@ function SwapInitial({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
+      const account = selectCurrentAccount(global);
+
       return {
         accountId: global.currentAccountId,
         currentSwap: global.currentSwap,
         tokens: selectSwapTokens(global),
+        addressByChain: account?.addressByChain,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

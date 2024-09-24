@@ -61,7 +61,11 @@ export async function checkTransactionDraft(
 
     const trxAmount = tokenAddress ? fee : amount + fee;
     if (trxBalance < trxAmount) {
-      return { error: ApiTransactionDraftError.InsufficientBalance };
+      return {
+        resolvedAddress: toAddress,
+        fee,
+        error: ApiTransactionDraftError.InsufficientBalance,
+      };
     }
 
     return {

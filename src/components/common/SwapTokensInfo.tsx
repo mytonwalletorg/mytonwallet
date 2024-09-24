@@ -7,7 +7,8 @@ import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import getChainNetworkName from '../../util/swap/getChainNetworkName';
 import getSwapRate from '../../util/swap/getSwapRate';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
+
+import TokenIcon from './TokenIcon';
 
 import styles from './SwapTokensInfo.module.scss';
 
@@ -23,16 +24,16 @@ function SwapTokensInfo({
   tokenIn, amountIn, tokenOut, amountOut, isError = false,
 }: OwnProps) {
   function renderTokenInfo(token?: UserSwapToken | ApiSwapAsset, amount = '0', isReceived = false) {
-    const image = token?.image ?? ASSET_LOGO_PATHS[token?.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
     const amountWithSign = isReceived ? amount : -amount;
     return (
       <div className={styles.infoRow}>
         <div className={styles.infoRowToken}>
-          <img
-            src={image}
-            alt={token?.symbol}
-            className={styles.infoRowIcon}
-          />
+          {Boolean(token) && (
+            <TokenIcon
+              token={token}
+              withChainIcon
+            />
+          )}
           <div className={buildClassName(styles.infoRowText, styles.infoRowTextCenter)}>
             <span className={styles.infoRowTitle}>{token?.name}</span>
             <span className={styles.infoRowDescription}>{getChainNetworkName(token?.chain)}</span>

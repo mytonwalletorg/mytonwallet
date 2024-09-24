@@ -137,10 +137,10 @@ export async function tryLoadSwapTokens(localOnUpdate?: OnApiUpdate) {
     const prices = getPricesCache();
     const tokens = assets.reduce((acc: Record<string, ApiSwapAsset>, asset) => {
       acc[asset.slug] = {
-        ...asset,
+        // Fix legacy variable names
+        ...omit(asset as any, ['blockchain']) as ApiSwapAsset,
         chain: 'blockchain' in asset ? asset.blockchain as string : asset.chain,
-        tokenAddress: ('contract' in asset ? asset.contract as string : asset.tokenAddress)
-          ?? (asset.symbol === 'USDT' ? asset.slug : asset.symbol),
+        tokenAddress: 'contract' in asset ? asset.contract as string : asset.tokenAddress,
         price: prices.bySlug[asset.slug]?.price ?? 0,
       };
       return acc;
