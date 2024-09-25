@@ -31,3 +31,7 @@ export function resolveSwapAssetId(asset: ApiSwapAsset) {
 export function resolveSwapAsset(bySlug: Record<string, ApiSwapAsset>, anyId: string) {
   return bySlug[anyId] ?? Object.values(bySlug).find(({ tokenAddress }) => tokenAddress === anyId);
 }
+
+export function getIsSupportedChain(chain?: string) {
+  return chain === 'ton' || chain === 'tron';
+}

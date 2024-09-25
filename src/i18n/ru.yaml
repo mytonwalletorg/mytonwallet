@@ -168,6 +168,7 @@ Wallet is not backed up: Резервная копия кошелька не с�
 Testnet Version: Версия Testnet
 Error reading clipboard: Ошибка буфера обмена
 $fee_value: "Комиссия: %fee%"
+Pay fee with %stars_symbol%: "Оплатить с %stars_symbol%"
 Loading...: Загрузка...
 Recipient Address: Адрес получателя
 Wallet address or domain: Адрес кошелька или домен

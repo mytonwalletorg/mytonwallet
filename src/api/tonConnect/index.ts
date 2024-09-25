@@ -343,7 +343,9 @@ export async function sendTransaction(
       }
     } else {
       const password = response as string;
-      const submitResult = await ton.submitMultiTransfer(accountId, password!, preparedMessages, validUntil);
+      const submitResult = await ton.submitMultiTransfer({
+        accountId, password, messages: preparedMessages, expireAt: validUntil,
+      });
       if ('error' in submitResult) {
         error = submitResult.error;
       } else {

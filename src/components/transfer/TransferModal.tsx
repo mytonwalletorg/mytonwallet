@@ -63,6 +63,7 @@ function TransferModal({
     tokenSlug,
     nfts,
     sentNftsCount,
+    dieselStatus,
   }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, isMediaViewerOpen,
 }: StateProps) {
   const {
@@ -183,6 +184,7 @@ function TransferModal({
             error={error}
             onSubmit={handleTransferSubmit}
             onCancel={handleModalCloseWithReset}
+            isGaslessWithStars={dieselStatus === 'stars-fee'}
           >
             {renderTransferShortInfo()}
           </TransferPassword>

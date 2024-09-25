@@ -168,6 +168,7 @@ Wallet is not backed up: Резервну копію гаманця не ств�
 Testnet Version: Версія Testnet
 Error reading clipboard: Помилка буфера обміну
 $fee_value: "Комісія: %fee%"
+Pay fee with %stars_symbol%: "Оплатити з %stars_symbol%"
 Loading...: Завантаження...
 Recipient Address: Адреса одержувача
 Wallet address or domain: Адреса гаманця або домен

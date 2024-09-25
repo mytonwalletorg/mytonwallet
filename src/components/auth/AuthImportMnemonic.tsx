@@ -132,7 +132,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
       : captureKeyboardListeners({
         onEnter: { handler: handleSubmit, noStopPropagation: true },
       });
-  }, [afterImportMnemonic, handleSubmit, isLoading, isSubmitDisabled, mnemonic]);
+  }, [handleSubmit, isLoading, isSubmitDisabled, mnemonic]);
 
   return (
     <div className={buildClassName(styles.container, styles.container_scrollable, 'custom-scroll')}>
@@ -153,7 +153,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
       </div>
 
       <div className={styles.importingContent}>
-        {MNEMONIC_INPUTS.map(({ id, label }) => (
+        {MNEMONIC_INPUTS.map(({ id, label }, i) => (
           <InputMnemonic
             key={id}
             id={`import-mnemonic-${id}`}
@@ -163,6 +163,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
             suggestionsPosition={getSuggestPosition(id, isPortrait)}
             inputArg={id}
             onInput={handleSetWord}
+            onEnter={i === MNEMONIC_COUNT - 1 ? handleSubmit : undefined}
           />
         ))}
       </div>

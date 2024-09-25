@@ -1,7 +1,7 @@
 import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 
 import type { ApiActivity } from '../../api/types';
-import type { UserSwapToken } from '../../global/types';
+import type { Account, UserSwapToken } from '../../global/types';
 
 import {
   CHANGELLY_LIVE_CHAT_URL, CHANGELLY_SUPPORT_EMAIL, CHANGELLY_WAITING_DEADLINE,
@@ -32,8 +32,10 @@ interface OwnProps {
   amountIn?: string;
   amountOut?: string;
   payinAddress?: string;
+  payoutAddress?: string;
   payinExtraId?: string;
   activity?: ApiActivity;
+  addressByChain?: Account['addressByChain'];
   onClose: NoneToVoidFunction;
 }
 
@@ -44,8 +46,10 @@ function SwapWaitTokens({
   amountIn,
   amountOut,
   payinAddress,
+  payoutAddress,
   payinExtraId,
   activity,
+  addressByChain,
   onClose,
 }: OwnProps) {
   const lang = useLang();
@@ -62,6 +66,7 @@ function SwapWaitTokens({
   });
 
   const shouldShowQrCode = !payinExtraId;
+  const isInternalSwap = Boolean(tokenIn?.chain === 'ton' && payoutAddress && payoutAddress === addressByChain?.tron);
 
   useHistoryBack({
     isActive,
@@ -131,6 +136,16 @@ function SwapWaitTokens({
       );
     }
 
+    if (isInternalSwap) {
+      return (
+        <div className={styles.changellyInfoBlock}>
+          <span className={styles.changellyDescription}>
+            {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
+          </span>
+        </div>
+      );
+    }
+
     return (
       <div className={styles.changellyInfoBlock}>
         <span className={styles.changellyDescription}>{lang('$swap_changelly_to_ton_description1', {
@@ -173,7 +188,7 @@ function SwapWaitTokens({
   return (
     <>
       <ModalHeader
-        title={lang(isExpired ? 'Swap Expired' : 'Waiting for Payment')}
+        title={lang(isExpired ? 'Swap Expired' : (isInternalSwap ? 'Swapping' : 'Waiting for Payment'))}
         onClose={onClose}
       />
 

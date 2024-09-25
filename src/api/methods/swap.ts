@@ -1,3 +1,4 @@
+import type { TonTransferParams } from '../chains/ton/types';
 import type {
   ApiSwapActivity,
   ApiSwapAsset,
@@ -16,6 +17,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
+import { TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { buildSwapId } from '../../util/swap/buildSwapId';
 import chains from '../chains';
@@ -77,19 +79,29 @@ export async function swapSubmit(
   withDiesel?: boolean,
 ) {
   const { address } = await fetchStoredTonWallet(accountId);
-  const transferList = transfers.map((transfer) => ({
+  const transferList: TonTransferParams[] = transfers.map((transfer) => ({
     ...transfer,
     amount: BigInt(transfer.amount),
     isBase64Payload: true,
   }));
 
+  if (historyItem.from !== TONCOIN.symbol) {
+    transferList[0] = await ton.insertMintlessPayload('mainnet', address, historyItem.from, transferList[0]);
+  }
+
+  const gaslessType = withDiesel ? 'diesel' : undefined;
+
   const result = await ton.submitMultiTransfer(
-    accountId, password, transferList, undefined, withDiesel,
+    {
+      accountId, password, messages: transferList, gaslessType,
+    },
   );
 
   if ('error' in result) {
     return result;
   }
+
+  delete result.messages[0].stateInit;
 
   const from = getSwapItemSlug(historyItem, historyItem.from);
   const to = getSwapItemSlug(historyItem, historyItem.to);

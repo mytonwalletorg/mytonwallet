@@ -27,7 +27,7 @@ function TronContent({
     chain: 'tron',
     isActive,
     hiddenClassName: styles.qrCodeHidden,
-    withFormatTransferUrl: true,
+    withFormatTransferUrl: false,
   });
   const qrClassNames = buildClassName(
     styles.qrCode,

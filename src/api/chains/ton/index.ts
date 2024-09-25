@@ -70,6 +70,7 @@ export {
   getTokenBalances,
   getAddressTokenBalances,
   fetchToken,
+  insertMintlessPayload,
 } from './tokens';
 export {
   resolveTokenWalletAddress,

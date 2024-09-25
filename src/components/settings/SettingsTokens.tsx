@@ -14,6 +14,7 @@ import { toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { isBetween } from '../../util/math';
 
+import useEffectOnce from '../../hooks/useEffectOnce';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -54,6 +55,7 @@ function SettingsTokens({
   const {
     openSettingsWithState,
     updateOrderedSlugs,
+    rebuildOrderedSlugs,
     toggleExceptionToken,
   } = getActions();
   const lang = useLang();
@@ -69,6 +71,10 @@ function SettingsTokens({
     orderedTokenSlugs: orderedSlugs,
     dragOrderTokenSlugs: orderedSlugs,
     draggedIndex: undefined,
+  });
+
+  useEffectOnce(() => {
+    rebuildOrderedSlugs();
   });
 
   useEffect(() => {

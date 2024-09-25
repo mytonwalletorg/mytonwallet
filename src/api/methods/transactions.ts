@@ -112,8 +112,18 @@ export async function submitTransfer(
   shouldCreateLocalTransaction = true,
 ) {
   const {
-    accountId, password, toAddress, amount, tokenAddress, comment, fee, shouldEncrypt, isBase64Data,
-    withDiesel, dieselAmount,
+    accountId,
+    password,
+    toAddress,
+    amount,
+    tokenAddress,
+    comment,
+    fee,
+    shouldEncrypt,
+    isBase64Data,
+    withDiesel,
+    dieselAmount,
+    isGaslessWithStars,
   } = options;
   const stateInit = typeof options.stateInit === 'string' ? Cell.fromBase64(options.stateInit) : options.stateInit;
 
@@ -131,6 +141,7 @@ export async function submitTransfer(
       data: comment,
       shouldEncrypt,
       dieselAmount: dieselAmount!,
+      isGaslessWithStars,
     });
   } else {
     result = await chains[chain].submitTransfer({
@@ -173,6 +184,9 @@ export async function submitTransfer(
       slug,
       inMsgHash: msgHash,
     });
+    if ('paymentLink' in result && result.paymentLink) {
+      onUpdate({ type: 'openUrl', url: result.paymentLink, isExternal: true });
+    }
   } else {
     const { txId } = result;
     localTransaction = createLocalTransaction(accountId, chain, {

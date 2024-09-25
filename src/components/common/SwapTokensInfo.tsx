@@ -3,6 +3,7 @@ import React, { memo } from '../../lib/teact/teact';
 import type { ApiSwapAsset } from '../../api/types';
 import type { UserSwapToken } from '../../global/types';
 
+import { TOKEN_WITH_LABEL } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import getChainNetworkName from '../../util/swap/getChainNetworkName';
@@ -25,6 +26,7 @@ function SwapTokensInfo({
 }: OwnProps) {
   function renderTokenInfo(token?: UserSwapToken | ApiSwapAsset, amount = '0', isReceived = false) {
     const amountWithSign = isReceived ? amount : -amount;
+    const withLabel = Boolean(token && TOKEN_WITH_LABEL[token.slug]);
     return (
       <div className={styles.infoRow}>
         <div className={styles.infoRowToken}>
@@ -35,7 +37,12 @@ function SwapTokensInfo({
             />
           )}
           <div className={buildClassName(styles.infoRowText, styles.infoRowTextCenter)}>
-            <span className={styles.infoRowTitle}>{token?.name}</span>
+            <span className={styles.infoRowTitle}>
+              {token?.name}
+              {withLabel && (
+                <span className={buildClassName(styles.label, styles.chainLabel)}>{TOKEN_WITH_LABEL[token!.slug]}</span>
+              )}
+            </span>
             <span className={styles.infoRowDescription}>{getChainNetworkName(token?.chain)}</span>
           </div>
         </div>

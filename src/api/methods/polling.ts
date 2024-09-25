@@ -118,7 +118,7 @@ export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate, isFirstRun?: 
 
     if (!isUpdaterAlive(localOnUpdate)) return;
 
-    await addTokens(tokens, onUpdate);
+    await addTokens(tokens, onUpdate, true);
   } catch (err) {
     logDebugError('tryUpdateTokens', err);
   }

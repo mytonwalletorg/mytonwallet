@@ -276,7 +276,7 @@ export async function parsePayloadSlice(
 
     switch (opCode) {
       case JettonOpCode.Transfer: {
-        const tokenAddress = await resolveTokenAddress(network, address);
+        const tokenAddress = await resolveTokenAddress(network, address).catch(() => '');
         const slug = buildTokenSlug('ton', tokenAddress);
 
         const amount = slice.loadCoins();

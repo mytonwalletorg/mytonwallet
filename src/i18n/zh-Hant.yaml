@@ -159,6 +159,7 @@ Wallet is not backed up: 錢包未備份
 Testnet Version: 測試網版本
 Error reading clipboard: 讀取剪貼板時出現錯誤
 $fee_value: "手續費: %fee%"
+Pay fee with %stars_symbol%: "使用 %stars_symbol% 支付"
 Loading...: 讀取中...
 Recipient Address: 接收人地址
 Wallet address or domain: 錢包地址或是域名

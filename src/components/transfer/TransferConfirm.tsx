@@ -9,6 +9,7 @@ import {
   BURN_CHUNK_DURATION_APPROX_SEC,
   NFT_BATCH_SIZE,
   NOTCOIN_EXCHANGERS,
+  STARS_SYMBOL,
   TONCOIN,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
@@ -66,6 +67,7 @@ function TransferConfirm({
     binPayload,
     nfts,
     withDiesel,
+    isGaslessWithStars,
     dieselAmount,
     stateInit,
   },
@@ -130,7 +132,7 @@ function TransferConfirm({
         amount={toDecimal(amount ?? 0n, decimals)}
         symbol={symbol}
         fee={dieselAmount ? toDecimal(dieselAmount, decimals) : undefined}
-        feeSymbol={symbol}
+        feeSymbol={isGaslessWithStars ? STARS_SYMBOL : symbol}
       />
     );
   }

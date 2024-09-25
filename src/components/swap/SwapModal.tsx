@@ -4,11 +4,15 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiActivity } from '../../api/types';
-import type { GlobalState, UserSwapToken } from '../../global/types';
+import type { Account, GlobalState, UserSwapToken } from '../../global/types';
 import { SwapState, SwapType } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
-import { selectCurrentAccountState, selectSwapTokens } from '../../global/selectors';
+import {
+  selectCurrentAccount,
+  selectCurrentAccountState,
+  selectSwapTokens,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
@@ -36,6 +40,7 @@ interface StateProps {
   currentSwap: GlobalState['currentSwap'];
   swapTokens?: UserSwapToken[];
   activityById?: Record<string, ApiActivity>;
+  addressByChain?: Account['addressByChain'];
 }
 
 function SwapModal({
@@ -51,11 +56,13 @@ function SwapModal({
     swapType,
     toAddress,
     payinAddress,
+    payoutAddress,
     payinExtraId,
     isSettingsModalOpen,
   },
   swapTokens,
   activityById,
+  addressByChain,
 }: StateProps) {
   const {
     startSwap,
@@ -227,7 +234,9 @@ function SwapModal({
             amountIn={renderedTransactionAmountIn}
             amountOut={renderedTransactionAmountOut}
             payinAddress={payinAddress}
+            payoutAddress={payoutAddress}
             payinExtraId={payinExtraId}
+            addressByChain={addressByChain}
             activity={renderedActivity}
             onClose={handleModalCloseWithReset}
           />
@@ -303,11 +312,13 @@ function SwapModal({
 
 export default memo(withGlobal((global): StateProps => {
   const accountState = selectCurrentAccountState(global);
+  const account = selectCurrentAccount(global);
   const activityById = accountState?.activities?.byId;
 
   return {
     currentSwap: global.currentSwap,
     swapTokens: selectSwapTokens(global),
     activityById,
+    addressByChain: account?.addressByChain,
   };
 })(SwapModal));

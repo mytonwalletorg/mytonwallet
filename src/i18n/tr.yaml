@@ -165,6 +165,7 @@ Wallet is not backed up: Cüzdan yedeklenmemiş
 Testnet Version: Testnet Sürümü
 Error reading clipboard: Pano okunurken hata oluştu
 $fee_value: "Ücret: %fee%"
+Pay fee with %stars_symbol%: "%stars_symbol% ile öde"
 Loading...: Yükleniyor...
 Recipient Address: Alıcının adresi
 Wallet address or domain: Cüzdan adresi veya alan adı

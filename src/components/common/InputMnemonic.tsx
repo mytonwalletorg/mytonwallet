@@ -3,6 +3,7 @@ import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 import { PRIVATE_KEY_HEX_LENGTH } from '../../config';
 import { requestMeasure } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
+import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { callApi } from '../../api';
 
 import useFlag from '../../hooks/useFlag';
@@ -22,12 +23,13 @@ type OwnProps = {
   suggestionsPosition?: 'top' | 'bottom';
   inputArg?: any;
   onInput: (value: string, inputArg?: any) => void;
+  onEnter?: NoneToVoidFunction;
 };
 
 const SUGGESTION_WORDS_COUNT = 7;
 
 function InputMnemonic({
-  id, nextId, labelText, className, value = '', isInModal, suggestionsPosition, inputArg, onInput,
+  id, nextId, labelText, className, value = '', isInModal, suggestionsPosition, inputArg, onInput, onEnter,
 }: OwnProps) {
   const [hasFocus, markFocus, unmarkFocus] = useFlag();
   const [hasError, setHasError] = useState<boolean>(false);
@@ -77,48 +79,55 @@ function InputMnemonic({
     processSuggestions(pastedValue);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!value) {
-      return;
+  const handleEnter = useLastCallback((e: KeyboardEvent) => {
+    if (!value) return;
+
+    if (onEnter && !areSuggestionsShown) {
+      onEnter();
     }
 
-    if (e.code === 'Enter' || (e.code === 'Tab' && !(e.shiftKey || e.ctrlKey || e.altKey || e.metaKey))) {
-      const suggestedValue = filteredSuggestions[activeSuggestionIndex];
-      if (!suggestedValue) return;
-      onInput(suggestedValue, inputArg);
-      setFilteredSuggestions([suggestedValue]);
-      setActiveSuggestionIndex(0);
-      setAreSuggestionsShown(false);
+    const suggestedValue = filteredSuggestions[activeSuggestionIndex];
+    if (!suggestedValue) return;
+    onInput(suggestedValue, inputArg);
+    setFilteredSuggestions([suggestedValue]);
+    setActiveSuggestionIndex(0);
+    setAreSuggestionsShown(false);
 
-      if (areSuggestionsShown) {
-        e.preventDefault();
-      }
+    if (areSuggestionsShown) {
+      e.preventDefault();
+    }
 
-      if (nextId) {
+    if (nextId) {
+      requestMeasure(() => {
         requestMeasure(() => {
-          requestMeasure(() => {
-            const nextInput = document.getElementById(nextId);
-            nextInput?.focus();
-            (nextInput as HTMLInputElement)?.select();
-          });
+          const nextInput = document.getElementById(nextId);
+          nextInput?.focus();
+          (nextInput as HTMLInputElement)?.select();
         });
-      }
+      });
     }
+  });
 
-    if (e.code === 'ArrowUp') {
-      if (activeSuggestionIndex === 0) {
-        return;
-      }
-      setActiveSuggestionIndex(activeSuggestionIndex - 1);
-    }
-
-    if (e.code === 'ArrowDown') {
-      if (activeSuggestionIndex === filteredSuggestions.length - 1) {
-        return;
-      }
-      setActiveSuggestionIndex(activeSuggestionIndex + 1);
-    }
-  };
+  useEffect(() => {
+    return hasFocus ? captureKeyboardListeners({
+      onEnter: handleEnter,
+      onTab: (e: KeyboardEvent) => {
+        if (!(e.shiftKey || e.ctrlKey || e.altKey || e.metaKey)) {
+          handleEnter(e);
+        }
+      },
+      onUp: () => {
+        if (activeSuggestionIndex > 0) {
+          setActiveSuggestionIndex(activeSuggestionIndex - 1);
+        }
+      },
+      onDown: () => {
+        if (activeSuggestionIndex < filteredSuggestions.length - 1) {
+          setActiveSuggestionIndex(activeSuggestionIndex + 1);
+        }
+      },
+    }) : undefined;
+  });
 
   const handleClick = useLastCallback((suggestion: string) => {
     onInput(suggestion, inputArg);
@@ -177,7 +186,6 @@ function InputMnemonic({
         type="text"
         autoComplete="off"
         onChange={handleChange}
-        onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
         onPaste={handlePaste}

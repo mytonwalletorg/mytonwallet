@@ -15,7 +15,7 @@ export async function loadTokensCache() {
   return addTokens(tokens);
 }
 
-export async function addTokens(tokens: ApiToken[], onUpdate?: OnApiUpdate) {
+export async function addTokens(tokens: ApiToken[], onUpdate?: OnApiUpdate, shouldForceSend?: boolean) {
   const newTokens: ApiToken[] = [];
 
   for (const token of tokens) {
@@ -27,7 +27,7 @@ export async function addTokens(tokens: ApiToken[], onUpdate?: OnApiUpdate) {
 
   await apiDb.tokens.bulkPut(tokens);
 
-  if (newTokens.length && onUpdate) {
+  if ((shouldForceSend || newTokens.length) && onUpdate) {
     sendUpdateTokens(onUpdate);
   }
 }

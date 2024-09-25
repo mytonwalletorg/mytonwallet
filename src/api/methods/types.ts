@@ -17,6 +17,7 @@ export type CheckTransactionDraftOptions = {
   stateInit?: string;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
+  isGaslessWithStars?: boolean;
 };
 
 export interface ApiSubmitTransferOptions {
@@ -32,6 +33,7 @@ export interface ApiSubmitTransferOptions {
   withDiesel?: boolean;
   dieselAmount?: bigint;
   stateInit?: string | Cell;
+  isGaslessWithStars?: boolean;
 }
 
 export type ApiSubmitTransferResult = ApiSubmitTransferTonResult | ApiSubmitTransferTronResult;

@@ -27,7 +27,7 @@ export interface ApiTransactionExtra extends ApiTransaction {
 }
 
 export interface TokenTransferBodyParams {
-  queryId?: number;
+  queryId?: bigint;
   tokenAmount: bigint;
   toAddress: string;
   responseAddress: string;
@@ -115,6 +115,7 @@ export type ApiSubmitMultiTransferResult = {
   seqno: number;
   boc: string;
   msgHash: string;
+  paymentLink?: string;
 } | {
   error: string;
 };

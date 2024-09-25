@@ -165,6 +165,7 @@ Wallet is not backed up: Die Wallet ist nicht gesichert.
 Testnet Version: Testnet Version
 Error reading clipboard: Fehler beim Lesen der Zwischenablage
 $fee_value: "Gebühr: %fee%"
+Pay fee with %stars_symbol%: "Bezahlen mit %stars_symbol%"
 Loading...: Laden...
 Recipient Address: Empfänger adresse
 Wallet address or domain: Wallet adresse oder Domain

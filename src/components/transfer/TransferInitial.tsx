@@ -11,7 +11,9 @@ import type {
 import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
-import { IS_FIREFOX_EXTENSION, TONCOIN, TRX } from '../../config';
+import {
+  IS_FIREFOX_EXTENSION, STARS_SYMBOL, TONCOIN, TRX,
+} from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
 import {
@@ -210,15 +212,22 @@ function TransferInitial({
     ? (fee !== undefined && fee < toncoinToken.amount)
     : (fee !== undefined && (fee + additionalAmount) <= nativeToken.amount);
 
-  const isDieselAvailable = dieselStatus === 'available';
+  const isGaslessWithStars = dieselStatus === 'stars-fee';
+  const isDieselAvailable = dieselStatus === 'available' || isGaslessWithStars;
   const isDieselNotAuthorized = dieselStatus === 'not-authorized';
   const withDiesel = dieselStatus && dieselStatus !== 'not-available';
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
-    ? balance - amount >= dieselAmount
+    ? isGaslessWithStars
+      ? true
+      : balance - amount >= dieselAmount
     : undefined;
 
+  const feeSymbol = isGaslessWithStars ? STARS_SYMBOL : symbol;
+
   const maxAmount = withDiesel && dieselAmount && balance
-    ? balance - dieselAmount
+    ? isGaslessWithStars
+      ? balance
+      : balance - dieselAmount
     : balance;
 
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
@@ -558,6 +567,7 @@ function TransferInitial({
       shouldEncrypt,
       nftAddresses: isNftTransfer ? nfts!.map(({ address }) => address) : undefined,
       withDiesel,
+      isGaslessWithStars,
       stateInit,
     });
   });
@@ -571,7 +581,9 @@ function TransferInitial({
       return undefined;
     }
 
-    return savedAddresses.map((item) => renderAddressItem({
+    return savedAddresses.filter(
+      (item) => item.address.includes(toAddress) || item.name.includes(toAddress),
+    ).map((item) => renderAddressItem({
       key: `saved-${item.address}-${item.chain}`,
       address: item.address,
       name: item.name,
@@ -580,7 +592,7 @@ function TransferInitial({
       onClick: handleAddressBookItemClick,
       onDeleteClick: handleDeleteSavedAddressClick,
     }));
-  }, [savedAddresses, isMultichainAccount, lang]);
+  }, [savedAddresses, isMultichainAccount, lang, toAddress]);
 
   const renderedOtherAccounts = useMemo(() => {
     if (otherAccountIds.length === 0) return undefined;
@@ -612,7 +624,9 @@ function TransferInitial({
         return acc;
       }, [] as (SavedAddress & { isHardware?: boolean })[]);
 
-    return otherAccounts.map(({
+    return otherAccounts.filter(
+      (item) => item.address.includes(toAddress) || item.name.includes(toAddress),
+    ).map(({
       address, name, chain: addressChain, isHardware,
     }) => renderAddressItem({
       key: `address-${address}-${addressChain}`,
@@ -622,7 +636,7 @@ function TransferInitial({
       isHardware,
       onClick: handleAddressBookItemClick,
     }));
-  }, [otherAccountIds, savedAddresses, accounts, isMultichainAccount]);
+  }, [otherAccountIds, savedAddresses, accounts, isMultichainAccount, toAddress]);
 
   function renderAddressBook() {
     if (!renderedSavedAddresses && !renderedOtherAccounts) return undefined;
@@ -633,7 +647,7 @@ function TransferInitial({
         type="suggestion"
         noBackdrop
         bubbleClassName={styles.savedAddressBubble}
-        isOpen={isAddressBookOpen && !toAddress?.length}
+        isOpen={isAddressBookOpen && (!!renderedSavedAddresses?.length || !!renderedOtherAccounts?.length)}
         onClose={closeAddressBook}
       >
         {renderedSavedAddresses}
@@ -669,11 +683,11 @@ function TransferInitial({
 
     let feeText: string | TeactNode[] = ' ';
 
-    if (withDiesel && dieselAmount && symbol) {
+    if (withDiesel && dieselAmount && feeSymbol) {
       feeText = lang('$fee_value', {
         fee: (
           <span className={styles.feeValue}>
-            {formatCurrencyExtended(toDecimal(dieselAmount!, decimals), symbol, true, decimals)}
+            {formatCurrencyExtended(toDecimal(dieselAmount!, decimals), feeSymbol, true, decimals)}
           </span>
         ),
       });
@@ -689,10 +703,14 @@ function TransferInitial({
       });
     }
 
-    const content = isInsufficientBalance ? insufficientBalanceText
-      : withDiesel && !isEnoughDiesel ? insufficientDieselText
-        : isInsufficientFee ? insufficientFeeText
-          : withFee ? feeText
+    const content = isInsufficientBalance
+      ? insufficientBalanceText
+      : withDiesel && !isEnoughDiesel
+        ? insufficientDieselText
+        : isInsufficientFee
+          ? insufficientFeeText
+          : withFee
+            ? feeText
             : ' ';
 
     return (

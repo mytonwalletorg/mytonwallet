@@ -2,7 +2,9 @@ import type { JettonBalance } from 'tonapi-sdk-js';
 import { Address, Cell } from '@ton/core';
 
 import type { ApiNetwork, ApiToken } from '../../types';
-import type { AnyPayload, ApiTransactionExtra, JettonMetadata } from './types';
+import type {
+  AnyPayload, ApiTransactionExtra, JettonMetadata, TonTransferParams,
+} from './types';
 
 import { TINY_TOKENS } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -13,6 +15,7 @@ import {
   fetchJettonMetadata,
   fixBase64ImageData,
   parseJettonWalletMsgBody,
+  parsePayloadBase64,
 } from './util/metadata';
 import { fetchJettonBalances } from './util/tonapiio';
 import {
@@ -118,43 +121,88 @@ export function parseTokenTransaction(
   };
 }
 
-export async function buildTokenTransfer(
+export async function insertMintlessPayload(
   network: ApiNetwork,
-  tokenAddress: string,
   fromAddress: string,
-  toAddress: string,
-  amount: bigint,
-  payload?: AnyPayload,
-) {
+  tokenAddress: string,
+  transfer: TonTransferParams,
+): Promise<TonTransferParams> {
+  const { toAddress, payload } = transfer;
+
+  const token = getTokenByAddress(tokenAddress);
+  if (typeof payload !== 'string' || !token?.customPayloadApiUrl) {
+    return transfer;
+  }
+
+  const parsedPayload = await parsePayloadBase64(network, toAddress, payload);
+  if (parsedPayload.type !== 'tokens:transfer') {
+    throw new Error('Invalid payload');
+  }
+
+  const {
+    mintlessTokenBalance,
+    isMintlessClaimed,
+    stateInit,
+    customPayload,
+  } = await getMintlessParams({
+    network,
+    token,
+    fromAddress,
+    tokenWalletAddress: transfer.toAddress,
+  });
+
+  if (!mintlessTokenBalance || isMintlessClaimed) {
+    return transfer;
+  }
+
+  const newPayload = buildTokenTransferBody({
+    toAddress: parsedPayload.destination,
+    queryId: parsedPayload.queryId,
+    tokenAmount: parsedPayload.amount,
+    forwardAmount: parsedPayload.forwardAmount,
+    forwardPayload: Cell.fromBase64(parsedPayload.forwardPayload!),
+    responseAddress: parsedPayload.responseDestination,
+    customPayload: Cell.fromBase64(customPayload!),
+  });
+
+  return {
+    ...transfer,
+    stateInit: stateInit ? Cell.fromBase64(stateInit) : undefined,
+    payload: newPayload,
+    isBase64Payload: false,
+  };
+}
+
+export async function buildTokenTransfer(options: {
+  network: ApiNetwork;
+  tokenAddress: string;
+  fromAddress: string;
+  toAddress: string;
+  amount: bigint;
+  payload?: AnyPayload;
+}) {
+  const {
+    network,
+    tokenAddress,
+    fromAddress,
+    toAddress,
+    amount,
+  } = options;
+  let { payload } = options;
+
   const tokenWalletAddress = await resolveTokenWalletAddress(network, fromAddress, tokenAddress);
   const tokenWallet = getTokenWallet(network, tokenWalletAddress);
   const token = getTokenByAddress(tokenAddress)!;
 
-  let isTokenWalletDeployed = true;
-  let customPayload: string | undefined;
-  let stateInit: string | undefined;
-
-  const isMintlessToken = !!token.customPayloadApiUrl;
-  let isMintlessClaimed: boolean | undefined;
-  let mintlessTokenBalance: bigint | undefined;
-
-  if (isMintlessToken) {
-    isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress));
-    isMintlessClaimed = isTokenWalletDeployed && await checkMintlessTokenWalletIsClaimed(network, tokenWalletAddress);
-
-    if (!isMintlessClaimed) {
-      const data = await fetchMintlessTokenWalletData(token.customPayloadApiUrl!, fromAddress);
-
-      if (data) {
-        customPayload = data.custom_payload;
-        mintlessTokenBalance = BigInt(data.compressed_info.amount);
-
-        if (!isTokenWalletDeployed) {
-          stateInit = data.state_init;
-        }
-      }
-    }
-  }
+  const {
+    isTokenWalletDeployed,
+    isMintlessClaimed,
+    mintlessTokenBalance,
+    customPayload,
+    stateInit,
+  } = await getMintlessParams({
+    network, fromAddress, token, tokenWalletAddress,
+  });
 
   if (isTokenWalletDeployed) {
     const realTokenAddress = await resolveTokenAddress(network, tokenWalletAddress);
@@ -188,6 +236,51 @@ export async function buildTokenTransfer(
     stateInit: stateInit ? Cell.fromBase64(stateInit) : undefined,
     mintlessTokenBalance,
     isTokenWalletDeployed,
+  };
+}
+
+export async function getMintlessParams(options: {
+  network: ApiNetwork;
+  fromAddress: string;
+  token: ApiToken;
+  tokenWalletAddress: string;
+}) {
+  const {
+    network, fromAddress, token, tokenWalletAddress,
+  } = options;
+
+  let isTokenWalletDeployed = true;
+  let customPayload: string | undefined;
+  let stateInit: string | undefined;
+
+  const isMintlessToken = !!token.customPayloadApiUrl;
+  let isMintlessClaimed: boolean | undefined;
+  let mintlessTokenBalance: bigint | undefined;
+
+  if (isMintlessToken) {
+    isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress));
+    isMintlessClaimed = isTokenWalletDeployed && await checkMintlessTokenWalletIsClaimed(network, tokenWalletAddress);
+
+    if (!isMintlessClaimed) {
+      const data = await fetchMintlessTokenWalletData(token.customPayloadApiUrl!, fromAddress);
+
+      if (data) {
+        customPayload = data.custom_payload;
+        mintlessTokenBalance = BigInt(data.compressed_info.amount);
+
+        if (!isTokenWalletDeployed) {
+          stateInit = data.state_init;
+        }
+      }
+    }
+  }
+
+  return {
+    isTokenWalletDeployed,
+    isMintlessClaimed,
+    mintlessTokenBalance,
+    customPayload,
+    stateInit,
   };
 }
 

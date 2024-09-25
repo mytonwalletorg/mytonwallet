@@ -165,6 +165,7 @@ Wallet is not backed up: Wallet is not backed up
 Testnet Version: Testnet Version
 Error reading clipboard: Error reading clipboard
 $fee_value: "Fee: %fee%"
+Pay fee with %stars_symbol%: "Pay fee with %stars_symbol%"
 Loading...: Loading...
 Recipient Address: Recipient Address
 Wallet address or domain: Wallet address or domain

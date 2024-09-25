@@ -918,7 +918,7 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
     return;
   }
 
-  const symbolOrTokenAddress = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
+  const assetId = resolveSwapAssetId(tokenIn);
 
   const cache = PAIRS_CACHE[tokenSlug];
   const isCacheValid = cache && (Date.now() - cache.timestamp <= CACHE_DURATION);
@@ -926,7 +926,7 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
     return;
   }
 
-  const pairs = await callApi('swapGetPairs', symbolOrTokenAddress);
+  const pairs = await callApi('swapGetPairs', assetId);
   global = getGlobal();
 
   if (!pairs) {

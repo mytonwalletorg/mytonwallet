@@ -170,7 +170,7 @@ export async function submitNftTransfers(options: {
     };
   });
 
-  return submitMultiTransfer(accountId, password, messages);
+  return submitMultiTransfer({ accountId, password, messages });
 }
 
 function buildNotcoinVoucherExchange(fromAddress: string, nftAddress: string, nftIndex: number) {

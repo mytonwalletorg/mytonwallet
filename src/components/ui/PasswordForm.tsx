@@ -35,7 +35,7 @@ interface OwnProps {
   isLoading?: boolean;
   operationType?: OperationType;
   cancelLabel?: string;
-  submitLabel: string;
+  submitLabel: string | TeactNode[];
   stickerSize?: number;
   placeholder?: string;
   error?: string;

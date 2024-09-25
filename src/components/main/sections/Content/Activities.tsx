@@ -5,7 +5,7 @@ import { setExtraStyles } from '../../../../lib/teact/teact-dom';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiActivity, ApiSwapAsset, ApiTokenWithPrice } from '../../../../api/types';
-import type { SavedAddress, Theme } from '../../../../global/types';
+import type { Account, SavedAddress, Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
 
 import {
@@ -13,6 +13,7 @@ import {
 } from '../../../../config';
 import { getIsSwapId, getIsTinyOrScamTransaction, getIsTxIdLocal } from '../../../../global/helpers';
 import {
+  selectCurrentAccount,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
@@ -55,6 +56,7 @@ type StateProps = {
   slug?: string;
   isNewWallet: boolean;
   isMultichainAccount: boolean;
+  addressByChain?: Account['addressByChain'];
   areTinyTransfersHidden?: boolean;
   byId?: Record<string, ApiActivity>;
   idsBySlug?: Record<string, string[]>;
@@ -96,6 +98,7 @@ function Activities({
   currentAccountId,
   isNewWallet,
   isMultichainAccount,
+  addressByChain,
   slug,
   idsBySlug,
   idsMain,
@@ -326,6 +329,7 @@ function Activities({
           isLast={isLast}
           isActive={isActivityActive}
           appTheme={appTheme}
+          addressByChain={addressByChain}
           onClick={handleActivityClick}
         />
       );
@@ -461,6 +465,7 @@ function Activities({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
+      const account = selectCurrentAccount(global);
       const accountState = selectCurrentAccountState(global);
       const accountSettings = selectCurrentAccountSettings(global);
       const isFirstTransactionsLoaded = selectIsFirstTransactionsLoaded(global, global.currentAccountId!);
@@ -490,6 +495,7 @@ export default memo(
         activitiesUpdateStartedAt: global.activitiesUpdateStartedAt,
         theme: global.settings.theme,
         isFirstTransactionsLoaded,
+        addressByChain: account?.addressByChain,
       };
     },
     (global, _, stickToFirst) => {

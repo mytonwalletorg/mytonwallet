@@ -164,6 +164,7 @@ Wallet is not backed up: El monedero no está respaldado
 Testnet Version: Versión Testnet
 Error reading clipboard: Error al leer el portapapeles
 $fee_value: "Comisión: %fee%"
+Pay fee with %stars_symbol%: "Pagar con %stars_symbol%"
 Loading...: Cargando...
 Recipient Address: Dirección del destinatario
 Wallet address or domain: Dirección o dominio del monedero

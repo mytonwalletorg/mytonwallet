@@ -167,6 +167,7 @@ Wallet is not backed up: Portfel nie ma kopii zapasowej
 Testnet Version: Wersja Testnet
 Error reading clipboard: Błąd odczytu schowka
 $fee_value: "Opłata: %fee%"
+Pay fee with %stars_symbol%: "Opłać z %stars_symbol%"
 Loading...: Ładowanie...
 Recipient Address: Adres odbiorcy
 Wallet address or domain: Adres portfela lub domena
