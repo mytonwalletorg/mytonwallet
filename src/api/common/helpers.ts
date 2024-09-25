@@ -379,6 +379,7 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
         }
       }
 
+      version = 14;
       await storage.setItem('accounts', accounts);
     }
   }
