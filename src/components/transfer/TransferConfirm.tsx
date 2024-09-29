@@ -188,6 +188,15 @@ function TransferConfirm({
     ? (Math.ceil(nfts.length / NFT_BATCH_SIZE) * BURN_CHUNK_DURATION_APPROX_SEC) / 60
     : undefined;
 
+  const submitBtnText = lang(
+    (isBurning || isNotcoinBurning)
+      ? 'Burn NFT'
+      : isGaslessWithStars
+        ? 'Pay fee with %stars_symbol%'
+        : 'Confirm',
+    isGaslessWithStars ? { stars_symbol: STARS_SYMBOL } : undefined,
+  );
+
   return (
     <>
       <ModalHeader title={lang('Is it all ok?')} onClose={onClose} />
@@ -265,7 +274,7 @@ function TransferConfirm({
             className={modalStyles.button}
             onClick={handleConfirm}
           >
-            {lang((isBurning || isNotcoinBurning) ? 'Burn NFT' : 'Confirm')}
+            {submitBtnText}
           </Button>
         </div>
       </div>

@@ -2,7 +2,7 @@ import type {
   ApiDapp, ApiDappsState, ApiNetwork, ApiSite, OnApiUpdate,
 } from '../types';
 
-import { buildAccountId, parseAccountId } from '../../util/account';
+import { parseAccountId } from '../../util/account';
 import {
   getAccountValue, removeAccountValue, removeNetworkAccountsValue, setAccountValue,
 } from '../common/accounts';
@@ -187,6 +187,7 @@ export async function findLastConnectedAccount(network: ApiNetwork, origin: stri
 
   Object.entries(dapps).forEach(([accountId, byOrigin]) => {
     if (!(origin in byOrigin)) return;
+    if (parseAccountId(accountId).network !== network) return;
 
     if ((byOrigin[origin].connectedAt) > connectedAt) {
       connectedAt = byOrigin[origin].connectedAt;
@@ -194,11 +195,7 @@ export async function findLastConnectedAccount(network: ApiNetwork, origin: stri
     }
   });
 
-  if (!lastConnectedAccountId) {
-    return undefined;
-  }
-
-  return buildAccountId({ ...parseAccountId(lastConnectedAccountId), network });
+  return lastConnectedAccountId;
 }
 
 export function getDappsState(): Promise<ApiDappsState | undefined> {
