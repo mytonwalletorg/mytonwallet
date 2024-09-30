@@ -89,8 +89,8 @@ export async function getWalletFromMnemonic(
   mnemonic: string[],
   network: ApiNetwork,
   version?: ApiTonWalletVersion,
-): Promise<ApiTonWallet> {
-  const { publicKey } = await mnemonicToKeyPair(mnemonic);
+): Promise<ApiTonWallet & { lastTxId?: string }> {
+  const { publicKey } = await tonWebMnemonic.mnemonicToKeyPair(mnemonic);
   return getWalletFromKeys(publicKey, network, version);
 }
 
@@ -107,12 +107,13 @@ async function getWalletFromKeys(
   publicKey: Uint8Array,
   network: ApiNetwork,
   version?: ApiTonWalletVersion,
-): Promise<ApiTonWallet> {
+): Promise<ApiTonWallet & { lastTxId?: string }> {
   let wallet: TonWallet;
+  let lastTxId: string | undefined;
   if (version) {
     wallet = buildWallet(network, publicKey, version);
   } else {
-    ({ wallet, version } = await pickBestWallet(network, publicKey));
+    ({ wallet, version, lastTxId } = await pickBestWallet(network, publicKey));
   }
 
   const address = toBase64Address(wallet.address, false, network);
@@ -124,6 +125,7 @@ async function getWalletFromKeys(
     address,
     version,
     index: 0,
+    lastTxId,
   };
 }
 

@@ -5,6 +5,7 @@ import type {
   ApiAccountWithMnemonic,
   ApiLedgerAccount,
   ApiNetwork,
+  ApiTonWallet,
   ApiTxTimestamps,
 } from '../types';
 import { ApiCommonError } from '../types';
@@ -61,9 +62,10 @@ export async function importMnemonic(
   version?: ApiTonWalletVersion,
 ) {
   const isPrivateKey = isMnemonicPrivateKey(mnemonic);
-  const isBip39Mnemonic = validateBip39Mnemonic(mnemonic);
+  let isBip39Mnemonic = validateBip39Mnemonic(mnemonic);
+  const isTonMnemonic = await ton.validateMnemonic(mnemonic);
 
-  if (!isPrivateKey && !isBip39Mnemonic && !await validateMnemonic(mnemonic)) {
+  if (!isPrivateKey && !isBip39Mnemonic && !isTonMnemonic) {
     throw new Error('Invalid mnemonic');
   }
 
@@ -79,13 +81,21 @@ export async function importMnemonic(
   }
 
   let account: ApiAccountAny;
+  let tonWallet: ApiTonWallet & { lastTxId?: string } | undefined;
   let tonAddress: string;
   let tronAddress: string | undefined;
 
   try {
+    if (isBip39Mnemonic && isTonMnemonic) {
+      tonWallet = await ton.getWalletFromMnemonic(mnemonic, network, version);
+      if (tonWallet.lastTxId) {
+        isBip39Mnemonic = false;
+      }
+    }
+
     if (isBip39Mnemonic) {
       const tronWallet = tron.getWalletFromBip39Mnemonic(network, mnemonic);
-      const tonWallet = await ton.getWalletFromBip39Mnemonic(network, mnemonic);
+      tonWallet = await ton.getWalletFromBip39Mnemonic(network, mnemonic);
 
       tonAddress = tonWallet.address;
       tronAddress = tronWallet.address;
@@ -96,9 +106,11 @@ export async function importMnemonic(
         ton: tonWallet,
       };
     } else {
-      const tonWallet = isPrivateKey
-        ? await ton.getWalletFromPrivateKey(mnemonic[0], network, version)
-        : await ton.getWalletFromMnemonic(mnemonic, network, version);
+      if (!tonWallet) {
+        tonWallet = isPrivateKey
+          ? await ton.getWalletFromPrivateKey(mnemonic[0], network, version)
+          : await ton.getWalletFromMnemonic(mnemonic, network, version);
+      }
       account = {
         type: 'ton',
         mnemonicEncrypted,

@@ -2,10 +2,9 @@ import type { Cell } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
 import type {
-  ApiAnyDisplayError, ApiParsedPayload, ApiTransaction, ApiWalletInfo,
+  ApiAnyDisplayError, ApiParsedPayload, ApiTransaction,
 } from '../../types';
 import type { ContractType } from './constants';
-import type { TonWallet } from './util/tonCore';
 
 export type ApiTonWalletVersion = 'simpleR1'
 | 'simpleR2'
@@ -93,10 +92,6 @@ export type GetAddressInfoResponse = {
   sync_utime: number;
   '@extra': string;
   state: 'uninitialized' | 'active';
-};
-
-export type WalletInfo = ApiWalletInfo & {
-  wallet: TonWallet;
 };
 
 export type ApiSubmitTransferTonResult = {

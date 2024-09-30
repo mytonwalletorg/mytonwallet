@@ -1,4 +1,4 @@
-import type { ApiNetwork } from '../../../types';
+import type { ApiNetwork, ApiWalletInfo } from '../../../types';
 import type { ApiTransactionExtra } from '../types';
 
 import {
@@ -7,14 +7,59 @@ import {
   TONHTTPAPI_V3_TESTNET_API_URL,
 } from '../../../../config';
 import { fetchJson } from '../../../../util/fetch';
-import { omitUndefined, split } from '../../../../util/iteratees';
+import {
+  buildCollectionByKey, mapValues, omitUndefined, split,
+} from '../../../../util/iteratees';
 import { getEnvironment } from '../../../environment';
 import { stringifyTxId } from './index';
-import { toBase64Address } from './tonCore';
+import { toBase64Address, toRawAddress } from './tonCore';
 
 type AddressBook = Record<string, { user_friendly: string }>;
 
+type AccountState = {
+  account_state_hash: string;
+  address: string;
+  balance: string;
+  code_boc: string;
+  code_hash: string;
+  data_boc: string;
+  data_hash: string;
+  frozen_hash: string;
+  last_transaction_hash: string;
+  last_transaction_lt: number;
+  status: string;
+};
+
+type WalletVersion = keyof typeof VERSION_MAP;
+
+type WalletState = {
+  address: string;
+  balance: string;
+  code_hash: string;
+  is_signature_allowed: boolean;
+  is_wallet: boolean;
+  last_transaction_hash: string;
+  last_transaction_lt: number;
+  seqno: number;
+  status: string;
+  wallet_id: number;
+  wallet_type: WalletVersion;
+};
+
 const ADDRESS_BOOK_CHUNK_SIZE = 128;
+const VERSION_MAP = {
+  'wallet v1 r1': 'simpleR1',
+  'wallet v1 r2': 'simpleR2',
+  'wallet v1 r3': 'simpleR3',
+  'wallet v2 r1': 'v2R1',
+  'wallet v2 r2': 'v2R2',
+  'wallet v3 r1': 'v3R1',
+  'wallet v3 r2': 'v3R2',
+  // 'wallet v4 r1': '', // Not used in production, wrapper is missing
+  'wallet v4 r2': 'v4R2',
+  // 'wallet v5 beta': '', // Not used in production, wrapper is missing
+  'wallet v5 r1': 'W5',
+} as const;
 
 export async function fetchTransactions(options: {
   network: ApiNetwork;
@@ -138,7 +183,48 @@ export async function fixAddressFormat(network: ApiNetwork, address: string): Pr
   return result.address_book[address];
 }
 
-function callApiV3(network: ApiNetwork, path: string, data?: AnyLiteral) {
+export async function getWalletStates(network: ApiNetwork, addresses: string[]) {
+  const { wallets: states } = await callApiV3<{
+    addressBook: AddressBook;
+    wallets: WalletState[];
+  }>(network, '/walletStates', { address: addresses.join(',') });
+
+  const addressByRaw = Object.fromEntries(addresses.map((address) => [toRawAddress(address).toUpperCase(), address]));
+  for (const state of states) {
+    state.address = addressByRaw[state.address];
+  }
+  return buildCollectionByKey(states, 'address');
+}
+
+export async function getWalletInfos(network: ApiNetwork, addresses: string[]): Promise<Record<string, ApiWalletInfo>> {
+  const states = await getWalletStates(network, addresses);
+  return mapValues(states, (state) => {
+    return {
+      address: toBase64Address(state.address, false),
+      version: VERSION_MAP[state.wallet_type],
+      balance: BigInt(state.balance),
+      isInitialized: state.status === 'active',
+      lastTxId: state.last_transaction_lt && state.last_transaction_hash
+        ? stringifyTxId({ lt: state.last_transaction_lt, hash: state.last_transaction_hash })
+        : undefined,
+    };
+  });
+}
+
+export async function getAccountStates(network: ApiNetwork, addresses: string[]) {
+  const { accounts: states } = await callApiV3<{
+    addressBook: AddressBook;
+    accounts: AccountState[];
+  }>(network, '/accountStates', { address: addresses.join(',') });
+
+  const addressByRaw = Object.fromEntries(addresses.map((address) => [toRawAddress(address), address]));
+  for (const state of states) {
+    state.address = addressByRaw[state.address];
+  }
+  return buildCollectionByKey(states, 'address');
+}
+
+function callApiV3<T = any>(network: ApiNetwork, path: string, data?: AnyLiteral) {
   const { apiHeaders, tonhttpapiMainnetKey, tonhttpapiTestnetKey } = getEnvironment();
   const baseUrl = network === 'testnet' ? TONHTTPAPI_V3_TESTNET_API_URL : TONHTTPAPI_V3_MAINNET_API_URL;
   const apiKey = network === 'testnet' ? tonhttpapiTestnetKey : tonhttpapiMainnetKey;
@@ -148,7 +234,7 @@ function callApiV3(network: ApiNetwork, path: string, data?: AnyLiteral) {
       ...(apiKey && { 'X-Api-Key': apiKey }),
       ...apiHeaders,
     },
-  });
+  }) as Promise<T>;
 }
 
 function msToSec(ms: number) {

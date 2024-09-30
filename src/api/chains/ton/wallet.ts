@@ -1,14 +1,15 @@
 import { beginCell, storeStateInit } from '@ton/core';
 
-import type { ApiNetwork } from '../../types';
-import type { ApiTonWalletVersion, ContractInfo, WalletInfo } from './types';
+import type { ApiNetwork, ApiWalletInfo } from '../../types';
+import type { ApiTonWalletVersion, ContractInfo } from './types';
 import type { TonWallet } from './util/tonCore';
 
 import { DEFAULT_WALLET_VERSION } from '../../../config';
 import { parseAccountId } from '../../../util/account';
-import { pick } from '../../../util/iteratees';
+import { extractKey, findLast } from '../../../util/iteratees';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { stringifyTxId } from './util';
+import { getWalletInfos } from './util/apiV3';
 import { fetchJettonBalances } from './util/tonapiio';
 import {
   getTonClient, toBase64Address, walletClassMap,
@@ -135,6 +136,7 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
   wallet: TonWallet;
   version: ApiTonWalletVersion;
   balance: bigint;
+  lastTxId?: string;
 }> {
   const allWallets = await getWalletVersionInfos(network, publicKey);
   const defaultWallet = allWallets.filter(({ version }) => version === DEFAULT_WALLET_VERSION)[0];
@@ -151,7 +153,7 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
     return withBiggestBalance;
   }
 
-  const withLastTx = allWallets.find(({ lastTxId }) => !!lastTxId);
+  const withLastTx = findLast(allWallets, ({ lastTxId }) => !!lastTxId);
 
   if (withLastTx) {
     return withLastTx;
@@ -167,23 +169,28 @@ export async function pickBestWallet(network: ApiNetwork, publicKey: Uint8Array)
   return defaultWallet;
 }
 
-export function getWalletVersionInfos(
+export async function getWalletVersionInfos(
   network: ApiNetwork,
   publicKey: Uint8Array,
   versions: ApiTonWalletVersion[] = ALL_WALLET_VERSIONS,
-): Promise<WalletInfo[]> {
-  return Promise.all(versions.map(async (version) => {
+): Promise<(ApiWalletInfo & { wallet: TonWallet })[]> {
+  const items = versions.map((version) => {
     const wallet = buildWallet(network, publicKey, version);
     const address = toBase64Address(wallet.address, false, network);
-    const walletInfo = await getWalletInfo(network, wallet);
+    return { wallet, address, version };
+  });
 
+  const walletInfos = await getWalletInfos(network, extractKey(items, 'address'));
+
+  return items.map((item) => {
     return {
-      wallet,
-      address,
-      version,
-      ...pick(walletInfo, ['isInitialized', 'balance', 'lastTxId']),
+      ...walletInfos[item.address] ?? {
+        balance: 0n,
+        isInitialized: false,
+      },
+      ...item,
     };
-  }));
+  });
 }
 
 export function getWalletVersions(

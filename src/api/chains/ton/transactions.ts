@@ -71,7 +71,6 @@ import {
   FEE_FACTOR,
   STAKE_COMMENT,
   TINY_TOKEN_TRANSFER_AMOUNT,
-  TOKEN_TRANSFER_AMOUNT,
   TRANSFER_TIMEOUT_SEC,
   UNSTAKE_COMMENT,
 } from './constants';
@@ -235,14 +234,14 @@ export async function checkTransactionDraft(
     });
 
     const realFee = await calculateFee(network, wallet, transaction, isWalletInitialized);
-    result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR) + (tokenAddress ? TOKEN_TRANSFER_AMOUNT : 0n);
+    result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR) + (tokenAddress ? amount : 0n);
 
     const toncoinBalance = await getWalletBalance(network, wallet);
 
     const isFullTonBalance = !tokenAddress && toncoinBalance === amount;
     const isEnoughBalance = isFullTonBalance
       ? toncoinBalance > realFee
-      : toncoinBalance >= amount + result.fee;
+      : toncoinBalance >= result.fee;
 
     if (
       network === 'mainnet'
