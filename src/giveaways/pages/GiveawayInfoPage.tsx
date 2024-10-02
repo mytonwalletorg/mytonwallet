@@ -1,10 +1,11 @@
-import { fromNano } from '@ton/core';
 import type { Wallet } from '@tonconnect/sdk';
 import React, { memo } from '../../lib/teact/teact';
 
 import type { JettonMetadataInfo } from '../components/App';
 import type { Giveaway } from '../utils/giveaway';
 
+import { toDecimal } from '../../util/decimals';
+import { DEFAULT_DECIMALS } from '../../api/chains/ton/constants';
 import { GiveawayStatus, ParticipantStatus } from '../utils/giveaway';
 
 import CommonPage from '../components/CommonPage';
@@ -39,6 +40,10 @@ function GiveawayInfoPage({
   }
 
   function renderPaidPageContent() {
+    const decimals = jettonMetadata && 'decimals' in jettonMetadata
+      ? Number(jettonMetadata.decimals!)
+      : DEFAULT_DECIMALS;
+
     return (
       <>
         <ImageSection status={ImageSectionStatus.Paid} />
@@ -46,7 +51,7 @@ function GiveawayInfoPage({
         <div className={styles.giveawayInfoText}>
           <div>Your Reward</div>
           <TokenInfo
-            amount={fromNano(giveaway.amount)}
+            amount={toDecimal(giveaway.amount, decimals)}
             className={styles.tokenInfo}
             jettonMetadata={jettonMetadata}
           />

@@ -120,16 +120,16 @@
 
   height: 5rem;
 
-  .minified > & {
-    height: 4.75rem;
-  }
-
   font-size: 2rem;
   font-weight: 700;
   line-height: 2rem;
   text-align: center;
 
   transition: opacity 200ms;
+
+  .minified > & {
+    height: 4.75rem;
+  }
 
   @media (max-height: 55rem) {
     height: 4rem;

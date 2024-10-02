@@ -1,6 +1,7 @@
 import type { StorageKey } from '../storages/types';
 import type {
   ApiAccountAny,
+  ApiAccountWithMnemonic,
   ApiAccountWithTon,
   ApiAccountWithTron,
   ApiBip39Account,
@@ -39,10 +40,10 @@ export async function getAccountIds(): Promise<string[]> {
   return Object.keys(await storage.getItem('accounts') || {});
 }
 
-export async function getAccountIdWithMnemonic() {
+export async function getAccountWithMnemonic() {
   const byId = await fetchStoredAccounts();
 
-  return Object.entries(byId).find(([, { type }]) => type !== 'ledger')?.[0];
+  return Object.entries(byId).find(([, { type }]) => type !== 'ledger') as [string, ApiAccountWithMnemonic] | undefined;
 }
 
 export async function getNewAccountId(network: ApiNetwork) {

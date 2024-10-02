@@ -10,8 +10,15 @@
   }
 }
 
+// `min-height: 100%` should be set for the Transition component to work,
+// because on iOS the dialog doesn't have a height value, and the container uses `align-items: flex-start`.
+.iosModalDialog {
+  min-height: 100%;
+}
+
 .contentWrapper {
   overflow: hidden;
+  flex-grow: 1;
 }
 
 .content {

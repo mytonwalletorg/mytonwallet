@@ -1,21 +1,23 @@
 import * as tonWebMnemonic from 'tonweb-mnemonic';
 
-import type { ApiChain, ApiNetwork } from '../types';
+import type { ApiAccountWithMnemonic, ApiChain, ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
 import chains from '../chains';
 import {
+  fetchStoredAccount,
   fetchStoredAddress,
   fetchStoredTonWallet,
-  getAccountIdWithMnemonic,
+  getAccountWithMnemonic,
 } from '../common/accounts';
 import * as dappPromises from '../common/dappPromises';
-import { fetchMnemonic } from '../common/mnemonic';
+import { getMnemonic } from '../common/mnemonic';
 
 const ton = chains.ton;
 
-export function getMnemonic(accountId: string, password: string) {
-  return fetchMnemonic(accountId, password);
+export async function fetchMnemonic(accountId: string, password: string) {
+  const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+  return getMnemonic(accountId, password, account);
 }
 
 export function getMnemonicWordList() {
@@ -23,12 +25,12 @@ export function getMnemonicWordList() {
 }
 
 export async function verifyPassword(password: string) {
-  const accountId = await getAccountIdWithMnemonic();
-  if (!accountId) {
+  const [accountId, account] = (await getAccountWithMnemonic()) ?? [];
+  if (!accountId || !account) {
     throw new Error('The user is not authorized in the wallet');
   }
 
-  return Boolean(await fetchMnemonic(accountId, password));
+  return Boolean(await getMnemonic(accountId, password, account));
 }
 
 export function confirmDappRequest(promiseId: string, data: any) {

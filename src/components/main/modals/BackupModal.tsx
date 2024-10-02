@@ -69,7 +69,7 @@ function BackupModal({
 
   const handlePasswordSubmit = useLastCallback(async (password: string) => {
     setIsLoading(true);
-    mnemonicRef.current = await callApi('getMnemonic', currentAccountId!, password);
+    mnemonicRef.current = await callApi('fetchMnemonic', currentAccountId!, password);
 
     if (!mnemonicRef.current) {
       setError('Wrong password, please try again.');

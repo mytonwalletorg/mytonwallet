@@ -3,7 +3,11 @@ import * as bip39 from 'bip39';
 import nacl from 'tweetnacl';
 
 import type {
-  ApiLedgerAccount, ApiNetwork, ApiTonAccount, ApiTonWallet,
+  ApiAccountWithMnemonic,
+  ApiLedgerAccount,
+  ApiNetwork,
+  ApiTonAccount,
+  ApiTonWallet,
 } from '../../types';
 import type { ApiTonWalletVersion } from './types';
 import type { TonWallet } from './util/tonCore';
@@ -14,7 +18,7 @@ import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import { logDebugError } from '../../../util/logs';
 import { toBase64Address } from './util/tonCore';
 import { fetchStoredAccount, getNewAccountId, setAccountValue } from '../../common/accounts';
-import { fetchMnemonic, validateBip39Mnemonic } from '../../common/mnemonic';
+import { getMnemonic } from '../../common/mnemonic';
 import { bytesToHex, hexToBytes } from '../../common/utils';
 import { TON_BIP39_PATH } from './constants';
 import { buildWallet, pickBestWallet, publicKeyToAddress } from './wallet';
@@ -31,15 +35,9 @@ export function privateKeyHexToKeyPair(privateKeyHex: string) {
   return nacl.sign.keyPair.fromSeed(hexToBytes(privateKeyHex));
 }
 
-export function mnemonicToKeyPair(mnemonic: string[]) {
-  return validateBip39Mnemonic(mnemonic)
-    ? bip39MnemonicToKeyPair(mnemonic)
-    : tonWebMnemonic.mnemonicToKeyPair(mnemonic);
-}
-
-export async function fetchPrivateKey(accountId: string, password: string) {
+export async function fetchPrivateKey(accountId: string, password: string, account?: ApiAccountWithMnemonic) {
   try {
-    const { secretKey: privateKey } = await fetchKeyPair(accountId, password) || {};
+    const { secretKey: privateKey } = await fetchKeyPair(accountId, password, account) || {};
 
     return privateKey;
   } catch (err) {
@@ -50,14 +48,21 @@ export async function fetchPrivateKey(accountId: string, password: string) {
   }
 }
 
-export async function fetchKeyPair(accountId: string, password: string) {
+export async function fetchKeyPair(accountId: string, password: string, account?: ApiAccountWithMnemonic) {
   try {
-    const mnemonic = await fetchMnemonic(accountId, password);
+    account = account ?? await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+    const mnemonic = await getMnemonic(accountId, password, account);
     if (!mnemonic) {
       return undefined;
     }
 
-    return isMnemonicPrivateKey(mnemonic) ? privateKeyHexToKeyPair(mnemonic[0]) : await mnemonicToKeyPair(mnemonic);
+    if (isMnemonicPrivateKey(mnemonic)) {
+      return privateKeyHexToKeyPair(mnemonic[0]);
+    } else if (account.type === 'bip39') {
+      return bip39MnemonicToKeyPair(mnemonic);
+    } else {
+      return await tonWebMnemonic.mnemonicToKeyPair(mnemonic);
+    }
   } catch (err) {
     logDebugError('fetchKeyPair', err);
 

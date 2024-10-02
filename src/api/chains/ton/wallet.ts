@@ -1,6 +1,6 @@
 import { beginCell, storeStateInit } from '@ton/core';
 
-import type { ApiNetwork, ApiWalletInfo } from '../../types';
+import type { ApiNetwork, ApiTonWallet, ApiWalletInfo } from '../../types';
 import type { ApiTonWalletVersion, ContractInfo } from './types';
 import type { TonWallet } from './util/tonCore';
 
@@ -230,9 +230,9 @@ export function pickWalletByAddress(network: ApiNetwork, publicKey: Uint8Array, 
   return allWallets.find((w) => w.address === address)!;
 }
 
-export async function getTonWallet(accountId: string) {
+export async function getTonWallet(accountId: string, tonWallet?: ApiTonWallet) {
   const { network } = parseAccountId(accountId);
-  const { publicKey, version } = await fetchStoredTonWallet(accountId);
+  const { publicKey, version } = tonWallet ?? await fetchStoredTonWallet(accountId);
 
   const publicKeyBytes = hexToBytes(publicKey);
   return buildWallet(network, publicKeyBytes, version);

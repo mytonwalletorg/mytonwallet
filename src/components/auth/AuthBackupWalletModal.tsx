@@ -109,6 +109,7 @@ function AuthBackupWalletModal({
       hasCloseButton
       isOpen={isOpen}
       dialogClassName={styles.modalDialog}
+      forceFullNative={renderingKey !== BackupState.Accept}
       nativeBottomSheetKey="disclaimer"
       onClose={closeAuthBackupWalletModal}
       onCloseAnimationEnd={handleModalClose}

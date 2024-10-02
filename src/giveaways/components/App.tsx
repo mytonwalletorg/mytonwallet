@@ -1,12 +1,10 @@
 import type { Wallet, WalletInfoRemote } from '@tonconnect/sdk';
 import React, {
-  memo,
-  useCallback,
-  useEffect, useLayoutEffect, useState,
+  memo, useCallback, useEffect, useLayoutEffect, useState,
 } from '../../lib/teact/teact';
 
 import type { JettonMetadata } from '../../api/chains/ton/types';
-import type { Giveaway } from '../utils/giveaway';
+import type { Giveaway, GiveawayWithTask } from '../utils/giveaway';
 
 import buildClassName from '../../util/buildClassName';
 import { resolveRender } from '../../util/renderPromise';
@@ -42,6 +40,15 @@ export type JettonMetadataInfo = JettonMetadata | { isTon: boolean };
 
 const FETCH_REPEAT_MS = 3000;
 
+enum PageKey {
+  NoGiveawayPageId = 0,
+  LoadingPageId = 1,
+  ConnectPageId = 2,
+  CaptchaPageId = 3,
+  CompleteTaskPageId = 4,
+  GiveawayInfoPageId = 5,
+}
+
 function App({ mtwWalletInfo }: OwnProps) {
   useLayoutEffect(() => {
     document.documentElement.classList.add('is-rendered');
@@ -54,7 +61,7 @@ function App({ mtwWalletInfo }: OwnProps) {
   const [participantStatus, setParticipantStatus] = useState<ParticipantStatus>();
   const [wallet, setWallet] = useState<Wallet>();
   const [tokenAddressData, setTokenAddressData] = useState<JettonMetadataInfo>();
-  const [renderKey, setRenderKey] = useState(0);
+  const [renderKey, setRenderKey] = useState<PageKey>(PageKey.LoadingPageId);
 
   const loadGiveaway = useLoadGiveaway(setGiveaway, setTokenAddressData);
   const loadWallet = useLoadWallet(setWallet);
@@ -72,8 +79,20 @@ function App({ mtwWalletInfo }: OwnProps) {
   useInterval(loadParticipantStatus, FETCH_REPEAT_MS);
 
   useEffect(() => {
-    setRenderKey((prevKey) => prevKey + 1);
-  }, [participantStatus, giveaway, wallet, tokenAddressData]);
+    if (!getGiveawayId()) {
+      setRenderKey(PageKey.NoGiveawayPageId);
+    } else if (!giveaway) {
+      setRenderKey(PageKey.LoadingPageId);
+    } else if (!wallet) {
+      setRenderKey(PageKey.ConnectPageId);
+    } else if (giveaway.status === GiveawayStatus.Active && participantStatus === ParticipantStatus.NotFound) {
+      setRenderKey(PageKey.CaptchaPageId);
+    } else if (isGiveawayWithTask(giveaway) && participantStatus === ParticipantStatus.AwaitingTask) {
+      setRenderKey(PageKey.CompleteTaskPageId);
+    } else if (participantStatus) {
+      setRenderKey(PageKey.GiveawayInfoPageId);
+    }
+  }, [participantStatus, giveaway, wallet]);
 
   const handleConnectClick = useCallback(
     () => handleTonConnectButtonClick(mtwWalletInfo),
@@ -81,55 +100,52 @@ function App({ mtwWalletInfo }: OwnProps) {
   );
 
   function renderPage() {
-    if (!getGiveawayId()) {
-      return <div>QueryParams has no giveawayId</div>;
-    }
+    switch (renderKey) {
+      case PageKey.NoGiveawayPageId:
+        return <div>QueryParams has no giveawayId</div>;
 
-    if (!giveaway) {
-      return <div className={styles.loading}><Loading /></div>;
-    }
+      case PageKey.LoadingPageId:
+        return <div className={styles.loading}><Loading /></div>;
 
-    if (!wallet) {
-      return (
-        <ConnectPage
-          giveaway={giveaway}
-          onConnectClick={handleConnectClick}
-        />
-      );
-    }
+      case PageKey.ConnectPageId:
+        return (
+          <ConnectPage
+            giveaway={giveaway!}
+            onConnectClick={handleConnectClick}
+          />
+        );
 
-    if (giveaway.status === GiveawayStatus.Active && participantStatus === ParticipantStatus.NotFound) {
-      return (
-        <CaptchaPage
-          wallet={wallet}
-          setParticipantStatus={setParticipantStatus}
-          setGiveaway={setGiveaway}
-        />
-      );
-    }
+      case PageKey.CaptchaPageId:
+        return (
+          <CaptchaPage
+            wallet={wallet!}
+            setParticipantStatus={setParticipantStatus}
+            setGiveaway={setGiveaway}
+          />
+        );
 
-    if ((isGiveawayWithTask(giveaway) && participantStatus === ParticipantStatus.AwaitingTask)) {
-      return (
-        <CompleteTaskPage
-          giveaway={giveaway}
-          wallet={wallet}
-          loadParticipantStatus={loadParticipantStatus}
-        />
-      );
-    }
+      case PageKey.CompleteTaskPageId:
+        return (
+          <CompleteTaskPage
+            giveaway={giveaway as GiveawayWithTask}
+            wallet={wallet!}
+            loadParticipantStatus={loadParticipantStatus}
+          />
+        );
 
-    if (participantStatus) {
-      return (
-        <GiveawayInfoPage
-          giveaway={giveaway}
-          wallet={wallet}
-          participantStatus={participantStatus}
-          jettonMetadata={tokenAddressData}
-        />
-      );
-    }
+      case PageKey.GiveawayInfoPageId:
+        return (
+          <GiveawayInfoPage
+            giveaway={giveaway!}
+            wallet={wallet!}
+            participantStatus={participantStatus!}
+            jettonMetadata={tokenAddressData!}
+          />
+        );
 
-    return <div className={styles.loading}><Loading /></div>;
+      default:
+        return <div className={styles.loading}><Loading /></div>;
+    }
   }
 
   return (

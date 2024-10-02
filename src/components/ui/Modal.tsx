@@ -20,6 +20,7 @@ import freezeWhenClosed from '../../hooks/freezeWhenClosed';
 import { useDelegatedBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDelegatingBottomSheet } from '../../hooks/useDelegatingBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useHideBrowser from '../../hooks/useHideBrowser';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -111,12 +112,12 @@ function Modal({
     onBack: onClose,
   });
 
-  useEffect(() => {
-    if (!IS_DELEGATED_BOTTOM_SHEET || !isCompact) return;
-
+  useEffectWithPrevDeps(([prevIsOpen]) => {
     // Expand NBS to full size for a compact modal inside NBS
-    BottomSheet.toggleSelfFullSize({ isFullSize: !!isOpen });
-  }, [isCompact, isOpen]);
+    if (IS_DELEGATED_BOTTOM_SHEET && isCompact && (prevIsOpen || isOpen)) {
+      BottomSheet.toggleSelfFullSize({ isFullSize: !!isOpen });
+    }
+  }, [isOpen, isCompact]);
 
   useEffect(
     () => (isOpen ? captureKeyboardListeners({

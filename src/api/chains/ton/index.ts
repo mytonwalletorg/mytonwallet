@@ -1,7 +1,6 @@
 export {
   generateMnemonic,
   rawSign,
-  mnemonicToKeyPair,
   validateMnemonic,
   fetchPrivateKey,
   getWalletFromBip39Mnemonic,

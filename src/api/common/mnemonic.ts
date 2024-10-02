@@ -2,7 +2,7 @@ import * as bip39 from 'bip39';
 
 import { type ApiAccountWithMnemonic, ApiCommonError } from '../types';
 
-import { fetchStoredAccount, updateStoredAccount } from './accounts';
+import { updateStoredAccount } from './accounts';
 
 const PBKDF2_IMPORT_KEY_ARGS = [
   { name: 'PBKDF2' },
@@ -118,9 +118,9 @@ async function decryptMnemonicLegacy(encrypted: string, password: string) {
   return plaintext.split(',');
 }
 
-export async function fetchMnemonic(accountId: string, password: string) {
+export async function getMnemonic(accountId: string, password: string, account: ApiAccountWithMnemonic) {
   try {
-    const { mnemonicEncrypted } = (await fetchStoredAccount<ApiAccountWithMnemonic>(accountId));
+    const { mnemonicEncrypted } = account;
     const mnemonic = await decryptMnemonic(mnemonicEncrypted, password);
 
     if (!mnemonicEncrypted.includes(':')) {

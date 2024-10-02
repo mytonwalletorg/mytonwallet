@@ -46,7 +46,7 @@ function ReceiveModal({
   return (
     <Modal
       isOpen={isOpen}
-      dialogClassName={IS_IOS_APP ? undefined : styles.modalDialog}
+      dialogClassName={IS_IOS_APP ? styles.iosModalDialog : styles.modalDialog}
       nativeBottomSheetKey="receive"
       onClose={closeReceiveModal}
     >

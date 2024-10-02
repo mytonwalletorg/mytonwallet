@@ -5,6 +5,7 @@ import {
 import type { DieselStatus } from '../../../global/types';
 import type { CheckTransactionDraftOptions } from '../../methods/types';
 import type {
+  ApiAccountWithMnemonic,
   ApiActivity,
   ApiAnyDisplayError,
   ApiNetwork,
@@ -56,7 +57,7 @@ import {
   resolveTokenWalletAddress,
   toBase64Address,
 } from './util/tonCore';
-import { fetchStoredTonWallet } from '../../common/accounts';
+import { fetchStoredAccount, fetchStoredTonWallet } from '../../common/accounts';
 import { callBackendGet } from '../../common/backend';
 import { updateTransactionMetadata } from '../../common/helpers';
 import { getTokenByAddress, getTokenBySlug } from '../../common/tokens';
@@ -357,12 +358,10 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
   const { network } = parseAccountId(accountId);
 
   try {
-    const [wallet, { address: fromAddress, isInitialized }, keyPair] = await Promise.all([
-      getTonWallet(accountId),
-      fetchStoredTonWallet(accountId),
-      fetchKeyPair(accountId, password),
-    ]);
-    const { publicKey, secretKey } = keyPair!;
+    const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+    const { address: fromAddress, isInitialized } = account.ton;
+    const wallet = await getTonWallet(accountId, account.ton);
+    const { publicKey, secretKey } = (await fetchKeyPair(accountId, password, account))!;
 
     let encryptedComment: string | undefined;
 
@@ -904,11 +903,10 @@ export async function submitMultiTransfer({
   const { network } = parseAccountId(accountId);
 
   try {
-    const [wallet, { address: fromAddress, isInitialized }, privateKey] = await Promise.all([
-      getTonWallet(accountId),
-      fetchStoredTonWallet(accountId),
-      fetchPrivateKey(accountId, password),
-    ]);
+    const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+    const { address: fromAddress, isInitialized } = account.ton;
+    const wallet = await getTonWallet(accountId, account.ton);
+    const privateKey = await fetchPrivateKey(accountId, password, account);
 
     let totalAmount = 0n;
     messages.forEach((message) => {

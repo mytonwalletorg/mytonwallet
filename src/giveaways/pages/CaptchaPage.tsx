@@ -1,10 +1,12 @@
 import type { Wallet } from '@tonconnect/sdk';
-import React, { memo, useEffect } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 
 import type { SetGiveaway, SetParticipantStatus } from '../utils/giveaway';
 
 import { GIVEAWAY_CAPTCHA_PUBLIC_KEY } from '../config';
 import { checkinGiveaway } from '../utils/giveaway';
+
+import useEffectOnce from '../../hooks/useEffectOnce';
 
 import CommonPage from '../components/CommonPage';
 
@@ -17,7 +19,7 @@ interface OwnProps {
 }
 
 function CaptchaPage({ wallet, setParticipantStatus, setGiveaway }: OwnProps) {
-  useEffect(() => {
+  useEffectOnce(() => {
     // eslint-disable-next-line func-names
     window.onloadTurnstileCallback = function () {
       // @ts-expect-error

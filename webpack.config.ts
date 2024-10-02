@@ -82,6 +82,7 @@ export default function createConfig(
     target: 'web',
 
     optimization: {
+      minimize: APP_ENV === 'production',
       usedExports: true,
       ...(APP_ENV === 'staging' && {
         chunkIds: 'named',

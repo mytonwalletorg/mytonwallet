@@ -24,6 +24,7 @@ import { tonConnect } from './utils/tonConnect';
 import App from './components/App';
 
 import '../styles/index.scss';
+import './index.scss';
 
 if (DEBUG) {
   // eslint-disable-next-line no-console
