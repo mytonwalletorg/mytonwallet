@@ -8,7 +8,7 @@ import type {
 
 import { TINY_TOKENS } from '../../../config';
 import { parseAccountId } from '../../../util/account';
-import { fetchJson } from '../../../util/fetch';
+import { fetchJsonWithProxy } from '../../../util/fetch';
 import { logDebugError } from '../../../util/logs';
 import { fixIpfsUrl } from '../../../util/metadata';
 import {
@@ -293,7 +293,7 @@ export async function checkMintlessTokenWalletIsClaimed(network: ApiNetwork, tok
 async function fetchMintlessTokenWalletData(customPayloadApiUrl: string, address: string) {
   const rawAddress = toRawAddress(address);
 
-  return (await fetchJson(`${customPayloadApiUrl}/wallet/${rawAddress}`).catch(() => undefined)) as {
+  return (await fetchJsonWithProxy(`${customPayloadApiUrl}/wallet/${rawAddress}`).catch(() => undefined)) as {
     custom_payload: string;
     state_init: string;
     compressed_info: {
