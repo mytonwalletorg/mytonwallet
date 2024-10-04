@@ -454,6 +454,7 @@ export const DIESEL_TOKENS = new Set([
   'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
   'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS', // DOGS
   'EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7', // CATI
+  'EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo', // HAMSTER
 ]);
 
 export const TINY_TOKENS = new Set([
@@ -461,9 +462,7 @@ export const TINY_TOKENS = new Set([
   'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
   'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS', // DOGS
 ]);
-export const TOKENS_WITH_STARS_FEE = new Set([
-  'EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo', // HASMTER
-]);
+export const TOKENS_WITH_STARS_FEE = new Set<string>([]);
 
 export const STARS_SYMBOL = '⭐️';
 

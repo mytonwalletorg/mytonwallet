@@ -29,7 +29,7 @@ import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
 import {
-  DEFAULT_FEE, DIESEL_ADDRESS, DIESEL_TOKENS, ONE_TON, TOKENS_WITH_STARS_FEE, TONCOIN,
+  DEFAULT_FEE, DIESEL_ADDRESS, DIESEL_TOKENS, ONE_TON, TINY_TOKENS, TOKENS_WITH_STARS_FEE, TONCOIN,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
@@ -72,6 +72,7 @@ import {
   FEE_FACTOR,
   STAKE_COMMENT,
   TINY_TOKEN_TRANSFER_AMOUNT,
+  TOKEN_TRANSFER_AMOUNT,
   TRANSFER_TIMEOUT_SEC,
   UNSTAKE_COMMENT,
 } from './constants';
@@ -283,13 +284,13 @@ export async function checkTransactionDraft(
   }
 }
 
-function estimateDiesel(address: string, tokenAddress: string, toncoinAmount: string, isW5: boolean) {
+function estimateDiesel(address: string, tokenAddress: string, toncoinAmount: string, isW5: boolean, isStars: boolean) {
   return callBackendGet<{
     status: DieselStatus;
     amount?: string;
     pendingCreatedAt?: string;
   }>('/diesel/estimate', {
-    address, tokenAddress, toncoinAmount, isW5,
+    address, tokenAddress, toncoinAmount, isW5, isStars,
   });
 }
 
@@ -1245,14 +1246,16 @@ export async function fetchEstimateDiesel(
 
   if (balance >= MAX_BALANCE_WITH_CHECK_DIESEL) return undefined;
 
-  const multiplier = TOKENS_WITH_STARS_FEE.has(tokenAddress) ? 1n : 2n;
-  const toncoinAmount = toDecimal((TINY_TOKEN_TRANSFER_AMOUNT + DEFAULT_FEE) * multiplier);
+  const isStars = TOKENS_WITH_STARS_FEE.has(tokenAddress);
+  const multiplier = isStars ? 1n : 2n;
+  const transferAmount = TINY_TOKENS.has(tokenAddress) ? TINY_TOKEN_TRANSFER_AMOUNT : TOKEN_TRANSFER_AMOUNT;
+  const toncoinAmount = toDecimal((transferAmount + DEFAULT_FEE) * multiplier);
 
   const {
     status,
     amount,
     pendingCreatedAt,
-  } = await estimateDiesel(address, tokenAddress, toncoinAmount, isW5);
+  } = await estimateDiesel(address, tokenAddress, toncoinAmount, isW5, isStars);
 
   const { decimals } = getTokenByAddress(tokenAddress)!;
 
