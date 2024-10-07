@@ -22,6 +22,7 @@ import type {
   ApiSubmitTransferOptions,
   ApiSubmitTransferTonResult,
   ApiSubmitTransferWithDieselResult,
+  ApiTonWalletVersion,
   ApiTransactionExtra,
   TonTransferParams,
 } from './types';
@@ -461,7 +462,7 @@ export async function submitTransferWithDiesel(options: {
 
     const { network } = parseAccountId(accountId);
 
-    const [{ address: fromAddress, version }, keyPair] = await Promise.all([
+    const [{ address: fromAddress }, keyPair] = await Promise.all([
       fetchStoredTonWallet(accountId),
       fetchKeyPair(accountId, password),
     ]);
@@ -495,24 +496,17 @@ export async function submitTransferWithDiesel(options: {
           fromAddress,
           toAddress: DIESEL_ADDRESS,
           amount: dieselAmount,
+          shouldSkipMintless: true,
         }), ['tokenWallet']),
       );
     }
 
-    let result;
-    const gaslessType = version === 'W5' ? 'w5' : 'diesel';
-    if (version === 'W5') {
-      result = await submitMultiTransfer({
-        accountId,
-        password,
-        messages,
-        gaslessType,
-      });
-    } else {
-      result = await submitMultiTransfer({
-        accountId, password, messages, gaslessType,
-      });
-    }
+    const result = await submitMultiTransfer({
+      accountId,
+      password,
+      messages,
+      isGasless: true,
+    });
 
     return { ...result, encryptedComment };
   } catch (err) {
@@ -845,7 +839,7 @@ export async function checkMultiTransactionDraft(
 
   let totalAmount: bigint = 0n;
 
-  const { isInitialized } = await fetchStoredTonWallet(accountId);
+  const { isInitialized, version } = await fetchStoredTonWallet(accountId);
 
   try {
     for (const { toAddress, amount } of messages) {
@@ -870,7 +864,7 @@ export async function checkMultiTransactionDraft(
 
     const { balance } = await getWalletInfo(network, wallet);
 
-    const { transaction } = await signMultiTransaction(network, wallet, messages);
+    const { transaction } = await signMultiTransaction(network, wallet, messages, undefined, version);
 
     const realFee = await calculateFee(network, wallet, transaction, isInitialized);
 
@@ -895,17 +889,17 @@ interface SubmitMultiTransferOptions {
   password: string;
   messages: TonTransferParams[];
   expireAt?: number;
-  gaslessType?: GaslessType;
+  isGasless?: boolean;
 }
 
 export async function submitMultiTransfer({
-  accountId, password, messages, expireAt, gaslessType,
+  accountId, password, messages, expireAt, isGasless,
 }: SubmitMultiTransferOptions): Promise<ApiSubmitMultiTransferResult> {
   const { network } = parseAccountId(accountId);
 
   try {
     const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
-    const { address: fromAddress, isInitialized } = account.ton;
+    const { address: fromAddress, isInitialized, version } = account.ton;
     const wallet = await getTonWallet(accountId, account.ton);
     const privateKey = await fetchPrivateKey(accountId, password, account);
 
@@ -918,12 +912,14 @@ export async function submitMultiTransfer({
 
     const { balance } = await getWalletInfo(network, wallet!);
 
-    const isW5 = gaslessType === 'w5';
+    const gaslessType = isGasless ? version === 'W5' ? 'w5' : 'diesel' : undefined;
+    const withW5Gasless = gaslessType === 'w5';
+
     const { seqno, transaction } = await signMultiTransaction(
-      network, wallet!, messages, privateKey, expireAt, isW5,
+      network, wallet!, messages, privateKey, version, expireAt, withW5Gasless,
     );
 
-    if (!gaslessType) {
+    if (!isGasless) {
       const fee = await calculateFee(network, wallet!, transaction, isInitialized);
       if (balance < totalAmount + fee) {
         return { error: ApiTransactionError.InsufficientBalance };
@@ -935,7 +931,7 @@ export async function submitMultiTransfer({
       client, wallet!, transaction, gaslessType,
     );
 
-    if (!gaslessType) {
+    if (!isGasless) {
       addPendingTransfer(network, fromAddress, seqno, boc);
     }
 
@@ -965,8 +961,9 @@ async function signMultiTransaction(
   wallet: TonWallet,
   messages: TonTransferParams[],
   privateKey: Uint8Array = new Uint8Array(64),
+  version: ApiTonWalletVersion,
   expireAt?: number,
-  withW5Diesel = false,
+  withW5Gasless = false,
 ) {
   const { seqno } = await getWalletInfo(network, wallet);
   if (!expireAt) {
@@ -996,8 +993,13 @@ async function signMultiTransaction(
     });
   });
 
+  if (version === 'W5' && !withW5Gasless) {
+    // TODO Remove it. There is bug in @ton/ton library that causes transactions to be executed in reverse order.
+    preparedMessages.reverse();
+  }
+
   let transaction;
-  if (withW5Diesel) {
+  if (withW5Gasless) {
     const actionList = packActionsList(preparedMessages.map(
       (msg) => new ActionSendMsg(SendMode.PAY_GAS_SEPARATELY, msg),
     ));

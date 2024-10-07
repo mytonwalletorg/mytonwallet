@@ -106,6 +106,17 @@ const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
 const runThrottled = throttle((cb) => cb(), 1500, true);
 
+function doesSavedAddressFitSearch(savedAddress: SavedAddress, search: string) {
+  const searchQuery = search.toLowerCase();
+  const { address, name } = savedAddress;
+
+  return (
+    address.toLowerCase().startsWith(searchQuery)
+    || address.toLowerCase().endsWith(searchQuery)
+    || name.toLowerCase().split(/\s+/).some((part) => part.startsWith(searchQuery))
+  );
+}
+
 function TransferInitial({
   isStatic,
   tokenSlug = TONCOIN.slug,
@@ -189,6 +200,10 @@ function TransferInitial({
     return tokens?.find((token) => !token.tokenAddress && token.chain === chain);
   }, [tokens, chain])!;
 
+  const isUpdatingAmountDueToMaxChange = useRef(false);
+  const [isMaxAmountSelected, setMaxAmountSelected] = useState(false);
+  const [prevDieselAmount, setPrevDieselAmount] = useState(dieselAmount);
+
   const isToncoin = tokenSlug === TONCOIN.slug;
   const toncoinToken = useMemo(() => tokens?.find((token) => token.slug === TONCOIN.slug), [tokens])!;
   const isToncoinFullBalance = isToncoin && balance === amount;
@@ -217,18 +232,21 @@ function TransferInitial({
   const isDieselNotAuthorized = dieselStatus === 'not-authorized';
   const withDiesel = dieselStatus && dieselStatus !== 'not-available';
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
-    ? isGaslessWithStars
+    ? isGaslessWithStars || isUpdatingAmountDueToMaxChange.current
       ? true
       : balance - amount >= dieselAmount
     : undefined;
 
   const feeSymbol = isGaslessWithStars ? STARS_SYMBOL : symbol;
 
-  const maxAmount = withDiesel && dieselAmount && balance
-    ? isGaslessWithStars
-      ? balance
-      : balance - dieselAmount
-    : balance;
+  const maxAmount = useMemo(() => {
+    if (withDiesel && dieselAmount && balance) {
+      return isGaslessWithStars || isUpdatingAmountDueToMaxChange.current
+        ? balance
+        : balance - dieselAmount;
+    }
+    return balance;
+  }, [balance, dieselAmount, isGaslessWithStars, withDiesel]);
 
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
     ? AUTHORIZE_DIESEL_INTERVAL_MS
@@ -324,7 +342,14 @@ function TransferInitial({
   }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount, isDieselAvailable]);
 
   useEffect(() => {
-    if (!toAddress || hasToAddressError || !(amount || nfts?.length) || !isAddressValid) {
+    if (
+      !toAddress
+      || hasToAddressError
+      || !(amount || nfts?.length)
+      || !isAddressValid
+      || isUpdatingAmountDueToMaxChange.current
+    ) {
+      isUpdatingAmountDueToMaxChange.current = false;
       return;
     }
 
@@ -357,6 +382,18 @@ function TransferInitial({
     stateInit,
     toAddress,
     tokenSlug,
+  ]);
+
+  useEffect(() => {
+    if (isMaxAmountSelected && prevDieselAmount !== dieselAmount) {
+      isUpdatingAmountDueToMaxChange.current = true;
+
+      setMaxAmountSelected(false);
+      setPrevDieselAmount(dieselAmount);
+      setTransferAmount({ amount: maxAmount });
+    }
+  }, [
+    dieselAmount, maxAmount, isMaxAmountSelected, prevDieselAmount, withDiesel, balance, isGaslessWithStars,
   ]);
 
   const handleTokenChange = useLastCallback(
@@ -529,6 +566,7 @@ function TransferInitial({
 
     vibrate();
 
+    setMaxAmountSelected(true);
     setTransferAmount({ amount: maxAmount });
   });
 
@@ -582,7 +620,7 @@ function TransferInitial({
     }
 
     return savedAddresses.filter(
-      (item) => item.address.includes(toAddress) || item.name.includes(toAddress),
+      (item) => doesSavedAddressFitSearch(item, toAddress),
     ).map((item) => renderAddressItem({
       key: `saved-${item.address}-${item.chain}`,
       address: item.address,
@@ -625,7 +663,7 @@ function TransferInitial({
       }, [] as (SavedAddress & { isHardware?: boolean })[]);
 
     return otherAccounts.filter(
-      (item) => item.address.includes(toAddress) || item.name.includes(toAddress),
+      (item) => doesSavedAddressFitSearch(item, toAddress),
     ).map(({
       address, name, chain: addressChain, isHardware,
     }) => renderAddressItem({
@@ -638,8 +676,10 @@ function TransferInitial({
     }));
   }, [otherAccountIds, savedAddresses, accounts, isMultichainAccount, toAddress]);
 
+  const shouldRenderSuggestions = !!renderedSavedAddresses?.length || !!renderedOtherAccounts?.length;
+
   function renderAddressBook() {
-    if (!renderedSavedAddresses && !renderedOtherAccounts) return undefined;
+    if (!shouldRenderSuggestions) return undefined;
 
     return (
       <Menu
@@ -647,7 +687,7 @@ function TransferInitial({
         type="suggestion"
         noBackdrop
         bubbleClassName={styles.savedAddressBubble}
-        isOpen={isAddressBookOpen && (!!renderedSavedAddresses?.length || !!renderedOtherAccounts?.length)}
+        isOpen={isAddressBookOpen}
         onClose={closeAddressBook}
       >
         {renderedSavedAddresses}
@@ -883,6 +923,8 @@ function TransferInitial({
     }
   }
 
+  const shouldIgnoreErrors = isAddressBookOpen && shouldRenderSuggestions;
+
   return (
     <>
       <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
@@ -896,7 +938,7 @@ function TransferInitial({
           label={lang('Recipient Address')}
           placeholder={lang('Wallet address or domain')}
           value={isAddressFocused ? toAddress : toAddressShort}
-          error={hasToAddressError ? (lang('Incorrect address') as string) : undefined}
+          error={hasToAddressError && !shouldIgnoreErrors ? (lang('Incorrect address') as string) : undefined}
           onInput={handleAddressInput}
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}

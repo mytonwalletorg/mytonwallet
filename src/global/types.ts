@@ -770,6 +770,7 @@ export interface ActionPayloads {
   openNftCollection: { address: string };
   closeNftCollection: undefined;
   selectNfts: { addresses: string[] };
+  selectAllNfts: { collectionAddress?: string };
   clearNftSelection: { address: string };
   clearNftsSelection: undefined;
   burnNfts: { nfts: ApiNft[] };

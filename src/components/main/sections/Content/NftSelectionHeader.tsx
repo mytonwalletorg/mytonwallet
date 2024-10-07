@@ -25,6 +25,7 @@ import styles from './NftCollectionHeader.module.scss';
 interface StateProps {
   byAddress?: Record<string, ApiNft>;
   selectedAddresses?: string[];
+  currentCollectionAddress?: string;
 }
 
 const MENU_ITEMS: DropdownItem[] = [{
@@ -37,11 +38,15 @@ const MENU_ITEMS: DropdownItem[] = [{
   name: 'Burn',
   value: 'burn',
   isDangerous: true,
+}, {
+  name: 'Select All',
+  value: 'select-all',
+  withSeparator: true,
 }];
 
-function NftSelectionHeader({ selectedAddresses, byAddress }: StateProps) {
+function NftSelectionHeader({ selectedAddresses, byAddress, currentCollectionAddress }: StateProps) {
   const {
-    clearNftsSelection, startTransfer, burnNfts, openHideNftModal,
+    selectAllNfts, clearNftsSelection, startTransfer, burnNfts, openHideNftModal,
   } = getActions();
 
   const lang = useLang();
@@ -120,6 +125,10 @@ function NftSelectionHeader({ selectedAddresses, byAddress }: StateProps) {
         handleBurnClick();
         break;
       }
+      case 'select-all': {
+        selectAllNfts({ collectionAddress: currentCollectionAddress });
+        break;
+      }
     }
   });
 
@@ -161,8 +170,8 @@ function NftSelectionHeader({ selectedAddresses, byAddress }: StateProps) {
 
 export default memo(withGlobal((global): StateProps => {
   const {
-    selectedAddresses, byAddress,
+    selectedAddresses, byAddress, currentCollectionAddress,
   } = selectCurrentAccountState(global)?.nfts || {};
 
-  return { selectedAddresses, byAddress };
+  return { selectedAddresses, byAddress, currentCollectionAddress };
 })(NftSelectionHeader));

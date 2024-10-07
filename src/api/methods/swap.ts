@@ -76,7 +76,7 @@ export async function swapSubmit(
   password: string,
   transfers: ApiSwapTransfer[],
   historyItem: ApiSwapHistoryItem,
-  withDiesel?: boolean,
+  isGasless?: boolean,
 ) {
   const { address } = await fetchStoredTonWallet(accountId);
   const transferList: TonTransferParams[] = transfers.map((transfer) => ({
@@ -89,13 +89,9 @@ export async function swapSubmit(
     transferList[0] = await ton.insertMintlessPayload('mainnet', address, historyItem.from, transferList[0]);
   }
 
-  const gaslessType = withDiesel ? 'diesel' : undefined;
-
-  const result = await ton.submitMultiTransfer(
-    {
-      accountId, password, messages: transferList, gaslessType,
-    },
-  );
+  const result = await ton.submitMultiTransfer({
+    accountId, password, messages: transferList, isGasless,
+  });
 
   if ('error' in result) {
     return result;

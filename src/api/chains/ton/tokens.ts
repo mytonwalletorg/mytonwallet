@@ -180,6 +180,7 @@ export async function buildTokenTransfer(options: {
   toAddress: string;
   amount: bigint;
   payload?: AnyPayload;
+  shouldSkipMintless?: boolean;
 }) {
   const {
     network,
@@ -187,6 +188,7 @@ export async function buildTokenTransfer(options: {
     fromAddress,
     toAddress,
     amount,
+    shouldSkipMintless,
   } = options;
   let { payload } = options;
 
@@ -201,7 +203,7 @@ export async function buildTokenTransfer(options: {
     customPayload,
     stateInit,
   } = await getMintlessParams({
-    network, fromAddress, token, tokenWalletAddress,
+    network, fromAddress, token, tokenWalletAddress, shouldSkipMintless,
   });
 
   if (isTokenWalletDeployed) {
@@ -244,9 +246,10 @@ export async function getMintlessParams(options: {
   fromAddress: string;
   token: ApiToken;
   tokenWalletAddress: string;
+  shouldSkipMintless?: boolean;
 }) {
   const {
-    network, fromAddress, token, tokenWalletAddress,
+    network, fromAddress, token, tokenWalletAddress, shouldSkipMintless,
   } = options;
 
   let isTokenWalletDeployed = true;
@@ -257,7 +260,7 @@ export async function getMintlessParams(options: {
   let isMintlessClaimed: boolean | undefined;
   let mintlessTokenBalance: bigint | undefined;
 
-  if (isMintlessToken) {
+  if (isMintlessToken && !shouldSkipMintless) {
     isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress));
     isMintlessClaimed = isTokenWalletDeployed && await checkMintlessTokenWalletIsClaimed(network, tokenWalletAddress);
 

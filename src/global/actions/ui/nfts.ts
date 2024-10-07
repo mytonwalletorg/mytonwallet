@@ -37,6 +37,33 @@ addActionHandler('selectNfts', (global, actions, { addresses }) => {
   setGlobal(global);
 });
 
+addActionHandler('selectAllNfts', (global, actions, { collectionAddress }) => {
+  const accountId = global.currentAccountId!;
+  const {
+    blacklistedNftAddresses,
+    whitelistedNftAddresses,
+  } = selectAccountState(global, accountId) || {};
+
+  const whitelistedNftAddressesSet = new Set(whitelistedNftAddresses);
+  const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
+  const { nfts: accountNfts } = selectAccountState(global, accountId)!;
+  const nfts = Object.values(accountNfts!.byAddress).filter((nft) => (
+    !nft.isHidden || whitelistedNftAddressesSet.has(nft.address)
+  ) && !blacklistedNftAddressesSet.has(nft.address) && (
+    collectionAddress === undefined || (
+      collectionAddress !== undefined && nft.collectionAddress === collectionAddress
+    )
+  ));
+
+  global = updateAccountState(global, accountId, {
+    nfts: {
+      ...accountNfts!,
+      selectedAddresses: nfts.map(({ address }) => address),
+    },
+  });
+  setGlobal(global);
+});
+
 addActionHandler('clearNftSelection', (global, actions, { address }) => {
   const accountId = global.currentAccountId!;
   global = removeFromSelectedAddresses(global, accountId, address);
