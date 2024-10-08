@@ -5,7 +5,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { IS_AIR_APP } from '../../config';
+import { IS_AIR_APP, TONCOIN } from '../../config';
 import { buildCollectionByKey, omit } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { pauseOrFocus } from '../../util/pauseOrFocus';
@@ -140,7 +140,9 @@ export async function tryLoadSwapTokens(localOnUpdate?: OnApiUpdate) {
         // Fix legacy variable names
         ...omit(asset as any, ['blockchain']) as ApiSwapAsset,
         chain: 'blockchain' in asset ? asset.blockchain as string : asset.chain,
-        tokenAddress: 'contract' in asset ? asset.contract as string : asset.tokenAddress,
+        tokenAddress: 'contract' in asset && asset.contract !== TONCOIN.symbol
+          ? asset.contract as string
+          : asset.tokenAddress,
         price: prices.bySlug[asset.slug]?.price ?? 0,
       };
       return acc;

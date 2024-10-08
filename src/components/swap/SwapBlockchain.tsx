@@ -67,7 +67,7 @@ function SwapBlockchain({
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(!(IS_FIREFOX || IS_FIREFOX_EXTENSION));
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [hasToAddressError, setHasToAddressError] = useState(false);
-  const [canContinue, setCanContinue] = useState(swapType !== SwapType.CrosschainFromToncoin);
+  const [canContinue, setCanContinue] = useState(swapType !== SwapType.CrosschainFromWallet);
 
   const isQrScannerSupported = useQrScannerSupport();
 
@@ -195,7 +195,7 @@ function SwapBlockchain({
   }
 
   function renderInputAddress() {
-    if (swapType !== SwapType.CrosschainFromToncoin) return undefined;
+    if (swapType !== SwapType.CrosschainFromWallet) return undefined;
 
     return (
       <>

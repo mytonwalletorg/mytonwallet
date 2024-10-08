@@ -15,7 +15,12 @@ import {
 } from '../../global/types';
 
 import { ANIMATED_STICKER_MIDDLE_SIZE_PX } from '../../config';
-import { selectAvailableUserForSwapTokens, selectPopularTokens, selectSwapTokens } from '../../global/selectors';
+import {
+  selectAvailableUserForSwapTokens,
+  selectIsMultichainAccount,
+  selectPopularTokens,
+  selectSwapTokens,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
@@ -55,6 +60,7 @@ interface StateProps {
   pairsBySlug?: Record<string, AssetPairs>;
   baseCurrency?: ApiBaseCurrency;
   isLoading?: boolean;
+  isMultichain: boolean;
 }
 
 interface OwnProps {
@@ -93,6 +99,7 @@ function TokenSelector({
   onClose,
   shouldHideMyTokens,
   shouldHideNotSupportedTokens,
+  isMultichain,
 }: OwnProps & StateProps) {
   const {
     importToken,
@@ -139,8 +146,8 @@ function TokenSelector({
 
   // It is necessary to use useCallback instead of useLastCallback here
   const filterTokens = useCallback((tokens: Token[]) => {
-    return filterAndSortTokens(tokens, tokenInSlug, pairsBySlug);
-  }, [pairsBySlug, tokenInSlug]);
+    return filterAndSortTokens(tokens, isMultichain, tokenInSlug, pairsBySlug);
+  }, [pairsBySlug, tokenInSlug, isMultichain]);
 
   const allUnimportedTonTokens = useMemo(() => {
     return (swapTokens ?? EMPTY_ARRAY).filter(
@@ -540,6 +547,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const userTokens = selectAvailableUserForSwapTokens(global);
   const popularTokens = selectPopularTokens(global);
   const swapTokens = selectSwapTokens(global);
+  const isMultichain = selectIsMultichainAccount(global, global.currentAccountId!);
 
   return {
     baseCurrency,
@@ -550,14 +558,21 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     userTokens,
     popularTokens,
     swapTokens,
+    isMultichain,
   };
 })(TokenSelector));
 
-function filterAndSortTokens(tokens: Token[], tokenInSlug?: string, pairsBySlug?: Record<string, AssetPairs>) {
+function filterAndSortTokens(
+  tokens: Token[],
+  isMultichain: boolean,
+  tokenInSlug?: string,
+  pairsBySlug?: Record<string, AssetPairs>,
+) {
   if (!tokens.length || !tokenInSlug) return [];
 
   return tokens.map((token) => {
-    const canSwap = Boolean(pairsBySlug?.[tokenInSlug]?.[token.slug]);
+    const pair = pairsBySlug?.[tokenInSlug]?.[token.slug];
+    const canSwap = Boolean(isMultichain ? pair : (pair && !pair.isMultichain));
     return { ...token, canSwap };
   }).sort((a, b) => Number(b.canSwap) - Number(a.canSwap));
 }

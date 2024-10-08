@@ -167,8 +167,8 @@ export enum SwapErrorType {
 
 export enum SwapType {
   OnChain,
-  CrosschainFromToncoin,
-  CrosschainToToncoin,
+  CrosschainFromWallet,
+  CrosschainToWallet,
 }
 
 export enum DappConnectState {
@@ -289,6 +289,7 @@ export interface Account {
 export interface AssetPairs {
   [slug: string]: {
     isReverseProhibited?: boolean;
+    isMultichain?: boolean;
   };
 }
 
@@ -911,12 +912,12 @@ export interface ActionPayloads {
   setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
   loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
+  clearSwapPairsCache: undefined;
   estimateSwap: { shouldBlock: boolean; isEnoughToncoin?: boolean };
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
   estimateSwapCex: { shouldBlock: boolean };
-  submitSwapCexFromToncoin: { password: string };
-  submitSwapCexToToncoin: { password: string };
+  submitSwapCex: { password: string };
   setSwapType: { type: SwapType };
   setSwapCexAddress: { toAddress: string };
   addSwapToken: { token: UserSwapToken };

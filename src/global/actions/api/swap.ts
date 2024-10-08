@@ -1,6 +1,9 @@
-import type { ApiSubmitTransferOptions } from '../../../api/methods/types';
+import type { ApiSubmitTransferWithDieselResult } from '../../../api/chains/ton/types';
+import type { ApiSubmitTransferOptions, ApiSubmitTransferResult } from '../../../api/methods/types';
 import type {
+  ApiChain,
   ApiSwapBuildRequest,
+  ApiSwapCexCreateTransactionRequest,
   ApiSwapHistoryItem,
   ApiSwapPairAsset,
 } from '../../../api/types';
@@ -19,7 +22,12 @@ import {
 } from '../../types';
 
 import {
-  DEFAULT_FEE, DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, TONCOIN,
+  DEFAULT_FEE,
+  DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+  IS_CAPACITOR,
+  TONCOIN,
+  TRX,
+  TRX_SWAP_COUNT_FEE_ADDRESS,
 } from '../../../config';
 import { Big } from '../../../lib/big.js';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
@@ -31,6 +39,7 @@ import { buildCollectionByKey, pick } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
 import { buildSwapId } from '../../../util/swap/buildSwapId';
+import { getIsTonToken } from '../../../util/tokens';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
@@ -43,12 +52,16 @@ import {
   updateCurrentSwap,
 } from '../../reducers';
 import {
-  selectAccount, selectAccountState, selectCurrentAccount, selectCurrentToncoinBalance,
+  selectAccount,
+  selectAccountState,
+  selectCurrentAccount,
+  selectCurrentToncoinBalance,
+  selectIsMultichainAccount,
 } from '../../selectors';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
-const PAIRS_CACHE: Record<string, { data: ApiSwapPairAsset[]; timestamp: number }> = {};
+let pairsCache: Record<string, { data: ApiSwapPairAsset[]; timestamp: number }> = {};
 
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 const WAIT_FOR_CHANGELLY = 5 * 1000;
@@ -96,12 +109,16 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
     toAmount,
     toMinAmount: amountOutMin!,
     slippage,
-    fromAddress: account?.addressByChain.ton!,
+    fromAddress: account?.addressByChain[tokenIn.chain as ApiChain] || account?.addressByChain.ton!,
     dexLabel: dexLabel!,
     networkFee: networkFee!,
     swapFee: swapFee!,
     shouldTryDiesel,
   };
+}
+
+function getSupportedChains(global: GlobalState) {
+  return Object.keys(selectAccount(global, global.currentAccountId!)?.addressByChain || { ton: true }) as ApiChain[];
 }
 
 addActionHandler('startSwap', async (global, actions, payload) => {
@@ -125,12 +142,13 @@ addActionHandler('startSwap', async (global, actions, payload) => {
   if (tokenInSlug || tokenOutSlug || amountIn || toAddress) {
     const tokenIn = global.swapTokenInfo?.bySlug[tokenInSlug!];
     const tokenOut = global.swapTokenInfo?.bySlug[tokenOutSlug!];
+    const account = selectAccount(global, global.currentAccountId!);
 
     const isCrosschain = tokenIn?.chain !== 'ton' || tokenOut?.chain !== 'ton';
-    const isToTon = tokenOut?.chain === 'ton';
+    const isToSupportedChain = Boolean(account?.addressByChain[tokenOut?.chain as ApiChain]);
 
     const swapType = isCrosschain
-      ? (isToTon ? SwapType.CrosschainToToncoin : SwapType.CrosschainFromToncoin)
+      ? (isToSupportedChain ? SwapType.CrosschainToWallet : SwapType.CrosschainFromWallet)
       : SwapType.OnChain;
 
     global = updateCurrentSwap(global, {
@@ -185,13 +203,13 @@ addActionHandler('cancelSwap', (global, actions, { shouldReset } = {}) => {
       tokenInSlug,
       tokenOutSlug,
       priceImpact: 0,
-      transactionFee: '0',
-      swapFee: '0',
+      transactionFee: undefined,
+      swapFee: undefined,
       networkFee: 0,
       realNetworkFee: 0,
-      amountIn: '0',
-      amountOutMin: '0',
-      amountOut: '0',
+      amountIn: undefined,
+      amountOutMin: undefined,
+      amountOut: undefined,
       inputSource: SwapInputSource.In,
       swapType,
       pairs,
@@ -312,103 +330,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   }
 });
 
-addActionHandler('submitSwapCexFromToncoin', async (global, actions, { password }) => {
-  if (!(await callApi('verifyPassword', password))) {
-    setGlobal(updateCurrentSwap(
-      getGlobal(),
-      { error: 'Wrong password, please try again.' },
-    ));
-
-    return;
-  }
-
-  global = getGlobal();
-  if (IS_CAPACITOR) {
-    global = setIsPinAccepted(global);
-  }
-  global = updateCurrentSwap(global, {
-    isLoading: true,
-    error: undefined,
-  });
-  setGlobal(global);
-
-  if (IS_CAPACITOR) {
-    await vibrateOnSuccess(true);
-  }
-
-  const swapBuildRequest = buildSwapBuildRequest(global);
-  const swapItem = await callApi(
-    'swapCexCreateTransaction',
-    global.currentAccountId!,
-    password,
-    {
-      ...pick(swapBuildRequest, ['from', 'fromAmount', 'fromAddress', 'to', 'swapFee', 'networkFee']),
-      toAddress: global.currentSwap.toAddress!,
-    },
-  );
-
-  global = getGlobal();
-
-  if (!swapItem) {
-    global = updateCurrentSwap(global, {
-      isLoading: false,
-    });
-    if (IS_CAPACITOR) {
-      global = clearIsPinAccepted(global);
-      void vibrateOnError();
-    }
-    setGlobal(global);
-    actions.showError({ error: ApiCommonError.Unexpected });
-    return;
-  }
-
-  const asset = global.swapTokenInfo.bySlug[global.currentSwap.tokenInSlug!];
-
-  const transferOptions: ApiSubmitTransferOptions = {
-    password,
-    accountId: global.currentAccountId!,
-    fee: fromDecimal(swapItem.swap.swapFee, asset.decimals), // TODO
-    amount: fromDecimal(swapItem.swap.fromAmount, asset.decimals),
-    toAddress: swapItem.swap.cex!.payinAddress,
-    tokenAddress: swapBuildRequest.from !== TONCOIN.symbol ? swapBuildRequest.from : undefined,
-  };
-
-  await pause(WAIT_FOR_CHANGELLY);
-
-  const result = await callApi('submitTransfer', 'ton', transferOptions, false);
-
-  global = getGlobal();
-
-  if (!result || 'error' in result) {
-    global = updateCurrentSwap(global, {
-      isLoading: false,
-    });
-    if (IS_CAPACITOR) {
-      global = clearIsPinAccepted(global);
-      void vibrateOnError();
-    }
-    setGlobal(global);
-    actions.showError({ error: result?.error });
-    return;
-  }
-
-  global = getGlobal();
-  global = updateCurrentSwap(global, {
-    tokenInSlug: undefined,
-    tokenOutSlug: undefined,
-    amountIn: undefined,
-    amountOut: undefined,
-    isLoading: false,
-    state: SwapState.Complete,
-    activityId: swapItem.activity.id,
-  });
-  setGlobal(global);
-  if (IS_CAPACITOR) {
-    void vibrateOnSuccess();
-  }
-});
-
-addActionHandler('submitSwapCexToToncoin', async (global, actions, { password }) => {
+addActionHandler('submitSwapCex', async (global, actions, { password }) => {
   if (!(await callApi('verifyPassword', password))) {
     setGlobal(updateCurrentSwap(
       getGlobal(),
@@ -433,15 +355,33 @@ addActionHandler('submitSwapCexToToncoin', async (global, actions, { password })
     global = getGlobal();
   }
 
+  const isMutlichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
+  const account = selectCurrentAccount(global);
+  const supportedChains = getSupportedChains(global);
+  const tokenIn = global.swapTokenInfo.bySlug[global.currentSwap.tokenInSlug!];
+  const tokenOut = global.swapTokenInfo.bySlug[global.currentSwap.tokenOutSlug!];
+  const shouldSendTonTransaction = tokenIn.chain === 'ton';
+  const shouldSendTronTransaction = isMutlichainAccount && tokenIn.chain === 'tron';
+  const shouldSendTransaction = shouldSendTonTransaction || shouldSendTronTransaction;
+  const shouldSendTokenToExternalWallet = isMutlichainAccount
+    ? supportedChains.includes(tokenIn.chain as ApiChain)
+    : tokenIn.chain === 'ton';
+
+  const tonAddress = account!.addressByChain.ton;
+  const toAddress = account?.addressByChain[tokenOut.chain as ApiChain] ?? global.currentSwap.toAddress!;
+
   const swapBuildRequest = buildSwapBuildRequest(global);
+  const swapTransactionRequest: ApiSwapCexCreateTransactionRequest = {
+    ...pick(swapBuildRequest, ['from', 'fromAmount', 'to', 'swapFee', 'networkFee']),
+    fromAddress: tonAddress,
+    toAddress,
+  };
+
   const swapItem = await callApi(
     'swapCexCreateTransaction',
     global.currentAccountId!,
     password,
-    {
-      ...pick(swapBuildRequest, ['from', 'fromAmount', 'fromAddress', 'to', 'swapFee', 'networkFee']),
-      toAddress: swapBuildRequest.fromAddress,
-    },
+    swapTransactionRequest,
   );
 
   global = getGlobal();
@@ -459,13 +399,51 @@ addActionHandler('submitSwapCexToToncoin', async (global, actions, { password })
     return;
   }
 
-  global = getGlobal();
+  let transferResult: ((ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult) & { txId?: string }) | undefined;
+
+  const transferOptions: ApiSubmitTransferOptions = {
+    password,
+    accountId: global.currentAccountId!,
+    fee: fromDecimal(swapItem.swap.networkFee, tokenIn.decimals),
+    amount: fromDecimal(swapItem.swap.fromAmount, tokenIn.decimals),
+    toAddress: swapItem.swap.cex!.payinAddress,
+    tokenAddress: isMutlichainAccount && shouldSendTransaction
+      ? tokenIn.tokenAddress
+      : undefined,
+  };
+
+  if (shouldSendTransaction) {
+    await pause(WAIT_FOR_CHANGELLY);
+
+    if (shouldSendTonTransaction) {
+      transferResult = await callApi('submitTransfer', 'ton', transferOptions, false);
+    } else if (shouldSendTronTransaction) {
+      transferResult = await callApi('submitTransfer', 'tron', transferOptions, false);
+    }
+
+    global = getGlobal();
+  }
+
+  if (shouldSendTransaction && (!transferResult || 'error' in transferResult)) {
+    global = updateCurrentSwap(global, {
+      isLoading: false,
+    });
+    if (IS_CAPACITOR) {
+      global = clearIsPinAccepted(global);
+      void vibrateOnError();
+    }
+    setGlobal(global);
+    actions.showError({ error: transferResult?.error });
+    return;
+  }
+
   global = updateCurrentSwap(global, {
     isLoading: false,
-    state: SwapState.WaitTokens,
-    payinAddress: swapItem.swap.cex!.payinAddress,
-    payinExtraId: swapItem.swap.cex!.payinExtraId,
+    state: shouldSendTokenToExternalWallet ? SwapState.Complete : SwapState.WaitTokens,
     activityId: swapItem.activity.id,
+    payinAddress: swapItem.swap.cex!.payinAddress,
+    payoutAddress: swapItem.swap.cex!.payoutAddress,
+    payinExtraId: swapItem.swap.cex!.payinExtraId,
   });
   setGlobal(global);
   if (IS_CAPACITOR) {
@@ -480,9 +458,9 @@ addActionHandler('switchSwapTokens', (global) => {
 
   const newSwapType = swapType === SwapType.OnChain
     ? SwapType.OnChain
-    : swapType === SwapType.CrosschainFromToncoin
-      ? SwapType.CrosschainToToncoin
-      : SwapType.CrosschainFromToncoin;
+    : swapType === SwapType.CrosschainFromWallet
+      ? SwapType.CrosschainToWallet
+      : SwapType.CrosschainFromWallet;
 
   global = updateCurrentSwap(global, {
     amountIn: amountOut,
@@ -736,13 +714,13 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
     isEstimating: false,
   };
 
-  global = updateCurrentSwap(global, {
+  const resetSwapFeeParams = {
     shouldEstimate: false,
     transactionFee: '0',
     swapFee: '0',
     networkFee: 0,
     priceImpact: 0,
-  });
+  };
 
   // Check for empty string
   const { amountIn, amountOut, inputSource } = global.currentSwap;
@@ -751,6 +729,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
     global = updateCurrentSwap(global, {
       amountIn: undefined,
       amountOut: undefined,
+      ...resetSwapFeeParams,
       ...resetParams,
     });
     setGlobal(global);
@@ -765,6 +744,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   if (!canSwap) {
     global = updateCurrentSwap(global, {
       ...resetParams,
+      ...resetSwapFeeParams,
       errorType: SwapErrorType.InvalidPair,
     });
     setGlobal(global);
@@ -795,6 +775,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   if (!estimate || 'errors' in estimate) {
     global = updateCurrentSwap(global, {
       ...resetParams,
+      ...resetSwapFeeParams,
       errorType: window.navigator.onLine ? SwapErrorType.InvalidPair : SwapErrorType.UnexpectedError,
     });
     setGlobal(global);
@@ -802,7 +783,11 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   }
 
   if ('errors' in estimate) {
-    global = updateCurrentSwap(global, { ...resetParams, errorType: SwapErrorType.UnexpectedError });
+    global = updateCurrentSwap(global, {
+      ...resetParams,
+      ...resetSwapFeeParams,
+      errorType: SwapErrorType.UnexpectedError,
+    });
     setGlobal(global);
     return;
   }
@@ -817,6 +802,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
         const isLessThanMin = mode === 'Minimal';
         global = updateCurrentSwap(global, {
           ...resetParams,
+          ...resetSwapFeeParams,
           limits: isLessThanMin ? { fromMin: matchedAmount } : { fromMax: matchedAmount },
           errorType: isLessThanMin ? SwapErrorType.ChangellyMinSwap : SwapErrorType.ChangellyMaxSwap,
         });
@@ -827,6 +813,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
 
     global = updateCurrentSwap(global, {
       ...resetParams,
+      ...resetSwapFeeParams,
       errorType: SwapErrorType.UnexpectedError,
     });
     setGlobal(global);
@@ -839,6 +826,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   if (isLessThanMin || isBiggerThanMax) {
     global = updateCurrentSwap(global, {
       ...resetParams,
+      ...resetSwapFeeParams,
       limits: {
         fromMin: estimate.fromMin,
         fromMax: estimate.fromMax,
@@ -858,27 +846,39 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
   ) {
     global = updateCurrentSwap(global, {
       ...resetParams,
+      ...resetSwapFeeParams,
     });
     setGlobal(global);
     return;
   }
 
   let networkFee = 0;
+  const account = global.accounts?.byId[global.currentAccountId!];
 
-  if (global.currentSwap.swapType === SwapType.CrosschainFromToncoin) {
-    const account = global.accounts?.byId[global.currentAccountId!];
-
-    const txDraft = await callApi('checkTransactionDraft', 'ton', {
-      accountId: global.currentAccountId!,
-      toAddress: account?.addressByChain.ton!,
-      amount: fromDecimal(global.currentSwap.amountIn ?? 0, tokenIn.decimals),
-    });
-    networkFee = Number(toDecimal(txDraft?.fee ?? 0n));
+  if (global.currentSwap.swapType === SwapType.CrosschainFromWallet) {
+    if (tokenIn.chain === 'ton') {
+      const txDraft = await callApi('checkTransactionDraft', 'ton', {
+        accountId: global.currentAccountId!,
+        toAddress: account?.addressByChain.ton!,
+        tokenAddress: tokenIn.tokenAddress,
+        amount: fromDecimal(global.currentSwap.amountIn ?? 0, tokenIn.decimals),
+      });
+      networkFee = Number(toDecimal(txDraft?.fee ?? 0n, TONCOIN.decimals));
+    } else if (tokenIn.chain === 'tron') {
+      const txDraft = await callApi('checkTransactionDraft', 'tron', {
+        accountId: global.currentAccountId!,
+        toAddress: TRX_SWAP_COUNT_FEE_ADDRESS,
+        tokenAddress: tokenIn.tokenAddress,
+        amount: fromDecimal(global.currentSwap.amountIn ?? 0, tokenIn.decimals),
+      });
+      networkFee = Number(toDecimal(txDraft?.fee ?? 0n, TRX.decimals));
+    }
   }
 
   global = getGlobal();
 
   global = updateCurrentSwap(global, {
+    ...resetSwapFeeParams,
     amountOut: estimate.toAmount === '0' ? undefined : estimate.toAmount,
     limits: {
       fromMin: estimate.fromMin,
@@ -920,7 +920,7 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
 
   const assetId = resolveSwapAssetId(tokenIn);
 
-  const cache = PAIRS_CACHE[tokenSlug];
+  const cache = pairsCache[tokenSlug];
   const isCacheValid = cache && (Date.now() - cache.timestamp <= CACHE_DURATION);
   if (isCacheValid && !shouldForceUpdate) {
     return;
@@ -942,14 +942,28 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
     return;
   }
 
+  const isTonTokenIn = tokenIn.chain === 'ton';
+
   const bySlug = pairs.reduce((acc, pair) => {
-    acc[pair.slug] = pair.isReverseProhibited ? {
-      isReverseProhibited: pair.isReverseProhibited,
-    } : {};
+    const isTonTokenOut = getIsTonToken(pair.slug, true);
+    const countTonTokens = Number(isTonTokenIn) + (isTonTokenOut ? 1 : 0);
+
+    const isMultichain = !(
+      (countTonTokens === 2) || (countTonTokens === 1 && [tokenIn.slug, pair.slug].includes(TONCOIN.slug))
+    );
+
+    acc[pair.slug] = {
+      ...(isMultichain && {
+        isMultichain,
+      }),
+      ...(pair.isReverseProhibited && {
+        isReverseProhibited: pair.isReverseProhibited,
+      }),
+    };
     return acc;
   }, {} as AssetPairs);
 
-  PAIRS_CACHE[tokenSlug] = { data: pairs, timestamp: Date.now() };
+  pairsCache[tokenSlug] = { data: pairs, timestamp: Date.now() };
 
   global = updateCurrentSwap(global, {
     pairs: {
@@ -966,6 +980,10 @@ addActionHandler('loadSwapPairs', async (global, actions, { tokenSlug, shouldFor
 addActionHandler('setSwapCexAddress', (global, actions, { toAddress }) => {
   global = updateCurrentSwap(global, { toAddress });
   setGlobal(global);
+});
+
+addActionHandler('clearSwapPairsCache', () => {
+  pairsCache = {};
 });
 
 addActionHandler('updatePendingSwaps', async (global) => {

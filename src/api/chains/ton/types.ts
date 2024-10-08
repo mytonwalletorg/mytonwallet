@@ -54,14 +54,12 @@ export interface JettonMetadata {
   custom_payload_api_uri?: string;
 }
 
-export interface InitData {
-  code?: Cell;
-  data?: Cell;
-}
-
-export type ContractName = ApiTonWalletVersion | 'v4R1' | 'highloadV2' | 'multisig' | 'multisigV2' | 'multisigNew'
-| 'nominatorPool' | 'vesting' | 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton'
-| 'stonPtonWallet' | 'stonRouter' | 'megatonWtonMaster' | 'megatonRouter';
+export type ContractName = ApiTonWalletVersion
+| 'v4R1' | 'highloadV2' | 'multisig' | 'multisigV2' | 'multisigNew'
+| 'nominatorPool' | 'vesting'
+| 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton'
+| 'stonPtonWallet' | 'stonRouter' | 'stonRouterV2' | 'stonPoolV2' | 'stonPtonWalletV2'
+| 'megatonWtonMaster' | 'megatonRouter';
 
 export type ContractInfo = {
   name: ContractName;

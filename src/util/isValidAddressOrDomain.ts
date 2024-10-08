@@ -1,6 +1,6 @@
 import type { ApiChain } from '../api/types';
 
-import { getChainConfig } from '../config';
+import { getChainConfig } from './chain';
 import dns from './dns';
 
 export function isValidAddressOrDomain(address: string, chain: ApiChain) {

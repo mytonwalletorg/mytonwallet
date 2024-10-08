@@ -219,6 +219,21 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
     hash: '14ce618a0e9a94adc99fa6e975219ddd675425b30dfa9728f98714c8dc55f9da',
     isSwapAllowed: true,
   },
+  stonRouterV2: {
+    name: 'stonRouterV2',
+    hash: 'd61cb7fb7bee0cc414286a482fccdec53c3f8717e4aae4fc362d98ab6254e6cd',
+    isSwapAllowed: true,
+  },
+  stonPoolV2: {
+    name: 'stonPoolV2',
+    hash: '16cc513c380e329f45d54f294787e2030e289799eca138961c1cd7e26e882c7c',
+    isSwapAllowed: true,
+  },
+  stonPtonWalletV2: {
+    name: 'stonPtonWalletV2',
+    hash: '2761042202032258de9eb1b672e1ec2e4f13b2af00700195801ada33f7ced1b6',
+    isSwapAllowed: true,
+  },
   megatonWtonMaster: {
     name: 'megatonWtonMaster',
     hash: '4c9790d808ea4470614e021f76c40529efe2fbce8138da4284a29b5f1943ef19',

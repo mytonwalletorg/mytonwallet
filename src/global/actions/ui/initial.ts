@@ -116,6 +116,8 @@ addActionHandler('afterSignOut', (global, actions, payload) => {
 
     actions.resetApiSettings({ areAllDisabled: true });
   }
+
+  actions.clearSwapPairsCache();
 });
 
 addActionHandler('showDialog', (global, actions, payload) => {

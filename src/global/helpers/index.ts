@@ -1,6 +1,9 @@
-import type { ApiSwapAsset, ApiTokenWithPrice, ApiTransaction } from '../../api/types';
+import type {
+  ApiChain, ApiSwapAsset, ApiTokenWithPrice, ApiTransaction,
+} from '../../api/types';
+import type { Account, UserSwapToken } from '../types';
 
-import { TINY_TRANSFER_MAX_COST, TONCOIN } from '../../config';
+import { CHAIN_CONFIG, TINY_TRANSFER_MAX_COST, TONCOIN } from '../../config';
 import { toBig } from '../../util/decimals';
 
 export function getIsTinyOrScamTransaction(transaction: ApiTransaction, token?: ApiTokenWithPrice) {
@@ -32,6 +35,25 @@ export function resolveSwapAsset(bySlug: Record<string, ApiSwapAsset>, anyId: st
   return bySlug[anyId] ?? Object.values(bySlug).find(({ tokenAddress }) => tokenAddress === anyId);
 }
 
-export function getIsSupportedChain(chain?: string) {
-  return chain === 'ton' || chain === 'tron';
+export function getIsSupportedChain(chain?: string): chain is ApiChain {
+  return chain as ApiChain in CHAIN_CONFIG;
+}
+
+export function getIsInternalSwap({
+  from,
+  to,
+  toAddress,
+  addressByChain,
+}: {
+  from?: UserSwapToken | ApiSwapAsset;
+  to?: UserSwapToken | ApiSwapAsset;
+  toAddress?: string;
+  addressByChain?: Account['addressByChain'];
+}) {
+  const isMultichain = Boolean(addressByChain?.tron);
+  return (from?.chain === 'ton' && to?.chain === 'ton') || (
+    isMultichain && from && to && addressByChain
+      && getIsSupportedChain(from.chain)
+      && addressByChain[to.chain as ApiChain] === toAddress
+  );
 }

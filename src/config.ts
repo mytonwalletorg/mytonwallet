@@ -1,5 +1,5 @@
 import type { ApiTonWalletVersion } from './api/chains/ton/types';
-import type { ApiBaseCurrency, ApiChain, ApiSwapAsset } from './api/types';
+import type { ApiBaseCurrency, ApiSwapAsset } from './api/types';
 import type { LangItem, TokenPeriod } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
@@ -171,12 +171,11 @@ export const LANG_LIST: LangItem[] = [{
   rtl: false,
 }];
 
-export const STAKING_CYCLE_DURATION_MS = 131072000; // 36.4 hours
-export const VALIDATION_PERIOD_MS = 65536000; // 18.2 h.
-export const ONE_TON = 1000000000n;
-export const MIN_BALANCE_FOR_UNSTAKE = 1020000000n; // 1.02 TON
-export const STAKING_FORWARD_AMOUNT = ONE_TON;
-export const DEFAULT_FEE = 15000000n; // 0.015 TON
+export const STAKING_CYCLE_DURATION_MS = 131_072_000; // 36.4 hours
+export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
+export const ONE_TON = 1_000_000_000n;
+export const MIN_BALANCE_FOR_UNSTAKE = 1_020_000_000n; // 1.02 TON
+export const DEFAULT_FEE = 15_000_000n; // 0.015 TON
 
 export const STAKING_POOLS = process.env.STAKING_POOLS ? process.env.STAKING_POOLS.split(' ') : [];
 export const LIQUID_POOL = process.env.LIQUID_POOL || 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o';
@@ -222,12 +221,14 @@ export const CHAIN_CONFIG = {
     isDnsSupported: true,
     addressRegex: /^([-\w_]{48}|0:[\da-h]{64})$/i,
     nativeToken: TONCOIN,
+    amountForNextSwap: 500_000_000n, // 0.5 TON
   },
   tron: {
     isMemoSupported: false,
     isDnsSupported: false,
     addressRegex: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
     nativeToken: TRX,
+    amountForNextSwap: 0n,
     mainnet: {
       apiUrl: 'https://api.trongrid.io',
       usdtAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
@@ -239,15 +240,12 @@ export const CHAIN_CONFIG = {
   },
 } as const;
 
-export function getChainConfig<T extends ApiChain>(chain: T) {
-  return CHAIN_CONFIG[chain];
-}
-
 export const NATIVE_TOKENS = [TONCOIN, TRX];
 
 export const TRC20_USDT_MAINNET_SLUG = 'tron-tr7nhqjekq';
 export const TRC20_USDT_TESTNET_SLUG = 'tron-tg3xxyexbk';
 export const TON_USDT_SLUG = 'ton-eqcxe6mutq';
+export const TRX_SWAP_COUNT_FEE_ADDRESS = 'TW2LXSebZ7Br1zHaiA2W1zRojDkDwjGmpw';
 
 const TRC20_USDT = {
   name: 'Tether USD',

@@ -134,7 +134,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         }
       }
 
-      global = setIsFirstActivitiesLoadedTrue(global, accountId, chain);
+      if (chain) {
+        global = setIsFirstActivitiesLoadedTrue(global, accountId, chain);
+      }
 
       setGlobal(global);
       break;

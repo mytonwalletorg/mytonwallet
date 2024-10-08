@@ -287,6 +287,8 @@
 
 .savedAddressBubble {
   --offset-y-value: -0.75rem;
+
+  max-height: min(60vh, 11rem);
 }
 
 .savedAddressItem {

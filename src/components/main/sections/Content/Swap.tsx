@@ -6,7 +6,7 @@ import type { ApiSwapActivity, ApiSwapAsset } from '../../../../api/types';
 import type { Account, AppTheme } from '../../../../global/types';
 
 import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN, WHOLE_PART_DELIMITER } from '../../../../config';
-import { resolveSwapAsset } from '../../../../global/helpers';
+import { getIsInternalSwap, resolveSwapAsset } from '../../../../global/helpers';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
@@ -77,8 +77,12 @@ function Swap({
   const isHold = cex?.status === 'hold';
 
   const isFromToncoin = from === TONCOIN.slug;
-  const isInternalSwap = !cex
-    || Boolean(fromToken?.chain === 'ton' && cex.payoutAddress && cex.payoutAddress === addressByChain?.tron);
+  const isInternalSwap = getIsInternalSwap({
+    from: fromToken,
+    to: toToken,
+    toAddress: cex?.payoutAddress,
+    addressByChain,
+  });
 
   const handleClick = useLastCallback(() => {
     onClick(id);
@@ -152,7 +156,8 @@ function Swap({
     } else if (cexStatus === 'failed' || isError) {
       state = lang('Failed');
     } else if (cexStatus === 'waiting' && !isFromToncoin && !isInternalSwap) {
-      // Skip the `waiting` status for transactions from TON to account for delayed status updates from Changelly
+      // Skip the 'waiting' status for transactions from Toncoin to account or from Tron to Ton
+      // inside the multichain wallet for delayed status updates from Сhangelly
       state = lang('Waiting for Payment');
     } else if (isPending) {
       state = lang('In Progress');

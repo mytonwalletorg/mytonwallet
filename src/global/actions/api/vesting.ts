@@ -21,7 +21,7 @@ import {
   setIsPinAccepted,
   updateVesting,
 } from '../../reducers';
-import { selectTokenAddress, selectVestingPartsReadyToUnfreeze } from '../../selectors';
+import { selectVestingPartsReadyToUnfreeze } from '../../selectors';
 
 addActionHandler('submitClaimingVesting', async (global, actions, { password }) => {
   const accountId = global.currentAccountId!;
@@ -102,7 +102,6 @@ addActionHandler('submitClaimingVestingHardware', async (global, actions) => {
   global = getGlobal();
 
   const accountId = global.currentAccountId!;
-  const tokenAddress = selectTokenAddress(global, TONCOIN.slug);
   const unfreezeRequestedIds = selectVestingPartsReadyToUnfreeze(global, accountId);
   const options: ApiSubmitTransferOptions = {
     accountId,
@@ -110,7 +109,6 @@ addActionHandler('submitClaimingVestingHardware', async (global, actions) => {
     toAddress: CLAIM_ADDRESS,
     amount: CLAIM_AMOUNT,
     comment: CLAIM_COMMENT,
-    tokenAddress,
   };
 
   const result = await ledgerApi.submitLedgerTransfer(options, TONCOIN.slug);

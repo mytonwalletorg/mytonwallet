@@ -14,9 +14,10 @@ import {
   CHANGELLY_WAITING_DEADLINE,
   TONCOIN,
 } from '../../../config';
-import { getIsSupportedChain, resolveSwapAsset } from '../../../global/helpers';
+import { getIsInternalSwap, getIsSupportedChain, resolveSwapAsset } from '../../../global/helpers';
 import { selectCurrentAccount, selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
+import { findChainConfig } from '../../../util/chain';
 import { formatFullDay, formatTime } from '../../../util/dateFormat';
 import { formatCurrency, formatCurrencyExtended } from '../../../util/formatNumber';
 import getChainNetworkName from '../../../util/swap/getChainNetworkName';
@@ -78,12 +79,13 @@ function SwapActivityModal({
   const appTheme = useAppTheme(theme);
 
   const { txIds, timestamp, networkFee = 0 } = renderedActivity ?? {};
+  const { payinAddress, payoutAddress, payinExtraId } = renderedActivity?.cex || {};
 
   let fromAmount = '0';
   let toAmount = '0';
   let isPending = true;
   let isError = false;
-  let isCexSwap = false;
+  let shouldRenderCexInfo = false;
   let isCexError = false;
   let isCexHold = false;
   let isCexWaiting = false;
@@ -106,6 +108,15 @@ function SwapActivityModal({
 
     return resolveSwapAsset(tokensBySlug, renderedActivity.to);
   }, [renderedActivity?.to, tokensBySlug]);
+  const isInternalSwap = getIsInternalSwap({
+    from: fromToken, to: toToken, toAddress: payoutAddress, addressByChain,
+  });
+
+  const nativeToken = useMemo(() => {
+    if (!fromToken) return undefined;
+
+    return findChainConfig(fromToken.chain)?.nativeToken;
+  }, [fromToken]);
 
   if (renderedActivity) {
     const {
@@ -120,13 +131,14 @@ function SwapActivityModal({
         ? (timestamp + CHANGELLY_WAITING_DEADLINE - Date.now() < 0)
         : false;
       isExpired = CHANGELLY_EXPIRE_CHECK_STATUSES.has(cex.status) && isCountdownFinished;
-      isCexSwap = true;
+      shouldRenderCexInfo = cex.status !== 'finished';
       isPending = !isExpired && CHANGELLY_PENDING_STATUSES.has(cex.status);
       isCexPending = isPending;
       isCexError = isExpired || CHANGELLY_ERROR_STATUSES.has(cex.status);
       isCexHold = cex.status === 'hold';
-      // Skip the 'waiting' status for transactions from Toncoin to account for delayed status updates from Сhangelly
-      isCexWaiting = cex.status === 'waiting' && !isFromToncoin && !isExpired;
+      // Skip the 'waiting' status for transactions from Toncoin to other chains
+      // or from TRON to TON inside a multichain wallet for delayed status updates from Сhangelly
+      isCexWaiting = cex.status === 'waiting' && !isExpired && !isInternalSwap && !isFromToncoin;
       cexTransactionId = cex.transactionId;
     } else {
       isPending = status === 'pending';
@@ -158,10 +170,7 @@ function SwapActivityModal({
   const transactionHash = getTransactionHashFromTxId('ton', txIds?.[0] || '');
   const transactionUrl = getExplorerTransactionUrl('ton', transactionHash);
 
-  const { payinAddress, payoutAddress, payinExtraId } = renderedActivity?.cex || {};
-  const isInternalSwap = !isCexSwap
-    || Boolean(fromToken?.chain === 'ton' && payoutAddress && payoutAddress === addressByChain?.tron);
-  const shouldShowQrCode = !payinExtraId;
+  const shouldShowQrCode = !payinExtraId && toToken?.chain === 'ton' && !isInternalSwap;
   const { qrCodeRef, isInitialized } = useQrCode({
     address: payinAddress,
     isActive: Boolean(payinAddress),
@@ -316,7 +325,6 @@ function SwapActivityModal({
           {lang('Memo')}
         </span>
         <InteractiveTextField
-          chain="ton"
           address={payinExtraId}
           copyNotification={lang('Memo was copied!')}
           noSavedAddress
@@ -334,7 +342,7 @@ function SwapActivityModal({
           {lang('Blockchain Fee')}
         </span>
         <div className={styles.textField}>
-          {formatCurrency(networkFee, TONCOIN.symbol, undefined, true)}
+          {formatCurrency(networkFee, nativeToken?.symbol ?? TONCOIN.symbol, undefined, true)}
         </div>
       </div>
     );
@@ -342,7 +350,8 @@ function SwapActivityModal({
 
   function renderAddress() {
     if (!payinAddress) return undefined;
-    const chain = getIsSupportedChain(fromToken?.chain) ? fromToken.chain : undefined;
+    const token = isFromToncoin ? toToken : fromToken;
+    const chain = getIsSupportedChain(token?.chain) ? token.chain : undefined;
 
     return (
       <div className={styles.textFieldWrapper}>
@@ -400,11 +409,9 @@ function SwapActivityModal({
       );
     }
 
-    const shouldRenderFee = !(isCexError || isCexHold) || networkFee > 0;
-
     return (
       <>
-        {shouldRenderFee && renderFee()}
+        {networkFee > 0 && renderFee()}
         {!isInternalSwap && renderAddress()}
         {!isInternalSwap && renderMemo()}
       </>
@@ -423,7 +430,7 @@ function SwapActivityModal({
         />
         <div className={styles.infoBlock}>
           {renderSwapInfo()}
-          {isCexSwap && renderCexInformation()}
+          {shouldRenderCexInfo && renderCexInformation()}
         </div>
         <div className={styles.footer}>
           {renderFooterButton()}

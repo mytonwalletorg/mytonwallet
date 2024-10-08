@@ -1,9 +1,8 @@
 import type { ApiTxTimestamps, OnApiUpdate } from '../../types';
 
-import {
-  getChainConfig, TRX,
-} from '../../../config';
+import { TRX } from '../../../config';
 import { parseAccountId } from '../../../util/account';
+import { getChainConfig } from '../../../util/chain';
 import { compareActivities } from '../../../util/compareActivities';
 import { logDebugError } from '../../../util/logs';
 import { pauseOrFocus } from '../../../util/pauseOrFocus';

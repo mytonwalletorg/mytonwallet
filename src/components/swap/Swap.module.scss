@@ -3,10 +3,10 @@
 .modalDialog {
   overflow: hidden;
 
-  height: 40rem;
+  height: 40.125rem;
 
   @supports (height: var(--safe-area-bottom)) {
-    height: calc(40rem + var(--safe-area-bottom));
+    height: calc(40.125rem + var(--safe-area-bottom));
   }
 }
 

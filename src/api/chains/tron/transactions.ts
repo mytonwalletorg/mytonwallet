@@ -2,8 +2,9 @@ import { TronWeb } from 'tronweb';
 
 import type { ApiNetwork, ApiTransactionActivity } from '../../types';
 
-import { getChainConfig, TRX } from '../../../config';
+import { TRX } from '../../../config';
 import { parseAccountId } from '../../../util/account';
+import { getChainConfig } from '../../../util/chain';
 import { compareActivities } from '../../../util/compareActivities';
 import { fetchJson } from '../../../util/fetch';
 import { buildCollectionByKey } from '../../../util/iteratees';

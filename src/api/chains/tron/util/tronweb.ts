@@ -2,7 +2,7 @@ import { TronWeb } from 'tronweb';
 
 import type { ApiNetwork } from '../../../types';
 
-import { getChainConfig } from '../../../../config';
+import { getChainConfig } from '../../../../util/chain';
 
 let clientByNetwork: Record<ApiNetwork, TronWeb> | undefined;
 

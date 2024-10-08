@@ -599,6 +599,7 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   global = updateConnectedDapps(global, {});
   setGlobal(global);
 
+  actions.clearSwapPairsCache();
   if (newNetwork) {
     actions.changeNetwork({ network: newNetwork });
   }

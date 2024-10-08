@@ -4,7 +4,7 @@ import type { ApiSwapActivity, ApiSwapHistoryItem } from '../types';
 import { TONCOIN } from '../../config';
 import { buildSwapId } from '../../util/swap/buildSwapId';
 import { callBackendGet, callBackendPost } from './backend';
-import { buildTokenSlug } from './tokens';
+import { buildTokenSlug, getTokenByAddress } from './tokens';
 
 export function swapGetHistory(address: string, params: {
   fromLt?: number;
@@ -37,7 +37,11 @@ export function swapItemToActivity(swap: ApiSwapHistoryItem): ApiSwapActivity {
 }
 
 export function getSwapItemSlug(item: ApiSwapHistoryItem, asset: string) {
-  if (asset === TONCOIN.symbol) return TONCOIN.slug;
-  if (item.cex) return asset;
+  if (asset === TONCOIN.symbol) {
+    return TONCOIN.slug;
+  }
+  if (item.cex) {
+    return getTokenByAddress(asset)?.slug ?? asset;
+  }
   return buildTokenSlug('ton', asset);
 }

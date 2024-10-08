@@ -2,8 +2,9 @@ import type {
   ApiChain, ApiLedgerAccount, ApiTonWallet, ApiTxTimestamps, OnApiUpdate,
 } from '../types';
 
-import { getChainConfig, IS_EXTENSION } from '../../config';
+import { IS_EXTENSION } from '../../config';
 import { parseAccountId } from '../../util/account';
+import { getChainConfig } from '../../util/chain';
 import chains from '../chains';
 import {
   fetchStoredAccount,

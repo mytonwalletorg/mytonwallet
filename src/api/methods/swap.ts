@@ -194,11 +194,11 @@ export async function swapCexCreateTransaction(
   const { swap } = await callBackendPost<ApiSwapCexCreateTransactionResponse>('/swap/cex/createTransaction', request, {
     authToken,
   });
+
   const activity = swapItemToActivity(swap);
 
   onUpdate({
     type: 'newActivities',
-    chain: 'ton',
     accountId,
     activities: [activity],
   });

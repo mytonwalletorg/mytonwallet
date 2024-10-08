@@ -11,8 +11,8 @@ import type {
 } from '../types';
 import type { ApiSubmitTransferOptions, ApiSubmitTransferResult, CheckTransactionDraftOptions } from './types';
 
-import { getChainConfig } from '../../config';
 import { parseAccountId } from '../../util/account';
+import { getChainConfig } from '../../util/chain';
 import { compareActivities } from '../../util/compareActivities';
 import { logDebugError } from '../../util/logs';
 import chains from '../chains';
@@ -110,7 +110,7 @@ export async function submitTransfer(
   chain: ApiChain,
   options: ApiSubmitTransferOptions,
   shouldCreateLocalTransaction = true,
-) {
+): Promise<(ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult) & { txId?: string }> {
   const {
     accountId,
     password,

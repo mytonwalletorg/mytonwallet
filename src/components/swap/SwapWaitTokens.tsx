@@ -6,6 +6,7 @@ import type { Account, UserSwapToken } from '../../global/types';
 import {
   CHANGELLY_LIVE_CHAT_URL, CHANGELLY_SUPPORT_EMAIL, CHANGELLY_WAITING_DEADLINE,
 } from '../../config';
+import { getIsInternalSwap, getIsSupportedChain } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import getChainNetworkName from '../../util/swap/getChainNetworkName';
@@ -66,7 +67,9 @@ function SwapWaitTokens({
   });
 
   const shouldShowQrCode = !payinExtraId;
-  const isInternalSwap = Boolean(tokenIn?.chain === 'ton' && payoutAddress && payoutAddress === addressByChain?.tron);
+  const isInternalSwap = getIsInternalSwap({
+    from: tokenIn, to: tokenOut, toAddress: payoutAddress, addressByChain,
+  });
 
   useHistoryBack({
     isActive,
@@ -146,6 +149,8 @@ function SwapWaitTokens({
       );
     }
 
+    const chain = getIsSupportedChain(tokenIn?.chain) ? tokenIn.chain : undefined;
+
     return (
       <div className={styles.changellyInfoBlock}>
         <span className={styles.changellyDescription}>{lang('$swap_changelly_to_ton_description1', {
@@ -167,7 +172,7 @@ function SwapWaitTokens({
         })}
         </span>
         <InteractiveTextField
-          chain="ton"
+          chain={chain}
           address={payinAddress}
           copyNotification={lang('Address was copied!')}
           noSavedAddress

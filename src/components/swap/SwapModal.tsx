@@ -70,8 +70,7 @@ function SwapModal({
     setSwapScreen,
     submitSwap,
     showActivityInfo,
-    submitSwapCexFromToncoin,
-    submitSwapCexToToncoin,
+    submitSwapCex,
   } = getActions();
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
@@ -97,7 +96,7 @@ function SwapModal({
   const [renderedActivity, setRenderedActivity] = useState<ApiActivity | undefined>();
 
   useEffect(() => {
-    if (!isOpen || !activityById || !activityId || swapType !== SwapType.CrosschainToToncoin) {
+    if (!isOpen || !activityById || !activityId) {
       setRenderedActivity(undefined);
       return;
     }
@@ -105,7 +104,7 @@ function SwapModal({
     const activity = activityById[activityId];
     setRenderedActivity(activity);
 
-    if (activity.kind === 'swap') {
+    if (activity.kind === 'swap' && swapType === SwapType.CrosschainToWallet) {
       const status = activity.cex?.status;
       if (status === 'exchanging' || status === 'confirming') {
         setSwapScreen({ state: SwapState.Complete });
@@ -125,16 +124,12 @@ function SwapModal({
       return;
     }
 
-    if (swapType === SwapType.CrosschainToToncoin) {
-      submitSwapCexToToncoin({ password });
-    } else {
-      submitSwapCexFromToncoin({ password });
-    }
+    submitSwapCex({ password });
   });
 
   const handleBackClick = useLastCallback(() => {
     if (state === SwapState.Password) {
-      if (swapType === SwapType.CrosschainFromToncoin) {
+      if (swapType === SwapType.CrosschainFromWallet) {
         setSwapScreen({ state: SwapState.Blockchain });
       } else {
         setSwapScreen({ state: isPortrait ? SwapState.Initial : SwapState.None });
@@ -253,7 +248,11 @@ function SwapModal({
             {renderSwapShortInfo()}
           </SwapPassword>
         );
-      case SwapState.Complete:
+      case SwapState.Complete: {
+        const networkFee = renderedActivity && 'networkFee' in renderedActivity
+          ? renderedActivity.networkFee
+          : undefined;
+
         return (
           <SwapComplete
             isActive={isActive}
@@ -261,13 +260,15 @@ function SwapModal({
             tokenOut={renderedTransactionTokenOut}
             amountIn={renderedTransactionAmountIn}
             amountOut={renderedTransactionAmountOut}
-            onInfoClick={handleTransactionInfoClick}
-            onStartSwap={handleStartSwap}
             swapType={renderedSwapType}
             toAddress={toAddress}
+            networkFee={networkFee}
             onClose={handleModalCloseWithReset}
+            onInfoClick={handleTransactionInfoClick}
+            onStartSwap={handleStartSwap}
           />
         );
+      }
       case SwapState.SelectTokenFrom:
       case SwapState.SelectTokenTo:
         return (

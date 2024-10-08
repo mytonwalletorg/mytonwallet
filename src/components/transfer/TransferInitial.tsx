@@ -37,6 +37,7 @@ import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { getIsNativeToken } from '../../util/tokens';
 import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { NFT_TRANSFER_AMOUNT } from '../../api/chains/ton/constants';
+import { ONE_TRX } from '../../api/chains/tron/constants';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -245,8 +246,11 @@ function TransferInitial({
         ? balance
         : balance - dieselAmount;
     }
+    if (nativeToken?.chain === 'tron' && balance) {
+      return balance - ONE_TRX;
+    }
     return balance;
-  }, [balance, dieselAmount, isGaslessWithStars, withDiesel]);
+  }, [balance, dieselAmount, isGaslessWithStars, withDiesel, nativeToken]);
 
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
     ? AUTHORIZE_DIESEL_INTERVAL_MS

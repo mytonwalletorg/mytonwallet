@@ -27,7 +27,7 @@ export type ApiUpdateBalances = {
 export type ApiUpdateNewActivities = {
   type: 'newActivities';
   accountId: string;
-  chain: ApiChain;
+  chain?: ApiChain;
   activities: ApiActivity[];
   noForward?: boolean; // Forbid cyclic update redirection to/from NBS
 };

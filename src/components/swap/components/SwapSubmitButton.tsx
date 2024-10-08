@@ -26,7 +26,8 @@ interface OwnProps {
   swapType?: SwapType;
   isEstimating?: boolean;
   isSending?: boolean;
-  isEnoughToncoin?: boolean;
+  isNotEnoughNative?: boolean;
+  nativeToken?: UserSwapToken;
   dieselStatus?: DieselStatus;
   isPriceImpactError?: boolean;
   canSubmit?: boolean;
@@ -47,7 +48,8 @@ function SwapSubmitButton({
   swapType,
   isEstimating,
   isSending,
-  isEnoughToncoin,
+  isNotEnoughNative,
+  nativeToken,
   dieselStatus,
   isPriceImpactError,
   canSubmit,
@@ -57,7 +59,7 @@ function SwapSubmitButton({
   const lang = useLang();
 
   const isErrorExist = errorType !== undefined;
-  const shouldSendingBeVisible = isSending && swapType === SwapType.CrosschainToToncoin;
+  const shouldSendingBeVisible = isSending && swapType === SwapType.CrosschainToWallet;
   const isDisabled = !canSubmit || shouldSendingBeVisible;
   const isLoading = isEstimating || shouldSendingBeVisible;
 
@@ -81,29 +83,31 @@ function SwapSubmitButton({
 
   let text: string | TeactNode[] = '$swap_from_to';
 
-  if (isTouched && isErrorExist) {
-    text = errorMsgByType[errorType];
-  } else if (isTouched && !isEnoughToncoin && swapType !== SwapType.CrosschainToToncoin) {
-    if (dieselStatus === 'not-available') {
-      text = lang('Not Enough %symbol%', { symbol: 'TON' });
-    } else if (dieselStatus === 'pending-previous') {
-      text = lang('Awaiting Previous Fee');
-    } else if (dieselStatus === 'not-authorized') {
-      text = lang('Authorize %token% Fee', { token: tokenIn?.symbol });
+  if (isTouched) {
+    if (isErrorExist) {
+      text = errorMsgByType[errorType];
+    } else if (nativeToken) {
+      if (isNotEnoughNative && tokenIn?.chain === 'ton' && tokenIn?.tokenAddress) {
+        if (dieselStatus === 'not-available') {
+          text = lang('Not Enough %symbol%', { symbol: 'TON' });
+        } else if (dieselStatus === 'pending-previous') {
+          text = lang('Awaiting Previous Fee');
+        } else if (dieselStatus === 'not-authorized') {
+          text = lang('Authorize %token% Fee', { token: tokenIn?.symbol });
+        }
+      } else if (isNotEnoughNative) {
+        text = lang('Not Enough %symbol%', { symbol: nativeToken?.symbol });
+      }
     }
   }
 
   const textStr = Array.isArray(text) ? text.join('') : text;
 
-  let shouldShowError = !isEstimating && (
+  const shouldShowError = !isEstimating && (
     isPriceImpactError
     || isErrorExist
-    || (!isEnoughToncoin && (dieselStatus === 'not-available' || dieselStatus === 'pending-previous'))
+    || (nativeToken && isNotEnoughNative && (dieselStatus === 'not-available' || dieselStatus === 'pending-previous'))
   );
-
-  if (swapType === SwapType.CrosschainToToncoin) {
-    shouldShowError = !isEstimating && (isPriceImpactError || isErrorExist);
-  }
 
   const isDestructive = isTouched && shouldShowError;
 

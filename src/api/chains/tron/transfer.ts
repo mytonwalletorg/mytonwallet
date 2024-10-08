@@ -5,8 +5,8 @@ import type { ContractParamter, Transaction } from 'tronweb/lib/commonjs/types';
 
 import type { ApiSubmitTransferOptions, CheckTransactionDraftOptions } from '../../methods/types';
 import type { ApiCheckTransactionDraftResult } from '../ton/types';
-import type { ApiAccountWithMnemonic } from '../../types';
 import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
+import type { ApiAccountWithMnemonic, ApiBip39Account } from '../../types';
 
 import { parseAccountId } from '../../../util/account';
 import { logDebugError } from '../../../util/logs';
@@ -16,6 +16,8 @@ import { getMnemonic } from '../../common/mnemonic';
 import { handleServerError } from '../../errors';
 import { getWalletBalance } from './wallet';
 import type { ApiSubmitTransferTronResult } from './types';
+import { hexToString } from '../../../util/stringFormat';
+import { ONE_TRX } from './constants';
 
 const SIGNATURE_SIZE = 65;
 const FEE_LIMIT_TRX = 35_000_000n; // 35 TRX
@@ -93,11 +95,11 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     const tronWeb = getTronClient(network);
 
     const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
-    const { address } = account.ton;
+    const { address } = (account as ApiBip39Account).tron;
     const trxBalance = await getWalletBalance(network, address);
 
     const trxAmount = tokenAddress ? fee : fee + amount;
-    const isEnoughTrx = trxBalance > trxAmount;
+    const isEnoughTrx = (trxBalance - ONE_TRX) >= trxAmount;
 
     if (!isEnoughTrx) {
       return { error: ApiTransactionError.InsufficientBalance };
@@ -126,6 +128,16 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
       const result = await tronWeb.trx.sendTransaction(toAddress, Number(amount), {
         privateKey,
       });
+
+      if ('code' in result && !('result' in result && result.result)) {
+        const error = 'message' in result && result.message
+          ? hexToString(result.message)
+          : result.code.toString();
+
+        logDebugError('submitTransfer', { error, result });
+
+        return { error };
+      }
 
       return { amount, toAddress, txId: result.transaction.txID };
     }
