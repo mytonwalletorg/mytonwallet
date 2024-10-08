@@ -169,6 +169,11 @@ export const LANG_LIST: LangItem[] = [{
   name: 'Polish',
   nativeName: 'Polski',
   rtl: false,
+}, {
+  langCode: 'it',
+  name: 'Italian',
+  nativeName: 'Italiano',
+  rtl: false,
 }];
 
 export const STAKING_CYCLE_DURATION_MS = 131_072_000; // 36.4 hours
