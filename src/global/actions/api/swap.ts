@@ -240,7 +240,6 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   }
 
   global = getGlobal();
-  const currentSwapId = global.currentSwap.swapId;
   if (IS_CAPACITOR) {
     global = setIsPinAccepted(global);
   }
@@ -258,10 +257,10 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   const buildResult = await callApi(
     'swapBuildTransfer', global.currentAccountId!, password, swapBuildRequest,
   );
+  global = getGlobal();
 
   if (!buildResult || 'error' in buildResult) {
     actions.showError({ error: buildResult?.error });
-    global = getGlobal();
     if (IS_CAPACITOR) {
       global = clearIsPinAccepted(global);
       void vibrateOnError();
@@ -286,35 +285,6 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     txIds: [],
   };
 
-  const result = await callApi(
-    'swapSubmit',
-    global.currentAccountId!,
-    password,
-    buildResult.transfers,
-    swapHistoryItem,
-    swapBuildRequest.shouldTryDiesel,
-  );
-
-  global = getGlobal();
-
-  if (!result || 'error' in result) {
-    global = updateCurrentSwap(global, {
-      isLoading: false,
-    });
-    if (IS_CAPACITOR) {
-      global = clearIsPinAccepted(global);
-      void vibrateOnError();
-    }
-    setGlobal(global);
-    actions.showError({ error: result?.error });
-    return;
-  }
-
-  if (currentSwapId !== global.currentSwap.swapId) {
-    setGlobal(global);
-    return;
-  }
-
   global = updateCurrentSwap(global, {
     tokenInSlug: undefined,
     tokenOutSlug: undefined,
@@ -327,6 +297,26 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   setGlobal(global);
   if (IS_CAPACITOR) {
     void vibrateOnSuccess();
+  }
+
+  const result = await callApi(
+    'swapSubmit',
+    global.currentAccountId!,
+    password,
+    buildResult.transfers,
+    swapHistoryItem,
+    swapBuildRequest.shouldTryDiesel,
+  );
+
+  if (!result || 'error' in result) {
+    if (IS_CAPACITOR) {
+      global = getGlobal();
+      global = clearIsPinAccepted(global);
+      setGlobal(global);
+      void vibrateOnError();
+    }
+
+    actions.showError({ error: result?.error });
   }
 });
 
@@ -399,44 +389,6 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
     return;
   }
 
-  let transferResult: ((ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult) & { txId?: string }) | undefined;
-
-  const transferOptions: ApiSubmitTransferOptions = {
-    password,
-    accountId: global.currentAccountId!,
-    fee: fromDecimal(swapItem.swap.networkFee, tokenIn.decimals),
-    amount: fromDecimal(swapItem.swap.fromAmount, tokenIn.decimals),
-    toAddress: swapItem.swap.cex!.payinAddress,
-    tokenAddress: isMutlichainAccount && shouldSendTransaction
-      ? tokenIn.tokenAddress
-      : undefined,
-  };
-
-  if (shouldSendTransaction) {
-    await pause(WAIT_FOR_CHANGELLY);
-
-    if (shouldSendTonTransaction) {
-      transferResult = await callApi('submitTransfer', 'ton', transferOptions, false);
-    } else if (shouldSendTronTransaction) {
-      transferResult = await callApi('submitTransfer', 'tron', transferOptions, false);
-    }
-
-    global = getGlobal();
-  }
-
-  if (shouldSendTransaction && (!transferResult || 'error' in transferResult)) {
-    global = updateCurrentSwap(global, {
-      isLoading: false,
-    });
-    if (IS_CAPACITOR) {
-      global = clearIsPinAccepted(global);
-      void vibrateOnError();
-    }
-    setGlobal(global);
-    actions.showError({ error: transferResult?.error });
-    return;
-  }
-
   global = updateCurrentSwap(global, {
     isLoading: false,
     state: shouldSendTokenToExternalWallet ? SwapState.Complete : SwapState.WaitTokens,
@@ -448,6 +400,38 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
   setGlobal(global);
   if (IS_CAPACITOR) {
     void vibrateOnSuccess();
+  }
+
+  if (shouldSendTransaction) {
+    global = getGlobal();
+    const transferOptions: ApiSubmitTransferOptions = {
+      password,
+      accountId: global.currentAccountId!,
+      fee: fromDecimal(swapItem.swap.networkFee, tokenIn.decimals),
+      amount: fromDecimal(swapItem.swap.fromAmount, tokenIn.decimals),
+      toAddress: swapItem.swap.cex!.payinAddress,
+      tokenAddress: isMutlichainAccount ? tokenIn.tokenAddress : undefined,
+    };
+
+    await pause(WAIT_FOR_CHANGELLY);
+
+    let transferResult: ((ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult) & { txId?: string }) | undefined;
+
+    if (shouldSendTonTransaction) {
+      transferResult = await callApi('submitTransfer', 'ton', transferOptions, false);
+    } else if (shouldSendTronTransaction) {
+      transferResult = await callApi('submitTransfer', 'tron', transferOptions, false);
+    }
+
+    if (!transferResult || 'error' in transferResult) {
+      if (IS_CAPACITOR) {
+        global = getGlobal();
+        global = clearIsPinAccepted(global);
+        void vibrateOnError();
+        setGlobal(global);
+      }
+      actions.showError({ error: transferResult?.error });
+    }
   }
 });
 

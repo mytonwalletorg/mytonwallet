@@ -37,7 +37,7 @@ export async function initPolling(_onUpdate: OnApiUpdate) {
   Promise.allSettled([
     tryUpdateKnownAddresses(),
     tryUpdateTokens(_onUpdate, true),
-    tryLoadSwapTokens(_onUpdate),
+    tryUpdateSwapTokens(_onUpdate),
     tryUpdateStakingCommonData(),
   ]).then(() => resolveDataPreloadPromise());
 
@@ -74,6 +74,7 @@ export async function setupLongBackendPolling() {
       tryUpdateKnownAddresses(),
       tryUpdateStakingCommonData(),
       tryUpdateConfig(localOnUpdate),
+      tryUpdateSwapTokens(localOnUpdate),
     ]);
   }
 }
@@ -124,7 +125,7 @@ export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate, isFirstRun?: 
   }
 }
 
-export async function tryLoadSwapTokens(localOnUpdate?: OnApiUpdate) {
+export async function tryUpdateSwapTokens(localOnUpdate?: OnApiUpdate) {
   if (!localOnUpdate) {
     localOnUpdate = onUpdate;
   }
@@ -153,7 +154,7 @@ export async function tryLoadSwapTokens(localOnUpdate?: OnApiUpdate) {
       tokens,
     });
   } catch (err) {
-    logDebugError('tryLoadSwapTokens', err);
+    logDebugError('tryUpdateSwapTokens', err);
   }
 }
 

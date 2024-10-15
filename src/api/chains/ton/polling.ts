@@ -27,7 +27,7 @@ import {
 import { getStakingCommonCache } from '../../common/cache';
 import { isAlive, isUpdaterAlive } from '../../common/helpers';
 import { processNftUpdates, updateAccountNfts } from '../../common/nft';
-import { addTokens } from '../../common/tokens';
+import { addTokens, getTokensCache } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
 import { hexToBytes } from '../../common/utils';
 import { FIRST_TRANSACTIONS_LIMIT, SEC } from '../../constants';
@@ -144,25 +144,34 @@ async function setupBalanceBasedPolling(
     if (isToncoinBalanceChanged || (doubleCheckTokensTime && doubleCheckTokensTime < Date.now())) {
       doubleCheckTokensTime = isToncoinBalanceChanged ? Date.now() + DOUBLE_CHECK_TOKENS_PAUSE : undefined;
       tokenBalances = await getAccountTokenBalances(accountId).catch(logAndRescue);
+      const slugsWithBalances = new Set(tokenBalances?.map(({ slug }) => slug));
 
+      const tokensCache = getTokensCache();
+      const mintlessZeroBalances = Object.fromEntries(
+        Object.values(tokensCache)
+          .filter((token) => token.customPayloadApiUrl && !slugsWithBalances.has(token.slug))
+          .map(({ slug }) => [slug, undefined]),
+      );
       throwErrorIfUpdaterNotAlive(onUpdate, accountId);
 
       if (tokenBalances) {
         const tokens = tokenBalances.filter(Boolean).map(({ token }) => token);
         await addTokens(tokens, onUpdate);
 
+        const cachedTokenBalances = cache?.tokenBalances || {};
         tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
-          const cachedBalance = cache?.tokenBalances && cache.tokenBalances[slug];
+          const cachedBalance = cachedTokenBalances[slug];
           if (cachedBalance === tokenBalance) return;
 
           changedTokenSlugs.push(slug);
           balancesToUpdate[slug] = tokenBalance;
         });
+        Object.assign(balancesToUpdate, mintlessZeroBalances);
 
         lastBalanceCache[accountId] = {
           ...lastBalanceCache[accountId],
           tokenBalances: Object.fromEntries(tokenBalances.map(
-            ({ slug, balance: tokenBalance }) => [slug, tokenBalance],
+            ({ slug, balance: tokenBalance }) => [slug, tokenBalance || 0n],
           )),
         };
       }

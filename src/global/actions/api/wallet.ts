@@ -140,7 +140,16 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   }
 
   const {
-    tokenSlug, toAddress, amount, comment, shouldEncrypt, nftAddresses, withDiesel, stateInit, isGaslessWithStars,
+    tokenSlug,
+    toAddress,
+    amount,
+    comment,
+    shouldEncrypt,
+    nftAddresses,
+    withDiesel,
+    stateInit,
+    isGaslessWithStars,
+    binPayload,
   } = payload;
 
   setGlobal(updateSendingLoading(global, true));
@@ -161,9 +170,10 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
       tokenAddress,
       toAddress,
       amount,
-      data: comment,
+      data: binPayload ?? comment,
       shouldEncrypt,
       stateInit,
+      isBase64Data: Boolean(binPayload),
       isGaslessWithStars,
     });
   }

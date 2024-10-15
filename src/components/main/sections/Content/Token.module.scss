@@ -201,6 +201,9 @@
 
 .tokenIcon {
   margin: 0 0.625rem 0 0;
+  .container:hover > & {
+    --color-background-first: var(--color-interactive-item-hover);
+  }
 }
 
 .vestingIcon,

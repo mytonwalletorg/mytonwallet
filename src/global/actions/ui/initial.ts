@@ -20,6 +20,7 @@ import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import switchTheme, { setStatusBarStyle } from '../../../util/switchTheme';
 import {
   IS_ANDROID,
+  IS_ANDROID_APP,
   IS_DELEGATED_BOTTOM_SHEET,
   IS_ELECTRON,
   IS_IOS,
@@ -50,6 +51,9 @@ addActionHandler('init', (_, actions) => {
       documentElement.classList.add('is-ios');
     } else if (IS_ANDROID) {
       documentElement.classList.add('is-android');
+      if (IS_ANDROID_APP) {
+        documentElement.classList.add('is-android-app');
+      }
     } else if (IS_MAC_OS) {
       documentElement.classList.add('is-macos');
     } else if (IS_WINDOWS) {

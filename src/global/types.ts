@@ -734,6 +734,8 @@ export interface ActionPayloads {
     shouldEncrypt?: boolean;
     nftAddresses?: string[];
     withDiesel?: boolean;
+    isBase64Data?: boolean;
+    binPayload?: string;
     isGaslessWithStars?: boolean;
     stateInit?: string;
   };

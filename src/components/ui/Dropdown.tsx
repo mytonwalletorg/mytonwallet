@@ -27,6 +27,7 @@ interface OwnProps {
   selectedValue?: string;
   items: DropdownItem[];
   className?: string;
+  itemNameClassName?: string;
   theme?: 'light';
   arrow?: 'caret' | 'chevron';
   menuPosition?: 'top' | 'bottom';
@@ -45,6 +46,7 @@ function Dropdown({
   items,
   selectedValue,
   className,
+  itemNameClassName,
   theme,
   arrow = DEFAULT_ARROW,
   menuPosition,
@@ -115,7 +117,7 @@ function Dropdown({
               aria-hidden
             />
           )}
-          <span className={buildClassName(styles.itemName, 'itemName')}>
+          <span className={buildClassName(styles.itemName, 'itemName', itemNameClassName)}>
             {shouldTranslateOptions ? lang(selectedItem!.name) : selectedItem!.name}
           </span>
           {withMenu && <i className={buttonArrowIcon} aria-hidden />}
@@ -130,6 +132,7 @@ function Dropdown({
           items={items}
           shouldTranslateOptions={shouldTranslateOptions}
           selectedValue={selectedValue}
+          itemNameClassName={itemNameClassName}
           onSelect={onChange}
           onClose={closeMenu}
         />

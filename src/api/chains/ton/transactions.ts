@@ -113,6 +113,7 @@ export async function checkTransactionDraft(
     tokenAddress,
     shouldEncrypt,
     isBase64Data,
+    stateInit: stateInitString,
   } = options;
   let { toAddress, amount, data } = options;
 
@@ -131,7 +132,7 @@ export async function checkTransactionDraft(
 
     const { isInitialized } = await getContractInfo(network, toAddress);
 
-    if (options.stateInit && !isBase64Data) {
+    if (stateInitString && !isBase64Data) {
       return {
         ...result,
         error: ApiTransactionDraftError.StateInitWithoutBin,
@@ -140,9 +141,9 @@ export async function checkTransactionDraft(
 
     let stateInit;
 
-    if (options.stateInit) {
+    if (stateInitString) {
       try {
-        stateInit = Cell.fromBase64(options.stateInit);
+        stateInit = Cell.fromBase64(stateInitString);
       } catch {
         return {
           ...result,

@@ -346,6 +346,18 @@ function TransferInitial({
   }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount, isDieselAvailable]);
 
   useEffect(() => {
+    if (isMaxAmountSelected && prevDieselAmount !== dieselAmount && maxAmount! > 0) {
+      isUpdatingAmountDueToMaxChange.current = true;
+
+      setMaxAmountSelected(false);
+      setPrevDieselAmount(dieselAmount);
+      setTransferAmount({ amount: maxAmount });
+    }
+  }, [
+    dieselAmount, maxAmount, isMaxAmountSelected, prevDieselAmount, withDiesel, balance, isGaslessWithStars,
+  ]);
+
+  useEffect(() => {
     if (
       !toAddress
       || hasToAddressError
@@ -388,21 +400,12 @@ function TransferInitial({
     tokenSlug,
   ]);
 
-  useEffect(() => {
-    if (isMaxAmountSelected && prevDieselAmount !== dieselAmount) {
-      isUpdatingAmountDueToMaxChange.current = true;
-
-      setMaxAmountSelected(false);
-      setPrevDieselAmount(dieselAmount);
-      setTransferAmount({ amount: maxAmount });
-    }
-  }, [
-    dieselAmount, maxAmount, isMaxAmountSelected, prevDieselAmount, withDiesel, balance, isGaslessWithStars,
-  ]);
-
   const handleTokenChange = useLastCallback(
     (slug: string) => {
+      if (slug === tokenSlug) return;
+
       changeTransferToken({ tokenSlug: slug });
+      setMaxAmountSelected(false);
       if (slug === STAKED_TOKEN_SLUG) {
         showDialog({
           title: lang('Warning!'),
@@ -569,9 +572,10 @@ function TransferInitial({
     }
 
     vibrate();
-
-    setMaxAmountSelected(true);
-    setTransferAmount({ amount: maxAmount });
+    if (maxAmount! > 0) {
+      setMaxAmountSelected(true);
+      setTransferAmount({ amount: maxAmount });
+    }
   });
 
   const handleCommentChange = useLastCallback((value) => {
@@ -606,6 +610,7 @@ function TransferInitial({
       amount: isNftTransfer ? NFT_TRANSFER_AMOUNT : amount!,
       toAddress,
       comment,
+      binPayload,
       shouldEncrypt,
       nftAddresses: isNftTransfer ? nfts!.map(({ address }) => address) : undefined,
       withDiesel,
@@ -836,6 +841,7 @@ function TransferInitial({
         items={dropDownItems}
         selectedValue={tokenSlug}
         className={styles.tokenDropdown}
+        itemNameClassName={styles.tokenDropdownItem}
         onChange={handleTokenChange}
       />
     );

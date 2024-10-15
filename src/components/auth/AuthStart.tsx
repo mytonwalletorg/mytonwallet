@@ -1,11 +1,14 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import { type Theme } from '../../global/types';
+
 import { APP_NAME } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { IS_LEDGER_SUPPORTED } from '../../util/windowEnvironment';
 
+import useAppTheme from '../../hooks/useAppTheme';
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useShowTransition from '../../hooks/useShowTransition';
@@ -14,14 +17,16 @@ import Button from '../ui/Button';
 
 import styles from './Auth.module.scss';
 
-import logoPath from '../../assets/logo.svg';
+import logoDarkPath from '../../assets/logoDark.svg';
+import logoLightPath from '../../assets/logoLight.svg';
 
 interface StateProps {
   hasAccounts?: boolean;
   isLoading?: boolean;
+  theme: Theme;
 }
 
-function AuthStart({ hasAccounts, isLoading }: StateProps) {
+function AuthStart({ hasAccounts, isLoading, theme }: StateProps) {
   const {
     startCreatingWallet,
     startImportingWallet,
@@ -31,6 +36,8 @@ function AuthStart({ hasAccounts, isLoading }: StateProps) {
   } = getActions();
 
   const lang = useLang();
+  const appTheme = useAppTheme(theme);
+  const logoPath = appTheme === 'light' ? logoLightPath : logoDarkPath;
   const [isLogoReady, markLogoReady] = useFlag();
   const { transitionClassNames } = useShowTransition(isLogoReady, undefined, undefined, 'slow');
 
@@ -96,5 +103,6 @@ export default memo(withGlobal((global): StateProps => {
   return {
     hasAccounts: Boolean(global.currentAccountId),
     isLoading: global.auth.isLoading,
+    theme: global.settings.theme,
   };
 })(AuthStart));

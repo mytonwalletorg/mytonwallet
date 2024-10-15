@@ -100,7 +100,7 @@
 }
 
 .closeButton {
-  top: 1rem;
+  top: max(var(--safe-area-top), 1rem);
   right: 1rem;
 
   width: 1.875rem !important;

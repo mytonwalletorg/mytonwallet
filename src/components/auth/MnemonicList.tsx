@@ -16,7 +16,7 @@ type OwnProps = {
   isActive?: boolean;
   mnemonic?: string[];
   onClose: NoneToVoidFunction;
-  onNext: NoneToVoidFunction;
+  onNext?: NoneToVoidFunction;
 };
 
 function MnemonicList({
@@ -47,9 +47,11 @@ function MnemonicList({
           ))}
         </ol>
 
-        <div className={modalStyles.buttons}>
-          <Button isPrimary onClick={onNext}>{lang('Let\'s Check')}</Button>
-        </div>
+        {onNext && (
+          <div className={modalStyles.buttons}>
+            <Button isPrimary onClick={onNext}>{lang('Let\'s Check')}</Button>
+          </div>
+        )}
       </div>
     </div>
   );

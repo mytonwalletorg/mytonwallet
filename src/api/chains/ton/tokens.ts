@@ -266,8 +266,11 @@ export async function getMintlessParams(options: {
 
     if (!isMintlessClaimed) {
       const data = await fetchMintlessTokenWalletData(token.customPayloadApiUrl!, fromAddress);
+      const isExpired = data
+        ? Date.now() > new Date(Number(data.compressed_info.expired_at) * 1000).getTime()
+        : true;
 
-      if (data) {
+      if (data && !isExpired) {
         customPayload = data.custom_payload;
         mintlessTokenBalance = BigInt(data.compressed_info.amount);
 
@@ -301,6 +304,8 @@ async function fetchMintlessTokenWalletData(customPayloadApiUrl: string, address
     state_init: string;
     compressed_info: {
       amount: string;
+      start_from: string;
+      expired_at: string;
     };
   } | undefined;
 }

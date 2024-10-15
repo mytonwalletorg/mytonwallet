@@ -1,5 +1,5 @@
 import type {
-  ApiBalanceBySlug, ApiChain, ApiSwapAsset, ApiTokenWithPrice,
+  ApiChain, ApiMaybeBalanceBySlug, ApiSwapAsset, ApiTokenWithPrice,
 } from '../../api/types';
 import type { Account, AccountState, GlobalState } from '../types';
 
@@ -107,7 +107,7 @@ export function renameAccount(global: GlobalState, accountId: string, title: str
 export function updateBalances(
   global: GlobalState,
   accountId: string,
-  balancesToUpdate: ApiBalanceBySlug,
+  balancesToUpdate: ApiMaybeBalanceBySlug,
 ): GlobalState {
   if (Object.keys(balancesToUpdate).length === 0) {
     return global;
@@ -118,6 +118,13 @@ export function updateBalances(
   const updatedBalancesBySlug = { ...(balances?.bySlug || {}) };
 
   for (const [slug, balance] of Object.entries(balancesToUpdate)) {
+    if (balance === undefined) {
+      if (updatedBalancesBySlug[slug]) {
+        updatedBalancesBySlug[slug] = 0n;
+      }
+      continue;
+    }
+
     updatedBalancesBySlug[slug] = balance;
   }
 

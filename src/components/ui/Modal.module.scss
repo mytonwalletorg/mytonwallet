@@ -154,6 +154,13 @@
     }
   }
 
+  // Fix transparent navigation bar in Capacitor app for Android.
+  :global(html.is-android-app) &:not(.forceBottomSheet) .dialog {
+    max-height: 100%;
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+  }
+
   :global(html.is-native-bottom-sheet) & {
     .container {
       align-items: flex-start;
@@ -477,7 +484,9 @@
   }
 
   @supports (padding-bottom: var(--safe-area-bottom)) {
-    padding-bottom: max(var(--safe-area-bottom), 1rem);
+    :global(html:not(.is-android-app)) & {
+      padding-bottom: max(var(--safe-area-bottom), 1rem);
+    }
 
     :global(.is-native-bottom-sheet) & {
       padding-bottom: max(var(--safe-area-bottom, 1rem), 1rem);

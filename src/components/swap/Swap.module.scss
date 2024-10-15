@@ -150,6 +150,9 @@
 
 .tokenIcon {
   --color-background-first: var(--color-input-button-background);
+  .tokenSelector:hover > & {
+    --color-background-first: var(--color-input-button-background-hover);
+  }
 }
 
 .tokenContent {

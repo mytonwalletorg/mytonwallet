@@ -92,8 +92,10 @@
   margin-bottom: 1rem;
 
   @include respond-below(xs) {
-    @supports (margin-bottom: max(var(--safe-area-bottom), 1.5rem)) {
-      margin-bottom: max(var(--safe-area-bottom), 1.5rem);
+    :global(html:not(.is-android-app)) & {
+      @supports (margin-bottom: max(var(--safe-area-bottom), 1.5rem)) {
+        margin-bottom: max(var(--safe-area-bottom), 1.5rem);
+      }
     }
   }
 }
@@ -122,8 +124,10 @@
   text-align: center;
 
   @include respond-below(xs) {
-    @supports (margin-bottom: max(var(--safe-area-bottom), 1.5rem)) {
-      margin-bottom: max(var(--safe-area-bottom), 1.5rem);
+    :global(html:not(.is-android-app)) & {
+      @supports (margin-bottom: max(var(--safe-area-bottom), 1.5rem)) {
+        margin-bottom: max(var(--safe-area-bottom), 1.5rem);
+      }
     }
   }
 }

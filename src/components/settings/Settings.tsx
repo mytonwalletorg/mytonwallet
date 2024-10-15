@@ -642,7 +642,14 @@ function Settings({
           />
         );
       case SettingsState.About:
-        return <SettingsAbout isActive={isActive} handleBackClick={handleBackClick} isInsideModal={isInsideModal} />;
+        return (
+          <SettingsAbout
+            isActive={isActive}
+            handleBackClick={handleBackClick}
+            isInsideModal={isInsideModal}
+            theme={theme}
+          />
+        );
       case SettingsState.Disclaimer:
         return (
           <SettingsDisclaimer

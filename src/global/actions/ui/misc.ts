@@ -566,7 +566,7 @@ addActionHandler('changeBaseCurrency', async (global, actions, { currency }) => 
 
   await Promise.all([
     callApi('tryUpdateTokens'),
-    callApi('tryLoadSwapTokens'),
+    callApi('tryUpdateSwapTokens'),
   ]);
 });
 

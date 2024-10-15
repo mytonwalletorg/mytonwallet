@@ -59,6 +59,7 @@ function SwapModal({
     payoutAddress,
     payinExtraId,
     isSettingsModalOpen,
+    networkFee,
   },
   swapTokens,
   activityById,
@@ -93,10 +94,11 @@ function SwapModal({
   const [renderedTransactionAmountOut, setRenderedTransactionAmountOut] = useState(amountOut);
   const [renderedTransactionTokenIn, setRenderedTransactionTokenIn] = useState(tokenIn);
   const [renderedTransactionTokenOut, setRenderedTransactionTokenOut] = useState(tokenOut);
+  const [renderedNetworkFee, setRenderedNetworkFee] = useState(networkFee);
   const [renderedActivity, setRenderedActivity] = useState<ApiActivity | undefined>();
 
   useEffect(() => {
-    if (!isOpen || !activityById || !activityId) {
+    if (!isOpen || !activityId || !activityById?.[activityId]) {
       setRenderedActivity(undefined);
       return;
     }
@@ -117,6 +119,7 @@ function SwapModal({
     setRenderedTransactionAmountOut(amountOut);
     setRenderedTransactionTokenIn(tokenIn);
     setRenderedTransactionTokenOut(tokenOut);
+    setRenderedNetworkFee(networkFee);
     setRenderedSwapType(swapType);
 
     if (swapType === SwapType.OnChain) {
@@ -249,9 +252,9 @@ function SwapModal({
           </SwapPassword>
         );
       case SwapState.Complete: {
-        const networkFee = renderedActivity && 'networkFee' in renderedActivity
+        const networkFeeValue = renderedActivity && 'networkFee' in renderedActivity
           ? renderedActivity.networkFee
-          : undefined;
+          : renderedNetworkFee;
 
         return (
           <SwapComplete
@@ -262,7 +265,7 @@ function SwapModal({
             amountOut={renderedTransactionAmountOut}
             swapType={renderedSwapType}
             toAddress={toAddress}
-            networkFee={networkFee}
+            networkFee={networkFeeValue}
             onClose={handleModalCloseWithReset}
             onInfoClick={handleTransactionInfoClick}
             onStartSwap={handleStartSwap}
