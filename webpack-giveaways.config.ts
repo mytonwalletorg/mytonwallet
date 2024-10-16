@@ -125,6 +125,12 @@ export default function createConfig(
           test: /\.wasm$/,
           type: 'asset/resource',
         },
+        {
+          test: /\.m?js$/,
+          resolve: {
+            fullySpecified: false,
+          },
+        },
       ],
     },
 
@@ -132,6 +138,7 @@ export default function createConfig(
       extensions: ['.js', '.ts', '.tsx'],
       fallback: {
         stream: require.resolve('stream-browserify'),
+        process: require.resolve('process/browser'),
       },
     },
 
@@ -152,11 +159,12 @@ export default function createConfig(
       new ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
       }),
+      new ProvidePlugin({
+        process: 'process/browser',
+      }),
       /* eslint-disable no-null/no-null */
       new EnvironmentPlugin({
         APP_ENV: 'production',
-        GIVEAWAYS_API_URL: null,
-        GIVEAWAY_CAPTCHA_PUBLIC_KEY: null,
       }),
       /* eslint-enable no-null/no-null */
       new NormalModuleReplacementPlugin(

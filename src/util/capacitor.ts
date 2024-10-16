@@ -2,12 +2,12 @@ import type { URLOpenListenerEvent } from '@capacitor/app';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { StatusBar, Style } from '@capacitor/status-bar';
 import { BiometryType, NativeBiometric } from '@capgo/capacitor-native-biometric';
 import { NavigationBar } from '@mauricewegner/capacitor-navigation-bar';
+import { SplashScreen } from '@sina_kh/mtw-capacitor-splash-screen';
+import { StatusBar, Style } from '@sina_kh/mtw-capacitor-status-bar';
 import type { SafeAreaInsets } from 'capacitor-plugin-safe-area';
 import { SafeArea } from 'capacitor-plugin-safe-area';
-import { SplashScreen } from 'capacitor-splash-screen';
 
 import type { Theme } from '../global/types';
 import type { AuthConfig } from './authApi/types';

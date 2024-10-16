@@ -1,7 +1,7 @@
-import type { ApiNft, ApiToken } from './types';
+import type { Table } from 'dexie';
+import Dexie from 'dexie';
 
-import Dexie from '../lib/dexie/dexie';
-import Table = Dexie.Table;
+import type { ApiNft, ApiToken } from './types';
 
 export type ApiDbNft = ApiNft & {
   accountId: string;

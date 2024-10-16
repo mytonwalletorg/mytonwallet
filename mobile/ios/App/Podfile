@@ -16,14 +16,14 @@ def capacitor_pods
   pod 'CapacitorAppLauncher', :path => '../../../node_modules/@capacitor/app-launcher'
   pod 'CapacitorClipboard', :path => '../../../node_modules/@capacitor/clipboard'
   pod 'CapacitorHaptics', :path => '../../../node_modules/@capacitor/haptics'
-  pod 'CapacitorStatusBar', :path => '../../../node_modules/@capacitor/status-bar'
   pod 'CapgoCapacitorNativeBiometric', :path => '../../../node_modules/@capgo/capacitor-native-biometric'
   pod 'CapgoNativeAudio', :path => '../../../node_modules/@capgo/native-audio'
   pod 'MauricewegnerCapacitorNavigationBar', :path => '../../../node_modules/@mauricewegner/capacitor-navigation-bar'
+  pod 'SinaKhMtwCapacitorSplashScreen', :path => '../../../node_modules/@sina_kh/mtw-capacitor-splash-screen'
+  pod 'SinaKhMtwCapacitorStatusBar', :path => '../../../node_modules/@sina_kh/mtw-capacitor-status-bar'
   pod 'CapacitorNativeSettings', :path => '../../../node_modules/capacitor-native-settings'
   pod 'CapacitorPluginSafeArea', :path => '../../../node_modules/capacitor-plugin-safe-area'
   pod 'CapacitorSecureStoragePlugin', :path => '../../../node_modules/capacitor-secure-storage-plugin'
-  pod 'CapacitorSplashScreen', :path => '../../plugins/capacitor-splash-screen'
   pod 'NativeBottomSheet', :path => '../../plugins/native-bottom-sheet'
   pod 'NativeDialog', :path => '../../plugins/native-dialog'
   pod 'CordovaPlugins', :path => '../capacitor-cordova-ios-plugins'
@@ -32,7 +32,7 @@ end
 target 'MyTonWallet' do
   capacitor_pods
   # Add your Pods here
-  pod 'FloatingPanel', :git => 'https://github.com/mytonwalletorg/FloatingPanel', :commit => '133e8c5a266006bfaa30da50e7dd000a5d75882b'
+  pod 'FloatingPanel', :git => 'https://github.com/mytonwalletorg/FloatingPanel', :commit => '124f09299ee26544cad45f95f2e3cb085b76f11a'
 end
 
 post_install do |installer|

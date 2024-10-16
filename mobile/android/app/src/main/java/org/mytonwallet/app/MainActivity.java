@@ -17,7 +17,6 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 
-import com.capacitorjs.plugins.statusbar.StatusBarPluginDelegate;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {

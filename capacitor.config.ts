@@ -21,6 +21,7 @@ const config: CapacitorConfig = {
       '@capgo/capacitor-native-biometric',
       '@capgo/native-audio',
       '@mauricewegner/capacitor-navigation-bar',
+      '@sina_kh/mtw-capacitor-status-bar',
       'capacitor-native-settings',
       'capacitor-plugin-safe-area',
       'cordova-plugin-inappbrowser',
