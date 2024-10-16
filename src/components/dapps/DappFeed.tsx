@@ -6,6 +6,7 @@ import { SettingsState } from '../../global/types';
 
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 
 import useHorizontalScroll from '../../hooks/useHorizontalScroll';
 import useLang from '../../hooks/useLang';
@@ -106,7 +107,7 @@ function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin = {} }: S
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { dapps } = global.settings;
+  const { dapps = MEMO_EMPTY_ARRAY } = selectCurrentAccountState(global) || {};
   const { dappLastOpenedDatesByOrigin } = selectCurrentAccountState(global) || {};
   return { dapps, dappLastOpenedDatesByOrigin };
 })(DappFeed));

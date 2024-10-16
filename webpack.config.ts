@@ -44,7 +44,8 @@ const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
   : '';
 const cspFrameSrcExtra = [
-  'https://widget.changelly.com/',
+  'https://buy-sandbox.moonpay.com/',
+  'https://buy.moonpay.com/',
   'https://dreamwalkers.io/',
   'https://avanchange.com/',
   'https://pay.wata.pro/',

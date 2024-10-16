@@ -273,7 +273,7 @@ addActionHandler('getDapps', async (global, actions) => {
   }
 
   global = getGlobal();
-  global = updateConnectedDapps(global, { dapps: result });
+  global = updateConnectedDapps(global, result);
   setGlobal(global);
 });
 

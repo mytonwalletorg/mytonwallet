@@ -1,12 +1,16 @@
 import nacl from 'tweetnacl';
 
+import type { Theme } from '../../global/types';
 import type { AccountCache } from '../common/cache';
 import type { ApiChain, ApiNetwork } from '../types';
 
+import { logDebugError } from '../../util/logs';
 import { setIsAppFocused } from '../../util/pauseOrFocus';
 import chains from '../chains';
 import { fetchStoredAccounts, fetchStoredTonWallet, updateStoredAccount } from '../common/accounts';
+import { callBackendGet } from '../common/backend';
 import { updateAccountCache } from '../common/cache';
+import { handleServerError } from '../errors';
 import { storage } from '../storages';
 
 const SIGN_MESSAGE = Buffer.from('MyTonWallet_AuthToken_n6i0k4w8pb');
@@ -65,3 +69,16 @@ export function updateAccountMemoryCache(accountId: string, address: string, par
 }
 
 export { setIsAppFocused };
+
+export async function getMoonpayOnrampUrl(address: string, theme: Theme) {
+  try {
+    return await callBackendGet<{ url: string }>('/onramp-url', {
+      address,
+      theme,
+    });
+  } catch (err) {
+    logDebugError('getMoonpayOnrampUrl', err);
+
+    return handleServerError(err);
+  }
+}

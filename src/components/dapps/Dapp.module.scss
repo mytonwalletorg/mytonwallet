@@ -801,6 +801,18 @@
   &:first-child {
     margin-left: 0.75rem;
   }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      .feedItemLogoImg {
+        transform: scale(1.1);
+      }
+      .feedItemAppNameMini, .feedItemAppNameTile {
+        color: var(--color-blue);
+      }
+    }
+  }
 }
 
 .feedItemAppNameMini {
@@ -838,6 +850,24 @@
   height: 3rem;
 
   border-radius: 0.75rem;
+}
+
+.feedItemLogoMini, .feedItemLogoTile {
+  overflow: hidden;
+}
+
+.feedItemLogoImg {
+  transform-origin: center;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition: transform 300ms;
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .feedSettingsIconContainer {

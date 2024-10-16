@@ -427,6 +427,11 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 27;
   }
 
+  if (cached.stateVersion === 27) {
+    delete (cached.settings as any).dapps;
+    cached.stateVersion = 28;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 
@@ -471,6 +476,7 @@ function reduceByAccountId(global: GlobalState) {
       'blacklistedNftAddresses',
       'whitelistedNftAddresses',
       'dappLastOpenedDatesByOrigin',
+      'dapps',
     ]);
 
     const accountTokens = selectAccountTokens(global, accountId);

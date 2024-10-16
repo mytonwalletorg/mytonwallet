@@ -58,7 +58,8 @@ export type ContractName = ApiTonWalletVersion
 | 'v4R1' | 'highloadV2' | 'multisig' | 'multisigV2' | 'multisigNew'
 | 'nominatorPool' | 'vesting'
 | 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton'
-| 'stonPtonWallet' | 'stonRouter' | 'stonRouterV2' | 'stonPoolV2' | 'stonPtonWalletV2'
+| 'stonPtonWallet' | 'stonRouter' | 'stonRouterV2_1' | 'stonPoolV2_1'
+| 'stonRouterV2_2' | 'stonPoolV2_2' | 'stonPtonWalletV2'
 | 'megatonWtonMaster' | 'megatonRouter';
 
 export type ContractInfo = {

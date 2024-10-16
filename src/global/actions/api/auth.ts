@@ -31,7 +31,6 @@ import {
   setIsPinAccepted,
   updateAuth,
   updateBiometrics,
-  updateConnectedDapps,
   updateCurrentAccountId,
   updateCurrentAccountState,
   updateHardware,
@@ -596,7 +595,6 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   global = updateCurrentAccountId(global, accountId);
   global = clearCurrentTransfer(global);
   global = clearCurrentSwap(global);
-  global = updateConnectedDapps(global, {});
   setGlobal(global);
 
   actions.clearSwapPairsCache();

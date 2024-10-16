@@ -5,18 +5,6 @@
 .modalDialog {
   overflow: hidden;
 
-  height: 28rem;
-
-  @supports (height: var(--safe-area-bottom)) {
-    height: calc(28rem + var(--safe-area-bottom));
-  }
-
-  :global(.is-native-bottom-sheet) & {
-    height: calc(28rem + var(--safe-area-bottom, 0rem)) !important;
-  }
-}
-
-.modalDialogExtraHeight {
   height: 38.5rem;
 
   @supports (height: var(--safe-area-bottom)) {
@@ -38,6 +26,10 @@
 
   width: 100%;
   height: 100%;
+}
+
+.iframe {
+  border: none !important;
 }
 
 .loaderContainer {

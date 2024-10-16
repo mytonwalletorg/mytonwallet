@@ -19,7 +19,6 @@ import {
   TONCOIN,
   TRX,
 } from '../../config';
-import { Big } from '../../lib/big.js';
 import { selectCurrentAccount, selectIsMultichainAccount, selectSwapTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
@@ -27,6 +26,7 @@ import { findChainConfig, getChainConfig } from '../../util/chain';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
+import { getIsNativeToken } from '../../util/tokens';
 import { ONE_TRX } from '../../api/chains/tron/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -146,26 +146,40 @@ function SwapInitial({
   const isTonIn = tokenIn?.chain === 'ton';
   const visibleNetworkFee = isTonIn ? realNetworkFee : networkFee;
 
-  const totalNativeAmount = useMemo(
-    () => {
-      if (!tokenIn || !amountIn || !chainConfigIn || !nativeUserTokenIn) {
-        return 0n;
-      }
+  const amountInBigint = amountIn && tokenIn ? fromDecimal(amountIn, tokenIn.decimals) : 0n;
+  const amountOutBigint = amountOut && tokenOut ? fromDecimal(amountOut, tokenOut.decimals) : 0n;
+  const balanceIn = useMemo(() => {
+    let value = tokenIn?.amount ?? 0n;
+    if (tokenIn?.slug === TRX.slug && isMultichainAccount) {
+      // We always need to leave 1 TRX on balance
+      value = value > ONE_TRX ? value - ONE_TRX : 0n;
+    }
+    return value;
+  }, [tokenIn, isMultichainAccount]);
+  const networkFeeBigint = useMemo(() => {
+    let value = 0n;
 
-      return fromDecimal(networkFee, nativeUserTokenIn.decimals)
-        + chainConfigIn.amountForNextSwap
-        + (isNativeIn ? fromDecimal(amountIn, nativeUserTokenIn.decimals) : 0n);
-    },
-    [tokenIn, amountIn, networkFee, chainConfigIn, isNativeIn, nativeUserTokenIn],
-  );
+    if (!chainConfigIn) {
+      return value;
+    }
 
-  const amountInBig = useMemo(() => Big(amountIn || 0), [amountIn]);
-  const amountOutBig = useMemo(() => Big(amountOut || 0), [amountOut]);
-  const tokenInAmountBig = useMemo(() => toDecimal(tokenIn?.amount ?? 0n, tokenIn?.decimals), [tokenIn]);
-  const amountOutValue = amountInBig.lte(0) && inputSource === SwapInputSource.In ? '' : amountOut?.toString();
+    if (networkFee > 0) {
+      value = fromDecimal(networkFee, nativeUserTokenIn?.decimals);
+    } else if (swapType === SwapType.OnChain) {
+      value = chainConfigIn?.gas.maxSwap ?? 0n;
+    } else if (swapType === SwapType.CrosschainFromWallet) {
+      value = getIsNativeToken(tokenInSlug) ? chainConfigIn.gas.maxTransfer : chainConfigIn.gas.maxTransferToken;
+    }
+
+    return value;
+  }, [networkFee, nativeUserTokenIn, chainConfigIn, swapType, tokenInSlug]);
+  const totalNativeAmount = networkFeeBigint + (isNativeIn ? amountInBigint : 0n);
+  const isEnoughNative = nativeUserTokenIn && nativeUserTokenIn.amount >= totalNativeAmount;
+  const amountOutValue = amountInBigint <= 0n && inputSource === SwapInputSource.In
+    ? ''
+    : amountOut?.toString();
 
   const isErrorExist = errorType !== undefined;
-  const isEnoughNative = nativeUserTokenIn && nativeUserTokenIn.amount > totalNativeAmount;
 
   const isDieselSwap = swapType === SwapType.OnChain
     && !isEnoughNative
@@ -174,9 +188,9 @@ function SwapInitial({
 
   const isCorrectAmountIn = Boolean(
     amountIn
-    && tokenIn?.amount
-    && amountInBig.gt(0)
-    && amountInBig.lte(tokenInAmountBig),
+    && tokenIn
+    && amountInBigint > 0
+    && amountInBigint <= balanceIn,
   ) || (tokenIn && !nativeTokenInSlug);
 
   const isEnoughFee = swapType !== SwapType.CrosschainToWallet
@@ -184,7 +198,7 @@ function SwapInitial({
     || (swapType === SwapType.OnChain && dieselStatus && ['available', 'not-authorized'].includes(dieselStatus))
     : true;
 
-  const isCorrectAmountOut = amountOut && amountOutBig.gt(0);
+  const isCorrectAmountOut = amountOut && amountOutBigint > 0;
   const canSubmit = Boolean(isCorrectAmountIn && isCorrectAmountOut && isEnoughFee && !isEstimating && !isErrorExist);
 
   const isPriceImpactError = priceImpact >= MAX_PRICE_IMPACT_VALUE;
@@ -279,16 +293,12 @@ function SwapInitial({
   }, [tokenIn, tokenOut, isMultichainAccount]);
 
   const validateAmountIn = useLastCallback((amount: string | undefined) => {
-    if (swapType === SwapType.CrosschainToWallet && (!addressByChain?.tron || tokenIn?.chain !== 'tron')) {
+    if (swapType === SwapType.CrosschainToWallet || !amount || !tokenIn) {
       setHasAmountInError(false);
       return;
     }
 
-    const amountBig = amount === undefined || amount === '' ? undefined : Big(amount);
-    const hasError = amountBig !== undefined && (
-      amountBig.lt(0) || (tokenIn?.amount !== undefined && amountBig.gt(tokenInAmountBig))
-    );
-
+    const hasError = fromDecimal(amount, tokenIn.decimals) > balanceIn;
     setHasAmountInError(hasError);
   });
 
@@ -322,21 +332,23 @@ function SwapInitial({
     (e: React.MouseEvent<HTMLElement>) => {
       e.preventDefault();
 
-      if (!tokenIn?.amount) {
-        return;
-      }
-
       vibrate();
 
-      const balance = isMultichainAccount && tokenIn.slug === TRX.slug
-        ? tokenIn.amount - ONE_TRX
-        : tokenIn.amount;
-      const amountForNextSwap = isNativeIn && chainConfigIn ? chainConfigIn.amountForNextSwap : 0n;
-      const amountWithFee = amountForNextSwap > 0n && balance > amountForNextSwap
-        ? balance - amountForNextSwap
-        : balance;
-      const amount = toDecimal(amountWithFee, tokenIn.decimals);
+      let maxAmount = balanceIn;
 
+      if (isNativeIn) {
+        maxAmount -= networkFeeBigint;
+
+        if (swapType === SwapType.OnChain) {
+          const amountForNextSwap = chainConfigIn?.gas.maxSwap ?? 0n;
+          const shouldIgnoreNextSwap = amountInBigint > 0n && (maxAmount - amountInBigint) <= amountForNextSwap;
+          if (!shouldIgnoreNextSwap && maxAmount > amountForNextSwap) {
+            maxAmount -= amountForNextSwap;
+          }
+        }
+      }
+
+      const amount = toDecimal(maxAmount, tokenIn!.decimals);
       validateAmountIn(amount);
       setSwapAmountIn({ amount });
     },

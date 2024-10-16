@@ -57,7 +57,7 @@
         }
       }
     ],
-    "react/jsx-key": [2, { "checkFragmentShorthand": false }],
+    "react/jsx-key": [2, { "checkFragmentShorthand": true}],
     "arrow-body-style": "off",
     "no-else-return": "off",
     "no-plusplus": "off",
@@ -95,15 +95,15 @@
     "import/named": "off",
     "import/no-webpack-loader-syntax": "off",
     "import/extensions": "off",
-    "react/prop-types": "off",
-    "react/jsx-one-expression-per-line": "off",
     "react/button-has-type": "off",
-    "react/require-default-props": "off",
+    "react/jsx-one-expression-per-line": "off",
     "react/function-component-definition": "off",
+    "react/no-is-mounted": "off",
+    "react/prop-types": "off",
+    "react/require-default-props": "off",
     // Teact feature
     "react/style-prop-object": "off",
     "react/no-unknown-property": "off",
-    "react/no-is-mounted": "off",
     "react/jsx-no-bind": [
       "error",
       {

@@ -4,7 +4,7 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonWalletVersion } from '../../api/chains/ton/types';
-import type { ApiWalletInfo } from '../../api/types';
+import type { ApiDapp, ApiWalletInfo } from '../../api/types';
 import type { Wallet } from './SettingsWalletVersion';
 import { type GlobalState, SettingsState, type UserToken } from '../../global/types';
 
@@ -20,11 +20,12 @@ import {
   TELEGRAM_WEB_URL,
   TONCOIN,
 } from '../../config';
-import { selectCurrentAccountTokens, selectIsHardwareAccount } from '../../global/selectors';
+import { selectCurrentAccountState, selectCurrentAccountTokens, selectIsHardwareAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 import { openUrl } from '../../util/openUrl';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
@@ -96,6 +97,7 @@ type OwnProps = {
 
 type StateProps = {
   settings: GlobalState['settings'];
+  dapps: ApiDapp[];
   isOpen?: boolean;
   tokens?: UserToken[];
   isHardwareAccount?: boolean;
@@ -119,9 +121,9 @@ function Settings({
     isTonProxyEnabled,
     isTonMagicEnabled,
     isDeeplinkHookEnabled,
-    dapps,
     baseCurrency,
   },
+  dapps,
   isOpen = false,
   tokens,
   isInsideModal,
@@ -718,9 +720,11 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
 
   const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
   const versions = versionsById?.[global.currentAccountId!];
+  const { dapps = MEMO_EMPTY_ARRAY } = selectCurrentAccountState(global) || {};
 
   return {
     settings: global.settings,
+    dapps,
     isOpen: global.areSettingsOpen,
     tokens: selectCurrentAccountTokens(global),
     isHardwareAccount,

@@ -31,6 +31,7 @@ import {
 } from '../../../config';
 import { Big } from '../../../lib/big.js';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { getChainConfig } from '../../../util/chain';
 import {
   fromDecimal, getIsPositiveDecimal, roundDecimal, toDecimal,
 } from '../../../util/decimals';
@@ -260,7 +261,6 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   global = getGlobal();
 
   if (!buildResult || 'error' in buildResult) {
-    actions.showError({ error: buildResult?.error });
     if (IS_CAPACITOR) {
       global = clearIsPinAccepted(global);
       void vibrateOnError();
@@ -269,6 +269,9 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
       isLoading: false,
     });
     setGlobal(global);
+
+    actions.showError({ error: buildResult?.error });
+
     return;
   }
 
@@ -385,7 +388,9 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
       void vibrateOnError();
     }
     setGlobal(global);
+
     actions.showError({ error: ApiCommonError.Unexpected });
+
     return;
   }
 
@@ -658,6 +663,10 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
     ? SwapErrorType.NotEnoughForFee
     : undefined;
 
+  // `networkFee` here does not directly include transfer fee
+  const maxTransferFee = Number(toDecimal(getChainConfig('ton').gas.maxTransfer));
+  const networkFee = estimate.networkFee + maxTransferFee;
+
   global = updateCurrentSwap(global, {
     ...(
       global.currentSwap.inputSource === SwapInputSource.In
@@ -672,7 +681,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
     isEstimating: false,
     errorType,
     dieselStatus: estimate.dieselStatus,
-    networkFee: estimate.networkFee,
+    networkFee,
     realNetworkFee: estimate.realNetworkFee,
   });
   setGlobal(global);

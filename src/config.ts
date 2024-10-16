@@ -221,14 +221,22 @@ export const CHAIN_CONFIG = {
     isDnsSupported: true,
     addressRegex: /^([-\w_]{48}|0:[\da-h]{64})$/i,
     nativeToken: TONCOIN,
-    amountForNextSwap: 500_000_000n, // 0.5 TON
+    gas: {
+      maxSwap: 400_000_000n, // 0.4 TON
+      maxTransfer: 10_000_000n, // 0.01 TON
+      maxTransferToken: 60_000_000n, // 0.06 TON
+    },
   },
   tron: {
     isMemoSupported: false,
     isDnsSupported: false,
     addressRegex: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
     nativeToken: TRX,
-    amountForNextSwap: 0n,
+    gas: {
+      maxSwap: undefined,
+      maxTransfer: 1_000_000n, // 1 TRX
+      maxTransferToken: 35_000_000n, // 35 TRX
+    },
     mainnet: {
       apiUrl: 'https://api.trongrid.io',
       usdtAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',

@@ -366,6 +366,8 @@ export interface AccountState {
 
   isDieselAuthorizationStarted?: boolean;
   isLongUnstakeRequested?: boolean;
+
+  dapps?: ApiDapp[];
 }
 
 export interface AccountSettings {
@@ -572,7 +574,6 @@ export type GlobalState = {
     theme: Theme;
     animationLevel: AnimationLevel;
     langCode: LangCode;
-    dapps: ApiDapp[];
     byAccountId: Record<string, AccountSettings>;
     areTinyTransfersHidden?: boolean;
     canPlaySounds?: boolean;

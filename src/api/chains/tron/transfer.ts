@@ -18,9 +18,11 @@ import { getWalletBalance } from './wallet';
 import type { ApiSubmitTransferTronResult } from './types';
 import { hexToString } from '../../../util/stringFormat';
 import { ONE_TRX } from './constants';
+import { getChainConfig } from '../../../util/chain';
 
 const SIGNATURE_SIZE = 65;
-const FEE_LIMIT_TRX = 35_000_000n; // 35 TRX
+
+const chainConfig = getChainConfig('tron');
 
 export async function checkTransactionDraft(
   options: CheckTransactionDraftOptions,
@@ -50,7 +52,12 @@ export async function checkTransactionDraft(
 
     if (tokenAddress) {
       const buildResult = await buildTrc20Transaction(tronWeb, {
-        toAddress, tokenAddress, amount, energyUnitFee, feeLimitTrx: FEE_LIMIT_TRX, fromAddress: address,
+        toAddress,
+        tokenAddress,
+        amount,
+        energyUnitFee,
+        feeLimitTrx: chainConfig.gas.maxTransferToken,
+        fromAddress: address,
       });
 
       transaction = buildResult.transaction;
@@ -109,7 +116,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     const privateKey = tronWeb.fromMnemonic(mnemonic!.join(' ')).privateKey.slice(2);
 
     if (tokenAddress) {
-      const feeLimitTrx = FEE_LIMIT_TRX;
+      const feeLimitTrx = chainConfig.gas.maxTransferToken;
       const { energyUnitFee } = await getChainParameters(network);
 
       const { transaction, energyFee } = await buildTrc20Transaction(tronWeb, {

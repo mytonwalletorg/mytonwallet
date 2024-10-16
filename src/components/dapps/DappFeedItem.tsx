@@ -48,7 +48,12 @@ function DappFeedItem({
 
     return (
       <div className={iconClassName}>
-        <Image url={iconUrl} className={iconClassName} imageClassName={iconClassName} alt={lang('Icon')} />
+        <Image
+          url={iconUrl}
+          className={iconClassName}
+          imageClassName={styles.feedItemLogoImg}
+          alt={lang('Icon')}
+        />
       </div>
     );
   }

@@ -157,7 +157,8 @@ export function useDappBridge({
 
       send: async <T extends RpcMethod>(request: AppRequest<T>) => {
         setRequestId(requestId + 1);
-        const isConnected = getGlobal().settings.dapps?.some((dapp) => dapp.origin === origin);
+        const global = getGlobal();
+        const isConnected = global.byAccountId[global.currentAccountId!].dapps?.some((dapp) => dapp.origin === origin);
 
         if (!isConnected) {
           return {

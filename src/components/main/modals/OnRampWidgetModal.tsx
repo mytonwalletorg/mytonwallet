@@ -4,10 +4,13 @@ import React, {
 import { getActions, withGlobal } from '../../../global';
 
 import type { ApiCountryCode } from '../../../api/types';
+import type { Theme } from '../../../global/types';
 
 import { selectAccount } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
+import { callApi } from '../../../api';
 
+import useAppTheme from '../../../hooks/useAppTheme';
 import useLang from '../../../hooks/useLang';
 
 import Loading from '../../ui/Loading';
@@ -19,32 +22,54 @@ interface StateProps {
   isOpen?: boolean;
   address?: string;
   countryCode?: ApiCountryCode;
+  theme: Theme;
 }
 
-const INITIAL_AMOUNT_USD = 50;
 const ANIMATION_TIMEOUT = 200;
 
-function OnRampWidgetModal({ isOpen, address, countryCode }: StateProps) {
+function OnRampWidgetModal({
+  isOpen, address, countryCode, theme,
+}: StateProps) {
   const {
     closeOnRampWidgetModal,
+    showError,
   } = getActions();
 
   const lang = useLang();
   const animationTimeoutRef = useRef<number>();
   const [isAnimationInProgress, setIsAnimationInProgress] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const withExtraHeight = countryCode === 'RU';
-
-  const iframeUrl = getIframeUrl(countryCode).replace('{address}', address ?? '');
+  const [iframeSrc, setIframeSrc] = useState('');
+  const appTheme = useAppTheme(theme);
 
   useEffect(() => {
     if (!isOpen) {
       setIsAnimationInProgress(true);
       setIsLoading(true);
+      setIframeSrc('');
     }
 
     return () => window.clearTimeout(animationTimeoutRef.current);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (countryCode === 'RU') {
+      setIframeSrc(`https://dreamwalkers.io/ru/mytonwallet/?wallet=${address}&give=CARDRUB&take=TON&type=buy`);
+      return;
+    }
+
+    (async () => {
+      const response = await callApi('getMoonpayOnrampUrl', address!, appTheme);
+
+      if (response && 'error' in response) {
+        showError({ error: response.error });
+      } else {
+        setIframeSrc(response?.url || '');
+      }
+    })();
+  }, [address, appTheme, countryCode, isOpen]);
 
   const onIframeLoaded = () => {
     setIsLoading(false);
@@ -54,13 +79,32 @@ function OnRampWidgetModal({ isOpen, address, countryCode }: StateProps) {
     }, ANIMATION_TIMEOUT);
   };
 
+  function renderContent() {
+    if (!iframeSrc) return undefined;
+
+    return (
+      <iframe
+        title="On Ramp Widget"
+        onLoad={onIframeLoaded}
+        className={buildClassName(styles.iframe, !isLoading && styles.fadeIn)}
+        width="100%"
+        height="100%"
+        frameBorder="none"
+        allow="autoplay; camera; microphone; payment"
+        src={iframeSrc}
+      >
+        {lang('Cannot load widget')}
+      </iframe>
+    );
+  }
+
   return (
     <Modal
       hasCloseButton
       isOpen={isOpen}
       title={lang('Buy with Card')}
-      dialogClassName={buildClassName(styles.modalDialog, withExtraHeight && styles.modalDialogExtraHeight)}
-      forceFullNative={withExtraHeight}
+      dialogClassName={styles.modalDialog}
+      forceFullNative
       nativeBottomSheetKey="onramp-widget"
       onClose={closeOnRampWidgetModal}
     >
@@ -73,17 +117,7 @@ function OnRampWidgetModal({ isOpen, address, countryCode }: StateProps) {
         >
           <Loading />
         </div>
-        <iframe
-          title="On Ramp Widget"
-          onLoad={onIframeLoaded}
-          className={!isLoading && styles.fadeIn}
-          width="100%"
-          height="100%"
-          frameBorder="none"
-          src={iframeUrl}
-        >
-          {lang('Cannot load widget')}
-        </iframe>
+        {renderContent()}
       </div>
     </Modal>
   );
@@ -97,12 +131,6 @@ export default memo(withGlobal((global): StateProps => {
     isOpen: global.isOnRampWidgetModalOpen,
     address: addressByChain?.ton,
     countryCode,
+    theme: global.settings.theme,
   };
 })(OnRampWidgetModal));
-
-function getIframeUrl(counryCode?: ApiCountryCode) {
-  return counryCode === 'RU'
-    ? 'https://dreamwalkers.io/ru/mytonwallet/?wallet={address}&give=CARDRUB&take=TON&type=buy'
-    // eslint-disable-next-line max-len
-    : `https://widget.changelly.com?from=usd%2Ceur&to=ton&amount=${INITIAL_AMOUNT_USD}&address={address}&fromDefault=usd&toDefault=ton&merchant_id=DdrqYH0dBHq6kGlj&payment_id=&v=3&color=5f41ff&headerId=1&logo=hide&buyButtonTextId=1`;
-}

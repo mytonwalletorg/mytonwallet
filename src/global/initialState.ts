@@ -18,7 +18,7 @@ import {
 } from '../config';
 import { IS_IOS_APP, USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 27;
+export const STATE_VERSION = 28;
 
 export const INITIAL_STATE: GlobalState = {
   appState: AppState.Auth,
@@ -71,7 +71,6 @@ export const INITIAL_STATE: GlobalState = {
     areTinyTransfersHidden: true,
     canPlaySounds: true,
     langCode: USER_AGENT_LANG_CODE,
-    dapps: [],
     byAccountId: {},
     areTokensWithNoCostHidden: true,
     isSortByValueEnabled: true,
