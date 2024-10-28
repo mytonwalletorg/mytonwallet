@@ -21,7 +21,7 @@ import {
   selectAccountState,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectIsHardwareAccount,
+  selectIsHardwareAccount, selectIsMultichainAccount,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
@@ -43,7 +43,7 @@ import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import useShowTransition from '../../hooks/useShowTransition';
 import useSyncEffect from '../../hooks/useSyncEffect';
 
-import TokenIcon from '../common/TokenIcon';
+import TransactionBanner from '../common/TransactionBanner';
 import TransferResult from '../common/TransferResult';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
@@ -71,6 +71,7 @@ type StateProps = GlobalState['staking'] & {
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   theme: Theme;
+  isMultichainAccount: boolean;
 };
 
 const IS_OPEN_STATES = new Set([
@@ -105,6 +106,7 @@ function UnstakeModal({
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
+  isMultichainAccount,
   theme,
   amount,
 }: StateProps) {
@@ -210,20 +212,17 @@ function UnstakeModal({
     openReceiveModal();
   });
 
-  function renderUnstakingShortInfo() {
+  function renderTransactionBanner() {
     if (!tonToken || !unstakeAmount) return undefined;
 
-    const className = buildClassName(
-      styles.stakingShortInfo,
-      styles.unstake,
-      !IS_CAPACITOR && styles.stakingShortInfoInsidePasswordForm,
-    );
-
     return (
-      <div className={className}>
-        <TokenIcon token={tonToken} size="small" className={styles.tokenIcon} />
-        <span>{formatCurrency(toDecimal(unstakeAmount), tonToken.symbol)}</span>
-      </div>
+      <TransactionBanner
+        tokenIn={tonToken}
+        withChainIcon={isMultichainAccount}
+        color="green"
+        text={formatCurrency(toDecimal(unstakeAmount), tonToken.symbol)}
+        className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+      />
     );
   }
 
@@ -482,7 +481,7 @@ function UnstakeModal({
           onCancel={handleBackClick}
           onUpdate={clearStakingError}
         >
-          {renderUnstakingShortInfo()}
+          {renderTransactionBanner()}
         </PasswordForm>
       </>
     );
@@ -585,6 +584,7 @@ export default memo(withGlobal((global): StateProps => {
   const accountState = selectAccountState(global, global.currentAccountId!);
   const shouldUseNominators = accountState?.staking?.type === 'nominators';
   const isHardwareAccount = selectIsHardwareAccount(global);
+  const isMultichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
 
   const {
     hardwareState,
@@ -606,5 +606,6 @@ export default memo(withGlobal((global): StateProps => {
     isLedgerConnected,
     isTonAppConnected,
     theme: global.settings.theme,
+    isMultichainAccount,
   };
 })(UnstakeModal));

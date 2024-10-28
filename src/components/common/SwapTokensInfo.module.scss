@@ -10,36 +10,46 @@
 }
 
 .infoRow {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-areas: "icon token token amount"
+                       "icon chain currency currency";
+  grid-template-columns: auto auto 1fr auto;
+  column-gap: 0.625rem;
+  align-items: center;
 
   padding: 0.875rem 1rem;
 
   background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
+
+  &.noIcon {
+    grid-template-areas: "token token amount"
+                         "chain currency currency";
+    grid-template-columns: auto 1fr auto;
+  }
+
+  &.noCurrency {
+    grid-template-areas: "icon token amount"
+                         "icon chain amount";
+    grid-template-columns: auto 1fr auto;
+
+    &.noIcon {
+      grid-template-areas: "token amount"
+                           "chain amount";
+      grid-template-columns: 1fr auto;
+    }
+  }
+}
+
+.infoRowIcon {
+  grid-area: icon;
 }
 
 .infoRowToken {
-  display: flex;
-  gap: 0.625rem;
-}
-
-.infoRowText {
-  display: flex;
-  flex-direction: column;
-}
-
-.infoRowTextCenter {
-  justify-content: center;
-}
-
-.infoRowTextRight {
-  align-items: flex-end;
-}
-
-.infoRowTitle {
-  display: flex;
+  display: inline-flex;
+  grid-area: token;
   align-items: center;
+  align-self: end;
 
   font-size: 0.9375rem;
   font-weight: 600;
@@ -62,16 +72,30 @@
   border-radius: 0.25rem;
 }
 
-.infoRowDescription {
+.infoRowChain {
+  grid-area: chain;
+  align-self: start;
+
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-gray-2);
 }
 
 .infoRowAmount {
+  grid-area: amount;
+  align-self: end;
+
+  margin-left: auto;
+
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--color-gray-1);
+  text-align: right;
+  white-space: nowrap;
+
+  .noCurrency & {
+    align-self: center;
+  }
 }
 
 .infoRowAmountGreen {
@@ -83,9 +107,16 @@
 }
 
 .infoRowCurrency {
+  grid-area: currency;
+  align-self: start;
+
+  margin-left: auto;
+
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-gray-3);
+  text-align: right;
+  white-space: nowrap;
 }
 
 .infoRowCurrencyValue {

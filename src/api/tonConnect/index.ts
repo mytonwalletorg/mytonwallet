@@ -15,11 +15,13 @@ import { CHAIN } from '@tonconnect/protocol';
 import nacl from 'tweetnacl';
 
 import type {
+  ApiAccountWithMnemonic,
   ApiAnyDisplayError,
   ApiDappMetadata,
   ApiDappRequest,
   ApiNetwork,
   ApiSignedTransfer,
+  ApiTonWallet,
   OnApiUpdate,
 } from '../types';
 import type {
@@ -42,7 +44,6 @@ import {
 } from '../chains/ton/util/tonCore';
 import {
   fetchStoredAccount,
-  fetchStoredTonWallet,
   getCurrentAccountId,
   getCurrentAccountIdOrFail,
 } from '../common/accounts';
@@ -154,27 +155,36 @@ export async function connect(
     accountId = promiseResult!.accountId!;
     request.accountId = accountId;
     await addDapp(accountId, dapp);
-    const { address } = await fetchStoredTonWallet(accountId);
+    activateDapp(accountId, origin);
 
-    const result = await reconnect(request, id);
+    const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+    const { address } = account.ton;
 
-    if (result.event === 'connect' && proof) {
+    const items: ConnectItemReply[] = [
+      await buildTonAddressReplyItem(accountId, account.ton),
+    ];
+
+    if (proof) {
       const { password, signature } = promiseResult!;
 
       let proofReplyItem: TonProofItemReplySuccess;
       if (password) {
-        proofReplyItem = await signTonProof(accountId, password!, address, proof!);
+        proofReplyItem = await signTonProof(accountId, account, password, address, proof!);
       } else {
         proofReplyItem = buildTonProofReplyItem(proof, signature!);
       }
 
-      result.payload.items.push(proofReplyItem);
+      items.push(proofReplyItem);
     }
 
     onPopupUpdate({ type: 'updateDapps' });
     onPopupUpdate({ type: 'dappConnectComplete' });
 
-    return result;
+    return {
+      event: 'connect',
+      id,
+      payload: { items },
+    };
   } catch (err) {
     logDebugError('tonConnect:connect', err);
 
@@ -200,9 +210,10 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Lo
 
     await updateDapp(accountId, origin, { connectedAt: Date.now() });
 
-    const { address } = await fetchStoredTonWallet(accountId);
+    const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+
     const items: ConnectItemReply[] = [
-      await buildTonAddressReplyItem(accountId, address),
+      await buildTonAddressReplyItem(accountId, account.ton),
     ];
 
     return {
@@ -532,13 +543,11 @@ function formatConnectError(id: number, error: Error): ConnectEventError {
   };
 }
 
-async function buildTonAddressReplyItem(accountId: string, address: string): Promise<ConnectItemReply> {
+async function buildTonAddressReplyItem(accountId: string, wallet: ApiTonWallet): Promise<ConnectItemReply> {
   const { network } = parseAccountId(accountId);
+  const { publicKey, address } = wallet;
 
-  const [stateInit, { publicKey }] = await Promise.all([
-    ton.getWalletStateInit(accountId),
-    fetchStoredTonWallet(accountId),
-  ]);
+  const stateInit = await ton.getWalletStateInit(accountId, wallet);
 
   return {
     name: 'ton_addr',
@@ -553,11 +562,12 @@ async function buildTonAddressReplyItem(accountId: string, address: string): Pro
 
 async function signTonProof(
   accountId: string,
+  account: ApiAccountWithMnemonic,
   password: string,
   walletAddress: string,
   proof: ApiTonConnectProof,
 ): Promise<TonProofItemReplySuccess> {
-  const keyPair = await fetchKeyPair(accountId, password);
+  const keyPair = await fetchKeyPair(accountId, password, account);
   const { timestamp, domain, payload } = proof;
 
   const timestampBuffer = Buffer.allocUnsafe(8);

@@ -540,12 +540,26 @@ function SwapInitial({
         </span>
       );
     } else if (nativeUserTokenIn) {
-      feeBlock = (
-        <span className={styles.feeText}>{lang(isFeeEqualZero ? '$fee_value' : '$fee_value_almost_equal', {
-          fee: formatCurrency(visibleNetworkFee, nativeUserTokenIn.symbol, undefined, true),
-        })}
-        </span>
-      );
+      if (!isEnoughNative && isTonIn && !isFeeEqualZero) {
+        feeBlock = (
+          <span className={styles.feeText}>{lang('$fee_value_less', {
+            fee: formatCurrency(
+              toDecimal(totalNativeAmount, nativeUserTokenIn.decimals),
+              nativeUserTokenIn.symbol,
+              undefined,
+              true,
+            ),
+          })}
+          </span>
+        );
+      } else {
+        feeBlock = (
+          <span className={styles.feeText}>{lang(isFeeEqualZero ? '$fee_value' : '$fee_value_almost_equal', {
+            fee: formatCurrency(visibleNetworkFee, nativeUserTokenIn.symbol, undefined, true),
+          })}
+          </span>
+        );
+      }
     }
 
     const priceBlock = renderPrice();

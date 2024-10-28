@@ -9,14 +9,17 @@ import type {
 import { TransferState } from '../../global/types';
 
 import { BURN_ADDRESS, IS_CAPACITOR, NFT_BATCH_SIZE } from '../../config';
-import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
+import {
+  selectCurrentAccountState,
+  selectCurrentAccountTokens,
+  selectIsMultichainAccount,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { shortenAddress } from '../../util/shortenAddress';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
@@ -25,6 +28,7 @@ import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import usePrevious from '../../hooks/usePrevious';
 import useWindowSize from '../../hooks/useWindowSize';
 
+import TransactionBanner from '../common/TransactionBanner';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import Modal from '../ui/Modal';
@@ -47,6 +51,7 @@ interface StateProps {
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isMediaViewerOpen?: boolean;
+  isMultichainAccount: boolean;
 }
 
 const SCREEN_HEIGHT_FOR_FORCE_FULLSIZE_NBS = 762; // Computed empirically
@@ -64,7 +69,8 @@ function TransferModal({
     nfts,
     sentNftsCount,
     dieselStatus,
-  }, tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, isMediaViewerOpen,
+  },
+  tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, isMediaViewerOpen, isMultichainAccount,
 }: StateProps) {
   const {
     submitTransferConfirm,
@@ -126,34 +132,6 @@ function TransferModal({
     submitTransferHardware();
   });
 
-  function renderTransferShortInfo() {
-    const transferInfoClassName = buildClassName(
-      styles.transferShortInfo,
-      !IS_CAPACITOR && styles.transferShortInfoInsidePasswordForm,
-    );
-    const logoPath = isNftTransfer
-      ? nfts![0]?.thumbnail
-      : selectedToken?.image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
-
-    return (
-      <div className={transferInfoClassName}>
-        {logoPath && <img src={logoPath} alt={symbol} className={styles.tokenIcon} />}
-        <span className={styles.transferShortInfoText}>
-          {lang('%amount% to %address%', {
-            amount: (
-              <span className={styles.bold}>
-                {isNftTransfer
-                  ? (nfts!.length > 1 ? lang('%amount% NFTs', { amount: nfts!.length }) : nfts![0]?.name || 'NFT')
-                  : formatCurrency(toDecimal(amount!, decimals), symbol)}
-              </span>
-            ),
-            address: <span className={styles.bold}>{shortenAddress(toAddress!)}</span>,
-          })}
-        </span>
-      </div>
-    );
-  }
-
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
@@ -186,7 +164,16 @@ function TransferModal({
             onCancel={handleModalCloseWithReset}
             isGaslessWithStars={dieselStatus === 'stars-fee'}
           >
-            {renderTransferShortInfo()}
+            <TransactionBanner
+              tokenIn={selectedToken}
+              imageUrl={nfts?.[0]?.thumbnail}
+              withChainIcon={isMultichainAccount}
+              text={isNftTransfer
+                ? (nfts!.length > 1 ? lang('%amount% NFTs', { amount: nfts!.length }) : nfts![0]?.name || 'NFT')
+                : formatCurrency(toDecimal(amount!, decimals), symbol)}
+              className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+              secondText={shortenAddress(toAddress!)}
+            />
           </TransferPassword>
         );
       case TransferState.ConnectHardware:
@@ -276,5 +263,6 @@ export default memo(withGlobal((global): StateProps => {
     isLedgerConnected,
     isTonAppConnected,
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
+    isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
   };
 })(TransferModal));

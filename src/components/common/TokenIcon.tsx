@@ -1,6 +1,6 @@
 import React, { memo, type TeactNode } from '../../lib/teact/teact';
 
-import type { ApiSwapAsset } from '../../api/types';
+import type { ApiSwapAsset, ApiToken } from '../../api/types';
 import type { UserSwapToken, UserToken } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
@@ -10,7 +10,7 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 import styles from './TokenIcon.module.scss';
 
 interface OwnProps {
-  token: UserToken | UserSwapToken | ApiSwapAsset;
+  token: UserToken | UserSwapToken | ApiSwapAsset | ApiToken;
   withChainIcon?: boolean;
   size?: 'small' | 'middle';
   className?: string;

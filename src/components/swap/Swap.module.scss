@@ -756,43 +756,14 @@ $animation-time: 350ms;
   animation: $animation-time ease-in-out arrow-appear forwards;
 }
 
-.swapShortInfo {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-
-  max-width: calc(100% - 2rem);
-  height: 2rem;
-  padding: 0 0.375rem;
-
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--color-activity-blue);
-
-  background-color: var(--color-activity-blue-background);
-  border-radius: 1rem;
-}
-
-.swapShortInfoInsidePasswordForm {
+.transactionBanner {
   align-self: center;
 
   margin-bottom: 2rem;
 }
 
-.swapShortAmount,
 .changellyDescriptionBold {
   font-weight: 700;
-}
-
-.swapShortValue {
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.swapShortInfoTokenIcon {
-  --color-background-first: var(--color-activity-blue-background);
 }
 
 .qrCode {

@@ -458,6 +458,7 @@ Unsupported QR code format: Неподдерживаемый формат QR-к�
 An error on the server side. Please try again.: Ошибка на стороне сервера. Пожалуйста, попробуйте ещё раз.
 Unrecognized QR Code: Нераспознанный QR-код
 $fee_value_almost_equal: Комиссия ≈ %fee%
+$fee_value_less: Комиссия < %fee%
 Address was saved!: Адрес сохранён!
 US Dollar: Доллар США
 Euro: Евро

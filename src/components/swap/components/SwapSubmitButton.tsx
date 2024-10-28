@@ -106,7 +106,11 @@ function SwapSubmitButton({
   const shouldShowError = !isEstimating && (
     isPriceImpactError
     || isErrorExist
-    || (nativeToken && isNotEnoughNative && (dieselStatus === 'not-available' || dieselStatus === 'pending-previous'))
+    || (nativeToken && isNotEnoughNative && (
+      !dieselStatus
+      || dieselStatus === 'not-available'
+      || dieselStatus === 'pending-previous'
+    ))
   );
 
   const isDestructive = isTouched && shouldShowError;

@@ -443,6 +443,7 @@ Unsupported QR code format: 不支持的QR码格式
 An error on the server side. Please try again.: 服务器端的错误。请再试一次。
 Unrecognized QR Code: 无法识别的二维码
 $fee_value_almost_equal: 手续费 ≈ %fee%
+$fee_value_less: 手续费 < %fee%
 Address was saved!: 地址已保存！
 US Dollar: 美元
 Euro: 欧元

@@ -14,7 +14,9 @@ import renderText from '../../global/helpers/renderText';
 import {
   selectAccount,
   selectCurrentAccountState,
-  selectCurrentAccountTokens, selectIsHardwareAccount,
+  selectCurrentAccountTokens,
+  selectIsHardwareAccount,
+  selectIsMultichainAccount,
   selectMycoin,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -28,6 +30,7 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
+import TransactionBanner from '../common/TransactionBanner';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import Modal from '../ui/Modal';
@@ -50,6 +53,7 @@ interface StateProps {
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isHardwareAccount?: boolean;
+  isMultichainAccount: boolean;
 }
 function VestingPasswordModal({
   isOpen,
@@ -64,6 +68,7 @@ function VestingPasswordModal({
   isLedgerConnected,
   isTonAppConnected,
   isHardwareAccount,
+  isMultichainAccount,
 }: StateProps) {
   const {
     submitClaimingVesting,
@@ -104,19 +109,13 @@ function VestingPasswordModal({
   function renderInfo() {
     return (
       <>
-        <div className={buildClassName(styles.operationInfo, !IS_CAPACITOR && styles.operationInfoWithGap)}>
-          <img src={mycoin!.image} alt="" className={styles.tokenIcon} />
-          <span className={styles.operationInfoText}>
-            {lang('%amount% to %address%', {
-              amount: (
-                <span className={styles.bold}>
-                  {formatCurrency(currentlyReadyToUnfreezeAmount, mycoin!.symbol, mycoin!.decimals)}
-                </span>
-              ),
-              address: <span className={styles.bold}>{shortenAddress(address!)}</span>,
-            })}
-          </span>
-        </div>
+        <TransactionBanner
+          tokenIn={mycoin}
+          withChainIcon={isMultichainAccount}
+          text={formatCurrency(currentlyReadyToUnfreezeAmount, mycoin!.symbol, mycoin!.decimals)}
+          className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+          secondText={shortenAddress(address!)}
+        />
         <div className={buildClassName(styles.operationInfoFee, !IS_CAPACITOR && styles.operationInfoFeeWithGap)}>
           {renderText(lang('$fee_value_bold', { fee: formatCurrency(claimAmount, TONCOIN.symbol) }))}
         </div>
@@ -225,5 +224,6 @@ export default memo(withGlobal((global): StateProps => {
     isLedgerConnected,
     isTonAppConnected,
     isHardwareAccount,
+    isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
   };
 })(VestingPasswordModal));

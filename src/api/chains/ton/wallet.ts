@@ -214,8 +214,8 @@ export function getWalletVersions(
   });
 }
 
-export async function getWalletStateInit(accountId: string) {
-  const wallet = await getTonWallet(accountId);
+export async function getWalletStateInit(accountId: string, storedWallet: ApiTonWallet) {
+  const wallet = await getTonWallet(accountId, storedWallet);
 
   return beginCell()
     .storeWritable(storeStateInit(wallet!.init))

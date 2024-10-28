@@ -169,6 +169,11 @@ addActionHandler('selectToken', (global, actions, { slug } = {}) => {
 });
 
 addActionHandler('showError', (global, actions, { error } = {}) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('showError', { error });
+    return;
+  }
+
   switch (error) {
     case ApiTransactionDraftError.InvalidAmount:
       actions.showDialog({ message: 'Invalid amount' });

@@ -229,6 +229,7 @@ function Transaction({
           className={styles.iconWaiting}
           nonInteractive
           noLoop={false}
+          forceOnHeavyAnimation
           tgsUrl={ANIMATED_STICKERS_PATHS[appTheme][waitingIconName]}
           previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview[waitingIconName]}
         />

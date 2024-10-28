@@ -125,8 +125,6 @@ export async function startSseConnection({
 }
 
 export async function resetupSseConnection() {
-  closeEventSource();
-
   const [lastEventId, dappsState, network] = await Promise.all([
     getSseLastEventId(),
     getDappsState(),
@@ -157,13 +155,7 @@ export async function resetupSseConnection() {
     return;
   }
 
-  if (sseEventSource) {
-    safeExec(() => {
-      sseEventSource!.close();
-    });
-    sseEventSource = undefined;
-  }
-
+  closeEventSource();
   sseEventSource = openEventSource(clientIds, lastEventId);
 
   sseEventSource.onopen = () => {
@@ -253,7 +245,7 @@ async function sendRawMessage(body: string, clientId: string, toId: string, topi
 function closeEventSource() {
   if (!sseEventSource) return;
 
-  sseEventSource.close();
+  safeExec(() => { sseEventSource!.close(); })();
   sseEventSource = undefined;
 }
 

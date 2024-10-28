@@ -246,6 +246,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   }
   global = updateCurrentSwap(global, {
     isLoading: true,
+    shouldResetOnClose: undefined,
     error: undefined,
   });
   setGlobal(global);
@@ -266,6 +267,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
       void vibrateOnError();
     }
     global = updateCurrentSwap(global, {
+      shouldResetOnClose: true,
       isLoading: false,
     });
     setGlobal(global);
@@ -296,6 +298,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     isLoading: false,
     state: SwapState.Complete,
     activityId: buildSwapId(buildResult.id),
+    shouldResetOnClose: true,
   });
   setGlobal(global);
   if (IS_CAPACITOR) {
@@ -312,12 +315,14 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   );
 
   if (!result || 'error' in result) {
+    global = getGlobal();
+    global = updateCurrentSwap(global, { shouldResetOnClose: true });
     if (IS_CAPACITOR) {
-      global = getGlobal();
       global = clearIsPinAccepted(global);
-      setGlobal(global);
-      void vibrateOnError();
     }
+
+    setGlobal(global);
+    void vibrateOnError();
 
     actions.showError({ error: result?.error });
   }
@@ -337,6 +342,7 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
   global = updateCurrentSwap(global, {
     isLoading: true,
     error: undefined,
+    shouldResetOnClose: undefined,
   });
   if (IS_CAPACITOR) {
     global = setIsPinAccepted(global);
@@ -382,6 +388,7 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
   if (!swapItem) {
     global = updateCurrentSwap(global, {
       isLoading: false,
+      shouldResetOnClose: true,
     });
     if (IS_CAPACITOR) {
       global = clearIsPinAccepted(global);
@@ -401,6 +408,7 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
     payinAddress: swapItem.swap.cex!.payinAddress,
     payoutAddress: swapItem.swap.cex!.payoutAddress,
     payinExtraId: swapItem.swap.cex!.payinExtraId,
+    shouldResetOnClose: true,
   });
   setGlobal(global);
   if (IS_CAPACITOR) {
@@ -429,12 +437,14 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
     }
 
     if (!transferResult || 'error' in transferResult) {
+      global = getGlobal();
+      global = updateCurrentSwap(global, { shouldResetOnClose: true });
       if (IS_CAPACITOR) {
-        global = getGlobal();
         global = clearIsPinAccepted(global);
-        void vibrateOnError();
-        setGlobal(global);
       }
+
+      setGlobal(global);
+      void vibrateOnError();
       actions.showError({ error: transferResult?.error });
     }
   }

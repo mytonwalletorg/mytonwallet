@@ -52,11 +52,13 @@
   }
 
   &.small {
-    top: 0.875rem !important;
-    left: 0.875rem !important;
+    top: 0.625rem !important;
+    left: 0.625rem !important;
 
-    width: 0.5625rem !important;
-    height: 0.5625rem !important;
+    width: 0.6875rem !important;
+    height: 0.6875rem !important;
+
+    box-shadow: 0 0 0 0.0625rem var(--color-background-first);
   }
 
   &.middle {

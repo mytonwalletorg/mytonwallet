@@ -1,7 +1,8 @@
 import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { selectCurrentAccount } from '../../global/selectors';
+import { selectCurrentAccount, selectIsMultichainAccount } from '../../global/selectors';
+import buildClassName from '../../util/buildClassName';
 import { IS_IOS_APP } from '../../util/windowEnvironment';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
@@ -19,6 +20,7 @@ type StateProps = {
   isTestnet?: boolean;
   isSwapDisabled: boolean;
   isOnRampDisabled: boolean;
+  isMultichainAccount: boolean;
 };
 
 function ReceiveModal({
@@ -27,6 +29,7 @@ function ReceiveModal({
   isLedger,
   isSwapDisabled,
   isOnRampDisabled,
+  isMultichainAccount,
 }: StateProps) {
   const { closeReceiveModal } = getActions();
 
@@ -50,7 +53,11 @@ function ReceiveModal({
       nativeBottomSheetKey="receive"
       onClose={closeReceiveModal}
     >
-      <ModalHeader title={modalTitle} className={styles.receiveHeader} onClose={closeReceiveModal} />
+      <ModalHeader
+        title={modalTitle}
+        className={buildClassName(styles.receiveHeader, !isMultichainAccount && styles.receiveHeaderNoTabs)}
+        onClose={closeReceiveModal}
+      />
       <Content
         isOpen={isOpen}
         onClose={closeReceiveModal}
@@ -69,5 +76,6 @@ export default memo(withGlobal((global): StateProps => {
     isSwapDisabled,
     isOnRampDisabled,
     isLedger: Boolean(account?.ledger),
+    isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
   };
 })(ReceiveModal));

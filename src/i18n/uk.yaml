@@ -460,6 +460,7 @@ Unsupported QR code format: Непідтримуваний формат QR-ко�
 An error on the server side. Please try again.: Помилка на стороні сервера. Будь ласка, спробуйте ще раз.
 Unrecognized QR Code: Нерозпізнаний QR-код
 $fee_value_almost_equal: Комісія ≈ %fee%
+$fee_value_less: Комісія < %fee%
 Address was saved!: Адреса збережена!
 US Dollar: Долар США
 Euro: Євро

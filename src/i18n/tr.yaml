@@ -453,6 +453,7 @@ Unsupported QR code format: Desteklenmeyen QR kod formatı
 An error on the server side. Please try again.: Sunucu tarafında bir hata oluştu. Lütfen tekrar deneyin.
 Unrecognized QR Code: Tanınmayan QR Kodu
 $fee_value_almost_equal: Ücret ≈ %fee%
+$fee_value_less: Ücret < %fee%
 Address was saved!: Adres kaydedildi!
 US Dollar: ABD doları
 Euro: Euro

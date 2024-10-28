@@ -467,7 +467,7 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
 
-  height: 4rem;
+  min-height: 4rem;
   margin-bottom: 1.25rem;
 
   color: var(--color-card-text);
@@ -722,6 +722,8 @@
 }
 
 .contentWithBackground {
+  height: 100%;
+
   background-color: var(--color-background-second);
 }
 
@@ -815,6 +817,13 @@
   }
 }
 
+.feedItemAppNameMini, .feedItemAppNameTile, .feedSettingsLabel, .feedSettingsIconWrapper_mini {
+  transition: color 150ms;
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
 .feedItemAppNameMini {
   padding: 0 0.375rem;
 
@@ -884,6 +893,15 @@
 
   &:hover {
     cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      .feedSettingsLabel, .feedSettingsIconWrapper_mini {
+        color: var(--color-blue);
+      }
+    }
   }
 }
 

@@ -35,11 +35,13 @@ function compareDapps(a: DappWithLastOpenedDate, b: DappWithLastOpenedDate) {
 
 const MAX_DAPPS_FOR_MINI_MODE = 3;
 
+const HIDDEN_FROM_FEED_DAPP_ORIGINS = new Set(['https://checkin.mytonwallet.org']);
+
 function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin = {} }: StateProps) {
   const { openSettingsWithState } = getActions();
 
   const dapps: DappWithLastOpenedDate[] = useMemo(() => {
-    return dappsFromState.slice().map(
+    return dappsFromState.slice().filter((dapp) => !HIDDEN_FROM_FEED_DAPP_ORIGINS.has(dapp.origin)).map(
       (dapp) => ({ ...dapp, lastOpenedAt: dappLastOpenedDatesByOrigin[dapp.origin] }),
     ).sort(compareDapps);
   }, [dappLastOpenedDatesByOrigin, dappsFromState]);

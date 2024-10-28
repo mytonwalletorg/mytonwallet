@@ -70,6 +70,10 @@
   background-color: var(--color-background-first-disabled) !important;
 }
 
+:global(.is-android) .receiveHeaderNoTabs {
+  --color-background-first-disabled: transparent;
+}
+
 .contentStatic {
   padding-top: 0.75rem !important;
   padding-bottom: 0 !important;

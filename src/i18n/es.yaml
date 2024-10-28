@@ -454,6 +454,7 @@ Unsupported QR code format: Formato de código QR no soportado
 An error on the server side. Please try again.: Un error en el lado del servidor. Inténtalo de nuevo.
 Unrecognized QR Code: Código QR no reconocido
 $fee_value_almost_equal: Comisión ≈ %fee%
+$fee_value_less: Comisión < %fee%
 Address was saved!: ¡Dirección guardada!
 US Dollar: Dólar estadounidense
 Euro: Euro

@@ -12,7 +12,7 @@ import type {
 } from '../../types';
 import type { TokenBalanceParsed } from './tokens';
 
-import { POPULAR_WALLET_VERSIONS, TONCOIN } from '../../../config';
+import { LEDGER_WALLET_VERSIONS, POPULAR_WALLET_VERSIONS, TONCOIN } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { compareActivities } from '../../../util/compareActivities';
@@ -379,15 +379,17 @@ function logAndRescue(err: Error) {
 async function setupWalletVersionsPolling(accountId: string, onUpdate: OnApiUpdate) {
   const account = await fetchStoredAccount(accountId);
 
-  if (account.type !== 'ton') {
+  if (account.type === 'bip39') {
     return;
   }
 
+  const isLedger = account.type === 'ledger';
   const { publicKey, version } = account.ton;
   const publicKeyBytes = hexToBytes(publicKey);
   const { network } = parseAccountId(accountId);
 
-  const versions = POPULAR_WALLET_VERSIONS.filter((value) => value !== version);
+  const versions = (isLedger ? LEDGER_WALLET_VERSIONS : POPULAR_WALLET_VERSIONS)
+    .filter((value) => value !== version);
   let lastResult: ApiWalletInfo[] | undefined;
 
   while (isAlive(onUpdate, accountId)) {

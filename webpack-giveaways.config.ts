@@ -165,6 +165,8 @@ export default function createConfig(
       /* eslint-disable no-null/no-null */
       new EnvironmentPlugin({
         APP_ENV: 'production',
+        GIVEAWAYS_API_URL: null,
+        GIVEAWAY_CAPTCHA_PUBLIC_KEY: null,
       }),
       /* eslint-enable no-null/no-null */
       new NormalModuleReplacementPlugin(

@@ -186,16 +186,16 @@
   top: 1.625rem;
   left: 1.625rem;
 
-  width: 0.625rem !important;
-  height: 0.625rem !important;
+  width: 0.75rem !important;
+  height: 0.75rem !important;
 
   border-radius: 50%;
   /* stylelint-disable-next-line plugin/whole-pixel */
   box-shadow: 0 0 0 0.1rem var(--color-background-first);
 
   &.insideButton {
-    top: 1.75rem;
-    left: 1.75rem;
+    top: 1.6875rem;
+    left: 1.625rem;
   }
 }
 

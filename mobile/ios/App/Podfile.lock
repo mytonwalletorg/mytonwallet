@@ -10,7 +10,7 @@ PODS:
   - CapacitorCordova (6.1.2)
   - CapacitorHaptics (6.0.1):
     - Capacitor
-  - CapacitorMlkitBarcodeScanning (6.1.0):
+  - CapacitorMlkitBarcodeScanning (6.2.0):
     - Capacitor
     - GoogleMLKit/BarcodeScanning (= 5.0.0)
   - CapacitorNativeSettings (6.0.1):
@@ -22,7 +22,7 @@ PODS:
     - SwiftKeychainWrapper
   - CapgoCapacitorNativeBiometric (0.0.1):
     - Capacitor
-  - CapgoNativeAudio (6.4.18):
+  - CapgoNativeAudio (6.4.21):
     - Capacitor
   - CordovaPlugins (6.1.2):
     - CapacitorCordova
@@ -188,12 +188,12 @@ SPEC CHECKSUMS:
   CapacitorClipboard: 756cd7e83e8d5d19b0c74f40b57517c287bd5fe2
   CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
   CapacitorHaptics: fe689ade56ef20ec9b041a753c6da70c5d8ec9a9
-  CapacitorMlkitBarcodeScanning: 63e217d376f8f63b1be84c0d19568f318e87f4d3
+  CapacitorMlkitBarcodeScanning: 178fb57424ec688b6a2fceee506ecc1ea00d1c8d
   CapacitorNativeSettings: 1ce5585ff07b161616cd0a795702637316677af2
   CapacitorPluginSafeArea: e1eca7f70974f0e270d96f70cd0a5f51523164b1
   CapacitorSecureStoragePlugin: ced6025438fbbdbfb9fffec4398e748572fc147b
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
-  CapgoNativeAudio: 2f38f779f63444edf7eabbb3b41aba545da618da
+  CapgoNativeAudio: f3cb18f75acfaec7c429e1ff9dc06e05c6605627
   CordovaPlugins: b26881c27739f4c46bac6baf422f660500cd5561
   FloatingPanel: e00e106bf97b04d0de00bb360dc626459b0735ef
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a

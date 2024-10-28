@@ -89,7 +89,14 @@
   --color-activity-purple-background: #EDEEFC;
   --color-activity-red-background: #FDEAEA;
   --color-activity-blue: #0088CC;
-  --color-activity-blue-background: rgba(0, 136, 204, 0.10);
+  --color-activity-blue-background: #D9EAF5;
+
+  --color-transaction-amount-text: #0088CC;
+  --color-transaction-amount-bg: #D9EAF5;
+  --color-transaction-amount-purple-text: #6673E6;
+  --color-transaction-amount-purple-bg: #E2E7F7;
+  --color-transaction-amount-green-text: #13BC57;
+  --color-transaction-amount-green-bg: #D8F2E6;
 
   --color-transaction-gray-text: #53657B;
   --color-transaction-gray-background: #E2E9F1;
@@ -281,8 +288,13 @@
     --color-activity-purple-text: #6875E9;
     --color-activity-purple-background: #2D3651;
     --color-activity-red-background: #422F39;
-    --color-activity-blue: #469CEC;
-    --color-activity-blue-background: rgba(70, 156, 236, 0.1);
+
+    --color-transaction-amount-text: #469CEC;
+    --color-transaction-amount-bg: #1A2938;
+    --color-transaction-amount-purple-text: #8A95FF;
+    --color-transaction-amount-purple-bg: #2A3147;
+    --color-transaction-amount-green-text: #2BC469;
+    --color-transaction-amount-green-bg: #1F3838;
 
     --color-transaction-gray-text: #AABCCC;
     --color-transaction-gray-background: #2E3947;

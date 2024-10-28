@@ -473,6 +473,7 @@ export type GlobalState = {
     activityId?: string;
     error?: string;
     errorType?: SwapErrorType;
+    shouldResetOnClose?: boolean;
     isLoading?: boolean;
     shouldEstimate?: boolean;
     isEstimating?: boolean;

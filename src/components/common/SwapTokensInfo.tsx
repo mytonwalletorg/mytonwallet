@@ -27,36 +27,33 @@ function SwapTokensInfo({
   function renderTokenInfo(token?: UserSwapToken | ApiSwapAsset, amount = '0', isReceived = false) {
     const amountWithSign = isReceived ? amount : -amount;
     const withLabel = Boolean(token && TOKEN_WITH_LABEL[token.slug]);
+
     return (
-      <div className={styles.infoRow}>
-        <div className={styles.infoRowToken}>
-          {Boolean(token) && (
-            <TokenIcon
-              token={token}
-              withChainIcon
-            />
+      <div className={buildClassName(styles.infoRow, !token && styles.noIcon, isReceived && styles.noCurrency)}>
+        {Boolean(token) && (
+          <TokenIcon
+            token={token}
+            withChainIcon
+            className={styles.infoRowIcon}
+          />
+        )}
+
+        <span className={styles.infoRowToken}>
+          {token?.name}
+          {withLabel && (
+            <span className={buildClassName(styles.label, styles.chainLabel)}>{TOKEN_WITH_LABEL[token!.slug]}</span>
           )}
-          <div className={buildClassName(styles.infoRowText, styles.infoRowTextCenter)}>
-            <span className={styles.infoRowTitle}>
-              {token?.name}
-              {withLabel && (
-                <span className={buildClassName(styles.label, styles.chainLabel)}>{TOKEN_WITH_LABEL[token!.slug]}</span>
-              )}
-            </span>
-            <span className={styles.infoRowDescription}>{getChainNetworkName(token?.chain)}</span>
-          </div>
-        </div>
-        <div className={buildClassName(styles.infoRowText, styles.infoRowTextRight, styles.infoRowTextCenter)}>
-          <span className={buildClassName(
-            styles.infoRowAmount,
-            isReceived && styles.infoRowAmountGreen,
-            isError && styles.infoRowAmountError,
-          )}
-          >
-            {formatCurrencyExtended(amountWithSign, token?.symbol ?? '')}
-          </span>
-          {!isReceived && renderCurrency(amountIn, amountOut, tokenIn, tokenOut)}
-        </div>
+        </span>
+        <span className={buildClassName(
+          styles.infoRowAmount,
+          isReceived && styles.infoRowAmountGreen,
+          isError && styles.infoRowAmountError,
+        )}
+        >
+          {formatCurrencyExtended(amountWithSign, token?.symbol ?? '')}
+        </span>
+        <span className={styles.infoRowChain}>{getChainNetworkName(token?.chain)}</span>
+        {!isReceived && renderCurrency(amountIn, amountOut, tokenIn, tokenOut)}
       </div>
     );
   }

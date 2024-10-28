@@ -204,6 +204,7 @@ function Swap({
           className={styles.iconWaiting}
           nonInteractive
           noLoop={false}
+          forceOnHeavyAnimation
           tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGreen}
           previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGreen}
         />

@@ -22,8 +22,8 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
-import TokenIcon from '../common/TokenIcon';
 import TokenSelector from '../common/TokenSelector';
+import TransactionBanner from '../common/TransactionBanner';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import Transition from '../ui/Transition';
@@ -60,6 +60,7 @@ function SwapModal({
     payinExtraId,
     isSettingsModalOpen,
     networkFee,
+    shouldResetOnClose,
   },
   swapTokens,
   activityById,
@@ -155,7 +156,7 @@ function SwapModal({
   });
 
   const handleModalClose = useLastCallback(() => {
-    cancelSwap({ shouldReset: isPortrait });
+    cancelSwap({ shouldReset: isPortrait || shouldResetOnClose });
     updateNextKey();
   });
 
@@ -174,29 +175,15 @@ function SwapModal({
   function renderSwapShortInfo() {
     if (!tokenIn || !tokenOut || !amountIn || !amountOut) return undefined;
 
-    const swapInfoClassName = buildClassName(
-      styles.swapShortInfo,
-      !IS_CAPACITOR && styles.swapShortInfoInsidePasswordForm,
-    );
-
     return (
-      <div className={swapInfoClassName}>
-        <TokenIcon token={tokenIn} withChainIcon size="small" className={styles.swapShortInfoTokenIcon} />
-
-        <span className={styles.swapShortValue}>
-          {lang('%amount_from% to %amount_to%', {
-            amount_from: (
-              <span className={styles.swapShortAmount}>
-                {formatCurrencyExtended(amountIn, tokenIn.symbol ?? '', true)}
-              </span>),
-            amount_to: (
-              <span className={styles.swapShortAmount}>
-                {formatCurrencyExtended(amountOut, tokenOut.symbol ?? '', true)}
-              </span>),
-          })}
-        </span>
-        <TokenIcon token={tokenOut} withChainIcon size="small" className={styles.swapShortInfoTokenIcon} />
-      </div>
+      <TransactionBanner
+        tokenIn={tokenIn}
+        withChainIcon
+        tokenOut={tokenOut}
+        text={formatCurrencyExtended(amountIn, tokenIn.symbol ?? '', true)}
+        secondText={formatCurrencyExtended(amountOut, tokenOut.symbol ?? '', true)}
+        className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+      />
     );
   }
 

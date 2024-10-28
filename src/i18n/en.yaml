@@ -453,6 +453,7 @@ Unsupported QR code format: Unsupported QR code format
 An error on the server side. Please try again.: An error on the server side. Please try again.
 Unrecognized QR Code: Unrecognized QR Code
 $fee_value_almost_equal: Fee ≈ %fee%
+$fee_value_less: Fee < %fee%
 Address was saved!: Address was saved!
 US Dollar: US Dollar
 Euro: Euro
