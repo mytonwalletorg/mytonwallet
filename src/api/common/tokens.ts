@@ -3,7 +3,7 @@ import type {
 } from '../types';
 
 import { TOKEN_INFO } from '../../config';
-import { apiDb } from '../db';
+import { tokenRepository } from '../db';
 import { getPricesCache } from './cache';
 
 const tokensCache = {
@@ -11,7 +11,7 @@ const tokensCache = {
 } as Record<string, ApiToken>;
 
 export async function loadTokensCache() {
-  const tokens = await apiDb.tokens.toArray();
+  const tokens = await tokenRepository.all();
   return addTokens(tokens);
 }
 
@@ -25,7 +25,7 @@ export async function addTokens(tokens: ApiToken[], onUpdate?: OnApiUpdate, shou
     tokensCache[token.slug] = token;
   }
 
-  await apiDb.tokens.bulkPut(tokens);
+  await tokenRepository.bulkPut(tokens);
 
   if ((shouldForceSend || newTokens.length) && onUpdate) {
     sendUpdateTokens(onUpdate);

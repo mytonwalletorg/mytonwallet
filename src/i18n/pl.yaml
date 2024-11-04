@@ -436,6 +436,7 @@ Enabling biometric confirmation will reset the password.: Włączenie potwierdze
 Biometric Registration: Rejestracja biometryczna
 Step 1 of 2. Registration: Krok 1 z 2. Rejestracja
 Step 2 of 2. Verification: Krok 2 z 2. Weryfikacja
+Download Logs: Pobierz logi
 Biometric setup failed.: Konfiguracja biometryczna nie powiodła się.
 Biometric confirmation failed.: Potwierdzenie biometryczne nie powiodło się.
 Failed to disable biometrics.: Nie udało się wyłączyć biometrii.
@@ -678,3 +679,15 @@ Enter Secret Words: Wprowadź Tajne Słowa
 Turn this off so you can manually download updates and verify signatures.: Wyłącz to, aby móc ręcznie pobierać aktualizacje i weryfikować podpisy.
 InvalidMnemonic: Twoje słowa mnemoniczne są nieprawidłowe
 NFT Menu: Menu NFT
+Wallets will not be locked.: Portfele nie będą zablokowane.
+Wallets will be automatically locked after 30 seconds of inactivity.: Portfele zostaną automatycznie zablokowane po 30 sekundach braku aktywności.
+Wallets will be automatically locked after 3 minutes of inactivity.: Portfele zostaną automatycznie zablokowane po 3 minutach braku aktywności.
+Wallets will be automatically locked after 30 minutes of inactivity.: Portfele zostaną automatycznie zablokowane po 30 minutach braku aktywności.
+Auto-Lock: Automatyczna blokada
+Never: Nigdy
+30 seconds: 30 sekund
+3 minutes: 3 minuty
+30 minutes: 30 minut
+Unlock: Odblokować
+Biometric authentification failed: Autoryzacja biometryczna nie powiodła się
+Reset biometrics in security settings, or use a passcode.: Zresetuj biometrię w ustawieniach zabezpieczeń lub użyj kodu dostępu.

@@ -1,4 +1,5 @@
 import { APP_ENV, DEBUG_ALERT_MSG } from '../config';
+import { logDebugError } from './logs';
 import { throttle } from './schedulers';
 
 const noop = () => {
@@ -23,8 +24,7 @@ function handleErrorEvent(e: ErrorEvent | PromiseRejectionEvent) {
 }
 
 export function handleError(err: Error | string) {
-  // eslint-disable-next-line no-console
-  console.error(err);
+  logDebugError('Unhadled UI Error', err);
 
   const message = typeof err === 'string' ? err : err.message;
   const stack = typeof err === 'object' ? err.stack : undefined;

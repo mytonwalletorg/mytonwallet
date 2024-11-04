@@ -1,6 +1,42 @@
 import { DEBUG, DEBUG_API } from '../config';
 import { omit } from './iteratees';
 
+interface Log {
+  message: string;
+  args: any[];
+  timestamp: number;
+}
+
+const MAX_LOG_LENGTH = 999;
+const logs: Log[] = [];
+
+export function errorReplacer(_: string, value: any) {
+  if (value instanceof Error) {
+    return {
+      name: value.name,
+      message: value.message,
+      stack: value.stack,
+    };
+  }
+  return value;
+}
+
+export function addLog(log: Omit<Log, 'timestamp'>) {
+  if (logs.length > MAX_LOG_LENGTH) {
+    logs.shift();
+  }
+
+  logs.push({
+    ...log,
+    args: log.args.map((arg) => JSON.stringify(arg, errorReplacer)),
+    timestamp: Date.now(),
+  });
+}
+
+export function getLogs() {
+  return logs;
+}
+
 export function logActionHandling(name: string, payload?: any) {
   if (!DEBUG_API) return;
   if (name === 'apiUpdate') {
@@ -13,6 +49,7 @@ export function logActionHandling(name: string, payload?: any) {
 }
 
 export function logDebugError(message: string, ...args: any[]) {
+  addLog({ message, args });
   if (DEBUG) {
     // eslint-disable-next-line no-console
     console.error(`[DEBUG][${message}]`, ...args);
@@ -20,6 +57,7 @@ export function logDebugError(message: string, ...args: any[]) {
 }
 
 export function logDebug(message: any, ...args: any[]) {
+  addLog({ message, args });
   if (DEBUG) {
     // eslint-disable-next-line no-console
     console.log(`[DEBUG] ${message}`, ...args);

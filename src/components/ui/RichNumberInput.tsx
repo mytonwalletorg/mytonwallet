@@ -4,11 +4,12 @@ import React, {
 } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS, TONCOIN, WHOLE_PART_DELIMITER } from '../../config';
-import { forceMeasure, requestMutation } from '../../lib/fasterdom/fasterdom';
+import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
 import useFlag from '../../hooks/useFlag';
+import useFontScale from '../../hooks/useFontScale';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -37,8 +38,6 @@ type OwnProps = {
 };
 
 const MIN_LENGTH_FOR_SHRINK = 5;
-const MIN_SIZE_SCALE = 0.25; // 12px
-const measureEl = document.createElement('div');
 
 function RichNumberInput({
   id,
@@ -66,33 +65,7 @@ function RichNumberInput({
   const lang = useLang();
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
   const [isContentEditable, setContentEditable] = useState(!disabled);
-  const isFontShrinkedRef = useRef(false);
-
-  const updateFontScale = useLastCallback((content: string) => {
-    const input = inputRef.current!;
-
-    forceMeasure(() => {
-      const { clientWidth: width } = input;
-      measureEl.className = buildClassName(input.className, 'measure-hidden');
-      measureEl.style.width = `${width}px`;
-      measureEl.innerHTML = content;
-      document.body.appendChild(measureEl);
-      let delta = 1;
-
-      while (delta > MIN_SIZE_SCALE) {
-        measureEl.style.setProperty('--base-font-size', delta.toString());
-        if (measureEl.scrollWidth <= width) {
-          break;
-        }
-        delta -= 0.05;
-      }
-
-      isFontShrinkedRef.current = delta < 1;
-      document.body.removeChild(measureEl);
-      measureEl.className = '';
-      input.style.setProperty('--base-font-size', delta.toString());
-    });
-  });
+  const { updateFontScale, isFontChangedRef } = useFontScale(inputRef);
 
   const handleLoadingHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
     const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
@@ -120,7 +93,7 @@ function RichNumberInput({
     const content = isLoading ? handleLoadingHtml(input, parts) : handleNumberHtml(input, parts);
     const textContent = parts?.[0] || '';
 
-    if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontShrinkedRef.current) {
+    if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
       updateFontScale(content);
     }
     if (content.length) {

@@ -2,9 +2,10 @@ import nacl from 'tweetnacl';
 
 import type { Theme } from '../../global/types';
 import type { AccountCache } from '../common/cache';
+import type { StorageKey } from '../storages/types';
 import type { ApiChain, ApiNetwork } from '../types';
 
-import { logDebugError } from '../../util/logs';
+import { getLogs, logDebugError } from '../../util/logs';
 import { setIsAppFocused } from '../../util/pauseOrFocus';
 import chains from '../chains';
 import { fetchStoredAccounts, fetchStoredTonWallet, updateStoredAccount } from '../common/accounts';
@@ -46,15 +47,15 @@ export async function getBackendAuthToken(accountId: string, password: string) {
 
 export async function fetchAccountConfigForDebugPurposesOnly() {
   try {
-    const [accounts, stateVersion] = await Promise.all([
+    const [accounts, stateVersion, mnemonicsEncrypted] = await Promise.all([
       fetchStoredAccounts(),
       storage.getItem('stateVersion'),
+      storage.getItem('mnemonicsEncrypted' as StorageKey),
     ]);
 
-    return JSON.stringify({ accounts, stateVersion });
+    return JSON.stringify({ accounts, stateVersion, mnemonicsEncrypted });
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    logDebugError('fetchAccountConfigForDebugPurposesOnly', err);
 
     return undefined;
   }
@@ -68,7 +69,7 @@ export function updateAccountMemoryCache(accountId: string, address: string, par
   updateAccountCache(accountId, address, partial);
 }
 
-export { setIsAppFocused };
+export { setIsAppFocused, getLogs };
 
 export async function getMoonpayOnrampUrl(address: string, theme: Theme) {
   try {

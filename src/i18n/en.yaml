@@ -432,6 +432,7 @@ Enabling biometric confirmation will reset the password.: Enabling biometric con
 Biometric Registration: Biometric Registration
 Step 1 of 2. Registration: Step 1 of 2. Registration
 Step 2 of 2. Verification: Step 2 of 2. Verification
+Download Logs: Download Logs
 Biometric setup failed.: Biometric setup failed.
 Biometric confirmation failed.: Biometric confirmation failed.
 Failed to disable biometrics.: Failed to disable biometrics.
@@ -673,3 +674,15 @@ Enter Secret Words: Enter Secret Words
 Turn this off so you can manually download updates and verify signatures.: Turn this off so you can manually download updates and verify signatures.
 InvalidMnemonic: Your mnemonic words are invalid
 NFT Menu: NFT Menu
+Wallets will not be locked.: Wallets will not be locked.
+Wallets will be automatically locked after 30 seconds of inactivity.: Wallets will be automatically locked after 30 seconds of inactivity.
+Wallets will be automatically locked after 3 minutes of inactivity.: Wallets will be automatically locked after 3 minutes of inactivity.
+Wallets will be automatically locked after 30 minutes of inactivity.: Wallets will be automatically locked after 30 minutes of inactivity.
+Auto-Lock: Auto-Lock
+Never: Never
+30 seconds: 30 seconds
+3 minutes: 3 minutes
+30 minutes: 30 minutes
+Unlock: Unlock
+Biometric authentification failed: Biometric authentification failed
+Reset biometrics in security settings, or use a passcode.: Reset biometrics in security settings, or use a passcode.

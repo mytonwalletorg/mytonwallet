@@ -2,7 +2,7 @@ import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
-import { withGlobal } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
 import type { AuthConfig } from '../../util/authApi/types';
 
@@ -12,10 +12,11 @@ import buildClassName from '../../util/buildClassName';
 import { getIsFaceIdAvailable, getIsTouchIdAvailable } from '../../util/capacitor';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { pause } from '../../util/schedulers';
-import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
+import { IS_ANDROID_APP, IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from './helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -23,6 +24,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import AnimatedIconWithPreview from './AnimatedIconWithPreview';
 import Button from './Button';
 import Input from './Input';
+import Modal from './Modal';
 import PinPad from './PinPad';
 
 import modalStyles from './Modal.module.scss';
@@ -79,12 +81,16 @@ function PasswordForm({
   onCancel,
   onSubmit,
 }: OwnProps & StateProps) {
+  const { openSettings } = getActions();
+
   const lang = useLang();
 
   // eslint-disable-next-line no-null/no-null
   const passwordRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState<string>('');
   const [localError, setLocalError] = useState<string>('');
+  const [wrongAttempts, setWrongAttempts] = useState(0);
+  const [isResetBiometricsWarningOpen, openResetBiometricsWarning, closeResetBiometricsWarning] = useFlag(false);
   const { isSmallHeight, isPortrait } = useDeviceScreen();
   const isSubmitDisabled = !password.length;
 
@@ -92,6 +98,7 @@ function PasswordForm({
     if (isActive) {
       setLocalError('');
       setPassword('');
+      setWrongAttempts(0);
     }
   }, [isActive]);
 
@@ -99,11 +106,16 @@ function PasswordForm({
     try {
       const biometricPassword = await authApi.getPassword(authConfig!);
       if (!biometricPassword) {
+        setWrongAttempts(wrongAttempts + 1);
         setLocalError(
           operationType === 'transfer'
             ? 'Declined. Please try to confirm transaction using biometrics again.'
             : 'Declined. Please try to confirm operation using biometrics again.',
         );
+
+        if (IS_ANDROID_APP && wrongAttempts > 2) {
+          openResetBiometricsWarning();
+        }
       } else {
         onSubmit(biometricPassword);
       }
@@ -128,6 +140,12 @@ function PasswordForm({
   const handleClearError = useLastCallback(() => {
     setLocalError('');
     onUpdate();
+  });
+
+  const handleOpenSettings = useLastCallback(() => {
+    closeResetBiometricsWarning();
+    onCancel?.();
+    openSettings();
   });
 
   const handleInput = useLastCallback((value: string) => {
@@ -313,6 +331,23 @@ function PasswordForm({
           </Button>
         )}
       </div>
+      <Modal
+        isOpen={isResetBiometricsWarningOpen}
+        isCompact
+        title={lang('Biometric authentification failed')}
+        onClose={closeResetBiometricsWarning}
+      >
+        <p className={modalStyles.text}>
+          {lang('Reinstall biometrics in your device\'s system settings, or use a passcode.')}
+        </p>
+
+        <div className={modalStyles.buttons}>
+          <Button className={modalStyles.button} onClick={closeResetBiometricsWarning}>{lang('Close')}</Button>
+          <Button isPrimary className={modalStyles.button} onClick={handleOpenSettings}>
+            {lang('Settings')}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -90,8 +90,7 @@ async function ensureWorkerPing() {
         .then(() => (isResolved ? undefined : Promise.reject(new Error('HEALTH_CHECK_TIMEOUT')))),
     ]);
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    logDebugError('ensureWorkerPing', err);
 
     if (Date.now() - startedAt >= HEALTH_CHECK_MIN_DELAY) {
       worker?.terminate();

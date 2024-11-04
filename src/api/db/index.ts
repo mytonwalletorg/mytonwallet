@@ -1,7 +1,9 @@
 import type { Table } from 'dexie';
 import Dexie from 'dexie';
 
-import type { ApiNft, ApiToken } from './types';
+import type { ApiNft, ApiToken } from '../types';
+
+import { DbRepository } from './repository';
 
 export type ApiDbNft = ApiNft & {
   accountId: string;
@@ -34,3 +36,6 @@ export class ApiDb extends Dexie {
 }
 
 export const apiDb = new ApiDb();
+
+export const nftRepository = new DbRepository(apiDb.nfts);
+export const tokenRepository = new DbRepository(apiDb.tokens);

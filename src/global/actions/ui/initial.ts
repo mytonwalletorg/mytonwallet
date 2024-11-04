@@ -39,6 +39,7 @@ import {
   selectNetworkAccounts,
   selectNetworkAccountsMemoized,
   selectNewestTxTimestamps,
+  selectSwapTokens,
 } from '../../selectors';
 
 const ANIMATION_DELAY_MS = 320;
@@ -154,7 +155,12 @@ addActionHandler('dismissDialog', (global) => {
 
 addActionHandler('selectToken', (global, actions, { slug } = {}) => {
   if (slug) {
-    if (slug === TONCOIN.slug) {
+    const isToncoin = slug === TONCOIN.slug;
+    const tokens = selectSwapTokens(global);
+
+    if (!isToncoin && !tokens?.find((token) => token.slug === slug)) return undefined;
+
+    if (isToncoin) {
       actions.setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
     } else {
       actions.setDefaultSwapParams({ tokenOutSlug: slug });

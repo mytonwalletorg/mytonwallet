@@ -422,6 +422,7 @@ Enabling biometric confirmation will reset the password.: 启用生物识别确�
 Biometric Registration: 生物识别注册
 Step 1 of 2. Registration: 第 1 步（共 2 步）：注册
 Step 2 of 2. Verification: 第 2 步（共 2 步）：验证
+Download Logs: 下载日志
 Biometric setup failed.: 生物识别设置失败。
 Biometric confirmation failed.: 生物识别确认失败。
 Failed to disable biometrics.: 无法禁用生物识别。
@@ -659,3 +660,15 @@ Enter Secret Words: 输入密语
 Turn this off so you can manually download updates and verify signatures.: 关闭此功能以便手动下载更新并验证签名。
 InvalidMnemonic: 您的助记词无效
 NFT Menu: NFT菜单
+Wallets will not be locked.: 钱包不会被锁定。
+Wallets will be automatically locked after 30 seconds of inactivity.: 钱包将在30秒不活动后自动锁定。
+Wallets will be automatically locked after 3 minutes of inactivity.: 钱包将在3分钟不活动后自动锁定。
+Wallets will be automatically locked after 30 minutes of inactivity.: 钱包将在30分钟不活动后自动锁定。
+Auto-Lock: 自动锁定
+Never: 从不
+30 seconds: 30秒
+3 minutes: 3分钟
+30 minutes: 30分钟
+Unlock: 解锁
+Biometric authentification failed: 生物识别认证失败
+Reset biometrics in security settings, or use a passcode.: 在安全设置中重置生物识别，或使用密码。

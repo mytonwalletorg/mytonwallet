@@ -30,7 +30,7 @@ import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
 import { formatCurrency, formatCurrencyExtended, getShortCurrencySymbol } from '../../util/formatNumber';
 import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
-import { throttle } from '../../util/schedulers';
+import { debounce } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
@@ -105,7 +105,7 @@ const TRON_ADDRESS_REGEX = /^T[1-9A-HJ-NP-Za-km-z]{1,33}$/;
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
-const runThrottled = throttle((cb) => cb(), 1500, true);
+const runDebounce = debounce((cb) => cb(), 500, true);
 
 function doesSavedAddressFitSearch(savedAddress: SavedAddress, search: string) {
   const searchQuery = search.toLowerCase();
@@ -239,10 +239,11 @@ function TransferInitial({
     : undefined;
 
   const feeSymbol = isGaslessWithStars ? STARS_SYMBOL : symbol;
+  const isDisabledDebounce = useRef(false);
 
   const maxAmount = useMemo(() => {
     if (withDiesel && dieselAmount && balance) {
-      return isGaslessWithStars || isUpdatingAmountDueToMaxChange.current
+      return isGaslessWithStars
         ? balance
         : balance - dieselAmount;
     }
@@ -346,7 +347,7 @@ function TransferInitial({
   }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount, isDieselAvailable]);
 
   useEffect(() => {
-    if (isMaxAmountSelected && prevDieselAmount !== dieselAmount && maxAmount! > 0) {
+    if (isMaxAmountSelected && dieselAmount && prevDieselAmount !== dieselAmount && maxAmount! > 0) {
       isUpdatingAmountDueToMaxChange.current = true;
 
       setMaxAmountSelected(false);
@@ -369,7 +370,7 @@ function TransferInitial({
       return;
     }
 
-    runThrottled(() => {
+    const runFunction = () => {
       if (isNftTransfer) {
         fetchNftFee({
           toAddress,
@@ -386,7 +387,14 @@ function TransferInitial({
           stateInit,
         });
       }
-    });
+    };
+
+    if (!isDisabledDebounce.current) {
+      runDebounce(runFunction);
+    } else {
+      isDisabledDebounce.current = false;
+      runFunction();
+    }
   }, [
     amount,
     binPayload,
@@ -573,9 +581,14 @@ function TransferInitial({
 
     vibrate();
     if (maxAmount! > 0) {
+      isDisabledDebounce.current = true;
       setMaxAmountSelected(true);
       setTransferAmount({ amount: maxAmount });
     }
+  });
+
+  const handlePaste = useLastCallback(() => {
+    isDisabledDebounce.current = true;
   });
 
   const handleCommentChange = useLastCallback((value) => {
@@ -937,7 +950,11 @@ function TransferInitial({
 
   return (
     <>
-      <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
+      <form
+        className={isStatic ? undefined : modalStyles.transitionContent}
+        onSubmit={handleSubmit}
+        onPaste={handlePaste}
+      >
         {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} />}
         {Boolean(nfts?.length) && nfts!.length > 1 && <NftChips nfts={nfts!} isStatic={isStatic} />}
 

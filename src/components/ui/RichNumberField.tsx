@@ -6,6 +6,7 @@ import React, {
 import { FRACTION_DIGITS } from '../../config';
 import buildClassName from '../../util/buildClassName';
 
+import useFontScale from '../../hooks/useFontScale';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import { buildContentHtml, getInputRegex } from './RichNumberInput';
@@ -27,7 +28,9 @@ type OwnProps = {
   children?: TeactNode;
 };
 
-function RichNumberInput({
+const MIN_LENGTH_FOR_SHRINK = 5;
+
+function RichNumberField({
   id,
   labelText,
   value,
@@ -44,6 +47,7 @@ function RichNumberInput({
   // eslint-disable-next-line no-null/no-null
   const contentRef = useRef<HTMLInputElement | null>(null);
   const prevValueRef = useRef<string>('');
+  const { updateFontScale, isFontChangedRef } = useFontScale(contentRef, true);
 
   const renderValue = useLastCallback((inputValue = '', noFallbackToPrev = false) => {
     const contentEl = contentRef.current!;
@@ -62,12 +66,17 @@ function RichNumberInput({
 
       return;
     }
-
+    const textContent = values?.[0] || '';
     prevValueRef.current = inputValue;
 
-    contentEl.innerHTML = buildContentHtml({
+    const content = buildContentHtml({
       values, suffix, decimals, withRadix: true,
     });
+    contentEl.innerHTML = content;
+
+    if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
+      updateFontScale(content);
+    }
   });
 
   useLayoutEffect(() => {
@@ -120,4 +129,4 @@ function RichNumberInput({
   );
 }
 
-export default memo(RichNumberInput);
+export default memo(RichNumberField);

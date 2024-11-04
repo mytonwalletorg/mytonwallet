@@ -38,6 +38,7 @@ export function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       devTools: !IS_PRODUCTION,
+      backgroundThrottling: false,
     },
     titleBarStyle: 'hidden',
     ...(IS_MAC_OS && {

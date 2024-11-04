@@ -1,6 +1,6 @@
 import type { ApiNft, ApiUpdate, OnApiUpdate } from '../types';
 
-import { apiDb, type ApiDbNft } from '../db';
+import { type ApiDbNft, nftRepository } from '../db';
 
 export async function processNftUpdates(accountId: string, updates: ApiUpdate[], onUpdate: OnApiUpdate) {
   updates.filter((update) => !(update.type === 'nftReceived' && update.nft.isHidden)).forEach(onUpdate);
@@ -8,13 +8,13 @@ export async function processNftUpdates(accountId: string, updates: ApiUpdate[],
   for (const update of updates) {
     if (update.type === 'nftSent') {
       const key = [accountId, update.nftAddress];
-      await apiDb.nfts.delete(key);
+      await nftRepository.delete(key);
     } else if (update.type === 'nftReceived') {
       const dbNft = convertToDbEntity(accountId, update.nft);
-      await apiDb.nfts.put(dbNft);
+      await nftRepository.put(dbNft);
     } else if (update.type === 'nftPutUpForSale') {
       const key = [accountId, update.nftAddress];
-      await apiDb.nfts.update(key, { isOnSale: true });
+      await nftRepository.update(key, { isOnSale: true });
     }
   }
 }
@@ -28,8 +28,8 @@ export async function updateAccountNfts(accountId: string, nfts: ApiNft[], onUpd
 
   const dbNfts = nfts.map((nft) => convertToDbEntity(accountId, nft));
 
-  await apiDb.nfts.where({ accountId }).delete();
-  await apiDb.nfts.bulkPut(dbNfts);
+  await nftRepository.deleteWhere({ accountId });
+  await nftRepository.bulkPut(dbNfts);
 }
 
 function convertToDbEntity(accountId: string, nft: ApiNft): ApiDbNft {

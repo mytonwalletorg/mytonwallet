@@ -34,7 +34,7 @@ import { callBackendGet } from '../../common/backend';
 import { getAccountCache, getStakingCommonCache, updateAccountCache } from '../../common/cache';
 import { getClientId } from '../../common/other';
 import { isKnownStakingPool } from '../../common/utils';
-import { apiDb } from '../../db';
+import { nftRepository } from '../../db';
 import { getEnvironment } from '../../environment';
 import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
 import { checkTransactionDraft, submitTransfer } from './transactions';
@@ -254,12 +254,12 @@ export async function getStakingState(
   let unstakeAmount = 0n;
 
   if (collection) {
-    const nfts = await apiDb.nfts.where({
+    const nfts = await nftRepository.find({
       accountId,
       collectionAddress: collection,
-    }).toArray();
+    });
 
-    for (const nft of nfts) {
+    for (const nft of nfts ?? []) {
       const billAmount = nft.name?.match(/Bill for (?<amount>[\d.]+) Pool Jetton/)?.groups?.amount;
       if (billAmount) {
         unstakeAmount += fromDecimal(billAmount);

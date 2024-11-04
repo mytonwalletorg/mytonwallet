@@ -238,6 +238,10 @@
 .icon {
   font-size: 1rem;
   vertical-align: -0.1875rem;
+
+  &:global(.icon-ledger) {
+    margin-inline-end: 0.25rem;
+  }
 }
 
 .menuItem {
@@ -367,13 +371,13 @@
 }
 
 .tokenName {
-  display: block;
+  display: flex;
 
   margin-top: 0.25rem;
 
   font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1;
+  line-height: 0.9375rem;
   color: var(--color-card-second-text);
 }
 
@@ -427,6 +431,7 @@
 
   font-size: 0.625rem;
   font-weight: 700;
+  line-height: 1;
   color: var(--color-card-apy-text);
 
   background-color: var(--color-card-apy-background);

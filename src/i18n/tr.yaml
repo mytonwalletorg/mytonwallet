@@ -432,6 +432,7 @@ Enabling biometric confirmation will reset the password.: Biyometrik onayın etk
 Biometric Registration: Biyometrik kayıt
 Step 1 of 2. Registration: Adım 1/2. Kayıt
 Step 2 of 2. Verification: Adım 2/2. Doğrulama
+Download Logs: Kayıtları İndir
 Biometric setup failed.: Biyometrik kurulum başarısız oldu.
 Biometric confirmation failed.: Biyometrik onaylama başarısız oldu.
 Failed to disable biometrics.: Biyometrik onay devre dışı bırakılamadı.
@@ -672,3 +673,14 @@ Enter Secret Words: Gizli Kelimeleri Girin
 Turn this off so you can manually download updates and verify signatures.: Bunu kapatın, böylece güncellemeleri manuel olarak indirip imzaları doğrulayabilirsiniz.
 InvalidMnemonic: Mnemonik kelimeleriniz geçersiz
 NFT Menu: NFT Menüsü
+Wallets will not be locked.: Cüzdanlar kilitlenmeyecek.
+Wallets will be automatically locked after 30 seconds of inactivity.: Cüzdanlar 30 saniye hareketsizlikten sonra otomatik olarak kilitlenecek.
+Wallets will be automatically locked after 3 minutes of inactivity.: Cüzdanlar 3 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
+Wallets will be automatically locked after 30 minutes of inactivity.: Cüzdanlar 30 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
+Auto-Lock: Otomatik Kilit
+Never: Asla
+30 seconds: 30 saniye
+3 minutes: 3 dakika
+30 minutes: 30 dakika
+Biometric authentification failed: Biyometrik kimlik doğrulama başarısız oldu
+Reset biometrics in security settings, or use a passcode.: Güvenlik ayarlarında biyometrik kimlik doğrulamayı sıfırlayın veya bir şifre kullanın.

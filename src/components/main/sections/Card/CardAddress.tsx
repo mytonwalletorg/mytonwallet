@@ -24,9 +24,10 @@ import styles from './Card.module.scss';
 interface StateProps {
   addressByChain?: Account['addressByChain'];
   isTestnet?: boolean;
+  isHardwareAccount?: boolean;
 }
 
-function CardAddress({ addressByChain, isTestnet }: StateProps) {
+function CardAddress({ addressByChain, isTestnet, isHardwareAccount }: StateProps) {
   const { showNotification } = getActions();
 
   const lang = useLang();
@@ -143,6 +144,7 @@ function CardAddress({ addressByChain, isTestnet }: StateProps) {
         aria-label={lang('Copy wallet address')}
         onClick={() => handleCopyAddress(addressByChain![chain])}
       >
+        {isHardwareAccount && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
         {shortenAddress(addressByChain![chain])}
         <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
       </button>
@@ -161,10 +163,11 @@ function CardAddress({ addressByChain, isTestnet }: StateProps) {
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { addressByChain } = selectAccount(global, global.currentAccountId!) || {};
+  const { addressByChain, isHardware } = selectAccount(global, global.currentAccountId!) || {};
 
   return {
     addressByChain,
     isTestnet: global.settings.isTestnet,
+    isHardwareAccount: isHardware,
   };
 })(CardAddress));

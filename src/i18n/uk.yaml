@@ -439,6 +439,7 @@ Enabling biometric confirmation will reset the password.: Увімкнення �
 Biometric Registration: Підключення біометрії
 Step 1 of 2. Registration: Крок 1 із 2. Реєстрація
 Step 2 of 2. Verification: Крок 2 з 2. Перевірка
+Download Logs: Завантажити журнали
 Biometric setup failed.: Налаштувати біометрію не вдалося.
 Biometric confirmation failed.: Підтвердити біометрію не вдалося.
 Failed to disable biometrics.: Не вдалося відключити біометрію.
@@ -677,3 +678,15 @@ Enter Secret Words: Введіть секретні слова
 Turn this off so you can manually download updates and verify signatures.: Вимкніть це, щоб ви могли вручну завантажувати оновлення та перевіряти підписи.
 InvalidMnemonic: Ваші мнемонічні слова недійсні
 NFT Menu: Меню NFT
+Wallets will not be locked.: Гаманці не будуть заблоковані.
+Wallets will be automatically locked after 30 seconds of inactivity.: Гаманці будуть автоматично заблоковані через 30 секунд бездіяльності.
+Wallets will be automatically locked after 3 minutes of inactivity.: Гаманці будуть автоматично заблоковані через 3 хвилини бездіяльності.
+Wallets will be automatically locked after 30 minutes of inactivity.: Гаманці будуть автоматично заблоковані через 30 хвилин бездіяльності.
+Auto-Lock: Автоблокування
+Never: Ніколи
+30 seconds: 30 секунд
+3 minutes: 3 хвилини
+30 minutes: 30 хвилин
+Unlock: Розблокувати
+Biometric authentification failed: Біометрична аутентифікація не вдалася
+Reset biometrics in security settings, or use a passcode.: Скиньте біометрію в налаштуваннях безпеки або використовуйте код доступу.

@@ -338,14 +338,6 @@ function SwapInitial({
 
       if (isNativeIn) {
         maxAmount -= networkFeeBigint;
-
-        if (swapType === SwapType.OnChain) {
-          const amountForNextSwap = chainConfigIn?.gas.maxSwap ?? 0n;
-          const shouldIgnoreNextSwap = amountInBigint > 0n && (maxAmount - amountInBigint) <= amountForNextSwap;
-          if (!shouldIgnoreNextSwap && maxAmount > amountForNextSwap) {
-            maxAmount -= amountForNextSwap;
-          }
-        }
       }
 
       const amount = toDecimal(maxAmount, tokenIn!.decimals);
@@ -529,8 +521,7 @@ function SwapInitial({
       && !isLoading
       && swapFee
       && tokenIn
-      && tokenIn.slug !== TONCOIN.slug
-      && tokenOut?.slug === TONCOIN.slug,
+      && tokenIn.slug !== TONCOIN.slug,
     );
 
     if (shouldRenderDieselSwapFee) {
