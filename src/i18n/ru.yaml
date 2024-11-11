@@ -465,6 +465,7 @@ US Dollar: Доллар США
 Euro: Евро
 Ruble: Рубль
 Yuan: Юань
+Baht: Бат
 $max_balance: "Максимум: %balance%"
 $unstake_information_instantly: Вы получите свой депозит мгновенно
 Select Token: Выбрать токен
