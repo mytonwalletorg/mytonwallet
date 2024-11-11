@@ -1,7 +1,7 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { GlobalState } from '../../global/types';
+import type { GlobalState, SavedAddress } from '../../global/types';
 
 import {
   ANIMATED_STICKER_SMALL_SIZE_PX,
@@ -9,14 +9,16 @@ import {
   BURN_CHUNK_DURATION_APPROX_SEC,
   NFT_BATCH_SIZE,
   NOTCOIN_EXCHANGERS,
-  TON_SYMBOL,
+  STARS_SYMBOL,
+  TONCOIN,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrencySimple } from '../../util/formatNumber';
-import { NFT_TRANSFER_AMOUNT } from '../../api/blockchains/ton/constants';
+import { getNativeToken } from '../../util/tokens';
+import { NFT_TRANSFER_AMOUNT } from '../../api/chains/ton/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -37,7 +39,7 @@ import styles from './Transfer.module.scss';
 
 interface OwnProps {
   isActive: boolean;
-  savedAddresses?: Record<string, string>;
+  savedAddresses?: SavedAddress[];
   symbol: string;
   decimals?: number;
   onBack: NoneToVoidFunction;
@@ -52,6 +54,7 @@ function TransferConfirm({
   currentTransfer: {
     amount,
     toAddress,
+    chain,
     resolvedAddress,
     fee,
     comment,
@@ -64,6 +67,7 @@ function TransferConfirm({
     binPayload,
     nfts,
     withDiesel,
+    isGaslessWithStars,
     dieselAmount,
     stateInit,
   },
@@ -78,10 +82,16 @@ function TransferConfirm({
 
   const lang = useLang();
 
-  const addressName = savedAddresses?.[toAddress!] || toAddressName;
+  const savedAddressName = useMemo(() => {
+    return toAddress && chain && savedAddresses?.find((item) => {
+      return item.address === toAddress && item.chain === chain;
+    })?.name;
+  }, [toAddress, chain, savedAddresses]);
+  const addressName = savedAddressName || toAddressName;
   const isNftTransfer = Boolean(nfts?.length);
   const isBurning = resolvedAddress === BURN_ADDRESS;
   const isNotcoinBurning = resolvedAddress === NOTCOIN_EXCHANGERS[0];
+  const nativeToken = chain ? getNativeToken(chain) : undefined;
 
   useHistoryBack({
     isActive,
@@ -109,7 +119,7 @@ function TransferConfirm({
         <div className={styles.label}>{lang('Fee')}</div>
         <div className={styles.inputReadOnly}>
           ≈ {formatCurrencySimple(totalFee, '')}
-          <span className={styles.currencySymbol}>{TON_SYMBOL}</span>
+          <span className={styles.currencySymbol}>{TONCOIN.symbol}</span>
         </div>
       </>
     );
@@ -122,7 +132,7 @@ function TransferConfirm({
         amount={toDecimal(amount ?? 0n, decimals)}
         symbol={symbol}
         fee={dieselAmount ? toDecimal(dieselAmount, decimals) : undefined}
-        feeSymbol={symbol}
+        feeSymbol={isGaslessWithStars ? STARS_SYMBOL : symbol}
       />
     );
   }
@@ -178,6 +188,15 @@ function TransferConfirm({
     ? (Math.ceil(nfts.length / NFT_BATCH_SIZE) * BURN_CHUNK_DURATION_APPROX_SEC) / 60
     : undefined;
 
+  const submitBtnText = lang(
+    (isBurning || isNotcoinBurning)
+      ? 'Burn NFT'
+      : isGaslessWithStars
+        ? 'Pay fee with %stars_symbol%'
+        : 'Confirm',
+    isGaslessWithStars ? { stars_symbol: STARS_SYMBOL } : undefined,
+  );
+
   return (
     <>
       <ModalHeader title={lang('Is it all ok?')} onClose={onClose} />
@@ -204,6 +223,7 @@ function TransferConfirm({
           )}
         </div>
         <InteractiveTextField
+          chain={chain}
           address={resolvedAddress!}
           addressName={addressName}
           isScam={isScam}
@@ -219,7 +239,8 @@ function TransferConfirm({
                   label={lang('Amount')}
                   amount={toDecimal(amount ?? 0n, decimals)}
                   symbol={symbol}
-                  fee={fee ? toDecimal(fee) : undefined}
+                  fee={fee ? toDecimal(fee, nativeToken?.decimals) : undefined}
+                  feeSymbol={nativeToken?.symbol}
                 />
               )
         }
@@ -253,7 +274,7 @@ function TransferConfirm({
             className={modalStyles.button}
             onClick={handleConfirm}
           >
-            {lang((isBurning || isNotcoinBurning) ? 'Burn NFT' : 'Confirm')}
+            {submitBtnText}
           </Button>
         </div>
       </div>

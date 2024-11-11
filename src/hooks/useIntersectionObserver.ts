@@ -6,7 +6,7 @@ import type { Scheduler } from '../util/schedulers';
 import {
   debounce, throttle, throttleWith,
 } from '../util/schedulers';
-import useHeavyAnimationCheck from './useHeavyAnimationCheck';
+import useHeavyAnimation from './useHeavyAnimation';
 import useLastCallback from './useLastCallback';
 
 type TargetCallback = (entry: IntersectionObserverEntry) => void;
@@ -68,7 +68,7 @@ export function useIntersectionObserver({
     }
   });
 
-  useHeavyAnimationCheck(freeze, unfreeze);
+  useHeavyAnimation(freeze, unfreeze);
 
   useEffect(() => {
     if (isDisabled) {

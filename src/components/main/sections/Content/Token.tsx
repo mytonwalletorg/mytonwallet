@@ -1,9 +1,9 @@
 import React, { memo } from '../../../../lib/teact/teact';
 
 import type { ApiBaseCurrency } from '../../../../api/types';
-import type { UserToken } from '../../../../global/types';
+import type { AppTheme, UserToken } from '../../../../global/types';
 
-import { TONCOIN_SLUG } from '../../../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, TOKEN_WITH_LABEL, TONCOIN } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
@@ -11,13 +11,15 @@ import { formatFullDay } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
-import { ASSET_LOGO_PATHS } from '../../../ui/helpers/assetLogos';
+import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
+import TokenIcon from '../../../common/TokenIcon';
 import AnimatedCounter from '../../../ui/AnimatedCounter';
+import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 
 import styles from './Token.module.scss';
@@ -34,6 +36,8 @@ interface OwnProps {
   apyValue?: number;
   isActive?: boolean;
   baseCurrency?: ApiBaseCurrency;
+  appTheme: AppTheme;
+  withChainIcon?: boolean;
   onClick: (slug: string) => void;
 }
 
@@ -50,8 +54,10 @@ function Token({
   isInvestorView,
   classNames,
   style,
+  appTheme,
   isActive,
   baseCurrency,
+  withChainIcon,
   onClick,
 }: OwnProps) {
   const {
@@ -61,7 +67,6 @@ function Token({
     amount: tokenAmount,
     price,
     change24h: change,
-    image,
     decimals,
   } = token;
 
@@ -69,14 +74,14 @@ function Token({
 
   const isVesting = Boolean(vestingStatus?.length);
   const renderedAmount = amount ?? toDecimal(tokenAmount, decimals, true);
-  const logoPath = image || ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
   const value = Big(renderedAmount).mul(price).toString();
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
   const changeValue = Math.abs(round(calcChangeValue(Number(value), change), 4));
   const changePercent = Math.abs(round(change * 100, 2));
-  const withApy = Boolean(apyValue) && slug === TONCOIN_SLUG;
+  const withApy = Boolean(apyValue) && slug === TONCOIN.slug;
   const fullClassName = buildClassName(styles.container, isActive && styles.active, classNames);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
+  const withLabel = Boolean(!isVesting && TOKEN_WITH_LABEL[slug]);
 
   const {
     shouldRender: shouldRenderApy,
@@ -88,8 +93,15 @@ function Token({
   });
 
   function renderApy() {
+    const labelClassName = buildClassName(
+      styles.label,
+      styles.apyLabel,
+      stakingStatus && styles.apyLabel_staked,
+      renderApyClassNames,
+    );
+
     return (
-      <span className={buildClassName(styles.apy, stakingStatus && styles.apy_staked, renderApyClassNames)}>
+      <span className={labelClassName}>
         APY {apyValue}%
       </span>
     );
@@ -108,26 +120,50 @@ function Token({
     );
   }
 
+  function renderStakingIcon() {
+    if (stakingStatus === 'active') {
+      return (
+        <i
+          className={buildClassName('icon-percent', styles.percent)}
+          aria-hidden
+        />
+      );
+    }
+
+    return (
+      <AnimatedIconWithPreview
+        play
+        size={ANIMATED_STICKER_TINY_ICON_PX}
+        className={styles.percent}
+        nonInteractive
+        noLoop={false}
+        tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockPurple}
+        previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockPurple}
+      />
+    );
+  }
+
   function renderInvestorView() {
     return (
       <Button className={fullClassName} isSimple style={style} onClick={handleClick}>
-        <img src={logoPath} alt={symbol} className={styles.icon} />
-        {stakingStatus && (
-          <i
-            className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)}
-            aria-hidden
-          />
-        )}
-        {vestingStatus && (
-          <i
-            className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
-            aria-hidden
-          />
-        )}
+        <TokenIcon token={token} withChainIcon={withChainIcon} className={styles.tokenIcon}>
+          <>
+            {stakingStatus && renderStakingIcon()}
+            {vestingStatus && (
+              <i
+                className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
+                aria-hidden
+              />
+            )}
+          </>
+        </TokenIcon>
         <div className={styles.primaryCell}>
-          <div className={buildClassName(styles.name, withApy && styles.name_withApy)}>
+          <div className={styles.name}>
             {name}
             {shouldRenderApy && renderApy()}
+            {withLabel && (
+              <span className={buildClassName(styles.label, styles.chainLabel)}>{TOKEN_WITH_LABEL[slug]}</span>
+            )}
           </div>
           <div className={styles.subtitle}>
             <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
@@ -171,27 +207,28 @@ function Token({
 
   function renderDefaultView() {
     const totalAmount = Big(renderedAmount).mul(price);
-    const canRenderApy = Boolean(apyValue) && slug === TONCOIN_SLUG;
+    const canRenderApy = Boolean(apyValue) && slug === TONCOIN.slug;
 
     return (
       <Button className={fullClassName} style={style} onClick={handleClick} isSimple>
-        <img src={logoPath} alt={symbol} className={styles.icon} />
-        {stakingStatus && (
-          <i
-            className={buildClassName(stakingStatus === 'active' ? 'icon-percent' : 'icon-clock', styles.percent)}
-            aria-hidden
-          />
-        )}
-        {vestingStatus && (
-          <i
-            className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
-            aria-hidden
-          />
-        )}
+        <TokenIcon token={token} withChainIcon={withChainIcon} className={styles.tokenIcon}>
+          <>
+            {stakingStatus && renderStakingIcon()}
+            {vestingStatus && (
+              <i
+                className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
+                aria-hidden
+              />
+            )}
+          </>
+        </TokenIcon>
         <div className={styles.primaryCell}>
-          <div className={buildClassName(styles.name, canRenderApy && styles.name_withApy)}>
+          <div className={styles.name}>
             {name}
             {canRenderApy && renderApy()}
+            {withLabel && (
+              <span className={buildClassName(styles.label, styles.chainLabel)}>{TOKEN_WITH_LABEL[slug]}</span>
+            )}
           </div>
           <div className={styles.subtitle}>
             <AnimatedCounter text={formatCurrency(price, shortBaseSymbol, undefined, true)} />

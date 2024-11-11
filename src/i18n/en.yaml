@@ -27,8 +27,9 @@ Your have entered an insecure password, which can be easily guessed by scammers.
 Continue or change password to something more secure?: Continue or change password to something more secure?
 Change: Change
 "%1$d Secret Words": "%1$d Secret Words"
+Secret Words: Secret Words
 $auth_import_mnemonic_description: |
-  You can restore access to your wallet by entering the %1$d secret words that you wrote down when creating the wallet.
+  You can restore access to your wallet by entering the **12 or 24 secret words** that you wrote down when creating the wallet.
 Let’s make sure your secrets words are recorded correctly.: Let’s make sure your secrets words are recorded correctly.
 $mnemonic_check_words_list: Please enter the words **%1$s** below.
 $mnemonic_check_error: The secret words you have entered do not match the ones in the list. Please try again.
@@ -99,7 +100,7 @@ Warning!: Warning!
 Log Out: Remove Wallet
 $logout_without_backup_warning: You have not backed up this wallet. If you remove it now, you will lose access to your tokens and NFTs.
 $logout_accounts_without_backup_warning: You have not backed up %links%. If you proceed, you will lose access to your tokens and NFTs.
-$logout_warning: This will remove the current wallet from the app. Make sure you have your **%1$d secret words** backed up.
+$logout_warning: This will remove the current wallet from the app. Make sure you have your **secret words** backed up.
 Your address was copied!: Your address was copied!
 Show QR Code: Show QR Code
 Create Deposit Link: Create Deposit Link
@@ -142,7 +143,6 @@ Sender: Sender
 Recipient: Recipient
 Address was copied!: Address was copied!
 Repeat: Repeat
-Receive: Receive
 Switch Account: Switch Account
 Copy wallet address: Copy wallet address
 View address on %ton_explorer_name%: View address on %ton_explorer_name%
@@ -165,6 +165,7 @@ Wallet is not backed up: Wallet is not backed up
 Testnet Version: Testnet Version
 Error reading clipboard: Error reading clipboard
 $fee_value: "Fee: %fee%"
+Pay fee with %stars_symbol%: "Pay fee with %stars_symbol%"
 Loading...: Loading...
 Recipient Address: Recipient Address
 Wallet address or domain: Wallet address or domain
@@ -200,10 +201,7 @@ $tiny_transfers_help: "Hide transfers worth less than $%value%. Keep in mind: sm
 Today: Today
 Yesterday: Yesterday
 Now: Now
-$receive_ton_description: |
-  You can share your address, scan QR code
-  or create a deposit link to receive crypto.
-Your address: Your address
+$receive_ton_description: Scan this QR or share your address to top up your wallet balance.
 Wrong password, please try again.: Wrong password, please try again.
 Appearance: Appearance
 Light: Light
@@ -429,11 +427,12 @@ Biometric Authentication: Biometric Authentication
 If you turn off biometric protection, you will need to create a password.: If you turn off biometric protection, you will need to create a password.
 Enter your current password: Enter your current password
 Turn On Biometrics: Turn On Biometrics
-Please confirm transaction using biometrics.: Please confirm transaction using biometrics.
+Please confirm transaction using biometrics: Please confirm transaction using biometrics
 Enabling biometric confirmation will reset the password.: Enabling biometric confirmation will reset the password.
 Biometric Registration: Biometric Registration
 Step 1 of 2. Registration: Step 1 of 2. Registration
 Step 2 of 2. Verification: Step 2 of 2. Verification
+Download Logs: Download Logs
 Biometric setup failed.: Biometric setup failed.
 Biometric confirmation failed.: Biometric confirmation failed.
 Failed to disable biometrics.: Failed to disable biometrics.
@@ -448,13 +447,14 @@ Use Password: Use Password
 Biometrics Disabled: Biometrics Disabled
 Biometrics Enabled: Biometrics Enabled
 A request is already pending: A request is already pending
-Please confirm operation using biometrics.: Please confirm operation using biometrics.
+Please confirm operation using biometrics: Please confirm operation using biometrics
 Scan QR Code: Scan QR Code
 Permission denied. Please grant camera permission to use the QR code scanner.: Permission denied. Please grant camera permission to use the QR code scanner.
 Unsupported QR code format: Unsupported QR code format
 An error on the server side. Please try again.: An error on the server side. Please try again.
 Unrecognized QR Code: Unrecognized QR Code
 $fee_value_almost_equal: Fee ≈ %fee%
+$fee_value_less: Fee < %fee%
 Address was saved!: Address was saved!
 US Dollar: US Dollar
 Euro: Euro
@@ -501,8 +501,8 @@ Confirm Swap: Confirm Swap
 "%amount% to %address%": "%amount% to %address%"
 "%amount_from% to %amount_to%": "%amount_from% to %amount_to%"
 Failed to enable biometrics.: Failed to enable biometrics.
-Please try to confirm your biometrics again.: Please try to confirm your biometrics again.
-Unknown error.: Unknown error.
+Please try to confirm your biometrics again: Please try to confirm your biometrics again
+Unknown error: Unknown error
 Are you sure you want to disable Face ID?: Are you sure you want to disable Face ID?
 Are you sure you want to disable Touch ID?: Are you sure you want to disable Touch ID?
 Are you sure you want to disable biometrics?: Are you sure you want to disable biometrics?
@@ -512,7 +512,6 @@ No Activity: No Activity
 Add / Buy: Add / Buy
 Buy with Card: Buy with Card
 Buy with Crypto: Buy with Crypto
-Receive with QR or Invoice: Receive with QR or Invoice
 Cannot load widget: Cannot load widget
 Explore: Explore
 No partners yet: No partners yet
@@ -618,6 +617,18 @@ Claim: Claim
 Confirm Unfreezing: Confirm Unfreezing
 Insufficient Balance for Fee: Insufficient Balance for Fee
 $fee_value_bold: "**Fee:** %fee%"
+Security: Security
+To avoid entering the passcode every time, you can use biometrics.: To avoid entering the passcode every time, you can use biometrics.
+Change Passcode: Change Passcode
+Change Password: Change Password
+Confirm Password: Confirm Password
+The passcode will be changed for all your wallets.: The passcode will be changed for all your wallets.
+Password Changed!: Password Changed!
+Passcode Changed!: Passcode Changed!
+New code set successfully: New code set successfully
+Codes don’t match: Codes don’t match
+Enter your new code: Enter your new code
+Re-enter your new code: Re-enter your new code
 MyTonWallet Features: MyTonWallet Features
 Install on Desktop: Install on Desktop
 Install on Mobile: Install on Mobile
@@ -654,4 +665,25 @@ $hardware_blind_sign_not_enabled: |
 Switch to W5: Switch to W5
 Not Scam: Not Scam
 Untitled: Untitled
+Multichain: Multichain
 $swap_too_small_amount: Too small amount
+Not enough %symbol%: "Not enough %symbol%"
+$receive_tron_description: Scan this QR or share your address to top up your wallet balance.
+You have just created a new multichain wallet: You have just created a new multichain wallet
+Now you can transfer tokens from your TON and TRON wallets.: Now you can transfer tokens from your TON and TRON wallets.
+Enter Secret Words: Enter Secret Words
+Turn this off so you can manually download updates and verify signatures.: Turn this off so you can manually download updates and verify signatures.
+InvalidMnemonic: Your mnemonic words are invalid
+NFT Menu: NFT Menu
+Wallets will not be locked.: Wallets will not be locked.
+Wallets will be automatically locked after 30 seconds of inactivity.: Wallets will be automatically locked after 30 seconds of inactivity.
+Wallets will be automatically locked after 3 minutes of inactivity.: Wallets will be automatically locked after 3 minutes of inactivity.
+Wallets will be automatically locked after 30 minutes of inactivity.: Wallets will be automatically locked after 30 minutes of inactivity.
+Auto-Lock: Auto-Lock
+Never: Never
+30 seconds: 30 seconds
+3 minutes: 3 minutes
+30 minutes: 30 minutes
+Unlock: Unlock
+Biometric authentification failed: Biometric authentification failed
+Reset biometrics in security settings, or use a passcode.: Reset biometrics in security settings, or use a passcode.

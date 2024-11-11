@@ -9,12 +9,11 @@ import { StakingState, type UserToken } from '../../global/types';
 import {
   ANIMATED_STICKER_MIDDLE_SIZE_PX,
   ANIMATED_STICKER_SMALL_SIZE_PX,
-  DEFAULT_DECIMAL_PLACES,
   DEFAULT_FEE,
   NOMINATORS_STAKING_MIN_AMOUNT,
   ONE_TON,
   STAKING_MIN_AMOUNT,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
@@ -91,10 +90,10 @@ function StakingInitial({
 
   const {
     amount: balance, symbol,
-  } = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]) || {};
+  } = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]) || {};
   const hasAmountError = Boolean(isInsufficientBalance || apiError);
   const calculatedFee = fee ?? DEFAULT_FEE;
-  const decimals = DEFAULT_DECIMAL_PLACES;
+  const decimals = TONCOIN.decimals;
 
   const minAmount = shouldUseNominators ? NOMINATORS_STAKING_MIN_AMOUNT : STAKING_MIN_AMOUNT;
 

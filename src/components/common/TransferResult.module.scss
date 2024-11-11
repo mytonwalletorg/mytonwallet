@@ -2,25 +2,6 @@
   margin: 0 auto 1.25rem;
 }
 
-.balanceChange {
-  overflow: hidden;
-
-  max-width: 100%;
-  margin: 0 auto 1.25rem;
-  padding: 0 0.5rem;
-
-  font-size: 0.9375rem;
-  font-weight: 500;
-  line-height: 1.75rem;
-  color: var(--color-gray-1);
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  background: var(--color-background-first);
-  border-radius: var(--border-radius-default);
-}
-
 .amount {
   overflow: hidden;
 

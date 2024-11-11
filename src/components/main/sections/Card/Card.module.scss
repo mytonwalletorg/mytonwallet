@@ -238,9 +238,66 @@
 .icon {
   font-size: 1rem;
   vertical-align: -0.1875rem;
+
+  &:global(.icon-ledger) {
+    margin-inline-end: 0.25rem;
+  }
 }
 
-.tonExplorerButton {
+.menuItem {
+  --copy-icon-color: var(--color-gray-3);
+
+  position: relative;
+
+  display: flex;
+
+  width: 100%;
+  padding: 0.375rem !important;
+}
+
+.menuIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.menuItemName {
+  cursor: var(--custom-cursor, pointer);
+
+  display: inline-flex;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      --copy-icon-color: var(--color-blue);
+    }
+  }
+}
+
+.menuFontIcon {
+  margin-top: -0.0625rem;
+  margin-inline-start: 0.25rem;
+  margin-inline-end: 0;
+
+  font-size: 1rem !important;
+  color: var(--copy-icon-color);
+
+  transition: color 150ms;
+}
+
+.menuExplorerIcon {
+  cursor: var(--custom-cursor, pointer);
+
+  order: 3;
+
+  color: var(--color-gray-3);
+
+  &:hover,
+  &:focus {
+    color: var(--color-blue);
+  }
+}
+
+.explorerButton {
   font-size: 1.25rem;
   line-height: 1;
   color: var(--color-card-second-text);
@@ -314,13 +371,13 @@
 }
 
 .tokenName {
-  display: block;
+  display: flex;
 
   margin-top: 0.25rem;
 
   font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1;
+  line-height: 0.9375rem;
   color: var(--color-card-second-text);
 }
 
@@ -374,13 +431,14 @@
 
   font-size: 0.625rem;
   font-weight: 700;
+  line-height: 1;
   color: var(--color-card-apy-text);
 
   background-color: var(--color-card-apy-background);
   border-radius: 0.25rem;
 }
 
-.tokenTonExplorerButton {
+.tokenExplorerButton {
   position: relative;
   top: 0.25rem;
 

@@ -186,7 +186,6 @@
   height: 2.25rem;
 }
 
-.tokenLogo,
 .tokenLogoSkeleton,
 .tokenLogoSymbol {
   width: 2.25rem;
@@ -195,6 +194,10 @@
   font-size: 0;
 
   border-radius: 100%;
+}
+
+.tokenLogo {
+  --color-background-first: var(--color-background-drop-down);
 }
 
 .tokenLogoDisabled {
@@ -221,7 +224,6 @@
   background-color: var(--color-separator-input-stroke);
 }
 
-.tokenNetworkLogo,
 .tokenNetworkLogoSkeleton {
   position: absolute;
   z-index: 1;
@@ -231,32 +233,11 @@
   width: 1.125rem;
   height: 1.125rem;
 
-  border-radius: 100%;
-
-  /* stylelint-disable-next-line plugin/whole-pixel */
-  box-shadow: 0 0 0 0.0938rem var(--color-background-drop-down),
-        inset 0 0 0 0.125rem var(--color-background-drop-down);
-}
-
-.tokenNetworkLogoSkeleton {
   background-color: var(--color-separator-input-stroke);
+  border-radius: 100%;
 
   /* stylelint-disable-next-line plugin/whole-pixel */
   box-shadow: 0 0 0 0.0938rem var(--color-background-drop-down);
-}
-
-.tokenNetworkLogoDisabled {
-  position: absolute;
-  z-index: 1;
-  top: 1.5rem;
-  right: -0.25rem;
-
-  width: 1.125rem;
-  height: 1.125rem;
-
-  opacity: 0.5;
-  background-color: var(--color-background-first);
-  border-radius: 100%;
 }
 
 .nameContainer,

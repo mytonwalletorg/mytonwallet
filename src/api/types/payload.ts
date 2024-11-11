@@ -1,4 +1,4 @@
-import type { DNS_CATEGORY_HASH_MAP } from '../blockchains/ton/constants';
+import type { DNS_CATEGORY_HASH_MAP } from '../chains/ton/constants';
 import type { ApiNft } from './misc';
 
 export type ApiCommentPayload = {

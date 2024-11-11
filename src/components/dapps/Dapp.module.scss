@@ -3,8 +3,8 @@
 .modalDialog {
   height: 35rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(35rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(35rem + var(--safe-area-bottom));
   }
 
   @media (min-width: 416.01px) {
@@ -15,8 +15,8 @@
 .modalDialogExtraHeight {
   height: 40.25rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(40.25rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(40.25rem + var(--safe-area-bottom));
   }
 }
 
@@ -57,9 +57,9 @@
     align-items: center;
     justify-content: center;
 
-    color: var(--color-card-green-text);
+    color: var(--color-default-dapp-logo);
 
-    background: var(--color-card-green-background);
+    background: var(--color-default-dapp-logo-background);
   }
 }
 
@@ -128,10 +128,10 @@
 
   padding: 0.5rem;
 
-  @include adapt-padding-to-scrollbar(0.5rem);
-
   background-color: var(--color-background-first);
   border-radius: var(--border-radius-default);
+
+  @include adapt-padding-to-scrollbar(0.5rem);
 
   &_two {
     grid-template-columns: repeat(6, 1fr);
@@ -467,7 +467,7 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
 
-  height: 4rem;
+  min-height: 4rem;
   margin-bottom: 1.25rem;
 
   color: var(--color-card-text);
@@ -557,6 +557,7 @@
   0% {
     background-position: 200%;
   }
+
   100% {
     background-position: -200%;
   }
@@ -604,10 +605,7 @@
 }
 
 .transactionDappIconSkeleton {
-  @include skeleton(
-    var(--color-background-first),
-    #00000000
-  );
+  @include skeleton(var(--color-background-first), #00000000);
 
   background-color: var(--color-card-button);
 }
@@ -639,10 +637,7 @@
 }
 
 .nameDappSkeleton {
-  @include skeleton(
-    var(--color-background-first),
-    #00000000
-  );
+  @include skeleton(var(--color-background-first), #00000000);
 
   height: 0.875rem;
 
@@ -650,10 +645,7 @@
 }
 
 .descDappSkeleton {
-  @include skeleton(
-    var(--color-background-first),
-    #00000000
-  );
+  @include skeleton(var(--color-background-first), #00000000);
 
   height: 0.6875rem;
 
@@ -696,9 +688,7 @@
 }
 
 .rowSkeleton {
-  @include skeleton(
-    var(--color-background-second)
-  );
+  @include skeleton(var(--color-background-second));
 
   width: 100%;
   height: 3rem;
@@ -712,9 +702,7 @@
 }
 
 .rowTextSkeleton {
-  @include skeleton(
-    var(--color-background-second)
-  );
+  @include skeleton(var(--color-background-second));
 
   width: 3.0625rem;
   height: 1rem;
@@ -734,6 +722,8 @@
 }
 
 .contentWithBackground {
+  height: 100%;
+
   background-color: var(--color-background-second);
 }
 
@@ -747,4 +737,207 @@
 
   background-color: var(--color-transaction-red-background);
   border-radius: var(--border-radius-normal);
+}
+
+.feed {
+  overflow-x: auto;
+  display: flex;
+
+  padding: 0.25rem 0;
+
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+.feedTiles {
+  gap: 0.125rem; // Remaining 0.375rem of the gap are added to the width of the tiles
+
+  height: calc(4rem + 2 * 0.25rem);
+}
+
+.feedMini {
+  gap: 0.5rem;
+
+  height: calc(1.75rem + 2 * 0.25rem);
+}
+
+.feedEmpty {
+  height: 0 !important;
+  padding: 0 !important;
+}
+
+.feedItem {
+  display: flex;
+  align-items: center;
+
+  padding: 0 !important;
+
+  border: none;
+  border-radius: var(--border-radius-tiny);
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &_tile {
+    flex-direction: column;
+    gap: 0.3125rem;
+
+    min-width: calc(3.75rem + (0.5rem - 0.125rem) / 2); // (width + (padding - gap) / 2)
+    max-width: calc(3.75rem + (0.5rem - 0.125rem) / 2); // (width + (padding - gap) / 2)
+
+    background-color: unset;
+  }
+
+  &_mini {
+    padding: 0;
+
+    white-space: nowrap;
+
+    background-color: var(--color-activity-gray-background);
+  }
+
+  &:first-child {
+    margin-left: 0.75rem;
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      .feedItemLogoImg {
+        transform: scale(1.1);
+      }
+      .feedItemAppNameMini, .feedItemAppNameTile {
+        color: var(--color-blue);
+      }
+    }
+  }
+}
+
+.feedItemAppNameMini, .feedItemAppNameTile, .feedSettingsLabel, .feedSettingsIconWrapper_mini {
+  transition: color 150ms;
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.feedItemAppNameMini {
+  padding: 0 0.375rem;
+
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1;
+  color: var(--color-activity-gray-text);
+}
+
+.feedItemAppNameTile {
+  overflow: hidden;
+
+  width: 100%;
+
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-black);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feedItemLogoMini {
+  width: 1.75rem;
+  height: 1.75rem;
+
+  border-top-left-radius: var(--border-radius-tiny);
+  border-bottom-left-radius: var(--border-radius-tiny);
+}
+
+.feedItemLogoTile {
+  width: 3rem;
+  height: 3rem;
+
+  border-radius: 0.75rem;
+}
+
+.feedItemLogoMini, .feedItemLogoTile {
+  overflow: hidden;
+}
+
+.feedItemLogoImg {
+  transform-origin: center;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition: transform 300ms;
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.feedSettingsIconContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+  align-items: center;
+
+  padding-right: 0.75rem;
+
+  .feedTiles > & {
+    margin-left: calc(0.5rem - 0.125rem);
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      .feedSettingsLabel, .feedSettingsIconWrapper_mini {
+        color: var(--color-blue);
+      }
+    }
+  }
+}
+
+.feedSettingsLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-black);
+}
+
+.feedSettingsIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-gray-3);
+
+  background-color: var(--color-activity-gray-background);
+
+  &_mini {
+    width: 1.75rem;
+    height: 1.75rem;
+
+    font-size: 0.75rem;
+    line-height: 1rem;
+
+    border-radius: 0.5rem;
+  }
+
+  &_tile {
+    width: 3rem;
+    height: 3rem;
+
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
+
+    border-radius: 0.75rem;
+  }
 }

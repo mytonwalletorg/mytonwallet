@@ -1,15 +1,19 @@
 @mixin adapt-padding-to-scrollbar($padding, $importantSuffix: '') {
-  padding-inline-end: calc($padding - var(--scrollbar-width)) #{$importantSuffix};
+  & {
+    padding-inline-end: calc($padding - var(--scrollbar-width)) #{$importantSuffix};
 
-  @supports (padding-inline-end: max(0px, 1px)) {
-    padding-inline-end: max(0px, calc($padding - var(--scrollbar-width))) #{$importantSuffix};
+    @supports (padding-inline-end: max(0px, 1px)) {
+      padding-inline-end: max(0px, calc($padding - var(--scrollbar-width))) #{$importantSuffix};
+    }
   }
 }
 
 @mixin adapt-margin-to-scrollbar($margin, $importantSuffix: '') {
-  margin-inline-end: calc($margin - var(--scrollbar-width)) #{$importantSuffix};
+  & {
+    margin-inline-end: calc($margin - var(--scrollbar-width)) #{$importantSuffix};
 
-  @supports (margin-inline-end: max(0px, 1px)) {
-    margin-inline-end: max(0px, calc($margin - var(--scrollbar-width))) #{$importantSuffix};
+    @supports (margin-inline-end: max(0px, 1px)) {
+      margin-inline-end: max(0px, calc($margin - var(--scrollbar-width))) #{$importantSuffix};
+    }
   }
 }

@@ -1,11 +1,16 @@
-import type { Account, AccountState, NotificationType } from '../../types';
+import type {
+  Account, AccountSettings, AccountState, NotificationType,
+} from '../../types';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
 import { AppState } from '../../types';
 
-import { IS_CAPACITOR, IS_EXTENSION } from '../../../config';
+import {
+  DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, IS_EXTENSION, TONCOIN,
+} from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
 import authApi from '../../../util/authApi';
+import { initCapacitorWithGlobal } from '../../../util/capacitor';
 import { processDeeplinkAfterSignIn } from '../../../util/deeplink';
 import { omit } from '../../../util/iteratees';
 import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
@@ -15,6 +20,7 @@ import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import switchTheme, { setStatusBarStyle } from '../../../util/switchTheme';
 import {
   IS_ANDROID,
+  IS_ANDROID_APP,
   IS_DELEGATED_BOTTOM_SHEET,
   IS_ELECTRON,
   IS_IOS,
@@ -32,7 +38,8 @@ import {
   selectCurrentNetwork,
   selectNetworkAccounts,
   selectNetworkAccountsMemoized,
-  selectNewestTxIds,
+  selectNewestTxTimestamps,
+  selectSwapTokens,
 } from '../../selectors';
 
 const ANIMATION_DELAY_MS = 320;
@@ -45,6 +52,9 @@ addActionHandler('init', (_, actions) => {
       documentElement.classList.add('is-ios');
     } else if (IS_ANDROID) {
       documentElement.classList.add('is-android');
+      if (IS_ANDROID_APP) {
+        documentElement.classList.add('is-android-app');
+      }
     } else if (IS_MAC_OS) {
       documentElement.classList.add('is-macos');
     } else if (IS_WINDOWS) {
@@ -75,15 +85,21 @@ addActionHandler('init', (_, actions) => {
 });
 
 addActionHandler('afterInit', (global) => {
-  const { theme, animationLevel, langCode } = global.settings;
+  const {
+    theme, animationLevel, langCode, authConfig,
+  } = global.settings;
 
   switchTheme(theme);
   switchAnimationLevel(animationLevel);
-  setStatusBarStyle();
+  setStatusBarStyle({
+    forceDarkBackground: false,
+  });
   void setLanguage(langCode);
   clearPreviousLangpacks();
 
-  if (!IS_CAPACITOR) {
+  if (IS_CAPACITOR) {
+    void initCapacitorWithGlobal(authConfig);
+  } else {
     document.addEventListener('click', initializeSounds, { once: true });
   }
 });
@@ -105,6 +121,8 @@ addActionHandler('afterSignOut', (global, actions, payload) => {
 
     actions.resetApiSettings({ areAllDisabled: true });
   }
+
+  actions.clearSwapPairsCache();
 });
 
 addActionHandler('showDialog', (global, actions, payload) => {
@@ -136,10 +154,32 @@ addActionHandler('dismissDialog', (global) => {
 });
 
 addActionHandler('selectToken', (global, actions, { slug } = {}) => {
+  if (slug) {
+    const isToncoin = slug === TONCOIN.slug;
+    const tokens = selectSwapTokens(global);
+
+    if (!isToncoin && !tokens?.find((token) => token.slug === slug)) return undefined;
+
+    if (isToncoin) {
+      actions.setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
+    } else {
+      actions.setDefaultSwapParams({ tokenOutSlug: slug });
+    }
+    actions.changeTransferToken({ tokenSlug: slug });
+  } else {
+    actions.setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined });
+    actions.changeTransferToken({ tokenSlug: TONCOIN.slug });
+  }
+
   return updateCurrentAccountState(global, { currentTokenSlug: slug });
 });
 
 addActionHandler('showError', (global, actions, { error } = {}) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('showError', { error });
+    return;
+  }
+
   switch (error) {
     case ApiTransactionDraftError.InvalidAmount:
       actions.showDialog({ message: 'Invalid amount' });
@@ -330,6 +370,13 @@ addActionHandler('signOut', async (global, actions, payload) => {
         return byId;
       }, {} as Record<string, AccountState>);
 
+      const settingsById = Object.entries(global.settings.byAccountId).reduce((byId, [accountId, settings]) => {
+        if (parseAccountId(accountId).network !== network) {
+          byId[accountId] = settings;
+        }
+        return byId;
+      }, {} as Record<string, AccountSettings>);
+
       global = updateCurrentAccountId(global, nextAccountId);
 
       global = {
@@ -339,6 +386,10 @@ addActionHandler('signOut', async (global, actions, payload) => {
           byId: accountsById,
         },
         byAccountId,
+        settings: {
+          ...global.settings,
+          byAccountId: settingsById,
+        },
       };
 
       setGlobal(global);
@@ -355,14 +406,15 @@ addActionHandler('signOut', async (global, actions, payload) => {
   } else {
     const prevAccountId = global.currentAccountId!;
     const nextAccountId = accountIds.find((id) => id !== prevAccountId)!;
-    const nextNewestTxIds = selectNewestTxIds(global, nextAccountId);
+    const nextNewestTxTimestamps = selectNewestTxTimestamps(global, nextAccountId);
 
-    await callApi('removeAccount', prevAccountId, nextAccountId, nextNewestTxIds);
+    await callApi('removeAccount', prevAccountId, nextAccountId, nextNewestTxTimestamps);
 
     global = getGlobal();
 
     const accountsById = omit(global.accounts!.byId, [prevAccountId]);
     const byAccountId = omit(global.byAccountId, [prevAccountId]);
+    const settingsByAccountId = omit(global.settings.byAccountId, [prevAccountId]);
 
     global = updateCurrentAccountId(global, nextAccountId);
 
@@ -373,6 +425,10 @@ addActionHandler('signOut', async (global, actions, payload) => {
         byId: accountsById,
       },
       byAccountId,
+      settings: {
+        ...global.settings,
+        byAccountId: settingsByAccountId,
+      },
     };
 
     setGlobal(global);

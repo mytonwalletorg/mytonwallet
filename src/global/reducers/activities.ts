@@ -1,8 +1,11 @@
-import type { ApiActivity, ApiTransactionActivity } from '../../api/types';
+import type {
+  ApiActivity, ApiChain, ApiTransaction, ApiTransactionActivity,
+} from '../../api/types';
 import type { GlobalState } from '../types';
 
+import { compareActivities } from '../../util/compareActivities';
 import {
-  buildCollectionByKey, groupBy, mapValues, unique,
+  buildCollectionByKey, extractKey, groupBy, mapValues, unique,
 } from '../../util/iteratees';
 import { getIsTxIdLocal } from '../helpers';
 import { selectAccountState } from '../selectors';
@@ -13,6 +16,8 @@ export function updateActivity(global: GlobalState, accountId: string, activity:
   const idsBySlug = activities?.idsBySlug || {};
 
   const { id, timestamp, kind } = activity;
+
+  const idsMain = [id].concat(activities?.idsMain ?? []);
 
   if (kind === 'swap') {
     const { from, to } = activity;
@@ -32,6 +37,7 @@ export function updateActivity(global: GlobalState, accountId: string, activity:
         ...activities,
         byId: { ...activities?.byId, [id]: activity },
         idsBySlug: { ...idsBySlug, [from]: fromTokenIds, [to]: toTokenIds },
+        idsMain,
       },
     });
   }
@@ -56,6 +62,7 @@ export function updateActivity(global: GlobalState, accountId: string, activity:
   return updateAccountState(global, accountId, {
     activities: {
       ...activities,
+      idsMain,
       byId: { ...activities?.byId, [id]: activity },
       idsBySlug: { ...idsBySlug, [slug]: tokenTxIds },
       newestTransactionsBySlug,
@@ -67,6 +74,13 @@ export function addNewActivities(global: GlobalState, accountId: string, newActi
   let { activities } = selectAccountState(global, accountId) || {};
 
   const newById = buildCollectionByKey(newActivities, 'id');
+  const byId = { ...activities?.byId, ...newById };
+
+  const newIdsMain = extractKey(newActivities, 'id');
+  const idsMain = unique(newIdsMain.concat(activities?.idsMain ?? []));
+
+  // Activities from different blockchains arrive separately, which causes the order to be disrupted
+  idsMain.sort((a, b) => compareActivities(byId[a], byId[b]));
 
   const newIdsBySlug = buildActivityIdsBySlug(newActivities);
   const replacedIdsBySlug = mapValues(newIdsBySlug, (newIds, slug) => {
@@ -76,14 +90,22 @@ export function addNewActivities(global: GlobalState, accountId: string, newActi
   });
 
   const newTxs = newActivities.filter(({ kind }) => kind === 'transaction') as ApiTransactionActivity[];
-  const newTxsBySlug = groupBy(newTxs, 'slug');
-  const newNewestTxsBySlug = mapValues(newTxsBySlug, (txs) => txs[0]);
+  const newNewestTxsBySlug: Record<string, ApiTransaction> = { ...activities?.newestTransactionsBySlug };
+
+  // The transaction that replaced the local one may be newer
+  for (const [slug, txs] of Object.entries(groupBy(newTxs, 'slug'))) {
+    const newTx = txs[0];
+    if (!(slug in newNewestTxsBySlug) || newTx.timestamp > newNewestTxsBySlug[slug].timestamp) {
+      newNewestTxsBySlug[slug] = newTx;
+    }
+  }
 
   activities = {
     ...activities,
-    byId: { ...activities?.byId, ...newById },
+    idsMain,
+    byId,
     idsBySlug: { ...activities?.idsBySlug, ...replacedIdsBySlug },
-    newestTransactionsBySlug: { ...activities?.newestTransactionsBySlug, ...newNewestTxsBySlug },
+    newestTransactionsBySlug: newNewestTxsBySlug,
   };
 
   return updateAccountState(global, accountId, { activities });
@@ -121,52 +143,74 @@ function buildActivityIdsBySlug(activities: ApiActivity[]) {
   }, {});
 }
 
-export function assignRemoteTxId(
+export function replaceLocalTransaction(
   global: GlobalState,
   accountId: string,
-  txId: string,
-  newTxId: string,
-  newAmount: bigint,
-  shouldHide?: boolean,
+  localTxId: string,
+  activity: ApiTransactionActivity,
 ) {
   const { activities } = selectAccountState(global, accountId) || {};
   const { byId, idsBySlug } = activities || { byId: {}, idsBySlug: {} };
-  const replacedActivity: ApiActivity | undefined = byId[txId];
+  const replacedActivity: ApiActivity | undefined = byId[localTxId];
 
   if (!replacedActivity || replacedActivity.kind !== 'transaction') return global;
 
-  const slug = replacedActivity.slug;
+  const {
+    slug, amount, timestamp, txId, shouldHide,
+  } = activity;
   const updatedIdsBySlug = { ...idsBySlug };
+  let { idsMain = [], newestTransactionsBySlug = {} } = activities ?? {};
 
   if (slug in updatedIdsBySlug) {
-    const indexOfTxId = updatedIdsBySlug[slug].indexOf(txId);
+    const indexOfTxId = updatedIdsBySlug[slug].indexOf(localTxId);
     if (indexOfTxId === -1) return global;
 
     updatedIdsBySlug[slug] = [
       ...updatedIdsBySlug[slug].slice(0, indexOfTxId),
-      newTxId,
+      txId,
       ...updatedIdsBySlug[slug].slice(indexOfTxId + 1),
+    ];
+
+    const indexOfTxIdMain = idsMain.indexOf(localTxId);
+    if (indexOfTxIdMain === -1) return global;
+
+    idsMain = [
+      ...idsMain.slice(0, indexOfTxIdMain),
+      txId,
+      ...idsMain.slice(indexOfTxIdMain + 1),
     ];
   }
 
   const updatedByTxId = {
     ...byId,
-    [newTxId]: {
+    [txId]: {
       ...replacedActivity,
-      id: newTxId,
-      txId: newTxId,
-      amount: newAmount,
+      id: txId,
+      txId,
+      amount,
       shouldHide,
+      timestamp,
     },
   };
 
-  delete updatedByTxId[txId];
+  delete updatedByTxId[localTxId];
+
+  const newestTransaction = newestTransactionsBySlug[slug];
+
+  if (!newestTransaction || timestamp > newestTransaction.timestamp) {
+    newestTransactionsBySlug = {
+      ...newestTransactionsBySlug,
+      [slug]: activity,
+    };
+  }
 
   return updateAccountState(global, accountId, {
     activities: {
       ...activities,
+      idsMain,
       byId: updatedByTxId,
       idsBySlug: updatedIdsBySlug,
+      newestTransactionsBySlug,
     },
   });
 }
@@ -193,6 +237,24 @@ export function removeLocalTransaction(global: GlobalState, accountId: string, t
       ...activities,
       byId: activities?.byId ?? {},
       localTransactions,
+    },
+  });
+}
+
+export function setIsFirstActivitiesLoadedTrue(global: GlobalState, accountId: string, chain: ApiChain) {
+  const { byChain } = selectAccountState(global, accountId) ?? {};
+
+  if (byChain && byChain[chain]?.isFirstTransactionsLoaded) {
+    return global;
+  }
+
+  return updateAccountState(global, accountId, {
+    byChain: {
+      ...byChain,
+      [chain]: {
+        ...byChain?.[chain],
+        isFirstTransactionsLoaded: true,
+      },
     },
   });
 }

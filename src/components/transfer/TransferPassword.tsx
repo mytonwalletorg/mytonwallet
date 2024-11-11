@@ -1,7 +1,7 @@
 import React, { memo, type TeactNode } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import { IS_CAPACITOR } from '../../config';
+import { IS_CAPACITOR, STARS_SYMBOL } from '../../config';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -17,10 +17,11 @@ interface OwnProps {
   children?: TeactNode;
   onSubmit: (password: string) => void;
   onCancel: NoneToVoidFunction;
+  isGaslessWithStars?: boolean;
 }
 
 function TransferPassword({
-  isActive, isLoading, isBurning, error, children, onSubmit, onCancel,
+  isActive, isLoading, isBurning, error, children, onSubmit, onCancel, isGaslessWithStars,
 }: OwnProps) {
   const {
     cancelTransfer,
@@ -45,7 +46,9 @@ function TransferPassword({
         withCloseButton={Boolean(children)}
         operationType="transfer"
         error={error}
-        submitLabel={lang('Send')}
+        submitLabel={
+          isGaslessWithStars ? lang('Pay fee with %stars_symbol%', { stars_symbol: STARS_SYMBOL }) : lang('Send')
+        }
         cancelLabel={lang('Back')}
         onSubmit={onSubmit}
         onCancel={onCancel}

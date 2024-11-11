@@ -4,18 +4,18 @@ import { getActions, withGlobal } from '../../global';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
-import { IS_CAPACITOR, TONCOIN_SLUG } from '../../config';
-import { selectCurrentAccountTokens } from '../../global/selectors';
+import { IS_CAPACITOR, TONCOIN } from '../../config';
+import { selectCurrentAccountTokens, selectIsMultichainAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
+import TransactionBanner from '../common/TransactionBanner';
 import TransferResult from '../common/TransferResult';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
@@ -34,6 +34,7 @@ type StateProps = GlobalState['staking'] & {
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
+  isMultichainAccount: boolean;
 };
 
 const IS_OPEN_STATES = new Set([
@@ -53,6 +54,7 @@ function StakeModal({
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
+  isMultichainAccount,
 }: StateProps) {
   const {
     startStaking,
@@ -66,7 +68,7 @@ function StakeModal({
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]);
   const [renderedStakingAmount, setRenderedStakingAmount] = useState(amount);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
@@ -93,20 +95,17 @@ function StakeModal({
     openStakingInfo();
   });
 
-  function renderStakingShortInfo() {
+  function renderTransactionBanner() {
     if (!tonToken || !amount) return undefined;
 
-    const logoPath = tonToken.image || ASSET_LOGO_PATHS[tonToken.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
-    const stakingInfoClassName = buildClassName(
-      styles.stakingShortInfo,
-      !IS_CAPACITOR && styles.stakingShortInfoInsidePasswordForm,
-    );
-
     return (
-      <div className={stakingInfoClassName}>
-        <img src={logoPath} alt={tonToken.symbol} className={styles.tokenIcon} />
-        <span>{formatCurrency(toDecimal(amount), tonToken.symbol)}</span>
-      </div>
+      <TransactionBanner
+        tokenIn={tonToken}
+        withChainIcon={isMultichainAccount}
+        color="purple"
+        text={formatCurrency(toDecimal(amount), tonToken.symbol)}
+        className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+      />
     );
   }
 
@@ -127,7 +126,7 @@ function StakeModal({
           onCancel={handleBackClick}
           onUpdate={clearStakingError}
         >
-          {renderStakingShortInfo()}
+          {renderTransactionBanner()}
         </PasswordForm>
       </>
     );
@@ -144,8 +143,6 @@ function StakeModal({
             playAnimation={isActive}
             amount={renderedStakingAmount}
             noSign
-            balance={tonToken?.amount ?? 0n}
-            operationAmount={amount ? -amount : undefined}
             firstButtonText={lang('View')}
             secondButtonText={lang('Stake More')}
             onFirstButtonClick={handleViewStakingInfoClick}
@@ -226,8 +223,9 @@ function StakeModal({
   );
 }
 
-export default memo(withGlobal((global) => {
+export default memo(withGlobal((global): StateProps => {
   const tokens = selectCurrentAccountTokens(global);
+  const isMultichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
 
   const {
     hardwareState,
@@ -241,5 +239,6 @@ export default memo(withGlobal((global) => {
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,
+    isMultichainAccount,
   };
 })(StakeModal));

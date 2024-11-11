@@ -22,13 +22,14 @@ import modalStyles from './Modal.module.scss';
 interface OwnProps {
   isActive?: boolean;
   isLoading?: boolean;
+  containerClassName?: string;
   formId: string;
   onCancel: NoneToVoidFunction;
   onSubmit: (password: string, isPasswordNumeric: boolean) => void;
 }
 
 function CreatePasswordForm({
-  isActive, isLoading, formId, onCancel, onSubmit,
+  isActive, isLoading, formId, onCancel, onSubmit, containerClassName,
 }: OwnProps) {
   const lang = useLang();
   const isMobile = IS_IOS || IS_ANDROID;
@@ -174,7 +175,7 @@ function CreatePasswordForm({
 
   return (
     <>
-      <form id={formId} className={styles.form} onSubmit={handleSubmit}>
+      <form id={formId} className={buildClassName(styles.form, containerClassName)} onSubmit={handleSubmit}>
         <div className={styles.formWidgets}>
           <Input
             ref={firstInputRef}

@@ -1,21 +1,32 @@
 import { useEffect } from '../lib/teact/teact';
 
-const useHorizontalScroll = (
-  containerRef: React.RefObject<HTMLDivElement>,
-  isDisabled?: boolean,
+interface OwnProps {
+  containerRef: React.RefObject<HTMLDivElement>;
+  isDisabled?: boolean;
+  shouldPreventDefault?: boolean;
+  contentSelector?: string;
+}
+
+function useHorizontalScroll({
+  containerRef,
+  isDisabled,
   shouldPreventDefault = false,
-) => {
+  contentSelector,
+}: OwnProps) {
   useEffect(() => {
-    if (isDisabled) {
+    const container = containerRef.current;
+
+    if (isDisabled || !container) {
       return undefined;
     }
-
-    const container = containerRef.current!;
 
     function handleScroll(e: WheelEvent) {
       // Ignore horizontal scroll and let it work natively (e.g. on touchpad)
       if (!e.deltaX) {
-        container!.scrollLeft += e.deltaY / 4;
+        const content = contentSelector ? container!.querySelector(contentSelector) : container;
+        if (!content) return;
+
+        content.scrollLeft += e.deltaY / 4;
         if (shouldPreventDefault) e.preventDefault();
       }
     }
@@ -25,7 +36,7 @@ const useHorizontalScroll = (
     return () => {
       container.removeEventListener('wheel', handleScroll);
     };
-  }, [containerRef, isDisabled, shouldPreventDefault]);
-};
+  }, [containerRef, contentSelector, isDisabled, shouldPreventDefault]);
+}
 
 export default useHorizontalScroll;

@@ -1,6 +1,7 @@
 import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
-import { ApiCommonError } from '../../../api/types';
+import type { ApiChain } from '../../../api/types';
+import { ApiAuthError, ApiCommonError } from '../../../api/types';
 import {
   AppState, AuthState, BiometricsState, HardwareConnectState,
 } from '../../types';
@@ -14,7 +15,7 @@ import webAuthn from '../../../util/authApi/webAuthn';
 import { getIsNativeBiometricAuthSupported, vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { copyTextToClipboard } from '../../../util/clipboard';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
-import { cloneDeep, compact } from '../../../util/iteratees';
+import { cloneDeep, compact, omitUndefined } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { callActionInMain } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
@@ -44,7 +45,7 @@ import {
   selectIsOneAccount,
   selectLedgerAccountIndexToImport,
   selectNetworkAccountsMemoized,
-  selectNewestTxIds,
+  selectNewestTxTimestamps,
 } from '../../selectors';
 
 const CREATING_DURATION = 3300;
@@ -79,23 +80,6 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
         : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword)
     );
 
-  global = updateAuth(global, { isLoading: true });
-  setGlobal(global);
-
-  const network = selectCurrentNetwork(global);
-  const checkResult = await callApi('checkApiAvailability', {
-    blockchainKey: 'ton',
-    network,
-  });
-  global = getGlobal();
-  global = updateAuth(global, { isLoading: undefined });
-  setGlobal(global);
-
-  if (!checkResult) {
-    actions.showError({ error: ApiCommonError.ServerError });
-    return;
-  }
-
   global = getGlobal();
 
   if (Boolean(firstNonHardwareAccount) && !global.auth.password) {
@@ -123,7 +107,7 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
 
   global = updateAuth(getGlobal(), {
     mnemonic,
-    mnemonicCheckIndexes: selectMnemonicForCheck(),
+    mnemonicCheckIndexes: selectMnemonicForCheck(mnemonic?.length ?? MNEMONIC_COUNT),
   });
 
   if (firstNonHardwareAccount) {
@@ -335,12 +319,17 @@ addActionHandler('createAccount', async (global, actions, {
     return;
   }
 
-  const { accountId, address } = result;
+  const { accountId, tonAddress, tronAddress } = result;
+  const addressByChain = omitUndefined({
+    ton: tonAddress,
+    tron: tronAddress,
+  }) as Record<ApiChain, string>;
+
   if (!isImporting) {
     global = { ...global, appState: AppState.Auth, isAddAccountModalOpen: undefined };
   }
   global = updateAuth(global, {
-    address,
+    addressByChain,
     accountId,
     isLoading: undefined,
     password: undefined,
@@ -388,9 +377,10 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
       return currentGlobal;
     }
     const { accountId, address, walletInfo } = wallet;
+    const addressByChain = { ton: address } as Record<ApiChain, string>;
 
     currentGlobal = updateCurrentAccountId(currentGlobal, accountId);
-    currentGlobal = createAccount(currentGlobal, accountId, address, {
+    currentGlobal = createAccount(currentGlobal, accountId, addressByChain, {
       isHardware: true,
       ...(walletInfo && {
         ledger: {
@@ -415,8 +405,8 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
     actions.closeSettings();
   }
 
+  actions.afterSignIn();
   if (isFirstAccount) {
-    actions.afterSignIn();
     actions.resetApiSettings();
     actions.requestConfetti();
 
@@ -429,7 +419,7 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
 addActionHandler('afterCheckMnemonic', (global, actions) => {
   global = updateCurrentAccountId(global, global.auth.accountId!);
   global = updateCurrentAccountState(global, {});
-  global = createAccount(global, global.auth.accountId!, global.auth.address!);
+  global = createAccount(global, global.auth.accountId!, global.auth.addressByChain!);
   setGlobal(global);
 
   actions.afterSignIn();
@@ -438,10 +428,10 @@ addActionHandler('afterCheckMnemonic', (global, actions) => {
   }
 });
 
-addActionHandler('restartCheckMnemonicIndexes', (global) => {
+addActionHandler('restartCheckMnemonicIndexes', (global, actions, { worldsCount }) => {
   setGlobal(
     updateAuth(global, {
-      mnemonicCheckIndexes: selectMnemonicForCheck(),
+      mnemonicCheckIndexes: selectMnemonicForCheck(worldsCount),
     }),
   );
 });
@@ -456,7 +446,7 @@ addActionHandler('skipCheckMnemonic', (global, actions) => {
   global = updateCurrentAccountState(global, {
     isBackupRequired: true,
   });
-  global = createAccount(global, global.auth.accountId!, global.auth.address!);
+  global = createAccount(global, global.auth.accountId!, global.auth.addressByChain!);
   setGlobal(global);
 
   actions.afterSignIn();
@@ -494,7 +484,7 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
   if (!isMnemonicPrivateKey(mnemonic)) {
     if (!await callApi('validateMnemonic', mnemonic)) {
       setGlobal(updateAuth(getGlobal(), {
-        error: 'Your mnemonic words are invalid.',
+        error: ApiAuthError.InvalidMnemonic,
       }));
 
       return;
@@ -545,11 +535,11 @@ addActionHandler('confirmDisclaimer', (global, actions) => {
 });
 
 addActionHandler('afterConfirmDisclaimer', (global, actions) => {
-  const { accountId, address } = global.auth;
+  const { accountId, addressByChain } = global.auth;
 
   global = updateCurrentAccountId(global, accountId!);
   global = updateAuth(global, { state: AuthState.ready });
-  global = createAccount(global, accountId!, address!);
+  global = createAccount(global, accountId!, addressByChain!);
   setGlobal(global);
 
   actions.afterSignIn();
@@ -562,13 +552,13 @@ addActionHandler('cleanAuthError', (global) => {
   setGlobal(updateAuth(global, { error: undefined }));
 });
 
-export function selectMnemonicForCheck() {
-  return Array(MNEMONIC_COUNT)
+export function selectMnemonicForCheck(worldsCount: number) {
+  return Array(worldsCount)
     .fill(0)
     .map((_, i) => ({ i, rnd: Math.random() }))
     .sort((a, b) => a.rnd - b.rnd)
     .map((i) => i.i)
-    .slice(0, MNEMONIC_CHECK_COUNT)
+    .slice(0, Math.min(MNEMONIC_CHECK_COUNT, worldsCount))
     .sort((a, b) => a - b);
 }
 
@@ -598,8 +588,8 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   }
 
   const { accountId, newNetwork } = payload;
-  const newestTxIds = selectNewestTxIds(global, accountId);
-  await callApi('activateAccount', accountId, newestTxIds);
+  const newestTxTimestamps = selectNewestTxTimestamps(global, accountId);
+  await callApi('activateAccount', accountId, newestTxTimestamps);
 
   global = getGlobal();
   global = updateCurrentAccountId(global, accountId);
@@ -607,6 +597,7 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   global = clearCurrentSwap(global);
   setGlobal(global);
 
+  actions.clearSwapPairsCache();
   if (newNetwork) {
     actions.changeNetwork({ network: newNetwork });
   }
@@ -664,7 +655,7 @@ addActionHandler('connectHardwareWallet', async (global, actions) => {
     const network = selectCurrentNetwork(global);
     const lastIndex = selectLedgerAccountIndexToImport(global);
     const currentHardwareAccounts = selectAllHardwareAccounts(global) ?? [];
-    const currentHardwareAddresses = currentHardwareAccounts.map((account) => account.address);
+    const currentHardwareAddresses = currentHardwareAccounts.map((account) => account.addressByChain.ton);
     const hardwareWallets = isRemoteTab ? [] : await ledgerApi.getNextLedgerWallets(
       network,
       lastIndex,
@@ -1006,7 +997,7 @@ addActionHandler('importAccountByVersion', async (global, actions, { version }) 
   const wallet = await callApi('importNewWalletVersion', accountId, version);
   global = getGlobal();
 
-  const existAccountId = selectAccountIdByAddress(global, wallet!.address);
+  const existAccountId = selectAccountIdByAddress(global, 'ton', wallet!.address);
 
   if (existAccountId) {
     actions.switchAccount({ accountId: existAccountId });
@@ -1014,7 +1005,7 @@ addActionHandler('importAccountByVersion', async (global, actions, { version }) 
   }
 
   const { title: currentWalletTitle } = (global.accounts?.byId ?? {})[accountId];
-
+  const addressByChain = { ton: wallet!.address } as Record<ApiChain, string>;
   global = updateCurrentAccountId(global, wallet!.accountId);
 
   const ledgerInfo = wallet!.ledger ? {
@@ -1022,11 +1013,14 @@ addActionHandler('importAccountByVersion', async (global, actions, { version }) 
     ledger: wallet?.ledger,
   } : undefined;
 
-  global = createAccount(global, wallet!.accountId, wallet!.address, {
-    title: currentWalletTitle,
+  global = createAccount(global, wallet!.accountId, addressByChain, {
     ...ledgerInfo,
+    title: currentWalletTitle,
   }, version);
+
   setGlobal(global);
+
+  await callApi('activateAccount', wallet!.accountId);
 });
 
 function reduceGlobalForDebug() {

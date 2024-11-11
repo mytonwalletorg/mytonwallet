@@ -20,8 +20,8 @@
     }
   }
 
-  @supports (top: max(env(safe-area-inset-top), 1rem)) {
-    top: max(env(safe-area-inset-top), 1rem);
+  @supports (top: max(var(--safe-area-top), 1rem)) {
+    top: max(var(--safe-area-top), 1rem);
   }
 }
 

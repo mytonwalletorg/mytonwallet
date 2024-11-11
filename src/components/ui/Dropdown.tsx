@@ -15,6 +15,7 @@ export interface DropdownItem {
   name: string;
   description?: string;
   icon?: string;
+  overlayIcon?: string;
   fontIcon?: string;
   isDisabled?: boolean;
   isDangerous?: boolean;
@@ -23,9 +24,10 @@ export interface DropdownItem {
 
 interface OwnProps {
   label?: string;
-  selectedValue: string;
+  selectedValue?: string;
   items: DropdownItem[];
   className?: string;
+  itemNameClassName?: string;
   theme?: 'light';
   arrow?: 'caret' | 'chevron';
   menuPosition?: 'top' | 'bottom';
@@ -44,6 +46,7 @@ function Dropdown({
   items,
   selectedValue,
   className,
+  itemNameClassName,
   theme,
   arrow = DEFAULT_ARROW,
   menuPosition,
@@ -57,7 +60,7 @@ function Dropdown({
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
 
   const selectedItem = useMemo(() => {
-    return items.find((item) => item.value === selectedValue);
+    return items.find((item) => selectedValue !== undefined && item.value === selectedValue);
   }, [items, selectedValue]);
 
   if (!items.length) {
@@ -101,13 +104,20 @@ function Dropdown({
           disabled={disabled}
         >
           {selectedItem?.icon && <img src={selectedItem.icon} alt="" className={styles.itemIcon} />}
+          {selectedItem?.overlayIcon && (
+            <img
+              src={selectedItem?.overlayIcon}
+              alt=""
+              className={buildClassName('icon', styles.itemOverlayIcon, styles.insideButton)}
+            />
+          )}
           {selectedItem?.fontIcon && (
             <i
               className={buildClassName(`icon-${selectedItem.fontIcon}`, styles.fontIcon)}
               aria-hidden
             />
           )}
-          <span className={buildClassName(styles.itemName, 'itemName')}>
+          <span className={buildClassName(styles.itemName, 'itemName', itemNameClassName)}>
             {shouldTranslateOptions ? lang(selectedItem!.name) : selectedItem!.name}
           </span>
           {withMenu && <i className={buttonArrowIcon} aria-hidden />}
@@ -122,6 +132,7 @@ function Dropdown({
           items={items}
           shouldTranslateOptions={shouldTranslateOptions}
           selectedValue={selectedValue}
+          itemNameClassName={itemNameClassName}
           onSelect={onChange}
           onClose={closeMenu}
         />

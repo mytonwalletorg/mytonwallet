@@ -3,8 +3,9 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import { IS_CAPACITOR } from '../../../config';
+import { IS_CAPACITOR, MNEMONIC_COUNT } from '../../../config';
 import { selectMnemonicForCheck } from '../../../global/actions/api/auth';
+import { selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
@@ -33,6 +34,7 @@ type OwnProps = {
 
 type StateProps = {
   currentAccountId?: string;
+  isBackupRequired?: boolean;
 };
 
 enum SLIDES {
@@ -43,7 +45,7 @@ enum SLIDES {
 }
 
 function BackupModal({
-  isOpen, currentAccountId, onClose,
+  isOpen, currentAccountId, onClose, isBackupRequired,
 }: OwnProps & StateProps) {
   const { setIsBackupRequired, setIsPinAccepted, clearIsPinAccepted } = getActions();
 
@@ -69,7 +71,7 @@ function BackupModal({
 
   const handlePasswordSubmit = useLastCallback(async (password: string) => {
     setIsLoading(true);
-    mnemonicRef.current = await callApi('getMnemonic', currentAccountId!, password);
+    mnemonicRef.current = await callApi('fetchMnemonic', currentAccountId!, password);
 
     if (!mnemonicRef.current) {
       setError('Wrong password, please try again.');
@@ -96,7 +98,7 @@ function BackupModal({
   });
 
   const handleCheckMnemonic = useLastCallback(() => {
-    setCheckIndexes(selectMnemonicForCheck());
+    setCheckIndexes(selectMnemonicForCheck(mnemonicRef.current?.length || MNEMONIC_COUNT));
     setCurrentSlide(SLIDES.check);
     setNextKey(undefined);
   });
@@ -159,7 +161,7 @@ function BackupModal({
         ) : (
           <MnemonicList
             mnemonic={mnemonic}
-            onNext={handleCheckMnemonic}
+            onNext={isBackupRequired ? handleCheckMnemonic : undefined}
             onClose={onClose}
           />
         );
@@ -205,5 +207,6 @@ function BackupModal({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  return { currentAccountId: global.currentAccountId };
+  const { isBackupRequired } = selectCurrentAccountState(global) || {};
+  return { currentAccountId: global.currentAccountId, isBackupRequired };
 })(BackupModal));

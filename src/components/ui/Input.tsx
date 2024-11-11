@@ -21,6 +21,7 @@ type OwnProps = {
   inputMode?: 'numeric' | 'text' | 'search';
   maxLength?: number;
   isRequired?: boolean;
+  isDisabled?: boolean;
   isControlled?: boolean;
   isMultiline?: boolean;
   hasError?: boolean;
@@ -43,6 +44,7 @@ function Input({
   placeholder,
   inputMode,
   isRequired,
+  isDisabled,
   isControlled,
   isMultiline,
   hasError,
@@ -87,6 +89,7 @@ function Input({
     className,
     type === 'password' && styles.input_password,
     (hasError || error) && styles.error,
+    isDisabled && styles.disabled,
   );
   const labelFullClass = buildClassName(
     styles.label,
@@ -110,6 +113,7 @@ function Input({
           id={id}
           className={inputFullClass}
           value={value}
+          disabled={isDisabled}
           maxLength={maxLength}
           autoComplete={autoComplete}
           onInput={handleInput}
@@ -129,6 +133,7 @@ function Input({
           className={inputFullClass}
           type={finalType}
           value={value}
+          disabled={isDisabled}
           inputMode={inputMode}
           maxLength={maxLength}
           autoComplete={autoComplete}

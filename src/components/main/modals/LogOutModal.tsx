@@ -5,7 +5,6 @@ import { getActions, withGlobal } from '../../../global';
 
 import type { Account, AccountState } from '../../../global/types';
 
-import { MNEMONIC_COUNT } from '../../../config';
 import renderText from '../../../global/helpers/renderText';
 import { selectCurrentAccountState, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
@@ -59,11 +58,11 @@ function LogOutModal({
       return [];
     }
 
-    return Object.entries(accounts).reduce<LinkAccount[]>((acc, [id, { title, address }]) => {
+    return Object.entries(accounts).reduce<LinkAccount[]>((acc, [id, { title, addressByChain }]) => {
       if (id !== currentAccountId && accountStates[id]?.isBackupRequired) {
         acc.push({
           id,
-          title: title || shortenAddress(address)!,
+          title: title || shortenAddress(addressByChain.ton)!,
         });
       }
 
@@ -147,7 +146,7 @@ function LogOutModal({
       onClose={handleClose}
     >
       <p className={buildClassName(modalStyles.text, modalStyles.text_noExtraMargin)}>
-        {renderText(lang('$logout_warning', MNEMONIC_COUNT))}
+        {renderText(lang('$logout_warning', '12/24'))}
       </p>
       {hasManyAccounts && (
         <Checkbox

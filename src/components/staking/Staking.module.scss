@@ -3,8 +3,8 @@
 .modalDialog {
   height: 35rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(35rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(35rem + var(--safe-area-bottom));
   }
 }
 
@@ -283,10 +283,12 @@
 }
 
 .balanceResult {
+  overflow: hidden;
   display: inline-flex;
   align-items: baseline;
 
   width: auto;
+  max-width: 100%;
 
   background: linear-gradient(81.88deg, var(--color-purple-1) 19.42%, #1EC160 71.55%);
   background-clip: text;
@@ -371,8 +373,8 @@
   .stakingInfoNoHistory {
     border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
 
-    @supports (padding-bottom: max(1rem, env(safe-area-inset-bottom))) {
-      padding-bottom: max(1rem, env(safe-area-inset-bottom))
+    @supports (padding-bottom: max(1rem, var(--safe-area-bottom))) {
+      padding-bottom: max(1rem, var(--safe-area-bottom))
     }
   }
 }
@@ -537,39 +539,10 @@
   }
 }
 
-.stakingShortInfo {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-
-  height: 2rem;
-  padding: 0 0.5rem 0 0.375rem;
-
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--color-transaction-purple-text);
-
-  background-color: var(--color-transaction-purple-background);
-  border-radius: 1rem;
-
-  &.unstake {
-    color: var(--color-transaction-green-text);
-
-    background-color: var(--color-transaction-green-background);
-  }
-}
-
-.stakingShortInfoInsidePasswordForm {
+.transactionBanner {
   align-self: center;
 
   margin-bottom: 2rem;
-}
-
-.tokenIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-
-  border-radius: 50%;
 }
 
 .unstakeInfo {

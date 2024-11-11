@@ -197,14 +197,14 @@ function isTransferable(obj: any) {
 
 function handleErrors(sendToOrigin: SendToOrigin) {
   self.onerror = (e) => {
-    // eslint-disable-next-line no-console
-    console.error(e);
-    sendToOrigin({ type: 'unhandledError', error: { message: e.error?.message || 'Uncaught exception in worker' } });
+    const message = e.error?.message || 'Uncaught exception in worker';
+    logDebugError(message, e.error);
+    sendToOrigin({ type: 'unhandledError', error: { message } });
   };
 
   self.addEventListener('unhandledrejection', (e) => {
-    // eslint-disable-next-line no-console
-    console.error(e);
-    sendToOrigin({ type: 'unhandledError', error: { message: e.reason?.message || 'Uncaught rejection in worker' } });
+    const message = e.reason?.message || 'Uncaught exception in worker';
+    logDebugError(message, e.reason);
+    sendToOrigin({ type: 'unhandledError', error: { message } });
   });
 }

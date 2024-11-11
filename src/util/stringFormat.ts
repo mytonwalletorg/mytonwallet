@@ -13,3 +13,12 @@ export function insertSubstring(str: string, start: number, newSubStr: string) {
   }
   return str.slice(0, start) + newSubStr + str.slice(start);
 }
+
+export function hexToString(hex: string): string {
+  let result = '';
+  for (let i = 0; i < hex.length; i += 2) {
+    result += String.fromCharCode(parseInt(hex.slice(i, i + 2), 16));
+  }
+
+  return result;
+}

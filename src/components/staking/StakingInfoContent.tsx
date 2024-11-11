@@ -4,15 +4,17 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiStakingHistory } from '../../api/types';
-import type { UserToken } from '../../global/types';
+import type { Theme, UserToken } from '../../global/types';
 
-import { TON_SYMBOL, TONCOIN_SLUG } from '../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN } from '../../config';
 import { selectCurrentAccountState, selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
+import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
+import useAppTheme from '../../hooks/useAppTheme';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
@@ -20,6 +22,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useShowTransition from '../../hooks/useShowTransition';
 import useWindowSize from '../../hooks/useWindowSize';
 
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Loading from '../ui/Loading';
 import ModalHeader from '../ui/ModalHeader';
@@ -43,6 +46,7 @@ interface StateProps {
   tokens?: UserToken[];
   isUnstakeRequested?: boolean;
   endOfStakingCycle?: number;
+  theme: Theme;
 }
 
 const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
@@ -58,6 +62,7 @@ function StakingInfoContent({
   tokens,
   isUnstakeRequested,
   endOfStakingCycle,
+  theme,
   onClose,
 }: OwnProps & StateProps) {
   const { startStaking, fetchStakingHistory } = getActions();
@@ -69,9 +74,10 @@ function StakingInfoContent({
     shouldRender: shouldRenderSpinner,
     transitionClassNames: spinnerClassNames,
   } = useShowTransition(isLoading && isActive);
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG)!, [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug)!, [tokens]);
   const forceUpdate = useForceUpdate();
   const { height } = useWindowSize();
+  const appTheme = useAppTheme(theme);
 
   useInterval(forceUpdate, isUnstakeRequested ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined);
 
@@ -97,7 +103,15 @@ function StakingInfoContent({
   function renderUnstakeDescription() {
     return (
       <div className={buildClassName(styles.unstakeTime, styles.unstakeTime_purple)}>
-        <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
+        <AnimatedIconWithPreview
+          play={isActive}
+          size={ANIMATED_STICKER_TINY_ICON_PX}
+          className={styles.unstakeTimeIcon}
+          nonInteractive
+          noLoop={false}
+          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockPurple}
+          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockPurple}
+        />
         <div>
           {Boolean(endOfStakingCycle) && lang('$unstaking_when_receive', {
             time: (
@@ -118,7 +132,7 @@ function StakingInfoContent({
           {lang('$total', {
             value: (
               <span className={styles.historyTotalValue}>
-                {formatCurrency(toDecimal(totalProfit), TON_SYMBOL)}
+                {formatCurrency(toDecimal(totalProfit), TONCOIN.symbol)}
               </span>
             ),
           })}
@@ -166,7 +180,7 @@ function StakingInfoContent({
           zeroValue="..."
           value={stakingResult}
           decimals={STAKING_DECIMAL}
-          suffix={TON_SYMBOL}
+          suffix={TONCOIN.symbol}
           className={styles.stakingBalance}
           labelClassName={styles.balanceStakedLabel}
           valueClassName={styles.balanceStakedResult}
@@ -182,7 +196,7 @@ function StakingInfoContent({
                 zeroValue="..."
                 value={balanceResult}
                 decimals={STAKING_DECIMAL}
-                suffix={TON_SYMBOL}
+                suffix={TONCOIN.symbol}
                 inputClassName={styles.balanceResultInput}
                 labelClassName={styles.balanceStakedLabel}
                 valueClassName={styles.balanceResult}
@@ -224,5 +238,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     tokens: selectCurrentAccountTokens(global),
     isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
     endOfStakingCycle: accountState?.staking?.end,
+    theme: global.settings.theme,
   };
 })(StakingInfoContent));

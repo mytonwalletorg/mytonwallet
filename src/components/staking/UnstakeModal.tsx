@@ -4,19 +4,24 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiBaseCurrency, ApiStakingType } from '../../api/types';
-import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
+import type {
+  GlobalState, HardwareConnectState, Theme, UserToken,
+} from '../../global/types';
 import { StakingState } from '../../global/types';
 
 import {
+  ANIMATED_STICKER_TINY_ICON_PX,
   IS_CAPACITOR,
-  MIN_BALANCE_FOR_UNSTAKE, STAKING_CYCLE_DURATION_MS, TON_SYMBOL, TONCOIN_SLUG,
+  MIN_BALANCE_FOR_UNSTAKE,
+  STAKING_CYCLE_DURATION_MS,
+  TONCOIN,
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import {
   selectAccountState,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectIsHardwareAccount,
+  selectIsHardwareAccount, selectIsMultichainAccount,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
@@ -28,6 +33,7 @@ import resolveModalTransitionName from '../../util/resolveModalTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
+import useAppTheme from '../../hooks/useAppTheme';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
@@ -37,6 +43,7 @@ import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import useShowTransition from '../../hooks/useShowTransition';
 import useSyncEffect from '../../hooks/useSyncEffect';
 
+import TransactionBanner from '../common/TransactionBanner';
 import TransferResult from '../common/TransferResult';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
@@ -63,6 +70,8 @@ type StateProps = GlobalState['staking'] & {
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
+  theme: Theme;
+  isMultichainAccount: boolean;
 };
 
 const IS_OPEN_STATES = new Set([
@@ -97,6 +106,8 @@ function UnstakeModal({
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
+  isMultichainAccount,
+  theme,
   amount,
 }: StateProps) {
   const {
@@ -113,9 +124,8 @@ function UnstakeModal({
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
 
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]);
+  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]);
 
-  const [renderedBalance, setRenderedBalance] = useState(tonToken?.amount);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
 
   const [isLongUnstake, setIsLongUnstake] = useState(false);
@@ -138,6 +148,7 @@ function UnstakeModal({
   const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + STAKING_CYCLE_DURATION_MS);
   const hasBalanceForUnstake = tonToken && tonToken.amount >= MIN_BALANCE_FOR_UNSTAKE;
   const forceUpdate = useForceUpdate();
+  const appTheme = useAppTheme(theme);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
 
@@ -187,7 +198,6 @@ function UnstakeModal({
 
   const handleTransferSubmit = useLastCallback((password: string) => {
     setSuccessUnstakeAmount(amount);
-    setRenderedBalance(tonToken?.amount);
 
     submitStakingPassword({ password, isUnstaking: true });
   });
@@ -202,21 +212,17 @@ function UnstakeModal({
     openReceiveModal();
   });
 
-  function renderUnstakingShortInfo() {
+  function renderTransactionBanner() {
     if (!tonToken || !unstakeAmount) return undefined;
 
-    const logoPath = tonToken.image || ASSET_LOGO_PATHS[tonToken.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS];
-    const className = buildClassName(
-      styles.stakingShortInfo,
-      styles.unstake,
-      !IS_CAPACITOR && styles.stakingShortInfoInsidePasswordForm,
-    );
-
     return (
-      <div className={className}>
-        <img src={logoPath} alt={tonToken.symbol} className={styles.tokenIcon} />
-        <span>{formatCurrency(toDecimal(unstakeAmount), tonToken.symbol)}</span>
-      </div>
+      <TransactionBanner
+        tokenIn={tonToken}
+        withChainIcon={isMultichainAccount}
+        color="green"
+        text={formatCurrency(toDecimal(unstakeAmount), tonToken.symbol)}
+        className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+      />
     );
   }
 
@@ -303,14 +309,14 @@ function UnstakeModal({
     const insufficientFeeText = (
       <span className={styles.balanceError}>
         {lang('$insufficient_fee', {
-          fee: formatCurrency(toBig(MIN_BALANCE_FOR_UNSTAKE), TON_SYMBOL),
+          fee: formatCurrency(toBig(MIN_BALANCE_FOR_UNSTAKE), TONCOIN.symbol),
         })}
       </span>
     );
     const instantAvailableText = instantAvailable
       ? (
         lang('$unstake_up_to_information', {
-          value: formatCurrency(toDecimal(instantAvailable, tonToken?.decimals), TON_SYMBOL),
+          value: formatCurrency(toDecimal(instantAvailable, tonToken?.decimals), TONCOIN.symbol),
         })
       ) : ' ';
 
@@ -334,7 +340,15 @@ function UnstakeModal({
   function renderUnstakeTimer() {
     return (
       <div className={buildClassName(styles.unstakeTime)}>
-        <i className={buildClassName(styles.unstakeTimeIcon, 'icon-clock')} aria-hidden />
+        <AnimatedIconWithPreview
+          play={isOpen}
+          size={ANIMATED_STICKER_TINY_ICON_PX}
+          className={styles.unstakeTimeIcon}
+          nonInteractive
+          noLoop={false}
+          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGrayWhite}
+          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGrayWhite}
+        />
         <div>
           {lang('$unstaking_when_receive', {
             time: (
@@ -384,7 +398,7 @@ function UnstakeModal({
             {lang('$unstaking_not_enough_balance', {
               value: (
                 <span className={styles.notEnoughBalanceTextBold}>
-                  {formatCurrency(toBig(MIN_BALANCE_FOR_UNSTAKE), TON_SYMBOL)}
+                  {formatCurrency(toBig(MIN_BALANCE_FOR_UNSTAKE), TONCOIN.symbol)}
                 </span>
               ),
             })}
@@ -467,7 +481,7 @@ function UnstakeModal({
           onCancel={handleBackClick}
           onUpdate={clearStakingError}
         >
-          {renderUnstakingShortInfo()}
+          {renderTransactionBanner()}
         </PasswordForm>
       </>
     );
@@ -487,8 +501,6 @@ function UnstakeModal({
             playAnimation={isActive}
             amount={successUnstakeAmount}
             noSign
-            balance={renderedBalance}
-            operationAmount={successUnstakeAmount}
           />
 
           {isLongUnstake && renderUnstakeTimer()}
@@ -572,6 +584,7 @@ export default memo(withGlobal((global): StateProps => {
   const accountState = selectAccountState(global, global.currentAccountId!);
   const shouldUseNominators = accountState?.staking?.type === 'nominators';
   const isHardwareAccount = selectIsHardwareAccount(global);
+  const isMultichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
 
   const {
     hardwareState,
@@ -592,5 +605,7 @@ export default memo(withGlobal((global): StateProps => {
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,
+    theme: global.settings.theme,
+    isMultichainAccount,
   };
 })(UnstakeModal));

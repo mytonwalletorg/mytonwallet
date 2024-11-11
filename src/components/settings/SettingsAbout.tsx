@@ -1,5 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 
+import { type Theme } from '../../global/types';
+
 import {
   APP_ENV_MARKER, APP_NAME, APP_REPO_URL, APP_VERSION, IS_EXTENSION,
 } from '../../config';
@@ -7,6 +9,7 @@ import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { handleOpenUrl } from '../../util/openUrl';
 
+import useAppTheme from '../../hooks/useAppTheme';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useScrolledState from '../../hooks/useScrolledState';
@@ -17,15 +20,19 @@ import ModalHeader from '../ui/ModalHeader';
 
 import styles from './Settings.module.scss';
 
-import logoSrc from '../../assets/logo.svg';
+import logoDarkPath from '../../assets/logoDark.svg';
+import logoLightPath from '../../assets/logoLight.svg';
 
 interface OwnProps {
   isActive?: boolean;
   handleBackClick: () => void;
   isInsideModal?: boolean;
+  theme: Theme;
 }
 
-function SettingsAbout({ isActive, handleBackClick, isInsideModal }: OwnProps) {
+function SettingsAbout({
+  isActive, handleBackClick, isInsideModal, theme,
+}: OwnProps) {
   const lang = useLang();
 
   useHistoryBack({
@@ -37,6 +44,9 @@ function SettingsAbout({ isActive, handleBackClick, isInsideModal }: OwnProps) {
     handleScroll: handleContentScroll,
     isScrolled,
   } = useScrolledState();
+
+  const appTheme = useAppTheme(theme);
+  const logoPath = appTheme === 'light' ? logoLightPath : logoDarkPath;
 
   return (
     <div className={styles.slide}>
@@ -64,7 +74,7 @@ function SettingsAbout({ isActive, handleBackClick, isInsideModal }: OwnProps) {
         )}
         onScroll={isInsideModal ? handleContentScroll : undefined}
       >
-        <img src={logoSrc} alt={lang('Logo')} className={styles.logo} />
+        <img src={logoPath} alt={lang('Logo')} className={styles.logo} />
         <h2 className={styles.title}>
           {APP_NAME} {APP_VERSION} {APP_ENV_MARKER}
           <a href="https://mytonwallet.io/" target="_blank" className={styles.titleLink} rel="noreferrer">

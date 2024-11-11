@@ -24,6 +24,9 @@ interface OwnProps {
   className?: string;
   bubbleClassName?: string;
   buttonClassName?: string;
+  iconClassName?: string;
+  fontIconClassName?: string;
+  itemNameClassName?: string;
   shouldCleanup?: boolean;
   onSelect?: (value: string) => void;
   onClose: NoneToVoidFunction;
@@ -43,6 +46,9 @@ function DropdownMenu({
   className,
   bubbleClassName,
   buttonClassName,
+  iconClassName,
+  fontIconClassName,
+  itemNameClassName,
   shouldCleanup,
   onSelect,
   onClose,
@@ -89,11 +95,19 @@ function DropdownMenu({
             disabled={item.isDisabled}
             onClick={(e) => handleItemClick(e, item.value)}
           >
-            {item.icon && <img src={item.icon} alt="" className={buildClassName('icon', styles.itemIcon)} />}
-            {item.fontIcon && (
-              <i className={buildClassName(`icon icon-${item.fontIcon}`, styles.fontIcon)} aria-hidden />
+            {item.icon && (
+              <img src={item.icon} alt="" className={buildClassName('icon', styles.itemIcon, iconClassName)} />
             )}
-            <span className={buildClassName(styles.itemName, 'menuItemName')}>
+            {item.overlayIcon && (
+              <img src={item.overlayIcon} alt="" className={buildClassName('icon', styles.itemOverlayIcon)} />
+            )}
+            {item.fontIcon && (
+              <i
+                className={buildClassName(`icon icon-${item.fontIcon}`, styles.fontIcon, fontIconClassName)}
+                aria-hidden
+              />
+            )}
+            <span className={buildClassName(styles.itemName, 'menuItemName', itemNameClassName)}>
               {shouldTranslateOptions ? lang(item.name) : item.name}
               {item.description && (
                 <span className={styles.itemDescription}>

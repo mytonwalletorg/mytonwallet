@@ -1,5 +1,8 @@
-import type { GlobalState } from '../types';
+import type { AccountState, GlobalState } from '../types';
 import { TransferState } from '../types';
+
+import { selectCurrentAccountState } from '../selectors';
+import { updateCurrentAccountState } from './misc';
 
 export function updateDappConnectRequest(global: GlobalState, update: Partial<GlobalState['dappConnectRequest']>) {
   return {
@@ -47,32 +50,19 @@ export function clearCurrentDappTransfer(global: GlobalState) {
   };
 }
 
-export function updateConnectedDapps(global: GlobalState, update: Partial<GlobalState['settings']>) {
-  return {
-    ...global,
-    settings: {
-      ...global.settings,
-      dapps: update.dapps ?? [],
-    },
-  } as GlobalState;
+export function updateConnectedDapps(global: GlobalState, update: AccountState['dapps']) {
+  return updateCurrentAccountState(global, { dapps: update });
 }
 
 export function clearConnectedDapps(global: GlobalState) {
-  return {
-    ...global,
-    settings: {
-      ...global.settings,
-      dapps: [],
-    },
-  } as GlobalState;
+  return updateCurrentAccountState(global, { dapps: undefined, dappLastOpenedDatesByOrigin: undefined });
 }
 
 export function removeConnectedDapp(global: GlobalState, origin: string) {
-  return {
-    ...global,
-    settings: {
-      ...global.settings,
-      dapps: global.settings.dapps.filter((dapp) => dapp.origin !== origin),
-    },
-  } as GlobalState;
+  const { dapps: connectedDapps, dappLastOpenedDatesByOrigin } = selectCurrentAccountState(global) || {};
+  if (dappLastOpenedDatesByOrigin) delete dappLastOpenedDatesByOrigin[origin];
+  return updateCurrentAccountState(global, {
+    dapps: connectedDapps!.filter((d) => d.origin !== origin),
+    dappLastOpenedDatesByOrigin,
+  });
 }

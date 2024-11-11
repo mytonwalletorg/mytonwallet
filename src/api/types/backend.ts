@@ -42,20 +42,20 @@ export type ApiSwapBuildResponse = {
 export type ApiSwapAsset = {
   name: string;
   symbol: string;
-  blockchain: string;
+  chain: string;
   slug: string;
   decimals: number;
   isPopular: boolean;
   price: number;
   priceUsd: number;
   image?: string;
-  contract?: string;
+  tokenAddress?: string;
   keywords?: string[];
   color?: string;
 };
 
 export type ApiSwapTonAsset = ApiSwapAsset & {
-  blockchain: 'ton';
+  chain: 'ton';
 };
 
 export type ApiSwapPairAsset = {

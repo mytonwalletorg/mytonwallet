@@ -3,14 +3,16 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { TON_EXPLORER_NAME } from '../../config';
-import { selectCurrentAccountState } from '../../global/selectors';
+import type { ApiChain } from '../../api/types';
+import type { SavedAddress } from '../../global/types';
+
+import { selectCurrentAccountState, selectIsMultichainAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { handleOpenUrl } from '../../util/openUrl';
 import { shortenAddress } from '../../util/shortenAddress';
-import { getTonExplorerAddressUrl } from '../../util/url';
+import { getExplorerAddressUrl, getExplorerName } from '../../util/url';
 
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
@@ -29,6 +31,7 @@ import modalStyles from './Modal.module.scss';
 import scamImg from '../../assets/scam.svg';
 
 interface OwnProps {
+  chain?: ApiChain;
   address?: string;
   addressName?: string;
   isScam?: boolean;
@@ -44,13 +47,15 @@ interface OwnProps {
 }
 
 interface StateProps {
-  isAddressAlreadySaved?: boolean;
+  savedAddresses?: SavedAddress[];
+  isMultichainAccount?: boolean;
   isTestnet?: boolean;
 }
 
 const SAVED_ADDRESS_NAME_MAX_LENGTH = 255;
 
 function InteractiveTextField({
+  chain,
   address,
   addressName,
   isScam,
@@ -63,8 +68,9 @@ function InteractiveTextField({
   noExplorer,
   className,
   textClassName,
-  isAddressAlreadySaved,
+  savedAddresses,
   isTestnet,
+  isMultichainAccount,
 }: OwnProps & StateProps) {
   const { showNotification, addSavedAddress } = getActions();
 
@@ -75,14 +81,24 @@ function InteractiveTextField({
   const [isDeleteSavedAddressModalOpen, openDeletedSavedAddressModal, closeDeleteSavedAddressModal] = useFlag();
   const [savedAddressName, setSavedAddressName] = useState<string | undefined>(addressName);
   const [isConcealedWithSpoiler, , revealSpoiler] = useFlag(Boolean(spoiler));
+  const isAddressAlreadySaved = useMemo(() => {
+    return Boolean(address && chain && (savedAddresses || []).find((savedAddress) => {
+      return savedAddress.address === address && savedAddress.chain === chain;
+    }));
+  }, [address, chain, savedAddresses]);
 
-  const addressUrl = getTonExplorerAddressUrl(address, isTestnet);
+  const addressUrl = chain ? getExplorerAddressUrl(chain, address, isTestnet) : undefined;
   const tonExplorerTitle = useMemo(() => {
-    return (lang('View Address on %ton_explorer_name%', {
-      ton_explorer_name: TON_EXPLORER_NAME,
-    }) as TeactNode[]
-    ).join('');
-  }, [lang]);
+    return chain
+      ? (lang('View Address on %ton_explorer_name%', {
+        ton_explorer_name: getExplorerName(chain),
+      }) as TeactNode[]
+      ).join('')
+      : undefined;
+  }, [chain, lang]);
+  const saveAddressTitle = useMemo(() => {
+    return lang(isAddressAlreadySaved ? 'Remove From Saved Addresses' : 'Add To Saved Addresses');
+  }, [isAddressAlreadySaved, lang]);
 
   useEffect(() => {
     if (isSaveAddressModalOpen) {
@@ -91,20 +107,18 @@ function InteractiveTextField({
   }, [isSaveAddressModalOpen]);
 
   const handleSaveAddressSubmit = useLastCallback(() => {
-    if (!savedAddressName || !address) {
+    if (!savedAddressName || !address || !chain) {
       return;
     }
 
-    addSavedAddress({ address, name: savedAddressName });
+    addSavedAddress({ address, chain, name: savedAddressName });
     showNotification({ message: lang('Address was saved!'), icon: 'icon-star' });
     closeSaveAddressModal();
   });
 
   useEffect(() => (
     isSaveAddressModalOpen
-      ? captureKeyboardListeners({
-        onEnter: handleSaveAddressSubmit,
-      })
+      ? captureKeyboardListeners({ onEnter: handleSaveAddressSubmit })
       : undefined
   ), [handleSaveAddressSubmit, isSaveAddressModalOpen]);
 
@@ -158,6 +172,9 @@ function InteractiveTextField({
         role="button"
       >
         {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
+        {isMultichainAccount && (
+          <i className={buildClassName(styles.chainIcon, `icon-chain-${chain}`)} aria-label={chain} />
+        )}
         {content}
         {Boolean(addressName) && (
           <span className={buildClassName(styles.shortAddress, isScam && styles.scam)}>{shortenAddress(address!)}</span>
@@ -210,7 +227,8 @@ function InteractiveTextField({
         {!isScam && !noSavedAddress && address && (
           <span
             className={styles.button}
-            title={lang(isAddressAlreadySaved ? 'Remove From Saved Addresses' : 'Add To Saved Addresses')}
+            title={saveAddressTitle}
+            aria-label={saveAddressTitle}
             onClick={isAddressAlreadySaved ? openDeletedSavedAddressModal : openSaveAddressModal}
             tabIndex={0}
             role="button"
@@ -231,6 +249,7 @@ function InteractiveTextField({
             href={addressUrl}
             className={styles.button}
             title={tonExplorerTitle}
+            aria-label={tonExplorerTitle}
             target="_blank"
             rel="noreferrer noopener"
             onClick={handleOpenUrl}
@@ -245,6 +264,7 @@ function InteractiveTextField({
           <DeleteSavedAddressModal
             isOpen={isDeleteSavedAddressModalOpen}
             address={address}
+            chain={chain}
             onClose={closeDeleteSavedAddressModal}
           />
         </>
@@ -254,12 +274,12 @@ function InteractiveTextField({
 }
 
 export default memo(withGlobal<OwnProps>(
-  (global, { address }): StateProps => {
+  (global): StateProps => {
     const accountState = selectCurrentAccountState(global);
-    const isAddressAlreadySaved = Boolean(address && accountState?.savedAddresses?.[address]);
 
     return {
-      isAddressAlreadySaved,
+      savedAddresses: accountState?.savedAddresses,
+      isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
       isTestnet: global.settings.isTestnet,
     };
   },

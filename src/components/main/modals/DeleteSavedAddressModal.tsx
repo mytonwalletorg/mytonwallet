@@ -1,6 +1,8 @@
 import React, { memo } from '../../../lib/teact/teact';
 import { getActions } from '../../../global';
 
+import type { ApiChain } from '../../../api/types';
+
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -13,20 +15,19 @@ import styles from './DeleteSavedAddressModal.module.scss';
 interface OwnProps {
   isOpen?: boolean;
   address?: string;
+  chain?: ApiChain;
   onClose: NoneToVoidFunction;
 }
 
-function DeleteSavedAddressModal({ isOpen, address, onClose }: OwnProps) {
+function DeleteSavedAddressModal({
+  isOpen, address, chain, onClose,
+}: OwnProps) {
   const { removeFromSavedAddress, showNotification } = getActions();
 
   const lang = useLang();
 
   const handleDeleteSavedAddress = useLastCallback(() => {
-    if (!address) {
-      return;
-    }
-
-    removeFromSavedAddress({ address });
+    removeFromSavedAddress({ address: address!, chain: chain! });
     showNotification({ message: lang('Address removed from saved') as string, icon: 'icon-trash' });
     onClose();
   });

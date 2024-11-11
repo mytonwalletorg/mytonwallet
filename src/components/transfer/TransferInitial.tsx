@@ -4,18 +4,23 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency, ApiNft } from '../../api/types';
-import type { Account, DieselStatus, UserToken } from '../../global/types';
+import type { ApiBaseCurrency, ApiChain, ApiNft } from '../../api/types';
+import type {
+  Account, DieselStatus, SavedAddress, UserToken,
+} from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
-import { IS_FIREFOX_EXTENSION, TON_SYMBOL, TONCOIN_SLUG } from '../../config';
+import {
+  IS_FIREFOX_EXTENSION, STARS_SYMBOL, TONCOIN, TRX,
+} from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectIsHardwareAccount,
+  selectIsMultichainAccount,
   selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -24,12 +29,15 @@ import { readClipboardContent } from '../../util/clipboard';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
 import { formatCurrency, formatCurrencyExtended, getShortCurrencySymbol } from '../../util/formatNumber';
-import { isTonAddressOrDomain } from '../../util/isTonAddressOrDomain';
-import { throttle } from '../../util/schedulers';
+import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
+import { debounce } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
+import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
+import { getIsNativeToken } from '../../util/tokens';
 import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
-import { NFT_TRANSFER_AMOUNT } from '../../api/blockchains/ton/constants';
+import { NFT_TRANSFER_AMOUNT } from '../../api/chains/ton/constants';
+import { ONE_TRX } from '../../api/chains/tron/constants';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -56,7 +64,6 @@ import styles from './Transfer.module.scss';
 
 interface OwnProps {
   isStatic?: boolean;
-  onCommentChange?: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -68,7 +75,7 @@ interface StateProps {
   fee?: bigint;
   tokenSlug?: string;
   tokens?: UserToken[];
-  savedAddresses?: Record<string, string>;
+  savedAddresses?: SavedAddress[];
   currentAccountId?: string;
   accounts?: Record<string, Account>;
   isEncryptedCommentSupported: boolean;
@@ -80,11 +87,12 @@ interface StateProps {
   dieselAmount?: bigint;
   dieselStatus?: DieselStatus;
   isDieselAuthorizationStarted?: boolean;
+  isMultichainAccount: boolean;
 }
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
 const COMMENT_MAX_SIZE_BYTES = 5000;
-const SHORT_ADDRESS_SHIFT = 12;
+const SHORT_ADDRESS_SHIFT = 11;
 const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
 const COMMENT_DROPDOWN_ITEMS = [
   { value: 'raw', name: 'Comment or Memo' },
@@ -93,14 +101,26 @@ const COMMENT_DROPDOWN_ITEMS = [
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
 const STAKED_TOKEN_SLUG = 'ton-eqcqc6ehrj';
 const AUTHORIZE_DIESEL_INTERVAL_MS = 1000;
+const TRON_ADDRESS_REGEX = /^T[1-9A-HJ-NP-Za-km-z]{1,33}$/;
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
-const runThrottled = throttle((cb) => cb(), 1500, true);
+const runDebounce = debounce((cb) => cb(), 500, true);
+
+function doesSavedAddressFitSearch(savedAddress: SavedAddress, search: string) {
+  const searchQuery = search.toLowerCase();
+  const { address, name } = savedAddress;
+
+  return (
+    address.toLowerCase().startsWith(searchQuery)
+    || address.toLowerCase().endsWith(searchQuery)
+    || name.toLowerCase().split(/\s+/).some((part) => part.startsWith(searchQuery))
+  );
+}
 
 function TransferInitial({
   isStatic,
-  tokenSlug = TONCOIN_SLUG,
+  tokenSlug = TONCOIN.slug,
   toAddress = '',
   amount,
   comment = '',
@@ -113,7 +133,6 @@ function TransferInitial({
   isEncryptedCommentSupported,
   isMemoRequired,
   isLoading,
-  onCommentChange,
   baseCurrency,
   nfts,
   binPayload,
@@ -121,6 +140,7 @@ function TransferInitial({
   dieselAmount,
   dieselStatus,
   isDieselAuthorizationStarted,
+  isMultichainAccount,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -146,11 +166,20 @@ function TransferInitial({
 
   const lang = useLang();
 
+  const {
+    amount: balance,
+    decimals,
+    price,
+    symbol,
+    chain,
+  } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
+
   // Note: As of 27-11-2023, Firefox does not support readText()
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(!(IS_FIREFOX || IS_FIREFOX_EXTENSION));
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [isAddressBookOpen, openAddressBook, closeAddressBook] = useFlag();
   const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
+  const [savedChainForDeletion, setSavedChainForDeletion] = useState<ApiChain | undefined>();
   const [hasToAddressError, setHasToAddressError] = useState<boolean>(false);
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
@@ -159,23 +188,27 @@ function TransferInitial({
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
-  const isAddressValid = isTonAddressOrDomain(toAddress);
+  const isAddressValid = chain ? isValidAddressOrDomain(toAddress, chain) : undefined;
   const otherAccountIds = useMemo(() => {
     return accounts ? Object.keys(accounts).filter((accountId) => accountId !== currentAccountId) : [];
   }, [currentAccountId, accounts]);
   const shouldUseAddressBook = useMemo(() => {
-    return otherAccountIds.length > 0 || Object.keys(savedAddresses || {}).length > 0;
+    return otherAccountIds.length > 0 || (savedAddresses && savedAddresses.length > 0);
   }, [otherAccountIds.length, savedAddresses]);
-  const {
-    amount: balance,
-    decimals,
-    price,
-    symbol,
-  } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
 
-  const isToncoin = tokenSlug === TONCOIN_SLUG;
-  const isTonFullBalance = isToncoin && balance === amount;
-  const tonToken = useMemo(() => tokens?.find((token) => token.slug === TONCOIN_SLUG), [tokens])!;
+  const isNativeCoin = getIsNativeToken(tokenSlug);
+  const nativeToken = useMemo(() => {
+    return tokens?.find((token) => !token.tokenAddress && token.chain === chain);
+  }, [tokens, chain])!;
+
+  const isUpdatingAmountDueToMaxChange = useRef(false);
+  const [isMaxAmountSelected, setMaxAmountSelected] = useState(false);
+  const [prevDieselAmount, setPrevDieselAmount] = useState(dieselAmount);
+
+  const isToncoin = tokenSlug === TONCOIN.slug;
+  const toncoinToken = useMemo(() => tokens?.find((token) => token.slug === TONCOIN.slug), [tokens])!;
+  const isToncoinFullBalance = isToncoin && balance === amount;
+
   const shouldDisableClearButton = !toAddress && !amount && !(comment || binPayload) && !shouldEncrypt
     && !(nfts?.length && isStatic);
 
@@ -190,17 +223,35 @@ function TransferInitial({
   const withAddressClearButton = !!toAddress.length;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
-  const additionalAmount = amount && tokenSlug === TONCOIN_SLUG ? amount : 0n;
-  const isEnoughToncoin = isTonFullBalance
-    ? (fee && fee < tonToken.amount)
-    : (fee && (fee + additionalAmount) <= tonToken.amount);
+  const additionalAmount = amount && isToncoin ? amount : 0n;
+  const isEnoughNativeCoin = isToncoinFullBalance
+    ? (fee !== undefined && fee < toncoinToken.amount)
+    : (fee !== undefined && (fee + additionalAmount) <= nativeToken.amount);
 
-  const isDieselAvailable = dieselStatus === 'available';
+  const isGaslessWithStars = dieselStatus === 'stars-fee';
+  const isDieselAvailable = dieselStatus === 'available' || isGaslessWithStars;
   const isDieselNotAuthorized = dieselStatus === 'not-authorized';
   const withDiesel = dieselStatus && dieselStatus !== 'not-available';
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
-    ? balance - amount > dieselAmount
+    ? isGaslessWithStars || isUpdatingAmountDueToMaxChange.current
+      ? true
+      : balance - amount >= dieselAmount
     : undefined;
+
+  const feeSymbol = isGaslessWithStars ? STARS_SYMBOL : symbol;
+  const isDisabledDebounce = useRef(false);
+
+  const maxAmount = useMemo(() => {
+    if (withDiesel && dieselAmount && balance) {
+      return isGaslessWithStars
+        ? balance
+        : balance - dieselAmount;
+    }
+    if (nativeToken?.chain === 'tron' && balance) {
+      return balance - ONE_TRX;
+    }
+    return balance;
+  }, [balance, dieselAmount, isGaslessWithStars, withDiesel, nativeToken]);
 
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
     ? AUTHORIZE_DIESEL_INTERVAL_MS
@@ -214,7 +265,15 @@ function TransferInitial({
     fetchDieselState({ tokenSlug });
   });
 
+  const validateToAddress = useLastCallback(() => {
+    setHasToAddressError(Boolean(toAddress) && !isAddressValid);
+  });
+
   useInterval(updateDieselState, authorizeDieselInterval);
+
+  useEffect(() => {
+    validateToAddress();
+  }, [isAddressValid]);
 
   const dropDownItems = useMemo(() => {
     if (!tokens) {
@@ -225,14 +284,15 @@ function TransferInitial({
       if (token.amount > 0 || token.slug === tokenSlug) {
         acc.push({
           value: token.slug,
-          icon: token.image || ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS],
+          icon: ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS] || token.image,
+          overlayIcon: isMultichainAccount ? getChainNetworkIcon(token.chain) : undefined,
           name: token.symbol,
         });
       }
 
       return acc;
     }, []);
-  }, [tokenSlug, tokens]);
+  }, [isMultichainAccount, tokenSlug, tokens]);
 
   const validateAndSetAmount = useLastCallback(
     (newAmount: bigint | undefined, noReset = false) => {
@@ -252,15 +312,19 @@ function TransferInitial({
         return;
       }
 
-      const tonBalance = tonToken.amount;
-      const tonAmount = isToncoin ? newAmount : 0n;
+      const nativeBalance = nativeToken.amount;
+      const nativeAmount = isNativeCoin ? newAmount : 0n;
 
       if (!balance || newAmount > balance) {
         setHasAmountError(true);
         setIsInsufficientBalance(true);
-      } else if (isToncoin && tonAmount === tonToken.amount) {
+      } else if (isToncoin && nativeAmount === toncoinToken.amount) {
         // Do nothing
-      } else if (fee && (fee >= tonBalance || (fee + tonAmount > tonBalance)) && !isDieselAvailable) {
+      } else if (
+        fee !== undefined
+        && (fee >= nativeBalance || (fee + nativeAmount > nativeBalance))
+        && !isDieselAvailable
+      ) {
         setIsInsufficientFee(true);
       }
 
@@ -283,11 +347,30 @@ function TransferInitial({
   }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount, isDieselAvailable]);
 
   useEffect(() => {
-    if (!toAddress || hasToAddressError || !(amount || nfts?.length) || !isAddressValid) {
+    if (isMaxAmountSelected && dieselAmount && prevDieselAmount !== dieselAmount && maxAmount! > 0) {
+      isUpdatingAmountDueToMaxChange.current = true;
+
+      setMaxAmountSelected(false);
+      setPrevDieselAmount(dieselAmount);
+      setTransferAmount({ amount: maxAmount });
+    }
+  }, [
+    dieselAmount, maxAmount, isMaxAmountSelected, prevDieselAmount, withDiesel, balance, isGaslessWithStars,
+  ]);
+
+  useEffect(() => {
+    if (
+      !toAddress
+      || hasToAddressError
+      || !(amount || nfts?.length)
+      || !isAddressValid
+      || isUpdatingAmountDueToMaxChange.current
+    ) {
+      isUpdatingAmountDueToMaxChange.current = false;
       return;
     }
 
-    runThrottled(() => {
+    const runFunction = () => {
       if (isNftTransfer) {
         fetchNftFee({
           toAddress,
@@ -304,7 +387,14 @@ function TransferInitial({
           stateInit,
         });
       }
-    });
+    };
+
+    if (!isDisabledDebounce.current) {
+      runDebounce(runFunction);
+    } else {
+      isDisabledDebounce.current = false;
+      runFunction();
+    }
   }, [
     amount,
     binPayload,
@@ -320,7 +410,10 @@ function TransferInitial({
 
   const handleTokenChange = useLastCallback(
     (slug: string) => {
+      if (slug === tokenSlug) return;
+
       changeTransferToken({ tokenSlug: slug });
+      setMaxAmountSelected(false);
       if (slug === STAKED_TOKEN_SLUG) {
         showDialog({
           title: lang('Warning!'),
@@ -330,10 +423,6 @@ function TransferInitial({
       }
     },
   );
-
-  const validateToAddress = useLastCallback(() => {
-    setHasToAddressError(Boolean(toAddress) && !isAddressValid);
-  });
 
   const handleAddressBookClose = useLastCallback(() => {
     if (!shouldUseAddressBook || !isAddressBookOpen) return;
@@ -389,6 +478,7 @@ function TransferInitial({
       setTransferToAddress({ toAddress: toAddress.toLowerCase().trim() });
     } else if (toAddress !== toAddress.trim()) {
       setTransferToAddress({ toAddress: toAddress.trim() });
+      parseAddressAndUpdateToken(toAddress.trim());
     }
 
     requestAnimationFrame(() => {
@@ -399,6 +489,7 @@ function TransferInitial({
 
   const handleAddressInput = useLastCallback((newToAddress: string) => {
     setTransferToAddress({ toAddress: newToAddress });
+    parseAddressAndUpdateToken(newToAddress);
   });
 
   const handleAddressClearClick = useLastCallback(() => {
@@ -425,12 +516,28 @@ function TransferInitial({
     }
   });
 
+  function parseAddressAndUpdateToken(address: string) {
+    if (!address || amount || !isMultichainAccount || !tokens) return;
+
+    if (isTronAddress(address)) {
+      if (chain === 'tron') return;
+
+      const newTokenSlug = findTokenSlugWithMaxBalance(tokens, 'tron') || TRX.slug;
+      handleTokenChange(newTokenSlug);
+      return;
+    }
+
+    const newTokenSlug = findTokenSlugWithMaxBalance(tokens, 'ton') || TONCOIN.slug;
+    handleTokenChange(newTokenSlug);
+  }
+
   const handlePasteClick = useLastCallback(async () => {
     try {
       const { type, text } = await readClipboardContent();
 
-      if (type === 'text/plain' && isTonAddressOrDomain(text.trim())) {
+      if (type === 'text/plain') {
         setTransferToAddress({ toAddress: text.trim() });
+        parseAddressAndUpdateToken(text.trim());
         validateToAddress();
       }
     } catch (err: any) {
@@ -442,6 +549,7 @@ function TransferInitial({
   const handleAddressBookItemClick = useLastCallback(
     (address: string) => {
       setTransferToAddress({ toAddress: address });
+      parseAddressAndUpdateToken(address);
       closeAddressBook();
     },
   );
@@ -449,12 +557,14 @@ function TransferInitial({
   const handleDeleteSavedAddressClick = useLastCallback(
     (address: string) => {
       setSavedAddressForDeletion(address);
+      setSavedChainForDeletion(chain);
       closeAddressBook();
     },
   );
 
   const closeDeleteSavedAddressModal = useLastCallback(() => {
     setSavedAddressForDeletion(undefined);
+    setSavedChainForDeletion(undefined);
   });
 
   const handleAmountChange = useLastCallback((stringValue?: string) => {
@@ -470,13 +580,19 @@ function TransferInitial({
     }
 
     vibrate();
+    if (maxAmount! > 0) {
+      isDisabledDebounce.current = true;
+      setMaxAmountSelected(true);
+      setTransferAmount({ amount: maxAmount });
+    }
+  });
 
-    setTransferAmount({ amount: balance });
+  const handlePaste = useLastCallback(() => {
+    isDisabledDebounce.current = true;
   });
 
   const handleCommentChange = useLastCallback((value) => {
     setTransferComment({ comment: trimStringByMaxBytes(value, COMMENT_MAX_SIZE_BYTES) });
-    onCommentChange?.();
   });
 
   const isCommentRequired = Boolean(toAddress) && isMemoRequired;
@@ -485,7 +601,7 @@ function TransferInitial({
 
   const canSubmit = Boolean(toAddress.length && requiredAmount && balance && requiredAmount > 0
     && requiredAmount <= balance && !hasToAddressError && !hasAmountError
-    && (isEnoughToncoin || isEnoughDiesel || isDieselNotAuthorized) && !hasCommentError
+    && (isEnoughNativeCoin || isEnoughDiesel || isDieselNotAuthorized) && !hasCommentError
     && (!isNftTransfer || Boolean(nfts?.length)));
 
   const handleSubmit = useLastCallback((e) => {
@@ -507,9 +623,11 @@ function TransferInitial({
       amount: isNftTransfer ? NFT_TRANSFER_AMOUNT : amount!,
       toAddress,
       comment,
+      binPayload,
       shouldEncrypt,
       nftAddresses: isNftTransfer ? nfts!.map(({ address }) => address) : undefined,
       withDiesel,
+      isGaslessWithStars,
       stateInit,
     });
   });
@@ -519,46 +637,79 @@ function TransferInitial({
   });
 
   const renderedSavedAddresses = useMemo(() => {
-    if (!savedAddresses) {
+    if (!savedAddresses || savedAddresses.length === 0) {
       return undefined;
     }
 
-    return Object.keys(savedAddresses).map((address) => renderAddressItem({
-      key: `saved-${address}`,
-      address,
-      name: savedAddresses[address],
+    return savedAddresses.filter(
+      (item) => doesSavedAddressFitSearch(item, toAddress),
+    ).map((item) => renderAddressItem({
+      key: `saved-${item.address}-${item.chain}`,
+      address: item.address,
+      name: item.name,
+      chain: isMultichainAccount ? item.chain : undefined,
       deleteLabel: lang('Delete'),
       onClick: handleAddressBookItemClick,
       onDeleteClick: handleDeleteSavedAddressClick,
     }));
-  }, [savedAddresses, lang, handleAddressBookItemClick, handleDeleteSavedAddressClick]);
+  }, [savedAddresses, isMultichainAccount, lang, toAddress]);
 
   const renderedOtherAccounts = useMemo(() => {
-    if (otherAccountIds.length === 0) {
-      return undefined;
-    }
+    if (otherAccountIds.length === 0) return undefined;
 
-    const addressesToBeIgnored = Object.keys(savedAddresses || {});
+    const addressesToBeIgnored = savedAddresses?.map((item) => `${item.chain}:${item.address}`) ?? [];
+    const uniqueAddresses = new Set<string>();
+    const otherAccounts = otherAccountIds
+      .reduce((acc, accountId) => {
+        const account = accounts![accountId];
 
-    return otherAccountIds
-      .filter((id) => !addressesToBeIgnored.includes(accounts![id].address))
-      .map((id) => renderAddressItem({
-        key: id,
-        address: accounts![id].address,
-        name: accounts![id].title,
-        isHardware: accounts![id].isHardware,
-        onClick: handleAddressBookItemClick,
-      }));
-  }, [otherAccountIds, savedAddresses, accounts, handleAddressBookItemClick]);
+        Object.keys(account.addressByChain).forEach((currentChain) => {
+          const currentAddress = account.addressByChain[currentChain as ApiChain];
+          const key = `${currentChain}:${currentAddress}`;
+          if (
+            !uniqueAddresses.has(key)
+            && (isMultichainAccount || currentChain === TONCOIN.chain)
+            && !addressesToBeIgnored.includes(`${currentChain}:${currentAddress}`)
+          ) {
+            uniqueAddresses.add(key);
+            acc.push({
+              name: account.title || shortenAddress(currentAddress)!,
+              address: currentAddress,
+              chain: currentChain as ApiChain,
+              isHardware: account.isHardware,
+            });
+          }
+        });
+
+        return acc;
+      }, [] as (SavedAddress & { isHardware?: boolean })[]);
+
+    return otherAccounts.filter(
+      (item) => doesSavedAddressFitSearch(item, toAddress),
+    ).map(({
+      address, name, chain: addressChain, isHardware,
+    }) => renderAddressItem({
+      key: `address-${address}-${addressChain}`,
+      address,
+      name,
+      chain: isMultichainAccount ? addressChain : undefined,
+      isHardware,
+      onClick: handleAddressBookItemClick,
+    }));
+  }, [otherAccountIds, savedAddresses, accounts, isMultichainAccount, toAddress]);
+
+  const shouldRenderSuggestions = !!renderedSavedAddresses?.length || !!renderedOtherAccounts?.length;
 
   function renderAddressBook() {
+    if (!shouldRenderSuggestions) return undefined;
+
     return (
       <Menu
         positionX="right"
         type="suggestion"
         noBackdrop
         bubbleClassName={styles.savedAddressBubble}
-        isOpen={isAddressBookOpen && !toAddress?.length}
+        isOpen={isAddressBookOpen}
         onClose={closeAddressBook}
       >
         {renderedSavedAddresses}
@@ -568,7 +719,7 @@ function TransferInitial({
   }
 
   function renderBottomRight() {
-    const withFee = fee && amount && amount > 0;
+    const withFee = fee !== undefined && amount && amount > 0;
 
     const activeKey = isInsufficientBalance ? 0
       : isInsufficientFee ? 1
@@ -579,7 +730,7 @@ function TransferInitial({
     const insufficientFeeText = withFee ? (
       <span className={styles.balanceError}>
         {lang('$insufficient_fee', {
-          fee: formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true),
+          fee: formatCurrencyExtended(toDecimal(renderingFee!, nativeToken.decimals), nativeToken.symbol, true),
         })}
       </span>
     ) : ' ';
@@ -594,11 +745,11 @@ function TransferInitial({
 
     let feeText: string | TeactNode[] = ' ';
 
-    if (withDiesel && dieselAmount && symbol) {
+    if (withDiesel && dieselAmount && feeSymbol) {
       feeText = lang('$fee_value', {
         fee: (
           <span className={styles.feeValue}>
-            {formatCurrencyExtended(toDecimal(dieselAmount!, decimals), symbol, true, decimals)}
+            {formatCurrencyExtended(toDecimal(dieselAmount!, decimals), feeSymbol, true, decimals)}
           </span>
         ),
       });
@@ -606,16 +757,22 @@ function TransferInitial({
       feeText = lang('$fee_value', {
         fee: (
           <span className={styles.feeValue}>
-            {formatCurrencyExtended(toDecimal(renderingFee!), TON_SYMBOL, true, tonToken.decimals)}
+            {formatCurrencyExtended(
+              toDecimal(renderingFee!, nativeToken.decimals), nativeToken.symbol, true, nativeToken.decimals,
+            )}
           </span>
         ),
       });
     }
 
-    const content = isInsufficientBalance ? insufficientBalanceText
-      : withDiesel && !isEnoughDiesel ? insufficientDieselText
-        : isInsufficientFee ? insufficientFeeText
-          : withFee ? feeText
+    const content = isInsufficientBalance
+      ? insufficientBalanceText
+      : withDiesel && !isEnoughDiesel
+        ? insufficientDieselText
+        : isInsufficientFee
+          ? insufficientFeeText
+          : withFee
+            ? feeText
             : ' ';
 
     return (
@@ -682,7 +839,7 @@ function TransferInitial({
                 onClick={handleMaxAmountClick}
                 className={styles.balanceLink}
               >
-                {balance !== undefined ? formatCurrency(toDecimal(balance, decimals), symbol) : lang('Loading...')}
+                {maxAmount !== undefined ? formatCurrency(toDecimal(maxAmount, decimals), symbol) : lang('Loading...')}
               </div>
             ),
           })}
@@ -697,6 +854,7 @@ function TransferInitial({
         items={dropDownItems}
         selectedValue={tokenSlug}
         className={styles.tokenDropdown}
+        itemNameClassName={styles.tokenDropdownItem}
         onChange={handleTokenChange}
       />
     );
@@ -716,6 +874,7 @@ function TransferInitial({
         items={isEncryptedCommentSupported ? COMMENT_DROPDOWN_ITEMS : [COMMENT_DROPDOWN_ITEMS[0]]}
         selectedValue={COMMENT_DROPDOWN_ITEMS[shouldEncrypt ? 1 : 0].value}
         theme="light"
+        disabled={chain === 'tron'}
         menuPositionHorizontal="left"
         shouldTranslateOptions
         className={styles.commentLabel}
@@ -724,10 +883,59 @@ function TransferInitial({
     );
   }
 
+  function renderCommentField() {
+    if (binPayload || stateInit) {
+      return (
+        <>
+          {binPayload && (
+            <>
+              <div className={styles.label}>{lang('Signing Data')}</div>
+              <InteractiveTextField
+                text={binPayload}
+                copyNotification={lang('Data was copied!')}
+                className={styles.addressWidget}
+              />
+            </>
+          )}
+
+          {stateInit && (
+            <>
+              <div className={styles.label}>{lang('Contract Initialization Data')}</div>
+              <InteractiveTextField
+                text={stateInit}
+                copyNotification={lang('Data was copied!')}
+                className={styles.addressWidget}
+              />
+            </>
+          )}
+
+          <div className={styles.error}>
+            {renderText(lang('$signature_warning'))}
+          </div>
+        </>
+      );
+    }
+
+    return (
+      <Input
+        wrapperClassName={styles.commentInputWrapper}
+        className={isStatic ? styles.inputStatic : undefined}
+        label={renderCommentLabel()}
+        placeholder={isCommentRequired ? lang('Required') : lang('Optional')}
+        value={comment}
+        isControlled
+        isMultiline
+        isDisabled={chain === 'tron'}
+        onInput={handleCommentChange}
+        isRequired={isCommentRequired}
+      />
+    );
+  }
+
   const withButton = isQrScannerSupported || withPasteButton || withAddressClearButton;
 
   function renderButtonText() {
-    if (!isEnoughToncoin && withDiesel && !isDieselAvailable) {
+    if (!isEnoughNativeCoin && withDiesel && !isDieselAvailable) {
       if (dieselStatus === 'pending-previous') {
         return lang('Awaiting Previous Fee');
       } else {
@@ -738,9 +946,15 @@ function TransferInitial({
     }
   }
 
+  const shouldIgnoreErrors = isAddressBookOpen && shouldRenderSuggestions;
+
   return (
     <>
-      <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
+      <form
+        className={isStatic ? undefined : modalStyles.transitionContent}
+        onSubmit={handleSubmit}
+        onPaste={handlePaste}
+      >
         {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} />}
         {Boolean(nfts?.length) && nfts!.length > 1 && <NftChips nfts={nfts!} isStatic={isStatic} />}
 
@@ -751,7 +965,7 @@ function TransferInitial({
           label={lang('Recipient Address')}
           placeholder={lang('Wallet address or domain')}
           value={isAddressFocused ? toAddress : toAddressShort}
-          error={hasToAddressError ? (lang('Incorrect address') as string) : undefined}
+          error={hasToAddressError && !shouldIgnoreErrors ? (lang('Incorrect address') as string) : undefined}
           onInput={handleAddressInput}
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}
@@ -788,49 +1002,9 @@ function TransferInitial({
           </>
         )}
 
-        {binPayload || stateInit ? (
-          <>
-            {binPayload && (
-              <>
-                <div className={styles.label}>{lang('Signing Data')}</div>
-                <InteractiveTextField
-                  text={binPayload}
-                  copyNotification={lang('Data was copied!')}
-                  className={styles.addressWidget}
-                />
-              </>
-            )}
+        {chain === 'ton' && renderCommentField()}
 
-            {stateInit && (
-              <>
-                <div className={styles.label}>{lang('Contract Initialization Data')}</div>
-                <InteractiveTextField
-                  text={stateInit}
-                  copyNotification={lang('Data was copied!')}
-                  className={styles.addressWidget}
-                />
-              </>
-            )}
-
-            <div className={styles.error}>
-              {renderText(lang('$signature_warning'))}
-            </div>
-          </>
-        ) : (
-          <Input
-            wrapperClassName={styles.commentInputWrapper}
-            className={isStatic ? styles.inputStatic : undefined}
-            label={renderCommentLabel()}
-            placeholder={isCommentRequired ? lang('Required') : lang('Optional')}
-            value={comment}
-            isControlled
-            isMultiline
-            onInput={handleCommentChange}
-            isRequired={isCommentRequired}
-          />
-        )}
-
-        <div className={styles.buttons}>
+        <div className={buildClassName(styles.buttons, isStatic && chain !== 'ton' && styles.buttonsShifted)}>
           <Button
             isDisabled={shouldDisableClearButton || isLoading}
             className={styles.button}
@@ -852,6 +1026,7 @@ function TransferInitial({
       <DeleteSavedAddressModal
         isOpen={Boolean(savedAddressForDeletion)}
         address={savedAddressForDeletion}
+        chain={savedChainForDeletion}
         onClose={closeDeleteSavedAddressModal}
       />
     </>
@@ -903,6 +1078,7 @@ export default memo(
         dieselAmount,
         dieselStatus,
         isDieselAuthorizationStarted: accountState?.isDieselAuthorizationStarted,
+        isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
       };
     },
     (global, { isStatic }, stickToFirst) => {
@@ -910,7 +1086,7 @@ export default memo(
         return stickToFirst(global.currentAccountId);
       }
 
-      const { nfts, tokenSlug = TONCOIN_SLUG } = global.currentTransfer;
+      const { nfts, tokenSlug = TONCOIN.slug } = global.currentTransfer;
       const key = nfts?.length ? `${nfts[0].address}_${nfts.length}` : tokenSlug;
 
       return stickToFirst(`${global.currentAccountId}_${key}`);
@@ -929,6 +1105,7 @@ function renderAddressItem({
   key,
   address,
   name,
+  chain,
   isHardware,
   deleteLabel,
   onClick,
@@ -937,6 +1114,7 @@ function renderAddressItem({
   key: string;
   address: string;
   name?: string;
+  chain?: ApiChain;
   isHardware?: boolean;
   deleteLabel?: string;
   onClick: (address: string) => void;
@@ -970,7 +1148,12 @@ function renderAddressItem({
           </span>
         </span>
       )}
-      {name && <span className={styles.savedAddressAddress}>{shortenAddress(address)}</span>}
+      {name && (
+        <span className={styles.savedAddressAddress}>
+          {chain && <i className={buildClassName(styles.chainIcon, `icon-chain-${chain}`)} aria-hidden />}
+          {shortenAddress(address)}
+        </span>
+      )}
       {isSavedAddress && (
         <span
           className={styles.savedAddressDeleteIcon}
@@ -985,4 +1168,21 @@ function renderAddressItem({
       )}
     </div>
   );
+}
+
+function isTronAddress(address: string) {
+  return TRON_ADDRESS_REGEX.test(address);
+}
+
+function findTokenSlugWithMaxBalance(tokens: UserToken[], chain: ApiChain) {
+  const resultToken = tokens
+    .filter((token) => token.chain === chain)
+    .reduce((maxToken, currentToken) => {
+      const currentBalance = currentToken.priceUsd * Number(currentToken.amount);
+      const maxBalance = maxToken ? maxToken.priceUsd * Number(maxToken.amount) : 0;
+
+      return currentBalance > maxBalance ? currentToken : maxToken;
+    });
+
+  return resultToken?.slug;
 }

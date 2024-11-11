@@ -1,0 +1,46 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  margin-top: 2rem;
+  padding: 0.875rem 0.75rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 0.9375rem;
+  color: var(--color-black);
+
+  background-color: var(--color-background-first);
+  border-radius: 1rem;
+}
+
+.sectionFlex {
+  display: flex;
+  align-items: center;
+}
+
+.sectionFlexText {
+  margin-left: 0.625rem;
+}
+
+.textExpired {
+  color: var(--color-red);
+}
+
+.sectionRight {
+  text-align: end;
+}
+
+.description {
+  margin-top: 0.3125rem;
+
+  font-size: 0.75rem;
+  line-height: 0.75rem;
+  color: var(--color-gray-2);
+}
+
+.calendarIcon {
+  margin-right: 0.625rem;
+}

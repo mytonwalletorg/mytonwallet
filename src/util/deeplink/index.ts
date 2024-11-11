@@ -4,7 +4,10 @@ import type { ActionPayloads } from '../../global/types';
 import { ActiveTab } from '../../global/types';
 
 import {
-  DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG, TONCOIN_SLUG,
+  DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
+  DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+  GIVEAWAY_CHECKIN_URL,
+  TONCOIN,
 } from '../../config';
 import {
   selectAccountTokenBySlug,
@@ -13,7 +16,7 @@ import {
   selectTokenByMinterAddress,
 } from '../../global/selectors';
 import { callApi } from '../../api';
-import { isTonAddressOrDomain } from '../isTonAddressOrDomain';
+import { isValidAddressOrDomain } from '../isValidAddressOrDomain';
 import { omitUndefined } from '../iteratees';
 import { logDebug, logDebugError } from '../logs';
 import { openUrl } from '../openUrl';
@@ -37,6 +40,7 @@ enum DeeplinkCommand {
   BuyWithCrypto = 'buy-with-crypto',
   BuyWithCard = 'buy-with-card',
   Stake = 'stake',
+  Giveaway = 'giveaway',
   Transfer = 'transfer',
 }
 
@@ -98,12 +102,12 @@ async function processTonDeeplink(url: string) {
     stateInit,
   } = params;
 
-  const verifiedAddress = isTonAddressOrDomain(toAddress) ? toAddress : undefined;
+  const verifiedAddress = isValidAddressOrDomain(toAddress, 'ton') ? toAddress : undefined;
 
   const startTransferParams: ActionPayloads['startTransfer'] = {
     isPortrait: getIsPortrait(),
     toAddress: verifiedAddress,
-    tokenSlug: TONCOIN_SLUG,
+    tokenSlug: TONCOIN.slug,
     amount,
     comment,
     binPayload,
@@ -240,6 +244,13 @@ export function processSelfDeeplink(deeplink: string) {
         break;
       }
 
+      case DeeplinkCommand.Giveaway: {
+        const giveawayId = pathname.match(/giveaway\/([^/]+)/)?.[1];
+        const url = `${GIVEAWAY_CHECKIN_URL}${giveawayId ? `?giveawayId=${giveawayId}` : ''}`;
+        openUrl(url);
+        break;
+      }
+
       case DeeplinkCommand.Swap: {
         if (isTestnet) {
           actions.showError({ error: 'Swap is not supported in Testnet.' });
@@ -247,7 +258,7 @@ export function processSelfDeeplink(deeplink: string) {
           actions.showError({ error: 'Swap is not yet supported by Ledger.' });
         } else {
           actions.startSwap({
-            tokenInSlug: searchParams.get('in') || TONCOIN_SLUG,
+            tokenInSlug: searchParams.get('in') || TONCOIN.slug,
             tokenOutSlug: searchParams.get('out') || DEFAULT_SWAP_SECOND_TOKEN_SLUG,
             amountIn: toNumberOrEmptyString(searchParams.get('amount')) || '10',
           });
@@ -263,7 +274,7 @@ export function processSelfDeeplink(deeplink: string) {
         } else {
           actions.startSwap({
             tokenInSlug: searchParams.get('in') || DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
-            tokenOutSlug: searchParams.get('out') || TONCOIN_SLUG,
+            tokenOutSlug: searchParams.get('out') || TONCOIN.slug,
             amountIn: toNumberOrEmptyString(searchParams.get('amount')) || '100',
           });
         }

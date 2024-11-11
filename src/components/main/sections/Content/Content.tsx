@@ -8,16 +8,14 @@ import type { DropdownItem } from '../../../ui/Dropdown';
 import { ContentTab, SettingsState } from '../../../../global/types';
 
 import {
-  DEFAULT_SWAP_SECOND_TOKEN_SLUG,
-  MIN_ASSETS_TAB_VIEW,
+  LANDSCAPE_MIN_ASSETS_TAB_VIEW,
   NOTCOIN_VOUCHERS_ADDRESS,
-  TONCOIN_SLUG,
+  PORTRAIT_MIN_ASSETS_TAB_VIEW,
 } from '../../../../config';
 import {
-  selectAccountState,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectEnabledTokensCountMemoized,
+  selectEnabledTokensCountMemoizedFor,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
@@ -52,7 +50,6 @@ interface StateProps {
   currentCollectionAddress?: string;
   selectedAddresses?: string[];
   activeContentTab?: ContentTab;
-  currentTokenSlug?: string;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
   selectedNftsToHide?: {
@@ -70,7 +67,6 @@ function Content({
   currentCollectionAddress,
   selectedAddresses,
   onStakedTokenClick,
-  currentTokenSlug,
   blacklistedNftAddresses,
   whitelistedNftAddresses,
   selectedNftsToHide,
@@ -78,8 +74,6 @@ function Content({
   const {
     selectToken,
     setActiveContentTab,
-    setDefaultSwapParams,
-    changeTransferToken,
     openNftCollection,
     closeNftCollection,
     openSettingsWithState,
@@ -145,7 +139,8 @@ function Content({
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
 
-  const shouldShowSeparateAssetsPanel = tokensCount > 0 && tokensCount < MIN_ASSETS_TAB_VIEW;
+  const shouldShowSeparateAssetsPanel = tokensCount > 0
+    && tokensCount <= (isPortrait ? PORTRAIT_MIN_ASSETS_TAB_VIEW : LANDSCAPE_MIN_ASSETS_TAB_VIEW);
   const tabs = useMemo(
     () => [
       ...(
@@ -202,14 +197,14 @@ function Content({
   const handleSwitchTab = useLastCallback((tab: ContentTab) => {
     if (tab === ContentTab.NotcoinVouchers) {
       selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
-      setActiveContentTab({ tab: ContentTab.Nft }, { forceOnHeavyAnimation: true });
+      setActiveContentTab({ tab: ContentTab.Nft });
       handleNftCollectionClick(NOTCOIN_VOUCHERS_ADDRESS);
 
       return;
     }
 
     selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
-    setActiveContentTab({ tab }, { forceOnHeavyAnimation: true });
+    setActiveContentTab({ tab });
   });
 
   useHistoryBack({
@@ -224,6 +219,7 @@ function Content({
 
     return captureEvents(transitionRef.current!, {
       includedClosestSelector: '.swipe-container',
+      excludedClosestSelector: '.dapps-feed',
       onSwipe: (e, direction) => {
         if (direction === SwipeDirection.Left) {
           const tab = tabs[Math.min(tabs.length - 1, activeTabIndex + 1)];
@@ -241,28 +237,12 @@ function Content({
 
         return false;
       },
+      selectorToPreventScroll: '.custom-scroll',
     });
   }, [tabs, handleSwitchTab, activeTabIndex, currentCollectionAddress]);
 
-  useEffect(() => {
-    if (currentTokenSlug !== undefined) return;
-
-    setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined });
-    changeTransferToken({ tokenSlug: TONCOIN_SLUG });
-  }, [currentTokenSlug]);
-
   const handleClickAsset = useLastCallback((slug: string) => {
-    selectToken({ slug });
-
-    if (slug) {
-      if (slug === TONCOIN_SLUG) {
-        setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
-      } else {
-        setDefaultSwapParams({ tokenOutSlug: slug });
-      }
-      changeTransferToken({ tokenSlug: slug });
-    }
-
+    selectToken({ slug }, { forceOnHeavyAnimation: true });
     setActiveContentTab({ tab: ContentTab.Activity });
   });
 
@@ -282,6 +262,7 @@ function Content({
         tabs={tabs}
         activeTab={activeTabIndex}
         onSwitchTab={handleSwitchTab}
+        withBorder
         className={buildClassName(styles.tabs, 'content-tabslist')}
       />
     );
@@ -365,27 +346,26 @@ function Content({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
-      const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
-      const tokens = selectCurrentAccountTokens(global);
-      const tokensCount = selectEnabledTokensCountMemoized(tokens);
       const {
-        byAddress: nfts,
-        currentCollectionAddress,
-        selectedAddresses,
-      } = selectCurrentAccountState(global)?.nfts || {};
-      const {
+        activeContentTab,
         blacklistedNftAddresses,
         whitelistedNftAddresses,
         selectedNftsToHide,
+        nfts: {
+          byAddress: nfts,
+          currentCollectionAddress,
+          selectedAddresses,
+        } = {},
       } = selectCurrentAccountState(global) ?? {};
+      const tokens = selectCurrentAccountTokens(global);
+      const tokensCount = selectEnabledTokensCountMemoizedFor(global.currentAccountId!)(tokens);
 
       return {
         nfts,
         currentCollectionAddress,
         selectedAddresses,
         tokensCount,
-        activeContentTab: accountState?.activeContentTab,
-        currentTokenSlug: accountState?.currentTokenSlug,
+        activeContentTab,
         blacklistedNftAddresses,
         whitelistedNftAddresses,
         selectedNftsToHide,

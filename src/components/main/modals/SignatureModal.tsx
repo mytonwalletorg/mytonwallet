@@ -63,11 +63,7 @@ function SignatureModal({
 
   useEffect(() => (
     currentSlide === SLIDES.complete
-      ? captureKeyboardListeners({
-        onEnter: () => {
-          closeModal();
-        },
-      })
+      ? captureKeyboardListeners({ onEnter: closeModal })
       : undefined
   ), [closeModal, currentSlide]);
 

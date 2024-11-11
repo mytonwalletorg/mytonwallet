@@ -1,37 +1,36 @@
+import { getIsHeavyAnimating, onFullyIdle } from '../lib/teact/teact';
 import { addCallback, removeCallback } from '../lib/teact/teactn';
 
+import type { ApiActivity } from '../api/types';
 import type {
-  AccountState, GlobalState, TokenPeriod, UserToken,
+  AccountState, GlobalState, SavedAddress, TokenPeriod, UserToken,
 } from './types';
 
 import {
   DEBUG,
-  DEFAULT_DECIMAL_PLACES,
   GLOBAL_STATE_CACHE_DISABLED,
   GLOBAL_STATE_CACHE_KEY,
   IS_CAPACITOR,
   MAIN_ACCOUNT_ID,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
 import { bigintReviver } from '../util/bigint';
 import {
   cloneDeep, mapValues, pick, pickTruthy,
 } from '../util/iteratees';
-import { onBeforeUnload, onIdle, throttle } from '../util/schedulers';
+import { onBeforeUnload, throttle } from '../util/schedulers';
 import { IS_ELECTRON } from '../util/windowEnvironment';
 import { getIsTxIdLocal } from './helpers';
 import { addActionHandler, getGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
 import { selectAccountTokens } from './selectors';
 
-import { isHeavyAnimating } from '../hooks/useHeavyAnimationCheck';
-
 const UPDATE_THROTTLE = IS_CAPACITOR ? 500 : 5000;
 const ACTIVITIES_LIMIT = 20;
 const ACTIVITY_TOKENS_LIMIT = 30;
 
-const updateCacheThrottled = throttle(() => onIdle(() => updateCache()), UPDATE_THROTTLE, false);
+const updateCacheThrottled = throttle(() => onFullyIdle(() => updateCache()), UPDATE_THROTTLE, false);
 const updateCacheForced = () => updateCache(true);
 
 let isCaching = false;
@@ -130,7 +129,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
 
   // Migration to multi-accounts
   if (!cached.byAccountId) {
-    cached.accounts = {
+    (cached as any).accounts = {
       byId: {
         [MAIN_ACCOUNT_ID]: {
           address: (cached as any).addresses.byAccountId[MAIN_ACCOUNT_ID],
@@ -191,7 +190,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
       cached.tokenInfo.bySlug = {
         toncoin: {
           ...cached.tokenInfo.bySlug.toncoin,
-          decimals: DEFAULT_DECIMAL_PLACES,
+          decimals: TONCOIN.decimals,
         },
       };
     }
@@ -394,11 +393,50 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     }
     cached.stateVersion = 24;
   }
+
+  if (cached.stateVersion === 24) {
+    if (cached.accounts) {
+      clearActivities();
+      for (const account of Object.values(cached.accounts.byId)) {
+        account.addressByChain = { ton: (account as any).address } as any;
+        delete (account as any).address;
+      }
+    }
+    cached.stateVersion = 25;
+  }
+
+  if (cached.stateVersion === 25) {
+    if (cached.byAccountId) {
+      for (const accountId of Object.keys(cached.byAccountId)) {
+        const savedAddresses = cached.byAccountId[accountId].savedAddresses;
+        if (savedAddresses && !('length' in savedAddresses)) {
+          cached.byAccountId[accountId].savedAddresses = Object.keys(savedAddresses as Record<string, string>)
+            .map((address) => ({
+              name: savedAddresses[address],
+              address,
+              chain: 'ton',
+            } as SavedAddress));
+        }
+      }
+    }
+    cached.stateVersion = 26;
+  }
+
+  if (cached.stateVersion === 26) {
+    clearActivities();
+    cached.stateVersion = 27;
+  }
+
+  if (cached.stateVersion === 27) {
+    delete (cached.settings as any).dapps;
+    cached.stateVersion = 28;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 
 function updateCache(force?: boolean) {
-  if (GLOBAL_STATE_CACHE_DISABLED || !isCaching || (!force && isHeavyAnimating())) {
+  if (GLOBAL_STATE_CACHE_DISABLED || !isCaching || (!force && getIsHeavyAnimating())) {
     return;
   }
 
@@ -437,6 +475,8 @@ function reduceByAccountId(global: GlobalState) {
       'browserHistory',
       'blacklistedNftAddresses',
       'whitelistedNftAddresses',
+      'dappLastOpenedDatesByOrigin',
+      'dapps',
     ]);
 
     const accountTokens = selectAccountTokens(global, accountId);
@@ -447,44 +487,50 @@ function reduceByAccountId(global: GlobalState) {
 }
 
 function reduceAccountActivities(activities?: AccountState['activities'], tokens?: UserToken[]) {
-  const { idsBySlug, newestTransactionsBySlug, byId } = activities || {};
-  if (!tokens || !idsBySlug || !byId) return undefined;
+  const {
+    idsBySlug, newestTransactionsBySlug, byId, idsMain,
+  } = activities || {};
+  if (!tokens || !idsBySlug || !byId || !idsMain) return undefined;
 
   const reducedSlugs = tokens.slice(0, ACTIVITY_TOKENS_LIMIT).map(({ slug }) => slug);
-  if (!reducedSlugs.includes(TONCOIN_SLUG)) {
-    reducedSlugs.push(TONCOIN_SLUG);
+  if (!reducedSlugs.includes(TONCOIN.slug)) {
+    reducedSlugs.push(TONCOIN.slug);
   }
 
-  const reducedIdsBySlug = mapValues(pickTruthy(idsBySlug, reducedSlugs), (ids) => {
-    const result: string[] = [];
-
-    let visibleIdCount = 0;
-
-    ids
-      .filter((id) => !getIsTxIdLocal(id) && Boolean(byId[id]))
-      .forEach((id) => {
-        if (visibleIdCount === ACTIVITIES_LIMIT) return;
-
-        if (!byId[id].shouldHide) {
-          visibleIdCount += 1;
-        }
-
-        result.push(id);
-      });
-
-    return result;
-  });
+  const reducedIdsMain = pickVisibleActivities(idsMain, byId);
+  const reducedIdsBySlug = mapValues(pickTruthy(idsBySlug, reducedSlugs), (ids) => pickVisibleActivities(ids, byId));
 
   const reducedNewestTransactionsBySlug = newestTransactionsBySlug
     ? pick(newestTransactionsBySlug, reducedSlugs)
     : undefined;
 
-  const reducedIds = Object.values(reducedIdsBySlug).flat();
+  const reducedIds = Object.values(reducedIdsBySlug).concat(reducedIdsMain).flat();
   const reducedById = pick(byId, reducedIds);
 
   return {
     byId: reducedById,
+    idsMain: reducedIdsMain,
     idsBySlug: reducedIdsBySlug,
     newestTransactionsBySlug: reducedNewestTransactionsBySlug,
   };
+}
+
+function pickVisibleActivities(ids: string[], byId: Record<string, ApiActivity>) {
+  const result: string[] = [];
+
+  let visibleIdCount = 0;
+
+  ids
+    .filter((id) => !getIsTxIdLocal(id) && Boolean(byId[id]))
+    .forEach((id) => {
+      if (visibleIdCount === ACTIVITIES_LIMIT) return;
+
+      if (!byId[id].shouldHide) {
+        visibleIdCount += 1;
+      }
+
+      result.push(id);
+    });
+
+  return result;
 }

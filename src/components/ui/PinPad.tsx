@@ -23,6 +23,7 @@ interface OwnProps {
   value: string;
   length?: number;
   className?: string;
+  isMinified?: boolean;
   onBiometricsClick?: NoneToVoidFunction;
   onChange: (value: string) => void;
   onClearError?: NoneToVoidFunction;
@@ -45,6 +46,7 @@ function PinPad({
   onBiometricsClick,
   isPinAccepted,
   className,
+  isMinified,
   onChange,
   onClearError,
   onSubmit,
@@ -157,7 +159,7 @@ function PinPad({
       <div className={titleClassName}>{title}</div>
       {renderDots()}
 
-      <div className={styles.grid}>
+      <div className={buildClassName(styles.grid, isMinified && styles.minified)}>
         <PinPadButton value="1" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
         <PinPadButton value="2" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
         <PinPadButton value="3" onClick={handleClick} isDisabled={arePinButtonsDisabled} />

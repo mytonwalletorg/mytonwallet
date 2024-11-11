@@ -43,12 +43,12 @@
   grid-area: 1 / 1 / 2 / -2;
 
   min-width: 0;
-  padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-left));
+  padding: max(0.75rem, var(--safe-area-top)) max(0.75rem, env(safe-area-inset-left));
 
   background: linear-gradient(to bottom, rgba(12, 12, 12, 1) 0%, rgba(12, 12, 12, 0) 100%);
 
   @include respond-below(xs) {
-    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-left));
+    padding: max(1rem, var(--safe-area-top)) max(1rem, env(safe-area-inset-left));
   }
 }
 

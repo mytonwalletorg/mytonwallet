@@ -171,7 +171,9 @@ function DappConnectModal({
         <p className={styles.label}>{lang('Select wallet to use on this dapp')}</p>
         <div className={fullClassName}>
           {iterableAccounts.map(
-            ([accountId, { title, address, isHardware }]) => renderAccount(accountId, address, title, isHardware),
+            ([accountId, { title, addressByChain, isHardware }]) => {
+              return renderAccount(accountId, addressByChain.ton, title, isHardware);
+            },
           )}
         </div>
       </>

@@ -10,13 +10,12 @@ import type { DropdownItem } from '../../../ui/Dropdown';
 import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
-  TON_EXPLORER_NAME,
 } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { openUrl } from '../../../../util/openUrl';
-import { getTonExplorerNftCollectionUrl } from '../../../../util/url';
+import { getExplorerName, getExplorerNftCollectionUrl } from '../../../../util/url';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { getIsPortrait } from '../../../../hooks/useDeviceScreen';
@@ -44,7 +43,7 @@ const MENU_ITEMS: DropdownItem[] = [{
   value: 'getgems',
   fontIcon: 'external',
 }, {
-  name: TON_EXPLORER_NAME,
+  name: getExplorerName('ton'),
   value: 'tonExplorer',
   fontIcon: 'external',
 }, {
@@ -143,7 +142,7 @@ function NftCollectionHeader({
       }
 
       case 'tonExplorer': {
-        const url = getTonExplorerNftCollectionUrl(renderedNft?.collectionAddress, isTestnet);
+        const url = getExplorerNftCollectionUrl(renderedNft?.collectionAddress, isTestnet);
         if (url) {
           openUrl(url);
         }

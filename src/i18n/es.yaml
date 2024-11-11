@@ -27,8 +27,9 @@ Your have entered an insecure password, which can be easily guessed by scammers.
 Continue or change password to something more secure?: ¿Continuar o cambiar la contraseña a una más segura?
 Change: Cambiar
 "%1$d Secret Words": "Frases Semilla"
+Secret Words: Frases Semilla
 $auth_import_mnemonic_description: |
-  Puede restaurar el acceso a su monedero ingresando la frase semilla que guardó al crearla.
+  Puedes restaurar el acceso a tu billetera ingresando las **12 o 24 palabras secretas** que anotaste al crear la billetera.
 Let’s make sure your secrets words are recorded correctly.: Asegurémonos de que hayas guardado la frase semilla correctamente.
 $mnemonic_check_words_list: Introduce las **%1$s** palabras de la frase semilla a continuación.
 $mnemonic_check_error: La frases semilla que ha introducido no coinciden. Inténtalo de nuevo.
@@ -141,7 +142,6 @@ Sender: Remitente
 Recipient: Receptor
 Address was copied!: ¡Se copió la dirección!
 Repeat: Repetir
-Receive: Recibir
 Switch Account: Cambiar de monedero
 Copy wallet address: Copiar la dirección del monedero
 View address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
@@ -164,6 +164,7 @@ Wallet is not backed up: El monedero no está respaldado
 Testnet Version: Versión Testnet
 Error reading clipboard: Error al leer el portapapeles
 $fee_value: "Comisión: %fee%"
+Pay fee with %stars_symbol%: "Pagar con %stars_symbol%"
 Loading...: Cargando...
 Recipient Address: Dirección del destinatario
 Wallet address or domain: Dirección o dominio del monedero
@@ -199,8 +200,7 @@ $tiny_transfers_help: Desactive esta opción para mostrar transacciones de menos
 Today: Hoy
 Yesterday: Ayer
 Now: Ahora
-$receive_ton_description: Puede compartir su dirección, escanear un código QR o crear un enlace de depósito para recibir criptomonedas.
-Your address: Tu dirección
+$receive_ton_description: Escanea este código QR o comparte tu dirección para recargar el saldo de tu billetera.
 Wrong password, please try again.: Contraseña incorrecta, inténtalo de nuevo.
 Appearance: Apariencia
 Assets and Activity: Activos y Actividad
@@ -428,11 +428,12 @@ Biometric Authentication: Autenticación biométrica
 If you turn off biometric protection, you will need to create a password.: Si desactiva la protección biométrica, deberá crear una contraseña.
 Enter your current password: Introduce tu contraseña actual
 Turn On Biometrics: Activar la biometría
-Please confirm transaction using biometrics.: Confirme la transacción utilizando datos biométricos.
+Please confirm transaction using biometrics: Confirme la transacción utilizando datos biométricos
 Enabling biometric confirmation will reset the password.: Al habilitar la confirmación biométrica se restablecerá la contraseña.
 Biometric Registration: Registro Biométrico
 Step 1 of 2. Registration: Paso 1 de 2. Registro
 Step 2 of 2. Verification: Paso 2 de 2. Verificación
+Download Logs: Descargar registros
 Biometric setup failed.: Error en la configuración biométrica.
 Biometric confirmation failed.: Error de confirmación biométrica.
 Failed to disable biometrics.: No se pudo desactivar la biometría.
@@ -447,13 +448,14 @@ Use Password: Usar contraseña
 Biometrics Disabled: Biometría deshabilitada
 Biometrics Enabled: Biometría habilitada
 A request is already pending: Ya hay una solicitud pendiente
-Please confirm operation using biometrics.: Confirme la operación mediante datos biométricos.
+Please confirm operation using biometrics: Confirme la operación mediante datos biométricos
 Scan QR Code: Escanear código QR
 Permission denied. Please grant camera permission to use the QR code scanner.: Permiso denegado. Otorgue permiso a la cámara para usar el escáner QR.
 Unsupported QR code format: Formato de código QR no soportado
 An error on the server side. Please try again.: Un error en el lado del servidor. Inténtalo de nuevo.
 Unrecognized QR Code: Código QR no reconocido
 $fee_value_almost_equal: Comisión ≈ %fee%
+$fee_value_less: Comisión < %fee%
 Address was saved!: ¡Dirección guardada!
 US Dollar: Dólar estadounidense
 Euro: Euro
@@ -498,8 +500,8 @@ Confirm Swap: Confirmar intercambio
 "%amount% to %address%": "%amount% a %address%"
 "%amount_from% to %amount_to%": "%amount_from% a %amount_to%"
 Failed to enable biometrics.: No se pudo habilitar la biometría.
-Please try to confirm your biometrics again.: Intente confirmar sus datos biométricos nuevamente.
-Unknown error.: Error desconocido.
+Please try to confirm your biometrics again: Intente confirmar sus datos biométricos nuevamente
+Unknown error: Error desconocido
 Are you sure you want to disable Face ID?: ¿Estás seguro de que quieres deshabilitar Face ID?
 Are you sure you want to disable Touch ID?: ¿Estás seguro de que quieres deshabilitar Touch ID?
 Are you sure you want to disable biometrics?: ¿Estás seguro de que quieres deshabilitar la biometría?
@@ -509,7 +511,6 @@ No Activity: Sin Actividad
 Add / Buy: Recargar
 Buy with Card: Comprar con Tarjeta
 Buy with Crypto: Comprar con Cripto
-Receive with QR or Invoice: Recibir con QR o Factura
 Cannot load widget: No se puede cargar el widget
 Explore: Explorar
 No partners yet: No hay socios todavía
@@ -615,6 +616,18 @@ Claim: Afirmar
 Confirm Unfreezing: Confirmar descongelación
 Insufficient Balance for Fee: Saldo insuficiente para pagar la tarifa
 $fee_value_bold: "**Comisión:** %fee%"
+Security: Seguridad
+To avoid entering the passcode every time, you can use biometrics.: Para evitar ingresar el código cada vez, puede usar biometría.
+Change Passcode: Cambiar código
+Change Password: Cambiar contraseña
+Confirm Password: Confirmar contraseña
+The passcode will be changed for all your wallets.: El código será cambiado para todas tus billeteras.
+Password Changed!: ¡Contraseña cambiada!
+Passcode Changed!: ¡Código de acceso cambiado!
+New code set successfully: Nuevo código establecido con éxito
+Codes don’t match: Los códigos no coinciden
+Enter your new code: Introduzca su nuevo código
+Re-enter your new code: Introduzca su nuevo código nuevamente
 MyTonWallet Features: Funciones de MyTonWallet
 Install on Desktop: Instalar en el escritorio
 Install on Mobile: Instalar en el móvil
@@ -652,3 +665,23 @@ Switch to W5: Cambiar a W5
 Not Scam: No es una estafa
 Untitled: Sin título
 $swap_too_small_amount: Cantidad demasiado pequeña
+Not enough %symbol%: "No hay suficiente %symbol%"
+$receive_tron_description: Escanea este código QR o comparte tu dirección para recargar el saldo de tu billetera.
+You have just created a new multichain wallet: Acabas de crear una nueva billetera multichain
+Now you can transfer tokens from your TON and TRON wallets.: Ahora puedes transferir tokens desde tus billeteras de TON y TRON.
+Enter Secret Words: Ingresar Palabras Secretas
+Turn this off so you can manually download updates and verify signatures.: Desactiva esto para poder descargar manualmente las actualizaciones y verificar las firmas.
+InvalidMnemonic: Tus palabras mnemónicas son inválidas
+NFT Menu: Menú NFT
+Wallets will not be locked.: Las billeteras no se bloquearán.
+Wallets will be automatically locked after 30 seconds of inactivity.: Las billeteras se bloquearán automáticamente después de 30 segundos de inactividad.
+Wallets will be automatically locked after 3 minutes of inactivity.: Las billeteras se bloquearán automáticamente después de 3 minutos de inactividad.
+Wallets will be automatically locked after 30 minutes of inactivity.: Las billeteras se bloquearán automáticamente después de 30 minutos de inactividad.
+Auto-Lock: Bloqueo automático
+Never: Nunca
+30 seconds: 30 segundos
+3 minutes: 3 minutos
+30 minutes: 30 minutos
+Unlock: Desbloquear
+Biometric authentification failed: Fallo en la autenticación biométrica
+Reset biometrics in security settings, or use a passcode.: Restablezca la biometría en la configuración de seguridad, o use un código de acceso.

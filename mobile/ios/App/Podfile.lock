@@ -1,47 +1,41 @@
 PODS:
-  - Capacitor (5.7.2):
+  - Capacitor (6.1.2):
     - CapacitorCordova
-  - CapacitorActionSheet (5.0.7):
+  - CapacitorApp (6.0.1):
     - Capacitor
-  - CapacitorApp (5.0.7):
+  - CapacitorAppLauncher (6.0.2):
     - Capacitor
-  - CapacitorAppLauncher (5.0.7):
+  - CapacitorClipboard (6.0.1):
     - Capacitor
-  - CapacitorClipboard (5.0.7):
+  - CapacitorCordova (6.1.2)
+  - CapacitorHaptics (6.0.1):
     - Capacitor
-  - CapacitorCordova (5.7.2)
-  - CapacitorHaptics (5.0.7):
+  - CapacitorMlkitBarcodeScanning (6.2.0):
     - Capacitor
-  - CapacitorMlkitBarcodeScanning (5.4.0):
+    - GoogleMLKit/BarcodeScanning (= 5.0.0)
+  - CapacitorNativeSettings (6.0.1):
     - Capacitor
-    - GoogleMLKit/BarcodeScanning (= 4.0.0)
-  - CapacitorNativeSettings (5.0.1):
+  - CapacitorPluginSafeArea (3.0.3):
     - Capacitor
-  - CapacitorPluginSafeArea (2.0.6):
-    - Capacitor
-  - CapacitorSecureStoragePlugin (0.9.0):
+  - CapacitorSecureStoragePlugin (0.10.0):
     - Capacitor
     - SwiftKeychainWrapper
-  - CapacitorSplashScreen (5.0.6.1):
-    - Capacitor
-  - CapacitorStatusBar (5.0.7):
-    - Capacitor
   - CapgoCapacitorNativeBiometric (0.0.1):
     - Capacitor
-  - CapgoNativeAudio (6.2.7):
+  - CapgoNativeAudio (6.4.21):
     - Capacitor
-  - CordovaPlugins (5.6.0):
+  - CordovaPlugins (6.1.2):
     - CapacitorCordova
   - FloatingPanel (2.8.4)
   - GoogleDataTransport (9.4.1):
     - GoogleUtilities/Environment (~> 7.7)
     - nanopb (< 2.30911.0, >= 2.30908.0)
     - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleMLKit/BarcodeScanning (4.0.0):
+  - GoogleMLKit/BarcodeScanning (5.0.0):
     - GoogleMLKit/MLKitCore
-    - MLKitBarcodeScanning (~> 3.0.0)
-  - GoogleMLKit/MLKitCore (4.0.0):
-    - MLKitCommon (~> 9.0.0)
+    - MLKitBarcodeScanning (~> 4.0.0)
+  - GoogleMLKit/MLKitCore (5.0.0):
+    - MLKitCommon (~> 10.0.0)
   - GoogleToolboxForMac/DebugUtils (2.3.2):
     - GoogleToolboxForMac/Defines (= 2.3.2)
   - GoogleToolboxForMac/Defines (2.3.2)
@@ -66,27 +60,27 @@ PODS:
     - GoogleUtilities/Privacy
   - GoogleUtilitiesComponents (1.1.0):
     - GoogleUtilities/Logger
-  - GTMSessionFetcher/Core (2.3.0)
+  - GTMSessionFetcher/Core (3.5.0)
   - MauricewegnerCapacitorNavigationBar (2.0.3):
     - Capacitor
-  - MLImage (1.0.0-beta4)
-  - MLKitBarcodeScanning (3.0.0):
-    - MLKitCommon (~> 9.0)
-    - MLKitVision (~> 5.0)
-  - MLKitCommon (9.0.0):
+  - MLImage (1.0.0-beta5)
+  - MLKitBarcodeScanning (4.0.0):
+    - MLKitCommon (~> 10.0)
+    - MLKitVision (~> 6.0)
+  - MLKitCommon (10.0.0):
     - GoogleDataTransport (~> 9.0)
     - GoogleToolboxForMac/Logger (~> 2.1)
     - "GoogleToolboxForMac/NSData+zlib (~> 2.1)"
     - "GoogleToolboxForMac/NSDictionary+URLArguments (~> 2.1)"
     - GoogleUtilities/UserDefaults (~> 7.0)
     - GoogleUtilitiesComponents (~> 1.0)
-    - GTMSessionFetcher/Core (< 3.0, >= 1.1)
-  - MLKitVision (5.0.0):
+    - GTMSessionFetcher/Core (< 4.0, >= 1.1)
+  - MLKitVision (6.0.0):
     - GoogleToolboxForMac/Logger (~> 2.1)
     - "GoogleToolboxForMac/NSData+zlib (~> 2.1)"
-    - GTMSessionFetcher/Core (< 3.0, >= 1.1)
-    - MLImage (= 1.0.0-beta4)
-    - MLKitCommon (~> 9.0)
+    - GTMSessionFetcher/Core (< 4.0, >= 1.1)
+    - MLImage (= 1.0.0-beta5)
+    - MLKitCommon (~> 10.0)
   - nanopb (2.30910.0):
     - nanopb/decode (= 2.30910.0)
     - nanopb/encode (= 2.30910.0)
@@ -95,14 +89,17 @@ PODS:
   - NativeBottomSheet (0.0.2):
     - Capacitor
     - FloatingPanel
-  - NativeDialog (5.0.7.1):
+  - NativeDialog (6.0.0):
     - Capacitor
   - PromisesObjC (2.4.0)
+  - SinaKhMtwCapacitorSplashScreen (6.0.2-2):
+    - Capacitor
+  - SinaKhMtwCapacitorStatusBar (6.0.1-2):
+    - Capacitor
   - SwiftKeychainWrapper (4.0.1)
 
 DEPENDENCIES:
   - "Capacitor (from `../../../node_modules/@capacitor/ios`)"
-  - "CapacitorActionSheet (from `../../../node_modules/@capacitor/action-sheet`)"
   - "CapacitorApp (from `../../../node_modules/@capacitor/app`)"
   - "CapacitorAppLauncher (from `../../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
@@ -112,15 +109,15 @@ DEPENDENCIES:
   - CapacitorNativeSettings (from `../../../node_modules/capacitor-native-settings`)
   - CapacitorPluginSafeArea (from `../../../node_modules/capacitor-plugin-safe-area`)
   - CapacitorSecureStoragePlugin (from `../../../node_modules/capacitor-secure-storage-plugin`)
-  - CapacitorSplashScreen (from `../../plugins/capacitor-splash-screen`)
-  - "CapacitorStatusBar (from `../../../node_modules/@capacitor/status-bar`)"
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
   - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
-  - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b`)
+  - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `124f09299ee26544cad45f95f2e3cb085b76f11a`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
   - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
   - NativeDialog (from `../../plugins/native-dialog`)
+  - "SinaKhMtwCapacitorSplashScreen (from `../../../node_modules/@sina_kh/mtw-capacitor-splash-screen`)"
+  - "SinaKhMtwCapacitorStatusBar (from `../../../node_modules/@sina_kh/mtw-capacitor-status-bar`)"
 
 SPEC REPOS:
   trunk:
@@ -141,8 +138,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../../node_modules/@capacitor/ios"
-  CapacitorActionSheet:
-    :path: "../../../node_modules/@capacitor/action-sheet"
   CapacitorApp:
     :path: "../../../node_modules/@capacitor/app"
   CapacitorAppLauncher:
@@ -161,10 +156,6 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/capacitor-plugin-safe-area"
   CapacitorSecureStoragePlugin:
     :path: "../../../node_modules/capacitor-secure-storage-plugin"
-  CapacitorSplashScreen:
-    :path: "../../plugins/capacitor-splash-screen"
-  CapacitorStatusBar:
-    :path: "../../../node_modules/@capacitor/status-bar"
   CapgoCapacitorNativeBiometric:
     :path: "../../../node_modules/@capgo/capacitor-native-biometric"
   CapgoNativeAudio:
@@ -172,7 +163,7 @@ EXTERNAL SOURCES:
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
   FloatingPanel:
-    :commit: 1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b
+    :commit: 124f09299ee26544cad45f95f2e3cb085b76f11a
     :git: https://github.com/mytonwalletorg/FloatingPanel
   MauricewegnerCapacitorNavigationBar:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
@@ -180,47 +171,50 @@ EXTERNAL SOURCES:
     :path: "../../plugins/native-bottom-sheet"
   NativeDialog:
     :path: "../../plugins/native-dialog"
+  SinaKhMtwCapacitorSplashScreen:
+    :path: "../../../node_modules/@sina_kh/mtw-capacitor-splash-screen"
+  SinaKhMtwCapacitorStatusBar:
+    :path: "../../../node_modules/@sina_kh/mtw-capacitor-status-bar"
 
 CHECKOUT OPTIONS:
   FloatingPanel:
-    :commit: 1b6f19a6fa5590ed5bdb2e25b88ebc5346c5831b
+    :commit: 124f09299ee26544cad45f95f2e3cb085b76f11a
     :git: https://github.com/mytonwalletorg/FloatingPanel
 
 SPEC CHECKSUMS:
-  Capacitor: fc7ef6d935eafb0df9eaaf109ca69be16c51a2d2
-  CapacitorActionSheet: 8096e5cb8a3dfa89b03a40a62ea4836111263cb4
-  CapacitorApp: 17fecd0e6cb23feafac7eb0939417389038b0979
-  CapacitorAppLauncher: 7b2705481a74cbe322441bd374f56194de59ab1a
-  CapacitorClipboard: 45e5e25f2271f98712985d422776cdc5a779cca1
-  CapacitorCordova: 70b13b8fddb6f35d8adcfe06cb5045c07f35f6de
-  CapacitorHaptics: 7c7c206f0c96a628fed073830c96d28c4b2e772e
-  CapacitorMlkitBarcodeScanning: 8fb81cbef3c6ffe0c0e2dbd15ed6dca889a5a062
-  CapacitorNativeSettings: 6e94ed3c0465206756f320df18efc52f053ce3c7
-  CapacitorPluginSafeArea: d55e4d4e70c98f611240f11dd80561438d0d70cb
-  CapacitorSecureStoragePlugin: e91d7df060f2495a1acff9583641a6953e3aacba
-  CapacitorSplashScreen: 6fce4269c6f7dc7591cc28760d1f85255e5edb1b
-  CapacitorStatusBar: f390fbb49b82ffb754ea4b3cf71dc8b048baf3e7
+  Capacitor: 679f9673fdf30597493a6362a5d5bf233d46abc2
+  CapacitorApp: 0bc633b4eae40a1f32cd2834788fad3bc42da6a1
+  CapacitorAppLauncher: 9ac785e8d3936388249212b6e16cb32225960c5f
+  CapacitorClipboard: 756cd7e83e8d5d19b0c74f40b57517c287bd5fe2
+  CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
+  CapacitorHaptics: fe689ade56ef20ec9b041a753c6da70c5d8ec9a9
+  CapacitorMlkitBarcodeScanning: 178fb57424ec688b6a2fceee506ecc1ea00d1c8d
+  CapacitorNativeSettings: 1ce5585ff07b161616cd0a795702637316677af2
+  CapacitorPluginSafeArea: e1eca7f70974f0e270d96f70cd0a5f51523164b1
+  CapacitorSecureStoragePlugin: ced6025438fbbdbfb9fffec4398e748572fc147b
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
-  CapgoNativeAudio: 9c9d2ee1683c5e7091d59c3aa7ff5c30c66b9598
-  CordovaPlugins: 149708b4353176a65688a5aed237f7c3054e7702
+  CapgoNativeAudio: f3cb18f75acfaec7c429e1ff9dc06e05c6605627
+  CordovaPlugins: b26881c27739f4c46bac6baf422f660500cd5561
   FloatingPanel: e00e106bf97b04d0de00bb360dc626459b0735ef
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
-  GoogleMLKit: 2bd0dc6253c4d4f227aad460f69215a504b2980e
+  GoogleMLKit: 90ba06e028795a50261f29500d238d6061538711
   GoogleToolboxForMac: 8bef7c7c5cf7291c687cf5354f39f9db6399ad34
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GoogleUtilitiesComponents: 679b2c881db3b615a2777504623df6122dd20afe
-  GTMSessionFetcher: 3a63d75eecd6aa32c2fc79f578064e1214dfdec2
+  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   MauricewegnerCapacitorNavigationBar: 37f1308a961a8d8cd00f6362e30bad03a73728f7
-  MLImage: 7bb7c4264164ade9bf64f679b40fb29c8f33ee9b
-  MLKitBarcodeScanning: 04e264482c5f3810cb89ebc134ef6b61e67db505
-  MLKitCommon: c1b791c3e667091918d91bda4bba69a91011e390
-  MLKitVision: 8baa5f46ee3352614169b85250574fde38c36f49
+  MLImage: 1824212150da33ef225fbd3dc49f184cf611046c
+  MLKitBarcodeScanning: 9cb0ec5ec65bbb5db31de4eba0a3289626beab4e
+  MLKitCommon: afcd11b6c0735066a0dde8b4bf2331f6197cbca2
+  MLKitVision: 90922bca854014a856f8b649d1f1f04f63fd9c79
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeBottomSheet: 81b2b53d470537e42858d0d6485af318c51c3a5f
-  NativeDialog: 6d8b52ddf3b76921a05aad3309c5c00aad6bf4bd
+  NativeDialog: f347d7f1a10adac33a1cb1a02be03911cf2fe067
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  SinaKhMtwCapacitorSplashScreen: 94136e24daea4d0b0c5c2c2c1f7b0fa28cc00aa0
+  SinaKhMtwCapacitorStatusBar: e3fa73038e8dbac071751e1942eab65fc6c39a5f
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 56fea863ce90e3e1147867deec851c6930ae9b6c
+PODFILE CHECKSUM: 783aef605ceeac40dc316144a44e591e6373c25a
 
 COCOAPODS: 1.15.2

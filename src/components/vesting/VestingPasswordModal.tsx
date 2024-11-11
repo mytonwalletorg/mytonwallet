@@ -1,21 +1,22 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiToken, ApiVestingInfo } from '../../api/types';
+import type { ApiTokenWithPrice, ApiVestingInfo } from '../../api/types';
 import type { HardwareConnectState, UserToken } from '../../global/types';
 import { VestingUnfreezeState } from '../../global/types';
 
 import {
   CLAIM_AMOUNT,
   IS_CAPACITOR,
-  TON_SYMBOL,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import {
   selectAccount,
   selectCurrentAccountState,
-  selectCurrentAccountTokens, selectIsHardwareAccount,
+  selectCurrentAccountTokens,
+  selectIsHardwareAccount,
+  selectIsMultichainAccount,
   selectMycoin,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -29,6 +30,7 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
+import TransactionBanner from '../common/TransactionBanner';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import Modal from '../ui/Modal';
@@ -46,11 +48,12 @@ interface StateProps {
   address?: string;
   error?: string;
   state?: VestingUnfreezeState;
-  mycoin?: ApiToken;
+  mycoin?: ApiTokenWithPrice;
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isHardwareAccount?: boolean;
+  isMultichainAccount: boolean;
 }
 function VestingPasswordModal({
   isOpen,
@@ -65,6 +68,7 @@ function VestingPasswordModal({
   isLedgerConnected,
   isTonAppConnected,
   isHardwareAccount,
+  isMultichainAccount,
 }: StateProps) {
   const {
     submitClaimingVesting,
@@ -76,7 +80,7 @@ function VestingPasswordModal({
   const lang = useLang();
   const {
     amount: balance,
-  } = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN_SLUG), [tokens]) || {};
+  } = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]) || {};
   const claimAmount = toBig(CLAIM_AMOUNT);
   const hasAmountError = !balance || balance < CLAIM_AMOUNT;
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, Boolean(isOpen));
@@ -105,21 +109,15 @@ function VestingPasswordModal({
   function renderInfo() {
     return (
       <>
-        <div className={buildClassName(styles.operationInfo, !IS_CAPACITOR && styles.operationInfoWithGap)}>
-          <img src={mycoin!.image} alt="" className={styles.tokenIcon} />
-          <span className={styles.operationInfoText}>
-            {lang('%amount% to %address%', {
-              amount: (
-                <span className={styles.bold}>
-                  {formatCurrency(currentlyReadyToUnfreezeAmount, mycoin!.symbol, mycoin!.decimals)}
-                </span>
-              ),
-              address: <span className={styles.bold}>{shortenAddress(address!)}</span>,
-            })}
-          </span>
-        </div>
+        <TransactionBanner
+          tokenIn={mycoin}
+          withChainIcon={isMultichainAccount}
+          text={formatCurrency(currentlyReadyToUnfreezeAmount, mycoin!.symbol, mycoin!.decimals)}
+          className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+          secondText={shortenAddress(address!)}
+        />
         <div className={buildClassName(styles.operationInfoFee, !IS_CAPACITOR && styles.operationInfoFeeWithGap)}>
-          {renderText(lang('$fee_value_bold', { fee: formatCurrency(claimAmount, TON_SYMBOL) }))}
+          {renderText(lang('$fee_value_bold', { fee: formatCurrency(claimAmount, TONCOIN.symbol) }))}
         </div>
       </>
     );
@@ -194,7 +192,7 @@ function VestingPasswordModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { address } = selectAccount(global, global.currentAccountId!) || {};
+  const { addressByChain } = selectAccount(global, global.currentAccountId!) || {};
   const accountState = selectCurrentAccountState(global);
   const isHardwareAccount = selectIsHardwareAccount(global);
 
@@ -219,12 +217,13 @@ export default memo(withGlobal((global): StateProps => {
     tokens,
     isLoading,
     error,
-    address,
+    address: addressByChain?.ton,
     state: unfreezeState,
     mycoin: selectMycoin(global),
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,
     isHardwareAccount,
+    isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
   };
 })(VestingPasswordModal));

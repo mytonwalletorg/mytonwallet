@@ -3,7 +3,7 @@ import { getActions } from '../../global';
 
 import type { ApiNft } from '../../api/types';
 
-import { TONCOIN_SLUG } from '../../config';
+import { TONCOIN } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -27,9 +27,6 @@ interface OwnProps {
   isActive?: boolean;
   amount?: bigint;
   symbol: string;
-  balance?: bigint;
-  fee?: bigint;
-  operationAmount?: bigint;
   txId?: string;
   tokenSlug?: string;
   toAddress?: string;
@@ -40,15 +37,10 @@ interface OwnProps {
   onClose: NoneToVoidFunction;
 }
 
-const AMOUNT_PRECISION = 4;
-
 function TransferComplete({
   isActive,
   amount,
   symbol,
-  balance,
-  fee,
-  operationAmount,
   txId,
   tokenSlug,
   toAddress,
@@ -78,7 +70,7 @@ function TransferComplete({
   const handleTransactionRepeatClick = useLastCallback(() => {
     startTransfer({
       isPortrait,
-      tokenSlug: tokenSlug || TONCOIN_SLUG,
+      tokenSlug: tokenSlug || TONCOIN.slug,
       toAddress,
       amount,
       comment,
@@ -112,10 +104,6 @@ function TransferComplete({
             playAnimation={isActive}
             amount={amount ? -amount : undefined}
             tokenSymbol={symbol}
-            precision={AMOUNT_PRECISION}
-            balance={balance}
-            fee={fee ?? 0n}
-            operationAmount={operationAmount ? -operationAmount : undefined}
             firstButtonText={txId ? lang('Details') : undefined}
             secondButtonText={lang('Repeat')}
             onFirstButtonClick={onInfoClick}

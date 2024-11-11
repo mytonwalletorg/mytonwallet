@@ -1,4 +1,5 @@
-import type { ApiBaseCurrency, ApiSwapAsset, ApiWalletVersion } from './api/types';
+import type { ApiTonWalletVersion } from './api/chains/ton/types';
+import type { ApiBaseCurrency, ApiSwapAsset } from './api/types';
 import type { LangItem, TokenPeriod } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
@@ -9,6 +10,7 @@ export const APP_ENV_MARKER = APP_ENV === 'staging' ? 'Beta' : APP_ENV === 'deve
 
 export const DEBUG = APP_ENV !== 'production' && APP_ENV !== 'perf' && APP_ENV !== 'test';
 export const DEBUG_MORE = false;
+export const DEBUG_API = false;
 
 export const IS_PRODUCTION = APP_ENV === 'production';
 export const IS_TEST = APP_ENV === 'test';
@@ -18,6 +20,7 @@ export const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
 export const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 export const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
 export const IS_ANDROID_DIRECT = process.env.IS_ANDROID_DIRECT === '1';
+export const IS_AIR_APP = process.env.IS_AIR_APP === '1';
 
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
@@ -39,6 +42,8 @@ export const NATIVE_BIOMETRICS_USERNAME = 'MyTonWallet';
 export const NATIVE_BIOMETRICS_SERVER = 'https://mytonwallet.app';
 
 export const MNEMONIC_COUNT = 24;
+export const MNEMONIC_COUNTS = [12, 24];
+
 export const PRIVATE_KEY_HEX_LENGTH = 64;
 export const MNEMONIC_CHECK_COUNT = 3;
 
@@ -46,6 +51,8 @@ export const MOBILE_SCREEN_MAX_WIDTH = 700; // px
 
 export const ANIMATION_END_DELAY = 50;
 
+export const ANIMATED_STICKER_TINY_ICON_PX = 16;
+export const ANIMATED_STICKER_ICON_PX = 30;
 export const ANIMATED_STICKER_TINY_SIZE_PX = 70;
 export const ANIMATED_STICKER_SMALL_SIZE_PX = 110;
 export const ANIMATED_STICKER_MIDDLE_SIZE_PX = 120;
@@ -53,11 +60,8 @@ export const ANIMATED_STICKER_DEFAULT_PX = 150;
 export const ANIMATED_STICKER_BIG_SIZE_PX = 156;
 export const ANIMATED_STICKER_HUGE_SIZE_PX = 192;
 
-export const TON_SYMBOL = 'TON';
-
 export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 0;
 
-export const DEFAULT_DECIMAL_PLACES = 9;
 export const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
 
 export const DEFAULT_SLIPPAGE_VALUE = 5;
@@ -97,12 +101,6 @@ export const SHORT_FRACTION_DIGITS = 2;
 export const SUPPORT_USERNAME = 'MyTonWalletSupport';
 export const MY_TON_WALLET_PROMO_URL = 'https://mytonwallet.io';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
-export const TON_EXPLORER_BASE_MAINNET_URL = 'https://tonviewer.com/';
-export const TON_EXPLORER_BASE_TESTNET_URL = 'https://testnet.tonviewer.com/';
-export const TON_EXPLORER_NAME = 'Tonviewer';
-export const TOKEN_EXPLORER_MAINNET_URL = 'https://tonviewer.com/{address}?section=jetton';
-export const TOKEN_EXPLORER_TESTNET_URL = 'https://testnet.tonviewer.com/{address}?section=jetton';
-export const TOKEN_EXPLORER_NAME = 'TonViewer';
 export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const EMPTY_HASH_VALUE = 'NOHASH';
@@ -115,15 +113,11 @@ export const CHANGELLY_PRIVACY_POLICY = 'https://changelly.com/privacy-policy';
 export const CHANGELLY_AML_KYC = 'https://changelly.com/aml-kyc';
 export const CHANGELLY_WAITING_DEADLINE = 3 * 60 * 60 * 1000; // 3 hour
 
-export const TONCOIN_SLUG = 'toncoin';
-export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = 'ton-eqcxe6mutq'; // USD₮
-export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = 'usdtrx';
-
 export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-126';
+export const LANG_CACHE_NAME = 'mtw-lang-134';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -177,12 +171,11 @@ export const LANG_LIST: LangItem[] = [{
   rtl: false,
 }];
 
-export const STAKING_CYCLE_DURATION_MS = 131072000; // 36.4 hours
-export const VALIDATION_PERIOD_MS = 65536000; // 18.2 h.
-export const ONE_TON = 1000000000n;
-export const MIN_BALANCE_FOR_UNSTAKE = 1020000000n; // 1.02 TON
-export const STAKING_FORWARD_AMOUNT = ONE_TON;
-export const DEFAULT_FEE = 15000000n; // 0.015 TON
+export const STAKING_CYCLE_DURATION_MS = 131_072_000; // 36.4 hours
+export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
+export const ONE_TON = 1_000_000_000n;
+export const MIN_BALANCE_FOR_UNSTAKE = 1_020_000_000n; // 1.02 TON
+export const DEFAULT_FEE = 15_000_000n; // 0.015 TON
 
 export const STAKING_POOLS = process.env.STAKING_POOLS ? process.env.STAKING_POOLS.split(' ') : [];
 export const LIQUID_POOL = process.env.LIQUID_POOL || 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o';
@@ -204,49 +197,175 @@ export const MYCOIN_SLUG = 'ton-eqcfvnlrbn';
 export const MYCOIN_TOKEN_TESTNET = 'kQAWlxpEbwhCDFX9gp824ee2xVBhAh5VRSGWfbNFDddAbQoQ';
 export const MYCOIN_SLUG_TESTNET = 'ton-kqawlxpebw';
 
+export const TONCOIN = {
+  name: 'Toncoin',
+  symbol: 'TON',
+  slug: 'toncoin',
+  decimals: 9,
+  chain: 'ton',
+  cmcSlug: 'toncoin',
+} as const;
+
+export const TRX = {
+  name: 'TRON',
+  symbol: 'TRX',
+  slug: 'trx',
+  decimals: 6,
+  chain: 'tron',
+  cmcSlug: 'tron',
+} as const;
+
+export const CHAIN_CONFIG = {
+  ton: {
+    isMemoSupported: true,
+    isDnsSupported: true,
+    addressRegex: /^([-\w_]{48}|0:[\da-h]{64})$/i,
+    nativeToken: TONCOIN,
+    gas: {
+      maxSwap: 400_000_000n, // 0.4 TON
+      maxTransfer: 10_000_000n, // 0.01 TON
+      maxTransferToken: 60_000_000n, // 0.06 TON
+    },
+  },
+  tron: {
+    isMemoSupported: false,
+    isDnsSupported: false,
+    addressRegex: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
+    nativeToken: TRX,
+    gas: {
+      maxSwap: undefined,
+      maxTransfer: 1_000_000n, // 1 TRX
+      maxTransferToken: 35_000_000n, // 35 TRX
+    },
+    mainnet: {
+      apiUrl: 'https://api.trongrid.io',
+      usdtAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    },
+    testnet: {
+      apiUrl: 'https://api.shasta.trongrid.io',
+      usdtAddress: 'TG3XXyExBkPp9nzdajDZsozEu4BkaSJozs',
+    },
+  },
+} as const;
+
+export const NATIVE_TOKENS = [TONCOIN, TRX];
+
+export const TRC20_USDT_MAINNET_SLUG = 'tron-tr7nhqjekq';
+export const TRC20_USDT_TESTNET_SLUG = 'tron-tg3xxyexbk';
+export const TON_USDT_SLUG = 'ton-eqcxe6mutq';
+export const TRX_SWAP_COUNT_FEE_ADDRESS = 'TW2LXSebZ7Br1zHaiA2W1zRojDkDwjGmpw';
+
+const TRC20_USDT = {
+  name: 'Tether USD',
+  symbol: 'USDT',
+  decimals: 6,
+  chain: 'tron',
+} as const;
+const TON_USDT = {
+  name: 'Tether USD',
+  symbol: 'USD₮',
+  chain: 'ton',
+  slug: TON_USDT_SLUG,
+  decimals: 6,
+  tokenAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+} as const;
+
+export const ENABLED_TOKEN_SLUGS = [
+  TONCOIN.slug, TON_USDT_SLUG, TRX.slug, TRC20_USDT_TESTNET_SLUG, TRC20_USDT_MAINNET_SLUG,
+] as string[];
+
+export const PRIORITY_TOKEN_SLUGS = [
+  TONCOIN.slug, TRX.slug,
+] as string[];
+
 export const TOKEN_INFO = {
   toncoin: {
-    name: 'Toncoin',
-    symbol: TON_SYMBOL,
-    slug: TONCOIN_SLUG,
-    cmcSlug: TONCOIN_SLUG,
+    ...TONCOIN,
     quote: {
-      slug: TONCOIN_SLUG,
+      slug: TONCOIN.slug,
       price: 1.95,
       priceUsd: 1.95,
       percentChange24h: 0,
     },
-    decimals: DEFAULT_DECIMAL_PLACES,
+  },
+  trx: {
+    ...TRX,
+    quote: {
+      slug: TRX.slug,
+      price: 0,
+      priceUsd: 0,
+      percentChange24h: 0,
+    },
+  },
+  [TRC20_USDT_MAINNET_SLUG]: { // mainnet
+    ...TRC20_USDT,
+    slug: TRC20_USDT_MAINNET_SLUG,
+    tokenAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    quote: {
+      slug: TRC20_USDT_MAINNET_SLUG,
+      price: 0,
+      priceUsd: 0,
+      percentChange24h: 0,
+    },
+  },
+  [TRC20_USDT_TESTNET_SLUG]: { // testnet
+    ...TRC20_USDT,
+    slug: TRC20_USDT_TESTNET_SLUG,
+    tokenAddress: 'TG3XXyExBkPp9nzdajDZsozEu4BkaSJozs',
+    quote: {
+      slug: TRC20_USDT_TESTNET_SLUG,
+      price: 0,
+      priceUsd: 0,
+      percentChange24h: 0,
+    },
+  },
+  [TON_USDT_SLUG]: {
+    ...TON_USDT,
+    // eslint-disable-next-line max-len
+    image: 'https://cache.tonapi.io/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
+    quote: {
+      slug: TON_USDT_SLUG,
+      price: 0,
+      priceUsd: 0,
+      percentChange24h: 0,
+    },
   },
 };
 
-export const TON_BLOCKCHAIN = 'ton';
+export const TOKEN_WITH_LABEL: Record<string, string> = {
+  [TRC20_USDT_MAINNET_SLUG]: 'TRC-20',
+  [TRC20_USDT_TESTNET_SLUG]: 'TRC-20',
+  [TON_USDT_SLUG]: 'TON',
+};
 
 export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
   toncoin: {
     name: 'Toncoin',
-    symbol: TON_SYMBOL,
-    blockchain: TON_BLOCKCHAIN,
-    slug: TONCOIN_SLUG,
-    decimals: DEFAULT_DECIMAL_PLACES,
+    symbol: TONCOIN.symbol,
+    chain: TONCOIN.chain,
+    slug: TONCOIN.slug,
+    decimals: TONCOIN.decimals,
     price: 0,
     priceUsd: 0,
     isPopular: true,
   },
-  'ton-eqcxe6mutq': {
+  [TON_USDT_SLUG]: {
     name: 'Tether USD',
     symbol: 'USD₮',
-    blockchain: TON_BLOCKCHAIN,
-    slug: 'ton-eqcxe6mutq',
+    chain: 'ton',
+    slug: TON_USDT_SLUG,
     decimals: 9,
     // eslint-disable-next-line max-len
     image: 'https://cache.tonapi.io/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
-    contract: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+    tokenAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
     price: 0,
     priceUsd: 0,
     isPopular: true,
   },
 };
+
+export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = TON_USDT_SLUG;
+export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = TRC20_USDT_MAINNET_SLUG;
 
 export const MULTITAB_DATA_CHANNEL_NAME = 'mtw-multitab';
 export const ACTIVE_TAB_STORAGE_KEY = 'mtw-active-tab';
@@ -256,7 +375,8 @@ export const INDEXED_DB_STORE_NAME = 'keyval';
 
 export const WINDOW_PROVIDER_CHANNEL = 'windowProvider';
 
-export const MIN_ASSETS_TAB_VIEW = 5;
+export const PORTRAIT_MIN_ASSETS_TAB_VIEW = 5;
+export const LANDSCAPE_MIN_ASSETS_TAB_VIEW = 6;
 
 export const DEFAULT_PRICE_CURRENCY = 'USD';
 export const SHORT_CURRENCY_SYMBOL_MAP = {
@@ -286,16 +406,16 @@ export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
     value: 'BTC',
     name: 'Bitcoin',
   }, {
-    value: TON_SYMBOL,
+    value: TONCOIN.symbol,
     name: 'Toncoin',
   },
 ];
 
 export const BURN_ADDRESS = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
 
-export const DEFAULT_WALLET_VERSION: ApiWalletVersion = 'W5';
-export const POPULAR_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R1', 'v3R2', 'v4R2', 'W5'];
-export const LEDGER_WALLET_VERSIONS: ApiWalletVersion[] = ['v3R2', 'v4R2'];
+export const DEFAULT_WALLET_VERSION: ApiTonWalletVersion = 'W5';
+export const POPULAR_WALLET_VERSIONS: ApiTonWalletVersion[] = ['v3R1', 'v3R2', 'v4R2', 'W5'];
+export const LEDGER_WALLET_VERSIONS: ApiTonWalletVersion[] = ['v3R2', 'v4R2'];
 
 export const DEFAULT_TIMEOUT = 10000;
 export const DEFAULT_RETRIES = 3;
@@ -338,10 +458,22 @@ export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-
 export const RE_TG_BOT_MENTION = /telegram[:\s-]*((@[a-z0-9_]+)|(https:\/\/)?(t\.me|telegram\.me|telegram\.dog)\/[a-z0-9_]+)/mig;
 
 export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';
+
 export const DIESEL_TOKENS = new Set([
   'EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT', // NOT
   'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
   'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS', // DOGS
+  'EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7', // CATI
+  'EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo', // HAMSTER
 ]);
 
-export const TINY_TOKENS = DIESEL_TOKENS;
+export const TINY_TOKENS = new Set([
+  'EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT', // NOT
+  'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
+  'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS', // DOGS
+]);
+export const TOKENS_WITH_STARS_FEE = new Set<string>([]);
+
+export const STARS_SYMBOL = '⭐️';
+
+export const GIVEAWAY_CHECKIN_URL = process.env.GIVEAWAY_CHECKIN_URL || 'https://giveaway.mytonwallet.io';

@@ -2,7 +2,7 @@ import React, { memo, useState } from '../../lib/teact/teact';
 import { getActions } from '../../lib/teact/teactn';
 import { withGlobal } from '../../global';
 
-import type { GlobalState } from '../../global/types';
+import type { GlobalState, Theme } from '../../global/types';
 import { AuthState } from '../../global/types';
 
 import { pick } from '../../util/iteratees';
@@ -33,7 +33,7 @@ import styles from './Auth.module.scss';
 type StateProps = Pick<GlobalState['auth'], (
   'state' | 'biometricsStep' | 'error' | 'mnemonic' | 'mnemonicCheckIndexes' | 'isLoading' | 'method'
   | 'isBackupModalOpen'
-)>;
+)> & { theme: Theme };
 
 const RENDER_COUNT = Object.keys(AuthState).length / 2;
 
@@ -46,6 +46,7 @@ const Auth = ({
   mnemonicCheckIndexes,
   isBackupModalOpen,
   method,
+  theme,
 }: StateProps) => {
   const {
     closeAbout,
@@ -150,7 +151,7 @@ const Auth = ({
           />
         );
       case AuthState.about:
-        return <SettingsAbout handleBackClick={closeAbout} />;
+        return <SettingsAbout handleBackClick={closeAbout} theme={theme} />;
     }
   }
 
@@ -180,8 +181,12 @@ const Auth = ({
 };
 
 export default memo(withGlobal((global): StateProps => {
-  return pick(global.auth, [
+  const authProps = pick(global.auth, [
     'state', 'biometricsStep', 'error', 'mnemonic', 'mnemonicCheckIndexes', 'isLoading', 'method',
     'isBackupModalOpen',
   ]);
+  return {
+    ...authProps,
+    theme: global.settings.theme,
+  };
 })(Auth));

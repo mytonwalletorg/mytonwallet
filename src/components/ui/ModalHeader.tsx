@@ -10,7 +10,7 @@ import Button from './Button';
 import modalStyles from './Modal.module.scss';
 
 type OwnProps = {
-  title: string | TeactNode;
+  title?: string | TeactNode;
   className?: string;
   withNotch?: boolean;
   closeClassName?: string;
@@ -39,7 +39,7 @@ function ModalHeader({
           <span>{lang('Back')}</span>
         </Button>
       )}
-      <div className={buildClassName(modalStyles.title, modalStyles.singleTitle)}>{title}</div>
+      {title !== undefined && <div className={buildClassName(modalStyles.title, modalStyles.singleTitle)}>{title}</div>}
       {onClose && (
         <Button
           isRound

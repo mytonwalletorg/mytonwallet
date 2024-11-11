@@ -42,6 +42,7 @@ function Switcher({
     <label
       className={buildClassName(styles.container, className)}
       title={label}
+      aria-label={label}
       onClick={shouldStopPropagation ? (e) => e.stopPropagation() : undefined}
       tabIndex={0}
       role="button"

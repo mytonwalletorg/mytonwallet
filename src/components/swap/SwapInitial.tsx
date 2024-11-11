@@ -3,28 +3,31 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../global';
 
-import type { GlobalState, UserSwapToken } from '../../global/types';
+import type { ApiChain } from '../../api/types';
+import type { Account, GlobalState, UserSwapToken } from '../../global/types';
 import { SwapInputSource, SwapState, SwapType } from '../../global/types';
 
 import {
   ANIMATED_STICKER_TINY_SIZE_PX,
   ANIMATION_LEVEL_MAX,
+  CHAIN_CONFIG,
   CHANGELLY_AML_KYC,
   CHANGELLY_PRIVACY_POLICY,
   CHANGELLY_TERMS_OF_USE,
-  DEFAULT_FEE,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   DIESEL_TOKENS,
-  TON_SYMBOL,
-  TONCOIN_SLUG,
+  TONCOIN,
+  TRX,
 } from '../../config';
-import { Big } from '../../lib/big.js';
-import { selectSwapTokens } from '../../global/selectors';
+import { selectCurrentAccount, selectIsMultichainAccount, selectSwapTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
+import { findChainConfig, getChainConfig } from '../../util/chain';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
+import { getIsNativeToken } from '../../util/tokens';
+import { ONE_TRX } from '../../api/chains/tron/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
@@ -52,14 +55,15 @@ interface OwnProps {
 }
 
 interface StateProps {
+  addressByChain?: Account['addressByChain'];
   currentSwap: GlobalState['currentSwap'];
   accountId?: string;
   tokens?: UserSwapToken[];
+  isMultichainAccount?: boolean;
 }
 
 const ESTIMATE_REQUEST_INTERVAL = 1_000;
 const SET_AMOUNT_DEBOUNCE_TIME = 500;
-const DEFAULT_SWAP_FEE = 500000000n; // 0.5 TON
 
 function SwapInitial({
   currentSwap: {
@@ -83,9 +87,11 @@ function SwapInitial({
     swapFee,
   },
   accountId,
+  addressByChain,
   tokens,
   isActive,
   isStatic,
+  isMultichainAccount,
 }: OwnProps & StateProps) {
   const {
     setDefaultSwapParams,
@@ -112,7 +118,7 @@ function SwapInitial({
 
   const [hasAmountInError, setHasAmountInError] = useState(false);
 
-  const currentTokenInSlug = tokenInSlug ?? TONCOIN_SLUG;
+  const currentTokenInSlug = tokenInSlug ?? TONCOIN.slug;
   const currentTokenOutSlug = tokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG;
 
   const tokenInTransitionKey = useTokenTransitionKey(currentTokenInSlug ?? '');
@@ -123,57 +129,80 @@ function SwapInitial({
     () => tokens?.find((token) => token.slug === currentTokenInSlug),
     [currentTokenInSlug, tokens],
   );
-
   const tokenOut = useMemo(
     () => tokens?.find((token) => token.slug === currentTokenOutSlug),
     [currentTokenOutSlug, tokens],
   );
 
-  const toncoin = useMemo(
-    () => tokens?.find((token) => token.slug === TONCOIN_SLUG) ?? { amount: 0 },
-    [tokens],
+  const nativeTokenInSlug = isMultichainAccount || tokenIn?.chain === 'ton'
+    ? findChainConfig(tokenIn?.chain)?.nativeToken.slug
+    : undefined;
+  const nativeUserTokenIn = useMemo(
+    () => tokens?.find((token) => token.slug === nativeTokenInSlug),
+    [nativeTokenInSlug, tokens],
   );
+  const isNativeIn = currentTokenInSlug && currentTokenInSlug === nativeTokenInSlug;
+  const chainConfigIn = nativeUserTokenIn ? getChainConfig(nativeUserTokenIn.chain as ApiChain) : undefined;
+  const isTonIn = tokenIn?.chain === 'ton';
+  const visibleNetworkFee = isTonIn ? realNetworkFee : networkFee;
 
-  const isToncoinIn = currentTokenInSlug === TONCOIN_SLUG;
-  const totalToncoinAmount = useMemo(
-    () => {
-      if (!tokenIn || !amountIn) {
-        return 0n;
-      }
-      if (isToncoinIn) {
-        return fromDecimal(amountIn) + fromDecimal(networkFee) + DEFAULT_FEE;
-      }
-      return fromDecimal(networkFee) + DEFAULT_FEE;
-    },
-    [tokenIn, amountIn, isToncoinIn, networkFee],
-  );
+  const amountInBigint = amountIn && tokenIn ? fromDecimal(amountIn, tokenIn.decimals) : 0n;
+  const amountOutBigint = amountOut && tokenOut ? fromDecimal(amountOut, tokenOut.decimals) : 0n;
+  const balanceIn = useMemo(() => {
+    let value = tokenIn?.amount ?? 0n;
+    if (tokenIn?.slug === TRX.slug && isMultichainAccount) {
+      // We always need to leave 1 TRX on balance
+      value = value > ONE_TRX ? value - ONE_TRX : 0n;
+    }
+    return value;
+  }, [tokenIn, isMultichainAccount]);
+  const networkFeeBigint = useMemo(() => {
+    let value = 0n;
 
-  const amountInBig = useMemo(() => Big(amountIn || 0), [amountIn]);
-  const amountOutBig = useMemo(() => Big(amountOut || 0), [amountOut]);
-  const tokenInAmountBig = useMemo(() => toDecimal(tokenIn?.amount ?? 0n, tokenIn?.decimals), [tokenIn]);
+    if (!chainConfigIn) {
+      return value;
+    }
+
+    if (networkFee > 0) {
+      value = fromDecimal(networkFee, nativeUserTokenIn?.decimals);
+    } else if (swapType === SwapType.OnChain) {
+      value = chainConfigIn?.gas.maxSwap ?? 0n;
+    } else if (swapType === SwapType.CrosschainFromWallet) {
+      value = getIsNativeToken(tokenInSlug) ? chainConfigIn.gas.maxTransfer : chainConfigIn.gas.maxTransferToken;
+    }
+
+    return value;
+  }, [networkFee, nativeUserTokenIn, chainConfigIn, swapType, tokenInSlug]);
+  const totalNativeAmount = networkFeeBigint + (isNativeIn ? amountInBigint : 0n);
+  const isEnoughNative = nativeUserTokenIn && nativeUserTokenIn.amount >= totalNativeAmount;
+  const amountOutValue = amountInBigint <= 0n && inputSource === SwapInputSource.In
+    ? ''
+    : amountOut?.toString();
 
   const isErrorExist = errorType !== undefined;
-  const isEnoughToncoin = toncoin.amount > totalToncoinAmount;
-  const isDieselSwap = swapType === SwapType.OnChain
-    && !isEnoughToncoin
-    && tokenIn?.contract
-    && DIESEL_TOKENS.has(tokenIn.contract);
 
-  // eslint-disable-next-line max-len
+  const isDieselSwap = swapType === SwapType.OnChain
+    && !isEnoughNative
+    && tokenIn?.tokenAddress
+    && DIESEL_TOKENS.has(tokenIn.tokenAddress);
+
   const isCorrectAmountIn = Boolean(
     amountIn
-    && tokenIn?.amount
-    && amountInBig.gt(0)
-    && amountInBig.lte(tokenInAmountBig),
-  ) || swapType === SwapType.CrosschainToToncoin;
-  const isEnoughFee = swapType === SwapType.CrosschainToToncoin || isEnoughToncoin || (
-    dieselStatus === 'available' || dieselStatus === 'not-authorized'
-  );
-  const isCorrectAmountOut = amountOut && amountOutBig.gt(0);
-  const canSubmit = Boolean(isCorrectAmountIn && isCorrectAmountOut && isEnoughFee && !isEstimating && !isErrorExist);
-  const isPriceImpactError = priceImpact >= MAX_PRICE_IMPACT_VALUE;
+    && tokenIn
+    && amountInBigint > 0
+    && amountInBigint <= balanceIn,
+  ) || (tokenIn && !nativeTokenInSlug);
 
-  const isCrosschain = swapType === SwapType.CrosschainFromToncoin || swapType === SwapType.CrosschainToToncoin;
+  const isEnoughFee = swapType !== SwapType.CrosschainToWallet
+    ? (isEnoughNative && (swapType === SwapType.CrosschainFromWallet || swapType === SwapType.OnChain))
+    || (swapType === SwapType.OnChain && dieselStatus && ['available', 'not-authorized'].includes(dieselStatus))
+    : true;
+
+  const isCorrectAmountOut = amountOut && amountOutBigint > 0;
+  const canSubmit = Boolean(isCorrectAmountIn && isCorrectAmountOut && isEnoughFee && !isEstimating && !isErrorExist);
+
+  const isPriceImpactError = priceImpact >= MAX_PRICE_IMPACT_VALUE;
+  const isCrosschain = swapType === SwapType.CrosschainFromWallet || swapType === SwapType.CrosschainToWallet;
 
   const isReverseProhibited = useMemo(() => {
     return isCrosschain || pairs?.bySlug?.[currentTokenInSlug]?.[currentTokenOutSlug]?.isReverseProhibited;
@@ -186,7 +215,7 @@ function SwapInitial({
       estimateSwapCex({ shouldBlock });
       return;
     }
-    estimateSwap({ shouldBlock, isEnoughToncoin });
+    estimateSwap({ shouldBlock, isEnoughToncoin: isEnoughNative });
   });
 
   const throttledEstimateSwap = useThrottledCallback(
@@ -235,27 +264,41 @@ function SwapInitial({
   }, [accountId, accountIdPrev, currentTokenInSlug, currentTokenOutSlug]);
 
   useEffect(() => {
-    if (tokenIn?.blockchain === 'ton' && tokenOut?.blockchain !== 'ton') {
-      setSwapType({ type: SwapType.CrosschainFromToncoin });
-      return;
-    } else if (tokenOut?.blockchain === 'ton' && tokenIn?.blockchain !== 'ton') {
-      setSwapType({ type: SwapType.CrosschainToToncoin });
+    if (!tokenIn || !tokenOut) {
       return;
     }
-    setSwapType({ type: SwapType.OnChain });
-  }, [tokenIn, tokenOut]);
+
+    const isInTonToken = tokenIn?.chain === 'ton';
+    const isOutTonToken = tokenOut?.chain === 'ton';
+
+    if (isInTonToken && isOutTonToken) {
+      setSwapType({ type: SwapType.OnChain });
+      return;
+    }
+
+    if (isMultichainAccount) {
+      if (tokenIn.chain in CHAIN_CONFIG) {
+        setSwapType({ type: SwapType.CrosschainFromWallet });
+      } else {
+        setSwapType({ type: SwapType.CrosschainToWallet });
+      }
+      return;
+    }
+
+    if (isInTonToken && !isOutTonToken) {
+      setSwapType({ type: SwapType.CrosschainFromWallet });
+    } else if (!isInTonToken && isOutTonToken) {
+      setSwapType({ type: SwapType.CrosschainToWallet });
+    }
+  }, [tokenIn, tokenOut, isMultichainAccount]);
 
   const validateAmountIn = useLastCallback((amount: string | undefined) => {
-    if (swapType === SwapType.CrosschainToToncoin) {
+    if (swapType === SwapType.CrosschainToWallet || !amount || !tokenIn) {
       setHasAmountInError(false);
       return;
     }
 
-    const amountBig = amount === undefined ? undefined : Big(amount);
-    const hasError = amountBig !== undefined && (
-      amountBig.lt(0) || (tokenIn?.amount !== undefined && amountBig.gt(tokenInAmountBig))
-    );
-
+    const hasError = fromDecimal(amount, tokenIn.decimals) > balanceIn;
     setHasAmountInError(hasError);
   });
 
@@ -289,18 +332,15 @@ function SwapInitial({
     (e: React.MouseEvent<HTMLElement>) => {
       e.preventDefault();
 
-      if (!tokenIn?.amount) {
-        return;
-      }
-
       vibrate();
 
-      const amountWithFee = tokenIn.amount > DEFAULT_SWAP_FEE
-        ? tokenIn.amount - DEFAULT_SWAP_FEE
-        : tokenIn.amount;
-      const newAmount = isToncoinIn ? amountWithFee : tokenIn.amount;
-      const amount = toDecimal(newAmount, tokenIn.decimals);
+      let maxAmount = balanceIn;
 
+      if (isNativeIn) {
+        maxAmount -= networkFeeBigint;
+      }
+
+      const amount = toDecimal(maxAmount, tokenIn!.decimals);
       validateAmountIn(amount);
       setSwapAmountIn({ amount });
     },
@@ -322,7 +362,10 @@ function SwapInitial({
 
     if (isCrosschain) {
       setSwapCexAddress({ toAddress: '' });
-      if (swapType === SwapType.CrosschainToToncoin) {
+      if (swapType === SwapType.CrosschainToWallet) {
+        setSwapScreen({ state: SwapState.Password });
+      } else if (isMultichainAccount && addressByChain![tokenIn!.chain as ApiChain]) {
+        setSwapCexAddress({ toAddress: addressByChain![tokenIn!.chain as ApiChain] });
         setSwapScreen({ state: SwapState.Password });
       } else {
         setSwapScreen({ state: SwapState.Blockchain });
@@ -347,7 +390,7 @@ function SwapInitial({
   });
 
   function renderBalance() {
-    const isBalanceVisible = tokenIn && swapType !== SwapType.CrosschainToToncoin;
+    const isBalanceVisible = Boolean(isMultichainAccount ? nativeTokenInSlug : isTonIn);
 
     return (
       <Transition
@@ -365,7 +408,7 @@ function SwapInitial({
                     onClick={handleMaxAmountClick}
                     className={styles.balanceLink}
                   >
-                    {formatCurrency(toDecimal(tokenIn.amount, tokenIn?.decimals), tokenIn?.symbol)}
+                    {formatCurrency(toDecimal(tokenIn!.amount, tokenIn?.decimals), tokenIn!.symbol)}
                   </div>
                 ),
               })}
@@ -472,29 +515,42 @@ function SwapInitial({
     const isFeeEqualZero = realNetworkFee === 0;
 
     let feeBlock: React.JSX.Element | undefined;
-
-    if (
+    const shouldRenderDieselSwapFee = Boolean(
       swapType === SwapType.OnChain
       && isDieselSwap
+      && !isLoading
       && swapFee
       && tokenIn
-      && tokenIn?.slug !== TONCOIN_SLUG
-      && !isLoading
-    ) {
-      // Diesel swap
+      && tokenIn.slug !== TONCOIN.slug,
+    );
+
+    if (shouldRenderDieselSwapFee) {
       feeBlock = (
-        <span className={styles.feeText}>{lang('$fee_value', {
-          fee: formatCurrency(swapFee, tokenIn.symbol),
-        })}
+        <span className={styles.feeText}>
+          {lang('$fee_value', { fee: formatCurrency(swapFee!, tokenIn!.symbol, undefined, true) })}
         </span>
       );
-    } else if (swapType !== SwapType.CrosschainToToncoin) {
-      feeBlock = (
-        <span className={styles.feeText}>{lang(isFeeEqualZero ? '$fee_value' : '$fee_value_almost_equal', {
-          fee: formatCurrency(realNetworkFee, TON_SYMBOL),
-        })}
-        </span>
-      );
+    } else if (nativeUserTokenIn) {
+      if (!isEnoughNative && isTonIn && !isFeeEqualZero) {
+        feeBlock = (
+          <span className={styles.feeText}>{lang('$fee_value_less', {
+            fee: formatCurrency(
+              toDecimal(totalNativeAmount, nativeUserTokenIn.decimals),
+              nativeUserTokenIn.symbol,
+              undefined,
+              true,
+            ),
+          })}
+          </span>
+        );
+      } else {
+        feeBlock = (
+          <span className={styles.feeText}>{lang(isFeeEqualZero ? '$fee_value' : '$fee_value_almost_equal', {
+            fee: formatCurrency(visibleNetworkFee, nativeUserTokenIn.symbol, undefined, true),
+          })}
+          </span>
+        );
+      }
     }
 
     const priceBlock = renderPrice();
@@ -560,7 +616,7 @@ function SwapInitial({
               id="swap-buy"
               labelText={lang('You buy')}
               className={styles.amountInputBuy}
-              value={amountOut?.toString()}
+              value={amountOutValue}
               isLoading={isEstimating && inputSource === SwapInputSource.In}
               disabled={isReverseProhibited}
               onChange={handleAmountOutChange}
@@ -589,7 +645,8 @@ function SwapInitial({
             amountOut={amountOut}
             swapType={swapType}
             isEstimating={isEstimating}
-            isEnoughToncoin={isEnoughToncoin}
+            isNotEnoughNative={!isEnoughNative}
+            nativeToken={nativeUserTokenIn}
             dieselStatus={dieselStatus}
             isSending={isLoading}
             isPriceImpactError={isPriceImpactError}
@@ -612,10 +669,14 @@ function SwapInitial({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
+      const account = selectCurrentAccount(global);
+
       return {
         accountId: global.currentAccountId,
         currentSwap: global.currentSwap,
         tokens: selectSwapTokens(global),
+        addressByChain: account?.addressByChain,
+        isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

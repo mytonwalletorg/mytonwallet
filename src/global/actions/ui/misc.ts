@@ -19,8 +19,8 @@ import {
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { isTonDeeplink, parseTonDeeplink, processDeeplink } from '../../../util/deeplink';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
-import { isTonAddressOrDomain } from '../../../util/isTonAddressOrDomain';
-import { omitUndefined, pick, unique } from '../../../util/iteratees';
+import { isValidAddressOrDomain } from '../../../util/isValidAddressOrDomain';
+import { omitUndefined, pick } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { callActionInMain } from '../../../util/multitab';
@@ -40,8 +40,8 @@ import {
   renameAccount,
   setIsPinAccepted,
   updateAccounts,
-  updateAccountState,
   updateAuth,
+  updateCurrentAccountSettings,
   updateCurrentAccountState,
   updateCurrentSwap,
   updateCurrentTransfer,
@@ -49,11 +49,9 @@ import {
   updateSettings,
 } from '../../reducers';
 import {
-  selectAccountSettings,
-  selectAccountState,
   selectCurrentAccount,
+  selectCurrentAccountSettings,
   selectCurrentAccountState,
-  selectCurrentAccountTokens,
   selectFirstNonHardwareAccount,
 } from '../../selectors';
 
@@ -77,21 +75,23 @@ addActionHandler('closeActivityInfo', (global, actions, { id }) => {
   return updateCurrentAccountState(global, { currentActivityId: undefined });
 });
 
-addActionHandler('addSavedAddress', (global, actions, { address, name }) => {
-  const { savedAddresses } = selectCurrentAccountState(global) || {};
+addActionHandler('addSavedAddress', (global, actions, { address, name, chain }) => {
+  const { savedAddresses = [] } = selectCurrentAccountState(global) || {};
 
   return updateCurrentAccountState(global, {
-    savedAddresses: {
+    savedAddresses: [
       ...savedAddresses,
-      [address]: name,
-    },
+      { address, name, chain },
+    ],
   });
 });
 
-addActionHandler('removeFromSavedAddress', (global, actions, { address }) => {
-  const { [address]: omit, ...savedAddresses } = selectCurrentAccountState(global)?.savedAddresses || {};
+addActionHandler('removeFromSavedAddress', (global, actions, { address, chain }) => {
+  const { savedAddresses = [] } = selectCurrentAccountState(global) || {};
 
-  return updateCurrentAccountState(global, { savedAddresses });
+  const newSavedAddresses = savedAddresses.filter((item) => !(item.address === address && item.chain === chain));
+
+  return updateCurrentAccountState(global, { savedAddresses: newSavedAddresses });
 });
 
 addActionHandler('toggleTinyTransfersHidden', (global, actions, { isEnabled } = {}) => {
@@ -192,8 +192,14 @@ addActionHandler('clearAccountError', (global) => {
   return updateAccounts(global, { error: undefined });
 });
 
-addActionHandler('openAddAccountModal', (global) => {
-  return { ...global, isAddAccountModalOpen: true };
+addActionHandler('openAddAccountModal', (global, actions, props) => {
+  if (IS_DELEGATED_BOTTOM_SHEET && !global.areSettingsOpen) {
+    callActionInMain('openAddAccountModal', props);
+    return;
+  }
+
+  global = { ...global, isAddAccountModalOpen: true };
+  setGlobal(global);
 });
 
 addActionHandler('closeAddAccountModal', (global) => {
@@ -384,109 +390,31 @@ addActionHandler('closeSecurityWarning', (global) => {
 });
 
 addActionHandler('toggleTokensWithNoCost', (global, actions, { isEnabled }) => {
-  const accountId = global.currentAccountId!;
-  const accountSettings = selectAccountSettings(global, accountId) ?? {};
+  global = updateSettings(global, { areTokensWithNoCostHidden: isEnabled });
 
-  setGlobal(updateSettings(global, {
-    areTokensWithNoCostHidden: isEnabled,
-    byAccountId: {
-      ...global.settings.byAccountId,
-      [accountId]: {
-        ...accountSettings,
-        exceptionSlugs: [],
-      },
-    },
-  }));
+  const accountSettings = selectCurrentAccountSettings(global) ?? {};
+  global = updateCurrentAccountSettings(global, { ...accountSettings, exceptionSlugs: [] });
+
+  return global;
 });
 
 addActionHandler('toggleSortByValue', (global, actions, { isEnabled }) => {
-  setGlobal(updateSettings(global, {
+  return updateSettings(global, {
     isSortByValueEnabled: isEnabled,
-  }));
-});
-
-addActionHandler('initTokensOrder', (global) => {
-  const accountId = global.currentAccountId!;
-  const accountSettings = selectAccountSettings(global, accountId) ?? {};
-  const accountTokens = selectCurrentAccountTokens(global) ?? [];
-  const { orderedSlugs = [] } = accountSettings;
-  const newSlugs = accountTokens.map(({ slug }) => slug);
-
-  const updatedSlugs = unique([...orderedSlugs, ...newSlugs]);
-
-  setGlobal(updateSettings(global, {
-    byAccountId: {
-      ...global.settings.byAccountId,
-      [accountId]: {
-        ...accountSettings,
-        orderedSlugs: updatedSlugs,
-      },
-    },
-  }));
-});
-
-addActionHandler('updateDeletionListForActiveTokens', (global, actions, payload) => {
-  const { accountId = global.currentAccountId } = payload ?? {};
-  if (!accountId) {
-    return;
-  }
-
-  const { balances } = selectAccountState(global, accountId) ?? {};
-  const accountSettings = selectAccountSettings(global, accountId) ?? {};
-  const accountTokens = selectCurrentAccountTokens(global) ?? [];
-  const deletedSlugs = accountSettings.deletedSlugs ?? [];
-
-  const updatedDeletedSlugs = deletedSlugs.filter(
-    (slug) => !accountTokens.some((token) => token.slug === slug && token.amount > 0),
-  );
-
-  const balancesBySlug = balances?.bySlug ?? {};
-  const updatedBalancesBySlug = Object.fromEntries(
-    Object.entries(balancesBySlug).filter(([slug]) => !updatedDeletedSlugs.includes(slug)),
-  );
-
-  global = updateAccountState(global, accountId, {
-    balances: {
-      ...balances,
-      bySlug: updatedBalancesBySlug,
-    },
   });
-
-  global = updateSettings(global, {
-    byAccountId: {
-      ...global.settings.byAccountId,
-      [accountId]: {
-        ...accountSettings,
-        deletedSlugs: updatedDeletedSlugs,
-      },
-    },
-  });
-
-  setGlobal(global);
-
-  actions.initTokensOrder();
 });
 
-addActionHandler('sortTokens', (global, actions, { orderedSlugs }) => {
-  const accountId = global.currentAccountId!;
-  const accountSettings = selectAccountSettings(global, accountId);
-
-  setGlobal(updateSettings(global, {
-    byAccountId: {
-      ...global.settings.byAccountId,
-      [accountId]: {
-        ...accountSettings,
-        orderedSlugs,
-      },
-    },
-  }));
+addActionHandler('updateOrderedSlugs', (global, actions, { orderedSlugs }) => {
+  const accountSettings = selectCurrentAccountSettings(global);
+  return updateCurrentAccountSettings(global, {
+    ...accountSettings,
+    orderedSlugs,
+  });
 });
 
 addActionHandler('toggleExceptionToken', (global, actions, { slug }) => {
-  const accountId = global.currentAccountId!;
-  const accountSettings = selectAccountSettings(global, accountId) ?? {};
+  const accountSettings = selectCurrentAccountSettings(global) ?? {};
   const { exceptionSlugs = [] } = accountSettings;
-
   const exceptionSlugsCopy = exceptionSlugs.slice();
   const slugIndexInAvailable = exceptionSlugsCopy.indexOf(slug);
 
@@ -496,54 +424,20 @@ addActionHandler('toggleExceptionToken', (global, actions, { slug }) => {
     exceptionSlugsCopy.push(slug);
   }
 
-  setGlobal(updateSettings(global, {
-    byAccountId: {
-      ...global.settings.byAccountId,
-      [accountId]: {
-        ...accountSettings,
-        exceptionSlugs: exceptionSlugsCopy,
-      },
-    },
-  }));
+  return updateCurrentAccountSettings(global, {
+    ...accountSettings,
+    exceptionSlugs: exceptionSlugsCopy,
+  });
 });
 
 addActionHandler('deleteToken', (global, actions, { slug }) => {
-  const accountId = global.currentAccountId!;
-  const { balances } = selectAccountState(global, accountId) ?? {};
-
-  if (balances?.bySlug[slug] === undefined) {
-    return;
-  }
-
-  const { [slug]: deleted, ...bySlugCopy } = { ...balances?.bySlug };
-
-  global = updateAccountState(global, accountId, {
-    balances: {
-      ...balances,
-      bySlug: {
-        ...bySlugCopy,
-      },
-    },
+  const accountSettings = selectCurrentAccountSettings(global) ?? {};
+  return updateCurrentAccountSettings(global, {
+    ...accountSettings,
+    orderedSlugs: accountSettings.orderedSlugs?.filter((s) => s !== slug),
+    exceptionSlugs: accountSettings.exceptionSlugs?.filter((s) => s !== slug),
+    deletedSlugs: [...accountSettings.deletedSlugs ?? [], slug],
   });
-
-  const accountSettings = selectAccountSettings(global, accountId) ?? {};
-  const orderedSlugs = accountSettings.orderedSlugs?.filter((s) => s !== slug);
-  const exceptionSlugs = accountSettings.exceptionSlugs?.filter((s) => s !== slug);
-  const deletedSlugs = [...accountSettings.deletedSlugs ?? [], slug];
-
-  global = updateSettings(global, {
-    byAccountId: {
-      ...global.settings.byAccountId,
-      [accountId]: {
-        ...accountSettings,
-        orderedSlugs,
-        exceptionSlugs,
-        deletedSlugs,
-      },
-    },
-  });
-
-  setGlobal(global);
 });
 
 addActionHandler('checkAppVersion', (global) => {
@@ -633,7 +527,7 @@ addActionHandler('handleQrCode', (global, actions, { data }) => {
   const { currentTransfer, currentSwap } = global.currentQrScan || {};
 
   if (currentTransfer) {
-    if (isTonAddressOrDomain(data)) {
+    if (isValidAddressOrDomain(data, 'ton')) {
       return updateCurrentTransfer(global, {
         ...currentTransfer,
         toAddress: data,
@@ -672,7 +566,7 @@ addActionHandler('changeBaseCurrency', async (global, actions, { currency }) => 
 
   await Promise.all([
     callApi('tryUpdateTokens'),
-    callApi('tryLoadSwapTokens'),
+    callApi('tryUpdateSwapTokens'),
   ]);
 });
 
@@ -685,6 +579,11 @@ addActionHandler('clearIsPinAccepted', (global) => {
 });
 
 addActionHandler('openOnRampWidgetModal', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openOnRampWidgetModal');
+    return;
+  }
+
   setGlobal({ ...global, isOnRampWidgetModalOpen: true });
 });
 
@@ -725,6 +624,18 @@ addActionHandler('closeReceiveModal', (global) => {
   setGlobal({ ...global, isReceiveModalOpen: undefined });
 });
 
+addActionHandler('openInvoiceModal', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openInvoiceModal');
+    return;
+  }
+  setGlobal({ ...global, isInvoiceModalOpen: true });
+});
+
+addActionHandler('closeInvoiceModal', (global) => {
+  setGlobal({ ...global, isInvoiceModalOpen: undefined });
+});
+
 addActionHandler('showIncorrectTimeError', (global, actions) => {
   actions.showDialog({
     message: getTranslation('Time synchronization issue. Please ensure your device\'s time settings are correct.'),
@@ -753,7 +664,7 @@ addActionHandler('clearAccountLoading', (global) => {
 });
 
 addActionHandler('authorizeDiesel', (global) => {
-  const address = selectCurrentAccount(global)!.address;
+  const address = selectCurrentAccount(global)!.addressByChain.ton;
   setGlobal(updateCurrentAccountState(global, { isDieselAuthorizationStarted: true }));
   openUrl(`https://t.me/${BOT_USERNAME}?start=auth-${address}`, true);
 });

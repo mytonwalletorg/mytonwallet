@@ -1,76 +1,113 @@
-import React, { memo } from '../../lib/teact/teact';
-import { getActions, withGlobal } from '../../global';
+import React, { memo, useMemo, useState } from '../../lib/teact/teact';
+import { withGlobal } from '../../global';
 
-import renderText from '../../global/helpers/renderText';
+import type { ApiChain } from '../../api/types';
+import type { TabWithProperties } from '../ui/TabList';
+
 import { selectAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
-import useQrCode from '../../hooks/useQrCode';
 
-import Button from '../ui/Button';
-import InteractiveTextField from '../ui/InteractiveTextField';
+import TabList from '../ui/TabList';
+import Transition from '../ui/Transition';
+import TonContent from './content/TonContent';
+import TronContent from './content/TronContent';
 
-import modalStyles from '../ui/Modal.module.scss';
 import styles from './ReceiveModal.module.scss';
 
 interface StateProps {
-  address?: string;
+  addressByChain?: Record<ApiChain, string>;
   isLedger?: boolean;
 }
 
 type OwnProps = {
   isOpen?: boolean;
   isStatic?: boolean;
-  onInvoiceModalOpen: NoneToVoidFunction;
+  onClose?: NoneToVoidFunction;
 };
 
+const TON_TAB_ID = 0;
+const TRON_TAB_ID = 1;
+
 function Content({
-  isOpen, address, isStatic, onInvoiceModalOpen, isLedger,
+  isOpen, addressByChain, isStatic, isLedger, onClose,
 }: StateProps & OwnProps) {
+  // `lang.code` is used to force redrawing of the `Transition` content,
+  // since the height of the content differs from translation to translation.
   const lang = useLang();
 
-  const { qrCodeRef, isInitialized } = useQrCode(address, isOpen, styles.qrCodeHidden, undefined, true);
-  const { verifyHardwareAddress } = getActions();
+  const { isPortrait } = useDeviceScreen();
 
-  const handleVerify = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const tabs = useMemo(() => {
+    const result: TabWithProperties[] = [];
+    if (addressByChain?.ton) {
+      result.push({
+        id: TON_TAB_ID,
+        title: 'TON',
+        className: styles.tab,
+      });
+    }
+    if (addressByChain?.tron) {
+      result.push({
+        id: TRON_TAB_ID,
+        title: 'TRON',
+        className: styles.tab,
+      });
+    }
 
-    verifyHardwareAddress();
-  };
+    return result;
+  }, [addressByChain?.ton, addressByChain?.tron]);
+
+  const [activeTab, setActiveTab] = useState<number>(tabs.length ? tabs[0].id : 0);
+
+  // eslint-disable-next-line consistent-return
+  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+    switch (currentKey) {
+      case TON_TAB_ID:
+        return (
+          <TonContent
+            isActive={isOpen && isActive}
+            isStatic={isStatic}
+            isLedger={isLedger}
+            address={addressByChain!.ton}
+            onClose={onClose}
+          />
+        );
+
+      case TRON_TAB_ID:
+        return (
+          <TronContent
+            isActive={isOpen && isActive}
+            isStatic={isStatic}
+            address={addressByChain!.tron}
+          />
+        );
+    }
+  }
 
   return (
     <>
-      <div className={styles.contentTitle}>
-        {renderText(lang('$receive_ton_description'))}
-      </div>
-
-      <p className={styles.label}>{lang('Your address')}</p>
-      <InteractiveTextField
-        address={address!}
-        className={isStatic ? styles.copyButtonStatic : undefined}
-        copyNotification={lang('Your address was copied!')}
-        noSavedAddress
-      />
-
-      <div className={buildClassName(styles.qrCode, !isInitialized && styles.qrCodeHidden)} ref={qrCodeRef} />
-
-      {isLedger && (
-        <div className={styles.contentTitle}>
-          {renderText(lang('$ledger_verify_address'))}
-          {' '}
-          <a href="#" onClick={handleVerify} className={styles.dottedLink}>
-            {lang('Verify now')}
-          </a>
-        </div>
+      {tabs.length > 1 && (
+        <TabList
+          withBorder
+          tabs={tabs}
+          activeTab={activeTab}
+          className={buildClassName(styles.tabs, !isStatic && styles.tabsInModal)}
+          onSwitchTab={setActiveTab}
+        />
       )}
-
-      <div className={modalStyles.buttons}>
-        <Button onClick={onInvoiceModalOpen} className={styles.invoiceButton}>
-          {lang('Create Deposit Link')}
-        </Button>
-      </div>
+      <Transition
+        key={`content_${lang.code}`}
+        activeKey={activeTab}
+        name={isPortrait ? 'slide' : 'slideFade'}
+        className={styles.contentWrapper}
+        slideClassName={buildClassName(styles.content, isStatic && styles.contentStatic, 'custom-scroll')}
+        shouldRestoreHeight={isStatic}
+      >
+        {renderContent}
+      </Transition>
     </>
   );
 }
@@ -80,8 +117,9 @@ export default memo(
     const account = selectAccount(global, global.currentAccountId!);
 
     return {
-      address: account?.address,
+      addressByChain: account?.addressByChain,
       isLedger: Boolean(account?.ledger),
     };
-  })(Content),
+  },
+  (global, _, stickToFirst) => stickToFirst(global.currentAccountId))(Content),
 );

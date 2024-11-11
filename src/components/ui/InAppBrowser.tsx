@@ -71,10 +71,6 @@ function InAppBrowser({
   });
 
   const openBrowser = useLastCallback(async () => {
-    if (IS_DELEGATING_BOTTOM_SHEET) {
-      await BottomSheet.disable();
-    }
-
     const browserTitle = !title && url ? getHostnameFromUrl(url) : title;
     const browserSubtitle = subtitle === browserTitle ? undefined : subtitle;
 
@@ -82,7 +78,6 @@ function InAppBrowser({
       IS_IOS || browserTitle ? `title=${browserTitle || ''}` : undefined,
       IS_IOS || browserSubtitle ? `subtitle=${browserSubtitle || ''}` : undefined,
       url ? `shareurl=${encodeURIComponent(url)}` : undefined,
-      `theme=${theme}`,
       `closebuttoncaption=${IS_IOS ? lang('Close') : 'x'}`,
       `backbuttoncaption=${lang('Back')}`,
       `reloadcaption=${lang('Reload Page')}`,

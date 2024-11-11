@@ -1,11 +1,12 @@
 import type { Ref, RefObject } from 'react';
-import React, { memo } from '../../../../lib/teact/teact';
+import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import type { ApiToken, ApiTransactionActivity } from '../../../../api/types';
+import type { ApiTokenWithPrice, ApiTransactionActivity } from '../../../../api/types';
+import type { AppTheme, SavedAddress } from '../../../../global/types';
 import { MediaType } from '../../../../global/types';
 
-import { TON_SYMBOL } from '../../../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN } from '../../../../config';
 import { getIsTxIdLocal } from '../../../../global/helpers';
 import { bigintAbs } from '../../../../util/bigint';
 import buildClassName from '../../../../util/buildClassName';
@@ -13,10 +14,12 @@ import { formatTime } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
+import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
+import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 
 import styles from './Transaction.module.scss';
@@ -25,14 +28,18 @@ import scamImg from '../../../../assets/scam.svg';
 
 type OwnProps = {
   ref?: Ref<HTMLElement>;
-  tokensBySlug?: Record<string, ApiToken>;
+  tokensBySlug?: Record<string, ApiTokenWithPrice>;
   transaction: ApiTransactionActivity;
   isLast: boolean;
   isActive: boolean;
+  withChainIcon?: boolean;
   apyValue: number;
-  savedAddresses?: Record<string, string>;
+  appTheme: AppTheme;
+  savedAddresses?: SavedAddress[];
   onClick: (id: string) => void;
 };
+
+const ADDRESS_SHIFT = 4;
 
 function Transaction({
   ref,
@@ -42,6 +49,8 @@ function Transaction({
   apyValue,
   savedAddresses,
   isLast,
+  appTheme,
+  withChainIcon,
   onClick,
 }: OwnProps) {
   const { openMediaViewer } = getActions();
@@ -69,8 +78,12 @@ function Transaction({
   const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived' || Boolean(nft);
 
   const token = tokensBySlug?.[slug];
+  const { chain } = token || {};
   const address = isIncoming ? fromAddress : toAddress;
-  const addressName = savedAddresses?.[address] || metadata?.name;
+  const savedAddressName = useMemo(() => {
+    return address && chain && savedAddresses?.find((item) => item.address === address && item.chain === chain)?.name;
+  }, [address, chain, savedAddresses]);
+  const addressName = savedAddressName || metadata?.name;
   const isLocal = getIsTxIdLocal(txId);
   const isScam = Boolean(metadata?.isScam);
 
@@ -165,13 +178,23 @@ function Transaction({
         <div className={amountOtherClass}>
           {isNftTransfer ? 'NFT' : formatCurrencyExtended(
             toDecimal(isStaking ? bigintAbs(amount) : amount, token!.decimals),
-            token?.symbol || TON_SYMBOL,
+            token?.symbol || TONCOIN.symbol,
             isStaking,
           )}
         </div>
         <div className={styles.address}>
           {!isStaking && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
-            address: <span className={styles.addressValue}>{addressName || shortenAddress(address)}</span>,
+            address: (
+              <span className={styles.addressValue}>
+                {withChainIcon && Boolean(chain) && (
+                  <i
+                    className={buildClassName(styles.chainIcon, `icon-chain-${chain.toLowerCase()}`)}
+                    aria-label={chain}
+                  />
+                )}
+                {addressName || shortenAddress(address, ADDRESS_SHIFT)}
+              </span>
+            ),
           })}
           {isStake && lang('at %apy_value%', {
             apy_value: <span className={styles.apyValue}>APY {apyValue}%</span>,
@@ -182,11 +205,7 @@ function Transaction({
     );
   }
 
-  const waitingIconClassName = buildClassName(
-    styles.iconWaiting,
-    isStake && styles.iconWaitingStake,
-    'icon-clock',
-  );
+  const waitingIconName = isStake ? 'iconClockPurpleWhite' : (isIncoming ? 'iconClockGreen' : 'iconClockGray');
 
   return (
     <Button
@@ -202,12 +221,17 @@ function Transaction({
       onClick={handleClick}
       isSimple
     >
-      <i className={iconFullClass} aria-hidden />
+      <i className={iconFullClass} aria-hidden title={lang('Transaction is not completed')} />
       {isLocal && (
-        <i
-          className={waitingIconClassName}
-          title={lang('Transaction is not completed')}
-          aria-hidden
+        <AnimatedIconWithPreview
+          play
+          size={ANIMATED_STICKER_TINY_ICON_PX}
+          className={styles.iconWaiting}
+          nonInteractive
+          noLoop={false}
+          forceOnHeavyAnimation
+          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme][waitingIconName]}
+          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview[waitingIconName]}
         />
       )}
       <div className={styles.leftBlock}>

@@ -1,13 +1,12 @@
 import React, { memo, useMemo, useState } from '../../lib/teact/teact';
-import { withGlobal } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
 import type { UserToken } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 
-import { DEFAULT_DECIMAL_PLACES, TONCOIN_SLUG } from '../../config';
+import { TONCOIN } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import { selectAccount, selectCurrentAccountTokens } from '../../global/selectors';
-import buildClassName from '../../util/buildClassName';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import formatTransferUrl from '../../util/ton/formatTransferUrl';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
@@ -24,21 +23,18 @@ import RichNumberInput from '../ui/RichNumberInput';
 import styles from './ReceiveModal.module.scss';
 
 interface StateProps {
+  isOpen?: boolean;
   address?: string;
   tokens?: UserToken[];
 }
-
-type OwnProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
 
 function InvoiceModal({
   address,
   isOpen,
   tokens,
-  onClose,
-}: StateProps & OwnProps) {
+}: StateProps) {
+  const { closeInvoiceModal } = getActions();
+
   const lang = useLang();
 
   const [amount, setAmount] = useState<bigint | undefined>(undefined);
@@ -46,7 +42,7 @@ function InvoiceModal({
   const [hasAmountError, setHasAmountError] = useState<boolean>(false);
 
   const invoiceUrl = address ? formatTransferUrl(address, amount, comment) : '';
-  const decimals = DEFAULT_DECIMAL_PLACES; // TODO Change it after token selection is supported
+  const decimals = TONCOIN.decimals; // TODO Change it after token selection is supported
 
   const dropdownItems = useMemo(() => {
     if (!tokens) {
@@ -54,7 +50,7 @@ function InvoiceModal({
     }
 
     return tokens.reduce<DropdownItem[]>((acc, token) => {
-      if (token.slug === TONCOIN_SLUG) {
+      if (token.slug === TONCOIN.slug) {
         acc.push({
           value: token.slug,
           icon: token.image || ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS],
@@ -85,7 +81,7 @@ function InvoiceModal({
   });
 
   function renderTokens() {
-    return <Dropdown items={dropdownItems} selectedValue={TONCOIN_SLUG} className={styles.tokenDropdown} />;
+    return <Dropdown items={dropdownItems} selectedValue={TONCOIN.slug} className={styles.tokenDropdown} />;
   }
 
   return (
@@ -95,7 +91,7 @@ function InvoiceModal({
       title={lang('Deposit Link')}
       contentClassName={styles.content}
       nativeBottomSheetKey="invoice"
-      onClose={onClose}
+      onClose={closeInvoiceModal}
     >
       <div className={styles.contentTitle}>
         {renderText(lang('$receive_invoice_description'))}
@@ -118,7 +114,7 @@ function InvoiceModal({
         onInput={setComment}
       />
 
-      <p className={buildClassName(styles.label, styles.labelForInvoice)}>
+      <p className={styles.labelForInvoice}>
         {lang('Share this URL to receive TON')}
       </p>
       <InteractiveTextField
@@ -131,10 +127,11 @@ function InvoiceModal({
 }
 
 export default memo(
-  withGlobal<OwnProps>((global): StateProps => {
-    const address = selectAccount(global, global.currentAccountId!)?.address;
+  withGlobal((global): StateProps => {
+    const address = selectAccount(global, global.currentAccountId!)?.addressByChain?.ton;
 
     return {
+      isOpen: global.isInvoiceModalOpen,
       address,
       tokens: selectCurrentAccountTokens(global),
     };

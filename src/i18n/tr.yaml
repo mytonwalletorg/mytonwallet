@@ -27,8 +27,9 @@ Your have entered an insecure password, which can be easily guessed by scammers.
 Continue or change password to something more secure?: Devam edilsin mi yoksa şifre daha güvenli bir şifreyle değiştirilsin mi?
 Change: Değiştir
 "%1$d Secret Words": "%1$d Gizli Kelime"
+Secret Words: Gizli Kelimelerden
 $auth_import_mnemonic_description: |
-  Cüzdanı oluştururken yazdığınız %1$d gizli kelimeyi girerek cüzdanınıza erişimi geri kazanabilirsiniz.
+  Cüzdanınıza erişimi, cüzdanı oluştururken not ettiğiniz **12 veya 24 gizli kelimeyi** girerek geri yükleyebilirsiniz.
 Let’s make sure your secrets words are recorded correctly.: Gizli kelimelerinizin doğru kaydedildiğinden emin olun.
 $mnemonic_check_words_list: "**%1$s** numaralı kelimeleri aşağıya girin."
 $mnemonic_check_error: Girdiğiniz gizli kelimeler listedekilerle eşleşmiyor. Lütfen tekrar deneyin.
@@ -99,7 +100,7 @@ Warning!: Uyarı!
 Log Out: Cüzdanı kaldırın
 $logout_without_backup_warning: Bu cüzdanı yedeklemediniz. Cüzdanı kaldırırsanız tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz.
 $logout_accounts_without_backup_warning: "%links% için yedekleme yapmadınız. Devam ederseniz tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz."
-$logout_warning: Bu işlem, mevcut cüzdanı uygulamadan kaldıracaktır. **%1$d gizli kelimenizi** yedeklediğinizden emin olun.
+$logout_warning: Bu, mevcut cüzdanı uygulamadan kaldıracaktır. **Gizli kelimelerinizi** yedeklediğinizden emin olun.
 Your address was copied!: Adresiniz kopyalandı!
 Show QR Code: QR Kodunu Göster
 Create Deposit Link: Para Yatırma Bağlantısı Oluşturun
@@ -142,7 +143,6 @@ Sender: Gönderici
 Recipient: Alıcı
 Address was copied!: Adres kopyalandı!
 Repeat: Tekrarla
-Receive: Kabul et
 Switch Account: Hesap değiştir
 Copy wallet address: Cüzdan adresini kopyala
 View address on %ton_explorer_name%: "%ton_explorer_name%'da adresi görüntüleyin"
@@ -165,6 +165,7 @@ Wallet is not backed up: Cüzdan yedeklenmemiş
 Testnet Version: Testnet Sürümü
 Error reading clipboard: Pano okunurken hata oluştu
 $fee_value: "Ücret: %fee%"
+Pay fee with %stars_symbol%: "%stars_symbol% ile öde"
 Loading...: Yükleniyor...
 Recipient Address: Alıcının adresi
 Wallet address or domain: Cüzdan adresi veya alan adı
@@ -200,11 +201,7 @@ $tiny_transfers_help: Tutarı $%value%'den az olan işlemleri görüntülemek i�
 Today: Bugün
 Yesterday: Dün
 Now: Şimdi
-$receive_ton_description: |
-  Kripto almak için adresinizi paylaşabilir,
-  QR kodunu tarayabilir veya bir para yatırma
-  bağlantısı oluşturabilirsiniz.
-Your address: Adresiniz
+$receive_ton_description: Cüzdan bakiyenizi artırmak için bu QR'yi tarayın veya adresinizi paylaşın.
 Wrong password, please try again.: Yanlış parola, lütfen tekrar deneyin.
 Appearance: Görünüm
 Light: Açık
@@ -430,11 +427,12 @@ Biometric Authentication: Biyometrik kimlik doğrulama
 If you turn off biometric protection, you will need to create a password.: Biyometrik korumayı kapatırsanız, bir parola oluşturmanız gerekecektir.
 Enter your current password: Geçerli parolanızı girin
 Turn On Biometrics: Biyometrik korumayı aç
-Please confirm transaction using biometrics.: Biyometrik korumayı kullanarak işlemi onaylayınız.
+Please confirm transaction using biometrics: Biyometrik korumayı kullanarak işlemi onaylayınız
 Enabling biometric confirmation will reset the password.: Biyometrik onayın etkinleştirilmesi parolayı sıfırlayacaktır.
 Biometric Registration: Biyometrik kayıt
 Step 1 of 2. Registration: Adım 1/2. Kayıt
 Step 2 of 2. Verification: Adım 2/2. Doğrulama
+Download Logs: Kayıtları İndir
 Biometric setup failed.: Biyometrik kurulum başarısız oldu.
 Biometric confirmation failed.: Biyometrik onaylama başarısız oldu.
 Failed to disable biometrics.: Biyometrik onay devre dışı bırakılamadı.
@@ -449,13 +447,14 @@ Use Password: Parola Kullanın
 Biometrics Disabled: Biyometrik koruma devre dışı
 Biometrics Enabled: Biyometrik koruma etkin
 A request is already pending: Bir istek zaten beklemede
-Please confirm operation using biometrics.: Lütfen biyometri kullanarak işlemi onaylayın.
+Please confirm operation using biometrics: Lütfen biyometri kullanarak işlemi onaylayın
 Scan QR Code: QR kodunu tarayın
 Permission denied. Please grant camera permission to use the QR code scanner.: İzin reddedildi. Lütfen kameraya QR kod tarayıcısını kullanma izni verin.
 Unsupported QR code format: Desteklenmeyen QR kod formatı
 An error on the server side. Please try again.: Sunucu tarafında bir hata oluştu. Lütfen tekrar deneyin.
 Unrecognized QR Code: Tanınmayan QR Kodu
 $fee_value_almost_equal: Ücret ≈ %fee%
+$fee_value_less: Ücret < %fee%
 Address was saved!: Adres kaydedildi!
 US Dollar: ABD doları
 Euro: Euro
@@ -502,8 +501,8 @@ Confirm Swap: Takası onaylayın
 "%amount% to %address%": "%address% numaralı adrese %amount%"
 "%amount_from% to %amount_to%": "%amount_from%'den' %amount_to%'e"
 Failed to enable biometrics.: Biyometrik koruma etkinleştirilemedi.
-Please try to confirm your biometrics again.: Lütfen biyometriklerinizi tekrar onaylamayı deneyin.
-Unknown error.: Bilinmeyen hata.
+Please try to confirm your biometrics again: Lütfen biyometriklerinizi tekrar onaylamayı deneyin
+Unknown error: Bilinmeyen hata
 Are you sure you want to disable Face ID?: Face ID'yi devre dışı bırakmak istediğinizden emin misiniz?
 Are you sure you want to disable Touch ID?: Touch ID'yi devre dışı bırakmak istediğinizden emin misiniz?
 Are you sure you want to disable biometrics?: Biyometrik korumayı devre dışı bırakmak istediğinizden emin misiniz?
@@ -513,7 +512,6 @@ No Activity: Etkinlik yok
 Add / Buy: Yükleme
 Buy with Card: Kart ile Satın Al
 Buy with Crypto: Kripto ile Satın Al
-Receive with QR or Invoice: QR ya da Fatura ile Almak
 Cannot load widget: Widget yüklenemiyor
 Explore: Keşfetmek
 No partners yet: Henüz ortak yok
@@ -619,6 +617,18 @@ Claim: İddia
 Confirm Unfreezing: Çözmeyi Onayla
 Insufficient Balance for Fee: Ücret Bakiyesi Yetersiz
 $fee_value_bold: "**Ücret:** %fee%"
+Security: Güvenlik
+To avoid entering the passcode every time, you can use biometrics.: Her seferinde şifreyi girmemek için biyometrik verileri kullanabilirsiniz.
+Change Passcode: Şifreyi değiştir
+Change Password: Parolayı değiştir
+Confirm Password: Parolayı onayla
+The passcode will be changed for all your wallets.: Şifre tüm cüzdanlarınız için değiştirilecektir.
+Password Changed!: Parola değiştirildi!
+Passcode Changed!: Şifre değiştirildi!
+New code set successfully: Yeni kod başarıyla ayarlandı
+Codes don’t match: Kodlar eşleşmiyor
+Enter your new code: Yeni kodunuzu girin
+Re-enter your new code: Yeni kodunuzu tekrar girin
 MyTonWallet Features: MyTonWallet Özellikleri
 Install on Desktop: Masaüstüne Kur
 Install on Mobile: Mobile Kur
@@ -656,3 +666,22 @@ Switch to W5: W5'e Geç
 Not Scam: Dolandırıcılık Değil
 Untitled: Başlıksız
 $swap_too_small_amount: Çok küçük miktar
+Not enough %symbol%: "Yeterli %symbol% yok"
+$receive_tron_description: Cüzdan bakiyenizi artırmak için bu QR'yi tarayın veya adresinizi paylaşın.
+You have just created a new multichain wallet: Yeni bir çok zincirli cüzdan oluşturdunuz
+Now you can transfer tokens from your TON and TRON wallets.: Artık TON ve TRON cüzdanlarınızdan token transferi yapabilirsiniz.
+Enter Secret Words: Gizli Kelimeleri Girin
+Turn this off so you can manually download updates and verify signatures.: Bunu kapatın, böylece güncellemeleri manuel olarak indirip imzaları doğrulayabilirsiniz.
+InvalidMnemonic: Mnemonik kelimeleriniz geçersiz
+NFT Menu: NFT Menüsü
+Wallets will not be locked.: Cüzdanlar kilitlenmeyecek.
+Wallets will be automatically locked after 30 seconds of inactivity.: Cüzdanlar 30 saniye hareketsizlikten sonra otomatik olarak kilitlenecek.
+Wallets will be automatically locked after 3 minutes of inactivity.: Cüzdanlar 3 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
+Wallets will be automatically locked after 30 minutes of inactivity.: Cüzdanlar 30 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
+Auto-Lock: Otomatik Kilit
+Never: Asla
+30 seconds: 30 saniye
+3 minutes: 3 dakika
+30 minutes: 30 dakika
+Biometric authentification failed: Biyometrik kimlik doğrulama başarısız oldu
+Reset biometrics in security settings, or use a passcode.: Güvenlik ayarlarında biyometrik kimlik doğrulamayı sıfırlayın veya bir şifre kullanın.

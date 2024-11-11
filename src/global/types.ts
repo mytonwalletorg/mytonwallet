@@ -1,9 +1,10 @@
+import type { ApiTonWalletVersion } from '../api/chains/ton/types';
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
   ApiActivity,
   ApiAnyDisplayError,
   ApiBalanceBySlug,
-  ApiBaseCurrency,
+  ApiBaseCurrency, ApiChain,
   ApiCountryCode,
   ApiDapp,
   ApiDappPermissions,
@@ -18,16 +19,16 @@ import type {
   ApiStakingHistory,
   ApiStakingType,
   ApiSwapAsset,
-  ApiToken,
+  ApiTokenWithPrice,
   ApiTransaction,
   ApiTransactionActivity,
   ApiUpdate,
   ApiUpdateDappConnect,
   ApiUpdateDappLoading,
   ApiUpdateDappSendTransactions,
+  ApiUpdateWalletVersions,
   ApiVestingInfo,
   ApiWalletInfo,
-  ApiWalletVersion,
 } from '../api/types';
 import type { AuthConfig } from '../util/authApi/types';
 import type { LedgerWalletInfo } from '../util/ledger/types';
@@ -39,6 +40,8 @@ export type IAnchorPosition = {
 
 export type AnimationLevel = 0 | 1 | 2;
 export type Theme = 'light' | 'dark' | 'system';
+export type AppTheme = 'dark' | 'light';
+
 export type NotificationType = {
   icon?: string;
   message: string;
@@ -58,7 +61,12 @@ export interface LangItem {
 }
 
 export interface LangString {
-  value?: string;
+  zeroValue?: string;
+  oneValue?: string;
+  twoValue?: string;
+  fewValue?: string;
+  manyValue?: string;
+  otherValue?: string;
 }
 
 export type LangPack = Record<string, string | LangString>;
@@ -159,8 +167,8 @@ export enum SwapErrorType {
 
 export enum SwapType {
   OnChain,
-  CrosschainFromToncoin,
-  CrosschainToToncoin,
+  CrosschainFromWallet,
+  CrosschainToWallet,
 }
 
 export enum DappConnectState {
@@ -207,6 +215,7 @@ export enum SettingsState {
   Initial,
   Appearance,
   Assets,
+  Security,
   Dapps,
   Language,
   About,
@@ -246,6 +255,8 @@ export type UserToken = {
   priceUsd: number;
   decimals: number;
   change24h: number;
+  chain: ApiChain;
+  tokenAddress?: string;
   isDisabled?: boolean;
   canSwap?: boolean;
   keywords?: string[];
@@ -254,21 +265,20 @@ export type UserToken = {
   color?: string;
 };
 
-export type UserSwapToken = {
-  blockchain: string;
+export type UserSwapToken = Omit<UserToken, 'change24h' | 'chain'> & {
+  chain: ApiChain | string;
   isPopular: boolean;
-  contract?: string;
-} & Omit<UserToken, 'change24h'>;
+};
 
 export type TokenPeriod = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL';
 
 export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
-export type DieselStatus = 'not-available' | 'not-authorized' | 'pending-previous' | 'available';
+export type DieselStatus = 'not-available' | 'not-authorized' | 'pending-previous' | 'available' | 'stars-fee';
 
 export interface Account {
   title?: string;
-  address: string;
+  addressByChain: Record<ApiChain, string>;
   isHardware?: boolean;
   ledger?: {
     index: number;
@@ -279,6 +289,7 @@ export interface Account {
 export interface AssetPairs {
   [slug: string]: {
     isReverseProhibited?: boolean;
+    isMultichain?: boolean;
   };
 }
 
@@ -290,10 +301,14 @@ export interface AccountState {
     isLoading?: boolean;
     byId: Record<string, ApiActivity>;
     idsBySlug?: Record<string, string[]>;
+    idsMain?: string[];
     newestTransactionsBySlug?: Record<string, ApiTransaction>;
     isMainHistoryEndReached?: boolean;
     isHistoryEndReachedBySlug?: Record<string, boolean>;
     localTransactions?: ApiTransactionActivity[];
+  };
+  byChain?: {
+    [chain in ApiChain]?: { isFirstTransactionsLoaded?: boolean };
   };
   nfts?: {
     byAddress: Record<string, ApiNft>;
@@ -312,12 +327,13 @@ export interface AccountState {
     address: ApiNft['address'];
     name: ApiNft['name'];
   };
+  dappLastOpenedDatesByOrigin?: Record<string, number>;
   isBackupRequired?: boolean;
   activeDappOrigin?: string;
   currentTokenSlug?: string;
   currentActivityId?: string;
   currentTokenPeriod?: TokenPeriod;
-  savedAddresses?: Record<string, string>;
+  savedAddresses?: SavedAddress[];
   activeContentTab?: ContentTab;
   landscapeActionsActiveTabIndex?: ActiveTab;
 
@@ -350,12 +366,20 @@ export interface AccountState {
 
   isDieselAuthorizationStarted?: boolean;
   isLongUnstakeRequested?: boolean;
+
+  dapps?: ApiDapp[];
 }
 
 export interface AccountSettings {
   orderedSlugs?: string[];
   exceptionSlugs?: string[];
   deletedSlugs?: string[];
+}
+
+export interface SavedAddress {
+  name: string;
+  address: string;
+  chain: ApiChain;
 }
 
 export interface NftTransfer {
@@ -378,7 +402,7 @@ export type GlobalState = {
     mnemonic?: string[];
     mnemonicCheckIndexes?: number[];
     accountId?: string;
-    address?: string;
+    addressByChain?: Record<ApiChain, string>;
     error?: string;
     password?: string;
     isBackupModalOpen?: boolean;
@@ -408,6 +432,7 @@ export type GlobalState = {
     toAddress?: string;
     toAddressName?: string;
     resolvedAddress?: string;
+    chain?: ApiChain;
     error?: string;
     amount?: bigint;
     fee?: bigint;
@@ -427,6 +452,7 @@ export type GlobalState = {
     dieselStatus?: DieselStatus;
     dieselAmount?: bigint;
     withDiesel?: boolean;
+    isGaslessWithStars?: boolean;
   };
 
   currentSwap: {
@@ -447,6 +473,7 @@ export type GlobalState = {
     activityId?: string;
     error?: string;
     errorType?: SwapErrorType;
+    shouldResetOnClose?: boolean;
     isLoading?: boolean;
     shouldEstimate?: boolean;
     isEstimating?: boolean;
@@ -455,6 +482,7 @@ export type GlobalState = {
     feeSource?: SwapFeeSource;
     toAddress?: string;
     payinAddress?: string;
+    payoutAddress?: string;
     payinExtraId?: string;
     pairs?: {
       bySlug: Record<string, AssetPairs>;
@@ -524,7 +552,7 @@ export type GlobalState = {
   };
 
   tokenInfo: {
-    bySlug: Record<string, ApiToken>;
+    bySlug: Record<string, ApiTokenWithPrice>;
   };
 
   swapTokenInfo: {
@@ -538,7 +566,7 @@ export type GlobalState = {
   byAccountId: Record<string, AccountState>;
 
   walletVersions?: {
-    currentVersion: ApiWalletVersion;
+    currentVersion: ApiTonWalletVersion;
     byId: Record<string, ApiWalletInfo[]>;
   };
 
@@ -547,7 +575,6 @@ export type GlobalState = {
     theme: Theme;
     animationLevel: AnimationLevel;
     langCode: LangCode;
-    dapps: ApiDapp[];
     byAccountId: Record<string, AccountSettings>;
     areTinyTransfersHidden?: boolean;
     canPlaySounds?: boolean;
@@ -581,6 +608,7 @@ export type GlobalState = {
   confettiRequestedAt?: number;
   isPinAccepted?: boolean;
   isOnRampWidgetModalOpen?: boolean;
+  isInvoiceModalOpen?: boolean;
   isReceiveModalOpen?: boolean;
   isVestingModalOpen?: boolean;
   shouldForceAccountEdit?: boolean;
@@ -630,7 +658,7 @@ export interface ActionPayloads {
   startCreatingWallet: undefined;
   afterCheckMnemonic: undefined;
   skipCheckMnemonic: undefined;
-  restartCheckMnemonicIndexes: undefined;
+  restartCheckMnemonicIndexes: { worldsCount: number };
   cancelDisclaimer: undefined;
   afterCreatePassword: { password: string; isPasswordNumeric?: boolean };
   startCreatingBiometrics: undefined;
@@ -656,11 +684,11 @@ export interface ActionPayloads {
   connectHardwareWallet: undefined;
   createHardwareAccounts: undefined;
   loadMoreHardwareWallets: { lastIndex: number };
-  createAccount: { password: string; isImporting: boolean; isPasswordNumeric?: boolean; version?: ApiWalletVersion };
+  createAccount: { password: string; isImporting: boolean; isPasswordNumeric?: boolean; version?: ApiTonWalletVersion };
   afterSelectHardwareWallets: { hardwareSelectedIndices: number[] };
   resetApiSettings: { areAllDisabled?: boolean } | undefined;
   checkAppVersion: undefined;
-  importAccountByVersion: { version: ApiWalletVersion };
+  importAccountByVersion: { version: ApiTonWalletVersion };
 
   selectToken: { slug?: string } | undefined;
   openBackupWalletModal: undefined;
@@ -693,6 +721,7 @@ export interface ActionPayloads {
     shouldEncrypt?: boolean;
     binPayload?: string;
     stateInit?: string;
+    isGaslessWithStars?: boolean;
   };
   fetchNftFee: {
     toAddress: string;
@@ -707,6 +736,9 @@ export interface ActionPayloads {
     shouldEncrypt?: boolean;
     nftAddresses?: string[];
     withDiesel?: boolean;
+    isBase64Data?: boolean;
+    binPayload?: string;
+    isGaslessWithStars?: boolean;
     stateInit?: string;
   };
   submitTransferConfirm: undefined;
@@ -720,7 +752,7 @@ export interface ActionPayloads {
   showNotification: { message: string; icon?: string };
   dismissNotification: undefined;
   initLedgerPage: undefined;
-  afterSignIn: { isFirstLogin: boolean } | undefined;
+  afterSignIn: undefined;
   signOut: { isFromAllAccounts?: boolean } | undefined;
   cancelCaching: undefined;
   afterSignOut: { isFromAllAccounts?: boolean } | undefined;
@@ -730,7 +762,6 @@ export interface ActionPayloads {
   renameAccount: { accountId: string; title: string };
   clearAccountError: undefined;
   clearAccountLoading: undefined;
-  validatePassword: { password: string };
   verifyHardwareAddress: undefined;
   authorizeDiesel: undefined;
   fetchDieselState: { tokenSlug: string };
@@ -744,6 +775,7 @@ export interface ActionPayloads {
   openNftCollection: { address: string };
   closeNftCollection: undefined;
   selectNfts: { addresses: string[] };
+  selectAllNfts: { collectionAddress?: string };
   clearNftSelection: { address: string };
   clearNftsSelection: undefined;
   burnNfts: { nfts: ApiNft[] };
@@ -765,8 +797,8 @@ export interface ActionPayloads {
   clearSignatureError: undefined;
   cancelSignature: undefined;
 
-  addSavedAddress: { address: string; name: string };
-  removeFromSavedAddress: { address: string };
+  addSavedAddress: { address: string; name: string; chain: ApiChain };
+  removeFromSavedAddress: { address: string; chain: ApiChain };
 
   setCurrentTokenPeriod: { period: TokenPeriod };
   openAddAccountModal: undefined;
@@ -815,9 +847,8 @@ export interface ActionPayloads {
   closeSecurityWarning: undefined;
   toggleTokensWithNoCost: { isEnabled: boolean };
   toggleSortByValue: { isEnabled: boolean };
-  initTokensOrder: undefined;
-  updateDeletionListForActiveTokens: { accountId: string } | undefined;
-  sortTokens: { orderedSlugs: string[] };
+  updateOrderedSlugs: { orderedSlugs: string[] };
+  rebuildOrderedSlugs: undefined;
   toggleExceptionToken: { slug: string };
   addToken: { token: UserToken };
   deleteToken: { slug: string };
@@ -854,6 +885,7 @@ export interface ActionPayloads {
   deleteAllDapps: undefined;
   deleteDapp: { origin: string };
   loadExploreSites: undefined;
+  updateDappLastOpenedAt: { origin: string };
 
   addSiteToBrowserHistory: { url: string };
   removeSiteFromBrowserHistory: { url: string };
@@ -864,6 +896,7 @@ export interface ActionPayloads {
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;
   apiUpdateDappLoading: ApiUpdateDappLoading;
   apiUpdateDappCloseLoading: undefined;
+  apiUpdateWalletVersions: ApiUpdateWalletVersions;
 
   // Swap
   submitSwap: { password: string };
@@ -883,12 +916,12 @@ export interface ActionPayloads {
   setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
   loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
+  clearSwapPairsCache: undefined;
   estimateSwap: { shouldBlock: boolean; isEnoughToncoin?: boolean };
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
   estimateSwapCex: { shouldBlock: boolean };
-  submitSwapCexFromToncoin: { password: string };
-  submitSwapCexToToncoin: { password: string };
+  submitSwapCex: { password: string };
   setSwapType: { type: SwapType };
   setSwapCexAddress: { toAddress: string };
   addSwapToken: { token: UserSwapToken };
@@ -910,6 +943,8 @@ export interface ActionPayloads {
 
   openReceiveModal: undefined;
   closeReceiveModal: undefined;
+  openInvoiceModal: undefined;
+  closeInvoiceModal: undefined;
 
   loadPriceHistory: { slug: string; period: ApiPriceHistoryPeriod; currency?: ApiBaseCurrency };
 

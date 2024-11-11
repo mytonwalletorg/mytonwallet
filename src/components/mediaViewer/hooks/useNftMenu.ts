@@ -8,10 +8,9 @@ import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
   TON_DNS_COLLECTION,
-  TON_EXPLORER_NAME,
 } from '../../../config';
 import { openUrl } from '../../../util/openUrl';
-import { getTonExplorerNftUrl } from '../../../util/url';
+import { getExplorerName, getExplorerNftUrl } from '../../../util/url';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -42,7 +41,7 @@ const GETGEMS_ITEM: DropdownItem = {
   fontIcon: 'external',
 };
 const TON_EXPLORER_ITEM: DropdownItem = {
-  name: TON_EXPLORER_NAME,
+  name: getExplorerName('ton'),
   value: 'tonExplorer',
   fontIcon: 'external',
 };
@@ -99,7 +98,7 @@ export default function useNftMenu(nft?: ApiNft, isNftBlacklisted?: boolean, isN
       }
 
       case 'tonExplorer': {
-        const url = getTonExplorerNftUrl(nft!.address, isTestnet)!;
+        const url = getExplorerNftUrl(nft!.address, isTestnet)!;
 
         openUrl(url);
         break;

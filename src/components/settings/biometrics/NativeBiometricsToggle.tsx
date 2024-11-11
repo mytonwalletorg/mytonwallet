@@ -3,6 +3,7 @@ import React, { memo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import renderText from '../../../global/helpers/renderText';
+import buildClassName from '../../../util/buildClassName';
 import {
   getIsFaceIdAvailable,
   getIsNativeBiometricAuthSupported,
@@ -106,19 +107,25 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
   }
 
   return (
-    <div className={styles.block}>
-      <div className={styles.item} onClick={handleBiometricAuthToggle}>
-        <img className={styles.menuIcon} src={icon} alt="" />
-        {switcherTitle}
+    <>
+      <div className={buildClassName(styles.block, styles.settingsBlockWithDescription)}>
+        <div className={styles.item} onClick={handleBiometricAuthToggle}>
+          <img className={styles.menuIcon} src={icon} alt="" />
+          {switcherTitle}
 
-        <Switcher
-          className={styles.menuSwitcher}
-          label={switcherTitle}
-          checked={isBiometricAuthEnabled}
-        />
+          <Switcher
+            className={styles.menuSwitcher}
+            label={switcherTitle}
+            checked={isBiometricAuthEnabled}
+          />
+        </div>
+        {renderDisableNativeBiometricsWarning()}
       </div>
-      {renderDisableNativeBiometricsWarning()}
-    </div>
+      <p className={styles.blockDescription}>{
+        lang('To avoid entering the passcode every time, you can use biometrics.')
+      }
+      </p>
+    </>
   );
 }
 

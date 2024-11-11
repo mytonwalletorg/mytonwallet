@@ -1,4 +1,5 @@
 import React, {
+  beginHeavyAnimation,
   memo, useEffect, useLayoutEffect, useMemo,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
@@ -13,7 +14,6 @@ import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 import { animateClosing, animateOpening, ANIMATION_DURATION } from './helpers/ghostAnimation';
 
-import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePrevious from '../../hooks/usePrevious';
@@ -85,11 +85,11 @@ function MediaViewer({
 
   useEffect(() => {
     if (shouldAnimateOpening) {
-      dispatchHeavyAnimationEvent(ANIMATION_DURATION + ANIMATION_END_DELAY);
+      beginHeavyAnimation(ANIMATION_DURATION + ANIMATION_END_DELAY);
       animateOpening(mediaType, mediaId, mediaUrl, txId, hiddenNfts);
     }
     if (shouldAnimateClosing) {
-      dispatchHeavyAnimationEvent(ANIMATION_DURATION + ANIMATION_END_DELAY);
+      beginHeavyAnimation(ANIMATION_DURATION + ANIMATION_END_DELAY);
       animateClosing(mediaType, prevMediaId, prevTxId, prevHiddenNfts);
     }
   }, [

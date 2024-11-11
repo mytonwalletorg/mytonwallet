@@ -1,20 +1,17 @@
 import React, { memo, useState } from '../../../lib/teact/teact';
-import { getActions, getGlobal, withGlobal } from '../../../global';
+import { getActions, withGlobal } from '../../../global';
 
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
-import { ApiCommonError } from '../../../api/types';
 import { type Account, type HardwareConnectState, SettingsState } from '../../../global/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, MNEMONIC_COUNT } from '../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../../config';
 import renderText from '../../../global/helpers/renderText';
 import { selectFirstNonHardwareAccount, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
 import { IS_LEDGER_SUPPORTED } from '../../../util/windowEnvironment';
-import { callApi } from '../../../api';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
-import useFlag from '../../../hooks/useFlag';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
@@ -69,7 +66,6 @@ function AddAccountModal({
     clearAccountError,
     closeAddAccountModal,
     afterSelectHardwareWallets,
-    showError,
     openSettingsWithState,
     clearAccountLoading,
   } = getActions();
@@ -78,7 +74,6 @@ function AddAccountModal({
   const [renderingKey, setRenderingKey] = useState<number>(RenderingState.Initial);
 
   const [isNewAccountImporting, setIsNewAccountImporting] = useState<boolean>(false);
-  const [isCheckingApiAvailability, markCheckingApiAvailability, unmarkCheckingApiAvailability] = useFlag(false);
 
   const handleBackClick = useLastCallback(() => {
     setRenderingKey(RenderingState.Initial);
@@ -91,7 +86,7 @@ function AddAccountModal({
     clearAccountLoading();
   });
 
-  const handleNewAccountClick = useLastCallback(async () => {
+  const handleNewAccountClick = useLastCallback(() => {
     if (!firstNonHardwareAccount) {
       addAccount({
         method: 'createAccount',
@@ -100,18 +95,8 @@ function AddAccountModal({
       return;
     }
 
-    markCheckingApiAvailability();
-    const isApiAvailable = await callApi('checkApiAvailability', {
-      accountId: getGlobal().currentAccountId!,
-    });
-    unmarkCheckingApiAvailability();
-
-    if (isApiAvailable) {
-      setRenderingKey(RenderingState.Password);
-      setIsNewAccountImporting(false);
-    } else {
-      showError({ error: ApiCommonError.ServerError });
-    }
+    setRenderingKey(RenderingState.Password);
+    setIsNewAccountImporting(false);
   });
 
   const handleImportAccountClick = useLastCallback(() => {
@@ -174,7 +159,6 @@ function AddAccountModal({
           <Button
             isPrimary
             className={buildClassName(styles.button, styles.button_single)}
-            isLoading={isCheckingApiAvailability}
             onClick={handleNewAccountClick}
           >
             {lang('Create Wallet')}
@@ -189,7 +173,7 @@ function AddAccountModal({
               className={buildClassName(styles.button, !IS_LEDGER_SUPPORTED && styles.button_single)}
               onClick={handleImportAccountClick}
             >
-              {lang('%1$d Secret Words', MNEMONIC_COUNT)}
+              {lang('Secret Words')}
             </Button>
             {IS_LEDGER_SUPPORTED && (
               <Button

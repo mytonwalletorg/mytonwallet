@@ -22,6 +22,7 @@ function Notifications({ notifications }: StateProps) {
     <div id="Notifications">
       {notifications.map(({ message, icon }) => (
         <Notification
+          key={message}
           icon={icon}
           message={message}
           // eslint-disable-next-line react/jsx-no-bind

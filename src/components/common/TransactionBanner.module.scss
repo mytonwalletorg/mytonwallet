@@ -1,0 +1,60 @@
+.root {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+
+  max-width: calc(100% - 2rem);
+  height: 2rem;
+  padding: 0 0.375rem;
+
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-transaction-amount-text);
+
+  background-color: var(--color-transaction-amount-bg);
+  border-radius: 1rem;
+
+  &.purple {
+    color: var(--color-transaction-amount-purple-text);
+
+    background-color: var(--color-transaction-amount-purple-bg);
+
+    .tokenIcon {
+      --color-background-first: var(--color-transaction-amount-purple-bg);
+    }
+  }
+
+  &.green {
+    color: var(--color-transaction-amount-green-text);
+
+    background-color: var(--color-transaction-amount-green-bg);
+
+    .tokenIcon {
+      --color-background-first: var(--color-transaction-amount-green-bg);
+    }
+  }
+}
+
+.tokenIcon {
+  --color-background-first: var(--color-transaction-amount-bg);
+}
+
+.image {
+  width: 1.25rem;
+  height: 1.25rem;
+
+  border-radius: 50%;
+}
+
+.text {
+  overflow: hidden;
+
+  max-width: 100%;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bold {
+  font-weight: 700;
+}

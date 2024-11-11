@@ -15,7 +15,7 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
 import type { Compiler, Configuration } from 'webpack';
 import {
-  DefinePlugin, EnvironmentPlugin, NormalModuleReplacementPlugin, ProvidePlugin,
+  DefinePlugin, EnvironmentPlugin, IgnorePlugin, NormalModuleReplacementPlugin, ProvidePlugin,
 } from 'webpack';
 
 import { PRODUCTION_URL } from './src/config';
@@ -44,7 +44,8 @@ const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
   : '';
 const cspFrameSrcExtra = [
-  'https://widget.changelly.com/',
+  'https://buy-sandbox.moonpay.com/',
+  'https://buy.moonpay.com/',
   'https://dreamwalkers.io/',
   'https://avanchange.com/',
   'https://pay.wata.pro/',
@@ -82,6 +83,7 @@ export default function createConfig(
     target: 'web',
 
     optimization: {
+      minimize: APP_ENV === 'production',
       usedExports: true,
       ...(APP_ENV === 'staging' && {
         chunkIds: 'named',
@@ -187,6 +189,12 @@ export default function createConfig(
           test: /\.(txt|tl)$/i,
           type: 'asset/source',
         },
+        {
+          test: /\.m?js$/,
+          resolve: {
+            fullySpecified: false,
+          },
+        },
       ],
     },
 
@@ -194,10 +202,14 @@ export default function createConfig(
       extensions: ['.js', '.ts', '.tsx'],
       fallback: {
         crypto: false,
+        stream: require.resolve('stream-browserify'),
+        process: require.resolve('process/browser'),
       },
       alias: {
         // It is used to remove duplicate dependencies
         'bn.js': path.join(__dirname, 'node_modules/bn.js/lib/bn.js'),
+        // By default, the bundle for Node is imported
+        tronweb: path.join(__dirname, 'node_modules/tronweb/dist/TronWeb.js'),
       },
     },
 
@@ -234,6 +246,12 @@ export default function createConfig(
           callback();
         });
       }),
+      // Do not add the BIP39 word list in other languages
+      new IgnorePlugin({
+        checkResource(resource) {
+          return /.*\/wordlists\/(?!english).*\.json/.test(resource);
+        },
+      }),
       new HtmlPlugin({
         template: 'src/index.html',
         chunks: ['main'],
@@ -259,37 +277,38 @@ export default function createConfig(
         chunkFilename: '[name].[chunkhash].css',
         ignoreOrder: true,
       }),
-      /* eslint-disable no-null/no-null */
       new EnvironmentPlugin({
         APP_ENV: 'production',
-        APP_NAME: null,
+        APP_NAME: '',
         APP_VERSION: appVersion,
-        APP_REVISION: appRevision,
-        TEST_SESSION: null,
-        TONHTTPAPI_MAINNET_URL: null,
-        TONHTTPAPI_MAINNET_API_KEY: null,
-        TONHTTPAPI_TESTNET_URL: null,
-        TONHTTPAPI_TESTNET_API_KEY: null,
-        TONAPIIO_MAINNET_URL: null,
-        TONAPIIO_TESTNET_URL: null,
-        TONHTTPAPI_V3_MAINNET_API_KEY: null,
-        TONHTTPAPI_V3_TESTNET_API_KEY: null,
-        BRILLIANT_API_BASE_URL: null,
-        PROXY_HOSTS: null,
-        STAKING_POOLS: null,
-        LIQUID_POOL: null,
-        LIQUID_JETTON: null,
-        IS_PACKAGED_ELECTRON: false,
-        IS_ANDROID_DIRECT: false,
-        ELECTRON_TONHTTPAPI_MAINNET_API_KEY: null,
-        ELECTRON_TONHTTPAPI_TESTNET_API_KEY: null,
+        APP_REVISION: appRevision ?? '',
+        TEST_SESSION: '',
+        TONHTTPAPI_MAINNET_URL: '',
+        TONHTTPAPI_MAINNET_API_KEY: '',
+        TONHTTPAPI_TESTNET_URL: '',
+        TONHTTPAPI_TESTNET_API_KEY: '',
+        TONAPIIO_MAINNET_URL: '',
+        TONAPIIO_TESTNET_URL: '',
+        TONHTTPAPI_V3_MAINNET_API_KEY: '',
+        TONHTTPAPI_V3_TESTNET_API_KEY: '',
+        BRILLIANT_API_BASE_URL: '',
+        PROXY_HOSTS: '',
+        STAKING_POOLS: '',
+        LIQUID_POOL: '',
+        LIQUID_JETTON: '',
+        IS_PACKAGED_ELECTRON: 'false',
+        IS_ANDROID_DIRECT: 'false',
+        ELECTRON_TONHTTPAPI_MAINNET_API_KEY: '',
+        ELECTRON_TONHTTPAPI_TESTNET_API_KEY: '',
         BASE_URL,
-        BOT_USERNAME: null,
-        IS_EXTENSION: false,
-        IS_FIREFOX_EXTENSION: false,
-        IS_CAPACITOR: false,
-        SWAP_FEE_ADDRESS: null,
-        DIESEL_ADDRESS: null,
+        BOT_USERNAME: '',
+        IS_EXTENSION: 'false',
+        IS_FIREFOX_EXTENSION: 'false',
+        IS_CAPACITOR: 'false',
+        IS_AIR_APP: 'false',
+        SWAP_FEE_ADDRESS: '',
+        DIESEL_ADDRESS: '',
+        GIVEAWAY_CHECKIN_URL: '',
       }),
       /* eslint-enable no-null/no-null */
       new DefinePlugin({
@@ -303,6 +322,9 @@ export default function createConfig(
       }),
       new ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
+      }),
+      new ProvidePlugin({
+        process: 'process/browser',
       }),
       new CopyWebpackPlugin({
         patterns: [

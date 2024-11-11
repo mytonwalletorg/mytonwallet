@@ -23,6 +23,8 @@
   /* stylelint-disable-next-line plugin/no-low-performance-animation-properties */
   transition: opacity 400ms, background-color 150ms;
 
+  -webkit-app-region: no-drag;
+
   &:hover {
     background-color: var(--color-green-button-background-hover);
 
@@ -39,8 +41,6 @@
 
   :global(html.is-electron.is-windows) & {
     margin-right: 1rem;
-
-    -webkit-app-region: no-drag;
   }
 
   :global(html.is-electron.is-macos) & {

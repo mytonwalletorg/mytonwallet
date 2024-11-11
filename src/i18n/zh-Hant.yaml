@@ -26,8 +26,9 @@ Your have entered an insecure password, which can be easily guessed by scammers.
 Continue or change password to something more secure?: 繼續或將密碼更改為更安全的密碼？
 Change: 更改密碼
 "%1$d Secret Words": "%1$d 個註記詞"
+Secret Words: 密語
 $auth_import_mnemonic_description: |
-  您可以通過輸入您在創建錢包時記下的 %1$d 個註記詞來恢復對您錢包的權限.
+  您可以通過輸入創建錢包時記錄的**12或24個密語**來恢復對錢包的訪問。
 Let’s make sure your secrets words are recorded correctly.: 請確定您的註記詞已被正確記錄下來。
 $mnemonic_check_words_list: 請輸入以下單字
 $mnemonic_check_error: 您輸入的單字與列表中的單字不相符。 請再試一遍。
@@ -95,7 +96,7 @@ Warning!: 警告!
 Log Out: 登出
 $logout_without_backup_warning: 您尚未備份錢包。 如果您註銷，您將喪失您的代幣和 NFT。
 $logout_accounts_without_backup_warning: 您還沒有備份 %links%。 如果您註銷，您將喪失您的代幣和 NFT。
-$logout_warning: 這將斷開錢包與此應用程序的連接。 您將能夠使用 **%1$d 個密語** 恢復您的錢包 - 或者導入另一個錢包。
+$logout_warning: 這將從應用中移除當前錢包。請確保已備份您的**密語**。
 Your address was copied!: 您的地址已被複製!
 Show QR Code: 顯示 QR Code
 Create Deposit Link: 建立存款連結
@@ -137,7 +138,6 @@ Sender: 發送人
 Recipient: 接收人
 Address was copied!: 地址已被複製!
 Repeat: 重複
-Receive: 接收
 Switch Account: 切換帳戶
 Copy wallet address: 複製錢包地址
 View address on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此地址
@@ -159,6 +159,7 @@ Wallet is not backed up: 錢包未備份
 Testnet Version: 測試網版本
 Error reading clipboard: 讀取剪貼板時出現錯誤
 $fee_value: "手續費: %fee%"
+Pay fee with %stars_symbol%: "使用 %stars_symbol% 支付"
 Loading...: 讀取中...
 Recipient Address: 接收人地址
 Wallet address or domain: 錢包地址或是域名
@@ -195,8 +196,7 @@ Understood: 了解
 Today: 今天
 Yesterday: 昨天
 Now: 現在
-$receive_ton_description: 您可以分享您的地址、掃描二維碼或建立存款連結來接收加密貨幣。
-Your address: 您的地址
+$receive_ton_description: 掃描此二維碼或分享您的地址以充值錢包餘額。
 Wrong password, please try again.: 密碼錯誤，請再嘗試一次。
 Appearance: 外觀
 Light: 亮色模式
@@ -417,11 +417,12 @@ Biometric Authentication: 生物辨識認證
 If you turn off biometric protection, you will need to create a password.: 如果您關閉生物辨識保護，則需要建立密碼。
 Enter your current password: 輸入目前密碼
 Turn On Biometrics: 打開生物識別
-Please confirm transaction using biometrics.: 請使用生物辨識技術確認交易。
+Please confirm transaction using biometrics: 請使用生物辨識技術確認交易
 Enabling biometric confirmation will reset the password.: 啟用生物辨識確認將重設密碼。
 Biometric Registration: 生物辨識註冊
 Step 1 of 2. Registration: 第 1 步（共 2 步）：註冊
 Step 2 of 2. Verification: 第 2 步（共 2 步）：驗證
+Download Logs: 下載日誌
 Biometric setup failed.: 生物辨識設定失敗。
 Biometric confirmation failed.: 生物辨識確認失敗。
 Failed to disable biometrics.: 無法禁用生物識別。
@@ -436,13 +437,14 @@ Use Password: 使用密碼
 Biometrics Disabled: 生物辨識已停用
 Biometrics Enabled: 啟用生物識別
 A request is already pending: 請求已待處理
-Please confirm operation using biometrics.: 請使用生物辨識確認操作。
+Please confirm operation using biometrics: 請使用生物辨識確認操作
 Scan QR Code: 掃描二維碼
 Permission denied. Please grant camera permission to use the QR code scanner.: 沒有權限。 請授予相機使用 QR 掃描器的權限。
 Unsupported QR code format: 不支持的QR碼格式
 An error on the server side. Please try again.: 服務器端的錯誤。請再試一次。
 Unrecognized QR Code: 無法辨識的二維碼
 $fee_value_almost_equal: 手續費 ≈ %fee%
+$fee_value_less: 手續費 < %fee%
 Address was saved!: 地址已儲存！
 US Dollar: 美金
 Euro: 歐元
@@ -487,8 +489,8 @@ Confirm Swap: 確認兌換
 "%amount% to %address%": "%amount% 至 %address%"
 "%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
 Failed to enable biometrics.: 無法啟用生物識別。
-Please try to confirm your biometrics again.: 請嘗試再次確認您的生物辨識訊息。
-Unknown error.: 未知錯誤。
+Please try to confirm your biometrics again: 請嘗試再次確認您的生物辨識訊息
+Unknown error: 未知錯誤
 Are you sure you want to disable Face ID?: 您確定要禁用Face ID嗎？
 Are you sure you want to disable Touch ID?: 您確定要禁用Touch ID嗎？
 Are you sure you want to disable biometrics?: 您確定要禁用生物識別技術嗎？
@@ -498,7 +500,6 @@ No Activity: 無活動
 Add / Buy: 添加 / 購買
 Buy with Card: 用卡購買
 Buy with Crypto: 用加密貨幣購買
-Receive with QR or Invoice: 透過 QR 碼或發票接收
 Cannot load widget: 無法加載小部件
 Explore: 探索
 No partners yet: 還沒有伴侶
@@ -603,6 +604,18 @@ Claim: 索賠
 Confirm Unfreezing: 確認解凍
 Insufficient Balance for Fee: 費用餘額不足
 $fee_value_bold: "**手續費:** %fee%"
+Security: 安全
+To avoid entering the passcode every time, you can use biometrics.: 為避免每次輸入密碼，您可以使用生物識別技術。
+Change Passcode: 更改密碼
+Change Password: 更改密碼
+Confirm Password: 確認密碼
+The passcode will be changed for all your wallets.: 密碼將為您的所有錢包更改。
+Password Changed!: 密碼已更改！
+Passcode Changed!: 密碼已更改！
+New code set successfully: 新代碼設定成功
+Codes don’t match: 代碼不匹配
+Enter your new code: 輸入您的新代碼
+Re-enter your new code: 再次輸入您的新代碼
 MyTonWallet Features: MyTonWallet 功能
 Install on Desktop: 安裝在桌面
 Install on Mobile: 安裝在手機
@@ -640,3 +653,23 @@ Switch to W5: 切換到 W5
 Not Scam: 不是騙局
 Untitled: 未命名
 $swap_too_small_amount: 金額太小
+Not enough %symbol%: "%symbol% 不足"
+$receive_tron_description: 掃描此二維碼或分享您的地址以充值錢包餘額。
+You have just created a new multichain wallet: 您剛剛創建了一個新的多鏈錢包
+Now you can transfer tokens from your TON and TRON wallets.: 現在您可以從您的 TON 和 TRON 錢包中轉移代幣。
+Enter Secret Words: 輸入密語
+Turn this off so you can manually download updates and verify signatures.: 關閉此功能以手動下載更新並驗證簽名。
+InvalidMnemonic: 您的助記詞無效
+NFT Menu: NFT選單
+Wallets will not be locked.: 錢包不會被鎖定。
+Wallets will be automatically locked after 30 seconds of inactivity.: 錢包將在30秒不活動後自動鎖定。
+Wallets will be automatically locked after 3 minutes of inactivity.: 錢包將在3分鐘不活動後自動鎖定。
+Wallets will be automatically locked after 30 minutes of inactivity.: 錢包將在30分鐘不活動後自動鎖定。
+Auto-Lock: 自動鎖定
+Never: 從不
+30 seconds: 30秒
+3 minutes: 3分鐘
+30 minutes: 30分鐘
+Unlock: 解鎖
+Biometric authentification failed: 生物識別認證失敗
+Reset biometrics in security settings, or use a passcode.: 在安全設定中重置生物識別，或使用密碼。

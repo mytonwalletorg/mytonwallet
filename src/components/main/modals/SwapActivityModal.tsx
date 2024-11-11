@@ -2,25 +2,30 @@ import React, { memo, type TeactNode, useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../api/types';
+import type { Account, Theme } from '../../../global/types';
 
 import {
+  ANIMATED_STICKER_TINY_ICON_PX,
   ANIMATION_END_DELAY,
   ANIMATION_LEVEL_MIN,
   CHANGELLY_LIVE_CHAT_URL,
   CHANGELLY_SECURITY_EMAIL,
   CHANGELLY_SUPPORT_EMAIL,
   CHANGELLY_WAITING_DEADLINE,
-  TON_EXPLORER_NAME,
-  TON_SYMBOL,
-  TONCOIN_SLUG,
+  TONCOIN,
 } from '../../../config';
-import { selectCurrentAccountState } from '../../../global/selectors';
+import { getIsInternalSwap, getIsSupportedChain, resolveSwapAsset } from '../../../global/helpers';
+import { selectCurrentAccount, selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
+import { findChainConfig } from '../../../util/chain';
 import { formatFullDay, formatTime } from '../../../util/dateFormat';
 import { formatCurrency, formatCurrencyExtended } from '../../../util/formatNumber';
-import getBlockchainNetworkName from '../../../util/swap/getBlockchainNetworkName';
-import { getTonExplorerTransactionUrl } from '../../../util/url';
+import getChainNetworkName from '../../../util/swap/getChainNetworkName';
+import { getTransactionHashFromTxId } from '../../../util/tokens';
+import { getExplorerName, getExplorerTransactionUrl } from '../../../util/url';
+import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
+import useAppTheme from '../../../hooks/useAppTheme';
 import { useDeviceScreen } from '../../../hooks/useDeviceScreen';
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
@@ -29,6 +34,7 @@ import useQrCode from '../../../hooks/useQrCode';
 
 import Countdown from '../../common/Countdown';
 import SwapTokensInfo from '../../common/SwapTokensInfo';
+import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
 import InteractiveTextField from '../../ui/InteractiveTextField';
 import Modal, { CLOSE_DURATION, CLOSE_DURATION_PORTRAIT } from '../../ui/Modal';
@@ -37,8 +43,10 @@ import modalStyles from '../../ui/Modal.module.scss';
 import styles from './TransactionModal.module.scss';
 
 type StateProps = {
+  addressByChain?: Account['addressByChain'];
   activity?: ApiSwapActivity;
   tokensBySlug?: Record<string, ApiSwapAsset>;
+  theme: Theme;
 };
 
 const CHANGELLY_EXPIRE_CHECK_STATUSES = new Set(['new', 'waiting']);
@@ -46,7 +54,9 @@ const CHANGELLY_PENDING_STATUSES = new Set(['new', 'waiting', 'confirming', 'exc
 const CHANGELLY_ERROR_STATUSES = new Set(['failed', 'expired', 'refunded', 'overdue']);
 const ONCHAIN_ERROR_STATUSES = new Set(['failed', 'expired']);
 
-function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
+function SwapActivityModal({
+  activity, tokensBySlug, theme, addressByChain,
+}: StateProps) {
   const {
     startSwap,
     closeActivityInfo,
@@ -54,6 +64,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
 
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
+  const isOpen = Boolean(activity);
   const animationLevel = getGlobal().settings.animationLevel;
   const animationDuration = animationLevel === ANIMATION_LEVEL_MIN
     ? 0
@@ -61,20 +72,20 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
   const renderedActivity = usePrevDuringAnimation(activity, animationDuration);
   const tonExplorerTitle = useMemo(() => {
     return (lang('View Transaction on %ton_explorer_name%', {
-      ton_explorer_name: TON_EXPLORER_NAME,
+      ton_explorer_name: getExplorerName('ton'),
     }) as TeactNode[]
     ).join('');
   }, [lang]);
+  const appTheme = useAppTheme(theme);
 
   const { txIds, timestamp, networkFee = 0 } = renderedActivity ?? {};
+  const { payinAddress, payoutAddress, payinExtraId } = renderedActivity?.cex || {};
 
-  let fromToken: ApiSwapAsset | undefined;
-  let toToken: ApiSwapAsset | undefined;
   let fromAmount = '0';
   let toAmount = '0';
   let isPending = true;
   let isError = false;
-  let isCexSwap = false;
+  let shouldRenderCexInfo = false;
   let isCexError = false;
   let isCexHold = false;
   let isCexWaiting = false;
@@ -86,28 +97,48 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
   let isFromToncoin = true;
   let isCountdownFinished = false;
 
+  const fromToken = useMemo(() => {
+    if (!renderedActivity?.from || !tokensBySlug) return undefined;
+
+    return resolveSwapAsset(tokensBySlug, renderedActivity.from);
+  }, [renderedActivity?.from, tokensBySlug]);
+
+  const toToken = useMemo(() => {
+    if (!renderedActivity?.to || !tokensBySlug) return undefined;
+
+    return resolveSwapAsset(tokensBySlug, renderedActivity.to);
+  }, [renderedActivity?.to, tokensBySlug]);
+  const isInternalSwap = getIsInternalSwap({
+    from: fromToken, to: toToken, toAddress: payoutAddress, addressByChain,
+  });
+
+  const nativeToken = useMemo(() => {
+    if (!fromToken) return undefined;
+
+    return findChainConfig(fromToken.chain)?.nativeToken;
+  }, [fromToken]);
+
   if (renderedActivity) {
     const {
-      status, from, to, cex,
+      status, from, cex,
     } = renderedActivity;
-    fromToken = tokensBySlug?.[from];
-    toToken = tokensBySlug?.[to];
     fromAmount = renderedActivity.fromAmount;
     toAmount = renderedActivity.toAmount;
-    isFromToncoin = from === TONCOIN_SLUG;
+    isFromToncoin = from === TONCOIN.slug;
 
     if (cex) {
       isCountdownFinished = timestamp
         ? (timestamp + CHANGELLY_WAITING_DEADLINE - Date.now() < 0)
         : false;
       isExpired = CHANGELLY_EXPIRE_CHECK_STATUSES.has(cex.status) && isCountdownFinished;
-      isCexSwap = true;
+      shouldRenderCexInfo = cex.status !== 'finished';
       isPending = !isExpired && CHANGELLY_PENDING_STATUSES.has(cex.status);
       isCexPending = isPending;
       isCexError = isExpired || CHANGELLY_ERROR_STATUSES.has(cex.status);
       isCexHold = cex.status === 'hold';
-      // Skip the 'waiting' status for transactions from Toncoin to account for delayed status updates from Сhangelly
-      isCexWaiting = cex.status === 'waiting' && !isFromToncoin && !isExpired;
+      // Skip the 'waiting' status for transactions from Toncoin to other chains
+      // or from TRON to TON inside a multichain wallet for delayed status updates from Сhangelly
+      isCexWaiting = cex.status === 'waiting' && !isExpired && !isInternalSwap && !isFromToncoin;
       cexTransactionId = cex.transactionId;
     } else {
       isPending = status === 'pending';
@@ -119,7 +150,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     } else if (isCexHold) {
       title = lang('Swap On Hold');
     } else if (isCexError) {
-      const { status: cexStatus } = renderedActivity?.cex ?? {};
+      const { status: cexStatus } = renderedActivity.cex ?? {};
       if (cexStatus === 'expired' || cexStatus === 'overdue') {
         title = lang('Swap Expired');
         cexErrorMessage = lang('You have not sent the coins to the specified address.');
@@ -136,17 +167,16 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     }
   }
 
-  const [, transactionHash] = (txIds?.[0] || '').split(':');
-  const transactionUrl = getTonExplorerTransactionUrl(transactionHash);
+  const transactionHash = getTransactionHashFromTxId('ton', txIds?.[0] || '');
+  const transactionUrl = getExplorerTransactionUrl('ton', transactionHash);
 
-  const { payinAddress, payoutAddress, payinExtraId } = renderedActivity?.cex || {};
-  const shouldShowQrCode = !payinExtraId;
-  const { qrCodeRef, isInitialized } = useQrCode(
-    payinAddress,
-    !!payinAddress,
-    styles.qrCodeHidden,
-    true,
-  );
+  const shouldShowQrCode = !payinExtraId && toToken?.chain === 'ton' && !isInternalSwap;
+  const { qrCodeRef, isInitialized } = useQrCode({
+    address: payinAddress,
+    isActive: Boolean(payinAddress),
+    hiddenClassName: styles.qrCodeHidden,
+    hideLogo: true,
+  });
 
   const handleClose = useLastCallback(() => {
     closeActivityInfo({ id: renderedActivity!.id });
@@ -155,8 +185,8 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
   const handleSwapClick = useLastCallback(() => {
     closeActivityInfo({ id: activity!.id });
     startSwap({
-      tokenInSlug: activity!.from,
-      tokenOutSlug: activity!.to,
+      tokenInSlug: fromToken!.slug,
+      tokenOutSlug: toToken!.slug,
       amountIn: fromAmount,
     });
   });
@@ -167,10 +197,13 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
         <div className={styles.headerTitle}>
           {title}
           {isPending && (
-            <i
-              className={buildClassName(styles.clockIcon, 'icon-clock')}
-              title={title}
-              aria-hidden
+            <AnimatedIconWithPreview
+              play={isOpen}
+              size={ANIMATED_STICKER_TINY_ICON_PX}
+              nonInteractive
+              noLoop={false}
+              tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClock}
+              previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClock}
             />
           )}
         </div>
@@ -304,12 +337,12 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
 
   function renderFee() {
     return (
-      <div className={styles.textFieldWrapper}>
+      <div className={styles.textFieldWrapperFullWidth}>
         <span className={styles.textFieldLabel}>
           {lang('Blockchain Fee')}
         </span>
         <div className={styles.textField}>
-          {formatCurrency(networkFee, TON_SYMBOL, undefined, true)}
+          {formatCurrency(networkFee, nativeToken?.symbol ?? TONCOIN.symbol, undefined, true)}
         </div>
       </div>
     );
@@ -317,6 +350,8 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
 
   function renderAddress() {
     if (!payinAddress) return undefined;
+    const token = isFromToncoin ? toToken : fromToken;
+    const chain = getIsSupportedChain(token?.chain) ? token.chain : undefined;
 
     return (
       <div className={styles.textFieldWrapper}>
@@ -326,6 +361,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
             : lang('Address for %blockchain% transfer', { blockchain: fromToken?.name })}
         </span>
         <InteractiveTextField
+          chain={chain}
           address={isFromToncoin ? payoutAddress : payinAddress}
           copyNotification={lang('Address was copied!')}
           noSavedAddress
@@ -337,6 +373,9 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
 
   function renderSwapInfo() {
     if (isCexWaiting) {
+      if (isInternalSwap) return undefined;
+      const chain = getIsSupportedChain(fromToken?.chain) ? fromToken.chain : undefined;
+
       return (
         <div className={styles.changellyInfoBlock}>
           {networkFee > 0 && renderFee()}
@@ -348,13 +387,14 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
             ),
             blockchain: (
               <span className={styles.changellyDescriptionBold}>
-                {getBlockchainNetworkName(fromToken?.blockchain)}
+                {getChainNetworkName(fromToken?.chain)}
               </span>
             ),
             time: <Countdown timestamp={timestamp ?? 0} deadline={CHANGELLY_WAITING_DEADLINE} />,
           })}
           </span>
           <InteractiveTextField
+            chain={chain}
             address={payinAddress}
             copyNotification={lang('Address was copied!')}
             noSavedAddress
@@ -369,13 +409,11 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
       );
     }
 
-    const shouldRenderFee = !(isCexError || isCexHold) || networkFee > 0;
-
     return (
       <>
-        {shouldRenderFee && renderFee()}
-        {renderAddress()}
-        {renderMemo()}
+        {networkFee > 0 && renderFee()}
+        {!isInternalSwap && renderAddress()}
+        {!isInternalSwap && renderMemo()}
       </>
     );
   }
@@ -392,7 +430,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
         />
         <div className={styles.infoBlock}>
           {renderSwapInfo()}
-          {isCexSwap && renderCexInformation()}
+          {shouldRenderCexInfo && renderCexInformation()}
         </div>
         <div className={styles.footer}>
           {renderFooterButton()}
@@ -405,7 +443,8 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
     <Modal
       hasCloseButton
       title={renderHeader()}
-      isOpen={Boolean(activity)}
+      titleClassName={styles.modalTitle}
+      isOpen={isOpen}
       nativeBottomSheetKey="swap-activity"
       onClose={handleClose}
     >
@@ -417,6 +456,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
             rel="noreferrer noopener"
             className={styles.tonExplorer}
             title={tonExplorerTitle}
+            aria-label={tonExplorerTitle}
           >
             <i className="icon-tonexplorer" aria-hidden />
           </a>
@@ -430,6 +470,7 @@ function SwapActivityModal({ activity, tokensBySlug }: StateProps) {
 export default memo(
   withGlobal((global): StateProps => {
     const accountState = selectCurrentAccountState(global);
+    const account = selectCurrentAccount(global);
 
     const id = accountState?.currentActivityId;
     const activity = id ? accountState?.activities?.byId[id] : undefined;
@@ -437,6 +478,8 @@ export default memo(
     return {
       activity: activity?.kind === 'swap' ? activity : undefined,
       tokensBySlug: global.swapTokenInfo?.bySlug,
+      theme: global.settings.theme,
+      addressByChain: account?.addressByChain,
     };
   })(SwapActivityModal),
 );

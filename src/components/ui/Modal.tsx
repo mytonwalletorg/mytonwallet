@@ -3,6 +3,7 @@ import type { BottomSheetKeys } from 'native-bottom-sheet';
 import { BottomSheet } from 'native-bottom-sheet';
 import type { TeactNode } from '../../lib/teact/teact';
 import React, {
+  beginHeavyAnimation,
   useEffect, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
@@ -19,7 +20,7 @@ import freezeWhenClosed from '../../hooks/freezeWhenClosed';
 import { useDelegatedBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDelegatingBottomSheet } from '../../hooks/useDelegatingBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
-import { dispatchHeavyAnimationEvent } from '../../hooks/useHeavyAnimationCheck';
+import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useHideBrowser from '../../hooks/useHideBrowser';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -35,6 +36,7 @@ type OwnProps = {
   title?: string | TeactNode;
   className?: string;
   dialogClassName?: string;
+  titleClassName?: string;
   contentClassName?: string;
   isOpen?: boolean;
   isCompact?: boolean;
@@ -47,9 +49,9 @@ type OwnProps = {
   header?: any;
   hasCloseButton?: boolean;
   children: React.ReactNode;
-  onClose: () => void;
-  onCloseAnimationEnd?: () => void;
-  onEnter?: () => void;
+  onClose: NoneToVoidFunction;
+  onCloseAnimationEnd?: NoneToVoidFunction;
+  onEnter?: NoneToVoidFunction;
   dialogRef?: RefObject<HTMLDivElement>;
 };
 
@@ -62,6 +64,7 @@ function Modal({
   title,
   className,
   dialogClassName,
+  titleClassName,
   contentClassName,
   isOpen,
   isCompact,
@@ -90,7 +93,7 @@ function Modal({
 
   const { isPortrait } = useDeviceScreen();
 
-  onCloseAnimationEnd = useHideBrowser(isOpen, isCompact, onCloseAnimationEnd);
+  useHideBrowser(isOpen, isCompact);
 
   const animationDuration = isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION;
   const { shouldRender, transitionClassNames } = useShowTransition(
@@ -109,30 +112,24 @@ function Modal({
     onBack: onClose,
   });
 
-  useEffect(() => {
-    if (!IS_DELEGATED_BOTTOM_SHEET || !isCompact) return;
-
+  useEffectWithPrevDeps(([prevIsOpen]) => {
     // Expand NBS to full size for a compact modal inside NBS
-    BottomSheet.toggleSelfFullSize({ isFullSize: !!isOpen });
-  }, [isCompact, isOpen]);
+    if (IS_DELEGATED_BOTTOM_SHEET && isCompact && (prevIsOpen || isOpen)) {
+      BottomSheet.toggleSelfFullSize({ isFullSize: !!isOpen });
+    }
+  }, [isOpen, isCompact]);
 
   useEffect(
     () => (isOpen ? captureKeyboardListeners({
-      onEnter,
-      onEsc: (e: KeyboardEvent) => {
-        if (IS_EXTENSION) {
-          e.preventDefault();
-        }
-
-        onClose();
-      },
+      onEsc: { handler: onClose, shouldPreventDefault: IS_EXTENSION },
+      ...(onEnter && { onEnter }),
     }) : undefined),
     [isOpen, onClose, onEnter],
   );
   useEffect(() => (isOpen && modalRef.current ? trapFocus(modalRef.current) : undefined), [isOpen]);
 
   useLayoutEffect(() => (
-    isOpen ? dispatchHeavyAnimationEvent(animationDuration + ANIMATION_END_DELAY) : undefined
+    isOpen ? beginHeavyAnimation(animationDuration + ANIMATION_END_DELAY) : undefined
   ), [animationDuration, isOpen]);
 
   useEffect(() => {
@@ -197,7 +194,7 @@ function Modal({
       <div
         className={buildClassName(styles.header, styles.header_wideContent, !hasCloseButton && styles.header_noClose)}
       >
-        <div className={buildClassName(styles.title, styles.singleTitle)}>{title}</div>
+        <div className={buildClassName(styles.title, styles.singleTitle, titleClassName)}>{title}</div>
         {hasCloseButton && (
           <Button isRound className={styles.closeButton} ariaLabel={lang('Close')} onClick={onClose}>
             <i className={buildClassName(styles.closeIcon, 'icon-close')} aria-hidden />

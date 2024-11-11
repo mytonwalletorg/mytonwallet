@@ -39,6 +39,8 @@
 }
 
 .icon {
+  display: inline-block;
+
   font-size: 1rem;
   line-height: 1rem;
   color: var(--color-gray-3);
@@ -111,4 +113,8 @@
   margin-right: 0.25rem;
 
   vertical-align: bottom;
+}
+
+.chainIcon {
+  vertical-align: -0.125rem;
 }

@@ -3,10 +3,10 @@
 .modalDialog {
   overflow: hidden;
 
-  height: 40rem;
+  height: 40.125rem;
 
-  @supports (height: env(safe-area-inset-bottom)) {
-    height: calc(40rem + env(safe-area-inset-bottom));
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(40.125rem + var(--safe-area-bottom));
   }
 }
 
@@ -22,8 +22,8 @@
 
   @include adapt-padding-to-scrollbar(1rem);
 
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  @supports (padding-bottom: var(--safe-area-bottom)) {
+    padding-bottom: max(var(--safe-area-bottom), 1rem);
   }
 }
 
@@ -91,6 +91,7 @@
   flex-direction: column;
 }
 
+.advancedSlippageButton,
 .slippageLabel {
   display: flex;
   align-items: center;
@@ -148,26 +149,10 @@
 }
 
 .tokenIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-
-  border-radius: 50%;
-}
-
-.tokenBlockchainIcon {
-  position: absolute;
-  z-index: 1;
-  top: 0.875rem;
-  right: -0.25rem;
-
-  width: 0.75rem;
-  height: 0.75rem;
-
-  border-radius: 50%;
-
-  /* stylelint-disable-next-line plugin/whole-pixel */
-  box-shadow: 0 0 0 0.0938rem var(--color-input-button-background),
-        inset 0 0 0 0.125rem var(--color-input-button-background);
+  --color-background-first: var(--color-input-button-background);
+  .tokenSelector:hover > & {
+    --color-background-first: var(--color-input-button-background-hover);
+  }
 }
 
 .tokenContent {
@@ -443,6 +428,14 @@
   }
 }
 
+.swapArrowIconTitle {
+  line-height: 1;
+  vertical-align: -0.125rem;
+
+  &:global(.icon-arrow-right) {
+    font-weight: 700 !important;
+  }}
+
 .priceImpact {
   cursor: var(--custom-cursor, pointer);
 
@@ -704,7 +697,6 @@
   text-align: center;
 }
 
-.tokenIconWrapper,
 .arrowContainer,
 .arrowContainerInverted {
   position: relative;
@@ -764,60 +756,14 @@ $animation-time: 350ms;
   animation: $animation-time ease-in-out arrow-appear forwards;
 }
 
-.swapShortInfo {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-
-  max-width: calc(100% - 2rem);
-  height: 2rem;
-  padding: 0 0.375rem;
-
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--color-activity-blue);
-
-  background-color: var(--color-activity-blue-background);
-  border-radius: 1rem;
-}
-
-.swapShortInfoInsidePasswordForm {
+.transactionBanner {
   align-self: center;
 
   margin-bottom: 2rem;
 }
 
-.swapShortAmount,
 .changellyDescriptionBold {
   font-weight: 700;
-}
-
-.swapShortValue {
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.swapShortInfoTokenIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-
-  border-radius: 50%;
-}
-
-.swapShortInfoBlockchainIcon {
-  position: absolute;
-  z-index: 1;
-  top: 0.75rem;
-  left: 0.75rem;
-
-  width: 0.5625rem;
-  height: 0.5625rem;
-
-  border-radius: 50%;
-  box-shadow: 0 0 0 0.0625rem var(--color-activity-blue-background),
-              0 0 0 0.0625rem var(--color-background-second);
 }
 
 .qrCode {

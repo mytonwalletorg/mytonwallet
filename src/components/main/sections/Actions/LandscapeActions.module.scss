@@ -88,6 +88,8 @@ $tab-1-height: 348;
   }
 
   &.active {
+    pointer-events: none;
+
     font-weight: 700;
 
     background: var(--color-background-first);
@@ -267,10 +269,12 @@ $tab-1-height: 348;
   padding: 0 1rem;
 }
 
-.slideContentTransfer {
-  min-height: 22.125rem;
+.slideContentAddBuy {
+  padding: 0;
 }
 
-.slideContentInner {
+.transferSlideContent {
+  height: auto !important;
+
   background-color: var(--color-background-first);
 }

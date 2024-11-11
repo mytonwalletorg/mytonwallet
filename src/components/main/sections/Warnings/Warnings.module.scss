@@ -1,5 +1,9 @@
 @import "../../../../styles/mixins";
 
+.portraitContainer, .container {
+  margin-bottom: 0.75rem;
+}
+
 .portraitContainer {
   position: relative;
   left: 50%;
@@ -11,8 +15,6 @@
 .container {
   overflow: hidden;
   flex-shrink: 0;
-
-  margin-bottom: 0.75rem;
 
   border-radius: var(--border-radius-default);
 }

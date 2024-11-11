@@ -244,5 +244,6 @@ export default memo(withGlobal((global): StateProps => {
 
 async function handleCloseBrowserTab() {
   const tab = await chrome.tabs.getCurrent();
-  await chrome.tabs.remove(tab.id!);
+  if (!tab?.id) return;
+  await chrome.tabs.remove(tab.id);
 }

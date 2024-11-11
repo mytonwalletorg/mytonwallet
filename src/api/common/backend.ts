@@ -1,4 +1,4 @@
-import { BRILLIANT_API_BASE_URL } from '../../config';
+import { APP_VERSION, BRILLIANT_API_BASE_URL } from '../../config';
 import { fetchJson, handleFetchErrors } from '../../util/fetch';
 
 const BAD_REQUEST_CODE = 400;
@@ -15,6 +15,7 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
     headers: {
       'Content-Type': 'application/json',
       ...(authToken && { 'X-Auth-Token': authToken }),
+      'X-App-Version': APP_VERSION,
     },
     body: JSON.stringify(data),
   });
@@ -27,5 +28,5 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
 export function callBackendGet<T = any>(path: string, data?: AnyLiteral, headers?: HeadersInit): Promise<T> {
   const url = new URL(`${BRILLIANT_API_BASE_URL}${path}`);
 
-  return fetchJson(url, data, { headers });
+  return fetchJson(url, data, { headers: { ...headers, 'X-App-Version': APP_VERSION } });
 }

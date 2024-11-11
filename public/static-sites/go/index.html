@@ -34,12 +34,11 @@
   } = location;
 
   const redirectTo = `${pathname.slice(1)}${search}`;
-  const protocol = redirectTo.startsWith('transfer') ? 'ton://' : 'mtw://';
 
-  document.getElementById('btn-sign-in').href = `${protocol}${redirectTo}`;
+  document.getElementById('btn-sign-in').href = `mtw://${redirectTo}`;
 
   if (!search?.includes('no-redirect')) {
-    location.href = `${protocol}${redirectTo}`;
+    location.href = `mtw://${redirectTo}`;
     history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
   }
 </script>

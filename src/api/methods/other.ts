@@ -1,77 +1,61 @@
-import nacl, { randomBytes } from 'tweetnacl';
+import nacl from 'tweetnacl';
 
+import type { Theme } from '../../global/types';
 import type { AccountCache } from '../common/cache';
-import type { ApiBlockchainKey, ApiNetwork } from '../types';
+import type { StorageKey } from '../storages/types';
+import type { ApiChain, ApiNetwork } from '../types';
 
-import { parseAccountId } from '../../util/account';
+import { getLogs, logDebugError } from '../../util/logs';
 import { setIsAppFocused } from '../../util/pauseOrFocus';
-import blockchains from '../blockchains';
-import { fetchStoredAccount, fetchStoredAccounts, updateStoredAccount } from '../common/accounts';
+import chains from '../chains';
+import { fetchStoredAccounts, fetchStoredTonWallet, updateStoredAccount } from '../common/accounts';
+import { callBackendGet } from '../common/backend';
 import { updateAccountCache } from '../common/cache';
+import { handleServerError } from '../errors';
 import { storage } from '../storages';
 
 const SIGN_MESSAGE = Buffer.from('MyTonWallet_AuthToken_n6i0k4w8pb');
-let clientId: string | undefined;
 
-export function checkApiAvailability(options: {
-  accountId: string;
-} | {
-  network: ApiNetwork;
-  blockchainKey: ApiBlockchainKey;
-}) {
-  let network: ApiNetwork;
-  let blockchainKey: ApiBlockchainKey;
-  if ('network' in options) {
-    ({ network, blockchainKey } = options);
-  } else {
-    ({ network, blockchain: blockchainKey } = parseAccountId(options.accountId));
-  }
-
-  const blockchain = blockchains[blockchainKey];
-
-  return blockchain.checkApiAvailability(network);
+export function checkApiAvailability(chain: ApiChain, network: ApiNetwork) {
+  return chains[chain].checkApiAvailability(network);
 }
 
 export async function getBackendAuthToken(accountId: string, password: string) {
-  const account = await fetchStoredAccount(accountId);
-  let authToken = account.authToken;
+  const accountWallet = await fetchStoredTonWallet(accountId);
+  let { authToken } = accountWallet;
+  const { publicKey, isInitialized } = accountWallet;
 
   if (!authToken) {
-    const privateKey = await blockchains.ton.fetchPrivateKey(accountId, password);
+    const privateKey = await chains.ton.fetchPrivateKey(accountId, password);
     const signature = nacl.sign.detached(SIGN_MESSAGE, privateKey!);
     authToken = Buffer.from(signature).toString('base64');
 
-    await updateStoredAccount(accountId, { authToken });
+    await updateStoredAccount(accountId, {
+      ton: {
+        ...accountWallet,
+        authToken,
+      },
+    });
   }
 
-  if (!account.isInitialized) {
-    authToken += `:${account.publicKey}`;
+  if (!isInitialized) {
+    authToken += `:${publicKey}`;
   }
 
   return authToken;
 }
 
-export async function getClientId() {
-  clientId = await storage.getItem('clientId');
-  if (!clientId) {
-    clientId = Buffer.from(randomBytes(10)).toString('hex');
-    await storage.setItem('clientId', clientId);
-  }
-  return clientId;
-}
-
 export async function fetchAccountConfigForDebugPurposesOnly() {
   try {
-    const [accounts, mnemonicsEncrypted, stateVersion] = await Promise.all([
+    const [accounts, stateVersion, mnemonicsEncrypted] = await Promise.all([
       fetchStoredAccounts(),
-      storage.getItem('mnemonicsEncrypted'),
       storage.getItem('stateVersion'),
+      storage.getItem('mnemonicsEncrypted' as StorageKey),
     ]);
 
-    return JSON.stringify({ accounts, mnemonicsEncrypted, stateVersion });
+    return JSON.stringify({ accounts, stateVersion, mnemonicsEncrypted });
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    logDebugError('fetchAccountConfigForDebugPurposesOnly', err);
 
     return undefined;
   }
@@ -85,4 +69,17 @@ export function updateAccountMemoryCache(accountId: string, address: string, par
   updateAccountCache(accountId, address, partial);
 }
 
-export { setIsAppFocused };
+export { setIsAppFocused, getLogs };
+
+export async function getMoonpayOnrampUrl(address: string, theme: Theme) {
+  try {
+    return await callBackendGet<{ url: string }>('/onramp-url', {
+      address,
+      theme,
+    });
+  } catch (err) {
+    logDebugError('getMoonpayOnrampUrl', err);
+
+    return handleServerError(err);
+  }
+}

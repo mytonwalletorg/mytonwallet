@@ -31,7 +31,7 @@ export default {
     new EnvironmentPlugin({
       APP_ENV,
       BASE_URL,
-      IS_PREVIEW: false,
+      IS_PREVIEW: 'false',
     }),
   ],
 

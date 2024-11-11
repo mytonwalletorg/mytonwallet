@@ -1,6 +1,14 @@
 type HandlerName = 'onEnter' | 'onBackspace' | 'onDelete' | 'onEsc' | 'onUp' | 'onDown' | 'onLeft' | 'onRight'
 | 'onTab';
-type Handler = (e: KeyboardEvent) => void;
+type EventHandler = (e: KeyboardEvent) => boolean | void;
+type HandlerWithOptions = {
+  handler: (e: KeyboardEvent) => void;
+  shouldPreventDefault?: boolean;
+  noStopPropagation?: boolean;
+};
+
+type Handler = EventHandler | HandlerWithOptions;
+
 type CaptureOptions = Partial<Record<HandlerName, Handler>>;
 
 const keyToHandlerName: Record<string, HandlerName> = {
@@ -34,14 +42,14 @@ export default function captureKeyboardListeners(options: CaptureOptions) {
   }
 
   (Object.keys(options) as Array<HandlerName>).forEach((handlerName) => {
-    const handler = options[handlerName];
-    if (!handler) {
+    const option = options[handlerName];
+    if (!option) {
       return;
     }
 
     const currentEventHandlers = handlers[handlerName];
     if (currentEventHandlers) {
-      currentEventHandlers.push(handler);
+      currentEventHandlers.push(option);
     }
   });
 
@@ -64,18 +72,38 @@ function handleKeyDown(e: KeyboardEvent) {
   if (!length) {
     return;
   }
-  e.stopPropagation();
 
-  const handler = handlers[handlerName][length - 1];
-  handler!(e);
+  const handlerOrOptions = handlers[handlerName][length - 1];
+
+  if (typeof handlerOrOptions === 'function') {
+    handlerOrOptions(e);
+
+    e.stopPropagation();
+  } else {
+    const { handler, noStopPropagation, shouldPreventDefault } = handlerOrOptions;
+    if (!noStopPropagation) {
+      e.stopPropagation();
+    }
+    if (shouldPreventDefault) {
+      e.preventDefault();
+    }
+    handler(e);
+  }
 }
 
 function releaseKeyboardListener(options: CaptureOptions) {
   (Object.keys(options) as Array<HandlerName>).forEach((handlerName) => {
-    const handler = options[handlerName];
+    const option = options[handlerName];
     const currentEventHandlers = handlers[handlerName];
     if (currentEventHandlers) {
-      const index = currentEventHandlers.findIndex((cb) => cb === handler);
+      const index = currentEventHandlers.findIndex((cb) => {
+        if (typeof cb === 'function') {
+          return cb === option;
+        } else {
+          return option && 'handler' in option && cb.handler === option.handler;
+        }
+      });
+
       if (index !== -1) {
         currentEventHandlers.splice(index, 1);
       }

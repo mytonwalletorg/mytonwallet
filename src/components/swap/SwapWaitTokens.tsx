@@ -1,12 +1,15 @@
 import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 
 import type { ApiActivity } from '../../api/types';
-import type { UserSwapToken } from '../../global/types';
+import type { Account, UserSwapToken } from '../../global/types';
 
-import { CHANGELLY_LIVE_CHAT_URL, CHANGELLY_SUPPORT_EMAIL, CHANGELLY_WAITING_DEADLINE } from '../../config';
+import {
+  CHANGELLY_LIVE_CHAT_URL, CHANGELLY_SUPPORT_EMAIL, CHANGELLY_WAITING_DEADLINE,
+} from '../../config';
+import { getIsInternalSwap, getIsSupportedChain } from '../../global/helpers';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
-import getBlockchainNetworkName from '../../util/swap/getBlockchainNetworkName';
+import getChainNetworkName from '../../util/swap/getChainNetworkName';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -30,8 +33,10 @@ interface OwnProps {
   amountIn?: string;
   amountOut?: string;
   payinAddress?: string;
+  payoutAddress?: string;
   payinExtraId?: string;
   activity?: ApiActivity;
+  addressByChain?: Account['addressByChain'];
   onClose: NoneToVoidFunction;
 }
 
@@ -42,8 +47,10 @@ function SwapWaitTokens({
   amountIn,
   amountOut,
   payinAddress,
+  payoutAddress,
   payinExtraId,
   activity,
+  addressByChain,
   onClose,
 }: OwnProps) {
   const lang = useLang();
@@ -52,9 +59,17 @@ function SwapWaitTokens({
 
   const timestamp = useMemo(() => Date.now(), []);
 
-  const { qrCodeRef, isInitialized } = useQrCode(payinAddress, isActive, styles.qrCodeHidden, true);
+  const { qrCodeRef, isInitialized } = useQrCode({
+    address: payinAddress,
+    isActive,
+    hiddenClassName: styles.qrCodeHidden,
+    hideLogo: true,
+  });
 
   const shouldShowQrCode = !payinExtraId;
+  const isInternalSwap = getIsInternalSwap({
+    from: tokenIn, to: tokenOut, toAddress: payoutAddress, addressByChain,
+  });
 
   useHistoryBack({
     isActive,
@@ -74,6 +89,7 @@ function SwapWaitTokens({
           {lang('Memo')}
         </span>
         <InteractiveTextField
+          chain="ton"
           address={payinExtraId}
           copyNotification={lang('Memo was copied!')}
           noSavedAddress
@@ -123,6 +139,18 @@ function SwapWaitTokens({
       );
     }
 
+    if (isInternalSwap) {
+      return (
+        <div className={styles.changellyInfoBlock}>
+          <span className={styles.changellyDescription}>
+            {lang('Please note that it may take up to a few hours for tokens to appear in your wallet.')}
+          </span>
+        </div>
+      );
+    }
+
+    const chain = getIsSupportedChain(tokenIn?.chain) ? tokenIn.chain : undefined;
+
     return (
       <div className={styles.changellyInfoBlock}>
         <span className={styles.changellyDescription}>{lang('$swap_changelly_to_ton_description1', {
@@ -133,7 +161,7 @@ function SwapWaitTokens({
           ),
           blockchain: (
             <span className={styles.changellyDescriptionBold}>
-              {getBlockchainNetworkName(tokenIn?.blockchain)}
+              {getChainNetworkName(tokenIn?.chain)}
             </span>
           ),
           time: <Countdown
@@ -144,6 +172,7 @@ function SwapWaitTokens({
         })}
         </span>
         <InteractiveTextField
+          chain={chain}
           address={payinAddress}
           copyNotification={lang('Address was copied!')}
           noSavedAddress
@@ -164,7 +193,7 @@ function SwapWaitTokens({
   return (
     <>
       <ModalHeader
-        title={lang(isExpired ? 'Swap Expired' : 'Waiting for Payment')}
+        title={lang(isExpired ? 'Swap Expired' : (isInternalSwap ? 'Swapping' : 'Waiting for Payment'))}
         onClose={onClose}
       />
 

@@ -1,13 +1,12 @@
-import type { ApiBalanceBySlug, ApiSwapAsset, ApiToken } from '../../api/types';
+import type {
+  ApiChain, ApiMaybeBalanceBySlug, ApiSwapAsset, ApiTokenWithPrice,
+} from '../../api/types';
 import type { Account, AccountState, GlobalState } from '../types';
 
-import { POPULAR_WALLET_VERSIONS, TONCOIN_SLUG } from '../../config';
+import { POPULAR_WALLET_VERSIONS, TON_USDT_SLUG, TONCOIN } from '../../config';
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 import {
-  selectAccount,
-  selectAccountState,
-  selectCurrentNetwork,
-  selectNetworkAccounts,
+  selectAccount, selectAccountState, selectCurrentNetwork, selectNetworkAccounts,
 } from '../selectors';
 
 export function updateAuth(global: GlobalState, authUpdate: Partial<GlobalState['auth']>) {
@@ -50,7 +49,7 @@ export function clearIsPinAccepted(global: GlobalState): GlobalState {
 export function createAccount(
   global: GlobalState,
   accountId: string,
-  address: string,
+  addressByChain: Record<ApiChain, string>,
   partial?: Partial<Account>,
   titlePostfix?: string,
 ) {
@@ -78,7 +77,7 @@ export function createAccount(
 
   global = { ...global, shouldForceAccountEdit };
 
-  return updateAccount(global, accountId, { ...partial, address });
+  return updateAccount(global, accountId, { ...partial, addressByChain });
 }
 
 export function updateAccount(
@@ -108,7 +107,7 @@ export function renameAccount(global: GlobalState, accountId: string, title: str
 export function updateBalances(
   global: GlobalState,
   accountId: string,
-  balancesToUpdate: ApiBalanceBySlug,
+  balancesToUpdate: ApiMaybeBalanceBySlug,
 ): GlobalState {
   if (Object.keys(balancesToUpdate).length === 0) {
     return global;
@@ -119,7 +118,19 @@ export function updateBalances(
   const updatedBalancesBySlug = { ...(balances?.bySlug || {}) };
 
   for (const [slug, balance] of Object.entries(balancesToUpdate)) {
+    if (balance === undefined) {
+      if (updatedBalancesBySlug[slug]) {
+        updatedBalancesBySlug[slug] = 0n;
+      }
+      continue;
+    }
+
     updatedBalancesBySlug[slug] = balance;
+  }
+
+  // Force balance value for USDT in Tonchain
+  if (!(TON_USDT_SLUG in updatedBalancesBySlug)) {
+    updatedBalancesBySlug[TON_USDT_SLUG] = 0n;
   }
 
   return updateAccountState(global, accountId, {
@@ -142,20 +153,20 @@ export function updateSendingLoading(global: GlobalState, isLoading: boolean): G
 
 export function updateTokens(
   global: GlobalState,
-  partial: Record<string, ApiToken>,
+  partial: Record<string, ApiTokenWithPrice>,
   withDeepCompare = false,
 ): GlobalState {
   const currentTokens = global.tokenInfo?.bySlug;
 
   // If the backend does not work, then we won't delete the old prices
-  if (!partial[TONCOIN_SLUG].quote.price) {
+  if (!partial[TONCOIN.slug].quote.price) {
     partial = Object.values(partial).reduce((result, token) => {
       result[token.slug] = {
         ...token,
         quote: currentTokens?.[token.slug]?.quote ?? token.quote,
       };
       return result;
-    }, {} as Record<string, ApiToken>);
+    }, {} as Record<string, ApiTokenWithPrice>);
   }
 
   if (withDeepCompare && currentTokens && isPartialDeepEqual(currentTokens, partial)) {
@@ -233,6 +244,25 @@ export function updateSettings(global: GlobalState, settingsUpdate: Partial<Glob
     settings: {
       ...global.settings,
       ...settingsUpdate,
+    },
+  } as GlobalState;
+}
+
+export function updateCurrentAccountSettings(
+  global: GlobalState,
+  settingsUpdate: Partial<GlobalState['settings']['byAccountId']['*']>,
+) {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      byAccountId: {
+        ...global.settings.byAccountId,
+        [global.currentAccountId!]: {
+          ...global.settings.byAccountId[global.currentAccountId!],
+          ...settingsUpdate,
+        },
+      },
     },
   } as GlobalState;
 }

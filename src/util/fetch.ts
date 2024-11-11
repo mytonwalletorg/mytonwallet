@@ -1,4 +1,6 @@
-import { DEFAULT_ERROR_PAUSE, DEFAULT_RETRIES, DEFAULT_TIMEOUT } from '../config';
+import {
+  BRILLIANT_API_BASE_URL, DEFAULT_ERROR_PAUSE, DEFAULT_RETRIES, DEFAULT_TIMEOUT,
+} from '../config';
 import { ApiServerError } from '../api/errors';
 import { logDebug } from './logs';
 import { pause } from './schedulers';
@@ -6,6 +8,17 @@ import { pause } from './schedulers';
 type QueryParams = Record<string, string | number | boolean | string[]>;
 
 const MAX_TIMEOUT = 30000; // 30 sec
+
+export async function fetchJsonWithProxy(url: string | URL, data?: QueryParams, init?: RequestInit) {
+  try {
+    return await fetchJson(url, data, init);
+  } catch (err) {
+    if (err instanceof ApiServerError && (!err.statusCode || err.statusCode === 403)) {
+      return fetchJson(`${BRILLIANT_API_BASE_URL}/proxy/?url=${url.toString()}`, data, init);
+    }
+    throw err;
+  }
+}
 
 export async function fetchJson(url: string | URL, data?: QueryParams, init?: RequestInit) {
   const urlObject = new URL(url);

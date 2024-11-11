@@ -85,25 +85,6 @@
   color: var(--color-gray-4);
 }
 
-.icon {
-  overflow: hidden;
-  flex: 0 0 2.25rem;
-
-  width: 2.25rem;
-  height: 2.25rem;
-  margin: 0 0.625rem 0 0;
-
-  border-radius: 50%;
-
-  :global(html.is-android) &,
-  :global(html.is-ios) & {
-    flex-basis: 2.625rem;
-
-    width: 2.625rem;
-    height: 2.625rem;
-  }
-}
-
 .primaryCell {
   flex: 1;
 
@@ -131,13 +112,10 @@
 
 .name {
   overflow: hidden;
+  display: flex;
+  align-items: center;
 
   text-overflow: ellipsis;
-
-  &_withApy {
-    display: flex;
-    align-items: center;
-  }
 }
 
 .name, .secondaryValue {
@@ -189,7 +167,7 @@
   border-radius: 50%;
 }
 
-.apy {
+.label {
   display: inline-block;
 
   height: 0.9375rem;
@@ -199,10 +177,14 @@
   font-size: 0.625rem;
   font-weight: 700;
   line-height: 0.625rem;
+
+  border-radius: 0.25rem;
+}
+
+.apyLabel {
   color: var(--color-apy-text);
 
   background-color: var(--color-apy-background);
-  border-radius: 0.25rem;
 
   &_staked {
     color: var(--color-apy-active-text);
@@ -211,11 +193,24 @@
   }
 }
 
+.chainLabel {
+  color: var(--color-gray-2);
+
+  background-color: var(--color-activity-gray-background);
+}
+
+.tokenIcon {
+  margin: 0 0.625rem 0 0;
+  .container:hover > & {
+    --color-background-first: var(--color-interactive-item-hover);
+  }
+}
+
 .vestingIcon,
 .percent {
   position: absolute;
-  top: 2.25rem;
-  left: 2.375rem;
+  top: 1.375rem;
+  left: 1.375rem;
 
   display: flex;
   align-items: center;
@@ -233,8 +228,8 @@
 
   :global(html.is-android) &,
   :global(html.is-ios) & {
-    top: 2.375rem;
-    left: 2.5rem;
+    top: 1.6875rem;
+    left: 1.75rem;
   }
 
   :global(html.is-android) &::before {

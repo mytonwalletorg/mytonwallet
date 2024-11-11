@@ -291,6 +291,8 @@
 
   &-semiFadeBackwards {
     > .Transition_slide-from {
+      z-index: 1;
+
       opacity: 1;
 
       animation: fade-in-backwards-opacity 250ms ease;

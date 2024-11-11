@@ -4,6 +4,9 @@ import {
 } from '../lib/teact/teact';
 import { removeExtraClass } from '../lib/teact/teact-dom';
 
+import type { ApiChain } from '../api/types';
+
+import getChainNetworkIcon from '../util/swap/getChainNetworkIcon';
 import formatTransferUrl from '../util/ton/formatTransferUrl';
 
 const QR_SIZE = 600;
@@ -15,13 +18,21 @@ interface UseQRCodeHook {
 
 let qrCode: QRCodeStyling;
 
-export default function useQrCode(
-  address?: string,
-  isOpen?: boolean,
-  hiddenClassName?: string,
-  hideLogo?: boolean,
-  withFormatTransferUrl?: boolean,
-): UseQRCodeHook {
+export default function useQrCode({
+  address,
+  chain,
+  isActive,
+  hiddenClassName,
+  hideLogo,
+  withFormatTransferUrl,
+}: {
+  address?: string;
+  chain?: ApiChain;
+  isActive?: boolean;
+  hiddenClassName?: string;
+  hideLogo?: boolean;
+  withFormatTransferUrl?: boolean;
+}): UseQRCodeHook {
   const [isInitialized, setIsInitialized] = useState(!!qrCode);
 
   // eslint-disable-next-line no-null/no-null
@@ -35,7 +46,7 @@ export default function useQrCode(
         qrCode = new QrCodeStyling({
           width: QR_SIZE,
           height: QR_SIZE,
-          image: './logo.svg',
+          image: chain ? getChainNetworkIcon(chain) : './logo.svg',
           margin: 0,
           type: 'canvas',
           dotsOptions: { type: 'rounded' },
@@ -47,25 +58,27 @@ export default function useQrCode(
 
         setIsInitialized(true);
       });
-  }, [isInitialized]);
+  }, [chain, isInitialized]);
 
   useLayoutEffect(() => {
-    if (!isOpen || !isInitialized) return;
+    if (!isActive || !isInitialized) return;
 
     if (qrCodeRef.current && hiddenClassName) removeExtraClass(qrCodeRef.current, hiddenClassName);
 
     if (qrCodeRef.current) {
       qrCode?.append(qrCodeRef.current);
       // eslint-disable-next-line no-underscore-dangle
-      qrCode._options.image = hideLogo ? undefined : './logo.svg';
+      qrCode._options.image = hideLogo
+        ? undefined
+        : (chain ? getChainNetworkIcon(chain) : './logo.svg');
     }
-  }, [isOpen, isInitialized, hiddenClassName, hideLogo]);
+  }, [isActive, isInitialized, hiddenClassName, hideLogo, chain]);
 
   useEffect(() => {
-    if (!address || !isOpen || !qrCode || !isInitialized) return;
+    if (!address || !isActive || !qrCode || !isInitialized) return;
 
     qrCode.update({ data: withFormatTransferUrl ? formatTransferUrl(address) : address });
-  }, [address, isOpen, isInitialized, withFormatTransferUrl]);
+  }, [address, isActive, isInitialized, withFormatTransferUrl]);
 
   return { qrCodeRef, isInitialized };
 }

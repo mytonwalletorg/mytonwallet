@@ -5,6 +5,10 @@ export enum ApiCommonError {
   UnsupportedVersion = 'UnsupportedVersion',
 }
 
+export enum ApiAuthError {
+  InvalidMnemonic = 'InvalidMnemonic',
+}
+
 export enum ApiTransactionDraftError {
   InvalidAmount = 'InvalidAmount',
   InvalidToAddress = 'InvalidToAddress',
@@ -28,4 +32,4 @@ export enum ApiTransactionError {
   WrongNetwork = 'WrongNetwork',
 }
 
-export type ApiAnyDisplayError = ApiCommonError | ApiTransactionDraftError | ApiTransactionError;
+export type ApiAnyDisplayError = ApiCommonError | ApiAuthError | ApiTransactionDraftError | ApiTransactionError;
