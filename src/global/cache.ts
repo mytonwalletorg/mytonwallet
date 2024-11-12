@@ -19,6 +19,7 @@ import { bigintReviver } from '../util/bigint';
 import {
   cloneDeep, mapValues, pick, pickTruthy,
 } from '../util/iteratees';
+import { clearPoisoningCache, updatePoisoningCache } from '../util/poisoningHash';
 import { onBeforeUnload, throttle } from '../util/schedulers';
 import { IS_ELECTRON } from '../util/windowEnvironment';
 import { getIsTxIdLocal } from './helpers';
@@ -46,6 +47,9 @@ export function initCache() {
 
   addActionHandler('afterSignOut', (global, actions, payload) => {
     const { isFromAllAccounts } = payload || {};
+
+    clearPoisoningCache();
+
     if (!isFromAllAccounts) return;
 
     preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo', 'restrictions']);
@@ -101,6 +105,7 @@ export function loadCache(initialState: GlobalState): GlobalState {
   if (cached) {
     try {
       migrateCache(cached, initialState);
+      loadMemoryCache(cached);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -432,7 +437,41 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 28;
   }
 
+  if (cached.stateVersion === 28) {
+    const accountIds = Object.keys(cached.settings.byAccountId);
+    for (const accountId of accountIds) {
+      const exceptionSlugs = (cached.settings.byAccountId[accountId] as any).exceptionSlugs as string[] | undefined;
+      if (cached.settings.areTokensWithNoCostHidden) {
+        cached.settings.byAccountId[accountId].alwaysShownSlugs = exceptionSlugs;
+      } else {
+        cached.settings.byAccountId[accountId].alwaysHiddenSlugs = exceptionSlugs;
+      }
+    }
+    cached.stateVersion = 29;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
+}
+
+function loadMemoryCache(cached: GlobalState) {
+  if (!cached.currentAccountId) return;
+
+  const { byId, newestTransactionsBySlug } = cached.byAccountId[cached.currentAccountId].activities || {};
+
+  if (byId) {
+    Object.values(byId).forEach((tx) => {
+      if (tx.kind === 'transaction' && tx.isIncoming) {
+        updatePoisoningCache(tx);
+      }
+    });
+  }
+  if (newestTransactionsBySlug) {
+    Object.values(newestTransactionsBySlug).forEach((tx) => {
+      if (tx.isIncoming) {
+        updatePoisoningCache(tx);
+      }
+    });
+  }
 }
 
 function updateCache(force?: boolean) {

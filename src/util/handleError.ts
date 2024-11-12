@@ -1,11 +1,14 @@
 import { APP_ENV, DEBUG_ALERT_MSG } from '../config';
+import { IS_EXTENSION_PAGE_SCRIPT } from './environment';
 import { logDebugError } from './logs';
 import { throttle } from './schedulers';
 
-const noop = () => {
-};
+const shouldShowAlert = (APP_ENV === 'development' || APP_ENV === 'staging')
+  && typeof window === 'object'
+  && !IS_EXTENSION_PAGE_SCRIPT;
 
-const throttledAlert = typeof window !== 'undefined' ? throttle(window.alert, 1000) : noop;
+// eslint-disable-next-line no-alert
+const throttledAlert = throttle((message) => window.alert(message), 1000);
 
 // eslint-disable-next-line no-restricted-globals
 self.addEventListener('error', handleErrorEvent);
@@ -24,7 +27,7 @@ function handleErrorEvent(e: ErrorEvent | PromiseRejectionEvent) {
 }
 
 export function handleError(err: Error | string) {
-  logDebugError('Unhadled UI Error', err);
+  logDebugError('handleError', err);
 
   const message = typeof err === 'string' ? err : err.message;
   const stack = typeof err === 'object' ? err.stack : undefined;
@@ -33,7 +36,7 @@ export function handleError(err: Error | string) {
     return;
   }
 
-  if (APP_ENV === 'development' || APP_ENV === 'staging') {
+  if (shouldShowAlert) {
     throttledAlert(`${DEBUG_ALERT_MSG}\n\n${(message) || err}\n${stack}`);
   }
 }

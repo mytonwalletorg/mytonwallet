@@ -481,7 +481,6 @@ You can connect your biometric data for more convenience: Daha kolay kullanım i
 Connect Touch ID: Touch ID'yi Bağlayın
 Connect Face ID: Face ID'yi bağlayın
 Not Now: Şimdi değil
-Biometric Authentification: Biyometrik Kimlik Doğrulama
 Touch ID: Touch ID
 Face ID: Face ID
 Turn Off Touch ID: Touch ID kapatılsın mı
@@ -682,5 +681,6 @@ Never: Asla
 30 seconds: 30 saniye
 3 minutes: 3 dakika
 30 minutes: 30 dakika
-Biometric authentification failed: Biyometrik kimlik doğrulama başarısız oldu
+This address mimics another address that you previously interacted with.: Bu adres, daha önce etkileşimde bulunduğunuz başka bir adresi taklit ediyor.
+Biometric authentication failed: Biyometrik kimlik doğrulama başarısız oldu
 Reset biometrics in security settings, or use a passcode.: Güvenlik ayarlarında biyometrik kimlik doğrulamayı sıfırlayın veya bir şifre kullanın.

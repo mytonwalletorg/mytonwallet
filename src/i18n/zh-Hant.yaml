@@ -469,7 +469,6 @@ You can connect your biometric data for more convenience: 您可以連接您的�
 Connect Touch ID: 連接 Touch ID
 Connect Face ID: 連接 Face ID
 Not Now: 現在不要
-Biometric Authentification: 生物辨識認證
 Touch ID: Touch ID
 Face ID: Face ID
 Turn Off Touch ID: 關閉 Touch ID
@@ -670,5 +669,6 @@ Never: 從不
 3 minutes: 3分鐘
 30 minutes: 30分鐘
 Unlock: 解鎖
-Biometric authentification failed: 生物識別認證失敗
+This address mimics another address that you previously interacted with.: 此地址模仿了您之前互動過的另一個地址。
+Biometric authentication failed: 生物識別認證失敗
 Reset biometrics in security settings, or use a passcode.: 在安全設定中重置生物識別，或使用密碼。

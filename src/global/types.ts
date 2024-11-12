@@ -372,8 +372,10 @@ export interface AccountState {
 
 export interface AccountSettings {
   orderedSlugs?: string[];
-  exceptionSlugs?: string[];
+  alwaysShownSlugs?: string[];
+  alwaysHiddenSlugs?: string[];
   deletedSlugs?: string[];
+  importedSlugs?: string[];
 }
 
 export interface SavedAddress {
@@ -849,7 +851,7 @@ export interface ActionPayloads {
   toggleSortByValue: { isEnabled: boolean };
   updateOrderedSlugs: { orderedSlugs: string[] };
   rebuildOrderedSlugs: undefined;
-  toggleExceptionToken: { slug: string };
+  toggleTokenVisibility: { slug: string; shouldShow: boolean };
   addToken: { token: UserToken };
   deleteToken: { slug: string };
   importToken: { address: string; isSwap?: boolean };

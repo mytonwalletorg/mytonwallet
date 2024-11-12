@@ -18,18 +18,27 @@ export async function loadTokensCache() {
 export async function addTokens(tokens: ApiToken[], onUpdate?: OnApiUpdate, shouldForceSend?: boolean) {
   const newTokens: ApiToken[] = [];
 
-  for (const token of tokens) {
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    const mergedToken = mergeTokenWithCache(token);
+    tokensCache[token.slug] = mergedToken;
+
     if (!(token.slug in tokensCache)) {
-      newTokens.push(token);
+      newTokens.push(mergedToken);
     }
-    tokensCache[token.slug] = token;
+    tokens[i] = mergedToken;
   }
 
   await tokenRepository.bulkPut(tokens);
-
   if ((shouldForceSend || newTokens.length) && onUpdate) {
     sendUpdateTokens(onUpdate);
   }
+}
+
+export function mergeTokenWithCache(token: ApiToken): ApiToken {
+  const cacheToken = tokensCache[token.slug] || {};
+
+  return { ...cacheToken, ...token };
 }
 
 export function getTokensCache() {

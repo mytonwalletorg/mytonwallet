@@ -486,7 +486,6 @@ You can connect your biometric data for more convenience: Для більшої 
 Connect Touch ID: Підключити Touch ID
 Connect Face ID: Підключити Face ID
 Not Now: Не зараз
-Biometric Authentification: Біометрична аутентифікація
 Touch ID: Touch ID
 Face ID: Face ID
 Turn Off Touch ID: Відключити Touch ID
@@ -688,5 +687,6 @@ Never: Ніколи
 3 minutes: 3 хвилини
 30 minutes: 30 хвилин
 Unlock: Розблокувати
-Biometric authentification failed: Біометрична аутентифікація не вдалася
+This address mimics another address that you previously interacted with.: Ця адреса імітує іншу адресу, з якою ви раніше взаємодіяли.
+Biometric authentication failed: Біометрична аутентифікація не вдалася
 Reset biometrics in security settings, or use a passcode.: Скиньте біометрію в налаштуваннях безпеки або використовуйте код доступу.

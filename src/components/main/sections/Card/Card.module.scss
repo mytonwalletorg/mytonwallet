@@ -241,6 +241,8 @@
 
   &:global(.icon-ledger) {
     margin-inline-end: 0.25rem;
+
+    color: var(--color-card-second-text);
   }
 }
 

@@ -5,6 +5,7 @@ import type { ApiSwapAsset, ApiToken } from '../../api/types';
 import type { UserSwapToken, UserToken } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
+import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 
 import useLang from '../../hooks/useLang';
 
@@ -41,9 +42,25 @@ function TransactionBanner({
     className,
   );
 
+  function renderNftIcon() {
+    return (
+      <div className={styles.nftIcon}>
+        <img src={imageUrl} alt="" className={styles.image} />
+        {withChainIcon && tokenIn?.chain && (
+          <img
+            src={getChainNetworkIcon(tokenIn.chain)}
+            alt=""
+            className={styles.chainIcon}
+            draggable={false}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={fullClassName}>
-      {tokenIn && (
+      {tokenIn && !imageUrl && (
         <TokenIcon
           token={tokenIn}
           withChainIcon={withChainIcon}
@@ -51,7 +68,7 @@ function TransactionBanner({
           className={styles.tokenIcon}
         />
       )}
-      {imageUrl && <img src={imageUrl} alt="" className={styles.image} />}
+      {imageUrl && renderNftIcon()}
       <span className={styles.text}>
         {secondText
           ? (

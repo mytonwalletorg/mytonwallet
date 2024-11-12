@@ -480,7 +480,6 @@ You can connect your biometric data for more convenience: Puede conectar sus dat
 Connect Touch ID: Conectar Touch ID
 Connect Face ID: Conectar Face ID
 Not Now: Ahora no
-Biometric Authentification: Autenticación biométrica
 Touch ID: Touch ID
 Face ID: Face ID
 Turn Off Touch ID: Desactivar Touch ID
@@ -682,5 +681,6 @@ Never: Nunca
 3 minutes: 3 minutos
 30 minutes: 30 minutos
 Unlock: Desbloquear
-Biometric authentification failed: Fallo en la autenticación biométrica
+This address mimics another address that you previously interacted with.: Esta dirección imita otra dirección con la que has interactuado anteriormente.
+Biometric authentication failed: Fallo en la autenticación biométrica
 Reset biometrics in security settings, or use a passcode.: Restablezca la biometría en la configuración de seguridad, o use un código de acceso.

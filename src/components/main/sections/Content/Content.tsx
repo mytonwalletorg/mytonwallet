@@ -13,6 +13,7 @@ import {
   PORTRAIT_MIN_ASSETS_TAB_VIEW,
 } from '../../../../config';
 import {
+  selectCurrentAccountStakingStatus,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectEnabledTokensCountMemoizedFor,
@@ -52,6 +53,8 @@ interface StateProps {
   activeContentTab?: ContentTab;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
+  hasStaking: boolean;
+  hasVesting: boolean;
   selectedNftsToHide?: {
     addresses: string[];
     isCollection: boolean;
@@ -70,6 +73,8 @@ function Content({
   blacklistedNftAddresses,
   whitelistedNftAddresses,
   selectedNftsToHide,
+  hasStaking,
+  hasVesting,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -139,8 +144,9 @@ function Content({
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
 
-  const shouldShowSeparateAssetsPanel = tokensCount > 0
-    && tokensCount <= (isPortrait ? PORTRAIT_MIN_ASSETS_TAB_VIEW : LANDSCAPE_MIN_ASSETS_TAB_VIEW);
+  const totalTokensAmount = tokensCount + (hasVesting ? 1 : 0) + (hasStaking ? 1 : 0);
+  const shouldShowSeparateAssetsPanel = totalTokensAmount > 0
+    && totalTokensAmount <= (isPortrait ? PORTRAIT_MIN_ASSETS_TAB_VIEW : LANDSCAPE_MIN_ASSETS_TAB_VIEW);
   const tabs = useMemo(
     () => [
       ...(
@@ -351,6 +357,7 @@ export default memo(
         blacklistedNftAddresses,
         whitelistedNftAddresses,
         selectedNftsToHide,
+        vesting,
         nfts: {
           byAddress: nfts,
           currentCollectionAddress,
@@ -359,6 +366,8 @@ export default memo(
       } = selectCurrentAccountState(global) ?? {};
       const tokens = selectCurrentAccountTokens(global);
       const tokensCount = selectEnabledTokensCountMemoizedFor(global.currentAccountId!)(tokens);
+      const hasVesting = Boolean(vesting?.info?.length);
+      const hasStaking = Boolean(selectCurrentAccountStakingStatus(global));
 
       return {
         nfts,
@@ -369,6 +378,8 @@ export default memo(
         blacklistedNftAddresses,
         whitelistedNftAddresses,
         selectedNftsToHide,
+        hasStaking,
+        hasVesting,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

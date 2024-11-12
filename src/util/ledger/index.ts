@@ -324,8 +324,7 @@ export async function submitLedgerTransfer(
   let { toAddress, amount } = options;
   const { network } = parseAccountId(accountId);
 
-  await callApi('waitLastTonTransfer', accountId);
-
+  const pendingTransferId = await callApi('waitAndCreateTonPendingTransfer', accountId);
   const fromAddress = await callApi('fetchAddress', accountId, 'ton');
 
   const [path, walletInfo, appInfo, account] = await Promise.all([
@@ -402,8 +401,10 @@ export async function submitLedgerTransfer(
       },
     };
 
-    return await callApi('sendSignedTransferMessage', accountId, message);
+    return await callApi('sendSignedTransferMessage', accountId, message, pendingTransferId!);
   } catch (err: any) {
+    await callApi('cancelPendingTransfer', pendingTransferId!);
+
     handleLedgerErrors(err);
     logDebugError('submitLedgerTransfer', err);
     return undefined;
@@ -425,7 +426,7 @@ export async function submitLedgerNftTransfer(options: {
   let { toAddress } = options;
   const { network } = parseAccountId(accountId);
 
-  await callApi('waitLastTonTransfer', accountId);
+  const pendingTransferId = await callApi('waitAndCreateTonPendingTransfer', accountId);
 
   const fromAddress = await callApi('fetchAddress', accountId, 'ton');
 
@@ -498,8 +499,10 @@ export async function submitLedgerNftTransfer(options: {
       },
     };
 
-    return await callApi('sendSignedTransferMessage', accountId, message);
+    return await callApi('sendSignedTransferMessage', accountId, message, pendingTransferId!);
   } catch (error) {
+    await callApi('cancelPendingTransfer', pendingTransferId!);
+
     logDebugError('submitLedgerNftTransfer', error);
     return undefined;
   }
@@ -573,8 +576,6 @@ export async function signLedgerTransactions(accountId: string, messages: ApiDap
   vestingAddress?: string;
 }): Promise<ApiSignedTransfer[]> {
   const { isTonConnect, vestingAddress } = options ?? {};
-
-  await callApi('waitLastTonTransfer', accountId);
 
   const { network } = parseAccountId(accountId);
 

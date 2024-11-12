@@ -31,6 +31,9 @@ export interface ApiToken {
   keywords?: string[];
   cmcSlug?: string;
   color?: string;
+  isGaslessEnabled?: boolean;
+  isStarsEnabled?: boolean;
+  isTiny?: boolean;
   customPayloadApiUrl?: string;
 }
 
@@ -182,7 +185,6 @@ export enum ApiLiquidUnstakeMode {
 export type ApiLoyaltyType = 'black' | 'platinum' | 'gold' | 'silver' | 'standard';
 
 export type ApiBalanceBySlug = Record<string, bigint>;
-export type ApiMaybeBalanceBySlug = Record<string, bigint | undefined>;
 
 export type ApiWalletInfo = {
   address: string;

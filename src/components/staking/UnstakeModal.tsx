@@ -7,7 +7,7 @@ import type { ApiBaseCurrency, ApiStakingType } from '../../api/types';
 import type {
   GlobalState, HardwareConnectState, Theme, UserToken,
 } from '../../global/types';
-import { StakingState } from '../../global/types';
+import { ActiveTab, StakingState } from '../../global/types';
 
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
@@ -35,6 +35,7 @@ import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useAppTheme from '../../hooks/useAppTheme';
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
@@ -119,9 +120,11 @@ function UnstakeModal({
     submitStakingHardware,
     fetchStakingHistory,
     openReceiveModal,
+    setLandscapeActionsActiveTabIndex,
   } = getActions();
 
   const lang = useLang();
+  const { isLandscape } = useDeviceScreen();
   const isOpen = IS_OPEN_STATES.has(state);
 
   const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]);
@@ -209,7 +212,11 @@ function UnstakeModal({
 
   const handleGetTon = useLastCallback(() => {
     cancelStaking();
-    openReceiveModal();
+    if (isLandscape) {
+      setLandscapeActionsActiveTabIndex({ index: ActiveTab.Receive });
+    } else {
+      openReceiveModal();
+    }
   });
 
   function renderTransactionBanner() {

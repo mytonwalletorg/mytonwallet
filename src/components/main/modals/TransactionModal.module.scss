@@ -306,3 +306,18 @@
 .qrCodeHidden {
   opacity: 0;
 }
+
+.scamWarning {
+  max-width: 80%;
+  margin: 0 auto 2rem;
+  padding: 0.5rem 0.75rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3125rem;
+  color: var(--color-transaction-red-text);
+  text-align: center;
+
+  background-color: var(--color-transaction-red-background);
+  border-radius: var(--border-radius-buttons);
+}

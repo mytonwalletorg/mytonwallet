@@ -60,7 +60,7 @@ export type WorkerMessageData = {
 } | {
   channel?: string;
   type: 'unhandledError';
-  error?: { message: string };
+  error?: { message: string; stack?: string };
 };
 
 export interface WorkerMessageEvent {
@@ -195,7 +195,11 @@ class ConnectorClass<T extends InputRequestTypes> {
       const requestState = requestStates.get(data.messageId);
       requestState?.callback?.(...data.callbackArgs);
     } else if (data.type === 'unhandledError') {
-      throw new Error(data.error?.message);
+      const error = new Error(data.error?.message);
+      if (data.error?.stack) {
+        error.stack = data.error.stack;
+      }
+      throw error;
     }
   }
 

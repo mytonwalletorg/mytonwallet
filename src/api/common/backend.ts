@@ -1,5 +1,5 @@
 import { APP_VERSION, BRILLIANT_API_BASE_URL } from '../../config';
-import { fetchJson, handleFetchErrors } from '../../util/fetch';
+import { fetchJson, fetchWithRetry, handleFetchErrors } from '../../util/fetch';
 
 const BAD_REQUEST_CODE = 400;
 
@@ -7,10 +7,17 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
   authToken?: string;
   isAllowBadRequest?: boolean;
   method?: string;
+  shouldRetry?: boolean;
+  retries?: number;
+  timeouts?: number | number[];
 }): Promise<T> {
-  const { authToken, isAllowBadRequest, method } = options ?? {};
+  const {
+    authToken, isAllowBadRequest, method, shouldRetry, retries, timeouts,
+  } = options ?? {};
 
-  const response = await fetch(`${BRILLIANT_API_BASE_URL}${path}`, {
+  const url = new URL(`${BRILLIANT_API_BASE_URL}${path}`);
+
+  const init: RequestInit = {
     method: method ?? 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -18,7 +25,15 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
       'X-App-Version': APP_VERSION,
     },
     body: JSON.stringify(data),
-  });
+  };
+
+  const response = shouldRetry
+    ? await fetchWithRetry(url, init, {
+      retries,
+      timeouts,
+      shouldSkipRetryFn: (message) => !message?.includes('signal is aborted'),
+    })
+    : await fetch(url.toString(), init);
 
   await handleFetchErrors(response, isAllowBadRequest ? [BAD_REQUEST_CODE] : undefined);
 

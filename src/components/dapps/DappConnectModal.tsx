@@ -280,7 +280,7 @@ function DappConnectModal({
         isOpen={isOpen}
         dialogClassName={styles.modalDialog}
         nativeBottomSheetKey="dapp-connect"
-        forceFullNative={renderingKey === DappConnectState.Password}
+        forceFullNative={renderingKey !== DappConnectState.Info}
         onClose={cancelDappConnectRequestConfirm}
         onCloseAnimationEnd={cancelDappConnectRequestConfirm}
       >

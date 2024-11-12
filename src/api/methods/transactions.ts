@@ -18,6 +18,7 @@ import { logDebugError } from '../../util/logs';
 import chains from '../chains';
 import { fetchStoredAccount, fetchStoredAddress, fetchStoredTonWallet } from '../common/accounts';
 import { buildLocalTransaction } from '../common/helpers';
+import { getPendingTransfer, waitAndCreatePendingTransfer } from '../common/pendingTransfers';
 import { handleServerError } from '../errors';
 import { buildTokenSlug } from './tokens';
 
@@ -206,17 +207,19 @@ export async function submitTransfer(
   };
 }
 
-export async function waitLastTonTransfer(accountId: string) {
-  const chain = chains.ton;
-
+export async function waitAndCreateTonPendingTransfer(accountId: string) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
 
-  return chain.waitPendingTransfer(network, address);
+  return (await waitAndCreatePendingTransfer(network, address)).id;
 }
 
-export async function sendSignedTransferMessage(accountId: string, message: ApiSignedTransfer) {
-  const msgHash = await ton.sendSignedMessage(accountId, message);
+export async function sendSignedTransferMessage(
+  accountId: string,
+  message: ApiSignedTransfer,
+  pendingTransferId: string,
+) {
+  const msgHash = await ton.sendSignedMessage(accountId, message, pendingTransferId);
 
   const localTransaction = createLocalTransaction(accountId, 'ton', {
     ...message.params,
@@ -226,17 +229,8 @@ export async function sendSignedTransferMessage(accountId: string, message: ApiS
   return localTransaction.txId;
 }
 
-export async function sendSignedTransferMessages(accountId: string, messages: ApiSignedTransfer[]) {
-  const result = await ton.sendSignedMessages(accountId, messages);
-
-  for (let i = 0; i < result.successNumber; i++) {
-    createLocalTransaction(accountId, 'ton', {
-      ...messages[i].params,
-      inMsgHash: result.msgHashes[i],
-    });
-  }
-
-  return result;
+export function cancelPendingTransfer(id: string) {
+  getPendingTransfer(id)?.resolve();
 }
 
 export function decryptComment(accountId: string, encryptedComment: string, fromAddress: string, password: string) {

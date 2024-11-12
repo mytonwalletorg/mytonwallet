@@ -199,12 +199,26 @@ function handleErrors(sendToOrigin: SendToOrigin) {
   self.onerror = (e) => {
     const message = e.error?.message || 'Uncaught exception in worker';
     logDebugError(message, e.error);
-    sendToOrigin({ type: 'unhandledError', error: { message } });
+
+    sendToOrigin({
+      type: 'unhandledError',
+      error: {
+        message,
+        stack: e.error?.stack,
+      },
+    });
   };
 
   self.addEventListener('unhandledrejection', (e) => {
-    const message = e.reason?.message || 'Uncaught exception in worker';
+    const message = e.reason?.message || 'Unhandled rejection in worker';
     logDebugError(message, e.reason);
-    sendToOrigin({ type: 'unhandledError', error: { message } });
+
+    sendToOrigin({
+      type: 'unhandledError',
+      error: {
+        message,
+        stack: e.reason?.stack,
+      },
+    });
   });
 }

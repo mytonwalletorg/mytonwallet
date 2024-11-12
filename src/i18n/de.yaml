@@ -482,7 +482,6 @@ You can connect your biometric data for more convenience: Sie können Ihre biome
 Connect Touch ID: Touch ID verbinden
 Connect Face ID: Face ID verbinden
 Not Now: Nicht jetzt
-Biometric Authentification: Biometrische Authentifizierung
 Touch ID: Touch ID
 Face ID: Face ID
 Turn Off Touch ID: Touch ID deaktivieren
@@ -684,5 +683,6 @@ Never: Niemals
 3 minutes: 3 Minuten
 30 minutes: 30 Minuten
 Unlock: Entsperren
-Biometric authentification failed: Biometrische Authentifizierung fehlgeschlagen
+This address mimics another address that you previously interacted with.: Diese Adresse imitiert eine andere Adresse, mit der Sie zuvor interagiert haben.
+Biometric authentication failed: Biometrische Authentifizierung fehlgeschlagen
 Reset biometrics in security settings, or use a passcode.: Setzen Sie die Biometrie in den Sicherheitseinstellungen zurück oder verwenden Sie einen Zugangscode.

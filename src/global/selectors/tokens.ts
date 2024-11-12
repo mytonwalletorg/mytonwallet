@@ -44,15 +44,15 @@ const selectAccountTokensMemoizedFor = withCache((accountId: string) => memoize(
       const balanceBig = toBig(balance, decimals);
       const totalValue = balanceBig.mul(price).round(decimals).toString();
       const hasCost = balanceBig.mul(priceUsd ?? 0).gte(TINY_TRANSFER_MAX_COST);
-      const isExcepted = accountSettings.exceptionSlugs?.includes(slug);
-      const isMycoinWithBalance = slug === MYCOIN_SLUG && balance;
-      const isDisabled = !(
+
+      const isEnabled = (
         ENABLED_TOKEN_SLUGS.includes(slug)
-        || (areTokensWithNoCostHidden && hasCost && !isExcepted)
-        || (areTokensWithNoCostHidden && !hasCost && !isMycoinWithBalance && isExcepted)
-        || (areTokensWithNoCostHidden && !hasCost && isMycoinWithBalance && !isExcepted)
-        || (!areTokensWithNoCostHidden && !isExcepted)
+        || !areTokensWithNoCostHidden
+        || (areTokensWithNoCostHidden && hasCost)
+        || accountSettings.alwaysShownSlugs?.includes(slug)
       );
+
+      const isDisabled = !isEnabled || accountSettings.alwaysHiddenSlugs?.includes(slug);
 
       return {
         chain,

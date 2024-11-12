@@ -1,6 +1,7 @@
 import type {
   ApiBackendStakingState,
   ApiBalanceBySlug,
+  ApiNetwork,
   ApiNftUpdate,
   ApiStakingCommonData,
   ApiStakingState,
@@ -27,7 +28,7 @@ import {
 import { getStakingCommonCache } from '../../common/cache';
 import { isAlive, isUpdaterAlive } from '../../common/helpers';
 import { processNftUpdates, updateAccountNfts } from '../../common/nft';
-import { addTokens, getTokensCache } from '../../common/tokens';
+import { addTokens } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
 import { hexToBytes } from '../../common/utils';
 import { FIRST_TRANSACTIONS_LIMIT, SEC } from '../../constants';
@@ -39,11 +40,6 @@ import { getAccountTokenBalances } from './tokens';
 import { fetchTokenTransactionSlice, fixTokenActivitiesAddressForm, waitUntilTransactionAppears } from './transactions';
 import { fetchVestings } from './vesting';
 import { getWalletInfo, getWalletVersionInfos, isAddressInitialized } from './wallet';
-
-type AccountBalanceCache = {
-  balance?: bigint;
-  tokenBalances?: ApiBalanceBySlug;
-};
 
 const BALANCE_BASED_INTERVAL = 1.1 * SEC;
 const BALANCE_BASED_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
@@ -61,7 +57,7 @@ const VESTING_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL = 30 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 
-const lastBalanceCache: Record<string, AccountBalanceCache> = {};
+const lastBalanceCache: Record<string, ApiBalanceBySlug> = {};
 
 export function setupPolling(accountId: string, onUpdate: OnApiUpdate, newestTxTimestamps: ApiTxTimestamps) {
   void setupBalanceBasedPolling(accountId, onUpdate, newestTxTimestamps);
@@ -85,26 +81,17 @@ async function setupBalanceBasedPolling(
   let nftUpdates: ApiNftUpdate[];
   let lastNftFullUpdate = 0;
   let doubleCheckTokensTime: number | undefined;
-  let tokenBalances: TokenBalanceParsed[] | undefined;
 
-  async function updateBalance(cache: AccountBalanceCache) {
-    const walletInfo = await getWalletInfo(network, address);
-    const { balance, lastTxId } = walletInfo ?? {};
-    const isToncoinBalanceChanged = balance !== undefined && balance !== cache?.balance;
-    const balancesToUpdate: ApiBalanceBySlug = {};
+  async function updateBalance(cache: ApiBalanceBySlug, newBalances: ApiBalanceBySlug, changedSlugs: string[]) {
+    const { balance, lastTxId } = await getWalletInfo(network, address);
+    const isToncoinBalanceChanged = balance !== undefined && balance !== cache[TONCOIN.slug];
 
+    newBalances[TONCOIN.slug] = balance;
     if (isToncoinBalanceChanged) {
-      balancesToUpdate[TONCOIN.slug] = balance;
-
-      lastBalanceCache[accountId] = {
-        ...lastBalanceCache[accountId],
-        balance,
-      };
+      changedSlugs.push(TONCOIN.slug);
     }
 
-    return {
-      lastTxId, isToncoinBalanceChanged, balancesToUpdate,
-    };
+    return { lastTxId, isToncoinBalanceChanged };
   }
 
   async function updateNfts(isToncoinBalanceChanged: boolean) {
@@ -136,66 +123,43 @@ async function setupBalanceBasedPolling(
 
   async function updateTokenBalances(
     isToncoinBalanceChanged: boolean,
-    cache: AccountBalanceCache,
-    balancesToUpdate: ApiBalanceBySlug,
+    cache: ApiBalanceBySlug,
+    newBalances: ApiBalanceBySlug,
+    changedSlugs: string[],
   ) {
-    const changedTokenSlugs: string[] = [];
+    let tokenBalances: TokenBalanceParsed[] = [];
 
     if (isToncoinBalanceChanged || (doubleCheckTokensTime && doubleCheckTokensTime < Date.now())) {
       doubleCheckTokensTime = isToncoinBalanceChanged ? Date.now() + DOUBLE_CHECK_TOKENS_PAUSE : undefined;
-      tokenBalances = await getAccountTokenBalances(accountId).catch(logAndRescue);
-      const slugsWithBalances = new Set(tokenBalances?.map(({ slug }) => slug));
+      tokenBalances = await getAccountTokenBalances(accountId);
 
-      const tokensCache = getTokensCache();
-      const mintlessZeroBalances = Object.fromEntries(
-        Object.values(tokensCache)
-          .filter((token) => token.customPayloadApiUrl && !slugsWithBalances.has(token.slug))
-          .map(({ slug }) => [slug, undefined]),
-      );
       throwErrorIfUpdaterNotAlive(onUpdate, accountId);
 
-      if (tokenBalances) {
-        const tokens = tokenBalances.filter(Boolean).map(({ token }) => token);
-        await addTokens(tokens, onUpdate);
+      const tokens = tokenBalances.filter(Boolean).map(({ token }) => token);
+      await addTokens(tokens, onUpdate);
 
-        const cachedTokenBalances = cache?.tokenBalances || {};
-        tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
-          const cachedBalance = cachedTokenBalances[slug];
-          if (cachedBalance === tokenBalance) return;
-
-          changedTokenSlugs.push(slug);
-          balancesToUpdate[slug] = tokenBalance;
-        });
-        Object.assign(balancesToUpdate, mintlessZeroBalances);
-
-        lastBalanceCache[accountId] = {
-          ...lastBalanceCache[accountId],
-          tokenBalances: Object.fromEntries(tokenBalances.map(
-            ({ slug, balance: tokenBalance }) => [slug, tokenBalance || 0n],
-          )),
-        };
-      }
-
-      if (Object.keys(balancesToUpdate).length > 0) {
-        onUpdate({
-          type: 'updateBalances',
-          accountId,
-          balancesToUpdate,
-        });
-      }
+      tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
+        newBalances[slug] = tokenBalance;
+        if (cache[slug] !== tokenBalance) {
+          changedSlugs.push(slug);
+        }
+      });
     }
 
-    onUpdate({ type: 'updatingStatus', kind: 'balance', isUpdating: false });
-
-    return changedTokenSlugs;
+    return tokenBalances;
   }
 
-  async function updateActivities(isToncoinBalanceChanged: boolean, changedTokenSlugs: string[], lastTxId?: string) {
-    if (isToncoinBalanceChanged || changedTokenSlugs.length) {
+  async function updateActivities(
+    tokenBalances: TokenBalanceParsed[],
+    changedSlugs: string[],
+    lastTxId?: string,
+  ) {
+    if (changedSlugs.length) {
       if (lastTxId) {
         await waitUntilTransactionAppears(network, address, lastTxId);
       }
 
+      const changedTokenSlugs = changedSlugs.filter((slug) => slug !== TONCOIN.slug);
       const newTxTimestamps = await processNewActivities(
         accountId, newestTxTimestamps, changedTokenSlugs, onUpdate, tokenBalances,
       );
@@ -210,20 +174,34 @@ async function setupBalanceBasedPolling(
       onUpdate({ type: 'updatingStatus', kind: 'activities', isUpdating: true });
       onUpdate({ type: 'updatingStatus', kind: 'balance', isUpdating: true });
 
-      const cache = lastBalanceCache[accountId];
+      const newBalances: ApiBalanceBySlug = {};
+      const changedSlugs: string[] = [];
+      const cache = lastBalanceCache[accountId] ?? {};
 
       const {
         lastTxId,
         isToncoinBalanceChanged,
-        balancesToUpdate,
-      } = await updateBalance(cache);
+      } = await updateBalance(cache, newBalances, changedSlugs);
 
       throwErrorIfUpdaterNotAlive(onUpdate, accountId);
 
-      const changedTokenSlugs = await updateTokenBalances(isToncoinBalanceChanged, cache, balancesToUpdate);
+      const tokenBalances = await updateTokenBalances(isToncoinBalanceChanged, cache, newBalances, changedSlugs);
+
+      lastBalanceCache[accountId] = newBalances;
+
+      if (changedSlugs.length) {
+        onUpdate({
+          type: 'updateBalances',
+          accountId,
+          chain: 'ton',
+          balances: newBalances,
+        });
+      }
+
+      onUpdate({ type: 'updatingStatus', kind: 'balance', isUpdating: false });
 
       await Promise.all([
-        updateActivities(isToncoinBalanceChanged, changedTokenSlugs, lastTxId),
+        updateActivities(tokenBalances, changedSlugs, lastTxId),
         updateNfts(isToncoinBalanceChanged),
       ]);
 
@@ -446,8 +424,7 @@ async function setupVestingPolling(accountId: string, onUpdate: OnApiUpdate) {
 export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate) {
   interface BalancePollingAccount {
     id: string;
-    chain: any;
-    network: string;
+    network: ApiNetwork;
     address: string;
   }
   let addressToAccountsMap: { [address: string]: BalancePollingAccount[] } = {};
@@ -467,7 +444,6 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
 
         const balancePollingAccount: BalancePollingAccount = {
           id: accountId,
-          chain: 'ton',
           network,
           address,
         };
@@ -479,76 +455,49 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
       });
   }
 
-  async function updateBalance(account: BalancePollingAccount, cache: AccountBalanceCache) {
-    const walletInfo = await account.chain.getWalletInfo(account.network, account.address);
-    const { balance, lastTxId } = walletInfo ?? {};
-    const isToncoinBalanceChanged = balance !== undefined && balance !== cache?.balance;
-    const balancesToUpdate: ApiBalanceBySlug = {};
+  async function updateBalance(
+    account: BalancePollingAccount,
+    cache: ApiBalanceBySlug,
+    newBalances: ApiBalanceBySlug,
+    changedSlugs: string[],
+  ) {
+    const { balance, lastTxId } = await getWalletInfo(account.network, account.address);
+    const isToncoinBalanceChanged = balance !== undefined && balance !== cache[TONCOIN.slug];
+    newBalances[TONCOIN.slug] = balance;
 
     if (isToncoinBalanceChanged) {
-      balancesToUpdate[TONCOIN.slug] = balance;
-
-      lastBalanceCache[account.id] = {
-        ...lastBalanceCache[account.id],
-        balance,
-      };
+      changedSlugs.push(TONCOIN.slug);
     }
 
-    return {
-      lastTxId, isToncoinBalanceChanged, balancesToUpdate,
-    };
+    return { lastTxId, isToncoinBalanceChanged };
   }
 
   async function updateTokenBalances(
-    isToncoinBalanceChanged: boolean,
-    cache: AccountBalanceCache,
-    balancesToUpdate: ApiBalanceBySlug,
     account: BalancePollingAccount,
+    cache: ApiBalanceBySlug,
+    newBalances: ApiBalanceBySlug,
+    changedSlugs: string[],
   ) {
-    const changedTokenSlugs: string[] = [];
+    const tokenBalances = await getAccountTokenBalances(account.id);
 
-    if (isToncoinBalanceChanged) {
-      const tokenBalances: TokenBalanceParsed[] | undefined = await account.chain
-        .getAccountTokenBalances(account.id).catch(logAndRescue);
+    if (!activeAccountId) {
+      throw new AbortOperationError();
+    }
+    throwErrorIfUpdaterNotAlive(localOnUpdate, activeAccountId);
 
-      if (!activeAccountId) {
-        throw new AbortOperationError();
-      }
-      throwErrorIfUpdaterNotAlive(localOnUpdate, activeAccountId);
-
-      if (tokenBalances) {
-        const tokens = tokenBalances.filter(Boolean).map(({ token }) => token);
-        await addTokens(tokens, onUpdate);
-
-        tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
-          const cachedBalance = cache?.tokenBalances && cache.tokenBalances[slug];
-          if (cachedBalance === tokenBalance) return;
-
-          changedTokenSlugs.push(slug);
-          balancesToUpdate[slug] = tokenBalance;
-        });
-
-        lastBalanceCache[account.id] = {
-          ...lastBalanceCache[account.id],
-          tokenBalances: Object.fromEntries(tokenBalances.map(
-            ({ slug, balance: tokenBalance }) => [slug, tokenBalance],
-          )),
-        };
-      }
-
-      if (Object.keys(balancesToUpdate).length > 0) {
-        // Notify all accounts with the same address
-        addressToAccountsMap[account.address].forEach((acc) => {
-          onUpdate({
-            type: 'updateBalances',
-            accountId: acc.id,
-            balancesToUpdate,
-          });
-        });
-      }
+    if (!tokenBalances) {
+      return;
     }
 
-    return changedTokenSlugs;
+    const tokens = tokenBalances.filter(Boolean).map(({ token }) => token);
+    await addTokens(tokens, onUpdate);
+
+    tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
+      newBalances[slug] = tokenBalance;
+      if (cache[slug] !== tokenBalance) {
+        changedSlugs.push(slug);
+      }
+    });
   }
 
   while (isUpdaterAlive(localOnUpdate)) {
@@ -557,15 +506,28 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
       await updateAddressToAccountsMap();
       for (const address of Object.keys(addressToAccountsMap)) {
         const account = addressToAccountsMap[address][0];
-        const cache = lastBalanceCache[account.id];
+        const cache = lastBalanceCache[account.id] ?? {};
+        const newBalances: ApiBalanceBySlug = {};
+        const changedSlugs: string[] = [];
 
-        const {
-          isToncoinBalanceChanged,
-          balancesToUpdate,
-        } = await updateBalance(account, cache);
+        const { isToncoinBalanceChanged } = await updateBalance(account, cache, newBalances, changedSlugs);
 
-        if (isUpdaterAlive(localOnUpdate)) {
-          await updateTokenBalances(isToncoinBalanceChanged, cache, balancesToUpdate, account);
+        if (isUpdaterAlive(localOnUpdate) && isToncoinBalanceChanged) {
+          await updateTokenBalances(account, cache, newBalances, changedSlugs);
+
+          lastBalanceCache[account.id] = newBalances;
+
+          if (changedSlugs.length) {
+            // Notify all accounts with the same address
+            addressToAccountsMap[account.address].forEach((acc) => {
+              onUpdate({
+                type: 'updateBalances',
+                accountId: acc.id,
+                chain: 'ton',
+                balances: newBalances,
+              });
+            });
+          }
         }
       }
     } catch (err) {

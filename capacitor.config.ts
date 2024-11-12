@@ -15,7 +15,9 @@ const config: CapacitorConfig = {
     includePlugins: [
       '@capacitor-mlkit/barcode-scanning',
       '@capacitor/app',
+      '@capacitor/filesystem',
       '@capacitor/clipboard',
+      '@capacitor/share',
       '@capacitor/haptics',
       '@capacitor/status-bar',
       '@capgo/capacitor-native-biometric',

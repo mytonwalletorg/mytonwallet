@@ -39,7 +39,8 @@ export async function setupPolling(accountId: string, onUpdate: OnApiUpdate, new
         onUpdate({
           type: 'updateBalances',
           accountId,
-          balancesToUpdate: {
+          chain: 'tron',
+          balances: {
             [TRX.slug]: trxBalance,
             [usdtSlug]: usdtBalance,
           },

@@ -56,7 +56,7 @@ function SettingsTokens({
     openSettingsWithState,
     updateOrderedSlugs,
     rebuildOrderedSlugs,
-    toggleExceptionToken,
+    toggleTokenVisibility,
   } = getActions();
   const lang = useLang();
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
@@ -122,12 +122,12 @@ function SettingsTokens({
     });
   });
 
-  const handleExceptionToken = useLastCallback((slug: string, e: React.MouseEvent | React.TouchEvent) => {
-    if (slug === TONCOIN.slug) return;
+  const handleExceptionToken = useLastCallback((token: UserToken, e: React.MouseEvent | React.TouchEvent) => {
+    if (token.slug === TONCOIN.slug) return;
 
     e.preventDefault();
     e.stopPropagation();
-    toggleExceptionToken({ slug });
+    toggleTokenVisibility({ slug: token.slug, shouldShow: Boolean(token.isDisabled) });
   });
 
   const handleDeleteToken = useLastCallback((token: UserToken, e: React.MouseEvent<HTMLSpanElement>) => {
@@ -168,7 +168,7 @@ function SettingsTokens({
         parentRef={tokensRef}
         scrollRef={parentContainer}
         // eslint-disable-next-line react/jsx-no-bind
-        onClick={(e) => handleExceptionToken(slug, e)}
+        onClick={(e) => handleExceptionToken(token, e)}
       >
         <TokenIcon token={token} withChainIcon={withChainIcon} />
         <div className={styles.tokenInfo}>

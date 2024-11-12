@@ -114,7 +114,7 @@ export async function updateDapp(accountId: string, origin: string, update: Part
 }
 
 export async function getDapp(accountId: string, origin: string): Promise<ApiDapp | undefined> {
-  return (await getAccountValue(accountId, 'dapps'))[origin];
+  return (await getAccountValue(accountId, 'dapps'))?.[origin];
 }
 
 export async function addDapp(accountId: string, dapp: ApiDapp) {

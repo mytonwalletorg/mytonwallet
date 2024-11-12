@@ -138,13 +138,13 @@ function CardAddress({ addressByChain, isTestnet, isHardwareAccount }: StateProp
 
   return (
     <div className={styles.addressContainer}>
+      {isHardwareAccount && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
       <button
         type="button"
         className={styles.address}
         aria-label={lang('Copy wallet address')}
         onClick={() => handleCopyAddress(addressByChain![chain])}
       >
-        {isHardwareAccount && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
         {shortenAddress(addressByChain![chain])}
         <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
       </button>

@@ -20,6 +20,7 @@ import {
   buildCollectionByKey, extractKey, findLast, pick, unique,
 } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
+import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import { onTickEnd, pause } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -27,13 +28,13 @@ import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../..
 import { getIsSwapId, getIsTinyOrScamTransaction, getIsTxIdLocal } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
+  changeBalance,
   clearCurrentTransfer,
   clearIsPinAccepted,
   setIsPinAccepted,
   updateAccountState,
   updateActivitiesIsHistoryEndReached,
   updateActivitiesIsLoading,
-  updateBalances,
   updateCurrentAccountSettings,
   updateCurrentAccountState,
   updateCurrentSignature,
@@ -586,9 +587,17 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
       break;
     }
 
-    const filteredResult = global.settings.areTinyTransfersHidden
-      ? result.filter((tx) => tx.kind === 'transaction' && !getIsTinyOrScamTransaction(tx))
-      : result;
+    const { areTinyTransfersHidden } = global.settings;
+
+    const filteredResult = result.filter((tx) => {
+      const shouldHide = tx.kind === 'transaction'
+        && (
+          getIsTransactionWithPoisoning(tx)
+          || (areTinyTransfersHidden && getIsTinyOrScamTransaction(tx))
+        );
+
+      return !shouldHide;
+    });
 
     fetchedActivities = fetchedActivities.concat(result);
     shouldFetchMore = filteredResult.length < limit && fetchedActivities.length < limit;
@@ -661,9 +670,17 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
       break;
     }
 
-    const filteredResult = global.settings.areTinyTransfersHidden
-      ? result.filter((tx) => tx.kind === 'transaction' && !getIsTinyOrScamTransaction(tx))
-      : result;
+    const { areTinyTransfersHidden } = global.settings;
+
+    const filteredResult = result.filter((tx) => {
+      const shouldHide = tx.kind === 'transaction'
+        && (
+          getIsTransactionWithPoisoning(tx)
+          || (areTinyTransfersHidden && getIsTinyOrScamTransaction(tx))
+        );
+
+      return !shouldHide;
+    });
 
     fetchedActivities = fetchedActivities.concat(result);
     shouldFetchMore = filteredResult.length < limit && fetchedActivities.length < limit;
@@ -764,6 +781,7 @@ addActionHandler('addToken', (global, actions, { token }) => {
   }
 
   const { balances } = selectCurrentAccountState(global) ?? {};
+
   if (!balances?.bySlug[token.slug]) {
     global = updateCurrentAccountState(global, {
       balances: {
@@ -776,11 +794,17 @@ addActionHandler('addToken', (global, actions, { token }) => {
     });
   }
 
+  const settings = selectCurrentAccountSettings(global);
+  global = updateCurrentAccountSettings(global, {
+    importedSlugs: [...settings?.importedSlugs ?? [], token.slug],
+  });
+
   const accountSettings = selectCurrentAccountSettings(global) ?? {};
   global = updateCurrentAccountSettings(global, {
     ...accountSettings,
     orderedSlugs: [...accountSettings.orderedSlugs ?? [], token.slug],
-    exceptionSlugs: unique([...accountSettings.exceptionSlugs ?? [], token.slug]),
+    alwaysShownSlugs: unique([...accountSettings.alwaysShownSlugs ?? [], token.slug]),
+    alwaysHiddenSlugs: accountSettings.alwaysHiddenSlugs?.filter((slug) => slug !== token.slug),
     deletedSlugs: accountSettings.deletedSlugs?.filter((slug) => slug !== token.slug),
   });
 
@@ -860,7 +884,7 @@ addActionHandler('importToken', async (global, actions, { address }) => {
     },
   });
   if (shouldUpdateBalance) {
-    global = updateBalances(global, global.currentAccountId!, { [token.slug]: 0n });
+    global = changeBalance(global, global.currentAccountId!, token.slug, 0n);
   }
   setGlobal(global);
 });

@@ -48,8 +48,12 @@ export async function requestAccounts() {
     return [];
   }
 
-  const { address } = await fetchStoredTonWallet(accountId);
-  return [address];
+  const tonWallet = await fetchStoredTonWallet(accountId);
+  if (!tonWallet) {
+    return [];
+  }
+
+  return [tonWallet.address];
 }
 
 export async function requestWallets() {

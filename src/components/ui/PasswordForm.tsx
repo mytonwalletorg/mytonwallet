@@ -334,7 +334,7 @@ function PasswordForm({
       <Modal
         isOpen={isResetBiometricsWarningOpen}
         isCompact
-        title={lang('Biometric authentification failed')}
+        title={lang('Biometric authentication failed')}
         onClose={closeResetBiometricsWarning}
       >
         <p className={modalStyles.text}>

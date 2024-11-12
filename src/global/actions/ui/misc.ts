@@ -390,18 +390,11 @@ addActionHandler('closeSecurityWarning', (global) => {
 });
 
 addActionHandler('toggleTokensWithNoCost', (global, actions, { isEnabled }) => {
-  global = updateSettings(global, { areTokensWithNoCostHidden: isEnabled });
-
-  const accountSettings = selectCurrentAccountSettings(global) ?? {};
-  global = updateCurrentAccountSettings(global, { ...accountSettings, exceptionSlugs: [] });
-
-  return global;
+  return updateSettings(global, { areTokensWithNoCostHidden: isEnabled });
 });
 
 addActionHandler('toggleSortByValue', (global, actions, { isEnabled }) => {
-  return updateSettings(global, {
-    isSortByValueEnabled: isEnabled,
-  });
+  return updateSettings(global, { isSortByValueEnabled: isEnabled });
 });
 
 addActionHandler('updateOrderedSlugs', (global, actions, { orderedSlugs }) => {
@@ -412,21 +405,24 @@ addActionHandler('updateOrderedSlugs', (global, actions, { orderedSlugs }) => {
   });
 });
 
-addActionHandler('toggleExceptionToken', (global, actions, { slug }) => {
+addActionHandler('toggleTokenVisibility', (global, actions, { slug, shouldShow }) => {
   const accountSettings = selectCurrentAccountSettings(global) ?? {};
-  const { exceptionSlugs = [] } = accountSettings;
-  const exceptionSlugsCopy = exceptionSlugs.slice();
-  const slugIndexInAvailable = exceptionSlugsCopy.indexOf(slug);
+  const { alwaysShownSlugs = [], alwaysHiddenSlugs = [] } = accountSettings;
+  const alwaysShownSlugsSet = new Set(alwaysShownSlugs);
+  const alwaysHiddenSlugsSet = new Set(alwaysHiddenSlugs);
 
-  if (slugIndexInAvailable !== -1) {
-    exceptionSlugsCopy.splice(slugIndexInAvailable, 1);
+  if (shouldShow) {
+    alwaysHiddenSlugsSet.delete(slug);
+    alwaysShownSlugsSet.add(slug);
   } else {
-    exceptionSlugsCopy.push(slug);
+    alwaysShownSlugsSet.delete(slug);
+    alwaysHiddenSlugsSet.add(slug);
   }
 
   return updateCurrentAccountSettings(global, {
     ...accountSettings,
-    exceptionSlugs: exceptionSlugsCopy,
+    alwaysHiddenSlugs: Array.from(alwaysHiddenSlugsSet),
+    alwaysShownSlugs: Array.from(alwaysShownSlugsSet),
   });
 });
 
@@ -435,8 +431,10 @@ addActionHandler('deleteToken', (global, actions, { slug }) => {
   return updateCurrentAccountSettings(global, {
     ...accountSettings,
     orderedSlugs: accountSettings.orderedSlugs?.filter((s) => s !== slug),
-    exceptionSlugs: accountSettings.exceptionSlugs?.filter((s) => s !== slug),
+    alwaysHiddenSlugs: accountSettings.alwaysHiddenSlugs?.filter((s) => s !== slug),
+    alwaysShownSlugs: accountSettings.alwaysShownSlugs?.filter((s) => s !== slug),
     deletedSlugs: [...accountSettings.deletedSlugs ?? [], slug],
+    importedSlugs: accountSettings.importedSlugs?.filter((s) => s !== slug),
   });
 });
 
@@ -617,6 +615,11 @@ addActionHandler('closeMediaViewer', (global) => {
 });
 
 addActionHandler('openReceiveModal', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openReceiveModal');
+    return;
+  }
+
   setGlobal({ ...global, isReceiveModalOpen: true });
 });
 

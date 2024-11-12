@@ -18,6 +18,7 @@ import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import { cloneDeep, compact, omitUndefined } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { callActionInMain } from '../../../util/multitab';
+import { clearPoisoningCache } from '../../../util/poisoningHash';
 import { pause } from '../../../util/schedulers';
 import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -598,6 +599,7 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   setGlobal(global);
 
   actions.clearSwapPairsCache();
+  clearPoisoningCache();
   if (newNetwork) {
     actions.changeNetwork({ network: newNetwork });
   }

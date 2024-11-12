@@ -34,7 +34,7 @@ brew install pkg-config cairo pango libpng jpeg giflib librsvg
 
 ### NPM Local Setup
 ```sh
-mv .env.example .env
+cp .env.example .env
 
 npm ci
 ```

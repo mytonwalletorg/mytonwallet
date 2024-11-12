@@ -23,6 +23,7 @@ import { vibrateOnSuccess } from '../../../util/capacitor';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
 import { toDecimal } from '../../../util/decimals';
 import { handleOpenUrl } from '../../../util/openUrl';
+import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
 import { getNativeToken, getTransactionHashFromTxId } from '../../../util/tokens';
 import { getExplorerName, getExplorerTransactionUrl } from '../../../util/url';
@@ -136,7 +137,8 @@ function TransactionModal({
     return address && chain && savedAddresses?.find((item) => item.address === address && item.chain === chain)?.name;
   }, [address, chain, savedAddresses]);
   const addressName = savedAddressName || transaction?.metadata?.name;
-  const isScam = Boolean(transaction?.metadata?.isScam);
+  const isTransactionWithPoisoning = isIncoming && getIsTransactionWithPoisoning(renderedTransaction!);
+  const isScam = isTransactionWithPoisoning || Boolean(transaction?.metadata?.isScam);
   const isModalOpen = Boolean(transaction) && !isMediaViewerOpen;
   const transactionHash = chain && id ? getTransactionHashFromTxId(chain, id) : undefined;
 
@@ -319,6 +321,14 @@ function TransactionModal({
     );
   }
 
+  function renderTransactionWithPoisoningWarning() {
+    return (
+      <div className={styles.scamWarning}>
+        {lang('This address mimics another address that you previously interacted with.')}
+      </div>
+    );
+  }
+
   function renderFee() {
     if (isIncoming || !fee || !nativeToken) {
       return undefined;
@@ -400,6 +410,8 @@ function TransactionModal({
             status={isUnstaking && !shouldRenderUnstakeTimer ? lang('Successfully') : undefined}
           />
         )}
+
+        {isTransactionWithPoisoning && renderTransactionWithPoisoningWarning()}
 
         {!isUnstaking && (
           <>

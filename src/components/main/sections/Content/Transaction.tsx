@@ -6,13 +6,14 @@ import type { ApiTokenWithPrice, ApiTransactionActivity } from '../../../../api/
 import type { AppTheme, SavedAddress } from '../../../../global/types';
 import { MediaType } from '../../../../global/types';
 
-import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN } from '../../../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN, TRANSACTION_ADDRESS_SHIFT } from '../../../../config';
 import { getIsTxIdLocal } from '../../../../global/helpers';
 import { bigintAbs } from '../../../../util/bigint';
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
+import { getIsTransactionWithPoisoning } from '../../../../util/poisoningHash';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
@@ -38,8 +39,6 @@ type OwnProps = {
   savedAddresses?: SavedAddress[];
   onClick: (id: string) => void;
 };
-
-const ADDRESS_SHIFT = 4;
 
 function Transaction({
   ref,
@@ -85,7 +84,8 @@ function Transaction({
   }, [address, chain, savedAddresses]);
   const addressName = savedAddressName || metadata?.name;
   const isLocal = getIsTxIdLocal(txId);
-  const isScam = Boolean(metadata?.isScam);
+  const isTransactionWithPoisoning = isIncoming && getIsTransactionWithPoisoning(transaction);
+  const isScam = isTransactionWithPoisoning || Boolean(metadata?.isScam);
 
   const handleClick = useLastCallback(() => {
     onClick(txId);
@@ -192,7 +192,7 @@ function Transaction({
                     aria-label={chain}
                   />
                 )}
-                {addressName || shortenAddress(address, ADDRESS_SHIFT)}
+                {addressName || shortenAddress(address, TRANSACTION_ADDRESS_SHIFT)}
               </span>
             ),
           })}

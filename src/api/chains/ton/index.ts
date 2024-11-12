@@ -21,7 +21,6 @@ export {
   fetchAccountTransactionSlice,
   fetchTokenTransactionSlice,
   submitTransfer,
-  waitPendingTransfer,
   checkMultiTransactionDraft,
   submitMultiTransfer,
   getAllTransactionSlice,

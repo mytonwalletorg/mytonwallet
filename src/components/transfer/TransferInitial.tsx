@@ -17,6 +17,7 @@ import {
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
 import {
+  selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectIsHardwareAccount,
@@ -82,6 +83,7 @@ interface StateProps {
   isMemoRequired?: boolean;
   baseCurrency?: ApiBaseCurrency;
   nfts?: ApiNft[];
+  alwaysHiddenSlugs?: string[];
   binPayload?: string;
   stateInit?: string;
   dieselAmount?: bigint;
@@ -138,6 +140,7 @@ function TransferInitial({
   binPayload,
   stateInit,
   dieselAmount,
+  alwaysHiddenSlugs,
   dieselStatus,
   isDieselAuthorizationStarted,
   isMultichainAccount,
@@ -201,7 +204,7 @@ function TransferInitial({
     return tokens?.find((token) => !token.tokenAddress && token.chain === chain);
   }, [tokens, chain])!;
 
-  const isUpdatingAmountDueToMaxChange = useRef(false);
+  const skipNextFeeEstimate = useRef(false);
   const [isMaxAmountSelected, setMaxAmountSelected] = useState(false);
   const [prevDieselAmount, setPrevDieselAmount] = useState(dieselAmount);
 
@@ -233,7 +236,7 @@ function TransferInitial({
   const isDieselNotAuthorized = dieselStatus === 'not-authorized';
   const withDiesel = dieselStatus && dieselStatus !== 'not-available';
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
-    ? isGaslessWithStars || isUpdatingAmountDueToMaxChange.current
+    ? isGaslessWithStars || skipNextFeeEstimate.current
       ? true
       : balance - amount >= dieselAmount
     : undefined;
@@ -281,7 +284,7 @@ function TransferInitial({
     }
 
     return tokens.reduce<DropdownItem[]>((acc, token) => {
-      if (token.amount > 0 || token.slug === tokenSlug) {
+      if ((token.amount > 0 || token.slug === tokenSlug) && !alwaysHiddenSlugs?.includes(token.slug)) {
         acc.push({
           value: token.slug,
           icon: ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS] || token.image,
@@ -292,7 +295,7 @@ function TransferInitial({
 
       return acc;
     }, []);
-  }, [isMultichainAccount, tokenSlug, tokens]);
+  }, [alwaysHiddenSlugs, isMultichainAccount, tokenSlug, tokens]);
 
   const validateAndSetAmount = useLastCallback(
     (newAmount: bigint | undefined, noReset = false) => {
@@ -348,7 +351,7 @@ function TransferInitial({
 
   useEffect(() => {
     if (isMaxAmountSelected && dieselAmount && prevDieselAmount !== dieselAmount && maxAmount! > 0) {
-      isUpdatingAmountDueToMaxChange.current = true;
+      skipNextFeeEstimate.current = true;
 
       setMaxAmountSelected(false);
       setPrevDieselAmount(dieselAmount);
@@ -364,9 +367,9 @@ function TransferInitial({
       || hasToAddressError
       || !(amount || nfts?.length)
       || !isAddressValid
-      || isUpdatingAmountDueToMaxChange.current
+      || skipNextFeeEstimate.current
     ) {
-      isUpdatingAmountDueToMaxChange.current = false;
+      skipNextFeeEstimate.current = false;
       return;
     }
 
@@ -618,6 +621,8 @@ function TransferInitial({
 
     vibrate();
 
+    skipNextFeeEstimate.current = true;
+
     submitTransferInitial({
       tokenSlug,
       amount: isNftTransfer ? NFT_TRANSFER_AMOUNT : amount!,
@@ -641,18 +646,21 @@ function TransferInitial({
       return undefined;
     }
 
-    return savedAddresses.filter(
-      (item) => doesSavedAddressFitSearch(item, toAddress),
-    ).map((item) => renderAddressItem({
-      key: `saved-${item.address}-${item.chain}`,
-      address: item.address,
-      name: item.name,
-      chain: isMultichainAccount ? item.chain : undefined,
-      deleteLabel: lang('Delete'),
-      onClick: handleAddressBookItemClick,
-      onDeleteClick: handleDeleteSavedAddressClick,
-    }));
-  }, [savedAddresses, isMultichainAccount, lang, toAddress]);
+    return savedAddresses
+      .filter((item) => {
+        // NFT transfer is only available on the TON blockchain
+        return (!isNftTransfer || item.chain === 'ton') && doesSavedAddressFitSearch(item, toAddress);
+      })
+      .map((item) => renderAddressItem({
+        key: `saved-${item.address}-${item.chain}`,
+        address: item.address,
+        name: item.name,
+        chain: isMultichainAccount ? item.chain : undefined,
+        deleteLabel: lang('Delete'),
+        onClick: handleAddressBookItemClick,
+        onDeleteClick: handleDeleteSavedAddressClick,
+      }));
+  }, [savedAddresses, isNftTransfer, toAddress, isMultichainAccount, lang]);
 
   const renderedOtherAccounts = useMemo(() => {
     if (otherAccountIds.length === 0) return undefined;
@@ -668,6 +676,8 @@ function TransferInitial({
           const key = `${currentChain}:${currentAddress}`;
           if (
             !uniqueAddresses.has(key)
+            // NFT transfer is only available on the TON blockchain
+            && (!isNftTransfer || currentChain === 'ton')
             && (isMultichainAccount || currentChain === TONCOIN.chain)
             && !addressesToBeIgnored.includes(`${currentChain}:${currentAddress}`)
           ) {
@@ -696,7 +706,7 @@ function TransferInitial({
       isHardware,
       onClick: handleAddressBookItemClick,
     }));
-  }, [otherAccountIds, savedAddresses, accounts, isMultichainAccount, toAddress]);
+  }, [otherAccountIds, savedAddresses, accounts, isMultichainAccount, isNftTransfer, toAddress]);
 
   const shouldRenderSuggestions = !!renderedSavedAddresses?.length || !!renderedOtherAccounts?.length;
 
@@ -1068,6 +1078,7 @@ export default memo(
         binPayload,
         stateInit,
         tokens: selectCurrentAccountTokens(global),
+        alwaysHiddenSlugs: selectCurrentAccountSettings(global)?.alwaysHiddenSlugs,
         savedAddresses: accountState?.savedAddresses,
         isEncryptedCommentSupported: !isLedger && !nfts?.length && !isMemoRequired,
         isMemoRequired,
@@ -1138,7 +1149,9 @@ function renderAddressItem({
       className={styles.savedAddressItem}
     >
       <span className={styles.savedAddressName}>
-        {name || shortenAddress(address)}
+        <span className={styles.savedAddressNameText}>
+          {name || shortenAddress(address)}
+        </span>
         {isHardware && <i className={buildClassName(styles.iconLedger, 'icon-ledger')} aria-hidden />}
       </span>
       {isSavedAddress && (

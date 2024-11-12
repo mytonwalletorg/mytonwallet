@@ -318,8 +318,14 @@
 
 .savedAddressName {
   overflow: hidden;
+  display: flex;
+  align-items: baseline;
 
   margin-inline-end: auto;
+}
+
+.savedAddressNameText {
+  overflow: hidden;
 
   font-size: 1rem;
   font-weight: 600;

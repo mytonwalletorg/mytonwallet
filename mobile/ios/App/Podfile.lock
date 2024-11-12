@@ -8,6 +8,8 @@ PODS:
   - CapacitorClipboard (6.0.1):
     - Capacitor
   - CapacitorCordova (6.1.2)
+  - CapacitorFilesystem (6.0.1):
+    - Capacitor
   - CapacitorHaptics (6.0.1):
     - Capacitor
   - CapacitorMlkitBarcodeScanning (6.2.0):
@@ -20,6 +22,8 @@ PODS:
   - CapacitorSecureStoragePlugin (0.10.0):
     - Capacitor
     - SwiftKeychainWrapper
+  - CapacitorShare (6.0.2):
+    - Capacitor
   - CapgoCapacitorNativeBiometric (0.0.1):
     - Capacitor
   - CapgoNativeAudio (6.4.21):
@@ -104,11 +108,13 @@ DEPENDENCIES:
   - "CapacitorAppLauncher (from `../../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCordova (from `../../../node_modules/@capacitor/ios`)"
+  - "CapacitorFilesystem (from `../../../node_modules/@capacitor/filesystem`)"
   - "CapacitorHaptics (from `../../../node_modules/@capacitor/haptics`)"
   - "CapacitorMlkitBarcodeScanning (from `../../../node_modules/@capacitor-mlkit/barcode-scanning`)"
   - CapacitorNativeSettings (from `../../../node_modules/capacitor-native-settings`)
   - CapacitorPluginSafeArea (from `../../../node_modules/capacitor-plugin-safe-area`)
   - CapacitorSecureStoragePlugin (from `../../../node_modules/capacitor-secure-storage-plugin`)
+  - "CapacitorShare (from `../../../node_modules/@capacitor/share`)"
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
   - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
@@ -146,6 +152,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/clipboard"
   CapacitorCordova:
     :path: "../../../node_modules/@capacitor/ios"
+  CapacitorFilesystem:
+    :path: "../../../node_modules/@capacitor/filesystem"
   CapacitorHaptics:
     :path: "../../../node_modules/@capacitor/haptics"
   CapacitorMlkitBarcodeScanning:
@@ -156,6 +164,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/capacitor-plugin-safe-area"
   CapacitorSecureStoragePlugin:
     :path: "../../../node_modules/capacitor-secure-storage-plugin"
+  CapacitorShare:
+    :path: "../../../node_modules/@capacitor/share"
   CapgoCapacitorNativeBiometric:
     :path: "../../../node_modules/@capgo/capacitor-native-biometric"
   CapgoNativeAudio:
@@ -187,11 +197,13 @@ SPEC CHECKSUMS:
   CapacitorAppLauncher: 9ac785e8d3936388249212b6e16cb32225960c5f
   CapacitorClipboard: 756cd7e83e8d5d19b0c74f40b57517c287bd5fe2
   CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
+  CapacitorFilesystem: 37fb3aa5c945b4539ab11c74a5c57925a302bf24
   CapacitorHaptics: fe689ade56ef20ec9b041a753c6da70c5d8ec9a9
   CapacitorMlkitBarcodeScanning: 178fb57424ec688b6a2fceee506ecc1ea00d1c8d
   CapacitorNativeSettings: 1ce5585ff07b161616cd0a795702637316677af2
   CapacitorPluginSafeArea: e1eca7f70974f0e270d96f70cd0a5f51523164b1
   CapacitorSecureStoragePlugin: ced6025438fbbdbfb9fffec4398e748572fc147b
+  CapacitorShare: 591ae4693d85686ceb590db8e8b44aa014ec6490
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
   CapgoNativeAudio: f3cb18f75acfaec7c429e1ff9dc06e05c6605627
   CordovaPlugins: b26881c27739f4c46bac6baf422f660500cd5561
@@ -215,6 +227,6 @@ SPEC CHECKSUMS:
   SinaKhMtwCapacitorStatusBar: e3fa73038e8dbac071751e1942eab65fc6c39a5f
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 783aef605ceeac40dc316144a44e591e6373c25a
+PODFILE CHECKSUM: 1bbc72e2fbfb2ae871c9a96aef2548830c3c0d6c
 
 COCOAPODS: 1.15.2

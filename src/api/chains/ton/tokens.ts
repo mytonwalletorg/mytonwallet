@@ -6,7 +6,6 @@ import type {
   AnyPayload, ApiTransactionExtra, JettonMetadata, TonTransferParams,
 } from './types';
 
-import { TINY_TOKENS } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { fetchJsonWithProxy } from '../../../util/fetch';
 import { logDebugError } from '../../../util/logs';
@@ -222,7 +221,7 @@ export async function buildTokenTransfer(options: {
     customPayload: customPayload ? Cell.fromBase64(customPayload) : undefined,
   });
 
-  let toncoinAmount = TINY_TOKENS.has(tokenAddress)
+  let toncoinAmount = token.isTiny
     ? TINY_TOKEN_TRANSFER_AMOUNT
     : TOKEN_TRANSFER_AMOUNT;
 
@@ -252,16 +251,17 @@ export async function getMintlessParams(options: {
     network, fromAddress, token, tokenWalletAddress, shouldSkipMintless,
   } = options;
 
-  let isTokenWalletDeployed = true;
+  const isMintlessToken = !!token.customPayloadApiUrl;
+  const isTokenWalletDeployed = isMintlessToken
+    ? !!(await isActiveSmartContract(network, tokenWalletAddress))
+    : true;
   let customPayload: string | undefined;
   let stateInit: string | undefined;
 
-  const isMintlessToken = !!token.customPayloadApiUrl;
   let isMintlessClaimed: boolean | undefined;
   let mintlessTokenBalance: bigint | undefined;
 
   if (isMintlessToken && !shouldSkipMintless) {
-    isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress));
     isMintlessClaimed = isTokenWalletDeployed && await checkMintlessTokenWalletIsClaimed(network, tokenWalletAddress);
 
     if (!isMintlessClaimed) {

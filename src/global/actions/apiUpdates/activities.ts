@@ -5,6 +5,7 @@ import { IS_CAPACITOR, TONCOIN } from '../../../config';
 import { groupBy } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
+import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import { getIsTonToken } from '../../../util/tokens';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { getIsTinyOrScamTransaction, getRealTxIdFromLocal } from '../../helpers';
@@ -126,7 +127,8 @@ addActionHandler('apiUpdate', (global, actions, update) => {
             && !(
               global.settings.areTinyTransfersHidden
               && getIsTinyOrScamTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
-            );
+            )
+            && !getIsTransactionWithPoisoning(activity);
         });
 
         if (shouldPlaySound) {

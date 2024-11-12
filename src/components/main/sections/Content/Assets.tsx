@@ -12,9 +12,7 @@ import {
   selectCurrentAccountStakingStatus,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectIsFirstTransactionsLoaded,
   selectIsMultichainAccount,
-  selectIsNewWallet,
   selectMycoin,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -31,7 +29,6 @@ import useVesting from '../../../../hooks/useVesting';
 
 import InfiniteScroll from '../../../ui/InfiniteScroll';
 import Loading from '../../../ui/Loading';
-import NewWalletGreeting from './NewWalletGreeting';
 import Token from './Token';
 
 import styles from './Assets.module.scss';
@@ -45,7 +42,6 @@ type OwnProps = {
 
 interface StateProps {
   tokens?: UserToken[];
-  isNewWallet: boolean;
   vesting?: ApiVestingInfo[];
   stakingStatus?: StakingStatus;
   stakingBalance?: bigint;
@@ -64,7 +60,6 @@ const TOKEN_HEIGHT_REM = 4;
 function Assets({
   isActive,
   tokens,
-  isNewWallet,
   vesting,
   stakingStatus,
   stakingBalance,
@@ -93,8 +88,6 @@ function Assets({
 
   const { isLandscape, isPortrait } = useDeviceScreen();
   const appTheme = useAppTheme(theme);
-
-  const shouldShowGreeting = isNewWallet && isPortrait && !isSeparatePanel;
 
   const { shouldRender: shouldRenderStakedToken, transitionClassNames: stakedTokenClassNames } = useShowTransition(
     Boolean(stakingStatus && toncoin),
@@ -222,7 +215,6 @@ function Assets({
           <Loading />
         </div>
       )}
-      {shouldShowGreeting && <NewWalletGreeting key="new-wallet-greeting" isActive={isActive} mode="panel" />}
       {shouldRenderVestingToken && renderVestingToken()}
       {shouldRenderStakedToken && renderStakedToken()}
       {viewportSlugs?.map((tokenSlug, i) => renderToken(tokensBySlug![tokenSlug], i))}
@@ -234,15 +226,12 @@ export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
       const tokens = selectCurrentAccountTokens(global);
-      const isFirstTransactionLoaded = selectIsFirstTransactionsLoaded(global, global.currentAccountId!);
-      const isNewWallet = selectIsNewWallet(global, isFirstTransactionLoaded);
       const accountState = selectCurrentAccountState(global);
       const { isInvestorViewEnabled } = global.settings;
       const stakingStatus = selectCurrentAccountStakingStatus(global);
 
       return {
         tokens,
-        isNewWallet,
         stakingStatus,
         vesting: accountState?.vesting?.info,
         stakingBalance: accountState?.staking?.balance,

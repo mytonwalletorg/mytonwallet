@@ -437,7 +437,7 @@ Enabling biometric confirmation will reset the password.: Включение б�
 Biometric Registration: Подключение биометрии
 Step 1 of 2. Registration: Шаг 1 из 2. Регистрация
 Step 2 of 2. Verification: Шаг 2 из 2. Проверка
-Download Logs: Загрузить журнал 
+Download Logs: Загрузить журнал
 Biometric setup failed.: Настроить биометрию не удалось.
 Biometric confirmation failed.: Подтвердить биометрию не удалось.
 Failed to disable biometrics.: Не удалось отключить биометрию.
@@ -484,7 +484,6 @@ You can connect your biometric data for more convenience: Для большег�
 Connect Touch ID: Подключить Touch ID
 Connect Face ID: Подключить Face ID
 Not Now: Не сейчас
-Biometric Authentification: Биометрическая аутентификация
 Touch ID: Touch ID
 Face ID: Face ID
 Turn Off Touch ID: Отключить Touch ID
@@ -683,5 +682,6 @@ Never: Никогда
 3 minutes: 3 минуты
 30 minutes: 30 минут
 Unlock: Разблокировать
-Biometric authentification failed: Ошибка биометрической аутентификации
+This address mimics another address that you previously interacted with.: Этот адрес имитирует другой адрес, с которым вы ранее взаимодействовали.
+Biometric authentication failed: Ошибка биометрической аутентификации
 Reset biometrics in security settings, or use a passcode.: Сбросьте биометрию в настройках безопасности или используйте пароль.

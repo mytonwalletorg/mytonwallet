@@ -3,6 +3,7 @@ import {
 } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
+import type Deferred from '../../../util/Deferred';
 import type { CheckTransactionDraftOptions } from '../../methods/types';
 import type {
   ApiAccountWithMnemonic,
@@ -30,7 +31,7 @@ import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
 import {
-  DEFAULT_FEE, DIESEL_ADDRESS, DIESEL_TOKENS, ONE_TON, TINY_TOKENS, TOKENS_WITH_STARS_FEE, TONCOIN,
+  DEFAULT_FEE, DIESEL_ADDRESS, ONE_TON, TONCOIN,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
@@ -38,6 +39,7 @@ import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { buildCollectionByKey, omit } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
+import { updatePoisoningCache } from '../../../util/poisoningHash';
 import { pause } from '../../../util/schedulers';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
@@ -61,8 +63,10 @@ import {
 import { fetchStoredAccount, fetchStoredTonWallet } from '../../common/accounts';
 import { callBackendGet } from '../../common/backend';
 import { updateTransactionMetadata } from '../../common/helpers';
+import { getPendingTransfer, waitAndCreatePendingTransfer } from '../../common/pendingTransfers';
 import { getTokenByAddress, getTokenBySlug } from '../../common/tokens';
 import { base64ToBytes, isKnownStakingPool } from '../../common/utils';
+import { MINUTE, SEC } from '../../constants';
 import { ApiServerError, handleServerError } from '../../errors';
 import { createBody } from './walletV5/walletV5';
 import { ActionSendMsg, packActionsList } from './walletV5/walletV5Actions';
@@ -81,24 +85,19 @@ import {
   buildTokenTransfer, parseTokenTransaction,
 } from './tokens';
 import {
-  getContractInfo, getTonWallet,
-  getWalletBalance, getWalletInfo,
+  getContractInfo,
+  getTonWallet,
+  getWalletBalance,
+  getWalletInfo,
 } from './wallet';
 
 const GET_TRANSACTIONS_LIMIT = 128;
 const GET_TRANSACTIONS_MAX_LIMIT = 100;
-const WAIT_TRANSFER_TIMEOUT = 5 * 60 * 1000; // 5 min
-const WAIT_TRANSFER_PAUSE = 1000; // 1 sec.
-const WAIT_TRANSACTION_PAUSE = 500; // 0.5 sec.
+const WAIT_TRANSFER_TIMEOUT = MINUTE;
+const WAIT_PAUSE = SEC;
 
 const MAX_BALANCE_WITH_CHECK_DIESEL = 100000000n; // 0.1 TON
 const PENDING_DIESEL_TIMEOUT = 15 * 60 * 1000; // 15 min
-
-const pendingTransfers: Record<string, {
-  timestamp: number;
-  seqno: number;
-  promise: Promise<any>;
-}> = {};
 
 export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, address: string) => {
   const transactions = await fetchTransactions({ network, address, limit: 1 });
@@ -250,22 +249,27 @@ export async function checkTransactionDraft(
     if (
       network === 'mainnet'
       && tokenAddress
-      && (DIESEL_TOKENS.has(tokenAddress) || TOKENS_WITH_STARS_FEE.has(tokenAddress))
       && toncoinBalance < MAX_BALANCE_WITH_CHECK_DIESEL
     ) {
-      const isW5 = version === 'W5';
-      const {
-        status: dieselStatus,
-        amount: dieselAmount,
-        isAwaitingNotExpiredPrevious,
-      } = await fetchEstimateDiesel(accountId, tokenAddress, isW5) || {};
+      const token = getTokenByAddress(tokenAddress)!;
 
-      if (!isEnoughBalance || isAwaitingNotExpiredPrevious) {
-        result.dieselStatus = dieselStatus;
-        result.dieselAmount = dieselAmount;
+      if (token.isGaslessEnabled || token.isStarsEnabled) {
+        const isW5 = version === 'W5';
+        const {
+          status: dieselStatus,
+          amount: dieselAmount,
+          isAwaitingNotExpiredPrevious,
+        } = await fetchEstimateDiesel(
+          accountId, tokenAddress, isW5, token.isGaslessEnabled ? false : token.isStarsEnabled,
+        ) || {};
 
-        if (dieselStatus !== 'not-available') {
-          return result;
+        if (!isEnoughBalance || isAwaitingNotExpiredPrevious) {
+          result.dieselStatus = dieselStatus;
+          result.dieselAmount = dieselAmount;
+
+          if (dieselStatus !== 'not-available') {
+            return result;
+          }
         }
       }
     }
@@ -286,7 +290,13 @@ export async function checkTransactionDraft(
   }
 }
 
-function estimateDiesel(address: string, tokenAddress: string, toncoinAmount: string, isW5: boolean, isStars: boolean) {
+function estimateDiesel(
+  address: string,
+  tokenAddress: string,
+  toncoinAmount: string,
+  isW5?: boolean,
+  isStars?: boolean,
+) {
   return callBackendGet<{
     status: DieselStatus;
     amount?: string;
@@ -394,7 +404,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
       }));
     }
 
-    await waitPendingTransfer(network, fromAddress);
+    const { pendingTransfer } = await waitAndCreatePendingTransfer(network, fromAddress);
 
     const { balance } = await getWalletInfo(network, wallet!);
     const isFullTonBalance = !tokenAddress && balance === amount;
@@ -424,7 +434,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     const client = getTonClient(network);
     const { msgHash, boc } = await sendExternal(client, wallet!, transaction);
 
-    addPendingTransfer(network, fromAddress, seqno, boc);
+    void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
 
     return {
       amount, seqno, encryptedComment, toAddress, msgHash,
@@ -664,7 +674,8 @@ async function populateTransactions(network: ApiNetwork, transactions: ApiTransa
   const nftAddresses = new Set<string>();
   const addressesForFixFormat = new Set<string>();
 
-  for (const { extraData: { parsedPayload } } of transactions) {
+  for (const tx of transactions) {
+    const { extraData: { parsedPayload } } = tx;
     if (parsedPayload?.type === 'nft:ownership-assigned') {
       nftAddresses.add(parsedPayload.nftAddress);
       addressesForFixFormat.add(parsedPayload.prevOwner);
@@ -672,6 +683,8 @@ async function populateTransactions(network: ApiNetwork, transactions: ApiTransa
       nftAddresses.add(parsedPayload.nftAddress);
       addressesForFixFormat.add(parsedPayload.newOwner);
     }
+
+    updatePoisoningCache(tx);
   }
 
   if (nftAddresses.size) {
@@ -898,9 +911,11 @@ export async function submitMultiTransfer({
 }: SubmitMultiTransferOptions): Promise<ApiSubmitMultiTransferResult> {
   const { network } = parseAccountId(accountId);
 
+  const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+  const { address: fromAddress, isInitialized, version } = account.ton;
+  const { pendingTransfer } = await waitAndCreatePendingTransfer(network, fromAddress);
+
   try {
-    const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
-    const { address: fromAddress, isInitialized, version } = account.ton;
     const wallet = await getTonWallet(accountId, account.ton);
     const privateKey = await fetchPrivateKey(accountId, password, account);
 
@@ -908,8 +923,6 @@ export async function submitMultiTransfer({
     messages.forEach((message) => {
       totalAmount += BigInt(message.amount);
     });
-
-    await waitPendingTransfer(network, fromAddress);
 
     const { balance } = await getWalletInfo(network, wallet!);
 
@@ -933,7 +946,7 @@ export async function submitMultiTransfer({
     );
 
     if (!isGasless) {
-      addPendingTransfer(network, fromAddress, seqno, boc);
+      void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
     }
 
     const clearedMessages = messages.map((message) => {
@@ -952,6 +965,8 @@ export async function submitMultiTransfer({
       paymentLink,
     };
   } catch (err) {
+    pendingTransfer.resolve();
+
     logDebugError('submitMultiTransfer', err);
     return { error: resolveTransactionError(err) };
   }
@@ -967,6 +982,7 @@ async function signMultiTransaction(
   withW5Gasless = false,
 ) {
   const { seqno } = await getWalletInfo(network, wallet);
+
   if (!expireAt) {
     expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC;
   }
@@ -1044,64 +1060,36 @@ function toExternalMessage(
     .endCell();
 }
 
-function addPendingTransfer(network: ApiNetwork, address: string, seqno: number, boc: string) {
-  const key = buildPendingTransferKey(network, address);
-  const timestamp = Date.now();
-  const promise = retrySendBoc({
-    network, address, boc, seqno, timestamp,
-  });
-
-  pendingTransfers[key] = {
-    timestamp,
-    seqno,
-    promise,
-  };
-}
-
-async function retrySendBoc({
-  network, address, boc, seqno, timestamp,
-}: {
-  network: ApiNetwork;
-  address: string;
-  boc: string;
-  seqno: number;
-  timestamp: number;
-}) {
+async function retrySendBoc(
+  network: ApiNetwork,
+  address: string,
+  boc: string,
+  seqno: number,
+  pendingTransfer?: Deferred,
+) {
   const tonClient = getTonClient(network);
-  const waitUntil = timestamp + WAIT_TRANSFER_TIMEOUT;
+  const waitUntil = Date.now() + WAIT_TRANSFER_TIMEOUT;
 
   while (Date.now() < waitUntil) {
-    const error = await tonClient.sendFile(boc).catch((err) => String(err));
+    const [error, walletInfo] = await Promise.all([
+      tonClient.sendFile(boc).catch((err) => String(err)),
+      getWalletInfo(network, address).catch(() => undefined),
+    ]);
 
     // Errors mean that `seqno` was changed or not enough of balance
     if (error?.includes('exitcode=33') || error?.includes('inbound external message rejected by account')) {
-      return;
+      break;
     }
-
-    await pause(WAIT_TRANSFER_PAUSE);
-    const walletInfo = await getWalletInfo(network, address).catch(() => undefined);
 
     // seqno here may change before exit code appears
     if (walletInfo && walletInfo.seqno > seqno) {
-      return;
+      break;
     }
 
-    await pause(WAIT_TRANSFER_PAUSE);
+    await pause(WAIT_PAUSE);
   }
-}
 
-export async function waitPendingTransfer(network: ApiNetwork, address: string) {
-  const key = buildPendingTransferKey(network, address);
-  const pendingTransfer = pendingTransfers[key];
-  if (!pendingTransfer) return;
-
-  await pendingTransfer.promise;
-
-  delete pendingTransfers[key];
-}
-
-function buildPendingTransferKey(network: ApiNetwork, address: string) {
-  return `${network}:${address}`;
+  pendingTransfer?.resolve();
 }
 
 async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction: Cell, isInitialized?: boolean) {
@@ -1118,18 +1106,24 @@ async function calculateFee(network: ApiNetwork, wallet: TonWallet, transaction:
   return BigInt(fees.in_fwd_fee + fees.storage_fee + fees.gas_fee + fees.fwd_fee);
 }
 
-export async function sendSignedMessage(accountId: string, message: ApiSignedTransfer) {
+export async function sendSignedMessage(accountId: string, message: ApiSignedTransfer, pendingTransferId?: string) {
   const { network } = parseAccountId(accountId);
   const { address: fromAddress, publicKey, version } = await fetchStoredTonWallet(accountId);
   const client = getTonClient(network);
   const wallet = client.open(getTonWalletContract(publicKey, version!));
-
   const { base64, seqno } = message;
-  const { msgHash, boc } = await sendExternal(client, wallet, Cell.fromBase64(base64));
+  const pendingTransfer = pendingTransferId ? getPendingTransfer(pendingTransferId) : undefined;
 
-  addPendingTransfer(network, fromAddress, seqno, boc);
+  try {
+    const { msgHash, boc } = await sendExternal(client, wallet, Cell.fromBase64(base64));
 
-  return msgHash;
+    void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
+
+    return msgHash;
+  } catch (err) {
+    pendingTransfer?.resolve();
+    throw err;
+  }
 }
 
 export async function sendSignedMessages(accountId: string, messages: ApiSignedTransfer[]) {
@@ -1145,10 +1139,12 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
   let firstBoc: string | undefined;
 
   const msgHashes: string[] = [];
+  let pendingTransfer: Deferred | undefined;
+
   while (index < messages.length && attempt < attempts) {
     const { base64, seqno } = messages[index];
     try {
-      await waitPendingTransfer(network, fromAddress);
+      ({ pendingTransfer } = await waitAndCreatePendingTransfer(network, fromAddress));
 
       const { msgHash, boc } = await sendExternal(client, wallet, Cell.fromBase64(base64));
       msgHashes.push(msgHash);
@@ -1157,10 +1153,11 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
         firstBoc = boc;
       }
 
-      addPendingTransfer(network, fromAddress, seqno, boc);
+      void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
 
       index++;
     } catch (err) {
+      pendingTransfer?.resolve();
       logDebugError('sendSignedMessages', err);
     }
     attempt++;
@@ -1197,7 +1194,7 @@ export async function waitUntilTransactionAppears(network: ApiNetwork, address: 
     if (latestTxId && parseTxId(latestTxId).lt >= lt) {
       return;
     }
-    await pause(WAIT_TRANSACTION_PAUSE);
+    await pause(WAIT_PAUSE);
   }
 }
 
@@ -1236,7 +1233,7 @@ export async function fixTokenActivitiesAddressForm(network: ApiNetwork, activit
 }
 
 export async function fetchEstimateDiesel(
-  accountId: string, tokenAddress: string, isW5 = false,
+  accountId: string, tokenAddress: string, isW5?: boolean, isStars?: boolean,
 ) {
   const { network } = parseAccountId(accountId);
   if (network !== 'mainnet') return undefined;
@@ -1246,12 +1243,12 @@ export async function fetchEstimateDiesel(
 
   const { address } = await fetchStoredTonWallet(accountId);
   const balance = await getWalletBalance(network, wallet);
+  const token = getTokenByAddress(tokenAddress)!;
 
   if (balance >= MAX_BALANCE_WITH_CHECK_DIESEL) return undefined;
 
-  const isStars = TOKENS_WITH_STARS_FEE.has(tokenAddress);
   const multiplier = isStars ? 1n : 2n;
-  const transferAmount = TINY_TOKENS.has(tokenAddress) ? TINY_TOKEN_TRANSFER_AMOUNT : TOKEN_TRANSFER_AMOUNT;
+  const transferAmount = token.isTiny ? TINY_TOKEN_TRANSFER_AMOUNT : TOKEN_TRANSFER_AMOUNT;
   const toncoinAmount = toDecimal((transferAmount + DEFAULT_FEE) * multiplier);
 
   const {

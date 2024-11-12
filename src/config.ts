@@ -61,6 +61,7 @@ export const ANIMATED_STICKER_BIG_SIZE_PX = 156;
 export const ANIMATED_STICKER_HUGE_SIZE_PX = 192;
 
 export const DEFAULT_LANDSCAPE_ACTION_TAB_ID = 0;
+export const TRANSACTION_ADDRESS_SHIFT = 4;
 
 export const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode/U+202F
 
@@ -117,7 +118,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-134';
+export const LANG_CACHE_NAME = 'mtw-lang-135';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -248,8 +249,6 @@ export const CHAIN_CONFIG = {
   },
 } as const;
 
-export const NATIVE_TOKENS = [TONCOIN, TRX];
-
 export const TRC20_USDT_MAINNET_SLUG = 'tron-tr7nhqjekq';
 export const TRC20_USDT_TESTNET_SLUG = 'tron-tg3xxyexbk';
 export const TON_USDT_SLUG = 'ton-eqcxe6mutq';
@@ -375,7 +374,7 @@ export const INDEXED_DB_STORE_NAME = 'keyval';
 
 export const WINDOW_PROVIDER_CHANNEL = 'windowProvider';
 
-export const PORTRAIT_MIN_ASSETS_TAB_VIEW = 5;
+export const PORTRAIT_MIN_ASSETS_TAB_VIEW = 4;
 export const LANDSCAPE_MIN_ASSETS_TAB_VIEW = 6;
 
 export const DEFAULT_PRICE_CURRENCY = 'USD';
@@ -454,21 +453,6 @@ export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-
 export const RE_TG_BOT_MENTION = /telegram[:\s-]*((@[a-z0-9_]+)|(https:\/\/)?(t\.me|telegram\.me|telegram\.dog)\/[a-z0-9_]+)/mig;
 
 export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';
-
-export const DIESEL_TOKENS = new Set([
-  'EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT', // NOT
-  'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
-  'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS', // DOGS
-  'EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7', // CATI
-  'EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo', // HAMSTER
-]);
-
-export const TINY_TOKENS = new Set([
-  'EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT', // NOT
-  'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
-  'EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS', // DOGS
-]);
-export const TOKENS_WITH_STARS_FEE = new Set<string>([]);
 
 export const STARS_SYMBOL = '⭐️';
 

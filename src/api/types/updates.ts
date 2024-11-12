@@ -5,11 +5,11 @@ import type { ApiStakingCommonData, ApiSwapAsset, ApiVestingInfo } from './backe
 import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBackendStakingState,
+  ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiChain,
   ApiCountryCode,
   ApiDappTransfer,
-  ApiMaybeBalanceBySlug,
   ApiNft,
   ApiStakingState,
   ApiTokenWithPrice,
@@ -21,7 +21,8 @@ import type { ApiDapp, ApiTonWallet } from './storage';
 export type ApiUpdateBalances = {
   type: 'updateBalances';
   accountId: string;
-  balancesToUpdate: ApiMaybeBalanceBySlug;
+  chain: ApiChain;
+  balances: ApiBalanceBySlug;
 };
 
 export type ApiUpdateNewActivities = {

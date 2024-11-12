@@ -25,6 +25,7 @@ import {
 import buildClassName from '../../../../util/buildClassName';
 import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
 import { findLast } from '../../../../util/iteratees';
+import { getIsTransactionWithPoisoning } from '../../../../util/poisoningHash';
 import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
@@ -68,7 +69,7 @@ type StateProps = {
   savedAddresses?: SavedAddress[];
   isMainHistoryEndReached?: boolean;
   isHistoryEndReachedBySlug?: Record<string, boolean>;
-  exceptionSlugs?: string[];
+  alwaysShownSlugs?: string[];
   activitiesUpdateStartedAt?: number;
   theme: Theme;
   isFirstTransactionsLoaded?: boolean;
@@ -111,7 +112,7 @@ function Activities({
   savedAddresses,
   isMainHistoryEndReached,
   isHistoryEndReachedBySlug,
-  exceptionSlugs,
+  alwaysShownSlugs,
   activitiesUpdateStartedAt = 0,
   theme,
   isFirstTransactionsLoaded,
@@ -175,8 +176,9 @@ function Activities({
             && (
               !areTinyTransfersHidden
               || !getIsTinyOrScamTransaction(activity, tokensBySlug![activity.slug])
-              || exceptionSlugs?.includes(activity.slug)
-            ),
+              || alwaysShownSlugs?.includes(activity.slug)
+            )
+            && !getIsTransactionWithPoisoning(activity),
           );
         }
       }) as ApiActivity[];
@@ -186,7 +188,7 @@ function Activities({
     }
 
     return allActivities;
-  }, [areTinyTransfersHidden, byId, exceptionSlugs, ids, slug, tokensBySlug]);
+  }, [areTinyTransfersHidden, byId, alwaysShownSlugs, ids, slug, tokensBySlug]);
 
   const { activityIds, activitiesById } = useMemo(() => {
     const activityIdList: string[] = [];
@@ -491,7 +493,7 @@ export default memo(
         isMainHistoryEndReached,
         isHistoryEndReachedBySlug,
         currentActivityId: accountState?.currentActivityId,
-        exceptionSlugs: accountSettings?.exceptionSlugs,
+        alwaysShownSlugs: accountSettings?.alwaysShownSlugs,
         activitiesUpdateStartedAt: global.activitiesUpdateStartedAt,
         theme: global.settings.theme,
         isFirstTransactionsLoaded,

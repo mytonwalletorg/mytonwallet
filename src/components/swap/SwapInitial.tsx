@@ -15,7 +15,6 @@ import {
   CHANGELLY_PRIVACY_POLICY,
   CHANGELLY_TERMS_OF_USE,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
-  DIESEL_TOKENS,
   TONCOIN,
   TRX,
 } from '../../config';
@@ -181,10 +180,10 @@ function SwapInitial({
 
   const isErrorExist = errorType !== undefined;
 
-  const isDieselSwap = swapType === SwapType.OnChain
+  const isDieselSwap = Boolean(swapType === SwapType.OnChain
     && !isEnoughNative
     && tokenIn?.tokenAddress
-    && DIESEL_TOKENS.has(tokenIn.tokenAddress);
+    && dieselStatus);
 
   const isCorrectAmountIn = Boolean(
     amountIn

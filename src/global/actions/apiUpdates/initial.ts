@@ -29,7 +29,7 @@ import { selectAccountState, selectVestingPartsReadyToUnfreeze } from '../../sel
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
     case 'updateBalances': {
-      global = updateBalances(global, update.accountId, update.balancesToUpdate);
+      global = updateBalances(global, update.accountId, update.chain, update.balances);
       setGlobal(global);
       break;
     }

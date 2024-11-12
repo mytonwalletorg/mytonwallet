@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.0.33",
+  "version": "3.0.34",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -185,8 +185,10 @@
     "@capacitor/app-launcher": "6.0.2",
     "@capacitor/clipboard": "6.0.1",
     "@capacitor/core": "6.1.2",
+    "@capacitor/filesystem": "6.0.1",
     "@capacitor/haptics": "6.0.1",
     "@capacitor/ios": "6.1.2",
+    "@capacitor/share": "6.0.2",
     "@capgo/capacitor-native-biometric": "github:mytonwallet-org/capacitor-native-biometric#956d06d1ab78a839f1293921d0bff449edf4ef4d",
     "@capgo/native-audio": "6.4.21",
     "@ledgerhq/hw-transport-webhid": "6.29.4",
