@@ -245,7 +245,7 @@ async function sendRawMessage(body: string, clientId: string, toId: string, topi
 function closeEventSource() {
   if (!sseEventSource) return;
 
-  safeExec(() => { sseEventSource!.close(); })();
+  safeExec(() => { sseEventSource!.close(); });
   sseEventSource = undefined;
 }
 
