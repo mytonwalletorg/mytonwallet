@@ -1,4 +1,4 @@
-import '../global/actions/ui/misc';
+import '../global/actions/ui/shared';
 import '../util/handleError';
 import '../util/bigintPatch';
 

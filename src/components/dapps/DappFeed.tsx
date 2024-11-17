@@ -8,6 +8,7 @@ import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 
+import useEffectOnce from '../../hooks/useEffectOnce';
 import useHorizontalScroll from '../../hooks/useHorizontalScroll';
 import useLang from '../../hooks/useLang';
 
@@ -18,6 +19,7 @@ import styles from './Dapp.module.scss';
 interface StateProps {
   dapps: ApiDapp[];
   dappLastOpenedDatesByOrigin?: Record<string, number>;
+  dappOriginReplacements?: Record<string, string>;
 }
 
 type DappWithLastOpenedDate = ApiDapp & { lastOpenedAt?: number };
@@ -37,8 +39,12 @@ const MAX_DAPPS_FOR_MINI_MODE = 3;
 
 const HIDDEN_FROM_FEED_DAPP_ORIGINS = new Set(['https://checkin.mytonwallet.org']);
 
-function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin = {} }: StateProps) {
-  const { openSettingsWithState } = getActions();
+function DappFeed({
+  dapps: dappsFromState, dappLastOpenedDatesByOrigin = {}, dappOriginReplacements = {},
+}: StateProps) {
+  const { openSettingsWithState, loadDappOriginReplacements } = getActions();
+
+  useEffectOnce(loadDappOriginReplacements);
 
   const dapps: DappWithLastOpenedDate[] = useMemo(() => {
     return dappsFromState.slice().filter((dapp) => !HIDDEN_FROM_FEED_DAPP_ORIGINS.has(dapp.origin)).map(
@@ -76,9 +82,10 @@ function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin = {} }: S
         key={origin}
         iconUrl={iconUrl}
         name={name}
-        url={url}
+        url={dappOriginReplacements[url] ?? url}
         mode={mode}
         origin={origin}
+        shouldOpenInAppBrowser={dappOriginReplacements[url] !== undefined}
       />
     );
   }
@@ -111,5 +118,6 @@ function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin = {} }: S
 export default memo(withGlobal((global): StateProps => {
   const { dapps = MEMO_EMPTY_ARRAY } = selectCurrentAccountState(global) || {};
   const { dappLastOpenedDatesByOrigin } = selectCurrentAccountState(global) || {};
-  return { dapps, dappLastOpenedDatesByOrigin };
+
+  return { dapps, dappLastOpenedDatesByOrigin, dappOriginReplacements: global.dappOriginReplacements };
 })(DappFeed));

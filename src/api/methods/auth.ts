@@ -152,7 +152,6 @@ export async function importLedgerWallet(network: ApiNetwork, walletInfo: Ledger
     deviceId,
     deviceName,
   });
-  void activateAccount(accountId);
 
   return { accountId, address, walletInfo };
 }

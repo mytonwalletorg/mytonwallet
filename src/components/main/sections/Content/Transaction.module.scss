@@ -6,9 +6,9 @@
   position: relative;
 
   display: grid;
-  grid-template-areas: "icon left right" "useless bottom bottom";
-  grid-template-columns: 2.875rem auto 1fr;
-  grid-template-rows: 2.25rem auto;
+  grid-template-areas: "icon header" "icon subheader" "useless nft" "useless comment";
+  grid-template-columns: 2.875rem 1fr;
+  grid-template-rows: 1.3125rem 0.9375rem auto auto;
   align-items: center;
   justify-content: center;
 
@@ -17,15 +17,6 @@
 
   color: var(--color-black);
   text-align: left;
-
-  &.withNft {
-    grid-template-areas: "icon left right" "useless center center";
-  }
-
-  &.withNftAndComment {
-    grid-template-areas: "icon left right" "useless center center" "useless bottom bottom";
-    grid-template-rows: 2.25rem auto auto;
-  }
 
   &::after {
     content: '';
@@ -168,54 +159,53 @@
   color: var(--color-activity-purple-text);
 }
 
-.leftBlock {
-  grid-area: left;
+.header,
+.subheader {
+  display: flex;
+  gap: 0.25rem;
+  align-items: baseline;
+  justify-content: space-between;
 
-  margin-right: 1rem;
+  min-width: 0;
+
+  white-space: nowrap;
 }
 
-.amount,
-.operationName {
+.header {
+  grid-area: header;
+
   padding-bottom: 0.125rem;
 
   font-size: 0.9375rem;
   font-weight: 600;
 }
 
-.address {
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-}
-
-.address,
-.swapPrice,
-.date {
-  height: 0.9375rem;
+.subheader {
+  grid-area: subheader;
 
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-gray-2);
 }
 
-.apyValue,
-.addressValue,
-.swapPriceValue {
+.operationName,
+.address {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.amount,
+.address {
+  text-align: right;
+}
+
+.addressValue {
   font-weight: 650;
 }
 
 .chainIcon {
   vertical-align: -0.125rem;
-}
-
-.amountWrapper {
-  grid-area: right;
-
-  min-width: 0;
-  max-width: 100%;
-  margin-left: auto;
-
-  text-align: right;
 }
 
 .amount {
@@ -241,7 +231,7 @@
 
 .comment {
   overflow: hidden;
-  grid-area: bottom;
+  grid-area: comment;
 
   max-width: 100%;
   margin-top: 0.4375rem;
@@ -319,7 +309,7 @@
 .nft {
   overflow: hidden;
   display: flex;
-  grid-area: center;
+  grid-area: nft;
 
   max-width: 100%;
   height: 3.5rem;
@@ -356,7 +346,7 @@
 }
 
 .nftData {
-  max-width: 100%;
+  min-width: 0;
   padding: 0.75rem 0.75rem 0.75rem 0.5rem;
 }
 

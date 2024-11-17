@@ -1,0 +1,19 @@
+Previously, we introduced the first-ever multichain wallet on TON with support for TON & TRON networks. Now, we're back with exciting new updates! Here's what's inside:
+
+• Auto-lock feature and an ability to change password for enhanced wallet security.
+
+• Easier dapp navigation: connected applications are now displayed in the "Explore" section.
+
+•️ Connect your Ledger on a mobile device: Bluetooth and USB options are available depending on your platform.
+
+• Convenient operations through W5 Gasless and Mintless Jettons for TON users. Make transactions even with zero $TON balance.
+
+•️ With anti-poisoning, MyTonWallet automatically detects suspicious addresses and marks them with a ‘Scam’ label.
+
+•️ Search for saved addresses: easily filter addresses using test auto-suggest.
+
+• New deeplinks for quick access: send TON, USDT, jettons, NFTs, perform swaps or stake in one click.
+
+• Switched our UI links to Tonscan, the first and the most powerful TON explorer.
+
+• Updated UI animations, bug fixes, performance improvements, and other tiny optimizations for a smoother, more enjoyable experience.

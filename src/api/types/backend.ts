@@ -77,6 +77,7 @@ export type ApiSwapHistoryItem = {
   swapFee: string;
   status: 'pending' | 'completed' | 'failed' | 'expired';
   txIds: string[];
+  isCanceled?: boolean;
   cex?: {
     payinAddress: string;
     payoutAddress: string;

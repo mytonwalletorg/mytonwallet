@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0EB354256D6B4E26B50364CD /* Pods_MyTonWallet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1BABB2300AAC81FD0F3E47EB /* Pods_MyTonWallet.framework */; };
+		27E5F5BB2CE402F4006A9298 /* MyTonWalletApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27E5F5BA2CE402EC006A9298 /* MyTonWalletApp.swift */; };
+		27E5F5BD2CE40454006A9298 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27E5F5BC2CE40453006A9298 /* main.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -19,6 +21,8 @@
 
 /* Begin PBXFileReference section */
 		1BABB2300AAC81FD0F3E47EB /* Pods_MyTonWallet.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MyTonWallet.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		27E5F5BA2CE402EC006A9298 /* MyTonWalletApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyTonWalletApp.swift; sourceTree = "<group>"; };
+		27E5F5BC2CE40453006A9298 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* MyTonWallet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyTonWallet.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -78,7 +82,9 @@
 			isa = PBXGroup;
 			children = (
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
+				27E5F5BC2CE40453006A9298 /* main.swift */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
+				27E5F5BA2CE402EC006A9298 /* MyTonWalletApp.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -213,7 +219,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27E5F5BB2CE402F4006A9298 /* MyTonWalletApp.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				27E5F5BD2CE40454006A9298 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

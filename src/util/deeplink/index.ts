@@ -163,9 +163,11 @@ export function parseTonDeeplink(value: string | unknown) {
   }
 
   try {
-    const url = new URL(value);
+    // In some browsers URL module may handle non-standard protocols incorrectly
+    const adaptedDeeplink = value.replace(TON_PROTOCOL, 'https://');
+    const url = new URL(adaptedDeeplink);
 
-    const toAddress = url.pathname.replace(/.*\//, '');
+    const toAddress = url.pathname.replace(/\//g, '');
     const amount = getDeeplinkSearchParam(url, 'amount');
     const comment = getDeeplinkSearchParam(url, 'text');
     const binPayload = getDeeplinkSearchParam(url, 'bin');
@@ -303,7 +305,7 @@ export function processSelfDeeplink(deeplink: string) {
         let tonDeeplink = deeplink;
         SELF_UNIVERSAL_URLS.forEach((prefix) => {
           if (tonDeeplink.startsWith(prefix)) {
-            tonDeeplink = tonDeeplink.replace(prefix, TON_PROTOCOL);
+            tonDeeplink = tonDeeplink.replace(`${prefix}/`, TON_PROTOCOL);
           }
         });
 

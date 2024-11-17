@@ -4,6 +4,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { CustomInAppBrowserObject } from '../explore/hooks/useWebViewBridge';
 
+import { ANIMATION_LEVEL_DEFAULT } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { INAPP_BROWSER_OPTIONS } from '../../util/capacitor';
 import { compact } from '../../util/iteratees';
@@ -23,13 +24,14 @@ interface StateProps {
   subtitle?: string;
   url?: string;
   theme: string;
+  animationLevel?: number;
 }
 
 let inAppBrowser: Cordova['InAppBrowser'] | undefined;
 let hideCompletionResolves: (() => void)[] | undefined;
 
 function InAppBrowser({
-  title, subtitle, url, theme,
+  title, subtitle, url, theme, animationLevel,
 }: StateProps) {
   const { closeBrowser } = getActions();
 
@@ -85,6 +87,7 @@ function InAppBrowser({
       `copyurlcaption=${lang('CopyURL')}`,
       `sharecaption=${lang('Share')}`,
       `theme=${theme}`,
+      `animated=${animationLevel ?? ANIMATION_LEVEL_DEFAULT > 0 ? 'yes' : 'no'}`,
     ]).join(',')}`;
     inAppBrowser = cordova.InAppBrowser.open(url,
       '_blank',
@@ -130,6 +133,7 @@ export default memo(withGlobal((global): StateProps => {
     title: currentBrowserOptions?.title,
     subtitle: currentBrowserOptions?.subtitle,
     theme: settings.theme,
+    animationLevel: settings.animationLevel,
   };
 })(InAppBrowser));
 

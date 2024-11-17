@@ -23,7 +23,10 @@ import { buildSwapId } from '../../util/swap/buildSwapId';
 import chains from '../chains';
 import { fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet, callBackendPost } from '../common/backend';
-import { getSwapItemSlug, swapGetHistoryItem, swapItemToActivity } from '../common/swap';
+import {
+  getSwapItemSlug, patchSwapItem, swapGetHistoryItem, swapItemToActivity,
+} from '../common/swap';
+import { ApiServerError } from '../errors';
 import { callHook } from '../hooks';
 import { getBackendAuthToken } from './other';
 
@@ -60,15 +63,25 @@ export async function swapBuildTransfer(
     isBase64Payload: true,
   }));
 
-  await ton.validateDexSwapTransfers(network, address, request, transferList);
+  try {
+    await ton.validateDexSwapTransfers(network, address, request, transferList);
 
-  const result = await ton.checkMultiTransactionDraft(accountId, transferList, request.shouldTryDiesel);
+    const result = await ton.checkMultiTransactionDraft(accountId, transferList, request.shouldTryDiesel);
 
-  if ('error' in result) {
-    return result;
+    if ('error' in result) {
+      await patchSwapItem({
+        address, swapId: id, authToken, error: result.error,
+      });
+      return result;
+    }
+
+    return { ...result, id, transfers };
+  } catch (err: any) {
+    await patchSwapItem({
+      address, swapId: id, authToken, error: errorToString(err),
+    });
+    throw err;
   }
-
-  return { ...result, id, transfers };
 }
 
 export async function swapSubmit(
@@ -78,57 +91,72 @@ export async function swapSubmit(
   historyItem: ApiSwapHistoryItem,
   isGasless?: boolean,
 ) {
-  const { address } = await fetchStoredTonWallet(accountId);
-  const transferList: TonTransferParams[] = transfers.map((transfer) => ({
-    ...transfer,
-    amount: BigInt(transfer.amount),
-    isBase64Payload: true,
-  }));
-
-  if (historyItem.from !== TONCOIN.symbol) {
-    transferList[0] = await ton.insertMintlessPayload('mainnet', address, historyItem.from, transferList[0]);
-  }
-
-  const result = await ton.submitMultiTransfer({
-    accountId, password, messages: transferList, isGasless,
-  });
-
-  if ('error' in result) {
-    return result;
-  }
-
-  delete result.messages[0].stateInit;
-
-  const from = getSwapItemSlug(historyItem, historyItem.from);
-  const to = getSwapItemSlug(historyItem, historyItem.to);
-
-  const swap: ApiSwapActivity = {
-    ...historyItem,
-    id: buildSwapId(historyItem.id),
-    from,
-    to,
-    kind: 'swap',
-  };
-
+  const swapId = historyItem.id;
   const authToken = await getBackendAuthToken(accountId, password);
+  const { address } = await fetchStoredTonWallet(accountId);
 
-  await callBackendPost(`/swap/history/${address}/${historyItem.id}/update`, {
-    msgHash: result.msgHash,
-  }, {
-    method: 'PATCH',
-    authToken,
-  });
+  try {
+    const transferList: TonTransferParams[] = transfers.map((transfer) => ({
+      ...transfer,
+      amount: BigInt(transfer.amount),
+      isBase64Payload: true,
+    }));
 
-  onUpdate({
-    type: 'newActivities',
-    chain: 'ton',
-    accountId,
-    activities: [swap],
-  });
+    if (historyItem.from !== TONCOIN.symbol) {
+      transferList[0] = await ton.insertMintlessPayload('mainnet', address, historyItem.from, transferList[0]);
+    }
 
-  void callHook('onSwapCreated', accountId, swap.timestamp - 1);
+    const result = await ton.submitMultiTransfer({
+      accountId,
+      password,
+      messages: transferList,
+      isGasless,
+    });
 
-  return result;
+    if ('error' in result) {
+      await patchSwapItem({
+        address, swapId, authToken, error: result.error,
+      });
+      return result;
+    }
+
+    delete result.messages[0].stateInit;
+
+    const from = getSwapItemSlug(historyItem, historyItem.from);
+    const to = getSwapItemSlug(historyItem, historyItem.to);
+
+    const swap: ApiSwapActivity = {
+      ...historyItem,
+      id: buildSwapId(historyItem.id),
+      from,
+      to,
+      kind: 'swap',
+    };
+
+    await patchSwapItem({
+      address, swapId, authToken, msgHash: result.msgHash,
+    });
+
+    onUpdate({
+      type: 'newActivities',
+      chain: 'ton',
+      accountId,
+      activities: [swap],
+    });
+
+    void callHook('onSwapCreated', accountId, swap.timestamp - 1);
+
+    return result;
+  } catch (err: any) {
+    await patchSwapItem({
+      address, swapId, authToken, error: errorToString(err),
+    });
+    throw err;
+  }
+}
+
+function errorToString(err: Error | string) {
+  return typeof err === 'string' ? err : err.stack;
 }
 
 export async function fetchSwaps(accountId: string, ids: string[]) {
@@ -137,10 +165,22 @@ export async function fetchSwaps(accountId: string, ids: string[]) {
     ids.map((id) => swapGetHistoryItem(address, id.replace('swap:', ''))),
   );
 
-  return results
-    .map((result) => (result.status === 'fulfilled' ? result.value : undefined))
-    .filter(Boolean)
-    .map(swapItemToActivity);
+  const nonExistentIds: string[] = [];
+
+  const swaps = results
+    .map((result, i) => {
+      if (result.status === 'rejected') {
+        if (result.reason instanceof ApiServerError && result.reason.statusCode === 404) {
+          nonExistentIds.push(ids[i]);
+        }
+        return undefined;
+      }
+
+      return swapItemToActivity(result.value);
+    })
+    .filter(Boolean);
+
+  return { nonExistentIds, swaps };
 }
 
 export function swapEstimate(request: ApiSwapEstimateRequest): Promise<ApiSwapEstimateResponse | { error: string }> {

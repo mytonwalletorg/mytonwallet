@@ -37,8 +37,8 @@ import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
-import { buildCollectionByKey, omit } from '../../../util/iteratees';
-import { logDebugError } from '../../../util/logs';
+import { buildCollectionByKey, omit, pick } from '../../../util/iteratees';
+import { logDebug, logDebugError } from '../../../util/logs';
 import { updatePoisoningCache } from '../../../util/poisoningHash';
 import { pause } from '../../../util/schedulers';
 import withCacheAsync from '../../../util/withCacheAsync';
@@ -580,7 +580,7 @@ async function signTransaction({
   amount,
   payload,
   stateInit,
-  privateKey = new Uint8Array(64),
+  privateKey,
   isFullBalance,
   expireAt,
   shouldEncrypt,
@@ -597,6 +597,12 @@ async function signTransaction({
   shouldEncrypt?: boolean;
 }) {
   const { seqno } = await getWalletInfo(network, wallet);
+
+  if (!privateKey) {
+    privateKey = new Uint8Array(64);
+  } else {
+    logDebug('Signing transactions', { seqno, toAddress, amount });
+  }
 
   if (!expireAt) {
     expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC;
@@ -878,7 +884,9 @@ export async function checkMultiTransactionDraft(
 
     const { balance } = await getWalletInfo(network, wallet);
 
-    const { transaction } = await signMultiTransaction(network, wallet, messages, undefined, version);
+    const { transaction } = await signMultiTransaction({
+      network, wallet, messages, version,
+    });
 
     const realFee = await calculateFee(network, wallet, transaction, isInitialized);
 
@@ -929,9 +937,9 @@ export async function submitMultiTransfer({
     const gaslessType = isGasless ? version === 'W5' ? 'w5' : 'diesel' : undefined;
     const withW5Gasless = gaslessType === 'w5';
 
-    const { seqno, transaction } = await signMultiTransaction(
-      network, wallet!, messages, privateKey, version, expireAt, withW5Gasless,
-    );
+    const { seqno, transaction } = await signMultiTransaction({
+      network, wallet: wallet!, messages, version, privateKey, expireAt, withW5Gasless,
+    });
 
     if (!isGasless) {
       const fee = await calculateFee(network, wallet!, transaction, isInitialized);
@@ -947,6 +955,9 @@ export async function submitMultiTransfer({
 
     if (!isGasless) {
       void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
+    } else {
+      // TODO: Wait for gasless transfer
+      pendingTransfer.resolve();
     }
 
     const clearedMessages = messages.map((message) => {
@@ -972,16 +983,33 @@ export async function submitMultiTransfer({
   }
 }
 
-async function signMultiTransaction(
-  network: ApiNetwork,
-  wallet: TonWallet,
-  messages: TonTransferParams[],
-  privateKey: Uint8Array = new Uint8Array(64),
-  version: ApiTonWalletVersion,
-  expireAt?: number,
-  withW5Gasless = false,
-) {
+async function signMultiTransaction({
+  network,
+  wallet,
+  messages,
+  version,
+  privateKey,
+  expireAt,
+  withW5Gasless,
+}: {
+  network: ApiNetwork;
+  wallet: TonWallet;
+  messages: TonTransferParams[];
+  version: ApiTonWalletVersion;
+  privateKey?: Uint8Array;
+  expireAt?: number;
+  withW5Gasless?: boolean;
+}) {
   const { seqno } = await getWalletInfo(network, wallet);
+
+  if (!privateKey) {
+    privateKey = new Uint8Array(64);
+  } else {
+    logDebug('Signing transaction', {
+      seqno,
+      messages: messages.map((msg) => pick(msg, ['toAddress', 'amount'])),
+    });
+  }
 
   if (!expireAt) {
     expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC;
@@ -1077,7 +1105,7 @@ async function retrySendBoc(
     ]);
 
     // Errors mean that `seqno` was changed or not enough of balance
-    if (error?.includes('exitcode=33') || error?.includes('inbound external message rejected by account')) {
+    if (error?.match(/(exitcode=33|exitcode=133|inbound external message rejected by account)/)) {
       break;
     }
 

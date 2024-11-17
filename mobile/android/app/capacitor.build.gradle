@@ -9,6 +9,7 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
+    implementation project(':capacitor-community-bluetooth-le')
     implementation project(':capacitor-mlkit-barcode-scanning')
     implementation project(':capacitor-app')
     implementation project(':capacitor-filesystem')
@@ -21,6 +22,7 @@ dependencies {
     implementation project(':sina_kh-mtw-capacitor-status-bar')
     implementation project(':capacitor-native-settings')
     implementation project(':capacitor-plugin-safe-area')
+    implementation project(':mtw-capacitor-usb-hid')
     implementation project(':native-dialog')
     implementation project(':native-bottom-sheet')
     implementation project(':capacitor-secure-storage-plugin')

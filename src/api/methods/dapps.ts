@@ -229,3 +229,7 @@ export function setSseLastEventId(lastEventId: string) {
 export function loadExploreSites(): Promise<ApiSite[]> {
   return callBackendGet('/dapp/catalog');
 }
+
+export function loadDappOriginReplacements(): Promise<Record<string, string>> {
+  return callBackendGet('/dapp/origin-replacements');
+}

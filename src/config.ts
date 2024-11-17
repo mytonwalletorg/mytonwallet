@@ -118,7 +118,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-135';
+export const LANG_CACHE_NAME = 'mtw-lang-139';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -457,3 +457,26 @@ export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-J
 export const STARS_SYMBOL = '⭐️';
 
 export const GIVEAWAY_CHECKIN_URL = process.env.GIVEAWAY_CHECKIN_URL || 'https://giveaway.mytonwallet.io';
+
+export const AUTOLOCK_OPTIONS_LIST = [
+  {
+    value: 'never',
+    name: 'Never',
+    period: 0,
+  },
+  {
+    value: '1',
+    name: '30 seconds',
+    period: 30_000,
+  },
+  {
+    value: '2',
+    name: '3 minutes',
+    period: 60_000 * 3,
+  },
+  {
+    value: '3',
+    name: '30 minutes',
+    period: 60_000 * 30,
+  },
+] as const;

@@ -56,6 +56,26 @@
         "slug": "enable"
       },
       {
+        "name": "hide",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "hide"
+      },
+      {
+        "name": "show",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "show"
+      },
+      {
         "name": "delegate",
         "signature": "(options: { key: BottomSheetKeys; globalJson: string; }) => Promise<void>",
         "parameters": [

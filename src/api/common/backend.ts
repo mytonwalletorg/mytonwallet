@@ -43,5 +43,10 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
 export function callBackendGet<T = any>(path: string, data?: AnyLiteral, headers?: HeadersInit): Promise<T> {
   const url = new URL(`${BRILLIANT_API_BASE_URL}${path}`);
 
-  return fetchJson(url, data, { headers: { ...headers, 'X-App-Version': APP_VERSION } });
+  return fetchJson(url, data, {
+    headers: {
+      ...headers,
+      'X-App-Version': APP_VERSION,
+    },
+  });
 }

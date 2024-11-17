@@ -56,7 +56,11 @@ platform :ios do
     )
 
     changelog_from_git_commits(merge_commit_filtering: "exclude_merges", commits_count: 3)
-    upload_to_testflight(distribute_external: true, groups: "MTW external group")
+    upload_to_testflight(
+      distribute_external: true,
+      groups: "MTW external group",
+      beta_app_description: "Bug fixes and performance improvements"
+    )
   end
 
   lane :release do

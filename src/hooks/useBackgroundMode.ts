@@ -8,19 +8,20 @@ const focusCallbacks = createCallbackManager();
 
 let isFocused = document.hasFocus();
 
-window.addEventListener('blur', () => {
-  if (!isFocused) {
-    return;
-  }
+function handleBlur() {
+  if (!isFocused) return;
 
   isFocused = false;
   blurCallbacks.runCallbacks();
-});
+}
 
-window.addEventListener('focus', () => {
+function handleFocus() {
   isFocused = true;
   focusCallbacks.runCallbacks();
-});
+}
+
+window.addEventListener('blur', handleBlur);
+window.addEventListener('focus', handleFocus);
 
 export default function useBackgroundMode(
   onBlur?: AnyToVoidFunction,

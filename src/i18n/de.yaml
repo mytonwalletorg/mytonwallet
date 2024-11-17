@@ -156,7 +156,6 @@ $nft_explore_offer: |
   Erkunden Sie einen Marktplatz, um
   bestehende NFT-Sammlungen zu entdecken.
 Open Getgems: Getgems öffnen
-Transaction is not completed: Die Transaktion ist nicht abgeschlossen.
 Received: Empfangen
 Sent: Gesendet
 $transaction_from: von %address%
@@ -506,7 +505,7 @@ Are you sure you want to disable Face ID?: Sind Sie sicher, dass Sie Face ID dea
 Are you sure you want to disable Touch ID?: Sind Sie sicher, dass Sie Touch ID deaktivieren möchten?
 Are you sure you want to disable biometrics?: Sind Sie sicher, dass Sie die Biometrie deaktivieren möchten?
 Yes: Ja
-Declined. Please try to confirm transaction using biometrics again.: Abgelehnt. Versuchen Sie bitte, die Transaktion erneut mit Biometrie zu bestätigen.
+Biometric confirmation failed: Biometrische Bestätigung fehlgeschlagen
 No Activity: Keine aktivität
 Add / Buy: Aufladen
 Buy with Card: Mit Karte kaufen
@@ -516,7 +515,6 @@ Explore: Erkunden
 No partners yet: Noch keine Partner
 Clear: Löschen
 Get TON: TON erhalten
-Declined. Please try to confirm operation using biometrics again.: Abgelehnt. Versuchen Sie bitte, die Vorgang erneut mit Biometrie zu bestätigen.
 $unstake_up_to_information: Sofort – bis zu %value%
 $all_balance: "Gesamt: %balance%"
 $unstaking_not_enough_balance: Sie müssen %value% auf Ihrem Hauptkonto haben, um mit dem Entsperrprozess fortzufahren.
@@ -673,10 +671,13 @@ Enter Secret Words: Geheimwörter eingeben
 Turn this off so you can manually download updates and verify signatures.: Schalten Sie dies aus, damit Sie Updates manuell herunterladen und Signaturen überprüfen können.
 InvalidMnemonic: Ihre mnemonischen Wörter sind ungültig
 NFT Menu: NFT-Menü
-Wallets will not be locked.: Wallets werden nicht gesperrt.
-Wallets will be automatically locked after 30 seconds of inactivity.: Wallets werden nach 30 Sekunden Inaktivität automatisch gesperrt.
-Wallets will be automatically locked after 3 minutes of inactivity.: Wallets werden nach 3 Minuten Inaktivität automatisch gesperrt.
-Wallets will be automatically locked after 30 minutes of inactivity.: Wallets werden nach 30 Minuten Inaktivität automatisch gesperrt.
+Connection Type: Verbindungstyp
+Ledger is not supported on this device: Ledger wird auf diesem Gerät nicht unterstützt
+Connect your Ledger: Verbinden Sie Ihr Ledger
+App will not be locked.: App wird nicht gesperrt.
+App will be automatically locked after 30 seconds of inactivity.: Die App wird nach 30 Sekunden Inaktivität automatisch gesperrt.
+App will be automatically locked after 3 minutes of inactivity.: Die App wird nach 3 Minuten Inaktivität automatisch gesperrt.
+App will be automatically locked after 30 minutes of inactivity.: Die App wird nach 30 Minuten Inaktivität automatisch gesperrt.
 Auto-Lock: Automatische Sperre
 Never: Niemals
 30 seconds: 30 Sekunden

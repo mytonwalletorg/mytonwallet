@@ -446,12 +446,14 @@ function Settings({
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-            <div className={styles.item} onClick={handleSecurityOpen}>
-              <img className={styles.menuIcon} src={securityImg} alt={lang('Security')} />
-              {lang('Security')}
+            {!isHardwareAccount && (
+              <div className={styles.item} onClick={handleSecurityOpen}>
+                <img className={styles.menuIcon} src={securityImg} alt={lang('Security')} />
+                {lang('Security')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </div>
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            )}
             {IS_DAPP_SUPPORTED && (
               <div className={styles.item} onClick={handleConnectedDappsOpen}>
                 <img className={styles.menuIcon} src={connectedDappsImg} alt={lang('Connected Dapps')} />

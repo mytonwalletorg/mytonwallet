@@ -66,6 +66,12 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>For an easier and faster operation verification.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>We need access to your photo library to save your awesome NFTs!</string>
+	<string>Photo library access is needed to download NFTs.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+  <string>Bluetooth access is needed to connect Ledger.</string>
+  <key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+	</array>
 </dict>
 </plist>

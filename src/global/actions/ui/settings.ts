@@ -4,6 +4,7 @@ import type { GlobalState } from '../../types';
 
 import { setLanguage } from '../../../util/langProvider';
 import switchTheme from '../../../util/switchTheme';
+import { addActionHandler } from '../..';
 
 let prevGlobal: GlobalState | undefined;
 
@@ -25,4 +26,14 @@ addCallback((global: GlobalState) => {
   }
 
   prevGlobal = global;
+});
+
+addActionHandler('setAutolockValue', (global, actions, { value }) => {
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      autolockValue: value,
+    },
+  };
 });

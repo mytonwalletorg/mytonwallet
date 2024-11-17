@@ -122,6 +122,7 @@
   --color-interactive-drop-down-menu-active: #EFF2F6;
 
   --color-tint: rgba(12, 12, 12, 0.4);
+  --color-tint-lock: rgba(230, 236, 243, 0.4);
 
   --color-card-text: #FFFFFF;
   --color-card-text-hover: rgba(255, 255, 255, 0.7);
@@ -181,6 +182,8 @@
   --border-radius-card: 1.25rem;
   --border-radius-big: 1.5rem;
 
+  --blur-app-locked: 4rem;
+
   --scrollbar-width: 0;
   --safe-area-bottom-value: var(--safe-area-bottom);
   --safe-area-top-value: var(--safe-area-top);
@@ -197,6 +200,7 @@
   --z-notification: 250;
   --z-tooltip: 300;
   --z-confetti: 400;
+  --z-autolock: 500;
 
   --no-animation-transition: 200ms opacity ease;
   --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
@@ -320,6 +324,7 @@
     --color-interactive-drop-down-menu-active: #202833;
 
     --color-tint: rgba(12, 12, 12, 0.6);
+    --color-tint-lock: rgba(20, 26, 33, 0.6);
 
     --color-add-wallet-text: #CBD5E3;
     --color-add-wallet-text-hover: #E1EEFF;

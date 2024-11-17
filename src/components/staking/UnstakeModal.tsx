@@ -21,7 +21,7 @@ import {
   selectAccountState,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectIsHardwareAccount, selectIsMultichainAccount,
+  selectIsMultichainAccount,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
@@ -67,7 +67,6 @@ type StateProps = GlobalState['staking'] & {
   stakingInfo: GlobalState['stakingInfo'];
   baseCurrency?: ApiBaseCurrency;
   shouldUseNominators?: boolean;
-  isHardwareAccount?: boolean;
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
@@ -103,7 +102,6 @@ function UnstakeModal({
   stakingInfo,
   baseCurrency,
   shouldUseNominators,
-  isHardwareAccount,
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
@@ -429,7 +427,7 @@ function UnstakeModal({
       <>
         <ModalHeader title={lang('Unstake TON')} onClose={cancelStaking} />
         <div className={modalStyles.transitionContent}>
-          {!isHardwareAccount && renderBalance()}
+          {!shouldUseNominators && renderBalance()}
           <RichNumberInput
             key="unstaking_amount"
             id="unstaking_amount"
@@ -590,7 +588,6 @@ export default memo(withGlobal((global): StateProps => {
   const baseCurrency = global.settings.baseCurrency;
   const accountState = selectAccountState(global, global.currentAccountId!);
   const shouldUseNominators = accountState?.staking?.type === 'nominators';
-  const isHardwareAccount = selectIsHardwareAccount(global);
   const isMultichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
 
   const {
@@ -608,7 +605,6 @@ export default memo(withGlobal((global): StateProps => {
     stakingInfo: global.stakingInfo,
     baseCurrency,
     shouldUseNominators,
-    isHardwareAccount,
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,

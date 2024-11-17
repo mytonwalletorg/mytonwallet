@@ -45,3 +45,19 @@ export function getSwapItemSlug(item: ApiSwapHistoryItem, asset: string) {
   }
   return buildTokenSlug('ton', asset);
 }
+
+export async function patchSwapItem(options: {
+  address: string;
+  swapId: string;
+  authToken: string;
+  msgHash?: string;
+  error?: string;
+}) {
+  const {
+    address, swapId, authToken, msgHash, error,
+  } = options;
+  await callBackendPost(`/swap/history/${address}/${swapId}/update`, { msgHash, error }, {
+    method: 'PATCH',
+    authToken,
+  });
+}

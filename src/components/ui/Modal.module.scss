@@ -415,16 +415,16 @@
 
   margin-top: auto;
   padding-top: 2rem;
+  &.footerButtonFullWidth {
+    width: 100%;
+    margin-top: initial;
+    padding-top: initial;
+  }
 }
 
 .buttonsInsideContentWithScroll {
   margin-bottom: -1rem;
   padding-bottom: 1rem;
-
-  @supports (padding-bottom: var(--safe-area-bottom)) {
-    margin-bottom: calc(-1 * max(var(--safe-area-bottom), 1rem));
-    padding-bottom: max(var(--safe-area-bottom), 1rem);
-  }
 }
 
 .buttonsNoExtraSpace {
@@ -440,6 +440,11 @@
 .buttonHalfWidth {
   width: 100%;
   max-width: calc((100% - 1rem) / 2) !important;
+}
+
+.buttonFullWidth {
+  width: 100%;
+  max-width: 100% !important;
 }
 
 .shortButton {

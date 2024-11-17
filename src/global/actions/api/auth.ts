@@ -17,10 +17,17 @@ import { copyTextToClipboard } from '../../../util/clipboard';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import { cloneDeep, compact, omitUndefined } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
+import { isLedgerConnectionBroken } from '../../../util/ledger/utils';
+import { logDebugError } from '../../../util/logs';
 import { callActionInMain } from '../../../util/multitab';
 import { clearPoisoningCache } from '../../../util/poisoningHash';
 import { pause } from '../../../util/schedulers';
-import { IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON } from '../../../util/windowEnvironment';
+import {
+  IS_BIOMETRIC_AUTH_SUPPORTED,
+  IS_DELEGATED_BOTTOM_SHEET,
+  IS_DELEGATING_BOTTOM_SHEET,
+  IS_ELECTRON,
+} from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
 import { INITIAL_STATE } from '../../initialState';
@@ -360,7 +367,9 @@ addActionHandler('createAccount', async (global, actions, {
 });
 
 addActionHandler('createHardwareAccounts', async (global, actions) => {
-  const isFirstAccount = !global.currentAccountId;
+  const accounts = selectAccounts(global) ?? {};
+  const isFirstAccount = !Object.values(accounts).length;
+
   setGlobal(updateAuth(global, { isLoading: true }));
 
   const { hardwareSelectedIndices = [] } = getGlobal().hardware;
@@ -372,6 +381,21 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
       (wallet) => ledgerApi.importLedgerWallet(network, wallet),
     ),
   );
+
+  if (IS_DELEGATED_BOTTOM_SHEET && !isFirstAccount) {
+    callActionInMain('addHardwareAccounts', { wallets });
+    return;
+  }
+
+  actions.addHardwareAccounts({ wallets });
+});
+
+addActionHandler('addHardwareAccounts', (global, actions, { wallets }) => {
+  const isFirstAccount = !global.currentAccountId;
+  const nextActiveAccountId = wallets[0]?.accountId;
+  if (nextActiveAccountId) {
+    void callApi('activateAccount', nextActiveAccountId);
+  }
 
   const updatedGlobal = wallets.reduce((currentGlobal, wallet) => {
     if (!wallet) {
@@ -394,12 +418,14 @@ addActionHandler('createHardwareAccounts', async (global, actions) => {
     return currentGlobal;
   }, getGlobal());
 
-  global = updateAuth(updatedGlobal, { isLoading: false });
+  if (nextActiveAccountId) {
+    global = updateCurrentAccountId(updatedGlobal, nextActiveAccountId);
+  }
+  global = updateAuth(global, { isLoading: false });
   global = {
     ...global,
     shouldForceAccountEdit: true,
   };
-
   setGlobal(global);
 
   if (getGlobal().areSettingsOpen) {
@@ -605,7 +631,12 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
   }
 });
 
-addActionHandler('connectHardwareWallet', async (global, actions) => {
+addActionHandler('connectHardwareWallet', async (global, actions, params) => {
+  const accounts = selectAccounts(global) ?? {};
+  const isFirstAccount = !Object.values(accounts).length;
+
+  if (IS_DELEGATING_BOTTOM_SHEET && !isFirstAccount) return;
+
   global = updateHardware(global, {
     hardwareState: HardwareConnectState.Connecting,
     hardwareWallets: undefined,
@@ -617,7 +648,7 @@ addActionHandler('connectHardwareWallet', async (global, actions) => {
 
   const ledgerApi = await import('../../../util/ledger');
 
-  const isLedgerConnected = await ledgerApi.connectLedger();
+  const isLedgerConnected = await ledgerApi.connectLedger(params.transport);
   global = getGlobal();
 
   if (!isLedgerConnected) {
@@ -634,24 +665,24 @@ addActionHandler('connectHardwareWallet', async (global, actions) => {
   });
   setGlobal(global);
 
-  const isTonAppConnected = await ledgerApi.waitLedgerTonApp();
-  global = getGlobal();
+  try {
+    const isTonAppConnected = await ledgerApi.waitLedgerTonApp();
+    global = getGlobal();
 
-  if (!isTonAppConnected) {
+    if (!isTonAppConnected) {
+      global = updateHardware(global, {
+        isTonAppConnected: false,
+        hardwareState: HardwareConnectState.Failed,
+      });
+      setGlobal(global);
+      return;
+    }
+
     global = updateHardware(global, {
-      isTonAppConnected: false,
-      hardwareState: HardwareConnectState.Failed,
+      isTonAppConnected: true,
     });
     setGlobal(global);
-    return;
-  }
 
-  global = updateHardware(global, {
-    isTonAppConnected: true,
-  });
-  setGlobal(global);
-
-  try {
     global = getGlobal();
     const { isRemoteTab } = global.hardware;
     const network = selectCurrentNetwork(global);
@@ -678,14 +709,26 @@ addActionHandler('connectHardwareWallet', async (global, actions) => {
     global = updateHardware(global, {
       hardwareWallets,
       hardwareState: nextHardwareState,
+      lastUsedTransport: params.transport,
     });
     setGlobal(global);
-  } catch (err) {
+  } catch (err: any) {
+    const isLedgerDisconnected = isLedgerConnectionBroken(err.name);
+
+    if (isLedgerDisconnected && !params.noRetry) {
+      actions.connectHardwareWallet({ ...params, noRetry: true });
+      return;
+    }
+
     global = getGlobal();
     global = updateHardware(global, {
+      isLedgerConnected: !isLedgerDisconnected,
+      isTonAppConnected: isLedgerDisconnected ? undefined : global.hardware.isTonAppConnected,
       hardwareState: HardwareConnectState.Failed,
     });
     setGlobal(global);
+
+    logDebugError('connectHardwareWallet', err);
   }
 });
 

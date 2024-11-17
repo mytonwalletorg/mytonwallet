@@ -1,5 +1,6 @@
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
+import type { LedgerTransport } from '../../../util/ledger/types';
 import type { GlobalState } from '../../types';
 import {
   AppState, AuthState, HardwareConnectState, SettingsState, SwapState, TransferState,
@@ -23,13 +24,14 @@ import { isValidAddressOrDomain } from '../../../util/isValidAddressOrDomain';
 import { omitUndefined, pick } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
-import { callActionInMain } from '../../../util/multitab';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { openUrl } from '../../../util/openUrl';
 import { pause } from '../../../util/schedulers';
 import {
   IS_ANDROID_APP,
   IS_BIOMETRIC_AUTH_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
+  IS_DELEGATING_BOTTOM_SHEET,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
@@ -49,11 +51,14 @@ import {
   updateSettings,
 } from '../../reducers';
 import {
+  selectAccounts,
   selectCurrentAccount,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectFirstNonHardwareAccount,
 } from '../../selectors';
+
+import { reportAppLockActivityEvent } from '../../../components/AppLocked';
 
 const OPEN_LEDGER_TAB_DELAY = 500;
 const APP_VERSION_URL = IS_ANDROID_APP ? `${IS_PRODUCTION ? PRODUCTION_URL : BETA_URL}/version.txt` : 'version.txt';
@@ -210,26 +215,6 @@ addActionHandler('closeAddAccountModal', (global) => {
   return { ...global, isAddAccountModalOpen: undefined };
 });
 
-addActionHandler('setTheme', (global, actions, { theme }) => {
-  return {
-    ...global,
-    settings: {
-      ...global.settings,
-      theme,
-    },
-  };
-});
-
-addActionHandler('setAnimationLevel', (global, actions, { level }) => {
-  return {
-    ...global,
-    settings: {
-      ...global.settings,
-      animationLevel: level,
-    },
-  };
-});
-
 addActionHandler('changeNetwork', (global, actions, { network }) => {
   return {
     ...global,
@@ -281,51 +266,93 @@ addActionHandler('closeBackupWalletModal', (global) => {
   return { ...global, isBackupWalletModalOpen: undefined };
 });
 
-addActionHandler('initializeHardwareWalletConnection', async (global, actions) => {
-  const startConnection = () => {
+addActionHandler('initializeHardwareWalletModal', async (global, actions) => {
+  const ledgerApi = await import('../../../util/ledger');
+  const { isBluetoothAvailable, isUsbAvailable } = await ledgerApi.detectAvailableTransports();
+  const availableTransports: LedgerTransport[] = [];
+  if (isUsbAvailable) {
+    availableTransports.push('usb');
+  }
+  if (isBluetoothAvailable) {
+    availableTransports.push('bluetooth');
+  }
+
+  if (availableTransports.length === 0) {
+    actions.showNotification({
+      message: 'Ledger is not supported on this device.',
+    });
+  } else if (availableTransports.length === 1) {
+    actions.initializeHardwareWalletConnection({ transport: availableTransports[0] });
+  } else {
+    global = updateHardware(getGlobal(), {
+      availableTransports,
+    });
+    setGlobal(global);
+  }
+});
+
+addActionHandler('initializeHardwareWalletConnection', async (global, actions, params) => {
+  const accountsAmount = Object.keys(selectAccounts(global) || {}).length;
+
+  if (IS_DELEGATING_BOTTOM_SHEET && accountsAmount > 0) {
+    callActionInNative('initializeHardwareWalletConnection', params);
+    return;
+  }
+
+  const setHardwareStateToConnecting = () => {
+    global = getGlobal();
     global = updateHardware(getGlobal(), {
       hardwareState: HardwareConnectState.Connecting,
     });
     setGlobal(global);
-
-    actions.connectHardwareWallet();
   };
 
+  setHardwareStateToConnecting();
   const ledgerApi = await import('../../../util/ledger');
 
-  if (await ledgerApi.connectLedger()) {
-    startConnection();
+  if (await ledgerApi.connectLedger(params.transport)) {
+    actions.connectHardwareWallet({ transport: params.transport });
     return;
   }
 
-  if (IS_EXTENSION) {
-    global = updateHardware(getGlobal(), {
-      hardwareState: HardwareConnectState.WaitingForBrowser,
+  if (!IS_EXTENSION) {
+    global = getGlobal();
+    global = updateHardware(global, {
+      isLedgerConnected: false,
+      hardwareState: HardwareConnectState.Failed,
     });
     setGlobal(global);
-
-    await pause(OPEN_LEDGER_TAB_DELAY);
-    const id = await openLedgerTab();
-    const popup = await chrome.windows.getCurrent();
-
-    onLedgerTabClose(id, async () => {
-      await chrome.windows.update(popup.id!, { focused: true });
-
-      if (!await ledgerApi.connectLedger()) {
-        actions.closeHardwareWalletModal();
-        return;
-      }
-
-      startConnection();
-    });
+    return;
   }
+
+  global = updateHardware(getGlobal(), {
+    hardwareState: HardwareConnectState.WaitingForBrowser,
+  });
+  setGlobal(global);
+
+  await pause(OPEN_LEDGER_TAB_DELAY);
+  const id = await openLedgerTab();
+  const popup = await chrome.windows.getCurrent();
+
+  onLedgerTabClose(id, async () => {
+    await chrome.windows.update(popup.id!, { focused: true });
+
+    if (!await ledgerApi.connectLedger(params.transport)) {
+      actions.closeHardwareWalletModal();
+      return;
+    }
+
+    setHardwareStateToConnecting();
+    actions.connectHardwareWallet({ transport: params.transport });
+  });
 });
 
 addActionHandler('openHardwareWalletModal', async (global) => {
   const ledgerApi = await import('../../../util/ledger');
   let newHardwareState;
 
-  const isConnected = await ledgerApi.connectLedger();
+  // If not running in the Capacitor environment, try to instantly connect to the Ledger
+  const isConnected = !IS_CAPACITOR ? await ledgerApi.connectLedger() : false;
 
   if (!isConnected && IS_EXTENSION) {
     newHardwareState = HardwareConnectState.WaitingForBrowser;
@@ -670,4 +697,12 @@ addActionHandler('authorizeDiesel', (global) => {
   const address = selectCurrentAccount(global)!.addressByChain.ton;
   setGlobal(updateCurrentAccountState(global, { isDieselAuthorizationStarted: true }));
   openUrl(`https://t.me/${BOT_USERNAME}?start=auth-${address}`, true);
+});
+
+addActionHandler('submitAppLockActivityEvent', () => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('submitAppLockActivityEvent');
+    return;
+  }
+  reportAppLockActivityEvent();
 });

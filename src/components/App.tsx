@@ -26,6 +26,7 @@ import useSyncEffect from '../hooks/useSyncEffect';
 import useTimeout from '../hooks/useTimeout';
 
 import AppInactive from './AppInactive';
+import AppLocked from './AppLocked';
 import Auth from './auth/Auth';
 import DappConnectModal from './dapps/DappConnectModal';
 import DappTransferModal from './dapps/DappTransferModal';
@@ -195,6 +196,7 @@ function App({
           <Settings isInsideModal />
         </SettingsModal>
       )}
+      <AppLocked />
       <MediaViewer />
       {!isInactive && (
         <>

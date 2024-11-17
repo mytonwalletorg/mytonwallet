@@ -5,26 +5,29 @@ import type { StateInit } from '@ton/core';
 import { loadStateInit } from '@ton/core';
 import type { TonPayloadFormat } from '@ton-community/ton-ledger';
 import { KNOWN_JETTONS, parseMessage, TonTransport } from '@ton-community/ton-ledger';
+import type { HIDTransport } from 'mtw-capacitor-usb-hid';
 import { Address } from '@ton/core/dist/address/Address';
 import { Builder } from '@ton/core/dist/boc/Builder';
 import { Cell } from '@ton/core/dist/boc/Cell';
 import { SendMode } from '@ton/core/dist/types/SendMode';
 
-import type { Workchain } from '../../api/chains/ton/constants';
+import type { Workchain } from '../../api/chains/ton';
 import type { ApiSubmitTransferOptions } from '../../api/methods/types';
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
   ApiDappTransfer,
   ApiLocalTransactionParams,
-  ApiNetwork, ApiNft,
+  ApiNetwork,
+  ApiNft,
   ApiSignedTransfer,
   ApiStakingType,
 } from '../../api/types';
-import type { LedgerWalletInfo } from './types';
+import type BleTransport from '../../lib/ledger-hw-transport-ble/BleTransport';
+import type { LedgerTransport, LedgerWalletInfo } from './types';
 import { ApiLiquidUnstakeMode, ApiTransactionError } from '../../api/types';
 
 import {
-  BURN_ADDRESS, LIQUID_JETTON, LIQUID_POOL,
+  BURN_ADDRESS, IS_CAPACITOR, LIQUID_JETTON, LIQUID_POOL,
   NOTCOIN_EXCHANGERS, NOTCOIN_VOUCHERS_ADDRESS, ONE_TON, TONCOIN,
 } from '../../config';
 import { callApi } from '../../api';
@@ -55,7 +58,12 @@ import { parseAccountId } from '../account';
 import compareVersions from '../compareVersions';
 import { logDebugError } from '../logs';
 import { pause } from '../schedulers';
-import { isValidLedgerComment } from './utils';
+import { IS_ANDROID_APP } from '../windowEnvironment';
+import { isLedgerConnectionBroken, isValidLedgerComment } from './utils';
+
+type BleConnectorClass = typeof import('./bleConnector').BleConnector;
+type HIDTransportClass = typeof import('mtw-capacitor-usb-hid/dist/esm').HIDTransport;
+type ListLedgerDevicesFunction = typeof import('mtw-capacitor-usb-hid/dist/esm').listLedgerDevices;
 
 type TransactionParams = {
   to: Address;
@@ -93,8 +101,70 @@ const knownJettonAddresses = KNOWN_JETTONS.map(
   ({ masterAddress }) => masterAddress.toString({ bounceable: true, urlSafe: true }),
 );
 
-let transport: TransportWebHID | TransportWebUSB | undefined;
+let transport: TransportWebHID | TransportWebUSB | BleTransport | HIDTransport | undefined;
 let tonTransport: TonTransport | undefined;
+let isHidSupported = false;
+let isWebUsbSupported = false;
+let isBluetoothSupported = false;
+let currentLedgerTransport: LedgerTransport | undefined;
+
+let hidImportPromise: Promise<{
+  transport: HIDTransportClass;
+  listLedgerDevices: ListLedgerDevicesFunction;
+}>;
+let bleImportPromise: Promise<BleConnectorClass>;
+let BleConnector: BleConnectorClass;
+let MtwHidTransport: HIDTransportClass;
+let listLedgerDevices: ListLedgerDevicesFunction;
+
+async function ensureBleConnector() {
+  if (!IS_CAPACITOR) return undefined;
+
+  if (!bleImportPromise) {
+    bleImportPromise = import('./bleConnector').then((module) => {
+      return module.BleConnector;
+    });
+    BleConnector = await bleImportPromise;
+  }
+
+  return bleImportPromise;
+}
+
+async function ensureHidTransport() {
+  if (!IS_ANDROID_APP) return undefined;
+
+  if (!hidImportPromise) {
+    hidImportPromise = import('mtw-capacitor-usb-hid/dist/esm').then((module) => {
+      return {
+        transport: module.HIDTransport,
+        listLedgerDevices: module.listLedgerDevices,
+      };
+    });
+    const result = await hidImportPromise;
+    MtwHidTransport = result.transport;
+    listLedgerDevices = result.listLedgerDevices;
+  }
+
+  return hidImportPromise;
+}
+
+void ensureBleConnector();
+void ensureHidTransport();
+
+export async function detectAvailableTransports() {
+  await ensureBleConnector();
+  await ensureHidTransport();
+  [isHidSupported, isBluetoothSupported, isWebUsbSupported] = await Promise.all([
+    IS_ANDROID_APP ? MtwHidTransport.isSupported() : TransportWebHID.isSupported(),
+    BleConnector ? BleConnector.isSupported() : Promise.resolve(false),
+    TransportWebUSB.isSupported(),
+  ]);
+
+  return {
+    isUsbAvailable: isHidSupported || isWebUsbSupported,
+    isBluetoothAvailable: isBluetoothSupported,
+  };
+}
 
 function getInternalWalletVersion(version: PossibleWalletVersion) {
   return LedgerWalletVersion[version];
@@ -107,26 +177,51 @@ export async function importLedgerWallet(network: ApiNetwork, accountIndex: numb
 
 export async function reconnectLedger() {
   try {
-    if (tonTransport && await tonTransport?.isAppOpen()) {
+    if (await tonTransport?.isAppOpen()) {
       return true;
     }
   } catch {
-    // do nothing
+    // Do nothing
   }
 
-  return await connectLedger() && await waitLedgerTonApp();
+  const isLedgerConnected = await connectLedger();
+  if (!isLedgerConnected) return false;
+
+  try {
+    return await waitLedgerTonApp();
+  } catch (err: any) {
+    if (isLedgerConnectionBroken(err.name)) {
+      return reconnectLedger();
+    }
+
+    throw err;
+  }
 }
 
-export async function connectLedger() {
+export async function connectLedger(preferredTransport?: LedgerTransport) {
+  if (preferredTransport) currentLedgerTransport = preferredTransport;
+
   try {
-    if (await TransportWebHID.isSupported()) {
-      transport = await connectHID();
-    } else if (await TransportWebUSB.isSupported()) {
-      transport = await connectUSB();
-    } else {
-      logDebugError('connectLedger: HID and/or USB are not supported');
+    switch (currentLedgerTransport) {
+      case 'bluetooth':
+        transport = await connectBLE();
+        break;
+
+      case 'usb':
+      default:
+        if (isHidSupported) {
+          transport = await connectHID();
+        } else if (isWebUsbSupported) {
+          transport = await connectWebUsb();
+        }
+        break;
+    }
+
+    if (!transport) {
+      logDebugError('connectLedger: BLE and/or HID are not supported');
       return false;
     }
+
     tonTransport = new TonTransport(transport);
     return true;
   } catch (err) {
@@ -146,18 +241,24 @@ function waitLedgerTonAppDeadline(): Promise<boolean> {
 export async function checkTonApp() {
   for (let i = 0; i < ATTEMPTS; i++) {
     try {
-      const isTonOpen = await tonTransport!.isAppOpen();
+      const isTonOpen = await tonTransport?.isAppOpen();
 
       if (isTonOpen) {
-        // Workaround for Ledger S, this is a way to check if it is unlocked.
-        // There will be an error with code 0x530c
-        await tonTransport?.getAddress(getLedgerAccountPathByIndex(0), {
-          walletVersion: LedgerWalletVersion[DEFAULT_WALLET_VERSION],
-        });
+        if (transport?.deviceModel?.id.startsWith('nanoS')) {
+          // Workaround for Ledger Nano S or Nano S Plus, this is a way to check if it is unlocked.
+          // There will be an error with code 0x530c.
+          await tonTransport?.getAddress(getLedgerAccountPathByIndex(0), {
+            walletVersion: LedgerWalletVersion[DEFAULT_WALLET_VERSION],
+          });
+        }
 
         return true;
       }
     } catch (err: any) {
+      if (isLedgerConnectionBroken(err.name)) {
+        tonTransport = undefined;
+        throw err;
+      }
       if (!err?.message.includes('0x530c')) {
         logDebugError('waitLedgerTonApp', err);
       }
@@ -176,7 +277,15 @@ export function waitLedgerTonApp() {
   ]);
 }
 
-async function connectHID() {
+function connectHID() {
+  if (IS_ANDROID_APP) {
+    return connectCapacitorHID();
+  }
+
+  return connectWebHID();
+}
+
+async function connectWebHID() {
   for (let i = 0; i < ATTEMPTS; i++) {
     const [device] = await TransportWebHID.list();
 
@@ -196,7 +305,7 @@ async function connectHID() {
   throw new Error('Failed to connect');
 }
 
-async function connectUSB() {
+async function connectWebUsb() {
   for (let i = 0; i < ATTEMPTS; i++) {
     const [device] = await TransportWebUSB.list();
 
@@ -214,6 +323,30 @@ async function connectUSB() {
   }
 
   throw new Error('Failed to connect');
+}
+
+async function connectCapacitorHID(): Promise<HIDTransport> {
+  for (let i = 0; i < ATTEMPTS; i++) {
+    const [device] = await listLedgerDevices();
+
+    if (!device) {
+      await pause(PAUSE);
+      continue;
+    }
+
+    return MtwHidTransport.open(device);
+  }
+
+  throw new Error('Failed to connect');
+}
+
+async function connectBLE(): Promise<BleTransport> {
+  if (!BleConnector) {
+    throw new Error('BLE is not supported on this device.');
+  }
+
+  const connection = await BleConnector.connect();
+  return connection.bleTransport;
 }
 
 export async function submitLedgerStake(

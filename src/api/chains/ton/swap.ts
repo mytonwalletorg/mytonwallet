@@ -2,8 +2,10 @@ import type { SwapHistoryRange } from '../../methods';
 import type {
   ApiActivity,
   ApiNetwork,
-  ApiSwapBuildRequest, ApiSwapHistoryItem,
-  ApiTokensTransferPayload, ApiTransaction,
+  ApiSwapBuildRequest,
+  ApiSwapHistoryItem,
+  ApiTokensTransferPayload,
+  ApiTransaction,
   ApiTransactionActivity,
 } from '../../types';
 import type { TonTransferParams } from './types';

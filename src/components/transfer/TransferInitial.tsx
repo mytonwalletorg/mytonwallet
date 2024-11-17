@@ -107,7 +107,7 @@ const TRON_ADDRESS_REGEX = /^T[1-9A-HJ-NP-Za-km-z]{1,33}$/;
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
-const runDebounce = debounce((cb) => cb(), 500, true);
+const runDebounce = debounce((cb) => cb(), 500, false);
 
 function doesSavedAddressFitSearch(savedAddress: SavedAddress, search: string) {
   const searchQuery = search.toLowerCase();
@@ -539,6 +539,7 @@ function TransferInitial({
       const { type, text } = await readClipboardContent();
 
       if (type === 'text/plain') {
+        isDisabledDebounce.current = true;
         setTransferToAddress({ toAddress: text.trim() });
         parseAddressAndUpdateToken(text.trim());
         validateToAddress();
@@ -551,6 +552,7 @@ function TransferInitial({
 
   const handleAddressBookItemClick = useLastCallback(
     (address: string) => {
+      isDisabledDebounce.current = true;
       setTransferToAddress({ toAddress: address });
       parseAddressAndUpdateToken(address);
       closeAddressBook();

@@ -17,14 +17,10 @@ interface OwnProps {
   url: string;
   mode: 'mini' | 'tile';
   origin: string;
+  shouldOpenInAppBrowser: boolean;
 }
 
 const RERENDER_DAPPS_FEED_DELAY_MS = 1000;
-
-const POPULAR_TELEGRAM_DAPPS_BY_URL: Record<string, string> = {
-  'https://onetime.dog': 'https://t.me/dogshouse_bot/join', // https://cdn.onetime.dog/manifest.json
-  'https://hamsterkombatgame.io/': 'https://t.me/hamster_kombat_bot/start', // https://hamsterkombatgame.io/tonconnect-manifest.json
-};
 
 function DappFeedItem({
   iconUrl,
@@ -32,6 +28,7 @@ function DappFeedItem({
   url,
   mode,
   origin,
+  shouldOpenInAppBrowser,
 }: OwnProps) {
   const { updateDappLastOpenedAt } = getActions();
   const lang = useLang();
@@ -59,12 +56,7 @@ function DappFeedItem({
   }
 
   const openDapp = useLastCallback(async () => {
-    const matchedUrl = POPULAR_TELEGRAM_DAPPS_BY_URL[url];
-    if (matchedUrl) {
-      await openUrl(matchedUrl, true);
-    } else {
-      await openUrl(url);
-    }
+    await openUrl(url, shouldOpenInAppBrowser);
     setTimeout(() => void updateDappLastOpenedAt({ origin }), RERENDER_DAPPS_FEED_DELAY_MS);
   });
 

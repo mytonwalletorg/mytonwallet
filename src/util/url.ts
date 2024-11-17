@@ -7,16 +7,18 @@ import { logDebugError } from './logs';
 // Regexp from https://stackoverflow.com/a/3809435
 const URL_REGEX = /[-a-z0-9@:%._+~#=]{1,256}\.[a-z0-9()]{1,6}\b([-a-z0-9()@:%_+.~#?&/=]*)/gi;
 const VALID_PROTOCOLS = new Set(['http:', 'https:']);
+
+// The configuration does not contain data for NFT addresses, they must be configured separately
 const EXPLORER_CONFIGURATIONS = {
   ton: {
-    name: 'Tonviewer',
+    name: 'Tonscan',
     base: {
-      mainnet: 'https://tonviewer.com/',
-      testnet: 'https://testnet.tonviewer.com/',
+      mainnet: 'https://tonscan.org/',
+      testnet: 'https://testnet.tonscan.org/',
     },
-    address: '{base}{address}',
-    explorer: '{base}{address}?section=jetton',
-    transaction: '{base}transaction/{hash}',
+    address: '{base}address/{address}',
+    explorer: '{base}jetton/{address}',
+    transaction: '{base}tx/{hash}',
   },
   tron: {
     name: 'Tronscan',
@@ -90,13 +92,13 @@ export function getExplorerAddressUrl(chain: ApiChain, address?: string, isTestn
 export function getExplorerNftCollectionUrl(nftCollectionAddress?: string, isTestnet?: boolean) {
   if (!nftCollectionAddress) return undefined;
 
-  return `${getExplorerBaseUrl('ton', isTestnet)}${nftCollectionAddress}?section=overview`;
+  return `${getExplorerBaseUrl('ton', isTestnet)}nft/${nftCollectionAddress}`;
 }
 
 export function getExplorerNftUrl(nftAddress?: string, isTestnet?: boolean) {
   if (!nftAddress) return undefined;
 
-  return `${getExplorerBaseUrl('ton', isTestnet)}${nftAddress}?section=nft`;
+  return `${getExplorerBaseUrl('ton', isTestnet)}nft/${nftAddress}`;
 }
 
 export function getExplorerTokenUrl(chain: ApiChain, slug?: string, address?: string, isTestnet?: boolean) {

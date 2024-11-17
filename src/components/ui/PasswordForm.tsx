@@ -30,7 +30,7 @@ import PinPad from './PinPad';
 import modalStyles from './Modal.module.scss';
 import styles from './PasswordForm.module.scss';
 
-type OperationType = 'transfer' | 'sending' | 'staking' | 'unstaking' | 'swap' | 'unfreeze' | 'passcode';
+type OperationType = 'transfer' | 'sending' | 'staking' | 'unstaking' | 'swap' | 'unfreeze' | 'passcode' | 'unlock';
 
 interface OwnProps {
   isActive: boolean;
@@ -42,10 +42,14 @@ interface OwnProps {
   placeholder?: string;
   error?: string;
   help?: string;
+  resetStateDelayMs?: number;
   containerClassName?: string;
   withCloseButton?: boolean;
   children?: TeactNode;
-  onCancel: NoneToVoidFunction;
+  noAnimatedIcon?: boolean;
+  inputWrapperClassName?: string;
+  forceBiometricsInMain?: boolean;
+  onCancel?: NoneToVoidFunction;
   onUpdate: NoneToVoidFunction;
   onSubmit: (password: string) => void;
 }
@@ -74,9 +78,13 @@ function PasswordForm({
   placeholder = 'Enter your password',
   error,
   help,
+  resetStateDelayMs,
   containerClassName,
   children,
   withCloseButton,
+  noAnimatedIcon,
+  inputWrapperClassName,
+  forceBiometricsInMain,
   onUpdate,
   onCancel,
   onSubmit,
@@ -107,11 +115,7 @@ function PasswordForm({
       const biometricPassword = await authApi.getPassword(authConfig!);
       if (!biometricPassword) {
         setWrongAttempts(wrongAttempts + 1);
-        setLocalError(
-          operationType === 'transfer'
-            ? 'Declined. Please try to confirm transaction using biometrics again.'
-            : 'Declined. Please try to confirm operation using biometrics again.',
-        );
+        setLocalError('Biometric confirmation failed');
 
         if (IS_ANDROID_APP && wrongAttempts > 2) {
           openResetBiometricsWarning();
@@ -125,7 +129,7 @@ function PasswordForm({
   });
 
   useEffect(() => {
-    if (IS_DELEGATING_BOTTOM_SHEET || !isActive || !isBiometricAuthEnabled) {
+    if ((IS_DELEGATING_BOTTOM_SHEET && !forceBiometricsInMain) || !isActive || !isBiometricAuthEnabled) {
       return;
     }
 
@@ -133,7 +137,7 @@ function PasswordForm({
       await pause(APPEAR_ANIMATION_DURATION_MS);
       void handleBiometrics();
     })();
-  }, [handleBiometrics, isActive, isBiometricAuthEnabled]);
+  }, [forceBiometricsInMain, handleBiometrics, isActive, isBiometricAuthEnabled]);
 
   useFocusAfterAnimation(passwordRef, !isActive || isBiometricAuthEnabled);
 
@@ -180,6 +184,8 @@ function PasswordForm({
         return 'Confirm Unstaking';
       case 'swap':
         return 'Confirm Swap';
+      case 'unlock':
+        return undefined;
       default:
         return 'Confirm Action';
     }
@@ -212,7 +218,7 @@ function PasswordForm({
           </Button>
         )}
         <div className={styles.pinPadHeader}>
-          {isPortrait && (
+          {isPortrait && !noAnimatedIcon && (
             <AnimatedIconWithPreview
               play={isActive}
               tgsUrl={ANIMATED_STICKERS_PATHS.guard}
@@ -221,15 +227,16 @@ function PasswordForm({
               nonInteractive
             />
           )}
-          {!isSmallHeight && <div className={styles.title}>{lang(title)}</div>}
+          {!isSmallHeight && title && <div className={styles.title}>{lang(title)}</div>}
           {children}
         </div>
 
         <PinPad
           isActive={isActive}
-          title={lang(hasError ? (localError || error!) : (isSmallHeight ? title : actionName))}
+          title={lang(hasError ? (localError || error!) : (isSmallHeight && title ? title : actionName))}
           type={hasError ? 'error' : undefined}
           length={PIN_LENGTH}
+          resetStateDelayMs={resetStateDelayMs}
           value={password}
           onBiometricsClick={isNativeBiometricAuthEnabled ? handleBiometrics : undefined}
           onChange={setPassword}
@@ -264,6 +271,7 @@ function PasswordForm({
           type="password"
           isRequired
           id="first-password"
+          wrapperClassName={inputWrapperClassName}
           inputMode={isPasswordNumeric ? 'numeric' : undefined}
           error={error ? lang(error) : localError}
           placeholder={lang(placeholder)}
@@ -281,23 +289,31 @@ function PasswordForm({
     );
   }
 
+  const shouldRenderFullWidthButton = operationType === 'unlock';
+
   return (
     <div className={buildClassName(modalStyles.transitionContent, containerClassName)}>
-      <AnimatedIconWithPreview
-        tgsUrl={ANIMATED_STICKERS_PATHS.holdTon}
-        previewUrl={ANIMATED_STICKERS_PATHS.holdTonPreview}
-        play={isActive}
-        size={stickerSize}
-        nonInteractive
-        noLoop={false}
-        className={styles.sticker}
-      />
+      {!noAnimatedIcon && (
+        <AnimatedIconWithPreview
+          tgsUrl={ANIMATED_STICKERS_PATHS.holdTon}
+          previewUrl={ANIMATED_STICKERS_PATHS.holdTonPreview}
+          play={isActive}
+          size={stickerSize}
+          nonInteractive
+          noLoop={false}
+          className={styles.sticker}
+        />
+      )}
 
       {children}
 
       {isBiometricAuthEnabled ? renderBiometricPrompt() : renderPasswordForm()}
 
-      <div className={modalStyles.footerButtons}>
+      <div
+        className={
+          buildClassName(modalStyles.footerButtons, shouldRenderFullWidthButton && modalStyles.footerButtonFullWidth)
+        }
+      >
         {onCancel && (
           <Button
             onClick={isBiometricAuthEnabled && isLoading ? undefined : onCancel}
@@ -325,7 +341,7 @@ function PasswordForm({
             isLoading={isLoading}
             isDisabled={isSubmitDisabled}
             onClick={!isLoading ? handleSubmit : undefined}
-            className={modalStyles.buttonHalfWidth}
+            className={!shouldRenderFullWidthButton ? modalStyles.buttonHalfWidth : modalStyles.buttonFullWidth}
           >
             {submitLabel || lang('Send')}
           </Button>

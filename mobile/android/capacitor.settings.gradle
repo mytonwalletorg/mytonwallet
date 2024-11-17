@@ -2,6 +2,9 @@
 include ':capacitor-android'
 project(':capacitor-android').projectDir = new File('../../node_modules/@capacitor/android/capacitor')
 
+include ':capacitor-community-bluetooth-le'
+project(':capacitor-community-bluetooth-le').projectDir = new File('../../node_modules/@capacitor-community/bluetooth-le/android')
+
 include ':capacitor-mlkit-barcode-scanning'
 project(':capacitor-mlkit-barcode-scanning').projectDir = new File('../../node_modules/@capacitor-mlkit/barcode-scanning/android')
 
@@ -37,6 +40,9 @@ project(':capacitor-native-settings').projectDir = new File('../../node_modules/
 
 include ':capacitor-plugin-safe-area'
 project(':capacitor-plugin-safe-area').projectDir = new File('../../node_modules/capacitor-plugin-safe-area/android')
+
+include ':mtw-capacitor-usb-hid'
+project(':mtw-capacitor-usb-hid').projectDir = new File('../../node_modules/mtw-capacitor-usb-hid/android')
 
 include ':native-dialog'
 project(':native-dialog').projectDir = new File('../plugins/native-dialog/android')

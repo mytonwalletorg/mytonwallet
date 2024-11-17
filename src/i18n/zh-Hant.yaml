@@ -150,7 +150,6 @@ No NFTs yet: 尚未有 NFT
 $nft_explore_offer: |
   探索市場來尋找現有的 NFT 收藏.
 Open Getgems: 開啟 Getgems
-Transaction is not completed: 交易未完成
 Received: 已收到
 Sent: 已送出
 $transaction_from: 從 %address%
@@ -493,7 +492,7 @@ Are you sure you want to disable Face ID?: 您確定要禁用Face ID嗎？
 Are you sure you want to disable Touch ID?: 您確定要禁用Touch ID嗎？
 Are you sure you want to disable biometrics?: 您確定要禁用生物識別技術嗎？
 Yes: 是的
-Declined. Please try to confirm transaction using biometrics again.: 拒絕了。 請嘗試再次使用生物辨識技術確認交易。
+Biometric confirmation failed: 生物辨識確認失敗
 No Activity: 無活動
 Add / Buy: 添加 / 購買
 Buy with Card: 用卡購買
@@ -503,7 +502,6 @@ Explore: 探索
 No partners yet: 還沒有伴侶
 Clear: 清除
 Get TON: 獲取TON
-Declined. Please try to confirm operation using biometrics again.: 拒絕了。 請再次嘗試使用生物辨識來確認操作。
 $unstake_up_to_information: 即時 – 高達 %value%
 $all_balance: "全部: %balance%"
 $unstaking_not_enough_balance: 您需要在您的主要余额中有 %value% 才能继续进行解押。
@@ -659,10 +657,13 @@ Enter Secret Words: 輸入密語
 Turn this off so you can manually download updates and verify signatures.: 關閉此功能以手動下載更新並驗證簽名。
 InvalidMnemonic: 您的助記詞無效
 NFT Menu: NFT選單
-Wallets will not be locked.: 錢包不會被鎖定。
-Wallets will be automatically locked after 30 seconds of inactivity.: 錢包將在30秒不活動後自動鎖定。
-Wallets will be automatically locked after 3 minutes of inactivity.: 錢包將在3分鐘不活動後自動鎖定。
-Wallets will be automatically locked after 30 minutes of inactivity.: 錢包將在30分鐘不活動後自動鎖定。
+Connection Type: 連接類型
+Ledger is not supported on this device: 此設備不支持 Ledger
+Connect your Ledger: 連接您的 Ledger
+App will not be locked.: 應用程式不會被鎖定。
+App will be automatically locked after 30 seconds of inactivity.: 應用程式將在 30 秒無操作後自動鎖定。
+App will be automatically locked after 3 minutes of inactivity.: 應用程式將在 3 分鐘無操作後自動鎖定。
+App will be automatically locked after 30 minutes of inactivity.: 應用程式將在 30 分鐘無操作後自動鎖定。
 Auto-Lock: 自動鎖定
 Never: 從不
 30 seconds: 30秒

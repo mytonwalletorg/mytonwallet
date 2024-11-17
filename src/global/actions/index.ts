@@ -18,3 +18,4 @@ import './ui/swap';
 import './ui/nfts';
 import './ui/vesting';
 import './ui/tokens';
+import './ui/shared';

@@ -12,3 +12,5 @@ export interface LedgerWalletInfo {
   deviceId?: string;
   deviceName?: string;
 }
+
+export type LedgerTransport = 'usb' | 'bluetooth';

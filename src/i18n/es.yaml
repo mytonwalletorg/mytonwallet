@@ -155,7 +155,6 @@ $nft_explore_offer: |
   Explore los mercados para descubrir
   nuevas colecciones NFT.
 Open Getgems: Abrir Getgems
-Transaction is not completed: La transacción no se ha completado
 Received: Recibido
 Sent: Enviado
 $transaction_from: de %address%
@@ -504,7 +503,7 @@ Are you sure you want to disable Face ID?: ¿Estás seguro de que quieres deshab
 Are you sure you want to disable Touch ID?: ¿Estás seguro de que quieres deshabilitar Touch ID?
 Are you sure you want to disable biometrics?: ¿Estás seguro de que quieres deshabilitar la biometría?
 Yes: Sí
-Declined. Please try to confirm transaction using biometrics again.: Rechazado. Intente confirmar la transacción nuevamente utilizando datos biométricos.
+Biometric confirmation failed: La confirmación biométrica ha fallado
 No Activity: Sin Actividad
 Add / Buy: Recargar
 Buy with Card: Comprar con Tarjeta
@@ -514,7 +513,6 @@ Explore: Explorar
 No partners yet: No hay socios todavía
 Clear: Borrar
 Get TON: Obtener TON
-Declined. Please try to confirm operation using biometrics again.: Rechazado. Intente confirmar la operación nuevamente utilizando datos biométricos.
 $unstake_up_to_information: Al instante – hasta %value%
 $all_balance: "Todo: %balance%"
 $unstaking_not_enough_balance: Necesitas tener %value% en tu saldo principal para proceder con el desbloqueo.
@@ -671,10 +669,13 @@ Enter Secret Words: Ingresar Palabras Secretas
 Turn this off so you can manually download updates and verify signatures.: Desactiva esto para poder descargar manualmente las actualizaciones y verificar las firmas.
 InvalidMnemonic: Tus palabras mnemónicas son inválidas
 NFT Menu: Menú NFT
-Wallets will not be locked.: Las billeteras no se bloquearán.
-Wallets will be automatically locked after 30 seconds of inactivity.: Las billeteras se bloquearán automáticamente después de 30 segundos de inactividad.
-Wallets will be automatically locked after 3 minutes of inactivity.: Las billeteras se bloquearán automáticamente después de 3 minutos de inactividad.
-Wallets will be automatically locked after 30 minutes of inactivity.: Las billeteras se bloquearán automáticamente después de 30 minutos de inactividad.
+Connection Type: Tipo de conexión
+Ledger is not supported on this device: Ledger no es compatible con este dispositivo
+Connect your Ledger: Conecta tu Ledger
+App will not be locked.: La aplicación no se bloqueará.
+App will be automatically locked after 30 seconds of inactivity.: La aplicación se bloqueará automáticamente después de 30 segundos de inactividad.
+App will be automatically locked after 3 minutes of inactivity.: La aplicación se bloqueará automáticamente después de 3 minutos de inactividad.
+App will be automatically locked after 30 minutes of inactivity.: La aplicación se bloqueará automáticamente después de 30 minutos de inactividad.
 Auto-Lock: Bloqueo automático
 Never: Nunca
 30 seconds: 30 segundos

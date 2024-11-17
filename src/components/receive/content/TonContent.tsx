@@ -67,7 +67,10 @@ function TonContent({
       />
 
       {isLedger && (
-        <div className={buildClassName(styles.contentTitle, styles.contentTitleLedger)}>
+        <div className={buildClassName(
+          styles.contentTitle, styles.contentTitleLedger, isStatic && styles.contentTitleLedgerStatic,
+        )}
+        >
           {renderText(lang('$ledger_verify_address'))}
           {' '}
           <a href="#" onClick={handleVerify} className={styles.dottedLink}>

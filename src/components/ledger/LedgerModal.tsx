@@ -32,6 +32,7 @@ type StateProps = {
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isRemoteTab?: boolean;
+  areSettingsOpen?: boolean;
 };
 
 enum LedgerModalState {
@@ -49,6 +50,7 @@ function LedgerModal({
   isLedgerConnected,
   isTonAppConnected,
   isRemoteTab,
+  areSettingsOpen,
 }: OwnProps & StateProps) {
   const {
     afterSelectHardwareWallets,
@@ -113,7 +115,7 @@ function LedgerModal({
       isOpen={isOpen}
       onClose={onClose}
       onCloseAnimationEnd={handleLedgerModalClose}
-      dialogClassName={styles.modalDialog}
+      dialogClassName={buildClassName(styles.modalDialog, areSettingsOpen && styles.modalDialogInsideSettings)}
     >
       <Transition
         name={resolveModalTransitionName()}
@@ -146,5 +148,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isLedgerConnected,
     isTonAppConnected,
     isRemoteTab,
+    areSettingsOpen: global.areSettingsOpen,
   };
 })(LedgerModal));

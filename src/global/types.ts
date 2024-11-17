@@ -15,6 +15,7 @@ import type {
   ApiNft,
   ApiParsedPayload,
   ApiPriceHistoryPeriod,
+  ApiSignedTransfer,
   ApiSite,
   ApiStakingHistory,
   ApiStakingType,
@@ -30,8 +31,9 @@ import type {
   ApiVestingInfo,
   ApiWalletInfo,
 } from '../api/types';
+import type { AUTOLOCK_OPTIONS_LIST } from '../config';
 import type { AuthConfig } from '../util/authApi/types';
-import type { LedgerWalletInfo } from '../util/ledger/types';
+import type { LedgerTransport, LedgerWalletInfo } from '../util/ledger/types';
 
 export type IAnchorPosition = {
   x: number;
@@ -425,6 +427,8 @@ export type GlobalState = {
     isRemoteTab?: boolean;
     isLedgerConnected?: boolean;
     isTonAppConnected?: boolean;
+    availableTransports?: LedgerTransport[];
+    lastUsedTransport?: LedgerTransport;
   };
 
   currentTransfer: {
@@ -595,6 +599,7 @@ export type GlobalState = {
     };
     authConfig?: AuthConfig;
     baseCurrency?: ApiBaseCurrency;
+    autolockValue?: AutolockValueType;
   };
 
   dialogs: DialogType[];
@@ -636,6 +641,8 @@ export type GlobalState = {
     supportAccountsCount?: number;
     countryCode?: ApiCountryCode;
   };
+
+  dappOriginReplacements?: Record<string, string>;
 
   mediaViewer: {
     mediaId?: string;
@@ -682,9 +689,13 @@ export interface ActionPayloads {
   closeAbout: undefined;
   openAuthBackupWalletModal: undefined;
   closeAuthBackupWalletModal: { isBackupCreated?: boolean } | undefined;
-  initializeHardwareWalletConnection: undefined;
-  connectHardwareWallet: undefined;
+  initializeHardwareWalletModal: undefined;
+  initializeHardwareWalletConnection: { transport: LedgerTransport };
+  connectHardwareWallet: { transport?: LedgerTransport; noRetry?: boolean };
   createHardwareAccounts: undefined;
+  addHardwareAccounts: {
+    wallets: ({ accountId: string; address: string; walletInfo: LedgerWalletInfo } | undefined)[];
+  };
   loadMoreHardwareWallets: { lastIndex: number };
   createAccount: { password: string; isImporting: boolean; isPasswordNumeric?: boolean; version?: ApiTonWalletVersion };
   afterSelectHardwareWallets: { hardwareSelectedIndices: number[] };
@@ -867,10 +878,12 @@ export interface ActionPayloads {
   changeBaseCurrency: { currency: ApiBaseCurrency };
   clearNativeBiometricsError: undefined;
   copyStorageData: undefined;
+  setAutolockValue: { value: AutolockValueType };
 
   // TON Connect
   submitDappConnectRequestConfirm: { accountId: string; password?: string };
   submitDappConnectRequestConfirmHardware: { accountId: string };
+  submitDappConnectHardware: { accountId: string; signature: string };
   clearDappConnectRequestError: undefined;
   cancelDappConnectRequestConfirm: undefined;
   setDappConnectRequestState: { state: DappConnectState };
@@ -880,6 +893,7 @@ export interface ActionPayloads {
   submitDappTransferConfirm: undefined;
   submitDappTransferPassword: { password: string };
   submitDappTransferHardware: undefined;
+  submitDappTransferHardware2: { signedMessages: ApiSignedTransfer[] };
   cancelDappTransfer: undefined;
   closeDappTransfer: undefined;
 
@@ -887,6 +901,7 @@ export interface ActionPayloads {
   deleteAllDapps: undefined;
   deleteDapp: { origin: string };
   loadExploreSites: undefined;
+  loadDappOriginReplacements: undefined;
   updateDappLastOpenedAt: { origin: string };
 
   addSiteToBrowserHistory: { url: string };
@@ -963,9 +978,13 @@ export interface ActionPayloads {
   submitClaimingVestingHardware: undefined;
   clearVestingError: undefined;
   cancelClaimingVesting: undefined;
+
+  submitAppLockActivityEvent: undefined;
 }
 
 export enum LoadMoreDirection {
   Forwards,
   Backwards,
 }
+
+export type AutolockValueType = (typeof AUTOLOCK_OPTIONS_LIST[number])['value'];

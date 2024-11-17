@@ -22,6 +22,7 @@ interface OwnProps {
   type?: 'error' | 'success';
   value: string;
   length?: number;
+  resetStateDelayMs?: number;
   className?: string;
   isMinified?: boolean;
   onBiometricsClick?: NoneToVoidFunction;
@@ -42,6 +43,7 @@ function PinPad({
   title,
   type,
   value,
+  resetStateDelayMs = RESET_STATE_DELAY_MS,
   length = DEFAULT_PIN_LENGTH,
   onBiometricsClick,
   isPinAccepted,
@@ -96,13 +98,13 @@ function PinPad({
         onChange('');
       }
       onClearError?.();
-    }, RESET_STATE_DELAY_MS);
+    }, resetStateDelayMs);
     void vibrateOnError();
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [length, onChange, onClearError, type, value.length]);
+  }, [length, onChange, onClearError, resetStateDelayMs, type, value.length]);
 
   const handleClick = useLastCallback((char: string) => {
     if (value.length === length || value.length === 0) {
@@ -194,5 +196,10 @@ export default memo(withGlobal<OwnProps>(
     return {
       isPinAccepted,
     };
+  },
+  (global, _, stickToFirst) => {
+    const { isPinAccepted } = global;
+
+    return stickToFirst(isPinAccepted);
   },
 )(PinPad));

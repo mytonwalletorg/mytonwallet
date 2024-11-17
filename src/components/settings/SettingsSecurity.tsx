@@ -3,10 +3,16 @@ import { Dialog } from 'native-dialog';
 import React, { memo, useLayoutEffect, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import type { AutolockValueType } from '../../global/types';
 import { SettingsState } from '../../global/types';
 
 import {
-  ANIMATED_STICKER_BIG_SIZE_PX, ANIMATED_STICKER_HUGE_SIZE_PX, ANIMATED_STICKER_SMALL_SIZE_PX, IS_CAPACITOR, PIN_LENGTH,
+  ANIMATED_STICKER_BIG_SIZE_PX,
+  ANIMATED_STICKER_HUGE_SIZE_PX,
+  ANIMATED_STICKER_SMALL_SIZE_PX,
+  AUTOLOCK_OPTIONS_LIST,
+  IS_CAPACITOR,
+  PIN_LENGTH,
 } from '../../config';
 import { selectIsPasswordPresent } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -28,6 +34,7 @@ import useScrolledState from '../../hooks/useScrolledState';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import CreatePasswordForm from '../ui/CreatePasswordForm';
+import Dropdown, { type DropdownItem } from '../ui/Dropdown';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
 import PinPad from '../ui/PinPad';
@@ -65,9 +72,12 @@ interface StateProps {
   isNativeBiometricAuthEnabled: boolean;
   isPasswordNumeric?: boolean;
   isPasswordPresent: boolean;
+  autolockValue?: AutolockValueType;
 }
 
 const INITIAL_CHANGE_PASSWORD_SLIDE = IS_CAPACITOR ? SLIDES.createNewPin : SLIDES.newPassword;
+
+const DEFAULT_AUTOLOCK_OPTION: AutolockValueType = 'never';
 
 function SettingsSecurity({
   isActive,
@@ -77,6 +87,7 @@ function SettingsSecurity({
   isNativeBiometricAuthEnabled,
   isPasswordNumeric,
   isPasswordPresent,
+  autolockValue = DEFAULT_AUTOLOCK_OPTION,
   isAutoUpdateEnabled,
   onAutoUpdateEnabledToggle,
 }: OwnProps & StateProps) {
@@ -88,6 +99,7 @@ function SettingsSecurity({
     openBiometricsTurnOffWarning,
     openBiometricsTurnOn,
     setSettingsState,
+    setAutolockValue,
   } = getActions();
 
   const lang = useLang();
@@ -242,6 +254,24 @@ function SettingsSecurity({
   const shouldRenderNativeBiometrics = isPasswordPresent && (getIsNativeBiometricAuthSupported() || IS_IOS_APP);
   const shouldRenderMinifiedPinPad = isInsideModal && IS_CAPACITOR;
 
+  function getAutolockDescription() {
+    switch (autolockValue) {
+      case 'never':
+        return lang('App will not be locked.');
+      case '1':
+        return lang('App will be automatically locked after 30 seconds of inactivity.');
+      case '2':
+        return lang('App will be automatically locked after 3 minutes of inactivity.');
+      case '3':
+        return lang('App will be automatically locked after 30 minutes of inactivity.');
+    }
+    return undefined;
+  }
+
+  const handleAutolockChange = useLastCallback((value: string) => {
+    setAutolockValue({ value: value as AutolockValueType });
+  });
+
   function renderSettings() {
     return (
       <div className={styles.slide}>
@@ -303,6 +333,23 @@ function SettingsSecurity({
                 </Button>
               </div>
               <p className={styles.blockDescription}>{lang('The passcode will be changed for all your wallets.')}</p>
+            </>
+          )}
+
+          {isPasswordPresent && (
+            <>
+              <div className={buildClassName(styles.block, styles.settingsBlockWithDescription)}>
+                <Dropdown
+                  label={lang('Auto-Lock')}
+                  items={AUTOLOCK_OPTIONS_LIST as unknown as DropdownItem[]}
+                  selectedValue={autolockValue}
+                  theme="light"
+                  shouldTranslateOptions
+                  className={buildClassName(styles.item, styles.item_small)}
+                  onChange={handleAutolockChange}
+                />
+              </div>
+              <p className={styles.blockDescription}>{getAutolockDescription()}</p>
             </>
           )}
 
@@ -552,14 +599,16 @@ function SettingsSecurity({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { isPasswordNumeric, authConfig } = global.settings;
+  const { isPasswordNumeric, authConfig, autolockValue } = global.settings;
   const isBiometricAuthEnabled = !!authConfig && authConfig.kind !== 'password';
   const isNativeBiometricAuthEnabled = !!authConfig && authConfig.kind === 'native-biometrics';
   const isPasswordPresent = selectIsPasswordPresent(global);
+
   return {
     isBiometricAuthEnabled,
     isNativeBiometricAuthEnabled,
     isPasswordNumeric,
     isPasswordPresent,
+    autolockValue,
   };
 })(SettingsSecurity));

@@ -156,7 +156,6 @@ $nft_explore_offer: |
   Explore a marketplace to discover
   existing NFT collections.
 Open Getgems: Open Getgems
-Transaction is not completed: Transaction is not completed
 Received: Received
 Sent: Sent
 $transaction_from: from %address%
@@ -505,7 +504,7 @@ Are you sure you want to disable Face ID?: Are you sure you want to disable Face
 Are you sure you want to disable Touch ID?: Are you sure you want to disable Touch ID?
 Are you sure you want to disable biometrics?: Are you sure you want to disable biometrics?
 Yes: Yes
-Declined. Please try to confirm transaction using biometrics again.: Declined. Please try to confirm transaction using biometrics again.
+Biometric confirmation failed: Biometric confirmation failed
 No Activity: No Activity
 Add / Buy: Add / Buy
 Buy with Card: Buy with Card
@@ -515,7 +514,6 @@ Explore: Explore
 No partners yet: No partners yet
 Clear: Clear
 Get TON: Get TON
-Declined. Please try to confirm operation using biometrics again.: Declined. Please try to confirm operation using biometrics again.
 $unstake_up_to_information: Instantly – up to %value%
 $all_balance: "All: %balance%"
 $unstaking_not_enough_balance: You need to have %value% on your main balance to proceed with unstaking.
@@ -673,10 +671,13 @@ Enter Secret Words: Enter Secret Words
 Turn this off so you can manually download updates and verify signatures.: Turn this off so you can manually download updates and verify signatures.
 InvalidMnemonic: Your mnemonic words are invalid
 NFT Menu: NFT Menu
-Wallets will not be locked.: Wallets will not be locked.
-Wallets will be automatically locked after 30 seconds of inactivity.: Wallets will be automatically locked after 30 seconds of inactivity.
-Wallets will be automatically locked after 3 minutes of inactivity.: Wallets will be automatically locked after 3 minutes of inactivity.
-Wallets will be automatically locked after 30 minutes of inactivity.: Wallets will be automatically locked after 30 minutes of inactivity.
+Connection Type: Connection Type
+Ledger is not supported on this device: Ledger is not supported on this device
+Connect your Ledger: Connect your Ledger
+App will not be locked.: App will not be locked.
+App will be automatically locked after 30 seconds of inactivity.: App will be automatically locked after 30 seconds of inactivity.
+App will be automatically locked after 3 minutes of inactivity.: App will be automatically locked after 3 minutes of inactivity.
+App will be automatically locked after 30 minutes of inactivity.: App will be automatically locked after 30 minutes of inactivity.
 Auto-Lock: Auto-Lock
 Never: Never
 30 seconds: 30 seconds

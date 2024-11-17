@@ -168,6 +168,11 @@
   flex-grow: 1;
 
   margin: 0 -0.75rem;
+  margin-inline-end: calc(-0.75rem + var(--scrollbar-width));
 
   background: var(--color-background-first);
+
+  @supports (margin-inline-end: max(0px, 1px)) {
+    margin-inline-end: max(-0.75rem, calc(-0.75rem + var(--scrollbar-width)));
+  }
 }

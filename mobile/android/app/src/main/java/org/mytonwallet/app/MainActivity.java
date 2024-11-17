@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -17,11 +19,15 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 
+import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
+
+import java.util.Date;
 
 public class MainActivity extends BridgeActivity {
   private boolean keep = true;
   private final int DELAY = 1000;
+  private long lastTouchEventTimestamp = 0;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -89,5 +95,28 @@ public class MainActivity extends BridgeActivity {
     WindowInsetsControllerCompat windowInsetsControllerCompat = WindowCompat.getInsetsController(window, decorView);
     windowInsetsControllerCompat.setAppearanceLightStatusBars(!style.equals("DARK"));
     windowInsetsControllerCompat.setAppearanceLightNavigationBars(!style.equals("DARK"));
+  }
+
+  @Override
+  public boolean dispatchTouchEvent(MotionEvent event) {
+    triggerTouchEvent();
+    return super.dispatchTouchEvent(event);
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    triggerTouchEvent();
+    return super.dispatchKeyEvent(event);
+  }
+
+  private void triggerTouchEvent() {
+    Bridge bridge = getBridge();
+    if (bridge == null)
+      return;
+    long now = new Date().getTime();
+    if (now < lastTouchEventTimestamp + 5000)
+      return;
+    lastTouchEventTimestamp = now;
+    bridge.triggerWindowJSEvent("touch");
   }
 }

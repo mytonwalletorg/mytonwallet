@@ -71,7 +71,9 @@ function LedgerConfirmOperation({
             <span className={styles.text}>{text}</span>
           </div>
           <div className={buildClassName(styles.actionBlock, styles.actionBlock_single)}>
-            <Button onClick={onClose} className={styles.button}>{lang('Cancel')}</Button>
+            <Button onClick={onClose} className={buildClassName(styles.button, styles.button_single)}>
+              {lang('Cancel')}
+            </Button>
           </div>
         </div>
       </>

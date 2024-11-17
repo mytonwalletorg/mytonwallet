@@ -23,6 +23,8 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
     var currentHalfY: CGFloat?
     var prevStatusBarStyle: UIStatusBarStyle?
     public var isHalfSize = false
+    public var wasFullScreenBeforeHiding = false
+    public var halfSizeAddedTemporarily = false
 
     @objc func prepare(_ call: CAPPluginCall) {
         ensureLocalOrigin()
@@ -103,6 +105,28 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
         }
     }
 
+    @objc func hide(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [self] in
+            self.fpc.view.alpha = 0
+            if self.fpc.state == .full {
+                wasFullScreenBeforeHiding = true
+                set(halfSize: true, animated: false)
+            }
+            call.resolve()
+        }
+    }
+    
+    @objc func show(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [self] in
+            self.fpc.view.alpha = 1
+            if wasFullScreenBeforeHiding {
+                set(halfSize: false, animated: false)
+                wasFullScreenBeforeHiding = false
+            }
+            call.resolve()
+        }
+    }
+
     @objc func applyScrollPatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [self] in
             guard let topVc = bridge?.viewController?.parent?.presentingViewController as? CAPBridgeViewController else {
@@ -116,7 +140,10 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
 
     @objc func clearScrollPatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async { [self] in
-            let topVc = bridge!.viewController!.parent!.presentingViewController as! CAPBridgeViewController
+            guard let topVc = bridge?.viewController?.parent?.presentingViewController as? CAPBridgeViewController else {
+                call.resolve()
+                return
+            }
             let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
             call.resolve()
         }
@@ -190,6 +217,29 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
             let topBottomSheetPlugin = topVc.bridge!.plugin(withName: "BottomSheet") as! BottomSheetPlugin
             topBottomSheetPlugin.doClose()
         }
+    }
+
+    private func set(halfSize: Bool, animated: Bool) {
+        let layout = fpc.layout as! MyPanelLayout
+        
+        if halfSize {
+            if layout.anchors[.half] == nil {
+                layout.anchors[.half] = FloatingPanelLayoutAnchor(fractionalInset: 0.5, edge: .bottom, referenceGuide: .superview)
+                halfSizeAddedTemporarily = true
+            } else {
+                halfSizeAddedTemporarily = false
+            }
+        } else if !halfSize, halfSizeAddedTemporarily {
+            layout.anchors[.half] = nil
+        }
+
+        if !halfSize && layout.anchors[.full] == nil {
+            layout.anchors[.full] = layout.fullAnchor
+        } else if halfSize && layout.anchors[.full] != nil {
+            layout.anchors[.full] = nil
+        }
+        
+        animateTo(to: halfSize ? .half : .full, duration: animated ? nil : 0)
     }
 
     @objc func toggleSelfFullSize(_ call: CAPPluginCall) {
@@ -294,13 +344,13 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
         childBottomSheetPlugin.currentOpenSelfCall = nil
     }
 
-    private func animateTo(to: FloatingPanelState) {
+    private func animateTo(to: FloatingPanelState, duration: Double? = nil) {
         if to == .half && fpc.layout.anchors[.half] == nil {
             return
         }
 
         let timing = UICubicTimingParameters(controlPoint1: EASING_1, controlPoint2: EASING_2)
-        let animator = UIViewPropertyAnimator(duration: ANIMATION_DURATION, timingParameters: timing)
+        let animator = UIViewPropertyAnimator(duration: duration ?? ANIMATION_DURATION, timingParameters: timing)
         fpc.isAnimating = true
 
         animator.addAnimations { [self] in

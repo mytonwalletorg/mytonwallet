@@ -7,6 +7,8 @@ PODS:
     - Capacitor
   - CapacitorClipboard (6.0.1):
     - Capacitor
+  - CapacitorCommunityBluetoothLe (6.0.1):
+    - Capacitor
   - CapacitorCordova (6.1.2)
   - CapacitorFilesystem (6.0.1):
     - Capacitor
@@ -85,6 +87,8 @@ PODS:
     - GTMSessionFetcher/Core (< 4.0, >= 1.1)
     - MLImage (= 1.0.0-beta5)
     - MLKitCommon (~> 10.0)
+  - MtwCapacitorUsbHid (0.0.1):
+    - Capacitor
   - nanopb (2.30910.0):
     - nanopb/decode (= 2.30910.0)
     - nanopb/encode (= 2.30910.0)
@@ -107,6 +111,7 @@ DEPENDENCIES:
   - "CapacitorApp (from `../../../node_modules/@capacitor/app`)"
   - "CapacitorAppLauncher (from `../../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorClipboard (from `../../../node_modules/@capacitor/clipboard`)"
+  - "CapacitorCommunityBluetoothLe (from `../../../node_modules/@capacitor-community/bluetooth-le`)"
   - "CapacitorCordova (from `../../../node_modules/@capacitor/ios`)"
   - "CapacitorFilesystem (from `../../../node_modules/@capacitor/filesystem`)"
   - "CapacitorHaptics (from `../../../node_modules/@capacitor/haptics`)"
@@ -118,8 +123,9 @@ DEPENDENCIES:
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
   - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
-  - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `124f09299ee26544cad45f95f2e3cb085b76f11a`)
+  - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `f58a8b94008540e680faba61867debf8b3cec682`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
+  - MtwCapacitorUsbHid (from `../../../node_modules/mtw-capacitor-usb-hid`)
   - NativeBottomSheet (from `../../plugins/native-bottom-sheet`)
   - NativeDialog (from `../../plugins/native-dialog`)
   - "SinaKhMtwCapacitorSplashScreen (from `../../../node_modules/@sina_kh/mtw-capacitor-splash-screen`)"
@@ -150,6 +156,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/app-launcher"
   CapacitorClipboard:
     :path: "../../../node_modules/@capacitor/clipboard"
+  CapacitorCommunityBluetoothLe:
+    :path: "../../../node_modules/@capacitor-community/bluetooth-le"
   CapacitorCordova:
     :path: "../../../node_modules/@capacitor/ios"
   CapacitorFilesystem:
@@ -173,10 +181,12 @@ EXTERNAL SOURCES:
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
   FloatingPanel:
-    :commit: 124f09299ee26544cad45f95f2e3cb085b76f11a
+    :commit: f58a8b94008540e680faba61867debf8b3cec682
     :git: https://github.com/mytonwalletorg/FloatingPanel
   MauricewegnerCapacitorNavigationBar:
     :path: "../../../node_modules/@mauricewegner/capacitor-navigation-bar"
+  MtwCapacitorUsbHid:
+    :path: "../../../node_modules/mtw-capacitor-usb-hid"
   NativeBottomSheet:
     :path: "../../plugins/native-bottom-sheet"
   NativeDialog:
@@ -188,7 +198,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FloatingPanel:
-    :commit: 124f09299ee26544cad45f95f2e3cb085b76f11a
+    :commit: f58a8b94008540e680faba61867debf8b3cec682
     :git: https://github.com/mytonwalletorg/FloatingPanel
 
 SPEC CHECKSUMS:
@@ -196,6 +206,7 @@ SPEC CHECKSUMS:
   CapacitorApp: 0bc633b4eae40a1f32cd2834788fad3bc42da6a1
   CapacitorAppLauncher: 9ac785e8d3936388249212b6e16cb32225960c5f
   CapacitorClipboard: 756cd7e83e8d5d19b0c74f40b57517c287bd5fe2
+  CapacitorCommunityBluetoothLe: 694d91cd954a2b3149db8967faa7af433700eb6b
   CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
   CapacitorFilesystem: 37fb3aa5c945b4539ab11c74a5c57925a302bf24
   CapacitorHaptics: fe689ade56ef20ec9b041a753c6da70c5d8ec9a9
@@ -219,6 +230,7 @@ SPEC CHECKSUMS:
   MLKitBarcodeScanning: 9cb0ec5ec65bbb5db31de4eba0a3289626beab4e
   MLKitCommon: afcd11b6c0735066a0dde8b4bf2331f6197cbca2
   MLKitVision: 90922bca854014a856f8b649d1f1f04f63fd9c79
+  MtwCapacitorUsbHid: ee48577f497c225b50d5db1f1bd40fb5c5a1ca99
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeBottomSheet: 81b2b53d470537e42858d0d6485af318c51c3a5f
   NativeDialog: f347d7f1a10adac33a1cb1a02be03911cf2fe067
@@ -229,4 +241,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 1bbc72e2fbfb2ae871c9a96aef2548830c3c0d6c
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

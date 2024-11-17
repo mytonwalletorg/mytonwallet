@@ -183,7 +183,8 @@ function SwapInitial({
   const isDieselSwap = Boolean(swapType === SwapType.OnChain
     && !isEnoughNative
     && tokenIn?.tokenAddress
-    && dieselStatus);
+    && dieselStatus
+    && dieselStatus !== 'not-available');
 
   const isCorrectAmountIn = Boolean(
     amountIn
@@ -534,7 +535,7 @@ function SwapInitial({
         feeBlock = (
           <span className={styles.feeText}>{lang('$fee_value_less', {
             fee: formatCurrency(
-              toDecimal(totalNativeAmount, nativeUserTokenIn.decimals),
+              toDecimal(networkFeeBigint, nativeUserTokenIn.decimals),
               nativeUserTokenIn.symbol,
               undefined,
               true,

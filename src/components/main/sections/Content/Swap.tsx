@@ -106,38 +106,35 @@ function Swap({
     );
 
     return (
-      <div className={styles.amountWrapper}>
-        <div className={amountSwapClass}>
-          <span className={buildClassName(styles.swapSell, isError && styles.swapError)}>
-            {formatCurrencyExtended(
-              Math.abs(fromAmount),
-              fromToken?.symbol || TONCOIN.symbol,
-              true,
-            )}
-          </span>
-          <i
-            className={buildClassName(
-              styles.swapArrowRight,
-              'icon-arrow-right',
-              isError && styles.swapError,
-              isHold && styles.swapHold,
-            )}
-            aria-hidden
-          />
-          <span className={buildClassName(
-            styles.swapBuy,
+      <div className={amountSwapClass}>
+        <span className={buildClassName(styles.swapSell, isError && styles.swapError)}>
+          {formatCurrencyExtended(
+            Math.abs(fromAmount),
+            fromToken?.symbol || TONCOIN.symbol,
+            true,
+          )}
+        </span>
+        <i
+          className={buildClassName(
+            styles.swapArrowRight,
+            'icon-arrow-right',
             isError && styles.swapError,
             isHold && styles.swapHold,
           )}
-          >
-            {formatCurrencyExtended(
-              Math.abs(toAmount),
-              toToken?.symbol || TONCOIN.symbol,
-              true,
-            )}
-          </span>
-        </div>
-        {renderCurrency(activity, fromToken, toToken)}
+          aria-hidden
+        />
+        <span className={buildClassName(
+          styles.swapBuy,
+          isError && styles.swapError,
+          isHold && styles.swapHold,
+        )}
+        >
+          {formatCurrencyExtended(
+            Math.abs(toAmount),
+            toToken?.symbol || TONCOIN.symbol,
+            true,
+          )}
+        </span>
       </div>
     );
   }
@@ -164,11 +161,7 @@ function Swap({
     }
 
     return (
-      <div className={buildClassName(
-        styles.date,
-        isError && styles.isSwapErrorMessage,
-      )}
-      >
+      <div className={buildClassName(isError && styles.isSwapErrorMessage)}>
         {date}{state ? `${WHOLE_PART_DELIMITER}∙${WHOLE_PART_DELIMITER}${state}` : ''}
       </div>
     );
@@ -196,7 +189,7 @@ function Swap({
       onClick={handleClick}
       isSimple
     >
-      <i className={iconFullClass} title={lang('Swap is not completed')} />
+      <i className={iconFullClass} aria-hidden />
       {isPending && (
         <AnimatedIconWithPreview
           play
@@ -212,17 +205,19 @@ function Swap({
       {isError && (
         <i
           className={buildClassName(styles.iconError, 'icon-close-filled')}
-          title={lang('Swap is not completed')}
           aria-hidden
         />
       )}
-      <div className={styles.leftBlock}>
+      <div className={styles.header}>
         <div className={styles.operationName}>
           {renderTitle()}
         </div>
-        {renderErrorMessage()}
+        {renderAmount()}
       </div>
-      {renderAmount()}
+      <div className={styles.subheader}>
+        {renderErrorMessage()}
+        {renderCurrency(activity, fromToken, toToken)}
+      </div>
       <i className={buildClassName(styles.iconArrow, 'icon-chevron-right')} aria-hidden />
     </Button>
   );
@@ -234,16 +229,12 @@ function renderCurrency(activity: ApiSwapActivity, fromToken?: ApiSwapAsset, toT
   const rate = getSwapRate(activity.fromAmount, activity.toAmount, fromToken, toToken);
 
   return (
-    <div
-      className={styles.swapPrice}
-    >
+    <div className={styles.address}>
       {
         rate && (
           <>
             {rate.firstCurrencySymbol}{' ≈ '}
-            <span
-              className={styles.swapPriceValue}
-            >
+            <span className={styles.addressValue}>
               {rate.price}{' '}{rate.secondCurrencySymbol}
             </span>
           </>

@@ -45,6 +45,7 @@ export type TransitionProps = {
   withSwipeControl?: boolean;
   onStart?: NoneToVoidFunction;
   onStop?: NoneToVoidFunction;
+  onContainerClick?: NoneToVoidFunction;
   children: React.ReactNode | ChildrenFn;
 };
 
@@ -79,6 +80,7 @@ function Transition({
   withSwipeControl,
   onStart,
   onStop,
+  onContainerClick,
   children,
 }: TransitionProps) {
   const currentKeyRef = useRef<number>();
@@ -363,6 +365,7 @@ function Transition({
   return (
     <div
       ref={containerRef}
+      onClick={onContainerClick}
       id={id}
       className={buildClassName('Transition', className)}
       teactFastList={asFastList}

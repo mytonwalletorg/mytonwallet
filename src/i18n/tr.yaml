@@ -156,7 +156,6 @@ $nft_explore_offer: |
   Mevcut NFT koleksiyonlarını görmek
   için NFT pazaryerini inceleyin.
 Open Getgems: Getgems'i aç
-Transaction is not completed: İşlem tamamlanmadı
 Received: Alındı
 Sent: Gönder
 $transaction_from: "bu adresten = %address%"
@@ -505,7 +504,7 @@ Are you sure you want to disable Face ID?: Face ID'yi devre dışı bırakmak is
 Are you sure you want to disable Touch ID?: Touch ID'yi devre dışı bırakmak istediğinizden emin misiniz?
 Are you sure you want to disable biometrics?: Biyometrik korumayı devre dışı bırakmak istediğinizden emin misiniz?
 Yes: Evet
-Declined. Please try to confirm transaction using biometrics again.: Reddedildi. Lütfen biyometrik koruma kullanarak işlemi tekrar onaylamayı deneyin.
+Biometric confirmation failed: Biyometrik doğrulama başarısız oldu
 No Activity: Etkinlik yok
 Add / Buy: Yükleme
 Buy with Card: Kart ile Satın Al
@@ -515,7 +514,6 @@ Explore: Keşfetmek
 No partners yet: Henüz ortak yok
 Clear: Temizle
 Get TON: TON Almak
-Declined. Please try to confirm operation using biometrics again.: Reddedildi. Lütfen biyometrik koruma kullanarak işlemi tekrar onaylamayı deneyin.
 $unstake_up_to_information: Anında – en fazla %value%
 $all_balance: "Tümü: %balance%"
 $unstaking_not_enough_balance: Stake iptal işlemine devam etmek için ana bakiyenizde %value% olması gerekmektedir.
@@ -672,10 +670,13 @@ Enter Secret Words: Gizli Kelimeleri Girin
 Turn this off so you can manually download updates and verify signatures.: Bunu kapatın, böylece güncellemeleri manuel olarak indirip imzaları doğrulayabilirsiniz.
 InvalidMnemonic: Mnemonik kelimeleriniz geçersiz
 NFT Menu: NFT Menüsü
-Wallets will not be locked.: Cüzdanlar kilitlenmeyecek.
-Wallets will be automatically locked after 30 seconds of inactivity.: Cüzdanlar 30 saniye hareketsizlikten sonra otomatik olarak kilitlenecek.
-Wallets will be automatically locked after 3 minutes of inactivity.: Cüzdanlar 3 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
-Wallets will be automatically locked after 30 minutes of inactivity.: Cüzdanlar 30 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
+Connection Type: Bağlantı Türü
+Ledger is not supported on this device: Ledger bu cihazda desteklenmiyor
+Connect your Ledger: Ledger'ınızı bağlayın
+App will not be locked.: Uygulama kilitlenmeyecek.
+App will be automatically locked after 30 seconds of inactivity.: Uygulama 30 saniye hareketsizlikten sonra otomatik olarak kilitlenecek.
+App will be automatically locked after 3 minutes of inactivity.: Uygulama 3 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
+App will be automatically locked after 30 minutes of inactivity.: Uygulama 30 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
 Auto-Lock: Otomatik Kilit
 Never: Asla
 30 seconds: 30 saniye

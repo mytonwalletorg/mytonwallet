@@ -34,6 +34,10 @@ export interface BottomSheetPlugin {
 
   enable(): Promise<void>;
 
+  hide(): Promise<void>;
+
+  show(): Promise<void>;
+
   delegate(options: { key: BottomSheetKeys, globalJson: string }): Promise<void>;
 
   release(options: { key: BottomSheetKeys | '*' }): Promise<void>;

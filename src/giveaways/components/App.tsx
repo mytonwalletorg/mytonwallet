@@ -151,11 +151,11 @@ function App({ mtwWalletInfo }: OwnProps) {
   return (
     <div className={styles.app}>
       <Transition
-        name={isPortrait ? (IS_ANDROID ? 'slideFadeAndroid' : IS_IOS ? 'slideLayers' : 'slideFade') : 'semiFade'}
+        name={isPortrait ? (IS_ANDROID ? 'slideFadeAndroid' : IS_IOS ? 'slideLayers' : 'slideFade') : 'fade'}
         activeKey={renderKey}
         slideClassName={buildClassName(styles.appSlide, 'custom-scroll')}
       >
-        {renderPage()}
+        {renderPage}
       </Transition>
     </div>
   );

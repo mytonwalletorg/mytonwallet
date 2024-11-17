@@ -70,7 +70,7 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
       statusCode = response.status;
 
       if (statusCode >= 400) {
-        const { error } = await response.json().catch(() => undefined);
+        const { error } = await response.json().catch(() => {});
         throw new Error(error ?? `HTTP Error ${statusCode}`);
       }
 

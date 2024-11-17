@@ -439,7 +439,7 @@ Enabling biometric confirmation will reset the password.: Увімкнення �
 Biometric Registration: Підключення біометрії
 Step 1 of 2. Registration: Крок 1 із 2. Реєстрація
 Step 2 of 2. Verification: Крок 2 з 2. Перевірка
-Download Logs: Завантажити журнали
+Download Logs: Завантажити логи
 Biometric setup failed.: Налаштувати біометрію не вдалося.
 Biometric confirmation failed.: Підтвердити біометрію не вдалося.
 Failed to disable biometrics.: Не вдалося відключити біометрію.
@@ -510,7 +510,7 @@ Are you sure you want to disable Face ID?: Ви впевнені, що хоче�
 Are you sure you want to disable Touch ID?: Ви впевнені, що хочете відключити Touch ID?
 Are you sure you want to disable biometrics?: Ви впевнені, що хочете відключити біометрію?
 Yes: Так
-Declined. Please try to confirm transaction using biometrics again.: Відхилено. Будь ласка, спробуйте ще раз підтвердити транзакцію за допомогою біометрії.
+Biometric confirmation failed: Біометричне підтвердження не вдалося
 No Activity: Немає активності
 Add / Buy: Поповнити
 Buy with Card: Купівля з картки
@@ -520,7 +520,6 @@ Explore: Огляд
 No partners yet: Ще немає партнерів
 Clear: Очистити
 Get TON: Отримати TON
-Declined. Please try to confirm operation using biometrics again.: Відхилено. Будь ласка, спробуйте ще раз підтвердити операцію за допомогою біометрії.
 $unstake_up_to_information: Миттєво - до %value%
 $all_balance: "Все: %balance%"
 $unstaking_not_enough_balance: Вам необхідно мати %value% на вашому основному балансі, щоб продовжити виведення.
@@ -677,10 +676,13 @@ Enter Secret Words: Введіть секретні слова
 Turn this off so you can manually download updates and verify signatures.: Вимкніть це, щоб ви могли вручну завантажувати оновлення та перевіряти підписи.
 InvalidMnemonic: Ваші мнемонічні слова недійсні
 NFT Menu: Меню NFT
-Wallets will not be locked.: Гаманці не будуть заблоковані.
-Wallets will be automatically locked after 30 seconds of inactivity.: Гаманці будуть автоматично заблоковані через 30 секунд бездіяльності.
-Wallets will be automatically locked after 3 minutes of inactivity.: Гаманці будуть автоматично заблоковані через 3 хвилини бездіяльності.
-Wallets will be automatically locked after 30 minutes of inactivity.: Гаманці будуть автоматично заблоковані через 30 хвилин бездіяльності.
+Connection Type: Тип підключення
+Ledger is not supported on this device: Ledger не підтримується на цьому пристрої
+Connect your Ledger: Підключіть ваш Ledger
+App will not be locked.: Додаток не буде заблоковано.
+App will be automatically locked after 30 seconds of inactivity.: Додаток буде автоматично заблоковано через 30 секунд бездіяльності.
+App will be automatically locked after 3 minutes of inactivity.: Додаток буде автоматично заблоковано через 3 хвилини бездіяльності.
+App will be automatically locked after 30 minutes of inactivity.: Додаток буде автоматично заблоковано через 30 хвилин бездіяльності.
 Auto-Lock: Автоблокування
 Never: Ніколи
 30 seconds: 30 секунд

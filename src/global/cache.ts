@@ -488,6 +488,7 @@ function updateCache(force?: boolean) {
       'currentAccountId',
       'stateVersion',
       'restrictions',
+      'dappOriginReplacements',
     ]),
     accounts: {
       byId: global.accounts?.byId || {},

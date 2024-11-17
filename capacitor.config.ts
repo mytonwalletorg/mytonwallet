@@ -13,13 +13,13 @@ const config: CapacitorConfig = {
   android: {
     path: 'mobile/android',
     includePlugins: [
+      '@capacitor-community/bluetooth-le',
       '@capacitor-mlkit/barcode-scanning',
       '@capacitor/app',
       '@capacitor/filesystem',
       '@capacitor/clipboard',
       '@capacitor/share',
       '@capacitor/haptics',
-      '@capacitor/status-bar',
       '@capgo/capacitor-native-biometric',
       '@capgo/native-audio',
       '@mauricewegner/capacitor-navigation-bar',
@@ -27,6 +27,7 @@ const config: CapacitorConfig = {
       'capacitor-native-settings',
       'capacitor-plugin-safe-area',
       'cordova-plugin-inappbrowser',
+      'mtw-capacitor-usb-hid',
       'native-dialog',
       'native-bottom-sheet',
       'capacitor-secure-storage-plugin',

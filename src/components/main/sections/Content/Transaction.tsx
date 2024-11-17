@@ -174,33 +174,36 @@ function Transaction({
     );
 
     return (
-      <div className={styles.amountWrapper}>
-        <div className={amountOtherClass}>
-          {isNftTransfer ? 'NFT' : formatCurrencyExtended(
-            toDecimal(isStaking ? bigintAbs(amount) : amount, token!.decimals),
-            token?.symbol || TONCOIN.symbol,
-            isStaking,
-          )}
-        </div>
-        <div className={styles.address}>
-          {!isStaking && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
-            address: (
-              <span className={styles.addressValue}>
-                {withChainIcon && Boolean(chain) && (
-                  <i
-                    className={buildClassName(styles.chainIcon, `icon-chain-${chain.toLowerCase()}`)}
-                    aria-label={chain}
-                  />
-                )}
-                {addressName || shortenAddress(address, TRANSACTION_ADDRESS_SHIFT)}
-              </span>
-            ),
-          })}
-          {isStake && lang('at %apy_value%', {
-            apy_value: <span className={styles.apyValue}>APY {apyValue}%</span>,
-          })}
-          {(isUnstake || isUnstakeRequest) && '\u00A0'}
-        </div>
+      <div className={amountOtherClass}>
+        {isNftTransfer ? 'NFT' : formatCurrencyExtended(
+          toDecimal(isStaking ? bigintAbs(amount) : amount, token!.decimals),
+          token?.symbol || TONCOIN.symbol,
+          isStaking,
+        )}
+      </div>
+    );
+  }
+
+  function renderAddress() {
+    return (
+      <div className={styles.address}>
+        {!isStaking && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
+          address: (
+            <span className={styles.addressValue}>
+              {withChainIcon && Boolean(chain) && (
+                <i
+                  className={buildClassName(styles.chainIcon, `icon-chain-${chain.toLowerCase()}`)}
+                  aria-label={chain}
+                />
+              )}
+              {addressName || shortenAddress(address, TRANSACTION_ADDRESS_SHIFT)}
+            </span>
+          ),
+        })}
+        {isStake && lang('at %apy_value%', {
+          apy_value: <span className={styles.addressValue}>APY {apyValue}%</span>,
+        })}
+        {(isUnstake || isUnstakeRequest) && '\u00A0'}
       </div>
     );
   }
@@ -211,17 +214,11 @@ function Transaction({
     <Button
       ref={ref as RefObject<HTMLButtonElement>}
       key={txId}
-      className={buildClassName(
-        styles.item,
-        isLast && styles.itemLast,
-        isActive && styles.active,
-        isNftTransfer && styles.withNft,
-        isNftTransfer && comment && styles.withNftAndComment,
-      )}
+      className={buildClassName(styles.item, isLast && styles.itemLast, isActive && styles.active)}
       onClick={handleClick}
       isSimple
     >
-      <i className={iconFullClass} aria-hidden title={lang('Transaction is not completed')} />
+      <i className={iconFullClass} aria-hidden />
       {isLocal && (
         <AnimatedIconWithPreview
           play
@@ -234,14 +231,17 @@ function Transaction({
           previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview[waitingIconName]}
         />
       )}
-      <div className={styles.leftBlock}>
+      <div className={styles.header}>
         <div className={styles.operationName}>
           {lang(getOperationName())}
           {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
         </div>
-        <div className={styles.date}>{formatTime(timestamp)}</div>
+        {renderAmount()}
       </div>
-      {renderAmount()}
+      <div className={styles.subheader}>
+        {formatTime(timestamp)}
+        {renderAddress()}
+      </div>
       {nft && renderNft()}
       {renderComment()}
       <i className={buildClassName(styles.iconArrow, 'icon-chevron-right')} aria-hidden />

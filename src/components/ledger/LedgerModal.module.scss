@@ -12,6 +12,10 @@
   }
 }
 
+:global(.is-native-bottom-sheet) .modalDialogInsideSettings {
+  height: 100% !important;
+}
+
 .slide {
   padding-top: 0 !important;
 }
@@ -22,6 +26,10 @@
 
   height: 100%;
   padding: 0 1rem 1rem;
+
+  :global(html:not(.is-android-app)) & {
+    padding-bottom: max(var(--safe-area-bottom, 1rem), 1rem);
+  }
 }
 
 .content {
@@ -135,6 +143,7 @@
   margin-top: auto;
 
   &_single {
+    gap: 0;
     justify-content: center;
   }
 }
@@ -339,4 +348,20 @@
 
 .declinedLabelDetailed {
   text-align: left;
+}
+
+.dropdownBlock {
+  cursor: var(--custom-cursor, pointer);
+
+  display: grid;
+  grid-template-areas: "content action";
+  grid-template-columns: 1fr min-content;
+  gap: 0.75rem;
+  align-items: center;
+
+  margin-top: 1.25rem;
+  padding: 1rem;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default);
 }

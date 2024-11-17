@@ -2,6 +2,7 @@ import type { ApiSubmitTransferWithDieselResult } from '../../../api/chains/ton/
 import type { ApiSubmitTransferOptions, ApiSubmitTransferResult } from '../../../api/methods/types';
 import type {
   ApiChain,
+  ApiSwapActivity,
   ApiSwapBuildRequest,
   ApiSwapCexCreateTransactionRequest,
   ApiSwapHistoryItem,
@@ -1001,19 +1002,38 @@ addActionHandler('updatePendingSwaps', async (global) => {
     .map(({ id }) => id);
   if (!ids.length) return;
 
-  const swaps = await callApi('fetchSwaps', accountId, ids);
-  if (!swaps?.length) return;
+  const result = await callApi('fetchSwaps', accountId, ids);
+  if (!result?.swaps.length) return;
+
+  const { swaps, nonExistentIds } = result;
 
   global = getGlobal();
   if (global.currentAccountId !== accountId) return;
 
   ({ activities } = selectAccountState(global, accountId) ?? {});
 
+  for (const swap of result.swaps) {
+    if (swap.isCanceled) {
+      swap.shouldHide = true;
+    }
+  }
+
+  const nonExistentSwaps: Record<string, ApiSwapActivity> = {};
+
+  for (const id of nonExistentIds) {
+    nonExistentSwaps[id] = {
+      ...activities!.byId[id] as ApiSwapActivity,
+      status: 'expired',
+      shouldHide: true,
+    };
+  }
+
   global = updateAccountState(global, accountId, {
     activities: {
       ...activities,
       byId: {
-        ...activities?.byId,
+        ...activities!.byId,
+        ...nonExistentSwaps,
         ...buildCollectionByKey(swaps, 'id'),
       },
     },
