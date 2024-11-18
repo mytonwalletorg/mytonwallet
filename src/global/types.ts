@@ -225,6 +225,8 @@ export enum SettingsState {
   NativeBiometricsTurnOn,
   SelectTokenList,
   WalletVersion,
+  LedgerConnectHardware,
+  LedgerSelectWallets,
   HiddenNfts,
 }
 
@@ -879,6 +881,7 @@ export interface ActionPayloads {
   clearNativeBiometricsError: undefined;
   copyStorageData: undefined;
   setAutolockValue: { value: AutolockValueType };
+  openSettingsHardwareWallet: undefined;
 
   // TON Connect
   submitDappConnectRequestConfirm: { accountId: string; password?: string };

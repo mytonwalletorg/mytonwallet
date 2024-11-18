@@ -3,7 +3,12 @@ import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import type { LedgerTransport } from '../../../util/ledger/types';
 import type { GlobalState } from '../../types';
 import {
-  AppState, AuthState, HardwareConnectState, SettingsState, SwapState, TransferState,
+  AppState,
+  AuthState,
+  HardwareConnectState,
+  SettingsState,
+  SwapState,
+  TransferState,
 } from '../../types';
 
 import {
@@ -348,22 +353,20 @@ addActionHandler('initializeHardwareWalletConnection', async (global, actions, p
 });
 
 addActionHandler('openHardwareWalletModal', async (global) => {
-  const ledgerApi = await import('../../../util/ledger');
-  let newHardwareState;
+  const hardwareState = await connectLedgerAndGetHardwareState();
 
-  // If not running in the Capacitor environment, try to instantly connect to the Ledger
-  const isConnected = !IS_CAPACITOR ? await ledgerApi.connectLedger() : false;
+  global = updateHardware(getGlobal(), { hardwareState });
 
-  if (!isConnected && IS_EXTENSION) {
-    newHardwareState = HardwareConnectState.WaitingForBrowser;
-  } else {
-    newHardwareState = HardwareConnectState.Connect;
-  }
-
-  global = updateHardware(getGlobal(), {
-    hardwareState: newHardwareState,
-  });
   setGlobal({ ...global, isHardwareModalOpen: true });
+});
+
+addActionHandler('openSettingsHardwareWallet', async (global) => {
+  const hardwareState = await connectLedgerAndGetHardwareState();
+
+  global = updateHardware(getGlobal(), { hardwareState });
+  global = updateSettings(global, { state: SettingsState.LedgerConnectHardware });
+
+  setGlobal(global);
 });
 
 addActionHandler('closeHardwareWalletModal', (global) => {
@@ -706,3 +709,19 @@ addActionHandler('submitAppLockActivityEvent', () => {
   }
   reportAppLockActivityEvent();
 });
+
+async function connectLedgerAndGetHardwareState() {
+  const ledgerApi = await import('../../../util/ledger');
+  let newHardwareState;
+
+  // If not running in the Capacitor environment, try to instantly connect to the Ledger
+  const isConnected = !IS_CAPACITOR ? await ledgerApi.connectLedger() : false;
+
+  if (!isConnected && IS_EXTENSION) {
+    newHardwareState = HardwareConnectState.WaitingForBrowser;
+  } else {
+    newHardwareState = HardwareConnectState.Connect;
+  }
+
+  return newHardwareState;
+}

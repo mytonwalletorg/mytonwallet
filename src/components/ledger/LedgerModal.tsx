@@ -111,8 +111,8 @@ function LedgerModal({
 
   return (
     <Modal
-      hasCloseButton
       isOpen={isOpen}
+      hasCloseButton
       onClose={onClose}
       onCloseAnimationEnd={handleLedgerModalClose}
       dialogClassName={buildClassName(styles.modalDialog, areSettingsOpen && styles.modalDialogInsideSettings)}

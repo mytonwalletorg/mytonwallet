@@ -5,8 +5,15 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonWalletVersion } from '../../api/chains/ton/types';
 import type { ApiDapp, ApiWalletInfo } from '../../api/types';
+import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { Wallet } from './SettingsWalletVersion';
-import { type GlobalState, SettingsState, type UserToken } from '../../global/types';
+import {
+  type Account,
+  type GlobalState,
+  type HardwareConnectState,
+  SettingsState,
+  type UserToken,
+} from '../../global/types';
 
 import {
   APP_ENV_MARKER,
@@ -20,7 +27,12 @@ import {
   TELEGRAM_WEB_URL,
   TONCOIN,
 } from '../../config';
-import { selectCurrentAccountState, selectCurrentAccountTokens, selectIsHardwareAccount } from '../../global/selectors';
+import {
+  selectCurrentAccountState,
+  selectCurrentAccountTokens,
+  selectIsHardwareAccount,
+  selectNetworkAccounts,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { toBig, toDecimal } from '../../util/decimals';
@@ -49,6 +61,8 @@ import useScrolledState from '../../hooks/useScrolledState';
 import useShowTransition from '../../hooks/useShowTransition';
 import { useStateRef } from '../../hooks/useStateRef';
 
+import LedgerConnect from '../ledger/LedgerConnect';
+import LedgerSelectWallets from '../ledger/LedgerSelectWallets';
 import LogOutModal from '../main/modals/LogOutModal';
 import Button from '../ui/Button';
 import ModalHeader from '../ui/ModalHeader';
@@ -105,6 +119,12 @@ type StateProps = {
   versions?: ApiWalletInfo[];
   isCopyStorageEnabled?: boolean;
   supportAccountsCount?: number;
+  hardwareWallets?: LedgerWalletInfo[];
+  accounts?: Record<string, Account>;
+  hardwareState?: HardwareConnectState;
+  isLedgerConnected?: boolean;
+  isTonAppConnected?: boolean;
+  isRemoteTab?: boolean;
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -132,17 +152,24 @@ function Settings({
   versions,
   isCopyStorageEnabled,
   supportAccountsCount = SUPPORT_ACCOUNTS_COUNT_DEFAULT,
+  accounts,
+  hardwareWallets,
+  hardwareState,
+  isLedgerConnected,
+  isTonAppConnected,
+  isRemoteTab,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
     openBackupWalletModal,
-    openHardwareWalletModal,
+    openSettingsHardwareWallet,
     closeSettings,
     toggleDeeplinkHook,
     toggleTonProxy,
     toggleTonMagic,
     getDapps,
     clearIsPinAccepted,
+    afterSelectHardwareWallets,
   } = getActions();
 
   const lang = useLang();
@@ -278,6 +305,19 @@ function Settings({
     openBackupWalletModal();
   }
 
+  const handleAddLedgerWallet = useLastCallback(() => {
+    afterSelectHardwareWallets({ hardwareSelectedIndices: [hardwareWallets![0].index] });
+    handleCloseSettings();
+  });
+
+  const handleLedgerConnected = useLastCallback((isSingleWallet: boolean) => {
+    if (isSingleWallet) {
+      handleAddLedgerWallet();
+      return;
+    }
+    setSettingsState({ state: SettingsState.LedgerSelectWallets });
+  });
+
   const [isTrayIconEnabled, setIsTrayIconEnabled] = useState(false);
   useEffect(() => {
     window.electron?.getIsTrayIconEnabled().then(setIsTrayIconEnabled);
@@ -314,7 +354,7 @@ function Settings({
   });
 
   function handleOpenHardwareModal() {
-    openHardwareWalletModal();
+    openSettingsHardwareWallet();
   }
 
   const handleMultipleClick = () => {
@@ -685,6 +725,35 @@ function Settings({
             wallets={wallets}
           />
         );
+      case SettingsState.LedgerConnectHardware:
+        return (
+          <div className={styles.slide}>
+            <LedgerConnect
+              isActive={isActive}
+              isStatic={!isInsideModal}
+              state={hardwareState}
+              isLedgerConnected={isLedgerConnected}
+              isTonAppConnected={isTonAppConnected}
+              isRemoteTab={isRemoteTab}
+              onBackButtonClick={handleBackClick}
+              onConnected={handleLedgerConnected}
+              onClose={handleBackOrCloseAction}
+            />
+          </div>
+        );
+      case SettingsState.LedgerSelectWallets:
+        return (
+          <div className={styles.slide}>
+            <LedgerSelectWallets
+              isActive={isActive}
+              isStatic={!isInsideModal}
+              accounts={accounts}
+              hardwareWallets={hardwareWallets}
+              onBackButtonClick={handleBackClick}
+              onClose={handleBackOrCloseAction}
+            />
+          </div>
+        );
       case SettingsState.HiddenNfts:
         return (
           <SettingsHiddenNfts
@@ -718,11 +787,19 @@ function Settings({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const isHardwareAccount = selectIsHardwareAccount(global);
+  const accounts = selectNetworkAccounts(global);
   const { isCopyStorageEnabled, supportAccountsCount = 1 } = global.restrictions;
 
   const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
   const versions = versionsById?.[global.currentAccountId!];
   const { dapps = MEMO_EMPTY_ARRAY } = selectCurrentAccountState(global) || {};
+  const {
+    hardwareWallets,
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
+    isRemoteTab,
+  } = global.hardware;
 
   return {
     settings: global.settings,
@@ -734,6 +811,12 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     versions,
     isCopyStorageEnabled,
     supportAccountsCount,
+    hardwareState,
+    isLedgerConnected,
+    isTonAppConnected,
+    isRemoteTab,
+    hardwareWallets,
+    accounts,
   };
 })(Settings));
 

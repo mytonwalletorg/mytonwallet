@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { Account } from '../../global/types';
+import type { Account, Theme } from '../../global/types';
 import type { LedgerTransport } from '../../util/ledger/types';
 import { HardwareConnectState } from '../../global/types';
 
@@ -12,8 +12,9 @@ import { selectAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { closeLedgerTab } from '../../util/ledger/tab';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
-import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
+import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP } from '../../util/windowEnvironment';
 
+import useAppTheme from '../../hooks/useAppTheme';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -21,19 +22,32 @@ import useShowTransition from '../../hooks/useShowTransition';
 
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
+import Image from '../ui/Image';
 import ModalHeader from '../ui/ModalHeader';
 import Transition from '../ui/Transition';
 
+import settingsStyles from '../settings/Settings.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './LedgerModal.module.scss';
 
+import ledgerDesktopSrc from '../../assets/ledger/desktop.png';
+import ledgerDesktopDarkSrc from '../../assets/ledger/desktop-dark.png';
+import ledgerIosSrc from '../../assets/ledger/ios.png';
+import ledgerIosDarkSrc from '../../assets/ledger/ios-dark.png';
+import ledgerMobileBluetoothSrc from '../../assets/ledger/mobile-bluetooth.png';
+import ledgerMobileBluetoothDarkSrc from '../../assets/ledger/mobile-bluetooth-dark.png';
+import ledgerMobileUsbSrc from '../../assets/ledger/mobile-usb.png';
+import ledgerMobileUsbDarkSrc from '../../assets/ledger/mobile-usb-dark.png';
+
 interface OwnProps {
   isActive: boolean;
+  isStatic?: boolean;
   state?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isRemoteTab?: boolean;
   onConnected: (isSingleWallet: boolean) => void;
+  onBackButtonClick?: NoneToVoidFunction;
   onCancel?: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -42,6 +56,7 @@ interface StateProps {
   availableTransports?: LedgerTransport[];
   lastUsedTransport?: LedgerTransport;
   accounts?: Record<string, Account>;
+  currentTheme: Theme;
 }
 
 const NEXT_SLIDE_DELAY = 500;
@@ -52,6 +67,7 @@ const TRANSPORT_NAMES: Record<LedgerTransport, string> = {
 
 function LedgerConnect({
   isActive,
+  isStatic,
   state,
   isLedgerConnected,
   isTonAppConnected,
@@ -59,7 +75,9 @@ function LedgerConnect({
   availableTransports,
   lastUsedTransport,
   accounts,
+  currentTheme,
   onConnected,
+  onBackButtonClick,
   onCancel,
   onClose,
 }: OwnProps & StateProps) {
@@ -72,6 +90,7 @@ function LedgerConnect({
 
   const lang = useLang();
   const [selectedTransport, setSelectedTransport] = useState<LedgerTransport | undefined>(lastUsedTransport);
+  const appTheme = useAppTheme(currentTheme);
 
   const isLedgerFailed = isLedgerConnected === false;
   const isTonAppFailed = isTonAppConnected === false;
@@ -102,8 +121,11 @@ function LedgerConnect({
   });
 
   useEffect(() => {
-    if (!selectedTransport && availableTransports?.length) {
-      setSelectedTransport(availableTransports[0]);
+    if (selectedTransport) return;
+    if (availableTransports?.length) {
+      setSelectedTransport(availableTransports?.[0]);
+    } else if (IS_IOS_APP) {
+      setSelectedTransport('bluetooth');
     }
   }, [availableTransports, selectedTransport]);
 
@@ -185,40 +207,73 @@ function LedgerConnect({
     }
 
     return (
-      <div className={buildClassName(styles.actionBlock, isConnected && styles.actionBlock_single)}>
+      <div className={styles.actionBlock}>
         <Button
-          isDisabled={isConnecting}
-          className={buildClassName(styles.button, isConnected && styles.button_single)}
+          className={styles.button}
           onClick={shouldCloseOnCancel ? onClose : onCancel}
         >
           {lang(shouldCloseOnCancel ? 'Cancel' : 'Back')}
         </Button>
-        {!isConnected && (
-          <Button
-            isPrimary
-            isLoading={isConnecting}
-            isDisabled={isConnecting}
-            className={styles.button}
-            onClick={handleSubmit}
-          >
-            {isFailed ? lang('Try Again') : lang('Continue')}
-          </Button>
-        )}
+        <Button
+          isPrimary
+          isLoading={isConnecting}
+          isDisabled={isConnecting || isConnected}
+          className={styles.button}
+          onClick={handleSubmit}
+        >
+          {isFailed ? lang('Try Again') : lang('Continue')}
+        </Button>
       </div>
     );
+  }
+
+  function getLedgerIconSrc() {
+    const isDarkTheme = appTheme === 'dark';
+    if (!IS_CAPACITOR) {
+      return isDarkTheme ? ledgerDesktopDarkSrc : ledgerDesktopSrc;
+    }
+
+    if (IS_IOS) {
+      return isDarkTheme ? ledgerIosDarkSrc : ledgerIosSrc;
+    }
+
+    if (selectedTransport === 'bluetooth') {
+      return isDarkTheme ? ledgerMobileBluetoothDarkSrc : ledgerMobileBluetoothSrc;
+    }
+
+    return isDarkTheme ? ledgerMobileUsbDarkSrc : ledgerMobileUsbSrc;
   }
 
   function renderWaitingForBrowser() {
     return (
       <>
-        <ModalHeader title={title} onClose={handleCloseWithBrowserTab} />
-        <div className={styles.container}>
-          <div
-            className={buildClassName(
-              styles.iconBlock,
-              styles.iconBlock_base,
-            )}
+        {!isStatic ? (
+          <ModalHeader
+            title={title}
+            onBackButtonClick={onBackButtonClick}
+            onClose={!onBackButtonClick ? handleCloseWithBrowserTab : undefined}
           />
+        ) : (
+          <div className={settingsStyles.header}>
+            <Button isSimple isText onClick={handleCloseWithBrowserTab} className={settingsStyles.headerBack}>
+              <i className={buildClassName(settingsStyles.iconChevron, 'icon-chevron-left')} aria-hidden />
+              <span>{lang('Back')}</span>
+            </Button>
+            <span className={settingsStyles.headerTitle}>{title}</span>
+          </div>
+        )}
+        <div className={styles.container}>
+          <Transition
+            activeKey={!IS_CAPACITOR ? 0 : (selectedTransport !== 'bluetooth' ? 1 : 2)}
+            name="semiFade"
+            className={buildClassName(styles.iconBlock, IS_CAPACITOR && styles.mobile)}
+            slideClassName={styles.iconBlockSlide}
+          >
+            <Image
+              url={getLedgerIconSrc()}
+              imageClassName={styles.ledgerIcon}
+            />
+          </Transition>
           <div
             className={buildClassName(
               styles.textBlock,
@@ -250,14 +305,33 @@ function LedgerConnect({
   function renderConnect() {
     return (
       <>
-        <ModalHeader title={title} onClose={onClose} />
-        <div className={styles.container}>
-          <div
-            className={buildClassName(
-              styles.iconBlock,
-              isConnected ? styles.iconBlock_success : styles.iconBlock_base,
-            )}
+        {!isStatic ? (
+          <ModalHeader
+            title={title}
+            onBackButtonClick={onBackButtonClick}
+            onClose={!onBackButtonClick ? onClose : undefined}
           />
+        ) : (
+          <div className={settingsStyles.header}>
+            <Button isSimple isText onClick={onClose} className={settingsStyles.headerBack}>
+              <i className={buildClassName(settingsStyles.iconChevron, 'icon-chevron-left')} aria-hidden />
+              <span>{lang('Back')}</span>
+            </Button>
+            <span className={settingsStyles.headerTitle}>{title}</span>
+          </div>
+        )}
+        <div className={buildClassName(styles.container, isStatic && styles.containerStatic)}>
+          <Transition
+            activeKey={!IS_CAPACITOR ? 0 : (selectedTransport !== 'bluetooth' ? 1 : 2)}
+            name="semiFade"
+            className={buildClassName(styles.iconBlock, IS_CAPACITOR && styles.mobile)}
+            slideClassName={styles.iconBlockSlide}
+          >
+            <Image
+              url={getLedgerIconSrc()}
+              imageClassName={styles.ledgerIcon}
+            />
+          </Transition>
           <div
             className={buildClassName(
               styles.textBlock,
@@ -276,7 +350,7 @@ function LedgerConnect({
                 className={buildClassName(styles.textIcon, isLedgerConnected ? 'icon-accept' : 'icon-dot')}
                 aria-hidden
               />
-              {IS_CAPACITOR ? lang('Connect your Ledger') : lang('Connect your Ledger to PC')}
+              {lang('Connect your Ledger')}
             </span>
             <span
               className={buildClassName(
@@ -329,5 +403,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     availableTransports,
     lastUsedTransport,
     accounts,
+    currentTheme: global.settings.theme,
   };
 })(LedgerConnect));

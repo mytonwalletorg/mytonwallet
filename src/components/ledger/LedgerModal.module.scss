@@ -27,7 +27,8 @@
   height: 100%;
   padding: 0 1rem 1rem;
 
-  :global(html:not(.is-android-app)) & {
+  :global(html.is-native-bottom-sheet) &,
+  &.containerStatic {
     padding-bottom: max(var(--safe-area-bottom, 1rem), 1rem);
   }
 }
@@ -39,6 +40,10 @@
   padding: 0 1rem 1rem;
 }
 
+.iconBlockSlide {
+  background-color: var(--color-background-window);
+}
+
 .iconBlock {
   position: relative;
 
@@ -46,40 +51,18 @@
   justify-content: center;
 
   height: 10rem;
-  margin: 0 -1rem 1.25rem;
+  margin: 0 0 1.25rem;
 
-  &::after {
-    content: "";
-
-    display: block;
-
-    width: 100%;
-    max-width: 23.4375rem;
-
-    background-clip: padding-box, padding-box;
-    background-origin: border-box;
-    background-size: cover, cover;
+  &.mobile {
+    height: 14rem;
   }
+}
 
-  &_base {
-    &::after {
-      background-image: url(../../assets/ledger/laptop-base.png);
+.ledgerIcon {
+  width: 100%;
+  max-width: 23.4375rem;
 
-      :global(.theme-dark) & {
-        background-image: url(../../assets/ledger/laptop-base-dark.png);
-      }
-    }
-  }
-
-  &_success {
-    &::after {
-      background-image: url(../../assets/ledger/laptop-success.png);
-
-      :global(.theme-dark) & {
-        background-image: url(../../assets/ledger/laptop-success-dark.png);
-      }
-    }
-  }
+  object-fit: contain;
 }
 
 .textBlock {
