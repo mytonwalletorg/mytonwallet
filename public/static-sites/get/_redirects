@@ -1,0 +1,7 @@
+# Netlify redirect rules
+/ios            https://apps.apple.com/ru/app/mytonwallet-anyway-ton-wallet/id6464677844  302
+/android-store  https://play.google.com/store/apps/details?id=org.mytonwallet.app         302
+/web            https://mytonwallet.app                                                   302
+/chrome-extension   https://chrome.google.com/webstore/detail/mytonwallet/fldfpgipfncgndfolcbkdeeknbbbnhcc  302
+/firefox-extension  https://addons.mozilla.org/en-US/firefox/addon/mytonwallet/                             302
+/edge-extension     https://microsoftedge.microsoft.com/addons/detail/mytonwallet-%C2%B7-my-ton-wall/pgpdomeflfhcmgdbfdlociknopahmbej 302

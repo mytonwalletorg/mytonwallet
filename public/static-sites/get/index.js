@@ -4,8 +4,8 @@ const LATEST_RELEASE_WEB_URL = `https://github.com/${REPO}/releases/latest`;
 const LATEST_RELEASE_DOWNLOAD_URL = `https://github.com/${REPO}/releases/download/v%VERSION%`;
 const WEB_APP_URL = '/';
 const MOBILE_URLS = {
-  ios: 'https://apps.apple.com/ru/app/mytonwallet-anyway-ton-wallet/id6464677844',
-  android: 'https://play.google.com/store/apps/details?id=org.mytonwallet.app',
+  ios: '/ios',
+  android: '/android-store',
   androidDirect: `${LATEST_RELEASE_DOWNLOAD_URL}/MyTonWallet.apk`,
 };
 

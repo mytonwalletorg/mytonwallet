@@ -9,15 +9,7 @@ fi
 
 TARGET="$1"
 
-cp -R ./public/* ./src/lib/rlottie/rlottie-wasm.js ./src/lib/rlottie/rlottie-wasm.wasm ./dist/
-
-rm -rf ./dist/statoscope-* \
-  ./dist/get \
-  ./dist/background-electron-dmg.tiff \
-  ./dist/electron-entitlements.mac.plist \
-  ./dist/icon-electron-* \
-  ./dist/site.webmanifest \
-  ./dist/_headers
+IS_EXTENSION=1 ./deploy/copy_to_dist.sh
 
 rm -f "MyTonWallet-$TARGET.zip"
 
