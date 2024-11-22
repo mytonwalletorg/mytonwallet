@@ -639,6 +639,7 @@ export type GlobalState = {
     isLimitedRegion: boolean;
     isSwapDisabled: boolean;
     isOnRampDisabled: boolean;
+    isNftBuyingDisabled: boolean;
     isCopyStorageEnabled?: boolean;
     supportAccountsCount?: number;
     countryCode?: ApiCountryCode;

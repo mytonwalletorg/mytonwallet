@@ -157,7 +157,7 @@ async function processTonDeeplink(url: string) {
   }
 }
 
-export function parseTonDeeplink(value: string | unknown) {
+export function parseTonDeeplink(value?: string) {
   if (typeof value !== 'string' || !isTonDeeplink(value) || !value.includes('/transfer/')) {
     return undefined;
   }
@@ -219,6 +219,8 @@ async function processTonConnectDeeplink(url: string, isFromInAppBrowser = false
 }
 
 export function isSelfDeeplink(url: string) {
+  url = forceHttpsProtocol(url);
+
   return url.startsWith(SELF_PROTOCOL)
     || SELF_UNIVERSAL_URLS.some((u) => omitProtocol(url).startsWith(omitProtocol(u)));
 }
@@ -302,7 +304,7 @@ export function processSelfDeeplink(deeplink: string) {
       }
 
       case DeeplinkCommand.Transfer: {
-        let tonDeeplink = deeplink;
+        let tonDeeplink = forceHttpsProtocol(deeplink);
         SELF_UNIVERSAL_URLS.forEach((prefix) => {
           if (tonDeeplink.startsWith(prefix)) {
             tonDeeplink = tonDeeplink.replace(`${prefix}/`, TON_PROTOCOL);
@@ -320,6 +322,10 @@ export function processSelfDeeplink(deeplink: string) {
 
 function omitProtocol(url: string) {
   return url.replace(/^https?:\/\//, '');
+}
+
+function forceHttpsProtocol(url: string) {
+  return url.replace(/^http:\/\//, 'https://');
 }
 
 function toNumberOrEmptyString(input?: string | null) {

@@ -86,6 +86,7 @@ export const INITIAL_STATE: GlobalState = {
     isLimitedRegion: false,
     isSwapDisabled: IS_IOS_APP,
     isOnRampDisabled: IS_IOS_APP,
+    isNftBuyingDisabled: IS_IOS_APP,
   },
 
   mediaViewer: {},

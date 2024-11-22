@@ -17,7 +17,6 @@ import {
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
 import {
-  selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectIsHardwareAccount,
@@ -83,7 +82,6 @@ interface StateProps {
   isMemoRequired?: boolean;
   baseCurrency?: ApiBaseCurrency;
   nfts?: ApiNft[];
-  alwaysHiddenSlugs?: string[];
   binPayload?: string;
   stateInit?: string;
   dieselAmount?: bigint;
@@ -140,7 +138,6 @@ function TransferInitial({
   binPayload,
   stateInit,
   dieselAmount,
-  alwaysHiddenSlugs,
   dieselStatus,
   isDieselAuthorizationStarted,
   isMultichainAccount,
@@ -234,7 +231,7 @@ function TransferInitial({
   const isGaslessWithStars = dieselStatus === 'stars-fee';
   const isDieselAvailable = dieselStatus === 'available' || isGaslessWithStars;
   const isDieselNotAuthorized = dieselStatus === 'not-authorized';
-  const withDiesel = dieselStatus && dieselStatus !== 'not-available';
+  const withDiesel = !isEnoughNativeCoin && dieselStatus && dieselStatus !== 'not-available';
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
     ? isGaslessWithStars || skipNextFeeEstimate.current
       ? true
@@ -250,11 +247,11 @@ function TransferInitial({
         ? balance
         : balance - dieselAmount;
     }
-    if (nativeToken?.chain === 'tron' && balance) {
+    if (tokenSlug === TRX.slug && balance) {
       return balance - ONE_TRX;
     }
     return balance;
-  }, [balance, dieselAmount, isGaslessWithStars, withDiesel, nativeToken]);
+  }, [balance, dieselAmount, isGaslessWithStars, withDiesel, tokenSlug]);
 
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
     ? AUTHORIZE_DIESEL_INTERVAL_MS
@@ -284,7 +281,7 @@ function TransferInitial({
     }
 
     return tokens.reduce<DropdownItem[]>((acc, token) => {
-      if ((token.amount > 0 || token.slug === tokenSlug) && !alwaysHiddenSlugs?.includes(token.slug)) {
+      if ((token.amount > 0 && !token.isDisabled) || token.slug === tokenSlug) {
         acc.push({
           value: token.slug,
           icon: ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS] || token.image,
@@ -295,7 +292,7 @@ function TransferInitial({
 
       return acc;
     }, []);
-  }, [alwaysHiddenSlugs, isMultichainAccount, tokenSlug, tokens]);
+  }, [isMultichainAccount, tokenSlug, tokens]);
 
   const validateAndSetAmount = useLastCallback(
     (newAmount: bigint | undefined, noReset = false) => {
@@ -947,7 +944,7 @@ function TransferInitial({
   const withButton = isQrScannerSupported || withPasteButton || withAddressClearButton;
 
   function renderButtonText() {
-    if (!isEnoughNativeCoin && withDiesel && !isDieselAvailable) {
+    if (withDiesel && !isDieselAvailable) {
       if (dieselStatus === 'pending-previous') {
         return lang('Awaiting Previous Fee');
       } else {
@@ -1080,7 +1077,6 @@ export default memo(
         binPayload,
         stateInit,
         tokens: selectCurrentAccountTokens(global),
-        alwaysHiddenSlugs: selectCurrentAccountSettings(global)?.alwaysHiddenSlugs,
         savedAddresses: accountState?.savedAddresses,
         isEncryptedCommentSupported: !isLedger && !nfts?.length && !isMemoRequired,
         isMemoRequired,

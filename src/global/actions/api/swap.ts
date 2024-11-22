@@ -631,7 +631,7 @@ addActionHandler('estimateSwap', async (global, actions, { shouldBlock, isEnough
 
   const shouldTryDiesel = isEnoughToncoin === false;
 
-  const estimate = await callApi('swapEstimate', {
+  const estimate = await callApi('swapEstimate', global.currentAccountId!, {
     ...estimateAmount,
     from,
     to,

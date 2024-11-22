@@ -176,6 +176,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         isLimitedRegion,
         isSwapDisabled: IS_IOS_APP && isLimitedRegion,
         isOnRampDisabled: IS_IOS_APP && isLimitedRegion,
+        isNftBuyingDisabled: IS_IOS_APP && isLimitedRegion,
         isCopyStorageEnabled,
         supportAccountsCount,
         countryCode,

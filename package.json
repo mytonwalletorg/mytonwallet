@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -42,7 +42,8 @@
     "postversion": "./deploy/postversion.sh",
     "giveaways:build": "webpack --config ./webpack-giveaways.config.ts && bash ./deploy/copy_to_dist.sh dist-giveaways",
     "giveaways:build:dev": "APP_ENV=development webpack --mode development --config ./webpack-giveaways.config.ts && bash ./deploy/copy_to_dist.sh dist-giveaways",
-    "giveaways:dev": "APP_ENV=development webpack serve --mode development --port 4322 --config ./webpack-giveaways.config.ts"
+    "giveaways:dev": "APP_ENV=development webpack serve --mode development --port 4322 --config ./webpack-giveaways.config.ts",
+    "resolve-stacktrace": "node ./dev/resolveStackTrace.js"
   },
   "engines": {
     "node": "^22",
@@ -167,6 +168,7 @@
     "sass-loader": "16.0.2",
     "script-loader": "0.7.2",
     "serve": "14.2.3",
+    "source-map": "0.6.1",
     "stylelint": "14.16.1",
     "stylelint-config-clean-order": "0.8.0",
     "stylelint-config-recommended-scss": "8.0.0",

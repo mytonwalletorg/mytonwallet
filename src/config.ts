@@ -96,12 +96,16 @@ export const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https:/
 
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://api.mytonwallet.org';
 
+export const TRON_MAINNET_API_URL = process.env.TRON_MAINNET_API_URL || 'https://tronapi.mytonwallet.org';
+export const TRON_TESTNET_API_URL = process.env.TRON_TESTNET_API_URL || 'https://api.shasta.trongrid.io';
+
 export const FRACTION_DIGITS = 9;
 export const SHORT_FRACTION_DIGITS = 2;
 
 export const SUPPORT_USERNAME = 'MyTonWalletSupport';
 export const MY_TON_WALLET_PROMO_URL = 'https://mytonwallet.io';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
+export const TON_DIAMONDS_URL = 'https://ton.diamonds/';
 export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const EMPTY_HASH_VALUE = 'NOHASH';
@@ -118,7 +122,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-140';
+export const LANG_CACHE_NAME = 'mtw-lang-141';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -239,11 +243,11 @@ export const CHAIN_CONFIG = {
       maxTransferToken: 35_000_000n, // 35 TRX
     },
     mainnet: {
-      apiUrl: 'https://api.trongrid.io',
+      apiUrl: TRON_MAINNET_API_URL,
       usdtAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
     },
     testnet: {
-      apiUrl: 'https://api.shasta.trongrid.io',
+      apiUrl: TRON_TESTNET_API_URL,
       usdtAddress: 'TG3XXyExBkPp9nzdajDZsozEu4BkaSJozs',
     },
   },

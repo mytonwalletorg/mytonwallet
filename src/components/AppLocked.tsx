@@ -37,6 +37,16 @@ import logoLightPath from '../assets/logoLight.svg';
 const WINDOW_EVENTS_LATENCY = 5000;
 const INTERVAL_CHECK_PERIOD = 5000;
 const PINPAD_RESET_DELAY = 300;
+const ACTIVATION_EVENT_NAMES = [
+  'focus', // For Web
+  'mousemove', // For Web
+  'touch', // For Capacitor
+  'wheel',
+  'keydown',
+];
+// `capture: true` is necessary because otherwise a `stopPropagation` call inside the main UI will prevent the event
+// from getting to the listeners inside `AppLocked`.
+const ACTIVATION_EVENT_OPTIONS = { capture: true };
 
 interface StateProps {
   isNonNativeBiometricAuthEnabled: boolean;
@@ -131,18 +141,14 @@ function AppLocked({
   const handleActivityThrottled = useThrottledCallback(handleActivity, [handleActivity], WINDOW_EVENTS_LATENCY);
 
   useEffectOnce(() => {
-    window.addEventListener('focus', handleActivityThrottled, { capture: true }); // For Web
-    window.addEventListener('mousemove', handleActivityThrottled, { capture: true }); // For Web
-    window.addEventListener('touch', handleActivityThrottled, { capture: true }); // For Capacitor
-    window.addEventListener('wheel', handleActivityThrottled, { capture: true });
-    window.addEventListener('keydown', handleActivityThrottled);
+    for (const eventName of ACTIVATION_EVENT_NAMES) {
+      window.addEventListener(eventName, handleActivityThrottled, ACTIVATION_EVENT_OPTIONS);
+    }
 
     return () => {
-      window.removeEventListener('focus', handleActivityThrottled, { capture: true });
-      window.removeEventListener('mousemove', handleActivityThrottled, { capture: true });
-      window.removeEventListener('touch', handleActivityThrottled, { capture: true });
-      window.removeEventListener('wheel', handleActivityThrottled, { capture: true });
-      window.removeEventListener('keydown', handleActivityThrottled);
+      for (const eventName of ACTIVATION_EVENT_NAMES) {
+        window.removeEventListener(eventName, handleActivityThrottled, ACTIVATION_EVENT_OPTIONS);
+      }
     };
   });
 

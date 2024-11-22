@@ -54,7 +54,9 @@ export async function swapBuildTransfer(
   const { network } = parseAccountId(accountId);
   const authToken = await getBackendAuthToken(accountId, password);
 
-  const { address } = await fetchStoredTonWallet(accountId);
+  const { address, version } = await fetchStoredTonWallet(accountId);
+  request.walletVersion = version;
+
   const { id, transfers } = await swapBuild(authToken, request);
 
   const transferList = transfers.map((transfer) => ({
@@ -183,7 +185,12 @@ export async function fetchSwaps(accountId: string, ids: string[]) {
   return { nonExistentIds, swaps };
 }
 
-export function swapEstimate(request: ApiSwapEstimateRequest): Promise<ApiSwapEstimateResponse | { error: string }> {
+export async function swapEstimate(
+  accountId: string,
+  request: ApiSwapEstimateRequest,
+): Promise<ApiSwapEstimateResponse | { error: string }> {
+  request.walletVersion = (await fetchStoredTonWallet(accountId)).version;
+
   return callBackendPost('/swap/ton/estimate', request, {
     isAllowBadRequest: true,
   });

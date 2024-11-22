@@ -1,4 +1,5 @@
 import type { DieselStatus } from '../../global/types';
+import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiLoyaltyType } from './misc';
 
 export type ApiSwapEstimateRequest = {
@@ -9,6 +10,7 @@ export type ApiSwapEstimateRequest = {
   toAmount?: string;
   fromAddress: string;
   shouldTryDiesel?: boolean;
+  walletVersion?: ApiTonWalletVersion;
 };
 
 export type ApiSwapEstimateResponse = ApiSwapEstimateRequest & {

@@ -5,15 +5,13 @@ import type { ApiNft } from '../../../../api/types';
 
 import {
   ANIMATED_STICKER_BIG_SIZE_PX,
-  GETGEMS_BASE_MAINNET_URL,
-  GETGEMS_BASE_TESTNET_URL,
   NOTCOIN_VOUCHERS_ADDRESS,
+  TON_DIAMONDS_URL,
 } from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
-import { IS_ANDROID_APP, IS_IOS_APP } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -37,12 +35,10 @@ interface StateProps {
   selectedAddresses?: string[];
   byAddress?: Record<string, ApiNft>;
   currentCollectionAddress?: string;
-  isTestnet?: boolean;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
+  isNftBuyingDisabled?: boolean;
 }
-
-const GETGEMS_ENABLED = !IS_IOS_APP && !IS_ANDROID_APP;
 
 function Nfts({
   isActive,
@@ -50,7 +46,7 @@ function Nfts({
   selectedAddresses,
   byAddress,
   currentCollectionAddress,
-  isTestnet,
+  isNftBuyingDisabled,
   blacklistedNftAddresses,
   whitelistedNftAddresses,
 }: OwnProps & StateProps) {
@@ -62,8 +58,6 @@ function Nfts({
 
   useEffect(clearNftsSelection, [clearNftsSelection, isActive, currentCollectionAddress]);
   useEffect(() => (hasSelection ? captureEscKeyListener(clearNftsSelection) : undefined), [hasSelection]);
-
-  const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
 
   const nfts = useMemo(() => {
     if (!orderedAddresses || !byAddress) {
@@ -112,11 +106,11 @@ function Nfts({
           nonInteractive
         />
         <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
-        {GETGEMS_ENABLED && (
+        {!isNftBuyingDisabled && (
           <>
             <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
-            <a className={styles.emptyListButton} href={getgemsBaseUrl} rel="noreferrer noopener" target="_blank">
-              {lang('Open Getgems')}
+            <a className={styles.emptyListButton} href={TON_DIAMONDS_URL} rel="noreferrer noopener" target="_blank">
+              {lang('Open TON Diamonds')}
             </a>
           </>
         )}
@@ -158,6 +152,7 @@ export default memo(
         currentCollectionAddress,
         selectedAddresses,
       } = selectCurrentAccountState(global)?.nfts || {};
+      const { isNftBuyingDisabled } = global.restrictions;
 
       const {
         blacklistedNftAddresses,
@@ -169,9 +164,9 @@ export default memo(
         selectedAddresses,
         byAddress,
         currentCollectionAddress,
-        isTestnet: global.settings.isTestnet,
         blacklistedNftAddresses,
         whitelistedNftAddresses,
+        isNftBuyingDisabled,
       };
     },
     (global, _, stickToFirst) => {

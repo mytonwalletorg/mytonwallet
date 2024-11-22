@@ -292,6 +292,8 @@ export default function createConfig(
         TONHTTPAPI_V3_MAINNET_API_KEY: '',
         TONHTTPAPI_V3_TESTNET_API_KEY: '',
         BRILLIANT_API_BASE_URL: '',
+        TRON_MAINNET_API_URL: '',
+        TRON_TESTNET_API_URL: '',
         PROXY_HOSTS: '',
         STAKING_POOLS: '',
         LIQUID_POOL: '',
