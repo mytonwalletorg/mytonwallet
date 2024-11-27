@@ -12,7 +12,8 @@ import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
 import {
-  IS_FIREFOX_EXTENSION, STARS_SYMBOL, TONCOIN, TRX,
+  CHAIN_CONFIG,
+  IS_FIREFOX_EXTENSION, STARS_SYMBOL, TONCOIN,
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
@@ -37,7 +38,6 @@ import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { getIsNativeToken } from '../../util/tokens';
 import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { NFT_TRANSFER_AMOUNT } from '../../api/chains/ton/constants';
-import { ONE_TRX } from '../../api/chains/tron/constants';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -247,11 +247,8 @@ function TransferInitial({
         ? balance
         : balance - dieselAmount;
     }
-    if (tokenSlug === TRX.slug && balance) {
-      return balance - ONE_TRX;
-    }
     return balance;
-  }, [balance, dieselAmount, isGaslessWithStars, withDiesel, tokenSlug]);
+  }, [balance, dieselAmount, isGaslessWithStars, withDiesel]);
 
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
     ? AUTHORIZE_DIESEL_INTERVAL_MS
@@ -518,16 +515,11 @@ function TransferInitial({
 
   function parseAddressAndUpdateToken(address: string) {
     if (!address || amount || !isMultichainAccount || !tokens) return;
+    const chainFromAddress = getChainFromAddress(address);
+    if (chainFromAddress === chain) return;
 
-    if (isTronAddress(address)) {
-      if (chain === 'tron') return;
-
-      const newTokenSlug = findTokenSlugWithMaxBalance(tokens, 'tron') || TRX.slug;
-      handleTokenChange(newTokenSlug);
-      return;
-    }
-
-    const newTokenSlug = findTokenSlugWithMaxBalance(tokens, 'ton') || TONCOIN.slug;
+    const newTokenSlug = findTokenSlugWithMaxBalance(tokens, chainFromAddress)
+      || CHAIN_CONFIG[chainFromAddress].nativeToken.slug;
     handleTokenChange(newTokenSlug);
   }
 
@@ -1181,10 +1173,6 @@ function renderAddressItem({
   );
 }
 
-function isTronAddress(address: string) {
-  return TRON_ADDRESS_REGEX.test(address);
-}
-
 function findTokenSlugWithMaxBalance(tokens: UserToken[], chain: ApiChain) {
   const resultToken = tokens
     .filter((token) => token.chain === chain)
@@ -1196,4 +1184,16 @@ function findTokenSlugWithMaxBalance(tokens: UserToken[], chain: ApiChain) {
     });
 
   return resultToken?.slug;
+}
+
+function getIsTronAddress(address: string) {
+  return TRON_ADDRESS_REGEX.test(address);
+}
+
+function getChainFromAddress(address: string): ApiChain {
+  if (getIsTronAddress(address)) {
+    return 'tron';
+  }
+
+  return 'ton';
 }

@@ -1,5 +1,6 @@
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
+import type { ApiChain } from '../../../api/types';
 import type { LedgerTransport } from '../../../util/ledger/types';
 import type { GlobalState } from '../../types';
 import {
@@ -16,11 +17,13 @@ import {
   APP_VERSION,
   BETA_URL,
   BOT_USERNAME,
+  CHAIN_CONFIG,
   DEBUG,
   IS_CAPACITOR,
   IS_EXTENSION,
   IS_PRODUCTION,
   PRODUCTION_URL,
+  TONCOIN,
 } from '../../../config';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { isTonDeeplink, parseTonDeeplink, processDeeplink } from '../../../util/deeplink';
@@ -60,7 +63,9 @@ import {
   selectCurrentAccount,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
+  selectCurrentAccountTokens,
   selectFirstNonHardwareAccount,
+  selectIsMultichainAccount,
 } from '../../selectors';
 
 import { reportAppLockActivityEvent } from '../../../components/AppLocked';
@@ -553,11 +558,25 @@ addActionHandler('handleQrCode', (global, actions, { data }) => {
   }
 
   const { currentTransfer, currentSwap } = global.currentQrScan || {};
+  const isMultichain = selectIsMultichainAccount(global, global.currentAccountId!);
 
   if (currentTransfer) {
-    if (isValidAddressOrDomain(data, 'ton')) {
+    const chainFromAddress = getChainFromAddress(data, isMultichain);
+
+    if (chainFromAddress) {
+      const { tokenSlug } = currentTransfer;
+
+      const token = tokenSlug
+        ? selectCurrentAccountTokens(global)?.find(({ slug }) => slug === tokenSlug)
+        : undefined;
+
+      const newTokenSlug = (!token || token.chain !== chainFromAddress)
+        ? CHAIN_CONFIG[chainFromAddress].nativeToken.slug
+        : tokenSlug;
+
       return updateCurrentTransfer(global, {
         ...currentTransfer,
+        tokenSlug: newTokenSlug,
         toAddress: data,
       });
     }
@@ -568,6 +587,8 @@ addActionHandler('handleQrCode', (global, actions, { data }) => {
         ...currentTransfer,
         // For NFT transfer we only extract address from a ton:// link
         ...(currentTransfer.nfts?.length ? pick(linkParams, ['toAddress']) : omitUndefined(linkParams)),
+        // Only Toncoin can be processed with deeplink right now
+        tokenSlug: TONCOIN.slug,
       });
     }
   }
@@ -724,4 +745,10 @@ async function connectLedgerAndGetHardwareState() {
   }
 
   return newHardwareState;
+}
+
+function getChainFromAddress(address: string, isMultichainAccount: boolean): ApiChain | undefined {
+  if (isMultichainAccount && isValidAddressOrDomain(address, 'tron')) return 'tron';
+
+  return isValidAddressOrDomain(address, 'ton') ? 'ton' : undefined;
 }

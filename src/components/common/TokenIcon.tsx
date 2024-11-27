@@ -7,6 +7,8 @@ import buildClassName from '../../util/buildClassName';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
+import useFlag from '../../hooks/useFlag';
+
 import styles from './TokenIcon.module.scss';
 
 interface OwnProps {
@@ -23,15 +25,29 @@ function TokenIcon({
 }: OwnProps) {
   const { symbol, image, chain } = token;
   const logoPath = ASSET_LOGO_PATHS[symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS] || image;
+  const [isLoadingError, markLoadingError] = useFlag(false);
+
+  function renderDefaultIcon() {
+    return (
+      <div className={buildClassName(styles.icon, size && styles[size], styles.fallbackIcon)}>
+        {token.symbol.slice(0, 1)}
+      </div>
+    );
+  }
 
   return (
     <div className={buildClassName(styles.wrapper, className)}>
-      <img
-        src={logoPath}
-        alt={symbol}
-        className={buildClassName(styles.icon, size && styles[size], iconClassName)}
-        draggable={false}
-      />
+      {
+        !isLoadingError ? (
+          <img
+            src={logoPath}
+            alt={symbol}
+            className={buildClassName(styles.icon, size && styles[size], iconClassName)}
+            draggable={false}
+            onError={markLoadingError}
+          />
+        ) : renderDefaultIcon()
+      }
       {withChainIcon && chain && (
         <img
           src={getChainNetworkIcon(chain)}

@@ -17,7 +17,6 @@ import { handleServerError } from '../../errors';
 import { getWalletBalance } from './wallet';
 import type { ApiSubmitTransferTronResult } from './types';
 import { hexToString } from '../../../util/stringFormat';
-import { ONE_TRX } from './constants';
 import { getChainConfig } from '../../../util/chain';
 
 const SIGNATURE_SIZE = 65;
@@ -106,7 +105,7 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     const trxBalance = await getWalletBalance(network, address);
 
     const trxAmount = tokenAddress ? fee : fee + amount;
-    const isEnoughTrx = (trxBalance - ONE_TRX) >= trxAmount;
+    const isEnoughTrx = trxBalance >= trxAmount;
 
     if (!isEnoughTrx) {
       return { error: ApiTransactionError.InsufficientBalance };
@@ -119,13 +118,9 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
       const feeLimitTrx = chainConfig.gas.maxTransferToken;
       const { energyUnitFee } = await getChainParameters(network);
 
-      const { transaction, energyFee } = await buildTrc20Transaction(tronWeb, {
+      const { transaction } = await buildTrc20Transaction(tronWeb, {
         toAddress, tokenAddress, amount, feeLimitTrx, energyUnitFee, fromAddress: address,
       });
-
-      if (energyFee > Number(feeLimitTrx)) {
-        return { error: ApiTransactionDraftError.InsufficientBalance };
-      }
 
       const signedTx = await tronWeb.trx.sign(transaction, privateKey);
       const result = await tronWeb.trx.sendRawTransaction(signedTx);
@@ -180,7 +175,7 @@ async function buildTrc20Transaction(tronWeb: TronWeb, options: {
     fromAddress,
   );
 
-  const { energy_used: energyUsed } = await tronWeb.transactionBuilder.triggerConstantContract(
+  const { energy_required: energyRequired } = await tronWeb.transactionBuilder.estimateEnergy(
     tokenAddress,
     functionSelector,
     {},
@@ -188,7 +183,7 @@ async function buildTrc20Transaction(tronWeb: TronWeb, options: {
     fromAddress,
   );
 
-  const energyFee = energyUnitFee * energyUsed!;
+  const energyFee = energyUnitFee * energyRequired;
 
   return { transaction, energyFee };
 }

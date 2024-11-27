@@ -16,7 +16,6 @@ import {
   CHANGELLY_TERMS_OF_USE,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   TONCOIN,
-  TRX,
 } from '../../config';
 import { selectCurrentAccount, selectIsMultichainAccount, selectSwapTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -26,7 +25,6 @@ import { fromDecimal, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
 import { getIsNativeToken } from '../../util/tokens';
-import { ONE_TRX } from '../../api/chains/tron/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
@@ -147,14 +145,7 @@ function SwapInitial({
 
   const amountInBigint = amountIn && tokenIn ? fromDecimal(amountIn, tokenIn.decimals) : 0n;
   const amountOutBigint = amountOut && tokenOut ? fromDecimal(amountOut, tokenOut.decimals) : 0n;
-  const balanceIn = useMemo(() => {
-    let value = tokenIn?.amount ?? 0n;
-    if (tokenIn?.slug === TRX.slug && isMultichainAccount) {
-      // We always need to leave 1 TRX on balance
-      value = value > ONE_TRX ? value - ONE_TRX : 0n;
-    }
-    return value;
-  }, [tokenIn, isMultichainAccount]);
+  const balanceIn = tokenIn?.amount ?? 0n;
   const networkFeeBigint = useMemo(() => {
     let value = 0n;
 
@@ -364,8 +355,12 @@ function SwapInitial({
       setSwapCexAddress({ toAddress: '' });
       if (swapType === SwapType.CrosschainToWallet) {
         setSwapScreen({ state: SwapState.Password });
-      } else if (isMultichainAccount && addressByChain![tokenIn!.chain as ApiChain]) {
-        setSwapCexAddress({ toAddress: addressByChain![tokenIn!.chain as ApiChain] });
+      } else if (
+        isMultichainAccount
+        && addressByChain![tokenIn!.chain as ApiChain]
+        && addressByChain![tokenOut!.chain as ApiChain]
+      ) {
+        setSwapCexAddress({ toAddress: addressByChain![tokenOut!.chain as ApiChain] });
         setSwapScreen({ state: SwapState.Password });
       } else {
         setSwapScreen({ state: SwapState.Blockchain });

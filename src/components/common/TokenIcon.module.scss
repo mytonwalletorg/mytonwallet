@@ -4,6 +4,7 @@
 
 .icon {
   overflow: hidden;
+  display: block;
   flex: 0 0 2.25rem;
 
   width: 2.25rem;
@@ -28,6 +29,21 @@
     width: 1.5rem !important;
     height: 1.5rem !important;
   }
+}
+
+.fallbackIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-gray-3);
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  border: 0.0875rem solid var(--color-gray-4);
 }
 
 .blockchainIcon {
