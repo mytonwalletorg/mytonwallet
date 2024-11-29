@@ -21,11 +21,12 @@ export async function addTokens(tokens: ApiToken[], onUpdate?: OnApiUpdate, shou
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
     const mergedToken = mergeTokenWithCache(token);
-    tokensCache[token.slug] = mergedToken;
 
     if (!(token.slug in tokensCache)) {
       newTokens.push(mergedToken);
     }
+
+    tokensCache[token.slug] = mergedToken;
     tokens[i] = mergedToken;
   }
 
