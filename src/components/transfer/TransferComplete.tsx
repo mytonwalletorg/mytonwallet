@@ -3,7 +3,6 @@ import { getActions } from '../../global';
 
 import type { ApiNft } from '../../api/types';
 
-import { TONCOIN } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -28,7 +27,7 @@ interface OwnProps {
   amount?: bigint;
   symbol: string;
   txId?: string;
-  tokenSlug?: string;
+  tokenSlug: string;
   toAddress?: string;
   comment?: string;
   decimals?: number;
@@ -70,7 +69,7 @@ function TransferComplete({
   const handleTransactionRepeatClick = useLastCallback(() => {
     startTransfer({
       isPortrait,
-      tokenSlug: tokenSlug || TONCOIN.slug,
+      tokenSlug,
       toAddress,
       amount,
       comment,

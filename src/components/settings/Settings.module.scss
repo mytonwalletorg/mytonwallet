@@ -20,7 +20,7 @@
 }
 
 .transitionContainer {
-  background-color: var(--color-background-second);
+  background-color: var(--color-background-window);
 }
 
 @include respond-below(xs) {
@@ -291,13 +291,17 @@
   color: var(--color-black);
   text-decoration: none !important;
 
-  transition: background-color 200ms;
+  transition: background-color 200ms, border-radius 200ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 
   &.draggable {
     grid-template-columns: min-content min-content 1fr min-content;
   }
 
-  &:not(:last-child):after {
+  &:not(:last-child):not(:has(+ :global(.collapsible:not(.open)))):after {
     content: '';
 
     position: absolute;
@@ -320,7 +324,7 @@
 
     padding: 1rem;
 
-    &:not(:last-child):after {
+    &:not(:last-child):not(:has(+ :global(.collapsible:not(.open)))):after {
       content: '';
 
       position: absolute;
@@ -428,7 +432,7 @@
     box-shadow: none;
   }
 
-  &:first-child:last-child {
+  &:first-child:last-child, &:first-child:has(+ :global(.collapsible)) {
     border-radius: var(--border-radius-default);
   }
 }
@@ -931,4 +935,12 @@ a.item:hover {
   line-height: 0.875rem !important;
 
   border-radius: 0.875rem !important;
+}
+
+.account {
+  transition: opacity 300ms;
+}
+
+.accountDisabled {
+  opacity: 0.5;
 }

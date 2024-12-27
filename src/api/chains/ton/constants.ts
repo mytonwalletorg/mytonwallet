@@ -1,14 +1,41 @@
 import type { ApiTonWalletVersion, ContractInfo, ContractName } from './types';
 
+import { JettonStakingGas } from './contracts/JettonStaking/imports/constants';
+
 export const TON_BIP39_PATH = "m/44'/607'/0'";
 
+export const ONE_TON = 1_000_000_000n;
 export const TOKEN_TRANSFER_AMOUNT = 50000000n; // 0.05 TON
 export const TINY_TOKEN_TRANSFER_AMOUNT = 18000000n; // 0.018 TON
+export const TOKEN_REAL_TRANSFER_AMOUNT = 32100000n; // 0.0321 TON
+export const TINY_TOKEN_REAL_TRANSFER_AMOUNT = 8000000n; // 0.008 TON
+export const TINIEST_TOKEN_REAL_TRANSFER_AMOUNT = 3000000n; // 0.003 TON
 export const TOKEN_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
 export const CLAIM_MINTLESS_AMOUNT = 20000000n; // 0.02 TON
 
 export const NFT_TRANSFER_AMOUNT = 100000000n; // 0.1 TON
 export const NFT_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
+
+export const TON_GAS = {
+  stakeNominators: ONE_TON,
+  unstakeNominators: ONE_TON,
+  stakeLiquid: ONE_TON,
+  unstakeLiquid: ONE_TON,
+  stakeJettonsForward: JettonStakingGas.STAKE_JETTONS,
+  stakeJettons: JettonStakingGas.STAKE_JETTONS + TOKEN_TRANSFER_AMOUNT,
+  unstakeJettons: JettonStakingGas.UNSTAKE_JETTONS,
+  claimJettons: JettonStakingGas.JETTON_TRANSFER + JettonStakingGas.SIMPLE_UPDATE_REQUEST,
+} as const;
+
+export const TON_GAS_REAL = {
+  stakeNominators: 1_000_052_853n,
+  unstakeNominators: 148_337_433n,
+  stakeLiquid: 20_251_387n,
+  unstakeLiquid: 18_625_604n,
+  stakeJettons: 74_879_996n,
+  unstakeJettons: 59_971_662n,
+  claimJettons: 57_053_859n,
+};
 
 export const STAKE_COMMENT = 'd';
 export const UNSTAKE_COMMENT = 'w';

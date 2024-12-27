@@ -118,165 +118,7 @@
   line-height: unset;
   color: var(--color-gray-2);
 
-  background-color: var(--color-background-second);
-}
-
-.accounts {
-  overflow-y: scroll;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.5rem;
-
-  padding: 0.5rem;
-
-  background-color: var(--color-background-first);
-  border-radius: var(--border-radius-default);
-
-  @include adapt-padding-to-scrollbar(0.5rem);
-
-  &_two {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
-.account {
-  cursor: var(--custom-cursor, pointer);
-
-  position: relative;
-
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-
-  width: 100%;
-  height: 3.75rem;
-  margin: 0;
-  padding: 0 0.5rem;
-
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-card-text);
-  text-align: left;
-
-  background-image: url('../../assets/account_button_bg.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
-  background-clip: padding-box, padding-box;
-  background-origin: border-box;
-  background-size: cover, cover;
-  border: none;
-  border-radius: var(--border-radius-tiny);
-
-  &::after {
-    content: '';
-
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    display: block;
-
-    width: 100%;
-    height: 100%;
-
-    opacity: 0;
-    border: none;
-    border-radius: var(--border-radius-tiny);
-
-    /* stylelint-disable-next-line plugin/whole-pixel */
-    box-shadow: 0 0 0 0.8px var(--color-blue),
-          inset 0 0 0 1.4px var(--color-blue),
-          inset 0 0 0 3.2px var(--color-background-first);
-
-    transition: opacity 300ms;
-  }
-
-  &_current::after {
-    cursor: default;
-
-    opacity: 1;
-  }
-
-  &_disabled {
-    cursor: auto;
-  }
-
-  &_inactive {
-    cursor: auto;
-
-    background-image: url('../../assets/account_button_bg.jpg');
-    filter: grayscale(100%);
-  }
-
-  .accounts_single & {
-    grid-column-start: 2;
-  }
-
-  .accounts_two & {
-    grid-column: span 2;
-
-    &:first-child {
-      grid-column-end: 4;
-    }
-
-    &:nth-child(2) {
-      grid-column-end: 6;
-    }
-  }
-
-  @media (min-resolution: 1.5dppx) {
-    background-image: url('../../assets/account_button_bg@2x.jpg'), linear-gradient(125deg, #71A9ED 0, #436CB6 100%);
-  }
-}
-
-.accountName {
-  overflow: hidden;
-
-  max-width: 100%;
-  margin-top: 0.5rem;
-  padding-right: 1.125rem;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  .button_current > & {
-    margin-right: 1rem;
-  }
-
-  @supports (-webkit-line-clamp: 2) {
-    display: -webkit-box;
-
-    line-height: 0.8125rem;
-    white-space: normal;
-
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-}
-
-.accountFooter {
-  display: flex;
-  align-items: center;
-
-  margin-top: auto;
-  margin-bottom: 0.5rem;
-
-  font-size: 0.6875rem;
-  line-height: 0.6875rem;
-}
-
-.accountCurrencyIcon {
-  margin-right: 0.125rem;
-
-  font-size: 0.5rem;
-  line-height: 0.5rem;
-}
-
-.iconLedger,
-.accountAddress {
-  color: var(--color-card-second-text);
-}
-
-.iconLedger {
-  margin-inline-end: 0.25rem;
+  background-color: var(--color-background-window);
 }
 
 .description {
@@ -504,7 +346,7 @@
 .accountBalance {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-card-second-text);
+  color: var(--second-text, var(--color-card-second-text));
 }
 
 .accountBalance,
@@ -566,12 +408,12 @@
 
 @mixin skeleton($color: var(--color-background-first), $edgeColor: var(--color-separator-input-stroke)) {
   background: linear-gradient(
-    90deg,
-    $edgeColor,
-    $edgeColor,
-    $color,
-    $edgeColor,
-    $edgeColor
+      90deg,
+      $edgeColor,
+      $edgeColor,
+      $color,
+      $edgeColor,
+      $edgeColor
   );
   background-repeat: no-repeat;
   background-size: 400% 100%;
@@ -725,7 +567,7 @@
 .contentWithBackground {
   height: 100%;
 
-  background-color: var(--color-background-second);
+  background-color: var(--color-background-window);
 }
 
 .warningForPayload {
@@ -734,9 +576,9 @@
 
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-transaction-red-text);
+  color: var(--color-transaction-amount-red-text);
 
-  background-color: var(--color-transaction-red-background);
+  background-color: var(--color-transaction-amount-red-bg);
   border-radius: var(--border-radius-normal);
 }
 

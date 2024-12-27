@@ -1,4 +1,4 @@
-import { beginCell, storeStateInit } from '@ton/core';
+import { beginCell, Cell, storeStateInit } from '@ton/core';
 
 import type { ApiNetwork, ApiTonWallet, ApiWalletInfo } from '../../types';
 import type { ApiTonWalletVersion, ContractInfo } from './types';
@@ -100,8 +100,10 @@ export async function getContractInfo(network: ApiNetwork, address: string): Pro
 
   const { code, state } = data;
 
-  const codeHash = Buffer.from(await sha256(base64ToBytes(code))).toString('hex');
-  const contractInfo = Object.values(KnownContracts).find((info) => info.hash === codeHash);
+  const codeHashOld = Buffer.from(await sha256(base64ToBytes(code))).toString('hex');
+  const contractInfo = Object.values(KnownContracts).find((info) => info.hash === codeHashOld);
+  // For inactive addresses, `code` is an empty string. Cell.fromBase64 throws when `code` is an empty string.
+  const codeHash = code && Cell.fromBase64(code).hash().toString('hex');
 
   const isInitialized = state === 'active';
   const isWallet = state === 'active' ? contractInfo?.type === 'wallet' : undefined;

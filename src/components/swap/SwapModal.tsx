@@ -43,6 +43,8 @@ interface StateProps {
   addressByChain?: Account['addressByChain'];
 }
 
+const FULL_SIZE_NBS_STATES = [SwapState.Password, SwapState.SelectTokenFrom, SwapState.SelectTokenTo];
+
 function SwapModal({
   currentSwap: {
     state,
@@ -59,7 +61,6 @@ function SwapModal({
     payoutAddress,
     payinExtraId,
     isSettingsModalOpen,
-    networkFee,
     shouldResetOnClose,
   },
   swapTokens,
@@ -95,7 +96,6 @@ function SwapModal({
   const [renderedTransactionAmountOut, setRenderedTransactionAmountOut] = useState(amountOut);
   const [renderedTransactionTokenIn, setRenderedTransactionTokenIn] = useState(tokenIn);
   const [renderedTransactionTokenOut, setRenderedTransactionTokenOut] = useState(tokenOut);
-  const [renderedNetworkFee, setRenderedNetworkFee] = useState(networkFee);
   const [renderedActivity, setRenderedActivity] = useState<ApiActivity | undefined>();
 
   useEffect(() => {
@@ -120,7 +120,6 @@ function SwapModal({
     setRenderedTransactionAmountOut(amountOut);
     setRenderedTransactionTokenIn(tokenIn);
     setRenderedTransactionTokenOut(tokenOut);
-    setRenderedNetworkFee(networkFee);
     setRenderedSwapType(swapType);
 
     if (swapType === SwapType.OnChain) {
@@ -239,10 +238,6 @@ function SwapModal({
           </SwapPassword>
         );
       case SwapState.Complete: {
-        const networkFeeValue = renderedActivity && 'networkFee' in renderedActivity
-          ? renderedActivity.networkFee
-          : renderedNetworkFee;
-
         return (
           <SwapComplete
             isActive={isActive}
@@ -252,7 +247,6 @@ function SwapModal({
             amountOut={renderedTransactionAmountOut}
             swapType={renderedSwapType}
             toAddress={toAddress}
-            networkFee={networkFeeValue}
             onClose={handleModalCloseWithReset}
             onInfoClick={handleTransactionInfoClick}
             onStartSwap={handleStartSwap}
@@ -272,9 +266,10 @@ function SwapModal({
     }
   }
 
-  const forceFullNative = isSettingsModalOpen || (
-    [SwapState.Password, SwapState.SelectTokenFrom, SwapState.SelectTokenTo].includes(renderingKey)
-  );
+  const forceFullNative = isSettingsModalOpen
+    || FULL_SIZE_NBS_STATES.includes(renderingKey)
+    // Crosschain exchanges have additional information that may cause the height of the modal to be insufficient
+    || (renderingKey === SwapState.Complete && renderedSwapType !== SwapType.OnChain);
 
   return (
     <Modal

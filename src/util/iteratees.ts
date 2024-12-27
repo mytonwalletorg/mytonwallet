@@ -193,3 +193,16 @@ export function findDifference<T>(array1: T[], array2: T[]): T[] {
 
   return array1.filter((element) => !set2.has(element));
 }
+
+export function filterValues<M extends any>(
+  byKey: CollectionByKey<M>,
+  callback: (member: M, key: string, index: number, originalByKey: CollectionByKey<M>) => boolean,
+): CollectionByKey<M> {
+  return Object.keys(byKey).reduce((newByKey: CollectionByKey<M>, key, index) => {
+    if (callback(byKey[key], key, index, byKey)) {
+      newByKey[key] = byKey[key];
+    }
+
+    return newByKey;
+  }, {});
+}

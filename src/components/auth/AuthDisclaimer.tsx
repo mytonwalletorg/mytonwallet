@@ -66,7 +66,7 @@ const AuthDisclaimer = ({
 
   return (
     <div className={styles.wrapper}>
-      <div className={buildClassName(styles.container, 'custom-scroll')}>
+      <div className={buildClassName(styles.container, styles.container_scrollable, 'custom-scroll')}>
         <div className={styles.stickerAndTitle}>
           <AnimatedIconWithPreview
             play={isActive}
@@ -102,15 +102,15 @@ const AuthDisclaimer = ({
             </Button>
           </div>
         )}
-      </div>
 
-      {!isImport && (
-        <AuthBackupWarning
-          isOpen={isInformationConfirmed}
-          onClose={handleCloseBackupWarningModal}
-          onSkip={handleSkipMnemonic}
-        />
-      )}
+        {!isImport && (
+          <AuthBackupWarning
+            isOpen={isInformationConfirmed}
+            onClose={handleCloseBackupWarningModal}
+            onSkip={handleSkipMnemonic}
+          />
+        )}
+      </div>
     </div>
   );
 };

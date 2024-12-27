@@ -7,7 +7,7 @@ import { getActions } from '../../global';
 import type { ApiBaseCurrency } from '../../api/types';
 import { SettingsState, type UserToken } from '../../global/types';
 
-import { ENABLED_TOKEN_SLUGS, TONCOIN } from '../../config';
+import { DEFAULT_ENABLED_TOKEN_SLUGS } from '../../config';
 import { bigintMultiplyToNumber } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
@@ -122,9 +122,7 @@ function SettingsTokens({
     });
   });
 
-  const handleExceptionToken = useLastCallback((token: UserToken, e: React.MouseEvent | React.TouchEvent) => {
-    if (token.slug === TONCOIN.slug) return;
-
+  const handleTokenVisibility = useLastCallback((token: UserToken, e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
     toggleTokenVisibility({ slug: token.slug, shouldShow: Boolean(token.isDisabled) });
@@ -140,7 +138,6 @@ function SettingsTokens({
       symbol, name, amount, price, slug, isDisabled,
     } = token;
 
-    const isAlwaysEnabled = ENABLED_TOKEN_SLUGS.includes(slug);
     const totalAmount = bigintMultiplyToNumber(amount, price);
     const isDragged = state.draggedIndex === index;
 
@@ -150,7 +147,7 @@ function SettingsTokens({
     const style = `top: ${isDragged ? draggedTop : top}px;`;
     const knobStyle = 'left: 1rem;';
 
-    const isDeleteButtonVisible = amount === 0n && !isAlwaysEnabled;
+    const isDeleteButtonVisible = amount === 0n && !DEFAULT_ENABLED_TOKEN_SLUGS.includes(slug);
 
     const isDragDisabled = isSortByValueEnabled || tokens!.length <= 1;
 
@@ -168,7 +165,7 @@ function SettingsTokens({
         parentRef={tokensRef}
         scrollRef={parentContainer}
         // eslint-disable-next-line react/jsx-no-bind
-        onClick={(e) => handleExceptionToken(token, e)}
+        onClick={(e) => handleTokenVisibility(token, e)}
       >
         <TokenIcon token={token} withChainIcon={withChainIcon} />
         <div className={styles.tokenInfo}>
@@ -189,12 +186,10 @@ function SettingsTokens({
             )}
           </div>
         </div>
-        {!isAlwaysEnabled && (
-          <Switcher
-            className={styles.menuSwitcher}
-            checked={!isDisabled}
-          />
-        )}
+        <Switcher
+          className={styles.menuSwitcher}
+          checked={!isDisabled}
+        />
       </Draggable>
     );
   }

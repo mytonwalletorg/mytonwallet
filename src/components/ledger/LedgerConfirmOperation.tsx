@@ -81,7 +81,10 @@ function LedgerConfirmOperation({
   }
 
   function renderTryAgain(isActiveSlide: boolean) {
-    const isErrorDetailed = error === '$hardware_blind_sign_not_enabled';
+    const isErrorDetailed = error && [
+      '$hardware_blind_sign_not_enabled',
+      '$hardware_blind_sign_not_enabled_internal',
+    ].includes(error);
 
     return (
       <>

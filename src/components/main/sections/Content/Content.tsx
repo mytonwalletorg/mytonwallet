@@ -3,7 +3,7 @@ import React, {
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiNft } from '../../../../api/types';
+import type { ApiNft, ApiStakingState } from '../../../../api/types';
 import type { DropdownItem } from '../../../ui/Dropdown';
 import { ContentTab, SettingsState } from '../../../../global/types';
 
@@ -12,8 +12,9 @@ import {
   NOTCOIN_VOUCHERS_ADDRESS,
   PORTRAIT_MIN_ASSETS_TAB_VIEW,
 } from '../../../../config';
+import { getIsActiveStakingState } from '../../../../global/helpers/staking';
 import {
-  selectCurrentAccountStakingStatus,
+  selectAccountStakingStates,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectEnabledTokensCountMemoizedFor,
@@ -53,7 +54,7 @@ interface StateProps {
   activeContentTab?: ContentTab;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
-  hasStaking: boolean;
+  states?: ApiStakingState[];
   hasVesting: boolean;
   selectedNftsToHide?: {
     addresses: string[];
@@ -73,11 +74,12 @@ function Content({
   blacklistedNftAddresses,
   whitelistedNftAddresses,
   selectedNftsToHide,
-  hasStaking,
+  states,
   hasVesting,
 }: OwnProps & StateProps) {
   const {
     selectToken,
+    showTokenActivity,
     setActiveContentTab,
     openNftCollection,
     closeNftCollection,
@@ -87,6 +89,10 @@ function Content({
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
   const hasNftSelection = Boolean(selectedAddresses?.length);
+
+  const numberOfStaking = useMemo(() => {
+    return states?.filter(getIsActiveStakingState).length ?? 0;
+  }, [states]);
 
   useSyncEffect(() => {
     if (currentCollectionAddress) {
@@ -144,9 +150,11 @@ function Content({
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
 
-  const totalTokensAmount = tokensCount + (hasVesting ? 1 : 0) + (hasStaking ? 1 : 0);
-  const shouldShowSeparateAssetsPanel = totalTokensAmount > 0
-    && totalTokensAmount <= (isPortrait ? PORTRAIT_MIN_ASSETS_TAB_VIEW : LANDSCAPE_MIN_ASSETS_TAB_VIEW);
+  const totalTokensAmount = tokensCount + (hasVesting ? 1 : 0) + numberOfStaking;
+  const shouldShowSeparateAssetsPanel = totalTokensAmount <= (
+    isPortrait ? PORTRAIT_MIN_ASSETS_TAB_VIEW : LANDSCAPE_MIN_ASSETS_TAB_VIEW
+  );
+
   const tabs = useMemo(
     () => [
       ...(
@@ -248,8 +256,7 @@ function Content({
   }, [tabs, handleSwitchTab, activeTabIndex, currentCollectionAddress]);
 
   const handleClickAsset = useLastCallback((slug: string) => {
-    selectToken({ slug }, { forceOnHeavyAnimation: true });
-    setActiveContentTab({ tab: ContentTab.Activity });
+    showTokenActivity({ slug });
   });
 
   const containerClassName = buildClassName(
@@ -278,14 +285,14 @@ function Content({
     // When assets are shown separately, there is effectively no tab with index 0,
     // so we fall back to next tab to not break parent's component logic.
     if (activeTabIndex === 0 && shouldShowSeparateAssetsPanel) {
-      return <Activity isActive={isActive} />;
+      return <Activity isActive={isActive} totalTokensAmount={totalTokensAmount} />;
     }
 
     switch (tabs[activeTabIndex].id) {
       case ContentTab.Assets:
         return <Assets isActive={isActive} onTokenClick={handleClickAsset} onStakedTokenClick={onStakedTokenClick} />;
       case ContentTab.Activity:
-        return <Activity isActive={isActive} />;
+        return <Activity isActive={isActive} totalTokensAmount={totalTokensAmount} />;
       case ContentTab.Nft:
         return (
           <Transition
@@ -352,6 +359,7 @@ function Content({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
+      const accountId = global.currentAccountId;
       const {
         activeContentTab,
         blacklistedNftAddresses,
@@ -364,10 +372,11 @@ export default memo(
           selectedAddresses,
         } = {},
       } = selectCurrentAccountState(global) ?? {};
+
       const tokens = selectCurrentAccountTokens(global);
       const tokensCount = selectEnabledTokensCountMemoizedFor(global.currentAccountId!)(tokens);
       const hasVesting = Boolean(vesting?.info?.length);
-      const hasStaking = Boolean(selectCurrentAccountStakingStatus(global));
+      const states = accountId ? selectAccountStakingStates(global, accountId) : undefined;
 
       return {
         nfts,
@@ -378,7 +387,7 @@ export default memo(
         blacklistedNftAddresses,
         whitelistedNftAddresses,
         selectedNftsToHide,
-        hasStaking,
+        states,
         hasVesting,
       };
     },

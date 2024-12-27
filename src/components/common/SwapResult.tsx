@@ -4,12 +4,8 @@ import { withGlobal } from '../../global';
 import type { Account, UserSwapToken } from '../../global/types';
 import { SwapType } from '../../global/types';
 
-import { TONCOIN } from '../../config';
 import { getIsInternalSwap, getIsSupportedChain } from '../../global/helpers';
 import { selectCurrentAccount } from '../../global/selectors';
-import buildClassName from '../../util/buildClassName';
-import { findChainConfig } from '../../util/chain';
-import { formatCurrency } from '../../util/formatNumber';
 import getChainNetworkName from '../../util/swap/getChainNetworkName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -20,7 +16,6 @@ import Button from '../ui/Button';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import SwapTokensInfo from './SwapTokensInfo';
 
-import transactionStyles from '../main/modals/TransactionModal.module.scss';
 import styles from './SwapResult.module.scss';
 
 interface OwnProps {
@@ -33,7 +28,6 @@ interface OwnProps {
   secondButtonText?: string;
   swapType?: SwapType;
   toAddress?: string;
-  networkFee?: number;
   onFirstButtonClick?: NoneToVoidFunction;
   onSecondButtonClick?: NoneToVoidFunction;
 }
@@ -52,7 +46,6 @@ function SwapResult({
   secondButtonText,
   swapType,
   toAddress = '',
-  networkFee,
   addressByChain,
   onFirstButtonClick,
   onSecondButtonClick,
@@ -65,11 +58,6 @@ function SwapResult({
   const isToAddressInCurrentWallet = useMemo(() => {
     return Boolean(toAddress && Object.values(addressByChain ?? {}).some((address) => address === toAddress));
   }, [addressByChain, toAddress]);
-  const nativeToken = useMemo(() => {
-    if (!tokenIn) return undefined;
-
-    return findChainConfig(tokenIn.chain)?.nativeToken;
-  }, [tokenIn]);
 
   function renderButtons() {
     if (!firstButtonText && !secondButtonText) {
@@ -100,19 +88,6 @@ function SwapResult({
         tgsUrl={ANIMATED_STICKERS_PATHS.thumbUp}
         previewUrl={ANIMATED_STICKERS_PATHS.thumbUpPreview}
       />
-    );
-  }
-
-  function renderFee() {
-    return (
-      <div className={buildClassName(styles.feeBlock, transactionStyles.textFieldWrapperFullWidth)}>
-        <span className={transactionStyles.textFieldLabel}>
-          {lang('Blockchain Fee')}
-        </span>
-        <div className={transactionStyles.textField}>
-          {formatCurrency(networkFee!, nativeToken?.symbol ?? TONCOIN.symbol, undefined, true)}
-        </div>
-      </div>
     );
   }
 
@@ -167,8 +142,6 @@ function SwapResult({
         tokenOut={tokenOut}
         amountOut={amountOut}
       />
-
-      {!!networkFee && renderFee()}
 
       {swapType !== SwapType.OnChain && renderTimeWarning()}
       {renderChangellyInfo()}

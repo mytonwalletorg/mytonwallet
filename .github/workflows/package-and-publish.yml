@@ -33,23 +33,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Cache node modules
-        id: npm-cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-
-      - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci
+      - name: Prepare the Node environment
+        uses: ./.github/actions/prepare_node
 
       - name: Import MacOS signing certificate
         env:
@@ -178,23 +163,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Cache node modules
-        id: npm-cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-
-      - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci
+      - name: Prepare the Node environment
+        uses: ./.github/actions/prepare_node
 
       - name: Build and package
         run: |
@@ -228,10 +198,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
+      - name: Prepare the Node environment
+        uses: ./.github/actions/prepare_node
         with:
-          node-version: 22
+          dont-install-npm-packages: true
 
       - name: Set environment variables
         id: variables
@@ -262,10 +232,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
+      - name: Prepare the Node environment
+        uses: ./.github/actions/prepare_node
         with:
-          node-version: 22
+          dont-install-npm-packages: true
 
       - name: Set environment variables
         id: variables
@@ -304,10 +274,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
+      - name: Prepare the Node environment
+        uses: ./.github/actions/prepare_node
         with:
-          node-version: 22
+          dont-install-npm-packages: true
 
       - name: Set environment variables
         id: variables
@@ -364,23 +334,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Cache node modules
-        id: npm-cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-
-      - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci
+      - name: Prepare the Node environment
+        uses: ./.github/actions/prepare_node
 
       - name: Build and sync mobile project
         run: |
@@ -460,23 +415,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Cache node modules
-        id: npm-cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-
-      - name: Install dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci
+      - name: Prepare the Node environment
+        uses: ./.github/actions/prepare_node
 
       - name: Build and sync mobile project
         run: |

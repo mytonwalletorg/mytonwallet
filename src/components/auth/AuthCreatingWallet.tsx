@@ -44,11 +44,11 @@ const AuthCreatingWallet = ({ isActive }: OwnProps) => {
       />
       <div className={styles.title}>{lang('Creating Wallet...')}</div>
 
-      <div className={buildClassName(styles.counter)}>
+      <div className={styles.counter}>
         <p className={styles.counterTitle}>{lang('On the count of three...')}</p>
-        <b className={buildClassName(styles.counterDigit, oneClassNames)}>1</b>
-        <b className={buildClassName(styles.counterDigit, twoClassNames)}>2</b>
-        <b className={buildClassName(styles.counterDigit, threeClassNames)}>3</b>
+        <b className={buildClassName(styles.counterDigit, 'rounded-font', oneClassNames)}>1</b>
+        <b className={buildClassName(styles.counterDigit, 'rounded-font', twoClassNames)}>2</b>
+        <b className={buildClassName(styles.counterDigit, 'rounded-font', threeClassNames)}>3</b>
       </div>
     </div>
   );

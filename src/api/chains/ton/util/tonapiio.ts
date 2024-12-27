@@ -65,6 +65,10 @@ export async function fetchAccountNfts(network: ApiNetwork, address: string, opt
   )).nft_items;
 }
 
+export function fetchNftByAddress(network: ApiNetwork, nftAddress: string) {
+  return getApi(network).nft.getNftItemByAddress(nftAddress);
+}
+
 export async function fetchAccountEvents(network: ApiNetwork, address: string, fromSec: number, limit?: number) {
   return (await getApi(network).accounts.getAccountEvents(address, {
     limit: limit ?? EVENTS_LIMIT,

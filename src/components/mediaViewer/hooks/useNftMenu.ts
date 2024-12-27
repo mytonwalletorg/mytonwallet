@@ -7,6 +7,7 @@ import type { DropdownItem } from '../../ui/Dropdown';
 import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
+  MTW_CARDS_COLLECTION,
   TON_DNS_COLLECTION,
 } from '../../../config';
 import { openUrl } from '../../../util/openUrl';
@@ -71,8 +72,36 @@ const SELECT_ITEM: DropdownItem = {
   value: 'select',
   withSeparator: true,
 };
+const INSTALL_CARD: DropdownItem = {
+  name: 'Install Card',
+  value: 'installCard',
+};
+const RESET_CARD: DropdownItem = {
+  name: 'Reset Card',
+  value: 'resetCard',
+};
+const INSTALL_ACCENT_COLOR: DropdownItem = {
+  name: 'Apply Palette',
+  value: 'installAccentColor',
+};
+const RESET_ACCENT_COLOR: DropdownItem = {
+  name: 'Reset Palette',
+  value: 'resetAccentColor',
+};
 
-export default function useNftMenu(nft?: ApiNft, isNftBlacklisted?: boolean, isNftWhitelisted?: boolean) {
+export default function useNftMenu({
+  nft,
+  isNftBlacklisted,
+  isNftWhitelisted,
+  isNftInstalled,
+  isNftAccentColorInstalled,
+}: {
+  nft?: ApiNft;
+  isNftBlacklisted?: boolean;
+  isNftWhitelisted?: boolean;
+  isNftInstalled?: boolean;
+  isNftAccentColorInstalled?: boolean;
+}) {
   const {
     startTransfer,
     selectNfts,
@@ -82,10 +111,15 @@ export default function useNftMenu(nft?: ApiNft, isNftBlacklisted?: boolean, isN
     addNftsToWhitelist,
     closeMediaViewer,
     openUnhideNftModal,
+    setCardBackgroundNft,
+    clearCardBackgroundNft,
+    installAccentColorFromNft,
+    clearAccentColorFromNft,
   } = getActions();
 
-  const handleMenuItemSelect = useLastCallback((value: string) => {
+  const handleMenuItemSelect = useLastCallback(async (value: string) => {
     const { isTestnet } = getGlobal().settings;
+
     switch (value) {
       case 'send': {
         startTransfer({
@@ -118,6 +152,28 @@ export default function useNftMenu(nft?: ApiNft, isNftBlacklisted?: boolean, isN
         const url = `https://dns.ton.org/#${(nft!.name || '').replace(/\.ton$/i, '')}`;
 
         openUrl(url);
+        break;
+      }
+
+      case 'installCard': {
+        setCardBackgroundNft({ nft: nft! });
+        installAccentColorFromNft({ nft: nft! });
+        break;
+      }
+
+      case 'resetCard': {
+        clearCardBackgroundNft();
+        clearAccentColorFromNft();
+        break;
+      }
+
+      case 'installAccentColor': {
+        installAccentColorFromNft({ nft: nft! });
+        break;
+      }
+
+      case 'resetAccentColor': {
+        clearAccentColorFromNft();
         break;
       }
 
@@ -176,22 +232,33 @@ export default function useNftMenu(nft?: ApiNft, isNftBlacklisted?: boolean, isN
   const menuItems = useMemo(() => {
     if (!nft) return [];
 
+    const {
+      collectionAddress, isOnSale, isOnFragment, isScam,
+    } = nft;
+    const isTonDns = nft.collectionAddress === TON_DNS_COLLECTION;
+    const isCard = nft.collectionAddress === MTW_CARDS_COLLECTION;
+
     return [
-      ...(nft.collectionAddress === TON_DNS_COLLECTION ? [TON_DNS_ITEM] : []),
-      nft.isOnSale ? ON_SALE_ITEM : SEND_ITEM,
-      ...(nft.isOnFragment ? [FRAGMENT_ITEM] : []),
+      ...(isTonDns ? [TON_DNS_ITEM] : []),
+      ...(isCard ? [!isNftInstalled ? INSTALL_CARD : RESET_CARD] : []),
+      ...(isCard ? [!isNftAccentColorInstalled ? INSTALL_ACCENT_COLOR : RESET_ACCENT_COLOR] : []),
+      {
+        ...(isOnSale ? ON_SALE_ITEM : SEND_ITEM),
+        ...(isCard && { withSeparator: true }),
+      },
+      ...(isOnFragment ? [FRAGMENT_ITEM] : []),
       GETGEMS_ITEM,
       TON_EXPLORER_ITEM,
-      ...(nft.collectionAddress ? [COLLECTION_ITEM] : []),
-      ...((!nft.isScam && !isNftBlacklisted) || isNftWhitelisted ? [HIDE_ITEM] : []),
-      ...(nft.isScam && !isNftWhitelisted ? [NOT_SCAM] : []),
-      ...(!nft.isScam && isNftBlacklisted ? [UNHIDE] : []),
-      ...(!nft.isOnSale ? [
+      ...(collectionAddress ? [COLLECTION_ITEM] : []),
+      ...((!isScam && !isNftBlacklisted) || isNftWhitelisted ? [HIDE_ITEM] : []),
+      ...(isScam && !isNftWhitelisted ? [NOT_SCAM] : []),
+      ...(!isScam && isNftBlacklisted ? [UNHIDE] : []),
+      ...(!isOnSale ? [
         BURN_ITEM,
         SELECT_ITEM,
       ] : []),
     ];
-  }, [nft, isNftBlacklisted, isNftWhitelisted]);
+  }, [nft, isNftInstalled, isNftAccentColorInstalled, isNftBlacklisted, isNftWhitelisted]);
 
   return { menuItems, handleMenuItemSelect };
 }

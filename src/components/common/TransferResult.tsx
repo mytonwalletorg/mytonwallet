@@ -67,7 +67,7 @@ function TransferResult({
         previewUrl={ANIMATED_STICKERS_PATHS.thumbUpPreview}
       />
 
-      <div className={buildClassName(styles.amount, color && styles[`amount_${color}`])}>
+      <div className={buildClassName(styles.amount, color && styles[`amount_${color}`], 'rounded-font')}>
         {wholePart.trim().replace('\u202F', '').replace('-', '−')}
         {fractionPart && <span className={styles.amountFraction}>.{fractionPart.trim()}</span>}
         <span className={styles.amountSymbol}>{tokenSymbol}</span>

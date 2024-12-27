@@ -1,0 +1,18 @@
+.collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+
+  transition: 200ms grid-template-rows ease;
+  html.animation-level-0 & {
+    transition: none !important;
+  }
+  & > .content {
+    overflow: hidden;
+  }
+  &.shown {
+    grid-template-rows: 1fr;
+  }
+  &.open > .content {
+    overflow: visible;
+  }
+}

@@ -16,7 +16,9 @@ import { parseAccountId } from '../../../util/account';
 import { compact } from '../../../util/iteratees';
 import { generateQueryId } from './util';
 import { buildNft } from './util/metadata';
-import { fetchAccountEvents, fetchAccountNfts, fetchNftItems } from './util/tonapiio';
+import {
+  fetchAccountEvents, fetchAccountNfts, fetchNftByAddress, fetchNftItems,
+} from './util/tonapiio';
 import { commentToBytes, packBytesAsSnake, toBase64Address } from './util/tonCore';
 import { fetchStoredTonWallet } from '../../common/accounts';
 import { NFT_TRANSFER_AMOUNT, NFT_TRANSFER_FORWARD_AMOUNT, NftOpCode } from './constants';
@@ -29,6 +31,16 @@ export async function getAccountNfts(accountId: string, offset?: number, limit?:
 
   const rawNfts = await fetchAccountNfts(network, address, { offset, limit });
   return compact(rawNfts.map((rawNft) => buildNft(network, rawNft)));
+}
+
+export async function checkNftOwnership(accountId: string, nftAddress: string) {
+  const { network } = parseAccountId(accountId);
+  const { address } = await fetchStoredTonWallet(accountId);
+
+  const rawNft = await fetchNftByAddress(network, nftAddress);
+  const nft = buildNft(network, rawNft);
+
+  return address === nft?.ownerAddress;
 }
 
 export async function getNftUpdates(accountId: string, fromSec: number) {
@@ -92,6 +104,7 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
           type: 'nftSent',
           accountId,
           nftAddress,
+          newOwnerAddress: to,
         });
       }
     }

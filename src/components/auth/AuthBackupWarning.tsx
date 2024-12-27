@@ -6,6 +6,7 @@ import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -20,6 +21,11 @@ interface OwnProps {
 
 function AuthBackupWarning({ isOpen, onSkip, onClose }: OwnProps) {
   const { openAuthBackupWalletModal } = getActions();
+
+  const handleBackupClick = useLastCallback(() => {
+    onClose();
+    openAuthBackupWalletModal();
+  });
 
   const lang = useLang();
 
@@ -38,7 +44,7 @@ function AuthBackupWarning({ isOpen, onSkip, onClose }: OwnProps) {
         <Button
           isPrimary
           className={buildClassName(styles.btn, styles.btn_wide, !canSkipMnemonicCheck && styles.btn_single)}
-          onClick={openAuthBackupWalletModal}
+          onClick={handleBackupClick}
         >
           {lang('Back Up Now')}
         </Button>

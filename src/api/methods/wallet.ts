@@ -4,6 +4,7 @@ import type { ApiAccountWithMnemonic, ApiChain, ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
 import chains from '../chains';
+import { fetchPrivateKey as fetchTonPrivateKey } from '../chains/ton';
 import {
   fetchStoredAccount,
   fetchStoredAddress,
@@ -14,6 +15,13 @@ import * as dappPromises from '../common/dappPromises';
 import { getMnemonic } from '../common/mnemonic';
 
 const ton = chains.ton;
+
+export async function fetchPrivateKey(accountId: string, password: string) {
+  const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+  const privateKey = await fetchTonPrivateKey(accountId, password, account);
+
+  return Buffer.from(privateKey!).toString('hex');
+}
 
 export async function fetchMnemonic(accountId: string, password: string) {
   const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);

@@ -1,6 +1,6 @@
 import type { ApiChain, ApiNetwork } from '../../api/types';
 import type {
-  Account, AccountSettings, AccountState, GlobalState, StakingStatus, UserToken,
+  Account, AccountSettings, AccountState, GlobalState, UserToken,
 } from '../types';
 
 import { parseAccountId } from '../../util/account';
@@ -137,16 +137,6 @@ export function selectAccountIdByAddress(
     .find(([accountId, account]) => (account.addressByChain[chain] === address ? accountId : undefined));
 
   return requiredAccount?.[0];
-}
-
-export function selectCurrentAccountStakingStatus(global: GlobalState): StakingStatus | undefined {
-  const accountState = selectCurrentAccountState(global);
-
-  return accountState?.staking?.balance
-    ? accountState.staking.isUnstakeRequested
-      ? 'unstakeRequested'
-      : 'active'
-    : undefined;
 }
 
 // Slow, not to be used in `withGlobal`

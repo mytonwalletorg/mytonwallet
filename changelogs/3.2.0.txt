@@ -1,0 +1,9 @@
+As the New Year approaches, we’re thrilled to introduce MyTonWallet v3.2—major update with a range of exciting features!
+
+• Unprecedented interface personalization with exquisite MyTonWallet Cards.
+
+• Push notifications to track transfers and staking interest.
+
+• Manual app lock to protect your wallet from prying eyes.
+
+• Private key export, LP tokens support, improved UI, and much more.

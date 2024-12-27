@@ -26,7 +26,6 @@ interface OwnProps {
   buttonClassName?: string;
   iconClassName?: string;
   fontIconClassName?: string;
-  itemNameClassName?: string;
   shouldCleanup?: boolean;
   onSelect?: (value: string) => void;
   onClose: NoneToVoidFunction;
@@ -48,7 +47,6 @@ function DropdownMenu({
   buttonClassName,
   iconClassName,
   fontIconClassName,
-  itemNameClassName,
   shouldCleanup,
   onSelect,
   onClose,
@@ -107,7 +105,7 @@ function DropdownMenu({
                 aria-hidden
               />
             )}
-            <span className={buildClassName(styles.itemName, 'menuItemName', itemNameClassName)}>
+            <span className={buildClassName(styles.itemName, 'menuItemName')}>
               {shouldTranslateOptions ? lang(item.name) : item.name}
               {item.description && (
                 <span className={styles.itemDescription}>

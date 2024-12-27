@@ -445,11 +445,13 @@ export function renderComponent(componentInstance: ComponentInstance) {
         incrementOverlayCounter(`${componentName} duration`, duration);
       }
     }
-  }, () => {
-    // eslint-disable-next-line no-console
-    console.error(`[Teact] Error while rendering component ${componentInstance.name}`, componentInstance);
+  }, {
+    rescue: () => {
+      // eslint-disable-next-line no-console
+      console.error(`[Teact] Error while rendering component ${componentInstance.name}`, componentInstance);
 
-    newRenderedValue = componentInstance.renderedValue;
+      newRenderedValue = componentInstance.renderedValue;
+    },
   });
 
   if (componentInstance.mountState === MountState.Mounted && newRenderedValue === componentInstance.renderedValue) {
@@ -686,11 +688,14 @@ function useEffectBase(
         );
       }
     }
-  }, () => {
-    // eslint-disable-next-line no-console, max-len
-    console.error(`[Teact] Error in effect cleanup at cursor #${cursor} in ${componentInstance.name}`, componentInstance);
-  }, () => {
-    byCursor[cursor].cleanup = undefined;
+  }, {
+    rescue: () => {
+      // eslint-disable-next-line no-console, max-len
+      console.error(`[Teact] Error in effect cleanup at cursor #${cursor} in ${componentInstance.name}`, componentInstance);
+    },
+    always: () => {
+      byCursor[cursor].cleanup = undefined;
+    },
   });
 
   const runEffect = () => safeExec(() => {
@@ -717,9 +722,11 @@ function useEffectBase(
         console.warn(`[Teact] Slow effect at cursor #${cursor}: ${componentName}, ${Math.round(duration)} ms`);
       }
     }
-  }, () => {
-    // eslint-disable-next-line no-console
-    console.error(`[Teact] Error in effect at cursor #${cursor} in ${componentInstance.name}`, componentInstance);
+  }, {
+    rescue: () => {
+      // eslint-disable-next-line no-console
+      console.error(`[Teact] Error in effect at cursor #${cursor} in ${componentInstance.name}`, componentInstance);
+    },
   });
 
   function schedule() {

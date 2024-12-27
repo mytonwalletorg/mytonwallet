@@ -7,6 +7,13 @@ import {
 
 export type NominatorPoolConfig = {};
 
+export type Nominator = {
+  address: Address;
+  amount: bigint;
+  pendingDepositAmount: bigint;
+  withdrawRequested: boolean;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function nominatorPoolConfigToCell(config: NominatorPoolConfig): Cell {
   return beginCell().endCell();
@@ -26,12 +33,7 @@ export class NominatorPool implements Contract {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  async getListNominators(provider: ContractProvider): Promise<{
-    address: Address;
-    amount: bigint;
-    pendingDepositAmount: bigint;
-    withdrawRequested: boolean;
-  }[]> {
+  async getListNominators(provider: ContractProvider): Promise<Nominator[]> {
     const res = await provider.get('list_nominators', []);
     const tupleReader = (res.stack as TupleReader).readTuple();
     const itemsArray = (tupleReader as any).items as bigint[][];

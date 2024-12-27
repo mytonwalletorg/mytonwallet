@@ -79,9 +79,9 @@
   }
 
   &_success {
-    color: var(--color-transaction-green-text);
+    color: var(--color-transaction-amount-green-text);
 
-    background: var(--color-transaction-green-background);
+    background: var(--color-transaction-amount-green-bg);
   }
 
   &_small {
@@ -115,7 +115,7 @@
   }
 
   &_success {
-    color: var(--color-transaction-green-text);
+    color: var(--color-transaction-amount-green-text);
   }
 }
 
@@ -322,10 +322,10 @@
 
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-transaction-red-text);
+  color: var(--color-transaction-amount-red-text);
   text-align: center;
 
-  background-color: var(--color-transaction-red-background);
+  background-color: var(--color-transaction-amount-red-bg);
   border-radius: var(--border-radius-normal);
 }
 

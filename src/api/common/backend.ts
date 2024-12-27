@@ -1,5 +1,6 @@
-import { APP_VERSION, BRILLIANT_API_BASE_URL } from '../../config';
+import { APP_ENV, APP_VERSION, BRILLIANT_API_BASE_URL } from '../../config';
 import { fetchJson, fetchWithRetry, handleFetchErrors } from '../../util/fetch';
+import { getEnvironment } from '../environment';
 
 const BAD_REQUEST_CODE = 400;
 
@@ -21,8 +22,8 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
     method: method ?? 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...getBackendHeaders(),
       ...(authToken && { 'X-Auth-Token': authToken }),
-      'X-App-Version': APP_VERSION,
     },
     body: JSON.stringify(data),
   };
@@ -46,7 +47,15 @@ export function callBackendGet<T = any>(path: string, data?: AnyLiteral, headers
   return fetchJson(url, data, {
     headers: {
       ...headers,
-      'X-App-Version': APP_VERSION,
+      ...getBackendHeaders(),
     },
   });
+}
+
+function getBackendHeaders() {
+  return {
+    ...getEnvironment().apiHeaders,
+    'X-App-Version': APP_VERSION,
+    'X-App-Env': APP_ENV,
+  } as Record<string, string>;
 }

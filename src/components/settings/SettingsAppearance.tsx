@@ -29,7 +29,6 @@ interface OwnProps {
   theme: Theme;
   handleBackClick: () => void;
   animationLevel: AnimationLevel;
-  canPlaySounds?: boolean;
   isInsideModal?: boolean;
   isTrayIconEnabled: boolean;
   onTrayIconEnabledToggle: VoidFunction;
@@ -42,7 +41,6 @@ function SettingsAppearance({
   theme,
   handleBackClick,
   animationLevel,
-  canPlaySounds,
   isInsideModal,
   isTrayIconEnabled,
   onTrayIconEnabledToggle,
@@ -50,7 +48,6 @@ function SettingsAppearance({
   const {
     setTheme,
     setAnimationLevel,
-    toggleCanPlaySounds,
   } = getActions();
   const lang = useLang();
 
@@ -91,10 +88,6 @@ function SettingsAppearance({
     const level = animationLevel === ANIMATION_LEVEL_MIN ? ANIMATION_LEVEL_MAX : ANIMATION_LEVEL_MIN;
     setAnimationLevel({ level });
     switchAnimationLevel(level);
-  });
-
-  const handleCanPlaySoundToggle = useLastCallback(() => {
-    toggleCanPlaySounds({ isEnabled: !canPlaySounds });
   });
 
   function renderThemes() {
@@ -151,15 +144,6 @@ function SettingsAppearance({
               className={styles.menuSwitcher}
               label={lang('Enable Animations')}
               checked={animationLevel !== ANIMATION_LEVEL_MIN}
-            />
-          </div>
-          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleCanPlaySoundToggle}>
-            {lang('Play Sounds')}
-
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Play Sounds')}
-              checked={canPlaySounds}
             />
           </div>
           {IS_ELECTRON && IS_WINDOWS && (

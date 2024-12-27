@@ -1,9 +1,10 @@
 import React, { memo } from '../../../../lib/teact/teact';
 
-import type { ApiBaseCurrency } from '../../../../api/types';
+import type { ApiBaseCurrency, ApiYieldType } from '../../../../api/types';
+import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { AppTheme, UserToken } from '../../../../global/types';
 
-import { ANIMATED_STICKER_TINY_ICON_PX, TOKEN_WITH_LABEL, TONCOIN } from '../../../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, TOKEN_WITH_LABEL } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
@@ -26,14 +27,17 @@ import styles from './Token.module.scss';
 
 interface OwnProps {
   token: UserToken;
-  stakingStatus?: 'active' | 'unstakeRequested';
+  stakingId?: string;
+  // Undefined means that it's not a staked token
+  stakingStatus?: StakingStateStatus;
   vestingStatus?: 'frozen' | 'readyToUnfreeze';
   unfreezeEndDate?: number;
   amount?: string;
   isInvestorView?: boolean;
   classNames?: string;
   style?: string;
-  apyValue?: number;
+  annualYield?: number;
+  yieldType?: ApiYieldType;
   isActive?: boolean;
   baseCurrency?: ApiBaseCurrency;
   appTheme: AppTheme;
@@ -47,10 +51,11 @@ const UNFREEZE_DANGER_DURATION = 7 * DAY;
 function Token({
   token,
   amount,
+  stakingId,
   stakingStatus,
   vestingStatus,
   unfreezeEndDate,
-  apyValue,
+  annualYield,
   isInvestorView,
   classNames,
   style,
@@ -59,6 +64,7 @@ function Token({
   baseCurrency,
   withChainIcon,
   onClick,
+  yieldType,
 }: OwnProps) {
   const {
     name,
@@ -78,31 +84,31 @@ function Token({
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
   const changeValue = Math.abs(round(calcChangeValue(Number(value), change), 4));
   const changePercent = Math.abs(round(change * 100, 2));
-  const withApy = Boolean(apyValue) && slug === TONCOIN.slug;
+  const withYield = annualYield !== undefined;
   const fullClassName = buildClassName(styles.container, isActive && styles.active, classNames);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const withLabel = Boolean(!isVesting && TOKEN_WITH_LABEL[slug]);
 
   const {
-    shouldRender: shouldRenderApy,
-    transitionClassNames: renderApyClassNames,
-  } = useShowTransition(withApy);
+    shouldRender: shouldRenderYield,
+    transitionClassNames: renderYieldClassNames,
+  } = useShowTransition(withYield);
 
   const handleClick = useLastCallback(() => {
-    onClick(slug);
+    onClick(stakingId ?? slug);
   });
 
-  function renderApy() {
+  function renderYield() {
     const labelClassName = buildClassName(
       styles.label,
       styles.apyLabel,
       stakingStatus && styles.apyLabel_staked,
-      renderApyClassNames,
+      renderYieldClassNames,
     );
 
     return (
       <span className={labelClassName}>
-        APY {apyValue}%
+        {yieldType} {annualYield}%
       </span>
     );
   }
@@ -159,8 +165,8 @@ function Token({
         </TokenIcon>
         <div className={styles.primaryCell}>
           <div className={styles.name}>
-            {name}
-            {shouldRenderApy && renderApy()}
+            <span className={styles.nameText}>{name}</span>
+            {shouldRenderYield && renderYield()}
             {withLabel && (
               <span className={buildClassName(styles.label, styles.chainLabel)}>{TOKEN_WITH_LABEL[slug]}</span>
             )}
@@ -200,14 +206,13 @@ function Token({
             </div>
           )}
         </div>
-        <i className={buildClassName(styles.iconChevron, 'icon-chevron-right')} aria-hidden />
       </Button>
     );
   }
 
   function renderDefaultView() {
     const totalAmount = Big(renderedAmount).mul(price);
-    const canRenderApy = Boolean(apyValue) && slug === TONCOIN.slug;
+    const canRenderYield = annualYield !== undefined;
 
     return (
       <Button className={fullClassName} style={style} onClick={handleClick} isSimple>
@@ -224,8 +229,8 @@ function Token({
         </TokenIcon>
         <div className={styles.primaryCell}>
           <div className={styles.name}>
-            {name}
-            {canRenderApy && renderApy()}
+            <span className={styles.nameText}>{name}</span>
+            {canRenderYield && renderYield()}
             {withLabel && (
               <span className={buildClassName(styles.label, styles.chainLabel)}>{TOKEN_WITH_LABEL[slug]}</span>
             )}
@@ -265,7 +270,6 @@ function Token({
             <AnimatedCounter text={formatCurrency(totalAmount, shortBaseSymbol, undefined, true)} />
           </div>
         </div>
-        <i className={buildClassName(styles.iconChevron, 'icon-chevron-right')} aria-hidden />
       </Button>
     );
   }

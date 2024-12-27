@@ -4,16 +4,15 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import type { ApiFetchEstimateDieselResult } from '../../api/chains/ton/types';
 import type { ApiBaseCurrency, ApiChain, ApiNft } from '../../api/types';
-import type {
-  Account, DieselStatus, SavedAddress, UserToken,
-} from '../../global/types';
+import type { Account, SavedAddress, UserToken } from '../../global/types';
+import type { FeePrecision, FeeTerms } from '../../util/fee/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
 import {
-  CHAIN_CONFIG,
-  IS_FIREFOX_EXTENSION, STARS_SYMBOL, TONCOIN,
+  CHAIN_CONFIG, IS_FIREFOX_EXTENSION, PRICELESS_TOKEN_HASHES, STAKED_TOKEN_SLUGS, TONCOIN,
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
@@ -29,7 +28,8 @@ import { vibrate } from '../../util/capacitor';
 import { readClipboardContent } from '../../util/clipboard';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
-import { formatCurrency, formatCurrencyExtended, getShortCurrencySymbol } from '../../util/formatNumber';
+import { explainApiTransferFee, getMaxTransferAmount } from '../../util/fee/transferFee';
+import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { debounce } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
@@ -51,6 +51,7 @@ import useShowTransition from '../../hooks/useShowTransition';
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
+import FeeLine from '../ui/FeeLine';
 import Input from '../ui/Input';
 import InteractiveTextField from '../ui/InteractiveTextField';
 import Menu from '../ui/Menu';
@@ -73,7 +74,8 @@ interface StateProps {
   shouldEncrypt?: boolean;
   isLoading?: boolean;
   fee?: bigint;
-  tokenSlug?: string;
+  realFee?: bigint;
+  tokenSlug: string;
   tokens?: UserToken[];
   savedAddresses?: SavedAddress[];
   currentAccountId?: string;
@@ -84,8 +86,7 @@ interface StateProps {
   nfts?: ApiNft[];
   binPayload?: string;
   stateInit?: string;
-  dieselAmount?: bigint;
-  dieselStatus?: DieselStatus;
+  diesel?: ApiFetchEstimateDieselResult;
   isDieselAuthorizationStarted?: boolean;
   isMultichainAccount: boolean;
 }
@@ -99,7 +100,6 @@ const COMMENT_DROPDOWN_ITEMS = [
   { value: 'encrypted', name: 'Encrypted Message' },
 ];
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
-const STAKED_TOKEN_SLUG = 'ton-eqcqc6ehrj';
 const AUTHORIZE_DIESEL_INTERVAL_MS = 1000;
 const TRON_ADDRESS_REGEX = /^T[1-9A-HJ-NP-Za-km-z]{1,33}$/;
 
@@ -120,13 +120,14 @@ function doesSavedAddressFitSearch(savedAddress: SavedAddress, search: string) {
 
 function TransferInitial({
   isStatic,
-  tokenSlug = TONCOIN.slug,
+  tokenSlug,
   toAddress = '',
   amount,
   comment = '',
   shouldEncrypt,
   tokens,
   fee,
+  realFee,
   savedAddresses,
   accounts,
   currentAccountId,
@@ -137,8 +138,7 @@ function TransferInitial({
   nfts,
   binPayload,
   stateInit,
-  dieselAmount,
-  dieselStatus,
+  diesel,
   isDieselAuthorizationStarted,
   isMultichainAccount,
 }: OwnProps & StateProps) {
@@ -166,13 +166,14 @@ function TransferInitial({
 
   const lang = useLang();
 
+  const transferToken = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]);
   const {
     amount: balance,
     decimals,
     price,
     symbol,
     chain,
-  } = useMemo(() => tokens?.find((token) => token.slug === tokenSlug), [tokenSlug, tokens]) || {};
+  } = transferToken || {};
 
   // Note: As of 27-11-2023, Firefox does not support readText()
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(!(IS_FIREFOX || IS_FIREFOX_EXTENSION));
@@ -180,10 +181,6 @@ function TransferInitial({
   const [isAddressBookOpen, openAddressBook, closeAddressBook] = useFlag();
   const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
   const [savedChainForDeletion, setSavedChainForDeletion] = useState<ApiChain | undefined>();
-  const [hasToAddressError, setHasToAddressError] = useState<boolean>(false);
-  const [hasAmountError, setHasAmountError] = useState<boolean>(false);
-  const [isInsufficientBalance, setIsInsufficientBalance] = useState<boolean>(false);
-  const [isInsufficientFee, setIsInsufficientFee] = useState(false);
   const isNftTransfer = Boolean(nfts?.length);
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
@@ -196,17 +193,14 @@ function TransferInitial({
     return otherAccountIds.length > 0 || (savedAddresses && savedAddresses.length > 0);
   }, [otherAccountIds.length, savedAddresses]);
 
-  const isNativeCoin = getIsNativeToken(tokenSlug);
   const nativeToken = useMemo(() => {
     return tokens?.find((token) => !token.tokenAddress && token.chain === chain);
   }, [tokens, chain])!;
 
+  const { status: dieselStatus, tokenAmount: dieselAmount } = diesel ?? {};
   const skipNextFeeEstimate = useRef(false);
-  const [isMaxAmountSelected, setMaxAmountSelected] = useState(false);
-  const [prevDieselAmount, setPrevDieselAmount] = useState(dieselAmount);
 
   const isToncoin = tokenSlug === TONCOIN.slug;
-  const toncoinToken = useMemo(() => tokens?.find((token) => token.slug === TONCOIN.slug), [tokens])!;
   const isToncoinFullBalance = isToncoin && balance === amount;
 
   const shouldDisableClearButton = !toAddress && !amount && !(comment || binPayload) && !shouldEncrypt
@@ -218,37 +212,43 @@ function TransferInitial({
     ? toBig(amount, decimals).mul(price).round(decimals, Big.roundHalfUp).toString()
     : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
-  const renderingFee = useCurrentOrPrev(fee, true);
   const withPasteButton = shouldRenderPasteButton && toAddress === '';
   const withAddressClearButton = !!toAddress.length;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const additionalAmount = amount && isToncoin ? amount : 0n;
   const isEnoughNativeCoin = isToncoinFullBalance
-    ? (fee !== undefined && fee < toncoinToken.amount)
+    ? (fee !== undefined && fee < nativeToken.amount)
     : (fee !== undefined && (fee + additionalAmount) <= nativeToken.amount);
 
+  const isNativeToken = getIsNativeToken(tokenSlug);
+  const explainedFee = useMemo(
+    () => explainApiTransferFee({
+      fee, realFee, diesel, chain, isNativeToken,
+    }),
+    [fee, realFee, diesel, chain, isNativeToken],
+  );
   const isGaslessWithStars = dieselStatus === 'stars-fee';
   const isDieselAvailable = dieselStatus === 'available' || isGaslessWithStars;
   const isDieselNotAuthorized = dieselStatus === 'not-authorized';
-  const withDiesel = !isEnoughNativeCoin && dieselStatus && dieselStatus !== 'not-available';
+  const withDiesel = explainedFee.isGasless;
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
-    ? isGaslessWithStars || skipNextFeeEstimate.current
+    ? isGaslessWithStars
       ? true
       : balance - amount >= dieselAmount
     : undefined;
+  const isInsufficientFee = (fee !== undefined && !isEnoughNativeCoin && !isDieselAvailable)
+    || (withDiesel && !isEnoughDiesel);
+  const isAmountGiven = amount !== undefined;
 
-  const feeSymbol = isGaslessWithStars ? STARS_SYMBOL : symbol;
   const isDisabledDebounce = useRef(false);
 
-  const maxAmount = useMemo(() => {
-    if (withDiesel && dieselAmount && balance) {
-      return isGaslessWithStars
-        ? balance
-        : balance - dieselAmount;
-    }
-    return balance;
-  }, [balance, dieselAmount, isGaslessWithStars, withDiesel]);
+  const maxAmount = getMaxTransferAmount({
+    tokenBalance: balance,
+    isNativeToken,
+    fullFee: explainedFee.fullFee?.terms,
+    canTransferFullBalance: explainedFee.canTransferFullBalance,
+  });
 
   const authorizeDieselInterval = isDieselNotAuthorized && isDieselAuthorizationStarted && tokenSlug && !isToncoin
     ? AUTHORIZE_DIESEL_INTERVAL_MS
@@ -259,18 +259,12 @@ function TransferInitial({
   );
 
   const updateDieselState = useLastCallback(() => {
-    fetchDieselState({ tokenSlug });
-  });
-
-  const validateToAddress = useLastCallback(() => {
-    setHasToAddressError(Boolean(toAddress) && !isAddressValid);
+    if (tokenSlug) {
+      fetchDieselState({ tokenSlug });
+    }
   });
 
   useInterval(updateDieselState, authorizeDieselInterval);
-
-  useEffect(() => {
-    validateToAddress();
-  }, [isAddressValid]);
 
   const dropDownItems = useMemo(() => {
     if (!tokens) {
@@ -291,44 +285,6 @@ function TransferInitial({
     }, []);
   }, [isMultichainAccount, tokenSlug, tokens]);
 
-  const validateAndSetAmount = useLastCallback(
-    (newAmount: bigint | undefined, noReset = false) => {
-      if (!noReset) {
-        setHasAmountError(false);
-        setIsInsufficientBalance(false);
-        setIsInsufficientFee(false);
-      }
-
-      if (newAmount === undefined) {
-        setTransferAmount({ amount: undefined });
-        return;
-      }
-
-      if (newAmount < 0) {
-        setHasAmountError(true);
-        return;
-      }
-
-      const nativeBalance = nativeToken.amount;
-      const nativeAmount = isNativeCoin ? newAmount : 0n;
-
-      if (!balance || newAmount > balance) {
-        setHasAmountError(true);
-        setIsInsufficientBalance(true);
-      } else if (isToncoin && nativeAmount === toncoinToken.amount) {
-        // Do nothing
-      } else if (
-        fee !== undefined
-        && (fee >= nativeBalance || (fee + nativeAmount > nativeBalance))
-        && !isDieselAvailable
-      ) {
-        setIsInsufficientFee(true);
-      }
-
-      setTransferAmount({ amount: newAmount });
-    },
-  );
-
   useEffect(() => {
     if (
       isToncoin
@@ -337,32 +293,14 @@ function TransferInitial({
       && fee < balance
       && amount + fee >= balance
     ) {
-      validateAndSetAmount(balance - fee);
-    } else {
-      validateAndSetAmount(amount);
+      setTransferAmount({ amount: balance - fee });
     }
-  }, [isToncoin, tokenSlug, amount, balance, fee, decimals, validateAndSetAmount, isDieselAvailable]);
+  }, [isToncoin, amount, balance, fee]);
 
+  // Note: this effect doesn't watch amount changes mainly because it's tricky to program a fee recalculation avoidance
+  // when the amount changes due to a fee change. And it's not needed because the fee doesn't depend on the amount.
   useEffect(() => {
-    if (isMaxAmountSelected && dieselAmount && prevDieselAmount !== dieselAmount && maxAmount! > 0) {
-      skipNextFeeEstimate.current = true;
-
-      setMaxAmountSelected(false);
-      setPrevDieselAmount(dieselAmount);
-      setTransferAmount({ amount: maxAmount });
-    }
-  }, [
-    dieselAmount, maxAmount, isMaxAmountSelected, prevDieselAmount, withDiesel, balance, isGaslessWithStars,
-  ]);
-
-  useEffect(() => {
-    if (
-      !toAddress
-      || hasToAddressError
-      || !(amount || nfts?.length)
-      || !isAddressValid
-      || skipNextFeeEstimate.current
-    ) {
+    if (!(isAmountGiven || nfts?.length) || !isAddressValid || skipNextFeeEstimate.current) {
       skipNextFeeEstimate.current = false;
       return;
     }
@@ -378,7 +316,6 @@ function TransferInitial({
         fetchFee({
           tokenSlug,
           toAddress,
-          amount: amount!,
           comment,
           binPayload,
           stateInit,
@@ -392,34 +329,18 @@ function TransferInitial({
       isDisabledDebounce.current = false;
       runFunction();
     }
-  }, [
-    amount,
-    binPayload,
-    comment,
-    hasToAddressError,
-    isAddressValid,
-    isNftTransfer,
-    nfts,
-    stateInit,
-    toAddress,
-    tokenSlug,
-  ]);
+  }, [isAmountGiven, binPayload, comment, isAddressValid, isNftTransfer, nfts, stateInit, toAddress, tokenSlug]);
 
-  const handleTokenChange = useLastCallback(
-    (slug: string) => {
-      if (slug === tokenSlug) return;
-
-      changeTransferToken({ tokenSlug: slug });
-      setMaxAmountSelected(false);
-      if (slug === STAKED_TOKEN_SLUG) {
-        showDialog({
-          title: lang('Warning!'),
-          // eslint-disable-next-line max-len
-          message: lang('You are about to transfer an important service token, which is needed to withdraw your deposit from staking.'),
-        });
-      }
-    },
-  );
+  const handleTokenChange = useLastCallback((slug: string) => {
+    changeTransferToken({ tokenSlug: slug });
+    const token = tokens?.find((t) => t.slug === slug);
+    if (STAKED_TOKEN_SLUGS.has(slug) || PRICELESS_TOKEN_HASHES.has(token?.codeHash!)) {
+      showDialog({
+        title: lang('Warning!'),
+        message: lang('$service_token_transfer_warning'),
+      });
+    }
+  });
 
   const handleAddressBookClose = useLastCallback(() => {
     if (!shouldUseAddressBook || !isAddressBookOpen) return;
@@ -479,7 +400,6 @@ function TransferInitial({
     }
 
     requestAnimationFrame(() => {
-      validateToAddress();
       handleAddressBookClose();
     });
   });
@@ -491,7 +411,6 @@ function TransferInitial({
 
   const handleAddressClearClick = useLastCallback(() => {
     setTransferToAddress({ toAddress: undefined });
-    setHasToAddressError(false);
   });
 
   const handleQrScanClick = useLastCallback(() => {
@@ -507,9 +426,6 @@ function TransferInitial({
       setTransferAmount({ amount: undefined });
       setTransferComment({ comment: undefined });
       setTransferShouldEncrypt({ shouldEncrypt: false });
-      setHasAmountError(false);
-      setIsInsufficientBalance(false);
-      setIsInsufficientFee(false);
     }
   });
 
@@ -531,7 +447,6 @@ function TransferInitial({
         isDisabledDebounce.current = true;
         setTransferToAddress({ toAddress: text.trim() });
         parseAddressAndUpdateToken(text.trim());
-        validateToAddress();
       }
     } catch (err: any) {
       showNotification({ message: lang('Error reading clipboard') });
@@ -563,7 +478,9 @@ function TransferInitial({
 
   const handleAmountChange = useLastCallback((stringValue?: string) => {
     const value = stringValue ? fromDecimal(stringValue, decimals) : undefined;
-    validateAndSetAmount(value);
+    if (value === undefined || value >= 0) {
+      setTransferAmount({ amount: value });
+    }
   });
 
   const handleMaxAmountClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
@@ -574,11 +491,8 @@ function TransferInitial({
     }
 
     vibrate();
-    if (maxAmount! > 0) {
-      isDisabledDebounce.current = true;
-      setMaxAmountSelected(true);
-      setTransferAmount({ amount: maxAmount });
-    }
+    isDisabledDebounce.current = true;
+    setTransferAmount({ amount: maxAmount });
   });
 
   const handlePaste = useLastCallback(() => {
@@ -592,9 +506,12 @@ function TransferInitial({
   const isCommentRequired = Boolean(toAddress) && isMemoRequired;
   const hasCommentError = isCommentRequired && !comment;
   const requiredAmount = isNftTransfer ? NFT_TRANSFER_AMOUNT : amount;
+  const isInsufficientBalance = balance !== undefined && amount !== undefined && amount > balance;
+  const hasToAddressError = toAddress.length > 0 && !isAddressValid;
+  const hasAmountError = Boolean(amount) && (amount < 0 || isInsufficientBalance || isInsufficientFee);
 
-  const canSubmit = Boolean(toAddress.length && requiredAmount && balance && requiredAmount > 0
-    && requiredAmount <= balance && !hasToAddressError && !hasAmountError
+  const canSubmit = Boolean(tokenSlug && isAddressValid && requiredAmount && balance && requiredAmount > 0
+    && requiredAmount <= balance && !hasAmountError
     && (isEnoughNativeCoin || isEnoughDiesel || isDieselNotAuthorized) && !hasCommentError
     && (!isNftTransfer || Boolean(nfts?.length)));
 
@@ -612,10 +529,11 @@ function TransferInitial({
 
     vibrate();
 
+    // Removes an excessive loading animation appearing in the Confirm button of the NFT transfer confirmation modal
     skipNextFeeEstimate.current = true;
 
     submitTransferInitial({
-      tokenSlug,
+      tokenSlug: tokenSlug!,
       amount: isNftTransfer ? NFT_TRANSFER_AMOUNT : amount!,
       toAddress,
       comment,
@@ -720,68 +638,25 @@ function TransferInitial({
   }
 
   function renderBottomRight() {
-    const withFee = fee !== undefined && amount && amount > 0;
+    let transitionKey = 0;
+    let content: TeactNode = ' ';
 
-    const activeKey = isInsufficientBalance ? 0
-      : isInsufficientFee ? 1
-        : withFee ? 2
-          : 3;
-
-    const insufficientBalanceText = <span className={styles.balanceError}>{lang('Insufficient balance')}</span>;
-    const insufficientFeeText = withFee ? (
-      <span className={styles.balanceError}>
-        {lang('$insufficient_fee', {
-          fee: formatCurrencyExtended(toDecimal(renderingFee!, nativeToken.decimals), nativeToken.symbol, true),
-        })}
-      </span>
-    ) : ' ';
-
-    const insufficientDieselText = withFee && dieselAmount && symbol ? (
-      <span className={styles.balanceError}>
-        {lang('$insufficient_fee', {
-          fee: formatCurrencyExtended(toDecimal(dieselAmount!, decimals), symbol, true),
-        })}
-      </span>
-    ) : ' ';
-
-    let feeText: string | TeactNode[] = ' ';
-
-    if (withDiesel && dieselAmount && feeSymbol) {
-      feeText = lang('$fee_value', {
-        fee: (
-          <span className={styles.feeValue}>
-            {formatCurrencyExtended(toDecimal(dieselAmount!, decimals), feeSymbol, true, decimals)}
-          </span>
-        ),
-      });
-    } else if (withFee) {
-      feeText = lang('$fee_value', {
-        fee: (
-          <span className={styles.feeValue}>
-            {formatCurrencyExtended(
-              toDecimal(renderingFee!, nativeToken.decimals), nativeToken.symbol, true, nativeToken.decimals,
-            )}
-          </span>
-        ),
-      });
+    if (amount) {
+      if (isInsufficientBalance) {
+        transitionKey = 1;
+        content = <span className={styles.balanceError}>{lang('Insufficient balance')}</span>;
+      } else if (isInsufficientFee) {
+        transitionKey = 2;
+        content = <span className={styles.balanceError}>{lang('Insufficient fee')}</span>;
+      }
     }
-
-    const content = isInsufficientBalance
-      ? insufficientBalanceText
-      : withDiesel && !isEnoughDiesel
-        ? insufficientDieselText
-        : isInsufficientFee
-          ? insufficientFeeText
-          : withFee
-            ? feeText
-            : ' ';
 
     return (
       <Transition
         className={buildClassName(styles.amountBottomRight, isStatic && styles.amountBottomRight_static)}
         slideClassName={styles.amountBottomRight_slide}
         name="fade"
-        activeKey={activeKey}
+        activeKey={transitionKey}
       >
         {content}
       </Transition>
@@ -855,7 +730,7 @@ function TransferInitial({
         items={dropDownItems}
         selectedValue={tokenSlug}
         className={styles.tokenDropdown}
-        itemNameClassName={styles.tokenDropdownItem}
+        itemClassName={styles.tokenDropdownItem}
         onChange={handleTokenChange}
       />
     );
@@ -949,6 +824,31 @@ function TransferInitial({
 
   const shouldIgnoreErrors = isAddressBookOpen && shouldRenderSuggestions;
 
+  function renderFee() {
+    const shouldShowFull = isInsufficientFee && !isInsufficientBalance;
+    let terms: FeeTerms | undefined;
+    let precision: FeePrecision = 'exact';
+
+    if (isNftTransfer) {
+      // NFT fee estimation is not supported yet. It will be added later.
+    } else if (amount) {
+      const actualFee = shouldShowFull ? explainedFee.fullFee : explainedFee.realFee;
+      if (actualFee) {
+        ({ terms, precision } = actualFee);
+      }
+    }
+
+    return (
+      <FeeLine
+        isStatic={isStatic}
+        terms={terms}
+        token={transferToken}
+        nativeToken={nativeToken}
+        precision={precision}
+      />
+    );
+  }
+
   return (
     <>
       <form
@@ -1005,23 +905,27 @@ function TransferInitial({
 
         {chain === 'ton' && renderCommentField()}
 
-        <div className={buildClassName(styles.buttons, isStatic && chain !== 'ton' && styles.buttonsShifted)}>
-          <Button
-            isDisabled={shouldDisableClearButton || isLoading}
-            className={styles.button}
-            onClick={handleClear}
-          >
-            {lang('Clear')}
-          </Button>
-          <Button
-            isPrimary
-            isSubmit
-            isDisabled={!canSubmit}
-            isLoading={isLoading}
-            className={styles.button}
-          >
-            {renderButtonText()}
-          </Button>
+        <div className={buildClassName(styles.footer, isStatic && chain !== 'ton' && styles.footer_shifted)}>
+          {renderFee()}
+
+          <div className={styles.buttons}>
+            <Button
+              isDisabled={shouldDisableClearButton || isLoading}
+              className={styles.button}
+              onClick={handleClear}
+            >
+              {lang('Clear')}
+            </Button>
+            <Button
+              isPrimary
+              isSubmit
+              isDisabled={!canSubmit}
+              isLoading={isLoading}
+              className={styles.button}
+            >
+              {renderButtonText()}
+            </Button>
+          </div>
         </div>
       </form>
       <DeleteSavedAddressModal
@@ -1043,14 +947,14 @@ export default memo(
         comment,
         shouldEncrypt,
         fee,
+        realFee,
         tokenSlug,
         isLoading,
         state,
         nfts,
         binPayload,
         isMemoRequired,
-        dieselStatus,
-        dieselAmount,
+        diesel,
         stateInit,
       } = global.currentTransfer;
 
@@ -1064,6 +968,7 @@ export default memo(
         comment,
         shouldEncrypt,
         fee,
+        realFee,
         nfts,
         tokenSlug,
         binPayload,
@@ -1076,8 +981,7 @@ export default memo(
         baseCurrency,
         currentAccountId: global.currentAccountId,
         accounts: selectNetworkAccounts(global),
-        dieselAmount,
-        dieselStatus,
+        diesel,
         isDieselAuthorizationStarted: accountState?.isDieselAuthorizationStarted,
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
       };

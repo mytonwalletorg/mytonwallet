@@ -2,7 +2,7 @@ import type { Ref, RefObject } from 'react';
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import type { ApiTokenWithPrice, ApiTransactionActivity } from '../../../../api/types';
+import type { ApiTokenWithPrice, ApiTransactionActivity, ApiYieldType } from '../../../../api/types';
 import type { AppTheme, SavedAddress } from '../../../../global/types';
 import { MediaType } from '../../../../global/types';
 
@@ -34,7 +34,8 @@ type OwnProps = {
   isLast: boolean;
   isActive: boolean;
   withChainIcon?: boolean;
-  apyValue: number;
+  annualYield: number;
+  yieldType?: ApiYieldType;
   appTheme: AppTheme;
   savedAddresses?: SavedAddress[];
   onClick: (id: string) => void;
@@ -45,7 +46,8 @@ function Transaction({
   tokensBySlug,
   transaction,
   isActive,
-  apyValue,
+  annualYield,
+  yieldType,
   savedAddresses,
   isLast,
   appTheme,
@@ -200,8 +202,8 @@ function Transaction({
             </span>
           ),
         })}
-        {isStake && lang('at %apy_value%', {
-          apy_value: <span className={styles.addressValue}>APY {apyValue}%</span>,
+        {isStake && lang('at %annual_yield%', {
+          annual_yield: <span className={styles.addressValue}>{yieldType} {annualYield}%</span>,
         })}
         {(isUnstake || isUnstakeRequest) && '\u00A0'}
       </div>
@@ -244,7 +246,6 @@ function Transaction({
       </div>
       {nft && renderNft()}
       {renderComment()}
-      <i className={buildClassName(styles.iconArrow, 'icon-chevron-right')} aria-hidden />
     </Button>
   );
 }

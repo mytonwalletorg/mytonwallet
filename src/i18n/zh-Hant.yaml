@@ -6,7 +6,8 @@ Import From %1$d Secret Words: 輸入註記詞
 More about MyTonWallet: 更多關於 MyTonWallet
 Creating Wallet...: 錢包創建中...
 On the count of three...: 數到三...
-Back Up: 備份
+$back_up_auth: 備份
+$back_up_security: 備份安全
 Passwords must be equal.: 密碼必須相同。
 To protect your wallet as much as possible, use a password with: 為了盡可能保護您的錢包，密碼請遵循下列規則
 $auth_password_rule_8chars: 至少 8 個字元
@@ -32,14 +33,25 @@ $auth_import_mnemonic_description: |
 Let’s make sure your secrets words are recorded correctly.: 請確定您的註記詞已被正確記錄下來。
 $mnemonic_check_words_list: 請輸入以下單字
 $mnemonic_check_error: 您輸入的單字與列表中的單字不相符。 請再試一遍。
-$mnemonic_list_description: |
-  按照**正確的順序**寫下這些單字，並將它們存放在一個**安全的地方**。
+$check_words_description: |
+  現在讓我們檢查一下
+  您是否正確寫下了秘密詞語。
+$mnemonic_list_description: 按**正確順序**寫下這些單詞並存放在一個**安全的地方**。
+$private_key_description: 正確保存此私鑰並存放在一個**安全的地方**。
 $mnemonic_warning: |
   **不要** 發送或向任何人展示，
   **不要** 在任何地方輸入。
+View Secret Words: 查看密語
+View TON Private Key: 查看TON私鑰
+Can be imported to non-multichain wallets for TON.: 可以匯入至不支援多鏈的TON錢包。
+Can be imported to any multichain wallet supporting TON.: 可以匯入至任何支援TON的多鏈錢包。
 Let's Check: 再確認一次
 Let's Check!: 再確認一次
 Safety Rules: 安全規定
+$safety_rules_private_key_one: |
+  在下一個屏幕中，您將看到**TON 私鑰**。請正確保存並存放在**安全的地方**。
+$safety_rules_private_key_two: 如果您忘記密碼或無法訪問此設備，它可以讓您**打開錢包**。
+$safety_rules_private_key_three: 如果其他人看到此私鑰，您的資金可能會**被盜**。**不要發送或顯示給任何人**，包括開發者或技術支持。
 $safety_rules_one: |
   在下一個畫面，您將看到**註記詞**。
   請以正確的順序記下它們並存放在**安全的地方**。
@@ -157,7 +169,8 @@ $transaction_to: 到 %address%
 Wallet is not backed up: 錢包未備份
 Testnet Version: 測試網版本
 Error reading clipboard: 讀取剪貼板時出現錯誤
-$fee_value: "手續費: %fee%"
+$fee_value: "手續費 %fee%"
+$fee_value_with_colon: "手續費: %fee%"
 Pay fee with %stars_symbol%: "使用 %stars_symbol% 支付"
 Loading...: 讀取中...
 Recipient Address: 接收人地址
@@ -201,14 +214,15 @@ Appearance: 外觀
 Light: 亮色模式
 Dark: 暗色模式
 System: 系統
-Stake TON: 質押 TON
+$stake_asset: 質押 %symbol%
 Earn from your tokens while holding them: 從你持有中的代幣獲利
-$est_apy_val: Est. APY %1$d%
 Why this is safe: 為什麼這是安全的
 Why is staking safe?: 為什麼質押是安全的?
 $safe_staking_description1: Staking 是**完全去中心化的**，由官方 TON Liquid Staking 智能合約運作。
 $safe_staking_description2: 作為其 **權益證明** 本質的一部分，存入的代幣將用於 TON 網路驗證。
 $safe_staking_description3: 您可以在**任何時候**提取您的質押資產，它會在**2 天內**存入您的帳戶。
+$safe_staking_description_jetton1: 代幣質押是 **完全去中心化的**，由 %jvault_link% 開發的 **開源** 智能合約操作，並已通過 **安全審計**。
+$safe_staking_description_jetton2: 您可以在 **任何時候** 提取您的質押，並會 **立即** 存入您的賬戶。
 $min_value: 最少 %value%
 Est. balance in a year: 預估 1 年後的資產餘額
 Confirm Staking: 確認質押
@@ -221,7 +235,7 @@ Currently Staked: 目前質押數量
 Unstake: 解除質押
 Earning History: 收益紀錄
 $total: "總額: %value%"
-Unstake TON: 解除 TON 質押
+$unstake_asset: "解除 %symbol% 質押"
 $unstake_information_with_time: |
   你的存款將在 %time% 後全數退還到你的錢包。
   解除後將不再獲得質押收益。
@@ -230,7 +244,8 @@ Confirm Unstaking: 確認解除質押
 Request for unstaking is sent!: 解除質押申請已送出!
 $unstaking_when_receive: 你將會在 %time% 後收到解除的質押數量。
 $unstake_insufficient_balance: 您的主帳戶餘額需要有 %balance% 才能繼續取消質押。
-at %apy_value%: 在%apy_value%
+at %annual_yield%: 在%annual_yield%
+Est. %annual_yield%: 預估 %annual_yield%
 Staked: 已質押
 Unstaked: 已解除質押
 The network fee has slightly changed, try sending again.: 網路費略有變化，請重新發送交易。
@@ -326,7 +341,7 @@ You sell: 您賣出
 You buy: 您購買
 Swap Details: 交換詳情
 Blockchain Fee: 區塊鏈費用
-Routing Fees: 路由費用
+Aggregator Fee: 聚合器費用
 Included: 包括
 Price Impact: 價格影響
 Minimum Received: 最低接收數量
@@ -335,7 +350,6 @@ $swap_from_to: 從 %from% 交換至 %to%
 The exchange rate is below market value!: 匯率低於市場價值 %value%！
 Invalid Pair: 無效交易對
 We do not recommend to perform an exchange, try to specify a lower amount.: 我們不建議進行交換，請嘗試指定較小的金額。
-$swap_routing_fees_tooltip: 去中心化交易所和應用程式費用（~0.875%）已包含在您看到的價格中，不會額外收取。
 $swap_minimum_received_tooltip1: 這是您從此次交換中可能獲得的最少新代幣數量，考慮了目前市場條件、滑點容忍度和潛在價格影響。
 $swap_minimum_received_tooltip2: 這是預期的最低值，但如果在處理您的交換時條件發生很大變化，最終金額可能會較少。
 $swap_price_impact_tooltip1: 這顯示了您的交易可能對代幣價格造成的影響。
@@ -410,7 +424,7 @@ Please note that it may take up to a few hours for tokens to appear in your wall
 Minimum amount: 最低 %value%
 Maximum amount: 最高 %value%
 Display Tray Icon: 顯示托盤圖標
-Enable Auto-Updates: 啟用自動更新
+Auto-Updates: 自動更新
 Biometric Authentication: 生物辨識認證
 If you turn off biometric protection, you will need to create a password.: 如果您關閉生物辨識保護，則需要建立密碼。
 Enter your current password: 輸入目前密碼
@@ -441,8 +455,6 @@ Permission denied. Please grant camera permission to use the QR code scanner.: �
 Unsupported QR code format: 不支持的QR碼格式
 An error on the server side. Please try again.: 服務器端的錯誤。請再試一次。
 Unrecognized QR Code: 無法辨識的二維碼
-$fee_value_almost_equal: 手續費 ≈ %fee%
-$fee_value_less: 手續費 < %fee%
 Address was saved!: 地址已儲存！
 US Dollar: 美金
 Euro: 歐元
@@ -482,6 +494,7 @@ Incorrect code, please try again.: 不正確的代碼，請重試。
 Correct: 不錯
 Confirm Action: 確認操作
 Confirm Swap: 確認兌換
+Confirm Rewards Claim: 確認獎勵提取
 "%amount% to %address%": "%amount% 至 %address%"
 "%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
 Failed to enable biometrics.: 無法啟用生物識別。
@@ -512,6 +525,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: 您也可以%action%。
 $wallet_switch_version_2: 切換到另一個錢包版本
 or import from: 或從中導入
+Insufficient fee: 手续费不足
 $insufficient_fee: "手续费不足: %fee%"
 Required: 必需的
 Comment is too long.: 評論太長了。
@@ -524,7 +538,7 @@ No internet connection. Please check your connection and try again.: 沒有網�
 To use this feature, first enable Face ID in your phone settings.: 若要使用此功能，請先在手機設定中啟用面容 ID。
 To use this feature, first enable biometrics in your phone settings.: 若要使用此功能，請先在手機設定中啟用生物辨識功能。
 Open Settings: 開啟設定
-You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: 您即將轉移一個重要的服務代幣，這是從質押中提取押金所必需的。
+$service_token_transfer_warning: 您即將轉移一個重要的服務代幣，此代幣是提款或完成服務操作所必需的。請確保這是您計劃執行的操作。
 No Price: 無價格
 $ledger_not_supported_operation: 此操作不支持您當前版本的 Ledger TON 應用程序。請使用 Ledger Live 進行更新。
 $ledger_unsupported_ton_connect: TonConnect不受您的Ledger Ton應用程序的支持。請使用Ledger Live更新它。
@@ -644,6 +658,7 @@ $hardware_blind_sign_not_enabled: |
   第三方服務正在請求訪問您的錢包 — 這可能會導致資金損失。如果您不確定此服務的可靠性，請取消操作。
 
   要繼續，請在 Ledger 的 TON 應用程序設置中啟用“盲簽名”選項。
+$hardware_blind_sign_not_enabled_internal: 要繼續，請在 Ledger 的 TON 應用程序設置中啟用“盲簽名”選項。
 Switch to W5: 切換到 W5
 Not Scam: 不是騙局
 Untitled: 未命名
@@ -659,16 +674,39 @@ NFT Menu: NFT選單
 Connection Type: 連接類型
 Ledger is not supported on this device: 此設備不支持 Ledger
 Connect your Ledger: 連接您的 Ledger
-App will not be locked.: 應用程式不會被鎖定。
-App will be automatically locked after 30 seconds of inactivity.: 應用程式將在 30 秒無操作後自動鎖定。
-App will be automatically locked after 3 minutes of inactivity.: 應用程式將在 3 分鐘無操作後自動鎖定。
-App will be automatically locked after 30 minutes of inactivity.: 應用程式將在 30 分鐘無操作後自動鎖定。
-Auto-Lock: 自動鎖定
-Never: 從不
+$app_lock_description: 啟用應用程式鎖後，主頁面的卡片上會出現鎖圖標。使用它鎖定 MyTonWallet。
+App Lock: 應用程式鎖
+Auto-Lock: 自動鎖
+Disabled: 已停用
 30 seconds: 30秒
 3 minutes: 3分鐘
-30 minutes: 30分鐘
+10 minutes: 10分鐘
+If away for 30 sec: 離開30秒
+If away for 3 min: 離開3分鐘
+If away for 10 min: 離開10分鐘
 Unlock: 解鎖
 This address mimics another address that you previously interacted with.: 此地址模仿了您之前互動過的另一個地址。
 Biometric authentication failed: 生物識別認證失敗
 Reset biometrics in security settings, or use a passcode.: 在安全設定中重置生物識別，或使用密碼。
+Best Rate: 最佳匯率
+via %dex_name%: 透過 %dex_name%
+$swap_dex_chooser_rate_title: 在 **DeDust** 和 **STON.fi** 上分析的實際匯率，以便使用 **最佳匯率**。
+You will receive %amount% **more**.: 您將收到 %amount% **更多**。
+You will spend %amount% **less**.: 您將少花 %amount%。
+Best: 最佳
+Use Best Rate: 使用最佳匯率
+Switch to %dex_name%: 切換到 %dex_name%
+Built-in Dex Aggregator: 內建Dex聚合器
+Add tokens: 添加令牌
+No tokens yet: 尚無代幣
+$no_tokens_description: 從其他錢包接收代幣，或者在設定中啟用首選代幣進行監控。
+Exchange Rate: 匯率
+Install Card: 安裝卡片
+Reset Card: 重設卡片
+Apply Palette: 套用調色板
+Reset Palette: 重設調色板
+Notifications & Sounds: 通知和聲音
+Push Notifications: 推送通知
+Select up to %count% wallets for notifications: 選擇最多 %count% 個錢包接收通知
+$swap_aggregator_fee_tooltip: 內建的 **DEX 聚合器** 會在可用的 DEX 中找到 **最佳匯率**。服務費為 %percent%。
+Accumulated Rewards: 累積獎勵

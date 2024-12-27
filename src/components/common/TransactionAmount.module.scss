@@ -27,12 +27,12 @@
 .amount,
 .status {
   line-height: 1;
-  color: var(--color-transaction-gray-text);
+  color: var(--color-transaction-amount-gray-text);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  background-color: var(--color-transaction-gray-background);
+  background-color: var(--color-transaction-amount-gray-bg);
 }
 
 .amountSymbol,
@@ -46,15 +46,15 @@
 }
 
 .operationPositive {
-  color: var(--color-transaction-green-text);
+  color: var(--color-transaction-amount-green-text);
 
-  background-color: var(--color-transaction-green-background);
+  background-color: var(--color-transaction-amount-green-bg);
 }
 
 .operationScam {
-  color: var(--color-transaction-red-text);
+  color: var(--color-transaction-amount-red-text);
 
-  background-color: var(--color-transaction-red-background);
+  background-color: var(--color-transaction-amount-red-bg);
 }
 
 .wrapper {

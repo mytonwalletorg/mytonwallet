@@ -166,12 +166,14 @@ export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
       supportAccountsCount = 1,
       now: serverUtc,
       country: countryCode,
+      isUpdateRequired: isAppUpdateRequired,
     } = await callBackendGet<{
       isLimited: boolean;
       isCopyStorageEnabled?: boolean;
       supportAccountsCount?: number;
       now: number;
       country: ApiCountryCode;
+      isUpdateRequired: boolean;
     }>('/utils/get-config');
 
     if (!isUpdaterAlive(localOnUpdate)) return;
@@ -182,6 +184,7 @@ export async function tryUpdateConfig(localOnUpdate: OnApiUpdate) {
       isCopyStorageEnabled,
       supportAccountsCount,
       countryCode,
+      isAppUpdateRequired,
     });
 
     const localUtc = (new Date()).getTime();

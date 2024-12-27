@@ -30,7 +30,8 @@ import PinPad from './PinPad';
 import modalStyles from './Modal.module.scss';
 import styles from './PasswordForm.module.scss';
 
-type OperationType = 'transfer' | 'sending' | 'staking' | 'unstaking' | 'swap' | 'unfreeze' | 'passcode' | 'unlock';
+type OperationType = 'transfer' | 'sending' | 'staking' | 'unstaking' | 'swap'
+| 'unfreeze' | 'passcode' | 'unlock' | 'claim';
 
 interface OwnProps {
   isActive: boolean;
@@ -186,6 +187,8 @@ function PasswordForm({
         return 'Confirm Swap';
       case 'unlock':
         return undefined;
+      case 'claim':
+        return 'Confirm Rewards Claim';
       default:
         return 'Confirm Action';
     }

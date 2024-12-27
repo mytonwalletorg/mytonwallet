@@ -60,6 +60,8 @@
 }
 
 .inputWrapper {
+  --color-background-first: var(--color-background-blue-first);
+
   margin-bottom: 0.75rem;
 }
 
@@ -259,7 +261,7 @@
 
   font-size: 1.5rem;
 
-  background: linear-gradient(135deg, #E1F1F9 13.89%, #EAFBF1 86.11%);
+  background: var(--color-gradient-activity-gray-green-bg);
   border-radius: 50%;
 
   &:global(.frozen) {
@@ -276,7 +278,7 @@
   }
 
   &:global(.missed) {
-    color: var(--color-red);
+    color: var(--color-activity-red-text);
 
     background: var(--color-activity-red-background);
   }
@@ -289,13 +291,9 @@
     &::before {
       color: transparent;
 
-      background: linear-gradient(81.88deg, #0088CC 19.42%, #1EC160 71.55%);
+      background: var(--color-gradient-main-blue2-green);
       background-clip: text;
       background-size: 100%;
-
-      :global(.theme-dark) & {
-        background-image: linear-gradient(81.88deg, #469CEC 19.42%, #2CD36F 71.55%);
-      }
     }
   }
 }
@@ -321,13 +319,9 @@
   &:global(.ready) {
     color: transparent;
 
-    background: linear-gradient(81.88deg, #0088CC 19.42%, #1EC160 71.55%);
+    background: var(--color-gradient-main-blue2-green);
     background-clip: text;
     background-size: 100%;
-
-    :global(.theme-dark) & {
-      background-image: linear-gradient(81.88deg, #469CEC 19.42%, #2CD36F 71.55%);
-    }
   }
 }
 

@@ -289,7 +289,7 @@ export function processSelfDeeplink(deeplink: string) {
         if (isTestnet) {
           actions.showError({ error: 'Buying with card is not supported in Testnet.' });
         } else {
-          actions.openOnRampWidgetModal();
+          actions.openOnRampWidgetModal({ chain: 'ton' });
         }
         break;
       }

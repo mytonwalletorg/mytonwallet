@@ -1,15 +1,9 @@
 import { Crypto } from '@peculiar/webcrypto';
 import { Buffer } from 'buffer/';
 
-import '@testing-library/jest-dom';
-
 require('dotenv')
   .config();
 
-jest.mock('../src/api/gramjs/worker/provider');
-jest.mock('../src/util/oggToWav');
-jest.mock('../src/util/webpToPng');
-jest.mock('../src/util/voiceRecording');
 jest.mock('../src/lib/rlottie/RLottie');
 
 Object.assign(global, {

@@ -3,8 +3,9 @@ import React, {
   memo, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import { FRACTION_DIGITS, TONCOIN, WHOLE_PART_DELIMITER } from '../../config';
+import { FRACTION_DIGITS, WHOLE_PART_DELIMITER } from '../../config';
 import { requestMutation } from '../../lib/fasterdom/fasterdom';
+import { getNumberParts, getNumberRegex } from '../../global/helpers/number';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
 
@@ -107,19 +108,19 @@ function RichNumberInput({
     if (value === undefined) {
       updateHtml();
     } else {
-      updateHtml(getParts(value));
+      updateHtml(getNumberParts(value));
     }
   }, [updateHtml, value]);
 
   function handleChange(e: React.FormEvent<HTMLDivElement>) {
     const inputValue = e.currentTarget.innerText.trim();
     const newValue = clearValue(inputValue, decimals);
-    const parts = getParts(newValue, decimals);
+    const parts = getNumberParts(newValue, decimals);
     const isEmpty = inputValue === '';
 
     requestMutation(() => {
       if (!parts && !isEmpty && value) {
-        updateHtml(getParts(value, decimals));
+        updateHtml(getNumberParts(value, decimals));
       } else {
         updateHtml(parts);
       }
@@ -163,6 +164,7 @@ function RichNumberInput({
     !value && styles.isEmpty,
     valueClassName,
     isLoading && styles.isLoading,
+    'rounded-font',
   );
   const labelTextClassName = buildClassName(
     styles.label,
@@ -211,21 +213,11 @@ function RichNumberInput({
   );
 }
 
-function getParts(value: string, decimals: number = TONCOIN.decimals) {
-  const regex = getInputRegex(decimals);
-  return value.match(regex) || undefined;
-}
-
-export function getInputRegex(decimals: number) {
-  if (!decimals) return /^(\d+)$/;
-  return new RegExp(`^(\\d+)([.,])?(\\d{1,${decimals}})?`);
-}
-
 function clearValue(value: string, decimals: number) {
   return value
     .replace(',', '.') // Replace comma to point
     .replace(/[^\d.]/, '') // Remove incorrect symbols
-    .match(getInputRegex(decimals))?.[0] // Trim extra decimal places
+    .match(getNumberRegex(decimals))?.[0] // Trim extra decimal places
     .replace(/^0+(?=([1-9]|0\.))/, '') // Trim extra zeros at beginning
     .replace(/^0+$/, '0') // Trim extra zeros (if only zeros are entered)
     ?? '';

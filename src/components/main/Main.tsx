@@ -3,15 +3,19 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import type { ApiStakingState } from '../../api/types';
 import { ActiveTab, ContentTab, type Theme } from '../../global/types';
 
-import { IS_ANDROID_DIRECT, IS_CAPACITOR } from '../../config';
-import { selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
+import { IS_CAPACITOR } from '../../config';
+import { getStakingStateStatus } from '../../global/helpers/staking';
+import { selectAccountStakingState, selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { getStatusBarHeight } from '../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
 import { setStatusBarStyle } from '../../util/switchTheme';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
+import {
+  IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_TOUCH_ENV, REM,
+} from '../../util/windowEnvironment';
 import windowSize from '../../util/windowSize';
 
 import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
@@ -27,6 +31,7 @@ import useShowTransition from '../../hooks/useShowTransition';
 import InvoiceModal from '../receive/InvoiceModal';
 import ReceiveModal from '../receive/ReceiveModal';
 import StakeModal from '../staking/StakeModal';
+import StakingClaimModal from '../staking/StakingClaimModal';
 import StakingInfoModal from '../staking/StakingInfoModal';
 import UnstakeModal from '../staking/UnstakeModal';
 import UpdateAvailable from '../ui/UpdateAvailable';
@@ -46,8 +51,7 @@ interface OwnProps {
 
 type StateProps = {
   currentTokenSlug?: string;
-  isStakingActive: boolean;
-  isUnstakeRequested?: boolean;
+  stakingState?: ApiStakingState;
   isTestnet?: boolean;
   isLedger?: boolean;
   isStakingInfoModalOpen?: boolean;
@@ -64,8 +68,7 @@ const UPDATE_SWAPS_INTERVAL = 3000; // 3 sec
 function Main({
   isActive,
   currentTokenSlug,
-  isStakingActive,
-  isUnstakeRequested,
+  stakingState,
   isTestnet,
   isLedger,
   isStakingInfoModalOpen,
@@ -76,11 +79,11 @@ function Main({
 }: OwnProps & StateProps) {
   const {
     selectToken,
-    startStaking,
     openBackupWalletModal,
     setActiveContentTab,
-    openStakingInfo,
     closeStakingInfo,
+    openStakingInfoOrStart,
+    changeCurrentStaking,
     setLandscapeActionsActiveTabIndex,
     loadExploreSites,
     openReceiveModal,
@@ -95,6 +98,8 @@ function Main({
   const [shouldRenderDarkStatusBar, setShouldRenderDarkStatusBar] = useState(false);
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
   const [isFocused, markIsFocused, unmarkIsFocused] = useFlag(!isBackgroundModeActive());
+
+  const stakingStatus = stakingState ? getStakingStateStatus(stakingState) : 'inactive';
 
   useBackgroundMode(unmarkIsFocused, markIsFocused);
 
@@ -172,29 +177,26 @@ function Main({
     });
   }, [currentTokenSlug, handleTokenCardClose, isPortrait]);
 
-  const handleEarnClick = useLastCallback(() => {
-    if (!isPortrait) {
-      setLandscapeActionsActiveTabIndex({ index: ActiveTab.Stake });
-      return;
-    }
+  const handleEarnClick = useLastCallback((stakingId?: string) => {
+    if (stakingId) changeCurrentStaking({ stakingId });
 
-    if (isStakingActive || isUnstakeRequested) {
-      openStakingInfo();
+    if (isPortrait) {
+      openStakingInfoOrStart();
     } else {
-      startStaking();
+      setLandscapeActionsActiveTabIndex({ index: ActiveTab.Stake });
     }
   });
 
   function renderPortraitLayout() {
     return (
-      <div className={styles.portraitContainer} ref={portraitContainerRef}>
+      <div ref={portraitContainerRef} className={styles.portraitContainer}>
         <div className={styles.head}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
           <Card
             ref={cardRef}
             forceCloseAccountSelector={shouldRenderStickyCard}
             onTokenCardClose={handleTokenCardClose}
-            onApyClick={handleEarnClick}
+            onYieldClick={handleEarnClick}
           />
           {shouldRenderStickyCard && (
             <StickyCard
@@ -202,13 +204,11 @@ function Main({
             />
           )}
           <PortraitActions
-            hasStaking={isStakingActive}
             isTestnet={isTestnet}
-            isUnstakeRequested={isUnstakeRequested}
+            stakingStatus={stakingStatus}
             isLedger={isLedger}
             isSwapDisabled={isSwapDisabled}
             isOnRampDisabled={isOnRampDisabled}
-            theme={theme}
             onEarnClick={handleEarnClick}
           />
         </div>
@@ -223,13 +223,8 @@ function Main({
       <div className={styles.landscapeContainer}>
         <div className={buildClassName(styles.sidebar, 'custom-scroll')}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
-          <Card onTokenCardClose={handleTokenCardClose} onApyClick={handleEarnClick} />
-          <LandscapeActions
-            hasStaking={isStakingActive}
-            isUnstakeRequested={isUnstakeRequested}
-            isLedger={isLedger}
-            theme={theme}
-          />
+          <Card onTokenCardClose={handleTokenCardClose} onYieldClick={handleEarnClick} />
+          <LandscapeActions stakingStatus={stakingStatus} isLedger={isLedger} theme={theme} />
         </div>
         <div className={styles.main}>
           <Content onStakedTokenClick={handleEarnClick} />
@@ -247,9 +242,10 @@ function Main({
       <ReceiveModal />
       <InvoiceModal />
       <UnstakeModal />
-      {IS_ANDROID_DIRECT && <UpdateAvailable />}
+      <StakingClaimModal />
       <VestingModal />
       <VestingPasswordModal />
+      {!IS_ELECTRON && !IS_DELEGATED_BOTTOM_SHEET && <UpdateAvailable />}
     </>
   );
 }
@@ -257,17 +253,21 @@ function Main({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
+      const { ledger } = selectCurrentAccount(global) || {};
       const accountState = selectCurrentAccountState(global);
-      const account = selectCurrentAccount(global);
+      const { currentTokenSlug } = accountState ?? {};
 
       const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
 
+      const stakingState = global.currentAccountId
+        ? selectAccountStakingState(global, global.currentAccountId)
+        : undefined;
+
       return {
-        isStakingActive: Boolean(accountState?.staking?.balance),
-        isUnstakeRequested: accountState?.staking?.isUnstakeRequested,
-        currentTokenSlug: accountState?.currentTokenSlug,
+        stakingState,
+        currentTokenSlug,
         isTestnet: global.settings.isTestnet,
-        isLedger: !!account?.ledger,
+        isLedger: Boolean(ledger),
         isStakingInfoModalOpen: global.isStakingInfoModalOpen,
         isMediaViewerOpen: Boolean(global.mediaViewer?.mediaId),
         isSwapDisabled,

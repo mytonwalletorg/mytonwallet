@@ -1,6 +1,6 @@
-import type { ApiChain } from '../../../api/types';
-import { StakingState } from '../../types';
+import type { ApiChain, ApiLiquidStakingState } from '../../../api/types';
 
+import { DEFAULT_STAKING_STATE, MTW_CARDS_COLLECTION } from '../../../config';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { buildCollectionByKey } from '../../../util/iteratees';
 import { callActionInNative } from '../../../util/multitab';
@@ -11,20 +11,21 @@ import {
   addNft,
   removeNft,
   updateAccount,
-  updateAccountStakingState,
+  updateAccountSettingsBackgroundNft,
+  updateAccountStaking,
   updateAccountState,
   updateBalances,
   updateNft,
   updateRestrictions,
   updateSettings,
-  updateStaking,
+  updateStakingDefault,
   updateStakingInfo,
   updateSwapTokens,
   updateTokens,
   updateVesting,
   updateVestingInfo,
 } from '../../reducers';
-import { selectAccountState, selectVestingPartsReadyToUnfreeze } from '../../selectors';
+import { selectAccountNftByAddress, selectAccountState, selectVestingPartsReadyToUnfreeze } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -37,63 +38,43 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     case 'updateStaking': {
       const {
         accountId,
-        stakingCommonData,
-        stakingState,
-        backendStakingState,
+        states,
+        common,
+        totalProfit,
+        shouldUseNominators,
       } = update;
 
-      const oldBalance = selectAccountState(global, accountId)?.staking?.balance ?? 0n;
-      let balance = 0n;
+      const stateById = buildCollectionByKey(states, 'id');
 
-      if (stakingState.type === 'nominators') {
-        balance = stakingState.amount;
-        global = updateAccountStakingState(global, accountId, {
-          type: stakingState.type,
-          balance,
-          isUnstakeRequested: stakingState.isUnstakeRequested,
-          unstakeRequestedAmount: undefined,
-          apy: backendStakingState.nominatorsPool.apy,
-          start: backendStakingState.nominatorsPool.start,
-          end: backendStakingState.nominatorsPool.end,
-          totalProfit: backendStakingState.totalProfit,
-        }, true);
-      } else {
-        const isPrevRoundUnlocked = Date.now() > stakingCommonData.prevRound.unlock;
+      global = updateStakingDefault(global, {
+        ...stateById[DEFAULT_STAKING_STATE.id] as ApiLiquidStakingState,
+        balance: 0n,
+        unstakeRequestAmount: 0n,
+        tokenBalance: 0n,
+        isUnstakeRequested: false,
+      });
+      global = updateStakingInfo(global, common);
+      global = updateAccountStaking(global, accountId, {
+        stateById,
+        shouldUseNominators,
+        totalProfit,
+      });
 
-        balance = stakingState.amount;
-        global = updateAccountStakingState(global, accountId, {
-          type: stakingState.type,
-          balance,
-          isUnstakeRequested: !!stakingState.unstakeRequestAmount,
-          unstakeRequestedAmount: stakingState.unstakeRequestAmount,
-          start: isPrevRoundUnlocked ? stakingCommonData.round.start : stakingCommonData.prevRound.start,
-          end: isPrevRoundUnlocked ? stakingCommonData.round.unlock : stakingCommonData.prevRound.unlock,
-          apy: stakingState.apy,
-          totalProfit: backendStakingState.totalProfit,
-        }, true);
+      const { stakingId } = selectAccountState(global, accountId)?.staking ?? {};
 
-        global = updateStakingInfo(global, {
-          liquid: {
-            instantAvailable: stakingState.instantAvailable,
-          },
-        });
-      }
+      if (!stakingId) {
+        const stateWithBiggestBalance = [...states].sort(
+          (state0, state1) => Number(state1.balance - state0.balance),
+        )[0];
 
-      let shouldOpenStakingInfo = false;
-      if (balance !== oldBalance && global.staking.state !== StakingState.None) {
-        if (balance === 0n) {
-          global = updateStaking(global, { state: StakingState.StakeInitial });
-        } else if (oldBalance === 0n) {
-          shouldOpenStakingInfo = true;
+        if (stateWithBiggestBalance && stateWithBiggestBalance.balance > 0n) {
+          global = updateAccountStaking(global, accountId, {
+            stakingId: stateWithBiggestBalance.id,
+          });
         }
       }
 
       setGlobal(global);
-
-      if (shouldOpenStakingInfo) {
-        actions.cancelStaking();
-        actions.openStakingInfo();
-      }
       break;
     }
 
@@ -126,21 +107,42 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           orderedAddresses: Object.keys(nfts),
         },
       });
+
+      update.nfts.forEach((nft) => {
+        if (nft.collectionAddress === MTW_CARDS_COLLECTION) {
+          global = updateAccountSettingsBackgroundNft(global, nft);
+        }
+      });
       setGlobal(global);
+
+      actions.checkCardNftOwnership();
       break;
     }
 
     case 'nftSent': {
-      const { accountId, nftAddress } = update;
+      const { accountId, nftAddress, newOwnerAddress } = update;
+      const sentNft = selectAccountNftByAddress(global, accountId, nftAddress);
       global = removeNft(global, accountId, nftAddress);
+
+      if (sentNft?.collectionAddress === MTW_CARDS_COLLECTION) {
+        sentNft.ownerAddress = newOwnerAddress;
+        global = updateAccountSettingsBackgroundNft(global, sentNft);
+      }
       setGlobal(global);
+
+      actions.checkCardNftOwnership();
       break;
     }
 
     case 'nftReceived': {
       const { accountId, nft } = update;
       global = addNft(global, accountId, nft);
+      if (nft.collectionAddress === MTW_CARDS_COLLECTION) {
+        global = updateAccountSettingsBackgroundNft(global, nft);
+      }
       setGlobal(global);
+
+      actions.checkCardNftOwnership();
       break;
     }
 
@@ -170,6 +172,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         isCopyStorageEnabled,
         supportAccountsCount,
         countryCode,
+        isAppUpdateRequired,
       } = update;
 
       global = updateRestrictions(global, {
@@ -181,6 +184,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         supportAccountsCount,
         countryCode,
       });
+      global = { ...global, isAppUpdateRequired };
       setGlobal(global);
       break;
     }

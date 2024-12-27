@@ -1,0 +1,107 @@
+.modalSticker {
+  margin-bottom: 2rem;
+}
+
+.buttonWrapper {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+.footerButton {
+  width: 100%;
+  max-width: 100% !important;
+}
+
+.checkMnemonicInput {
+  margin-bottom: 1.25rem;
+}
+
+.error {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-red);
+  text-align: center;
+}
+
+.checkMnemonicForm {
+  width: 100%;
+}
+
+.info {
+  width: 100%;
+
+  color: var(--color-gray-1);
+  text-align: center;
+}
+
+.mnemonicContainer {
+  user-select: text;
+}
+
+.warning {
+  align-self: center;
+
+  margin-bottom: 2rem;
+  padding: 0.5rem 0.75rem;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3125rem;
+  color: var(--color-transaction-amount-red-text);
+  text-align: center;
+
+  background-color: var(--color-transaction-amount-red-bg);
+  border-radius: var(--border-radius-buttons);
+}
+
+.words {
+  counter-reset: li;
+  user-select: text;
+
+  column-count: 2;
+  column-gap: 3rem;
+
+  min-width: 15rem;
+  margin: 0 auto;
+  padding: 0;
+
+  font-size: 1.0625rem;
+  list-style: none;
+}
+
+.word {
+  counter-increment: li;
+
+  position: relative;
+
+  margin-bottom: 0.25rem;
+  margin-left: 1.75rem;
+
+  font-weight: 600;
+  color: var(--color-blue);
+
+  &::before {
+    content: counter(li) ".";
+
+    position: absolute;
+    right: 100%;
+
+    margin-right: 0.25rem;
+
+    font-weight: 400;
+    color: var(--color-gray-2);
+  }
+
+  &:nth-child(12) {
+    break-after: column;
+  }
+}
+
+.small {
+  max-width: 20rem;
+  margin: 0 auto 1.25rem;
+
+  font-size: 0.9375rem;
+  font-weight: 400;
+}

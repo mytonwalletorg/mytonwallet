@@ -4,15 +4,17 @@ import { withGlobal } from '../../global';
 import type { ApiNft } from '../../api/types';
 import { MediaType } from '../../global/types';
 
-import { selectCurrentAccountState } from '../../global/selectors';
+import { selectCurrentAccountSettings, selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import { usePrevDuringAnimationSimple } from '../../hooks/usePrevDuringAnimationSimple';
 import useNftMenu from './hooks/useNftMenu';
 
 import DropdownMenu from '../ui/DropdownMenu';
+import { ANIMATION_DURATION } from '../ui/Menu';
 
 import styles from './MediaViewer.module.scss';
 
@@ -26,22 +28,32 @@ type StateProps = {
   nft?: ApiNft;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
+  cardBackgroundNft?: ApiNft;
+  accentColorNft?: ApiNft;
 };
 
 function Actions({
-  onClose, nft, blacklistedNftAddresses, whitelistedNftAddresses,
+  onClose, nft, blacklistedNftAddresses, whitelistedNftAddresses, cardBackgroundNft, accentColorNft,
 }: StateProps & OwnProps) {
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
 
-  const isNftBlackListed = useMemo(() => {
+  const isNftBlacklisted = useMemo(() => {
     return blacklistedNftAddresses?.includes(nft!.address);
   }, [nft, blacklistedNftAddresses]);
-  const isNftWhiteListed = useMemo(() => {
+  const isNftWhitelisted = useMemo(() => {
     return whitelistedNftAddresses?.includes(nft!.address);
   }, [nft, whitelistedNftAddresses]);
+  const isNftInstalled = usePrevDuringAnimationSimple(
+    nft && nft.address === cardBackgroundNft?.address, ANIMATION_DURATION,
+  );
+  const isNftAccentColorInstalled = usePrevDuringAnimationSimple(
+    nft && nft.address === accentColorNft?.address, ANIMATION_DURATION,
+  );
 
-  const { menuItems, handleMenuItemSelect } = useNftMenu(nft, isNftBlackListed, isNftWhiteListed);
+  const { menuItems, handleMenuItemSelect } = useNftMenu({
+    nft, isNftBlacklisted, isNftWhitelisted, isNftInstalled, isNftAccentColorInstalled,
+  });
 
   const handleSelect = useLastCallback((value: string) => {
     if (value === 'send') {
@@ -95,8 +107,9 @@ export default memo(withGlobal<OwnProps>((global, { mediaId }): StateProps => {
   if (!nft) return {};
 
   const { blacklistedNftAddresses, whitelistedNftAddresses } = selectCurrentAccountState(global) || {};
+  const { cardBackgroundNft, accentColorNft } = selectCurrentAccountSettings(global) || {};
 
   return {
-    nft, blacklistedNftAddresses, whitelistedNftAddresses,
+    nft, blacklistedNftAddresses, whitelistedNftAddresses, cardBackgroundNft, accentColorNft,
   };
 })(Actions));

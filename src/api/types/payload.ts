@@ -45,6 +45,7 @@ export type ApiTokensTransferPayload = {
   customPayload?: string;
   forwardAmount: bigint;
   forwardPayload?: string;
+  forwardPayloadOpCode?: number;
   // Specific to UI
   slug: string;
 };
@@ -139,6 +140,13 @@ export type ApiLiquidStakingVotePayload = {
   needConfirmation: boolean;
 };
 
+export type ApiJettonStakePayload = {
+  type: 'jetton-staking:unstake';
+  queryId: bigint;
+  amount: bigint;
+  isForce: boolean;
+};
+
 export type ApiParsedPayload = ApiCommentPayload
 | ApiEncryptedCommentPayload
 | ApiNftTransferPayload
@@ -155,4 +163,5 @@ export type ApiParsedPayload = ApiCommentPayload
 | ApiVestingAddWhitelistPayload
 | ApiSingleNominatorWithdrawPayload
 | ApiSingleNominatorChangeValidatorPayload
-| ApiLiquidStakingVotePayload;
+| ApiLiquidStakingVotePayload
+| ApiJettonStakePayload;

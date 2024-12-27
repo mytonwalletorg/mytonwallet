@@ -78,7 +78,7 @@ function SwapActivityModal({
   }, [lang]);
   const appTheme = useAppTheme(theme);
 
-  const { txIds, timestamp, networkFee = 0 } = renderedActivity ?? {};
+  const { txIds, timestamp, networkFee = '0' } = renderedActivity ?? {};
   const { payinAddress, payoutAddress, payinExtraId } = renderedActivity?.cex || {};
 
   let fromAmount = '0';
@@ -378,7 +378,7 @@ function SwapActivityModal({
 
       return (
         <div className={styles.changellyInfoBlock}>
-          {networkFee > 0 && renderFee()}
+          {Number(networkFee) > 0 && renderFee()}
           <span className={styles.changellyDescription}>{lang('$swap_changelly_to_ton_description1', {
             value: (
               <span className={styles.changellyDescriptionBold}>
@@ -411,7 +411,7 @@ function SwapActivityModal({
 
     return (
       <>
-        {networkFee > 0 && renderFee()}
+        {Number(networkFee) > 0 && renderFee()}
         {!isInternalSwap && renderAddress()}
         {!isInternalSwap && renderMemo()}
       </>

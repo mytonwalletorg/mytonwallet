@@ -1,13 +1,11 @@
 import React, { memo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import type { Theme } from '../../../../global/types';
+import type { StakingStateStatus } from '../../../../global/helpers/staking';
 
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
-import useAppTheme from '../../../../hooks/useAppTheme';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
@@ -16,32 +14,25 @@ import Button from '../../../ui/Button';
 import styles from './PortraitActions.module.scss';
 
 interface OwnProps {
-  hasStaking?: boolean;
   isTestnet?: boolean;
-  isUnstakeRequested?: boolean;
+  stakingStatus: StakingStateStatus;
   onEarnClick: NoneToVoidFunction;
   isLedger?: boolean;
   isSwapDisabled?: boolean;
   isOnRampDisabled?: boolean;
-  theme: Theme;
 }
 
 function PortraitActions({
-  hasStaking,
   isTestnet,
-  isUnstakeRequested,
+  stakingStatus,
   onEarnClick,
   isLedger,
   isSwapDisabled,
   isOnRampDisabled,
-  theme,
 }: OwnProps) {
   const {
     startTransfer, startSwap, openReceiveModal,
   } = getActions();
-
-  const appTheme = useAppTheme(theme);
-  const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
 
   const lang = useLang();
 
@@ -81,7 +72,7 @@ function PortraitActions({
           className={styles.button}
           onClick={handleAddBuyClick}
         >
-          <img src={stickerPaths.preview.iconAdd} alt="" className={styles.buttonIcon} />
+          <i className={buildClassName(styles.buttonIcon, 'icon-action-add')} aria-hidden />
           {lang(isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add')}
         </Button>
         <Button
@@ -89,7 +80,7 @@ function PortraitActions({
           className={styles.button}
           onClick={handleStartTransfer}
         >
-          <img src={stickerPaths.preview.iconSend} alt="" className={styles.buttonIcon} />
+          <i className={buildClassName(styles.buttonIcon, 'icon-action-send')} aria-hidden />
           {lang('Send')}
         </Button>
         {isSwapAllowed && (
@@ -98,18 +89,18 @@ function PortraitActions({
             className={styles.button}
             onClick={handleStartSwap}
           >
-            <img src={stickerPaths.preview.iconSwap} alt="" className={styles.buttonIcon} />
+            <i className={buildClassName(styles.buttonIcon, 'icon-action-swap')} aria-hidden />
             {lang('Swap')}
           </Button>
         )}
         {isStakingAllowed && (
           <Button
             isSimple
-            className={buildClassName(styles.button, (hasStaking || isUnstakeRequested) && styles.button_purple)}
+            className={buildClassName(styles.button, stakingStatus !== 'inactive' && styles.button_purple)}
             onClick={handleEarnClick}
           >
-            <img src={stickerPaths.preview.iconEarn} alt="" className={styles.buttonIcon} />
-            {lang(isUnstakeRequested ? 'Unstaking' : hasStaking ? 'Earning' : 'Earn')}
+            <i className={buildClassName(styles.buttonIcon, 'icon-action-earn')} aria-hidden />
+            {lang({ inactive: 'Earn', active: 'Earning', unstakeRequested: 'Unstaking' }[stakingStatus])}
           </Button>
         )}
       </div>

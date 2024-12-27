@@ -28,12 +28,21 @@ addCallback((global: GlobalState) => {
   prevGlobal = global;
 });
 
-addActionHandler('setAutolockValue', (global, actions, { value }) => {
+addActionHandler('setAppLockValue', (global, actions, { value, isEnabled }) => {
   return {
     ...global,
     settings: {
       ...global.settings,
       autolockValue: value,
+      isAppLockEnabled: isEnabled,
     },
+  };
+});
+
+addActionHandler('setIsManualLockActive', (global, actions, { isActive, shouldHideBiometrics }) => {
+  return {
+    ...global,
+    isManualLockActive: isActive,
+    appLockHideBiometrics: shouldHideBiometrics,
   };
 });

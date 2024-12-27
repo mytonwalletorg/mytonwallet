@@ -315,9 +315,9 @@
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.3125rem;
-  color: var(--color-transaction-red-text);
+  color: var(--color-transaction-amount-red-text);
   text-align: center;
 
-  background-color: var(--color-transaction-red-background);
+  background-color: var(--color-transaction-amount-red-bg);
   border-radius: var(--border-radius-buttons);
 }

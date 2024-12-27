@@ -27,6 +27,10 @@
     color: var(--color-blue) !important;
 
     background-color: var(--color-interactive-tab-active) !important;
+
+    @supports (background-color: color-mix(in rgba, var(--color-blue) 92%, transparent 8%)) {
+      background-color: color-mix(in rgba, var(--color-blue) 92%, transparent 8%);
+    }
   }
 
   &_active {

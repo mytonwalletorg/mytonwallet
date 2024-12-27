@@ -1,0 +1,140 @@
+.MtwCard__darkText {
+  --main-text: #000;
+  --second-text: #00000099;
+  --action-color: #00000099;
+  --action-color-hover: #000;
+  --color-card-default-text: #000;
+  --color-card-green-text: #000;
+  --color-card-green-background: #2CD36F59;
+  --color-card-red-text: #000;
+  --color-card-red-background: #FAD2EA59;
+
+  .glare-text {
+    --glare-main: #000;
+    --glare-accent: rgba(0, 0, 0, 0.3);
+  }
+}
+
+.MtwCard__lightText {
+  --main-text: #FFF;
+  --second-text: #FFFFFF99;
+  --action-color: #FFFFFF99;
+  --action-color-hover: #FFF;
+  --color-card-default-text: #FFF;
+  --color-card-green-text: #FFF;
+  --color-card-green-background: #2CD36F59;
+  --color-card-red-text: #FFF;
+  --color-card-red-background: #FAD2EA59;
+}
+
+.MtwCard__black {
+  --main-text: #FFF;
+  --second-text: #A6A6B1;
+  --action-color: rgba(255, 255, 255, 0.23);
+  --action-color-hover: rgba(255, 255, 255, 0.75);
+  --color-card-default-text: #A6A6B1;
+  --color-card-green-text: #A6A6B1;
+  --color-card-green-background: #2CD36F33;
+  --color-card-red-text: #A6A6B1;
+  --color-card-red-background: #FAD2EA33;
+}
+
+.MtwCard__platinum {
+  --main-text: #FFF;
+  --second-text: #A6A6B1;
+  --action-color: #A6A6B1;
+  --action-color-hover: #FFFFFF;
+  --color-card-default-text: #A6A6B1;
+  --color-card-green-text: #A6A6B1;
+  --color-card-green-background: #2CD36F33;
+  --color-card-red-text: #A6A6B1;
+  --color-card-red-background: #FAD2EA33;
+}
+
+.MtwCard__gold {
+  --main-text: #34270A;
+  --second-text: #845F16;
+  --action-color: #A5761B;
+  --action-color-hover: #845F16;
+  --color-card-default-text: #845F16;
+  --color-card-green-text: #845F16;
+  --color-card-green-background: #2CD36F59;
+  --color-card-red-text: #845F16;
+  --color-card-red-background: #FAD2EA59;
+}
+
+.MtwCard__silver {
+  --main-text: #272727;
+  --second-text: #6E6E6E;
+  --action-color: #888;
+  --action-color-hover: #595959;
+  --color-card-default-text: #6E6E6E;
+  --color-card-green-text:#6E6E6E;
+  --color-card-green-background: #2CD36F59;
+  --color-card-red-text: #6E6E6E;
+  --color-card-red-background: #FAD2EA59;
+}
+
+.MtwCard__black,
+.MtwCard__platinum,
+.MtwCard__gold,
+.MtwCard__silver,
+.MtwCard__standard {
+  --color-card-button: #FFFFFF59;
+}
+
+.MtwCard__gold .glare-text,
+.MtwCard__silver .glare-text {
+  --glare-main: rgba(39, 39, 39, 0.7);
+  --glare-accent: rgba(160, 160, 160, 0.3);
+}
+
+.gradientText {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 0%, #5B5C64 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: multiply;
+
+  -webkit-text-fill-color: transparent;
+
+  & > .icon {
+    background: #6F7076;
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    -webkit-text-fill-color: transparent;
+  }
+
+  .MtwCard__silver & {
+    background-image: linear-gradient(90deg, #272727 0%, #989898 100%);
+
+    > .icon {
+      background-image: linear-gradient(0deg, #989898, #989898);
+    }
+  }
+
+  .MtwCard__gold & {
+    background-image: linear-gradient(90deg, #34270A 0%, #A5761B 100%);
+
+    > .icon {
+      background-image: linear-gradient(0deg, #A5761B, #A5761B);
+    }
+  }
+
+  .MtwCard__platinum & {
+    background-image: linear-gradient(90deg, #FFFFFF 0%, #A6A6B1 100%);
+
+    > .icon {
+      background-image: linear-gradient(0deg, #A6A6B1, #A6A6B1);
+    }
+  }
+
+  .MtwCard__black & {
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.15) 100%);
+
+    > .icon {
+      background-color: transparent;
+      background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15));
+    }
+  }
+}

@@ -263,7 +263,7 @@ export function createLocalTransaction(accountId: string, chain: ApiChain, param
   return localTransaction;
 }
 
-export function fetchDieselState(accountId: string, tokenAddress: string) {
+export function fetchEstimateDiesel(accountId: string, tokenAddress: string) {
   const chain = chains.ton;
 
   return chain.fetchEstimateDiesel(accountId, tokenAddress);

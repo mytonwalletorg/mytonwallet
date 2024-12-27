@@ -213,7 +213,7 @@ function CreatePasswordForm({
         {renderErrors()}
 
         <div className={modalStyles.buttons}>
-          <Button onClick={onCancel} className={modalStyles.button}>
+          <Button onClick={onCancel} className={modalStyles.button} isDisabled={isLoading}>
             {lang('Cancel')}
           </Button>
           <Button

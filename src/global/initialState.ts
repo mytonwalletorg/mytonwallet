@@ -12,13 +12,15 @@ import {
 import {
   ANIMATION_LEVEL_DEFAULT,
   DEFAULT_SLIPPAGE_VALUE,
+  DEFAULT_STAKING_STATE,
   INIT_SWAP_ASSETS,
   THEME_DEFAULT,
   TOKEN_INFO,
+  TONCOIN,
 } from '../config';
 import { IS_IOS_APP, USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 29;
+export const STATE_VERSION = 32;
 
 export const INITIAL_STATE: GlobalState = {
   appState: AppState.Auth,
@@ -35,6 +37,7 @@ export const INITIAL_STATE: GlobalState = {
 
   currentTransfer: {
     state: TransferState.None,
+    tokenSlug: TONCOIN.slug,
   },
 
   currentSwap: {
@@ -46,11 +49,11 @@ export const INITIAL_STATE: GlobalState = {
     state: TransferState.None,
   },
 
-  staking: {
+  currentStaking: {
     state: StakingState.None,
   },
 
-  stakingInfo: {},
+  stakingDefault: DEFAULT_STAKING_STATE,
 
   tokenInfo: {
     bySlug: TOKEN_INFO,
@@ -90,4 +93,8 @@ export const INITIAL_STATE: GlobalState = {
   },
 
   mediaViewer: {},
+
+  pushNotifications: {
+    enabledAccounts: {},
+  },
 };

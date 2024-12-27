@@ -1,15 +1,18 @@
 import type { Ref } from 'react';
-import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
+import React, {
+  memo, useEffect, useMemo, useState,
+} from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
-import type { ApiBaseCurrency } from '../../../../api/types';
+import type { ApiBaseCurrency, ApiNft, ApiStakingState } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
 import { IS_EXTENSION } from '../../../../config';
 import {
+  selectAccountStakingStates,
+  selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectCurrentNetwork,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
@@ -21,6 +24,7 @@ import { calculateFullBalance } from './helpers/calculateFullBalance';
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import useFlag from '../../../../hooks/useFlag';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
+import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
 
@@ -31,6 +35,7 @@ import Transition from '../../../ui/Transition';
 import AccountSelector from './AccountSelector';
 import CardAddress from './CardAddress';
 import CurrencySwitcher from './CurrencySwitcher';
+import CustomCardManager from './CustomCardManager';
 import TokenCard from './TokenCard';
 
 import styles from './Card.module.scss';
@@ -39,7 +44,7 @@ interface OwnProps {
   ref?: Ref<HTMLDivElement>;
   forceCloseAccountSelector?: boolean;
   onTokenCardClose: NoneToVoidFunction;
-  onApyClick: NoneToVoidFunction;
+  onYieldClick: (stakingId?: string) => void;
 }
 
 interface StateProps {
@@ -47,8 +52,9 @@ interface StateProps {
   activeDappOrigin?: string;
   currentTokenSlug?: string;
   baseCurrency?: ApiBaseCurrency;
-  stakingBalance?: bigint;
+  stakingStates?: ApiStakingState[];
   balanceUpdateStartedAt?: number;
+  cardNft?: ApiNft;
 }
 
 function Card({
@@ -58,12 +64,15 @@ function Card({
   currentTokenSlug,
   forceCloseAccountSelector,
   onTokenCardClose,
-  onApyClick,
+  onYieldClick,
   baseCurrency,
-  stakingBalance,
+  stakingStates,
   balanceUpdateStartedAt,
+  cardNft,
 }: OwnProps & StateProps) {
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
+  const [customCardClassName, setCustomCardClassName] = useState<string | undefined>(undefined);
+  const [withTextGradient, setWithTextGradient] = useState<boolean>(false);
 
   const isUpdating = useUpdateIndicator(balanceUpdateStartedAt);
 
@@ -76,6 +85,11 @@ function Card({
     shouldRender: shouldRenderTokenCard,
     transitionClassNames: tokenCardTransitionClassNames,
   } = useShowTransition(Boolean(currentTokenSlug), undefined, true);
+
+  const handleCardChange = useLastCallback((hasGradient: boolean, className?: string) => {
+    setCustomCardClassName(className);
+    setWithTextGradient(hasGradient);
+  });
 
   const dappDomain = useMemo(() => {
     if (!activeDappOrigin) {
@@ -94,8 +108,8 @@ function Card({
   const renderingDappDomain = useCurrentOrPrev(dappDomain, true);
 
   const values = useMemo(() => {
-    return tokens ? calculateFullBalance(tokens, stakingBalance) : undefined;
-  }, [tokens, stakingBalance]);
+    return tokens ? calculateFullBalance(tokens, stakingStates) : undefined;
+  }, [tokens, stakingStates]);
 
   const {
     shouldRender: shouldRenderDappElement,
@@ -136,9 +150,13 @@ function Card({
     return (
       <>
         <Transition activeKey={isUpdating ? 1 : 0} name="fade" shouldCleanup className={styles.balanceTransition}>
-          <div className={styles.primaryValue}>
+          <div className={buildClassName(styles.primaryValue, 'rounded-font')}>
             <span
-              className={buildClassName(styles.currencySwitcher, isUpdating && 'glare-text')}
+              className={buildClassName(
+                styles.currencySwitcher,
+                isUpdating && 'glare-text',
+                !isUpdating && withTextGradient && 'gradientText',
+              )}
               role="button"
               tabIndex={0}
               onClick={openCurrencyMenu}
@@ -161,7 +179,7 @@ function Card({
         </Transition>
         <CurrencySwitcher isOpen={isCurrencyMenuOpen} onClose={closeCurrencyMenu} />
         {primaryValue !== '0' && (
-          <div className={buildClassName(styles.change, changeClassName)}>
+          <div className={buildClassName(styles.change, changeClassName, 'rounded-font')}>
             {changePrefix}
             &thinsp;
             <AnimatedCounter text={`${Math.abs(changePercent!)}%`} />
@@ -174,27 +192,37 @@ function Card({
   }
 
   return (
-    <div className={styles.containerWrapper} ref={ref}>
+    <div ref={ref} className={styles.containerWrapper}>
       <Transition activeKey={isUpdating ? 1 : 0} name="fade" shouldCleanup className={styles.loadingDotsContainer}>
         {isUpdating ? <LoadingDots isActive isDoubled /> : undefined}
       </Transition>
-      <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}>
-        <AccountSelector forceClose={forceCloseAccountSelector} canEdit />
-        {shouldRenderDapp && (
-          <div className={buildClassName(styles.dapp, dappClassNames)}>
-            <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
-            {renderingDappDomain}
-          </div>
-        )}
-        {values ? renderBalance() : renderLoader()}
-        <CardAddress />
+
+      <div className={buildClassName(styles.container, currentTokenSlug && styles.backstage, customCardClassName)}>
+        <CustomCardManager nft={cardNft} onCardChange={handleCardChange} />
+
+        <div className={buildClassName(styles.containerInner, customCardClassName)}>
+          <AccountSelector
+            canEdit
+            accountClassName={buildClassName(withTextGradient && 'gradientText')}
+            forceClose={forceCloseAccountSelector}
+          />
+          {shouldRenderDapp && (
+            <div className={buildClassName(styles.dapp, dappClassNames)}>
+              <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
+              {renderingDappDomain}
+            </div>
+          )}
+          {values ? renderBalance() : renderLoader()}
+          <CardAddress withTextGradient={withTextGradient} />
+        </div>
       </div>
+
       {shouldRenderTokenCard && (
         <TokenCard
           token={renderedToken!}
           classNames={tokenCardTransitionClassNames}
           isUpdating={isUpdating}
-          onApyClick={onApyClick}
+          onYieldClick={onYieldClick}
           onClose={onTokenCardClose}
         />
       )}
@@ -206,17 +234,17 @@ export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
       const accountState = selectCurrentAccountState(global);
-      const stakingBalance = selectCurrentNetwork(global) === 'mainnet'
-        ? accountState?.staking?.balance
-        : 0n;
+      const stakingStates = selectAccountStakingStates(global, global.currentAccountId!);
+      const { cardBackgroundNft: cardNft } = selectCurrentAccountSettings(global) || {};
 
       return {
         tokens: selectCurrentAccountTokens(global),
         activeDappOrigin: accountState?.activeDappOrigin,
         currentTokenSlug: accountState?.currentTokenSlug,
         baseCurrency: global.settings.baseCurrency,
-        stakingBalance,
+        stakingStates,
         balanceUpdateStartedAt: global.balanceUpdateStartedAt,
+        cardNft,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

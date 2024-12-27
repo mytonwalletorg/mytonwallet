@@ -7,18 +7,27 @@ import { Cell } from '@ton/core/dist/boc/Cell';
 import { Slice } from '@ton/core/dist/boc/Slice';
 import { Dictionary } from '@ton/core/dist/dict/Dictionary';
 
-import type { ApiNetwork, ApiNft, ApiParsedPayload } from '../../../types';
+import type {
+  ApiMtwCardTextType,
+  ApiMtwCardType,
+  ApiNetwork,
+  ApiNft,
+  ApiNftMetadata,
+  ApiParsedPayload, ApiTransactionType,
+} from '../../../types';
 import type { DnsCategory } from '../constants';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
 import {
   DEBUG,
   LIQUID_JETTON,
+  MTW_CARDS_COLLECTION,
   NFT_FRAGMENT_COLLECTIONS,
 } from '../../../../config';
-import { pick, range } from '../../../../util/iteratees';
+import { omitUndefined, pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import { fetchJsonMetadata, fixIpfsUrl } from '../../../../util/metadata';
+import { JettonStakingOpCodes } from '../contracts/JettonStaking/imports/constants';
 import { checkHasScamLink, checkIsTrustedCollection } from '../../../common/addresses';
 import { buildTokenSlug } from '../../../common/tokens';
 import { base64ToString, sha256 } from '../../../common/utils';
@@ -60,6 +69,7 @@ export function parseJettonWalletMsgBody(network: ApiNetwork, body?: string) {
     let forwardAmount: bigint | undefined;
     let comment: string | undefined;
     let encryptedComment: string | undefined;
+    let type: ApiTransactionType | undefined;
 
     if (responseAddress) {
       if (opCode === JettonOpCode.Transfer) {
@@ -75,9 +85,15 @@ export function parseJettonWalletMsgBody(network: ApiNetwork, body?: string) {
         if (forwardOpCode === OpCode.Comment) {
           const buffer = readSnakeBytes(slice);
           comment = buffer.toString('utf-8');
+
+          if (comment === 'Jettons unstaked') {
+            type = 'unstake';
+          }
         } else if (forwardOpCode === OpCode.Encrypted) {
           const buffer = readSnakeBytes(slice);
           encryptedComment = buffer.toString('base64');
+        } else if (forwardOpCode === JettonStakingOpCodes.STAKE_JETTONS) {
+          type = 'stake';
         }
       }
     }
@@ -91,6 +107,7 @@ export function parseJettonWalletMsgBody(network: ApiNetwork, body?: string) {
       forwardAmount,
       comment,
       encryptedComment,
+      type,
     };
   } catch (err) {
     logDebugError('parseJettonWalletMsgBody', err);
@@ -296,12 +313,21 @@ export async function parsePayloadSlice(
         const customPayload = slice.loadMaybeRef();
         const forwardAmount = slice.loadCoins();
         let forwardPayload = slice.loadMaybeRef();
+        let forwardPayloadOpCode: number | undefined;
+
         if (!forwardPayload && slice.remainingBits) {
           const builder = new Builder().storeBits(slice.loadBits(slice.remainingBits));
           range(0, slice.remainingRefs).forEach(() => {
             builder.storeRef(slice.loadRef());
           });
           forwardPayload = builder.endCell();
+        }
+
+        if (forwardPayload) {
+          const forwardPayloadSlice = forwardPayload.beginParse();
+          if (forwardPayloadSlice.remainingBits > 32) {
+            forwardPayloadOpCode = forwardPayloadSlice.loadUint(32);
+          }
         }
 
         return {
@@ -313,6 +339,7 @@ export async function parsePayloadSlice(
           customPayload: customPayload?.toBoc().toString('base64'),
           forwardAmount,
           forwardPayload: forwardPayload?.toBoc().toString('base64'),
+          forwardPayloadOpCode,
           slug,
         };
       }
@@ -536,6 +563,16 @@ export async function parsePayloadSlice(
           swapId,
         };
       }
+      case JettonStakingOpCodes.UNSTAKE_JETTONS: {
+        const amount = slice.loadCoins();
+        const isForce = slice.loadBoolean();
+        return {
+          type: 'jetton-staking:unstake',
+          queryId,
+          amount,
+          isForce,
+        };
+      }
     }
   } catch (err) {
     if (DEBUG) {
@@ -613,6 +650,46 @@ export function readSnakeBytes(slice: Slice) {
   return buffer;
 }
 
+function buildNftMetadata(metadata: Record<string, any>): ApiNftMetadata | undefined {
+  const { image, id } = metadata as { image?: string; id?: number };
+
+  let mtwCardType: ApiMtwCardType | undefined;
+  let mtwCardTextType: ApiMtwCardTextType | undefined;
+  let result: ApiNftMetadata = {};
+  if (image) result.imageUrl = image;
+  if (id !== undefined) result.mtwCardId = id;
+
+  if ('attributes' in metadata && Array.isArray(metadata.attributes) && metadata.attributes.length) {
+    mtwCardType = metadata.attributes
+      .find((attribute) => attribute.trait_type === 'Card Type')?.value
+      // Clean non-ascii characters with regex
+      .replace(/[^\x20-\x7E]/g, '')
+      .trim()
+      .toLowerCase();
+
+    if (mtwCardType) {
+      mtwCardTextType = metadata.attributes.find((attribute) => attribute.trait_type === 'Text')?.value.toLowerCase();
+
+      result.mtwCardType = mtwCardType;
+      if (mtwCardType === 'standard') {
+        result.mtwCardBorderShineType = metadata.attributes.find((attribute) => {
+          return attribute.trait_type === 'Shine';
+        })?.value.toLowerCase();
+      }
+
+      if (mtwCardTextType === 'dark' || mtwCardType === 'silver') {
+        result.mtwCardTextType = 'dark';
+      } else {
+        result.mtwCardTextType = 'light';
+      }
+
+      result = omitUndefined(result);
+    }
+  }
+
+  return Object.keys(result).length ? result : undefined;
+}
+
 export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefined {
   if (!rawNft.metadata) {
     return undefined;
@@ -623,15 +700,16 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       address,
       index,
       collection,
-      metadata,
+      metadata: rawMetadata,
       previews,
       sale,
       trust,
+      owner,
     } = rawNft;
 
     const {
       name, image, description, render_type: renderType,
-    } = metadata as {
+    } = rawMetadata as {
       name?: string;
       image?: string;
       description?: string;
@@ -652,10 +730,12 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
     const isScam = hasScamLink || description === 'SCAM' || trust === 'blacklist';
     const isHidden = renderType === 'hidden' || isScam;
     const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
+    const metadata = collectionAddress === MTW_CARDS_COLLECTION ? buildNftMetadata(rawMetadata) : undefined;
 
-    return {
+    return omitUndefined<ApiNft>({
       index,
       name,
+      ownerAddress: owner ? toBase64Address(owner.address, false, network) : undefined,
       address: toBase64Address(address, true, network),
       image: fixIpfsUrl(imageFromPreview || image || ''),
       thumbnail: previews!.find((x) => x.resolution === '500x500')!.url,
@@ -664,11 +744,12 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       isScam,
       description,
       ...(collection && {
-        collectionAddress: toBase64Address(collection.address, true, network),
+        collectionAddress,
         collectionName: collection.name,
         isOnFragment: NFT_FRAGMENT_COLLECTIONS.has(collection.address),
       }),
-    };
+      metadata,
+    });
   } catch (err) {
     logDebugError('buildNft', err);
     return undefined;

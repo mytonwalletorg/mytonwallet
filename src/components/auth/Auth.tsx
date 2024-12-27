@@ -14,8 +14,8 @@ import useLastCallback from '../../hooks/useLastCallback';
 
 import SettingsAbout from '../settings/SettingsAbout';
 import Transition from '../ui/Transition';
-import AuthBackupWalletModal from './AuthBackupWalletModal';
 import AuthCheckPassword from './AuthCheckPassword';
+import AuthCheckWords from './AuthCheckWords';
 import AuthConfirmBiometrics from './AuthConfirmBiometrics';
 import AuthConfirmPin from './AuthConfirmPin';
 import AuthCreateBackup from './AuthCreateBackup';
@@ -26,6 +26,8 @@ import AuthCreatePin from './AuthCreatePin';
 import AuthCreatingWallet from './AuthCreatingWallet';
 import AuthDisclaimer from './AuthDisclaimer';
 import AuthImportMnemonic from './AuthImportMnemonic';
+import AuthSaferyRules from './AuthSaferyRules';
+import AuthSecretWords from './AuthSecretWords';
 import AuthStart from './AuthStart';
 
 import styles from './Auth.module.scss';
@@ -44,7 +46,6 @@ const Auth = ({
   isLoading,
   mnemonic,
   mnemonicCheckIndexes,
-  isBackupModalOpen,
   method,
   theme,
 }: StateProps) => {
@@ -152,31 +153,30 @@ const Auth = ({
         );
       case AuthState.about:
         return <SettingsAbout handleBackClick={closeAbout} theme={theme} />;
+      case AuthState.saferyRules:
+        return <AuthSaferyRules isActive={isActive} />;
+      case AuthState.mnemonicPage:
+        return <AuthSecretWords isActive={isActive} mnemonic={mnemonic} />;
+      case AuthState.checkWords:
+        return <AuthCheckWords isActive={isActive} mnemonic={mnemonic} checkIndexes={mnemonicCheckIndexes} />;
     }
   }
 
   return (
-    <>
-      <Transition
-        name={isPortrait ? (IS_ANDROID ? 'slideFade' : 'slideLayers') : 'semiFade'}
-        activeKey={renderingAuthState}
-        renderCount={RENDER_COUNT}
-        shouldCleanup
-        className={styles.transitionContainer}
-        slideClassName={styles.transitionSlide}
-        prevKey={prevKey}
-        nextKey={nextKey}
-        onStop={updateRenderingKeys}
-        shouldWrap
-      >
-        {renderAuthScreen}
-      </Transition>
-      <AuthBackupWalletModal
-        isOpen={isBackupModalOpen}
-        mnemonic={mnemonic}
-        checkIndexes={mnemonicCheckIndexes}
-      />
-    </>
+    <Transition
+      name={isPortrait ? (IS_ANDROID ? 'slideFade' : 'slideLayers') : 'semiFade'}
+      activeKey={renderingAuthState}
+      renderCount={RENDER_COUNT}
+      shouldCleanup
+      className={styles.transitionContainer}
+      slideClassName={styles.transitionSlide}
+      prevKey={prevKey}
+      nextKey={nextKey}
+      onStop={updateRenderingKeys}
+      shouldWrap
+    >
+      {renderAuthScreen}
+    </Transition>
   );
 };
 

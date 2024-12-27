@@ -2,7 +2,7 @@ import type { ApiSwapAsset } from '../../api/types';
 
 import { TONCOIN } from '../../config';
 import { Big } from '../../lib/big.js';
-import { formatInteger } from '../formatNumber';
+import { formatNumber } from '../formatNumber';
 
 const BTC = new Set(['jWBTC', 'oWBTC', 'BTC']);
 const USD = new Set(['jUSDT', 'oUSDT', 'USDT', 'jUSDC', 'oUSDC', 'USDC', 'USD₮']);
@@ -22,8 +22,8 @@ function getCurrencyPriority(symbol: string) {
 export default function getSwapRate(
   fromAmount?: string,
   toAmount?: string,
-  fromToken?: ApiSwapAsset,
-  toToken?: ApiSwapAsset,
+  fromToken?: Pick<ApiSwapAsset, 'symbol'>,
+  toToken?: Pick<ApiSwapAsset, 'symbol'>,
   shouldTrimLargeNumber = false,
 ) {
   if (!fromAmount || !toAmount || !fromToken || !toToken) {
@@ -48,11 +48,11 @@ export default function getSwapRate(
     secondCurrencySymbol = fromToken.symbol;
     const ratio = fromAmountBig.div(toAmount);
     const isLargeNumber = shouldTrimLargeNumber && ratio.gte(LARGE_NUMBER);
-    price = formatInteger(ratio.toNumber(), isLargeNumber ? 0 : 4);
+    price = formatNumber(ratio.toNumber(), isLargeNumber ? 0 : 4);
   } else {
     const ratio = toAmountBig.div(fromAmount);
     const isLargeNumber = shouldTrimLargeNumber && ratio.gte(LARGE_NUMBER);
-    price = formatInteger(ratio.toNumber(), isLargeNumber ? 0 : 4);
+    price = formatNumber(ratio.toNumber(), isLargeNumber ? 0 : 4);
   }
 
   return {

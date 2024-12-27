@@ -21,6 +21,8 @@ PODS:
     - Capacitor
   - CapacitorPluginSafeArea (3.0.3):
     - Capacitor
+  - CapacitorPushNotifications (6.0.2):
+    - Capacitor
   - CapacitorSecureStoragePlugin (0.10.0):
     - Capacitor
     - SwiftKeychainWrapper
@@ -32,6 +34,26 @@ PODS:
     - Capacitor
   - CordovaPlugins (6.1.2):
     - CapacitorCordova
+  - FirebaseCore (10.29.0):
+    - FirebaseCoreInternal (~> 10.0)
+    - GoogleUtilities/Environment (~> 7.12)
+    - GoogleUtilities/Logger (~> 7.12)
+  - FirebaseCoreInternal (10.29.0):
+    - "GoogleUtilities/NSData+zlib (~> 7.8)"
+  - FirebaseInstallations (10.29.0):
+    - FirebaseCore (~> 10.0)
+    - GoogleUtilities/Environment (~> 7.8)
+    - GoogleUtilities/UserDefaults (~> 7.8)
+    - PromisesObjC (~> 2.1)
+  - FirebaseMessaging (10.29.0):
+    - FirebaseCore (~> 10.0)
+    - FirebaseInstallations (~> 10.0)
+    - GoogleDataTransport (~> 9.3)
+    - GoogleUtilities/AppDelegateSwizzler (~> 7.8)
+    - GoogleUtilities/Environment (~> 7.8)
+    - GoogleUtilities/Reachability (~> 7.8)
+    - GoogleUtilities/UserDefaults (~> 7.8)
+    - nanopb (< 2.30911.0, >= 2.30908.0)
   - FloatingPanel (2.8.4)
   - GoogleDataTransport (9.4.1):
     - GoogleUtilities/Environment (~> 7.7)
@@ -54,13 +76,28 @@ PODS:
     - GoogleToolboxForMac/Defines (= 2.3.2)
     - "GoogleToolboxForMac/NSString+URLArguments (= 2.3.2)"
   - "GoogleToolboxForMac/NSString+URLArguments (2.3.2)"
+  - GoogleUtilities/AppDelegateSwizzler (7.13.3):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Network
+    - GoogleUtilities/Privacy
   - GoogleUtilities/Environment (7.13.3):
     - GoogleUtilities/Privacy
     - PromisesObjC (< 3.0, >= 1.2)
   - GoogleUtilities/Logger (7.13.3):
     - GoogleUtilities/Environment
     - GoogleUtilities/Privacy
+  - GoogleUtilities/Network (7.13.3):
+    - GoogleUtilities/Logger
+    - "GoogleUtilities/NSData+zlib"
+    - GoogleUtilities/Privacy
+    - GoogleUtilities/Reachability
+  - "GoogleUtilities/NSData+zlib (7.13.3)":
+    - GoogleUtilities/Privacy
   - GoogleUtilities/Privacy (7.13.3)
+  - GoogleUtilities/Reachability (7.13.3):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
   - GoogleUtilities/UserDefaults (7.13.3):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
@@ -118,11 +155,13 @@ DEPENDENCIES:
   - "CapacitorMlkitBarcodeScanning (from `../../../node_modules/@capacitor-mlkit/barcode-scanning`)"
   - CapacitorNativeSettings (from `../../../node_modules/capacitor-native-settings`)
   - CapacitorPluginSafeArea (from `../../../node_modules/capacitor-plugin-safe-area`)
+  - "CapacitorPushNotifications (from `../../../node_modules/@capacitor/push-notifications`)"
   - CapacitorSecureStoragePlugin (from `../../../node_modules/capacitor-secure-storage-plugin`)
   - "CapacitorShare (from `../../../node_modules/@capacitor/share`)"
   - "CapgoCapacitorNativeBiometric (from `../../../node_modules/@capgo/capacitor-native-biometric`)"
   - "CapgoNativeAudio (from `../../../node_modules/@capgo/native-audio`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
+  - FirebaseMessaging
   - FloatingPanel (from `https://github.com/mytonwalletorg/FloatingPanel`, commit `f58a8b94008540e680faba61867debf8b3cec682`)
   - "MauricewegnerCapacitorNavigationBar (from `../../../node_modules/@mauricewegner/capacitor-navigation-bar`)"
   - MtwCapacitorUsbHid (from `../../../node_modules/mtw-capacitor-usb-hid`)
@@ -133,6 +172,10 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - FirebaseCore
+    - FirebaseCoreInternal
+    - FirebaseInstallations
+    - FirebaseMessaging
     - GoogleDataTransport
     - GoogleMLKit
     - GoogleToolboxForMac
@@ -170,6 +213,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/capacitor-native-settings"
   CapacitorPluginSafeArea:
     :path: "../../../node_modules/capacitor-plugin-safe-area"
+  CapacitorPushNotifications:
+    :path: "../../../node_modules/@capacitor/push-notifications"
   CapacitorSecureStoragePlugin:
     :path: "../../../node_modules/capacitor-secure-storage-plugin"
   CapacitorShare:
@@ -213,11 +258,16 @@ SPEC CHECKSUMS:
   CapacitorMlkitBarcodeScanning: 178fb57424ec688b6a2fceee506ecc1ea00d1c8d
   CapacitorNativeSettings: 1ce5585ff07b161616cd0a795702637316677af2
   CapacitorPluginSafeArea: e1eca7f70974f0e270d96f70cd0a5f51523164b1
+  CapacitorPushNotifications: ccd797926c030acad3d5498ef452c735c90a2c89
   CapacitorSecureStoragePlugin: ced6025438fbbdbfb9fffec4398e748572fc147b
   CapacitorShare: 591ae4693d85686ceb590db8e8b44aa014ec6490
   CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
   CapgoNativeAudio: f3cb18f75acfaec7c429e1ff9dc06e05c6605627
   CordovaPlugins: b26881c27739f4c46bac6baf422f660500cd5561
+  FirebaseCore: 30e9c1cbe3d38f5f5e75f48bfcea87d7c358ec16
+  FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
+  FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
+  FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
   FloatingPanel: e00e106bf97b04d0de00bb360dc626459b0735ef
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleMLKit: 90ba06e028795a50261f29500d238d6061538711
@@ -239,6 +289,6 @@ SPEC CHECKSUMS:
   SinaKhMtwCapacitorStatusBar: e3fa73038e8dbac071751e1942eab65fc6c39a5f
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 1bbc72e2fbfb2ae871c9a96aef2548830c3c0d6c
+PODFILE CHECKSUM: ad14d80bb92e306162432517de945467c60b7527
 
 COCOAPODS: 1.16.2

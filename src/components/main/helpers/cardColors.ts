@@ -2,7 +2,7 @@ import type { UserToken } from '../../../global/types';
 import type { RGBColor } from '../../../util/colors';
 
 import {
-  TONCOIN, TRC20_USDT_MAINNET_SLUG, TRC20_USDT_TESTNET_SLUG, TRX,
+  STAKED_TON_SLUG, TONCOIN, TRC20_USDT_MAINNET_SLUG, TRC20_USDT_TESTNET_SLUG, TRX,
 } from '../../../config';
 import { deltaE, hex2rgb } from '../../../util/colors';
 
@@ -22,7 +22,7 @@ export const TOKEN_EXCEPTION_COLORS: Record<string, string> = {
   [TRX.slug]: 'red',
   [TRC20_USDT_MAINNET_SLUG]: 'green',
   [TRC20_USDT_TESTNET_SLUG]: 'green',
-  'ton-eqcqc6ehrj': 'green', // STAKED
+  [STAKED_TON_SLUG]: 'green',
 };
 
 const DISTANCE_THRESHOLD = 35;

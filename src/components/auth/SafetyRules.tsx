@@ -1,16 +1,11 @@
 import React, { memo, useState } from '../../lib/teact/teact';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX } from '../../config';
-import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
-import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
-import Button from '../ui/Button';
-import Checkbox from '../ui/Checkbox';
+import SaferyRulesContent from '../common/backup/SaferyRulesContent';
 import ModalHeader from '../ui/ModalHeader';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -41,39 +36,22 @@ function SafetyRules({ isActive, onSubmit, onClose }: OwnProps) {
     <div className={modalStyles.transitionContentWrapper}>
       <ModalHeader title={lang('Safety Rules')} onClose={onClose} />
       <div className={buildClassName(modalStyles.transitionContent, 'custom-scroll')}>
-        <AnimatedIconWithPreview
-          tgsUrl={ANIMATED_STICKERS_PATHS.bill}
-          previewUrl={ANIMATED_STICKERS_PATHS.billPreview}
-          size={ANIMATED_STICKER_SMALL_SIZE_PX}
-          play={isActive}
-          nonInteractive
-          noLoop={false}
-          className={styles.modalSticker}
+        <SaferyRulesContent
+          customStickerClassName={styles.modalSticker}
+          customButtonWrapperClassName={modalStyles.buttons}
+          isFullSizeButton={false}
+          isActive={isActive}
+          isFirstCheckboxSelected={writedownAccepted}
+          isSecondCheckboxSelected={openWalletAccepted}
+          isThirdCheckboxSelected={canBeStolenAccepted}
+          textFirst={lang('$safety_rules_one')}
+          textSecond={lang('$safety_rules_two')}
+          textThird={lang('$safety_rules_three')}
+          onFirstCheckboxClick={setWritedownAccepted}
+          onSecondCheckboxClick={setOpenWalletAccepted}
+          onThirdCheckboxClick={setCanBeStolenAccepted}
+          onSubmit={handleSubmit}
         />
-        <Checkbox
-          checked={writedownAccepted}
-          onChange={setWritedownAccepted}
-        >
-          {renderText(lang('$safety_rules_one'))}
-        </Checkbox>
-
-        <Checkbox
-          checked={openWalletAccepted}
-          onChange={setOpenWalletAccepted}
-        >
-          {renderText(lang('$safety_rules_two'))}
-        </Checkbox>
-
-        <Checkbox
-          checked={canBeStolenAccepted}
-          onChange={setCanBeStolenAccepted}
-        >
-          {renderText(lang('$safety_rules_three'))}
-        </Checkbox>
-
-        <div className={modalStyles.buttons}>
-          <Button isPrimary onClick={handleSubmit} isDisabled={!canSubmit}>{lang('Understood')}</Button>
-        </div>
       </div>
     </div>
   );

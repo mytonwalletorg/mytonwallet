@@ -150,6 +150,7 @@
 
 .tokenIcon {
   --color-background-first: var(--color-input-button-background);
+
   .tokenSelector:hover > & {
     --color-background-first: var(--color-input-button-background-hover);
   }
@@ -181,7 +182,7 @@
   width: 2.75rem;
   height: 2.75rem;
 
-  background-color: var(--color-background-second);
+  background-color: var(--color-background-window);
   border-radius: 50%;
 }
 
@@ -213,52 +214,6 @@
   }
 }
 
-.feeWrapper {
-  display: flex;
-  justify-content: center;
-
-  height: 1rem;
-}
-
-.feeContent {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-  justify-content: center;
-}
-
-.feeContentClickable {
-  cursor: var(--custom-cursor, pointer);
-}
-
-.tokenPrice,
-.feeText {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-gray-2);
-  white-space: nowrap;
-}
-
-.tokenPrice + .feeText::before {
-  content: '';
-
-  display: inline-block;
-
-  width: 0.125rem;
-  height: 0.125rem;
-  margin: 0 0.3125rem 0 0.0625rem;
-
-  vertical-align: 0.1875rem;
-
-  background-color: var(--color-gray-2);
-  border-radius: 50%;
-}
-
-.feeIcon {
-  font-size: 0.75rem;
-  color: var(--color-gray-4);
-}
-
 .footerBlock {
   --background-color: var(--color-background-window);
 
@@ -273,7 +228,7 @@
 .footerBlockStatic {
   --background-color: var(--color-background-first);
 
-  margin-top: 2rem;
+  margin-top: 2.75rem;
 }
 
 .dot {
@@ -405,6 +360,20 @@
   color: var(--color-red);
 }
 
+.footerButtonsContainer {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+}
+
+.detailsButton {
+  margin-bottom: 0.25rem;
+  padding: 0.75rem;
+
+  font-size: 0.8125rem;
+}
+
 .footerButtonWrapper {
   height: 2.75rem;
 
@@ -416,6 +385,7 @@
 .footerButton {
   width: 100%;
   max-width: 100% !important;
+  padding: 0.5rem !important;
 }
 
 .swapArrowIcon {
@@ -434,7 +404,8 @@
 
   &:global(.icon-arrow-right) {
     font-weight: 700 !important;
-  }}
+  }
+}
 
 .priceImpact {
   cursor: var(--custom-cursor, pointer);
@@ -810,6 +781,6 @@ $animation-time: 350ms;
   padding-left: 0.5rem;
 
   font-size: 0.8125rem;
-  font-weight:  700;
+  font-weight: 700;
   color: var(--color-gray-2);
 }

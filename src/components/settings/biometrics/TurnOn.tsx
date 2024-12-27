@@ -28,12 +28,13 @@ interface OwnProps {
   state: BiometricsState;
   error?: string;
   onClose: NoneToVoidFunction;
+  isLoading?: boolean;
 }
 
 const STICKER_SIZE = 180;
 
 function TurnOn({
-  isOpen, state, error, onClose,
+  isOpen, isLoading, state, error, onClose,
 }: OwnProps) {
   const { enableBiometrics } = getActions();
 
@@ -73,7 +74,7 @@ function TurnOn({
             <ModalHeader title={lang('Turn On Biometrics')} onClose={onClose} />
             <PasswordForm
               isActive={isActive}
-              isLoading={false}
+              isLoading={isLoading}
               error={error || localError}
               operationType="passcode"
               help={lang('Enabling biometric confirmation will reset the password.')}

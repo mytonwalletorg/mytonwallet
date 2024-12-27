@@ -6,6 +6,7 @@ import type {
   AnyPayload, ApiTransactionExtra, JettonMetadata, TonTransferParams,
 } from './types';
 
+import { TON_USDT_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { fetchJsonWithProxy } from '../../../util/fetch';
 import { logDebugError } from '../../../util/logs';
@@ -30,7 +31,10 @@ import { buildTokenSlug, getTokenByAddress } from '../../common/tokens';
 import {
   CLAIM_MINTLESS_AMOUNT,
   DEFAULT_DECIMALS,
+  TINIEST_TOKEN_REAL_TRANSFER_AMOUNT,
+  TINY_TOKEN_REAL_TRANSFER_AMOUNT,
   TINY_TOKEN_TRANSFER_AMOUNT,
+  TOKEN_REAL_TRANSFER_AMOUNT,
   TOKEN_TRANSFER_AMOUNT,
   TOKEN_TRANSFER_FORWARD_AMOUNT,
 } from './constants';
@@ -99,7 +103,12 @@ export function parseTokenTransaction(
   }
 
   const {
-    operation, jettonAmount, address, comment, encryptedComment,
+    operation,
+    jettonAmount,
+    address,
+    comment,
+    encryptedComment,
+    type,
   } = parsedData;
   const isIncoming = operation === 'InternalTransfer';
 
@@ -109,6 +118,7 @@ export function parseTokenTransaction(
 
   return {
     ...tx,
+    type,
     slug,
     fromAddress,
     toAddress,
@@ -180,6 +190,7 @@ export async function buildTokenTransfer(options: {
   amount: bigint;
   payload?: AnyPayload;
   shouldSkipMintless?: boolean;
+  forwardAmount?: bigint;
 }) {
   const {
     network,
@@ -188,6 +199,7 @@ export async function buildTokenTransfer(options: {
     toAddress,
     amount,
     shouldSkipMintless,
+    forwardAmount = TOKEN_TRANSFER_FORWARD_AMOUNT,
   } = options;
   let { payload } = options;
 
@@ -215,23 +227,25 @@ export async function buildTokenTransfer(options: {
   payload = buildTokenTransferBody({
     tokenAmount: amount,
     toAddress,
-    forwardAmount: TOKEN_TRANSFER_FORWARD_AMOUNT,
+    forwardAmount,
     forwardPayload: payload,
     responseAddress: fromAddress,
     customPayload: customPayload ? Cell.fromBase64(customPayload) : undefined,
   });
 
-  let toncoinAmount = token.isTiny
-    ? TINY_TOKEN_TRANSFER_AMOUNT
-    : TOKEN_TRANSFER_AMOUNT;
+  // eslint-disable-next-line prefer-const
+  let { amount: toncoinAmount, realAmount } = getToncoinAmountForTransfer(
+    token, Boolean(mintlessTokenBalance) && !isMintlessClaimed,
+  );
 
-  if (mintlessTokenBalance && !isMintlessClaimed) {
-    toncoinAmount += CLAIM_MINTLESS_AMOUNT;
+  if (forwardAmount > TOKEN_TRANSFER_FORWARD_AMOUNT) {
+    toncoinAmount += forwardAmount;
   }
 
   return {
-    tokenWallet,
     amount: toncoinAmount,
+    realAmount,
+    tokenWallet,
     toAddress: tokenWalletAddress,
     payload,
     stateInit: stateInit ? Cell.fromBase64(stateInit) : undefined,
@@ -254,6 +268,8 @@ export async function getMintlessParams(options: {
   const isMintlessToken = !!token.customPayloadApiUrl;
   const isTokenWalletDeployed = isMintlessToken
     ? !!(await isActiveSmartContract(network, tokenWalletAddress))
+    // This value is incorrect when an uninitialized "from" token is selected in the swap form. This causes an error inside the `if (isTokenWalletDeployed)` condition body above.
+    // todo: Try to check token wallet deployment in case of mintfull tokens too
     : true;
   let customPayload: string | undefined;
   let stateInit: string | undefined;
@@ -340,4 +356,36 @@ function buildTokenByMetadata(address: string, metadata: JettonMetadata): ApiTok
     image: (image && fixIpfsUrl(image)) || (imageData && fixBase64ImageData(imageData)) || undefined,
     customPayloadApiUrl,
   };
+}
+
+/**
+ * A pure function guessing the "fee" that needs to be attached to the token transfer.
+ * In contrast to the blockchain fee, this fee is a part of the transfer itself.
+ *
+ * `amount` is what should be attached (acts as a fee for the user);
+ * `realAmount` is approximately what will be actually spent (the rest will return in the excess).
+ */
+export function getToncoinAmountForTransfer(token: ApiToken, willClaimMintless: boolean) {
+  let amount = 0n;
+  let realAmount = 0n;
+
+  if (token.isTiny) {
+    amount += TINY_TOKEN_TRANSFER_AMOUNT;
+
+    if (token.slug === TON_USDT_SLUG) {
+      realAmount += TINIEST_TOKEN_REAL_TRANSFER_AMOUNT;
+    } else {
+      realAmount += TINY_TOKEN_REAL_TRANSFER_AMOUNT;
+    }
+  } else {
+    amount += TOKEN_TRANSFER_AMOUNT;
+    realAmount += TOKEN_REAL_TRANSFER_AMOUNT;
+  }
+
+  if (willClaimMintless) {
+    amount += CLAIM_MINTLESS_AMOUNT;
+    realAmount += CLAIM_MINTLESS_AMOUNT;
+  }
+
+  return { amount, realAmount };
 }

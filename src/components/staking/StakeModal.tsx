@@ -1,11 +1,16 @@
 import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
+import type { ApiStakingState } from '../../api/types';
 import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
-import { IS_CAPACITOR, TONCOIN } from '../../config';
-import { selectCurrentAccountTokens, selectIsMultichainAccount } from '../../global/selectors';
+import { IS_CAPACITOR } from '../../config';
+import {
+  selectAccountStakingState,
+  selectCurrentAccountTokens,
+  selectIsMultichainAccount,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
@@ -29,7 +34,8 @@ import StakingInitial from './StakingInitial';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Staking.module.scss';
 
-type StateProps = GlobalState['staking'] & {
+type StateProps = GlobalState['currentStaking'] & {
+  stakingState?: ApiStakingState;
   tokens?: UserToken[];
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
@@ -47,6 +53,7 @@ const IS_OPEN_STATES = new Set([
 
 function StakeModal({
   state,
+  stakingState,
   isLoading,
   amount,
   error,
@@ -66,9 +73,15 @@ function StakeModal({
     openStakingInfo,
   } = getActions();
 
+  const { tokenSlug } = stakingState ?? {};
+
+  const token = useMemo(() => {
+    if (!tokenSlug) return undefined;
+    return tokens?.find(({ slug }) => slug === tokenSlug);
+  }, [tokenSlug, tokens]);
+
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens]);
   const [renderedStakingAmount, setRenderedStakingAmount] = useState(amount);
 
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
@@ -96,14 +109,14 @@ function StakeModal({
   });
 
   function renderTransactionBanner() {
-    if (!tonToken || !amount) return undefined;
+    if (!token || !amount) return undefined;
 
     return (
       <TransactionBanner
-        tokenIn={tonToken}
+        tokenIn={token}
         withChainIcon={isMultichainAccount}
         color="purple"
-        text={formatCurrency(toDecimal(amount), tonToken.symbol)}
+        text={formatCurrency(toDecimal(amount, token.decimals), token.symbol)}
         className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
       />
     );
@@ -142,6 +155,7 @@ function StakeModal({
             color="purple"
             playAnimation={isActive}
             amount={renderedStakingAmount}
+            tokenSymbol={token?.symbol}
             noSign
             firstButtonText={lang('View')}
             secondButtonText={lang('Stake More')}
@@ -163,7 +177,7 @@ function StakeModal({
       case StakingState.StakeInitial:
         return (
           <>
-            <ModalHeader title={lang('Stake TON')} onClose={cancelStaking} />
+            <ModalHeader title={lang('$stake_asset', { symbol: token?.symbol })} onClose={cancelStaking} />
             <StakingInitial isActive={isActive} />
           </>
         );
@@ -224,8 +238,10 @@ function StakeModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
+  const accountId = global.currentAccountId!;
   const tokens = selectCurrentAccountTokens(global);
-  const isMultichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
+  const isMultichainAccount = selectIsMultichainAccount(global, accountId);
+  const stakingState = selectAccountStakingState(global, accountId);
 
   const {
     hardwareState,
@@ -234,7 +250,8 @@ export default memo(withGlobal((global): StateProps => {
   } = global.hardware;
 
   return {
-    ...global.staking,
+    ...global.currentStaking,
+    stakingState,
     tokens,
     hardwareState,
     isLedgerConnected,

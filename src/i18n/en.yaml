@@ -7,7 +7,8 @@ Import From %1$d Secret Words: Import From %1$d Secret Words
 More about MyTonWallet: More about MyTonWallet
 Creating Wallet...: Creating Wallet...
 On the count of three...: On the count of three...
-Back Up: Back Up
+$back_up_auth: Back Up
+$back_up_security: Back Up
 Passwords must be equal.: Passwords must be equal.
 To protect your wallet as much as possible, use a password with: To protect your wallet as much as possible, use a password with
 $auth_password_rule_8chars: at least 8 characters
@@ -33,16 +34,25 @@ $auth_import_mnemonic_description: |
 Let’s make sure your secrets words are recorded correctly.: Let’s make sure your secrets words are recorded correctly.
 $mnemonic_check_words_list: Please enter the words **%1$s** below.
 $mnemonic_check_error: The secret words you have entered do not match the ones in the list. Please try again.
-$mnemonic_list_description: |
-  Write down these words
-  in the **correct order** and store them
-  in a **secret place**.
+$check_words_description: |
+  Now let’s check that you wrote
+  your secret words correctly.
+$mnemonic_list_description: Write down these words in the **correct order** and store them in a **secure place**.
+$private_key_description: Save this private key **correctly** and store it in a **secure place**.
 $mnemonic_warning: |
   **Do not** send or show it to anyone,
   **do not** enter it anywhere.
+View Secret Words: View Secret Words
+View TON Private Key: View TON Private Key
+Can be imported to non-multichain wallets for TON.: Can be imported to non-multichain wallets for TON.
+Can be imported to any multichain wallet supporting TON.: Can be imported to any multichain wallet supporting TON.
 Let's Check: Let's Check
 Let's Check!: Let's Check!
 Safety Rules: Safety Rules
+$safety_rules_private_key_one: |
+  On the next screen you will see the **TON private key**. Save it correctly and **store in a secure place**.
+$safety_rules_private_key_two: It allows to **open your wallet** if you lose your password or access to this device.
+$safety_rules_private_key_three: If anybody else sees this private key, your funds **may be stolen**. **Do not send or show it to anyone**, not even developers or technical support.
 $safety_rules_one: |
   On the next screen you will see the **secret words**. Write them down in the correct order and **store in a secure place**.
 $safety_rules_two: They allow to **open your wallet** if you lose your password or access to this device.
@@ -163,7 +173,8 @@ $transaction_to: to %address%
 Wallet is not backed up: Wallet is not backed up
 Testnet Version: Testnet Version
 Error reading clipboard: Error reading clipboard
-$fee_value: "Fee: %fee%"
+$fee_value: "Fee %fee%"
+$fee_value_with_colon: "Fee: %fee%"
 Pay fee with %stars_symbol%: "Pay fee with %stars_symbol%"
 Loading...: Loading...
 Recipient Address: Recipient Address
@@ -206,14 +217,15 @@ Appearance: Appearance
 Light: Light
 Dark: Dark
 System: System
-Stake TON: Stake TON
+$stake_asset: Stake %symbol%
 Earn from your tokens while holding them: Earn from your tokens while holding them
-$est_apy_val: Est. APY %1$d%
 Why this is safe: Why this is safe
 Why is staking safe?: Why is staking safe?
 $safe_staking_description1: Staking is **fully decentralized** and operated by the **official TON Liquid Staking** smart contracts.
 $safe_staking_description2: The deposited stake will be used for the TON network validation as part of its **proof-of-stake** essence.
 $safe_staking_description3: You can withdraw your stake at **any time** and it will be deposited back to your account within **two days**.
+$safe_staking_description_jetton1: Token staking is **fully decentralized** and operated by the **open-source** smart contracts developed by %jvault_link% and passed **security audits**.
+$safe_staking_description_jetton2: You can withdraw your stake at **any time** and it will be deposited back to your account **instantly**.
 $min_value: Min %value%
 Est. balance in a year: Est. balance in a year
 Confirm Staking: Confirm Staking
@@ -226,7 +238,7 @@ Currently Staked: Currently Staked
 Unstake: Unstake
 Earning History: Earning History
 $total: "Total: %value%"
-Unstake TON: Unstake TON
+$unstake_asset: "Unstake %symbol%"
 $unstake_information_with_time: |
   Your current deposit will be fully sent back to your wallet in %time%.
   This will stop your earnings.
@@ -235,7 +247,8 @@ Confirm Unstaking: Confirm Unstaking
 Request for unstaking is sent!: Request for unstaking is sent!
 $unstaking_when_receive: You will receive your unstaked deposit in %time%.
 $unstake_insufficient_balance: You need to have %balance% on your main balance to proceed with unstaking.
-at %apy_value%: at %apy_value%
+at %annual_yield%: at %annual_yield%
+Est. %annual_yield%: Est. %annual_yield%
 Staked: Staked
 Unstake Requested: Unstake Requested
 Unstaked: Unstaked
@@ -335,7 +348,7 @@ You sell: You sell
 You buy: You buy
 Swap Details: Swap Details
 Blockchain Fee: Blockchain Fee
-Routing Fees: Routing Fees
+Aggregator Fee: Aggregator Fee
 Included: Included
 Price Impact: Price Impact
 Minimum Received: Minimum Received
@@ -346,7 +359,6 @@ Invalid Pair: Invalid Pair
 We do not recommend to perform an exchange, try to specify a lower amount.: We do not recommend to perform an exchange, try to specify a lower amount.
 $swap_minimum_received_tooltip1: This is the least amount of new tokens you'll get from this swap, considering current market conditions, slippage tolerance, and potential price impact.
 $swap_minimum_received_tooltip2: It's an expected minimum, but if the conditions change a lot while your swap is being processed, the final amount could be less.
-$swap_routing_fees_tooltip: Both decentralized exchange and app fees (~0.875%) are already included in the price you see and will not be charged additionally.
 $swap_price_impact_tooltip1: This shows how much your trade might change the token's price.
 $swap_price_impact_tooltip2: Big trades can make the price go up or down more. Lower is usually better.
 $swap_slippage_tooltip1: This sets how much the price is allowed to change before your swap is processed.
@@ -420,7 +432,7 @@ Please note that it may take up to a few hours for tokens to appear in your wall
 Minimum amount: Minimum %value%
 Maximum amount: Maximum %value%
 Display Tray Icon: Display Tray Icon
-Enable Auto-Updates: Enable Auto-Updates
+Auto-Updates: Auto-Updates
 Biometric Authentication: Biometric Authentication
 If you turn off biometric protection, you will need to create a password.: If you turn off biometric protection, you will need to create a password.
 Enter your current password: Enter your current password
@@ -451,8 +463,6 @@ Permission denied. Please grant camera permission to use the QR code scanner.: P
 Unsupported QR code format: Unsupported QR code format
 An error on the server side. Please try again.: An error on the server side. Please try again.
 Unrecognized QR Code: Unrecognized QR Code
-$fee_value_almost_equal: Fee ≈ %fee%
-$fee_value_less: Fee < %fee%
 Address was saved!: Address was saved!
 US Dollar: US Dollar
 Euro: Euro
@@ -494,6 +504,7 @@ Incorrect code, please try again.: Incorrect code, please try again.
 Correct: Correct
 Confirm Action: Confirm Action
 Confirm Swap: Confirm Swap
+Confirm Rewards Claim: Confirm Rewards Claim
 "%amount% to %address%": "%amount% to %address%"
 "%amount_from% to %amount_to%": "%amount_from% to %amount_to%"
 Failed to enable biometrics.: Failed to enable biometrics.
@@ -524,6 +535,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: You can also %action%.
 $wallet_switch_version_2: switch to another wallet version
 or import from: or import from
+Insufficient fee: Insufficient fee
 $insufficient_fee: "Insufficient fee: %fee%"
 Required: Required
 Comment is too long.: Comment is too long.
@@ -534,7 +546,7 @@ No internet connection. Please check your connection and try again.: No internet
 To use this feature, first enable Face ID in your phone settings.: To use this feature, first enable Face ID in your phone settings.
 To use this feature, first enable biometrics in your phone settings.: To use this feature, first enable biometrics in your phone settings.
 Open Settings: Open Settings
-You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: You are about to transfer an important service token, which is needed to withdraw your deposit from staking.
+$service_token_transfer_warning: You are about to transfer an important service token required to withdraw your deposit or complete service operations. Please ensure this is the action you intend to take.
 No Price: No Price
 $ledger_not_supported_operation: This operation is not supported by your version of the Ledger TON App. Please update it using Ledger Live.
 $ledger_unsupported_ton_connect: TonConnect is not supported by version of your Ledger TON App. Please update it using Ledger Live.
@@ -657,6 +669,7 @@ $hardware_blind_sign_not_enabled: |
   A third-party service is requesting access to your wallet — this could lead to the loss of funds. Cancel the operation if you are not sure about the reliability of this service.
 
   To continue, enable the "Blind Signing" option in the settings of the TON App on Ledger.
+$hardware_blind_sign_not_enabled_internal: To continue, enable the "Blind Signing" option in the settings of the TON App on Ledger.
 Switch to W5: Switch to W5
 Not Scam: Not Scam
 Untitled: Untitled
@@ -673,16 +686,39 @@ NFT Menu: NFT Menu
 Connection Type: Connection Type
 Ledger is not supported on this device: Ledger is not supported on this device
 Connect your Ledger: Connect your Ledger
-App will not be locked.: App will not be locked.
-App will be automatically locked after 30 seconds of inactivity.: App will be automatically locked after 30 seconds of inactivity.
-App will be automatically locked after 3 minutes of inactivity.: App will be automatically locked after 3 minutes of inactivity.
-App will be automatically locked after 30 minutes of inactivity.: App will be automatically locked after 30 minutes of inactivity.
+$app_lock_description: When app lock is enabled, a lock icon appears on the card on the main page. Use it to lock MyTonWallet.
+App Lock: App Lock
 Auto-Lock: Auto-Lock
-Never: Never
+Disabled: Disabled
 30 seconds: 30 seconds
 3 minutes: 3 minutes
-30 minutes: 30 minutes
+10 minutes: 10 minutes
+If away for 30 sec: If away for 30 sec
+If away for 3 min: If away for 3 min
+If away for 10 min: If away for 10 min
 Unlock: Unlock
 This address mimics another address that you previously interacted with.: This address mimics another address that you previously interacted with.
 Biometric authentication failed: Biometric authentication failed
 Reset biometrics in security settings, or use a passcode.: Reset biometrics in security settings, or use a passcode.
+Best Rate: Best Rate
+via %dex_name%: via %dex_name%
+$swap_dex_chooser_rate_title: Analyzed actual rates on **DeDust** and **STON.fi** to use the **best rate**.
+You will receive %amount% **more**.: You will receive %amount% **more**.
+You will spend %amount% **less**.: You will spend %amount% **less**.
+Best: Best
+Use Best Rate: Use Best Rate
+Switch to %dex_name%: Switch to %dex_name%
+Built-in Dex Aggregator: Built-in Dex Aggregator
+Add tokens: Add tokens
+No tokens yet: No tokens yet
+$no_tokens_description: Receive tokens from another wallet, or simply enable preferred tokens in the settings for monitoring.
+Exchange Rate: Exchange Rate
+Install Card: Install Card
+Reset Card: Reset Card
+Apply Palette: Install Palette
+Reset Palette: Reset Palette
+Notifications & Sounds: Notifications & Sounds
+Push Notifications: Push Notifications
+Select up to %count% wallets for notifications: Select up to %count% wallets for notifications
+$swap_aggregator_fee_tooltip: A built-in **DEX aggregator** finds the **best rate** across available DEXes. Service fee is %percent%.
+Accumulated Rewards: Accumulated Rewards

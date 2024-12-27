@@ -7,8 +7,8 @@ import {
   CLAIM_AMOUNT,
   CLAIM_COMMENT,
   IS_CAPACITOR,
-  MYCOIN_TOKEN,
-  MYCOIN_TOKEN_TESTNET,
+  MYCOIN,
+  MYCOIN_TESTNET,
   TONCOIN,
 } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
@@ -133,5 +133,5 @@ addActionHandler('submitClaimingVestingHardware', async (global, actions) => {
 addActionHandler('loadMycoin', (global, actions) => {
   const { isTestnet } = global.settings;
 
-  actions.importToken({ address: isTestnet ? MYCOIN_TOKEN_TESTNET : MYCOIN_TOKEN });
+  actions.importToken({ address: isTestnet ? MYCOIN_TESTNET.minterAddress : MYCOIN.minterAddress });
 });

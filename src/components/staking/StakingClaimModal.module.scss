@@ -1,0 +1,34 @@
+@import "../../styles/mixins";
+
+@include respond-above(xs) {
+  .modalDialog {
+    max-height: 48rem;
+  }
+}
+
+.passwordModalDialog {
+  height: 35.5rem;
+
+  @supports (height: var(--safe-area-bottom)) {
+    height: calc(35.5rem + var(--safe-area-bottom));
+  }
+
+  :global(.is-native-bottom-sheet) & {
+    height: calc(35.5rem + var(--safe-area-bottom, 0rem));
+  }
+}
+
+.transactionBanner {
+  margin-bottom: 1rem;
+}
+
+.operationInfoFee {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-gray-2);
+  text-align: center;
+}
+
+.operationInfoFeeWithGap {
+  margin-bottom: 2rem;
+}

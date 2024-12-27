@@ -38,7 +38,7 @@ type OwnProps = {
   onMouseLeave?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 };
 
-const ANIMATION_DURATION = 200;
+export const ANIMATION_DURATION = 200;
 
 const Menu: FC<OwnProps> = ({
   children,

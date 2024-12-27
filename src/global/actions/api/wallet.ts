@@ -8,7 +8,6 @@ import type {
   ApiTokenWithPrice,
   ApiTransactionError,
 } from '../../../api/types';
-import type { UserSwapToken, UserToken } from '../../types';
 import { ApiTransactionDraftError } from '../../../api/types';
 import { ActiveTab, TransferState } from '../../types';
 
@@ -17,11 +16,12 @@ import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
 import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
 import {
-  buildCollectionByKey, extractKey, findLast, pick, unique,
+  buildCollectionByKey, extractKey, findLast, unique,
 } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import { onTickEnd, pause } from '../../../util/schedulers';
+import { buildUserToken } from '../../../util/tokens';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../../api/errors';
@@ -90,9 +90,9 @@ addActionHandler('changeTransferToken', (global, actions, { tokenSlug }) => {
 
   setGlobal(updateCurrentTransfer(global, {
     tokenSlug,
-    dieselStatus: undefined,
-    dieselAmount: undefined,
     fee: undefined,
+    realFee: undefined,
+    diesel: undefined,
   }));
 });
 
@@ -182,15 +182,11 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   global = getGlobal();
   global = updateSendingLoading(global, false);
 
+  if (result) {
+    global = updateCurrentTransferByCheckResult(global, result);
+  }
+
   if (!result || 'error' in result) {
-    if (result) {
-      global = updateCurrentTransferByCheckResult(global, result);
-    }
-
-    if (result?.fee) {
-      global = updateCurrentTransfer(global, { fee: result.fee });
-    }
-
     setGlobal(global);
 
     if (result?.error === ApiTransactionDraftError.InsufficientBalance && !nftAddresses?.length) {
@@ -202,8 +198,6 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     return;
   }
 
-  global = updateCurrentTransfer(global, { fee: result.fee });
-
   setGlobal(updateCurrentTransfer(global, {
     state: TransferState.Confirm,
     error: undefined,
@@ -213,11 +207,8 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     amount,
     comment,
     shouldEncrypt,
-    toAddressName: result.addressName,
     tokenSlug,
     isToNewAddress: result.isToAddressNew,
-    isScam: result.isScam,
-    isMemoRequired: result.isMemoRequired,
     withDiesel,
     isGaslessWithStars,
   }));
@@ -228,7 +219,7 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   setGlobal(global);
 
   const {
-    tokenSlug, toAddress, amount, comment, shouldEncrypt, binPayload, stateInit, isGaslessWithStars,
+    tokenSlug, toAddress, comment, shouldEncrypt, binPayload, stateInit, isGaslessWithStars,
   } = payload;
 
   const { tokenAddress, chain } = selectToken(global, tokenSlug);
@@ -236,7 +227,6 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   const result = await callApi('checkTransactionDraft', chain, {
     accountId: global.currentAccountId!,
     toAddress,
-    amount,
     data: binPayload ?? comment,
     tokenAddress,
     shouldEncrypt,
@@ -246,16 +236,16 @@ addActionHandler('fetchFee', async (global, actions, payload) => {
   });
 
   global = getGlobal();
-  global = updateCurrentTransfer(global, { isLoading: false });
 
-  if (result) {
-    global = updateCurrentTransferByCheckResult(global, result);
-
-    if (result.fee !== undefined) {
-      global = updateCurrentTransfer(global, { fee: result.fee });
-    }
+  if (tokenSlug !== global.currentTransfer.tokenSlug) {
+    // For cases when the user switches the token before the result arrives
+    return;
   }
 
+  global = updateCurrentTransfer(global, { isLoading: false });
+  if (result) {
+    global = updateCurrentTransferByCheckResult(global, result);
+  }
   setGlobal(global);
 
   if (result?.error && result.error !== ApiTransactionDraftError.InsufficientBalance) {
@@ -320,7 +310,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     binPayload,
     nfts,
     withDiesel,
-    dieselAmount,
+    diesel,
     stateInit,
     isGaslessWithStars,
   } = global.currentTransfer;
@@ -386,7 +376,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       result = batchResult;
     }
   } else {
-    const { tokenAddress, chain } = selectToken(global, tokenSlug!);
+    const { tokenAddress, chain } = selectToken(global, tokenSlug);
 
     const options: ApiSubmitTransferOptions = {
       accountId: global.currentAccountId!,
@@ -399,7 +389,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       shouldEncrypt,
       isBase64Data: Boolean(binPayload),
       withDiesel,
-      dieselAmount,
+      dieselAmount: diesel?.tokenAmount,
       stateInit,
       isGaslessWithStars,
     };
@@ -499,7 +489,7 @@ addActionHandler('submitTransferHardware', async (global, actions) => {
       result = currentResult;
     }
   } else {
-    const tokenAddress = selectTokenAddress(global, tokenSlug!);
+    const tokenAddress = selectTokenAddress(global, tokenSlug);
     const options = {
       accountId: global.currentAccountId!,
       password: '',
@@ -511,7 +501,7 @@ addActionHandler('submitTransferHardware', async (global, actions) => {
     };
 
     try {
-      result = await ledgerApi.submitLedgerTransfer(options, tokenSlug!);
+      result = await ledgerApi.submitLedgerTransfer(options, tokenSlug);
     } catch (err: any) {
       if (err instanceof ApiHardwareBlindSigningNotEnabled) {
         error = '$hardware_blind_sign_not_enabled';
@@ -858,23 +848,7 @@ addActionHandler('importToken', async (global, actions, { address }) => {
   const balances = selectAccountState(global, currentAccountId!)?.balances?.bySlug ?? {};
   const shouldUpdateBalance = !(token.slug in balances);
 
-  const userToken: UserToken | UserSwapToken = {
-    ...pick(token, [
-      'symbol',
-      'slug',
-      'name',
-      'image',
-      'decimals',
-      'keywords',
-      'chain',
-      'tokenAddress',
-    ]),
-    amount: 0n,
-    totalValue: '0',
-    price: 0,
-    priceUsd: 0,
-    change24h: 0,
-  };
+  const userToken = buildUserToken(token);
 
   global = getGlobal();
   global = updateSettings(global, {
@@ -960,16 +934,13 @@ addActionHandler('fetchDieselState', async (global, actions, { tokenSlug }) => {
   const tokenAddress = selectTokenAddress(global, tokenSlug);
   if (!tokenAddress) return;
 
-  const result = await callApi('fetchDieselState', global.currentAccountId!, tokenAddress);
-  if (!result || !result.status) return;
+  const diesel = await callApi('fetchEstimateDiesel', global.currentAccountId!, tokenAddress);
+  if (!diesel) return;
 
   global = getGlobal();
   const accountState = selectAccountState(global, global.currentAccountId!);
-  global = updateCurrentTransfer(global, {
-    dieselStatus: result.status,
-    dieselAmount: result.amount,
-  });
-  if (accountState?.isDieselAuthorizationStarted && result.status !== 'not-authorized') {
+  global = updateCurrentTransfer(global, { diesel });
+  if (accountState?.isDieselAuthorizationStarted && diesel.status !== 'not-authorized') {
     global = updateAccountState(global, global.currentAccountId!, { isDieselAuthorizationStarted: undefined });
   }
   setGlobal(global);

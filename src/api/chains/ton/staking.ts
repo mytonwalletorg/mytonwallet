@@ -2,138 +2,165 @@ import { Address } from '@ton/core';
 
 import type {
   ApiBackendStakingState,
+  ApiJettonStakingState,
+  ApiLoyaltyType,
   ApiNetwork,
+  ApiStakingCommonData,
+  ApiStakingJettonPool,
   ApiStakingState,
-  ApiStakingType,
 } from '../../types';
-import type { ApiCheckTransactionDraftResult, ApiSubmitTransferTonResult, TonTransferParams } from './types';
-import { ApiCommonError, ApiLiquidUnstakeMode, ApiTransactionDraftError } from '../../types';
+import type { StakingPoolConfigUnpacked } from './contracts/JettonStaking/StakingPool';
+import type { Nominator } from './contracts/NominatorPool';
+import type {
+  ApiCheckTransactionDraftResult,
+  ApiSubmitTransferTonResult,
+  TonTransferParams,
+} from './types';
+import {
+  ApiLiquidUnstakeMode,
+  ApiTransactionDraftError,
+} from '../../types';
 
 import {
-  APP_ENV,
-  APP_VERSION,
   LIQUID_JETTON,
   LIQUID_POOL,
-  ONE_TON,
+  TONCOIN,
   VALIDATION_PERIOD_MS,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintDivideToNumber, bigintMultiplyToNumber } from '../../../util/bigint';
 import { fromDecimal } from '../../../util/decimals';
+import calcJettonStakingApr from '../../../util/ton/calcJettonStakingApr';
 import {
+  buildJettonClaimPayload,
+  buildJettonUnstakePayload,
   buildLiquidStakingDepositBody,
   buildLiquidStakingWithdrawBody,
+  getJettonPoolStakeWallet,
   getTokenBalance,
   getTonClient,
   resolveTokenWalletAddress,
   toBase64Address,
+  unpackDicts,
 } from './util/tonCore';
+import { StakeWallet } from './contracts/JettonStaking/StakeWallet';
+import { StakingPool } from './contracts/JettonStaking/StakingPool';
 import { NominatorPool } from './contracts/NominatorPool';
 import { fetchStoredTonWallet } from '../../common/accounts';
 import { callBackendGet } from '../../common/backend';
 import { getAccountCache, getStakingCommonCache, updateAccountCache } from '../../common/cache';
 import { getClientId } from '../../common/other';
+import { getTokenByAddress, getTokenBySlug } from '../../common/tokens';
 import { isKnownStakingPool } from '../../common/utils';
 import { nftRepository } from '../../db';
-import { getEnvironment } from '../../environment';
-import { STAKE_COMMENT, UNSTAKE_COMMENT } from './constants';
+import { STAKE_COMMENT, TON_GAS, UNSTAKE_COMMENT } from './constants';
 import { checkTransactionDraft, submitTransfer } from './transactions';
 import { isAddressInitialized } from './wallet';
 
-const CACHE_TTL = 5000; // 5 s.
-let backendStakingStateByAddress: Record<string, [number, ApiBackendStakingState]> = {};
-
-export async function checkStakeDraft(
-  accountId: string,
-  amount: bigint,
-  backendState: ApiBackendStakingState,
-) {
-  const staked = await getStakingState(accountId, backendState);
-
-  let type: ApiStakingType;
+export async function checkStakeDraft(accountId: string, amount: bigint, state: ApiStakingState) {
   let result: ApiCheckTransactionDraftResult;
 
-  if (staked?.type === 'nominators' && amount >= ONE_TON) {
-    type = 'nominators';
+  switch (state.type) {
+    case 'nominators': {
+      if (amount < TON_GAS.stakeNominators) {
+        return { error: ApiTransactionDraftError.InvalidAmount };
+      }
 
-    const poolAddress = backendState.nominatorsPool.address;
-    amount += ONE_TON;
+      result = await checkTransactionDraft({
+        accountId,
+        toAddress: state.pool,
+        amount: amount + TON_GAS.stakeNominators,
+        data: STAKE_COMMENT,
+      });
+      if ('fee' in result && result.fee) {
+        result.fee = TON_GAS.stakeNominators + result.fee;
+      }
+      break;
+    }
+    case 'liquid': {
+      result = await checkTransactionDraft({
+        accountId,
+        toAddress: LIQUID_POOL,
+        amount: amount + TON_GAS.stakeLiquid,
+        data: buildLiquidStakingDepositBody(),
+      });
+      if ('fee' in result && result.fee) {
+        result.fee = TON_GAS.stakeLiquid + result.fee;
+      }
+      break;
+    }
+    case 'jetton': {
+      const { tokenSlug, pool, period } = state;
+      const { tokenAddress } = getTokenBySlug(tokenSlug);
 
-    result = await checkTransactionDraft({
-      accountId,
-      toAddress: poolAddress,
-      amount,
-      data: STAKE_COMMENT,
-    });
-  } else if (amount < ONE_TON) {
-    return { error: ApiTransactionDraftError.InvalidAmount };
-  } else {
-    type = 'liquid';
-
-    const body = buildLiquidStakingDepositBody();
-    result = await checkTransactionDraft({
-      accountId,
-      toAddress: LIQUID_POOL,
-      amount,
-      data: body,
-    });
+      result = await checkTransactionDraft({
+        accountId,
+        toAddress: pool,
+        tokenAddress,
+        amount,
+        data: StakingPool.stakePayload(period),
+        forwardAmount: TON_GAS.stakeJettonsForward,
+      });
+      break;
+    }
   }
 
-  return {
-    ...result,
-    type,
-  };
+  return result;
 }
 
-export async function checkUnstakeDraft(
-  accountId: string,
-  amount: bigint,
-  backendState: ApiBackendStakingState,
-) {
+export async function checkUnstakeDraft(accountId: string, amount: bigint, state: ApiStakingState) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
   const commonData = getStakingCommonCache();
-  const staked = await getStakingState(accountId, backendState);
 
-  let type: ApiStakingType;
   let result: ApiCheckTransactionDraftResult;
   let tokenAmount: bigint | undefined;
 
-  if (staked.type === 'nominators') {
-    type = 'nominators';
-
-    const poolAddress = backendState.nominatorsPool.address;
-    result = await checkTransactionDraft({
-      accountId,
-      toAddress: poolAddress,
-      amount: ONE_TON,
-      data: UNSTAKE_COMMENT,
-    });
-  } else if (staked.type === 'liquid') {
-    type = 'liquid';
-
-    if (amount > staked.amount) {
-      return { error: ApiTransactionDraftError.InsufficientBalance };
-    } else if (amount === staked.amount) {
-      tokenAmount = staked.tokenAmount;
-    } else {
-      tokenAmount = bigintDivideToNumber(amount, commonData.liquid.currentRate);
+  switch (state.type) {
+    case 'nominators': {
+      result = await checkTransactionDraft({
+        accountId,
+        toAddress: state.pool,
+        amount: TON_GAS.unstakeNominators,
+        data: UNSTAKE_COMMENT,
+      });
+      break;
     }
+    case 'liquid': {
+      if (amount > state.balance) {
+        return { error: ApiTransactionDraftError.InsufficientBalance };
+      } else if (amount === state.balance) {
+        tokenAmount = state.tokenBalance;
+      } else {
+        tokenAmount = bigintDivideToNumber(amount, commonData.liquid.currentRate);
+      }
 
-    const params = await buildLiquidStakingWithdraw(network, address, tokenAmount);
-    result = await checkTransactionDraft({
-      accountId,
-      toAddress: params.toAddress,
-      amount: params.amount,
-      data: params.payload,
-    });
-  } else {
-    return { error: ApiCommonError.Unexpected };
+      const params = await buildLiquidStakingWithdraw(network, address, tokenAmount);
+
+      result = await checkTransactionDraft({
+        accountId,
+        toAddress: params.toAddress,
+        amount: params.amount,
+        data: params.payload,
+      });
+      break;
+    }
+    case 'jetton': {
+      tokenAmount = amount;
+
+      result = await checkTransactionDraft({
+        accountId,
+        toAddress: state.stakeWalletAddress,
+        amount: TON_GAS.unstakeJettons,
+        data: buildJettonUnstakePayload(amount, true),
+      });
+      break;
+    }
   }
 
   return {
     ...result,
-    type,
+    type: state.type,
     tokenAmount,
   };
 }
@@ -142,32 +169,52 @@ export async function submitStake(
   accountId: string,
   password: string,
   amount: bigint,
-  type: ApiStakingType,
-  backendState: ApiBackendStakingState,
+  state: ApiStakingState,
 ) {
   let result: ApiSubmitTransferTonResult;
 
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
 
-  if (type === 'liquid') {
-    amount += ONE_TON;
-    result = await submitTransfer({
-      accountId,
-      password,
-      toAddress: LIQUID_POOL,
-      amount,
-      data: buildLiquidStakingDepositBody(),
-    });
-  } else {
-    const poolAddress = backendState.nominatorsPool.address;
-    result = await submitTransfer({
-      accountId,
-      password,
-      toAddress: toBase64Address(poolAddress, true, network),
-      amount,
-      data: STAKE_COMMENT,
-    });
+  switch (state.type) {
+    case 'nominators': {
+      result = await submitTransfer({
+        accountId,
+        password,
+        toAddress: toBase64Address(state.pool, true, network),
+        amount: amount + TON_GAS.stakeNominators,
+        data: STAKE_COMMENT,
+      });
+      break;
+    }
+    case 'liquid': {
+      result = await submitTransfer({
+        accountId,
+        password,
+        toAddress: LIQUID_POOL,
+        amount: amount + TON_GAS.stakeLiquid,
+        data: buildLiquidStakingDepositBody(),
+      });
+      break;
+    }
+    case 'jetton': {
+      const { tokenSlug, pool, period } = state;
+      const { tokenAddress } = getTokenBySlug(tokenSlug);
+
+      result = await submitTransfer({
+        accountId,
+        password,
+        toAddress: pool,
+        tokenAddress,
+        amount,
+        data: StakingPool.stakePayload(period),
+        forwardAmount: TON_GAS.stakeJettonsForward,
+      });
+      if (!('error' in result)) {
+        result.toAddress = pool;
+      }
+      break;
+    }
   }
 
   if (!('error' in result)) {
@@ -180,40 +227,50 @@ export async function submitStake(
 export async function submitUnstake(
   accountId: string,
   password: string,
-  type: ApiStakingType,
   amount: bigint,
-  backendState: ApiBackendStakingState,
+  state: ApiStakingState,
 ) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
 
-  const staked = await getStakingState(accountId, backendState);
-
   let result: ApiSubmitTransferTonResult;
 
-  if (type === 'liquid') {
-    const mode = staked.type === 'liquid' && !staked.instantAvailable
-      ? ApiLiquidUnstakeMode.BestRate
-      : ApiLiquidUnstakeMode.Default;
+  switch (state.type) {
+    case 'nominators': {
+      result = await submitTransfer({
+        accountId,
+        password,
+        toAddress: toBase64Address(state.pool, true, network),
+        amount: TON_GAS.unstakeNominators,
+        data: UNSTAKE_COMMENT,
+      });
+      break;
+    }
+    case 'liquid': {
+      const mode = !state.instantAvailable
+        ? ApiLiquidUnstakeMode.BestRate
+        : ApiLiquidUnstakeMode.Default;
 
-    const params = await buildLiquidStakingWithdraw(network, address, amount, mode);
+      const params = await buildLiquidStakingWithdraw(network, address, amount, mode);
 
-    result = await submitTransfer({
-      accountId,
-      password,
-      toAddress: params.toAddress,
-      amount: params.amount,
-      data: params.payload,
-    });
-  } else {
-    const poolAddress = backendState.nominatorsPool.address;
-    result = await submitTransfer({
-      accountId,
-      password,
-      toAddress: toBase64Address(poolAddress, true, network),
-      amount: ONE_TON,
-      data: UNSTAKE_COMMENT,
-    });
+      result = await submitTransfer({
+        accountId,
+        password,
+        toAddress: params.toAddress,
+        amount: params.amount,
+        data: params.payload,
+      });
+      break;
+    }
+    case 'jetton': {
+      result = await submitTransfer({
+        accountId,
+        password,
+        toAddress: state.stakeWalletAddress,
+        amount: TON_GAS.unstakeJettons,
+        data: buildJettonUnstakePayload(amount, true),
+      });
+    }
   }
 
   return result;
@@ -235,20 +292,59 @@ export async function buildLiquidStakingWithdraw(
   });
 
   return {
-    amount: ONE_TON,
+    amount: TON_GAS.unstakeLiquid,
     toAddress: tokenWalletAddress,
     payload,
   };
 }
 
-export async function getStakingState(
+type StakingStateOptions = {
+  accountId: string;
+  backendState: ApiBackendStakingState;
+  commonData: ApiStakingCommonData;
+  address: string;
+  loyaltyType?: ApiLoyaltyType;
+  network: ApiNetwork;
+};
+
+export async function getStakingStates(
   accountId: string,
+  commonData: ApiStakingCommonData,
   backendState: ApiBackendStakingState,
-): Promise<ApiStakingState> {
-  const commonData = getStakingCommonCache();
+): Promise<ApiStakingState[]> {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
 
+  const {
+    loyaltyType,
+    shouldUseNominators,
+    type: backendType,
+  } = backendState;
+
+  const options: StakingStateOptions = {
+    accountId, backendState, commonData, address, loyaltyType, network,
+  };
+
+  const promises: Promise<ApiStakingState>[] = [buildLiquidState(options)];
+
+  for (const poolConfig of commonData.jettonPools) {
+    promises.push(buildJettonState(options, poolConfig));
+  }
+
+  if (shouldUseNominators || backendType === 'nominators') {
+    promises.push(buildNominatorsState(options));
+  }
+
+  return Promise.all(promises);
+}
+
+async function buildLiquidState({
+  accountId,
+  address,
+  backendState,
+  commonData,
+  loyaltyType,
+}: StakingStateOptions): Promise<ApiStakingState> {
   const { currentRate, collection } = commonData.liquid;
   const tokenBalance = await getLiquidStakingTokenBalance(accountId);
   let unstakeAmount = 0n;
@@ -267,8 +363,6 @@ export async function getStakingState(
     }
   }
 
-  const { loyaltyType, shouldUseNominators } = backendState;
-
   const accountCache = getAccountCache(accountId, address);
   const stakedAt = Math.max(accountCache.stakedAt ?? 0, backendState.stakedAt ?? 0);
 
@@ -280,59 +374,131 @@ export async function getStakingState(
     liquidApy = commonData.liquid.loyaltyApy[loyaltyType];
   }
 
-  if (tokenBalance > 0n || unstakeAmount > 0n) {
-    const fullTokenAmount = tokenBalance + unstakeAmount;
-    const amount = bigintMultiplyToNumber(fullTokenAmount, currentRate);
+  const fullTokenAmount = tokenBalance + unstakeAmount;
+  const balance = bigintMultiplyToNumber(fullTokenAmount, currentRate);
 
-    return {
-      type: 'liquid',
-      tokenAmount: tokenBalance,
-      amount,
-      unstakeRequestAmount: unstakeAmount,
-      apy: liquidApy,
-      instantAvailable: liquidAvailable,
-    };
-  }
+  return {
+    type: 'liquid',
+    id: 'liquid',
+    tokenSlug: TONCOIN.slug,
+    pool: LIQUID_POOL,
+    balance,
+    annualYield: liquidApy,
+    yieldType: 'APY',
+    tokenBalance,
+    isUnstakeRequested: unstakeAmount > 0n,
+    unstakeRequestAmount: unstakeAmount,
+    instantAvailable: liquidAvailable,
+  };
+}
 
-  const poolAddress = backendState.nominatorsPool.address;
+async function buildNominatorsState({
+  network,
+  address,
+  backendState,
+  commonData,
+}: StakingStateOptions): Promise<ApiStakingState> {
+  const balance = backendState.balance;
+  const { address: pool, apy } = backendState.nominatorsPool;
+
+  const isPrevRoundUnlocked = Date.now() > commonData.prevRound.unlock;
+  const start = isPrevRoundUnlocked ? commonData.round.start : commonData.prevRound.start;
+  const end = isPrevRoundUnlocked ? commonData.round.unlock : commonData.prevRound.unlock;
+
+  let currentNominator: Nominator | undefined;
 
   if (backendState.type === 'nominators') {
-    const nominatorPool = getPoolContract(network, poolAddress);
+    const nominatorPool = getTonClient(network).open(new NominatorPool(Address.parse(pool)));
     const nominators = await nominatorPool.getListNominators();
     const addressObject = Address.parse(address);
-    const currentNominator = nominators.find((n) => n.address.equals(addressObject));
+    currentNominator = nominators.find((n) => n.address.equals(addressObject));
+  }
 
-    if (currentNominator) {
-      return {
-        type: 'nominators',
-        amount: backendState.balance,
-        pendingDepositAmount: currentNominator.pendingDepositAmount,
-        isUnstakeRequested: currentNominator.withdrawRequested,
-      };
+  return {
+    type: 'nominators',
+    id: 'nominators',
+    tokenSlug: TONCOIN.slug,
+    balance: currentNominator ? balance : 0n,
+    annualYield: apy,
+    yieldType: 'APY',
+    pool,
+    start,
+    end,
+    pendingDepositAmount: currentNominator?.pendingDepositAmount ?? 0n,
+    isUnstakeRequested: currentNominator?.withdrawRequested ?? false,
+  };
+}
+
+async function buildJettonState(
+  options: StakingStateOptions,
+  poolConfig: ApiStakingJettonPool,
+): Promise<ApiJettonStakingState> {
+  const { network } = options;
+
+  // common
+  const {
+    pool: poolAddress,
+    token: tokenAddress,
+  } = poolConfig;
+
+  const { decimals, slug: tokenSlug } = getTokenByAddress(tokenAddress)!;
+
+  const tonClient = getTonClient(network);
+  const pool = tonClient.open(StakingPool.createFromAddress(Address.parse(poolAddress)));
+
+  // pool
+  const poolData = await pool.getStorageData();
+  const { tvl, rewardJettons } = unpackDicts(poolData) as StakingPoolConfigUnpacked;
+  const { rewardsDeposits } = Object.values(rewardJettons!)[0];
+  const now = Math.floor(Date.now() / 1000);
+
+  let dailyReward: bigint = 0n;
+  for (const { startTime, endTime, distributionSpeed } of Object.values(rewardsDeposits)) {
+    if (startTime < now && endTime > now) {
+      dailyReward += distributionSpeed;
     }
   }
 
-  if (shouldUseNominators) {
-    return {
-      type: 'nominators',
-      amount: 0n,
-      pendingDepositAmount: 0n,
-      isUnstakeRequested: false,
-    };
-  } else {
-    return {
-      type: 'liquid',
-      tokenAmount: 0n,
-      amount: 0n,
-      unstakeRequestAmount: 0n,
-      apy: liquidApy,
-      instantAvailable: liquidAvailable,
-    };
-  }
-}
+  const apr = calcJettonStakingApr({ tvl, dailyReward, decimals });
 
-function getPoolContract(network: ApiNetwork, poolAddress: string) {
-  return getTonClient(network).open(new NominatorPool(Address.parse(poolAddress)));
+  // wallet
+  const { address } = options;
+  const periodConfig = poolConfig.periods[0];
+
+  const stakeWallet = await getJettonPoolStakeWallet(network, poolAddress, periodConfig.period, address);
+  const walletData = await stakeWallet.getStorageData().catch(() => undefined);
+
+  let unclaimedRewards = 0n;
+  let balance = 0n;
+  let poolWallets: string[] | undefined;
+
+  if (walletData) {
+    const poolWalletAddress = await resolveTokenWalletAddress(network, poolAddress, tokenAddress);
+    const rewards = walletData && StakeWallet.getAvailableRewards(walletData, poolData);
+    unclaimedRewards = (rewards && rewards[poolWalletAddress]) ?? 0n;
+    balance = walletData.jettonBalance;
+    poolWallets = Object.keys(rewards);
+  }
+
+  const state: ApiJettonStakingState = {
+    type: 'jetton',
+    id: poolAddress,
+    pool: poolAddress,
+    tokenAddress,
+    tokenSlug,
+    annualYield: apr,
+    yieldType: 'APR',
+    balance,
+    unclaimedRewards,
+    poolWallets,
+    stakeWalletAddress: toBase64Address(stakeWallet.address, true),
+    tokenAmount: 0n,
+    tvl,
+    dailyReward,
+    period: periodConfig.period,
+  };
+
+  return state;
 }
 
 async function getLiquidStakingTokenBalance(accountId: string) {
@@ -366,19 +532,11 @@ export async function getBackendStakingState(accountId: string): Promise<ApiBack
 }
 
 export async function fetchBackendStakingState(address: string): Promise<ApiBackendStakingState> {
-  const cacheItem = backendStakingStateByAddress[address];
-  if (cacheItem && cacheItem[0] > Date.now()) {
-    return cacheItem[1];
-  }
+  const clientId = await getClientId();
+  const stakingState = await callBackendGet(`/staking/state/${address}`, undefined, {
+    'X-App-ClientID': clientId,
+  });
 
-  const headers: AnyLiteral = {
-    ...getEnvironment().apiHeaders,
-    'X-App-Version': APP_VERSION,
-    'X-App-ClientID': await getClientId(),
-    'X-App-Env': APP_ENV,
-  };
-
-  const stakingState = await callBackendGet(`/staking/state/${address}`, undefined, headers);
   stakingState.balance = fromDecimal(stakingState.balance);
   stakingState.totalProfit = fromDecimal(stakingState.totalProfit);
 
@@ -386,11 +544,19 @@ export async function fetchBackendStakingState(address: string): Promise<ApiBack
     throw Error('Unexpected pool address, likely a malicious activity');
   }
 
-  backendStakingStateByAddress[address] = [Date.now() + CACHE_TTL, stakingState];
-
   return stakingState;
 }
 
-export function onStakingChangeExpected() {
-  backendStakingStateByAddress = {};
+export function submitStakingClaim(
+  accountId: string,
+  password: string,
+  state: ApiJettonStakingState,
+) {
+  return submitTransfer({
+    accountId,
+    password,
+    toAddress: state.stakeWalletAddress,
+    amount: TON_GAS.claimJettons,
+    data: buildJettonClaimPayload(state.poolWallets!),
+  });
 }

@@ -4,13 +4,16 @@ import React, {
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
+import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { Theme } from '../../../../global/types';
 import { ActiveTab } from '../../../../global/types';
 
 import { ANIMATED_STICKER_ICON_PX, DEFAULT_LANDSCAPE_ACTION_TAB_ID, TONCOIN } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
-import { selectAccountState, selectToken } from '../../../../global/selectors';
+import { selectAccountState, selectCurrentAccountSettings } from '../../../../global/selectors';
+import { ACCENT_COLORS } from '../../../../util/accentColor';
 import buildClassName from '../../../../util/buildClassName';
+import { getChainBySlug } from '../../../../util/tokens';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
@@ -21,7 +24,6 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import useSyncEffect from '../../../../hooks/useSyncEffect';
 
 import Content from '../../../receive/Content';
-import TonActions from '../../../receive/content/TonActions';
 import StakingInfoContent from '../../../staking/StakingInfoContent';
 import StakingInitial from '../../../staking/StakingInitial';
 import SwapInitial from '../../../swap/SwapInitial';
@@ -32,8 +34,7 @@ import Transition, { ACTIVE_SLIDE_CLASS_NAME, TO_SLIDE_CLASS_NAME } from '../../
 import styles from './LandscapeActions.module.scss';
 
 interface OwnProps {
-  hasStaking?: boolean;
-  isUnstakeRequested?: boolean;
+  stakingStatus: StakingStateStatus;
   isLedger?: boolean;
   theme: Theme;
 }
@@ -46,6 +47,7 @@ interface StateProps {
   isTestnet?: boolean;
   isSwapDisabled: boolean;
   isOnRampDisabled: boolean;
+  accentColorIndex?: number;
 }
 
 const TABS = [ActiveTab.Receive, ActiveTab.Transfer, ActiveTab.Swap, ActiveTab.Stake];
@@ -53,23 +55,23 @@ const ANIMATED_STICKER_SPEED = 2;
 let activeTransferKey = 0;
 
 function LandscapeActions({
-  hasStaking,
-  activeTabIndex = DEFAULT_LANDSCAPE_ACTION_TAB_ID,
-  isUnstakeRequested,
-  nfts,
+  stakingStatus,
+  isLedger,
   theme,
+  activeTabIndex = DEFAULT_LANDSCAPE_ACTION_TAB_ID,
+  nfts,
   tokenSlug,
   isTransferWithComment,
   isTestnet,
-  isLedger,
   isSwapDisabled,
   isOnRampDisabled,
+  accentColorIndex,
 }: OwnProps & StateProps) {
   const { setLandscapeActionsActiveTabIndex: setActiveTabIndex } = getActions();
 
   const lang = useLang();
 
-  const isStaking = activeTabIndex === ActiveTab.Stake && (hasStaking || isUnstakeRequested);
+  const isStaking = activeTabIndex === ActiveTab.Stake && stakingStatus !== 'inactive';
 
   const {
     renderedBgHelpers,
@@ -96,6 +98,12 @@ function LandscapeActions({
   const [isStakeAnimating, playStakeAnimation, stopStakeAnimation] = useFlag();
   const appTheme = useAppTheme(theme);
   const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
+  const accentColor = accentColorIndex ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
+
+  const buttonTransitionKeyRef = useRef(0);
+  useSyncEffect(() => {
+    buttonTransitionKeyRef.current++;
+  }, [accentColor]);
 
   useSyncEffect(() => {
     activeTransferKey += 1;
@@ -115,7 +123,6 @@ function LandscapeActions({
       case ActiveTab.Receive:
         return (
           <div className={buildClassName(styles.slideContent, styles.slideContentAddBuy)}>
-            <TonActions isStatic isLedger={isLedger} />
             <Content isOpen={isActive} isStatic />
           </div>
         );
@@ -143,17 +150,13 @@ function LandscapeActions({
         );
 
       case ActiveTab.Stake:
-        if (hasStaking || isUnstakeRequested) {
-          return (
-            <div className={styles.slideContent}>
-              <StakingInfoContent isStatic isActive={isActive} />
-            </div>
-          );
-        }
-
         return (
           <div className={styles.slideContent}>
-            <StakingInitial isStatic isActive={isActive} />
+            {
+              stakingStatus === 'inactive'
+                ? <StakingInitial isStatic isActive={isActive} />
+                : <StakingInfoContent isStatic isActive={isActive} />
+            }
           </div>
         );
 
@@ -174,17 +177,21 @@ function LandscapeActions({
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Receive && styles.active)}
           onMouseEnter={!IS_TOUCH_ENV ? playAddBuyAnimation : undefined}
-          onClick={() => { handleSelectTab(ActiveTab.Receive, playAddBuyAnimation); }}
+          onClick={() => {
+            handleSelectTab(ActiveTab.Receive, playAddBuyAnimation);
+          }}
         >
           <AnimatedIconWithPreview
             play={isAddBuyAnimating}
             size={ANIMATED_STICKER_ICON_PX}
             speed={ANIMATED_STICKER_SPEED}
             className={styles.tabIcon}
+            key={accentColor}
+            color={accentColor}
             nonInteractive
             forceOnHeavyAnimation
             tgsUrl={stickerPaths.iconAdd}
-            previewUrl={stickerPaths.preview.iconAdd}
+            iconPreviewClass="icon-action-add"
             onEnded={stopAddBuyAnimation}
           />
           <span className={styles.tabText}>{lang(isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add')}</span>
@@ -194,17 +201,21 @@ function LandscapeActions({
         <div
           className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Transfer && styles.active)}
           onMouseEnter={!IS_TOUCH_ENV ? playSendAnimation : undefined}
-          onClick={() => { handleSelectTab(ActiveTab.Transfer, playSendAnimation); }}
+          onClick={() => {
+            handleSelectTab(ActiveTab.Transfer, playSendAnimation);
+          }}
         >
           <AnimatedIconWithPreview
             play={isSendAnimating}
             size={ANIMATED_STICKER_ICON_PX}
             speed={ANIMATED_STICKER_SPEED}
             className={styles.tabIcon}
+            key={accentColor}
+            color={accentColor}
             nonInteractive
             forceOnHeavyAnimation
             tgsUrl={stickerPaths.iconSend}
-            previewUrl={stickerPaths.preview.iconSend}
+            iconPreviewClass="icon-action-send"
             onEnded={stopSendAnimation}
           />
           <span className={styles.tabText}>{lang('Send')}</span>
@@ -215,17 +226,21 @@ function LandscapeActions({
           <div
             className={buildClassName(styles.tab, activeTabIndex === ActiveTab.Swap && styles.active)}
             onMouseEnter={!IS_TOUCH_ENV ? playSwapAnimation : undefined}
-            onClick={() => { handleSelectTab(ActiveTab.Swap, playSwapAnimation); }}
+            onClick={() => {
+              handleSelectTab(ActiveTab.Swap, playSwapAnimation);
+            }}
           >
             <AnimatedIconWithPreview
               play={isSwapAnimating}
               size={ANIMATED_STICKER_ICON_PX}
               speed={ANIMATED_STICKER_SPEED}
               className={styles.tabIcon}
+              key={accentColor}
+              color={accentColor}
               nonInteractive
               forceOnHeavyAnimation
               tgsUrl={stickerPaths.iconSwap}
-              previewUrl={stickerPaths.preview.iconSwap}
+              iconPreviewClass="icon-action-swap"
               onEnded={stopSwapAnimation}
             />
             <span className={styles.tabText}>{lang('Swap')}</span>
@@ -239,24 +254,31 @@ function LandscapeActions({
               styles.tab,
               activeTabIndex === ActiveTab.Stake && styles.active,
               isStaking && styles.tab_purple,
-              (hasStaking || isUnstakeRequested) && styles.tab_purpleText,
+              stakingStatus !== 'inactive' && styles.tab_purpleText,
             )}
             onMouseEnter={!IS_TOUCH_ENV ? playStakeAnimation : undefined}
-            onClick={() => { handleSelectTab(ActiveTab.Stake, playStakeAnimation); }}
+            onClick={() => {
+              handleSelectTab(ActiveTab.Stake, playStakeAnimation);
+            }}
           >
             <AnimatedIconWithPreview
               play={isStakeAnimating}
               size={ANIMATED_STICKER_ICON_PX}
               speed={ANIMATED_STICKER_SPEED}
               className={styles.tabIcon}
+              key={accentColor}
+              color={accentColor}
               nonInteractive
               forceOnHeavyAnimation
-              tgsUrl={stickerPaths[(hasStaking || isUnstakeRequested) ? 'iconEarnPurple' : 'iconEarn']}
-              previewUrl={stickerPaths.preview[(hasStaking || isUnstakeRequested) ? 'iconEarnPurple' : 'iconEarn']}
+              tgsUrl={stickerPaths[stakingStatus !== 'inactive' ? 'iconEarnPurple' : 'iconEarn']}
+              iconPreviewClass={buildClassName(
+                'icon-action-earn',
+                stakingStatus !== 'inactive' && styles.tab_purpleText,
+              )}
               onEnded={stopStakeAnimation}
             />
             <span className={styles.tabText}>
-              {lang(isUnstakeRequested ? 'Unstaking' : (hasStaking ? 'Earning' : 'Earn'))}
+              {lang({ inactive: 'Earn', active: 'Earning', unstakeRequested: 'Unstaking' }[stakingStatus])}
             </span>
             <span className={styles.tabDecoration} aria-hidden />
             <span className={styles.tabDelimiter} aria-hidden />
@@ -381,8 +403,8 @@ export default memo(
       const accountState = selectAccountState(global, global.currentAccountId!) ?? {};
 
       const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
-      const { nfts, tokenSlug = TONCOIN.slug } = global.currentTransfer;
-      const isTransferWithComment = selectToken(global, tokenSlug).chain === TONCOIN.chain;
+      const { nfts, tokenSlug } = global.currentTransfer;
+      const isTransferWithComment = getChainBySlug(tokenSlug) === TONCOIN.chain;
 
       return {
         activeTabIndex: accountState?.landscapeActionsActiveTabIndex,
@@ -392,6 +414,7 @@ export default memo(
         isTransferWithComment,
         isSwapDisabled,
         isOnRampDisabled,
+        accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

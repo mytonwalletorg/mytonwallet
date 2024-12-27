@@ -1,7 +1,8 @@
 import { IS_CAPACITOR } from '../config';
 import { requestMutation } from '../lib/fasterdom/fasterdom';
+import { applyStyles } from './animation';
 import { throttle } from './schedulers';
-import { IS_ANDROID, IS_IOS } from './windowEnvironment';
+import { IS_ANDROID, IS_ANDROID_APP, IS_IOS } from './windowEnvironment';
 
 const WINDOW_RESIZE_THROTTLE_MS = 250;
 const WINDOW_ORIENTATION_CHANGE_THROTTLE_MS = IS_IOS ? 350 : 250;
@@ -19,6 +20,19 @@ if (!IS_IOS) {
   window.addEventListener('resize', throttle(() => {
     currentWindowSize = updateSizes();
   }, WINDOW_RESIZE_THROTTLE_MS, true));
+}
+
+if (IS_ANDROID_APP) {
+  import('@capacitor/keyboard')
+    .then(({ Keyboard }) => {
+      Keyboard.addListener('keyboardDidShow', (info) => {
+        patchAndroidAppVh(info.keyboardHeight);
+      });
+
+      Keyboard.addListener('keyboardWillHide', () => {
+        patchAndroidAppVh(0);
+      });
+    });
 }
 
 if ('visualViewport' in window && (IS_IOS || IS_ANDROID)) {
@@ -60,6 +74,12 @@ function patchVh() {
   requestMutation(() => {
     const vh = height * 0.01;
     document.documentElement.style.setProperty('--vh', `${vh}px`);
+  });
+}
+
+function patchAndroidAppVh(keyboardHeight: number) {
+  requestMutation(() => {
+    applyStyles(document.body, { paddingBottom: keyboardHeight ? `${keyboardHeight}px` : '' });
   });
 }
 

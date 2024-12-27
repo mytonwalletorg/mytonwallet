@@ -31,6 +31,14 @@ export function areDeepEqual<T extends any>(value1: T, value2: T): boolean {
   const object1 = value1 as AnyLiteral;
   const object2 = value2 as AnyLiteral;
   const keys1 = Object.keys(object1);
+  const keys2 = Object.keys(object2);
+
+  if (!keys1.every((key1) => object2.hasOwnProperty(key1))) {
+    return false;
+  }
+  if (!keys2.every((key2) => object1.hasOwnProperty(key2))) {
+    return false;
+  }
 
   return keys1.every((key1) => areDeepEqual(object1[key1], object2[key1]));
 }

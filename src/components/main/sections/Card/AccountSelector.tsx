@@ -4,7 +4,8 @@ import React, {
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiTonWalletVersion } from '../../../../api/chains/ton/types';
-import { type Account, SettingsState } from '../../../../global/types';
+import type { Account, AccountSettings } from '../../../../global/types';
+import { SettingsState } from '../../../../global/types';
 
 import { selectNetworkAccounts } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -22,6 +23,7 @@ import useQrScannerSupport from '../../../../hooks/useQrScannerSupport';
 import useShowTransition from '../../../../hooks/useShowTransition';
 
 import Button from '../../../ui/Button';
+import AccountButton from './AccountButton';
 
 import styles from './AccountSelector.module.scss';
 
@@ -42,10 +44,12 @@ interface StateProps {
   accounts?: Record<string, Account>;
   shouldForceAccountEdit?: boolean;
   currentWalletVersion?: ApiTonWalletVersion;
+  isAppLockEnabled?: boolean;
+  settingsByAccountId?: Record<string, AccountSettings>;
 }
 
-const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
-const ACCOUNT_ADDRESS_SHIFT = 4;
+export const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
+export const ACCOUNT_ADDRESS_SHIFT = 4;
 const ACCOUNTS_AMOUNT_FOR_COMPACT_DIALOG = 2;
 
 function AccountSelector({
@@ -62,9 +66,17 @@ function AccountSelector({
   isInsideSticky,
   shouldForceAccountEdit,
   currentWalletVersion,
+  isAppLockEnabled,
+  settingsByAccountId,
 }: OwnProps & StateProps) {
   const {
-    switchAccount, renameAccount, openAddAccountModal, openSettings, requestOpenQrScanner, openSettingsWithState,
+    switchAccount,
+    renameAccount,
+    openAddAccountModal,
+    openSettings,
+    requestOpenQrScanner,
+    openSettingsWithState,
+    setIsManualLockActive,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -118,17 +130,11 @@ function AccountSelector({
     openAccountSelector();
   };
 
-  const handleSwitchAccount = (value: string) => {
+  const handleSwitchAccount = useLastCallback((accountId: string) => {
     vibrate();
     closeAccountSelector();
-    switchAccount({ accountId: value });
-  };
-
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    openEdit();
-  };
+    switchAccount({ accountId });
+  });
 
   const handleSaveClick = useLastCallback(() => {
     renameAccount({ accountId: currentAccountId, title: inputValue.trim() });
@@ -164,39 +170,32 @@ function AccountSelector({
     requestOpenQrScanner();
   });
 
+  const handleManualLock = useLastCallback(() => {
+    setIsManualLockActive({ isActive: true, shouldHideBiometrics: true });
+  });
+
   function renderButton(
     accountId: string,
     addressByChain: Account['addressByChain'],
     isHardware?: boolean,
     title?: string,
   ) {
+    const { cardBackgroundNft } = settingsByAccountId?.[accountId] || {};
     const isActive = accountId === currentAccountId;
-    const addressOrMutlichain = Object.keys(addressByChain).length > 1
-      ? lang('Multichain')
-      : shortenAddress(
-        addressByChain.ton,
-        isHardware ? HARDWARE_ACCOUNT_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
-        ACCOUNT_ADDRESS_SHIFT,
-      );
 
     return (
-      <div
-        className={buildClassName(styles.button, isActive && styles.button_current)}
-        aria-label={lang('Switch Account')}
-        onClick={isActive ? undefined : () => handleSwitchAccount(accountId)}
-      >
-        {title && <span className={styles.accountName}>{title}</span>}
-        <div className={styles.accountAddressBlock}>
-          {isHardware && <i className="icon-ledger" aria-hidden />}
-          <span>{addressOrMutlichain}</span>
-        </div>
-
-        {isActive && canEdit && (
-          <div className={styles.edit} onClick={handleEditClick}>
-            <i className="icon-pen" aria-hidden />
-          </div>
-        )}
-      </div>
+      <AccountButton
+        key={accountId}
+        accountId={accountId}
+        addressByChain={addressByChain}
+        isHardware={isHardware}
+        isActive={isActive}
+        title={title}
+        canEditAccount={canEdit}
+        cardBackgroundNft={cardBackgroundNft}
+        onClick={handleSwitchAccount}
+        onEdit={openEdit}
+      />
     );
   }
 
@@ -210,11 +209,6 @@ function AccountSelector({
     accountClassName,
     isQrScannerSupported && !noSettingsOrQrSupported && styles.accountTitleShort,
   );
-  const settingsButtonClassName = buildClassName(
-    styles.menuButton,
-    menuButtonClassName,
-    isQrScannerSupported && styles.menuButtonFirst,
-  );
 
   function renderCurrentAccount() {
     return (
@@ -227,30 +221,44 @@ function AccountSelector({
             <i className={buildClassName('icon icon-caret-down', styles.arrowIcon)} aria-hidden />
           </div>
         )}
-        {!noSettingsOrQrSupported && (
-          <Button
-            className={settingsButtonClassName}
-            isText
-            isSimple
-            kind="transparent"
-            ariaLabel={lang('Main menu')}
-            onClick={openSettings}
-          >
-            <i className="icon-cog" aria-hidden />
-          </Button>
-        )}
-        {isQrScannerSupported && (
-          <Button
-            className={buildClassName(styles.menuButton, menuButtonClassName)}
-            isText
-            isSimple
-            kind="transparent"
-            ariaLabel={lang('Scan QR Code')}
-            onClick={handleQrScanClick}
-          >
-            <i className="icon-qr-scanner" aria-hidden />
-          </Button>
-        )}
+        <div className={buildClassName(styles.menuButtons, isInsideSticky && styles.inStickyCard)}>
+          {isAppLockEnabled && !isInsideSticky && (
+            <Button
+              className={buildClassName(styles.menuButton, menuButtonClassName)}
+              isText
+              isSimple
+              kind="transparent"
+              ariaLabel={lang('App Lock')}
+              onClick={handleManualLock}
+            >
+              <i className="icon-manual-lock" aria-hidden />
+            </Button>
+          )}
+          {!noSettingsOrQrSupported && (
+            <Button
+              className={buildClassName(styles.menuButton, menuButtonClassName)}
+              isText
+              isSimple
+              kind="transparent"
+              ariaLabel={lang('Main menu')}
+              onClick={openSettings}
+            >
+              <i className="icon-cog" aria-hidden />
+            </Button>
+          )}
+          {isQrScannerSupported && (
+            <Button
+              className={buildClassName(styles.menuButton, menuButtonClassName)}
+              isText
+              isSimple
+              kind="transparent"
+              ariaLabel={lang('Scan QR Code')}
+              onClick={handleQrScanClick}
+            >
+              <i className="icon-qr-scanner" aria-hidden />
+            </Button>
+          )}
+        </div>
       </>
     );
   }
@@ -326,6 +334,8 @@ export default memo(withGlobal<OwnProps>(
       accounts,
       shouldForceAccountEdit: global.shouldForceAccountEdit,
       currentWalletVersion: global.walletVersions?.currentVersion,
+      isAppLockEnabled: global.settings.isAppLockEnabled,
+      settingsByAccountId: global.settings.byAccountId,
     };
   },
   (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

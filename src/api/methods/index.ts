@@ -17,7 +17,6 @@ export {
   deleteAllDapps,
   deactivateDapp,
   loadExploreSites,
-  loadDappOriginReplacements,
 } from './dapps';
 export {
   startSseConnection,
@@ -26,3 +25,4 @@ export * from './swap';
 export * from './other';
 export * from './prices';
 export * from './preload';
+export * from './notifications';

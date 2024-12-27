@@ -1,12 +1,21 @@
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import React, { memo } from '../../lib/teact/teact';
-import { getActions } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
 import type { ApiNetwork } from '../../api/types';
+import type { Account } from '../../global/types';
 
-import { IS_CAPACITOR } from '../../config';
+import {
+  APP_ENV,
+  APP_VERSION,
+  IS_CAPACITOR,
+  IS_EXTENSION,
+  IS_FIREFOX_EXTENSION,
+} from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { getBuildPlatform, getFlagsValue } from '../../util/getBuildPlatform';
+import { getPlatform } from '../../util/getPlatform';
 import { getLogs } from '../../util/logs';
 import { IS_IOS } from '../../util/windowEnvironment';
 import { callApi } from '../../api';
@@ -27,6 +36,11 @@ interface OwnProps {
   isCopyStorageEnabled?: boolean;
 }
 
+interface StateProps {
+  currentAccountId?: string;
+  accountsById?: Record<string, Account>;
+}
+
 const NETWORK_OPTIONS = [{
   value: 'mainnet',
   name: 'Mainnet',
@@ -36,8 +50,13 @@ const NETWORK_OPTIONS = [{
 }];
 
 function SettingsDeveloperOptions({
-  isOpen, onClose, isTestnet, isCopyStorageEnabled,
-}: OwnProps) {
+  isOpen,
+  onClose,
+  isTestnet,
+  isCopyStorageEnabled,
+  currentAccountId,
+  accountsById,
+}: OwnProps & StateProps) {
   const {
     startChangingNetwork,
     copyStorageData,
@@ -46,10 +65,6 @@ function SettingsDeveloperOptions({
   const currentNetwork = NETWORK_OPTIONS[isTestnet ? 1 : 0].value;
 
   const handleNetworkChange = useLastCallback((newNetwork: string) => {
-    if (currentNetwork === newNetwork) {
-      return;
-    }
-
     startChangingNetwork({ network: newNetwork as ApiNetwork });
     onClose();
   });
@@ -90,7 +105,13 @@ function SettingsDeveloperOptions({
         </>
       )}
 
-      <div className={buildClassName(styles.settingsBlock, styles.logBlock)} onClick={() => downloadLogs()}>
+      <div
+        className={buildClassName(styles.settingsBlock, styles.logBlock)}
+        onClick={() => downloadLogs({
+          currentAccountId,
+          accountsById,
+        })}
+      >
         <div className={buildClassName(styles.item, styles.item_small)}>
           {lang('Download Logs')}
         </div>
@@ -106,13 +127,41 @@ function SettingsDeveloperOptions({
   );
 }
 
-export default memo(SettingsDeveloperOptions);
+export default memo(withGlobal<OwnProps>((global): StateProps => {
+  const currentAccountId = global.currentAccountId;
 
-async function downloadLogs() {
+  const accountsById = global.accounts?.byId;
+
+  return {
+    currentAccountId,
+    accountsById,
+  };
+})(SettingsDeveloperOptions));
+
+async function downloadLogs({ currentAccountId, accountsById }: StateProps) {
+  const accountsInfo = accountsById && Object.keys(accountsById).reduce((acc, accountId) => {
+    const { addressByChain, isHardware } = accountsById[accountId];
+    acc[accountId] = {
+      addressByChain,
+      isHardware,
+    };
+    return acc;
+  }, {} as any);
+
   const workerLogs = await callApi('getLogs') || [];
   const uiLogs = getLogs();
   const logsString = JSON.stringify(
-    [...workerLogs, ...uiLogs].sort((a, b) => a.timestamp - b.timestamp),
+    [...workerLogs, ...uiLogs].sort((a, b) => a.timestamp - b.timestamp).concat({
+      environment: APP_ENV,
+      version: APP_VERSION,
+      platform: getPlatform(),
+      navigatorPlatform: navigator.platform,
+      userAgent: navigator.userAgent,
+      build: getBuildPlatform(),
+      flags: getFlagsValue(),
+      currentAccountId,
+      accountsInfo,
+    } as any),
     undefined,
     2,
   );
@@ -133,6 +182,8 @@ async function downloadLogs() {
     await Share.share({
       url: logFile.uri,
     });
+  } else if (IS_EXTENSION || IS_FIREFOX_EXTENSION) {
+    await callApi('downloadLogs', url, filename);
   } else if (navigator.share) {
     const file = new File([blob], filename, { type: blob.type });
 

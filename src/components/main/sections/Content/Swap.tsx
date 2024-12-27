@@ -218,7 +218,6 @@ function Swap({
         {renderErrorMessage()}
         {renderCurrency(activity, fromToken, toToken)}
       </div>
-      <i className={buildClassName(styles.iconArrow, 'icon-chevron-right')} aria-hidden />
     </Button>
   );
 }

@@ -7,7 +7,8 @@ Import From %1$d Secret Words: Importieren von %1$d Geheimwörtern
 More about MyTonWallet: Mehr über MyTonWallet
 Creating Wallet...: Wallet erstellen...
 On the count of three...: Auf drei zählen...
-Back Up: Back Up
+$back_up_auth: Back Up
+$back_up_security: Back Up
 Passwords must be equal.: Die Passwörter müssen gleich sein.
 To protect your wallet as much as possible, use a password with: Um Ihre Wallet so gut wie möglich zu schützen, verwenden Sie ein Passwort mit
 $auth_password_rule_8chars: mindestens 8 Zeichen
@@ -33,16 +34,25 @@ $auth_import_mnemonic_description: |
 Let’s make sure your secrets words are recorded correctly.: Stellen Sie sicher, dass Ihre geheimen Wörter korrekt aufgezeichnet sind.
 $mnemonic_check_words_list: Bitte geben Sie die Wörter **%1$s** unten ein.
 $mnemonic_check_error: Die eingegebenen geheimen Wörter stimmen nicht mit denen in der Liste überein. Bitte versuchen Sie es erneut.
-$mnemonic_list_description: |
-  Schreiben Sie diese Wörter in der
-  **richtigen Reihenfolge** auf und bewahren Sie
-  sie an einem **geheimen Ort** auf.
+$check_words_description: |
+  Jetzt überprüfen wir, ob Sie
+  Ihre geheimen Wörter korrekt geschrieben haben.
+$mnemonic_list_description: Schreiben Sie diese Wörter in der **richtigen Reihenfolge** auf und bewahren Sie sie an einem **sicheren Ort** auf.
+$private_key_description: Speichern Sie diesen privaten Schlüssel **korrekt** und bewahren Sie ihn an einem **sicheren Ort** auf.
 $mnemonic_warning: |
   **Senden** oder zeigen Sie es niemandem,
   **geben** Sie es nirgendwo ein.
+View Secret Words: Geheime Wörter anzeigen
+View TON Private Key: TON-Privatschlüssel anzeigen
+Can be imported to non-multichain wallets for TON.: Kann in nicht-multichain Wallets für TON importiert werden.
+Can be imported to any multichain wallet supporting TON.: Kann in jede Multichain-Wallet importiert werden, die TON unterstützt.
 Let's Check: Lass uns nachprüfen.
 Let's Check!: Lass uns nachprüfen!
 Safety Rules: Sicherheitsregeln
+$safety_rules_private_key_one: |
+  Auf dem nächsten Bildschirm sehen Sie den **TON-Privatschlüssel**. Speichern Sie ihn korrekt und **bewahren Sie ihn an einem sicheren Ort** auf.
+$safety_rules_private_key_two: Er ermöglicht es Ihnen, Ihre **Wallet zu öffnen**, wenn Sie Ihr Passwort oder den Zugriff auf dieses Gerät verlieren.
+$safety_rules_private_key_three: Wenn jemand anderes diesen privaten Schlüssel sieht, können Ihre Gelder **gestohlen werden**. **Senden oder zeigen Sie ihn niemandem**, auch nicht Entwicklern oder technischem Support.
 $safety_rules_one: |
   Auf dem nächsten Bildschirm sehen Sie die **geheimen Wörter**. Notieren Sie sie in der richtigen Reihenfolge und **bewahren Sie sie an einem sicheren Ort auf**.
 $safety_rules_two: Sie ermöglichen es, Ihre **wallet zu öffnen**, falls Sie Ihr Passwort vergessen oder den Zugang zu diesem Gerät verlieren.
@@ -163,7 +173,8 @@ $transaction_to: an %address%
 Wallet is not backed up: Die Wallet ist nicht gesichert.
 Testnet Version: Testnet Version
 Error reading clipboard: Fehler beim Lesen der Zwischenablage
-$fee_value: "Gebühr: %fee%"
+$fee_value: "Gebühr %fee%"
+$fee_value_with_colon: "Gebühr: %fee%"
 Pay fee with %stars_symbol%: "Bezahlen mit %stars_symbol%"
 Loading...: Laden...
 Recipient Address: Empfänger adresse
@@ -206,14 +217,15 @@ Appearance: Erscheinungsbild
 Light: Hell
 Dark: Dunkel
 System: System
-Stake TON: TON staken
+$stake_asset: "%symbol% staken"
 Earn from your tokens while holding them: Verdienen Sie mit Ihren Token, während Sie sie halten.
-$est_apy_val: Geschätzte jährliche Rendite (APY) %1$d%
 Why this is safe: Warum ist dies sicher
 Why is staking safe?: Warum ist das Staken sicher
 $safe_staking_description1: Das Staken erfolgt **vollständig dezentral** und wird von den **offiziellen TON Liquid Staking**-Smart Contracts betrieben.
 $safe_staking_description2: Der hinterlegte Einsatz wird für die Validierung des TON-Netzwerks als Teil seiner **Proof-of-Stake**-Essenz verwendet.
 $safe_staking_description3: Sie können Ihren Einsatz **jederzeit** abheben, und er wird innerhalb von **zwei Tagen** wieder auf Ihr Konto eingezahlt.
+$safe_staking_description_jetton1: Das Token-Staking ist **vollständig dezentralisiert** und wird von den **Open-Source**-Smart-Contracts betrieben, die von %jvault_link% entwickelt und einer **Sicherheitsprüfung** unterzogen wurden.
+$safe_staking_description_jetton2: Sie können Ihren Einsatz **jederzeit** abheben, und er wird **sofort** auf Ihr Konto zurückgebucht.
 $min_value: Mindestens %value%
 Est. balance in a year: Geschätztes Guthaben in einem Jahr
 Confirm Staking: Staking bestätigen
@@ -226,7 +238,7 @@ Currently Staked: Derzeit gestakt
 Unstake: Unstaken
 Earning History: Verdiensthistorie
 $total: "Gesamt: %value%"
-Unstake TON: TON unstaken
+$unstake_asset: "%symbol% unstaken"
 $unstake_information_with_time: |
   Ihre aktuelle Einzahlung wird vollständig in %time% an Ihre Wallet zurückgesendet.
   Dies wird Ihre Verdienste stoppen.
@@ -235,7 +247,8 @@ Confirm Unstaking: Unstaking bestätigen
 Request for unstaking is sent!: Die Anfrage zum unstaken wurde gesendet!
 $unstaking_when_receive: Sie erhalten Ihre unstaked Einzahlung in %time%.
 $unstake_insufficient_balance: Sie müssen %balance% auf Ihrem Hauptguthaben haben, um mit dem unstaken fortzufahren.
-at %apy_value%: bei %apy_value%
+at %annual_yield%: "bei %annual_yield%"
+Est. %annual_yield%: Geschätzte %annual_yield%
 Staked: Gestakt
 Unstake Requested: Unstaking angefordert
 Unstaked: Ungestakt
@@ -336,7 +349,7 @@ You sell: Sie verkaufen
 You buy: Sie kaufen
 Swap Details: Tauschdetails
 Blockchain fee: Blockchain-Gebühr
-Routing Fees: Weiterleitungsgebühren
+Aggregator Fee: Aggregator-Gebühr
 Included: Inklusive
 Price Impact: Preisauswirkung
 Minimum Received: Mindestbetrag erhalten
@@ -347,7 +360,6 @@ Invalid Pair: Ungültiges Paar
 We do not recommend to perform an exchange, try to specify a lower amount.: Wir empfehlen keine Durchführung des Austauschs. Versuchen Sie, einen niedrigeren Betrag anzugeben.
 $swap_minimum_received_tooltip1: Dies ist die geringste Menge an neuen Token, die Sie bei diesem Tausch erhalten, unter Berücksichtigung der aktuellen Marktkonditionen, der Schlupftoleranz und möglicher Preisauswirkungen
 $swap_minimum_received_tooltip2: Es handelt sich um ein erwartetes Minimum, aber wenn sich die Bedingungen während der Verarbeitung Ihres Tausches stark ändern, könnte der endgültige Betrag geringer ausfallen.
-$swap_routing_fees_tooltip: Sowohl die Gebühren der dezentralen Börse als auch die App-Gebühren (~0,875 %) sind bereits im angezeigten Preis enthalten und werden nicht zusätzlich berechnet.
 $swap_price_impact_tooltip1: Dies zeigt, wie sehr Ihr Handel den Preis des Tokens ändern könnte.
 $swap_price_impact_tooltip2: Große Trades können den Preis stärker nach oben oder unten bewegen. In der Regel ist ein niedrigerer Wert besser.
 $swap_slippage_tooltip1: Dies legt fest, wie viel sich der Preis ändern darf, bevor Ihr Tausch verarbeitet wird.
@@ -421,7 +433,7 @@ Please note that it may take up to a few hours for tokens to appear in your wall
 Minimum amount: Mindestens %value%
 Maximum amount: Höchstens %value%
 Display Tray Icon: Tray-Symbol anzeigen
-Enable Auto-Updates: Automatische Aktualisierungen aktivieren
+Auto-Updates: Automatische Aktualisierungen
 Biometric Authentication: Biometrische Authentifizierung
 If you turn off biometric protection, you will need to create a password.: Wenn Sie den biometrischen Schutz ausschalten, müssen Sie ein Passwort erstellen.
 Enter your current password: Geben Sie Ihr aktuelles Passwort ein
@@ -452,8 +464,6 @@ Permission denied. Please grant camera permission to use the QR code scanner.: B
 Unsupported QR code format: Nicht unterstütztes QR-Code-Format
 An error on the server side. Please try again.: Ein Fehler auf der Serverseite. Bitte versuchen Sie es erneut.
 Unrecognized QR Code: Nicht erkannter QR-Code
-$fee_value_almost_equal: Gebühr ≈ %fee%
-$fee_value_less: "Gebühr < %fee%"
 Address was saved!: Adresse wurde gespeichert!
 US Dollar: US-Dollar
 Euro: Euro
@@ -495,6 +505,7 @@ Incorrect code, please try again.: Falscher Code, bitte versuchen Sie es erneut.
 Correct: Korrekt
 Confirm Action: Aktion bestätigen
 Confirm Swap: Swap bestätigen
+Confirm Rewards Claim: Belohnungsanspruch bestätigen
 "%amount% to %address%": "%amount% zu %address%"
 "%amount_from% to %amount_to%": "%amount_from% zu %amount_to%"
 Failed to enable biometrics.: Fehler beim Aktivieren der Biometrie.
@@ -525,6 +536,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: Sie können auch %action%.
 $wallet_switch_version_2: zu einer anderen Wallet-Version wechseln
 or import from: oder importieren von
+Insufficient fee: "Unzureichende Gebühren"
 $insufficient_fee: "Unzureichende Gebühren: %fee%"
 Required: Erforderlich
 Comment is too long.: Der Kommentar ist zu lang.
@@ -537,7 +549,7 @@ No internet connection. Please check your connection and try again.: Keine Inter
 To use this feature, first enable Face ID in your phone settings.: Um diese Funktion zu nutzen, aktivieren Sie zunächst Face ID in Ihren Telefoneinstellungen.
 To use this feature, first enable biometrics in your phone settings.: Um diese Funktion zu nutzen, aktivieren Sie zunächst die Biometrie in Ihren Telefoneinstellungen.
 Open Settings: Einstellungen öffnen
-You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Sie sind dabei, einen wichtigen Service-Token zu übertragen, der benötigt wird, um Ihre Einzahlung vom Einsatz abzuheben.
+$service_token_transfer_warning: Sie sind dabei, ein wichtiges Service-Token zu übertragen, das erforderlich ist, um Ihre Einzahlung abzuheben oder Servicevorgänge abzuschließen. Bitte stellen Sie sicher, dass dies die beabsichtigte Aktion ist.
 No Price: Kein preis
 $ledger_not_supported_operation: Diese Operation wird von Ihrer Version der Ledger TON App nicht unterstützt. Bitte aktualisieren Sie sie mit Ledger Live.
 $ledger_unsupported_ton_connect: TonConnect wird nicht durch die Version Ihrer Ledger Ton App unterstützt. Bitte aktualisieren Sie es mit Ledger Live.
@@ -658,6 +670,7 @@ $hardware_blind_sign_not_enabled: |
   Ein externer Dienst fordert Zugriff auf Ihre Wallet an – dies kann zum Verlust von Mitteln führen. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
 
   Um fortzufahren, aktivieren Sie die Option „Blindsignatur“ in den Einstellungen der TON App auf dem Ledger.
+$hardware_blind_sign_not_enabled_internal: Um fortzufahren, aktivieren Sie die Option „Blindsignatur“ in den Einstellungen der TON App auf dem Ledger.
 Switch to W5: Zu W5 wechseln
 Not Scam: Kein Betrug
 Untitled: Unbenannt
@@ -673,16 +686,39 @@ NFT Menu: NFT-Menü
 Connection Type: Verbindungstyp
 Ledger is not supported on this device: Ledger wird auf diesem Gerät nicht unterstützt
 Connect your Ledger: Verbinden Sie Ihr Ledger
-App will not be locked.: App wird nicht gesperrt.
-App will be automatically locked after 30 seconds of inactivity.: Die App wird nach 30 Sekunden Inaktivität automatisch gesperrt.
-App will be automatically locked after 3 minutes of inactivity.: Die App wird nach 3 Minuten Inaktivität automatisch gesperrt.
-App will be automatically locked after 30 minutes of inactivity.: Die App wird nach 30 Minuten Inaktivität automatisch gesperrt.
-Auto-Lock: Automatische Sperre
-Never: Niemals
+$app_lock_description: Wenn die App-Sperre aktiviert ist, erscheint auf der Hauptseite ein Schlosssymbol auf der Karte. Verwenden Sie es, um MyTonWallet zu sperren.
+App Lock: App-Sperre
+Auto-Lock: Auto-Sperre
+Disabled: Deaktiviert
 30 seconds: 30 Sekunden
 3 minutes: 3 Minuten
-30 minutes: 30 Minuten
+10 minutes: 10 Minuten
+If away for 30 sec: Nach 30 Sek. abwesend
+If away for 3 min: Nach 3 Min. abwesend
+If away for 10 min: Nach 10 Min. abwesend
 Unlock: Entsperren
 This address mimics another address that you previously interacted with.: Diese Adresse imitiert eine andere Adresse, mit der Sie zuvor interagiert haben.
 Biometric authentication failed: Biometrische Authentifizierung fehlgeschlagen
 Reset biometrics in security settings, or use a passcode.: Setzen Sie die Biometrie in den Sicherheitseinstellungen zurück oder verwenden Sie einen Zugangscode.
+Best Rate: Bester Kurs
+via %dex_name%: über %dex_name%
+$swap_dex_chooser_rate_title: Analysierte tatsächliche Kurse auf **DeDust** und **STON.fi**, um den **besten Kurs** zu verwenden.
+You will receive %amount% **more**.: Sie erhalten %amount% **mehr**.
+You will spend %amount% **less**.: Sie werden %amount% **weniger** ausgeben.
+Best: Beste
+Use Best Rate: Beste Rate nutzen
+Switch to %dex_name%: Zu %dex_name% wechseln
+Built-in Dex Aggregator: Integrierter Dex-Aggregator
+Add tokens: Token hinzufügen
+No tokens yet: Noch keine Token
+$no_tokens_description: Erhalten Sie Token von einer anderen Wallet oder aktivieren Sie einfach bevorzugte Token in den Einstellungen zur Überwachung.
+Exchange Rate: Wechselkurs
+Install Card: Karte installieren
+Reset Card: Karte zurücksetzen
+Apply Palette: Palette anwenden
+Reset Palette: Palette zurücksetzen
+Notifications & Sounds: Benachrichtigungen & Töne
+Push Notifications: Push-Benachrichtigungen
+Select up to %count% wallets for notifications: Wählen Sie bis zu %count% Wallets für Benachrichtigungen aus
+$swap_aggregator_fee_tooltip: Ein integrierter **DEX-Aggregator** findet den **besten Kurs** über verfügbare DEXs. Die Servicegebühr beträgt %percent%.
+Accumulated Rewards: Akkumulierte Belohnungen

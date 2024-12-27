@@ -1,9 +1,7 @@
 import type {
-  ApiBackendStakingState,
   ApiBalanceBySlug,
   ApiNetwork,
   ApiNftUpdate,
-  ApiStakingCommonData,
   ApiStakingState,
   ApiTransactionActivity,
   ApiTxTimestamps,
@@ -34,7 +32,8 @@ import { hexToBytes } from '../../common/utils';
 import { FIRST_TRANSACTIONS_LIMIT, SEC } from '../../constants';
 import { AbortOperationError } from '../../errors';
 import { getAccountNfts, getNftUpdates } from './nfts';
-import { getBackendStakingState, getStakingState } from './staking';
+import { updateTokenHashes } from './priceless';
+import { getBackendStakingState, getStakingStates } from './staking';
 import { swapReplaceTransactionsByRanges } from './swap';
 import { getAccountTokenBalances } from './tokens';
 import { fetchTokenTransactionSlice, fixTokenActivitiesAddressForm, waitUntilTransactionAppears } from './transactions';
@@ -137,6 +136,7 @@ async function setupBalanceBasedPolling(
 
       const tokens = tokenBalances.filter(Boolean).map(({ token }) => token);
       await addTokens(tokens, onUpdate);
+      await updateTokenHashes(network, tokens, onUpdate);
 
       tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
         newBalances[slug] = tokenBalance;
@@ -233,32 +233,26 @@ async function setupStakingPolling(accountId: string, onUpdate: OnApiUpdate) {
     return;
   }
 
-  let lastState: {
-    stakingCommonData: ApiStakingCommonData;
-    backendStakingState: ApiBackendStakingState;
-    stakingState: ApiStakingState;
-  } | undefined;
+  let lastStates: ApiStakingState[] | undefined;
 
   while (isAlive(onUpdate, accountId)) {
     try {
-      const stakingCommonData = getStakingCommonCache();
-      const backendStakingState = await getBackendStakingState(accountId);
-      const stakingState = await getStakingState(accountId, backendStakingState);
+      const common = getStakingCommonCache();
+      const backendState = await getBackendStakingState(accountId);
+      const { shouldUseNominators, totalProfit } = backendState;
+      const states = await getStakingStates(accountId, common, backendState);
 
       if (!isAlive(onUpdate, accountId)) return;
 
-      const state = {
-        stakingCommonData,
-        backendStakingState,
-        stakingState,
-      };
-
-      if (!areDeepEqual(state, lastState)) {
-        lastState = state;
+      if (!areDeepEqual(states, lastStates)) {
+        lastStates = states;
         onUpdate({
           type: 'updateStaking',
           accountId,
-          ...state,
+          states,
+          common,
+          totalProfit,
+          shouldUseNominators,
         });
       }
     } catch (err) {
@@ -491,6 +485,7 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
 
     const tokens = tokenBalances.filter(Boolean).map(({ token }) => token);
     await addTokens(tokens, onUpdate);
+    await updateTokenHashes(account.network, tokens, onUpdate);
 
     tokenBalances.forEach(({ slug, balance: tokenBalance }) => {
       newBalances[slug] = tokenBalance;

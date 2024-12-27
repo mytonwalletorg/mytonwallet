@@ -14,16 +14,18 @@ import {
   CHANGELLY_AML_KYC,
   CHANGELLY_PRIVACY_POLICY,
   CHANGELLY_TERMS_OF_USE,
+  DEFAULT_OUR_SWAP_FEE,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   TONCOIN,
 } from '../../config';
+import { Big } from '../../lib/big.js';
 import { selectCurrentAccount, selectIsMultichainAccount, selectSwapTokens } from '../../global/selectors';
+import { bigintDivideToNumber, bigintMax } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { findChainConfig, getChainConfig } from '../../util/chain';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
-import getSwapRate from '../../util/swap/getSwapRate';
 import { getIsNativeToken } from '../../util/tokens';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -37,10 +39,12 @@ import useSyncEffect from '../../hooks/useSyncEffect';
 import useThrottledCallback from '../../hooks/useThrottledCallback';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
 import RichNumberInput from '../ui/RichNumberInput';
 import Transition from '../ui/Transition';
 import SwapSelectToken from './components/SwapSelectToken';
 import SwapSubmitButton from './components/SwapSubmitButton';
+import SwapDexChooser from './SwapDexChooser';
 import SwapSettingsModal, { MAX_PRICE_IMPACT_VALUE } from './SwapSettingsModal';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -71,8 +75,8 @@ function SwapInitial({
     errorType,
     isEstimating,
     shouldEstimate,
-    networkFee = 0,
-    realNetworkFee = 0,
+    networkFee = '0',
+    realNetworkFee = '0',
     priceImpact = 0,
     inputSource,
     swapType,
@@ -81,7 +85,8 @@ function SwapInitial({
     pairs,
     isSettingsModalOpen,
     dieselStatus,
-    swapFee,
+    ourFeePercent = DEFAULT_OUR_SWAP_FEE,
+    dieselFee,
   },
   accountId,
   addressByChain,
@@ -93,6 +98,7 @@ function SwapInitial({
   const {
     setDefaultSwapParams,
     setSwapAmountIn,
+    setSwapIsMaxAmount,
     setSwapAmountOut,
     switchSwapTokens,
     estimateSwap,
@@ -138,22 +144,23 @@ function SwapInitial({
     () => tokens?.find((token) => token.slug === nativeTokenInSlug),
     [nativeTokenInSlug, tokens],
   );
+  const nativeBalance = nativeUserTokenIn?.amount ?? 0n;
   const isNativeIn = currentTokenInSlug && currentTokenInSlug === nativeTokenInSlug;
   const chainConfigIn = nativeUserTokenIn ? getChainConfig(nativeUserTokenIn.chain as ApiChain) : undefined;
   const isTonIn = tokenIn?.chain === 'ton';
-  const visibleNetworkFee = isTonIn ? realNetworkFee : networkFee;
 
   const amountInBigint = amountIn && tokenIn ? fromDecimal(amountIn, tokenIn.decimals) : 0n;
   const amountOutBigint = amountOut && tokenOut ? fromDecimal(amountOut, tokenOut.decimals) : 0n;
   const balanceIn = tokenIn?.amount ?? 0n;
-  const networkFeeBigint = useMemo(() => {
+
+  const networkFeeBigint = (() => {
     let value = 0n;
 
     if (!chainConfigIn) {
       return value;
     }
 
-    if (networkFee > 0) {
+    if (Number(networkFee) > 0) {
       value = fromDecimal(networkFee, nativeUserTokenIn?.decimals);
     } else if (swapType === SwapType.OnChain) {
       value = chainConfigIn?.gas.maxSwap ?? 0n;
@@ -162,16 +169,46 @@ function SwapInitial({
     }
 
     return value;
-  }, [networkFee, nativeUserTokenIn, chainConfigIn, swapType, tokenInSlug]);
+  })();
+
+  const dieselFeeBigint = dieselFee && tokenIn ? fromDecimal(dieselFee, tokenIn.decimals) : 0n;
+
+  const maxAmount = (() => {
+    let value = balanceIn;
+
+    if (isNativeIn) {
+      value -= networkFeeBigint;
+    }
+
+    if (swapType === SwapType.OnChain) {
+      if (ourFeePercent) {
+        value = bigintDivideToNumber(value, 1 + (ourFeePercent / 100));
+      }
+
+      if (dieselFeeBigint) {
+        value -= dieselFeeBigint;
+      }
+    }
+
+    return bigintMax(value, 0n);
+  })();
+
   const totalNativeAmount = networkFeeBigint + (isNativeIn ? amountInBigint : 0n);
-  const isEnoughNative = nativeUserTokenIn && nativeUserTokenIn.amount >= totalNativeAmount;
+  const isEnoughNative = nativeBalance >= totalNativeAmount;
   const amountOutValue = amountInBigint <= 0n && inputSource === SwapInputSource.In
     ? ''
     : amountOut?.toString();
 
+  const dieselRealFee = useMemo(() => {
+    if (!dieselFee || !realNetworkFee) return 0;
+
+    const nativeDeficit = toDecimal(totalNativeAmount - nativeBalance);
+    return Big(dieselFee!).div(nativeDeficit).mul(realNetworkFee ?? 0).toNumber();
+  }, [dieselFee, totalNativeAmount, nativeBalance, realNetworkFee]);
+
   const isErrorExist = errorType !== undefined;
 
-  const isDieselSwap = Boolean(swapType === SwapType.OnChain
+  const isGaslessSwap = Boolean(swapType === SwapType.OnChain
     && !isEnoughNative
     && tokenIn?.tokenAddress
     && dieselStatus
@@ -206,7 +243,12 @@ function SwapInitial({
       estimateSwapCex({ shouldBlock });
       return;
     }
-    estimateSwap({ shouldBlock, isEnoughToncoin: isEnoughNative });
+
+    estimateSwap({
+      shouldBlock,
+      isEnoughToncoin: isEnoughNative,
+      toncoinBalance: nativeBalance,
+    });
   });
 
   const throttledEstimateSwap = useThrottledCallback(
@@ -289,16 +331,17 @@ function SwapInitial({
       return;
     }
 
-    const hasError = fromDecimal(amount, tokenIn.decimals) > balanceIn;
+    const hasError = fromDecimal(amount, tokenIn.decimals) > maxAmount;
     setHasAmountInError(hasError);
   });
 
   useEffect(() => {
     validateAmountIn(amountIn);
-  }, [amountIn, tokenIn, validateAmountIn, swapType]);
+  }, [amountIn, tokenIn, validateAmountIn, swapType, maxAmount]);
 
   const handleAmountInChange = useLastCallback(
     (amount: string | undefined, noReset = false) => {
+      setSwapIsMaxAmount({ isMaxAmount: false });
       if (!noReset) {
         setHasAmountInError(false);
       }
@@ -315,27 +358,21 @@ function SwapInitial({
 
   const handleAmountOutChange = useLastCallback(
     (amount: string | undefined) => {
+      setSwapIsMaxAmount({ isMaxAmount: false });
       debounceSetAmountOut({ amount });
     },
   );
 
-  const handleMaxAmountClick = useLastCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      e.preventDefault();
+  const handleMaxAmountClick = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
 
-      vibrate();
+    void vibrate();
 
-      let maxAmount = balanceIn;
-
-      if (isNativeIn) {
-        maxAmount -= networkFeeBigint;
-      }
-
-      const amount = toDecimal(maxAmount, tokenIn!.decimals);
-      validateAmountIn(amount);
-      setSwapAmountIn({ amount });
-    },
-  );
+    const amount = toDecimal(maxAmount, tokenIn!.decimals);
+    validateAmountIn(amount);
+    setSwapIsMaxAmount({ isMaxAmount: true });
+    setSwapAmountIn({ amount });
+  };
 
   const handleSubmit = useLastCallback((e) => {
     e.preventDefault();
@@ -344,7 +381,7 @@ function SwapInitial({
       return;
     }
 
-    if (isDieselSwap && dieselStatus === 'not-authorized') {
+    if (isGaslessSwap && dieselStatus === 'not-authorized') {
       authorizeDiesel();
       return;
     }
@@ -403,7 +440,7 @@ function SwapInitial({
                     onClick={handleMaxAmountClick}
                     className={styles.balanceLink}
                   >
-                    {formatCurrency(toDecimal(tokenIn!.amount, tokenIn?.decimals), tokenIn!.symbol)}
+                    {formatCurrency(toDecimal(maxAmount, tokenIn?.decimals), tokenIn!.symbol)}
                   </div>
                 ),
               })}
@@ -411,32 +448,6 @@ function SwapInitial({
           </div>
         )}
       </Transition>
-    );
-  }
-
-  function renderPrice() {
-    const isPriceVisible = Boolean(amountIn && amountOut);
-    const shouldBeRendered = isPriceVisible && !isEstimating;
-
-    if (!shouldBeRendered) return undefined;
-
-    const rate = getSwapRate(
-      amountIn ? String(amountIn) : undefined,
-      amountOut ? String(amountOut) : undefined,
-      tokenIn,
-      tokenOut,
-      true,
-    );
-
-    if (!rate) return undefined;
-
-    return (
-      <span className={styles.tokenPrice}>
-        {rate.firstCurrencySymbol}{' ≈ '}
-        <span className={styles.tokenPriceBold}>
-          {rate.price}{' '}{rate.secondCurrencySymbol}
-        </span>
-      </span>
     );
   }
 
@@ -506,77 +517,6 @@ function SwapInitial({
     );
   }
 
-  function renderFee() {
-    const isFeeEqualZero = realNetworkFee === 0;
-
-    let feeBlock: React.JSX.Element | undefined;
-    const shouldRenderDieselSwapFee = Boolean(
-      swapType === SwapType.OnChain
-      && isDieselSwap
-      && !isLoading
-      && swapFee
-      && tokenIn
-      && tokenIn.slug !== TONCOIN.slug,
-    );
-
-    if (shouldRenderDieselSwapFee) {
-      feeBlock = (
-        <span className={styles.feeText}>
-          {lang('$fee_value', { fee: formatCurrency(swapFee!, tokenIn!.symbol, undefined, true) })}
-        </span>
-      );
-    } else if (nativeUserTokenIn) {
-      if (!isEnoughNative && isTonIn && !isFeeEqualZero) {
-        feeBlock = (
-          <span className={styles.feeText}>{lang('$fee_value_less', {
-            fee: formatCurrency(
-              toDecimal(networkFeeBigint, nativeUserTokenIn.decimals),
-              nativeUserTokenIn.symbol,
-              undefined,
-              true,
-            ),
-          })}
-          </span>
-        );
-      } else {
-        feeBlock = (
-          <span className={styles.feeText}>{lang(isFeeEqualZero ? '$fee_value' : '$fee_value_almost_equal', {
-            fee: formatCurrency(visibleNetworkFee, nativeUserTokenIn.symbol, undefined, true),
-          })}
-          </span>
-        );
-      }
-    }
-
-    const priceBlock = renderPrice();
-    const activeKey = (isFeeEqualZero ? 0 : 1) + (priceBlock ? 2 : 3);
-
-    return (
-      <Transition
-        name="fade"
-        activeKey={activeKey}
-        className={styles.feeWrapper}
-      >
-        <div
-          className={buildClassName(
-            styles.feeContent,
-            !isCrosschain && styles.feeContentClickable,
-          )}
-          onClick={isCrosschain ? undefined : openSettingsModal}
-        >
-          {priceBlock}
-          {feeBlock}
-
-          {
-            isCrosschain
-              ? undefined
-              : <i className={buildClassName(styles.feeIcon, 'icon-params')} aria-hidden />
-          }
-        </div>
-      </Transition>
-    );
-  }
-
   return (
     <>
       <form className={isStatic ? undefined : modalStyles.transitionContent} onSubmit={handleSubmit}>
@@ -626,36 +566,48 @@ function SwapInitial({
             </RichNumberInput>
           </div>
         </div>
+        {!isCrosschain && <SwapDexChooser tokenIn={tokenIn} tokenOut={tokenOut} isStatic={isStatic} />}
 
         <div className={buildClassName(styles.footerBlock, isStatic && styles.footerBlockStatic)}>
-          {renderFee()}
-
           {renderPriceImpactWarning()}
           {renderChangellyInfo()}
 
-          <SwapSubmitButton
-            tokenIn={tokenIn}
-            tokenOut={tokenOut}
-            amountIn={amountIn}
-            amountOut={amountOut}
-            swapType={swapType}
-            isEstimating={isEstimating}
-            isNotEnoughNative={!isEnoughNative}
-            nativeToken={nativeUserTokenIn}
-            dieselStatus={dieselStatus}
-            isSending={isLoading}
-            isPriceImpactError={isPriceImpactError}
-            canSubmit={canSubmit}
-            errorType={errorType}
-            limits={limits}
-          />
+          <div className={styles.footerButtonsContainer}>
+            <Button
+              isText
+              isSimple
+              className={styles.detailsButton}
+              // eslint-disable-next-line react/jsx-no-bind
+              onClick={() => toggleSwapSettingsModal({ isOpen: true })}
+            >
+              {lang('Details')}
+            </Button>
+
+            <SwapSubmitButton
+              tokenIn={tokenIn}
+              tokenOut={tokenOut}
+              amountIn={amountIn}
+              amountOut={amountOut}
+              swapType={swapType}
+              isEstimating={isEstimating}
+              isNotEnoughNative={!isEnoughNative}
+              nativeToken={nativeUserTokenIn}
+              dieselStatus={dieselStatus}
+              isSending={isLoading}
+              isPriceImpactError={isPriceImpactError}
+              canSubmit={canSubmit}
+              errorType={errorType}
+              limits={limits}
+            />
+          </div>
+
         </div>
       </form>
       <SwapSettingsModal
         isOpen={Boolean(isSettingsModalOpen)}
-        tokenOut={tokenOut}
-        fee={realNetworkFee}
         onClose={closeSettingsModal}
+        isGaslessSwap={isGaslessSwap}
+        realNetworkFeeInDiesel={dieselRealFee}
       />
     </>
   );

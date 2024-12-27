@@ -9,6 +9,13 @@ export function hex2rgb(param: string): RGBColor {
   ];
 }
 
+export default function rgbToHex(rgb: [number, number, number]) {
+  return `#${rgb.map((x) => {
+    const hex = x.toString(16);
+    return hex.length === 1 ? `0${hex}` : hex;
+  }).join('')}`;
+}
+
 export function euclideanDistance(color1: RGBColor, color2: RGBColor): number {
   const r = 0.3 * ((color1[0] - color2[0]) ** 2);
   const g = 0.59 * ((color1[1] - color2[1]) ** 2);

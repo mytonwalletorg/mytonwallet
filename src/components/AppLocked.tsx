@@ -6,18 +6,22 @@ import { getActions, withGlobal } from '../global';
 
 import type { AutolockValueType, Theme } from '../global/types';
 
-import { AUTOLOCK_OPTIONS_LIST, DEBUG, IS_CAPACITOR } from '../config';
+import {
+  APP_NAME, AUTOLOCK_OPTIONS_LIST, DEBUG, IS_CAPACITOR,
+} from '../config';
 import { selectIsHardwareAccount } from '../global/selectors';
 import buildClassName from '../util/buildClassName';
 import { vibrateOnSuccess } from '../util/capacitor';
 import { createSignal } from '../util/signals';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../util/windowEnvironment';
+import stopEvent from '../util/stopEvent';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON } from '../util/windowEnvironment';
 import { callApi } from '../api';
 
 import useAppTheme from '../hooks/useAppTheme';
 import useBackgroundMode, { isBackgroundModeActive } from '../hooks/useBackgroundMode';
 import useEffectOnce from '../hooks/useEffectOnce';
 import useFlag from '../hooks/useFlag';
+import { useHotkeys } from '../hooks/useHotkeys';
 import useLang from '../hooks/useLang';
 import useLastCallback from '../hooks/useLastCallback';
 import useShowTransition from '../hooks/useShowTransition';
@@ -53,6 +57,9 @@ interface StateProps {
   autolockValue?: AutolockValueType;
   theme: Theme;
   isHardwareAccount?: boolean;
+  isManualLockActive?: boolean;
+  isAppLockEnabled?: boolean;
+  shouldHideBiometrics?: boolean;
 }
 
 const enum SLIDES {
@@ -67,15 +74,23 @@ export function reportAppLockActivityEvent() {
 }
 
 function AppLocked({
-  isNonNativeBiometricAuthEnabled, autolockValue = 'never', theme, isHardwareAccount,
+  isNonNativeBiometricAuthEnabled,
+  autolockValue = 'never',
+  theme,
+  isHardwareAccount,
+  isManualLockActive,
+  isAppLockEnabled,
+  shouldHideBiometrics,
 }: StateProps): TeactJsx {
-  const { setIsPinAccepted, clearIsPinAccepted, submitAppLockActivityEvent } = getActions();
+  const {
+    setIsPinAccepted, clearIsPinAccepted, submitAppLockActivityEvent, setIsManualLockActive,
+  } = getActions();
   const lang = useLang();
 
   const appTheme = useAppTheme(theme);
   const logoPath = appTheme === 'light' ? logoLightPath : logoDarkPath;
 
-  const [isLocked, lock, unlock] = useFlag(autolockValue !== 'never' && !isHardwareAccount);
+  const [isLocked, lock, unlock] = useFlag((autolockValue !== 'never' || isManualLockActive) && !isHardwareAccount);
   const [shouldRenderUi, showUi, hideUi] = useFlag(isLocked);
   const lastActivityTime = useRef(Date.now());
   const [slideForBiometricAuth, setSlideForBiometricAuth] = useState(
@@ -88,6 +103,7 @@ function AppLocked({
     setSlideForBiometricAuth(SLIDES.button);
     getInAppBrowser()?.show();
     clearIsPinAccepted();
+    setIsManualLockActive({ isActive: undefined, shouldHideBiometrics: undefined });
     if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.show();
   });
 
@@ -97,17 +113,21 @@ function AppLocked({
 
   const { transitionClassNames } = useShowTransition(isLocked, afterUnlockCallback, true, 'slow');
 
-  const handleLock = useLastCallback(() => {
-    if (autolockValue !== 'never' && !isHardwareAccount) {
-      lock();
-      showUi();
-      if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.hide();
-      getInAppBrowser()?.hide();
-    }
+  const forceLockApp = useLastCallback(() => {
+    lock();
+    showUi();
+    if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.hide();
+    getInAppBrowser()?.hide();
     setSlideForBiometricAuth(SLIDES.button);
   });
 
+  const handleLock = useLastCallback(() => {
+    if ((autolockValue !== 'never' || isManualLockActive) && !isHardwareAccount) forceLockApp();
+  });
+
   if (DEBUG) (window as any).lock = handleLock;
+
+  if (isManualLockActive && !isLocked && !shouldRenderUi) handleLock();
 
   const handleChangeSlideForBiometricAuth = useLastCallback(() => {
     setSlideForBiometricAuth(SLIDES.passwordForm);
@@ -158,16 +178,28 @@ function AppLocked({
     return getActivitySignal.subscribe(handleActivityThrottled);
   });
 
+  const handleLockScreenHotkey = useLastCallback((e: KeyboardEvent) => {
+    stopEvent(e);
+    setIsManualLockActive({ isActive: true, shouldHideBiometrics: true });
+  });
+
+  useHotkeys(useMemo(() => (isAppLockEnabled && !isLocked ? {
+    'Ctrl+Shift+L': handleLockScreenHotkey,
+    'Alt+Shift+L': handleLockScreenHotkey,
+    'Meta+Shift+L': handleLockScreenHotkey,
+    ...(IS_ELECTRON && { 'Mod+L': handleLockScreenHotkey }),
+  } : undefined), [isAppLockEnabled, isLocked]));
+
   useEffect(() => {
     if (IS_DELEGATED_BOTTOM_SHEET) return undefined;
 
     const interval = setInterval(() => {
-      if (!isLocked && Date.now() - lastActivityTime.current > autolockPeriod) {
+      if (isAppLockEnabled && !isLocked && Date.now() - lastActivityTime.current > autolockPeriod) {
         handleLock();
       }
     }, INTERVAL_CHECK_PERIOD);
     return () => clearInterval(interval);
-  }, [isLocked, autolockPeriod, handleLock]);
+  }, [isLocked, autolockPeriod, handleLock, isAppLockEnabled]);
 
   useBackgroundMode(undefined, handleChangeSlideForBiometricAuth);
 
@@ -188,7 +220,7 @@ function AppLocked({
           isNonNativeBiometricAuthEnabled && slideForBiometricAuth === SLIDES.button ? (
             <>
               {renderLogo()}
-              <span className={styles.title}>{lang('MyTonWallet')}</span>
+              <span className={buildClassName(styles.title, 'rounded-font')}>{APP_NAME}</span>
               <Button
                 isPrimary
                 className={!isActive ? styles.unlockButtonHidden : undefined}
@@ -199,7 +231,7 @@ function AppLocked({
             </>
           ) : (
             <PasswordForm
-              isActive
+              isActive={IS_CAPACITOR ? !shouldHideBiometrics : true}
               noAnimatedIcon
               forceBiometricsInMain
               error={passwordError}
@@ -212,7 +244,7 @@ function AppLocked({
               onUpdate={handlePasswordChange}
             >
               {renderLogo()}
-              <span className={styles.title}>{lang('MyTonWallet')}</span>
+              <span className={buildClassName(styles.title, 'rounded-font')}>{APP_NAME}</span>
             </PasswordForm>
           )
         }
@@ -238,7 +270,7 @@ function AppLocked({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { authConfig, autolockValue } = global.settings;
+  const { authConfig, autolockValue, isAppLockEnabled } = global.settings;
 
   const isHardwareAccount = selectIsHardwareAccount(global);
 
@@ -247,6 +279,12 @@ export default memo(withGlobal((global): StateProps => {
   const isNonNativeBiometricAuthEnabled = isBiometricAuthEnabled && !isNativeBiometricAuthEnabled;
 
   return {
-    isNonNativeBiometricAuthEnabled, autolockValue, theme: global.settings.theme, isHardwareAccount,
+    isNonNativeBiometricAuthEnabled,
+    autolockValue: isAppLockEnabled ? autolockValue : undefined,
+    isAppLockEnabled,
+    theme: global.settings.theme,
+    isHardwareAccount,
+    isManualLockActive: global.isManualLockActive,
+    shouldHideBiometrics: global.appLockHideBiometrics,
   };
 })(AppLocked));

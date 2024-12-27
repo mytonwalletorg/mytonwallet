@@ -114,8 +114,49 @@ export type ApiSubmitMultiTransferResult = {
   error: string;
 };
 
+export type ApiFetchEstimateDieselResult = {
+  status: DieselStatus;
+  /**
+   * The amount of diesel that will be sent together with the actual transfer. None of this will return back as the
+   * excess. Charged on top of the transferred amount. If the value is undefined, the diesel transfer is impossible
+   * (the reason is defined by the status). When defined, guaranteed to be > 0.
+   *
+   * Measured in the transferred token, but if `status` is "stars-fee", measured in stars (the stars' BigInt assumes
+   * the same number of decimal places as the transferred token).
+   */
+  tokenAmount?: bigint;
+  /**
+   * The native token amount covered by the diesel. Guaranteed to be > 0.
+   */
+  nativeAmount: bigint;
+  /**
+   * The remaining part of the fee (the first part is `nativeAmount`) that will be taken from the existing wallet
+   * balance. Guaranteed that this amount is available in the wallet. Measured in the native token.
+   */
+  remainingFee: bigint;
+  /**
+   * An approximate fee that will be actually spent. The difference between `nativeAmount+nativeRemainder` and this
+   * number is called "excess" and will be returned back to the wallet. Measured in the native token.
+   */
+  realFee: bigint;
+  /**
+   * Whether the diesel should be used even when it's not necessary.
+   */
+  shouldPrefer: boolean;
+};
+
 export type ApiCheckTransactionDraftResult = {
+  /**
+   * The full fee that will be appended to the transaction. Measured in the native token. It's charged on top of the
+   * transferred amount, unless it's a full-TON transfer.
+   */
   fee?: bigint;
+  /**
+   * An approximate fee that will be actually spent. The difference between `fee` and this number is called "excess" and
+   * will be returned back to the wallet. Measured in the native token. Undefined means that it can't be estimated.
+   * If the value is equal to `fee`, then it's known that there will be no excess.
+   */
+  realFee?: bigint;
   addressName?: string;
   isScam?: boolean;
   resolvedAddress?: string;
@@ -123,8 +164,13 @@ export type ApiCheckTransactionDraftResult = {
   isBounceable?: boolean;
   isMemoRequired?: boolean;
   error?: ApiAnyDisplayError;
-  dieselStatus?: DieselStatus;
-  dieselAmount?: bigint;
+  /**
+   * Describes a possibility to use diesel for this transfer. The UI should prefer diesel when this field is defined,
+   * and the diesel status is not "not-available". When the diesel is available, and the UI decides to use it, the `fee`
+   * and `realFee` fields should be ignored, because they don't consider an extra transfer of the diesel to the
+   * MTW wallet.
+   */
+  diesel?: ApiFetchEstimateDieselResult;
 };
 
 export type ApiSubmitTransferWithDieselResult = ApiSubmitMultiTransferResult & {
@@ -141,4 +187,5 @@ export type ApiSubmitTransferOptions = {
   stateInit?: Cell;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
+  forwardAmount?: bigint;
 };

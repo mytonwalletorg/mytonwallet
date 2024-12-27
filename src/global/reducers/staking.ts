@@ -1,3 +1,4 @@
+import type { ApiStakingState } from '../../api/types';
 import type { AccountState, GlobalState } from '../types';
 import { StakingState } from '../types';
 
@@ -5,41 +6,41 @@ import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 import { selectAccountState } from '../selectors';
 import { updateAccountState } from './misc';
 
-export function updateStaking(global: GlobalState, update: Partial<GlobalState['staking']>): GlobalState {
+export function updateCurrentStaking(global: GlobalState, update: Partial<GlobalState['currentStaking']>): GlobalState {
   return {
     ...global,
-    staking: {
-      ...global.staking,
+    currentStaking: {
+      ...global.currentStaking,
       ...update,
     },
   };
 }
 
-export function clearStaking(global: GlobalState) {
+export function clearCurrentStaking(global: GlobalState) {
   return {
     ...global,
-    staking: {
+    currentStaking: {
       state: StakingState.None,
     },
   };
 }
 
-export function updateAccountStakingState(
+export function updateAccountStaking(
   global: GlobalState,
   accountId: string,
-  state: NonNullable<AccountState['staking']>,
+  partial: Partial<NonNullable<AccountState['staking']>>,
   withDeepCompare = false,
 ): GlobalState {
-  const currentState = selectAccountState(global, accountId)?.staking;
+  const currentStaking = selectAccountState(global, accountId)?.staking;
 
-  if (withDeepCompare && currentState && isPartialDeepEqual(currentState, state)) {
+  if (withDeepCompare && currentStaking && isPartialDeepEqual(currentStaking, partial)) {
     return global;
   }
 
   return updateAccountState(global, accountId, {
     staking: {
-      ...currentState,
-      ...state,
+      ...currentStaking,
+      ...partial,
     },
   });
 }
@@ -67,5 +68,12 @@ export function updateStakingInfo(global: GlobalState, stakingInfo: GlobalState[
   return {
     ...global,
     stakingInfo,
+  };
+}
+
+export function updateStakingDefault(global: GlobalState, state: ApiStakingState) {
+  return {
+    ...global,
+    stakingDefault: state,
   };
 }

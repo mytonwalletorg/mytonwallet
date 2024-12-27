@@ -61,7 +61,7 @@ const CSP = `
   connect-src 'self' https: ${cspConnectSrcExtra};
   script-src 'self' 'wasm-unsafe-eval';
   style-src 'self' https://fonts.googleapis.com/;
-  img-src 'self' data: https:;
+  img-src 'self' data: https: blob:;
   media-src 'self' data:;
   object-src 'none';
   base-uri 'none';

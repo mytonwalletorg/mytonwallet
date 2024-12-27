@@ -1,5 +1,7 @@
 import type { OpenedContract } from '@ton/core';
-import { Address, Builder, Cell } from '@ton/core';
+import {
+  Address, beginCell, Builder, Cell, Dictionary,
+} from '@ton/core';
 import axios from 'axios';
 import { WalletContractV1R1 } from '@ton/ton/dist/wallets/WalletContractV1R1';
 import { WalletContractV1R2 } from '@ton/ton/dist/wallets/WalletContractV1R2';
@@ -22,10 +24,14 @@ import {
   TONHTTPAPI_TESTNET_URL,
 } from '../../../../config';
 import axiosFetchAdapter from '../../../../lib/axios-fetch-adapter';
+import { fromKeyValueArrays, mapValues } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
 import { DnsItem } from '../contracts/DnsItem';
 import { JettonMinter } from '../contracts/JettonMaster';
+import { JettonStakingOpCodes } from '../contracts/JettonStaking/imports/constants';
+import { StakeWallet } from '../contracts/JettonStaking/StakeWallet';
+import { StakingPool } from '../contracts/JettonStaking/StakingPool';
 import { JettonWallet } from '../contracts/JettonWallet';
 import { hexToBytes } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
@@ -134,6 +140,18 @@ export const getWalletPublicKey = withCacheAsync(async (network: ApiNetwork, add
     logDebugError('getWalletPublicKey', err);
     return undefined;
   }
+});
+
+export const getJettonPoolStakeWallet = withCacheAsync(async (
+  network: ApiNetwork,
+  poolAddress: string,
+  period: number,
+  address: string,
+): Promise<OpenedContract<StakeWallet>> => {
+  const tonClient = getTonClient(network);
+  const pool = tonClient.open(StakingPool.createFromAddress(Address.parse(poolAddress)));
+  const walletAddress = (await pool.getWalletAddress(Address.parse(address), period))!;
+  return tonClient.open(StakeWallet.createFromAddress(walletAddress));
 });
 
 export function getJettonMinterData(network: ApiNetwork, address: string) {
@@ -381,4 +399,50 @@ export async function getDnsItemDomain(network: ApiNetwork, address: Address | s
     : await contract.getDomain();
 
   return `${base}${zone}`;
+}
+
+export function buildJettonUnstakePayload(jettonsToUnstake: bigint, forceUnstake?: boolean, queryId?: bigint) {
+  return beginCell()
+    .storeUint(JettonStakingOpCodes.UNSTAKE_JETTONS, 32)
+    .storeUint(queryId ?? 0, 64)
+    .storeCoins(jettonsToUnstake)
+    .storeBit(forceUnstake ?? false)
+    .endCell();
+}
+
+export function buildJettonClaimPayload(poolWallets: string[], queryId?: bigint) {
+  const rewardsToClaim = Dictionary.empty(Dictionary.Keys.Address(), Dictionary.Values.Bool());
+
+  for (const poolWallet of poolWallets) {
+    rewardsToClaim.set(Address.parse(poolWallet), true);
+  }
+
+  return beginCell()
+    .storeUint(JettonStakingOpCodes.CLAIM_REWARDS, 32)
+    .storeUint(queryId ?? 0, 64)
+    .storeDict(rewardsToClaim, Dictionary.Keys.Address(), Dictionary.Values.Bool())
+    .endCell();
+}
+
+export function unpackDicts(obj: Record<string, any | Dictionary<any, any>>): AnyLiteral {
+  if (!isSimpleObject(obj)) {
+    return obj;
+  }
+
+  return mapValues(obj, (value) => {
+    if (value instanceof Dictionary) {
+      return unpackDicts(fromKeyValueArrays(value.keys(), value.values()));
+    }
+    if (isSimpleObject(value)) {
+      return unpackDicts(value);
+    }
+    return value;
+  });
+}
+
+function isSimpleObject(obj: any) {
+  // eslint-disable-next-line no-null/no-null
+  return obj !== null
+    && typeof obj === 'object'
+    && Object.getPrototypeOf(obj) === Object.prototype;
 }

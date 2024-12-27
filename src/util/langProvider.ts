@@ -8,7 +8,7 @@ import renderText from '../global/helpers/renderText';
 import defaultLangPackJson from '../i18n/en.json';
 import * as cacheApi from './cacheApi';
 import { createCallbackManager } from './callbacks';
-import { formatInteger } from './formatNumber';
+import { formatNumber } from './formatNumber';
 import { DEFAULT_LANG_CODE } from './windowEnvironment';
 
 const defaultLangPack: LangPack = defaultLangPackJson;
@@ -186,7 +186,7 @@ function processTranslation(
     return template;
   }
 
-  const formattedValue = format === 'i' ? formatInteger(value) : value;
+  const formattedValue = format === 'i' ? formatNumber(value) : value;
   const result = typeof value === 'object' && !Array.isArray(value)
     ? processTemplateJsx(template, formattedValue)
     : processTemplate(template, formattedValue);

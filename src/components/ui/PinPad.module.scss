@@ -5,7 +5,7 @@
   margin-top: auto;
   padding: 1.5rem 1rem 1rem;
 
-  background-color: var(--color-background-first);
+  background-color: var(--color-background-lock);
 
   @supports (padding-bottom: max(1rem, var(--safe-area-bottom))) {
     padding-bottom: max(1rem, var(--safe-area-bottom));

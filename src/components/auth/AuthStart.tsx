@@ -56,7 +56,7 @@ function AuthStart({ hasAccounts, isLoading, theme }: StateProps) {
         className={buildClassName(styles.logo, transitionClassNames)}
         onLoad={markLogoReady}
       />
-      <div className={styles.appName}>{APP_NAME}</div>
+      <div className={buildClassName(styles.appName, 'rounded-font')}>{APP_NAME}</div>
       <div className={styles.info}>
         {renderText(lang('$auth_intro'))}
       </div>
@@ -65,7 +65,7 @@ function AuthStart({ hasAccounts, isLoading, theme }: StateProps) {
         className={buildClassName(styles.btn, styles.btn_about)}
         onClick={openAbout}
       >
-        {lang('More about MyTonWallet')}
+        {lang(`More about ${APP_NAME}`)}
         <i className="icon-chevron-right" aria-hidden />
       </Button>
       <div className={styles.importButtonsBlock}>

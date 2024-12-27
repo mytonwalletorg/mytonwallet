@@ -27,10 +27,13 @@ const AuthCreateBackup = ({ isActive }: OwnProps) => {
   return (
     <div className={styles.wrapper}>
       <div className={buildClassName(styles.container, 'custom-scroll')}>
-        <Button isSimple isText onClick={resetAuth} className={styles.headerBack}>
-          <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
-          <span>{lang('Back')}</span>
-        </Button>
+        <div className={styles.header}>
+          <Button isSimple isText onClick={resetAuth} className={styles.headerBackBlock}>
+            <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
+            <span>{lang('Back')}</span>
+          </Button>
+          <span className={styles.headerTitle}> </span>
+        </div>
 
         <AnimatedIconWithPreview
           play={isActive}
@@ -52,7 +55,7 @@ const AuthCreateBackup = ({ isActive }: OwnProps) => {
             className={buildClassName(styles.btn, styles.btn_wide, !canSkipMnemonicCheck && styles.btn_single)}
             onClick={openAuthBackupWalletModal}
           >
-            {lang('Back Up')}
+            {lang('$back_up_auth')}
           </Button>
           {canSkipMnemonicCheck && (
             <Button

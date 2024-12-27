@@ -4,6 +4,7 @@ import buildClassName from '../../util/buildClassName';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import DropdownMenu from './DropdownMenu';
 import Loading from './Loading';
@@ -13,6 +14,7 @@ import styles from './Dropdown.module.scss';
 export interface DropdownItem {
   value: string;
   name: string;
+  selectedName?: string;
   description?: string;
   icon?: string;
   overlayIcon?: string;
@@ -27,7 +29,8 @@ interface OwnProps {
   selectedValue?: string;
   items: DropdownItem[];
   className?: string;
-  itemNameClassName?: string;
+  itemClassName?: string;
+  menuClassName?: string;
   theme?: 'light';
   arrow?: 'caret' | 'chevron';
   menuPosition?: 'top' | 'bottom';
@@ -46,7 +49,8 @@ function Dropdown({
   items,
   selectedValue,
   className,
-  itemNameClassName,
+  itemClassName,
+  menuClassName,
   theme,
   arrow = DEFAULT_ARROW,
   menuPosition,
@@ -59,9 +63,17 @@ function Dropdown({
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
 
-  const selectedItem = useMemo(() => {
-    return items.find((item) => selectedValue !== undefined && item.value === selectedValue);
+  const [selectedItem, selectedItemName] = useMemo(() => {
+    const item = items.find((i) => selectedValue !== undefined && i.value === selectedValue);
+    const selectedName = item?.selectedName ?? item?.name ?? '';
+    return [item, selectedName];
   }, [items, selectedValue]);
+
+  const handleSelect = useLastCallback((value: string) => {
+    if (value !== selectedValue) {
+      onChange?.(value);
+    }
+  });
 
   if (!items.length) {
     return undefined;
@@ -85,6 +97,8 @@ function Dropdown({
     styles.button,
     withMenu && styles.interactive,
     !isFullyInteractive && disabled && styles.disabled,
+    withMenu && menuClassName,
+    itemClassName,
   );
 
   return (
@@ -117,8 +131,8 @@ function Dropdown({
               aria-hidden
             />
           )}
-          <span className={buildClassName(styles.itemName, 'itemName', itemNameClassName)}>
-            {shouldTranslateOptions ? lang(selectedItem!.name) : selectedItem!.name}
+          <span className={buildClassName(styles.itemName, 'itemName', itemClassName)}>
+            {shouldTranslateOptions ? lang(selectedItemName) : selectedItemName}
           </span>
           {withMenu && <i className={buttonArrowIcon} aria-hidden />}
         </button>
@@ -132,8 +146,8 @@ function Dropdown({
           items={items}
           shouldTranslateOptions={shouldTranslateOptions}
           selectedValue={selectedValue}
-          itemNameClassName={itemNameClassName}
-          onSelect={onChange}
+          buttonClassName={itemClassName}
+          onSelect={handleSelect}
           onClose={closeMenu}
         />
       )}

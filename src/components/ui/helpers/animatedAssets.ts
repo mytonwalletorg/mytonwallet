@@ -46,8 +46,6 @@ import thumbUpPreview from '../../../assets/lottiePreview/duck_thumb.png';
 import holdTonPreview from '../../../assets/lottiePreview/duck_ton.png';
 import waitPreview from '../../../assets/lottiePreview/duck_wait.png';
 import yeeePreview from '../../../assets/lottiePreview/duck_yeee.png';
-import iconAddPreviewDark from '../../../assets/lottiePreview/icon_add_dark.svg';
-import iconAddPreviewLight from '../../../assets/lottiePreview/icon_add_light.svg';
 import iconClockPreviewDark from '../../../assets/lottiePreview/icon_clock_dark.svg';
 import iconClockPreviewDarkBlue from '../../../assets/lottiePreview/icon_clock_dark_blue.svg';
 import iconClockPreviewDarkGray from '../../../assets/lottiePreview/icon_clock_dark_gray.svg';
@@ -62,14 +60,6 @@ import iconClockPreviewLightGrayWhite from '../../../assets/lottiePreview/icon_c
 import iconClockPreviewLightGreen from '../../../assets/lottiePreview/icon_clock_light_green.svg';
 import iconClockPreviewLightPurple from '../../../assets/lottiePreview/icon_clock_light_purple.svg';
 import iconClockPreviewLightPurpleWhite from '../../../assets/lottiePreview/icon_clock_light_purple_white.svg';
-import iconEarnPreviewDark from '../../../assets/lottiePreview/icon_earn_dark.svg';
-import iconEarnPreviewDarkPurple from '../../../assets/lottiePreview/icon_earn_dark_purple.svg';
-import iconEarnPreviewLight from '../../../assets/lottiePreview/icon_earn_light.svg';
-import iconEarnPreviewLightPurple from '../../../assets/lottiePreview/icon_earn_light_purple.svg';
-import iconSendPreviewDark from '../../../assets/lottiePreview/icon_send_dark.svg';
-import iconSendPreviewLight from '../../../assets/lottiePreview/icon_send_light.svg';
-import iconSwapPreviewDark from '../../../assets/lottiePreview/icon_swap_dark.svg';
-import iconSwapPreviewLight from '../../../assets/lottiePreview/icon_swap_light.svg';
 
 export const ANIMATED_STICKERS_PATHS = {
   hello,
@@ -111,7 +101,6 @@ export const ANIMATED_STICKERS_PATHS = {
     iconSend: iconSendLight,
     iconSwap: iconSwapLight,
     preview: {
-      iconAdd: iconAddPreviewLight,
       iconClock: iconClockPreviewLight,
       iconClockBlue: iconClockPreviewLightBlue,
       iconClockGray: iconClockPreviewLightGray,
@@ -119,10 +108,6 @@ export const ANIMATED_STICKERS_PATHS = {
       iconClockGreen: iconClockPreviewLightGreen,
       iconClockPurple: iconClockPreviewLightPurple,
       iconClockPurpleWhite: iconClockPreviewLightPurpleWhite,
-      iconEarn: iconEarnPreviewLight,
-      iconEarnPurple: iconEarnPreviewLightPurple,
-      iconSend: iconSendPreviewLight,
-      iconSwap: iconSwapPreviewLight,
     },
   },
   dark: {
@@ -139,7 +124,6 @@ export const ANIMATED_STICKERS_PATHS = {
     iconSend: iconSendDark,
     iconSwap: iconSwapDark,
     preview: {
-      iconAdd: iconAddPreviewDark,
       iconClock: iconClockPreviewDark,
       iconClockBlue: iconClockPreviewDarkBlue,
       iconClockGray: iconClockPreviewDarkGray,
@@ -147,10 +131,6 @@ export const ANIMATED_STICKERS_PATHS = {
       iconClockGreen: iconClockPreviewDarkGreen,
       iconClockPurple: iconClockPreviewDarkPurple,
       iconClockPurpleWhite: iconClockPreviewDarkPurpleWhite,
-      iconEarn: iconEarnPreviewDark,
-      iconEarnPurple: iconEarnPreviewDarkPurple,
-      iconSend: iconSendPreviewDark,
-      iconSwap: iconSwapPreviewDark,
     },
   },
 };

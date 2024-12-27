@@ -471,17 +471,3 @@ addActionHandler('loadExploreSites', async (global) => {
   };
   setGlobal(global);
 });
-
-addActionHandler('loadDappOriginReplacements', async (global) => {
-  const replacements = await callApi('loadDappOriginReplacements') || {};
-  global = getGlobal();
-  if (areDeepEqual(replacements, global.dappOriginReplacements)) {
-    return;
-  }
-
-  global = {
-    ...global,
-    dappOriginReplacements: replacements,
-  };
-  setGlobal(global);
-});

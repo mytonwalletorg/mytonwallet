@@ -4,12 +4,7 @@ import type { ApiChain } from '../../../api/types';
 import type { LedgerTransport } from '../../../util/ledger/types';
 import type { GlobalState } from '../../types';
 import {
-  AppState,
-  AuthState,
-  HardwareConnectState,
-  SettingsState,
-  SwapState,
-  TransferState,
+  AppState, AuthState, HardwareConnectState, SettingsState, SwapState, TransferState,
 } from '../../types';
 
 import {
@@ -25,8 +20,16 @@ import {
   PRODUCTION_URL,
   TONCOIN,
 } from '../../../config';
+import {
+  ACCENT_BNW_INDEX,
+  ACCENT_GOLD_INDEX,
+  ACCENT_RADIOACTIVE_INDEX,
+  ACCENT_SILVER_INDEX,
+  extractAccentColorIndex,
+} from '../../../util/accentColor';
 import { vibrateOnSuccess } from '../../../util/capacitor';
 import { isTonDeeplink, parseTonDeeplink, processDeeplink } from '../../../util/deeplink';
+import { getCachedImageUrl } from '../../../util/getCachedImageUrl';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { isValidAddressOrDomain } from '../../../util/isValidAddressOrDomain';
 import { omitUndefined, pick } from '../../../util/iteratees';
@@ -34,6 +37,7 @@ import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { openUrl } from '../../../util/openUrl';
+import { preloadImage } from '../../../util/preloadImage';
 import { pause } from '../../../util/schedulers';
 import {
   IS_ANDROID_APP,
@@ -67,8 +71,10 @@ import {
   selectFirstNonHardwareAccount,
   selectIsMultichainAccount,
 } from '../../selectors';
+import { switchAccount } from '../api/auth';
 
 import { reportAppLockActivityEvent } from '../../../components/AppLocked';
+import { getCardNftImageUrl } from '../../../components/main/sections/Card/helpers/getCardNftImageUrl';
 
 const OPEN_LEDGER_TAB_DELAY = 500;
 const APP_VERSION_URL = IS_ANDROID_APP ? `${IS_PRODUCTION ? PRODUCTION_URL : BETA_URL}/version.txt` : 'version.txt';
@@ -80,6 +86,26 @@ addActionHandler('showActivityInfo', (global, actions, { id }) => {
   }
 
   return updateCurrentAccountState(global, { currentActivityId: id });
+});
+
+addActionHandler('showAnyAccountTx', async (global, actions, { txId, accountId, network }) => {
+  if (accountId === global.currentAccountId) {
+    actions.showActivityInfo({ id: txId });
+    return;
+  }
+
+  await switchAccount(global, accountId, network);
+  actions.showActivityInfo({ id: txId });
+});
+
+addActionHandler('showAnyAccountTokenActivity', async (global, actions, { slug, accountId, network }) => {
+  if (accountId === global.currentAccountId) {
+    actions.showTokenActivity({ slug });
+    return;
+  }
+
+  await switchAccount(global, accountId, network);
+  actions.showTokenActivity({ slug });
 });
 
 addActionHandler('closeActivityInfo', (global, actions, { id }) => {
@@ -177,9 +203,10 @@ addActionHandler('addAccount2', (global, actions, { method, password }) => {
     ? isMnemonicImport
       ? AuthState.importWallet
       : undefined
-    : (IS_CAPACITOR
-      ? AuthState.createPin
-      : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword)
+    : (
+      IS_CAPACITOR
+        ? AuthState.createPin
+        : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword)
     );
 
   if (isMnemonicImport || !firstNonHardwareAccount) {
@@ -200,7 +227,10 @@ addActionHandler('addAccount2', (global, actions, { method, password }) => {
 
 addActionHandler('renameAccount', (global, actions, { accountId, title }) => {
   global = { ...global, shouldForceAccountEdit: false };
-  return renameAccount(global, accountId, title);
+
+  setGlobal(renameAccount(global, accountId, title));
+
+  actions.renameNotificationAccount({ accountId });
 });
 
 addActionHandler('clearAccountError', (global) => {
@@ -566,9 +596,7 @@ addActionHandler('handleQrCode', (global, actions, { data }) => {
     if (chainFromAddress) {
       const { tokenSlug } = currentTransfer;
 
-      const token = tokenSlug
-        ? selectCurrentAccountTokens(global)?.find(({ slug }) => slug === tokenSlug)
-        : undefined;
+      const token = selectCurrentAccountTokens(global)?.find(({ slug }) => slug === tokenSlug);
 
       const newTokenSlug = (!token || token.chain !== chainFromAddress)
         ? CHAIN_CONFIG[chainFromAddress].nativeToken.slug
@@ -627,17 +655,17 @@ addActionHandler('clearIsPinAccepted', (global) => {
   return clearIsPinAccepted(global);
 });
 
-addActionHandler('openOnRampWidgetModal', (global) => {
+addActionHandler('openOnRampWidgetModal', (global, actions, { chain }) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('openOnRampWidgetModal');
+    callActionInMain('openOnRampWidgetModal', { chain });
     return;
   }
 
-  setGlobal({ ...global, isOnRampWidgetModalOpen: true });
+  setGlobal({ ...global, chainForOnRampWidgetModal: chain });
 });
 
 addActionHandler('closeOnRampWidgetModal', (global) => {
-  setGlobal({ ...global, isOnRampWidgetModalOpen: undefined });
+  setGlobal({ ...global, chainForOnRampWidgetModal: undefined });
 });
 
 addActionHandler('openMediaViewer', (global, actions, {
@@ -729,6 +757,65 @@ addActionHandler('submitAppLockActivityEvent', () => {
     return;
   }
   reportAppLockActivityEvent();
+});
+
+addActionHandler('setCardBackgroundNft', (global, actions, { nft }) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('setCardBackgroundNft', { nft });
+    return;
+  }
+
+  global = updateCurrentAccountSettings(global, { cardBackgroundNft: nft });
+  setGlobal(global);
+});
+
+addActionHandler('clearCardBackgroundNft', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('clearCardBackgroundNft');
+    return;
+  }
+
+  global = updateCurrentAccountSettings(global, { cardBackgroundNft: undefined });
+  setGlobal(global);
+});
+
+addActionHandler('installAccentColorFromNft', async (global, actions, { nft }) => {
+  const { mtwCardType, mtwCardBorderShineType } = nft.metadata!;
+
+  let accentColorIndex: number | undefined;
+  if (mtwCardBorderShineType === 'radioactive') {
+    accentColorIndex = ACCENT_RADIOACTIVE_INDEX;
+  } else if (mtwCardType === 'silver') {
+    accentColorIndex = ACCENT_SILVER_INDEX;
+  } else if (mtwCardType === 'gold') {
+    accentColorIndex = ACCENT_GOLD_INDEX;
+  } else if (mtwCardType === 'platinum' || mtwCardType === 'black') {
+    accentColorIndex = ACCENT_BNW_INDEX;
+  } else {
+    const src = getCardNftImageUrl(nft);
+    if (!src) return;
+
+    const cachedBlobUrl = await getCachedImageUrl(src);
+    const img = await preloadImage(cachedBlobUrl);
+    accentColorIndex = extractAccentColorIndex(img);
+    URL.revokeObjectURL(cachedBlobUrl);
+
+    if (!accentColorIndex) return;
+  }
+
+  global = getGlobal();
+  global = updateCurrentAccountSettings(global, {
+    accentColorNft: nft,
+    accentColorIndex,
+  });
+  setGlobal(global);
+});
+
+addActionHandler('clearAccentColorFromNft', (global) => {
+  return updateCurrentAccountSettings(global, {
+    accentColorNft: undefined,
+    accentColorIndex: undefined,
+  });
 });
 
 async function connectLedgerAndGetHardwareState() {

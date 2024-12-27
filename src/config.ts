@@ -1,5 +1,10 @@
 import type { ApiTonWalletVersion } from './api/chains/ton/types';
-import type { ApiBaseCurrency, ApiSwapAsset } from './api/types';
+import type {
+  ApiBaseCurrency,
+  ApiLiquidStakingState,
+  ApiSwapAsset,
+  ApiSwapDexLabel,
+} from './api/types';
 import type { LangItem, TokenPeriod } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
@@ -17,6 +22,7 @@ export const IS_TEST = APP_ENV === 'test';
 export const IS_PERF = APP_ENV === 'perf';
 export const IS_EXTENSION = process.env.IS_EXTENSION === '1';
 export const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
+export const IS_OPERA_EXTENSION = process.env.IS_OPERA_EXTENSION === '1';
 export const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 export const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
 export const IS_ANDROID_DIRECT = process.env.IS_ANDROID_DIRECT === '1';
@@ -26,12 +32,14 @@ export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
 export const PRODUCTION_URL = 'https://mytonwallet.app';
 export const BETA_URL = 'https://beta.mytonwallet.app';
+export const APP_INSTALL_URL = 'https://get.mytonwallet.io/';
 export const APP_REPO_URL = 'https://github.com/mytonwalletorg/mytonwallet';
 export const BASE_URL = process.env.BASE_URL;
 
 export const BOT_USERNAME = process.env.BOT_USERNAME || 'MyTonWalletBot';
 
 export const SWAP_FEE_ADDRESS = process.env.SWAP_FEE_ADDRESS || 'UQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0GOp';
+export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'UQC9lQOaEHC6YASiJJ2NrKEOlITMMQmc8j0_iZEHy-4sl3tG';
 
 export const STRICTERDOM_ENABLED = DEBUG && !IS_PACKAGED_ELECTRON;
 
@@ -102,8 +110,11 @@ export const TRON_TESTNET_API_URL = process.env.TRON_TESTNET_API_URL || 'https:/
 export const FRACTION_DIGITS = 9;
 export const SHORT_FRACTION_DIGITS = 2;
 
+export const MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT = 3;
+
 export const SUPPORT_USERNAME = 'MyTonWalletSupport';
-export const MY_TON_WALLET_PROMO_URL = 'https://mytonwallet.io';
+export const MTW_CARDS_BASE_URL = 'https://static.mytonwallet.org/cards/';
+export const MYTONWALLET_PROMO_URL = 'https://mytonwallet.io/';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
 export const TON_DIAMONDS_URL = 'https://ton.diamonds/';
 export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
@@ -122,7 +133,8 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const LANG_CACHE_NAME = 'mtw-lang-141';
+export const IMAGE_CACHE_NAME = 'mtw-image';
+export const LANG_CACHE_NAME = 'mtw-lang-155';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -179,14 +191,13 @@ export const LANG_LIST: LangItem[] = [{
 export const STAKING_CYCLE_DURATION_MS = 131_072_000; // 36.4 hours
 export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
 export const ONE_TON = 1_000_000_000n;
-export const MIN_BALANCE_FOR_UNSTAKE = 1_020_000_000n; // 1.02 TON
 export const DEFAULT_FEE = 15_000_000n; // 0.015 TON
 
 export const STAKING_POOLS = process.env.STAKING_POOLS ? process.env.STAKING_POOLS.split(' ') : [];
 export const LIQUID_POOL = process.env.LIQUID_POOL || 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o';
 export const LIQUID_JETTON = process.env.LIQUID_JETTON || 'EQCqC6EhRJ_tpWngKxL6dV0k6DSnRUrs9GSVkLbfdCqsj6TE';
 export const STAKING_MIN_AMOUNT = ONE_TON;
-export const NOMINATORS_STAKING_MIN_AMOUNT = ONE_TON * 10001n;
+export const NOMINATORS_STAKING_MIN_AMOUNT = 10_000n * ONE_TON;
 
 export const TONCONNECT_PROTOCOL_VERSION = 2;
 export const TONCONNECT_WALLET_JSBRIDGE_KEY = 'mytonwallet';
@@ -196,11 +207,8 @@ export const NFT_FRAGMENT_COLLECTIONS = new Set([
   '0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2', // Telegram Usernames
 ]);
 
+export const MTW_CARDS_COLLECTION = 'EQCQE2L9hfwx1V8sgmF9keraHx1rNK9VmgR1ctVvINBGykyM';
 export const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
-export const MYCOIN_TOKEN = 'EQCFVNlRb-NHHDQfv3Q9xvDXBLJlay855_xREsq5ZDX6KN-w';
-export const MYCOIN_SLUG = 'ton-eqcfvnlrbn';
-export const MYCOIN_TOKEN_TESTNET = 'kQAWlxpEbwhCDFX9gp824ee2xVBhAh5VRSGWfbNFDddAbQoQ';
-export const MYCOIN_SLUG_TESTNET = 'ton-kqawlxpebw';
 
 export const TONCOIN = {
   name: 'Toncoin',
@@ -220,6 +228,21 @@ export const TRX = {
   cmcSlug: 'tron',
 } as const;
 
+export const MYCOIN = {
+  name: 'MyTonWallet Coin',
+  symbol: 'MY',
+  slug: 'ton-eqcfvnlrbn',
+  decimals: 9,
+  chain: 'ton',
+  minterAddress: 'EQCFVNlRb-NHHDQfv3Q9xvDXBLJlay855_xREsq5ZDX6KN-w',
+} as const;
+
+export const MYCOIN_TESTNET = {
+  ...MYCOIN,
+  slug: 'ton-kqawlxpebw',
+  minterAddress: 'kQAWlxpEbwhCDFX9gp824ee2xVBhAh5VRSGWfbNFDddAbQoQ',
+} as const;
+
 export const CHAIN_CONFIG = {
   ton: {
     isMemoSupported: true,
@@ -228,7 +251,7 @@ export const CHAIN_CONFIG = {
     nativeToken: TONCOIN,
     gas: {
       maxSwap: 400_000_000n, // 0.4 TON
-      maxTransfer: 10_000_000n, // 0.01 TON
+      maxTransfer: 15_000_000n, // 0.015 TON
       maxTransferToken: 60_000_000n, // 0.06 TON
     },
   },
@@ -256,6 +279,8 @@ export const CHAIN_CONFIG = {
 export const TRC20_USDT_MAINNET_SLUG = 'tron-tr7nhqjekq';
 export const TRC20_USDT_TESTNET_SLUG = 'tron-tg3xxyexbk';
 export const TON_USDT_SLUG = 'ton-eqcxe6mutq';
+export const STAKED_TON_SLUG = 'ton-eqcqc6ehrj';
+export const STAKED_MYCOIN_SLUG = 'ton-eqcbzvsfwq';
 export const TRX_SWAP_COUNT_FEE_ADDRESS = 'TW2LXSebZ7Br1zHaiA2W1zRojDkDwjGmpw';
 
 const TRC20_USDT = {
@@ -264,6 +289,7 @@ const TRC20_USDT = {
   decimals: 6,
   chain: 'tron',
 } as const;
+
 const TON_USDT = {
   name: 'Tether USD',
   symbol: 'USD₮',
@@ -273,12 +299,12 @@ const TON_USDT = {
   tokenAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
 } as const;
 
-export const ENABLED_TOKEN_SLUGS = [
+export const DEFAULT_ENABLED_TOKEN_SLUGS = [
   TONCOIN.slug, TON_USDT_SLUG, TRX.slug, TRC20_USDT_TESTNET_SLUG, TRC20_USDT_MAINNET_SLUG,
 ] as string[];
 
 export const PRIORITY_TOKEN_SLUGS = [
-  TONCOIN.slug, TRX.slug,
+  TONCOIN.slug, TON_USDT_SLUG, TRX.slug,
 ] as string[];
 
 export const TOKEN_INFO = {
@@ -333,6 +359,17 @@ export const TOKEN_INFO = {
       percentChange24h: 0,
     },
   },
+  [MYCOIN.slug]: {
+    ...MYCOIN,
+    // eslint-disable-next-line max-len
+    image: 'https://cache.tonapi.io/imgproxy/Qy038wCBKISofJ0hYMlj6COWma330cx3Ju1ZSPM2LRU/rs:fill:200:200:1/g:no/aHR0cHM6Ly9teXRvbndhbGxldC5pby9sb2dvLTI1Ni1ibHVlLnBuZw.webp',
+    quote: {
+      slug: MYCOIN.slug,
+      price: 0,
+      priceUsd: 0,
+      percentChange24h: 0,
+    },
+  },
 };
 
 export const TOKEN_WITH_LABEL: Record<string, string> = {
@@ -367,8 +404,13 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
   },
 };
 
+export const DEFAULT_TRX_SWAP_FIRST_TOKEN_SLUG = TONCOIN.slug;
 export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = TON_USDT_SLUG;
 export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = TRC20_USDT_MAINNET_SLUG;
+export const SWAP_DEX_LABELS: Record<ApiSwapDexLabel, string> = {
+  dedust: 'DeDust',
+  ston: 'STON.fi',
+};
 
 export const MULTITAB_DATA_CHANNEL_NAME = 'mtw-multitab';
 export const ACTIVE_TAB_STORAGE_KEY = 'mtw-active-tab';
@@ -456,8 +498,6 @@ export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-
 // eslint-disable-next-line max-len
 export const RE_TG_BOT_MENTION = /telegram[:\s-]*((@[a-z0-9_]+)|(https:\/\/)?(t\.me|telegram\.me|telegram\.dog)\/[a-z0-9_]+)/mig;
 
-export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'EQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0D5s';
-
 export const STARS_SYMBOL = '⭐️';
 
 export const GIVEAWAY_CHECKIN_URL = process.env.GIVEAWAY_CHECKIN_URL || 'https://giveaway.mytonwallet.io';
@@ -465,22 +505,58 @@ export const GIVEAWAY_CHECKIN_URL = process.env.GIVEAWAY_CHECKIN_URL || 'https:/
 export const AUTOLOCK_OPTIONS_LIST = [
   {
     value: 'never',
-    name: 'Never',
+    name: 'Disabled',
+    selectedName: 'Disabled',
     period: 0,
   },
   {
     value: '1',
     name: '30 seconds',
+    selectedName: 'If away for 30 sec',
     period: 30_000,
   },
   {
     value: '2',
     name: '3 minutes',
+    selectedName: 'If away for 3 min',
     period: 60_000 * 3,
   },
   {
     value: '3',
-    name: '30 minutes',
-    period: 60_000 * 30,
+    name: '10 minutes',
+    selectedName: 'If away for 10 min',
+    period: 60_000 * 10,
   },
 ] as const;
+
+export const PRICELESS_TOKEN_HASHES = new Set([
+  '82566ad72b6568fe7276437d3b0c911aab65ed701c13601941b2917305e81c11', // Stonfi V1
+  'ec614ea4aaea3f7768606f1c1632b3374d3de096a1e7c4ba43c8009c487fee9d', // Stonfi V2
+  'c0f9d14fbc8e14f0d72cba2214165eee35836ab174130912baf9dbfa43ead562', // Dedust (for example, EQBkh7Mc411WTYF0o085MtwJpYpvGhZOMBphhIFzEpzlVODp)
+  '1275095b6da3911292406f4f4386f9e780099b854c6dee9ee2895ddce70927c1', // Dedust (for example, EQCm92zFBkLe_qcFDp7WBvI6JFSDsm4WbDPvZ7xNd7nPL_6M)
+  '5d01684bdf1d5c9be2682c4e36074202432628bd3477d77518d66b0976b78cca', // USDT Storm LP (for example, EQAzm06UMMsnFQrNKEubV1myIR-mm2ZOCnoic36frCgD8MLR)
+]);
+
+export const STAKED_TOKEN_SLUGS = new Set([
+  STAKED_TON_SLUG,
+  STAKED_MYCOIN_SLUG,
+]);
+
+export const DEFAULT_OUR_SWAP_FEE = 0.875;
+
+export const DEFAULT_STAKING_STATE: ApiLiquidStakingState = {
+  type: 'liquid',
+  id: 'liquid',
+  tokenSlug: TONCOIN.slug,
+  annualYield: 3.9,
+  yieldType: 'APY',
+  balance: 0n,
+  pool: LIQUID_POOL,
+  tokenBalance: 0n,
+  unstakeRequestAmount: 0n,
+  instantAvailable: 0n,
+};
+
+export const SWAP_API_VERSION = 2;
+
+export const JVAULT_URL = 'https://jvault.xyz';

@@ -2,11 +2,11 @@ import type { TeactNode } from '../../../../lib/teact/teact';
 import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiBaseCurrency } from '../../../../api/types';
+import type { ApiBaseCurrency, ApiStakingState } from '../../../../api/types';
 import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../global/types';
 
 import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TONCOIN } from '../../../../config';
-import { selectCurrentAccountState } from '../../../../global/selectors';
+import { selectAccountStakingStates, selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
 import { formatShortDay } from '../../../../util/dateFormat';
@@ -41,17 +41,17 @@ interface OwnProps {
   token: UserToken;
   classNames: string;
   isUpdating?: boolean;
-  onApyClick?: NoneToVoidFunction;
+  onYieldClick: (stakingId?: string) => void;
   onClose: NoneToVoidFunction;
 }
 
 interface StateProps {
   period?: TokenPeriod;
-  apyValue: number;
   baseCurrency?: ApiBaseCurrency;
   historyPeriods?: PriceHistoryPeriods;
   tokenAddress?: string;
   isTestnet?: boolean;
+  stakingStates?: ApiStakingState[];
 }
 
 const OFFLINE_TIMEOUT = 120000; // 2 minutes
@@ -66,13 +66,13 @@ function TokenCard({
   token,
   classNames,
   period = DEFAULT_PERIOD,
-  apyValue,
   isUpdating,
-  onApyClick,
+  onYieldClick,
   onClose,
   baseCurrency,
   historyPeriods,
   tokenAddress,
+  stakingStates,
 }: OwnProps & StateProps) {
   const { loadPriceHistory } = getActions();
   const lang = useLang();
@@ -98,6 +98,15 @@ function TokenCard({
   const {
     slug, symbol, amount, image, name, price: lastPrice, decimals,
   } = token;
+
+  const { annualYield, yieldType, id: stakingId } = useMemo(() => {
+    return stakingStates?.reduce((bestState, state) => {
+      if (state.tokenSlug === slug && (!bestState || state.balance > bestState.balance)) {
+        return state;
+      }
+      return bestState;
+    }, undefined as ApiStakingState | undefined);
+  }, [stakingStates, slug]) ?? {};
 
   const logoPath = slug === TONCOIN.slug
     ? tonUrl
@@ -184,9 +193,9 @@ function TokenCard({
           <b className={styles.tokenAmount}>{formatCurrency(toDecimal(amount, token.decimals), symbol)}</b>
           <span className={styles.tokenName}>
             {name}
-            {token.slug === TONCOIN.slug && (
-              <span className={styles.apy} onClick={onApyClick}>
-                APY {apyValue}%
+            {yieldType && (
+              <span className={styles.apy} onClick={() => onYieldClick(stakingId)}>
+                {yieldType} {annualYield}%
               </span>
             )}
           </span>
@@ -236,7 +245,7 @@ function TokenCard({
             />
 
             <div className={styles.tokenHistoryPrice}>
-              {formatCurrency(history![0][1], currencySymbol, undefined, true)}
+              {formatCurrency(history![0][1], currencySymbol, 2, true)}
               <div className={styles.tokenPriceDate}>{formatShortDay(lang.code!, historyStartDay!)}</div>
             </div>
           </>
@@ -271,16 +280,18 @@ function TokenCard({
 
 export default memo(
   withGlobal<OwnProps>((global, ownProps): StateProps => {
+    const slug = ownProps.token.slug;
     const accountState = selectCurrentAccountState(global);
-    const tokenAddress = global.tokenInfo.bySlug[ownProps.token.slug]?.tokenAddress;
+    const tokenAddress = global.tokenInfo.bySlug[slug]?.tokenAddress;
+    const stakingStates = selectAccountStakingStates(global, global.currentAccountId!);
 
     return {
       isTestnet: global.settings.isTestnet,
       period: accountState?.currentTokenPeriod,
-      apyValue: accountState?.staking?.apy || 0,
       baseCurrency: global.settings.baseCurrency,
       historyPeriods: global.tokenPriceHistory.bySlug[ownProps.token.slug],
       tokenAddress,
+      stakingStates,
     };
   })(TokenCard),
 );

@@ -27,12 +27,13 @@ interface OwnProps {
   state: BiometricsState;
   error?: string;
   onClose: NoneToVoidFunction;
+  isLoading?: boolean;
 }
 
 const STICKER_SIZE = 180;
 
 function TurnOff({
-  isOpen, state, error, onClose,
+  isOpen, isLoading, state, error, onClose,
 }: OwnProps) {
   const { disableBiometrics } = getActions();
 
@@ -92,6 +93,7 @@ function TurnOff({
               />
               <CreatePasswordForm
                 isActive={isActive}
+                isLoading={isLoading}
                 formId="biometrics-create-password"
                 onSubmit={handleSubmit}
                 onCancel={onClose}

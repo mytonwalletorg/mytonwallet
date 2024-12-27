@@ -1,22 +1,18 @@
 import type { ApiCheckTransactionDraftResult } from '../../api/chains/ton/types';
 import type { GlobalState } from '../types';
-import { TransferState } from '../types';
 
-import { omitUndefined, pick } from '../../util/iteratees';
-import { selectAccountState, selectCurrentAccountState } from '../selectors';
-import { updateAccountState, updateCurrentAccountState } from './misc';
+import { pick } from '../../util/iteratees';
+import { INITIAL_STATE } from '../initialState';
+import { selectAccountState, selectCurrentAccountState, selectCurrentTransferMaxAmount } from '../selectors';
+import { updateAccountState, updateCurrentAccountId, updateCurrentAccountState } from './misc';
+import { clearCurrentSwap } from './swap';
 
 export function updateCurrentTransferByCheckResult(global: GlobalState, result: ApiCheckTransactionDraftResult) {
-  const partial = omitUndefined({
+  const nextGlobal = updateCurrentTransfer(global, {
     toAddressName: result.addressName,
-    ...pick(result, ['isScam', 'isMemoRequired', 'dieselAmount', 'dieselStatus']),
+    ...pick(result, ['fee', 'realFee', 'isScam', 'isMemoRequired', 'diesel']),
   });
-
-  if (Object.keys(partial).length) {
-    global = updateCurrentTransfer(global, partial);
-  }
-
-  return global;
+  return preserveMaxTransferAmount(global, nextGlobal);
 }
 
 export function updateCurrentTransfer(global: GlobalState, update: Partial<GlobalState['currentTransfer']>) {
@@ -32,9 +28,7 @@ export function updateCurrentTransfer(global: GlobalState, update: Partial<Globa
 export function clearCurrentTransfer(global: GlobalState) {
   return {
     ...global,
-    currentTransfer: {
-      state: TransferState.None,
-    },
+    currentTransfer: INITIAL_STATE.currentTransfer,
   };
 }
 
@@ -100,4 +94,25 @@ export function updateActivitiesIsLoadingByAccount(global: GlobalState, accountI
       isLoading,
     },
   });
+}
+
+/**
+ * Preserves the maximum transfer amount, if it was selected.
+ * Returns a modified version of `nextGlobal`.
+ */
+function preserveMaxTransferAmount(prevGlobal: GlobalState, nextGlobal: GlobalState) {
+  const previousMaxAmount = selectCurrentTransferMaxAmount(prevGlobal);
+  const wasMaxAmountSelected = prevGlobal.currentTransfer.amount === previousMaxAmount;
+  if (!wasMaxAmountSelected) {
+    return nextGlobal;
+  }
+  const nextMaxAmount = selectCurrentTransferMaxAmount(nextGlobal);
+  return updateCurrentTransfer(nextGlobal, { amount: nextMaxAmount });
+}
+
+export function switchAccountAndClearGlobal(global: GlobalState, accountId: string) {
+  let newGlobal = updateCurrentAccountId(global, accountId);
+  newGlobal = clearCurrentTransfer(newGlobal);
+
+  return clearCurrentSwap(newGlobal);
 }

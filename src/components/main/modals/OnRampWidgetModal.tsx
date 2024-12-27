@@ -3,7 +3,7 @@ import React, {
 } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import type { ApiCountryCode } from '../../../api/types';
+import type { ApiChain, ApiCountryCode } from '../../../api/types';
 import type { Theme } from '../../../global/types';
 
 import { selectAccount } from '../../../global/selectors';
@@ -19,7 +19,7 @@ import Modal from '../../ui/Modal';
 import styles from './OnRampWidgetModal.module.scss';
 
 interface StateProps {
-  isOpen?: boolean;
+  chain?: ApiChain;
   address?: string;
   countryCode?: ApiCountryCode;
   theme: Theme;
@@ -28,13 +28,14 @@ interface StateProps {
 const ANIMATION_TIMEOUT = 200;
 
 function OnRampWidgetModal({
-  isOpen, address, countryCode, theme,
+  chain, address, countryCode, theme,
 }: StateProps) {
   const {
     closeOnRampWidgetModal,
     showError,
   } = getActions();
 
+  const isOpen = Boolean(chain) && Boolean(address);
   const lang = useLang();
   const animationTimeoutRef = useRef<number>();
   const [isAnimationInProgress, setIsAnimationInProgress] = useState(true);
@@ -61,7 +62,7 @@ function OnRampWidgetModal({
     }
 
     (async () => {
-      const response = await callApi('getMoonpayOnrampUrl', address!, appTheme);
+      const response = await callApi('getMoonpayOnrampUrl', chain, address!, appTheme);
 
       if (response && 'error' in response) {
         showError({ error: response.error });
@@ -69,7 +70,7 @@ function OnRampWidgetModal({
         setIframeSrc(response?.url || '');
       }
     })();
-  }, [address, appTheme, countryCode, isOpen]);
+  }, [address, appTheme, chain, countryCode, isOpen]);
 
   const onIframeLoaded = () => {
     setIsLoading(false);
@@ -126,10 +127,11 @@ function OnRampWidgetModal({
 export default memo(withGlobal((global): StateProps => {
   const { addressByChain } = selectAccount(global, global.currentAccountId!) || {};
   const { countryCode } = global.restrictions;
+  const { chainForOnRampWidgetModal: chain } = global;
 
   return {
-    isOpen: global.isOnRampWidgetModalOpen,
-    address: addressByChain?.ton,
+    chain,
+    address: chain && addressByChain?.[chain],
     countryCode,
     theme: global.settings.theme,
   };

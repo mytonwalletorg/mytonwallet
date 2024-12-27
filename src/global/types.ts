@@ -1,10 +1,12 @@
-import type { ApiTonWalletVersion } from '../api/chains/ton/types';
+import type { ApiFetchEstimateDieselResult, ApiTonWalletVersion } from '../api/chains/ton/types';
+import type { NotificationsAccountValue } from '../api/methods';
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
   ApiActivity,
   ApiAnyDisplayError,
   ApiBalanceBySlug,
-  ApiBaseCurrency, ApiChain,
+  ApiBaseCurrency,
+  ApiChain,
   ApiCountryCode,
   ApiDapp,
   ApiDappPermissions,
@@ -17,9 +19,12 @@ import type {
   ApiPriceHistoryPeriod,
   ApiSignedTransfer,
   ApiSite,
+  ApiStakingCommonData,
   ApiStakingHistory,
-  ApiStakingType,
+  ApiStakingState,
   ApiSwapAsset,
+  ApiSwapDexLabel,
+  ApiSwapEstimateVariant,
   ApiTokenWithPrice,
   ApiTransaction,
   ApiTransactionActivity,
@@ -33,6 +38,7 @@ import type {
 } from '../api/types';
 import type { AUTOLOCK_OPTIONS_LIST } from '../config';
 import type { AuthConfig } from '../util/authApi/types';
+import type { CapacitorPlatform } from '../util/capacitor/platform';
 import type { LedgerTransport, LedgerWalletInfo } from '../util/ledger/types';
 
 export type IAnchorPosition = {
@@ -108,6 +114,9 @@ export enum AuthState {
   disclaimer,
   ready,
   about,
+  saferyRules,
+  mnemonicPage,
+  checkWords,
 }
 
 export enum BiometricsState {
@@ -204,7 +213,9 @@ export enum StakingState {
   UnstakeConfirmHardware,
   UnstakeComplete,
 
-  NotEnoughBalance,
+  ClaimPassword,
+  ClaimConnectHardware,
+  ClaimConfirmHardware,
 }
 
 export enum VestingUnfreezeState {
@@ -215,6 +226,7 @@ export enum VestingUnfreezeState {
 
 export enum SettingsState {
   Initial,
+  PushNotifications,
   Appearance,
   Assets,
   Security,
@@ -228,6 +240,7 @@ export enum SettingsState {
   LedgerConnectHardware,
   LedgerSelectWallets,
   HiddenNfts,
+  BackupWallet,
 }
 
 export enum ActiveTab {
@@ -267,6 +280,7 @@ export type UserToken = {
   cmcSlug?: string;
   totalValue: string;
   color?: string;
+  codeHash?: string;
 };
 
 export type UserSwapToken = Omit<UserToken, 'change24h' | 'chain'> & {
@@ -343,17 +357,10 @@ export interface AccountState {
 
   // Staking
   staking?: {
-    type: ApiStakingType;
-    balance: bigint;
-    apy: number;
-    isUnstakeRequested: boolean;
-    start: number;
-    end: number;
-    totalProfit: bigint;
-    // liquid
-    unstakeRequestedAmount?: bigint;
-    tokenBalance?: bigint;
-    isInstantUnstakeRequested?: boolean;
+    stakingId?: string;
+    stateById?: Record<string, ApiStakingState>;
+    totalProfit?: bigint;
+    shouldUseNominators?: boolean;
   };
 
   vesting?: {
@@ -380,6 +387,11 @@ export interface AccountSettings {
   alwaysHiddenSlugs?: string[];
   deletedSlugs?: string[];
   importedSlugs?: string[];
+  // These NFTs should be saved in the settings for immediate use after launching the application,
+  // without synchronizing the wallet history or complex state caching
+  cardBackgroundNft?: ApiNft;
+  accentColorNft?: ApiNft;
+  accentColorIndex?: number;
 }
 
 export interface SavedAddress {
@@ -436,7 +448,7 @@ export type GlobalState = {
   currentTransfer: {
     state: TransferState;
     isLoading?: boolean;
-    tokenSlug?: string;
+    tokenSlug: string;
     toAddress?: string;
     toAddressName?: string;
     resolvedAddress?: string;
@@ -444,6 +456,7 @@ export type GlobalState = {
     error?: string;
     amount?: bigint;
     fee?: bigint;
+    realFee?: bigint;
     comment?: string;
     binPayload?: string;
     promiseId?: string;
@@ -457,13 +470,13 @@ export type GlobalState = {
     nfts?: ApiNft[];
     sentNftsCount?: number;
     isMemoRequired?: boolean;
-    dieselStatus?: DieselStatus;
-    dieselAmount?: bigint;
+    diesel?: ApiFetchEstimateDieselResult;
     withDiesel?: boolean;
     isGaslessWithStars?: boolean;
   };
 
   currentSwap: {
+    isMaxAmount?: boolean;
     state: SwapState;
     swapId?: string;
     slippage: number;
@@ -473,11 +486,7 @@ export type GlobalState = {
     amountOut?: string;
     amountOutMin?: string;
     transactionFee?: string;
-    networkFee?: number;
-    realNetworkFee?: number;
-    swapFee?: string;
     priceImpact?: number;
-    dexLabel?: string;
     activityId?: string;
     error?: string;
     errorType?: SwapErrorType;
@@ -501,6 +510,20 @@ export type GlobalState = {
     };
     isSettingsModalOpen?: boolean;
     dieselStatus?: DieselStatus;
+    estimates?: ApiSwapEstimateVariant[];
+    // This property is necessary to ensure that when the DEX with the best rate changes,
+    // the user's selection remains unchanged
+    isDexLabelChanged?: true;
+    currentDexLabel?: ApiSwapDexLabel;
+    bestRateDexLabel?: ApiSwapDexLabel;
+    // Fees
+    networkFee?: string;
+    realNetworkFee?: string;
+    swapFee?: string;
+    swapFeePercent?: number;
+    ourFee?: string;
+    ourFeePercent?: number;
+    dieselFee?: string;
   };
 
   currentSignature?: {
@@ -536,7 +559,7 @@ export type GlobalState = {
     error?: string;
   };
 
-  staking: {
+  currentStaking: {
     state: StakingState;
     isLoading?: boolean;
     isUnstaking?: boolean;
@@ -544,14 +567,10 @@ export type GlobalState = {
     tokenAmount?: bigint;
     fee?: bigint;
     error?: string;
-    type?: ApiStakingType;
   };
 
-  stakingInfo: {
-    liquid?: {
-      instantAvailable: bigint;
-    };
-  };
+  stakingInfo?: ApiStakingCommonData;
+  stakingDefault: ApiStakingState;
 
   accounts?: {
     byId: Record<string, Account>;
@@ -601,6 +620,7 @@ export type GlobalState = {
     };
     authConfig?: AuthConfig;
     baseCurrency?: ApiBaseCurrency;
+    isAppLockEnabled?: boolean;
     autolockValue?: AutolockValueType;
   };
 
@@ -614,9 +634,11 @@ export type GlobalState = {
   isQrScannerOpen?: boolean;
   areSettingsOpen?: boolean;
   isAppUpdateAvailable?: boolean;
+  // Force show the "Update MyTonWallet" pop-up on all platforms
+  isAppUpdateRequired?: boolean;
   confettiRequestedAt?: number;
   isPinAccepted?: boolean;
-  isOnRampWidgetModalOpen?: boolean;
+  chainForOnRampWidgetModal?: ApiChain;
   isInvoiceModalOpen?: boolean;
   isReceiveModalOpen?: boolean;
   isVestingModalOpen?: boolean;
@@ -645,8 +667,6 @@ export type GlobalState = {
     countryCode?: ApiCountryCode;
   };
 
-  dappOriginReplacements?: Record<string, string>;
-
   mediaViewer: {
     mediaId?: string;
     mediaType?: MediaType;
@@ -658,6 +678,16 @@ export type GlobalState = {
   isLoadingOverlayOpen?: boolean;
   activitiesUpdateStartedAt?: number;
   balanceUpdateStartedAt?: number;
+
+  pushNotifications: {
+    isAvailable?: boolean;
+    userToken?: string;
+    platform?: CapacitorPlatform;
+    enabledAccounts: Record<string, Partial<NotificationsAccountValue>>;
+  };
+
+  isManualLockActive?: boolean;
+  appLockHideBiometrics?: boolean;
 };
 
 export interface ActionPayloads {
@@ -691,7 +721,10 @@ export interface ActionPayloads {
   openAbout: undefined;
   closeAbout: undefined;
   openAuthBackupWalletModal: undefined;
-  closeAuthBackupWalletModal: { isBackupCreated?: boolean } | undefined;
+  openMnemonicPage: undefined;
+  openCreateBackUpPage: undefined;
+  openCheckWordsPage: undefined;
+  closeCheckWordsPage: { isBackupCreated?: boolean } | undefined;
   initializeHardwareWalletModal: undefined;
   initializeHardwareWalletConnection: { transport: LedgerTransport };
   connectHardwareWallet: { transport?: LedgerTransport; noRetry?: boolean };
@@ -731,7 +764,6 @@ export interface ActionPayloads {
   changeTransferToken: { tokenSlug: string };
   fetchFee: {
     tokenSlug: string;
-    amount: bigint;
     toAddress: string;
     comment?: string;
     shouldEncrypt?: boolean;
@@ -781,12 +813,16 @@ export interface ActionPayloads {
   verifyHardwareAddress: undefined;
   authorizeDiesel: undefined;
   fetchDieselState: { tokenSlug: string };
+  setIsAuthLoading: { isLoading?: boolean };
 
   fetchTokenTransactions: { limit: number; slug: string; shouldLoadWithBudget?: boolean };
   fetchAllTransactions: { limit: number; shouldLoadWithBudget?: boolean };
   resetIsHistoryEndReached: { slug: string } | undefined;
   fetchNfts: undefined;
   showActivityInfo: { id: string };
+  showAnyAccountTx: { txId: string; accountId: string; network: ApiNetwork };
+  showAnyAccountTokenActivity: { slug: string; accountId: string; network: ApiNetwork };
+  showTokenActivity: { slug: string };
   closeActivityInfo: { id: string };
   openNftCollection: { address: string };
   closeNftCollection: undefined;
@@ -832,7 +868,8 @@ export interface ActionPayloads {
   handleQrCode: { data: string };
 
   // Staking
-  startStaking: { isUnstaking?: boolean } | undefined;
+  startStaking: undefined;
+  startUnstaking: undefined;
   setStakingScreen: { state: StakingState };
   submitStakingInitial: { amount?: bigint; isUnstaking?: boolean } | undefined;
   submitStakingPassword: { password: string; isUnstaking?: boolean };
@@ -843,6 +880,12 @@ export interface ActionPayloads {
   fetchStakingFee: { amount: bigint };
   openStakingInfo: undefined;
   closeStakingInfo: undefined;
+  changeCurrentStaking: { stakingId: string; shouldReopenModal?: boolean };
+  startStakingClaim: undefined;
+  submitStakingClaim: { password: string };
+  submitStakingClaimHardware: undefined;
+  cancelStakingClaim: undefined;
+  openStakingInfoOrStart: undefined;
 
   // Settings
   openSettings: undefined;
@@ -881,8 +924,16 @@ export interface ActionPayloads {
   changeBaseCurrency: { currency: ApiBaseCurrency };
   clearNativeBiometricsError: undefined;
   copyStorageData: undefined;
-  setAutolockValue: { value: AutolockValueType };
+  setAppLockValue: { value?: AutolockValueType; isEnabled: boolean };
+  setIsManualLockActive: { isActive?: boolean; shouldHideBiometrics?: boolean };
   openSettingsHardwareWallet: undefined;
+
+  // Account Settings
+  setCardBackgroundNft: { nft: ApiNft };
+  clearCardBackgroundNft: undefined;
+  checkCardNftOwnership: undefined;
+  installAccentColorFromNft: { nft: ApiNft };
+  clearAccentColorFromNft: undefined;
 
   // TON Connect
   submitDappConnectRequestConfirm: { accountId: string; password?: string };
@@ -905,7 +956,6 @@ export interface ActionPayloads {
   deleteAllDapps: undefined;
   deleteDapp: { origin: string };
   loadExploreSites: undefined;
-  loadDappOriginReplacements: undefined;
   updateDappLastOpenedAt: { origin: string };
 
   addSiteToBrowserHistory: { url: string };
@@ -934,11 +984,12 @@ export interface ActionPayloads {
   setSwapTokenIn: { tokenSlug: string };
   setSwapTokenOut: { tokenSlug: string };
   setSwapAmountIn: { amount?: string };
+  setSwapIsMaxAmount: { isMaxAmount?: boolean };
   setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
   loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
   clearSwapPairsCache: undefined;
-  estimateSwap: { shouldBlock: boolean; isEnoughToncoin?: boolean };
+  estimateSwap: { shouldBlock: boolean; toncoinBalance: bigint; isEnoughToncoin?: boolean };
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
   estimateSwapCex: { shouldBlock: boolean };
@@ -948,8 +999,9 @@ export interface ActionPayloads {
   addSwapToken: { token: UserSwapToken };
   toggleSwapSettingsModal: { isOpen: boolean };
   updatePendingSwaps: undefined;
+  setSwapDex: { dexLabel: ApiSwapDexLabel };
 
-  openOnRampWidgetModal: undefined;
+  openOnRampWidgetModal: { chain: ApiChain };
   closeOnRampWidgetModal: undefined;
 
   // MediaViewer
@@ -984,6 +1036,15 @@ export interface ActionPayloads {
   cancelClaimingVesting: undefined;
 
   submitAppLockActivityEvent: undefined;
+
+  toggleNotifications: { isEnabled: boolean };
+  renameNotificationAccount: { accountId: string };
+  toggleNotificationAccount: { accountId: string };
+  createNotificationAccount: { accountId: string; withAbort?: boolean };
+  tryAddNotificationAccount: { accountId: string };
+  deleteNotificationAccount: { accountId: string; withAbort?: boolean };
+  deleteAllNotificationAccounts: undefined | { accountIds: string[] };
+  registerNotifications: { userToken: string; platform: CapacitorPlatform };
 }
 
 export enum LoadMoreDirection {

@@ -109,6 +109,7 @@ addActionHandler('afterSignIn', (global, actions) => {
 
   setTimeout(() => {
     actions.resetAuth();
+
     processDeeplinkAfterSignIn();
   }, ANIMATION_DELAY_MS);
 });
@@ -158,14 +159,14 @@ addActionHandler('selectToken', (global, actions, { slug } = {}) => {
     const isToncoin = slug === TONCOIN.slug;
     const tokens = selectSwapTokens(global);
 
-    if (!isToncoin && !tokens?.find((token) => token.slug === slug)) return undefined;
-
-    if (isToncoin) {
-      actions.setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
-    } else {
-      actions.setDefaultSwapParams({ tokenOutSlug: slug });
+    if (isToncoin || tokens?.some((token) => token.slug === slug)) {
+      if (isToncoin) {
+        actions.setDefaultSwapParams({ tokenInSlug: DEFAULT_SWAP_SECOND_TOKEN_SLUG, tokenOutSlug: slug });
+      } else {
+        actions.setDefaultSwapParams({ tokenOutSlug: slug });
+      }
+      actions.changeTransferToken({ tokenSlug: slug });
     }
-    actions.changeTransferToken({ tokenSlug: slug });
   } else {
     actions.setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined });
     actions.changeTransferToken({ tokenSlug: TONCOIN.slug });
@@ -345,12 +346,14 @@ addActionHandler('signOut', async (global, actions, payload) => {
   const { isFromAllAccounts } = payload || {};
 
   const network = selectCurrentNetwork(global);
-  const accountIds = Object.keys(selectNetworkAccounts(global)!);
+  const accounts = selectNetworkAccounts(global)!;
+  const accountIds = Object.keys(accounts);
 
   const otherNetwork = network === 'mainnet' ? 'testnet' : 'mainnet';
   const otherNetworkAccountIds = Object.keys(selectNetworkAccountsMemoized(otherNetwork, global.accounts?.byId)!);
 
   if (isFromAllAccounts || accountIds.length === 1) {
+    actions.deleteAllNotificationAccounts({ accountIds });
     if (otherNetworkAccountIds.length) {
       await callApi('removeNetworkAccounts', network);
 
@@ -409,6 +412,7 @@ addActionHandler('signOut', async (global, actions, payload) => {
     const nextNewestTxTimestamps = selectNewestTxTimestamps(global, nextAccountId);
 
     await callApi('removeAccount', prevAccountId, nextAccountId, nextNewestTxTimestamps);
+    actions.deleteNotificationAccount({ accountId: prevAccountId });
 
     global = getGlobal();
 

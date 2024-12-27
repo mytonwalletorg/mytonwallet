@@ -10,7 +10,7 @@ import type {
 } from '../../types';
 import type { TonTransferParams } from './types';
 
-import { SWAP_FEE_ADDRESS, TONCOIN } from '../../../config';
+import { DIESEL_ADDRESS, SWAP_FEE_ADDRESS, TONCOIN } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { assert } from '../../../util/assert';
 import { fromDecimal } from '../../../util/decimals';
@@ -26,6 +26,7 @@ import { getContractInfo } from './wallet';
 
 type LtRange = [number, number];
 
+const FEE_ADDRESSES = [SWAP_FEE_ADDRESS, DIESEL_ADDRESS];
 const MEGATON_WTON_MINTER = 'EQCajaUU1XXSAjTD-xOV7pE49fGtg4q8kF3ELCOJtGvQFQ2C';
 const MAX_NETWORK_FEE = 1000000000n; // 1 TON
 
@@ -54,13 +55,15 @@ export async function validateDexSwapTransfers(
     if (feeTransfer) {
       assert(feeTransfer.amount <= mainTransfer.amount);
       assert(feeTransfer.amount + mainTransfer.amount < maxAmount);
-      assert(toBase64Address(feeTransfer.toAddress, false) === SWAP_FEE_ADDRESS);
+      assert(FEE_ADDRESSES.includes(toBase64Address(feeTransfer.toAddress, false)));
     }
   } else {
     const token = getTokenByAddress(request.from)!;
     assert(!!token);
 
-    const maxAmount = fromDecimal(request.fromAmount, token.decimals);
+    const maxAmount = fromDecimal(request.fromAmount, token.decimals)
+      + fromDecimal(request.ourFee ?? 0, token.decimals)
+      + fromDecimal(request.dieselFee ?? 0, token.decimals);
     const maxTonAmount = MAX_NETWORK_FEE;
 
     const walletAddress = await resolveTokenWalletAddress(network, address, token.tokenAddress!);
@@ -96,7 +99,7 @@ export async function validateDexSwapTransfers(
       const { amount: tokenFeeAmount, destination: feeDestination } = feePayload as ApiTokensTransferPayload;
 
       assert(tokenAmount + tokenFeeAmount <= maxAmount);
-      assert(toBase64Address(feeDestination, false) === SWAP_FEE_ADDRESS);
+      assert(FEE_ADDRESSES.includes(toBase64Address(feeDestination, false)));
     }
   }
 }

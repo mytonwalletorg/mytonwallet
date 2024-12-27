@@ -110,11 +110,14 @@
 
   font-size: 0.75rem;
   line-height: 1rem;
-  color: var(--color-gray-5);
+  color: var(--color-gray-3);
 }
 
 .amountBottomRight {
   flex: 1;
+
+  font-weight: 600;
+  white-space: nowrap;
 
   &_slide {
     text-align: right;
@@ -139,11 +142,6 @@
 
 .balanceError {
   color: var(--color-red);
-}
-
-.feeValue {
-  font-weight: 600;
-  white-space: nowrap;
 }
 
 .balanceContainer {
@@ -459,8 +457,8 @@
   }
 }
 
-.tokenDropdownItem {
-  font-weight: 700 !important;
+.tokenDropdownItem :global(.menuItemName), .tokenDropdownItem :global(.itemName) {
+  font-weight: 700;
 }
 
 .inputStatic,
@@ -497,18 +495,25 @@ textarea.inputStatic {
   margin: unset;
 }
 
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch;
+
+  margin-top: auto;
+  padding-top: 1.5rem;
+
+  &_shifted {
+    margin-top: -0.875rem;
+  }
+}
+
 .buttons {
   display: grid;
   grid-auto-columns: minmax(max-content, auto);
   grid-auto-flow: column;
   gap: 1rem;
-
-  margin-top: auto;
-  padding-top: 2rem;
-}
-
-.buttonsShifted {
-  margin-top: -2rem;
 }
 
 .button {
@@ -564,9 +569,9 @@ textarea.inputStatic {
 }
 
 .burnWarning, .error {
-  color: var(--color-transaction-red-text);
+  color: var(--color-transaction-amount-red-text);
 
-  background-color: var(--color-transaction-red-background);
+  background-color: var(--color-transaction-amount-red-bg);
 }
 
 .spinner {

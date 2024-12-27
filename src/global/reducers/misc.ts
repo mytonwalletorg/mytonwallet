@@ -260,8 +260,9 @@ export function updateSettings(global: GlobalState, settingsUpdate: Partial<Glob
   } as GlobalState;
 }
 
-export function updateCurrentAccountSettings(
+export function updateAccountSettings(
   global: GlobalState,
+  accountId: string,
   settingsUpdate: Partial<GlobalState['settings']['byAccountId']['*']>,
 ) {
   return {
@@ -270,13 +271,20 @@ export function updateCurrentAccountSettings(
       ...global.settings,
       byAccountId: {
         ...global.settings.byAccountId,
-        [global.currentAccountId!]: {
-          ...global.settings.byAccountId[global.currentAccountId!],
+        [accountId]: {
+          ...global.settings.byAccountId[accountId],
           ...settingsUpdate,
         },
       },
     },
   } as GlobalState;
+}
+
+export function updateCurrentAccountSettings(
+  global: GlobalState,
+  settingsUpdate: Partial<GlobalState['settings']['byAccountId']['*']>,
+) {
+  return updateAccountSettings(global, global.currentAccountId!, settingsUpdate);
 }
 
 export function updateBiometrics(global: GlobalState, biometricsUpdate: Partial<GlobalState['biometrics']>) {

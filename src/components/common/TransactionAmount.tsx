@@ -34,6 +34,7 @@ function TransactionAmount({
         status && styles.withStatus,
         isIncoming && !isScam && styles.operationPositive,
         isScam && styles.operationScam,
+        'rounded-font',
       )}
       >
         {wholePart.trim().replace('\u202F', '')}

@@ -1,6 +1,6 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo } from '../../lib/teact/teact';
 
-import { TONCOIN } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 
@@ -13,8 +13,7 @@ interface OwnProps {
   label: string;
   currency?: string;
   symbol?: string;
-  fee?: string;
-  feeSymbol?: string;
+  feeText?: TeactNode;
   className?: string;
   labelClassName?: string;
 }
@@ -24,8 +23,7 @@ function AmountWithFeeTextField({
   label,
   currency = '',
   symbol,
-  fee,
-  feeSymbol = TONCOIN.symbol,
+  feeText,
   className,
   labelClassName,
 }: OwnProps) {
@@ -37,11 +35,11 @@ function AmountWithFeeTextField({
       <div className={buildClassName(styles.root, className)}>
         {formatCurrencyExtended(amount, currency, true)}
         {symbol && <span className={styles.suffix}>{symbol}</span>}
-        {Boolean(fee) && (
+        {Boolean(feeText) && (
           <>
             <div className={styles.feeLabel}>{lang('Fee')}</div>
             <span className={styles.feeConfirm}>
-              {formatCurrencyExtended(fee, feeSymbol)}
+              {feeText}
             </span>
           </>
         )}

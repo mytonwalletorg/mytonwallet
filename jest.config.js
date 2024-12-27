@@ -7,10 +7,9 @@ module.exports = {
   testPathIgnorePatterns: [
     '<rootDir>/tests/playwright/',
     '<rootDir>/node_modules/',
-    '<rootDir>/legacy_notes_and_workbook/',
     '<rootDir>/client/src/stylesheets/',
   ],
-  testEnvironment: 'jsdom',
+  testEnvironment: 'jest-environment-jsdom',
   transform: {
     '\\.(jsx?|tsx?)$': 'babel-jest',
     '\\.txt$': 'jest-raw-loader',

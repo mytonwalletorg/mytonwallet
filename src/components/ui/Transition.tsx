@@ -46,6 +46,7 @@ export type TransitionProps = {
   onStart?: NoneToVoidFunction;
   onStop?: NoneToVoidFunction;
   onContainerClick?: NoneToVoidFunction;
+  // Should be not a falsy value, otherwise some transitions will be delayed
   children: React.ReactNode | ChildrenFn;
 };
 

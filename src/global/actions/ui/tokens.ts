@@ -1,3 +1,5 @@
+import { ContentTab } from '../../types';
+
 import { areSortedArraysEqual, unique } from '../../../util/iteratees';
 import { addActionHandler } from '../../index';
 import { updateCurrentAccountSettings } from '../../reducers';
@@ -18,4 +20,9 @@ addActionHandler('rebuildOrderedSlugs', (global) => {
     ...accountSettings,
     orderedSlugs: newOrderedSlugs,
   });
+});
+
+addActionHandler('showTokenActivity', (global, actions, { slug }) => {
+  actions.selectToken({ slug }, { forceOnHeavyAnimation: true });
+  actions.setActiveContentTab({ tab: ContentTab.Activity });
 });

@@ -6,6 +6,8 @@
 
 @import "mixins";
 
+@import "mtwCustomCard";
+
 html, body {
   overflow: hidden;
   overscroll-behavior: none;
@@ -27,7 +29,7 @@ html, body {
 body {
   user-select: none;
 
-  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI", Oxygen, Ubuntu, Cantarell,
+  font-family: "Nunito Sans", -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI", Oxygen, Ubuntu, Cantarell,
   "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -55,7 +57,7 @@ html {
 
   &.is-ios body,
   &.is-macos body {
-    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Apple Color Emoji", "Helvetica Neue", sans-serif;
+    font-family: "Nunito Sans", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Apple Color Emoji", "Helvetica Neue", sans-serif;
   }
 
   // Required for closing over scrollable content (scroll tracking)
@@ -168,6 +170,8 @@ div[role="button"] {
 }
 
 a {
+  cursor: var(--custom-cursor, pointer);
+
   color: var(--color-blue);
 
   &:hover,
@@ -207,10 +211,15 @@ a {
   }
 }
 
+.rounded-font {
+  font-family: "Nunito", "Nunito Sans", -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI", Oxygen, Ubuntu, Cantarell,
+  "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+
 .browser-update-message {
   position: fixed;
   z-index: var(--z-notification);
-  top: 50% ;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 

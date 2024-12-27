@@ -7,7 +7,8 @@ Import From %1$d Secret Words: "%1$d Gizli Kelimeyi içe aktarın"
 More about MyTonWallet: MyTonWallet hakkında daha fazla bilgi
 Creating Wallet...: Cüzdan oluşturuluyor...
 On the count of three...: Üçe kadar saydığınızda...
-Back Up: Yedekle
+$back_up_auth: Yedekle
+$back_up_security: Yedekleme güvenliği
 Passwords must be equal.: Parolalar eşleşmelidir.
 To protect your wallet as much as possible, use a password with: Cüzdanınızı mümkün olduğunca korumak için en az
 $auth_password_rule_8chars: 8 karakterli bir şifre kullanın
@@ -33,16 +34,25 @@ $auth_import_mnemonic_description: |
 Let’s make sure your secrets words are recorded correctly.: Gizli kelimelerinizin doğru kaydedildiğinden emin olun.
 $mnemonic_check_words_list: "**%1$s** numaralı kelimeleri aşağıya girin."
 $mnemonic_check_error: Girdiğiniz gizli kelimeler listedekilerle eşleşmiyor. Lütfen tekrar deneyin.
-$mnemonic_list_description: |
-  Bu kelimeleri
-  **doğru sırada** yazın ve
-  **gizli bir yerde** saklayın.
+$check_words_description: |
+  Şimdi, gizli kelimelerinizi
+  doğru yazıp yazmadığınızı kontrol edelim.
+$mnemonic_list_description: Bu kelimeleri **doğru sırayla** yazın ve **güvenli bir yerde** saklayın.
+$private_key_description: Bu özel anahtarı **doğru bir şekilde** kaydedin ve **güvenli bir yerde** saklayın.
 $mnemonic_warning: |
   Kimseye **göndermeyin** veya göstermeyin,
   Hiçbir yere **girmeyin**.
+View Secret Words: Gizli Kelimeleri Görüntüle
+View TON Private Key: TON Özel Anahtarını Görüntüle
+Can be imported to non-multichain wallets for TON.: TON için çoklu zincir olmayan cüzdanlara aktarılabilir.
+Can be imported to any multichain wallet supporting TON.: TON destekleyen herhangi bir çoklu zincir cüzdanına aktarılabilir.
 Let's Check: Kontrol edelim
 Let's Check!: Kontrol edelim!
 Safety Rules: Güvenlik Kuralları
+$safety_rules_private_key_one: |
+  Bir sonraki ekranda **TON özel anahtarını** göreceksiniz. Doğru bir şekilde kaydedin ve **güvenli bir yerde saklayın**.
+$safety_rules_private_key_two: Şifrenizi veya bu cihaza erişiminizi kaybederseniz, **cüzdanınızı açmanıza** olanak tanır.
+$safety_rules_private_key_three: Eğer başka biri bu özel anahtarı görürse, fonlarınız **çalınabilir**. **Hiç kimseye göndermeyin veya göstermeyin**, geliştiricilere veya teknik desteğe bile.
 $safety_rules_one: |
   Bir sonraki ekranda **gizli kelimeleri** göreceksiniz. Bunları doğru sırayla yazın ve **güvenli bir yerde saklayın**.
 $safety_rules_two: Bu kelimeler, şifrenizi veya bu cihaza erişiminizi kaybederseniz **cüzdanınızı açmanızı** sağlar.
@@ -163,7 +173,8 @@ $transaction_to: "bu adrese = %address%"
 Wallet is not backed up: Cüzdan yedeklenmemiş
 Testnet Version: Testnet Sürümü
 Error reading clipboard: Pano okunurken hata oluştu
-$fee_value: "Ücret: %fee%"
+$fee_value: "Ücret %fee%"
+$fee_value_with_colon: "Ücret: %fee%"
 Pay fee with %stars_symbol%: "%stars_symbol% ile öde"
 Loading...: Yükleniyor...
 Recipient Address: Alıcının adresi
@@ -206,14 +217,16 @@ Appearance: Görünüm
 Light: Açık
 Dark: Koyu
 System: Sistem
-Stake TON: TON stake et
+$stake_asset: "%symbol% stake et"
 Earn from your tokens while holding them: Tokenlarınızı tutarken pasif gelir elde edin
-$est_apy_val: Tahmini APY %1$d%
+Est. %annual_yield%: Tahmini %annual_yield%
 Why this is safe: Neden güvenlidir?
 Why is staking safe?: Staking neden güvenlidir?
 $safe_staking_description1: Staking **tamamen merkeziyetsiz** bir işlemdir ve **resmi TON Likit Staking** akıllı sözleşmeleri tarafından yürütülür.
 $safe_staking_description2: Stake edilen tutar, **hisse kanıtı** esası kapsamında TON ağındaki işlemlerin doğrulanması için kullanılacaktır.
 $safe_staking_description3: Stake edilen tutarı **istediğiniz zaman** çekebilirsiniz; bu tutar **iki gün** içinde hesabınıza geri yatırılacaktır.
+$safe_staking_description_jetton1: Token stake etme işlemi **tamamen merkeziyetsizdir** ve %jvault_link% tarafından geliştirilen, **açık kaynaklı** akıllı sözleşmelerle gerçekleştirilir ve **güvenlik denetimlerinden** geçmiştir.
+$safe_staking_description_jetton2: Stake'inizi **herhangi bir zamanda** çekebilirsiniz ve miktar **anında** hesabınıza yatırılır.
 $min_value: Min. %value%
 Est. balance in a year: Bir yıl içindeki tahmini bakiye
 Confirm Staking: Staking işlemini onayla
@@ -226,7 +239,7 @@ Currently Staked: Güncel stake miktarı
 Unstake: Unstake et
 Earning History: Kazanç Geçmişi
 $total: "Toplam: %value%"
-Unstake TON: TON Unstake et
+$unstake_asset: "%symbol% Unstake et"
 $unstake_information_with_time: |
   Mevcut birikiminiz %time% içinde tamamen cüzdanınıza geri aktarılacaktır.
   Bu, pasif getirinizi durduracaktır.
@@ -235,7 +248,7 @@ Confirm Unstaking: Unstaking işlemini onayla
 Request for unstaking is sent!: Unstake işlemi için talep gönderildi!
 $unstaking_when_receive: Stake'e yatırılmamış bakiyenizi %time% içinde alacaksınız.
 $unstake_insufficient_balance: Unstaking işlemine devam etmek için ana bakiyenizde %balance% bulunması gerekir.
-at %apy_value%: "%apy_value% ile"
+at %annual_yield%: "%annual_yield% ile"
 Staked: Stake edildi
 Unstake Requested: Unstake talep edildi
 Unstaked: Unstake gerçekleşti
@@ -335,7 +348,7 @@ You sell: Satıyorsunuz
 You buy: Alıyorsunuz
 Swap Details: Takas bilgileri
 Blockchain fee: Blockchain ücreti
-Routing Fees: Yönlendirme ücretleri
+Aggregator Fee: Toplayıcı ücreti
 Included: Dahil edildi
 Price Impact: Fiyat etkisi
 Minimum Received: Minimum alınan
@@ -346,7 +359,6 @@ Invalid Pair: Geçersiz işlem çifti
 We do not recommend to perform an exchange, try to specify a lower amount.: Takas yapmanızı tavsiye etmiyoruz, daha düşük bir tutar belirtmeye çalışın.
 $swap_minimum_received_tooltip1: Mevcut piyasa koşulları, kayma toleransı ve potansiyel fiyat etkisi göz önüne alındığında, bu takastan elde edeceğiniz en az yeni token miktarı budur.
 $swap_minimum_received_tooltip2: Bu beklenen minimum tutardır, ancak takasınız işleme konurken koşullar çok değişirse, nihai tutar daha az olabilir.
-$swap_routing_fees_tooltip: Hem merkeziyetsiz borsa hem de uygulama ücretleri (~%0,875) görüntülediğiniz fiyata halihazırda dahil olup ayrıca ücretlendirilmeyecektir.
 $swap_price_impact_tooltip1: Bu, işleminizin token fiyatını ne kadar değiştirebileceğini gösterir.
 $swap_price_impact_tooltip2: Yüksek hacimli alım satımlar fiyatın daha fazla yükselmesine veya düşmesine neden olabilir. Daha düşük tutarlar genellikle daha iyidir.
 $swap_slippage_tooltip1: Bu, takas talebinizin işleme alınmadan önce fiyatın ne kadar değişmesine izin verileceğini belirler.
@@ -420,7 +432,7 @@ Please note that it may take up to a few hours for tokens to appear in your wall
 Minimum amount: Minimum %value%
 Maximum amount: Maksimum %value%
 Display Tray Icon: Sistem çubuğu simgesini göster
-Enable Auto-Updates: Otomatik güncellemeleri etkinleştir
+Auto-Updates: Otomatik Güncellemeler
 Biometric Authentication: Biyometrik kimlik doğrulama
 If you turn off biometric protection, you will need to create a password.: Biyometrik korumayı kapatırsanız, bir parola oluşturmanız gerekecektir.
 Enter your current password: Geçerli parolanızı girin
@@ -451,8 +463,6 @@ Permission denied. Please grant camera permission to use the QR code scanner.: �
 Unsupported QR code format: Desteklenmeyen QR kod formatı
 An error on the server side. Please try again.: Sunucu tarafında bir hata oluştu. Lütfen tekrar deneyin.
 Unrecognized QR Code: Tanınmayan QR Kodu
-$fee_value_almost_equal: Ücret ≈ %fee%
-$fee_value_less: Ücret < %fee%
 Address was saved!: Adres kaydedildi!
 US Dollar: ABD doları
 Euro: Euro
@@ -494,6 +504,7 @@ Incorrect code, please try again.: Hatalı kod, lütfen tekrar deneyin.
 Correct: Doğru
 Confirm Action: Eylemi Onayla
 Confirm Swap: Takası onaylayın
+Confirm Rewards Claim: Ödül Talebini Onayla
 "%amount% to %address%": "%address% numaralı adrese %amount%"
 "%amount_from% to %amount_to%": "%amount_from%'den' %amount_to%'e"
 Failed to enable biometrics.: Biyometrik koruma etkinleştirilemedi.
@@ -524,6 +535,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: Ayrıca %action% yapabilirsiniz.
 $wallet_switch_version_2: başka bir cüzdan versiyonuna geçiş yap
 or import from: veya şuradan içe aktar
+Insufficient fee: Yetersiz ücret
 $insufficient_fee: "Yetersiz ücret: %fee%"
 Required: Gerekli
 Comment is too long.: Yorum çok uzun.
@@ -536,7 +548,7 @@ No internet connection. Please check your connection and try again.: İnternet b
 To use this feature, first enable Face ID in your phone settings.: Bu özelliği kullanmak için öncelikle telefon ayarlarınızda Face ID'yi etkinleştirin.
 To use this feature, first enable biometrics in your phone settings.: Bu özelliği kullanmak için öncelikle telefon ayarlarınızda biyometriyi etkinleştirin.
 Open Settings: Ayarları aç
-You are about to transfer an important service token, which is needed to withdraw your deposit from staking.: Yatırdığınız tutarı stake işleminden çekmek için gerekli olan önemli bir hizmet tokenını aktarmak üzeresiniz.
+$service_token_transfer_warning: Mevduatınızı çekmek veya hizmet işlemlerini tamamlamak için gerekli olan önemli bir hizmet tokenini transfer etmek üzeresiniz. Bu işlemi yapmayı gerçekten istediğinizden emin olun.
 No Price: Fiyat yok
 $ledger_not_supported_operation: Bu işlem, kullandığınız Ledger TON App sürümü tarafından desteklenmiyor. Lütfen Ledger Live kullanarak güncelleyin.
 $ledger_unsupported_ton_connect: TonConnect, Ledger Ton uygulamanızın sürümü tarafından desteklenmez. Lütfen Ledger Live kullanarak güncelleyin.
@@ -657,6 +669,7 @@ $hardware_blind_sign_not_enabled: |
   Üçüncü taraf bir hizmet cüzdanınıza erişim istiyor — bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
 
   Devam etmek için, Ledger üzerindeki TON Uygulamasının ayarlarında "Kör İmzalama" seçeneğini etkinleştirin.
+$hardware_blind_sign_not_enabled_internal: Devam etmek için, Ledger üzerindeki TON Uygulamasının ayarlarında "Kör İmzalama" seçeneğini etkinleştirin.
 Switch to W5: W5'e Geç
 Not Scam: Dolandırıcılık Değil
 Untitled: Başlıksız
@@ -672,15 +685,39 @@ NFT Menu: NFT Menüsü
 Connection Type: Bağlantı Türü
 Ledger is not supported on this device: Ledger bu cihazda desteklenmiyor
 Connect your Ledger: Ledger'ınızı bağlayın
-App will not be locked.: Uygulama kilitlenmeyecek.
-App will be automatically locked after 30 seconds of inactivity.: Uygulama 30 saniye hareketsizlikten sonra otomatik olarak kilitlenecek.
-App will be automatically locked after 3 minutes of inactivity.: Uygulama 3 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
-App will be automatically locked after 30 minutes of inactivity.: Uygulama 30 dakika hareketsizlikten sonra otomatik olarak kilitlenecek.
+$app_lock_description: Uygulama kilidi etkinleştirildiğinde, ana sayfadaki kartta bir kilit simgesi görünür. MyTonWallet'i kilitlemek için kullanın.
+App Lock: Uygulama Kilidi
 Auto-Lock: Otomatik Kilit
-Never: Asla
+Disabled: Devre Dışı
 30 seconds: 30 saniye
 3 minutes: 3 dakika
-30 minutes: 30 dakika
+10 minutes: 10 dakika
+If away for 30 sec: 30 sn. hareketsizse
+If away for 3 min: 3 dk. hareketsizse
+If away for 10 min: 10 dk. hareketsizse
+Unlock: Kilidi aç
 This address mimics another address that you previously interacted with.: Bu adres, daha önce etkileşimde bulunduğunuz başka bir adresi taklit ediyor.
 Biometric authentication failed: Biyometrik kimlik doğrulama başarısız oldu
 Reset biometrics in security settings, or use a passcode.: Güvenlik ayarlarında biyometrik kimlik doğrulamayı sıfırlayın veya bir şifre kullanın.
+Best Rate: En İyi Kur
+via %dex_name%: "%dex_name% aracılığıyla"
+$swap_dex_chooser_rate_title: "**DeDust** ve **STON.fi** üzerindeki analiz edilen gerçek oranlar, **en iyi kuru** kullanmak için."
+You will receive %amount% **more**.: "%amount% **daha fazla** alacaksınız."
+You will spend %amount% **less**.: "%amount% **daha az** harcayacaksınız."
+Best: En İyi
+Use Best Rate: En İyi Oranı Kullan
+Switch to %dex_name%: "%dex_name%'e Geç"
+Built-in Dex Aggregator: Dahili Dex Toplayıcı
+Add tokens: Jeton ekle
+No tokens yet: Henüz jeton yok
+$no_tokens_description: Başka bir cüzdandan jeton alın veya izleme için tercih edilen jetonları ayarlardan etkinleştirin.
+Exchange Rate: Döviz Kuru
+Install Card: Kartı yükle
+Reset Card: Kartı sıfırla
+Apply Palette: Paleti uygula
+Reset Palette: Paleti sıfırla
+Notifications & Sounds: Bildirimler ve Sesler
+Push Notifications: Anlık Bildirimler
+Select up to %count% wallets for notifications: Bildirimler için en fazla %count% cüzdan seçin
+$swap_aggregator_fee_tooltip: Dahili bir **DEX toplayıcı**, mevcut DEX'ler arasında **en iyi oranı** bulur. Hizmet ücreti %percent%.
+Accumulated Rewards: Birikmiş ödüller

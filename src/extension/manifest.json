@@ -16,7 +16,8 @@
     "system.display",
     "proxy",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "downloads"
   ],
   "background": {
     "service_worker": "/extensionServiceWorker.js"

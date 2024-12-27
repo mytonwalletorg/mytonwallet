@@ -156,7 +156,7 @@ export function replaceLocalTransaction(
   if (!replacedActivity || replacedActivity.kind !== 'transaction') return global;
 
   const {
-    slug, amount, timestamp, txId, shouldHide,
+    slug, amount, timestamp, txId, shouldHide, fee,
   } = activity;
   const updatedIdsBySlug = { ...idsBySlug };
   let { idsMain = [], newestTransactionsBySlug = {} } = activities ?? {};
@@ -190,6 +190,7 @@ export function replaceLocalTransaction(
       amount,
       shouldHide,
       timestamp,
+      fee,
     },
   };
 

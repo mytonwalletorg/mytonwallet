@@ -4,12 +4,13 @@ import React, {
 } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS } from '../../config';
+import { getNumberRegex } from '../../global/helpers/number';
 import buildClassName from '../../util/buildClassName';
 
 import useFontScale from '../../hooks/useFontScale';
 import useLastCallback from '../../hooks/useLastCallback';
 
-import { buildContentHtml, getInputRegex } from './RichNumberInput';
+import { buildContentHtml } from './RichNumberInput';
 
 import styles from './Input.module.scss';
 
@@ -52,7 +53,7 @@ function RichNumberField({
   const renderValue = useLastCallback((inputValue = '', noFallbackToPrev = false) => {
     const contentEl = contentRef.current!;
 
-    const valueRegex = getInputRegex(decimals);
+    const valueRegex = getNumberRegex(decimals);
     const values = inputValue.toString().match(valueRegex);
 
     // eslint-disable-next-line no-null/no-null
@@ -97,6 +98,7 @@ function RichNumberField({
     styles.disabled,
     error && styles.error,
     valueClassName,
+    'rounded-font',
   );
   const labelTextClassName = buildClassName(
     styles.label,

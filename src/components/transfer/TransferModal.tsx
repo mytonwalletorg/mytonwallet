@@ -68,7 +68,7 @@ function TransferModal({
     tokenSlug,
     nfts,
     sentNftsCount,
-    dieselStatus,
+    diesel,
   },
   tokens, savedAddresses, hardwareState, isLedgerConnected, isTonAppConnected, isMediaViewerOpen, isMultichainAccount,
 }: StateProps) {
@@ -146,8 +146,7 @@ function TransferModal({
         return (
           <TransferConfirm
             isActive={isActive}
-            symbol={symbol}
-            decimals={selectedToken?.decimals}
+            token={selectedToken}
             savedAddresses={savedAddresses}
             onBack={isPortrait ? handleBackClick : handleModalClose}
             onClose={handleModalCloseWithReset}
@@ -162,7 +161,7 @@ function TransferModal({
             error={error}
             onSubmit={handleTransferSubmit}
             onCancel={handleModalCloseWithReset}
-            isGaslessWithStars={dieselStatus === 'stars-fee'}
+            isGaslessWithStars={diesel?.status === 'stars-fee'}
           >
             <TransactionBanner
               tokenIn={selectedToken}

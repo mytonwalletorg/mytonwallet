@@ -5,6 +5,7 @@ interface Log {
   message: string;
   args: any[];
   timestamp: number;
+  level: 'debug' | 'debugError';
 }
 
 const MAX_LOG_LENGTH = 999;
@@ -49,7 +50,7 @@ export function logActionHandling(name: string, payload?: any) {
 }
 
 export function logDebugError(message: string, ...args: any[]) {
-  addLog({ message, args });
+  addLog({ message, level: 'debugError', args });
   if (DEBUG) {
     // eslint-disable-next-line no-console
     console.error(`[DEBUG][${message}]`, ...args);
@@ -57,7 +58,7 @@ export function logDebugError(message: string, ...args: any[]) {
 }
 
 export function logDebug(message: any, ...args: any[]) {
-  addLog({ message, args });
+  addLog({ message, level: 'debug', args });
   if (DEBUG) {
     // eslint-disable-next-line no-console
     console.log(`[DEBUG] ${message}`, ...args);

@@ -2,7 +2,7 @@ import type { ApiNft } from '../../api/types';
 import type { GlobalState } from '../types';
 
 import { selectAccountState } from '../selectors';
-import { updateAccountState } from './misc';
+import { updateAccountSettings, updateAccountState } from './misc';
 
 export function addNft(global: GlobalState, accountId: string, nft: ApiNft) {
   const nftAddress = nft.address;
@@ -72,4 +72,18 @@ export function removeFromSelectedAddresses(global: GlobalState, accountId: stri
       selectedAddresses: selectedAddresses.length ? selectedAddresses : undefined,
     },
   });
+}
+
+// Updates the account settings to ensure the specified NFT is up-to-date.
+export function updateAccountSettingsBackgroundNft(global: GlobalState, nft: ApiNft) {
+  Object.entries(global.settings.byAccountId).forEach(([accountId, settings]) => {
+    if (settings.cardBackgroundNft?.address === nft.address) {
+      global = updateAccountSettings(global, accountId, {
+        ...settings,
+        cardBackgroundNft: nft,
+      });
+    }
+  });
+
+  return global;
 }

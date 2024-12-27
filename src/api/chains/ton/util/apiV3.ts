@@ -219,7 +219,7 @@ export async function getAccountStates(network: ApiNetwork, addresses: string[])
 
   const addressByRaw = Object.fromEntries(addresses.map((address) => [toRawAddress(address), address]));
   for (const state of states) {
-    state.address = addressByRaw[state.address];
+    state.address = addressByRaw[state.address.toLowerCase()];
   }
   return buildCollectionByKey(states, 'address');
 }

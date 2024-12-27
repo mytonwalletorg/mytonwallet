@@ -14,7 +14,7 @@
   justify-content: center;
 
   width: 100%;
-  padding: 0.875rem 1.5rem 0.875rem 0.75rem;
+  padding: 0.875rem 0.875rem 0.875rem 0.75rem;
 
   color: var(--color-black);
 
@@ -23,7 +23,7 @@
       content: '';
 
       position: absolute;
-      right: 1.5rem;
+      right: 0;
       bottom: 0;
       left: 3.625rem;
 
@@ -66,7 +66,7 @@
 
   :global(html.is-android) &,
   :global(html.is-ios) & {
-    padding: 0.6875rem 1.5rem 0.6875rem 0.75rem;
+    padding: 0.6875rem 0.75rem 0.6875rem 0.75rem;
   }
 }
 
@@ -115,7 +115,11 @@
   display: flex;
   align-items: center;
 
-  text-overflow: ellipsis;
+  &_text {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+  }
 }
 
 .name, .secondaryValue {
@@ -249,12 +253,8 @@
 
 .secondaryValue_vestingUnfreeze,
 .vestingIcon:global(.icon-fire)::before {
-  background: linear-gradient(81.88deg, var(--color-blue) 19.42%, #1EC160 71.55%);
+  background: var(--color-gradient-main-blue2-green);
   background-clip: text;
 
   -webkit-text-fill-color: transparent;
-
-  :global(.theme-dark) & {
-    background-image: linear-gradient(81.88deg, #58AFFF 19.42%, #2CD36F 71.55%);
-  }
 }

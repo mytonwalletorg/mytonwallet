@@ -45,6 +45,10 @@
 
   &:not(.interactive) {
     cursor: default;
+    &:hover {
+      background: inherit !important;
+
+    }
   }
 
   &.interactive {

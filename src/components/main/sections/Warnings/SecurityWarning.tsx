@@ -1,7 +1,7 @@
 import React, { memo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import { MY_TON_WALLET_PROMO_URL } from '../../../../config';
+import { MYTONWALLET_PROMO_URL } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { openUrl } from '../../../../util/openUrl';
 
@@ -25,7 +25,7 @@ function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
   const lang = useLang();
 
   function handleClick() {
-    openUrl(MY_TON_WALLET_PROMO_URL);
+    openUrl(MYTONWALLET_PROMO_URL);
   }
 
   const handleClose = useLastCallback((e: React.MouseEvent<HTMLButtonElement>) => {

@@ -172,7 +172,7 @@
 .amountBottomRight {
   flex: 1;
 
-  color: var(--color-gray-5);
+  color: var(--color-gray-3);
 
   transition: color 150ms;
 
@@ -203,7 +203,6 @@
 
 .minAmountValue,
 .amountInCurrency,
-.notEnoughBalanceTextBold,
 .historyTotalValue {
   font-weight: 600;
 }
@@ -322,16 +321,16 @@
   --color-blue-button-text-hover: var(--color-purple-button-text-hover);
   --color-blue-button-background: var(--color-purple-button-background);
   --color-blue-button-background-hover: var(--color-purple-button-background-hover);
-  --color-gray-button-text: var(--color-purple-button-light-text);
-  --color-gray-button-background: var(--color-purple-button-light-background);
-  --color-gray-button-text-hover: var(--color-purple-button-light-text-hover);
-  --color-gray-button-background-hover: var(--color-purple-button-light-background-hover);
+  --color-gray-button-text: var(--color-gpurple-button-text-rest);
+  --color-gray-button-background: var(--color-gpurple-button-background-rest);
+  --color-gray-button-text-hover: var(--color-gpurple-button-text-hover);
+  --color-gray-button-background-hover: var(--color-gpurple-button-background-hover);
 
   --color-black: var(--color-purple-1);
-  --color-close-button-text: var(--color-purple-2);
-  --color-close-button-text-hover: var(--color-close-button-purple-text-hover);
-  --color-close-button-background: var(--color-close-button-purple-background);
-  --color-close-button-background-hover: var(--color-close-button-purple-background-hover);
+  --color-close-button-text: var(--color-gpurple-button-text-rest);
+  --color-close-button-text-hover: var(--color-gpurple-button-text-hover);
+  --color-close-button-background: var(--color-gpurple-button-background-rest);
+  --color-close-button-background-hover: var(--color-gpurple-button-background-hover);
 
   background: var(--color-background-purple-2);
   border-radius: var(--border-radius-small);
@@ -408,11 +407,15 @@
 }
 
 .stakingInfoLoading {
-  --spinner-size: 1.5rem !important;
+  align-self: center;
 
-  position: absolute !important;
-  right: 1.25rem;
-  bottom: 1.25rem;
+  width: 0;
+}
+
+.stakingInfoLoadingAnimation {
+  position: relative;
+  right: 2.5rem;
+  --spinner-size: 1.5rem;
 }
 
 .stakingInfoClose {
@@ -423,11 +426,13 @@
 .stakingInfoButtons {
   position: relative;
 
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 0.5rem;
 
   margin-top: 1.25rem;
+  &_withMargin {
+    margin-bottom: 2rem;
+  }
 }
 
 .stakingInfoButton {
@@ -466,9 +471,9 @@
   &_purple {
     margin-top: 1.25rem;
 
-    color: var(--color-purple-button-light-text);
+    color: var(--color-gpurple-button-text-rest);
 
-    background: var(--color-purple-button-light-background);
+    background: var(--color-gpurple-button-background-rest);
   }
 }
 
@@ -557,23 +562,37 @@
 
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-transaction-green-text);
+  color: var(--color-transaction-amount-green-text);
   text-align: center;
 
-  background: var(--color-transaction-green-background);
+  background: var(--color-transaction-amount-green-bg);
   border-radius: var(--border-radius-buttons);
 }
 
-.notEnoughBalanceContent {
-  display: flex;
-  align-items: center;
+.tokenDropdown {
+  --offset-y-value: calc(100% - 3.25rem);
+  --offset-x-value: 0;
+
+  position: relative;
+  top: 0.375rem;
+  right: 0.375rem;
 }
 
-.notEnoughBalanceText {
-  width: 19rem;
-  margin-top: 1.25rem;
+.tokenDropdownItem :global(.menuItemName), .tokenDropdownItem :global(.itemName) {
+  font-weight: 700;
+}
 
-  font-size: 0.9375rem;
-  color: var(--color-gray-1);
-  text-align: center;
+.tokenDropdownMenu {
+  color: var(--color-gpurple-button-text-rest) !important;
+
+  background: var(--color-input-button-background-purple-rest) !important;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      color: var(--color-gpurple-button-text-hover) !important;
+
+      background-color: var(--color-input-button-background-purple-hover) !important;
+    }
+  }
 }

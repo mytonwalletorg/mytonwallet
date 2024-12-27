@@ -4,7 +4,6 @@ import type { ApiActivity, ApiTransactionActivity } from './activity';
 import type { ApiStakingCommonData, ApiSwapAsset, ApiVestingInfo } from './backend';
 import type { ApiAnyDisplayError } from './errors';
 import type {
-  ApiBackendStakingState,
   ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiChain,
@@ -76,9 +75,10 @@ export type ApiUpdateShowError = {
 export type ApiUpdateStaking = {
   type: 'updateStaking';
   accountId: string;
-  stakingCommonData: ApiStakingCommonData;
-  stakingState: ApiStakingState;
-  backendStakingState: ApiBackendStakingState;
+  states: ApiStakingState[];
+  common: ApiStakingCommonData;
+  totalProfit: bigint;
+  shouldUseNominators?: boolean;
 };
 
 export type ApiUpdateActiveDapp = {
@@ -166,6 +166,7 @@ export type ApiUpdateNftSent = {
   type: 'nftSent';
   accountId: string;
   nftAddress: string;
+  newOwnerAddress: string;
 };
 
 export type ApiUpdateNftPutUpForSale = {
@@ -188,6 +189,7 @@ export type ApiUpdateConfig = {
   isCopyStorageEnabled: boolean;
   supportAccountsCount?: number;
   countryCode?: ApiCountryCode;
+  isAppUpdateRequired: boolean;
 };
 
 export type ApiUpdateWalletVersions = {

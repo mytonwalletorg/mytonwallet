@@ -12,7 +12,9 @@ import useLang from '../../hooks/useLang';
 
 import TabList from '../ui/TabList';
 import Transition from '../ui/Transition';
+import TonActions from './content/TonActions';
 import TonContent from './content/TonContent';
+import TronActions from './content/TronActions';
 import TronContent from './content/TronContent';
 
 import styles from './ReceiveModal.module.scss';
@@ -62,6 +64,14 @@ function Content({
 
   const [activeTab, setActiveTab] = useState<number>(tabs.length ? tabs[0].id : 0);
 
+  function renderActions() {
+    if (tabs[activeTab]?.id === TRON_TAB_ID) {
+      return <TronActions isStatic />;
+    }
+
+    return <TonActions isStatic isLedger={isLedger} />;
+  }
+
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
@@ -82,6 +92,7 @@ function Content({
             isActive={isOpen && isActive}
             isStatic={isStatic}
             address={addressByChain!.tron}
+            onClose={onClose}
           />
         );
     }
@@ -89,6 +100,8 @@ function Content({
 
   return (
     <>
+      {isStatic && renderActions()}
+
       {tabs.length > 1 && (
         <TabList
           withBorder

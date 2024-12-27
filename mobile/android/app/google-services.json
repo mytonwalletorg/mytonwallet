@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "155616896352",
+    "project_id": "mytonwallet-19cac",
+    "storage_bucket": "mytonwallet-19cac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:155616896352:android:ee6a74c4ae7b7e2d7eaa05",
+        "android_client_info": {
+          "package_name": "org.mytonwallet.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxJvcFF4J9UaNcrTa480Acb9aBbyNnZSM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

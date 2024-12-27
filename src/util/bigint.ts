@@ -15,6 +15,12 @@ export function bigintAbs(value: bigint) {
   return value === -0n || value < 0n ? -value : value;
 }
 
+export function bigintSum(values: bigint[]) {
+  let result = 0n;
+  for (const value of values) result += value;
+  return result;
+}
+
 export function bigintDivideToNumber(value: bigint, num: number) {
   return (value * ONE_TON) / fromDecimal(num);
 }
@@ -36,4 +42,16 @@ export function bigintRandom(bytes: number) {
 export function bigintCountBits(value: bigint) {
   const binaryString = value.toString(2);
   return binaryString.length;
+}
+
+export function bigintMax(value0: bigint, value1: bigint) {
+  return value0 > value1 ? value0 : value1;
+}
+
+export function bigintMin(value0: bigint, value1: bigint) {
+  return value0 < value1 ? value0 : value1;
+}
+
+export function bigintMultiplePercent(value: bigint, percent: number) {
+  return (value * fromDecimal(percent / 100)) / ONE_TON;
 }

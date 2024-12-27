@@ -13,6 +13,7 @@ export {
   getNftUpdates,
   checkNftTransferDraft,
   submitNftTransfers,
+  checkNftOwnership,
 } from './nfts';
 export { oneCellFromBoc } from './util/tonCore';
 export {
@@ -53,11 +54,11 @@ export {
 export {
   checkStakeDraft,
   checkUnstakeDraft,
+  submitStakingClaim,
   submitStake,
   submitUnstake,
-  getStakingState,
+  getStakingStates,
   getBackendStakingState,
-  onStakingChangeExpected,
 } from './staking';
 export {
   packPayloadToBoc,

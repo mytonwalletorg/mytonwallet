@@ -44,7 +44,7 @@ function TonActions({
   const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
 
   const handleBuyFiat = useLastCallback(() => {
-    openOnRampWidgetModal();
+    openOnRampWidgetModal({ chain: 'ton' });
     onClose?.();
   });
 

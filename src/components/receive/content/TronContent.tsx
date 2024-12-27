@@ -7,6 +7,7 @@ import useLang from '../../../hooks/useLang';
 import useQrCode from '../../../hooks/useQrCode';
 
 import InteractiveTextField from '../../ui/InteractiveTextField';
+import TronActions from './TronActions';
 
 import styles from '../ReceiveModal.module.scss';
 
@@ -14,12 +15,14 @@ interface OwnProps {
   isActive?: boolean;
   isStatic?: boolean;
   address: string;
+  onClose?: NoneToVoidFunction;
 }
 
 function TronContent({
   isActive,
   isStatic,
   address,
+  onClose,
 }: OwnProps) {
   const lang = useLang();
   const { qrCodeRef, isInitialized } = useQrCode({
@@ -50,6 +53,8 @@ function TronContent({
         copyNotification={lang('Your address was copied!')}
         noSavedAddress
       />
+
+      {!isStatic && <TronActions onClose={onClose} />}
     </div>
   );
 }

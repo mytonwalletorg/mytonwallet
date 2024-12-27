@@ -1,25 +1,33 @@
+import type { ApiStakingState } from '../../../../../api/types';
 import type { UserToken } from '../../../../../global/types';
 
-import { TONCOIN } from '../../../../../config';
 import { Big } from '../../../../../lib/big.js';
 import { calcBigChangeValue } from '../../../../../util/calcChangeValue';
 import { toBig } from '../../../../../util/decimals';
-import { formatInteger } from '../../../../../util/formatNumber';
+import { formatNumber } from '../../../../../util/formatNumber';
+import { buildCollectionByKey } from '../../../../../util/iteratees';
 import { round } from '../../../../../util/math';
 
 import styles from '../Card.module.scss';
 
-export function calculateFullBalance(tokens: UserToken[], stakingBalance = 0n) {
+export function calculateFullBalance(tokens: UserToken[], states?: ApiStakingState[]) {
+  const stateBySlug = buildCollectionByKey(states ?? [], 'tokenSlug');
+
   const primaryValue = tokens.reduce((acc, token) => {
-    if (token.slug === TONCOIN.slug) {
-      const stakingAmount = toBig(stakingBalance, token.decimals).mul(token.price);
+    const stakingState = stateBySlug[token.slug];
+
+    if (stakingState) {
+      let stakingAmount = toBig(stakingState.balance, token.decimals).mul(token.price);
+      if (stakingState.type === 'jetton') {
+        stakingAmount = stakingAmount.plus(toBig(stakingState.unclaimedRewards, token.decimals));
+      }
       acc = acc.plus(stakingAmount);
     }
 
     return acc.plus(token.totalValue);
   }, Big(0));
 
-  const [primaryWholePart, primaryFractionPart] = formatInteger(primaryValue).split('.');
+  const [primaryWholePart, primaryFractionPart] = formatNumber(primaryValue).split('.');
   const changeValue = tokens.reduce((acc, token) => {
     return acc.plus(calcBigChangeValue(token.totalValue, token.change24h));
   }, Big(0)).round(4).toNumber();

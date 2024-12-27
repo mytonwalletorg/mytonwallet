@@ -71,9 +71,10 @@ export function updateAccountMemoryCache(accountId: string, address: string, par
 
 export { setIsAppFocused, getLogs };
 
-export async function getMoonpayOnrampUrl(address: string, theme: Theme) {
+export async function getMoonpayOnrampUrl(chain: ApiChain, address: string, theme: Theme) {
   try {
     return await callBackendGet<{ url: string }>('/onramp-url', {
+      chain,
       address,
       theme,
     });

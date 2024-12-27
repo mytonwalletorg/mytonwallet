@@ -36,6 +36,7 @@ export const IS_IOS = PLATFORM_ENV === 'iOS';
 export const IS_ANDROID = PLATFORM_ENV === 'Android';
 export const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 export const IS_OPERA = navigator.userAgent.includes(' OPR/');
+export const IS_EDGE = navigator.userAgent.includes(' Edg/');
 export const IS_FIREFOX = navigator.userAgent.includes('Firefox/');
 export const IS_TOUCH_ENV = window.matchMedia('(pointer: coarse)').matches;
 export const IS_CHROME_EXTENSION = Boolean(window.chrome?.system);

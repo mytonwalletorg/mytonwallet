@@ -39,6 +39,12 @@ export class AbortOperationError extends ApiBaseError {
   }
 }
 
+export class NotImplemented extends ApiBaseError {
+  constructor(message: string = 'Not implemented') {
+    super(message);
+  }
+}
+
 export function maybeApiErrors(fn: AnyAsyncFunction) {
   return async (...args: any) => {
     try {

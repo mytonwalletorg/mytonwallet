@@ -39,6 +39,8 @@ export async function checkTransactionDraft(
       return { error: ApiTransactionDraftError.InvalidToAddress };
     }
 
+    result.resolvedAddress = toAddress;
+
     const { address } = await fetchStoredTronWallet(accountId);
     const [trxBalance, bandwidth, { energyUnitFee, bandwidthUnitFee }] = await Promise.all([
       getWalletBalance(network, address),
@@ -53,7 +55,7 @@ export async function checkTransactionDraft(
       const buildResult = await buildTrc20Transaction(tronWeb, {
         toAddress,
         tokenAddress,
-        amount,
+        amount: amount ?? 0n,
         energyUnitFee,
         feeLimitTrx: chainConfig.gas.maxTransferToken,
         fromAddress: address,
@@ -62,25 +64,24 @@ export async function checkTransactionDraft(
       transaction = buildResult.transaction;
       fee = BigInt(buildResult.energyFee);
     } else {
-      transaction = await tronWeb.transactionBuilder.sendTrx(toAddress, Number(amount), address);
+      // This call throws "Error: Invalid amount provided" when the amount is 0.
+      // It doesn't throw when the amount is > than the balance.
+      transaction = await tronWeb.transactionBuilder.sendTrx(toAddress, Number(amount ?? 1), address);
     }
 
     const size = 9 + 60 + Buffer.from(transaction.raw_data_hex, 'hex').byteLength + SIGNATURE_SIZE;
     fee += bandwidth > size ? 0n : BigInt(size) * BigInt(bandwidthUnitFee);
+    result.fee = fee;
+    result.realFee = fee;
 
-    const trxAmount = tokenAddress ? fee : amount + fee;
-    if (trxBalance < trxAmount) {
-      return {
-        resolvedAddress: toAddress,
-        fee,
-        error: ApiTransactionDraftError.InsufficientBalance,
-      };
+    const trxAmount = tokenAddress ? fee : (amount ?? 0n) + fee;
+    const isEnoughTrx = trxBalance >= trxAmount;
+
+    if (!isEnoughTrx) {
+      result.error = ApiTransactionDraftError.InsufficientBalance;
     }
 
-    return {
-      resolvedAddress: toAddress,
-      fee,
-    };
+    return result;
   } catch (err) {
     logDebugError('tron:checkTransactionDraft', err);
     return {
@@ -175,6 +176,8 @@ async function buildTrc20Transaction(tronWeb: TronWeb, options: {
     fromAddress,
   );
 
+  // This call throws "Error: REVERT opcode executed" when the given amount is more than the token balance.
+  // It doesn't throw when the amount is 0.
   const { energy_required: energyRequired } = await tronWeb.transactionBuilder.estimateEnergy(
     tokenAddress,
     functionSelector,

@@ -1,7 +1,8 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { GlobalState, SavedAddress } from '../../global/types';
+import type { ApiToken } from '../../api/types';
+import type { GlobalState, SavedAddress, UserToken } from '../../global/types';
 
 import {
   ANIMATED_STICKER_SMALL_SIZE_PX,
@@ -16,8 +17,10 @@ import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { toDecimal } from '../../util/decimals';
+import { formatFee } from '../../util/fee/formatFee';
+import { explainApiTransferFee } from '../../util/fee/transferFee';
 import { formatCurrencySimple } from '../../util/formatNumber';
-import { getNativeToken } from '../../util/tokens';
+import { getIsNativeToken, getNativeToken } from '../../util/tokens';
 import { NFT_TRANSFER_AMOUNT } from '../../api/chains/ton/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -40,8 +43,7 @@ import styles from './Transfer.module.scss';
 interface OwnProps {
   isActive: boolean;
   savedAddresses?: SavedAddress[];
-  symbol: string;
-  decimals?: number;
+  token?: UserToken | ApiToken;
   onBack: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
 }
@@ -57,6 +59,7 @@ function TransferConfirm({
     chain,
     resolvedAddress,
     fee,
+    realFee,
     comment,
     shouldEncrypt,
     promiseId,
@@ -66,13 +69,11 @@ function TransferConfirm({
     isScam,
     binPayload,
     nfts,
-    withDiesel,
     isGaslessWithStars,
-    dieselAmount,
+    diesel,
     stateInit,
   },
-  symbol,
-  decimals,
+  token,
   isActive,
   savedAddresses,
   onBack,
@@ -92,6 +93,13 @@ function TransferConfirm({
   const isBurning = resolvedAddress === BURN_ADDRESS;
   const isNotcoinBurning = resolvedAddress === NOTCOIN_EXCHANGERS[0];
   const nativeToken = chain ? getNativeToken(chain) : undefined;
+  const explainedFee = explainApiTransferFee({
+    fee,
+    realFee,
+    diesel,
+    chain,
+    isNativeToken: getIsNativeToken(token?.slug),
+  });
 
   useHistoryBack({
     isActive,
@@ -111,6 +119,30 @@ function TransferConfirm({
     return <NftChips nfts={nfts!} />;
   }
 
+  function renderFee() {
+    if (isNftTransfer) {
+      return renderFeeForNft();
+    }
+
+    if (!explainedFee.realFee || !token || !nativeToken) {
+      return undefined;
+    }
+
+    return (
+      <AmountWithFeeTextField
+        label={lang('Amount')}
+        amount={toDecimal(amount ?? 0n, token?.decimals)}
+        symbol={token?.symbol ?? ''}
+        feeText={formatFee({
+          terms: explainedFee.realFee.terms,
+          precision: explainedFee.realFee.precision,
+          token,
+          nativeToken,
+        })}
+      />
+    );
+  }
+
   function renderFeeForNft() {
     const totalFee = (NFT_TRANSFER_AMOUNT + (fee ?? 0n)) * BigInt(Math.ceil(nfts!.length / NFT_BATCH_SIZE));
 
@@ -122,18 +154,6 @@ function TransferConfirm({
           <span className={styles.currencySymbol}>{TONCOIN.symbol}</span>
         </div>
       </>
-    );
-  }
-
-  function renderFeeWithDiesel() {
-    return (
-      <AmountWithFeeTextField
-        label={lang('Amount')}
-        amount={toDecimal(amount ?? 0n, decimals)}
-        symbol={symbol}
-        fee={dieselAmount ? toDecimal(dieselAmount, decimals) : undefined}
-        feeSymbol={isGaslessWithStars ? STARS_SYMBOL : symbol}
-      />
     );
   }
 
@@ -231,20 +251,7 @@ function TransferConfirm({
           className={styles.addressWidget}
         />
 
-        {
-          isNftTransfer ? renderFeeForNft()
-            : withDiesel ? renderFeeWithDiesel()
-              : (
-                <AmountWithFeeTextField
-                  label={lang('Amount')}
-                  amount={toDecimal(amount ?? 0n, decimals)}
-                  symbol={symbol}
-                  fee={fee ? toDecimal(fee, nativeToken?.decimals) : undefined}
-                  feeSymbol={nativeToken?.symbol}
-                />
-              )
-        }
-
+        {renderFee()}
         {renderComment()}
 
         {nfts && (isBurning || (isNotcoinBurning && nfts?.length > 1)) && (

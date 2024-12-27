@@ -2,6 +2,7 @@
   position: relative;
 
   display: flex;
+  flex-wrap: wrap;
 
   box-sizing: border-box;
   margin-bottom: 1.25rem;
@@ -45,6 +46,7 @@
 
 .feeConfirm {
   margin-left: auto;
+  padding-left: 1rem;
 
   color: var(--color-gray-3);
 }

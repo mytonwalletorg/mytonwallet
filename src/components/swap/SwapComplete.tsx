@@ -22,7 +22,6 @@ interface OwnProps {
   amountOut?: string;
   swapType?: SwapType;
   toAddress?: string;
-  networkFee?: number;
   onInfoClick: NoneToVoidFunction;
   onStartSwap: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
@@ -36,7 +35,6 @@ function SwapComplete({
   amountOut,
   swapType,
   toAddress,
-  networkFee,
   onInfoClick,
   onStartSwap,
   onClose,
@@ -60,7 +58,6 @@ function SwapComplete({
           amountOut={amountOut}
           swapType={swapType}
           toAddress={toAddress}
-          networkFee={networkFee}
           playAnimation={isActive}
           firstButtonText={lang('Details')}
           secondButtonText={lang('Repeat')}

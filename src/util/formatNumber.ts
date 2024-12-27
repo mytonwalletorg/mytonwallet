@@ -3,7 +3,6 @@ import type { ApiBaseCurrency } from '../api/types';
 import {
   DEFAULT_PRICE_CURRENCY,
   SHORT_CURRENCY_SYMBOL_MAP,
-  TONCOIN,
   WHOLE_PART_DELIMITER,
 } from '../config';
 import { Big } from '../lib/big.js';
@@ -12,43 +11,32 @@ import withCache from './withCache';
 
 const SHORT_SYMBOLS = new Set(Object.values(SHORT_CURRENCY_SYMBOL_MAP));
 
-export const formatInteger = withCache((
+export const formatNumber = withCache((
   value: number | Big | string,
   fractionDigits = 2,
-  noRadix = false,
-  noFloor?: boolean,
+  noTruncate?: boolean,
 ) => {
-  value = Big(value);
-  const dp = value.gte(1) || noFloor ? fractionDigits : TONCOIN.decimals;
-  let fixed = value.round(dp, noFloor ? Big.roundHalfUp : undefined).toString();
+  const bigValue = new Big(value);
 
-  if (value.lt(1) && countSignificantDigits(fixed, dp) < fractionDigits) {
-    fixed = value.toString();
-  }
+  if (bigValue.eq(0)) return '0';
 
-  let [wholePart, fractionPart = ''] = fixed.split('.');
+  const method = bigValue.lt(1) ? 'toPrecision' : 'round';
+  const rounded = bigValue[method](fractionDigits, noTruncate ? Big.roundHalfUp : Big.roundDown)
+    .toString()
+    // Remove extra zeros after rounding to the specified accuracy
+    .replace(/(\.\d*?)0+$/, '$1')
+    .replace(/\.$/, '');
 
-  fractionPart = toSignificant(fractionPart, Math.min(fractionDigits, 100)).replace(/0+$/, '');
-  if (fractionPart === '') {
-    wholePart = wholePart.replace(/^-0$/, '0');
-  }
-  if (!noRadix) {
-    wholePart = wholePart.replace(/\d(?=(\d{3})+($|\.))/g, `$&${WHOLE_PART_DELIMITER}`);
-  }
-
-  return [
-    wholePart,
-    fractionPart,
-  ].filter(Boolean).join('.');
+  return applyThousandsGrouping(rounded);
 });
 
 export function formatCurrency(
   value: number | string | Big,
   currency: string,
   fractionDigits?: number,
-  noFloor?: boolean,
+  noTruncate?: boolean,
 ) {
-  const formatted = formatInteger(value, fractionDigits, undefined, noFloor);
+  const formatted = formatNumber(value, fractionDigits, noTruncate);
   return addCurrency(formatted, currency);
 }
 
@@ -75,63 +63,14 @@ function addCurrency(value: number | string, currency: string) {
     : `${value} ${currency}`;
 }
 
-export function formatCurrencyForBigValue(value: number, currency: string, threshold = 1000) {
-  const formattedValue = formatCurrency(value, currency);
-
-  if (value < threshold) {
-    return formattedValue;
-  }
-
-  const [mainPart] = formattedValue.split('.');
-
-  return mainPart;
-}
-
-/**
- * @example
- * '000012', 2 => '000012'
- * '120012', 2 => '12'
- * '010012', 2 => '01'
- * '001012', 2 => '001'
- * '000112', 2 => '00011'
- * '100012', 2 => '1'
- * @param value fractionPart of number
- * @param fractionDigits number of significant digits after decimal point
- */
-function toSignificant(value: string, fractionDigits: number): string {
-  let digitsCount = 0;
-  let digitsLastIndex = 0;
-
-  for (let i = 0; i < value.length; i++) {
-    digitsLastIndex += 1;
-
-    if (value[i] === '0' && digitsCount === 0) {
-      continue;
-    }
-
-    digitsCount += 1;
-
-    if (digitsCount === fractionDigits) {
-      break;
-    }
-  }
-
-  return value.slice(0, digitsLastIndex).replace(/0+$/, '');
-}
-
-function countSignificantDigits(value: string, fractionDigits: number): number {
-  const decimalIndex = value.indexOf('.');
-
-  if (decimalIndex === -1) {
-    return 0;
-  }
-
-  const fractionalPart = value.slice(decimalIndex + 1).padEnd(fractionDigits, '0');
-
-  return fractionalPart.replace(/^0+/, '').length;
-}
-
 export function getShortCurrencySymbol(currency?: ApiBaseCurrency) {
   if (!currency) currency = DEFAULT_PRICE_CURRENCY;
   return SHORT_CURRENCY_SYMBOL_MAP[currency as keyof typeof SHORT_CURRENCY_SYMBOL_MAP] ?? currency;
+}
+
+function applyThousandsGrouping(str: string) {
+  const [wholePart, fractionPart = ''] = str.split('.');
+  const groupedWhole = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, `$&${WHOLE_PART_DELIMITER}`);
+
+  return [groupedWhole, fractionPart].filter(Boolean).join('.');
 }

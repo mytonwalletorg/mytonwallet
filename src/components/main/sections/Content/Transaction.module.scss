@@ -13,7 +13,7 @@
   justify-content: center;
 
   width: 100%;
-  padding: 0.875rem 1.5rem 0.875rem 0.75rem;
+  padding: 0.875rem 0.875rem 0.875rem 0.75rem;
 
   color: var(--color-black);
   text-align: left;
@@ -22,7 +22,7 @@
     content: '';
 
     position: absolute;
-    right: 1.5rem;
+    right: 0;
     bottom: 0;
     left: 3.625rem;
 
@@ -103,30 +103,24 @@
   }
 
   &_error {
-    color: var(--color-red);
+    color: var(--color-activity-red-text);
 
     background: var(--color-activity-red-background) !important;
   }
 
   &_swap {
+    transform: rotate(180deg);
+
     font-size: 1.875rem;
 
-    background-image: linear-gradient(135deg, #EDF1F6 13.89%, #EAFBF1 86.11%);
-
-    :global(.theme-dark) & {
-      background-image: linear-gradient(135deg, #2E3947 13.89%, #1F3838 86.11%);
-    }
+    background-image: var(--color-gradient-activity-gray-green-bg);
 
     &:not(.icon_error)::before {
       color: transparent;
 
-      background: linear-gradient(74deg, #53657B 29.67%, #1EC160 45.27%);
+      background: var(--color-gradient-activity-gray-green-text);
       background-clip: text;
       background-size: 100%;
-
-      :global(.theme-dark) & {
-        background-image: linear-gradient(74deg, #A3B8CA 29.67%, #2CD36F 45.27%);
-      }
     }
   }
 }
@@ -279,13 +273,9 @@
 
   color: transparent;
 
-  background: linear-gradient(90deg, #8399AE 0.98%, #2CD36F 99.02%);
+  background: var(--color-gradient-main-gray2-green);
   background-clip: text;
   background-size: 100%;
-
-  :global(.theme-dark) & {
-    background-image: linear-gradient(90deg, #8799B3 0.98%, #2CD36F 99.02%);
-  }
 }
 
 .swapBuy {

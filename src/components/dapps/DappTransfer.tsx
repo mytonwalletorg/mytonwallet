@@ -176,7 +176,7 @@ function DappTransfer({
           label={lang('Amount')}
           amount={toDecimal(transaction.amount)}
           symbol={tonToken.symbol}
-          fee={fee ? toDecimal(fee, tonToken.decimals) : undefined}
+          feeText={fee ? formatCurrency(toDecimal(fee, tonToken.decimals), tonToken.symbol) : undefined}
           className={styles.dataField}
           labelClassName={styles.label}
         />

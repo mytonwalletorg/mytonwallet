@@ -17,7 +17,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { TONCOIN } from '../../config';
+import { SWAP_API_VERSION, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { buildSwapId } from '../../util/swap/buildSwapId';
 import chains from '../chains';
@@ -189,9 +189,13 @@ export async function swapEstimate(
   accountId: string,
   request: ApiSwapEstimateRequest,
 ): Promise<ApiSwapEstimateResponse | { error: string }> {
-  request.walletVersion = (await fetchStoredTonWallet(accountId)).version;
+  const walletVersion = (await fetchStoredTonWallet(accountId)).version;
 
-  return callBackendPost('/swap/ton/estimate', request, {
+  return callBackendPost('/swap/ton/estimate', {
+    ...request,
+    swapVersion: SWAP_API_VERSION,
+    walletVersion,
+  }, {
     isAllowBadRequest: true,
   });
 }
@@ -199,6 +203,7 @@ export async function swapEstimate(
 export function swapBuild(authToken: string, request: ApiSwapBuildRequest): Promise<ApiSwapBuildResponse> {
   return callBackendPost('/swap/ton/build', {
     ...request,
+    swapVersion: SWAP_API_VERSION,
     isMsgHashMode: true,
   }, {
     authToken,
@@ -238,7 +243,10 @@ export async function swapCexCreateTransaction(
   }> {
   const authToken = await getBackendAuthToken(accountId, password);
 
-  const { swap } = await callBackendPost<ApiSwapCexCreateTransactionResponse>('/swap/cex/createTransaction', request, {
+  const { swap } = await callBackendPost<ApiSwapCexCreateTransactionResponse>('/swap/cex/createTransaction', {
+    ...request,
+    swapVersion: SWAP_API_VERSION,
+  }, {
     authToken,
   });
 

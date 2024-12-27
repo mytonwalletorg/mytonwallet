@@ -12,6 +12,7 @@ import type {
   ApiNetwork,
   ApiNft,
   ApiSignedTransfer,
+  ApiToken,
   ApiTransaction,
   ApiTransactionActivity,
   ApiTransactionType,
@@ -19,6 +20,7 @@ import type {
 import type {
   AnyPayload,
   ApiCheckTransactionDraftResult,
+  ApiFetchEstimateDieselResult,
   ApiSubmitMultiTransferResult,
   ApiSubmitTransferOptions,
   ApiSubmitTransferTonResult,
@@ -30,9 +32,7 @@ import type {
 import type { TonWallet } from './util/tonCore';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import {
-  DEFAULT_FEE, DIESEL_ADDRESS, ONE_TON, TONCOIN,
-} from '../../../config';
+import { DEFAULT_FEE, DIESEL_ADDRESS, TONCOIN } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
@@ -76,13 +76,12 @@ import {
   ATTEMPTS,
   FEE_FACTOR,
   STAKE_COMMENT,
-  TINY_TOKEN_TRANSFER_AMOUNT,
-  TOKEN_TRANSFER_AMOUNT,
+  TON_GAS,
   TRANSFER_TIMEOUT_SEC,
   UNSTAKE_COMMENT,
 } from './constants';
 import {
-  buildTokenTransfer, parseTokenTransaction,
+  buildTokenTransfer, getToncoinAmountForTransfer, parseTokenTransaction,
 } from './tokens';
 import {
   getContractInfo,
@@ -99,6 +98,14 @@ const WAIT_PAUSE = SEC;
 const MAX_BALANCE_WITH_CHECK_DIESEL = 100000000n; // 0.1 TON
 const PENDING_DIESEL_TIMEOUT = 15 * 60 * 1000; // 15 min
 
+const DIESEL_NOT_AVAILABLE: ApiFetchEstimateDieselResult = {
+  status: 'not-available',
+  nativeAmount: 0n,
+  remainingFee: 0n,
+  realFee: 0n,
+  shouldPrefer: false,
+};
+
 export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, address: string) => {
   const transactions = await fetchTransactions({ network, address, limit: 1 });
   return Boolean(transactions.length);
@@ -109,12 +116,14 @@ export async function checkTransactionDraft(
 ): Promise<ApiCheckTransactionDraftResult> {
   const {
     accountId,
+    amount = 0n,
     tokenAddress,
     shouldEncrypt,
     isBase64Data,
     stateInit: stateInitString,
+    forwardAmount,
   } = options;
-  let { toAddress, amount, data } = options;
+  let { toAddress, data } = options;
 
   const { network } = parseAccountId(accountId);
 
@@ -184,15 +193,21 @@ export async function checkTransactionDraft(
       }
     }
 
-    const { address, isInitialized: isWalletInitialized, version } = await fetchStoredTonWallet(accountId);
+    const { address, isInitialized: isWalletInitialized } = await fetchStoredTonWallet(accountId);
 
     if (data && typeof data === 'string' && !isBase64Data) {
       data = commentToBytes(data);
     }
 
-    let tokenBalance = 0n;
+    let toncoinAmount: bigint;
+    let fee: bigint;
+    let realFee: bigint;
 
     if (!tokenAddress) {
+      toncoinAmount = amount;
+      fee = 0n;
+      realFee = 0n;
+
       if (data instanceof Uint8Array) {
         data = shouldEncrypt ? packBytesAsSnakeForEncryptedData(data) : packBytesAsSnake(data);
       }
@@ -205,76 +220,72 @@ export async function checkTransactionDraft(
         toAddress,
         amount,
         payload: data,
+        forwardAmount,
       });
 
-      ({ amount, toAddress, payload: data } = tokenTransfer);
-      const { tokenWallet, isTokenWalletDeployed, mintlessTokenBalance } = tokenTransfer;
+      ({ amount: toncoinAmount, toAddress, payload: data } = tokenTransfer);
+      const {
+        realAmount: realToncoinAmount, tokenWallet, isTokenWalletDeployed, mintlessTokenBalance,
+      } = tokenTransfer;
 
+      // When the token is transferred, actually some TON is transferred, and the token sits inside the payload.
+      // From the user perspective, this TON amount is a fee.
+      fee = toncoinAmount;
+      realFee = realToncoinAmount;
+
+      let tokenBalance = 0n;
       if (isTokenWalletDeployed) {
         tokenBalance = await tokenWallet!.getJettonBalance();
       }
-
       if (mintlessTokenBalance) {
         tokenBalance += mintlessTokenBalance;
       }
-
-      if (tokenBalance < tokenAmount!) {
-        return {
-          ...result,
-          error: ApiTransactionDraftError.InsufficientBalance,
-        };
+      if (tokenBalance < tokenAmount) {
+        result.error = ApiTransactionDraftError.InsufficientBalance;
+        // We don't return here because we want the fee to get calculated
       }
     }
+
+    const toncoinBalance = await getWalletBalance(network, wallet);
+    const isFullTonTransfer = !tokenAddress && toncoinBalance === amount;
 
     const { transaction } = await signTransaction({
       network,
       wallet,
       toAddress,
-      amount,
+      amount: toncoinAmount,
       payload: data,
       stateInit,
+      isFullBalance: isFullTonTransfer,
       shouldEncrypt,
     });
 
-    const realFee = await calculateFee(network, wallet, transaction, isWalletInitialized);
-    result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR) + (tokenAddress ? amount : 0n);
+    const blockchainFee = await calculateFee(network, wallet, transaction, isWalletInitialized);
+    const safeBlockchainFee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
+    fee += safeBlockchainFee;
+    realFee += safeBlockchainFee;
+    result.fee = fee;
+    result.realFee = realFee;
 
-    const toncoinBalance = await getWalletBalance(network, wallet);
+    const isEnoughToncoin = isFullTonTransfer
+      ? toncoinBalance > blockchainFee
+      : toncoinBalance >= fee;
 
-    const isFullTonBalance = !tokenAddress && toncoinBalance === amount;
-    const isEnoughBalance = isFullTonBalance
-      ? toncoinBalance > realFee
-      : toncoinBalance >= result.fee;
+    result.diesel = DIESEL_NOT_AVAILABLE;
 
-    if (
-      network === 'mainnet'
-      && tokenAddress
-      && toncoinBalance < MAX_BALANCE_WITH_CHECK_DIESEL
-    ) {
-      const token = getTokenByAddress(tokenAddress)!;
+    // todo: Check that the balance is enough when TON is transferred
+    // todo: Check that the balance is enough to cover the diesel in a gasless transfer
 
-      if (token.isGaslessEnabled || token.isStarsEnabled) {
-        const isW5 = version === 'W5';
-        const {
-          status: dieselStatus,
-          amount: dieselAmount,
-          isAwaitingNotExpiredPrevious,
-        } = await fetchEstimateDiesel(
-          accountId, tokenAddress, isW5, token.isGaslessEnabled ? false : token.isStarsEnabled,
-        ) || {};
+    if (tokenAddress) {
+      const diesel = await fetchEstimateDiesel(accountId, tokenAddress);
 
-        if (!isEnoughBalance || isAwaitingNotExpiredPrevious) {
-          result.dieselStatus = dieselStatus;
-          result.dieselAmount = dieselAmount;
-
-          if (dieselStatus !== 'not-available') {
-            return result;
-          }
-        }
+      if (!isEnoughToncoin || diesel.shouldPrefer) {
+        result.diesel = diesel;
+        return result;
       }
     }
 
-    if (!isEnoughBalance) {
+    if (!isEnoughToncoin) {
       return {
         ...result,
         error: ApiTransactionDraftError.InsufficientBalance,
@@ -299,6 +310,7 @@ function estimateDiesel(
 ) {
   return callBackendGet<{
     status: DieselStatus;
+    // The amount is defined only when the status is "available" or "stars-fee": https://github.com/mytonwallet-org/mytonwallet-backend/blob/44c1bf43fb776286152db8901b45fe8341752e35/src/endpoints/diesel.ts#L163
     amount?: string;
     pendingCreatedAt?: string;
   }>('/diesel/estimate', {
@@ -360,13 +372,15 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
   const {
     accountId,
     password,
+    amount,
     tokenAddress,
     shouldEncrypt,
     isBase64Data,
+    forwardAmount,
   } = options;
   let { stateInit } = options;
 
-  let { toAddress, amount, data } = options;
+  let { toAddress, data } = options;
 
   const { network } = parseAccountId(accountId);
 
@@ -384,13 +398,17 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
       }));
     }
 
+    let toncoinAmount: bigint;
+
     if (!tokenAddress) {
+      toncoinAmount = amount;
+
       if (data instanceof Uint8Array) {
         data = shouldEncrypt ? packBytesAsSnakeForEncryptedData(data) : packBytesAsSnake(data);
       }
     } else {
       ({
-        amount,
+        amount: toncoinAmount,
         toAddress,
         payload: data,
         stateInit,
@@ -401,31 +419,32 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
         toAddress,
         amount,
         payload: data,
+        forwardAmount,
       }));
     }
 
     const { pendingTransfer } = await waitAndCreatePendingTransfer(network, fromAddress);
 
-    const { balance } = await getWalletInfo(network, wallet!);
-    const isFullTonBalance = !tokenAddress && balance === amount;
+    const toncoinBalance = await getWalletBalance(network, wallet);
+    const isFullTonTransfer = !tokenAddress && toncoinBalance === amount;
 
     const { seqno, transaction } = await signTransaction({
       network,
       wallet,
       toAddress,
-      amount,
+      amount: toncoinAmount,
       payload: data,
       stateInit,
       privateKey: secretKey,
-      isFullBalance: isFullTonBalance,
+      isFullBalance: isFullTonTransfer,
       shouldEncrypt,
     });
 
-    const fee = await calculateFee(network, wallet!, transaction, isInitialized);
+    const blockchainFee = await calculateFee(network, wallet!, transaction, isInitialized);
 
-    const isEnoughBalance = isFullTonBalance
-      ? balance > fee
-      : balance >= amount + fee;
+    const isEnoughBalance = isFullTonTransfer
+      ? toncoinBalance > blockchainFee
+      : toncoinBalance >= toncoinAmount + blockchainFee;
 
     if (!isEnoughBalance) {
       return { error: ApiTransactionError.InsufficientBalance };
@@ -620,7 +639,7 @@ async function signTransaction({
 
   const sendMode = isFullBalance
     ? SendMode.CARRY_ALL_REMAINING_BALANCE
-    : SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS;
+    : SendMode.PAY_GAS_SEPARATELY + (payload ? 0 : SendMode.IGNORE_ERRORS);
 
   const transaction = wallet.createTransfer({
     seqno,
@@ -804,7 +823,7 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
 
   let type: ApiTransactionType | undefined;
 
-  if (isKnownStakingPool(normalizedFromAddress) && amount > ONE_TON) {
+  if (isKnownStakingPool(normalizedFromAddress) && amount > TON_GAS.unstakeNominators) {
     type = 'unstake';
   } else if (isKnownStakingPool(normalizedToAddress)) {
     if (comment === STAKE_COMMENT) {
@@ -827,6 +846,8 @@ function updateTransactionType(transaction: ApiTransactionExtra) {
     } else if (payload.type === 'nft:ownership-assigned') {
       type = 'nftReceived';
       comment = payload.comment;
+    } else if (payload.type === 'jetton-staking:unstake') {
+      type = 'unstakeRequest';
     }
   }
 
@@ -1015,6 +1036,8 @@ async function signMultiTransaction({
     expireAt = Math.round(Date.now() / 1000) + TRANSFER_TIMEOUT_SEC;
   }
 
+  let hasPayload = false;
+
   const preparedMessages = messages.map((message) => {
     const {
       amount, toAddress, stateInit, isBase64Payload,
@@ -1028,6 +1051,10 @@ async function signMultiTransaction({
     const init = stateInit ? loadStateInit(
       stateInit.asSlice(),
     ) : undefined;
+
+    if (!hasPayload && payload) {
+      hasPayload = true;
+    }
 
     return internal({
       value: amount,
@@ -1060,7 +1087,7 @@ async function signMultiTransaction({
       seqno,
       secretKey: Buffer.from(privateKey),
       messages: preparedMessages,
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+      sendMode: SendMode.PAY_GAS_SEPARATELY + (hasPayload ? 0 : SendMode.IGNORE_ERRORS),
       timeout: expireAt,
     });
   }
@@ -1261,41 +1288,68 @@ export async function fixTokenActivitiesAddressForm(network: ApiNetwork, activit
 }
 
 export async function fetchEstimateDiesel(
-  accountId: string, tokenAddress: string, isW5?: boolean, isStars?: boolean,
-) {
+  accountId: string, tokenAddress: string,
+): Promise<ApiFetchEstimateDieselResult> {
   const { network } = parseAccountId(accountId);
-  if (network !== 'mainnet') return undefined;
+  if (network !== 'mainnet') return DIESEL_NOT_AVAILABLE;
 
   const wallet = await getTonWallet(accountId);
-  if (!wallet) return undefined;
+  if (!wallet) return DIESEL_NOT_AVAILABLE;
 
-  const { address } = await fetchStoredTonWallet(accountId);
-  const balance = await getWalletBalance(network, wallet);
   const token = getTokenByAddress(tokenAddress)!;
+  if (!token.isGaslessEnabled && !token.isStarsEnabled) return DIESEL_NOT_AVAILABLE;
 
-  if (balance >= MAX_BALANCE_WITH_CHECK_DIESEL) return undefined;
+  const { address, version } = await fetchStoredTonWallet(accountId);
+  const toncoinBalance = await getWalletBalance(network, wallet);
+  const fee = getDieselToncoinFee(token);
+  const toncoinNeeded = fee.amount - toncoinBalance;
 
-  const multiplier = isStars ? 1n : 2n;
-  const transferAmount = token.isTiny ? TINY_TOKEN_TRANSFER_AMOUNT : TOKEN_TRANSFER_AMOUNT;
-  const toncoinAmount = toDecimal((transferAmount + DEFAULT_FEE) * multiplier);
+  if (toncoinBalance >= MAX_BALANCE_WITH_CHECK_DIESEL || toncoinNeeded <= 0n) return DIESEL_NOT_AVAILABLE;
 
-  const {
-    status,
-    amount,
-    pendingCreatedAt,
-  } = await estimateDiesel(address, tokenAddress, toncoinAmount, isW5, isStars);
-
-  const { decimals } = getTokenByAddress(tokenAddress)!;
+  const rawDiesel = await estimateDiesel(
+    address,
+    tokenAddress,
+    toDecimal(toncoinNeeded),
+    version === 'W5',
+    fee.isStars,
+  );
 
   const isAwaitingNotExpiredPrevious = Boolean(
-    pendingCreatedAt
-      && Date.now() - new Date(pendingCreatedAt).getTime() > PENDING_DIESEL_TIMEOUT,
+    rawDiesel.pendingCreatedAt
+      && Date.now() - new Date(rawDiesel.pendingCreatedAt).getTime() < PENDING_DIESEL_TIMEOUT,
   );
 
   return {
-    status,
-    amount: amount ? fromDecimal(amount, decimals) : undefined,
-    pendingCreatedAt,
-    isAwaitingNotExpiredPrevious,
+    status: rawDiesel.status,
+    tokenAmount: rawDiesel.amount ? fromDecimal(rawDiesel.amount, token.decimals) : undefined,
+    nativeAmount: toncoinNeeded,
+    remainingFee: toncoinBalance,
+    realFee: fee.realFee,
+    shouldPrefer: isAwaitingNotExpiredPrevious,
   };
+}
+
+/**
+ * Guesses the total TON fee (including the gas attached to the transaction) that will be spent on a diesel transfer.
+ *
+ * `amount` is what will be taken from the wallet;
+ * `realFee` is approximately what will be actually spent (the rest will return in the excess);
+ * `isStars` tells whether the fee is estimated considering that the diesel will be paid in stars.
+ */
+function getDieselToncoinFee(token: ApiToken) {
+  const isStars = !token.isGaslessEnabled && token.isStarsEnabled;
+  let { amount, realAmount: realFee } = getToncoinAmountForTransfer(token, false);
+
+  // Multiplying by 2 because the diesel transfer has 2 transactions:
+  // - for the transfer itself,
+  // - for sending the diesel to the MTW wallet.
+  if (!isStars) {
+    amount *= 2n;
+    realFee *= 2n;
+  }
+
+  amount += DEFAULT_FEE;
+  realFee += DEFAULT_FEE;
+
+  return { amount, realFee, isStars };
 }

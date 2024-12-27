@@ -5,15 +5,12 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonWalletVersion } from '../../api/chains/ton/types';
 import type { ApiDapp, ApiWalletInfo } from '../../api/types';
+import type {
+  Account, GlobalState, HardwareConnectState, UserToken,
+} from '../../global/types';
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { Wallet } from './SettingsWalletVersion';
-import {
-  type Account,
-  type GlobalState,
-  type HardwareConnectState,
-  SettingsState,
-  type UserToken,
-} from '../../global/types';
+import { SettingsState } from '../../global/types';
 
 import {
   APP_ENV_MARKER,
@@ -78,6 +75,7 @@ import SettingsDeveloperOptions from './SettingsDeveloperOptions';
 import SettingsDisclaimer from './SettingsDisclaimer';
 import SettingsHiddenNfts from './SettingsHiddenNfts';
 import SettingsLanguage from './SettingsLanguage';
+import SettingsPushNotifications from './SettingsPushNotifications';
 import SettingsSecurity from './SettingsSecurity';
 import SettingsTokenList from './SettingsTokenList';
 import SettingsWalletVersion from './SettingsWalletVersion';
@@ -88,7 +86,6 @@ import styles from './Settings.module.scss';
 import aboutImg from '../../assets/settings/settings_about.svg';
 import appearanceImg from '../../assets/settings/settings_appearance.svg';
 import assetsActivityImg from '../../assets/settings/settings_assets-activity.svg';
-import backupSecretImg from '../../assets/settings/settings_backup-secret.svg';
 import connectedDappsImg from '../../assets/settings/settings_connected-dapps.svg';
 import disclaimerImg from '../../assets/settings/settings_disclaimer.svg';
 import exitImg from '../../assets/settings/settings_exit.svg';
@@ -97,6 +94,8 @@ import installDesktopImg from '../../assets/settings/settings_install-desktop.sv
 import installMobileImg from '../../assets/settings/settings_install-mobile.svg';
 import languageImg from '../../assets/settings/settings_language.svg';
 import ledgerImg from '../../assets/settings/settings_ledger.svg';
+import mtwCardsImg from '../../assets/settings/settings_mtw-cards.svg';
+import notifications from '../../assets/settings/settings_notifications.svg';
 import securityImg from '../../assets/settings/settings_security.svg';
 import supportImg from '../../assets/settings/settings_support.svg';
 import telegramImg from '../../assets/settings/settings_telegram-menu.svg';
@@ -129,6 +128,7 @@ type StateProps = {
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
 const SUPPORT_ACCOUNTS_COUNT_DEFAULT = 1;
+const MTW_CARDS_WEBSITE = 'https://cards.mytonwallet.io';
 
 function Settings({
   settings: {
@@ -136,7 +136,6 @@ function Settings({
     theme,
     animationLevel,
     isTestnet,
-    canPlaySounds,
     langCode,
     isTonProxyEnabled,
     isTonMagicEnabled,
@@ -161,7 +160,6 @@ function Settings({
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
-    openBackupWalletModal,
     openSettingsHardwareWallet,
     closeSettings,
     toggleDeeplinkHook,
@@ -175,7 +173,7 @@ function Settings({
   const lang = useLang();
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
-  const { renderingKey, nextKey } = useModalTransitionKeys(state, isOpen);
+  const { renderingKey } = useModalTransitionKeys(state, isOpen);
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
   const prevRenderingKeyRef = useStateRef(usePrevious2(renderingKey));
 
@@ -241,6 +239,10 @@ function Settings({
     setSettingsState({ state: SettingsState.Appearance });
   }
 
+  function handlePushNotificationsOpen() {
+    setSettingsState({ state: SettingsState.PushNotifications });
+  }
+
   function handleSecurityOpen() {
     setSettingsState({ state: SettingsState.Security });
   }
@@ -295,14 +297,6 @@ function Settings({
 
   function handleClickInstallOnMobile() {
     openUrl('https://mytonwallet.io/get/mobile', true);
-  }
-
-  function handleOpenBackupWallet() {
-    if (IS_DELEGATED_BOTTOM_SHEET) {
-      handleCloseSettings();
-    }
-
-    openBackupWalletModal();
   }
 
   const handleAddLedgerWallet = useLastCallback(() => {
@@ -474,6 +468,12 @@ function Settings({
           )}
 
           <div className={styles.block}>
+            <div className={styles.item} onClick={handlePushNotificationsOpen}>
+              <img className={styles.menuIcon} src={notifications} alt={lang('Notifications & Sounds')} />
+              {lang('Notifications & Sounds')}
+
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </div>
             <div className={styles.item} onClick={handleAppearanceOpen}>
               <img className={styles.menuIcon} src={appearanceImg} alt={lang('Appearance')} />
               {lang('Appearance')}
@@ -516,14 +516,6 @@ function Settings({
           </div>
 
           <div className={styles.block}>
-            {!isHardwareAccount && (
-              <div className={styles.item} onClick={handleOpenBackupWallet}>
-                <img className={styles.menuIcon} src={backupSecretImg} alt={lang('Back Up Secret Words')} />
-                {lang('Back Up Secret Words')}
-
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </div>
-            )}
             {!!versions?.length && (
               <div className={styles.item} onClick={handleOpenWalletVersion}>
                 <img className={styles.menuIcon} src={walletVersionImg} alt={lang('Wallet Versions')} />
@@ -568,6 +560,28 @@ function Settings({
                 </div>
               </a>
             )}
+            {IS_CAPACITOR ? (
+              <div className={styles.item} onClick={handleClickInstallOnDesktop}>
+                <img className={styles.menuIcon} src={installDesktopImg} alt={lang('Install on Desktop')} />
+                {lang('Install on Desktop')}
+
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            ) : IS_ELECTRON ? (
+              <div className={styles.item} onClick={handleClickInstallOnMobile}>
+                <img className={styles.menuIcon} src={installMobileImg} alt={lang('Install on Mobile')} />
+                {lang('Install on Mobile')}
+
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            ) : (
+              <div className={styles.item} onClick={handleClickInstallApp}>
+                <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
+                {lang('Install App')}
+
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            )}
             <div className={styles.item} onClick={handleAboutOpen}>
               <img className={styles.menuIcon} src={aboutImg} alt={lang('About')} />
               {lang('About')}
@@ -576,38 +590,20 @@ function Settings({
             </div>
           </div>
 
-          {IS_CAPACITOR && (
-            <div className={styles.block}>
-              <div className={styles.item} onClick={handleClickInstallOnDesktop}>
-                <img className={styles.menuIcon} src={installDesktopImg} alt={lang('Install on Desktop')} />
-                {lang('Install on Desktop')}
+          <div className={styles.block}>
+            <a
+              href={MTW_CARDS_WEBSITE}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.item}
+            >
+              <img className={styles.menuIcon} src={mtwCardsImg} alt={lang('MyTonWallet Cards')} />
+              {lang('MyTonWallet Cards')}
 
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </div>
-            </div>
-          )}
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </a>
+          </div>
 
-          {IS_ELECTRON && (
-            <div className={styles.block}>
-              <div className={styles.item} onClick={handleClickInstallOnMobile}>
-                <img className={styles.menuIcon} src={installMobileImg} alt={lang('Install on Mobile')} />
-                {lang('Install on Mobile')}
-
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </div>
-            </div>
-          )}
-
-          {IS_EXTENSION && (
-            <div className={styles.block}>
-              <div className={styles.item} onClick={handleClickInstallApp}>
-                <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
-                {lang('Install App')}
-
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </div>
-            </div>
-          )}
           <div className={styles.block}>
             <div className={buildClassName(styles.item, styles.item_red)} onClick={openLogOutModal}>
               <img className={styles.menuIcon} src={exitImg} alt={lang('Exit')} />
@@ -636,13 +632,20 @@ function Settings({
     switch (currentKey) {
       case SettingsState.Initial:
         return renderSettings();
+      case SettingsState.PushNotifications:
+        return (
+          <SettingsPushNotifications
+            isActive={isActive}
+            handleBackClick={handleBackClick}
+            isInsideModal={isInsideModal}
+          />
+        );
       case SettingsState.Appearance:
         return (
           <SettingsAppearance
             isActive={isActive}
             theme={theme}
             animationLevel={animationLevel}
-            canPlaySounds={canPlaySounds}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
             isTrayIconEnabled={isTrayIconEnabled}
@@ -665,6 +668,7 @@ function Settings({
             isInsideModal={isInsideModal}
             isAutoUpdateEnabled={isAutoUpdateEnabled}
             onAutoUpdateEnabledToggle={handleAutoUpdateEnabledToggle}
+            onSettingsClose={handleCloseSettings}
           />
         );
       case SettingsState.Dapps:
@@ -772,7 +776,6 @@ function Settings({
         name={resolveModalTransitionName()}
         className={buildClassName(isInsideModal ? modalStyles.transition : styles.transitionContainer, 'custom-scroll')}
         activeKey={renderingKey}
-        nextKey={nextKey}
         slideClassName={buildClassName(modalStyles.transitionSlide, styles.transitionSlide)}
         withSwipeControl
         onStop={IS_CAPACITOR ? handleSlideAnimationStop : undefined}

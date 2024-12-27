@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiTokenWithPrice, ApiVestingInfo } from '../../api/types';
 import type { Theme } from '../../global/types';
 
-import { ANIMATED_STICKER_TINY_ICON_PX } from '../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, SHORT_FRACTION_DIGITS } from '../../config';
 import { selectCurrentAccountState, selectMycoin } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatFullDay, formatTime } from '../../util/dateFormat';
@@ -18,7 +18,6 @@ import useInterval from '../../hooks/useInterval';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
-import { STAKING_DECIMAL } from '../staking/StakingInitial';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -185,7 +184,7 @@ function VestingModal({
             labelText={lang('Vesting Balance')}
             zeroValue="..."
             value={currentlyFrozenAmount || '0'}
-            decimals={STAKING_DECIMAL}
+            decimals={SHORT_FRACTION_DIGITS}
             suffix={MY_TOKEN_SYMBOL}
             className={styles.inputWrapper}
             labelClassName={styles.inputLabel}
@@ -199,7 +198,7 @@ function VestingModal({
                   labelText={lang('Ready to Unfreeze')}
                   zeroValue="..."
                   value={currentlyReadyToUnfreezeAmount}
-                  decimals={STAKING_DECIMAL}
+                  decimals={SHORT_FRACTION_DIGITS}
                   suffix={MY_TOKEN_SYMBOL}
                   className={styles.inputWrapper}
                   inputClassName={styles.unfreezeInput}

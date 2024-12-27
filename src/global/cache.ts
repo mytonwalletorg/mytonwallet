@@ -3,7 +3,14 @@ import { addCallback, removeCallback } from '../lib/teact/teactn';
 
 import type { ApiActivity } from '../api/types';
 import type {
-  AccountState, GlobalState, SavedAddress, TokenPeriod, UserToken,
+  AccountState,
+  GlobalState,
+  SavedAddress,
+  TokenPeriod,
+  UserToken,
+} from './types';
+import {
+  StakingState,
 } from './types';
 
 import {
@@ -17,11 +24,12 @@ import {
 import { buildAccountId, parseAccountId } from '../util/account';
 import { bigintReviver } from '../util/bigint';
 import {
-  cloneDeep, mapValues, pick, pickTruthy,
+  cloneDeep, filterValues, mapValues, pick, pickTruthy,
 } from '../util/iteratees';
 import { clearPoisoningCache, updatePoisoningCache } from '../util/poisoningHash';
 import { onBeforeUnload, throttle } from '../util/schedulers';
 import { IS_ELECTRON } from '../util/windowEnvironment';
+import { getIsActiveStakingState } from './helpers/staking';
 import { getIsTxIdLocal } from './helpers';
 import { addActionHandler, getGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
@@ -254,8 +262,8 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   if (cached.stateVersion === 4) {
     cached.stateVersion = 5;
 
-    cached.staking = {
-      ...initialState.staking,
+    (cached as any).staking = {
+      state: StakingState.None,
     };
   }
 
@@ -450,6 +458,23 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 29;
   }
 
+  if (cached.stateVersion === 29) {
+    cached.currentTransfer.tokenSlug = TONCOIN.slug;
+    cached.stateVersion = 30;
+  }
+
+  if (cached.stateVersion === 30) {
+    clearActivities();
+    cached.stateVersion = 31;
+  }
+
+  if (cached.stateVersion === 31) {
+    if (cached.settings.autolockValue && cached.settings.autolockValue !== 'never') {
+      cached.settings.isAppLockEnabled = true;
+    }
+    cached.stateVersion = 32;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 
@@ -488,7 +513,9 @@ function updateCache(force?: boolean) {
       'currentAccountId',
       'stateVersion',
       'restrictions',
-      'dappOriginReplacements',
+      'pushNotifications',
+      'isManualLockActive',
+      'stakingDefault',
     ]),
     accounts: {
       byId: global.accounts?.byId || {},
@@ -521,6 +548,7 @@ function reduceByAccountId(global: GlobalState) {
 
     const accountTokens = selectAccountTokens(global, accountId);
     acc[accountId].activities = reduceAccountActivities(state.activities, accountTokens);
+    acc[accountId].staking = reduceAccountStaking(state.staking);
 
     return acc;
   }, {} as GlobalState['byAccountId']);
@@ -552,6 +580,27 @@ function reduceAccountActivities(activities?: AccountState['activities'], tokens
     idsMain: reducedIdsMain,
     idsBySlug: reducedIdsBySlug,
     newestTransactionsBySlug: reducedNewestTransactionsBySlug,
+  };
+}
+
+function reduceAccountStaking(staking?: AccountState['staking']) {
+  let stateById = staking?.stateById;
+  let stakingId = staking?.stakingId;
+
+  if (!staking || !stateById || !Object.keys(stateById).length) {
+    return undefined;
+  }
+
+  stateById = filterValues(stateById, getIsActiveStakingState);
+
+  if (!stakingId || !(stakingId in stateById)) {
+    stakingId = Object.values(stateById)[0]?.id;
+  }
+
+  return {
+    ...staking,
+    stateById,
+    stakingId,
   };
 }
 

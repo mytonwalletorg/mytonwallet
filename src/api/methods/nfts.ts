@@ -56,3 +56,7 @@ export async function submitNftTransfers(
 
   return result;
 }
+
+export function checkNftOwnership(accountId: string, nftAddress: string) {
+  return ton.checkNftOwnership(accountId, nftAddress);
+}

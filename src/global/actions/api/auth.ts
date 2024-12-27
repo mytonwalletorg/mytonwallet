@@ -1,6 +1,7 @@
 import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
-import type { ApiChain } from '../../../api/types';
+import type { ApiChain, ApiNetwork } from '../../../api/types';
+import type { GlobalState } from '../../types';
 import { ApiAuthError, ApiCommonError } from '../../../api/types';
 import {
   AppState, AuthState, BiometricsState, HardwareConnectState,
@@ -29,14 +30,15 @@ import {
   IS_ELECTRON,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
-import { addActionHandler, getGlobal, setGlobal } from '../..';
+import {
+  addActionHandler, getActions, getGlobal, setGlobal,
+} from '../..';
 import { INITIAL_STATE } from '../../initialState';
 import {
-  clearCurrentSwap,
-  clearCurrentTransfer,
   clearIsPinAccepted,
   createAccount,
   setIsPinAccepted,
+  switchAccountAndClearGlobal,
   updateAuth,
   updateBiometrics,
   updateCurrentAccountId,
@@ -58,6 +60,27 @@ import {
 
 const CREATING_DURATION = 3300;
 const NATIVE_BIOMETRICS_PAUSE_MS = 750;
+
+export async function switchAccount(global: GlobalState, accountId: string, newNetwork?: ApiNetwork) {
+  const actions = getActions();
+
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('switchAccount', { accountId, newNetwork });
+  }
+
+  const newestTxTimestamps = selectNewestTxTimestamps(global, accountId);
+  await callApi('activateAccount', accountId, newestTxTimestamps);
+
+  global = getGlobal();
+  setGlobal(switchAccountAndClearGlobal(global, accountId));
+
+  actions.clearSwapPairsCache();
+  clearPoisoningCache();
+
+  if (newNetwork) {
+    actions.changeNetwork({ network: newNetwork });
+  }
+}
 
 addActionHandler('resetAuth', (global) => {
   if (global.currentAccountId) {
@@ -328,6 +351,7 @@ addActionHandler('createAccount', async (global, actions, {
   }
 
   const { accountId, tonAddress, tronAddress } = result;
+
   const addressByChain = omitUndefined({
     ton: tonAddress,
     tron: tronAddress,
@@ -432,6 +456,12 @@ addActionHandler('addHardwareAccounts', (global, actions, { wallets }) => {
     actions.closeSettings();
   }
 
+  wallets.forEach((hardwareWallet) => {
+    if (hardwareWallet?.accountId) {
+      actions.tryAddNotificationAccount({ accountId: hardwareWallet?.accountId });
+    }
+  });
+
   actions.afterSignIn();
   if (isFirstAccount) {
     actions.resetApiSettings();
@@ -448,6 +478,8 @@ addActionHandler('afterCheckMnemonic', (global, actions) => {
   global = updateCurrentAccountState(global, {});
   global = createAccount(global, global.auth.accountId!, global.auth.addressByChain!);
   setGlobal(global);
+
+  actions.tryAddNotificationAccount({ accountId: global.auth.accountId! });
 
   actions.afterSignIn();
   if (selectIsOneAccount(global)) {
@@ -474,6 +506,9 @@ addActionHandler('skipCheckMnemonic', (global, actions) => {
     isBackupRequired: true,
   });
   global = createAccount(global, global.auth.accountId!, global.auth.addressByChain!);
+
+  actions.tryAddNotificationAccount({ accountId: global.auth.accountId! });
+
   setGlobal(global);
 
   actions.afterSignIn();
@@ -569,6 +604,8 @@ addActionHandler('afterConfirmDisclaimer', (global, actions) => {
   global = createAccount(global, accountId!, addressByChain!);
   setGlobal(global);
 
+  actions.tryAddNotificationAccount({ accountId: accountId! });
+
   actions.afterSignIn();
   if (selectIsOneAccount(global)) {
     actions.resetApiSettings();
@@ -610,25 +647,8 @@ addActionHandler('startChangingNetwork', (global, actions, { network }) => {
 });
 
 addActionHandler('switchAccount', async (global, actions, payload) => {
-  if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('switchAccount', payload);
-  }
-
   const { accountId, newNetwork } = payload;
-  const newestTxTimestamps = selectNewestTxTimestamps(global, accountId);
-  await callApi('activateAccount', accountId, newestTxTimestamps);
-
-  global = getGlobal();
-  global = updateCurrentAccountId(global, accountId);
-  global = clearCurrentTransfer(global);
-  global = clearCurrentSwap(global);
-  setGlobal(global);
-
-  actions.clearSwapPairsCache();
-  clearPoisoningCache();
-  if (newNetwork) {
-    actions.changeNetwork({ network: newNetwork });
-  }
+  await switchAccount(global, accountId, newNetwork);
 });
 
 addActionHandler('connectHardwareWallet', async (global, actions, params) => {
@@ -788,6 +808,7 @@ addActionHandler('enableBiometrics', async (global, actions, { password }) => {
     error: undefined,
     state: BiometricsState.TurnOnRegistration,
   });
+  global = updateAuth(global, { isLoading: true });
   setGlobal(global);
 
   try {
@@ -830,6 +851,10 @@ addActionHandler('enableBiometrics', async (global, actions, { password }) => {
       state: BiometricsState.TurnOnPasswordConfirmation,
     });
     setGlobal(global);
+  } finally {
+    global = getGlobal();
+    global = updateAuth(global, { isLoading: undefined });
+    setGlobal(global);
   }
 });
 
@@ -843,6 +868,10 @@ addActionHandler('disableBiometrics', async (global, actions, { password, isPass
     return;
   }
 
+  global = getGlobal();
+  global = updateAuth(global, { isLoading: true });
+  setGlobal(global);
+
   try {
     await callApi('changePassword', oldPassword, password);
   } catch (err: any) {
@@ -851,6 +880,10 @@ addActionHandler('disableBiometrics', async (global, actions, { password, isPass
     setGlobal(global);
 
     return;
+  } finally {
+    global = getGlobal();
+    global = updateAuth(global, { isLoading: undefined });
+    setGlobal(global);
   }
 
   global = getGlobal();
@@ -993,21 +1026,52 @@ addActionHandler('openAuthBackupWalletModal', (global) => {
     return;
   }
 
-  global = updateAuth(global, { isBackupModalOpen: true });
+  global = updateAuth(global, { state: AuthState.saferyRules });
   setGlobal(global);
 });
 
-addActionHandler('closeAuthBackupWalletModal', (global, actions, props) => {
+addActionHandler('openMnemonicPage', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openMnemonicPage');
+    return;
+  }
+
+  global = updateAuth(global, { state: AuthState.mnemonicPage });
+  setGlobal(global);
+});
+
+addActionHandler('openCreateBackUpPage', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openCreateBackUpPage');
+    return;
+  }
+
+  const accounts = selectAccounts(global) ?? {};
+
+  const isFirstAccount = !Object.values(accounts).length;
+  global = updateAuth(global, {
+    state: isFirstAccount ? AuthState.disclaimerAndBackup : AuthState.createBackup,
+  });
+
+  setGlobal(global);
+});
+
+addActionHandler('openCheckWordsPage', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openCheckWordsPage');
+    return;
+  }
+
+  global = updateAuth(global, { state: AuthState.checkWords });
+  setGlobal(global);
+});
+
+addActionHandler('closeCheckWordsPage', (global, actions, props) => {
   const { isBackupCreated } = props || {};
 
   if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('closeAuthBackupWalletModal', props);
+    callActionInMain('closeCheckWordsPage', props);
   }
-
-  global = updateAuth(global, {
-    isBackupModalOpen: undefined,
-  });
-  setGlobal(global);
 
   if (!IS_DELEGATED_BOTTOM_SHEET && isBackupCreated) {
     actions.afterCheckMnemonic();
@@ -1066,6 +1130,13 @@ addActionHandler('importAccountByVersion', async (global, actions, { version }) 
   setGlobal(global);
 
   await callApi('activateAccount', wallet!.accountId);
+
+  actions.tryAddNotificationAccount({ accountId: wallet!.accountId });
+});
+
+addActionHandler('setIsAuthLoading', (global, actions, { isLoading }) => {
+  global = updateAuth(global, { isLoading });
+  setGlobal(global);
 });
 
 function reduceGlobalForDebug() {

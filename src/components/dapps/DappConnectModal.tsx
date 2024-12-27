@@ -5,19 +5,20 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type { ApiDapp, ApiDappPermissions } from '../../api/types';
-import type { Account, HardwareConnectState } from '../../global/types';
+import type { Account, AccountSettings, HardwareConnectState } from '../../global/types';
 import { DappConnectState } from '../../global/types';
 
 import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import resolveModalTransitionName from '../../util/resolveModalTransitionName';
-import { shortenAddress } from '../../util/shortenAddress';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
+import AccountButton from '../common/AccountButton';
+import AccountButtonWrapper from '../common/AccountButtonWrapper';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import Button from '../ui/Button';
@@ -39,14 +40,11 @@ interface StateProps {
   requiredProof?: ApiTonConnectProof;
   currentAccountId: string;
   accounts?: Record<string, Account>;
+  settingsByAccountId?: Record<string, AccountSettings>;
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
 }
-
-const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
-const ACCOUNT_ADDRESS_SHIFT = 4;
-const ACCOUNT_ADDRESS_SHIFT_END = 4;
 
 function DappConnectModal({
   state,
@@ -58,6 +56,7 @@ function DappConnectModal({
   accounts,
   currentAccountId,
   hardwareState,
+  settingsByAccountId,
   isLedgerConnected,
   isTonAppConnected,
 }: StateProps) {
@@ -131,52 +130,37 @@ function DappConnectModal({
   function renderAccount(accountId: string, address: string, title?: string, isHardware?: boolean) {
     const isActive = accountId === selectedAccount;
     const onClick = isActive || isLoading ? undefined : () => setSelectedAccount(accountId);
-    const fullClassName = buildClassName(
-      styles.account,
-      isActive && styles.account_current,
-      isLoading && styles.account_disabled,
-    );
+    const { cardBackgroundNft } = settingsByAccountId?.[accountId] || {};
 
     return (
-      <div
+      <AccountButton
         key={accountId}
-        className={fullClassName}
-        aria-label={lang('Switch Account')}
+        accountId={accountId}
+        address={address}
+        title={title}
+        ariaLabel={lang('Switch Account')}
+        isHardware={isHardware}
+        isActive={accountId === selectedAccount}
+        isLoading={isLoading}
+        // eslint-disable-next-line react/jsx-no-bind
         onClick={onClick}
-      >
-        {title && <span className={styles.accountName}>{title}</span>}
-        <div className={styles.accountFooter}>
-          {isHardware && <i className={buildClassName('icon-ledger', isHardware && styles.iconLedger)} aria-hidden />}
-          <span className={styles.accountAddress}>
-            {shortenAddress(
-              address,
-              isHardware ? HARDWARE_ACCOUNT_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
-              ACCOUNT_ADDRESS_SHIFT_END,
-            )}
-          </span>
-        </div>
-      </div>
+        cardBackgroundNft={cardBackgroundNft}
+      />
     );
   }
 
   function renderAccounts() {
-    const fullClassName = buildClassName(
-      styles.accounts,
-      'custom-scroll',
-      iterableAccounts.length === 1 && styles.accounts_single,
-      iterableAccounts.length === 2 && styles.accounts_two,
-    );
     return (
-      <>
-        <p className={styles.label}>{lang('Select wallet to use on this dapp')}</p>
-        <div className={fullClassName}>
-          {iterableAccounts.map(
-            ([accountId, { title, addressByChain, isHardware }]) => {
-              return renderAccount(accountId, addressByChain.ton, title, isHardware);
-            },
-          )}
-        </div>
-      </>
+      <AccountButtonWrapper
+        accountLength={iterableAccounts.length}
+        labelText={lang('Select wallet to use on this dapp')}
+      >
+        {iterableAccounts.map(
+          ([accountId, { title, addressByChain, isHardware }]) => {
+            return renderAccount(accountId, addressByChain.ton, title, isHardware);
+          },
+        )}
+      </AccountButtonWrapper>
     );
   }
 
@@ -340,6 +324,7 @@ export default memo(withGlobal((global): StateProps => {
     currentAccountId,
     accounts,
     hardwareState,
+    settingsByAccountId: global.settings.byAccountId,
     isLedgerConnected,
     isTonAppConnected,
   };

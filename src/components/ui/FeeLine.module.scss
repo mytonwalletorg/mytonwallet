@@ -1,0 +1,14 @@
+.root {
+  height: 1em;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-gray-3);
+  text-align: center;
+  white-space: nowrap;
+
+  &.static {
+    color: var(--color-gray-3-desktop);
+  }
+}
