@@ -107,11 +107,3 @@ export function doDeeplinkHook(isEnabled: boolean) {
     isEnabled,
   });
 }
-
-export async function downloadLogs(url: string, filename: string) {
-  await extension.downloads.download({
-    url,
-    filename,
-    saveAs: true,
-  });
-}

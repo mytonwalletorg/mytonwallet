@@ -444,6 +444,8 @@ Biometric Registration: ลงทะเบียนด้วย Biometric
 Step 1 of 2. Registration: ขั้นตอน 1 จาก 2. ลงทะเบียน
 Step 2 of 2. Verification: ขั้นตอน 2 จาก 2. ยืนยันความถูกต้อง
 Download Logs: ดาวน์โหลดบันทึก
+Copy Logs: คัดลอกบันทึก
+Logs were copied!: บันทึกถูกคัดลอกแล้ว!
 Biometric setup failed.: การตั้งค่าความปลอดภัยด้วย Biometric ล้มเหลว.
 Biometric confirmation failed.: การยืนยันด้วย Biometric ล้มเหลว.
 Failed to disable biometrics.:  การปิดการใช้งาน Biometrics ล้มเหลว.

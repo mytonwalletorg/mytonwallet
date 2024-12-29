@@ -11,9 +11,9 @@ import {
   APP_VERSION,
   IS_CAPACITOR,
   IS_EXTENSION,
-  IS_FIREFOX_EXTENSION,
 } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { copyTextToClipboard } from '../../util/clipboard';
 import { getBuildPlatform, getFlagsValue } from '../../util/getBuildPlatform';
 import { getPlatform } from '../../util/getPlatform';
 import { getLogs } from '../../util/logs';
@@ -60,12 +60,19 @@ function SettingsDeveloperOptions({
   const {
     startChangingNetwork,
     copyStorageData,
+    showNotification,
   } = getActions();
   const lang = useLang();
   const currentNetwork = NETWORK_OPTIONS[isTestnet ? 1 : 0].value;
 
   const handleNetworkChange = useLastCallback((newNetwork: string) => {
     startChangingNetwork({ network: newNetwork as ApiNetwork });
+    onClose();
+  });
+
+  const handleExtensionClick = useLastCallback((logsString: string) => {
+    showNotification({ message: lang('Logs were copied!') as string, icon: 'icon-copy' });
+    void copyTextToClipboard(logsString);
     onClose();
   });
 
@@ -110,10 +117,20 @@ function SettingsDeveloperOptions({
         onClick={() => downloadLogs({
           currentAccountId,
           accountsById,
+          onExtensionClick: handleExtensionClick,
         })}
       >
         <div className={buildClassName(styles.item, styles.item_small)}>
-          {lang('Download Logs')}
+          {
+            IS_EXTENSION
+              ? (
+                <>
+                  {lang('Copy Logs')}
+
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-copy')} aria-hidden />
+                </>
+              ) : lang('Download Logs')
+          }
         </div>
       </div>
 
@@ -138,7 +155,13 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   };
 })(SettingsDeveloperOptions));
 
-async function downloadLogs({ currentAccountId, accountsById }: StateProps) {
+async function downloadLogs(
+  {
+    currentAccountId,
+    accountsById,
+    onExtensionClick,
+  }: StateProps & { onExtensionClick: (logsString: string) => void },
+) {
   const accountsInfo = accountsById && Object.keys(accountsById).reduce((acc, accountId) => {
     const { addressByChain, isHardware } = accountsById[accountId];
     acc[accountId] = {
@@ -166,6 +189,11 @@ async function downloadLogs({ currentAccountId, accountsById }: StateProps) {
     2,
   );
 
+  if (IS_EXTENSION) {
+    onExtensionClick(logsString);
+    return;
+  }
+
   const blob = new Blob([logsString], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
 
@@ -182,8 +210,6 @@ async function downloadLogs({ currentAccountId, accountsById }: StateProps) {
     await Share.share({
       url: logFile.uri,
     });
-  } else if (IS_EXTENSION || IS_FIREFOX_EXTENSION) {
-    await callApi('downloadLogs', url, filename);
   } else if (navigator.share) {
     const file = new File([blob], filename, { type: blob.type });
 

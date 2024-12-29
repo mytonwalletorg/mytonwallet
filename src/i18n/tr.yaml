@@ -443,6 +443,8 @@ Biometric Registration: Biyometrik kayıt
 Step 1 of 2. Registration: Adım 1/2. Kayıt
 Step 2 of 2. Verification: Adım 2/2. Doğrulama
 Download Logs: Kayıtları İndir
+Copy Logs: Günlükleri Kopyala
+Logs were copied!: Günlükler kopyalandı!
 Biometric setup failed.: Biyometrik kurulum başarısız oldu.
 Biometric confirmation failed.: Biyometrik onaylama başarısız oldu.
 Failed to disable biometrics.: Biyometrik onay devre dışı bırakılamadı.

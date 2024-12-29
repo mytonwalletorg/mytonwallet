@@ -448,6 +448,8 @@ Biometric Registration: Подключение биометрии
 Step 1 of 2. Registration: Шаг 1 из 2. Регистрация
 Step 2 of 2. Verification: Шаг 2 из 2. Проверка
 Download Logs: Загрузить логи
+Copy Logs: Скопировать логи
+Logs were copied!: Логи были скопированы!
 Biometric setup failed.: Настроить биометрию не удалось.
 Biometric confirmation failed.: Подтвердить биометрию не удалось.
 Failed to disable biometrics.: Не удалось отключить биометрию.

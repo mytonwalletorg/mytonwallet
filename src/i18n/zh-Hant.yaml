@@ -435,6 +435,8 @@ Biometric Registration: 生物辨識註冊
 Step 1 of 2. Registration: 第 1 步（共 2 步）：註冊
 Step 2 of 2. Verification: 第 2 步（共 2 步）：驗證
 Download Logs: 下載日誌
+Copy Logs: 複製日誌
+Logs were copied!: 日誌已複製！
 Biometric setup failed.: 生物辨識設定失敗。
 Biometric confirmation failed.: 生物辨識確認失敗。
 Failed to disable biometrics.: 無法禁用生物識別。
