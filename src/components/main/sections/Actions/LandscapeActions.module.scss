@@ -55,7 +55,7 @@ $tab-1-height: 348;
     &:not(.active) {
       &:hover,
       &:focus-visible {
-        color: var(--color-blue);
+        color: var(--color-accent);
       }
     }
   }
@@ -70,7 +70,7 @@ $tab-1-height: 348;
   }
 
   &_purple {
-    --color-blue: --color-purple-1;
+    --color-accent: --color-purple-1;
 
     color: var(--color-purple-1);
 
@@ -162,7 +162,7 @@ $tab-1-height: 348;
   margin-bottom: 0.0625rem;
 
   font-size: 1.875rem;
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   transition: color 150ms;
 

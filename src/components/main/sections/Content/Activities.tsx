@@ -42,8 +42,8 @@ import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import InfiniteScroll from '../../../ui/InfiniteScroll';
-import Loading from '../../../ui/Loading';
 import LoadingDots from '../../../ui/LoadingDots';
+import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
 import NewWalletGreeting from './NewWalletGreeting';
 import Swap from './Swap';
@@ -424,7 +424,7 @@ function Activities({
   if (isActivitiesEmpty && !isFirstTransactionsLoaded) {
     return (
       <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
-        <Loading />
+        <Spinner />
       </div>
     );
   }

@@ -163,7 +163,10 @@ function LedgerSelectWallets({
           <span className={settingsStyles.headerTitle}>{title}</span>
         </div>
       )}
-      <div className={buildClassName(styles.container, isStatic && styles.containerStatic)}>
+      <div className={buildClassName(
+        styles.container, isStatic && styles.containerStatic, isStatic && 'static-container',
+      )}
+      >
         {renderAccounts()}
         <div className={styles.actionBlock}>
           <Button

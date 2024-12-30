@@ -7,8 +7,8 @@ import buildClassName from '../../util/buildClassName';
 
 import useShowTransition from '../../hooks/useShowTransition';
 
-import Loading from './Loading';
 import Portal from './Portal';
+import Spinner from './Spinner';
 
 import styles from './LoadingOverlay.module.scss';
 
@@ -26,7 +26,7 @@ function LoadingOverlay({ isOpen }: StateProps) {
   return (
     <Portal>
       <div className={buildClassName(styles.root, transitionClassNames)} onClick={() => closeLoadingOverlay()}>
-        <Loading color="white" />
+        <Spinner color="white" />
       </div>
     </Portal>
   );

@@ -24,9 +24,9 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import DappFeed from '../../../dapps/DappFeed';
 import Site from '../../../explore/Site';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
-import Loading from '../../../ui/Loading';
 import Menu from '../../../ui/Menu';
 import MenuItem from '../../../ui/MenuItem';
+import Spinner from '../../../ui/Spinner';
 
 import styles from './Explore.module.scss';
 
@@ -198,7 +198,7 @@ function Explore({
   if (sites === undefined) {
     return (
       <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
-        <Loading />
+        <Spinner />
       </div>
     );
   }

@@ -4,30 +4,27 @@ import buildClassName from '../../util/buildClassName';
 
 import useLang from '../../hooks/useLang';
 
-import styles from './Loading.module.scss';
+import styles from './Spinner.module.scss';
 
 type OwnProps = {
-  color?: 'blue' | 'white';
-  backgroundColor?: 'light' | 'dark';
+  color?: 'white';
   className?: string;
 };
 
-function Loading({ color = 'blue', backgroundColor, className }: OwnProps) {
+function Spinner({ color, className }: OwnProps) {
   const lang = useLang();
 
   const fullClassName = buildClassName(
     styles.spinner,
-    styles[color],
+    color && styles[color],
     className,
-    backgroundColor && styles.withBackground,
-    backgroundColor && styles[backgroundColor],
   );
 
   return (
     <div className={fullClassName} aria-label={lang('Loading...')}>
-      <div className={styles.inner} />
+      <i className={buildClassName(styles.inner, 'icon-spinner')} aria-hidden />
     </div>
   );
 }
 
-export default memo(Loading);
+export default memo(Spinner);

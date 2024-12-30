@@ -195,7 +195,7 @@
 
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   background: var(--color-background-first);
   border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
@@ -654,7 +654,7 @@
         transform: scale(1.1);
       }
       .feedItemAppNameMini, .feedItemAppNameTile {
-        color: var(--color-blue);
+        color: var(--color-accent);
       }
     }
   }
@@ -742,7 +742,7 @@
     &:hover,
     &:focus-visible {
       .feedSettingsLabel, .feedSettingsIconWrapper_mini {
-        color: var(--color-blue);
+        color: var(--color-accent);
       }
     }
   }

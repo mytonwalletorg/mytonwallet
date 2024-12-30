@@ -159,7 +159,7 @@
   &:hover,
   &:focus-visible {
     > :global(.icon) {
-      color: var(--color-blue);
+      color: var(--color-accent);
     }
   }
 }

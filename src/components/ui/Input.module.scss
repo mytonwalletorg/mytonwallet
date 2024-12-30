@@ -79,14 +79,14 @@
   &:focus {
     --color-separator-input-stroke: transparent;
 
-    box-shadow: inset 0 0 0 0.125rem var(--color-blue);
+    box-shadow: inset 0 0 0 0.125rem var(--color-accent);
 
     // noinspection CssInvalidPseudoSelector
     &:autofill,
     &:-webkit-autofill-strong-password,
     &:-webkit-autofill-strong-password-viewable,
     &:-webkit-autofill-and-obscured {
-      box-shadow: inset 0 0 0 0.125rem var(--color-blue), inset 0 0 0 10rem var(--color-background-first);
+      box-shadow: inset 0 0 0 0.125rem var(--color-accent), inset 0 0 0 10rem var(--color-background-first);
     }
   }
 
@@ -218,7 +218,7 @@ textarea.input {
   &_hasFocus {
     --color-separator-input-stroke: transparent;
 
-    box-shadow: inset 0 0 0 0.125rem var(--color-blue);
+    box-shadow: inset 0 0 0 0.125rem var(--color-accent);
   }
 
   :global(html.animation-level-0) & {
@@ -276,7 +276,7 @@ textarea.input {
   font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1;
-  color: var(--color-blue);
+  color: var(--color-accent);
   white-space: nowrap;
 
   transition: color 150ms;
@@ -318,7 +318,7 @@ textarea.input {
 
 .swapCorner {
   &::before {
-    box-shadow: 0 0 0 0.125rem var(--color-blue) !important;
+    box-shadow: 0 0 0 0.125rem var(--color-accent) !important;
   }
 
   &_error {

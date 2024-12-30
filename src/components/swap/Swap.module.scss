@@ -67,7 +67,7 @@
   cursor: var(--custom-cursor, pointer);
 
   font-weight: 600;
-  color: var(--color-blue);
+  color: var(--color-accent);
   text-decoration: underline;
   text-decoration-style: dotted;
 
@@ -200,16 +200,16 @@
   height: 2.25rem;
 
   font-size: 0.875rem;
-  color: var(--color-blue-button-text);
+  color: var(--color-accent-button-text);
 
-  background-color: var(--color-blue-button-background);
+  background-color: var(--color-accent-button-background);
   border-radius: 50%;
 
   transition: background-color 150ms;
 
   @media (hover: hover) {
     &:hover {
-      background-color: var(--color-blue-button-background-hover);
+      background-color: var(--color-accent-button-background-hover);
     }
   }
 }
@@ -239,7 +239,7 @@
   font-style: normal;
   line-height: 1rem;
 
-  background-color: var(--color-blue);
+  background-color: var(--color-accent);
   border-radius: 50%;
 }
 
@@ -337,7 +337,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 0.8125rem;
-  color: var(--color-blue);
+  color: var(--color-accent);
 }
 
 .advancedInput {

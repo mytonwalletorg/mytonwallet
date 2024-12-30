@@ -64,11 +64,11 @@
 }
 
 .input:checked + .widget {
-  background: var(--color-blue);
+  background: var(--color-accent);
 }
 
 .input:checked + .widget:after {
   transform: translateX(calc(100% - 0.25rem));
 
-  border-color: var(--color-blue);
+  border-color: var(--color-accent);
 }

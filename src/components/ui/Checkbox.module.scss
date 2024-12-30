@@ -59,8 +59,8 @@
 
 .input:checked ~ .content {
   &::before {
-    background-color: var(--color-blue);
-    border-color: var(--color-blue);
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
   }
 
   &::after {

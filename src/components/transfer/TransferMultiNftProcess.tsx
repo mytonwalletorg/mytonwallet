@@ -9,8 +9,8 @@ import {
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
-import Loading from '../ui/Loading';
 import ModalHeader from '../ui/ModalHeader';
+import Spinner from '../ui/Spinner';
 import NftChips from './NftChips';
 import NftInfo from './NftInfo';
 
@@ -49,7 +49,7 @@ function TransferMultiNftProcess({
       <div className={modalStyles.transitionContent}>
         {isInProgress && (
           <>
-            <Loading className={styles.spinner} />
+            <Spinner className={styles.spinner} />
             <div className={styles.infoBox}>{lang('$multi_send_nft_warning', { duration })}</div>
           </>
         )}

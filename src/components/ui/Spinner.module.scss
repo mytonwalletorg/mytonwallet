@@ -1,0 +1,44 @@
+.spinner {
+  --spinner-size: 2rem;
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+
+  color: var(--color-accent);
+}
+
+.inner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  font-size: var(--spinner-size);
+  line-height: var(--spinner-size);
+
+  animation-name: spin;
+  animation-duration: 1s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.white {
+  color: var(--color-white);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

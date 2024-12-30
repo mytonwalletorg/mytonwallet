@@ -1,6 +1,8 @@
 @use "sass:color";
 
-@import '../../styles/variables';
+@import "../../styles/variables";
+
+@import "../../styles/mixins";
 
 .button {
   cursor: var(--custom-cursor, pointer);
@@ -72,20 +74,20 @@
 
 .isText {
   font-weight: 600;
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   background-color: transparent;
 
   transition: color 150ms;
 
   &:active {
-    color: var(--color-blue-button-background-hover);
+    color: var(--color-accent-button-background-hover);
   }
 
   @media (hover: hover) {
     &:hover,
     &:focus-visible {
-      color: var(--color-blue-button-background-hover);
+      color: var(--color-accent-button-background-hover);
     }
   }
 
@@ -99,20 +101,20 @@
 }
 
 .button.primary:not(.isSimple) {
-  color: var(--color-blue-button-text);
+  color: var(--color-accent-button-text);
 
-  background-color: var(--color-blue-button-background);
+  background-color: var(--color-accent-button-background);
 
   &.loadingInit {
-    --color-dot: var(--color-blue-button-text);
+    --color-dot: var(--color-accent-button-text);
   }
 
   @media (hover: hover) {
     &:hover,
     &:focus-visible {
-      color: var(--color-blue-button-text-hover);
+      color: var(--color-accent-button-text-hover);
 
-      background-color: var(--color-blue-button-background-hover);
+      background-color: var(--color-accent-button-background-hover);
     }
   }
 }

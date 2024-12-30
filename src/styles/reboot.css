@@ -133,7 +133,7 @@ sup {
 }
 
 a {
-  color: var(--color-blue);
+  color: var(--color-accent);
   text-decoration: none;
 
   background-color: transparent;

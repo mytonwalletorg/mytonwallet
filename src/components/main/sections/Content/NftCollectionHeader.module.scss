@@ -38,7 +38,7 @@
   padding: 0.125rem 0.5rem 0;
 
   font-size: 0.9375rem;
-  color: var(--color-blue);
+  color: var(--color-accent);
 }
 
 .backIcon {
@@ -80,11 +80,11 @@
   padding-right: 0.125rem;
 
   font-size: 1rem;
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   &:hover,
   &:focus-visible {
-    color: var(--color-blue-button-background-hover);
+    color: var(--color-accent-button-background-hover);
   }
 }
 
@@ -119,7 +119,7 @@
   width: 2.25rem !important;
   height: 2.75rem !important;
 
-  color: var(--color-blue);
+  color: var(--color-accent);
 }
 
 .burnAllButton {

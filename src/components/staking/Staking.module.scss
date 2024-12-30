@@ -61,7 +61,7 @@
   font-size: 0.9375rem !important;
   font-weight: 600;
   line-height: 0.9375rem !important;
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   transition: opacity 150ms;
 
@@ -230,7 +230,7 @@
   cursor: var(--custom-cursor, pointer);
 
   font-weight: 600;
-  color: var(--color-blue);
+  color: var(--color-accent);
   text-decoration: underline;
   text-decoration-style: dotted;
 
@@ -317,10 +317,10 @@
 }
 
 .stakingInfo {
-  --color-blue-button-text: var(--color-purple-button-text);
-  --color-blue-button-text-hover: var(--color-purple-button-text-hover);
-  --color-blue-button-background: var(--color-purple-button-background);
-  --color-blue-button-background-hover: var(--color-purple-button-background-hover);
+  --color-accent-button-text: var(--color-purple-button-text);
+  --color-accent-button-text-hover: var(--color-purple-button-text-hover);
+  --color-accent-button-background: var(--color-purple-button-background);
+  --color-accent-button-background-hover: var(--color-purple-button-background-hover);
   --color-gray-button-text: var(--color-gpurple-button-text-rest);
   --color-gray-button-background: var(--color-gpurple-button-background-rest);
   --color-gray-button-text-hover: var(--color-gpurple-button-text-hover);

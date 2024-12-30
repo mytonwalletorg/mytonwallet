@@ -106,7 +106,7 @@
     padding: 0.125rem;
 
     opacity: 0;
-    background: var(--color-blue);
+    background: var(--color-accent);
     border-radius: inherit;
 
     mask:
@@ -131,7 +131,7 @@
     }
 
     .dexValue {
-      color: var(--color-blue);
+      color: var(--color-accent);
     }
 
     &::after {
@@ -218,7 +218,7 @@
 .dexBestRateButton {
   color: var(--color-white) !important;
 
-  background: var(--color-blue-button-background) var(--color-gradient-main-blue2-green) !important;
+  background: var(--color-accent-button-background) var(--color-gradient-main-blue2-green) !important;
 
   @media (hover: hover) {
     &:hover,

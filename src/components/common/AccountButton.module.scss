@@ -61,8 +61,8 @@
     border-radius: var(--border-radius-tiny);
 
     /* stylelint-disable-next-line plugin/whole-pixel */
-    box-shadow: 0 0 0 0.8px var(--color-blue),
-          inset 0 0 0 1.4px var(--color-blue),
+    box-shadow: 0 0 0 0.8px var(--color-accent),
+          inset 0 0 0 1.4px var(--color-accent),
           inset 0 0 0 3.2px var(--color-background-first);
 
     transition: opacity 300ms;
@@ -166,7 +166,7 @@
   box-shadow: inset 0 0 0 0.075rem var(--color-card-toggle);
 
   &_active {
-    background: var(--color-blue) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjciIGZpbGw9Im5vbmUiPjxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNCIgZD0ibTEgMy41IDIgMkw3IDEiLz48L3N2Zz4=") no-repeat 50% 50%;
+    background: var(--color-accent) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjciIGZpbGw9Im5vbmUiPjxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNCIgZD0ibTEgMy41IDIgMkw3IDEiLz48L3N2Zz4=") no-repeat 50% 50%;
     /* stylelint-disable-next-line plugin/whole-pixel */
     box-shadow: inset 0 0 0 0.075rem var(--color-white);
   }

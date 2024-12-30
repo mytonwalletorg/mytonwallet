@@ -79,7 +79,7 @@
   margin-left: 1.75rem;
 
   font-weight: 600;
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   &::before {
     content: counter(li) ".";

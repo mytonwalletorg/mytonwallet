@@ -1,14 +1,13 @@
-import React, { memo, useMemo, useState } from '../../lib/teact/teact';
+import React, { memo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiStakingState } from '../../api/types';
-import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
+import type { ApiStakingState, ApiTokenWithPrice } from '../../api/types';
+import type { GlobalState, HardwareConnectState } from '../../global/types';
 import { StakingState } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
 import {
   selectAccountStakingState,
-  selectCurrentAccountTokens,
   selectIsMultichainAccount,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
@@ -36,7 +35,7 @@ import styles from './Staking.module.scss';
 
 type StateProps = GlobalState['currentStaking'] & {
   stakingState?: ApiStakingState;
-  tokens?: UserToken[];
+  tokenBySlug?: Record<string, ApiTokenWithPrice>;
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
@@ -57,7 +56,7 @@ function StakeModal({
   isLoading,
   amount,
   error,
-  tokens,
+  tokenBySlug,
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
@@ -75,10 +74,7 @@ function StakeModal({
 
   const { tokenSlug } = stakingState ?? {};
 
-  const token = useMemo(() => {
-    if (!tokenSlug) return undefined;
-    return tokens?.find(({ slug }) => slug === tokenSlug);
-  }, [tokenSlug, tokens]);
+  const token = tokenSlug && tokenBySlug ? tokenBySlug[tokenSlug] : undefined;
 
   const lang = useLang();
   const isOpen = IS_OPEN_STATES.has(state);
@@ -239,9 +235,9 @@ function StakeModal({
 
 export default memo(withGlobal((global): StateProps => {
   const accountId = global.currentAccountId!;
-  const tokens = selectCurrentAccountTokens(global);
   const isMultichainAccount = selectIsMultichainAccount(global, accountId);
   const stakingState = selectAccountStakingState(global, accountId);
+  const tokenBySlug = global.tokenInfo.bySlug;
 
   const {
     hardwareState,
@@ -252,7 +248,7 @@ export default memo(withGlobal((global): StateProps => {
   return {
     ...global.currentStaking,
     stakingState,
-    tokens,
+    tokenBySlug,
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,

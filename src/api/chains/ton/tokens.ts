@@ -208,7 +208,7 @@ export async function buildTokenTransfer(options: {
   const token = getTokenByAddress(tokenAddress)!;
 
   const {
-    isTokenWalletDeployed,
+    isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress)),
     isMintlessClaimed,
     mintlessTokenBalance,
     customPayload,
@@ -266,11 +266,7 @@ export async function getMintlessParams(options: {
   } = options;
 
   const isMintlessToken = !!token.customPayloadApiUrl;
-  const isTokenWalletDeployed = isMintlessToken
-    ? !!(await isActiveSmartContract(network, tokenWalletAddress))
-    // This value is incorrect when an uninitialized "from" token is selected in the swap form. This causes an error inside the `if (isTokenWalletDeployed)` condition body above.
-    // todo: Try to check token wallet deployment in case of mintfull tokens too
-    : true;
+  let isTokenWalletDeployed: boolean | undefined;
   let customPayload: string | undefined;
   let stateInit: string | undefined;
 
@@ -278,6 +274,7 @@ export async function getMintlessParams(options: {
   let mintlessTokenBalance: bigint | undefined;
 
   if (isMintlessToken && !shouldSkipMintless) {
+    isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress));
     isMintlessClaimed = isTokenWalletDeployed && await checkMintlessTokenWalletIsClaimed(network, tokenWalletAddress);
 
     if (!isMintlessClaimed) {

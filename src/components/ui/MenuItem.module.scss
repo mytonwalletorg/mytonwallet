@@ -47,7 +47,7 @@
   @media (hover: hover) {
     &:hover,
     &:focus-visible {
-      color: var(--color-blue);
+      color: var(--color-accent);
       text-decoration: none;
 
       background-color: var(--color-interactive-popup-menu-hover);
@@ -56,7 +56,7 @@
 
   @media (pointer: coarse) {
     &:active {
-      color: var(--color-blue);
+      color: var(--color-accent);
       text-decoration: none;
 
       background-color: var(--color-interactive-popup-menu-hover);

@@ -7,7 +7,7 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import DropdownMenu from './DropdownMenu';
-import Loading from './Loading';
+import Spinner from './Spinner';
 
 import styles from './Dropdown.module.scss';
 
@@ -109,7 +109,7 @@ function Dropdown({
       {label && <span className={styles.label}>{label}</span>}
 
       {isLoading ? (
-        <Loading className={styles.spinner} />
+        <Spinner className={styles.spinner} />
       ) : (
         <button
           type="button"

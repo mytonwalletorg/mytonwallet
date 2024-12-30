@@ -74,6 +74,7 @@ interface StateProps {
 }
 
 const HEX_80_PERCENT = 'CC';
+const HEX_10_PERCENT = '1A';
 const APP_UPDATE_INTERVAL = (IS_ELECTRON && !IS_LINUX) || IS_ANDROID_DIRECT
   ? 5 * 60 * 1000 // 5 min
   : undefined;
@@ -152,9 +153,10 @@ function App({
 
   useLayoutEffect(() => {
     setExtraStyles(document.body, {
-      '--color-blue': accentColor || 'inherit',
-      '--color-blue-button-background': accentColor || 'inherit',
-      '--color-blue-button-background-hover': accentColor ? `${accentColor}${HEX_80_PERCENT}` : 'inherit',
+      '--color-accent': accentColor || 'inherit',
+      '--color-accent-10o': accentColor ? `${accentColor}${HEX_10_PERCENT}` : 'inherit',
+      '--color-accent-button-background': accentColor || 'inherit',
+      '--color-accent-button-background-hover': accentColor ? `${accentColor}${HEX_80_PERCENT}` : 'inherit',
     });
   });
 

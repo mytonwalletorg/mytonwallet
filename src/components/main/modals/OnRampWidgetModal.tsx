@@ -13,8 +13,8 @@ import { callApi } from '../../../api';
 import useAppTheme from '../../../hooks/useAppTheme';
 import useLang from '../../../hooks/useLang';
 
-import Loading from '../../ui/Loading';
 import Modal from '../../ui/Modal';
+import Spinner from '../../ui/Spinner';
 
 import styles from './OnRampWidgetModal.module.scss';
 
@@ -116,7 +116,7 @@ function OnRampWidgetModal({
           !isAnimationInProgress && styles.inactive,
         )}
         >
-          <Loading />
+          <Spinner />
         </div>
         {renderContent()}
       </div>

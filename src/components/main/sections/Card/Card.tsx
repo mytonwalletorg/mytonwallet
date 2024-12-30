@@ -29,8 +29,8 @@ import useShowTransition from '../../../../hooks/useShowTransition';
 import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
 
 import AnimatedCounter from '../../../ui/AnimatedCounter';
-import Loading from '../../../ui/Loading';
 import LoadingDots from '../../../ui/LoadingDots';
+import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
 import AccountSelector from './AccountSelector';
 import CardAddress from './CardAddress';
@@ -135,7 +135,7 @@ function Card({
   function renderLoader() {
     return (
       <div className={buildClassName(styles.isLoading)}>
-        <Loading color="white" className={styles.center} />
+        <Spinner color="white" className={styles.center} />
       </div>
     );
   }

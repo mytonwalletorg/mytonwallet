@@ -33,7 +33,7 @@
   &:focus-visible,
   &:hover {
     .icon {
-      color: var(--color-blue);
+      color: var(--color-accent);
     }
   }
 }
@@ -96,7 +96,7 @@
 
   margin-left: 0.1875rem;
 
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   &:hover {
     opacity: 0.8;

@@ -17,10 +17,10 @@
   font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1;
-  color: var(--color-blue-button-text);
+  color: var(--color-accent-button-text);
   white-space: nowrap;
 
-  background: var(--color-blue-button-background);
+  background: var(--color-accent-button-background);
   border: none;
   border-radius: 1.25rem;
 
@@ -28,9 +28,9 @@
 
   &:hover,
   &:focus-visible {
-    color: var(--color-blue-button-text-hover);
+    color: var(--color-accent-button-text-hover);
 
-    background: var(--color-blue-button-background-hover);
+    background: var(--color-accent-button-background-hover);
   }
 }
 

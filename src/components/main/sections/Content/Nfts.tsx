@@ -20,7 +20,7 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
-import Loading from '../../../ui/Loading';
+import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
 import Nft from './Nft';
 
@@ -88,7 +88,7 @@ function Nfts({
   if (nfts === undefined) {
     return (
       <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
-        <Loading />
+        <Spinner />
       </div>
     );
   }

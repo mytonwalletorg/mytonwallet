@@ -28,7 +28,7 @@ import useTimeout from '../../../../hooks/useTimeout';
 
 import TokenPriceChart from '../../../common/TokenPriceChart';
 import Button from '../../../ui/Button';
-import Loading from '../../../ui/Loading';
+import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
 import ChartHistorySwitcher from './ChartHistorySwitcher';
 import CurrencySwitcher from './CurrencySwitcher';
@@ -229,7 +229,7 @@ function TokenCard({
       <Transition activeKey={!history ? 0 : history.length ? HISTORY_PERIODS.indexOf(period) + 1 : -1} name="fade">
         {!history ? (
           <div className={buildClassName(styles.isLoading)}>
-            <Loading color="white" className={styles.center} />
+            <Spinner color="white" className={styles.center} />
           </div>
         ) : history?.length ? (
           <>

@@ -41,7 +41,7 @@
   @media (hover: hover) {
     &:hover,
     &:focus-visible {
-      color: var(--color-blue);
+      color: var(--color-accent);
     }
   }
 
@@ -69,7 +69,7 @@
 
   font-size: 1.875rem;
   line-height: 1;
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   .button_purple > & {
     color: unset;

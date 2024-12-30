@@ -172,11 +172,11 @@ div[role="button"] {
 a {
   cursor: var(--custom-cursor, pointer);
 
-  color: var(--color-blue);
+  color: var(--color-accent);
 
   &:hover,
   &:focus-visible {
-    color: var(--color-blue);
+    color: var(--color-accent);
     text-decoration: underline;
   }
 }

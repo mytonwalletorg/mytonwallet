@@ -167,7 +167,7 @@
   cursor: var(--custom-cursor, pointer);
 
   font-weight: 600;
-  color: var(--color-blue);
+  color: var(--color-accent);
   text-decoration: underline;
   text-decoration-style: dotted;
 
@@ -488,7 +488,7 @@ textarea.inputStatic {
 
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--color-blue);
+  color: var(--color-accent);
 }
 
 .commentLabel :global(.menuItemName) {

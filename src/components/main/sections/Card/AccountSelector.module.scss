@@ -299,8 +299,8 @@
     cursor: default;
 
     /* stylelint-disable-next-line plugin/whole-pixel */
-    box-shadow: 0 0 0 0.046875rem var(--color-blue),
-          inset 0 0 0 0.046875rem var(--color-blue),
+    box-shadow: 0 0 0 0.046875rem var(--color-accent),
+          inset 0 0 0 0.046875rem var(--color-accent),
           inset 0 0 0 0.140625rem var(--color-background-drop-down);
   }
 

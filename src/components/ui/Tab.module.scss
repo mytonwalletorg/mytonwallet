@@ -24,19 +24,19 @@
   }
 
   :global(html:not(.animation-level-0)) &:not(&_active):active .content {
-    color: var(--color-blue) !important;
+    color: var(--color-accent) !important;
 
     background-color: var(--color-interactive-tab-active) !important;
 
-    @supports (background-color: color-mix(in rgba, var(--color-blue) 92%, transparent 8%)) {
-      background-color: color-mix(in rgba, var(--color-blue) 92%, transparent 8%);
+    @supports (background-color: color-mix(in lab, var(--color-accent) 8%, transparent)) {
+      background-color: color-mix(in lab, var(--color-accent) 8%, transparent) !important;
     }
   }
 
   &_active {
     cursor: default;
 
-    color: var(--color-blue);
+    color: var(--color-accent);
 
     i {
       opacity: 1 !important;
@@ -87,7 +87,7 @@
   height: 0.125rem;
 
   opacity: 0;
-  background-color: var(--color-blue);
+  background-color: var(--color-accent);
   border-radius: 0.1875rem 0.1875rem 0 0;
 
   &_animate {

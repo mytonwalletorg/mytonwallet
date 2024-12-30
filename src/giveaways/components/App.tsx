@@ -23,7 +23,7 @@ import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectOnce from '../../hooks/useEffectOnce';
 import useInterval from '../../hooks/useInterval';
 
-import Loading from '../../components/ui/Loading';
+import Spinner from '../../components/ui/Spinner';
 import Transition from '../../components/ui/Transition';
 import CaptchaPage from '../pages/CaptchaPage';
 import CompleteTaskPage from '../pages/CompleteTaskPage';
@@ -105,7 +105,7 @@ function App({ mtwWalletInfo }: OwnProps) {
         return <div>QueryParams has no giveawayId</div>;
 
       case PageKey.LoadingPageId:
-        return <div className={styles.loading}><Loading /></div>;
+        return <div className={styles.loading}><Spinner /></div>;
 
       case PageKey.ConnectPageId:
         return (
@@ -144,7 +144,7 @@ function App({ mtwWalletInfo }: OwnProps) {
         );
 
       default:
-        return <div className={styles.loading}><Loading /></div>;
+        return <div className={styles.loading}><Spinner /></div>;
     }
   }
 

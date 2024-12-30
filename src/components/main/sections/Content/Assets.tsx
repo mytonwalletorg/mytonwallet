@@ -37,7 +37,7 @@ import useVesting from '../../../../hooks/useVesting';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import InfiniteScroll from '../../../ui/InfiniteScroll';
-import Loading from '../../../ui/Loading';
+import Spinner from '../../../ui/Spinner';
 import Token from './Token';
 
 import styles from './Assets.module.scss';
@@ -283,7 +283,7 @@ function Assets({
     >
       {!renderedTokens && (
         <div key="loading" className={isSeparatePanel ? styles.emptyListSeparate : styles.emptyList}>
-          <Loading />
+          <Spinner />
         </div>
       )}
       {shouldRenderVestingToken && renderVestingToken()}

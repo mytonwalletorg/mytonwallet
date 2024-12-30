@@ -1,7 +1,7 @@
 :root {
   // Color names comes from figma file
   --color-white: #FFF;
-  --color-blue: #0088CC;
+  --color-accent: #0088CC;
   --color-black: #2C333E;
   --color-gray-1: #616770;
   --color-gray-2: #8399AE;
@@ -13,7 +13,7 @@
   --color-red: #F35B5B;
   --color-purple-1: #5E6BDE;
   --color-purple-2: #6875E9;
-  --color-blue-10o: #0088CC1A;
+  --color-accent-10o: #0088CC1A;
 
   --color-background-first: #FFFFFF;
   --color-background-first-disabled: #FAFAFA;
@@ -35,10 +35,10 @@
 
   --color-input-hint: #88A6C2;
 
-  --color-blue-button-text: #FFFFFF;
-  --color-blue-button-text-hover: #FFFFFF;
-  --color-blue-button-background: #0088CC;
-  --color-blue-button-background-hover: #16A5ED;
+  --color-accent-button-text: #FFFFFF;
+  --color-accent-button-text-hover: #FFFFFF;
+  --color-accent-button-background: #0088CC;
+  --color-accent-button-background-hover: #16A5ED;
 
   --color-red-button-text: #FFFFFF;
   --color-red-button-text-hover: #FFFFFF;
@@ -168,10 +168,6 @@
 
   --default-shadow: 0 0 1.5625rem 0 #00000026;
 
-  --spinner-white-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEwLjggMjIuNEM2IDIxLjkgMi4xIDE4IDEuNiAxMy4yLjkgNy4xIDUuNCAxLjkgMTEuMyAxLjVjLjQgMCAuNy0uMy43LS43IDAtLjQtLjQtLjgtLjgtLjhDNC44LjQtLjIgNS45IDAgMTIuNS4yIDE4LjYgNS40IDIzLjggMTEuNSAyNGM2LjYuMiAxMi00LjggMTIuNC0xMS4yIDAtLjQtLjMtLjgtLjgtLjgtLjQgMC0uNy4zLS43LjctLjMgNS45LTUuNSAxMC40LTExLjYgOS43eiIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==);
-  --spinner-white-thin-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0iTTEyIDIzQzUuOSAyMyAxIDE4LjEgMSAxMlM1LjkgMSAxMiAxVjBDNS40IDAgMCA1LjQgMCAxMnM1LjQgMTIgMTIgMTIgMTItNS40IDEyLTEyaC0xYzAgNi4xLTQuOSAxMS0xMSAxMXoiLz48L3N2Zz4=);
-  --spinner-blue-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEwLjggMjIuNEM2IDIxLjkgMi4xIDE4IDEuNiAxMy4yLjkgNy4xIDUuNCAxLjkgMTEuMyAxLjVjLjQgMCAuNy0uMy43LS43IDAtLjQtLjQtLjgtLjgtLjhDNC44LjQtLjIgNS45IDAgMTIuNS4yIDE4LjYgNS40IDIzLjggMTEuNSAyNGM2LjYuMiAxMi00LjggMTIuNC0xMS4yIDAtLjQtLjMtLjgtLjgtLjgtLjQgMC0uNy4zLS43LjctLjMgNS45LTUuNSAxMC40LTExLjYgOS43eiIgZmlsbD0iIzAwODhDQyIvPjwvc3ZnPg==);
-  --spinner-dark-blue-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEwLjggMjIuNEM2IDIxLjkgMi4xIDE4IDEuNiAxMy4yLjkgNy4xIDUuNCAxLjkgMTEuMyAxLjVjLjQgMCAuNy0uMy43LS43IDAtLjQtLjQtLjgtLjgtLjhDNC44LjQtLjIgNS45IDAgMTIuNS4yIDE4LjYgNS40IDIzLjggMTEuNSAyNGM2LjYuMiAxMi00LjggMTIuNC0xMS4yIDAtLjQtLjMtLjgtLjgtLjgtLjQgMC0uNy4zLS43LjctLjMgNS45LTUuNSAxMC40LTExLjYgOS43eiIgZmlsbD0iIzAwODhDQyIvPjwvc3ZnPg==);
   --spinner-green-data: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEwLjggMjIuNEM2IDIxLjkgMi4xIDE4IDEuNiAxMy4yLjkgNy4xIDUuNCAxLjkgMTEuMyAxLjVjLjQgMCAuNy0uMy43LS43IDAtLjQtLjQtLjgtLjgtLjhDNC44LjQtLjIgNS45IDAgMTIuNS4yIDE4LjYgNS40IDIzLjggMTEuNSAyNGM2LjYuMiAxMi00LjggMTIuNC0xMS4yIDAtLjQtLjMtLjgtLjgtLjgtLjQgMC0uNy4zLS43LjctLjMgNS45LTUuNSAxMC40LTExLjYgOS43eiIgZmlsbD0iIzJDRDM2RiIvPjwvc3ZnPg==);
 
   --layer-blackout-opacity: 0.1;
@@ -227,7 +223,7 @@
 
   &:global(.theme-dark),
   :global(.component-theme-dark) {
-    --color-blue: #469CEC;
+    --color-accent: #469CEC;
     --color-black: #F6F7F8;
     --color-gray-1: #BFC0C2;
     --color-gray-2: #89898B;
@@ -237,7 +233,7 @@
     --color-green-2: #79A28B;
     --color-purple-1: #95A0FE;
     --color-purple-2: #7986F7;
-    --color-blue-10o: #469CEC1A;
+    --color-accent-10o: #469CEC1A;
 
     --color-background-first: #1C1C1E;
     --color-background-first-disabled: #141415;
@@ -258,8 +254,8 @@
 
     --color-input-hint: #435362;
 
-    --color-blue-button-background: #469CEC;
-    --color-blue-button-background-hover: #51A7F7;
+    --color-accent-button-background: #469CEC;
+    --color-accent-button-background-hover: #51A7F7;
 
     --color-red-button-background: #D74A4A;
     --color-red-button-background-hover: #F35B5B;
@@ -356,4 +352,11 @@
     --color-gradient-activity-gray-green-text: linear-gradient(265.24deg, #D8DADC 16.67%, #2BC469 45.27%);
     --color-gradient-activity-gray-green-bg: linear-gradient(135deg, #1F3838 13.89%, #2E3947 86.11%);
   }
+}
+
+.static-container {
+  --color-gray-button-text: var(--color-gray-button-desktop-text);
+  --color-gray-button-text-hover: var(--color-gray-button-desktop-text-hover);
+  --color-gray-button-background: var(--color-gray-button-desktop-background);
+  --color-gray-button-background-hover: var(--color-gray-button-desktop-background-hover);
 }

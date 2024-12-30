@@ -302,7 +302,7 @@ function LandscapeActions({
         name="slideFade"
         activeKey={activeTabIndex}
         renderCount={TABS.length}
-        className={styles.transitionContent}
+        className={buildClassName(styles.transitionContent, 'static-container')}
       >
         {renderCurrentTab}
       </Transition>

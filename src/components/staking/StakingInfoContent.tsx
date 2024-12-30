@@ -34,9 +34,9 @@ import useWindowSize from '../../hooks/useWindowSize';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
-import Loading from '../ui/Loading';
 import ModalHeader from '../ui/ModalHeader';
 import RichNumberField from '../ui/RichNumberField';
+import Spinner from '../ui/Spinner';
 import Transition from '../ui/Transition';
 import StakingProfitItem from './StakingProfitItem';
 
@@ -272,7 +272,7 @@ function StakingInfoContent({
           >
             <div className={styles.stakingInfoLoading}>
               {shouldRenderSpinner && (
-                <Loading className={buildClassName(styles.stakingInfoLoadingAnimation, spinnerClassNames)} />
+                <Spinner className={buildClassName(styles.stakingInfoLoadingAnimation, spinnerClassNames)} />
               )}
             </div>
 

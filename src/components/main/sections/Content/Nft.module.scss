@@ -48,20 +48,20 @@
   font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1rem;
-  color: var(--color-blue-button-text);
+  color: var(--color-accent-button-text);
   text-decoration: none;
 
-  background-color: var(--color-blue-button-background);
+  background-color: var(--color-accent-button-background);
   border-radius: var(--border-radius-tiny);
 
   transition: background-color 150ms, color 150ms;
 
   &:hover,
   &:focus-visible {
-    color: var(--color-blue-button-text-hover);
+    color: var(--color-accent-button-text-hover);
     text-decoration: none;
 
-    background-color: var(--color-blue-button-background-hover);
+    background-color: var(--color-accent-button-background-hover);
   }
 
   &:active {
@@ -183,7 +183,7 @@
 
   margin-bottom: 0.4375rem;
 
-  background: var(--color-blue-10o);
+  background: var(--color-accent-10o);
 
   @supports not (aspect-ratio: 1) {
     height: auto;

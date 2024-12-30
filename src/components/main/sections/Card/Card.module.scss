@@ -322,7 +322,7 @@
   @media (hover: hover) {
     &:hover,
     &:focus {
-      --copy-icon-color: var(--color-blue);
+      --copy-icon-color: var(--color-accent);
     }
   }
 }
@@ -351,7 +351,7 @@
 
   &:hover,
   &:focus {
-    color: var(--color-blue);
+    color: var(--color-accent);
   }
 }
 
