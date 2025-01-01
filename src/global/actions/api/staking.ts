@@ -413,6 +413,11 @@ addActionHandler('changeCurrentStaking', async (global, actions, { stakingId, sh
 });
 
 addActionHandler('startStakingClaim', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('startStakingClaim');
+    return;
+  }
+
   const accountId = global.currentAccountId!;
   const { isHardware } = selectAccount(global, accountId)!;
 

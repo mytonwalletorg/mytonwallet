@@ -15,6 +15,7 @@ export default function calcJettonStakingApr({
   const apr = toBig(dailyReward, decimals)
     .div(toBig(tvl, decimals))
     .mul(DAYS_IN_YEAR)
+    .mul(100)
     .toFixed(2);
 
   return Number(apr);
