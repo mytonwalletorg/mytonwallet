@@ -955,7 +955,7 @@ export interface ActionPayloads {
   getDapps: undefined;
   deleteAllDapps: undefined;
   deleteDapp: { origin: string };
-  loadExploreSites: undefined;
+  loadExploreSites: { isLandscape: boolean };
   updateDappLastOpenedAt: { origin: string };
 
   addSiteToBrowserHistory: { url: string };

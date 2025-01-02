@@ -8,7 +8,9 @@ import { pause, waitFor } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import {
-  ApiHardwareBlindSigningNotEnabled, ApiUnsupportedVersionError, ApiUserRejectsError,
+  ApiHardwareBlindSigningNotEnabled,
+  ApiUnsupportedVersionError,
+  ApiUserRejectsError,
 } from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
@@ -410,7 +412,7 @@ addActionHandler('apiUpdateDappLoading', async (global, actions, { connectionTyp
     if (!(await waitFor(() => {
       global = getGlobal();
       return (connectionType === 'connect' && !!global.dappConnectRequest)
-      || (connectionType === 'sendTransaction' && global.currentDappTransfer.state !== TransferState.None);
+        || (connectionType === 'sendTransaction' && global.currentDappTransfer.state !== TransferState.None);
     }, 300, 5))) {
       return;
     }
@@ -458,8 +460,12 @@ addActionHandler('apiUpdateDappCloseLoading', async (global) => {
   setGlobal(global);
 });
 
-addActionHandler('loadExploreSites', async (global) => {
-  const sites = await callApi('loadExploreSites');
+addActionHandler('loadExploreSites', async (global, _, { isLandscape }) => {
+  const { settings: { langCode } } = global;
+  const sites = await callApi('loadExploreSites', {
+    isLandscape,
+    langCode,
+  });
   global = getGlobal();
   if (areDeepEqual(sites, global.exploreSites)) {
     return;

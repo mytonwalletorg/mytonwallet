@@ -138,8 +138,8 @@ function Explore({
     if (!isActive) return;
 
     getDapps();
-    loadExploreSites();
-  }, [isActive]);
+    loadExploreSites({ isLandscape });
+  }, [isActive, isLandscape]);
 
   function renderSearch() {
     return (
@@ -226,15 +226,8 @@ function Explore({
       {renderSearchSuggestions()}
       <DappFeed />
       <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
-        {sites.filter((site) => !(shouldRestrict && site.canBeRestricted)).map((site) => (
-          <Site
-            key={site.url}
-            url={site.url}
-            icon={site.icon}
-            title={site.name}
-            description={site.description}
-            isExternal={site.isExternal}
-          />
+        {sites.filter((site) => !(shouldRestrict && site.canBeRestricted)).map((site, i) => (
+          <Site key={site.url} site={site} index={i} />
         ))}
       </div>
     </div>

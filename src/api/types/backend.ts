@@ -210,6 +210,9 @@ export type ApiSite = {
   description: string;
   canBeRestricted: boolean;
   isExternal: boolean;
+  extendedIcon?: string;
+  badgeText?: string;
+  withBorder?: boolean;
 };
 
 // Prices

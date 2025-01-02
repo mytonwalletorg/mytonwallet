@@ -88,6 +88,8 @@
 .item {
   cursor: var(--custom-cursor, pointer);
 
+  position: relative;
+
   padding-bottom: 0.125rem;
 
   font-size: 0.9375rem;
@@ -114,6 +116,37 @@
       }
     }
   }
+
+  &.extended {
+    grid-column: 1 / 3;
+
+    .imageWrapper {
+      aspect-ratio: 2;
+    }
+  }
+
+  &.withBorder {
+    .imageWrapper {
+      border: 0.125rem solid var(--color-accent);
+    }
+  }
+}
+
+.badge {
+  position: absolute;
+  z-index: 1;
+  top: -0.25rem;
+  right: -0.25rem;
+
+  padding: 0 0.25rem;
+
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  color: var(--color-white);
+
+  background: var(--color-accent);
+  border-radius: 0.3125rem;
 }
 
 .imageWrapper {

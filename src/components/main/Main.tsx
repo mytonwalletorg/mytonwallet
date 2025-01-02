@@ -106,13 +106,15 @@ function Main({
   useOpenFromMainBottomSheet('receive', openReceiveModal);
   usePreventPinchZoomGesture(isMediaViewerOpen);
 
-  const { isPortrait } = useDeviceScreen();
+  const { isPortrait, isLandscape } = useDeviceScreen();
   const {
     shouldRender: shouldRenderStickyCard,
     transitionClassNames: stickyCardTransitionClassNames,
   } = useShowTransition(canRenderStickyCard);
 
-  useEffectOnce(loadExploreSites);
+  useEffectOnce(() => {
+    loadExploreSites({ isLandscape });
+  });
 
   useEffect(() => {
     setStatusBarStyle({
