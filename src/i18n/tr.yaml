@@ -709,7 +709,7 @@ You will spend %amount% **less**.: "%amount% **daha az** harcayacaksınız."
 Best: En İyi
 Use Best Rate: En İyi Oranı Kullan
 Switch to %dex_name%: "%dex_name%'e Geç"
-Built-in Dex Aggregator: Dahili Dex Toplayıcı
+Built-in DEX Aggregator: Dahili DEX Toplayıcı
 Add tokens: Jeton ekle
 No tokens yet: Henüz jeton yok
 $no_tokens_description: Başka bir cüzdandan jeton alın veya izleme için tercih edilen jetonları ayarlardan etkinleştirin.
@@ -718,8 +718,9 @@ Install Card: Kartı yükle
 Reset Card: Kartı sıfırla
 Apply Palette: Paleti uygula
 Reset Palette: Paleti sıfırla
-Notifications & Sounds: Bildirimler ve Sesler
+Notifications & Sounds: Bildirimler ve sesler
 Push Notifications: Anlık Bildirimler
 Select up to %count% wallets for notifications: Bildirimler için en fazla %count% cüzdan seçin
 $swap_aggregator_fee_tooltip: Dahili bir **DEX toplayıcı**, mevcut DEX'ler arasında **en iyi oranı** bulur. Hizmet ücreti %percent%.
 Accumulated Rewards: Birikmiş ödüller
+$swap_reverse_prohibited: Bu token çifti için satın alma miktarını ayarlamak imkansız

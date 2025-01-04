@@ -710,7 +710,7 @@ You will spend %amount% **less**.: Sie werden %amount% **weniger** ausgeben.
 Best: Beste
 Use Best Rate: Beste Rate nutzen
 Switch to %dex_name%: Zu %dex_name% wechseln
-Built-in Dex Aggregator: Integrierter Dex-Aggregator
+Built-in DEX Aggregator: Integrierter DEX-Aggregator
 Add tokens: Token hinzufügen
 No tokens yet: Noch keine Token
 $no_tokens_description: Erhalten Sie Token von einer anderen Wallet oder aktivieren Sie einfach bevorzugte Token in den Einstellungen zur Überwachung.
@@ -724,3 +724,4 @@ Push Notifications: Push-Benachrichtigungen
 Select up to %count% wallets for notifications: Wählen Sie bis zu %count% Wallets für Benachrichtigungen aus
 $swap_aggregator_fee_tooltip: Ein integrierter **DEX-Aggregator** findet den **besten Kurs** über verfügbare DEXs. Die Servicegebühr beträgt %percent%.
 Accumulated Rewards: Akkumulierte Belohnungen
+$swap_reverse_prohibited: Das Festlegen des Kaufbetrags ist für dieses Tokenpaar nicht möglich

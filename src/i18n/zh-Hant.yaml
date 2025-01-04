@@ -698,7 +698,7 @@ You will spend %amount% **less**.: 您將少花 %amount%。
 Best: 最佳
 Use Best Rate: 使用最佳匯率
 Switch to %dex_name%: 切換到 %dex_name%
-Built-in Dex Aggregator: 內建Dex聚合器
+Built-in DEX Aggregator: 內建Dex聚合器
 Add tokens: 添加令牌
 No tokens yet: 尚無代幣
 $no_tokens_description: 從其他錢包接收代幣，或者在設定中啟用首選代幣進行監控。
@@ -712,3 +712,4 @@ Push Notifications: 推送通知
 Select up to %count% wallets for notifications: 選擇最多 %count% 個錢包接收通知
 $swap_aggregator_fee_tooltip: 內建的 **DEX 聚合器** 會在可用的 DEX 中找到 **最佳匯率**。服務費為 %percent%。
 Accumulated Rewards: 累積獎勵
+$swap_reverse_prohibited: 無法為這對代幣設置購買金額

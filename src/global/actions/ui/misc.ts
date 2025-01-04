@@ -571,7 +571,6 @@ addActionHandler('requestOpenQrScanner', async (global, actions) => {
 addActionHandler('closeQrScanner', (global) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('closeQrScanner');
-    return undefined;
   }
 
   return {

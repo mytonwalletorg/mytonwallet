@@ -154,7 +154,6 @@
     }
 
     &.disabled {
-      pointer-events: none;
       cursor: default !important;
 
       opacity: 1;
@@ -166,7 +165,7 @@
 
     &:hover,
     &:focus {
-      &.isEmpty::before {
+      &.isEmpty:not(.disabled)::before {
         color: var(--color-interactive-input-text-hover-active);
       }
     }

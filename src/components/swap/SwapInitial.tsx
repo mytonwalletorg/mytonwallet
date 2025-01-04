@@ -4,7 +4,10 @@ import React, {
 import { getActions, getGlobal, withGlobal } from '../../global';
 
 import type { ApiChain } from '../../api/types';
-import type { Account, GlobalState, UserSwapToken } from '../../global/types';
+import type {
+  Account, ActionPayloads, AssetPairs, GlobalState, UserSwapToken,
+} from '../../global/types';
+import type { LangFn } from '../../hooks/useLang';
 import { SwapInputSource, SwapState, SwapType } from '../../global/types';
 
 import {
@@ -109,6 +112,7 @@ function SwapInitial({
     setSwapCexAddress,
     toggleSwapSettingsModal,
     authorizeDiesel,
+    showNotification,
   } = getActions();
   const lang = useLang();
 
@@ -232,9 +236,14 @@ function SwapInitial({
   const isPriceImpactError = priceImpact >= MAX_PRICE_IMPACT_VALUE;
   const isCrosschain = swapType === SwapType.CrosschainFromWallet || swapType === SwapType.CrosschainToWallet;
 
-  const isReverseProhibited = useMemo(() => {
-    return isCrosschain || pairs?.bySlug?.[currentTokenInSlug]?.[currentTokenOutSlug]?.isReverseProhibited;
-  }, [currentTokenInSlug, currentTokenOutSlug, isCrosschain, pairs?.bySlug]);
+  const [isBuyAmountInputDisabled, handleBuyAmountInputClick] = useReverseProhibited(
+    isCrosschain,
+    pairs?.bySlug,
+    currentTokenInSlug,
+    currentTokenOutSlug,
+    showNotification,
+    lang,
+  );
 
   const handleEstimateSwap = useLastCallback((shouldBlock: boolean) => {
     if (!isActive || isBackgroundModeActive()) return;
@@ -553,9 +562,10 @@ function SwapInitial({
               className={styles.amountInputBuy}
               value={amountOutValue}
               isLoading={isEstimating && inputSource === SwapInputSource.In}
-              disabled={isReverseProhibited}
+              disabled={isBuyAmountInputDisabled}
               onChange={handleAmountOutChange}
               onPressEnter={handleSubmit}
+              onInputClick={handleBuyAmountInputClick}
               decimals={tokenOut?.decimals}
               labelClassName={styles.inputLabel}
               inputClassName={styles.amountInputInner}
@@ -638,6 +648,30 @@ function useTokenTransitionKey(tokenSlug: string) {
   }, [tokenSlug]);
 
   return transitionKeyRef.current;
+}
+
+function useReverseProhibited(
+  isCrosschain: boolean,
+  pairsBySlug: Record<string, AssetPairs> | undefined,
+  currentTokenInSlug: string,
+  currentTokenOutSlug: string,
+  showNotification: (arg: ActionPayloads['showNotification']) => void,
+  lang: LangFn,
+) {
+  const isReverseProhibited = isCrosschain
+    || pairsBySlug?.[currentTokenInSlug]?.[currentTokenOutSlug]?.isReverseProhibited;
+  const isBuyAmountInputDisabled = isReverseProhibited;
+
+  const handleBuyAmountInputClick = useMemo(() => {
+    return isReverseProhibited
+      ? () => {
+        void vibrate();
+        showNotification({ message: lang('$swap_reverse_prohibited') });
+      }
+      : undefined;
+  }, [isReverseProhibited, lang, showNotification]);
+
+  return [isBuyAmountInputDisabled, handleBuyAmountInputClick] as const;
 }
 
 function AnimatedArrows({ onClick }: { onClick?: NoneToVoidFunction }) {

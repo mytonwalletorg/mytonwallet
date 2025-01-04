@@ -1,7 +1,5 @@
 import type { TeactNode } from '../../lib/teact/teact';
-import React, {
-  memo, useLayoutEffect, useRef, useState,
-} from '../../lib/teact/teact';
+import React, { memo, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS, WHOLE_PART_DELIMITER } from '../../config';
 import { requestMutation } from '../../lib/fasterdom/fasterdom';
@@ -33,6 +31,8 @@ type OwnProps = {
   onBlur?: NoneToVoidFunction;
   onFocus?: NoneToVoidFunction;
   onPressEnter?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  /** Expected to fire when regardless of the `disabled` prop value */
+  onInputClick?: NoneToVoidFunction;
   decimals?: number;
   disabled?: boolean;
   isStatic?: boolean;
@@ -57,6 +57,7 @@ function RichNumberInput({
   onBlur,
   onFocus,
   onPressEnter,
+  onInputClick,
   decimals = FRACTION_DIGITS,
   disabled = false,
   isStatic = false,
@@ -65,16 +66,7 @@ function RichNumberInput({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const lang = useLang();
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
-  const [isContentEditable, setContentEditable] = useState(!disabled);
   const { updateFontScale, isFontChangedRef } = useFontScale(inputRef);
-
-  const handleLoadingHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
-    const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
-    input.innerHTML = newHtml;
-    setContentEditable(false);
-
-    return newHtml;
-  });
 
   const handleNumberHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
     const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
@@ -83,7 +75,6 @@ function RichNumberInput({
       : undefined;
 
     input.innerHTML = newHtml;
-    setContentEditable(!disabled);
     restoreCaretPosition?.();
 
     return newHtml;
@@ -91,17 +82,13 @@ function RichNumberInput({
 
   const updateHtml = useLastCallback((parts?: RegExpMatchArray) => {
     const input = inputRef.current!;
-    const content = isLoading ? handleLoadingHtml(input, parts) : handleNumberHtml(input, parts);
+    const content = handleNumberHtml(input, parts);
     const textContent = parts?.[0] || '';
 
     if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
       updateFontScale(content);
     }
-    if (content.length) {
-      input.classList.remove(styles.isEmpty);
-    } else {
-      input.classList.add(styles.isEmpty);
-    }
+    input.classList.toggle(styles.isEmpty, !content.length);
   });
 
   useLayoutEffect(() => {
@@ -163,6 +150,7 @@ function RichNumberInput({
     styles.input_rich,
     !value && styles.isEmpty,
     valueClassName,
+    disabled && styles.disabled,
     isLoading && styles.isLoading,
     'rounded-font',
   );
@@ -192,7 +180,7 @@ function RichNumberInput({
         {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
         <div
           ref={inputRef}
-          contentEditable={isContentEditable}
+          contentEditable={!disabled && !isLoading}
           id={id}
           role="textbox"
           aria-required
@@ -205,6 +193,7 @@ function RichNumberInput({
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          onClick={onInputClick}
         />
         {children}
       </div>

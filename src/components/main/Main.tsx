@@ -8,7 +8,13 @@ import { ActiveTab, ContentTab, type Theme } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
 import { getStakingStateStatus } from '../../global/helpers/staking';
-import { selectAccountStakingState, selectCurrentAccount, selectCurrentAccountState } from '../../global/selectors';
+import {
+  selectAccountStakingState,
+  selectCurrentAccount,
+  selectCurrentAccountSettings,
+  selectCurrentAccountState,
+} from '../../global/selectors';
+import { useAccentColor } from '../../util/accentColor';
 import buildClassName from '../../util/buildClassName';
 import { getStatusBarHeight } from '../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
@@ -18,6 +24,7 @@ import {
 } from '../../util/windowEnvironment';
 import windowSize from '../../util/windowSize';
 
+import useAppTheme from '../../hooks/useAppTheme';
 import useBackgroundMode, { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
 import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
@@ -59,6 +66,7 @@ type StateProps = {
   isOnRampDisabled?: boolean;
   isMediaViewerOpen?: boolean;
   theme: Theme;
+  accentColorIndex?: number;
 };
 
 const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
@@ -76,6 +84,7 @@ function Main({
   isOnRampDisabled,
   isMediaViewerOpen,
   theme,
+  accentColorIndex,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -94,6 +103,8 @@ function Main({
   const cardRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   const portraitContainerRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line no-null/no-null
+  const landscapeContainerRef = useRef<HTMLDivElement>(null);
   const [canRenderStickyCard, setCanRenderStickyCard] = useState(false);
   const [shouldRenderDarkStatusBar, setShouldRenderDarkStatusBar] = useState(false);
   const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
@@ -179,6 +190,9 @@ function Main({
     });
   }, [currentTokenSlug, handleTokenCardClose, isPortrait]);
 
+  const appTheme = useAppTheme(theme);
+  useAccentColor(isPortrait ? portraitContainerRef : landscapeContainerRef, appTheme, accentColorIndex);
+
   const handleEarnClick = useLastCallback((stakingId?: string) => {
     if (stakingId) changeCurrentStaking({ stakingId });
 
@@ -222,7 +236,7 @@ function Main({
 
   function renderLandscapeLayout() {
     return (
-      <div className={styles.landscapeContainer}>
+      <div ref={landscapeContainerRef} className={styles.landscapeContainer}>
         <div className={buildClassName(styles.sidebar, 'custom-scroll')}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
           <Card onTokenCardClose={handleTokenCardClose} onYieldClick={handleEarnClick} />
@@ -275,6 +289,7 @@ export default memo(
         isSwapDisabled,
         isOnRampDisabled,
         theme: global.settings.theme,
+        accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

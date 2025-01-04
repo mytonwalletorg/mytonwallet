@@ -712,7 +712,7 @@ You will spend %amount% **less**.: คุณจะใช้จ่าย %amount%
 Best: ที่ดีที่สุด
 Use Best Rate: ใช้อัตราที่ดีที่สุด
 Switch to %dex_name%: เปลี่ยนเป็น %dex_name%
-Built-in Dex Aggregator: ตัวรวบรวม Dex ในตัว
+Built-in DEX Aggregator: ตัวรวบรวม DEX ในตัว
 Add tokens: เพิ่มโทเค็น
 No tokens yet: ยังไม่มีโทเคน
 $no_tokens_description: รับโทเคนจากกระเป๋าเงินอื่น หรือเพียงแค่เปิดใช้งานโทเคนที่ต้องการในการตั้งค่าเพื่อการติดตาม
@@ -726,3 +726,4 @@ Push Notifications: การแจ้งเตือนแบบพุช
 Select up to %count% wallets for notifications: เลือกกระเป๋าเงินได้สูงสุด %count% ใบสำหรับการแจ้งเตือน
 $swap_aggregator_fee_tooltip: ตัวรวบรวม **DEX ในตัว** จะค้นหา **อัตราที่ดีที่สุด** จาก DEX ที่มีอยู่ ค่าบริการคือ %percent%.
 Accumulated Rewards: รางวัลที่สะสม
+$swap_reverse_prohibited: การตั้งค่าจำนวนซื้อเป็นไปไม่ได้สำหรับคู่โทเค็นนี้

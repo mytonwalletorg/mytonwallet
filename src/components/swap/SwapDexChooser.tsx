@@ -220,7 +220,7 @@ function SwapDexChooser({
         <Modal
           isOpen={isModalOpen}
           isCompact
-          title={lang('Built-in Dex Aggregator')}
+          title={lang('Built-in DEX Aggregator')}
           onClose={closeModal}
         >
           <div className={styles.dexList}>

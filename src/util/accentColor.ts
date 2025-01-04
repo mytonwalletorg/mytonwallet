@@ -1,3 +1,9 @@
+import type { RefObject } from '../lib/teact/teact';
+import { useLayoutEffect } from '../lib/teact/teact';
+import { setExtraStyles } from '../lib/teact/teact-dom';
+
+import type { AppTheme } from '../global/types';
+
 import quantize from '../lib/quantize';
 import { euclideanDistance, hex2rgb } from './colors';
 import { logDebugError } from './logs';
@@ -25,6 +31,28 @@ export const ACCENT_RADIOACTIVE_INDEX = 13;
 export const ACCENT_SILVER_INDEX = 14;
 export const ACCENT_GOLD_INDEX = 15;
 export const ACCENT_BNW_INDEX = 16;
+
+const HEX_80_PERCENT = 'CC';
+const HEX_10_PERCENT = '1A';
+
+export function useAccentColor(
+  elementRefOrBody: RefObject | 'body',
+  appTheme: AppTheme,
+  accentColorIndex: number | undefined,
+) {
+  const accentColor = accentColorIndex ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
+
+  useLayoutEffect(() => {
+    setExtraStyles(elementRefOrBody === 'body' ? document.body : elementRefOrBody.current, {
+      '--color-accent': accentColor || 'inherit',
+      '--color-accent-10o': accentColor ? `${accentColor}${HEX_10_PERCENT}` : 'inherit',
+      '--color-accent-button-background': accentColor || 'inherit',
+      '--color-accent-button-background-hover': accentColor ? `${accentColor}${HEX_80_PERCENT}` : 'inherit',
+      '--color-accent-button-text': accentColor === '#FFFFFF' ? '#000000' : 'inherit',
+      '--color-accent-button-text-hover': accentColor === '#FFFFFF' ? '#000000' : 'inherit',
+    });
+  }, [elementRefOrBody, accentColor]);
+}
 
 export function extractAccentColorIndex(img: HTMLImageElement) {
   try {

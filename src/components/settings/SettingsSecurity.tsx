@@ -173,6 +173,11 @@ function SettingsSecurity({
   });
 
   const openBackupPage = useLastCallback(() => {
+    if (!isMultichainAccount) {
+      openSettingsSlide();
+      return;
+    }
+
     setCurrentSlide(SLIDES.backup);
     setNextKey(SLIDES.safetyRules);
   });
@@ -256,12 +261,6 @@ function SettingsSecurity({
     openNewPasswordSlide();
   });
 
-  const handleOpenBackupWallet = useLastCallback(() => {
-    setCurrentSlide(SLIDES.backup);
-    // Resetting next key to undefined unmounts and destroys components with mnemonic and private key
-    setNextKey(undefined);
-  });
-
   const handleOpenPrivateKeySafetyRules = useLastCallback(() => {
     setBackupType('key');
     setCurrentSlide(SLIDES.safetyRules);
@@ -272,6 +271,18 @@ function SettingsSecurity({
     setBackupType('words');
     setCurrentSlide(SLIDES.safetyRules);
     setNextKey(SLIDES.secretWords);
+  });
+
+  const handleOpenBackupWallet = useLastCallback(() => {
+    if (!isMultichainAccount) {
+      if (hasMnemonicWallet) handleOpenSecretWordsSafetyRules();
+      else handleOpenPrivateKeySafetyRules();
+      return;
+    }
+
+    setCurrentSlide(SLIDES.backup);
+    // Resetting next key to undefined unmounts and destroys components with mnemonic and private key
+    setNextKey(undefined);
   });
 
   const handleOpenPrivateKey = useLastCallback(() => {

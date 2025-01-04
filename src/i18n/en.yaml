@@ -710,7 +710,7 @@ You will spend %amount% **less**.: You will spend %amount% **less**.
 Best: Best
 Use Best Rate: Use Best Rate
 Switch to %dex_name%: Switch to %dex_name%
-Built-in Dex Aggregator: Built-in Dex Aggregator
+Built-in DEX Aggregator: Built-in DEX Aggregator
 Add tokens: Add tokens
 No tokens yet: No tokens yet
 $no_tokens_description: Receive tokens from another wallet, or simply enable preferred tokens in the settings for monitoring.
@@ -724,3 +724,4 @@ Push Notifications: Push Notifications
 Select up to %count% wallets for notifications: Select up to %count% wallets for notifications
 $swap_aggregator_fee_tooltip: A built-in **DEX aggregator** finds the **best rate** across available DEXes. Service fee is %percent%.
 Accumulated Rewards: Accumulated Rewards
+$swap_reverse_prohibited: Setting the buy amount is impossible for this pair of tokens

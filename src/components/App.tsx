@@ -1,5 +1,4 @@
 import React, { memo, useEffect, useLayoutEffect } from '../lib/teact/teact';
-import { setExtraStyles } from '../lib/teact/teact-dom';
 import { getActions, withGlobal } from '../global';
 
 import type { Theme } from '../global/types';
@@ -7,7 +6,7 @@ import { AppState } from '../global/types';
 
 import { INACTIVE_MARKER, IS_ANDROID_DIRECT, IS_CAPACITOR } from '../config';
 import { selectCurrentAccountSettings } from '../global/selectors';
-import { ACCENT_COLORS } from '../util/accentColor';
+import { useAccentColor } from '../util/accentColor';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
 import { resolveRender } from '../util/renderPromise';
@@ -73,8 +72,6 @@ interface StateProps {
   accentColorIndex?: number;
 }
 
-const HEX_80_PERCENT = 'CC';
-const HEX_10_PERCENT = '1A';
 const APP_UPDATE_INTERVAL = (IS_ELECTRON && !IS_LINUX) || IS_ANDROID_DIRECT
   ? 5 * 60 * 1000 // 5 min
   : undefined;
@@ -149,16 +146,7 @@ function App({
   }, [accountId]);
 
   const appTheme = useAppTheme(theme);
-  const accentColor = accentColorIndex ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
-
-  useLayoutEffect(() => {
-    setExtraStyles(document.body, {
-      '--color-accent': accentColor || 'inherit',
-      '--color-accent-10o': accentColor ? `${accentColor}${HEX_10_PERCENT}` : 'inherit',
-      '--color-accent-button-background': accentColor || 'inherit',
-      '--color-accent-button-background-hover': accentColor ? `${accentColor}${HEX_80_PERCENT}` : 'inherit',
-    });
-  });
+  useAccentColor('body', appTheme, accentColorIndex);
 
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {

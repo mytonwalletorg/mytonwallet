@@ -708,7 +708,7 @@ You will spend %amount% **less**.: Gastarás %amount% **menos**.
 Best: Mejor
 Use Best Rate: Usar la mejor tasa
 Switch to %dex_name%: Cambiar a %dex_name%
-Built-in Dex Aggregator: Agregador Dex incorporado
+Built-in DEX Aggregator: Agregador DEX incorporado
 Add tokens: Añadir tokens
 No tokens yet: Aún no hay tokens
 $no_tokens_description: Recibe tokens de otra billetera o simplemente habilita los tokens preferidos en la configuración para monitorear.
@@ -717,8 +717,9 @@ Install Card: Instalar tarjeta
 Reset Card: Restablecer tarjeta
 Apply Palette: Aplicar paleta
 Reset Palette: Restablecer paleta
-Notifications & Sounds: Notificaciones y Sonidos
+Notifications & Sounds: Notificaciones y sonidos
 Push Notifications: Notificaciones Push
 Select up to %count% wallets for notifications: Selecciona hasta %count% billeteras para notificaciones
 $swap_aggregator_fee_tooltip: Un **agregador DEX** incorporado encuentra la **mejor tasa** entre los DEX disponibles. La tarifa de servicio es del %percent%.
 Accumulated Rewards: Recompensas acumuladas
+$swap_reverse_prohibited: Configurar la cantidad de compra es imposible para este par de tokens
