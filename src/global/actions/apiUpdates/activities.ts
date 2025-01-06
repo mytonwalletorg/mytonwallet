@@ -49,7 +49,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         }
 
         if (getIsTonToken(transaction.slug)) {
-          actions.fetchDieselState({ tokenSlug: transaction.slug });
+          actions.fetchTransferDieselState({ tokenSlug: transaction.slug });
         }
       }
 

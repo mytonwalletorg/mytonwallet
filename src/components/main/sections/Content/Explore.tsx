@@ -156,6 +156,9 @@ function Explore({
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          // Android doesn't support scroll-margin here because of a Chromium bug (https://issues.chromium.org/issues/40074749).
+          // We can't use 'start' on Android, because without scroll-margin the input gets hidden under the floating header.
+          data-focus-scroll-position={IS_ANDROID ? 'center' : 'start'}
         />
       </form>
     );

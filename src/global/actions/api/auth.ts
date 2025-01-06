@@ -62,11 +62,11 @@ const CREATING_DURATION = 3300;
 const NATIVE_BIOMETRICS_PAUSE_MS = 750;
 
 export async function switchAccount(global: GlobalState, accountId: string, newNetwork?: ApiNetwork) {
-  const actions = getActions();
-
-  if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('switchAccount', { accountId, newNetwork });
+  if (accountId === global.currentAccountId) {
+    return;
   }
+
+  const actions = getActions();
 
   const newestTxTimestamps = selectNewestTxTimestamps(global, accountId);
   await callApi('activateAccount', accountId, newestTxTimestamps);
@@ -647,6 +647,11 @@ addActionHandler('startChangingNetwork', (global, actions, { network }) => {
 });
 
 addActionHandler('switchAccount', async (global, actions, payload) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('switchAccount', payload);
+    return;
+  }
+
   const { accountId, newNetwork } = payload;
   await switchAccount(global, accountId, newNetwork);
 });

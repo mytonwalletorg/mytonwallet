@@ -14,6 +14,8 @@ PODS:
     - Capacitor
   - CapacitorHaptics (6.0.1):
     - Capacitor
+  - CapacitorKeyboard (6.0.3):
+    - Capacitor
   - CapacitorMlkitBarcodeScanning (6.2.0):
     - Capacitor
     - GoogleMLKit/BarcodeScanning (= 5.0.0)
@@ -152,6 +154,7 @@ DEPENDENCIES:
   - "CapacitorCordova (from `../../../node_modules/@capacitor/ios`)"
   - "CapacitorFilesystem (from `../../../node_modules/@capacitor/filesystem`)"
   - "CapacitorHaptics (from `../../../node_modules/@capacitor/haptics`)"
+  - "CapacitorKeyboard (from `../../../node_modules/@capacitor/keyboard`)"
   - "CapacitorMlkitBarcodeScanning (from `../../../node_modules/@capacitor-mlkit/barcode-scanning`)"
   - CapacitorNativeSettings (from `../../../node_modules/capacitor-native-settings`)
   - CapacitorPluginSafeArea (from `../../../node_modules/capacitor-plugin-safe-area`)
@@ -207,6 +210,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@capacitor/filesystem"
   CapacitorHaptics:
     :path: "../../../node_modules/@capacitor/haptics"
+  CapacitorKeyboard:
+    :path: "../../../node_modules/@capacitor/keyboard"
   CapacitorMlkitBarcodeScanning:
     :path: "../../../node_modules/@capacitor-mlkit/barcode-scanning"
   CapacitorNativeSettings:
@@ -255,6 +260,7 @@ SPEC CHECKSUMS:
   CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
   CapacitorFilesystem: 37fb3aa5c945b4539ab11c74a5c57925a302bf24
   CapacitorHaptics: fe689ade56ef20ec9b041a753c6da70c5d8ec9a9
+  CapacitorKeyboard: 460c6f9ec5e52c84f2742d5ce2e67bbc7ab0ebb0
   CapacitorMlkitBarcodeScanning: 178fb57424ec688b6a2fceee506ecc1ea00d1c8d
   CapacitorNativeSettings: 1ce5585ff07b161616cd0a795702637316677af2
   CapacitorPluginSafeArea: e1eca7f70974f0e270d96f70cd0a5f51523164b1
@@ -289,6 +295,6 @@ SPEC CHECKSUMS:
   SinaKhMtwCapacitorStatusBar: e3fa73038e8dbac071751e1942eab65fc6c39a5f
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: ad14d80bb92e306162432517de945467c60b7527
+PODFILE CHECKSUM: fa64166a091f354ce503fdaf4d4b36e1cc75b934
 
 COCOAPODS: 1.16.2

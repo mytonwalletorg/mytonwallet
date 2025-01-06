@@ -16,6 +16,7 @@ dependencies {
     implementation project(':capacitor-clipboard')
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-haptics')
+    implementation project(':capacitor-keyboard')
     implementation project(':capacitor-push-notifications')
     implementation project(':capacitor-share')
     implementation project(':capgo-capacitor-native-biometric')
@@ -28,7 +29,6 @@ dependencies {
     implementation project(':mtw-capacitor-usb-hid')
     implementation project(':native-bottom-sheet')
     implementation project(':native-dialog')
-    implementation project(':capacitor-keyboard')
 
 }
 

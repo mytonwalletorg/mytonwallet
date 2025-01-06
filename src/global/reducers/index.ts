@@ -5,4 +5,5 @@ export * from './dapp';
 export * from './activities';
 export * from './nfts';
 export * from './swap';
+export * from './transfer';
 export * from './vesting';

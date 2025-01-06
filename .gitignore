@@ -13,6 +13,8 @@ MyTonWallet-opera.zip
 .vscode
 *.iml
 dev/perf/screenshot*
+dev/locales/input.yaml
+dev/locales/output.yaml
 .DS_store
 .DS_Store
 test-results

@@ -1,4 +1,4 @@
-import type { NotificationsAccountValue } from '../../api/methods';
+import type { ApiNotificationsAccountValue } from '../../api/types';
 import type { GlobalState } from '../types';
 
 export function deleteNotificationAccount(
@@ -33,7 +33,7 @@ export function deleteAllNotificationAccounts(
 export function createNotificationAccount(
   global: GlobalState,
   accountId: string,
-  value: Partial<NotificationsAccountValue> = {},
+  value: Partial<ApiNotificationsAccountValue> = {},
 ): GlobalState {
   const currentEnabledAccounts = global.pushNotifications.enabledAccounts;
 
@@ -51,7 +51,7 @@ export function createNotificationAccount(
 export function updateNotificationAccount(
   global: GlobalState,
   accountId: string,
-  value: NotificationsAccountValue,
+  value: ApiNotificationsAccountValue,
 ): GlobalState {
   const newEnabledAccounts = global.pushNotifications.enabledAccounts;
   newEnabledAccounts[accountId] = { ...newEnabledAccounts[accountId], ...value };

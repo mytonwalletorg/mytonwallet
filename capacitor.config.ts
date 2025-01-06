@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import type { KeyboardResize } from '@capacitor/keyboard';
 
 const { APP_ENV = 'production' } = process.env;
 
@@ -10,6 +11,7 @@ const COMMON_PLUGINS = [
   '@capacitor/clipboard',
   '@capacitor/filesystem',
   '@capacitor/haptics',
+  '@capacitor/keyboard',
   '@capacitor/push-notifications',
   '@capacitor/share',
   '@capgo/capacitor-native-biometric',
@@ -29,10 +31,6 @@ const IOS_PLUGINS = [
   '@sina_kh/mtw-capacitor-splash-screen',
 ];
 
-const ANDROID_PLUGINS = [
-  '@capacitor/keyboard',
-];
-
 const config: CapacitorConfig = {
   appId: 'org.mytonwallet.app',
   appName: 'MyTonWallet',
@@ -43,7 +41,7 @@ const config: CapacitorConfig = {
   },
   android: {
     path: 'mobile/android',
-    includePlugins: COMMON_PLUGINS.concat(ANDROID_PLUGINS),
+    includePlugins: COMMON_PLUGINS,
     webContentsDebuggingEnabled: APP_ENV !== 'production',
   },
   ios: {
@@ -61,6 +59,11 @@ const config: CapacitorConfig = {
     },
     PushNotifications: {
       presentationOptions: [],
+    },
+    Keyboard: {
+      // Needed to disable the automatic focus scrolling on iOS. The scroll is controlled manually by focusScroll.ts
+      // for a better focus scroll control.
+      resize: 'none' as KeyboardResize,
     },
   },
 };

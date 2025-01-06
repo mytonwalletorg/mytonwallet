@@ -7,48 +7,59 @@
     <link rel="stylesheet" href="/index.css">
 </head>
 <body>
-<div class="container small-padding">
+<div class="container no-flex small-padding with-gap">
     <h1>Connect <span class="gradient-text">MyTonWallet</span></h1>
-    <div class="info">
+    <info-block>
         <p>
             <b class="gradient-text">1.</b> Launch the app and log into your wallet.
         </p>
-        <a href="https://mytonwallet.app/get" target="_blank" class="download-btn">Install MyTonWallet</a>
-    </div>
-    <div class="info">
+        <a href="https://get.mytonwallet.io" target="_blank" class="download-btn">Install MyTonWallet</a>
+    </info-block>
+    <info-block>
         <p>
             <b class="gradient-text">2.</b> Once you launched MyTonWallet,<br />proceed by clicking the button below.
         </p>
-        <a href="tc://" id="btn-sign-in" class="download-btn">
+        <a href="mytonwallet-tc://" id="btn-sign-in" class="download-btn">
             Open MyTonWallet
         </a>
-    </div>
-    <div class="info">
+    </info-block>
+    <info-block>
         <p>
             <b class="gradient-text">3.</b> Once you connected your wallet,<br />go back to dapp.
         </p>
         <a href="javascript:window.close();" class="download-btn">
             Return to dapp
         </a>
-    </div>
+    </info-block>
     <div class="footer">
         <a href="https://mytonwallet.io">mytonwallet.io</a>
     </div>
 </div>
-<script>
-  const {
-    pathname,
-    search,
-  } = location;
+<script type="module">
+  import { IS_DESKTOP } from "./common.js";
 
-  const redirectTo = search;
+  function main() {
+    if (IS_DESKTOP) {
+      location.href = "/desktop";
+      return;
+    }
 
-  document.getElementById('btn-sign-in').href = `mytonwallet-tc://${redirectTo}`;
+    const {
+      pathname,
+      search,
+    } = location;
 
-  if (!search?.includes('no-redirect')) {
-    location.href = `mytonwallet-tc://${redirectTo}`;
-    history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
+    const redirectTo = search;
+
+    document.getElementById('btn-sign-in').href = `mytonwallet-tc://${redirectTo}`;
+
+    if (!search?.includes('no-redirect')) {
+      location.href = `mytonwallet-tc://${redirectTo}`;
+      history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
+    }
   }
+
+  main();
 </script>
 </body>
 </html>

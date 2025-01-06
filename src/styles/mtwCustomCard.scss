@@ -93,7 +93,6 @@
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 0%, #5B5C64 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  mix-blend-mode: multiply;
 
   -webkit-text-fill-color: transparent;
 
@@ -130,7 +129,11 @@
   }
 
   .MtwCard__black & {
-    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.15) 100%);
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0.15) 100%);
+
+    html.theme-dark & {
+      background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.15) 100%);
+    }
 
     > .icon {
       background-color: transparent;

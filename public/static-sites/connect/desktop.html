@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTonWallet Connect</title>
+    <link rel="stylesheet" href="/index.css">
+</head>
+<body>
+<div class="container small-padding with-gap desktop">
+    <h1>Connect <span class="gradient-text">MyTonWallet</span></h1>
+    <div class="columns with-separator with-gap">
+      <info-block class="column">
+        <span class="subheader">On Mobile</span>
+        <p>
+          Scan QR to open the app <br /> on your mobile device:
+        </p>
+        <img class="qr-code without-margin" srcset="
+            ./images/QR-code-1x.webp 1x,
+            ./images/QR-code-1.5x.webp 1.5x,
+            ./images/QR-code-2x.webp 2x
+        " src="./images/QR-code-2x.webp" />
+      </info-block>
+      <info-block class="column">
+        <span class="subheader">On Desktop</span>
+        <info-block class="instruction">
+          <p>
+              <b class="gradient-text">1.</b> Launch the app and log into<br />your wallet.
+          </p>
+          <a href="https://get.mytonwallet.io" class="download-btn">
+            Install MyTonWallet
+          </a>
+        </info-block>
+        <info-block>
+          <p>
+              <b class="gradient-text">2.</b> Once you have done it, proceed<br />by clicking the button below.
+          </p>
+          <a href="mytonwallet-tc://" id="btn-sign-in" class="download-btn">
+              Open MyTonWallet
+          </a>
+        </info-block>
+      </info-block>
+    </div>
+    <info-block class="dapp-open-block">
+        <p>
+            Once you connected your wallet, go back to dapp.
+        </p>
+        <a href="javascript:window.close();" class="download-btn">
+            Return to dapp
+        </a>
+    </info-block>
+</div>
+<script>
+  const {
+    pathname,
+    search,
+  } = location;
+
+  const redirectTo = search;
+
+  document.getElementById('btn-sign-in').href = `mytonwallet-tc://${redirectTo}`;
+
+  if (!search?.includes('no-redirect')) {
+    location.href = `mytonwallet-tc://${redirectTo}`;
+    history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
+  }
+</script>
+</body>
+</html>

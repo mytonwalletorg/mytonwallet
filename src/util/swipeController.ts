@@ -10,6 +10,8 @@ import { IS_IOS } from './windowEnvironment';
 const INERTIA_DURATION = 300;
 const INERTIA_EASING = timingFunctions.easeOutCubic;
 
+export const SWIPE_DISABLED_CLASS_NAME = 'swipe-disabled';
+
 let isSwipeActive = false;
 let swipeOffsets: MoveOffsets | undefined;
 let onDrag: ((offsets: MoveOffsets) => void) | undefined;
@@ -25,6 +27,8 @@ export function captureControlledSwipe(
 ) {
   return captureEvents(element, {
     swipeThreshold: 10,
+
+    excludedClosestSelector: `.${SWIPE_DISABLED_CLASS_NAME}`,
 
     onSwipe(e, direction, offsets) {
       if (direction === SwipeDirection.Left) {

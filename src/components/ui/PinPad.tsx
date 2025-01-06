@@ -6,6 +6,8 @@ import type { GlobalState } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
 import { getIsFaceIdAvailable, vibrateOnError } from '../../util/capacitor';
+import { disableSwipeToClose, enableSwipeToClose } from '../../util/modalSwipeManager';
+import { SWIPE_DISABLED_CLASS_NAME } from '../../util/swipeController';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
@@ -106,6 +108,16 @@ function PinPad({
     };
   }, [length, onChange, onClearError, resetStateDelayMs, type, value.length]);
 
+  useEffect(() => {
+    if (!isActive) return undefined;
+
+    disableSwipeToClose();
+
+    return () => {
+      enableSwipeToClose();
+    };
+  }, [isActive]);
+
   const handleClick = useLastCallback((char: string) => {
     if (value.length === length || value.length === 0) {
       onClearError?.();
@@ -157,7 +169,7 @@ function PinPad({
   }
 
   return (
-    <div className={buildClassName(styles.root, className)}>
+    <div className={buildClassName(styles.root, className, SWIPE_DISABLED_CLASS_NAME)}>
       <div className={titleClassName}>{title}</div>
       {renderDots()}
 

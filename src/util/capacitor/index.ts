@@ -21,6 +21,7 @@ import { pause } from '../schedulers';
 import {
   IS_ANDROID_APP, IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_IOS,
 } from '../windowEnvironment';
+import { initFocusScrollController } from './focusScroll';
 import { initNotificationsWithGlobal } from './notifications';
 import { getCapacitorPlatform, setCapacitorPlatform } from './platform';
 
@@ -103,6 +104,8 @@ export async function initCapacitor() {
   if (launchUrl) {
     void processDeeplink(launchUrl);
   }
+
+  initFocusScrollController();
 }
 
 export async function initCapacitorWithGlobal(authConfig?: AuthConfig) {

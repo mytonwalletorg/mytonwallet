@@ -450,7 +450,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
     }
     case 'liquid': {
       const tokenWalletAddress = await callApi('resolveTokenWalletAddress', network, address, LIQUID_JETTON);
-      const mode = state.instantAvailable
+      const mode = !state.instantAvailable
         ? ApiLiquidUnstakeMode.BestRate
         : ApiLiquidUnstakeMode.Default;
 

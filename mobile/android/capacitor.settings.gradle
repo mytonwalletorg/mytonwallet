@@ -23,6 +23,9 @@ project(':capacitor-filesystem').projectDir = new File('../../node_modules/@capa
 include ':capacitor-haptics'
 project(':capacitor-haptics').projectDir = new File('../../node_modules/@capacitor/haptics/android')
 
+include ':capacitor-keyboard'
+project(':capacitor-keyboard').projectDir = new File('../../node_modules/@capacitor/keyboard/android')
+
 include ':capacitor-push-notifications'
 project(':capacitor-push-notifications').projectDir = new File('../../node_modules/@capacitor/push-notifications/android')
 
@@ -58,6 +61,3 @@ project(':native-bottom-sheet').projectDir = new File('../plugins/native-bottom-
 
 include ':native-dialog'
 project(':native-dialog').projectDir = new File('../plugins/native-dialog/android')
-
-include ':capacitor-keyboard'
-project(':capacitor-keyboard').projectDir = new File('../../node_modules/@capacitor/keyboard/android')

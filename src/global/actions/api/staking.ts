@@ -21,6 +21,7 @@ import {
   updateCurrentStaking,
 } from '../../reducers';
 import { selectAccount, selectAccountStakingState } from '../../selectors';
+import { switchAccount } from './auth';
 
 const MODAL_CLOSING_DELAY = 50;
 
@@ -375,6 +376,18 @@ addActionHandler('fetchStakingHistory', async (global, actions, payload) => {
   global = getGlobal();
   global = updateAccountState(global, global.currentAccountId!, { stakingHistory }, true);
   setGlobal(global);
+});
+
+addActionHandler('openAnyAccountStakingInfo', async (global, actions, { accountId, network, stakingId }) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('openAnyAccountStakingInfo', { accountId, network, stakingId });
+    return;
+  }
+
+  await switchAccount(global, accountId, network);
+
+  actions.changeCurrentStaking({ stakingId });
+  actions.openStakingInfo();
 });
 
 // Should be called only when you're sure that the staking is active. Otherwise, call `openStakingInfoOrStart`.

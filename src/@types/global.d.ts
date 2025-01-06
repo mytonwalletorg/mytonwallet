@@ -9,6 +9,9 @@ declare namespace React {
     // Optimization for DOM nodes prepends and inserts
     teactFastList?: boolean;
     teactExperimentControlled?: boolean;
+    // `focusScroll.ts` uses this attribute to decide where to scroll the focused element to in Capacitor environments.
+    // 'nearest' - no scroll unless the element is hidden; 'start' - the element will at the top; 'end' - at the bottom.
+    'data-focus-scroll-position'?: ScrollLogicalPosition;
   }
 
   // Teact feature
@@ -116,6 +119,13 @@ interface Document {
   mozCancelFullScreen?: () => Promise<void>;
   webkitCancelFullScreen?: () => Promise<void>;
   webkitExitFullscreen?: () => Promise<void>;
+}
+
+interface Element {
+  dataset: DOMStringMap & {
+    // See HTMLAttributes['data-focus-scroll-position']
+    focusScrollPosition?: ScrollLogicalPosition;
+  };
 }
 
 interface HTMLElement {

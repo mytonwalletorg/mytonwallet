@@ -18,6 +18,7 @@ def capacitor_pods
   pod 'CapacitorClipboard', :path => '../../../node_modules/@capacitor/clipboard'
   pod 'CapacitorFilesystem', :path => '../../../node_modules/@capacitor/filesystem'
   pod 'CapacitorHaptics', :path => '../../../node_modules/@capacitor/haptics'
+  pod 'CapacitorKeyboard', :path => '../../../node_modules/@capacitor/keyboard'
   pod 'CapacitorPushNotifications', :path => '../../../node_modules/@capacitor/push-notifications'
   pod 'CapacitorShare', :path => '../../../node_modules/@capacitor/share'
   pod 'CapgoCapacitorNativeBiometric', :path => '../../../node_modules/@capgo/capacitor-native-biometric'

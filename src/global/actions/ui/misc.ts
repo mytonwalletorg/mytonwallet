@@ -89,22 +89,24 @@ addActionHandler('showActivityInfo', (global, actions, { id }) => {
 });
 
 addActionHandler('showAnyAccountTx', async (global, actions, { txId, accountId, network }) => {
-  if (accountId === global.currentAccountId) {
-    actions.showActivityInfo({ id: txId });
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('showAnyAccountTx', { txId, accountId, network });
     return;
   }
 
   await switchAccount(global, accountId, network);
+
   actions.showActivityInfo({ id: txId });
 });
 
 addActionHandler('showAnyAccountTokenActivity', async (global, actions, { slug, accountId, network }) => {
-  if (accountId === global.currentAccountId) {
-    actions.showTokenActivity({ slug });
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('showAnyAccountTokenActivity', { slug, accountId, network });
     return;
   }
 
   await switchAccount(global, accountId, network);
+
   actions.showTokenActivity({ slug });
 });
 

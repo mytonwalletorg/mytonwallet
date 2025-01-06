@@ -1,17 +1,11 @@
-import type { ApiChain } from '../../api/types';
+import type { ApiChain, ApiNotificationAddress } from '../../api/types';
 import type { GlobalState } from '../types';
 
-export interface NotificationAddress {
-  title?: string;
-  address: string;
-  chain: ApiChain;
-}
-
-// Do not use with memorized React components
-export function selectNotificationTonAddresses(
+// This selector is not optimized for usage with React components wrapped by withGlobal
+export function selectNotificationTonAddressesSlow(
   global: GlobalState,
   accountIds: string[],
-): NotificationAddress[] {
+): ApiNotificationAddress[] {
   return accountIds.map((accountId) => {
     const account = global.accounts!.byId[accountId];
 

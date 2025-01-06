@@ -43,7 +43,10 @@ export function useAccentColor(
   const accentColor = accentColorIndex ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
 
   useLayoutEffect(() => {
-    setExtraStyles(elementRefOrBody === 'body' ? document.body : elementRefOrBody.current, {
+    const element = elementRefOrBody === 'body' ? document.body : elementRefOrBody.current;
+    if (!element) return;
+
+    setExtraStyles(element, {
       '--color-accent': accentColor || 'inherit',
       '--color-accent-10o': accentColor ? `${accentColor}${HEX_10_PERCENT}` : 'inherit',
       '--color-accent-button-background': accentColor || 'inherit',

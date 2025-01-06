@@ -5,42 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Open MyTonWallet</title>
   <link rel="stylesheet" href="/index.css">
+  <script type="module">
+    import { IS_DESKTOP } from './common.js';
+
+    function main() {
+      if (IS_DESKTOP) {
+        location.href = '/desktop';
+        return;
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const {
+          pathname,
+          search,
+        } = location;
+
+        const redirectTo = `${pathname.slice(1)}${search}`;
+
+        document.getElementById('btn-sign-in').href = `mtw://${redirectTo}`;
+
+        if (!search?.includes('no-redirect')) {
+          location.href = `mtw://${redirectTo}`;
+          history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
+        }
+      });
+    }
+
+    main();
+  </script>
 </head>
 <body>
 <div class="container small-padding">
   <h1>Open <span class="gradient-text">MyTonWallet</span></h1>
-  <div class="info">
+  <info-block>
     <p>
       Launch the app and log into your wallet.
     </p>
-    <a href="https://mytonwallet.app/get" target="_blank" class="download-btn">Install MyTonWallet</a>
-  </div>
-  <div class="info">
+    <a href="https://get.mytonwallet.io" target="_blank" class="download-btn">Install MyTonWallet</a>
+  </info-block>
+  <info-block>
     <p>
       Once you have done it, proceed by clicking the button below.
     </p>
     <a href="mtw://" id="btn-sign-in" class="download-btn">
       Open MyTonWallet
     </a>
-  </div>
+  </info-block>
   <div class="footer">
     <a href="https://mytonwallet.io">mytonwallet.io</a>
   </div>
 </div>
-<script>
-  const {
-    pathname,
-    search,
-  } = location;
-
-  const redirectTo = `${pathname.slice(1)}${search}`;
-
-  document.getElementById('btn-sign-in').href = `mtw://${redirectTo}`;
-
-  if (!search?.includes('no-redirect')) {
-    location.href = `mtw://${redirectTo}`;
-    history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
-  }
-</script>
 </body>
 </html>

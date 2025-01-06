@@ -1,33 +1,14 @@
-import type { NotificationAddress } from '../../global/selectors/notifications';
-import type { CapacitorPlatform } from '../../util/capacitor/platform';
+import type {
+  ApiSubscribeNotificationsProps, ApiSubscribeNotificationsResult, ApiUnsubscribeNotificationsProps,
+} from '../types';
 
 import { logDebugError } from '../../util/logs';
 import { callBackendPost } from '../common/backend';
 import { handleServerError } from '../errors';
 
-export interface SubscribeNotificationsProps {
-  userToken: string;
-  platform: CapacitorPlatform;
-  addresses: NotificationAddress[];
-}
-
-export interface UnsubscribeNotificationsProps {
-  userToken: string;
-  addresses: NotificationAddress[];
-}
-
-export interface NotificationsAccountValue {
-  key: string;
-}
-
-export interface SubscribeNotificationsResult {
-  ok: true;
-  addressKeys: Record<string, NotificationsAccountValue>;
-}
-
-export async function subscribeNotifications(props: SubscribeNotificationsProps) {
+export async function subscribeNotifications(props: ApiSubscribeNotificationsProps) {
   try {
-    return await callBackendPost<SubscribeNotificationsResult>(
+    return await callBackendPost<ApiSubscribeNotificationsResult>(
       '/notifications/subscribe', props, { shouldRetry: true },
     );
   } catch (err) {
@@ -36,7 +17,7 @@ export async function subscribeNotifications(props: SubscribeNotificationsProps)
   }
 }
 
-export async function unsubscribeNotifications(props: UnsubscribeNotificationsProps) {
+export async function unsubscribeNotifications(props: ApiUnsubscribeNotificationsProps) {
   try {
     return await callBackendPost<{ ok: true }>(
       '/notifications/unsubscribe', props, { shouldRetry: true },

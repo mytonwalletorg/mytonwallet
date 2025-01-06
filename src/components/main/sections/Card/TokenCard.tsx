@@ -189,34 +189,34 @@ function TokenCard({
           <i className="icon-chevron-left" aria-hidden />
         </Button>
         <img className={styles.tokenLogo} src={logoPath} alt={token.name} />
-        <div>
+        <div className={styles.tokenInfoHeader}>
           <b className={styles.tokenAmount}>{formatCurrency(toDecimal(amount, token.decimals), symbol)}</b>
-          <span className={styles.tokenName}>
-            {name}
+          {withChange && (
+            <div className={styles.tokenValue}>
+              <div className={styles.currencySwitcher} role="button" tabIndex={0} onClick={openCurrencyMenu}>
+                ≈&thinsp;{formatCurrency(value, currencySymbol, undefined, true)}
+                <i className={buildClassName('icon', 'icon-caret-down', styles.iconCaretSmall)} aria-hidden />
+              </div>
+              <CurrencySwitcher
+                isOpen={isCurrencyMenuOpen}
+                menuPositionHorizontal="right"
+                excludedCurrency={token.symbol}
+                onClose={closeCurrencyMenu}
+                onChange={handleCurrencyChange}
+              />
+            </div>
+          )}
+        </div>
+        <div className={styles.tokenInfoSubheader}>
+          <span className={styles.tokenTitle}>
+            <span className={styles.tokenName}>{name}</span>
             {yieldType && (
               <span className={styles.apy} onClick={() => onYieldClick(stakingId)}>
                 {yieldType} {annualYield}%
               </span>
             )}
           </span>
-        </div>
-      </div>
-
-      {withChange && (
-        <div className={styles.tokenPrice}>
-          <span className={styles.currencySwitcher} role="button" tabIndex={0} onClick={openCurrencyMenu}>
-            ≈&thinsp;{formatCurrency(value, currencySymbol, undefined, true)}
-            <i className={buildClassName('icon', 'icon-caret-down', styles.iconCaretSmall)} aria-hidden />
-          </span>
-          <CurrencySwitcher
-            isOpen={isCurrencyMenuOpen}
-            menuPositionHorizontal="right"
-            excludedCurrency={token.symbol}
-            onClose={closeCurrencyMenu}
-            onChange={handleCurrencyChange}
-          />
-
-          {Boolean(changeValue) && (
+          {withChange && Boolean(changeValue) && (
             <div className={styles.tokenChange}>
               {changePrefix}
               &thinsp;
@@ -224,7 +224,7 @@ function TokenCard({
             </div>
           )}
         </div>
-      )}
+      </div>
 
       <Transition activeKey={!history ? 0 : history.length ? HISTORY_PERIODS.indexOf(period) + 1 : -1} name="fade">
         {!history ? (

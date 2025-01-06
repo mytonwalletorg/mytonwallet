@@ -153,16 +153,6 @@ export function changeBalance(global: GlobalState, accountId: string, slug: stri
   });
 }
 
-export function updateSendingLoading(global: GlobalState, isLoading: boolean): GlobalState {
-  return {
-    ...global,
-    currentTransfer: {
-      ...global.currentTransfer,
-      isLoading,
-    },
-  };
-}
-
 export function updateTokens(
   global: GlobalState,
   partial: Record<string, ApiTokenWithPrice>,

@@ -260,6 +260,10 @@
 }
 
 .searchInput {
+  $verticalScrollMargin: 0.625rem;
+
+  scroll-margin: $verticalScrollMargin 0.5rem;
+
   width: 100%;
   padding: 0 0.25rem;
 
@@ -283,5 +287,10 @@
     &::placeholder {
       color: var(--color-interactive-input-text-hover-active);
     }
+  }
+
+  @include respond-below(xs) {
+    // To fit the floating elements, otherwise the input will hide under the elements
+    scroll-margin-top: calc(var(--safe-area-top) + var(--tabs-container-height) + var(--sticky-card-height) + $verticalScrollMargin);
   }
 }

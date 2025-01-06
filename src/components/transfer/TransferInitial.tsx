@@ -145,7 +145,7 @@ function TransferInitial({
   const {
     submitTransferInitial,
     showNotification,
-    fetchFee,
+    fetchTransferFee,
     fetchNftFee,
     changeTransferToken,
     setTransferAmount,
@@ -156,7 +156,7 @@ function TransferInitial({
     requestOpenQrScanner,
     showDialog,
     authorizeDiesel,
-    fetchDieselState,
+    fetchTransferDieselState,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -260,7 +260,7 @@ function TransferInitial({
 
   const updateDieselState = useLastCallback(() => {
     if (tokenSlug) {
-      fetchDieselState({ tokenSlug });
+      fetchTransferDieselState({ tokenSlug });
     }
   });
 
@@ -313,7 +313,7 @@ function TransferInitial({
           nftAddresses: nfts?.map(({ address }) => address) || [],
         });
       } else {
-        fetchFee({
+        fetchTransferFee({
           tokenSlug,
           toAddress,
           comment,

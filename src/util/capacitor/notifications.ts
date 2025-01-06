@@ -3,10 +3,11 @@ import type { ActionPerformed, Token } from '@capacitor/push-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { getActions, getGlobal, setGlobal } from '../../global';
 
+import type { ApiStakingType } from '../../api/types';
 import type { GlobalState } from '../../global/types';
 
 import { selectAccountIdByAddress } from '../../global/selectors';
-import { selectNotificationTonAddresses } from '../../global/selectors/notifications';
+import { selectNotificationTonAddressesSlow } from '../../global/selectors/notifications';
 import { callApi } from '../../api';
 import { MINUTE } from '../../api/constants';
 import { logDebugError } from '../logs';
@@ -17,16 +18,22 @@ interface BaseMessageData {
 }
 
 interface ShowTxMessageData extends BaseMessageData {
-  action: 'swap' | 'staking' | 'nativeTx';
+  action: 'swap' | 'nativeTx';
   txId: string;
+}
+
+interface StakingMessageData extends BaseMessageData {
+  action: 'staking';
+  stakingType: ApiStakingType;
+  stakingId: string;
+  logId: string;
 }
 
 interface OpenActivityMessageData extends BaseMessageData {
   action: 'jettonTx';
   slug: string;
 }
-
-type MessageData = OpenActivityMessageData | ShowTxMessageData;
+type MessageData = StakingMessageData | OpenActivityMessageData | ShowTxMessageData;
 
 let nextUpdatePushNotifications = 0;
 
@@ -64,7 +71,7 @@ export async function initNotificationsWithGlobal(global: GlobalState) {
   }
 
   if (notificationStatus.receive !== 'granted') {
-    // For request IOS returns 'denied', but 'granted' follows immediately without a new requests.
+    // For request iOS returns 'denied', but 'granted' follows immediately without new requests
     return;
   }
 
@@ -72,7 +79,7 @@ export async function initNotificationsWithGlobal(global: GlobalState) {
 }
 
 function handlePushNotificationActionPerformed(notification: ActionPerformed) {
-  const { showAnyAccountTx, showAnyAccountTokenActivity } = getActions();
+  const { showAnyAccountTx, showAnyAccountTokenActivity, openAnyAccountStakingInfo } = getActions();
   const global = getGlobal();
   const notificationData = notification.notification.data as MessageData;
   const { action, address } = notificationData;
@@ -84,12 +91,17 @@ function handlePushNotificationActionPerformed(notification: ActionPerformed) {
 
   if (!accountId) return;
 
+  const network = 'mainnet';
+
   if (action === 'nativeTx' || action === 'swap') {
     const { txId } = notificationData;
-    showAnyAccountTx({ accountId, txId, network: 'mainnet' });
+    showAnyAccountTx({ accountId, txId, network });
   } else if (action === 'jettonTx') {
     const { slug } = notificationData;
-    showAnyAccountTokenActivity({ accountId, slug, network: 'mainnet' });
+    showAnyAccountTokenActivity({ accountId, slug, network });
+  } else if (action === 'staking') {
+    const { stakingId } = notificationData;
+    openAnyAccountStakingInfo({ accountId, network, stakingId });
   }
 }
 
@@ -105,7 +117,7 @@ function handlePushNotificationRegistration(token: Token) {
       await callApi('subscribeNotifications', {
         userToken,
         platform: getCapacitorPlatform()!,
-        addresses: selectNotificationTonAddresses(global, notificationAccounts),
+        addresses: selectNotificationTonAddressesSlow(global, notificationAccounts),
       });
       nextUpdatePushNotifications = Date.now() + (60 * MINUTE);
     }

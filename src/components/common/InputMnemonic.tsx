@@ -191,6 +191,7 @@ function InputMnemonic({
         onPaste={handlePaste}
         value={value}
         tabIndex={0}
+        data-focus-scroll-position={suggestionsPosition === 'top' ? 'end' : 'start'}
       />
     </div>
   );

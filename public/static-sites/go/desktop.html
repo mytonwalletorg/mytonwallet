@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open MyTonWallet</title>
+  <link rel="stylesheet" href="/index.css">
+</head>
+<body>
+<div class="container desktop small-padding">
+  <h1>Open <span class="gradient-text">MyTonWallet</span></h1>
+  <div class="columns with-separator with-gap">
+    <info-block class="column">
+      <span class="subheader">On Mobile</span>
+      <p>
+        Scan QR to open the app <br /> on your mobile device:
+      </p>
+      <img class="qr-code without-margin" srcset="
+          ./images/QR-code-1x.webp 1x,
+          ./images/QR-code-1.5x.webp 1.5x,
+          ./images/QR-code-2x.webp 2x
+      " src="./images/QR-code-2x.webp" />
+    </info-block>
+    <info-block class="column">
+      <span class="subheader">On Desktop</span>
+      <info-block class="instruction">
+        <p>
+            <b class="gradient-text">1.</b> Launch the app and log into<br />your wallet.
+        </p>
+        <a href="https://get.mytonwallet.io" class="download-btn">
+          Install MyTonWallet
+        </a>
+      </info-block>
+      <info-block>
+        <p>
+            <b class="gradient-text">2.</b> Once you have done it, proceed<br />by clicking the button below.
+        </p>
+        <a href="mtw://" id="btn-sign-in" class="download-btn">
+            Open MyTonWallet
+        </a>
+      </info-block>
+    </info-block>
+  </div>
+  <div class="footer">
+    <a href="https://mytonwallet.io">mytonwallet.io</a>
+  </div>
+</div>
+<script>
+  const {
+    pathname,
+    search,
+  } = location;
+
+  const redirectTo = `${pathname.slice(1)}${search}`;
+
+  document.getElementById('btn-sign-in').href = `mtw://${redirectTo}`;
+
+  if (!search?.includes('no-redirect')) {
+    location.href = `mtw://${redirectTo}`;
+    history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
+  }
+</script>
+</body>
+</html>

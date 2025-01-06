@@ -34,29 +34,15 @@
 
   flex-shrink: 0;
 
-  height: 2.75rem;
+  height: var(--tabs-container-height);
 
   .portraitContainer & {
     position: sticky;
-    top: 3.75rem;
+    top: var(--sticky-card-height);
 
     width: 100%;
     max-width: 27rem;
     margin: 0 auto;
-
-    :global(html.with-safe-area-top) & {
-      top: 2.625rem;
-    }
-
-    // Fix for opera, dead zone of 37 pixels in extension window on windows
-    :global(html.is-windows.is-opera.is-extension) & {
-      top: 4.75rem;
-    }
-
-    // Sticky header height - electron header height
-    :global(html.is-electron) & {
-      top: 0.75rem;
-    }
   }
 }
 

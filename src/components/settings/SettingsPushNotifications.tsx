@@ -49,10 +49,10 @@ function SettingsPushNotifications({
 
   const { toggleNotifications, toggleNotificationAccount, toggleCanPlaySounds } = getActions();
   const iterableAccounts = useMemo(() => Object.entries(accounts || {}), [accounts]);
-  const isPushNotificationsEnabled = Boolean(Object.keys(enabledAccounts).length);
+  const arePushNotificationsEnabled = Boolean(Object.keys(enabledAccounts).length);
 
   const handlePushNotificationsToggle = useLastCallback(() => {
-    toggleNotifications({ isEnabled: !isPushNotificationsEnabled });
+    toggleNotifications({ isEnabled: !arePushNotificationsEnabled });
   });
 
   const handleCanPlaySoundToggle = useLastCallback(() => {
@@ -148,7 +148,7 @@ function SettingsPushNotifications({
                 <Switcher
                   className={styles.menuSwitcher}
                   label={lang('Push Notifications')}
-                  checked={isPushNotificationsEnabled}
+                  checked={arePushNotificationsEnabled}
                 />
               </div>
             </div>

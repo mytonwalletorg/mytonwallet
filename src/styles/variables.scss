@@ -211,6 +211,9 @@
 
   --color-beidge-background: #D9EAF5;
 
+  --sticky-card-height: 3.75rem;
+  --tabs-container-height: 2.75rem;
+
   &.is-ios {
     --layer-transition: 650ms cubic-bezier(0.22, 1, 0.36, 1);
     --layer-transition-behind: 650ms cubic-bezier(0.33, 1, 0.68, 1);
@@ -221,8 +224,22 @@
     --slide-transition: 350ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  &:global(.theme-dark),
-  :global(.component-theme-dark) {
+  &.with-safe-area-top {
+    --sticky-card-height: 2.625rem;
+  }
+
+  // Fix for opera, dead zone of 37 pixels in extension window on windows
+  &.is-windows.is-opera.is-extension {
+    --sticky-card-height: 4.75rem;
+  }
+
+  // Sticky header height - electron header height
+  &.is-electron {
+    --sticky-card-height: 0.75rem;
+  }
+
+  &.theme-dark,
+  .component-theme-dark {
     --color-accent: #469CEC;
     --color-black: #F6F7F8;
     --color-gray-1: #BFC0C2;

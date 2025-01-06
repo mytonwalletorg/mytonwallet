@@ -112,7 +112,7 @@ export const SHORT_FRACTION_DIGITS = 2;
 
 export const MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT = 3;
 
-export const SUPPORT_USERNAME = 'MyTonWalletSupport';
+export const SUPPORT_USERNAME = 'mysupport';
 export const MTW_CARDS_BASE_URL = 'https://static.mytonwallet.org/cards/';
 export const MYTONWALLET_PROMO_URL = 'https://mytonwallet.io/';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';

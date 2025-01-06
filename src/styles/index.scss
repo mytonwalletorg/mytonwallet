@@ -39,6 +39,7 @@ body {
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-touch-callout: none;
 }
 
 html {
@@ -92,6 +93,7 @@ html {
 .custom-scroll-x {
   // Fix scroll lock on iOS
   pointer-events: auto;
+  scroll-behavior: smooth; // Primarily to smooth the scroll that happens when a virtual keyboard appears
 
   transition: scrollbar-color 300ms;
 
@@ -114,6 +116,10 @@ html {
     &::-webkit-scrollbar-thumb {
       background-color: rgba(90, 90, 90, 0.3);
     }
+  }
+
+  :global(html.animation-level-0) & {
+    scroll-behavior: initial;
   }
 }
 

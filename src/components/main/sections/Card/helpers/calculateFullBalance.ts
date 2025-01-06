@@ -10,18 +10,18 @@ import { round } from '../../../../../util/math';
 
 import styles from '../Card.module.scss';
 
-export function calculateFullBalance(tokens: UserToken[], states?: ApiStakingState[]) {
-  const stateBySlug = buildCollectionByKey(states ?? [], 'tokenSlug');
+export function calculateFullBalance(tokens: UserToken[], stakingStates?: ApiStakingState[]) {
+  const stakingStateBySlug = buildCollectionByKey(stakingStates ?? [], 'tokenSlug');
 
   const primaryValue = tokens.reduce((acc, token) => {
-    const stakingState = stateBySlug[token.slug];
+    const stakingState = stakingStateBySlug[token.slug];
 
     if (stakingState) {
-      let stakingAmount = toBig(stakingState.balance, token.decimals).mul(token.price);
+      let stakingAmount = toBig(stakingState.balance, token.decimals);
       if (stakingState.type === 'jetton') {
         stakingAmount = stakingAmount.plus(toBig(stakingState.unclaimedRewards, token.decimals));
       }
-      acc = acc.plus(stakingAmount);
+      acc = acc.plus(stakingAmount.mul(token.price));
     }
 
     return acc.plus(token.totalValue);

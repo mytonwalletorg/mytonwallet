@@ -1,5 +1,4 @@
 import type { ApiFetchEstimateDieselResult, ApiTonWalletVersion } from '../api/chains/ton/types';
-import type { NotificationsAccountValue } from '../api/methods';
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
   ApiActivity,
@@ -15,6 +14,7 @@ import type {
   ApiLedgerDriver,
   ApiNetwork,
   ApiNft,
+  ApiNotificationsAccountValue,
   ApiParsedPayload,
   ApiPriceHistoryPeriod,
   ApiSignedTransfer,
@@ -683,7 +683,7 @@ export type GlobalState = {
     isAvailable?: boolean;
     userToken?: string;
     platform?: CapacitorPlatform;
-    enabledAccounts: Record<string, Partial<NotificationsAccountValue>>;
+    enabledAccounts: Record<string, Partial<ApiNotificationsAccountValue>>;
   };
 
   isManualLockActive?: boolean;
@@ -762,7 +762,7 @@ export interface ActionPayloads {
     stateInit?: string;
   } | undefined;
   changeTransferToken: { tokenSlug: string };
-  fetchFee: {
+  fetchTransferFee: {
     tokenSlug: string;
     toAddress: string;
     comment?: string;
@@ -812,7 +812,7 @@ export interface ActionPayloads {
   clearAccountLoading: undefined;
   verifyHardwareAddress: undefined;
   authorizeDiesel: undefined;
-  fetchDieselState: { tokenSlug: string };
+  fetchTransferDieselState: { tokenSlug: string };
   setIsAuthLoading: { isLoading?: boolean };
 
   fetchTokenTransactions: { limit: number; slug: string; shouldLoadWithBudget?: boolean };
@@ -879,6 +879,7 @@ export interface ActionPayloads {
   fetchStakingHistory: { limit?: number; offset?: number } | undefined;
   fetchStakingFee: { amount: bigint };
   openStakingInfo: undefined;
+  openAnyAccountStakingInfo: { accountId: string; network: ApiNetwork; stakingId: string };
   closeStakingInfo: undefined;
   changeCurrentStaking: { stakingId: string; shouldReopenModal?: boolean };
   startStakingClaim: undefined;
