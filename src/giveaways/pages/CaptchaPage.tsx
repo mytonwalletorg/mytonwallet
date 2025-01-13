@@ -16,9 +16,12 @@ interface OwnProps {
   wallet: Wallet;
   setParticipantStatus: SetParticipantStatus;
   setGiveaway: SetGiveaway;
+  isGiveawayFinished: boolean;
 }
 
-function CaptchaPage({ wallet, setParticipantStatus, setGiveaway }: OwnProps) {
+function CaptchaPage({
+  wallet, setParticipantStatus, setGiveaway, isGiveawayFinished,
+}: OwnProps) {
   useEffectOnce(() => {
     // eslint-disable-next-line func-names
     window.onloadTurnstileCallback = function () {
@@ -35,7 +38,7 @@ function CaptchaPage({ wallet, setParticipantStatus, setGiveaway }: OwnProps) {
   });
 
   return (
-    <CommonPage wallet={wallet}>
+    <CommonPage wallet={wallet} isGiveawayFinished={isGiveawayFinished}>
 
       <div className={styles.section}>
         <div className={styles.sectionText}>Complete the captcha:</div>

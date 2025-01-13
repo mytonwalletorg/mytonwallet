@@ -7,6 +7,7 @@
     <title>MyTonWallet App</title>
     <script src="./index.js" type="module"></script>
     <link rel="stylesheet" href="./index.css">
+    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
 </head>
 
 <body>
@@ -18,17 +19,31 @@
             <br />
             on your mobile device:
         </div>
-        <img class="qr-code" srcset="
-            ./images/QR-code-1x.webp 1x,
-            ./images/QR-code-1.5x.webp 1.5x,
-            ./images/QR-code-2x.webp 2x
-        " src="./images/QR-code-2x.webp" />
+        <div class="qr-code-canvas qr-code"></div>
         <div class="footer">
             <div class="version">&nbsp;</div>
             <a href="javascript:redirectToFullList();">Other platforms</a>
             · <a href="https://mytonwallet.io">mytonwallet.io</a>
         </div>
     </div>
+    <script>
+        const QR_SIZE = 600;
+
+        const qrCode = new QRCodeStyling({
+            width: QR_SIZE,
+            height: QR_SIZE,
+            image: './images/logo.svg',
+            margin: 0,
+            type: 'canvas',
+            dotsOptions: { type: 'rounded' },
+            cornersSquareOptions: { type: 'extra-rounded' },
+            imageOptions: { imageSize: 0.4, margin: 8, crossOrigin: 'anonymous' },
+            qrOptions: { errorCorrectionLevel: 'M' },
+            data: 'https://mytonwallet.io/get',
+        });
+
+        qrCode.append(document.querySelector(".qr-code-canvas"));
+    </script>
 </body>
 
 </html>

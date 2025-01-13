@@ -67,7 +67,6 @@ export {
 export {
   getAccountTokenBalances,
   getTokenBalances,
-  getAddressTokenBalances,
   fetchToken,
   insertMintlessPayload,
 } from './tokens';

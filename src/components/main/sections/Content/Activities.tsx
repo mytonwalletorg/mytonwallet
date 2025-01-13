@@ -26,7 +26,7 @@ import {
   selectIsNewWallet,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { formatHumanDay, getDayStartAt } from '../../../../util/dateFormat';
+import { formatHumanDay, getDayStartAt, SECOND } from '../../../../util/dateFormat';
 import { buildCollectionByKey, findLast } from '../../../../util/iteratees';
 import { getIsTransactionWithPoisoning } from '../../../../util/poisoningHash';
 import { REM } from '../../../../util/windowEnvironment';
@@ -89,7 +89,7 @@ interface ActivityOffsetInfo {
 }
 
 const FURTHER_SLICE = 30;
-const THROTTLE_TIME = 1000;
+const THROTTLE_TIME = SECOND;
 
 const DATE_HEADER_HEIGHT = 2.5 * REM;
 const TRANSACTION_COMMENT_HEIGHT = 2.1875 * REM;

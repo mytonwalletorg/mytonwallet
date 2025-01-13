@@ -1,6 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
+import { SECOND } from '../../util/dateFormat';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useFlag from '../../hooks/useFlag';
@@ -17,7 +18,7 @@ interface OwnProps {
 }
 
 const START_DELAY = 700;
-const INTERVAL = 1000;
+const INTERVAL = SECOND;
 
 const AuthCreatingWallet = ({ isActive }: OwnProps) => {
   const lang = useLang();

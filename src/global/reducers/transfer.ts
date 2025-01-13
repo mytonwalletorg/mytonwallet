@@ -34,7 +34,7 @@ export function clearCurrentTransfer(global: GlobalState) {
  * Preserves the maximum transfer amount, if it was selected.
  * Returns a modified version of `nextGlobal`.
  */
-function preserveMaxTransferAmount(prevGlobal: GlobalState, nextGlobal: GlobalState) {
+export function preserveMaxTransferAmount(prevGlobal: GlobalState, nextGlobal: GlobalState) {
   const previousMaxAmount = selectCurrentTransferMaxAmount(prevGlobal);
   const wasMaxAmountSelected = prevGlobal.currentTransfer.amount === previousMaxAmount;
   if (!wasMaxAmountSelected) {

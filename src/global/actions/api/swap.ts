@@ -965,6 +965,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
 
   if (global.currentSwap.swapType === SwapType.CrosschainFromWallet) {
     if (tokenIn.chain === 'ton') {
+      // todo: Force gasfull estimation
       const txDraft = await callApi('checkTransactionDraft', 'ton', {
         accountId: global.currentAccountId!,
         toAddress: account?.addressByChain.ton!,

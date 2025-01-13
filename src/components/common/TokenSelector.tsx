@@ -14,7 +14,9 @@ import {
   type AssetPairs, SettingsState, type UserSwapToken, type UserToken,
 } from '../../global/types';
 
-import { ANIMATED_STICKER_MIDDLE_SIZE_PX } from '../../config';
+import {
+  ANIMATED_STICKER_MIDDLE_SIZE_PX, TON_USDT_SLUG, TRC20_USDT_MAINNET_SLUG, TRC20_USDT_TESTNET_SLUG,
+} from '../../config';
 import {
   selectAvailableUserForSwapTokens,
   selectIsMultichainAccount,
@@ -49,6 +51,7 @@ type TokenSortFactors = {
   tickerExactMatch: number;
   tickerMatchLength: number;
   nameMatchLength: number;
+  specialOrder: number;
 };
 
 interface StateProps {
@@ -216,6 +219,7 @@ function TokenSelector({
         tickerExactMatch: 0,
         tickerMatchLength: 0,
         nameMatchLength: 0,
+        specialOrder: 0, // The higher the value, the higher the position
       };
 
       const tokenSymbol = searchResultToken.symbol.toLowerCase();
@@ -231,6 +235,14 @@ function TokenSelector({
 
       if (tokenName.includes(lowerCaseSearchValue)) {
         factors.nameMatchLength = lowerCaseSearchValue.length;
+      }
+
+      if (searchResultToken.slug === TON_USDT_SLUG) {
+        factors.specialOrder = 2;
+      }
+
+      if (searchResultToken.slug === TRC20_USDT_MAINNET_SLUG || searchResultToken.slug === TRC20_USDT_TESTNET_SLUG) {
+        factors.specialOrder = 1;
       }
 
       acc[searchResultToken.slug] = factors;
@@ -578,6 +590,9 @@ function filterAndSortTokens(
 }
 
 function compareTokens(a: TokenSortFactors, b: TokenSortFactors) {
+  if (a.specialOrder !== b.specialOrder) {
+    return b.specialOrder - a.specialOrder;
+  }
   if (a.tickerExactMatch !== b.tickerExactMatch) {
     return b.tickerExactMatch - a.tickerExactMatch;
   }

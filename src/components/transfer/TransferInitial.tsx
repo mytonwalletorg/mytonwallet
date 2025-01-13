@@ -26,6 +26,7 @@ import {
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { readClipboardContent } from '../../util/clipboard';
+import { SECOND } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
 import { explainApiTransferFee, getMaxTransferAmount } from '../../util/fee/transferFee';
@@ -100,7 +101,7 @@ const COMMENT_DROPDOWN_ITEMS = [
   { value: 'encrypted', name: 'Encrypted Message' },
 ];
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
-const AUTHORIZE_DIESEL_INTERVAL_MS = 1000;
+const AUTHORIZE_DIESEL_INTERVAL_MS = SECOND;
 const TRON_ADDRESS_REGEX = /^T[1-9A-HJ-NP-Za-km-z]{1,33}$/;
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
@@ -197,7 +198,7 @@ function TransferInitial({
     return tokens?.find((token) => !token.tokenAddress && token.chain === chain);
   }, [tokens, chain])!;
 
-  const { status: dieselStatus, tokenAmount: dieselAmount } = diesel ?? {};
+  const { status: dieselStatus, amount: dieselAmount } = diesel ?? {};
   const skipNextFeeEstimate = useRef(false);
 
   const isToncoin = tokenSlug === TONCOIN.slug;
@@ -235,7 +236,7 @@ function TransferInitial({
   const isEnoughDiesel = withDiesel && amount && balance && dieselAmount
     ? isGaslessWithStars
       ? true
-      : balance - amount >= dieselAmount
+      : balance - amount >= dieselAmount.token
     : undefined;
   const isInsufficientFee = (fee !== undefined && !isEnoughNativeCoin && !isDieselAvailable)
     || (withDiesel && !isEnoughDiesel);

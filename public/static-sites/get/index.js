@@ -1,4 +1,4 @@
-import { IS_DESKTOP, IS_MOBILE, platform } from "./common.js";
+import { IS_DESKTOP, IS_MOBILE, platform } from "/common.js";
 
 
 const REPO = 'mytonwalletorg/mytonwallet';

@@ -1,64 +1,94 @@
+import type { Wallet } from '@tonconnect/sdk';
 import React, { memo } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
-import { formatFullDay, formatTime, getCountDaysToDate } from '../../util/dateFormat';
-import { type Giveaway, isGiveawayExpired } from '../utils/giveaway';
+import {
+  DAY,
+  formatFullDay,
+  formatTime,
+  HOUR,
+  MINUTE,
+} from '../../util/dateFormat';
+import {
+  type Giveaway, GiveawayStatus, GiveawayType, isGiveawayExpired,
+} from '../utils/giveaway';
 
 import CalendarIcon, { CalendarIconState } from './CalendarIcon';
 
 import styles from './GiveawayInfo.module.scss';
 
-enum GiveawayEndType {
-  Date = 'date',
-  Slots = 'slots',
-}
-
 interface OwnProps {
   giveaway: Giveaway;
+  wallet?: Wallet;
 }
 
-function getPlacesLeftText(placesLeft: number) {
-  if (placesLeft === 1) return `${placesLeft} prize left`;
+export function formatCountdown(datetime: string | number | Date): string {
+  const now = Date.now();
+  const targetTime = new Date(datetime).getTime();
+  const timeDiff = targetTime - now;
 
-  return `${placesLeft} prizes left`;
+  const minutesLeft = Math.floor(timeDiff / MINUTE);
+  const hoursLeft = Math.floor(timeDiff / HOUR);
+  const daysLeft = Math.floor(timeDiff / DAY);
+
+  if (daysLeft > 0) {
+    return `${daysLeft} ${daysLeft === 1 ? 'Day' : 'Days'} Left`;
+  }
+
+  if (hoursLeft > 0) {
+    return `${hoursLeft} ${hoursLeft === 1 ? 'Hour' : 'Hours'} Left`;
+  }
+
+  if (minutesLeft > 0) {
+    return `${minutesLeft} ${minutesLeft === 1 ? 'Minute' : 'Minutes'} Left`;
+  }
+
+  return 'Less Than A Minute';
 }
 
-function GiveawayInfo({ giveaway }: OwnProps) {
-  const {
-    receiverCount, participantCount, endsAt, status,
-  } = giveaway;
+function GiveawayInfo({ giveaway, wallet }: OwnProps) {
+  const { endsAt, status, type } = giveaway;
+
+  if (
+    type === GiveawayType.Instant
+    && status === GiveawayStatus.Finished
+    && !wallet
+  ) {
+    return (
+      <div className={styles.instantBadge}>
+        Giveaway Finished
+      </div>
+    );
+  }
 
   if (!endsAt) {
     // eslint-disable-next-line no-null/no-null
     return null;
   }
 
-  const giveawayEndType = endsAt ? GiveawayEndType.Date : GiveawayEndType.Slots;
+  const endDateText = `${formatFullDay('en', endsAt)} ${formatTime(endsAt)}`;
 
-  const endDateText = endsAt
-    ? `${formatFullDay('en', endsAt)} ${formatTime(endsAt)}`
-    : `${participantCount}/${receiverCount}`;
-  const giveawayEndInfo = endsAt
-    ? `${getCountDaysToDate(endsAt)} ${getCountDaysToDate(endsAt) === 1 ? 'day' : 'days'} left`
-    : getPlacesLeftText(receiverCount - participantCount);
-  const isExpired = status === 'finished' ? true : endsAt ? isGiveawayExpired(endsAt) : false;
+  const isExpired = status === 'finished' || isGiveawayExpired(endsAt);
 
   const iconType = isExpired ? CalendarIconState.FAILED : CalendarIconState.NORMAL;
-  const endTypeText = giveawayEndType === GiveawayEndType.Date ? 'End Date' : 'Number of prizes';
 
   return (
     <div className={styles.container}>
       <div className={styles.sectionFlex}>
         <CalendarIcon type={iconType} className={styles.calendarIcon} />
-        <span className={styles.sectionFlexText}>{endTypeText}</span>
+        <div className={styles.sectionFlexText}>
+          <span className={buildClassName(styles.textSmall, styles.description, styles.sectionFlexItem)}>End Date</span>
+          <div className={styles.sectionFlexItem}>
+            {endDateText}
+          </div>
+        </div>
       </div>
       <div className={buildClassName(styles.section, styles.sectionRight)}>
-        <div className={isExpired ? styles.textExpired : undefined}>{endDateText}</div>
-        <div className={buildClassName(styles.description, isExpired ? styles.textExpired : undefined)}>
+        <div className={isExpired ? styles.textExpired : undefined}>
           {
             isExpired
-              ? 'giveaway finished'
-              : giveawayEndInfo
+              ? 'Giveaway Finished'
+              : formatCountdown(endsAt)
           }
         </div>
       </div>

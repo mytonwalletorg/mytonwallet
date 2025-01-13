@@ -9,7 +9,7 @@ import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TONCOIN } from '../../../../co
 import { selectAccountStakingStates, selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
-import { formatShortDay } from '../../../../util/dateFormat';
+import { formatShortDay, SECOND } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
@@ -57,7 +57,7 @@ interface StateProps {
 const OFFLINE_TIMEOUT = 120000; // 2 minutes
 
 const CHART_DIMENSIONS = { width: 300, height: 64 };
-const INTERVAL = 5 * 1000;
+const INTERVAL = 5 * SECOND;
 
 const DEFAULT_PERIOD = HISTORY_PERIODS[0];
 

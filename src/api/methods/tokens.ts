@@ -33,5 +33,5 @@ export function fetchTokenBalances(accountId: string) {
 export function fetchTokenBalancesByAddress(address: string, network: ApiNetwork) {
   const chain = chains.ton;
 
-  return chain.getAddressTokenBalances(address, network);
+  return chain.getTokenBalances(network, address);
 }

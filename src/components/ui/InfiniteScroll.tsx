@@ -8,6 +8,7 @@ import { LoadMoreDirection } from '../../global/types';
 
 import { requestForcedReflow } from '../../lib/fasterdom/fasterdom';
 import buildStyle from '../../util/buildStyle';
+import { SECOND } from '../../util/dateFormat';
 import resetScroll from '../../util/resetScroll';
 import { debounce } from '../../util/schedulers';
 import { IS_ANDROID } from '../../util/windowEnvironment';
@@ -93,10 +94,10 @@ const InfiniteScroll: FC<OwnProps> = ({
     return [
       debounce(() => {
         onLoadMore({ direction: LoadMoreDirection.Backwards });
-      }, 1000, true, false),
+      }, SECOND, true, false),
       debounce(() => {
         onLoadMore({ direction: LoadMoreDirection.Forwards });
-      }, 1000, true, false),
+      }, SECOND, true, false),
     ];
     // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
   }, [onLoadMore, items]);

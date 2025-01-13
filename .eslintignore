@@ -9,6 +9,7 @@ src/lib/noble-ed25519/index.js
 src/lib/dexie/
 src/lib/axios-retry/
 src/lib/is-retry-allowed/
+babel.config.js
 jest.config.js
 playwright.config.ts
 postcss.config.js

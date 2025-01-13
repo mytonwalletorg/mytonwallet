@@ -15,6 +15,12 @@ export const CLAIM_MINTLESS_AMOUNT = 20000000n; // 0.02 TON
 
 export const NFT_TRANSFER_AMOUNT = 100000000n; // 0.1 TON
 export const NFT_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
+/**
+ * When the NFT contract handles the payload we send, it simply adds its data to the payload. If the resulting payload
+ * size becomes greater than the cell capacity, the contract fails to send the NFT. To avoid that, we keep some free
+ * space in the payload cell we send. This constant is the size of the free space in bits.
+ */
+export const NFT_PAYLOAD_SAFE_MARGIN = 14 * 8;
 
 export const TON_GAS = {
   stakeNominators: ONE_TON,

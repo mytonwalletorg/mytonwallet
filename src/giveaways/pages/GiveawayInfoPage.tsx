@@ -1,8 +1,7 @@
 import type { Wallet } from '@tonconnect/sdk';
 import React, { memo } from '../../lib/teact/teact';
 
-import type { JettonMetadataInfo } from '../components/App';
-import type { Giveaway } from '../utils/giveaway';
+import type { Giveaway, JettonMetadataInfo } from '../utils/giveaway';
 
 import { toDecimal } from '../../util/decimals';
 import { DEFAULT_DECIMALS } from '../../api/chains/ton/constants';
@@ -87,7 +86,7 @@ function GiveawayInfoPage({
   }
 
   return (
-    <CommonPage wallet={wallet}>
+    <CommonPage wallet={wallet} isGiveawayFinished={giveaway.status === GiveawayStatus.Finished}>
       {renderPage()}
     </CommonPage>
   );

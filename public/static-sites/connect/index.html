@@ -36,20 +36,20 @@
     </div>
 </div>
 <script type="module">
-  import { IS_DESKTOP } from "./common.js";
+  import { IS_DESKTOP } from "/common.js";
 
   function main() {
-    if (IS_DESKTOP) {
-      location.href = "/desktop";
-      return;
-    }
-
     const {
       pathname,
       search,
     } = location;
 
     const redirectTo = search;
+
+    if (IS_DESKTOP) {
+      location.href = `/desktop#${redirectTo}`;
+      return;
+    }
 
     document.getElementById('btn-sign-in').href = `mytonwallet-tc://${redirectTo}`;
 

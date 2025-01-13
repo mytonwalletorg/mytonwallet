@@ -51,7 +51,7 @@ export function getTokenBySlug(slug: string) {
 }
 
 export function getTokenByAddress(tokenAddress: string) {
-  return Object.values(tokensCache).find((token) => token.tokenAddress === tokenAddress);
+  return getTokenBySlug(buildTokenSlug('ton', tokenAddress));
 }
 
 export function sendUpdateTokens(onUpdate: OnApiUpdate) {

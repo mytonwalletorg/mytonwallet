@@ -9,6 +9,7 @@ import { selectCurrentAccountSettings } from '../global/selectors';
 import { useAccentColor } from '../util/accentColor';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
+import { MINUTE } from '../util/dateFormat';
 import { resolveRender } from '../util/renderPromise';
 import {
   IS_ANDROID,
@@ -73,7 +74,7 @@ interface StateProps {
 }
 
 const APP_UPDATE_INTERVAL = (IS_ELECTRON && !IS_LINUX) || IS_ANDROID_DIRECT
-  ? 5 * 60 * 1000 // 5 min
+  ? 5 * MINUTE
   : undefined;
 const PRERENDER_MAIN_DELAY = 1200;
 let mainKey = 0;

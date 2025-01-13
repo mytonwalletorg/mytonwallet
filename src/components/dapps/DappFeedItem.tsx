@@ -2,6 +2,7 @@ import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import buildClassName from '../../util/buildClassName';
+import { SECOND } from '../../util/dateFormat';
 import { openUrl } from '../../util/openUrl';
 
 import useLang from '../../hooks/useLang';
@@ -19,7 +20,7 @@ interface OwnProps {
   origin: string;
 }
 
-const RERENDER_DAPPS_FEED_DELAY_MS = 1000;
+const RERENDER_DAPPS_FEED_DELAY_MS = SECOND;
 
 const POPULAR_DAPP_ORIGIN_REPLACEMENTS = [
   {

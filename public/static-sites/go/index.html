@@ -6,22 +6,22 @@
   <title>Open MyTonWallet</title>
   <link rel="stylesheet" href="/index.css">
   <script type="module">
-    import { IS_DESKTOP } from './common.js';
+    import { IS_DESKTOP } from '/common.js';
+
+    const {
+      pathname,
+      search,
+    } = location;
+
+    const redirectTo = `${pathname.slice(1)}${search}`;
 
     function main() {
       if (IS_DESKTOP) {
-        location.href = '/desktop';
+        location.href = `/desktop#${redirectTo}`;
         return;
       }
 
       document.addEventListener('DOMContentLoaded', () => {
-        const {
-          pathname,
-          search,
-        } = location;
-
-        const redirectTo = `${pathname.slice(1)}${search}`;
-
         document.getElementById('btn-sign-in').href = `mtw://${redirectTo}`;
 
         if (!search?.includes('no-redirect')) {

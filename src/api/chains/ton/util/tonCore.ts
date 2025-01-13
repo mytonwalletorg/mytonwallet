@@ -2,7 +2,6 @@ import type { OpenedContract } from '@ton/core';
 import {
   Address, beginCell, Builder, Cell, Dictionary,
 } from '@ton/core';
-import axios from 'axios';
 import { WalletContractV1R1 } from '@ton/ton/dist/wallets/WalletContractV1R1';
 import { WalletContractV1R2 } from '@ton/ton/dist/wallets/WalletContractV1R2';
 import { WalletContractV1R3 } from '@ton/ton/dist/wallets/WalletContractV1R3';
@@ -23,7 +22,6 @@ import {
   TONHTTPAPI_TESTNET_API_KEY,
   TONHTTPAPI_TESTNET_URL,
 } from '../../../../config';
-import axiosFetchAdapter from '../../../../lib/axios-fetch-adapter';
 import { fromKeyValueArrays, mapValues } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
@@ -66,8 +64,6 @@ export type TonWallet = OpenedContract<WalletContractV1R1
 | WalletContractV3R2
 | WalletContractV4
 | WalletContractV5R1>;
-
-axios.defaults.adapter = axiosFetchAdapter;
 
 const TON_MAX_COMMENT_BYTES = 127;
 
@@ -254,58 +250,37 @@ export function packBytesAsSnake(bytes: Uint8Array, maxBytes = TON_MAX_COMMENT_B
 }
 
 export function packBytesAsSnakeCell(bytes: Uint8Array): Cell {
-  const buffer = Buffer.from(bytes);
+  const bytesPerCell = TON_MAX_COMMENT_BYTES;
+  const cellCount = Math.ceil(bytes.length / bytesPerCell);
+  let headCell: Cell | undefined;
 
-  const mainBuilder = new Builder();
-  let prevBuilder: Builder | undefined;
-  let currentBuilder = mainBuilder;
+  for (let i = cellCount - 1; i >= 0; i--) {
+    const cellOffset = i * bytesPerCell;
+    const cellLength = Math.min(bytesPerCell, bytes.length - cellOffset);
+    const cellBuffer = Buffer.from(bytes.buffer, bytes.byteOffset + cellOffset, cellLength); // This creates a buffer that references the input bytes instead of copying them
 
-  for (const [i, byte] of buffer.entries()) {
-    if (currentBuilder.availableBits < 8) {
-      prevBuilder?.storeRef(currentBuilder);
-
-      prevBuilder = currentBuilder;
-      currentBuilder = new Builder();
+    const nextHeadCell = new Builder().storeBuffer(cellBuffer);
+    if (headCell) {
+      nextHeadCell.storeRef(headCell);
     }
-
-    currentBuilder = currentBuilder.storeUint(byte, 8);
-
-    if (i === buffer.length - 1) {
-      prevBuilder?.storeRef(currentBuilder);
-    }
+    headCell = nextHeadCell.endCell();
   }
 
-  return mainBuilder.asCell();
-}
-
-function createNestedCell(data: Uint8Array, maxCellSize: number): Cell {
-  const builder = new Builder();
-  const dataSlice = Buffer.from(data.slice(0, maxCellSize));
-
-  builder.storeBuffer(dataSlice);
-
-  if (data.length > maxCellSize) {
-    const remainingData = data.slice(maxCellSize);
-    builder.storeRef(createNestedCell(remainingData, maxCellSize));
-  }
-
-  return builder.endCell();
+  return headCell ?? Cell.EMPTY;
 }
 
 export function packBytesAsSnakeForEncryptedData(data: Uint8Array): Uint8Array | Cell {
   const ROOT_BUILDER_BYTES = 39;
   const MAX_CELLS_AMOUNT = 16;
 
-  const rootBuilder = new Builder();
-  rootBuilder.storeBuffer(Buffer.from(data.slice(0, Math.min(data.length, ROOT_BUILDER_BYTES))));
-
   if (data.length > ROOT_BUILDER_BYTES + MAX_CELLS_AMOUNT * TON_MAX_COMMENT_BYTES) {
     throw new Error('Input text is too long');
   }
 
-  rootBuilder.storeRef(createNestedCell(Buffer.from(data.slice(ROOT_BUILDER_BYTES)), TON_MAX_COMMENT_BYTES));
-
-  return rootBuilder.endCell();
+  return new Builder()
+    .storeBuffer(Buffer.from(data.subarray(0, ROOT_BUILDER_BYTES)))
+    .storeRef(packBytesAsSnakeCell(data.subarray(ROOT_BUILDER_BYTES)))
+    .endCell();
 }
 
 export function buildLiquidStakingDepositBody(queryId?: number) {

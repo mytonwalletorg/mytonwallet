@@ -1,8 +1,6 @@
 import type { Wallet } from '@tonconnect/sdk';
 import { useCallback } from '../../lib/teact/teact';
 
-import type { JettonMetadataInfo } from '../components/App';
-
 import { GIVEAWAYS_API_URL } from '../config';
 import { logDebugError } from '../../util/logs';
 import { tonConnect } from './tonConnect';
@@ -11,7 +9,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 
 const TIMESTAMP_SECOND = 1000;
 
-enum GiveawayType {
+export enum GiveawayType {
   Instant = 'instant',
   Lottery = 'lottery',
 }
@@ -60,6 +58,8 @@ interface FetchJettonMetadataRes {
   isPopular: boolean;
   color: string;
 }
+
+export type JettonMetadataInfo = FetchJettonMetadataRes | { isTon: boolean };
 
 export function isGiveawayWithTask(giveaway: Giveaway): giveaway is GiveawayWithTask {
   return Boolean(giveaway.taskUrl);

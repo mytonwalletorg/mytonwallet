@@ -8,7 +8,7 @@ import { ANIMATED_STICKER_TINY_ICON_PX, TOKEN_WITH_LABEL } from '../../../../con
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
-import { formatFullDay } from '../../../../util/dateFormat';
+import { DAY, formatFullDay } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
@@ -45,7 +45,6 @@ interface OwnProps {
   onClick: (slug: string) => void;
 }
 
-const DAY = 1000 * 60 * 60 * 24;
 const UNFREEZE_DANGER_DURATION = 7 * DAY;
 
 function Token({

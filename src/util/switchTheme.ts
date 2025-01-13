@@ -2,7 +2,7 @@ import type { Theme } from '../global/types';
 
 import { IS_CAPACITOR } from '../config';
 import { requestMeasure } from '../lib/fasterdom/fasterdom';
-import { switchStatusBar } from './capacitor';
+import { switchStatusBar } from './capacitor/switchStatusBar';
 
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 let currentTheme: Theme;

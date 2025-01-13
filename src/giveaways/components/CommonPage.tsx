@@ -7,15 +7,20 @@ interface OwnProps {
   children: React.ReactNode;
   onConnectClick?: (args?: any) => any;
   wallet?: Wallet;
+  isGiveawayFinished: boolean;
 }
 
 function CommonPage({
-  children, onConnectClick, wallet,
+  children, onConnectClick, wallet, isGiveawayFinished,
 }: OwnProps) {
   return (
     <>
       {children}
-      <Footer onConnectClick={onConnectClick} wallet={wallet} />
+      <Footer
+        onConnectClick={onConnectClick}
+        wallet={wallet}
+        isGiveawayFinished={isGiveawayFinished}
+      />
     </>
   );
 }

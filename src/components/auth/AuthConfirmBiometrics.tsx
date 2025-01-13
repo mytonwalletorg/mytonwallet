@@ -2,6 +2,7 @@ import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import buildClassName from '../../util/buildClassName';
+import { SECOND } from '../../util/dateFormat';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -21,7 +22,7 @@ interface OwnProps {
   biometricsStep?: 1 | 2;
 }
 
-const START_BIOMETRICS_CONFIRMATION_DELAY_MS = 1000;
+const START_BIOMETRICS_CONFIRMATION_DELAY_MS = SECOND;
 
 function AuthConfirmBiometrics({
   isActive,

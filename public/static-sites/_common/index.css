@@ -256,9 +256,23 @@ a:hover {
   border-radius: 1.25rem;
 }
 
-.qr-code.without-margin {
-  margin: 0 !important;
-  margin-top: -16px !important;
+.qr-code-canvas {
+  position: relative;
+
+  width: 12rem;
+  height: 12rem;
+
+  background: white;
+  border-radius: 1.25rem;
+}
+
+.qr-code-canvas canvas {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+
+  width: calc(100% - 1rem);
+  height: calc(100% - 1rem);
 }
 
 .special-section {

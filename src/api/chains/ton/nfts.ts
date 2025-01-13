@@ -21,7 +21,12 @@ import {
 } from './util/tonapiio';
 import { commentToBytes, packBytesAsSnake, toBase64Address } from './util/tonCore';
 import { fetchStoredTonWallet } from '../../common/accounts';
-import { NFT_TRANSFER_AMOUNT, NFT_TRANSFER_FORWARD_AMOUNT, NftOpCode } from './constants';
+import {
+  NFT_PAYLOAD_SAFE_MARGIN,
+  NFT_TRANSFER_AMOUNT,
+  NFT_TRANSFER_FORWARD_AMOUNT,
+  NftOpCode,
+} from './constants';
 import { checkMultiTransactionDraft, checkToAddress, submitMultiTransfer } from './transactions';
 import { isActiveSmartContract } from './wallet';
 
@@ -218,7 +223,7 @@ function buildNftTransferPayload(
   if (payload) {
     if (typeof payload === 'string') {
       const bytes = commentToBytes(payload);
-      const freeBytes = Math.floor(builder.availableBits / 8);
+      const freeBytes = Math.floor((builder.availableBits - NFT_PAYLOAD_SAFE_MARGIN) / 8);
       forwardPayload = packBytesAsSnake(bytes, freeBytes);
     } else {
       forwardPayload = payload;

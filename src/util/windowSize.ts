@@ -1,13 +1,14 @@
 import { IS_CAPACITOR } from '../config';
 import { requestMutation } from '../lib/fasterdom/fasterdom';
 import { applyStyles } from './animation';
+import { SECOND } from './dateFormat';
 import safeExec from './safeExec';
 import { throttle } from './schedulers';
 import { IS_ANDROID, IS_IOS } from './windowEnvironment';
 
 const WINDOW_RESIZE_THROTTLE_MS = 250;
 const WINDOW_ORIENTATION_CHANGE_THROTTLE_MS = IS_IOS ? 350 : 250;
-const SAFE_AREA_INITIALIZATION_DELAY = 1000;
+const SAFE_AREA_INITIALIZATION_DELAY = SECOND;
 
 const initialHeight = window.innerHeight;
 const virtualKeyboardOpenListeners: NoneToVoidFunction[] = [];

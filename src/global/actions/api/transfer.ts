@@ -13,6 +13,7 @@ import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentTransfer,
   clearIsPinAccepted,
+  preserveMaxTransferAmount,
   setIsPinAccepted,
   updateAccountState,
   updateCurrentTransfer,
@@ -262,7 +263,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       shouldEncrypt,
       isBase64Data: Boolean(binPayload),
       withDiesel,
-      dieselAmount: diesel?.tokenAmount,
+      dieselAmount: diesel?.amount.token,
       stateInit,
       isGaslessWithStars,
     };
@@ -427,7 +428,7 @@ addActionHandler('fetchTransferDieselState', async (global, actions, { tokenSlug
 
   global = getGlobal();
   const accountState = selectAccountState(global, global.currentAccountId!);
-  global = updateCurrentTransfer(global, { diesel });
+  global = preserveMaxTransferAmount(global, updateCurrentTransfer(global, { diesel }));
   if (accountState?.isDieselAuthorizationStarted && diesel.status !== 'not-authorized') {
     global = updateAccountState(global, global.currentAccountId!, { isDieselAuthorizationStarted: undefined });
   }

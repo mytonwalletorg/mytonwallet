@@ -455,6 +455,7 @@ export type GlobalState = {
     chain?: ApiChain;
     error?: string;
     amount?: bigint;
+    // Every time this field value changes, the `amount` value should be actualized using `preserveMaxTransferAmount`
     fee?: bigint;
     realFee?: bigint;
     comment?: string;
@@ -470,6 +471,7 @@ export type GlobalState = {
     nfts?: ApiNft[];
     sentNftsCount?: number;
     isMemoRequired?: boolean;
+    // Every time this field value changes, the `amount` value should be actualized using `preserveMaxTransferAmount`
     diesel?: ApiFetchEstimateDieselResult;
     withDiesel?: boolean;
     isGaslessWithStars?: boolean;

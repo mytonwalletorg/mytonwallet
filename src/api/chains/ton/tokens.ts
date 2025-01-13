@@ -20,12 +20,12 @@ import {
 import { fetchJettonBalances } from './util/tonapiio';
 import {
   buildTokenTransferBody,
+  getTokenBalance,
   getTonClient,
   resolveTokenAddress,
   resolveTokenWalletAddress,
   toBase64Address, toRawAddress,
 } from './util/tonCore';
-import { JettonWallet } from './contracts/JettonWallet';
 import { fetchStoredTonWallet } from '../../common/accounts';
 import { buildTokenSlug, getTokenByAddress } from '../../common/tokens';
 import {
@@ -55,11 +55,6 @@ export async function getAccountTokenBalances(accountId: string) {
 }
 
 export async function getTokenBalances(network: ApiNetwork, address: string) {
-  const balancesRaw = await fetchJettonBalances(network, address);
-  return balancesRaw.map((balance) => parseTokenBalance(network, balance)).filter(Boolean);
-}
-
-export async function getAddressTokenBalances(address: string, network: ApiNetwork) {
   const balancesRaw = await fetchJettonBalances(network, address);
   return balancesRaw.map((balance) => parseTokenBalance(network, balance)).filter(Boolean);
 }
@@ -204,7 +199,6 @@ export async function buildTokenTransfer(options: {
   let { payload } = options;
 
   const tokenWalletAddress = await resolveTokenWalletAddress(network, fromAddress, tokenAddress);
-  const tokenWallet = getTokenWallet(network, tokenWalletAddress);
   const token = getTokenByAddress(tokenAddress)!;
 
   const {
@@ -245,7 +239,6 @@ export async function buildTokenTransfer(options: {
   return {
     amount: toncoinAmount,
     realAmount,
-    tokenWallet,
     toAddress: tokenWalletAddress,
     payload,
     stateInit: stateInit ? Cell.fromBase64(stateInit) : undefined,
@@ -254,7 +247,37 @@ export async function buildTokenTransfer(options: {
   };
 }
 
-export async function getMintlessParams(options: {
+export async function getTokenBalanceWithMintless(network: ApiNetwork, accountAddress: string, tokenAddress: string) {
+  const tokenWalletAddress = await resolveTokenWalletAddress(network, accountAddress, tokenAddress);
+  const token = getTokenByAddress(tokenAddress)!;
+
+  const {
+    isTokenWalletDeployed = !!(await isActiveSmartContract(network, tokenWalletAddress)),
+    mintlessTokenBalance,
+  } = await getMintlessParams({
+    network, fromAddress: accountAddress, token, tokenWalletAddress,
+  });
+
+  return calculateTokenBalanceWithMintless(network, tokenWalletAddress, isTokenWalletDeployed, mintlessTokenBalance);
+}
+
+export async function calculateTokenBalanceWithMintless(
+  network: ApiNetwork,
+  tokenWalletAddress: string,
+  isTokenWalletDeployed?: boolean,
+  mintlessTokenBalance = 0n,
+) {
+  let balance = 0n;
+  if (isTokenWalletDeployed) {
+    balance += await getTokenBalance(network, tokenWalletAddress);
+  }
+  if (mintlessTokenBalance) {
+    balance += mintlessTokenBalance;
+  }
+  return balance;
+}
+
+async function getMintlessParams(options: {
   network: ApiNetwork;
   fromAddress: string;
   token: ApiToken;
@@ -321,10 +344,6 @@ async function fetchMintlessTokenWalletData(customPayloadApiUrl: string, address
       expired_at: string;
     };
   } | undefined;
-}
-
-export function getTokenWallet(network: ApiNetwork, tokenAddress: string) {
-  return getTonClient(network).open(new JettonWallet(Address.parse(tokenAddress)));
 }
 
 export async function fetchToken(network: ApiNetwork, address: string) {

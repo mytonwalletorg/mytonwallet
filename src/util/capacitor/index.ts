@@ -3,14 +3,11 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { BiometryType, NativeBiometric } from '@capgo/capacitor-native-biometric';
-import { NavigationBar } from '@mauricewegner/capacitor-navigation-bar';
 import { SplashScreen } from '@sina_kh/mtw-capacitor-splash-screen';
-import { StatusBar, Style } from '@sina_kh/mtw-capacitor-status-bar';
 import type { SafeAreaInsets } from 'capacitor-plugin-safe-area';
 import { SafeArea } from 'capacitor-plugin-safe-area';
 import { getGlobal } from '../../global';
 
-import type { Theme } from '../../global/types';
 import type { AuthConfig } from '../authApi/types';
 import type { CapacitorPlatform } from './platform';
 
@@ -19,7 +16,7 @@ import * as storageMethods from '../capacitorStorageProxy/methods';
 import { processDeeplink } from '../deeplink';
 import { pause } from '../schedulers';
 import {
-  IS_ANDROID_APP, IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_IOS,
+  IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_IOS,
 } from '../windowEnvironment';
 import { initFocusScrollController } from './focusScroll';
 import { initNotificationsWithGlobal } from './notifications';
@@ -121,22 +118,6 @@ export async function initCapacitorWithGlobal(authConfig?: AuthConfig) {
   isTouchIdAvailable = biometricsAvailableResult.biometryType === BiometryType.TOUCH_ID;
 
   initNotificationsWithGlobal(getGlobal());
-}
-
-export function switchStatusBar(
-  currentAppTheme: Theme, isSystemDark: boolean, forceDarkBackground?: boolean, isModalOpen?: boolean,
-) {
-  const style = forceDarkBackground || currentAppTheme === 'dark'
-    ? Style.Dark
-    : (isSystemDark && currentAppTheme === 'system' ? Style.Dark : Style.Light);
-
-  void StatusBar.setStyle({ style, isModalOpen });
-  if (IS_ANDROID_APP) {
-    void NavigationBar.setColor({
-      color: '#00000000',
-      darkButtons: currentAppTheme === 'light' || (!isSystemDark && currentAppTheme === 'system'),
-    });
-  }
 }
 
 export function getLaunchUrl() {

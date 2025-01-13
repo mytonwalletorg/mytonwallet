@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import type { JettonMetadataInfo } from './App';
+import type { JettonMetadataInfo } from '../utils/giveaway';
 
 import buildClassName from '../../util/buildClassName';
 

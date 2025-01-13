@@ -263,7 +263,7 @@ export const CHAIN_CONFIG = {
     gas: {
       maxSwap: undefined,
       maxTransfer: 1_000_000n, // 1 TRX
-      maxTransferToken: 35_000_000n, // 35 TRX
+      maxTransferToken: 30_000_000n, // 30 TRX
     },
     mainnet: {
       apiUrl: TRON_MAINNET_API_URL,

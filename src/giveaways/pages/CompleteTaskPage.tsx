@@ -1,9 +1,8 @@
 import type { Wallet } from '@tonconnect/sdk';
 import React, { memo } from '../../lib/teact/teact';
 
-import type { GiveawayWithTask } from '../utils/giveaway';
-
 import buildClassName from '../../util/buildClassName';
+import { GiveawayStatus, type GiveawayWithTask } from '../utils/giveaway';
 
 import useInterval from '../../hooks/useInterval';
 
@@ -27,7 +26,7 @@ function CompleteTaskPage({ giveaway, wallet, loadParticipantStatus }: OwnProps)
 
   const url = new URL(giveaway.taskUrl);
   return (
-    <CommonPage wallet={wallet}>
+    <CommonPage wallet={wallet} isGiveawayFinished={giveaway.status === GiveawayStatus.Finished}>
 
       <div className={styles.section}>
         <div className={styles.sectionText}>Complete the task:</div>

@@ -11,6 +11,7 @@ import { ANIMATION_LEVEL_MIN } from '../../config';
 import { requestForcedReflow, requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 import { waitForAnimationEnd, waitForTransitionEnd } from '../../util/cssAnimationEndListeners';
+import { SECOND } from '../../util/dateFormat';
 import forceReflow from '../../util/forceReflow';
 import { allowSwipeControlForTransition } from '../../util/swipeController';
 
@@ -50,7 +51,7 @@ export type TransitionProps = {
   children: React.ReactNode | ChildrenFn;
 };
 
-const FALLBACK_ANIMATION_END = 1000;
+const FALLBACK_ANIMATION_END = SECOND;
 const CLASSES = {
   slide: 'Transition_slide',
   active: 'Transition_slide-active',

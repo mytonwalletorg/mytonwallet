@@ -3,7 +3,10 @@ import type { LangFn } from './langProvider';
 
 import withCache from './withCache';
 
-const MS_IN_DAY = 1000 * 60 * 60 * 24;
+export const SECOND = 1000;
+export const MINUTE = SECOND * 60;
+export const HOUR = MINUTE * 60;
+export const DAY = HOUR * 24;
 
 const formatDayToStringWithCache = withCache((
   langCode: LangCode,
@@ -104,7 +107,7 @@ export function getCountDaysToDate(datetime: string | number | Date) {
   const date = datetime instanceof Date ? datetime
     : new Date(datetime);
 
-  return Math.ceil((date.getTime() - today.getTime()) / MS_IN_DAY);
+  return Math.ceil((date.getTime() - today.getTime()) / DAY);
 }
 
 export function getDayStart(datetime: number | Date) {

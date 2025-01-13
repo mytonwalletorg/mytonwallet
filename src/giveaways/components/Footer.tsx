@@ -10,9 +10,10 @@ import styles from './Footer.module.scss';
 interface OwnProps {
   onConnectClick?: (args?: any) => any;
   wallet?: Wallet;
+  isGiveawayFinished: boolean;
 }
 
-function Footer({ onConnectClick, wallet }: OwnProps) {
+function Footer({ onConnectClick, wallet, isGiveawayFinished }: OwnProps) {
   return (
     <div className={styles.footer}>
       {wallet
@@ -26,12 +27,12 @@ function Footer({ onConnectClick, wallet }: OwnProps) {
             </div>
           </div>
         )
-        : (
+        : !isGiveawayFinished && (
           <Button
             isSimple
             className={styles.button}
             onClick={onConnectClick!}
-          >Connect Wallet
+          >Connect MyTonWallet
           </Button>
         )}
     </div>

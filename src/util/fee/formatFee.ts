@@ -28,6 +28,10 @@ const PRECISION_PREFIX: Record<FeePrecision, string> = {
   approximate: '~\u202F',
   lessThan: '<\u202F',
 };
+const STARS_TOKEN = {
+  symbol: STARS_SYMBOL,
+  decimals: 0,
+};
 
 /**
  * Formats a complex fee (containing multiple terms) into a human-readable string
@@ -40,9 +44,8 @@ export function formatFee({
 }: FormatFeeOptions): string {
   let result = convertTermsObjectToList(terms)
     .map(({ tokenType, amount }) => {
-      const currentToken = tokenType === 'native' ? nativeToken : token;
-      const symbol = tokenType === 'stars' ? STARS_SYMBOL : currentToken.symbol;
-      return formatCurrency(toDecimal(amount, currentToken.decimals), symbol, undefined, true);
+      const currentToken = tokenType === 'stars' ? STARS_TOKEN : tokenType === 'native' ? nativeToken : token;
+      return formatCurrency(toDecimal(amount, currentToken.decimals), currentToken.symbol, undefined, true);
     })
     .join(TERM_SEPARATOR);
 

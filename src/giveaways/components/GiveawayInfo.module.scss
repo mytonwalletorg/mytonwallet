@@ -16,17 +16,35 @@
   border-radius: 1rem;
 }
 
+.instantBadge {
+  margin-top: 2rem;
+  padding: 0.625rem 0.875rem;
+
+  color: var(--color-activity-red-text);
+
+  background-color: var(--color-transaction-amount-red-bg);
+  border-radius: 0.75rem;
+}
+
 .sectionFlex {
   display: flex;
   align-items: center;
 }
 
 .sectionFlexText {
-  margin-left: 0.625rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.textExpired {
-  color: var(--color-red);
+.sectionFlexItem + .sectionFlexItem {
+  margin-top: 0.3125rem;
+}
+
+.textSmall {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 0.75rem;
 }
 
 .sectionRight {
@@ -34,11 +52,11 @@
 }
 
 .description {
-  margin-top: 0.3125rem;
-
-  font-size: 0.75rem;
-  line-height: 0.75rem;
   color: var(--color-gray-2);
+}
+
+.textExpired {
+  color: var(--color-red);
 }
 
 .calendarIcon {

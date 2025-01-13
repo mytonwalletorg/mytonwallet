@@ -5,6 +5,7 @@ import { TonClient as TonCoreClient } from '@ton/ton/dist/client/TonClient';
 import type { GetAddressInfoResponse } from '../types';
 
 import { DEFAULT_ERROR_PAUSE, DEFAULT_RETRIES } from '../../../../config';
+import axiosFetchAdapter from '../../../../lib/axios-fetch-adapter';
 import axiosRetry from '../../../../lib/axios-retry';
 import { fetchWithRetry } from '../../../../util/fetch';
 import { logDebug } from '../../../../util/logs';
@@ -19,6 +20,8 @@ axiosRetry(axios, {
     logDebug(`Retry request #${retryNumber}:`, requestConfig.url, error.response?.status);
   },
 });
+
+axios.defaults.adapter = axiosFetchAdapter;
 
 type Parameters = TonClientParameters & {
   headers?: AnyLiteral;

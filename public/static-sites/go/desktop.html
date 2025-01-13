@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Open MyTonWallet</title>
   <link rel="stylesheet" href="/index.css">
+  <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
 </head>
 <body>
 <div class="container desktop small-padding">
@@ -15,11 +16,7 @@
       <p>
         Scan QR to open the app <br /> on your mobile device:
       </p>
-      <img class="qr-code without-margin" srcset="
-          ./images/QR-code-1x.webp 1x,
-          ./images/QR-code-1.5x.webp 1.5x,
-          ./images/QR-code-2x.webp 2x
-      " src="./images/QR-code-2x.webp" />
+      <div class="qr-code-canvas"></div>
     </info-block>
     <info-block class="column">
       <span class="subheader">On Desktop</span>
@@ -49,14 +46,33 @@
   const {
     pathname,
     search,
+    hash,
   } = location;
 
-  const redirectTo = `${pathname.slice(1)}${search}`;
+  const QR_SIZE = 600;
 
-  document.getElementById('btn-sign-in').href = `mtw://${redirectTo}`;
+  const redirectTo = hash.slice(1) || `${pathname.slice(1)}${search}`;
+  const fullRedirectUrl = `mtw://${redirectTo}`;
+
+  document.getElementById('btn-sign-in').href = fullRedirectUrl;
+
+  const qrCode = new QRCodeStyling({
+    width: QR_SIZE,
+    height: QR_SIZE,
+    image: './images/logo.svg',
+    margin: 0,
+    type: 'canvas',
+    dotsOptions: { type: 'rounded' },
+    cornersSquareOptions: { type: 'extra-rounded' },
+    imageOptions: { imageSize: 0.4, margin: 8, crossOrigin: 'anonymous' },
+    qrOptions: { errorCorrectionLevel: 'M' },
+    data: fullRedirectUrl,
+  });
+
+  qrCode.append(document.querySelector(".qr-code-canvas"));
 
   if (!search?.includes('no-redirect')) {
-    location.href = `mtw://${redirectTo}`;
+    location.href = fullRedirectUrl;
     history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
   }
 </script>

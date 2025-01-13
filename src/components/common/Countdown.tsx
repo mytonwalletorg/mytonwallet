@@ -3,6 +3,7 @@ import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 import type { LangFn } from '../../hooks/useLang';
 
 import buildClassName from '../../util/buildClassName';
+import { SECOND } from '../../util/dateFormat';
 
 import useLang from '../../hooks/useLang';
 
@@ -15,7 +16,6 @@ interface OwnProps {
 }
 
 const WARNING_TIME = 5 * 60; // 5 minutes in seconds;
-const SECOND = 1000;
 
 function Countdown({
   timestamp,
@@ -23,7 +23,7 @@ function Countdown({
   onCompleted,
 }: OwnProps) {
   const lang = useLang();
-  const initialSeconds = Math.floor((timestamp + deadline - Date.now()) / 1000);
+  const initialSeconds = Math.floor((timestamp + deadline - Date.now()) / SECOND);
   const [secondsLeft, setSecondsLeft] = useState(Math.max(initialSeconds, 0));
   const shouldShowWarning = secondsLeft <= WARNING_TIME;
 
@@ -31,7 +31,7 @@ function Countdown({
     const timerId = setTimeout(() => {
       if (secondsLeft <= 0) return;
 
-      setSecondsLeft(Math.floor((timestamp + deadline - Date.now()) / 1000));
+      setSecondsLeft(Math.floor((timestamp + deadline - Date.now()) / SECOND));
     }, SECOND);
 
     if (secondsLeft <= 0) {

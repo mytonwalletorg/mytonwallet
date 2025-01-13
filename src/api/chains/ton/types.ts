@@ -117,14 +117,22 @@ export type ApiSubmitMultiTransferResult = {
 export type ApiFetchEstimateDieselResult = {
   status: DieselStatus;
   /**
-   * The amount of diesel that will be sent together with the actual transfer. None of this will return back as the
-   * excess. Charged on top of the transferred amount. If the value is undefined, the diesel transfer is impossible
-   * (the reason is defined by the status). When defined, guaranteed to be > 0.
-   *
-   * Measured in the transferred token, but if `status` is "stars-fee", measured in stars (the stars' BigInt assumes
-   * the same number of decimal places as the transferred token).
+   * The amount of the diesel itself. It will be sent together with the actual transfer. None of this will return back
+   * as the excess. Charged on top of the transferred amount. If the diesel is available, guaranteed to be > 0.
+   * The token and stars amounts can't be non-zero simultaneously.
    */
-  tokenAmount?: bigint;
+  amount: {
+    /** Measured in the transferred token */
+    token: bigint;
+    /**
+     * Measured in Telegram stars. The BigInt assumes 0 decimal places (i.e. the number is equal to the visible number
+     * of stars).
+     */
+    stars: 0n;
+  } | {
+    token: 0n;
+    stars: bigint;
+  };
   /**
    * The native token amount covered by the diesel. Guaranteed to be > 0.
    */
@@ -139,10 +147,6 @@ export type ApiFetchEstimateDieselResult = {
    * number is called "excess" and will be returned back to the wallet. Measured in the native token.
    */
   realFee: bigint;
-  /**
-   * Whether the diesel should be used even when it's not necessary.
-   */
-  shouldPrefer: boolean;
 };
 
 export type ApiCheckTransactionDraftResult = {

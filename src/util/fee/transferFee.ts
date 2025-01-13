@@ -39,7 +39,7 @@ type ExplainedTransferFee = {
   canTransferFullBalance: boolean;
 };
 
-type ApiFeeWithDiesel = ApiFee & { diesel: ApiFetchEstimateDieselResult & { tokenAmount: bigint } };
+type ApiFeeWithDiesel = ApiFee & { diesel: ApiFetchEstimateDieselResult };
 
 type MaxTransferAmountInput = {
   /** The wallet balance of the transferred token. Undefined means that it's unknown. */
@@ -91,9 +91,7 @@ export function getMaxTransferAmount({
 
 function shouldUseDiesel(input: ApiFee): input is ApiFeeWithDiesel {
   return input.diesel !== undefined
-    && input.diesel.status !== 'not-available'
-    // Though `tokenAmount` is not expected to be undefined when `status` is not 'not-available', still checking for reliability
-    && input.diesel.tokenAmount !== undefined;
+    && input.diesel.status !== 'not-available';
 }
 
 /**
@@ -128,12 +126,13 @@ function explainGasfullTransferFee(input: ApiFee) {
  */
 function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
   const isStarsDiesel = diesel.status === 'stars-fee';
-  const tokenKey = isStarsDiesel ? 'stars' : 'token';
-  const realFeeInToken = convertFee(diesel.realFee, diesel.nativeAmount, diesel.tokenAmount);
+  const dieselKey = isStarsDiesel ? 'stars' : 'token';
+  const dieselAmount = diesel.amount[dieselKey];
+  const realFeeInDiesel = convertFee(diesel.realFee, diesel.nativeAmount, dieselAmount);
   // Cover as much displayed real fee as possible with diesel, because in the excess it will return as the native token.
-  const tokenRealFee = bigintMin(diesel.tokenAmount, realFeeInToken);
+  const dieselRealFee = bigintMin(dieselAmount, realFeeInDiesel);
   // Cover the remaining real fee with the native token.
-  const nativeRealFee = convertFee(realFeeInToken - tokenRealFee, diesel.tokenAmount, diesel.nativeAmount);
+  const nativeRealFee = convertFee(realFeeInDiesel - dieselRealFee, dieselAmount, diesel.nativeAmount);
 
   return {
     isGasless: true,
@@ -142,14 +141,15 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
       precision: 'lessThan',
       terms: {
         native: diesel.remainingFee,
-        [tokenKey]: diesel.tokenAmount,
+        token: diesel.amount.token,
+        stars: diesel.amount.stars,
       },
     },
     realFee: {
       precision: 'approximate',
       terms: {
         native: nativeRealFee,
-        [tokenKey]: tokenRealFee,
+        [dieselKey]: dieselRealFee,
       },
     },
   } satisfies ExplainedTransferFee;

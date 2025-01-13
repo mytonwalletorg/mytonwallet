@@ -81,7 +81,11 @@ import {
   UNSTAKE_COMMENT,
 } from './constants';
 import {
-  buildTokenTransfer, getToncoinAmountForTransfer, parseTokenTransaction,
+  buildTokenTransfer,
+  calculateTokenBalanceWithMintless,
+  getTokenBalanceWithMintless,
+  getToncoinAmountForTransfer,
+  parseTokenTransaction,
 } from './tokens';
 import {
   getContractInfo,
@@ -100,10 +104,10 @@ const PENDING_DIESEL_TIMEOUT = 15 * 60 * 1000; // 15 min
 
 const DIESEL_NOT_AVAILABLE: ApiFetchEstimateDieselResult = {
   status: 'not-available',
+  amount: { token: 0n, stars: 0n },
   nativeAmount: 0n,
   remainingFee: 0n,
   realFee: 0n,
-  shouldPrefer: false,
 };
 
 export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, address: string) => {
@@ -199,11 +203,14 @@ export async function checkTransactionDraft(
       data = commentToBytes(data);
     }
 
+    const toncoinBalance = await getWalletBalance(network, wallet);
+    let balance: bigint;
     let toncoinAmount: bigint;
     let fee: bigint;
     let realFee: bigint;
 
     if (!tokenAddress) {
+      balance = toncoinBalance;
       toncoinAmount = amount;
       fee = 0n;
       realFee = 0n;
@@ -212,7 +219,6 @@ export async function checkTransactionDraft(
         data = shouldEncrypt ? packBytesAsSnakeForEncryptedData(data) : packBytesAsSnake(data);
       }
     } else {
-      const tokenAmount: bigint = amount;
       const tokenTransfer = await buildTokenTransfer({
         network,
         tokenAddress,
@@ -222,33 +228,21 @@ export async function checkTransactionDraft(
         payload: data,
         forwardAmount,
       });
-
       ({ amount: toncoinAmount, toAddress, payload: data } = tokenTransfer);
-      const {
-        realAmount: realToncoinAmount, tokenWallet, isTokenWalletDeployed, mintlessTokenBalance,
-      } = tokenTransfer;
+      const { realAmount: realToncoinAmount, isTokenWalletDeployed, mintlessTokenBalance } = tokenTransfer;
 
       // When the token is transferred, actually some TON is transferred, and the token sits inside the payload.
       // From the user perspective, this TON amount is a fee.
       fee = toncoinAmount;
       realFee = realToncoinAmount;
 
-      let tokenBalance = 0n;
-      if (isTokenWalletDeployed) {
-        tokenBalance = await tokenWallet!.getJettonBalance();
-      }
-      if (mintlessTokenBalance) {
-        tokenBalance += mintlessTokenBalance;
-      }
-      if (tokenBalance < tokenAmount) {
-        result.error = ApiTransactionDraftError.InsufficientBalance;
-        // We don't return here because we want the fee to get calculated
-      }
+      const tokenWalletAddress = toAddress;
+      balance = await calculateTokenBalanceWithMintless(
+        network, tokenWalletAddress, isTokenWalletDeployed, mintlessTokenBalance,
+      );
     }
 
-    const toncoinBalance = await getWalletBalance(network, wallet);
     const isFullTonTransfer = !tokenAddress && toncoinBalance === amount;
-
     const { transaction } = await signTransaction({
       network,
       wallet,
@@ -259,7 +253,6 @@ export async function checkTransactionDraft(
       isFullBalance: isFullTonTransfer,
       shouldEncrypt,
     });
-
     const blockchainFee = await calculateFee(network, wallet, transaction, isWalletInitialized);
     const safeBlockchainFee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
     fee += safeBlockchainFee;
@@ -267,32 +260,34 @@ export async function checkTransactionDraft(
     result.fee = fee;
     result.realFee = realFee;
 
-    const isEnoughToncoin = isFullTonTransfer
-      ? toncoinBalance > blockchainFee
-      : toncoinBalance >= fee;
+    let isEnoughBalance: boolean;
 
-    result.diesel = DIESEL_NOT_AVAILABLE;
+    if (!tokenAddress) {
+      result.diesel = DIESEL_NOT_AVAILABLE;
+      isEnoughBalance = isFullTonTransfer
+        ? toncoinBalance > blockchainFee
+        : toncoinBalance >= fee + amount;
+    } else {
+      const canTransferGasfully = toncoinBalance >= fee;
+      result.diesel = await getDiesel({
+        accountId,
+        tokenAddress,
+        canTransferGasfully,
+        toncoinBalance,
+        tokenBalance: balance,
+      });
 
-    // todo: Check that the balance is enough when TON is transferred
-    // todo: Check that the balance is enough to cover the diesel in a gasless transfer
-
-    if (tokenAddress) {
-      const diesel = await fetchEstimateDiesel(accountId, tokenAddress);
-
-      if (!isEnoughToncoin || diesel.shouldPrefer) {
-        result.diesel = diesel;
-        return result;
+      if (result.diesel.status === 'not-available') {
+        isEnoughBalance = canTransferGasfully && amount <= balance;
+      } else {
+        isEnoughBalance = amount + result.diesel.amount.token <= balance;
       }
     }
 
-    if (!isEnoughToncoin) {
-      return {
-        ...result,
-        error: ApiTransactionDraftError.InsufficientBalance,
-      };
-    }
-
-    return result;
+    return isEnoughBalance ? result : {
+      ...result,
+      error: ApiTransactionDraftError.InsufficientBalance,
+    };
   } catch (err: any) {
     return {
       ...handleServerError(err),
@@ -508,26 +503,26 @@ export async function submitTransferWithDiesel(options: {
     }
 
     const messages: TonTransferParams[] = [
-      omit(await buildTokenTransfer({
+      await buildTokenTransfer({
         network,
         tokenAddress,
         fromAddress,
         toAddress,
         amount,
         payload: data,
-      }), ['tokenWallet']),
+      }),
     ];
 
     if (!isGaslessWithStars) {
       messages.push(
-        omit(await buildTokenTransfer({
+        await buildTokenTransfer({
           network,
           tokenAddress,
           fromAddress,
           toAddress: DIESEL_ADDRESS,
           amount: dieselAmount,
           shouldSkipMintless: true,
-        }), ['tokenWallet']),
+        }),
       );
     }
 
@@ -1287,20 +1282,48 @@ export async function fixTokenActivitiesAddressForm(network: ApiNetwork, activit
   }
 }
 
-export async function fetchEstimateDiesel(
+/**
+ * The goal of the function is acting like `checkTransactionDraft` but return only the diesel information
+ */
+export function fetchEstimateDiesel(
   accountId: string, tokenAddress: string,
 ): Promise<ApiFetchEstimateDieselResult> {
+  return getDiesel({
+    accountId,
+    tokenAddress,
+    // We pass `false` because `fetchEstimateDiesel` assumes that the transfer is gasless anyway
+    canTransferGasfully: false,
+  });
+}
+
+/**
+ * Decides whether the transfer must be gasless and fetches the diesel estimate from the backend.
+ */
+async function getDiesel({
+  accountId,
+  tokenAddress,
+  canTransferGasfully,
+  toncoinBalance,
+  tokenBalance,
+}: {
+  accountId: string;
+  tokenAddress: string;
+  canTransferGasfully: boolean;
+  // The below fields allow to avoid network requests if you already have these data
+  toncoinBalance?: bigint;
+  tokenBalance?: bigint;
+}): Promise<ApiFetchEstimateDieselResult> {
   const { network } = parseAccountId(accountId);
   if (network !== 'mainnet') return DIESEL_NOT_AVAILABLE;
 
-  const wallet = await getTonWallet(accountId);
-  if (!wallet) return DIESEL_NOT_AVAILABLE;
+  const storedTonWallet = await fetchStoredTonWallet(accountId);
+  const wallet = await getTonWallet(accountId, storedTonWallet);
 
   const token = getTokenByAddress(tokenAddress)!;
   if (!token.isGaslessEnabled && !token.isStarsEnabled) return DIESEL_NOT_AVAILABLE;
 
-  const { address, version } = await fetchStoredTonWallet(accountId);
-  const toncoinBalance = await getWalletBalance(network, wallet);
+  const { address, version } = storedTonWallet;
+  toncoinBalance ??= await getWalletBalance(network, wallet);
   const fee = getDieselToncoinFee(token);
   const toncoinNeeded = fee.amount - toncoinBalance;
 
@@ -1313,20 +1336,30 @@ export async function fetchEstimateDiesel(
     version === 'W5',
     fee.isStars,
   );
+  const diesel: ApiFetchEstimateDieselResult = {
+    status: rawDiesel.status,
+    amount: rawDiesel.status !== 'stars-fee'
+      ? { token: fromDecimal(rawDiesel.amount ?? '0', token.decimals), stars: 0n }
+      : { token: 0n, stars: fromDecimal(rawDiesel.amount ?? '0', 0) },
+    nativeAmount: toncoinNeeded,
+    remainingFee: toncoinBalance,
+    realFee: fee.realFee,
+  };
 
+  if (diesel.status === 'not-available') {
+    return diesel;
+  }
+
+  tokenBalance ??= await getTokenBalanceWithMintless(network, address, tokenAddress);
+  const canPayDiesel = tokenBalance >= diesel.amount.token;
   const isAwaitingNotExpiredPrevious = Boolean(
     rawDiesel.pendingCreatedAt
       && Date.now() - new Date(rawDiesel.pendingCreatedAt).getTime() < PENDING_DIESEL_TIMEOUT,
   );
 
-  return {
-    status: rawDiesel.status,
-    tokenAmount: rawDiesel.amount ? fromDecimal(rawDiesel.amount, token.decimals) : undefined,
-    nativeAmount: toncoinNeeded,
-    remainingFee: toncoinBalance,
-    realFee: fee.realFee,
-    shouldPrefer: isAwaitingNotExpiredPrevious,
-  };
+  // When both TON and diesel are insufficient, we want to show the TON fee
+  const shouldBeGasless = (!canTransferGasfully && canPayDiesel) || isAwaitingNotExpiredPrevious;
+  return shouldBeGasless ? diesel : DIESEL_NOT_AVAILABLE;
 }
 
 /**

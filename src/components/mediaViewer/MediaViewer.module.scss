@@ -242,6 +242,8 @@
   object-fit: contain;
   border-radius: var(--border-radius-normal);
 
+  -webkit-touch-callout: default;
+
   :global(body.ghost-animating) & {
     opacity: 0;
   }

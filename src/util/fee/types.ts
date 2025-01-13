@@ -8,7 +8,7 @@ export type FeeTerms = {
   native?: bigint;
   /**
    * The fee part paid in stars.
-   * The BigInt assumes the same number of decimal places as the transferred token.
+   * The BigInt assumes 0 decimal places (i.e. the number is equal to the visible number of stars).
    */
   stars?: bigint;
 };

@@ -42,7 +42,7 @@
 .MtwCard__platinum {
   --main-text: #FFF;
   --second-text: #A6A6B1;
-  --action-color: #A6A6B1;
+  --action-color: #888891;
   --action-color-hover: #FFFFFF;
   --color-card-default-text: #A6A6B1;
   --color-card-green-text: #A6A6B1;
@@ -54,7 +54,7 @@
 .MtwCard__gold {
   --main-text: #34270A;
   --second-text: #845F16;
-  --action-color: #A5761B;
+  --action-color: #B07D1D;
   --action-color-hover: #845F16;
   --color-card-default-text: #845F16;
   --color-card-green-text: #845F16;
@@ -113,18 +113,20 @@
   }
 
   .MtwCard__gold & {
-    background-image: linear-gradient(90deg, #34270A 0%, #A5761B 100%);
+    background-image: linear-gradient(90deg, #694D13 0%, #B07D1D 100%);
 
     > .icon {
-      background-image: linear-gradient(0deg, #A5761B, #A5761B);
+      background-color: #B07D1D;
+      background-image: none;
     }
   }
 
   .MtwCard__platinum & {
-    background-image: linear-gradient(90deg, #FFFFFF 0%, #A6A6B1 100%);
+    background-image: linear-gradient(90deg, #FFFFFF 0%, #888891 100%);
 
     > .icon {
-      background-image: linear-gradient(0deg, #A6A6B1, #A6A6B1);
+      background-color: #888891;
+      background-image: none;
     }
   }
 
@@ -136,8 +138,8 @@
     }
 
     > .icon {
-      background-color: transparent;
-      background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15));
+      background-color: rgba(255, 255, 255, 0.15);
+      background-image: none;
     }
   }
 }

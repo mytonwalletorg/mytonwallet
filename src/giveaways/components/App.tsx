@@ -3,8 +3,7 @@ import React, {
   memo, useCallback, useEffect, useLayoutEffect, useState,
 } from '../../lib/teact/teact';
 
-import type { JettonMetadata } from '../../api/chains/ton/types';
-import type { Giveaway, GiveawayWithTask } from '../utils/giveaway';
+import type { Giveaway, GiveawayWithTask, JettonMetadataInfo } from '../utils/giveaway';
 
 import buildClassName from '../../util/buildClassName';
 import { resolveRender } from '../../util/renderPromise';
@@ -35,8 +34,6 @@ import styles from './App.module.scss';
 interface OwnProps {
   mtwWalletInfo: WalletInfoRemote;
 }
-
-export type JettonMetadataInfo = JettonMetadata | { isTon: boolean };
 
 const FETCH_REPEAT_MS = 3000;
 
@@ -111,6 +108,7 @@ function App({ mtwWalletInfo }: OwnProps) {
         return (
           <ConnectPage
             giveaway={giveaway!}
+            wallet={wallet}
             onConnectClick={handleConnectClick}
           />
         );
@@ -121,6 +119,7 @@ function App({ mtwWalletInfo }: OwnProps) {
             wallet={wallet!}
             setParticipantStatus={setParticipantStatus}
             setGiveaway={setGiveaway}
+            isGiveawayFinished={giveaway?.status === GiveawayStatus.Finished}
           />
         );
 

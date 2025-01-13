@@ -1,13 +1,14 @@
 import { NativeAudio } from '@capgo/native-audio';
 
 import { IS_CAPACITOR } from '../config';
+import { SECOND } from './dateFormat';
 import { logDebug, logDebugError } from './logs';
 import { debounce } from './schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from './windowEnvironment';
 
 import incomingTransactionSound from '../assets/incoming-transaction.mp3';
 
-const DEBOUNCE_MS = 1000;
+const DEBOUNCE_MS = SECOND;
 
 const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContextConstructor();

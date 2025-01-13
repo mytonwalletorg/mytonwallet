@@ -29,8 +29,7 @@
     bottom: 0;
     left: 0;
 
-    /* stylelint-disable-next-line plugin/whole-pixel */
-    padding: 0.05rem;
+    padding: 1px;
 
     background: radial-gradient(24.09% 50.19% at 74.09% 0%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
     linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%);
@@ -66,18 +65,6 @@
 }
 
 // Card's border with shine
-.black::before {
-  background-image: radial-gradient(30.47% 83.28% at 79.45% 3.2%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-                    linear-gradient(258.65deg, #141518 33.29%, #292929 48.38%) !important;
-}
-
-.platinum::before,
-.gold::before,
-.silver::before {
-  background-image: radial-gradient(24.09% 50.19% at 74.09% 0%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-                    linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%) !important;
-}
-
 .borderShine_down::before {
   background-image: radial-gradient(10.43% 49.81% at 50% 100%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
                     linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%) !important;
@@ -100,6 +87,21 @@
 
 .borderShine_radioactive::before {
   background-image: linear-gradient(to bottom, #5CE850 0%, #5CE850 100%) !important;
+}
+
+:global(.MtwCard__black)::before {
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  padding: 1.5px !important;
+
+  background-image: radial-gradient(30.47% 83.28% at 79.45% 3.2%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
+  linear-gradient(258.65deg, #141518 33.29%, #292929 48.38%) !important;
+}
+
+:global(.MtwCard__platinum)::before,
+:global(.MtwCard__gold)::before,
+:global(.MtwCard__silver)::before {
+  background-image: radial-gradient(30.42% 83.05% at 79.4% 3.33%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
+  linear-gradient(258.63deg, #141518 33.33%, #292929 48.39%) !important;
 }
 
 .shadow {
