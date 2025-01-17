@@ -118,8 +118,8 @@ export type ApiFetchEstimateDieselResult = {
   status: DieselStatus;
   /**
    * The amount of the diesel itself. It will be sent together with the actual transfer. None of this will return back
-   * as the excess. Charged on top of the transferred amount. If the diesel is available, guaranteed to be > 0.
-   * The token and stars amounts can't be non-zero simultaneously.
+   * as the excess. Charged on top of the transferred amount. The token and stars amounts can't be non-zero
+   * simultaneously. Warning: the values can be zeros simultaneously, e.g. when the status is 'pending-previous'.
    */
   amount: {
     /** Measured in the transferred token */

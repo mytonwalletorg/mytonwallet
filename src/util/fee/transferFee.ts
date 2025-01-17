@@ -132,7 +132,7 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
   // Cover as much displayed real fee as possible with diesel, because in the excess it will return as the native token.
   const dieselRealFee = bigintMin(dieselAmount, realFeeInDiesel);
   // Cover the remaining real fee with the native token.
-  const nativeRealFee = convertFee(realFeeInDiesel - dieselRealFee, dieselAmount, diesel.nativeAmount);
+  const nativeRealFee = bigintMax(0n, diesel.realFee - diesel.nativeAmount);
 
   return {
     isGasless: true,
@@ -140,16 +140,16 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
     fullFee: {
       precision: 'lessThan',
       terms: {
-        native: diesel.remainingFee,
         token: diesel.amount.token,
         stars: diesel.amount.stars,
+        native: diesel.remainingFee,
       },
     },
     realFee: {
       precision: 'approximate',
       terms: {
-        native: nativeRealFee,
         [dieselKey]: dieselRealFee,
+        native: nativeRealFee,
       },
     },
   } satisfies ExplainedTransferFee;
@@ -157,7 +157,7 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
 
 /**
  * `exampleFromAmount` and `exampleToAmount` define the exchange rate used to convert `amount`.
- * `exampleFromAmount` is defined in the same currency as `amount`.
+ * `exampleFromAmount` is defined in the same currency as `amount`. Mustn't be 0.
  * `exampleToAmount` is defined in the currency you want to get.
  */
 function convertFee(

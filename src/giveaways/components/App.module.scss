@@ -1,13 +1,7 @@
 @import '../../styles/mixins';
 
 .app {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  max-width: 40rem;
   height: 100%;
-  margin: 0 auto;
   padding: 5rem 1rem 1rem;
 
   font-size: 1.0625rem;

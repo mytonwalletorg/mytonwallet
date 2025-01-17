@@ -3,6 +3,8 @@ import React, { memo } from '../../lib/teact/teact';
 
 import Footer from './Footer';
 
+import styles from './CommonPage.module.scss';
+
 interface OwnProps {
   children: React.ReactNode;
   onConnectClick?: (args?: any) => any;
@@ -15,7 +17,9 @@ function CommonPage({
 }: OwnProps) {
   return (
     <>
-      {children}
+      <div className={styles.container}>
+        {children}
+      </div>
       <Footer
         onConnectClick={onConnectClick}
         wallet={wallet}

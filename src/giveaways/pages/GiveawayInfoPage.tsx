@@ -30,7 +30,7 @@ function GiveawayInfoPage({
   function renderAwaitingPageContent() {
     return (
       <>
-        <ImageSection status={ImageSectionStatus.AwaitingResults} />
+        <ImageSection key={ImageSectionStatus.AwaitingResults} status={ImageSectionStatus.AwaitingResults} />
         <div className={titleStyles.title}>You are all set!</div>
         <div className={styles.giveawayInfoText}>Please wait for the results. Good luck!</div>
         <GiveawayInfo giveaway={giveaway} />
@@ -45,7 +45,7 @@ function GiveawayInfoPage({
 
     return (
       <>
-        <ImageSection status={ImageSectionStatus.Paid} />
+        <ImageSection key={ImageSectionStatus.Paid} status={ImageSectionStatus.Paid} />
         <div className={titleStyles.title}>Congratulations!</div>
         <div className={styles.giveawayInfoText}>
           <div>Your Reward</div>
@@ -78,7 +78,7 @@ function GiveawayInfoPage({
 
     return (
       <>
-        <ImageSection status={ImageSectionStatus.Lost} />
+        <ImageSection key={ImageSectionStatus.Lost} status={ImageSectionStatus.Lost} />
         <div className={titleStyles.title}>Giveaway Finished</div>
         <div className={styles.giveawayInfoText}>Unfortunately, you did not receive a<br />reward in it.</div>
       </>

@@ -5,6 +5,7 @@ import { prettifyAddress } from '../utils/tonConnect';
 
 import Button from '../../components/ui/Button';
 
+import pageStyles from './CommonPage.module.scss';
 import styles from './Footer.module.scss';
 
 interface OwnProps {
@@ -28,12 +29,14 @@ function Footer({ onConnectClick, wallet, isGiveawayFinished }: OwnProps) {
           </div>
         )
         : !isGiveawayFinished && (
-          <Button
-            isSimple
-            className={styles.button}
-            onClick={onConnectClick!}
-          >Connect MyTonWallet
-          </Button>
+          <div className={pageStyles.container}>
+            <Button
+              isSimple
+              className={styles.button}
+              onClick={onConnectClick!}
+            >Connect MyTonWallet
+            </Button>
+          </div>
         )}
     </div>
   );

@@ -974,6 +974,7 @@ addActionHandler('enableNativeBiometrics', async (global, actions, { password })
     const isVerified = await NativeBiometric.verifyIdentity({
       title: APP_NAME,
       subtitle: '',
+      maxAttempts: 1,
     })
       .then(() => true)
       .catch(() => false);

@@ -206,3 +206,15 @@ function setupRateButtons() {
     });
   }
 }
+
+const actions = {
+  redirectToStore,
+  downloadAndroidDirect,
+  redirectToFullList,
+  downloadDefault,
+  download,
+};
+
+for (const action of Object.keys(actions)) {
+  window[action] = actions[action];
+}

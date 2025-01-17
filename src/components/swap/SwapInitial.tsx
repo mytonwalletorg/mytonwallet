@@ -185,12 +185,12 @@ function SwapInitial({
     }
 
     if (swapType === SwapType.OnChain) {
-      if (ourFeePercent) {
-        value = bigintDivideToNumber(value, 1 + (ourFeePercent / 100));
-      }
-
       if (dieselFeeBigint) {
         value -= dieselFeeBigint;
+      }
+
+      if (ourFeePercent) {
+        value = bigintDivideToNumber(value, 1 + (ourFeePercent / 100));
       }
     }
 

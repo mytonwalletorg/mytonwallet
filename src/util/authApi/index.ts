@@ -72,6 +72,7 @@ async function getPassword(config: AuthConfig) {
         title: APP_NAME,
         subtitle: '',
         isWeakAuthenticatorAllowed: true,
+        maxAttempts: 1,
       })
         .then(() => true)
         .catch(() => false);
