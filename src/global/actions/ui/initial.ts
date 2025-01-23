@@ -5,7 +5,12 @@ import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '.
 import { AppState } from '../../types';
 
 import {
-  DEFAULT_SWAP_SECOND_TOKEN_SLUG, IS_CAPACITOR, IS_EXTENSION, TONCOIN,
+  DEFAULT_SWAP_FISRT_TOKEN_SLUG,
+  DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+  DEFAULT_TRANSFER_TOKEN_SLUG,
+  IS_CAPACITOR,
+  IS_EXTENSION,
+  TONCOIN,
 } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
@@ -168,8 +173,31 @@ addActionHandler('selectToken', (global, actions, { slug } = {}) => {
       actions.changeTransferToken({ tokenSlug: slug });
     }
   } else {
-    actions.setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined });
-    actions.changeTransferToken({ tokenSlug: TONCOIN.slug });
+    const currentActivityToken = global.byAccountId[global.currentAccountId!].currentTokenSlug;
+
+    const isDefaultFirstTokenOutSwap = global.currentSwap.tokenOutSlug === DEFAULT_SWAP_FISRT_TOKEN_SLUG
+    && global.currentSwap.tokenInSlug === DEFAULT_SWAP_SECOND_TOKEN_SLUG;
+
+    const shouldResetSwap = global.currentSwap.tokenOutSlug === currentActivityToken
+    && (
+      (
+        global.currentSwap.tokenInSlug === DEFAULT_SWAP_FISRT_TOKEN_SLUG
+        && global.currentSwap.tokenOutSlug !== DEFAULT_SWAP_SECOND_TOKEN_SLUG
+      )
+    || isDefaultFirstTokenOutSwap
+    );
+
+    if (shouldResetSwap) {
+      actions.setDefaultSwapParams({ tokenInSlug: undefined, tokenOutSlug: undefined, withResetAmount: true });
+    }
+
+    const shouldResetTransfer = (global.currentTransfer.tokenSlug === currentActivityToken
+    && global.currentTransfer.tokenSlug !== DEFAULT_TRANSFER_TOKEN_SLUG)
+    && !global.currentTransfer.nfts?.length;
+
+    if (shouldResetTransfer) {
+      actions.changeTransferToken({ tokenSlug: DEFAULT_TRANSFER_TOKEN_SLUG, withResetAmount: true });
+    }
   }
 
   return updateCurrentAccountState(global, { currentTokenSlug: slug });

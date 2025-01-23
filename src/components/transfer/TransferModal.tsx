@@ -234,7 +234,7 @@ function TransferModal({
       <Transition
         name={resolveModalTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
-        slideClassName={buildClassName(modalStyles.transitionSlide, styles.transitionSlide)}
+        slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}
         nextKey={nextKey}
         onStop={updateNextKey}

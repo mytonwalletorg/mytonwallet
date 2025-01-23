@@ -118,21 +118,16 @@ export type ApiFetchEstimateDieselResult = {
   status: DieselStatus;
   /**
    * The amount of the diesel itself. It will be sent together with the actual transfer. None of this will return back
-   * as the excess. Charged on top of the transferred amount. The token and stars amounts can't be non-zero
-   * simultaneously. Warning: the values can be zeros simultaneously, e.g. when the status is 'pending-previous'.
+   * as the excess. Undefined means that
+   * gasless transfer is not available, and the diesel shouldn't be shown as the fee; nevertheless, the status should
+   * be displayed by the UI.
+   *
+   * - If the status is not 'stars-fee', the value is measured in the transferred token and charged on top of the
+   *   transferred amount.
+   * - If the status is 'stars-fee', the value is measured in Telegram stars, and the BigInt assumes 0 decimal places
+   *   (i.e. the number is equal to the visible number of stars).
    */
-  amount: {
-    /** Measured in the transferred token */
-    token: bigint;
-    /**
-     * Measured in Telegram stars. The BigInt assumes 0 decimal places (i.e. the number is equal to the visible number
-     * of stars).
-     */
-    stars: 0n;
-  } | {
-    token: 0n;
-    stars: bigint;
-  };
+  amount?: bigint;
   /**
    * The native token amount covered by the diesel. Guaranteed to be > 0.
    */
@@ -143,7 +138,7 @@ export type ApiFetchEstimateDieselResult = {
    */
   remainingFee: bigint;
   /**
-   * An approximate fee that will be actually spent. The difference between `nativeAmount+nativeRemainder` and this
+   * An approximate fee that will be actually spent. The difference between `nativeAmount+remainingFee` and this
    * number is called "excess" and will be returned back to the wallet. Measured in the native token.
    */
   realFee: bigint;

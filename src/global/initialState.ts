@@ -13,10 +13,10 @@ import {
   ANIMATION_LEVEL_DEFAULT,
   DEFAULT_SLIPPAGE_VALUE,
   DEFAULT_STAKING_STATE,
+  DEFAULT_TRANSFER_TOKEN_SLUG,
   INIT_SWAP_ASSETS,
   THEME_DEFAULT,
   TOKEN_INFO,
-  TONCOIN,
 } from '../config';
 import { IS_IOS_APP, USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
@@ -37,7 +37,7 @@ export const INITIAL_STATE: GlobalState = {
 
   currentTransfer: {
     state: TransferState.None,
-    tokenSlug: TONCOIN.slug,
+    tokenSlug: DEFAULT_TRANSFER_TOKEN_SLUG,
   },
 
   currentSwap: {

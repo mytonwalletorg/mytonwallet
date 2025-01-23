@@ -763,7 +763,7 @@ export interface ActionPayloads {
     binPayload?: string;
     stateInit?: string;
   } | undefined;
-  changeTransferToken: { tokenSlug: string };
+  changeTransferToken: { tokenSlug: string; withResetAmount?: boolean };
   fetchTransferFee: {
     tokenSlug: string;
     toAddress: string;
@@ -847,6 +847,8 @@ export interface ActionPayloads {
   };
   closeHideNftModal: undefined;
 
+  closeAnyModal: undefined;
+  closeAllEntities: undefined;
   submitSignature: { password: string };
   clearSignatureError: undefined;
   cancelSignature: undefined;
@@ -982,7 +984,7 @@ export interface ActionPayloads {
     toAddress?: string;
   } | undefined;
   cancelSwap: { shouldReset?: boolean } | undefined;
-  setDefaultSwapParams: { tokenInSlug?: string; tokenOutSlug?: string } | undefined;
+  setDefaultSwapParams: { tokenInSlug?: string; tokenOutSlug?: string; withResetAmount?: boolean } | undefined;
   switchSwapTokens: undefined;
   setSwapTokenIn: { tokenSlug: string };
   setSwapTokenOut: { tokenSlug: string };

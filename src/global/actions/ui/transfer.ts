@@ -27,12 +27,18 @@ addActionHandler('startTransfer', (global, actions, payload) => {
   }
 });
 
-addActionHandler('changeTransferToken', (global, actions, { tokenSlug }) => {
+addActionHandler('changeTransferToken', (global, actions, { tokenSlug, withResetAmount }) => {
   const { amount, tokenSlug: currentTokenSlug } = global.currentTransfer;
+  if (tokenSlug === currentTokenSlug && !withResetAmount) {
+    return;
+  }
+
   const currentToken = currentTokenSlug ? global.tokenInfo.bySlug[currentTokenSlug] : undefined;
   const newToken = global.tokenInfo.bySlug[tokenSlug];
 
-  if (amount && currentToken?.decimals !== newToken?.decimals) {
+  if (withResetAmount) {
+    global = updateCurrentTransfer(global, { amount: undefined });
+  } else if (amount && currentToken?.decimals !== newToken?.decimals) {
     global = updateCurrentTransfer(global, {
       amount: fromDecimal(toDecimal(amount, currentToken?.decimals), newToken?.decimals),
     });
@@ -43,6 +49,7 @@ addActionHandler('changeTransferToken', (global, actions, { tokenSlug }) => {
     fee: undefined,
     realFee: undefined,
     diesel: undefined,
+    nfts: undefined,
   }));
 });
 

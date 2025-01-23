@@ -79,7 +79,12 @@ export async function initNotificationsWithGlobal(global: GlobalState) {
 }
 
 function handlePushNotificationActionPerformed(notification: ActionPerformed) {
-  const { showAnyAccountTx, showAnyAccountTokenActivity, openAnyAccountStakingInfo } = getActions();
+  const {
+    showAnyAccountTx,
+    showAnyAccountTokenActivity,
+    openAnyAccountStakingInfo,
+    closeAllEntities,
+  } = getActions();
   const global = getGlobal();
   const notificationData = notification.notification.data as MessageData;
   const { action, address } = notificationData;
@@ -93,6 +98,7 @@ function handlePushNotificationActionPerformed(notification: ActionPerformed) {
 
   const network = 'mainnet';
 
+  closeAllEntities();
   if (action === 'nativeTx' || action === 'swap') {
     const { txId } = notificationData;
     showAnyAccountTx({ accountId, txId, network });

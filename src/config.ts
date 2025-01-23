@@ -249,22 +249,12 @@ export const CHAIN_CONFIG = {
     isDnsSupported: true,
     addressRegex: /^([-\w_]{48}|0:[\da-h]{64})$/i,
     nativeToken: TONCOIN,
-    gas: {
-      maxSwap: 400_000_000n, // 0.4 TON
-      maxTransfer: 15_000_000n, // 0.015 TON
-      maxTransferToken: 60_000_000n, // 0.06 TON
-    },
   },
   tron: {
     isMemoSupported: false,
     isDnsSupported: false,
     addressRegex: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
     nativeToken: TRX,
-    gas: {
-      maxSwap: undefined,
-      maxTransfer: 1_000_000n, // 1 TRX
-      maxTransferToken: 30_000_000n, // 30 TRX
-    },
     mainnet: {
       apiUrl: TRON_MAINNET_API_URL,
       usdtAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
@@ -405,7 +395,9 @@ export const INIT_SWAP_ASSETS: Record<string, ApiSwapAsset> = {
 };
 
 export const DEFAULT_TRX_SWAP_FIRST_TOKEN_SLUG = TONCOIN.slug;
+export const DEFAULT_SWAP_FISRT_TOKEN_SLUG = TONCOIN.slug;
 export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = TON_USDT_SLUG;
+export const DEFAULT_TRANSFER_TOKEN_SLUG = TONCOIN.slug;
 export const DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG = TRC20_USDT_MAINNET_SLUG;
 export const SWAP_DEX_LABELS: Record<ApiSwapDexLabel, string> = {
   dedust: 'DeDust',

@@ -26,10 +26,9 @@ import { selectCurrentAccount, selectIsMultichainAccount, selectSwapTokens } fro
 import { bigintDivideToNumber, bigintMax } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
-import { findChainConfig, getChainConfig } from '../../util/chain';
+import { findChainConfig } from '../../util/chain';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
-import { getIsNativeToken } from '../../util/tokens';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
@@ -150,7 +149,6 @@ function SwapInitial({
   );
   const nativeBalance = nativeUserTokenIn?.amount ?? 0n;
   const isNativeIn = currentTokenInSlug && currentTokenInSlug === nativeTokenInSlug;
-  const chainConfigIn = nativeUserTokenIn ? getChainConfig(nativeUserTokenIn.chain as ApiChain) : undefined;
   const isTonIn = tokenIn?.chain === 'ton';
 
   const amountInBigint = amountIn && tokenIn ? fromDecimal(amountIn, tokenIn.decimals) : 0n;
@@ -160,16 +158,8 @@ function SwapInitial({
   const networkFeeBigint = (() => {
     let value = 0n;
 
-    if (!chainConfigIn) {
-      return value;
-    }
-
     if (Number(networkFee) > 0) {
       value = fromDecimal(networkFee, nativeUserTokenIn?.decimals);
-    } else if (swapType === SwapType.OnChain) {
-      value = chainConfigIn?.gas.maxSwap ?? 0n;
-    } else if (swapType === SwapType.CrosschainFromWallet) {
-      value = getIsNativeToken(tokenInSlug) ? chainConfigIn.gas.maxTransfer : chainConfigIn.gas.maxTransferToken;
     }
 
     return value;
@@ -222,7 +212,7 @@ function SwapInitial({
     amountIn
     && tokenIn
     && amountInBigint > 0
-    && amountInBigint <= balanceIn,
+    && amountInBigint <= maxAmount,
   ) || (tokenIn && !nativeTokenInSlug);
 
   const isEnoughFee = swapType !== SwapType.CrosschainToWallet

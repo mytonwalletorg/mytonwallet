@@ -26,6 +26,7 @@ import {
 
 import {
   DEFAULT_FEE,
+  DEFAULT_SWAP_FISRT_TOKEN_SLUG,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   IS_CAPACITOR,
   TONCOIN,
@@ -232,9 +233,17 @@ addActionHandler('startSwap', async (global, actions, payload) => {
 
 addActionHandler('setDefaultSwapParams', (global, actions, payload) => {
   let { tokenInSlug: requiredTokenInSlug, tokenOutSlug: requiredTokenOutSlug } = payload ?? {};
+  const { withResetAmount } = payload ?? {};
 
-  requiredTokenInSlug = requiredTokenInSlug || TONCOIN.slug;
+  requiredTokenInSlug = requiredTokenInSlug || DEFAULT_SWAP_FISRT_TOKEN_SLUG;
   requiredTokenOutSlug = requiredTokenOutSlug || DEFAULT_SWAP_SECOND_TOKEN_SLUG;
+  if (
+    global.currentSwap.tokenInSlug === requiredTokenInSlug
+    && global.currentSwap.tokenOutSlug === requiredTokenOutSlug
+    && !withResetAmount
+  ) {
+    return;
+  }
 
   global = updateCurrentSwap(global, {
     tokenInSlug: requiredTokenInSlug,
@@ -247,6 +256,7 @@ addActionHandler('setDefaultSwapParams', (global, actions, payload) => {
     amountOutMin: '0',
     inputSource: SwapInputSource.In,
     isDexLabelChanged: undefined,
+    ...(withResetAmount ? { amountIn: undefined, amountOut: undefined } : undefined),
   });
   setGlobal(global);
 });

@@ -94,14 +94,14 @@
   padding: 1.5px !important;
 
   background-image: radial-gradient(30.47% 83.28% at 79.45% 3.2%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-  linear-gradient(258.65deg, #141518 33.29%, #292929 48.38%) !important;
+                    linear-gradient(258.65deg, #141518 33.29%, #292929 48.38%) !important;
 }
 
 :global(.MtwCard__platinum)::before,
 :global(.MtwCard__gold)::before,
 :global(.MtwCard__silver)::before {
-  background-image: radial-gradient(30.42% 83.05% at 79.4% 3.33%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-  linear-gradient(258.63deg, #141518 33.33%, #292929 48.39%) !important;
+  background-image: radial-gradient(23.98% 49.81% at 73.98% 0.37%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
+                    linear-gradient(258.61deg, rgba(140, 148, 176, 0.5) 33.38%, rgba(186, 188, 194, 0.85) 48.39%) !important;
 }
 
 .shadow {

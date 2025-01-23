@@ -37,6 +37,7 @@ import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
+import { getDieselTokenAmount, isDieselAvailable } from '../../../util/fee/transferFee';
 import { buildCollectionByKey, omit, pick } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
 import { updatePoisoningCache } from '../../../util/poisoningHash';
@@ -104,7 +105,6 @@ const PENDING_DIESEL_TIMEOUT = 15 * 60 * 1000; // 15 min
 
 const DIESEL_NOT_AVAILABLE: ApiFetchEstimateDieselResult = {
   status: 'not-available',
-  amount: { token: 0n, stars: 0n },
   nativeAmount: 0n,
   remainingFee: 0n,
   realFee: 0n,
@@ -277,10 +277,10 @@ export async function checkTransactionDraft(
         tokenBalance: balance,
       });
 
-      if (result.diesel.status === 'not-available') {
-        isEnoughBalance = canTransferGasfully && amount <= balance;
+      if (isDieselAvailable(result.diesel)) {
+        isEnoughBalance = amount + getDieselTokenAmount(result.diesel) <= balance;
       } else {
-        isEnoughBalance = amount + result.diesel.amount.token <= balance;
+        isEnoughBalance = canTransferGasfully && amount <= balance;
       }
     }
 
@@ -1338,20 +1338,21 @@ async function getDiesel({
   );
   const diesel: ApiFetchEstimateDieselResult = {
     status: rawDiesel.status,
-    amount: rawDiesel.status !== 'stars-fee'
-      ? { token: fromDecimal(rawDiesel.amount ?? '0', token.decimals), stars: 0n }
-      : { token: 0n, stars: fromDecimal(rawDiesel.amount ?? '0', 0) },
+    amount: rawDiesel.amount === undefined
+      ? undefined
+      : fromDecimal(rawDiesel.amount, rawDiesel.status === 'stars-fee' ? 0 : token.decimals),
     nativeAmount: toncoinNeeded,
     remainingFee: toncoinBalance,
     realFee: fee.realFee,
   };
 
-  if (diesel.status === 'not-available') {
+  const tokenAmount = getDieselTokenAmount(diesel);
+  if (tokenAmount === 0n) {
     return diesel;
   }
 
   tokenBalance ??= await getTokenBalanceWithMintless(network, address, tokenAddress);
-  const canPayDiesel = tokenBalance >= diesel.amount.token;
+  const canPayDiesel = tokenBalance >= tokenAmount;
   const isAwaitingNotExpiredPrevious = Boolean(
     rawDiesel.pendingCreatedAt
       && Date.now() - new Date(rawDiesel.pendingCreatedAt).getTime() < PENDING_DIESEL_TIMEOUT,

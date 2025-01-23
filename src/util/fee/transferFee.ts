@@ -39,7 +39,8 @@ type ExplainedTransferFee = {
   canTransferFullBalance: boolean;
 };
 
-type ApiFeeWithDiesel = ApiFee & { diesel: ApiFetchEstimateDieselResult };
+type AvailableDiesel = ApiFetchEstimateDieselResult & { amount: bigint };
+type ApiFeeWithDiesel = ApiFee & { diesel: AvailableDiesel };
 
 type MaxTransferAmountInput = {
   /** The wallet balance of the transferred token. Undefined means that it's unknown. */
@@ -50,6 +51,13 @@ type MaxTransferAmountInput = {
   fullFee: FeeTerms | undefined;
   /** Whether the full token balance can be transferred despite the fee. */
   canTransferFullBalance: boolean;
+};
+
+type BalanceSufficientForTransferInput = Omit<MaxTransferAmountInput, 'isNativeToken'> & {
+  /** The wallet balance of the native token of the transfer chain. Undefined means that it's unknown. */
+  nativeTokenBalance: bigint | undefined;
+  /** The transferred amount. Undefined means that it's unknown. */
+  transferAmount: bigint | undefined;
 };
 
 /**
@@ -89,9 +97,38 @@ export function getMaxTransferAmount({
   return bigintMax(tokenBalance - fee, 0n);
 }
 
+/**
+ * Decides whether the balance is sufficient to transfer the amount and pay the fees.
+ * Returns undefined when it can't be calculated because of insufficient input data.
+ */
+export function isBalanceSufficientForTransfer({
+  tokenBalance,
+  nativeTokenBalance,
+  transferAmount,
+  fullFee,
+  canTransferFullBalance,
+}: BalanceSufficientForTransferInput) {
+  if (transferAmount === undefined || tokenBalance === undefined || nativeTokenBalance === undefined || !fullFee) {
+    return undefined;
+  }
+
+  const isFullTokenTransfer = transferAmount === tokenBalance && canTransferFullBalance;
+  const tokenRequiredAmount = (fullFee.token ?? 0n) + (isFullTokenTransfer ? 0n : transferAmount);
+  const nativeTokenRequiredAmount = fullFee.native ?? 0n;
+
+  return tokenRequiredAmount <= tokenBalance && nativeTokenRequiredAmount <= nativeTokenBalance;
+}
+
+export function isDieselAvailable(diesel: ApiFetchEstimateDieselResult): diesel is AvailableDiesel {
+  return diesel.status !== 'not-available' && diesel.amount !== undefined;
+}
+
+export function getDieselTokenAmount(diesel: ApiFetchEstimateDieselResult) {
+  return diesel.status === 'stars-fee' ? 0n : (diesel.amount ?? 0n);
+}
+
 function shouldUseDiesel(input: ApiFee): input is ApiFeeWithDiesel {
-  return input.diesel !== undefined
-    && input.diesel.status !== 'not-available';
+  return input.diesel !== undefined && isDieselAvailable(input.diesel);
 }
 
 /**
@@ -127,10 +164,9 @@ function explainGasfullTransferFee(input: ApiFee) {
 function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
   const isStarsDiesel = diesel.status === 'stars-fee';
   const dieselKey = isStarsDiesel ? 'stars' : 'token';
-  const dieselAmount = diesel.amount[dieselKey];
-  const realFeeInDiesel = convertFee(diesel.realFee, diesel.nativeAmount, dieselAmount);
+  const realFeeInDiesel = convertFee(diesel.realFee, diesel.nativeAmount, diesel.amount);
   // Cover as much displayed real fee as possible with diesel, because in the excess it will return as the native token.
-  const dieselRealFee = bigintMin(dieselAmount, realFeeInDiesel);
+  const dieselRealFee = bigintMin(diesel.amount, realFeeInDiesel);
   // Cover the remaining real fee with the native token.
   const nativeRealFee = bigintMax(0n, diesel.realFee - diesel.nativeAmount);
 
@@ -140,8 +176,7 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
     fullFee: {
       precision: 'lessThan',
       terms: {
-        token: diesel.amount.token,
-        stars: diesel.amount.stars,
+        [dieselKey]: diesel.amount,
         native: diesel.remainingFee,
       },
     },

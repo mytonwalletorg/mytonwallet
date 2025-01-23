@@ -12,6 +12,7 @@ import buildClassName from '../../util/buildClassName';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { getIsSwipeToCloseDisabled } from '../../util/modalSwipeManager';
+import { createSignal } from '../../util/signals';
 import trapFocus from '../../util/trapFocus';
 import { IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import windowSize from '../../util/windowSize';
@@ -58,6 +59,12 @@ type OwnProps = {
 export const CLOSE_DURATION = 350;
 export const CLOSE_DURATION_PORTRAIT = IS_ANDROID ? 200 : 500;
 const SCROLL_CONTENT_CHECK_THRESHOLD_MS = 500;
+
+const [getModalCloseSignal, setModalCloseSignal] = createSignal<number>(Date.now());
+
+export function closeModal() {
+  setModalCloseSignal(Date.now());
+}
 
 function Modal({
   dialogRef,
@@ -118,6 +125,12 @@ function Modal({
       BottomSheet.toggleSelfFullSize({ isFullSize: !!isOpen });
     }
   }, [isOpen, isCompact]);
+
+  useEffect(() => {
+    if (IS_DELEGATED_BOTTOM_SHEET || !isOpen) return undefined;
+
+    return getModalCloseSignal.subscribe(onClose);
+  }, [isOpen, onClose]);
 
   useEffect(
     () => (isOpen ? captureKeyboardListeners({

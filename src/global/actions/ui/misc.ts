@@ -75,6 +75,7 @@ import { switchAccount } from '../api/auth';
 
 import { reportAppLockActivityEvent } from '../../../components/AppLocked';
 import { getCardNftImageUrl } from '../../../components/main/sections/Card/helpers/getCardNftImageUrl';
+import { closeModal } from '../../../components/ui/Modal';
 
 const OPEN_LEDGER_TAB_DELAY = 500;
 const APP_VERSION_URL = IS_ANDROID_APP ? `${IS_PRODUCTION ? PRODUCTION_URL : BETA_URL}/version.txt` : 'version.txt';
@@ -817,6 +818,20 @@ addActionHandler('clearAccentColorFromNft', (global) => {
     accentColorNft: undefined,
     accentColorIndex: undefined,
   });
+});
+
+addActionHandler('closeAnyModal', () => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('closeAnyModal');
+    return;
+  }
+
+  closeModal();
+});
+
+addActionHandler('closeAllEntities', (global, actions) => {
+  actions.closeAnyModal();
+  actions.closeMediaViewer();
 });
 
 async function connectLedgerAndGetHardwareState() {

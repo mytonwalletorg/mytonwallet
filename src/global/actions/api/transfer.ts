@@ -5,6 +5,7 @@ import { TransferState } from '../../types';
 
 import { IS_CAPACITOR, NFT_BATCH_SIZE } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { getDieselTokenAmount } from '../../../util/fee/transferFee';
 import { callActionInNative } from '../../../util/multitab';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -263,7 +264,7 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       shouldEncrypt,
       isBase64Data: Boolean(binPayload),
       withDiesel,
-      dieselAmount: diesel?.amount.token,
+      dieselAmount: diesel && getDieselTokenAmount(diesel),
       stateInit,
       isGaslessWithStars,
     };
