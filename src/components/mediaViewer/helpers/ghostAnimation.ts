@@ -83,7 +83,9 @@ export function animateOpening(
 
 export function animateClosing(type: MediaType, mediaId: string, txId?: string, hiddenNfts?: 'user' | 'scam') {
   const { container, image: toImage } = getNode(type, mediaId, txId, hiddenNfts);
-  const fromImage = document.querySelector<HTMLImageElement>(`.${styles.slide_active} img`);
+  const fromImage = document.querySelector<HTMLImageElement>(
+    `.${styles.slide_active} img, .${styles.slide_active} canvas`,
+  );
   if (!fromImage || !toImage) {
     return;
   }
@@ -168,7 +170,7 @@ export function animateClosing(type: MediaType, mediaId: string, txId?: string, 
 }
 
 function getNode(type: MediaType, mediaId: string, txId?: string, hiddenNfts?: 'user' | 'scam') {
-  let image: HTMLImageElement | undefined;
+  let image: HTMLImageElement | HTMLCanvasElement | undefined;
   let container: HTMLElement | undefined;
   if (type === MediaType.Nft) {
     container = document.querySelector(
@@ -178,12 +180,12 @@ function getNode(type: MediaType, mediaId: string, txId?: string, hiddenNfts?: '
           ? `.hidden-nfts-${hiddenNfts} [data-nft-address="${mediaId}"]`
           : `.nfts-container > .Transition_slide-active [data-nft-address="${mediaId}"]`,
     ) as HTMLElement;
-    image = container?.querySelector('img') as HTMLImageElement;
+    image = container?.querySelector('img, canvas') as HTMLImageElement | HTMLCanvasElement;
   }
   return { container, image };
 }
 
-function createGhost(source: HTMLImageElement) {
+function createGhost(source: HTMLImageElement | HTMLCanvasElement) {
   const ghost = document.createElement('div');
   ghost.classList.add(styles.ghost);
 
@@ -191,7 +193,9 @@ function createGhost(source: HTMLImageElement) {
   img.classList.add(styles.ghostImage);
   img.draggable = false;
   img.oncontextmenu = stopEvent;
-  img.src = source.src;
+  img.src = source instanceof HTMLImageElement
+    ? source.src
+    : source.parentElement?.parentElement?.dataset.previewUrl || '';
 
   ghost.appendChild(img);
 

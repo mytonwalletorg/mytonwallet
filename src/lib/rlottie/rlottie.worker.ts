@@ -99,8 +99,7 @@ async function extractJson(tgsUrl: string) {
   const response = await fetch(tgsUrl);
   const contentType = response.headers.get('Content-Type');
 
-  // Support deprecated JSON format cached locally
-  if (contentType?.startsWith('text/')) {
+  if (contentType === 'application/json') {
     return response.text();
   }
 

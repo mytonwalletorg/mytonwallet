@@ -146,7 +146,7 @@ export default memo(withGlobal((global): StateProps => {
     const { orderedAddresses, byAddress } = accountState?.nfts || {};
     const { blacklistedNftAddresses } = accountState || {};
     const nft = byAddress?.[mediaId!];
-    mediaUrl = nft?.image || nft?.thumbnail;
+    mediaUrl = (!nft?.metadata?.lottie && nft?.image) || nft?.thumbnail;
     mediaIds = orderedAddresses || MEMO_EMPTY_ARRAY;
     mediaByIds = byAddress;
     if (blacklistedNftAddresses?.length) {

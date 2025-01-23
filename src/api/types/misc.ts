@@ -88,6 +88,7 @@ export type ApiMtwCardTextType = 'light' | 'dark';
 export type ApiMtwCardBorderShineType = 'up' | 'down' | 'left' | 'right' | 'radioactive';
 
 export interface ApiNftMetadata {
+  lottie?: string;
   imageUrl?: string;
   mtwCardId?: number;
   mtwCardType?: ApiMtwCardType;
@@ -109,7 +110,7 @@ export interface ApiNft {
   isHidden?: boolean;
   isOnFragment?: boolean;
   isScam?: boolean;
-  metadata?: ApiNftMetadata;
+  metadata: ApiNftMetadata;
 }
 
 export type ApiHistoryList = Array<[number, number]>;

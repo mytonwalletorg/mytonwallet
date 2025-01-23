@@ -12,6 +12,8 @@ import buildClassName from '../../util/buildClassName';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
 
+import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+
 import styles from './MediaViewer.module.scss';
 
 import scamImg from '../../assets/scam.svg';
@@ -25,13 +27,16 @@ interface StateProps {
   alt?: string;
   thumbnail?: string;
   image?: string;
+  lottie?: string;
   description?: string;
   isScam?: boolean;
   whitelistedMediaIds?: string[];
 }
 
+const ANIMATED_ICON_SIZE = 250; // Preview size (500px) / 2
+
 function Media({
-  mediaId, alt, thumbnail, image, description, isScam, whitelistedMediaIds,
+  mediaId, alt, thumbnail, image, lottie, description, isScam, whitelistedMediaIds,
 }: OwnProps & StateProps) {
   const lang = useLang();
   const src = image || thumbnail;
@@ -54,7 +59,20 @@ function Media({
 
   return (
     <div className={styles.content}>
-      <img src={src} alt={alt} className={styles.image} />
+      {lottie ? (
+        <AnimatedIconWithPreview
+          size={ANIMATED_ICON_SIZE}
+          shouldStretch
+          play
+          noLoop={false}
+          tgsUrl={lottie}
+          previewUrl={src}
+          className={styles.image}
+          noPreviewTransition
+        />
+      ) : (
+        <img src={src} alt={alt} className={styles.image} />
+      )}
       <div className={styles.contentDescription} ref={ref}>
         {description && (
           <div className={styles.contentTextWrapper}>
@@ -84,6 +102,7 @@ export default memo(withGlobal<OwnProps>((global, { mediaId }): StateProps => {
     alt: nft.name,
     thumbnail: nft.thumbnail,
     image: nft.image,
+    lottie: nft.metadata?.lottie,
     description: nft.description,
     isScam: nft.isScam,
     whitelistedMediaIds: whitelistedNftAddresses,

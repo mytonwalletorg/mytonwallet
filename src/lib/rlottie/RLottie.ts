@@ -3,13 +3,12 @@ import cycleRestrict from '../../util/cycleRestrict';
 import Deferred from '../../util/Deferred';
 import generateUniqueId from '../../util/generateUniqueId';
 import launchMediaWorkers, { MAX_WORKERS } from '../../util/launchMediaWorkers';
-import {
-  IS_ANDROID, IS_IOS, IS_SAFARI,
-} from '../../util/windowEnvironment';
+import { IS_ANDROID, IS_IOS, IS_SAFARI } from '../../util/windowEnvironment';
 import { requestMeasure, requestMutation } from '../fasterdom/fasterdom';
 
 interface Params {
   size: number;
+  shouldStretch?: boolean;
   noLoop?: boolean;
   quality?: number;
   isLowPriority?: boolean;
@@ -268,7 +267,7 @@ class RLottie {
         throw new Error('[RLottie] Container is not mounted');
       }
 
-      const { size } = this.params;
+      const { size, shouldStretch } = this.params;
 
       imgSize = Math.round(size * sizeFactor);
 
@@ -281,8 +280,13 @@ class RLottie {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d')!;
 
-        canvas.style.width = `${size}px`;
-        canvas.style.height = `${size}px`;
+        if (shouldStretch) {
+          canvas.style.width = '100%';
+        } else {
+          canvas.style.width = `${size}px`;
+          canvas.style.height = `${size}px`;
+        }
+
         canvas.style.display = 'block';
 
         canvas.width = imgSize;

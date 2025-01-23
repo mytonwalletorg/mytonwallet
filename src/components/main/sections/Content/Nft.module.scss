@@ -177,7 +177,6 @@
 .imageWrapper {
   /* Fix for border-radius missing during transform on Safari. See https://stackoverflow.com/a/58283449 */
   isolation: isolate;
-  position: relative;
 
   display: block !important;
 
@@ -192,10 +191,9 @@
 }
 
 .image {
-  position: absolute;
-  top: 0;
-  left: 0;
   transform-origin: center;
+
+  overflow: hidden;
 
   width: 100%;
   height: 100%;

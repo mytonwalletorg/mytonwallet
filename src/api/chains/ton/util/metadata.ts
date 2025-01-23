@@ -13,16 +13,14 @@ import type {
   ApiNetwork,
   ApiNft,
   ApiNftMetadata,
-  ApiParsedPayload, ApiTransactionType,
+  ApiParsedPayload,
+  ApiTransactionType,
 } from '../../../types';
 import type { DnsCategory } from '../constants';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
 import {
-  DEBUG,
-  LIQUID_JETTON,
-  MTW_CARDS_COLLECTION,
-  NFT_FRAGMENT_COLLECTIONS,
+  DEBUG, LIQUID_JETTON, MTW_CARDS_COLLECTION, NFT_FRAGMENT_COLLECTIONS,
 } from '../../../../config';
 import { omitUndefined, pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
@@ -650,7 +648,7 @@ export function readSnakeBytes(slice: Slice) {
   return buffer;
 }
 
-function buildNftMetadata(metadata: Record<string, any>): ApiNftMetadata | undefined {
+function buildMtwCardsNftMetadata(metadata: Record<string, any>): ApiNftMetadata | undefined {
   const { image, id } = metadata as { image?: string; id?: number };
 
   let mtwCardType: ApiMtwCardType | undefined;
@@ -708,12 +706,13 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
     } = rawNft;
 
     const {
-      name, image, description, render_type: renderType,
+      name, image, description, render_type: renderType, lottie,
     } = rawMetadata as {
       name?: string;
       image?: string;
       description?: string;
       render_type?: string;
+      lottie?: string;
     };
 
     const collectionAddress = collection && toBase64Address(collection.address, true, network);
@@ -727,10 +726,15 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       }
     }
 
+    const isWhitelisted = trust === 'whitelist';
     const isScam = hasScamLink || description === 'SCAM' || trust === 'blacklist';
     const isHidden = renderType === 'hidden' || isScam;
     const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
-    const metadata = collectionAddress === MTW_CARDS_COLLECTION ? buildNftMetadata(rawMetadata) : undefined;
+
+    const metadata = {
+      ...(isWhitelisted && { lottie }),
+      ...(collectionAddress === MTW_CARDS_COLLECTION && buildMtwCardsNftMetadata(rawMetadata)),
+    };
 
     return omitUndefined<ApiNft>({
       index,

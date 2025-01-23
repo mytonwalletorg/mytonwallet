@@ -1,8 +1,7 @@
 import type { RefObject } from 'react';
 import type { FC } from '../../lib/teact/teact';
 import React, {
-  getIsHeavyAnimating,
-  memo, useEffect, useRef, useState,
+  getIsHeavyAnimating, memo, useEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
 import type RLottieInstance from '../../lib/rlottie/RLottie';
@@ -36,6 +35,7 @@ export type OwnProps = {
   speed?: number;
   noLoop?: boolean;
   size: number;
+  shouldStretch?: boolean;
   quality?: number;
   color?: string;
   isLowPriority?: boolean;
@@ -62,6 +62,7 @@ const AnimatedSticker: FC<OwnProps> = ({
   speed,
   noLoop,
   size,
+  shouldStretch,
   quality,
   isLowPriority,
   color,
@@ -129,6 +130,7 @@ const AnimatedSticker: FC<OwnProps> = ({
       renderId || generateUniqueId(),
       {
         size,
+        shouldStretch,
         noLoop,
         quality,
         isLowPriority,
@@ -251,7 +253,7 @@ const AnimatedSticker: FC<OwnProps> = ({
       ref={containerRef}
       className={className}
       style={buildStyle(
-        size !== undefined && `width: ${size}px; height: ${size}px;`,
+        size !== undefined && !shouldStretch && `width: ${size}px; height: ${size}px;`,
         onClick && !IS_ELECTRON && 'cursor: pointer',
         style,
       )}
