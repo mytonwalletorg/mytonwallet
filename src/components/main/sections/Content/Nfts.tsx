@@ -1,6 +1,4 @@
-import React, {
-  memo, useEffect, useMemo, useRef,
-} from '../../../../lib/teact/teact';
+import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
@@ -82,10 +80,7 @@ function Nfts({
     byAddress, currentCollectionAddress, orderedAddresses, blacklistedNftAddresses, whitelistedNftAddresses,
   ]);
 
-  // eslint-disable-next-line no-null/no-null
-  const containerRef = useRef<HTMLDivElement>(null);
   const { observe: observeIntersection } = useIntersectionObserver({
-    rootRef: containerRef,
     throttleMs: INTERSECTION_THROTTLE,
     isDisabled: !nfts?.length,
   });
@@ -157,7 +152,6 @@ function Nfts({
         </Button>
       )}
       <Transition
-        ref={containerRef}
         name="fade"
         activeKey={nfts.length}
         shouldCleanup

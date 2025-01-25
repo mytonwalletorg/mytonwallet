@@ -35,7 +35,7 @@ export function useIntersectionObserver({
   threshold,
   isDisabled,
 }: {
-  rootRef: RefObject<HTMLDivElement>;
+  rootRef?: RefObject<HTMLDivElement>;
   throttleMs?: number;
   throttleScheduler?: Scheduler;
   debounceMs?: number;
@@ -134,7 +134,7 @@ export function useIntersectionObserver({
         }
       },
       {
-        root: rootRef.current,
+        root: rootRef?.current,
         rootMargin: margin ? `${margin}px` : undefined,
         threshold,
       },

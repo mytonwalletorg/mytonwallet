@@ -10,6 +10,7 @@ import { type IAnchorPosition, MediaType } from '../../../../global/types';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/capacitor';
 import { shortenAddress } from '../../../../util/shortenAddress';
+import { IS_ANDROID, IS_IOS } from '../../../../util/windowEnvironment';
 
 import useFlag from '../../../../hooks/useFlag';
 import { useIsIntersecting } from '../../../../hooks/useIntersectionObserver';
@@ -28,6 +29,14 @@ interface OwnProps {
   nft: ApiNft;
   selectedAddresses?: string[];
   observeIntersection: ObserveFn;
+}
+
+interface UseLottieReturnType {
+  isLottie: boolean;
+  shouldPlay?: boolean;
+  noLoop?: boolean;
+  markHover?: NoneToVoidFunction;
+  unmarkHover?: NoneToVoidFunction;
 }
 
 function Nft({ nft, selectedAddresses, observeIntersection }: OwnProps) {
@@ -147,7 +156,7 @@ function useLottie(
   nft: ApiNft,
   ref: React.RefObject<HTMLDivElement>,
   observeIntersection: ObserveFn,
-) {
+): UseLottieReturnType {
   const isLottie = Boolean(nft.metadata?.lottie);
 
   const isIntersecting = useIsIntersecting(ref, isLottie ? observeIntersection : undefined);
@@ -164,7 +173,9 @@ function useLottie(
     isLottie,
     shouldPlay,
     noLoop,
-    markHover,
-    unmarkHover,
+    ...!(IS_IOS || IS_ANDROID) && {
+      markHover,
+      unmarkHover,
+    },
   };
 }
