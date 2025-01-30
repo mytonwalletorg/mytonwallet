@@ -209,6 +209,9 @@ export interface ApiSignedTransfer {
   params: Omit<ApiLocalTransactionParams, 'inMsgHash'>;
 }
 
+/**
+ * The `fee` field should contain the final (real) fee, because we want to show the real fee in local transactions
+ */
 export type ApiLocalTransactionParams = Omit<
 ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'
 > & {

@@ -10,6 +10,8 @@
 .appSlide {
   --background-color: var(--color-background-second);
 
+  z-index: 0;
+
   background: var(--color-background-second);
 
   /* These styles need to be applied via regular CSS and not as conditional class, since Transition does not work well when `slideClassName` updates */
@@ -21,6 +23,10 @@
   @include respond-below(xs) {
     overflow: auto;
     overflow-x: hidden;
+  }
+
+  &_fastTransition {
+    animation-duration: 200ms !important;
   }
 }
 

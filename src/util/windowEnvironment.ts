@@ -76,3 +76,4 @@ export function setScrollbarWidthProperty() {
 }
 
 export const REM = parseInt(getComputedStyle(document.documentElement).fontSize, 10);
+export const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;

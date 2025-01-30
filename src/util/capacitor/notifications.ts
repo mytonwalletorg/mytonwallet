@@ -83,7 +83,7 @@ function handlePushNotificationActionPerformed(notification: ActionPerformed) {
     showAnyAccountTx,
     showAnyAccountTokenActivity,
     openAnyAccountStakingInfo,
-    closeAllEntities,
+    closeAllOverlays,
   } = getActions();
   const global = getGlobal();
   const notificationData = notification.notification.data as MessageData;
@@ -98,7 +98,7 @@ function handlePushNotificationActionPerformed(notification: ActionPerformed) {
 
   const network = 'mainnet';
 
-  closeAllEntities();
+  closeAllOverlays();
   if (action === 'nativeTx' || action === 'swap') {
     const { txId } = notificationData;
     showAnyAccountTx({ accountId, txId, network });

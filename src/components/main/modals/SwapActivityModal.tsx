@@ -3,6 +3,7 @@ import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../api/types';
 import type { Account, Theme } from '../../../global/types';
+import type { FeePrecision } from '../../../util/fee/types';
 
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
@@ -14,12 +15,12 @@ import {
   CHANGELLY_WAITING_DEADLINE,
   TONCOIN,
 } from '../../../config';
+import { Big } from '../../../lib/big.js';
 import { getIsInternalSwap, getIsSupportedChain, resolveSwapAsset } from '../../../global/helpers';
 import { selectCurrentAccount, selectCurrentAccountState } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
-import { findChainConfig } from '../../../util/chain';
 import { formatFullDay, formatTime } from '../../../util/dateFormat';
-import { formatCurrency, formatCurrencyExtended } from '../../../util/formatNumber';
+import { formatCurrencyExtended } from '../../../util/formatNumber';
 import getChainNetworkName from '../../../util/swap/getChainNetworkName';
 import { getTransactionHashFromTxId } from '../../../util/tokens';
 import { getExplorerName, getExplorerTransactionUrl } from '../../../util/url';
@@ -36,6 +37,7 @@ import Countdown from '../../common/Countdown';
 import SwapTokensInfo from '../../common/SwapTokensInfo';
 import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
+import Fee from '../../ui/Fee';
 import InteractiveTextField from '../../ui/InteractiveTextField';
 import Modal, { CLOSE_DURATION, CLOSE_DURATION_PORTRAIT } from '../../ui/Modal';
 
@@ -78,7 +80,12 @@ function SwapActivityModal({
   }, [lang]);
   const appTheme = useAppTheme(theme);
 
-  const { txIds, timestamp, networkFee = '0' } = renderedActivity ?? {};
+  const {
+    txIds,
+    timestamp,
+    networkFee = '0',
+    ourFee = '0',
+  } = renderedActivity ?? {};
   const { payinAddress, payoutAddress, payinExtraId } = renderedActivity?.cex || {};
 
   let fromAmount = '0';
@@ -111,12 +118,6 @@ function SwapActivityModal({
   const isInternalSwap = getIsInternalSwap({
     from: fromToken, to: toToken, toAddress: payoutAddress, addressByChain,
   });
-
-  const nativeToken = useMemo(() => {
-    if (!fromToken) return undefined;
-
-    return findChainConfig(fromToken.chain)?.nativeToken;
-  }, [fromToken]);
 
   if (renderedActivity) {
     const {
@@ -336,13 +337,27 @@ function SwapActivityModal({
   }
 
   function renderFee() {
+    if (!Number(networkFee) || !fromToken) {
+      return undefined;
+    }
+
+    const precision: FeePrecision = activity?.status === 'pending' ? 'approximate' : 'exact';
+    const terms = isFromToncoin ? {
+      native: Big(networkFee).add(ourFee).toString(),
+    } : {
+      native: networkFee,
+      token: ourFee,
+    };
+
     return (
       <div className={styles.textFieldWrapperFullWidth}>
         <span className={styles.textFieldLabel}>
-          {lang('Blockchain Fee')}
+          {lang('Fee')}
         </span>
         <div className={styles.textField}>
-          {formatCurrency(networkFee, nativeToken?.symbol ?? TONCOIN.symbol, undefined, true)}
+          <span>
+            <Fee terms={terms} token={fromToken} precision={precision} />
+          </span>
         </div>
       </div>
     );
@@ -378,7 +393,7 @@ function SwapActivityModal({
 
       return (
         <div className={styles.changellyInfoBlock}>
-          {Number(networkFee) > 0 && renderFee()}
+          {renderFee()}
           <span className={styles.changellyDescription}>{lang('$swap_changelly_to_ton_description1', {
             value: (
               <span className={styles.changellyDescriptionBold}>
@@ -411,7 +426,7 @@ function SwapActivityModal({
 
     return (
       <>
-        {Number(networkFee) > 0 && renderFee()}
+        {renderFee()}
         {!isInternalSwap && renderAddress()}
         {!isInternalSwap && renderMemo()}
       </>

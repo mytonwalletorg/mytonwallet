@@ -16,9 +16,15 @@ addActionHandler('startTransfer', (global, actions, payload) => {
 
   const { isPortrait, ...rest } = payload ?? {};
 
+  const nftTokenSlug = Symbol('nft');
+  const previousFeeTokenSlug = global.currentTransfer.nfts?.length ? nftTokenSlug : global.currentTransfer.tokenSlug;
+  const nextFeeTokenSlug = payload?.nfts?.length ? nftTokenSlug : payload?.tokenSlug;
+  const shouldClearFee = nextFeeTokenSlug && nextFeeTokenSlug !== previousFeeTokenSlug;
+
   setGlobal(updateCurrentTransfer(global, {
     state: isPortrait ? TransferState.Initial : TransferState.None,
     error: undefined,
+    ...(shouldClearFee ? { fee: undefined, realFee: undefined, diesel: undefined } : {}),
     ...rest,
   }));
 
@@ -28,8 +34,8 @@ addActionHandler('startTransfer', (global, actions, payload) => {
 });
 
 addActionHandler('changeTransferToken', (global, actions, { tokenSlug, withResetAmount }) => {
-  const { amount, tokenSlug: currentTokenSlug } = global.currentTransfer;
-  if (tokenSlug === currentTokenSlug && !withResetAmount) {
+  const { amount, tokenSlug: currentTokenSlug, nfts } = global.currentTransfer;
+  if (!nfts?.length && tokenSlug === currentTokenSlug && !withResetAmount) {
     return;
   }
 

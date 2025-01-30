@@ -36,19 +36,22 @@ import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 import { openUrl } from '../../util/openUrl';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
 import {
   IS_BIOMETRIC_AUTH_SUPPORTED,
   IS_DAPP_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
+  IS_DELEGATING_BOTTOM_SHEET,
   IS_ELECTRON,
   IS_LEDGER_SUPPORTED,
   IS_TOUCH_ENV,
   IS_WEB,
 } from '../../util/windowEnvironment';
 
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
+import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -171,6 +174,7 @@ function Settings({
   } = getActions();
 
   const lang = useLang();
+  const { isPortrait } = useDeviceScreen();
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
   const { renderingKey } = useModalTransitionKeys(state, isOpen);
@@ -179,6 +183,7 @@ function Settings({
 
   const [isDeveloperModalOpen, openDeveloperModal, closeDeveloperModal] = useFlag();
   const [isLogOutModalOpened, openLogOutModal, closeLogOutModal] = useFlag();
+  const isInitialScreen = renderingKey === SettingsState.Initial;
 
   const activeLang = useMemo(() => LANG_LIST.find((l) => l.langCode === langCode), [langCode]);
 
@@ -226,9 +231,11 @@ function Settings({
   });
 
   useHistoryBack({
-    isActive: !isInsideModal && renderingKey === SettingsState.Initial,
+    isActive: !isInsideModal && isInitialScreen,
     onBack: handleCloseSettings,
   });
+
+  useHideBottomBar(isOpen && !isInitialScreen);
 
   const handleConnectedDappsOpen = useLastCallback(() => {
     getDapps();
@@ -333,8 +340,8 @@ function Settings({
   });
 
   const handleBackOrCloseAction = useLastCallback(() => {
-    if (renderingKey === SettingsState.Initial) {
-      handleCloseSettings();
+    if (isInitialScreen) {
+      if (isInsideModal) handleCloseSettings();
     } else {
       handleBackClick();
     }
@@ -360,8 +367,8 @@ function Settings({
   };
 
   useEffect(
-    () => captureEscKeyListener(handleBackOrCloseAction),
-    [handleBackOrCloseAction],
+    () => captureEscKeyListener(isInsideModal ? handleBackOrCloseAction : handleBackClick),
+    [isInsideModal],
   );
 
   useEffect(() => {
@@ -375,7 +382,7 @@ function Settings({
         setSettingsState({ state: prevRenderingKeyRef.current! });
       },
     });
-  }, [handleBackClick, handleBackOrCloseAction, prevRenderingKeyRef]);
+  }, [prevRenderingKeyRef]);
 
   function renderHandleDeeplinkButton() {
     return (
@@ -399,12 +406,17 @@ function Settings({
           <ModalHeader
             title={lang('Settings')}
             withNotch={isScrolled}
-            onClose={handleCloseSettings}
+            onClose={!isPortrait ? handleCloseSettings : undefined}
             className={styles.modalHeader}
           />
         ) : (
           <div className={buildClassName(styles.header, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
-            <Button isSimple isText onClick={handleCloseSettings} className={styles.headerBack}>
+            <Button
+              isSimple
+              isText
+              onClick={handleCloseSettings}
+              className={buildClassName(styles.headerBack, isPortrait && styles.hidden)}
+            >
               <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
               <span>{lang('Back')}</span>
             </Button>
@@ -413,7 +425,7 @@ function Settings({
         )}
 
         <div
-          className={buildClassName(styles.content, 'custom-scroll')}
+          className={buildClassName(styles.content, 'custom-scroll', styles.withBottomSpace)}
           onScroll={handleContentScroll}
         >
           {IS_WEB && (
@@ -735,10 +747,12 @@ function Settings({
             <LedgerConnect
               isActive={isActive}
               isStatic={!isInsideModal}
+              shouldDelegateToNative={IS_DELEGATING_BOTTOM_SHEET && !isInsideModal}
               state={hardwareState}
               isLedgerConnected={isLedgerConnected}
               isTonAppConnected={isTonAppConnected}
               isRemoteTab={isRemoteTab}
+              className={styles.nestedTransition}
               onBackButtonClick={handleBackClick}
               onConnected={handleLedgerConnected}
               onClose={handleBackOrCloseAction}
@@ -773,17 +787,17 @@ function Settings({
     <div className={styles.wrapper}>
       <Transition
         ref={transitionRef}
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(isInsideModal ? modalStyles.transition : styles.transitionContainer, 'custom-scroll')}
         activeKey={renderingKey}
-        slideClassName={buildClassName(modalStyles.transitionSlide, styles.transitionSlide)}
+        slideClassName={buildClassName(isInsideModal && modalStyles.transitionSlide)}
         withSwipeControl
         onStop={IS_CAPACITOR ? handleSlideAnimationStop : undefined}
       >
         {renderContent}
       </Transition>
       <LogOutModal isOpen={isLogOutModalOpened} onClose={handleCloseLogOutModal} />
-      {IS_BIOMETRIC_AUTH_SUPPORTED && <Biometrics />}
+      {IS_BIOMETRIC_AUTH_SUPPORTED && <Biometrics isInsideModal={isInsideModal} />}
     </div>
   );
 }

@@ -95,6 +95,7 @@ function RichNumberField({
   const inputFullClass = buildClassName(
     styles.input,
     styles.input_rich,
+    styles.input_large,
     styles.disabled,
     error && styles.error,
     valueClassName,

@@ -1,0 +1,109 @@
+@import "../../styles/mixins";
+
+.root {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-template-columns: 1fr max-content 1fr;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: space-between;
+
+  max-width: 100%;
+
+  text-align: center;
+
+  background: var(--color-background-first);
+  border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+
+  transition: background-color 300ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+
+  @include respond-below(xs) {
+    position: sticky !important;
+    z-index: 2;
+
+    // On mobile devices with a retina display, the underlying content is visible from above
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    top: -0.25px;
+
+    padding: calc(var(--header-padding-top) + var(--safe-area-top)) 0.125rem var(--header-padding-bottom);
+
+    background-color: var(--color-background-second);
+    border-radius: 0;
+
+    &:global(.is-scrolled) {
+      @supports (backdrop-filter: saturate(180%) blur(20px)) {
+        background-color: var(--color-background-tab-bar);
+        backdrop-filter: saturate(180%) blur(20px);
+      }
+    }
+
+    &::after {
+      /* stylelint-disable-next-line plugin/whole-pixel */
+      bottom: -0.25px !important;
+    }
+  }
+
+  @include respond-above(xs) {
+    position: relative;
+
+    &::after {
+      content: "";
+
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translate(-50%, -0.03125rem);
+
+      width: 100vw;
+      height: 0.0625rem;
+
+      /* stylelint-disable-next-line plugin/whole-pixel */
+      box-shadow: 0 0.025rem 0 0 var(--color-separator);
+    }
+  }
+}
+
+.backButton {
+  cursor: var(--custom-cursor, pointer);
+
+  display: flex;
+  align-items: center;
+
+  height: 2.75rem;
+  padding: 0.125rem 0.5rem 0;
+
+  font-size: 0.9375rem;
+  color: var(--color-accent);
+
+  @include respond-below(xs) {
+    cursor: var(--custom-cursor, pointer);
+
+    display: flex;
+    align-items: center;
+
+    height: 1.3125rem;
+    padding: 0.0625rem 0.375rem;
+
+    font-size: 1.0625rem;
+  }
+}
+
+.backIcon {
+  font-size: 1.5rem;
+}
+
+.title {
+  overflow: hidden;
+
+  margin: 0;
+
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-black);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

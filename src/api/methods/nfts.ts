@@ -1,6 +1,7 @@
 import type { ApiNft } from '../types';
 
 import { TONCOIN } from '../../config';
+import { bigintDivideToNumber } from '../../util/bigint';
 import chains from '../chains';
 import { fetchStoredTonWallet } from '../common/accounts';
 import { createLocalTransaction } from './transactions';
@@ -13,7 +14,7 @@ export function fetchNfts(accountId: string) {
 
 export function checkNftTransferDraft(options: {
   accountId: string;
-  nftAddresses: string[];
+  nfts: ApiNft[];
   toAddress: string;
   comment?: string;
 }) {
@@ -23,21 +24,22 @@ export function checkNftTransferDraft(options: {
 export async function submitNftTransfers(
   accountId: string,
   password: string,
-  nftAddresses: string[],
+  nfts: ApiNft[],
   toAddress: string,
   comment?: string,
-  nfts?: ApiNft[],
-  fee = 0n,
+  totalRealFee = 0n,
 ) {
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
   const result = await ton.submitNftTransfers({
-    accountId, password, nftAddresses, toAddress, comment, nfts,
+    accountId, password, nfts, toAddress, comment,
   });
 
   if ('error' in result) {
     return result;
   }
+
+  const realFeePerNft = bigintDivideToNumber(totalRealFee, Object.keys(result.messages).length);
 
   for (const [i, message] of result.messages.entries()) {
     createLocalTransaction(accountId, 'ton', {
@@ -45,7 +47,7 @@ export async function submitNftTransfers(
       fromAddress,
       toAddress,
       comment,
-      fee,
+      fee: realFeePerNft,
       normalizedAddress: message.toAddress,
       slug: TONCOIN.slug,
       inMsgHash: result.msgHash,

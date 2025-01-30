@@ -5,7 +5,7 @@ import { BiometricsState } from '../../../global/types';
 
 import { ANIMATED_STICKER_HUGE_SIZE_PX } from '../../../config';
 import buildClassName from '../../../util/buildClassName';
-import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
 import { IS_ELECTRON } from '../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
@@ -29,12 +29,13 @@ interface OwnProps {
   error?: string;
   onClose: NoneToVoidFunction;
   isLoading?: boolean;
+  isInsideModal?: boolean;
 }
 
 const STICKER_SIZE = 180;
 
 function TurnOn({
-  isOpen, isLoading, state, error, onClose,
+  isOpen, isLoading, isInsideModal, state, error, onClose,
 }: OwnProps) {
   const { enableBiometrics } = getActions();
 
@@ -174,9 +175,9 @@ function TurnOn({
       onClose={onClose}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
-        slideClassName={modalStyles.transitionSlide}
+        slideClassName={buildClassName(isInsideModal && modalStyles.transitionSlide)}
         activeKey={renderingKey}
         nextKey={nextKey}
         onStop={updateNextKey}

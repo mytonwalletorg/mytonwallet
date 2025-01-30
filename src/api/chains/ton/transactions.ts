@@ -30,7 +30,7 @@ import type {
   TonTransferParams,
 } from './types';
 import type { TonWallet } from './util/tonCore';
-import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
+import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
 import { DEFAULT_FEE, DIESEL_ADDRESS, TONCOIN } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -126,6 +126,7 @@ export async function checkTransactionDraft(
     isBase64Data,
     stateInit: stateInitString,
     forwardAmount,
+    allowGasless,
   } = options;
   let { toAddress, data } = options;
 
@@ -135,7 +136,6 @@ export async function checkTransactionDraft(
 
   try {
     result = await checkToAddress(network, toAddress);
-
     if ('error' in result) {
       return result;
     }
@@ -259,23 +259,26 @@ export async function checkTransactionDraft(
     realFee += safeBlockchainFee;
     result.fee = fee;
     result.realFee = realFee;
+    result.diesel = DIESEL_NOT_AVAILABLE;
 
     let isEnoughBalance: boolean;
 
     if (!tokenAddress) {
-      result.diesel = DIESEL_NOT_AVAILABLE;
       isEnoughBalance = isFullTonTransfer
         ? toncoinBalance > blockchainFee
         : toncoinBalance >= fee + amount;
     } else {
       const canTransferGasfully = toncoinBalance >= fee;
-      result.diesel = await getDiesel({
-        accountId,
-        tokenAddress,
-        canTransferGasfully,
-        toncoinBalance,
-        tokenBalance: balance,
-      });
+
+      if (allowGasless) {
+        result.diesel = await getDiesel({
+          accountId,
+          tokenAddress,
+          canTransferGasfully,
+          toncoinBalance,
+          tokenBalance: balance,
+        });
+      }
 
       if (isDieselAvailable(result.diesel)) {
         isEnoughBalance = amount + getDieselTokenAmount(result.diesel) <= balance;
@@ -865,16 +868,11 @@ export async function checkMultiTransactionDraft(
   accountId: string,
   messages: TonTransferParams[],
   withDiesel = false,
-) {
-  const { network } = parseAccountId(accountId);
-
-  const result: {
-    fee?: bigint;
-    totalAmount?: bigint;
-  } = {};
-
+): Promise<{ fee?: bigint } & ({ error: ApiAnyDisplayError } | {})> {
+  const result: { fee?: bigint } = {};
   let totalAmount: bigint = 0n;
 
+  const { network } = parseAccountId(accountId);
   const { isInitialized, version } = await fetchStoredTonWallet(accountId);
 
   try {
@@ -893,28 +891,20 @@ export async function checkMultiTransactionDraft(
     }
 
     const wallet = await getTonWallet(accountId);
-
-    if (!wallet) {
-      return { ...result, error: ApiCommonError.Unexpected };
-    }
-
     const { balance } = await getWalletInfo(network, wallet);
 
     const { transaction } = await signMultiTransaction({
       network, wallet, messages, version,
     });
+    const blockchainFee = await calculateFee(network, wallet, transaction, isInitialized);
+    result.fee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
 
-    const realFee = await calculateFee(network, wallet, transaction, isInitialized);
-
-    // TODO Should be `0` for `withDiesel`?
-    result.totalAmount = totalAmount;
-    result.fee = bigintMultiplyToNumber(realFee, FEE_FACTOR);
-
-    if (!withDiesel && balance < totalAmount + realFee) {
+    // TODO Should `totalAmount` be `0` for `withDiesel`?
+    if (!withDiesel && balance < totalAmount + result.fee) {
       return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
     }
 
-    return result as { fee: bigint; totalAmount: bigint };
+    return result;
   } catch (err: any) {
     return handleServerError(err);
   }

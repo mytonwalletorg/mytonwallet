@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../../global';
 import renderText from '../../../global/helpers/renderText';
 import buildClassName from '../../../util/buildClassName';
 import captureKeyboardListeners from '../../../util/captureKeyboardListeners';
-import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
 import useFlag from '../../../hooks/useFlag';
@@ -163,7 +163,7 @@ function SignatureModal({
       onCloseAnimationEnd={cancelSignature}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

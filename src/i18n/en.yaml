@@ -563,7 +563,7 @@ $dapp_liquid_staking_vote_payload: Voting "%vote%" for proposal %votingAddress%
 $dapp_single_nominator_change_validator_payload: Changing address of SingleNominator staking contract validator to %address%
 $dapp_single_nominator_withdraw_payload: Withdrawal of %amount% TON from SingleNominator staking contract
 $dapp_vesting_add_whitelist_payload: Adding %address% to vesting wallet whitelist
-Search or enter address...: Search or enter address...
+Search or enter address: Search or enter address
 Connecting dapps is not yet supported by Ledger.: Connecting dapps is not yet supported by Ledger.
 Time synchronization issue. Please ensure your device's time settings are correct.: Time synchronization issue. Please ensure your device's time settings are correct.
 Data was copied!: Data was copied!
@@ -725,3 +725,14 @@ Select up to %count% wallets for notifications: Select up to %count% wallets for
 $swap_aggregator_fee_tooltip: A built-in **DEX aggregator** finds the **best rate** across available DEXes. Service fee is %percent%.
 Accumulated Rewards: Accumulated Rewards
 $swap_reverse_prohibited: Setting the buy amount is impossible for this pair of tokens
+Blockchain Fee Details: Blockchain Fee Details
+Final Fee: Final Fee
+Excess: Excess
+$fee_details: "%full_fee% need to be immediately debited from your wallet to pay the fee. Part of this will be returned **in **%excess_symbol% to you as excess within a few minutes."
+This is how the %chain_name% Blockchain works.: This is how the %chain_name% Blockchain works.
+Got It: Got It
+Wallet: Wallet
+Connected: Connected
+All Dapps: All Dapps
+Trending: Trending
+No Data: No Data

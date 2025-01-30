@@ -568,7 +568,7 @@ $dapp_liquid_staking_vote_payload: Głosowanie „%vote%” na propozycję %voti
 $dapp_single_nominator_change_validator_payload: Zmiana adresu walidatora umowy stakingowej SingleNominator na %address%
 $dapp_single_nominator_withdraw_payload: Wycofanie %amount% TON z umowy stakingu SingleNominator
 $dapp_vesting_add_whitelist_payload: Dodanie %address% do białej listy portfeli uprawnień
-Search or enter address...: Szukaj lub wprowadź adres...
+Search or enter address: Szukaj lub wprowadź adres
 Connecting dapps is not yet supported by Ledger.: Łączenie dappów nie jest jeszcze obsługiwane przez Ledger.
 Time synchronization issue. Please ensure your device's time settings are correct.: Problem z synchronizacją czasu. Upewnij się, że ustawienia czasu urządzenia są poprawne.
 Data was copied!: Dane zostały skopiowane!
@@ -729,3 +729,14 @@ Select up to %count% wallets for notifications: Wybierz do %count% portfeli do p
 $swap_aggregator_fee_tooltip: Wbudowany **agregator DEX** znajduje **najlepszy kurs** w dostępnych DEX-ach. Opłata za usługę wynosi %percent%.
 Accumulated Rewards: Nagromadzone nagrody
 $swap_reverse_prohibited: Ustawienie kwoty zakupu jest niemożliwe dla tej pary tokenów
+Blockchain Fee Details: Szczegóły opłaty blockchain
+Final Fee: Opłata końcowa
+Excess: Reszta
+$fee_details: "%full_fee% zostanie natychmiast pobrane z Twojego portfela w celu uiszczenia opłaty. Część tej kwoty zostanie zwrócona **w **%excess_symbol% jako reszta w ciągu kilku minut."
+This is how the %chain_name% Blockchain works.: Tak działa Blockchain %chain_name%.
+Got It: Zrozumiano
+Wallet: Portfel
+Connected: Połączono
+All Dapps: Wszystkie Dapps
+Trending: Popularne
+No Data: Brak danych

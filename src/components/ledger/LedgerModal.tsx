@@ -8,7 +8,8 @@ import type { LedgerWalletInfo } from '../../util/ledger/types';
 
 import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
+import { IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -90,6 +91,7 @@ function LedgerModal({
           <LedgerConnect
             isActive={isActive}
             state={hardwareState}
+            shouldDelegateToNative={IS_DELEGATING_BOTTOM_SHEET}
             isLedgerConnected={isLedgerConnected}
             isTonAppConnected={isTonAppConnected}
             isRemoteTab={isRemoteTab}
@@ -118,7 +120,7 @@ function LedgerModal({
       dialogClassName={buildClassName(styles.modalDialog, areSettingsOpen && styles.modalDialogInsideSettings)}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

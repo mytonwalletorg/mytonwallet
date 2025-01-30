@@ -564,7 +564,7 @@ $dapp_liquid_staking_vote_payload: Votando "%vote%" por la propuesta %votingAddr
 $dapp_single_nominator_change_validator_payload: Cambiar la dirección del validador de contratos de participación de SingleNominator a %address%
 $dapp_single_nominator_withdraw_payload: Retiro de %amount% TON del contrato de participación de SingleNominator
 $dapp_vesting_add_whitelist_payload: Agregar %address% a la lista blanca de billeteras con derechos de uso
-Search or enter address...: Buscar o ingresar dirección...
+Search or enter address: Buscar o ingresar dirección
 Connecting dapps is not yet supported by Ledger.: Ledger aún no admite la conexión de dapps.
 Time synchronization issue. Please ensure your device's time settings are correct.: Problema de sincronización horaria. Asegúrese de que la configuración de hora de su dispositivo sea correcta.
 Data was copied!: ¡Los datos fueron copiados!
@@ -723,3 +723,14 @@ Select up to %count% wallets for notifications: Selecciona hasta %count% billete
 $swap_aggregator_fee_tooltip: Un **agregador DEX** incorporado encuentra la **mejor tasa** entre los DEX disponibles. La tarifa de servicio es del %percent%.
 Accumulated Rewards: Recompensas acumuladas
 $swap_reverse_prohibited: Configurar la cantidad de compra es imposible para este par de tokens
+Blockchain Fee Details: Detalles de la tarifa de blockchain
+Final Fee: Tarifa final
+Excess: Excedente
+$fee_details: Se deben debitar %full_fee% inmediatamente de su billetera para pagar la tarifa. Una parte de esto se le devolverá **en **%excess_symbol% como excedente en unos minutos.
+This is how the %chain_name% Blockchain works.: Así funciona la Blockchain de %chain_name%.
+Got It: Entendido
+Wallet: Monedero
+Connected: Conectado
+All Dapps: Todas las Dapps
+Trending: Tendencia
+No Data: Sin datos

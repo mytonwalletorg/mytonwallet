@@ -4,8 +4,9 @@ import { type ApiDappTransfer, ApiTransactionDraftError, type ApiTransactionErro
 import { TransferState } from '../../types';
 
 import { IS_CAPACITOR, NFT_BATCH_SIZE } from '../../../config';
+import { bigintDivideToNumber } from '../../../util/bigint';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
-import { getDieselTokenAmount } from '../../../util/fee/transferFee';
+import { explainApiTransferFee, getDieselTokenAmount } from '../../../util/fee/transferFee';
 import { callActionInNative } from '../../../util/multitab';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -35,7 +36,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     toAddress,
     comment,
     shouldEncrypt,
-    nftAddresses,
+    nfts,
     withDiesel,
     stateInit,
     isGaslessWithStars,
@@ -45,21 +46,22 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
 
   setGlobal(updateCurrentTransferLoading(global, true));
 
-  const { tokenAddress, chain } = selectToken(global, tokenSlug);
+  const isNftTransfer = Boolean(nfts?.length);
   let result: ApiCheckTransactionDraftResult | undefined;
 
-  if (nftAddresses?.length) {
+  if (isNftTransfer) {
     // This assignment is needed only for the amount checking hack in the 'newLocalTransaction' handler in
     // `src/global/actions/apiUpdates/activities.ts` to work.
     amount = NFT_TRANSFER_AMOUNT;
 
     result = await callApi('checkNftTransferDraft', {
       accountId: global.currentAccountId!,
-      nftAddresses,
+      nfts,
       toAddress,
       comment,
     });
   } else {
+    const { tokenAddress, chain } = selectToken(global, tokenSlug);
     result = await callApi('checkTransactionDraft', chain, {
       accountId: global.currentAccountId!,
       tokenAddress,
@@ -69,7 +71,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
       shouldEncrypt,
       stateInit,
       isBase64Data: Boolean(binPayload),
-      isGaslessWithStars,
+      allowGasless: true,
     });
   }
 
@@ -83,7 +85,7 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   if (!result || 'error' in result) {
     setGlobal(global);
 
-    if (result?.error === ApiTransactionDraftError.InsufficientBalance && !nftAddresses?.length) {
+    if (result?.error === ApiTransactionDraftError.InsufficientBalance && !isNftTransfer) {
       actions.showDialog({ message: 'The network fee has slightly changed, try sending again.' });
     } else {
       actions.showError({ error: result?.error });
@@ -96,7 +98,6 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     state: TransferState.Confirm,
     error: undefined,
     toAddress,
-    chain,
     resolvedAddress: result.resolvedAddress,
     amount,
     comment,
@@ -113,7 +114,7 @@ addActionHandler('fetchTransferFee', async (global, actions, payload) => {
   setGlobal(global);
 
   const {
-    tokenSlug, toAddress, comment, shouldEncrypt, binPayload, stateInit, isGaslessWithStars,
+    tokenSlug, toAddress, comment, shouldEncrypt, binPayload, stateInit,
   } = payload;
 
   const { tokenAddress, chain } = selectToken(global, tokenSlug);
@@ -126,12 +127,12 @@ addActionHandler('fetchTransferFee', async (global, actions, payload) => {
     shouldEncrypt,
     isBase64Data: Boolean(binPayload),
     stateInit,
-    isGaslessWithStars,
+    allowGasless: true,
   });
 
   global = getGlobal();
 
-  if (tokenSlug !== global.currentTransfer.tokenSlug) {
+  if (tokenSlug !== global.currentTransfer.tokenSlug || global.currentTransfer.nfts?.length) {
     // For cases when the user switches the token before the result arrives
     return;
   }
@@ -148,25 +149,29 @@ addActionHandler('fetchTransferFee', async (global, actions, payload) => {
 });
 
 addActionHandler('fetchNftFee', async (global, actions, payload) => {
-  const { toAddress, nftAddresses, comment } = payload;
+  const { toAddress, nfts, comment } = payload;
 
   global = updateCurrentTransfer(global, { isLoading: true, error: undefined });
   setGlobal(global);
 
   const result = await callApi('checkNftTransferDraft', {
     accountId: global.currentAccountId!,
-    nftAddresses,
+    nfts,
     toAddress,
     comment,
   });
 
   global = getGlobal();
-  global = updateCurrentTransfer(global, { isLoading: false });
 
-  if (result?.fee) {
-    global = updateCurrentTransfer(global, { fee: result.fee });
+  if (!global.currentTransfer.nfts?.length) {
+    // For cases when the user switches the token transfer mode before the result arrives
+    return;
   }
 
+  global = updateCurrentTransfer(global, { isLoading: false });
+  if (result) {
+    global = updateCurrentTransferByCheckResult(global, result);
+  }
   setGlobal(global);
 
   if (result?.error) {
@@ -185,7 +190,6 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     amount,
     promiseId,
     tokenSlug,
-    fee,
     shouldEncrypt,
     binPayload,
     nfts,
@@ -226,6 +230,10 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     return;
   }
 
+  const explainedFee = explainApiTransferFee(global.currentTransfer);
+  const fullNativeFee = explainedFee.fullFee?.nativeSum;
+  const realNativeFee = explainedFee.realFee?.nativeSum;
+
   let result: ApiSubmitTransferResult | ApiSubmitMultiTransferResult | undefined;
 
   if (nfts?.length) {
@@ -235,16 +243,14 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     }
 
     for (const chunk of chunks) {
-      const addresses = chunk.map(({ address }) => address);
       const batchResult = await callApi(
         'submitNftTransfers',
         global.currentAccountId!,
         password,
-        addresses,
+        chunk,
         resolvedAddress!,
         comment,
-        chunk,
-        fee,
+        realNativeFee && bigintDivideToNumber(realNativeFee, nfts.length / chunk.length),
       );
 
       global = getGlobal();
@@ -265,7 +271,8 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
       amount: amount!,
       comment: binPayload ?? comment,
       tokenAddress,
-      fee,
+      fee: fullNativeFee,
+      realFee: realNativeFee,
       shouldEncrypt,
       isBase64Data: Boolean(binPayload),
       withDiesel,
@@ -304,7 +311,6 @@ addActionHandler('submitTransferHardware', async (global, actions) => {
     amount,
     promiseId,
     tokenSlug,
-    fee,
     rawPayload,
     parsedPayload,
     stateInit,
@@ -346,6 +352,9 @@ addActionHandler('submitTransferHardware', async (global, actions) => {
     return;
   }
 
+  const explainedFee = explainApiTransferFee(global.currentTransfer);
+  const realNativeFee = explainedFee.realFee?.nativeSum;
+
   let result: string | { error: ApiTransactionError } | undefined;
   let error: string | undefined;
 
@@ -358,7 +367,7 @@ addActionHandler('submitTransferHardware', async (global, actions) => {
         toAddress: resolvedAddress!,
         comment,
         nft,
-        fee,
+        realFee: realNativeFee && bigintDivideToNumber(realNativeFee, nfts.length),
       });
 
       global = getGlobal();
@@ -377,7 +386,7 @@ addActionHandler('submitTransferHardware', async (global, actions) => {
       amount: amount!,
       comment,
       tokenAddress,
-      fee,
+      realFee: realNativeFee,
     };
 
     try {

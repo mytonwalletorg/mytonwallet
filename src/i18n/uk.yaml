@@ -571,7 +571,7 @@ $dapp_liquid_staking_vote_payload: Голосування "%vote%" за проп
 $dapp_single_nominator_change_validator_payload: Зміна адреси валідатора контракту стекінгу SingleNominator на %address%
 $dapp_single_nominator_withdraw_payload: Зняття %amount% TON з контракту на ставку SingleNominator
 $dapp_vesting_add_whitelist_payload: Додавання %address% до білого списку гаманців
-Search or enter address...: Введіть адресу або запит...
+Search or enter address: Введіть адресу або запит
 Time synchronization issue. Please ensure your device's time settings are correct.: Проблема із синхронізацією часу. Будь ласка, переконайтеся, що налаштування часу на вашому пристрої правильні.
 Data was copied!: Дані скопійовано!
 Open NFT Collection: Відкрити колекцію NFT
@@ -729,3 +729,14 @@ Select up to %count% wallets for notifications: Виберіть до %count% г
 $swap_aggregator_fee_tooltip: Вбудований **агрегатор DEX** знаходить **найкращий курс** серед доступних DEX. Плата за послугу становить %percent%.
 Accumulated Rewards: Накоплені нагороди
 $swap_reverse_prohibited: Встановити суму покупки для цієї пари токенів неможливо
+Blockchain Fee Details: Деталі комісії блокчейна
+Final Fee: Остаточна комісія
+Excess: Здача
+$fee_details: "%full_fee% буде миттєво списано з вашого гаманця для оплати комісії. Частину цієї суми буде повернуто вам **в **%excess_symbol% як здача протягом кількох хвилин."
+This is how the %chain_name% Blockchain works.: Ось як працює блокчейн %chain_name%.
+Got It: Зрозуміло
+Wallet: Гаманець
+Connected: Підключено
+All Dapps: Всі додатки
+Trending: У тренді
+No Data: Даних немає

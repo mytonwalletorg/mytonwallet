@@ -555,7 +555,7 @@ $dapp_liquid_staking_vote_payload: 对提案 %votingAddress% 投票“%vote%”
 $dapp_single_nominator_change_validator_payload: 将 SingleNominator 质押合约验证者的地址更改为 %address%
 $dapp_single_nominator_withdraw_payload: 从 SingleNominator 质押合约中提取 %amount% TON
 $dapp_vesting_add_whitelist_payload: 将 %address% 添加到归属钱包白名单
-Search or enter address...: 搜索或输入地址...
+Search or enter address: 搜索或输入地址
 Connecting dapps is not yet supported by Ledger.: Ledger 尚不支持连接 dapp。
 Time synchronization issue. Please ensure your device's time settings are correct.: 时间同步问题。 请确保您设备的时间设置正确。
 Data was copied!: 数据被复制！
@@ -713,3 +713,14 @@ Select up to %count% wallets for notifications: 选择最多 %count% 个钱包�
 $swap_aggregator_fee_tooltip: 内置的 **DEX 聚合器** 会在可用的 DEX 中找到 **最佳汇率**。服务费为 %percent%。
 Accumulated Rewards: 累积奖励
 $swap_reverse_prohibited: 无法为这对代币设置购买金额
+Blockchain Fee Details: 区块链费用详情
+Final Fee: 最终费用
+Excess: 多余款项
+$fee_details: 需要立即从您的钱包中扣除%full_fee%以支付费用。部分金额将在几分钟内以%excess_symbol%的形式返还给您作为多余款项。
+This is how the %chain_name% Blockchain works.: 这就是%chain_name%区块链的工作方式。
+Got It: 知道了
+Wallet: 钱包
+Connected: 已连接
+All Dapps: 所有去中心化应用
+Trending: 热门
+No Data: 无数据

@@ -3,18 +3,18 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { Account, Theme } from '../../global/types';
+import type { Theme } from '../../global/types';
 import type { LedgerTransport } from '../../util/ledger/types';
 import { HardwareConnectState } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
-import { selectAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { closeLedgerTab } from '../../util/ledger/tab';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP } from '../../util/windowEnvironment';
 
 import useAppTheme from '../../hooks/useAppTheme';
+import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -42,10 +42,13 @@ import ledgerMobileUsbDarkSrc from '../../assets/ledger/mobile-usb-dark.png';
 interface OwnProps {
   isActive: boolean;
   isStatic?: boolean;
+  // All API method calls should be delegated from the main to the native copy of the app on iOS (NBS)
+  shouldDelegateToNative?: boolean;
   state?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isRemoteTab?: boolean;
+  className?: string;
   onConnected: (isSingleWallet: boolean) => void;
   onBackButtonClick?: NoneToVoidFunction;
   onCancel?: NoneToVoidFunction;
@@ -55,7 +58,6 @@ interface OwnProps {
 interface StateProps {
   availableTransports?: LedgerTransport[];
   lastUsedTransport?: LedgerTransport;
-  accounts?: Record<string, Account>;
   currentTheme: Theme;
 }
 
@@ -72,10 +74,11 @@ function LedgerConnect({
   isLedgerConnected,
   isTonAppConnected,
   isRemoteTab,
+  shouldDelegateToNative,
   availableTransports,
   lastUsedTransport,
-  accounts,
   currentTheme,
+  className,
   onConnected,
   onBackButtonClick,
   onCancel,
@@ -102,7 +105,6 @@ function LedgerConnect({
   const isWaitingForBrowser = state === HardwareConnectState.WaitingForBrowser;
   const title = isConnected ? lang('Ledger Connected!') : lang('Connect Ledger');
   const shouldCloseOnCancel = !onCancel;
-  const hasAccounts = useMemo(() => Object.keys(accounts || {}).length > 0, [accounts]);
 
   const renderingAvailableTransports = useMemo(() => {
     return (availableTransports || []).map((transport) => ({
@@ -120,6 +122,8 @@ function LedgerConnect({
     onBack: onCancel ?? onClose,
   });
 
+  useHideBottomBar(isActive);
+
   useEffect(() => {
     if (selectedTransport) return;
     if (availableTransports?.length) {
@@ -130,13 +134,13 @@ function LedgerConnect({
   }, [availableTransports, selectedTransport]);
 
   useEffect(() => {
-    if (isRemoteTab || !isActive || (IS_DELEGATING_BOTTOM_SHEET && hasAccounts)) return;
+    if (isRemoteTab || !isActive || (IS_DELEGATING_BOTTOM_SHEET && !shouldDelegateToNative)) return;
 
-    initializeHardwareWalletModal();
-  }, [hasAccounts, isActive, isRemoteTab]);
+    initializeHardwareWalletModal({ shouldDelegateToNative: IS_DELEGATING_BOTTOM_SHEET && shouldDelegateToNative });
+  }, [isActive, isRemoteTab, shouldDelegateToNative]);
 
   const handleConnected = useLastCallback((isSingleWallet: boolean) => {
-    if (isRemoteTab || (IS_DELEGATING_BOTTOM_SHEET && hasAccounts)) {
+    if (isRemoteTab || (IS_DELEGATING_BOTTOM_SHEET && !shouldDelegateToNative)) {
       return;
     }
 
@@ -160,13 +164,16 @@ function LedgerConnect({
 
   const handleCloseWithBrowserTab = useLastCallback(() => {
     const closeAction = shouldCloseOnCancel ? onClose : onCancel;
-    closeLedgerTab();
+    void closeLedgerTab();
     closeAction();
   });
 
   const handleSubmit = useLastCallback(() => {
     if (renderingAvailableTransports.length > 1) {
-      initializeHardwareWalletConnection({ transport: selectedTransport! });
+      initializeHardwareWalletConnection({
+        transport: selectedTransport!,
+        shouldDelegateToNative,
+      });
     } else {
       connectHardwareWallet({ transport: availableTransports?.[0] });
     }
@@ -388,8 +395,8 @@ function LedgerConnect({
 
   return (
     <Transition
-      name={resolveModalTransitionName()}
-      className={buildClassName(modalStyles.transition, 'custom-scroll')}
+      name={resolveSlideTransitionName()}
+      className={buildClassName(modalStyles.transition, 'custom-scroll', className)}
       slideClassName={modalStyles.transitionSlide}
       activeKey={isWaitingForBrowser ? 1 : 0}
     >
@@ -400,12 +407,10 @@ function LedgerConnect({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { availableTransports, lastUsedTransport } = global.hardware;
-  const accounts = selectAccounts(global);
 
   return {
     availableTransports,
     lastUsedTransport,
-    accounts,
     currentTheme: global.settings.theme,
   };
 })(LedgerConnect));

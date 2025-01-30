@@ -82,7 +82,7 @@ function SettingsDapps({
     const dappList = dapps.map(renderDapp);
 
     return (
-      <div className={styles.slide}>
+      <>
         <div className={styles.disconnectAllBlock}>
           <Button
             className={styles.disconnectButton}
@@ -99,7 +99,7 @@ function SettingsDapps({
         <div className={styles.block}>
           {dappList}
         </div>
-      </div>
+      </>
     );
   }
 

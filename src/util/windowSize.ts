@@ -104,6 +104,7 @@ function patchSafeAreaProperty() {
   // WebKit has issues with this property on page load
   // https://bugs.webkit.org/show_bug.cgi?id=191872
   setTimeout(() => {
+    currentWindowSize = updateSizes();
     const { safeAreaTop, safeAreaBottom } = currentWindowSize;
 
     if (!Number.isNaN(safeAreaTop) && safeAreaTop > 0) {

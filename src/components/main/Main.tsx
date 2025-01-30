@@ -20,7 +20,7 @@ import { getStatusBarHeight } from '../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
 import { setStatusBarStyle } from '../../util/switchTheme';
 import {
-  IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_TOUCH_ENV, REM,
+  IS_DELEGATED_BOTTOM_SHEET, IS_ELECTRON, IS_TOUCH_ENV, STICKY_CARD_INTERSECTION_THRESHOLD,
 } from '../../util/windowEnvironment';
 import windowSize from '../../util/windowSize';
 
@@ -69,7 +69,6 @@ type StateProps = {
   accentColorIndex?: number;
 };
 
-const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
 const UPDATE_SWAPS_INTERVAL_NOT_FOCUSED = 15000; // 15 sec
 const UPDATE_SWAPS_INTERVAL = 3000; // 3 sec
 

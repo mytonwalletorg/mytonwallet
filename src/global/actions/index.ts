@@ -16,7 +16,6 @@ import './ui/initial';
 import './ui/misc';
 import './ui/dapps';
 import './ui/settings';
-import './ui/swap';
 import './ui/nfts';
 import './ui/vesting';
 import './ui/tokens';

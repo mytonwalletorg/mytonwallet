@@ -118,6 +118,7 @@ export type ApiSwapHistoryItem = {
   toAmount: string;
   networkFee: string;
   swapFee: string;
+  ourFee?: string;
   status: 'pending' | 'completed' | 'failed' | 'expired';
   txIds: string[];
   isCanceled?: boolean;
@@ -210,9 +211,17 @@ export type ApiSite = {
   description: string;
   canBeRestricted: boolean;
   isExternal: boolean;
+  isFeatured?: boolean;
+  categoryId?: number;
+
   extendedIcon?: string;
   badgeText?: string;
   withBorder?: boolean;
+};
+
+export type ApiSiteCategory = {
+  id: number;
+  name: string;
 };
 
 // Prices

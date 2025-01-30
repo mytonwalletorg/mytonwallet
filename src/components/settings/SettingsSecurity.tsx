@@ -20,7 +20,7 @@ import { selectIsMultichainAccount, selectIsPasswordPresent } from '../../global
 import buildClassName from '../../util/buildClassName';
 import { getIsNativeBiometricAuthSupported, vibrateOnSuccess } from '../../util/capacitor';
 import isMnemonicPrivateKey from '../../util/isMnemonicPrivateKey';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { pause } from '../../util/schedulers';
 import {
   IS_BIOMETRIC_AUTH_SUPPORTED, IS_ELECTRON, IS_IOS, IS_IOS_APP,
@@ -489,6 +489,7 @@ function SettingsSecurity({
               isActive={isSlideActive && isActive}
               error={passwordError}
               containerClassName={IS_CAPACITOR ? styles.passwordFormContent : styles.passwordFormContentInModal}
+              forceBiometricsInMain={!isInsideModal}
               placeholder={lang('Enter your current password')}
               submitLabel={lang('Continue')}
               onCancel={handleBackToSettingsClick}
@@ -515,7 +516,7 @@ function SettingsSecurity({
                 <span className={styles.headerTitle}>{lang('Change Password')}</span>
               </div>
             )}
-            <div className={modalStyles.transitionContent}>
+            <div className={buildClassName(modalStyles.transitionContent, styles.content)}>
               <AnimatedIconWithPreview
                 tgsUrl={ANIMATED_STICKERS_PATHS.guard}
                 previewUrl={ANIMATED_STICKERS_PATHS.guardPreview}
@@ -648,7 +649,7 @@ function SettingsSecurity({
                 <span className={styles.headerTitle}>{lang('Password Changed!')}</span>
               </div>
             )}
-            <div className={modalStyles.transitionContent}>
+            <div className={styles.content}>
               <AnimatedIconWithPreview
                 tgsUrl={ANIMATED_STICKERS_PATHS.yeee}
                 previewUrl={ANIMATED_STICKERS_PATHS.yeeePreview}
@@ -724,9 +725,9 @@ function SettingsSecurity({
   return (
     <Transition
       direction={previousSlide === SLIDES.password && currentSlide === SLIDES.settings ? 1 : 'auto'}
-      name={resolveModalTransitionName()}
+      name={resolveSlideTransitionName()}
       className={buildClassName(modalStyles.transition, 'custom-scroll')}
-      slideClassName={modalStyles.transitionSlide}
+      slideClassName={buildClassName(styles.slide, isInsideModal && modalStyles.transitionSlide)}
       activeKey={currentSlide}
       nextKey={nextKey}
       shouldCleanup

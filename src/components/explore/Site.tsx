@@ -7,55 +7,51 @@ import { vibrate } from '../../util/capacitor';
 import { openUrl } from '../../util/openUrl';
 import { getHostnameFromUrl } from '../../util/url';
 
-import { useDeviceScreen } from '../../hooks/useDeviceScreen';
-
 import Image from '../ui/Image';
 
-import styles from '../main/sections/Content/Explore.module.scss';
+import styles from './Explore.module.scss';
 
 interface OwnProps {
   site: ApiSite;
-  index: number;
+  isTrending?: boolean;
+  className?: string;
 }
-
-const ROW_LENGTH_PORTRAIT = 2;
-const ROW_LENGTH_LANDSCAPE = 3;
 
 function Site({
   site: {
-    url, icon, name, description, isExternal, extendedIcon, badgeText, withBorder,
+    url, icon, name, description, isExternal, extendedIcon, withBorder, badgeText,
   },
-  index,
+  isTrending,
+  className,
 }: OwnProps) {
-  const { isLandscape } = useDeviceScreen();
-  const canBeExtended = index % (isLandscape ? ROW_LENGTH_LANDSCAPE : ROW_LENGTH_PORTRAIT) === 0;
-
   function handleClick() {
-    vibrate();
-    openUrl(url, isExternal, name, getHostnameFromUrl(url));
+    void vibrate();
+    void openUrl(url, isExternal, name, getHostnameFromUrl(url));
   }
 
   return (
     <div
       className={buildClassName(
         styles.item,
-        (extendedIcon && canBeExtended) && styles.extended,
+        (extendedIcon && isTrending) && styles.extended,
+        isTrending && styles.trending,
         withBorder && styles.withBorder,
+        className,
       )}
       tabIndex={0}
       role="button"
       onClick={handleClick}
     >
-      {badgeText && <div className={styles.badge}>{badgeText}</div>}
       <Image
-        url={extendedIcon && canBeExtended ? extendedIcon : icon}
-        className={styles.imageWrapper}
+        url={extendedIcon && isTrending ? extendedIcon : icon}
+        className={buildClassName(styles.imageWrapper, !isTrending && styles.imageWrapperScaleable)}
         imageClassName={styles.image}
       />
       <div className={styles.infoWrapper}>
         <b className={styles.title}>{name}</b>
+        <div className={styles.description}>{description}</div>
       </div>
-      <div className={styles.description}>{description}</div>
+      {badgeText && <div className={styles.badge}>{badgeText}</div>}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { StakingState } from '../../types';
 
 import { IS_CAPACITOR } from '../../../config';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { getTonStakingFees } from '../../../util/fee/getTonOperationFees';
 import { logDebugError } from '../../../util/logs';
 import { callActionInMain } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
@@ -155,11 +156,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
 
 addActionHandler('submitStakingPassword', async (global, actions, payload) => {
   const { password, isUnstaking } = payload;
-  const {
-    fee,
-    amount,
-    tokenAmount,
-  } = global.currentStaking;
+  const { amount, tokenAmount } = global.currentStaking;
   const { currentAccountId } = global;
 
   if (!(await callApi('verifyPassword', password))) {
@@ -198,7 +195,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       password,
       unstakeAmount,
       state,
-      fee,
+      getTonStakingFees(state.type).unstake.real,
     );
 
     const isLongUnstakeRequested = Boolean(state.type === 'nominators' || (
@@ -232,7 +229,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       password,
       amount!,
       state,
-      fee,
+      getTonStakingFees(state.type).stake.real,
     );
 
     global = getGlobal();
@@ -259,11 +256,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
 
 addActionHandler('submitStakingHardware', async (global, actions, payload) => {
   const { isUnstaking } = payload || {};
-  const {
-    fee,
-    amount,
-    tokenAmount,
-  } = global.currentStaking;
+  const { amount, tokenAmount } = global.currentStaking;
   const { currentAccountId } = global;
 
   const state = selectAccountStakingState(global, currentAccountId!)!;
@@ -289,7 +282,12 @@ addActionHandler('submitStakingHardware', async (global, actions, payload) => {
       const stakingBalance = state.balance;
       const unstakeAmount = state.type === 'nominators' ? stakingBalance : tokenAmount!;
 
-      result = await ledgerApi.submitLedgerUnstake(accountId, state, unstakeAmount);
+      result = await ledgerApi.submitLedgerUnstake(
+        accountId,
+        state,
+        unstakeAmount,
+        getTonStakingFees(state.type).unstake.real,
+      );
 
       const isLongUnstakeRequested = Boolean(state.type === 'nominators' || (
         state.type === 'liquid'
@@ -305,7 +303,7 @@ addActionHandler('submitStakingHardware', async (global, actions, payload) => {
         accountId,
         amount!,
         state,
-        fee,
+        getTonStakingFees(state.type).stake.real,
       );
     }
   } catch (err: any) {
@@ -476,7 +474,13 @@ addActionHandler('submitStakingClaim', async (global, actions, { password }) => 
 
   const stakingState = selectAccountStakingState(global, accountId)! as ApiJettonStakingState;
 
-  const result = await callApi('submitStakingClaim', accountId, password, stakingState);
+  const result = await callApi(
+    'submitStakingClaim',
+    accountId,
+    password,
+    stakingState,
+    getTonStakingFees(stakingState.type).claim?.real,
+  );
 
   global = getGlobal();
   global = updateCurrentStaking(global, { isLoading: false });
@@ -519,7 +523,11 @@ addActionHandler('submitStakingClaimHardware', async (global, actions) => {
   let result: string | { error: ApiTransactionError } | undefined;
 
   try {
-    result = await ledgerApi.submitLedgerStakingClaim(accountId, stakingState);
+    result = await ledgerApi.submitLedgerStakingClaim(
+      accountId,
+      stakingState,
+      getTonStakingFees(stakingState.type).claim?.real,
+    );
   } catch (err: any) {
     if (err instanceof ApiHardwareBlindSigningNotEnabled) {
       setGlobal(updateCurrentStaking(getGlobal(), {

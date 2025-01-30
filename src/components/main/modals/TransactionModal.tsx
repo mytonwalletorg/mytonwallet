@@ -31,7 +31,7 @@ import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../..
 import { toDecimal } from '../../../util/decimals';
 import { handleOpenUrl } from '../../../util/openUrl';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
-import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
 import { getNativeToken, getTransactionHashFromTxId } from '../../../util/tokens';
 import { getExplorerName, getExplorerTransactionUrl } from '../../../util/url';
 import { callApi } from '../../../api';
@@ -528,7 +528,7 @@ function TransactionModal({
       onCloseAnimationEnd={closePasswordSlide}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={currentSlide}

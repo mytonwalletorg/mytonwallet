@@ -566,7 +566,7 @@ $dapp_liquid_staking_vote_payload: Abstimmung „%vote%“ für Vorschlag %votin
 $dapp_single_nominator_change_validator_payload: Adresse des SingleNominator-Staking-Vertragsvalidators in %address% ändern
 $dapp_single_nominator_withdraw_payload: Abhebung von %amount% TON vom SingleNominator-Staking-Vertrag
 $dapp_vesting_add_whitelist_payload: "%address% zur Vesting Wallet-Whitelist hinzufügen"
-Search or enter address...: Adresse suchen oder eingeben...
+Search or enter address: Adresse suchen oder eingeben
 Connecting dapps is not yet supported by Ledger.: Das Verbinden von Dapps wird von Ledger noch nicht unterstützt.
 Time synchronization issue. Please ensure your device's time settings are correct.: Problem mit der Zeitsynchronisierung. Bitte stellen Sie sicher, dass die Zeiteinstellungen Ihres Geräts korrekt sind.
 Data was copied!: Daten wurden kopiert!
@@ -725,3 +725,14 @@ Select up to %count% wallets for notifications: Wählen Sie bis zu %count% Walle
 $swap_aggregator_fee_tooltip: Ein integrierter **DEX-Aggregator** findet den **besten Kurs** über verfügbare DEXs. Die Servicegebühr beträgt %percent%.
 Accumulated Rewards: Akkumulierte Belohnungen
 $swap_reverse_prohibited: Das Festlegen des Kaufbetrags ist für dieses Tokenpaar nicht möglich
+Blockchain Fee Details: Blockchain-Gebührenübersicht
+Final Fee: Endgebühr
+Excess: Überschuss
+$fee_details: "%full_fee% müssen sofort von Ihrer Wallet abgebucht werden, um die Gebühr zu bezahlen. Ein Teil davon wird Ihnen **in **%excess_symbol% als Überschuss innerhalb weniger Minuten zurückerstattet."
+This is how the %chain_name% Blockchain works.: So funktioniert die %chain_name% Blockchain.
+Got It: Verstanden
+Wallet: Wallet
+Connected: Verbunden
+All Dapps: Alle Dapps
+Trending: Im Trend
+No Data: Keine Daten

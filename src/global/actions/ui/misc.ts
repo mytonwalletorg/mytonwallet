@@ -63,7 +63,6 @@ import {
   updateSettings,
 } from '../../reducers';
 import {
-  selectAccounts,
   selectCurrentAccount,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
@@ -335,10 +334,8 @@ addActionHandler('initializeHardwareWalletModal', async (global, actions) => {
 });
 
 addActionHandler('initializeHardwareWalletConnection', async (global, actions, params) => {
-  const accountsAmount = Object.keys(selectAccounts(global) || {}).length;
-
-  if (IS_DELEGATING_BOTTOM_SHEET && accountsAmount > 0) {
-    callActionInNative('initializeHardwareWalletConnection', params);
+  if (IS_DELEGATING_BOTTOM_SHEET && params.shouldDelegateToNative) {
+    callActionInNative('initializeHardwareWalletConnection', { transport: params.transport });
     return;
   }
 
@@ -829,7 +826,7 @@ addActionHandler('closeAnyModal', () => {
   closeModal();
 });
 
-addActionHandler('closeAllEntities', (global, actions) => {
+addActionHandler('closeAllOverlays', (global, actions) => {
   actions.closeAnyModal();
   actions.closeMediaViewer();
 });

@@ -10,7 +10,7 @@ import { DappConnectState } from '../../global/types';
 
 import { selectNetworkAccounts } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
@@ -269,7 +269,7 @@ function DappConnectModal({
         onCloseAnimationEnd={cancelDappConnectRequestConfirm}
       >
         <Transition
-          name={resolveModalTransitionName()}
+          name={resolveSlideTransitionName()}
           className={buildClassName(modalStyles.transition, 'custom-scroll')}
           slideClassName={modalStyles.transitionSlide}
           activeKey={renderingKey}

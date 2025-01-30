@@ -11,6 +11,7 @@ import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
 
+import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -56,6 +57,8 @@ function LedgerSelectWallets({
     isActive,
     onBack: onCancel ?? onClose,
   });
+
+  useHideBottomBar(Boolean(isActive));
 
   const handleAccountToggle = useLastCallback((index: number) => {
     if (selectedAccountIndices.includes(index)) {

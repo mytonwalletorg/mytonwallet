@@ -47,6 +47,11 @@ function NativeBiometricsTurnOn({
     ? 'Correct'
     : (error && pin.length === PIN_LENGTH ? error : 'Enter your code');
 
+  useHistoryBack({
+    isActive,
+    onBack: handleBackClick,
+  });
+
   useEffect(() => {
     if (!isActive) return;
 
@@ -59,11 +64,6 @@ function NativeBiometricsTurnOn({
     }
   }, [isNativeBiometricsEnabled, handleBackClick]);
 
-  useHistoryBack({
-    isActive,
-    onBack: handleBackClick,
-  });
-
   const handleSubmit = useLastCallback((password: string) => {
     enableNativeBiometrics({ password });
   });
@@ -71,15 +71,12 @@ function NativeBiometricsTurnOn({
   return (
     <div className={styles.slide}>
       <div className={buildClassName(styles.content, styles.contentFullSize)}>
-        <Button
-          isSimple
-          isText
-          onClick={handleBackClick}
-          className={buildClassName(styles.headerBack, styles.headerBackInContent)}
-        >
-          <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
-          <span>{lang('Back')}</span>
-        </Button>
+        <div className={styles.header}>
+          <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
+            <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
+            <span>{lang('Back')}</span>
+          </Button>
+        </div>
 
         <div className={styles.pinPadHeader}>
           <AnimatedIconWithPreview

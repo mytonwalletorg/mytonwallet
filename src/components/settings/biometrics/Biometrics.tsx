@@ -11,9 +11,12 @@ interface StateProps {
   state: BiometricsState;
   error?: string;
   isLoading?: boolean;
+  isInsideModal?: boolean;
 }
 
-function Biometrics({ state, error, isLoading }: StateProps) {
+function Biometrics({
+  state, error, isLoading, isInsideModal,
+}: StateProps) {
   const { closeBiometricSettings } = getActions();
 
   const isTurnOnBiometricsOpened = state === BiometricsState.TurnOnPasswordConfirmation
@@ -30,6 +33,7 @@ function Biometrics({ state, error, isLoading }: StateProps) {
       <BiometricsTurnOn
         isOpen={isTurnOnBiometricsOpened}
         isLoading={isLoading}
+        isInsideModal={isInsideModal}
         state={state}
         error={error}
         onClose={closeBiometricSettings}
@@ -37,6 +41,7 @@ function Biometrics({ state, error, isLoading }: StateProps) {
       <BiometricsTurnOff
         isOpen={isTurnOffBiometricsOpened}
         isLoading={isLoading}
+        isInsideModal={isInsideModal}
         state={state}
         error={error}
         onClose={closeBiometricSettings}

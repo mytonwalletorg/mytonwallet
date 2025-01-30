@@ -78,7 +78,7 @@ function SettingsAppearance({
   const handleThemeChange = useLastCallback((newTheme: string) => {
     document.documentElement.classList.add('no-transitions');
     setTheme({ theme: newTheme as Theme });
-    switchTheme(newTheme as Theme, true);
+    switchTheme(newTheme as Theme, isInsideModal);
     setTimeout(() => {
       document.documentElement.classList.remove('no-transitions');
     }, SWITCH_THEME_DURATION_MS);

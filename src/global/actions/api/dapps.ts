@@ -461,19 +461,12 @@ addActionHandler('apiUpdateDappCloseLoading', async (global) => {
 });
 
 addActionHandler('loadExploreSites', async (global, _, { isLandscape }) => {
-  const { settings: { langCode } } = global;
-  const sites = await callApi('loadExploreSites', {
-    isLandscape,
-    langCode,
-  });
+  const exploreData = await callApi('loadExploreSites', { isLandscape });
   global = getGlobal();
-  if (areDeepEqual(sites, global.exploreSites)) {
+  if (areDeepEqual(exploreData, global.exploreData)) {
     return;
   }
 
-  global = {
-    ...global,
-    exploreSites: sites,
-  };
+  global = { ...global, exploreData };
   setGlobal(global);
 });

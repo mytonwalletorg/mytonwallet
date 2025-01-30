@@ -36,6 +36,7 @@ type OwnProps = {
   decimals?: number;
   disabled?: boolean;
   isStatic?: boolean;
+  size?: 'large' | 'normal';
 };
 
 const MIN_LENGTH_FOR_SHRINK = 5;
@@ -61,6 +62,7 @@ function RichNumberInput({
   decimals = FRACTION_DIGITS,
   disabled = false,
   isStatic = false,
+  size = 'large',
 }: OwnProps) {
   // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -148,6 +150,7 @@ function RichNumberInput({
   const inputFullClass = buildClassName(
     styles.input,
     styles.input_rich,
+    size === 'large' && styles.input_large,
     !value && styles.isEmpty,
     valueClassName,
     disabled && styles.disabled,

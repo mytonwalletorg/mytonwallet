@@ -3,7 +3,6 @@
 
   font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1;
   color: var(--color-gray-3);
   text-align: center;
   white-space: nowrap;
@@ -11,4 +10,33 @@
   &.static {
     color: var(--color-gray-3-desktop);
   }
+}
+
+.details {
+  cursor: var(--custom-cursor, pointer);
+
+  color: var(--color-accent);
+
+  opacity: 0.85;
+
+  transition: color 150ms;
+
+  &:active {
+    color: var(--color-accent-button-background-hover);
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      color: var(--color-accent-button-background-hover);
+    }
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.detailsIcon {
+  vertical-align: middle;
 }

@@ -120,6 +120,7 @@ export async function submitTransfer(
     tokenAddress,
     comment,
     fee,
+    realFee,
     shouldEncrypt,
     isBase64Data,
     withDiesel,
@@ -181,7 +182,7 @@ export async function submitTransfer(
       toAddress,
       comment: shouldEncrypt ? undefined : comment,
       encryptedComment,
-      fee: fee || 0n,
+      fee: realFee ?? 0n,
       slug,
       inMsgHash: msgHash,
     });
@@ -196,7 +197,7 @@ export async function submitTransfer(
       fromAddress,
       toAddress,
       comment,
-      fee: fee || 0n,
+      fee: realFee ?? 0n,
       slug,
     });
   }

@@ -163,7 +163,6 @@ function NftSelectionHeader({ selectedAddresses, byAddress, currentCollectionAdd
           onClose={handleMenuClose}
         />
       </div>
-
     </div>
   );
 }

@@ -25,14 +25,13 @@ import {
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
-import { formatFee } from '../../util/fee/formatFee';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
 import {
   formatCurrency,
   formatCurrencySimple,
   getShortCurrencySymbol,
 } from '../../util/formatNumber';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
@@ -52,6 +51,7 @@ import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
+import Fee from '../ui/Fee';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import PasswordForm from '../ui/PasswordForm';
@@ -331,17 +331,8 @@ function UnstakeModal({
         : instantAvailable ? 2
           : 3;
 
-    let content: string | React.JSX.Element | TeactNode[] = nativeToken ? lang('$fee_value', {
-      fee: (
-        <span className={styles.feeValue}>
-          {formatFee({
-            terms: { native: realFee },
-            token: nativeToken,
-            nativeToken,
-            precision: 'approximate',
-          })}
-        </span>
-      ),
+    let content: string | React.JSX.Element | TeactNode[] = token ? lang('$fee_value', {
+      fee: <Fee terms={{ native: realFee }} precision="approximate" token={token} />,
     }) : '';
 
     if (token) {
@@ -563,7 +554,7 @@ function UnstakeModal({
       onCloseAnimationEnd={updateNextKey}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

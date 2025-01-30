@@ -33,7 +33,7 @@ export async function submitStake(
   password: string,
   amount: bigint,
   state: ApiStakingState,
-  fee?: bigint,
+  realFee?: bigint,
 ) {
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
@@ -52,7 +52,7 @@ export async function submitStake(
       amount: result.amount,
       fromAddress,
       toAddress: result.toAddress,
-      fee: fee || 0n,
+      fee: realFee ?? 0n,
       type: 'stake',
       slug: state.tokenSlug,
       inMsgHash: result.msgHash,
@@ -62,7 +62,7 @@ export async function submitStake(
       amount,
       fromAddress,
       toAddress: result.toAddress,
-      fee: fee || 0n,
+      fee: realFee ?? 0n,
       type: 'stake',
       slug: state.tokenSlug,
     });
@@ -79,7 +79,7 @@ export async function submitUnstake(
   password: string,
   amount: bigint,
   state: ApiStakingState,
-  fee?: bigint,
+  realFee?: bigint,
 ) {
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
@@ -92,7 +92,7 @@ export async function submitUnstake(
     amount: result.amount,
     fromAddress,
     toAddress: result.toAddress,
-    fee: fee || 0n,
+    fee: realFee ?? 0n,
     type: 'unstakeRequest',
     slug: TONCOIN.slug,
     inMsgHash: result.msgHash,
@@ -138,7 +138,7 @@ export async function submitStakingClaim(
   accountId: string,
   password: string,
   state: ApiJettonStakingState,
-  fee?: bigint,
+  realFee?: bigint,
 ) {
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
@@ -152,7 +152,7 @@ export async function submitStakingClaim(
     amount: result.amount,
     fromAddress,
     toAddress: result.toAddress,
-    fee: fee ?? 0n,
+    fee: realFee ?? 0n,
     slug: TONCOIN.slug,
     inMsgHash: result.msgHash,
   });

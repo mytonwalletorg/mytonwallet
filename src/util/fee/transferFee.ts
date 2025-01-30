@@ -1,18 +1,17 @@
 import type { ApiCheckTransactionDraftResult, ApiFetchEstimateDieselResult } from '../../api/chains/ton/types';
-import type { ApiChain } from '../../api/types';
 import type { FeePrecision, FeeTerms } from './types';
 
+import { TONCOIN } from '../../config';
 import { Big } from '../../lib/big.js';
 import { bigintMax, bigintMin } from '../bigint';
+import { getIsNativeToken } from '../tokens';
 
 type ApiFee = Pick<ApiCheckTransactionDraftResult, 'fee' | 'realFee' | 'diesel'> & {
-  /** Undefined means that the chain is unknown */
-  chain: ApiChain | undefined;
-  /** True if the chain's native token is being transferred, otherwise false */
-  isNativeToken: boolean;
+  /** The slug of the token that is being transferred */
+  tokenSlug: string;
 };
 
-type ExplainedTransferFee = {
+export type ExplainedTransferFee = {
   /** Whether the result implies paying the fee with a diesel */
   isGasless: boolean;
   /**
@@ -22,7 +21,9 @@ type ExplainedTransferFee = {
    */
   fullFee?: {
     precision: FeePrecision;
-    terms: FeeTerms;
+    terms: FeeTerms<bigint>;
+    /** The sum of `terms` measured in the native token */
+    nativeSum: bigint;
   };
   /**
    * The real fee (the full fee minus the excess). Undefined means that it's unknown. There is no need to fall back to
@@ -30,8 +31,12 @@ type ExplainedTransferFee = {
    */
   realFee?: {
     precision: FeePrecision;
-    terms: FeeTerms;
+    terms: FeeTerms<bigint>;
+    /** The sum of `terms` measured in the native token */
+    nativeSum: bigint;
   };
+  /** The excess fee. Measured in the native token. It's always approximate. Undefined means that it's unknown. */
+  excessFee?: bigint;
   /**
    * Whether the full token balance can be transferred despite the fee.
    * If yes, the fee will be taken from the transferred amount.
@@ -45,18 +50,18 @@ type ApiFeeWithDiesel = ApiFee & { diesel: AvailableDiesel };
 type MaxTransferAmountInput = {
   /** The wallet balance of the transferred token. Undefined means that it's unknown. */
   tokenBalance: bigint | undefined;
-  /** True if the chain's native token is being transferred, otherwise false. */
-  isNativeToken: boolean;
+  /** The slug of the token that is being transferred */
+  tokenSlug: string;
   /** The full fee terms calculated by `explainApiTransferFee`. Undefined means that they're unknown. */
-  fullFee: FeeTerms | undefined;
+  fullFee: FeeTerms<bigint> | undefined;
   /** Whether the full token balance can be transferred despite the fee. */
   canTransferFullBalance: boolean;
 };
 
-type BalanceSufficientForTransferInput = Omit<MaxTransferAmountInput, 'isNativeToken'> & {
+type BalanceSufficientForTransferInput = Omit<MaxTransferAmountInput, 'tokenSlug'> & {
   /** The wallet balance of the native token of the transfer chain. Undefined means that it's unknown. */
   nativeTokenBalance: bigint | undefined;
-  /** The transferred amount. Undefined means that it's unknown. */
+  /** The transferred amount. Use 0 for NFT transfers. Undefined means that it's unspecified. */
   transferAmount: bigint | undefined;
 };
 
@@ -75,7 +80,7 @@ export function explainApiTransferFee(input: ApiFee): ExplainedTransferFee {
  */
 export function getMaxTransferAmount({
   tokenBalance,
-  isNativeToken,
+  tokenSlug,
   fullFee,
   canTransferFullBalance,
 }: MaxTransferAmountInput): bigint | undefined {
@@ -89,8 +94,8 @@ export function getMaxTransferAmount({
   }
 
   let fee = fullFee.token ?? 0n;
-  if (isNativeToken) {
-    // When `isNativeToken` is true, both `token` and `native` refer to the same currency, so they should be added
+  if (getIsNativeToken(tokenSlug)) {
+    // When the token is native, both `token` and `native` refer to the same currency, so they should be added
     fee += fullFee.native ?? 0n;
   }
 
@@ -137,13 +142,14 @@ function shouldUseDiesel(input: ApiFee): input is ApiFeeWithDiesel {
 function explainGasfullTransferFee(input: ApiFee) {
   const result: ExplainedTransferFee = {
     isGasless: false,
-    canTransferFullBalance: input.chain === 'ton' && input.isNativeToken,
+    canTransferFullBalance: input.tokenSlug === TONCOIN.slug,
   };
 
   if (input.fee !== undefined) {
     result.fullFee = {
       precision: input.realFee === input.fee ? 'exact' : 'lessThan',
       terms: { native: input.fee },
+      nativeSum: input.fee,
     };
     result.realFee = result.fullFee;
   }
@@ -152,7 +158,12 @@ function explainGasfullTransferFee(input: ApiFee) {
     result.realFee = {
       precision: input.realFee === input.fee ? 'exact' : 'approximate',
       terms: { native: input.realFee },
+      nativeSum: input.realFee,
     };
+  }
+
+  if (input.fee !== undefined && input.realFee !== undefined) {
+    result.excessFee = input.fee - input.realFee;
   }
 
   return result;
@@ -179,6 +190,7 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
         [dieselKey]: diesel.amount,
         native: diesel.remainingFee,
       },
+      nativeSum: diesel.nativeAmount + diesel.remainingFee,
     },
     realFee: {
       precision: 'approximate',
@@ -186,7 +198,9 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
         [dieselKey]: dieselRealFee,
         native: nativeRealFee,
       },
+      nativeSum: diesel.realFee,
     },
+    excessFee: diesel.nativeAmount + diesel.remainingFee - diesel.realFee,
   } satisfies ExplainedTransferFee;
 }
 

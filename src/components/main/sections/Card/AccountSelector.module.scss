@@ -89,6 +89,13 @@
   &:hover {
     color: var(--action-color-hover, var(--color-card-text));
   }
+
+  @include respond-below(xs) {
+    width: 1.75rem;
+    height: 1.75rem;
+
+    font-size: 1.75rem;
+  }
 }
 
 .edit {
@@ -394,6 +401,7 @@
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
+
   &.inStickyCard {
     top: unset;
     right: 0;
@@ -405,6 +413,12 @@
 
   width: fit-content;
   height: 1.5rem;
+
+  @include respond-below(xs) {
+    gap: 0.5625rem;
+
+    height: 1.75rem;
+  }
 
   :global(.MtwCard__gold) & {
     --action-color: #835B0E;

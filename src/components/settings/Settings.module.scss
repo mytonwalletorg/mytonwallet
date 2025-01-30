@@ -1,7 +1,22 @@
 @import "../../styles/mixins";
 
 .wrapper {
+  --header-padding-top: 1.5rem;
+  --header-title-height: 1.1875rem;
+  --header-padding-bottom: 1.375rem;
+
   height: 100%;
+
+  :global(html.with-safe-area-top) & {
+    --header-padding-top: 0.75rem;
+  }
+
+  @include respond-below(xs) {
+    // Fix for opera, dead zone of 37 pixels in extension window on windows
+    :global(html.is-windows.is-opera.is-extension) & {
+      --header-padding-top: 2.3125rem;
+    }
+  }
 }
 
 .slide {
@@ -13,24 +28,23 @@
   min-height: 0;
   max-height: 100%;
   margin: 0 auto;
+  padding-top: var(--safe-area-top);
 
-  @include respond-below(xs) {
-    max-width: 27rem;
+  &:not(:global(.Transition_slide-from)):not(:global(.Transition_slide-to)) {
+    position: relative;
   }
+
+  & > & {
+    --safe-area-top: 0px;
+  }
+}
+
+.nestedTransition {
+  --safe-area-top: 0px;
 }
 
 .transitionContainer {
-  background-color: var(--color-background-window);
-}
-
-@include respond-below(xs) {
-  @supports (padding-top: var(--safe-area-top)) {
-    html:global(:not(.is-native-bottom-sheet)) {
-      .transitionSlide {
-        padding-top: var(--safe-area-top);
-      }
-    }
-  }
+  background-color: var(--color-background-second);
 }
 
 .developerTitle {
@@ -52,25 +66,37 @@
   grid-template-columns: 1fr max-content 1fr;
   align-items: center;
 
-  padding: 1.5rem 0.125rem 1.375rem;
+  padding: var(--header-padding-top) 0.125rem var(--header-padding-bottom);
 
   font-size: 1.0625rem;
   font-weight: 700;
   line-height: 1.0625rem;
 
-  @include respond-below(xs) {
-    // Fix for opera, dead zone of 37 pixels in extension window on windows
-    :global(html.is-windows.is-opera.is-extension) & {
-      padding-top: 2.3125rem;
-    }
-  }
-
-  :global(html.with-safe-area-top) & {
-    padding-top: 0.75rem;
-  }
+  transition: background-color 300ms;
 
   &.onlyTextHeader {
     grid-template-columns: unset;
+  }
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+
+  @include respond-below(xs) {
+    position: absolute !important;
+    z-index: 2;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    padding-top: calc(var(--header-padding-top) + var(--safe-area-top));
+
+    &:global(.is-scrolled) {
+      @supports (backdrop-filter: saturate(180%) blur(20px)) {
+        background-color: var(--color-background-tab-bar);
+        backdrop-filter: saturate(180%) blur(20px);
+      }
+    }
   }
 }
 
@@ -88,6 +114,10 @@
 
   font-size: 1.0625rem;
   color: var(--color-accent);
+
+  &.hidden {
+    visibility: hidden;
+  }
 }
 
 .iconChevron {
@@ -106,6 +136,7 @@
 
   padding: 0 0.5rem;
 
+  line-height: var(--header-title-height);
   color: var(--color-black)
 }
 
@@ -121,7 +152,7 @@
 
   height: 100%;
   min-height: 0;
-  padding: 0.75rem 1rem 1rem;
+  padding: 0.75rem 1rem max(var(--safe-area-bottom), 1rem);
 
   @include adapt-padding-to-scrollbar(1rem);
 
@@ -129,8 +160,14 @@
     overflow: visible;
   }
 
-  @supports (padding-bottom: max(var(--safe-area-bottom), 1rem)) {
-    padding-bottom: max(var(--safe-area-bottom), 1rem);
+  @include respond-below(xs) {
+    padding-top: calc(var(--header-padding-top) + var(--header-title-height) + var(--header-padding-bottom) + 0.75rem);
+  }
+
+  @include respond-below(xs) {
+    &.withBottomSpace {
+      padding-bottom: calc(max(var(--safe-area-bottom), 1rem) + var(--bottombar-height) + 1rem);
+    }
   }
 }
 
@@ -553,6 +590,10 @@ a.item:hover {
 
   @supports (padding-bottom: var(--safe-area-bottom)) {
     padding-bottom: max(var(--safe-area-bottom), 1rem);
+  }
+
+  @include respond-below(xs) {
+    padding-top: calc(var(--header-padding-top) + var(--header-title-height) + var(--header-padding-bottom));
   }
 }
 

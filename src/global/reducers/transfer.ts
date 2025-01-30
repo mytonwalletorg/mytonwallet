@@ -36,7 +36,7 @@ export function clearCurrentTransfer(global: GlobalState) {
  */
 export function preserveMaxTransferAmount(prevGlobal: GlobalState, nextGlobal: GlobalState) {
   const previousMaxAmount = selectCurrentTransferMaxAmount(prevGlobal);
-  const wasMaxAmountSelected = prevGlobal.currentTransfer.amount === previousMaxAmount;
+  const wasMaxAmountSelected = previousMaxAmount && prevGlobal.currentTransfer.amount === previousMaxAmount;
   if (!wasMaxAmountSelected) {
     return nextGlobal;
   }

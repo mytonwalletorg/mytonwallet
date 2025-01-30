@@ -1,10 +1,8 @@
 import type { ApiBalanceBySlug, ApiSwapAsset } from '../../api/types';
 import type { AccountSettings, GlobalState, UserSwapToken } from '../types';
 
-import { getChainConfig } from '../../util/chain';
 import { toBig } from '../../util/decimals';
 import memoize from '../../util/memoize';
-import { getChainBySlug } from '../../util/tokens';
 import withCache from '../../util/withCache';
 import { selectCurrentAccountSettings, selectCurrentAccountState } from './accounts';
 import { selectAccountTokensMemoizedFor } from './tokens';
@@ -147,9 +145,4 @@ export function selectCurrentSwapTokenIn(global: GlobalState) {
 export function selectCurrentSwapTokenOut(global: GlobalState) {
   const { tokenOutSlug } = global.currentSwap;
   return tokenOutSlug === undefined ? undefined : global.swapTokenInfo.bySlug[tokenOutSlug];
-}
-
-export function selectCurrentSwapNativeTokenIn(global: GlobalState) {
-  const { tokenInSlug } = global.currentSwap;
-  return tokenInSlug === undefined ? undefined : getChainConfig(getChainBySlug(tokenInSlug))?.nativeToken;
 }

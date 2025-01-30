@@ -9,7 +9,7 @@ import { TransferState } from '../../global/types';
 import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CAPACITOR, TONCOIN } from '../../config';
 import { selectCurrentAccountTokens } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -248,7 +248,7 @@ function DappTransferModal({
       onCloseAnimationEnd={handleResetTransfer}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

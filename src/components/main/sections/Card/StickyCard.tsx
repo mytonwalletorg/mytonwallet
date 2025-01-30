@@ -11,7 +11,7 @@ import {
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { getShortCurrencySymbol } from '../../../../util/formatNumber';
-import { IS_ELECTRON, IS_MAC_OS, IS_WINDOWS } from '../../../../util/windowEnvironment';
+import { IS_ELECTRON, IS_MAC_OS } from '../../../../util/windowEnvironment';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import useFlag from '../../../../hooks/useFlag';
@@ -73,7 +73,7 @@ function StickyCard({
             accountClassName={buildClassName(styles.account, withTextGradient && 'gradientText')}
             accountSelectorClassName="sticky-card-account-selector"
             menuButtonClassName={styles.menuButton}
-            noSettingsButton={(IS_ELECTRON && IS_WINDOWS)}
+            noSettingsButton
             noAccountSelector={IS_ELECTRON && IS_MAC_OS}
           />
           <div className={styles.balance}>

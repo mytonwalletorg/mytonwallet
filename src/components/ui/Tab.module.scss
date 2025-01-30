@@ -84,7 +84,7 @@
 
   box-sizing: content-box;
   width: calc(100% - 1.5rem);
-  height: 0.125rem;
+  height: var(--tab-platform-height, 0.125rem);
 
   opacity: 0;
   background-color: var(--color-accent);

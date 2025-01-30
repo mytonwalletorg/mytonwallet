@@ -7,6 +7,7 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiFetchEstimateDieselResult } from '../../api/chains/ton/types';
 import type { ApiBaseCurrency, ApiChain, ApiNft } from '../../api/types';
 import type { Account, SavedAddress, UserToken } from '../../global/types';
+import type { ExplainedTransferFee } from '../../util/fee/transferFee';
 import type { FeePrecision, FeeTerms } from '../../util/fee/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
@@ -38,9 +39,7 @@ import { debounce } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import stopEvent from '../../util/stopEvent';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
-import { getIsNativeToken } from '../../util/tokens';
 import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
-import { NFT_TRANSFER_AMOUNT } from '../../api/chains/ton/constants';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -51,6 +50,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 import useQrScannerSupport from '../../hooks/useQrScannerSupport';
 import useShowTransition from '../../hooks/useShowTransition';
 
+import FeeDetailsModal from '../common/FeeDetailsModal';
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
@@ -162,6 +162,13 @@ function TransferInitial({
     fetchTransferDieselState,
   } = getActions();
 
+  const isNftTransfer = Boolean(nfts?.length);
+  if (isNftTransfer) {
+    // Token and amount can't be selected in the NFT transfer form, so they are overwritten once for convenience
+    tokenSlug = TONCOIN.slug;
+    amount = undefined;
+  }
+
   // eslint-disable-next-line no-null/no-null
   const toAddressRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line no-null/no-null
@@ -184,7 +191,6 @@ function TransferInitial({
   const [isAddressBookOpen, openAddressBook, closeAddressBook] = useFlag();
   const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
   const [savedChainForDeletion, setSavedChainForDeletion] = useState<ApiChain | undefined>();
-  const isNftTransfer = Boolean(nfts?.length);
   const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
     ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
     : toAddress;
@@ -202,8 +208,8 @@ function TransferInitial({
 
   const isToncoin = tokenSlug === TONCOIN.slug;
 
-  const shouldDisableClearButton = !toAddress && !amount && !(comment || binPayload) && !shouldEncrypt
-    && !(nfts?.length && isStatic);
+  const shouldDisableClearButton = !toAddress && !(comment || binPayload) && !shouldEncrypt
+    && !(isNftTransfer ? isStatic : amount !== undefined);
 
   const isQrScannerSupported = useQrScannerSupport();
 
@@ -215,19 +221,18 @@ function TransferInitial({
   const withAddressClearButton = !!toAddress.length;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
-  const isNativeToken = getIsNativeToken(tokenSlug);
   const explainedFee = useMemo(
     () => explainApiTransferFee({
-      fee, realFee, diesel, chain, isNativeToken,
+      fee, realFee, diesel, tokenSlug,
     }),
-    [fee, realFee, diesel, chain, isNativeToken],
+    [fee, realFee, diesel, tokenSlug],
   );
 
   // Note: this constant has 3 distinct meaningful values
   const isEnoughBalance = isBalanceSufficientForTransfer({
     tokenBalance: balance,
     nativeTokenBalance: nativeToken.amount,
-    transferAmount: isNftTransfer ? NFT_TRANSFER_AMOUNT : amount,
+    transferAmount: isNftTransfer ? 0n : amount,
     fullFee: explainedFee.fullFee?.terms,
     canTransferFullBalance: explainedFee.canTransferFullBalance,
   });
@@ -238,7 +243,7 @@ function TransferInitial({
 
   const maxAmount = getMaxTransferAmount({
     tokenBalance: balance,
-    isNativeToken,
+    tokenSlug,
     fullFee: explainedFee.fullFee?.terms,
     canTransferFullBalance: explainedFee.canTransferFullBalance,
   });
@@ -301,13 +306,14 @@ function TransferInitial({
         fetchNftFee({
           toAddress,
           comment,
-          nftAddresses: nfts?.map(({ address }) => address) || [],
+          nfts: nfts ?? [],
         });
       } else {
         fetchTransferFee({
           tokenSlug,
           toAddress,
           comment,
+          shouldEncrypt,
           binPayload,
           stateInit,
         });
@@ -320,7 +326,10 @@ function TransferInitial({
       isDisabledDebounce.current = false;
       runFunction();
     }
-  }, [isAmountMissing, binPayload, comment, isAddressValid, isNftTransfer, nfts, stateInit, toAddress, tokenSlug]);
+  }, [
+    isAmountMissing, binPayload, comment, shouldEncrypt, isAddressValid, isNftTransfer, nfts, stateInit, toAddress,
+    tokenSlug,
+  ]);
 
   const handleTokenChange = useLastCallback((slug: string) => {
     changeTransferToken({ tokenSlug: slug });
@@ -497,8 +506,11 @@ function TransferInitial({
   const hasToAddressError = toAddress.length > 0 && !isAddressValid;
   const isAmountGreaterThanBalance = !isNftTransfer && balance !== undefined && amount !== undefined
     && amount > balance;
-  const hasAmountError = !isNftTransfer && ((amount ?? 0) < 0 || isEnoughBalance === false);
   const isInsufficientFee = isEnoughBalance === false && !isAmountGreaterThanBalance;
+  const hasAmountError = !isNftTransfer && amount !== undefined && (
+    (maxAmount !== undefined && amount > maxAmount)
+    || isInsufficientFee // Ideally, the insufficient fee error message should be displayed somewhere else
+  );
   const isCommentRequired = Boolean(toAddress) && isMemoRequired;
   const hasCommentError = isCommentRequired && !comment;
 
@@ -528,7 +540,7 @@ function TransferInitial({
       comment,
       binPayload,
       shouldEncrypt,
-      nftAddresses: isNftTransfer ? nfts!.map(({ address }) => address) : undefined,
+      nfts,
       withDiesel: explainedFee.isGasless,
       isGaslessWithStars: diesel?.status === 'stars-fee',
       stateInit,
@@ -538,6 +550,8 @@ function TransferInitial({
   const handleCommentOptionsChange = useLastCallback((option: string) => {
     setTransferShouldEncrypt({ shouldEncrypt: option === 'encrypted' });
   });
+
+  const [isFeeModalOpen, openFeeModal, closeFeeModal] = useFeeModal(explainedFee);
 
   const renderedSavedAddresses = useMemo(() => {
     if (!savedAddresses || savedAddresses.length === 0) {
@@ -689,7 +703,7 @@ function TransferInitial({
   }
 
   function renderBalance() {
-    if (!symbol || nfts?.length) {
+    if (!symbol || isNftTransfer) {
       return undefined;
     }
 
@@ -815,9 +829,7 @@ function TransferInitial({
     let terms: FeeTerms | undefined;
     let precision: FeePrecision = 'exact';
 
-    if (isNftTransfer) {
-      // NFT fee estimation is not supported yet. It will be added later.
-    } else if (amount) {
+    if (!isAmountMissing) {
       const actualFee = isInsufficientFee ? explainedFee.fullFee : explainedFee.realFee;
       if (actualFee) {
         ({ terms, precision } = actualFee);
@@ -829,8 +841,8 @@ function TransferInitial({
         isStatic={isStatic}
         terms={terms}
         token={transferToken}
-        nativeToken={nativeToken}
         precision={precision}
+        onDetailsClick={openFeeModal}
       />
     );
   }
@@ -919,6 +931,16 @@ function TransferInitial({
         address={savedAddressForDeletion}
         chain={savedChainForDeletion}
         onClose={closeDeleteSavedAddressModal}
+      />
+      <FeeDetailsModal
+        isOpen={isFeeModalOpen}
+        onClose={closeFeeModal}
+        fullFee={explainedFee.fullFee?.terms}
+        realFee={explainedFee.realFee?.terms}
+        realFeePrecision={explainedFee.realFee?.precision}
+        excessFee={explainedFee.excessFee}
+        excessFeePrecision="approximate"
+        token={transferToken}
       />
     </>
   );
@@ -1086,4 +1108,11 @@ function getChainFromAddress(address: string): ApiChain {
   }
 
   return 'ton';
+}
+
+function useFeeModal(explainedFee: ExplainedTransferFee) {
+  const isAvailable = explainedFee.realFee?.precision !== 'exact';
+  const [isOpen, open, close] = useFlag(false);
+  const openIfAvailable = isAvailable ? open : undefined;
+  return [isOpen, openIfAvailable, close] as const;
 }

@@ -565,7 +565,7 @@ $dapp_liquid_staking_vote_payload: "%votingAddress% teklifi için \"%vote%\" oyu
 $dapp_single_nominator_change_validator_payload: SingleNominator staking sözleşmesi doğrulayıcısının adresi %address% olarak değiştiriliyor
 $dapp_single_nominator_withdraw_payload: "%amount% TON'un SingleNominator staking sözleşmesinden çekilmesi"
 $dapp_vesting_add_whitelist_payload: Vesting cüzdanı beyaz listesine %address% ekleniyor
-Search or enter address...: Adresi arayın veya girin...
+Search or enter address: Adresi arayın veya girin
 Connecting dapps is not yet supported by Ledger.: Dapp'lerin bağlanması henüz Ledger tarafından desteklenmiyor.
 Time synchronization issue. Please ensure your device's time settings are correct.: Time synchronization issue. Zaman senkronizasyonu sorunu. Lütfen cihazınızın saat ayarlarının doğru olduğundan emin olun.
 Data was copied!: Veri kopyalandı!
@@ -724,3 +724,14 @@ Select up to %count% wallets for notifications: Bildirimler için en fazla %coun
 $swap_aggregator_fee_tooltip: Dahili bir **DEX toplayıcı**, mevcut DEX'ler arasında **en iyi oranı** bulur. Hizmet ücreti %percent%.
 Accumulated Rewards: Birikmiş ödüller
 $swap_reverse_prohibited: Bu token çifti için satın alma miktarını ayarlamak imkansız
+Blockchain Fee Details: Blockchain Ücret Detayları
+Final Fee: Nihai Ücret
+Excess: Fazlalık
+$fee_details: Ücreti ödemek için cüzdanınızdan %full_fee% hemen çekilmelidir. Bunun bir kısmı birkaç dakika içinde fazlalık olarak size %excess_symbol%** cinsinden** geri iade edilecektir.
+This is how the %chain_name% Blockchain works.: "%chain_name% Blockchain'i böyle çalışır."
+Got It: Anladım
+Wallet: Cüzdan
+Connected: Bağlandı
+All Dapps: Tüm Dapp'lar
+Trending: Trendler
+No Data: Veri Yok

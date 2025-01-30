@@ -4,7 +4,7 @@
   --color-accent: #0088CC;
   --color-black: #2C333E;
   --color-gray-1: #616770;
-  --color-gray-2: #8399AE;
+  --color-gray-2: #8B8F96;
   --color-gray-3: #A5A8AD;
   --color-gray-3-desktop: #B7B9BD;
   --color-gray-4: #C8CACD;
@@ -20,6 +20,8 @@
   --color-background-second: #F3F4F5;
   --color-background-window: #F3F4F5;
   --color-background-drop-down: #FFFFFF;
+  --color-background-tab-bar: #F3F4F5CC;
+  --color-background-explore-folder: #E5E6E8;
   --color-background-lock: rgba(255, 255, 255, 0.8);
   --color-background-purple-1: #F9FAFE;
   --color-background-purple-2: #DFE1FE;
@@ -211,7 +213,6 @@
   --color-beidge-background: #D9EAF5;
 
   --sticky-card-height: 3.75rem;
-  --tabs-container-height: 2.75rem;
 
   &.is-ios {
     --layer-transition: 650ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -256,6 +257,8 @@
     --color-background-second: #000000;
     --color-background-window: #131314;
     --color-background-drop-down: #222224;
+    --color-background-tab-bar: #1C1C1EE5;
+    --color-background-explore-folder: #161617;
     --color-background-lock: rgba(28, 28, 30, 0.8);
     --color-background-purple-1: #191D2A;
     --color-background-purple-2: #292F46;

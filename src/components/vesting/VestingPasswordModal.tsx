@@ -22,7 +22,7 @@ import {
 import buildClassName from '../../util/buildClassName';
 import { toBig } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { shortenAddress } from '../../util/shortenAddress';
 import { calcVestingAmountByStatus } from '../main/helpers/calcVestingAmountByStatus';
 
@@ -178,7 +178,7 @@ function VestingPasswordModal({
       onClose={cancelClaimingVesting}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

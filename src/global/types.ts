@@ -19,6 +19,7 @@ import type {
   ApiPriceHistoryPeriod,
   ApiSignedTransfer,
   ApiSite,
+  ApiSiteCategory,
   ApiStakingCommonData,
   ApiStakingHistory,
   ApiStakingState,
@@ -86,6 +87,7 @@ export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWal
 export enum AppState {
   Auth,
   Main,
+  Explore,
   Settings,
   Ledger,
   Inactive,
@@ -153,11 +155,6 @@ export enum SwapState {
   Complete,
   SelectTokenFrom,
   SelectTokenTo,
-}
-
-export enum SwapFeeSource {
-  In,
-  Out,
 }
 
 export enum SwapInputSource {
@@ -379,6 +376,7 @@ export interface AccountState {
   isLongUnstakeRequested?: boolean;
 
   dapps?: ApiDapp[];
+  currentSiteCategoryId?: number;
 }
 
 export interface AccountSettings {
@@ -448,12 +446,13 @@ export type GlobalState = {
   currentTransfer: {
     state: TransferState;
     isLoading?: boolean;
+    // Should be ignored when `nfts` is defined and not empty
     tokenSlug: string;
     toAddress?: string;
     toAddressName?: string;
     resolvedAddress?: string;
-    chain?: ApiChain;
     error?: string;
+    // Should be ignored when `nfts` is defined and not empty
     amount?: bigint;
     // Every time this field value changes, the `amount` value should be actualized using `preserveMaxTransferAmount`
     fee?: bigint;
@@ -487,7 +486,6 @@ export type GlobalState = {
     amountIn?: string;
     amountOut?: string;
     amountOutMin?: string;
-    transactionFee?: string;
     priceImpact?: number;
     activityId?: string;
     error?: string;
@@ -498,7 +496,6 @@ export type GlobalState = {
     isEstimating?: boolean;
     inputSource?: SwapInputSource;
     swapType?: SwapType;
-    feeSource?: SwapFeeSource;
     toAddress?: string;
     payinAddress?: string;
     payoutAddress?: string;
@@ -510,7 +507,6 @@ export type GlobalState = {
       fromMin?: string;
       fromMax?: string;
     };
-    isSettingsModalOpen?: boolean;
     dieselStatus?: DieselStatus;
     estimates?: ApiSwapEstimateVariant[];
     // This property is necessary to ensure that when the DEX with the best rate changes,
@@ -518,7 +514,7 @@ export type GlobalState = {
     isDexLabelChanged?: true;
     currentDexLabel?: ApiSwapDexLabel;
     bestRateDexLabel?: ApiSwapDexLabel;
-    // Fees
+    // Fees. Undefined values mean that these fields are unknown.
     networkFee?: string;
     realNetworkFee?: string;
     swapFee?: string;
@@ -535,7 +531,10 @@ export type GlobalState = {
     isSigned?: boolean;
   };
 
-  exploreSites?: ApiSite[];
+  exploreData?: {
+    categories: ApiSiteCategory[];
+    sites: ApiSite[];
+  };
 
   currentDappTransfer: {
     state: TransferState;
@@ -727,8 +726,8 @@ export interface ActionPayloads {
   openCreateBackUpPage: undefined;
   openCheckWordsPage: undefined;
   closeCheckWordsPage: { isBackupCreated?: boolean } | undefined;
-  initializeHardwareWalletModal: undefined;
-  initializeHardwareWalletConnection: { transport: LedgerTransport };
+  initializeHardwareWalletModal: { shouldDelegateToNative?: boolean };
+  initializeHardwareWalletConnection: { transport: LedgerTransport; shouldDelegateToNative?: boolean };
   connectHardwareWallet: { transport?: LedgerTransport; noRetry?: boolean };
   createHardwareAccounts: undefined;
   addHardwareAccounts: {
@@ -771,11 +770,10 @@ export interface ActionPayloads {
     shouldEncrypt?: boolean;
     binPayload?: string;
     stateInit?: string;
-    isGaslessWithStars?: boolean;
   };
   fetchNftFee: {
     toAddress: string;
-    nftAddresses: string[];
+    nfts: ApiNft[];
     comment?: string;
   };
   submitTransferInitial: {
@@ -784,7 +782,7 @@ export interface ActionPayloads {
     toAddress: string;
     comment?: string;
     shouldEncrypt?: boolean;
-    nftAddresses?: string[];
+    nfts?: ApiNft[];
     withDiesel?: boolean;
     isBase64Data?: boolean;
     binPayload?: string;
@@ -848,7 +846,7 @@ export interface ActionPayloads {
   closeHideNftModal: undefined;
 
   closeAnyModal: undefined;
-  closeAllEntities: undefined;
+  closeAllOverlays: undefined;
   submitSignature: { password: string };
   clearSignatureError: undefined;
   cancelSignature: undefined;
@@ -967,6 +965,8 @@ export interface ActionPayloads {
   removeSiteFromBrowserHistory: { url: string };
   openBrowser: { url: string; title?: string; subtitle?: string };
   closeBrowser: undefined;
+  openSiteCategory: { id: number };
+  closeSiteCategory: undefined;
 
   apiUpdateDappConnect: ApiUpdateDappConnect;
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;

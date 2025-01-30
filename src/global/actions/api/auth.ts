@@ -659,8 +659,9 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
 addActionHandler('connectHardwareWallet', async (global, actions, params) => {
   const accounts = selectAccounts(global) ?? {};
   const isFirstAccount = !Object.values(accounts).length;
+  const { areSettingsOpen } = global;
 
-  if (IS_DELEGATING_BOTTOM_SHEET && !isFirstAccount) return;
+  if (IS_DELEGATING_BOTTOM_SHEET && !isFirstAccount && !areSettingsOpen) return;
 
   global = updateHardware(global, {
     hardwareState: HardwareConnectState.Connecting,

@@ -54,7 +54,8 @@ export type ApiUpdateCreateTransaction = {
   promiseId: string;
   toAddress: string;
   amount: bigint;
-  fee: bigint;
+  fee?: bigint;
+  realFee?: bigint;
   comment?: string;
   rawPayload?: string;
   parsedPayload?: ApiParsedPayload;

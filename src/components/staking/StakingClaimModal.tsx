@@ -20,10 +20,9 @@ import {
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
-import { formatFee } from '../../util/fee/formatFee';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
 import { formatCurrency } from '../../util/formatNumber';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { shortenAddress } from '../../util/shortenAddress';
 
 import useLang from '../../hooks/useLang';
@@ -33,6 +32,7 @@ import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import TransactionBanner from '../common/TransactionBanner';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
+import Fee from '../ui/Fee';
 import Modal from '../ui/Modal';
 import PasswordForm from '../ui/PasswordForm';
 import Transition from '../ui/Transition';
@@ -119,14 +119,15 @@ function StakingClaimModal({
           secondText={shortenAddress(address!)}
         />
         <div className={buildClassName(styles.operationInfoFee, !IS_CAPACITOR && styles.operationInfoFeeWithGap)}>
-          {nativeToken ? renderText(lang('$fee_value_bold', {
-            fee: `${formatFee({
-              terms: { native: isNativeEnough ? realNetworkFee : networkFee },
-              token: nativeToken,
-              nativeToken,
-              precision: isNativeEnough ? 'approximate' : 'lessThan',
-            })}`,
-          })) : ''}
+          {token && renderText(lang('$fee_value_bold', {
+            fee: (
+              <Fee
+                terms={{ native: isNativeEnough ? realNetworkFee : networkFee }}
+                precision={isNativeEnough ? 'approximate' : 'lessThan'}
+                token={token}
+              />
+            ),
+          }))}
         </div>
       </>
     );
@@ -187,7 +188,7 @@ function StakingClaimModal({
       onClose={cancelStakingClaim}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

@@ -31,12 +31,12 @@ import { buildTokenSlug, getTokenByAddress } from '../../common/tokens';
 import {
   CLAIM_MINTLESS_AMOUNT,
   DEFAULT_DECIMALS,
-  TINIEST_TOKEN_REAL_TRANSFER_AMOUNT,
-  TINY_TOKEN_REAL_TRANSFER_AMOUNT,
+  TINIEST_TOKEN_TRANSFER_REAL_AMOUNT,
   TINY_TOKEN_TRANSFER_AMOUNT,
-  TOKEN_REAL_TRANSFER_AMOUNT,
+  TINY_TOKEN_TRANSFER_REAL_AMOUNT,
   TOKEN_TRANSFER_AMOUNT,
   TOKEN_TRANSFER_FORWARD_AMOUNT,
+  TOKEN_TRANSFER_REAL_AMOUNT,
 } from './constants';
 import { isActiveSmartContract } from './wallet';
 
@@ -389,13 +389,13 @@ export function getToncoinAmountForTransfer(token: ApiToken, willClaimMintless: 
     amount += TINY_TOKEN_TRANSFER_AMOUNT;
 
     if (token.slug === TON_USDT_SLUG) {
-      realAmount += TINIEST_TOKEN_REAL_TRANSFER_AMOUNT;
+      realAmount += TINIEST_TOKEN_TRANSFER_REAL_AMOUNT;
     } else {
-      realAmount += TINY_TOKEN_REAL_TRANSFER_AMOUNT;
+      realAmount += TINY_TOKEN_TRANSFER_REAL_AMOUNT;
     }
   } else {
     amount += TOKEN_TRANSFER_AMOUNT;
-    realAmount += TOKEN_REAL_TRANSFER_AMOUNT;
+    realAmount += TOKEN_TRANSFER_REAL_AMOUNT;
   }
 
   if (willClaimMintless) {

@@ -3,7 +3,7 @@ import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -123,7 +123,7 @@ function LedgerConfirmOperation({
 
   return (
     <Transition
-      name={resolveModalTransitionName()}
+      name={resolveSlideTransitionName()}
       className={buildClassName(modalStyles.transition, 'custom-scroll')}
       slideClassName={buildClassName(modalStyles.transitionSlide, styles.slide)}
       activeKey={activeState}

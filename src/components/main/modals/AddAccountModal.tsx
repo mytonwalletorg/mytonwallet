@@ -8,7 +8,7 @@ import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../../config';
 import renderText from '../../../global/helpers/renderText';
 import { selectFirstNonHardwareAccount, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
-import resolveModalTransitionName from '../../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
 import { IS_LEDGER_SUPPORTED } from '../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
@@ -260,7 +260,7 @@ function AddAccountModal({
       onClose={closeAddAccountModal}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

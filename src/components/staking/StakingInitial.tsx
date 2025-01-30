@@ -29,7 +29,6 @@ import { bigintMax } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
-import { formatFee } from '../../util/fee/formatFee';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
 import { formatCurrency } from '../../util/formatNumber';
 import { throttle } from '../../util/schedulers';
@@ -46,6 +45,7 @@ import useSyncEffect from '../../hooks/useSyncEffect';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
+import Fee from '../ui/Fee';
 import Modal from '../ui/Modal';
 import RichNumberField from '../ui/RichNumberField';
 import RichNumberInput from '../ui/RichNumberInput';
@@ -343,17 +343,8 @@ function StakingInitial({
         <span className={styles.balanceError}>{error}</span>
       );
     } else {
-      content = nativeToken ? lang('$fee_value', {
-        fee: (
-          <span className={styles.feeValue}>
-            {formatFee({
-              terms: { native: realFee },
-              token: nativeToken,
-              nativeToken,
-              precision: 'approximate',
-            })}
-          </span>
-        ),
+      content = token ? lang('$fee_value', {
+        fee: <Fee terms={{ native: realFee }} precision="approximate" token={token} />,
       }) : '';
     }
 

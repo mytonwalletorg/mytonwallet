@@ -7,13 +7,14 @@ export const TON_BIP39_PATH = "m/44'/607'/0'";
 export const ONE_TON = 1_000_000_000n;
 export const TOKEN_TRANSFER_AMOUNT = 50000000n; // 0.05 TON
 export const TINY_TOKEN_TRANSFER_AMOUNT = 18000000n; // 0.018 TON
-export const TOKEN_REAL_TRANSFER_AMOUNT = 32100000n; // 0.0321 TON
-export const TINY_TOKEN_REAL_TRANSFER_AMOUNT = 8000000n; // 0.008 TON
-export const TINIEST_TOKEN_REAL_TRANSFER_AMOUNT = 3000000n; // 0.003 TON
+export const TOKEN_TRANSFER_REAL_AMOUNT = 32100000n; // 0.0321 TON
+export const TINY_TOKEN_TRANSFER_REAL_AMOUNT = 8000000n; // 0.008 TON
+export const TINIEST_TOKEN_TRANSFER_REAL_AMOUNT = 3000000n; // 0.003 TON
 export const TOKEN_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
 export const CLAIM_MINTLESS_AMOUNT = 20000000n; // 0.02 TON
 
 export const NFT_TRANSFER_AMOUNT = 100000000n; // 0.1 TON
+export const NFT_TRANSFER_REAL_AMOUNT = 5000000n; // 0.005 TON
 export const NFT_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
 /**
  * When the NFT contract handles the payload we send, it simply adds its data to the payload. If the resulting payload

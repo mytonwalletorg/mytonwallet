@@ -22,6 +22,7 @@ import { IS_IOS, IS_SAFARI } from '../../../../util/windowEnvironment';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useFlag from '../../../../hooks/useFlag';
 import useHistoryBack from '../../../../hooks/useHistoryBack';
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -73,6 +74,7 @@ function Card({
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const [customCardClassName, setCustomCardClassName] = useState<string | undefined>(undefined);
   const [withTextGradient, setWithTextGradient] = useState<boolean>(false);
+  const { isPortrait } = useDeviceScreen();
 
   const isUpdating = useUpdateIndicator(balanceUpdateStartedAt);
 
@@ -203,6 +205,7 @@ function Card({
         <div className={buildClassName(styles.containerInner, customCardClassName)}>
           <AccountSelector
             canEdit
+            noSettingsButton={isPortrait}
             accountClassName={buildClassName(withTextGradient && 'gradientText')}
             forceClose={forceCloseAccountSelector}
           />

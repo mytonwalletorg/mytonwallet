@@ -360,7 +360,7 @@ export async function submitLedgerStake(
   accountId: string,
   amount: bigint,
   state: ApiStakingState,
-  fee?: bigint,
+  realFee?: bigint,
 ) {
   const address = await callApi('fetchAddress', accountId, 'ton');
 
@@ -375,7 +375,7 @@ export async function submitLedgerStake(
         toAddress: state.pool,
         amount: amount + TON_GAS.stakeNominators,
         comment: STAKE_COMMENT,
-        fee,
+        realFee,
       }, TONCOIN.slug, localTransactionParams);
       break;
     }
@@ -392,6 +392,7 @@ export async function submitLedgerStake(
         password: '',
         toAddress: LIQUID_POOL,
         amount: amount + TON_GAS.stakeLiquid,
+        realFee,
       }, TONCOIN.slug, localTransactionParams, payload);
       break;
     }
@@ -417,6 +418,7 @@ export async function submitLedgerStake(
         amount,
         data: StakingPool.stakePayload(period),
         forwardAmount: TON_GAS.stakeJettonsForward,
+        realFee,
       }, TONCOIN.slug, localTransactionParams);
       break;
     }
@@ -429,7 +431,7 @@ export async function submitLedgerStake(
   return result;
 }
 
-export async function submitLedgerUnstake(accountId: string, state: ApiStakingState, amount: bigint) {
+export async function submitLedgerUnstake(accountId: string, state: ApiStakingState, amount: bigint, realFee?: bigint) {
   const { network } = parseAccountId(accountId);
   const address = (await callApi('fetchAddress', accountId, 'ton'))!;
 
@@ -445,6 +447,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         toAddress: poolAddress,
         amount: TON_GAS.unstakeNominators,
         comment: UNSTAKE_COMMENT,
+        realFee,
       }, TONCOIN.slug, localTransactionParams);
       break;
     }
@@ -470,6 +473,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         password: '',
         toAddress: tokenWalletAddress!,
         amount: TON_GAS.unstakeLiquid,
+        realFee,
       }, TONCOIN.slug, localTransactionParams, payload);
       break;
     }
@@ -485,6 +489,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         password: '',
         toAddress: stakeWalletAddress,
         amount: TON_GAS.unstakeJettons,
+        realFee,
       }, TONCOIN.slug, localTransactionParams, payload);
       break;
     }
@@ -496,7 +501,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
 export function submitLedgerStakingClaim(
   accountId: string,
   state: ApiJettonStakingState,
-  fee?: bigint,
+  realFee?: bigint,
 ) {
   const payload: TonPayloadFormat = {
     type: 'unsafe',
@@ -508,7 +513,7 @@ export function submitLedgerStakingClaim(
     amount: TON_GAS.claimJettons,
     password: '',
     toAddress: state.stakeWalletAddress,
-    fee,
+    realFee,
   }, TONCOIN.slug, undefined, payload);
 }
 
@@ -522,7 +527,7 @@ export async function submitLedgerTransfer(
     accountId,
     tokenAddress,
     comment,
-    fee,
+    realFee,
     data,
     forwardAmount,
   } = options;
@@ -601,7 +606,7 @@ export async function submitLedgerTransfer(
         fromAddress: fromAddress!,
         toAddress: normalizedAddress,
         comment,
-        fee: fee!,
+        fee: realFee ?? 0n,
         slug,
         ...localTransactionParams,
       },
@@ -624,10 +629,10 @@ export async function submitLedgerNftTransfer(options: {
   toAddress: string;
   comment?: string;
   nft?: ApiNft;
-  fee?: bigint;
+  realFee?: bigint;
 }) {
   const {
-    accountId, nftAddress, comment, nft, fee,
+    accountId, nftAddress, comment, nft, realFee,
   } = options;
   let { toAddress } = options;
   const { network } = parseAccountId(accountId);
@@ -697,7 +702,7 @@ export async function submitLedgerNftTransfer(options: {
         fromAddress: fromAddress!,
         toAddress: options.toAddress,
         comment,
-        fee: fee!,
+        fee: realFee ?? 0n,
         slug: TONCOIN.slug,
         type: 'nftTransferred',
         nft,

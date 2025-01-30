@@ -23,8 +23,8 @@ export type CheckTransactionDraftOptions = {
   stateInit?: string;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
-  isGaslessWithStars?: boolean;
   forwardAmount?: bigint;
+  allowGasless?: boolean;
 };
 
 export interface ApiSubmitTransferOptions {
@@ -34,7 +34,10 @@ export interface ApiSubmitTransferOptions {
   amount: bigint;
   comment?: string;
   tokenAddress?: string;
+  /** To cap the fee in TRON transfers */
   fee?: bigint;
+  /** To show in the created local transaction */
+  realFee?: bigint;
   shouldEncrypt?: boolean;
   isBase64Data?: boolean;
   withDiesel?: boolean;

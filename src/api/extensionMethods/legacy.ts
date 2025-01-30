@@ -131,7 +131,7 @@ export async function sendTransaction(params: {
   const { type } = await fetchStoredAccount(accountId);
 
   if (type === 'ledger') {
-    return sendLedgerTransaction(accountId, promiseId, promise, checkResult.fee!, params);
+    return sendLedgerTransaction(accountId, promiseId, promise, checkResult.fee, checkResult.realFee, params);
   }
 
   onPopupUpdate({
@@ -165,7 +165,7 @@ export async function sendTransaction(params: {
     amount,
     fromAddress,
     toAddress,
-    fee: checkResult.fee!,
+    fee: checkResult.realFee ?? checkResult.fee!,
     slug: TONCOIN.slug,
     inMsgHash: result.msgHash,
     ...(dataType === 'text' && {
@@ -180,7 +180,8 @@ async function sendLedgerTransaction(
   accountId: string,
   promiseId: string,
   promise: Promise<any>,
-  fee: bigint,
+  fee: bigint | undefined,
+  realFee: bigint | undefined,
   params: {
     to: string;
     value: string;
@@ -225,6 +226,7 @@ async function sendLedgerTransaction(
     toAddress,
     amount: BigInt(amount),
     fee,
+    realFee,
     ...(dataType === 'text' && {
       comment: data,
     }),
@@ -248,7 +250,7 @@ async function sendLedgerTransaction(
     amount,
     fromAddress,
     toAddress,
-    fee,
+    fee: realFee ?? fee ?? 0n,
     slug: TONCOIN.slug,
     inMsgHash: msgHash,
     ...(dataType === 'text' && {

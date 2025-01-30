@@ -40,6 +40,7 @@ function ImageComponent({
         alt={alt}
         loading={loading}
         className={imageClassName}
+        draggable={false}
         referrerPolicy="same-origin"
         onLoad={!isLoaded ? handleLoad : undefined}
       />

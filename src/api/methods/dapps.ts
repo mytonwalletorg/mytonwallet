@@ -1,6 +1,5 @@
-import type { LangCode } from '../../global/types';
 import type {
-  ApiDapp, ApiDappsState, ApiNetwork, ApiSite, OnApiUpdate,
+  ApiDapp, ApiDappsState, ApiNetwork, ApiSite, ApiSiteCategory, OnApiUpdate,
 } from '../types';
 
 import { parseAccountId } from '../../util/account';
@@ -227,10 +226,8 @@ export function setSseLastEventId(lastEventId: string) {
   return storage.setItem('sseLastEventId', lastEventId);
 }
 
-export function loadExploreSites({
-  isLandscape, langCode,
-}: {
-  isLandscape: boolean; langCode: LangCode;
-}): Promise<ApiSite[]> {
-  return callBackendGet('/dapp/catalog', { isLandscape, langCode });
+export function loadExploreSites(
+  { isLandscape }: { isLandscape: boolean },
+): Promise<{ categories: ApiSiteCategory[]; sites: ApiSite[] }> {
+  return callBackendGet('/v2/dapp/catalog', { isLandscape });
 }

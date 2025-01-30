@@ -13,6 +13,7 @@ import {
   NOTCOIN_VOUCHERS_ADDRESS,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
+import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compact } from '../../../util/iteratees';
 import { generateQueryId } from './util';
 import { buildNft } from './util/metadata';
@@ -25,6 +26,7 @@ import {
   NFT_PAYLOAD_SAFE_MARGIN,
   NFT_TRANSFER_AMOUNT,
   NFT_TRANSFER_FORWARD_AMOUNT,
+  NFT_TRANSFER_REAL_AMOUNT,
   NftOpCode,
 } from './constants';
 import { checkMultiTransactionDraft, checkToAddress, submitMultiTransfer } from './transactions';
@@ -120,75 +122,69 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
 
 export async function checkNftTransferDraft(options: {
   accountId: string;
-  nftAddresses: string[];
+  nfts: ApiNft[];
   toAddress: string;
   comment?: string;
 }): Promise<ApiCheckTransactionDraftResult> {
-  const { accountId, nftAddresses, comment } = options;
+  const { accountId, nfts, comment } = options;
   let { toAddress } = options;
 
   const { network } = parseAccountId(accountId);
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
 
-  const checkAddressResult = await checkToAddress(network, toAddress);
-
-  if ('error' in checkAddressResult) {
-    return checkAddressResult;
-  }
-
-  toAddress = checkAddressResult.resolvedAddress!;
-
-  // We only need to check the first batch of a multi-transaction
-  const messages = nftAddresses.slice(0, NFT_BATCH_SIZE).map((nftAddress) => {
-    return {
-      payload: buildNftTransferPayload(fromAddress, toAddress, comment),
-      amount: NFT_TRANSFER_AMOUNT,
-      toAddress: nftAddress,
-    };
-  });
-
-  const result = await checkMultiTransactionDraft(accountId, messages);
-
+  const result: ApiCheckTransactionDraftResult = await checkToAddress(network, toAddress);
   if ('error' in result) {
     return result;
   }
 
-  return {
-    ...result,
-    ...checkAddressResult,
-  };
+  toAddress = result.resolvedAddress!;
+
+  const messages = nfts
+    .slice(0, NFT_BATCH_SIZE) // We only need to check the first batch of a multi-transaction
+    .map((nft) => buildNftTransferMessage(nft, fromAddress, toAddress, comment));
+
+  const transactionResult = await checkMultiTransactionDraft(accountId, messages);
+
+  if (transactionResult.fee !== undefined) {
+    const batchFee = transactionResult.fee;
+    result.fee = calculateNftTransferFee(nfts.length, messages.length, batchFee, NFT_TRANSFER_AMOUNT);
+    result.realFee = calculateNftTransferFee(nfts.length, messages.length, batchFee, NFT_TRANSFER_REAL_AMOUNT);
+  }
+
+  if ('error' in transactionResult) {
+    result.error = transactionResult.error;
+  }
+
+  return result;
 }
 
 export async function submitNftTransfers(options: {
   accountId: string;
   password: string;
-  nftAddresses: string[];
+  nfts: ApiNft[];
   toAddress: string;
   comment?: string;
-  nfts?: ApiNft[];
 }) {
   const {
-    accountId, password, nftAddresses, toAddress, comment, nfts,
+    accountId, password, nfts, toAddress, comment,
   } = options;
-
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
-
-  const messages = nftAddresses.map((nftAddress, index) => {
-    const nft = nfts?.[index];
-    const isNotcoinBurn = nft?.collectionAddress === NOTCOIN_VOUCHERS_ADDRESS
-      && (toAddress === BURN_ADDRESS || NOTCOIN_EXCHANGERS.includes(toAddress as any));
-    const payload = isNotcoinBurn
-      ? buildNotcoinVoucherExchange(fromAddress, nftAddress, nft!.index)
-      : buildNftTransferPayload(fromAddress, toAddress, comment);
-
-    return {
-      payload,
-      amount: NFT_TRANSFER_AMOUNT,
-      toAddress: nftAddress,
-    };
-  });
-
+  const messages = nfts.map((nft) => buildNftTransferMessage(nft, fromAddress, toAddress, comment));
   return submitMultiTransfer({ accountId, password, messages });
+}
+
+function buildNftTransferMessage(nft: ApiNft, fromAddress: string, toAddress: string, comment?: string) {
+  const isNotcoinBurn = nft.collectionAddress === NOTCOIN_VOUCHERS_ADDRESS
+    && (toAddress === BURN_ADDRESS || NOTCOIN_EXCHANGERS.includes(toAddress as any));
+  const payload = isNotcoinBurn
+    ? buildNotcoinVoucherExchange(fromAddress, nft.address, nft.index)
+    : buildNftTransferPayload(fromAddress, toAddress, comment);
+
+  return {
+    payload,
+    amount: NFT_TRANSFER_AMOUNT,
+    toAddress: nft.address,
+  };
 }
 
 function buildNotcoinVoucherExchange(fromAddress: string, nftAddress: string, nftIndex: number) {
@@ -238,4 +234,36 @@ function buildNftTransferPayload(
   }
 
   return builder.endCell();
+}
+
+export function calculateNftTransferFee(
+  totalNftCount: number,
+  // How many NFTs were added to the multi-transaction before estimating it
+  estimatedBatchSize: number,
+  // The blockchain fee of the estimated multi-transaction
+  estimatedBatchBlockchainFee: bigint,
+  // How much TON is attached to each NFT during the transfer
+  amountPerNft: bigint,
+) {
+  const fullBatchCount = Math.floor(totalNftCount / estimatedBatchSize);
+  let remainingBatchSize = totalNftCount % estimatedBatchSize;
+
+  // The blockchain fee for the first NFT in a batch is almost twice higher than the fee for the other NFTs. Therefore,
+  // simply using the average NFT fee to calculate the last incomplete batch fee gives an insufficient number. To fix
+  // that, we increase the last batch size.
+  //
+  // A real life example:
+  // 1 NFT  in the batch: 0.002939195 TON
+  // 2 NFTs in the batch: 0.004470516 TON
+  // 3 NFTs in the batch: 0.006001837 TON
+  // 4 NFTs in the batch: 0.007533158 TON
+  if (remainingBatchSize > 0 && remainingBatchSize < estimatedBatchSize) {
+    remainingBatchSize += 1;
+  }
+
+  const totalBlockchainFee = bigintMultiplyToNumber(
+    estimatedBatchBlockchainFee,
+    (fullBatchCount * estimatedBatchSize + remainingBatchSize) / estimatedBatchSize,
+  );
+  return totalBlockchainFee + BigInt(totalNftCount) * amountPerNft;
 }

@@ -15,7 +15,7 @@ import {
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
-import resolveModalTransitionName from '../../util/resolveModalTransitionName';
+import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
@@ -60,7 +60,6 @@ function SwapModal({
     payinAddress,
     payoutAddress,
     payinExtraId,
-    isSettingsModalOpen,
     shouldResetOnClose,
   },
   swapTokens,
@@ -266,8 +265,7 @@ function SwapModal({
     }
   }
 
-  const forceFullNative = isSettingsModalOpen
-    || FULL_SIZE_NBS_STATES.includes(renderingKey)
+  const forceFullNative = FULL_SIZE_NBS_STATES.includes(renderingKey)
     // Crosschain exchanges have additional information that may cause the height of the modal to be insufficient
     || (renderingKey === SwapState.Complete && renderedSwapType !== SwapType.OnChain);
 
@@ -283,7 +281,7 @@ function SwapModal({
       onCloseAnimationEnd={handleModalClose}
     >
       <Transition
-        name={resolveModalTransitionName()}
+        name={resolveSlideTransitionName()}
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}

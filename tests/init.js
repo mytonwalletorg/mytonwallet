@@ -54,3 +54,13 @@ Object.defineProperty(global, 'IntersectionObserver', {
     }
   },
 });
+
+Object.defineProperty(global, 'indexedDB', {
+  writable: true,
+  configurable: true,
+  value: {
+    open() {
+      return {};
+    },
+  },
+});

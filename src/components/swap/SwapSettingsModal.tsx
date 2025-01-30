@@ -1,28 +1,30 @@
-import React, { memo, useState } from '../../lib/teact/teact';
+import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiSwapAsset, ApiToken } from '../../api/types';
-import type { FormatFeeOptions } from '../../util/fee/formatFee';
+import type { ApiSwapAsset } from '../../api/types';
+import type { DieselStatus } from '../../global/types';
 import { SwapType } from '../../global/types';
 
 import { DEFAULT_OUR_SWAP_FEE } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import {
-  selectCurrentSwapNativeTokenIn,
+  selectCurrentAccountTokenBalance,
   selectCurrentSwapTokenIn,
   selectCurrentSwapTokenOut,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { fromDecimal } from '../../util/decimals';
-import { formatFee } from '../../util/fee/formatFee';
+import { findChainConfig } from '../../util/chain';
+import { explainSwapFee } from '../../util/fee/swapFee';
 import { formatCurrency } from '../../util/formatNumber';
 import getSwapRate from '../../util/swap/getSwapRate';
+import { getChainBySlug } from '../../util/tokens';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import Button from '../ui/Button';
+import Fee from '../ui/Fee';
 import IconWithTooltip from '../ui/IconWithTooltip';
 import Modal from '../ui/Modal';
 import RichNumberInput from '../ui/RichNumberInput';
@@ -32,9 +34,9 @@ import styles from './Swap.module.scss';
 
 interface OwnProps {
   isOpen: boolean;
-  isGaslessSwap: boolean;
-  realNetworkFeeInDiesel: number;
+  showFullNetworkFee?: boolean;
   onClose: () => void;
+  onNetworkFeeClick?: () => void;
 }
 
 interface StateProps {
@@ -42,7 +44,6 @@ interface StateProps {
   amountOut?: string;
   tokenIn?: ApiSwapAsset;
   tokenOut?: ApiSwapAsset;
-  nativeTokenIn?: Pick<ApiToken, 'symbol' | 'decimals'>;
   networkFee?: string;
   realNetworkFee?: string;
   swapType?: SwapType;
@@ -51,6 +52,9 @@ interface StateProps {
   amountOutMin?: string;
   ourFee?: string;
   ourFeePercent?: number;
+  dieselStatus?: DieselStatus;
+  dieselFee?: string;
+  nativeTokenInBalance?: bigint;
 }
 
 const SLIPPAGE_VALUES = [0.5, 1, 2, 5, 10];
@@ -58,50 +62,66 @@ const MAX_SLIPPAGE_VALUE = 50;
 
 export const MAX_PRICE_IMPACT_VALUE = 5;
 
-function SwapSettingsModal({
-  isOpen,
-  isGaslessSwap,
+function SwapSettingsContent({
   onClose,
   amountIn,
   amountOut,
   swapType,
   tokenIn,
   tokenOut,
-  nativeTokenIn,
   slippage,
-  priceImpact = 0,
-  networkFee = '0',
-  realNetworkFee = '0',
-  realNetworkFeeInDiesel,
-  amountOutMin = '0',
-  ourFee = '0',
+  priceImpact,
+  networkFee,
+  realNetworkFee,
+  amountOutMin,
+  ourFee,
   ourFeePercent = DEFAULT_OUR_SWAP_FEE,
-}: OwnProps & StateProps) {
+  dieselStatus,
+  dieselFee,
+  nativeTokenInBalance,
+  showFullNetworkFee,
+  onNetworkFeeClick,
+}: Omit<OwnProps, 'isOpen'> & StateProps) {
   const { setSlippage } = getActions();
   const lang = useLang();
   const canEditSlippage = swapType === SwapType.OnChain;
 
   const [isSlippageFocused, markSlippageFocused, unmarkSlippageFocused] = useFlag();
-  const [hasError, setHasError] = useState(false);
 
+  // In order to reset this state when the modal is closed, we rely on the fact that Modal unmounts the content when
+  // it's closed.
   const [currentSlippage, setCurrentSlippage] = useState<number | undefined>(slippage);
 
-  const priceImpactError = priceImpact >= MAX_PRICE_IMPACT_VALUE;
-  const slippageError = currentSlippage === undefined || currentSlippage > MAX_SLIPPAGE_VALUE;
+  const priceImpactError = (priceImpact ?? 0) >= MAX_PRICE_IMPACT_VALUE;
+  const slippageError = currentSlippage === undefined
+    ? 'Slippage not specified'
+    : currentSlippage > MAX_SLIPPAGE_VALUE
+      ? 'Slippage too high'
+      : '';
 
   const handleSave = useLastCallback(() => {
     setSlippage({ slippage: currentSlippage! });
     onClose();
   });
 
-  const resetModal = useLastCallback(() => {
-    setCurrentSlippage(slippage);
-  });
-
   const handleInputChange = useLastCallback((stringValue?: string) => {
     const value = stringValue ? Number(stringValue) : undefined;
     setCurrentSlippage(value);
   });
+
+  const explainedFee = useMemo(
+    () => explainSwapFee({
+      swapType,
+      tokenInSlug: tokenIn?.slug,
+      networkFee,
+      realNetworkFee,
+      ourFee,
+      dieselStatus,
+      dieselFee,
+      nativeTokenInBalance,
+    }),
+    [swapType, tokenIn, networkFee, realNetworkFee, ourFee, dieselStatus, dieselFee, nativeTokenInBalance],
+  );
 
   function renderSlippageValues() {
     const slippageList = SLIPPAGE_VALUES.map((value, index) => {
@@ -127,17 +147,9 @@ function SwapSettingsModal({
   }
 
   function renderSlippageError() {
-    const error = currentSlippage === undefined
-      ? lang('Slippage not specified')
-      : currentSlippage > MAX_SLIPPAGE_VALUE
-        ? lang('Slippage too high')
-        : '';
-
-    setHasError(!!error);
-
     return (
       <div className={styles.advancedSlippageError}>
-        <span>{lang(error)}</span>
+        <span>{lang(slippageError)}</span>
       </div>
     );
   }
@@ -151,38 +163,42 @@ function SwapSettingsModal({
       true,
     );
 
-    if (!rate) return undefined;
-
     return (
       <div className={styles.advancedRow}>
         <span className={styles.advancedDescription}>
           {lang('Exchange Rate')}
         </span>
         <span className={styles.advancedValue}>
-          {`${rate.firstCurrencySymbol} ≈ ${rate.price} ${rate.secondCurrencySymbol}`}
+          {rate
+            ? `${rate.firstCurrencySymbol} ≈ ${rate.price} ${rate.secondCurrencySymbol}`
+            : <ValuePlaceholder />}
         </span>
       </div>
     );
   }
 
   function renderNetworkFee() {
-    let feeOptions: FormatFeeOptions | undefined;
+    const actualFee = showFullNetworkFee ? explainedFee.fullFee : explainedFee.realFee;
+    let feeElement = actualFee && tokenIn && (
+      <Fee
+        terms={actualFee.networkTerms}
+        precision={actualFee.precision}
+        token={tokenIn}
+      />
+    );
 
-    if (isGaslessSwap && tokenIn) {
-      feeOptions = {
-        terms: { native: fromDecimal(realNetworkFeeInDiesel, tokenIn.decimals) },
-        token: tokenIn,
-        nativeToken: tokenIn,
-        precision: 'approximate',
-      };
-    }
-    if (!isGaslessSwap && nativeTokenIn) {
-      feeOptions = {
-        terms: { native: fromDecimal(realNetworkFee, nativeTokenIn.decimals) },
-        token: nativeTokenIn,
-        nativeToken: nativeTokenIn,
-        precision: realNetworkFee === networkFee ? 'exact' : 'approximate',
-      };
+    if (feeElement && onNetworkFeeClick) {
+      feeElement = (
+        <span
+          role="button"
+          tabIndex={0}
+          className={styles.advancedLink}
+          onClick={() => onNetworkFeeClick()}
+        >
+          <span>{feeElement}</span>
+          <i className={buildClassName('icon-chevron-right', styles.advancedLinkIcon)} aria-hidden />
+        </span>
+      );
     }
 
     return (
@@ -191,7 +207,7 @@ function SwapSettingsModal({
           {lang('Blockchain Fee')}
         </span>
         <span className={styles.advancedValue}>
-          {feeOptions && formatFee(feeOptions)}
+          {feeElement || <ValuePlaceholder />}
         </span>
       </div>
     );
@@ -218,15 +234,7 @@ function SwapSettingsModal({
   }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      isCompact
-      onCloseAnimationEnd={resetModal}
-    >
-      <div className={styles.advancedTitle}>
-        {lang('Swap Details')}
-      </div>
+    <>
       {canEditSlippage && (
         <div className={styles.advancedInput}>
           {renderSlippageValues()}
@@ -234,9 +242,10 @@ function SwapSettingsModal({
             labelText={renderSlippageLabel()}
             labelClassName={styles.slippageLabel}
             value={currentSlippage?.toString()}
-            hasError={hasError}
+            hasError={Boolean(slippageError)}
             decimals={2}
             suffix={isSlippageFocused ? '' : '%'}
+            size="normal"
             onChange={handleInputChange}
             onFocus={markSlippageFocused}
             onBlur={unmarkSlippageFocused}
@@ -248,25 +257,29 @@ function SwapSettingsModal({
         {renderRate()}
         {renderNetworkFee()}
 
+        {explainedFee.shouldShowOurFee && (
+          <div className={styles.advancedRow}>
+            <span className={styles.advancedDescription}>
+              {lang('Aggregator Fee')}
+              <IconWithTooltip
+                message={(
+                  <div className={styles.advancedTooltipMessage}>
+                    <span>{renderText(lang('$swap_aggregator_fee_tooltip', { percent: `${ourFeePercent}%` }))}</span>
+                  </div>
+                )}
+                tooltipClassName={styles.advancedTooltipContainer}
+                iconClassName={styles.advancedTooltip}
+              />
+            </span>
+            <span className={styles.advancedValue}>
+              {ourFee !== undefined
+                ? formatCurrency(ourFee, tokenIn?.symbol ?? '', undefined, true)
+                : <ValuePlaceholder />}
+            </span>
+          </div>
+        )}
         {swapType === SwapType.OnChain && (
           <>
-            <div className={styles.advancedRow}>
-              <span className={styles.advancedDescription}>
-                {lang('Aggregator Fee')}
-                <IconWithTooltip
-                  message={(
-                    <div className={styles.advancedTooltipMessage}>
-                      <span>{renderText(lang('$swap_aggregator_fee_tooltip', { percent: `${ourFeePercent}%` }))}</span>
-                    </div>
-                  )}
-                  tooltipClassName={styles.advancedTooltipContainer}
-                  iconClassName={styles.advancedTooltip}
-                />
-              </span>
-              <span className={styles.advancedValue}>
-                {formatCurrency(ourFee, tokenIn?.symbol ?? '', undefined, true)}
-              </span>
-            </div>
             <div className={styles.advancedRow}>
               <span className={buildClassName(styles.advancedDescription, priceImpactError && styles.advancedError)}>
                 {lang('Price Impact')}
@@ -283,11 +296,8 @@ function SwapSettingsModal({
                   )}
                 />
               </span>
-              <span className={buildClassName(
-                styles.advancedValue,
-                priceImpactError && styles.advancedError,
-              )}
-              >{priceImpact}%
+              <span className={buildClassName(styles.advancedValue, priceImpactError && styles.advancedError)}>
+                {priceImpact !== undefined ? `${priceImpact}%` : <ValuePlaceholder />}
               </span>
             </div>
             <div className={styles.advancedRow}>
@@ -304,12 +314,11 @@ function SwapSettingsModal({
                   iconClassName={styles.advancedTooltip}
                 />
               </span>
-              {tokenOut && (
-                <span className={styles.advancedValue}>{
-                  formatCurrency(Number(amountOutMin), tokenOut.symbol)
-                }
-                </span>
-              )}
+              <span className={styles.advancedValue}>
+                {amountOutMin !== undefined && tokenOut
+                  ? formatCurrency(amountOutMin, tokenOut.symbol)
+                  : <ValuePlaceholder />}
+              </span>
             </div>
           </>
         )}
@@ -324,7 +333,7 @@ function SwapSettingsModal({
         {canEditSlippage && (
           <Button
             isPrimary
-            isDisabled={hasError}
+            isDisabled={Boolean(slippageError)}
             className={modalStyles.button}
             onClick={handleSave}
           >
@@ -332,13 +341,14 @@ function SwapSettingsModal({
           </Button>
         )}
       </div>
-    </Modal>
+    </>
   );
 }
 
-export default memo(
-  withGlobal<OwnProps>((global): StateProps => {
+const SwapSettings = memo(
+  withGlobal<Omit<OwnProps, 'isOpen'>>((global): StateProps => {
     const {
+      tokenInSlug,
       amountIn,
       amountOut,
       networkFee,
@@ -349,7 +359,12 @@ export default memo(
       amountOutMin,
       ourFee,
       ourFeePercent,
+      dieselStatus,
+      dieselFee,
     } = global.currentSwap;
+
+    const nativeToken = tokenInSlug ? findChainConfig(getChainBySlug(tokenInSlug))?.nativeToken : undefined;
+    const nativeTokenInBalance = nativeToken ? selectCurrentAccountTokenBalance(global, nativeToken.slug) : undefined;
 
     return {
       amountIn,
@@ -359,12 +374,30 @@ export default memo(
       swapType,
       tokenIn: selectCurrentSwapTokenIn(global),
       tokenOut: selectCurrentSwapTokenOut(global),
-      nativeTokenIn: selectCurrentSwapNativeTokenIn(global),
       slippage,
       priceImpact,
       amountOutMin,
       ourFee,
       ourFeePercent,
+      dieselStatus,
+      dieselFee,
+      nativeTokenInBalance,
     };
-  })(SwapSettingsModal),
+  })(SwapSettingsContent),
 );
+
+export default function SwapSettingsModal({ isOpen, onClose, ...restProps }: OwnProps) {
+  const lang = useLang();
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} isCompact title={lang('Swap Details')}>
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <SwapSettings onClose={onClose} {...restProps} />
+    </Modal>
+  );
+}
+
+function ValuePlaceholder() {
+  const lang = useLang();
+  return <span className={styles.advancedPlaceholder}>{lang('No Data')}</span>;
+}

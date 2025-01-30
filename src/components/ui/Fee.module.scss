@@ -1,0 +1,11 @@
+.term {
+  line-height: 1.25em; // Setting an absolute line-height prevents the icon from shifting 1px vertically depending on the surrounding content
+  white-space: nowrap;
+}
+
+.tokenIcon {
+  margin: 0 -0.1875em;
+
+  font-size: 106.7%;
+  vertical-align: -0.1875em;
+}

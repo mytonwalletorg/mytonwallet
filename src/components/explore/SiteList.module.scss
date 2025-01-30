@@ -1,0 +1,39 @@
+@import "../../styles/mixins/index";
+
+.root {
+  --header-padding-top: 1.5rem;
+  --header-title-height: 1.1875rem;
+  --header-padding-bottom: 1.375rem;
+
+  position: relative;
+
+  overflow: hidden;
+  overflow-y: scroll;
+
+  height: 100%;
+
+  :global(html.with-safe-area-top) & {
+    --header-padding-top: 0.75rem;
+  }
+
+  // Fix for opera, dead zone of 37 pixels in extension window on windows
+  :global(html.is-windows.is-opera.is-extension) & {
+    --header-padding-top: 2.3125rem;
+  }
+
+  @include respond-below(xs) {
+    min-height: 100%;
+    padding-bottom: calc(max(var(--safe-area-bottom), 1rem) + var(--bottombar-height) + 1rem);
+  }
+}
+
+.list {
+  background-color: var(--color-background-first);
+  border-radius: var(--border-radius-default);
+
+  @include respond-below(xs) {
+    margin: 1rem 1rem 0;
+
+    @include adapt-margin-to-scrollbar(1rem);
+  }
+}

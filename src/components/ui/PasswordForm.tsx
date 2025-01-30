@@ -18,6 +18,7 @@ import { ANIMATED_STICKERS_PATHS } from './helpers/animatedAssets';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
+import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
@@ -110,6 +111,8 @@ function PasswordForm({
       setWrongAttempts(0);
     }
   }, [isActive]);
+
+  useHideBottomBar(Boolean(isActive));
 
   const handleBiometrics = useLastCallback(async () => {
     try {
