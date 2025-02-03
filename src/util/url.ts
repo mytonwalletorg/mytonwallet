@@ -108,3 +108,7 @@ export function getExplorerTokenUrl(chain: ApiChain, slug?: string, address?: st
     ? getTokenExplorerBaseUrl(chain, isTestnet).replace('{address}', address)
     : `https://coinmarketcap.com/currencies/${slug}/`;
 }
+
+export function isTelegramUrl(url: string) {
+  return url.startsWith('https://t.me/');
+}

@@ -150,8 +150,6 @@ export enum SwapState {
   Blockchain,
   Password,
   WaitTokens,
-  ConnectHardware,
-  ConfirmHardware,
   Complete,
   SelectTokenFrom,
   SelectTokenTo,
@@ -634,6 +632,7 @@ export type GlobalState = {
   isStakingInfoModalOpen?: boolean;
   isQrScannerOpen?: boolean;
   areSettingsOpen?: boolean;
+  isExploreOpen?: boolean;
   isAppUpdateAvailable?: boolean;
   // Force show the "Update MyTonWallet" pop-up on all platforms
   isAppUpdateRequired?: boolean;
@@ -845,6 +844,9 @@ export interface ActionPayloads {
   };
   closeHideNftModal: undefined;
 
+  openExplore: undefined;
+  closeExplore: undefined;
+
   closeAnyModal: undefined;
   closeAllOverlays: undefined;
   submitSignature: { password: string };
@@ -994,7 +996,7 @@ export interface ActionPayloads {
   setSlippage: { slippage: number };
   loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
   clearSwapPairsCache: undefined;
-  estimateSwap: { shouldBlock: boolean; toncoinBalance: bigint; isEnoughToncoin?: boolean };
+  estimateSwap: { shouldBlock: boolean };
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
   estimateSwapCex: { shouldBlock: boolean };

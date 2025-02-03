@@ -335,7 +335,7 @@ function LedgerConnect({
             activeKey={!IS_CAPACITOR ? 0 : (selectedTransport !== 'bluetooth' ? 1 : 2)}
             name="semiFade"
             className={buildClassName(styles.iconBlock, IS_CAPACITOR && styles.mobile)}
-            slideClassName={styles.iconBlockSlide}
+            slideClassName={isStatic ? styles.iconBlockSlideStatic : styles.iconBlockSlide}
           >
             <Image
               url={getLedgerIconSrc()}

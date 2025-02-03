@@ -1,4 +1,4 @@
-import type { ApiToken } from '../../api/types';
+import type { ApiSwapEstimateVariant, ApiToken } from '../../api/types';
 import type { GlobalState } from '../../global/types';
 import type { FeePrecision, FeeTerms } from './types';
 import { SwapType } from '../../global/types';
@@ -55,18 +55,27 @@ type MaxSwapAmountInput = Pick<GlobalState['currentSwap'], 'swapType' | 'ourFeeP
   fullNetworkFee: FeeTerms<string> | undefined;
 };
 
-type BalanceSufficientForSwapInput = Omit<MaxSwapAmountInput, never> & {
+type BalanceSufficientForSwapInput = MaxSwapAmountInput & {
   /** The wallet balance of the native token of the "in" token chain. Undefined means that it's unknown. */
   nativeTokenInBalance: bigint | undefined;
   /** The "in" amount to swap. Undefined means that it's unspecified. */
   amountIn: string | undefined;
 };
 
+type CanAffordSwapVariant = {
+  variant: ApiSwapEstimateVariant;
+  tokenIn: Pick<ApiToken, 'slug' | 'decimals'> | undefined;
+  /** The balance of the "in" token. Undefined means that it's unknown. */
+  tokenInBalance: bigint | undefined;
+  /** The wallet balance of the native token of the "in" token chain. Undefined means that it's unknown. */
+  nativeTokenInBalance: bigint | undefined;
+};
+
 /**
  * Converts the swap fee data returned from API into data that is ready to be displayed in the swap form UI.
  */
 export function explainSwapFee(input: ExplainSwapFeeInput): ExplainedSwapFee {
-  return shouldBeGasless(input)
+  return shouldSwapBeGasless(input)
     ? explainGaslessSwapFee(input)
     : explainGasfullSwapFee(input);
 }
@@ -152,7 +161,43 @@ export function isBalanceSufficientForSwap(input: BalanceSufficientForSwapInput)
   return swapAmountInBigint <= maxAmount && networkNativeFeeBigint <= nativeTokenInBalance;
 }
 
-function shouldBeGasless(input: ExplainSwapFeeInput) {
+/**
+ * Decides whether the balance is sufficient for the given swap estimate variant (DEX).
+ * Returns undefined when it can't be calculated because of insufficient input data.
+ */
+export function canAffordSwapEstimateVariant(input: CanAffordSwapVariant) {
+  if (!input.tokenIn || input.nativeTokenInBalance === undefined) {
+    return undefined;
+  }
+
+  const nativeTokenIn = findChainConfig(getChainBySlug(input.tokenIn.slug))?.nativeToken;
+  if (!nativeTokenIn) {
+    return undefined;
+  }
+
+  // Try to pay with gas
+  const networkFeeBigint = fromDecimal(input.variant.networkFee, nativeTokenIn.decimals);
+  if (input.nativeTokenInBalance >= networkFeeBigint) {
+    return true;
+  }
+
+  // Otherwise, try to pay with diesel
+  if (input.variant.dieselFee) {
+    if (input.tokenInBalance === undefined) {
+      return undefined;
+    }
+    const dieselFeeBigint = fromDecimal(input.variant.dieselFee, input.tokenIn.decimals);
+    if (input.tokenInBalance >= dieselFeeBigint) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function shouldSwapBeGasless(
+  input: Pick<ExplainSwapFeeInput, 'tokenInSlug' | 'nativeTokenInBalance' | 'networkFee' | 'dieselStatus' | 'swapType'>,
+) {
   const isNativeIn = getIsNativeToken(input.tokenInSlug);
   const nativeTokenBalance = getBigNativeTokenInBalance(input);
   const isInsufficientNative = input.networkFee !== undefined && nativeTokenBalance !== undefined
@@ -162,7 +207,7 @@ function shouldBeGasless(input: ExplainSwapFeeInput) {
     input.swapType === SwapType.OnChain
     && isInsufficientNative
     && !isNativeIn
-    && input.dieselStatus && input.dieselStatus !== 'not-available'
+    && Boolean(input.dieselStatus) && input.dieselStatus !== 'not-available'
   );
 }
 

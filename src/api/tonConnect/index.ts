@@ -633,7 +633,7 @@ export async function fetchDappMetadata(manifestUrl: string, origin?: string): P
     const data = await fetchJsonMetadata(manifestUrl);
 
     const { url, name, iconUrl } = await data;
-    const safeIconUrl = iconUrl.startsWith('data:') ? BLANK_GIF_DATA_URL : iconUrl;
+    const safeIconUrl = (iconUrl.startsWith('data:') || iconUrl === '') ? BLANK_GIF_DATA_URL : iconUrl;
     if (!isValidUrl(url) || !isValidString(name) || !isValidUrl(safeIconUrl)) {
       throw new Error('Invalid data');
     }

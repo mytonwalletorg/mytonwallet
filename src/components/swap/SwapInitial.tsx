@@ -145,7 +145,7 @@ function SwapInitial({
     () => tokens?.find((token) => token.slug === nativeTokenInSlug),
     [nativeTokenInSlug, tokens],
   );
-  const nativeBalance = nativeUserTokenIn?.amount ?? 0n;
+  const nativeTokenInBalance = nativeUserTokenIn?.amount ?? 0n;
 
   const amountInBigint = amountIn && tokenIn ? fromDecimal(amountIn, tokenIn.decimals) : undefined;
   const amountOutBigint = amountOut && tokenOut ? fromDecimal(amountOut, tokenOut.decimals) : undefined;
@@ -160,9 +160,9 @@ function SwapInitial({
       ourFee,
       dieselStatus,
       dieselFee,
-      nativeTokenInBalance: nativeBalance,
+      nativeTokenInBalance,
     }),
-    [swapType, tokenInSlug, networkFee, realNetworkFee, ourFee, dieselStatus, dieselFee, nativeBalance],
+    [swapType, tokenInSlug, networkFee, realNetworkFee, ourFee, dieselStatus, dieselFee, nativeTokenInBalance],
   );
 
   const maxAmount = getMaxSwapAmount({
@@ -181,13 +181,13 @@ function SwapInitial({
     fullNetworkFee: explainedFee.fullFee?.networkTerms,
     ourFeePercent,
     amountIn,
-    nativeTokenInBalance: nativeBalance,
+    nativeTokenInBalance,
   });
 
   const networkFeeBigint = networkFee !== undefined && nativeUserTokenIn
     ? fromDecimal(networkFee, nativeUserTokenIn.decimals)
     : 0n;
-  const isEnoughNative = nativeBalance >= networkFeeBigint;
+  const isEnoughNative = nativeTokenInBalance >= networkFeeBigint;
 
   const isDieselNotAuthorized = explainedFee.isGasless && dieselStatus === 'not-authorized';
 
@@ -228,11 +228,7 @@ function SwapInitial({
       return;
     }
 
-    estimateSwap({
-      shouldBlock,
-      isEnoughToncoin: isEnoughNative,
-      toncoinBalance: nativeBalance,
-    });
+    estimateSwap({ shouldBlock });
   });
 
   const throttledEstimateSwap = useThrottledCallback(

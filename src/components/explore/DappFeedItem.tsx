@@ -4,6 +4,7 @@ import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import { SECOND } from '../../util/dateFormat';
 import { openUrl } from '../../util/openUrl';
+import { isTelegramUrl } from '../../util/url';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -112,7 +113,3 @@ function DappFeedItem({
 }
 
 export default memo(DappFeedItem);
-
-function isTelegramUrl(url: string) {
-  return url.startsWith('https://t.me/');
-}

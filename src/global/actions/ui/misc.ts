@@ -269,7 +269,8 @@ addActionHandler('changeNetwork', (global, actions, { network }) => {
 
 addActionHandler('openSettings', (global) => {
   global = updateSettings(global, { state: SettingsState.Initial });
-  setGlobal({ ...global, areSettingsOpen: true });
+
+  return { ...global, areSettingsOpen: true };
 });
 
 addActionHandler('openSettingsWithState', (global, actions, { state }) => {
@@ -829,6 +830,14 @@ addActionHandler('closeAnyModal', () => {
 addActionHandler('closeAllOverlays', (global, actions) => {
   actions.closeAnyModal();
   actions.closeMediaViewer();
+});
+
+addActionHandler('openExplore', (global) => {
+  return { ...global, isExploreOpen: true };
+});
+
+addActionHandler('closeExplore', (global) => {
+  return { ...global, isExploreOpen: undefined };
 });
 
 async function connectLedgerAndGetHardwareState() {

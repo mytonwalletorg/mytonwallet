@@ -40,7 +40,7 @@ function getIsBottomBarHidden() {
 
 function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StateProps) {
   const {
-    openSettings, closeSettings, setActiveContentTab, closeSiteCategory, selectToken,
+    openSettings, closeSettings, setActiveContentTab, closeSiteCategory, selectToken, openExplore, closeExplore,
   } = getActions();
   const lang = useLang();
   const [isHidden, setIsHidden] = useState(getIsBottomBarHidden());
@@ -52,36 +52,28 @@ function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StatePro
     });
   });
 
-  const openExplore = useLastCallback(() => {
-    setActiveContentTab({ tab: ContentTab.Explore }, { forceOnHeavyAnimation: true });
-  });
-
-  const closeExplore = useLastCallback(() => {
-    setActiveContentTab({ tab: ContentTab.Assets }, { forceOnHeavyAnimation: true });
-  });
-
   const handleWalletClick = useLastCallback(() => {
-    closeExplore();
-    closeSettings();
+    closeExplore(undefined, { forceOnHeavyAnimation: true });
+    closeSettings(undefined, { forceOnHeavyAnimation: true });
 
     if (!areAssetsActive && isWalletTabActive) {
-      selectToken({ slug: undefined });
+      selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
       setActiveContentTab({ tab: ContentTab.Assets }, { forceOnHeavyAnimation: true });
     }
   });
 
   const handleExploreClick = useLastCallback(() => {
     if (isExploreOpen) {
-      closeSiteCategory();
+      closeSiteCategory(undefined, { forceOnHeavyAnimation: true });
     }
 
-    openExplore();
-    closeSettings();
+    openExplore(undefined, { forceOnHeavyAnimation: true });
+    closeSettings(undefined, { forceOnHeavyAnimation: true });
   });
 
   const handleSettingsClick = useLastCallback(() => {
     openSettings(undefined, { forceOnHeavyAnimation: true });
-    closeExplore();
+    closeExplore(undefined, { forceOnHeavyAnimation: true });
   });
 
   useHistoryBack({
@@ -120,12 +112,12 @@ function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StatePro
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { areSettingsOpen } = global;
+  const { areSettingsOpen, isExploreOpen } = global;
   const { activeContentTab } = selectCurrentAccountState(global) ?? {};
 
   return {
     areSettingsOpen,
     areAssetsActive: activeContentTab === ContentTab.Assets,
-    isExploreOpen: !areSettingsOpen && activeContentTab === ContentTab.Explore,
+    isExploreOpen,
   };
 })(BottomBar));

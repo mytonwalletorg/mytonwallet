@@ -2,6 +2,7 @@
   cursor: var(--custom-cursor, pointer);
 
   position: fixed;
+  z-index: var(--z-notification);
   bottom: max(var(--safe-area-bottom), 1rem);
   left: 50%;
   transform: translateX(-50%);
@@ -31,6 +32,10 @@
     color: var(--color-accent-button-text-hover);
 
     background: var(--color-accent-button-background-hover);
+  }
+
+  :global(html.with-bottombar) & {
+    bottom: calc(var(--bottombar-height) + max(var(--safe-area-bottom), 0px) + 1rem);
   }
 }
 

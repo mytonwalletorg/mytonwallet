@@ -3,11 +3,14 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, TON_DIAMONDS_URL } from '../../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, TON_DIAMONDS_TITLE, TON_DIAMONDS_URL } from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
+import { openUrl } from '../../../../util/openUrl';
+import stopEvent from '../../../../util/stopEvent';
+import { getHostnameFromUrl } from '../../../../util/url';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -83,6 +86,12 @@ function Nfts({
     isDisabled: !nfts?.length,
   });
 
+  function handleTonDiamondsClick(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    stopEvent(e);
+
+    void openUrl(TON_DIAMONDS_URL, undefined, TON_DIAMONDS_TITLE, getHostnameFromUrl(TON_DIAMONDS_URL));
+  }
+
   if (nfts === undefined) {
     return (
       <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
@@ -107,9 +116,9 @@ function Nfts({
         {!isNftBuyingDisabled && (
           <>
             <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
-            <a className={styles.emptyListButton} href={TON_DIAMONDS_URL} rel="noreferrer noopener" target="_blank">
+            <button type="button" className={styles.emptyListButton} onClick={handleTonDiamondsClick}>
               {lang('Open TON Diamonds')}
-            </a>
+            </button>
           </>
         )}
       </div>

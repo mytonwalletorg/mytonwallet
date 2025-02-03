@@ -90,6 +90,7 @@ export type ApiMtwCardBorderShineType = 'up' | 'down' | 'left' | 'right' | 'radi
 export interface ApiNftMetadata {
   lottie?: string;
   imageUrl?: string;
+  fragmentUrl?: string;
   mtwCardId?: number;
   mtwCardType?: ApiMtwCardType;
   mtwCardTextType?: ApiMtwCardTextType;

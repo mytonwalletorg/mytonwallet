@@ -10,6 +10,12 @@
 
     max-width: 31.4375rem;
     margin: 0 auto;
+
+    &:global(.Transition_slide-to),
+    &:global(.Transition_slide-from) {
+      left: 50%;
+      transform: translateX(-50%);
+    }
   }
 }
 

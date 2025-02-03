@@ -46,7 +46,7 @@ function Category({ category, sites }: OwnProps) {
           <button
             key={`${site.url}-${site.name}`}
             type="button"
-            className={buildClassName(styles.site, styles.scaleable)}
+            className={buildClassName(styles.site, styles.scalable)}
             onClick={() => {
               openUrl(site.url, site.isExternal, site.name, getHostnameFromUrl(site.url));
             }}
@@ -59,7 +59,7 @@ function Category({ category, sites }: OwnProps) {
           </button>
         ))}
         {smallSites.length > 0 && (
-          <div className={buildClassName(styles.subfolder, styles.scaleable)} onClick={handleCategoryClick}>
+          <div className={buildClassName(styles.subfolder, styles.scalable)} onClick={handleCategoryClick}>
             {smallSites.map((site) => (
               <Image
                 key={`${site.url}-${site.name}`}

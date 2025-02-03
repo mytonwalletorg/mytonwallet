@@ -5,7 +5,7 @@ import type { ApiSite } from '../../api/types';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { openUrl } from '../../util/openUrl';
-import { getHostnameFromUrl } from '../../util/url';
+import { getHostnameFromUrl, isTelegramUrl } from '../../util/url';
 
 import Image from '../ui/Image';
 
@@ -44,11 +44,17 @@ function Site({
     >
       <Image
         url={extendedIcon && isTrending ? extendedIcon : icon}
-        className={buildClassName(styles.imageWrapper, !isTrending && styles.imageWrapperScaleable)}
-        imageClassName={styles.image}
+        className={buildClassName(styles.imageWrapper, !isTrending && styles.imageWrapperScalable)}
+        imageClassName={buildClassName(styles.image, isTrending && styles.trendingImage)}
       />
       <div className={styles.infoWrapper}>
-        <b className={styles.title}>{name}</b>
+        <b className={styles.title}>
+          {name}
+
+          {!isTrending && isTelegramUrl(url) && (
+            <i className={buildClassName(styles.telegram, 'icon-telegram-filled')} aria-hidden />
+          )}
+        </b>
         <div className={styles.description}>{description}</div>
       </div>
       {badgeText && <div className={styles.badge}>{badgeText}</div>}

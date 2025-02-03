@@ -168,12 +168,12 @@ $nft_explore_offer: |
 Open TON Diamonds: TON Diamonds'i aç
 Received: Alındı
 Sent: Gönder
-$transaction_from: "bu adresten = %address%"
-$transaction_to: "bu adrese = %address%"
+$transaction_from: bu adresten = %address%
+$transaction_to: bu adrese = %address%
 Wallet is not backed up: Cüzdan yedeklenmemiş
 Testnet Version: Testnet Sürümü
 Error reading clipboard: Pano okunurken hata oluştu
-$fee_value: "Ücret %fee%"
+$fee_value: Ücret %fee%
 $fee_value_with_colon: "Ücret: %fee%"
 Pay fee with %stars_symbol%: "%stars_symbol% ile öde"
 Loading...: Yükleniyor...
@@ -280,7 +280,7 @@ Payload: Payload
 $many_transactions: "%1$d işlem"
 Total Amount: Toplam tutar
 Unstaking: Unstaking gerçekleşiyor
-"Handle ton:// links": ton uzantılı isimler:// link'ler
+Handle ton:// links: ton uzantılı isimler:// link'ler
 Back up wallet to have full access to it: Tam erişime sahip olmak için cüzdanı yedekleyin
 Consider More Secure Version: Daha güvenli sürümü kullanmayı düşünün
 Install our native app or browser extension.: Yerel uygulamamızı veya tarayıcı uzantımızı yükleyin.
@@ -389,7 +389,7 @@ Invalid address format. Only URL Safe Base64 format is allowed.: Geçersiz adres
 $auth_backup_description1: |
   Bu bir **güvenli cüzdandır**
   ve sadece **sizin tarafınızdan kontrol edilir**.
-$auth_backup_description2: "Ve büyük güç **büyük sorumluluğu** da beraberinde getirir."
+$auth_backup_description2: Ve büyük güç **büyük sorumluluğu** da beraberinde getirir.
 $auth_backup_description3: |
   Parolanızı unutmanız veya bu cihaza erişiminizi kaybetmeniz ihtimaline karşı **gizli anahtarları** manuel olarak **yedeklemeniz** gerekir.
 Swap Placed: Takas emri gönderildi
@@ -515,7 +515,7 @@ Unknown error: Bilinmeyen hata
 Are you sure you want to disable Face ID?: Face ID'yi devre dışı bırakmak istediğinizden emin misiniz?
 Are you sure you want to disable Touch ID?: Touch ID'yi devre dışı bırakmak istediğinizden emin misiniz?
 Are you sure you want to disable biometrics?: Biyometrik korumayı devre dışı bırakmak istediğinizden emin misiniz?
-Yes: Evet
+"Yes": Evet
 Biometric confirmation failed: Biyometrik doğrulama başarısız oldu
 No Activity: Etkinlik yok
 Add / Buy: Yükleme
@@ -556,7 +556,7 @@ $ledger_not_supported_operation: Bu işlem, kullandığınız Ledger TON App sü
 $ledger_unsupported_ton_connect: TonConnect, Ledger Ton uygulamanızın sürümü tarafından desteklenmez. Lütfen Ledger Live kullanarak güncelleyin.
 $dapp_transfer_tokens_burn: "%amount% yakılıyor"
 $dapp_dns_set_wallet_payload: "%domain% alanının bağlı cüzdanını %address% olarak değiştirme"
-$dapp_dns_delete_wallet_payload: "Deleting linked wallet of domain %domain%"
+$dapp_dns_delete_wallet_payload: Deleting linked wallet of domain %domain%
 $dapp_dns_change_record_payload: "%domain% alanının \"%category%\" kaydı %value% olarak değiştiriliyor"
 $dapp_dns_delete_record_payload: "%domain% alan adının \"%category%\" kaydı siliniyor"
 $dapp_token_bridge_pay_swap_payload: Zincirler arası köprü aracılığıyla değişim onayı
@@ -592,7 +592,7 @@ Unstake More: Unstake daha fazla
 WrongAddress: Dapp başka bir cüzdandan bir işlem talep etti.
 Are you sure you want to burn this NFT? It will be lost forever.: Bu NFT'yi yakmak istediğinizden emin misiniz? Sonsuza kadar kaybolacak.
 $multi_burn_nft_warning: "%amount% NFT yakacaksınız."
-$multi_send_nft_warning: "İşlem ~%duration% dakika sürebilir. Lütfen işlem tamamlanana kadar uygulamayı kapatmayın ve hesap değiştirmeyin."
+$multi_send_nft_warning: İşlem ~%duration% dakika sürebilir. Lütfen işlem tamamlanana kadar uygulamayı kapatmayın ve hesap değiştirmeyin.
 Burn NFT: NFT'yi yaz
 Burn: Yakmak
 Private Key: Gizli anahtar
@@ -676,7 +676,7 @@ Switch to W5: W5'e Geç
 Not Scam: Dolandırıcılık Değil
 Untitled: Başlıksız
 $swap_too_small_amount: Çok küçük miktar
-Not enough %symbol%: "Yeterli %symbol% yok"
+Not enough %symbol%: Yeterli %symbol% yok
 $receive_tron_description: Cüzdan bakiyenizi artırmak için bu QR'yi tarayın veya adresinizi paylaşın.
 You have just created a new multichain wallet: Yeni bir çok zincirli cüzdan oluşturdunuz
 Now you can transfer tokens from your TON and TRON wallets.: Artık TON ve TRON cüzdanlarınızdan token transferi yapabilirsiniz.

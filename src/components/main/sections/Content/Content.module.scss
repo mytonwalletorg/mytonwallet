@@ -54,6 +54,11 @@
 
     /* stylelint-disable-next-line plugin/whole-pixel */
     box-shadow: 0 0.025rem 0 0 var(--color-separator);
+
+    @media (-webkit-max-device-pixel-ratio: 1.3) {
+      /* stylelint-disable-next-line plugin/whole-pixel */
+      box-shadow: 0 0.034375rem 0 0 var(--color-separator);
+    }
   }
 
   .portraitContainer & {

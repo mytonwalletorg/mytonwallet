@@ -5,6 +5,7 @@ import type {
   ApiSwapActivity,
   ApiSwapBuildRequest,
   ApiSwapCexCreateTransactionRequest,
+  ApiSwapDexLabel,
   ApiSwapEstimateResponse,
   ApiSwapEstimateVariant,
   ApiSwapHistoryItem,
@@ -24,7 +25,6 @@ import {
 } from '../../types';
 
 import {
-  DEFAULT_FEE,
   DEFAULT_SWAP_FISRT_TOKEN_SLUG,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   IS_CAPACITOR,
@@ -33,15 +33,17 @@ import {
 } from '../../../config';
 import { Big } from '../../../lib/big.js';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { findChainConfig, getChainConfig } from '../../../util/chain';
 import {
   fromDecimal, getIsPositiveDecimal, roundDecimal, toDecimal,
 } from '../../../util/decimals';
+import { canAffordSwapEstimateVariant, shouldSwapBeGasless } from '../../../util/fee/swapFee';
 import generateUniqueId from '../../../util/generateUniqueId';
 import { buildCollectionByKey, pick } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
 import { buildSwapId } from '../../../util/swap/buildSwapId';
-import { getIsTonToken, getNativeToken } from '../../../util/tokens';
+import { getChainBySlug, getIsTonToken, getNativeToken } from '../../../util/tokens';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
@@ -114,10 +116,8 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
   const fromAmount = amountIn!;
   const toAmount = amountOut!;
   const account = selectAccount(global, global.currentAccountId!);
-  const shouldTryDiesel = networkFee
-    ? selectCurrentToncoinBalance(global) < (fromDecimal(networkFee) + DEFAULT_FEE)
-    && global.currentSwap.dieselStatus === 'available'
-    : undefined;
+  const nativeTokenIn = findChainConfig(getChainBySlug(tokenIn.slug))?.nativeToken;
+  const nativeTokenInBalance = nativeTokenIn ? selectCurrentAccountTokenBalance(global, nativeTokenIn.slug) : undefined;
 
   return {
     from,
@@ -127,7 +127,7 @@ function buildSwapBuildRequest(global: GlobalState): ApiSwapBuildRequest {
     toMinAmount: amountOutMin!,
     slippage,
     fromAddress: account?.addressByChain[tokenIn.chain as ApiChain] || account?.addressByChain.ton!,
-    shouldTryDiesel,
+    shouldTryDiesel: shouldSwapBeGasless({ ...global.currentSwap, nativeTokenInBalance }),
     dexLabel: currentDexLabel!,
     networkFee: realNetworkFee ?? networkFee!,
     swapFee: swapFee!,
@@ -644,12 +644,12 @@ addActionHandler('setSlippage', (global, actions, { slippage }) => {
 });
 
 addActionHandler('estimateSwap', async (global, actions, payload) => {
-  if (isEstimateSwapBeingExecuted) return;
+  if (isEstimateSwapBeingExecuted || shouldAvoidEstimation(global)) return;
 
   try {
     isEstimateSwapBeingExecuted = true;
 
-    const { shouldBlock, toncoinBalance, isEnoughToncoin } = payload;
+    const { shouldBlock } = payload;
 
     const resetParams = {
       ...feeResetParams,
@@ -698,6 +698,7 @@ addActionHandler('estimateSwap', async (global, actions, payload) => {
 
     const tokenIn = global.swapTokenInfo!.bySlug[global.currentSwap.tokenInSlug!];
     const tokenOut = global.swapTokenInfo!.bySlug[global.currentSwap.tokenOutSlug!];
+    const nativeTokenIn = getChainConfig(getChainBySlug(tokenIn.slug)).nativeToken;
 
     const from = tokenIn.slug === TONCOIN.slug ? tokenIn.symbol : tokenIn.tokenAddress!;
     const to = tokenOut.slug === TONCOIN.slug ? tokenOut.symbol : tokenOut.tokenAddress!;
@@ -707,7 +708,8 @@ addActionHandler('estimateSwap', async (global, actions, payload) => {
 
     const estimateAmount = global.currentSwap.inputSource === SwapInputSource.In ? { fromAmount } : { toAmount };
 
-    const shouldTryDiesel = isEnoughToncoin === false;
+    const toncoinBalance = selectCurrentToncoinBalance(global);
+    const shouldTryDiesel = toncoinBalance < fromDecimal(global.currentSwap.networkFee ?? '0', nativeTokenIn.decimals);
 
     const estimate = await callApi('swapEstimate', global.currentAccountId!, {
       ...estimateAmount,
@@ -721,11 +723,11 @@ addActionHandler('estimateSwap', async (global, actions, payload) => {
     });
 
     global = getGlobal();
+    if (shouldAvoidEstimation(global)) return;
 
     if (!estimate || 'error' in estimate) {
-      const errorType = estimate?.error && estimate?.error in SERVER_ERRORS_MAP
-        ? SERVER_ERRORS_MAP[estimate.error as keyof typeof SERVER_ERRORS_MAP]
-        : SwapErrorType.UnexpectedError;
+      const errorType = SERVER_ERRORS_MAP[estimate?.error as keyof typeof SERVER_ERRORS_MAP]
+        ?? SwapErrorType.UnexpectedError;
 
       global = updateCurrentSwap(global, {
         ...resetParams,
@@ -759,24 +761,14 @@ addActionHandler('estimateSwap', async (global, actions, payload) => {
       : undefined;
 
     const estimates = buildSwapEstimates(estimate);
-    const currentDexLabel = global.currentSwap.currentDexLabel && global.currentSwap.isDexLabelChanged
-    && estimates.some(({ dexLabel }) => dexLabel === global.currentSwap.currentDexLabel)
-      ? global.currentSwap.currentDexLabel
-      : estimate.dexLabel;
-    const currentEstimate = estimates.find(({ dexLabel }) => dexLabel === currentDexLabel)!;
+    const currentEstimate = chooseSwapEstimate(global, estimates, estimate.dexLabel);
 
     global = updateCurrentSwap(global, {
-      ...(
-        global.currentSwap.inputSource === SwapInputSource.In
-          ? {
-            amountOut: currentEstimate.toAmount,
-            ...(
-              isFromAmountMax
-                ? { amountIn: currentEstimate.fromAmount }
-                : undefined
-            ),
-          } : { amountIn: currentEstimate.fromAmount }
+      ...(global.currentSwap.inputSource === SwapInputSource.In
+        ? { amountOut: currentEstimate.toAmount }
+        : { amountIn: currentEstimate.fromAmount }
       ),
+      ...(isFromAmountMax ? { amountIn: currentEstimate.fromAmount } : undefined),
       bestRateDexLabel: estimate.dexLabel,
       amountOutMin: currentEstimate.toMinAmount,
       priceImpact: currentEstimate.impact,
@@ -784,7 +776,7 @@ addActionHandler('estimateSwap', async (global, actions, payload) => {
       errorType,
       dieselStatus: estimate.dieselStatus,
       estimates,
-      currentDexLabel,
+      currentDexLabel: currentEstimate.dexLabel,
       // Fees
       networkFee: currentEstimate.networkFee,
       realNetworkFee: currentEstimate.realNetworkFee,
@@ -801,7 +793,7 @@ addActionHandler('estimateSwap', async (global, actions, payload) => {
 });
 
 addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => {
-  if (isEstimateCexSwapBeingExecuted) return;
+  if (isEstimateCexSwapBeingExecuted || shouldAvoidEstimation(global)) return;
 
   try {
     isEstimateCexSwapBeingExecuted = true;
@@ -866,6 +858,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
     });
 
     global = getGlobal();
+    if (shouldAvoidEstimation(global)) return;
 
     if (!estimate || 'errors' in estimate) {
       global = updateCurrentSwap(global, {
@@ -947,6 +940,7 @@ addActionHandler('estimateSwapCex', async (global, actions, { shouldBlock }) => 
     }
 
     global = getGlobal();
+    if (shouldAvoidEstimation(global)) return;
 
     global = updateCurrentSwap(global, {
       ...resetParams,
@@ -1157,4 +1151,52 @@ function convertTransferFeesToSwapFees(
   }
 
   return { networkFee, realNetworkFee };
+}
+
+function shouldAvoidEstimation(global: GlobalState) {
+  // For a better UX, we should leave the fees and the other swap data intact during swap confirmations (for example,
+  // to avoid switching from/to gasless mode).
+  return (
+    global.currentSwap.state === SwapState.Blockchain
+    || global.currentSwap.state === SwapState.Password
+  );
+}
+
+function chooseSwapEstimate(
+  global: GlobalState,
+  newEstimates: ApiSwapEstimateVariant[],
+  proposedBestDexLabel: ApiSwapDexLabel,
+) {
+  if (newEstimates.length === 0) {
+    throw new Error('Unexpected empty `newEstimates` array');
+  }
+
+  const { tokenInSlug, currentDexLabel, isDexLabelChanged } = global.currentSwap;
+
+  // If the user has chosen a Dex manually, respect that choice
+  if (currentDexLabel && isDexLabelChanged) {
+    const selectedEstimate = newEstimates.find(({ dexLabel }) => dexLabel === currentDexLabel);
+    if (selectedEstimate) {
+      return selectedEstimate;
+    }
+  }
+
+  // Otherwise, select automatically
+  const tokenIn = tokenInSlug ? global.swapTokenInfo!.bySlug[tokenInSlug] : undefined;
+  const tokenInBalance = tokenInSlug ? selectCurrentAccountTokenBalance(global, tokenInSlug) : undefined;
+  const nativeTokenIn = tokenInSlug ? findChainConfig(getChainBySlug(tokenInSlug))?.nativeToken : undefined;
+  const nativeTokenInBalance = nativeTokenIn && selectCurrentAccountTokenBalance(global, nativeTokenIn.slug);
+  let availableEstimates = newEstimates.filter((variant) => canAffordSwapEstimateVariant({
+    variant,
+    tokenIn,
+    tokenInBalance,
+    nativeTokenInBalance,
+  }));
+
+  if (availableEstimates.length === 0) {
+    availableEstimates = newEstimates;
+  }
+
+  return availableEstimates.find(({ dexLabel }) => dexLabel === proposedBestDexLabel)
+    ?? availableEstimates[0];
 }

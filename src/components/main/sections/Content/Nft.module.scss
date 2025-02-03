@@ -40,6 +40,8 @@
 }
 
 .emptyListButton {
+  cursor: var(--custom-cursor, pointer);
+
   display: inline-block;
 
   margin: 0 auto;
@@ -52,6 +54,7 @@
   text-decoration: none;
 
   background-color: var(--color-accent-button-background);
+  border: none;
   border-radius: var(--border-radius-tiny);
 
   transition: background-color 150ms, color 150ms;

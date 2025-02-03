@@ -562,6 +562,14 @@ a.item:hover {
   }
 }
 
+.dapps {
+  padding-bottom: max(var(--safe-area-bottom), 1.5rem);
+
+  > .block {
+    margin-bottom: 0;
+  }
+}
+
 .changePasswordButton {
   width: 100%;
   padding: 1rem;

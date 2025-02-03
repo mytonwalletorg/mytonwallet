@@ -99,11 +99,9 @@ addActionHandler('updateDappLastOpenedAt', (global, actions, { origin }) => {
 });
 
 addActionHandler('openSiteCategory', (global, actions, { id }) => {
-  global = updateCurrentAccountState(global, { currentSiteCategoryId: id });
-  setGlobal(global);
+  return updateCurrentAccountState(global, { currentSiteCategoryId: id });
 });
 
 addActionHandler('closeSiteCategory', (global) => {
-  global = updateCurrentAccountState(global, { currentSiteCategoryId: undefined });
-  setGlobal(global);
+  return updateCurrentAccountState(global, { currentSiteCategoryId: undefined });
 });

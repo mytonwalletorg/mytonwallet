@@ -20,7 +20,12 @@ import type { DnsCategory } from '../constants';
 import type { ApiTransactionExtra, JettonMetadata } from '../types';
 
 import {
-  DEBUG, LIQUID_JETTON, MTW_CARDS_COLLECTION, NFT_FRAGMENT_COLLECTIONS,
+  DEBUG,
+  LIQUID_JETTON,
+  MTW_CARDS_COLLECTION,
+  NFT_FRAGMENT_COLLECTIONS,
+  NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX,
+  NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX,
 } from '../../../../config';
 import { omitUndefined, pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
@@ -730,10 +735,12 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
     const isScam = hasScamLink || description === 'SCAM' || trust === 'blacklist';
     const isHidden = renderType === 'hidden' || isScam;
     const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
+    const isFragmentGift = image?.startsWith(NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX);
 
     const metadata = {
       ...(isWhitelisted && { lottie }),
       ...(collectionAddress === MTW_CARDS_COLLECTION && buildMtwCardsNftMetadata(rawMetadata)),
+      ...(isFragmentGift && { fragmentUrl: image!.replace(NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX, 'https://$1') }),
     };
 
     return omitUndefined<ApiNft>({
@@ -750,7 +757,7 @@ export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefin
       ...(collection && {
         collectionAddress,
         collectionName: collection.name,
-        isOnFragment: NFT_FRAGMENT_COLLECTIONS.has(collection.address),
+        isOnFragment: isFragmentGift || NFT_FRAGMENT_COLLECTIONS.has(collection.address),
       }),
       metadata,
     });

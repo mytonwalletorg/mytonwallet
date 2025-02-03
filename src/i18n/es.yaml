@@ -27,7 +27,7 @@ Insecure Password: Contraseña insegura
 Your have entered an insecure password, which can be easily guessed by scammers.: Ha ingresado una contraseña insegura, que puede ser fácilmente adivinada por los estafadores.
 Continue or change password to something more secure?: ¿Continuar o cambiar la contraseña a una más segura?
 Change: Cambiar
-"%1$d Secret Words": "Frases Semilla"
+"%1$d Secret Words": Frases Semilla
 Secret Words: Frases Semilla
 $auth_import_mnemonic_description: |
   Puedes restaurar el acceso a tu billetera ingresando las **12 o 24 palabras secretas** que anotaste al crear la billetera.
@@ -172,9 +172,9 @@ $transaction_to: a %address%
 Wallet is not backed up: El monedero no está respaldado
 Testnet Version: Versión Testnet
 Error reading clipboard: Error al leer el portapapeles
-$fee_value: "Comisión %fee%"
+$fee_value: Comisión %fee%
 $fee_value_with_colon: "Comisión: %fee%"
-Pay fee with %stars_symbol%: "Pagar con %stars_symbol%"
+Pay fee with %stars_symbol%: Pagar con %stars_symbol%
 Loading...: Cargando...
 Recipient Address: Dirección del destinatario
 Wallet address or domain: Dirección o dominio del monedero
@@ -238,7 +238,7 @@ Currently Staked: Apostados actualmente
 Unstake: Retirar
 Earning History: Historial de ganancias
 $total: "Total: %value%"
-$unstake_asset: "Retirar %symbol%"
+$unstake_asset: Retirar %symbol%
 $unstake_information_with_time: |
   Su depósito actual será enviado completamente a su monedero en %time%.
   Esto detendrá sus ganancias.
@@ -280,7 +280,7 @@ Payload: Carga útil
 $many_transactions: "%1$d transacciones"
 Total Amount: Cantidad total
 Unstaking: Retirando
-"Handle ton:// links": Habilitar enlaces ton://
+Handle ton:// links: Habilitar enlaces ton://
 Back up wallet to have full access to it: Haga una copia de seguridad del monedero para tener acceso completo al mismo
 Consider More Secure Version: Mejore la seguridad del monedero
 Install our native app or browser extension.: Instala una aplicación nativa o una extensión de navegador.
@@ -390,7 +390,7 @@ Invalid address format. Only URL Safe Base64 format is allowed.: Formato de dire
 $auth_backup_description1: |
   Este es un **monedero seguro**
   y **totalmente bajo su control**.
-$auth_backup_description2: "Y un gran poder conlleva una **gran responsabilidad**."
+$auth_backup_description2: Y un gran poder conlleva una **gran responsabilidad**.
 $auth_backup_description3: |
   Debe hacer manualmente una **copia de seguridad de la frase semilla** que le permitirá recuperar su monedero en caso de que olvide su contraseña o pierda el acceso a este dispositivo.
 Swap Placed: Intercambio Colocado
@@ -415,7 +415,7 @@ Your address on another blockchain: Tu dirección en otra blockchain
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Proporcione una dirección de su billetera en %blockchain% blockchain para recibir los tokens comprados.
 The time for sending coins is over.: El tiempo para enviar monedas ha terminado.
 You have not sent the coins to the specified address.: Usted no ha enviado las monedas a la dirección especificada.
-$swap_changelly_to_ton_description1: "Debe enviar %value% a esta dirección en la cadena de bloques %blockchain% dentro de %time%"
+$swap_changelly_to_ton_description1: Debe enviar %value% a esta dirección en la cadena de bloques %blockchain% dentro de %time%
 Exchange failed and coins were refunded to your wallet.: El intercambio falló y las monedas fueron reembolsadas a su billetera.
 $swap_changelly_kyc_security: "Comuníquese con **%email%** y proporcione **ID de transacción** para pasar el procedimiento KYC:"
 Swap Expired: Intercambio vencido
@@ -514,7 +514,7 @@ Unknown error: Error desconocido
 Are you sure you want to disable Face ID?: ¿Estás seguro de que quieres deshabilitar Face ID?
 Are you sure you want to disable Touch ID?: ¿Estás seguro de que quieres deshabilitar Touch ID?
 Are you sure you want to disable biometrics?: ¿Estás seguro de que quieres deshabilitar la biometría?
-Yes: Sí
+"Yes": Sí
 Biometric confirmation failed: La confirmación biométrica ha fallado
 No Activity: Sin Actividad
 Add / Buy: Recargar
@@ -590,8 +590,8 @@ Successfully: Exitosamente
 Unstake More: Retirar más
 WrongAddress: El dapp solicitó una transacción desde otra billetera.
 Are you sure you want to burn this NFT? It will be lost forever.: ¿Estás seguro de que quieres quemar este NFT? Se perderá para siempre.
-$multi_burn_nft_warning: "Vas a quemar %amount% NFTs."
-$multi_send_nft_warning: "El proceso puede tardar ~%duration% minutos. Por favor, no cierres la aplicación y no cambies de cuenta hasta que haya terminado."
+$multi_burn_nft_warning: Vas a quemar %amount% NFTs.
+$multi_send_nft_warning: El proceso puede tardar ~%duration% minutos. Por favor, no cierres la aplicación y no cambies de cuenta hasta que haya terminado.
 Burn NFT: Quemar NFT
 Burn: Quemar
 Private Key: Clave Privada
@@ -675,7 +675,7 @@ Switch to W5: Cambiar a W5
 Not Scam: No es una estafa
 Untitled: Sin título
 $swap_too_small_amount: Cantidad demasiado pequeña
-Not enough %symbol%: "No hay suficiente %symbol%"
+Not enough %symbol%: No hay suficiente %symbol%
 $receive_tron_description: Escanea este código QR o comparte tu dirección para recargar el saldo de tu billetera.
 You have just created a new multichain wallet: Acabas de crear una nueva billetera multichain
 Now you can transfer tokens from your TON and TRON wallets.: Ahora puedes transferir tokens desde tus billeteras de TON y TRON.

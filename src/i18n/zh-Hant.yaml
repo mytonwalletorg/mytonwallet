@@ -169,9 +169,9 @@ $transaction_to: 到 %address%
 Wallet is not backed up: 錢包未備份
 Testnet Version: 測試網版本
 Error reading clipboard: 讀取剪貼板時出現錯誤
-$fee_value: "手續費 %fee%"
+$fee_value: 手續費 %fee%
 $fee_value_with_colon: "手續費: %fee%"
-Pay fee with %stars_symbol%: "使用 %stars_symbol% 支付"
+Pay fee with %stars_symbol%: 使用 %stars_symbol% 支付
 Loading...: 讀取中...
 Recipient Address: 接收人地址
 Wallet address or domain: 錢包地址或是域名
@@ -235,7 +235,7 @@ Currently Staked: 目前質押數量
 Unstake: 解除質押
 Earning History: 收益紀錄
 $total: "總額: %value%"
-$unstake_asset: "解除 %symbol% 質押"
+$unstake_asset: 解除 %symbol% 質押
 $unstake_information_with_time: |
   你的存款將在 %time% 後全數退還到你的錢包。
   解除後將不再獲得質押收益。
@@ -272,7 +272,7 @@ Payload: 有效載荷
 $many_transactions: "%1$d筆交易"
 Total Amount: 總金額
 Unstaking: 解除質押
-"Handle ton:// links": 處理 ton:// 鏈接
+Handle ton:// links: 處理 ton:// 鏈接
 Back up wallet to have full access to it: 備份錢包以完全訪問它
 Consider More Secure Version: 提高錢包安全性
 Install our native app or browser extension.: 通過安裝瀏覽器擴展程序或本機應用程序
@@ -406,9 +406,9 @@ Your address on another blockchain: 您在另一個區塊鏈上的地址
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: 請提供您在%blockchain%區塊鏈中的錢包地址，以接收購買的代幣。
 The time for sending coins is over.: 發送硬幣的時間已結束。
 You have not sent the coins to the specified address.: 您尚未將硬幣發送到指定地址。
-$swap_changelly_to_ton_description1: "您必須在 %time% 內將 %value% 發送到此地址 在 %blockchain% 區塊鏈中"
+$swap_changelly_to_ton_description1: 您必須在 %time% 內將 %value% 發送到此地址 在 %blockchain% 區塊鏈中
 Exchange failed and coins were refunded to your wallet.: 交換失敗，硬幣已退還到您的錢包。
-$swap_changelly_kyc_security: "請聯絡**%email%**並提供**交易ID**以通過KYC程序："
+$swap_changelly_kyc_security: 請聯絡**%email%**並提供**交易ID**以通過KYC程序：
 Swap Expired: 交換過期
 Swap On Hold: 交換暫停
 Swap Refunded: 交換退款
@@ -419,7 +419,7 @@ $swap_changelly_terms_of_use: 使用條款
 $swap_changelly_privacy_policy: 隱私政策
 Password must contain %length% digits.: 密碼必須包含%length%位數字。
 Deposit Link: 儲值連結
-$swap_changelly_from_ton_description: "代幣將很快發送到您在%blockchain%區塊鏈中的地址："
+$swap_changelly_from_ton_description: 代幣將很快發送到您在%blockchain%區塊鏈中的地址：
 Please note that it may take up to a few hours for tokens to appear in your wallet.: 請注意，代幣顯示在您的錢包中可能需要幾個小時。
 Minimum amount: 最低 %value%
 Maximum amount: 最高 %value%
@@ -505,7 +505,7 @@ Unknown error: 未知錯誤
 Are you sure you want to disable Face ID?: 您確定要禁用Face ID嗎？
 Are you sure you want to disable Touch ID?: 您確定要禁用Touch ID嗎？
 Are you sure you want to disable biometrics?: 您確定要禁用生物識別技術嗎？
-Yes: 是的
+"Yes": 是的
 Biometric confirmation failed: 生物辨識確認失敗
 No Activity: 無活動
 Add / Buy: 添加 / 購買
@@ -580,15 +580,15 @@ Successfully: 成功地
 Unstake More: 解除質押更多
 WrongAddress: 該 dapp 請求另一個錢包進行交易。
 Are you sure you want to burn this NFT? It will be lost forever.: 您確定要燒掉這個 NFT 嗎？ 它將永遠失去。
-$multi_burn_nft_warning: "您即將銷毀 %amount% 個 NFT。"
-$multi_send_nft_warning: "該過程可能需要 ~%duration% 分鐘。請勿關閉應用程式，也不要在完成之前切換賬戶。"
+$multi_burn_nft_warning: 您即將銷毀 %amount% 個 NFT。
+$multi_send_nft_warning: 該過程可能需要 ~%duration% 分鐘。請勿關閉應用程式，也不要在完成之前切換賬戶。
 Burn NFT: 燒毀NFT
 Burn: 燒傷
 Private Key: 私鑰
 "%amount% NFTs": "%amount% NFT"
 1 NFT: 1 NFT
 1 NFT Selected: 已選擇 1 個 NFT
-"%amount% NFTs Selected": "已選擇 %amount% 個 NFT"
+"%amount% NFTs Selected": 已選擇 %amount% 個 NFT
 For sale. Cannot be sent and burned: 出售。 無法發送和燒毀
 Select: 選擇
 Send All: 全部發送
@@ -596,7 +596,7 @@ Burn All: 全部燒掉
 Select All: 全選
 Collection: 集合
 Transaction ID was copied!: 交易ID已被複製！
-$swap_changelly_support: "如果有任何問題，請聯絡%livechat%或%email%並提供**交易ID**："
+$swap_changelly_support: 如果有任何問題，請聯絡%livechat%或%email%並提供**交易ID**：
 Changelly Live Chat: Changelly 即時聊天
 Your %blockchain% Address: 您的%blockchain% 地址
 Vesting: 歸屬

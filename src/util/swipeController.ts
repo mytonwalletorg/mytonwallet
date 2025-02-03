@@ -28,6 +28,7 @@ export function captureControlledSwipe(
   return captureEvents(element, {
     swipeThreshold: 10,
 
+    withNativeDrag: true,
     excludedClosestSelector: `.${SWIPE_DISABLED_CLASS_NAME}`,
 
     onSwipe(e, direction, offsets) {

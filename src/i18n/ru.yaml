@@ -28,7 +28,7 @@ Your have entered an insecure password, which can be easily guessed by scammers.
 Continue or change password to something more secure?: Продолжить или изменить пароль на более надёжный?
 Change: Изменить
 "%1$d Secret Words":
-  manyValue:  "%1$d секретных слов"
+  manyValue: "%1$d секретных слов"
   fewValue: "%1$d секретных слова"
 Secret Words: Секретных слов
 $auth_import_mnemonic_description: |
@@ -176,9 +176,9 @@ $transaction_to: на %address%
 Wallet is not backed up: Резервная копия кошелька не создана
 Testnet Version: Версия Testnet
 Error reading clipboard: Ошибка буфера обмена
-$fee_value: "Комиссия %fee%"
+$fee_value: Комиссия %fee%
 $fee_value_with_colon: "Комиссия: %fee%"
-Pay fee with %stars_symbol%: "Оплатить с %stars_symbol%"
+Pay fee with %stars_symbol%: Оплатить с %stars_symbol%
 Loading...: Загрузка...
 Recipient Address: Адрес получателя
 Wallet address or domain: Адрес кошелька или домен
@@ -219,7 +219,7 @@ Light: Светлая
 Dark: Тёмная
 System: Системная
 $stake_asset: Стейкинг %symbol%
-Earn from your tokens while holding them: "Получайте пассивный доход от хранения %symbol% на надёжном официальном смарт-контракте"
+Earn from your tokens while holding them: Получайте пассивный доход от хранения %symbol% на надёжном официальном смарт-контракте
 Est. %annual_yield%: Доходность %annual_yield%
 Why this is safe: Почему это безопасно
 Why is staking safe?: Это точно безопасно?
@@ -272,13 +272,13 @@ Connect Dapp: Подключить приложение
 Select wallet to use on this dapp: Выберите кошелёк для использования с этим приложением
 Connect: Подключить
 Dapp Permissions: Разрешения для приложения
-$dapp_can_view_balance: "Для %dappname% будет доступен ваш адрес кошелька и баланс."
+$dapp_can_view_balance: Для %dappname% будет доступен ваш адрес кошелька и баланс.
 Send Transaction: Отправить перевод
 Payload: Служебные данные
 $many_transactions: "%1$d перевода"
 Total Amount: Общая сумма
 Unstaking: Вывод
-"Handle ton:// links": Обрабатывать ссылки ton://
+Handle ton:// links: Обрабатывать ссылки ton://
 Back up wallet to have full access to it: Сделайте резервную копию кошелька, чтобы иметь к нему полный доступ
 Consider More Secure Version: Повысьте безопасность кошелька
 Install our native app or browser extension.: Установите наше приложение или браузерное расширение.
@@ -419,7 +419,7 @@ Your address on another blockchain: Ваш адрес в другом блокч
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Пожалуйста, укажите адрес вашего кошелька в блокчейне %blockchain% для получения купленных токенов.
 The time for sending coins is over.: Время отправки монет истекло.
 You have not sent the coins to the specified address.: Вы не отправили монеты на указанный адрес.
-$swap_changelly_to_ton_description1: "Отправьте %value% на этот адрес в блокчейне %blockchain% в течение %time%"
+$swap_changelly_to_ton_description1: Отправьте %value% на этот адрес в блокчейне %blockchain% в течение %time%
 Exchange failed and coins were refunded to your wallet.: Обмен не удался и монеты были возвращены на ваш кошелёк.
 $swap_changelly_kyc_security: "Пожалуйста, свяжитесь с командой безопасности по адресу **%email%** и предоставьте идентификатор транзакции, чтобы пройти процедуру KYC:"
 Swap Expired: Обмен истёк
@@ -518,7 +518,7 @@ Unknown error: Неизвестная ошибка
 Are you sure you want to disable Face ID?: Вы уверены, что хотите отключить Face ID?
 Are you sure you want to disable Touch ID?: Вы уверены, что хотите отключить Touch ID?
 Are you sure you want to disable biometrics?: Вы уверены, что хотите отключить биометрию?
-Yes: Да
+"Yes": Да
 No Activity: Нет активности
 Add / Buy: Пополнить
 Buy with Card: Покупка с карты
@@ -591,8 +591,8 @@ Successfully: Успешно
 Unstake More: Вывести ещё
 WrongAddress: Приложение запрашивает транзакцию с другого кошелька.
 Are you sure you want to burn this NFT? It will be lost forever.: Вы уверены, что хотите сжечь этот NFT? Он будет потерян навсегда.
-$multi_burn_nft_warning: "Вы собираетесь сжечь %amount% NFT."
-$multi_send_nft_warning: "Процесс может занять ~%duration% мин. Пожалуйста, не закрывайте приложение и не переключайтесь на другие аккаунты, пока он не завершится."
+$multi_burn_nft_warning: Вы собираетесь сжечь %amount% NFT.
+$multi_send_nft_warning: Процесс может занять ~%duration% мин. Пожалуйста, не закрывайте приложение и не переключайтесь на другие аккаунты, пока он не завершится.
 Burn NFT: Сжечь NFT
 Burn: Сжечь
 Private Key: Приватный ключ
@@ -676,8 +676,8 @@ Switch to W5: Версия W5
 Not Scam: Не скам
 Untitled: Без названия
 $swap_too_small_amount: Слишком маленькая сумма
-Not enough %symbol%: "Недостаточно %symbol%"
-$receive_tron_description: "Отсканируйте QR или поделитесь этим адресом для пополнения вашего кошелька."
+Not enough %symbol%: Недостаточно %symbol%
+$receive_tron_description: Отсканируйте QR или поделитесь этим адресом для пополнения вашего кошелька.
 You have just created a new multichain wallet: Вы только что создали новый мультичейн-кошелёк
 Now you can transfer tokens from your TON and TRON wallets.: Теперь вы можете переводить токены из своих кошельков TON и TRON.
 Enter Secret Words: Введите секретные слова

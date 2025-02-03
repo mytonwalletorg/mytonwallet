@@ -2,10 +2,10 @@ import React, { memo, useEffect, useLayoutEffect } from '../lib/teact/teact';
 import { getActions, withGlobal } from '../global';
 
 import type { Theme } from '../global/types';
-import { AppState, ContentTab } from '../global/types';
+import { AppState } from '../global/types';
 
 import { INACTIVE_MARKER, IS_ANDROID_DIRECT, IS_CAPACITOR } from '../config';
-import { selectCurrentAccountSettings, selectCurrentAccountState } from '../global/selectors';
+import { selectCurrentAccountSettings } from '../global/selectors';
 import { useAccentColor } from '../util/accentColor';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
 import buildClassName from '../util/buildClassName';
@@ -261,14 +261,12 @@ function App({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { activeContentTab } = selectCurrentAccountState(global) ?? {};
-
   return {
     appState: global.appState,
     accountId: global.currentAccountId,
     isBackupWalletModalOpen: global.isBackupWalletModalOpen,
     isHardwareModalOpen: global.isHardwareModalOpen,
-    isExploreOpen: !global.areSettingsOpen && activeContentTab === ContentTab.Explore,
+    isExploreOpen: global.isExploreOpen,
     areSettingsOpen: global.areSettingsOpen,
     isQrScannerOpen: global.isQrScannerOpen,
     theme: global.settings.theme,

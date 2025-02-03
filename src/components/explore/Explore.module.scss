@@ -130,7 +130,8 @@ $imageGapSize: 0.75rem;
 
       background-color: var(--color-interactive-item-hover);
 
-      .imageWrapperScaleable {
+      .trendingImage,
+      .imageWrapperScalable {
         transform: scale(1.05);
       }
     }
@@ -138,7 +139,8 @@ $imageGapSize: 0.75rem;
 
   @media (pointer: coarse) {
     &:active {
-      .imageWrapperScaleable {
+      .trendingImage,
+      .imageWrapperScalable {
         transform: scale(1.05);
       }
     }
@@ -257,6 +259,7 @@ $imageGapSize: 0.75rem;
   /* Fix for `border-radius` missing during transform on Safari. See https://stackoverflow.com/a/58283449 */
   isolation: isolate;
   position: relative;
+  transform-origin: center;
 
   overflow: hidden;
   display: block !important;
@@ -267,16 +270,6 @@ $imageGapSize: 0.75rem;
   margin-right: $imageGapSize;
 
   border-radius: var(--border-radius-normal);
-}
-
-.imageWrapperScaleable {
-  transform-origin: center;
-
-  transition: transform 300ms, opacity 0.15s ease !important;
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
 }
 
 .image {
@@ -291,11 +284,21 @@ $imageGapSize: 0.75rem;
   border-radius: var(--border-radius-normal);
 }
 
+.imageWrapperScalable,
+.trendingImage {
+  transition: transform 300ms, opacity 0.15s ease !important;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
 .infoWrapper {
   line-height: 1.0625rem;
 }
 
 .title {
+  font-weight: 650;
   color: var(--color-black);
   word-break: break-word;
 }
@@ -303,11 +306,22 @@ $imageGapSize: 0.75rem;
 .description {
   overflow: hidden;
 
+  margin-top: 0.1875rem;
+
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 0.875rem;
   color: var(--color-gray-2);
   text-overflow: ellipsis;
+}
+
+.telegram {
+  margin-inline-start: 0.25rem;
+
+  font-size: 0.9375rem;
+  line-height: 1;
+  color: var(--color-gray-4);
+  vertical-align: -0.125rem;
 }
 
 .emptyList {

@@ -177,9 +177,9 @@ $transaction_to: на %address%
 Wallet is not backed up: Резервну копію гаманця не створено
 Testnet Version: Версія Testnet
 Error reading clipboard: Помилка буфера обміну
-$fee_value: "Комісія %fee%"
+$fee_value: Комісія %fee%
 $fee_value_with_colon: "Комісія: %fee%"
-Pay fee with %stars_symbol%: "Оплатити з %stars_symbol%"
+Pay fee with %stars_symbol%: Оплатити з %stars_symbol%
 Loading...: Завантаження...
 Recipient Address: Адреса одержувача
 Wallet address or domain: Адреса гаманця або домен
@@ -220,7 +220,7 @@ Light: Світла
 Dark: Темна
 System: Системна
 $stake_asset: Стейкінг %symbol%
-Earn from your tokens while holding them: "Отримуйте пасивний дохід від зберігання %symbol% на надійному офіційному смарт-контракті"
+Earn from your tokens while holding them: Отримуйте пасивний дохід від зберігання %symbol% на надійному офіційному смарт-контракті
 Why this is safe: Чому це безпечно
 Why is staking safe?: Це точно безпечно?
 $safe_staking_description1: Стейкінг **повністю децентралізований** і управляється **офіційними смарт-контрактами** TON Liquid Staking.
@@ -273,13 +273,13 @@ Connect Dapp: Підключити додаток
 Select wallet to use on this dapp: Виберіть гаманець для використання в цій програмі
 Connect: Підключити
 Dapp Permissions: Дозволи для програми
-$dapp_can_view_balance: "Для %dappname% буде доступна ваша адреса гаманця і баланс."
+$dapp_can_view_balance: Для %dappname% буде доступна ваша адреса гаманця і баланс.
 Send Transaction: Надіслати переказ
 Payload: Службові дані
 $many_transactions: "%1$d переказу"
 Total Amount: Загальна сума
 Unstaking: Зняти
-"Handle ton:// links": Обробляти посилання ton://
+Handle ton:// links: Обробляти посилання ton://
 Back up wallet to have full access to it: Зробіть резервну копію гаманця, щоб мати до нього повний доступ
 Consider More Secure Version: Підвищіть безпеку гаманця
 Install our native app or browser extension.: Встановіть наш додаток або браузерне розширення.
@@ -420,7 +420,7 @@ Your address on another blockchain: Ваша адреса в іншому бло
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Будь ласка, вкажіть адресу вашого гаманця в блокчейні %blockchain% для отримання куплених токенів.
 The time for sending coins is over.: Час відправлення монет минув.
 You have not sent the coins to the specified address.: Ви не відправили монети на вказану адресу.
-$swap_changelly_to_ton_description1: "Надішліть %value% на цю адресу в блокчейні %blockchain% протягом %time%"
+$swap_changelly_to_ton_description1: Надішліть %value% на цю адресу в блокчейні %blockchain% протягом %time%
 Please contact support and provide a transaction ID.: Будь ласка, зв'яжіться з підтримкою та надайте ідентифікатор транзакції.
 Exchange failed and coins were refunded to your wallet.: Обмін не вдався і монети були повернуті на ваш гаманець.
 Please contact security team to pass the KYC procedure.: Будь ласка, зв'яжіться з командою безпеки, щоб пройти процедуру KYC.
@@ -520,7 +520,7 @@ Unknown error: Невідома помилка
 Are you sure you want to disable Face ID?: Ви впевнені, що хочете відключити Face ID?
 Are you sure you want to disable Touch ID?: Ви впевнені, що хочете відключити Touch ID?
 Are you sure you want to disable biometrics?: Ви впевнені, що хочете відключити біометрію?
-Yes: Так
+"Yes": Так
 Biometric confirmation failed: Біометричне підтвердження не вдалося
 No Activity: Немає активності
 Add / Buy: Поповнити
@@ -596,8 +596,8 @@ Successfully: Успішно
 Unstake More: Вивести ще
 WrongAddress: Dapp запитав транзакцію з іншого гаманця.
 Are you sure you want to burn this NFT? It will be lost forever.: Ви впевнені, що хочете спалити цей NFT? Його буде втрачено назавжди.
-$multi_burn_nft_warning: "Ви збираєтеся спалити %amount% NFT."
-$multi_send_nft_warning: "Процес може зайняти ~%duration% хв. Будь ласка, не закривайте додаток і не перемикайтеся на інші акаунти, поки він не завершиться."
+$multi_burn_nft_warning: Ви збираєтеся спалити %amount% NFT.
+$multi_send_nft_warning: Процес може зайняти ~%duration% хв. Будь ласка, не закривайте додаток і не перемикайтеся на інші акаунти, поки він не завершиться.
 Burn NFT: Спалити NFT
 Burn: Спалити
 Private Key: Приватний ключ
@@ -681,7 +681,7 @@ Switch to W5: Версія W5
 Not Scam: Не шахрайство
 Untitled: Без назви
 $swap_too_small_amount: Занадто мала сума
-Not enough %symbol%: "Недостатньо %symbol%"
+Not enough %symbol%: Недостатньо %symbol%
 $receive_tron_description: Відскануйте цей QR-код або поділіться своєю адресою, щоб поповнити баланс гаманця.
 You have just created a new multichain wallet: Ви щойно створили новий мультичейн-гаманець
 Now you can transfer tokens from your TON and TRON wallets.: Тепер ви можете передавати токени з ваших гаманців TON і TRON.

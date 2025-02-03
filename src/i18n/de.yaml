@@ -67,7 +67,7 @@ Main menu: Hauptmenü
 TON Proxy: TON Proxy
 Toggle TON Proxy: TON Proxy aktivieren/deaktivieren
 TON Magic: TON Magic
-Toggle TON Magic:  TON Magic aktivieren/deaktivieren
+Toggle TON Magic: TON Magic aktivieren/deaktivieren
 Open Telegram Web: Telegram Web öffnen.
 Back Up Secret Words: Geheime Wörter sichern
 Settings: Einstellungen
@@ -173,9 +173,9 @@ $transaction_to: an %address%
 Wallet is not backed up: Die Wallet ist nicht gesichert.
 Testnet Version: Testnet Version
 Error reading clipboard: Fehler beim Lesen der Zwischenablage
-$fee_value: "Gebühr %fee%"
+$fee_value: Gebühr %fee%
 $fee_value_with_colon: "Gebühr: %fee%"
-Pay fee with %stars_symbol%: "Bezahlen mit %stars_symbol%"
+Pay fee with %stars_symbol%: Bezahlen mit %stars_symbol%
 Loading...: Laden...
 Recipient Address: Empfänger adresse
 Wallet address or domain: Wallet adresse oder Domain
@@ -247,7 +247,7 @@ Confirm Unstaking: Unstaking bestätigen
 Request for unstaking is sent!: Die Anfrage zum unstaken wurde gesendet!
 $unstaking_when_receive: Sie erhalten Ihre unstaked Einzahlung in %time%.
 $unstake_insufficient_balance: Sie müssen %balance% auf Ihrem Hauptguthaben haben, um mit dem unstaken fortzufahren.
-at %annual_yield%: "bei %annual_yield%"
+at %annual_yield%: bei %annual_yield%
 Est. %annual_yield%: Geschätzte %annual_yield%
 Staked: Gestakt
 Unstake Requested: Unstaking angefordert
@@ -280,7 +280,7 @@ Payload: Payload
 $many_transactions: "%1$d Transaktionen"
 Total Amount: Gesamtbetrag
 Unstaking: Entstaken
-"Handle ton:// links": Handle ton:// links
+Handle ton:// links: Handle ton:// links
 Back up wallet to have full access to it: Sichern Sie das Wallet, um vollen Zugriff darauf zu haben
 Consider More Secure Version: Berücksichtigen Sie eine sicherere Version
 Install our native app or browser extension.: Installieren Sie unsere native App oder Browser-Erweiterung.
@@ -390,7 +390,7 @@ Invalid address format. Only URL Safe Base64 format is allowed.: Ungültiges Adr
 $auth_backup_description1: |
   "Dies ist eine **sichere Wallet** und
   wird nur **von Ihnen kontrolliert**.
-$auth_backup_description2: "Und mit großer Macht kommt **große Verantwortung**."
+$auth_backup_description2: Und mit großer Macht kommt **große Verantwortung**.
 $auth_backup_description3: |
   Sie müssen manuell **Geheimschlüssel sichern**, falls Sie Ihr Passwort vergessen oder den Zugriff auf dieses Gerät verlieren.
 Swap Placed: Tausch platziert
@@ -415,7 +415,7 @@ Your address on another blockchain: Ihre Adresse auf einer anderen Blockchain
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Bitte geben Sie eine Adresse Ihres Wallets in der %blockchain%-Blockchain an, um gekaufte Token zu erhalten.
 The time for sending coins is over.: Die Zeit zum Senden von Coins ist abgelaufen.
 You have not sent the coins to the specified address.: Sie haben die Coins nicht an die angegebene Adresse gesendet.
-$swap_changelly_to_ton_description1: "Sie müssen %value% an diese Adresse in der %Blockchain%-Blockchain innerhalb von %time% senden."
+$swap_changelly_to_ton_description1: Sie müssen %value% an diese Adresse in der %Blockchain%-Blockchain innerhalb von %time% senden.
 Exchange failed and coins were refunded to your wallet.: Der Austausch ist fehlgeschlagen, und die Coins wurden an Ihre Wallet zurückerstattet.
 $swap_changelly_kyc_security: "Bitte kontaktieren Sie **%email%** und geben Sie die **Transaktions-ID** an, um das KYC-Verfahren zu bestehen:"
 Swap Expired: Tausch abgelaufen
@@ -516,7 +516,7 @@ Unknown error: Unbekannter Fehler
 Are you sure you want to disable Face ID?: Sind Sie sicher, dass Sie Face ID deaktivieren möchten?
 Are you sure you want to disable Touch ID?: Sind Sie sicher, dass Sie Touch ID deaktivieren möchten?
 Are you sure you want to disable biometrics?: Sind Sie sicher, dass Sie die Biometrie deaktivieren möchten?
-Yes: Ja
+"Yes": Ja
 Biometric confirmation failed: Biometrische Bestätigung fehlgeschlagen
 No Activity: Keine aktivität
 Add / Buy: Aufladen
@@ -538,7 +538,7 @@ You have tokens on other versions of your wallet. You can import them from here.
 $wallet_switch_version_1: Sie können auch %action%.
 $wallet_switch_version_2: zu einer anderen Wallet-Version wechseln
 or import from: oder importieren von
-Insufficient fee: "Unzureichende Gebühren"
+Insufficient fee: Unzureichende Gebühren
 $insufficient_fee: "Unzureichende Gebühren: %fee%"
 Required: Erforderlich
 Comment is too long.: Der Kommentar ist zu lang.
@@ -592,8 +592,8 @@ Successfully: Erfolgreich
 Unstake More: Mehr abstecken
 WrongAddress: Der Dapp hat eine Transaktion von einer anderen Wallet angefordert.
 Are you sure you want to burn this NFT? It will be lost forever.: Sind Sie sicher, dass Sie diese NFT verbrennen wollen? Es wird für immer verloren sein.
-$multi_burn_nft_warning: "Sie werden %amount% NFTs verbrennen."
-$multi_send_nft_warning: "Der Vorgang kann ~%duration% Minuten dauern. Bitte schließen Sie die App nicht und wechseln Sie nicht das Konto, bis es abgeschlossen ist."
+$multi_burn_nft_warning: Sie werden %amount% NFTs verbrennen.
+$multi_send_nft_warning: Der Vorgang kann ~%duration% Minuten dauern. Bitte schließen Sie die App nicht und wechseln Sie nicht das Konto, bis es abgeschlossen ist.
 Burn NFT: NFT brennen
 Burn: Brennen
 Private Key: Privater Schlüssel
@@ -677,7 +677,7 @@ Switch to W5: Zu W5 wechseln
 Not Scam: Kein Betrug
 Untitled: Unbenannt
 $swap_too_small_amount: Zu kleiner Betrag
-Not enough %symbol%: "Nicht genug %symbol%"
+Not enough %symbol%: Nicht genug %symbol%
 $receive_tron_description: Scannen Sie diesen QR-Code oder teilen Sie Ihre Adresse, um Ihr Wallet-Guthaben aufzuladen.
 You have just created a new multichain wallet: Sie haben gerade eine neue Multichain-Wallet erstellt
 Now you can transfer tokens from your TON and TRON wallets.: Jetzt können Sie Tokens von Ihren TON- und TRON-Wallets übertragen.

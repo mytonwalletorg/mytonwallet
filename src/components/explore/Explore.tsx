@@ -26,6 +26,7 @@ import useFlag from '../../hooks/useFlag';
 import useHorizontalScroll from '../../hooks/useHorizontalScroll';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import usePrevious2 from '../../hooks/usePrevious2';
 import useScrolledState from '../../hooks/useScrolledState';
 import { useStateRef } from '../../hooks/useStateRef';
@@ -91,7 +92,8 @@ function Explore({
   const [searchValue, setSearchValue] = useState<string>('');
   const [isSearchFocused, markSearchFocused, unmarkSearchFocused] = useFlag(false);
   const [isSuggestionsVisible, showSuggestions, hideSuggestions] = useFlag(false);
-  const prevSiteCategoryIdRef = useStateRef(usePrevious2(currentSiteCategoryId));
+  const { renderingKey } = useModalTransitionKeys(currentSiteCategoryId || 0, !!isActive);
+  const prevSiteCategoryIdRef = useStateRef(usePrevious2(renderingKey));
 
   const {
     handleScroll: handleContentScroll,
@@ -99,8 +101,8 @@ function Explore({
   } = useScrolledState();
 
   useEffect(
-    () => (currentSiteCategoryId ? captureEscKeyListener(closeSiteCategory) : undefined),
-    [closeSiteCategory, currentSiteCategoryId],
+    () => (renderingKey ? captureEscKeyListener(closeSiteCategory) : undefined),
+    [closeSiteCategory, renderingKey],
   );
 
   const filteredSites = useMemo(() => {
@@ -143,7 +145,7 @@ function Explore({
   }, [filteredSites]);
 
   useEffect(() => {
-    if (!IS_TOUCH_ENV || !filteredSites?.length || !currentSiteCategoryId) {
+    if (!IS_TOUCH_ENV || !filteredSites?.length) {
       return undefined;
     }
 
@@ -153,7 +155,7 @@ function Explore({
         openSiteCategory({ id: prevSiteCategoryIdRef.current! });
       },
     });
-  }, [currentSiteCategoryId, filteredSites?.length, prevSiteCategoryIdRef]);
+  }, [filteredSites?.length, prevSiteCategoryIdRef]);
 
   useHorizontalScroll({
     containerRef: trendingContainerRef,
@@ -242,8 +244,11 @@ function Explore({
     stopEvent(e);
 
     handleMenuClose();
-    openSite(searchValue);
-    setSearchValue('');
+
+    if (searchValue.length > 0) {
+      openSite(searchValue);
+      setSearchValue('');
+    }
   }
 
   function renderSearch() {
@@ -256,7 +261,7 @@ function Explore({
           placeholder={lang('Search or enter address')}
           value={searchValue}
           autoCapitalize="none"
-          type="url"
+          inputMode="url"
           autoCorrect="off"
           onChange={handleSearchValueChange}
           onFocus={markSearchFocused}
@@ -348,14 +353,14 @@ function Explore({
         );
 
       case SLIDES.category: {
-        const currentSiteCategory = allSites[currentSiteCategoryId!];
+        const currentSiteCategory = allSites[renderingKey!];
         if (!currentSiteCategory) return undefined;
 
         return (
           <SiteList
-            key={currentSiteCategoryId}
+            key={renderingKey}
             isActive={isContentActive}
-            categoryId={currentSiteCategoryId!}
+            categoryId={renderingKey!}
             sites={currentSiteCategory}
           />
         );
@@ -392,7 +397,8 @@ function Explore({
     <Transition
       ref={transitionRef}
       name={resolveSlideTransitionName()}
-      activeKey={currentSiteCategoryId ? SLIDES.category : SLIDES.main}
+      activeKey={renderingKey ? SLIDES.category : SLIDES.main}
+      withSwipeControl
       className={styles.rootSlide}
     >
       {renderContent}

@@ -34,6 +34,8 @@
 }
 
 .dapp {
+  cursor: var(--custom-cursor, pointer);
+
   display: flex;
   align-items: center;
 
@@ -44,18 +46,14 @@
   border: none;
   border-radius: var(--border-radius-tiny);
 
-  &:hover {
-    cursor: var(--custom-cursor, pointer);
-  }
-
   &:first-child {
-    margin-left: 0.75rem;
+    margin-left: 1rem;
   }
 
   @media (hover: hover) {
     &:hover,
     &:focus-visible {
-      .feedItemLogoImg {
+      .icon {
         transform: scale(1.1);
       }
 

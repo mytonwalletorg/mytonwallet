@@ -179,13 +179,17 @@ export default function useNftMenu({
 
       case 'fragment': {
         let url: string;
-        if (nft!.collectionName?.toLowerCase().includes('numbers')) {
-          url = `https://fragment.com/number/${nft!.name?.replace(/[^0-9]/g, '')}`;
+        const { collectionName, name, metadata: { fragmentUrl } } = nft!;
+
+        if (fragmentUrl) {
+          url = fragmentUrl;
+        } else if (collectionName?.toLowerCase().includes('numbers')) {
+          url = `https://fragment.com/number/${name?.replace(/[^0-9]/g, '')}`;
         } else {
-          url = `https://fragment.com/username/${encodeURIComponent(nft!.name?.substring(1) || '')}`;
+          url = `https://fragment.com/username/${encodeURIComponent(name?.substring(1) || '')}`;
         }
 
-        openUrl(url);
+        void openUrl(url);
         break;
       }
 

@@ -173,9 +173,9 @@ $transaction_to: to %address%
 Wallet is not backed up: Wallet is not backed up
 Testnet Version: Testnet Version
 Error reading clipboard: Error reading clipboard
-$fee_value: "Fee %fee%"
+$fee_value: Fee %fee%
 $fee_value_with_colon: "Fee: %fee%"
-Pay fee with %stars_symbol%: "Pay fee with %stars_symbol%"
+Pay fee with %stars_symbol%: Pay fee with %stars_symbol%
 Loading...: Loading...
 Recipient Address: Recipient Address
 Wallet address or domain: Wallet address or domain
@@ -238,7 +238,7 @@ Currently Staked: Currently Staked
 Unstake: Unstake
 Earning History: Earning History
 $total: "Total: %value%"
-$unstake_asset: "Unstake %symbol%"
+$unstake_asset: Unstake %symbol%
 $unstake_information_with_time: |
   Your current deposit will be fully sent back to your wallet in %time%.
   This will stop your earnings.
@@ -280,7 +280,7 @@ Payload: Payload
 $many_transactions: "%1$d transactions"
 Total Amount: Total Amount
 Unstaking: Unstaking
-"Handle ton:// links": Handle ton:// links
+Handle ton:// links: Handle ton:// links
 Back up wallet to have full access to it: Back up wallet to have full access to it
 Consider More Secure Version: Consider More Secure Version
 Install our native app or browser extension.: Install our native app or browser extension.
@@ -389,7 +389,7 @@ Invalid address format. Only URL Safe Base64 format is allowed.: Invalid address
 $auth_backup_description1: |
   This is a **secure wallet**
   and is only **controlled by you**.
-$auth_backup_description2: "And with great power comes **great responsibility**."
+$auth_backup_description2: And with great power comes **great responsibility**.
 $auth_backup_description3: |
   You need to manually **back up secret keys** in case you forget your password or lose access to this device.
 Swap Placed: Swap Placed
@@ -414,7 +414,7 @@ Your address on another blockchain: Your address on another blockchain
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.
 The time for sending coins is over.: The time for sending coins is over.
 You have not sent the coins to the specified address.: You have not sent the coins to the specified address.
-$swap_changelly_to_ton_description1: "Send %value% to this address in %blockchain% blockchain within %time%"
+$swap_changelly_to_ton_description1: Send %value% to this address in %blockchain% blockchain within %time%
 Exchange failed and coins were refunded to your wallet.: Exchange failed and coins were refunded to your wallet.
 $swap_changelly_kyc_security: "Please contact **%email%** and provide **Transaction ID** to pass the KYC procedure:"
 Swap Expired: Swap Expired
@@ -515,7 +515,7 @@ Unknown error: Unknown error
 Are you sure you want to disable Face ID?: Are you sure you want to disable Face ID?
 Are you sure you want to disable Touch ID?: Are you sure you want to disable Touch ID?
 Are you sure you want to disable biometrics?: Are you sure you want to disable biometrics?
-Yes: Yes
+"Yes": "Yes"
 Biometric confirmation failed: Biometric confirmation failed
 No Activity: No Activity
 Add / Buy: Add / Buy
@@ -591,8 +591,8 @@ WrongAddress: The dapp requested a transaction from another wallet.
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Are you sure you want to burn this NFT?
   It will be lost forever.
-$multi_burn_nft_warning: "You are going to burn %amount% NFTs."
-$multi_send_nft_warning: "The process may take ~%duration% minute(s). Please do not close the app and do not switch accounts until it is finished."
+$multi_burn_nft_warning: You are going to burn %amount% NFTs.
+$multi_send_nft_warning: The process may take ~%duration% minute(s). Please do not close the app and do not switch accounts until it is finished.
 Burn NFT: Burn NFT
 Burn: Burn
 Private Key: Private Key
@@ -677,7 +677,7 @@ Not Scam: Not Scam
 Untitled: Untitled
 Multichain: Multichain
 $swap_too_small_amount: Too small amount
-Not enough %symbol%: "Not enough %symbol%"
+Not enough %symbol%: Not enough %symbol%
 $receive_tron_description: Scan this QR or share your address to top up your wallet balance.
 You have just created a new multichain wallet: You have just created a new multichain wallet
 Now you can transfer tokens from your TON and TRON wallets.: Now you can transfer tokens from your TON and TRON wallets.

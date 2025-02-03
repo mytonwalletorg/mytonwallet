@@ -175,9 +175,9 @@ $transaction_to: do %address%
 Wallet is not backed up: Portfel nie ma kopii zapasowej
 Testnet Version: Wersja Testnet
 Error reading clipboard: Błąd odczytu schowka
-$fee_value: "Opłata %fee%"
+$fee_value: Opłata %fee%
 $fee_value_with_colon: "Opłata: %fee%"
-Pay fee with %stars_symbol%: "Opłać z %stars_symbol%"
+Pay fee with %stars_symbol%: Opłać z %stars_symbol%
 Loading...: Ładowanie...
 Recipient Address: Adres odbiorcy
 Wallet address or domain: Adres portfela lub domena
@@ -240,7 +240,7 @@ Currently Staked: Obecnie zastawione
 Unstake: Odzastaw
 Earning History: Historia zarobków
 $total: "Suma: %value%"
-$unstake_asset: "Odzastaw %symbol%"
+$unstake_asset: Odzastaw %symbol%
 $unstake_information_with_time: |
   Twoja obecna wpłata zostanie w całości zwrócona na Twoje konto w ciągu %time%.
   Spowoduje to zatrzymanie zarobków.
@@ -282,7 +282,7 @@ Payload: Ładunek
 $many_transactions: "%1$d transakcji"
 Total Amount: Całkowita kwota
 Unstaking: Odzastawianie
-"Handle ton:// links": Obsłuż ton:// linki
+Handle ton:// links: Obsłuż ton:// linki
 Back up wallet to have full access to it: Zrób kopię zapasową portfela, aby mieć do niego pełny dostęp.
 Consider More Secure Version: Rozważ bardziej bezpieczną wersję
 Install our native app or browser extension.: Zainstaluj naszą natywną aplikację lub rozszerzenie przeglądarki.
@@ -391,7 +391,7 @@ Invalid address format. Only URL Safe Base64 format is allowed.: Nieprawidłowy 
 $auth_backup_description1: |
   To jest bezpieczny portfel
   i jest kontrolowany tylko przez ciebie.
-$auth_backup_description2: "A z wielką mocą idzie wielka odpowiedzialność."
+$auth_backup_description2: A z wielką mocą idzie wielka odpowiedzialność.
 $auth_backup_description3: |
   Musisz ręcznie zrobić kopię zapasową kluczy prywatnych w przypadku zapomnienia hasła lub utraty dostępu do tego urządzenia.
 Swap Placed: Wymiana złożona
@@ -416,7 +416,7 @@ Your address on another blockchain: Twój adres na innym blockchainie
 Please provide an address of your wallet in %blockchain% blockchain to receive bought tokens.: Podaj adres swojego portfela w blockchainie %blockchain%, aby otrzymać zakupione tokeny.
 The time for sending coins is over.: Czas wysyłki monet minął.
 You have not sent the coins to the specified address.: Nie wysłałeś monet na podany adres.
-$swap_changelly_to_ton_description1: "Wyślij %value% na ten adres w blockchainie %blockchain% w ciągu %time%"
+$swap_changelly_to_ton_description1: Wyślij %value% na ten adres w blockchainie %blockchain% w ciągu %time%
 Please contact support and provide a transaction ID.: Skontaktuj się z pomocą techniczną i podaj identyfikator transakcji.
 Exchange failed and coins were refunded to your wallet.: Wymiana nie powiodła się, a monety zostały zwrócone na twój portfel.
 Please contact security team to pass the KYC procedure.: Skontaktuj się z zespołem ds. bezpieczeństwa, aby przejść procedurę KYC.
@@ -518,7 +518,7 @@ Unknown error: Nieznany błąd
 Are you sure you want to disable Face ID?: Czy na pewno chcesz wyłączyć Face ID?
 Are you sure you want to disable Touch ID?: Czy na pewno chcesz wyłączyć Touch ID?
 Are you sure you want to disable biometrics?: Czy na pewno chcesz wyłączyć biometrię?
-Yes: Tak
+"Yes": Tak
 Biometric confirmation failed: Potwierdzenie biometryczne nie powiodło się
 No Activity: Brak aktywności
 Add / Buy: Doładować
@@ -596,8 +596,8 @@ WrongAddress: Dapp zażądał transakcji z innego portfela.
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Czy na pewno chcesz spalić ten NFT?
   Zostanie on stracony na zawsze.
-$multi_burn_nft_warning: "Zamierzasz spalić %amount% NFT."
-$multi_send_nft_warning: "Proces może zająć około %duration% minut(y). Proszę nie zamykać aplikacji i nie przełączać kont do czasu zakończenia."
+$multi_burn_nft_warning: Zamierzasz spalić %amount% NFT.
+$multi_send_nft_warning: Proces może zająć około %duration% minut(y). Proszę nie zamykać aplikacji i nie przełączać kont do czasu zakończenia.
 Burn NFT: Spal NFT
 Burn: Spal
 Private Key: Klucz prywatny
@@ -681,7 +681,7 @@ Switch to W5: Przełącz na W5
 Not Scam: Nie oszustwo
 Untitled: Bez tytułu
 $swap_too_small_amount: Zbyt mała kwota
-Not enough %symbol%: "Za mało %symbol%"
+Not enough %symbol%: Za mało %symbol%
 $receive_tron_description: Zeskanuj ten kod QR lub udostępnij swój adres, aby doładować saldo portfela.
 You have just created a new multichain wallet: Właśnie utworzyłeś nowy portfel multichain
 Now you can transfer tokens from your TON and TRON wallets.: Teraz możesz przesyłać tokeny ze swoich portfeli TON i TRON.
