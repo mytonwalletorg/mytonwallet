@@ -735,6 +735,7 @@ function Settings({
       case SettingsState.WalletVersion:
         return (
           <SettingsWalletVersion
+            isActive={isActive}
             currentVersion={currentVersion}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}

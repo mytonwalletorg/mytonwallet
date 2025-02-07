@@ -62,6 +62,10 @@
   --offset-x-value: 0.25rem;
 }
 
+.menuBubble {
+  max-height: 60vh;
+}
+
 .item {
   > :global(.icon) {
     order: 2;

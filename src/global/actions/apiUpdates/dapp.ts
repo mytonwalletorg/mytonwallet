@@ -175,7 +175,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     case 'processDeeplink': {
       const { url } = update;
 
-      processDeeplink(url);
+      void processDeeplink(url);
       break;
     }
   }

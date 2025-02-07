@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { ApiBalanceBySlug } from '../../api/types';
+import type { ApiBalanceBySlug, ApiChain } from '../../api/types';
 import type { AccountSettings, GlobalState, UserToken } from '../types';
 
 import {
@@ -143,4 +143,15 @@ export function selectMycoin(global: GlobalState) {
 
 export function selectTokenByMinterAddress(global: GlobalState, minter: string) {
   return Object.values(global.tokenInfo.bySlug).find((token) => token.tokenAddress === minter);
+}
+
+export function selectChainTokenWithMaxBalanceSlow(global: GlobalState, chain: ApiChain): UserToken | undefined {
+  return (selectCurrentAccountTokens(global) ?? [])
+    .filter((token) => token.chain === chain)
+    .reduce((maxToken, currentToken) => {
+      const currentBalance = currentToken.priceUsd * Number(currentToken.amount);
+      const maxBalance = maxToken ? maxToken.priceUsd * Number(maxToken.amount) : 0;
+
+      return currentBalance > maxBalance ? currentToken : maxToken;
+    });
 }

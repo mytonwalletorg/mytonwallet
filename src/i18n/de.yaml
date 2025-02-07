@@ -7,8 +7,8 @@ Import From %1$d Secret Words: Importieren von %1$d Geheimwörtern
 More about MyTonWallet: Mehr über MyTonWallet
 Creating Wallet...: Wallet erstellen...
 On the count of three...: Auf drei zählen...
-$back_up_auth: Back Up
-$back_up_security: Back Up
+$back_up_auth: Sicherung
+$back_up_security: Sicherung
 Passwords must be equal.: Die Passwörter müssen gleich sein.
 To protect your wallet as much as possible, use a password with: Um Ihre Wallet so gut wie möglich zu schützen, verwenden Sie ein Passwort mit
 $auth_password_rule_8chars: mindestens 8 Zeichen
@@ -112,18 +112,16 @@ $logout_without_backup_warning: Sie haben diese Wallet nicht gesichert. Wenn Sie
 $logout_accounts_without_backup_warning: Sie haben %links% nicht gesichert. Wenn Sie fortfahren, verlieren Sie den Zugriff auf Ihre Token und NFTs.
 $logout_warning: Dies wird das aktuelle Wallet aus der App entfernen. Stellen Sie sicher, dass Sie Ihre **Geheimwörter** gesichert haben.
 Your address was copied!: Ihre Adresse wurde kopiert!
-Show QR Code: QR-Code anzeigen
 Create Deposit Link: Einzahlungslink erstellen
-QR Code: QR-Code
 $receive_invoice_description: |
   Sie können den Betrag und den Zweck der
   Zahlung angeben, um dem Sender Zeit zu sparen.
 Amount: Betrag
 Comment: Memo
-Comment or Memo: Memo
+Comment or Memo: Kommentar oder Memo
 Share this URL to receive TON: Teilen Sie diese URL, um TON zu empfangen
 Invoice link was copied!: Die Rechnungslink wurde kopiert!
-Theme: Design
+Theme: Thema
 Language: Sprache
 Enable Animations: Animationen aktivieren
 Base Currency: Basiswährung
@@ -131,7 +129,7 @@ Investor View: Investorenansicht
 Toggle Investor View: Investorenansicht umschalten
 Hide Tiny Transfers: Kleine Überweisungen ausblenden
 Toggle Hide Tiny Transfers: Kleine Überweisungen ausblenden umschalten
-Network: Network
+Network: Netzwerk
 Developer Options: Entwickleroptionen
 Confirmation: Bestätigung
 Signing Data: Signierdaten
@@ -276,15 +274,15 @@ Connect: Verbinden
 Dapp Permissions: Dapp-Berechtigungen
 $dapp_can_view_balance: "%dappname% wird die Wallet adresse und den Kontostand anzeigen können."
 Send Transaction: Transaktion senden
-Payload: Payload
+Payload: Nutzlast
 $many_transactions: "%1$d Transaktionen"
 Total Amount: Gesamtbetrag
 Unstaking: Entstaken
-Handle ton:// links: Handle ton:// links
+Handle ton:// links: Umgang mit ton://-Links
 Back up wallet to have full access to it: Sichern Sie das Wallet, um vollen Zugriff darauf zu haben
 Consider More Secure Version: Berücksichtigen Sie eine sicherere Version
 Install our native app or browser extension.: Installieren Sie unsere native App oder Browser-Erweiterung.
-Scam: Scam
+Scam: Betrug
 Scam comment is hidden.: Betrügerischer Kommentar ist versteckt.
 Display: Anzeigen
 $dapp_transfer_tokens_payload: Senden von %amount% von Ihrem Konto an %address%
@@ -354,7 +352,7 @@ Included: Inklusive
 Price Impact: Preisauswirkung
 Minimum Received: Mindestbetrag erhalten
 Slippage: Schlupf
-$swap_from_to: Tauschen %from% %icon% %to%.
+$swap_from_to: Tauschen %from% %icon% %to%
 The exchange rate is below market value!: Der Wechselkurs liegt %value% unter dem Marktwert!
 Invalid Pair: Ungültiges Paar
 We do not recommend to perform an exchange, try to specify a lower amount.: Wir empfehlen keine Durchführung des Austauschs. Versuchen Sie, einen niedrigeren Betrag anzugeben.
@@ -463,9 +461,8 @@ A request is already pending: Es liegt bereits eine ausstehende Anfrage vor
 Please confirm operation using biometrics: Bitte bestätigen Sie die Operation mit Hilfe der Biometrie
 Scan QR Code: QR-Code scannen
 Permission denied. Please grant camera permission to use the QR code scanner.: Berechtigung verweigert. Bitte erteilen Sie die Kamera-Berechtigung, um den QR-Code-Scanner zu verwenden.
-Unsupported QR code format: Nicht unterstütztes QR-Code-Format
+This QR Code is not supported: Dieser QR-Code wird nicht unterstützt
 An error on the server side. Please try again.: Ein Fehler auf der Serverseite. Bitte versuchen Sie es erneut.
-Unrecognized QR Code: Nicht erkannter QR-Code
 Address was saved!: Adresse wurde gespeichert!
 US Dollar: US-Dollar
 Euro: Euro

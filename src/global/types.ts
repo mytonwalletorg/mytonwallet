@@ -490,10 +490,10 @@ export type GlobalState = {
     errorType?: SwapErrorType;
     shouldResetOnClose?: boolean;
     isLoading?: boolean;
+    // When set to `true`, the next swap estimation will show the loading indicator and will block the form
     shouldEstimate?: boolean;
     isEstimating?: boolean;
     inputSource?: SwapInputSource;
-    swapType?: SwapType;
     toAddress?: string;
     payinAddress?: string;
     payoutAddress?: string;
@@ -990,18 +990,15 @@ export interface ActionPayloads {
   switchSwapTokens: undefined;
   setSwapTokenIn: { tokenSlug: string };
   setSwapTokenOut: { tokenSlug: string };
-  setSwapAmountIn: { amount?: string };
-  setSwapIsMaxAmount: { isMaxAmount?: boolean };
+  setSwapAmountIn: { amount?: string; isMaxAmount?: boolean };
   setSwapAmountOut: { amount?: string };
   setSlippage: { slippage: number };
   loadSwapPairs: { tokenSlug: string; shouldForceUpdate?: boolean };
   clearSwapPairsCache: undefined;
-  estimateSwap: { shouldBlock: boolean };
+  estimateSwap: undefined;
   setSwapScreen: { state: SwapState };
   clearSwapError: undefined;
-  estimateSwapCex: { shouldBlock: boolean };
   submitSwapCex: { password: string };
-  setSwapType: { type: SwapType };
   setSwapCexAddress: { toAddress: string };
   addSwapToken: { token: UserSwapToken };
   toggleSwapSettingsModal: { isOpen: boolean };

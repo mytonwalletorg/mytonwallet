@@ -110,9 +110,7 @@ $logout_without_backup_warning: 您尚未备份钱包！如果您注销，您将
 $logout_accounts_without_backup_warning: 您还没有备份此账户 %links%。 如果您注销，您将永远丧失您的代币和 NFT ！
 $logout_warning: 这将从应用中移除当前钱包。请确保已备份您的**密语**。
 Your address was copied!: 您的地址已复制！
-Show QR Code: 显示二维码
 Create Deposit Link: 创建存款链接
-QR Code: 二维码
 $receive_invoice_description: 您可以指定付款金额和收款地址来节省付款方的一些时间。
 Amount: 数量
 Comment: 留言
@@ -454,9 +452,8 @@ A request is already pending: 请求已待处理
 Please confirm operation using biometrics: 请使用生物识别确认操作
 Scan QR Code: 扫描二维码
 Permission denied. Please grant camera permission to use the QR code scanner.: 没有权限。 请授予相机使用 QR 扫描仪的权限。
-Unsupported QR code format: 不支持的QR码格式
+This QR Code is not supported: 此二维码不受支持
 An error on the server side. Please try again.: 服务器端的错误。请再试一次。
-Unrecognized QR Code: 无法识别的二维码
 Address was saved!: 地址已保存！
 US Dollar: 美元
 Euro: 欧元
@@ -628,7 +625,7 @@ Codes don’t match: 代码不匹配
 Enter your new code: 输入您的新代码
 Re-enter your new code: 再次输入您的新代码
 MyTonWallet Features: MyTonWallet 功能
-Install on Desktop: 安装在桌面
+Install on Desktop: 安装到桌面
 Install on Mobile: 安装在手机
 Install App: 安装应用
 WrongNetwork: Dapp 从另一个网络请求交易。

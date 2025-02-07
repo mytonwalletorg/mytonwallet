@@ -13,7 +13,7 @@ import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
 import {
-  CHAIN_CONFIG, IS_FIREFOX_EXTENSION, PRICELESS_TOKEN_HASHES, STAKED_TOKEN_SLUGS, TONCOIN,
+  IS_FIREFOX_EXTENSION, PRICELESS_TOKEN_HASHES, STAKED_TOKEN_SLUGS, TONCOIN,
 } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
@@ -104,7 +104,6 @@ const COMMENT_DROPDOWN_ITEMS = [
 ];
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
 const AUTHORIZE_DIESEL_INTERVAL_MS = SECOND;
-const TRON_ADDRESS_REGEX = /^T[1-9A-HJ-NP-Za-km-z]{1,33}$/;
 
 const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
 
@@ -183,6 +182,7 @@ function TransferInitial({
     price,
     symbol,
     chain,
+    codeHash,
   } = transferToken || {};
 
   // Note: As of 27-11-2023, Firefox does not support readText()
@@ -331,15 +331,17 @@ function TransferInitial({
     tokenSlug,
   ]);
 
-  const handleTokenChange = useLastCallback((slug: string) => {
-    changeTransferToken({ tokenSlug: slug });
-    const token = tokens?.find((t) => t.slug === slug);
-    if (STAKED_TOKEN_SLUGS.has(slug) || PRICELESS_TOKEN_HASHES.has(token?.codeHash!)) {
+  useEffect(() => {
+    if (STAKED_TOKEN_SLUGS.has(tokenSlug) || PRICELESS_TOKEN_HASHES.has(codeHash ?? '')) {
       showDialog({
         title: lang('Warning!'),
         message: lang('$service_token_transfer_warning'),
       });
     }
+  }, [tokenSlug, codeHash, lang]);
+
+  const handleTokenChange = useLastCallback((slug: string) => {
+    changeTransferToken({ tokenSlug: slug });
   });
 
   const handleAddressBookClose = useLastCallback(() => {
@@ -396,7 +398,6 @@ function TransferInitial({
       setTransferToAddress({ toAddress: toAddress.toLowerCase().trim() });
     } else if (toAddress !== toAddress.trim()) {
       setTransferToAddress({ toAddress: toAddress.trim() });
-      parseAddressAndUpdateToken(toAddress.trim());
     }
 
     requestAnimationFrame(() => {
@@ -406,7 +407,6 @@ function TransferInitial({
 
   const handleAddressInput = useLastCallback((newToAddress: string) => {
     setTransferToAddress({ toAddress: newToAddress });
-    parseAddressAndUpdateToken(newToAddress);
   });
 
   const handleAddressClearClick = useLastCallback(() => {
@@ -429,16 +429,6 @@ function TransferInitial({
     }
   });
 
-  function parseAddressAndUpdateToken(address: string) {
-    if (!address || amount || !isMultichainAccount || !tokens) return;
-    const chainFromAddress = getChainFromAddress(address);
-    if (chainFromAddress === chain) return;
-
-    const newTokenSlug = findTokenSlugWithMaxBalance(tokens, chainFromAddress)
-      || CHAIN_CONFIG[chainFromAddress].nativeToken.slug;
-    handleTokenChange(newTokenSlug);
-  }
-
   const handlePasteClick = useLastCallback(async () => {
     try {
       const { type, text } = await readClipboardContent();
@@ -446,7 +436,6 @@ function TransferInitial({
       if (type === 'text/plain') {
         isDisabledDebounce.current = true;
         setTransferToAddress({ toAddress: text.trim() });
-        parseAddressAndUpdateToken(text.trim());
       }
     } catch (err: any) {
       showNotification({ message: lang('Error reading clipboard') });
@@ -458,7 +447,6 @@ function TransferInitial({
     (address: string) => {
       isDisabledDebounce.current = true;
       setTransferToAddress({ toAddress: address });
-      parseAddressAndUpdateToken(address);
       closeAddressBook();
     },
   );
@@ -1083,31 +1071,6 @@ function renderAddressItem({
       )}
     </div>
   );
-}
-
-function findTokenSlugWithMaxBalance(tokens: UserToken[], chain: ApiChain) {
-  const resultToken = tokens
-    .filter((token) => token.chain === chain)
-    .reduce((maxToken, currentToken) => {
-      const currentBalance = currentToken.priceUsd * Number(currentToken.amount);
-      const maxBalance = maxToken ? maxToken.priceUsd * Number(maxToken.amount) : 0;
-
-      return currentBalance > maxBalance ? currentToken : maxToken;
-    });
-
-  return resultToken?.slug;
-}
-
-function getIsTronAddress(address: string) {
-  return TRON_ADDRESS_REGEX.test(address);
-}
-
-function getChainFromAddress(address: string): ApiChain {
-  if (getIsTronAddress(address)) {
-    return 'tron';
-  }
-
-  return 'ton';
 }
 
 function useFeeModal(explainedFee: ExplainedTransferFee) {

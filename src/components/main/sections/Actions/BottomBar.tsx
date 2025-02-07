@@ -67,13 +67,13 @@ function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StatePro
       closeSiteCategory(undefined, { forceOnHeavyAnimation: true });
     }
 
-    openExplore(undefined, { forceOnHeavyAnimation: true });
     closeSettings(undefined, { forceOnHeavyAnimation: true });
+    openExplore(undefined, { forceOnHeavyAnimation: true });
   });
 
   const handleSettingsClick = useLastCallback(() => {
-    openSettings(undefined, { forceOnHeavyAnimation: true });
     closeExplore(undefined, { forceOnHeavyAnimation: true });
+    openSettings(undefined, { forceOnHeavyAnimation: true });
   });
 
   useHistoryBack({

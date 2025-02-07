@@ -12,6 +12,7 @@ import {
   selectCurrentAccount,
   selectCurrentAccountState,
   selectSwapTokens,
+  selectSwapType,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
@@ -38,6 +39,7 @@ import styles from './Swap.module.scss';
 
 interface StateProps {
   currentSwap: GlobalState['currentSwap'];
+  swapType: SwapType;
   swapTokens?: UserSwapToken[];
   activityById?: Record<string, ApiActivity>;
   addressByChain?: Account['addressByChain'];
@@ -55,13 +57,13 @@ function SwapModal({
     isLoading,
     error,
     activityId,
-    swapType,
     toAddress,
     payinAddress,
     payoutAddress,
     payinExtraId,
     shouldResetOnClose,
   },
+  swapType,
   swapTokens,
   activityById,
   addressByChain,
@@ -301,6 +303,7 @@ export default memo(withGlobal((global): StateProps => {
 
   return {
     currentSwap: global.currentSwap,
+    swapType: selectSwapType(global),
     swapTokens: selectSwapTokens(global),
     activityById,
     addressByChain: account?.addressByChain,

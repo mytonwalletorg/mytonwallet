@@ -1,10 +1,13 @@
 import type { ApiBalanceBySlug, ApiSwapAsset } from '../../api/types';
 import type { AccountSettings, GlobalState, UserSwapToken } from '../types';
+import { SwapType } from '../types';
 
+import { DEFAULT_SWAP_FISRT_TOKEN_SLUG, DEFAULT_SWAP_SECOND_TOKEN_SLUG } from '../../config';
 import { toBig } from '../../util/decimals';
 import memoize from '../../util/memoize';
+import { getChainBySlug } from '../../util/tokens';
 import withCache from '../../util/withCache';
-import { selectCurrentAccountSettings, selectCurrentAccountState } from './accounts';
+import { selectCurrentAccount, selectCurrentAccountSettings, selectCurrentAccountState } from './accounts';
 import { selectAccountTokensMemoizedFor } from './tokens';
 
 function createTokenList(
@@ -145,4 +148,25 @@ export function selectCurrentSwapTokenIn(global: GlobalState) {
 export function selectCurrentSwapTokenOut(global: GlobalState) {
   const { tokenOutSlug } = global.currentSwap;
   return tokenOutSlug === undefined ? undefined : global.swapTokenInfo.bySlug[tokenOutSlug];
+}
+
+export function selectSwapType(global: GlobalState) {
+  const {
+    tokenInSlug = DEFAULT_SWAP_FISRT_TOKEN_SLUG,
+    tokenOutSlug = DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+  } = global.currentSwap;
+  const tokenInChain = getChainBySlug(tokenInSlug);
+  const tokenOutChain = getChainBySlug(tokenOutSlug);
+
+  if (tokenInChain === 'ton' && tokenOutChain === 'ton') {
+    return SwapType.OnChain;
+  }
+
+  const { addressByChain } = selectCurrentAccount(global) ?? { addressByChain: {} };
+
+  if (tokenInChain in addressByChain) {
+    return SwapType.CrosschainFromWallet;
+  }
+
+  return SwapType.CrosschainToWallet;
 }

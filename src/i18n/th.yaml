@@ -112,9 +112,7 @@ $logout_without_backup_warning: หากคุณไม่ได้สำรอ
 $logout_accounts_without_backup_warning: หากคุณไม่ได้สำรอง %links% ของคุณ. เมื่อคุณลบวอลเล็ตนี้, คุณจะไม่สามารถเข้าถึงโทเคนและ NFT ในวอลเล็ตนี้ได้อีกต่อไป.
 $logout_warning: การดำเนินการนี้จะลบกระเป๋าเงินปัจจุบันออกจากแอป ตรวจสอบให้แน่ใจว่าคุณได้สำรองข้อมูล **คำลับ** ของคุณแล้ว.
 Your address was copied!: ที่อยู่บัญชีของคุณถูกคัดลอกแล้ว!
-Show QR Code: แสดงคิวอาร์โค้ด
 Create Deposit Link: สร้างลิงก์สำหรับการฝาก
-QR Code: คิวอาร์โค้ด
 $receive_invoice_description: |
   คุณสามารถระบุจำนวนและเหตุผลของการชำระเงินได้
   จะทำให้ผู้ส่งเงินสามารถเข้าใจและชำระเงินได้เร็วขึ้น.
@@ -217,7 +215,7 @@ Appearance: คุณลักษณะ
 Light: ไลค์
 Dark: ดาร์ค
 System: ระบบ
-$stake_asset: สเต็ก %symbol%
+$stake_asset: วางเดิมพัน %symbol%
 Earn from your tokens while holding them: รับโทเคนของคุณที่ได้จากการที่ถือมันไว้
 Why this is safe: ทำไมสิ่งนี้ถึงปลอดถัย
 Why is staking safe?: เหตุใดการสเต็กจึงปลอดภัย?
@@ -463,9 +461,8 @@ A request is already pending: คำขอเคยส่งไปแล้ว
 Please confirm operation using biometrics: โปรดยืนยันการทำรายการด้วย Biometrics
 Scan QR Code: สแกน QR Code
 Permission denied. Please grant camera permission to use the QR code scanner.: ไม่ได้รับการอนุญาต. โปรดอนุญาตให้แอปใช้กล้องเพื่อใช้งานในการสแกน QR Code.
-Unsupported QR code format: รูปแบบ QR Code ไม่ได้รองรับ
+This QR Code is not supported: QR Code นี้ไม่รองรับ
 An error on the server side. Please try again.: เกิดข้อผิดพลาดบนเซิร์ฟเวอร์. โปรดลองใหม่อีกครั้ง.
-Unrecognized QR Code: ไม่รู้จัก QR Code นี้
 Address was saved!: ที่อยู่บัญชีถูกบันทึกแล้ว!
 US Dollar: ยูเอส ดอลลาร์
 Euro: ยูโร

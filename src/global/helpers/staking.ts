@@ -10,13 +10,14 @@ export function buildStakingDropdownItems({
   states: ApiStakingState[];
   shouldUseNominators?: boolean;
 }) {
-  if (!shouldUseNominators) {
-    shouldUseNominators = states.some((state) => state.type === 'nominators' && state.balance);
+  const hasNominatorsStake = states.some((state) => state.type === 'nominators' && state.balance);
+  const hasLiquidStake = states.some((state) => state.type === 'liquid' && state.balance);
+
+  if (shouldUseNominators && !hasLiquidStake) {
+    states = states.filter((state) => state.type !== 'liquid');
   }
 
-  if (shouldUseNominators) {
-    states = states.filter((state) => state.type !== 'liquid');
-  } else {
+  if (!shouldUseNominators && !hasNominatorsStake) {
     states = states.filter((state) => state.type !== 'nominators');
   }
 

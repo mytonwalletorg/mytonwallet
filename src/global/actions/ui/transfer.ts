@@ -4,7 +4,7 @@ import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
-import { updateCurrentTransfer } from '../../reducers';
+import { setCurrentTransferAddress, updateCurrentTransfer } from '../../reducers';
 import { selectAccount } from '../../selectors';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
@@ -62,39 +62,23 @@ addActionHandler('changeTransferToken', (global, actions, { tokenSlug, withReset
 addActionHandler('setTransferScreen', (global, actions, payload) => {
   const { state } = payload;
 
-  setGlobal(updateCurrentTransfer(global, { state }));
+  return updateCurrentTransfer(global, { state });
 });
 
 addActionHandler('setTransferAmount', (global, actions, { amount }) => {
-  setGlobal(
-    updateCurrentTransfer(global, {
-      amount,
-    }),
-  );
+  return updateCurrentTransfer(global, { amount });
 });
 
 addActionHandler('setTransferToAddress', (global, actions, { toAddress }) => {
-  setGlobal(
-    updateCurrentTransfer(global, {
-      toAddress,
-    }),
-  );
+  return setCurrentTransferAddress(global, toAddress);
 });
 
 addActionHandler('setTransferComment', (global, actions, { comment }) => {
-  setGlobal(
-    updateCurrentTransfer(global, {
-      comment,
-    }),
-  );
+  return updateCurrentTransfer(global, { comment });
 });
 
 addActionHandler('setTransferShouldEncrypt', (global, actions, { shouldEncrypt }) => {
-  setGlobal(
-    updateCurrentTransfer(global, {
-      shouldEncrypt,
-    }),
-  );
+  return updateCurrentTransfer(global, { shouldEncrypt });
 });
 
 addActionHandler('submitTransferConfirm', (global, actions) => {

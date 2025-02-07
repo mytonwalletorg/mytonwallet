@@ -294,6 +294,10 @@ $imageGapSize: 0.75rem;
 }
 
 .infoWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
   line-height: 1.0625rem;
 }
 
@@ -361,7 +365,7 @@ $imageGapSize: 0.75rem;
     z-index: 3;
     top: 0;
 
-    padding-top: max(0.5rem, var(--safe-area-top));
+    padding-top: calc(0.5rem + var(--safe-area-top));
 
     background-color: var(--color-background-second);
 
@@ -400,7 +404,7 @@ $imageGapSize: 0.75rem;
   @include adapt-margin-to-scrollbar(1rem);
 
   @include respond-below(xs) {
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
 
     background-color: var(--color-gray-button-background);
   }

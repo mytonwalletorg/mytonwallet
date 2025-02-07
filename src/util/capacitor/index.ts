@@ -79,7 +79,7 @@ export async function initCapacitor() {
   }
 
   App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
-    processDeeplink(event.url);
+    void processDeeplink(event.url);
   });
 
   App.addListener('backButton', ({ canGoBack }) => {

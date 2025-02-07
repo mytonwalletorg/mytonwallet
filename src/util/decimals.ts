@@ -22,7 +22,3 @@ export function toBig(value: bigint | number, decimals: number = TONCOIN.decimal
 export function roundDecimal(value: string, decimals: number) {
   return Big(value).round(decimals).toString();
 }
-
-export function getIsPositiveDecimal(value: string) {
-  return !value.startsWith('-');
-}

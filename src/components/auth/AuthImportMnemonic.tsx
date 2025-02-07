@@ -46,6 +46,7 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   const {
     afterImportMnemonic,
     resetAuth,
+    cleanAuthError,
   } = getActions();
 
   const lang = useLang();
@@ -87,10 +88,12 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
   const isSubmitDisabled = useMemo(() => {
     const mnemonicValues = compact(Object.values(mnemonic));
 
-    return !MNEMONIC_COUNTS.includes(mnemonicValues.length) && !isMnemonicPrivateKey(mnemonicValues);
-  }, [mnemonic]);
+    return (!MNEMONIC_COUNTS.includes(mnemonicValues.length) && !isMnemonicPrivateKey(mnemonicValues))
+      || !!error;
+  }, [mnemonic, error]);
 
   const handleSetWord = useLastCallback((value: string, index: number) => {
+    cleanAuthError();
     const pastedMnemonic = parsePastedText(value);
     if (MNEMONIC_COUNTS.includes(pastedMnemonic.length)) {
       handleMnemonicSet(pastedMnemonic);

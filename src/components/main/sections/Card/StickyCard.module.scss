@@ -71,14 +71,8 @@
   align-items: center;
 
   max-width: 27rem;
-  height: 3.75rem;
+  height: var(--sticky-card-height);
   margin: 0 auto;
-
-  :global(html.with-safe-area-top) & {
-    box-sizing: content-box;
-    height: 1.5rem;
-    padding-bottom: 1.125rem;
-  }
 }
 
 .account {

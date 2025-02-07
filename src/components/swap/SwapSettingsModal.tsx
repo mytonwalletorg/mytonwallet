@@ -11,6 +11,7 @@ import {
   selectCurrentAccountTokenBalance,
   selectCurrentSwapTokenIn,
   selectCurrentSwapTokenOut,
+  selectSwapType,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { findChainConfig } from '../../util/chain';
@@ -46,7 +47,7 @@ interface StateProps {
   tokenOut?: ApiSwapAsset;
   networkFee?: string;
   realNetworkFee?: string;
-  swapType?: SwapType;
+  swapType: SwapType;
   slippage: number;
   priceImpact?: number;
   amountOutMin?: string;
@@ -353,7 +354,6 @@ const SwapSettings = memo(
       amountOut,
       networkFee,
       realNetworkFee,
-      swapType,
       slippage,
       priceImpact,
       amountOutMin,
@@ -371,7 +371,7 @@ const SwapSettings = memo(
       amountOut,
       networkFee,
       realNetworkFee,
-      swapType,
+      swapType: selectSwapType(global),
       tokenIn: selectCurrentSwapTokenIn(global),
       tokenOut: selectCurrentSwapTokenOut(global),
       slippage,

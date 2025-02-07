@@ -110,9 +110,7 @@ $logout_without_backup_warning: 您尚未備份錢包。 如果您註銷，您�
 $logout_accounts_without_backup_warning: 您還沒有備份 %links%。 如果您註銷，您將喪失您的代幣和 NFT。
 $logout_warning: 這將從應用中移除當前錢包。請確保已備份您的**密語**。
 Your address was copied!: 您的地址已被複製!
-Show QR Code: 顯示 QR Code
 Create Deposit Link: 建立存款連結
-QR Code: QR Code
 $receive_invoice_description: 您可以指定付款金額和地址來節省發送人的一些時間。
 Amount: 數量
 Comment: 註記欄
@@ -454,9 +452,8 @@ A request is already pending: 請求已待處理
 Please confirm operation using biometrics: 請使用生物辨識確認操作
 Scan QR Code: 掃描二維碼
 Permission denied. Please grant camera permission to use the QR code scanner.: 沒有權限。 請授予相機使用 QR 掃描器的權限。
-Unsupported QR code format: 不支持的QR碼格式
+This QR Code is not supported: 此二維碼不受支援
 An error on the server side. Please try again.: 服務器端的錯誤。請再試一次。
-Unrecognized QR Code: 無法辨識的二維碼
 Address was saved!: 地址已儲存！
 US Dollar: 美金
 Euro: 歐元
@@ -628,7 +625,7 @@ Codes don’t match: 代碼不匹配
 Enter your new code: 輸入您的新代碼
 Re-enter your new code: 再次輸入您的新代碼
 MyTonWallet Features: MyTonWallet 功能
-Install on Desktop: 安裝在桌面
+Install on Desktop: 安裝到桌面
 Install on Mobile: 安裝在手機
 Install App: 安裝應用程式
 WrongNetwork: Dapp 要求來自另一個網路的交易。

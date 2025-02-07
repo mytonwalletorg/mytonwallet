@@ -1,7 +1,7 @@
 import type { ApiStakingState } from '../../api/types';
 import type { GlobalState } from '../types';
 
-import { TONCOIN } from '../../config';
+import { DEFAULT_NOMINATORS_STAKING_STATE, TONCOIN } from '../../config';
 import memoize from '../../util/memoize';
 import withCache from '../../util/withCache';
 import { selectAccountState } from './accounts';
@@ -21,9 +21,10 @@ export function selectAccountStakingStates(global: GlobalState, accountId: strin
 }
 
 export function selectAccountStakingState(global: GlobalState, accountId: string): ApiStakingState {
-  const { stateById, stakingId } = selectAccountState(global, accountId)?.staking ?? {};
+  const { stateById, stakingId, shouldUseNominators } = selectAccountState(global, accountId)?.staking ?? {};
+
   if (!stateById || !stakingId || !(stakingId in stateById)) {
-    return global.stakingDefault;
+    return shouldUseNominators ? DEFAULT_NOMINATORS_STAKING_STATE : global.stakingDefault;
   }
 
   return stateById[stakingId];

@@ -114,9 +114,7 @@ $logout_without_backup_warning: Nie utworzono kopii zapasowej tego portfela. Je�
 $logout_accounts_without_backup_warning: Nie utworzono kopii zapasowej %links%. Kontynuowanie spowoduje utratę dostępu do tokenów i NFT.
 $logout_warning: Spowoduje to usunięcie bieżącego portfela z aplikacji. Upewnij się, że masz kopię zapasową swoich **tajnych słów**.
 Your address was copied!: Twój adres został skopiowany!
-Show QR Code: Pokaż kod QR
 Create Deposit Link: Utwórz łącze do wpłaty
-QR Code: Kod QR
 $receive_invoice_description: |
   Możesz określić kwotę i cel
   płatności, aby zaoszczędzić czas nadawcy.
@@ -219,7 +217,7 @@ Appearance: Wygląd
 Light: Jasny
 Dark: Ciemny
 System: Systemowy
-$stake_asset: Stake %symbol%
+$stake_asset: Stakuj %symbol%
 Earn from your tokens while holding them: Zarabiaj na swoich tokenach, trzymając je
 Why this is safe: Dlaczego to jest bezpieczne
 Why is staking safe?: Dlaczego staking jest bezpieczny?
@@ -465,9 +463,8 @@ A request is already pending: Żądanie jest już oczekujące
 Please confirm operation using biometrics: Proszę potwierdzić operację za pomocą biometrii
 Scan QR Code: Zeskanuj kod QR
 Permission denied. Please grant camera permission to use the QR code scanner.: Odmowa uprawnień. Proszę udzielić uprawnień kamery, aby użyć skanera kodów QR.
-Unsupported QR code format: Nieobsługiwany format kodu QR
+This QR Code is not supported: Ten kod QR nie jest obsługiwany
 An error on the server side. Please try again.: Błąd po stronie serwera. Proszę spróbować ponownie.
-Unrecognized QR Code: Nie rozpoznano kodu QR
 Address was saved!: Adres został zapisany!
 US Dollar: Dolar amerykański
 Euro: Euro
@@ -644,7 +641,7 @@ Codes don’t match: Kody nie pasują do siebie
 Enter your new code: Wprowadź nowy kod
 Re-enter your new code: Wprowadź nowy kod ponownie
 MyTonWallet Features: Funkcje MyTonWallet
-Install on Desktop: Zainstaluj na pulpicie
+Install on Desktop: Zainstaluj na komputerze
 Install on Mobile: Zainstaluj na telefonie komórkowym
 Install App: Zainstaluj aplikację
 WrongNetwork: Dapp zażądał transakcji z innej sieci.

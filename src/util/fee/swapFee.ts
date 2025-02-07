@@ -12,8 +12,9 @@ import { fromDecimal, toBig } from '../decimals';
 import { getChainBySlug, getIsNativeToken } from '../tokens';
 
 type ExplainSwapFeeInput = Pick<GlobalState['currentSwap'],
-'swapType' | 'tokenInSlug' | 'networkFee' | 'realNetworkFee' | 'ourFee' | 'dieselStatus' | 'dieselFee'
+'tokenInSlug' | 'networkFee' | 'realNetworkFee' | 'ourFee' | 'dieselStatus' | 'dieselFee'
 > & {
+  swapType: SwapType;
   /** The balance of the "in" token blockchain's native token. Undefined means that it's unknown. */
   nativeTokenInBalance: bigint | undefined;
 };
@@ -47,7 +48,8 @@ export type ExplainedSwapFee = {
   shouldShowOurFee: boolean;
 };
 
-type MaxSwapAmountInput = Pick<GlobalState['currentSwap'], 'swapType' | 'ourFeePercent'> & {
+type MaxSwapAmountInput = Pick<GlobalState['currentSwap'], 'ourFeePercent'> & {
+  swapType: SwapType;
   /** The balance of the "in" token. Undefined means that it's unknown. */
   tokenInBalance: bigint | undefined;
   tokenIn: Pick<ApiToken, 'slug' | 'decimals'> | undefined;

@@ -3,7 +3,7 @@ import type { GlobalState } from '../types';
 
 import { pick } from '../../util/iteratees';
 import { INITIAL_STATE } from '../initialState';
-import { selectCurrentTransferMaxAmount } from '../selectors';
+import { selectCurrentTransferMaxAmount, selectTokenMatchingCurrentTransferAddressSlow } from '../selectors';
 
 export function updateCurrentTransferByCheckResult(global: GlobalState, result: ApiCheckTransactionDraftResult) {
   const nextGlobal = updateCurrentTransfer(global, {
@@ -52,4 +52,17 @@ export function updateCurrentTransferLoading(global: GlobalState, isLoading: boo
       isLoading,
     },
   };
+}
+
+export function setCurrentTransferAddress(global: GlobalState, toAddress: string | undefined) {
+  global = updateCurrentTransfer(global, { toAddress });
+
+  // Unless the user has filled the amount, the token should change to match the "to" address
+  if (!global.currentTransfer.amount) {
+    global = updateCurrentTransfer(global, {
+      tokenSlug: selectTokenMatchingCurrentTransferAddressSlow(global),
+    });
+  }
+
+  return global;
 }

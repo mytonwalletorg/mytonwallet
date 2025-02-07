@@ -4,6 +4,6 @@ import { processDeeplink } from './deeplink';
 
 export function initElectron() {
   window.electron?.on(ElectronEvent.DEEPLINK, ({ url }: { url: string }) => {
-    processDeeplink(url);
+    void processDeeplink(url);
   });
 }

@@ -584,17 +584,14 @@ function reduceAccountActivities(activities?: AccountState['activities'], tokens
 }
 
 function reduceAccountStaking(staking?: AccountState['staking']) {
-  let stateById = staking?.stateById;
-  let stakingId = staking?.stakingId;
+  let { stakingId, stateById } = staking ?? {};
 
-  if (!staking || !stateById || !Object.keys(stateById).length) {
-    return undefined;
-  }
+  if (stateById && Object.values(stateById).length) {
+    stateById = filterValues(stateById, getIsActiveStakingState);
 
-  stateById = filterValues(stateById, getIsActiveStakingState);
-
-  if (!stakingId || !(stakingId in stateById)) {
-    stakingId = Object.values(stateById)[0]?.id;
+    if (!stakingId || !(stakingId in stateById)) {
+      stakingId = Object.values(stateById)[0]?.id;
+    }
   }
 
   return {

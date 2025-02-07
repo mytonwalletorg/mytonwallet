@@ -2,6 +2,7 @@ import type { ApiTonWalletVersion } from './api/chains/ton/types';
 import type {
   ApiBaseCurrency,
   ApiLiquidStakingState,
+  ApiNominatorsStakingState,
   ApiSwapAsset,
   ApiSwapDexLabel,
 } from './api/types';
@@ -135,7 +136,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-164';
+export const LANG_CACHE_NAME = 'mtw-lang-167';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -251,12 +252,14 @@ export const CHAIN_CONFIG = {
     isMemoSupported: true,
     isDnsSupported: true,
     addressRegex: /^([-\w_]{48}|0:[\da-h]{64})$/i,
+    addressPrefixRegex: /^([-\w_]{1,48}|0:[\da-h]{0,64})$/i,
     nativeToken: TONCOIN,
   },
   tron: {
     isMemoSupported: false,
     isDnsSupported: false,
     addressRegex: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
+    addressPrefixRegex: /^T[1-9A-HJ-NP-Za-km-z]{0,33}$/,
     nativeToken: TRX,
     mainnet: {
       apiUrl: TRON_MAINNET_API_URL,
@@ -550,6 +553,19 @@ export const DEFAULT_STAKING_STATE: ApiLiquidStakingState = {
   tokenBalance: 0n,
   unstakeRequestAmount: 0n,
   instantAvailable: 0n,
+};
+
+export const DEFAULT_NOMINATORS_STAKING_STATE: ApiNominatorsStakingState = {
+  type: 'nominators',
+  id: 'nominators',
+  tokenSlug: TONCOIN.slug,
+  annualYield: 3.9,
+  yieldType: 'APY',
+  balance: 0n,
+  pool: 'Ef8dgIOIRyCLU0NEvF8TD6Me3wrbrkS1z3Gpjk3ppd8m8-s_',
+  start: 0,
+  end: 0,
+  pendingDepositAmount: 0n,
 };
 
 export const SWAP_API_VERSION = 2;

@@ -112,6 +112,7 @@ function NftMenu({
         items={menuItems}
         shouldTranslateOptions
         className={styles.menu}
+        bubbleClassName={styles.menuBubble}
         buttonClassName={styles.item}
         shouldCleanup
         onClose={onClose}

@@ -1,6 +1,5 @@
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
-import type { ApiChain } from '../../../api/types';
 import type { LedgerTransport } from '../../../util/ledger/types';
 import type { GlobalState } from '../../types';
 import {
@@ -12,13 +11,11 @@ import {
   APP_VERSION,
   BETA_URL,
   BOT_USERNAME,
-  CHAIN_CONFIG,
   DEBUG,
   IS_CAPACITOR,
   IS_EXTENSION,
   IS_PRODUCTION,
   PRODUCTION_URL,
-  TONCOIN,
 } from '../../../config';
 import {
   ACCENT_BNW_INDEX,
@@ -28,11 +25,9 @@ import {
   extractAccentColorIndex,
 } from '../../../util/accentColor';
 import { vibrateOnSuccess } from '../../../util/capacitor';
-import { isTonDeeplink, parseTonDeeplink, processDeeplink } from '../../../util/deeplink';
+import { parseDeeplinkTransferParams, processDeeplink } from '../../../util/deeplink';
 import { getCachedImageUrl } from '../../../util/getCachedImageUrl';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
-import { isValidAddressOrDomain } from '../../../util/isValidAddressOrDomain';
-import { omitUndefined, pick } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
@@ -46,12 +41,14 @@ import {
   IS_DELEGATING_BOTTOM_SHEET,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
+import { parsePlainAddressQr } from '../../helpers/misc';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentSwap,
   clearCurrentTransfer,
   clearIsPinAccepted,
   renameAccount,
+  setCurrentTransferAddress,
   setIsPinAccepted,
   updateAccounts,
   updateAuth,
@@ -66,11 +63,11 @@ import {
   selectCurrentAccount,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
-  selectCurrentAccountTokens,
   selectFirstNonHardwareAccount,
-  selectIsMultichainAccount,
 } from '../../selectors';
 import { switchAccount } from '../api/auth';
+
+import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
 import { reportAppLockActivityEvent } from '../../../components/AppLocked';
 import { getCardNftImageUrl } from '../../../components/main/sections/Card/helpers/getCardNftImageUrl';
@@ -581,56 +578,44 @@ addActionHandler('closeQrScanner', (global) => {
   };
 });
 
-addActionHandler('handleQrCode', (global, actions, { data }) => {
+addActionHandler('handleQrCode', async (global, actions, { data }) => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('handleQrCode', { data });
-    return undefined;
+    return;
   }
 
   const { currentTransfer, currentSwap } = global.currentQrScan || {};
-  const isMultichain = selectIsMultichainAccount(global, global.currentAccountId!);
 
   if (currentTransfer) {
-    const chainFromAddress = getChainFromAddress(data, isMultichain);
-
-    if (chainFromAddress) {
-      const { tokenSlug } = currentTransfer;
-
-      const token = selectCurrentAccountTokens(global)?.find(({ slug }) => slug === tokenSlug);
-
-      const newTokenSlug = (!token || token.chain !== chainFromAddress)
-        ? CHAIN_CONFIG[chainFromAddress].nativeToken.slug
-        : tokenSlug;
-
-      return updateCurrentTransfer(global, {
-        ...currentTransfer,
-        tokenSlug: newTokenSlug,
-        toAddress: data,
-      });
-    }
-
-    const linkParams = isTonDeeplink(data) ? parseTonDeeplink(data) : undefined;
-    if (linkParams) {
-      return updateCurrentTransfer(global, {
-        ...currentTransfer,
-        // For NFT transfer we only extract address from a ton:// link
-        ...(currentTransfer.nfts?.length ? pick(linkParams, ['toAddress']) : omitUndefined(linkParams)),
-        // Only Toncoin can be processed with deeplink right now
-        tokenSlug: TONCOIN.slug,
-      });
-    }
+    const linkParams = parseDeeplinkTransferParams(data);
+    const toAddress = linkParams?.toAddress ?? data;
+    setGlobal(setCurrentTransferAddress(updateCurrentTransfer(global, currentTransfer), toAddress));
+    return;
   }
 
   if (currentSwap) {
-    return updateCurrentSwap(global, {
-      ...currentSwap,
-      toAddress: data,
-    });
+    const linkParams = parseDeeplinkTransferParams(data);
+    const toAddress = linkParams?.toAddress ?? data;
+    setGlobal(updateCurrentSwap(global, { ...currentSwap, toAddress }));
+    return;
   }
 
-  processDeeplink(data);
+  if (await processDeeplink(data)) {
+    return;
+  }
 
-  return undefined;
+  global = getGlobal();
+
+  const plainAddressData = parsePlainAddressQr(global, data);
+  if (plainAddressData) {
+    actions.startTransfer({
+      ...plainAddressData,
+      isPortrait: getIsPortrait(),
+    });
+    return;
+  }
+
+  actions.showDialog({ title: 'This QR Code is not supported', message: '' });
 });
 
 addActionHandler('changeBaseCurrency', async (global, actions, { currency }) => {
@@ -854,10 +839,4 @@ async function connectLedgerAndGetHardwareState() {
   }
 
   return newHardwareState;
-}
-
-function getChainFromAddress(address: string, isMultichainAccount: boolean): ApiChain | undefined {
-  if (isMultichainAccount && isValidAddressOrDomain(address, 'tron')) return 'tron';
-
-  return isValidAddressOrDomain(address, 'ton') ? 'ton' : undefined;
 }

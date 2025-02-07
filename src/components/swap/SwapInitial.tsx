@@ -15,14 +15,18 @@ import { SwapInputSource, SwapState, SwapType } from '../../global/types';
 import {
   ANIMATED_STICKER_TINY_SIZE_PX,
   ANIMATION_LEVEL_MAX,
-  CHAIN_CONFIG,
   CHANGELLY_AML_KYC,
   CHANGELLY_PRIVACY_POLICY,
   CHANGELLY_TERMS_OF_USE,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
   TONCOIN,
 } from '../../config';
-import { selectCurrentAccount, selectIsMultichainAccount, selectSwapTokens } from '../../global/selectors';
+import {
+  selectCurrentAccount,
+  selectIsMultichainAccount,
+  selectSwapTokens,
+  selectSwapType,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import { findChainConfig } from '../../util/chain';
@@ -38,7 +42,6 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePrevious from '../../hooks/usePrevious';
 import useSyncEffect from '../../hooks/useSyncEffect';
-import useThrottledCallback from '../../hooks/useThrottledCallback';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -64,6 +67,7 @@ interface StateProps {
   accountId?: string;
   tokens?: UserSwapToken[];
   isMultichainAccount?: boolean;
+  swapType: SwapType;
 }
 
 const ESTIMATE_REQUEST_INTERVAL = 1_000;
@@ -82,7 +86,6 @@ function SwapInitial({
     realNetworkFee,
     priceImpact = 0,
     inputSource,
-    swapType,
     limits,
     isLoading,
     pairs,
@@ -97,18 +100,16 @@ function SwapInitial({
   isActive,
   isStatic,
   isMultichainAccount,
+  swapType,
 }: OwnProps & StateProps) {
   const {
     setDefaultSwapParams,
     setSwapAmountIn,
-    setSwapIsMaxAmount,
     setSwapAmountOut,
     switchSwapTokens,
     estimateSwap,
-    estimateSwapCex,
     setSwapScreen,
     loadSwapPairs,
-    setSwapType,
     setSwapCexAddress,
     authorizeDiesel,
     showNotification,
@@ -119,8 +120,6 @@ function SwapInitial({
   const inputInRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line no-null/no-null
   const inputOutRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line no-null/no-null
-  const estimateIntervalId = useRef<number>(null);
 
   const currentTokenInSlug = tokenInSlug ?? TONCOIN.slug;
   const currentTokenOutSlug = tokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG;
@@ -220,31 +219,18 @@ function SwapInitial({
     lang,
   );
 
-  const handleEstimateSwap = useLastCallback((shouldBlock: boolean) => {
-    if (!isActive || isBackgroundModeActive()) return;
+  const handleEstimateSwap = useLastCallback(() => {
+    if ((!isActive || isBackgroundModeActive()) && !shouldEstimate) return;
 
-    if (isCrosschain) {
-      estimateSwapCex({ shouldBlock });
-      return;
-    }
-
-    estimateSwap({ shouldBlock });
+    estimateSwap();
   });
 
-  const throttledEstimateSwap = useThrottledCallback(
-    handleEstimateSwap, [handleEstimateSwap], ESTIMATE_REQUEST_INTERVAL, true,
-  );
   const debounceSetAmountIn = useDebouncedCallback(
     setSwapAmountIn, [setSwapAmountIn], SET_AMOUNT_DEBOUNCE_TIME, true,
   );
   const debounceSetAmountOut = useDebouncedCallback(
     setSwapAmountOut, [setSwapAmountOut], SET_AMOUNT_DEBOUNCE_TIME, true,
   );
-  const createEstimateTimer = useLastCallback(() => {
-    estimateIntervalId.current = window.setInterval(() => {
-      throttledEstimateSwap(false);
-    }, ESTIMATE_REQUEST_INTERVAL);
-  });
 
   const [currentSubModal, openSettingsModal, openFeeModal, closeSubModal] = useSubModals(explainedFee);
 
@@ -255,17 +241,13 @@ function SwapInitial({
   }, [tokenInSlug, tokenOutSlug]);
 
   useEffect(() => {
-    const clearEstimateTimer = () => estimateIntervalId.current && window.clearInterval(estimateIntervalId.current);
-
     if (shouldEstimate) {
-      clearEstimateTimer();
-      throttledEstimateSwap(true);
+      handleEstimateSwap();
     }
 
-    createEstimateTimer();
-
-    return clearEstimateTimer;
-  }, [shouldEstimate, createEstimateTimer, throttledEstimateSwap]);
+    const intervalId = setInterval(handleEstimateSwap, ESTIMATE_REQUEST_INTERVAL);
+    return () => clearInterval(intervalId);
+  }, [shouldEstimate]);
 
   useEffect(() => {
     const shouldForceUpdate = accountId !== accountIdPrev;
@@ -278,46 +260,15 @@ function SwapInitial({
     }
   }, [accountId, accountIdPrev, currentTokenInSlug, currentTokenOutSlug]);
 
-  useEffect(() => {
-    if (!tokenIn || !tokenOut) {
-      return;
-    }
-
-    const isInTonToken = tokenIn?.chain === 'ton';
-    const isOutTonToken = tokenOut?.chain === 'ton';
-
-    if (isInTonToken && isOutTonToken) {
-      setSwapType({ type: SwapType.OnChain });
-      return;
-    }
-
-    if (isMultichainAccount) {
-      if (tokenIn.chain in CHAIN_CONFIG) {
-        setSwapType({ type: SwapType.CrosschainFromWallet });
-      } else {
-        setSwapType({ type: SwapType.CrosschainToWallet });
-      }
-      return;
-    }
-
-    if (isInTonToken && !isOutTonToken) {
-      setSwapType({ type: SwapType.CrosschainFromWallet });
-    } else if (!isInTonToken && isOutTonToken) {
-      setSwapType({ type: SwapType.CrosschainToWallet });
-    }
-  }, [tokenIn, tokenOut, isMultichainAccount]);
-
   const handleAmountInChange = useLastCallback(
     (amount: string | undefined) => {
-      setSwapIsMaxAmount({ isMaxAmount: false });
       debounceSetAmountIn({ amount: amount || undefined });
     },
   );
 
   const handleAmountOutChange = useLastCallback(
     (amount: string | undefined) => {
-      setSwapIsMaxAmount({ isMaxAmount: false });
-      debounceSetAmountOut({ amount });
+      debounceSetAmountOut({ amount: amount || undefined });
     },
   );
 
@@ -331,8 +282,7 @@ function SwapInitial({
     void vibrate();
 
     const amount = toDecimal(maxAmount, tokenIn!.decimals);
-    setSwapIsMaxAmount({ isMaxAmount: true });
-    setSwapAmountIn({ amount });
+    setSwapAmountIn({ amount, isMaxAmount: true });
   };
 
   const handleSubmit = useLastCallback((e) => {
@@ -543,7 +493,7 @@ function SwapInitial({
             </RichNumberInput>
           </div>
         </div>
-        {!isCrosschain && <SwapDexChooser tokenIn={tokenIn} tokenOut={tokenOut} isStatic={isStatic} />}
+        <SwapDexChooser tokenIn={tokenIn} tokenOut={tokenOut} isStatic={isStatic} />
 
         <div className={buildClassName(styles.footerBlock, isStatic && styles.footerBlockStatic)}>
           {renderFee()}
@@ -599,6 +549,7 @@ export default memo(
         tokens: selectSwapTokens(global),
         addressByChain: account?.addressByChain,
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
+        swapType: selectSwapType(global),
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

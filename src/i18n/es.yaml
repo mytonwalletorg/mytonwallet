@@ -112,9 +112,7 @@ $logout_without_backup_warning: No ha realizado copia de seguridad de este moned
 $logout_accounts_without_backup_warning: No ha realizado copia de seguridad de %links%. Si cierra sesión, perderá el acceso a sus activos.
 $logout_warning: Esto desconectará el monedero de esta aplicación. Podrá restaurar su monedero usando la frase semilla...
 Your address was copied!: ¡Su dirección fue copiada!
-Show QR Code: Mostrar código QR
 Create Deposit Link: Crear enlace de depósito
-QR Code: Código QR
 $receive_invoice_description: |
   Puede especificar la cantidad y
   el propósito del pago para ahorrar tiempo al remitente.
@@ -463,9 +461,8 @@ A request is already pending: Ya hay una solicitud pendiente
 Please confirm operation using biometrics: Confirme la operación mediante datos biométricos
 Scan QR Code: Escanear código QR
 Permission denied. Please grant camera permission to use the QR code scanner.: Permiso denegado. Otorgue permiso a la cámara para usar el escáner QR.
-Unsupported QR code format: Formato de código QR no soportado
+This QR Code is not supported: Este código QR no es compatible
 An error on the server side. Please try again.: Un error en el lado del servidor. Inténtalo de nuevo.
-Unrecognized QR Code: Código QR no reconocido
 Address was saved!: ¡Dirección guardada!
 US Dollar: Dólar estadounidense
 Euro: Euro

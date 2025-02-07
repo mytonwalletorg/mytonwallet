@@ -34,9 +34,10 @@
 
   flex-shrink: 0;
 
-  height: 2.75rem;
+  height: 3rem;
 
   transition: background-color 150ms;
+
   :global(html.animation-level-0) & {
     transition: none !important;
   }
@@ -47,7 +48,7 @@
     position: absolute;
     bottom: 0;
     left: 50%;
-    transform: translate(-50%, -0.03125rem);
+    transform: translate(-50%, -0.0625rem);
 
     width: 100%;
     height: 0.0625rem;
@@ -56,8 +57,9 @@
     box-shadow: 0 0.025rem 0 0 var(--color-separator);
 
     @media (-webkit-max-device-pixel-ratio: 1.3) {
-      /* stylelint-disable-next-line plugin/whole-pixel */
-      box-shadow: 0 0.034375rem 0 0 var(--color-separator);
+      transform: translate(-50%, 0);
+
+      box-shadow: inset 0 0.0625rem 0 0 var(--color-separator);
     }
   }
 
@@ -68,7 +70,6 @@
     top: var(--sticky-card-height);
 
     width: 100%;
-    height: 3rem;
   }
 }
 
@@ -92,7 +93,6 @@
   .landscapeContainer & {
     justify-content: flex-start;
 
-    height: 2.75rem;
     padding: 0 0.75rem;
 
     background-color: var(--color-background-first);
@@ -101,7 +101,12 @@
 }
 
 .tab {
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  --tab-platform-height: 0.15625rem;
+
   flex: 1 1 33.3%;
+
+  font-size: 1rem;
 
   .landscapeContainer & {
     flex: 0 0 auto;
@@ -111,12 +116,7 @@
   }
 
   .portraitContainer & {
-    /* stylelint-disable-next-line plugin/whole-pixel */
-    --tab-platform-height: 0.15625rem;
-
     padding: 0.5rem 0.25rem;
-
-    font-size: 1rem;
   }
 }
 

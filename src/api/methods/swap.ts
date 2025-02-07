@@ -222,8 +222,14 @@ export function swapGetPairs(symbolOrTokenAddress: string): Promise<ApiSwapPairA
   return callBackendGet('/swap/pairs', { asset: symbolOrTokenAddress });
 }
 
-export function swapCexEstimate(request: ApiSwapCexEstimateRequest): Promise<ApiSwapCexEstimateResponse> {
-  return callBackendPost('/swap/cex/estimate', request, { isAllowBadRequest: true });
+export function swapCexEstimate(
+  request: ApiSwapCexEstimateRequest,
+): Promise<ApiSwapCexEstimateResponse | { error: string }> {
+  return callBackendPost<ApiSwapCexEstimateResponse | { error: string }>(
+    '/swap/cex/estimate',
+    request,
+    { isAllowBadRequest: true },
+  );
 }
 
 export function swapCexValidateAddress(params: { slug: string; address: string }): Promise<{

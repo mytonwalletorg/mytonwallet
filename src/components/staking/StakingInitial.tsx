@@ -521,7 +521,7 @@ export default memo(
       } = global.currentStaking;
 
       const states = accountId ? selectAccountStakingStates(global, accountId) : undefined;
-      const stakingState = selectAccountStakingState(global, global.currentAccountId!) ?? global.stakingDefault;
+      const stakingState = selectAccountStakingState(global, global.currentAccountId!);
 
       return {
         isLoading: isLoading && ACTIVE_STATES.has(state),

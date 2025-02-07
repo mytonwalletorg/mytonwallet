@@ -5,7 +5,9 @@
   align-items: center;
 
   width: 100%;
-  height: 2.75rem;
+  height: 3rem;
+
+  color: var(--color-black);
 
   background: var(--color-background-first);
   border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
@@ -27,10 +29,10 @@
   display: flex;
   align-items: center;
 
-  height: 2.75rem;
+  height: 3rem;
   padding: 0.125rem 0.5rem 0;
 
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   color: var(--color-accent);
 }
 
@@ -50,7 +52,7 @@
 .title {
   overflow: hidden;
 
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -67,8 +69,8 @@
   top: 0;
   right: 0;
 
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 3rem;
+  height: 3rem;
   padding-top: 0.3125rem;
   padding-right: 0.125rem;
 

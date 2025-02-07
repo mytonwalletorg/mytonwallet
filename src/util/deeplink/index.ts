@@ -1,7 +1,7 @@
 import { getActions, getGlobal } from '../../global';
 
 import type { ActionPayloads } from '../../global/types';
-import { ActiveTab } from '../../global/types';
+import { ActiveTab, ContentTab } from '../../global/types';
 
 import {
   DEFAULT_CEX_SWAP_SECOND_TOKEN_SLUG,
@@ -22,6 +22,7 @@ import { logDebug, logDebugError } from '../logs';
 import { openUrl } from '../openUrl';
 import { waitRender } from '../renderPromise';
 import { tonConnectGetDeviceInfo } from '../tonConnectEnvironment';
+import { isTelegramUrl } from '../url';
 import {
   CHECKIN_URL,
   SELF_PROTOCOL,
@@ -42,6 +43,7 @@ enum DeeplinkCommand {
   Stake = 'stake',
   Giveaway = 'giveaway',
   Transfer = 'transfer',
+  Explore = 'explore',
 }
 
 let urlAfterSignIn: string | undefined;
@@ -49,30 +51,31 @@ let urlAfterSignIn: string | undefined;
 export function processDeeplinkAfterSignIn() {
   if (!urlAfterSignIn) return;
 
-  processDeeplink(urlAfterSignIn);
+  void processDeeplink(urlAfterSignIn);
 
   urlAfterSignIn = undefined;
 }
 
 export function openDeeplinkOrUrl(url: string, isExternal = false, isFromInAppBrowser = false) {
   if (isTonDeeplink(url) || isTonConnectDeeplink(url) || isSelfDeeplink(url)) {
-    processDeeplink(url, isFromInAppBrowser);
+    void processDeeplink(url, isFromInAppBrowser);
   } else {
     void openUrl(url, isExternal);
   }
 }
 
-export function processDeeplink(url: string, isFromInAppBrowser = false) {
+// Returns `true` if the link has been processed, ideally resulting to a UI action
+export function processDeeplink(url: string, isFromInAppBrowser = false): Promise<boolean> {
   if (!getGlobal().currentAccountId) {
     urlAfterSignIn = url;
   }
 
   if (isTonConnectDeeplink(url)) {
-    void processTonConnectDeeplink(url, isFromInAppBrowser);
+    return processTonConnectDeeplink(url, isFromInAppBrowser);
   } else if (isSelfDeeplink(url)) {
-    processSelfDeeplink(url);
+    return processSelfDeeplink(url);
   } else {
-    void processTonDeeplink(url);
+    return processTonDeeplink(url);
   }
 }
 
@@ -80,16 +83,17 @@ export function isTonDeeplink(url: string) {
   return url.startsWith(TON_PROTOCOL);
 }
 
-async function processTonDeeplink(url: string) {
+// Returns `true` if the link has been processed, ideally resulting to a UI action
+async function processTonDeeplink(url: string): Promise<boolean> {
   const params = parseTonDeeplink(url);
-  if (!params) return;
+  if (!params) return false;
 
   await waitRender();
 
   const actions = getActions();
   const global = getGlobal();
   if (!global.currentAccountId) {
-    return;
+    return false;
   }
 
   const {
@@ -123,7 +127,7 @@ async function processTonDeeplink(url: string) {
       actions.showError({
         error: '$unknown_token_address',
       });
-      return;
+      return true;
     }
     const accountToken = selectAccountTokenBySlug(global, globalToken.slug);
 
@@ -131,7 +135,7 @@ async function processTonDeeplink(url: string) {
       actions.showError({
         error: '$dont_have_required_token',
       });
-      return;
+      return true;
     }
 
     startTransferParams.tokenSlug = globalToken.slug;
@@ -144,7 +148,7 @@ async function processTonDeeplink(url: string) {
       actions.showError({
         error: '$dont_have_required_nft',
       });
-      return;
+      return true;
     }
 
     startTransferParams.nfts = [accountNft];
@@ -155,6 +159,8 @@ async function processTonDeeplink(url: string) {
   if (getIsLandscape()) {
     actions.setLandscapeActionsActiveTabIndex({ index: ActiveTab.Transfer });
   }
+
+  return true;
 }
 
 export function parseTonDeeplink(value?: string) {
@@ -195,9 +201,10 @@ function isTonConnectDeeplink(url: string) {
     || omitProtocol(url).startsWith(omitProtocol(TONCONNECT_UNIVERSAL_URL));
 }
 
-async function processTonConnectDeeplink(url: string, isFromInAppBrowser = false) {
+// Returns `true` if the link has been processed, ideally resulting to a UI action
+async function processTonConnectDeeplink(url: string, isFromInAppBrowser = false): Promise<boolean> {
   if (!isTonConnectDeeplink(url)) {
-    return;
+    return false;
   }
 
   const { openLoadingOverlay, closeLoadingOverlay } = getActions();
@@ -216,20 +223,21 @@ async function processTonConnectDeeplink(url: string, isFromInAppBrowser = false
   if (returnUrl) {
     openUrl(returnUrl, !isFromInAppBrowser);
   }
+
+  return true;
 }
 
 export function isSelfDeeplink(url: string) {
   url = forceHttpsProtocol(url);
 
   return url.startsWith(SELF_PROTOCOL)
-    || SELF_UNIVERSAL_URLS.some((u) => omitProtocol(url).startsWith(omitProtocol(u)));
+    || SELF_UNIVERSAL_URLS.some((u) => url.startsWith(u));
 }
 
-export function processSelfDeeplink(deeplink: string) {
+// Returns `true` if the link has been processed, ideally resulting to a UI action
+export async function processSelfDeeplink(deeplink: string): Promise<boolean> {
   try {
-    if (deeplink.startsWith(SELF_PROTOCOL)) {
-      deeplink = deeplink.replace(SELF_PROTOCOL, `${SELF_UNIVERSAL_URLS[0]}/`);
-    }
+    deeplink = convertSelfDeeplinkToSelfUrl(deeplink);
 
     const { pathname, searchParams } = new URL(deeplink);
     const command = pathname.split('/').find(Boolean);
@@ -244,15 +252,15 @@ export function processSelfDeeplink(deeplink: string) {
       case DeeplinkCommand.CheckinWithR: {
         const r = pathname.match(/r\/(.*)$/)?.[1];
         const url = `${CHECKIN_URL}${r ? `?r=${r}` : ''}`;
-        openUrl(url);
-        break;
+        void openUrl(url);
+        return true;
       }
 
       case DeeplinkCommand.Giveaway: {
         const giveawayId = pathname.match(/giveaway\/([^/]+)/)?.[1];
         const url = `${GIVEAWAY_CHECKIN_URL}${giveawayId ? `?giveawayId=${giveawayId}` : ''}`;
-        openUrl(url);
-        break;
+        void openUrl(url);
+        return true;
       }
 
       case DeeplinkCommand.Swap: {
@@ -267,7 +275,7 @@ export function processSelfDeeplink(deeplink: string) {
             amountIn: toNumberOrEmptyString(searchParams.get('amount')) || '10',
           });
         }
-        break;
+        return true;
       }
 
       case DeeplinkCommand.BuyWithCrypto: {
@@ -282,7 +290,7 @@ export function processSelfDeeplink(deeplink: string) {
             amountIn: toNumberOrEmptyString(searchParams.get('amount')) || '100',
           });
         }
-        break;
+        return true;
       }
 
       case DeeplinkCommand.BuyWithCard: {
@@ -291,7 +299,7 @@ export function processSelfDeeplink(deeplink: string) {
         } else {
           actions.openOnRampWidgetModal({ chain: 'ton' });
         }
-        break;
+        return true;
       }
 
       case DeeplinkCommand.Stake: {
@@ -300,24 +308,81 @@ export function processSelfDeeplink(deeplink: string) {
         } else {
           actions.startStaking();
         }
-        break;
+        return true;
       }
 
       case DeeplinkCommand.Transfer: {
-        let tonDeeplink = forceHttpsProtocol(deeplink);
-        SELF_UNIVERSAL_URLS.forEach((prefix) => {
-          if (tonDeeplink.startsWith(prefix)) {
-            tonDeeplink = tonDeeplink.replace(`${prefix}/`, TON_PROTOCOL);
-          }
-        });
+        return await processTonDeeplink(convertSelfUrlToTonDeeplink(deeplink));
+      }
 
-        processTonDeeplink(tonDeeplink);
-        break;
+      case DeeplinkCommand.Explore: {
+        actions.closeSettings();
+        actions.openExplore();
+        actions.setActiveContentTab({ tab: ContentTab.Explore });
+
+        const host = pathname.split('/').filter(Boolean)[1];
+        if (host) {
+          const matchingSite = getGlobal().exploreData?.sites.find(({ url }) => {
+            const siteHost = isTelegramUrl(url)
+              ? new URL(url).pathname.split('/').filter(Boolean)[0]
+              : new URL(url).hostname;
+
+            return siteHost === host;
+          });
+
+          if (matchingSite) {
+            void openUrl(matchingSite.url);
+          }
+        }
+
+        return true;
       }
     }
   } catch (err) {
     logDebugError('processSelfDeeplink', err);
   }
+
+  return false;
+}
+
+// Parses only transfer params from the deeplink. Returns `undefined` if it's not a transfer deeplink.
+export function parseDeeplinkTransferParams(url: string) {
+  let tonDeeplink = url;
+
+  if (isSelfDeeplink(url)) {
+    try {
+      url = convertSelfDeeplinkToSelfUrl(url);
+      const { pathname } = new URL(url);
+      const command = pathname.split('/').find(Boolean);
+
+      if (command === DeeplinkCommand.Transfer) {
+        tonDeeplink = convertSelfUrlToTonDeeplink(url);
+      }
+    } catch (err) {
+      logDebugError('parseDeeplinkTransferParams', err);
+    }
+  }
+
+  return parseTonDeeplink(tonDeeplink);
+}
+
+function convertSelfDeeplinkToSelfUrl(deeplink: string) {
+  if (deeplink.startsWith(SELF_PROTOCOL)) {
+    return deeplink.replace(SELF_PROTOCOL, `${SELF_UNIVERSAL_URLS[0]}/`);
+  }
+  return deeplink;
+}
+
+function convertSelfUrlToTonDeeplink(deeplink: string) {
+  deeplink = forceHttpsProtocol(deeplink);
+
+  for (const selfUniversalUrl of SELF_UNIVERSAL_URLS) {
+    if (deeplink.startsWith(selfUniversalUrl)) {
+      return deeplink.replace(`${selfUniversalUrl}/`, TON_PROTOCOL);
+    }
+  }
+
+  return deeplink;
 }
 
 function omitProtocol(url: string) {

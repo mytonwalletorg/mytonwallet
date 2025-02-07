@@ -46,25 +46,6 @@
       bottom: -0.25px !important;
     }
   }
-
-  @include respond-above(xs) {
-    position: relative;
-
-    &::after {
-      content: "";
-
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translate(-50%, -0.03125rem);
-
-      width: 100vw;
-      height: 0.0625rem;
-
-      /* stylelint-disable-next-line plugin/whole-pixel */
-      box-shadow: 0 0.025rem 0 0 var(--color-separator);
-    }
-  }
 }
 
 .backButton {
@@ -73,7 +54,7 @@
   display: flex;
   align-items: center;
 
-  height: 2.75rem;
+  height: 3rem;
   padding: 0.125rem 0.5rem 0;
 
   font-size: 0.9375rem;
@@ -85,7 +66,7 @@
     display: flex;
     align-items: center;
 
-    height: 1.3125rem;
+    height: var(--header-title-height);
     padding: 0.0625rem 0.375rem;
 
     font-size: 1.0625rem;
@@ -103,6 +84,7 @@
 
   font-size: 1.0625rem;
   font-weight: 700;
+  line-height: var(--header-title-height);
   color: var(--color-black);
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -112,9 +112,7 @@ $logout_without_backup_warning: Bu cüzdanı yedeklemediniz. Cüzdanı kaldırı
 $logout_accounts_without_backup_warning: "%links% için yedekleme yapmadınız. Devam ederseniz tokenlarınıza ve NFT'lerinize erişiminizi kaybedersiniz."
 $logout_warning: Bu, mevcut cüzdanı uygulamadan kaldıracaktır. **Gizli kelimelerinizi** yedeklediğinizden emin olun.
 Your address was copied!: Adresiniz kopyalandı!
-Show QR Code: QR Kodunu Göster
 Create Deposit Link: Para Yatırma Bağlantısı Oluşturun
-QR Code: QR Kodu
 $receive_invoice_description: |
   Göndericiye zaman kazandırmak adına ödeme
   tutarını ve amacını belirtebilirsiniz.
@@ -276,15 +274,15 @@ Connect: Bağlan
 Dapp Permissions: Dapp İzinleri
 $dapp_can_view_balance: "%dappname% cüzdan adresini ve bakiyesini görüntüleyebilecek."
 Send Transaction: İşlemi gönder
-Payload: Payload
+Payload: Yük
 $many_transactions: "%1$d işlem"
 Total Amount: Toplam tutar
 Unstaking: Unstaking gerçekleşiyor
-Handle ton:// links: ton uzantılı isimler:// link'ler
+Handle ton:// links: ton:// bağlantılarını işle
 Back up wallet to have full access to it: Tam erişime sahip olmak için cüzdanı yedekleyin
 Consider More Secure Version: Daha güvenli sürümü kullanmayı düşünün
 Install our native app or browser extension.: Yerel uygulamamızı veya tarayıcı uzantımızı yükleyin.
-Scam: Scam
+Scam: Sahtekarlık
 Scam comment is hidden.: Scam yorumu gizlendi.
 Display: Görüntüle
 $dapp_transfer_tokens_payload: Hesabınızdan %adres%'e %amount% gönderiliyor
@@ -353,7 +351,7 @@ Included: Dahil edildi
 Price Impact: Fiyat etkisi
 Minimum Received: Minimum alınan
 Slippage: Kayma toleransı
-$swap_from_to: "%from% %icon% %to% arasında takas yapın"
+$swap_from_to: "%from% %icon% %to% değiştirin"
 The exchange rate is below market value!: Takas oranı piyasa değerinin %value% altındadır!
 Invalid Pair: Geçersiz işlem çifti
 We do not recommend to perform an exchange, try to specify a lower amount.: Takas yapmanızı tavsiye etmiyoruz, daha düşük bir tutar belirtmeye çalışın.
@@ -462,9 +460,8 @@ A request is already pending: Bir istek zaten beklemede
 Please confirm operation using biometrics: Lütfen biyometri kullanarak işlemi onaylayın
 Scan QR Code: QR kodunu tarayın
 Permission denied. Please grant camera permission to use the QR code scanner.: İzin reddedildi. Lütfen kameraya QR kod tarayıcısını kullanma izni verin.
-Unsupported QR code format: Desteklenmeyen QR kod formatı
+This QR Code is not supported: Bu QR kodu desteklenmiyor
 An error on the server side. Please try again.: Sunucu tarafında bir hata oluştu. Lütfen tekrar deneyin.
-Unrecognized QR Code: Tanınmayan QR Kodu
 Address was saved!: Adres kaydedildi!
 US Dollar: ABD doları
 Euro: Euro
