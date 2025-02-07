@@ -427,6 +427,7 @@ export const SHORT_CURRENCY_SYMBOL_MAP = {
   EUR: '€',
   RUB: '₽',
   CNY: '¥',
+  THB: '฿',
 };
 export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
   {
@@ -441,6 +442,9 @@ export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
   }, {
     value: 'CNY',
     name: 'Yuan',
+  }, {
+    value: 'THB',
+    name: 'Baht',
   }, {
     value: 'BTC',
     name: 'Bitcoin',
