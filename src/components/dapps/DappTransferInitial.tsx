@@ -4,23 +4,27 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency, ApiDapp, ApiDappTransfer } from '../../api/types';
-import type { Account, UserToken } from '../../global/types';
+import type { ApiBaseCurrency, ApiDapp, ApiToken } from '../../api/types';
+import type { Account, ExtendedDappTransfer } from '../../global/types';
+import type { Big } from '../../lib/big.js';
 
-import { SHORT_FRACTION_DIGITS } from '../../config';
-import { Big } from '../../lib/big.js';
-import { selectCurrentAccountTokens, selectNetworkAccounts } from '../../global/selectors';
+import { TONCOIN } from '../../config';
+import {
+  selectCurrentDappTransferExtendedTransactions,
+  selectCurrentDappTransferTotalAmounts,
+  selectCurrentToncoinBalance,
+  selectNetworkAccounts,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
+import { getDappTransferActualToAddress, isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useLang from '../../hooks/useLang';
 
-import NftInfo from '../transfer/NftInfo';
 import Button from '../ui/Button';
-import InteractiveTextField from '../ui/InteractiveTextField';
 import DappInfo from './DappInfo';
 import DappTransfer from './DappTransfer';
 
@@ -30,86 +34,48 @@ import styles from './Dapp.module.scss';
 import scamImg from '../../assets/scam.svg';
 
 interface OwnProps {
-  tonToken: UserToken;
   onClose?: NoneToVoidFunction;
 }
 
 interface StateProps {
   currentAccount?: Account;
-  transactions?: ApiDappTransfer[];
-  fee?: bigint;
+  toncoinBalance: bigint;
+  transactions?: ExtendedDappTransfer[];
+  totalAmountsBySlug: Record<string, Big>;
+  totalCost: number;
   dapp?: ApiDapp;
   isLoading?: boolean;
-  tokens?: UserToken[];
+  tokensBySlug: Record<string, ApiToken>;
   baseCurrency?: ApiBaseCurrency;
 }
 
 function DappTransferInitial({
-  tonToken,
   currentAccount,
+  toncoinBalance,
   transactions,
-  fee,
+  totalAmountsBySlug,
+  totalCost,
   dapp,
   isLoading,
-  tokens,
+  tokensBySlug,
   onClose,
   baseCurrency,
 }: OwnProps & StateProps) {
   const { showDappTransfer, submitDappTransferConfirm } = getActions();
-  const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
 
   const lang = useLang();
   const isSingleTransaction = transactions?.length === 1;
   const renderingTransactions = useCurrentOrPrev(transactions, true);
-  const isNftTransfer = renderingTransactions?.[0].payload?.type === 'nft:transfer';
-  const nft = isNftTransfer && 'nft' in renderingTransactions![0].payload!
-    ? renderingTransactions[0].payload.nft
-    : undefined;
   const hasScamAddresses = useMemo(() => {
     return renderingTransactions?.some(({ isScam }) => isScam);
   }, [renderingTransactions]);
-
-  const totalAmountText = useMemo(() => {
-    const feeDecimal = fee ? toDecimal(fee) : '0';
-    let tonAmount = Big(feeDecimal);
-    let cost = 0;
-
-    const bySymbol: Record<string, Big> = (renderingTransactions ?? []).reduce((acc, transaction) => {
-      const { payload, amount } = transaction;
-      const amountDecimal = toDecimal(amount);
-
-      tonAmount = tonAmount.plus(amountDecimal);
-      cost += Number(amountDecimal) * (tonToken.price ?? 0);
-
-      if (payload?.type === 'tokens:transfer' || payload?.type === 'tokens:transfer-non-standard') {
-        const { slug: tokenSlug, amount: tokenAmount } = payload;
-
-        const token = tokens?.find(({ slug }) => tokenSlug === slug);
-        if (token) {
-          const { decimals, symbol, price } = token;
-          const tokenAmountDecimal = toDecimal(tokenAmount, decimals);
-
-          acc[symbol] = (acc[symbol] ?? Big(0)).plus(tokenAmountDecimal);
-          cost += Number(tokenAmountDecimal) * price;
-        }
-      }
-
-      return acc;
-    }, {} as Record<string, Big>);
-
-    const text = Object.entries(bySymbol).reduce((acc, [symbol, amountBig]) => {
-      return `${acc} + ${formatCurrency(amountBig.toString(), symbol, SHORT_FRACTION_DIGITS)}`;
-    }, formatCurrency(tonAmount.toString(), tonToken.symbol, SHORT_FRACTION_DIGITS));
-
-    return `${text} (${formatCurrency(cost, shortBaseSymbol)})`;
-  }, [renderingTransactions, fee, tokens, tonToken, shortBaseSymbol]);
 
   function renderDapp() {
     return (
       <div className={styles.transactionDirection}>
         <div className={styles.transactionAccount}>
           <div className={styles.accountTitle}>{currentAccount?.title}</div>
-          <div className={styles.accountBalance}>{formatCurrency(toDecimal(tonToken.amount), tonToken.symbol)}</div>
+          <div className={styles.accountBalance}>{formatCurrency(toDecimal(toncoinBalance), TONCOIN.symbol)}</div>
         </div>
 
         <DappInfo
@@ -126,25 +92,24 @@ function DappTransferInitial({
     return (
       <DappTransfer
         transaction={renderingTransactions![0]}
-        tonToken={tonToken}
-        fee={fee}
-        tokens={tokens}
+        tokensBySlug={tokensBySlug}
       />
     );
   }
 
-  function renderTransactionRow(transaction: ApiDappTransfer, i: number) {
+  function renderTransactionRow(transaction: ExtendedDappTransfer, i: number) {
     const { payload } = transaction;
+    const tonAmount = transaction.amount + (transaction.fee ?? 0n);
 
     let extraText: string = '';
-    if (payload?.type === 'nft:transfer') {
+    if (isNftTransferPayload(payload)) {
       extraText = '1 NFT + ';
-    } else if (payload?.type === 'tokens:transfer' || payload?.type === 'tokens:transfer-non-standard') {
+    } else if (isTokenTransferPayload(payload)) {
       const { slug: tokenSlug, amount } = payload;
-      const token = tokens?.find(({ slug }) => tokenSlug === slug);
+      const token = tokensBySlug[tokenSlug];
       if (token) {
         const { decimals, symbol } = token;
-        extraText = `${formatCurrency(toDecimal(amount, decimals), symbol, SHORT_FRACTION_DIGITS)} + `;
+        extraText = `${formatCurrency(toDecimal(amount, decimals), symbol)} + `;
       }
     }
 
@@ -157,12 +122,12 @@ function DappTransferInitial({
         {transaction.isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
         <span className={buildClassName(styles.transactionRowAmount, transaction.isScam && styles.scam)}>
           {extraText}
-          {formatCurrency(toDecimal(transaction.amount), tonToken.symbol, SHORT_FRACTION_DIGITS)}
+          {formatCurrency(toDecimal(tonAmount), TONCOIN.symbol)}
         </span>
         {' '}
         <span className={buildClassName(styles.transactionRowAddress, transaction.isScam && styles.scam)}>
           {lang('$transaction_to', {
-            address: shortenAddress(transaction.toAddress),
+            address: shortenAddress(getDappTransferActualToAddress(transaction)),
           })}
         </span>
         <i className={buildClassName(styles.transactionRowChevron, 'icon-chevron-right')} aria-hidden />
@@ -171,6 +136,12 @@ function DappTransferInitial({
   }
 
   function renderTransactions() {
+    const hasDangerous = (renderingTransactions ?? []).some(({ isDangerous }) => isDangerous);
+
+    const totalAmountsText = Object.entries(totalAmountsBySlug)
+      .map(([tokenSlug, amount]) => formatCurrency(amount, tokensBySlug[tokenSlug]?.symbol ?? ''))
+      .join(' + ');
+
     return (
       <>
         <p className={styles.label}>{lang('$many_transactions', renderingTransactions?.length, 'i')}</p>
@@ -180,7 +151,12 @@ function DappTransferInitial({
         <span className={styles.label}>
           {lang('Total Amount')}
         </span>
-        <InteractiveTextField text={totalAmountText} />
+        <div className={styles.payloadField}>
+          {totalAmountsText} ({formatCurrency(totalCost, getShortCurrencySymbol(baseCurrency))})
+        </div>
+        {hasDangerous && (
+          <div className={styles.warningForPayload}>{lang('$hardware_payload_warning')}</div>
+        )}
       </>
     );
   }
@@ -192,8 +168,6 @@ function DappTransferInitial({
   return (
     <div className={modalStyles.transitionContent}>
       {renderDapp()}
-
-      {isNftTransfer && <NftInfo nft={nft} /> }
 
       <div className={styles.contentWithBackground}>
         {isSingleTransaction ? renderTransaction() : renderTransactions()}
@@ -217,23 +191,21 @@ function DappTransferInitial({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const {
-    transactions,
-    fee,
-    isLoading,
-    dapp,
-  } = global.currentDappTransfer;
+  const { isLoading, dapp } = global.currentDappTransfer;
 
   const { baseCurrency } = global.settings;
   const accounts = selectNetworkAccounts(global);
+  const { bySlug: totalAmountsBySlug, cost: totalCost } = selectCurrentDappTransferTotalAmounts(global);
 
   return {
     currentAccount: accounts?.[global.currentAccountId!],
-    transactions,
-    fee,
+    toncoinBalance: selectCurrentToncoinBalance(global),
+    transactions: selectCurrentDappTransferExtendedTransactions(global),
+    totalAmountsBySlug,
+    totalCost,
     dapp,
     isLoading,
-    tokens: selectCurrentAccountTokens(global),
+    tokensBySlug: global.tokenInfo.bySlug,
     baseCurrency,
   };
 })(DappTransferInitial));

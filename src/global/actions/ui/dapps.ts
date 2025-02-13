@@ -2,11 +2,16 @@ import { TransferState } from '../../types';
 
 import { BROWSER_HISTORY_LIMIT } from '../../../config';
 import { unique } from '../../../util/iteratees';
+import { callActionInMain } from '../../../util/multitab';
+import { openUrl } from '../../../util/openUrl';
+import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { closeAllOverlays } from '../../helpers/misc';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearDappConnectRequestError, updateCurrentAccountState, updateCurrentDappTransfer,
 } from '../../reducers';
 import { selectAccount, selectCurrentAccountState } from '../../selectors';
+import { switchAccount } from '../api/auth';
 
 addActionHandler('clearDappConnectRequestError', (global) => {
   global = clearDappConnectRequestError(global);
@@ -51,8 +56,15 @@ addActionHandler('clearDappTransferError', (global) => {
   setGlobal(global);
 });
 
-addActionHandler('openBrowser', (global, actions, { url, title, subtitle }) => {
-  global = { ...global, currentBrowserOptions: { url, title, subtitle } };
+addActionHandler('openBrowser', (global, actions, {
+  url, title, subtitle,
+}) => {
+  global = {
+    ...global,
+    currentBrowserOptions: {
+      url, title, subtitle,
+    },
+  };
   setGlobal(global);
 });
 
@@ -104,4 +116,21 @@ addActionHandler('openSiteCategory', (global, actions, { id }) => {
 
 addActionHandler('closeSiteCategory', (global) => {
   return updateCurrentAccountState(global, { currentSiteCategoryId: undefined });
+});
+
+addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('switchAccountAndOpenUrl', payload);
+    return;
+  }
+
+  await Promise.all([
+    // The browser is closed before opening the new URL, because otherwise the browser won't apply the new
+    // parameters from `payload`. It's important to wait for `closeAllOverlays` to finish, because until the in-app
+    // browser is closed, it won't open again.
+    closeAllOverlays(),
+    payload.accountId && switchAccount(global, payload.accountId, payload.network),
+  ]);
+
+  openUrl(payload.url, payload);
 });

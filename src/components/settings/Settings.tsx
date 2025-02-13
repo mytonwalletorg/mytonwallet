@@ -295,15 +295,15 @@ function Settings({
   });
 
   function handleClickInstallApp() {
-    openUrl('https://mytonwallet.io/get', true);
+    void openUrl('https://mytonwallet.io/get', { isExternal: true });
   }
 
   function handleClickInstallOnDesktop() {
-    openUrl('https://mytonwallet.io/get/desktop', true);
+    void openUrl('https://mytonwallet.io/get/desktop', { isExternal: true });
   }
 
   function handleClickInstallOnMobile() {
-    openUrl('https://mytonwallet.io/get/mobile', true);
+    void openUrl('https://mytonwallet.io/get/mobile', { isExternal: true });
   }
 
   const handleAddLedgerWallet = useLastCallback(() => {

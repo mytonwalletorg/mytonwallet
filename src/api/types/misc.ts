@@ -17,6 +17,7 @@ export interface ApiInitArgs {
   isNativeBottomSheet: boolean;
   isIosApp: boolean;
   isAndroidApp: boolean;
+  referrer?: string;
 }
 
 export interface ApiToken {

@@ -3,7 +3,10 @@ import type { GlobalState } from '../types';
 
 import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { getChainBySlug, getNativeToken } from '../../util/tokens';
+import { getActions } from '../index';
 import { selectCurrentAccount } from '../selectors';
+
+import { getInAppBrowser } from '../../components/ui/InAppBrowser';
 
 /**
  * Parses the transfer parameters from the given QR content, assuming it's a plain address.
@@ -34,4 +37,10 @@ function getChainFromAddress(address: string, availableChains: Record<ApiChain, 
   }
 
   return undefined;
+}
+
+export async function closeAllOverlays() {
+  getActions().closeAnyModal();
+  getActions().closeMediaViewer();
+  await getInAppBrowser()?.close();
 }

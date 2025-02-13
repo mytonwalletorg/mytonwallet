@@ -16,6 +16,7 @@ import { assert } from '../../../util/assert';
 import { fromDecimal } from '../../../util/decimals';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
+import { isTokenTransferPayload } from '../../../util/ton/transfer';
 import { parseTxId } from './util';
 import { parsePayloadBase64 } from './util/metadata';
 import { resolveTokenWalletAddress, toBase64Address } from './util/tonCore';
@@ -77,7 +78,7 @@ export async function validateDexSwapTransfers(
       assert(mainTransfer.toAddress === token.tokenAddress);
     } else {
       assert(mainTransfer.toAddress === walletAddress);
-      assert(['tokens:transfer', 'tokens:transfer-non-standard'].includes(parsedPayload.type));
+      assert(isTokenTransferPayload(parsedPayload));
 
       ({ amount: tokenAmount, destination } = parsedPayload as ApiTokensTransferPayload);
       assert(tokenAmount <= maxAmount);
@@ -94,7 +95,7 @@ export async function validateDexSwapTransfers(
 
       assert(feeTransfer.amount + mainTransfer.amount < maxTonAmount);
       assert(feeTransfer.toAddress === walletAddress);
-      assert(['tokens:transfer', 'tokens:transfer-non-standard'].includes(feePayload.type));
+      assert(isTokenTransferPayload(feePayload));
 
       const { amount: tokenFeeAmount, destination: feeDestination } = feePayload as ApiTokensTransferPayload;
 

@@ -182,6 +182,16 @@
         "slug": "openinmain"
       },
       {
+        "name": "isShown",
+        "signature": "() => Promise<{ value: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "isshown"
+      },
+      {
         "name": "addListener",
         "signature": "(eventName: 'delegate', handler: (options: { key: BottomSheetKeys; globalJson: string; }) => void) => Promise<PluginListenerHandle> & PluginListenerHandle",
         "parameters": [
@@ -310,6 +320,10 @@
         },
         {
           "text": "'staking-info'",
+          "complexTypes": []
+        },
+        {
+          "text": "'staking-claim'",
           "complexTypes": []
         },
         {

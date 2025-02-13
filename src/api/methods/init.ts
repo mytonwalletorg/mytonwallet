@@ -6,6 +6,7 @@ import chains from '../chains';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
 import { setEnvironment } from '../environment';
 import { addHooks } from '../hooks';
+import { storage } from '../storages';
 import * as tonConnect from '../tonConnect';
 import * as tonConnectSse from '../tonConnect/sse';
 import * as methods from '.';
@@ -43,5 +44,9 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
 
   if (environment.isSseSupported) {
     void tonConnectSse.resetupSseConnection();
+  }
+
+  if (args.referrer && !(await storage.getItem('referrer'))) {
+    void storage.setItem('referrer', args.referrer);
   }
 }

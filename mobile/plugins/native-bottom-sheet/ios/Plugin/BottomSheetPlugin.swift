@@ -289,6 +289,10 @@ public class BottomSheetPlugin: CAPPlugin, FloatingPanelControllerDelegate {
         }
     }
 
+    @objc func isShown(_ call: CAPPluginCall) {
+        call.resolve(["value": fpc.state != .hidden])
+    }
+
     // Extra security level, potentially redundant
     private func ensureLocalOrigin() {
         DispatchQueue.main.sync { [self] in

@@ -1,80 +1,103 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import type { ApiDappTransfer, ApiParsedPayload } from '../../api/types';
-import type { UserToken } from '../../global/types';
+import type { ApiToken } from '../../api/types';
+import type { ExtendedDappTransfer } from '../../global/types';
 
 import { TONCOIN } from '../../config';
 import { BIGINT_PREFIX } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
-import { formatCurrency, formatCurrencySimple } from '../../util/formatNumber';
-import { DEFAULT_DECIMALS, NFT_TRANSFER_AMOUNT } from '../../api/chains/ton/constants';
+import { formatCurrency } from '../../util/formatNumber';
+import { getDappTransferActualToAddress, isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
+import { DEFAULT_DECIMALS } from '../../api/chains/ton/constants';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 
+import NftInfo from '../transfer/NftInfo';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
+import Fee from '../ui/Fee';
 import InteractiveTextField from '../ui/InteractiveTextField';
 
 import styles from './Dapp.module.scss';
 
 interface OwnProps {
-  tonToken: UserToken;
-  transaction: ApiDappTransfer;
-  fee?: bigint;
-  tokens?: UserToken[];
+  transaction: ExtendedDappTransfer;
+  tokensBySlug: Record<string, ApiToken>;
 }
 
 const FRACTION_DIGITS = 2;
 
-function DappTransfer({
-  tonToken,
-  transaction,
-  fee,
-  tokens,
-}: OwnProps) {
+function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
   const lang = useLang();
   const [isPayloadExpanded, expandPayload] = useFlag(false);
-  const isNftTransfer = transaction.payload?.type === 'nft:transfer';
-  const shouldRenderPayloadWarning = transaction.payload?.type === 'unknown';
+  const tonAmount = transaction.amount + (transaction.fee ?? 0n);
 
-  function renderFeeForNft() {
+  function renderAmount() {
+    if (isNftTransferPayload(transaction.payload)) {
+      return (
+        <>
+          <div className={styles.label}>{lang('Fee')}</div>
+          <div className={styles.payloadField}>
+            <Fee
+              terms={{ native: tonAmount }}
+              token={TONCOIN}
+              precision="lessThan"
+              symbolClassName={styles.currencySymbol}
+            />
+          </div>
+        </>
+      );
+    }
+
+    if (isTokenTransferPayload(transaction.payload)) {
+      const { slug: tokenSlug, amount: tokenAmount } = transaction.payload;
+      const token = tokensBySlug[tokenSlug];
+      const decimals = token?.decimals ?? DEFAULT_DECIMALS;
+      const symbol = token?.symbol ?? '';
+
+      return (
+        <AmountWithFeeTextField
+          label={lang('Amount')}
+          amount={toDecimal(tokenAmount, decimals)}
+          symbol={symbol}
+          feeText={<Fee terms={{ native: tonAmount }} token={TONCOIN} precision="lessThan" />}
+          className={styles.dataField}
+          labelClassName={styles.label}
+        />
+      );
+    }
+
     return (
-      <>
-        <div className={styles.label}>{lang('Fee')}</div>
-        <div className={styles.payloadField}>
-          ≈ {formatCurrencySimple(NFT_TRANSFER_AMOUNT + (fee ?? 0n), '')}
-          <span className={styles.currencySymbol}>{TONCOIN.symbol}</span>
-        </div>
-      </>
+      <AmountWithFeeTextField
+        label={lang('Amount')}
+        amount={toDecimal(transaction.amount)}
+        symbol={TONCOIN.symbol}
+        feeText={
+          transaction.fee
+            ? <Fee terms={{ native: transaction.fee }} token={TONCOIN} precision="exact" />
+            : undefined
+        }
+        className={styles.dataField}
+        labelClassName={styles.label}
+      />
     );
   }
 
-  function renderPayload(payload: ApiParsedPayload, rawPayload?: string) {
+  function renderPayload() {
+    const { payload, rawPayload } = transaction;
+
+    if (!payload || isNftTransferPayload(payload) || isTokenTransferPayload(payload)) {
+      return undefined;
+    }
+
     switch (payload.type) {
       case 'comment':
         return payload.comment;
 
-      case 'tokens:transfer-non-standard':
-      case 'tokens:transfer': {
-        const {
-          slug: tokenSlug,
-          amount: tokenAmount,
-          destination,
-        } = payload;
-        const token = tokens?.find(({ slug }) => slug === tokenSlug);
-        const decimals = token?.decimals ?? DEFAULT_DECIMALS;
-        const symbol = token?.symbol ?? '';
-
-        return lang('$dapp_transfer_tokens_payload', {
-          amount: formatCurrency(toDecimal(tokenAmount, decimals), symbol, FRACTION_DIGITS),
-          address: destination,
-        });
-      }
-
       case 'tokens:burn': {
         const { slug: tokenSlug, amount } = payload;
-        const token = tokens?.find(({ slug }) => slug === tokenSlug);
+        const token = tokensBySlug[tokenSlug];
         const decimals = token?.decimals ?? DEFAULT_DECIMALS;
         const symbol = token?.symbol ?? '';
 
@@ -150,8 +173,8 @@ function DappTransfer({
     }
   }
 
-  function renderPayloadLabel(payload: ApiParsedPayload) {
-    switch (payload.type) {
+  function renderPayloadLabel() {
+    switch (transaction.payload?.type) {
       case 'comment':
         return lang('Comment');
       case 'unknown':
@@ -161,39 +184,33 @@ function DappTransfer({
     }
   }
 
+  const payloadElement = renderPayload();
+
   return (
     <>
+      {isNftTransferPayload(transaction.payload) && <NftInfo nft={transaction.payload.nft} />}
       <p className={styles.label}>{lang('Receiving Address')}</p>
       <InteractiveTextField
-        chain={tonToken.chain}
-        address={transaction.toAddress}
+        chain={TONCOIN.chain}
+        address={getDappTransferActualToAddress(transaction)}
         isScam={transaction.isScam}
         className={buildClassName(styles.dataField, styles.receivingAddress)}
         copyNotification={lang('Address was copied!')}
       />
-      {isNftTransfer ? renderFeeForNft() : (
-        <AmountWithFeeTextField
-          label={lang('Amount')}
-          amount={toDecimal(transaction.amount)}
-          symbol={tonToken.symbol}
-          feeText={fee ? formatCurrency(toDecimal(fee, tonToken.decimals), tonToken.symbol) : undefined}
-          className={styles.dataField}
-          labelClassName={styles.label}
-        />
-      )}
+      {renderAmount()}
 
-      {transaction.payload && !isNftTransfer && (
+      {payloadElement && (
         <>
-          <p className={styles.label}>{renderPayloadLabel(transaction.payload)}</p>
+          <p className={styles.label}>{renderPayloadLabel()}</p>
           <div className={buildClassName(styles.payloadField, isPayloadExpanded && styles.payloadField_expanded)}>
-            {renderPayload(transaction.payload, transaction.rawPayload)}
+            {payloadElement}
             {!isPayloadExpanded && (
               <div className={styles.payloadFieldExpand} onClick={expandPayload}>
                 {lang('View')}
               </div>
             )}
           </div>
-          {shouldRenderPayloadWarning && (
+          {transaction.isDangerous && (
             <div className={styles.warningForPayload}>{lang('$hardware_payload_warning')}</div>
           )}
         </>

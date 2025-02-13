@@ -1,4 +1,4 @@
-import { PluginListenerHandle } from '@capacitor/core';
+import type { PluginListenerHandle } from '@capacitor/core';
 export declare type BottomSheetKeys = 'initial' | 'receive' | 'invoice' | 'transfer' | 'swap' | 'stake' | 'unstake' | 'staking-info' | 'staking-claim' | 'vesting-info' | 'vesting-confirm' | 'transaction-info' | 'swap-activity' | 'backup' | 'add-account' | 'settings' | 'qr-scanner' | 'dapp-connect' | 'dapp-transfer' | 'disclaimer' | 'backup-warning' | 'onramp-widget';
 export interface BottomSheetPlugin {
     prepare(): Promise<void>;
@@ -29,6 +29,9 @@ export interface BottomSheetPlugin {
     openInMain(options: {
         key: BottomSheetKeys;
     }): Promise<void>;
+    isShown(): Promise<{
+        value: boolean;
+    }>;
     addListener(eventName: 'delegate', handler: (options: {
         key: BottomSheetKeys;
         globalJson: string;

@@ -10,30 +10,42 @@ import { selectAccountIdByAddress } from '../../global/selectors';
 import { selectNotificationTonAddressesSlow } from '../../global/selectors/notifications';
 import { callApi } from '../../api';
 import { MINUTE } from '../../api/constants';
+import { pick } from '../iteratees';
 import { logDebugError } from '../logs';
 import { getCapacitorPlatform } from './platform';
 
-interface BaseMessageData {
-  address: string;
-}
-
-interface ShowTxMessageData extends BaseMessageData {
+interface ShowTxMessageData {
   action: 'swap' | 'nativeTx';
+  address: string;
   txId: string;
 }
 
-interface StakingMessageData extends BaseMessageData {
+interface StakingMessageData {
   action: 'staking';
+  address: string;
   stakingType: ApiStakingType;
   stakingId: string;
   logId: string;
 }
 
-interface OpenActivityMessageData extends BaseMessageData {
+interface OpenActivityMessageData {
   action: 'jettonTx';
+  address: string;
   slug: string;
 }
-type MessageData = StakingMessageData | OpenActivityMessageData | ShowTxMessageData;
+
+interface OpenUrlMessageData {
+  action: 'openUrl';
+  // The wallet address that should be switched to before opening the URL
+  address?: string;
+  url: string;
+  // For the following parameters, see the `openUrl` options
+  isExternal?: boolean;
+  title?: string;
+  subtitle?: string;
+}
+
+type MessageData = StakingMessageData | OpenActivityMessageData | ShowTxMessageData | OpenUrlMessageData;
 
 let nextUpdatePushNotifications = 0;
 
@@ -83,22 +95,25 @@ function handlePushNotificationActionPerformed(notification: ActionPerformed) {
     showAnyAccountTx,
     showAnyAccountTokenActivity,
     openAnyAccountStakingInfo,
-    closeAllOverlays,
+    switchAccountAndOpenUrl,
   } = getActions();
   const global = getGlobal();
   const notificationData = notification.notification.data as MessageData;
   const { action, address } = notificationData;
-  const accountId = selectAccountIdByAddress(
-    global,
-    'ton',
-    address,
-  );
+  const accountId = address === undefined ? undefined : selectAccountIdByAddress(global, 'ton', address);
+  const network = 'mainnet';
+
+  if (action === 'openUrl') {
+    switchAccountAndOpenUrl({
+      accountId,
+      network,
+      ...pick(notificationData, ['url', 'isExternal', 'title', 'subtitle']),
+    });
+    return;
+  }
 
   if (!accountId) return;
 
-  const network = 'mainnet';
-
-  closeAllOverlays();
   if (action === 'nativeTx' || action === 'swap') {
     const { txId } = notificationData;
     showAnyAccountTx({ accountId, txId, network });

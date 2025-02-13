@@ -71,6 +71,10 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           global = updateAccountStaking(global, accountId, {
             stakingId: stateWithBiggestBalance.id,
           });
+        } else if (shouldUseNominators && stateById.nominators) {
+          global = updateAccountStaking(global, accountId, {
+            stakingId: stateById.nominators.id,
+          });
         }
       }
 
@@ -199,7 +203,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'openUrl': {
-      openUrl(update.url, update.isExternal, update.title, update.subtitle);
+      void openUrl(update.url, { isExternal: update.isExternal, title: update.title, subtitle: update.subtitle });
       break;
     }
 

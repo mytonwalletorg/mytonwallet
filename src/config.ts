@@ -200,6 +200,7 @@ export const LIQUID_POOL = process.env.LIQUID_POOL || 'EQD2_4d91M4TVbEBVyBF8J1Uw
 export const LIQUID_JETTON = process.env.LIQUID_JETTON || 'EQCqC6EhRJ_tpWngKxL6dV0k6DSnRUrs9GSVkLbfdCqsj6TE';
 export const STAKING_MIN_AMOUNT = ONE_TON;
 export const NOMINATORS_STAKING_MIN_AMOUNT = 10_000n * ONE_TON;
+export const MIN_ACTIVE_STAKING_REWARDS = 100_000_000n; // 0.1 MY
 
 export const TONCONNECT_PROTOCOL_VERSION = 2;
 export const TONCONNECT_WALLET_JSBRIDGE_KEY = 'mytonwallet';

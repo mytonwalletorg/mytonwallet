@@ -1,16 +1,15 @@
-import React, {
-  memo, useEffect, useMemo, useState,
-} from '../../lib/teact/teact';
+import React, { memo, useEffect, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { GlobalState, HardwareConnectState, UserToken } from '../../global/types';
+import type { ApiToken } from '../../api/types';
+import type { ExtendedDappTransfer, GlobalState, HardwareConnectState } from '../../global/types';
 import { TransferState } from '../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CAPACITOR, TONCOIN } from '../../config';
-import { selectCurrentAccountTokens } from '../../global/selectors';
+import { IS_CAPACITOR } from '../../config';
+import { selectCurrentDappTransferExtendedTransactions } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
-import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
+import { isNftTransferPayload } from '../../util/ton/transfer';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useLang from '../../hooks/useLang';
@@ -19,7 +18,6 @@ import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
-import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
@@ -34,7 +32,8 @@ import styles from './Dapp.module.scss';
 
 interface StateProps {
   currentDappTransfer: GlobalState['currentDappTransfer'];
-  tokens?: UserToken[];
+  transactions?: ExtendedDappTransfer[];
+  tokensBySlug: Record<string, ApiToken>;
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
@@ -44,13 +43,13 @@ interface StateProps {
 function DappTransferModal({
   currentDappTransfer: {
     dapp,
-    transactions,
     isLoading,
     viewTransactionOnIdx,
     state,
     error,
   },
-  tokens,
+  transactions,
+  tokensBySlug,
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
@@ -66,16 +65,14 @@ function DappTransferModal({
   } = getActions();
 
   const lang = useLang();
-  const tonToken = useMemo(() => tokens?.find(({ slug }) => slug === TONCOIN.slug), [tokens])!;
 
   const isOpen = state !== TransferState.None;
 
   const [forceFullNative, setForceFullNative] = useState(false);
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
   const renderingTransactions = useCurrentOrPrev(transactions, true);
-  const isNftTransfer = renderingTransactions?.[0].payload?.type === 'nft:transfer';
   const isDappLoading = dapp === undefined;
-  const withPayloadWarning = renderingTransactions?.[0].payload?.type === 'unknown';
+  const withPayloadWarning = (renderingTransactions ?? []).some(({ isDangerous }) => isDangerous);
 
   useEffect(() => {
     setForceFullNative(isOpen && (withPayloadWarning || renderingKey === TransferState.Password));
@@ -100,28 +97,17 @@ function DappTransferModal({
     updateNextKey();
   });
 
-  function renderSingleTransaction(isActive: boolean) {
+  function renderSubTransaction() {
     const transaction = viewTransactionOnIdx !== undefined ? transactions?.[viewTransactionOnIdx] : undefined;
 
     return (
       <>
-        <ModalHeader title={lang('Is it all ok?')} onClose={closeDappTransfer} />
+        <ModalHeader title={lang('Transaction Info')} onClose={closeDappTransfer} />
         <div className={modalStyles.transitionContent}>
-          <AnimatedIconWithPreview
-            size={ANIMATED_STICKER_SMALL_SIZE_PX}
-            play={isActive}
-            noLoop={false}
-            nonInteractive
-            className={buildClassName(styles.sticker, styles.sticker_sizeSmall)}
-            tgsUrl={ANIMATED_STICKERS_PATHS.bill}
-            previewUrl={ANIMATED_STICKERS_PATHS.billPreview}
-          />
-
           {Boolean(transaction) && (
             <DappTransfer
               transaction={transaction}
-              tonToken={tonToken}
-              tokens={tokens}
+              tokensBySlug={tokensBySlug}
             />
           )}
           <div className={modalStyles.buttons}>
@@ -189,8 +175,11 @@ function DappTransferModal({
       <Transition name="semiFade" activeKey={isDappLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
         {isDappLoading ? renderWaitForConnection() : (
           <>
-            <ModalHeader title={lang(isNftTransfer ? 'Send NFT' : 'Send Transaction')} onClose={closeDappTransfer} />
-            <DappTransferInitial onClose={closeDappTransfer} tonToken={tonToken} />
+            <ModalHeader
+              title={lang(isNftTransferPayload(renderingTransactions?.[0].payload) ? 'Send NFT' : 'Send Transaction')}
+              onClose={closeDappTransfer}
+            />
+            <DappTransferInitial onClose={closeDappTransfer} />
           </>
         )}
       </Transition>
@@ -206,11 +195,11 @@ function DappTransferModal({
         return (
           <>
             <ModalHeader title={lang('Send Transaction')} onClose={closeDappTransfer} />
-            <DappLedgerWarning tonToken={tonToken} />
+            <DappLedgerWarning />
           </>
         );
       case TransferState.Confirm:
-        return renderSingleTransaction(isActive);
+        return renderSubTransaction();
       case TransferState.Password:
         return renderPassword(isActive);
       case TransferState.ConnectHardware:
@@ -270,7 +259,8 @@ export default memo(withGlobal((global): StateProps => {
 
   return {
     currentDappTransfer: global.currentDappTransfer,
-    tokens: selectCurrentAccountTokens(global),
+    transactions: selectCurrentDappTransferExtendedTransactions(global),
+    tokensBySlug: global.tokenInfo.bySlug,
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,

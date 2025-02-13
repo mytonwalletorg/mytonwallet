@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.3.2",
+  "version": "3.3.3",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -120,6 +120,7 @@
     "@webpack-cli/serve": "2.0.5",
     "autoprefixer": "10.4.20",
     "babel-loader": "9.2.1",
+    "babel-plugin-transform-import-meta": "2.3.2",
     "before-build-webpack": "0.2.15",
     "browserlist": "1.0.1",
     "concurrently": "7.6.0",

@@ -81,7 +81,6 @@ function SwapInitial({
     amountOut,
     errorType,
     isEstimating,
-    shouldEstimate,
     networkFee,
     realNetworkFee,
     priceImpact = 0,
@@ -220,7 +219,7 @@ function SwapInitial({
   );
 
   const handleEstimateSwap = useLastCallback(() => {
-    if ((!isActive || isBackgroundModeActive()) && !shouldEstimate) return;
+    if ((!isActive || isBackgroundModeActive()) && !isEstimating) return;
 
     estimateSwap();
   });
@@ -241,13 +240,13 @@ function SwapInitial({
   }, [tokenInSlug, tokenOutSlug]);
 
   useEffect(() => {
-    if (shouldEstimate) {
+    if (isEstimating) {
       handleEstimateSwap();
     }
 
     const intervalId = setInterval(handleEstimateSwap, ESTIMATE_REQUEST_INTERVAL);
     return () => clearInterval(intervalId);
-  }, [shouldEstimate]);
+  }, [isEstimating]);
 
   useEffect(() => {
     const shouldForceUpdate = accountId !== accountIdPrev;

@@ -11,6 +11,7 @@ import { pause } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../../api/errors';
+import { closeAllOverlays } from '../../helpers/misc';
 import { getIsActiveStakingState } from '../../helpers/staking';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
@@ -382,7 +383,10 @@ addActionHandler('openAnyAccountStakingInfo', async (global, actions, { accountI
     return;
   }
 
-  await switchAccount(global, accountId, network);
+  await Promise.all([
+    closeAllOverlays(),
+    switchAccount(global, accountId, network),
+  ]);
 
   actions.changeCurrentStaking({ stakingId });
   actions.openStakingInfo();

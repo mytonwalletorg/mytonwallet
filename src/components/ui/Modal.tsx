@@ -102,15 +102,7 @@ function Modal({
 
   useHideBrowser(isOpen, isCompact);
 
-  const animationDuration = isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION;
-  const { shouldRender, transitionClassNames } = useShowTransition(
-    isOpen,
-    onCloseAnimationEnd,
-    undefined,
-    false,
-    undefined,
-    animationDuration + ANIMATION_END_DELAY,
-  );
+  const animationDuration = (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
 
   const isSlideUp = !isCompact && isPortrait;
 
@@ -142,26 +134,8 @@ function Modal({
   useEffect(() => (isOpen && modalRef.current ? trapFocus(modalRef.current) : undefined), [isOpen]);
 
   useLayoutEffect(() => (
-    isOpen ? beginHeavyAnimation(animationDuration + ANIMATION_END_DELAY) : undefined
+    isOpen ? beginHeavyAnimation(animationDuration) : undefined
   ), [animationDuration, isOpen]);
-
-  useEffect(() => {
-    if (!IS_TOUCH_ENV || !isOpen || !isPortrait || !isSlideUp || IS_DELEGATED_BOTTOM_SHEET) {
-      return undefined;
-    }
-
-    return captureEvents(modalRef.current!, {
-      excludedClosestSelector: '.capture-scroll',
-      onSwipe: (e: Event, direction: SwipeDirection) => {
-        if (direction === SwipeDirection.Down && getCanCloseModal(swipeDownDateRef, e.target as HTMLElement)) {
-          onClose();
-          return true;
-        }
-
-        return false;
-      },
-    });
-  }, [isOpen, isPortrait, isSlideUp, onClose]);
 
   // Make sure to hide browser before presenting modals
   const [isBrowserHidden, setIsBrowserHidden] = useState(false);
@@ -188,6 +162,33 @@ function Modal({
     dialogRef,
     forceFullNative,
     noResetFullNativeOnBlur,
+  );
+
+  useEffect(() => {
+    if (!IS_TOUCH_ENV || !isOpen || !isPortrait || !isSlideUp || IS_DELEGATED_BOTTOM_SHEET || isDelegatingToNative) {
+      return undefined;
+    }
+
+    return captureEvents(modalRef.current!, {
+      excludedClosestSelector: '.capture-scroll',
+      onSwipe: (e: Event, direction: SwipeDirection) => {
+        if (direction === SwipeDirection.Down && getCanCloseModal(swipeDownDateRef, e.target as HTMLElement)) {
+          onClose();
+          return true;
+        }
+
+        return false;
+      },
+    });
+  }, [isOpen, isPortrait, isSlideUp, isDelegatingToNative, onClose]);
+
+  const { shouldRender, transitionClassNames } = useShowTransition(
+    isOpen && !isDelegatingToNative,
+    onCloseAnimationEnd,
+    undefined,
+    false,
+    undefined,
+    animationDuration,
   );
 
   if (!shouldRender) {
@@ -225,7 +226,6 @@ function Modal({
     isCompact && styles.compact,
     isCompact && 'is-compact-modal',
     forceBottomSheet && styles.forceBottomSheet,
-    isDelegatingToNative && styles.delegatingToNative,
   );
 
   const backdropFullClass = buildClassName(styles.backdrop, noBackdrop && styles.noBackdrop);

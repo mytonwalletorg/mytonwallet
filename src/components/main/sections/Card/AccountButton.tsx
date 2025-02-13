@@ -5,8 +5,8 @@ import type { Account } from '../../../../global/types';
 
 import buildClassName from '../../../../util/buildClassName';
 import buildStyle from '../../../../util/buildStyle';
+import { stopEvent } from '../../../../util/domEvents';
 import { shortenAddress } from '../../../../util/shortenAddress';
-import stopEvent from '../../../../util/stopEvent';
 
 import useCardCustomization from '../../../../hooks/useCardCustomization';
 import useLang from '../../../../hooks/useLang';

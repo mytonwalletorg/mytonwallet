@@ -28,8 +28,8 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 Object.defineProperty(global.Element.prototype, 'innerText', {
-  get() {
-    const el = this.cloneNode(true); // can skip if mutability isn't a concern
+  get(this: Element) {
+    const el = this.cloneNode(true) as typeof this; // can skip if mutability isn't a concern
     el.querySelectorAll('script,style')
       .forEach((s) => s.remove());
     return el.textContent;
@@ -64,3 +64,6 @@ Object.defineProperty(global, 'indexedDB', {
     },
   },
 });
+
+// Importing dynamically, because the file execution fails without the above mocks
+import('./initGlobal');

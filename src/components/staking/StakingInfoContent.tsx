@@ -88,7 +88,7 @@ function StakingInfoContent({
   const {
     id: stakingId,
     tokenSlug,
-    balance: amount = 0n,
+    balance: amount,
     annualYield = 0,
     isUnstakeRequested,
   } = stakingState ?? {};
@@ -100,7 +100,7 @@ function StakingInfoContent({
   const { decimals, symbol } = token ?? {};
 
   const lang = useLang();
-  const isLoading = !amount;
+  const isLoading = amount === undefined;
   const hasHistory = Boolean(stakingHistory?.length);
   const {
     shouldRender: shouldRenderSpinner,
@@ -139,8 +139,12 @@ function StakingInfoContent({
     startStakingClaim();
   });
 
-  const stakingResult = toBig(amount).round(SHORT_FRACTION_DIGITS).toString();
-  const balanceResult = toBig(amount).mul((annualYield / 100) + 1).round(SHORT_FRACTION_DIGITS).toString();
+  let stakingResult = '0';
+  let balanceResult = '0';
+  if (amount) {
+    stakingResult = toBig(amount).round(SHORT_FRACTION_DIGITS).toString();
+    balanceResult = toBig(amount).mul((annualYield / 100) + 1).round(SHORT_FRACTION_DIGITS).toString();
+  }
 
   const dropDownItems = useMemo(() => {
     if (!tokenBySlug || !states) {

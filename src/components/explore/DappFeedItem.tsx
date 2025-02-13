@@ -4,7 +4,6 @@ import { getActions } from '../../global';
 import buildClassName from '../../util/buildClassName';
 import { SECOND } from '../../util/dateFormat';
 import { openUrl } from '../../util/openUrl';
-import { isTelegramUrl } from '../../util/url';
 
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
@@ -89,13 +88,7 @@ function DappFeedItem({
   }
 
   const openDapp = useLastCallback(async () => {
-    const matchedUrl = ORIGIN_REPLACEMENTS_BY_ORIGIN[url];
-
-    if (matchedUrl || isTelegramUrl(url)) {
-      await openUrl(matchedUrl, true);
-    } else {
-      await openUrl(url);
-    }
+    await openUrl(ORIGIN_REPLACEMENTS_BY_ORIGIN[url] || url);
 
     setTimeout(() => void updateDappLastOpenedAt({ origin }), RERENDER_DAPPS_FEED_DELAY_MS);
   });

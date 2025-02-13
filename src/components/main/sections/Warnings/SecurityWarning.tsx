@@ -25,7 +25,7 @@ function SecurityWarning({ isSecurityWarningHidden }: StateProps) {
   const lang = useLang();
 
   function handleClick() {
-    openUrl(MYTONWALLET_PROMO_URL);
+    void openUrl(MYTONWALLET_PROMO_URL);
   }
 
   const handleClose = useLastCallback((e: React.MouseEvent<HTMLButtonElement>) => {

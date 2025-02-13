@@ -3,7 +3,7 @@ import React, { beginHeavyAnimation, useEffect, useRef } from '../../lib/teact/t
 
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
-import stopEvent from '../../util/stopEvent';
+import { stopEvent } from '../../util/domEvents';
 
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useHistoryBack from '../../hooks/useHistoryBack';

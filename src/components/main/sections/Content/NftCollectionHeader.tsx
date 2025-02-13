@@ -137,14 +137,14 @@ function NftCollectionHeader({
 
       case 'getgems': {
         const getgemsBaseUrl = isTestnet ? GETGEMS_BASE_TESTNET_URL : GETGEMS_BASE_MAINNET_URL;
-        openUrl(`${getgemsBaseUrl}collection/${renderedNft?.collectionAddress}`);
+        void openUrl(`${getgemsBaseUrl}collection/${renderedNft?.collectionAddress}`);
         break;
       }
 
       case 'tonExplorer': {
         const url = getExplorerNftCollectionUrl(renderedNft?.collectionAddress, isTestnet);
         if (url) {
-          openUrl(url);
+          void openUrl(url);
         }
         break;
       }

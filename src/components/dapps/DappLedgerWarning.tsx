@@ -4,10 +4,11 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiDapp } from '../../api/types';
-import { type Account, TransferState, type UserToken } from '../../global/types';
+import { type Account, TransferState } from '../../global/types';
 
+import { TONCOIN } from '../../config';
 import renderText from '../../global/helpers/renderText';
-import { selectNetworkAccounts } from '../../global/selectors';
+import { selectCurrentToncoinBalance, selectNetworkAccounts } from '../../global/selectors';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 
@@ -20,20 +21,17 @@ import DappInfo from './DappInfo';
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
 
-interface OwnProps {
-  tonToken: UserToken;
-}
-
 interface StateProps {
   currentAccount?: Account;
+  toncoinBalance: bigint;
   dapp?: ApiDapp;
 }
 
 function DappLedgerWarning({
-  tonToken,
   currentAccount,
+  toncoinBalance,
   dapp,
-}: OwnProps & StateProps) {
+}: StateProps) {
   const { cancelDappTransfer, setDappTransferScreen } = getActions();
 
   const lang = useLang();
@@ -47,7 +45,7 @@ function DappLedgerWarning({
       <div className={styles.transactionDirection}>
         <div className={styles.transactionAccount}>
           <div className={styles.accountTitle}>{currentAccount?.title}</div>
-          <div className={styles.accountBalance}>{formatCurrency(toDecimal(tonToken.amount), tonToken.symbol)}</div>
+          <div className={styles.accountBalance}>{formatCurrency(toDecimal(toncoinBalance), TONCOIN.symbol)}</div>
         </div>
 
         <DappInfo
@@ -84,12 +82,13 @@ function DappLedgerWarning({
   );
 }
 
-export default memo(withGlobal<OwnProps>((global): StateProps => {
+export default memo(withGlobal((global): StateProps => {
   const { dapp } = global.currentDappTransfer;
   const accounts = selectNetworkAccounts(global);
 
   return {
     currentAccount: accounts?.[global.currentAccountId!],
+    toncoinBalance: selectCurrentToncoinBalance(global),
     dapp,
   };
 })(DappLedgerWarning));

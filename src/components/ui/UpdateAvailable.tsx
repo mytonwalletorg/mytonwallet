@@ -42,7 +42,7 @@ function UpdateAvailable({ isAppUpdateAvailable, newAppVersion, isAppUpdateRequi
       return;
     }
 
-    void openUrl(getUrl(newAppVersion), true);
+    void openUrl(getUrl(newAppVersion), { isExternal: true });
   };
 
   if (!shouldRender) {

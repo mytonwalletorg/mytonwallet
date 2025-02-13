@@ -17,4 +17,5 @@ CAP_PLUGIN(BottomSheetPlugin, "BottomSheet",
            CAP_PLUGIN_METHOD(enable, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(hide, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(show, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(isShown, CAPPluginReturnPromise);
 )

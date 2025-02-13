@@ -18,7 +18,7 @@ import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES } from '../../.
 import { TONCONNECT_PROTOCOL_VERSION } from '../../../config';
 import { logDebugError } from '../../../util/logs';
 import { tonConnectGetDeviceInfo } from '../../../util/tonConnectEnvironment';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
 import { useWebViewBridge } from './useWebViewBridge';
 
@@ -70,9 +70,6 @@ export function useDappBridge({
           verifyConnectRequest(request);
 
           await inAppBrowserRef.current?.hide();
-          if (IS_DELEGATING_BOTTOM_SHEET) {
-            await BottomSheet.enable();
-          }
 
           openLoadingOverlay();
 
@@ -85,10 +82,6 @@ export function useDappBridge({
 
           closeLoadingOverlay();
 
-          if (IS_DELEGATING_BOTTOM_SHEET) {
-            await BottomSheet.disable();
-          }
-
           inAppBrowserRef.current?.show();
           setRequestId(requestId + 1);
 
@@ -99,9 +92,6 @@ export function useDappBridge({
           return response;
         } catch (err: any) {
           logDebugError('useDAppBridge:connect', err);
-          if (IS_DELEGATING_BOTTOM_SHEET) {
-            await BottomSheet.disable();
-          }
           inAppBrowserRef.current?.show();
 
           if ('event' in err && 'id' in err && 'payload' in err) {
@@ -176,18 +166,12 @@ export function useDappBridge({
           switch (request.method) {
             case 'sendTransaction': {
               await inAppBrowserRef.current?.hide();
-              if (IS_DELEGATING_BOTTOM_SHEET) {
-                await BottomSheet.enable();
-              }
 
               const callResponse = await callApi(
                 'tonConnect_sendTransaction',
                 dappRequest,
                 request,
               );
-              if (IS_DELEGATING_BOTTOM_SHEET) {
-                await BottomSheet.disable();
-              }
               if (IS_DELEGATED_BOTTOM_SHEET) {
                 void BottomSheet.applyScrollPatch();
               }
@@ -208,17 +192,11 @@ export function useDappBridge({
 
             case 'signData': {
               await inAppBrowserRef.current?.hide();
-              if (IS_DELEGATING_BOTTOM_SHEET) {
-                await BottomSheet.enable();
-              }
               const callResponse = await callApi(
                 'tonConnect_signData',
                 dappRequest,
                 request,
               );
-              if (IS_DELEGATING_BOTTOM_SHEET) {
-                await BottomSheet.disable();
-              }
               inAppBrowserRef.current?.show();
 
               return callResponse!;
@@ -235,9 +213,6 @@ export function useDappBridge({
           }
         } catch (err: any) {
           logDebugError('useDAppBridge:send', err);
-          if (IS_DELEGATING_BOTTOM_SHEET) {
-            await BottomSheet.disable();
-          }
           inAppBrowserRef.current?.show();
 
           return {

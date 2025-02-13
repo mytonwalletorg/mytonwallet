@@ -102,7 +102,7 @@ function parseRawTransaction(network: ApiNetwork, rawTx: any, addressBook: Addre
     now,
     lt,
     hash,
-    total_fees: fee,
+    total_fees: totalFees,
     description: {
       compute_ph: {
         exit_code: exitCode,
@@ -118,11 +118,16 @@ function parseRawTransaction(network: ApiNetwork, rawTx: any, addressBook: Addre
 
   if (!msgs.length) return [];
 
+  const oneMsgFee = BigInt(totalFees) / BigInt(msgs.length);
+
   return msgs.map((msg, i) => {
-    const { source, destination, value } = msg;
+    const {
+      source, destination, value, fwd_fee: fwdFee,
+    } = msg;
     const fromAddress = addressBook[source].user_friendly;
     const toAddress = addressBook[destination].user_friendly;
     const normalizedAddress = toBase64Address(isIncoming ? source : destination, true, network);
+    const fee = oneMsgFee + BigInt(fwdFee ?? 0);
 
     return omitUndefined({
       txId: msgs.length > 1 ? `${txId}:${i + 1}` : txId,
@@ -132,7 +137,7 @@ function parseRawTransaction(network: ApiNetwork, rawTx: any, addressBook: Addre
       toAddress,
       amount: isIncoming ? BigInt(value) : -BigInt(value),
       slug: TONCOIN.slug,
-      fee: BigInt(fee),
+      fee,
       inMsgHash,
       normalizedAddress,
       shouldHide: exitCode ? true : undefined,

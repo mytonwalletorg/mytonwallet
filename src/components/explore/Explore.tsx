@@ -10,9 +10,9 @@ import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { vibrate } from '../../util/capacitor';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
+import { stopEvent } from '../../util/domEvents';
 import { openUrl } from '../../util/openUrl';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
-import stopEvent from '../../util/stopEvent';
 import { captureControlledSwipe } from '../../util/swipeController';
 import { getHostnameFromUrl, isValidUrl } from '../../util/url';
 import {
@@ -213,7 +213,7 @@ function Explore({
       addSiteToBrowserHistory({ url });
     }
 
-    void openUrl(url, isExternal, title, getHostnameFromUrl(url));
+    void openUrl(url, { isExternal, title, subtitle: getHostnameFromUrl(url) });
   }
 
   const handleSiteClick = useLastCallback((

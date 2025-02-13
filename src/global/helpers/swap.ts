@@ -4,9 +4,9 @@ import { SwapInputSource, SwapState } from '../types';
 export function shouldAvoidSwapEstimation(global: GlobalState) {
   // For a better UX, we should leave the fees and the other swap data intact during swap confirmation (for example,
   // to avoid switching from/to gasless mode).
-  // `shouldEstimate` forces estimation, because normally it means that there was a swap parameter change that
+  // `isEstimating` forces estimation, because by design it means that there was a swap parameter change that
   // invalidates the current swap estimation.
-  return !global.currentSwap.shouldEstimate && (
+  return !global.currentSwap.isEstimating && (
     global.currentSwap.state === SwapState.Blockchain
     || global.currentSwap.state === SwapState.Password
   );

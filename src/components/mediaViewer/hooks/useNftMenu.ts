@@ -117,7 +117,7 @@ export default function useNftMenu({
     clearAccentColorFromNft,
   } = getActions();
 
-  const handleMenuItemSelect = useLastCallback(async (value: string) => {
+  const handleMenuItemSelect = useLastCallback((value: string) => {
     const { isTestnet } = getGlobal().settings;
 
     switch (value) {
@@ -134,7 +134,7 @@ export default function useNftMenu({
       case 'tonExplorer': {
         const url = getExplorerNftUrl(nft!.address, isTestnet)!;
 
-        openUrl(url);
+        void openUrl(url);
         break;
       }
 
@@ -144,14 +144,14 @@ export default function useNftMenu({
           ? `${getgemsBaseUrl}collection/${nft!.collectionAddress}/${nft!.address}`
           : `${getgemsBaseUrl}nft/${nft!.address}`;
 
-        openUrl(getgemsUrl);
+        void openUrl(getgemsUrl);
         break;
       }
 
       case 'tondns': {
         const url = `https://dns.ton.org/#${(nft!.name || '').replace(/\.ton$/i, '')}`;
 
-        openUrl(url);
+        void openUrl(url);
         break;
       }
 

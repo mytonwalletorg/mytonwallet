@@ -1,6 +1,7 @@
 import type { ApiStakingState, ApiToken } from '../../api/types';
 import type { DropdownItem } from '../../components/ui/Dropdown';
 
+import { MIN_ACTIVE_STAKING_REWARDS } from '../../config';
 import { ASSET_LOGO_PATHS } from '../../components/ui/helpers/assetLogos';
 
 export function buildStakingDropdownItems({
@@ -10,8 +11,8 @@ export function buildStakingDropdownItems({
   states: ApiStakingState[];
   shouldUseNominators?: boolean;
 }) {
-  const hasNominatorsStake = states.some((state) => state.type === 'nominators' && state.balance);
-  const hasLiquidStake = states.some((state) => state.type === 'liquid' && state.balance);
+  const hasNominatorsStake = states.some((state) => state.type === 'nominators' && getIsActiveStakingState(state));
+  const hasLiquidStake = states.some((state) => state.type === 'liquid' && getIsActiveStakingState(state));
 
   if (shouldUseNominators && !hasLiquidStake) {
     states = states.filter((state) => state.type !== 'liquid');
@@ -40,12 +41,16 @@ export function getStakingStateStatus(state: ApiStakingState): StakingStateStatu
   if (state.isUnstakeRequested) {
     return 'unstakeRequested';
   }
-  if (!state.balance) {
-    return 'inactive';
+  if (getIsActiveStakingState(state)) {
+    return 'active';
   }
-  return 'active';
+  return 'inactive';
 }
 
 export function getIsActiveStakingState(state: ApiStakingState) {
-  return Boolean(state.balance || state.isUnstakeRequested);
+  return Boolean(
+    state.balance
+    || state.isUnstakeRequested
+    || ('unclaimedRewards' in state && state.unclaimedRewards > MIN_ACTIVE_STAKING_REWARDS),
+  );
 }

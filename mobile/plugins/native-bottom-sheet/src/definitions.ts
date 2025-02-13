@@ -1,4 +1,4 @@
-import { PluginListenerHandle } from '@capacitor/core';
+import type { PluginListenerHandle } from '@capacitor/core';
 
 export type BottomSheetKeys =
   'initial'
@@ -9,6 +9,7 @@ export type BottomSheetKeys =
   | 'stake'
   | 'unstake'
   | 'staking-info'
+  | 'staking-claim'
   | 'vesting-info'
   | 'vesting-confirm'
   | 'transaction-info'
@@ -49,6 +50,8 @@ export interface BottomSheetPlugin {
   toggleSelfFullSize(options: { isFullSize: boolean }): Promise<void>;
 
   openInMain(options: { key: BottomSheetKeys }): Promise<void>;
+
+  isShown(): Promise<{ value: boolean }>;
 
   addListener(
     eventName: 'delegate',

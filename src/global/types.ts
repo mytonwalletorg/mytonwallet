@@ -403,6 +403,16 @@ export interface NftTransfer {
   collectionName?: string;
 }
 
+/** A dapp transfer prepared to be shown in the UI */
+export interface ExtendedDappTransfer extends ApiDappTransfer {
+  /** The network fee portion of that transfer. Always measured in TON. Undefined means that it's unknown. */
+  fee?: bigint;
+  /** The actual address where the transfer will go */
+  realToAddress: string;
+  /** Whether the transfer should be treated with cautiousness, because its payload is unclear */
+  isDangerous: boolean;
+}
+
 export type GlobalState = {
   DEBUG_capturedId?: number;
 
@@ -490,8 +500,10 @@ export type GlobalState = {
     errorType?: SwapErrorType;
     shouldResetOnClose?: boolean;
     isLoading?: boolean;
-    // When set to `true`, the next swap estimation will show the loading indicator and will block the form
-    shouldEstimate?: boolean;
+    /**
+     * When is `true`, does several things: shows the estimating indicator in the UI, blocks the form submission, and
+     * instructs the UI and the actions to perform an estimation regardless.
+     */
     isEstimating?: boolean;
     inputSource?: SwapInputSource;
     toAddress?: string;
@@ -648,6 +660,7 @@ export type GlobalState = {
     url: string;
     title?: string;
     subtitle?: string;
+    keepNBSOpen?: boolean;
   };
 
   currentQrScan?: {
@@ -848,7 +861,6 @@ export interface ActionPayloads {
   closeExplore: undefined;
 
   closeAnyModal: undefined;
-  closeAllOverlays: undefined;
   submitSignature: { password: string };
   clearSignatureError: undefined;
   cancelSignature: undefined;
@@ -965,10 +977,18 @@ export interface ActionPayloads {
 
   addSiteToBrowserHistory: { url: string };
   removeSiteFromBrowserHistory: { url: string };
-  openBrowser: { url: string; title?: string; subtitle?: string };
+  openBrowser: { url: string; title?: string; subtitle?: string; keepNBSOpen?: boolean };
   closeBrowser: undefined;
   openSiteCategory: { id: number };
   closeSiteCategory: undefined;
+  switchAccountAndOpenUrl: {
+    accountId?: string;
+    network?: ApiNetwork;
+    url: string;
+    isExternal?: boolean;
+    title?: string;
+    subtitle?: string;
+  };
 
   apiUpdateDappConnect: ApiUpdateDappConnect;
   apiUpdateDappSendTransaction: ApiUpdateDappSendTransactions;

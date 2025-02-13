@@ -3,8 +3,8 @@ import { MediaType } from '../../../global/types';
 import { ANIMATION_END_DELAY, MOBILE_SCREEN_MAX_WIDTH } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { applyStyles } from '../../../util/animation';
+import { stopEvent } from '../../../util/domEvents';
 import { isElementInViewport } from '../../../util/isElementInViewport';
-import stopEvent from '../../../util/stopEvent';
 import { REM } from '../../../util/windowEnvironment';
 import windowSize from '../../../util/windowSize';
 

@@ -12,6 +12,7 @@ addActionHandler('initApi', async (global, actions) => {
     isNativeBottomSheet: IS_DELEGATED_BOTTOM_SHEET,
     isIosApp: IS_IOS_APP,
     isAndroidApp: IS_ANDROID_APP,
+    referrer: new URLSearchParams(window.location.search).get('r') ?? undefined,
   });
 
   await callApi('waitDataPreload');

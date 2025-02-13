@@ -6,7 +6,7 @@ import React, {
 import type { EmojiIcon } from './Emoji';
 
 import buildClassName from '../../util/buildClassName';
-import stopEvent from '../../util/stopEvent';
+import { stopEvent } from '../../util/domEvents';
 import { IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';

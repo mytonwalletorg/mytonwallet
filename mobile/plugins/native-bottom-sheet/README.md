@@ -26,6 +26,7 @@ npx cap sync
 * [`closeSelf(...)`](#closeself)
 * [`toggleSelfFullSize(...)`](#toggleselffullsize)
 * [`openInMain(...)`](#openinmain)
+* [`isShown()`](#isshown)
 * [`addListener('delegate', ...)`](#addlistenerdelegate)
 * [`addListener('move', ...)`](#addlistenermove)
 * [`addListener('openInMain', ...)`](#addlisteneropeninmain)
@@ -178,6 +179,17 @@ openInMain(options: { key: BottomSheetKeys; }) => Promise<void>
 --------------------
 
 
+### isShown()
+
+```typescript
+isShown() => Promise<{ value: boolean; }>
+```
+
+**Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
+
+--------------------
+
+
 ### addListener('delegate', ...)
 
 ```typescript
@@ -241,6 +253,6 @@ addListener(eventName: 'openInMain', handler: (options: { key: BottomSheetKeys; 
 
 #### BottomSheetKeys
 
-<code>'initial' | 'receive' | 'invoice' | 'transfer' | 'swap' | 'stake' | 'unstake' | 'staking-info' | 'vesting-info' | 'vesting-confirm' | 'transaction-info' | 'swap-activity' | 'backup' | 'add-account' | 'settings' | 'qr-scanner' | 'dapp-connect' | 'dapp-transfer' | 'disclaimer' | 'backup-warning' | 'onramp-widget'</code>
+<code>'initial' | 'receive' | 'invoice' | 'transfer' | 'swap' | 'stake' | 'unstake' | 'staking-info' | 'staking-claim' | 'vesting-info' | 'vesting-confirm' | 'transaction-info' | 'swap-activity' | 'backup' | 'add-account' | 'settings' | 'qr-scanner' | 'dapp-connect' | 'dapp-transfer' | 'disclaimer' | 'backup-warning' | 'onramp-widget'</code>
 
 </docgen-api>

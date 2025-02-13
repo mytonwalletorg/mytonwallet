@@ -1,6 +1,6 @@
 import { getActions, getGlobal } from '../../global';
 
-import type { ActionPayloads } from '../../global/types';
+import type { ActionPayloads, GlobalState } from '../../global/types';
 import { ActiveTab, ContentTab } from '../../global/types';
 
 import {
@@ -60,7 +60,7 @@ export function openDeeplinkOrUrl(url: string, isExternal = false, isFromInAppBr
   if (isTonDeeplink(url) || isTonConnectDeeplink(url) || isSelfDeeplink(url)) {
     void processDeeplink(url, isFromInAppBrowser);
   } else {
-    void openUrl(url, isExternal);
+    void openUrl(url, { isExternal });
   }
 }
 
@@ -85,9 +85,6 @@ export function isTonDeeplink(url: string) {
 
 // Returns `true` if the link has been processed, ideally resulting to a UI action
 async function processTonDeeplink(url: string): Promise<boolean> {
-  const params = parseTonDeeplink(url);
-  if (!params) return false;
-
   await waitRender();
 
   const actions = getActions();
@@ -95,6 +92,39 @@ async function processTonDeeplink(url: string): Promise<boolean> {
   if (!global.currentAccountId) {
     return false;
   }
+
+  const startTransferParams = parseTonDeeplink(url, global);
+
+  if (!startTransferParams) {
+    return false;
+  }
+
+  if ('error' in startTransferParams) {
+    actions.showError({ error: startTransferParams.error });
+    return true;
+  }
+
+  actions.startTransfer({
+    isPortrait: getIsPortrait(),
+    ...startTransferParams,
+  });
+
+  if (getIsLandscape()) {
+    actions.setLandscapeActionsActiveTabIndex({ index: ActiveTab.Transfer });
+  }
+
+  return true;
+}
+
+/**
+ * Parses a TON deeplink and checks whether the transfer can be initiated.
+ * Returns `undefined` if the URL is not a TON deeplink.
+ * If there is `error` in the result, there is a problem with the deeplink (the string is to translate via `lang`).
+ * Otherwise, returned the parsed transfer parameters.
+ */
+export function parseTonDeeplink(url: string, global: GlobalState) {
+  const params = rawParseTonDeeplink(url);
+  if (!params) return undefined;
 
   const {
     toAddress,
@@ -108,8 +138,7 @@ async function processTonDeeplink(url: string): Promise<boolean> {
 
   const verifiedAddress = isValidAddressOrDomain(toAddress, 'ton') ? toAddress : undefined;
 
-  const startTransferParams: ActionPayloads['startTransfer'] = {
-    isPortrait: getIsPortrait(),
+  const transferParams: Omit<NonNullable<ActionPayloads['startTransfer']>, 'isPortrait'> & { error?: string } = {
     toAddress: verifiedAddress,
     tokenSlug: TONCOIN.slug,
     amount,
@@ -124,46 +153,32 @@ async function processTonDeeplink(url: string): Promise<boolean> {
       : undefined;
 
     if (!globalToken) {
-      actions.showError({
-        error: '$unknown_token_address',
-      });
-      return true;
-    }
-    const accountToken = selectAccountTokenBySlug(global, globalToken.slug);
+      transferParams.error = '$unknown_token_address';
+    } else {
+      const accountToken = selectAccountTokenBySlug(global, globalToken.slug);
 
-    if (!accountToken) {
-      actions.showError({
-        error: '$dont_have_required_token',
-      });
-      return true;
+      if (!accountToken) {
+        transferParams.error = '$dont_have_required_token';
+      } else {
+        transferParams.tokenSlug = globalToken.slug;
+      }
     }
-
-    startTransferParams.tokenSlug = globalToken.slug;
   }
 
   if (nftAddress) {
     const accountNft = selectCurrentAccountNftByAddress(global, nftAddress);
 
     if (!accountNft) {
-      actions.showError({
-        error: '$dont_have_required_nft',
-      });
-      return true;
+      transferParams.error = '$dont_have_required_nft';
+    } else {
+      transferParams.nfts = [accountNft];
     }
-
-    startTransferParams.nfts = [accountNft];
   }
 
-  actions.startTransfer(omitUndefined(startTransferParams));
-
-  if (getIsLandscape()) {
-    actions.setLandscapeActionsActiveTabIndex({ index: ActiveTab.Transfer });
-  }
-
-  return true;
+  return omitUndefined(transferParams);
 }
 
-export function parseTonDeeplink(value?: string) {
+function rawParseTonDeeplink(value?: string) {
   if (typeof value !== 'string' || !isTonDeeplink(value) || !value.includes('/transfer/')) {
     return undefined;
   }
@@ -221,7 +236,7 @@ async function processTonConnectDeeplink(url: string, isFromInAppBrowser = false
   closeLoadingOverlay();
 
   if (returnUrl) {
-    openUrl(returnUrl, !isFromInAppBrowser);
+    void openUrl(returnUrl, { isExternal: !isFromInAppBrowser });
   }
 
   return true;
@@ -345,8 +360,11 @@ export async function processSelfDeeplink(deeplink: string): Promise<boolean> {
   return false;
 }
 
-// Parses only transfer params from the deeplink. Returns `undefined` if it's not a transfer deeplink.
-export function parseDeeplinkTransferParams(url: string) {
+/**
+ * Parses a deeplink and checks whether the transfer can be initiated.
+ * See `parseTonDeeplink` for information about the returned values.
+ */
+export function parseDeeplinkTransferParams(url: string, global: GlobalState) {
   let tonDeeplink = url;
 
   if (isSelfDeeplink(url)) {
@@ -363,7 +381,7 @@ export function parseDeeplinkTransferParams(url: string) {
     }
   }
 
-  return parseTonDeeplink(tonDeeplink);
+  return parseTonDeeplink(tonDeeplink, global);
 }
 
 function convertSelfDeeplinkToSelfUrl(deeplink: string) {

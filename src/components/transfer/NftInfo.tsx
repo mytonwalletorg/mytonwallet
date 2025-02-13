@@ -40,7 +40,7 @@ function NftInfo({
     event.stopPropagation();
     const url = getExplorerNftUrl(nft!.address, getGlobal().settings.isTestnet)!;
 
-    openUrl(url);
+    void openUrl(url);
   };
 
   const handleClick = useLastCallback(() => {

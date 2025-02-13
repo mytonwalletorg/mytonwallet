@@ -9,7 +9,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency } from '../../api/types';
+import type { ApiBaseCurrency, ApiChain } from '../../api/types';
 import {
   type AssetPairs, SettingsState, type UserSwapToken, type UserToken,
 } from '../../global/types';
@@ -19,6 +19,7 @@ import {
 } from '../../config';
 import {
   selectAvailableUserForSwapTokens,
+  selectCurrentAccount,
   selectIsMultichainAccount,
   selectPopularTokens,
   selectSwapTokens,
@@ -64,6 +65,7 @@ interface StateProps {
   baseCurrency?: ApiBaseCurrency;
   isLoading?: boolean;
   isMultichain: boolean;
+  availableChains?: { [K in ApiChain]?: unknown };
 }
 
 interface OwnProps {
@@ -84,13 +86,14 @@ enum SearchState {
   Empty,
 }
 
-const EMPTY_ARRAY: Token[] = [];
+const EMPTY_ARRAY: never[] = [];
+const EMPTY_OBJECT = {};
 
 function TokenSelector({
   token,
-  userTokens,
-  swapTokens,
-  popularTokens: popularTokensProp,
+  userTokens = EMPTY_ARRAY,
+  swapTokens = EMPTY_ARRAY,
+  popularTokens: popularTokensProp = EMPTY_ARRAY,
   shouldFilter,
   isInsideSettings,
   baseCurrency,
@@ -101,8 +104,9 @@ function TokenSelector({
   onBack,
   onClose,
   shouldHideMyTokens,
-  shouldHideNotSupportedTokens,
+  shouldHideNotSupportedTokens = false,
   isMultichain,
+  availableChains = EMPTY_OBJECT,
 }: OwnProps & StateProps) {
   const {
     importToken,
@@ -152,47 +156,34 @@ function TokenSelector({
     return filterAndSortTokens(tokens, isMultichain, tokenInSlug, pairsBySlug);
   }, [pairsBySlug, tokenInSlug, isMultichain]);
 
-  const allUnimportedTonTokens = useMemo(() => {
-    return (swapTokens ?? EMPTY_ARRAY).filter(
-      (popularToken) => 'chain' in popularToken && popularToken.chain === 'ton',
-    );
-  }, [swapTokens]);
+  const allTokens = useMemo(
+    () => filterSupportedTokens(swapTokens, availableChains, shouldHideNotSupportedTokens),
+    [swapTokens, shouldHideNotSupportedTokens, availableChains],
+  );
 
-  const popularTokens = useMemo(() => {
-    if (shouldHideNotSupportedTokens) {
-      return popularTokensProp?.filter(
-        (popularToken) => 'chain' in popularToken && popularToken.chain === 'ton',
-      );
-    }
-
-    return popularTokensProp;
-  }, [popularTokensProp, shouldHideNotSupportedTokens]);
+  const popularTokens = useMemo(
+    () => filterSupportedTokens(popularTokensProp, availableChains, shouldHideNotSupportedTokens),
+    [popularTokensProp, shouldHideNotSupportedTokens, availableChains],
+  );
 
   const { userTokensWithFilter, popularTokensWithFilter, swapTokensWithFilter } = useMemo(() => {
-    const currentUserTokens = userTokens ?? EMPTY_ARRAY;
-    const currentSwapTokens = swapTokens ?? EMPTY_ARRAY;
-    const currentPopularTokens = popularTokens ?? EMPTY_ARRAY;
     if (!shouldFilter) {
       return {
-        userTokensWithFilter: currentUserTokens,
-        popularTokensWithFilter: currentPopularTokens,
-        swapTokensWithFilter: currentSwapTokens,
+        userTokensWithFilter: userTokens,
+        popularTokensWithFilter: popularTokens,
+        swapTokensWithFilter: swapTokens,
       };
     }
 
-    const filteredPopularTokens = filterTokens(currentPopularTokens);
-    const filteredUserTokens = filterTokens(currentUserTokens);
-    const filteredSwapTokens = filterTokens(currentSwapTokens);
-
     return {
-      userTokensWithFilter: filteredUserTokens,
-      popularTokensWithFilter: filteredPopularTokens,
-      swapTokensWithFilter: filteredSwapTokens,
+      userTokensWithFilter: filterTokens(userTokens),
+      popularTokensWithFilter: filterTokens(popularTokens),
+      swapTokensWithFilter: filterTokens(swapTokens),
     };
   }, [filterTokens, popularTokens, shouldFilter, swapTokens, userTokens]);
 
   const filteredTokenList = useMemo(() => {
-    const tokensToFilter = isInsideSettings ? allUnimportedTonTokens : swapTokensWithFilter;
+    const tokensToFilter = isInsideSettings ? allTokens : swapTokensWithFilter;
     const untrimmedSearchValue = searchValue.toLowerCase();
     const lowerCaseSearchValue = untrimmedSearchValue.trim();
 
@@ -258,7 +249,7 @@ function TokenSelector({
 
       return Number(b.amount - a.amount);
     });
-  }, [allUnimportedTonTokens, isInsideSettings, searchValue, swapTokensWithFilter]);
+  }, [allTokens, isInsideSettings, searchValue, swapTokensWithFilter]);
 
   const resetSearch = () => {
     setSearchValue('');
@@ -356,11 +347,9 @@ function TokenSelector({
   }
 
   function renderToken(currentToken: Token) {
-    const blockchain = 'chain' in currentToken ? currentToken.chain : 'ton';
-
     const isAvailable = !shouldFilter || currentToken.canSwap;
     const descriptionText = isAvailable
-      ? getChainNetworkName(blockchain)
+      ? getChainNetworkName(currentToken.chain)
       : lang('Unavailable');
     const handleClick = isAvailable ? () => handleTokenClick(currentToken) : undefined;
 
@@ -560,6 +549,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const popularTokens = selectPopularTokens(global);
   const swapTokens = selectSwapTokens(global);
   const isMultichain = selectIsMultichainAccount(global, global.currentAccountId!);
+  const availableChains = selectCurrentAccount(global)?.addressByChain;
 
   return {
     baseCurrency,
@@ -571,6 +561,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     popularTokens,
     swapTokens,
     isMultichain,
+    availableChains,
   };
 })(TokenSelector));
 
@@ -600,4 +591,15 @@ function compareTokens(a: TokenSortFactors, b: TokenSortFactors) {
     return b.tickerMatchLength - a.tickerMatchLength;
   }
   return b.nameMatchLength - a.nameMatchLength;
+}
+
+function filterSupportedTokens<T extends Token>(
+  tokens: T[],
+  availableChains: { [K in ApiChain]?: unknown },
+  isFilterActive: boolean,
+): T[] {
+  if (!isFilterActive) {
+    return tokens;
+  }
+  return tokens.filter((token) => token.chain in availableChains);
 }

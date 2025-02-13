@@ -30,6 +30,7 @@ import { readClipboardContent } from '../../util/clipboard';
 import { SECOND } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import dns from '../../util/dns';
+import { stopEvent } from '../../util/domEvents';
 import {
   explainApiTransferFee, getMaxTransferAmount, isBalanceSufficientForTransfer,
 } from '../../util/fee/transferFee';
@@ -37,7 +38,6 @@ import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber'
 import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { debounce } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
-import stopEvent from '../../util/stopEvent';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';

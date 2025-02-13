@@ -48,7 +48,9 @@ function Category({ category, sites }: OwnProps) {
             type="button"
             className={buildClassName(styles.site, styles.scalable)}
             onClick={() => {
-              openUrl(site.url, site.isExternal, site.name, getHostnameFromUrl(site.url));
+              void openUrl(
+                site.url, { isExternal: site.isExternal, title: site.name, subtitle: getHostnameFromUrl(site.url) },
+              );
             }}
           >
             <Image

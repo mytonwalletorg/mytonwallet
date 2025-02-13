@@ -922,7 +922,7 @@ function convertTransferFeesToSwapFees(
   return { networkFee, realNetworkFee };
 }
 
-type SwapEstimateResult = Partial<GlobalState['currentSwap']> | 'rateLimited' | void;
+export type SwapEstimateResult = Partial<GlobalState['currentSwap']> | 'rateLimited' | undefined;
 
 let isEstimatingSwap = false;
 
@@ -933,22 +933,15 @@ let isEstimatingSwap = false;
  * You may call the `shouldStop` function to check whether it makes sense to continue estimating (because the result
  * is likely to be ignored). If `shouldStop` returns true, `estimate` may return any value (it will be ignored).
  */
-async function estimateSwapConcurrently(
+export async function estimateSwapConcurrently(
   estimate: (
     global: GlobalState,
     shouldStop: () => boolean,
   ) => SwapEstimateResult | Promise<SwapEstimateResult>,
 ) {
-  let initialGlobal = getGlobal();
+  const initialGlobal = getGlobal();
 
   if (shouldAvoidSwapEstimation(initialGlobal)) return;
-
-  // Turning on the loading indicator even if another "hidden" estimation is already in progress.
-  // Keeping the `shouldEstimate` equal `true` in the state to handle the state properly after `estimate` finishes.
-  if (initialGlobal.currentSwap.shouldEstimate && !initialGlobal.currentSwap.isEstimating) {
-    initialGlobal = updateCurrentSwap(initialGlobal, { isEstimating: true });
-    setGlobal(initialGlobal);
-  }
 
   // There should be only 1 swap estimation at a time. A timer in SwapInitial will trigger another estimation attempt.
   if (isEstimatingSwap) {
@@ -981,7 +974,6 @@ async function estimateSwapConcurrently(
 
     setGlobal(updateCurrentSwap(finalGlobal, {
       isEstimating: false,
-      shouldEstimate: false,
       ...(shouldAvoidSwapEstimation(finalGlobal) ? undefined : swapUpdate),
     }));
   } finally {

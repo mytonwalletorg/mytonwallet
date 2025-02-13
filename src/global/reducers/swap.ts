@@ -33,10 +33,7 @@ export function updateCurrentSwap(
     }
 
     if (doesSwapChangeRequireEstimation(global, newGlobal)) {
-      newGlobal = rawUpdateCurrentSwap(newGlobal, {
-        shouldEstimate: true,
-        isEstimating: true, // Setting this is not necessary, but it allows to avoid one state update through the UI
-      });
+      newGlobal = rawUpdateCurrentSwap(newGlobal, { isEstimating: true });
     }
   }
 

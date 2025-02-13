@@ -6,7 +6,7 @@ import type { IAnchorPosition } from '../../../../global/types';
 
 import { selectCurrentAccountSettings, selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import stopEvent from '../../../../util/stopEvent';
+import { stopEvent } from '../../../../util/domEvents';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';

@@ -12,8 +12,8 @@ import {
 import { selectIsHardwareAccount } from '../global/selectors';
 import buildClassName from '../util/buildClassName';
 import { vibrateOnSuccess } from '../util/capacitor';
+import { stopEvent } from '../util/domEvents';
 import { createSignal } from '../util/signals';
-import stopEvent from '../util/stopEvent';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON } from '../util/windowEnvironment';
 import { callApi } from '../api';
 
@@ -98,11 +98,22 @@ function AppLocked({
   );
   const [passwordError, setPasswordError] = useState('');
 
+  const handleActivity = useLastCallback(() => {
+    if (IS_DELEGATED_BOTTOM_SHEET) {
+      submitAppLockActivityEvent();
+      return;
+    }
+    lastActivityTime.current = Date.now();
+  });
+
+  const handleActivityThrottled = useThrottledCallback(handleActivity, [handleActivity], WINDOW_EVENTS_LATENCY);
+
   const afterUnlockCallback = useLastCallback(() => {
     hideUi();
     setSlideForBiometricAuth(SLIDES.button);
     getInAppBrowser()?.show();
     clearIsPinAccepted();
+    handleActivity();
     setIsManualLockActive({ isActive: undefined, shouldHideBiometrics: undefined });
     if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.show();
   });
@@ -149,16 +160,6 @@ function AppLocked({
   });
 
   const handlePasswordChange = useLastCallback(() => setPasswordError(''));
-
-  const handleActivity = useLastCallback(() => {
-    if (IS_DELEGATED_BOTTOM_SHEET) {
-      submitAppLockActivityEvent();
-      return;
-    }
-    lastActivityTime.current = Date.now();
-  });
-
-  const handleActivityThrottled = useThrottledCallback(handleActivity, [handleActivity], WINDOW_EVENTS_LATENCY);
 
   useEffectOnce(() => {
     for (const eventName of ACTIVATION_EVENT_NAMES) {

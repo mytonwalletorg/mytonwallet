@@ -28,6 +28,7 @@ import { vibrateOnSuccess } from '../../../util/capacitor';
 import { parseDeeplinkTransferParams, processDeeplink } from '../../../util/deeplink';
 import { getCachedImageUrl } from '../../../util/getCachedImageUrl';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
+import { omit } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
@@ -41,7 +42,7 @@ import {
   IS_DELEGATING_BOTTOM_SHEET,
 } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
-import { parsePlainAddressQr } from '../../helpers/misc';
+import { closeAllOverlays, parsePlainAddressQr } from '../../helpers/misc';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearCurrentSwap,
@@ -91,7 +92,10 @@ addActionHandler('showAnyAccountTx', async (global, actions, { txId, accountId, 
     return;
   }
 
-  await switchAccount(global, accountId, network);
+  await Promise.all([
+    closeAllOverlays(),
+    switchAccount(global, accountId, network),
+  ]);
 
   actions.showActivityInfo({ id: txId });
 });
@@ -102,7 +106,10 @@ addActionHandler('showAnyAccountTokenActivity', async (global, actions, { slug, 
     return;
   }
 
-  await switchAccount(global, accountId, network);
+  await Promise.all([
+    closeAllOverlays(),
+    switchAccount(global, accountId, network),
+  ]);
 
   actions.showTokenActivity({ slug });
 });
@@ -587,14 +594,25 @@ addActionHandler('handleQrCode', async (global, actions, { data }) => {
   const { currentTransfer, currentSwap } = global.currentQrScan || {};
 
   if (currentTransfer) {
-    const linkParams = parseDeeplinkTransferParams(data);
-    const toAddress = linkParams?.toAddress ?? data;
-    setGlobal(setCurrentTransferAddress(updateCurrentTransfer(global, currentTransfer), toAddress));
+    const transferParams = parseDeeplinkTransferParams(data, global);
+    if (transferParams) {
+      if ('error' in transferParams) {
+        actions.showError({ error: transferParams.error });
+        // Not returning on error is intentional
+      }
+      setGlobal(updateCurrentTransfer(global, {
+        ...currentTransfer,
+        ...omit(transferParams, ['error']),
+      }));
+    } else {
+      // Assuming that the QR code content is a plain wallet address
+      setGlobal(setCurrentTransferAddress(updateCurrentTransfer(global, currentTransfer), data));
+    }
     return;
   }
 
   if (currentSwap) {
-    const linkParams = parseDeeplinkTransferParams(data);
+    const linkParams = parseDeeplinkTransferParams(data, global);
     const toAddress = linkParams?.toAddress ?? data;
     setGlobal(updateCurrentSwap(global, { ...currentSwap, toAddress }));
     return;
@@ -733,7 +751,7 @@ addActionHandler('clearAccountLoading', (global) => {
 addActionHandler('authorizeDiesel', (global) => {
   const address = selectCurrentAccount(global)!.addressByChain.ton;
   setGlobal(updateCurrentAccountState(global, { isDieselAuthorizationStarted: true }));
-  openUrl(`https://t.me/${BOT_USERNAME}?start=auth-${address}`, true);
+  void openUrl(`https://t.me/${BOT_USERNAME}?start=auth-${address}`);
 });
 
 addActionHandler('submitAppLockActivityEvent', () => {
@@ -810,11 +828,6 @@ addActionHandler('closeAnyModal', () => {
   }
 
   closeModal();
-});
-
-addActionHandler('closeAllOverlays', (global, actions) => {
-  actions.closeAnyModal();
-  actions.closeMediaViewer();
 });
 
 addActionHandler('openExplore', (global) => {

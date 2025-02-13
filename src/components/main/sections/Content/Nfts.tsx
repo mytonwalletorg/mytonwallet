@@ -8,8 +8,8 @@ import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
+import { stopEvent } from '../../../../util/domEvents';
 import { openUrl } from '../../../../util/openUrl';
-import stopEvent from '../../../../util/stopEvent';
 import { getHostnameFromUrl } from '../../../../util/url';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
@@ -89,7 +89,7 @@ function Nfts({
   function handleTonDiamondsClick(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     stopEvent(e);
 
-    void openUrl(TON_DIAMONDS_URL, undefined, TON_DIAMONDS_TITLE, getHostnameFromUrl(TON_DIAMONDS_URL));
+    void openUrl(TON_DIAMONDS_URL, { title: TON_DIAMONDS_TITLE, subtitle: getHostnameFromUrl(TON_DIAMONDS_URL) });
   }
 
   if (nfts === undefined) {

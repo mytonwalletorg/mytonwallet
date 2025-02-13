@@ -1,4 +1,5 @@
 export * from './accounts';
+export * from './dapp';
 export * from './tokens';
 export * from './activities';
 export * from './swap';

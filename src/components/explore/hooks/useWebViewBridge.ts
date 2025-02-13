@@ -6,7 +6,10 @@ import type { WebViewBridgeMessage } from '../helpers';
 import { openDeeplinkOrUrl } from '../../../util/deeplink';
 import { getInjectableJsMessage, objectToInjection, WebViewBridgeMessageType } from '../helpers';
 
-export type CustomInAppBrowserObject = Omit<InAppBrowserObject, 'hide'> & { hide: () => Promise<void> };
+export type CustomInAppBrowserObject = Omit<InAppBrowserObject, 'hide' | 'close'> & {
+  hide(): Promise<void>;
+  close(): Promise<void>;
+};
 
 type UseWebViewBridgeReturnType<Event> = [
   string,

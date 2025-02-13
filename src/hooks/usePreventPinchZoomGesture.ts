@@ -1,6 +1,6 @@
 import { useEffect } from '../lib/teact/teact';
 
-import stopEvent from '../util/stopEvent';
+import { stopEvent } from '../util/domEvents';
 import { IS_IOS, IS_PWA, IS_TOUCH_ENV } from '../util/windowEnvironment';
 
 const metaViewport = document.querySelector('meta[name="viewport"]');

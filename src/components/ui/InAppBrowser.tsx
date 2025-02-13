@@ -7,8 +7,10 @@ import type { CustomInAppBrowserObject } from '../explore/hooks/useWebViewBridge
 import { ANIMATION_LEVEL_DEFAULT } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { INAPP_BROWSER_OPTIONS } from '../../util/capacitor';
+import { listenOnce } from '../../util/domEvents';
 import { compact } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
+import { waitFor } from '../../util/schedulers';
 import { getHostnameFromUrl } from '../../util/url';
 import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP } from '../../util/windowEnvironment';
 
@@ -27,8 +29,10 @@ interface StateProps {
   animationLevel?: number;
 }
 
+// The maximum time the in-app browser will take to close (and a little more as a safe margin)
+const CLOSE_MAX_DURATION = 900;
+
 let inAppBrowser: Cordova['InAppBrowser'] | undefined;
-let hideCompletionResolves: (() => void)[] | undefined;
 
 function InAppBrowser({
   title, subtitle, url, theme, animationLevel,
@@ -52,11 +56,6 @@ function InAppBrowser({
     logDebugError('inAppBrowser error', err);
   });
 
-  const handleHideCompletion = useLastCallback(() => {
-    for (const resolve of hideCompletionResolves || []) { resolve(); }
-    hideCompletionResolves = undefined;
-  });
-
   const handleBrowserClose = useLastCallback(async () => {
     if (IS_DELEGATING_BOTTOM_SHEET) {
       await BottomSheet.enable();
@@ -65,7 +64,7 @@ function InAppBrowser({
     disconnect();
     inAppBrowser.removeEventListener('loaderror', handleError);
     inAppBrowser.removeEventListener('message', onMessage);
-    inAppBrowser.removeEventListener('hidecompletion', handleHideCompletion);
+    inAppBrowser.removeEventListener('exit', handleBrowserClose);
     inAppBrowser = undefined;
     // eslint-disable-next-line no-null/no-null
     inAppBrowserRef.current = null;
@@ -73,6 +72,10 @@ function InAppBrowser({
   });
 
   const openBrowser = useLastCallback(async () => {
+    if (IS_DELEGATING_BOTTOM_SHEET && !(await BottomSheet.isShown()).value) {
+      await BottomSheet.disable();
+    }
+
     const browserTitle = !title && url ? getHostnameFromUrl(url) : title;
     const browserSubtitle = subtitle === browserTitle ? undefined : subtitle;
 
@@ -98,19 +101,38 @@ function InAppBrowser({
       return new Promise<void>((resolve) => {
         originalHide?.();
         // On iOS, the animation takes some time. We have to ensure it's completed.
-        if (IS_IOS_APP) {
-          if (!hideCompletionResolves) hideCompletionResolves = [];
-          hideCompletionResolves?.push(resolve);
+        if (inAppBrowser && IS_IOS_APP) {
+          listenOnce(inAppBrowser, 'hidecompletion', () => resolve());
         } else {
           resolve();
         }
       });
     };
+    const originalClose = inAppBrowser.close;
+    inAppBrowser.close = () => new Promise<void>((resolve) => {
+      originalClose();
+
+      if (inAppBrowser) {
+        // The `waitFor` is a hack necessary to ensure the browser is fully in the closed state when the promise
+        // resolves. This solves a bug: if a push notification, that opens a modal, was clicked while the in-app browser
+        // was open, the browser would close, but the modal wouldn't open.
+        listenOnce(inAppBrowser, 'exit', async () => {
+          await waitFor(() => !inAppBrowser, 15, 20);
+          resolve();
+        });
+
+        // A backup for cases when the `closeBrowser` call doesn't cause the browser to close and fire the `exit` event.
+        // It happens if `close` is called when the browser is hidden (for example, when a TON connect modal is open
+        // from inside the browser).
+        setTimeout(resolve, CLOSE_MAX_DURATION);
+      } else {
+        resolve();
+      }
+    });
     inAppBrowserRef.current = inAppBrowser;
     inAppBrowser.addEventListener('loaderror', handleError);
     inAppBrowser.addEventListener('message', onMessage);
     inAppBrowser.addEventListener('exit', handleBrowserClose);
-    inAppBrowser.addEventListener('hidecompletion', handleHideCompletion);
     inAppBrowser.show();
   });
 

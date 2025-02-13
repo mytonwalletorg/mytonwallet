@@ -26,7 +26,7 @@ function Site({
 }: OwnProps) {
   function handleClick() {
     void vibrate();
-    void openUrl(url, isExternal, name, getHostnameFromUrl(url));
+    void openUrl(url, { isExternal, title: name, subtitle: getHostnameFromUrl(url) });
   }
 
   return (
