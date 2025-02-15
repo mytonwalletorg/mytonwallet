@@ -69,6 +69,9 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
   });
 
   global = getGlobal();
+  if (IS_CAPACITOR) {
+    global = clearIsPinAccepted(global);
+  }
   global = clearDappConnectRequest(global);
   setGlobal(global);
 
@@ -208,6 +211,9 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
   void callApi('confirmDappRequest', promiseId, password);
 
   global = getGlobal();
+  if (IS_CAPACITOR) {
+    global = clearIsPinAccepted(global);
+  }
   global = clearCurrentDappTransfer(global);
   setGlobal(global);
 });

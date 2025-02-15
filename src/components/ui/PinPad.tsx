@@ -78,6 +78,7 @@ function PinPad({
 
   useEffect(() => {
     return () => {
+      // Don't trust this effect 100%, because it won't give the desired result when PinPad unmounts after the NBS closing
       clearIsPinAccepted();
     };
   }, []);

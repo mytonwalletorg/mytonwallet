@@ -494,16 +494,21 @@ function TransferInitial({
   const hasToAddressError = toAddress.length > 0 && !isAddressValid;
   const isAmountGreaterThanBalance = !isNftTransfer && balance !== undefined && amount !== undefined
     && amount > balance;
-  const isInsufficientFee = isEnoughBalance === false && !isAmountGreaterThanBalance;
+  const hasInsufficientFeeError = isEnoughBalance === false && !isAmountGreaterThanBalance
+    && diesel?.status !== 'not-authorized' && diesel?.status !== 'pending-previous';
   const hasAmountError = !isNftTransfer && amount !== undefined && (
     (maxAmount !== undefined && amount > maxAmount)
-    || isInsufficientFee // Ideally, the insufficient fee error message should be displayed somewhere else
+    || hasInsufficientFeeError // Ideally, the insufficient fee error message should be displayed somewhere else
   );
   const isCommentRequired = Boolean(toAddress) && isMemoRequired;
   const hasCommentError = isCommentRequired && !comment;
 
   const canSubmit = isDieselNotAuthorized || Boolean(
-    isAddressValid && !isAmountMissing && !hasAmountError && isEnoughBalance && !hasCommentError
+    isAddressValid
+    && !isAmountMissing && !hasAmountError
+    && isEnoughBalance
+    && !hasCommentError
+    && (!explainedFee.isGasless || diesel?.status === 'available' || diesel?.status === 'stars-fee')
     && !(isNftTransfer && !nfts?.length),
   );
 
@@ -636,7 +641,7 @@ function TransferInitial({
       if (isAmountGreaterThanBalance) {
         transitionKey = 1;
         content = <span className={styles.balanceError}>{lang('Insufficient balance')}</span>;
-      } else if (isInsufficientFee) {
+      } else if (hasInsufficientFeeError) {
         transitionKey = 2;
         content = <span className={styles.balanceError}>{lang('Insufficient fee')}</span>;
       }
@@ -805,7 +810,7 @@ function TransferInitial({
     if (diesel?.status === 'not-authorized') {
       return lang('Authorize %token% Fee', { token: symbol! });
     }
-    if (diesel?.status === 'pending-previous' && isInsufficientFee) {
+    if (diesel?.status === 'pending-previous') {
       return lang('Awaiting Previous Fee');
     }
     return lang('$send_token_symbol', isNftTransfer ? 'NFT' : symbol || 'TON');
@@ -818,7 +823,7 @@ function TransferInitial({
     let precision: FeePrecision = 'exact';
 
     if (!isAmountMissing) {
-      const actualFee = isInsufficientFee ? explainedFee.fullFee : explainedFee.realFee;
+      const actualFee = hasInsufficientFeeError ? explainedFee.fullFee : explainedFee.realFee;
       if (actualFee) {
         ({ terms, precision } = actualFee);
       }

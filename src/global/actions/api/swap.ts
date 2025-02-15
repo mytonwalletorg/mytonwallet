@@ -883,7 +883,7 @@ addActionHandler('updatePendingSwaps', async (global) => {
 });
 
 addActionHandler('setSwapDex', (global, actions, { dexLabel }) => {
-  const { estimates } = global.currentSwap;
+  const { estimates, bestRateDexLabel } = global.currentSwap;
   const newEstimate = (estimates || []).find((estimate) => estimate.dexLabel === dexLabel);
   if (!newEstimate) return;
 
@@ -899,7 +899,8 @@ addActionHandler('setSwapDex', (global, actions, { dexLabel }) => {
     dieselFee: newEstimate.dieselFee,
     priceImpact: newEstimate.impact,
     currentDexLabel: dexLabel,
-    isDexLabelChanged: true,
+    // The "Best Rate" selection should enable automatic best dex selection mode
+    isDexLabelChanged: dexLabel !== bestRateDexLabel ? true : undefined,
   }, true);
   setGlobal(global);
 });

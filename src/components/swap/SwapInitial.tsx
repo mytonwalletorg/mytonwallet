@@ -193,7 +193,7 @@ function SwapInitial({
     (amountInBigint ?? 0n) > 0n
     && (amountOutBigint ?? 0n) > 0n
     && isEnoughBalance
-    && (!explainedFee.isGasless || dieselStatus === 'available')
+    && (!explainedFee.isGasless || dieselStatus === 'available' || dieselStatus === 'stars-fee')
     && !isEstimating
     && errorType === undefined
   );
@@ -204,7 +204,8 @@ function SwapInitial({
     : amountOut?.toString();
   const isAmountGreaterThanBalance = balanceIn !== undefined && amountInBigint !== undefined
     && amountInBigint > balanceIn;
-  const isInsufficientFee = isEnoughBalance === false && !isAmountGreaterThanBalance;
+  const hasInsufficientFeeError = isEnoughBalance === false && !isAmountGreaterThanBalance
+    && dieselStatus !== 'not-authorized' && dieselStatus !== 'pending-previous';
 
   const isPriceImpactError = priceImpact >= MAX_PRICE_IMPACT_VALUE;
   const isCrosschain = swapType === SwapType.CrosschainFromWallet || swapType === SwapType.CrosschainToWallet;
@@ -359,7 +360,7 @@ function SwapInitial({
     let precision: FeePrecision = 'exact';
 
     if (shouldShow) {
-      const actualFee = isInsufficientFee ? explainedFee.fullFee : explainedFee.realFee;
+      const actualFee = hasInsufficientFeeError ? explainedFee.fullFee : undefined;
       if (actualFee) {
         ({ terms, precision } = actualFee);
       }
@@ -521,7 +522,7 @@ function SwapInitial({
         isOpen={currentSubModal === 'settings'}
         onClose={closeSubModal}
         onNetworkFeeClick={openFeeModal}
-        showFullNetworkFee={isInsufficientFee}
+        showFullNetworkFee={hasInsufficientFeeError}
       />
       <FeeDetailsModal
         isOpen={currentSubModal === 'feeDetails'}
