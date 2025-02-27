@@ -38,6 +38,10 @@
   }
 }
 
+.iconCaretDown {
+  display: inline !important;
+}
+
 .icon {
   display: inline-block;
 
@@ -55,6 +59,10 @@
   :global(html.animation-level-0) & {
     transition: none !important;
   }
+}
+
+.iconBlack {
+  color: var(--color-black) !important;
 }
 
 .iconStar {
@@ -117,4 +125,36 @@
 
 .chainIcon {
   vertical-align: -0.125rem;
+}
+
+.menu {
+  padding: 0 !important;
+}
+
+.menuItem {
+  height: 3rem;
+  margin: 0 !important;
+
+  border-radius: 0;
+
+  &:first-child {
+    border-top-left-radius: var(--border-radius-default);
+    border-top-right-radius: var(--border-radius-default);
+  }
+
+  &:last-child {
+    border-bottom-right-radius: var(--border-radius-default);
+    border-bottom-left-radius: var(--border-radius-default);
+  }
+
+  &::before {
+    top: 0;
+    left: 0;
+
+    width: 100%;
+  }
+}
+
+.menuIcon {
+  color: var(--color-gray-3);
 }

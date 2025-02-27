@@ -77,7 +77,7 @@ function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StatePro
   });
 
   useHistoryBack({
-    isActive: areSettingsOpen || isExploreOpen,
+    isActive: isExploreOpen,
     onBack: handleWalletClick,
   });
 

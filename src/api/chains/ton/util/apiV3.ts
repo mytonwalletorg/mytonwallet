@@ -1,11 +1,7 @@
 import type { ApiNetwork, ApiWalletInfo } from '../../../types';
 import type { ApiTransactionExtra } from '../types';
 
-import {
-  TONCOIN,
-  TONHTTPAPI_V3_MAINNET_API_URL,
-  TONHTTPAPI_V3_TESTNET_API_URL,
-} from '../../../../config';
+import { TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL, TONCOIN } from '../../../../config';
 import { fetchJson } from '../../../../util/fetch';
 import {
   buildCollectionByKey, mapValues, omitUndefined, split,
@@ -230,11 +226,12 @@ export async function getAccountStates(network: ApiNetwork, addresses: string[])
 }
 
 function callApiV3<T = any>(network: ApiNetwork, path: string, data?: AnyLiteral) {
-  const { apiHeaders, tonhttpapiMainnetKey, tonhttpapiTestnetKey } = getEnvironment();
-  const baseUrl = network === 'testnet' ? TONHTTPAPI_V3_TESTNET_API_URL : TONHTTPAPI_V3_MAINNET_API_URL;
-  const apiKey = network === 'testnet' ? tonhttpapiTestnetKey : tonhttpapiMainnetKey;
+  const { apiHeaders, toncenterMainnetKey, toncenterTestnetKey } = getEnvironment();
+  const baseUrl = network === 'testnet' ? TONCENTER_TESTNET_URL : TONCENTER_MAINNET_URL;
+  const url = `${baseUrl}/api/v3${path}`;
+  const apiKey = network === 'testnet' ? toncenterTestnetKey : toncenterMainnetKey;
 
-  return fetchJson(`${baseUrl}${path}`, data, {
+  return fetchJson(url, data, {
     headers: {
       ...(apiKey && { 'X-Api-Key': apiKey }),
       ...apiHeaders,

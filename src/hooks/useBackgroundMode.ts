@@ -1,6 +1,8 @@
 import { useEffect } from '../lib/teact/teact';
 
+import { IS_TELEGRAM_APP } from '../config';
 import { createCallbackManager } from '../util/callbacks';
+import { getTelegramAppAsync } from '../util/telegram';
 import useLastCallback from './useLastCallback';
 
 const blurCallbacks = createCallbackManager();
@@ -20,8 +22,15 @@ function handleFocus() {
   focusCallbacks.runCallbacks();
 }
 
-window.addEventListener('blur', handleBlur);
-window.addEventListener('focus', handleFocus);
+if (IS_TELEGRAM_APP) {
+  getTelegramAppAsync().then((telegramApp) => {
+    telegramApp!.onEvent('activated', handleFocus);
+    telegramApp!.onEvent('deactivated', handleBlur);
+  });
+} else {
+  window.addEventListener('blur', handleBlur);
+  window.addEventListener('focus', handleFocus);
+}
 
 export default function useBackgroundMode(
   onBlur?: AnyToVoidFunction,

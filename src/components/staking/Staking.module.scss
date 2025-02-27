@@ -341,9 +341,15 @@
     border-radius: var(--border-radius-default);
 
     @include respond-below(xs) {
+      :global(.is-telegram-app) &,
       :global(.is-android) & {
         border-top-left-radius: 0;
         border-top-right-radius: 0;
+      }
+
+      :global(html.is-mobile-telegram-app.is-fullscreen) & {
+        margin-top: calc(-1 * var(--tg-content-safe-area-inset-top));
+        padding-top: var(--tg-content-safe-area-inset-top);
       }
     }
   }
@@ -370,7 +376,7 @@
 
 @include respond-below(xs) {
   .stakingInfoNoHistory {
-    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+    border-radius: 0;
 
     @supports (padding-bottom: max(1rem, var(--safe-area-bottom))) {
       padding-bottom: max(1rem, var(--safe-area-bottom))
@@ -404,6 +410,10 @@
       overflow-y: scroll;
     }
   }
+
+  &.withBackground {
+    background: var(--color-background-purple-2);
+  }
 }
 
 .stakingInfoLoading {
@@ -430,6 +440,7 @@
   gap: 0.5rem;
 
   margin-top: 1.25rem;
+
   &_withMargin {
     margin-bottom: 2rem;
   }

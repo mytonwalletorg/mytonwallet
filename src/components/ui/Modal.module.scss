@@ -115,6 +115,7 @@
   }
 
   // Mimic the animation from the system Settings section on Android
+  :global(html.is-telegram-app) &:not(.forceBottomSheet),
   :global(html.is-android) &:not(.forceBottomSheet) {
     --transition: 500ms cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -155,6 +156,16 @@
     max-height: 100%;
     padding-top: var(--safe-area-top);
     padding-bottom: var(--safe-area-bottom);
+  }
+
+  :global(html.is-mobile-telegram-app.is-fullscreen) &:not(.forceBottomSheet) {
+    .dialog {
+      max-height: 100%;
+    }
+
+    .content {
+      padding-top: var(--tg-safe-area-inset-top);
+    }
   }
 
   :global(html.is-native-bottom-sheet) & {
@@ -255,6 +266,10 @@
 
   color: var(--color-black);
 
+  :global(html.is-mobile-telegram-app.is-fullscreen) & {
+    padding-top: 0.625rem;
+  }
+
   &_noClose {
     grid-template-areas: "title title title";
 
@@ -283,6 +298,10 @@
 
     font-size: 1.0625rem;
     color: var(--color-accent);
+
+    :global(html.is-mobile-telegram-app) & {
+      visibility: hidden;
+    }
   }
 
   &_backIcon {
@@ -320,6 +339,12 @@
 
   :global(html.animation-level-0) & {
     transition: var(--no-animation-transition) !important;
+  }
+
+  @include respond-below(xs) {
+    :global(html.is-telegram-app) & {
+      visibility: hidden;
+    }
   }
 }
 
@@ -487,13 +512,12 @@
     padding-top: 5.5rem;
   }
 
-  @supports (padding-bottom: var(--safe-area-bottom)) {
-    :global(html:not(.is-android-app)) & {
-      padding-bottom: max(var(--safe-area-bottom), 1rem);
-    }
+  :global(.is-native-bottom-sheet),
+  :global(html:not(.is-android-app)) & {
+    padding-bottom: max(var(--safe-area-bottom, 1rem), 1rem);
+  }
 
-    :global(.is-native-bottom-sheet) & {
-      padding-bottom: max(var(--safe-area-bottom, 1rem), 1rem);
-    }
+  :global(html.with-safe-area-bottom.is-telegram-app) & {
+    padding-bottom: var(--safe-area-bottom) !important;
   }
 }

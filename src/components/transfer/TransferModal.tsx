@@ -8,12 +8,13 @@ import type {
 } from '../../global/types';
 import { TransferState } from '../../global/types';
 
-import { BURN_ADDRESS, IS_CAPACITOR, NFT_BATCH_SIZE } from '../../config';
+import { BURN_ADDRESS, NFT_BATCH_SIZE } from '../../config';
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectIsMultichainAccount,
 } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { toDecimal } from '../../util/decimals';
@@ -170,7 +171,7 @@ function TransferModal({
               text={isNftTransfer
                 ? (nfts!.length > 1 ? lang('%amount% NFTs', { amount: nfts!.length }) : nfts![0]?.name || 'NFT')
                 : formatCurrency(toDecimal(amount!, decimals), symbol)}
-              className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+              className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
               secondText={shortenAddress(toAddress!)}
             />
           </TransferPassword>

@@ -29,6 +29,7 @@ type OwnProps = {
   className?: string;
   wrapperClassName?: string;
   autoComplete?: string;
+  autoCorrect?: boolean;
   inputArg?: any;
   children?: TeactNode;
   onInput: (value: string, inputArg?: any) => void;
@@ -56,6 +57,7 @@ function Input({
   className,
   wrapperClassName,
   autoComplete,
+  autoCorrect,
   children,
   onInput,
   onKeyDown,
@@ -137,6 +139,8 @@ function Input({
           inputMode={inputMode}
           maxLength={maxLength}
           autoComplete={autoComplete}
+          autoCorrect={autoCorrect}
+          spellCheck={autoCorrect}
           onInput={handleInput}
           onKeyDown={onKeyDown}
           onFocus={onFocus}

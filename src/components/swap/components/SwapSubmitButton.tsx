@@ -132,10 +132,10 @@ function SwapSubmitButton({
         activeKey={transitionKeyRef.current++}
       >
         <Button
-          className={styles.footerButton}
-          isDisabled={isDisabled}
           isPrimary
           isSubmit
+          className={styles.footerButton}
+          isDisabled={isDisabled}
           isLoading={isLoading}
           isDestructive={isDestructive}
         >
@@ -144,6 +144,7 @@ function SwapSubmitButton({
       </Transition>
     );
   }, [isDestructive, isDisabled, isLoading, lang, textStr, tokenIn?.symbol, tokenOut?.symbol]);
+
   const renderThrottled = useThrottledSignal(render, BUTTON_ANIMATION_DURATION);
   const rendered = useDerivedState(renderThrottled);
 

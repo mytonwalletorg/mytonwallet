@@ -3,6 +3,7 @@ import { getActions } from '../../global';
 
 import buildClassName from '../../util/buildClassName';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
 import SaferyRulesContent from '../common/backup/SaferyRulesContent';
@@ -20,6 +21,8 @@ const AuthSaferyRules = ({ isActive }: OwnProps) => {
   const [writedownAccepted, setWritedownAccepted] = useState(false);
   const [openWalletAccepted, setOpenWalletAccepted] = useState(false);
   const [canBeStolenAccepted, setCanBeStolenAccepted] = useState(false);
+
+  useHistoryBack({ isActive, onBack: openCreateBackUpPage });
 
   const lang = useLang();
 

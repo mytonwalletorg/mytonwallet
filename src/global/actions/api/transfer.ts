@@ -3,10 +3,11 @@ import type { ApiSubmitTransferOptions, ApiSubmitTransferResult } from '../../..
 import { type ApiDappTransfer, ApiTransactionDraftError, type ApiTransactionError } from '../../../api/types';
 import { TransferState } from '../../types';
 
-import { IS_CAPACITOR, NFT_BATCH_SIZE } from '../../../config';
+import { NFT_BATCH_SIZE } from '../../../config';
 import { bigintDivideToNumber } from '../../../util/bigint';
-import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { getDoesUsePinPad } from '../../../util/biometrics';
 import { explainApiTransferFee, getDieselTokenAmount } from '../../../util/fee/transferFee';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { callActionInNative } from '../../../util/multitab';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -210,17 +211,14 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
     isLoading: true,
     error: undefined,
   });
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = setIsPinAccepted(global);
   }
   setGlobal(global);
-
-  if (IS_CAPACITOR) {
-    await vibrateOnSuccess(true);
-  }
+  await vibrateOnSuccess(true);
 
   if (promiseId) {
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       global = getGlobal();
       global = setIsPinAccepted(global);
       setGlobal(global);
@@ -291,14 +289,14 @@ addActionHandler('submitTransferPassword', async (global, actions, { password })
   setGlobal(global);
 
   if (!result || 'error' in result) {
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       global = getGlobal();
       global = clearIsPinAccepted(global);
       setGlobal(global);
-      void vibrateOnError();
     }
+    void vibrateOnError();
     actions.showError({ error: result?.error });
-  } else if (IS_CAPACITOR) {
+  } else {
     void vibrateOnSuccess();
   }
 });
@@ -427,7 +425,7 @@ addActionHandler('cancelTransfer', (global, actions, { shouldReset } = {}) => {
     return;
   }
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = clearIsPinAccepted(global);
   }
   global = updateCurrentTransfer(global, { state: TransferState.None });

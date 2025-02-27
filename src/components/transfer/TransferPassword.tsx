@@ -1,7 +1,8 @@
 import React, { memo, type TeactNode } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import { IS_CAPACITOR, STARS_SYMBOL } from '../../config';
+import { STARS_SYMBOL } from '../../config';
+import { getDoesUsePinPad } from '../../util/biometrics';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -36,19 +37,20 @@ function TransferPassword({
   });
 
   const title = isBurning ? 'Confirm Burning' : 'Confirm Sending';
+  const submitLabel = isGaslessWithStars
+    ? lang('Pay fee with %stars_symbol%', { stars_symbol: STARS_SYMBOL })
+    : lang('Send');
 
   return (
     <>
-      {!IS_CAPACITOR && <ModalHeader title={lang(title)} onClose={cancelTransfer} />}
+      {!getDoesUsePinPad() && <ModalHeader title={lang(title)} onClose={cancelTransfer} />}
       <PasswordForm
         isActive={isActive}
         isLoading={isLoading}
         withCloseButton={Boolean(children)}
         operationType="transfer"
         error={error}
-        submitLabel={
-          isGaslessWithStars ? lang('Pay fee with %stars_symbol%', { stars_symbol: STARS_SYMBOL }) : lang('Send')
-        }
+        submitLabel={submitLabel}
         cancelLabel={lang('Back')}
         onSubmit={onSubmit}
         onCancel={onCancel}

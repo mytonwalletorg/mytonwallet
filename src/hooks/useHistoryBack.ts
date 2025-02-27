@@ -1,7 +1,11 @@
-import { useCallback, useRef } from '../lib/teact/teact';
+import { useCallback, useEffect, useRef } from '../lib/teact/teact';
 
-import { IS_TEST } from '../config';
+import { IS_TELEGRAM_APP, IS_TEST } from '../config';
 import { requestMeasure } from '../lib/fasterdom/fasterdom';
+import {
+  registerCallback as registerTelegramCallback,
+  unregisterCallback as unregisterTelegramCallback,
+} from '../util/telegram/backButtonManager';
 import { IS_IOS, IS_LEDGER_EXTENSION_TAB } from '../util/windowEnvironment';
 import useEffectOnce from './useEffectOnce';
 import useLastCallback from './useLastCallback';
@@ -185,16 +189,19 @@ window.addEventListener('popstate', ({ state }: PopStateEvent) => {
 export default function useHistoryBack({
   isActive,
   shouldBeReplaced,
+  shouldIgnoreForTelegram,
   onBack,
 }: {
   isActive?: boolean;
   shouldBeReplaced?: boolean;
+  shouldIgnoreForTelegram?: boolean;
   onBack: VoidFunction;
 }) {
   const lastOnBack = useLastCallback(onBack);
 
   // Active index of the record
   const indexRef = useRef<number>();
+  const telegramIdRef = useRef<number>();
   const wasReplaced = useRef(false);
 
   const isFirstRender = useRef(true);
@@ -263,4 +270,17 @@ export default function useHistoryBack({
       processBack();
     }
   }, [isActive, processBack, pushState]);
+
+  useEffect(() => {
+    if (!IS_TELEGRAM_APP || shouldIgnoreForTelegram || !isActive) return undefined;
+
+    telegramIdRef.current = registerTelegramCallback(lastOnBack);
+
+    return () => {
+      if (telegramIdRef.current !== undefined) {
+        unregisterTelegramCallback(telegramIdRef.current);
+        telegramIdRef.current = undefined;
+      }
+    };
+  }, [isActive, shouldIgnoreForTelegram, onBack]);
 }

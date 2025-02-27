@@ -28,6 +28,7 @@ export const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 export const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
 export const IS_ANDROID_DIRECT = process.env.IS_ANDROID_DIRECT === '1';
 export const IS_AIR_APP = process.env.IS_AIR_APP === '1';
+export const IS_TELEGRAM_APP = process.env.IS_TELEGRAM_APP === '1';
 
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
@@ -87,20 +88,14 @@ export const THEME_DEFAULT = 'system';
 
 export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 
-export const TONHTTPAPI_MAINNET_URL = process.env.TONHTTPAPI_MAINNET_URL
-  || 'https://tonhttpapi.mytonwallet.org/api/v2/jsonRPC';
-export const TONHTTPAPI_MAINNET_API_KEY = process.env.TONHTTPAPI_MAINNET_API_KEY;
-export const ELECTRON_TONHTTPAPI_MAINNET_API_KEY = process.env.ELECTRON_TONHTTPAPI_MAINNET_API_KEY;
-export const TONHTTPAPI_V3_MAINNET_API_URL = process.env.TONHTTPAPI_V3_MAINNET_API_KEY
-  || 'https://tonhttpapi-v3.mytonwallet.org/api/v3';
+export const TONCENTER_MAINNET_URL = process.env.TONCENTER_MAINNET_URL || 'https://toncenter.mytonwallet.org';
+export const TONCENTER_MAINNET_KEY = process.env.TONCENTER_MAINNET_KEY;
+export const ELECTRON_TONCENTER_MAINNET_KEY = process.env.ELECTRON_TONCENTER_MAINNET_KEY;
 export const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapiio.mytonwallet.org';
 
-export const TONHTTPAPI_TESTNET_URL = process.env.TONHTTPAPI_TESTNET_URL
-  || 'https://tonhttpapi-testnet.mytonwallet.org/api/v2/jsonRPC';
-export const TONHTTPAPI_TESTNET_API_KEY = process.env.TONHTTPAPI_TESTNET_API_KEY;
-export const ELECTRON_TONHTTPAPI_TESTNET_API_KEY = process.env.ELECTRON_TONHTTPAPI_TESTNET_API_KEY;
-export const TONHTTPAPI_V3_TESTNET_API_URL = process.env.TONHTTPAPI_V3_TESTNET_API_KEY
-  || 'https://tonhttpapi-v3-testnet.mytonwallet.org/api/v3';
+export const TONCENTER_TESTNET_URL = process.env.TONCENTER_TESTNET_URL || 'https://toncenter-testnet.mytonwallet.org';
+export const TONCENTER_TESTNET_KEY = process.env.TONCENTER_TESTNET_KEY;
+export const ELECTRON_TONCENTER_TESTNET_KEY = process.env.ELECTRON_TONCENTER_TESTNET_KEY;
 export const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://tonapiio-testnet.mytonwallet.org';
 
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://api.mytonwallet.org';
@@ -114,6 +109,7 @@ export const SHORT_FRACTION_DIGITS = 2;
 export const MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT = 3;
 
 export const SUPPORT_USERNAME = 'mysupport';
+export const MTW_TIPS_CHANNEL_NAME = { en: 'MyTonWalletTips', ru: 'MyTonWalletTipsRu' };
 export const MTW_CARDS_BASE_URL = 'https://static.mytonwallet.org/cards/';
 export const MYTONWALLET_PROMO_URL = 'https://mytonwallet.io/';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
@@ -121,6 +117,7 @@ export const TON_DIAMONDS_URL = 'https://ton.diamonds/';
 export const TON_DIAMONDS_TITLE = 'TON Diamonds';
 export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
+export const HELPCENTER_URL = { en: 'https://help.mytonwallet.io/', ru: 'https://help.mytonwallet.io/ru' };
 export const EMPTY_HASH_VALUE = 'NOHASH';
 
 export const CHANGELLY_SUPPORT_EMAIL = 'support@changelly.com';
@@ -136,7 +133,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-167';
+export const LANG_CACHE_NAME = 'mtw-lang-171';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',

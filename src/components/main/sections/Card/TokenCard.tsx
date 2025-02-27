@@ -8,10 +8,10 @@ import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../gl
 import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TONCOIN } from '../../../../config';
 import { selectAccountStakingStates, selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { vibrate } from '../../../../util/capacitor';
 import { formatShortDay, SECOND } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
+import { vibrate } from '../../../../util/haptics';
 import { round } from '../../../../util/round';
 import { getExplorerName, getExplorerTokenUrl } from '../../../../util/url';
 import { IS_IOS } from '../../../../util/windowEnvironment';

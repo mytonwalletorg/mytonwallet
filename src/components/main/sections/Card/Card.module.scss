@@ -13,7 +13,8 @@
   margin: 0.75rem auto;
   padding-top: 58%;
 
-  :global(html.is-electron) & {
+  :global(html.is-electron) &,
+  :global(html.is-mobile-telegram-app.with-safe-area-top) & {
     margin-top: 0;
   }
 

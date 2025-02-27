@@ -1,26 +1,31 @@
 import React, {
-  memo, type TeactNode, useEffect, useMemo, useRef, useState,
+  memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiChain } from '../../api/types';
-import type { SavedAddress } from '../../global/types';
+import type { IAnchorPosition, SavedAddress } from '../../global/types';
+import type { DropdownItem } from './Dropdown';
 
 import { selectCurrentAccountState, selectIsMultichainAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { copyTextToClipboard } from '../../util/clipboard';
-import { handleOpenUrl } from '../../util/openUrl';
+import { stopEvent } from '../../util/domEvents';
+import { handleOpenUrl, openUrl } from '../../util/openUrl';
 import { shortenAddress } from '../../util/shortenAddress';
-import { getExplorerAddressUrl, getExplorerName } from '../../util/url';
+import { getExplorerAddressUrl, getExplorerName, getHostnameFromUrl } from '../../util/url';
+import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useLongPress from '../../hooks/useLongPress';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from './Button';
+import DropdownMenu from './DropdownMenu';
 import Input from './Input';
 import Modal from './Modal';
 import Transition from './Transition';
@@ -34,6 +39,7 @@ interface OwnProps {
   chain?: ApiChain;
   address?: string;
   addressName?: string;
+  addressUrl?: string;
   isScam?: boolean;
   text?: string;
   spoiler?: string;
@@ -52,12 +58,16 @@ interface StateProps {
   isTestnet?: boolean;
 }
 
+type MenuHandler = 'copy' | 'addressBook' | 'explorer';
+
 const SAVED_ADDRESS_NAME_MAX_LENGTH = 255;
+const MENU_VERTICAL_OFFSET_PX = -16;
 
 function InteractiveTextField({
   chain,
   address,
   addressName,
+  addressUrl,
   isScam,
   text,
   spoiler,
@@ -87,18 +97,11 @@ function InteractiveTextField({
     }));
   }, [address, chain, savedAddresses]);
 
-  const addressUrl = chain ? getExplorerAddressUrl(chain, address, isTestnet) : undefined;
-  const tonExplorerTitle = useMemo(() => {
-    return chain
-      ? (lang('View Address on %ton_explorer_name%', {
-        ton_explorer_name: getExplorerName(chain),
-      }) as TeactNode[]
-      ).join('')
-      : undefined;
-  }, [chain, lang]);
-  const saveAddressTitle = useMemo(() => {
-    return lang(isAddressAlreadySaved ? 'Remove From Saved Addresses' : 'Add To Saved Addresses');
-  }, [isAddressAlreadySaved, lang]);
+  addressUrl = addressUrl ?? (chain ? getExplorerAddressUrl(chain, address, isTestnet) : undefined);
+  const saveAddressTitle = lang(isAddressAlreadySaved ? 'Remove From Saved' : 'Save Address');
+  const explorerTitle = lang('View in Explorer');
+  const withSavedAddresses = Boolean(!isScam && !noSavedAddress && address);
+  const withExplorer = Boolean(!noExplorer && addressUrl);
 
   useEffect(() => {
     if (isSaveAddressModalOpen) {
@@ -128,6 +131,35 @@ function InteractiveTextField({
     if (!copyNotification) return;
     showNotification({ message: copyNotification, icon: 'icon-copy' });
     void copyTextToClipboard(address || text || '');
+  });
+
+  const handleTonExplorerOpen = useLastCallback(() => {
+    void openUrl(addressUrl!, { title: getExplorerName(chain!), subtitle: getHostnameFromUrl(addressUrl!) });
+  });
+
+  const {
+    menuPosition,
+    isActionsMenuOpen,
+    menuItems,
+    handleMenuShow,
+    handleMenuItemSelect,
+    closeActionsMenu,
+  } = useDropdownMenu({
+    copy: handleCopy,
+    addressBook: isAddressAlreadySaved ? openDeletedSavedAddressModal : openSaveAddressModal,
+    explorer: handleTonExplorerOpen,
+  }, {
+    isAddressAlreadySaved,
+    isWalletAddress: Boolean(address && chain && noSavedAddress),
+    withSavedAddresses,
+    withExplorer,
+  });
+
+  const shouldUseMenu = !spoiler && IS_TOUCH_ENV && menuItems.length > 1;
+
+  const longPressHandlers = useLongPress({
+    onClick: handleMenuShow,
+    onStart: handleCopy,
   });
 
   const handleRevealSpoiler = useLastCallback(() => {
@@ -166,10 +198,10 @@ function InteractiveTextField({
     return (
       <span
         className={buildClassName(styles.button, isScam && styles.scam, textClassName)}
-        title={lang('Copy')}
-        onClick={handleCopy}
         tabIndex={0}
         role="button"
+        title={!shouldUseMenu ? lang('Copy') : undefined}
+        onClick={!shouldUseMenu ? handleCopy : undefined}
       >
         {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
         {isMultichainAccount && (
@@ -179,10 +211,78 @@ function InteractiveTextField({
         {Boolean(addressName) && (
           <span className={buildClassName(styles.shortAddress, isScam && styles.scam)}>{shortenAddress(address!)}</span>
         )}
-        {Boolean(copyNotification) && (
+        {Boolean(copyNotification) && !shouldUseMenu && (
           <i className={buildClassName(styles.icon, 'icon-copy')} aria-hidden />
         )}
       </span>
+    );
+  }
+
+  function renderActions() {
+    if (shouldUseMenu) {
+      const iconClassName = buildClassName(
+        styles.icon,
+        styles.iconCaretDown,
+        'icon-caret-down',
+        !addressName && styles.iconBlack,
+        isScam && styles.scam,
+      );
+
+      return (
+        <>
+          <i className={iconClassName} aria-hidden />
+          <DropdownMenu
+            withPortal
+            shouldTranslateOptions
+            isOpen={isActionsMenuOpen}
+            items={menuItems}
+            anchorPosition={menuPosition}
+            bubbleClassName={styles.menu}
+            buttonClassName={styles.menuItem}
+            fontIconClassName={styles.menuIcon}
+            onSelect={handleMenuItemSelect}
+            onClose={closeActionsMenu}
+          />
+        </>
+      );
+    }
+
+    return (
+      <>
+        {withSavedAddresses && (
+          <span
+            className={styles.button}
+            title={saveAddressTitle}
+            aria-label={saveAddressTitle}
+            tabIndex={0}
+            role="button"
+            onClick={isAddressAlreadySaved ? openDeletedSavedAddressModal : openSaveAddressModal}
+          >
+            <i
+              className={buildClassName(
+                styles.icon,
+                styles.iconStar,
+                isAddressAlreadySaved ? 'icon-star-filled' : 'icon-star',
+              )}
+              aria-hidden
+            />
+          </span>
+        )}
+
+        {withExplorer && (
+          <a
+            href={addressUrl}
+            className={styles.button}
+            title={explorerTitle}
+            aria-label={explorerTitle}
+            target="_blank"
+            rel="noreferrer noopener"
+            onClick={handleOpenUrl}
+          >
+            <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />
+          </a>
+        )}
+      </>
     );
   }
 
@@ -221,43 +321,20 @@ function InteractiveTextField({
 
   return (
     <>
-      <div className={buildClassName(styles.wrapper, className)}>
+      <div
+        className={buildClassName(styles.wrapper, className)}
+        /* eslint-disable-next-line react/jsx-props-no-spreading */
+        {...(shouldUseMenu && !isActionsMenuOpen && {
+          ...longPressHandlers,
+          tabIndex: 0,
+          role: 'button',
+        })}
+        onContextMenu={shouldUseMenu ? stopEvent : undefined}
+      >
         {renderContentOrSpoiler()}
-
-        {!isScam && !noSavedAddress && address && (
-          <span
-            className={styles.button}
-            title={saveAddressTitle}
-            aria-label={saveAddressTitle}
-            onClick={isAddressAlreadySaved ? openDeletedSavedAddressModal : openSaveAddressModal}
-            tabIndex={0}
-            role="button"
-          >
-            <i
-              className={buildClassName(
-                styles.icon,
-                styles.iconStar,
-                isAddressAlreadySaved ? 'icon-star-filled' : 'icon-star',
-              )}
-              aria-hidden
-            />
-          </span>
-        )}
-
-        {!noExplorer && address && (
-          <a
-            href={addressUrl}
-            className={styles.button}
-            title={tonExplorerTitle}
-            aria-label={tonExplorerTitle}
-            target="_blank"
-            rel="noreferrer noopener"
-            onClick={handleOpenUrl}
-          >
-            <i className={buildClassName(styles.icon, 'icon-tonexplorer-small')} aria-hidden />
-          </a>
-        )}
+        {renderActions()}
       </div>
+
       {address && (
         <>
           {renderSaveAddressModal()}
@@ -284,3 +361,85 @@ export default memo(withGlobal<OwnProps>(
     };
   },
 )(InteractiveTextField));
+
+function useDropdownMenu(
+  menuHandlers: Record<MenuHandler, NoneToVoidFunction>,
+  options: {
+    withSavedAddresses?: boolean;
+    withExplorer?: boolean;
+    isAddressAlreadySaved?: boolean;
+    isWalletAddress?: boolean;
+  },
+) {
+  const [menuPosition, setMenuPosition] = useState<IAnchorPosition | undefined>();
+  const closeActionsMenu = useLastCallback(() => setMenuPosition(undefined));
+  const isActionsMenuOpen = Boolean(menuPosition);
+
+  const menuItems = useMemo<DropdownItem[]>(() => {
+    const {
+      isAddressAlreadySaved, isWalletAddress, withSavedAddresses, withExplorer,
+    } = options;
+
+    const items: DropdownItem[] = [{
+      name: withSavedAddresses || isWalletAddress
+        ? 'Copy Address'
+        : (withExplorer ? 'Copy Transaction ID' : 'Copy'),
+      fontIcon: 'copy',
+      withSeparator: true,
+      value: 'copy',
+    }];
+
+    if (withSavedAddresses) {
+      items.push({
+        name: isAddressAlreadySaved ? 'Remove From Saved' : 'Save Address',
+        fontIcon: isAddressAlreadySaved ? 'star-filled' : 'star',
+        withSeparator: true,
+        value: 'address',
+      });
+    }
+
+    if (withExplorer) {
+      items.push({
+        name: 'View in Explorer',
+        fontIcon: 'tonexplorer',
+        withSeparator: true,
+        value: 'explorer',
+      });
+    }
+
+    return items;
+  }, [options]);
+
+  const handleMenuItemSelect = useLastCallback((value: string) => {
+    menuHandlers[value as MenuHandler]?.();
+    closeActionsMenu();
+  });
+
+  const handleMenuShow = useLastCallback((e: React.MouseEvent | React.TouchEvent) => {
+    stopEvent(e);
+
+    let x: number;
+    if (e.type.startsWith('touch')) {
+      const { changedTouches, touches } = (e as React.TouchEvent);
+      if (touches.length > 0) {
+        x = touches[0].clientX;
+      } else {
+        x = changedTouches[0].clientX;
+      }
+    } else {
+      x = (e as React.MouseEvent).clientX;
+    }
+    const { bottom } = e.currentTarget.getBoundingClientRect();
+
+    setMenuPosition({ x, y: bottom + MENU_VERTICAL_OFFSET_PX });
+  });
+
+  return {
+    isActionsMenuOpen,
+    menuPosition,
+    menuItems,
+    handleMenuShow,
+    handleMenuItemSelect,
+    closeActionsMenu,
+  };
+}

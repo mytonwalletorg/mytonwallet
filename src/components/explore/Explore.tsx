@@ -8,9 +8,9 @@ import type { ApiSite, ApiSiteCategory } from '../../api/types';
 import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
 import { selectCurrentAccountState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { stopEvent } from '../../util/domEvents';
+import { vibrate } from '../../util/haptics';
 import { openUrl } from '../../util/openUrl';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
@@ -260,9 +260,10 @@ function Explore({
           className={styles.searchInput}
           placeholder={lang('Search or enter address')}
           value={searchValue}
+          autoCorrect={false}
           autoCapitalize="none"
+          spellCheck={false}
           inputMode="url"
-          autoCorrect="off"
           onChange={handleSearchValueChange}
           onFocus={markSearchFocused}
           onBlur={unmarkSearchFocused}

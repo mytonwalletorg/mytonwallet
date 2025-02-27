@@ -1,13 +1,17 @@
 import type { ApiTransactionActivity } from '../../../api/types';
 import { TransferState } from '../../types';
 
-import { IS_CAPACITOR, TONCOIN } from '../../../config';
+import { TONCOIN } from '../../../config';
+import { getDoesUsePinPad } from '../../../util/biometrics';
 import { groupBy } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import { getIsTonToken } from '../../../util/tokens';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
+import {
+  IS_DELEGATED_BOTTOM_SHEET,
+  IS_DELEGATING_BOTTOM_SHEET,
+} from '../../../util/windowEnvironment';
 import { getIsTinyOrScamTransaction, getRealTxIdFromLocal } from '../../helpers';
 import { addActionHandler, setGlobal } from '../../index';
 import {
@@ -44,7 +48,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           state: TransferState.Complete,
           isLoading: false,
         });
-        if (IS_CAPACITOR) {
+        if (getDoesUsePinPad()) {
           global = clearIsPinAccepted(global);
         }
 

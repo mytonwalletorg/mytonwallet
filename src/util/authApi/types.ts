@@ -19,3 +19,8 @@ export interface ElectronSafeStorage {
 export interface NativeBiometrics {
   kind: 'native-biometrics';
 }
+
+export interface BiometricsSetupResult {
+  password: string;
+  config: AuthConfig;
+}

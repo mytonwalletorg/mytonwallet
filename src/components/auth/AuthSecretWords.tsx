@@ -3,6 +3,7 @@ import { getActions } from '../../global';
 
 import buildClassName from '../../util/buildClassName';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
 import SecretWordsContent from '../common/backup/SecretWordsContent';
@@ -11,7 +12,7 @@ import Button from '../ui/Button';
 import styles from './Auth.module.scss';
 
 interface OwnProps {
-  isActive?: boolean;
+  isActive: boolean;
   mnemonic?: string[];
 }
 
@@ -19,12 +20,13 @@ const AuthSecretWords = ({ isActive, mnemonic }: OwnProps) => {
   const { openAuthBackupWalletModal, openCheckWordsPage } = getActions();
 
   const lang = useLang();
+  useHistoryBack({ isActive, onBack: openAuthBackupWalletModal });
 
   const wordsCount = mnemonic?.length || 0;
 
   return (
     <div className={styles.wrapper}>
-      <div className={buildClassName(styles.container, 'custom-scroll')}>
+      <div className={buildClassName(styles.container, styles.containerAlignTop, 'custom-scroll')}>
 
         <div className={styles.header}>
           <Button isSimple isText onClick={openAuthBackupWalletModal} className={styles.headerBackBlock}>

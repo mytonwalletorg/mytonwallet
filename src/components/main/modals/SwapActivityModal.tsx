@@ -1,4 +1,4 @@
-import React, { memo, type TeactNode, useMemo } from '../../../lib/teact/teact';
+import React, { memo, useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../api/types';
@@ -23,7 +23,7 @@ import { formatFullDay, formatTime } from '../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../util/formatNumber';
 import getChainNetworkName from '../../../util/swap/getChainNetworkName';
 import { getTransactionHashFromTxId } from '../../../util/tokens';
-import { getExplorerName, getExplorerTransactionUrl } from '../../../util/url';
+import { getExplorerTransactionUrl } from '../../../util/url';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
 import useAppTheme from '../../../hooks/useAppTheme';
@@ -72,12 +72,6 @@ function SwapActivityModal({
     ? 0
     : (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
   const renderedActivity = usePrevDuringAnimation(activity, animationDuration);
-  const tonExplorerTitle = useMemo(() => {
-    return (lang('View Transaction on %ton_explorer_name%', {
-      ton_explorer_name: getExplorerName('ton'),
-    }) as TeactNode[]
-    ).join('');
-  }, [lang]);
   const appTheme = useAppTheme(theme);
 
   const {
@@ -336,6 +330,24 @@ function SwapActivityModal({
     );
   }
 
+  function renderTransactionId() {
+    return (
+      <div className={styles.textFieldWrapperFullWidth}>
+        <span className={styles.textFieldLabel}>
+          {lang('Transaction ID')}
+        </span>
+        <InteractiveTextField
+          noSavedAddress
+          chain="ton"
+          address={transactionHash}
+          addressUrl={transactionUrl}
+          copyNotification={lang('Transaction ID was copied!')}
+          className={styles.changellyTextField}
+        />
+      </div>
+    );
+  }
+
   function renderFee() {
     if (!Number(networkFee) || !fromToken) {
       return undefined;
@@ -435,7 +447,7 @@ function SwapActivityModal({
 
   function renderContent() {
     return (
-      <>
+      <div className={modalStyles.transitionContent}>
         <SwapTokensInfo
           tokenIn={fromToken}
           amountIn={fromAmount}
@@ -446,11 +458,12 @@ function SwapActivityModal({
         <div className={styles.infoBlock}>
           {renderSwapInfo()}
           {shouldRenderCexInfo && renderCexInformation()}
+          {transactionUrl && renderTransactionId()}
         </div>
         <div className={styles.footer}>
           {renderFooterButton()}
         </div>
-      </>
+      </div>
     );
   }
 
@@ -463,21 +476,7 @@ function SwapActivityModal({
       nativeBottomSheetKey="swap-activity"
       onClose={handleClose}
     >
-      <div className={modalStyles.transitionContent}>
-        {transactionUrl && (
-          <a
-            href={transactionUrl}
-            target="_blank"
-            rel="noreferrer noopener"
-            className={styles.tonExplorer}
-            title={tonExplorerTitle}
-            aria-label={tonExplorerTitle}
-          >
-            <i className="icon-tonexplorer" aria-hidden />
-          </a>
-        )}
-        {renderContent()}
-      </div>
+      {renderContent()}
     </Modal>
   );
 }

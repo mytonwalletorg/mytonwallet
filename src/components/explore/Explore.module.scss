@@ -398,15 +398,13 @@ $imageGapSize: 0.75rem;
   line-height: 1;
   color: var(--color-gray-3);
 
-  background-color: var(--color-background-second);
+  background-color: var(--color-gray-button-background-light);
   border-radius: var(--border-radius-normal);
 
   @include adapt-margin-to-scrollbar(1rem);
 
   @include respond-below(xs) {
     margin-top: 0.25rem;
-
-    background-color: var(--color-gray-button-background);
   }
 }
 

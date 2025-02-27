@@ -52,7 +52,7 @@ function SettingsAbout({
     <div className={styles.slide}>
       {isInsideModal ? (
         <ModalHeader
-          title={lang('About')}
+          title={lang('About MyTonWallet')}
           withNotch={isScrolled}
           onBackButtonClick={handleBackClick}
           className={styles.modalHeader}
@@ -63,7 +63,7 @@ function SettingsAbout({
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
           </Button>
-          <span className={styles.headerTitle}>{lang('About')}</span>
+          <span className={styles.headerTitle}>{lang('About MyTonWallet')}</span>
         </div>
       )}
       <div

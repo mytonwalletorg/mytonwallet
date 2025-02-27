@@ -5,7 +5,7 @@ import type { TokenPeriod } from '../../../../global/types';
 
 import { HISTORY_PERIODS } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
-import { vibrate } from '../../../../util/capacitor';
+import { vibrate } from '../../../../util/haptics';
 
 import useLastCallback from '../../../../hooks/useLastCallback';
 

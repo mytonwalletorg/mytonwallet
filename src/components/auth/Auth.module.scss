@@ -4,8 +4,10 @@
   height: 100%;
 }
 
-@include respond-above(xs) {
-  .transitionContainer {
+.transitionContainer {
+  --header-padding-top: 0.625rem;
+
+  @include respond-above(xs) {
     overflow: hidden;
 
     max-width: 31.4375rem;
@@ -24,6 +26,10 @@
 
   @supports (padding-top: var(--safe-area-top)) {
     padding-top: var(--safe-area-top);
+  }
+
+  :global(html.is-telegram-app.is-fullscreen) & {
+    padding-top: calc(var(--tg-safe-area-inset-top) + var(--header-padding-top))
   }
 }
 
@@ -62,6 +68,10 @@
 
   @include respond-above(sm) {
     padding: 2rem;
+  }
+
+  &.containerAlignTop {
+    justify-content: start;
   }
 }
 
@@ -591,12 +601,18 @@
   display: grid;
   grid-template-areas: "back title close";
   grid-template-columns: 0.5fr 1fr 0.5fr;
+  flex: 0;
   align-items: center;
 
   width: 100%;
+  min-height: 0;
   padding: 1rem 0 2rem;
 
   color: var(--color-black);
+
+  :global(html.is-telegram-app.is-fullscreen) & {
+    padding-top: 0;
+  }
 }
 
 .headerTitle {
@@ -625,7 +641,8 @@
   left: 0.5rem;
 }
 
-.headerBackBlock, .headerBack {
+.headerBackBlock,
+.headerBack {
   cursor: var(--custom-cursor, pointer);
 
   display: flex;
@@ -638,6 +655,10 @@
 
   @supports (top: max(calc(var(--safe-area-top) + 0.375rem), 1.5rem)) {
     top: max(calc(var(--safe-area-top) + 0.375rem), 1.5rem);
+  }
+
+  :global(html.is-telegram-app) & {
+    visibility: hidden;
   }
 }
 

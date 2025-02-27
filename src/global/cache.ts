@@ -514,6 +514,7 @@ function updateCache(force?: boolean) {
       'stateVersion',
       'restrictions',
       'pushNotifications',
+      'isFullscreen',
       'isManualLockActive',
       'stakingDefault',
     ]),

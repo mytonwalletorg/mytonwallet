@@ -152,7 +152,7 @@ const Auth = ({
           />
         );
       case AuthState.about:
-        return <SettingsAbout handleBackClick={closeAbout} theme={theme} />;
+        return <SettingsAbout isActive={isActive} handleBackClick={closeAbout} theme={theme} />;
       case AuthState.saferyRules:
         return <AuthSaferyRules isActive={isActive} />;
       case AuthState.mnemonicPage:

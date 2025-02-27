@@ -1,0 +1,6 @@
+# This file is for tma.mytonwallet.io hosted on Netlify
+/
+  Content-Security-Policy: {{CSP}}
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: ALLOW-FROM https://web.telegram.org
+  X-XSS-Protection: 1; mode=block

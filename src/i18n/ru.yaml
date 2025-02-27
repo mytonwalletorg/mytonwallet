@@ -74,7 +74,7 @@ Toggle TON Magic: Переключить TON Magic
 Open Telegram Web: Открыть Telegram Web
 Back Up Secret Words: Резервная копия
 Settings: Настройки
-About: О MyTonWallet
+About MyTonWallet: О MyTonWallet
 Exit: Выйти
 Remove Wallet: Выход
 Something went wrong.: Упс, что-то пошло не так.
@@ -109,7 +109,7 @@ Are you sure you want to remove this address from your saved ones?: Уверен
 You will be able to save it again via Transaction Info with this address.: Вы сможете сохранить его снова, открыв любой перевод с этим адресом.
 Address removed from saved: Адрес кошелька удалён из сохранённых
 Warning!: Важно!
-Log Out: Выход есть
+Log Out: Выход
 $logout_without_backup_warning: Резервная копия кошелька не создана. Доступ к токенам и NFT будет ограничен, если вы выйдете из системы.
 $logout_accounts_without_backup_warning: Резервная копия не была создана для %links%. Если вы продолжите выход, доступ **может быть утерян**.
 $logout_warning: Кошелёк будет удалён только **на этом устройстве**. Убедитесь, что у вас есть резервная копия ваших **секретных слов**.
@@ -149,7 +149,6 @@ Signing was confirmed!: Подпись подтверждена!
 Transaction Info: Информация о переводе
 Transaction in progress: Перевод выполняется
 Comment was copied!: Комментарий скопирован!
-View Transaction on %ton_explorer_name%: Посмотреть перевод в %ton_explorer_name%
 Sender: Отправитель
 Recipient: Получатель
 Address was copied!: Адрес скопирован!
@@ -200,9 +199,8 @@ Save Address: Сохранить адрес
 Name: Имя
 Save: Сохранить
 Copy: Скопировать
-Remove From Saved Addresses: Удалить сохранённый адрес
-Add To Saved Addresses: Добавить в Сохранённые адреса
-View Address on %ton_explorer_name%: Открыть в %ton_explorer_name%
+Remove From Saved: Удалить из сохранённых
+View in Explorer: Открыть в эксплорере
 No suggestions, you're on your own!: Ничего не найдено :(
 Play Sounds: Включить звуки
 Focus on asset value rather than current balance: Фокус на стоимости активов вместо текущего баланса
@@ -715,6 +713,7 @@ Reset Card: Сбросить карту
 Apply Palette: Применить палитру
 Reset Palette: Сбросить палитру
 Notifications & Sounds: Уведомления и звуки
+Sounds: Звуки
 Push Notifications: Уведомления
 Select up to %count% wallets for notifications: Выберите до %count% кошельков
 $swap_aggregator_fee_tooltip: Встроенный **DEX-агрегатор** помогает выбрать **лучший курс** среди доступных бирж. Комиссия сервиса — %percent%.
@@ -731,3 +730,9 @@ Connected: Подключено
 All Dapps: Все приложения
 Trending: В тренде
 No Data: Нет данных
+Toggle fullscreen: Переключить полноэкранный режим
+Request is sent!: Запрос отправлен!
+Transaction ID: ID транзакции
+Help Center: База знаний
+MyTonWallet Tips: Советы MyTonWallet
+$returned_value: Вам вернётся ~ %value%

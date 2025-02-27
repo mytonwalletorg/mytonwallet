@@ -541,6 +541,10 @@ textarea.inputStatic {
   align-self: center;
 
   margin-bottom: 2rem;
+
+  @media (max-height: 43.5rem) {
+    margin-bottom: 1rem;
+  }
 }
 
 .infoBox, .burnWarning, .error {

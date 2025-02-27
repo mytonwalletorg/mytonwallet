@@ -15,9 +15,9 @@ import {
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
 import { toDecimal } from '../../util/decimals';
 import { explainApiTransferFee } from '../../util/fee/transferFee';
+import { vibrate } from '../../util/haptics';
 import { getChainBySlug } from '../../util/tokens';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -108,7 +108,7 @@ function TransferConfirm({
   });
 
   const handleConfirm = useLastCallback(() => {
-    vibrate();
+    void vibrate();
     submitTransferConfirm();
   });
 
@@ -261,11 +261,9 @@ function TransferConfirm({
         )}
 
         <div className={buildClassName(modalStyles.buttons, modalStyles.buttonsInsideContentWithScroll)}>
-          {promiseId ? (
-            <Button onClick={onClose} className={modalStyles.button}>{lang('Cancel')}</Button>
-          ) : (
-            <Button onClick={onBack} className={modalStyles.button}>{lang('Edit')}</Button>
-          )}
+          <Button className={modalStyles.button} onClick={promiseId ? onClose : onBack}>
+            {promiseId ? lang('Cancel') : lang('Edit')}
+          </Button>
           <Button
             isPrimary
             isLoading={isLoading}

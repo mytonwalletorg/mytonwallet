@@ -6,8 +6,9 @@ import { getActions, withGlobal } from '../../../global';
 import { IS_CAPACITOR, MNEMONIC_COUNT } from '../../../config';
 import { selectMnemonicForCheck } from '../../../global/actions/api/auth';
 import { selectCurrentAccountState } from '../../../global/selectors';
+import { getDoesUsePinPad } from '../../../util/biometrics';
 import buildClassName from '../../../util/buildClassName';
-import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
 import { callApi } from '../../../api';
@@ -75,14 +76,11 @@ function BackupModal({
 
     if (!mnemonicRef.current) {
       setError('Wrong password, please try again.');
-      if (IS_CAPACITOR) {
-        void vibrateOnError();
-      }
-
       setIsLoading(false);
+      void vibrateOnError();
       return;
     }
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       setIsPinAccepted();
       await vibrateOnSuccess(true);
       clearIsPinAccepted();
@@ -137,7 +135,9 @@ function BackupModal({
       case SLIDES.password:
         return (
           <>
-            {!IS_CAPACITOR && <ModalHeader title={lang('Enter Password')} onClose={onClose} />}
+            {!getDoesUsePinPad() && (
+              <ModalHeader title={lang('Enter Password')} onClose={onClose} />
+            )}
             <PasswordForm
               isActive={isActive}
               isLoading={isLoading}
@@ -160,6 +160,7 @@ function BackupModal({
           />
         ) : (
           <MnemonicList
+            isActive={isActive}
             mnemonic={mnemonic}
             onNext={isBackupRequired ? handleCheckMnemonic : undefined}
             onClose={onClose}

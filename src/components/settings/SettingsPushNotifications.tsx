@@ -40,7 +40,7 @@ function SettingsPushNotifications({
   canPlaySounds,
   pushNotifications: {
     enabledAccounts,
-    isAvailable,
+    isAvailable: arePushNotificationsAvailable,
   },
   isInsideModal,
   settingsByAccountId,
@@ -50,6 +50,7 @@ function SettingsPushNotifications({
   const { toggleNotifications, toggleNotificationAccount, toggleCanPlaySounds } = getActions();
   const iterableAccounts = useMemo(() => Object.entries(accounts || {}), [accounts]);
   const arePushNotificationsEnabled = Boolean(Object.keys(enabledAccounts).length);
+  const headerTitle = arePushNotificationsAvailable ? lang('Notifications & Sounds') : lang('Sounds');
 
   const handlePushNotificationsToggle = useLastCallback(() => {
     toggleNotifications({ isEnabled: !arePushNotificationsEnabled });
@@ -121,7 +122,7 @@ function SettingsPushNotifications({
     <div className={styles.slide}>
       {isInsideModal ? (
         <ModalHeader
-          title={lang('Notifications & Sounds')}
+          title={headerTitle}
           withNotch={isScrolled}
           onBackButtonClick={handleBackClick}
           className={styles.modalHeader}
@@ -132,14 +133,14 @@ function SettingsPushNotifications({
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
           </Button>
-          <span className={styles.headerTitle}>{lang('Notifications & Sounds')}</span>
+          <span className={styles.headerTitle}>{headerTitle}</span>
         </div>
       )}
       <div
         className={buildClassName(styles.content, 'custom-scroll')}
         onScroll={handleContentScroll}
       >
-        {isAvailable && (
+        {arePushNotificationsAvailable && (
           <>
             <div className={styles.settingsBlock}>
               <div className={buildClassName(styles.item, styles.item_small)} onClick={handlePushNotificationsToggle}>

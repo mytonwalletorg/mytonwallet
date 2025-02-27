@@ -4,6 +4,7 @@ import React, {
 
 import { PIN_LENGTH } from '../../config';
 import buildClassName from '../../util/buildClassName';
+import { stopEvent } from '../../util/domEvents';
 import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
@@ -100,8 +101,7 @@ function CreatePasswordForm({
   });
 
   const handleSubmit = useLastCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    stopEvent(e);
 
     if (!canSubmit) {
       return;
@@ -124,6 +124,7 @@ function CreatePasswordForm({
     if (isWeakPasswordModalOpen) {
       closeWeakPasswordModal();
     }
+
     onSubmit(firstPassword, isMobile);
   });
 

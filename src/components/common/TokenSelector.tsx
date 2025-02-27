@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   memo,
   useCallback,
@@ -55,6 +56,17 @@ type TokenSortFactors = {
   specialOrder: number;
 };
 
+interface OwnProps {
+  isActive?: boolean;
+  shouldFilter?: boolean;
+  isInsideSettings?: boolean;
+  shouldHideMyTokens?: boolean;
+  shouldHideNotSupportedTokens?: boolean;
+  header?: TeactNode;
+  onClose: NoneToVoidFunction;
+  onBack: NoneToVoidFunction;
+}
+
 interface StateProps {
   token?: Token;
   userTokens?: Token[];
@@ -66,16 +78,6 @@ interface StateProps {
   isLoading?: boolean;
   isMultichain: boolean;
   availableChains?: { [K in ApiChain]?: unknown };
-}
-
-interface OwnProps {
-  isActive?: boolean;
-  shouldFilter?: boolean;
-  isInsideSettings?: boolean;
-  onClose: NoneToVoidFunction;
-  onBack: NoneToVoidFunction;
-  shouldHideMyTokens?: boolean;
-  shouldHideNotSupportedTokens?: boolean;
 }
 
 enum SearchState {
@@ -94,6 +96,7 @@ function TokenSelector({
   userTokens = EMPTY_ARRAY,
   swapTokens = EMPTY_ARRAY,
   popularTokens: popularTokensProp = EMPTY_ARRAY,
+  header,
   shouldFilter,
   isInsideSettings,
   baseCurrency,
@@ -101,12 +104,12 @@ function TokenSelector({
   pairsBySlug,
   isActive,
   isLoading,
-  onBack,
-  onClose,
   shouldHideMyTokens,
   shouldHideNotSupportedTokens = false,
   isMultichain,
   availableChains = EMPTY_OBJECT,
+  onBack,
+  onClose,
 }: OwnProps & StateProps) {
   const {
     importToken,
@@ -519,21 +522,21 @@ function TokenSelector({
 
   return (
     <>
-      <ModalHeader title={lang('Select Token')} onBackButtonClick={onBack} onClose={onClose} />
+      {header || (
+        <ModalHeader
+          title={lang('Select Token')}
+          onBackButtonClick={onBack}
+          onClose={onClose}
+        />
+      )}
       {renderSearch()}
 
       <div
-        className={buildClassName(
-          styles.tokenSelectContent,
-          'custom-scroll',
-        )}
-        onScroll={handleContentScroll}
         ref={scrollContainerRef}
+        className={buildClassName(styles.tokenSelectContent, 'custom-scroll')}
+        onScroll={handleContentScroll}
       >
-        <Transition
-          name="fade"
-          activeKey={renderingKey}
-        >
+        <Transition name="fade" activeKey={renderingKey}>
           {renderContent}
         </Transition>
       </div>

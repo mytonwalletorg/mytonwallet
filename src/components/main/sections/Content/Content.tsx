@@ -9,6 +9,7 @@ import { ContentTab, SettingsState } from '../../../../global/types';
 
 import {
   IS_CAPACITOR,
+  IS_TELEGRAM_APP,
   LANDSCAPE_MIN_ASSETS_TAB_VIEW,
   NOTCOIN_VOUCHERS_ADDRESS,
   PORTRAIT_MIN_ASSETS_TAB_VIEW,
@@ -24,6 +25,7 @@ import {
 import buildClassName from '../../../../util/buildClassName';
 import { getStatusBarHeight } from '../../../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
+import { getTelegramApp } from '../../../../util/telegram';
 import { IS_TOUCH_ENV, STICKY_CARD_INTERSECTION_THRESHOLD } from '../../../../util/windowEnvironment';
 import windowSize from '../../../../util/windowSize';
 
@@ -61,6 +63,7 @@ interface StateProps {
   whitelistedNftAddresses?: string[];
   states?: ApiStakingState[];
   hasVesting: boolean;
+  isFullscreen?: boolean;
   selectedNftsToHide?: {
     addresses: string[];
     isCollection: boolean;
@@ -82,6 +85,7 @@ function Content({
   selectedNftsToHide,
   states,
   hasVesting,
+  isFullscreen,
   currentSiteCategoryId,
 }: OwnProps & StateProps) {
   const {
@@ -239,7 +243,11 @@ function Content({
     const stickyElm = tabsRef.current;
     if (!isPortrait || !stickyElm) return undefined;
 
-    const safeAreaTop = IS_CAPACITOR ? getStatusBarHeight() : windowSize.get().safeAreaTop;
+    const safeAreaTop = IS_CAPACITOR
+      ? getStatusBarHeight()
+      : IS_TELEGRAM_APP
+        ? getTelegramApp()!.safeAreaInset.top + getTelegramApp()!.contentSafeAreaInset.top
+        : windowSize.get().safeAreaTop;
     const rootMarginTop = STICKY_CARD_INTERSECTION_THRESHOLD - safeAreaTop - 1;
 
     const observer = new IntersectionObserver(([e]) => {
@@ -255,7 +263,7 @@ function Content({
     return () => {
       observer.unobserve(stickyElm);
     };
-  }, [isPortrait, tabsRef]);
+  }, [isPortrait, tabsRef, isFullscreen]);
 
   useEffect(() => {
     if (!IS_TOUCH_ENV) {
@@ -429,6 +437,7 @@ export default memo(
         states,
         hasVesting,
         currentSiteCategoryId,
+        isFullscreen: global.isFullscreen,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

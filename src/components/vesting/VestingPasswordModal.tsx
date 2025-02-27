@@ -5,11 +5,7 @@ import type { ApiTokenWithPrice, ApiVestingInfo } from '../../api/types';
 import type { HardwareConnectState, UserToken } from '../../global/types';
 import { VestingUnfreezeState } from '../../global/types';
 
-import {
-  CLAIM_AMOUNT,
-  IS_CAPACITOR,
-  TONCOIN,
-} from '../../config';
+import { CLAIM_AMOUNT, TONCOIN } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import {
   selectAccount,
@@ -19,6 +15,7 @@ import {
   selectIsMultichainAccount,
   selectMycoin,
 } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { toBig } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
@@ -84,7 +81,7 @@ function VestingPasswordModal({
   const claimAmount = toBig(CLAIM_AMOUNT);
   const hasAmountError = !balance || balance < CLAIM_AMOUNT;
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, Boolean(isOpen));
-  const withModalHeader = !isHardwareAccount && !IS_CAPACITOR;
+  const withModalHeader = !isHardwareAccount && !getDoesUsePinPad();
 
   const currentlyReadyToUnfreezeAmount = useMemo(() => {
     if (!vesting) return '0';
@@ -107,16 +104,21 @@ function VestingPasswordModal({
   }
 
   function renderInfo() {
+    const feeClassName = buildClassName(
+      styles.operationInfoFee,
+      !getDoesUsePinPad() && styles.operationInfoFeeWithGap,
+    );
+
     return (
       <>
         <TransactionBanner
           tokenIn={mycoin}
           withChainIcon={isMultichainAccount}
           text={formatCurrency(currentlyReadyToUnfreezeAmount, mycoin!.symbol, mycoin!.decimals)}
-          className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+          className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
           secondText={shortenAddress(address!)}
         />
-        <div className={buildClassName(styles.operationInfoFee, !IS_CAPACITOR && styles.operationInfoFeeWithGap)}>
+        <div className={feeClassName}>
           {renderText(lang('$fee_value_bold', { fee: formatCurrency(claimAmount, TONCOIN.symbol) }))}
         </div>
       </>

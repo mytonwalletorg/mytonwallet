@@ -10,6 +10,7 @@ import {
   DEFAULT_TRANSFER_TOKEN_SLUG,
   IS_CAPACITOR,
   IS_EXTENSION,
+  IS_TELEGRAM_APP,
   TONCOIN,
 } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
@@ -23,7 +24,9 @@ import { callActionInMain } from '../../../util/multitab';
 import { initializeSounds } from '../../../util/notificationSound';
 import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import switchTheme, { setStatusBarStyle } from '../../../util/switchTheme';
+import { initTelegramWithGlobal } from '../../../util/telegram';
 import {
+  getIsMobileTelegramApp,
   IS_ANDROID,
   IS_ANDROID_APP,
   IS_DELEGATED_BOTTOM_SHEET,
@@ -79,6 +82,12 @@ addActionHandler('init', (_, actions) => {
     if (IS_ELECTRON) {
       documentElement.classList.add('is-electron');
     }
+    if (IS_TELEGRAM_APP) {
+      documentElement.classList.add('is-telegram-app');
+    }
+    if (getIsMobileTelegramApp()) {
+      documentElement.classList.add('is-mobile-telegram-app');
+    }
     if (IS_DELEGATED_BOTTOM_SHEET) {
       documentElement.classList.add('is-native-bottom-sheet');
     }
@@ -105,6 +114,10 @@ addActionHandler('afterInit', (global) => {
   if (IS_CAPACITOR) {
     void initCapacitorWithGlobal(authConfig);
   } else {
+    if (IS_TELEGRAM_APP) {
+      initTelegramWithGlobal(global);
+    }
+
     document.addEventListener('click', initializeSounds, { once: true });
   }
 });
@@ -121,8 +134,8 @@ addActionHandler('afterSignIn', (global, actions) => {
 
 addActionHandler('afterSignOut', (global, actions, payload) => {
   if (payload?.isFromAllAccounts) {
-    if (IS_CAPACITOR && global.settings.authConfig?.kind === 'native-biometrics') {
-      authApi.removeNativeBiometrics();
+    if (global.settings.authConfig?.kind === 'native-biometrics') {
+      void authApi.removeNativeBiometrics();
     }
 
     actions.resetApiSettings({ areAllDisabled: true });

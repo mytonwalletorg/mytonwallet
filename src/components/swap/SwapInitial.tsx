@@ -28,11 +28,12 @@ import {
   selectSwapType,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
 import { findChainConfig } from '../../util/chain';
 import { fromDecimal, toDecimal } from '../../util/decimals';
+import { stopEvent } from '../../util/domEvents';
 import { explainSwapFee, getMaxSwapAmount, isBalanceSufficientForSwap } from '../../util/fee/swapFee';
 import { formatCurrency } from '../../util/formatNumber';
+import { vibrate } from '../../util/haptics';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
@@ -285,8 +286,8 @@ function SwapInitial({
     setSwapAmountIn({ amount, isMaxAmount: true });
   };
 
-  const handleSubmit = useLastCallback((e) => {
-    e.preventDefault();
+  const handleSubmit = useLastCallback((e: React.FormEvent | React.UIEvent) => {
+    stopEvent(e);
 
     if (!canSubmit) {
       return;

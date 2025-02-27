@@ -3,12 +3,14 @@ import React, { memo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import renderText from '../../../global/helpers/renderText';
-import buildClassName from '../../../util/buildClassName';
+import { selectIsNativeBiometricAuthEnabled } from '../../../global/selectors';
 import {
   getIsFaceIdAvailable,
   getIsNativeBiometricAuthSupported,
   getIsTouchIdAvailable,
-} from '../../../util/capacitor';
+} from '../../../util/biometrics';
+import buildClassName from '../../../util/buildClassName';
+import { getIsTelegramBiometricsRestricted, getTelegramApp } from '../../../util/telegram';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_IOS } from '../../../util/windowEnvironment';
 
 import useFlag from '../../../hooks/useFlag';
@@ -76,6 +78,11 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
   }, [handleConfirmDisableBiometrics, isWarningModalOpen, lang, warningDescription, warningTitle]);
 
   const handleBiometricAuthToggle = useLastCallback(() => {
+    if (getIsTelegramBiometricsRestricted()) {
+      getTelegramApp()?.BiometricManager.openSettings();
+      return;
+    }
+
     if (isBiometricAuthEnabled) {
       openWarningModal();
     } else {
@@ -130,9 +137,7 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { authConfig } = global.settings;
-
   return {
-    isBiometricAuthEnabled: !!authConfig && authConfig.kind === 'native-biometrics',
+    isBiometricAuthEnabled: selectIsNativeBiometricAuthEnabled(global),
   };
 })(NativeBiometricsToggle));

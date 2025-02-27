@@ -11,12 +11,11 @@ import useFlag from '../../hooks/useFlag';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import useShowTransition from '../../hooks/useShowTransition';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
-import Button from '../ui/Button';
 import Checkbox from '../ui/Checkbox';
 import AuthBackupWarning from './AuthBackupWarning';
+import AuthDisclaimerConfirmed from './AuthDisclaimerConfirmed';
 
 import styles from './Auth.module.scss';
 
@@ -28,23 +27,16 @@ interface OwnProps {
 const AuthDisclaimer = ({
   isActive, isImport,
 }: OwnProps) => {
-  const {
-    skipCheckMnemonic,
-    confirmDisclaimer,
-    cancelDisclaimer,
-  } = getActions();
+  const { skipCheckMnemonic, cancelDisclaimer } = getActions();
 
   const lang = useLang();
   const [isInformationConfirmed, markInformationConfirmed, unmarkInformationConfirmed] = useFlag(false);
-  const {
-    shouldRender: shouldRenderStartButton,
-    transitionClassNames: startButtonTransitionClassNames,
-  } = useShowTransition(isInformationConfirmed && isImport);
 
   useHistoryBack({
     isActive,
     onBack: cancelDisclaimer,
   });
+
   const setIsInformationConfirmed = useLastCallback((isConfirmed: boolean) => {
     if (isConfirmed) {
       markInformationConfirmed();
@@ -95,19 +87,18 @@ const AuthDisclaimer = ({
         >
           {lang('I have read and accept this information')}
         </Checkbox>
-        {shouldRenderStartButton && (
-          <div className={buildClassName(styles.buttons, startButtonTransitionClassNames)}>
-            <Button isPrimary className={buildClassName(styles.btn, styles.btn_wide)} onClick={confirmDisclaimer}>
-              {lang('Start Wallet')}
-            </Button>
-          </div>
-        )}
 
         {!isImport && (
           <AuthBackupWarning
             isOpen={isInformationConfirmed}
             onClose={handleCloseBackupWarningModal}
             onSkip={handleSkipMnemonic}
+          />
+        )}
+        {isImport && (
+          <AuthDisclaimerConfirmed
+            isOpen={isInformationConfirmed}
+            onClose={handleCloseBackupWarningModal}
           />
         )}
       </div>

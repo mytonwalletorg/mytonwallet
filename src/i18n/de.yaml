@@ -71,7 +71,7 @@ Toggle TON Magic: TON Magic aktivieren/deaktivieren
 Open Telegram Web: Telegram Web öffnen.
 Back Up Secret Words: Geheime Wörter sichern
 Settings: Einstellungen
-About: Über
+About MyTonWallet: Über MyTonWallet
 Exit: Beenden
 Remove Wallet: Wallet entfernen
 Something went wrong.: Etwas ist schiefgegangen.
@@ -146,7 +146,6 @@ Signing was confirmed!: Die Signatur wurde bestätigt!
 Transaction Info: Transaktions informationen
 Transaction in progress: Transaktion in Bearbeitung
 Comment was copied!: Der Kommentar wurde kopiert!
-View Transaction on %ton_explorer_name%: Transaktion im %ton_explorer_name% anzeigen
 Sender: Absender
 Recipient: Empfänger
 Address was copied!: Adresse wurde kopiert!
@@ -197,9 +196,8 @@ Save Address: Adresse speichern
 Name: Name
 Save: Speichern
 Copy: Kopieren
-Remove From Saved Addresses: Aus den gespeicherten Adressen entfernen
-Add To Saved Addresses: Zu den gespeicherten Adressen hinzufügen
-View Address on %ton_explorer_name%: Adresse im %ton_explorer_name% anzeigen
+Remove From Saved: Aus Gespeichert entfernen
+View in Explorer: Im Explorer anzeigen
 No suggestions, you're on your own!: Keine Vorschläge, Sie sind auf sich allein gestellt!
 Play Sounds: Sounds abspielen
 Focus on asset value rather than current balance: Fokus auf den Vermögenswert anstatt auf den aktuellen Kontostand legen
@@ -716,6 +714,7 @@ Reset Card: Karte zurücksetzen
 Apply Palette: Palette anwenden
 Reset Palette: Palette zurücksetzen
 Notifications & Sounds: Benachrichtigungen & Töne
+Sounds: Töne
 Push Notifications: Push-Benachrichtigungen
 Select up to %count% wallets for notifications: Wählen Sie bis zu %count% Wallets für Benachrichtigungen aus
 $swap_aggregator_fee_tooltip: Ein integrierter **DEX-Aggregator** findet den **besten Kurs** über verfügbare DEXs. Die Servicegebühr beträgt %percent%.
@@ -732,3 +731,9 @@ Connected: Verbunden
 All Dapps: Alle Dapps
 Trending: Im Trend
 No Data: Keine Daten
+Toggle fullscreen: Vollbildmodus umschalten
+Request is sent!: Anfrage gesendet!
+Transaction ID: Transaktions-ID
+Help Center: Hilfezentrum
+MyTonWallet Tips: MyTonWallet-Tipps
+$returned_value: "~ %value% wird zurückgegeben"

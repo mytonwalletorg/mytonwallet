@@ -17,10 +17,10 @@ import type { ApiTonWalletVersion, TokenTransferBodyParams } from '../types';
 
 import {
   DEFAULT_TIMEOUT,
-  TONHTTPAPI_MAINNET_API_KEY,
-  TONHTTPAPI_MAINNET_URL,
-  TONHTTPAPI_TESTNET_API_KEY,
-  TONHTTPAPI_TESTNET_URL,
+  TONCENTER_MAINNET_KEY,
+  TONCENTER_MAINNET_URL,
+  TONCENTER_TESTNET_KEY,
+  TONCENTER_TESTNET_URL,
 } from '../../../../config';
 import { fromKeyValueArrays, mapValues } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
@@ -85,15 +85,15 @@ export function getTonClient(network: ApiNetwork = 'mainnet') {
   if (!clientByNetwork) {
     clientByNetwork = {
       mainnet: new TonClient({
-        endpoint: TONHTTPAPI_MAINNET_URL,
+        endpoint: `${TONCENTER_MAINNET_URL}/api/v2/jsonRPC`,
         timeout: DEFAULT_TIMEOUT,
-        apiKey: TONHTTPAPI_MAINNET_API_KEY,
+        apiKey: TONCENTER_MAINNET_KEY,
         headers: getEnvironment().apiHeaders,
       }),
       testnet: new TonClient({
-        endpoint: TONHTTPAPI_TESTNET_URL,
+        endpoint: `${TONCENTER_TESTNET_URL}/api/v2/jsonRPC`,
         timeout: DEFAULT_TIMEOUT,
-        apiKey: TONHTTPAPI_TESTNET_API_KEY,
+        apiKey: TONCENTER_TESTNET_KEY,
         headers: getEnvironment().apiHeaders,
       }),
     };

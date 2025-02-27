@@ -1,6 +1,5 @@
 import { IS_DESKTOP, IS_MOBILE, platform } from "/common.js";
 
-
 const REPO = 'mytonwalletorg/mytonwallet';
 const LATEST_RELEASE_API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
 const LATEST_RELEASE_WEB_URL = `https://github.com/${REPO}/releases/latest`;
@@ -11,6 +10,19 @@ const MOBILE_URLS = {
   android: '/android-store',
   androidDirect: `${LATEST_RELEASE_DOWNLOAD_URL}/MyTonWallet.apk`,
 };
+const BACKEND_API_URL = 'https://api.mytonwallet.org';
+
+const processReferrer = (async () => {
+  const referrer = new URLSearchParams(window.location.search).get('r');
+
+  if (referrer) {
+    await fetch(`${BACKEND_API_URL}/referrer/save`, {
+      method: 'POST',
+      body: JSON.stringify({ referrer }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+})().catch(() => undefined);
 
 const currentPage = location.href.includes('/android')
   ? 'android'
@@ -71,9 +83,10 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
   const isTargetPlatform = (currentPage === 'mobile' && IS_MOBILE) || (currentPage === 'desktop' && IS_DESKTOP);
   if (isTargetPlatform) {
     // If we are on the target platform, redirect to the universal page
-    redirectToUniversalPage();
+    void redirectToUniversalPage();
     return;
   }
+
   if (currentPage === 'mobile') {
     // Version is only needed for /get/mobile
     setupVersion();
@@ -83,9 +96,9 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
     if (['Windows', 'Linux', 'iOS'].includes(platform)) {
       setupDownloadButton();
     } else if (platform === 'Android') {
-      redirectToAndroid();
+      void redirectToAndroid();
     } else if (platform === 'macOS') {
-      redirectToMac();
+      void redirectToMac();
     }
   }
 
@@ -123,27 +136,32 @@ function setupVersion() {
 }
 
 function redirectToUniversalPage() {
-  location.href = './';
+  return redirectTo('./');
 }
 
 function redirectToAndroid() {
-  location.href = './android';
+  return redirectTo('./android');
 }
 
 function redirectToMac() {
-  location.href = './mac';
+  return redirectTo('./mac');
 }
 
 function redirectToWeb() {
-  location.href = WEB_APP_URL;
+  return redirectTo(WEB_APP_URL);
 }
 
 function redirectToFullList() {
-  location.href = LATEST_RELEASE_WEB_URL;
+  return redirectTo(LATEST_RELEASE_WEB_URL);
 }
 
 function redirectToStore(platform) {
-  location.href = MOBILE_URLS[platform.toLowerCase()];
+  return redirectTo(MOBILE_URLS[platform.toLowerCase()]);
+}
+
+async function redirectTo(path) {
+  await processReferrer;
+  location.href = path;
 }
 
 function downloadDefault() {

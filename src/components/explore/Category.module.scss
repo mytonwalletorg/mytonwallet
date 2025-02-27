@@ -6,6 +6,8 @@
 }
 
 .header {
+  cursor: var(--custom-cursor, pointer);
+
   font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1;
@@ -22,7 +24,7 @@
   width: 100%;
   padding: 1rem;
 
-  background-color: var(--color-background-explore-folder);
+  background-color: var(--color-gray-button-background-light);
   border-radius: min(2rem, 25%);
 }
 

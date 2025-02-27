@@ -3,6 +3,7 @@ import type { ApiInitArgs, OnApiUpdate } from '../types';
 import { IS_CAPACITOR } from '../../config';
 import { initWindowConnector } from '../../util/capacitorStorageProxy/connector';
 import chains from '../chains';
+import { callBackendGet } from '../common/backend';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
 import { setEnvironment } from '../environment';
 import { addHooks } from '../hooks';
@@ -46,7 +47,20 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
     void tonConnectSse.resetupSseConnection();
   }
 
-  if (args.referrer && !(await storage.getItem('referrer'))) {
-    void storage.setItem('referrer', args.referrer);
+  void saveReferrer(args);
+}
+
+async function saveReferrer(args: ApiInitArgs) {
+  let referrer = await storage.getItem('referrer');
+
+  if (referrer !== undefined) return;
+
+  if (args.referrer) {
+    referrer = args.referrer;
+  } else {
+    ({ referrer } = await callBackendGet<{ referrer?: string }>('/referrer/get'));
   }
+
+  // An empty string means no referrer
+  await storage.setItem('referrer', referrer ?? '');
 }

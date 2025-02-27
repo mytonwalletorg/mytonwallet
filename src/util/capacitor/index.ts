@@ -1,7 +1,6 @@
 import type { URLOpenListenerEvent } from '@capacitor/app';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { BiometryType, NativeBiometric } from '@capgo/capacitor-native-biometric';
 import { SplashScreen } from '@sina_kh/mtw-capacitor-splash-screen';
 import type { SafeAreaInsets } from 'capacitor-plugin-safe-area';
@@ -11,14 +10,10 @@ import { getGlobal } from '../../global';
 import type { AuthConfig } from '../authApi/types';
 import type { CapacitorPlatform } from './platform';
 
-import { GLOBAL_STATE_CACHE_KEY, IS_CAPACITOR } from '../../config';
+import { GLOBAL_STATE_CACHE_KEY } from '../../config';
 import * as storageMethods from '../capacitorStorageProxy/methods';
 import { processDeeplink } from '../deeplink';
-import { pause } from '../schedulers';
-import {
-  IS_BIOMETRIC_AUTH_SUPPORTED, IS_DELEGATED_BOTTOM_SHEET, IS_IOS,
-} from '../windowEnvironment';
-import { initFocusScrollController } from './focusScroll';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_IOS } from '../windowEnvironment';
 import { initNotificationsWithGlobal } from './notifications';
 import { getCapacitorPlatform, setCapacitorPlatform } from './platform';
 
@@ -101,8 +96,6 @@ export async function initCapacitor() {
   if (launchUrl) {
     void processDeeplink(launchUrl);
   }
-
-  initFocusScrollController();
 }
 
 export async function initCapacitorWithGlobal(authConfig?: AuthConfig) {
@@ -132,45 +125,15 @@ export function getStatusBarHeight() {
   return statusBarHeight;
 }
 
-export async function vibrate() {
-  if (!IS_CAPACITOR) return;
-
-  await Haptics.impact({ style: ImpactStyle.Light });
-}
-
-export async function vibrateOnError() {
-  if (!IS_CAPACITOR) return;
-
-  await Haptics.impact({ style: ImpactStyle.Medium });
-  await pause(100);
-  await Haptics.impact({ style: ImpactStyle.Medium });
-  await pause(75);
-  await Haptics.impact({ style: ImpactStyle.Light });
-}
-
-export async function vibrateOnSuccess(withPauseOnEnd = false) {
-  if (!IS_CAPACITOR) return;
-
-  await Haptics.impact({ style: ImpactStyle.Light });
-
-  if (withPauseOnEnd) {
-    await pause(VIBRATE_SUCCESS_END_PAUSE_MS);
-  }
-}
-
-export function getIsNativeBiometricAuthSupported() {
+export function getIsCapacitorBiometricAuthSupported() {
   return isNativeBiometricAuthSupported;
 }
 
-export function getIsBiometricAuthSupported() {
-  return IS_BIOMETRIC_AUTH_SUPPORTED || getIsNativeBiometricAuthSupported();
-}
-
-export function getIsFaceIdAvailable() {
+export function getIsCapacitorFaceIdAvailable() {
   return isFaceIdAvailable;
 }
 
-export function getIsTouchIdAvailable() {
+export function getIsCapacitorTouchIdAvailable() {
   return isTouchIdAvailable;
 }
 

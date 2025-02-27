@@ -6,12 +6,12 @@ import {
   CLAIM_ADDRESS,
   CLAIM_AMOUNT,
   CLAIM_COMMENT,
-  IS_CAPACITOR,
   MYCOIN,
   MYCOIN_TESTNET,
   TONCOIN,
 } from '../../../config';
-import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { getDoesUsePinPad } from '../../../util/biometrics';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -32,7 +32,7 @@ addActionHandler('submitClaimingVesting', async (global, actions, { password }) 
   }
   global = getGlobal();
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = setIsPinAccepted(global);
   }
 
@@ -41,10 +41,7 @@ addActionHandler('submitClaimingVesting', async (global, actions, { password }) 
     error: undefined,
   });
   setGlobal(global);
-
-  if (IS_CAPACITOR) {
-    await vibrateOnSuccess(true);
-  }
+  await vibrateOnSuccess(true);
 
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('submitClaimingVesting', { password });
@@ -68,15 +65,15 @@ addActionHandler('submitClaimingVesting', async (global, actions, { password }) 
   setGlobal(global);
 
   if (!result || 'error' in result) {
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       global = getGlobal();
       global = clearIsPinAccepted(global);
       setGlobal(global);
-      void vibrateOnError();
     }
+    void vibrateOnError();
     actions.showError({ error: result?.error });
     return;
-  } else if (IS_CAPACITOR) {
+  } else {
     void vibrateOnSuccess();
   }
 

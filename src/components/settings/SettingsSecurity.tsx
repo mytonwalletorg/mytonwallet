@@ -16,12 +16,19 @@ import {
   IS_CAPACITOR,
   PIN_LENGTH,
 } from '../../config';
-import { selectIsMultichainAccount, selectIsPasswordPresent } from '../../global/selectors';
+import {
+  selectIsBiometricAuthEnabled,
+  selectIsMultichainAccount,
+  selectIsNativeBiometricAuthEnabled,
+  selectIsPasswordPresent,
+} from '../../global/selectors';
+import { getDoesUsePinPad, getIsNativeBiometricAuthSupported } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
-import { getIsNativeBiometricAuthSupported, vibrateOnSuccess } from '../../util/capacitor';
+import { vibrateOnSuccess } from '../../util/haptics';
 import isMnemonicPrivateKey from '../../util/isMnemonicPrivateKey';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { pause } from '../../util/schedulers';
+import { getIsTelegramBiometricsRestricted } from '../../util/telegram';
 import {
   IS_BIOMETRIC_AUTH_SUPPORTED, IS_ELECTRON, IS_IOS, IS_IOS_APP,
 } from '../../util/windowEnvironment';
@@ -93,7 +100,7 @@ interface StateProps {
   currentAccountId: string;
 }
 
-const INITIAL_CHANGE_PASSWORD_SLIDE = IS_CAPACITOR ? SLIDES.createNewPin : SLIDES.newPassword;
+const INITIAL_CHANGE_PASSWORD_SLIDE = getDoesUsePinPad() ? SLIDES.createNewPin : SLIDES.newPassword;
 
 const DEFAULT_AUTOLOCK_OPTION: AutolockValueType = 'never';
 
@@ -211,7 +218,7 @@ function SettingsSecurity({
 
     setHasMnemonicWallet(Boolean(mnemonic && !isMnemonicPrivateKey(mnemonic)));
 
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       setIsPinAccepted();
       await vibrateOnSuccess(true);
     }
@@ -228,7 +235,7 @@ function SettingsSecurity({
       disableNativeBiometrics();
       await enableNativeBiometrics({ password: enteredPassword });
     }
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       openSettingsSlide();
     } else {
       openPasswordChangedSlide();
@@ -335,8 +342,13 @@ function SettingsSecurity({
         }
       });
   });
-  const shouldRenderNativeBiometrics = isPasswordPresent && (getIsNativeBiometricAuthSupported() || IS_IOS_APP);
-  const shouldRenderMinifiedPinPad = isInsideModal && IS_CAPACITOR;
+
+  // The `getIsTelegramBiometricsRestricted` case is required to display a toggle switch.
+  // When activated, it will show a warning to the user indicating that they need to grant
+  // the appropriate permissions for biometric authentication to function properly.
+  const shouldRenderNativeBiometrics = isPasswordPresent
+    && (getIsNativeBiometricAuthSupported() || IS_IOS_APP || getIsTelegramBiometricsRestricted());
+  const shouldRenderMinifiedPinPad = isInsideModal && getDoesUsePinPad();
 
   function renderSettings() {
     return (
@@ -671,7 +683,7 @@ function SettingsSecurity({
       case SLIDES.backup:
         return (
           <Backup
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             isMultichainAccount={isMultichainAccount}
             openSettingsSlide={openSettingsSlide}
             isInsideModal={isInsideModal}
@@ -684,7 +696,7 @@ function SettingsSecurity({
       case SLIDES.safetyRules:
         return (
           <BackupSafetyRules
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             isInsideModal={isInsideModal}
             backupType={backupType!}
             onBackClick={openBackupPage}
@@ -698,7 +710,7 @@ function SettingsSecurity({
       case SLIDES.secretWords:
         return (
           <BackupSecretWords
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             isBackupSlideActive={currentKey === SLIDES.secretWords || currentKey === SLIDES.safetyRules}
             isInsideModal={isInsideModal}
             enteredPassword={password}
@@ -710,7 +722,7 @@ function SettingsSecurity({
       case SLIDES.privateKey:
         return (
           <BackupPrivateKey
-            isActive={isSlideActive}
+            isActive={isActive && isSlideActive}
             isBackupSlideActive={currentKey === SLIDES.privateKey || currentKey === SLIDES.safetyRules}
             isInsideModal={isInsideModal}
             enteredPassword={password}
@@ -739,10 +751,11 @@ function SettingsSecurity({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
-    isPasswordNumeric, authConfig, autolockValue, isAppLockEnabled,
+    isPasswordNumeric, autolockValue, isAppLockEnabled,
   } = global.settings;
-  const isBiometricAuthEnabled = !!authConfig && authConfig.kind !== 'password';
-  const isNativeBiometricAuthEnabled = !!authConfig && authConfig.kind === 'native-biometrics';
+
+  const isBiometricAuthEnabled = selectIsBiometricAuthEnabled(global);
+  const isNativeBiometricAuthEnabled = selectIsNativeBiometricAuthEnabled(global);
   const isPasswordPresent = selectIsPasswordPresent(global);
   const isMultichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
 

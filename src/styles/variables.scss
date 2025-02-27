@@ -21,7 +21,6 @@
   --color-background-window: #F3F4F5;
   --color-background-drop-down: #FFFFFF;
   --color-background-tab-bar: #F3F4F5CC;
-  --color-background-explore-folder: #E5E6E8;
   --color-background-lock: rgba(255, 255, 255, 0.8);
   --color-background-purple-1: #F9FAFE;
   --color-background-purple-2: #DFE1FE;
@@ -64,7 +63,7 @@
   --color-gray-button-background: #E2E3E5;
   --color-gray-button-background-hover: #D7D7DA;
   --color-gray-button-background-light: #E5E6E8;
-  --color-gray-button-background-light-hover: #EBEEF4;
+  --color-gray-button-background-light-hover: #D9DBDE;
   --color-gray-button-desktop-text: #2D4C5C;
   --color-gray-button-desktop-text-hover: #486371;
   --color-gray-button-desktop-background: #EDEEEF;
@@ -187,6 +186,10 @@
   --safe-area-bottom-value: var(--safe-area-bottom);
   --safe-area-top-value: var(--safe-area-top);
 
+  --header-padding-top: 1.125rem;
+  --header-title-height: 1.0625rem;
+  --header-padding-bottom: 0.8125rem;
+
   --z-below: -1;
   --z-card: 10;
   --z-sticky-card: 10;
@@ -200,6 +203,7 @@
   --z-tooltip: 300;
   --z-confetti: 400;
   --z-autolock: 500;
+  --z-portal-menu: 2500;
 
   --no-animation-transition: 200ms opacity ease;
   --layer-transition: 300ms cubic-bezier(0.33, 1, 0.68, 1);
@@ -258,7 +262,6 @@
     --color-background-window: #131314;
     --color-background-drop-down: #222224;
     --color-background-tab-bar: #1C1C1EE5;
-    --color-background-explore-folder: #161617;
     --color-background-lock: rgba(28, 28, 30, 0.8);
     --color-background-purple-1: #191D2A;
     --color-background-purple-2: #292F46;
@@ -284,8 +287,8 @@
     --color-gray-button-text-hover: #ECEEF0;
     --color-gray-button-background: #1E1E1F;
     --color-gray-button-background-hover: #2E2F30;
-    --color-gray-button-background-light: #1E1E1F;
-    --color-gray-button-background-light-hover: #525F6C;
+    --color-gray-button-background-light: #161617;
+    --color-gray-button-background-light-hover: #1F1F21;
     --color-gray-button-desktop-text: #C7D7E6;
     --color-gray-button-desktop-text-hover: #DCEDFF;
     --color-gray-button-desktop-background: #2E2F30;

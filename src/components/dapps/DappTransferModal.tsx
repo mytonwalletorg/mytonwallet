@@ -7,6 +7,7 @@ import { TransferState } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
 import { selectCurrentDappTransferExtendedTransactions } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { isNftTransferPayload } from '../../util/ton/transfer';
@@ -110,7 +111,7 @@ function DappTransferModal({
               tokensBySlug={tokensBySlug}
             />
           )}
-          <div className={modalStyles.buttons}>
+          <div className={buildClassName(modalStyles.buttons, styles.buttonsAfterFee)}>
             <Button onClick={handleBackClick}>{lang('Back')}</Button>
           </div>
         </div>
@@ -121,7 +122,9 @@ function DappTransferModal({
   function renderPassword(isActive: boolean) {
     return (
       <>
-        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Action')} onClose={closeDappTransfer} />}
+        {!getDoesUsePinPad() && (
+          <ModalHeader title={lang('Confirm Action')} onClose={closeDappTransfer} />
+        )}
         <PasswordForm
           isActive={isActive}
           isLoading={isLoading}

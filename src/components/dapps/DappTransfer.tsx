@@ -8,7 +8,12 @@ import { BIGINT_PREFIX } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
-import { getDappTransferActualToAddress, isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
+import {
+  doesTransactionAmountActAsFee,
+  getDappTransferActualToAddress,
+  isNftTransferPayload,
+  isTokenTransferPayload,
+} from '../../util/ton/transfer';
 import { DEFAULT_DECIMALS } from '../../api/chains/ton/constants';
 
 import useFlag from '../../hooks/useFlag';
@@ -16,8 +21,8 @@ import useLang from '../../hooks/useLang';
 
 import NftInfo from '../transfer/NftInfo';
 import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
-import Fee from '../ui/Fee';
 import InteractiveTextField from '../ui/InteractiveTextField';
+import DappTransferFee from './DappTransferFee';
 
 import styles from './Dapp.module.scss';
 
@@ -31,55 +36,43 @@ const FRACTION_DIGITS = 2;
 function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
   const lang = useLang();
   const [isPayloadExpanded, expandPayload] = useFlag(false);
-  const tonAmount = transaction.amount + (transaction.fee ?? 0n);
 
   function renderAmount() {
     if (isNftTransferPayload(transaction.payload)) {
-      return (
-        <>
-          <div className={styles.label}>{lang('Fee')}</div>
-          <div className={styles.payloadField}>
-            <Fee
-              terms={{ native: tonAmount }}
-              token={TONCOIN}
-              precision="lessThan"
-              symbolClassName={styles.currencySymbol}
-            />
-          </div>
-        </>
-      );
+      return undefined;
     }
 
-    if (isTokenTransferPayload(transaction.payload)) {
-      const { slug: tokenSlug, amount: tokenAmount } = transaction.payload;
-      const token = tokensBySlug[tokenSlug];
-      const decimals = token?.decimals ?? DEFAULT_DECIMALS;
-      const symbol = token?.symbol ?? '';
+    let token: ApiToken | undefined = TONCOIN;
+    let amount = transaction.amount;
 
-      return (
-        <AmountWithFeeTextField
-          label={lang('Amount')}
-          amount={toDecimal(tokenAmount, decimals)}
-          symbol={symbol}
-          feeText={<Fee terms={{ native: tonAmount }} token={TONCOIN} precision="lessThan" />}
-          className={styles.dataField}
-          labelClassName={styles.label}
-        />
-      );
+    if (isTokenTransferPayload(transaction.payload)) {
+      token = tokensBySlug[transaction.payload.slug];
+      amount = transaction.payload.amount;
     }
 
     return (
       <AmountWithFeeTextField
         label={lang('Amount')}
-        amount={toDecimal(transaction.amount)}
-        symbol={TONCOIN.symbol}
-        feeText={
-          transaction.fee
-            ? <Fee terms={{ native: transaction.fee }} token={TONCOIN} precision="exact" />
-            : undefined
-        }
+        amount={toDecimal(amount, token?.decimals ?? DEFAULT_DECIMALS)}
+        symbol={token?.symbol ?? ''}
         className={styles.dataField}
         labelClassName={styles.label}
+      />
+    );
+  }
+
+  function renderFee() {
+    let fullFee = transaction.emulation?.networkFee ?? transaction.networkFee ?? 0n;
+
+    if (doesTransactionAmountActAsFee(transaction.payload)) {
+      fullFee += transaction.amount;
+    }
+
+    return (
+      <DappTransferFee
+        realFee={transaction.emulation?.realFee}
+        fullFee={fullFee}
+        received={transaction.emulation?.received}
       />
     );
   }
@@ -215,6 +208,8 @@ function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
           )}
         </>
       )}
+
+      {renderFee()}
     </>
   );
 }

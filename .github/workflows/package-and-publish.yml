@@ -57,8 +57,8 @@ jobs:
 
       - name: Build, package and publish
         env:
-          ELECTRON_TONHTTPAPI_MAINNET_API_KEY: ${{ secrets.ELECTRON_TONHTTPAPI_MAINNET_API_KEY }}
-          ELECTRON_TONHTTPAPI_TESTNET_API_KEY: ${{ secrets.ELECTRON_TONHTTPAPI_TESTNET_API_KEY }}
+          ELECTRON_TONCENTER_MAINNET_KEY: ${{ secrets.ELECTRON_TONCENTER_MAINNET_KEY }}
+          ELECTRON_TONCENTER_TESTNET_KEY: ${{ secrets.ELECTRON_TONCENTER_TESTNET_KEY }}
 
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}

@@ -9,6 +9,7 @@ import type {
   ApiAccountWithMnemonic,
   ApiActivity,
   ApiAnyDisplayError,
+  ApiEmulationResult,
   ApiNetwork,
   ApiNft,
   ApiSignedTransfer,
@@ -41,10 +42,12 @@ import { getDieselTokenAmount, isDieselAvailable } from '../../../util/fee/trans
 import { buildCollectionByKey, omit, pick } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
 import { updatePoisoningCache } from '../../../util/poisoningHash';
+import { safeExecAsync } from '../../../util/safeExec';
 import { pause } from '../../../util/schedulers';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { parseTxId } from './util';
 import { fetchAddressBook, fetchLatestTxId, fetchTransactions } from './util/apiV3';
+import { emulateTrace, parseEmulation } from './util/emulation';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
 import { buildNft, parseWalletTransactionBody } from './util/metadata';
 import { sendExternal } from './util/sendExternal';
@@ -867,13 +870,14 @@ function transactionToActivity(transaction: ApiTransaction): ApiTransactionActiv
 export async function checkMultiTransactionDraft(
   accountId: string,
   messages: TonTransferParams[],
-  withDiesel = false,
-): Promise<{ fee?: bigint } & ({ error: ApiAnyDisplayError } | {})> {
-  const result: { fee?: bigint } = {};
+  withDiesel?: boolean,
+  withEmulation?: boolean,
+): Promise<{ fee?: bigint; emulation?: ApiEmulationResult } & ({ error: ApiAnyDisplayError } | {})> {
+  const result: { fee?: bigint; emulation?: ApiEmulationResult } = {};
   let totalAmount: bigint = 0n;
 
   const { network } = parseAccountId(accountId);
-  const { isInitialized, version } = await fetchStoredTonWallet(accountId);
+  const { isInitialized, version, address } = await fetchStoredTonWallet(accountId);
 
   try {
     for (const { toAddress, amount } of messages) {
@@ -896,8 +900,16 @@ export async function checkMultiTransactionDraft(
     const { transaction } = await signMultiTransaction({
       network, wallet, messages, version,
     });
+
     const blockchainFee = await calculateFee(network, wallet, transaction, isInitialized);
     result.fee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
+
+    if (withEmulation) {
+      result.emulation = await safeExecAsync(async () => {
+        const emulation = await emulateTrace(network, wallet, transaction, isInitialized);
+        return emulation && parseEmulation(network, address, emulation);
+      });
+    }
 
     // TODO Should `totalAmount` be `0` for `withDiesel`?
     if (!withDiesel && balance < totalAmount + result.fee) {

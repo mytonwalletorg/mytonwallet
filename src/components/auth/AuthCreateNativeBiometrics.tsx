@@ -1,8 +1,8 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
+import { getIsFaceIdAvailable, getIsTouchIdAvailable } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
-import { getIsFaceIdAvailable, getIsTouchIdAvailable } from '../../util/capacitor';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';

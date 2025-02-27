@@ -36,14 +36,7 @@ function CardAddress({
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag(false);
   const chains = useMemo(() => Object.keys(addressByChain || {}) as ApiChain[], [addressByChain]);
-  const explorerTitle = useMemo(() => {
-    return chains.length !== 1
-      ? undefined
-      : (lang('View address on %ton_explorer_name%', {
-        ton_explorer_name: getExplorerName(chains[0]),
-      }) as TeactNode[]
-      ).join('');
-  }, [chains, lang]);
+  const explorerTitle = lang('View in Explorer');
   const chainDropdownItems = useMemo(() => {
     if (chains.length < 2) return undefined;
 

@@ -65,6 +65,7 @@ interface StateProps {
   isQrScannerOpen?: boolean;
   isHardwareModalOpen?: boolean;
   isExploreOpen?: boolean;
+  isFullscreen: boolean;
   areSettingsOpen?: boolean;
   theme: Theme;
   accentColorIndex?: number;
@@ -86,6 +87,7 @@ function App({
   isHardwareModalOpen,
   isQrScannerOpen,
   isExploreOpen,
+  isFullscreen,
   areSettingsOpen,
   theme,
   accentColorIndex,
@@ -150,6 +152,10 @@ function App({
     document.documentElement.classList.add('is-rendered');
     resolveRender();
   }, []);
+  useLayoutEffect(() => {
+    document.documentElement.classList.toggle('is-fullscreen', isFullscreen);
+    requestAnimationFrame(updateSizes);
+  }, [isFullscreen]);
 
   useSyncEffect(() => {
     if (accountId) {
@@ -190,7 +196,7 @@ function App({
       case AppState.Explore:
         return <Explore isActive={isActive} />;
       case AppState.Settings:
-        return <Settings />;
+        return <Settings isActive={isActive} />;
       case AppState.Ledger:
         return <LedgerModal isOpen onClose={handleCloseBrowserTab} />;
       case AppState.Inactive:
@@ -220,7 +226,7 @@ function App({
           isOpen={areSettingsOpen}
           onClose={closeSettings}
         >
-          <Settings isInsideModal />
+          <Settings isActive={!!areSettingsOpen} isInsideModal />
         </SettingsModal>
       )}
       <AppLocked />
@@ -269,6 +275,7 @@ export default memo(withGlobal((global): StateProps => {
     isExploreOpen: global.isExploreOpen,
     areSettingsOpen: global.areSettingsOpen,
     isQrScannerOpen: global.isQrScannerOpen,
+    isFullscreen: Boolean(global.isFullscreen),
     theme: global.settings.theme,
     accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
   };

@@ -1,6 +1,6 @@
 {
   "name": "mytonwallet",
-  "version": "3.3.4",
+  "version": "3.4.0",
   "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,11 @@
     "electron:package": "npm run electron:build && npx rimraf dist-electron && electron-builder build --win --mac --linux --config src/electron/config.yml",
     "electron:package:staging": "ENV=staging npm run electron:package -- -p never",
     "electron:release:production": "ENV=production npm run electron:package -- -p always",
+    "telegram:dev": "cross-env IS_TELEGRAM_APP=1 npm run dev",
+    "telegram:build": "IS_TELEGRAM_APP=1 npm run build",
+    "telegram:build:dev": "cross-env APP_ENV=development npm run telegram:build",
+    "telegram:build:staging": "cross-env APP_ENV=staging npm run telegram:build",
+    "telegram:build:production": "npm run telegram:build",
     "mobile:build": "IS_CAPACITOR=1 npm run build && cap sync",
     "mobile:build:dev": "cross-env APP_ENV=development npm run mobile:build",
     "mobile:build:staging": "cross-env APP_ENV=staging npm run mobile:build",
@@ -100,6 +105,7 @@
     "@statoscope/cli": "5.28.2",
     "@statoscope/webpack-plugin": "5.28.2",
     "@tonconnect/protocol": "2.2.6",
+    "@twa-dev/types": "8.0.2",
     "@types/bip39": "3.0.0",
     "@types/chrome": "0.0.277",
     "@types/create-hmac": "1.1.3",

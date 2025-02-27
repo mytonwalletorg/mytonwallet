@@ -172,3 +172,15 @@ export function selectIsMultichainAccount(global: GlobalState, accountId: string
 export function selectHasSession(global: GlobalState) {
   return Boolean(global.currentAccountId);
 }
+
+export function selectIsBiometricAuthEnabled(global: GlobalState) {
+  const { authConfig } = global.settings;
+
+  return !!authConfig && authConfig.kind !== 'password';
+}
+
+export function selectIsNativeBiometricAuthEnabled(global: GlobalState) {
+  const { authConfig } = global.settings;
+
+  return !!authConfig && authConfig.kind === 'native-biometrics';
+}

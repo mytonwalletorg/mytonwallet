@@ -9,10 +9,12 @@ import { SettingsState } from '../../../../global/types';
 
 import { selectNetworkAccounts } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { vibrate } from '../../../../util/capacitor';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
+import { vibrate } from '../../../../util/haptics';
 import { shortenAddress } from '../../../../util/shortenAddress';
+import { getTelegramApp } from '../../../../util/telegram';
 import trapFocus from '../../../../util/trapFocus';
+import { getIsMobileTelegramApp } from '../../../../util/windowEnvironment';
 
 import useEffectWithPrevDeps from '../../../../hooks/useEffectWithPrevDeps';
 import useFlag from '../../../../hooks/useFlag';
@@ -45,6 +47,7 @@ interface StateProps {
   shouldForceAccountEdit?: boolean;
   currentWalletVersion?: ApiTonWalletVersion;
   isAppLockEnabled?: boolean;
+  isFullscreen?: boolean;
   settingsByAccountId?: Record<string, AccountSettings>;
 }
 
@@ -67,6 +70,7 @@ function AccountSelector({
   shouldForceAccountEdit,
   currentWalletVersion,
   isAppLockEnabled,
+  isFullscreen,
   settingsByAccountId,
 }: OwnProps & StateProps) {
   const {
@@ -131,7 +135,7 @@ function AccountSelector({
   };
 
   const handleSwitchAccount = useLastCallback((accountId: string) => {
-    vibrate();
+    void vibrate();
     closeAccountSelector();
     switchAccount({ accountId });
   });
@@ -143,7 +147,7 @@ function AccountSelector({
   });
 
   const handleAddWalletClick = useLastCallback(() => {
-    vibrate();
+    void vibrate();
     closeAccountSelector();
     openAddAccountModal();
   });
@@ -152,7 +156,7 @@ function AccountSelector({
   }, [isEdit, isInsideSticky]);
 
   const handleAddV5WalletClick = useLastCallback(() => {
-    vibrate();
+    void vibrate();
     closeAccountSelector();
     openSettingsWithState({ state: SettingsState.WalletVersion });
   });
@@ -166,8 +170,16 @@ function AccountSelector({
   });
 
   const handleQrScanClick = useLastCallback(() => {
-    closeAccountSelector();
     requestOpenQrScanner();
+    closeAccountSelector();
+  });
+
+  const handleFullscreenToggle = useLastCallback(() => {
+    if (isFullscreen) {
+      getTelegramApp()?.exitFullscreen();
+    } else {
+      getTelegramApp()?.requestFullscreen();
+    }
   });
 
   const handleManualLock = useLastCallback(() => {
@@ -258,6 +270,18 @@ function AccountSelector({
               <i className="icon-qr-scanner" aria-hidden />
             </Button>
           )}
+          {getIsMobileTelegramApp() && (
+            <Button
+              className={buildClassName(styles.menuButton, menuButtonClassName)}
+              isText
+              isSimple
+              kind="transparent"
+              ariaLabel={lang('Toggle fullscreen')}
+              onClick={handleFullscreenToggle}
+            >
+              <i className={isFullscreen ? 'icon-fullscreen-exit' : 'icon-fullscreen'} aria-hidden />
+            </Button>
+          )}
         </div>
       </>
     );
@@ -325,6 +349,13 @@ function AccountSelector({
 
 export default memo(withGlobal<OwnProps>(
   (global): StateProps => {
+    const {
+      isFullscreen,
+      shouldForceAccountEdit,
+      walletVersions,
+      settings: { isAppLockEnabled, byAccountId: settingsByAccountId },
+    } = global;
+
     const accounts = selectNetworkAccounts(global);
     const currentAccountId = global.currentAccountId!;
 
@@ -332,10 +363,11 @@ export default memo(withGlobal<OwnProps>(
       currentAccountId,
       currentAccount: accounts?.[currentAccountId],
       accounts,
-      shouldForceAccountEdit: global.shouldForceAccountEdit,
-      currentWalletVersion: global.walletVersions?.currentVersion,
-      isAppLockEnabled: global.settings.isAppLockEnabled,
-      settingsByAccountId: global.settings.byAccountId,
+      shouldForceAccountEdit,
+      currentWalletVersion: walletVersions?.currentVersion,
+      isAppLockEnabled,
+      settingsByAccountId,
+      isFullscreen,
     };
   },
   (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

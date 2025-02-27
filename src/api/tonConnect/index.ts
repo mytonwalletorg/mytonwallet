@@ -14,6 +14,7 @@ import type {
 import { CHAIN } from '@tonconnect/protocol';
 import nacl from 'tweetnacl';
 
+import type { TonTransferParams } from '../chains/ton/types';
 import type {
   ApiAccountWithMnemonic,
   ApiAnyDisplayError,
@@ -311,6 +312,9 @@ export async function sendTransaction(
     const dapp = (await getDappsByOrigin(accountId))[origin];
     const transactionsForRequest = await prepareTransactionForRequest(network, messages);
 
+    const { emulation: emulationResult } = checkResult;
+    const { byTransactionIndex = [] } = emulationResult ?? {};
+
     const { promiseId, promise } = createDappPromise();
 
     onPopupUpdate({
@@ -318,8 +322,13 @@ export async function sendTransaction(
       promiseId,
       accountId,
       dapp,
-      transactions: transactionsForRequest,
+      transactions: transactionsForRequest
+        .map((tx, i) => ({
+          ...tx,
+          emulation: byTransactionIndex[i],
+        })),
       fee: checkResult.fee!,
+      emulationResult,
       vestingAddress,
     });
 
@@ -452,31 +461,30 @@ export function signData(request: ApiDappRequest, message: SignDataRpcRequest) {
   };
 }
 
-async function checkTransactionMessages(accountId: string, messages: TransactionPayloadMessage[], network: ApiNetwork) {
-  const preparedMessages = messages.map((msg) => {
+async function checkTransactionMessages(
+  accountId: string,
+  messages: TransactionPayloadMessage[],
+  network: ApiNetwork,
+) {
+  const preparedMessages: TonTransferParams[] = messages.map((msg) => {
     const {
-      address,
+      address: toAddress,
       amount,
       payload,
       stateInit,
     } = msg;
 
     return {
-      toAddress: getIsRawAddress(address) ? toBase64Address(address, true, network) : address,
+      toAddress: getIsRawAddress(toAddress)
+        ? toBase64Address(toAddress, true, network)
+        : toAddress,
       amount: BigInt(amount),
       payload: payload ? Cell.fromBase64(payload) : undefined,
       stateInit: stateInit ? Cell.fromBase64(stateInit) : undefined,
     };
   });
 
-  const checkResult = await ton.checkMultiTransactionDraft(accountId, preparedMessages);
-  if ('error' in checkResult) {
-    onPopupUpdate({
-      type: 'showError',
-      error: checkResult.error,
-    });
-    throw new errors.BadRequestError(checkResult.error);
-  }
+  const checkResult = await ton.checkMultiTransactionDraft(accountId, preparedMessages, false, true);
 
   return {
     preparedMessages,

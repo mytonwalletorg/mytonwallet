@@ -6,3 +6,4 @@ export * from './backend';
 export * from './storage';
 export * from './activity';
 export * from './notifications';
+export * from './emulation';

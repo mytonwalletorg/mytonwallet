@@ -4,7 +4,7 @@ $auth_intro: |
   a la **velocidad de la luz**.
 Create New Wallet: Crear un monedero nuevo
 Import From %1$d Secret Words: Importar usando la frase semilla
-About MyTonWallet: Acerca de MyTonWallet
+More about MyTonWallet: Más sobre MyTonWallet
 Creating Wallet...: Creando monedero...
 On the count of three...: A la cuenta de tres...
 $back_up_auth: Siguiente
@@ -71,7 +71,7 @@ Toggle TON Magic: Alternar TON Magic
 Open Telegram Web: Abrir Telegram Web
 Back Up Secret Words: Copia de seguridad
 Settings: Configuración
-About: Acerca de
+About MyTonWallet: Acerca de MyTonWallet
 Exit: Salir
 Remove Wallet: Salir
 Something went wrong.: Oops! Algo salió mal.
@@ -145,7 +145,6 @@ Signing was confirmed!: ¡La firma fue confirmada!
 Transaction Info: Información de la transacción
 Transaction in progress: Transacción en curso
 Comment was copied!: ¡El comentario fue copiado!
-View Transaction on %ton_explorer_name%: Ver transacción en %ton_explorer_name%
 Sender: Remitente
 Recipient: Receptor
 Address was copied!: ¡Se copió la dirección!
@@ -196,9 +195,8 @@ Save Address: Guardar dirección
 Name: Nombre
 Save: Guardar
 Copy: Copiar
-Remove From Saved Addresses: Eliminar de direcciones guardadas
-Add To Saved Addresses: Agregar a direcciones guardadas
-View Address on %ton_explorer_name%: Ver dirección en %ton_explorer_name%
+Remove From Saved: Eliminar de guardados
+View in Explorer: Ver en el explorador
 No suggestions, you're on your own!: Sin sugerencias, ¡estás solo!
 Play Sounds: Reproducir sonidos
 Focus on asset value rather than current balance: Centrarse en el valor de los activos en lugar del saldo actual
@@ -714,6 +712,7 @@ Reset Card: Restablecer tarjeta
 Apply Palette: Aplicar paleta
 Reset Palette: Restablecer paleta
 Notifications & Sounds: Notificaciones y sonidos
+Sounds: Sonidos
 Push Notifications: Notificaciones Push
 Select up to %count% wallets for notifications: Selecciona hasta %count% billeteras para notificaciones
 $swap_aggregator_fee_tooltip: Un **agregador DEX** incorporado encuentra la **mejor tasa** entre los DEX disponibles. La tarifa de servicio es del %percent%.
@@ -730,3 +729,9 @@ Connected: Conectado
 All Dapps: Todas las Dapps
 Trending: Tendencia
 No Data: Sin datos
+Toggle fullscreen: Alternar pantalla completa
+Request is sent!: ¡Solicitud enviada!
+Transaction ID: ID de transacción
+Help Center: Centro de ayuda
+MyTonWallet Tips: Consejos de MyTonWallet
+$returned_value: "~ %value% será devuelto"

@@ -2,6 +2,7 @@ import React, { memo, type TeactNode } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import { IS_CAPACITOR } from '../../config';
+import { getDoesUsePinPad } from '../../util/biometrics';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -37,7 +38,7 @@ function SwapPassword({
 
   return (
     <>
-      {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Swap')} onClose={cancelSwap} />}
+      {!getDoesUsePinPad() && <ModalHeader title={lang('Confirm Swap')} onClose={cancelSwap} />}
       <PasswordForm
         isActive={isActive}
         isLoading={isLoading}

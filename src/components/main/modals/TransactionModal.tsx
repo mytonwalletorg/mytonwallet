@@ -1,5 +1,5 @@
 import React, {
-  memo, type TeactNode, useEffect, useMemo, useState,
+  memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
@@ -25,15 +25,15 @@ import { getIsTxIdLocal } from '../../../global/helpers';
 import { getStakingStateStatus } from '../../../global/helpers/staking';
 import { selectAccountStakingStates, selectCurrentAccountState } from '../../../global/selectors';
 import { bigintAbs } from '../../../util/bigint';
+import { getDoesUsePinPad } from '../../../util/biometrics';
 import buildClassName from '../../../util/buildClassName';
-import { vibrateOnSuccess } from '../../../util/capacitor';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
 import { toDecimal } from '../../../util/decimals';
-import { handleOpenUrl } from '../../../util/openUrl';
+import { vibrateOnSuccess } from '../../../util/haptics';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
 import { getNativeToken, getTransactionHashFromTxId } from '../../../util/tokens';
-import { getExplorerName, getExplorerTransactionUrl } from '../../../util/url';
+import { getExplorerTransactionUrl } from '../../../util/url';
 import { callApi } from '../../../api';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
@@ -151,14 +151,6 @@ function TransactionModal({
   const [passwordError, setPasswordError] = useState<string>();
 
   const transactionUrl = chain ? getExplorerTransactionUrl(chain, transactionHash, isTestnet) : undefined;
-  const explorerTitle = useMemo(() => {
-    return chain
-      ? (lang('View Transaction on %ton_explorer_name%', {
-        ton_explorer_name: getExplorerName(chain),
-      }) as TeactNode[]
-      ).join('')
-      : undefined;
-  }, [lang, chain]);
 
   const [withUnstakeTimer, setWithUnstakeTimer] = useState(false);
 
@@ -268,7 +260,7 @@ function TransactionModal({
       return;
     }
 
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       setIsPinAccepted();
       await vibrateOnSuccess(true);
     }
@@ -279,7 +271,7 @@ function TransactionModal({
 
   const handleClose = useLastCallback(() => {
     closeActivityInfo({ id: id! });
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       clearIsPinAccepted();
     }
   });
@@ -385,6 +377,24 @@ function TransactionModal({
     );
   }
 
+  function renderTransactionId() {
+    return (
+      <div className={styles.textFieldWrapperFullWidth}>
+        <span className={styles.textFieldLabel}>
+          {lang('Transaction ID')}
+        </span>
+        <InteractiveTextField
+          noSavedAddress
+          chain={chain}
+          address={transactionHash}
+          addressUrl={transactionUrl}
+          copyNotification={lang('Transaction ID was copied!')}
+          className={styles.changellyTextField}
+        />
+      </div>
+    );
+  }
+
   function renderUnstakeTimer() {
     return (
       <div className={buildClassName(styles.unstakeTime, unstakeTimerClassNames)}>
@@ -412,7 +422,7 @@ function TransactionModal({
 
   function renderTransactionContent() {
     return (
-      <>
+      <div className={modalStyles.transitionContent}>
         {isNftTransfer ? (
           <NftInfo nft={nft} withTonExplorer />
         ) : (
@@ -445,6 +455,7 @@ function TransactionModal({
 
         {renderFee()}
         {renderComment()}
+        {transactionUrl && renderTransactionId()}
         {shouldRenderUnstakeTimer && renderUnstakeTimer()}
 
         <div className={styles.footer}>
@@ -467,7 +478,7 @@ function TransactionModal({
             </Button>
           )}
         </div>
-      </>
+      </div>
     );
   }
 
@@ -478,22 +489,7 @@ function TransactionModal({
         return (
           <>
             {renderHeader()}
-            <div className={modalStyles.transitionContent}>
-              {transactionUrl && (
-                <a
-                  href={transactionUrl}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className={styles.tonExplorer}
-                  title={explorerTitle}
-                  aria-label={explorerTitle}
-                  onClick={handleOpenUrl}
-                >
-                  <i className="icon-tonexplorer" aria-hidden />
-                </a>
-              )}
-              {renderTransactionContent()}
-            </div>
+            {renderTransactionContent()}
           </>
         );
       case SLIDES.password:
@@ -501,7 +497,9 @@ function TransactionModal({
 
         return (
           <>
-            {!IS_CAPACITOR && <ModalHeader title={lang('Enter Password')} onClose={handleClose} />}
+            {!getDoesUsePinPad() && (
+              <ModalHeader title={lang('Enter Password')} onClose={handleClose} />
+            )}
             <PasswordForm
               isActive={isActive}
               error={passwordError}

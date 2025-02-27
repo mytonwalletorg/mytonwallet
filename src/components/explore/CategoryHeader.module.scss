@@ -41,6 +41,10 @@
       }
     }
 
+    :global(html.is-mobile-telegram-app.is-fullscreen) & {
+      padding-top: calc(var(--tg-safe-area-inset-top) + var(--header-title-height))
+    }
+
     &::after {
       /* stylelint-disable-next-line plugin/whole-pixel */
       bottom: -0.25px !important;
@@ -70,6 +74,10 @@
     padding: 0.0625rem 0.375rem;
 
     font-size: 1.0625rem;
+
+    :global(html.is-telegram-app) & {
+      visibility: hidden;
+    }
   }
 }
 

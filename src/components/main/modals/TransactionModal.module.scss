@@ -61,46 +61,6 @@
   padding: 0.5rem !important;
 }
 
-.tonExplorer {
-  position: absolute;
-  top: 1.0625rem;
-  left: 1rem;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  height: 1.875rem !important;
-  padding: 0;
-
-  font-size: 1.5rem;
-  line-height: 1.875rem;
-  color: var(--color-gray-3);
-  text-align: center;
-  text-decoration: none;
-
-  border-radius: 50%;
-
-  transition: color 150ms;
-
-  &:active {
-    text-decoration: none;
-
-    // Optimization
-    transition: none;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: var(--color-accent);
-    text-decoration: none;
-  }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
-}
-
 .unstakeTime {
   position: relative;
 

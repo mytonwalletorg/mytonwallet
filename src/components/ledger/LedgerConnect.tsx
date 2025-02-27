@@ -11,9 +11,12 @@ import { IS_CAPACITOR } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { closeLedgerTab } from '../../util/ledger/tab';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
-import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP } from '../../util/windowEnvironment';
+import {
+  IS_ANDROID, IS_DELEGATING_BOTTOM_SHEET, IS_IOS, IS_IOS_APP,
+} from '../../util/windowEnvironment';
 
 import useAppTheme from '../../hooks/useAppTheme';
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -92,6 +95,7 @@ function LedgerConnect({
   } = getActions();
 
   const lang = useLang();
+  const { isPortrait } = useDeviceScreen();
   const [selectedTransport, setSelectedTransport] = useState<LedgerTransport | undefined>(lastUsedTransport);
   const appTheme = useAppTheme(currentTheme);
 
@@ -236,19 +240,23 @@ function LedgerConnect({
 
   function getLedgerIconSrc() {
     const isDarkTheme = appTheme === 'dark';
+    const iconData = {
+      desktop: isDarkTheme ? ledgerDesktopDarkSrc : ledgerDesktopSrc,
+      mobileUsb: isDarkTheme ? ledgerMobileUsbDarkSrc : ledgerMobileUsbSrc,
+      ios: isDarkTheme ? ledgerIosDarkSrc : ledgerIosSrc,
+      mobileBluetooth: isDarkTheme ? ledgerMobileBluetoothDarkSrc : ledgerMobileBluetoothSrc,
+    };
+
     if (!IS_CAPACITOR) {
-      return isDarkTheme ? ledgerDesktopDarkSrc : ledgerDesktopSrc;
+      // Ledger is only supported on iOS for Capacitor app
+      return IS_ANDROID ? iconData.mobileUsb : iconData.desktop;
     }
 
     if (IS_IOS) {
-      return isDarkTheme ? ledgerIosDarkSrc : ledgerIosSrc;
+      return iconData.ios;
     }
 
-    if (selectedTransport === 'bluetooth') {
-      return isDarkTheme ? ledgerMobileBluetoothDarkSrc : ledgerMobileBluetoothSrc;
-    }
-
-    return isDarkTheme ? ledgerMobileUsbDarkSrc : ledgerMobileUsbSrc;
+    return selectedTransport === 'bluetooth' ? iconData.mobileBluetooth : iconData.mobileUsb;
   }
 
   function renderWaitingForBrowser() {
@@ -273,7 +281,7 @@ function LedgerConnect({
           <Transition
             activeKey={!IS_CAPACITOR ? 0 : (selectedTransport !== 'bluetooth' ? 1 : 2)}
             name="semiFade"
-            className={buildClassName(styles.iconBlock, IS_CAPACITOR && styles.mobile)}
+            className={buildClassName(styles.iconBlock, isPortrait && styles.mobile)}
             slideClassName={styles.iconBlockSlide}
           >
             <Image
@@ -334,7 +342,7 @@ function LedgerConnect({
           <Transition
             activeKey={!IS_CAPACITOR ? 0 : (selectedTransport !== 'bluetooth' ? 1 : 2)}
             name="semiFade"
-            className={buildClassName(styles.iconBlock, IS_CAPACITOR && styles.mobile)}
+            className={buildClassName(styles.iconBlock, isPortrait && styles.mobile)}
             slideClassName={isStatic ? styles.iconBlockSlideStatic : styles.iconBlockSlide}
           >
             <Image

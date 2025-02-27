@@ -14,6 +14,12 @@ declare namespace React {
     'data-focus-scroll-position'?: ScrollLogicalPosition;
   }
 
+  interface InputHTMLAttributes {
+    // The internal implementation of the attribute is a boolean value
+    // https://caniuse.com/mdn-html_global_attributes_autocorrect (see partial support notes)
+    autoCorrect?: boolean;
+  }
+
   // Teact feature
   interface CSSProperties extends String {}
 

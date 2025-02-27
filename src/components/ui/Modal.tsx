@@ -7,12 +7,13 @@ import React, {
   useEffect, useLayoutEffect, useRef, useState,
 } from '../../lib/teact/teact';
 
-import { ANIMATION_END_DELAY, IS_EXTENSION } from '../../config';
+import { ANIMATION_END_DELAY, IS_EXTENSION, IS_TELEGRAM_APP } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { captureEvents, SwipeDirection } from '../../util/captureEvents';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { getIsSwipeToCloseDisabled } from '../../util/modalSwipeManager';
 import { createSignal } from '../../util/signals';
+import { getTelegramApp } from '../../util/telegram';
 import trapFocus from '../../util/trapFocus';
 import { IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import windowSize from '../../util/windowSize';
@@ -106,10 +107,15 @@ function Modal({
 
   const isSlideUp = !isCompact && isPortrait;
 
-  useHistoryBack({
-    isActive: isOpen,
-    onBack: onClose,
-  });
+  useHistoryBack({ isActive: isOpen, onBack: onClose, shouldIgnoreForTelegram: isCompact });
+
+  useEffect(() => {
+    if (!IS_TELEGRAM_APP || !isOpen || isCompact) return undefined;
+
+    getTelegramApp()?.disableVerticalSwipes();
+
+    return getTelegramApp()?.enableVerticalSwipes;
+  }, [isCompact, isOpen]);
 
   useEffectWithPrevDeps(([prevIsOpen]) => {
     // Expand NBS to full size for a compact modal inside NBS

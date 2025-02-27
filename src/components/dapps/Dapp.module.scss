@@ -564,12 +564,6 @@
   flex-direction: column;
 }
 
-.contentWithBackground {
-  height: 100%;
-
-  background-color: var(--color-background-window);
-}
-
 .warningForPayload {
   width: 100%;
   padding: 0.75rem;
@@ -580,4 +574,23 @@
 
   background-color: var(--color-transaction-amount-red-bg);
   border-radius: var(--border-radius-normal);
+}
+
+.fee {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  margin-top: auto;
+  padding-top: 1rem;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-gray-3);
+  text-align: center;
+}
+
+.buttonsAfterFee {
+  margin-top: 0 !important;
+  padding-top: 0.875rem !important;
 }

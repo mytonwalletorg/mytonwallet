@@ -84,10 +84,15 @@
   color: var(--action-color, var(--color-card-second-text));
   text-shadow: inherit;
 
-  &:focus-visible,
-  &:active,
-  &:hover {
+  &:active {
     color: var(--action-color-hover, var(--color-card-text));
+  }
+
+  @media (hover: hover) {
+    &:focus-visible,
+    &:hover {
+      color: var(--action-color-hover, var(--color-card-text));
+    }
   }
 
   @include respond-below(xs) {

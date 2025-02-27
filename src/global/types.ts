@@ -10,6 +10,7 @@ import type {
   ApiDapp,
   ApiDappPermissions,
   ApiDappTransfer,
+  ApiEmulationResult,
   ApiHistoryList,
   ApiLedgerDriver,
   ApiNetwork,
@@ -406,7 +407,7 @@ export interface NftTransfer {
 /** A dapp transfer prepared to be shown in the UI */
 export interface ExtendedDappTransfer extends ApiDappTransfer {
   /** The network fee portion of that transfer. Always measured in TON. Undefined means that it's unknown. */
-  fee?: bigint;
+  networkFee?: bigint;
   /** The actual address where the transfer will go */
   realToAddress: string;
   /** Whether the transfer should be treated with cautiousness, because its payload is unclear */
@@ -554,7 +555,13 @@ export type GlobalState = {
     transactions?: ApiDappTransfer[];
     vestingAddress?: string;
     viewTransactionOnIdx?: number;
-    fee?: bigint;
+    /** The plain pure blockchain fee */
+    networkFee?: bigint;
+    /**
+     * More extended information about the fee. May miss due to the technical problems. In this case you should fallback
+     * to the `networkFee` field.
+     */
+    emulationResult?: Omit<ApiEmulationResult, 'byTransactionIndex'>;
     dapp?: ApiDapp;
     error?: string;
   };
@@ -701,6 +708,8 @@ export type GlobalState = {
 
   isManualLockActive?: boolean;
   appLockHideBiometrics?: boolean;
+  // The app is open in fullscreen mode in Telegram MiniApp on mobile
+  isFullscreen?: boolean;
 };
 
 export interface ActionPayloads {
@@ -1069,6 +1078,9 @@ export interface ActionPayloads {
   deleteNotificationAccount: { accountId: string; withAbort?: boolean };
   deleteAllNotificationAccounts: undefined | { accountIds: string[] };
   registerNotifications: { userToken: string; platform: CapacitorPlatform };
+
+  openFullscreen: undefined;
+  closeFullscreen: undefined;
 }
 
 export enum LoadMoreDirection {

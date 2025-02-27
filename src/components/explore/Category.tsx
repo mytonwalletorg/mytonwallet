@@ -39,7 +39,14 @@ function Category({ category, sites }: OwnProps) {
 
   return (
     <div className={styles.root}>
-      <h3 className={styles.header}>{lang(category.name)}</h3>
+      <h3
+        className={styles.header}
+        role="button"
+        tabIndex={0}
+        onClick={handleCategoryClick}
+      >
+        {lang(category.name)}
+      </h3>
 
       <div className={styles.folder}>
         {bigSites.map((site) => (

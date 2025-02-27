@@ -5,7 +5,7 @@ import { addExtraClass, removeExtraClass } from '../../../lib/teact/teact-dom';
 import { getActions } from '../../../global';
 
 import buildClassName from '../../../util/buildClassName';
-import { vibrateOnSuccess } from '../../../util/capacitor';
+import { vibrateOnSuccess } from '../../../util/haptics';
 import { pause } from '../../../util/schedulers';
 import { DPR, IS_DELEGATING_BOTTOM_SHEET, IS_IOS } from '../../../util/windowEnvironment';
 

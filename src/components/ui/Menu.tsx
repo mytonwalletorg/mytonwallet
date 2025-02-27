@@ -1,4 +1,4 @@
-import type { FC } from '../../lib/teact/teact';
+import type { FC, RefObject } from '../../lib/teact/teact';
 import React, { beginHeavyAnimation, useEffect, useRef } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
@@ -16,6 +16,7 @@ import styles from './Menu.module.scss';
 
 type OwnProps = {
   children: React.ReactNode;
+  menuRef?: RefObject<HTMLDivElement | null>;
   isOpen: boolean;
   id?: string;
   className?: string;
@@ -44,6 +45,7 @@ const Menu: FC<OwnProps> = ({
   children,
   isOpen,
   id,
+  menuRef,
   className,
   bubbleClassName,
   style,
@@ -64,7 +66,10 @@ const Menu: FC<OwnProps> = ({
   onMouseLeave,
 }) => {
   // eslint-disable-next-line no-null/no-null
-  const menuRef = useRef<HTMLDivElement>(null);
+  let bubbleRef = useRef<HTMLDivElement>(null);
+  if (menuRef) {
+    bubbleRef = menuRef;
+  }
 
   useHistoryBack({
     isActive: Boolean(isOpen && onClose),
@@ -94,7 +99,7 @@ const Menu: FC<OwnProps> = ({
     }
   }, [isOpen]);
 
-  useVirtualBackdrop(isOpen && !noBackdrop, menuRef, noCloseOnBackdrop ? undefined : onClose);
+  useVirtualBackdrop(isOpen && !noBackdrop, bubbleRef, noCloseOnBackdrop ? undefined : onClose);
 
   const fullBubbleClassName = buildClassName(
     styles.bubble,
@@ -126,7 +131,7 @@ const Menu: FC<OwnProps> = ({
         <div className={styles.backdrop} onClick={stopEvent} />
       )}
       <div
-        ref={menuRef}
+        ref={bubbleRef}
         className={fullBubbleClassName}
         style={`transform-origin: ${transformOriginXStyle || positionX} ${transformOriginYStyle || positionY}`}
         onClick={autoClose ? onClose : undefined}

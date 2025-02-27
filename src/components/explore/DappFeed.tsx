@@ -28,7 +28,7 @@ const MAX_DAPPS_FOR_PILL_MODE = 3;
 const HIDDEN_FROM_FEED_DAPP_ORIGINS = new Set(['https://checkin.mytonwallet.org']);
 
 function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin = {} }: StateProps) {
-  const { openSettingsWithState } = getActions();
+  const { openSettingsWithState, closeExplore } = getActions();
 
   const lang = useLang();
   // eslint-disable-next-line no-null/no-null
@@ -52,7 +52,8 @@ function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByOrigin = {} }: S
   );
 
   function openSettings() {
-    openSettingsWithState({ state: SettingsState.Dapps });
+    closeExplore(undefined, { forceOnHeavyAnimation: true });
+    openSettingsWithState({ state: SettingsState.Dapps }, { forceOnHeavyAnimation: true });
   }
 
   useHorizontalScroll({

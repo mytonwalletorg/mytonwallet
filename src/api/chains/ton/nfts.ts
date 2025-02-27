@@ -37,7 +37,7 @@ export async function getAccountNfts(accountId: string, offset?: number, limit?:
   const { address } = await fetchStoredTonWallet(accountId);
 
   const rawNfts = await fetchAccountNfts(network, address, { offset, limit });
-  return compact(rawNfts.map((rawNft) => buildNft(network, rawNft)));
+  return compact(rawNfts.map((rawNft) => buildNft(network, rawNft)).filter(Boolean) as ApiNft[]);
 }
 
 export async function checkNftOwnership(accountId: string, nftAddress: string) {

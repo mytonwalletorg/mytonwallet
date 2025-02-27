@@ -3,8 +3,8 @@ import { getActions } from '../../global';
 
 import type { AuthMethod } from '../../global/types';
 
+import { getIsBiometricAuthSupported } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
-import { getIsBiometricAuthSupported } from '../../util/capacitor';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import useHistoryBack from '../../hooks/useHistoryBack';

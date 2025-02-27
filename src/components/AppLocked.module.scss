@@ -63,4 +63,23 @@
 
   background-color: var(--color-tint-lock);
   backdrop-filter: blur(var(--blur-app-locked));
+
+  // On mobile devices in TMA, the blur filter causes visual glitches
+  :global(html.is-mobile-telegram-app) & {
+    background-color: var(--color-background-lock);
+    backdrop-filter: none;
+
+    &::before {
+      content: '';
+
+      position: absolute;
+      z-index: -1;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+
+      background: var(--color-background-first);
+    }
+  }
 }

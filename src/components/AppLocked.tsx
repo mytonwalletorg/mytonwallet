@@ -7,14 +7,23 @@ import { getActions, withGlobal } from '../global';
 import type { AutolockValueType, Theme } from '../global/types';
 
 import {
-  APP_NAME, AUTOLOCK_OPTIONS_LIST, DEBUG, IS_CAPACITOR,
+  APP_NAME, AUTOLOCK_OPTIONS_LIST, DEBUG, IS_TELEGRAM_APP,
 } from '../config';
-import { selectIsHardwareAccount } from '../global/selectors';
+import {
+  selectIsBiometricAuthEnabled,
+  selectIsHardwareAccount,
+  selectIsNativeBiometricAuthEnabled,
+} from '../global/selectors';
+import { getDoesUsePinPad, getIsNativeBiometricAuthSupported } from '../util/biometrics';
 import buildClassName from '../util/buildClassName';
-import { vibrateOnSuccess } from '../util/capacitor';
 import { stopEvent } from '../util/domEvents';
+import { vibrateOnSuccess } from '../util/haptics';
 import { createSignal } from '../util/signals';
-import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_ELECTRON } from '../util/windowEnvironment';
+import {
+  IS_DELEGATED_BOTTOM_SHEET,
+  IS_DELEGATING_BOTTOM_SHEET,
+  IS_ELECTRON,
+} from '../util/windowEnvironment';
 import { callApi } from '../api';
 
 import useAppTheme from '../hooks/useAppTheme';
@@ -152,7 +161,7 @@ function AppLocked({
       return;
     }
 
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       setIsPinAccepted();
       await vibrateOnSuccess(true);
     }
@@ -213,12 +222,14 @@ function AppLocked({
   }
 
   function renderTransitionContent(isActive: boolean) {
+    const isFixedSlide = isNonNativeBiometricAuthEnabled && slideForBiometricAuth === SLIDES.button;
+
     return (
       <div
-        className={buildClassName(styles.appLocked, !IS_CAPACITOR && styles.appLockedFixed)}
+        className={buildClassName(styles.appLocked, isFixedSlide && styles.appLockedFixed)}
       >
         {
-          isNonNativeBiometricAuthEnabled && slideForBiometricAuth === SLIDES.button ? (
+          isFixedSlide ? (
             <>
               {renderLogo()}
               <span className={buildClassName(styles.title, 'rounded-font')}>{APP_NAME}</span>
@@ -232,7 +243,7 @@ function AppLocked({
             </>
           ) : (
             <PasswordForm
-              isActive={IS_CAPACITOR ? !shouldHideBiometrics : true}
+              isActive={getIsNativeBiometricAuthSupported() ? !shouldHideBiometrics : true}
               noAnimatedIcon
               forceBiometricsInMain
               error={passwordError}
@@ -259,7 +270,7 @@ function AppLocked({
 
   return (
     <Transition
-      name="semiFade"
+      name={isNonNativeBiometricAuthEnabled && IS_TELEGRAM_APP ? 'slideFade' : 'semiFade'}
       onContainerClick={isNonNativeBiometricAuthEnabled ? handleChangeSlideForBiometricAuth : undefined}
       activeKey={transitionKey}
       className={buildClassName(transitionClassNames, styles.appLockedWrapper)}
@@ -271,13 +282,13 @@ function AppLocked({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { authConfig, autolockValue, isAppLockEnabled } = global.settings;
+  const { autolockValue, isAppLockEnabled } = global.settings;
 
   const isHardwareAccount = selectIsHardwareAccount(global);
 
-  const isBiometricAuthEnabled = !!authConfig && authConfig.kind !== 'password';
-  const isNativeBiometricAuthEnabled = !!authConfig && authConfig.kind === 'native-biometrics';
-  const isNonNativeBiometricAuthEnabled = isBiometricAuthEnabled && !isNativeBiometricAuthEnabled;
+  const isBiometricAuthEnabled = selectIsBiometricAuthEnabled(global);
+  const isNativeBiometricAuthEnabled = selectIsNativeBiometricAuthEnabled(global);
+  const isNonNativeBiometricAuthEnabled = isBiometricAuthEnabled && (!isNativeBiometricAuthEnabled || IS_TELEGRAM_APP);
 
   return {
     isNonNativeBiometricAuthEnabled,

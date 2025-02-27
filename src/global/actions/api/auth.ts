@@ -8,13 +8,15 @@ import {
 } from '../../types';
 
 import {
-  APP_NAME, IS_CAPACITOR, MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT,
+  APP_NAME, IS_TELEGRAM_APP, MNEMONIC_CHECK_COUNT, MNEMONIC_COUNT,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import authApi from '../../../util/authApi';
+import { verifyIdentity as verifyTelegramBiometricIdentity } from '../../../util/authApi/telegram';
 import webAuthn from '../../../util/authApi/webAuthn';
-import { getIsNativeBiometricAuthSupported, vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { getDoesUsePinPad, getIsNativeBiometricAuthSupported } from '../../../util/biometrics';
 import { copyTextToClipboard } from '../../../util/clipboard';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import { cloneDeep, compact, omitUndefined } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
@@ -106,7 +108,7 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
     : (isFirstAccount
       ? AuthState.createWallet
       // The app only has hardware wallets accounts, which means we need to create a password or biometrics
-      : IS_CAPACITOR
+      : getDoesUsePinPad()
         ? AuthState.createPin
         : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword)
     );
@@ -149,16 +151,14 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   }
 
   setGlobal(updateAuth(global, {
-    state: IS_CAPACITOR
+    state: getDoesUsePinPad()
       ? AuthState.createPin
       : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword),
   }));
 
   if (isFirstAccount) {
     actions.requestConfetti();
-    if (IS_CAPACITOR) {
-      void vibrateOnSuccess();
-    }
+    void vibrateOnSuccess();
   }
 });
 
@@ -208,7 +208,7 @@ addActionHandler('cancelConfirmPin', (global, actions, { isImporting }) => {
 
 addActionHandler('cancelDisclaimer', (global) => {
   setGlobal(updateAuth(global, {
-    state: IS_CAPACITOR
+    state: getDoesUsePinPad()
       ? AuthState.createPin
       : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword),
   }));
@@ -466,10 +466,7 @@ addActionHandler('addHardwareAccounts', (global, actions, { wallets }) => {
   if (isFirstAccount) {
     actions.resetApiSettings();
     actions.requestConfetti();
-
-    if (IS_CAPACITOR) {
-      void vibrateOnSuccess();
-    }
+    void vibrateOnSuccess();
   }
 });
 
@@ -557,7 +554,7 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
 
   const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
   const hasAccounts = Object.keys(selectAccounts(global) || {}).length > 0;
-  const state = IS_CAPACITOR
+  const state = getDoesUsePinPad()
     ? AuthState.importWalletCreatePin
     : (IS_BIOMETRIC_AUTH_SUPPORTED
       ? AuthState.importWalletCreateBiometrics
@@ -575,9 +572,7 @@ addActionHandler('afterImportMnemonic', async (global, actions, { mnemonic }) =>
       actions.requestConfetti();
     }
 
-    if (IS_CAPACITOR) {
-      void vibrateOnSuccess();
-    }
+    void vibrateOnSuccess();
   } else {
     actions.confirmDisclaimer();
   }
@@ -972,13 +967,20 @@ addActionHandler('enableNativeBiometrics', async (global, actions, { password })
   setGlobal(global);
 
   try {
-    const isVerified = await NativeBiometric.verifyIdentity({
-      title: APP_NAME,
-      subtitle: '',
-      maxAttempts: 1,
-    })
-      .then(() => true)
-      .catch(() => false);
+    let isVerified: boolean;
+
+    if (IS_TELEGRAM_APP) {
+      const verificationResult = await verifyTelegramBiometricIdentity();
+      isVerified = verificationResult.success;
+    } else {
+      isVerified = await NativeBiometric.verifyIdentity({
+        title: APP_NAME,
+        subtitle: '',
+        maxAttempts: 1,
+      })
+        .then(() => true)
+        .catch(() => false);
+    }
 
     if (!isVerified) {
       global = getGlobal();
@@ -994,16 +996,12 @@ addActionHandler('enableNativeBiometrics', async (global, actions, { password })
     }
 
     const result = await authApi.setupNativeBiometrics(password);
+
     await pause(NATIVE_BIOMETRICS_PAUSE_MS);
 
     global = getGlobal();
-    global = updateSettings(global, {
-      authConfig: result.config,
-    });
-    global = {
-      ...global,
-      nativeBiometricsError: undefined,
-    };
+    global = updateSettings(global, { authConfig: result.config });
+    global = { ...global, nativeBiometricsError: undefined };
     setGlobal(global);
 
     void vibrateOnSuccess();

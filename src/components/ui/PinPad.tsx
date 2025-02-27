@@ -4,8 +4,9 @@ import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 
+import { getIsFaceIdAvailable } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
-import { getIsFaceIdAvailable, vibrateOnError } from '../../util/capacitor';
+import { vibrateOnError } from '../../util/haptics';
 import { disableSwipeToClose, enableSwipeToClose } from '../../util/modalSwipeManager';
 import { SWIPE_DISABLED_CLASS_NAME } from '../../util/swipeController';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';

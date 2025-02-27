@@ -8,6 +8,12 @@
   }
 }
 
+.modalContent {
+  :global(html.is-telegram-app) & {
+    padding-bottom: 0 !important;
+  }
+}
+
 .modalText {
   max-width: 20rem;
   margin: 0 auto 1.25rem;

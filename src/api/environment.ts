@@ -5,12 +5,12 @@
 import type { ApiInitArgs } from './types';
 
 import {
-  ELECTRON_TONHTTPAPI_MAINNET_API_KEY,
-  ELECTRON_TONHTTPAPI_TESTNET_API_KEY,
+  ELECTRON_TONCENTER_MAINNET_KEY,
+  ELECTRON_TONCENTER_TESTNET_KEY,
   IS_CAPACITOR,
   IS_EXTENSION,
-  TONHTTPAPI_MAINNET_API_KEY,
-  TONHTTPAPI_TESTNET_API_KEY,
+  TONCENTER_MAINNET_KEY,
+  TONCENTER_TESTNET_KEY,
 } from '../config';
 
 const ELECTRON_ORIGIN = 'file://';
@@ -19,8 +19,8 @@ let environment: ApiInitArgs & {
   isDappSupported: boolean;
   isSseSupported: boolean;
   apiHeaders?: AnyLiteral;
-  tonhttpapiMainnetKey?: string;
-  tonhttpapiTestnetKey?: string;
+  toncenterMainnetKey?: string;
+  toncenterTestnetKey?: string;
 };
 
 export function setEnvironment(args: ApiInitArgs) {
@@ -30,8 +30,8 @@ export function setEnvironment(args: ApiInitArgs) {
     isSseSupported: args.isElectron || (IS_CAPACITOR && !args.isNativeBottomSheet),
     // eslint-disable-next-line no-restricted-globals
     apiHeaders: { 'X-App-Origin': args.isElectron ? ELECTRON_ORIGIN : self?.origin },
-    tonhttpapiMainnetKey: args.isElectron ? ELECTRON_TONHTTPAPI_MAINNET_API_KEY : TONHTTPAPI_MAINNET_API_KEY,
-    tonhttpapiTestnetKey: args.isElectron ? ELECTRON_TONHTTPAPI_TESTNET_API_KEY : TONHTTPAPI_TESTNET_API_KEY,
+    toncenterMainnetKey: args.isElectron ? ELECTRON_TONCENTER_MAINNET_KEY : TONCENTER_MAINNET_KEY,
+    toncenterTestnetKey: args.isElectron ? ELECTRON_TONCENTER_TESTNET_KEY : TONCENTER_TESTNET_KEY,
   };
   return environment;
 }

@@ -3,6 +3,7 @@ import { getActions } from '../../global';
 
 import buildClassName from '../../util/buildClassName';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
 import CheckWordsContent from '../common/backup/CheckWordsContent';
@@ -11,15 +12,17 @@ import Button from '../ui/Button';
 import styles from './Auth.module.scss';
 
 interface OwnProps {
-  isActive?: boolean;
+  isActive: boolean;
   mnemonic?: string[];
   checkIndexes?: number[];
 }
 
 const AuthCheckWords = ({ isActive, mnemonic, checkIndexes }: OwnProps) => {
+  const { openMnemonicPage } = getActions();
+
   const lang = useLang();
 
-  const { openMnemonicPage } = getActions();
+  useHistoryBack({ isActive, onBack: openMnemonicPage });
 
   return (
     <div className={styles.wrapper}>

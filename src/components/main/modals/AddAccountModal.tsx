@@ -254,6 +254,7 @@ function AddAccountModal({
       isOpen={isOpen}
       noBackdropClose
       dialogClassName={styles.modalDialog}
+      contentClassName={styles.modalContent}
       nativeBottomSheetKey="add-account"
       forceFullNative={renderingKey === RenderingState.Password}
       onCloseAnimationEnd={handleModalClose}

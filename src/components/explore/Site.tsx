@@ -3,7 +3,7 @@ import React, { memo } from '../../lib/teact/teact';
 import type { ApiSite } from '../../api/types';
 
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
+import { vibrate } from '../../util/haptics';
 import { openUrl } from '../../util/openUrl';
 import { getHostnameFromUrl, isTelegramUrl } from '../../util/url';
 

@@ -1,5 +1,6 @@
 import type { DNS_ZONES_MAP } from '../chains/ton/constants';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
+import type { ApiEmulatedTransaction } from './emulation';
 import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions } from './storage';
 
@@ -203,6 +204,8 @@ export interface ApiDappTransfer {
   payload?: ApiParsedPayload;
   stateInit?: string;
   isScam?: boolean;
+  /** Emulation may miss due to technical problems. In this case you should fallback to the plain fee field. */
+  emulation?: ApiEmulatedTransaction;
 }
 
 export interface ApiSignedTransfer {

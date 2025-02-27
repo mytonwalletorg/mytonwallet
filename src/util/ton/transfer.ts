@@ -30,3 +30,7 @@ export function getDappTransferActualToAddress(transfer: ApiDappTransfer) {
 export function isTransferPayloadDangerous(payload: ApiParsedPayload | undefined) {
   return payload?.type === 'unknown';
 }
+
+export function doesTransactionAmountActAsFee(payload: ApiParsedPayload | undefined) {
+  return isNftTransferPayload(payload) || isTokenTransferPayload(payload);
+}

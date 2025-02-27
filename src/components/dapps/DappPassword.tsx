@@ -2,6 +2,7 @@ import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import { IS_CAPACITOR } from '../../config';
+import { getDoesUsePinPad } from '../../util/biometrics';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -35,7 +36,7 @@ function DappPassword({
 
   return (
     <>
-      {!IS_CAPACITOR && <ModalHeader title={lang('Enter Password')} onClose={onClose} />}
+      {!getDoesUsePinPad() && <ModalHeader title={lang('Enter Password')} onClose={onClose} />}
       <PasswordForm
         isActive={isActive}
         error={error}

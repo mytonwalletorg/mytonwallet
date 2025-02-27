@@ -6,6 +6,7 @@ import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
@@ -17,10 +18,15 @@ interface OwnProps {
   isActive?: boolean;
 }
 
-const AuthCreateBackup = ({ isActive }: OwnProps) => {
+function AuthCreateBackup({ isActive }: OwnProps) {
   const { skipCheckMnemonic, openAuthBackupWalletModal, resetAuth } = getActions();
 
   const lang = useLang();
+
+  useHistoryBack({
+    isActive,
+    onBack: resetAuth,
+  });
 
   const canSkipMnemonicCheck = !IS_PRODUCTION;
 
@@ -71,6 +77,6 @@ const AuthCreateBackup = ({ isActive }: OwnProps) => {
       </div>
     </div>
   );
-};
+}
 
 export default memo(AuthCreateBackup);

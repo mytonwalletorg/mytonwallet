@@ -2,6 +2,7 @@ import React, { memo, useEffect, useState } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
 import { PIN_LENGTH } from '../../../config';
+import { selectIsNativeBiometricAuthEnabled } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
@@ -107,15 +108,11 @@ function NativeBiometricsTurnOn({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const {
-    nativeBiometricsError,
-    isPinAccepted,
-    settings: { authConfig },
-  } = global;
+  const { nativeBiometricsError, isPinAccepted } = global;
 
   return {
     isPinAccepted,
     error: nativeBiometricsError,
-    isNativeBiometricsEnabled: !!authConfig && authConfig.kind === 'native-biometrics',
+    isNativeBiometricsEnabled: selectIsNativeBiometricAuthEnabled(global),
   };
 })(NativeBiometricsTurnOn));

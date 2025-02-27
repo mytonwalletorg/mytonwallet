@@ -16,6 +16,11 @@
 
   background-color: var(--color-close-button-background);
   border-radius: var(--border-radius-buttons);
+
+  @supports (backdrop-filter: saturate(180%) blur(20px)) {
+    background-color: var(--color-close-button-background);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
 }
 
 .tokenSelectSearchIcon {

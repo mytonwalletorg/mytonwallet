@@ -2,7 +2,8 @@ import { DappConnectState, TransferState } from '../../types';
 
 import { ANIMATION_END_DELAY, IS_CAPACITOR } from '../../../config';
 import { areDeepEqual } from '../../../util/areDeepEqual';
-import { vibrateOnSuccess } from '../../../util/capacitor';
+import { getDoesUsePinPad } from '../../../util/biometrics';
+import { vibrateOnSuccess } from '../../../util/haptics';
 import { callActionInMain } from '../../../util/multitab';
 import { pause, waitFor } from '../../../util/schedulers';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
@@ -46,7 +47,7 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
     return;
   }
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = getGlobal();
     global = setIsPinAccepted(global);
     setGlobal(global);
@@ -58,10 +59,7 @@ addActionHandler('submitDappConnectRequestConfirm', async (global, actions, { pa
     return;
   }
 
-  if (IS_CAPACITOR) {
-    void vibrateOnSuccess();
-  }
-
+  void vibrateOnSuccess();
   actions.switchAccount({ accountId });
   await callApi('confirmDappRequestConnect', promiseId!, {
     accountId,
@@ -136,7 +134,7 @@ addActionHandler('cancelDappConnectRequestConfirm', (global) => {
     void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
   }
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = clearIsPinAccepted(global);
   }
   global = clearDappConnectRequest(global);
@@ -156,7 +154,7 @@ addActionHandler('cancelDappTransfer', (global) => {
     void callApi('cancelDappRequest', promiseId, 'Canceled by the user');
   }
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = clearIsPinAccepted(global);
   }
   global = clearCurrentDappTransfer(global);
@@ -185,7 +183,7 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
     return;
   }
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = getGlobal();
     global = setIsPinAccepted(global);
     setGlobal(global);
@@ -204,10 +202,7 @@ addActionHandler('submitDappTransferPassword', async (global, actions, { passwor
   });
   setGlobal(global);
 
-  if (IS_CAPACITOR) {
-    await vibrateOnSuccess(true);
-  }
-
+  await vibrateOnSuccess(true);
   void callApi('confirmDappRequest', promiseId, password);
 
   global = getGlobal();
@@ -371,6 +366,7 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
   accountId,
   dapp,
   vestingAddress,
+  emulationResult,
 }) => {
   const { currentAccountId, currentDappTransfer: { promiseId: currentPromiseId } } = global;
   if (currentAccountId !== accountId) {
@@ -405,9 +401,10 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
     state,
     promiseId,
     transactions,
-    fee,
+    networkFee: fee,
     dapp,
     vestingAddress,
+    emulationResult,
   });
   setGlobal(global);
 });

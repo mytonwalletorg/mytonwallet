@@ -24,10 +24,11 @@ import {
   ACCENT_SILVER_INDEX,
   extractAccentColorIndex,
 } from '../../../util/accentColor';
-import { vibrateOnSuccess } from '../../../util/capacitor';
+import { getDoesUsePinPad } from '../../../util/biometrics';
 import { parseDeeplinkTransferParams, processDeeplink } from '../../../util/deeplink';
 import { getCachedImageUrl } from '../../../util/getCachedImageUrl';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
+import { vibrateOnSuccess } from '../../../util/haptics';
 import { omit } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
@@ -35,7 +36,9 @@ import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { openUrl } from '../../../util/openUrl';
 import { preloadImage } from '../../../util/preloadImage';
 import { pause } from '../../../util/schedulers';
+import { getTelegramApp } from '../../../util/telegram';
 import {
+  getIsMobileTelegramApp,
   IS_ANDROID_APP,
   IS_BIOMETRIC_AUTH_SUPPORTED,
   IS_DELEGATED_BOTTOM_SHEET,
@@ -179,12 +182,11 @@ addActionHandler('addAccount', async (global, actions, { method, password, isAut
       return;
     }
 
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       global = setIsPinAccepted(getGlobal());
       setGlobal(global);
-
-      await vibrateOnSuccess(true);
     }
+    await vibrateOnSuccess(true);
   }
 
   global = getGlobal();
@@ -210,7 +212,7 @@ addActionHandler('addAccount2', (global, actions, { method, password }) => {
       ? AuthState.importWallet
       : undefined
     : (
-      IS_CAPACITOR
+      getDoesUsePinPad()
         ? AuthState.createPin
         : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword)
     );
@@ -254,7 +256,7 @@ addActionHandler('openAddAccountModal', (global, actions, props) => {
 });
 
 addActionHandler('closeAddAccountModal', (global) => {
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = clearIsPinAccepted(global);
   }
 
@@ -542,6 +544,16 @@ addActionHandler('requestConfetti', (global) => {
 });
 
 addActionHandler('requestOpenQrScanner', async (global, actions) => {
+  if (getIsMobileTelegramApp()) {
+    const webApp = getTelegramApp();
+    webApp?.showScanQrPopup({}, (data) => {
+      void vibrateOnSuccess();
+      webApp.closeScanQrPopup();
+      actions.handleQrCode({ data });
+    });
+    return;
+  }
+
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('requestOpenQrScanner');
     return;
@@ -836,6 +848,14 @@ addActionHandler('openExplore', (global) => {
 
 addActionHandler('closeExplore', (global) => {
   return { ...global, isExploreOpen: undefined };
+});
+
+addActionHandler('openFullscreen', (global) => {
+  setGlobal({ ...global, isFullscreen: true });
+});
+
+addActionHandler('closeFullscreen', (global) => {
+  setGlobal({ ...global, isFullscreen: undefined });
 });
 
 async function connectLedgerAndGetHardwareState() {

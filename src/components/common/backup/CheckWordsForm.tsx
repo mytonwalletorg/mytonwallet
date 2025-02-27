@@ -76,7 +76,7 @@ function CheckWordsForm({
             labelText={`${key + 1}`}
             value={words[key]}
             isInModal={isInModal}
-            suggestionsPosition={i > 1 ? 'top' : undefined}
+            suggestionsPosition={i <= 1 ? 'bottom' : 'top'}
             inputArg={key}
             className={styles.checkMnemonicInput}
             onInput={handleSetWord}

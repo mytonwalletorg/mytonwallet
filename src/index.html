@@ -45,6 +45,9 @@
   <% if (process.env.IS_EXTENSION !== '1') { %>
       <link rel="manifest" href="./site.webmanifest">
   <% } %>
+  <% if (process.env.IS_TELEGRAM_APP === '1') { %>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <% } %>
   <script src="./fallbackScript.js"></script>
 </head>
 

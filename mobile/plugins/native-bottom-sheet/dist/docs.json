@@ -371,6 +371,10 @@
           "complexTypes": []
         },
         {
+          "text": "'disclaimer-confirmed'",
+          "complexTypes": []
+        },
+        {
           "text": "'backup-warning'",
           "complexTypes": []
         },

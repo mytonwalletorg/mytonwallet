@@ -47,6 +47,7 @@ const MAPPED_ATTRIBUTES: { [k: string]: string } = {
   autoComplete: 'autocomplete',
   autoCorrect: 'autocorrect',
   autoPlay: 'autoplay',
+  spellCheck: 'spellcheck',
 };
 const INDEX_KEY_PREFIX = '__indexKey#';
 

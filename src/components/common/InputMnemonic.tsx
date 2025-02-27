@@ -184,7 +184,10 @@ function InputMnemonic({
         id={id}
         className={buildClassName(styles.input, value !== '' && styles.touched)}
         type="text"
+        autoCapitalize="none"
         autoComplete="off"
+        autoCorrect={false}
+        spellCheck={false}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}

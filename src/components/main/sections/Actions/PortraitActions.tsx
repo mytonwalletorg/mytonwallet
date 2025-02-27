@@ -4,7 +4,7 @@ import { getActions } from '../../../../global';
 import type { StakingStateStatus } from '../../../../global/helpers/staking';
 
 import buildClassName from '../../../../util/buildClassName';
-import { vibrate } from '../../../../util/capacitor';
+import { vibrate } from '../../../../util/haptics';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';

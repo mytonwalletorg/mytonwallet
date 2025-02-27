@@ -74,7 +74,7 @@ Toggle TON Magic: Переключити TON Magic
 Open Telegram Web: Відкрити Telegram Web
 Back Up Secret Words: Резервна копія
 Settings: Налаштування
-About: Про MyTonWallet
+About MyTonWallet: Про MyTonWallet
 Exit: Вийти
 Remove Wallet: Вихід
 Something went wrong.: Упс, щось пішло не так.
@@ -149,7 +149,6 @@ Signing was confirmed!: Підпис підтверджено!
 Transaction Info: Інформація про переказ
 Transaction in progress: Переказ виконується
 Comment was copied!: Коментар скопійовано!
-View Transaction on %ton_explorer_name%: Переглянути переказ у %ton_explorer_name%
 Sender: Відправник
 Recipient: Одержувач
 Address was copied!: Адресу скопійовано!
@@ -201,9 +200,8 @@ Save Address: Зберегти адресу
 Name: Ім'я
 Save: Зберегти
 Copy: Скопіювати
-Remove From Saved Addresses: Видалити збережену адресу
-Add To Saved Addresses: Додати в Збережені адреси
-View Address on %ton_explorer_name%: Відкрити в %ton_explorer_name%
+Remove From Saved: Видалити зі збережених
+View in Explorer: Переглянути в Explorer
 No suggestions, you're on your own!: Нічого не знайдено :(
 Play Sounds: Включити звуки
 Focus on asset value rather than current balance: Фокус на вартості активів замість поточного балансу
@@ -720,6 +718,7 @@ Reset Card: Скинути карту
 Apply Palette: Застосувати палітру
 Reset Palette: Скинути палітру
 Notifications & Sounds: Сповіщення та звуки
+Sounds: Звуки
 Push Notifications: Сповіщення
 Select up to %count% wallets for notifications: Виберіть до %count% гаманців для сповіщень
 $swap_aggregator_fee_tooltip: Вбудований **агрегатор DEX** знаходить **найкращий курс** серед доступних DEX. Плата за послугу становить %percent%.
@@ -736,3 +735,9 @@ Connected: Підключено
 All Dapps: Всі додатки
 Trending: У тренді
 No Data: Даних немає
+Toggle fullscreen: Перемкнути повноекранний режим
+Request is sent!: Запит відправлено!
+Transaction ID: ID транзакції
+Help Center: База знань
+MyTonWallet Tips: Поради MyTonWallet
+$returned_value: "~ %value% буде повернено"

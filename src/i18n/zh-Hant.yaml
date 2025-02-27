@@ -70,7 +70,7 @@ Toggle TON Magic: 切換 TON Magic
 Open Telegram Web: 開啟 Telegram Web
 Back Up Secret Words: 備份註記詞
 Settings: 設定
-About: 關於
+About MyTonWallet: 關於 MyTonWallet
 Exit: 斷開連結
 Remove Wallet: 斷開連結
 Something went wrong.: 狀況異常。
@@ -143,7 +143,6 @@ Signing was confirmed!: 簽署已確認!
 Transaction Info: 交易資訊
 Transaction in progress: 交易進行中
 Comment was copied!: 註記欄已被複製!
-View Transaction on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此交易
 Sender: 發送人
 Recipient: 接收人
 Address was copied!: 地址已被複製!
@@ -193,9 +192,8 @@ Save Address: 儲存地址
 Name: 名稱
 Save: 儲存
 Copy: 複製
-Remove From Saved Addresses: 從保存的地址中刪除
-Add To Saved Addresses: 新增到保存的地址
-View Address on %ton_explorer_name%: 在 %ton_explorer_name% 上查看此地址
+Remove From Saved: 從已保存中移除
+View in Explorer: 在瀏覽器中查看
 No suggestions, you're on your own!: 沒有建議，請靠自己！
 Play Sounds: 播放聲音
 Focus on asset value rather than current balance: 關注資產價值而非當前餘額
@@ -704,6 +702,7 @@ Reset Card: 重設卡片
 Apply Palette: 套用調色板
 Reset Palette: 重設調色板
 Notifications & Sounds: 通知和聲音
+Sounds: 聲音
 Push Notifications: 推送通知
 Select up to %count% wallets for notifications: 選擇最多 %count% 個錢包接收通知
 $swap_aggregator_fee_tooltip: 內建的 **DEX 聚合器** 會在可用的 DEX 中找到 **最佳匯率**。服務費為 %percent%。
@@ -720,3 +719,9 @@ Connected: 已連接
 All Dapps: 所有去中心化應用
 Trending: 熱門
 No Data: 無數據
+Toggle fullscreen: 切換全螢幕模式
+Request is sent!: 請求已發送！
+Transaction ID: 交易ID
+Help Center: 幫助中心
+MyTonWallet Tips: MyTonWallet 提示
+$returned_value: "~ %value% 將被退還"

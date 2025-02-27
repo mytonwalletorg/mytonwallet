@@ -6,10 +6,11 @@ import { getActions, withGlobal } from '../../global';
 
 import type { AuthConfig } from '../../util/authApi/types';
 
-import { IS_CAPACITOR, PIN_LENGTH } from '../../config';
+import { PIN_LENGTH } from '../../config';
+import { selectIsBiometricAuthEnabled, selectIsNativeBiometricAuthEnabled } from '../../global/selectors';
 import authApi from '../../util/authApi';
+import { getDoesUsePinPad, getIsFaceIdAvailable, getIsTouchIdAvailable } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
-import { getIsFaceIdAvailable, getIsTouchIdAvailable } from '../../util/capacitor';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { pause } from '../../util/schedulers';
 import { IS_ANDROID_APP, IS_DELEGATING_BOTTOM_SHEET } from '../../util/windowEnvironment';
@@ -103,6 +104,7 @@ function PasswordForm({
   const [isResetBiometricsWarningOpen, openResetBiometricsWarning, closeResetBiometricsWarning] = useFlag(false);
   const { isSmallHeight, isPortrait } = useDeviceScreen();
   const isSubmitDisabled = !password.length;
+  const canUsePinPad = getDoesUsePinPad();
 
   useEffect(() => {
     if (isActive) {
@@ -197,7 +199,7 @@ function PasswordForm({
     }
   }
 
-  if (IS_CAPACITOR) {
+  if (canUsePinPad) {
     const hasError = Boolean(localError || error);
     const title = getPinPadTitle();
     const actionName = lang(
@@ -296,6 +298,10 @@ function PasswordForm({
   }
 
   const shouldRenderFullWidthButton = operationType === 'unlock';
+  const footerButtonsClassName = buildClassName(
+    modalStyles.footerButtons,
+    shouldRenderFullWidthButton && modalStyles.footerButtonFullWidth,
+  );
 
   return (
     <div className={buildClassName(modalStyles.transitionContent, containerClassName)}>
@@ -315,17 +321,13 @@ function PasswordForm({
 
       {isBiometricAuthEnabled ? renderBiometricPrompt() : renderPasswordForm()}
 
-      <div
-        className={
-          buildClassName(modalStyles.footerButtons, shouldRenderFullWidthButton && modalStyles.footerButtonFullWidth)
-        }
-      >
+      <div className={footerButtonsClassName}>
         {onCancel && (
           <Button
-            onClick={isBiometricAuthEnabled && isLoading ? undefined : onCancel}
             isLoading={isLoading && isBiometricAuthEnabled}
             isDisabled={isLoading && !isBiometricAuthEnabled}
             className={modalStyles.buttonHalfWidth}
+            onClick={onCancel}
           >
             {cancelLabel || lang('Cancel')}
           </Button>
@@ -335,8 +337,8 @@ function PasswordForm({
             isPrimary
             isLoading={isLoading}
             isDisabled={isLoading}
-            onClick={!isLoading ? handleBiometrics : undefined}
             className={modalStyles.buttonHalfWidth}
+            onClick={!isLoading ? handleBiometrics : undefined}
           >
             {lang('Try Again')}
           </Button>
@@ -346,8 +348,8 @@ function PasswordForm({
             isPrimary
             isLoading={isLoading}
             isDisabled={isSubmitDisabled}
-            onClick={!isLoading ? handleSubmit : undefined}
             className={!shouldRenderFullWidthButton ? modalStyles.buttonHalfWidth : modalStyles.buttonFullWidth}
+            onClick={!isLoading ? handleSubmit : undefined}
           >
             {submitLabel || lang('Send')}
           </Button>
@@ -376,8 +378,8 @@ function PasswordForm({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { isPasswordNumeric, authConfig } = global.settings;
-  const isBiometricAuthEnabled = !!authConfig && authConfig.kind !== 'password';
-  const isNativeBiometricAuthEnabled = !!authConfig && authConfig.kind === 'native-biometrics';
+  const isBiometricAuthEnabled = selectIsBiometricAuthEnabled(global);
+  const isNativeBiometricAuthEnabled = selectIsNativeBiometricAuthEnabled(global);
 
   return {
     isPasswordNumeric,

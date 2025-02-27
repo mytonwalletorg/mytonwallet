@@ -27,10 +27,11 @@ import {
 } from '../../global/selectors';
 import { bigintMax } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
+import { stopEvent } from '../../util/domEvents';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
 import { formatCurrency } from '../../util/formatNumber';
+import { vibrate } from '../../util/haptics';
 import { throttle } from '../../util/schedulers';
 import { buildUserToken, getIsNativeToken, getNativeToken } from '../../util/tokens';
 import calcJettonStakingApr from '../../util/ton/calcJettonStakingApr';
@@ -254,14 +255,14 @@ function StakingInitial({
     && !isInsufficientFee
     && !isInsufficientBalance;
 
-  const handleSubmit = useLastCallback((e) => {
-    e.preventDefault();
+  const handleSubmit = useLastCallback((e: React.FormEvent | React.UIEvent) => {
+    stopEvent(e);
 
     if (!canSubmit) {
       return;
     }
 
-    vibrate();
+    void vibrate();
 
     submitStakingInitial({ amount });
   });

@@ -12,9 +12,7 @@ import type { FeePrecision, FeeTerms } from '../../util/fee/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
-import {
-  IS_FIREFOX_EXTENSION, PRICELESS_TOKEN_HASHES, STAKED_TOKEN_SLUGS, TONCOIN,
-} from '../../config';
+import { PRICELESS_TOKEN_HASHES, STAKED_TOKEN_SLUGS, TONCOIN } from '../../config';
 import { Big } from '../../lib/big.js';
 import renderText from '../../global/helpers/renderText';
 import {
@@ -25,7 +23,6 @@ import {
   selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
 import { readClipboardContent } from '../../util/clipboard';
 import { SECOND } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
@@ -35,11 +32,12 @@ import {
   explainApiTransferFee, getMaxTransferAmount, isBalanceSufficientForTransfer,
 } from '../../util/fee/transferFee';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import { vibrate } from '../../util/haptics';
 import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { debounce } from '../../util/schedulers';
 import { shortenAddress } from '../../util/shortenAddress';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
-import { IS_ANDROID, IS_FIREFOX, IS_TOUCH_ENV } from '../../util/windowEnvironment';
+import { IS_ANDROID, IS_CLIPBOARDS_SUPPORTED, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
@@ -185,8 +183,7 @@ function TransferInitial({
     codeHash,
   } = transferToken || {};
 
-  // Note: As of 27-11-2023, Firefox does not support readText()
-  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(!(IS_FIREFOX || IS_FIREFOX_EXTENSION));
+  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(IS_CLIPBOARDS_SUPPORTED);
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [isAddressBookOpen, openAddressBook, closeAddressBook] = useFlag();
   const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
@@ -478,7 +475,7 @@ function TransferInitial({
       return;
     }
 
-    vibrate();
+    void vibrate();
     isDisabledDebounce.current = true;
     setTransferAmount({ amount: maxAmount });
   });
@@ -512,8 +509,8 @@ function TransferInitial({
     && !(isNftTransfer && !nfts?.length),
   );
 
-  const handleSubmit = useLastCallback((e) => {
-    e.preventDefault();
+  const handleSubmit = useLastCallback((e: React.FormEvent | React.UIEvent) => {
+    stopEvent(e);
 
     if (isDieselNotAuthorized) {
       authorizeDiesel();
@@ -524,7 +521,7 @@ function TransferInitial({
       return;
     }
 
-    vibrate();
+    void vibrate();
 
     submitTransferInitial({
       tokenSlug,
@@ -858,6 +855,7 @@ function TransferInitial({
           placeholder={lang('Wallet address or domain')}
           value={isAddressFocused ? toAddress : toAddressShort}
           error={hasToAddressError && !shouldIgnoreErrors ? (lang('Incorrect address') as string) : undefined}
+          autoCorrect={false}
           onInput={handleAddressInput}
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}

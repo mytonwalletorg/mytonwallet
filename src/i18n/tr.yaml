@@ -71,7 +71,7 @@ Toggle TON Magic: TON Magic'i Aç/Kapat
 Open Telegram Web: Telegram Web'i aç
 Back Up Secret Words: Gizli Kelimeleri Yedekleyin
 Settings: Ayarlar
-About: Hakkında
+About MyTonWallet: MyTonWallet Hakkında
 Exit: Çıkış
 Remove Wallet: Cüzdanı kaldırın
 Something went wrong.: Bir şeyler ters gitti.
@@ -146,7 +146,6 @@ Signing was confirmed!: İmza onaylandı!
 Transaction Info: İşlem bilgileri
 Transaction in progress: İşlem devam ediyor
 Comment was copied!: Açıklama kopyalandı!
-View Transaction on %ton_explorer_name%: "%ton_explorer_name%'da işlemi görüntüleyin"
 Sender: Gönderici
 Recipient: Alıcı
 Address was copied!: Adres kopyalandı!
@@ -197,9 +196,8 @@ Save Address: Adresi kaydet
 Name: İsim
 Save: Kaydet
 Copy: Kopyala
-Remove From Saved Addresses: Kayıtlı adreslerden kaldır
-Add To Saved Addresses: Kayıtlı adreslere ekle
-View Address on %ton_explorer_name%: "%ton_explorer_name%'da adresi görüntüle"
+Remove From Saved: Kaydedilenlerden Kaldır
+View in Explorer: Explorer'da Görüntüle
 No suggestions, you're on your own!: Önerimiz bulunmuyor, tek başınasınız!
 Play Sounds: Sesleri çal
 Focus on asset value rather than current balance: Mevcut bakiyeden ziyade varlık değerine odaklanır
@@ -715,6 +713,7 @@ Reset Card: Kartı sıfırla
 Apply Palette: Paleti uygula
 Reset Palette: Paleti sıfırla
 Notifications & Sounds: Bildirimler ve sesler
+Sounds: Sesler
 Push Notifications: Anlık Bildirimler
 Select up to %count% wallets for notifications: Bildirimler için en fazla %count% cüzdan seçin
 $swap_aggregator_fee_tooltip: Dahili bir **DEX toplayıcı**, mevcut DEX'ler arasında **en iyi oranı** bulur. Hizmet ücreti %percent%.
@@ -731,3 +730,9 @@ Connected: Bağlandı
 All Dapps: Tüm Dapp'lar
 Trending: Trendler
 No Data: Veri Yok
+Toggle fullscreen: Tam ekranı aç/kapat
+Request is sent!: İstek gönderildi!
+Transaction ID: İşlem Kimliği
+Help Center: Yardım Merkezi
+MyTonWallet Tips: MyTonWallet İpuçları
+$returned_value: "~ %value% iade edilecek"

@@ -162,6 +162,7 @@ function Main({
       if (cardElement) {
         observer.unobserve(cardElement);
         cardTopSideObserver.unobserve(cardElement);
+        setShouldRenderDarkStatusBar(false);
       }
     };
   }, [isActive, isPortrait, safeAreaTop]);

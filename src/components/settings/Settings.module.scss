@@ -1,10 +1,6 @@
 @import "../../styles/mixins";
 
 .wrapper {
-  --header-padding-top: 1.125rem;
-  --header-title-height: 1.0625rem;
-  --header-padding-bottom: 0.8125rem;
-
   height: 100%;
 
   :global(html.with-safe-area-top) & {
@@ -36,6 +32,24 @@
 
   & > & {
     --safe-area-top: 0px;
+
+    & > .header {
+      :global(html.is-mobile-telegram-app.is-fullscreen) & {
+        top: calc(0px - var(--header-padding-top) - var(--header-title-height));
+
+        padding-top: 0 !important;
+      }
+    }
+  }
+
+  @include respond-below(xs) {
+    &.withTopSpace {
+      padding-top: calc(var(--header-padding-top) + var(--header-title-height) + var(--header-padding-bottom) + 0.75rem);
+
+      :global(html.is-mobile-telegram-app.is-fullscreen) & {
+        padding-top: calc(var(--safe-area-top) + 0.75rem);
+      }
+    }
   }
 }
 
@@ -98,6 +112,10 @@
       }
     }
   }
+
+  :global(html.is-mobile-telegram-app.is-fullscreen) & {
+    padding-top: calc(var(--tg-safe-area-inset-top) + var(--header-title-height));
+  }
 }
 
 .languageHeader {
@@ -115,6 +133,10 @@
 
   font-size: 1.0625rem;
   color: var(--color-accent);
+
+  :global(html.is-telegram-app) & {
+    visibility: hidden;
+  }
 
   &.hidden {
     visibility: hidden;
@@ -163,6 +185,10 @@
 
   @include respond-below(xs) {
     padding-top: calc(var(--header-padding-top) + var(--header-title-height) + var(--header-padding-bottom) + 0.75rem);
+
+    :global(html.is-mobile-telegram-app.is-fullscreen) & {
+      padding-top: 0.75rem;
+    }
   }
 
   @include respond-below(xs) {
@@ -287,6 +313,7 @@
   border-radius: var(--border-radius-default);
 }
 
+.text:last-of-type,
 .settingsBlockWithDescription {
   margin-bottom: 0;
 }
@@ -715,10 +742,6 @@ a.item:hover {
   margin-bottom: 1.25rem;
 
   font-size: 0.9375rem;
-}
-
-.text:last-of-type {
-  margin-bottom: 0;
 }
 
 .heading {

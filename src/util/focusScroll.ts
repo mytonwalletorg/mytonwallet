@@ -1,8 +1,17 @@
-import { requestMeasure } from '../../lib/fasterdom/fasterdom';
-import { IS_ANDROID_APP } from '../windowEnvironment';
-import { onVirtualKeyboardOpen } from '../windowSize';
+import { IS_CAPACITOR } from '../config';
+import { requestMeasure } from '../lib/fasterdom/fasterdom';
+import { IS_ANDROID, IS_IOS } from './windowEnvironment';
+import { onVirtualKeyboardOpen } from './windowSize';
 
 const focusScroller = createFocusScroller();
+
+function isFocusable(element: Element): boolean {
+  const tagName = element.tagName.toLowerCase();
+  return tagName === 'input'
+    || tagName === 'textarea'
+    || tagName === 'select'
+    || element.hasAttribute('contenteditable');
+}
 
 /**
  * Implements a custom scroll behavior on input focus. Designed for Capacitor platforms only. Meets the following goals:
@@ -15,6 +24,14 @@ const focusScroller = createFocusScroller();
  * preferences.
  */
 export function initFocusScrollController() {
+  if (IS_CAPACITOR) {
+    initForCapacitor();
+  } else if ((IS_IOS || IS_ANDROID) && window.visualViewport) {
+    initForVisualViewport();
+  }
+}
+
+function initForCapacitor() {
   // `scrollToActiveElement` shouldn't be called in `keyboardWillShow` because the <body> size won't be patched yet, so
   // if the focused input at the bottom of the scrollable element, it won't be scrolled to.
   // `keyboardWillShow` could be used if the screen scroll height increased (instead of decreasing the <body> height).
@@ -30,6 +47,31 @@ export function initFocusScrollController() {
   void import('@capacitor/keyboard').then(({ Keyboard }) => {
     Keyboard.addListener('keyboardWillHide', focusScroller.uninstall);
   });
+}
+
+function initForVisualViewport() {
+  const { visualViewport } = window;
+  let viewportHeight = visualViewport!.height;
+
+  function handleViewportResize() {
+    const newHeight = visualViewport!.height;
+    const activeElement = document.activeElement;
+
+    // If the viewport height has decreased (the keyboard has opened) and the active element is focusable,
+    // we activate the scroller and scroll to the element
+    if (newHeight < viewportHeight && activeElement && isFocusable(activeElement)) {
+      focusScroller.install();
+      scrollToActiveElement();
+    } else if (newHeight > viewportHeight) {
+      // If the viewport height has increased (the keyboard has closed), we deactivate the scroller
+      focusScroller.uninstall();
+    }
+
+    // The viewport height is updated for the next comparison
+    viewportHeight = newHeight;
+  }
+
+  visualViewport!.addEventListener('resize', handleViewportResize);
 }
 
 function createFocusScroller() {
@@ -48,7 +90,7 @@ function createFocusScroller() {
     // Because Android doesn't support `preventScroll`, we make the scroll instant to prevent excessive back-and-forth
     // scrolls. Doing it only for programmatic `focus` calls allows to have smooth scrolling when the user focuses the
     // input by tapping it while the keyboard is open.
-    scrollToActiveElement(IS_ANDROID_APP && isProgrammaticFocus);
+    scrollToActiveElement(IS_ANDROID && isProgrammaticFocus);
     isProgrammaticFocus = false;
   };
 

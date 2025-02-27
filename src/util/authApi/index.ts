@@ -1,17 +1,23 @@
 import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
-import type { AuthConfig } from './types';
+import type { AuthConfig, BiometricsSetupResult } from './types';
 import type { CredentialCreationResult } from './webAuthn';
 
-import { APP_NAME, NATIVE_BIOMETRICS_SERVER, NATIVE_BIOMETRICS_USERNAME } from '../../config';
+import {
+  APP_NAME, IS_TELEGRAM_APP, NATIVE_BIOMETRICS_SERVER, NATIVE_BIOMETRICS_USERNAME,
+} from '../../config';
 import { logDebugError } from '../logs';
 import { randomBytes } from '../random';
+import {
+  setBiometricCredentials as setTelegramBiometricCredentials,
+  verifyIdentity as verifyTelegramBiometricsIdentity,
+} from './telegram';
 import webAuthn from './webAuthn';
 
 const CREDENTIAL_SIZE = 32;
 
 async function setupBiometrics({ credential }: { credential?: CredentialCreationResult }) {
-  let result: { password: string; config: AuthConfig } | undefined;
+  let result: BiometricsSetupResult | undefined;
 
   try {
     if (!credential) {
@@ -38,7 +44,16 @@ async function setupBiometrics({ credential }: { credential?: CredentialCreation
   return result;
 }
 
-async function setupNativeBiometrics(password: string) {
+async function setupNativeBiometrics(password: string): Promise<BiometricsSetupResult> {
+  if (IS_TELEGRAM_APP) {
+    await setTelegramBiometricCredentials(password);
+
+    return {
+      password,
+      config: { kind: 'native-biometrics' },
+    };
+  }
+
   await NativeBiometric.setCredentials({
     username: NATIVE_BIOMETRICS_USERNAME,
     password,
@@ -47,13 +62,15 @@ async function setupNativeBiometrics(password: string) {
 
   return {
     password,
-    config: {
-      kind: 'native-biometrics',
-    } as AuthConfig,
+    config: { kind: 'native-biometrics' },
   };
 }
 
 function removeNativeBiometrics() {
+  if (IS_TELEGRAM_APP) {
+    return setTelegramBiometricCredentials('');
+  }
+
   return NativeBiometric.deleteCredentials({
     server: NATIVE_BIOMETRICS_SERVER,
   });
@@ -67,6 +84,11 @@ async function getPassword(config: AuthConfig) {
       password = await webAuthn.getPassword(config);
     } else if (config.kind === 'electron-safe-storage') {
       password = await window.electron?.decryptPassword(config.encryptedPassword);
+    } else if (IS_TELEGRAM_APP && config.kind === 'native-biometrics') {
+      const { success: isVerified, token } = await verifyTelegramBiometricsIdentity();
+
+      if (!isVerified) return undefined;
+      password = token;
     } else if (config.kind === 'native-biometrics') {
       const isVerified = await NativeBiometric.verifyIdentity({
         title: APP_NAME,

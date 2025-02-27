@@ -8,7 +8,7 @@ import type { ObserveFn } from '../../../../hooks/useIntersectionObserver';
 import { type IAnchorPosition, MediaType } from '../../../../global/types';
 
 import buildClassName from '../../../../util/buildClassName';
-import { vibrate } from '../../../../util/capacitor';
+import { vibrate } from '../../../../util/haptics';
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { IS_ANDROID, IS_IOS } from '../../../../util/windowEnvironment';
 
@@ -77,7 +77,7 @@ function Nft({ nft, selectedAddresses, observeIntersection }: OwnProps) {
       return;
     }
 
-    vibrate();
+    void vibrate();
     openMediaViewer({ mediaId: nft.address, mediaType: MediaType.Nft });
   }
 

@@ -1,7 +1,7 @@
 import React, { memo, useState } from '../../lib/teact/teact';
 
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
+import { vibrate } from '../../util/haptics';
 
 import styles from './PinPad.module.scss';
 

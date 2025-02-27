@@ -3,8 +3,9 @@ import nacl from 'tweetnacl';
 import type { Theme } from '../../global/types';
 import type { AccountCache } from '../common/cache';
 import type { StorageKey } from '../storages/types';
-import type { ApiChain, ApiNetwork } from '../types';
+import type { ApiCardsInfo, ApiChain, ApiNetwork } from '../types';
 
+import { BRILLIANT_API_BASE_URL } from '../../config';
 import { getLogs, logDebugError } from '../../util/logs';
 import { setIsAppFocused } from '../../util/pauseOrFocus';
 import chains from '../chains';
@@ -83,4 +84,8 @@ export async function getMoonpayOnrampUrl(chain: ApiChain, address: string, them
 
     return handleServerError(err);
   }
+}
+
+export function getCardsInfo() {
+  return callBackendGet<ApiCardsInfo>(`${BRILLIANT_API_BASE_URL}/cards/info`);
 }

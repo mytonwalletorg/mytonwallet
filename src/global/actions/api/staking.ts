@@ -2,9 +2,9 @@ import type { ApiJettonStakingState, ApiTransactionError } from '../../../api/ty
 import { ApiCommonError } from '../../../api/types';
 import { StakingState } from '../../types';
 
-import { IS_CAPACITOR } from '../../../config';
-import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { getDoesUsePinPad } from '../../../util/biometrics';
 import { getTonStakingFees } from '../../../util/fee/getTonOperationFees';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { logDebugError } from '../../../util/logs';
 import { callActionInMain } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
@@ -170,7 +170,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
 
   const state = selectAccountStakingState(global, currentAccountId!)!;
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = setIsPinAccepted(global);
   }
 
@@ -180,10 +180,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
   });
   setGlobal(global);
 
-  if (IS_CAPACITOR) {
-    await vibrateOnSuccess(true);
-  }
-
+  await vibrateOnSuccess(true);
   global = getGlobal();
 
   if (isUnstaking) {
@@ -216,7 +213,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       });
       global = getGlobal();
 
-      if (IS_CAPACITOR) {
+      if (getDoesUsePinPad()) {
         global = clearIsPinAccepted(global);
       }
     } else {
@@ -243,7 +240,7 @@ addActionHandler('submitStakingPassword', async (global, actions, payload) => {
       });
 
       global = getGlobal();
-      if (IS_CAPACITOR) {
+      if (getDoesUsePinPad()) {
         global = clearIsPinAccepted(global);
       }
     } else {
@@ -350,7 +347,7 @@ addActionHandler('clearStakingError', (global) => {
 });
 
 addActionHandler('cancelStaking', (global) => {
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = clearIsPinAccepted(global);
   }
 
@@ -455,7 +452,7 @@ addActionHandler('submitStakingClaim', async (global, actions, { password }) => 
   }
   global = getGlobal();
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = setIsPinAccepted(global);
   }
 
@@ -464,10 +461,7 @@ addActionHandler('submitStakingClaim', async (global, actions, { password }) => 
     error: undefined,
   });
   setGlobal(global);
-
-  if (IS_CAPACITOR) {
-    await vibrateOnSuccess(true);
-  }
+  await vibrateOnSuccess(true);
 
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('submitStakingClaim', { password });
@@ -491,15 +485,15 @@ addActionHandler('submitStakingClaim', async (global, actions, { password }) => 
   setGlobal(global);
 
   if (!result || 'error' in result) {
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       global = getGlobal();
       global = clearIsPinAccepted(global);
       setGlobal(global);
-      void vibrateOnError();
     }
+    void vibrateOnError();
     actions.showError({ error: result?.error });
     return;
-  } else if (IS_CAPACITOR) {
+  } else {
     void vibrateOnSuccess();
   }
 

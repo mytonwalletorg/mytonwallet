@@ -8,7 +8,7 @@
   grid-template-columns: repeat(3, 1fr);
 
   width: 100%;
-  padding-bottom: var(--safe-area-bottom);
+  padding-bottom: max(0.25rem, var(--safe-area-bottom));
 
   background-color: var(--color-app-background);
   /* stylelint-disable-next-line plugin/whole-pixel */

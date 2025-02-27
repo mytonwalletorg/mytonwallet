@@ -22,6 +22,7 @@ import {
   selectCurrentAccountTokens,
   selectIsMultichainAccount,
 } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
@@ -32,6 +33,7 @@ import {
   getShortCurrencySymbol,
 } from '../../util/formatNumber';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
+import { getIsMobileTelegramApp } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
 
@@ -249,7 +251,7 @@ function UnstakeModal({
         withChainIcon={isMultichainAccount}
         color="green"
         text={formatCurrency(toDecimal(unstakeAmount, token.decimals), token.symbol)}
-        className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+        className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
       />
     );
   }
@@ -459,7 +461,9 @@ function UnstakeModal({
   function renderPassword(isActive: boolean) {
     return (
       <>
-        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Unstaking')} onClose={cancelStaking} />}
+        {!getDoesUsePinPad() && (
+          <ModalHeader title={lang('Confirm Unstaking')} onClose={cancelStaking} />
+        )}
         <PasswordForm
           isActive={isActive}
           isLoading={isLoading}
@@ -483,7 +487,7 @@ function UnstakeModal({
     return (
       <>
         <ModalHeader
-          title={lang('Request for unstaking is sent!')}
+          title={getIsMobileTelegramApp() ? lang('Request is sent!') : lang('Request for unstaking is sent!')}
           onClose={cancelStaking}
         />
 

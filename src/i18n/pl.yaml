@@ -73,7 +73,7 @@ Toggle TON Magic: Przełącz TON Magic
 Open Telegram Web: Otwórz Telegram Web
 Back Up Secret Words: Tajne słowa kopii zapasowej
 Settings: Ustawienia
-About: O MyTonWallet
+About MyTonWallet: O MyTonWallet
 Exit: Wyjście
 Remove Wallet: Usuń portfel
 Something went wrong.: Coś poszło nie tak.
@@ -148,7 +148,6 @@ Signing was confirmed!: Podpisanie umowy zostało potwierdzone!
 Transaction Info: Informacje o transakcji
 Transaction in progress: Transakcja w toku
 Comment was copied!: Komentarz został skopiowany!
-View Transaction on %ton_explorer_name%: Wyświetlanie transakcji na %ton_explorer_name%
 Sender: Nadawca
 Recipient: Odbiorca
 Address was copied!: Adres został skopiowany!
@@ -199,9 +198,8 @@ Save Address: Zapisz adres
 Name: Nazwa
 Save: Zapisz
 Copy: Kopia
-Remove From Saved Addresses: Usuń z zapisanych adresów
-Add To Saved Addresses: Dodaj do zapisanych adresów
-View Address on %ton_explorer_name%: Wyświetlanie adresu w %ton_explorer_name%
+Remove From Saved: Usuń z zapisanych
+View in Explorer: Zobacz w eksploratorze
 No suggestions, you're on your own!: Żadnych sugestii, jesteś zdany na siebie!
 Play Sounds: Odtwarzaj dźwięki
 Focus on asset value rather than current balance: Skup się na wartości aktywów zamiast bieżącego salda
@@ -720,6 +718,7 @@ Reset Card: Zresetuj kartę
 Apply Palette: Zastosuj paletę
 Reset Palette: Zresetuj paletę
 Notifications & Sounds: Powiadomienia i dźwięki
+Sounds: Dźwięki
 Push Notifications: Powiadomienia Push
 Select up to %count% wallets for notifications: Wybierz do %count% portfeli do powiadomień
 $swap_aggregator_fee_tooltip: Wbudowany **agregator DEX** znajduje **najlepszy kurs** w dostępnych DEX-ach. Opłata za usługę wynosi %percent%.
@@ -736,3 +735,9 @@ Connected: Połączono
 All Dapps: Wszystkie Dapps
 Trending: Popularne
 No Data: Brak danych
+Toggle fullscreen: Przełącz tryb pełnoekranowy
+Request is sent!: Żądanie wysłane!
+Transaction ID: ID transakcji
+Help Center: Baza wiedzy
+MyTonWallet Tips: Wskazówki MyTonWallet
+$returned_value: "~ %value% zostanie zwrócone"

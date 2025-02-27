@@ -1,4 +1,4 @@
-import { IS_CAPACITOR } from '../config';
+import { IS_CAPACITOR, IS_TELEGRAM_APP } from '../config';
 import { requestMutation } from '../lib/fasterdom/fasterdom';
 import { applyStyles } from './animation';
 import { SECOND } from './dateFormat';
@@ -6,7 +6,7 @@ import safeExec from './safeExec';
 import { throttle } from './schedulers';
 import { IS_ANDROID, IS_IOS } from './windowEnvironment';
 
-const WINDOW_RESIZE_THROTTLE_MS = 250;
+const WINDOW_RESIZE_THROTTLE_MS = IS_TELEGRAM_APP ? 25 : 250;
 const WINDOW_ORIENTATION_CHANGE_THROTTLE_MS = IS_IOS ? 350 : 250;
 const SAFE_AREA_INITIALIZATION_DELAY = SECOND;
 
@@ -45,12 +45,11 @@ if (IS_CAPACITOR) {
 if ('visualViewport' in window && (IS_IOS || IS_ANDROID)) {
   window.visualViewport!.addEventListener('resize', throttle((e: Event) => {
     const target = e.target as VisualViewport;
+    patchVh();
+
     currentWindowSize = {
-      width: window.innerWidth,
+      ...getWindowSize(),
       height: target.height,
-      screenHeight: window.screen.height,
-      safeAreaTop: getSafeAreaTop(),
-      safeAreaBottom: getSafeAreaBottom(),
     };
   }, WINDOW_RESIZE_THROTTLE_MS, true));
 }
@@ -59,6 +58,10 @@ export function updateSizes() {
   patchVh();
   patchSafeAreaProperty();
 
+  return getWindowSize();
+}
+
+function getWindowSize() {
   return {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -99,25 +102,11 @@ function patchCapacitorAppVh(keyboardHeight: number) {
 }
 
 function patchSafeAreaProperty() {
-  const { documentElement } = document;
+  toggleSafeAreaClasses();
 
   // WebKit has issues with this property on page load
   // https://bugs.webkit.org/show_bug.cgi?id=191872
-  setTimeout(() => {
-    currentWindowSize = updateSizes();
-    const { safeAreaTop, safeAreaBottom } = currentWindowSize;
-
-    if (!Number.isNaN(safeAreaTop) && safeAreaTop > 0) {
-      requestMutation(() => {
-        documentElement.classList.add('with-safe-area-top');
-      });
-    }
-    if (!Number.isNaN(safeAreaBottom) && safeAreaBottom > 0) {
-      requestMutation(() => {
-        documentElement.classList.add('with-safe-area-bottom');
-      });
-    }
-  }, SAFE_AREA_INITIALIZATION_DELAY);
+  setTimeout(toggleSafeAreaClasses, SAFE_AREA_INITIALIZATION_DELAY);
 }
 
 function getSafeAreaTop() {
@@ -130,4 +119,14 @@ function getSafeAreaBottom() {
   const value = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom-value'), 10);
 
   return Number.isNaN(value) ? 0 : value;
+}
+
+function toggleSafeAreaClasses() {
+  const { safeAreaTop, safeAreaBottom } = getWindowSize();
+  const { documentElement } = document;
+
+  requestMutation(() => {
+    documentElement.classList.toggle('with-safe-area-top', !Number.isNaN(safeAreaTop) && safeAreaTop > 0);
+    documentElement.classList.toggle('with-safe-area-bottom', !Number.isNaN(safeAreaBottom) && safeAreaBottom > 0);
+  });
 }

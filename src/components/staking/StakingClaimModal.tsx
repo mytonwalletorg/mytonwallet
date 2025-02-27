@@ -5,11 +5,7 @@ import type { ApiJettonStakingState } from '../../api/types';
 import type { HardwareConnectState, UserToken } from '../../global/types';
 import { StakingState } from '../../global/types';
 
-import {
-  IS_CAPACITOR,
-  SHORT_FRACTION_DIGITS,
-  TONCOIN,
-} from '../../config';
+import { SHORT_FRACTION_DIGITS, TONCOIN } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import {
   selectAccount,
@@ -18,6 +14,7 @@ import {
   selectIsHardwareAccount,
   selectIsMultichainAccount,
 } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
@@ -96,7 +93,7 @@ function StakingClaimModal({
   const { gas: networkFee, real: realNetworkFee } = getTonStakingFees('jetton').claim!;
   const isNativeEnough = nativeBalance > networkFee;
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, Boolean(isOpen));
-  const withModalHeader = !isHardwareAccount && !IS_CAPACITOR;
+  const withModalHeader = !isHardwareAccount && !getDoesUsePinPad();
 
   const handleSubmit = useLastCallback((password: string) => {
     if (!isNativeEnough) return;
@@ -109,16 +106,21 @@ function StakingClaimModal({
   });
 
   function renderInfo() {
+    const feeClassName = buildClassName(
+      styles.operationInfoFee,
+      !getDoesUsePinPad() && styles.operationInfoFeeWithGap,
+    );
+
     return (
       <>
         <TransactionBanner
           tokenIn={token}
           withChainIcon={isMultichainAccount}
           text={formatCurrency(toDecimal(unclaimedRewards, token!.decimals), token!.symbol, SHORT_FRACTION_DIGITS)}
-          className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+          className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
           secondText={shortenAddress(address!)}
         />
-        <div className={buildClassName(styles.operationInfoFee, !IS_CAPACITOR && styles.operationInfoFeeWithGap)}>
+        <div className={feeClassName}>
           {token && renderText(lang('$fee_value_bold', {
             fee: (
               <Fee

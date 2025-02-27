@@ -7,13 +7,13 @@ import type { ApiActivity } from '../../api/types';
 import type { Account, GlobalState, UserSwapToken } from '../../global/types';
 import { SwapState, SwapType } from '../../global/types';
 
-import { IS_CAPACITOR } from '../../config';
 import {
   selectCurrentAccount,
   selectCurrentAccountState,
   selectSwapTokens,
   selectSwapType,
 } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
@@ -182,7 +182,7 @@ function SwapModal({
         tokenOut={tokenOut}
         text={formatCurrencyExtended(amountIn, tokenIn.symbol ?? '', true)}
         secondText={formatCurrencyExtended(amountOut, tokenOut.symbol ?? '', true)}
-        className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+        className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
       />
     );
   }

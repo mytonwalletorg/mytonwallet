@@ -1,6 +1,6 @@
 import type { DieselStatus } from '../../global/types';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
-import type { ApiLoyaltyType } from './misc';
+import type { ApiLoyaltyType, ApiMtwCardType } from './misc';
 
 export type ApiSwapDexLabel = 'dedust' | 'ston';
 
@@ -243,3 +243,9 @@ export type ApiVestingInfo = {
     status: ApiVestingPartStatus;
   }[];
 };
+
+export type ApiCardsInfo = Record<ApiMtwCardType, {
+  all: number;
+  notMinted: number;
+  price: number;
+}>;

@@ -71,7 +71,7 @@ Toggle TON Magic: Toggle TON Magic
 Open Telegram Web: Open Telegram Web
 Back Up Secret Words: Back Up Secret Words
 Settings: Settings
-About: About
+About MyTonWallet: About MyTonWallet
 Exit: Exit
 Remove Wallet: Remove Wallet
 Something went wrong.: Something went wrong.
@@ -146,7 +146,6 @@ Signing was confirmed!: Signing was confirmed!
 Transaction Info: Transaction Info
 Transaction in progress: Transaction in progress
 Comment was copied!: Comment was copied!
-View Transaction on %ton_explorer_name%: View Transaction on %ton_explorer_name%
 Sender: Sender
 Recipient: Recipient
 Address was copied!: Address was copied!
@@ -197,9 +196,8 @@ Save Address: Save Address
 Name: Name
 Save: Save
 Copy: Copy
-Remove From Saved Addresses: Remove From Saved Addresses
-Add To Saved Addresses: Add To Saved Addresses
-View Address on %ton_explorer_name%: View Address on %ton_explorer_name%
+Remove From Saved: Remove From Saved
+View in Explorer: View in Explorer
 No suggestions, you're on your own!: No suggestions, you're on your own!
 Play Sounds: Play Sounds
 Focus on asset value rather than current balance: Focus on asset value rather than current balance
@@ -716,6 +714,7 @@ Reset Card: Reset Card
 Apply Palette: Install Palette
 Reset Palette: Reset Palette
 Notifications & Sounds: Notifications & Sounds
+Sounds: Sounds
 Push Notifications: Push Notifications
 Select up to %count% wallets for notifications: Select up to %count% wallets for notifications
 $swap_aggregator_fee_tooltip: A built-in **DEX aggregator** finds the **best rate** across available DEXes. Service fee is %percent%.
@@ -732,3 +731,9 @@ Connected: Connected
 All Dapps: All Dapps
 Trending: Trending
 No Data: No Data
+Toggle fullscreen: Toggle fullscreen
+Request is sent!: Request is sent!
+Transaction ID: Transaction ID
+Help Center: Help Center
+MyTonWallet Tips: MyTonWallet Tips
+$returned_value: "~ %value% will be returned"

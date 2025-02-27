@@ -27,16 +27,16 @@ import {
 import {
   DEFAULT_SWAP_FISRT_TOKEN_SLUG,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
-  IS_CAPACITOR,
   TONCOIN,
   TRX_SWAP_COUNT_FEE_ADDRESS,
 } from '../../../config';
 import { Big } from '../../../lib/big.js';
-import { vibrateOnError, vibrateOnSuccess } from '../../../util/capacitor';
+import { getDoesUsePinPad } from '../../../util/biometrics';
 import { findChainConfig, getChainConfig } from '../../../util/chain';
 import { fromDecimal, roundDecimal, toDecimal } from '../../../util/decimals';
 import { canAffordSwapEstimateVariant, shouldSwapBeGasless } from '../../../util/fee/swapFee';
 import generateUniqueId from '../../../util/generateUniqueId';
+import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { buildCollectionByKey, pick } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
@@ -249,7 +249,7 @@ addActionHandler('cancelSwap', (global, actions, { shouldReset } = {}) => {
     return;
   }
 
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = clearIsPinAccepted(global);
   }
   global = updateCurrentSwap(global, {
@@ -270,7 +270,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   }
 
   global = getGlobal();
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = setIsPinAccepted(global);
   }
   global = updateCurrentSwap(global, {
@@ -279,10 +279,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     error: undefined,
   });
   setGlobal(global);
-
-  if (IS_CAPACITOR) {
-    await vibrateOnSuccess(true);
-  }
+  await vibrateOnSuccess(true);
 
   const swapBuildRequest = buildSwapBuildRequest(global);
   const buildResult = await callApi(
@@ -291,10 +288,10 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   global = getGlobal();
 
   if (!buildResult || 'error' in buildResult) {
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       global = clearIsPinAccepted(global);
-      void vibrateOnError();
     }
+    void vibrateOnError();
     global = updateCurrentSwap(global, {
       shouldResetOnClose: true,
       isLoading: false,
@@ -331,9 +328,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     shouldResetOnClose: true,
   });
   setGlobal(global);
-  if (IS_CAPACITOR) {
-    void vibrateOnSuccess();
-  }
+  void vibrateOnSuccess();
 
   const result = await callApi(
     'swapSubmit',
@@ -347,7 +342,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
   if (!result || 'error' in result) {
     global = getGlobal();
     global = updateCurrentSwap(global, { shouldResetOnClose: true });
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       global = clearIsPinAccepted(global);
     }
 
@@ -374,15 +369,13 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
     error: undefined,
     shouldResetOnClose: undefined,
   });
-  if (IS_CAPACITOR) {
+  if (getDoesUsePinPad()) {
     global = setIsPinAccepted(global);
   }
   setGlobal(global);
 
-  if (IS_CAPACITOR) {
-    await vibrateOnSuccess(true);
-    global = getGlobal();
-  }
+  await vibrateOnSuccess(true);
+  global = getGlobal();
 
   const isMutlichainAccount = selectIsMultichainAccount(global, global.currentAccountId!);
   const account = selectCurrentAccount(global);
@@ -420,10 +413,10 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
       isLoading: false,
       shouldResetOnClose: true,
     });
-    if (IS_CAPACITOR) {
+    if (getDoesUsePinPad()) {
       global = clearIsPinAccepted(global);
-      void vibrateOnError();
     }
+    void vibrateOnError();
     setGlobal(global);
 
     actions.showError({ error: ApiCommonError.Unexpected });
@@ -441,9 +434,7 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
     shouldResetOnClose: true,
   });
   setGlobal(global);
-  if (IS_CAPACITOR) {
-    void vibrateOnSuccess();
-  }
+  void vibrateOnSuccess();
 
   if (shouldSendTransaction) {
     global = getGlobal();
@@ -469,7 +460,7 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
     if (!transferResult || 'error' in transferResult) {
       global = getGlobal();
       global = updateCurrentSwap(global, { shouldResetOnClose: true });
-      if (IS_CAPACITOR) {
+      if (getDoesUsePinPad()) {
         global = clearIsPinAccepted(global);
       }
 

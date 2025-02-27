@@ -6,13 +6,13 @@ import { getActions } from '../../global';
 
 import { SwapState, SwapType, type UserSwapToken } from '../../global/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, IS_FIREFOX_EXTENSION } from '../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
 import buildClassName from '../../util/buildClassName';
-import { vibrate } from '../../util/capacitor';
 import { readClipboardContent } from '../../util/clipboard';
+import { vibrate } from '../../util/haptics';
 import { shortenAddress } from '../../util/shortenAddress';
 import getChainNetworkName from '../../util/swap/getChainNetworkName';
-import { IS_FIREFOX } from '../../util/windowEnvironment';
+import { IS_CLIPBOARDS_SUPPORTED } from '../../util/windowEnvironment';
 import { callApi } from '../../api';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -63,8 +63,7 @@ function SwapBlockchain({
   // eslint-disable-next-line no-null/no-null
   const toAddressRef = useRef<HTMLInputElement>(null);
 
-  // Note: As of 27-11-2023, Firefox does not support readText()
-  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(!(IS_FIREFOX || IS_FIREFOX_EXTENSION));
+  const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(IS_CLIPBOARDS_SUPPORTED);
   const [isAddressFocused, markAddressFocused, unmarkAddressFocused] = useFlag();
   const [hasToAddressError, setHasToAddressError] = useState(false);
   const [canContinue, setCanContinue] = useState(swapType !== SwapType.CrosschainFromWallet);

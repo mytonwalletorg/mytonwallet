@@ -10,6 +10,7 @@ import {
   selectAccountStakingState,
   selectIsMultichainAccount,
 } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
@@ -113,7 +114,7 @@ function StakeModal({
         withChainIcon={isMultichainAccount}
         color="purple"
         text={formatCurrency(toDecimal(amount, token.decimals), token.symbol)}
-        className={!IS_CAPACITOR ? styles.transactionBanner : undefined}
+        className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
       />
     );
   }
@@ -121,7 +122,9 @@ function StakeModal({
   function renderPassword(isActive: boolean) {
     return (
       <>
-        {!IS_CAPACITOR && <ModalHeader title={lang('Confirm Staking')} onClose={cancelStaking} />}
+        {!getDoesUsePinPad() && (
+          <ModalHeader title={lang('Confirm Staking')} onClose={cancelStaking} />
+        )}
         <PasswordForm
           isActive={isActive}
           isLoading={isLoading}

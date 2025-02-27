@@ -23,7 +23,7 @@ import styles from '../common/TransferResult.module.scss';
 import modalStyles from '../ui/Modal.module.scss';
 
 interface OwnProps {
-  isActive?: boolean;
+  isActive: boolean;
   amount?: bigint;
   symbol: string;
   txId?: string;

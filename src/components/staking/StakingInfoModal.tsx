@@ -1,7 +1,8 @@
 import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { selectAccountStakingHistory } from '../../global/selectors';
+import { TONCOIN } from '../../config';
+import { selectAccountStakingHistory, selectAccountStakingState } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
 import Modal from '../ui/Modal';
@@ -15,15 +16,18 @@ interface OwnProps {
 }
 
 interface StateProps {
+  tokenSlug?: string;
   hasHistory?: boolean;
 }
 
 function StakingInfoModal({
   isOpen,
+  tokenSlug,
   hasHistory,
   onClose,
 }: OwnProps & StateProps) {
   const { fetchStakingHistory } = getActions();
+  const withBackground = tokenSlug !== TONCOIN.slug;
 
   useEffect(() => {
     if (isOpen) {
@@ -34,7 +38,7 @@ function StakingInfoModal({
   return (
     <Modal
       isOpen={isOpen}
-      contentClassName={buildClassName(styles.stakingInfoModalContent)}
+      contentClassName={buildClassName(styles.stakingInfoModalContent, withBackground && styles.withBackground)}
       nativeBottomSheetKey="staking-info"
       onClose={onClose}
       forceFullNative={hasHistory}
@@ -45,11 +49,14 @@ function StakingInfoModal({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const stakingHistory = global.currentAccountId
-    ? selectAccountStakingHistory(global, global.currentAccountId)
+  const accountId = global.currentAccountId;
+  const stakingHistory = accountId
+    ? selectAccountStakingHistory(global, accountId)
     : undefined;
+  const stakingState = accountId ? selectAccountStakingState(global, accountId) : undefined;
 
   return {
+    tokenSlug: stakingState?.tokenSlug,
     hasHistory: Boolean(stakingHistory?.length),
   };
 })(StakingInfoModal));

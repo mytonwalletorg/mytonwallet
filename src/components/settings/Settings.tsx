@@ -16,9 +16,11 @@ import {
   APP_ENV_MARKER,
   APP_NAME,
   APP_VERSION,
+  HELPCENTER_URL,
   IS_CAPACITOR,
   IS_EXTENSION,
   LANG_LIST,
+  MTW_TIPS_CHANNEL_NAME,
   PROXY_HOSTS,
   SUPPORT_USERNAME,
   TELEGRAM_WEB_URL,
@@ -30,6 +32,7 @@ import {
   selectIsHardwareAccount,
   selectNetworkAccounts,
 } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { toBig, toDecimal } from '../../util/decimals';
@@ -92,6 +95,7 @@ import assetsActivityImg from '../../assets/settings/settings_assets-activity.sv
 import connectedDappsImg from '../../assets/settings/settings_connected-dapps.svg';
 import disclaimerImg from '../../assets/settings/settings_disclaimer.svg';
 import exitImg from '../../assets/settings/settings_exit.svg';
+import helpcenterImg from '../../assets/settings/settings_helpcenter.svg';
 import installAppImg from '../../assets/settings/settings_install-app.svg';
 import installDesktopImg from '../../assets/settings/settings_install-desktop.svg';
 import installMobileImg from '../../assets/settings/settings_install-mobile.svg';
@@ -102,12 +106,14 @@ import notifications from '../../assets/settings/settings_notifications.svg';
 import securityImg from '../../assets/settings/settings_security.svg';
 import supportImg from '../../assets/settings/settings_support.svg';
 import telegramImg from '../../assets/settings/settings_telegram-menu.svg';
+import tipsImg from '../../assets/settings/settings_tips.svg';
 import tonLinksImg from '../../assets/settings/settings_ton-links.svg';
 import tonMagicImg from '../../assets/settings/settings_ton-magic.svg';
 import tonProxyImg from '../../assets/settings/settings_ton-proxy.svg';
 import walletVersionImg from '../../assets/settings/settings_wallet-version.svg';
 
 type OwnProps = {
+  isActive: boolean;
   isInsideModal?: boolean;
 };
 
@@ -127,6 +133,7 @@ type StateProps = {
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isRemoteTab?: boolean;
+  arePushNotificationsAvailable?: boolean;
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -146,6 +153,7 @@ function Settings({
     baseCurrency,
   },
   dapps,
+  isActive,
   isOpen = false,
   tokens,
   isInsideModal,
@@ -160,6 +168,7 @@ function Settings({
   isLedgerConnected,
   isTonAppConnected,
   isRemoteTab,
+  arePushNotificationsAvailable,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
@@ -231,8 +240,9 @@ function Settings({
   });
 
   useHistoryBack({
-    isActive: !isInsideModal && isInitialScreen,
+    isActive: isActive && isInitialScreen,
     onBack: handleCloseSettings,
+    shouldIgnoreForTelegram: isInsideModal,
   });
 
   useHideBottomBar(isOpen && !isInitialScreen);
@@ -481,8 +491,12 @@ function Settings({
 
           <div className={styles.block}>
             <div className={styles.item} onClick={handlePushNotificationsOpen}>
-              <img className={styles.menuIcon} src={notifications} alt={lang('Notifications & Sounds')} />
-              {lang('Notifications & Sounds')}
+              <img
+                className={styles.menuIcon}
+                src={notifications}
+                alt={arePushNotificationsAvailable ? lang('Notifications & Sounds') : lang('Sounds')}
+              />
+              {arePushNotificationsAvailable ? lang('Notifications & Sounds') : lang('Sounds')}
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
@@ -527,35 +541,67 @@ function Settings({
             </div>
           </div>
 
-          <div className={styles.block}>
-            {!!versions?.length && (
-              <div className={styles.item} onClick={handleOpenWalletVersion}>
-                <img className={styles.menuIcon} src={walletVersionImg} alt={lang('Wallet Versions')} />
-                {lang('Wallet Versions')}
+          {(!!versions?.length || IS_LEDGER_SUPPORTED) && (
+            <div className={styles.block}>
+              {!!versions?.length && (
+                <div className={styles.item} onClick={handleOpenWalletVersion}>
+                  <img className={styles.menuIcon} src={walletVersionImg} alt={lang('Wallet Versions')} />
+                  {lang('Wallet Versions')}
 
-                <div className={styles.itemInfo}>
-                  {currentVersion}
+                  <div className={styles.itemInfo}>
+                    {currentVersion}
+                    <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                  </div>
+                </div>
+              )}
+              {IS_LEDGER_SUPPORTED && (
+                <div className={styles.item} onClick={handleOpenHardwareModal}>
+                  <img className={styles.menuIcon} src={ledgerImg} alt={lang('Connect Ledger')} />
+                  {lang('Connect Ledger')}
+
                   <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
                 </div>
-              </div>
-            )}
-            {IS_LEDGER_SUPPORTED && (
-              <div className={styles.item} onClick={handleOpenHardwareModal}>
-                <img className={styles.menuIcon} src={ledgerImg} alt={lang('Connect Ledger')} />
-                {lang('Connect Ledger')}
+              )}
+            </div>
+          )}
 
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </div>
-            )}
+          <div className={styles.block}>
+            <a
+              href={MTW_CARDS_WEBSITE}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.item}
+            >
+              <img className={styles.menuIcon} src={mtwCardsImg} alt={lang('MyTonWallet Cards NFT')} />
+              {lang('MyTonWallet Cards NFT')}
+
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </a>
           </div>
 
           <div className={styles.block}>
-            <div className={styles.item} onClick={handleDisclaimerOpen}>
-              <img className={styles.menuIcon} src={disclaimerImg} alt={lang('Use Responsibly')} />
-              {lang('Use Responsibly')}
+            <a
+              href={`https://t.me/${MTW_TIPS_CHANNEL_NAME[langCode as never] ?? MTW_TIPS_CHANNEL_NAME.en}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.item}
+            >
+              <img className={styles.menuIcon} src={tipsImg} alt={lang('MyTonWallet Tips')} />
+              {lang('MyTonWallet Tips')}
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </div>
+            </a>
+            <a
+              href={HELPCENTER_URL[langCode as never] ?? HELPCENTER_URL.en}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.item}
+            >
+              <img className={styles.menuIcon} src={helpcenterImg} alt={lang('Help Center')} />
+              {lang('Help Center')}
+
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </a>
             {supportAccountsCount > 0 && (
               <a
                 href={`https://t.me/${SUPPORT_USERNAME}`}
@@ -572,6 +618,15 @@ function Settings({
                 </div>
               </a>
             )}
+          </div>
+
+          <div className={styles.block}>
+            <div className={styles.item} onClick={handleDisclaimerOpen}>
+              <img className={styles.menuIcon} src={disclaimerImg} alt={lang('Use Responsibly')} />
+              {lang('Use Responsibly')}
+
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </div>
             {IS_CAPACITOR ? (
               <div className={styles.item} onClick={handleClickInstallOnDesktop}>
                 <img className={styles.menuIcon} src={installDesktopImg} alt={lang('Install on Desktop')} />
@@ -595,25 +650,11 @@ function Settings({
               </div>
             )}
             <div className={styles.item} onClick={handleAboutOpen}>
-              <img className={styles.menuIcon} src={aboutImg} alt={lang('About')} />
-              {lang('About')}
+              <img className={styles.menuIcon} src={aboutImg} alt={lang('About MyTonWallet')} />
+              {lang('About MyTonWallet')}
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-          </div>
-
-          <div className={styles.block}>
-            <a
-              href={MTW_CARDS_WEBSITE}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.item}
-            >
-              <img className={styles.menuIcon} src={mtwCardsImg} alt={lang('MyTonWallet Cards')} />
-              {lang('MyTonWallet Cards')}
-
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </a>
           </div>
 
           <div className={styles.block}>
@@ -640,14 +681,14 @@ function Settings({
   }
 
   // eslint-disable-next-line consistent-return
-  function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
+  function renderContent(isSlideActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
       case SettingsState.Initial:
         return renderSettings();
       case SettingsState.PushNotifications:
         return (
           <SettingsPushNotifications
-            isActive={isActive}
+            isActive={isSlideActive}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
           />
@@ -655,7 +696,7 @@ function Settings({
       case SettingsState.Appearance:
         return (
           <SettingsAppearance
-            isActive={isActive}
+            isActive={isSlideActive}
             theme={theme}
             animationLevel={animationLevel}
             handleBackClick={handleBackClick}
@@ -667,7 +708,7 @@ function Settings({
       case SettingsState.Assets:
         return (
           <SettingsAssets
-            isActive={isActive}
+            isActive={isSlideActive}
             isInsideModal={isInsideModal}
             onBack={handleBackClick}
           />
@@ -675,7 +716,7 @@ function Settings({
       case SettingsState.Security:
         return (
           <SettingsSecurity
-            isActive={isActive}
+            isActive={isActive && isSlideActive}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
             isAutoUpdateEnabled={isAutoUpdateEnabled}
@@ -686,7 +727,7 @@ function Settings({
       case SettingsState.Dapps:
         return (
           <SettingsDapps
-            isActive={isActive}
+            isActive={isSlideActive}
             dapps={dapps}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
@@ -695,7 +736,7 @@ function Settings({
       case SettingsState.Language:
         return (
           <SettingsLanguage
-            isActive={isActive}
+            isActive={isSlideActive}
             langCode={langCode}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
@@ -704,7 +745,7 @@ function Settings({
       case SettingsState.About:
         return (
           <SettingsAbout
-            isActive={isActive}
+            isActive={isSlideActive}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
             theme={theme}
@@ -713,7 +754,7 @@ function Settings({
       case SettingsState.Disclaimer:
         return (
           <SettingsDisclaimer
-            isActive={isActive}
+            isActive={isSlideActive}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
           />
@@ -721,21 +762,22 @@ function Settings({
       case SettingsState.NativeBiometricsTurnOn:
         return (
           <SettingsNativeBiometricsTurnOn
-            isActive={isActive}
+            isActive={isSlideActive}
             handleBackClick={handleBackClick}
           />
         );
       case SettingsState.SelectTokenList:
         return (
           <SettingsTokenList
-            isActive={isActive}
+            isActive={isSlideActive}
+            isInsideModal={isInsideModal}
             handleBackClick={handleBackClickToAssets}
           />
         );
       case SettingsState.WalletVersion:
         return (
           <SettingsWalletVersion
-            isActive={isActive}
+            isActive={isSlideActive}
             currentVersion={currentVersion}
             handleBackClick={handleBackClick}
             isInsideModal={isInsideModal}
@@ -746,7 +788,7 @@ function Settings({
         return (
           <div className={styles.slide}>
             <LedgerConnect
-              isActive={isActive}
+              isActive={isSlideActive}
               isStatic={!isInsideModal}
               shouldDelegateToNative={IS_DELEGATING_BOTTOM_SHEET && !isInsideModal}
               state={hardwareState}
@@ -764,7 +806,7 @@ function Settings({
         return (
           <div className={styles.slide}>
             <LedgerSelectWallets
-              isActive={isActive}
+              isActive={isSlideActive}
               isStatic={!isInsideModal}
               accounts={accounts}
               hardwareWallets={hardwareWallets}
@@ -776,7 +818,7 @@ function Settings({
       case SettingsState.HiddenNfts:
         return (
           <SettingsHiddenNfts
-            isActive={isActive}
+            isActive={isSlideActive}
             handleBackClick={handleBackClickToAssets}
             isInsideModal={isInsideModal}
           />
@@ -793,7 +835,7 @@ function Settings({
         activeKey={renderingKey}
         slideClassName={buildClassName(isInsideModal && modalStyles.transitionSlide)}
         withSwipeControl
-        onStop={IS_CAPACITOR ? handleSlideAnimationStop : undefined}
+        onStop={getDoesUsePinPad() ? handleSlideAnimationStop : undefined}
       >
         {renderContent}
       </Transition>
@@ -835,6 +877,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isRemoteTab,
     hardwareWallets,
     accounts,
+    arePushNotificationsAvailable: global.pushNotifications.isAvailable,
   };
 })(Settings));
 

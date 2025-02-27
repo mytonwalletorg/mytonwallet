@@ -32,6 +32,7 @@ const {
 } = process.env;
 const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
 const IS_EXTENSION = process.env.IS_EXTENSION === '1';
+const IS_TELEGRAM_APP = process.env.IS_TELEGRAM_APP === '1';
 const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
 const IS_OPERA_EXTENSION = process.env.IS_OPERA_EXTENSION === '1';
@@ -43,6 +44,7 @@ const canUseStatoscope = !IS_EXTENSION && !IS_PACKAGED_ELECTRON && !IS_CAPACITOR
 const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
   : '';
+const cspScriptSrcExtra = IS_TELEGRAM_APP ? 'https://telegram.org' : '';
 const cspFrameSrcExtra = [
   'https://buy-sandbox.moonpay.com/',
   'https://buy.moonpay.com/',
@@ -59,7 +61,7 @@ const CSP = `
   default-src 'none';
   manifest-src 'self';
   connect-src 'self' https: ${cspConnectSrcExtra};
-  script-src 'self' 'wasm-unsafe-eval';
+  script-src 'self' 'wasm-unsafe-eval' ${cspScriptSrcExtra};
   style-src 'self' https://fonts.googleapis.com/;
   img-src 'self' data: https: blob:;
   media-src 'self' data:;
@@ -283,14 +285,12 @@ export default function createConfig(
         APP_VERSION: appVersion,
         APP_REVISION: appRevision ?? '',
         TEST_SESSION: '',
-        TONHTTPAPI_MAINNET_URL: '',
-        TONHTTPAPI_MAINNET_API_KEY: '',
-        TONHTTPAPI_TESTNET_URL: '',
-        TONHTTPAPI_TESTNET_API_KEY: '',
+        TONCENTER_MAINNET_URL: '',
+        TONCENTER_MAINNET_KEY: '',
+        TONCENTER_TESTNET_URL: '',
+        TONCENTER_TESTNET_KEY: '',
         TONAPIIO_MAINNET_URL: '',
         TONAPIIO_TESTNET_URL: '',
-        TONHTTPAPI_V3_MAINNET_API_KEY: '',
-        TONHTTPAPI_V3_TESTNET_API_KEY: '',
         BRILLIANT_API_BASE_URL: '',
         TRON_MAINNET_API_URL: '',
         TRON_TESTNET_API_URL: '',
@@ -300,14 +300,15 @@ export default function createConfig(
         LIQUID_JETTON: '',
         IS_PACKAGED_ELECTRON: 'false',
         IS_ANDROID_DIRECT: 'false',
-        ELECTRON_TONHTTPAPI_MAINNET_API_KEY: '',
-        ELECTRON_TONHTTPAPI_TESTNET_API_KEY: '',
+        ELECTRON_TONCENTER_MAINNET_KEY: '',
+        ELECTRON_TONCENTER_TESTNET_KEY: '',
         BASE_URL,
         BOT_USERNAME: '',
         IS_EXTENSION: 'false',
         IS_FIREFOX_EXTENSION: 'false',
         IS_CAPACITOR: 'false',
         IS_AIR_APP: 'false',
+        IS_TELEGRAM_APP: 'false',
         SWAP_FEE_ADDRESS: '',
         DIESEL_ADDRESS: '',
         GIVEAWAY_CHECKIN_URL: '',
@@ -364,7 +365,7 @@ export default function createConfig(
             ) as any,
           },
           {
-            from: 'src/_headers',
+            from: IS_TELEGRAM_APP ? 'src/_headers_telegram' : 'src/_headers',
             transform: (content: Buffer) => content.toString().replace('{{CSP}}', CSP),
           },
         ],
