@@ -9,10 +9,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Use Node.js 20
+    - name: Use Node.js 22
       uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 22
 
     - name: Cache Node modules
       if: inputs.dont-install-npm-packages != 'true'

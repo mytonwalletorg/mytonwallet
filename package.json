@@ -229,7 +229,7 @@
     "native-bottom-sheet": "file:mobile/plugins/native-bottom-sheet",
     "native-dialog": "file:mobile/plugins/native-dialog",
     "pako": "2.1.0",
-    "qr-code-styling": "github:mytonwallet-org/qr-code-styling#8d56b409da29122a92da2767d049b45b1bc24db2",
+    "qr-code-styling": "github:mytonwallet-org/qr-code-styling#40ccda44282ac0494221456da33b4a6b0bb8067d",
     "qrcode-generator": "1.4.4",
     "stream-browserify": "3.0.0",
     "tonapi-sdk-js": "2.0.7",
