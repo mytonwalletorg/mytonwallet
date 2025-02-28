@@ -408,7 +408,7 @@ jobs:
 
   ios-release:
     name: Release iOS app
-    runs-on: macos-15
+    runs-on: macos-13
     timeout-minutes: 30
     if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master'
     steps:
