@@ -6,7 +6,7 @@
     <title>MyTonWallet Connect</title>
     <link rel="stylesheet" href="/index.css">
 </head>
-<body>
+<body class="loading">
 <div class="container no-flex small-padding with-gap">
     <h1>Connect <span class="gradient-text">MyTonWallet</span></h1>
     <info-block>
@@ -36,7 +36,7 @@
     </div>
 </div>
 <script type="module">
-  import { IS_DESKTOP } from "/common.js";
+  import { IS_DESKTOP, onPlatformHandled } from "/common.js";
 
   function main() {
     const {
@@ -50,6 +50,8 @@
       location.href = `/desktop#${redirectTo}`;
       return;
     }
+
+    onPlatformHandled();
 
     document.getElementById('btn-sign-in').href = `mytonwallet-tc://${redirectTo}`;
 

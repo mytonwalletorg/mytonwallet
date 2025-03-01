@@ -53,6 +53,7 @@
 
   const redirectTo = hash.slice(1) || `${pathname.slice(1)}${search}`;
   const fullRedirectUrl = `mtw://${redirectTo}`;
+  const fullRedirectUrlUniversal = `https://my.tt/${redirectTo}`;
 
   document.getElementById('btn-sign-in').href = fullRedirectUrl;
 
@@ -66,14 +67,14 @@
     cornersSquareOptions: { type: 'extra-rounded' },
     imageOptions: { imageSize: 0.4, margin: 8, crossOrigin: 'anonymous' },
     qrOptions: { errorCorrectionLevel: 'M' },
-    data: fullRedirectUrl,
+    data: fullRedirectUrlUniversal,
   });
 
   qrCode.append(document.querySelector(".qr-code-canvas"));
 
   if (!search?.includes('no-redirect')) {
     location.href = fullRedirectUrl;
-    history.replaceState({}, '', `${pathname}${search}${search ? '&' : '?'}no-redirect`);
+    history.replaceState({}, '', `/${redirectTo}${redirectTo.includes('?') ? '&' : '?'}no-redirect`);
   }
 </script>
 </body>

@@ -3,6 +3,7 @@ import type { ApiBalanceBySlug, ApiChain } from '../../api/types';
 import type { AccountSettings, GlobalState, UserToken } from '../types';
 
 import {
+  DEFAULT_ENABLED_TOKEN_COUNT,
   DEFAULT_ENABLED_TOKEN_SLUGS,
   MYCOIN,
   MYCOIN_TESTNET,
@@ -17,6 +18,23 @@ import { round } from '../../util/round';
 import withCache from '../../util/withCache';
 import { selectAccountSettings, selectAccountState, selectCurrentAccountState } from './accounts';
 
+function getIsNewAccount(balancesBySlug: ApiBalanceBySlug, tokenInfo: GlobalState['tokenInfo']) {
+  return Object.keys(balancesBySlug).length === DEFAULT_ENABLED_TOKEN_COUNT && (
+    Object.entries(balancesBySlug).every(([slug, balance]) => {
+      const {
+        decimals, quote: {
+          priceUsd,
+        },
+      } = tokenInfo.bySlug[slug];
+
+      const balanceBig = toBig(balance, decimals);
+      const hasCost = balanceBig.mul(priceUsd ?? 0).lt(TINY_TRANSFER_MAX_COST);
+
+      return hasCost;
+    })
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const selectAccountTokensMemoizedFor = withCache((accountId: string) => memoize((
   balancesBySlug: ApiBalanceBySlug,
@@ -25,6 +43,8 @@ export const selectAccountTokensMemoizedFor = withCache((accountId: string) => m
   isSortByValueEnabled: boolean = false,
   areTokensWithNoCostHidden: boolean = false,
 ) => {
+  const isNewAccount = getIsNewAccount(balancesBySlug, tokenInfo);
+
   return Object
     .entries(balancesBySlug)
     .filter(([slug]) => (slug in tokenInfo.bySlug && !accountSettings.deletedSlugs?.includes(slug)))
@@ -41,7 +61,7 @@ export const selectAccountTokensMemoizedFor = withCache((accountId: string) => m
       const isPricelessTokenWithBalance = PRICELESS_TOKEN_HASHES.has(codeHash!) && balance > 0n;
 
       const isEnabled = (
-        DEFAULT_ENABLED_TOKEN_SLUGS.includes(slug)
+        (isNewAccount && DEFAULT_ENABLED_TOKEN_SLUGS.includes(slug))
         || !areTokensWithNoCostHidden
         || (areTokensWithNoCostHidden && hasCost)
         || isPricelessTokenWithBalance

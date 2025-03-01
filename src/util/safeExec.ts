@@ -1,6 +1,5 @@
 import { DEBUG_MORE } from '../config';
 import { handleError } from './handleError';
-import { logDebugError } from './logs';
 
 const SAFE_EXEC_ENABLED = !DEBUG_MORE;
 
@@ -24,9 +23,7 @@ export async function safeExecAsync<T extends AnyAsyncFunction>(
     return await cb();
   } catch (err: any) {
     rescue?.(err);
-    if (shouldIgnoreError) {
-      logDebugError(cb.name ?? 'safeExecAsync', err);
-    } else {
+    if (!shouldIgnoreError) {
       handleError(err);
     }
     return undefined;
@@ -46,9 +43,7 @@ export default function safeExec<T extends AnyFunction>(cb: T, options?: SafeExe
     return cb();
   } catch (err: any) {
     rescue?.(err);
-    if (shouldIgnoreError) {
-      logDebugError(cb.name ?? 'safeExecAsync', err);
-    } else {
+    if (!shouldIgnoreError) {
       handleError(err);
     }
     return undefined;

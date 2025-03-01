@@ -41,6 +41,7 @@ interface OwnProps {
   addressName?: string;
   addressUrl?: string;
   isScam?: boolean;
+  isTransaction?: boolean;
   text?: string;
   spoiler?: string;
   spoilerRevealText?: string;
@@ -69,6 +70,7 @@ function InteractiveTextField({
   addressName,
   addressUrl,
   isScam,
+  isTransaction,
   text,
   spoiler,
   spoilerRevealText,
@@ -99,7 +101,7 @@ function InteractiveTextField({
 
   addressUrl = addressUrl ?? (chain ? getExplorerAddressUrl(chain, address, isTestnet) : undefined);
   const saveAddressTitle = lang(isAddressAlreadySaved ? 'Remove From Saved' : 'Save Address');
-  const explorerTitle = lang('View in Explorer');
+  const explorerTitle = lang('View on Explorer');
   const withSavedAddresses = Boolean(!isScam && !noSavedAddress && address);
   const withExplorer = Boolean(!noExplorer && addressUrl);
 
@@ -150,7 +152,8 @@ function InteractiveTextField({
     explorer: handleTonExplorerOpen,
   }, {
     isAddressAlreadySaved,
-    isWalletAddress: Boolean(address && chain && noSavedAddress),
+    isWalletAddress: Boolean(address && chain && noSavedAddress && !isTransaction),
+    isTransaction,
     withSavedAddresses,
     withExplorer,
   });
@@ -369,6 +372,7 @@ function useDropdownMenu(
     withExplorer?: boolean;
     isAddressAlreadySaved?: boolean;
     isWalletAddress?: boolean;
+    isTransaction?: boolean;
   },
 ) {
   const [menuPosition, setMenuPosition] = useState<IAnchorPosition | undefined>();
@@ -377,13 +381,13 @@ function useDropdownMenu(
 
   const menuItems = useMemo<DropdownItem[]>(() => {
     const {
-      isAddressAlreadySaved, isWalletAddress, withSavedAddresses, withExplorer,
+      isAddressAlreadySaved, isWalletAddress, isTransaction, withSavedAddresses, withExplorer,
     } = options;
 
     const items: DropdownItem[] = [{
       name: withSavedAddresses || isWalletAddress
         ? 'Copy Address'
-        : (withExplorer ? 'Copy Transaction ID' : 'Copy'),
+        : (isTransaction ? 'Copy Transaction ID' : 'Copy'),
       fontIcon: 'copy',
       withSeparator: true,
       value: 'copy',
@@ -400,7 +404,7 @@ function useDropdownMenu(
 
     if (withExplorer) {
       items.push({
-        name: 'View in Explorer',
+        name: 'View on Explorer',
         fontIcon: 'tonexplorer',
         withSeparator: true,
         value: 'explorer',

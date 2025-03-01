@@ -20,6 +20,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body.loading {
+  visibility: hidden;
+}
+
 @media (min-width: 500px) {
   body {
     background-position: 50% 70%;

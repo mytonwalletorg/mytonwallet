@@ -1,4 +1,4 @@
-import { IS_DESKTOP, IS_MOBILE, platform } from "/common.js";
+import { IS_DESKTOP, IS_MOBILE, platform, onContentReady } from "/common.js";
 
 const REPO = 'mytonwalletorg/mytonwallet';
 const LATEST_RELEASE_API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
@@ -76,6 +76,7 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
 (function init() {
   if (currentPage === 'rate') {
     setupRateButtons();
+    onContentReady();
     return;
   }
 
@@ -103,6 +104,7 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
   }
 
   setupVersion();
+  onContentReady();
 }());
 
 function $(id) {

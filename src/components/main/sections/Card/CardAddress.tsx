@@ -36,7 +36,7 @@ function CardAddress({
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag(false);
   const chains = useMemo(() => Object.keys(addressByChain || {}) as ApiChain[], [addressByChain]);
-  const explorerTitle = lang('View in Explorer');
+  const explorerTitle = lang('View on Explorer');
   const chainDropdownItems = useMemo(() => {
     if (chains.length < 2) return undefined;
 

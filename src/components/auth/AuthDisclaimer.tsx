@@ -7,12 +7,15 @@ import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
+import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import useShowTransition from '../../hooks/useShowTransition';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
 import Checkbox from '../ui/Checkbox';
 import AuthBackupWarning from './AuthBackupWarning';
 import AuthDisclaimerConfirmed from './AuthDisclaimerConfirmed';
@@ -27,10 +30,19 @@ interface OwnProps {
 const AuthDisclaimer = ({
   isActive, isImport,
 }: OwnProps) => {
-  const { skipCheckMnemonic, cancelDisclaimer } = getActions();
+  const {
+    skipCheckMnemonic,
+    confirmDisclaimer,
+    cancelDisclaimer,
+  } = getActions();
 
   const lang = useLang();
+  const { isPortrait } = useDeviceScreen();
   const [isInformationConfirmed, markInformationConfirmed, unmarkInformationConfirmed] = useFlag(false);
+  const {
+    shouldRender: shouldRenderStartButton,
+    transitionClassNames: startButtonTransitionClassNames,
+  } = useShowTransition(isInformationConfirmed && isImport && !isPortrait);
 
   useHistoryBack({
     isActive,
@@ -46,6 +58,7 @@ const AuthDisclaimer = ({
   });
 
   useOpenFromMainBottomSheet('backup-warning', markInformationConfirmed);
+  useOpenFromMainBottomSheet('disclaimer-confirmed', markInformationConfirmed);
 
   const handleCloseBackupWarningModal = useLastCallback(() => {
     setIsInformationConfirmed(false);
@@ -87,6 +100,13 @@ const AuthDisclaimer = ({
         >
           {lang('I have read and accept this information')}
         </Checkbox>
+        {shouldRenderStartButton && (
+          <div className={buildClassName(styles.buttons, startButtonTransitionClassNames)}>
+            <Button isPrimary className={buildClassName(styles.btn, styles.btn_wide)} onClick={confirmDisclaimer}>
+              {lang('Start Wallet')}
+            </Button>
+          </div>
+        )}
 
         {!isImport && (
           <AuthBackupWarning
@@ -95,7 +115,7 @@ const AuthDisclaimer = ({
             onSkip={handleSkipMnemonic}
           />
         )}
-        {isImport && (
+        {isImport && isPortrait && (
           <AuthDisclaimerConfirmed
             isOpen={isInformationConfirmed}
             onClose={handleCloseBackupWarningModal}

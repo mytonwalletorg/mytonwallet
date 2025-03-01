@@ -58,6 +58,7 @@
 
   const redirectTo = hash.slice(1) || search;
   const fullRedirectUrl = `mytonwallet-tc://${redirectTo}`;
+  const fullRedirectUrlUniversal = `https://connect.mytonwallet.org/${redirectTo}`;
 
   document.getElementById('btn-sign-in').href = fullRedirectUrl;
 
@@ -71,7 +72,7 @@
     cornersSquareOptions: { type: 'extra-rounded' },
     imageOptions: { imageSize: 0.4, margin: 8, crossOrigin: 'anonymous' },
     qrOptions: { errorCorrectionLevel: 'M' },
-    data: fullRedirectUrl,
+    data: fullRedirectUrlUniversal,
   });
 
   qrCode.append(document.querySelector(".qr-code-canvas"));

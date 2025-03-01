@@ -133,7 +133,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-171';
+export const LANG_CACHE_NAME = 'mtw-lang-172';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -296,6 +296,9 @@ const TON_USDT = {
 export const DEFAULT_ENABLED_TOKEN_SLUGS = [
   TONCOIN.slug, TON_USDT_SLUG, TRX.slug, TRC20_USDT_TESTNET_SLUG, TRC20_USDT_MAINNET_SLUG,
 ] as string[];
+
+// Toncoin, USDT TON, TRX, USDT TRC20
+export const DEFAULT_ENABLED_TOKEN_COUNT = 4;
 
 export const PRIORITY_TOKEN_SLUGS = [
   TONCOIN.slug, TON_USDT_SLUG, TRX.slug,

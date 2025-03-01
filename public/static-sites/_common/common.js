@@ -26,6 +26,10 @@ function getPlatform() {
   return undefined;
 }
 
+export function onContentReady() {
+  document.body.classList.remove('loading');
+}
+
 export let platform = getPlatform();
 
 export const IS_DESKTOP = ['Windows', 'Linux', 'macOS'].includes(platform);

@@ -341,6 +341,7 @@ function SwapActivityModal({
           chain="ton"
           address={transactionHash}
           addressUrl={transactionUrl}
+          isTransaction
           copyNotification={lang('Transaction ID was copied!')}
           className={styles.changellyTextField}
         />
