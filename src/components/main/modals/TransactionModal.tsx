@@ -125,6 +125,7 @@ function TransactionModal({
     timestamp,
     nft,
   } = renderedTransaction || {};
+  const isLocal = Boolean(id && getIsTxIdLocal(id));
   const isStaking = renderedTransaction?.type === 'stake' || renderedTransaction?.type === 'unstake';
   const isUnstaking = renderedTransaction?.type === 'unstake';
   const isNftTransfer = (
@@ -153,6 +154,11 @@ function TransactionModal({
   const transactionUrl = chain ? getExplorerTransactionUrl(chain, transactionHash, isTestnet) : undefined;
 
   const [withUnstakeTimer, setWithUnstakeTimer] = useState(false);
+
+  const {
+    shouldRender: shouldRenderTransactionId,
+    transitionClassNames: transactionIdClassNames,
+  } = useShowTransition(Boolean(!isLocal && transactionUrl));
 
   const state = useMemo(() => {
     return stakingStates?.find((staking): staking is ApiToncoinStakingState => {
@@ -276,18 +282,16 @@ function TransactionModal({
     }
   });
 
-  function getTitle(isLocal: boolean) {
+  function getTitle(inProgress: boolean) {
     if (isUnstaking) {
-      return isLocal ? 'Unstaking' : 'Unstaked';
+      return inProgress ? 'Unstaking' : 'Unstaked';
     }
     if (isIncoming) return 'Received';
 
-    return isLocal ? 'Sending' : 'Sent';
+    return inProgress ? 'Sending' : 'Sent';
   }
 
   function renderHeader() {
-    const isLocal = Boolean(id && getIsTxIdLocal(id));
-
     return (
       <div
         className={buildClassName(
@@ -379,7 +383,7 @@ function TransactionModal({
 
   function renderTransactionId() {
     return (
-      <div className={styles.textFieldWrapperFullWidth}>
+      <div className={buildClassName(styles.textFieldWrapperFullWidth, transactionIdClassNames)}>
         <span className={styles.textFieldLabel}>
           {lang('Transaction ID')}
         </span>
@@ -456,7 +460,7 @@ function TransactionModal({
 
         {renderFee()}
         {renderComment()}
-        {transactionUrl && renderTransactionId()}
+        {shouldRenderTransactionId && renderTransactionId()}
         {shouldRenderUnstakeTimer && renderUnstakeTimer()}
 
         <div className={styles.footer}>

@@ -12,7 +12,7 @@ import type { TonTransferParams } from './types';
 
 import { DIESEL_ADDRESS, SWAP_FEE_ADDRESS, TONCOIN } from '../../../config';
 import { parseAccountId } from '../../../util/account';
-import { assert } from '../../../util/assert';
+import { assert as originalAssert } from '../../../util/assert';
 import { fromDecimal } from '../../../util/decimals';
 import { logDebugError } from '../../../util/logs';
 import { pause } from '../../../util/schedulers';
@@ -42,7 +42,13 @@ export async function validateDexSwapTransfers(
   request: ApiSwapBuildRequest,
   transfers: TonTransferParams[],
 ) {
-  assert(transfers.length <= 2);
+  const assert = (condition: boolean, message: string) => {
+    originalAssert(condition, message, {
+      network, address, request, transfers,
+    });
+  };
+
+  assert(transfers.length <= 2, 'Too many transfers');
 
   const [mainTransfer, feeTransfer] = transfers;
 
@@ -50,17 +56,17 @@ export async function validateDexSwapTransfers(
     const maxAmount = fromDecimal(request.fromAmount) + MAX_NETWORK_FEE;
     const { isSwapAllowed, codeHash } = await getContractInfo(network, mainTransfer.toAddress);
 
-    assert(!!isSwapAllowed, `Not allowed swap contract: ${codeHash} ${mainTransfer.toAddress}`);
-    assert(mainTransfer.amount <= maxAmount);
+    assert(!!isSwapAllowed, `Not allowed swap contract: ${codeHash}`);
+    assert(mainTransfer.amount <= maxAmount, 'Main transfer amount is too big');
 
     if (feeTransfer) {
-      assert(feeTransfer.amount <= mainTransfer.amount);
-      assert(feeTransfer.amount + mainTransfer.amount < maxAmount);
-      assert(FEE_ADDRESSES.includes(toBase64Address(feeTransfer.toAddress, false)));
+      assert(feeTransfer.amount <= mainTransfer.amount, 'Fee transfer amount is too big');
+      assert(feeTransfer.amount + mainTransfer.amount < maxAmount, 'Total amount is too big');
+      assert(FEE_ADDRESSES.includes(toBase64Address(feeTransfer.toAddress, false)), 'Unexpected fee transfer address');
     }
   } else {
     const token = getTokenByAddress(request.from)!;
-    assert(!!token);
+    assert(!!token, 'Unknown "from" token');
 
     const maxAmount = fromDecimal(request.fromAmount, token.decimals)
       + fromDecimal(request.ourFee ?? 0, token.decimals)
@@ -75,32 +81,32 @@ export async function validateDexSwapTransfers(
 
     if (mainTransfer.toAddress === MEGATON_WTON_MINTER) {
       destination = mainTransfer.toAddress;
-      assert(mainTransfer.toAddress === token.tokenAddress);
+      assert(mainTransfer.toAddress === token.tokenAddress, 'Main transfer address is not the token address');
     } else {
-      assert(mainTransfer.toAddress === walletAddress);
-      assert(isTokenTransferPayload(parsedPayload));
+      assert(mainTransfer.toAddress === walletAddress, 'Main transfer address is not the token wallet address');
+      assert(isTokenTransferPayload(parsedPayload), 'Main transfer payload is not a token transfer');
 
       ({ amount: tokenAmount, destination } = parsedPayload as ApiTokensTransferPayload);
-      assert(tokenAmount <= maxAmount);
+      assert(tokenAmount <= maxAmount, 'Main transfer token amount is too big');
     }
 
-    assert(mainTransfer.amount < maxTonAmount);
+    assert(mainTransfer.amount < maxTonAmount, 'Main transfer TON amount is too big');
 
     const { isSwapAllowed } = await getContractInfo(network, destination);
 
-    assert(!!isSwapAllowed);
+    assert(!!isSwapAllowed, 'Main transfer destination is not a swap smart contract');
 
     if (feeTransfer) {
       const feePayload = await parsePayloadBase64(network, feeTransfer.toAddress, feeTransfer.payload as string);
 
-      assert(feeTransfer.amount + mainTransfer.amount < maxTonAmount);
-      assert(feeTransfer.toAddress === walletAddress);
-      assert(isTokenTransferPayload(feePayload));
+      assert(feeTransfer.amount + mainTransfer.amount < maxTonAmount, 'Total TON amount is too big');
+      assert(feeTransfer.toAddress === walletAddress, 'Fee transfer address is not the token wallet address');
+      assert(isTokenTransferPayload(feePayload), 'Fee transfer payload is not a token transfer');
 
       const { amount: tokenFeeAmount, destination: feeDestination } = feePayload as ApiTokensTransferPayload;
 
-      assert(tokenAmount + tokenFeeAmount <= maxAmount);
-      assert(FEE_ADDRESSES.includes(toBase64Address(feeDestination, false)));
+      assert(tokenAmount + tokenFeeAmount <= maxAmount, 'Total token amount is too big');
+      assert(FEE_ADDRESSES.includes(toBase64Address(feeDestination, false)), 'Unexpected fee transfer destination');
     }
   }
 }

@@ -36,7 +36,7 @@
     </div>
 </div>
 <script type="module">
-  import { IS_DESKTOP, onPlatformHandled } from "/common.js";
+  import { IS_DESKTOP, onContentReady } from "/common.js";
 
   function main() {
     const {
@@ -51,7 +51,7 @@
       return;
     }
 
-    onPlatformHandled();
+    onContentReady();
 
     document.getElementById('btn-sign-in').href = `mytonwallet-tc://${redirectTo}`;
 

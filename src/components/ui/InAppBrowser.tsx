@@ -96,8 +96,9 @@ function InAppBrowser({
       '_blank',
       INAPP_BROWSER_OPTIONS + ADDITIONAL_INAPP_BROWSER_OPTIONS,
       bridgeInjectionCode);
+
     const originalHide = inAppBrowser.hide;
-    inAppBrowser!.hide = () => {
+    inAppBrowser.hide = () => {
       return new Promise<void>((resolve) => {
         originalHide?.();
         // On iOS, the animation takes some time. We have to ensure it's completed.
@@ -108,11 +109,16 @@ function InAppBrowser({
         }
       });
     };
+
     const originalClose = inAppBrowser.close;
-    inAppBrowser.close = () => new Promise<void>((resolve) => {
+    inAppBrowser.close = () => {
+      if (!inAppBrowser) {
+        return Promise.resolve();
+      }
+
       originalClose();
 
-      if (inAppBrowser) {
+      const closedPromise = new Promise<void>((resolve) => {
         // The `waitFor` is a hack necessary to ensure the browser is fully in the closed state when the promise
         // resolves. This solves a bug: if a push notification, that opens a modal, was clicked while the in-app browser
         // was open, the browser would close, but the modal wouldn't open.
@@ -121,14 +127,17 @@ function InAppBrowser({
           resolve();
         });
 
-        // A backup for cases when the `closeBrowser` call doesn't cause the browser to close and fire the `exit` event.
-        // It happens if `close` is called when the browser is hidden (for example, when a TON connect modal is open
-        // from inside the browser).
+        // A backup for cases when the `close()` call doesn't cause the browser to close and fire the `exit` event.
         setTimeout(resolve, CLOSE_MAX_DURATION);
-      } else {
-        resolve();
-      }
-    });
+      });
+
+      // Calling `show()` while the browser is being closed causes the app to crash. So we disable the `show` method.
+      inAppBrowser.show = () => undefined;
+      inAppBrowser.hide = () => closedPromise;
+
+      return closedPromise;
+    };
+
     inAppBrowserRef.current = inAppBrowser;
     inAppBrowser.addEventListener('loaderror', handleError);
     inAppBrowser.addEventListener('message', onMessage);

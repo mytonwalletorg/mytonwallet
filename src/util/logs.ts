@@ -1,10 +1,11 @@
 import { DEBUG, DEBUG_API } from '../config';
+import { AssertionError } from './assert';
 import { omit } from './iteratees';
 
 interface Log {
   message: string;
   args: any[];
-  timestamp: number;
+  time: Date;
   level: 'debug' | 'debugError';
 }
 
@@ -17,12 +18,13 @@ export function errorReplacer(_: string, value: any) {
       name: value.name,
       message: value.message,
       stack: value.stack,
+      metadata: value instanceof AssertionError ? value.metadata : undefined,
     };
   }
   return value;
 }
 
-export function addLog(log: Omit<Log, 'timestamp'>) {
+export function addLog(log: Omit<Log, 'time'>) {
   if (logs.length > MAX_LOG_LENGTH) {
     logs.shift();
   }
@@ -30,7 +32,7 @@ export function addLog(log: Omit<Log, 'timestamp'>) {
   logs.push({
     ...log,
     args: log.args.map((arg) => JSON.stringify(arg, errorReplacer)),
-    timestamp: Date.now(),
+    time: new Date(),
   });
 }
 

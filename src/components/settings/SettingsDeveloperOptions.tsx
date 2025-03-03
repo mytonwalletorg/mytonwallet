@@ -174,7 +174,8 @@ async function downloadLogs(
   const workerLogs = await callApi('getLogs') || [];
   const uiLogs = getLogs();
   const logsString = JSON.stringify(
-    [...workerLogs, ...uiLogs].sort((a, b) => a.timestamp - b.timestamp).concat({
+    [...workerLogs, ...uiLogs].sort((a, b) => a.time.getTime() - b.time.getTime()).concat({
+      time: new Date(),
       environment: APP_ENV,
       version: APP_VERSION,
       platform: getPlatform(),

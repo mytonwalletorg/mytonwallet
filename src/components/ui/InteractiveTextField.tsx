@@ -398,7 +398,7 @@ function useDropdownMenu(
         name: isAddressAlreadySaved ? 'Remove From Saved' : 'Save Address',
         fontIcon: isAddressAlreadySaved ? 'star-filled' : 'star',
         withSeparator: true,
-        value: 'address',
+        value: 'addressBook',
       });
     }
 

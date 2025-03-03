@@ -252,24 +252,24 @@ CHECKOUT OPTIONS:
     :git: https://github.com/mytonwalletorg/FloatingPanel
 
 SPEC CHECKSUMS:
-  Capacitor: 679f9673fdf30597493a6362a5d5bf233d46abc2
-  CapacitorApp: 0bc633b4eae40a1f32cd2834788fad3bc42da6a1
-  CapacitorAppLauncher: 9ac785e8d3936388249212b6e16cb32225960c5f
-  CapacitorClipboard: 756cd7e83e8d5d19b0c74f40b57517c287bd5fe2
-  CapacitorCommunityBluetoothLe: 694d91cd954a2b3149db8967faa7af433700eb6b
+  Capacitor: 69c7f687aabb8d85e543497411e40638b5cc08c0
+  CapacitorApp: f51c08c64df914fc934239fd1b3fc809d62a02f6
+  CapacitorAppLauncher: b957226d48108ecba7b33f02553f85d5e11c4455
+  CapacitorClipboard: 0ceeee488e55bef7cced5c8097d97f330c109f61
+  CapacitorCommunityBluetoothLe: b554daec38aeffc3441662f890e333381797b162
   CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
-  CapacitorFilesystem: 37fb3aa5c945b4539ab11c74a5c57925a302bf24
-  CapacitorHaptics: fe689ade56ef20ec9b041a753c6da70c5d8ec9a9
-  CapacitorKeyboard: 460c6f9ec5e52c84f2742d5ce2e67bbc7ab0ebb0
-  CapacitorMlkitBarcodeScanning: 178fb57424ec688b6a2fceee506ecc1ea00d1c8d
-  CapacitorNativeSettings: 1ce5585ff07b161616cd0a795702637316677af2
-  CapacitorPluginSafeArea: e1eca7f70974f0e270d96f70cd0a5f51523164b1
-  CapacitorPushNotifications: ccd797926c030acad3d5498ef452c735c90a2c89
-  CapacitorSecureStoragePlugin: ced6025438fbbdbfb9fffec4398e748572fc147b
-  CapacitorShare: 591ae4693d85686ceb590db8e8b44aa014ec6490
-  CapgoCapacitorNativeBiometric: 44b0bb31118f6ed5171087a77a856a80a0cfa250
-  CapgoNativeAudio: f3cb18f75acfaec7c429e1ff9dc06e05c6605627
-  CordovaPlugins: b26881c27739f4c46bac6baf422f660500cd5561
+  CapacitorFilesystem: 30941c0fea0773fcaedab18e262b339f5b9c06bc
+  CapacitorHaptics: 05d33e20e394b1977dfd2a00a2621e04098164c1
+  CapacitorKeyboard: e89189ad398b815b6ff7e52271f0fb4f911a0a0a
+  CapacitorMlkitBarcodeScanning: 7652be9c7922f39203a361de735d340ae37e134e
+  CapacitorNativeSettings: 7669610adda7b2747fecab7c5e1b6329520d8914
+  CapacitorPluginSafeArea: 09c1240d762edf866b073fa6929621caf153d7cc
+  CapacitorPushNotifications: 88f40c5f06dfe54f2c0619173e11ecbff8661a2f
+  CapacitorSecureStoragePlugin: 545b51d782d35e61a39231ecf99a966b060a2cbb
+  CapacitorShare: 5d49f1b220e991372b4d5d34be9a6080a042bae4
+  CapgoCapacitorNativeBiometric: 2cbb9787f3a73bd4e8bccbd5e10bec7231a48ccd
+  CapgoNativeAudio: ade8843232c9f0d76b0649c47db4230cdcddec2d
+  CordovaPlugins: 9cf38ce16d3be795fed21f2a4c26f7fba8de33d1
   FirebaseCore: 30e9c1cbe3d38f5f5e75f48bfcea87d7c358ec16
   FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
   FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
@@ -281,18 +281,18 @@ SPEC CHECKSUMS:
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GoogleUtilitiesComponents: 679b2c881db3b615a2777504623df6122dd20afe
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
-  MauricewegnerCapacitorNavigationBar: 37f1308a961a8d8cd00f6362e30bad03a73728f7
+  MauricewegnerCapacitorNavigationBar: 5e441b3d38d4c567f840920b9cbe58ae0b0d5789
   MLImage: 1824212150da33ef225fbd3dc49f184cf611046c
   MLKitBarcodeScanning: 9cb0ec5ec65bbb5db31de4eba0a3289626beab4e
   MLKitCommon: afcd11b6c0735066a0dde8b4bf2331f6197cbca2
   MLKitVision: 90922bca854014a856f8b649d1f1f04f63fd9c79
-  MtwCapacitorUsbHid: ee48577f497c225b50d5db1f1bd40fb5c5a1ca99
+  MtwCapacitorUsbHid: 4ecb682bc7aff214cd8036e53e8e0cc94b1e966b
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
-  NativeBottomSheet: 81b2b53d470537e42858d0d6485af318c51c3a5f
-  NativeDialog: f347d7f1a10adac33a1cb1a02be03911cf2fe067
+  NativeBottomSheet: a7e10565d25e2be8a813be2a8c5171cc4b843f04
+  NativeDialog: 5d2d81f162e3ab44aa8d4c9557c693893eec3b65
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  SinaKhMtwCapacitorSplashScreen: 94136e24daea4d0b0c5c2c2c1f7b0fa28cc00aa0
-  SinaKhMtwCapacitorStatusBar: e3fa73038e8dbac071751e1942eab65fc6c39a5f
+  SinaKhMtwCapacitorSplashScreen: 5936f69d7bc15438ada7dcba93fda99fb71554cb
+  SinaKhMtwCapacitorStatusBar: fc6492b7efab90ecc72f643d8b60593851a3d6bc
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
 PODFILE CHECKSUM: fa64166a091f354ce503fdaf4d4b36e1cc75b934
