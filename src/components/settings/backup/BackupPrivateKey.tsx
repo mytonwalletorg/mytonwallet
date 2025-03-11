@@ -47,7 +47,7 @@ function BackupPrivateKey({
         setPrivateKey(undefined);
       }
     }
-    loadPrivateKey();
+    void loadPrivateKey();
   }, [currentAccountId, enteredPassword, isBackupSlideActive]);
 
   useHistoryBack({

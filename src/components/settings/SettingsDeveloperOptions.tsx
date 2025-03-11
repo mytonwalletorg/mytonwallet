@@ -1,23 +1,16 @@
-import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiNetwork } from '../../api/types';
 import type { Account } from '../../global/types';
 
-import {
-  APP_ENV,
-  APP_VERSION,
-  IS_CAPACITOR,
-  IS_EXTENSION,
-} from '../../config';
+import { APP_ENV, APP_VERSION, IS_EXTENSION } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { getBuildPlatform, getFlagsValue } from '../../util/getBuildPlatform';
 import { getPlatform } from '../../util/getPlatform';
 import { getLogs } from '../../util/logs';
-import { IS_IOS } from '../../util/windowEnvironment';
+import { shareFile } from '../../util/share';
 import { callApi } from '../../api';
 
 import useLang from '../../hooks/useLang';
@@ -70,10 +63,16 @@ function SettingsDeveloperOptions({
     onClose();
   });
 
-  const handleExtensionClick = useLastCallback((logsString: string) => {
-    showNotification({ message: lang('Logs were copied!') as string, icon: 'icon-copy' });
-    void copyTextToClipboard(logsString);
-    onClose();
+  const handleDownloadLogs = useLastCallback(async () => {
+    const logsString = await getLogsString({ currentAccountId, accountsById });
+
+    if (IS_EXTENSION) {
+      await copyTextToClipboard(logsString);
+      showNotification({ message: lang('Logs were copied!') as string, icon: 'icon-copy' });
+      onClose();
+    } else {
+      await shareFile(`mytonwallet_logs_${new Date().toISOString()}.json`, logsString, 'application/json');
+    }
   });
 
   return (
@@ -114,11 +113,7 @@ function SettingsDeveloperOptions({
 
       <div
         className={buildClassName(styles.settingsBlock, styles.logBlock)}
-        onClick={() => downloadLogs({
-          currentAccountId,
-          accountsById,
-          onExtensionClick: handleExtensionClick,
-        })}
+        onClick={handleDownloadLogs}
       >
         <div className={buildClassName(styles.item, styles.item_small)}>
           {
@@ -155,12 +150,11 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   };
 })(SettingsDeveloperOptions));
 
-async function downloadLogs(
+async function getLogsString(
   {
     currentAccountId,
     accountsById,
-    onExtensionClick,
-  }: StateProps & { onExtensionClick: (logsString: string) => void },
+  }: StateProps,
 ) {
   const accountsInfo = accountsById && Object.keys(accountsById).reduce((acc, accountId) => {
     const { addressByChain, isHardware } = accountsById[accountId];
@@ -173,7 +167,7 @@ async function downloadLogs(
 
   const workerLogs = await callApi('getLogs') || [];
   const uiLogs = getLogs();
-  const logsString = JSON.stringify(
+  return JSON.stringify(
     [...workerLogs, ...uiLogs].sort((a, b) => a.time.getTime() - b.time.getTime()).concat({
       time: new Date(),
       environment: APP_ENV,
@@ -189,42 +183,4 @@ async function downloadLogs(
     undefined,
     2,
   );
-
-  if (IS_EXTENSION) {
-    onExtensionClick(logsString);
-    return;
-  }
-
-  const blob = new Blob([logsString], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-
-  const filename = `mytonwallet_logs_${Date.now()}.json`;
-
-  if (IS_CAPACITOR) {
-    const logFile = await Filesystem.writeFile({
-      path: filename,
-      data: logsString,
-      directory: Directory.Cache,
-      encoding: Encoding.UTF8,
-    });
-
-    await Share.share({
-      url: logFile.uri,
-    });
-  } else if (navigator.share) {
-    const file = new File([blob], filename, { type: blob.type });
-
-    navigator.share({
-      files: [file],
-    });
-  } else if (IS_IOS) {
-    window.open(url, '_blank', 'noreferrer');
-  } else {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-  }
-
-  URL.revokeObjectURL(url);
 }

@@ -27,7 +27,7 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   }
 
   methods.initAccounts(onUpdate);
-  methods.initPolling(onUpdate);
+  void methods.initPolling(onUpdate);
   methods.initTransactions(onUpdate);
   methods.initStaking();
   methods.initSwap(onUpdate);

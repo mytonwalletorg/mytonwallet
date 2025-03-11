@@ -15,13 +15,13 @@ import type { Workchain } from '../../api/chains/ton';
 import type { ApiSubmitTransferOptions } from '../../api/methods/types';
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type {
-  ApiDappTransfer,
   ApiJettonStakingState,
   ApiLocalTransactionParams,
   ApiNetwork,
   ApiNft,
   ApiSignedTransfer,
   ApiStakingState,
+  ApiTransferToSign,
 } from '../../api/types';
 import type BleTransport from '../../lib/ledger-hw-transport-ble/BleTransport';
 import type { LedgerTransport, LedgerWalletInfo } from './types';
@@ -797,7 +797,7 @@ function buildCommentPayload(comment: string) {
   return packBytesAsSnakeCell(bytes);
 }
 
-export async function signLedgerTransactions(accountId: string, messages: ApiDappTransfer[], options?: {
+export async function signLedgerTransactions(accountId: string, messages: ApiTransferToSign[], options?: {
   isTonConnect?: boolean;
   vestingAddress?: string;
 }): Promise<ApiSignedTransfer[]> {

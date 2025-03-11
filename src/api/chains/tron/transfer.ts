@@ -16,7 +16,7 @@ import { handleServerError } from '../../errors';
 import { getTrc20Balance, getWalletBalance } from './wallet';
 import type { ApiSubmitTransferTronResult } from './types';
 import { hexToString } from '../../../util/stringFormat';
-import { TRON_GAS } from './constants';
+import { ONE_TRX, TRON_GAS } from './constants';
 
 const SIGNATURE_SIZE = 65;
 
@@ -59,10 +59,18 @@ export async function checkTransactionDraft(
     } else {
       // This call throws "Error: Invalid amount provided" when the amount is 0.
       // It doesn't throw when the amount is > than the balance.
-      const transaction = await tronWeb.transactionBuilder.sendTrx(toAddress, Number(amount ?? 1), address);
+      const [transaction, account] = await Promise.all([
+        tronWeb.transactionBuilder.sendTrx(toAddress, Number(amount ?? 1), address),
+        tronWeb.trx.getAccount(toAddress),
+      ]);
 
       const size = 9 + 60 + Buffer.from(transaction.raw_data_hex, 'hex').byteLength + SIGNATURE_SIZE;
       fee = bandwidth > size ? 0n : BigInt(size) * BigInt(bandwidthUnitFee);
+
+      // If the account is not activated, we pay an extra 1 TRX for activation
+      if (account.balance === undefined) {
+        fee += ONE_TRX;
+      }
     }
 
     result.fee = fee;

@@ -158,7 +158,6 @@ NFT: NFT
 No NFTs yet: 尚未有 NFT
 $nft_explore_offer: |
   探索市場來尋找現有的 NFT 收藏.
-Open TON Diamonds: 開啟 TON Diamonds
 Received: 已收到
 Sent: 已送出
 $transaction_from: 從 %address%
@@ -711,8 +710,10 @@ $swap_reverse_prohibited: 無法為這對代幣設置購買金額
 Blockchain Fee Details: 區塊鏈費用詳情
 Final Fee: 最終費用
 Excess: 多餘款項
-$fee_details: 需要立即從您的錢包中扣除%full_fee%以支付費用。部分金額將在幾分鐘內以%excess_symbol%的形式返還給您作為多餘款項。
-This is how the %chain_name% Blockchain works.: 這就是%chain_name%區塊鏈的運作方式。
+$fee_details: |
+  需要立即從您的錢包中扣除 %full_fee% 以支付費用。部分金額將在幾分鐘內以 %excess_symbol% 的形式返還給您作為多餘款項。
+
+  這就是 %chain_name% 區塊鏈的工作方式。
 Got It: 知道了
 Wallet: 錢包
 Connected: 已連接
@@ -724,4 +725,14 @@ Request is sent!: 請求已發送！
 Transaction ID: 交易ID
 Help Center: 幫助中心
 MyTonWallet Tips: MyTonWallet 提示
-$returned_value: "~ %value% 將被退還"
+$returned_value: ~ %value% 將被退還
+Open %nft_marketplace%: 打開 %nft_marketplace%
+Link was copied!: 連結已複製！
+Share Link: 分享連結
+Dapp Fee Details: 費用詳情
+$dapp_return_details: |
+  %fee_amount% 將立即從您的錢包扣除以支付費用。
+
+  %received_amount% 將在幾分鐘內退還給您。
+$dapp_return_disclaimer: 顯示的返還金額不受保證，並可能被惡意 Dapp 操縱。如果您不確定此服務的可靠性，請取消操作。
+Additional Amount Sent: 額外發送

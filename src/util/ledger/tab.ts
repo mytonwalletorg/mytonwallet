@@ -12,7 +12,7 @@ export async function closeLedgerTab() {
   await chrome.tabs.query({ active: true }, () => {
     if (!ledgerTabId) return;
 
-    chrome.tabs.remove(ledgerTabId);
+    void chrome.tabs.remove(ledgerTabId);
   });
 }
 

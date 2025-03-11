@@ -38,7 +38,7 @@ function ChartHistorySwitcher({
 
     if (period === currentPeriod) return;
 
-    vibrate();
+    void vibrate();
 
     setCurrentTokenPeriod({ period: period as TokenPeriod });
     onChange?.(period as TokenPeriod);

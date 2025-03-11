@@ -1,10 +1,6 @@
 import type { RefObject } from 'react';
-import React, {
-  beginHeavyAnimation, useEffect, useLayoutEffect, useRef,
-} from '../../lib/teact/teact';
-import {
-  addExtraClass, removeExtraClass, setExtraStyles, toggleExtraClass,
-} from '../../lib/teact/teact-dom';
+import React, { beginHeavyAnimation, useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
+import { addExtraClass, removeExtraClass, setExtraStyles, toggleExtraClass } from '../../lib/teact/teact-dom';
 import { getGlobal } from '../../global';
 
 import { ANIMATION_LEVEL_MIN } from '../../config';
@@ -151,7 +147,9 @@ function Transition({
       addExtraClass(el, CLASSES.slide);
 
       if (slideClassName) {
-        addExtraClass(el, slideClassName);
+        slideClassName.split(/\s+/).forEach((token) => {
+          addExtraClass(el, token);
+        });
       }
     });
 

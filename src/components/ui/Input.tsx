@@ -22,7 +22,6 @@ type OwnProps = {
   maxLength?: number;
   isRequired?: boolean;
   isDisabled?: boolean;
-  isControlled?: boolean;
   isMultiline?: boolean;
   hasError?: boolean;
   error?: string;
@@ -46,7 +45,6 @@ function Input({
   inputMode,
   isRequired,
   isDisabled,
-  isControlled,
   isMultiline,
   hasError,
   type = 'text',
@@ -126,7 +124,6 @@ function Input({
           tabIndex={0}
           required={isRequired}
           placeholder={placeholder}
-          teactExperimentControlled={isControlled}
         />
       ) : (
         <input
@@ -148,7 +145,6 @@ function Input({
           tabIndex={0}
           required={isRequired}
           placeholder={placeholder}
-          teactExperimentControlled={isControlled}
         />
       )}
       {type === 'password' && (

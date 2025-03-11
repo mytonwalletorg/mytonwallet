@@ -10,7 +10,6 @@ import type {
   ApiDapp,
   ApiDappPermissions,
   ApiDappTransfer,
-  ApiEmulationResult,
   ApiHistoryList,
   ApiLedgerDriver,
   ApiNetwork,
@@ -117,7 +116,7 @@ export enum AuthState {
   disclaimer,
   ready,
   about,
-  saferyRules,
+  safetyRules,
   mnemonicPage,
   checkWords,
 }
@@ -404,18 +403,8 @@ export interface NftTransfer {
   collectionName?: string;
 }
 
-/** A dapp transfer prepared to be shown in the UI */
-export interface ExtendedDappTransfer extends ApiDappTransfer {
-  /** The network fee portion of that transfer. Always measured in TON. Undefined means that it's unknown. */
-  networkFee?: bigint;
-  /** The actual address where the transfer will go */
-  realToAddress: string;
-  /** Whether the transfer should be treated with cautiousness, because its payload is unclear */
-  isDangerous: boolean;
-}
-
 export type GlobalState = {
-  DEBUG_capturedId?: number;
+  DEBUG_randomId?: number;
 
   appState: AppState;
 
@@ -555,13 +544,6 @@ export type GlobalState = {
     transactions?: ApiDappTransfer[];
     vestingAddress?: string;
     viewTransactionOnIdx?: number;
-    /** The plain pure blockchain fee */
-    networkFee?: bigint;
-    /**
-     * More extended information about the fee. May miss due to the technical problems. In this case you should fallback
-     * to the `networkFee` field.
-     */
-    emulationResult?: Omit<ApiEmulationResult, 'byTransactionIndex'>;
     dapp?: ApiDapp;
     error?: string;
   };

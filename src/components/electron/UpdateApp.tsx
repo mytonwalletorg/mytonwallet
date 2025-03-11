@@ -34,7 +34,7 @@ function UpdateApp({ isAppUpdateAvailable }: StateProps) {
       setIsElectronUpdateDownloaded(true);
     });
 
-    window.electron?.getIsAutoUpdateEnabled().then(setIsElectronAutoUpdateEnabled);
+    void window.electron?.getIsAutoUpdateEnabled().then(setIsElectronAutoUpdateEnabled);
 
     return () => {
       removeUpdateErrorListener?.();

@@ -73,7 +73,7 @@ async function tryConnectingLedgerDevice(scannedDevice: ScannedDevice) {
     }, 1000);
   } catch (error) {
     setTimeout(() => {
-      tryConnectingLedgerDevice(scannedDevice);
+      void tryConnectingLedgerDevice(scannedDevice);
     }, 10000);
   }
 }

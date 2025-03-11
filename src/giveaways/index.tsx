@@ -41,7 +41,7 @@ declare global {
   }
 }
 
-(async () => {
+void (async () => {
   const actions = getActions();
   actions.setAnimationLevel({ level: ANIMATION_LEVEL_DEFAULT });
   actions.setTheme({ theme: THEME_DEFAULT });

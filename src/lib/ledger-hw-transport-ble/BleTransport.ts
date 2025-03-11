@@ -119,7 +119,7 @@ export default class BleTransport extends Transport {
     const tracer = new LocalTracer(LOG_TYPE);
     tracer.trace('Listening for devices ...');
 
-    BleClient.getConnectedDevices(getBluetoothServiceUuids()).then(async (devices) => {
+    void BleClient.getConnectedDevices(getBluetoothServiceUuids()).then(async (devices) => {
       if (unsubscribed) return;
       for (const it of devices) {
         observer.next({

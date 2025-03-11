@@ -3,7 +3,12 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, TON_DIAMONDS_TITLE, TON_DIAMONDS_URL } from '../../../../config';
+import {
+  ANIMATED_STICKER_BIG_SIZE_PX,
+  ANIMATED_STICKER_SMALL_SIZE_PX,
+  NFT_MARKETPLACE_TITLE,
+  NFT_MARKETPLACE_URL,
+} from '../../../../config';
 import renderText from '../../../../global/helpers/renderText';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -53,7 +58,7 @@ function Nfts({
   const { clearNftsSelection } = getActions();
 
   const lang = useLang();
-  const { isLandscape } = useDeviceScreen();
+  const { isPortrait, isLandscape } = useDeviceScreen();
   const hasSelection = Boolean(selectedAddresses?.length);
 
   useEffect(clearNftsSelection, [clearNftsSelection, isActive, currentCollectionAddress]);
@@ -86,10 +91,13 @@ function Nfts({
     isDisabled: !nfts?.length,
   });
 
-  function handleTonDiamondsClick(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+  function handleNftMarketplaceClick(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     stopEvent(e);
 
-    void openUrl(TON_DIAMONDS_URL, { title: TON_DIAMONDS_TITLE, subtitle: getHostnameFromUrl(TON_DIAMONDS_URL) });
+    void openUrl(NFT_MARKETPLACE_URL, {
+      title: NFT_MARKETPLACE_TITLE,
+      subtitle: getHostnameFromUrl(NFT_MARKETPLACE_URL),
+    });
   }
 
   if (nfts === undefined) {
@@ -107,20 +115,24 @@ function Nfts({
           play={isActive}
           tgsUrl={ANIMATED_STICKERS_PATHS.happy}
           previewUrl={ANIMATED_STICKERS_PATHS.happyPreview}
-          size={ANIMATED_STICKER_BIG_SIZE_PX}
+          size={isPortrait ? ANIMATED_STICKER_SMALL_SIZE_PX : ANIMATED_STICKER_BIG_SIZE_PX}
           className={styles.sticker}
           noLoop={false}
           nonInteractive
         />
-        <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
-        {!isNftBuyingDisabled && (
-          <>
-            <p className={styles.emptyListText}>{renderText(lang('$nft_explore_offer'))}</p>
-            <button type="button" className={styles.emptyListButton} onClick={handleTonDiamondsClick}>
-              {lang('Open TON Diamonds')}
-            </button>
-          </>
-        )}
+        <div className={styles.emptyListContent}>
+          <p className={styles.emptyListTitle}>{lang('No NFTs yet')}</p>
+          {!isNftBuyingDisabled && (
+            <>
+              <p className={styles.emptyListText}>
+                {renderText(lang('$nft_explore_offer'), isPortrait ? ['simple_markdown'] : undefined)}
+              </p>
+              <button type="button" className={styles.emptyListButton} onClick={handleNftMarketplaceClick}>
+                {lang('Open %nft_marketplace%', { nft_marketplace: NFT_MARKETPLACE_TITLE })}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     );
   }

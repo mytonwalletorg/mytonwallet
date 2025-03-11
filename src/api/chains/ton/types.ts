@@ -2,7 +2,7 @@ import type { Cell } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
 import type {
-  ApiAnyDisplayError, ApiParsedPayload, ApiTransaction,
+  ApiAnyDisplayError, ApiEmulationResult, ApiParsedPayload, ApiTransaction,
 } from '../../types';
 import type { ContractType } from './constants';
 
@@ -188,3 +188,10 @@ export type ApiSubmitTransferOptions = {
   isBase64Data?: boolean;
   forwardAmount?: bigint;
 };
+
+export type ApiCheckMultiTransactionDraftResult = {
+  /** The total network fee */
+  fee?: bigint;
+  /** Gives the same information as `fee`, and some more */
+  emulation?: ApiEmulationResult;
+} & ({ error: ApiAnyDisplayError } | {});

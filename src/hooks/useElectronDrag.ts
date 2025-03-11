@@ -48,7 +48,7 @@ const useElectronDrag = (ref: RefObject<HTMLDivElement>) => {
 
     const handleDoubleClick = (event: MouseEvent) => {
       if (event.currentTarget === event.target) {
-        window.electron?.handleDoubleClick();
+        void window.electron?.handleDoubleClick();
       }
     };
 

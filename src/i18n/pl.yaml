@@ -164,7 +164,6 @@ No NFTs yet: Nie ma jeszcze NFT
 $nft_explore_offer: |
   Przeglądaj rynek, aby odkryć
   istniejące kolekcje NFT.
-Open TON Diamonds: Otwórz TON Diamonds
 Received: Otrzymano
 Sent: Wysłany
 $transaction_from: od %address%
@@ -727,8 +726,10 @@ $swap_reverse_prohibited: Ustawienie kwoty zakupu jest niemożliwe dla tej pary 
 Blockchain Fee Details: Szczegóły opłaty blockchain
 Final Fee: Opłata końcowa
 Excess: Reszta
-$fee_details: "%full_fee% zostanie natychmiast pobrane z Twojego portfela w celu uiszczenia opłaty. Część tej kwoty zostanie zwrócona **w **%excess_symbol% jako reszta w ciągu kilku minut."
-This is how the %chain_name% Blockchain works.: Tak działa Blockchain %chain_name%.
+$fee_details: |
+  "%full_fee% zostanie natychmiast pobrane z Twojego portfela w celu uiszczenia opłaty. Część tej kwoty zostanie zwrócona **w **%excess_symbol% jako reszta w ciągu kilku minut."
+
+  Oto jak działa %chain_name% Blockchain.
 Got It: Zrozumiano
 Wallet: Portfel
 Connected: Połączono
@@ -740,4 +741,14 @@ Request is sent!: Żądanie wysłane!
 Transaction ID: ID transakcji
 Help Center: Baza wiedzy
 MyTonWallet Tips: Wskazówki MyTonWallet
-$returned_value: "~ %value% zostanie zwrócone"
+$returned_value: ~ %value% zostanie zwrócone
+Open %nft_marketplace%: Otwórz %nft_marketplace%
+Link was copied!: Link został skopiowany!
+Share Link: Udostępnij link
+Dapp Fee Details: Szczegóły opłaty Dapp
+$dapp_return_details: |
+  %fee_amount% zostanie natychmiast pobrane z Twojego portfela na opłatę.
+
+  %received_amount% zostanie Ci zwrócone w ciągu kilku minut.
+$dapp_return_disclaimer: Wyświetlona zwrócona kwota nie jest gwarantowana i może zostać zmanipulowana przez złośliwe dappy. Anuluj operację, jeśli nie jesteś pewien niezawodności tej usługi.
+Additional Amount Sent: Dodatkowo zostanie wysłane

@@ -11,11 +11,11 @@ export function pauseOrFocus(ms: number, msWhenNotFocused = ms) {
 
   deferreds.add(deferred);
 
-  deferred.promise.then(() => {
+  void deferred.promise.then(() => {
     deferreds.delete(deferred);
   });
 
-  pause(isFocused ? ms : msWhenNotFocused).then(deferred.resolve);
+  void pause(isFocused ? ms : msWhenNotFocused).then(deferred.resolve);
 
   return deferred.promise;
 }

@@ -29,7 +29,7 @@ function CaptchaPage({
       turnstile.render('#turnstile-container', {
         sitekey: GIVEAWAY_CAPTCHA_PUBLIC_KEY,
         callback(token: string) {
-          checkinGiveaway(token, wallet, setParticipantStatus, setGiveaway);
+          void checkinGiveaway(token, wallet, setParticipantStatus, setGiveaway);
         },
       });
     };

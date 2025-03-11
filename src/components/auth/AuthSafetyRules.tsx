@@ -6,7 +6,7 @@ import buildClassName from '../../util/buildClassName';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
-import SaferyRulesContent from '../common/backup/SaferyRulesContent';
+import SafetyRulesContent from '../common/backup/SafetyRulesContent';
 import Button from '../ui/Button';
 
 import styles from './Auth.module.scss';
@@ -15,12 +15,12 @@ interface OwnProps {
   isActive?: boolean;
 }
 
-const AuthSaferyRules = ({ isActive }: OwnProps) => {
+const AuthSafetyRules = ({ isActive }: OwnProps) => {
   const { openCreateBackUpPage, openMnemonicPage } = getActions();
 
-  const [writedownAccepted, setWritedownAccepted] = useState(false);
-  const [openWalletAccepted, setOpenWalletAccepted] = useState(false);
-  const [canBeStolenAccepted, setCanBeStolenAccepted] = useState(false);
+  const [firstChecked, setFirstChecked] = useState(false);
+  const [secondChecked, setSecondChecked] = useState(false);
+  const [thirdChecked, setThirdChecked] = useState(false);
 
   useHistoryBack({ isActive, onBack: openCreateBackUpPage });
 
@@ -37,18 +37,18 @@ const AuthSaferyRules = ({ isActive }: OwnProps) => {
           <span className={styles.headerTitle}>{lang('Safety Rules')}</span>
         </div>
 
-        <SaferyRulesContent
+        <SafetyRulesContent
           isActive={isActive}
           isFullSizeButton
           textFirst={lang('$safety_rules_one')}
           textSecond={lang('$safety_rules_two')}
           textThird={lang('$safety_rules_three')}
-          isFirstCheckboxSelected={writedownAccepted}
-          onFirstCheckboxClick={setWritedownAccepted}
-          isSecondCheckboxSelected={openWalletAccepted}
-          onSecondCheckboxClick={setOpenWalletAccepted}
-          isThirdCheckboxSelected={canBeStolenAccepted}
-          onThirdCheckboxClick={setCanBeStolenAccepted}
+          isFirstCheckboxSelected={firstChecked}
+          onFirstCheckboxClick={setFirstChecked}
+          isSecondCheckboxSelected={secondChecked}
+          onSecondCheckboxClick={setSecondChecked}
+          isThirdCheckboxSelected={thirdChecked}
+          onThirdCheckboxClick={setThirdChecked}
           onSubmit={openMnemonicPage}
         />
       </div>
@@ -56,4 +56,4 @@ const AuthSaferyRules = ({ isActive }: OwnProps) => {
   );
 };
 
-export default memo(AuthSaferyRules);
+export default memo(AuthSafetyRules);

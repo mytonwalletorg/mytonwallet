@@ -1,6 +1,6 @@
 import { useRef } from '../lib/teact/teact';
 
-import { forceMeasure } from '../lib/fasterdom/stricterdom';
+import { suppressStrict } from '../lib/fasterdom/stricterdom';
 import buildClassName from '../util/buildClassName';
 
 const MIN_SIZE_SCALE = 0.25; // 12px
@@ -11,10 +11,12 @@ function useFontScale(inputRef: React.RefObject<HTMLElement>, shouldGetParentWid
 
   const updateFontScale = (content: string) => {
     const input = inputRef.current;
-    if (!input) return;
 
-    forceMeasure(() => {
+    suppressStrict(() => {
+      if (!input?.offsetParent) return;
+
       let { clientWidth: width } = shouldGetParentWidth ? input.parentElement! : input;
+
       if (shouldGetParentWidth) {
         const { paddingLeft, paddingRight } = getComputedStyle(input);
         width -= parseFloat(paddingLeft) + parseFloat(paddingRight);

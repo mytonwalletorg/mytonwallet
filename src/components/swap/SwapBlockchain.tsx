@@ -145,7 +145,7 @@ function SwapBlockchain({
 
       if (type === 'text/plain') {
         setSwapCexAddress({ toAddress: text.trim() });
-        validateToAddress(text.trim());
+        await validateToAddress(text.trim());
       }
     } catch (error) {
       showNotification({
@@ -156,11 +156,11 @@ function SwapBlockchain({
   });
 
   useEffect(() => {
-    validateToAddress(toAddress);
+    void validateToAddress(toAddress);
   }, [toAddress, validateToAddress]);
 
   const submitPassword = useLastCallback(() => {
-    vibrate();
+    void vibrate();
     setSwapScreen({ state: SwapState.Password });
   });
 

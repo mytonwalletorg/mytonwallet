@@ -162,7 +162,6 @@ No NFTs yet: No NFTs yet
 $nft_explore_offer: |
   Explore a marketplace to discover
   existing NFT collections.
-Open TON Diamonds: Open TON Diamonds
 Received: Received
 Sent: Sent
 $transaction_from: from %address%
@@ -723,8 +722,10 @@ $swap_reverse_prohibited: Setting the buy amount is impossible for this pair of 
 Blockchain Fee Details: Blockchain Fee Details
 Final Fee: Final Fee
 Excess: Excess
-$fee_details: "%full_fee% need to be immediately debited from your wallet to pay the fee. Part of this will be returned **in **%excess_symbol% to you as excess within a few minutes."
-This is how the %chain_name% Blockchain works.: This is how the %chain_name% Blockchain works.
+$fee_details: |
+  %full_fee% need to be immediately debited from your wallet to pay the fee. Part of this will be returned **in **%excess_symbol% to you as excess within a few minutes.
+
+  This is how %chain_name% Blockchain works.
 Got It: Got It
 Wallet: Wallet
 Connected: Connected
@@ -736,4 +737,14 @@ Request is sent!: Request is sent!
 Transaction ID: Transaction ID
 Help Center: Help Center
 MyTonWallet Tips: MyTonWallet Tips
-$returned_value: "~ %value% will be returned"
+$returned_value: ~ %value% will be returned
+Open %nft_marketplace%: Open %nft_marketplace%
+Link was copied!: Link was copied!
+Share Link: Share Link
+Dapp Fee Details: Dapp Fee Details
+$dapp_return_details: |
+  %fee_amount% will be immediately debited from your wallet to pay the fee.
+
+  %received_amount% will be returned to you within a few minutes.
+$dapp_return_disclaimer: The displayed returned amount is not guaranteed and may be manipulated by malicious dapps. Cancel the operation if you are not sure about the reliability of this service.
+Additional Amount Sent: Additional Amount Sent

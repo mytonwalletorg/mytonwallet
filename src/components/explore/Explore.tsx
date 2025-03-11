@@ -220,7 +220,7 @@ function Explore({
     e: React.SyntheticEvent<HTMLDivElement | HTMLAnchorElement>,
     url: string,
   ) => {
-    vibrate();
+    void vibrate();
     hideSuggestions();
     const site = originalSites?.find(({ url: currentUrl }) => currentUrl === url);
     openSite(url, site?.isExternal, site?.name);

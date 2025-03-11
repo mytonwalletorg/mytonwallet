@@ -1,10 +1,10 @@
 import withCache from './withCache';
 
-const DEFAULT_SHIFT = 6;
+export const MEANINGFUL_CHAR_LENGTH = 6;
 const FILLER = '...';
 const FILLER_LENGTH = FILLER.length;
 
-export const shortenAddress = withCache((address: string, shift = DEFAULT_SHIFT, fromRight = shift) => {
+export const shortenAddress = withCache((address: string, shift = MEANINGFUL_CHAR_LENGTH, fromRight = shift) => {
   if (!address) return undefined;
 
   if (address.length <= shift + fromRight + FILLER_LENGTH) return address;

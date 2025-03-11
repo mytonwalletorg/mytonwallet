@@ -12,9 +12,6 @@ import Transition from './Transition';
 
 import styles from './FeeLine.module.scss';
 
-const TERMS_TRANSITION_KEY = 0b1;
-const DETAILS_TRANSITION_KEY = 0b10;
-
 /**
  * The component will be rendered empty unless all the required options from `FeeProps` are provided.
  * After that it will fade in.
@@ -39,49 +36,65 @@ function FeeLine({
   onDetailsClick,
 }: OwnProps) {
   const lang = useLang();
-  const content: TeactNode[] = [];
-  let transitionKey = 0;
+  let content: TeactNode | undefined;
 
   if (terms && token) {
     const langKey = precision === 'exact' ? '$fee_value_with_colon' : '$fee_value';
-
-    content.push(
-      lang(langKey, {
-        fee: <Fee terms={terms} token={token} precision={precision} />,
-      }),
-    );
-
-    if (onDetailsClick) {
-      content.push(' · ');
-    }
-
-    transitionKey += TERMS_TRANSITION_KEY;
-  }
-
-  if (onDetailsClick && (keepDetailsButtonWithoutFee || content.length)) {
-    content.push(
-      <span
-        role="button"
-        tabIndex={0}
-        className={styles.details}
-        onClick={() => onDetailsClick()}
-      >
-        {lang('Details')}
-        <i className={buildClassName('icon-chevron-right', styles.detailsIcon)} aria-hidden />
-      </span>,
-    );
-    transitionKey += DETAILS_TRANSITION_KEY;
+    content = lang(langKey, {
+      fee: <Fee terms={terms} token={token} precision={precision} />,
+    });
   }
 
   return (
-    <Transition
-      name="fade"
-      activeKey={transitionKey}
-      className={buildClassName(styles.root, className, isStatic && styles.static)}
+    <FeeLineContainer
+      className={className}
+      isStatic={isStatic}
+      onDetailsClick={content || keepDetailsButtonWithoutFee ? onDetailsClick : undefined}
+      transitionKey={content ? 1 : 0}
     >
       {content}
-    </Transition>
+    </FeeLineContainer>
   );
 }
 
 export default memo(FeeLine);
+
+type ContainerProps = Pick<OwnProps, 'className' | 'isStatic' | 'onDetailsClick'> & {
+  children?: TeactNode;
+  transitionKey?: number;
+};
+
+/**
+ * Use this component when you want to show a content that looks like `FeeLine`, but is not `FeeLine`.
+ */
+export function FeeLineContainer({
+  className,
+  isStatic,
+  onDetailsClick,
+  children,
+  transitionKey = 0,
+}: ContainerProps) {
+  const lang = useLang();
+
+  return (
+    <Transition
+      name="fade"
+      activeKey={transitionKey + (onDetailsClick ? 0x10000 : 0)}
+      className={buildClassName(styles.container, className, isStatic && styles.static)}
+    >
+      {children}
+      {Boolean(children) && onDetailsClick && ' · '}
+      {onDetailsClick && (
+        <span
+          role="button"
+          tabIndex={0}
+          className={styles.details}
+          onClick={() => onDetailsClick()}
+        >
+          {lang('Details')}
+          <i className={buildClassName('icon-chevron-right', styles.detailsIcon)} aria-hidden />
+        </span>
+      )}
+    </Transition>
+  );
+}

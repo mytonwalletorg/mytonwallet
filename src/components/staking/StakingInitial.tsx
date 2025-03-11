@@ -227,7 +227,7 @@ function StakingInitial({
           `3. ${lang('$safe_staking_description3')}`,
         ];
 
-      Dialog.alert({
+      void Dialog.alert({
         title: lang('Why is staking safe?'),
         message: text.join('\n\n').replace(/\*\*/g, ''),
       })
@@ -243,7 +243,7 @@ function StakingInitial({
       return;
     }
 
-    vibrate();
+    void vibrate();
 
     setShouldUseAllBalance(true);
   });

@@ -1,30 +1,26 @@
-import React, {
-  memo,
-  useMemo,
-} from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency, ApiDapp, ApiToken } from '../../api/types';
-import type { Account, ExtendedDappTransfer } from '../../global/types';
-import type { Big } from '../../lib/big.js';
+import type { ApiDapp, ApiDappTransfer, ApiToken } from '../../api/types';
+import type { Account } from '../../global/types';
 
 import { TONCOIN } from '../../config';
 import {
-  selectCurrentDappTransferExtendedTransactions,
   selectCurrentDappTransferTotals,
   selectCurrentToncoinBalance,
   selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
-import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
-import { getDappTransferActualToAddress, isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
+import { isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useLang from '../../hooks/useLang';
 
 import Button from '../ui/Button';
+import DappAmountField from './DappAmountField';
 import DappInfo from './DappInfo';
 import DappTransfer from './DappTransfer';
 import DappTransferFee from './DappTransferFee';
@@ -41,16 +37,15 @@ interface OwnProps {
 interface StateProps {
   currentAccount?: Account;
   toncoinBalance: bigint;
-  transactions?: ExtendedDappTransfer[];
-  totalAmountsBySlug: Record<string, Big>;
-  totalCost: number;
+  transactions?: ApiDappTransfer[];
+  totalAmountsBySlug: Record<string, bigint>;
   totalFullFee: bigint;
-  totalRealFee?: bigint;
-  totalReceived?: bigint;
+  totalReceived: bigint;
+  isScam: boolean;
+  isDangerous: boolean;
   dapp?: ApiDapp;
   isLoading?: boolean;
   tokensBySlug: Record<string, ApiToken>;
-  baseCurrency?: ApiBaseCurrency;
 }
 
 function DappTransferInitial({
@@ -58,24 +53,20 @@ function DappTransferInitial({
   toncoinBalance,
   transactions,
   totalAmountsBySlug,
-  totalCost,
   totalFullFee,
-  totalRealFee,
   totalReceived,
+  isScam,
+  isDangerous,
   dapp,
   isLoading,
   tokensBySlug,
   onClose,
-  baseCurrency,
 }: OwnProps & StateProps) {
   const { showDappTransfer, submitDappTransferConfirm } = getActions();
 
   const lang = useLang();
   const isSingleTransaction = transactions?.length === 1;
   const renderingTransactions = useCurrentOrPrev(transactions, true);
-  const hasScamAddresses = useMemo(() => {
-    return renderingTransactions?.some(({ isScam }) => isScam);
-  }, [renderingTransactions]);
 
   function renderDapp() {
     return (
@@ -104,11 +95,10 @@ function DappTransferInitial({
     );
   }
 
-  function renderTransactionRow(transaction: ExtendedDappTransfer, i: number) {
+  function renderTransactionRow(transaction: ApiDappTransfer, i: number) {
     const { payload } = transaction;
-    const tonAmount = transaction.amount + (transaction.networkFee ?? 0n);
 
-    let amountText: string | undefined;
+    let amountText = '';
     if (isNftTransferPayload(payload)) {
       amountText = '1 NFT';
     } else if (isTokenTransferPayload(payload)) {
@@ -119,6 +109,10 @@ function DappTransferInitial({
         amountText = formatCurrency(toDecimal(amount, decimals), symbol);
       }
     }
+    if (!amountText || transaction.displayedAmount) {
+      if (amountText) amountText += ' + ';
+      amountText += formatCurrency(toDecimal(transaction.displayedAmount), TONCOIN.symbol);
+    }
 
     return (
       <div
@@ -128,12 +122,12 @@ function DappTransferInitial({
       >
         {transaction.isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
         <span className={buildClassName(styles.transactionRowAmount, transaction.isScam && styles.scam)}>
-          {amountText ?? formatCurrency(toDecimal(tonAmount), TONCOIN.symbol)}
+          {amountText}
         </span>
         {' '}
         <span className={buildClassName(styles.transactionRowAddress, transaction.isScam && styles.scam)}>
           {lang('$transaction_to', {
-            address: shortenAddress(getDappTransferActualToAddress(transaction)),
+            address: shortenAddress(transaction.displayedToAddress),
           })}
         </span>
         <i className={buildClassName(styles.transactionRowChevron, 'icon-chevron-right')} aria-hidden />
@@ -143,11 +137,6 @@ function DappTransferInitial({
 
   function renderTransactions() {
     const hasAmount = Object.keys(totalAmountsBySlug).length > 0;
-    const hasDangerous = (renderingTransactions ?? []).some(({ isDangerous }) => isDangerous);
-
-    const totalAmountsText = Object.entries(totalAmountsBySlug)
-      .map(([tokenSlug, amount]) => formatCurrency(amount, tokensBySlug[tokenSlug]?.symbol ?? ''))
-      .join(' + ');
 
     return (
       <>
@@ -156,23 +145,12 @@ function DappTransferInitial({
           {renderingTransactions?.map(renderTransactionRow)}
         </div>
         {hasAmount && (
-          <>
-            <span className={styles.label}>
-              {lang('Total Amount')}
-            </span>
-            <div className={styles.payloadField}>
-              {totalAmountsText} ({formatCurrency(totalCost, getShortCurrencySymbol(baseCurrency))})
-            </div>
-          </>
+          <DappAmountField label={lang('Total Amount')} amountsBySlug={totalAmountsBySlug} />
         )}
-        {hasDangerous && (
+        {isDangerous && (
           <div className={styles.warningForPayload}>{lang('$hardware_payload_warning')}</div>
         )}
-        <DappTransferFee
-          realFee={totalRealFee}
-          fullFee={totalFullFee}
-          received={totalReceived}
-        />
+        <DappTransferFee fullFee={totalFullFee} received={totalReceived} />
       </>
     );
   }
@@ -192,9 +170,9 @@ function DappTransferInitial({
           isPrimary
           isSubmit
           isLoading={isLoading}
-          isDisabled={hasScamAddresses}
+          isDisabled={isScam}
           className={modalStyles.button}
-          onClick={!hasScamAddresses ? submitDappTransferConfirm : undefined}
+          onClick={!isScam ? submitDappTransferConfirm : undefined}
         >
           {lang('Send')}
         </Button>
@@ -204,30 +182,28 @@ function DappTransferInitial({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { isLoading, dapp } = global.currentDappTransfer;
+  const { isLoading, dapp, transactions } = global.currentDappTransfer;
 
-  const { baseCurrency } = global.settings;
   const accounts = selectNetworkAccounts(global);
   const {
     amountsBySlug: totalAmountsBySlug,
-    amountCost: totalCost,
+    isScam,
+    isDangerous,
     fullFee: totalFullFee,
-    realFee: totalRealFee,
     received: totalReceived,
   } = selectCurrentDappTransferTotals(global);
 
   return {
     currentAccount: accounts?.[global.currentAccountId!],
     toncoinBalance: selectCurrentToncoinBalance(global),
-    transactions: selectCurrentDappTransferExtendedTransactions(global),
+    transactions,
     totalAmountsBySlug,
-    totalCost,
     totalFullFee,
-    totalRealFee,
     totalReceived,
+    isScam,
+    isDangerous,
     dapp,
     isLoading,
     tokensBySlug: global.tokenInfo.bySlug,
-    baseCurrency,
   };
 })(DappTransferInitial));

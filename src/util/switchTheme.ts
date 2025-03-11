@@ -72,7 +72,7 @@ export function setStatusBarStyle(options?: { forceDarkBackground?: boolean; isI
 prefersDark.addEventListener('change', handlePrefersColorSchemeChange);
 
 if (IS_TELEGRAM_APP) {
-  getTelegramAppAsync().then((telegramApp) => {
+  void getTelegramAppAsync().then((telegramApp) => {
     telegramApp!.onEvent('themeChanged', onThemeChanged);
   });
 }

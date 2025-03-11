@@ -98,8 +98,10 @@ const packagesPromise = fetch(LATEST_RELEASE_API_URL)
       setupDownloadButton();
     } else if (platform === 'Android') {
       void redirectToAndroid();
+      return;
     } else if (platform === 'macOS') {
       void redirectToMac();
+      return;
     }
   }
 

@@ -55,7 +55,7 @@ export function createWindow() {
   windowState.manage(mainWindow);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    void shell.openExternal(url);
     return { action: 'deny' };
   });
 
@@ -98,15 +98,15 @@ export function createWindow() {
 
 function loadWindowUrl(): void {
   if (!app.isPackaged) {
-    mainWindow.loadURL('http://localhost:4321');
+    void mainWindow.loadURL('http://localhost:4321');
     mainWindow.webContents.openDevTools();
   } else if (getIsAutoUpdateEnabled()) {
-    mainWindow.loadURL(BASE_URL!);
+    void mainWindow.loadURL(BASE_URL!);
   } else if (getIsAutoUpdateEnabled() === undefined && IS_FIRST_RUN) {
     store.set(AUTO_UPDATE_SETTING_KEY, true);
-    mainWindow.loadURL(BASE_URL!);
+    void mainWindow.loadURL(BASE_URL!);
   } else {
-    mainWindow.loadURL(`file://${__dirname}/index.html`);
+    void mainWindow.loadURL(`file://${__dirname}/index.html`);
   }
 }
 

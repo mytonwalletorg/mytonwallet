@@ -132,5 +132,5 @@ addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => 
     payload.accountId && switchAccount(global, payload.accountId, payload.network),
   ]);
 
-  openUrl(payload.url, payload);
+  await openUrl(payload.url, payload);
 });

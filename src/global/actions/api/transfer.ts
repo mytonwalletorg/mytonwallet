@@ -1,6 +1,6 @@
 import type { ApiCheckTransactionDraftResult, ApiSubmitMultiTransferResult } from '../../../api/chains/ton/types';
 import type { ApiSubmitTransferOptions, ApiSubmitTransferResult } from '../../../api/methods/types';
-import { type ApiDappTransfer, ApiTransactionDraftError, type ApiTransactionError } from '../../../api/types';
+import { ApiTransactionDraftError, type ApiTransactionError, type ApiTransferToSign } from '../../../api/types';
 import { TransferState } from '../../types';
 
 import { NFT_BATCH_SIZE } from '../../../config';
@@ -326,7 +326,7 @@ addActionHandler('submitTransferHardware', async (global, actions) => {
   const ledgerApi = await import('../../../util/ledger');
 
   if (promiseId) {
-    const message: ApiDappTransfer = {
+    const message: ApiTransferToSign = {
       toAddress: toAddress!,
       amount: amount!,
       rawPayload,

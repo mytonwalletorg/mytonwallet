@@ -19,7 +19,7 @@ import { IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_TOUCH_ENV } from '../../util/
 import windowSize from '../../util/windowSize';
 
 import freezeWhenClosed from '../../hooks/freezeWhenClosed';
-import { useDelegatedBottomSheet } from '../../hooks/useDelegatedBottomSheet';
+import { getIsForcedFullSize, useDelegatedBottomSheet } from '../../hooks/useDelegatedBottomSheet';
 import { useDelegatingBottomSheet } from '../../hooks/useDelegatingBottomSheet';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
@@ -119,8 +119,8 @@ function Modal({
 
   useEffectWithPrevDeps(([prevIsOpen]) => {
     // Expand NBS to full size for a compact modal inside NBS
-    if (IS_DELEGATED_BOTTOM_SHEET && isCompact && (prevIsOpen || isOpen)) {
-      BottomSheet.toggleSelfFullSize({ isFullSize: !!isOpen });
+    if (IS_DELEGATED_BOTTOM_SHEET && isCompact && (prevIsOpen || isOpen) && !getIsForcedFullSize()) {
+      void BottomSheet.toggleSelfFullSize({ isFullSize: !!isOpen });
     }
   }, [isOpen, isCompact]);
 
@@ -151,7 +151,7 @@ function Modal({
       return;
     }
     const browser = getInAppBrowser();
-    browser?.hide().then(() => {
+    void browser?.hide().then(() => {
       setIsBrowserHidden(true);
     });
   }, [isOpen]);

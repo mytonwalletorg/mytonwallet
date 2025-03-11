@@ -30,7 +30,7 @@ interface OwnProps {
   onSubmit: () => void;
 }
 
-function SaferyRulesContent({
+function SafetyRulesContent({
   customStickerClassName,
   customButtonWrapperClassName,
   isFullSizeButton,
@@ -104,4 +104,4 @@ function SaferyRulesContent({
   );
 }
 
-export default memo(SaferyRulesContent);
+export default memo(SafetyRulesContent);

@@ -113,8 +113,8 @@ export const MTW_TIPS_CHANNEL_NAME = { en: 'MyTonWalletTips', ru: 'MyTonWalletTi
 export const MTW_CARDS_BASE_URL = 'https://static.mytonwallet.org/cards/';
 export const MYTONWALLET_PROMO_URL = 'https://mytonwallet.io/';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
-export const TON_DIAMONDS_URL = 'https://ton.diamonds/';
-export const TON_DIAMONDS_TITLE = 'TON Diamonds';
+export const NFT_MARKETPLACE_URL = 'https://getgems.io/';
+export const NFT_MARKETPLACE_TITLE = 'GetGems';
 export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const HELPCENTER_URL = { en: 'https://help.mytonwallet.io/', ru: 'https://help.mytonwallet.io/ru' };
@@ -133,7 +133,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-172';
+export const LANG_CACHE_NAME = 'mtw-lang-175';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',

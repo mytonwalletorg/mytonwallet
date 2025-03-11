@@ -7,18 +7,14 @@ import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
 import { useOpenFromMainBottomSheet } from '../../hooks/useDelegatedBottomSheet';
-import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import useShowTransition from '../../hooks/useShowTransition';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
-import Button from '../ui/Button';
 import Checkbox from '../ui/Checkbox';
 import AuthBackupWarning from './AuthBackupWarning';
-import AuthDisclaimerConfirmed from './AuthDisclaimerConfirmed';
 
 import styles from './Auth.module.scss';
 
@@ -26,6 +22,8 @@ interface OwnProps {
   isActive?: boolean;
   isImport?: boolean;
 }
+
+const CONFIRM_DELAY_MS = 700;
 
 const AuthDisclaimer = ({
   isActive, isImport,
@@ -37,12 +35,7 @@ const AuthDisclaimer = ({
   } = getActions();
 
   const lang = useLang();
-  const { isPortrait } = useDeviceScreen();
   const [isInformationConfirmed, markInformationConfirmed, unmarkInformationConfirmed] = useFlag(false);
-  const {
-    shouldRender: shouldRenderStartButton,
-    transitionClassNames: startButtonTransitionClassNames,
-  } = useShowTransition(isInformationConfirmed && isImport && !isPortrait);
 
   useHistoryBack({
     isActive,
@@ -52,13 +45,16 @@ const AuthDisclaimer = ({
   const setIsInformationConfirmed = useLastCallback((isConfirmed: boolean) => {
     if (isConfirmed) {
       markInformationConfirmed();
+
+      if (isImport) {
+        window.setTimeout(confirmDisclaimer, CONFIRM_DELAY_MS);
+      }
     } else {
       unmarkInformationConfirmed();
     }
   });
 
   useOpenFromMainBottomSheet('backup-warning', markInformationConfirmed);
-  useOpenFromMainBottomSheet('disclaimer-confirmed', markInformationConfirmed);
 
   const handleCloseBackupWarningModal = useLastCallback(() => {
     setIsInformationConfirmed(false);
@@ -94,31 +90,19 @@ const AuthDisclaimer = ({
         <Checkbox
           id="information-confirmed"
           checked={isInformationConfirmed}
-          onChange={setIsInformationConfirmed}
+          isDisabled={isImport && isInformationConfirmed}
           className={styles.informationCheckbox}
           contentClassName={styles.informationCheckboxContent}
+          onChange={setIsInformationConfirmed}
         >
           {lang('I have read and accept this information')}
         </Checkbox>
-        {shouldRenderStartButton && (
-          <div className={buildClassName(styles.buttons, startButtonTransitionClassNames)}>
-            <Button isPrimary className={buildClassName(styles.btn, styles.btn_wide)} onClick={confirmDisclaimer}>
-              {lang('Start Wallet')}
-            </Button>
-          </div>
-        )}
 
         {!isImport && (
           <AuthBackupWarning
             isOpen={isInformationConfirmed}
             onClose={handleCloseBackupWarningModal}
             onSkip={handleSkipMnemonic}
-          />
-        )}
-        {isImport && isPortrait && (
-          <AuthDisclaimerConfirmed
-            isOpen={isInformationConfirmed}
-            onClose={handleCloseBackupWarningModal}
           />
         )}
       </div>

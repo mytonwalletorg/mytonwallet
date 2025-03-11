@@ -21,7 +21,6 @@ export type BottomSheetKeys =
   | 'dapp-connect'
   | 'dapp-transfer'
   | 'disclaimer'
-  | 'disclaimer-confirmed'
   | 'backup-warning'
   | 'onramp-widget';
 

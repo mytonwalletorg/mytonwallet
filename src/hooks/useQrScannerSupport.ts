@@ -13,7 +13,7 @@ export default function useQrScannerSupport() {
   useEffectOnce(() => {
     if (!IS_CAPACITOR || isQrScannerSupported) return;
 
-    BarcodeScanner
+    void BarcodeScanner
       .isSupported()
       .then((result) => {
         isQrScannerSupported = result.supported;

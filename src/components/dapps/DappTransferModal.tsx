@@ -1,12 +1,12 @@
-import React, { memo, useEffect, useState } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiToken } from '../../api/types';
-import type { ExtendedDappTransfer, GlobalState, HardwareConnectState } from '../../global/types';
+import type { GlobalState, HardwareConnectState } from '../../global/types';
 import { TransferState } from '../../global/types';
 
 import { IS_CAPACITOR } from '../../config';
-import { selectCurrentDappTransferExtendedTransactions } from '../../global/selectors';
+import { selectCurrentDappTransferTotals } from '../../global/selectors';
 import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
@@ -33,12 +33,12 @@ import styles from './Dapp.module.scss';
 
 interface StateProps {
   currentDappTransfer: GlobalState['currentDappTransfer'];
-  transactions?: ExtendedDappTransfer[];
   tokensBySlug: Record<string, ApiToken>;
   hardwareState?: HardwareConnectState;
   isLedgerConnected?: boolean;
   isTonAppConnected?: boolean;
   isMediaViewerOpen?: boolean;
+  isDangerous: boolean;
 }
 
 function DappTransferModal({
@@ -47,14 +47,15 @@ function DappTransferModal({
     isLoading,
     viewTransactionOnIdx,
     state,
+    transactions,
     error,
   },
-  transactions,
   tokensBySlug,
   hardwareState,
   isLedgerConnected,
   isTonAppConnected,
   isMediaViewerOpen,
+  isDangerous: withPayloadWarning,
 }: StateProps) {
   const {
     setDappTransferScreen,
@@ -69,15 +70,9 @@ function DappTransferModal({
 
   const isOpen = state !== TransferState.None;
 
-  const [forceFullNative, setForceFullNative] = useState(false);
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
   const renderingTransactions = useCurrentOrPrev(transactions, true);
   const isDappLoading = dapp === undefined;
-  const withPayloadWarning = (renderingTransactions ?? []).some(({ isDangerous }) => isDangerous);
-
-  useEffect(() => {
-    setForceFullNative(isOpen && (withPayloadWarning || renderingKey === TransferState.Password));
-  }, [withPayloadWarning, renderingKey, isOpen]);
 
   const handleBackClick = useLastCallback(() => {
     if (state === TransferState.Confirm || state === TransferState.Password) {
@@ -235,7 +230,7 @@ function DappTransferModal({
       noBackdropClose
       dialogClassName={buildClassName(styles.modalDialog, withPayloadWarning && styles.modalDialogExtraHeight)}
       nativeBottomSheetKey="dapp-transfer"
-      forceFullNative={forceFullNative}
+      forceFullNative={withPayloadWarning || renderingKey === TransferState.Password}
       onClose={closeDappTransfer}
       onCloseAnimationEnd={handleResetTransfer}
     >
@@ -259,14 +254,15 @@ export default memo(withGlobal((global): StateProps => {
     isLedgerConnected,
     isTonAppConnected,
   } = global.hardware;
+  const { isDangerous } = selectCurrentDappTransferTotals(global);
 
   return {
     currentDappTransfer: global.currentDappTransfer,
-    transactions: selectCurrentDappTransferExtendedTransactions(global),
     tokensBySlug: global.tokenInfo.bySlug,
     hardwareState,
     isLedgerConnected,
     isTonAppConnected,
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
+    isDangerous,
   };
 })(DappTransferModal));

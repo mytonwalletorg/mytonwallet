@@ -14,9 +14,9 @@ const CLOSING_DURATION = 100;
 const controlledByNative = new Map<BottomSheetKeys, NoneToVoidFunction>();
 
 if (IS_DELEGATING_BOTTOM_SHEET) {
-  BottomSheet.prepare();
+  void BottomSheet.prepare();
 
-  BottomSheet.addListener(
+  void BottomSheet.addListener(
     'openInMain',
     ({ key }: { key: BottomSheetKeys }) => {
       controlledByNative.get(key)?.();
@@ -68,7 +68,7 @@ export function useDelegatingBottomSheet(
         })
         .then(() => pause(CLOSING_DURATION));
     } else if (prevShouldOpen) {
-      BottomSheet.release({ key });
+      void BottomSheet.release({ key });
     }
   }, [shouldOpen, isDelegating, key, onClose]);
 

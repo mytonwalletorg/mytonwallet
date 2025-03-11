@@ -1,7 +1,6 @@
-import { inflate } from 'pako/dist/pako_inflate';
-
 import type { CancellableCallback } from '../../util/PostMessageConnector';
 
+import { ungzip } from '../../util/compression';
 import { createPostMessageInterface } from '../../util/createPostMessageInterface';
 
 declare const Module: any;
@@ -104,7 +103,8 @@ async function extractJson(tgsUrl: string) {
   }
 
   const arrayBuffer = await response.arrayBuffer();
-  return inflate(arrayBuffer, { to: 'string' });
+  const inflated = await ungzip(arrayBuffer);
+  return new TextDecoder().decode(inflated);
 }
 
 function calcParams(json: string, isLowPriority: boolean, framesCount: number) {

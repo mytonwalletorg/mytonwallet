@@ -2,7 +2,6 @@ import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiTonConnectProof } from '../tonConnect/types';
 import type { ApiActivity, ApiTransactionActivity } from './activity';
 import type { ApiStakingCommonData, ApiSwapAsset, ApiVestingInfo } from './backend';
-import type { ApiEmulationResult } from './emulation';
 import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBalanceBySlug,
@@ -95,8 +94,6 @@ export type ApiUpdateDappSendTransactions = {
   accountId: string;
   dapp: ApiDapp;
   transactions: ApiDappTransfer[];
-  fee: bigint;
-  emulationResult?: ApiEmulationResult;
   vestingAddress?: string;
 };
 

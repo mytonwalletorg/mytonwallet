@@ -38,7 +38,7 @@ export async function connectSite(
       isEnabled: Boolean(isDeeplinkHookEnabled),
     });
 
-    onSiteSendUpdates(onSiteUpdate);
+    void onSiteSendUpdates(onSiteUpdate);
   }
 
   sendUpdates();

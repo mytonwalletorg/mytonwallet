@@ -1,33 +1,27 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import type { ApiToken } from '../../api/types';
-import type { ExtendedDappTransfer } from '../../global/types';
+import type { ApiDappTransfer, ApiToken } from '../../api/types';
 
 import { TONCOIN } from '../../config';
 import { BIGINT_PREFIX } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
-import {
-  doesTransactionAmountActAsFee,
-  getDappTransferActualToAddress,
-  isNftTransferPayload,
-  isTokenTransferPayload,
-} from '../../util/ton/transfer';
+import { isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
 import { DEFAULT_DECIMALS } from '../../api/chains/ton/constants';
 
 import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 
 import NftInfo from '../transfer/NftInfo';
-import AmountWithFeeTextField from '../ui/AmountWithFeeTextField';
 import InteractiveTextField from '../ui/InteractiveTextField';
+import DappAmountField from './DappAmountField';
 import DappTransferFee from './DappTransferFee';
 
 import styles from './Dapp.module.scss';
 
 interface OwnProps {
-  transaction: ExtendedDappTransfer;
+  transaction: ApiDappTransfer;
   tokensBySlug: Record<string, ApiToken>;
 }
 
@@ -39,42 +33,30 @@ function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
 
   function renderAmount() {
     if (isNftTransferPayload(transaction.payload)) {
-      return undefined;
+      if (transaction.displayedAmount === 0n) {
+        return undefined;
+      }
+
+      return (
+        <DappAmountField
+          label={lang('Additional Amount Sent')}
+          amountsBySlug={{ [TONCOIN.slug]: transaction.displayedAmount }}
+        />
+      );
     }
 
-    let token: ApiToken | undefined = TONCOIN;
-    let amount = transaction.amount;
+    const amountBySlug: Record<string, bigint> = {};
 
     if (isTokenTransferPayload(transaction.payload)) {
-      token = tokensBySlug[transaction.payload.slug];
-      amount = transaction.payload.amount;
+      amountBySlug[transaction.payload.slug] = transaction.payload.amount;
+    }
+    amountBySlug[TONCOIN.slug] = transaction.displayedAmount;
+
+    if (amountBySlug[TONCOIN.slug] === 0n && Object.keys(amountBySlug).length > 1) {
+      delete amountBySlug[TONCOIN.slug];
     }
 
-    return (
-      <AmountWithFeeTextField
-        label={lang('Amount')}
-        amount={toDecimal(amount, token?.decimals ?? DEFAULT_DECIMALS)}
-        symbol={token?.symbol ?? ''}
-        className={styles.dataField}
-        labelClassName={styles.label}
-      />
-    );
-  }
-
-  function renderFee() {
-    let fullFee = transaction.emulation?.networkFee ?? transaction.networkFee ?? 0n;
-
-    if (doesTransactionAmountActAsFee(transaction.payload)) {
-      fullFee += transaction.amount;
-    }
-
-    return (
-      <DappTransferFee
-        realFee={transaction.emulation?.realFee}
-        fullFee={fullFee}
-        received={transaction.emulation?.received}
-      />
-    );
+    return <DappAmountField label={lang('Amount')} amountsBySlug={amountBySlug} />;
   }
 
   function renderPayload() {
@@ -185,7 +167,7 @@ function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
       <p className={styles.label}>{lang('Receiving Address')}</p>
       <InteractiveTextField
         chain={TONCOIN.chain}
-        address={getDappTransferActualToAddress(transaction)}
+        address={transaction.displayedToAddress}
         isScam={transaction.isScam}
         className={buildClassName(styles.dataField, styles.receivingAddress)}
         copyNotification={lang('Address was copied!')}
@@ -209,7 +191,7 @@ function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
         </>
       )}
 
-      {renderFee()}
+      <DappTransferFee fullFee={transaction.fullFee} received={transaction.received} />
     </>
   );
 }

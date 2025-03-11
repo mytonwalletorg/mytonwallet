@@ -23,7 +23,7 @@ function handleFocus() {
 }
 
 if (IS_TELEGRAM_APP) {
-  getTelegramAppAsync().then((telegramApp) => {
+  void getTelegramAppAsync().then((telegramApp) => {
     telegramApp!.onEvent('activated', handleFocus);
     telegramApp!.onEvent('deactivated', handleBlur);
   });

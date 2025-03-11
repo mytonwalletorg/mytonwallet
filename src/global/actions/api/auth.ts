@@ -1031,7 +1031,7 @@ addActionHandler('openAuthBackupWalletModal', (global) => {
     return;
   }
 
-  global = updateAuth(global, { state: AuthState.saferyRules });
+  global = updateAuth(global, { state: AuthState.safetyRules });
   setGlobal(global);
 });
 

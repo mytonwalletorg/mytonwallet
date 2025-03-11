@@ -34,7 +34,7 @@ export async function initPolling(_onUpdate: OnApiUpdate) {
 
   await tryUpdatePrices();
 
-  Promise.allSettled([
+  void Promise.allSettled([
     tryUpdateKnownAddresses(),
     tryUpdateTokens(_onUpdate, true),
     tryUpdateSwapTokens(_onUpdate),

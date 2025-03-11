@@ -27,7 +27,7 @@ const textInputTypes: Set<HTMLInputTypeAttribute> = new Set([
 ]);
 
 let safeAreaCache: SafeAreaInsets['insets'] | undefined;
-const safeArePromise = SafeArea.getSafeAreaInsets().then(({ insets }) => {
+const safeAreaPromise = SafeArea.getSafeAreaInsets().then(({ insets }) => {
   safeAreaCache = insets;
   return safeAreaCache;
 });
@@ -35,7 +35,7 @@ const safeArePromise = SafeArea.getSafeAreaInsets().then(({ insets }) => {
 let currentKey: BottomSheetKeys | undefined;
 
 if (IS_DELEGATED_BOTTOM_SHEET) {
-  BottomSheet.addListener('delegate', ({ key, globalJson }: { key: BottomSheetKeys; globalJson: string }) => {
+  void BottomSheet.addListener('delegate', ({ key, globalJson }: { key: BottomSheetKeys; globalJson: string }) => {
     currentKey = key;
     controlledByMain.get(key)?.();
 
@@ -45,9 +45,15 @@ if (IS_DELEGATED_BOTTOM_SHEET) {
     );
   });
 
-  BottomSheet.addListener('move', () => {
+  void BottomSheet.addListener('move', () => {
     window.dispatchEvent(new Event('viewportmove'));
   });
+}
+
+let isForcedFullSize: boolean;
+
+export function getIsForcedFullSize() {
+  return isForcedFullSize;
 }
 
 export function useDelegatedBottomSheet(
@@ -64,7 +70,7 @@ export function useDelegatedBottomSheet(
     if (isOpen) {
       const dialogEl = dialogRef.current!;
 
-      BottomSheet.openSelf({
+      void BottomSheet.openSelf({
         key,
         height: String(dialogEl.offsetHeight),
         backgroundColor: cssColorToHex(getComputedStyle(dialogEl).backgroundColor),
@@ -73,7 +79,7 @@ export function useDelegatedBottomSheet(
         onClose();
       });
     } else if (prevIsOpen) {
-      BottomSheet.closeSelf({ key });
+      void BottomSheet.closeSelf({ key });
       setStatusBarStyle({
         forceDarkBackground: false,
       });
@@ -84,7 +90,7 @@ export function useDelegatedBottomSheet(
 
   const { screenHeight } = useDeviceScreen();
   const [safeArea, setSafeArea] = useState(safeAreaCache);
-  safeArePromise.then(setSafeArea);
+  void safeAreaPromise.then(setSafeArea);
   // We use Safe Area plugin instead of CSS `env()` function as it does not depend on modal position
   const maxHeight = screenHeight - (safeArea?.top || 0);
 
@@ -98,10 +104,12 @@ export function useDelegatedBottomSheet(
   useEffectWithPrevDeps(([prevForceFullNative]) => {
     if (!isDelegatedAndOpen) return;
 
+    isForcedFullSize = forceFullNative;
+
     // Skip initial opening
     if (forceFullNative !== undefined && prevForceFullNative === undefined) return;
 
-    BottomSheet.toggleSelfFullSize({ isFullSize: forceFullNative });
+    void BottomSheet.toggleSelfFullSize({ isFullSize: forceFullNative });
   }, [forceFullNative, isDelegatedAndOpen]);
 
   useLayoutEffect(() => {
@@ -123,7 +131,7 @@ export function useDelegatedBottomSheet(
 
       preventScrollOnFocus(dialogEl);
 
-      BottomSheet.toggleSelfFullSize({ isFullSize: true });
+      void BottomSheet.toggleSelfFullSize({ isFullSize: true });
     }
 
     function onBlur(e: FocusEvent) {
@@ -133,7 +141,7 @@ export function useDelegatedBottomSheet(
 
       blurTimeout = window.setTimeout(() => {
         blurTimeout = undefined;
-        BottomSheet.toggleSelfFullSize({ isFullSize: false });
+        void BottomSheet.toggleSelfFullSize({ isFullSize: false });
       }, BLUR_TIMEOUT);
     }
 
@@ -169,7 +177,7 @@ export function useOpenFromMainBottomSheet(
 }
 
 export function openInMain(key: BottomSheetKeys) {
-  BottomSheet.openInMain({ key });
+  void BottomSheet.openInMain({ key });
 }
 
 function isInput(el?: EventTarget | null) {

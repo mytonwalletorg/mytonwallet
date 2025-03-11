@@ -14,6 +14,10 @@ $imageGapSize: 0.75rem;
   overflow-y: scroll;
 
   height: 100%;
+
+  @include respond-above(xs) {
+    --color-gray-button-background-light: var(--color-background-second);
+  }
 }
 
 .list {

@@ -22,7 +22,11 @@ export function getNativeToken(chain: ApiChain): ApiToken {
 }
 
 export function getTransactionHashFromTxId(chain: ApiChain, txId: string) {
-  if (chain === 'tron') return txId;
+  if (chain === 'tron') {
+    const localIdSign = txId.indexOf('|');
+
+    return localIdSign !== -1 ? txId.substring(0, localIdSign) : txId;
+  }
 
   const [, transactionHash] = (txId || '').split(':');
   return transactionHash;

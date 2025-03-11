@@ -162,7 +162,6 @@ No NFTs yet: ยังไม่มี NFT
 $nft_explore_offer: |
   สำรวจมาร์เก็ตเพลสเพื่อค้นพบ
   แหล่งของ NFT คอลเลกชัน.
-Open TON Diamonds: เปิด TON Diamonds
 Received: ได้รับ
 Sent: ส่ง
 $transaction_from: จาก %address%
@@ -725,8 +724,10 @@ $swap_reverse_prohibited: การตั้งค่าจำนวนซื้
 Blockchain Fee Details: รายละเอียดค่าธรรมเนียมบล็อกเชน
 Final Fee: ค่าธรรมเนียมสุดท้าย
 Excess: เงินส่วนเกิน
-$fee_details: จำเป็นต้องหัก %full_fee% จากกระเป๋าเงินของคุณทันทีเพื่อชำระค่าธรรมเนียม ส่วนหนึ่งของจำนวนนี้จะถูกคืนให้คุณ **เป็น **%excess_symbol% ในรูปแบบส่วนเกินภายในไม่กี่นาที
-This is how the %chain_name% Blockchain works.: นี่คือวิธีการทำงานของบล็อกเชน %chain_name%
+$fee_details: |
+  จำเป็นต้องหัก %full_fee% จากกระเป๋าเงินของคุณทันทีเพื่อชำระค่าธรรมเนียม ส่วนหนึ่งของจำนวนนี้จะถูกคืนให้คุณ **เป็น **%excess_symbol% ในรูปแบบส่วนเกินภายในไม่กี่นาที
+
+  %chain_name% Blockchain ทำงานแบบนี้
 Got It: เข้าใจแล้ว
 Wallet: กระเป๋าสตางค์
 Connected: เชื่อมต่อแล้ว
@@ -738,4 +739,14 @@ Request is sent!: ส่งคำขอแล้ว!
 Transaction ID: รหัสธุรกรรม
 Help Center: ศูนย์ช่วยเหลือ
 MyTonWallet Tips: เคล็ดลับ MyTonWallet
-$returned_value: "~ %value% จะถูกส่งคืน"
+$returned_value: ~ %value% จะถูกส่งคืน
+Open %nft_marketplace%: เปิด %nft_marketplace%
+Link was copied!: คัดลอกลิงก์แล้ว!
+Share Link: แชร์ลิงก์
+Dapp Fee Details: รายละเอียดค่าธรรมเนียม Dapp
+$dapp_return_details: |
+  %fee_amount% จะถูกหักจากกระเป๋าเงินของคุณทันทีเพื่อชำระค่าธรรมเนียม
+
+  %received_amount% จะถูกคืนให้คุณภายในไม่กี่นาที
+$dapp_return_disclaimer: จำนวนเงินที่แสดงว่าคืนไม่รับประกันและอาจถูกควบคุมโดย Dapp ที่เป็นอันตราย ยกเลิกการดำเนินการหากคุณไม่แน่ใจเกี่ยวกับความน่าเชื่อถือของบริการนี้
+Additional Amount Sent: จะถูกส่งเพิ่มเติม

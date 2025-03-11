@@ -158,7 +158,7 @@ function TransactionModal({
   const {
     shouldRender: shouldRenderTransactionId,
     transitionClassNames: transactionIdClassNames,
-  } = useShowTransition(Boolean(!isLocal && transactionUrl));
+  } = useShowTransition(Boolean((!isLocal || chain === 'tron') && transactionUrl));
 
   const state = useMemo(() => {
     return stakingStates?.find((staking): staking is ApiToncoinStakingState => {

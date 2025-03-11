@@ -4,10 +4,8 @@ import { DEBUG, DEBUG_MORE } from '../../config';
 import arePropsShallowEqual, { logUnequalProps } from '../../util/arePropsShallowEqual';
 import { handleError } from '../../util/handleError';
 import { orderBy } from '../../util/iteratees';
-import { logActionHandling } from '../../util/logs';
 import { throttleWithTickEnd } from '../../util/schedulers';
-import { requestMeasure } from '../fasterdom/fasterdom';
-import React, { DEBUG_resolveComponentName, getIsHeavyAnimating, useEffect } from './teact';
+import React, { DEBUG_resolveComponentName, getIsHeavyAnimating, useUnmountCleanup } from './teact';
 
 import useForceUpdate from '../../hooks/useForceUpdate';
 import useUniqueId from '../../hooks/useUniqueId';
@@ -27,7 +25,7 @@ interface Container {
 
 type GlobalState =
   AnyLiteral
-  & { DEBUG_capturedId?: number };
+  & { DEBUG_randomId?: number };
 type ActionNames = string;
 type ActionPayload = any;
 
@@ -52,13 +50,15 @@ type ActivationFn<OwnProps = undefined> = (
   global: GlobalState, ownProps: OwnProps, stickToFirst: StickToFirstFn,
 ) => boolean;
 
-let currentGlobal = {} as GlobalState;
+let currentGlobal = {
+  isInited: false,
+} as GlobalState;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-let DEBUG_currentCapturedId: number | undefined;
+let DEBUG_currentRandomId: number | undefined;
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const DEBUG_releaseCapturedIdThrottled = throttleWithTickEnd(() => {
-  DEBUG_currentCapturedId = undefined;
+const DEBUG_invalidateGlobalOnTickEnd = throttleWithTickEnd(() => {
+  DEBUG_currentRandomId = Math.random();
 });
 
 const actionHandlers: Record<string, ActionHandler[]> = {};
@@ -74,24 +74,24 @@ function runCallbacks() {
   if (forceOnHeavyAnimation) {
     forceOnHeavyAnimation = false;
   } else if (getIsHeavyAnimating()) {
-    requestMeasure(runCallbacksThrottled);
+    getIsHeavyAnimating.once(runCallbacksThrottled);
     return;
   }
 
   callbacks.forEach((cb) => cb(currentGlobal));
 }
 
-export function setGlobal(newGlobal?: GlobalState, options?: ActionOptions) {
+export function setUntypedGlobal(newGlobal?: GlobalState, options?: ActionOptions) {
   if (typeof newGlobal === 'object' && newGlobal !== currentGlobal) {
     if (DEBUG) {
       if (
         !options?.forceOutdated
-        && newGlobal.DEBUG_capturedId && newGlobal.DEBUG_capturedId !== DEBUG_currentCapturedId
+        && newGlobal.DEBUG_randomId && newGlobal.DEBUG_randomId !== DEBUG_currentRandomId
       ) {
         throw new Error('[TeactN.setGlobal] Attempt to set an outdated global');
       }
 
-      DEBUG_currentCapturedId = undefined;
+      DEBUG_currentRandomId = Math.random();
     }
 
     currentGlobal = newGlobal;
@@ -109,20 +109,19 @@ export function setGlobal(newGlobal?: GlobalState, options?: ActionOptions) {
   }
 }
 
-export function getGlobal() {
+export function getUntypedGlobal() {
   if (DEBUG) {
-    DEBUG_currentCapturedId = Math.random();
     currentGlobal = {
       ...currentGlobal,
-      DEBUG_capturedId: DEBUG_currentCapturedId,
+      DEBUG_randomId: DEBUG_currentRandomId,
     };
-    DEBUG_releaseCapturedIdThrottled();
+    DEBUG_invalidateGlobalOnTickEnd();
   }
 
   return currentGlobal;
 }
 
-export function getActions() {
+export function getUntypedActions() {
   return actions;
 }
 
@@ -133,16 +132,14 @@ export function forceOnHeavyAnimationOnce() {
 let actionQueue: NoneToVoidFunction[] = [];
 
 function handleAction(name: string, payload?: ActionPayload, options?: ActionOptions) {
-  logActionHandling(name, payload);
-
   actionQueue.push(() => {
     actionHandlers[name]?.forEach((handler) => {
-      const response = handler(DEBUG ? getGlobal() : currentGlobal, actions, payload);
+      const response = handler(DEBUG ? getUntypedGlobal() : currentGlobal, actions, payload);
       if (!response || typeof response.then === 'function') {
         return;
       }
 
-      setGlobal(response as GlobalState, options);
+      setUntypedGlobal(response as GlobalState, options);
     });
   });
 
@@ -220,7 +217,7 @@ function updateContainers() {
   }
 }
 
-export function addActionHandler(name: ActionNames, handler: ActionHandler) {
+export function addUntypedActionHandler(name: ActionNames, handler: ActionHandler) {
   if (!actionHandlers[name]) {
     actionHandlers[name] = [];
 
@@ -243,7 +240,7 @@ export function removeCallback(cb: Function) {
   }
 }
 
-export function withGlobal<OwnProps extends AnyLiteral>(
+export function withUntypedGlobal<OwnProps extends AnyLiteral>(
   mapStateToProps: MapStateToProps<OwnProps> = () => ({}),
   activationFn?: ActivationFn<OwnProps>,
 ) {
@@ -252,11 +249,9 @@ export function withGlobal<OwnProps extends AnyLiteral>(
       const id = useUniqueId();
       const forceUpdate = useForceUpdate();
 
-      useEffect(() => {
-        return () => {
-          containers.delete(id);
-        };
-      }, [id]);
+      useUnmountCleanup(() => {
+        containers.delete(id);
+      });
 
       let container = containers.get(id)!;
       if (!container) {
@@ -334,14 +329,14 @@ export function typify<
   };
 
   return {
-    getGlobal: getGlobal as <T extends ProjectGlobalState>() => T,
-    setGlobal: setGlobal as (state: ProjectGlobalState, options?: ActionOptions) => void,
-    getActions: getActions as () => ProjectActions,
-    addActionHandler: addActionHandler as <ActionName extends ProjectActionNames>(
+    getGlobal: getUntypedGlobal as <T extends ProjectGlobalState>() => T,
+    setGlobal: setUntypedGlobal as (state: ProjectGlobalState, options?: ActionOptions) => void,
+    getActions: getUntypedActions as () => ProjectActions,
+    addActionHandler: addUntypedActionHandler as <ActionName extends ProjectActionNames>(
       name: ActionName,
       handler: ActionHandlers[ActionName],
     ) => void,
-    withGlobal: withGlobal as <OwnProps extends AnyLiteral>(
+    withGlobal: withUntypedGlobal as <OwnProps extends AnyLiteral>(
       mapStateToProps: (global: ProjectGlobalState, ownProps: OwnProps) => AnyLiteral,
       activationFn?: (global: ProjectGlobalState, ownProps: OwnProps, stickToFirst: StickToFirstFn) => boolean,
     ) => (Component: FC) => FC<OwnProps>,
@@ -349,9 +344,8 @@ export function typify<
 }
 
 if (DEBUG) {
-  (window as any).getGlobal = getGlobal;
-  (window as any).setGlobal = setGlobal;
-  (window as any).getActions = getActions;
+  (window as any).getGlobal = getUntypedGlobal;
+  (window as any).setGlobal = setUntypedGlobal;
 
   document.addEventListener('dblclick', () => {
     // eslint-disable-next-line no-console

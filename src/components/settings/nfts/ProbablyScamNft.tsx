@@ -54,9 +54,7 @@ function ProbablyScamNft({ nft, isWhitelisted }: OwnProps) {
       <img className={styles.nftImage} src={nft.image} alt={nft.name} />
       <div className={styles.nftPrimaryCell}>
         <span className={styles.nftName}>{nft.name}</span>
-        {
-          nft.collectionName && <span className={styles.nftCollection}>{nft.collectionName}</span>
-        }
+        {nft.collectionName && <span className={styles.nftCollection}>{nft.collectionName}</span>}
       </div>
 
       <Switcher

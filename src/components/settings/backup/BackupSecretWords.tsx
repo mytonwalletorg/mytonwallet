@@ -48,7 +48,7 @@ function BackupSecretWords({
         setMnemonic(undefined);
       }
     }
-    loadMnemonic();
+    void loadMnemonic();
   }, [currentAccountId, enteredPassword, isBackupSlideActive]);
 
   useHistoryBack({

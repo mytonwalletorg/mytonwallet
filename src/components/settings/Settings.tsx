@@ -331,22 +331,22 @@ function Settings({
 
   const [isTrayIconEnabled, setIsTrayIconEnabled] = useState(false);
   useEffect(() => {
-    window.electron?.getIsTrayIconEnabled().then(setIsTrayIconEnabled);
+    void window.electron?.getIsTrayIconEnabled().then(setIsTrayIconEnabled);
   }, []);
 
   const handleTrayIconEnabledToggle = useLastCallback(() => {
     setIsTrayIconEnabled(!isTrayIconEnabled);
-    window.electron?.setIsTrayIconEnabled(!isTrayIconEnabled);
+    void window.electron?.setIsTrayIconEnabled(!isTrayIconEnabled);
   });
 
   const [isAutoUpdateEnabled, setIsAutoUpdateEnabled] = useState(false);
   useEffect(() => {
-    window.electron?.getIsAutoUpdateEnabled().then(setIsAutoUpdateEnabled);
+    void window.electron?.getIsAutoUpdateEnabled().then(setIsAutoUpdateEnabled);
   }, []);
 
   const handleAutoUpdateEnabledToggle = useLastCallback(() => {
     setIsAutoUpdateEnabled(!isAutoUpdateEnabled);
-    window.electron?.setIsAutoUpdateEnabled(!isAutoUpdateEnabled);
+    void window.electron?.setIsAutoUpdateEnabled(!isAutoUpdateEnabled);
   });
 
   const handleBackOrCloseAction = useLastCallback(() => {

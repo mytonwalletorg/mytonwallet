@@ -33,7 +33,7 @@ const Dialogs: FC<StateProps> = ({ dialogs }) => {
   useEffect(() => {
     if (IS_CAPACITOR) {
       if (dialog) {
-        Dialog.alert({
+        void Dialog.alert({
           title,
           message: lang(dialog.message),
         }).then(() => {

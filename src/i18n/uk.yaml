@@ -165,7 +165,6 @@ No NFTs yet: Поки у вас немає NFT
 $nft_explore_offer: |
   Але ви можете переглянути
   наявні колекції.
-Open TON Diamonds: Відкрити TON Diamonds
 Transaction is not completed: Переказ не виконано
 Received: Отримано
 Sent: Відправлено
@@ -727,8 +726,10 @@ $swap_reverse_prohibited: Встановити суму покупки для ц
 Blockchain Fee Details: Деталі комісії блокчейна
 Final Fee: Остаточна комісія
 Excess: Здача
-$fee_details: "%full_fee% буде миттєво списано з вашого гаманця для оплати комісії. Частину цієї суми буде повернуто вам **в **%excess_symbol% як здача протягом кількох хвилин."
-This is how the %chain_name% Blockchain works.: Ось як працює блокчейн %chain_name%.
+$fee_details: |
+  %full_fee% буде миттєво списано з вашого гаманця для оплати комісії. Частину цієї суми буде повернуто вам **в **%excess_symbol% як здача протягом кількох хвилин.
+
+  Ось як працює блокчейн %chain_name%.
 Got It: Зрозуміло
 Wallet: Гаманець
 Connected: Підключено
@@ -740,4 +741,14 @@ Request is sent!: Запит відправлено!
 Transaction ID: ID транзакції
 Help Center: База знань
 MyTonWallet Tips: Поради MyTonWallet
-$returned_value: "~ %value% буде повернено"
+$returned_value: ~ %value% буде повернено
+Open %nft_marketplace%: Відкрити %nft_marketplace%
+Link was copied!: Посилання скопійовано!
+Share Link: Поділитися посиланням
+Dapp Fee Details: Деталі комісії додатка
+$dapp_return_details: |
+  %fee_amount% буде миттєво списано з вашого гаманця для оплати комісії.
+
+  %received_amount% буде повернуто вам протягом кількох хвилин.
+$dapp_return_disclaimer: Відображена сума повернення не гарантується і може бути змінена шкідливими додатками. Скасуйте операцію, якщо ви не впевнені в надійності цього сервісу.
+Additional Amount Sent: Додатково буде відправлено

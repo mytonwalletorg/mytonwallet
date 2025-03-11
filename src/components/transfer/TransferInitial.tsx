@@ -792,7 +792,6 @@ function TransferInitial({
         label={renderCommentLabel()}
         placeholder={isCommentRequired ? lang('Required') : lang('Optional')}
         value={comment}
-        isControlled
         isMultiline
         isDisabled={chain === 'tron'}
         onInput={handleCommentChange}

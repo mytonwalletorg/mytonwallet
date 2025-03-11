@@ -57,7 +57,7 @@ if (IS_DELEGATING_BOTTOM_SHEET) {
 
 initFocusScrollController();
 
-(async () => {
+void (async () => {
   if (IS_IOS_APP) {
     await fixIosAppStorage();
   }

@@ -14,12 +14,13 @@ import type {
 import { CHAIN } from '@tonconnect/protocol';
 import nacl from 'tweetnacl';
 
-import type { TonTransferParams } from '../chains/ton/types';
+import type { ApiCheckMultiTransactionDraftResult, TonTransferParams } from '../chains/ton/types';
 import type {
   ApiAccountWithMnemonic,
   ApiAnyDisplayError,
   ApiDappMetadata,
   ApiDappRequest,
+  ApiDappTransfer,
   ApiNetwork,
   ApiSignedTransfer,
   ApiTonWallet,
@@ -34,6 +35,7 @@ import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERRO
 import { IS_EXTENSION, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
+import { bigintDivideToNumber } from '../../util/bigint';
 import { logDebugError } from '../../util/logs';
 import { fetchJsonMetadata } from '../../util/metadata';
 import safeExec from '../../util/safeExec';
@@ -69,7 +71,13 @@ import {
 import { createLocalTransaction } from '../methods/transactions';
 import * as errors from './errors';
 import { UnknownAppError } from './errors';
-import { isValidString, isValidUrl } from './utils';
+import {
+  getTransferActualToAddress,
+  isTransferPayloadDangerous,
+  isValidString,
+  isValidUrl,
+  showDappTransferAmountsAsFee,
+} from './utils';
 
 const BLANK_GIF_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
@@ -310,10 +318,7 @@ export async function sendTransaction(
     } = await checkTransactionMessages(accountId, messages, network);
 
     const dapp = (await getDappsByOrigin(accountId))[origin];
-    const transactionsForRequest = await prepareTransactionForRequest(network, messages);
-
-    const { emulation: emulationResult } = checkResult;
-    const { byTransactionIndex = [] } = emulationResult ?? {};
+    const transactionsForRequest = await prepareTransactionForRequest(network, messages, checkResult);
 
     const { promiseId, promise } = createDappPromise();
 
@@ -322,13 +327,7 @@ export async function sendTransaction(
       promiseId,
       accountId,
       dapp,
-      transactions: transactionsForRequest
-        .map((tx, i) => ({
-          ...tx,
-          emulation: byTransactionIndex[i],
-        })),
-      fee: checkResult.fee!,
-      emulationResult,
+      transactions: transactionsForRequest,
       vestingAddress,
     });
 
@@ -492,31 +491,48 @@ async function checkTransactionMessages(
   };
 }
 
-function prepareTransactionForRequest(network: ApiNetwork, messages: TransactionPayloadMessage[]) {
-  return Promise.all(messages.map(
+async function prepareTransactionForRequest(
+  network: ApiNetwork,
+  messages: TransactionPayloadMessage[],
+  checkResult: ApiCheckMultiTransactionDraftResult,
+) {
+  if (!checkResult.emulation && checkResult.fee === undefined) {
+    throw new Error('Both `emulation` and `fee` miss in the check result');
+  }
+
+  const transactions = await Promise.all(messages.map(
     async ({
       address,
-      amount,
+      amount: rawAmount,
       payload: rawPayload,
       stateInit,
-    }) => {
+    }, index): Promise<ApiDappTransfer> => {
+      const amount = BigInt(rawAmount);
       const toAddress = getIsRawAddress(address) ? toBase64Address(address, true, network) : address;
       // Fix address format for `waitTxComplete` to work properly
       const normalizedAddress = toBase64Address(address, undefined, network);
       const payload = rawPayload ? await parsePayloadBase64(network, toAddress, rawPayload) : undefined;
       const { isScam } = getKnownAddressInfo(normalizedAddress) || {};
+      const emulationResult = checkResult.emulation?.byTransactionIndex[index];
 
       return {
         toAddress,
-        amount: BigInt(amount),
+        amount,
         rawPayload,
         payload,
         stateInit,
         normalizedAddress,
         isScam,
+        isDangerous: isTransferPayloadDangerous(payload),
+        displayedToAddress: getTransferActualToAddress(toAddress, payload),
+        displayedAmount: amount,
+        fullFee: emulationResult?.fee ?? bigintDivideToNumber(checkResult.fee!, messages.length),
+        received: emulationResult?.received ?? 0n,
       };
     },
   ));
+
+  return showDappTransferAmountsAsFee(transactions);
 }
 
 export async function deactivate(request: ApiDappRequest) {

@@ -61,7 +61,7 @@ function OnRampWidgetModal({
       return;
     }
 
-    (async () => {
+    void (async () => {
       const response = await callApi('getMoonpayOnrampUrl', chain, address!, appTheme);
 
       if (response && 'error' in response) {

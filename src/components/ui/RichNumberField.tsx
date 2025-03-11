@@ -1,16 +1,13 @@
 import type { TeactNode } from '../../lib/teact/teact';
-import React, {
-  memo, useLayoutEffect, useRef,
-} from '../../lib/teact/teact';
+import React, { memo, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
 import { FRACTION_DIGITS } from '../../config';
 import { getNumberRegex } from '../../global/helpers/number';
 import buildClassName from '../../util/buildClassName';
+import { buildContentHtml } from './helpers/buildContentHtml';
 
 import useFontScale from '../../hooks/useFontScale';
 import useLastCallback from '../../hooks/useLastCallback';
-
-import { buildContentHtml } from './RichNumberInput';
 
 import styles from './Input.module.scss';
 
@@ -54,7 +51,7 @@ function RichNumberField({
     const contentEl = contentRef.current!;
 
     const valueRegex = getNumberRegex(decimals);
-    const values = inputValue.toString().match(valueRegex);
+    const values = inputValue.match(valueRegex);
 
     // eslint-disable-next-line no-null/no-null
     if (values === null || values.length < 4 || values[0] === '') {
@@ -70,9 +67,7 @@ function RichNumberField({
     const textContent = values?.[0] || '';
     prevValueRef.current = inputValue;
 
-    const content = buildContentHtml({
-      values, suffix, decimals, withRadix: true,
-    });
+    const content = buildContentHtml(inputValue, suffix, decimals, true);
     contentEl.innerHTML = content;
 
     if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {

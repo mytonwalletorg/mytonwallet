@@ -365,7 +365,7 @@ addActionHandler('toggleTonMagic', (global, actions, { isEnabled }) => {
 
 addActionHandler('toggleDeeplinkHook', (global, actions, { isEnabled }) => {
   if (IS_ELECTRON) {
-    window.electron?.toggleDeeplinkHandler(isEnabled);
+    void window.electron?.toggleDeeplinkHandler(isEnabled);
   } else {
     void callApi('doDeeplinkHook', isEnabled);
   }

@@ -76,7 +76,7 @@ function handleGlobalChange(global: GlobalState) {
 }
 
 function omitLocalOnlyKeys(global: GlobalState) {
-  return omit(global, ['DEBUG_capturedId']);
+  return omit(global, ['DEBUG_randomId']);
 }
 
 function handleMultitabMessage({ data }: { data: BroadcastChannelMessage }) {

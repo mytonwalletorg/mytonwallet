@@ -155,7 +155,7 @@ const AnimatedSticker: FC<OwnProps> = ({
     if (getRLottie()) {
       init();
     } else {
-      ensureRLottie().then(init);
+      void ensureRLottie().then(init);
     }
   }, [init, tgsUrl, sharedCanvas, sharedCanvasCoords]);
 
@@ -208,7 +208,7 @@ const AnimatedSticker: FC<OwnProps> = ({
 
   useEffectWithPrevDeps(([prevSharedCanvasCoords]) => {
     if (prevSharedCanvasCoords !== undefined && sharedCanvasCoords !== prevSharedCanvasCoords) {
-      animation?.setSharedCanvasCoords(viewId, sharedCanvasCoords);
+      void animation?.setSharedCanvasCoords(viewId, sharedCanvasCoords);
     }
   }, [sharedCanvasCoords, viewId, animation]);
 

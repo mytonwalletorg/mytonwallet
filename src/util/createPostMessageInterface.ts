@@ -38,7 +38,7 @@ export function createPostMessageInterface(
 
   target.onmessage = (message: OriginMessageEvent) => {
     if (message.data?.channel === channel) {
-      onMessage(api, message.data, sendToOrigin);
+      void onMessage(api, message.data, sendToOrigin);
     }
   };
 }
@@ -86,7 +86,7 @@ export function createExtensionInterface(
         data = JSON.parse(data, bigintReviver) as OriginMessageData;
       }
       if (data.channel === channel) {
-        onMessage(api, data, sendToOrigin, dAppUpdater, origin);
+        void onMessage(api, data, sendToOrigin, dAppUpdater, origin);
       }
     });
 
@@ -95,7 +95,7 @@ export function createExtensionInterface(
     });
 
     if (withAutoInit) {
-      onMessage(api, { type: 'init', name: 'init', args: [] }, sendToOrigin, dAppUpdater);
+      void onMessage(api, { type: 'init', name: 'init', args: [] }, sendToOrigin, dAppUpdater);
     }
   });
 }

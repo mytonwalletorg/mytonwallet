@@ -17,7 +17,7 @@ export default function useHideBrowser(
     if (!browser) return;
 
     if (isOpen && browser) {
-      browser.hide().then(async () => {
+      void browser.hide().then(async () => {
         if (IS_DELEGATING_BOTTOM_SHEET) {
           await BottomSheet.enable();
         }

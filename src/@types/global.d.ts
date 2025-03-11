@@ -8,7 +8,6 @@ declare namespace React {
   interface HTMLAttributes {
     // Optimization for DOM nodes prepends and inserts
     teactFastList?: boolean;
-    teactExperimentControlled?: boolean;
     // `focusScroll.ts` uses this attribute to decide where to scroll the focused element to in Capacitor environments.
     // 'nearest' - no scroll unless the element is hidden; 'start' - the element will at the top; 'end' - at the bottom.
     'data-focus-scroll-position'?: ScrollLogicalPosition;
@@ -83,10 +82,6 @@ declare module '*.mp3';
 declare module '*.txt' {
   const content: string;
   export default content;
-}
-
-declare module 'pako/dist/pako_inflate' {
-  function inflate(...args: any[]): string;
 }
 
 declare module 'opus-recorder' {

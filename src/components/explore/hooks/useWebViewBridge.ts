@@ -31,7 +31,7 @@ export const useWebViewBridge = <
   );
 
   const postMessage = useCallback((message: any) => {
-    inAppBrowserRef.current?.executeScript({
+    void inAppBrowserRef.current?.executeScript({
       code: getInjectableJsMessage(JSON.stringify(message)),
     });
   }, [inAppBrowserRef]);
@@ -56,7 +56,7 @@ export const useWebViewBridge = <
             }
 
             case 'window:close': {
-              inAppBrowserRef.current?.close();
+              void inAppBrowserRef.current?.close();
 
               break;
             }

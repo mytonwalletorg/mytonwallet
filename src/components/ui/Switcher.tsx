@@ -29,13 +29,8 @@ function Switcher({
   shouldStopPropagation,
 }: OwnProps) {
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    if (onChange) {
-      onChange(e);
-    }
-
-    if (onCheck) {
-      onCheck(e.currentTarget.checked);
-    }
+    onChange?.(e);
+    onCheck?.(e.currentTarget.checked);
   }
 
   return (
@@ -55,7 +50,6 @@ function Switcher({
         checked={checked}
         className={styles.input}
         onChange={handleChange}
-        teactExperimentControlled={shouldStopPropagation || (!onChange && !onCheck)}
       />
       <span className={styles.widget} />
     </label>

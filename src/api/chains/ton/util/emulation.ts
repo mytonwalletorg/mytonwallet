@@ -1,14 +1,14 @@
 import type { Cell } from '@ton/core';
 import { beginCell, external, storeMessage } from '@ton/core';
 
-import type { ApiEmulationResult, ApiNetwork, ApiTransaction } from '../../../types';
+import type { ApiEmulatedTransaction, ApiEmulationResult, ApiNetwork, ApiTransaction } from '../../../types';
 import type { TonWallet } from './tonCore';
 
 import { TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL, TONCOIN } from '../../../../config';
-import { bigintAbs } from '../../../../util/bigint';
+import { bigintAbs, bigintMultiplyToNumber } from '../../../../util/bigint';
 import { fetchWithRetry } from '../../../../util/fetch';
 import { groupBy, omitUndefined } from '../../../../util/iteratees';
-import { JettonOpCode, NftOpCode, ONE_TON } from '../constants';
+import { FEE_FACTOR } from '../constants';
 import { stringifyTxId } from './index';
 import { toBase64Address, toRawAddress } from './tonCore';
 
@@ -140,8 +140,6 @@ type ExtendedApiTransaction = ApiTransaction & {
   opCode?: number;
 };
 
-const MAX_RECEIVED = ONE_TON;
-
 export function parseEmulation(network: ApiNetwork, address: string, emulation: EmulationResponse): ApiEmulationResult {
   const rawAddress = toRawAddress(address).toUpperCase();
 
@@ -150,36 +148,23 @@ export function parseEmulation(network: ApiNetwork, address: string, emulation: 
     .flat();
 
   const byHash = groupBy(transactions, 'hash');
-  const byTransactionIndex: ApiEmulationResult['byTransactionIndex'] = [];
+  const byTransactionIndex: ApiEmulatedTransaction[] = [];
 
   function processTrace(trace: Trace, _index?: number) {
     const txs = byHash[trace.tx_hash];
 
-    for (const [i, {
-      fromAddress, toAddress, amount, fee, isIncoming, opCode,
-    }] of txs.entries()) {
+    for (const [i, { toAddress, amount, fee, isIncoming }] of txs.entries()) {
       const index = _index ?? i;
 
       if (!(index in byTransactionIndex)) {
-        const isTokenOrNft = Boolean(
-          opCode && [JettonOpCode.Transfer, NftOpCode.TransferOwnership].includes(opCode),
-        );
-
         byTransactionIndex.push({
-          sent: 0n,
           received: 0n,
-          change: 0n,
-          networkFee: fee,
-          isTokenOrNft,
+          fee: bigintMultiplyToNumber(fee, FEE_FACTOR),
         });
       }
 
-      if (fromAddress === rawAddress && !isIncoming) {
-        byTransactionIndex[index].sent += amount;
-        byTransactionIndex[index].change -= amount;
-      } else if (toAddress === rawAddress && isIncoming) {
+      if (toAddress === rawAddress && isIncoming) {
         byTransactionIndex[index].received += bigintAbs(amount);
-        byTransactionIndex[index].change += amount;
       }
     }
 
@@ -190,44 +175,11 @@ export function parseEmulation(network: ApiNetwork, address: string, emulation: 
 
   processTrace(emulation.trace);
 
-  let totalReceived = 0n;
-  let totalNetworkFee = 0n;
-  let totalRealFee: bigint | undefined = 0n;
-  let totalChange = 0n;
-
-  for (const emulated of byTransactionIndex) {
-    const { change, received, isTokenOrNft } = emulated;
-
-    const withRealFee = Boolean(
-      isTokenOrNft
-      && received > 0n
-      && change < 0n
-      && received < MAX_RECEIVED,
-    );
-
-    if (withRealFee) {
-      emulated.realFee = bigintAbs(change) + emulated.networkFee;
-      if (totalRealFee !== undefined) {
-        totalRealFee += emulated.realFee;
-      }
-    } else {
-      totalRealFee = undefined;
-    }
-
-    totalReceived += emulated.received;
-    totalNetworkFee += emulated.networkFee;
-    totalChange += emulated.change;
-  }
-
-  const emulationResult: ApiEmulationResult = {
-    totalNetworkFee,
-    totalRealFee,
-    totalReceived,
-    totalChange,
+  return {
+    totalFee: byTransactionIndex.reduce((sum, { fee }) => sum + fee, 0n),
+    totalReceived: byTransactionIndex.reduce((sum, { received }) => sum + received, 0n),
     byTransactionIndex,
   };
-
-  return emulationResult;
 }
 
 export function emulateTrace(network: ApiNetwork, wallet: TonWallet, body: Cell, isInitialized?: boolean) {

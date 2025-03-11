@@ -1,6 +1,5 @@
 import type { DNS_ZONES_MAP } from '../chains/ton/constants';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
-import type { ApiEmulatedTransaction } from './emulation';
 import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions } from './storage';
 
@@ -197,15 +196,34 @@ export type ApiDappRequest = {
   accountId: string;
 };
 
-export interface ApiDappTransfer {
+export interface ApiTransferToSign {
   toAddress: string;
   amount: bigint;
   rawPayload?: string;
   payload?: ApiParsedPayload;
   stateInit?: string;
+}
+
+export interface ApiDappTransfer extends ApiTransferToSign {
   isScam?: boolean;
-  /** Emulation may miss due to technical problems. In this case you should fallback to the plain fee field. */
-  emulation?: ApiEmulatedTransaction;
+  /** Whether the transfer should be treated with cautiousness, because its payload is unclear */
+  isDangerous: boolean;
+  normalizedAddress: string;
+  /** The transfer address to show in the UI */
+  displayedToAddress: string;
+  /**
+   * The transaction TON amount that should be shown in the UI.
+   * It may be less than `amount` because the difference is added to `fullFee`.
+   */
+  displayedAmount: bigint;
+  /** The transaction full fee to show in the UI. Includes the network fee and the TON amount used as a fee. */
+  fullFee: bigint;
+  /**
+   * The TON amount that will be returned back as a result of the transaction.
+   * - If `fullFee` ≥ `excess`, the UI should show the difference as the real fee;
+   * - Otherwise, the UI should show the difference as the returned amount.
+   */
+  received: bigint;
 }
 
 export interface ApiSignedTransfer {

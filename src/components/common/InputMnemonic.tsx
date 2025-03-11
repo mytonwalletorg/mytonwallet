@@ -40,10 +40,7 @@ function InputMnemonic({
   const shouldRenderSuggestions = areSuggestionsShown && value && filteredSuggestions.length > 0;
 
   useEffect(() => {
-    (async () => {
-      const words = await callApi('getMnemonicWordList');
-      setWordlist(words ?? []);
-    })();
+    void callApi('getMnemonicWordList').then((words) => setWordlist(words ?? []));
   }, []);
 
   useEffect(() => {

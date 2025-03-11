@@ -298,7 +298,7 @@ function SwapInitial({
       return;
     }
 
-    vibrate();
+    void vibrate();
 
     if (isCrosschain) {
       setSwapCexAddress({ toAddress: '' });
@@ -321,7 +321,7 @@ function SwapInitial({
   });
 
   const handleSwitchTokens = useLastCallback(() => {
-    vibrate();
+    void vibrate();
     switchSwapTokens();
   });
 

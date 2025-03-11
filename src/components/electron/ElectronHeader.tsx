@@ -36,7 +36,7 @@ function ElectronHeader({ children, withTitle }: Props) {
   });
 
   const handleDoubleClick = useLastCallback(() => {
-    window.electron?.handleDoubleClick();
+    void window.electron?.handleDoubleClick();
   });
 
   if (IS_WINDOWS) {

@@ -9,7 +9,7 @@ import * as tonConnectApi from '../../tonConnect';
 // eslint-disable-next-line no-restricted-globals
 export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => ApiInitArgs)) {
   const args = typeof initArgs === 'function' ? initArgs() : initArgs;
-  init(onUpdate, args);
+  void init(onUpdate, args);
 }
 
 export function callApi<T extends keyof AllMethods>(fnName: T, ...args: AllMethodArgs<T>): AllMethodResponse<T> {

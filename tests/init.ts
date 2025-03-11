@@ -1,5 +1,7 @@
 import { Crypto } from '@peculiar/webcrypto';
 import { Buffer } from 'buffer/';
+import { CompressionStream, DecompressionStream } from 'node:stream/web';
+import { TextDecoder, TextEncoder } from 'node:util';
 
 require('dotenv')
   .config();
@@ -63,6 +65,14 @@ Object.defineProperty(global, 'indexedDB', {
       return {};
     },
   },
+});
+
+// These APIs are available in the Node.js global scope, but JSDOM removes them, so we need to retrieve them
+Object.assign(global, {
+  TextEncoder,
+  TextDecoder,
+  CompressionStream,
+  DecompressionStream,
 });
 
 // Importing dynamically, because the file execution fails without the above mocks

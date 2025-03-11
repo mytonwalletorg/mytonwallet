@@ -156,7 +156,7 @@ export function onTickEnd(callback: NoneToVoidFunction) {
   if (!onTickEndCallbacks) {
     onTickEndCallbacks = [callback];
 
-    Promise.resolve().then(() => {
+    void Promise.resolve().then(() => {
       const currentCallbacks = onTickEndCallbacks!;
       onTickEndCallbacks = undefined;
       currentCallbacks.forEach((cb) => cb());

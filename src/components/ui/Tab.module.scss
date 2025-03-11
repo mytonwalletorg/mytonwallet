@@ -88,7 +88,7 @@
 
   opacity: 0;
   background-color: var(--color-accent);
-  border-radius: 0.1875rem 0.1875rem 0 0;
+  border-radius: var(--border-radius-micro) var(--border-radius-micro) 0 0;
 
   &_animate {
     transition: transform var(--slide-transition);

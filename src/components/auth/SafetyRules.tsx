@@ -5,7 +5,7 @@ import buildClassName from '../../util/buildClassName';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 
-import SaferyRulesContent from '../common/backup/SaferyRulesContent';
+import SafetyRulesContent from '../common/backup/SafetyRulesContent';
 import ModalHeader from '../ui/ModalHeader';
 
 import modalStyles from '../ui/Modal.module.scss';
@@ -36,7 +36,7 @@ function SafetyRules({ isActive, onSubmit, onClose }: OwnProps) {
     <div className={modalStyles.transitionContentWrapper}>
       <ModalHeader title={lang('Safety Rules')} onClose={onClose} />
       <div className={buildClassName(modalStyles.transitionContent, 'custom-scroll')}>
-        <SaferyRulesContent
+        <SafetyRulesContent
           customStickerClassName={styles.modalSticker}
           customButtonWrapperClassName={modalStyles.buttons}
           isFullSizeButton={false}

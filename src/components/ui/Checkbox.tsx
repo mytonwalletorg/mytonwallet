@@ -13,6 +13,7 @@ type OwnProps = {
   contentClassName?: string;
   children?: React.ReactNode;
   checked: boolean;
+  isDisabled?: boolean;
   onChange: (isChecked: boolean) => void;
 };
 
@@ -22,6 +23,7 @@ function Checkbox({
   contentClassName,
   children,
   checked,
+  isDisabled,
   onChange,
 }: OwnProps) {
   const handleChange = useLastCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -36,8 +38,9 @@ function Checkbox({
         type="checkbox"
         className={styles.input}
         checked={checked}
+        disabled={isDisabled}
         tabIndex={0}
-        onChange={handleChange}
+        onChange={!isDisabled ? handleChange : undefined}
       />
       <div className={buildClassName(styles.content, contentClassName)}>
         {children}

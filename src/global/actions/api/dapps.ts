@@ -362,11 +362,9 @@ addActionHandler('apiUpdateDappConnect', async (global, actions, {
 addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
   promiseId,
   transactions,
-  fee,
   accountId,
   dapp,
   vestingAddress,
-  emulationResult,
 }) => {
   const { currentAccountId, currentDappTransfer: { promiseId: currentPromiseId } } = global;
   if (currentAccountId !== accountId) {
@@ -401,10 +399,8 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
     state,
     promiseId,
     transactions,
-    networkFee: fee,
     dapp,
     vestingAddress,
-    emulationResult,
   });
   setGlobal(global);
 });

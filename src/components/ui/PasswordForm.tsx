@@ -139,10 +139,7 @@ function PasswordForm({
       return;
     }
 
-    (async () => {
-      await pause(APPEAR_ANIMATION_DURATION_MS);
-      void handleBiometrics();
-    })();
+    void pause(APPEAR_ANIMATION_DURATION_MS).then(handleBiometrics);
   }, [forceBiometricsInMain, handleBiometrics, isActive, isBiometricAuthEnabled]);
 
   useFocusAfterAnimation(passwordRef, !isActive || isBiometricAuthEnabled);

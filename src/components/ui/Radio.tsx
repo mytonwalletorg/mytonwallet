@@ -26,7 +26,6 @@ function Radio({
         value={value}
         checked={isChecked}
         onChange={onChange}
-        teactExperimentControlled
       />
     </div>
   );

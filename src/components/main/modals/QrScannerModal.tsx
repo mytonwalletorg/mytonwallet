@@ -45,12 +45,12 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
   const scanSquareRef = useRef<HTMLDivElement>(null);
 
   useEffectOnce(() => {
-    BarcodeScanner
+    void BarcodeScanner
       .isTorchAvailable()
       .then((result) => {
         setIsFlashlightAvailable(result.available);
       });
-    BarcodeScanner
+    void BarcodeScanner
       .isTorchEnabled()
       .then((result) => {
         setIsFlashlightEnabled(result.enabled);

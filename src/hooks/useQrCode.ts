@@ -41,7 +41,7 @@ export default function useQrCode({
   useEffect(() => {
     if (isInitialized) return;
 
-    import('qr-code-styling')
+    void import('qr-code-styling')
       .then(({ default: QrCodeStyling }) => {
         qrCode = new QrCodeStyling({
           width: QR_SIZE,

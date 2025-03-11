@@ -26,9 +26,9 @@ if (!IS_IOS) {
 }
 
 if (IS_CAPACITOR) {
-  import('@capacitor/keyboard')
+  void import('@capacitor/keyboard')
     .then(({ Keyboard }) => {
-      Keyboard.addListener('keyboardDidShow', async (info) => {
+      void Keyboard.addListener('keyboardDidShow', async (info) => {
         await patchCapacitorAppVh(info.keyboardHeight);
 
         for (const cb of virtualKeyboardOpenListeners) {
@@ -36,7 +36,7 @@ if (IS_CAPACITOR) {
         }
       });
 
-      Keyboard.addListener('keyboardWillHide', () => {
+      void Keyboard.addListener('keyboardWillHide', () => {
         void patchCapacitorAppVh(0);
       });
     });

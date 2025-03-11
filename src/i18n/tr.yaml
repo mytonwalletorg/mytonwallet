@@ -162,7 +162,6 @@ No NFTs yet: Henüz NFT'niz yok
 $nft_explore_offer: |
   Mevcut NFT koleksiyonlarını görmek
   için NFT pazaryerini inceleyin.
-Open TON Diamonds: TON Diamonds'i aç
 Received: Alındı
 Sent: Gönder
 $transaction_from: bu adresten = %address%
@@ -722,8 +721,10 @@ $swap_reverse_prohibited: Bu token çifti için satın alma miktarını ayarlama
 Blockchain Fee Details: Blockchain Ücret Detayları
 Final Fee: Nihai Ücret
 Excess: Fazlalık
-$fee_details: Ücreti ödemek için cüzdanınızdan %full_fee% hemen çekilmelidir. Bunun bir kısmı birkaç dakika içinde fazlalık olarak size %excess_symbol%** cinsinden** geri iade edilecektir.
-This is how the %chain_name% Blockchain works.: "%chain_name% Blockchain'i böyle çalışır."
+$fee_details: |
+  Ücreti ödemek için cüzdanınızdan %full_fee% hemen çekilmelidir. Bunun bir kısmı birkaç dakika içinde fazlalık olarak size %excess_symbol%** cinsinden** geri iade edilecektir.
+
+  %chain_name% Blockchain’in çalışma prensibi şöyledir.
 Got It: Anladım
 Wallet: Cüzdan
 Connected: Bağlandı
@@ -735,4 +736,14 @@ Request is sent!: İstek gönderildi!
 Transaction ID: İşlem Kimliği
 Help Center: Yardım Merkezi
 MyTonWallet Tips: MyTonWallet İpuçları
-$returned_value: "~ %value% iade edilecek"
+$returned_value: ~ %value% iade edilecek
+Open %nft_marketplace%: "%nft_marketplace%'ı aç"
+Link was copied!: Bağlantı kopyalandı!
+Share Link: Bağlantıyı Paylaş
+Dapp Fee Details: Dapp Ücret Detayları
+$dapp_return_details: |
+  %fee_amount%, ücreti ödemek için cüzdanınızdan anında tahsil edilecektir.
+
+  %received_amount% birkaç dakika içinde size geri gönderilecektir.
+$dapp_return_disclaimer: Görüntülenen iade edilen tutar garanti edilmez ve kötü niyetli dapp'ler tarafından manipüle edilebilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
+Additional Amount Sent: Ekstra Gönderilecek

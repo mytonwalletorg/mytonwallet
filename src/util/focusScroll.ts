@@ -45,7 +45,7 @@ function initForCapacitor() {
   });
 
   void import('@capacitor/keyboard').then(({ Keyboard }) => {
-    Keyboard.addListener('keyboardWillHide', focusScroller.uninstall);
+    void Keyboard.addListener('keyboardWillHide', focusScroller.uninstall);
   });
 }
 

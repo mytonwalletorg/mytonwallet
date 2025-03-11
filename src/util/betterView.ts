@@ -26,7 +26,7 @@ export function betterView() {
     lastFocusAt = now;
 
     setupInterval();
-    testAndImprove();
+    void testAndImprove();
   });
 
   window.addEventListener('blur', () => {
@@ -36,7 +36,7 @@ export function betterView() {
 
   if (document.hasFocus()) {
     setupInterval();
-    testAndImprove();
+    void testAndImprove();
   }
 }
 

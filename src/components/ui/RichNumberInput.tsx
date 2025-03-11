@@ -1,11 +1,10 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
-import { FRACTION_DIGITS, WHOLE_PART_DELIMITER } from '../../config';
-import { requestMutation } from '../../lib/fasterdom/fasterdom';
-import { getNumberParts, getNumberRegex } from '../../global/helpers/number';
+import { FRACTION_DIGITS } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { saveCaretPosition } from '../../util/saveCaretPosition';
+import { buildContentHtml } from './helpers/buildContentHtml';
 
 import useFlag from '../../hooks/useFlag';
 import useFontScale from '../../hooks/useFontScale';
@@ -67,57 +66,51 @@ function RichNumberInput({
   // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLInputElement | null>(null);
   const lang = useLang();
+
   const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
   const { updateFontScale, isFontChangedRef } = useFontScale(inputRef);
 
-  const handleNumberHtml = useLastCallback((input: HTMLInputElement, parts?: RegExpMatchArray) => {
-    const newHtml = parts ? buildContentHtml({ values: parts, suffix, decimals }) : '';
-    const restoreCaretPosition = document.activeElement === inputRef.current
-      ? saveCaretPosition(input, decimals)
-      : undefined;
+  const textRef = useRef('');
 
-    input.innerHTML = newHtml;
-    restoreCaretPosition?.();
-
-    return newHtml;
-  });
-
-  const updateHtml = useLastCallback((parts?: RegExpMatchArray) => {
+  const updateHtml = useLastCallback((newText: string) => {
     const input = inputRef.current!;
-    const content = handleNumberHtml(input, parts);
-    const textContent = parts?.[0] || '';
+    const html = buildContentHtml(newText, suffix, decimals);
 
-    if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
-      updateFontScale(content);
+    if (html !== input.innerHTML) {
+      const restoreCaretPosition = document.activeElement === input
+        ? saveCaretPosition(input, decimals)
+        : undefined;
+
+      input.innerHTML = html;
+      restoreCaretPosition?.();
     }
-    input.classList.toggle(styles.isEmpty, !content.length);
+
+    if (newText.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
+      updateFontScale(html);
+    }
   });
 
   useLayoutEffect(() => {
-    if (value === undefined) {
-      updateHtml();
-    } else {
-      updateHtml(getNumberParts(value));
+    const newText = clearText(value);
+
+    if (!newText || !textRef.current.startsWith(newText)) {
+      updateHtml(newText);
+      textRef.current = newText;
     }
-  }, [updateHtml, value]);
+  }, [decimals, textRef, value]);
 
   function handleChange(e: React.FormEvent<HTMLDivElement>) {
-    const inputValue = e.currentTarget.innerText.trim();
-    const newValue = clearValue(inputValue, decimals);
-    const parts = getNumberParts(newValue, decimals);
-    const isEmpty = inputValue === '';
+    const newText = clearText(e.currentTarget.textContent ?? undefined);
 
-    requestMutation(() => {
-      if (!parts && !isEmpty && value) {
-        updateHtml(getNumberParts(value, decimals));
-      } else {
-        updateHtml(parts);
-      }
+    updateHtml(newText);
 
-      if ((newValue || isEmpty) && newValue !== value) {
-        onChange?.(newValue);
+    if (newText !== textRef.current) {
+      textRef.current = newText;
+
+      if (onChange && isValidValue(newText)) {
+        onChange(newText);
       }
-    });
+    }
   }
 
   const handleFocus = useLastCallback(() => {
@@ -135,8 +128,8 @@ function RichNumberInput({
   });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' && onPressEnter) {
-      onPressEnter(e);
+    if (e.key === 'Enter') {
+      onPressEnter?.(e);
     }
   };
 
@@ -205,38 +198,22 @@ function RichNumberInput({
   );
 }
 
-function clearValue(value: string, decimals: number) {
-  return value
-    .replace(',', '.') // Replace comma to point
-    .replace(/[^\d.]/, '') // Remove incorrect symbols
-    .match(getNumberRegex(decimals))?.[0] // Trim extra decimal places
-    .replace(/^0+(?=([1-9]|0\.))/, '') // Trim extra zeros at beginning
-    .replace(/^0+$/, '0') // Trim extra zeros (if only zeros are entered)
-    ?? '';
+function clearText(text?: string) {
+  if (!text) return '';
+
+  return (
+    text
+      .trim()
+      .replace(',', '.') // Replace comma to point
+      .replace(/[^\d.]/g, '') // Remove incorrect symbols
+      .replace(/^0+(?=([1-9]|0\.))/, '') // Trim extra zeros at beginning
+      .replace(/^0+$/, '0') // Trim extra zeros (if only zeros are entered)
+    ?? ''
+  );
 }
 
-export function buildContentHtml({
-  values,
-  suffix,
-  decimals = FRACTION_DIGITS,
-  withRadix = false,
-}: {
-  values: RegExpMatchArray;
-  suffix?: string;
-  decimals?: number;
-  withRadix?: boolean;
-}) {
-  let [, wholePart] = values;
-  const [, , dotPart, fractionPart] = values;
-
-  const fractionStr = (fractionPart || dotPart) ? `.${(fractionPart || '').substring(0, decimals)}` : '';
-  const suffixStr = suffix ? `&thinsp;${suffix}` : '';
-
-  if (withRadix) {
-    wholePart = wholePart.replace(/\d(?=(\d{3})+($|\.))/g, `$&${WHOLE_PART_DELIMITER}`);
-  }
-
-  return `${wholePart}<span class="${styles.fractional}">${fractionStr}${suffixStr}</span>`;
+function isValidValue(text: string) {
+  return !Number.isNaN(Number(text));
 }
 
 export default memo(RichNumberInput);

@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
@@ -13,9 +14,10 @@ import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { stopEvent } from '../../util/domEvents';
 import { handleOpenUrl, openUrl } from '../../util/openUrl';
-import { shortenAddress } from '../../util/shortenAddress';
+import { shareUrl } from '../../util/share';
+import { MEANINGFUL_CHAR_LENGTH, shortenAddress } from '../../util/shortenAddress';
 import { getExplorerAddressUrl, getExplorerName, getHostnameFromUrl } from '../../util/url';
-import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
+import { IS_IOS, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
@@ -59,7 +61,7 @@ interface StateProps {
   isTestnet?: boolean;
 }
 
-type MenuHandler = 'copy' | 'addressBook' | 'explorer';
+type MenuHandler = 'copy' | 'share' | 'addressBook' | 'explorer';
 
 const SAVED_ADDRESS_NAME_MAX_LENGTH = 255;
 const MENU_VERTICAL_OFFSET_PX = -16;
@@ -71,7 +73,7 @@ function InteractiveTextField({
   addressUrl,
   isScam,
   isTransaction,
-  text,
+  text = '',
   spoiler,
   spoilerRevealText,
   spoilerCallback,
@@ -132,7 +134,11 @@ function InteractiveTextField({
   const handleCopy = useLastCallback(() => {
     if (!copyNotification) return;
     showNotification({ message: copyNotification, icon: 'icon-copy' });
-    void copyTextToClipboard(address || text || '');
+    void copyTextToClipboard(address || text);
+  });
+
+  const handleShare = useLastCallback(() => {
+    void shareUrl(addressUrl!, getExplorerName(chain!));
   });
 
   const handleTonExplorerOpen = useLastCallback(() => {
@@ -148,6 +154,7 @@ function InteractiveTextField({
     closeActionsMenu,
   } = useDropdownMenu({
     copy: handleCopy,
+    share: handleShare,
     addressBook: isAddressAlreadySaved ? openDeletedSavedAddressModal : openSaveAddressModal,
     explorer: handleTonExplorerOpen,
   }, {
@@ -197,7 +204,25 @@ function InteractiveTextField({
     );
   }
 
-  function renderContent(content?: string) {
+  function renderContent(content: string) {
+    let renderedContent: string | TeactNode = content;
+    if (!isTransaction && content === address && content.length > MEANINGFUL_CHAR_LENGTH * 2) {
+      const prefix = content.substring(0, MEANINGFUL_CHAR_LENGTH);
+      const suffixStart = content.length - MEANINGFUL_CHAR_LENGTH;
+      const middle = content.substring(MEANINGFUL_CHAR_LENGTH, suffixStart);
+      const suffix = content.substring(suffixStart);
+
+      renderedContent = (
+        <>
+          <span className={styles.meaningfulPart}>{prefix}</span>
+          <span className={styles.dimmedPart}>{middle}</span>
+          <span className={styles.meaningfulPart}>{suffix}</span>
+        </>
+      );
+    } else if (isTransaction) {
+      renderedContent = <span className={styles.dimmedPart}>{content}</span>;
+    }
+
     return (
       <span
         className={buildClassName(styles.button, isScam && styles.scam, textClassName)}
@@ -207,10 +232,10 @@ function InteractiveTextField({
         onClick={!shouldUseMenu ? handleCopy : undefined}
       >
         {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
-        {isMultichainAccount && (
+        {isMultichainAccount && !isTransaction && (
           <i className={buildClassName(styles.chainIcon, `icon-chain-${chain}`)} aria-label={chain} />
         )}
-        {content}
+        {renderedContent}
         {Boolean(addressName) && (
           <span className={buildClassName(styles.shortAddress, isScam && styles.scam)}>{shortenAddress(address!)}</span>
         )}
@@ -227,7 +252,6 @@ function InteractiveTextField({
         styles.icon,
         styles.iconCaretDown,
         'icon-caret-down',
-        !addressName && styles.iconBlack,
         isScam && styles.scam,
       );
 
@@ -272,6 +296,16 @@ function InteractiveTextField({
           </span>
         )}
 
+        {isTransaction && (
+          <span
+            className={styles.button}
+            title={lang('Share Link')}
+            aria-label={lang('Share Link')}
+            onClick={handleShare}
+          >
+            <i className={buildClassName(styles.icon, styles.iconShare, 'icon-link')} aria-hidden />
+          </span>
+        )}
         {withExplorer && (
           <a
             href={addressUrl}
@@ -399,6 +433,15 @@ function useDropdownMenu(
         fontIcon: isAddressAlreadySaved ? 'star-filled' : 'star',
         withSeparator: true,
         value: 'addressBook',
+      });
+    }
+
+    if (isTransaction) {
+      items.push({
+        name: 'Share Link',
+        fontIcon: IS_IOS ? 'share-ios' : 'share-android',
+        withSeparator: true,
+        value: 'share',
       });
     }
 

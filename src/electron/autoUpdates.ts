@@ -27,7 +27,7 @@ export function setupAutoUpdates() {
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
 
-  checkForUpdates();
+  void checkForUpdates();
 
   ipcMain.handle(ElectronAction.INSTALL_UPDATE, () => {
     if (IS_MAC_OS || IS_WINDOWS) {
@@ -53,7 +53,7 @@ async function checkForUpdates(): Promise<void> {
   while (true) { // eslint-disable-line no-constant-condition
     if (await shouldPerformAutoUpdate()) {
       if (getIsAutoUpdateEnabled()) {
-        autoUpdater.checkForUpdates();
+        void autoUpdater.checkForUpdates();
       } else {
         mainWindow.webContents.send(ElectronEvent.UPDATE_DOWNLOADED);
       }

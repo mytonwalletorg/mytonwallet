@@ -61,12 +61,16 @@
   }
 }
 
-.iconBlack {
-  color: var(--color-black) !important;
-}
-
 .iconStar {
   font-size: 1.0625rem;
+}
+
+.iconShare {
+  margin-right: -0.0625rem;
+  margin-left: -0.125rem;
+
+  font-size: 1.25rem;
+  vertical-align: -0.3125rem;
 }
 
 .nameInput {
@@ -124,7 +128,28 @@
 }
 
 .chainIcon {
+  color: var(--color-gray-3);
   vertical-align: -0.125rem;
+}
+
+.meaningfulPart {
+  color: var(--color-black);
+}
+
+.menuIcon {
+  margin-inline-end: 0.5rem;
+
+  font-size: 1.25rem;
+
+  &:global(.icon-star),
+  &:global(.icon-star-filled) {
+    margin-top: -0.125rem;
+  }
+}
+
+.menuIcon,
+.dimmedPart {
+  color: var(--color-gray-3);
 }
 
 .menu {
@@ -134,6 +159,7 @@
 .menuItem {
   height: 3rem;
   margin: 0 !important;
+  padding-inline-end: 1rem !important;
 
   border-radius: 0;
 
@@ -153,8 +179,8 @@
 
     width: 100%;
   }
-}
 
-.menuIcon {
-  color: var(--color-gray-3);
+  :global(.menuItemName) {
+    font-size: 1rem;
+  }
 }

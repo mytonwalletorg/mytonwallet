@@ -214,6 +214,10 @@
   }
 }
 
+.payloadFieldTerm {
+  white-space: nowrap;
+}
+
 .transactionList {
   margin-bottom: 1.25rem;
 
@@ -565,7 +569,6 @@
 }
 
 .warningForPayload {
-  width: 100%;
   padding: 0.75rem;
 
   font-size: 0.9375rem;
@@ -577,20 +580,31 @@
 }
 
 .fee {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-
+  box-sizing: content-box;
   margin-top: auto;
-  padding-top: 1rem;
 
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-gray-3);
-  text-align: center;
+  border-top: solid 1rem transparent; // Creates an auto top auto margin with a minimum height without messing the FeeLine layout
 }
 
 .buttonsAfterFee {
   margin-top: 0 !important;
   padding-top: 0.875rem !important;
+}
+
+.detailsModal {
+  &Content {
+    gap: 2rem;
+  }
+
+  &Explanation {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1875rem;
+
+    margin: 0 0.5rem;
+
+    > .warningForPayload {
+      margin: 0 -0.75rem;
+    }
+  }
 }

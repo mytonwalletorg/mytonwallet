@@ -12,6 +12,7 @@ import { formatShortDay, SECOND } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { vibrate } from '../../../../util/haptics';
+import { handleOpenUrl } from '../../../../util/openUrl';
 import { round } from '../../../../util/round';
 import { getExplorerName, getExplorerTokenUrl } from '../../../../util/url';
 import { IS_IOS } from '../../../../util/windowEnvironment';
@@ -91,7 +92,7 @@ function TokenCard({
     if (!IS_IOS) return;
 
     if (prevHistoryIndex !== undefined) {
-      vibrate();
+      void vibrate();
     }
   }, [selectedHistoryIndex]);
 
@@ -175,6 +176,7 @@ function TokenCard({
           target="_blank"
           rel="noreferrer"
           className={styles.tokenExplorerButton}
+          onClick={handleOpenUrl}
         >
           <i className="icon-tonexplorer-small" aria-hidden />
         </a>

@@ -161,7 +161,6 @@ No NFTs yet: Aún no tienes NFT
 $nft_explore_offer: |
   Explore los mercados para descubrir
   nuevas colecciones NFT.
-Open TON Diamonds: Abrir TON Diamonds
 Received: Recibido
 Sent: Enviado
 $transaction_from: de %address%
@@ -721,8 +720,10 @@ $swap_reverse_prohibited: Configurar la cantidad de compra es imposible para est
 Blockchain Fee Details: Detalles de la tarifa de blockchain
 Final Fee: Tarifa final
 Excess: Excedente
-$fee_details: Se deben debitar %full_fee% inmediatamente de su billetera para pagar la tarifa. Una parte de esto se le devolverá **en **%excess_symbol% como excedente en unos minutos.
-This is how the %chain_name% Blockchain works.: Así funciona la Blockchain de %chain_name%.
+$fee_details: |
+  Se deben debitar %full_fee% inmediatamente de su billetera para pagar la tarifa. Una parte de esto se le devolverá **en **%excess_symbol% como excedente en unos minutos.
+
+  Así es como funciona %chain_name% Blockchain.
 Got It: Entendido
 Wallet: Monedero
 Connected: Conectado
@@ -734,4 +735,14 @@ Request is sent!: ¡Solicitud enviada!
 Transaction ID: ID de transacción
 Help Center: Centro de ayuda
 MyTonWallet Tips: Consejos de MyTonWallet
-$returned_value: "~ %value% será devuelto"
+$returned_value: ~ %value% será devuelto
+Open %nft_marketplace%: Abrir %nft_marketplace%
+Link was copied!: ¡Enlace copiado!
+Share Link: Compartir enlace
+Dapp Fee Details: Detalles de la tarifa de Dapp
+$dapp_return_details: |
+  %fee_amount% se debitará inmediatamente de tu billetera para pagar la tarifa.
+
+  %received_amount% te será devuelto en unos minutos.
+$dapp_return_disclaimer: La cantidad devuelta mostrada no está garantizada y puede ser manipulada por dapps maliciosos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
+Additional Amount Sent: Se enviará adicionalmente

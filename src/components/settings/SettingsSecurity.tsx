@@ -254,7 +254,7 @@ function SettingsSecurity({
     if (enteredPassword === pinValue) {
       setPasswordError(lang('New code set successfully'));
       await pause(CHANGE_PASSWORD_PAUSE_MS);
-      handleNewPasswordSubmit(enteredPassword);
+      await handleNewPasswordSubmit(enteredPassword);
     } else {
       setPasswordError(lang('Codes don’t match'));
       await pause(CHANGE_PASSWORD_PAUSE_MS);
@@ -318,7 +318,7 @@ function SettingsSecurity({
       openBiometricsTurnOn();
     }
   });
-  const handleNativeBiometricsTurnOnOpen = useLastCallback(() => {
+  const handleNativeBiometricsTurnOnOpen = useLastCallback(async () => {
     if (getIsNativeBiometricAuthSupported()) {
       setSettingsState({ state: SettingsState.NativeBiometricsTurnOn });
       return;
@@ -327,20 +327,18 @@ function SettingsSecurity({
     const warningDescription = IS_IOS
       ? 'To use this feature, first enable Face ID in your phone settings.'
       : 'To use this feature, first enable biometrics in your phone settings.';
-    Dialog.confirm({
+    const { value } = await Dialog.confirm({
       title: lang('Warning!'),
       message: lang(warningDescription),
       okButtonTitle: lang('Open Settings'),
       cancelButtonTitle: lang('Cancel'),
-    })
-      .then(({ value }) => {
-        if (value) {
-          NativeSettings.open({
-            optionAndroid: AndroidSettings.ApplicationDetails,
-            optionIOS: IOSSettings.App,
-          });
-        }
+    });
+    if (value) {
+      await NativeSettings.open({
+        optionAndroid: AndroidSettings.ApplicationDetails,
+        optionIOS: IOSSettings.App,
       });
+    }
   });
 
   // The `getIsTelegramBiometricsRestricted` case is required to display a toggle switch.

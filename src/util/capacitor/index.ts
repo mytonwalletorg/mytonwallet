@@ -53,12 +53,12 @@ function updateSafeAreaValues(safeAreaInsets: SafeAreaInsets) {
 export async function initCapacitor() {
   setCapacitorPlatform(Capacitor.getPlatform() as CapacitorPlatform);
 
-  SafeArea.getStatusBarHeight().then(({ statusBarHeight: height }) => {
+  void SafeArea.getStatusBarHeight().then(({ statusBarHeight: height }) => {
     statusBarHeight = height;
     document.documentElement.style.setProperty('--status-bar-height', `${height}px`);
   });
 
-  SafeArea.getSafeAreaInsets().then(({ insets: { bottom } }) => {
+  void SafeArea.getSafeAreaInsets().then(({ insets: { bottom } }) => {
     document.documentElement.style.setProperty('--safe-area-bottom', `${bottom}px`);
   });
 
@@ -73,15 +73,15 @@ export async function initCapacitor() {
     }, IOS_SPLASH_SCREEN_HIDE_DELAY);
   }
 
-  App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
+  void App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
     void processDeeplink(event.url);
   });
 
-  App.addListener('backButton', ({ canGoBack }) => {
+  void App.addListener('backButton', ({ canGoBack }) => {
     if (canGoBack) {
       window.history.back();
     } else {
-      App.exitApp();
+      void App.exitApp();
     }
   });
 
@@ -110,7 +110,7 @@ export async function initCapacitorWithGlobal(authConfig?: AuthConfig) {
   isFaceIdAvailable = biometricsAvailableResult.biometryType === BiometryType.FACE_ID;
   isTouchIdAvailable = biometricsAvailableResult.biometryType === BiometryType.TOUCH_ID;
 
-  initNotificationsWithGlobal(getGlobal());
+  void initNotificationsWithGlobal(getGlobal());
 }
 
 export function getLaunchUrl() {

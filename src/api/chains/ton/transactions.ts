@@ -20,6 +20,7 @@ import type {
 } from '../../types';
 import type {
   AnyPayload,
+  ApiCheckMultiTransactionDraftResult,
   ApiCheckTransactionDraftResult,
   ApiFetchEstimateDieselResult,
   ApiSubmitMultiTransferResult,
@@ -871,8 +872,9 @@ export async function checkMultiTransactionDraft(
   accountId: string,
   messages: TonTransferParams[],
   withDiesel?: boolean,
+  // If true and the emulation is successful, the result `fee` property will miss
   withEmulation?: boolean,
-): Promise<{ fee?: bigint; emulation?: ApiEmulationResult } & ({ error: ApiAnyDisplayError } | {})> {
+): Promise<ApiCheckMultiTransactionDraftResult> {
   const result: { fee?: bigint; emulation?: ApiEmulationResult } = {};
   let totalAmount: bigint = 0n;
 
@@ -901,9 +903,6 @@ export async function checkMultiTransactionDraft(
       network, wallet, messages, version,
     });
 
-    const blockchainFee = await calculateFee(network, wallet, transaction, isInitialized);
-    result.fee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
-
     if (withEmulation) {
       result.emulation = await safeExecAsync(async () => {
         const emulation = await emulateTrace(network, wallet, transaction, isInitialized);
@@ -911,8 +910,14 @@ export async function checkMultiTransactionDraft(
       });
     }
 
+    if (!result.emulation) {
+      const blockchainFee = await calculateFee(network, wallet, transaction, isInitialized);
+      result.fee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
+    }
+
+    const fee = result.emulation?.totalFee ?? result.fee ?? 0n;
     // TODO Should `totalAmount` be `0` for `withDiesel`?
-    if (!withDiesel && balance < totalAmount + result.fee) {
+    if (!withDiesel && balance < totalAmount + fee) {
       return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
     }
 

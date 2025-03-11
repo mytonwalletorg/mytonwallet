@@ -137,7 +137,7 @@ function AppLocked({
     lock();
     showUi();
     if (IS_DELEGATING_BOTTOM_SHEET) void BottomSheet.hide();
-    getInAppBrowser()?.hide();
+    void getInAppBrowser()?.hide();
     setSlideForBiometricAuth(SLIDES.button);
   });
 
@@ -226,7 +226,7 @@ function AppLocked({
 
     return (
       <div
-        className={buildClassName(styles.appLocked, isFixedSlide && styles.appLockedFixed)}
+        className={buildClassName(styles.appLocked, isNonNativeBiometricAuthEnabled && styles.appLockedFixed)}
       >
         {
           isFixedSlide ? (

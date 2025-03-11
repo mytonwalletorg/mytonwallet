@@ -158,7 +158,6 @@ NFT: NFT
 No NFTs yet: NFT 空空如也···
 $nft_explore_offer: |
   在市场中寻找心仪的 NFT 收藏。
-Open TON Diamonds: 打开 TON Diamonds
 Received: 已收到
 Sent: 已发送
 $transaction_from: 从 %address%
@@ -649,9 +648,9 @@ Confirm Sending: 确认发送
 Confirm Burning: 确认刻录
 Confirm Passcode: 确认密码
 Enter your code: 输入您的代码
-$hardware_payload_warning: 第三方服务正在请求访问您的钱包 — 这可能会导致资金损失。如果您不确定此服务的可靠性，请取消操作。
+$hardware_payload_warning: 第三方服务正在请求访问您的钱包 — 这可能会导致资金损失。如果您不确定该服务的可靠性，请取消操作。
 $hardware_blind_sign_not_enabled: |
-  第三方服务正在请求访问您的钱包 — 这可能会导致资金损失。如果您不确定此服务的可靠性，请取消操作。
+  第三方服务正在请求访问您的钱包 — 这可能会导致资金损失。如果您不确定该服务的可靠性，请取消操作。
 
   要继续，请在 Ledger 的 TON 应用程序设置中启用“盲签名”选项。
 $hardware_blind_sign_not_enabled_internal: 要继续，请在 Ledger 的 TON 应用程序设置中启用“盲签名”选项。
@@ -711,8 +710,10 @@ $swap_reverse_prohibited: 无法为这对代币设置购买金额
 Blockchain Fee Details: 区块链费用详情
 Final Fee: 最终费用
 Excess: 多余款项
-$fee_details: 需要立即从您的钱包中扣除%full_fee%以支付费用。部分金额将在几分钟内以%excess_symbol%的形式返还给您作为多余款项。
-This is how the %chain_name% Blockchain works.: 这就是%chain_name%区块链的工作方式。
+$fee_details: |
+  需要立即从您的钱包中扣除 %full_fee% 以支付费用。部分金额将在几分钟内以 %excess_symbol% 的形式返还给您作为多余款项。
+
+  这就是 %chain_name% 区块链的工作方式。
 Got It: 知道了
 Wallet: 钱包
 Connected: 已连接
@@ -724,4 +725,14 @@ Request is sent!: 请求已发送！
 Transaction ID: 交易ID
 Help Center: 帮助中心
 MyTonWallet Tips: MyTonWallet 提示
-$returned_value: "~ %value% 将被退还"
+$returned_value: ~ %value% 将被退还
+Open %nft_marketplace%: 打开 %nft_marketplace%
+Link was copied!: 链接已复制！
+Share Link: 分享链接
+Dapp Fee Details: 费用详情
+$dapp_return_details: |
+  %fee_amount% 将立即从您的钱包扣除以支付费用。
+
+  %received_amount% 将在几分钟内退还给您。
+$dapp_return_disclaimer: 显示的返还金额不受保证，并可能被恶意 Dapp 操纵。如果您不确定该服务的可靠性，请取消操作。
+Additional Amount Sent: 额外发送

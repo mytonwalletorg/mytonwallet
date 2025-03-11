@@ -1,4 +1,6 @@
-import React, { memo, type TeactNode } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
+
+import type { ApiDappTransfer } from '../../api/types';
 
 import { TONCOIN } from '../../config';
 import { toDecimal } from '../../util/decimals';
@@ -8,66 +10,75 @@ import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
-import FeeLine from '../ui/FeeLine';
+import FeeLine, { FeeLineContainer } from '../ui/FeeLine';
+import DappReturnedDetailsModal from './DappReturnedDetailsModal';
 
 import styles from './Dapp.module.scss';
 
-interface OwnProps {
-  realFee?: bigint;
-  fullFee: bigint;
-  /**
-   * The amount to be received as a result of the transaction(s). Undefined means that the received amount is unknown
-   * because the emulation failed
-   */
-  received?: bigint;
-}
+type OwnProps = Pick<ApiDappTransfer, 'fullFee' | 'received'>;
 
 function DappTransferFee({
-  realFee, fullFee, received,
+  fullFee, received,
 }: OwnProps) {
   const lang = useLang();
   const [isDetailsModalOpen, openDetailsModal, closeDetailsModal] = useFlag();
 
-  const realFeeTerms = { native: realFee };
-  const fullFeeTerms = { native: fullFee };
-  const realFeePrecision = 'approximate';
-  const excessFee = fullFee - (realFee ?? 0n);
-
-  const content: TeactNode[] = [];
-
-  if (realFee !== undefined) {
-    content.push(
-      <FeeLine terms={realFeeTerms} token={TONCOIN} precision={realFeePrecision} onDetailsClick={openDetailsModal} />,
-    );
-  } else if (received) {
-    content.push(
-      <div>
-        {lang('$returned_value', {
-          // Rounding down to make the actual result better than we predict
-          value: formatCurrency(toDecimal(received, TONCOIN.decimals), TONCOIN.symbol),
-        })}
-      </div>,
-    );
-  } else {
-    content.push(
-      <FeeLine terms={fullFeeTerms} token={TONCOIN} precision={received === undefined ? 'lessThan' : 'exact'} />,
+  if (received === 0n) {
+    return (
+      <FeeLine
+        terms={{ native: fullFee }}
+        token={TONCOIN}
+        precision="exact"
+        className={styles.fee}
+      />
     );
   }
 
-  content.push(
-    <FeeDetailsModal
-      isOpen={isDetailsModalOpen}
-      onClose={closeDetailsModal}
-      fullFee={fullFeeTerms}
-      realFee={realFeeTerms}
-      realFeePrecision={realFeePrecision}
-      excessFee={excessFee}
-      excessFeePrecision="approximate"
-      token={TONCOIN}
-    />,
-  );
+  if (fullFee >= received) {
+    const realFee = fullFee - received;
+    const realFeePrecision = 'approximate';
+    return (
+      <>
+        <FeeLine
+          terms={{ native: realFee }}
+          token={TONCOIN}
+          precision="approximate"
+          onDetailsClick={openDetailsModal}
+          className={styles.fee}
+        />
+        <FeeDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={closeDetailsModal}
+          fullFee={{ native: fullFee }}
+          realFee={{ native: realFee }}
+          realFeePrecision={realFeePrecision}
+          excessFee={received}
+          excessFeePrecision="approximate"
+          token={TONCOIN}
+          title={lang('Dapp Fee Details')}
+          extraContent={<div className={styles.explanationWarning}>{lang('$dapp_return_disclaimer')}</div>}
+        />
+      </>
+    );
+  }
 
-  return <div className={styles.fee}>{content}</div>;
+  const realReceived = received - fullFee;
+  return (
+    <>
+      <FeeLineContainer className={styles.fee} onDetailsClick={openDetailsModal}>
+        {lang('$returned_value', {
+          // Rounding down to make the actual result better than we predict
+          value: formatCurrency(toDecimal(realReceived, TONCOIN.decimals), TONCOIN.symbol),
+        })}
+      </FeeLineContainer>
+      <DappReturnedDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={closeDetailsModal}
+        fullFee={fullFee}
+        received={received}
+      />
+    </>
+  );
 }
 
 export default memo(DappTransferFee);

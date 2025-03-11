@@ -1,6 +1,5 @@
 import React, { memo, useState } from '../../lib/teact/teact';
-import { getActions } from '../../lib/teact/teactn';
-import { withGlobal } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState, Theme } from '../../global/types';
 import { AuthState } from '../../global/types';
@@ -26,7 +25,7 @@ import AuthCreatePin from './AuthCreatePin';
 import AuthCreatingWallet from './AuthCreatingWallet';
 import AuthDisclaimer from './AuthDisclaimer';
 import AuthImportMnemonic from './AuthImportMnemonic';
-import AuthSaferyRules from './AuthSaferyRules';
+import AuthSafetyRules from './AuthSafetyRules';
 import AuthSecretWords from './AuthSecretWords';
 import AuthStart from './AuthStart';
 
@@ -153,8 +152,8 @@ const Auth = ({
         );
       case AuthState.about:
         return <SettingsAbout isActive={isActive} handleBackClick={closeAbout} theme={theme} />;
-      case AuthState.saferyRules:
-        return <AuthSaferyRules isActive={isActive} />;
+      case AuthState.safetyRules:
+        return <AuthSafetyRules isActive={isActive} />;
       case AuthState.mnemonicPage:
         return <AuthSecretWords isActive={isActive} mnemonic={mnemonic} />;
       case AuthState.checkWords:
