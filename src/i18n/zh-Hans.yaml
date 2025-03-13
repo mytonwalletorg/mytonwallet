@@ -3,7 +3,7 @@ $auth_intro: |
   并享有**高速的**区块链交易体验。
 Create New Wallet: 创建新钱包
 Import From %1$d Secret Words: 输入助记词
-More about MyTonWallet: 更多关于 MyTonWallet
+More about %app_name%: 更多关于 %app_name%
 Creating Wallet...: 正在创建钱包...
 On the count of three...: 倒数三个数···
 $back_up_auth: 备份
@@ -70,7 +70,7 @@ Toggle TON Magic: 切换 TON Magic
 Open Telegram Web: 开启 Telegram 网页
 Back Up Secret Words: 备份助记词
 Settings: 设置
-About MyTonWallet: 关于 MyTonWallet
+About %app_name%: 关于 %app_name%
 Exit: 离开
 Remove Wallet: 离开
 Something went wrong.: 什么地方出错了···
@@ -84,8 +84,8 @@ More info and demo.: 更多信息和演示。
 $about_extension_description2: TON Magic 通过修补官方 Telegram 网页应用程序来整合 Telegram。
 $about_extension_description3: 打开它，将可以与任何 Telegram 用户发送和接收 Toncoin。
 $about_proxy_magic_title: 什么是 %ninja% TON 代理 和 %unicorn% TON Magic?
-$about_proxy_magic_description: 要享受去中心化网络、浏览 Ton 网站并使用 Telegram 网页应用，请安装 MyTonWallet 拓展程序。
-$about_extension_link_text: "**MyTonWallet 拓展程序**"
+$about_proxy_magic_description: 要享受去中心化网络、浏览 Ton 网站并使用 Telegram 网页应用，请安装 %extension_link% 拓展程序。
+$about_extension_link_text: "**%app_name% 拓展程序**"
 Is it open source?: 它是开源的吗？
 $about_wallet_github: 是的，欢迎查看我们的 %github_link%
 $about_github_link_text: "**GitHub 仓库**"
@@ -94,7 +94,7 @@ $about_wallet_community: 当然，欢迎来到我们的社区 %community_link%.
 $about_community_link_text: "**Telegram 频道**"
 Currency History: 代币历史记录
 $add_account_description1: |
-  **MyTonWallet** 让您无缝在**多账户间**自由转换。
+  **%app_name%** 让您无缝在**多账户间**自由转换。
 Enter Password: 输入密码
 Send: 发送
 Add Wallet: 添加钱包
@@ -282,8 +282,8 @@ Disconnect Dapp: 断开 Dapp
 Disconnect Dapps: 断开 Dapps
 Are you sure you want to disconnect?: 您确定要断开 %dappname% 吗？
 Are you sure you want to disconnect all websites?: 您确定要断开所有网站吗？
-$dapps-description: 您可以登录支持 MyTonWallet 的 dapp。 它们可以查看钱包地址、余额并请求操作。
-Logged in with MyTonWallet: 使用 MyTonWallet 登录
+$dapps-description: 您可以登录支持 %app_name% 的 dapp。 它们可以查看钱包地址、余额并请求操作。
+Logged in with %app_name%: 使用 %app_name% 登录
 No active connections: 没有活动连接
 Other: 其他的
 Assets & Activity: 资产 & 活动记录
@@ -294,7 +294,7 @@ Delete Token: 删除令牌
 Are you sure you want to delete?: 您确定要删除 %token% 吗？
 Hide Tokens With No Cost: 无需掩盖令牌
 Sort By Cost: 按成本排序
-Update MyTonWallet: 更新 MyTonWallet
+Update %app_name%: 更新 %app_name%
 Connect Ledger: 连接账本
 Connecting to your Ledger...: 连接到您的分类帐...
 Failed to connect: 连接失败
@@ -317,7 +317,7 @@ The time on your device is incorrect, sync it and try again: 您设备上的时�
 Name or Address...: 姓名或地址...
 Such error, many tabs: 这样的错误，很多标签
 $many_tabs_error_description: |
-  MyTonWallet 仅支持该应用程序的一个活动选项卡。
+  %app_name% 仅支持该应用程序的一个活动选项卡。
   请重新加载此页面以继续使用此选项卡或将其关闭。
 Reload App: 重新加载应用程序
 Please confirm operation on your Ledger: 请确认您在Ledger上的操作
@@ -356,11 +356,11 @@ Slippage too high: 下单误差过高
 Not Enough %symbol%: "%symbol% 不足"
 Use Responsibly: 负责任地使用
 $auth_responsibly_description1: |
-  MyTonWallet 是一个**自我托管**钱包，这意味着**只有您**拥有完全控制权，最重要的是，对您的资金**承担全部责任**。
+  %app_name% 是一个**自我托管**钱包，这意味着**只有您**拥有完全控制权，最重要的是，对您的资金**承担全部责任**。
 $auth_responsibly_description2: |
   您的私钥存储在您的设备上，并且容易受到**黑客攻击**。 如果您的计算机感染了**恶意软件**，您的资金可能会被盗。
 $auth_responsibly_description3: |
-  MyTonWallet 团队对您的资金安全**不负责**，就像您的计算机制造商或互联网提供商不负责一样。
+  %app_name% 团队对您的资金安全**不负责**，就像您的计算机制造商或互联网提供商不负责一样。
 $auth_responsibly_description4: |
   **永远不要**将您的所有资金存储在一个地方。 **多样化**并使用各种软件和硬件。 始终**进行自己的研究**并了解有关加密安全的更多信息。
 Start Wallet: 启动钱包
@@ -608,6 +608,7 @@ Claim: 宣称
 Confirm Unfreezing: 确认解冻
 Insufficient Balance for Fee: 费用余额不足
 $fee_value_bold: "**手续费:** %fee%"
+"%app_name% Features": "%app_name% 功能"
 Security: 安全
 To avoid entering the passcode every time, you can use biometrics.: 为避免每次输入密码，您可以使用生物识别技术。
 Change Passcode: 更改密码
@@ -620,7 +621,6 @@ New code set successfully: 新代码设置成功
 Codes don’t match: 代码不匹配
 Enter your new code: 输入您的新代码
 Re-enter your new code: 再次输入您的新代码
-MyTonWallet Features: MyTonWallet 功能
 Install on Desktop: 安装到桌面
 Install on Mobile: 安装在手机
 Install App: 安装应用
@@ -669,7 +669,7 @@ NFT Menu: NFT菜单
 Connection Type: 连接类型
 Ledger is not supported on this device: 此设备不支持 Ledger
 Connect your Ledger: 连接您的 Ledger
-$app_lock_description: 启用应用锁后，主页面的卡片上会出现锁图标。使用它锁定 MyTonWallet。
+$app_lock_description: 启用应用锁后，主页面的卡片上会出现锁图标。使用它锁定 %app_name%。
 App Lock: 应用锁
 Auto-Lock: 自动锁
 Disabled: 已禁用
@@ -725,6 +725,8 @@ Request is sent!: 请求已发送！
 Transaction ID: 交易ID
 Help Center: 帮助中心
 MyTonWallet Tips: MyTonWallet 提示
+$auth_import_24_mnemonic_description: |
+  你可以通过输入创建钱包时记录的 **24 个秘密单词** 来恢复对钱包的访问权限。
 $returned_value: ~ %value% 将被退还
 Open %nft_marketplace%: 打开 %nft_marketplace%
 Link was copied!: 链接已复制！

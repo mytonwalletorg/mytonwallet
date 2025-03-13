@@ -385,14 +385,12 @@ export function getToncoinAmountForTransfer(token: ApiToken, willClaimMintless: 
   let amount = 0n;
   let realAmount = 0n;
 
-  if (token.isTiny) {
+  if (token.slug === TON_USDT_SLUG) {
     amount += TINY_TOKEN_TRANSFER_AMOUNT;
-
-    if (token.slug === TON_USDT_SLUG) {
-      realAmount += TINIEST_TOKEN_TRANSFER_REAL_AMOUNT;
-    } else {
-      realAmount += TINY_TOKEN_TRANSFER_REAL_AMOUNT;
-    }
+    realAmount += TINIEST_TOKEN_TRANSFER_REAL_AMOUNT;
+  } else if (token.isTiny) {
+    amount += TINY_TOKEN_TRANSFER_AMOUNT;
+    realAmount += TINY_TOKEN_TRANSFER_REAL_AMOUNT;
   } else {
     amount += TOKEN_TRANSFER_AMOUNT;
     realAmount += TOKEN_TRANSFER_REAL_AMOUNT;

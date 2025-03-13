@@ -8,7 +8,7 @@ import { shortenAddress } from '../../util/shortenAddress';
 
 import useCardCustomization from '../../hooks/useCardCustomization';
 
-import { ACCOUNT_ADDRESS_SHIFT, HARDWARE_ACCOUNT_ADDRESS_SHIFT } from '../main/sections/Card/AccountSelector';
+import { ACCOUNT_ADDRESS_SHIFT, HARDWARE_ACCOUNT_ADDRESS_SHIFT } from '../main/sections/Card/AccountButton';
 
 import styles from './AccountButton.module.scss';
 

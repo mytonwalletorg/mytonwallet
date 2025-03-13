@@ -51,7 +51,7 @@ export function selectLocalTransactions(global: GlobalState, accountId: string) 
 
 export function selectIsFirstTransactionsLoaded(global: GlobalState, accountId: string) {
   const { byChain } = selectAccountState(global, accountId) ?? {};
-  const { addressByChain } = selectAccount(global, accountId)!;
+  const { addressByChain } = selectAccount(global, accountId) ?? {};
 
   if (!byChain || !addressByChain) {
     return false;

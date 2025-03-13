@@ -133,7 +133,7 @@ addActionHandler('afterSignIn', (global, actions) => {
 });
 
 addActionHandler('afterSignOut', (global, actions, payload) => {
-  if (payload?.isFromAllAccounts) {
+  if (payload?.shouldReset) {
     if (global.settings.authConfig?.kind === 'native-biometrics') {
       void authApi.removeNativeBiometrics();
     }
@@ -384,14 +384,20 @@ addActionHandler('signOut', async (global, actions, payload) => {
     callActionInMain('signOut', payload);
   }
 
-  const { isFromAllAccounts } = payload || {};
+  const { level } = payload;
 
   const network = selectCurrentNetwork(global);
   const accounts = selectNetworkAccounts(global)!;
   const accountIds = Object.keys(accounts);
+  const isFromAllAccounts = level !== 'account';
 
   const otherNetwork = network === 'mainnet' ? 'testnet' : 'mainnet';
-  const otherNetworkAccountIds = Object.keys(selectNetworkAccountsMemoized(otherNetwork, global.accounts?.byId)!);
+  let otherNetworkAccountIds = Object.keys(selectNetworkAccountsMemoized(otherNetwork, global.accounts?.byId)!);
+
+  if (level === 'all' && otherNetworkAccountIds.length > 0) {
+    await callApi('removeNetworkAccounts', otherNetwork);
+    otherNetworkAccountIds = [];
+  }
 
   if (isFromAllAccounts || accountIds.length === 1) {
     actions.deleteAllNotificationAccounts({ accountIds });
@@ -444,7 +450,7 @@ addActionHandler('signOut', async (global, actions, payload) => {
     } else {
       await callApi('resetAccounts');
 
-      actions.afterSignOut({ isFromAllAccounts: true });
+      actions.afterSignOut({ shouldReset: true });
       actions.init();
     }
   } else {

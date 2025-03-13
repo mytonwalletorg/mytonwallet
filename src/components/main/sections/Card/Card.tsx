@@ -7,7 +7,7 @@ import { withGlobal } from '../../../../global';
 import type { ApiBaseCurrency, ApiNft, ApiStakingState } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import { IS_EXTENSION } from '../../../../config';
+import { IS_CORE_WALLET, IS_EXTENSION } from '../../../../config';
 import {
   selectAccountStakingStates,
   selectCurrentAccountSettings,
@@ -204,10 +204,11 @@ function Card({
 
         <div className={buildClassName(styles.containerInner, customCardClassName)}>
           <AccountSelector
-            canEdit
+            withAccountSelector={!IS_CORE_WALLET}
             noSettingsButton={isPortrait}
             accountClassName={buildClassName(withTextGradient && 'gradientText')}
             forceClose={forceCloseAccountSelector}
+            canEdit={!IS_CORE_WALLET}
           />
           {shouldRenderDapp && (
             <div className={buildClassName(styles.dapp, dappClassNames)}>

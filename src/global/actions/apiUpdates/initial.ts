@@ -1,6 +1,6 @@
 import type { ApiChain, ApiLiquidStakingState } from '../../../api/types';
 
-import { DEFAULT_STAKING_STATE, MTW_CARDS_COLLECTION } from '../../../config';
+import { DEFAULT_STAKING_STATE, IS_CORE_WALLET, MTW_CARDS_COLLECTION } from '../../../config';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { buildCollectionByKey } from '../../../util/iteratees';
 import { callActionInNative } from '../../../util/multitab';
@@ -9,6 +9,7 @@ import { IS_DELEGATING_BOTTOM_SHEET, IS_IOS_APP } from '../../../util/windowEnvi
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   addNft,
+  createAccount,
   removeNft,
   updateAccount,
   updateAccountSettingsBackgroundNft,
@@ -179,11 +180,12 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         isAppUpdateRequired,
       } = update;
 
+      const shouldRestrictSwapsAndOnRamp = (IS_IOS_APP && isLimitedRegion) || IS_CORE_WALLET;
       global = updateRestrictions(global, {
         isLimitedRegion,
-        isSwapDisabled: IS_IOS_APP && isLimitedRegion,
-        isOnRampDisabled: IS_IOS_APP && isLimitedRegion,
-        isNftBuyingDisabled: IS_IOS_APP && isLimitedRegion,
+        isSwapDisabled: shouldRestrictSwapsAndOnRamp,
+        isOnRampDisabled: shouldRestrictSwapsAndOnRamp,
+        isNftBuyingDisabled: shouldRestrictSwapsAndOnRamp,
         isCopyStorageEnabled,
         supportAccountsCount,
         countryCode,
@@ -241,6 +243,43 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         [key]: isUpdating ? Date.now() : undefined,
       });
       break;
+    }
+
+    // Should be removed in future versions
+    case 'migrateCoreApplication': {
+      const {
+        accountId,
+        isTestnet,
+        address,
+        secondAddress,
+        secondAccountId,
+        isTonProxyEnabled,
+        isTonMagicEnabled,
+      } = update;
+
+      global = updateSettings(global, { isTestnet });
+      global = createAccount({ global, accountId, addressByChain: { ton: address } as Record<ApiChain, string> });
+      global = createAccount({
+        global,
+        accountId: secondAccountId,
+        addressByChain: { ton: secondAddress } as Record<ApiChain, string>,
+        network: isTestnet ? 'mainnet' : 'testnet', // Second account should be created on opposite network
+      });
+      setGlobal(global);
+
+      // Run the application only after the post-migration GlobalState has been applied
+      requestAnimationFrame(() => {
+        actions.tryAddNotificationAccount({ accountId });
+        actions.switchAccount({ accountId, newNetwork: isTestnet ? 'testnet' : 'mainnet' });
+        actions.afterSignIn();
+
+        if (isTonMagicEnabled) {
+          actions.toggleTonMagic({ isEnabled: true });
+        }
+        if (isTonProxyEnabled) {
+          actions.toggleTonProxy({ isEnabled: true });
+        }
+      });
     }
   }
 });

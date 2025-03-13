@@ -54,17 +54,13 @@ export function initCache() {
   addActionHandler('afterSignIn', setupCaching);
 
   addActionHandler('afterSignOut', (global, actions, payload) => {
-    const { isFromAllAccounts } = payload || {};
-
     clearPoisoningCache();
 
-    if (!isFromAllAccounts) return;
-
-    preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo', 'restrictions']);
-
-    clearCaching();
-
-    localStorage.removeItem(GLOBAL_STATE_CACHE_KEY);
+    if (payload?.shouldReset) {
+      preloadedData = pick(global, ['swapTokenInfo', 'tokenInfo', 'restrictions']);
+      clearCaching();
+      localStorage.removeItem(GLOBAL_STATE_CACHE_KEY);
+    }
   });
 
   addActionHandler('cancelCaching', clearCaching);

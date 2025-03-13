@@ -11,9 +11,9 @@ import type { AuthConfig } from '../authApi/types';
 import type { CapacitorPlatform } from './platform';
 
 import { GLOBAL_STATE_CACHE_KEY } from '../../config';
-import * as storageMethods from '../capacitorStorageProxy/methods';
 import { processDeeplink } from '../deeplink';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_IOS } from '../windowEnvironment';
+import * as storageMethods from '../windowProvider/methods';
 import { initNotificationsWithGlobal } from './notifications';
 import { getCapacitorPlatform, setCapacitorPlatform } from './platform';
 
@@ -113,14 +113,6 @@ export async function initCapacitorWithGlobal(authConfig?: AuthConfig) {
   void initNotificationsWithGlobal(getGlobal());
 }
 
-export function getLaunchUrl() {
-  return launchUrl;
-}
-
-export function clearLaunchUrl() {
-  launchUrl = undefined;
-}
-
 export function getStatusBarHeight() {
   return statusBarHeight;
 }
@@ -141,13 +133,13 @@ export async function fixIosAppStorage() {
   await storageMethods.init();
 
   const isLocalStorageDataExists = Boolean(window.localStorage.getItem(GLOBAL_STATE_CACHE_KEY));
-  const isApiStorageDataExists = Boolean(await storageMethods.getItem('accounts'));
+  const isApiStorageDataExists = Boolean(await storageMethods.capacitorStorageGetItem('accounts'));
 
   if (isLocalStorageDataExists && !isApiStorageDataExists) {
     window.localStorage.clear();
   }
 
   if (!isLocalStorageDataExists && isApiStorageDataExists) {
-    await storageMethods.clear();
+    await storageMethods.capacitorStorageClear();
   }
 }

@@ -25,8 +25,8 @@ interface OwnProps {
   onEdit: NoneToVoidFunction;
 }
 
-const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
-const ACCOUNT_ADDRESS_SHIFT = 4;
+export const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
+export const ACCOUNT_ADDRESS_SHIFT = 4;
 
 function AccountButton({
   isActive,

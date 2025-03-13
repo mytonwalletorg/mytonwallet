@@ -150,7 +150,7 @@ async function onMessage(
         const response = typeof api === 'function'
           ? await api(name, origin, ...args)
           : await api[name](...args);
-        const { arrayBuffer } = (typeof response === 'object' && 'arrayBuffer' in response && response) || {};
+        const { arrayBuffer } = (typeof response === 'object' && response && 'arrayBuffer' in response) || {};
 
         if (messageId) {
           sendToOrigin(

@@ -17,7 +17,10 @@ import { tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
 
 declare global {
   interface Window {
-    [TONCONNECT_WALLET_JSBRIDGE_KEY] : {
+    mytonwallet: {
+      tonconnect: TonConnect;
+    };
+    tonwallet: {
       tonconnect: TonConnect;
     };
   }

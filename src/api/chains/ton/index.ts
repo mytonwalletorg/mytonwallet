@@ -69,6 +69,7 @@ export {
   getTokenBalances,
   fetchToken,
   insertMintlessPayload,
+  getToncoinAmountForTransfer,
 } from './tokens';
 export {
   resolveTokenWalletAddress,

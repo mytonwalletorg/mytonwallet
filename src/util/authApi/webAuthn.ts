@@ -1,5 +1,6 @@
 import type { AuthConfig, WebAuthn } from './types';
 
+import { APP_NAME } from '../../config';
 import { randomBytes } from '../random';
 import { pause } from '../schedulers';
 
@@ -39,8 +40,8 @@ enum PubkeyAlg {
 }
 
 const CREDENTIAL_SIZE = 32;
-const RP_NAME = 'MyTonWallet';
-const USER_NAME = 'MyTonWallet';
+const RP_NAME = APP_NAME;
+const USER_NAME = APP_NAME;
 const PAUSE = 300;
 const CREDENTIAL_TIMEOUT = 120000;
 

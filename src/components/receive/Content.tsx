@@ -98,6 +98,10 @@ function Content({
     }
   }
 
+  if (!tabs.length) {
+    return undefined;
+  }
+
   return (
     <>
       {isStatic && renderActions()}

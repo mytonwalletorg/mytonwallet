@@ -18,6 +18,7 @@ import {
   ANIMATION_END_DELAY,
   ANIMATION_LEVEL_MIN,
   IS_CAPACITOR,
+  IS_CORE_WALLET,
   STAKING_CYCLE_DURATION_MS,
   TONCOIN,
 } from '../../../config';
@@ -469,7 +470,7 @@ function TransactionModal({
               {lang('Repeat')}
             </Button>
           )}
-          {isStaking && (
+          {!IS_CORE_WALLET && isStaking && (
             <Button
               onClick={handleStartStakingClick}
               className={buildClassName(styles.button, isUnstaking && stakingStatus === 'active' && styles.buttonWide)}

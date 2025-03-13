@@ -4,13 +4,16 @@ import type { ApiDbSseConnection } from '../db';
 import type { StorageKey } from '../storages/types';
 import type {
   ApiLocalTransactionParams,
+  ApiTonAccount,
   ApiTonWallet,
   ApiTransaction,
   ApiTransactionActivity,
   OnApiUpdate,
 } from '../types';
 
-import { IS_CAPACITOR, IS_EXTENSION, MAIN_ACCOUNT_ID } from '../../config';
+import {
+  IS_CAPACITOR, IS_CORE_WALLET, IS_EXTENSION, MAIN_ACCOUNT_ID,
+} from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { assert } from '../../util/assert';
@@ -21,6 +24,7 @@ import * as migrations from '../migrations';
 import { storage } from '../storages';
 import capacitorStorage from '../storages/capacitorStorage';
 import idbStorage from '../storages/idb';
+import localStorage from '../storages/localStorage';
 import { isAccountActive } from './accounts';
 import {
   checkHasScamLink, checkHasTelegramBotMention, getKnownAddresses, getScamMarkers,
@@ -121,6 +125,10 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof chains.t
 
   if (version === actualStateVersion) {
     return;
+  }
+
+  if (IS_CORE_WALLET && !version) {
+    await migrateCoreWallet(onUpdate);
   }
 
   if (IS_CAPACITOR && !version) {
@@ -439,5 +447,93 @@ async function iosBackupAndMigrateKeychainMode() {
         await capacitorStorage.setItem(key as StorageKey, value);
       }
     }
+  }
+}
+
+async function migrateCoreWallet(onUpdate: OnApiUpdate) {
+  const currentStorage = IS_EXTENSION ? storage : localStorage;
+
+  const [
+    // Default Core Wallet version is v3R2
+    // https://github.com/toncenter/ton-wallet/blob/master/src/js/Controller.js#L128
+    walletVersion = 'v3R2',
+    isTestnet,
+    address,
+    words,
+    publicKey,
+    isTonProxyEnabled,
+    isTonMagicEnabled,
+  ] = await Promise.all([
+    currentStorage.getItem('walletVersion' as StorageKey),
+    currentStorage.getItem('isTestnet' as StorageKey),
+    currentStorage.getItem('address' as StorageKey),
+    currentStorage.getItem('words' as StorageKey),
+    currentStorage.getItem('publicKey' as StorageKey),
+    currentStorage.getItem('proxy' as StorageKey),
+    currentStorage.getItem('magic' as StorageKey),
+  ]);
+
+  if (isTestnet) {
+    onUpdate({
+      type: 'updateSettings',
+      settings: {
+        isTestnet: true,
+      },
+    });
+  }
+
+  const network = isTestnet ? 'testnet' : 'mainnet';
+  const accountId = `0-ton-${network}`;
+
+  if (address && words && publicKey) {
+    const secondNetwork = network === 'mainnet' ? 'testnet' : 'mainnet';
+    const secondAccountId = `0-ton-${secondNetwork}`;
+    const secondAddress = toBase64Address(address, false, secondNetwork);
+
+    const newAccountById: Record<string, ApiTonAccount> = {};
+    newAccountById[accountId] = {
+      type: 'ton',
+      mnemonicEncrypted: words,
+      ton: {
+        type: 'ton',
+        address,
+        version: walletVersion,
+        publicKey,
+        index: 0,
+      },
+    };
+
+    newAccountById[secondAccountId] = {
+      type: 'ton',
+      mnemonicEncrypted: words,
+      ton: {
+        type: 'ton',
+        address: secondAddress,
+        version: walletVersion,
+        publicKey,
+        index: 0,
+      },
+    };
+
+    await storage.setItem('accounts', newAccountById);
+
+    onUpdate({
+      type: 'migrateCoreApplication',
+      isTestnet,
+      accountId,
+      address,
+      secondAccountId,
+      secondAddress,
+      isTonProxyEnabled,
+      isTonMagicEnabled,
+    });
+
+    // Clean up storage after migrate the app from Core Wallet
+    [
+      'walletVersion', 'isTestnet', 'words', 'address', 'publicKey', 'magic', 'proxy', 'isLedger',
+      'ledgerTransportType', '__time', 'isDebug',
+    ].forEach((key) => {
+      void currentStorage.removeItem(key as StorageKey);
+    });
   }
 }

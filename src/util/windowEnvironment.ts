@@ -1,7 +1,7 @@
 import type { LangCode } from '../global/types';
 
 import {
-  IS_CAPACITOR, IS_EXTENSION, IS_FIREFOX_EXTENSION, IS_TELEGRAM_APP, LANG_LIST,
+  IS_CAPACITOR, IS_CORE_WALLET, IS_EXTENSION, IS_FIREFOX_EXTENSION, IS_TELEGRAM_APP, LANG_LIST,
 } from '../config';
 import { requestForcedReflow } from '../lib/fasterdom/fasterdom';
 import { getPlatform } from './getPlatform';
@@ -16,6 +16,8 @@ function isIPad() {
 }
 
 function getBrowserLanguage(): LangCode {
+  if (IS_CORE_WALLET) return 'en';
+
   const { language } = navigator;
   const lang = language.startsWith('zh')
     ? (language.endsWith('TW') || language.endsWith('HK') ? 'zh-Hant' : 'zh-Hans')
@@ -47,7 +49,8 @@ export const IS_WEB = !IS_CAPACITOR && !IS_ELECTRON && !IS_EXTENSION && !IS_TELE
 export const DEFAULT_LANG_CODE = 'en';
 export const USER_AGENT_LANG_CODE = getBrowserLanguage();
 export const DPR = window.devicePixelRatio || 1;
-export const IS_LEDGER_SUPPORTED = IS_CAPACITOR || !(IS_IOS || IS_FIREFOX_EXTENSION || IS_TELEGRAM_APP);
+export const IS_LEDGER_SUPPORTED = IS_CAPACITOR
+  || !(IS_CORE_WALLET || IS_IOS || IS_FIREFOX_EXTENSION || IS_TELEGRAM_APP);
 export const IS_LEDGER_EXTENSION_TAB = global.location.hash.startsWith('#detached');
 // Disable biometric auth on electron for now until this issue is fixed:
 // https://github.com/electron/electron/issues/24573

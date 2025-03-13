@@ -64,6 +64,7 @@ function TonContent({
         className={isStatic ? styles.copyButtonStatic : styles.addressWrapper}
         copyNotification={lang('Your address was copied!')}
         noSavedAddress
+        noDimming
       />
 
       {isLedger && (

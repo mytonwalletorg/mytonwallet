@@ -3,6 +3,7 @@ import { getActions } from '../../../../global';
 
 import type { StakingStateStatus } from '../../../../global/helpers/staking';
 
+import { IS_CORE_WALLET, IS_STAKING_DISABLED } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/haptics';
 
@@ -38,7 +39,10 @@ function PortraitActions({
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
-  const isStakingAllowed = !isTestnet;
+  const isStakingAllowed = !isTestnet && !IS_STAKING_DISABLED;
+  const addBuyButtonName = IS_CORE_WALLET
+    ? 'Receive'
+    : (isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add');
 
   const handleStartSwap = useLastCallback(() => {
     void vibrate();
@@ -73,7 +77,7 @@ function PortraitActions({
           onClick={handleAddBuyClick}
         >
           <i className={buildClassName(styles.buttonIcon, 'icon-action-add')} aria-hidden />
-          {lang(isSwapAllowed || isOnRampAllowed ? 'Add / Buy' : 'Add')}
+          {lang(addBuyButtonName)}
         </Button>
         <Button
           isSimple

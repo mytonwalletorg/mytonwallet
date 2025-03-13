@@ -10,7 +10,7 @@ import type {
 import type { Theme, UserToken } from '../../../../global/types';
 import { SettingsState } from '../../../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX } from '../../../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_CORE_WALLET } from '../../../../config';
 import { getIsActiveStakingState, getStakingStateStatus } from '../../../../global/helpers/staking';
 import {
   selectAccountStakingStates,
@@ -97,6 +97,8 @@ function Assets({
   const appTheme = useAppTheme(theme);
 
   const activeStates = useMemo(() => {
+    if (IS_CORE_WALLET) return [];
+
     return states?.filter(getIsActiveStakingState) ?? [];
   }, [states]);
 
@@ -121,7 +123,7 @@ function Assets({
     vestingStatus,
     unfreezeEndDate,
     onVestingTokenClick,
-  } = useVesting({ vesting, userMycoin });
+  } = useVesting({ vesting, userMycoin, isDisabled: IS_CORE_WALLET });
 
   const tokenSlugs = useMemo(() => (
     renderedTokens

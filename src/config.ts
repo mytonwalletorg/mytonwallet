@@ -10,9 +10,15 @@ import type { LangItem, TokenPeriod } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
 
-export const APP_NAME = process.env.APP_NAME || 'MyTonWallet';
+export const IS_CORE_WALLET = process.env.IS_CORE_WALLET === '1';
+export const APP_NAME = process.env.APP_NAME || (IS_CORE_WALLET ? 'TON Wallet' : 'MyTonWallet');
 export const APP_VERSION = process.env.APP_VERSION!;
 export const APP_ENV_MARKER = APP_ENV === 'staging' ? 'Beta' : APP_ENV === 'development' ? 'Dev' : undefined;
+export const EXTENSION_NAME = IS_CORE_WALLET ? 'TON Wallet' : 'MyTonWallet · My TON Wallet';
+export const EXTENSION_DESCRIPTION = IS_CORE_WALLET
+  ? 'Set up your own TON Wallet on The Open Network'
+  // eslint-disable-next-line max-len
+  : 'The most feature-rich TON extension – with support of multi-accounts, tokens, NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.';
 
 export const DEBUG = APP_ENV !== 'production' && APP_ENV !== 'perf' && APP_ENV !== 'test';
 export const DEBUG_MORE = false;
@@ -32,8 +38,8 @@ export const IS_TELEGRAM_APP = process.env.IS_TELEGRAM_APP === '1';
 
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
-export const PRODUCTION_URL = 'https://mytonwallet.app';
-export const BETA_URL = 'https://beta.mytonwallet.app';
+export const PRODUCTION_URL = IS_CORE_WALLET ? 'https://wallet.ton.org' : 'https://mytonwallet.app';
+export const BETA_URL = IS_CORE_WALLET ? 'https://beta.wallet.ton.org' : 'https://beta.mytonwallet.app';
 export const APP_INSTALL_URL = 'https://get.mytonwallet.io/';
 export const APP_REPO_URL = 'https://github.com/mytonwalletorg/mytonwallet';
 export const BASE_URL = process.env.BASE_URL;
@@ -48,11 +54,12 @@ export const STRICTERDOM_ENABLED = DEBUG && !IS_PACKAGED_ELECTRON;
 export const DEBUG_ALERT_MSG = 'Shoot!\nSomething went wrong, please see the error details in Dev Tools Console.';
 
 export const PIN_LENGTH = 4;
-export const NATIVE_BIOMETRICS_USERNAME = 'MyTonWallet';
-export const NATIVE_BIOMETRICS_SERVER = 'https://mytonwallet.app';
+export const NATIVE_BIOMETRICS_USERNAME = IS_CORE_WALLET ? 'TonWallet' : 'MyTonWallet';
+export const NATIVE_BIOMETRICS_SERVER = IS_CORE_WALLET ? 'https://wallet.ton.org' : 'https://mytonwallet.app';
 
+export const IS_BIP39_MNEMONIC_ENABLED = !IS_CORE_WALLET;
 export const MNEMONIC_COUNT = 24;
-export const MNEMONIC_COUNTS = [12, 24];
+export const MNEMONIC_COUNTS = IS_BIP39_MNEMONIC_ENABLED ? [12, 24] : [24];
 
 export const PRIVATE_KEY_HEX_LENGTH = 64;
 export const MNEMONIC_CHECK_COUNT = 3;
@@ -78,7 +85,7 @@ export const WHOLE_PART_DELIMITER = ' '; // https://www.compart.com/en/unicode
 export const DEFAULT_SLIPPAGE_VALUE = 5;
 
 export const GLOBAL_STATE_CACHE_DISABLED = false;
-export const GLOBAL_STATE_CACHE_KEY = 'mytonwallet-global-state';
+export const GLOBAL_STATE_CACHE_KEY = IS_CORE_WALLET ? 'tonwallet-global-state' : 'mytonwallet-global-state';
 
 export const ANIMATION_LEVEL_MIN = 0;
 export const ANIMATION_LEVEL_MED = 1;
@@ -133,7 +140,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-175';
+export const LANG_CACHE_NAME = 'mtw-lang-176';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -187,6 +194,7 @@ export const LANG_LIST: LangItem[] = [{
   rtl: false,
 }];
 
+export const IS_STAKING_DISABLED = IS_CORE_WALLET;
 export const STAKING_CYCLE_DURATION_MS = 131_072_000; // 36.4 hours
 export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
 export const ONE_TON = 1_000_000_000n;
@@ -200,7 +208,7 @@ export const NOMINATORS_STAKING_MIN_AMOUNT = 10_000n * ONE_TON;
 export const MIN_ACTIVE_STAKING_REWARDS = 100_000_000n; // 0.1 MY
 
 export const TONCONNECT_PROTOCOL_VERSION = 2;
-export const TONCONNECT_WALLET_JSBRIDGE_KEY = 'mytonwallet';
+export const TONCONNECT_WALLET_JSBRIDGE_KEY = IS_CORE_WALLET ? 'tonwallet' : 'mytonwallet';
 
 export const NFT_FRAGMENT_COLLECTIONS = new Set([
   '0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2', // Anonymous Telegram Numbers
@@ -411,14 +419,15 @@ export const SWAP_DEX_LABELS: Record<ApiSwapDexLabel, string> = {
   ston: 'STON.fi',
 };
 
-export const MULTITAB_DATA_CHANNEL_NAME = 'mtw-multitab';
-export const ACTIVE_TAB_STORAGE_KEY = 'mtw-active-tab';
+export const MULTITAB_DATA_CHANNEL_NAME = IS_CORE_WALLET ? 'tw-multitab' : 'mtw-multitab';
+export const ACTIVE_TAB_STORAGE_KEY = IS_CORE_WALLET ? 'tw-active-tab' : 'mtw-active-tab';
 
 export const INDEXED_DB_NAME = 'keyval-store';
 export const INDEXED_DB_STORE_NAME = 'keyval';
 
 export const WINDOW_PROVIDER_CHANNEL = 'windowProvider';
 
+export const SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY = IS_CORE_WALLET;
 export const PORTRAIT_MIN_ASSETS_TAB_VIEW = 4;
 export const LANDSCAPE_MIN_ASSETS_TAB_VIEW = 6;
 

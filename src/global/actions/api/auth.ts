@@ -39,6 +39,7 @@ import { INITIAL_STATE } from '../../initialState';
 import {
   clearIsPinAccepted,
   createAccount,
+  createAccountsFromGlobal,
   setIsPinAccepted,
   switchAccountAndClearGlobal,
   updateAuth,
@@ -350,7 +351,9 @@ addActionHandler('createAccount', async (global, actions, {
     return;
   }
 
-  const { accountId, tonAddress, tronAddress } = result;
+  const {
+    accountId, tonAddress, tronAddress, secondNetworkAccount,
+  } = result;
 
   const addressByChain = omitUndefined({
     ton: tonAddress,
@@ -361,10 +364,13 @@ addActionHandler('createAccount', async (global, actions, {
     global = { ...global, appState: AppState.Auth, isAddAccountModalOpen: undefined };
   }
   global = updateAuth(global, {
-    addressByChain,
-    accountId,
     isLoading: undefined,
     password: undefined,
+    firstNetworkAccount: {
+      addressByChain,
+      accountId,
+    },
+    secondNetworkAccount,
     ...(isPasswordNumeric && { isPasswordNumeric: true }),
   });
   global = clearIsPinAccepted(global);
@@ -429,14 +435,19 @@ addActionHandler('addHardwareAccounts', (global, actions, { wallets }) => {
     const addressByChain = { ton: address } as Record<ApiChain, string>;
 
     currentGlobal = updateCurrentAccountId(currentGlobal, accountId);
-    currentGlobal = createAccount(currentGlobal, accountId, addressByChain, {
-      isHardware: true,
-      ...(walletInfo && {
-        ledger: {
-          driver: walletInfo.driver,
-          index: walletInfo.index,
-        },
-      }),
+    currentGlobal = createAccount({
+      global: currentGlobal,
+      accountId,
+      addressByChain,
+      partial: {
+        isHardware: true,
+        ...(walletInfo && {
+          ledger: {
+            driver: walletInfo.driver,
+            index: walletInfo.index,
+          },
+        }),
+      },
     });
 
     return currentGlobal;
@@ -471,12 +482,12 @@ addActionHandler('addHardwareAccounts', (global, actions, { wallets }) => {
 });
 
 addActionHandler('afterCheckMnemonic', (global, actions) => {
-  global = updateCurrentAccountId(global, global.auth.accountId!);
+  global = updateCurrentAccountId(global, global.auth.firstNetworkAccount!.accountId);
   global = updateCurrentAccountState(global, {});
-  global = createAccount(global, global.auth.accountId!, global.auth.addressByChain!);
+  global = createAccountsFromGlobal(global);
   setGlobal(global);
 
-  actions.tryAddNotificationAccount({ accountId: global.auth.accountId! });
+  actions.tryAddNotificationAccount({ accountId: global.auth.firstNetworkAccount!.accountId });
 
   actions.afterSignIn();
   if (selectIsOneAccount(global)) {
@@ -498,13 +509,10 @@ addActionHandler('skipCheckMnemonic', (global, actions) => {
     return;
   }
 
-  global = updateCurrentAccountId(global, global.auth.accountId!);
-  global = updateCurrentAccountState(global, {
-    isBackupRequired: true,
-  });
-  global = createAccount(global, global.auth.accountId!, global.auth.addressByChain!);
-
-  actions.tryAddNotificationAccount({ accountId: global.auth.accountId! });
+  global = updateCurrentAccountId(global, global.auth.firstNetworkAccount!.accountId);
+  global = updateCurrentAccountState(global, { isBackupRequired: true });
+  global = createAccountsFromGlobal(global);
+  actions.tryAddNotificationAccount({ accountId: global.auth.firstNetworkAccount!.accountId });
 
   setGlobal(global);
 
@@ -592,14 +600,14 @@ addActionHandler('confirmDisclaimer', (global, actions) => {
 });
 
 addActionHandler('afterConfirmDisclaimer', (global, actions) => {
-  const { accountId, addressByChain } = global.auth;
+  const { firstNetworkAccount } = global.auth;
 
-  global = updateCurrentAccountId(global, accountId!);
+  global = updateCurrentAccountId(global, firstNetworkAccount!.accountId);
   global = updateAuth(global, { state: AuthState.ready });
-  global = createAccount(global, accountId!, addressByChain!);
+  global = createAccountsFromGlobal(global);
   setGlobal(global);
 
-  actions.tryAddNotificationAccount({ accountId: accountId! });
+  actions.tryAddNotificationAccount({ accountId: firstNetworkAccount!.accountId });
 
   actions.afterSignIn();
   if (selectIsOneAccount(global)) {
@@ -1127,11 +1135,13 @@ addActionHandler('importAccountByVersion', async (global, actions, { version }) 
     ledger: wallet?.ledger,
   } : undefined;
 
-  global = createAccount(global, wallet!.accountId, addressByChain, {
-    ...ledgerInfo,
-    title: currentWalletTitle,
-  }, version);
-
+  global = createAccount({
+    global,
+    accountId: wallet!.accountId,
+    addressByChain,
+    partial: { ...ledgerInfo, title: currentWalletTitle },
+    titlePostfix: version,
+  });
   setGlobal(global);
 
   await callApi('activateAccount', wallet!.accountId);

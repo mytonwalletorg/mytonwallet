@@ -51,6 +51,7 @@ interface OwnProps {
   copyNotification?: string;
   className?: string;
   textClassName?: string;
+  noDimming?: boolean;
   noSavedAddress?: boolean;
   noExplorer?: boolean;
 }
@@ -85,6 +86,7 @@ function InteractiveTextField({
   savedAddresses,
   isTestnet,
   isMultichainAccount,
+  noDimming,
 }: OwnProps & StateProps) {
   const { showNotification, addSavedAddress } = getActions();
 
@@ -206,7 +208,7 @@ function InteractiveTextField({
 
   function renderContent(content: string) {
     let renderedContent: string | TeactNode = content;
-    if (!isTransaction && content === address && content.length > MEANINGFUL_CHAR_LENGTH * 2) {
+    if (!noDimming && !isTransaction && content === address && content.length > MEANINGFUL_CHAR_LENGTH * 2) {
       const prefix = content.substring(0, MEANINGFUL_CHAR_LENGTH);
       const suffixStart = content.length - MEANINGFUL_CHAR_LENGTH;
       const middle = content.substring(MEANINGFUL_CHAR_LENGTH, suffixStart);
@@ -219,7 +221,7 @@ function InteractiveTextField({
           <span className={styles.meaningfulPart}>{suffix}</span>
         </>
       );
-    } else if (isTransaction) {
+    } else if (!noDimming && isTransaction) {
       renderedContent = <span className={styles.dimmedPart}>{content}</span>;
     }
 

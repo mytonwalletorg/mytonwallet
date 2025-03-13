@@ -11,7 +11,12 @@ import type {
 } from '../../types';
 import type { TokenBalanceParsed } from './tokens';
 
-import { LEDGER_WALLET_VERSIONS, POPULAR_WALLET_VERSIONS, TONCOIN } from '../../../config';
+import {
+  IS_CORE_WALLET,
+  LEDGER_WALLET_VERSIONS,
+  POPULAR_WALLET_VERSIONS,
+  TONCOIN,
+} from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { compareActivities } from '../../../util/compareActivities';
@@ -60,9 +65,12 @@ const lastBalanceCache: Record<string, ApiBalanceBySlug> = {};
 
 export function setupPolling(accountId: string, onUpdate: OnApiUpdate, newestTxTimestamps: ApiTxTimestamps) {
   void setupBalanceBasedPolling(accountId, onUpdate, newestTxTimestamps);
-  void setupStakingPolling(accountId, onUpdate);
   void setupWalletVersionsPolling(accountId, onUpdate);
-  void setupVestingPolling(accountId, onUpdate);
+
+  if (!IS_CORE_WALLET) {
+    void setupStakingPolling(accountId, onUpdate);
+    void setupVestingPolling(accountId, onUpdate);
+  }
 }
 
 async function setupBalanceBasedPolling(

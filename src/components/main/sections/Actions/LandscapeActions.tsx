@@ -8,7 +8,12 @@ import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { Theme } from '../../../../global/types';
 import { ActiveTab } from '../../../../global/types';
 
-import { ANIMATED_STICKER_ICON_PX, DEFAULT_LANDSCAPE_ACTION_TAB_ID, TONCOIN } from '../../../../config';
+import {
+  ANIMATED_STICKER_ICON_PX,
+  DEFAULT_LANDSCAPE_ACTION_TAB_ID,
+  IS_STAKING_DISABLED,
+  TONCOIN,
+} from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import { selectAccountState, selectCurrentAccountSettings } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor';
@@ -85,7 +90,7 @@ function LandscapeActions({
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
   const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
-  const isStakingAllowed = !isTestnet;
+  const isStakingAllowed = !isTestnet && !IS_STAKING_DISABLED;
   const areNotAllTabs = !isSwapAllowed || !isStakingAllowed;
   const isLastTab = (!isStakingAllowed && !isSwapAllowed && activeTabIndex === ActiveTab.Transfer)
     || (!isStakingAllowed && isSwapAllowed && activeTabIndex === ActiveTab.Swap)

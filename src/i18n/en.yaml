@@ -4,7 +4,7 @@ $auth_intro: |
   at the **speed of light**.
 Create New Wallet: Create New Wallet
 Import From %1$d Secret Words: Import From %1$d Secret Words
-More about MyTonWallet: More about MyTonWallet
+More about %app_name%: More about %app_name%
 Creating Wallet...: Creating Wallet...
 On the count of three...: On the count of three...
 $back_up_auth: Back Up
@@ -71,7 +71,7 @@ Toggle TON Magic: Toggle TON Magic
 Open Telegram Web: Open Telegram Web
 Back Up Secret Words: Back Up Secret Words
 Settings: Settings
-About MyTonWallet: About MyTonWallet
+About %app_name%: About %app_name%
 Exit: Exit
 Remove Wallet: Remove Wallet
 Something went wrong.: Something went wrong.
@@ -86,7 +86,7 @@ $about_extension_description2: TON Magic provides native **Telegram integration*
 $about_extension_description3: Turn it on to send and receive Toncoins from any Telegram user.
 $about_proxy_magic_title: What about %ninja% TON Proxy and %unicorn% TON Magic?
 $about_proxy_magic_description: To enjoy **decentralized internet**, access **TON Sites**, and leverage native **Telegram integration**, feel free to install the %extension_link%.
-$about_extension_link_text: "**MyTonWallet extension**"
+$about_extension_link_text: "**%app_name% extension**"
 Is it open source?: Is it open source?
 $about_wallet_github: Yes, it is. Feel free to explore our %github_link%.
 $about_github_link_text: "**GitHub repository**"
@@ -95,7 +95,7 @@ $about_wallet_community: Sure, welcome to our %community_link%.
 $about_community_link_text: "**Telegram channel**"
 Currency History: Currency History
 $add_account_description1: |
-  **MyTonWallet** allows you to seamlessly
+  **%app_name%** allows you to seamlessly
   switch between **multiple accounts**.
 Enter Password: Enter Password
 Send: Send
@@ -289,8 +289,8 @@ Disconnect Dapp: Disconnect Dapp
 Disconnect Dapps: Disconnect Dapps
 Are you sure you want to disconnect?: Are you sure you want to disconnect %dappname%?
 Are you sure you want to disconnect all websites?: Are you sure you want to disconnect all websites?
-$dapps-description: You can log in on dapps that support MyTonWallet. They can view wallet address, balance, and request operations.
-Logged in with MyTonWallet: Logged in with MyTonWallet
+$dapps-description: You can log in on dapps that support %app_name%. They can view wallet address, balance, and request operations.
+Logged in with %app_name%: Logged in with %app_name%
 No active connections: No active connections
 Other: Other
 Assets & Activity: Assets & Activity
@@ -301,7 +301,7 @@ Delete Token: Delete Token
 Are you sure you want to delete?: Are you sure you want to delete %token%?
 Hide Tokens With No Cost: Hide Tokens With No Cost
 Sort By Cost: Sort By Cost
-Update MyTonWallet: Update MyTonWallet
+Update %app_name%: Update %app_name%
 Connect Ledger: Connect Ledger
 Connecting to your Ledger...: Connecting to your Ledger...
 Failed to connect: Failed to connect
@@ -324,7 +324,7 @@ The time on your device is incorrect, sync it and try again: The time on your de
 Name or Address...: Name or Address...
 Such error, many tabs: Such error, many tabs
 $many_tabs_error_description: |
-  MyTonWallet supports only one active tab with the app.
+  %app_name% supports only one active tab with the app.
   Please reload this page to continue using this tab or close it.
 Reload App: Reload App
 Please confirm operation on your Ledger: Please confirm operation on your Ledger
@@ -363,11 +363,11 @@ Slippage too high: Slippage too high
 Not Enough %symbol%: Not Enough %symbol%
 Use Responsibly: Use Responsibly
 $auth_responsibly_description1: |
-  MyTonWallet is a **self-custodial** wallet, which means that **only you** have full control and, most importantly, **full responsibility** for your funds.
+  %app_name% is a **self-custodial** wallet, which means that **only you** have full control and, most importantly, **full responsibility** for your funds.
 $auth_responsibly_description2: |
   Your private keys are stored on your device and are subject to **hacker attacks**. If your computer is infected with **malware**, your funds are likely to be stolen.
 $auth_responsibly_description3: |
-  The MyTonWallet team is **not responsible** for the safety of your funds, just as your computer manufacturer or internet provider is not responsible.
+  The %app_name% team is **not responsible** for the safety of your funds, just as your computer manufacturer or internet provider is not responsible.
 $auth_responsibly_description4: |
   **Never** store all your funds in one place. **Diversify** and use various software and hardware. Always **do your own research** and learn more about crypto security.
 Start Wallet: Start Wallet
@@ -619,6 +619,7 @@ Claim: Claim
 Confirm Unfreezing: Confirm Unfreezing
 Insufficient Balance for Fee: Insufficient Balance for Fee
 $fee_value_bold: "**Fee:** %fee%"
+"%app_name% Features": "%app_name% Features"
 Security: Security
 To avoid entering the passcode every time, you can use biometrics.: To avoid entering the passcode every time, you can use biometrics.
 Change Passcode: Change Passcode
@@ -631,7 +632,6 @@ New code set successfully: New code set successfully
 Codes don’t match: Codes don’t match
 Enter your new code: Enter your new code
 Re-enter your new code: Re-enter your new code
-MyTonWallet Features: MyTonWallet Features
 Install on Desktop: Install on Desktop
 Install on Mobile: Install on Mobile
 Install App: Install App
@@ -681,7 +681,7 @@ NFT Menu: NFT Menu
 Connection Type: Connection Type
 Ledger is not supported on this device: Ledger is not supported on this device
 Connect your Ledger: Connect your Ledger
-$app_lock_description: When app lock is enabled, a lock icon appears on the card on the main page. Use it to lock MyTonWallet.
+$app_lock_description: When app lock is enabled, a lock icon appears on the card on the main page. Use it to lock %app_name%.
 App Lock: App Lock
 Auto-Lock: Auto-Lock
 Disabled: Disabled
@@ -737,6 +737,8 @@ Request is sent!: Request is sent!
 Transaction ID: Transaction ID
 Help Center: Help Center
 MyTonWallet Tips: MyTonWallet Tips
+$auth_import_24_mnemonic_description: |
+  You can restore access to your wallet by entering the **24 secret words** that you wrote down when creating the wallet.
 $returned_value: ~ %value% will be returned
 Open %nft_marketplace%: Open %nft_marketplace%
 Link was copied!: Link was copied!

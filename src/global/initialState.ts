@@ -15,6 +15,8 @@ import {
   DEFAULT_STAKING_STATE,
   DEFAULT_TRANSFER_TOKEN_SLUG,
   INIT_SWAP_ASSETS,
+  IS_CORE_WALLET,
+  SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
   THEME_DEFAULT,
   TOKEN_INFO,
 } from '../config';
@@ -71,11 +73,11 @@ export const INITIAL_STATE: GlobalState = {
     state: SettingsState.Initial,
     theme: THEME_DEFAULT,
     animationLevel: ANIMATION_LEVEL_DEFAULT,
-    areTinyTransfersHidden: true,
+    areTinyTransfersHidden: !SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
     canPlaySounds: true,
     langCode: USER_AGENT_LANG_CODE,
     byAccountId: {},
-    areTokensWithNoCostHidden: true,
+    areTokensWithNoCostHidden: !SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
     isSortByValueEnabled: true,
   },
 
@@ -87,8 +89,8 @@ export const INITIAL_STATE: GlobalState = {
   stateVersion: STATE_VERSION,
   restrictions: {
     isLimitedRegion: false,
-    isSwapDisabled: IS_IOS_APP,
-    isOnRampDisabled: IS_IOS_APP,
+    isSwapDisabled: IS_IOS_APP || IS_CORE_WALLET,
+    isOnRampDisabled: IS_IOS_APP || IS_CORE_WALLET,
     isNftBuyingDisabled: IS_IOS_APP,
   },
 

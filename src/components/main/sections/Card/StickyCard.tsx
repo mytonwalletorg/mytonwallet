@@ -4,6 +4,7 @@ import { withGlobal } from '../../../../global';
 import type { ApiBaseCurrency, ApiNft, ApiStakingState } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
+import { IS_CORE_WALLET } from '../../../../config';
 import {
   selectAccountStakingStates,
   selectCurrentAccountSettings,
@@ -63,10 +64,11 @@ function StickyCard({
     styles.iconCaret,
     primaryFractionPart && styles.iconCaretFraction,
   );
+
   return (
     <div className={styles.root}>
       <div className={buildClassName(styles.background, cardNft && styles.noNoise, classNames)}>
-        <CustomCardManager isSticky nft={cardNft} onCardChange={handleCardChange} />
+        {!IS_CORE_WALLET && (<CustomCardManager isSticky nft={cardNft} onCardChange={handleCardChange} />)}
         <div className={buildClassName(styles.content, customCardClassName)}>
           <AccountSelector
             isInsideSticky
@@ -74,7 +76,7 @@ function StickyCard({
             accountSelectorClassName="sticky-card-account-selector"
             menuButtonClassName={styles.menuButton}
             noSettingsButton
-            noAccountSelector={IS_ELECTRON && IS_MAC_OS}
+            withAccountSelector={!(IS_ELECTRON && IS_MAC_OS) && !IS_CORE_WALLET}
           />
           <div className={styles.balance}>
             <span

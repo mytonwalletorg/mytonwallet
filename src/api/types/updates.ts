@@ -1,3 +1,4 @@
+import type { GlobalState } from '../../global/types';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiTonConnectProof } from '../tonConnect/types';
 import type { ApiActivity, ApiTransactionActivity } from './activity';
@@ -227,6 +228,22 @@ export type ApiUpdatingStatus = {
   isUpdating?: boolean;
 };
 
+export type ApiUpdateSettings = {
+  type: 'updateSettings';
+  settings: Partial<GlobalState['settings']>;
+};
+
+export type ApiMigrateCoreApplication = {
+  type: 'migrateCoreApplication';
+  isTestnet?: boolean;
+  accountId: string;
+  address: string;
+  secondAccountId: string;
+  secondAddress: string;
+  isTonProxyEnabled?: boolean;
+  isTonMagicEnabled?: boolean;
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateNewActivities
@@ -256,6 +273,8 @@ export type ApiUpdate =
   | ApiRequestReconnect
   | ApiUpdateIncorrectTime
   | ApiUpdateVesting
-  | ApiUpdatingStatus;
+  | ApiUpdatingStatus
+  | ApiUpdateSettings
+  | ApiMigrateCoreApplication;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

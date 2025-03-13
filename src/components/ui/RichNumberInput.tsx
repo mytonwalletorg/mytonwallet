@@ -144,7 +144,6 @@ function RichNumberInput({
     styles.input,
     styles.input_rich,
     size === 'large' && styles.input_large,
-    !value && styles.isEmpty,
     valueClassName,
     disabled && styles.disabled,
     isLoading && styles.isLoading,

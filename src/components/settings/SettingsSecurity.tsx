@@ -12,6 +12,7 @@ import {
   ANIMATED_STICKER_BIG_SIZE_PX,
   ANIMATED_STICKER_HUGE_SIZE_PX,
   ANIMATED_STICKER_SMALL_SIZE_PX,
+  APP_NAME,
   AUTOLOCK_OPTIONS_LIST,
   IS_CAPACITOR,
   PIN_LENGTH,
@@ -327,6 +328,7 @@ function SettingsSecurity({
     const warningDescription = IS_IOS
       ? 'To use this feature, first enable Face ID in your phone settings.'
       : 'To use this feature, first enable biometrics in your phone settings.';
+
     const { value } = await Dialog.confirm({
       title: lang('Warning!'),
       message: lang(warningDescription),
@@ -445,7 +447,7 @@ function SettingsSecurity({
                   />
                 </Collapsible>
               </div>
-              <p className={styles.blockDescription}>{lang('$app_lock_description')}</p>
+              <p className={styles.blockDescription}>{lang('$app_lock_description', { app_name: APP_NAME })}</p>
             </>
           )}
 

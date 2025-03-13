@@ -49,6 +49,7 @@ type StateProps = {
   activity?: ApiSwapActivity;
   tokensBySlug?: Record<string, ApiSwapAsset>;
   theme: Theme;
+  isSwapDisabled?: boolean;
 };
 
 const CHANGELLY_EXPIRE_CHECK_STATUSES = new Set(['new', 'waiting']);
@@ -57,7 +58,7 @@ const CHANGELLY_ERROR_STATUSES = new Set(['failed', 'expired', 'refunded', 'over
 const ONCHAIN_ERROR_STATUSES = new Set(['failed', 'expired']);
 
 function SwapActivityModal({
-  activity, tokensBySlug, theme, addressByChain,
+  activity, tokensBySlug, theme, addressByChain, isSwapDisabled,
 }: StateProps) {
   const {
     startSwap,
@@ -461,9 +462,11 @@ function SwapActivityModal({
           {shouldRenderCexInfo && renderCexInformation()}
           {transactionUrl && renderTransactionId()}
         </div>
-        <div className={styles.footer}>
-          {renderFooterButton()}
-        </div>
+        {!isSwapDisabled && (
+          <div className={styles.footer}>
+            {renderFooterButton()}
+          </div>
+        )}
       </div>
     );
   }
@@ -486,6 +489,7 @@ export default memo(
   withGlobal((global): StateProps => {
     const accountState = selectCurrentAccountState(global);
     const account = selectCurrentAccount(global);
+    const { isSwapDisabled } = global.restrictions;
 
     const id = accountState?.currentActivityId;
     const activity = id ? accountState?.activities?.byId[id] : undefined;
@@ -495,6 +499,7 @@ export default memo(
       tokensBySlug: global.swapTokenInfo?.bySlug,
       theme: global.settings.theme,
       addressByChain: account?.addressByChain,
+      isSwapDisabled: isSwapDisabled || global.settings.isTestnet,
     };
   })(SwapActivityModal),
 );

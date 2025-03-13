@@ -2,7 +2,7 @@ import React, { memo, useState } from '../../lib/teact/teact';
 
 import type { ApiDapp } from '../../api/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, APP_NAME } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -91,10 +91,10 @@ function SettingsDapps({
           >
             {lang('Disconnect All Dapps')}
           </Button>
-          <p className={styles.blockDescription}>{lang('$dapps-description')}</p>
+          <p className={styles.blockDescription}>{lang('$dapps-description', { app_name: APP_NAME })}</p>
         </div>
 
-        <p className={styles.blockTitle}>{lang('Logged in with MyTonWallet')}</p>
+        <p className={styles.blockTitle}>{lang('Logged in with %app_name%', { app_name: APP_NAME })}</p>
 
         <div className={styles.block}>
           {dappList}

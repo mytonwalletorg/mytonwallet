@@ -10,6 +10,7 @@ import type { DropdownItem } from '../../../ui/Dropdown';
 import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
+  IS_CORE_WALLET,
 } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
@@ -46,10 +47,11 @@ const MENU_ITEMS: DropdownItem[] = [{
   name: getExplorerName('ton'),
   value: 'tonExplorer',
   fontIcon: 'external',
-}, {
+},
+...(!IS_CORE_WALLET ? [{
   name: 'Hide All',
   value: 'hideAll',
-}, {
+}] : []), {
   name: 'Burn All',
   value: 'burnAll',
   isDangerous: true,

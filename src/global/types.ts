@@ -84,6 +84,14 @@ export type StakingStatus = 'active' | 'unstakeRequested';
 
 export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWallet';
 
+interface AuthAccount {
+  accountId: string;
+  addressByChain: Record<ApiChain, string>;
+  network?: ApiNetwork;
+}
+
+type SignOutLevel = 'account' | 'network' | 'all';
+
 export enum AppState {
   Auth,
   Main,
@@ -415,11 +423,11 @@ export type GlobalState = {
     isLoading?: boolean;
     mnemonic?: string[];
     mnemonicCheckIndexes?: number[];
-    accountId?: string;
-    addressByChain?: Record<ApiChain, string>;
     error?: string;
     password?: string;
     isBackupModalOpen?: boolean;
+    firstNetworkAccount?: AuthAccount;
+    secondNetworkAccount?: AuthAccount;
   };
 
   biometrics: {
@@ -804,9 +812,9 @@ export interface ActionPayloads {
   dismissNotification: undefined;
   initLedgerPage: undefined;
   afterSignIn: undefined;
-  signOut: { isFromAllAccounts?: boolean } | undefined;
+  signOut: { level: SignOutLevel };
   cancelCaching: undefined;
-  afterSignOut: { isFromAllAccounts?: boolean } | undefined;
+  afterSignOut: { shouldReset?: boolean } | undefined;
   addAccount: { method: AuthMethod; password: string; isAuthFlow?: boolean };
   addAccount2: { method: AuthMethod; password: string };
   switchAccount: { accountId: string; newNetwork?: ApiNetwork };

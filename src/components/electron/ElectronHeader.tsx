@@ -1,5 +1,6 @@
 import React, { memo, useRef } from '../../lib/teact/teact';
 
+import { APP_NAME } from '../../config';
 import { IS_WINDOWS } from '../../util/windowEnvironment';
 
 import useElectronDrag from '../../hooks/useElectronDrag';
@@ -45,7 +46,7 @@ function ElectronHeader({ children, withTitle }: Props) {
         <div className={styles.wrapper}>
           {Boolean(children) && <div className={styles.buttons}>{children}</div>}
 
-          {withTitle && <div className={styles.applicationName}>MyTonWallet</div>}
+          {withTitle && <div className={styles.applicationName}>{APP_NAME}</div>}
         </div>
 
         <div className={styles.windowsButtons}>
@@ -70,7 +71,7 @@ function ElectronHeader({ children, withTitle }: Props) {
   return (
     <div ref={containerRef} className={styles.container} onDoubleClick={handleDoubleClick}>
       <div className={styles.wrapper}>
-        {withTitle && <div className={styles.applicationName}>MyTonWallet</div>}
+        {withTitle && <div className={styles.applicationName}>{APP_NAME}</div>}
 
         <div className={styles.buttons}>
           <UpdateApp />

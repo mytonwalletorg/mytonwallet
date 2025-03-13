@@ -138,7 +138,7 @@
       white-space: nowrap;
     }
 
-    &.isEmpty::before {
+    &:empty::before {
       content: "0";
 
       color: var(--color-gray-4);
@@ -162,7 +162,7 @@
 
     &:hover,
     &:focus {
-      &.isEmpty:not(.disabled)::before {
+      &:empty:not(.disabled)::before {
         color: var(--color-interactive-input-text-hover-active);
       }
     }

@@ -1,7 +1,7 @@
 import type { Storage, StorageKey } from './types';
 
 import { bigintReviver } from '../../util/bigint';
-import { callWindow } from '../../util/capacitorStorageProxy/connector';
+import { callWindow } from '../../util/windowProvider/connector';
 import { getEnvironment } from '../environment';
 
 let cache: AnyLiteral = {};
@@ -14,7 +14,7 @@ const storage: Storage & {
       return cache[key];
     }
 
-    const result = await callWindow('getItem', key);
+    const result = await callWindow('capacitorStorageGetItem', key);
     const value = result ? JSON.parse(result, bigintReviver) : undefined;
 
     if (getEnvironment().isAndroidApp) {
@@ -29,7 +29,7 @@ const storage: Storage & {
   },
 
   async setItem(key: StorageKey, value: any) {
-    await callWindow('setItem', key, JSON.stringify(value));
+    await callWindow('capacitorStorageSetItem', key, JSON.stringify(value));
 
     if (getEnvironment().isAndroidApp) {
       cache[key] = value;
@@ -37,7 +37,7 @@ const storage: Storage & {
   },
 
   async removeItem(key: StorageKey) {
-    await callWindow('removeItem', key);
+    await callWindow('capacitorStorageRemoveItem', key);
 
     if (getEnvironment().isAndroidApp) {
       delete cache[key];
@@ -45,7 +45,7 @@ const storage: Storage & {
   },
 
   async clear() {
-    await callWindow('clear');
+    await callWindow('capacitorStorageClear');
 
     if (getEnvironment().isAndroidApp) {
       cache = {};
@@ -53,7 +53,7 @@ const storage: Storage & {
   },
 
   async getKeys() {
-    const result = await callWindow('keys');
+    const result = await callWindow('capacitorStorageKeys');
 
     return result?.value;
   },

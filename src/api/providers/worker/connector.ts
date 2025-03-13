@@ -2,12 +2,11 @@ import type { Connector } from '../../../util/PostMessageConnector';
 import type { ApiInitArgs, OnApiUpdate } from '../../types';
 import type { AllMethodArgs, AllMethodResponse, AllMethods } from '../../types/methods';
 
-import { IS_CAPACITOR } from '../../../config';
-import { createWindowProvider } from '../../../util/capacitorStorageProxy';
 import { logDebugApi, logDebugError } from '../../../util/logs';
 import { createConnector } from '../../../util/PostMessageConnector';
 import { pause } from '../../../util/schedulers';
 import { IS_IOS } from '../../../util/windowEnvironment';
+import { createWindowProvider } from '../../../util/windowProvider';
 
 const HEALTH_CHECK_TIMEOUT = 150;
 const HEALTH_CHECK_MIN_DELAY = 5000; // 5 sec
@@ -26,9 +25,7 @@ export function initApi(onUpdate: OnApiUpdate, initArgs: ApiInitArgs | (() => Ap
     );
     connector = createConnector(worker, onUpdate);
 
-    if (IS_CAPACITOR) {
-      createWindowProvider(worker!);
-    }
+    createWindowProvider(worker!);
   }
 
   if (!isInitialized) {

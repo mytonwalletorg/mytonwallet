@@ -2,6 +2,7 @@ import type { ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
 import chains from '../chains';
+import { getTokenByAddress } from '../common/tokens';
 
 const { ton } = chains;
 
@@ -34,4 +35,11 @@ export function fetchTokenBalancesByAddress(address: string, network: ApiNetwork
   const chain = chains.ton;
 
   return chain.getTokenBalances(network, address);
+}
+
+export function getAmountForTokenTransfer(tokenAddress: string, willClaimMintless: boolean) {
+  const chain = chains.ton;
+  const token = getTokenByAddress(tokenAddress)!;
+
+  return chain.getToncoinAmountForTransfer(token, willClaimMintless);
 }

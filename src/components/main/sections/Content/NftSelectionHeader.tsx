@@ -6,6 +6,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiNft } from '../../../../api/types';
 import { type IAnchorPosition } from '../../../../global/types';
 
+import { IS_CORE_WALLET } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
@@ -31,10 +32,11 @@ interface StateProps {
 const MENU_ITEMS: DropdownItem[] = [{
   name: 'Send',
   value: 'send',
-}, {
+},
+...(!IS_CORE_WALLET ? [{
   name: 'Hide',
   value: 'hide',
-}, {
+}] : []), {
   name: 'Burn',
   value: 'burn',
   isDangerous: true,

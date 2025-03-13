@@ -7,7 +7,7 @@ import { getActions, withGlobal } from '../global';
 import type { AutolockValueType, Theme } from '../global/types';
 
 import {
-  APP_NAME, AUTOLOCK_OPTIONS_LIST, DEBUG, IS_TELEGRAM_APP,
+  APP_NAME, AUTOLOCK_OPTIONS_LIST, DEBUG, IS_CORE_WALLET, IS_TELEGRAM_APP,
 } from '../config';
 import {
   selectIsBiometricAuthEnabled,
@@ -44,6 +44,7 @@ import Transition from './ui/Transition';
 
 import styles from './AppLocked.module.scss';
 
+import coreWalletLogoPath from '../assets/logoCoreWallet.svg';
 import logoDarkPath from '../assets/logoDark.svg';
 import logoLightPath from '../assets/logoLight.svg';
 
@@ -97,7 +98,9 @@ function AppLocked({
   const lang = useLang();
 
   const appTheme = useAppTheme(theme);
-  const logoPath = appTheme === 'light' ? logoLightPath : logoDarkPath;
+  const logoPath = IS_CORE_WALLET
+    ? coreWalletLogoPath
+    : appTheme === 'light' ? logoLightPath : logoDarkPath;
 
   const [isLocked, lock, unlock] = useFlag((autolockValue !== 'never' || isManualLockActive) && !isHardwareAccount);
   const [shouldRenderUi, showUi, hideUi] = useFlag(isLocked);

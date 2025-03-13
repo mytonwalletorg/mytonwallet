@@ -71,7 +71,7 @@ const Auth = ({
   function renderAuthScreen(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
       case AuthState.none:
-        return <AuthStart />;
+        return <AuthStart isActive={isActive} />;
       case AuthState.createWallet:
         return <AuthCreatingWallet isActive={isActive} />;
       case AuthState.checkPassword:

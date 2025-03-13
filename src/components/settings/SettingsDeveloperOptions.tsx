@@ -4,7 +4,12 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiNetwork } from '../../api/types';
 import type { Account } from '../../global/types';
 
-import { APP_ENV, APP_VERSION, IS_EXTENSION } from '../../config';
+import {
+  APP_ENV,
+  APP_VERSION,
+  IS_CORE_WALLET,
+  IS_EXTENSION,
+} from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { copyTextToClipboard } from '../../util/clipboard';
 import { getBuildPlatform, getFlagsValue } from '../../util/getBuildPlatform';
@@ -71,7 +76,8 @@ function SettingsDeveloperOptions({
       showNotification({ message: lang('Logs were copied!') as string, icon: 'icon-copy' });
       onClose();
     } else {
-      await shareFile(`mytonwallet_logs_${new Date().toISOString()}.json`, logsString, 'application/json');
+      const filename = `${IS_CORE_WALLET ? 'tonwallet' : 'mytonwallet'}_logs_${new Date().toISOString()}.json`;
+      await shareFile(filename, logsString, 'application/json');
     }
   });
 

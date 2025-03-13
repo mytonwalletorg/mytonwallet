@@ -1,8 +1,9 @@
+import type { GlobalState } from '../../global/types';
 import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type {
   ApiAccountAny,
-  ApiAccountWithMnemonic,
+  ApiAccountWithMnemonic, ApiChain,
   ApiLedgerAccount,
   ApiNetwork,
   ApiTonWallet,
@@ -10,9 +11,11 @@ import type {
 } from '../types';
 import { ApiCommonError } from '../types';
 
-import { DEFAULT_WALLET_VERSION } from '../../config';
+import { DEFAULT_WALLET_VERSION, IS_BIP39_MNEMONIC_ENABLED, IS_CORE_WALLET } from '../../config';
+import { buildAccountId, parseAccountId } from '../../util/account';
 import isMnemonicPrivateKey from '../../util/isMnemonicPrivateKey';
 import chains from '../chains';
+import { toBase64Address } from '../chains/ton/util/tonCore';
 import {
   fetchStoredAccounts,
   getNewAccountId,
@@ -35,7 +38,7 @@ export { importNewWalletVersion } from '../chains/ton';
 
 const { ton, tron } = chains;
 
-export function generateMnemonic(isBip39 = true) {
+export function generateMnemonic(isBip39 = IS_BIP39_MNEMONIC_ENABLED) {
   if (isBip39) return generateBip39Mnemonic();
   return ton.generateMnemonic();
 }
@@ -52,7 +55,7 @@ export function createWallet(
 }
 
 export function validateMnemonic(mnemonic: string[]) {
-  return validateBip39Mnemonic(mnemonic) || chains.ton.validateMnemonic(mnemonic);
+  return (validateBip39Mnemonic(mnemonic) && IS_BIP39_MNEMONIC_ENABLED) || chains.ton.validateMnemonic(mnemonic);
 }
 
 export async function importMnemonic(
@@ -65,7 +68,7 @@ export async function importMnemonic(
   let isBip39Mnemonic = validateBip39Mnemonic(mnemonic);
   const isTonMnemonic = await ton.validateMnemonic(mnemonic);
 
-  if (!isPrivateKey && !isBip39Mnemonic && !isTonMnemonic) {
+  if (!isPrivateKey && !isTonMnemonic && (!isBip39Mnemonic || !IS_BIP39_MNEMONIC_ENABLED)) {
     throw new Error('Invalid mnemonic');
   }
 
@@ -120,17 +123,50 @@ export async function importMnemonic(
     }
 
     await setAccountValue(accountId, 'accounts', account);
-
+    const secondNetworkAccount = IS_CORE_WALLET ? await createAccountWithSecondNetwork({
+      accountId, network, mnemonic, mnemonicEncrypted, version,
+    }) : undefined;
     void activateAccount(accountId);
 
     return {
       accountId,
       tonAddress,
       tronAddress,
+      secondNetworkAccount,
     };
   } catch (err) {
     return handleServerError(err);
   }
+}
+
+export async function createAccountWithSecondNetwork(options: {
+  accountId: string;
+  network: ApiNetwork;
+  mnemonic: string[];
+  mnemonicEncrypted: string;
+  version?: ApiTonWalletVersion;
+}): Promise<GlobalState['auth']['secondNetworkAccount']> {
+  const {
+    mnemonic, version, mnemonicEncrypted,
+  } = options;
+  const { network, accountId } = options;
+  const tonWallet = await ton.getWalletFromMnemonic(mnemonic, network, version);
+
+  const secondNetwork = network === 'testnet' ? 'mainnet' : 'testnet';
+  const secondAccountId = buildAccountId({ ...parseAccountId(accountId), network: secondNetwork });
+  tonWallet.address = toBase64Address(tonWallet.address, false, secondNetwork);
+  const account = {
+    type: 'ton',
+    mnemonicEncrypted,
+    ton: tonWallet,
+  };
+  await setAccountValue(secondAccountId, 'accounts', account);
+
+  return {
+    accountId: secondAccountId,
+    addressByChain: { ton: tonWallet.address } as Record<ApiChain, string>,
+    network: secondNetwork,
+  };
 }
 
 export async function importLedgerWallet(network: ApiNetwork, walletInfo: LedgerWalletInfo) {

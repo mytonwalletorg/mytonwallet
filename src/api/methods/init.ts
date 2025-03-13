@@ -1,7 +1,7 @@
 import type { ApiInitArgs, OnApiUpdate } from '../types';
 
-import { IS_CAPACITOR } from '../../config';
-import { initWindowConnector } from '../../util/capacitorStorageProxy/connector';
+import { IS_EXTENSION } from '../../config';
+import { initWindowConnector } from '../../util/windowProvider/connector';
 import chains from '../chains';
 import { callBackendGet } from '../common/backend';
 import { connectUpdater, startStorageMigration } from '../common/helpers';
@@ -22,7 +22,7 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   connectUpdater(onUpdate);
   const environment = setEnvironment(args);
 
-  if (IS_CAPACITOR) {
+  if (!IS_EXTENSION) {
     initWindowConnector();
   }
 

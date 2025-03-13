@@ -18,10 +18,12 @@ import {
   APP_VERSION,
   HELPCENTER_URL,
   IS_CAPACITOR,
+  IS_CORE_WALLET,
   IS_EXTENSION,
   LANG_LIST,
   MTW_TIPS_CHANNEL_NAME,
   PROXY_HOSTS,
+  SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
   SUPPORT_USERNAME,
   TELEGRAM_WEB_URL,
   TONCOIN,
@@ -102,6 +104,7 @@ import installMobileImg from '../../assets/settings/settings_install-mobile.svg'
 import languageImg from '../../assets/settings/settings_language.svg';
 import ledgerImg from '../../assets/settings/settings_ledger.svg';
 import mtwCardsImg from '../../assets/settings/settings_mtw-cards.svg';
+import upgradeImg from '../../assets/settings/settings_mytonwallet.svg';
 import notifications from '../../assets/settings/settings_notifications.svg';
 import securityImg from '../../assets/settings/settings_security.svg';
 import supportImg from '../../assets/settings/settings_support.svg';
@@ -246,6 +249,14 @@ function Settings({
   });
 
   useHideBottomBar(isOpen && !isInitialScreen);
+
+  const handlCloseDeveloperModal = useLastCallback(() => {
+    closeDeveloperModal();
+
+    if (IS_CORE_WALLET) {
+      handleCloseSettings();
+    }
+  });
 
   const handleConnectedDappsOpen = useLastCallback(() => {
     getDapps();
@@ -438,7 +449,17 @@ function Settings({
           className={buildClassName(styles.content, 'custom-scroll', styles.withBottomSpace)}
           onScroll={handleContentScroll}
         >
-          {IS_WEB && (
+          {IS_CORE_WALLET && (
+            <div className={styles.block}>
+              <div className={styles.item} onClick={handleClickInstallApp}>
+                <img className={styles.menuIcon} src={upgradeImg} alt={lang('Upgrade to MyTonWallet')} />
+                {lang('Upgrade to MyTonWallet')}
+
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            </div>
+          )}
+          {!IS_CORE_WALLET && IS_WEB && (
             <div className={styles.block}>
               <div className={styles.item} onClick={handleClickInstallApp}>
                 <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
@@ -506,12 +527,14 @@ function Settings({
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-            <div className={styles.item} onClick={handleAssetsOpen}>
-              <img className={styles.menuIcon} src={assetsActivityImg} alt={lang('Assets & Activity')} />
-              {lang('Assets & Activity')}
+            {!SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY && (
+              <div className={styles.item} onClick={handleAssetsOpen}>
+                <img className={styles.menuIcon} src={assetsActivityImg} alt={lang('Assets & Activity')} />
+                {lang('Assets & Activity')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </div>
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+              </div>
+            )}
             {!isHardwareAccount && (
               <div className={styles.item} onClick={handleSecurityOpen}>
                 <img className={styles.menuIcon} src={securityImg} alt={lang('Security')} />
@@ -531,14 +554,16 @@ function Settings({
                 </div>
               </div>
             )}
-            <div className={styles.item} onClick={handleLanguageOpen}>
-              <img className={styles.menuIcon} src={languageImg} alt={lang('Language')} />
-              {lang('Language')}
-              <div className={styles.itemInfo}>
-                {activeLang?.name}
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            {!IS_CORE_WALLET && (
+              <div className={styles.item} onClick={handleLanguageOpen}>
+                <img className={styles.menuIcon} src={languageImg} alt={lang('Language')} />
+                {lang('Language')}
+                <div className={styles.itemInfo}>
+                  {activeLang?.name}
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {(!!versions?.length || IS_LEDGER_SUPPORTED) && (
@@ -565,60 +590,63 @@ function Settings({
             </div>
           )}
 
-          <div className={styles.block}>
-            <a
-              href={MTW_CARDS_WEBSITE}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.item}
-            >
-              <img className={styles.menuIcon} src={mtwCardsImg} alt={lang('MyTonWallet Cards NFT')} />
-              {lang('MyTonWallet Cards NFT')}
+          {!IS_CORE_WALLET && (
+            <>
+              <div className={styles.block}>
+                <a
+                  href={MTW_CARDS_WEBSITE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.item}
+                >
+                  <img className={styles.menuIcon} src={mtwCardsImg} alt={lang('MyTonWallet Cards NFT')} />
+                  {lang('MyTonWallet Cards NFT')}
 
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </a>
-          </div>
-
-          <div className={styles.block}>
-            <a
-              href={`https://t.me/${MTW_TIPS_CHANNEL_NAME[langCode as never] ?? MTW_TIPS_CHANNEL_NAME.en}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.item}
-            >
-              <img className={styles.menuIcon} src={tipsImg} alt={lang('MyTonWallet Tips')} />
-              {lang('MyTonWallet Tips')}
-
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </a>
-            <a
-              href={HELPCENTER_URL[langCode as never] ?? HELPCENTER_URL.en}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.item}
-            >
-              <img className={styles.menuIcon} src={helpcenterImg} alt={lang('Help Center')} />
-              {lang('Help Center')}
-
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </a>
-            {supportAccountsCount > 0 && (
-              <a
-                href={`https://t.me/${SUPPORT_USERNAME}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.item}
-              >
-                <img className={styles.menuIcon} src={supportImg} alt={lang('Get Support')} />
-                {lang('Get Support')}
-
-                <div className={styles.itemInfo}>
-                  <span className={styles.small}>@{SUPPORT_USERNAME}</span>
                   <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-                </div>
-              </a>
-            )}
-          </div>
+                </a>
+              </div>
+              <div className={styles.block}>
+                <a
+                  href={`https://t.me/${MTW_TIPS_CHANNEL_NAME[langCode as never] ?? MTW_TIPS_CHANNEL_NAME.en}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.item}
+                >
+                  <img className={styles.menuIcon} src={tipsImg} alt={lang('MyTonWallet Tips')} />
+                  {lang('MyTonWallet Tips')}
+
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                </a>
+                <a
+                  href={HELPCENTER_URL[langCode as never] ?? HELPCENTER_URL.en}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.item}
+                >
+                  <img className={styles.menuIcon} src={helpcenterImg} alt={lang('Help Center')} />
+                  {lang('Help Center')}
+
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                </a>
+                {supportAccountsCount > 0 && (
+                  <a
+                    href={`https://t.me/${SUPPORT_USERNAME}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.item}
+                  >
+                    <img className={styles.menuIcon} src={supportImg} alt={lang('Get Support')} />
+                    {lang('Get Support')}
+
+                    <div className={styles.itemInfo}>
+                      <span className={styles.small}>@{SUPPORT_USERNAME}</span>
+                      <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                    </div>
+                  </a>
+                )}
+              </div>
+            </>
+          )}
 
           <div className={styles.block}>
             <div className={styles.item} onClick={handleDisclaimerOpen}>
@@ -627,35 +655,50 @@ function Settings({
 
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-            {IS_CAPACITOR ? (
+          </div>
+
+          {!IS_CORE_WALLET && IS_CAPACITOR && (
+            <div className={styles.block}>
               <div className={styles.item} onClick={handleClickInstallOnDesktop}>
                 <img className={styles.menuIcon} src={installDesktopImg} alt={lang('Install on Desktop')} />
                 {lang('Install on Desktop')}
 
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
-            ) : IS_ELECTRON ? (
+            </div>
+          )}
+
+          {!IS_CORE_WALLET && IS_ELECTRON && (
+            <div className={styles.block}>
               <div className={styles.item} onClick={handleClickInstallOnMobile}>
                 <img className={styles.menuIcon} src={installMobileImg} alt={lang('Install on Mobile')} />
                 {lang('Install on Mobile')}
 
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
-            ) : (
-              <div className={styles.item} onClick={handleClickInstallApp}>
-                <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
-                {lang('Install App')}
-
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </div>
-            )}
-            <div className={styles.item} onClick={handleAboutOpen}>
-              <img className={styles.menuIcon} src={aboutImg} alt={lang('About MyTonWallet')} />
-              {lang('About MyTonWallet')}
-
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-          </div>
+          )}
+
+          {!IS_CORE_WALLET && (
+            <div className={styles.block}>
+              {!IS_CORE_WALLET && IS_EXTENSION && (
+                <div className={styles.item} onClick={handleClickInstallApp}>
+                  <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
+                  {lang('Install App')}
+
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                </div>
+              )}
+              {!IS_CORE_WALLET && (
+                <div className={styles.item} onClick={handleAboutOpen}>
+                  <img className={styles.menuIcon} src={aboutImg} alt="" />
+                  {lang('About %app_name%', { app_name: APP_NAME })}
+
+                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className={styles.block}>
             <div className={buildClassName(styles.item, styles.item_red)} onClick={openLogOutModal}>
@@ -672,9 +715,9 @@ function Settings({
         </div>
         <SettingsDeveloperOptions
           isOpen={isDeveloperModalOpen}
-          onClose={closeDeveloperModal}
           isTestnet={isTestnet}
           isCopyStorageEnabled={isCopyStorageEnabled}
+          onClose={handlCloseDeveloperModal}
         />
       </div>
     );

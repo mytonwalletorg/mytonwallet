@@ -18,7 +18,12 @@ import {
   DefinePlugin, EnvironmentPlugin, IgnorePlugin, NormalModuleReplacementPlugin, ProvidePlugin,
 } from 'webpack';
 
-import { PRODUCTION_URL } from './src/config';
+import {
+  APP_NAME,
+  EXTENSION_DESCRIPTION,
+  EXTENSION_NAME,
+  PRODUCTION_URL,
+} from './src/config';
 
 dotenv.config();
 
@@ -30,6 +35,7 @@ const {
   BASE_URL,
   HEAD,
 } = process.env;
+const IS_CORE_WALLET = process.env.IS_CORE_WALLET === '1';
 const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
 const IS_EXTENSION = process.env.IS_EXTENSION === '1';
 const IS_TELEGRAM_APP = process.env.IS_TELEGRAM_APP === '1';
@@ -45,7 +51,7 @@ const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
   : '';
 const cspScriptSrcExtra = IS_TELEGRAM_APP ? 'https://telegram.org' : '';
-const cspFrameSrcExtra = [
+const cspFrameSrcExtra = IS_CORE_WALLET ? '' : [
   'https://buy-sandbox.moonpay.com/',
   'https://buy.moonpay.com/',
   'https://dreamwalkers.io/',
@@ -258,6 +264,9 @@ export default function createConfig(
         template: 'src/index.html',
         chunks: ['main'],
         csp: CSP,
+        title: APP_NAME,
+        homepage: IS_CORE_WALLET ? 'https://wallet.ton.org' : 'https://mytonwallet.io',
+        assets_prefix: IS_CORE_WALLET ? 'coreWallet/' : '',
       }),
       new PreloadWebpackPlugin({
         include: 'allAssets',
@@ -267,6 +276,9 @@ export default function createConfig(
           /theme_.*?\.png/, // Theme icons
           /chain_.*?\.png/, // Chain icons
           /settings_.*?\.svg/, // Settings icons (svg)
+          ...(IS_CORE_WALLET ? [
+            /core_wallet_.*?\.png/, // Lottie thumbs for TON Wallet
+          ] : []),
         ],
         as(entry: string) {
           if (/\.png$/.test(entry)) return 'image';
@@ -308,6 +320,7 @@ export default function createConfig(
         IS_FIREFOX_EXTENSION: 'false',
         IS_CAPACITOR: 'false',
         IS_AIR_APP: 'false',
+        IS_CORE_WALLET: 'false',
         IS_TELEGRAM_APP: 'false',
         SWAP_FEE_ADDRESS: '',
         DIESEL_ADDRESS: '',
@@ -336,9 +349,19 @@ export default function createConfig(
             transform: (content) => {
               const manifest = JSON.parse(content.toString());
               manifest.version = appVersion;
+              manifest.name = EXTENSION_NAME;
+              manifest.description = EXTENSION_DESCRIPTION;
               manifest.content_security_policy = {
                 extension_pages: CSP,
               };
+              manifest.action = { default_title: APP_NAME };
+              manifest.icons = IS_CORE_WALLET
+                ? {
+                  192: 'coreWallet/icon-192x192.png',
+                  256: 'coreWallet/icon-256x256.png',
+                  512: 'coreWallet/icon-512x512.png',
+                }
+                : { 192: 'icon-192x192.png', 384: 'icon-384x384.png', 512: 'icon-512x512.png' };
 
               if (IS_FIREFOX_EXTENSION) {
                 manifest.background = {

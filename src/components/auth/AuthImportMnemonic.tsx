@@ -4,7 +4,7 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import {
-  ANIMATED_STICKER_SMALL_SIZE_PX, MNEMONIC_COUNT, MNEMONIC_COUNTS, PRIVATE_KEY_HEX_LENGTH,
+  ANIMATED_STICKER_SMALL_SIZE_PX, IS_BIP39_MNEMONIC_ENABLED, MNEMONIC_COUNT, MNEMONIC_COUNTS, PRIVATE_KEY_HEX_LENGTH,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
@@ -152,7 +152,9 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
         {lang('Enter Secret Words')}
       </div>
       <div className={buildClassName(styles.info, styles.infoSmallFont, styles.infoPull)}>
-        {renderText(lang('$auth_import_mnemonic_description'))}
+        {renderText(lang(IS_BIP39_MNEMONIC_ENABLED
+          ? '$auth_import_mnemonic_description'
+          : '$auth_import_24_mnemonic_description'))}
       </div>
 
       <div className={styles.importingContent}>
@@ -199,7 +201,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   };
 })(AuthImportMnemonic));
 
-function parsePastedText(str: string) {
+function parsePastedText(str = '') {
   return str
     .replace(/(?:\r\n)+|[\r\n\s;,\t]+/g, ' ')
     .trim()

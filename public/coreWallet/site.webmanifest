@@ -1,0 +1,24 @@
+{
+    "name": "TON Wallet",
+    "short_name": "TON Wallet",
+    "start_url": "./",
+    "icons": [
+        {
+            "src": "/coreWallet/icon-128x128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "/coreWallet/icon-256x256.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "/coreWallet/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "background_color": "#ffffff",
+    "display": "standalone"
+}

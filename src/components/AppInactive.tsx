@@ -1,5 +1,6 @@
 import React from '../lib/teact/teact';
 
+import { APP_NAME } from '../config';
 import renderText from '../global/helpers/renderText';
 
 import useLang from '../hooks/useLang';
@@ -29,7 +30,9 @@ function AppInactive() {
 
         <h3 className={styles.title}>{lang('Such error, many tabs')}</h3>
 
-        <div className={styles.description}>{renderText(lang('$many_tabs_error_description'))}</div>
+        <div className={styles.description}>
+          {renderText(lang('$many_tabs_error_description', { app_name: APP_NAME }))}
+        </div>
 
         <div className={styles.actions}>
           <Button isText className={styles.button} onClick={handleReload}>

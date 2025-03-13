@@ -52,7 +52,7 @@ function UpdateAvailable({ isAppUpdateAvailable, newAppVersion, isAppUpdateRequi
   return (
     <button type="button" className={buildClassName(styles.wrapper, transitionClassNames)} onClick={handleClick}>
       <i className={buildClassName('icon icon-download-filled', styles.icon)} aria-hidden />
-      {lang('Update MyTonWallet')}
+      {lang('Update %app_name%', { app_name: APP_NAME })}
     </button>
   );
 }

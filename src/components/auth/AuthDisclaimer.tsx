@@ -1,7 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
-import { ANIMATED_STICKER_MIDDLE_SIZE_PX } from '../../config';
+import { ANIMATED_STICKER_MIDDLE_SIZE_PX, APP_NAME } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -81,9 +81,9 @@ const AuthDisclaimer = ({
           <div className={styles.title}>{lang('Use Responsibly')}</div>
         </div>
         <div className={styles.infoBlock}>
-          <p className={styles.text}>{renderText(lang('$auth_responsibly_description1'))}</p>
+          <p className={styles.text}>{renderText(lang('$auth_responsibly_description1', { app_name: APP_NAME }))}</p>
           <p className={styles.text}>{renderText(lang('$auth_responsibly_description2'))}</p>
-          <p className={styles.text}>{renderText(lang('$auth_responsibly_description3'))}</p>
+          <p className={styles.text}>{renderText(lang('$auth_responsibly_description3', { app_name: APP_NAME }))}</p>
           <p className={styles.text}>{renderText(lang('$auth_responsibly_description4'))}</p>
         </div>
 

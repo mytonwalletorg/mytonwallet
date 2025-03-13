@@ -9,6 +9,7 @@ import { ContentTab, SettingsState } from '../../../../global/types';
 
 import {
   IS_CAPACITOR,
+  IS_CORE_WALLET,
   IS_TELEGRAM_APP,
   LANDSCAPE_MIN_ASSETS_TAB_VIEW,
   NOTCOIN_VOUCHERS_ADDRESS,
@@ -154,6 +155,8 @@ function Content({
   }, [lang, nfts, blacklistedNftAddresses, whitelistedNftAddresses]);
 
   const shouldRenderHiddenNftsSection = useMemo(() => {
+    if (IS_CORE_WALLET) return false;
+
     const blacklistedAddressesSet = new Set(blacklistedNftAddresses);
     return Object.values(nfts ?? {}).some(
       (nft) => blacklistedAddressesSet.has(nft.address) || nft.isHidden,
@@ -176,7 +179,9 @@ function Content({
           : []
       ),
       { id: ContentTab.Activity, title: lang('Activity'), className: styles.tab },
-      ...(!isPortrait ? [{ id: ContentTab.Explore, title: lang('Explore'), className: styles.tab }] : []),
+      ...(!isPortrait && !IS_CORE_WALLET
+        ? [{ id: ContentTab.Explore, title: lang('Explore'), className: styles.tab }]
+        : []),
       {
         id: ContentTab.Nft,
         title: lang('NFT'),

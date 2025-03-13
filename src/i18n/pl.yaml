@@ -4,7 +4,7 @@ $auth_intro: |
   z **prędkością światła**.
 Create New Wallet: Utwórz nowy portfel
 Import From %1$d Secret Words: Importuj z %1$d tajnych słów
-More about MyTonWallet: Więcej informacji o MyTonWallet
+More about %app_name%: Więcej informacji o %app_name%
 Creating Wallet...: Tworzenie portfela...
 On the count of three...: Na trzy, ruszamy...
 $back_up_auth: Kopia zapasowa
@@ -73,7 +73,7 @@ Toggle TON Magic: Przełącz TON Magic
 Open Telegram Web: Otwórz Telegram Web
 Back Up Secret Words: Tajne słowa kopii zapasowej
 Settings: Ustawienia
-About MyTonWallet: O MyTonWallet
+About %app_name%: O %app_name%
 Exit: Wyjście
 Remove Wallet: Usuń portfel
 Something went wrong.: Coś poszło nie tak.
@@ -88,7 +88,7 @@ $about_extension_description2: TON Magic zapewnia natywną **integrację Telegra
 $about_extension_description3: Włącz ją, aby wysyłać i odbierać Toncoiny od dowolnego użytkownika Telegrama.
 $about_proxy_magic_title: A co z %ninja% TON Proxy i %unicorn% TON Magic?
 $about_proxy_magic_description: Aby cieszyć się **zdecentralizowanym Internetem**, uzyskać dostęp do **TON Sites** i wykorzystać natywną **integrację Telegram**, zainstaluj %extension_link%.
-$about_extension_link_text: "**Rozszerzenie MyTonWallet**"
+$about_extension_link_text: "**Rozszerzenie %app_name%**"
 Is it open source?: Czy jest to open source?
 $about_wallet_github: Tak, to prawda. Zapraszamy do zapoznania się z naszym %github_link%.
 $about_github_link_text: "**Repozytorium GitHub**"
@@ -97,7 +97,7 @@ $about_wallet_community: Jasne, witamy w naszej %community_link%.
 $about_community_link_text: "**Telegram channel**"
 Currency History: Historia walut
 $add_account_description1: |
-  **MyTonWallet** pozwala na płynne
+  **%app_name%** pozwala na płynne
   przełączanie się między **wieloma kontami**.
 Enter Password: Wprowadź hasło
 Send: Wyślij
@@ -291,8 +291,8 @@ Disconnect Dapp: Rozłącz aplikację
 Disconnect Dapps: Rozłącz aplikacje
 Are you sure you want to disconnect?: Czy na pewno chcesz rozłączyć %dappname%?
 Are you sure you want to disconnect all websites?: Czy na pewno chcesz rozłączyć wszystkie witryny?
-$dapps-description: Możesz zalogować się na aplikacje wspierające MyTonWallet. Mogą one wyświetlać adres portfela, saldo oraz żądać operacji.
-Logged in with MyTonWallet: Zalogowany za pomocą MyTonWallet
+$dapps-description: Możesz zalogować się na aplikacje wspierające %app_name%. Mogą one wyświetlać adres portfela, saldo oraz żądać operacji.
+Logged in with %app_name%: Zalogowany za pomocą %app_name%
 No active connections: Brak aktywnych połączeń
 Other: Inne
 Assets & Activity: Aktywa i aktywność
@@ -303,7 +303,7 @@ Delete Token: Usuń token
 Are you sure you want to delete?: Czy na pewno chcesz usunąć %token%?
 Hide Tokens With No Cost: Ukryj tokeny bez kosztu
 Sort By Cost: Sortuj według kosztu
-Update MyTonWallet: Zaktualizuj MyTonWallet
+Update %app_name%: Zaktualizuj %app_name%
 Connect Ledger: Połącz Ledger
 Connecting to your Ledger...: Łączenie z Twoim Ledgerem...
 Failed to connect: Nie udało się połączyć
@@ -326,7 +326,7 @@ The time on your device is incorrect, sync it and try again: Czas na Twoim urzą
 Name or Address...: Nazwa lub Adres...
 Such error, many tabs: Taki błąd, wiele kart
 $many_tabs_error_description: |
-  MyTonWallet obsługuje tylko jedną aktywną kartę z aplikacją.
+  %app_name% obsługuje tylko jedną aktywną kartę z aplikacją.
   Proszę przeładuj tę stronę, aby kontynuować korzystanie z tej karty lub ją zamknij.
 Reload App: Przeładuj aplikację
 Please confirm operation on your Ledger: Proszę potwierdzić operację na swoim Ledgerze
@@ -365,11 +365,11 @@ Slippage too high: Poślizg jest zbyt duży
 Not Enough %symbol%: Niewystarczająca ilość %symbol%
 Use Responsibly: Używaj odpowiedzialnie
 $auth_responsibly_description1: |
-  MyTonWallet to portfel samodzielny, co oznacza, że tylko ty masz pełną kontrolę i, co najważniejsze, pełną odpowiedzialność za swoje środki.
+  %app_name% to portfel samodzielny, co oznacza, że tylko ty masz pełną kontrolę i, co najważniejsze, pełną odpowiedzialność za swoje środki.
 $auth_responsibly_description2: |
   Twoje klucze prywatne są przechowywane na twoim urządzeniu i są podatne na atak hakerów. Jeśli twój komputer jest zainfekowany złośliwym oprogramowaniem, twoje środki mogą zostać skradzione.
 $auth_responsibly_description3: |
-  Zespół MyTonWallet nie ponosi odpowiedzialności za bezpieczeństwo twoich środków, tak samo jak producent twojego komputera czy dostawca internetu.
+  Zespół %app_name% nie ponosi odpowiedzialności za bezpieczeństwo twoich środków, tak samo jak producent twojego komputera czy dostawca internetu.
 $auth_responsibly_description4: |
   Nigdy nie przechowuj wszystkich swoich środków w jednym miejscu. Dywersyfikuj i używaj różnych oprogramowań i sprzętów. Zawsze przeprowadzaj własne badania i dowiedz się więcej na temat bezpieczeństwa kryptowalut.
 Start Wallet: Uruchom portfel
@@ -624,6 +624,7 @@ Claim: Prawo
 Confirm Unfreezing: Potwierdź Odmrożenie
 Insufficient Balance for Fee: Niewystarczające saldo na opłatę
 $fee_value_bold: "**Opłata:** %fee%"
+"%app_name% Features": Funkcje %app_name%
 Security: Bezpieczeństwo
 To avoid entering the passcode every time, you can use biometrics.: Aby uniknąć wprowadzania kodu za każdym razem, możesz użyć biometrii.
 Change Passcode: Zmień kod
@@ -636,7 +637,6 @@ New code set successfully: Nowy kod został pomyślnie ustawiony
 Codes don’t match: Kody nie pasują do siebie
 Enter your new code: Wprowadź nowy kod
 Re-enter your new code: Wprowadź nowy kod ponownie
-MyTonWallet Features: Funkcje MyTonWallet
 Install on Desktop: Zainstaluj na komputerze
 Install on Mobile: Zainstaluj na telefonie komórkowym
 Install App: Zainstaluj aplikację
@@ -685,7 +685,7 @@ NFT Menu: Menu NFT
 Connection Type: Typ połączenia
 Ledger is not supported on this device: Ledger nie jest obsługiwany na tym urządzeniu
 Connect your Ledger: Podłącz swoje Ledger
-$app_lock_description: Po włączeniu blokady aplikacji na karcie na głównej stronie pojawia się ikona kłódki. Użyj jej, aby zablokować MyTonWallet.
+$app_lock_description: Po włączeniu blokady aplikacji na karcie na głównej stronie pojawia się ikona kłódki. Użyj jej, aby zablokować %app_name%.
 App Lock: Blokada aplikacji
 Auto-Lock: Blokada automatyczna
 Disabled: Wyłączone
@@ -741,6 +741,8 @@ Request is sent!: Żądanie wysłane!
 Transaction ID: ID transakcji
 Help Center: Baza wiedzy
 MyTonWallet Tips: Wskazówki MyTonWallet
+$auth_import_24_mnemonic_description: |
+  Możesz odzyskać dostęp do swojego portfela, wprowadzając **24 tajne słowa**, które zapisałeś podczas tworzenia portfela.
 $returned_value: ~ %value% zostanie zwrócone
 Open %nft_marketplace%: Otwórz %nft_marketplace%
 Link was copied!: Link został skopiowany!

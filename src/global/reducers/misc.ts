@@ -1,12 +1,14 @@
 import type {
   ApiBalanceBySlug,
-  ApiChain,
+  ApiChain, ApiNetwork,
   ApiSwapAsset,
   ApiTokenWithPrice,
 } from '../../api/types';
 import type { Account, AccountState, GlobalState } from '../types';
 
-import { POPULAR_WALLET_VERSIONS, TON_USDT_SLUG, TONCOIN } from '../../config';
+import {
+  APP_NAME, IS_CORE_WALLET, POPULAR_WALLET_VERSIONS, TON_USDT_SLUG, TONCOIN,
+} from '../../config';
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
 import { getChainBySlug } from '../../util/tokens';
 import {
@@ -54,17 +56,25 @@ export function clearIsPinAccepted(global: GlobalState): GlobalState {
   };
 }
 
-export function createAccount(
-  global: GlobalState,
-  accountId: string,
-  addressByChain: Record<ApiChain, string>,
-  partial?: Partial<Account>,
-  titlePostfix?: string,
-) {
+export function createAccount({
+  global,
+  accountId,
+  addressByChain,
+  partial,
+  titlePostfix,
+  network,
+}: {
+  global: GlobalState;
+  accountId: string;
+  addressByChain: Record<ApiChain, string>;
+  partial?: Partial<Account>;
+  titlePostfix?: string;
+  network?: ApiNetwork;
+}) {
   let shouldForceAccountEdit = true;
 
   if (!partial?.title) {
-    const network = selectCurrentNetwork(global);
+    network = network || selectCurrentNetwork(global);
     const accounts = selectNetworkAccounts(global) || {};
     const accountAmount = Object.keys(accounts).length;
     const isMainnet = network === 'mainnet';
@@ -73,7 +83,7 @@ export function createAccount(
     let title = `${titlePrefix} ${accountAmount + 1}${postfix}`;
 
     if (accountAmount === 0) {
-      title = isMainnet ? 'MyTonWallet' : 'Testnet MyTonWallet';
+      title = isMainnet ? APP_NAME : `Testnet ${APP_NAME}`;
       shouldForceAccountEdit = false;
     }
 
@@ -83,7 +93,9 @@ export function createAccount(
     partial = { ...partial, title: `${title.trim()} ${titlePostfix}` };
   }
 
-  global = { ...global, shouldForceAccountEdit };
+  if (!IS_CORE_WALLET) {
+    global = { ...global, shouldForceAccountEdit };
+  }
 
   return updateAccount(global, accountId, { ...partial, addressByChain });
 }
@@ -110,6 +122,17 @@ export function updateAccount(
 
 export function renameAccount(global: GlobalState, accountId: string, title: string) {
   return updateAccount(global, accountId, { title });
+}
+
+export function createAccountsFromGlobal(global: GlobalState): GlobalState {
+  const { firstNetworkAccount, secondNetworkAccount } = global.auth;
+
+  global = createAccount({ global, ...firstNetworkAccount! });
+  if (secondNetworkAccount) {
+    global = createAccount({ global, ...secondNetworkAccount });
+  }
+
+  return global;
 }
 
 export function updateBalances(

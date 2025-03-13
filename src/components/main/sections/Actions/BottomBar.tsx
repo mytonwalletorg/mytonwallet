@@ -3,6 +3,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import { ContentTab } from '../../../../global/types';
 
+import { IS_CORE_WALLET } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { createSignal } from '../../../../util/signals';
@@ -91,14 +92,16 @@ function BottomBar({ areSettingsOpen, areAssetsActive, isExploreOpen }: StatePro
         <i className={buildClassName(styles.icon, 'icon-wallet')} />
         <span className={styles.label}>{lang('Wallet')}</span>
       </Button>
-      <Button
-        isSimple
-        className={buildClassName(styles.button, isExploreOpen && styles.active)}
-        onClick={handleExploreClick}
-      >
-        <i className={buildClassName(styles.icon, 'icon-explore')} />
-        <span className={styles.label}>{lang('Explore')}</span>
-      </Button>
+      {!IS_CORE_WALLET && (
+        <Button
+          isSimple
+          className={buildClassName(styles.button, isExploreOpen && styles.active)}
+          onClick={handleExploreClick}
+        >
+          <i className={buildClassName(styles.icon, 'icon-explore')} />
+          <span className={styles.label}>{lang('Explore')}</span>
+        </Button>
+      )}
       <Button
         isSimple
         className={buildClassName(styles.button, areSettingsOpen && styles.active)}

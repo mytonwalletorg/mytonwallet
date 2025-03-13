@@ -4,7 +4,13 @@ import { getActions, withGlobal } from '../global';
 import type { Theme } from '../global/types';
 import { AppState } from '../global/types';
 
-import { INACTIVE_MARKER, IS_ANDROID_DIRECT, IS_CAPACITOR } from '../config';
+import {
+  APP_NAME,
+  INACTIVE_MARKER,
+  IS_ANDROID_DIRECT,
+  IS_CAPACITOR,
+  IS_CORE_WALLET,
+} from '../config';
 import { selectCurrentAccountSettings } from '../global/selectors';
 import { useAccentColor } from '../util/accentColor';
 import { setActiveTabChangeListener } from '../util/activeTabMonitor';
@@ -134,7 +140,7 @@ function App({
   useEffect(() => {
     updateSizes();
     setActiveTabChangeListener(() => {
-      document.title = `MyTonWallet ${INACTIVE_MARKER}`;
+      document.title = `${APP_NAME} ${INACTIVE_MARKER}`;
 
       markInactive();
       closeSettings();
@@ -239,7 +245,7 @@ function App({
             onClose={closeBackupWalletModal}
           />
           <TransferModal />
-          <SwapModal />
+          {!IS_CORE_WALLET && <SwapModal />}
           <SignatureModal />
           <TransactionModal />
           <SwapActivityModal />

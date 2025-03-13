@@ -5,7 +5,8 @@
   left: 0;
 
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
 
   width: 100%;
   padding-bottom: max(0.25rem, var(--safe-area-bottom));

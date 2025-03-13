@@ -19,6 +19,12 @@ else
     FILES_TO_REMOVE+=("extension*")
 fi
 
+if [ "$IS_CORE_WALLET" = "1" ]; then
+   FILES_TO_REMOVE+=("apple-touch-icon.png" "browserconfig.xml" "favicon.ico" "icon*" "logo.svg" "mstile*" "site.webmanifest")
+else
+   FILES_TO_REMOVE+=("core")
+fi
+
 if [ "$IS_PACKAGED_ELECTRON" != "1" ]; then
     FILES_TO_REMOVE+=("background-electron-dmg.tiff" "electron-entitlements.mac.plist" "icon-electron-*")
 fi

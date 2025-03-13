@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { ANIMATED_STICKER_MIDDLE_SIZE_PX } from '../../config';
+import { ANIMATED_STICKER_MIDDLE_SIZE_PX, APP_NAME } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -70,9 +70,9 @@ function SettingsDisclaimer({ isActive, handleBackClick, isInsideModal }: OwnPro
           <div className={styles.sideTitle}>{lang('Use Responsibly')}</div>
         </div>
         <div className={buildClassName(styles.blockAbout, !isInsideModal && 'custom-scroll')}>
-          <p className={styles.text}>{renderText(lang('$auth_responsibly_description1'))}</p>
+          <p className={styles.text}>{renderText(lang('$auth_responsibly_description1', { app_name: APP_NAME }))}</p>
           <p className={styles.text}>{renderText(lang('$auth_responsibly_description2'))}</p>
-          <p className={styles.text}>{renderText(lang('$auth_responsibly_description3'))}</p>
+          <p className={styles.text}>{renderText(lang('$auth_responsibly_description3', { app_name: APP_NAME }))}</p>
           <p className={styles.text}>{renderText(lang('$auth_responsibly_description4'))}</p>
         </div>
       </div>

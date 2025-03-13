@@ -36,7 +36,7 @@ interface OwnProps {
   accountSelectorClassName?: string;
   menuButtonClassName?: string;
   noSettingsButton?: boolean;
-  noAccountSelector?: boolean;
+  withAccountSelector?: boolean;
   isInsideSticky?: boolean;
 }
 
@@ -51,8 +51,6 @@ interface StateProps {
   settingsByAccountId?: Record<string, AccountSettings>;
 }
 
-export const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
-export const ACCOUNT_ADDRESS_SHIFT = 4;
 const ACCOUNTS_AMOUNT_FOR_COMPACT_DIALOG = 2;
 
 function AccountSelector({
@@ -64,7 +62,7 @@ function AccountSelector({
   accountSelectorClassName,
   menuButtonClassName,
   noSettingsButton,
-  noAccountSelector,
+  withAccountSelector,
   accounts,
   isInsideSticky,
   shouldForceAccountEdit,
@@ -218,6 +216,7 @@ function AccountSelector({
   );
   const accountTitleClassName = buildClassName(
     styles.accountTitle,
+    withAccountSelector && styles.accountTitleInteractive,
     accountClassName,
     isQrScannerSupported && !noSettingsOrQrSupported && styles.accountTitleShort,
   );
@@ -225,14 +224,14 @@ function AccountSelector({
   function renderCurrentAccount() {
     return (
       <>
-        {!noAccountSelector && (
-          <div className={accountTitleClassName} onClick={handleOpenAccountSelector}>
-            <span className={styles.accountTitleInner}>
-              {currentAccount?.title || shortenAddress(currentAccount?.addressByChain?.ton || '')}
-            </span>
+        <div className={accountTitleClassName} onClick={withAccountSelector ? handleOpenAccountSelector : undefined}>
+          <span className={styles.accountTitleInner}>
+            {currentAccount?.title || shortenAddress(currentAccount?.addressByChain?.ton || '')}
+          </span>
+          {withAccountSelector && (
             <i className={buildClassName('icon icon-caret-down', styles.arrowIcon)} aria-hidden />
-          </div>
-        )}
+          )}
+        </div>
         <div className={buildClassName(styles.menuButtons, isInsideSticky && styles.inStickyCard)}>
           {isAppLockEnabled && !isInsideSticky && (
             <Button
@@ -302,7 +301,7 @@ function AccountSelector({
     );
   }
 
-  function renderAccountsChooser() {
+  function renderAccountsSelector() {
     const dialogFullClassName = buildClassName(
       styles.dialog,
       accountsAmount <= ACCOUNTS_AMOUNT_FOR_COMPACT_DIALOG && styles.dialog_compact,
@@ -342,7 +341,7 @@ function AccountSelector({
       {!isEdit && renderCurrentAccount()}
       {isEdit && !isInsideSticky && renderInput()}
 
-      {shouldRender && renderAccountsChooser()}
+      {shouldRender && renderAccountsSelector()}
     </>
   );
 }

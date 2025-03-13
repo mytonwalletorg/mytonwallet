@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../../global';
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
 import { type Account, type HardwareConnectState, SettingsState } from '../../../global/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX, APP_NAME } from '../../../config';
 import renderText from '../../../global/helpers/renderText';
 import { selectFirstNonHardwareAccount, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
@@ -152,7 +152,7 @@ function AddAccountModal({
           previewUrl={ANIMATED_STICKERS_PATHS.forgePreview}
         />
         <p className={styles.modalText}>
-          {renderText(lang('$add_account_description1'))}
+          {renderText(lang('$add_account_description1', { app_name: APP_NAME }))}
         </p>
 
         <div className={styles.modalButtons}>

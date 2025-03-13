@@ -5,7 +5,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { ApiBaseCurrency, ApiStakingState } from '../../../../api/types';
 import type { PriceHistoryPeriods, TokenPeriod, UserToken } from '../../../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TONCOIN } from '../../../../config';
+import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, IS_CORE_WALLET, TONCOIN } from '../../../../config';
 import { selectAccountStakingStates, selectCurrentAccountState } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { formatShortDay, SECOND } from '../../../../util/dateFormat';
@@ -101,6 +101,8 @@ function TokenCard({
   } = token;
 
   const { annualYield, yieldType, id: stakingId } = useMemo(() => {
+    if (IS_CORE_WALLET) return undefined;
+
     return stakingStates?.reduce((bestState, state) => {
       if (state.tokenSlug === slug && (!bestState || state.balance > bestState.balance)) {
         return state;

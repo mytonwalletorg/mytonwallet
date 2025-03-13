@@ -37,7 +37,6 @@ import {
   NFT_TRANSFER_AMOUNT,
   NFT_TRANSFER_FORWARD_AMOUNT,
   STAKE_COMMENT,
-  TOKEN_TRANSFER_AMOUNT,
   TOKEN_TRANSFER_FORWARD_AMOUNT,
   TON_GAS,
   TRANSFER_TIMEOUT_SEC,
@@ -774,8 +773,13 @@ export async function buildLedgerTokenTransfer({
     knownJetton: isJettonIdSupported ? getKnownJettonId(tokenAddress) : null,
   };
 
-  let toncoinAmount = TOKEN_TRANSFER_AMOUNT;
-  if (forwardAmount !== TOKEN_TRANSFER_FORWARD_AMOUNT) {
+  const tonAmountForTransfer = await callApi('getAmountForTokenTransfer', tokenAddress, false);
+  if (!tonAmountForTransfer) {
+    throw new Error('Couldn\'t get the TON amount for transfer');
+  }
+
+  let toncoinAmount = tonAmountForTransfer.amount;
+  if (forwardAmount > TOKEN_TRANSFER_FORWARD_AMOUNT) {
     toncoinAmount += forwardAmount;
   }
 

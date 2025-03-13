@@ -5,6 +5,7 @@ import { getActions, withGlobal } from '../../../global';
 
 import type { Account, AccountState } from '../../../global/types';
 
+import { IS_CORE_WALLET } from '../../../config';
 import renderText from '../../../global/helpers/renderText';
 import { selectCurrentAccountState, selectNetworkAccounts } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
@@ -51,7 +52,7 @@ function LogOutModal({
   const { signOut, switchAccount } = getActions();
 
   const lang = useLang();
-  const [isLogOutFromAllAccounts, setIsLogOutFromAllAccounts] = useState<boolean>(false);
+  const [isLogOutFromAllAccounts, setIsLogOutFromAllAccounts] = useState<boolean>(IS_CORE_WALLET);
 
   const accountsWithoutBackups = useMemo(() => {
     if (!hasManyAccounts) {
@@ -72,7 +73,7 @@ function LogOutModal({
 
   useEffect(() => {
     if (isOpen) {
-      setIsLogOutFromAllAccounts(false);
+      setIsLogOutFromAllAccounts(IS_CORE_WALLET);
     }
   }, [isOpen]);
 
@@ -83,7 +84,7 @@ function LogOutModal({
 
   const handleLogOut = useLastCallback(() => {
     onClose(!isLogOutFromAllAccounts && hasManyAccounts);
-    signOut({ isFromAllAccounts: isLogOutFromAllAccounts });
+    signOut({ level: IS_CORE_WALLET ? 'all' : isLogOutFromAllAccounts ? 'network' : 'account' });
   });
 
   const handleClose = useLastCallback(() => {
@@ -148,7 +149,7 @@ function LogOutModal({
       <p className={buildClassName(modalStyles.text, modalStyles.text_noExtraMargin)}>
         {renderText(lang('$logout_warning', '12/24'))}
       </p>
-      {hasManyAccounts && (
+      {!IS_CORE_WALLET && hasManyAccounts && (
         <Checkbox
           id="logount_all_accounts"
           className={styles.checkbox}

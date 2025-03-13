@@ -3,7 +3,7 @@ import React, { memo } from '../../lib/teact/teact';
 import { type Theme } from '../../global/types';
 
 import {
-  APP_ENV_MARKER, APP_NAME, APP_REPO_URL, APP_VERSION, IS_EXTENSION,
+  APP_ENV_MARKER, APP_NAME, APP_REPO_URL, APP_VERSION, IS_CORE_WALLET, IS_EXTENSION,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
@@ -47,12 +47,16 @@ function SettingsAbout({
 
   const appTheme = useAppTheme(theme);
   const logoPath = appTheme === 'light' ? logoLightPath : logoDarkPath;
+  let aboutExtensionTitle = lang('$about_extension_link_text', { app_name: APP_NAME });
+  if (typeof aboutExtensionTitle !== 'string') {
+    aboutExtensionTitle = aboutExtensionTitle.join(' ');
+  }
 
   return (
     <div className={styles.slide}>
       {isInsideModal ? (
         <ModalHeader
-          title={lang('About MyTonWallet')}
+          title={lang('About %app_name%', { app_name: APP_NAME })}
           withNotch={isScrolled}
           onBackButtonClick={handleBackClick}
           className={styles.modalHeader}
@@ -63,7 +67,7 @@ function SettingsAbout({
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>
           </Button>
-          <span className={styles.headerTitle}>{lang('About MyTonWallet')}</span>
+          <span className={styles.headerTitle}>{lang('About %app_name%', { app_name: APP_NAME })}</span>
         </div>
       )}
       <div
@@ -77,9 +81,11 @@ function SettingsAbout({
         <img src={logoPath} alt={lang('Logo')} className={styles.logo} />
         <h2 className={styles.title}>
           {APP_NAME} {APP_VERSION} {APP_ENV_MARKER}
-          <a href="https://mytonwallet.io/" target="_blank" className={styles.titleLink} rel="noreferrer">
-            mytonwallet.io
-          </a>
+          {!IS_CORE_WALLET && (
+            <a href="https://mytonwallet.io/" target="_blank" className={styles.titleLink} rel="noreferrer">
+              mytonwallet.io
+            </a>
+          )}
         </h2>
         <div className={buildClassName(styles.blockAbout, !isInsideModal && 'custom-scroll')}>
           <p className={styles.text}>
@@ -125,7 +131,7 @@ function SettingsAbout({
                 {lang('$about_proxy_magic_description', {
                   extension_link: (
                     <a href="https://mytonwallet.io/" target="_blank" rel="noreferrer">
-                      {renderText(lang('$about_extension_link_text'))}
+                      {renderText(aboutExtensionTitle)}
                     </a>
                   ),
                 })}

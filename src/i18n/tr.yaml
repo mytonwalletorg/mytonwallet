@@ -4,7 +4,7 @@ $auth_intro: |
   **ışık hızında** gerçekleştirin.
 Create New Wallet: Yeni cüzdan oluşturun
 Import From %1$d Secret Words: "%1$d Gizli Kelimeyi içe aktarın"
-More about MyTonWallet: MyTonWallet hakkında daha fazla bilgi
+More about %app_name%: "%app_name% hakkında daha fazla bilgi"
 Creating Wallet...: Cüzdan oluşturuluyor...
 On the count of three...: Üçe kadar saydığınızda...
 $back_up_auth: Yedekle
@@ -71,7 +71,7 @@ Toggle TON Magic: TON Magic'i Aç/Kapat
 Open Telegram Web: Telegram Web'i aç
 Back Up Secret Words: Gizli Kelimeleri Yedekleyin
 Settings: Ayarlar
-About MyTonWallet: MyTonWallet Hakkında
+About %app_name%: "%app_name% Hakkında"
 Exit: Çıkış
 Remove Wallet: Cüzdanı kaldırın
 Something went wrong.: Bir şeyler ters gitti.
@@ -86,7 +86,7 @@ $about_extension_description2: TON Magic, resmi Telegram Web uygulaması için s
 $about_extension_description3: Herhangi bir Telegram kullanıcısına TON göndermek ve almak için bu özelliği etkinleştirin.
 $about_proxy_magic_title: Peki ya %ninja% TON Proxy ve %unicorn% TON Magic nedir?
 $about_proxy_magic_description: "**Merkeziyetsiz internetin** keyfini çıkarmak, **TON Sitelerine** erişmek ve **Telegram ile entegrasyonun** faydalarından yararlanmak için %extension_link%'nı yükleyebilirsiniz."
-$about_extension_link_text: "**MyTonWallet uzantısı**"
+$about_extension_link_text: "**%app_name% uzantısı**"
 Is it open source?: Açık kaynak kodlu mudur?
 $about_wallet_github: Evet, öyledir. %github_link% sayfamızı inceleyebilirsiniz.
 $about_github_link_text: "**GitHub reposu**"
@@ -95,7 +95,7 @@ $about_wallet_community: Elbette, topluluğumuza %community_link% üzerinden eri
 $about_community_link_text: "**Telegram kanalı**"
 Currency History: Para birimi geçmişi
 $add_account_description1: |
-  **MyTonWallet** **birden fazla cüzdan hesabı**
+  **%app_name%** **birden fazla cüzdan hesabı**
   arasında sorunsuz şekilde geçiş yapmanıza imkan verir.
 Enter Password: Şifre girin
 Send: Gönder
@@ -289,8 +289,8 @@ Disconnect Dapp: Dapp'in bağlantısını kes
 Disconnect Dapps: Dapp'lerin bağlantısını kes
 Are you sure you want to disconnect?: "%dappname% bağlantısını kesmek istediğinizden emin misiniz?"
 Are you sure you want to disconnect all websites?: Tüm web sitelerinin bağlantısını kesmek istediğinizden emin misiniz?
-$dapps-description: MyTonWallet'ı destekleyen Dapp'lerde oturum açabilirsiniz. Bu Dapp'ler, cüzdan adresini, bakiyeyi görüntüleyebilir ve işlem talep edebilirler.
-Logged in with MyTonWallet: MyTonWallet ile oturum açıldı
+$dapps-description: "%app_name%'ı destekleyen Dapp'lerde oturum açabilirsiniz. Bu Dapp'ler, cüzdan adresini, bakiyeyi görüntüleyebilir ve işlem talep edebilirler."
+Logged in with %app_name%: "%app_name% ile oturum açıldı"
 No active connections: Aktif bağlantı yok
 Other: Diğer
 Assets & Activity: Varlıklar ve Etkinlik
@@ -301,7 +301,7 @@ Delete Token: Token sil
 Are you sure you want to delete?: "%token%'ı silmek istediğinizden emin misiniz?"
 Hide Tokens With No Cost: Tokenleri ücretsiz olarak saklayın
 Sort By Cost: Maliyete göre sıralayın
-Update MyTonWallet: MyTonWallet'ı güncelle
+Update %app_name%: "%app_name%'ı güncelle"
 Connect Ledger: Ledger'i bağla
 Connecting to your Ledger...: Ledger'ınıza bağlanıyor...
 Failed to connect: Bağlantı başarısız
@@ -324,7 +324,7 @@ The time on your device is incorrect, sync it and try again: Cihazınızdaki saa
 Name or Address...: İsim veya Adres...
 Such error, many tabs: Bu tür hatalar, birçok sekme
 $many_tabs_error_description: |
-  MyTonWallet, uygulama ile yalnızca bir etkin sekmeyi destekler.
+  %app_name%, uygulama ile yalnızca bir etkin sekmeyi destekler.
   Bu sekmeyi kullanmaya devam etmek için lütfen sayfayı yeniden yükleyin ya da kapatın.
 Reload App: Uygulamayı yeniden yükleyin
 Please confirm operation on your Ledger: Lütfen Ledger'ınızdaki işlemi onaylayın
@@ -363,11 +363,11 @@ Slippage too high: Kayma toleransı çok yüksek
 Not Enough %symbol%: Yeterli miktarda %symbol% bulunmuyor
 Use Responsibly: Bilinçli kullanın
 $auth_responsibly_description1: |
-  MyTonWallet bir **self-custodial** cüzdandır, bunun anlamı **sadece sizin** fonlarınız üzerinde tam kontrole ve en önemlisi **tam sorumluluğa** sahip olmanızdır.
+  %app_name% bir **self-custodial** cüzdandır, bunun anlamı **sadece sizin** fonlarınız üzerinde tam kontrole ve en önemlisi **tam sorumluluğa** sahip olmanızdır.
 $auth_responsibly_description2: |
   Özel anahtarlarınız cihazınızda saklanır ve **hacker saldırılarına** maruz kalabilir. Bilgisayarınıza **kötü amaçlı yazılım** bulaşmışsa, paranızın çalınması riski bulunmaktadır.
 $auth_responsibly_description3: |
-  MyTonWallet ekibi de, tıpkı bilgisayar üreticinizin veya internet sağlayıcınızın sorumlu olmadığı gibi, paranızın güvenliğinden **sorumlu değildir**.
+  %app_name% ekibi de, tıpkı bilgisayar üreticinizin veya internet sağlayıcınızın sorumlu olmadığı gibi, paranızın güvenliğinden **sorumlu değildir**.
 $auth_responsibly_description4: |
   **Asla** tüm varlıklarınızı tek bir yerde saklamayın. **Çeşitlendirin** ve çeşitli yazılım ve donanımlar kullanın. Her zaman **kendi araştırmanızı yapın** ve kripto güvenliği hakkında daha fazla bilgi edinin.
 Start Wallet: Cüzdanı Başlat
@@ -619,6 +619,7 @@ Claim: İddia
 Confirm Unfreezing: Çözmeyi Onayla
 Insufficient Balance for Fee: Ücret Bakiyesi Yetersiz
 $fee_value_bold: "**Ücret:** %fee%"
+"%app_name% Features": "%app_name% Özellikleri"
 Security: Güvenlik
 To avoid entering the passcode every time, you can use biometrics.: Her seferinde şifreyi girmemek için biyometrik verileri kullanabilirsiniz.
 Change Passcode: Şifreyi değiştir
@@ -631,7 +632,6 @@ New code set successfully: Yeni kod başarıyla ayarlandı
 Codes don’t match: Kodlar eşleşmiyor
 Enter your new code: Yeni kodunuzu girin
 Re-enter your new code: Yeni kodunuzu tekrar girin
-MyTonWallet Features: MyTonWallet Özellikleri
 Install on Desktop: Masaüstüne Kur
 Install on Mobile: Mobile Kur
 Install App: Uygulamayı Yükle
@@ -680,7 +680,7 @@ NFT Menu: NFT Menüsü
 Connection Type: Bağlantı Türü
 Ledger is not supported on this device: Ledger bu cihazda desteklenmiyor
 Connect your Ledger: Ledger'ınızı bağlayın
-$app_lock_description: Uygulama kilidi etkinleştirildiğinde, ana sayfadaki kartta bir kilit simgesi görünür. MyTonWallet'i kilitlemek için kullanın.
+$app_lock_description: Uygulama kilidi etkinleştirildiğinde, ana sayfadaki kartta bir kilit simgesi görünür. %app_name%'i kilitlemek için kullanın.
 App Lock: Uygulama Kilidi
 Auto-Lock: Otomatik Kilit
 Disabled: Devre Dışı
@@ -736,6 +736,8 @@ Request is sent!: İstek gönderildi!
 Transaction ID: İşlem Kimliği
 Help Center: Yardım Merkezi
 MyTonWallet Tips: MyTonWallet İpuçları
+$auth_import_24_mnemonic_description: |
+  Cüzdanınıza erişimi, cüzdanı oluştururken not ettiğiniz **24 gizli kelimeyi** girerek geri yükleyebilirsiniz.
 $returned_value: ~ %value% iade edilecek
 Open %nft_marketplace%: "%nft_marketplace%'ı aç"
 Link was copied!: Bağlantı kopyalandı!

@@ -52,6 +52,7 @@ type NoneToVoidFunction = () => void;
 
 type ValueOf<T> = T[keyof T];
 type Entries<T> = [keyof T, ValueOf<T>][];
+type EnsurePromise<T> = T extends Promise<any> ? T : Promise<T>;
 
 type EmojiCategory = {
   id: string;

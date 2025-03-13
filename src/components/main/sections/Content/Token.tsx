@@ -4,7 +4,7 @@ import type { ApiBaseCurrency, ApiYieldType } from '../../../../api/types';
 import type { StakingStateStatus } from '../../../../global/helpers/staking';
 import type { AppTheme, UserToken } from '../../../../global/types';
 
-import { ANIMATED_STICKER_TINY_ICON_PX, TOKEN_WITH_LABEL } from '../../../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, IS_CORE_WALLET, TOKEN_WITH_LABEL } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
 import { calcChangeValue } from '../../../../util/calcChangeValue';
@@ -83,7 +83,7 @@ function Token({
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
   const changeValue = Math.abs(round(calcChangeValue(Number(value), change), 4));
   const changePercent = Math.abs(round(change * 100, 2));
-  const withYield = annualYield !== undefined;
+  const withYield = !IS_CORE_WALLET && annualYield !== undefined;
   const fullClassName = buildClassName(styles.container, isActive && styles.active, classNames);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const withLabel = Boolean(!isVesting && TOKEN_WITH_LABEL[slug]);

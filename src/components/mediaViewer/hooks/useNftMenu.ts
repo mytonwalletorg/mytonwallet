@@ -7,6 +7,7 @@ import type { DropdownItem } from '../../ui/Dropdown';
 import {
   GETGEMS_BASE_MAINNET_URL,
   GETGEMS_BASE_TESTNET_URL,
+  IS_CORE_WALLET,
   MTW_CARDS_COLLECTION,
   TON_DNS_COLLECTION,
 } from '../../../config';
@@ -240,7 +241,7 @@ export default function useNftMenu({
       collectionAddress, isOnSale, isOnFragment, isScam,
     } = nft;
     const isTonDns = nft.collectionAddress === TON_DNS_COLLECTION;
-    const isCard = nft.collectionAddress === MTW_CARDS_COLLECTION;
+    const isCard = !IS_CORE_WALLET && nft.collectionAddress === MTW_CARDS_COLLECTION;
 
     return [
       ...(isTonDns ? [TON_DNS_ITEM] : []),
@@ -254,9 +255,11 @@ export default function useNftMenu({
       GETGEMS_ITEM,
       TON_EXPLORER_ITEM,
       ...(collectionAddress ? [COLLECTION_ITEM] : []),
-      ...((!isScam && !isNftBlacklisted) || isNftWhitelisted ? [HIDE_ITEM] : []),
-      ...(isScam && !isNftWhitelisted ? [NOT_SCAM] : []),
-      ...(!isScam && isNftBlacklisted ? [UNHIDE] : []),
+      ...(!IS_CORE_WALLET ? [
+        ...((!isScam && !isNftBlacklisted) || isNftWhitelisted ? [HIDE_ITEM] : []),
+        ...(isScam && !isNftWhitelisted ? [NOT_SCAM] : []),
+        ...(!isScam && isNftBlacklisted ? [UNHIDE] : []),
+      ] : []),
       ...(!isOnSale ? [
         BURN_ITEM,
         SELECT_ITEM,

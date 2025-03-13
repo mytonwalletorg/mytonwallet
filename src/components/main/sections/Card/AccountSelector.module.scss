@@ -1,8 +1,6 @@
 @import "../../../../styles/mixins";
 
 .accountTitle {
-  cursor: var(--custom-cursor, pointer);
-
   position: absolute;
   top: 0.375rem;
   left: 0.25rem;
@@ -16,6 +14,17 @@
   font-size: 1.0625rem;
   font-weight: 700;
   color: var(--main-text, var(--color-card-text));
+
+  @media (hover: hover) {
+    top: 1.125rem;
+    left: 1rem;
+
+    padding: 0 0.6875rem 0 0;
+  }
+}
+
+.accountTitleInteractive {
+  cursor: var(--custom-cursor, pointer);
 
   transition: color 300ms;
 
@@ -37,13 +46,6 @@
     &:hover {
       opacity: 0.65;
     }
-  }
-
-  @media (hover: hover) {
-    top: 1.125rem;
-    left: 1rem;
-
-    padding: 0 0.6875rem 0 0;
   }
 }
 

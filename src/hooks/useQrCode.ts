@@ -6,6 +6,7 @@ import { removeExtraClass } from '../lib/teact/teact-dom';
 
 import type { ApiChain } from '../api/types';
 
+import { IS_CORE_WALLET } from '../config';
 import getChainNetworkIcon from '../util/swap/getChainNetworkIcon';
 import formatTransferUrl from '../util/ton/formatTransferUrl';
 
@@ -34,6 +35,7 @@ export default function useQrCode({
   withFormatTransferUrl?: boolean;
 }): UseQRCodeHook {
   const [isInitialized, setIsInitialized] = useState(!!qrCode);
+  const logoUrl = IS_CORE_WALLET ? './coreWallet/logo.svg' : './logo.svg';
 
   // eslint-disable-next-line no-null/no-null
   const qrCodeRef = useRef<HTMLDivElement>(null);
@@ -46,7 +48,7 @@ export default function useQrCode({
         qrCode = new QrCodeStyling({
           width: QR_SIZE,
           height: QR_SIZE,
-          image: chain ? getChainNetworkIcon(chain) : './logo.svg',
+          image: chain ? getChainNetworkIcon(chain) : logoUrl,
           margin: 0,
           type: 'canvas',
           dotsOptions: { type: 'rounded' },
@@ -58,7 +60,7 @@ export default function useQrCode({
 
         setIsInitialized(true);
       });
-  }, [chain, isInitialized]);
+  }, [chain, isInitialized, logoUrl]);
 
   useLayoutEffect(() => {
     if (!isActive || !isInitialized) return;
@@ -70,9 +72,9 @@ export default function useQrCode({
       // eslint-disable-next-line no-underscore-dangle
       qrCode._options.image = hideLogo
         ? undefined
-        : (chain ? getChainNetworkIcon(chain) : './logo.svg');
+        : (chain ? getChainNetworkIcon(chain) : logoUrl);
     }
-  }, [isActive, isInitialized, hiddenClassName, hideLogo, chain]);
+  }, [isActive, isInitialized, hiddenClassName, hideLogo, chain, logoUrl]);
 
   useEffect(() => {
     if (!address || !isActive || !qrCode || !isInitialized) return;

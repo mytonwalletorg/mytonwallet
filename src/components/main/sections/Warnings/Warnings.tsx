@@ -1,7 +1,7 @@
 import React, { memo } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
-import { IS_EXTENSION, IS_TELEGRAM_APP } from '../../../../config';
+import { IS_CORE_WALLET, IS_EXTENSION, IS_TELEGRAM_APP } from '../../../../config';
 import { selectCurrentAccountState } from '../../../../global/selectors';
 import { IS_ANDROID, IS_ELECTRON, IS_IOS } from '../../../../util/windowEnvironment';
 
@@ -22,7 +22,7 @@ type StateProps = {
   isBackupRequired: boolean;
 };
 
-const IS_UNSAFE_WEB = !IS_ELECTRON && !IS_EXTENSION && !IS_IOS && !IS_ANDROID && !IS_TELEGRAM_APP;
+const IS_UNSAFE_WEB = !IS_CORE_WALLET && !IS_ELECTRON && !IS_EXTENSION && !IS_IOS && !IS_ANDROID && !IS_TELEGRAM_APP;
 
 function Warnings({ isBackupRequired, isTestnet, onOpenBackupWallet }: OwnProps & StateProps) {
   const { isPortrait } = useDeviceScreen();

@@ -52,6 +52,7 @@ function TronContent({
         className={isStatic ? styles.copyButtonStatic : styles.addressWrapper}
         copyNotification={lang('Your address was copied!')}
         noSavedAddress
+        noDimming
       />
 
       {!isStatic && <TronActions onClose={onClose} />}

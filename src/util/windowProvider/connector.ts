@@ -2,7 +2,6 @@ import type { Connector } from '../PostMessageConnector';
 import type { WindowMethodArgs, WindowMethodResponse, WindowMethods } from './types';
 
 import { WINDOW_PROVIDER_CHANNEL } from '../../config';
-import { logDebugError } from '../logs';
 
 import { createConnector } from '../PostMessageConnector';
 
@@ -17,14 +16,10 @@ export function initWindowConnector() {
 }
 
 // eslint-disable-next-line no-async-without-await/no-async-without-await
-export async function callWindow<T extends keyof WindowMethods>(methodName: T, ...args: WindowMethodArgs<T>) {
+export function callWindow<T extends keyof WindowMethods>(methodName: T, ...args: WindowMethodArgs<T>) {
   if (!connector) {
-    logDebugError('API is not initialized');
-    return undefined;
+    throw new Error('API is not initialized');
   }
 
-  return (connector.request({
-    name: methodName,
-    args,
-  }) as WindowMethodResponse<T>);
+  return connector.request({ name: methodName, args }) as EnsurePromise<WindowMethodResponse<T>>;
 }

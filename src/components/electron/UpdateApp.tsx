@@ -5,7 +5,7 @@ import { withGlobal } from '../../global';
 
 import { ElectronEvent } from '../../electron/types';
 
-import { PRODUCTION_URL } from '../../config';
+import { APP_NAME, PRODUCTION_URL } from '../../config';
 import buildClassName from '../../util/buildClassName';
 
 import useFlag from '../../hooks/useFlag';
@@ -82,7 +82,7 @@ function UpdateApp({ isAppUpdateAvailable }: StateProps) {
         <i className={buildClassName('icon-update', styles.icon)} />
       </div>
 
-      <div className={styles.text}>{lang('Update MyTonWallet')}</div>
+      <div className={styles.text}>{lang('Update %app_name%', { app_name: APP_NAME })}</div>
     </div>
   );
 }

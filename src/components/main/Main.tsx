@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiStakingState } from '../../api/types';
 import { ActiveTab, ContentTab, type Theme } from '../../global/types';
 
-import { IS_CAPACITOR } from '../../config';
+import { IS_CAPACITOR, IS_CORE_WALLET } from '../../config';
 import { getStakingStateStatus } from '../../global/helpers/staking';
 import {
   selectAccountStakingState,
@@ -123,6 +123,8 @@ function Main({
   } = useShowTransition(canRenderStickyCard);
 
   useEffectOnce(() => {
+    if (IS_CORE_WALLET) return;
+
     loadExploreSites({ isLandscape });
   });
 
