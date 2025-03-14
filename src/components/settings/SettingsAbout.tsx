@@ -47,10 +47,7 @@ function SettingsAbout({
 
   const appTheme = useAppTheme(theme);
   const logoPath = appTheme === 'light' ? logoLightPath : logoDarkPath;
-  let aboutExtensionTitle = lang('$about_extension_link_text', { app_name: APP_NAME });
-  if (typeof aboutExtensionTitle !== 'string') {
-    aboutExtensionTitle = aboutExtensionTitle.join(' ');
-  }
+  const aboutExtensionTitle = lang('$about_extension_link_text', { app_name: APP_NAME });
 
   return (
     <div className={styles.slide}>

@@ -4,6 +4,7 @@
 url("./brilliant-icons.woff2?4900846f407b97ede87a1a321c3fdfb5") format("woff2");
     font-weight: normal;
     font-style: normal;
+    font-display: block;
 }
 
 [class^="icon-"], [class*=" icon-"] {

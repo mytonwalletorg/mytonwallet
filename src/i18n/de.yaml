@@ -86,7 +86,7 @@ $about_extension_description2: TON Magic, indem es die offizielle Telegram Web-A
 $about_extension_description3: Schalten Sie es ein, um Toncoins von jedem Telegram-Benutzer zu senden und zu empfangen.
 $about_proxy_magic_title: Was ist mit %ninja% TON Proxy und %unicorn% TON Magic?
 $about_proxy_magic_description: Um das **dezentrale Internet** zu nutzen, auf **TON Sites** zuzugreifen und die native **Telegram-Integration** zu nutzen, installieren Sie einfach das %extension_link%.
-$about_extension_link_text: "**%app_name%-Erweiterung**"
+$about_extension_link_text: "**%app_name%-erweiterung**"
 Is it open source?: Ist es Open Source?
 $about_wallet_github: Ja, das ist es. Erkunden Sie gerne unser %github_link%.
 $about_github_link_text: "**GitHub Repository**"

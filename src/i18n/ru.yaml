@@ -89,7 +89,7 @@ $about_extension_description2: TON Magic обеспечивает встроен
 $about_extension_description3: Включить, чтобы отправлять и получать переводы от любого пользователя Telegram.
 $about_proxy_magic_title: А что насчёт %ninja% TON Proxy и %unicorn% TON Magic?
 $about_proxy_magic_description: Чтобы наслаждаться **децентрализованным интернетом**, **сайтами TON** и встроенной **интеграцией с Telegram**, установите %extension_link%.
-$about_extension_link_text: "**Расширение %app_name%**"
+$about_extension_link_text: "**расширение %app_name%**"
 Is it open source?: А исходный код открыт?
 $about_wallet_github: Да, вот наш %github_link%.
 $about_github_link_text: "**репозиторий в GitHub**"

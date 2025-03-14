@@ -161,9 +161,45 @@ function processTemplate(template: string, value: any) {
   }, initialValue || '');
 }
 
-function processTemplateJsx(template: string, value: Record<string, TeactNode>) {
-  return template.split('%')
-    .reduce((acc, slice) => acc.concat(value[slice] ? [value[slice]] : renderText(slice)), [] as TeactNode[]);
+function processTemplateJsx(template: string, value: Record<string, TeactNode>): TeactNode[] {
+  const parts = template.split('%');
+  const processedParts: TeactNode[] = [];
+  let currentString = '';
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+
+    // Check if the current part is a token (between % symbols)
+    if (i % 2 === 1) {
+      const valueNode = value[part];
+
+      if (valueNode) {
+        if (typeof valueNode === 'string') {
+          currentString += valueNode;
+        } else {
+          // If the value is a component, process the accumulated string and add the component
+          if (currentString) {
+            processedParts.push(...renderText(currentString));
+            currentString = '';
+          }
+          processedParts.push(valueNode);
+        }
+      } else {
+        // If the token is not found, keep it as is (e.g., %unknown_token%)
+        currentString += `%${part}%`;
+      }
+    } else {
+      // If the part is a text segment, append it to the current string
+      currentString += part;
+    }
+  }
+
+  // Process any remaining text in the current string
+  if (currentString) {
+    processedParts.push(...renderText(currentString));
+  }
+
+  return processedParts;
 }
 
 function processTranslation(
