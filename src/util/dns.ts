@@ -17,6 +17,10 @@ function isGramDnsDomain(value: string) {
   return zonesRegex.gram.test(value);
 }
 
+function isTMeDnsDomain(value: string) {
+  return zonesRegex['t.me'].test(value);
+}
+
 function removeVipZone(value: string) {
   value = value.replace(/\.ton\.vip$/i, '.vip').replace(/\.vip\.ton$/i, '.vip');
   return value.match(zonesRegex.vip)?.groups?.base;
@@ -30,11 +34,17 @@ function removeTonZone(value: string) {
   return value.replace(/\.ton$/i, '');
 }
 
+function removeTMeZone(value: string) {
+  return value.replace(/\.t\.me$/i, '');
+}
+
 export default {
   isDnsDomain,
   isVipDnsDomain,
   isGramDnsDomain,
+  isTMeDnsDomain,
   removeVipZone,
   removeGramZone,
   removeTonZone,
+  removeTMeZone,
 };
