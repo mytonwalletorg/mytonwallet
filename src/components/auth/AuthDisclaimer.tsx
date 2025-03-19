@@ -23,7 +23,7 @@ interface OwnProps {
   isImport?: boolean;
 }
 
-const CONFIRM_DELAY_MS = 700;
+const CONFIRM_DELAY_MS = 350;
 
 const AuthDisclaimer = ({
   isActive, isImport,

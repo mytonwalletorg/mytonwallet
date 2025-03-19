@@ -12,7 +12,7 @@ import { WalletContractV3R2 } from '@ton/ton/dist/wallets/WalletContractV3R2';
 import { WalletContractV4 } from '@ton/ton/dist/wallets/WalletContractV4';
 import { WalletContractV5R1 } from '@ton/ton/dist/wallets/WalletContractV5R1';
 
-import type { ApiDnsZone, ApiNetwork } from '../../../types';
+import type { ApiNetwork } from '../../../types';
 import type { ApiTonWalletVersion, TokenTransferBodyParams } from '../types';
 
 import {
@@ -22,6 +22,7 @@ import {
   TONCENTER_TESTNET_KEY,
   TONCENTER_TESTNET_URL,
 } from '../../../../config';
+import { getDnsZoneByCollection } from '../../../../util/dns';
 import { fromKeyValueArrays, mapValues } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
@@ -35,7 +36,6 @@ import { hexToBytes } from '../../../common/utils';
 import { getEnvironment } from '../../../environment';
 import {
   DEFAULT_IS_BOUNCEABLE,
-  DNS_ZONES_MAP,
   JettonOpCode,
   LiquidStakingOpCode,
   OpCode,
@@ -366,14 +366,13 @@ export async function getDnsItemDomain(network: ApiNetwork, address: Address | s
   const nftData = await contract.getNftData();
   const collectionAddress = toBase64Address(nftData.collectionAddress, true);
 
-  const zone = Object.entries(DNS_ZONES_MAP)
-    .find(([, collection]) => collection === collectionAddress)?.[0] as ApiDnsZone | undefined;
+  const zone = getDnsZoneByCollection(collectionAddress);
 
-  const base = zone === '.t.me'
+  const base = zone?.isTelemint
     ? await contract.getTelemintDomain()
     : await contract.getDomain();
 
-  return `${base}${zone}`;
+  return `${base}.${zone?.suffixes[0]}`;
 }
 
 export function buildJettonUnstakePayload(jettonsToUnstake: bigint, forceUnstake?: boolean, queryId?: bigint) {

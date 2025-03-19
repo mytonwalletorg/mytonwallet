@@ -68,6 +68,10 @@ export enum Workchain {
 export const WORKCHAIN = Workchain.BaseChain;
 export const TRANSFER_TIMEOUT_SEC = 600; // 10 min.
 
+export const DEFAULT_MAX_MESSAGES = 4;
+export const LEDGER_MAX_MESSAGES = 4; // TODO Replace to 1 after DEX support
+export const W5_MAX_MESSAGES = 255;
+
 export enum OpCode {
   Comment = 0,
   Encrypted = 0x2167da4b,
@@ -138,13 +142,6 @@ export const DNS_CATEGORY_HASH_MAP = {
   wallet: 'e8d44050873dba865aa7c170ab4cce64d90839a34dcfd6cf71d14e0205443b1b',
   site: 'fbae041b02c41ed0fd8a4efb039bc780dd6af4a1f0c420f42561ae705dda43fe',
   storage: '49a25f9feefaffecad0fcd30c50dc9331cff8b55ece53def6285c09e17e6f5d7',
-} as const;
-
-export const DNS_ZONES_MAP = {
-  '.t.me': 'EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi',
-  '.ton': 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz',
-  '.vip': 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS',
-  '.gram': 'EQAic3zPce496ukFDhbco28FVsKKl2WUX_iJwaL87CBxSiLQ',
 } as const;
 
 export const KnownContracts: Record<ContractName, ContractInfo> = {

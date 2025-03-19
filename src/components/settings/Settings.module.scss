@@ -42,13 +42,11 @@
     }
   }
 
-  @include respond-below(xs) {
-    &.withTopSpace {
-      padding-top: calc(var(--header-padding-top) + var(--header-title-height) + var(--header-padding-bottom) + 0.75rem);
+  &.withTopSpace {
+    padding-top: calc(var(--header-padding-top) + var(--header-title-height) + var(--header-padding-bottom) + var(--safe-area-top) + 0.75rem);
 
-      :global(html.is-mobile-telegram-app.is-fullscreen) & {
-        padding-top: calc(var(--safe-area-top) + 0.75rem);
-      }
+    :global(html.is-mobile-telegram-app.is-fullscreen) & {
+      padding-top: calc(var(--safe-area-top) + 0.75rem);
     }
   }
 }
@@ -118,6 +116,13 @@
   }
 }
 
+.headerInsideModal {
+  position: absolute;
+  top: 0.375rem;
+  right: 0;
+  left: 0.125rem;
+}
+
 .languageHeader {
   grid-template-columns: 0.85fr 1fr 0.85fr;
 }
@@ -134,7 +139,7 @@
   font-size: 1.0625rem;
   color: var(--color-accent);
 
-  :global(html.is-telegram-app) & {
+  :global(html.is-telegram-app) &:not(.isInsideModal) {
     visibility: hidden;
   }
 

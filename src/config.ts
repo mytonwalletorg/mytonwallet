@@ -140,7 +140,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-177';
+export const LANG_CACHE_NAME = 'mtw-lang-178';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -581,3 +581,27 @@ export const DEFAULT_NOMINATORS_STAKING_STATE: ApiNominatorsStakingState = {
 export const SWAP_API_VERSION = 2;
 
 export const JVAULT_URL = 'https://jvault.xyz';
+
+export const TON_DNS_ZONES = [
+  {
+    suffixes: ['ton'],
+    baseFormat: /^([-\da-z]+\.){0,2}[-\da-z]{4,126}$/i,
+    resolver: 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz',
+  },
+  {
+    suffixes: ['t.me'],
+    baseFormat: /^([-\da-z]+\.){0,2}[-_\da-z]{4,32}$/i,
+    resolver: 'EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi',
+    isTelemint: true,
+  },
+  {
+    suffixes: ['vip', 'ton.vip', 'vip.ton'],
+    baseFormat: /^([-\da-z]+\.){0,2}?[\da-z]{1,24}$/i,
+    resolver: 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS',
+  },
+  {
+    suffixes: ['gram'],
+    baseFormat: /^([-\da-z]+\.){0,2}[\da-z]{1,127}$/i,
+    resolver: 'EQAic3zPce496ukFDhbco28FVsKKl2WUX_iJwaL87CBxSiLQ',
+  },
+];

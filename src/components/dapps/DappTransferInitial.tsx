@@ -1,7 +1,7 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiDapp, ApiDappTransfer, ApiToken } from '../../api/types';
+import type { ApiDapp, ApiDappTransfer, ApiTokenWithPrice } from '../../api/types';
 import type { Account } from '../../global/types';
 
 import { TONCOIN } from '../../config';
@@ -11,7 +11,7 @@ import {
   selectNetworkAccounts,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { toDecimal } from '../../util/decimals';
+import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
 import { shortenAddress } from '../../util/shortenAddress';
 import { isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
@@ -43,10 +43,18 @@ interface StateProps {
   totalReceived: bigint;
   isScam: boolean;
   isDangerous: boolean;
+  nftCount: number;
   dapp?: ApiDapp;
   isLoading?: boolean;
-  tokensBySlug: Record<string, ApiToken>;
+  tokensBySlug: Record<string, ApiTokenWithPrice>;
 }
+
+interface SortedDappTransfer extends ApiDappTransfer {
+  index: number;
+  sortingCost: number;
+}
+
+const NFT_FAKE_COST_USD = 1_000_000_000;
 
 function DappTransferInitial({
   currentAccount,
@@ -57,6 +65,7 @@ function DappTransferInitial({
   totalReceived,
   isScam,
   isDangerous,
+  nftCount,
   dapp,
   isLoading,
   tokensBySlug,
@@ -67,6 +76,10 @@ function DappTransferInitial({
   const lang = useLang();
   const isSingleTransaction = transactions?.length === 1;
   const renderingTransactions = useCurrentOrPrev(transactions, true);
+  const sortedTransactions = useMemo(
+    () => sortTransactions(renderingTransactions, tokensBySlug),
+    [renderingTransactions, tokensBySlug],
+  );
 
   function renderDapp() {
     return (
@@ -95,7 +108,7 @@ function DappTransferInitial({
     );
   }
 
-  function renderTransactionRow(transaction: ApiDappTransfer, i: number) {
+  function renderTransactionRow(transaction: SortedDappTransfer) {
     const { payload } = transaction;
 
     let amountText = '';
@@ -116,9 +129,9 @@ function DappTransferInitial({
 
     return (
       <div
-        key={`${transaction.toAddress}_${transaction.amount}_${i}`}
+        key={transaction.index}
         className={styles.transactionRow}
-        onClick={() => { showDappTransfer({ transactionIdx: i }); }}
+        onClick={() => showDappTransfer({ transactionIdx: transaction.index })}
       >
         {transaction.isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
         <span className={buildClassName(styles.transactionRowAmount, transaction.isScam && styles.scam)}>
@@ -136,16 +149,16 @@ function DappTransferInitial({
   }
 
   function renderTransactions() {
-    const hasAmount = Object.keys(totalAmountsBySlug).length > 0;
+    const hasAmount = nftCount > 0 || Object.keys(totalAmountsBySlug).length > 0;
 
     return (
       <>
         <p className={styles.label}>{lang('$many_transactions', renderingTransactions?.length, 'i')}</p>
         <div className={styles.transactionList}>
-          {renderingTransactions?.map(renderTransactionRow)}
+          {sortedTransactions?.map(renderTransactionRow)}
         </div>
         {hasAmount && (
-          <DappAmountField label={lang('Total Amount')} amountsBySlug={totalAmountsBySlug} />
+          <DappAmountField label={lang('Total Amount')} amountsBySlug={totalAmountsBySlug} nftCount={nftCount} />
         )}
         {isDangerous && (
           <div className={styles.warningForPayload}>{lang('$hardware_payload_warning')}</div>
@@ -191,6 +204,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isDangerous,
     fullFee: totalFullFee,
     received: totalReceived,
+    nftCount,
   } = selectCurrentDappTransferTotals(global);
 
   return {
@@ -202,8 +216,44 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     totalReceived,
     isScam,
     isDangerous,
+    nftCount,
     dapp,
     isLoading,
     tokensBySlug: global.tokenInfo.bySlug,
   };
 })(DappTransferInitial));
+
+function sortTransactions(
+  transactions: readonly ApiDappTransfer[] | undefined,
+  tokensBySlug: Record<string, ApiTokenWithPrice>,
+) {
+  if (!transactions) {
+    return transactions;
+  }
+
+  return transactions
+    .map((transaction, index): SortedDappTransfer => ({
+      ...transaction,
+      index,
+      sortingCost: getTransactionCostForSorting(transaction, tokensBySlug),
+    }))
+    .sort((transaction0, transaction1) => transaction1.sortingCost - transaction0.sortingCost);
+}
+
+function getTransactionCostForSorting(transaction: ApiDappTransfer, tokensBySlug: Record<string, ApiTokenWithPrice>) {
+  const tonAmount = toBig(transaction.displayedAmount + transaction.fullFee, TONCOIN.decimals).toNumber();
+  let cost = tokensBySlug[TONCOIN.slug].quote.priceUsd * tonAmount;
+
+  if (isTokenTransferPayload(transaction.payload)) {
+    const { amount, slug } = transaction.payload;
+    const token = tokensBySlug[slug];
+    if (token) {
+      cost += token.quote.priceUsd * toBig(amount, token.decimals).toNumber();
+    }
+  } else if (isNftTransferPayload(transaction.payload)) {
+    // Simple way to display NFT at top of list
+    cost += NFT_FAKE_COST_USD;
+  }
+
+  return cost;
+}

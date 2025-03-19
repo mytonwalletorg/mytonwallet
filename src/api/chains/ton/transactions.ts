@@ -1176,7 +1176,7 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
 
     void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
 
-    return msgHash;
+    return { boc, msgHash };
   } catch (err) {
     pendingTransfer?.resolve();
     throw err;

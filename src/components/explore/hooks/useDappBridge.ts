@@ -85,10 +85,6 @@ export function useDappBridge({
           inAppBrowserRef.current?.show();
           setRequestId(requestId + 1);
 
-          if (response?.event === 'connect') {
-            response.payload.device = tonConnectGetDeviceInfo();
-          }
-
           return response;
         } catch (err: any) {
           logDebugError('useDAppBridge:connect', err);
@@ -114,10 +110,6 @@ export function useDappBridge({
             requestId,
           );
           setRequestId(requestId + 1);
-
-          if (response?.event === 'connect') {
-            response.payload.device = tonConnectGetDeviceInfo();
-          }
 
           return response;
         } catch (err: any) {

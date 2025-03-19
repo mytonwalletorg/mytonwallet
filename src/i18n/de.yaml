@@ -750,3 +750,5 @@ $dapp_return_details: |
   %received_amount% wird Ihnen innerhalb weniger Minuten zurückerstattet.
 $dapp_return_disclaimer: Der angezeigte zurückgezahlte Betrag ist nicht garantiert und kann von bösartigen Dapps manipuliert werden. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
 Additional Amount Sent: Zusätzlich wird gesendet
+Copy Address: Adresse kopieren
+Copy Transaction ID: Transaktions-ID kopieren

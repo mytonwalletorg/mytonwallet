@@ -272,7 +272,7 @@ Dapp Permissions: Dapp Permissions
 $dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."
 Send Transaction: Send Transaction
 Payload: Payload
-$many_transactions: "%1$d transactions"
+$many_transactions: "%1$d Transactions"
 Total Amount: Total Amount
 Unstaking: Unstaking
 Handle ton:// links: Handle ton:// links
@@ -750,3 +750,5 @@ $dapp_return_details: |
   %received_amount% will be returned to you within a few minutes.
 $dapp_return_disclaimer: The displayed returned amount is not guaranteed and may be manipulated by malicious dapps. Cancel the operation if you are not sure about the reliability of this service.
 Additional Amount Sent: Additional Amount Sent
+Copy Address: Copy Address
+Copy Transaction ID: Copy Transaction ID

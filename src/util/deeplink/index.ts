@@ -21,7 +21,6 @@ import { omitUndefined } from '../iteratees';
 import { logDebug, logDebugError } from '../logs';
 import { openUrl } from '../openUrl';
 import { waitRender } from '../renderPromise';
-import { tonConnectGetDeviceInfo } from '../tonConnectEnvironment';
 import { isTelegramUrl } from '../url';
 import {
   CHECKIN_URL,
@@ -226,10 +225,8 @@ async function processTonConnectDeeplink(url: string, isFromInAppBrowser = false
 
   openLoadingOverlay();
 
-  const deviceInfo = tonConnectGetDeviceInfo();
   const returnUrl = await callApi('startSseConnection', {
     url,
-    deviceInfo,
     isFromInAppBrowser,
   });
 

@@ -220,7 +220,7 @@ export async function sendSignedTransferMessage(
   message: ApiSignedTransfer,
   pendingTransferId: string,
 ) {
-  const msgHash = await ton.sendSignedMessage(accountId, message, pendingTransferId);
+  const { msgHash } = await ton.sendSignedMessage(accountId, message, pendingTransferId);
 
   const localTransaction = createLocalTransaction(accountId, 'ton', {
     ...message.params,

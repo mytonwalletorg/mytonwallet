@@ -1,4 +1,3 @@
-import type { DNS_ZONES_MAP } from '../chains/ton/constants';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions } from './storage';
@@ -261,8 +260,6 @@ export type ApiWalletInfo = {
   isInitialized: boolean;
   lastTxId?: string;
 };
-
-export type ApiDnsZone = keyof typeof DNS_ZONES_MAP;
 
 // Country codes from ISO-3166-1 spec
 export type ApiCountryCode = 'AF' | 'AX' | 'AL' | 'DZ' | 'AS' | 'AD' | 'AO' | 'AI' | 'AQ' | 'AG' | 'AR'

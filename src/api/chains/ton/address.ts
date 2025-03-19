@@ -2,16 +2,12 @@ import { Address } from '@ton/core';
 
 import type { ApiNetwork } from '../../types';
 
-import dns from '../../../util/dns';
+import { getDnsDomainZone, isDnsDomain } from '../../../util/dns';
 import { fetchAddressBook } from './util/apiV3';
 import { dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
 import { getKnownAddressInfo } from '../../common/addresses';
 import { DnsCategory } from './constants';
-
-const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
-const VIP_DNS_COLLECTION = 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS';
-const GRAM_DNS_COLLECTION = 'EQAic3zPce496ukFDhbco28FVsKKl2WUX_iJwaL87CBxSiLQ';
 
 export async function resolveAddress(network: ApiNetwork, address: string): Promise<{
   address: string;
@@ -19,7 +15,7 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
   isMemoRequired?: boolean;
   isScam?: boolean;
 } | undefined> {
-  const isDomain = dns.isDnsDomain(address);
+  const isDomain = isDnsDomain(address);
   let domain: string | undefined;
 
   if (isDomain) {
@@ -50,23 +46,15 @@ export async function resolveAddress(network: ApiNetwork, address: string): Prom
 
 async function resolveAddressByDomain(network: ApiNetwork, domain: string) {
   try {
-    let base: string;
-    let collection: string;
-    if (dns.isVipDnsDomain(domain)) {
-      base = dns.removeVipZone(domain)!;
-      collection = VIP_DNS_COLLECTION;
-    } else if (dns.isGramDnsDomain(domain)) {
-      base = dns.removeGramZone(domain)!;
-      collection = GRAM_DNS_COLLECTION;
-    } else {
-      base = dns.removeTonZone(domain);
-      collection = TON_DNS_COLLECTION;
+    const zoneMatch = getDnsDomainZone(domain);
+    if (!zoneMatch) {
+      return undefined;
     }
 
     const result = await dnsResolve(
       getTonClient(network),
-      collection,
-      base,
+      zoneMatch.zone.resolver,
+      zoneMatch.base,
       DnsCategory.Wallet,
     );
 

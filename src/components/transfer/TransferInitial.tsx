@@ -26,7 +26,7 @@ import buildClassName from '../../util/buildClassName';
 import { readClipboardContent } from '../../util/clipboard';
 import { SECOND } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
-import dns from '../../util/dns';
+import { isDnsDomain } from '../../util/dns';
 import { stopEvent } from '../../util/domEvents';
 import {
   explainApiTransferFee, getMaxTransferAmount, isBalanceSufficientForTransfer,
@@ -391,7 +391,7 @@ function TransferInitial({
       return;
     }
 
-    if (dns.isDnsDomain(toAddress) && toAddress !== toAddress.toLowerCase()) {
+    if (isDnsDomain(toAddress) && toAddress !== toAddress.toLowerCase()) {
       setTransferToAddress({ toAddress: toAddress.toLowerCase().trim() });
     } else if (toAddress !== toAddress.trim()) {
       setTransferToAddress({ toAddress: toAddress.trim() });

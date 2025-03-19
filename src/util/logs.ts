@@ -2,7 +2,7 @@ import { DEBUG, DEBUG_API } from '../config';
 import { AssertionError } from './assert';
 import { omit } from './iteratees';
 
-interface Log {
+export interface Log {
   message: string;
   args: any[];
   time: Date;

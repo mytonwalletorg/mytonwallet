@@ -3,7 +3,7 @@ import type { GlobalState } from '../types';
 
 import { TONCOIN } from '../../config';
 import memoize from '../../util/memoize';
-import { isTokenTransferPayload } from '../../util/ton/transfer';
+import { isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
 
 const selectCurrentDappTransferTotalsMemoized = memoize((
   transactions: ApiDappTransfer[] | undefined,
@@ -17,6 +17,7 @@ const selectCurrentDappTransferTotalsMemoized = memoize((
   let isDangerous = false;
   let fullFee = 0n;
   let received = 0n;
+  let nftCount = 0;
 
   for (const transaction of transactions ?? []) {
     if (transaction.isScam) isScam = true;
@@ -24,10 +25,14 @@ const selectCurrentDappTransferTotalsMemoized = memoize((
     fullFee += transaction.fullFee;
     received += transaction.received;
 
-    addSlugAmount(TONCOIN.slug, transaction.displayedAmount);
+    if (transaction.displayedAmount) {
+      addSlugAmount(TONCOIN.slug, transaction.displayedAmount);
+    }
 
     if (isTokenTransferPayload(transaction.payload)) {
       addSlugAmount(transaction.payload.slug, transaction.payload.amount);
+    } else if (isNftTransferPayload(transaction.payload)) {
+      nftCount++;
     }
   }
 
@@ -37,6 +42,7 @@ const selectCurrentDappTransferTotalsMemoized = memoize((
     isDangerous,
     fullFee, // In TON
     received, // In TON
+    nftCount,
   };
 });
 

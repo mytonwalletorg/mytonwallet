@@ -738,3 +738,5 @@ $dapp_return_details: |
   %received_amount% 将在几分钟内退还给您。
 $dapp_return_disclaimer: 显示的返还金额不受保证，并可能被恶意 Dapp 操纵。如果您不确定该服务的可靠性，请取消操作。
 Additional Amount Sent: 额外发送
+Copy Address: 复制地址
+Copy Transaction ID: 复制交易ID

@@ -41,6 +41,8 @@ interface StateProps {
   isDangerous: boolean;
 }
 
+const MAX_TRANSACTIONS_IN_SMALL_MODAL = 4;
+
 function DappTransferModal({
   currentDappTransfer: {
     dapp,
@@ -73,6 +75,7 @@ function DappTransferModal({
   const { renderingKey, nextKey, updateNextKey } = useModalTransitionKeys(state, isOpen);
   const renderingTransactions = useCurrentOrPrev(transactions, true);
   const isDappLoading = dapp === undefined;
+  const needsExtraHeight = withPayloadWarning || (transactions?.length ?? 0) > MAX_TRANSACTIONS_IN_SMALL_MODAL;
 
   const handleBackClick = useLastCallback(() => {
     if (state === TransferState.Confirm || state === TransferState.Password) {
@@ -228,9 +231,9 @@ function DappTransferModal({
       hasCloseButton
       isOpen={isOpen && !isMediaViewerOpen}
       noBackdropClose
-      dialogClassName={buildClassName(styles.modalDialog, withPayloadWarning && styles.modalDialogExtraHeight)}
+      dialogClassName={buildClassName(styles.modalDialog, needsExtraHeight && styles.modalDialogExtraHeight)}
       nativeBottomSheetKey="dapp-transfer"
-      forceFullNative={withPayloadWarning || renderingKey === TransferState.Password}
+      forceFullNative={needsExtraHeight || renderingKey === TransferState.Password}
       onClose={closeDappTransfer}
       onCloseAnimationEnd={handleResetTransfer}
     >

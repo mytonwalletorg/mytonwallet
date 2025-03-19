@@ -1,15 +1,4 @@
-import type {
-  CHAIN, ConnectEventError, ConnectItemReply, DeviceInfo,
-} from '@tonconnect/protocol';
-
-export interface LocalConnectEventSuccess {
-  event: 'connect';
-  id: number;
-  payload: {
-    items: ConnectItemReply[];
-    device?: DeviceInfo; // We add it later in contentScript.js
-  };
-}
+import type { CHAIN, ConnectEventError, ConnectEventSuccess } from '@tonconnect/protocol';
 
 export interface TransactionPayload {
   valid_until?: number;
@@ -55,7 +44,7 @@ export enum SIGN_DATA_ERROR_CODES {
 }
 
 export type AllErrorCodes = CONNECT_EVENT_ERROR_CODES | SEND_TRANSACTION_ERROR_CODES | SIGN_DATA_ERROR_CODES;
-export type LocalConnectEvent = LocalConnectEventSuccess | ConnectEventError;
+export type ConnectEvent = ConnectEventSuccess | ConnectEventError;
 
 export interface ApiTonConnectProof {
   timestamp: number;

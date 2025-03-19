@@ -1,12 +1,18 @@
 import type { DeviceInfo } from '@tonconnect/protocol';
 
-import { APP_NAME, IS_CAPACITOR, TONCONNECT_PROTOCOL_VERSION } from '../config';
+import {
+  APP_NAME, IS_EXTENSION, IS_TELEGRAM_APP, TONCONNECT_PROTOCOL_VERSION,
+} from '../config';
 import packageJson from '../../package.json';
-import { IS_ELECTRON } from './windowEnvironment';
+import { W5_MAX_MESSAGES } from '../api/chains/ton/constants';
 
 type DevicePlatform = DeviceInfo['platform'];
 
-export function tonConnectGetDeviceInfo(): DeviceInfo {
+/*
+ This function is called in TonConnect `connect` method (where we know the wallet version)
+ and in JS Bridge (where no account is selected, so we show maximum number of messages).
+*/
+export function tonConnectGetDeviceInfo(maxMessages = W5_MAX_MESSAGES): DeviceInfo {
   return {
     platform: getPlatform()!,
     appName: APP_NAME,
@@ -14,14 +20,14 @@ export function tonConnectGetDeviceInfo(): DeviceInfo {
     maxProtocolVersion: TONCONNECT_PROTOCOL_VERSION,
     features: [
       'SendTransaction', // TODO DEPRECATED
-      { name: 'SendTransaction', maxMessages: 4 },
+      { name: 'SendTransaction', maxMessages },
     ],
   };
 }
 
 function getPlatform(): DevicePlatform {
-  const { userAgent } = window.navigator;
-  const platform = window.navigator.platform || window.navigator?.userAgentData?.platform || '';
+  const { userAgent } = navigator;
+  const platform = navigator.platform || navigator?.userAgentData?.platform || '';
 
   const macosPlatforms = ['macOS', 'Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
   const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];
@@ -30,7 +36,7 @@ function getPlatform(): DevicePlatform {
 
   let devicePlatform: DevicePlatform | undefined;
 
-  if (!IS_CAPACITOR && !IS_ELECTRON) {
+  if (IS_EXTENSION || IS_TELEGRAM_APP) {
     devicePlatform = 'browser';
   } else if (/Android/.test(userAgent)) {
     devicePlatform = 'android';

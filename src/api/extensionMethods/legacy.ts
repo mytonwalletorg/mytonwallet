@@ -240,7 +240,7 @@ async function sendLedgerTransaction(
   try {
     const [signedMessage] = await promise as ApiSignedTransfer[];
 
-    msgHash = await ton.sendSignedMessage(accountId, signedMessage);
+    ({ msgHash } = await ton.sendSignedMessage(accountId, signedMessage));
   } catch (err) {
     logDebugError('sendLedgerTransaction', err);
     return false;

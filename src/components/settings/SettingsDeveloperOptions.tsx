@@ -15,6 +15,7 @@ import { copyTextToClipboard } from '../../util/clipboard';
 import { getBuildPlatform, getFlagsValue } from '../../util/getBuildPlatform';
 import { getPlatform } from '../../util/getPlatform';
 import { getLogs } from '../../util/logs';
+import { getLogsFromNative } from '../../util/multitab';
 import { shareFile } from '../../util/share';
 import { callApi } from '../../api';
 
@@ -171,10 +172,14 @@ async function getLogsString(
     return acc;
   }, {} as any);
 
-  const workerLogs = await callApi('getLogs') || [];
-  const uiLogs = getLogs();
+  const [mainLogs, bottomSheetLogs, apiLogs = []] = await Promise.all([
+    getLogs(),
+    getLogsFromNative(),
+    callApi('getLogs'),
+  ]);
+
   return JSON.stringify(
-    [...workerLogs, ...uiLogs].sort((a, b) => a.time.getTime() - b.time.getTime()).concat({
+    {
       time: new Date(),
       environment: APP_ENV,
       version: APP_VERSION,
@@ -185,7 +190,12 @@ async function getLogsString(
       flags: getFlagsValue(),
       currentAccountId,
       accountsInfo,
-    } as any),
+      logs: [
+        ...mainLogs.map((log) => ({ ...log, context: 'main' })),
+        ...bottomSheetLogs.map((log) => ({ ...log, context: 'bottomSheet' })),
+        ...apiLogs.map((log) => ({ ...log, context: 'api' })),
+      ].sort((a, b) => a.time.getTime() - b.time.getTime()),
+    },
     undefined,
     2,
   );

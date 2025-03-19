@@ -1,12 +1,14 @@
-import { addCallback } from '../lib/teact/teactn';
+import { addCallback as onGlobalChange } from '../lib/teact/teactn';
 import { getActions, getGlobal, setGlobal } from '../global';
 
 import type { ActionPayloads, GlobalState } from '../global/types';
+import type { Log } from './logs';
 
 import { MULTITAB_DATA_CHANNEL_NAME } from '../config';
 import { deepDiff } from './deepDiff';
 import { deepMerge } from './deepMerge';
 import { omit } from './iteratees';
+import { getLogs } from './logs';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET, IS_MULTITAB_SUPPORTED } from './windowEnvironment';
 
 import { isBackgroundModeActive } from '../hooks/useBackgroundMode';
@@ -28,9 +30,20 @@ interface BroadcastChannelCallActionInNative<K extends keyof ActionPayloads> {
   options?: ActionPayloads[K];
 }
 
+interface BroadcastChannelNativeLogsRequest {
+  type: 'getLogsFromNative';
+}
+
+interface BroadcastChannelNativeLogsResponse {
+  type: 'logsFromNative';
+  logs: Log[];
+}
+
 type BroadcastChannelMessage = BroadcastChannelGlobalDiff
 | BroadcastChannelCallActionInMain<keyof ActionPayloads>
-| BroadcastChannelCallActionInNative<keyof ActionPayloads>;
+| BroadcastChannelCallActionInNative<keyof ActionPayloads>
+| BroadcastChannelNativeLogsRequest
+| BroadcastChannelNativeLogsResponse;
 type EventListener = (type: 'message', listener: (event: { data: BroadcastChannelMessage }) => void) => void;
 
 export type TypedBroadcastChannel = {
@@ -49,7 +62,7 @@ export function initMultitab({ noPubGlobal }: { noPubGlobal?: boolean } = {}) {
   if (!channel) return;
 
   if (!noPubGlobal) {
-    addCallback(handleGlobalChange);
+    onGlobalChange(handleGlobalChange);
   }
 
   channel.addEventListener('message', handleMultitabMessage);
@@ -108,6 +121,13 @@ function handleMultitabMessage({ data }: { data: BroadcastChannelMessage }) {
       getActions()[name](options as never);
       break;
     }
+
+    case 'getLogsFromNative': {
+      if (!IS_DELEGATED_BOTTOM_SHEET) return;
+
+      channel!.postMessage({ type: 'logsFromNative', logs: getLogs() });
+      break;
+    }
   }
 }
 
@@ -124,5 +144,21 @@ export function callActionInNative<K extends keyof ActionPayloads>(name: K, opti
     type: 'callActionInNative',
     name,
     options,
+  });
+}
+
+export function getLogsFromNative() {
+  if (!IS_DELEGATING_BOTTOM_SHEET) return Promise.resolve([]);
+
+  return new Promise<Log[]>((resolve) => {
+    const handleMessage = ({ data }: { data: BroadcastChannelMessage }) => {
+      if (data.type === 'logsFromNative') {
+        channel!.removeEventListener('message', handleMessage);
+        resolve(data.logs);
+      }
+    };
+
+    channel!.addEventListener('message', handleMessage);
+    channel!.postMessage({ type: 'getLogsFromNative' });
   });
 }

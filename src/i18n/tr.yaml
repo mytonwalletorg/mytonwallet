@@ -272,7 +272,7 @@ Dapp Permissions: Dapp İzinleri
 $dapp_can_view_balance: "%dappname% cüzdan adresini ve bakiyesini görüntüleyebilecek."
 Send Transaction: İşlemi gönder
 Payload: Yük
-$many_transactions: "%1$d işlem"
+$many_transactions: "%1$d Işlem"
 Total Amount: Toplam tutar
 Unstaking: Unstaking gerçekleşiyor
 Handle ton:// links: ton:// bağlantılarını işle
@@ -749,3 +749,5 @@ $dapp_return_details: |
   %received_amount% birkaç dakika içinde size geri gönderilecektir.
 $dapp_return_disclaimer: Görüntülenen iade edilen tutar garanti edilmez ve kötü niyetli dapp'ler tarafından manipüle edilebilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
 Additional Amount Sent: Ekstra Gönderilecek
+Copy Address: Adresi Kopyala
+Copy Transaction ID: İşlem Kimliğini Kopyala

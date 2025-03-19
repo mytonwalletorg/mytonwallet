@@ -3,9 +3,10 @@ import React, { memo } from '../../lib/teact/teact';
 import buildClassName from '../../util/buildClassName';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
+import useLang from '../../hooks/useLang';
 
 import TokenSelector from '../common/TokenSelector';
-import SettingsTokenListHeader from './SettingsTokenListHeader';
+import Button from '../ui/Button';
 
 import styles from './Settings.module.scss';
 
@@ -20,6 +21,8 @@ function SettingsTokenList({
   isInsideModal,
   handleBackClick,
 }: OwnProps) {
+  const lang = useLang();
+
   useHistoryBack({
     isActive,
     onBack: handleBackClick,
@@ -27,10 +30,18 @@ function SettingsTokenList({
 
   function renderHeader() {
     return (
-      <SettingsTokenListHeader
-        isInsideModal={isInsideModal}
-        onBack={handleBackClick}
-      />
+      <div className={buildClassName(styles.header, isInsideModal && styles.headerInsideModal)}>
+        <Button
+          isSimple
+          isText
+          className={buildClassName(styles.headerBack, isInsideModal && styles.isInsideModal)}
+          onClick={handleBackClick}
+        >
+          <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
+          <span>{lang('Back')}</span>
+        </Button>
+        <span className={styles.headerTitle}>{lang('Select Token')}</span>
+      </div>
     );
   }
 

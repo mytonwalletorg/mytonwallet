@@ -1,3 +1,5 @@
+/* TonConnect specification https://github.com/ton-blockchain/ton-connect */
+
 import { Address, Cell } from '@ton/core';
 import type {
   ConnectEventError,
@@ -16,6 +18,7 @@ import nacl from 'tweetnacl';
 
 import type { ApiCheckMultiTransactionDraftResult, TonTransferParams } from '../chains/ton/types';
 import type {
+  ApiAccountAny,
   ApiAccountWithMnemonic,
   ApiAnyDisplayError,
   ApiDappMetadata,
@@ -27,7 +30,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 import type {
-  ApiTonConnectProof, LocalConnectEvent, TransactionPayload, TransactionPayloadMessage,
+  ApiTonConnectProof, ConnectEvent, TransactionPayload, TransactionPayloadMessage,
 } from './types';
 import { ApiCommonError, ApiTransactionError } from '../types';
 import { CONNECT_EVENT_ERROR_CODES, SEND_TRANSACTION_ERROR_CODES, SIGN_DATA_ERROR_CODES } from './types';
@@ -39,9 +42,11 @@ import { bigintDivideToNumber } from '../../util/bigint';
 import { logDebugError } from '../../util/logs';
 import { fetchJsonMetadata } from '../../util/metadata';
 import safeExec from '../../util/safeExec';
+import { tonConnectGetDeviceInfo } from '../../util/tonConnectEnvironment';
 import chains from '../chains';
 import { getContractInfo, parsePayloadBase64 } from '../chains/ton';
 import { fetchKeyPair } from '../chains/ton/auth';
+import { DEFAULT_MAX_MESSAGES, LEDGER_MAX_MESSAGES, W5_MAX_MESSAGES } from '../chains/ton/constants';
 import {
   getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress,
 } from '../chains/ton/util/tonCore';
@@ -95,11 +100,7 @@ export function initTonConnect(_onPopupUpdate: OnApiUpdate) {
   resolveInit();
 }
 
-export async function connect(
-  request: ApiDappRequest,
-  message: ConnectRequest,
-  id: number,
-): Promise<LocalConnectEvent> {
+export async function connect(request: ApiDappRequest, message: ConnectRequest, id: number): Promise<ConnectEvent> {
   try {
     await openExtensionPopup(true);
 
@@ -127,6 +128,10 @@ export async function connect(
 
     if (!addressItem) {
       throw new errors.BadRequestError("Missing 'ton_addr'");
+    }
+
+    if (proof && !proof.domain.includes('.')) {
+      throw new errors.BadRequestError('Invalid domain');
     }
 
     let accountId = await getCurrentAccountOrFail();
@@ -166,9 +171,11 @@ export async function connect(
     await addDapp(accountId, dapp);
     activateDapp(accountId, origin);
 
-    const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+    const account = await fetchStoredAccount(accountId);
     const { address } = account.ton;
 
+    const maxMessages = getMaxMessages(account);
+    const deviceInfo = tonConnectGetDeviceInfo(maxMessages);
     const items: ConnectItemReply[] = [
       await buildTonAddressReplyItem(accountId, account.ton),
     ];
@@ -178,7 +185,7 @@ export async function connect(
 
       let proofReplyItem: TonProofItemReplySuccess;
       if (password) {
-        proofReplyItem = await signTonProof(accountId, account, password, address, proof!);
+        proofReplyItem = await signTonProof(accountId, account as ApiAccountWithMnemonic, password, address, proof!);
       } else {
         proofReplyItem = buildTonProofReplyItem(proof, signature!);
       }
@@ -192,7 +199,10 @@ export async function connect(
     return {
       event: 'connect',
       id,
-      payload: { items },
+      payload: {
+        items,
+        device: deviceInfo,
+      },
     };
   } catch (err) {
     logDebugError('tonConnect:connect', err);
@@ -207,7 +217,7 @@ export async function connect(
   }
 }
 
-export async function reconnect(request: ApiDappRequest, id: number): Promise<LocalConnectEvent> {
+export async function reconnect(request: ApiDappRequest, id: number): Promise<ConnectEvent> {
   try {
     const { origin, accountId } = await validateRequest(request);
 
@@ -221,6 +231,8 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Lo
 
     const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
 
+    const maxMessages = getMaxMessages(account);
+    const deviceInfo = tonConnectGetDeviceInfo(maxMessages);
     const items: ConnectItemReply[] = [
       await buildTonAddressReplyItem(accountId, account.ton),
     ];
@@ -228,11 +240,26 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Lo
     return {
       event: 'connect',
       id,
-      payload: { items },
+      payload: {
+        items,
+        device: deviceInfo,
+      },
     };
   } catch (e) {
     logDebugError('tonConnect:reconnect', e);
     return formatConnectError(id, e as Error);
+  }
+}
+
+function getMaxMessages(account: ApiAccountAny) {
+  const { type, ton: { version } } = account;
+
+  if (type === 'ledger') {
+    return LEDGER_MAX_MESSAGES;
+  } else if (version === 'W5') {
+    return W5_MAX_MESSAGES;
+  } else {
+    return DEFAULT_MAX_MESSAGES;
   }
 }
 
@@ -266,8 +293,18 @@ export async function sendTransaction(
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
     const { messages, network: dappNetworkRaw } = txPayload;
 
-    if (messages.length > 4) {
-      throw new errors.BadRequestError('Payload contains more than 4 messages, which exceeds limit');
+    const account = await fetchStoredAccount(accountId);
+    const {
+      type, ton: {
+        address,
+        publicKey: publicKeyHex,
+      },
+    } = account;
+
+    const maxMessages = getMaxMessages(account);
+
+    if (messages.length > maxMessages) {
+      throw new errors.BadRequestError(`Payload contains more than ${maxMessages} messages, which exceeds limit`);
     }
 
     const dappNetwork = dappNetworkRaw
@@ -278,13 +315,6 @@ export async function sendTransaction(
       // If milliseconds were passed instead of seconds
       validUntil = Math.round(validUntil / 1000);
     }
-
-    const {
-      type, ton: {
-        address,
-        publicKey: publicKeyHex,
-      },
-    } = await fetchStoredAccount(accountId);
 
     const isLedger = type === 'ledger';
 
@@ -339,27 +369,12 @@ export async function sendTransaction(
     }
 
     let boc: string | undefined;
-    let successNumber: number | undefined;
     let error: string | undefined;
-    let msgHashes: string[] = [];
+    let msgHash: string | undefined;
 
     if (isLedger) {
       const signedTransfers = response as ApiSignedTransfer[];
-      const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
-      boc = submitResult.firstBoc;
-      successNumber = submitResult.successNumber;
-      msgHashes = submitResult.msgHashes;
-
-      if (successNumber > 0) {
-        if (successNumber < messages.length) {
-          onPopupUpdate({
-            type: 'showError',
-            error: ApiTransactionError.PartialTransactionFailure,
-          });
-        }
-      } else {
-        error = 'Failed transfers';
-      }
+      ({ boc, msgHash } = await ton.sendSignedMessage(accountId, signedTransfers[0]));
     } else {
       const password = response as string;
       const submitResult = await ton.submitMultiTransfer({
@@ -368,9 +383,7 @@ export async function sendTransaction(
       if ('error' in submitResult) {
         error = submitResult.error;
       } else {
-        boc = submitResult.boc;
-        successNumber = messages.length;
-        msgHashes = [submitResult.msgHash];
+        ({ boc, msgHash } = submitResult);
       }
     }
 
@@ -378,11 +391,8 @@ export async function sendTransaction(
       throw new errors.UnknownError(error);
     }
 
-    const successTransactions = transactionsForRequest.slice(0, successNumber!);
-
-    successTransactions.forEach(({ amount, normalizedAddress, payload }, index) => {
+    transactionsForRequest.forEach(({ amount, normalizedAddress, payload }) => {
       const comment = payload?.type === 'comment' ? payload.comment : undefined;
-      const msgHash = isLedger ? msgHashes[index] : msgHashes[0];
       createLocalTransaction(accountId, 'ton', {
         amount,
         fromAddress: address,

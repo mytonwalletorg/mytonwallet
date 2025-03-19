@@ -84,8 +84,6 @@ class TonConnect implements ExtensionTonConnectBridge {
 
     const response = await this.request('connect', [message, id]);
     if (response?.event === 'connect') {
-      response.payload.device = tonConnectGetDeviceInfo();
-
       this.addEventListeners();
     }
 
@@ -97,8 +95,6 @@ class TonConnect implements ExtensionTonConnectBridge {
 
     const response = await this.request('reconnect', [id]);
     if (response?.event === 'connect') {
-      response.payload.device = tonConnectGetDeviceInfo();
-
       this.addEventListeners();
     }
 

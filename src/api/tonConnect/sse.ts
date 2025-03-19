@@ -1,8 +1,6 @@
 import type {
   AppRequest,
-  ConnectEvent,
   ConnectRequest,
-  DeviceInfo,
   DisconnectEvent,
   RpcRequests,
 } from '@tonconnect/protocol';
@@ -47,10 +45,9 @@ export function initSse(_onUpdate: OnApiUpdate) {
 }
 
 export async function startSseConnection({
-  url, deviceInfo, isFromInAppBrowser, identifier,
+  url, isFromInAppBrowser, identifier,
 }: {
   url: string;
-  deviceInfo: DeviceInfo;
   isFromInAppBrowser?: boolean;
   identifier?: string;
 }): Promise<ReturnStrategy | undefined> {
@@ -106,10 +103,7 @@ export async function startSseConnection({
     return undefined;
   }
 
-  const result = await tonConnect.connect(request, connectRequest, lastOutputId) as ConnectEvent;
-  if (result.event === 'connect') {
-    result.payload.device = deviceInfo;
-  }
+  const result = await tonConnect.connect(request, connectRequest, lastOutputId);
 
   await sendMessage(result, secretKey, clientId, appClientId);
 

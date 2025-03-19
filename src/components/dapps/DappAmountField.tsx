@@ -12,6 +12,7 @@ import styles from './Dapp.module.scss';
 type OwnProps = {
   label: TeactNode;
   amountsBySlug: Record<string, bigint>;
+  nftCount?: number;
 };
 
 type StateProps = {
@@ -22,14 +23,22 @@ type StateProps = {
 function DappAmountField({
   label,
   amountsBySlug,
+  nftCount,
   tokensBySlug,
   baseCurrency,
 }: OwnProps & StateProps) {
-  const totalCost = getTotalCost(amountsBySlug, tokensBySlug);
   const amountTerms: TeactNode[] = [];
 
-  Object.entries(amountsBySlug).forEach(([tokenSlug, amount], index) => {
-    if (index > 0) {
+  if (nftCount) {
+    amountTerms.push(
+      <span className={styles.payloadFieldTerm}>
+        {`${nftCount} NFT${nftCount > 1 ? 's' : ''}`}
+      </span>,
+    );
+  }
+
+  for (const [tokenSlug, amount] of Object.entries(amountsBySlug)) {
+    if (amountTerms.length) {
       amountTerms.push(' + ');
     }
 
@@ -40,7 +49,12 @@ function DappAmountField({
         {formatCurrency(toDecimal(amount, token?.decimals ?? 0), token?.symbol ?? '')}
       </span>,
     );
-  });
+  }
+
+  if (Object.keys(amountsBySlug).length > 0) {
+    const totalCost = getTotalCost(amountsBySlug, tokensBySlug);
+    amountTerms.push(` (${formatCurrency(totalCost, getShortCurrencySymbol(baseCurrency))})`);
+  }
 
   return (
     <>
@@ -49,8 +63,6 @@ function DappAmountField({
       </span>
       <div className={styles.payloadField}>
         {amountTerms}
-        {' '}
-        ({formatCurrency(totalCost, getShortCurrencySymbol(baseCurrency))})
       </div>
     </>
   );
