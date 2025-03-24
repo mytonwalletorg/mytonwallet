@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, FocusEvent } from 'react';
 
 import type { Signal } from '../../util/signals';
 import type {
@@ -53,6 +53,7 @@ const MAPPED_ATTRIBUTES: { [k: string]: string } = {
   spellCheck: 'spellcheck',
 };
 const INDEX_KEY_PREFIX = '__indexKey#';
+const SELECTION_STATE_ATTRIBUTE = '__teactSelectionState';
 
 const headsByElement = new WeakMap<Element, VirtualDomHead>();
 const extraClasses = new WeakMap<Element, Set<string>>();
@@ -652,10 +653,15 @@ function processControlled(tag: string, props: AnyLiteral) {
   }
 
   const {
-    value, checked, onInput, onChange,
+    value, checked, onInput, onChange, onBlur,
   } = props;
 
   props.onChange = undefined;
+  props.onBlur = (e: FocusEvent<HTMLInputElement>) => {
+    delete e.currentTarget.dataset[SELECTION_STATE_ATTRIBUTE];
+
+    onBlur?.(e);
+  };
   props.onInput = (e: ChangeEvent<HTMLInputElement>) => {
     onInput?.(e);
     onChange?.(e);
@@ -671,7 +677,7 @@ function processControlled(tag: string, props: AnyLiteral) {
 
         const selectionState: SelectionState = { selectionStart, selectionEnd, isCaretAtEnd };
         // eslint-disable-next-line no-underscore-dangle
-        e.currentTarget.dataset.__teactSelectionState = JSON.stringify(selectionState);
+        e.currentTarget.dataset[SELECTION_STATE_ATTRIBUTE] = JSON.stringify(selectionState);
       }
     }
 
@@ -736,7 +742,7 @@ function setAttribute(element: DOMElement, key: string, value: any, namespace?: 
       inputEl.value = value;
 
       // eslint-disable-next-line no-underscore-dangle
-      const selectionStateJson = inputEl.dataset.__teactSelectionState;
+      const selectionStateJson = inputEl.dataset[SELECTION_STATE_ATTRIBUTE];
       if (selectionStateJson) {
         const { selectionStart, selectionEnd, isCaretAtEnd } = JSON.parse(selectionStateJson) as SelectionState;
 

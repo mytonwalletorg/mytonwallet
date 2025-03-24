@@ -1,7 +1,7 @@
 {
     "name": "TON Wallet",
     "short_name": "TON Wallet",
-    "start_url": "./",
+    "start_url": "/",
     "icons": [
         {
             "src": "/coreWallet/icon-128x128.png",
