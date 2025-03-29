@@ -1,8 +1,7 @@
 import type { ApiMtwCardBorderShineType, ApiNft } from '../api/types';
 
 import buildClassName from '../util/buildClassName';
-
-import { getCardNftImageUrl } from '../components/main/sections/Card/helpers/getCardNftImageUrl';
+import { getCardNftImageUrl } from '../util/url';
 
 interface CardCustomizationResult {
   backgroundImageUrl?: string;

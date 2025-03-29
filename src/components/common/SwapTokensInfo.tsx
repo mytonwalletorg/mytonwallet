@@ -1,4 +1,4 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import type { ApiSwapAsset } from '../../api/types';
 import type { UserSwapToken } from '../../global/types';
@@ -6,14 +6,17 @@ import type { UserSwapToken } from '../../global/types';
 import { TOKEN_WITH_LABEL } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { formatCurrencyExtended } from '../../util/formatNumber';
+import getPseudoRandomNumber from '../../util/getPseudoRandomNumber';
 import getChainNetworkName from '../../util/swap/getChainNetworkName';
 import getSwapRate from '../../util/swap/getSwapRate';
 
+import SensitiveData from '../ui/SensitiveData';
 import TokenIcon from './TokenIcon';
 
 import styles from './SwapTokensInfo.module.scss';
 
 interface OwnProps {
+  isSensitiveDataHidden?: true;
   tokenIn?: UserSwapToken | ApiSwapAsset;
   amountIn?: string;
   tokenOut?: UserSwapToken | ApiSwapAsset;
@@ -22,9 +25,17 @@ interface OwnProps {
 }
 
 function SwapTokensInfo({
-  tokenIn, amountIn, tokenOut, amountOut, isError = false,
+  isSensitiveDataHidden, tokenIn, amountIn, tokenOut, amountOut, isError = false,
 }: OwnProps) {
-  function renderTokenInfo(token?: UserSwapToken | ApiSwapAsset, amount = '0', isReceived = false) {
+  const amountInCols = useMemo(() => getPseudoRandomNumber(5, 13, amountIn ?? ''), [amountIn]);
+  const amountOutCols = useMemo(() => getPseudoRandomNumber(5, 13, amountOut ?? ''), [amountOut]);
+
+  function renderTokenInfo(
+    amountCols: number,
+    token?: UserSwapToken | ApiSwapAsset,
+    amount = '0',
+    isReceived = false,
+  ) {
     const amountWithSign = isReceived ? amount : -amount;
     const withLabel = Boolean(token && TOKEN_WITH_LABEL[token.slug]);
 
@@ -44,14 +55,20 @@ function SwapTokensInfo({
             <span className={buildClassName(styles.label, styles.chainLabel)}>{TOKEN_WITH_LABEL[token!.slug]}</span>
           )}
         </span>
-        <span className={buildClassName(
-          styles.infoRowAmount,
-          isReceived && styles.infoRowAmountGreen,
-          isError && styles.infoRowAmountError,
-        )}
+        <SensitiveData
+          isActive={isSensitiveDataHidden}
+          cols={amountCols}
+          rows={2}
+          cellSize={8}
+          align="right"
+          className={buildClassName(
+            styles.infoRowAmount,
+            isReceived && styles.infoRowAmountGreen,
+            isError && styles.infoRowAmountError,
+          )}
         >
           {formatCurrencyExtended(amountWithSign, token?.symbol ?? '')}
-        </span>
+        </SensitiveData>
         <span className={styles.infoRowChain}>{getChainNetworkName(token?.chain)}</span>
         {!isReceived && renderCurrency(amountIn, amountOut, tokenIn, tokenOut)}
       </div>
@@ -60,7 +77,7 @@ function SwapTokensInfo({
 
   return (
     <div className={styles.infoBlock}>
-      {renderTokenInfo(tokenIn, amountIn)}
+      {renderTokenInfo(amountInCols, tokenIn, amountIn)}
       <div className={styles.infoSeparator}>
         <i
           className={buildClassName(
@@ -71,7 +88,7 @@ function SwapTokensInfo({
           aria-hidden
         />
       </div>
-      {renderTokenInfo(tokenOut, amountOut, true)}
+      {renderTokenInfo(amountOutCols, tokenOut, amountOut, true)}
     </div>
   );
 }

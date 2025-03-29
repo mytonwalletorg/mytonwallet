@@ -5,6 +5,7 @@ import type {
   ApiTokenWithPrice,
 } from '../../../api/types';
 
+import { getIsIdSuitableForFetchingTimestamp } from '../../../util/activities';
 import { compareActivities } from '../../../util/compareActivities';
 import {
   buildCollectionByKey, extractKey, findLast, unique,
@@ -13,7 +14,7 @@ import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import { onTickEnd, pause } from '../../../util/schedulers';
 import { buildUserToken } from '../../../util/tokens';
 import { callApi } from '../../../api';
-import { getIsSwapId, getIsTinyOrScamTransaction, getIsTxIdLocal } from '../../helpers';
+import { getIsTinyOrScamTransaction } from '../../helpers';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   changeBalance,
@@ -43,16 +44,16 @@ addActionHandler('fetchTokenTransactions', async (global, actions, { limit, slug
 
   const accountId = global.currentAccountId!;
 
-  let { idsBySlug, byId } = selectAccountState(global, accountId)?.activities || {};
+  let { idsBySlug = {}, byId = {} } = selectAccountState(global, accountId)?.activities || {};
   let shouldFetchMore = true;
   let fetchedActivities: ApiActivity[] = [];
-  let tokenIds = (idsBySlug && idsBySlug[slug]) || [];
-  const toTxId = findLast(tokenIds, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
-  let toTimestamp = toTxId && byId ? byId[toTxId].timestamp : undefined;
+  let tokenIds = idsBySlug[slug] || [];
+  const toTxId = findLast(tokenIds, (id) => getIsIdSuitableForFetchingTimestamp(id) && Boolean(byId[id]));
+  let toTimestamp = toTxId ? byId[toTxId].timestamp : undefined;
   const { chain } = selectToken(global, slug);
 
   while (shouldFetchMore) {
-    const result = await callApi('fetchTokenActivitySlice', accountId, chain, slug, toTimestamp, limit);
+    const result = await callApi('fetchActivitySlice', accountId, chain, slug, toTimestamp, limit);
 
     global = getGlobal();
 
@@ -121,7 +122,6 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
 
   const accountId = global.currentAccountId!;
 
-  const tonTokenSlugs = selectAccountTxTokenSlugs(global, accountId, 'ton') ?? [];
   const tronTokenSlugs = selectAccountTxTokenSlugs(global, accountId, 'tron') ?? [];
   let toTimestamp = selectLastMainTxTimestamp(global, accountId)!;
   let shouldFetchMore = true;
@@ -133,7 +133,6 @@ addActionHandler('fetchAllTransactions', async (global, actions, { limit, should
       accountId,
       limit,
       toTimestamp,
-      tonTokenSlugs,
       tronTokenSlugs,
     );
 

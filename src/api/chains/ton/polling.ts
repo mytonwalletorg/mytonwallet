@@ -1,10 +1,9 @@
 import type {
+  ApiActivity,
   ApiBalanceBySlug,
   ApiNetwork,
   ApiNftUpdate,
   ApiStakingState,
-  ApiTransactionActivity,
-  ApiTxTimestamps,
   ApiVestingInfo,
   ApiWalletInfo,
   OnApiUpdate,
@@ -15,39 +14,42 @@ import {
   IS_CORE_WALLET,
   LEDGER_WALLET_VERSIONS,
   POPULAR_WALLET_VERSIONS,
+  SWAP_CROSSCHAIN_SLUGS,
   TONCOIN,
 } from '../../../config';
 import { parseAccountId } from '../../../util/account';
+import { getActivityTokenSlugs } from '../../../util/activities';
 import { areDeepEqual } from '../../../util/areDeepEqual';
-import { compareActivities } from '../../../util/compareActivities';
-import { buildCollectionByKey } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import { pauseOrFocus } from '../../../util/pauseOrFocus';
 import {
-  fetchStoredAccount, fetchStoredAccounts,
-  fetchStoredTonWallet, getActiveAccountId,
+  fetchStoredAccount,
+  fetchStoredAccounts,
+  fetchStoredTonWallet,
+  getActiveAccountId,
   updateStoredTonWallet,
 } from '../../common/accounts';
 import { getStakingCommonCache } from '../../common/cache';
 import { isAlive, isUpdaterAlive } from '../../common/helpers';
 import { processNftUpdates, updateAccountNfts } from '../../common/nft';
+import { swapReplaceCexActivities } from '../../common/swap';
 import { addTokens } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
 import { hexToBytes } from '../../common/utils';
 import { FIRST_TRANSACTIONS_LIMIT, SEC } from '../../constants';
 import { AbortOperationError } from '../../errors';
+import { fetchActivitySlice } from './activities';
 import { getAccountNfts, getNftUpdates } from './nfts';
 import { updateTokenHashes } from './priceless';
 import { getBackendStakingState, getStakingStates } from './staking';
-import { swapReplaceTransactionsByRanges } from './swap';
 import { getAccountTokenBalances } from './tokens';
-import { fetchTokenTransactionSlice, fixTokenActivitiesAddressForm, waitUntilTransactionAppears } from './transactions';
 import { fetchVestings } from './vesting';
 import { getWalletInfo, getWalletVersionInfos, isAddressInitialized } from './wallet';
 
 const BALANCE_BASED_INTERVAL = 1.1 * SEC;
 const BALANCE_BASED_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
 const DOUBLE_CHECK_TOKENS_PAUSE = 30 * SEC;
+const DOUBLE_CHECK_ACTIVITIES_PAUSE = 10 * SEC; // TODO (actions) Can it be reduced?
 const NFT_FULL_INTERVAL = 60 * SEC;
 
 const STAKING_INTERVAL = 5 * SEC;
@@ -63,8 +65,8 @@ const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 
 const lastBalanceCache: Record<string, ApiBalanceBySlug> = {};
 
-export function setupPolling(accountId: string, onUpdate: OnApiUpdate, newestTxTimestamps: ApiTxTimestamps) {
-  void setupBalanceBasedPolling(accountId, onUpdate, newestTxTimestamps);
+export function setupPolling(accountId: string, onUpdate: OnApiUpdate, newestActivityTimestamp?: number) {
+  void setupBalanceBasedPolling(accountId, onUpdate, newestActivityTimestamp);
   void setupWalletVersionsPolling(accountId, onUpdate);
 
   if (!IS_CORE_WALLET) {
@@ -73,11 +75,7 @@ export function setupPolling(accountId: string, onUpdate: OnApiUpdate, newestTxT
   }
 }
 
-async function setupBalanceBasedPolling(
-  accountId: string,
-  onUpdate: OnApiUpdate,
-  newestTxTimestamps: ApiTxTimestamps = {},
-) {
+async function setupBalanceBasedPolling(accountId: string, onUpdate: OnApiUpdate, newestActivityTimestamp?: number) {
   delete lastBalanceCache[accountId];
 
   const { network } = parseAccountId(accountId);
@@ -88,6 +86,7 @@ async function setupBalanceBasedPolling(
   let nftUpdates: ApiNftUpdate[];
   let lastNftFullUpdate = 0;
   let doubleCheckTokensTime: number | undefined;
+  let doubleCheckActivitiesTime: number | undefined;
 
   async function updateBalance(cache: ApiBalanceBySlug, newBalances: ApiBalanceBySlug, changedSlugs: string[]) {
     const { balance, lastTxId } = await getWalletInfo(network, address);
@@ -157,24 +156,17 @@ async function setupBalanceBasedPolling(
     return tokenBalances;
   }
 
-  async function updateActivities(
-    tokenBalances: TokenBalanceParsed[],
-    changedSlugs: string[],
-    lastTxId?: string,
-  ) {
-    if (changedSlugs.length) {
-      if (lastTxId) {
-        await waitUntilTransactionAppears(network, address, lastTxId);
-      }
-
-      const changedTokenSlugs = changedSlugs.filter((slug) => slug !== TONCOIN.slug);
-      const newTxTimestamps = await processNewActivities(
-        accountId, newestTxTimestamps, changedTokenSlugs, onUpdate, tokenBalances,
-      );
-      newestTxTimestamps = { ...newestTxTimestamps, ...newTxTimestamps };
+  async function updateActivities(isToncoinBalanceChanged: boolean, balances: ApiBalanceBySlug) {
+    if (!isToncoinBalanceChanged && (!doubleCheckActivitiesTime || doubleCheckActivitiesTime > Date.now())) {
+      return;
     }
 
-    onUpdate({ type: 'updatingStatus', kind: 'activities', isUpdating: false });
+    doubleCheckActivitiesTime = isToncoinBalanceChanged ? Date.now() + DOUBLE_CHECK_ACTIVITIES_PAUSE : undefined;
+    if (newestActivityTimestamp) {
+      newestActivityTimestamp = await loadNewActivities(accountId, newestActivityTimestamp, onUpdate);
+    } else {
+      newestActivityTimestamp = await loadInitialActivities(accountId, Object.keys(balances), onUpdate);
+    }
   }
 
   while (isAlive(onUpdate, accountId)) {
@@ -186,14 +178,11 @@ async function setupBalanceBasedPolling(
       const changedSlugs: string[] = [];
       const cache = lastBalanceCache[accountId] ?? {};
 
-      const {
-        lastTxId,
-        isToncoinBalanceChanged,
-      } = await updateBalance(cache, newBalances, changedSlugs);
+      const { isToncoinBalanceChanged } = await updateBalance(cache, newBalances, changedSlugs);
 
       throwErrorIfUpdaterNotAlive(onUpdate, accountId);
 
-      const tokenBalances = await updateTokenBalances(isToncoinBalanceChanged, cache, newBalances, changedSlugs);
+      await updateTokenBalances(isToncoinBalanceChanged, cache, newBalances, changedSlugs);
 
       lastBalanceCache[accountId] = newBalances;
 
@@ -209,9 +198,11 @@ async function setupBalanceBasedPolling(
       onUpdate({ type: 'updatingStatus', kind: 'balance', isUpdating: false });
 
       await Promise.all([
-        updateActivities(tokenBalances, changedSlugs, lastTxId),
+        updateActivities(isToncoinBalanceChanged, newBalances),
         updateNfts(isToncoinBalanceChanged),
       ]);
+
+      onUpdate({ type: 'updatingStatus', kind: 'activities', isUpdating: false });
 
       if (isToncoinBalanceChanged && !isInitialized && await isAddressInitialized(network, address)) {
         isInitialized = true;
@@ -271,74 +262,20 @@ async function setupStakingPolling(accountId: string, onUpdate: OnApiUpdate) {
   }
 }
 
-async function processNewActivities(
-  accountId: string,
-  newestTxTimestamps: ApiTxTimestamps,
-  tokenSlugs: string[],
-  onUpdate: OnApiUpdate,
-  tokenBalances?: TokenBalanceParsed[],
-): Promise<ApiTxTimestamps> {
-  const { network } = parseAccountId(accountId);
+async function loadNewActivities(accountId: string, newestActivityTimestamp: number, onUpdate: OnApiUpdate) {
+  let activities = await fetchActivitySlice(
+    accountId, undefined, undefined, newestActivityTimestamp, FIRST_TRANSACTIONS_LIMIT,
+  );
 
-  const chunks: ApiTransactionActivity[][] = [];
-  const result: ApiTxTimestamps = {};
-
-  // Process TON transactions first
-  {
-    const slug = TONCOIN.slug;
-    let newestTxTimestamp = newestTxTimestamps[slug];
-
-    const transactions = await fetchTokenTransactionSlice(
-      accountId, slug, undefined, newestTxTimestamp, FIRST_TRANSACTIONS_LIMIT,
-    );
-
-    if (transactions.length) {
-      newestTxTimestamp = transactions[0]!.timestamp;
-      chunks.push(transactions);
-    }
-
-    result[slug] = newestTxTimestamp;
-
-    // Find affected token wallets
-    const tokenBalanceByAddress = buildCollectionByKey(tokenBalances ?? [], 'jettonWallet');
-    transactions.forEach(({ isIncoming, toAddress, fromAddress }) => {
-      const address = isIncoming ? fromAddress : toAddress;
-      const tokenBalance: TokenBalanceParsed | undefined = tokenBalanceByAddress[address];
-
-      if (tokenBalance && !tokenSlugs.includes(tokenBalance.slug)) {
-        tokenSlugs = tokenSlugs.concat([tokenBalance.slug]);
-      }
-    });
+  if (activities.length) {
+    newestActivityTimestamp = activities[0].timestamp;
   }
 
-  // Process token transactions
-  await Promise.all(tokenSlugs.map(async (slug) => {
-    let newestTxTimestamp = newestTxTimestamps[slug];
+  activities = await swapReplaceCexActivities(accountId, activities, undefined, true);
 
-    const transactions = await fetchTokenTransactionSlice(
-      accountId, slug, undefined, newestTxTimestamp, FIRST_TRANSACTIONS_LIMIT,
-    );
-
-    if (transactions.length) {
-      newestTxTimestamp = transactions[0]!.timestamp;
-      chunks.push(transactions);
-    }
-
-    result[slug] = newestTxTimestamp;
-  }));
-
-  const allTransactions = chunks.flat().sort(compareActivities);
-
-  const isFirstRun = !Object.values(newestTxTimestamps).some(Boolean);
-  const activities = await swapReplaceTransactionsByRanges(accountId, allTransactions, chunks, isFirstRun);
-
-  allTransactions.slice().reverse().forEach((transaction) => {
+  activities.slice().reverse().forEach((transaction) => {
     txCallbacks.runCallbacks(transaction);
   });
-
-  await fixTokenActivitiesAddressForm(network, activities);
-
-  activities.sort(compareActivities);
 
   onUpdate({
     type: 'newActivities',
@@ -347,7 +284,45 @@ async function processNewActivities(
     accountId,
   });
 
-  return result;
+  return newestActivityTimestamp;
+}
+
+async function loadInitialActivities(accountId: string, tokenSlugs: string[], onUpdate: OnApiUpdate) {
+  const bySlug: Record<string, ApiActivity[]> = {};
+  let mainActivities: ApiActivity[] = [];
+
+  let newestActivityTimestamp: number | undefined;
+
+  await Promise.all(tokenSlugs.map(async (slug) => {
+    const tokenSlug = slug !== TONCOIN.slug ? slug : undefined;
+    let activities = await fetchActivitySlice(accountId, tokenSlug, undefined, FIRST_TRANSACTIONS_LIMIT);
+
+    if (SWAP_CROSSCHAIN_SLUGS.has(slug)) {
+      activities = await swapReplaceCexActivities(accountId, activities, slug, true);
+    }
+
+    if (slug === TONCOIN.slug && activities.length) {
+      // Activities for each Jetton wallet are loaded only the first time.
+      // New token activities will be loaded along with TON.
+      newestActivityTimestamp = activities[0].timestamp;
+
+      // There is no way to load TON activities without loading activities of other tokens
+      mainActivities = activities;
+      activities = activities.filter((activity) => getActivityTokenSlugs(activity).includes(TONCOIN.slug));
+    }
+
+    bySlug[slug] = activities;
+  }));
+
+  onUpdate({
+    type: 'initialActivities',
+    chain: 'ton',
+    accountId,
+    mainActivities,
+    bySlug,
+  });
+
+  return newestActivityTimestamp;
 }
 
 function logAndRescue(err: Error) {

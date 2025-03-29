@@ -1,5 +1,5 @@
 import { IS_CAPACITOR, IS_TELEGRAM_APP } from '../config';
-import { requestMutation } from '../lib/fasterdom/fasterdom';
+import { requestMeasure, requestMutation } from '../lib/fasterdom/fasterdom';
 import { applyStyles } from './animation';
 import { SECOND } from './dateFormat';
 import safeExec from './safeExec';
@@ -9,6 +9,7 @@ import { IS_ANDROID, IS_IOS } from './windowEnvironment';
 const WINDOW_RESIZE_THROTTLE_MS = IS_TELEGRAM_APP ? 25 : 250;
 const WINDOW_ORIENTATION_CHANGE_THROTTLE_MS = IS_IOS ? 350 : 250;
 const SAFE_AREA_INITIALIZATION_DELAY = SECOND;
+const SAFE_AREA_TOLERANCE_HEIGHT_PX = 40;
 
 const initialHeight = window.innerHeight;
 const virtualKeyboardOpenListeners: NoneToVoidFunction[] = [];
@@ -29,7 +30,7 @@ if (IS_CAPACITOR) {
   void import('@capacitor/keyboard')
     .then(({ Keyboard }) => {
       void Keyboard.addListener('keyboardDidShow', async (info) => {
-        await patchCapacitorAppVh(info.keyboardHeight);
+        await adjustBodyPaddingForKeyboard(info.keyboardHeight);
 
         for (const cb of virtualKeyboardOpenListeners) {
           safeExec(cb);
@@ -37,7 +38,7 @@ if (IS_CAPACITOR) {
       });
 
       void Keyboard.addListener('keyboardWillHide', () => {
-        void patchCapacitorAppVh(0);
+        void adjustBodyPaddingForKeyboard(0);
       });
     });
 }
@@ -45,12 +46,27 @@ if (IS_CAPACITOR) {
 if ('visualViewport' in window && (IS_IOS || IS_ANDROID)) {
   window.visualViewport!.addEventListener('resize', throttle((e: Event) => {
     const target = e.target as VisualViewport;
-    patchVh();
 
-    currentWindowSize = {
-      ...getWindowSize(),
-      height: target.height,
-    };
+    // In the TMA application on iOS, the VisualViewport behaves incorrectly,
+    // not taking into account the height of the virtual keyboard.
+    if (IS_IOS && IS_TELEGRAM_APP) {
+      const keyboardHeight = initialHeight - target.height;
+      adjustBodyPaddingForKeyboard(keyboardHeight > SAFE_AREA_TOLERANCE_HEIGHT_PX ? keyboardHeight : 0)
+        .finally(() => {
+          requestMeasure(() => {
+            currentWindowSize = {
+              ...getWindowSize(),
+              height: target.height,
+            };
+          });
+        });
+    } else {
+      patchVh();
+      currentWindowSize = {
+        ...getWindowSize(),
+        height: target.height,
+      };
+    }
   }, WINDOW_RESIZE_THROTTLE_MS, true));
 }
 
@@ -82,7 +98,7 @@ export function onVirtualKeyboardOpen(cb: NoneToVoidFunction) {
 }
 
 function patchVh() {
-  if (!(IS_IOS || IS_ANDROID) || IS_CAPACITOR) return;
+  if (!(IS_IOS || IS_ANDROID) || IS_CAPACITOR || (IS_IOS && IS_TELEGRAM_APP)) return;
 
   const height = IS_IOS ? window.visualViewport!.height + window.visualViewport!.pageTop : window.innerHeight;
 
@@ -92,7 +108,7 @@ function patchVh() {
   });
 }
 
-function patchCapacitorAppVh(keyboardHeight: number) {
+function adjustBodyPaddingForKeyboard(keyboardHeight: number) {
   return new Promise<void>((resolve) => {
     requestMutation(() => {
       applyStyles(document.body, { paddingBottom: keyboardHeight ? `${keyboardHeight}px` : '' });

@@ -22,7 +22,7 @@ fi
 if [ "$IS_CORE_WALLET" = "1" ]; then
    FILES_TO_REMOVE+=("apple-touch-icon.png" "browserconfig.xml" "favicon.ico" "icon*" "logo.svg" "mstile*" "site.webmanifest" , "assets/ui/about.txt")
 else
-   FILES_TO_REMOVE+=("core", "assets")
+   FILES_TO_REMOVE+=("coreWallet*" "core_wallet*" "assets/")
 fi
 
 if [ "$IS_PACKAGED_ELECTRON" != "1" ]; then

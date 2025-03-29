@@ -28,6 +28,7 @@ import {
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import getPseudoRandomNumber from '../../util/getPseudoRandomNumber';
 import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { disableSwipeToClose, enableSwipeToClose } from '../../util/modalSwipeManager';
 import getChainNetworkName from '../../util/swap/getChainNetworkName';
@@ -42,12 +43,13 @@ import useSyncEffect from '../../hooks/useSyncEffect';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import ModalHeader from '../ui/ModalHeader';
+import SensitiveData from '../ui/SensitiveData';
 import Transition from '../ui/Transition';
 import TokenIcon from './TokenIcon';
 
 import styles from './TokenSelector.module.scss';
 
-type Token = UserToken | UserSwapToken;
+type TokenType = UserToken | UserSwapToken;
 
 type TokenSortFactors = {
   tickerExactMatch: number;
@@ -59,18 +61,20 @@ type TokenSortFactors = {
 interface OwnProps {
   isActive?: boolean;
   shouldFilter?: boolean;
-  isInsideSettings?: boolean;
+  shouldUseSwapTokens?: boolean;
   shouldHideMyTokens?: boolean;
   shouldHideNotSupportedTokens?: boolean;
+  selectedChain?: ApiChain;
   header?: TeactNode;
   onClose: NoneToVoidFunction;
   onBack: NoneToVoidFunction;
+  onTokenSelect: (token: TokenType) => void;
 }
 
 interface StateProps {
-  token?: Token;
-  userTokens?: Token[];
-  popularTokens?: Token[];
+  token?: TokenType;
+  userTokens?: TokenType[];
+  popularTokens?: TokenType[];
   swapTokens?: UserSwapToken[];
   tokenInSlug?: string;
   pairsBySlug?: Record<string, AssetPairs>;
@@ -78,13 +82,14 @@ interface StateProps {
   isLoading?: boolean;
   isMultichain: boolean;
   availableChains?: { [K in ApiChain]?: unknown };
+  isSensitiveDataHidden?: true;
 }
 
 enum SearchState {
   Initial,
   Search,
   Loading,
-  Token,
+  TokenByAddress,
   Empty,
 }
 
@@ -93,12 +98,12 @@ const EMPTY_OBJECT = {};
 
 function TokenSelector({
   token,
-  userTokens = EMPTY_ARRAY,
+  userTokens: userTokensProp = EMPTY_ARRAY,
   swapTokens = EMPTY_ARRAY,
   popularTokens: popularTokensProp = EMPTY_ARRAY,
   header,
   shouldFilter,
-  isInsideSettings,
+  shouldUseSwapTokens,
   baseCurrency,
   tokenInSlug,
   pairsBySlug,
@@ -108,18 +113,13 @@ function TokenSelector({
   shouldHideNotSupportedTokens = false,
   isMultichain,
   availableChains = EMPTY_OBJECT,
+  selectedChain,
+  isSensitiveDataHidden,
+  onTokenSelect,
   onBack,
   onClose,
 }: OwnProps & StateProps) {
-  const {
-    importToken,
-    resetImportToken,
-    openSettingsWithState,
-    setSwapTokenIn,
-    setSwapTokenOut,
-    addToken,
-    addSwapToken,
-  } = getActions();
+  const { importToken, resetImportToken, openSettingsWithState } = getActions();
   const lang = useLang();
 
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
@@ -152,21 +152,26 @@ function TokenSelector({
   const [searchValue, setSearchValue] = useState('');
   const [isResetButtonVisible, setIsResetButtonVisible] = useState(false);
   const [renderingKey, setRenderingKey] = useState(SearchState.Initial);
-  const [searchTokenList, setSearchTokenList] = useState<Token[]>([]);
+  const [searchTokenList, setSearchTokenList] = useState<TokenType[]>([]);
 
   // It is necessary to use useCallback instead of useLastCallback here
-  const filterTokens = useCallback((tokens: Token[]) => {
+  const filterTokens = useCallback((tokens: TokenType[]) => {
     return filterAndSortTokens(tokens, isMultichain, tokenInSlug, pairsBySlug);
   }, [pairsBySlug, tokenInSlug, isMultichain]);
 
+  const userTokens = useMemo(
+    () => filterSupportedTokens(userTokensProp, shouldHideNotSupportedTokens, availableChains, selectedChain),
+    [userTokensProp, shouldHideNotSupportedTokens, availableChains, selectedChain],
+  );
+
   const allTokens = useMemo(
-    () => filterSupportedTokens(swapTokens, availableChains, shouldHideNotSupportedTokens),
-    [swapTokens, shouldHideNotSupportedTokens, availableChains],
+    () => filterSupportedTokens(swapTokens, shouldHideNotSupportedTokens, availableChains, selectedChain),
+    [swapTokens, shouldHideNotSupportedTokens, availableChains, selectedChain],
   );
 
   const popularTokens = useMemo(
-    () => filterSupportedTokens(popularTokensProp, availableChains, shouldHideNotSupportedTokens),
-    [popularTokensProp, shouldHideNotSupportedTokens, availableChains],
+    () => filterSupportedTokens(popularTokensProp, shouldHideNotSupportedTokens, availableChains, selectedChain),
+    [popularTokensProp, shouldHideNotSupportedTokens, availableChains, selectedChain],
   );
 
   const { userTokensWithFilter, popularTokensWithFilter, swapTokensWithFilter } = useMemo(() => {
@@ -186,7 +191,7 @@ function TokenSelector({
   }, [filterTokens, popularTokens, shouldFilter, swapTokens, userTokens]);
 
   const filteredTokenList = useMemo(() => {
-    const tokensToFilter = isInsideSettings ? allTokens : swapTokensWithFilter;
+    const tokensToFilter = shouldUseSwapTokens ? swapTokensWithFilter : allTokens;
     const untrimmedSearchValue = searchValue.toLowerCase();
     const lowerCaseSearchValue = untrimmedSearchValue.trim();
 
@@ -252,7 +257,7 @@ function TokenSelector({
 
       return Number(b.amount - a.amount);
     });
-  }, [allTokens, isInsideSettings, searchValue, swapTokensWithFilter]);
+  }, [allTokens, shouldUseSwapTokens, searchValue, swapTokensWithFilter]);
 
   const resetSearch = () => {
     setSearchValue('');
@@ -267,7 +272,7 @@ function TokenSelector({
     if (isLoading && isValidAddress) {
       newRenderingKey = SearchState.Loading;
     } else if (token && isValidAddress) {
-      newRenderingKey = SearchState.Token;
+      newRenderingKey = SearchState.TokenByAddress;
     } else if (searchValue.length && filteredTokenList.length !== 0) {
       newRenderingKey = SearchState.Search;
     } else if (filteredTokenList.length === 0) {
@@ -296,16 +301,10 @@ function TokenSelector({
     scrollContainerRef.current.scrollTop = 0;
   }, [isActive]);
 
-  const handleTokenClick = useLastCallback((selectedToken: Token) => {
+  const handleTokenClick = useLastCallback((selectedToken: TokenType) => {
     searchInputRef.current?.blur();
 
-    if (isInsideSettings) {
-      addToken({ token: selectedToken as UserToken });
-    } else {
-      addSwapToken({ token: selectedToken as UserSwapToken });
-      const setToken = shouldFilter ? setSwapTokenOut : setSwapTokenIn;
-      setToken({ tokenSlug: selectedToken.slug });
-    }
+    onTokenSelect(selectedToken);
 
     resetSearch();
 
@@ -349,68 +348,32 @@ function TokenSelector({
     );
   }
 
-  function renderToken(currentToken: Token) {
-    const isAvailable = !shouldFilter || currentToken.canSwap;
+  function renderToken(currentToken: TokenType) {
+    const isAvailable = Boolean(!shouldFilter || currentToken.canSwap);
+    const withChainIcon = Boolean((isMultichain || shouldUseSwapTokens) && !selectedChain);
     const descriptionText = isAvailable
       ? getChainNetworkName(currentToken.chain)
       : lang('Unavailable');
-    const handleClick = isAvailable ? () => handleTokenClick(currentToken) : undefined;
 
     const tokenPrice = currentToken.price === 0
       ? lang('No Price')
       : formatCurrency(currentToken.price, shortBaseSymbol, undefined, true);
 
     return (
-      <div
+      <Token
         key={currentToken.slug}
-        className={buildClassName(
-          styles.tokenContainer,
-          !isAvailable && styles.tokenContainerDisabled,
-        )}
-        onClick={handleClick}
-      >
-        <div className={styles.tokenLogoContainer}>
-          <TokenIcon
-            token={currentToken}
-            withChainIcon
-            className={buildClassName(styles.tokenLogo, !isAvailable && styles.tokenLogoDisabled)}
-          />
-
-          <div className={styles.nameContainer}>
-            <span className={buildClassName(styles.tokenName, !isAvailable && styles.tokenTextDisabled)}>
-              {currentToken.name}
-            </span>
-            <span
-              className={buildClassName(
-                styles.tokenNetwork,
-                !isAvailable && styles.tokenTextDisabled,
-              )}
-            >
-              {descriptionText}
-            </span>
-          </div>
-        </div>
-        <div className={styles.tokenPriceContainer}>
-          <span className={buildClassName(
-            styles.tokenAmount,
-            !isAvailable && styles.tokenTextDisabled,
-          )}
-          >
-            {formatCurrency(toDecimal(currentToken.amount, currentToken?.decimals), currentToken.symbol)}
-          </span>
-          <span className={buildClassName(
-            styles.tokenValue,
-            !isAvailable && styles.tokenTextDisabled,
-          )}
-          >
-            {tokenPrice}
-          </span>
-        </div>
-      </div>
+        isAvailable={isAvailable}
+        isSensitiveDataHidden={isSensitiveDataHidden}
+        withChainIcon={withChainIcon}
+        descriptionText={descriptionText}
+        token={currentToken}
+        tokenPrice={tokenPrice}
+        onSelect={handleTokenClick}
+      />
     );
   }
 
-  function renderTokenGroup(tokens: Token[], title: string, shouldShowSettings?: boolean) {
+  function renderTokenGroup(tokens: TokenType[], title: string, shouldShowSettings?: boolean) {
     return (
       <div className={styles.tokenGroupContainer}>
         <div className={styles.tokenGroupHeader}>
@@ -429,7 +392,7 @@ function TokenSelector({
     );
   }
 
-  function renderAllTokens(tokens: Token[]) {
+  function renderAllTokens(tokens: TokenType[]) {
     return (
       <div className={styles.tokenGroupContainer}>
         {tokens.map(renderToken)}
@@ -475,7 +438,7 @@ function TokenSelector({
     );
   }
 
-  function renderSearchResults(tokenToImport?: Token) {
+  function renderSearchResults(tokenToImport?: TokenType) {
     if (tokenToImport) {
       return (
         <div className={styles.tokenGroupContainer}>
@@ -513,7 +476,7 @@ function TokenSelector({
         return renderSearchResults();
       case SearchState.Search:
         return renderAllTokens(searchTokenList);
-      case SearchState.Token:
+      case SearchState.TokenByAddress:
         return renderSearchResults(token);
       case SearchState.Empty:
         return renderNotFound(isContentActive);
@@ -545,7 +508,7 @@ function TokenSelector({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { baseCurrency } = global.settings;
+  const { baseCurrency, isSensitiveDataHidden } = global.settings;
   const { isLoading, token } = global.settings.importToken ?? {};
   const { pairs: pairsBySlug, tokenInSlug } = global.currentSwap ?? {};
   const userTokens = selectAvailableUserForSwapTokens(global);
@@ -565,11 +528,88 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     swapTokens,
     isMultichain,
     availableChains,
+    isSensitiveDataHidden,
   };
 })(TokenSelector));
 
+function Token({
+  token,
+  isAvailable,
+  isSensitiveDataHidden,
+  withChainIcon,
+  descriptionText,
+  tokenPrice,
+  onSelect,
+}: {
+  token: TokenType;
+  isAvailable: boolean;
+  isSensitiveDataHidden?: true;
+  withChainIcon: boolean;
+  descriptionText: string;
+  tokenPrice: string;
+  onSelect: (token: TokenType) => void;
+}) {
+  const handleClick = isAvailable ? () => onSelect(token) : undefined;
+  const cols = useMemo(() => getPseudoRandomNumber(4, 10, token.slug), [token.slug]);
+
+  return (
+    <div
+
+      className={buildClassName(
+        styles.tokenContainer,
+        !isAvailable && styles.tokenContainerDisabled,
+      )}
+      onClick={handleClick}
+    >
+      <div className={styles.tokenLogoContainer}>
+        <TokenIcon
+          token={token}
+          withChainIcon={withChainIcon}
+          className={buildClassName(styles.tokenLogo, !isAvailable && styles.tokenLogoDisabled)}
+        />
+
+        <div className={styles.nameContainer}>
+          <span className={buildClassName(styles.tokenName, !isAvailable && styles.tokenTextDisabled)}>
+            {token.name}
+          </span>
+          <span
+            className={buildClassName(
+              styles.tokenNetwork,
+              !isAvailable && styles.tokenTextDisabled,
+            )}
+          >
+            {descriptionText}
+          </span>
+        </div>
+      </div>
+      <div className={styles.tokenPriceContainer}>
+        <SensitiveData
+          isActive={isSensitiveDataHidden}
+          cols={cols}
+          rows={2}
+          cellSize={8}
+          align="right"
+          className={buildClassName(
+            styles.tokenAmount,
+            !isAvailable && styles.tokenTextDisabled,
+          )}
+        >
+          {formatCurrency(toDecimal(token.amount, token?.decimals), token.symbol)}
+        </SensitiveData>
+        <span className={buildClassName(
+          styles.tokenValue,
+          !isAvailable && styles.tokenTextDisabled,
+        )}
+        >
+          {tokenPrice}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function filterAndSortTokens(
-  tokens: Token[],
+  tokens: TokenType[],
   isMultichain: boolean,
   tokenInSlug?: string,
   pairsBySlug?: Record<string, AssetPairs>,
@@ -596,13 +636,21 @@ function compareTokens(a: TokenSortFactors, b: TokenSortFactors) {
   return b.nameMatchLength - a.nameMatchLength;
 }
 
-function filterSupportedTokens<T extends Token>(
+function filterSupportedTokens<T extends TokenType>(
   tokens: T[],
-  availableChains: { [K in ApiChain]?: unknown },
   isFilterActive: boolean,
+  availableChains: { [K in ApiChain]?: unknown },
+  selectedChain?: ApiChain,
 ): T[] {
-  if (!isFilterActive) {
+  if (!isFilterActive && !selectedChain) {
     return tokens;
   }
-  return tokens.filter((token) => token.chain in availableChains);
+
+  return tokens.filter((token) => {
+    if (isFilterActive && !(token.chain in availableChains)) {
+      return false;
+    }
+
+    return !(selectedChain && token.chain !== selectedChain);
+  });
 }

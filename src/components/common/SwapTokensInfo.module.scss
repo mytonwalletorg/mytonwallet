@@ -10,6 +10,8 @@
 }
 
 .infoRow {
+  --border-radius-value: 0.25rem;
+
   display: grid;
   grid-template-areas: "icon token token amount"
                        "icon chain currency currency";

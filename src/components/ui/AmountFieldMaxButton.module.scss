@@ -1,0 +1,34 @@
+.container {
+  position: relative;
+  z-index: 1;
+
+  height: 0;
+}
+
+.content {
+  position: absolute;
+  top: -0.125rem;
+  right: 0.5rem;
+
+  display: flex;
+  gap: 0.25rem;
+
+  font-size: 0.8125rem;
+  color: var(--color-gray-1);
+}
+
+.link {
+  cursor: var(--custom-cursor, pointer);
+
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      text-decoration: none;
+    }
+  }
+}

@@ -1,14 +1,14 @@
-.spinner {
-  --spinner-size: 2rem;
+$defaultSize: 2rem;
 
+.spinner {
   position: relative;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  width: var(--spinner-size);
-  height: var(--spinner-size);
+  width: var(--spinner-size, $defaultSize);
+  height: var(--spinner-size, $defaultSize);
 
   color: var(--color-accent);
 }
@@ -20,8 +20,8 @@
   bottom: 0;
   left: 0;
 
-  font-size: var(--spinner-size);
-  line-height: var(--spinner-size);
+  font-size: var(--spinner-size, $defaultSize);
+  line-height: var(--spinner-size, $defaultSize);
 
   animation-name: spin;
   animation-duration: 1s;

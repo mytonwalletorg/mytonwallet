@@ -12,13 +12,14 @@ import type {
 import type { ApiSubmitTransferOptions, ApiSubmitTransferResult, CheckTransactionDraftOptions } from './types';
 
 import { parseAccountId } from '../../util/account';
+import { mergeActivitiesToMaxTime } from '../../util/activities';
 import { getChainConfig } from '../../util/chain';
-import { compareActivities } from '../../util/compareActivities';
 import { logDebugError } from '../../util/logs';
 import chains from '../chains';
 import { fetchStoredAccount, fetchStoredAddress, fetchStoredTonWallet } from '../common/accounts';
 import { buildLocalTransaction } from '../common/helpers';
 import { getPendingTransfer, waitAndCreatePendingTransfer } from '../common/pendingTransfers';
+import { swapReplaceCexActivities } from '../common/swap';
 import { handleServerError } from '../errors';
 import { buildTokenSlug } from './tokens';
 
@@ -30,31 +31,31 @@ export function initTransactions(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 }
 
-export async function fetchTokenActivitySlice(
+export async function fetchActivitySlice(
   accountId: string,
   chain: ApiChain,
   slug: string,
   fromTimestamp?: number,
   limit?: number,
 ): Promise<ApiActivity[] | { error: string }> {
-  const { network } = parseAccountId(accountId);
+  let activities: ApiActivity[];
 
   try {
     if (chain === 'ton') {
-      const transactions = await chains[chain].fetchTokenTransactionSlice(
+      activities = await chains[chain].fetchActivitySlice(
         accountId, slug, fromTimestamp, undefined, limit,
       );
-      const activities = await ton.swapReplaceTransactions(accountId, transactions, network, slug);
-      await ton.fixTokenActivitiesAddressForm(network, activities);
-      return activities;
     } else {
-      const activities = await chains[chain].getTokenTransactionSlice(
+      activities = await chains[chain].getTokenTransactionSlice(
         accountId, slug, fromTimestamp, undefined, limit,
       );
-      return activities;
     }
+
+    activities = await swapReplaceCexActivities(accountId, activities, slug);
+
+    return activities;
   } catch (err) {
-    logDebugError('fetchTokenActivitySlice', err);
+    logDebugError('fetchActivitySlice', err);
     return handleServerError(err);
   }
 }
@@ -63,40 +64,25 @@ export async function fetchAllActivitySlice(
   accountId: string,
   limit: number,
   toTimestamp: number,
-  tonTokenSlugs: string[],
   tronTokenSlugs: string[],
 ): Promise<ApiActivity[] | { error: string }> {
-  const { network } = parseAccountId(accountId);
-
   try {
     const { type } = await fetchStoredAccount(accountId);
 
-    const tonTransactions = await ton.getAllTransactionSlice(accountId, toTimestamp, limit, tonTokenSlugs);
-    const tonActivities = await ton.swapReplaceTransactions(accountId, tonTransactions, network);
-    await ton.fixTokenActivitiesAddressForm(network, tonActivities);
+    let tonActivities = await ton.fetchActivitySlice(accountId, undefined, toTimestamp, undefined, limit);
 
     if (type !== 'bip39') {
+      tonActivities = await swapReplaceCexActivities(accountId, tonActivities);
       return tonActivities;
     }
 
-    const tronActivities = await tron.getAllTransactionSlice(accountId, toTimestamp, limit, tronTokenSlugs);
-
-    if (!tonActivities.length && !tronActivities.length) {
-      return [];
-    } else if (!tonActivities.length) {
-      return tronActivities;
-    } else if (!tronActivities.length) {
-      return tonActivities;
-    }
-
-    const fromTimestamp = Math.min(
-      tonActivities[tonActivities.length - 1].timestamp,
-      tronActivities && tronActivities[tronActivities.length - 1].timestamp,
+    const tronActivities: ApiActivity[] = await tron.getAllTransactionSlice(
+      accountId, toTimestamp, limit, tronTokenSlugs,
     );
 
-    return [...tronActivities, ...tonActivities]
-      .sort(compareActivities)
-      .filter(({ timestamp }) => timestamp >= fromTimestamp);
+    const activities = mergeActivitiesToMaxTime(tonActivities, tronActivities);
+
+    return await swapReplaceCexActivities(accountId, activities);
   } catch (err) {
     logDebugError('fetchAllActivitySlice', err);
     return handleServerError(err);
@@ -110,7 +96,7 @@ export function checkTransactionDraft(chain: ApiChain, options: CheckTransaction
 export async function submitTransfer(
   chain: ApiChain,
   options: ApiSubmitTransferOptions,
-  shouldCreateLocalTransaction = true,
+  shouldCreateLocalActivity = true,
 ): Promise<(ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult) & { txId?: string }> {
   const {
     accountId,
@@ -164,7 +150,7 @@ export async function submitTransfer(
     return result;
   }
 
-  if (!shouldCreateLocalTransaction) {
+  if (!shouldCreateLocalActivity) {
     return result;
   }
 
@@ -172,11 +158,11 @@ export async function submitTransfer(
     ? buildTokenSlug(chain, tokenAddress)
     : getChainConfig(chain).nativeToken.slug;
 
-  let localTransaction: ApiTransactionActivity;
+  let localActivity: ApiTransactionActivity;
 
   if ('msgHash' in result) {
     const { encryptedComment, msgHash } = result;
-    localTransaction = createLocalTransaction(accountId, chain, {
+    localActivity = createLocalTransaction(accountId, chain, {
       amount,
       fromAddress,
       toAddress,
@@ -184,14 +170,17 @@ export async function submitTransfer(
       encryptedComment,
       fee: realFee ?? 0n,
       slug,
-      inMsgHash: msgHash,
+      externalMsgHash: msgHash,
+      extra: {
+        ...('withW5Gasless' in result && { withW5Gasless: result.withW5Gasless }),
+      },
     });
     if ('paymentLink' in result && result.paymentLink) {
       onUpdate({ type: 'openUrl', url: result.paymentLink, isExternal: true });
     }
   } else {
     const { txId } = result;
-    localTransaction = createLocalTransaction(accountId, chain, {
+    localActivity = createLocalTransaction(accountId, chain, {
       txId,
       amount,
       fromAddress,
@@ -204,7 +193,7 @@ export async function submitTransfer(
 
   return {
     ...result,
-    txId: localTransaction.txId,
+    txId: localActivity.txId,
   };
 }
 
@@ -222,12 +211,12 @@ export async function sendSignedTransferMessage(
 ) {
   const { msgHash } = await ton.sendSignedMessage(accountId, message, pendingTransferId);
 
-  const localTransaction = createLocalTransaction(accountId, 'ton', {
-    ...message.params,
-    inMsgHash: msgHash,
+  const localActivity = createLocalTransaction(accountId, 'ton', {
+    ...message.localActivity,
+    externalMsgHash: msgHash,
   });
 
-  return localTransaction.txId;
+  return localActivity.txId;
 }
 
 export function cancelPendingTransfer(id: string) {
@@ -240,7 +229,12 @@ export function decryptComment(accountId: string, encryptedComment: string, from
   return chain.decryptComment(accountId, encryptedComment, fromAddress, password);
 }
 
-export function createLocalTransaction(accountId: string, chain: ApiChain, params: ApiLocalTransactionParams) {
+export function createLocalTransaction(
+  accountId: string,
+  chain: ApiChain,
+  params: ApiLocalTransactionParams,
+  subId?: number,
+) {
   const { network } = parseAccountId(accountId);
   const { toAddress } = params;
 
@@ -253,11 +247,11 @@ export function createLocalTransaction(accountId: string, chain: ApiChain, param
     normalizedAddress = toAddress;
   }
 
-  const localTransaction = buildLocalTransaction(params, normalizedAddress);
+  const localTransaction = buildLocalTransaction(params, normalizedAddress, subId);
 
   onUpdate({
-    type: 'newLocalTransaction',
-    transaction: localTransaction,
+    type: 'newLocalActivity',
+    activity: localTransaction,
     accountId,
   });
 
@@ -268,4 +262,8 @@ export function fetchEstimateDiesel(accountId: string, tokenAddress: string) {
   const chain = chains.ton;
 
   return chain.fetchEstimateDiesel(accountId, tokenAddress);
+}
+
+export function fetchTonActivityDetails(accountId: string, activity: ApiActivity) {
+  return chains.ton.fetchActivityDetails(accountId, activity);
 }

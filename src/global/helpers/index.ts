@@ -1,30 +1,17 @@
-import type {
-  ApiChain, ApiSwapAsset, ApiTokenWithPrice, ApiTransaction,
-} from '../../api/types';
+import type { ApiChain, ApiSwapAsset, ApiTokenWithPrice, ApiTransaction } from '../../api/types';
 import type { Account, UserSwapToken } from '../types';
 
 import { CHAIN_CONFIG, TINY_TRANSFER_MAX_COST, TONCOIN } from '../../config';
+import { isScamTransaction } from '../../util/activities';
 import { toBig } from '../../util/decimals';
 
 export function getIsTinyOrScamTransaction(transaction: ApiTransaction, token?: ApiTokenWithPrice) {
-  if (transaction.metadata?.isScam) return true;
-  if (!token || transaction.type === 'nftTransferred' || transaction.type === 'nftReceived') return false;
+  if (isScamTransaction(transaction)) return true;
+  if (!token || transaction.nft || transaction.type) return false;
 
   const decimals = token.decimals;
   const cost = toBig(transaction.amount, decimals).abs().mul(token.quote.priceUsd ?? 0);
   return cost.lt(TINY_TRANSFER_MAX_COST);
-}
-
-export function getIsTxIdLocal(txId: string) {
-  return txId.includes('|');
-}
-
-export function getRealTxIdFromLocal(txId: string) {
-  return txId.endsWith('|') ? txId.replace('|', '') : undefined;
-}
-
-export function getIsSwapId(id: string) {
-  return id.startsWith('swap:');
 }
 
 export function resolveSwapAssetId(asset: ApiSwapAsset) {

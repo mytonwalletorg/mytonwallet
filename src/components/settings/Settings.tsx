@@ -21,6 +21,7 @@ import {
   IS_CORE_WALLET,
   IS_EXTENSION,
   LANG_LIST,
+  MTW_CARDS_WEBSITE,
   MTW_TIPS_CHANNEL_NAME,
   PROXY_HOSTS,
   SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
@@ -141,7 +142,6 @@ type StateProps = {
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
 const SUPPORT_ACCOUNTS_COUNT_DEFAULT = 1;
-const MTW_CARDS_WEBSITE = 'https://cards.mytonwallet.io';
 
 function Settings({
   settings: {

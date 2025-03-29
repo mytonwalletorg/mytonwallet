@@ -2,21 +2,14 @@ import type { JettonBalance } from 'tonapi-sdk-js';
 import { Address, Cell } from '@ton/core';
 
 import type { ApiNetwork, ApiToken } from '../../types';
-import type {
-  AnyPayload, ApiTransactionExtra, JettonMetadata, TonTransferParams,
-} from './types';
+import type { AnyPayload, JettonMetadata, TonTransferParams } from './types';
 
 import { TON_USDT_SLUG } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { fetchJsonWithProxy } from '../../../util/fetch';
 import { logDebugError } from '../../../util/logs';
 import { fixIpfsUrl } from '../../../util/metadata';
-import {
-  fetchJettonMetadata,
-  fixBase64ImageData,
-  parseJettonWalletMsgBody,
-  parsePayloadBase64,
-} from './util/metadata';
+import { fetchJettonMetadata, fixBase64ImageData, parsePayloadBase64 } from './util/metadata';
 import { fetchJettonBalances } from './util/tonapiio';
 import {
   buildTokenTransferBody,
@@ -79,50 +72,6 @@ function parseTokenBalance(network: ApiNetwork, balanceRaw: JettonBalance): Toke
     logDebugError('parseTokenBalance', err);
     return undefined;
   }
-}
-
-export function parseTokenTransaction(
-  network: ApiNetwork,
-  tx: ApiTransactionExtra,
-  slug: string,
-  walletAddress: string,
-): ApiTransactionExtra | undefined {
-  const { extraData } = tx;
-  if (!extraData?.body) {
-    return undefined;
-  }
-
-  const parsedData = parseJettonWalletMsgBody(network, extraData.body);
-  if (!parsedData) {
-    return undefined;
-  }
-
-  const {
-    operation,
-    jettonAmount,
-    address,
-    comment,
-    encryptedComment,
-    type,
-  } = parsedData;
-  const isIncoming = operation === 'InternalTransfer';
-
-  const fromAddress = isIncoming ? (address ?? tx.fromAddress) : walletAddress;
-  const toAddress = isIncoming ? walletAddress : address!;
-  const normalizedAddress = toBase64Address(isIncoming ? fromAddress : toAddress, true);
-
-  return {
-    ...tx,
-    type,
-    slug,
-    fromAddress,
-    toAddress,
-    normalizedAddress,
-    amount: isIncoming ? jettonAmount : -jettonAmount,
-    comment,
-    encryptedComment,
-    isIncoming,
-  };
 }
 
 export async function insertMintlessPayload(

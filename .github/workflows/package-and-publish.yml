@@ -293,10 +293,9 @@ jobs:
         env:
           EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
-          EDGE_CLIENT_SECRET: ${{ secrets.EDGE_CLIENT_SECRET }}
-          EDGE_ACCESS_TOKEN_URL: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
         run: |
-          npm i @plasmohq/edge-addons-api@1.3.2
+          npm i @plasmohq/edge-addons-api@2.0.0
           export EDGE_FILE_PATH="./$CHROME_FILE_NAME"
           node deploy/edgePublish.js
 

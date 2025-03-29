@@ -1,6 +1,8 @@
 :root {
   // Color names comes from figma file
   --color-white: #FFF;
+  --color-default-accent: #0088CC;
+  --color-default-accent-hover: #0088CCCC;
   --color-accent: #0088CC;
   --color-black: #2C333E;
   --color-gray-1: #616770;
@@ -9,7 +11,6 @@
   --color-gray-3-desktop: #B7B9BD;
   --color-gray-4: #C8CACD;
   --color-green: #2CD36F;
-  --color-green-2: #83AE94;
   --color-red: #F35B5B;
   --color-purple-1: #5E6BDE;
   --color-purple-2: #6875E9;
@@ -86,13 +87,15 @@
   --color-activity-icon: #FFFFFF;
   --color-activity-blue: #007FBE;
   --color-activity-blue-background: #E7F2F7;
-  --color-activity-gray-text: #3F4650;
+  --color-activity-gray-text: #616770;
   --color-activity-gray-background: #F1F1F3;
   --color-activity-green-text: #10B853;
+  --color-activity-green-text-2: #83AE94;
   --color-activity-green-background: #EBF7F1;
   --color-activity-purple-text: #5E6BDE;
   --color-activity-purple-background: #EFF1F9;
   --color-activity-red-text: #E64F4F;
+  --color-activity-red-text-2: #CD9595;
   --color-activity-red-background: #F9EFF0;
 
   --color-transaction-amount-text: #007FBE;
@@ -162,8 +165,7 @@
   --color-vesting-background: #B4DBF0;
 
   --color-gradient-main-blue2-green: linear-gradient(81.88deg, #0088CC 19.42%, #1EC160 71.55%);
-  --color-gradient-main-gray2-green: linear-gradient(90deg, #89898B 0.98%, #2CD36F 99.02%);
-  --color-gradient-activity-gray-green-text: linear-gradient(265.24deg, #3F4650 16.67%, #10B853 45.27%);
+  --color-gradient-main-gray2-green: linear-gradient(90deg, #89898B 25%, #2CD36F 75%);
   --color-gradient-activity-gray-green-bg: linear-gradient(135deg, #EAFBF1 13.89%, #EDF1F6 86.11%);
 
   --default-shadow: 0 0 1.5625rem 0 #00000026;
@@ -173,6 +175,7 @@
   --layer-blackout-opacity: 0.1;
 
   --border-radius-micro: 0.1875rem;
+  --border-radius-mini: 0.375rem;
   --border-radius-tiny: 0.5rem;
   --border-radius-small: 0.625rem;
   --border-radius-normal: 0.75rem;
@@ -245,6 +248,8 @@
 
   &.theme-dark,
   .component-theme-dark {
+    --color-default-accent: #469CEC;
+    --color-default-accent-hover: #469CECCC;
     --color-accent: #469CEC;
     --color-black: #F6F7F8;
     --color-gray-1: #BFC0C2;
@@ -252,7 +257,6 @@
     --color-gray-3: #626363;
     --color-gray-3-desktop: #89898B;
     --color-gray-4: #515252;
-    --color-green-2: #79A28B;
     --color-purple-1: #95A0FE;
     --color-purple-2: #7986F7;
     --color-accent-10o: #469CEC1A;
@@ -311,13 +315,15 @@
 
     --color-activity-blue: #58AFFF;
     --color-activity-blue-background: #1B2D3B;
-    --color-activity-gray-text: #D8DADC;
+    --color-activity-gray-text: #BFC0C2;
     --color-activity-gray-background: #2D2D2D;
-    --color-activity-green-text: #2BC469;
+    --color-activity-green-text: #2CD36F;
+    --color-activity-green-text-2: #79A28B;
     --color-activity-green-background: #163623;
     --color-activity-purple-text: #95A0FE;
     --color-activity-purple-background: #25273D;
     --color-activity-red-text: #FF7A7A;
+    --color-activity-red-text-2: #A97B7B;
     --color-activity-red-background: #3C2020;
 
     --color-transaction-amount-text: #58AFFF;
@@ -370,8 +376,7 @@
     --color-beidge-background: #1A2938;
 
     --color-gradient-main-blue2-green: linear-gradient(81.88deg, #469CEC 19.42%, #2CD36F 71.55%);
-    --color-gradient-main-gray2-green: linear-gradient(90deg, #89898B 0.98%, #2CD36F 99.02%);
-    --color-gradient-activity-gray-green-text: linear-gradient(265.24deg, #D8DADC 16.67%, #2BC469 45.27%);
+    --color-gradient-main-gray2-green: linear-gradient(90deg, #89898B 25%, #2CD36F 75%);
     --color-gradient-activity-gray-green-bg: linear-gradient(135deg, #1F3838 13.89%, #2E3947 86.11%);
   }
 }

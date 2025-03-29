@@ -22,6 +22,7 @@ import TokenIcon from '../common/TokenIcon';
 import DeleteTokenModal from '../main/modals/DeleteTokenModal';
 import AnimatedCounter from '../ui/AnimatedCounter';
 import Draggable from '../ui/Draggable';
+import SensitiveData from '../ui/SensitiveData';
 import Switcher from '../ui/Switcher';
 
 import styles from './Settings.module.scss';
@@ -39,6 +40,7 @@ interface OwnProps {
   isSortByValueEnabled?: boolean;
   baseCurrency?: ApiBaseCurrency;
   withChainIcon?: boolean;
+  isSensitiveDataHidden?: true;
 }
 
 const TOKEN_HEIGHT_PX = 64;
@@ -51,6 +53,7 @@ function SettingsTokens({
   isSortByValueEnabled,
   baseCurrency,
   withChainIcon,
+  isSensitiveDataHidden,
 }: OwnProps) {
   const {
     openSettingsWithState,
@@ -173,9 +176,11 @@ function SettingsTokens({
             {name}
           </div>
           <div className={styles.tokenDescription}>
-            <AnimatedCounter text={formatCurrency(toDecimal(totalAmount, token.decimals, true), shortBaseSymbol)} />
-            <i className={styles.dot} aria-hidden />
-            <AnimatedCounter text={formatCurrency(toDecimal(amount, token.decimals), symbol)} />
+            <SensitiveData isActive={isSensitiveDataHidden} cols={4 + (top % 6)} rows={2} cellSize={8}>
+              <AnimatedCounter text={formatCurrency(toDecimal(totalAmount, token.decimals, true), shortBaseSymbol)} />
+              <i className={styles.dot} aria-hidden />
+              <AnimatedCounter text={formatCurrency(toDecimal(amount, token.decimals), symbol)} />
+            </SensitiveData>
             {isDeleteButtonVisible && (
               <>
                 <i className={styles.dot} aria-hidden />

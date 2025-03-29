@@ -11,7 +11,6 @@ import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { callActionInNative } from '../../../util/multitab';
 import { IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
-import { NFT_TRANSFER_AMOUNT } from '../../../api/chains/ton/constants';
 import { ApiHardwareBlindSigningNotEnabled, ApiUserRejectsError } from '../../../api/errors';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
@@ -51,9 +50,9 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   let result: ApiCheckTransactionDraftResult | undefined;
 
   if (isNftTransfer) {
-    // This assignment is needed only for the amount checking hack in the 'newLocalTransaction' handler in
+    // This assignment is needed only for the amount checking hack in the 'newLocalActivity' handler in
     // `src/global/actions/apiUpdates/activities.ts` to work.
-    amount = NFT_TRANSFER_AMOUNT;
+    amount = 0n;
 
     result = await callApi('checkNftTransferDraft', {
       accountId: global.currentAccountId!,

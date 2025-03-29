@@ -1,0 +1,38 @@
+.label {
+  margin: 0 0.5rem 0.5rem;
+
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-gray-2);
+}
+
+.field {
+  $textHeight: 1.25rem;
+
+  overflow: hidden;
+
+  padding: 1rem 0.75rem;
+
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: $textHeight;
+  color: var(--color-black);
+
+  background-color: var(--color-background-first);
+  border-radius: 1rem;
+
+  &_transition {
+    height: $textHeight;
+  }
+
+  &_loading {
+    --color-dot: var(--color-gray-3);
+
+    transform: scale(0.7);
+    transform-origin: 0 50%;
+
+    justify-content: flex-start;
+
+    height: 100%;
+  }
+}

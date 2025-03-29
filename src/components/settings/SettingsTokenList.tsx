@@ -1,9 +1,13 @@
 import React, { memo } from '../../lib/teact/teact';
+import { getActions } from '../../global';
+
+import type { UserSwapToken, UserToken } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
+import useLastCallback from '../../hooks/useLastCallback';
 
 import TokenSelector from '../common/TokenSelector';
 import Button from '../ui/Button';
@@ -21,7 +25,13 @@ function SettingsTokenList({
   isInsideModal,
   handleBackClick,
 }: OwnProps) {
+  const { addToken } = getActions();
+
   const lang = useLang();
+
+  const handleTokenSelect = useLastCallback((token: UserToken | UserSwapToken) => {
+    addToken({ token: token as UserToken });
+  });
 
   useHistoryBack({
     isActive,
@@ -49,10 +59,10 @@ function SettingsTokenList({
     <div className={buildClassName(styles.slide, styles.withTopSpace)}>
       <TokenSelector
         isActive={isActive}
-        isInsideSettings
         shouldHideMyTokens
         shouldHideNotSupportedTokens
         header={renderHeader()}
+        onTokenSelect={handleTokenSelect}
         onBack={handleBackClick}
         onClose={handleBackClick}
       />

@@ -17,7 +17,8 @@ import { handleOpenUrl, openUrl } from '../../util/openUrl';
 import { shareUrl } from '../../util/share';
 import { MEANINGFUL_CHAR_LENGTH, shortenAddress } from '../../util/shortenAddress';
 import { getExplorerAddressUrl, getExplorerName, getHostnameFromUrl } from '../../util/url';
-import { IS_IOS, IS_TOUCH_ENV } from '../../util/windowEnvironment';
+import { IS_IOS, IS_TOUCH_ENV, REM } from '../../util/windowEnvironment';
+import windowSize from '../../util/windowSize';
 
 import useFlag from '../../hooks/useFlag';
 import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
@@ -54,6 +55,7 @@ interface OwnProps {
   noDimming?: boolean;
   noSavedAddress?: boolean;
   noExplorer?: boolean;
+  withShareInMenu?: boolean;
 }
 
 interface StateProps {
@@ -66,6 +68,8 @@ type MenuHandler = 'copy' | 'share' | 'addressBook' | 'explorer';
 
 const SAVED_ADDRESS_NAME_MAX_LENGTH = 255;
 const MENU_VERTICAL_OFFSET_PX = -16;
+const MENU_ITEM_HEIGHT_PX = 3 * REM;
+const COMFORT_MARGIN_PX = REM;
 
 function InteractiveTextField({
   chain,
@@ -87,6 +91,7 @@ function InteractiveTextField({
   isTestnet,
   isMultichainAccount,
   noDimming,
+  withShareInMenu,
 }: OwnProps & StateProps) {
   const { showNotification, addSavedAddress } = getActions();
 
@@ -140,7 +145,7 @@ function InteractiveTextField({
   });
 
   const handleShare = useLastCallback(() => {
-    void shareUrl(addressUrl!, getExplorerName(chain!));
+    void shareUrl(addressUrl!, chain ? getExplorerName(chain) : undefined);
   });
 
   const handleTonExplorerOpen = useLastCallback(() => {
@@ -148,8 +153,9 @@ function InteractiveTextField({
   });
 
   const {
-    menuPosition,
     isActionsMenuOpen,
+    anchorPosition,
+    menuPosition,
     menuItems,
     handleMenuShow,
     handleMenuItemSelect,
@@ -165,6 +171,7 @@ function InteractiveTextField({
     isTransaction,
     withSavedAddresses,
     withExplorer,
+    withShare: withShareInMenu,
   });
 
   const shouldUseMenu = !spoiler && IS_TOUCH_ENV && menuItems.length > 1;
@@ -265,7 +272,8 @@ function InteractiveTextField({
             shouldTranslateOptions
             isOpen={isActionsMenuOpen}
             items={menuItems}
-            anchorPosition={menuPosition}
+            menuPosition={menuPosition}
+            anchorPosition={anchorPosition}
             bubbleClassName={styles.menu}
             buttonClassName={styles.menuItem}
             fontIconClassName={styles.menuIcon}
@@ -409,15 +417,17 @@ function useDropdownMenu(
     isAddressAlreadySaved?: boolean;
     isWalletAddress?: boolean;
     isTransaction?: boolean;
+    withShare?: boolean;
   },
 ) {
-  const [menuPosition, setMenuPosition] = useState<IAnchorPosition | undefined>();
-  const closeActionsMenu = useLastCallback(() => setMenuPosition(undefined));
-  const isActionsMenuOpen = Boolean(menuPosition);
+  const [menuPosition, setMenuPosition] = useState<'top' | 'bottom'>('top');
+  const [anchorPosition, setAnchorPosition] = useState<IAnchorPosition | undefined>();
+  const closeActionsMenu = useLastCallback(() => setAnchorPosition(undefined));
+  const isActionsMenuOpen = Boolean(anchorPosition);
 
   const menuItems = useMemo<DropdownItem[]>(() => {
     const {
-      isAddressAlreadySaved, isWalletAddress, isTransaction, withSavedAddresses, withExplorer,
+      isAddressAlreadySaved, isWalletAddress, isTransaction, withSavedAddresses, withExplorer, withShare,
     } = options;
 
     const items: DropdownItem[] = [{
@@ -438,7 +448,7 @@ function useDropdownMenu(
       });
     }
 
-    if (isTransaction) {
+    if (isTransaction || withShare) {
       items.push({
         name: 'Share Link',
         fontIcon: IS_IOS ? 'share-ios' : 'share-android',
@@ -478,13 +488,21 @@ function useDropdownMenu(
     } else {
       x = (e as React.MouseEvent).clientX;
     }
-    const { bottom } = e.currentTarget.getBoundingClientRect();
-
-    setMenuPosition({ x, y: bottom + MENU_VERTICAL_OFFSET_PX });
+    const { top, bottom } = e.currentTarget.getBoundingClientRect();
+    const menuHeight = menuItems.length * MENU_ITEM_HEIGHT_PX;
+    const screenHeight = windowSize.get().height;
+    if (bottom + menuHeight + MENU_VERTICAL_OFFSET_PX + COMFORT_MARGIN_PX >= screenHeight) {
+      setMenuPosition('bottom');
+      setAnchorPosition({ x, y: top });
+    } else {
+      setMenuPosition('top');
+      setAnchorPosition({ x, y: bottom + MENU_VERTICAL_OFFSET_PX });
+    }
   });
 
   return {
     isActionsMenuOpen,
+    anchorPosition,
     menuPosition,
     menuItems,
     handleMenuShow,

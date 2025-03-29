@@ -3,7 +3,7 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../global';
 
-import type { ApiChain } from '../../api/types';
+import type { ApiChain, ApiToken } from '../../api/types';
 import type {
   Account, ActionPayloads, AssetPairs, GlobalState, UserSwapToken,
 } from '../../global/types';
@@ -32,7 +32,6 @@ import { findChainConfig } from '../../util/chain';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import { stopEvent } from '../../util/domEvents';
 import { explainSwapFee, getMaxSwapAmount, isBalanceSufficientForSwap } from '../../util/fee/swapFee';
-import { formatCurrency } from '../../util/formatNumber';
 import { vibrate } from '../../util/haptics';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 
@@ -42,14 +41,13 @@ import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import usePrevious from '../../hooks/usePrevious';
-import useSyncEffect from '../../hooks/useSyncEffect';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
+import SelectTokenButton from '../common/SelectTokenButton';
+import AmountFieldMaxButton from '../ui/AmountFieldMaxButton';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import FeeLine from '../ui/FeeLine';
 import RichNumberInput from '../ui/RichNumberInput';
-import Transition from '../ui/Transition';
-import SwapSelectToken from './components/SwapSelectToken';
 import SwapSubmitButton from './components/SwapSubmitButton';
 import SwapDexChooser from './SwapDexChooser';
 import SwapSettingsModal, { MAX_PRICE_IMPACT_VALUE } from './SwapSettingsModal';
@@ -69,6 +67,7 @@ interface StateProps {
   tokens?: UserSwapToken[];
   isMultichainAccount?: boolean;
   swapType: SwapType;
+  isSensitiveDataHidden?: true;
 }
 
 const ESTIMATE_REQUEST_INTERVAL = 1_000;
@@ -101,6 +100,7 @@ function SwapInitial({
   isStatic,
   isMultichainAccount,
   swapType,
+  isSensitiveDataHidden,
 }: OwnProps & StateProps) {
   const {
     setDefaultSwapParams,
@@ -123,8 +123,6 @@ function SwapInitial({
 
   const currentTokenInSlug = tokenInSlug ?? TONCOIN.slug;
   const currentTokenOutSlug = tokenOutSlug ?? DEFAULT_SWAP_SECOND_TOKEN_SLUG;
-
-  const tokenInTransitionKey = useTokenTransitionKey(currentTokenInSlug ?? '');
 
   const accountIdPrev = usePrevious(accountId, true);
 
@@ -267,15 +265,21 @@ function SwapInitial({
     },
   );
 
+  const handleSelectTokenInModalOpen = useLastCallback(() => {
+    setSwapScreen({ state: SwapState.SelectTokenFrom });
+  });
+
+  const handleSelectTokenOutModalOpen = useLastCallback(() => {
+    setSwapScreen({ state: SwapState.SelectTokenTo });
+  });
+
   const handleAmountOutChange = useLastCallback(
     (amount: string | undefined) => {
       debounceSetAmountOut({ amount: amount || undefined });
     },
   );
 
-  const handleMaxAmountClick = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-
+  const handleMaxAmountClick = useLastCallback(() => {
     if (maxAmount === undefined) {
       return;
     }
@@ -284,7 +288,7 @@ function SwapInitial({
 
     const amount = toDecimal(maxAmount, tokenIn!.decimals);
     setSwapAmountIn({ amount, isMaxAmount: true });
-  };
+  });
 
   const handleSubmit = useLastCallback((e: React.FormEvent | React.UIEvent) => {
     stopEvent(e);
@@ -327,29 +331,12 @@ function SwapInitial({
 
   function renderBalance() {
     return (
-      <Transition
-        name="fade"
-        activeKey={tokenInTransitionKey}
-      >
-        {maxAmount !== undefined && (
-          <div className={styles.balanceContainer}>
-            <span className={styles.balance}>
-              {lang('$max_balance', {
-                balance: (
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={handleMaxAmountClick}
-                    className={styles.balanceLink}
-                  >
-                    {formatCurrency(toDecimal(maxAmount, tokenIn?.decimals), tokenIn!.symbol)}
-                  </div>
-                ),
-              })}
-            </span>
-          </div>
-        )}
-      </Transition>
+      <AmountFieldMaxButton
+        maxAmount={maxAmount}
+        token={tokenIn}
+        isSensitiveDataHidden={isSensitiveDataHidden}
+        onAmountClick={handleMaxAmountClick}
+      />
     );
   }
 
@@ -402,7 +389,7 @@ function SwapInitial({
         <div className={styles.priceImpactContent}>
           <span className={styles.priceImpactTitle}>
             {lang('The exchange rate is below market value!', { value: `${priceImpact}%` })}
-            <i className={buildClassName(styles.priceImpactArrow, 'icon-arrow-right-swap')} aria-hidden />
+            <i className={buildClassName(styles.priceImpactArrow, 'icon-chevron-right')} aria-hidden />
           </span>
           <span className={styles.priceImpactDescription}>
             {lang('We do not recommend to perform an exchange, try to specify a lower amount.')}
@@ -465,7 +452,7 @@ function SwapInitial({
               cornerClassName={buildClassName(styles.swapCornerTop, isStatic && styles.swapCornerStaticTop)}
               isStatic={isStatic}
             >
-              <SwapSelectToken token={tokenIn} />
+              <SelectTokenButton token={tokenIn as ApiToken} onClick={handleSelectTokenInModalOpen} />
             </RichNumberInput>
           </div>
 
@@ -490,7 +477,7 @@ function SwapInitial({
               cornerClassName={buildClassName(styles.swapCornerBottom, isStatic && styles.swapCornerStaticBottom)}
               isStatic={isStatic}
             >
-              <SwapSelectToken token={tokenOut} shouldFilter />
+              <SelectTokenButton token={tokenOut as ApiToken} onClick={handleSelectTokenOutModalOpen} />
             </RichNumberInput>
           </div>
         </div>
@@ -551,21 +538,12 @@ export default memo(
         addressByChain: account?.addressByChain,
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
         swapType: selectSwapType(global),
+        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
   )(SwapInitial),
 );
-
-function useTokenTransitionKey(tokenSlug: string) {
-  const transitionKeyRef = useRef(0);
-
-  useSyncEffect(() => {
-    transitionKeyRef.current++;
-  }, [tokenSlug]);
-
-  return transitionKeyRef.current;
-}
 
 function useReverseProhibited(
   isCrosschain: boolean,

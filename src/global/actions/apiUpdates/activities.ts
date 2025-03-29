@@ -1,9 +1,10 @@
-import type { ApiTransactionActivity } from '../../../api/types';
+import type { ApiActivity, ApiTransactionActivity } from '../../../api/types';
+import type { GlobalState } from '../../types';
 import { TransferState } from '../../types';
 
-import { TONCOIN } from '../../../config';
+import { MTW_CARDS_COLLECTION } from '../../../config';
+import { parseTxId } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
-import { groupBy } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
@@ -12,48 +13,62 @@ import {
   IS_DELEGATED_BOTTOM_SHEET,
   IS_DELEGATING_BOTTOM_SHEET,
 } from '../../../util/windowEnvironment';
-import { getIsTinyOrScamTransaction, getRealTxIdFromLocal } from '../../helpers';
-import { addActionHandler, setGlobal } from '../../index';
+import { getIsTinyOrScamTransaction } from '../../helpers';
+import { addActionHandler, getActions, setGlobal } from '../../index';
 import {
-  addLocalTransaction,
   addNewActivities,
+  addNft,
   clearIsPinAccepted,
-  removeLocalTransaction,
-  replaceLocalTransaction,
-  setIsFirstActivitiesLoadedTrue,
+  putInitialActivities,
+  removeActivities,
+  replaceCurrentActivityId,
+  replaceCurrentTransferTxId,
+  setIsInitialActivitiesLoadedTrue,
   updateAccountState,
   updateActivitiesIsLoadingByAccount,
-  updateActivity,
   updateCurrentTransfer,
 } from '../../reducers';
-import { selectAccountState, selectLocalTransactions } from '../../selectors';
+import { selectAccountState, selectLocalActivities } from '../../selectors';
 
 const TX_AGE_TO_PLAY_SOUND = 60000; // 1 min
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
-    case 'newLocalTransaction': {
+    case 'initialActivities': {
+      const { accountId, mainActivities, bySlug, chain } = update;
+
+      global = updateActivitiesIsLoadingByAccount(global, accountId, false);
+      global = putInitialActivities(global, accountId, mainActivities, bySlug);
+
+      if (chain) {
+        global = setIsInitialActivitiesLoadedTrue(global, accountId, chain);
+      }
+
+      setGlobal(global);
+      break;
+    }
+
+    case 'newLocalActivity': {
       const {
         accountId,
-        transaction,
-        transaction: { amount, txId },
+        activity,
       } = update;
 
-      global = updateActivity(global, accountId, transaction);
-      global = addLocalTransaction(global, accountId, transaction);
+      global = addNewActivities(global, accountId, [activity]);
 
-      if (-amount === global.currentTransfer.amount) {
+      if (activity.kind === 'transaction' && -activity.amount === global.currentTransfer.amount) {
         global = updateCurrentTransfer(global, {
-          txId,
+          txId: activity.txId,
           state: TransferState.Complete,
           isLoading: false,
         });
+
         if (getDoesUsePinPad()) {
           global = clearIsPinAccepted(global);
         }
 
-        if (getIsTonToken(transaction.slug)) {
-          actions.fetchTransferDieselState({ tokenSlug: transaction.slug });
+        if (getIsTonToken(activity.slug)) {
+          actions.fetchTransferDieselState({ tokenSlug: activity.slug });
         }
       }
 
@@ -71,77 +86,27 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         // A local swap transaction is not created if the NBS is closed before the exchange is completed
         callActionInMain('apiUpdate', { ...update, noForward: true });
       }
-      const { accountId, activities, chain } = update;
+      const { accountId, activities: incomingActivities, chain } = update;
 
       global = updateActivitiesIsLoadingByAccount(global, accountId, false);
 
-      const localTransactions = selectLocalTransactions(global, accountId) ?? [];
-      const withLocalIndex = activities.map((activity) => {
-        if (activity.kind !== 'transaction') {
-          return { activity, localIndex: -1, groupName: 'newActivities' };
-        }
+      const localActivities = selectLocalActivities(global, accountId) ?? [];
+      const { replacedLocalIds, newActivities } = splitReplacedAndNewActivities(localActivities, incomingActivities);
 
-        const localIndex = localTransactions.findIndex(({
-          txId, amount, isIncoming, slug, normalizedAddress, inMsgHash,
-        }) => {
-          if (getRealTxIdFromLocal(txId) === activity.txId) {
-            return true;
-          } else if (slug === TONCOIN.slug) {
-            return inMsgHash === activity.inMsgHash && normalizedAddress === activity.normalizedAddress;
-          } else {
-            return amount === activity.amount && !isIncoming && slug === activity.slug
-              && normalizedAddress === activity.normalizedAddress;
-          }
-        });
+      global = removeActivities(global, accountId, replacedLocalIds.keys());
+      global = addNewActivities(global, accountId, incomingActivities);
 
-        return { activity, localIndex, groupName: localIndex >= 0 ? 'localUpdates' : 'newActivities' };
-      });
+      global = replaceCurrentTransferTxId(global, replacedLocalIds);
+      global = replaceCurrentActivityId(global, accountId, replacedLocalIds);
+      notifyAboutNewActivities(global, newActivities);
 
-      const groups = groupBy(withLocalIndex, 'groupName');
-
-      groups.localUpdates?.forEach(({ activity, localIndex }) => {
-        const [localTransaction] = localTransactions.splice(localIndex, 1);
-
-        const { txId } = activity as ApiTransactionActivity;
-        const localTxId = localTransaction.txId;
-        global = replaceLocalTransaction(global, accountId, localTxId, activity as ApiTransactionActivity);
-
-        if (global.currentTransfer.txId === localTxId) {
-          global = updateCurrentTransfer(global, { txId });
-        }
-
-        const { currentActivityId } = selectAccountState(global, accountId) || {};
-        if (currentActivityId === localTxId) {
-          global = updateAccountState(global, accountId, { currentActivityId: txId });
-        }
-
-        global = removeLocalTransaction(global, accountId, localTxId);
-      });
-
-      if (groups.newActivities) {
-        const newActivities = groups.newActivities.map(({ activity }) => activity);
-
-        global = addNewActivities(global, accountId, newActivities);
-
-        const shouldPlaySound = newActivities.some((activity) => {
-          return activity.kind === 'transaction'
-            && activity.isIncoming
-            && global.settings.canPlaySounds
-            && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
-            && !(
-              global.settings.areTinyTransfersHidden
-              && getIsTinyOrScamTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
-            )
-            && !getIsTransactionWithPoisoning(activity);
-        });
-
-        if (shouldPlaySound) {
-          playIncomingTransactionSound();
-        }
-      }
+      // NFT polling is executed at long intervals, so it is more likely that a user will see a new transaction
+      // rather than receiving a card in the collection. Therefore, when a new activity occurs,
+      // we check for a card from the MyTonWallet collection and apply it.
+      global = processCardMintingActivity(global, accountId, incomingActivities);
 
       if (chain) {
-        global = setIsFirstActivitiesLoadedTrue(global, accountId, chain);
+        global = setIsInitialActivitiesLoadedTrue(global, accountId, chain);
       }
 
       setGlobal(global);
@@ -149,3 +114,90 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
   }
 });
+
+/**
+ * Finds the ids of the local activities that match any of the new blockchain activities (those are to be replaced).
+ * Also finds the ids of the blockchain activities that have no matching local activities (those are to be notified about).
+ */
+function splitReplacedAndNewActivities(localActivities: ApiActivity[], incomingActivities: ApiActivity[]) {
+  const replacedLocalIds = new Map<string, string>();
+  const newActivities: ApiActivity[] = [];
+
+  for (const incomingActivity of incomingActivities) {
+    let hasLocalMatch = false;
+
+    for (const localActivity of localActivities) {
+      if (doesLocalActivityMatch(localActivity, incomingActivity)) {
+        replacedLocalIds.set(localActivity.id, incomingActivity.id);
+        hasLocalMatch = true;
+      }
+    }
+
+    if (!hasLocalMatch) {
+      newActivities.push(incomingActivity);
+    }
+  }
+
+  return { replacedLocalIds, newActivities };
+}
+
+/** Decides whether the local activity matches the activity from the blockchain */
+function doesLocalActivityMatch(localActivity: ApiActivity, chainActivity: ApiActivity) {
+  if (localActivity.extra?.withW5Gasless) {
+    if (localActivity.kind === 'transaction' && chainActivity.kind === 'transaction') {
+      return !chainActivity.isIncoming && localActivity.normalizedAddress === chainActivity.normalizedAddress
+        && localActivity.amount === chainActivity.amount
+        && localActivity.slug === chainActivity.slug;
+    } else if (localActivity.kind === 'swap' && chainActivity.kind === 'swap') {
+      return localActivity.from === chainActivity.from
+        && localActivity.to === chainActivity.to
+        && localActivity.fromAmount === chainActivity.fromAmount;
+    }
+  }
+
+  if (localActivity.externalMsgHash) {
+    return localActivity.externalMsgHash === chainActivity.externalMsgHash && !chainActivity.shouldHide;
+  }
+
+  return parseTxId(localActivity.id).hash === parseTxId(chainActivity.id).hash;
+}
+
+function notifyAboutNewActivities(global: GlobalState, newActivities: ApiActivity[]) {
+  const shouldPlaySound = newActivities.some((activity) => {
+    return activity.kind === 'transaction'
+      && activity.isIncoming
+      && global.settings.canPlaySounds
+      && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
+      && !(
+        global.settings.areTinyTransfersHidden
+        && getIsTinyOrScamTransaction(activity, global.tokenInfo?.bySlug[activity.slug!])
+      )
+      && !getIsTransactionWithPoisoning(activity);
+  });
+
+  if (shouldPlaySound) {
+    playIncomingTransactionSound();
+  }
+}
+
+function processCardMintingActivity(global: GlobalState, accountId: string, activities: ApiActivity[]): GlobalState {
+  const { isCardMinting } = selectAccountState(global, accountId) || {};
+  const mintCardActivity = isCardMinting
+    ? activities.find((activity) => {
+      return activity.kind === 'transaction'
+        && activity.isIncoming
+        && activity?.nft?.collectionAddress === MTW_CARDS_COLLECTION;
+    })
+    : undefined;
+
+  if (mintCardActivity) {
+    const nft = (mintCardActivity as ApiTransactionActivity).nft!;
+
+    global = updateAccountState(global, accountId, { isCardMinting: undefined });
+    global = addNft(global, accountId, nft);
+    getActions().setCardBackgroundNft({ nft });
+    getActions().installAccentColorFromNft({ nft });
+  }
+
+  return global;
+}

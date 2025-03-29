@@ -4,7 +4,7 @@ import {
 } from '../../../util/windowEnvironment';
 import { callApi, initApi } from '../../../api';
 import { addActionHandler, getGlobal } from '../../index';
-import { selectNewestTxTimestamps } from '../../selectors';
+import { selectNewestActivityTimestamps } from '../../selectors';
 
 addActionHandler('initApi', async (global, actions) => {
   initApi(actions.apiUpdate, {
@@ -23,9 +23,9 @@ addActionHandler('initApi', async (global, actions) => {
     return;
   }
 
-  const newestTxTimestamps = selectNewestTxTimestamps(global, currentAccountId);
+  const newestActivityTimestamps = selectNewestActivityTimestamps(global, currentAccountId);
 
-  void callApi('activateAccount', currentAccountId, newestTxTimestamps);
+  void callApi('activateAccount', currentAccountId, newestActivityTimestamps);
 });
 
 addActionHandler('resetApiSettings', (global, actions, params) => {

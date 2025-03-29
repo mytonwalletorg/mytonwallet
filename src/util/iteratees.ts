@@ -206,3 +206,36 @@ export function filterValues<M extends any>(
     return newByKey;
   }, {});
 }
+
+export function uniqueByKey<T>(array: T[], key: keyof T, shouldKeepFirst?: boolean) {
+  if (shouldKeepFirst) {
+    array = Array.from(array);
+    array.reverse();
+  }
+
+  const result = [...new Map(array.map((item) => [item[key], item])).values()];
+
+  if (shouldKeepFirst) {
+    result.reverse();
+  }
+
+  return result;
+}
+
+export function difference<T>(x: Set<T>, y: Set<T>): Set<T> {
+  const result = new Set(x);
+  for (const elem of y) {
+    result.delete(elem);
+  }
+  return result;
+}
+
+export function intersection<T>(x: Set<T>, y: Set<T>): Set<T> {
+  const result = new Set<T>();
+  for (const elem of y) {
+    if (x.has(elem)) {
+      result.add(elem);
+    }
+  }
+  return result;
+}

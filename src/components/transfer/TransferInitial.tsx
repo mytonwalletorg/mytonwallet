@@ -50,6 +50,7 @@ import useShowTransition from '../../hooks/useShowTransition';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
+import AmountFieldMaxButton from '../ui/AmountFieldMaxButton';
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
 import FeeLine from '../ui/FeeLine';
@@ -90,6 +91,7 @@ interface StateProps {
   diesel?: ApiFetchEstimateDieselResult;
   isDieselAuthorizationStarted?: boolean;
   isMultichainAccount: boolean;
+  isSensitiveDataHidden?: true;
 }
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
@@ -141,6 +143,7 @@ function TransferInitial({
   diesel,
   isDieselAuthorizationStarted,
   isMultichainAccount,
+  isSensitiveDataHidden,
 }: OwnProps & StateProps) {
   const {
     submitTransferInitial,
@@ -468,9 +471,7 @@ function TransferInitial({
     }
   });
 
-  const handleMaxAmountClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-
+  const handleMaxAmountClick = useLastCallback(() => {
     if (!balance) {
       return;
     }
@@ -693,27 +694,16 @@ function TransferInitial({
   }
 
   function renderBalance() {
-    if (!symbol || isNftTransfer) {
-      return undefined;
-    }
+    if (isNftTransfer) return undefined;
 
     return (
-      <div className={styles.balanceContainer}>
-        <span className={styles.balance}>
-          {lang('$max_balance', {
-            balance: (
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={handleMaxAmountClick}
-                className={styles.balanceLink}
-              >
-                {maxAmount !== undefined ? formatCurrency(toDecimal(maxAmount, decimals), symbol) : lang('Loading...')}
-              </div>
-            ),
-          })}
-        </span>
-      </div>
+      <AmountFieldMaxButton
+        maxAmount={maxAmount}
+        token={transferToken}
+        isLoading={maxAmount === undefined}
+        isSensitiveDataHidden={isSensitiveDataHidden}
+        onAmountClick={handleMaxAmountClick}
+      />
     );
   }
 
@@ -982,6 +972,7 @@ export default memo(
         diesel,
         isDieselAuthorizationStarted: accountState?.isDieselAuthorizationStarted,
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
+        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
       };
     },
     (global, { isStatic }, stickToFirst) => {

@@ -46,7 +46,7 @@ import {
   selectCurrentNetwork,
   selectNetworkAccounts,
   selectNetworkAccountsMemoized,
-  selectNewestTxTimestamps,
+  selectNewestActivityTimestamps,
   selectSwapTokens,
 } from '../../selectors';
 
@@ -57,9 +57,9 @@ addActionHandler('init', (_, actions) => {
     const { documentElement } = document;
 
     if (IS_IOS) {
-      documentElement.classList.add('is-ios');
+      documentElement.classList.add('is-ios', 'is-mobile');
     } else if (IS_ANDROID) {
-      documentElement.classList.add('is-android');
+      documentElement.classList.add('is-android', 'is-mobile');
       if (IS_ANDROID_APP) {
         documentElement.classList.add('is-android-app');
       }
@@ -456,9 +456,9 @@ addActionHandler('signOut', async (global, actions, payload) => {
   } else {
     const prevAccountId = global.currentAccountId!;
     const nextAccountId = accountIds.find((id) => id !== prevAccountId)!;
-    const nextNewestTxTimestamps = selectNewestTxTimestamps(global, nextAccountId);
+    const nextNewestActivityTimestamps = selectNewestActivityTimestamps(global, nextAccountId);
 
-    await callApi('removeAccount', prevAccountId, nextAccountId, nextNewestTxTimestamps);
+    await callApi('removeAccount', prevAccountId, nextAccountId, nextNewestActivityTimestamps);
     actions.deleteNotificationAccount({ accountId: prevAccountId });
 
     global = getGlobal();

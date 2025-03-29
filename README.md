@@ -26,12 +26,6 @@ To build on **Windows**, you will also need:
 - A zip utility (for several commands)
 
 ## Local Setup
-### Prepare macOS
-`node-gyp` tries to build `node-canvas`, so we pre-install [all necessary dependencies](https://github.com/Automattic/node-canvas/wiki/Installation:-Mac-OS-X#homebrew) in advance.
-```sh
-brew install pkg-config cairo pango libpng jpeg giflib librsvg
-```
-
 ### NPM Local Setup
 ```sh
 cp .env.example .env

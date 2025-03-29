@@ -15,7 +15,7 @@ import {
   LANDSCAPE_MIN_ASSETS_TAB_VIEW,
   PORTRAIT_MIN_ASSETS_TAB_VIEW,
 } from '../../../../config';
-import { getIsSwapId, getIsTinyOrScamTransaction, getIsTxIdLocal } from '../../../../global/helpers';
+import { getIsTinyOrScamTransaction } from '../../../../global/helpers';
 import {
   selectAccountStakingStates,
   selectCurrentAccount,
@@ -27,7 +27,7 @@ import {
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { formatHumanDay, getDayStartAt, SECOND } from '../../../../util/dateFormat';
-import { buildCollectionByKey, findLast } from '../../../../util/iteratees';
+import { buildCollectionByKey } from '../../../../util/iteratees';
 import { getIsTransactionWithPoisoning } from '../../../../util/poisoningHash';
 import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
@@ -46,8 +46,8 @@ import LoadingDots from '../../../ui/LoadingDots';
 import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
 import NewWalletGreeting from './NewWalletGreeting';
-import Swap from './Swap';
-import Transaction from './Transaction';
+import Swap, { getSwapHeight } from './Swap';
+import Transaction, { getTransactionHeight } from './Transaction';
 
 import styles from './Activities.module.scss';
 
@@ -76,27 +76,23 @@ type StateProps = {
   activitiesUpdateStartedAt?: number;
   theme: Theme;
   isFirstTransactionsLoaded?: boolean;
+  isSensitiveDataHidden?: true;
   stakingStates?: ApiStakingState[];
 };
 
 interface ActivityOffsetInfo {
   offset: number;
-  offsetNext: number;
-  dateCount: number;
-  commentCount: number;
-  nftCount: number;
-  date: number;
+  height: number;
+  isFirst: boolean;
+  isFirstInDay: boolean;
+  isLastInDay: boolean;
 }
 
 const FURTHER_SLICE = 30;
 const THROTTLE_TIME = SECOND;
 
-const DATE_HEADER_HEIGHT = 2.5 * REM;
-const TRANSACTION_COMMENT_HEIGHT = 2.1875 * REM;
-const TRANSACTION_NFT_HEIGHT = 4 * REM;
-const TRANSACTION_HEIGHT = 4 * REM;
-
-const TIME_BETWEEN_SWAP_AND_TX = 3600000; // 1 hour
+const LIST_TOP_PADDING = 0.5 * REM;
+const DATE_HEADER_HEIGHT = 2.125 * REM;
 
 function Activities({
   isActive,
@@ -119,6 +115,7 @@ function Activities({
   activitiesUpdateStartedAt = 0,
   theme,
   isFirstTransactionsLoaded,
+  isSensitiveDataHidden,
   stakingStates,
 }: Omit<OwnProps, 'totalTokensAmount'> & StateProps) {
   const {
@@ -146,12 +143,6 @@ function Activities({
     if (byId) {
       if (slug) {
         idList = bySlug[slug] ?? [];
-        const lastTokenTxId = findLast(idList, (id) => !getIsTxIdLocal(id) && !getIsSwapId(id));
-
-        if (lastTokenTxId) {
-          const lastTokenTxTimestamp = byId[lastTokenTxId].timestamp - TIME_BETWEEN_SWAP_AND_TX;
-          idList = idList.filter((txId) => byId[txId].timestamp >= lastTokenTxTimestamp);
-        }
       } else {
         idList = idsMain;
       }
@@ -238,55 +229,39 @@ function Activities({
   const activityOffsetInfoById = useMemo(() => {
     const offsetMap: Record<string, ActivityOffsetInfo> = {};
 
-    let dateCount = 0;
-    let nftCount = 0;
-    let commentCount = 0;
+    let offset = 0;
     let lastActivityDayStart = 0;
 
     activityIds.forEach((id, index) => {
       const activity = activitiesById[id];
       if (!activity) return;
 
-      offsetMap[id] = {
-        offset: 0,
-        offsetNext: 0,
-        dateCount: 0,
-        commentCount: 0,
-        nftCount: 0,
-        date: lastActivityDayStart,
-      };
+      let height = activity.kind === 'transaction' ? getTransactionHeight(activity) : getSwapHeight();
 
-      const offsetTop = calculateOffset(index, dateCount, commentCount, nftCount);
+      const isFirst = index === 0;
+      if (isFirst) {
+        height += LIST_TOP_PADDING;
+      }
+
       const activityDayStart = getDayStartAt(activity.timestamp);
       const isNewDay = lastActivityDayStart !== activityDayStart;
-      const isNftTransfer = activity.kind === 'transaction'
-        && (
-          activity.type === 'nftTransferred'
-          || activity.type === 'nftReceived'
-          || Boolean(activity.nft)
-        );
-      const canCountComment = activity.kind === 'transaction' && (!activity.type || isNftTransfer);
       if (isNewDay) {
         lastActivityDayStart = activityDayStart;
-        dateCount += 1;
-      }
-
-      if (canCountComment && (activity.comment || activity.encryptedComment) && !activity.metadata?.isScam) {
-        commentCount += 1;
-      }
-
-      if (isNftTransfer && activity.nft) {
-        nftCount += 1;
+        height += DATE_HEADER_HEIGHT;
+        if (index > 0) {
+          offsetMap[activityIds[index - 1]].isLastInDay = true;
+        }
       }
 
       offsetMap[id] = {
-        ...offsetMap[id],
-        offset: offsetTop,
-        offsetNext: calculateOffset(index + 1, dateCount, commentCount, nftCount),
-        dateCount,
-        commentCount,
-        nftCount,
+        offset,
+        height,
+        isFirst,
+        isFirstInDay: isNewDay,
+        isLastInDay: index === activityIds.length - 1, // Also gets overwritten a few lines above
       };
+
+      offset += height;
     });
 
     return offsetMap;
@@ -295,8 +270,9 @@ function Activities({
   const currentContainerHeight = useMemo(
     () => {
       const lastViewportId = viewportIds![viewportIds!.length - 1];
+      const activityOffset = activityOffsetInfoById[lastViewportId];
 
-      return activityOffsetInfoById[lastViewportId]?.offsetNext || 0;
+      return activityOffset ? activityOffset.offset + activityOffset.height : 0;
     },
     [activityOffsetInfoById, viewportIds],
   );
@@ -341,6 +317,7 @@ function Activities({
           isActive={isActivityActive}
           appTheme={appTheme}
           addressByChain={addressByChain}
+          isSensitiveDataHidden={isSensitiveDataHidden}
           onClick={handleActivityClick}
         />
       );
@@ -357,6 +334,7 @@ function Activities({
           savedAddresses={savedAddresses}
           withChainIcon={isMultichainAccount}
           appTheme={appTheme}
+          isSensitiveDataHidden={isSensitiveDataHidden}
           onClick={handleActivityClick}
         />
       );
@@ -391,20 +369,10 @@ function Activities({
   }
 
   function renderHistory() {
-    return viewportIds!.map((id, index) => {
+    return viewportIds!.map((id) => {
       const activityInfo = activityOffsetInfoById[id];
-
-      const nextActivityId = viewportIds![index + 1];
       const activity = activitiesById[id];
-      const nextActivity = activitiesById[nextActivityId];
       if (!activity) return undefined;
-
-      const activityDayStart = getDayStartAt(activity.timestamp);
-      const isNewDay = activityInfo.date !== activityDayStart;
-
-      const nextActivityDayStart = nextActivity ? getDayStartAt(nextActivity.timestamp) : 0;
-      const isFirst = index === 0;
-      const isLast = activityDayStart !== nextActivityDayStart;
 
       const isActivityActive = activity.id === currentActivityId;
 
@@ -414,8 +382,8 @@ function Activities({
           style={`top: ${activityInfo.offset}px`}
           className={buildClassName('ListItem', styles.listItem)}
         >
-          {isNewDay && renderDate(activityDayStart, isFirst)}
-          {renderActivity(activity, isLast, isActivityActive)}
+          {activityInfo.isFirstInDay && renderDate(activity.timestamp, activityInfo.isFirst)}
+          {renderActivity(activity, activityInfo.isLastInDay, isActivityActive)}
         </div>
       );
     });
@@ -510,6 +478,7 @@ export default memo(
         isFirstTransactionsLoaded,
         addressByChain: account?.addressByChain,
         stakingStates,
+        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
       };
     },
     (global, { totalTokensAmount }, stickToFirst) => {
@@ -525,10 +494,3 @@ export default memo(
     },
   )(Activities),
 );
-
-function calculateOffset(index: number, dateCount: number, commentCount: number, nftCount: number) {
-  const commentOffset = commentCount * TRANSACTION_COMMENT_HEIGHT;
-  const dateOffset = dateCount * DATE_HEADER_HEIGHT;
-  const nftOffset = nftCount * TRANSACTION_NFT_HEIGHT;
-  return index * TRANSACTION_HEIGHT + dateOffset + commentOffset + nftOffset;
-}

@@ -2,8 +2,8 @@ import type { ApiNetwork, ApiToken, OnApiUpdate } from '../../types';
 
 import { buildCollectionByKey } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
-import { getAccountStates } from './util/apiV3';
 import { addTokens } from '../../common/tokens';
+import { getAccountStates } from './toncenter';
 
 export async function updateTokenHashes(network: ApiNetwork, tokens: ApiToken[], onUpdate?: OnApiUpdate) {
   const tokensToFetch = tokens.filter((token) => (

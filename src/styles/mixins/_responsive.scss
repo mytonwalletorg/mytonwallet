@@ -51,3 +51,15 @@ $breakpoints: (
     }
   }
 }
+
+@mixin is-mobile() {
+  :global(html.is-mobile) & {
+    @content;
+  }
+}
+
+@mixin is-not-mobile() {
+  :global(html:not(.is-mobile)) & {
+    @content;
+  }
+}

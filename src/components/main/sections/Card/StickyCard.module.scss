@@ -102,6 +102,8 @@
 }
 
 .balance {
+  --border-radius-value: 0.3125rem;
+
   grid-area: balance;
   justify-self: center;
 
@@ -110,6 +112,7 @@
   font-style: normal;
   line-height: 1;
   color: var(--main-text, var(--color-card-text));
+  text-align: center;
 }
 
 .balanceFractionPart {

@@ -115,7 +115,7 @@ $receive_invoice_description: 您可以指定付款金額和地址來節省發�
 Amount: 數量
 Comment: 註記欄
 Comment or Memo: 註記欄 (Memo)
-Share this URL to receive TON: 分享此連結來接收 TON
+Share this URL to receive %token%: 分享此連結來接收 %token%
 Invoice link was copied!: 發票連結已複製！
 Theme: 主題
 Language: 語言
@@ -243,6 +243,7 @@ at %annual_yield%: 在%annual_yield%
 Est. %annual_yield%: 預估 %annual_yield%
 Staked: 已質押
 Unstaked: 已解除質押
+Unstaking: 解除質押
 The network fee has slightly changed, try sending again.: 網路費略有變化，請重新發送交易。
 Transfer was unsuccessful. Try again later.: 轉帳未成功，請稍後再試。
 Unstaking was unsuccessful. Try again later.: 解除質押未成功，請稍後再試。
@@ -266,7 +267,7 @@ Send Transaction: 發送交易
 Payload: 有效載荷
 $many_transactions: "%1$d筆交易"
 Total Amount: 總金額
-Unstaking: 解除質押
+$unstaking_short: 解除質押
 Handle ton:// links: 處理 ton:// 鏈接
 Back up wallet to have full access to it: 備份錢包以完全訪問它
 Consider More Secure Version: 提高錢包安全性
@@ -738,5 +739,55 @@ $dapp_return_details: |
   %received_amount% 將在幾分鐘內退還給您。
 $dapp_return_disclaimer: 顯示的返還金額不受保證，並可能被惡意 Dapp 操縱。如果您不確定此服務的可靠性，請取消操作。
 Additional Amount Sent: 額外發送
+Show Sensitive Data: 顯示敏感數據
+Hide Sensitive Data: 隱藏敏感數據
 Copy Address: 複製地址
 Copy Transaction ID: 複製交易ID
+Requesting Unstake: 請求解除質押
+Unstake Requested: 已請求解除質押
+Calling Contract: 呼叫合約
+Contract Called: 已呼叫合約
+Deploying Contract: 部署合約
+Contract Deployed: 已部署合約
+Minting: 鑄造
+Minted: 已鑄造
+Burning: 銷毀
+Burned: 已銷毀
+Address Updated: 地址已更新
+Updating Address: 更新地址中
+Site Updated: 網站已更新
+Updating Site: 更新網站中
+Subdomains Updated: 子域名已更新
+Updating Subdomains: 更新子域名中
+Storage Updated: 存儲已更新
+Updating Storage: 更新存儲中
+Domain Record Deleted: 域名記錄已刪除
+Deleting Domain Record: 刪除域名記錄中
+Renewing Domain: 續訂域名中
+Domain Renewed: 域名已續訂
+Providing Liquidity: 提供流動性
+Liquidity Provided: 已提供流動性
+Withdrawing Liquidity: 正在提取流動性
+Liquidity Withdrawn: 已提取流動性
+Bounced: 被退回
+Bouncing: 反彈中
+NFT Auction Bid: NFT 拍賣出價
+Bidding at NFT Auction: NFT 拍賣中出價
+Receiving: 接收中
+Change Palette: 更改調色板
+Palette: 調色板
+Unlock New Palettes: 解鎖新調色板
+Get a unique MyTonWallet Card to unlock new palettes.: 獲取獨特的 MyTonWallet 卡片以解鎖新的調色板。
+Mint Cards: 鑄造卡片
+Card has been upgraded!: 卡片已升級！
+$mint_card_result: NFT 卡片將在一分鐘內**鑄造**並**自動安裝**。
+Unique: 獨特
+Get a card with unique background and personalized palette for wallet interface.: 獲取具有獨特背景和個性化調色板的卡片，用於錢包界面。
+Transferable: 可轉讓
+Easily send your upgraded card to any of your friends.: 輕鬆將您的升級卡片發送給任何朋友。
+Tradable: 可交易
+Sell or auction your card on third-party NFT marketplaces.: 在第三方 NFT 市場上出售或拍賣您的卡片。
+Upgrade for %currency% %amount%: 升級需 %currency% %amount%
+"%amount% left": "剩餘 %amount%"
+"%amount% sold": "已售 %amount%"
+This card has been sold out: 此卡片已售罄

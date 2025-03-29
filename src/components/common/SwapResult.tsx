@@ -34,6 +34,7 @@ interface OwnProps {
 
 interface StateProps {
   addressByChain?: Account['addressByChain'];
+  isSensitiveDataHidden?: true;
 }
 
 function SwapResult({
@@ -47,6 +48,7 @@ function SwapResult({
   swapType,
   toAddress = '',
   addressByChain,
+  isSensitiveDataHidden,
   onFirstButtonClick,
   onSecondButtonClick,
 }: OwnProps & StateProps) {
@@ -137,6 +139,7 @@ function SwapResult({
       {renderSticker()}
 
       <SwapTokensInfo
+        isSensitiveDataHidden={isSensitiveDataHidden}
         tokenIn={tokenIn}
         amountIn={amountIn}
         tokenOut={tokenOut}
@@ -154,5 +157,6 @@ function SwapResult({
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   return {
     addressByChain: selectCurrentAccount(global)?.addressByChain,
+    isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
   };
 })(SwapResult));

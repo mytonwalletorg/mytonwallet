@@ -104,7 +104,7 @@ function PortraitActions({
             onClick={handleEarnClick}
           >
             <i className={buildClassName(styles.buttonIcon, 'icon-action-earn')} aria-hidden />
-            {lang({ inactive: 'Earn', active: 'Earning', unstakeRequested: 'Unstaking' }[stakingStatus])}
+            {lang({ inactive: 'Earn', active: 'Earning', unstakeRequested: '$unstaking_short' }[stakingStatus])}
           </Button>
         )}
       </div>

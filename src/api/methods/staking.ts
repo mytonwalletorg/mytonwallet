@@ -45,32 +45,33 @@ export async function submitStake(
     return false;
   }
 
-  let localTransaction: ApiTransactionActivity;
+  let localActivity: ApiTransactionActivity;
 
   if (state.tokenSlug === TONCOIN.slug) {
-    localTransaction = createLocalTransaction(accountId, 'ton', {
-      amount: result.amount,
-      fromAddress,
-      toAddress: result.toAddress,
-      fee: realFee ?? 0n,
-      type: 'stake',
-      slug: state.tokenSlug,
-      inMsgHash: result.msgHash,
-    });
-  } else {
-    localTransaction = createLocalTransaction(accountId, 'ton', {
+    localActivity = createLocalTransaction(accountId, 'ton', {
       amount,
       fromAddress,
       toAddress: result.toAddress,
       fee: realFee ?? 0n,
       type: 'stake',
       slug: state.tokenSlug,
+      externalMsgHash: result.msgHash,
+    });
+  } else {
+    localActivity = createLocalTransaction(accountId, 'ton', {
+      amount,
+      fromAddress,
+      toAddress: result.toAddress,
+      fee: realFee ?? 0n,
+      type: 'stake',
+      slug: state.tokenSlug,
+      externalMsgHash: result.msgHash,
     });
   }
 
   return {
     ...result,
-    txId: localTransaction.txId,
+    txId: localActivity.txId,
   };
 }
 
@@ -88,19 +89,19 @@ export async function submitUnstake(
     return false;
   }
 
-  const localTransaction = createLocalTransaction(accountId, 'ton', {
+  const localActivity = createLocalTransaction(accountId, 'ton', {
     amount: result.amount,
     fromAddress,
     toAddress: result.toAddress,
     fee: realFee ?? 0n,
     type: 'unstakeRequest',
     slug: TONCOIN.slug,
-    inMsgHash: result.msgHash,
+    externalMsgHash: result.msgHash,
   });
 
   return {
     ...result,
-    txId: localTransaction.txId,
+    txId: localActivity.txId,
   };
 }
 
@@ -148,17 +149,17 @@ export async function submitStakingClaim(
     return result;
   }
 
-  const localTransaction = createLocalTransaction(accountId, 'ton', {
+  const localActivity = createLocalTransaction(accountId, 'ton', {
     amount: result.amount,
     fromAddress,
     toAddress: result.toAddress,
     fee: realFee ?? 0n,
     slug: TONCOIN.slug,
-    inMsgHash: result.msgHash,
+    externalMsgHash: result.msgHash,
   });
 
   return {
     ...result,
-    txId: localTransaction.txId,
+    txId: localActivity.txId,
   };
 }

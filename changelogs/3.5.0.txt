@@ -1,0 +1,9 @@
+What’s New in v3.5
+
+• Activity feed improvements: cleaner grouping, token icons for swaps, and support for more transaction types like DNS, contract calls, auctions, minting, and burning.
+
+• Hide balances and amounts with a tap—just hit the new button on your wallet card.
+
+• Create deposit links with any TON token, including USDT, MY, NOT, and more.
+
+• Unlock and customize color palettes with MyTonWallet NFT Cards in Settings > Appearance.

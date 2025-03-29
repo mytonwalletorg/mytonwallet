@@ -1,9 +1,8 @@
-import React, { memo, useMemo } from '../../../lib/teact/teact';
+import React, { memo, useEffect, useMemo } from '../../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type { ApiSwapActivity, ApiSwapAsset } from '../../../api/types';
 import type { Account, Theme } from '../../../global/types';
-import type { FeePrecision } from '../../../util/fee/types';
 
 import {
   ANIMATED_STICKER_TINY_ICON_PX,
@@ -18,11 +17,11 @@ import {
 import { Big } from '../../../lib/big.js';
 import { getIsInternalSwap, getIsSupportedChain, resolveSwapAsset } from '../../../global/helpers';
 import { selectCurrentAccount, selectCurrentAccountState } from '../../../global/selectors';
+import { parseTxId } from '../../../util/activities';
 import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatTime } from '../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../util/formatNumber';
 import getChainNetworkName from '../../../util/swap/getChainNetworkName';
-import { getTransactionHashFromTxId } from '../../../util/tokens';
 import { getExplorerTransactionUrl } from '../../../util/url';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
@@ -35,9 +34,9 @@ import useQrCode from '../../../hooks/useQrCode';
 
 import Countdown from '../../common/Countdown';
 import SwapTokensInfo from '../../common/SwapTokensInfo';
+import TransactionFee from '../../common/TransactionFee';
 import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
-import Fee from '../../ui/Fee';
 import InteractiveTextField from '../../ui/InteractiveTextField';
 import Modal, { CLOSE_DURATION, CLOSE_DURATION_PORTRAIT } from '../../ui/Modal';
 
@@ -50,6 +49,7 @@ type StateProps = {
   tokensBySlug?: Record<string, ApiSwapAsset>;
   theme: Theme;
   isSwapDisabled?: boolean;
+  isSensitiveDataHidden?: true;
 };
 
 const CHANGELLY_EXPIRE_CHECK_STATUSES = new Set(['new', 'waiting']);
@@ -58,9 +58,10 @@ const CHANGELLY_ERROR_STATUSES = new Set(['failed', 'expired', 'refunded', 'over
 const ONCHAIN_ERROR_STATUSES = new Set(['failed', 'expired']);
 
 function SwapActivityModal({
-  activity, tokensBySlug, theme, addressByChain, isSwapDisabled,
+  activity, tokensBySlug, theme, addressByChain, isSwapDisabled, isSensitiveDataHidden,
 }: StateProps) {
   const {
+    fetchActivityDetails,
     startSwap,
     closeActivityInfo,
   } = getActions();
@@ -76,10 +77,12 @@ function SwapActivityModal({
   const appTheme = useAppTheme(theme);
 
   const {
-    txIds,
+    id,
+    hashes,
     timestamp,
     networkFee = '0',
     ourFee = '0',
+    shouldLoadDetails,
   } = renderedActivity ?? {};
   const { payinAddress, payoutAddress, payinExtraId } = renderedActivity?.cex || {};
 
@@ -88,6 +91,7 @@ function SwapActivityModal({
   let isPending = true;
   let isError = false;
   let shouldRenderCexInfo = false;
+  let isCex = false;
   let isCexError = false;
   let isCexHold = false;
   let isCexWaiting = false;
@@ -121,6 +125,7 @@ function SwapActivityModal({
     fromAmount = renderedActivity.fromAmount;
     toAmount = renderedActivity.toAmount;
     isFromToncoin = from === TONCOIN.slug;
+    isCex = Boolean(cex);
 
     if (cex) {
       isCountdownFinished = timestamp
@@ -163,7 +168,7 @@ function SwapActivityModal({
     }
   }
 
-  const transactionHash = getTransactionHashFromTxId('ton', txIds?.[0] || '');
+  const transactionHash = id ? isCex ? hashes?.[0] : parseTxId(id).hash : undefined;
   const transactionUrl = getExplorerTransactionUrl('ton', transactionHash);
 
   const shouldShowQrCode = !payinExtraId && toToken?.chain === 'ton' && !isInternalSwap;
@@ -175,17 +180,21 @@ function SwapActivityModal({
   });
 
   const handleClose = useLastCallback(() => {
-    closeActivityInfo({ id: renderedActivity!.id });
+    closeActivityInfo({ id: id! });
   });
 
   const handleSwapClick = useLastCallback(() => {
-    closeActivityInfo({ id: activity!.id });
+    closeActivityInfo({ id: id! });
     startSwap({
       tokenInSlug: fromToken!.slug,
       tokenOutSlug: toToken!.slug,
       amountIn: fromAmount,
     });
   });
+
+  useEffect(() => {
+    if (id) fetchActivityDetails({ id });
+  }, [id]);
 
   function renderHeader() {
     return (
@@ -247,7 +256,7 @@ function SwapActivityModal({
   function renderCexInformation() {
     if (isCexHold) {
       return (
-        <div className={styles.textFieldWrapperFullWidth}>
+        <div className={styles.textFieldWrapper}>
           <span className={styles.changellyDescription}>
             {lang('$swap_changelly_kyc_security', {
               email: (
@@ -262,7 +271,6 @@ function SwapActivityModal({
               copyNotification={lang('Transaction ID was copied!')}
               noSavedAddress
               noExplorer
-              className={styles.changellyTextField}
             />
           )}
         </div>
@@ -270,7 +278,7 @@ function SwapActivityModal({
     }
 
     return (
-      <div className={buildClassName(styles.textFieldWrapperFullWidth, styles.swapSupportBlock)}>
+      <div className={buildClassName(styles.textFieldWrapper, styles.swapSupportBlock)}>
         {cexErrorMessage && <span className={styles.errorCexMessage}>{cexErrorMessage}</span>}
 
         {isCexPending && (
@@ -303,7 +311,6 @@ function SwapActivityModal({
                 copyNotification={lang('Transaction ID was copied!')}
                 noSavedAddress
                 noExplorer
-                className={styles.changellyTextField}
               />
             )}
           </>
@@ -316,7 +323,7 @@ function SwapActivityModal({
     if (!payinExtraId) return undefined;
 
     return (
-      <div className={styles.textFieldWrapperFullWidth}>
+      <div className={styles.textFieldWrapper}>
         <span className={styles.textFieldLabel}>
           {lang('Memo')}
         </span>
@@ -325,7 +332,6 @@ function SwapActivityModal({
           copyNotification={lang('Memo was copied!')}
           noSavedAddress
           noExplorer
-          className={styles.changellyTextField}
         />
       </div>
     );
@@ -333,7 +339,7 @@ function SwapActivityModal({
 
   function renderTransactionId() {
     return (
-      <div className={styles.textFieldWrapperFullWidth}>
+      <div className={styles.textFieldWrapper}>
         <span className={styles.textFieldLabel}>
           {lang('Transaction ID')}
         </span>
@@ -344,18 +350,16 @@ function SwapActivityModal({
           addressUrl={transactionUrl}
           isTransaction
           copyNotification={lang('Transaction ID was copied!')}
-          className={styles.changellyTextField}
         />
       </div>
     );
   }
 
   function renderFee() {
-    if (!Number(networkFee) || !fromToken) {
+    if (!(Number(networkFee) || shouldLoadDetails) || !fromToken) {
       return undefined;
     }
 
-    const precision: FeePrecision = activity?.status === 'pending' ? 'approximate' : 'exact';
     const terms = isFromToncoin ? {
       native: Big(networkFee).add(ourFee).toString(),
     } : {
@@ -364,16 +368,13 @@ function SwapActivityModal({
     };
 
     return (
-      <div className={styles.textFieldWrapperFullWidth}>
-        <span className={styles.textFieldLabel}>
-          {lang('Fee')}
-        </span>
-        <div className={styles.textField}>
-          <span>
-            <Fee terms={terms} token={fromToken} precision={precision} />
-          </span>
-        </div>
-      </div>
+      <TransactionFee
+        terms={terms}
+        token={fromToken}
+        precision={activity?.status === 'pending' ? 'approximate' : 'exact'}
+        isLoading={shouldLoadDetails}
+        className={styles.feeField}
+      />
     );
   }
 
@@ -428,7 +429,6 @@ function SwapActivityModal({
             copyNotification={lang('Address was copied!')}
             noSavedAddress
             noExplorer
-            className={styles.changellyTextField}
           />
           {renderMemo()}
           {shouldShowQrCode && (
@@ -451,6 +451,7 @@ function SwapActivityModal({
     return (
       <div className={modalStyles.transitionContent}>
         <SwapTokensInfo
+          isSensitiveDataHidden={isSensitiveDataHidden}
           tokenIn={fromToken}
           amountIn={fromAmount}
           tokenOut={toToken}
@@ -490,6 +491,7 @@ export default memo(
     const accountState = selectCurrentAccountState(global);
     const account = selectCurrentAccount(global);
     const { isSwapDisabled } = global.restrictions;
+    const { theme, isSensitiveDataHidden } = global.settings;
 
     const id = accountState?.currentActivityId;
     const activity = id ? accountState?.activities?.byId[id] : undefined;
@@ -497,9 +499,10 @@ export default memo(
     return {
       activity: activity?.kind === 'swap' ? activity : undefined,
       tokensBySlug: global.swapTokenInfo?.bySlug,
-      theme: global.settings.theme,
+      theme,
       addressByChain: account?.addressByChain,
       isSwapDisabled: isSwapDisabled || global.settings.isTestnet,
+      isSensitiveDataHidden,
     };
   })(SwapActivityModal),
 );

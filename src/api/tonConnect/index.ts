@@ -391,7 +391,7 @@ export async function sendTransaction(
       throw new errors.UnknownError(error);
     }
 
-    transactionsForRequest.forEach(({ amount, normalizedAddress, payload }) => {
+    transactionsForRequest.forEach(({ amount, normalizedAddress, payload }, index) => {
       const comment = payload?.type === 'comment' ? payload.comment : undefined;
       createLocalTransaction(accountId, 'ton', {
         amount,
@@ -400,8 +400,8 @@ export async function sendTransaction(
         comment,
         fee: checkResult.fee!,
         slug: TONCOIN.slug,
-        inMsgHash: msgHash,
-      });
+        externalMsgHash: msgHash,
+      }, index);
     });
 
     return {

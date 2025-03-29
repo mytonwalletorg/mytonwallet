@@ -120,7 +120,7 @@ export type ApiSwapHistoryItem = {
   swapFee: string;
   ourFee?: string;
   status: 'pending' | 'completed' | 'failed' | 'expired';
-  txIds: string[];
+  hashes: string[];
   isCanceled?: boolean;
   cex?: {
     payinAddress: string;
@@ -244,8 +244,14 @@ export type ApiVestingInfo = {
   }[];
 };
 
-export type ApiCardsInfo = Record<ApiMtwCardType, {
+export type ApiCardInfo = {
   all: number;
   notMinted: number;
   price: number;
-}>;
+};
+
+export type ApiCardsInfo = Record<ApiMtwCardType, ApiCardInfo>;
+
+export type ApiAccountConfig = {
+  cardsInfo?: ApiCardsInfo;
+};

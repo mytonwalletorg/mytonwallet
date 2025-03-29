@@ -10,14 +10,18 @@ import { getIsInternalSwap, resolveSwapAsset } from '../../../../global/helpers'
 import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
+import getPseudoRandomNumber from '../../../../util/getPseudoRandomNumber';
 import getSwapRate from '../../../../util/swap/getSwapRate';
+import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
+import TokenIcon from '../../../common/TokenIcon';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
+import SensitiveData from '../../../ui/SensitiveData';
 
 import styles from './Transaction.module.scss';
 
@@ -29,9 +33,11 @@ type OwnProps = {
   isActive: boolean;
   appTheme: AppTheme;
   addressByChain?: Account['addressByChain'];
+  isSensitiveDataHidden?: true;
   onClick: (id: string) => void;
 };
 
+const SWAP_HEIGHT = 4 * REM;
 const CHANGELLY_PENDING_STATUSES = new Set(['new', 'waiting', 'confirming', 'exchanging', 'sending', 'hold']);
 const CHANGELLY_EXPIRED_STATUSES = new Set(['failed', 'expired', 'refunded', 'overdue']);
 const ONCHAIN_ERROR_STATUSES = new Set(['expired', 'failed']);
@@ -44,6 +50,7 @@ function Swap({
   isActive,
   appTheme,
   addressByChain,
+  isSensitiveDataHidden,
   onClick,
 }: OwnProps) {
   const lang = useLang();
@@ -75,6 +82,7 @@ function Swap({
   const isError = ONCHAIN_ERROR_STATUSES.has(status)
     || CHANGELLY_EXPIRED_STATUSES.has(cex?.status ?? '');
   const isHold = cex?.status === 'hold';
+  const amountCols = useMemo(() => getPseudoRandomNumber(5, 13, timestamp.toString()), [timestamp]);
 
   const isFromToncoin = from === TONCOIN.slug;
   const isInternalSwap = getIsInternalSwap({
@@ -88,26 +96,41 @@ function Swap({
     onClick(id);
   });
 
-  const swapIconClass = buildClassName(
-    'icon-swap',
-    styles.icon_swap,
-    isError && styles.icon_error,
-  );
-
-  const iconFullClass = buildClassName(
-    styles.icon,
-    swapIconClass,
-  );
+  function renderIcon() {
+    return (
+      <div className={buildClassName(styles.icon, styles.iconSwap)} aria-hidden>
+        {fromToken && <TokenIcon token={fromToken} size="x-middle" className={styles.iconFromToken} />}
+        {toToken && <TokenIcon token={toToken} size="x-middle" className={styles.iconToToken} />}
+        {isPending && (
+          <AnimatedIconWithPreview
+            play
+            size={ANIMATED_STICKER_TINY_ICON_PX}
+            className={styles.iconWaiting}
+            nonInteractive
+            noLoop={false}
+            forceOnHeavyAnimation
+            tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGray}
+            previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGray}
+          />
+        )}
+        {isError && <i className={buildClassName(styles.iconError, 'icon-close-filled')} aria-hidden />}
+      </div>
+    );
+  }
 
   function renderAmount() {
-    const amountSwapClass = buildClassName(
-      styles.amount,
-      styles.swapAmount,
-    );
+    const statusClass = buildClassName(isError && styles.swapError, isHold && styles.swapHold);
 
     return (
-      <div className={amountSwapClass}>
-        <span className={buildClassName(styles.swapSell, isError && styles.swapError)}>
+      <SensitiveData
+        isActive={isSensitiveDataHidden}
+        cols={amountCols}
+        rows={2}
+        cellSize={8}
+        align="right"
+        contentClassName={buildClassName(styles.amount, styles.swapAmount)}
+      >
+        <span className={buildClassName(styles.swapSell, statusClass)}>
           {formatCurrencyExtended(
             Math.abs(fromAmount),
             fromToken?.symbol || TONCOIN.symbol,
@@ -115,27 +138,17 @@ function Swap({
           )}
         </span>
         <i
-          className={buildClassName(
-            styles.swapArrowRight,
-            'icon-arrow-right',
-            isError && styles.swapError,
-            isHold && styles.swapHold,
-          )}
+          className={buildClassName(styles.swapArrowRight, 'icon-chevron-right', statusClass)}
           aria-hidden
         />
-        <span className={buildClassName(
-          styles.swapBuy,
-          isError && styles.swapError,
-          isHold && styles.swapHold,
-        )}
-        >
+        <span className={buildClassName(styles.swapBuy, statusClass)}>
           {formatCurrencyExtended(
             Math.abs(toAmount),
             toToken?.symbol || TONCOIN.symbol,
             true,
           )}
         </span>
-      </div>
+      </SensitiveData>
     );
   }
 
@@ -177,6 +190,24 @@ function Swap({
     return lang('Swapped');
   }
 
+  function renderCurrency() {
+    const rate = getSwapRate(activity.fromAmount, activity.toAmount, fromToken, toToken);
+
+    if (!rate) return undefined;
+
+    const [priceWhole, priceFraction] = rate.price.split('.');
+
+    return (
+      <span className={styles.address}>
+        {rate.firstCurrencySymbol}{' ≈ '}
+        <span className={styles.addressValue}>
+          {priceWhole}
+          <small>.{priceFraction}{' '}{rate.secondCurrencySymbol}</small>
+        </span>
+      </span>
+    );
+  }
+
   return (
     <Button
       ref={ref as RefObject<HTMLButtonElement>}
@@ -189,25 +220,7 @@ function Swap({
       onClick={handleClick}
       isSimple
     >
-      <i className={iconFullClass} aria-hidden />
-      {isPending && (
-        <AnimatedIconWithPreview
-          play
-          size={ANIMATED_STICKER_TINY_ICON_PX}
-          className={styles.iconWaiting}
-          nonInteractive
-          noLoop={false}
-          forceOnHeavyAnimation
-          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGreen}
-          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGreen}
-        />
-      )}
-      {isError && (
-        <i
-          className={buildClassName(styles.iconError, 'icon-close-filled')}
-          aria-hidden
-        />
-      )}
+      {renderIcon()}
       <div className={styles.header}>
         <div className={styles.operationName}>
           {renderTitle()}
@@ -216,7 +229,7 @@ function Swap({
       </div>
       <div className={styles.subheader}>
         {renderErrorMessage()}
-        {renderCurrency(activity, fromToken, toToken)}
+        {renderCurrency()}
       </div>
     </Button>
   );
@@ -224,21 +237,6 @@ function Swap({
 
 export default memo(Swap);
 
-function renderCurrency(activity: ApiSwapActivity, fromToken?: ApiSwapAsset, toToken?: ApiSwapAsset) {
-  const rate = getSwapRate(activity.fromAmount, activity.toAmount, fromToken, toToken);
-
-  return (
-    <div className={styles.address}>
-      {
-        rate && (
-          <>
-            {rate.firstCurrencySymbol}{' ≈ '}
-            <span className={styles.addressValue}>
-              {rate.price}{' '}{rate.secondCurrencySymbol}
-            </span>
-          </>
-        )
-      }
-    </div>
-  );
+export function getSwapHeight() {
+  return SWAP_HEIGHT;
 }

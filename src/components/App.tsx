@@ -23,6 +23,7 @@ import {
 import { updateSizes } from '../util/windowSize';
 import { callApi } from '../api';
 
+import { useAppIntersectionObserver } from '../hooks/useAppIntersectionObserver';
 import useAppTheme from '../hooks/useAppTheme';
 import useBackgroundMode from '../hooks/useBackgroundMode';
 import { useDeviceScreen } from '../hooks/useDeviceScreen';
@@ -52,6 +53,7 @@ import UnhideNftModal from './main/modals/UnhideNftModal';
 import Notifications from './main/Notifications';
 import BottomBar from './main/sections/Actions/BottomBar';
 import MediaViewer from './mediaViewer/MediaViewer';
+import MintCardModal from './mintCard/MintCardModal';
 import Settings from './settings/Settings';
 import SettingsModal from './settings/SettingsModal';
 import SwapModal from './swap/SwapModal';
@@ -172,6 +174,8 @@ function App({
   const appTheme = useAppTheme(theme);
   useAccentColor('body', appTheme, accentColorIndex);
 
+  useAppIntersectionObserver();
+
   // eslint-disable-next-line consistent-return
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
@@ -245,7 +249,12 @@ function App({
             onClose={closeBackupWalletModal}
           />
           <TransferModal />
-          {!IS_CORE_WALLET && <SwapModal />}
+          {!IS_CORE_WALLET && (
+            <>
+              <SwapModal />
+              <MintCardModal />
+            </>
+          )}
           <SignatureModal />
           <TransactionModal />
           <SwapActivityModal />

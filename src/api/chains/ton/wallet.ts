@@ -6,10 +6,9 @@ import type { TonWallet } from './util/tonCore';
 
 import { DEFAULT_WALLET_VERSION } from '../../../config';
 import { parseAccountId } from '../../../util/account';
+import { buildTxId } from '../../../util/activities';
 import { extractKey, findLast } from '../../../util/iteratees';
 import withCacheAsync from '../../../util/withCacheAsync';
-import { stringifyTxId } from './util';
-import { getWalletInfos } from './util/apiV3';
 import { fetchJettonBalances } from './util/tonapiio';
 import {
   getTonClient, toBase64Address, walletClassMap,
@@ -17,6 +16,7 @@ import {
 import { fetchStoredTonWallet } from '../../common/accounts';
 import { base64ToBytes, hexToBytes, sha256 } from '../../common/utils';
 import { ALL_WALLET_VERSIONS, KnownContracts, WORKCHAIN } from './constants';
+import { getWalletInfos } from './toncenter';
 
 export const isAddressInitialized = withCacheAsync(
   async (network: ApiNetwork, walletOrAddress: TonWallet | string) => {
@@ -83,9 +83,7 @@ export async function getWalletInfo(network: ApiNetwork, walletOrAddress: TonWal
     isWallet,
     seqno,
     balance: BigInt(balance || '0'),
-    lastTxId: lt === '0'
-      ? undefined
-      : stringifyTxId({ lt, hash }),
+    lastTxId: lt === '0' ? undefined : buildTxId(hash),
   };
 }
 

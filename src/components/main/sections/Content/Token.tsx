@@ -1,4 +1,4 @@
-import React, { memo } from '../../../../lib/teact/teact';
+import React, { memo, useMemo } from '../../../../lib/teact/teact';
 
 import type { ApiBaseCurrency, ApiYieldType } from '../../../../api/types';
 import type { StakingStateStatus } from '../../../../global/helpers/staking';
@@ -11,6 +11,7 @@ import { calcChangeValue } from '../../../../util/calcChangeValue';
 import { DAY, formatFullDay } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
+import getPseudoRandomNumber from '../../../../util/getPseudoRandomNumber';
 import { round } from '../../../../util/round';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
@@ -22,6 +23,7 @@ import TokenIcon from '../../../common/TokenIcon';
 import AnimatedCounter from '../../../ui/AnimatedCounter';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
+import SensitiveData from '../../../ui/SensitiveData';
 
 import styles from './Token.module.scss';
 
@@ -42,6 +44,7 @@ interface OwnProps {
   baseCurrency?: ApiBaseCurrency;
   appTheme: AppTheme;
   withChainIcon?: boolean;
+  isSensitiveDataHidden?: true;
   onClick: (slug: string) => void;
 }
 
@@ -62,8 +65,9 @@ function Token({
   isActive,
   baseCurrency,
   withChainIcon,
-  onClick,
+  isSensitiveDataHidden,
   yieldType,
+  onClick,
 }: OwnProps) {
   const {
     name,
@@ -87,6 +91,8 @@ function Token({
   const fullClassName = buildClassName(styles.container, isActive && styles.active, classNames);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const withLabel = Boolean(!isVesting && TOKEN_WITH_LABEL[slug]);
+  const amountCols = useMemo(() => getPseudoRandomNumber(4, 12, name), [name]);
+  const fiatAmountCols = 5 + (amountCols % 6);
 
   const {
     shouldRender: shouldRenderYield,
@@ -151,7 +157,12 @@ function Token({
   function renderInvestorView() {
     return (
       <Button className={fullClassName} isSimple style={style} onClick={handleClick}>
-        <TokenIcon token={token} withChainIcon={withChainIcon} className={styles.tokenIcon}>
+        <TokenIcon
+          size="large"
+          token={token}
+          withChainIcon={withChainIcon}
+          className={styles.tokenIcon}
+        >
           <>
             {stakingStatus && renderStakingIcon()}
             {vestingStatus && (
@@ -171,21 +182,34 @@ function Token({
             )}
           </div>
           <div className={styles.subtitle}>
-            <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
+            <SensitiveData
+              isActive={isSensitiveDataHidden}
+              cols={fiatAmountCols}
+              rows={2}
+              cellSize={8}
+            >
+              <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
+            </SensitiveData>
             <i className={styles.dot} aria-hidden />
             <AnimatedCounter text={formatCurrency(price, shortBaseSymbol, undefined, true)} />
           </div>
         </div>
         <div className={styles.secondaryCell}>
-          <div className={buildClassName(
-            styles.secondaryValue,
-            stakingStatus && styles.secondaryValue_staked,
-            isVesting && styles.secondaryValue_vesting,
-            isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
-          )}
+          <SensitiveData
+            isActive={isSensitiveDataHidden}
+            cols={amountCols}
+            rows={2}
+            cellSize={8}
+            align="right"
+            className={buildClassName(
+              styles.secondaryValue,
+              stakingStatus && styles.secondaryValue_staked,
+              isVesting && styles.secondaryValue_vesting,
+              isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
+            )}
           >
             <AnimatedCounter text={formatCurrency(value, shortBaseSymbol)} />
-          </div>
+          </SensitiveData>
           {unfreezeEndDate ? (
             <div
               className={buildClassName(
@@ -198,11 +222,16 @@ function Token({
               {lang('until %date%', { date: `${formatFullDay(lang.code!, unfreezeEndDate)}` })}
             </div>
           ) : (
-            <div className={buildClassName(styles.change, changeClassName)}>
+            <SensitiveData
+              isActive={isSensitiveDataHidden}
+              cols={fiatAmountCols}
+              rows={2}
+              cellSize={8}
+              align="right" className={buildClassName(styles.change, changeClassName)}>
               {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
               <i className={styles.dot} aria-hidden />
               <AnimatedCounter text={formatCurrency(changeValue, shortBaseSymbol, undefined, true)} />
-            </div>
+            </SensitiveData>
           )}
         </div>
       </Button>
@@ -215,7 +244,12 @@ function Token({
 
     return (
       <Button className={fullClassName} style={style} onClick={handleClick} isSimple>
-        <TokenIcon token={token} withChainIcon={withChainIcon} className={styles.tokenIcon}>
+        <TokenIcon
+          token={token}
+          size="large"
+          withChainIcon={withChainIcon}
+          className={styles.tokenIcon}
+        >
           <>
             {stakingStatus && renderStakingIcon()}
             {vestingStatus && (
@@ -255,19 +289,31 @@ function Token({
           </div>
         </div>
         <div className={styles.secondaryCell}>
-          <div className={buildClassName(
-            styles.secondaryValue,
-            stakingStatus && styles.secondaryValue_staked,
-            isVesting && styles.secondaryValue_vesting,
-            isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
-          )}
+          <SensitiveData
+            isActive={isSensitiveDataHidden}
+            cols={amountCols}
+            rows={2}
+            cellSize={8}
+            align="right" className={buildClassName(
+              styles.secondaryValue,
+              stakingStatus && styles.secondaryValue_staked,
+              isVesting && styles.secondaryValue_vesting,
+              isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
+            )}
           >
             <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
-          </div>
-          <div className={styles.subtitle}>
+          </SensitiveData>
+          <SensitiveData
+            isActive={isSensitiveDataHidden}
+            cols={fiatAmountCols}
+            rows={2}
+            cellSize={8}
+            align="right"
+            className={styles.subtitle}
+          >
             {totalAmount.gt(0) ? '≈' : ''}&thinsp;
             <AnimatedCounter text={formatCurrency(totalAmount, shortBaseSymbol, undefined, true)} />
-          </div>
+          </SensitiveData>
         </div>
       </Button>
     );

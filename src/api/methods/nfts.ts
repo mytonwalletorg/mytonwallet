@@ -41,19 +41,18 @@ export async function submitNftTransfers(
 
   const realFeePerNft = bigintDivideToNumber(totalRealFee, Object.keys(result.messages).length);
 
-  for (const [i, message] of result.messages.entries()) {
+  for (const [index, message] of result.messages.entries()) {
     createLocalTransaction(accountId, 'ton', {
-      amount: message.amount,
+      amount: 0n, // Regular NFT transfers should have no amount in the activity list
       fromAddress,
       toAddress,
       comment,
       fee: realFeePerNft,
       normalizedAddress: message.toAddress,
       slug: TONCOIN.slug,
-      inMsgHash: result.msgHash,
-      type: 'nftTransferred',
-      nft: nfts?.[i],
-    });
+      externalMsgHash: result.msgHash,
+      nft: nfts?.[index],
+    }, index);
   }
 
   return result;

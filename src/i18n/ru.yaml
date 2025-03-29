@@ -122,7 +122,7 @@ $receive_invoice_description: |
 Amount: Сумма
 Comment: Комментарий
 Comment or Memo: Комментарий или Memo
-Share this URL to receive TON: Поделиться ссылкой
+Share this URL to receive %token%: Поделиться ссылкой
 Invoice link was copied!: Ссылка скопирована!
 Theme: Тема
 Language: Язык
@@ -244,8 +244,9 @@ $unstaking_when_receive: Депозит будет выведен через %ti
 $unstake_insufficient_balance: Вам необходимо иметь %balance% на вашем основном балансе, чтобы отправить заявку на вывод депозита.
 at %annual_yield%: при %annual_yield%
 Staked: Стейкинг
-Unstake Requested: Запрос депозита
+Unstake Requested: Вывод стейка запрошен
 Unstaked: Вывод стейка
+Unstaking: Вывод стейка
 The network fee has slightly changed, try sending again.: Комиссия за сеть немного изменилась, попробуйте отправить ещё раз.
 Transfer was unsuccessful. Try again later.: С переводом что-то пошло не так. Попробуйте ещё раз.
 Unstaking was unsuccessful. Try again later.: Не удалось вывести депозит. Попробуйте ещё раз.
@@ -272,7 +273,7 @@ Send Transaction: Отправить перевод
 Payload: Служебные данные
 $many_transactions: "%1$d перевода"
 Total Amount: Общая сумма
-Unstaking: Вывод
+$unstaking_short: Вывод
 Handle ton:// links: Обрабатывать ссылки ton://
 Back up wallet to have full access to it: Сделайте резервную копию кошелька, чтобы иметь к нему полный доступ
 Consider More Secure Version: Повысьте безопасность кошелька
@@ -749,5 +750,54 @@ $dapp_return_details: |
   %received_amount% будет возвращено вам в течение нескольких минут.
 $dapp_return_disclaimer: Отображаемая сумма возврата не гарантируется и может быть подменена мошенническими приложениями. Отмените операцию, если вы не уверены в надёжности этого сервиса.
 Additional Amount Sent: Дополнительно будет отправлено
+Show Sensitive Data: Показать конфиденциальные данные
+Hide Sensitive Data: Скрыть конфиденциальные данные
 Copy Address: Скопировать адрес
 Copy Transaction ID: Скопировать ID транзакции
+Requesting Unstake: Запрос вывода стейка
+Calling Contract: Вызов контракта
+Contract Called: Вызван контракт
+Deploying Contract: Развёртывание контракта
+Contract Deployed: Развёрнут контракт
+Minting: Минтинг
+Minted: Сминчено
+Burning: Сжигание
+Burned: Сожжено
+Address Updated: Обновлён адрес
+Updating Address: Обновление адреса
+Site Updated: Обновлён сайт
+Updating Site: Обновление сайта
+Subdomains Updated: Обновлены поддомены
+Updating Subdomains: Обновление поддоменов
+Storage Updated: Обновлено хранилище
+Updating Storage: Обновление хранилища
+Domain Record Deleted: Удалена запись домена
+Deleting Domain Record: Удаление записи домена
+Renewing Domain: Продление домена
+Domain Renewed: Продлён домен
+Providing Liquidity: Предоставление ликвидности
+Liquidity Provided: Предоставление ликвидности
+Withdrawing Liquidity: Вывод ликвидности
+Liquidity Withdrawn: Вывод ликвидности
+Bounced: Отскок
+Bouncing: Отскок
+NFT Auction Bid: Ставка на аукционе NFT
+Bidding at NFT Auction: Ставка на аукционе NFT
+Receiving: Получение
+Change Palette: Изменить палитру
+Palette: Палитра
+Unlock New Palettes: Открыть новые палитры
+Get a unique MyTonWallet Card to unlock new palettes.: Получите уникальную карту MyTonWallet, чтобы открыть новые палитры.
+Mint Cards: Создать карту
+Card has been upgraded!: Карта улучшена!
+$mint_card_result: NFT-карта будет **создана** и **автоматически установлена** в течение минуты.
+Unique: Уникальность
+Get a card with unique background and personalized palette for wallet interface.: У карты появится уникальный фон, а в кошельке разблокируется новая палитра.
+Transferable: Можно передать
+Easily send your upgraded card to any of your friends.: Улучшенную карту можно легко отправить любому другу.
+Tradable: Можно продать
+Sell or auction your card on third-party NFT marketplaces.: Карту можно продать или выставить на аукцион на сторонних NFT-площадках.
+Upgrade for %currency% %amount%: Улучшить за %currency% %amount%
+"%amount% left": "Осталось %amount%"
+"%amount% sold": "Продано %amount%"
+This card has been sold out: Эта карта распродана

@@ -3,8 +3,7 @@ const fs = require('fs');
 const {
   EDGE_PRODUCT_ID,
   EDGE_CLIENT_ID,
-  EDGE_CLIENT_SECRET,
-  EDGE_ACCESS_TOKEN_URL,
+  EDGE_API_KEY,
   EDGE_FILE_PATH = './MyTonWallet-chrome.zip',
   EDGE_NOTES_PATH,
 } = process.env;
@@ -12,8 +11,7 @@ const {
 if (
   !EDGE_PRODUCT_ID
   || !EDGE_CLIENT_ID
-  || !EDGE_CLIENT_SECRET
-  || !EDGE_ACCESS_TOKEN_URL
+  || !EDGE_API_KEY
   || !EDGE_FILE_PATH
 ) {
   console.error('Missing env vars!')
@@ -26,8 +24,7 @@ if (
   const client = new EdgeAddonsAPI({
     productId: EDGE_PRODUCT_ID,
     clientId: EDGE_CLIENT_ID,
-    clientSecret: EDGE_CLIENT_SECRET,
-    accessTokenUrl: EDGE_ACCESS_TOKEN_URL,
+    apiKey: EDGE_API_KEY,
   });
 
   let notes = undefined;

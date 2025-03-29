@@ -13,6 +13,7 @@ export const TINIEST_TOKEN_TRANSFER_REAL_AMOUNT = 3000000n; // 0.003 TON
 export const TOKEN_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
 export const CLAIM_MINTLESS_AMOUNT = 20000000n; // 0.02 TON
 
+/** The amount that MyTonWallet attaches to NFT transfers */
 export const NFT_TRANSFER_AMOUNT = 100000000n; // 0.1 TON
 export const NFT_TRANSFER_REAL_AMOUNT = 5000000n; // 0.005 TON
 export const NFT_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
@@ -32,6 +33,7 @@ export const TON_GAS = {
   stakeJettons: JettonStakingGas.STAKE_JETTONS + TOKEN_TRANSFER_AMOUNT,
   unstakeJettons: JettonStakingGas.UNSTAKE_JETTONS,
   claimJettons: JettonStakingGas.JETTON_TRANSFER + JettonStakingGas.SIMPLE_UPDATE_REQUEST,
+  changeDns: 50_000_000n, // 0.05 TON
 } as const;
 
 export const TON_GAS_REAL = {
@@ -60,6 +62,8 @@ export const ALL_WALLET_VERSIONS: ApiTonWalletVersion[] = [
   'simpleR1', 'simpleR2', 'simpleR3', 'v2R1', 'v2R2', 'v3R1', 'v3R2', 'v4R2', 'W5',
 ];
 
+export const OUR_FEE_PAYLOAD_BOC = 'te6cckEBAQEABgAACE0jhUPUcYAL';
+
 export enum Workchain {
   MasterChain = -1,
   BaseChain = 0,
@@ -75,6 +79,7 @@ export const W5_MAX_MESSAGES = 255;
 export enum OpCode {
   Comment = 0,
   Encrypted = 0x2167da4b,
+  OurFee = 0x4d238543,
 }
 
 export enum JettonOpCode {
@@ -89,6 +94,7 @@ export enum JettonOpCode {
 export enum NftOpCode {
   TransferOwnership = 0x5fcc3d14,
   OwnershipAssigned = 0x05138d91,
+  Excesses = 0xd53276db,
 }
 
 export enum LiquidStakingOpCode {
@@ -107,6 +113,11 @@ export enum LiquidStakingOpCode {
   Vote = 0x69fb306c,
 }
 
+export enum JettonStakingOpCode {
+  UnstakeRequest = 0x499a9262,
+  ClaimRewards = 0x78d9f109,
+}
+
 export enum VestingV1OpCode {
   AddWhitelist = 0x7258a69b,
 }
@@ -118,6 +129,10 @@ export enum SingleNominatorOpCode {
 
 export enum DnsOpCode {
   ChangeRecord = 0x4eb1f0f9,
+}
+
+export enum TeleitemOpCode {
+  Ok = 0xa37a0983,
 }
 
 export enum OtherOpCode {
@@ -136,6 +151,11 @@ export enum DnsCategory {
   BagId = 'storage',
   Unknown = 'unknown',
 }
+
+export const EXCESS_OP_CODES = [
+  JettonOpCode.Excesses,
+  TeleitemOpCode.Ok,
+];
 
 export const DNS_CATEGORY_HASH_MAP = {
   dns_next_resolver: '19f02441ee588fdb26ee24b2568dd035c3c9206e11ab979be62e55558a1d17ff',
@@ -273,16 +293,6 @@ export const KnownContracts: Record<ContractName, ContractInfo> = {
   stonPtonWalletV2: {
     name: 'stonPtonWalletV2',
     hash: '2761042202032258de9eb1b672e1ec2e4f13b2af00700195801ada33f7ced1b6',
-    isSwapAllowed: true,
-  },
-  megatonWtonMaster: {
-    name: 'megatonWtonMaster',
-    hash: '4c9790d808ea4470614e021f76c40529efe2fbce8138da4284a29b5f1943ef19',
-    isSwapAllowed: true,
-  },
-  megatonRouter: {
-    name: 'megatonRouter',
-    hash: '5d5f0e3ed9602d1ba96006ead98cb5e9b53f49ce4a5cf675e06e4d440b7d267c',
     isSwapAllowed: true,
   },
 };

@@ -420,3 +420,9 @@ function isSimpleObject(obj: any) {
     && typeof obj === 'object'
     && Object.getPrototypeOf(obj) === Object.prototype;
 }
+
+export function getOurFeePayload() {
+  return new Builder()
+    .storeUint(OpCode.OurFee, 32)
+    .endCell();
+}

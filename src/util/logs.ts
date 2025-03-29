@@ -43,7 +43,7 @@ export function getLogs() {
 export function logActionHandling(name: string, payload?: any) {
   if (!DEBUG_API) return;
   if (name === 'apiUpdate') {
-    if (typeof payload?.type === 'object' && payload.type !== 'updatingStatus') {
+    if (typeof payload?.type === 'string' && payload.type !== 'updatingStatus') {
       logDebugApi(`Update: ${payload.type}`, omit(payload, ['type']));
     }
   } else {

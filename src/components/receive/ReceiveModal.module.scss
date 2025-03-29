@@ -148,13 +148,8 @@
   border: 1px solid var(--color-separator-input-stroke) !important;
 }
 
-.tokenDropdown {
-  --offset-y-value: calc(100% - 3.25rem);
-  --offset-x-value: 0;
-
-  position: relative;
-  top: 0.375rem;
-  right: 0.375rem;
+.tokenButton {
+  margin-inline-end: 0.375rem;
 }
 
 .invoiceComment {

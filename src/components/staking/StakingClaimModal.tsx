@@ -50,6 +50,7 @@ interface StateProps {
   isTonAppConnected?: boolean;
   isHardwareAccount?: boolean;
   isMultichainAccount: boolean;
+  isSensitiveDataHidden?: true;
 }
 
 const IS_OPEN_STATES = new Set([
@@ -71,6 +72,7 @@ function StakingClaimModal({
   isTonAppConnected,
   isHardwareAccount,
   isMultichainAccount,
+  isSensitiveDataHidden,
 }: StateProps) {
   const {
     submitStakingClaim,
@@ -110,13 +112,16 @@ function StakingClaimModal({
       styles.operationInfoFee,
       !getDoesUsePinPad() && styles.operationInfoFeeWithGap,
     );
+    const content = isSensitiveDataHidden
+      ? `*** ${token!.symbol}`
+      : formatCurrency(toDecimal(unclaimedRewards, token!.decimals), token!.symbol, SHORT_FRACTION_DIGITS);
 
     return (
       <>
         <TransactionBanner
           tokenIn={token}
           withChainIcon={isMultichainAccount}
-          text={formatCurrency(toDecimal(unclaimedRewards, token!.decimals), token!.symbol, SHORT_FRACTION_DIGITS)}
+          text={content}
           className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
           secondText={shortenAddress(address!)}
         />
@@ -236,5 +241,6 @@ export default memo(withGlobal((global): StateProps => {
     isTonAppConnected,
     isHardwareAccount,
     isMultichainAccount: selectIsMultichainAccount(global, accountId!),
+    isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
   };
 })(StakingClaimModal));

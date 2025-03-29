@@ -8,7 +8,7 @@
   display: inline-grid;
   grid-template-areas: "title icon";
 
-  max-width: calc(100% - 4rem);
+  max-width: calc(100% - 7rem);
   padding: 0.75rem 1.5rem 0.75rem 0.75rem;
 
   font-size: 1.0625rem;
@@ -58,7 +58,7 @@
 }
 
 .accountTitleShort {
-  max-width: calc(100% - 6rem);
+  max-width: calc(100% - 8rem);
 }
 
 .arrowIcon {
@@ -97,7 +97,7 @@
     }
   }
 
-  @include respond-below(xs) {
+  @include is-mobile() {
     width: 1.75rem;
     height: 1.75rem;
 
@@ -410,8 +410,10 @@
   right: 0.75rem;
 
   &.inStickyCard {
-    top: unset;
-    right: 0;
+    position: static;
+
+    margin-left: auto;
+    padding-left: 1rem;
   }
 
   display: flex;
@@ -421,7 +423,7 @@
   width: fit-content;
   height: 1.5rem;
 
-  @include respond-below(xs) {
+  @include is-mobile() {
     gap: 0.5625rem;
 
     height: 1.75rem;

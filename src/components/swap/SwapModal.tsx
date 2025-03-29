@@ -4,7 +4,7 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiActivity } from '../../api/types';
-import type { Account, GlobalState, UserSwapToken } from '../../global/types';
+import type { Account, GlobalState, UserSwapToken, UserToken } from '../../global/types';
 import { SwapState, SwapType } from '../../global/types';
 
 import {
@@ -75,6 +75,9 @@ function SwapModal({
     submitSwap,
     showActivityInfo,
     submitSwapCex,
+    addSwapToken,
+    setSwapTokenIn,
+    setSwapTokenOut,
   } = getActions();
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
@@ -162,6 +165,12 @@ function SwapModal({
 
   const handleModalCloseWithReset = useLastCallback(() => {
     cancelSwap({ shouldReset: true });
+  });
+
+  const handleTokenSelect = useLastCallback((token: UserSwapToken | UserToken) => {
+    addSwapToken({ token: token as UserSwapToken });
+    const setToken = renderingKey === SwapState.SelectTokenTo ? setSwapTokenOut : setSwapTokenIn;
+    setToken({ tokenSlug: token.slug });
   });
 
   const handleStartSwap = useLastCallback(() => {
@@ -259,7 +268,9 @@ function SwapModal({
         return (
           <TokenSelector
             isActive={isActive}
+            shouldUseSwapTokens
             shouldFilter={currentKey === SwapState.SelectTokenTo}
+            onTokenSelect={handleTokenSelect}
             onBack={handleBackClick}
             onClose={handleModalCloseWithReset}
           />

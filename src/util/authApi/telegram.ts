@@ -48,7 +48,7 @@ export async function verifyIdentity() {
 
   return new Promise<{ success: boolean; token: string }>((resolve, reject) => {
     biometricManager.authenticate(
-      { reason: 'The bot requests biometrics for testing purposes.' },
+      { reason: '' },
       // @ts-ignore Wrong type signature https://github.com/twa-dev/types/pull/12
       (success: boolean, token: string) => {
         if (success) {

@@ -16,7 +16,7 @@ import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
 import { compact } from '../../../util/iteratees';
 import { generateQueryId } from './util';
-import { buildNft } from './util/metadata';
+import { parseTonapiioNft } from './util/metadata';
 import {
   fetchAccountEvents, fetchAccountNfts, fetchNftByAddress, fetchNftItems,
 } from './util/tonapiio';
@@ -29,7 +29,7 @@ import {
   NFT_TRANSFER_REAL_AMOUNT,
   NftOpCode,
 } from './constants';
-import { checkMultiTransactionDraft, checkToAddress, submitMultiTransfer } from './transactions';
+import { checkMultiTransactionDraft, checkToAddress, submitMultiTransfer } from './transfer';
 import { isActiveSmartContract } from './wallet';
 
 export async function getAccountNfts(accountId: string, offset?: number, limit?: number): Promise<ApiNft[]> {
@@ -37,7 +37,7 @@ export async function getAccountNfts(accountId: string, offset?: number, limit?:
   const { address } = await fetchStoredTonWallet(accountId);
 
   const rawNfts = await fetchAccountNfts(network, address, { offset, limit });
-  return compact(rawNfts.map((rawNft) => buildNft(network, rawNft)).filter(Boolean) as ApiNft[]);
+  return compact(rawNfts.map((rawNft) => parseTonapiioNft(network, rawNft)));
 }
 
 export async function checkNftOwnership(accountId: string, nftAddress: string) {
@@ -45,7 +45,7 @@ export async function checkNftOwnership(accountId: string, nftAddress: string) {
   const { address } = await fetchStoredTonWallet(accountId);
 
   const rawNft = await fetchNftByAddress(network, nftAddress);
-  const nft = buildNft(network, rawNft);
+  const nft = parseTonapiioNft(network, rawNft);
 
   return address === nft?.ownerAddress;
 }
@@ -89,7 +89,7 @@ export async function getNftUpdates(accountId: string, fromSec: number) {
         }
 
         if (rawNft) {
-          const nft = buildNft(network, rawNft);
+          const nft = parseTonapiioNft(network, rawNft);
 
           if (nft) {
             updates.push({

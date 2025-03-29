@@ -233,7 +233,7 @@ function SwapBlockchain({
 
   const title = (lang('$swap_from_to', {
     from: tokenIn?.symbol,
-    icon: <i className={buildClassName('icon-arrow-right', styles.swapArrowIconTitle)} aria-hidden />,
+    icon: <i className={buildClassName('icon-chevron-right', styles.swapArrowIcon)} aria-hidden />,
     to: tokenOut?.symbol,
   }) as TeactNode[]);
 

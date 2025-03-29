@@ -29,6 +29,7 @@ import useTimeout from '../../../../hooks/useTimeout';
 
 import TokenPriceChart from '../../../common/TokenPriceChart';
 import Button from '../../../ui/Button';
+import SensitiveData from '../../../ui/SensitiveData';
 import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
 import ChartHistorySwitcher from './ChartHistorySwitcher';
@@ -53,6 +54,7 @@ interface StateProps {
   tokenAddress?: string;
   isTestnet?: boolean;
   stakingStates?: ApiStakingState[];
+  isSensitiveDataHidden?: true;
 }
 
 const OFFLINE_TIMEOUT = 120000; // 2 minutes
@@ -68,12 +70,13 @@ function TokenCard({
   classNames,
   period = DEFAULT_PERIOD,
   isUpdating,
-  onYieldClick,
-  onClose,
   baseCurrency,
   historyPeriods,
   tokenAddress,
   stakingStates,
+  isSensitiveDataHidden,
+  onYieldClick,
+  onClose,
 }: OwnProps & StateProps) {
   const { loadPriceHistory } = getActions();
   const lang = useLang();
@@ -133,6 +136,8 @@ function TokenCard({
   const price = selectedHistoryPoint?.[1]
     ?? (shouldUseDefaultCurrency ? tokenLastHistoryPrice : undefined)
     ?? lastPrice;
+  // To prevent flickering with spoiler
+  const tokenChangePrice = isSensitiveDataHidden ? lastPrice : price;
   const isLoading = !tokenLastUpdatedAt || (Date.now() - tokenLastUpdatedAt > OFFLINE_TIMEOUT);
   const dateStr = selectedHistoryPoint
     ? formatShortDay(lang.code!, selectedHistoryPoint[0] * 1000, true, true)
@@ -145,11 +150,12 @@ function TokenCard({
   }, [history]);
 
   const change = (initialPrice && price) ? price - initialPrice : 0;
+  const amountChange = (initialPrice && tokenChangePrice) ? tokenChangePrice - initialPrice : 0;
 
   const value = toBig(amount, decimals).mul(price).toString();
   const changePrefix = change === undefined ? change : change > 0 ? '↑' : change < 0 ? '↓' : 0;
 
-  const changeValue = change ? Math.abs(round(change, 4)) : 0;
+  const changeValue = amountChange ? Math.abs(round(amountChange, 4)) : 0;
   const changePercent = change ? Math.abs(round((change / initialPrice!) * 100, 2)) : 0;
 
   const withChange = Boolean(change !== undefined);
@@ -194,20 +200,39 @@ function TokenCard({
         </Button>
         <img className={styles.tokenLogo} src={logoPath} alt={token.name} />
         <div className={styles.tokenInfoHeader}>
-          <b className={styles.tokenAmount}>{formatCurrency(toDecimal(amount, token.decimals), symbol)}</b>
+          <b className={styles.tokenAmount}>
+            <SensitiveData
+              isActive={isSensitiveDataHidden}
+              maskSkin="cardLightText"
+              cols={10}
+              rows={2}
+              cellSize={8}
+            >
+              {formatCurrency(toDecimal(amount, token.decimals), symbol)}
+            </SensitiveData>
+          </b>
           {withChange && (
             <div className={styles.tokenValue}>
-              <div className={styles.currencySwitcher} role="button" tabIndex={0} onClick={openCurrencyMenu}>
-                ≈&thinsp;{formatCurrency(value, currencySymbol, undefined, true)}
-                <i className={buildClassName('icon', 'icon-caret-down', styles.iconCaretSmall)} aria-hidden />
-              </div>
-              <CurrencySwitcher
-                isOpen={isCurrencyMenuOpen}
-                menuPositionHorizontal="right"
-                excludedCurrency={token.symbol}
-                onClose={closeCurrencyMenu}
-                onChange={handleCurrencyChange}
-              />
+              <SensitiveData
+                isActive={isSensitiveDataHidden}
+                maskSkin="cardLightText"
+                align="right"
+                cols={10}
+                rows={2}
+                cellSize={8}
+              >
+                <div className={styles.currencySwitcher} role="button" tabIndex={0} onClick={openCurrencyMenu}>
+                  ≈&thinsp;{formatCurrency(value, currencySymbol, undefined, true)}
+                  <i className={buildClassName('icon', 'icon-caret-down', styles.iconCaretSmall)} aria-hidden />
+                </div>
+                <CurrencySwitcher
+                  isOpen={isCurrencyMenuOpen}
+                  menuPositionHorizontal="right"
+                  excludedCurrency={token.symbol}
+                  onClose={closeCurrencyMenu}
+                  onChange={handleCurrencyChange}
+                />
+              </SensitiveData>
             </div>
           )}
         </div>
@@ -222,9 +247,20 @@ function TokenCard({
           </span>
           {withChange && Boolean(changeValue) && (
             <div className={styles.tokenChange}>
-              {changePrefix}
-              &thinsp;
-              {Math.abs(changePercent)}% · {formatCurrency(Math.abs(changeValue), currencySymbol)}
+              {changePrefix}&thinsp;
+              {Math.abs(changePercent)}% ·
+              <SensitiveData
+                isActive={isSensitiveDataHidden}
+                align="right"
+                maskSkin="cardLightText"
+                cols={6}
+                rows={2}
+                cellSize={8}
+                className={styles.tokenChangeSensitiveData}
+                maskClassName={styles.tokenChangeSpoiler}
+              >
+                {formatCurrency(Math.abs(changeValue), currencySymbol)}
+              </SensitiveData>
             </div>
           )}
         </div>
@@ -296,6 +332,7 @@ export default memo(
       historyPeriods: global.tokenPriceHistory.bySlug[ownProps.token.slug],
       tokenAddress,
       stakingStates,
+      isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
     };
   })(TokenCard),
 );

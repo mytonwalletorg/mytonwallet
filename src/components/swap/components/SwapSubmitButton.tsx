@@ -120,7 +120,7 @@ function SwapSubmitButton({
     const renderedText = textStr === '$swap_from_to'
       ? lang('$swap_from_to', {
         from: tokenIn?.symbol,
-        icon: <i className={buildClassName('icon-arrow-right', styles.swapArrowIcon)} aria-hidden />,
+        icon: <i className={buildClassName('icon-chevron-right', styles.swapArrowIcon)} aria-hidden />,
         to: tokenOut?.symbol,
       })
       : textStr;
@@ -139,7 +139,8 @@ function SwapSubmitButton({
           isLoading={isLoading}
           isDestructive={isDestructive}
         >
-          {renderedText}
+          {/* The <span> is to have inline content positioning to align the icon properly */}
+          <span>{renderedText}</span>
         </Button>
       </Transition>
     );

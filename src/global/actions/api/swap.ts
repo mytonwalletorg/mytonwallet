@@ -31,6 +31,7 @@ import {
   TRX_SWAP_COUNT_FEE_ADDRESS,
 } from '../../../config';
 import { Big } from '../../../lib/big.js';
+import { buildBackendSwapId, parseTxId } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { findChainConfig, getChainConfig } from '../../../util/chain';
 import { fromDecimal, roundDecimal, toDecimal } from '../../../util/decimals';
@@ -40,7 +41,6 @@ import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
 import { buildCollectionByKey, pick } from '../../../util/iteratees';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { pause } from '../../../util/schedulers';
-import { buildSwapId } from '../../../util/swap/buildSwapId';
 import { getChainBySlug, getIsTonToken, getNativeToken } from '../../../util/tokens';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { callApi } from '../../../api';
@@ -314,7 +314,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     networkFee: global.currentSwap.realNetworkFee ?? global.currentSwap.networkFee!,
     swapFee: global.currentSwap.swapFee!,
     ourFee: global.currentSwap.ourFee,
-    txIds: [],
+    hashes: [],
   };
 
   global = updateCurrentSwap(global, {
@@ -324,7 +324,7 @@ addActionHandler('submitSwap', async (global, actions, { password }) => {
     amountOut: undefined,
     isLoading: false,
     state: SwapState.Complete,
-    activityId: buildSwapId(buildResult.id),
+    activityId: buildBackendSwapId(buildResult.id),
     shouldResetOnClose: true,
   });
   setGlobal(global);
@@ -452,9 +452,9 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
     let transferResult: ((ApiSubmitTransferResult | ApiSubmitTransferWithDieselResult) & { txId?: string }) | undefined;
 
     if (shouldSendTonTransaction) {
-      transferResult = await callApi('submitTransfer', 'ton', transferOptions, false);
+      transferResult = await callApi('swapCexSubmit', 'ton', transferOptions, swapItem.swap.id);
     } else if (shouldSendTronTransaction) {
-      transferResult = await callApi('submitTransfer', 'tron', transferOptions, false);
+      transferResult = await callApi('swapCexSubmit', 'tron', transferOptions, swapItem.swap.id);
     }
 
     if (!transferResult || 'error' in transferResult) {
@@ -829,8 +829,12 @@ addActionHandler('updatePendingSwaps', async (global) => {
   if (!activities) return;
 
   const ids = Object.values(activities.byId)
-    .filter((activity) => activity.kind === 'swap' && activity.status === 'pending')
-    .map(({ id }) => id);
+    .filter((activity) => Boolean(
+      activity.kind === 'swap'
+      && activity.status === 'pending'
+      && activity.cex,
+    ))
+    .map(({ id }) => parseTxId(id).hash);
   if (!ids.length) return;
 
   const result = await callApi('fetchSwaps', accountId, ids);

@@ -2,7 +2,7 @@ import type { ApiNetwork, ApiTronWallet } from '../../types';
 
 import { getTronClient } from './util/tronweb';
 
-export { setupPolling } from './polling';
+export { setupPolling, setupInactiveAccountsBalancePolling } from './polling';
 export { checkTransactionDraft, submitTransfer } from './transfer';
 export { getWalletBalance } from './wallet';
 export { getAllTransactionSlice, getTokenTransactionSlice } from './transactions';

@@ -1,6 +1,6 @@
-import type { ApiChain } from '../api/types';
+import type { ApiChain, ApiNft } from '../api/types';
 
-import { EMPTY_HASH_VALUE } from '../config';
+import { EMPTY_HASH_VALUE, MTW_CARDS_BASE_URL } from '../config';
 import { base64ToHex } from './base64toHex';
 import { logDebugError } from './logs';
 
@@ -111,4 +111,8 @@ export function getExplorerTokenUrl(chain: ApiChain, slug?: string, address?: st
 
 export function isTelegramUrl(url: string) {
   return url.startsWith('https://t.me/');
+}
+
+export function getCardNftImageUrl(nft: ApiNft): string | undefined {
+  return `${MTW_CARDS_BASE_URL}${nft.metadata!.mtwCardId}.webp`;
 }

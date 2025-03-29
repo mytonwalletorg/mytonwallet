@@ -167,7 +167,7 @@ export async function sendTransaction(params: {
     toAddress,
     fee: checkResult.realFee ?? checkResult.fee!,
     slug: TONCOIN.slug,
-    inMsgHash: result.msgHash,
+    externalMsgHash: result.msgHash,
     ...(dataType === 'text' && {
       comment: data,
     }),
@@ -252,7 +252,7 @@ async function sendLedgerTransaction(
     toAddress,
     fee: realFee ?? fee ?? 0n,
     slug: TONCOIN.slug,
-    inMsgHash: msgHash,
+    externalMsgHash: msgHash,
     ...(dataType === 'text' && {
       comment: data,
     }),

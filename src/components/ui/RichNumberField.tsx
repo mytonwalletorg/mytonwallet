@@ -1,6 +1,8 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo, useLayoutEffect, useRef } from '../../lib/teact/teact';
 
+import type { SensitiveDataMaskSkin } from '../common/SensitiveDataMask';
+
 import { FRACTION_DIGITS } from '../../config';
 import { getNumberRegex } from '../../global/helpers/number';
 import buildClassName from '../../util/buildClassName';
@@ -8,6 +10,8 @@ import { buildContentHtml } from './helpers/buildContentHtml';
 
 import useFontScale from '../../hooks/useFontScale';
 import useLastCallback from '../../hooks/useLastCallback';
+
+import SensitiveData from './SensitiveData';
 
 import styles from './Input.module.scss';
 
@@ -20,6 +24,9 @@ type OwnProps = {
   zeroValue?: string;
   decimals?: number;
   className?: string;
+  isSensitiveData?: true;
+  isSensitiveDataHidden?: true;
+  sensitiveDataMaskSkin?: SensitiveDataMaskSkin;
   inputClassName?: string;
   labelClassName?: string;
   valueClassName?: string;
@@ -37,6 +44,9 @@ function RichNumberField({
   zeroValue,
   decimals = FRACTION_DIGITS,
   className,
+  isSensitiveData,
+  isSensitiveDataHidden,
+  sensitiveDataMaskSkin,
   inputClassName,
   labelClassName,
   valueClassName,
@@ -93,7 +103,6 @@ function RichNumberField({
     styles.input_large,
     styles.disabled,
     error && styles.error,
-    valueClassName,
     'rounded-font',
   );
   const labelTextClassName = buildClassName(
@@ -116,11 +125,22 @@ function RichNumberField({
         </label>
       )}
       <div className={inputWrapperFullClass}>
-        <div
-          ref={contentRef}
-          id={id}
-          className={inputFullClass}
-        />
+        {isSensitiveData ? (
+          <SensitiveData
+            isActive={isSensitiveDataHidden}
+            cols={8}
+            rows={3}
+            cellSize={16}
+            maskSkin={sensitiveDataMaskSkin}
+            className={inputFullClass}
+            contentClassName={valueClassName}
+            maskClassName={styles.mask}
+          >
+            <div ref={contentRef} id={id} />
+          </SensitiveData>
+        ) : (
+          <div ref={contentRef} id={id} className={buildClassName(inputFullClass, valueClassName)} />
+        )}
         {children}
       </div>
     </div>

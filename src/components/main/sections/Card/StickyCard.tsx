@@ -14,10 +14,12 @@ import buildClassName from '../../../../util/buildClassName';
 import { getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { IS_ELECTRON, IS_MAC_OS } from '../../../../util/windowEnvironment';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
+import getSensitiveDataMaskSkinFromCardNft from './helpers/getSensitiveDataMaskSkinFromCardNft';
 
 import useFlag from '../../../../hooks/useFlag';
 import useLastCallback from '../../../../hooks/useLastCallback';
 
+import SensitiveData from '../../../ui/SensitiveData';
 import AccountSelector from './AccountSelector';
 import CurrencySwitcher from './CurrencySwitcher';
 import CustomCardManager from './CustomCardManager';
@@ -33,6 +35,7 @@ interface StateProps {
   baseCurrency?: ApiBaseCurrency;
   stakingStates?: ApiStakingState[];
   cardNft?: ApiNft;
+  isSensitiveDataHidden?: true;
 }
 
 function StickyCard({
@@ -41,6 +44,7 @@ function StickyCard({
   baseCurrency,
   stakingStates,
   cardNft,
+  isSensitiveDataHidden,
 }: OwnProps & StateProps) {
   const [customCardClassName, setCustomCardClassName] = useState<string | undefined>(undefined);
   const [withTextGradient, setWithTextGradient] = useState<boolean>(false);
@@ -55,6 +59,7 @@ function StickyCard({
     setWithTextGradient(hasGradient);
   });
 
+  const sensitiveDataMaskSkin = getSensitiveDataMaskSkinFromCardNft(cardNft);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const { primaryWholePart, primaryFractionPart } = values || {};
 
@@ -79,21 +84,31 @@ function StickyCard({
             withAccountSelector={!(IS_ELECTRON && IS_MAC_OS) && !IS_CORE_WALLET}
           />
           <div className={styles.balance}>
-            <span
-              role="button"
-              tabIndex={0}
-              className={buildClassName(styles.currencySwitcher, withTextGradient && 'gradientText')}
-              onClick={openCurrencyMenu}
+            <SensitiveData
+              isActive={isSensitiveDataHidden}
+              shouldHoldSize
+              align="center"
+              maskSkin={sensitiveDataMaskSkin}
+              cols={10}
+              rows={2}
+              cellSize={9.5}
             >
-              {shortBaseSymbol.length === 1 && shortBaseSymbol}
-              {primaryWholePart}
-              {primaryFractionPart && <span className={styles.balanceFractionPart}>.{primaryFractionPart}</span>}
-              {shortBaseSymbol.length > 1 && (
-                <span className={styles.balanceFractionPart}>&nbsp;{shortBaseSymbol}</span>
-              )}
-              <i className={iconCaretClassNames} aria-hidden />
-            </span>
-            <CurrencySwitcher isOpen={isCurrencyMenuOpen} onClose={closeCurrencyMenu} />
+              <span
+                role="button"
+                tabIndex={0}
+                className={buildClassName(styles.currencySwitcher, withTextGradient && 'gradientText')}
+                onClick={openCurrencyMenu}
+              >
+                {shortBaseSymbol.length === 1 && shortBaseSymbol}
+                {primaryWholePart}
+                {primaryFractionPart && <span className={styles.balanceFractionPart}>.{primaryFractionPart}</span>}
+                {shortBaseSymbol.length > 1 && (
+                  <span className={styles.balanceFractionPart}>&nbsp;{shortBaseSymbol}</span>
+                )}
+                <i className={iconCaretClassNames} aria-hidden />
+              </span>
+              <CurrencySwitcher isOpen={isCurrencyMenuOpen} onClose={closeCurrencyMenu} />
+            </SensitiveData>
           </div>
         </div>
       </div>
@@ -112,6 +127,7 @@ export default memo(
         baseCurrency: global.settings.baseCurrency,
         cardNft,
         stakingStates,
+        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

@@ -21,17 +21,6 @@ export function getNativeToken(chain: ApiChain): ApiToken {
   return getChainConfig(chain).nativeToken;
 }
 
-export function getTransactionHashFromTxId(chain: ApiChain, txId: string) {
-  if (chain === 'tron') {
-    const localIdSign = txId.indexOf('|');
-
-    return localIdSign !== -1 ? txId.substring(0, localIdSign) : txId;
-  }
-
-  const [, transactionHash] = (txId || '').split(':');
-  return transactionHash;
-}
-
 export function getChainBySlug(slug: string) {
   const items = slug.split('-');
   return items.length > 1 ? items[0] as ApiChain : chainByNativeSlug[slug];

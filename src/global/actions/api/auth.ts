@@ -58,7 +58,7 @@ import {
   selectIsOneAccount,
   selectLedgerAccountIndexToImport,
   selectNetworkAccountsMemoized,
-  selectNewestTxTimestamps,
+  selectNewestActivityTimestamps,
 } from '../../selectors';
 
 const CREATING_DURATION = 3300;
@@ -71,8 +71,8 @@ export async function switchAccount(global: GlobalState, accountId: string, newN
 
   const actions = getActions();
 
-  const newestTxTimestamps = selectNewestTxTimestamps(global, accountId);
-  await callApi('activateAccount', accountId, newestTxTimestamps);
+  const newestActivityTimestamps = selectNewestActivityTimestamps(global, accountId);
+  await callApi('activateAccount', accountId, newestActivityTimestamps);
 
   global = getGlobal();
   setGlobal(switchAccountAndClearGlobal(global, accountId));

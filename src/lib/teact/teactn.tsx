@@ -4,6 +4,7 @@ import { DEBUG, DEBUG_MORE } from '../../config';
 import arePropsShallowEqual, { logUnequalProps } from '../../util/arePropsShallowEqual';
 import { handleError } from '../../util/handleError';
 import { orderBy } from '../../util/iteratees';
+import { logActionHandling } from '../../util/logs';
 import { throttleWithTickEnd } from '../../util/schedulers';
 import React, { DEBUG_resolveComponentName, getIsHeavyAnimating, useUnmountCleanup } from './teact';
 
@@ -132,6 +133,8 @@ export function forceOnHeavyAnimationOnce() {
 let actionQueue: NoneToVoidFunction[] = [];
 
 function handleAction(name: string, payload?: ActionPayload, options?: ActionOptions) {
+  logActionHandling(name, payload);
+
   actionQueue.push(() => {
     actionHandlers[name]?.forEach((handler) => {
       const response = handler(DEBUG ? getUntypedGlobal() : currentGlobal, actions, payload);

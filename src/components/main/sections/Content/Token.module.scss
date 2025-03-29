@@ -3,6 +3,7 @@
 @import "../../../../styles/mixins";
 
 .container {
+  --border-radius-value: 0.25rem;
   --color-dot: var(--color-gray-2);
 
   position: relative;
@@ -23,14 +24,13 @@
       position: absolute;
       right: 0;
       bottom: 0;
-      left: 3.625rem;
+      left: 3.875rem;
 
       height: 0.0625rem;
       /* stylelint-disable-next-line plugin/whole-pixel */
       box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
 
-      :global(html.is-android) &,
-      :global(html.is-ios) & {
+      @include is-mobile() {
         left: 4rem;
       }
     }
@@ -94,14 +94,19 @@
 
 .secondaryCell {
   overflow: hidden;
-
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
 }
 
 .subtitle {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-gray-2) !important;
+
+  @include is-mobile() {
+    font-size: 0.8125rem;
+  }
 }
 
 .amountChange {
@@ -120,11 +125,18 @@
   }
 }
 
-.name, .secondaryValue {
+.name,
+.secondaryValue {
   padding-bottom: 0.125rem;
 
   font-size: 0.9375rem;
   font-weight: 600;
+
+  @include is-mobile {
+    padding-bottom: 0.25rem;
+
+    font-size: 1rem;
+  }
 }
 
 .secondaryValue_staked {
@@ -211,8 +223,8 @@
 .vestingIcon,
 .percent {
   position: absolute;
-  top: 1.375rem;
-  left: 1.375rem;
+  top: 1.625rem;
+  left: 1.5rem;
 
   display: flex;
   align-items: center;
@@ -228,8 +240,7 @@
   background-color: var(--color-background-first);
   border-radius: 50%;
 
-  :global(html.is-android) &,
-  :global(html.is-ios) & {
+  @include is-mobile() {
     top: 1.6875rem;
     left: 1.75rem;
   }

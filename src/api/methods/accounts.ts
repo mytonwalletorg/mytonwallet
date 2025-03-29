@@ -1,10 +1,11 @@
 import type {
-  ApiChain, ApiLedgerAccount, ApiTonWallet, ApiTxTimestamps, OnApiUpdate,
+  ApiActivityTimestamps, ApiChain, ApiLedgerAccount, ApiTonWallet, OnApiUpdate,
 } from '../types';
 
-import { IS_EXTENSION } from '../../config';
+import { IS_CORE_WALLET, IS_EXTENSION } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { getChainConfig } from '../../util/chain';
+import { compact } from '../../util/iteratees';
 import chains from '../chains';
 import {
   fetchStoredAccount,
@@ -18,6 +19,7 @@ import { sendUpdateTokens } from '../common/tokens';
 import { callHook } from '../hooks';
 import { storage } from '../storages';
 import { deactivateAccountDapp, deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
+import { setupAccountConfigPolling } from './polling';
 
 const { ton, tron } = chains;
 
@@ -27,7 +29,7 @@ export function initAccounts(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 }
 
-export async function activateAccount(accountId: string, newestTxTimestamps: ApiTxTimestamps = {}) {
+export async function activateAccount(accountId: string, newestActivityTimestamps: ApiActivityTimestamps = {}) {
   await waitStorageMigration();
 
   const prevAccountId = getActiveAccountId();
@@ -52,18 +54,28 @@ export async function activateAccount(accountId: string, newestTxTimestamps: Api
 
   const account = await fetchStoredAccount(accountId);
 
-  if ('ton' in account) ton.setupPolling(accountId, onUpdate, pickChainTimestamps(newestTxTimestamps, 'ton'));
-  if ('tron' in account) void tron.setupPolling(accountId, onUpdate, pickChainTimestamps(newestTxTimestamps, 'tron'));
+  if (!IS_CORE_WALLET) {
+    void setupAccountConfigPolling(accountId, account);
+  }
+
+  if ('ton' in account) {
+    const newestTonTimestamps = compact(Object.values(pickChainTimestamps(newestActivityTimestamps, 'ton')));
+    const newestActivityTimestamp = newestTonTimestamps.length ? Math.max(...newestTonTimestamps) : undefined;
+    ton.setupPolling(accountId, onUpdate, newestActivityTimestamp);
+  }
+  if ('tron' in account) {
+    void tron.setupPolling(accountId, onUpdate, pickChainTimestamps(newestActivityTimestamps, 'tron'));
+  }
 }
 
-function pickChainTimestamps(bySlug: ApiTxTimestamps, chain: ApiChain) {
+function pickChainTimestamps(bySlug: ApiActivityTimestamps, chain: ApiChain) {
   const { slug: nativeSlug } = getChainConfig(chain).nativeToken;
   return Object.entries(bySlug).reduce((newBySlug, [slug, timestamp]) => {
     if (slug === nativeSlug || slug.startsWith(`${chain}-`)) {
       newBySlug[slug] = timestamp;
     }
     return newBySlug;
-  }, {} as ApiTxTimestamps);
+  }, {} as ApiActivityTimestamps);
 }
 
 export function deactivateAllAccounts() {

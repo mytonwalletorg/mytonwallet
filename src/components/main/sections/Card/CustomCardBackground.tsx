@@ -3,7 +3,7 @@ import React, { memo } from '../../../../lib/teact/teact';
 import type { ApiNft } from '../../../../api/types';
 
 import buildClassName from '../../../../util/buildClassName';
-import { getCardNftImageUrl } from './helpers/getCardNftImageUrl';
+import { getCardNftImageUrl } from '../../../../util/url';
 
 import { useCachedImage } from '../../../../hooks/useCachedImage';
 import useCardCustomization from '../../../../hooks/useCardCustomization';

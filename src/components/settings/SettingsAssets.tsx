@@ -41,6 +41,7 @@ interface StateProps {
   isSortByValueEnabled?: boolean;
   areTinyTransfersHidden?: boolean;
   areTokensWithNoCostHidden?: boolean;
+  isSensitiveDataHidden?: true;
   baseCurrency?: ApiBaseCurrency;
   isMultichainAccount: boolean;
   tokens?: UserToken[];
@@ -55,6 +56,7 @@ function SettingsAssets({
   isInsideModal,
   isInvestorViewEnabled,
   isSortByValueEnabled,
+  isSensitiveDataHidden,
   areTinyTransfersHidden,
   areTokensWithNoCostHidden,
   baseCurrency,
@@ -256,6 +258,7 @@ function SettingsAssets({
         </div>
 
         <SettingsTokens
+          isSensitiveDataHidden={isSensitiveDataHidden}
           parentContainer={scrollContainerRef}
           tokens={tokens}
           orderedSlugs={orderedSlugs}
@@ -275,6 +278,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     areTinyTransfersHidden,
     areTokensWithNoCostHidden,
     baseCurrency,
+    isSensitiveDataHidden,
   } = global.settings;
 
   const {
@@ -301,5 +305,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     nftsByAddress,
     blacklistedNftAddresses,
     whitelistedNftAddresses,
+    isSensitiveDataHidden,
   };
 })(SettingsAssets));

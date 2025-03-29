@@ -119,7 +119,7 @@ $receive_invoice_description: |
 Amount: Amount
 Comment: Comment
 Comment or Memo: Comment or Memo
-Share this URL to receive TON: Share this URL to receive TON
+Share this URL to receive %token%: Share this URL to receive %token%
 Invoice link was copied!: Invoice link was copied!
 Theme: Theme
 Language: Language
@@ -247,6 +247,7 @@ Est. %annual_yield%: Est. %annual_yield%
 Staked: Staked
 Unstake Requested: Unstake Requested
 Unstaked: Unstaked
+Unstaking: Unstaking
 The network fee has slightly changed, try sending again.: The network fee has slightly changed, try sending again.
 Transfer was unsuccessful. Try again later.: Transfer was unsuccessful. Try again later.
 Unstaking was unsuccessful. Try again later.: Unstaking was unsuccessful. Try again later.
@@ -274,7 +275,7 @@ Send Transaction: Send Transaction
 Payload: Payload
 $many_transactions: "%1$d Transactions"
 Total Amount: Total Amount
-Unstaking: Unstaking
+$unstaking_short: Unstaking
 Handle ton:// links: Handle ton:// links
 Back up wallet to have full access to it: Back up wallet to have full access to it
 Consider More Secure Version: Consider More Secure Version
@@ -750,5 +751,54 @@ $dapp_return_details: |
   %received_amount% will be returned to you within a few minutes.
 $dapp_return_disclaimer: The displayed returned amount is not guaranteed and may be manipulated by malicious dapps. Cancel the operation if you are not sure about the reliability of this service.
 Additional Amount Sent: Additional Amount Sent
+Show Sensitive Data: Show Sensitive Data
+Hide Sensitive Data: Hide Sensitive Data
 Copy Address: Copy Address
 Copy Transaction ID: Copy Transaction ID
+Requesting Unstake: Requesting Unstake
+Calling Contract: Calling Contract
+Contract Called: Contract Called
+Deploying Contract: Deploying Contract
+Contract Deployed: Contract Deployed
+Minting: Minting
+Minted: Minted
+Burning: Burning
+Burned: Burned
+Address Updated: Address Updated
+Updating Address: Updating Address
+Site Updated: Site Updated
+Updating Site: Updating Site
+Subdomains Updated: Subdomains Updated
+Updating Subdomains: Updating Subdomains
+Storage Updated: Storage Updated
+Updating Storage: Updating Storage
+Domain Record Deleted: Domain Record Deleted
+Deleting Domain Record: Deleting Domain Record
+Renewing Domain: Renewing Domain
+Domain Renewed: Domain Renewed
+Providing Liquidity: Providing Liquidity
+Liquidity Provided: Liquidity Provided
+Withdrawing Liquidity: Withdrawing Liquidity
+Liquidity Withdrawn: Liquidity Withdrawn
+Bounced: Bounced
+Bouncing: Bouncing
+NFT Auction Bid: NFT Auction Bid
+Bidding at NFT Auction: Bidding at NFT Auction
+Receiving: Receiving
+Change Palette: Change Palette
+Palette: Palette
+Unlock New Palettes: Unlock New Palettes
+Get a unique MyTonWallet Card to unlock new palettes.: Get a unique MyTonWallet Card to unlock new palettes.
+Mint Cards: Mint Cards
+Card has been upgraded!: Card has been upgraded!
+$mint_card_result: NFT Card will be **minted** and **installed automatically** within a minute.
+Unique: Unique
+Get a card with unique background and personalized palette for wallet interface.: Get a card with unique background and personalized palette for wallet interface.
+Transferable: Transferable
+Easily send your upgraded card to any of your friends.: Easily send your upgraded card to any of your friends.
+Tradable: Tradable
+Sell or auction your card on third-party NFT marketplaces.: Sell or auction your card on third-party NFT marketplaces.
+Upgrade for %currency% %amount%: Upgrade for %currency% %amount%
+"%amount% left": "%amount% left"
+"%amount% sold": "%amount% sold"
+This card has been sold out: This card has been sold out

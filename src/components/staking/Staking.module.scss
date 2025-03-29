@@ -110,41 +110,6 @@
   color: var(--color-input-button-text);
 }
 
-.amountTopRight {
-  position: relative;
-  z-index: 1;
-
-  align-self: flex-end;
-
-  width: 75%;
-  height: auto !important;
-  min-height: 1rem;
-  margin: 0 0.5rem -0.8125rem auto;
-
-  font-size: 0.8125rem;
-  line-height: 1rem;
-
-  &_static {
-    --color-background-window: transparent;
-  }
-
-  &_slide {
-    text-align: right;
-
-    background: var(--color-background-window);
-  }
-
-  &.Transition {
-    > .Transition_slide-from {
-      animation-duration: 150ms !important;
-    }
-
-    > .Transition_slide-to {
-      animation-duration: 150ms !important;
-    }
-  }
-}
-
 .amountBottomWrapper {
   position: relative;
 
@@ -205,41 +170,6 @@
 .amountInCurrency,
 .historyTotalValue {
   font-weight: 600;
-}
-
-.balanceContainer {
-  position: relative;
-  z-index: 1;
-
-  width: 100%;
-}
-
-.balance {
-  position: absolute;
-  top: 0;
-  right: 0;
-
-  display: flex;
-  gap: 0.25rem;
-
-  font-size: 0.8125rem;
-  color: var(--color-gray-1);
-}
-
-.balanceLink {
-  cursor: var(--custom-cursor, pointer);
-
-  font-weight: 600;
-  color: var(--color-accent);
-  text-decoration: underline;
-  text-decoration-style: dotted;
-
-  @media (hover: hover) {
-    &:hover,
-    &:focus-visible {
-      text-decoration: none;
-    }
-  }
 }
 
 .stakingBalance {
@@ -331,6 +261,8 @@
   --color-close-button-text-hover: var(--color-gpurple-button-text-hover);
   --color-close-button-background: var(--color-gpurple-button-background-rest);
   --color-close-button-background-hover: var(--color-gpurple-button-background-hover);
+
+  --sensitive-data-extra-width: 0.5rem;
 
   background: var(--color-background-purple-2);
   border-radius: var(--border-radius-small);

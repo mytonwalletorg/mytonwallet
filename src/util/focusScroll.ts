@@ -1,5 +1,5 @@
-import { IS_CAPACITOR } from '../config';
-import { requestMeasure } from '../lib/fasterdom/fasterdom';
+import { IS_CAPACITOR, IS_TELEGRAM_APP } from '../config';
+import { requestMeasure, requestMutation } from '../lib/fasterdom/fasterdom';
 import { IS_ANDROID, IS_IOS } from './windowEnvironment';
 import { onVirtualKeyboardOpen } from './windowSize';
 
@@ -71,7 +71,20 @@ function initForVisualViewport() {
     viewportHeight = newHeight;
   }
 
-  visualViewport!.addEventListener('resize', handleViewportResize);
+  // In the TMA application on iOS, the VisualViewport behaves incorrectly,
+  // not taking into account the height of the virtual keyboard. Therefore,
+  // the height compensation is performed first (see the `windowSize` file),
+  // and then the `handleViewportResize` processing should be executed.
+  function delayedViewportResizeHandler() {
+    requestMutation(() => {
+      requestMeasure(handleViewportResize);
+    });
+  }
+
+  visualViewport!.addEventListener(
+    'resize',
+    IS_IOS && IS_TELEGRAM_APP ? delayedViewportResizeHandler : handleViewportResize,
+  );
 }
 
 function createFocusScroller() {

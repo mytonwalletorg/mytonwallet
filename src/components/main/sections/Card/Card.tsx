@@ -20,6 +20,7 @@ import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatN
 import { shortenAddress } from '../../../../util/shortenAddress';
 import { IS_IOS, IS_SAFARI } from '../../../../util/windowEnvironment';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
+import getSensitiveDataMaskSkinFromCardNft from './helpers/getSensitiveDataMaskSkinFromCardNft';
 
 import useCurrentOrPrev from '../../../../hooks/useCurrentOrPrev';
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
@@ -29,8 +30,10 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 import useShowTransition from '../../../../hooks/useShowTransition';
 import useUpdateIndicator from '../../../../hooks/useUpdateIndicator';
 
+import MintCardButton from '../../../mintCard/MintCardButton';
 import AnimatedCounter from '../../../ui/AnimatedCounter';
 import LoadingDots from '../../../ui/LoadingDots';
+import SensitiveData from '../../../ui/SensitiveData';
 import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
 import AccountSelector from './AccountSelector';
@@ -56,6 +59,7 @@ interface StateProps {
   stakingStates?: ApiStakingState[];
   balanceUpdateStartedAt?: number;
   cardNft?: ApiNft;
+  isSensitiveDataHidden?: true;
 }
 
 function Card({
@@ -68,6 +72,7 @@ function Card({
   onYieldClick,
   baseCurrency,
   stakingStates,
+  isSensitiveDataHidden,
   balanceUpdateStartedAt,
   cardNft,
 }: OwnProps & StateProps) {
@@ -87,6 +92,7 @@ function Card({
     shouldRender: shouldRenderTokenCard,
     transitionClassNames: tokenCardTransitionClassNames,
   } = useShowTransition(Boolean(currentTokenSlug), undefined, true);
+  const sensitiveDataMaskSkin = getSensitiveDataMaskSkinFromCardNft(cardNft);
 
   const handleCardChange = useLastCallback((hasGradient: boolean, className?: string) => {
     setCustomCardClassName(className);
@@ -151,43 +157,67 @@ function Card({
     const noAnimationCounter = !isUpdating || IS_SAFARI || IS_IOS;
     return (
       <>
-        <Transition activeKey={isUpdating ? 1 : 0} name="fade" shouldCleanup className={styles.balanceTransition}>
-          <div className={buildClassName(styles.primaryValue, 'rounded-font')}>
-            <span
-              className={buildClassName(
-                styles.currencySwitcher,
-                isUpdating && 'glare-text',
-                !isUpdating && withTextGradient && 'gradientText',
-              )}
-              role="button"
-              tabIndex={0}
-              onClick={openCurrencyMenu}
-            >
-              {shortBaseSymbol.length === 1 && shortBaseSymbol}
-              <AnimatedCounter isDisabled={noAnimationCounter} text={primaryWholePart ?? ''} />
-              {primaryFractionPart && (
-                <span className={styles.primaryFractionPart}>
-                  <AnimatedCounter isDisabled={noAnimationCounter} text={`.${primaryFractionPart}`} />
-                </span>
-              )}
-              {shortBaseSymbol.length > 1 && (
-                <span className={styles.primaryFractionPart}>
+        <Transition
+          activeKey={isUpdating && !isSensitiveDataHidden ? 1 : 0}
+          name="fade"
+          shouldCleanup
+          className={styles.balanceTransition}
+        >
+          <SensitiveData
+            isActive={isSensitiveDataHidden}
+            maskSkin={sensitiveDataMaskSkin}
+            rows={3}
+            cols={14}
+            cellSize={13.33}
+            maskClassName={styles.blurred}
+          >
+            <div className={buildClassName(styles.primaryValue, 'rounded-font')}>
+              <span
+                className={buildClassName(
+                  styles.currencySwitcher,
+                  isUpdating && 'glare-text',
+                  !isUpdating && withTextGradient && 'gradientText',
+                )}
+                role="button"
+                tabIndex={0}
+                onClick={openCurrencyMenu}
+              >
+                {shortBaseSymbol.length === 1 && shortBaseSymbol}
+                <AnimatedCounter isDisabled={noAnimationCounter} text={primaryWholePart ?? ''} />
+                {primaryFractionPart && (
+                  <span className={styles.primaryFractionPart}>
+                    <AnimatedCounter isDisabled={noAnimationCounter} text={`.${primaryFractionPart}`} />
+                  </span>
+                )}
+                {shortBaseSymbol.length > 1 && (
+                  <span className={styles.primaryFractionPart}>
                 &nbsp;{shortBaseSymbol}
-                </span>
-              )}
-              <i className={iconCaretClassNames} aria-hidden />
-            </span>
-          </div>
+                  </span>
+                )}
+                <i className={iconCaretClassNames} aria-hidden />
+              </span>
+            </div>
+          </SensitiveData>
         </Transition>
         <CurrencySwitcher isOpen={isCurrencyMenuOpen} onClose={closeCurrencyMenu} />
         {primaryValue !== '0' && (
-          <div className={buildClassName(styles.change, changeClassName, 'rounded-font')}>
-            {changePrefix}
+          <SensitiveData
+            isActive={isSensitiveDataHidden}
+            maskSkin={sensitiveDataMaskSkin}
+            rows={2}
+            cols={11}
+            cellSize={12}
+            className={styles.changeSpoiler}
+            maskClassName={styles.blurred}
+          >
+            <div className={buildClassName(styles.change, changeClassName, 'rounded-font')}>
+              {changePrefix}
             &thinsp;
-            <AnimatedCounter text={`${Math.abs(changePercent!)}%`} />
-            {' · '}
-            <AnimatedCounter text={formatCurrency(Math.abs(changeValue!), shortBaseSymbol)} />
-          </div>
+              <AnimatedCounter text={`${Math.abs(changePercent!)}%`} />
+              {' · '}
+              <AnimatedCounter text={formatCurrency(Math.abs(changeValue!), shortBaseSymbol)} />
+            </div>
+          </SensitiveData>
         )}
       </>
     );
@@ -218,6 +248,7 @@ function Card({
           )}
           {values ? renderBalance() : renderLoader()}
           <CardAddress withTextGradient={withTextGradient} />
+          {!IS_CORE_WALLET && <MintCardButton />}
         </div>
       </div>
 
@@ -249,6 +280,7 @@ export default memo(
         stakingStates,
         balanceUpdateStartedAt: global.balanceUpdateStartedAt,
         cardNft,
+        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

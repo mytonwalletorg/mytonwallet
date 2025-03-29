@@ -121,7 +121,7 @@ $receive_invoice_description: |
 Amount: Kwota
 Comment: Komentarz
 Comment or Memo: Komentarz lub notatka
-Share this URL to receive TON: Udostępnij ten adres URL, aby otrzymać TON
+Share this URL to receive %token%: Udostępnij ten adres URL, aby otrzymać %token%
 Invoice link was copied!: Link do faktury został skopiowany!
 Theme: Temat
 Language: Język
@@ -247,8 +247,9 @@ $unstake_insufficient_balance: Aby przejść do odzastawienia, musisz mieć na s
 at %annual_yield%: przy %annual_yield%
 Est. %annual_yield%: Szacowany %annual_yield%
 Staked: Zastawione
-Unstake Requested: Prośba o odzastawienie
+Unstake Requested: Odzastaw zażądane
 Unstaked: Odzastawione
+Unstaking: Odzastawianie
 The network fee has slightly changed, try sending again.: Opłata sieciowa nieznacznie się zmieniła, spróbuj wysłać ponownie.
 Transfer was unsuccessful. Try again later.: Przelew nie powiódł się. Spróbuj ponownie później.
 Unstaking was unsuccessful. Try again later.: Odzastawienie nie powiodło się. Spróbuj ponownie później.
@@ -276,7 +277,7 @@ Send Transaction: Wyślij transakcję
 Payload: Ładunek
 $many_transactions: "%1$d transakcji"
 Total Amount: Całkowita kwota
-Unstaking: Odzastawianie
+$unstaking_short: Odzastawianie
 Handle ton:// links: Obsłuż ton:// linki
 Back up wallet to have full access to it: Zrób kopię zapasową portfela, aby mieć do niego pełny dostęp.
 Consider More Secure Version: Rozważ bardziej bezpieczną wersję
@@ -754,5 +755,54 @@ $dapp_return_details: |
   %received_amount% zostanie Ci zwrócone w ciągu kilku minut.
 $dapp_return_disclaimer: Wyświetlona zwrócona kwota nie jest gwarantowana i może zostać zmanipulowana przez złośliwe dappy. Anuluj operację, jeśli nie jesteś pewien niezawodności tej usługi.
 Additional Amount Sent: Dodatkowo zostanie wysłane
+Show Sensitive Data: Pokaż dane wrażliwe
+Hide Sensitive Data: Ukryj dane wrażliwe
 Copy Address: Skopiuj adres
 Copy Transaction ID: Skopiuj ID transakcji
+Requesting Unstake: Żądanie odzastaw
+Calling Contract: Wywoływanie kontraktu
+Contract Called: Kontrakt wywołany
+Deploying Contract: Wdrażanie kontraktu
+Contract Deployed: Kontrakt wdrożony
+Minting: Minting
+Minted: Zmintowane
+Burning: Palenie
+Burned: Spalone
+Address Updated: Adres zaktualizowany
+Updating Address: Aktualizowanie adresu
+Site Updated: Strona zaktualizowana
+Updating Site: Aktualizowanie strony
+Subdomains Updated: Subdomeny zaktualizowane
+Updating Subdomains: Aktualizowanie subdomen
+Storage Updated: Magazyn zaktualizowany
+Updating Storage: Aktualizowanie magazynu
+Domain Record Deleted: Rekord domeny usunięty
+Deleting Domain Record: Usuwanie rekordu domeny
+Renewing Domain: Odnawianie domeny
+Domain Renewed: Domena odnowiona
+Providing Liquidity: Zapewnianie płynności
+Liquidity Provided: Płynność zapewniona
+Withdrawing Liquidity: Wycofywanie płynności
+Liquidity Withdrawn: Płynność wycofana
+Bounced: Odbity
+Bouncing: Odbijanie
+NFT Auction Bid: Oferta w aukcji NFT
+Bidding at NFT Auction: Licytacja w aukcji NFT
+Receiving: Otrzymywanie
+Change Palette: Zmień paletę
+Palette: Paleta
+Unlock New Palettes: Odblokuj nowe palety
+Get a unique MyTonWallet Card to unlock new palettes.: Zdobądź unikalną kartę MyTonWallet, aby odblokować nowe palety.
+Mint Cards: Twórz karty
+Card has been upgraded!: Karta została ulepszona!
+$mint_card_result: Karta NFT zostanie **stworzona** i **zainstalowana automatycznie** w ciągu minuty.
+Unique: Unikalna
+Get a card with unique background and personalized palette for wallet interface.: Uzyskaj kartę z unikalnym tłem i spersonalizowaną paletą dla interfejsu portfela.
+Transferable: Przenośna
+Easily send your upgraded card to any of your friends.: Łatwo wyślij swoją ulepszoną kartę do dowolnego znajomego.
+Tradable: Możliwa do handlu
+Sell or auction your card on third-party NFT marketplaces.: Sprzedaj lub wystaw na aukcji swoją kartę na zewnętrznych rynkach NFT.
+Upgrade for %currency% %amount%: Ulepszenie za %currency% %amount%
+"%amount% left": "Pozostało %amount%"
+"%amount% sold": "Sprzedano %amount%"
+This card has been sold out: Ta karta jest wyprzedana

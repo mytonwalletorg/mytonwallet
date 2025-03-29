@@ -1,22 +1,15 @@
-import {
-  beginCell, Cell, external, internal, loadStateInit, SendMode, storeMessage,
-} from '@ton/core';
+import { beginCell, Cell, external, internal, loadStateInit, SendMode, storeMessage } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
 import type Deferred from '../../../util/Deferred';
 import type { CheckTransactionDraftOptions } from '../../methods/types';
 import type {
   ApiAccountWithMnemonic,
-  ApiActivity,
   ApiAnyDisplayError,
   ApiEmulationResult,
   ApiNetwork,
-  ApiNft,
   ApiSignedTransfer,
   ApiToken,
-  ApiTransaction,
-  ApiTransactionActivity,
-  ApiTransactionType,
 } from '../../types';
 import type {
   AnyPayload,
@@ -28,33 +21,26 @@ import type {
   ApiSubmitTransferTonResult,
   ApiSubmitTransferWithDieselResult,
   ApiTonWalletVersion,
-  ApiTransactionExtra,
   TonTransferParams,
 } from './types';
 import type { TonWallet } from './util/tonCore';
 import { ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
-import { DEFAULT_FEE, DIESEL_ADDRESS, TONCOIN } from '../../../config';
+import { DEFAULT_FEE, DIESEL_ADDRESS } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { bigintMultiplyToNumber } from '../../../util/bigint';
-import { compareActivities } from '../../../util/compareActivities';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { getDieselTokenAmount, isDieselAvailable } from '../../../util/fee/transferFee';
-import { buildCollectionByKey, omit, pick } from '../../../util/iteratees';
+import { omit, pick } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
-import { updatePoisoningCache } from '../../../util/poisoningHash';
 import { safeExecAsync } from '../../../util/safeExec';
 import { pause } from '../../../util/schedulers';
-import withCacheAsync from '../../../util/withCacheAsync';
-import { parseTxId } from './util';
-import { fetchAddressBook, fetchLatestTxId, fetchTransactions } from './util/apiV3';
 import { emulateTrace, parseEmulation } from './util/emulation';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
-import { buildNft, parseWalletTransactionBody } from './util/metadata';
 import { sendExternal } from './util/sendExternal';
-import { fetchNftItems } from './util/tonapiio';
 import {
   commentToBytes,
+  getOurFeePayload,
   getTonClient,
   getTonWalletContract,
   getWalletPublicKey,
@@ -62,45 +48,28 @@ import {
   packBytesAsSnakeForEncryptedData,
   parseAddress,
   parseBase64,
-  resolveTokenWalletAddress,
-  toBase64Address,
 } from './util/tonCore';
 import { fetchStoredAccount, fetchStoredTonWallet } from '../../common/accounts';
 import { callBackendGet } from '../../common/backend';
-import { updateTransactionMetadata } from '../../common/helpers';
 import { getPendingTransfer, waitAndCreatePendingTransfer } from '../../common/pendingTransfers';
-import { getTokenByAddress, getTokenBySlug } from '../../common/tokens';
-import { base64ToBytes, isKnownStakingPool } from '../../common/utils';
+import { getTokenByAddress } from '../../common/tokens';
+import { base64ToBytes } from '../../common/utils';
 import { MINUTE, SEC } from '../../constants';
 import { ApiServerError, handleServerError } from '../../errors';
 import { createBody } from './walletV5/walletV5';
 import { ActionSendMsg, packActionsList } from './walletV5/walletV5Actions';
+import { checkHasTransaction, fetchNewestActionId } from './activities';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
-import {
-  ATTEMPTS,
-  FEE_FACTOR,
-  STAKE_COMMENT,
-  TON_GAS,
-  TRANSFER_TIMEOUT_SEC,
-  UNSTAKE_COMMENT,
-} from './constants';
+import { ATTEMPTS, FEE_FACTOR, TRANSFER_TIMEOUT_SEC } from './constants';
 import {
   buildTokenTransfer,
   calculateTokenBalanceWithMintless,
   getTokenBalanceWithMintless,
   getToncoinAmountForTransfer,
-  parseTokenTransaction,
 } from './tokens';
-import {
-  getContractInfo,
-  getTonWallet,
-  getWalletBalance,
-  getWalletInfo,
-} from './wallet';
+import { getContractInfo, getTonWallet, getWalletBalance, getWalletInfo } from './wallet';
 
-const GET_TRANSACTIONS_LIMIT = 128;
-const GET_TRANSACTIONS_MAX_LIMIT = 100;
 const WAIT_TRANSFER_TIMEOUT = MINUTE;
 const WAIT_PAUSE = SEC;
 
@@ -113,11 +82,6 @@ const DIESEL_NOT_AVAILABLE: ApiFetchEstimateDieselResult = {
   remainingFee: 0n,
   realFee: 0n,
 };
-
-export const checkHasTransaction = withCacheAsync(async (network: ApiNetwork, address: string) => {
-  const transactions = await fetchTransactions({ network, address, limit: 1 });
-  return Boolean(transactions.length);
-});
 
 export async function checkTransactionDraft(
   options: CheckTransactionDraftOptions,
@@ -494,7 +458,7 @@ export async function submitTransferWithDiesel(options: {
 
     const { network } = parseAccountId(accountId);
 
-    const [{ address: fromAddress }, keyPair] = await Promise.all([
+    const [{ address: fromAddress, version }, keyPair] = await Promise.all([
       fetchStoredTonWallet(accountId),
       fetchKeyPair(accountId, password),
     ]);
@@ -529,6 +493,7 @@ export async function submitTransferWithDiesel(options: {
           toAddress: DIESEL_ADDRESS,
           amount: dieselAmount,
           shouldSkipMintless: true,
+          payload: getOurFeePayload(),
         }),
       );
     }
@@ -540,7 +505,11 @@ export async function submitTransferWithDiesel(options: {
       isGasless: true,
     });
 
-    return { ...result, encryptedComment };
+    return {
+      ...result,
+      encryptedComment,
+      withW5Gasless: version === 'W5',
+    };
   } catch (err) {
     logDebugError('submitTransferWithDiesel', err);
 
@@ -660,212 +629,11 @@ async function signTransaction({
   return { seqno, transaction };
 }
 
-export async function getAccountNewestTxId(accountId: string) {
+export async function getAccountNewestActionId(accountId: string) {
   const { network } = parseAccountId(accountId);
   const { address } = await fetchStoredTonWallet(accountId);
 
-  return fetchNewestTxId(network, address);
-}
-
-export async function fetchAccountTransactionSlice(
-  accountId: string,
-  toTimestamp?: number,
-  fromTimestamp?: number,
-  limit?: number,
-) {
-  const { network } = parseAccountId(accountId);
-  const { address } = await fetchStoredTonWallet(accountId);
-
-  let transactions = await fetchTransactions({
-    network,
-    address,
-    limit: limit ?? GET_TRANSACTIONS_LIMIT,
-    toTimestamp,
-    fromTimestamp,
-  });
-
-  transactions = await Promise.all(
-    transactions.map((transaction) => parseWalletTransactionBody(network, transaction)),
-  );
-
-  await populateTransactions(network, transactions);
-
-  return transactions
-    .map(updateTransactionType)
-    .map(updateTransactionMetadata)
-    .map(omitExtraData)
-    .map(transactionToActivity);
-}
-
-async function populateTransactions(network: ApiNetwork, transactions: ApiTransactionExtra[]) {
-  const nftAddresses = new Set<string>();
-  const addressesForFixFormat = new Set<string>();
-
-  for (const tx of transactions) {
-    const { extraData: { parsedPayload } } = tx;
-    if (parsedPayload?.type === 'nft:ownership-assigned') {
-      nftAddresses.add(parsedPayload.nftAddress);
-      addressesForFixFormat.add(parsedPayload.prevOwner);
-    } else if (parsedPayload?.type === 'nft:transfer') {
-      nftAddresses.add(parsedPayload.nftAddress);
-      addressesForFixFormat.add(parsedPayload.newOwner);
-    }
-
-    updatePoisoningCache(tx);
-  }
-
-  if (nftAddresses.size) {
-    const [rawNfts, addressBook] = await Promise.all([
-      fetchNftItems(network, [...nftAddresses]),
-      fetchAddressBook(network, [...addressesForFixFormat]),
-    ]);
-
-    const nfts = rawNfts
-      .map((rawNft) => buildNft(network, rawNft))
-      .filter(Boolean) as ApiNft[];
-
-    const nftsByAddress = buildCollectionByKey(nfts, 'address');
-
-    for (const transaction of transactions) {
-      const { extraData: { parsedPayload } } = transaction;
-
-      if (parsedPayload?.type === 'nft:ownership-assigned') {
-        const nft = nftsByAddress[parsedPayload.nftAddress];
-        transaction.nft = nft;
-        if (nft?.isScam) {
-          transaction.metadata = { ...transaction.metadata, isScam: true };
-        } else {
-          transaction.fromAddress = addressBook[parsedPayload.prevOwner].user_friendly;
-        }
-      } else if (parsedPayload?.type === 'nft:transfer') {
-        const nft = nftsByAddress[parsedPayload.nftAddress];
-        transaction.nft = nft;
-        if (nft?.isScam) {
-          transaction.metadata = { ...transaction.metadata, isScam: true };
-        } else {
-          transaction.toAddress = addressBook[parsedPayload.newOwner].user_friendly;
-        }
-      }
-    }
-  }
-}
-
-export async function getAllTransactionSlice(
-  accountId: string,
-  toTimestamp: number,
-  limit: number,
-  tokenSlugs: string[],
-) {
-  const tonTxs = await fetchAccountTransactionSlice(accountId, toTimestamp, undefined, limit);
-
-  if (!tonTxs.length) {
-    return [];
-  }
-
-  const fromTimestamp = tonTxs[tonTxs.length - 1].timestamp;
-
-  const tokenResults = await Promise.all(tokenSlugs.map((slug) => {
-    return fetchTokenTransactionSlice(
-      accountId, slug, toTimestamp, fromTimestamp, GET_TRANSACTIONS_MAX_LIMIT, true,
-    );
-  }));
-
-  const allTxs = [...tonTxs, ...tokenResults.flat()];
-  allTxs.sort(compareActivities);
-
-  return allTxs;
-}
-
-export async function fetchTokenTransactionSlice(
-  accountId: string,
-  tokenSlug: string,
-  toTimestamp?: number,
-  fromTimestamp?: number,
-  limit?: number,
-  shouldIncludeFrom?: boolean,
-): Promise<ApiTransactionActivity[]> {
-  if (tokenSlug === TONCOIN.slug) {
-    return fetchAccountTransactionSlice(accountId, toTimestamp, fromTimestamp, limit);
-  }
-
-  const { network } = parseAccountId(accountId);
-  const { address } = await fetchStoredTonWallet(accountId);
-
-  const token = getTokenBySlug(tokenSlug);
-  const { tokenAddress } = token;
-  const tokenWalletAddress = await resolveTokenWalletAddress(network, address, tokenAddress!);
-
-  const transactions = await fetchTransactions({
-    network,
-    address: tokenWalletAddress,
-    limit: limit ?? GET_TRANSACTIONS_LIMIT,
-    fromTimestamp,
-    toTimestamp,
-    shouldIncludeFrom,
-  });
-
-  return transactions
-    .map((tx) => parseTokenTransaction(network, tx, tokenSlug, address))
-    .filter(Boolean)
-    .map(updateTransactionMetadata)
-    .map(omitExtraData)
-    .map(transactionToActivity);
-}
-
-function omitExtraData(tx: ApiTransactionExtra): ApiTransaction {
-  return omit(tx, ['extraData']);
-}
-
-function updateTransactionType(transaction: ApiTransactionExtra) {
-  const { amount, extraData } = transaction;
-  let { comment } = transaction;
-
-  const normalizedFromAddress = toBase64Address(transaction.fromAddress, true);
-  const normalizedToAddress = toBase64Address(transaction.toAddress, true);
-
-  let type: ApiTransactionType | undefined;
-
-  if (isKnownStakingPool(normalizedFromAddress) && amount > TON_GAS.unstakeNominators) {
-    type = 'unstake';
-  } else if (isKnownStakingPool(normalizedToAddress)) {
-    if (comment === STAKE_COMMENT) {
-      type = 'stake';
-    } else if (comment === UNSTAKE_COMMENT) {
-      type = 'unstakeRequest';
-    }
-  } else if (extraData?.parsedPayload && !transaction.metadata?.isScam) {
-    const payload = extraData.parsedPayload;
-
-    if (payload.type === 'tokens:burn' && payload.isLiquidUnstakeRequest) {
-      type = 'unstakeRequest';
-    } else if (payload.type === 'liquid-staking:deposit') {
-      type = 'stake';
-    } else if (payload.type === 'liquid-staking:withdrawal' || payload.type === 'liquid-staking:withdrawal-nft') {
-      type = 'unstake';
-    } else if (payload.type === 'nft:transfer') {
-      type = 'nftTransferred';
-      comment = payload.comment;
-    } else if (payload.type === 'nft:ownership-assigned') {
-      type = 'nftReceived';
-      comment = payload.comment;
-    } else if (payload.type === 'jetton-staking:unstake') {
-      type = 'unstakeRequest';
-    }
-  }
-
-  return {
-    ...transaction,
-    type,
-    comment,
-  };
-}
-
-function transactionToActivity(transaction: ApiTransaction): ApiTransactionActivity {
-  return {
-    ...transaction,
-    kind: 'transaction',
-    id: transaction.txId,
-  };
+  return fetchNewestActionId(network, address);
 }
 
 export async function checkMultiTransactionDraft(
@@ -997,6 +765,7 @@ export async function submitMultiTransfer({
       boc,
       msgHash,
       paymentLink,
+      withW5Gasless,
     };
   } catch (err) {
     pendingTransfer.resolve();
@@ -1236,57 +1005,6 @@ export async function decryptComment(
   const buffer = Buffer.from(encryptedComment, 'base64');
 
   return decryptMessageComment(buffer, publicKey, secretKey, fromAddress);
-}
-
-export async function waitUntilTransactionAppears(network: ApiNetwork, address: string, txId: string) {
-  const { lt } = parseTxId(txId);
-
-  if (lt === 0) {
-    return;
-  }
-
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const latestTxId = await fetchLatestTxId(network, address);
-    if (latestTxId && parseTxId(latestTxId).lt >= lt) {
-      return;
-    }
-    await pause(WAIT_PAUSE);
-  }
-}
-
-export async function fetchNewestTxId(network: ApiNetwork, address: string) {
-  const transactions = await fetchTransactions({ network, address, limit: 1 });
-
-  if (!transactions.length) {
-    return undefined;
-  }
-
-  return transactions[0].txId;
-}
-
-export async function fixTokenActivitiesAddressForm(network: ApiNetwork, activities: ApiActivity[]) {
-  const tokenAddresses: Set<string> = new Set();
-
-  for (const activity of activities) {
-    if (activity.kind === 'transaction' && activity.slug !== TONCOIN.slug) {
-      tokenAddresses.add(activity.fromAddress);
-      tokenAddresses.add(activity.toAddress);
-    }
-  }
-
-  if (!tokenAddresses.size) {
-    return;
-  }
-
-  const addressBook = await fetchAddressBook(network, Array.from(tokenAddresses));
-
-  for (const activity of activities) {
-    if (activity.kind === 'transaction' && activity.slug !== TONCOIN.slug) {
-      activity.fromAddress = addressBook[activity.fromAddress].user_friendly;
-      activity.toAddress = addressBook[activity.toAddress].user_friendly;
-    }
-  }
 }
 
 /**

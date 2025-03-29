@@ -26,7 +26,7 @@ import {
   updateCurrentDappTransfer,
   updateDappConnectRequest,
 } from '../../reducers';
-import { selectIsHardwareAccount, selectNewestTxTimestamps } from '../../selectors';
+import { selectIsHardwareAccount, selectNewestActivityTimestamps } from '../../selectors';
 
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
@@ -368,8 +368,9 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
 }) => {
   const { currentAccountId, currentDappTransfer: { promiseId: currentPromiseId } } = global;
   if (currentAccountId !== accountId) {
-    const nextNewestTxTimestamps = selectNewestTxTimestamps(global, accountId);
-    await callApi('activateAccount', accountId, nextNewestTxTimestamps);
+    const nextNewestActivityTimestamps = selectNewestActivityTimestamps(global, accountId);
+    await callApi('activateAccount', accountId, nextNewestActivityTimestamps);
+
     global = getGlobal();
     setGlobal(updateCurrentAccountId(global, accountId));
   }

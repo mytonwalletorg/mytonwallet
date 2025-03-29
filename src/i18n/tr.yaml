@@ -119,7 +119,7 @@ $receive_invoice_description: |
 Amount: Tutar
 Comment: Memo (Açıklama)
 Comment or Memo: Memo (Açıklama)
-Share this URL to receive TON: TON almak için bu URL'yi paylaşın
+Share this URL to receive %token%: "%token% almak için bu URL'yi paylaşın"
 Invoice link was copied!: Fatura bağlantısı kopyalandı!
 Theme: Tema
 Language: Dil
@@ -247,6 +247,7 @@ at %annual_yield%: "%annual_yield% ile"
 Staked: Stake edildi
 Unstake Requested: Unstake talep edildi
 Unstaked: Unstake gerçekleşti
+Unstaking: Unstaking gerçekleşiyor
 The network fee has slightly changed, try sending again.: Ağ ücreti bir miktar değişti, tekrar göndermeyi deneyin.
 Transfer was unsuccessful. Try again later.: Transfer başarısız oldu. Daha sonra tekrar deneyin.
 Unstaking was unsuccessful. Try again later.: Unstake işlemi başarısız oldu. Daha sonra tekrar deneyin.
@@ -274,7 +275,7 @@ Send Transaction: İşlemi gönder
 Payload: Yük
 $many_transactions: "%1$d Işlem"
 Total Amount: Toplam tutar
-Unstaking: Unstaking gerçekleşiyor
+$unstaking_short: Unstaking
 Handle ton:// links: ton:// bağlantılarını işle
 Back up wallet to have full access to it: Tam erişime sahip olmak için cüzdanı yedekleyin
 Consider More Secure Version: Daha güvenli sürümü kullanmayı düşünün
@@ -749,5 +750,54 @@ $dapp_return_details: |
   %received_amount% birkaç dakika içinde size geri gönderilecektir.
 $dapp_return_disclaimer: Görüntülenen iade edilen tutar garanti edilmez ve kötü niyetli dapp'ler tarafından manipüle edilebilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
 Additional Amount Sent: Ekstra Gönderilecek
+Show Sensitive Data: Hassas Verileri Göster
+Hide Sensitive Data: Hassas Verileri Gizle
 Copy Address: Adresi Kopyala
 Copy Transaction ID: İşlem Kimliğini Kopyala
+Requesting Unstake: Unstake talep ediliyor
+Calling Contract: Sözleşme çağrılıyor
+Contract Called: Sözleşme çağrıldı
+Deploying Contract: Sözleşme dağıtılıyor
+Contract Deployed: Sözleşme dağıtıldı
+Minting: Mintleme
+Minted: Mintlendi
+Burning: Yakma
+Burned: Yakıldı
+Address Updated: Adres güncellendi
+Updating Address: Adres güncelleniyor
+Site Updated: Site güncellendi
+Updating Site: Site güncelleniyor
+Subdomains Updated: Alt alan adları güncellendi
+Updating Subdomains: Alt alan adları güncelleniyor
+Storage Updated: Depolama alanı güncellendi
+Updating Storage: Depolama alanı güncelleniyor
+Domain Record Deleted: Alan adı kaydı silindi
+Deleting Domain Record: Alan adı kaydı siliniyor
+Renewing Domain: Alan adı yenileniyor
+Domain Renewed: Alan adı yenilendi
+Providing Liquidity: Likidite sağlanıyor
+Liquidity Provided: Likidite sağlandı
+Withdrawing Liquidity: Likidite çekiliyor
+Liquidity Withdrawn: Likidite çekildi
+Bounced: Geri döndü
+Bouncing: Geri dönüyor
+NFT Auction Bid: NFT müzayede teklifi
+Bidding at NFT Auction: NFT müzayedesinde teklif verme
+Receiving: Alınıyor
+Change Palette: Paleti Değiştir
+Palette: Palet
+Unlock New Palettes: Yeni Paletleri Aç
+Get a unique MyTonWallet Card to unlock new palettes.: Yeni paletleri açmak için benzersiz bir MyTonWallet Kartı al.
+Mint Cards: Kart Bas
+Card has been upgraded!: Kart yükseltildi!
+$mint_card_result: NFT kartı **basılacak** ve **bir dakika içinde otomatik olarak yüklenecektir**.
+Unique: Benzersiz
+Get a card with unique background and personalized palette for wallet interface.: Cüzdan arayüzü için benzersiz bir arka plan ve kişiselleştirilmiş palete sahip bir kart edinin.
+Transferable: Aktarılabilir
+Easily send your upgraded card to any of your friends.: Yükseltilmiş kartınızı kolayca herhangi bir arkadaşınıza gönderin.
+Tradable: Ticaret Yapılabilir
+Sell or auction your card on third-party NFT marketplaces.: Kartınızı üçüncü taraf NFT pazarlarında satın veya açık artırmaya çıkarın.
+Upgrade for %currency% %amount%: "%currency% %amount% karşılığında yükseltme"
+"%amount% left": "%amount% kaldı"
+"%amount% sold": "%amount% satıldı"
+This card has been sold out: Bu kart tükendi

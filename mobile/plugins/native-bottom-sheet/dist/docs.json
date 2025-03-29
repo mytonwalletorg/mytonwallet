@@ -377,6 +377,10 @@
         {
           "text": "'onramp-widget'",
           "complexTypes": []
+        },
+        {
+          "text": "'mint-card'",
+          "complexTypes": []
         }
       ]
     }

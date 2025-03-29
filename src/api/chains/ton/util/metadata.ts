@@ -14,10 +14,10 @@ import type {
   ApiNft,
   ApiNftMetadata,
   ApiParsedPayload,
-  ApiTransactionType,
+  ApiTransaction,
 } from '../../../types';
 import type { DnsCategory } from '../constants';
-import type { ApiTransactionExtra, JettonMetadata } from '../types';
+import type { JettonMetadata } from '../types';
 
 import {
   DEBUG,
@@ -45,7 +45,7 @@ import {
   SingleNominatorOpCode,
   VestingV1OpCode,
 } from '../constants';
-import { fixAddressFormat } from './apiV3';
+import { fixAddressFormat } from '../toncenter/other';
 import { fetchNftItems } from './tonapiio';
 import {
   getDnsItemDomain, getJettonMinterData, resolveTokenAddress, toBase64Address,
@@ -53,71 +53,6 @@ import {
 
 const OFFCHAIN_CONTENT_PREFIX = 0x01;
 const SNAKE_PREFIX = 0x00;
-
-export function parseJettonWalletMsgBody(network: ApiNetwork, body?: string) {
-  if (!body) return undefined;
-
-  try {
-    let slice = Cell.fromBase64(body).beginParse();
-    const opCode = slice.loadUint(32);
-    const queryId = slice.loadUintBig(64);
-
-    if (opCode !== JettonOpCode.Transfer && opCode !== JettonOpCode.InternalTransfer) {
-      return undefined;
-    }
-
-    const jettonAmount = slice.loadCoins();
-    const address = slice.loadMaybeAddress();
-    const responseAddress = slice.loadMaybeAddress();
-    let forwardAmount: bigint | undefined;
-    let comment: string | undefined;
-    let encryptedComment: string | undefined;
-    let type: ApiTransactionType | undefined;
-
-    if (responseAddress) {
-      if (opCode === JettonOpCode.Transfer) {
-        slice.loadBit();
-      }
-      forwardAmount = slice.loadCoins();
-      const isSeparateCell = slice.remainingBits && slice.loadBit();
-      if (isSeparateCell && slice.remainingRefs) {
-        slice = slice.loadRef().beginParse();
-      }
-      if (slice.remainingBits > 32) {
-        const forwardOpCode = slice.loadUint(32);
-        if (forwardOpCode === OpCode.Comment) {
-          const buffer = readSnakeBytes(slice);
-          comment = buffer.toString('utf-8');
-
-          if (comment === 'Jettons unstaked') {
-            type = 'unstake';
-          }
-        } else if (forwardOpCode === OpCode.Encrypted) {
-          const buffer = readSnakeBytes(slice);
-          encryptedComment = buffer.toString('base64');
-        } else if (forwardOpCode === JettonStakingOpCodes.STAKE_JETTONS) {
-          type = 'stake';
-        }
-      }
-    }
-
-    return {
-      operation: JettonOpCode[opCode] as keyof typeof JettonOpCode,
-      queryId,
-      jettonAmount,
-      responseAddress,
-      address: address ? toBase64Address(address, undefined, network) : undefined,
-      forwardAmount,
-      comment,
-      encryptedComment,
-      type,
-    };
-  } catch (err) {
-    logDebugError('parseJettonWalletMsgBody', err);
-  }
-
-  return undefined;
-}
 
 export function fixBase64ImageData(data: string) {
   const decodedData = base64ToString(data);
@@ -218,44 +153,6 @@ export async function fetchJettonOffchainMetadata(uri: string): Promise<JettonMe
   ]);
 }
 
-export async function parseWalletTransactionBody(
-  network: ApiNetwork, transaction: ApiTransactionExtra,
-): Promise<ApiTransactionExtra> {
-  const body = transaction.extraData?.body;
-  if (!body || transaction.comment || transaction.encryptedComment) {
-    return transaction;
-  }
-
-  try {
-    const slice = dataToSlice(body);
-
-    if (slice.remainingBits > 32) {
-      const address = transaction.isIncoming ? transaction.fromAddress : transaction.toAddress;
-
-      const parsedPayload = await parsePayloadSlice(
-        network, address, slice, false, transaction,
-      );
-      transaction.extraData!.parsedPayload = parsedPayload;
-
-      if (parsedPayload?.type === 'comment') {
-        transaction = {
-          ...transaction,
-          comment: parsedPayload.comment,
-        };
-      } else if (parsedPayload?.type === 'encrypted-comment') {
-        transaction = {
-          ...transaction,
-          encryptedComment: parsedPayload.encryptedComment,
-        };
-      }
-    }
-  } catch (err) {
-    logDebugError('parseTransactionBody', err);
-  }
-
-  return transaction;
-}
-
 export async function parsePayloadBase64(
   network: ApiNetwork,
   address: string,
@@ -274,7 +171,7 @@ export async function parsePayloadSlice(
   address: string,
   slice: Slice,
   shouldLoadItems?: boolean,
-  transactionDebug?: ApiTransactionExtra,
+  transactionDebug?: ApiTransaction,
 ): Promise<ApiParsedPayload | undefined> {
   let opCode: number | undefined;
   try {
@@ -358,7 +255,7 @@ export async function parsePayloadSlice(
         if (shouldLoadItems) {
           const [rawNft] = await fetchNftItems(network, [address]);
           if (rawNft) {
-            nft = buildNft(network, rawNft);
+            nft = parseTonapiioNft(network, rawNft);
           }
         }
 
@@ -385,7 +282,7 @@ export async function parsePayloadSlice(
         if (shouldLoadItems) {
           const [rawNft] = await fetchNftItems(network, [address]);
           if (rawNft) {
-            nft = buildNft(network, rawNft);
+            nft = parseTonapiioNft(network, rawNft);
           }
         }
 
@@ -610,7 +507,7 @@ function dataToSlice(data: string | Buffer | Uint8Array): Slice {
   return new Slice(new BitReader(new BitString(buffer, 0, buffer.length * 8)), []);
 }
 
-function readComment(slice: Slice) {
+export function readComment(slice: Slice) {
   if (slice.remainingBits < 32) {
     return undefined;
   }
@@ -693,7 +590,7 @@ function buildMtwCardsNftMetadata(metadata: Record<string, any>): ApiNftMetadata
   return Object.keys(result).length ? result : undefined;
 }
 
-export function buildNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefined {
+export function parseTonapiioNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefined {
   if (!rawNft.metadata) {
     return undefined;
   }

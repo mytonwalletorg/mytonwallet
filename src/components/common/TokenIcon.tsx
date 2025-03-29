@@ -14,7 +14,7 @@ import styles from './TokenIcon.module.scss';
 interface OwnProps {
   token: UserToken | UserSwapToken | ApiSwapAsset | ApiToken;
   withChainIcon?: boolean;
-  size?: 'small' | 'middle';
+  size?: 'small' | 'middle' | 'x-middle' | 'large';
   className?: string;
   iconClassName?: string;
   children?: TeactNode;
@@ -29,7 +29,7 @@ function TokenIcon({
 
   function renderDefaultIcon() {
     return (
-      <div className={buildClassName(styles.icon, size && styles[size], styles.fallbackIcon)}>
+      <div className={buildClassName(styles.icon, size && styles[size], iconClassName, styles.fallbackIcon)}>
         {token.symbol.slice(0, 1)}
       </div>
     );

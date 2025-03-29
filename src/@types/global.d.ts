@@ -49,6 +49,7 @@ type AnyFunction = (...args: any[]) => any;
 type AnyAsyncFunction = (...args: any[]) => Promise<any>;
 type AnyToVoidFunction = (...args: any[]) => void;
 type NoneToVoidFunction = () => void;
+type MaybePromise<T> = Promise<T> | T;
 
 type ValueOf<T> = T[keyof T];
 type Entries<T> = [keyof T, ValueOf<T>][];
@@ -75,10 +76,12 @@ type AllEmojis = Record<string, Emoji | EmojiWithSkins>;
 // Declare supported for import formats as modules
 declare module '*.webp';
 declare module '*.png';
+declare module '*.avif';
 declare module '*.svg';
 declare module '*.tgs';
 declare module '*.wasm';
 declare module '*.mp3';
+declare module '*.mp4';
 
 declare module '*.txt' {
   const content: string;

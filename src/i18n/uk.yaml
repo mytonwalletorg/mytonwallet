@@ -122,7 +122,7 @@ $receive_invoice_description: |
 Amount: Сума
 Comment: Коментар
 Comment or Memo: Коментар або Memo
-Share this URL to receive TON: Поділитися посиланням
+Share this URL to receive %token%: Поділитися посиланням
 Invoice link was copied!: Посилання скопійовано!
 Theme: Тема
 Language: Мова
@@ -245,8 +245,9 @@ $unstake_insufficient_balance: Вам необхідно мати %balance% на
 at %annual_yield%: при %annual_yield%
 Est. %annual_yield%: Прибутковість %annual_yield%
 Staked: Стейкінг
-Unstake Requested: Запит депозиту
-Unstaked: Виведення стейка
+Unstake Requested: Виведення запитане
+Unstaked: Стейк виведено
+Unstaking: Виведення стейку
 The network fee has slightly changed, try sending again.: Комісія за мережу трохи змінилася, спробуйте відправити ще раз.
 Transfer was unsuccessful. Try again later.: З переказом щось пішло не так. Спробуйте ще раз.
 Unstaking was unsuccessful. Try again later.: Не вдалося вивести депозит. Спробуйте ще раз.
@@ -273,7 +274,7 @@ Send Transaction: Надіслати переказ
 Payload: Службові дані
 $many_transactions: "%1$d переказу"
 Total Amount: Загальна сума
-Unstaking: Зняти
+$unstaking_short: Зняти
 Handle ton:// links: Обробляти посилання ton://
 Back up wallet to have full access to it: Зробіть резервну копію гаманця, щоб мати до нього повний доступ
 Consider More Secure Version: Підвищіть безпеку гаманця
@@ -754,5 +755,54 @@ $dapp_return_details: |
   %received_amount% буде повернуто вам протягом кількох хвилин.
 $dapp_return_disclaimer: Відображена сума повернення не гарантується і може бути змінена шкідливими додатками. Скасуйте операцію, якщо ви не впевнені в надійності цього сервісу.
 Additional Amount Sent: Додатково буде відправлено
+Show Sensitive Data: Показати конфіденційні дані
+Hide Sensitive Data: Приховати конфіденційні дані
 Copy Address: Скопіювати адресу
 Copy Transaction ID: Скопіювати ID транзакції
+Requesting Unstake: Запит на виведення
+Calling Contract: Виклик контракту
+Contract Called: Викликано контракт
+Deploying Contract: Розгортання контракту
+Contract Deployed: Розгорнуть контракт
+Minting: Мінтинг
+Minted: Замінчено
+Burning: Спалювання
+Burned: Спалено
+Address Updated: Оновлено адресу
+Updating Address: Оновлення адреси
+Site Updated: Оновлено сайт
+Updating Site: Оновлення сайту
+Subdomains Updated: Оновлено піддомени
+Updating Subdomains: Оновлення піддоменів
+Storage Updated: Оновлено сховище
+Updating Storage: Оновлення сховища
+Domain Record Deleted: Видалено запис домену
+Deleting Domain Record: Видалення запису домену
+Renewing Domain: Продовження домену
+Domain Renewed: Продовжено домен
+Providing Liquidity: Надання ліквідності
+Liquidity Provided: Надання ліквідності
+Withdrawing Liquidity: Виведення ліквідності
+Liquidity Withdrawn: Виведення ліквідності
+Bounced: Відскок
+Bouncing: Відскок
+NFT Auction Bid: Ставка на аукціоні NFT
+Bidding at NFT Auction: Ставка на аукціоні NFT
+Receiving: Отримання
+Change Palette: Змінити палітру
+Palette: Палітра
+Unlock New Palettes: Відкрити нові палітри
+Get a unique MyTonWallet Card to unlock new palettes.: Отримайте унікальну карту MyTonWallet, щоб відкрити нові палітри.
+Mint Cards: Створити карту
+Card has been upgraded!: Карту покращено!
+$mint_card_result: NFT-карта буде **створена** і **автоматично встановлена** протягом хвилини.
+Unique: Унікальність
+Get a card with unique background and personalized palette for wallet interface.: У карти з’явиться унікальний фон, а в гаманці розблокується нова палітра.
+Transferable: Можна передати
+Easily send your upgraded card to any of your friends.: Покращену карту можна легко надіслати будь-якому другові.
+Tradable: Можна продати
+Sell or auction your card on third-party NFT marketplaces.: Карту можна продати або виставити на аукціон на сторонніх NFT-майданчиках.
+Upgrade for %currency% %amount%: Оновлення за %currency% %amount%
+"%amount% left": "Залишилося %amount%"
+"%amount% sold": "Продано %amount%"
+This card has been sold out: Ця картка розпродана

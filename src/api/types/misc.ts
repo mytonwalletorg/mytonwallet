@@ -1,4 +1,5 @@
 import type { ApiTonWalletVersion } from '../chains/ton/types';
+import type { ApiTransactionActivity } from './activity';
 import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions } from './storage';
 
@@ -57,23 +58,29 @@ export interface ApiAddressInfo {
   isMemoRequired?: boolean;
 }
 
-export type ApiTxTimestamps = Record<string, number | undefined>;
-export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest' | 'swap'
-| 'nftTransferred' | 'nftReceived' | undefined;
+export type ApiActivityTimestamps = Record<string, number | undefined>;
+export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest'
+| 'callContract' | 'excess' | 'contractDeploy' | 'bounced'
+| 'mint' | 'burn' | 'auctionBid'
+| 'dnsChangeAddress' | 'dnsChangeSite' | 'dnsChangeSubdomains' | 'dnsChangeStorage' | 'dnsDelete' | 'dnsRenew'
+| 'liquidityDeposit' | 'liquidityWithdraw'
+| undefined;
 
 export interface ApiTransaction {
   txId: string;
   timestamp: number;
+  /** The amount to show in the UI (may mismatch the actual attached TON amount) */
   amount: bigint;
   fromAddress: string;
   toAddress: string;
   comment?: string;
   encryptedComment?: string;
+  /** The fee to show in the UI (not the same as the network fee) */
   fee: bigint;
   slug: string;
   isIncoming: boolean;
   normalizedAddress: string; // Only for TON now
-  inMsgHash?: string; // Only for TON
+  externalMsgHash?: string; // Only for TON
   shouldHide?: boolean;
   type?: ApiTransactionType;
   metadata?: ApiTransactionMetadata;
@@ -228,14 +235,15 @@ export interface ApiDappTransfer extends ApiTransferToSign {
 export interface ApiSignedTransfer {
   base64: string;
   seqno: number;
-  params: Omit<ApiLocalTransactionParams, 'inMsgHash'>;
+  /** Will be used to create a local activity in the global state after the transfer is sent */
+  localActivity: Omit<ApiLocalTransactionParams, 'externalMsgHash'>;
 }
 
 /**
  * The `fee` field should contain the final (real) fee, because we want to show the real fee in local transactions
  */
 export type ApiLocalTransactionParams = Omit<
-ApiTransaction, 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress'
+ApiTransactionActivity, 'id' | 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress' | 'kind' | 'shouldLoadDetails'
 > & {
   txId?: string;
   normalizedAddress?: string;

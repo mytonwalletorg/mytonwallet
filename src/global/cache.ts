@@ -22,6 +22,7 @@ import {
   TONCOIN,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
+import { getIsTxIdLocal } from '../util/activities';
 import { bigintReviver } from '../util/bigint';
 import {
   cloneDeep, filterValues, mapValues, pick, pickTruthy,
@@ -30,7 +31,6 @@ import { clearPoisoningCache, updatePoisoningCache } from '../util/poisoningHash
 import { onBeforeUnload, throttle } from '../util/schedulers';
 import { IS_ELECTRON } from '../util/windowEnvironment';
 import { getIsActiveStakingState } from './helpers/staking';
-import { getIsTxIdLocal } from './helpers';
 import { addActionHandler, getGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
 import { selectAccountTokens } from './selectors';
@@ -471,13 +471,23 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 32;
   }
 
+  if (cached.stateVersion === 32) {
+    clearActivities();
+    cached.stateVersion = 33;
+  }
+
+  if (cached.stateVersion === 33) {
+    clearActivities();
+    cached.stateVersion = 34;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 
 function loadMemoryCache(cached: GlobalState) {
   if (!cached.currentAccountId) return;
 
-  const { byId, newestTransactionsBySlug } = cached.byAccountId[cached.currentAccountId].activities || {};
+  const { byId, newestActivitiesBySlug } = cached.byAccountId[cached.currentAccountId].activities || {};
 
   if (byId) {
     Object.values(byId).forEach((tx) => {
@@ -486,10 +496,11 @@ function loadMemoryCache(cached: GlobalState) {
       }
     });
   }
-  if (newestTransactionsBySlug) {
-    Object.values(newestTransactionsBySlug).forEach((tx) => {
-      if (tx.isIncoming) {
-        updatePoisoningCache(tx);
+
+  if (newestActivitiesBySlug) {
+    Object.values(newestActivitiesBySlug).forEach((activity) => {
+      if (activity.kind === 'transaction' && activity.isIncoming) {
+        updatePoisoningCache(activity);
       }
     });
   }
@@ -553,7 +564,7 @@ function reduceByAccountId(global: GlobalState) {
 
 function reduceAccountActivities(activities?: AccountState['activities'], tokens?: UserToken[]) {
   const {
-    idsBySlug, newestTransactionsBySlug, byId, idsMain,
+    idsBySlug, newestActivitiesBySlug, byId, idsMain,
   } = activities || {};
   if (!tokens || !idsBySlug || !byId || !idsMain) return undefined;
 
@@ -565,8 +576,8 @@ function reduceAccountActivities(activities?: AccountState['activities'], tokens
   const reducedIdsMain = pickVisibleActivities(idsMain, byId);
   const reducedIdsBySlug = mapValues(pickTruthy(idsBySlug, reducedSlugs), (ids) => pickVisibleActivities(ids, byId));
 
-  const reducedNewestTransactionsBySlug = newestTransactionsBySlug
-    ? pick(newestTransactionsBySlug, reducedSlugs)
+  const reducedNewestActivitiesBySlug = newestActivitiesBySlug
+    ? pick(newestActivitiesBySlug, reducedSlugs)
     : undefined;
 
   const reducedIds = Object.values(reducedIdsBySlug).concat(reducedIdsMain).flat();
@@ -576,7 +587,7 @@ function reduceAccountActivities(activities?: AccountState['activities'], tokens
     byId: reducedById,
     idsMain: reducedIdsMain,
     idsBySlug: reducedIdsBySlug,
-    newestTransactionsBySlug: reducedNewestTransactionsBySlug,
+    newestActivitiesBySlug: reducedNewestActivitiesBySlug,
   };
 }
 

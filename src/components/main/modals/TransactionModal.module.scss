@@ -38,7 +38,8 @@
   padding-top: 3rem;
 }
 
-.copyButtonWrapper {
+.copyButtonWrapper,
+.feeField {
   margin-bottom: 1.25rem;
 }
 
@@ -134,16 +135,10 @@
   margin-top: 2rem;
 }
 
-.textFieldWrapper,
-.textFieldWrapperFullWidth {
+.textFieldWrapper {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.textFieldWrapperFullWidth,
-.changellyTextField {
-  width: 100%;
 }
 
 .swapSupportBlock {
@@ -159,21 +154,6 @@
   font-size: 0.8125rem;
   font-weight:  700;
   color: var(--color-gray-2);
-}
-
-.textField {
-  display: flex;
-  align-items: center;
-
-  padding: 1rem;
-
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-black);
-  word-break: break-all;
-
-  background-color: var(--color-background-first);
-  border-radius: 1rem;
 }
 
 .advancedTooltip {

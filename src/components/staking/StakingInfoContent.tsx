@@ -58,6 +58,7 @@ interface StateProps {
   endOfStakingCycle?: number;
   theme: Theme;
   shouldUseNominators?: boolean;
+  isSensitiveDataHidden?: true;
 }
 
 const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
@@ -74,8 +75,9 @@ function StakingInfoContent({
   tokenBySlug,
   endOfStakingCycle,
   theme,
-  onClose,
   shouldUseNominators,
+  isSensitiveDataHidden,
+  onClose,
 }: OwnProps & StateProps) {
   const {
     startStaking,
@@ -110,6 +112,10 @@ function StakingInfoContent({
   const forceUpdate = useForceUpdate();
   const { height } = useWindowSize();
   const appTheme = useAppTheme(theme);
+  const {
+    shouldRender: shouldRenderTotalAmount,
+    transitionClassNames: totalAmountClassNames,
+  } = useShowTransition(!isSensitiveDataHidden);
 
   const unclaimedRewards = stakingState?.type === 'jetton'
     ? stakingState.unclaimedRewards
@@ -182,15 +188,17 @@ function StakingInfoContent({
   function renderHistory() {
     return (
       <div className={buildClassName(styles.history, isStatic && styles.history_static)}>
-        <div className={styles.historyTotal}>
-          {lang('$total', {
-            value: (
-              <span className={styles.historyTotalValue}>
-                {formatCurrency(toDecimal(totalProfit), TONCOIN.symbol)}
-              </span>
-            ),
-          })}
-        </div>
+        {shouldRenderTotalAmount && (
+          <div className={buildClassName(styles.historyTotal, totalAmountClassNames)}>
+            {lang('$total', {
+              value: (
+                <span className={styles.historyTotalValue}>
+                  {formatCurrency(toDecimal(totalProfit), TONCOIN.symbol)}
+                </span>
+              ),
+            })}
+          </div>
+        )}
         <div className={styles.historyTitle}>{lang('Earning History')}</div>
         <div className={buildClassName(
           styles.historyList,
@@ -205,6 +213,7 @@ function StakingInfoContent({
               profit={record.profit}
               timestamp={record.timestamp}
               tonToken={tonToken}
+              isSensitiveDataHidden={isSensitiveDataHidden}
             />
           ))}
         </div>
@@ -231,12 +240,14 @@ function StakingInfoContent({
     return (
       <>
         <RichNumberField
+          isSensitiveData
+          isSensitiveDataHidden={isSensitiveDataHidden}
+          sensitiveDataMaskSkin="purple"
           labelText={lang('Accumulated Rewards')}
           zeroValue="..."
           value={rewardString}
           decimals={decimals}
           suffix={symbol}
-          inputClassName={styles.balanceResultInput}
           labelClassName={styles.balanceStakedLabel}
           valueClassName={styles.balanceResult}
         />
@@ -266,6 +277,9 @@ function StakingInfoContent({
           )}
 
           <RichNumberField
+            isSensitiveData
+            isSensitiveDataHidden={isSensitiveDataHidden}
+            sensitiveDataMaskSkin="purple"
             labelText={lang('Currently Staked')}
             zeroValue="..."
             value={stakingResult}
@@ -295,12 +309,14 @@ function StakingInfoContent({
             : (
               <>
                 <RichNumberField
+                  isSensitiveData
+                  isSensitiveDataHidden={isSensitiveDataHidden}
+                  sensitiveDataMaskSkin="purple"
                   labelText={lang('Est. balance in a year')}
                   zeroValue="..."
                   value={balanceResult}
                   decimals={decimals}
                   suffix={symbol}
-                  inputClassName={styles.balanceResultInput}
                   labelClassName={styles.balanceStakedLabel}
                   valueClassName={styles.balanceResult}
                 />
@@ -375,5 +391,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     endOfStakingCycle,
     theme: global.settings.theme,
     shouldUseNominators: accountState?.staking?.shouldUseNominators,
+    isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
   };
 })(StakingInfoContent));

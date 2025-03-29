@@ -118,6 +118,7 @@ export const MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT = 3;
 export const SUPPORT_USERNAME = 'mysupport';
 export const MTW_TIPS_CHANNEL_NAME = { en: 'MyTonWalletTips', ru: 'MyTonWalletTipsRu' };
 export const MTW_CARDS_BASE_URL = 'https://static.mytonwallet.org/cards/';
+export const MTW_CARDS_MINT_BASE_URL = 'https://static.mytonwallet.org/mint-cards/';
 export const MYTONWALLET_PROMO_URL = 'https://mytonwallet.io/';
 export const TELEGRAM_WEB_URL = 'https://web.telegram.org/a/';
 export const NFT_MARKETPLACE_URL = 'https://getgems.io/';
@@ -140,7 +141,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-178';
+export const LANG_CACHE_NAME = 'mtw-lang-182';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -217,6 +218,7 @@ export const NFT_FRAGMENT_COLLECTIONS = new Set([
 export const NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX = 'https://nft.fragment.com/gift/';
 export const NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX = /^https?:\/\/nft\.(fragment\.com\/gift\/[\w-]+-\d+)\.\w+$/i;
 
+export const MTW_CARDS_WEBSITE = 'https://cards.mytonwallet.io';
 export const MTW_CARDS_COLLECTION = 'EQCQE2L9hfwx1V8sgmF9keraHx1rNK9VmgR1ctVvINBGykyM';
 export const TON_DNS_COLLECTION = 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz';
 
@@ -284,6 +286,20 @@ export const TON_USDT_SLUG = 'ton-eqcxe6mutq';
 export const STAKED_TON_SLUG = 'ton-eqcqc6ehrj';
 export const STAKED_MYCOIN_SLUG = 'ton-eqcbzvsfwq';
 export const TRX_SWAP_COUNT_FEE_ADDRESS = 'TW2LXSebZ7Br1zHaiA2W1zRojDkDwjGmpw';
+export const MYCOIN_STAKING_POOL = 'EQC3roTiRRsoLzfYVK7yVVoIZjTEqAjQU3ju7aQ7HWTVL5o5';
+
+// In cross-chain swaps, only a few TON/TRON tokens are available.
+// It’s not optimal to request swap history for all the others.
+export const SWAP_CROSSCHAIN_SLUGS = new Set([
+  TONCOIN.slug,
+  TON_USDT_SLUG,
+  TRX.slug,
+  TRC20_USDT_MAINNET_SLUG,
+]);
+
+export const STON_PTON_ADDRESS = 'EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez';
+
+export const DNS_IMAGE_GEN_URL = 'https://dns-image.mytonwallet.org/img?d=';
 
 const TRC20_USDT = {
   name: 'Tether USD',
@@ -501,6 +517,9 @@ export const CLAIM_ADDRESS = 'EQB3zOTvPi1PmwdcTpqSfFKZnhi1GNKEVJM-LdoAirdLtash';
 export const CLAIM_AMOUNT = 30000000n; // 0.03 TON
 export const CLAIM_COMMENT = 'claim';
 
+export const MINT_CARD_ADDRESS = 'UQBpst3ZWJ9Dqq5gE2YH-yPsFK_BqMOmgi7Z_qK6v7WbrKhq';
+export const MINT_CARD_COMMENT = 'Mint card';
+
 // eslint-disable-next-line max-len
 export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z][-a-zA-Z0-9]{1,62})\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)/g;
 // eslint-disable-next-line max-len
@@ -543,6 +562,7 @@ export const PRICELESS_TOKEN_HASHES = new Set([
   'c0f9d14fbc8e14f0d72cba2214165eee35836ab174130912baf9dbfa43ead562', // Dedust (for example, EQBkh7Mc411WTYF0o085MtwJpYpvGhZOMBphhIFzEpzlVODp)
   '1275095b6da3911292406f4f4386f9e780099b854c6dee9ee2895ddce70927c1', // Dedust (for example, EQCm92zFBkLe_qcFDp7WBvI6JFSDsm4WbDPvZ7xNd7nPL_6M)
   '5d01684bdf1d5c9be2682c4e36074202432628bd3477d77518d66b0976b78cca', // USDT Storm LP (for example, EQAzm06UMMsnFQrNKEubV1myIR-mm2ZOCnoic36frCgD8MLR)
+  '173e31eee054cb0c76f77edc7956bed766bf48a1f63bd062d87040dcd3df700f', // FIVA (for example, EQAxGi9Al7hamLAORroxGkvfap6knGyzI50ThkP3CLPLTtOZ)
 ]);
 
 export const STAKED_TOKEN_SLUGS = new Set([
@@ -587,21 +607,25 @@ export const TON_DNS_ZONES = [
     suffixes: ['ton'],
     baseFormat: /^([-\da-z]+\.){0,2}[-\da-z]{4,126}$/i,
     resolver: 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz',
+    collectionName: 'TON DNS Domains',
   },
   {
     suffixes: ['t.me'],
     baseFormat: /^([-\da-z]+\.){0,2}[-_\da-z]{4,32}$/i,
     resolver: 'EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi',
     isTelemint: true,
+    collectionName: 'Telegram Usernames',
   },
   {
     suffixes: ['vip', 'ton.vip', 'vip.ton'],
     baseFormat: /^([-\da-z]+\.){0,2}?[\da-z]{1,24}$/i,
     resolver: 'EQBWG4EBbPDv4Xj7xlPwzxd7hSyHMzwwLB5O6rY-0BBeaixS',
+    collectionName: 'VIP DNS Domains',
   },
   {
     suffixes: ['gram'],
     baseFormat: /^([-\da-z]+\.){0,2}[\da-z]{1,127}$/i,
     resolver: 'EQAic3zPce496ukFDhbco28FVsKKl2WUX_iJwaL87CBxSiLQ',
+    collectionName: 'GRAM DNS Domains',
   },
 ];

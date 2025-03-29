@@ -58,6 +58,7 @@ interface StateProps {
   theme: Theme;
   mycoin?: ApiTokenWithPrice;
   isMultichainAccount: boolean;
+  isSensitiveDataHidden?: true;
   states?: ApiStakingState[];
 }
 
@@ -76,6 +77,7 @@ function Assets({
   baseCurrency,
   mycoin,
   isMultichainAccount,
+  isSensitiveDataHidden,
   theme,
   states,
 }: OwnProps & StateProps) {
@@ -184,6 +186,7 @@ function Assets({
         classNames={vestingTokenClassNames}
         baseCurrency={baseCurrency}
         appTheme={appTheme}
+        isSensitiveDataHidden={isSensitiveDataHidden}
         onClick={onVestingTokenClick}
       />
     );
@@ -209,6 +212,7 @@ function Assets({
           classNames={stakedTokenClassNames}
           baseCurrency={baseCurrency}
           appTheme={appTheme}
+          isSensitiveDataHidden={isSensitiveDataHidden}
           onClick={onStakedTokenClick}
         />
       );
@@ -238,6 +242,7 @@ function Assets({
         baseCurrency={baseCurrency}
         withChainIcon={isMultichainAccount}
         appTheme={appTheme}
+        isSensitiveDataHidden={isSensitiveDataHidden}
         onClick={onTokenClick}
       />
     );
@@ -313,6 +318,7 @@ export default memo(
         baseCurrency: global.settings.baseCurrency,
         mycoin: selectMycoin(global),
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
+        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         theme: global.settings.theme,
         states,
       };

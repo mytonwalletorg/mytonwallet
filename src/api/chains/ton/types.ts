@@ -1,9 +1,7 @@
 import type { Cell } from '@ton/core';
 
 import type { DieselStatus } from '../../../global/types';
-import type {
-  ApiAnyDisplayError, ApiEmulationResult, ApiParsedPayload, ApiTransaction,
-} from '../../types';
+import type { ApiAnyDisplayError, ApiEmulationResult, ApiTransaction } from '../../types';
 import type { ContractType } from './constants';
 
 export type ApiTonWalletVersion = 'simpleR1'
@@ -17,13 +15,6 @@ export type ApiTonWalletVersion = 'simpleR1'
 | 'W5';
 
 export type AnyPayload = string | Cell | Uint8Array;
-
-export interface ApiTransactionExtra extends ApiTransaction {
-  extraData: {
-    body?: string;
-    parsedPayload?: ApiParsedPayload;
-  };
-}
 
 export interface TokenTransferBodyParams {
   queryId?: bigint;
@@ -59,8 +50,7 @@ export type ContractName = ApiTonWalletVersion
 | 'nominatorPool' | 'vesting'
 | 'dedustPool' | 'dedustVaultNative' | 'dedustVaultJetton'
 | 'stonPtonWallet' | 'stonRouter' | 'stonRouterV2_1' | 'stonPoolV2_1'
-| 'stonRouterV2_2' | 'stonPoolV2_2' | 'stonPtonWalletV2'
-| 'megatonWtonMaster' | 'megatonRouter';
+| 'stonRouterV2_2' | 'stonPoolV2_2' | 'stonPtonWalletV2';
 
 export type ContractInfo = {
   name: ContractName;
@@ -110,6 +100,7 @@ export type ApiSubmitMultiTransferResult = {
   boc: string;
   msgHash: string;
   paymentLink?: string;
+  withW5Gasless?: boolean;
 } | {
   error: string;
 };
@@ -174,6 +165,7 @@ export type ApiCheckTransactionDraftResult = {
 
 export type ApiSubmitTransferWithDieselResult = ApiSubmitMultiTransferResult & {
   encryptedComment?: string;
+  withW5Gasless?: boolean;
 };
 
 export type ApiSubmitTransferOptions = {
@@ -195,3 +187,9 @@ export type ApiCheckMultiTransactionDraftResult = {
   /** Gives the same information as `fee`, and some more */
   emulation?: ApiEmulationResult;
 } & ({ error: ApiAnyDisplayError } | {});
+
+export type ApiTransactionExtended = ApiTransaction & {
+  hash: string;
+  msgHash: string;
+  opCode?: number;
+};

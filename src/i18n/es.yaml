@@ -119,7 +119,7 @@ $receive_invoice_description: |
 Amount: Cantidad
 Comment: Comentario
 Comment or Memo: Comentario o Memo
-Share this URL to receive TON: Comparte esta URL para recibir TON
+Share this URL to receive %token%: Comparte esta URL para recibir %token%
 Invoice link was copied!: ¡Se copió el enlace de la factura!
 Theme: Tema
 Language: Idioma
@@ -246,6 +246,7 @@ Est. %annual_yield%: Est. %annual_yield%
 Staked: Apostado
 Unstake Requested: Retiro solicitado
 Unstaked: Retirado
+Unstaking: Retirando
 The network fee has slightly changed, try sending again.: La comisión de red ha cambiado ligeramente, inténtalo de nuevo.
 Transfer was unsuccessful. Try again later.: La transferencia no tuvo éxito. Inténtalo de nuevo más tarde.
 Unstaking was unsuccessful. Try again later.: El retiro no tuvo éxito. Inténtalo de nuevo más tarde.
@@ -273,7 +274,7 @@ Send Transaction: Enviar transacción
 Payload: Carga útil
 $many_transactions: "%1$d transacciones"
 Total Amount: Cantidad total
-Unstaking: Retirando
+$unstaking_short: Retirando
 Handle ton:// links: Habilitar enlaces ton://
 Back up wallet to have full access to it: Haga una copia de seguridad del monedero para tener acceso completo al mismo
 Consider More Secure Version: Mejore la seguridad del monedero
@@ -747,5 +748,54 @@ $dapp_return_details: |
   %received_amount% te será devuelto en unos minutos.
 $dapp_return_disclaimer: La cantidad devuelta mostrada no está garantizada y puede ser manipulada por dapps maliciosos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
 Additional Amount Sent: Se enviará adicionalmente
+Show Sensitive Data: Mostrar datos sensibles
+Hide Sensitive Data: Ocultar datos sensibles
 Copy Address: Copiar dirección
 Copy Transaction ID: Copiar ID de transacción
+Requesting Unstake: Solicitando retiro
+Calling Contract: Llamando al contrato
+Contract Called: Contrato llamado
+Deploying Contract: Implementando contrato
+Contract Deployed: Contrato implementado
+Minting: Minteo
+Minted: Minteado
+Burning: Quemando
+Burned: Quemado
+Address Updated: Dirección actualizada
+Updating Address: Actualizando dirección
+Site Updated: Sitio web actualizado
+Updating Site: Actualizando sitio web
+Subdomains Updated: Subdominios actualizados
+Updating Subdomains: Actualizando subdominios
+Storage Updated: Almacenamiento actualizado
+Updating Storage: Actualizando almacenamiento
+Domain Record Deleted: Registro de dominio eliminado
+Deleting Domain Record: Eliminando registro de dominio
+Renewing Domain: Renovando dominio
+Domain Renewed: Dominio renovado
+Providing Liquidity: Proporcionando liquidez
+Liquidity Provided: Liquidez proporcionada
+Withdrawing Liquidity: Retirando liquidez
+Liquidity Withdrawn: Liquidez retirada
+Bounced: Rebotado
+Bouncing: Rebotando
+NFT Auction Bid: Puja en subasta de NFT
+Bidding at NFT Auction: Puja en la subasta de NFT
+Receiving: Recibiendo
+Change Palette: Cambiar paleta
+Palette: Paleta
+Unlock New Palettes: Desbloquear nuevas paletas
+Get a unique MyTonWallet Card to unlock new palettes.: Obtén una tarjeta única de MyTonWallet para desbloquear nuevas paletas.
+Mint Cards: Crear tarjetas
+Card has been upgraded!: ¡La tarjeta ha sido mejorada!
+$mint_card_result: La tarjeta NFT será **creada** y **instalada automáticamente** en un minuto.
+Unique: Única
+Get a card with unique background and personalized palette for wallet interface.: Obtén una tarjeta con fondo único y paleta personalizada para la interfaz de la billetera.
+Transferable: Transferible
+Easily send your upgraded card to any of your friends.: Envía fácilmente tu tarjeta mejorada a cualquiera de tus amigos.
+Tradable: Comercializable
+Sell or auction your card on third-party NFT marketplaces.: Vende o subasta tu tarjeta en mercados de NFT de terceros.
+Upgrade for %currency% %amount%: Actualización por %currency% %amount%
+"%amount% left": "%amount% restantes"
+"%amount% sold": "%amount% vendidos"
+This card has been sold out: Esta tarjeta está agotada

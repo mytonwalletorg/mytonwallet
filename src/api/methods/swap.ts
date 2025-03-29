@@ -1,5 +1,6 @@
 import type { TonTransferParams } from '../chains/ton/types';
 import type {
+  ApiChain,
   ApiSwapActivity,
   ApiSwapAsset,
   ApiSwapBuildRequest,
@@ -16,10 +17,11 @@ import type {
   ApiSwapTransfer,
   OnApiUpdate,
 } from '../types';
+import type { ApiSubmitTransferOptions } from './types';
 
 import { SWAP_API_VERSION, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
-import { buildSwapId } from '../../util/swap/buildSwapId';
+import { buildLocalTxId } from '../../util/activities';
 import chains from '../chains';
 import { fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet, callBackendPost } from '../common/backend';
@@ -29,14 +31,7 @@ import {
 import { ApiServerError } from '../errors';
 import { callHook } from '../hooks';
 import { getBackendAuthToken } from './other';
-
-export type SwapHistoryRange = {
-  asset: string;
-  fromLt: number;
-  toLt: number;
-  fromTime: number;
-  toTime: number;
-};
+import { submitTransfer } from './transactions';
 
 const ton = chains.ton;
 
@@ -129,10 +124,14 @@ export async function swapSubmit(
 
     const swap: ApiSwapActivity = {
       ...historyItem,
-      id: buildSwapId(historyItem.id),
+      id: buildLocalTxId(result.msgHash),
       from,
       to,
       kind: 'swap',
+      externalMsgHash: result.msgHash,
+      extra: {
+        ...('withW5Gasless' in result && { withW5Gasless: result.withW5Gasless }),
+      },
     };
 
     await patchSwapItem({
@@ -140,10 +139,9 @@ export async function swapSubmit(
     });
 
     onUpdate({
-      type: 'newActivities',
-      chain: 'ton',
+      type: 'newLocalActivity',
       accountId,
-      activities: [swap],
+      activity: swap,
     });
 
     void callHook('onSwapCreated', accountId, swap.timestamp - 1);
@@ -267,4 +265,17 @@ export async function swapCexCreateTransaction(
   void callHook('onSwapCreated', accountId, swap.timestamp - 1);
 
   return { swap, activity };
+}
+
+export async function swapCexSubmit(chain: ApiChain, transferOptions: ApiSubmitTransferOptions, swapId: string) {
+  const result = await submitTransfer(chain, transferOptions, false);
+
+  if (chain === 'ton' && 'msgHash' in result) {
+    const { accountId, password } = transferOptions;
+    const { address } = await fetchStoredTonWallet(accountId);
+    const authToken = await getBackendAuthToken(accountId, password);
+    await patchSwapItem({ address, authToken, msgHash: result.msgHash, swapId });
+  }
+
+  return result;
 }

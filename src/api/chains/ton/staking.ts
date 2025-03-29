@@ -54,7 +54,7 @@ import { getTokenByAddress, getTokenBySlug } from '../../common/tokens';
 import { isKnownStakingPool } from '../../common/utils';
 import { nftRepository } from '../../db';
 import { STAKE_COMMENT, TON_GAS, UNSTAKE_COMMENT } from './constants';
-import { checkTransactionDraft, submitTransfer } from './transactions';
+import { checkTransactionDraft, submitTransfer } from './transfer';
 import { isAddressInitialized } from './wallet';
 
 export async function checkStakeDraft(accountId: string, amount: bigint, state: ApiStakingState) {

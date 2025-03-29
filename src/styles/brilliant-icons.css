@@ -1,7 +1,7 @@
 @font-face {
     font-family: "brilliant-icons";
-    src: url("./brilliant-icons.woff?4900846f407b97ede87a1a321c3fdfb5") format("woff"),
-url("./brilliant-icons.woff2?4900846f407b97ede87a1a321c3fdfb5") format("woff2");
+    src: url("./brilliant-icons.woff?d28daf5e2921dacf10b30fb087d37ba8") format("woff"),
+url("./brilliant-icons.woff2?d28daf5e2921dacf10b30fb087d37ba8") format("woff2");
     font-weight: normal;
     font-style: normal;
     font-display: block;
@@ -147,135 +147,153 @@ url("./brilliant-icons.woff2?4900846f407b97ede87a1a321c3fdfb5") format("woff2");
 .icon-manual-lock::before {
     content: "\f12c";
 }
-.icon-lock::before {
+.icon-magic-wand::before {
     content: "\f12d";
 }
-.icon-link::before {
+.icon-magic-wand-loading::before {
     content: "\f12e";
 }
-.icon-ledger::before {
+.icon-lock::before {
     content: "\f12f";
 }
-.icon-laptop::before {
+.icon-link::before {
     content: "\f130";
 }
-.icon-globe::before {
+.icon-ledger::before {
     content: "\f131";
 }
-.icon-github::before {
+.icon-laptop::before {
     content: "\f132";
 }
-.icon-fullscreen::before {
+.icon-globe::before {
     content: "\f133";
 }
-.icon-fullscreen-exit::before {
+.icon-globe-alt::before {
     content: "\f134";
 }
-.icon-flashlight::before {
+.icon-github::before {
     content: "\f135";
 }
-.icon-fire::before {
+.icon-fullscreen::before {
     content: "\f136";
 }
-.icon-face-id::before {
+.icon-fullscreen-exit::before {
     content: "\f137";
 }
-.icon-eye::before {
+.icon-flashlight::before {
     content: "\f138";
 }
-.icon-eye-closed::before {
+.icon-fire::before {
     content: "\f139";
 }
-.icon-external::before {
+.icon-face-id::before {
     content: "\f13a";
 }
-.icon-explore::before {
+.icon-eye::before {
     content: "\f13b";
 }
-.icon-earn::before {
+.icon-eye-closed::before {
     content: "\f13c";
 }
-.icon-download::before {
+.icon-external::before {
     content: "\f13d";
 }
-.icon-download-filled::before {
+.icon-explore::before {
     content: "\f13e";
 }
-.icon-dot::before {
+.icon-earn::before {
     content: "\f13f";
 }
-.icon-crypto::before {
+.icon-download::before {
     content: "\f140";
 }
-.icon-copy::before {
+.icon-download-filled::before {
     content: "\f141";
 }
-.icon-cog::before {
+.icon-dot::before {
     content: "\f142";
 }
-.icon-close::before {
+.icon-diamond::before {
     content: "\f143";
 }
-.icon-close-filled::before {
+.icon-crypto::before {
     content: "\f144";
 }
-.icon-chevron-right::before {
+.icon-copy::before {
     content: "\f145";
 }
-.icon-chevron-left::before {
+.icon-cog::before {
     content: "\f146";
 }
-.icon-chevron-down::before {
+.icon-close::before {
     content: "\f147";
 }
-.icon-check::before {
+.icon-close-filled::before {
     content: "\f148";
 }
-.icon-changelly::before {
+.icon-chevron-right::before {
     content: "\f149";
 }
-.icon-chain-tron::before {
+.icon-chevron-left::before {
     content: "\f14a";
 }
-.icon-chain-ton::before {
+.icon-chevron-down::before {
     content: "\f14b";
 }
-.icon-caret-down::before {
+.icon-check::before {
     content: "\f14c";
 }
-.icon-card::before {
+.icon-changelly::before {
     content: "\f14d";
 }
-.icon-backspace::before {
+.icon-chain-tron::before {
     content: "\f14e";
 }
-.icon-arrow-up::before {
+.icon-chain-ton::before {
     content: "\f14f";
 }
-.icon-arrow-up-swap::before {
+.icon-caret-down::before {
     content: "\f150";
 }
-.icon-arrow-right::before {
+.icon-card::before {
     content: "\f151";
 }
-.icon-arrow-right-swap::before {
+.icon-can-out::before {
     content: "\f152";
 }
-.icon-arrow-down::before {
+.icon-can-in::before {
     content: "\f153";
 }
-.icon-action-swap::before {
+.icon-backspace::before {
     content: "\f154";
 }
-.icon-action-send::before {
+.icon-auction::before {
     content: "\f155";
 }
-.icon-action-earn::before {
+.icon-auction-alt::before {
     content: "\f156";
 }
-.icon-action-add::before {
+.icon-arrow-up::before {
     content: "\f157";
 }
-.icon-accept::before {
+.icon-arrow-up-swap::before {
     content: "\f158";
+}
+.icon-arrow-down::before {
+    content: "\f159";
+}
+.icon-action-swap::before {
+    content: "\f15a";
+}
+.icon-action-send::before {
+    content: "\f15b";
+}
+.icon-action-earn::before {
+    content: "\f15c";
+}
+.icon-action-add::before {
+    content: "\f15d";
+}
+.icon-accept::before {
+    content: "\f15e";
 }

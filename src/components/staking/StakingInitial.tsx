@@ -43,6 +43,7 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useSyncEffect from '../../hooks/useSyncEffect';
 
+import AmountFieldMaxButton from '../ui/AmountFieldMaxButton';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Dropdown from '../ui/Dropdown';
@@ -69,6 +70,7 @@ interface StateProps {
   stakingState?: ApiStakingState;
   states?: ApiStakingState[];
   shouldUseNominators?: boolean;
+  isSensitiveDataHidden?: true;
 }
 
 const ACTIVE_STATES = new Set([StakingState.StakeInitial, StakingState.None]);
@@ -86,6 +88,7 @@ function StakingInitial({
   stakingState,
   states,
   shouldUseNominators,
+  isSensitiveDataHidden,
 }: OwnProps & StateProps) {
   const {
     submitStakingInitial, fetchStakingFee, cancelStaking, changeCurrentStaking,
@@ -235,10 +238,7 @@ function StakingInitial({
     }
   }, [isSafeInfoModalOpen, lang, stakingState]);
 
-  const handleMaxAmountClick = useLastCallback((e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleMaxAmountClick = useLastCallback(() => {
     if (!maxAmount) {
       return;
     }
@@ -295,35 +295,14 @@ function StakingInitial({
   }
 
   function renderTopRight() {
-    if (!symbol) return undefined;
-
-    const hasBalance = !!token;
-    const balanceButton = lang('$max_balance', {
-      balance: (
-        <div
-          role="button"
-          tabIndex={0}
-          className={styles.balanceLink}
-          onClick={handleMaxAmountClick}
-        >
-          {hasBalance ? formatCurrency(toDecimal(maxAmount, decimals), symbol) : lang('Loading...')}
-        </div>
-      ),
-    });
-
     return (
-      <Transition
-        className={buildClassName(styles.amountTopRight, isStatic && styles.amountTopRight_static)}
-        slideClassName={styles.amountTopRight_slide}
-        name="fade"
-        activeKey={0}
-      >
-        <div className={styles.balanceContainer}>
-          <span className={styles.balance}>
-            {balanceButton}
-          </span>
-        </div>
-      </Transition>
+      <AmountFieldMaxButton
+        maxAmount={maxAmount}
+        token={token}
+        isLoading={!token}
+        isSensitiveDataHidden={isSensitiveDataHidden}
+        onAmountClick={handleMaxAmountClick}
+      />
     );
   }
 
@@ -533,6 +512,7 @@ export default memo(
         stakingState,
         states,
         shouldUseNominators: accountState?.staking?.shouldUseNominators,
+        isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

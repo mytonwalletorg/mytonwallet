@@ -16,7 +16,7 @@ import {
 } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import { selectAccountState, selectCurrentAccountSettings } from '../../../../global/selectors';
-import { ACCENT_COLORS } from '../../../../util/accentColor';
+import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
 import { getChainBySlug } from '../../../../util/tokens';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
@@ -283,7 +283,7 @@ function LandscapeActions({
               onEnded={stopStakeAnimation}
             />
             <span className={styles.tabText}>
-              {lang({ inactive: 'Earn', active: 'Earning', unstakeRequested: 'Unstaking' }[stakingStatus])}
+              {lang({ inactive: 'Earn', active: 'Earning', unstakeRequested: '$unstaking_short' }[stakingStatus])}
             </span>
             <span className={styles.tabDecoration} aria-hidden />
             <span className={styles.tabDelimiter} aria-hidden />

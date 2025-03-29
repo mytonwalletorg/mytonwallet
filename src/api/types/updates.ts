@@ -1,8 +1,13 @@
 import type { GlobalState } from '../../global/types';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type { ApiTonConnectProof } from '../tonConnect/types';
-import type { ApiActivity, ApiTransactionActivity } from './activity';
-import type { ApiStakingCommonData, ApiSwapAsset, ApiVestingInfo } from './backend';
+import type { ApiActivity } from './activity';
+import type {
+  ApiAccountConfig,
+  ApiStakingCommonData,
+  ApiSwapAsset,
+  ApiVestingInfo,
+} from './backend';
 import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBalanceBySlug,
@@ -25,6 +30,14 @@ export type ApiUpdateBalances = {
   balances: ApiBalanceBySlug;
 };
 
+export type ApiUpdateInitialActivities = {
+  type: 'initialActivities';
+  accountId: string;
+  chain?: ApiChain;
+  mainActivities: ApiActivity[];
+  bySlug: Record<string, ApiActivity[]>;
+};
+
 export type ApiUpdateNewActivities = {
   type: 'newActivities';
   accountId: string;
@@ -33,10 +46,10 @@ export type ApiUpdateNewActivities = {
   noForward?: boolean; // Forbid cyclic update redirection to/from NBS
 };
 
-export type ApiUpdateNewLocalTransaction = {
-  type: 'newLocalTransaction';
+export type ApiUpdateNewLocalActivity = {
+  type: 'newLocalActivity';
   accountId: string;
-  transaction: ApiTransactionActivity;
+  activity: ApiActivity;
 };
 
 export type ApiUpdateTokens = {
@@ -244,10 +257,17 @@ export type ApiMigrateCoreApplication = {
   isTonMagicEnabled?: boolean;
 };
 
+export type ApiUpdateAccountConfig = {
+  type: 'updateAccountConfig';
+  accountId: string;
+  accountConfig: ApiAccountConfig;
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
+  | ApiUpdateInitialActivities
   | ApiUpdateNewActivities
-  | ApiUpdateNewLocalTransaction
+  | ApiUpdateNewLocalActivity
   | ApiUpdateTokens
   | ApiUpdateSwapTokens
   | ApiUpdateCreateTransaction
@@ -275,6 +295,7 @@ export type ApiUpdate =
   | ApiUpdateVesting
   | ApiUpdatingStatus
   | ApiUpdateSettings
-  | ApiMigrateCoreApplication;
+  | ApiMigrateCoreApplication
+  | ApiUpdateAccountConfig;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

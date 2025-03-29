@@ -435,7 +435,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
   const address = (await callApi('fetchAddress', accountId, 'ton'))!;
 
   let result: string | { error: ApiTransactionError } | undefined;
-  const localTransactionParams: Partial<ApiLocalTransactionParams> = { type: 'unstakeRequest' };
+  const localActivityParams: Partial<ApiLocalTransactionParams> = { type: 'unstakeRequest' };
 
   switch (state.type) {
     case 'nominators': {
@@ -447,7 +447,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         amount: TON_GAS.unstakeNominators,
         comment: UNSTAKE_COMMENT,
         realFee,
-      }, TONCOIN.slug, localTransactionParams);
+      }, TONCOIN.slug, localActivityParams);
       break;
     }
     case 'liquid': {
@@ -473,7 +473,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         toAddress: tokenWalletAddress!,
         amount: TON_GAS.unstakeLiquid,
         realFee,
-      }, TONCOIN.slug, localTransactionParams, payload);
+      }, TONCOIN.slug, localActivityParams, payload);
       break;
     }
     case 'jetton': {
@@ -489,7 +489,7 @@ export async function submitLedgerUnstake(accountId: string, state: ApiStakingSt
         toAddress: stakeWalletAddress,
         amount: TON_GAS.unstakeJettons,
         realFee,
-      }, TONCOIN.slug, localTransactionParams, payload);
+      }, TONCOIN.slug, localActivityParams, payload);
       break;
     }
   }
@@ -519,7 +519,7 @@ export function submitLedgerStakingClaim(
 export async function submitLedgerTransfer(
   options: ApiSubmitTransferOptions & { data?: Cell },
   slug: string,
-  localTransactionParams?: Partial<ApiLocalTransactionParams>,
+  localActivityParams?: Partial<ApiLocalTransactionParams>,
   payload?: TonPayloadFormat,
 ) {
   const {
@@ -600,14 +600,14 @@ export async function submitLedgerTransfer(
     const message: ApiSignedTransfer = {
       base64: signedCell.toBoc().toString('base64'),
       seqno: seqno!,
-      params: {
+      localActivity: {
         amount: options.amount,
         fromAddress: fromAddress!,
         toAddress: normalizedAddress,
         comment,
         fee: realFee ?? 0n,
         slug,
-        ...localTransactionParams,
+        ...localActivityParams,
       },
     };
 
@@ -696,14 +696,13 @@ export async function submitLedgerNftTransfer(options: {
     const message: ApiSignedTransfer = {
       base64: signedCell.toBoc().toString('base64'),
       seqno: seqno!,
-      params: {
-        amount: NFT_TRANSFER_AMOUNT,
+      localActivity: {
+        amount: 0n, // Regular NFT transfers should have no amount in the activity list
         fromAddress: fromAddress!,
         toAddress: options.toAddress,
         comment,
         fee: realFee ?? 0n,
         slug: TONCOIN.slug,
-        type: 'nftTransferred',
         nft,
         normalizedAddress: toBase64Address(nftAddress, true, network),
       },
@@ -887,7 +886,7 @@ export async function signLedgerTransactions(accountId: string, messages: ApiTra
       signedMessages.push({
         base64,
         seqno: params.seqno,
-        params: {
+        localActivity: {
           amount: message.amount,
           fromAddress: fromAddress!,
           toAddress: message.toAddress,

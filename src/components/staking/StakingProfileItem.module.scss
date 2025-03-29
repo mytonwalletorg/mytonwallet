@@ -1,4 +1,6 @@
 .item {
+  --border-radius-value: 0.25rem;
+
   position: relative;
 
   display: grid;
@@ -37,7 +39,7 @@
   height: 2.25rem;
   margin: 0 0.625rem 0 0;
 
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   line-height: 1;
   color: var(--color-activity-green-text);
   text-align: center;

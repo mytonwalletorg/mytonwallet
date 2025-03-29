@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../../lib/teact/teact';
 import React, {
   memo, useEffect, useMemo, useState,
 } from '../../../lib/teact/teact';
@@ -22,18 +23,25 @@ import {
   STAKING_CYCLE_DURATION_MS,
   TONCOIN,
 } from '../../../config';
-import { getIsTxIdLocal } from '../../../global/helpers';
 import { getStakingStateStatus } from '../../../global/helpers/staking';
 import { selectAccountStakingStates, selectCurrentAccountState } from '../../../global/selectors';
+import {
+  getIsTxIdLocal,
+  getTransactionAmountDisplayMode,
+  getTransactionTitle,
+  isScamTransaction,
+  parseTxId,
+  shouldShowTransactionAddress,
+  STAKING_TRANSACTION_TYPES,
+} from '../../../util/activities';
 import { bigintAbs } from '../../../util/bigint';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatRelativeHumanDateTime, formatTime } from '../../../util/dateFormat';
-import { toDecimal } from '../../../util/decimals';
 import { vibrateOnSuccess } from '../../../util/haptics';
 import { getIsTransactionWithPoisoning } from '../../../util/poisoningHash';
 import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
-import { getNativeToken, getTransactionHashFromTxId } from '../../../util/tokens';
+import { getNativeToken } from '../../../util/tokens';
 import { getExplorerTransactionUrl } from '../../../util/url';
 import { callApi } from '../../../api';
 import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
@@ -47,8 +55,8 @@ import useShowTransition from '../../../hooks/useShowTransition';
 import useSyncEffect from '../../../hooks/useSyncEffect';
 
 import TransactionAmount from '../../common/TransactionAmount';
+import TransactionFee from '../../common/TransactionFee';
 import NftInfo from '../../transfer/NftInfo';
-import AmountWithFeeTextField from '../../ui/AmountWithFeeTextField';
 import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
 import Button from '../../ui/Button';
 import InteractiveTextField from '../../ui/InteractiveTextField';
@@ -73,6 +81,7 @@ type StateProps = {
   isLongUnstakeRequested?: boolean;
   isMediaViewerOpen?: boolean;
   theme: Theme;
+  isSensitiveDataHidden?: true;
 };
 
 const enum SLIDES {
@@ -90,8 +99,10 @@ function TransactionModal({
   isLongUnstakeRequested,
   isMediaViewerOpen,
   theme,
+  isSensitiveDataHidden,
 }: StateProps) {
   const {
+    fetchActivityDetails,
     startTransfer,
     startStaking,
     startUnstaking,
@@ -125,15 +136,11 @@ function TransactionModal({
     slug,
     timestamp,
     nft,
+    shouldLoadDetails,
   } = renderedTransaction || {};
   const isLocal = Boolean(id && getIsTxIdLocal(id));
-  const isStaking = renderedTransaction?.type === 'stake' || renderedTransaction?.type === 'unstake';
   const isUnstaking = renderedTransaction?.type === 'unstake';
-  const isNftTransfer = (
-    renderedTransaction?.type === 'nftTransferred'
-    || renderedTransaction?.type === 'nftReceived'
-    || Boolean(renderedTransaction?.nft)
-  );
+  const isNftTransfer = Boolean(renderedTransaction?.nft);
 
   const token = slug ? tokensBySlug?.[slug] : undefined;
   const chain = token?.chain;
@@ -145,9 +152,9 @@ function TransactionModal({
   }, [address, chain, savedAddresses]);
   const addressName = savedAddressName || transaction?.metadata?.name;
   const isTransactionWithPoisoning = isIncoming && getIsTransactionWithPoisoning(renderedTransaction!);
-  const isScam = isTransactionWithPoisoning || Boolean(transaction?.metadata?.isScam);
+  const isScam = Boolean(transaction) && isScamTransaction(transaction);
   const isModalOpen = Boolean(transaction) && !isMediaViewerOpen;
-  const transactionHash = chain && id ? getTransactionHashFromTxId(chain, id) : undefined;
+  const transactionHash = chain && id ? parseTxId(id).hash : undefined;
 
   const [decryptedComment, setDecryptedComment] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
@@ -197,6 +204,10 @@ function TransactionModal({
       setUnstakeDate(endOfStakingCycle);
     }
   }, [endOfStakingCycle]);
+
+  useEffect(() => {
+    if (id) fetchActivityDetails({ id });
+  }, [id]);
 
   const clearPasswordError = useLastCallback(() => {
     setPasswordError(undefined);
@@ -283,15 +294,6 @@ function TransactionModal({
     }
   });
 
-  function getTitle(inProgress: boolean) {
-    if (isUnstaking) {
-      return inProgress ? 'Unstaking' : 'Unstaked';
-    }
-    if (isIncoming) return 'Received';
-
-    return inProgress ? 'Sending' : 'Sent';
-  }
-
   function renderHeader() {
     return (
       <div
@@ -302,7 +304,7 @@ function TransactionModal({
       >
         <div className={buildClassName(modalStyles.title, styles.modalTitle)}>
           <div className={styles.headerTitle}>
-            {lang(getTitle(isLocal))}
+            {transaction && getTransactionTitle(transaction, isLocal, lang)}
             {isLocal && (
               <AnimatedIconWithPreview
                 play={isModalOpen}
@@ -342,21 +344,23 @@ function TransactionModal({
   }
 
   function renderFee() {
-    if (isIncoming || !fee || !nativeToken) {
+    if (!(fee || shouldLoadDetails) || !nativeToken) {
       return undefined;
     }
 
     return (
-      <AmountWithFeeTextField
-        label={lang('Fee')}
-        amount={toDecimal(fee, nativeToken.decimals)}
-        currency={nativeToken.symbol}
+      <TransactionFee
+        terms={{ native: fee }}
+        token={nativeToken}
+        precision={isLocal ? 'approximate' : 'exact'}
+        isLoading={shouldLoadDetails}
+        className={styles.feeField}
       />
     );
   }
 
   function renderComment() {
-    if ((!comment && !encryptedComment) || (transaction?.type && !isNftTransfer)) {
+    if (!comment && !encryptedComment) {
       return undefined;
     }
 
@@ -384,7 +388,7 @@ function TransactionModal({
 
   function renderTransactionId() {
     return (
-      <div className={buildClassName(styles.textFieldWrapperFullWidth, transactionIdClassNames)}>
+      <div className={buildClassName(styles.textFieldWrapper, transactionIdClassNames)}>
         <span className={styles.textFieldLabel}>
           {lang('Transaction ID')}
         </span>
@@ -426,25 +430,61 @@ function TransactionModal({
     );
   }
 
+  function renderFooter() {
+    const isStaking = STAKING_TRANSACTION_TYPES.has(renderedTransaction?.type);
+    const canUnstake = (isUnstaking || transaction?.type === 'unstakeRequest') && stakingStatus === 'active';
+    const buttons: TeactNode[] = [];
+
+    if (!isStaking && !isIncoming && !isNftTransfer) {
+      buttons.push(
+        <Button onClick={handleSendClick} className={styles.button}>
+          {lang('Repeat')}
+        </Button>,
+      );
+    }
+    if (!IS_CORE_WALLET && isStaking) {
+      buttons.push(
+        <Button
+          onClick={handleStartStakingClick}
+          className={buildClassName(styles.button, canUnstake && styles.buttonWide)}
+        >
+          {lang('Stake Again')}
+        </Button>,
+      );
+    }
+    if (canUnstake) {
+      buttons.push(
+        <Button onClick={handleUnstakeMoreClick} className={buildClassName(styles.button, styles.buttonWide)}>
+          {lang('Unstake More')}
+        </Button>,
+      );
+    }
+
+    return buttons.length ? <div className={styles.footer}>{buttons}</div> : undefined;
+  }
+
   function renderTransactionContent() {
+    const amountDisplayMode = transaction && getTransactionAmountDisplayMode(transaction);
+
     return (
       <div className={modalStyles.transitionContent}>
-        {isNftTransfer ? (
-          <NftInfo nft={nft} withTonExplorer />
-        ) : (
+        {amountDisplayMode !== 'hide' && (
           <TransactionAmount
+            isSensitiveDataHidden={isSensitiveDataHidden}
             isIncoming={isIncoming}
             isScam={isScam}
             amount={amount ?? 0n}
             decimals={token?.decimals}
             tokenSymbol={token?.symbol}
             status={isUnstaking && !shouldRenderUnstakeTimer ? lang('Successfully') : undefined}
+            noSign={amountDisplayMode === 'noSign'}
           />
         )}
+        {nft && <NftInfo nft={nft} withTonExplorer />}
 
         {isTransactionWithPoisoning && renderTransactionWithPoisoningWarning()}
 
-        {!isUnstaking && (
+        {transaction && shouldShowTransactionAddress(transaction) && (
           <>
             <div className={transferStyles.label}>{lang(isIncoming ? 'Sender' : 'Recipient')}</div>
             <InteractiveTextField
@@ -464,26 +504,7 @@ function TransactionModal({
         {shouldRenderTransactionId && renderTransactionId()}
         {shouldRenderUnstakeTimer && renderUnstakeTimer()}
 
-        <div className={styles.footer}>
-          {!isStaking && !isIncoming && !isNftTransfer && (
-            <Button onClick={handleSendClick} className={styles.button}>
-              {lang('Repeat')}
-            </Button>
-          )}
-          {!IS_CORE_WALLET && isStaking && (
-            <Button
-              onClick={handleStartStakingClick}
-              className={buildClassName(styles.button, isUnstaking && stakingStatus === 'active' && styles.buttonWide)}
-            >
-              {lang('Stake Again')}
-            </Button>
-          )}
-          {isUnstaking && stakingStatus === 'active' && (
-            <Button onClick={handleUnstakeMoreClick} className={buildClassName(styles.button, styles.buttonWide)}>
-              {lang('Unstake More')}
-            </Button>
-          )}
-        </div>
+        {renderFooter()}
       </div>
     );
   }
@@ -555,17 +576,19 @@ export default memo(
 
     const stakingInfo = global.stakingInfo;
     const stakingStates = selectAccountStakingStates(global, accountId);
+    const { isTestnet, theme, isSensitiveDataHidden } = global.settings;
 
     return {
       transaction: activity?.kind === 'transaction' ? activity : undefined,
       tokensBySlug: global.tokenInfo?.bySlug,
       savedAddresses,
-      isTestnet: global.settings.isTestnet,
+      isTestnet,
       isLongUnstakeRequested: accountState?.isLongUnstakeRequested,
       isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
-      theme: global.settings.theme,
+      theme,
       stakingInfo,
       stakingStates,
+      isSensitiveDataHidden,
     };
   })(TransactionModal),
 );

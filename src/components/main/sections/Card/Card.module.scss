@@ -2,6 +2,8 @@
 
 @import "../../../../styles/mixins";
 
+$color-transition: color 300ms;
+
 .containerWrapper {
   position: relative;
   z-index: var(--z-card);
@@ -166,6 +168,7 @@
 
 .balanceTransition {
   max-height: 2.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .primaryValue {
@@ -174,7 +177,7 @@
   line-height: 1;
   color: var(--main-text);
 
-  transition: color 300ms;
+  transition: $color-transition;
 
   :global(html.animation-level-0) & {
     transition: none !important;
@@ -190,7 +193,7 @@
     color: transparent;
   }
 
-  transition: color 300ms;
+  transition: $color-transition;
 
   :global(html.animation-level-0) & {
     transition: none !important;
@@ -219,7 +222,7 @@
   font-size: 0.875rem;
   color: var(--second-text);
 
-  transition: color 300ms;
+  transition: $color-transition;
 
   :global(html.animation-level-0) & {
     transition: none !important;
@@ -228,6 +231,16 @@
 
 .currencySwitcher {
   cursor: var(--custom-cursor, pointer);
+
+  position: relative;
+
+  padding-right: 0.875rem;
+
+  & > .iconCaretSmall {
+    position: absolute;
+    top: 0.0625rem;
+    right: 0;
+  }
 }
 
 .addressContainer {
@@ -251,7 +264,7 @@
   border: none;
   outline: none;
 
-  transition: color 300ms;
+  transition: $color-transition;
 
   :global(html.animation-level-0) &,
   // Optimization
@@ -289,7 +302,7 @@
 
     color: var(--second-text);
 
-    transition: color 300ms;
+    transition: $color-transition;
 
     :global(html.animation-level-0) & {
       transition: none !important;
@@ -334,7 +347,7 @@
   font-size: 1rem !important;
   color: var(--copy-icon-color);
 
-  transition: color 300ms;
+  transition: $color-transition;
 
   :global(html.animation-level-0) & {
     transition: none !important;
@@ -360,7 +373,7 @@
   color: var(--action-color, var(--second-text));
   text-decoration: none !important;
 
-  transition: color 300ms;
+  transition: $color-transition;
 
   &:active {
     // Optimization
@@ -391,23 +404,31 @@
   }
 }
 
+.changeSpoiler {
+  --border-radius-value: var(--border-radius-tiny);
+}
+
+.blurred {
+  backdrop-filter: blur(10px);
+}
+
 .change {
   align-self: flex-start;
 
   height: 1.5rem;
-  margin-top: 0.25rem;
   padding: 0.3125rem 0.375rem 0;
 
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1;
   color: var(--color-card-default-text, var(--color-card-text));
+  white-space: nowrap;
 
   background: var(--color-card-button);
   backdrop-filter: blur(12px);
   border-radius: var(--border-radius-tiny);
 
-  transition: color 300ms, background-color 300ms;
+  transition: $color-transition, background-color 300ms;
 
   :global(html.animation-level-0) & {
     transition: none !important;
@@ -474,10 +495,21 @@
 
 .tokenAmount,
 .tokenName {
+  --border-radius-value: 0.25rem;
+
   overflow: hidden;
 
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.tokenValue,
+.tokenAmount {
+  display: inline-block;
+
+  height: 1rem;
+
+  line-height: 1rem;
 }
 
 .tokenValue,
@@ -489,7 +521,24 @@
   text-align: right;
 }
 
+.tokenChange {
+  --border-radius-value: var(--border-radius-micro);
+
+  line-height: 0.875rem;
+}
+
+.tokenChangeSensitiveData {
+  min-height: 0.875rem !important;
+  margin-left: 0.1875rem;
+}
+
+.tokenChangeSpoiler {
+  top: -0.0625rem !important;
+  right: -0.1875rem !important;
+}
+
 .tokenValue {
+  --border-radius-value: 0.25rem;
   --offset-x-value: -0.3125rem;
   --offset-y-value: 0.1875rem;
 
@@ -501,6 +550,8 @@
   align-items: center;
 
   min-width: 0;
+
+  line-height: 0.875rem;
 }
 
 .tokenHistoryPrice {
@@ -561,7 +612,7 @@
   color: var(--color-card-second-text) !important;
   text-decoration: none !important;
 
-  transition: color 300ms;
+  transition: $color-transition;
 
   &:active {
     // Optimization

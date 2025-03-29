@@ -17,16 +17,8 @@ import {
   IS_PRODUCTION,
   PRODUCTION_URL,
 } from '../../../config';
-import {
-  ACCENT_BNW_INDEX,
-  ACCENT_GOLD_INDEX,
-  ACCENT_RADIOACTIVE_INDEX,
-  ACCENT_SILVER_INDEX,
-  extractAccentColorIndex,
-} from '../../../util/accentColor';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { parseDeeplinkTransferParams, processDeeplink } from '../../../util/deeplink';
-import { getCachedImageUrl } from '../../../util/getCachedImageUrl';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { vibrateOnSuccess } from '../../../util/haptics';
 import { omit } from '../../../util/iteratees';
@@ -34,7 +26,6 @@ import { getTranslation } from '../../../util/langProvider';
 import { onLedgerTabClose, openLedgerTab } from '../../../util/ledger/tab';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { openUrl } from '../../../util/openUrl';
-import { preloadImage } from '../../../util/preloadImage';
 import { pause } from '../../../util/schedulers';
 import { getTelegramApp } from '../../../util/telegram';
 import {
@@ -74,7 +65,6 @@ import { switchAccount } from '../api/auth';
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
 import { reportAppLockActivityEvent } from '../../../components/AppLocked';
-import { getCardNftImageUrl } from '../../../components/main/sections/Card/helpers/getCardNftImageUrl';
 import { closeModal } from '../../../components/ui/Modal';
 
 const OPEN_LEDGER_TAB_DELAY = 500;
@@ -774,65 +764,6 @@ addActionHandler('submitAppLockActivityEvent', () => {
   reportAppLockActivityEvent();
 });
 
-addActionHandler('setCardBackgroundNft', (global, actions, { nft }) => {
-  if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('setCardBackgroundNft', { nft });
-    return;
-  }
-
-  global = updateCurrentAccountSettings(global, { cardBackgroundNft: nft });
-  setGlobal(global);
-});
-
-addActionHandler('clearCardBackgroundNft', (global) => {
-  if (IS_DELEGATED_BOTTOM_SHEET) {
-    callActionInMain('clearCardBackgroundNft');
-    return;
-  }
-
-  global = updateCurrentAccountSettings(global, { cardBackgroundNft: undefined });
-  setGlobal(global);
-});
-
-addActionHandler('installAccentColorFromNft', async (global, actions, { nft }) => {
-  const { mtwCardType, mtwCardBorderShineType } = nft.metadata!;
-
-  let accentColorIndex: number | undefined;
-  if (mtwCardBorderShineType === 'radioactive') {
-    accentColorIndex = ACCENT_RADIOACTIVE_INDEX;
-  } else if (mtwCardType === 'silver') {
-    accentColorIndex = ACCENT_SILVER_INDEX;
-  } else if (mtwCardType === 'gold') {
-    accentColorIndex = ACCENT_GOLD_INDEX;
-  } else if (mtwCardType === 'platinum' || mtwCardType === 'black') {
-    accentColorIndex = ACCENT_BNW_INDEX;
-  } else {
-    const src = getCardNftImageUrl(nft);
-    if (!src) return;
-
-    const cachedBlobUrl = await getCachedImageUrl(src);
-    const img = await preloadImage(cachedBlobUrl);
-    accentColorIndex = extractAccentColorIndex(img);
-    URL.revokeObjectURL(cachedBlobUrl);
-
-    if (!accentColorIndex) return;
-  }
-
-  global = getGlobal();
-  global = updateCurrentAccountSettings(global, {
-    accentColorNft: nft,
-    accentColorIndex,
-  });
-  setGlobal(global);
-});
-
-addActionHandler('clearAccentColorFromNft', (global) => {
-  return updateCurrentAccountSettings(global, {
-    accentColorNft: undefined,
-    accentColorIndex: undefined,
-  });
-});
-
 addActionHandler('closeAnyModal', () => {
   if (IS_DELEGATED_BOTTOM_SHEET) {
     callActionInMain('closeAnyModal');
@@ -856,6 +787,10 @@ addActionHandler('openFullscreen', (global) => {
 
 addActionHandler('closeFullscreen', (global) => {
   setGlobal({ ...global, isFullscreen: undefined });
+});
+
+addActionHandler('setIsSensitiveDataHidden', (global, actions, { isHidden }) => {
+  setGlobal(updateSettings(global, { isSensitiveDataHidden: isHidden ? true : undefined }));
 });
 
 async function connectLedgerAndGetHardwareState() {

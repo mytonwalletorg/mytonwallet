@@ -27,11 +27,7 @@ import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
 import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
 import { getTonStakingFees } from '../../util/fee/getTonOperationFees';
-import {
-  formatCurrency,
-  formatCurrencySimple,
-  getShortCurrencySymbol,
-} from '../../util/formatNumber';
+import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { getIsMobileTelegramApp } from '../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -51,6 +47,7 @@ import TransactionBanner from '../common/TransactionBanner';
 import TransferResult from '../common/TransferResult';
 import LedgerConfirmOperation from '../ledger/LedgerConfirmOperation';
 import LedgerConnect from '../ledger/LedgerConnect';
+import AmountFieldMaxButton from '../ui/AmountFieldMaxButton';
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
 import Button from '../ui/Button';
 import Fee from '../ui/Fee';
@@ -74,6 +71,7 @@ type StateProps = GlobalState['currentStaking'] & {
   theme: Theme;
   isMultichainAccount: boolean;
   stakingState?: ApiStakingState;
+  isSensitiveDataHidden?: true;
 };
 
 const IS_OPEN_STATES = new Set([
@@ -107,6 +105,7 @@ function UnstakeModal({
   theme,
   amount,
   stakingState,
+  isSensitiveDataHidden,
 }: StateProps) {
   const {
     setStakingScreen,
@@ -282,17 +281,13 @@ function UnstakeModal({
     },
   );
 
-  const handleMaxAmountClick = useLastCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      e.preventDefault();
+  const handleMaxAmountClick = useLastCallback(() => {
+    if (!stakingBalance) {
+      return;
+    }
 
-      if (!stakingBalance) {
-        return;
-      }
-
-      validateAndSetAmount(stakingBalance);
-    },
-  );
+    validateAndSetAmount(stakingBalance);
+  });
 
   const handleAmountChange = useLastCallback((stringValue?: string) => {
     const value = stringValue ? fromDecimal(stringValue, token?.decimals) : undefined;
@@ -301,21 +296,14 @@ function UnstakeModal({
 
   function renderBalance() {
     return (
-      <div className={styles.balanceContainer}>
-        <span className={styles.balance}>
-          {lang('$all_balance', {
-            balance: (
-              <a href="#" onClick={handleMaxAmountClick} className={styles.balanceLink}>
-                {
-                  stakingBalance !== undefined
-                    ? formatCurrencySimple(stakingBalance, token?.symbol!, token?.decimals!)
-                    : lang('Loading...')
-                }
-              </a>
-            ),
-          })}
-        </span>
-      </div>
+      <AmountFieldMaxButton
+        maxAmount={stakingBalance}
+        token={token}
+        isLoading={stakingBalance === undefined || !token}
+        isSensitiveDataHidden={isSensitiveDataHidden}
+        isAllMode
+        onAmountClick={handleMaxAmountClick}
+      />
     );
   }
 
@@ -376,8 +364,8 @@ function UnstakeModal({
           className={styles.unstakeTimeIcon}
           nonInteractive
           noLoop={false}
-          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGrayWhite}
-          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGrayWhite}
+          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGray}
+          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGray}
         />
         <div>
           {lang('$unstaking_when_receive', {
@@ -597,5 +585,6 @@ export default memo(withGlobal((global): StateProps => {
     theme: global.settings.theme,
     isMultichainAccount,
     stakingState,
+    isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
   };
 })(UnstakeModal));

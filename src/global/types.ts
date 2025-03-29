@@ -1,6 +1,7 @@
 import type { ApiFetchEstimateDieselResult, ApiTonWalletVersion } from '../api/chains/ton/types';
 import type { ApiTonConnectProof } from '../api/tonConnect/types';
 import type {
+  ApiAccountConfig,
   ApiActivity,
   ApiAnyDisplayError,
   ApiBalanceBySlug,
@@ -12,6 +13,7 @@ import type {
   ApiDappTransfer,
   ApiHistoryList,
   ApiLedgerDriver,
+  ApiMtwCardType,
   ApiNetwork,
   ApiNft,
   ApiNotificationsAccountValue,
@@ -27,8 +29,6 @@ import type {
   ApiSwapDexLabel,
   ApiSwapEstimateVariant,
   ApiTokenWithPrice,
-  ApiTransaction,
-  ApiTransactionActivity,
   ApiUpdate,
   ApiUpdateDappConnect,
   ApiUpdateDappLoading,
@@ -246,6 +246,14 @@ export enum SettingsState {
   BackupWallet,
 }
 
+export enum MintCardState {
+  Initial,
+  Password,
+  ConnectHardware,
+  ConfirmHardware,
+  Done,
+}
+
 export enum ActiveTab {
   Receive,
   Transfer,
@@ -321,12 +329,14 @@ export interface AccountState {
   activities?: {
     isLoading?: boolean;
     byId: Record<string, ApiActivity>;
+    /** The array values are sorted by the activity type (newest to oldest) */
     idsBySlug?: Record<string, string[]>;
+    /** The array values are sorted by the activity type (newest to oldest) */
     idsMain?: string[];
-    newestTransactionsBySlug?: Record<string, ApiTransaction>;
+    newestActivitiesBySlug?: Record<string, ApiActivity>;
     isMainHistoryEndReached?: boolean;
     isHistoryEndReachedBySlug?: Record<string, boolean>;
-    localTransactions?: ApiTransactionActivity[];
+    localActivities?: ApiActivity[];
   };
   byChain?: {
     [chain in ApiChain]?: { isFirstTransactionsLoaded?: boolean };
@@ -380,9 +390,12 @@ export interface AccountState {
 
   isDieselAuthorizationStarted?: boolean;
   isLongUnstakeRequested?: boolean;
+  isCardMinting?: boolean;
 
   dapps?: ApiDapp[];
   currentSiteCategoryId?: number;
+
+  config?: ApiAccountConfig;
 }
 
 export interface AccountSettings {
@@ -630,6 +643,7 @@ export type GlobalState = {
     baseCurrency?: ApiBaseCurrency;
     isAppLockEnabled?: boolean;
     autolockValue?: AutolockValueType;
+    isSensitiveDataHidden?: true;
   };
 
   dialogs: DialogType[];
@@ -658,6 +672,13 @@ export type GlobalState = {
     title?: string;
     subtitle?: string;
     keepNBSOpen?: boolean;
+  };
+
+  currentMintCard?: {
+    type?: ApiMtwCardType;
+    state?: MintCardState;
+    error?: string;
+    isLoading?: boolean;
   };
 
   currentQrScan?: {
@@ -835,6 +856,7 @@ export interface ActionPayloads {
   showAnyAccountTokenActivity: { slug: string; accountId: string; network: ApiNetwork };
   showTokenActivity: { slug: string };
   closeActivityInfo: { id: string };
+  fetchActivityDetails: { id: string };
   openNftCollection: { address: string };
   closeNftCollection: undefined;
   selectNfts: { addresses: string[] };
@@ -1058,6 +1080,13 @@ export interface ActionPayloads {
   clearVestingError: undefined;
   cancelClaimingVesting: undefined;
 
+  openMintCardModal: undefined;
+  closeMintCardModal: undefined;
+  startCardMinting: { type: ApiMtwCardType };
+  submitMintCard: { password: string };
+  submitMintCardHardware: undefined;
+  clearMintCardError: undefined;
+
   submitAppLockActivityEvent: undefined;
 
   toggleNotifications: { isEnabled: boolean };
@@ -1071,6 +1100,8 @@ export interface ActionPayloads {
 
   openFullscreen: undefined;
   closeFullscreen: undefined;
+
+  setIsSensitiveDataHidden: { isHidden: boolean };
 }
 
 export enum LoadMoreDirection {

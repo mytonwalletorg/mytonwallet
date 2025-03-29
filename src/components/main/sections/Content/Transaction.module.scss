@@ -1,17 +1,28 @@
+@use "sass:math";
+
 @import "../../../../styles/mixins";
 
+/* stylelint-disable-next-line plugin/whole-pixel */
+$iconExtraBorderWidth: 0.03898rem; // The sub-pixel part of the icon border width
+$subIconSize: 1rem;
+
 .item {
+  $leftPadding: 0.75rem;
+  $iconColumnWidth: 2.875rem;
+
+  --border-radius-value: 0.25rem;
+
   position: relative;
 
   display: grid;
   grid-template-areas: "icon header" "icon subheader" "useless nft" "useless comment";
-  grid-template-columns: 2.875rem 1fr;
-  grid-template-rows: 1.3125rem 0.9375rem auto auto;
+  grid-template-columns: $iconColumnWidth 1fr;
+  grid-template-rows: 1.5rem 1.25rem auto auto;
   align-items: center;
   justify-content: center;
 
   width: 100%;
-  padding: 0.875rem 0.875rem 0.875rem 0.75rem;
+  padding: 0.625rem 1rem 0.625rem $leftPadding;
 
   color: var(--color-black);
   text-align: left;
@@ -22,11 +33,21 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    left: 3.625rem;
+    left: $leftPadding + $iconColumnWidth;
 
     height: 0.0625rem;
     /* stylelint-disable-next-line plugin/whole-pixel */
     box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+  }
+
+  @include is-mobile() {
+    $iconColumnWidth: 3rem;
+
+    grid-template-columns: $iconColumnWidth 1fr;
+
+    &::after {
+      left: $leftPadding + $iconColumnWidth;
+    }
   }
 
   @media (hover: hover) {
@@ -56,23 +77,15 @@
   }
 }
 
-.iconArrow {
-  position: absolute;
-  top: 0.8125rem;
-  right: 0.5rem;
-
-  font-size: 1rem;
-  color: var(--color-gray-4);
-}
-
 .icon {
+  position: relative;
+
   grid-area: icon;
 
   width: 2.25rem;
   height: 2.25rem;
-  margin: 0 0.625rem 0 0;
 
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   line-height: 1;
   color: var(--color-activity-gray-text);
   text-align: center;
@@ -81,53 +94,50 @@
   border-radius: 50%;
 
   &::before {
-    line-height: 2.25rem;
+    line-height: 2.375rem;
   }
 
-  &_staking {
-    font-size: 1.875rem;
+  &:global(.icon-cog),
+  &:global(.icon-fire) {
+    font-size: 1.625rem;
   }
 
-  &_operationPositive {
-    color: var(--color-activity-green-text);
-
-    background-color: var(--color-activity-green-background);
+  &Swap {
+    background: none;
   }
 
-  &_purple {
-    color: var(--color-activity-purple-text);
-
-    background-color: var(--color-activity-purple-background);
-  }
-
-  &_error {
-    color: var(--color-activity-red-text);
-
-    background: var(--color-activity-red-background) !important;
-  }
-
-  &_swap {
-    transform: rotate(180deg);
-
-    font-size: 1.875rem;
-
-    background-image: var(--color-gradient-activity-gray-green-bg);
-
-    &:not(.icon_error)::before {
-      color: transparent;
-
-      background: var(--color-gradient-activity-gray-green-text);
-      background-clip: text;
-      background-size: 100%;
-    }
+  @include is-mobile() {
+    width: 2.375rem;
+    height: 2.375rem;
   }
 }
 
-.iconWaiting {
+.iconFromToken {
   position: absolute;
-  top: 2.25rem;
-  left: 2.125rem;
+  top: 0;
+  left: 0;
+}
 
+.iconToToken {
+  $borderWidth: 0.0625rem;
+
+  position: absolute;
+  right: -$borderWidth;
+  bottom: -$borderWidth;
+
+  padding: $borderWidth;
+
+  background: var(--color-background-first);
+  border-radius: 50%;
+}
+
+.iconWaiting,
+.iconError {
+  position: absolute;
+  bottom: -0.125rem;
+  inset-inline-end: -0.125rem;
+
+  font-size: $subIconSize;
   line-height: 1;
 
   background-color: var(--color-background-first);
@@ -135,20 +145,14 @@
 }
 
 .iconError {
-  position: absolute;
-  top: 2.25rem;
-  left: 2.125rem;
+  transform: scale(math.div($subIconSize + $iconExtraBorderWidth * 2, $subIconSize));
 
-  font-size: 1rem;
-  line-height: 1;
-  color: var(--color-red);
-
-  background-color: var(--color-background-first);
-  border-radius: 50%;
+  color: var(--color-activity-red-text);
 }
 
-.iconWaitingStake {
-  color: var(--color-activity-purple-text);
+.iconToToken,
+.iconWaiting {
+  box-shadow: 0 0 0 $iconExtraBorderWidth var(--color-background-first);
 }
 
 .header,
@@ -166,10 +170,12 @@
 .header {
   grid-area: header;
 
-  padding-bottom: 0.125rem;
-
   font-size: 0.9375rem;
   font-weight: 600;
+
+  @include is-mobile() {
+    font-size: 1rem;
+  }
 }
 
 .subheader {
@@ -178,6 +184,10 @@
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-gray-2);
+
+  @include is-mobile() {
+    font-size: 0.8125rem;
+  }
 }
 
 .operationName,
@@ -193,7 +203,11 @@
 }
 
 .addressValue {
-  font-weight: 650;
+  font-weight: 700;
+
+  > small {
+    font-size: 0.625rem;
+  }
 }
 
 .chainIcon {
@@ -201,22 +215,12 @@
 }
 
 .amount {
-  &_operationPositive {
-    color: var(--color-green);
-  }
+  color: var(--color-gray-1);
 
-  &_operationNegative {
-    color: var(--color-gray-1);
-  }
-
-  &_stake {
-    color: var(--color-purple-2);
-  }
+  background: none !important;
 }
 
 .commentIcon {
-  margin-left: -0.125rem;
-
   font-size: 1rem;
   vertical-align: -0.25rem;
 }
@@ -226,39 +230,18 @@
   grid-area: comment;
 
   max-width: 100%;
-  margin-top: 0.4375rem;
-  padding: 0.5rem 0.625rem;
+  padding: 0.4375rem 0.625rem;
 
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 0.75rem;
+  line-height: 1.125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
-
-  border-radius: 1rem;
-
-  &_incoming {
-    margin-inline-end: auto;
-
-    color: var(--color-activity-green-text);
-
-    background-color: var(--color-activity-green-background);
-    border-top-left-radius: 0.3125rem;
-  }
-
-  &_outgoing {
-    margin-inline-start: auto;
-
-    color: var(--color-activity-gray-text);
-
-    background-color: var(--color-activity-gray-background);
-    border-top-right-radius: 0.3125rem;
-  }
 }
 
 .scamImage {
-  width: 2.375rem;
-  margin-left: 0.25rem;
+  width: 2.4375rem;
+  margin-left: 0.3125rem;
 }
 
 .swapAmount {
@@ -267,7 +250,7 @@
 }
 
 .swapArrowRight {
-  padding: 0 0.125rem;
+  margin: 0 0.125rem;
 
   color: transparent;
 
@@ -276,54 +259,37 @@
   background-size: 100%;
 }
 
+.swapSell {
+  color: var(--color-gray-2);
+}
+
 .swapBuy {
   color: var(--color-green);
 }
 
-.swapError {
-  color: var(--color-red);
-}
-
-.swapSell,
+// .swapBuy should be stronger than .swapSell, but weaker than .swapHold
+/* stylelint-disable-next-line plugin/stylelint-group-selectors */
 .swapHold {
   color: var(--color-gray-2);
 }
 
+.swapError {
+  color: var(--color-activity-red-text);
+}
+
 .isSwapErrorMessage {
   font-size: 0.75rem;
-  color: var(--color-red);
+  color: var(--color-activity-red-text);
 }
 
 .nft {
   overflow: hidden;
   display: flex;
   grid-area: nft;
+  align-items: center;
 
   max-width: 100%;
   height: 3.5rem;
-  margin-top: 0.5rem;
-  margin-inline-start: auto;
-
-  background-color: var(--color-activity-gray-background);
-  border-radius: var(--border-radius-normal) 0.3125rem var(--border-radius-normal) var(--border-radius-normal);
-
-  &.received {
-    margin-inline-start: 0;
-    margin-inline-end: auto;
-
-    background-color: var(--color-activity-green-background);
-    border-top-left-radius: 0.3125rem;
-    border-top-right-radius: var(--border-radius-normal);
-  }
-}
-
-.nftWithComment {
-  border-bottom-right-radius: 0.3125rem;
-
-  &.received {
-    border-bottom-right-radius: var(--border-radius-normal);
-    border-bottom-left-radius: 0.3125rem;
-  }
 }
 
 .nftImage {
@@ -331,11 +297,13 @@
   height: 3.5rem;
 
   object-fit: cover;
+  border-top-right-radius: var(--border-radius-default);
+  border-bottom-right-radius: var(--border-radius-default);
 }
 
 .nftData {
   min-width: 0;
-  padding: 0.75rem 0.75rem 0.75rem 0.5rem;
+  padding: 0 0.75rem 0 0.625rem;
 }
 
 .nftName,
@@ -349,21 +317,87 @@
 .nftName {
   font-size: 0.9375rem;
   font-weight: 700;
-  line-height: 1.125rem;
-  color: var(--color-activity-gray-text);
 
-  .received & {
-    color: var(--color-activity-green-text);
+  @include is-mobile() {
+    font-size: 1rem;
   }
 }
 
 .nftCollection {
   font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1rem;
+  font-weight: 500;
   color: var(--color-gray-2);
 
-  .received & {
-    color: var(--color-green-2);
+  @include is-mobile() {
+    font-size: 0.8125rem;
+  }
+
+  .colorPositive & {
+    color: var(--color-activity-green-text-2);
+  }
+
+  .colorNegative & {
+    color: var(--color-activity-red-text-2);
+  }
+}
+
+.nft,
+.comment {
+  margin-top: 0.375rem;
+
+  color: var(--color-activity-gray-text);
+
+  background-color: var(--color-activity-gray-background);
+  border-radius: var(--border-radius-default);
+
+  &:not(.received) {
+    margin-inline-start: auto;
+
+    border-top-right-radius: var(--border-radius-mini);
+  }
+
+  &.received {
+    margin-inline-end: auto;
+
+    border-top-left-radius: var(--border-radius-mini);
+  }
+}
+
+.nftWithComment {
+  &:not(.received) {
+    border-bottom-right-radius: var(--border-radius-mini);
+  }
+
+  &.received {
+    border-bottom-left-radius: var(--border-radius-mini);
+  }
+}
+
+.color {
+  &Positive {
+    color: var(--color-activity-green-text);
+
+    background-color: var(--color-activity-green-background);
+  }
+
+  &Stake {
+    color: var(--color-activity-purple-text);
+
+    background-color: var(--color-activity-purple-background);
+  }
+
+  &Negative {
+    color: var(--color-activity-red-text);
+
+    background-color: var(--color-activity-red-background);
+  }
+}
+
+.takesAddressSpace {
+  &:not(& + &) {
+    $maxDateWidth: 2.75rem;
+
+    max-width: calc(100% - $maxDateWidth);
+    margin-top: -0.875rem;
   }
 }

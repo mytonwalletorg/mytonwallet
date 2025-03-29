@@ -3,11 +3,11 @@ import { Address } from '@ton/core';
 import type { ApiNetwork } from '../../types';
 
 import { getDnsDomainZone, isDnsDomain } from '../../../util/dns';
-import { fetchAddressBook } from './util/apiV3';
 import { dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
 import { getKnownAddressInfo } from '../../common/addresses';
 import { DnsCategory } from './constants';
+import { fetchAddressBook } from './toncenter';
 
 export async function resolveAddress(network: ApiNetwork, address: string): Promise<{
   address: string;

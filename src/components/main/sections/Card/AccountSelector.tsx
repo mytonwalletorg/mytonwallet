@@ -48,6 +48,7 @@ interface StateProps {
   currentWalletVersion?: ApiTonWalletVersion;
   isAppLockEnabled?: boolean;
   isFullscreen?: boolean;
+  isSensitiveDataHidden?: boolean;
   settingsByAccountId?: Record<string, AccountSettings>;
 }
 
@@ -69,6 +70,7 @@ function AccountSelector({
   currentWalletVersion,
   isAppLockEnabled,
   isFullscreen,
+  isSensitiveDataHidden,
   settingsByAccountId,
 }: OwnProps & StateProps) {
   const {
@@ -79,6 +81,7 @@ function AccountSelector({
     requestOpenQrScanner,
     openSettingsWithState,
     setIsManualLockActive,
+    setIsSensitiveDataHidden,
   } = getActions();
 
   // eslint-disable-next-line no-null/no-null
@@ -131,6 +134,10 @@ function AccountSelector({
   const handleOpenAccountSelector = () => {
     openAccountSelector();
   };
+
+  const handleSensitiveDataToggle = useLastCallback(() => {
+    setIsSensitiveDataHidden({ isHidden: !isSensitiveDataHidden });
+  });
 
   const handleSwitchAccount = useLastCallback((accountId: string) => {
     void vibrate();
@@ -233,7 +240,19 @@ function AccountSelector({
           )}
         </div>
         <div className={buildClassName(styles.menuButtons, isInsideSticky && styles.inStickyCard)}>
-          {isAppLockEnabled && !isInsideSticky && (
+          {!isInsideSticky && (
+            <Button
+              className={buildClassName(styles.menuButton, menuButtonClassName)}
+              isText
+              isSimple
+              kind="transparent"
+              ariaLabel={lang(isSensitiveDataHidden ? 'Show Sensitive Data' : 'Hide Sensitive Data')}
+              onClick={handleSensitiveDataToggle}
+            >
+              <i className={isSensitiveDataHidden ? 'icon-eye' : 'icon-eye-closed'} aria-hidden />
+            </Button>
+          )}
+          {isAppLockEnabled && (
             <Button
               className={buildClassName(styles.menuButton, menuButtonClassName)}
               isText
@@ -352,7 +371,11 @@ export default memo(withGlobal<OwnProps>(
       isFullscreen,
       shouldForceAccountEdit,
       walletVersions,
-      settings: { isAppLockEnabled, byAccountId: settingsByAccountId },
+      settings: {
+        isAppLockEnabled,
+        byAccountId: settingsByAccountId,
+        isSensitiveDataHidden,
+      },
     } = global;
 
     const accounts = selectNetworkAccounts(global);
@@ -367,6 +390,7 @@ export default memo(withGlobal<OwnProps>(
       isAppLockEnabled,
       settingsByAccountId,
       isFullscreen,
+      isSensitiveDataHidden,
     };
   },
   (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

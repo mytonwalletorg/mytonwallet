@@ -3,11 +3,12 @@ import type { LedgerWalletInfo } from '../../util/ledger/types';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
 import type {
   ApiAccountAny,
-  ApiAccountWithMnemonic, ApiChain,
+  ApiAccountWithMnemonic,
+  ApiActivityTimestamps,
+  ApiChain,
   ApiLedgerAccount,
   ApiNetwork,
   ApiTonWallet,
-  ApiTxTimestamps,
 } from '../types';
 import { ApiCommonError } from '../types';
 
@@ -216,7 +217,11 @@ export async function resetAccounts() {
   ]);
 }
 
-export async function removeAccount(accountId: string, nextAccountId: string, newestTxTimestamps?: ApiTxTimestamps) {
+export async function removeAccount(
+  accountId: string,
+  nextAccountId: string,
+  newestActivityTimestamps?: ApiActivityTimestamps,
+) {
   await Promise.all([
     removeAccountValue(accountId, 'accounts'),
     getEnvironment().isDappSupported && removeAccountDapps(accountId),
@@ -224,7 +229,7 @@ export async function removeAccount(accountId: string, nextAccountId: string, ne
   ]);
 
   deactivateCurrentAccount();
-  await activateAccount(nextAccountId, newestTxTimestamps);
+  await activateAccount(nextAccountId, newestActivityTimestamps);
 }
 
 export async function changePassword(oldPassword: string, password: string) {

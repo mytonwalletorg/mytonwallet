@@ -66,11 +66,11 @@ const cspFrameSrcExtra = IS_CORE_WALLET ? '' : [
 const CSP = `
   default-src 'none';
   manifest-src 'self';
-  connect-src 'self' https: ${cspConnectSrcExtra};
+  connect-src 'self' https: blob: ${cspConnectSrcExtra};
   script-src 'self' 'wasm-unsafe-eval' ${cspScriptSrcExtra};
   style-src 'self' https://fonts.googleapis.com/;
   img-src 'self' data: https: blob:;
-  media-src 'self' data:;
+  media-src 'self' data: https://static.mytonwallet.org/;
   object-src 'none';
   base-uri 'none';
   font-src 'self' https://fonts.gstatic.com/;
@@ -186,7 +186,7 @@ export default function createConfig(
           use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader'],
         },
         {
-          test: /\.(woff(2)?|ttf|eot|svg|png|jpg|tgs|webp|mp3)(\?v=\d+\.\d+\.\d+)?$/,
+          test: /\.(woff(2)?|ttf|eot|svg|png|jpg|tgs|webp|mp3|mp4|avif)(\?v=\d+\.\d+\.\d+)?$/,
           type: 'asset/resource',
         },
         {

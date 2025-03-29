@@ -1,0 +1,48 @@
+@import "../../styles/mixins";
+
+.button {
+  --color-accent: var(--action-color, var(--color-card-second-text));
+
+  cursor: var(--custom-cursor, pointer);
+
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--color-accent);
+
+  background: none;
+  border: none;
+  outline: none;
+
+  transition: color 300ms, opacity 0.15s ease !important;
+
+  :global(html.animation-level-0) &,
+    // Optimization
+  &:active {
+    transition: none !important;
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      --color-accent: var(--action-color-hover, var(--color-card-text));
+    }
+  }
+
+  &:active {
+    --color-accent: var(--action-color-hover, var(--color-card-text));
+  }
+}
+
+.icon {
+  position: absolute;
+  right: -0.0625rem;
+  bottom: -0.0625rem;
+}

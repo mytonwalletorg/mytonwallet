@@ -22,7 +22,8 @@ export type BottomSheetKeys =
   | 'dapp-transfer'
   | 'disclaimer'
   | 'backup-warning'
-  | 'onramp-widget';
+  | 'onramp-widget'
+  | 'mint-card';
 
 export interface BottomSheetPlugin {
   prepare(): Promise<void>;

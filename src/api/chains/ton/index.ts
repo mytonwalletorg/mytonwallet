@@ -18,21 +18,16 @@ export {
 export { oneCellFromBoc } from './util/tonCore';
 export {
   checkTransactionDraft,
-  getAccountNewestTxId,
-  fetchAccountTransactionSlice,
-  fetchTokenTransactionSlice,
+  getAccountNewestActionId,
   submitTransfer,
   checkMultiTransactionDraft,
   submitMultiTransfer,
-  getAllTransactionSlice,
   sendSignedMessage,
   sendSignedMessages,
   decryptComment,
-  waitUntilTransactionAppears,
-  fixTokenActivitiesAddressForm,
   submitTransferWithDiesel,
   fetchEstimateDiesel,
-} from './transactions';
+} from './transfer';
 export {
   getAccountBalance,
   getTonWallet,
@@ -83,7 +78,10 @@ export {
 } from './address';
 export {
   validateDexSwapTransfers,
-  swapReplaceTransactions,
 } from './swap';
 export { Workchain } from './constants';
 export { setupPolling, setupInactiveAccountsBalancePolling } from './polling';
+export {
+  fetchActivityDetails,
+  fetchActivitySlice,
+} from './activities';

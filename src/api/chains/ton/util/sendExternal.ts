@@ -1,7 +1,7 @@
 import type { Cell } from '@ton/core';
 import { beginCell, external, storeMessage } from '@ton/core';
 
-import type { GaslessType } from '../transactions';
+import type { GaslessType } from '../transfer';
 import type { TonClient } from './TonClient';
 import type { TonWallet } from './tonCore';
 

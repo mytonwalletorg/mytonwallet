@@ -5,17 +5,18 @@ import iconAddLight from '../../../assets/lottie/add_light.tgs';
 import iconClockDark from '../../../assets/lottie/clock_dark.tgs';
 import iconClockDarkBlue from '../../../assets/lottie/clock_dark_blue.tgs';
 import iconClockDarkGray from '../../../assets/lottie/clock_dark_gray.tgs';
-import iconClockDarkGrayWhite from '../../../assets/lottie/clock_dark_gray_white.tgs';
 import iconClockDarkGreen from '../../../assets/lottie/clock_dark_green.tgs';
 import iconClockDarkPurple from '../../../assets/lottie/clock_dark_purple.tgs';
 import iconClockDarkPurpleWhite from '../../../assets/lottie/clock_dark_purple_white.tgs';
+import iconClockDarkRed from '../../../assets/lottie/clock_dark_red.tgs';
 import iconClockLight from '../../../assets/lottie/clock_light.tgs';
 import iconClockLightBlue from '../../../assets/lottie/clock_light_blue.tgs';
 import iconClockLightGray from '../../../assets/lottie/clock_light_gray.tgs';
-import iconClockLightGrayWhite from '../../../assets/lottie/clock_light_gray_white.tgs';
 import iconClockLightGreen from '../../../assets/lottie/clock_light_green.tgs';
 import iconClockLightPurple from '../../../assets/lottie/clock_light_purple.tgs';
 import iconClockLightPurpleWhite from '../../../assets/lottie/clock_light_purple_white.tgs';
+import iconClockLightRed from '../../../assets/lottie/clock_light_red.tgs';
+import iconClockWhite from '../../../assets/lottie/clock_white.tgs';
 import coreWalletLogo from '../../../assets/lottie/core_wallet_logo.tgs';
 import bill from '../../../assets/lottie/duck_bill.tgs';
 import forge from '../../../assets/lottie/duck_forges.tgs';
@@ -40,17 +41,18 @@ import iconSwapLight from '../../../assets/lottie/swap_light.tgs';
 import iconClockPreviewDark from '../../../assets/lottiePreview/clock_dark.svg';
 import iconClockPreviewDarkBlue from '../../../assets/lottiePreview/clock_dark_blue.svg';
 import iconClockPreviewDarkGray from '../../../assets/lottiePreview/clock_dark_gray.svg';
-import iconClockPreviewDarkGrayWhite from '../../../assets/lottiePreview/clock_dark_gray_white.svg';
 import iconClockPreviewDarkGreen from '../../../assets/lottiePreview/clock_dark_green.svg';
 import iconClockPreviewDarkPurple from '../../../assets/lottiePreview/clock_dark_purple.svg';
 import iconClockPreviewDarkPurpleWhite from '../../../assets/lottiePreview/clock_dark_purple_white.svg';
+import iconClockPreviewDarkRed from '../../../assets/lottiePreview/clock_dark_red.svg';
 import iconClockPreviewLight from '../../../assets/lottiePreview/clock_light.svg';
 import iconClockPreviewLightBlue from '../../../assets/lottiePreview/clock_light_blue.svg';
 import iconClockPreviewLightGray from '../../../assets/lottiePreview/clock_light_gray.svg';
-import iconClockPreviewLightGrayWhite from '../../../assets/lottiePreview/clock_light_gray_white.svg';
 import iconClockPreviewLightGreen from '../../../assets/lottiePreview/clock_light_green.svg';
 import iconClockPreviewLightPurple from '../../../assets/lottiePreview/clock_light_purple.svg';
 import iconClockPreviewLightPurpleWhite from '../../../assets/lottiePreview/clock_light_purple_white.svg';
+import iconClockPreviewLightRed from '../../../assets/lottiePreview/clock_light_red.svg';
+import iconClockPreviewWhite from '../../../assets/lottiePreview/clock_white.svg';
 import coreWalletLogoPreview from '../../../assets/lottiePreview/core_wallet_logo.png';
 import billPreview from '../../../assets/lottiePreview/duck_bill.png';
 import forgePreview from '../../../assets/lottiePreview/duck_forges.png';
@@ -94,15 +96,17 @@ export const ANIMATED_STICKERS_PATHS = {
     coreWalletLogo,
     coreWalletLogoPreview,
   }),
+  clockWhite: iconClockWhite,
+  clockWhitePreview: iconClockPreviewWhite,
   light: {
     iconAdd: iconAddLight,
     iconClock: iconClockLight,
     iconClockBlue: iconClockLightBlue,
     iconClockGray: iconClockLightGray,
-    iconClockGrayWhite: iconClockLightGrayWhite,
     iconClockGreen: iconClockLightGreen,
     iconClockPurple: iconClockLightPurple,
     iconClockPurpleWhite: iconClockLightPurpleWhite,
+    iconClockRed: iconClockLightRed,
     iconEarn: iconEarnLight,
     iconEarnPurple: iconEarnLightPurple,
     iconSend: iconSendLight,
@@ -111,10 +115,10 @@ export const ANIMATED_STICKERS_PATHS = {
       iconClock: iconClockPreviewLight,
       iconClockBlue: iconClockPreviewLightBlue,
       iconClockGray: iconClockPreviewLightGray,
-      iconClockGrayWhite: iconClockPreviewLightGrayWhite,
       iconClockGreen: iconClockPreviewLightGreen,
       iconClockPurple: iconClockPreviewLightPurple,
       iconClockPurpleWhite: iconClockPreviewLightPurpleWhite,
+      iconClockRed: iconClockPreviewLightRed,
     },
   },
   dark: {
@@ -122,10 +126,10 @@ export const ANIMATED_STICKERS_PATHS = {
     iconClock: iconClockDark,
     iconClockBlue: iconClockDarkBlue,
     iconClockGray: iconClockDarkGray,
-    iconClockGrayWhite: iconClockDarkGrayWhite,
     iconClockGreen: iconClockDarkGreen,
     iconClockPurple: iconClockDarkPurple,
     iconClockPurpleWhite: iconClockDarkPurpleWhite,
+    iconClockRed: iconClockDarkRed,
     iconEarn: iconEarnDark,
     iconEarnPurple: iconEarnDarkPurple,
     iconSend: iconSendDark,
@@ -134,10 +138,10 @@ export const ANIMATED_STICKERS_PATHS = {
       iconClock: iconClockPreviewDark,
       iconClockBlue: iconClockPreviewDarkBlue,
       iconClockGray: iconClockPreviewDarkGray,
-      iconClockGrayWhite: iconClockPreviewDarkGrayWhite,
       iconClockGreen: iconClockPreviewDarkGreen,
       iconClockPurple: iconClockPreviewDarkPurple,
       iconClockPurpleWhite: iconClockPreviewDarkPurpleWhite,
+      iconClockRed: iconClockPreviewDarkRed,
     },
   },
 };

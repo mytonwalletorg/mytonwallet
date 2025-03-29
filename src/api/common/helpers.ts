@@ -1,12 +1,11 @@
 import type chains from '../chains';
-import type { ApiTransactionExtra } from '../chains/ton/types';
 import type { ApiDbSseConnection } from '../db';
 import type { StorageKey } from '../storages/types';
 import type {
+  ApiActivity,
   ApiLocalTransactionParams,
   ApiTonAccount,
   ApiTonWallet,
-  ApiTransaction,
   ApiTransactionActivity,
   OnApiUpdate,
 } from '../types';
@@ -15,6 +14,7 @@ import {
   IS_CAPACITOR, IS_CORE_WALLET, IS_EXTENSION, MAIN_ACCOUNT_ID,
 } from '../../config';
 import { parseAccountId } from '../../util/account';
+import { buildLocalTxId } from '../../util/activities';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { assert } from '../../util/assert';
 import { logDebugError } from '../../util/logs';
@@ -27,12 +27,12 @@ import idbStorage from '../storages/idb';
 import localStorage from '../storages/localStorage';
 import { isAccountActive } from './accounts';
 import {
-  checkHasScamLink, checkHasTelegramBotMention, getKnownAddresses, getScamMarkers,
+  checkHasScamLink,
+  checkHasTelegramBotMention,
+  getKnownAddresses,
+  getScamMarkers,
 } from './addresses';
 import { hexToBytes } from './utils';
-
-let localCounter = 0;
-const getNextLocalId = () => `${Date.now()}|${localCounter++}`;
 
 const actualStateVersion = 17;
 let migrationEnsurePromise: Promise<void>;
@@ -40,33 +40,34 @@ let migrationEnsurePromise: Promise<void>;
 export function buildLocalTransaction(
   params: ApiLocalTransactionParams,
   normalizedAddress: string,
+  subId?: number,
 ): ApiTransactionActivity {
-  const { amount, txId, ...restParams } = params;
+  const { amount, ...restParams } = params;
+  const txId = buildLocalTxId(params.txId ?? params.externalMsgHash!, subId);
 
-  const transaction: ApiTransaction = updateTransactionMetadata({
+  return updateActivityMetadata({
     ...restParams,
-    txId: txId ? `${txId}|` : getNextLocalId(),
+    id: txId,
+    kind: 'transaction',
+    txId,
     timestamp: Date.now(),
     isIncoming: false,
     amount: -amount,
     normalizedAddress,
-    extraData: {},
   });
-
-  return {
-    ...transaction,
-    id: transaction.txId,
-    kind: 'transaction',
-  };
 }
 
-export function updateTransactionMetadata(transaction: ApiTransactionExtra): ApiTransactionExtra {
-  const {
-    normalizedAddress, comment, type, isIncoming, nft,
-  } = transaction;
-  let { metadata = {} } = transaction;
+export function updateActivityMetadata<T extends ApiActivity>(activity: T): T {
+  if (activity.kind !== 'transaction') {
+    return activity;
+  }
 
-  const isNftTransfer = type === 'nftTransferred' || type === 'nftReceived' || Boolean(nft);
+  const {
+    normalizedAddress, comment, isIncoming, nft,
+  } = activity;
+  let { metadata = {} } = activity;
+
+  const isNftTransfer = Boolean(nft);
   const knownAddresses = getKnownAddresses();
   const hasScamMarkers = comment ? getScamMarkers().some((sm) => sm.test(comment)) : false;
   const shouldCheckComment = !hasScamMarkers && comment && isIncoming
@@ -83,7 +84,7 @@ export function updateTransactionMetadata(transaction: ApiTransactionExtra): Api
     metadata.isScam = true;
   }
 
-  return { ...transaction, metadata };
+  return { ...activity, metadata };
 }
 
 let currentOnUpdate: OnApiUpdate | undefined;

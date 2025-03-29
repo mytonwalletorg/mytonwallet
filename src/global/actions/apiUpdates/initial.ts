@@ -142,12 +142,14 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     case 'nftReceived': {
       const { accountId, nft } = update;
       global = addNft(global, accountId, nft);
-      if (nft.collectionAddress === MTW_CARDS_COLLECTION) {
-        global = updateAccountSettingsBackgroundNft(global, nft);
-      }
       setGlobal(global);
 
       actions.checkCardNftOwnership();
+      // If a user received an NFT card from the MyTonWallet collection, it is applied immediately
+      if (nft.collectionAddress === MTW_CARDS_COLLECTION) {
+        actions.setCardBackgroundNft({ nft });
+        actions.installAccentColorFromNft({ nft });
+      }
       break;
     }
 
@@ -280,6 +282,13 @@ addActionHandler('apiUpdate', (global, actions, update) => {
           actions.toggleTonProxy({ isEnabled: true });
         }
       });
+      break;
+    }
+
+    case 'updateAccountConfig': {
+      const { accountConfig, accountId } = update;
+      global = updateAccountState(global, accountId, { config: accountConfig });
+      setGlobal(global);
     }
   }
 });
