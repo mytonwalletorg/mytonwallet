@@ -1,11 +1,10 @@
 import type { RefObject } from 'react';
-import { useEffect, useRef, useState } from '../lib/teact/teact';
+import { useEffect, useRef, useSignal } from '../lib/teact/teact';
 
 import type { Scheduler } from '../util/schedulers';
 
-import {
-  debounce, throttle, throttleWith,
-} from '../util/schedulers';
+import { debounce, throttle, throttleWith } from '../util/schedulers';
+import useDerivedState from './useDerivedState';
 import useHeavyAnimation from './useHeavyAnimation';
 import useLastCallback from './useLastCallback';
 
@@ -177,10 +176,10 @@ export function useOnIntersect(
   }, [lastCallback, observe, targetRef]);
 }
 
-export function useIsIntersecting(
+export function useGetIsIntersecting(
   targetRef: RefObject<HTMLElement>, observe?: ObserveFn, callback?: TargetCallback,
 ) {
-  const [isIntersecting, setIsIntersecting] = useState(!observe);
+  const [getIsIntersecting, setIsIntersecting] = useSignal(!observe);
 
   useOnIntersect(targetRef, observe, (entry) => {
     setIsIntersecting(entry.isIntersecting);
@@ -190,5 +189,11 @@ export function useIsIntersecting(
     }
   });
 
-  return isIntersecting;
+  return getIsIntersecting;
+}
+
+export function useIsIntersecting(
+  targetRef: RefObject<HTMLElement>, observe?: ObserveFn, callback?: TargetCallback,
+) {
+  return useDerivedState(useGetIsIntersecting(targetRef, observe, callback));
 }

@@ -154,8 +154,10 @@ function SwapModal({
   });
 
   const handleTransactionInfoClick = useLastCallback(() => {
+    if (!activityId) return;
+
     cancelSwap({ shouldReset: true });
-    showActivityInfo({ id: activityId! });
+    showActivityInfo({ id: activityId });
   });
 
   const handleModalClose = useLastCallback(() => {
@@ -260,6 +262,7 @@ function SwapModal({
             onClose={handleModalCloseWithReset}
             onInfoClick={handleTransactionInfoClick}
             onStartSwap={handleStartSwap}
+            isDetailsDisabled={!activityId}
           />
         );
       }

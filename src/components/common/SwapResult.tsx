@@ -30,6 +30,7 @@ interface OwnProps {
   toAddress?: string;
   onFirstButtonClick?: NoneToVoidFunction;
   onSecondButtonClick?: NoneToVoidFunction;
+  isFirstButtonDisabled?: boolean;
 }
 
 interface StateProps {
@@ -51,6 +52,7 @@ function SwapResult({
   isSensitiveDataHidden,
   onFirstButtonClick,
   onSecondButtonClick,
+  isFirstButtonDisabled,
 }: OwnProps & StateProps) {
   const lang = useLang();
 
@@ -69,7 +71,13 @@ function SwapResult({
     return (
       <div className={styles.buttons}>
         {firstButtonText && (
-          <Button className={styles.button} onClick={onFirstButtonClick}>{firstButtonText}</Button>
+          <Button
+            className={styles.button}
+            onClick={onFirstButtonClick}
+            isDisabled={isFirstButtonDisabled}
+          >
+            {firstButtonText}
+          </Button>
         )}
         {secondButtonText && (
           <Button className={styles.button} onClick={onSecondButtonClick}>{secondButtonText}</Button>

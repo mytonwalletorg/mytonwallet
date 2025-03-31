@@ -22,8 +22,9 @@ import type { ApiSubmitTransferOptions } from './types';
 import { SWAP_API_VERSION, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { buildLocalTxId } from '../../util/activities';
+import { omitUndefined } from '../../util/iteratees';
 import chains from '../chains';
-import { fetchStoredTonWallet } from '../common/accounts';
+import { fetchStoredAccount, fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet, callBackendPost } from '../common/backend';
 import {
   getSwapItemSlug, patchSwapItem, swapGetHistoryItem, swapItemToActivity,
@@ -89,8 +90,10 @@ export async function swapSubmit(
   isGasless?: boolean,
 ) {
   const swapId = historyItem.id;
-  const authToken = await getBackendAuthToken(accountId, password);
-  const { address } = await fetchStoredTonWallet(accountId);
+  const account = await fetchStoredAccount(accountId);
+
+  const { ton: { address } } = account;
+  const authToken = account.ton.authToken ?? await getBackendAuthToken(accountId, password);
 
   try {
     const transferList: TonTransferParams[] = transfers.map((transfer) => ({
@@ -129,19 +132,19 @@ export async function swapSubmit(
       to,
       kind: 'swap',
       externalMsgHash: result.msgHash,
-      extra: {
-        ...('withW5Gasless' in result && { withW5Gasless: result.withW5Gasless }),
-      },
+      extra: omitUndefined({
+        withW5Gasless: result.withW5Gasless,
+      }),
     };
-
-    await patchSwapItem({
-      address, swapId, authToken, msgHash: result.msgHash,
-    });
 
     onUpdate({
       type: 'newLocalActivity',
       accountId,
       activity: swap,
+    });
+
+    await patchSwapItem({
+      address, swapId, authToken, msgHash: result.msgHash,
     });
 
     void callHook('onSwapCreated', accountId, swap.timestamp - 1);

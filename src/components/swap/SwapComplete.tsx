@@ -25,6 +25,7 @@ interface OwnProps {
   onInfoClick: NoneToVoidFunction;
   onStartSwap: NoneToVoidFunction;
   onClose: NoneToVoidFunction;
+  isDetailsDisabled?: boolean;
 }
 
 function SwapComplete({
@@ -38,6 +39,7 @@ function SwapComplete({
   onInfoClick,
   onStartSwap,
   onClose,
+  isDetailsDisabled,
 }: OwnProps) {
   const lang = useLang();
 
@@ -63,6 +65,7 @@ function SwapComplete({
           secondButtonText={lang('Repeat')}
           onFirstButtonClick={onInfoClick}
           onSecondButtonClick={onStartSwap}
+          isFirstButtonDisabled={isDetailsDisabled}
         />
 
         <div className={modalStyles.buttons}>

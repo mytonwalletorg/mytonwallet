@@ -2,7 +2,7 @@ import type { ApiActivity, ApiTransactionActivity } from '../../../api/types';
 import type { GlobalState } from '../../types';
 import { TransferState } from '../../types';
 
-import { MTW_CARDS_COLLECTION } from '../../../config';
+import { IS_CORE_WALLET, MTW_CARDS_COLLECTION } from '../../../config';
 import { parseTxId } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
@@ -22,7 +22,8 @@ import {
   putInitialActivities,
   removeActivities,
   replaceCurrentActivityId,
-  replaceCurrentTransferTxId,
+  replaceCurrentSwapId,
+  replaceCurrentTransferId,
   setIsInitialActivitiesLoadedTrue,
   updateAccountState,
   updateActivitiesIsLoadingByAccount,
@@ -96,14 +97,17 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = removeActivities(global, accountId, replacedLocalIds.keys());
       global = addNewActivities(global, accountId, incomingActivities);
 
-      global = replaceCurrentTransferTxId(global, replacedLocalIds);
+      global = replaceCurrentTransferId(global, replacedLocalIds);
+      global = replaceCurrentSwapId(global, replacedLocalIds);
       global = replaceCurrentActivityId(global, accountId, replacedLocalIds);
       notifyAboutNewActivities(global, newActivities);
 
-      // NFT polling is executed at long intervals, so it is more likely that a user will see a new transaction
-      // rather than receiving a card in the collection. Therefore, when a new activity occurs,
-      // we check for a card from the MyTonWallet collection and apply it.
-      global = processCardMintingActivity(global, accountId, incomingActivities);
+      if (!IS_CORE_WALLET) {
+        // NFT polling is executed at long intervals, so it is more likely that a user will see a new transaction
+        // rather than receiving a card in the collection. Therefore, when a new activity occurs,
+        // we check for a card from the MyTonWallet collection and apply it.
+        global = processCardMintingActivity(global, accountId, incomingActivities);
+      }
 
       if (chain) {
         global = setIsInitialActivitiesLoadedTrue(global, accountId, chain);

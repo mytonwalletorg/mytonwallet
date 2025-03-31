@@ -11,8 +11,8 @@ const SIGNAL_MARK = Symbol('SIGNAL_MARK');
 
 export type Signal<T = any> = ((() => T) & {
   readonly [SIGNAL_MARK]: symbol;
-  subscribe: (cb: AnyToVoidFunction) => NoneToVoidFunction;
-  once: (cb: AnyToVoidFunction) => NoneToVoidFunction;
+  subscribe: (cb: NoneToVoidFunction) => NoneToVoidFunction;
+  once: (cb: NoneToVoidFunction) => NoneToVoidFunction;
 });
 
 export type SignalSetter = (newValue: any) => void;

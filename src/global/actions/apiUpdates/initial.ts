@@ -113,11 +113,13 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         },
       });
 
-      update.nfts.forEach((nft) => {
-        if (nft.collectionAddress === MTW_CARDS_COLLECTION) {
-          global = updateAccountSettingsBackgroundNft(global, nft);
-        }
-      });
+      if (!IS_CORE_WALLET) {
+        update.nfts.forEach((nft) => {
+          if (nft.collectionAddress === MTW_CARDS_COLLECTION) {
+            global = updateAccountSettingsBackgroundNft(global, nft);
+          }
+        });
+      }
       setGlobal(global);
 
       actions.checkCardNftOwnership();
@@ -144,11 +146,13 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = addNft(global, accountId, nft);
       setGlobal(global);
 
-      actions.checkCardNftOwnership();
-      // If a user received an NFT card from the MyTonWallet collection, it is applied immediately
-      if (nft.collectionAddress === MTW_CARDS_COLLECTION) {
-        actions.setCardBackgroundNft({ nft });
-        actions.installAccentColorFromNft({ nft });
+      if (!IS_CORE_WALLET) {
+        actions.checkCardNftOwnership();
+        // If a user received an NFT card from the MyTonWallet collection, it is applied immediately
+        if (nft.collectionAddress === MTW_CARDS_COLLECTION) {
+          actions.setCardBackgroundNft({ nft });
+          actions.installAccentColorFromNft({ nft });
+        }
       }
       break;
     }

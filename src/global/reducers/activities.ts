@@ -13,6 +13,7 @@ import {
 } from '../../util/iteratees';
 import { selectAccountState } from '../selectors';
 import { updateAccountState } from './misc';
+import { updateCurrentSwap } from './swap';
 
 /*
   Used for the initial activities insertion into `global`.
@@ -256,6 +257,15 @@ export function replaceCurrentActivityId(global: GlobalState, accountId: string,
   const newActivityId = currentActivityId && replaceMap.get(currentActivityId);
   if (newActivityId) {
     global = updateAccountState(global, accountId, { currentActivityId: newActivityId });
+  }
+  return global;
+}
+
+/** replaceMap: keys - old (removed) activity ids, value - new (added) activity ids */
+export function replaceCurrentSwapId(global: GlobalState, replaceMap: Map<string, string>) {
+  const newSwapId = global.currentSwap.activityId && replaceMap.get(global.currentSwap.activityId);
+  if (newSwapId !== undefined) {
+    global = updateCurrentSwap(global, { activityId: newSwapId });
   }
   return global;
 }

@@ -10,10 +10,10 @@ import { clamp } from '../../util/math';
 import { random } from '../../util/random';
 import { DPR } from '../../util/windowEnvironment';
 
-import { useIsIntersectingWithApp } from '../../hooks/useAppIntersectionObserver';
+import { useGetIsIntersectingWithApp } from '../../hooks/useAppIntersectionObserver';
 import useAppTheme from '../../hooks/useAppTheme';
-import { isBackgroundModeActive } from '../../hooks/useBackgroundMode';
-import { useStateRef } from '../../hooks/useStateRef';
+import { getIsInBackground } from '../../hooks/useBackgroundMode';
+import useDerivedSignal from '../../hooks/useDerivedSignal';
 
 import styles from './SensitiveDataMask.module.scss';
 
@@ -31,6 +31,23 @@ interface OwnProps {
 
 interface StateProps {
   theme: Theme;
+}
+
+interface AnimationState {
+  opacityValues: number[][];
+  steps: number[][];
+  lastSpeedChangeAt?: number;
+  isRendered: boolean;
+}
+
+interface RenderOptions {
+  ctx: CanvasRenderingContext2D;
+  cols: number;
+  rows: number;
+  width: number;
+  height: number;
+  cellSizeDpr: number;
+  color: string;
 }
 
 // STEPS values are pre-multiplied by 1 / (1000 / 60) to compensate for FPS
@@ -69,85 +86,55 @@ function SensitiveDataMask({
   const appTheme = useAppTheme(theme);
   const color = SKIN_COLORS[skin ?? `${appTheme}Theme`];
 
-  const isIntersectingRef = useStateRef(useIsIntersectingWithApp(canvasRef));
+  const animationStateRef = useRef<AnimationState>({
+    opacityValues: [],
+    steps: [],
+    lastSpeedChangeAt: undefined,
+    isRendered: false,
+  });
+
+  const getIsIntersecting = useGetIsIntersectingWithApp(canvasRef);
+  const getIsInBackground2 = getIsInBackground;
+  const getShouldAnimate = useDerivedSignal(
+    () => getIsIntersecting() && !getIsInBackground2(),
+    [getIsIntersecting, getIsInBackground2],
+  );
 
   useLayoutEffect(() => {
+    const state = animationStateRef.current;
+
+    if (state.isRendered && !getShouldAnimate()) return undefined;
+
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext('2d')!;
-
     const width = cols * cellSizeDpr;
     const height = rows * cellSizeDpr;
 
-    const opacityInitials: number[][] = [];
-    const steps: number[][] = [];
-
+    let shouldStop = false;
     let lastFrameAt: number | undefined;
-    let lastSpeedChangeAt: number | undefined;
-
-    let shouldAnimate = true;
-    let isRendered = false;
 
     canvas.width = width;
     canvas.height = height;
 
-    function renderFrame(frameDuration = 0) {
-      const now = performance.now();
-      const shouldChangeSpeed = lastSpeedChangeAt ? now - lastSpeedChangeAt >= CHANGE_SPEED_INTERVAL : false;
+    state.lastSpeedChangeAt = undefined;
 
-      if (shouldChangeSpeed || !lastSpeedChangeAt) {
-        lastSpeedChangeAt = now;
-      }
-
-      ctx.clearRect(0, 0, width, height);
-
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          steps[row] ??= [];
-          opacityInitials[row] ??= [];
-
-          if (shouldChangeSpeed) {
-            steps[row][col] = sample(STEPS) * (steps[row][col] < 0 ? -1 : 1);
-          } else {
-            steps[row][col] ??= sample(STEPS);
-          }
-
-          let nextOpacity = opacityInitials[row][col] ?? (Math.random() * (TO - FROM) + FROM);
-          nextOpacity += steps[row][col] * frameDuration;
-          if (nextOpacity > TO || nextOpacity < FROM) {
-            steps[row][col] *= -1;
-            nextOpacity = clamp(nextOpacity, FROM, TO);
-          }
-
-          opacityInitials[row][col] = nextOpacity;
-
-          ctx.fillStyle = `rgba(${color}, ${nextOpacity})`;
-          ctx.fillRect(col * cellSizeDpr, row * cellSizeDpr, cellSizeDpr, cellSizeDpr);
-
-          isRendered ||= true;
-        }
-      }
-    }
+    const renderOptions = { ctx, cols, rows, width, height, cellSizeDpr, color };
 
     animateInstantly(() => {
-      if (!shouldAnimate) return false;
-
-      if (isRendered && (!isIntersectingRef.current || isBackgroundModeActive())) {
-        lastFrameAt = undefined;
-        lastSpeedChangeAt = undefined;
-        return true;
-      }
+      if (shouldStop || (state.isRendered && !getShouldAnimate())) return false;
 
       const now = performance.now();
-      renderFrame(lastFrameAt ? now - lastFrameAt : 0);
+      const frameDuration = lastFrameAt ? now - lastFrameAt : 0;
+      renderFrame(renderOptions, state, frameDuration);
       lastFrameAt = now;
 
       return true;
     }, requestMutation);
 
     return () => {
-      shouldAnimate = false;
+      shouldStop = true;
     };
-  }, [cellSizeDpr, color, cols, rows, isIntersectingRef]);
+  }, [cols, rows, cellSizeDpr, getShouldAnimate, color]);
 
   return (
     <canvas
@@ -156,6 +143,52 @@ function SensitiveDataMask({
       className={buildClassName(styles.canvas, className)}
     />
   );
+}
+
+function renderFrame(
+  options: RenderOptions,
+  state: AnimationState,
+  frameDuration = 0,
+) {
+  const {
+    ctx, cols, rows, cellSizeDpr, width, height, color,
+  } = options;
+
+  const now = performance.now();
+  const shouldChangeSpeed = state.lastSpeedChangeAt ? now - state.lastSpeedChangeAt >= CHANGE_SPEED_INTERVAL : false;
+
+  if (shouldChangeSpeed || !state.lastSpeedChangeAt) {
+    state.lastSpeedChangeAt = now;
+  }
+
+  ctx.clearRect(0, 0, width, height);
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      state.steps[row] ??= [];
+      state.opacityValues[row] ??= [];
+
+      if (shouldChangeSpeed) {
+        state.steps[row][col] = sample(STEPS) * (state.steps[row][col] < 0 ? -1 : 1);
+      } else {
+        state.steps[row][col] ??= sample(STEPS);
+      }
+
+      let nextOpacity = state.opacityValues[row][col] ?? (Math.random() * (TO - FROM) + FROM);
+      nextOpacity += state.steps[row][col] * frameDuration;
+      if (nextOpacity > TO || nextOpacity < FROM) {
+        state.steps[row][col] *= -1;
+        nextOpacity = clamp(nextOpacity, FROM, TO);
+      }
+
+      state.opacityValues[row][col] = nextOpacity;
+
+      ctx.fillStyle = `rgba(${color}, ${nextOpacity})`;
+      ctx.fillRect(col * cellSizeDpr, row * cellSizeDpr, cellSizeDpr, cellSizeDpr);
+
+      state.isRendered ||= true;
+    }
+  }
 }
 
 // Returns a random element from the array

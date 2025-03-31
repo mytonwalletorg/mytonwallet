@@ -1,25 +1,19 @@
 import { useEffect } from '../lib/teact/teact';
 
 import { IS_TELEGRAM_APP } from '../config';
-import { createCallbackManager } from '../util/callbacks';
+import { createSignal } from '../util/signals';
 import { getTelegramAppAsync } from '../util/telegram';
 import useLastCallback from './useLastCallback';
 
-const blurCallbacks = createCallbackManager();
-const focusCallbacks = createCallbackManager();
-
-let isFocused = document.hasFocus();
+const [getIsInBackgroundLocal, setIsInBackground] = createSignal(!document.hasFocus());
+export const getIsInBackground = getIsInBackgroundLocal;
 
 function handleBlur() {
-  if (!isFocused) return;
-
-  isFocused = false;
-  blurCallbacks.runCallbacks();
+  setIsInBackground(true);
 }
 
 function handleFocus() {
-  isFocused = true;
-  focusCallbacks.runCallbacks();
+  setIsInBackground(false);
 }
 
 if (IS_TELEGRAM_APP) {
@@ -45,20 +39,20 @@ export default function useBackgroundMode(
       return undefined;
     }
 
-    if (!isFocused) {
+    if (getIsInBackground()) {
       lastOnBlur();
     }
 
-    blurCallbacks.addCallback(lastOnBlur);
-    focusCallbacks.addCallback(lastOnFocus);
-
-    return () => {
-      focusCallbacks.removeCallback(lastOnFocus);
-      blurCallbacks.removeCallback(lastOnBlur);
-    };
+    return getIsInBackground.subscribe(() => {
+      if (getIsInBackground()) {
+        lastOnBlur();
+      } else {
+        lastOnFocus();
+      }
+    });
   }, [isDisabled, lastOnBlur, lastOnFocus]);
 }
 
 export function isBackgroundModeActive() {
-  return !isFocused;
+  return getIsInBackground();
 }

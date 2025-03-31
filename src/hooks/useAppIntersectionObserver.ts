@@ -2,7 +2,7 @@ import type { RefObject } from 'react';
 
 import type { ObserveFn } from './useIntersectionObserver';
 
-import { useIntersectionObserver, useIsIntersecting } from './useIntersectionObserver';
+import { useGetIsIntersecting, useIntersectionObserver } from './useIntersectionObserver';
 
 let observeIntersection: ObserveFn;
 
@@ -16,6 +16,6 @@ export function useAppIntersectionObserver() {
   observeIntersection = observe;
 }
 
-export function useIsIntersectingWithApp(targetRef: RefObject<HTMLElement>) {
-  return useIsIntersecting(targetRef, observeIntersection);
+export function useGetIsIntersectingWithApp(targetRef: RefObject<HTMLElement>) {
+  return useGetIsIntersecting(targetRef, observeIntersection);
 }

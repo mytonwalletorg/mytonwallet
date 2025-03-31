@@ -319,8 +319,14 @@ function parseContractDeploy(
     return undefined;
   }
 
+  // Deploy action is additional and always occurs alongside others (duplicating amount), so we hide amount and fee.
+  // Also, since `start_lt` might match another action, we’ll make ID unique.
+  const id = buildTxId(action.trace_id, `${action.start_lt}0`);
+
   return {
     ...partial,
+    id,
+    txId: id,
     slug: TONCOIN.slug,
     amount: -0n,
     isIncoming: false,
@@ -328,6 +334,8 @@ function parseContractDeploy(
     toAddress,
     normalizedAddress: toBase64Address(toAddress, true, network),
     type: 'contractDeploy',
+    shouldLoadDetails: false,
+    fee: 0n,
   };
 }
 
