@@ -451,6 +451,7 @@ export const DEFAULT_PRICE_CURRENCY = 'USD';
 export const SHORT_CURRENCY_SYMBOL_MAP = {
   USD: '$',
   EUR: '€',
+  UAH: '₴',
   RUB: '₽',
   CNY: '¥',
 };
@@ -461,6 +462,9 @@ export const CURRENCY_LIST: { value: ApiBaseCurrency; name: string }[] = [
   }, {
     value: 'EUR',
     name: 'Euro',
+  }, {
+    value: 'UAH',
+    name: 'Hryvnia',
   }, {
     value: 'RUB',
     name: 'Ruble',
