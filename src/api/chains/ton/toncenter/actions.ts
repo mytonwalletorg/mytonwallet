@@ -1,3 +1,4 @@
+import type { Slice } from '@ton/core';
 import { Cell } from '@ton/core';
 
 import type {
@@ -54,6 +55,7 @@ import { toDecimal } from '../../../../util/decimals';
 import { getDnsDomainZone } from '../../../../util/dns';
 import { omitUndefined } from '../../../../util/iteratees';
 import { fixIpfsUrl } from '../../../../util/metadata';
+import safeExec from '../../../../util/safeExec';
 import { readComment } from '../util/metadata';
 import { toBase64Address } from '../util/tonCore';
 import { checkHasScamLink, checkIsTrustedCollection } from '../../../common/addresses';
@@ -133,7 +135,7 @@ export async function fetchActions(options: {
 }
 
 function parseAction(action: AnyAction, options: ParseOptions): MaybePromise<ApiActivity[]> {
-  const id = buildTxId(action.trace_id, action.start_lt);
+  const id = buildActionActivityId(action);
 
   const partialTx: PartialTx = {
     kind: 'transaction',
@@ -320,13 +322,9 @@ function parseContractDeploy(
   }
 
   // Deploy action is additional and always occurs alongside others (duplicating amount), so we hide amount and fee.
-  // Also, since `start_lt` might match another action, we’ll make ID unique.
-  const id = buildTxId(action.trace_id, `${action.start_lt}0`);
 
   return {
     ...partial,
-    id,
-    txId: id,
     slug: TONCOIN.slug,
     amount: -0n,
     isIncoming: false,
@@ -468,7 +466,7 @@ function parseNftTransfer(
     return undefined;
   }
 
-  const comment = (forwardPayload && readComment(Cell.fromBase64(forwardPayload).asSlice())) || undefined;
+  const comment = (forwardPayload && safeReadComment(Cell.fromBase64(forwardPayload).asSlice())) || undefined;
   const type = toAddress === BURN_ADDRESS ? 'burn' : undefined;
 
   return {
@@ -589,8 +587,6 @@ function parseStakeWithdrawalRequest(
 function parseJettonSwap(action: SwapAction, options: ParseOptions): ApiSwapActivity {
   const { metadata } = options;
   const {
-    trace_id: traceId,
-    start_lt: startLt,
     end_utime: endUtime,
     success: isSuccess,
     details: {
@@ -618,7 +614,7 @@ function parseJettonSwap(action: SwapAction, options: ParseOptions): ApiSwapActi
 
   return {
     kind: 'swap',
-    id: buildTxId(traceId, startLt),
+    id: buildActionActivityId(action),
     timestamp: toMilliseconds(endUtime),
     from,
     fromAmount: toDecimal(BigInt(fromAmount), decimalsFrom),
@@ -746,7 +742,7 @@ function parseLiquidityDeposit(
   }];
 
   if (details.lp_tokens_minted) {
-    const id = buildTxId(action.trace_id, action.start_lt, 'additional');
+    const id = buildActionActivityId(action, 'additional');
     activities.push({
       ...partialExtended,
       id,
@@ -776,7 +772,7 @@ function parseLiquidityWithdraw(
     type: 'liquidityWithdraw',
   } as const;
 
-  const additionalId = buildTxId(action.trace_id, action.start_lt, 'additional');
+  const additionalId = buildActionActivityId(action, 'additional');
 
   return [
     {
@@ -922,4 +918,19 @@ function extractMetadata<T extends AnyTokenMetadata>(
   const data = metadata[rawAddress];
   if (!data || !data.is_indexed) return undefined;
   return data.token_info?.find((tokenInfo) => tokenInfo.type === type) as T;
+}
+
+function safeReadComment(slice: Slice) {
+  return safeExec(() => readComment(slice));
+}
+
+function buildActionActivityId(action: AnyAction, type?: 'additional') {
+  // `lt` in activity ID is needed for sorting when timestamps are same
+  const subId = `${action.start_lt}-${action.action_id}`;
+  return buildTxId(action.trace_id, subId, type);
+}
+
+export function parseActionActivitySubId(subId: string) {
+  const [startLt, actionId] = subId.split('-');
+  return { startLt, actionId };
 }

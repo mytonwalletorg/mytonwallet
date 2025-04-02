@@ -396,6 +396,7 @@ function SwapActivityModal({
           copyNotification={lang('Address was copied!')}
           noSavedAddress
           noExplorer
+          noDimming
         />
       </div>
     );
@@ -429,6 +430,7 @@ function SwapActivityModal({
             copyNotification={lang('Address was copied!')}
             noSavedAddress
             noExplorer
+            noDimming
           />
           {renderMemo()}
           {shouldShowQrCode && (

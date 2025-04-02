@@ -4,6 +4,7 @@ import { TRX } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { getChainConfig } from '../../../util/chain';
 import { compareActivities } from '../../../util/compareActivities';
+import isEmptyObject from '../../../util/isEmptyObject';
 import { logDebugError } from '../../../util/logs';
 import { pauseOrFocus } from '../../../util/pauseOrFocus';
 import { fetchStoredAccounts, fetchStoredTronWallet, getActiveAccountId } from '../../common/accounts';
@@ -55,7 +56,12 @@ export async function setupPolling(
           },
         });
 
-        newestActivityTimestamps = await processNewActivities(accountId, newestActivityTimestamps, slugs, onUpdate);
+        if (isEmptyObject(newestActivityTimestamps)) {
+          newestActivityTimestamps = await loadInitialActivities(accountId, slugs, onUpdate);
+        } else {
+          newestActivityTimestamps = await loadNewActivities(accountId, newestActivityTimestamps, slugs, onUpdate);
+        }
+
         accountLastBalances[TRX.slug] = trxBalance;
         accountLastBalances[usdtAddress] = usdtBalance;
       }
@@ -112,9 +118,8 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
   }
 }
 
-async function processNewActivities(
+async function loadInitialActivities(
   accountId: string,
-  newestActivityTimestamps: ApiActivityTimestamps,
   tokenSlugs: string[],
   onUpdate: OnApiUpdate,
 ) {
@@ -122,12 +127,11 @@ async function processNewActivities(
   const bySlug: Record<string, ApiActivity[]> = {};
 
   const chunks = await Promise.all(tokenSlugs.map(async (slug) => {
-    const newestActivityTimestamp = newestActivityTimestamps[slug];
     const transactions = await getTokenTransactionSlice(
-      accountId, slug, undefined, newestActivityTimestamp, FIRST_TRANSACTIONS_LIMIT,
+      accountId, slug, undefined, undefined, FIRST_TRANSACTIONS_LIMIT,
     );
 
-    result[slug] = transactions[0]?.timestamp ?? newestActivityTimestamp;
+    result[slug] = transactions[0]?.timestamp;
     bySlug[slug] = transactions;
 
     return transactions;
@@ -146,8 +150,45 @@ async function processNewActivities(
     type: 'initialActivities',
     chain: 'tron',
     accountId,
-    bySlug,
     mainActivities,
+    bySlug,
+  });
+
+  return result;
+}
+
+async function loadNewActivities(
+  accountId: string,
+  newestActivityTimestamps: ApiActivityTimestamps,
+  tokenSlugs: string[],
+  onUpdate: OnApiUpdate,
+) {
+  const result: ApiActivityTimestamps = {};
+
+  const chunks = await Promise.all(tokenSlugs.map(async (slug) => {
+    let newestActivityTimestamp = newestActivityTimestamps[slug];
+    const transactions = await getTokenTransactionSlice(
+      accountId, slug, undefined, newestActivityTimestamp, FIRST_TRANSACTIONS_LIMIT,
+    );
+    newestActivityTimestamp = transactions[0]?.timestamp ?? newestActivityTimestamp;
+    result[slug] = newestActivityTimestamp;
+    return transactions;
+  }));
+
+  const [trxChunk, ...tokenChunks] = chunks;
+  const transactions = mergeTransactions(trxChunk, tokenChunks.flat())
+    .flat()
+    .sort(compareActivities);
+
+  transactions.slice().reverse().forEach((transaction) => {
+    txCallbacks.runCallbacks(transaction);
+  });
+
+  onUpdate({
+    type: 'newActivities',
+    chain: 'tron',
+    activities: transactions,
+    accountId,
   });
 
   return result;

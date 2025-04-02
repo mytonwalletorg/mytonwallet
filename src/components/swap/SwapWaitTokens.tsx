@@ -177,6 +177,7 @@ function SwapWaitTokens({
           copyNotification={lang('Address was copied!')}
           noSavedAddress
           noExplorer
+          noDimming
           className={styles.changellyTextField}
         />
         {renderMemo()}

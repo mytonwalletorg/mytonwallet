@@ -178,9 +178,13 @@ async function getLogsString(
     callApi('getLogs'),
   ]);
 
+  const time = new Date();
+  const timezoneOffset = -time.getTimezoneOffset();
+
   return JSON.stringify(
     {
-      time: new Date(),
+      time,
+      timezone: `UTC${timezoneOffset < 0 ? '-' : '+'}${Math.abs(timezoneOffset) / 60}`,
       environment: APP_ENV,
       version: APP_VERSION,
       platform: getPlatform(),

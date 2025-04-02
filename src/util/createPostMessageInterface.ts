@@ -5,14 +5,11 @@ import type {
 
 import { DETACHED_TAB_URL } from './ledger/tab';
 import { bigintReviver } from './bigint';
-import { createCallbackManager } from './callbacks';
 import { logDebugError } from './logs';
 
 declare const self: WorkerGlobalScope;
 
 const callbackState = new Map<string, CancellableCallback>();
-
-const messageHandlers = createCallbackManager();
 
 type ApiConfig =
   ((name: string, ...args: any[]) => any | [any, ArrayBuffer[]])
@@ -39,13 +36,11 @@ export function createPostMessageInterface(
     handleErrors(sendToOrigin);
   }
 
-  messageHandlers.addCallback((message: OriginMessageEvent) => {
+  (target as DedicatedWorkerGlobalScope).addEventListener('message', (message: OriginMessageEvent) => {
     if (message.data?.channel === channel) {
       void onMessage(api, message.data, sendToOrigin);
     }
   });
-
-  target.onmessage = messageHandlers.runCallbacks;
 }
 
 export function createExtensionInterface(

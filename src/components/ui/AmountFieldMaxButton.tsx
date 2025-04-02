@@ -46,7 +46,7 @@ function AmountFieldMaxButton({
           ? formatCurrencySimple(maxAmount, token.symbol, token.decimals)
           : formatCurrency(toDecimal(maxAmount, token.decimals), token.symbol);
 
-  const transitionKey = useTransitionActiveKey([!content, token, isLoading, isSensitiveDataHidden]);
+  const transitionKey = useTransitionActiveKey([!content, token?.symbol, isLoading, isSensitiveDataHidden]);
 
   return (
     <Transition name="fade" activeKey={transitionKey} className={styles.container}>

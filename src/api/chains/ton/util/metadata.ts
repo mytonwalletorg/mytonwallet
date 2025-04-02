@@ -27,6 +27,7 @@ import {
   NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX,
   NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX,
 } from '../../../../config';
+import isEmptyObject from '../../../../util/isEmptyObject';
 import { omitUndefined, pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import { fetchJsonMetadata, fixIpfsUrl } from '../../../../util/metadata';
@@ -587,7 +588,7 @@ function buildMtwCardsNftMetadata(metadata: Record<string, any>): ApiNftMetadata
     }
   }
 
-  return Object.keys(result).length ? result : undefined;
+  return !isEmptyObject(result) ? result : undefined;
 }
 
 export function parseTonapiioNft(network: ApiNetwork, rawNft: NftItem): ApiNft | undefined {

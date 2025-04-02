@@ -1,4 +1,4 @@
-import { TON_DNS_ZONES } from '../config';
+import { IS_CORE_WALLET, TON_DNS_ZONES } from '../config';
 
 export function isDnsDomain(value: string) {
   return getDnsDomainZone(value) !== undefined;
@@ -6,7 +6,11 @@ export function isDnsDomain(value: string) {
 
 export function getDnsDomainZone(domain: string) {
   for (const zone of TON_DNS_ZONES) {
-    const { suffixes, baseFormat } = zone;
+    const { suffixes, baseFormat, isUnofficial } = zone;
+
+    if (IS_CORE_WALLET && isUnofficial) {
+      continue;
+    }
 
     // Iterating the zones in reverse to prioritize longer zones when multiple zones match (assuming the zones go from
     // the shortest to the longest). For example, `test.ton.vip` matches both `vip` and `ton.vip`, and `ton.vip` must be
@@ -30,5 +34,8 @@ export function getDnsDomainZone(domain: string) {
 }
 
 export function getDnsZoneByCollection(collectionAddress: string) {
+  if (IS_CORE_WALLET) {
+    return TON_DNS_ZONES.find((zone) => zone.resolver === collectionAddress && !zone.isUnofficial);
+  }
   return TON_DNS_ZONES.find((zone) => zone.resolver === collectionAddress);
 }

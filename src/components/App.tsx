@@ -133,7 +133,7 @@ function App({
     renderingKey === AppState.Auth && !canPrerenderMain ? PRERENDER_MAIN_DELAY : undefined,
   );
 
-  useInterval(checkAppVersion, APP_UPDATE_INTERVAL);
+  useInterval(checkAppVersion, IS_CORE_WALLET ? undefined : APP_UPDATE_INTERVAL);
 
   useEffect(() => {
     document.documentElement.classList.toggle('with-bottombar', withBottomBar);

@@ -196,7 +196,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         supportAccountsCount,
         countryCode,
       });
-      global = { ...global, isAppUpdateRequired };
+      global = { ...global, isAppUpdateRequired: IS_CORE_WALLET ? undefined : isAppUpdateRequired };
       setGlobal(global);
       break;
     }

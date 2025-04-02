@@ -23,7 +23,7 @@ import { updateActivityMetadata } from '../../common/helpers';
 import { getTokenBySlug } from '../../common/tokens';
 import { fetchTrace } from './toncenter/traces';
 import { OpCode, OUR_FEE_PAYLOAD_BOC } from './constants';
-import { fetchActions, fetchTransactions, parseRawTransaction } from './toncenter';
+import { fetchActions, fetchTransactions, parseActionActivitySubId, parseRawTransaction } from './toncenter';
 
 type ParsedTracePart = {
   hashes: Set<string>;
@@ -115,15 +115,13 @@ export async function fetchActivityDetails(accountId: string, activity: ApiActiv
   const { address: walletAddress } = await fetchStoredTonWallet(accountId);
 
   const { id } = activity;
-  const {
-    hash: traceId,
-    subId: startLt,
-  } = parseTxId(id);
+  const { hash: traceId, subId } = parseTxId(id);
+  const { actionId } = parseActionActivitySubId(subId!);
 
   const parsedTrace = await fetchAndParseTrace(network, walletAddress, traceId);
   const { trace, byTransactionIndex } = parsedTrace;
 
-  const action = trace.actions.find(({ start_lt }) => start_lt === startLt)!;
+  const action = trace.actions.find(({ action_id }) => action_id === actionId)!;
   const actionHashes = new Set(action.transactions);
 
   const {

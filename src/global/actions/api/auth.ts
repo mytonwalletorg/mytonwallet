@@ -17,6 +17,7 @@ import webAuthn from '../../../util/authApi/webAuthn';
 import { getDoesUsePinPad, getIsNativeBiometricAuthSupported } from '../../../util/biometrics';
 import { copyTextToClipboard } from '../../../util/clipboard';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
+import isEmptyObject from '../../../util/isEmptyObject';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
 import { cloneDeep, compact, omitUndefined } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
@@ -102,7 +103,7 @@ addActionHandler('resetAuth', (global) => {
 
 addActionHandler('startCreatingWallet', async (global, actions) => {
   const accounts = selectAccounts(global) ?? {};
-  const isFirstAccount = !Object.values(accounts).length;
+  const isFirstAccount = isEmptyObject(accounts);
   const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
   const nextAuthState = firstNonHardwareAccount
     ? AuthState.createBackup
@@ -387,7 +388,7 @@ addActionHandler('createAccount', async (global, actions, {
     }
   } else {
     const accounts = selectAccounts(global) ?? {};
-    const isFirstAccount = !Object.values(accounts).length;
+    const isFirstAccount = isEmptyObject(accounts);
     global = updateAuth(global, {
       state: isFirstAccount ? AuthState.disclaimerAndBackup : AuthState.createBackup,
     });
@@ -398,7 +399,7 @@ addActionHandler('createAccount', async (global, actions, {
 
 addActionHandler('createHardwareAccounts', async (global, actions) => {
   const accounts = selectAccounts(global) ?? {};
-  const isFirstAccount = !Object.values(accounts).length;
+  const isFirstAccount = isEmptyObject(accounts);
 
   setGlobal(updateAuth(global, { isLoading: true }));
 
@@ -661,7 +662,7 @@ addActionHandler('switchAccount', async (global, actions, payload) => {
 
 addActionHandler('connectHardwareWallet', async (global, actions, params) => {
   const accounts = selectAccounts(global) ?? {};
-  const isFirstAccount = !Object.values(accounts).length;
+  const isFirstAccount = isEmptyObject(accounts);
   const { areSettingsOpen } = global;
 
   if (IS_DELEGATING_BOTTOM_SHEET && !isFirstAccount && !areSettingsOpen) return;
@@ -1061,7 +1062,7 @@ addActionHandler('openCreateBackUpPage', (global) => {
 
   const accounts = selectAccounts(global) ?? {};
 
-  const isFirstAccount = !Object.values(accounts).length;
+  const isFirstAccount = isEmptyObject(accounts);
   global = updateAuth(global, {
     state: isFirstAccount ? AuthState.disclaimerAndBackup : AuthState.createBackup,
   });

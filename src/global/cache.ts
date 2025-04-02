@@ -24,6 +24,7 @@ import {
 import { buildAccountId, parseAccountId } from '../util/account';
 import { getIsTxIdLocal } from '../util/activities';
 import { bigintReviver } from '../util/bigint';
+import isEmptyObject from '../util/isEmptyObject';
 import {
   cloneDeep, filterValues, mapValues, pick, pickTruthy,
 } from '../util/iteratees';
@@ -486,6 +487,11 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 35;
   }
 
+  if (cached.stateVersion === 35) {
+    clearActivities();
+    cached.stateVersion = 36;
+  }
+
   // When adding migration here, increase `STATE_VERSION`
 }
 
@@ -599,7 +605,7 @@ function reduceAccountActivities(activities?: AccountState['activities'], tokens
 function reduceAccountStaking(staking?: AccountState['staking']) {
   let { stakingId, stateById } = staking ?? {};
 
-  if (stateById && Object.values(stateById).length) {
+  if (stateById && !isEmptyObject(stateById)) {
     stateById = filterValues(stateById, getIsActiveStakingState);
 
     if (!stakingId || !(stakingId in stateById)) {

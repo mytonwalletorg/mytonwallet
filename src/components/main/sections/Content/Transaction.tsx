@@ -7,7 +7,7 @@ import type { ApiTokenWithPrice, ApiTransactionActivity, ApiYieldType } from '..
 import type { AppTheme, SavedAddress } from '../../../../global/types';
 import { MediaType } from '../../../../global/types';
 
-import { ANIMATED_STICKER_TINY_ICON_PX, TONCOIN, TRANSACTION_ADDRESS_SHIFT } from '../../../../config';
+import { ANIMATED_STICKER_TINY_ICON_PX, FRACTION_DIGITS, TONCOIN, TRANSACTION_ADDRESS_SHIFT } from '../../../../config';
 import {
   DNS_TRANSACTION_TYPES,
   getIsTxIdLocal,
@@ -217,7 +217,7 @@ function Transaction({
     if (amountDisplayMode !== 'hide') {
       const noSign = amountDisplayMode === 'noSign';
       content = formatCurrencyExtended(
-        toDecimal(noSign ? bigintAbs(amount) : amount, token!.decimals),
+        toDecimal(noSign ? bigintAbs(amount) : amount, token?.decimals ?? FRACTION_DIGITS),
         token?.symbol || TONCOIN.symbol,
         noSign,
       );

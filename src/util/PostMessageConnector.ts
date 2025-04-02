@@ -34,7 +34,7 @@ export type OriginMessageData = InitData | CallMethodData | {
   messageId: string;
 };
 
-export interface OriginMessageEvent {
+export interface OriginMessageEvent extends MessageEvent {
   data: OriginMessageData;
 }
 

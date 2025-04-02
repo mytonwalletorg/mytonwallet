@@ -138,6 +138,7 @@ type StateProps = {
   isTonAppConnected?: boolean;
   isRemoteTab?: boolean;
   arePushNotificationsAvailable?: boolean;
+  isNftBuyingDisabled?: boolean;
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -172,6 +173,7 @@ function Settings({
   isTonAppConnected,
   isRemoteTab,
   arePushNotificationsAvailable,
+  isNftBuyingDisabled,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
@@ -592,19 +594,21 @@ function Settings({
 
           {!IS_CORE_WALLET && (
             <>
-              <div className={styles.block}>
-                <a
-                  href={MTW_CARDS_WEBSITE}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.item}
-                >
-                  <img className={styles.menuIcon} src={mtwCardsImg} alt={lang('MyTonWallet Cards NFT')} />
-                  {lang('MyTonWallet Cards NFT')}
+              {!isNftBuyingDisabled && (
+                <div className={styles.block}>
+                  <a
+                    href={MTW_CARDS_WEBSITE}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.item}
+                  >
+                    <img className={styles.menuIcon} src={mtwCardsImg} alt={lang('MyTonWallet Cards NFT')} />
+                    {lang('MyTonWallet Cards NFT')}
 
-                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-                </a>
-              </div>
+                    <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+                  </a>
+                </div>
+              )}
               <div className={styles.block}>
                 <a
                   href={`https://t.me/${MTW_TIPS_CHANNEL_NAME[langCode as never] ?? MTW_TIPS_CHANNEL_NAME.en}`}
@@ -891,7 +895,7 @@ function Settings({
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const isHardwareAccount = selectIsHardwareAccount(global);
   const accounts = selectNetworkAccounts(global);
-  const { isCopyStorageEnabled, supportAccountsCount = 1 } = global.restrictions;
+  const { isCopyStorageEnabled, supportAccountsCount = 1, isNftBuyingDisabled } = global.restrictions;
 
   const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
   const versions = versionsById?.[global.currentAccountId!];
@@ -920,6 +924,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isRemoteTab,
     hardwareWallets,
     accounts,
+    isNftBuyingDisabled,
     arePushNotificationsAvailable: global.pushNotifications.isAvailable,
   };
 })(Settings));
