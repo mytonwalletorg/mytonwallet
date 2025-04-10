@@ -34,7 +34,7 @@ export async function validateDexSwapTransfers(
   const [mainTransfer, feeTransfer] = transfers;
 
   if (request.from === TONCOIN.symbol) {
-    const maxAmount = fromDecimal(request.fromAmount) + MAX_NETWORK_FEE;
+    const maxAmount = fromDecimal(request.fromAmount) + fromDecimal(request.ourFee) + MAX_NETWORK_FEE;
     const { isSwapAllowed, codeHash } = await getContractInfo(network, mainTransfer.toAddress);
 
     assert(!!isSwapAllowed, `Not allowed swap contract: ${codeHash}`);

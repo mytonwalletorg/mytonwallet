@@ -25,6 +25,7 @@ import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useLongPress from '../../hooks/useLongPress';
+import useShowTransition from '../../hooks/useShowTransition';
 
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import Button from './Button';
@@ -175,6 +176,8 @@ function InteractiveTextField({
   });
 
   const shouldUseMenu = !spoiler && IS_TOUCH_ENV && menuItems.length > 1;
+
+  const menuBackdrop = useShowTransition(isActionsMenuOpen && shouldUseMenu);
 
   const longPressHandlers = useLongPress({
     onClick: handleMenuShow,
@@ -368,8 +371,19 @@ function InteractiveTextField({
 
   return (
     <>
+      {menuBackdrop.shouldRender && (
+        <div className={buildClassName(
+          styles.menuCustomBackdrop,
+          menuBackdrop.hasOpenClass && styles.menuCustomBackdropVisible,
+        )} />
+      )}
       <div
-        className={buildClassName(styles.wrapper, className)}
+        className={buildClassName(
+          styles.wrapper,
+          className,
+          menuBackdrop.shouldRender && styles.wrapperVisible,
+          menuBackdrop.shouldRender && !menuBackdrop.hasOpenClass && styles.wrapperHide,
+        )}
         /* eslint-disable-next-line react/jsx-props-no-spreading */
         {...(shouldUseMenu && !isActionsMenuOpen && {
           ...longPressHandlers,

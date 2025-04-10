@@ -14,6 +14,7 @@ import { vibrate } from '../../util/haptics';
 import { openUrl } from '../../util/openUrl';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
+import useTelegramMiniAppSwipeToClose from '../../util/telegram/hooks/useTelegramMiniAppSwipeToClose';
 import { getHostnameFromUrl, isValidUrl } from '../../util/url';
 import {
   IS_ANDROID, IS_ANDROID_APP, IS_IOS_APP, IS_TOUCH_ENV,
@@ -94,6 +95,7 @@ function Explore({
   const [isSuggestionsVisible, showSuggestions, hideSuggestions] = useFlag(false);
   const { renderingKey } = useModalTransitionKeys(currentSiteCategoryId || 0, !!isActive);
   const prevSiteCategoryIdRef = useStateRef(usePrevious2(renderingKey));
+  const { disableSwipeToClose, enableSwipeToClose } = useTelegramMiniAppSwipeToClose(isActive);
 
   const {
     handleScroll: handleContentScroll,
@@ -150,12 +152,18 @@ function Explore({
     }
 
     return captureControlledSwipe(transitionRef.current!, {
-      onSwipeRightStart: closeSiteCategory,
+      onSwipeRightStart: () => {
+        closeSiteCategory();
+
+        disableSwipeToClose();
+      },
       onCancel: () => {
         openSiteCategory({ id: prevSiteCategoryIdRef.current! });
+
+        enableSwipeToClose();
       },
     });
-  }, [filteredSites?.length, prevSiteCategoryIdRef]);
+  }, [disableSwipeToClose, enableSwipeToClose, filteredSites?.length, prevSiteCategoryIdRef]);
 
   useHorizontalScroll({
     containerRef: trendingContainerRef,

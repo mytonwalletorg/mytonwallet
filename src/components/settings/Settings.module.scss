@@ -912,6 +912,10 @@ a.item:hover {
   color: var(--color-gray-2);
 }
 
+.tokenAmount {
+  white-space: nowrap;
+}
+
 .dot,
 .dotLarge {
   display: inline-block;

@@ -16,6 +16,39 @@
   border-radius: var(--border-radius-default);
 }
 
+.wrapperVisible {
+  position: relative;
+  z-index: var(--z-menu-bubble);
+}
+
+.wrapperVisible:not(.wrapperHide) {
+  --color-gray-3: var(--color-black);
+}
+
+.menuCustomBackdrop {
+  pointer-events: none;
+
+  position: fixed;
+  z-index: var(--z-menu-backdrop);
+  top: -100vh;
+  right: -100vw;
+  bottom: -100vh;
+  left: -100vw;
+
+  opacity: 0;
+  background: var(--color-tint);
+
+  transition: opacity 200ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
+}
+
+.menuCustomBackdropVisible {
+  opacity: 1;
+}
+
 .button {
   cursor: var(--custom-cursor, pointer);
 
@@ -130,6 +163,12 @@
 .chainIcon {
   color: var(--color-gray-3);
   vertical-align: -0.125rem;
+
+  transition: color 200ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .meaningfulPart {
@@ -150,6 +189,12 @@
 .menuIcon,
 .dimmedPart {
   color: var(--color-gray-3);
+
+  transition: color 200ms;
+
+  :global(html.animation-level-0) & {
+    transition: none !important;
+  }
 }
 
 .menu {

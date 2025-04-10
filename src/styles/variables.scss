@@ -190,6 +190,7 @@
   --safe-area-bottom-value: var(--safe-area-bottom);
   --safe-area-top-value: var(--safe-area-top);
 
+  --electron-header-height: 3rem;
   --header-padding-top: 1.125rem;
   --header-title-height: 1.0625rem;
   --header-padding-bottom: 0.8125rem;
@@ -239,11 +240,6 @@
   // Fix for opera, dead zone of 37 pixels in extension window on windows
   &.is-windows.is-opera.is-extension {
     --sticky-card-height: 4.75rem;
-  }
-
-  // Sticky header height - electron header height
-  &.is-electron {
-    --sticky-card-height: 0.75rem;
   }
 
   &.theme-dark,

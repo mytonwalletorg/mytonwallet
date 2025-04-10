@@ -833,7 +833,7 @@ function TransferInitial({
         onSubmit={handleSubmit}
         onPaste={handlePaste}
       >
-        {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} />}
+        {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} withMediaViewer />}
         {Boolean(nfts?.length) && nfts!.length > 1 && <NftChips nfts={nfts!} isStatic={isStatic} />}
 
         <Input

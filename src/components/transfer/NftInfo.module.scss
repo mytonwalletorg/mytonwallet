@@ -1,6 +1,4 @@
 .root {
-  cursor: var(--custom-cursor, pointer);
-
   display: flex;
 
   max-width: 100%;
@@ -19,6 +17,10 @@
   & .icon:focus-visible,
   & .icon:hover {
     color: var(--color-accent);
+  }
+
+  &.interactive {
+    cursor: var(--custom-cursor, pointer);
   }
 }
 
@@ -58,6 +60,8 @@
 }
 
 .icon {
+  cursor: var(--custom-cursor, pointer);
+
   margin-inline-start: 0.125rem;
 
   font-size: 1rem;

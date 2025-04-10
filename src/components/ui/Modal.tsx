@@ -13,7 +13,10 @@ import { captureEvents, SwipeDirection } from '../../util/captureEvents';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
 import { getIsSwipeToCloseDisabled } from '../../util/modalSwipeManager';
 import { createSignal } from '../../util/signals';
-import { getTelegramApp } from '../../util/telegram';
+import {
+  disableTelegramMiniAppSwipeToClose,
+  enableTelegramMiniAppSwipeToClose,
+} from '../../util/telegram';
 import trapFocus from '../../util/trapFocus';
 import { IS_ANDROID, IS_DELEGATED_BOTTOM_SHEET, IS_TOUCH_ENV } from '../../util/windowEnvironment';
 import windowSize from '../../util/windowSize';
@@ -112,9 +115,9 @@ function Modal({
   useEffect(() => {
     if (!IS_TELEGRAM_APP || !isOpen || isCompact) return undefined;
 
-    getTelegramApp()?.disableVerticalSwipes();
+    disableTelegramMiniAppSwipeToClose();
 
-    return getTelegramApp()?.enableVerticalSwipes;
+    return enableTelegramMiniAppSwipeToClose;
   }, [isCompact, isOpen]);
 
   useEffectWithPrevDeps(([prevIsOpen]) => {

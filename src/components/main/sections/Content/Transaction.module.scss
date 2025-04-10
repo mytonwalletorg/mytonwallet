@@ -78,6 +78,9 @@ $subIconSize: 1rem;
 }
 
 .icon {
+  $desktopIconScale: math.div(22, 24);
+  $fontSize: 1.5rem;
+
   position: relative;
 
   grid-area: icon;
@@ -85,30 +88,35 @@ $subIconSize: 1rem;
   width: 2.25rem;
   height: 2.25rem;
 
-  font-size: 1.5rem;
-  line-height: 1;
+  font-size: $fontSize * $desktopIconScale;
+  line-height: 2.25rem;
   color: var(--color-activity-gray-text);
   text-align: center;
 
   background-color: var(--color-activity-gray-background);
   border-radius: 50%;
 
-  &::before {
+  @include is-mobile() {
+    width: 2.375rem;
+    height: 2.375rem;
+
+    font-size: $fontSize;
     line-height: 2.375rem;
   }
 
   &:global(.icon-cog),
   &:global(.icon-fire) {
-    font-size: 1.625rem;
+    $fontSize: 1.625rem;
+
+    font-size: $fontSize * $desktopIconScale;
+
+    @include is-mobile() {
+      font-size: $fontSize;
+    }
   }
 
   &Swap {
     background: none;
-  }
-
-  @include is-mobile() {
-    width: 2.375rem;
-    height: 2.375rem;
   }
 }
 
@@ -169,17 +177,25 @@ $subIconSize: 1rem;
 
 .header {
   grid-area: header;
+  align-self: end;
+
+  margin-block-end: 0.0625rem;
 
   font-size: 0.9375rem;
   font-weight: 600;
 
   @include is-mobile() {
+    margin-block-end: 0.125rem;
+
     font-size: 1rem;
   }
 }
 
 .subheader {
   grid-area: subheader;
+  align-self: start;
+
+  margin-block-start: 0.125rem;
 
   font-size: 0.75rem;
   font-weight: 500;
@@ -232,11 +248,15 @@ $subIconSize: 1rem;
   max-width: 100%;
   padding: 0.4375rem 0.625rem;
 
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @include is-mobile() {
+    font-size: 0.875rem;
+  }
 }
 
 .scamImage {
@@ -290,6 +310,10 @@ $subIconSize: 1rem;
 
   max-width: 100%;
   height: 3.5rem;
+
+  &.nonInteractive {
+    pointer-events: none !important;
+  }
 }
 
 .nftImage {

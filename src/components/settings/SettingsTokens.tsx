@@ -176,7 +176,13 @@ function SettingsTokens({
             {name}
           </div>
           <div className={styles.tokenDescription}>
-            <SensitiveData isActive={isSensitiveDataHidden} cols={4 + (top % 6)} rows={2} cellSize={8}>
+            <SensitiveData
+              isActive={isSensitiveDataHidden}
+              cols={4 + (top % 6)}
+              rows={2}
+              cellSize={8}
+              contentClassName={styles.tokenAmount}
+            >
               <AnimatedCounter text={formatCurrency(toDecimal(totalAmount, token.decimals, true), shortBaseSymbol)} />
               <i className={styles.dot} aria-hidden />
               <AnimatedCounter text={formatCurrency(toDecimal(amount, token.decimals), symbol)} />

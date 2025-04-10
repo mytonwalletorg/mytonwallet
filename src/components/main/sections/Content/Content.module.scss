@@ -70,6 +70,10 @@
     top: var(--sticky-card-height);
 
     width: 100%;
+
+    :global(html.is-electron:not(.is-linux)) & {
+      top: calc(var(--sticky-card-height) - var(--electron-header-height));
+    }
   }
 }
 

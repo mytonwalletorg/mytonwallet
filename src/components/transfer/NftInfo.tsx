@@ -21,10 +21,12 @@ interface OwnProps {
   nft?: NftTransfer;
   isStatic?: boolean;
   withTonExplorer?: boolean;
+  // Currently, MediaViewer can only display NFTs that are owned by the user
+  withMediaViewer?: boolean;
 }
 
 function NftInfo({
-  nft, isStatic, withTonExplorer,
+  nft, isStatic, withTonExplorer, withMediaViewer,
 }: OwnProps) {
   const { openMediaViewer } = getActions();
   const lang = useLang();
@@ -99,12 +101,20 @@ function NftInfo({
     );
   }
 
+  if (!withMediaViewer) {
+    return (
+      <div className={buildClassName(styles.root, isStatic && styles.rootStatic)}>
+        {renderContent()}
+      </div>
+    );
+  }
+
   return (
     <div
       role="button"
       tabIndex={0}
       aria-label={lang('NFT')}
-      className={buildClassName(styles.root, isStatic && styles.rootStatic)}
+      className={buildClassName(styles.root, styles.interactive, isStatic && styles.rootStatic)}
       onClick={handleClick}
     >
       {renderContent()}

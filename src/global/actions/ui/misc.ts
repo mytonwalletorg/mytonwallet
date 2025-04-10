@@ -676,6 +676,12 @@ addActionHandler('closeOnRampWidgetModal', (global) => {
 addActionHandler('openMediaViewer', (global, actions, {
   mediaId, mediaType, txId, hiddenNfts, noGhostAnimation,
 }) => {
+  const accountState = selectCurrentAccountState(global);
+  const { byAddress } = accountState?.nfts || {};
+  const nft = byAddress?.[mediaId!];
+
+  if (!nft) return undefined;
+
   return {
     ...global,
     mediaViewer: {

@@ -18,6 +18,7 @@ let isBiometricInited = false;
 let isNativeBiometricAuthSupported = false;
 let isFaceIdAvailable = false;
 let isTouchIdAvailable = false;
+let disableSwipeRequests = 0;
 
 export function initTelegramApp() {
   webApp = window.Telegram?.WebApp;
@@ -28,7 +29,7 @@ export function initTelegramApp() {
     return;
   }
 
-  webApp.enableVerticalSwipes();
+  enableTelegramMiniAppSwipeToClose();
   webApp.lockOrientation();
   webApp.MainButton.hide();
   webApp.SecondaryButton.hide();
@@ -131,15 +132,35 @@ function updateSafeAreaProperties() {
 function updateFullscreenState() {
   if (webApp!.isFullscreen) {
     getActions().openFullscreen();
+    disableTelegramMiniAppSwipeToClose();
   } else {
     getActions().closeFullscreen();
+    enableTelegramMiniAppSwipeToClose();
   }
 }
 
 function onFullscreenFailed(params: { error: 'UNSUPPORTED' | 'ALREADY_FULLSCREEN' }) {
+  enableTelegramMiniAppSwipeToClose();
   // This error occurs when the user has requested fullscreen, but the application is already open fullscreen.
   // In this case, we just mark in the global that the application is running in fullscreen mode.
   if (params.error === 'ALREADY_FULLSCREEN') {
     getActions().openFullscreen();
+    disableTelegramMiniAppSwipeToClose();
+  }
+}
+
+export function disableTelegramMiniAppSwipeToClose() {
+  disableSwipeRequests += 1;
+
+  if (disableSwipeRequests === 1) {
+    webApp?.disableVerticalSwipes();
+  }
+}
+
+export function enableTelegramMiniAppSwipeToClose() {
+  disableSwipeRequests = Math.max(0, disableSwipeRequests - 1);
+
+  if (disableSwipeRequests === 0) {
+    webApp?.enableVerticalSwipes();
   }
 }

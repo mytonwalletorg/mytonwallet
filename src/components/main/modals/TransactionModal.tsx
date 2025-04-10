@@ -5,6 +5,7 @@ import React, {
 import { getActions, getGlobal, withGlobal } from '../../../global';
 
 import type {
+  ApiNft,
   ApiStakingCommonData,
   ApiStakingState,
   ApiTokenWithPrice,
@@ -82,6 +83,7 @@ type StateProps = {
   isMediaViewerOpen?: boolean;
   theme: Theme;
   isSensitiveDataHidden?: true;
+  nftsByAddress?: Record<string, ApiNft>;
 };
 
 const enum SLIDES {
@@ -100,6 +102,7 @@ function TransactionModal({
   isMediaViewerOpen,
   theme,
   isSensitiveDataHidden,
+  nftsByAddress,
 }: StateProps) {
   const {
     fetchActivityDetails,
@@ -155,6 +158,7 @@ function TransactionModal({
   const isScam = Boolean(transaction) && isScamTransaction(transaction);
   const isModalOpen = Boolean(transaction) && !isMediaViewerOpen;
   const transactionHash = chain && id ? parseTxId(id).hash : undefined;
+  const doesNftExist = Boolean(nft && nftsByAddress?.[nft.address]);
 
   const [decryptedComment, setDecryptedComment] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
@@ -480,7 +484,7 @@ function TransactionModal({
             noSign={amountDisplayMode === 'noSign'}
           />
         )}
-        {nft && <NftInfo nft={nft} withTonExplorer />}
+        {nft && <NftInfo nft={nft} withMediaViewer={doesNftExist} withTonExplorer />}
 
         {isTransactionWithPoisoning && renderTransactionWithPoisoningWarning()}
 
@@ -573,6 +577,7 @@ export default memo(
     const txId = accountState?.currentActivityId;
     const activity = txId ? accountState?.activities?.byId[txId] : undefined;
     const savedAddresses = accountState?.savedAddresses;
+    const { byAddress } = accountState?.nfts || {};
 
     const stakingInfo = global.stakingInfo;
     const stakingStates = selectAccountStakingStates(global, accountId);
@@ -589,6 +594,7 @@ export default memo(
       stakingInfo,
       stakingStates,
       isSensitiveDataHidden,
+      nftsByAddress: byAddress,
     };
   })(TransactionModal),
 );

@@ -3,6 +3,10 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 import type { ApiHistoryList } from '../../api/types';
 
 import buildClassName from '../../util/buildClassName';
+import {
+  disableTelegramMiniAppSwipeToClose,
+  enableTelegramMiniAppSwipeToClose,
+} from '../../util/telegram';
 
 import useLang from '../../hooks/useLang';
 
@@ -133,8 +137,16 @@ function TokenPriceChart({
     onSelectIndex(nextIndex);
   }
 
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    handleMouseMove(e);
+
+    disableTelegramMiniAppSwipeToClose();
+  }
+
   function handleMouseLeave() {
     onSelectIndex(-1);
+
+    enableTelegramMiniAppSwipeToClose();
   }
 
   return (
@@ -142,7 +154,7 @@ function TokenPriceChart({
       className={className}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onTouchStart={handleMouseMove}
+      onTouchStart={handleTouchStart}
       onTouchMove={handleMouseMove}
       onTouchEnd={handleMouseLeave}
       onTouchCancel={handleMouseLeave}

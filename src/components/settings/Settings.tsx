@@ -44,6 +44,7 @@ import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 import { openUrl } from '../../util/openUrl';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
+import useTelegramMiniAppSwipeToClose from '../../util/telegram/hooks/useTelegramMiniAppSwipeToClose';
 import {
   IS_BIOMETRIC_AUTH_SUPPORTED,
   IS_DAPP_SUPPORTED,
@@ -192,6 +193,7 @@ function Settings({
   // eslint-disable-next-line no-null/no-null
   const transitionRef = useRef<HTMLDivElement>(null);
   const { renderingKey } = useModalTransitionKeys(state, isOpen);
+  const { disableSwipeToClose, enableSwipeToClose } = useTelegramMiniAppSwipeToClose(isOpen);
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
   const prevRenderingKeyRef = useStateRef(usePrevious2(renderingKey));
 
@@ -400,12 +402,22 @@ function Settings({
     }
 
     return captureControlledSwipe(transitionRef.current!, {
-      onSwipeRightStart: IS_DELEGATED_BOTTOM_SHEET ? handleBackClick : handleBackOrCloseAction,
+      onSwipeRightStart: () => {
+        if (IS_DELEGATED_BOTTOM_SHEET) {
+          handleBackClick();
+        } else {
+          handleBackOrCloseAction();
+        }
+
+        disableSwipeToClose();
+      },
       onCancel: () => {
         setSettingsState({ state: prevRenderingKeyRef.current! });
+
+        enableSwipeToClose();
       },
     });
-  }, [prevRenderingKeyRef]);
+  }, [disableSwipeToClose, enableSwipeToClose, prevRenderingKeyRef]);
 
   function renderHandleDeeplinkButton() {
     return (

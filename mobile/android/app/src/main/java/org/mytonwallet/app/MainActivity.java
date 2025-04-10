@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
 
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
@@ -95,6 +96,14 @@ public class MainActivity extends BridgeActivity {
     WindowInsetsControllerCompat windowInsetsControllerCompat = WindowCompat.getInsetsController(window, decorView);
     windowInsetsControllerCompat.setAppearanceLightStatusBars(!style.equals("DARK"));
     windowInsetsControllerCompat.setAppearanceLightNavigationBars(!style.equals("DARK"));
+  }
+
+  public void onResume() {
+    super.onResume();
+    // Don't respect system font-size settings
+    WebSettings settings = bridge.getWebView().getSettings();
+    settings.setTextZoom(100);
+    settings.setSupportZoom(false);
   }
 
   @Override

@@ -71,7 +71,7 @@ function DropdownMenu({
       const windowWidth = windowSize.get().width;
       let left = anchorPosition?.x;
 
-      left = Math.min(left, windowWidth - menuWidth - SAFE_POSITION_PX);
+      left = Math.min(left, left - menuWidth / 2 - SAFE_POSITION_PX, windowWidth - menuWidth - SAFE_POSITION_PX);
       left = Math.max(left, SAFE_POSITION_PX);
 
       setMenuLeft(left);

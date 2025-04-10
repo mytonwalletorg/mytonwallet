@@ -54,7 +54,7 @@ $scrollOffset: 0.1875rem;
   padding: 1rem 1rem 0;
 
   :global(html.is-electron:not(.is-linux)) & {
-    height: calc(100vh - 3rem);
+    height: calc(100vh - var(--electron-header-height));
     padding-top: 0;
   }
 

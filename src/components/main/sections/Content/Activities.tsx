@@ -5,7 +5,7 @@ import { setExtraStyles } from '../../../../lib/teact/teact-dom';
 import { getActions, withGlobal } from '../../../../global';
 
 import type {
-  ApiActivity, ApiStakingState, ApiSwapAsset, ApiTokenWithPrice,
+  ApiActivity, ApiNft, ApiStakingState, ApiSwapAsset, ApiTokenWithPrice,
 } from '../../../../api/types';
 import type { Account, SavedAddress, Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
@@ -78,6 +78,7 @@ type StateProps = {
   isFirstTransactionsLoaded?: boolean;
   isSensitiveDataHidden?: true;
   stakingStates?: ApiStakingState[];
+  nftsByAddress?: Record<string, ApiNft>;
 };
 
 interface ActivityOffsetInfo {
@@ -117,6 +118,7 @@ function Activities({
   isFirstTransactionsLoaded,
   isSensitiveDataHidden,
   stakingStates,
+  nftsByAddress,
 }: Omit<OwnProps, 'totalTokensAmount'> & StateProps) {
   const {
     fetchTokenTransactions, fetchAllTransactions, showActivityInfo,
@@ -322,6 +324,8 @@ function Activities({
         />
       );
     } else {
+      const doesNftExist = Boolean(activity.nft && nftsByAddress?.[activity.nft.address]);
+
       return (
         <Transaction
           key={activity.id}
@@ -334,6 +338,7 @@ function Activities({
           savedAddresses={savedAddresses}
           withChainIcon={isMultichainAccount}
           appTheme={appTheme}
+          doesNftExist={doesNftExist}
           isSensitiveDataHidden={isSensitiveDataHidden}
           onClick={handleActivityClick}
         />
@@ -456,6 +461,7 @@ export default memo(
       const {
         idsBySlug, byId, isMainHistoryEndReached, isHistoryEndReachedBySlug, idsMain,
       } = accountState?.activities ?? {};
+      const { byAddress } = accountState?.nfts || {};
 
       return {
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
@@ -479,6 +485,7 @@ export default memo(
         addressByChain: account?.addressByChain,
         stakingStates,
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+        nftsByAddress: byAddress,
       };
     },
     (global, { totalTokensAmount }, stickToFirst) => {

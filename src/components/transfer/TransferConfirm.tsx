@@ -114,7 +114,7 @@ function TransferConfirm({
 
   function renderNfts() {
     if (nfts!.length === 1) {
-      return <NftInfo nft={nfts![0]} />;
+      return <NftInfo nft={nfts![0]} withMediaViewer />;
     }
 
     return <NftChips nfts={nfts!} />;

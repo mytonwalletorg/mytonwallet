@@ -29,7 +29,7 @@
     interpolate-size: allow-keywords;
 
     :global(html.animation-level-0) & {
-      transition: none;
+      transition: none !important;
     }
   }
 }
@@ -72,8 +72,8 @@
   opacity: 0;
 }
 
-@supports (interpolate-size: allow-keywords) {
-  .fixedWidth {
-    width: var(--spoiler-width);
-  }
+.fixedWidth {
+  width: var(--spoiler-width);
+
+  white-space: nowrap;
 }

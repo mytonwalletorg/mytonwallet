@@ -49,6 +49,7 @@ type OwnProps = {
   yieldType?: ApiYieldType;
   appTheme: AppTheme;
   savedAddresses?: SavedAddress[];
+  doesNftExist?: boolean;
   isSensitiveDataHidden?: true;
   onClick: (id: string) => void;
 };
@@ -69,6 +70,7 @@ function Transaction({
   isLast,
   appTheme,
   withChainIcon,
+  doesNftExist,
   isSensitiveDataHidden,
   onClick,
 }: OwnProps) {
@@ -132,13 +134,14 @@ function Transaction({
       <div
         className={buildClassName(
           styles.nft,
+          !doesNftExist && styles.nonInteractive,
           isIncoming && styles.received,
           comment && styles.nftWithComment,
           operationColorClass,
           doAttachmentsTakeAddressSpace && styles.takesAddressSpace,
           'transaction-nft',
         )}
-        onClick={handleNftClick}
+        onClick={doesNftExist ? handleNftClick : undefined}
         data-nft-address={nft?.address}
         data-tx-id={txId}
       >
