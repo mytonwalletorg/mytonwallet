@@ -54,6 +54,7 @@ interface StateProps {
   nftsByAddress?: Record<string, ApiNft>;
   nftAddresses?: string[];
   isMintingCardsAvailable?: boolean;
+  isNftBuyingDisabled: boolean;
 }
 
 const SWITCH_THEME_DURATION_MS = 300;
@@ -81,6 +82,7 @@ function SettingsAppearance({
   isInsideModal,
   isTrayIconEnabled,
   isMintingCardsAvailable,
+  isNftBuyingDisabled,
   onTrayIconEnabledToggle,
   handleBackClick,
 }: OwnProps & StateProps) {
@@ -242,7 +244,7 @@ function SettingsAppearance({
           </div>
         </div>
 
-        {!IS_CORE_WALLET && (
+        {!IS_CORE_WALLET && !isNftBuyingDisabled && (
           <>
             <p className={styles.blockTitle}>{lang('Palette')}</p>
             <div className={buildClassName(styles.block, styles.settingsBlockWithDescription)}>
@@ -304,5 +306,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     nftAddresses,
     nftsByAddress,
     isMintingCardsAvailable: Boolean(cardsInfo),
+    isNftBuyingDisabled: global.restrictions.isNftBuyingDisabled,
   };
 })(SettingsAppearance));

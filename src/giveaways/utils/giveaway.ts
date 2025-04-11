@@ -155,10 +155,6 @@ export async function checkinGiveaway(
     return;
   }
 
-  const { payload, signature } = wallet.connectItems.tonProof.proof;
-  const { publicKey } = wallet.account;
-  const receiverAddress = wallet.account.address;
-
   const checkinRes = await fetch(
     `${GIVEAWAYS_API_URL}/giveaways/${giveawayId}/checkin`,
     {
@@ -168,11 +164,10 @@ export async function checkinGiveaway(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        signedProof: payload,
+        receiverAddress: wallet.account.address,
+        tonProof: wallet.connectItems.tonProof.proof,
+        stateInit: wallet.account.walletStateInit,
         captchaToken,
-        signature,
-        publicKey,
-        receiverAddress,
       }),
     },
   );

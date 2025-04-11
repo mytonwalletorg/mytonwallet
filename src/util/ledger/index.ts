@@ -340,7 +340,16 @@ async function connectCapacitorHID(): Promise<HIDTransport> {
       continue;
     }
 
-    return MtwHidTransport.open(device);
+    try {
+      return await Promise.race([
+        MtwHidTransport.open(device),
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error()), 1000);
+        }),
+      ]);
+    } catch (error) {
+      await pause(PAUSE);
+    }
   }
 
   throw new Error('Failed to connect');

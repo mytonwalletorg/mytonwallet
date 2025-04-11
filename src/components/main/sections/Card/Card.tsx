@@ -60,6 +60,7 @@ interface StateProps {
   balanceUpdateStartedAt?: number;
   cardNft?: ApiNft;
   isSensitiveDataHidden?: true;
+  isNftBuyingDisabled: boolean;
 }
 
 function Card({
@@ -73,6 +74,7 @@ function Card({
   baseCurrency,
   stakingStates,
   isSensitiveDataHidden,
+  isNftBuyingDisabled,
   balanceUpdateStartedAt,
   cardNft,
 }: OwnProps & StateProps) {
@@ -248,7 +250,7 @@ function Card({
           )}
           {values ? renderBalance() : renderLoader()}
           <CardAddress withTextGradient={withTextGradient} />
-          {!IS_CORE_WALLET && <MintCardButton />}
+          {!IS_CORE_WALLET && !isNftBuyingDisabled && <MintCardButton />}
         </div>
       </div>
 
@@ -281,6 +283,7 @@ export default memo(
         balanceUpdateStartedAt: global.balanceUpdateStartedAt,
         cardNft,
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+        isNftBuyingDisabled: global.restrictions.isNftBuyingDisabled,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),
