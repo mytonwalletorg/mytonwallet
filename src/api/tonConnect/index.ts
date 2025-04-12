@@ -347,6 +347,10 @@ export async function sendTransaction(
       checkResult,
     } = await checkTransactionMessages(accountId, messages, network);
 
+    if ('error' in checkResult) {
+      throw new errors.BadRequestError(checkResult.error, checkResult.error);
+    }
+
     const dapp = (await getDappsByOrigin(accountId))[origin];
     const transactionsForRequest = await prepareTransactionForRequest(network, messages, checkResult);
 

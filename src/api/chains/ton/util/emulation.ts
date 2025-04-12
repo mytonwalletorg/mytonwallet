@@ -26,7 +26,7 @@ export function parseEmulation(network: ApiNetwork, address: string, emulation: 
   const byTransactionIndex: ApiEmulatedTransaction[] = [];
 
   function processTrace(trace: TraceDetail, _index?: number) {
-    const txs = byHash[trace.tx_hash];
+    const txs = byHash[trace.tx_hash] || [];
 
     for (const [i, { toAddress, amount, fee, isIncoming }] of txs.entries()) {
       const index = _index ?? i;
