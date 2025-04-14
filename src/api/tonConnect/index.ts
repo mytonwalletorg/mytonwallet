@@ -378,7 +378,20 @@ export async function sendTransaction(
 
     if (isLedger) {
       const signedTransfers = response as ApiSignedTransfer[];
-      ({ boc, msgHash } = await ton.sendSignedMessage(accountId, signedTransfers[0]));
+      const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
+      boc = submitResult.firstBoc;
+      msgHash = submitResult.msgHashes[0];
+
+      if (submitResult.successNumber > 0) {
+        if (submitResult.successNumber < messages.length) {
+          onPopupUpdate({
+            type: 'showError',
+            error: ApiTransactionError.PartialTransactionFailure,
+          });
+        }
+      } else {
+        error = 'Failed transfers';
+      }
     } else {
       const password = response as string;
       const submitResult = await ton.submitMultiTransfer({

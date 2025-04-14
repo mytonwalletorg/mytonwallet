@@ -5,13 +5,15 @@ import { ONE_TON } from '../chains/ton/constants';
 
 const MAX_SINGLE_AMOUNT_AS_FEE = 1n * ONE_TON;
 const MAX_TOTAL_AMOUNT_AS_FEE = 3n * ONE_TON;
+// https://stackoverflow.com/a/417184
+const URL_MAX_LENGTH = 2000;
 
 export function isValidString(value: any, maxLength = 100) {
   return typeof value === 'string' && value.length <= maxLength;
 }
 
 export function isValidUrl(url: string) {
-  const isString = isValidString(url, 255);
+  const isString = isValidString(url, URL_MAX_LENGTH);
   if (!isString) return false;
 
   try {
