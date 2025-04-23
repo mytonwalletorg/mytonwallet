@@ -657,6 +657,14 @@ addActionHandler('setIsPinAccepted', (global) => {
 });
 
 addActionHandler('clearIsPinAccepted', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    // Sometimes this action is called after the delegated bottom sheet is closed, e.g. on a component unmount.
+    // The problem is, delegated bottom sheet doesn't synchronize the global state when it's closed, so the pin pad
+    // can get stuck in the accepted state. To fix that, this action is called in the main WebView using a more reliable
+    // mechanism.
+    callActionInMain('clearIsPinAccepted');
+  }
+
   return clearIsPinAccepted(global);
 });
 
@@ -753,6 +761,10 @@ addActionHandler('closeLoadingOverlay', (global) => {
 });
 
 addActionHandler('clearAccountLoading', (global) => {
+  if (IS_DELEGATED_BOTTOM_SHEET) {
+    callActionInMain('clearAccountLoading');
+  }
+
   setGlobal(updateAccounts(global, { isLoading: undefined }));
 });
 

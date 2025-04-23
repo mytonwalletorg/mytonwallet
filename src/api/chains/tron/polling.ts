@@ -17,6 +17,7 @@ import { getTrc20Balance, getWalletBalance } from './wallet';
 
 const BALANCE_INTERVAL = 1.1 * SEC;
 const BALANCE_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
+const FORCE_CHECK_ACTIVITIES_PAUSE = 30 * SEC;
 
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL = 30 * SEC;
 const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
@@ -35,6 +36,23 @@ export async function setupPolling(
   const usdtSlug = buildTokenSlug('tron', usdtAddress);
   const slugs = [TRX.slug, usdtSlug];
 
+  let forceCheckActivitiesTime = 0;
+
+  async function updateActivities(isBalanceChanged: boolean) {
+    if (!isBalanceChanged && forceCheckActivitiesTime > Date.now()) {
+      return;
+    }
+
+    // Some Tron operations don't change the balance, so we poll the activities periodically just in case.
+    forceCheckActivitiesTime = Date.now() + FORCE_CHECK_ACTIVITIES_PAUSE;
+
+    if (isEmptyObject(newestActivityTimestamps)) {
+      newestActivityTimestamps = await loadInitialActivities(accountId, slugs, onUpdate);
+    } else {
+      newestActivityTimestamps = await loadNewActivities(accountId, newestActivityTimestamps, slugs, onUpdate);
+    }
+  }
+
   while (isAlive(onUpdate, accountId)) {
     try {
       if (!lastBalanceCache[accountId]) lastBalanceCache[accountId] = {};
@@ -45,7 +63,10 @@ export async function setupPolling(
         getTrc20Balance(network, usdtAddress, address),
       ]);
 
-      if (trxBalance !== accountLastBalances[TRX.slug] || usdtBalance !== accountLastBalances[usdtAddress]) {
+      const isBalanceChanged = trxBalance !== accountLastBalances[TRX.slug]
+        || usdtBalance !== accountLastBalances[usdtAddress];
+
+      if (isBalanceChanged) {
         onUpdate({
           type: 'updateBalances',
           accountId,
@@ -55,16 +76,12 @@ export async function setupPolling(
             [usdtSlug]: usdtBalance,
           },
         });
-
-        if (isEmptyObject(newestActivityTimestamps)) {
-          newestActivityTimestamps = await loadInitialActivities(accountId, slugs, onUpdate);
-        } else {
-          newestActivityTimestamps = await loadNewActivities(accountId, newestActivityTimestamps, slugs, onUpdate);
-        }
-
-        accountLastBalances[TRX.slug] = trxBalance;
-        accountLastBalances[usdtAddress] = usdtBalance;
       }
+
+      await updateActivities(isBalanceChanged);
+
+      accountLastBalances[TRX.slug] = trxBalance;
+      accountLastBalances[usdtAddress] = usdtBalance;
     } catch (err) {
       logDebugError('tron:setupPolling', err);
     }

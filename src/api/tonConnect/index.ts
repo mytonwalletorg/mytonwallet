@@ -63,10 +63,7 @@ import * as apiErrors from '../errors';
 import { ApiServerError } from '../errors';
 import { callHook } from '../hooks';
 import {
-  activateDapp,
   addDapp,
-  deactivateAccountDapp,
-  deactivateDapp,
   deleteDapp,
   findLastConnectedAccount,
   getDapp,
@@ -169,7 +166,6 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
     accountId = promiseResult!.accountId!;
     request.accountId = accountId;
     await addDapp(accountId, dapp);
-    activateDapp(accountId, origin);
 
     const account = await fetchStoredAccount(accountId);
     const { address } = account.ton;
@@ -221,7 +217,6 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Co
   try {
     const { origin, accountId } = await validateRequest(request);
 
-    activateDapp(accountId, origin);
     const currentDapp = await getDapp(accountId, origin);
     if (!currentDapp) {
       throw new UnknownAppError();
@@ -271,7 +266,6 @@ export async function disconnect(
     const { origin, accountId } = await validateRequest(request);
 
     await deleteDapp(accountId, origin, true);
-    deactivateAccountDapp(accountId);
     onPopupUpdate({ type: 'updateDapps' });
   } catch (err) {
     logDebugError('tonConnect:disconnect', err);
@@ -560,16 +554,6 @@ async function prepareTransactionForRequest(
   ));
 
   return showDappTransferAmountsAsFee(transactions);
-}
-
-export async function deactivate(request: ApiDappRequest) {
-  try {
-    const { origin } = await validateRequest(request, true);
-
-    deactivateDapp(origin);
-  } catch (err) {
-    logDebugError('tonConnect:deactivate', err);
-  }
 }
 
 function formatConnectError(id: number, error: Error): ConnectEventError {

@@ -179,7 +179,7 @@ Incorrect address: Hatalı adres
 Incorrect address.: Hatalı adres.
 Paste: Yapıştır
 Insufficient balance: Yetersiz bakiye
-InsufficientBalance: Yetersiz bakiye
+Insufficient Balance: Yetersiz Bakiye
 Optional: Opsiyonel
 $send_token_symbol: "%1$s gönder"
 Is it all ok?: Herşey tamam mı?
@@ -801,3 +801,4 @@ Upgrade for %currency% %amount%: "%currency% %amount% karşılığında yükselt
 "%amount% left": "%amount% kaldı"
 "%amount% sold": "%amount% satıldı"
 This card has been sold out: Bu kart tükendi
+Please top up your TON balance.: Lütfen TON bakiyenizi yükleyin.

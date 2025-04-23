@@ -8,6 +8,7 @@ import { Slice } from '@ton/core/dist/boc/Slice';
 import { Dictionary } from '@ton/core/dist/dict/Dictionary';
 
 import type {
+  ApiMtwCardBorderShineType,
   ApiMtwCardTextType,
   ApiMtwCardType,
   ApiNetwork,
@@ -551,8 +552,15 @@ export function readSnakeBytes(slice: Slice) {
   return buffer;
 }
 
-function buildMtwCardsNftMetadata(metadata: Record<string, any>): ApiNftMetadata | undefined {
-  const { image, id } = metadata as { image?: string; id?: number };
+export function buildMtwCardsNftMetadata(metadata: {
+  image?: string;
+  id?: number;
+  attributes?: {
+    trait_type: string;
+    value: string;
+  }[];
+}): ApiNftMetadata | undefined {
+  const { id, image, attributes } = metadata;
 
   let mtwCardType: ApiMtwCardType | undefined;
   let mtwCardTextType: ApiMtwCardTextType | undefined;
@@ -560,22 +568,24 @@ function buildMtwCardsNftMetadata(metadata: Record<string, any>): ApiNftMetadata
   if (image) result.imageUrl = image;
   if (id !== undefined) result.mtwCardId = id;
 
-  if ('attributes' in metadata && Array.isArray(metadata.attributes) && metadata.attributes.length) {
-    mtwCardType = metadata.attributes
+  if (attributes && Array.isArray(attributes) && attributes.length) {
+    mtwCardType = attributes
       .find((attribute) => attribute.trait_type === 'Card Type')?.value
       // Clean non-ascii characters with regex
       .replace(/[^\x20-\x7E]/g, '')
       .trim()
-      .toLowerCase();
+      .toLowerCase() as ApiMtwCardType;
 
     if (mtwCardType) {
-      mtwCardTextType = metadata.attributes.find((attribute) => attribute.trait_type === 'Text')?.value.toLowerCase();
+      mtwCardTextType = attributes
+        .find((attribute) => attribute.trait_type === 'Text')?.value
+        .toLowerCase() as ApiMtwCardTextType;
 
       result.mtwCardType = mtwCardType;
       if (mtwCardType === 'standard') {
-        result.mtwCardBorderShineType = metadata.attributes.find((attribute) => {
-          return attribute.trait_type === 'Shine';
-        })?.value.toLowerCase();
+        result.mtwCardBorderShineType = attributes
+          .find((attribute) => attribute.trait_type === 'Shine')?.value
+          .toLowerCase() as ApiMtwCardBorderShineType;
       }
 
       if (mtwCardTextType === 'dark' || mtwCardType === 'silver') {

@@ -10,11 +10,9 @@ import {
   clearCurrentSignature,
   clearCurrentTransfer,
   clearDappConnectRequest,
-  updateAccountState,
   updateCurrentSignature,
   updateCurrentTransfer,
 } from '../../reducers';
-import { selectAccountState } from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -87,24 +85,10 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       break;
     }
 
-    case 'updateActiveDapp': {
-      const { accountId, origin } = update;
-
-      global = updateAccountState(global, accountId, {
-        activeDappOrigin: origin,
-      });
-      setGlobal(global);
-      break;
-    }
-
     case 'dappDisconnect': {
-      const { accountId, origin } = update;
-      const accountState = selectAccountState(global, accountId);
+      const { origin } = update;
 
-      if (accountState?.activeDappOrigin === origin) {
-        global = updateAccountState(global, accountId, {
-          activeDappOrigin: undefined,
-        });
+      if (global.currentDappTransfer.dapp?.origin === origin) {
         global = clearCurrentDappTransfer(global);
         setGlobal(global);
       }

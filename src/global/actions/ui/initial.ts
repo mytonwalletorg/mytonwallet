@@ -20,7 +20,7 @@ import { initCapacitorWithGlobal } from '../../../util/capacitor';
 import { processDeeplinkAfterSignIn } from '../../../util/deeplink';
 import { omit } from '../../../util/iteratees';
 import { clearPreviousLangpacks, setLanguage } from '../../../util/langProvider';
-import { callActionInMain } from '../../../util/multitab';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { initializeSounds } from '../../../util/notificationSound';
 import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import switchTheme, { setStatusBarStyle } from '../../../util/switchTheme';
@@ -30,6 +30,7 @@ import {
   IS_ANDROID,
   IS_ANDROID_APP,
   IS_DELEGATED_BOTTOM_SHEET,
+  IS_DELEGATING_BOTTOM_SHEET,
   IS_ELECTRON,
   IS_IOS,
   IS_LINUX,
@@ -162,6 +163,10 @@ addActionHandler('showDialog', (global, actions, payload) => {
 });
 
 addActionHandler('dismissDialog', (global) => {
+  if (IS_DELEGATING_BOTTOM_SHEET) {
+    callActionInNative('dismissDialog');
+  }
+
   const newDialogs = [...global.dialogs];
 
   newDialogs.pop();

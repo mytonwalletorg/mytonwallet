@@ -21,12 +21,21 @@ interface OwnProps {
 }
 
 function CardPros({ type, price, balance }: OwnProps) {
-  const { startCardMinting } = getActions();
+  const { startCardMinting, showDialog } = getActions();
 
   const lang = useLang();
   const isEnoughBalance = price && balance ? fromDecimal(price, TONCOIN.decimals) + DEFAULT_FEE < balance : false;
 
   const handleSubmit = useLastCallback(() => {
+    if (!isEnoughBalance) {
+      showDialog({
+        title: lang('Insufficient Balance'),
+        message: lang('Please top up your TON balance.'),
+      });
+
+      return;
+    }
+
     startCardMinting({ type });
   });
 
@@ -57,9 +66,8 @@ function CardPros({ type, price, balance }: OwnProps) {
       {!!price && (
         <Button
           isPrimary
-          isDisabled={!isEnoughBalance}
           className={styles.button}
-          onClick={isEnoughBalance ? handleSubmit : undefined}
+          onClick={handleSubmit}
         >
           {lang('Upgrade for %currency% %amount%', {
             amount: price,

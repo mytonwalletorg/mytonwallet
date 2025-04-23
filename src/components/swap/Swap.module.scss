@@ -304,6 +304,12 @@
   padding: 0.5rem !important;
 }
 
+.footerButtonInner {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
 .swapArrowIcon {
   font-size: 1rem;
   line-height: 1;

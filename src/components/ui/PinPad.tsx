@@ -77,12 +77,7 @@ function PinPad({
     }
   }, [isPinAccepted, length, onChange, prevIsPinAccepted, value.length]);
 
-  useEffect(() => {
-    return () => {
-      // Don't trust this effect 100%, because it won't give the desired result when PinPad unmounts after the NBS closing
-      clearIsPinAccepted();
-    };
-  }, []);
+  useEffect(() => clearIsPinAccepted, []);
 
   // Fix for iOS, enable fast pinpad button presses
   useEffectWithPrevDeps(([prevIsActive]) => {

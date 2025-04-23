@@ -56,8 +56,6 @@ const cspFrameSrcExtra = IS_CORE_WALLET ? '' : [
   'https://buy.moonpay.com/',
   'https://dreamwalkers.io/',
   'https://avanchange.com/',
-  'https://pay.wata.pro/',
-  'https://royalpay.cc/',
 ].join(' ');
 
 // The `connect-src` rule contains `https:` due to arbitrary requests are needed for jetton JSON configs.

@@ -181,7 +181,7 @@ Incorrect address: Nieprawidłowy adres
 Incorrect address.: Nieprawidłowy adres.
 Paste: Pasta
 Insufficient balance: Niewystarczająca równowaga
-InsufficientBalance: Insufficient balance
+Insufficient Balance: Niewystarczająca równowaga
 Optional: Opcjonalnie
 $send_token_symbol: Wyślij %1$s
 Is it all ok?: Czy wszystko jest w porządku?
@@ -806,3 +806,4 @@ Upgrade for %currency% %amount%: Ulepszenie za %currency% %amount%
 "%amount% left": "Pozostało %amount%"
 "%amount% sold": "Sprzedano %amount%"
 This card has been sold out: Ta karta jest wyprzedana
+Please top up your TON balance.: Proszę doładować swoje saldo TON.

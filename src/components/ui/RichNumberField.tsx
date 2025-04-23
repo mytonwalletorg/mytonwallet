@@ -77,11 +77,11 @@ function RichNumberField({
     const textContent = values?.[0] || '';
     prevValueRef.current = inputValue;
 
-    const content = buildContentHtml(inputValue, suffix, decimals, true);
-    contentEl.innerHTML = content;
+    const html = buildContentHtml(inputValue, suffix, decimals, true);
+    contentEl.innerHTML = html;
 
     if (textContent.length > MIN_LENGTH_FOR_SHRINK || isFontChangedRef.current) {
-      updateFontScale(content);
+      updateFontScale(html);
     }
   });
 
@@ -89,7 +89,7 @@ function RichNumberField({
     if (value) {
       renderValue(value);
     } else if (zeroValue) {
-      contentRef.current!.innerHTML = zeroValue;
+      contentRef.current!.textContent = zeroValue;
     }
   }, [decimals, renderValue, value, zeroValue]);
 

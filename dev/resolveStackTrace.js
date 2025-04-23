@@ -176,7 +176,7 @@ function findSourceMapFile(mapDirectory, fileUrl) {
 }
 
 function extractFilePathFromUrl(fileUrl) {
-  return fileUrl.replace(/^https?:\/\/[^\/]*\//, '');
+  return fileUrl.replace(/^\w+:\/\/[^\/]*\//, '');
 }
 
 function extractBundleIdFromFilePath(filePath, extension) {

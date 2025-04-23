@@ -50,10 +50,9 @@ export function setIsPinAccepted(global: GlobalState): GlobalState {
 }
 
 export function clearIsPinAccepted(global: GlobalState): GlobalState {
-  return {
-    ...global,
-    isPinAccepted: undefined,
-  };
+  return global.isPinAccepted
+    ? { ...global, isPinAccepted: undefined }
+    : global;
 }
 
 export function createAccount({

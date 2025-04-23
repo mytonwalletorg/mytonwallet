@@ -179,7 +179,7 @@ Incorrect address: Incorrect address
 Incorrect address.: Incorrect address.
 Paste: Paste
 Insufficient balance: Insufficient balance
-InsufficientBalance: Insufficient balance
+Insufficient Balance: Insufficient Balance
 Optional: Optional
 $send_token_symbol: Send %1$s
 Is it all ok?: Is it all ok?
@@ -802,3 +802,4 @@ Upgrade for %currency% %amount%: Upgrade for %currency% %amount%
 "%amount% left": "%amount% left"
 "%amount% sold": "%amount% sold"
 This card has been sold out: This card has been sold out
+Please top up your TON balance.: Please top up your TON balance.

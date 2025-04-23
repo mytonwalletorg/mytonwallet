@@ -182,7 +182,7 @@ Incorrect address: Неверный адрес
 Incorrect address.: Неверный адрес.
 Paste: Вставить
 Insufficient balance: Недостаточный баланс
-InsufficientBalance: Недостаточный баланс
+Insufficient Balance: Недостаточный баланс
 Optional: При необходимости
 $send_token_symbol: Отправить %1$s
 Is it all ok?: Всё верно?
@@ -801,3 +801,4 @@ Upgrade for %currency% %amount%: Улучшить за %currency% %amount%
 "%amount% left": "Осталось %amount%"
 "%amount% sold": "Продано %amount%"
 This card has been sold out: Эта карта распродана
+Please top up your TON balance.: Пожалуйста, пополните ваш TON-баланс.

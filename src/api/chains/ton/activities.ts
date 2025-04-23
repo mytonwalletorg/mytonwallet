@@ -10,6 +10,7 @@ import type {
 } from './toncenter/types';
 import type { ApiTransactionExtended } from './types';
 
+import { TONCOIN } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { getActivityTokenSlugs, parseTxId } from '../../../util/activities';
 import { bigintAbs } from '../../../util/bigint';
@@ -77,12 +78,11 @@ export async function fetchActivitySlice(
       shouldIncludeFrom,
     });
   } else {
-    const token = getTokenBySlug(tokenSlug);
-    const tokenWalletAddress = await resolveTokenWalletAddress(network, address, token.tokenAddress!);
-
     activities = await fetchActions({
       network,
-      address: tokenWalletAddress,
+      address: tokenSlug === TONCOIN.slug
+        ? address
+        : await resolveTokenWalletAddress(network, address, getTokenBySlug(tokenSlug).tokenAddress!),
       walletAddress: address,
       limit: limit ?? GET_TRANSACTIONS_LIMIT,
       fromTimestamp,

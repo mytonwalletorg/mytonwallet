@@ -179,7 +179,7 @@ Incorrect address: Falsche Adresse
 Incorrect address.: Falsche Adresse.
 Paste: Einfügen
 Insufficient balance: Unzureichendes Guthaben
-InsufficientBalance: Unzureichendes Guthaben
+Insufficient Balance: Unzureichendes Guthaben
 Optional: Optional
 $send_token_symbol: Senden von %1$s
 Is it all ok?: Ist alles in Ordnung?
@@ -802,3 +802,4 @@ Upgrade for %currency% %amount%: Upgrade für %currency% %amount%
 "%amount% left": "%amount% übrig"
 "%amount% sold": "%amount% verkauft"
 This card has been sold out: Diese Karte ist ausverkauft
+Please top up your TON balance.: Bitte laden Sie Ihr TON-Guthaben auf.

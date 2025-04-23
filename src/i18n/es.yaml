@@ -178,7 +178,7 @@ Incorrect address: Dirección incorrecta
 Incorrect address.: Dirección incorrecta.
 Paste: Pegar
 Insufficient balance: Saldo insuficiente
-InsufficientBalance: Saldo insuficiente
+Insufficient Balance: Saldo insuficiente
 Optional: Opcional
 $send_token_symbol: Enviar %1$s
 Is it all ok?: ¿Está todo bien?
@@ -799,3 +799,4 @@ Upgrade for %currency% %amount%: Actualización por %currency% %amount%
 "%amount% left": "%amount% restantes"
 "%amount% sold": "%amount% vendidos"
 This card has been sold out: Esta tarjeta está agotada
+Please top up your TON balance.: Por favor, recargue su saldo TON.

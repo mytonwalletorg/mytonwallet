@@ -42,6 +42,7 @@ import {
   BURN_ADDRESS,
   DNS_IMAGE_GEN_URL,
   LIQUID_POOL,
+  MTW_CARDS_COLLECTION,
   MYCOIN_STAKING_POOL,
   NFT_FRAGMENT_COLLECTIONS,
   NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX,
@@ -54,9 +55,11 @@ import { toMilliseconds, toSeconds } from '../../../../util/datetime';
 import { toDecimal } from '../../../../util/decimals';
 import { getDnsDomainZone } from '../../../../util/dns';
 import { omitUndefined } from '../../../../util/iteratees';
+import { logDebug } from '../../../../util/logs';
 import { fixIpfsUrl } from '../../../../util/metadata';
 import safeExec from '../../../../util/safeExec';
-import { readComment } from '../util/metadata';
+import { pause } from '../../../../util/schedulers';
+import { buildMtwCardsNftMetadata, readComment } from '../util/metadata';
 import { toBase64Address } from '../util/tonCore';
 import { checkHasScamLink, checkIsTrustedCollection } from '../../../common/addresses';
 import { buildTokenSlug, getTokenBySlug } from '../../../common/tokens';
@@ -85,9 +88,13 @@ type ParseOptions<T extends AnyAction = AnyAction> = {
 
 type PartialTx = Pick<ApiTransactionActivity, 'kind' | 'id' | 'txId' | 'timestamp' | 'fee' | 'externalMsgHash'>;
 
+const RAW_NFT_CARD_COLLECTION = '0:901362FD85FC31D55F2C82617D91EADA1F1D6B34AF559A047572D56F20D046CA';
 const TME_RENEW_HASH_SUFFIX = '0000000000000000000000000000000000000000000000';
 
-export async function fetchActions(options: {
+const WAIT_METADATA_RETRIES = 5;
+const WAIT_METADATA_PAUSE = 1000; // 1 sec
+
+type FetchActionsOptions = {
   network: ApiNetwork;
   address: string | string[];
   limit: number;
@@ -98,18 +105,16 @@ export async function fetchActions(options: {
   shouldIncludeTo?: boolean;
   includeTypes?: AnyAction['type'][];
   excludeTypes?: AnyAction['type'][];
-}): Promise<ApiActivity[]> {
+};
+
+export async function fetchActions(options: FetchActionsOptions): Promise<ApiActivity[]> {
   const {
     network, address, limit, toTimestamp, fromTimestamp,
     shouldIncludeFrom, shouldIncludeTo, walletAddress,
     includeTypes, excludeTypes,
   } = options;
 
-  const {
-    actions: rawActions,
-    address_book: addressBook,
-    metadata = {},
-  } = await callToncenterV3<ActionsResponse>(network, '/actions', {
+  const data: AnyLiteral = {
     account: address,
     limit,
     start_utime: fromTimestamp && toSeconds(fromTimestamp) + (!shouldIncludeFrom ? 1 : 0),
@@ -117,24 +122,61 @@ export async function fetchActions(options: {
     sort: 'desc',
     ...(includeTypes?.length && { action_type: includeTypes.join(',') }),
     ...(excludeTypes?.length && { exclude_action_type: excludeTypes.join(',') }),
-  });
+  };
 
-  const result: ApiActivity[] = [];
+  let attempt = 1;
+  let isMetadataMissing = false;
+  let activities: ApiActivity[] | undefined;
+
+  do {
+    if (attempt > 1) {
+      logDebug(`Retry fetchActions #${attempt}`);
+      await pause(WAIT_METADATA_PAUSE);
+    }
+
+    const {
+      actions: rawActions,
+      address_book: addressBook,
+      metadata = {},
+    } = await callToncenterV3<ActionsResponse>(network, '/actions', data);
+
+    ({ activities, isMetadataMissing } = parseActions(network, walletAddress, rawActions, addressBook, metadata));
+    attempt += 1;
+  } while (attempt <= WAIT_METADATA_RETRIES && isMetadataMissing);
+
+  return activities;
+}
+
+export function parseActions(
+  network: ApiNetwork,
+  walletAddress: string,
+  rawActions: AnyAction[],
+  addressBook: AddressBook,
+  metadata: MetadataMap,
+): { activities: ApiActivity[]; isMetadataMissing: boolean } {
+  const activities = [];
+  let isMetadataMissing = false;
 
   for (const action of rawActions) {
-    const activities = await parseAction(action, {
+    for (const activity of parseAction(action, {
       network, action, addressBook, walletAddress, metadata,
-    });
+    })) {
+      activities.push(activity);
 
-    for (const activity of activities) {
-      result.push(activity);
+      if (
+        (action.type === 'nft_mint' || action.type === 'nft_transfer')
+        && action.details.nft_collection === RAW_NFT_CARD_COLLECTION
+        && !metadata[action.details.nft_item]?.is_indexed
+      ) {
+        isMetadataMissing = true;
+      }
     }
   }
 
-  return result;
+  return { activities, isMetadataMissing };
 }
 
-function parseAction(action: AnyAction, options: ParseOptions): MaybePromise<ApiActivity[]> {
+function parseAction(action: AnyAction, options: ParseOptions): ApiActivity[] {
   const id = buildActionActivityId(action);
 
   const partialTx: PartialTx = {
@@ -853,6 +895,7 @@ function parseToncenterNft(
     const isScam = hasScamLink; // TODO (actions) Replace with real value when Toncenter supports it
     const isHidden = extra?.render_type === 'hidden' || isScam;
     const isFragmentGift = image?.startsWith(NFT_FRAGMENT_GIFT_IMAGE_URL_PREFIX);
+    const isMtwCard = collectionAddress === MTW_CARDS_COLLECTION;
     const fixedImage = image ? fixIpfsUrl(image) : undefined;
     // eslint-disable-next-line no-underscore-dangle
     const thumbnail = extra?._image_medium ?? fixedImage!;
@@ -870,6 +913,11 @@ function parseToncenterNft(
         ...(isFragmentGift && {
           fragmentUrl: image!.replace(NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX, 'https://$1'),
         }),
+        // `id` must be set to `index + 1`. Unlike TonApi where this field is preformatted,
+        // we need to manually adjust it here due to data source differences.
+        ...(isMtwCard && buildMtwCardsNftMetadata({
+          id: Number(index || 0) + 1, image, attributes: extra?.attributes,
+        })),
       },
       ...(collectionAddress && {
         collectionAddress,

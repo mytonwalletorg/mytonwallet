@@ -1,5 +1,6 @@
 import type {
   ApiActivity,
+  ApiActivityTimestamps,
   ApiBalanceBySlug,
   ApiNetwork,
   ApiNftUpdate,
@@ -20,6 +21,7 @@ import {
 import { parseAccountId } from '../../../util/account';
 import { getActivityTokenSlugs } from '../../../util/activities';
 import { areDeepEqual } from '../../../util/areDeepEqual';
+import { compact } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import { pauseOrFocus } from '../../../util/pauseOrFocus';
 import {
@@ -50,6 +52,7 @@ const BALANCE_BASED_INTERVAL = 1.1 * SEC;
 const BALANCE_BASED_INTERVAL_WHEN_NOT_FOCUSED = 10 * SEC;
 const DOUBLE_CHECK_TOKENS_PAUSE = 30 * SEC;
 const DOUBLE_CHECK_ACTIVITIES_PAUSE = 10 * SEC; // TODO (actions) Can it be reduced?
+const FORCE_CHECK_ACTIVITIES_PAUSE = 30 * SEC;
 const NFT_FULL_INTERVAL = 60 * SEC;
 
 const STAKING_INTERVAL = 5 * SEC;
@@ -65,7 +68,14 @@ const BALANCE_NOT_ACTIVE_ACCOUNTS_INTERVAL_WHEN_NOT_FOCUSED = 60 * SEC;
 
 const lastBalanceCache: Record<string, ApiBalanceBySlug> = {};
 
-export function setupPolling(accountId: string, onUpdate: OnApiUpdate, newestActivityTimestamp?: number) {
+export function setupPolling(
+  accountId: string,
+  onUpdate: OnApiUpdate,
+  newestActivityTimestamps: ApiActivityTimestamps,
+) {
+  const newestTimestamps = compact(Object.values(newestActivityTimestamps));
+  const newestActivityTimestamp = newestTimestamps.length ? Math.max(...newestTimestamps) : undefined;
+
   void setupBalanceBasedPolling(accountId, onUpdate, newestActivityTimestamp);
   void setupWalletVersionsPolling(accountId, onUpdate);
 
@@ -86,7 +96,7 @@ async function setupBalanceBasedPolling(accountId: string, onUpdate: OnApiUpdate
   let nftUpdates: ApiNftUpdate[];
   let lastNftFullUpdate = 0;
   let doubleCheckTokensTime: number | undefined;
-  let doubleCheckActivitiesTime: number | undefined;
+  let forceCheckActivitiesTime = 0;
 
   async function updateBalance(cache: ApiBalanceBySlug, newBalances: ApiBalanceBySlug, changedSlugs: string[]) {
     const { balance, lastTxId } = await getWalletInfo(network, address);
@@ -157,11 +167,18 @@ async function setupBalanceBasedPolling(accountId: string, onUpdate: OnApiUpdate
   }
 
   async function updateActivities(isToncoinBalanceChanged: boolean, balances: ApiBalanceBySlug) {
-    if (!isToncoinBalanceChanged && (!doubleCheckActivitiesTime || doubleCheckActivitiesTime > Date.now())) {
+    if (!isToncoinBalanceChanged && forceCheckActivitiesTime > Date.now()) {
       return;
     }
 
-    doubleCheckActivitiesTime = isToncoinBalanceChanged ? Date.now() + DOUBLE_CHECK_ACTIVITIES_PAUSE : undefined;
+    forceCheckActivitiesTime = Date.now() + (isToncoinBalanceChanged
+      // The activity update may be delayed after the TON balance changes, so we wait a few seconds before the 2nd attempt.
+      ? DOUBLE_CHECK_ACTIVITIES_PAUSE
+      // We suspect that the 2nd attempt after a short delay doesn't always bring the new activities,
+      // so we poll the activities even if the TON balance hasn't changed just in case.
+      : FORCE_CHECK_ACTIVITIES_PAUSE
+    );
+
     if (newestActivityTimestamp) {
       newestActivityTimestamp = await loadNewActivities(accountId, newestActivityTimestamp, onUpdate);
     } else {

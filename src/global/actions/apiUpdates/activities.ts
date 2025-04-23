@@ -2,7 +2,12 @@ import type { ApiActivity, ApiTransactionActivity } from '../../../api/types';
 import type { GlobalState } from '../../types';
 import { TransferState } from '../../types';
 
-import { IS_CORE_WALLET, MTW_CARDS_COLLECTION } from '../../../config';
+import {
+  IS_CORE_WALLET,
+  MINT_CARD_ADDRESS,
+  MINT_CARD_REFUND_COMMENT,
+  MTW_CARDS_COLLECTION,
+} from '../../../config';
 import { parseTxId } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { callActionInMain, callActionInNative } from '../../../util/multitab';
@@ -186,13 +191,23 @@ function notifyAboutNewActivities(global: GlobalState, newActivities: ApiActivit
 
 function processCardMintingActivity(global: GlobalState, accountId: string, activities: ApiActivity[]): GlobalState {
   const { isCardMinting } = selectAccountState(global, accountId) || {};
-  const mintCardActivity = isCardMinting
-    ? activities.find((activity) => {
-      return activity.kind === 'transaction'
-        && activity.isIncoming
-        && activity?.nft?.collectionAddress === MTW_CARDS_COLLECTION;
-    })
-    : undefined;
+
+  if (!isCardMinting || !activities.length) {
+    return global;
+  }
+
+  const mintCardActivity = activities.find((activity) => {
+    return activity.kind === 'transaction'
+      && activity.isIncoming
+      && activity?.nft?.collectionAddress === MTW_CARDS_COLLECTION;
+  });
+
+  const refundActivity = activities.find((activity) => {
+    return activity.kind === 'transaction'
+      && activity.isIncoming
+      && activity.fromAddress === MINT_CARD_ADDRESS
+      && activity?.comment === MINT_CARD_REFUND_COMMENT;
+  });
 
   if (mintCardActivity) {
     const nft = (mintCardActivity as ApiTransactionActivity).nft!;
@@ -201,6 +216,8 @@ function processCardMintingActivity(global: GlobalState, accountId: string, acti
     global = addNft(global, accountId, nft);
     getActions().setCardBackgroundNft({ nft });
     getActions().installAccentColorFromNft({ nft });
+  } else if (refundActivity) {
+    global = updateAccountState(global, accountId, { isCardMinting: undefined });
   }
 
   return global;

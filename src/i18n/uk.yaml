@@ -183,7 +183,7 @@ Incorrect address: Неправильна адреса
 Incorrect address.: Неправильна адреса.
 Paste: Вставити
 Insufficient balance: Недостатній баланс
-InsufficientBalance: Недостатній баланс
+Insufficient Balance: Недостатній баланс
 Optional: За необхідності
 $send_token_symbol: Надіслати %1$s
 Is it all ok?: Все вірно?
@@ -806,3 +806,4 @@ Upgrade for %currency% %amount%: Оновлення за %currency% %amount%
 "%amount% left": "Залишилося %amount%"
 "%amount% sold": "Продано %amount%"
 This card has been sold out: Ця картка розпродана
+Please top up your TON balance.: Будь ласка, поповніть ваш TON-баланс.

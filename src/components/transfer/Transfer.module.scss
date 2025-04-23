@@ -474,16 +474,23 @@ textarea.inputStatic {
 
 .buttons {
   display: grid;
-  grid-auto-columns: minmax(max-content, auto);
   grid-auto-flow: column;
+  grid-template-columns: repeat(auto-fit, minmax(max-content, 1fr));
   gap: 1rem;
 }
 
 .button {
+  overflow: hidden;
+  // The default value for the button in this component is `flex`,
+  // but with `flex` doesn't work `text-overflow: ellipsis`.
+  display: inline-block !important;
+
   width: 100%;
   min-width: 4rem !important;
   max-width: 100% !important;
   padding: 0.5rem !important;
+
+  text-overflow: ellipsis;
 }
 
 @keyframes button-loading-spinner {

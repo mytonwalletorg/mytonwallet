@@ -41,7 +41,7 @@ enum CONNECT_EVENT_ERROR_CODES {
 type TonConnectCallback = (event: WalletEvent) => void;
 type AppMethodMessage = AppRequest<keyof RpcRequests>;
 type WalletMethodMessage = WalletResponse<RpcMethod>;
-type RequestMethods = 'connect' | 'reconnect' | keyof RpcRequests | 'deactivate';
+type RequestMethods = 'connect' | 'reconnect' | keyof RpcRequests;
 
 export interface ExtensionTonConnectBridge {
   deviceInfo: DeviceInfo; // see Requests/Responses spec
@@ -83,31 +83,18 @@ class TonConnect implements ExtensionTonConnectBridge {
     }
 
     const response = await this.request('connect', [message, id]);
-    if (response?.event === 'connect') {
-      this.addEventListeners();
-    }
-
     return this.emit<ConnectEvent>(response || TonConnect.buildConnectError(id));
   }
 
   async restoreConnection(): Promise<ConnectEvent> {
     const id = ++this.lastGeneratedId;
-
     const response = await this.request('reconnect', [id]);
-    if (response?.event === 'connect') {
-      this.addEventListeners();
-    }
-
     return this.emit<ConnectEvent>(response || TonConnect.buildConnectError(id));
   }
 
   async send(message: AppMethodMessage) {
     const { id } = message;
     const response = await this.request(message.method, [message]);
-
-    if (message.method === 'disconnect') {
-      this.removeEventListeners();
-    }
 
     return response || {
       error: {
@@ -141,8 +128,6 @@ class TonConnect implements ExtensionTonConnectBridge {
       id,
       payload: {},
     });
-
-    this.removeEventListeners();
   }
 
   private request(name: RequestMethods, args: any[] = []) {
@@ -169,22 +154,7 @@ class TonConnect implements ExtensionTonConnectBridge {
     return event;
   }
 
-  private addEventListeners() {
-    this.removeEventListeners();
-
-    window.addEventListener('beforeunload', this.unloadEventListener);
-  }
-
-  private removeEventListeners() {
-    window.removeEventListener('beforeunload', this.unloadEventListener);
-  }
-
-  private unloadEventListener = () => {
-    void this.request('deactivate');
-  };
-
   private destroy() {
-    this.removeEventListeners();
     this.callbacks = [];
     this.apiConnector.destroy();
   }

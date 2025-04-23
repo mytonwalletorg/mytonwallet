@@ -4,6 +4,7 @@ $suggestionPaddingSize: 0.375rem;
 $paddingSize: 0.875rem;
 $imageSize: 3rem;
 $imageGapSize: 0.75rem;
+$listHorizontalPadding: 1rem;
 
 .rootSlide {
   overflow: visible !important;
@@ -26,7 +27,7 @@ $imageGapSize: 0.75rem;
   gap: 1.25rem 0.75rem;
   align-content: start;
 
-  padding: 0 1rem calc(max(var(--safe-area-bottom), 1rem) + var(--bottombar-height) + 1rem);
+  padding: 0 $listHorizontalPadding calc(max(var(--safe-area-bottom), 1rem) + var(--bottombar-height) + 1rem);
 
   @media (min-width: 470px) {
     grid-template-columns: 1fr 1fr 1fr;
@@ -42,7 +43,7 @@ $imageGapSize: 0.75rem;
     }
   }
 
-  @include adapt-padding-to-scrollbar(1rem);
+  @include adapt-padding-to-scrollbar($listHorizontalPadding);
 }
 
 @include respond-below(xs) {
@@ -167,6 +168,12 @@ $imageGapSize: 0.75rem;
   &.suggestion:not(:first-child)::before {
     left: calc($imageSize + $imageGapSize + $paddingSize - $suggestionPaddingSize);
   }
+
+  @include respond-above(xs) {
+    &:not(.trending):first-child .badge {
+      top: 0;
+    }
+  }
 }
 
 .trending {
@@ -219,7 +226,7 @@ $imageGapSize: 0.75rem;
   }
 
   &.extended {
-    width: 23.375rem;
+    width: min(23.375rem, calc(100vw - calc(2 * $listHorizontalPadding - var(--scrollbar-width))));
   }
 }
 

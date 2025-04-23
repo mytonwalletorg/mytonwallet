@@ -23,7 +23,7 @@
 
   @include respond-below(xs) {
     position: sticky !important;
-    z-index: 2;
+    z-index: 3;
 
     // On mobile devices with a retina display, the underlying content is visible from above
     /* stylelint-disable-next-line plugin/whole-pixel */

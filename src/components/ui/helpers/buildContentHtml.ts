@@ -8,6 +8,9 @@ export function buildContentHtml(
   decimals = FRACTION_DIGITS,
   withRadix = false,
 ) {
+  text = sanitizeHtml(text);
+  suffix = suffix ? sanitizeHtml(suffix) : undefined;
+
   const hasDot = text.includes('.');
   const [wholePart = '0', fractionPart] = hasDot ? text.split('.') : [text];
 
@@ -21,4 +24,10 @@ export function buildContentHtml(
   ) : '';
 
   return `${formattedWholePart}${extraSpan}`;
+}
+
+function sanitizeHtml(string: string) {
+  const tempEl = document.createElement('span');
+  tempEl.textContent = string;
+  return tempEl.innerHTML;
 }

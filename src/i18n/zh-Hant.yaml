@@ -175,7 +175,7 @@ Incorrect address: 錯誤的地址
 Incorrect address.: 錯誤的地址。
 Paste: 貼上
 Insufficient balance: 餘額不足
-InsufficientBalance: 餘額不足
+Insufficient Balance: 餘額不足
 Optional: 選項
 $send_token_symbol: 發送 %1$s
 Is it all ok?: 全部確認都 OK?
@@ -791,3 +791,4 @@ Upgrade for %currency% %amount%: 升級需 %currency% %amount%
 "%amount% left": "剩餘 %amount%"
 "%amount% sold": "已售 %amount%"
 This card has been sold out: 此卡片已售罄
+Please top up your TON balance.: 請充值您的TON餘額。

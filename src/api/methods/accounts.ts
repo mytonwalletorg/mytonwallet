@@ -3,9 +3,7 @@ import type {
 } from '../types';
 
 import { IS_CORE_WALLET, IS_EXTENSION } from '../../config';
-import { parseAccountId } from '../../util/account';
 import { getChainConfig } from '../../util/chain';
-import { compact } from '../../util/iteratees';
 import chains from '../chains';
 import {
   fetchStoredAccount,
@@ -18,7 +16,6 @@ import { waitStorageMigration } from '../common/helpers';
 import { sendUpdateTokens } from '../common/tokens';
 import { callHook } from '../hooks';
 import { storage } from '../storages';
-import { deactivateAccountDapp, deactivateAllDapps, onActiveDappAccountUpdated } from './dapps';
 import { setupAccountConfigPolling } from './polling';
 
 const { ton, tron } = chains;
@@ -40,12 +37,7 @@ export async function activateAccount(accountId: string, newestActivityTimestamp
   loginResolve();
 
   if (IS_EXTENSION) {
-    if (prevAccountId && parseAccountId(prevAccountId).network !== parseAccountId(accountId).network) {
-      deactivateAllDapps();
-    }
-
     void callHook('onFirstLogin');
-    onActiveDappAccountUpdated(accountId);
   }
 
   if (isFirstLogin) {
@@ -59,9 +51,7 @@ export async function activateAccount(accountId: string, newestActivityTimestamp
   }
 
   if ('ton' in account) {
-    const newestTonTimestamps = compact(Object.values(pickChainTimestamps(newestActivityTimestamps, 'ton')));
-    const newestActivityTimestamp = newestTonTimestamps.length ? Math.max(...newestTonTimestamps) : undefined;
-    ton.setupPolling(accountId, onUpdate, newestActivityTimestamp);
+    ton.setupPolling(accountId, onUpdate, pickChainTimestamps(newestActivityTimestamps, 'ton'));
   }
   if ('tron' in account) {
     void tron.setupPolling(accountId, onUpdate, pickChainTimestamps(newestActivityTimestamps, 'tron'));
@@ -79,18 +69,10 @@ function pickChainTimestamps(bySlug: ApiActivityTimestamps, chain: ApiChain) {
 }
 
 export function deactivateAllAccounts() {
-  deactivateCurrentAccount();
   setActiveAccountId(undefined);
 
   if (IS_EXTENSION) {
-    deactivateAllDapps();
     void callHook('onFullLogout');
-  }
-}
-
-export function deactivateCurrentAccount() {
-  if (IS_EXTENSION) {
-    deactivateAccountDapp(getActiveAccountId()!);
   }
 }
 

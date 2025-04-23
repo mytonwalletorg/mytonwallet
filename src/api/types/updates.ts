@@ -96,12 +96,6 @@ export type ApiUpdateStaking = {
   shouldUseNominators?: boolean;
 };
 
-export type ApiUpdateActiveDapp = {
-  type: 'updateActiveDapp';
-  accountId: string;
-  origin?: string;
-};
-
 export type ApiUpdateDappSendTransactions = {
   type: 'dappSendTransactions';
   promiseId: string;
@@ -273,7 +267,6 @@ export type ApiUpdate =
   | ApiUpdateCreateTransaction
   | ApiUpdateCreateSignature
   | ApiUpdateStaking
-  | ApiUpdateActiveDapp
   | ApiUpdateDappSendTransactions
   | ApiUpdateDappConnect
   | ApiUpdateDappConnectComplete

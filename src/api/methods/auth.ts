@@ -32,7 +32,7 @@ import { nftRepository } from '../db';
 import { getEnvironment } from '../environment';
 import { handleServerError } from '../errors';
 import { storage } from '../storages';
-import { activateAccount, deactivateAllAccounts, deactivateCurrentAccount } from './accounts';
+import { activateAccount, deactivateAllAccounts } from './accounts';
 import { removeAccountDapps, removeAllDapps, removeNetworkDapps } from './dapps';
 
 export { importNewWalletVersion } from '../chains/ton';
@@ -228,7 +228,6 @@ export async function removeAccount(
     nftRepository.deleteWhere({ accountId }),
   ]);
 
-  deactivateCurrentAccount();
   await activateAccount(nextAccountId, newestActivityTimestamps);
 }
 

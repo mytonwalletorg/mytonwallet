@@ -140,7 +140,7 @@ function SwapSubmitButton({
           isDestructive={isDestructive}
         >
           {/* The <span> is to have inline content positioning to align the icon properly */}
-          <span>{renderedText}</span>
+          <span className={styles.footerButtonInner}>{renderedText}</span>
         </Button>
       </Transition>
     );

@@ -360,7 +360,6 @@ export interface AccountState {
   };
   dappLastOpenedDatesByOrigin?: Record<string, number>;
   isBackupRequired?: boolean;
-  activeDappOrigin?: string;
   currentTokenSlug?: string;
   currentActivityId?: string;
   currentTokenPeriod?: TokenPeriod;

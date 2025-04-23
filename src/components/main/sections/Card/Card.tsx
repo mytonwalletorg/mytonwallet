@@ -7,7 +7,7 @@ import { withGlobal } from '../../../../global';
 import type { ApiBaseCurrency, ApiNft, ApiStakingState } from '../../../../api/types';
 import type { UserToken } from '../../../../global/types';
 
-import { IS_CORE_WALLET, IS_EXTENSION } from '../../../../config';
+import { IS_CORE_WALLET } from '../../../../config';
 import {
   selectAccountStakingStates,
   selectCurrentAccountSettings,
@@ -17,7 +17,6 @@ import {
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
-import { shortenAddress } from '../../../../util/shortenAddress';
 import { IS_IOS, IS_SAFARI } from '../../../../util/windowEnvironment';
 import { calculateFullBalance } from './helpers/calculateFullBalance';
 import getSensitiveDataMaskSkinFromCardNft from './helpers/getSensitiveDataMaskSkinFromCardNft';
@@ -53,7 +52,6 @@ interface OwnProps {
 
 interface StateProps {
   tokens?: UserToken[];
-  activeDappOrigin?: string;
   currentTokenSlug?: string;
   baseCurrency?: ApiBaseCurrency;
   stakingStates?: ApiStakingState[];
@@ -66,7 +64,6 @@ interface StateProps {
 function Card({
   ref,
   tokens,
-  activeDappOrigin,
   currentTokenSlug,
   forceCloseAccountSelector,
   onTokenCardClose,
@@ -101,32 +98,9 @@ function Card({
     setWithTextGradient(hasGradient);
   });
 
-  const dappDomain = useMemo(() => {
-    if (!activeDappOrigin) {
-      return undefined;
-    }
-
-    let value: string | undefined;
-    try {
-      value = new URL(activeDappOrigin).hostname;
-    } catch (err) {
-      value = shortenAddress(activeDappOrigin);
-    }
-
-    return value;
-  }, [activeDappOrigin]);
-  const renderingDappDomain = useCurrentOrPrev(dappDomain, true);
-
   const values = useMemo(() => {
     return tokens ? calculateFullBalance(tokens, stakingStates) : undefined;
   }, [tokens, stakingStates]);
-
-  const {
-    shouldRender: shouldRenderDappElement,
-    transitionClassNames: dappClassNames,
-  } = useShowTransition(Boolean(dappDomain));
-
-  const shouldRenderDapp = IS_EXTENSION && shouldRenderDappElement;
 
   useHistoryBack({
     isActive: Boolean(currentTokenSlug),
@@ -242,12 +216,6 @@ function Card({
             forceClose={forceCloseAccountSelector}
             canEdit={!IS_CORE_WALLET}
           />
-          {shouldRenderDapp && (
-            <div className={buildClassName(styles.dapp, dappClassNames)}>
-              <i className={buildClassName(styles.dappIcon, 'icon-laptop')} aria-hidden />
-              {renderingDappDomain}
-            </div>
-          )}
           {values ? renderBalance() : renderLoader()}
           <CardAddress withTextGradient={withTextGradient} />
           {!IS_CORE_WALLET && !isNftBuyingDisabled && <MintCardButton />}
@@ -276,7 +244,6 @@ export default memo(
 
       return {
         tokens: selectCurrentAccountTokens(global),
-        activeDappOrigin: accountState?.activeDappOrigin,
         currentTokenSlug: accountState?.currentTokenSlug,
         baseCurrency: global.settings.baseCurrency,
         stakingStates,

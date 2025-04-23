@@ -4,10 +4,14 @@
   flex-grow: 1;
   gap: 1rem;
 
-  padding: 1rem 1rem max(1rem, var(--safe-area-bottom));
+  padding: 1rem 1rem max(1rem, calc(var(--safe-area-bottom) + 0.5rem));
 
   background-color: var(--color-background-window);
   border-radius: 0 0 var(--modal-border-radius) var(--modal-border-radius);
+
+  :global(html.is-android-app) & {
+    padding-bottom: 1rem;
+  }
 
   &.standard {
     --current-accent-color: var(--color-default-accent);

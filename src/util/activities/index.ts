@@ -71,6 +71,7 @@ export function buildTxId(hash: string, subId?: number | string, type?: UnusualT
 export function getActivityTokenSlugs(activity: ApiActivity): string[] {
   switch (activity.kind) {
     case 'transaction': {
+      if (activity.nft) return []; // We don't want NFT activities to get into any token activity list
       return [activity.slug];
     }
     case 'swap': {
