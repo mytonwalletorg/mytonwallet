@@ -4,22 +4,22 @@ import type {
   ApiAccountWithMnemonic,
   ApiCountryCode,
   ApiSwapAsset,
-  ApiTokenPrice,
+  ApiTokenDetails,
+  ApiTokenWithPrice,
   OnApiUpdate,
 } from '../types';
 
 import { IS_AIR_APP, TONCOIN } from '../../config';
 import { areDeepEqual } from '../../util/areDeepEqual';
-import { buildCollectionByKey, omit } from '../../util/iteratees';
+import { omit } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { pauseOrFocus } from '../../util/pauseOrFocus';
 import chains from '../chains';
 import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet, callBackendPost } from '../common/backend';
-import { getPricesCache } from '../common/cache';
 import { isAlive, isUpdaterAlive } from '../common/helpers';
 import { getBaseCurrency } from '../common/prices';
-import { addTokens, loadTokensCache } from '../common/tokens';
+import { getTokensCache, loadTokensCache, tokensPreload, updateTokens } from '../common/tokens';
 import { MINUTE } from '../constants';
 import { resolveDataPreloadPromise } from './preload';
 import { tryUpdateStakingCommonData } from './staking';
@@ -33,6 +33,8 @@ const INCORRECT_TIME_DIFF = 30 * SEC;
 const ACCOUNT_CONFIG_INTERVAL = 60 * SEC;
 const ACCOUNT_CONFIG_INTERVAL_INTERVAL_WHEN_NOT_FOCUSED = 10 * MINUTE;
 
+const MAX_POST_TOKENS = 1000;
+
 const { ton, tron } = chains;
 
 let onUpdate: OnApiUpdate;
@@ -40,11 +42,11 @@ let onUpdate: OnApiUpdate;
 export async function initPolling(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 
-  await tryUpdatePrices();
+  await loadTokensCache();
 
   void Promise.allSettled([
     tryUpdateKnownAddresses(),
-    tryUpdateTokens(_onUpdate, true),
+    tryUpdateTokens(_onUpdate),
     tryUpdateSwapTokens(_onUpdate),
     tryUpdateStakingCommonData(),
   ]).then(() => resolveDataPreloadPromise());
@@ -64,14 +66,7 @@ export async function setupBackendPolling() {
 
   while (isUpdaterAlive(localOnUpdate)) {
     await pauseOrFocus(BACKEND_INTERVAL);
-    if (!isUpdaterAlive(localOnUpdate)) return;
-
-    try {
-      await tryUpdatePrices(localOnUpdate);
-      await tryUpdateTokens(localOnUpdate);
-    } catch (err) {
-      logDebugError('setupBackendPolling', err);
-    }
+    await tryUpdateTokens(localOnUpdate);
   }
 }
 
@@ -90,47 +85,37 @@ export async function setupLongBackendPolling() {
   }
 }
 
-export async function tryUpdatePrices(localOnUpdate?: OnApiUpdate) {
+export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate) {
   if (!localOnUpdate) {
     localOnUpdate = onUpdate;
   }
 
   try {
     const baseCurrency = await getBaseCurrency();
-    const pricesData = await callBackendGet<Record<string, ApiTokenPrice>>('/prices/current', {
-      base: baseCurrency,
-    });
+
+    const tokens = await callBackendGet<ApiTokenWithPrice[]>('/assets', { base: baseCurrency });
+    for (const token of tokens) {
+      token.isFromBackend = true;
+    }
+
+    const tokensCache = getTokensCache();
+
+    const nonBackendTokenAddresses = Object.values(tokensCache.bySlug).reduce((result, token) => {
+      if (!token.isFromBackend && token.tokenAddress) {
+        result.push(token.tokenAddress);
+      }
+      return result;
+    }, [] as string[]);
+
+    // POST is used to retrieve data due to the potentially large number of addresses
+    const nonBackendTokenDetails = nonBackendTokenAddresses.length
+      ? await callBackendPost<ApiTokenDetails[]>(`/assets?base=${baseCurrency}`, {
+        assets: nonBackendTokenAddresses.slice(0, MAX_POST_TOKENS),
+      }) : undefined;
 
     if (!isUpdaterAlive(localOnUpdate)) return;
 
-    const prices = getPricesCache();
-    prices.bySlug = buildCollectionByKey(Object.values(pricesData), 'slug');
-    prices.baseCurrency = baseCurrency;
-  } catch (err) {
-    logDebugError('tryUpdatePrices', err);
-  }
-}
-
-export async function tryUpdateTokens(localOnUpdate?: OnApiUpdate, isFirstRun?: boolean) {
-  if (!localOnUpdate) {
-    localOnUpdate = onUpdate;
-  }
-
-  if (isFirstRun) {
-    await loadTokensCache();
-  }
-
-  try {
-    let tokens = await callBackendGet<any[]>('/known-tokens');
-    tokens = tokens.map((token) => ({
-      ...omit(token, ['minterAddress']),
-      tokenAddress: token.minterAddress,
-      chain: 'ton',
-    }));
-
-    if (!isUpdaterAlive(localOnUpdate)) return;
-
-    await addTokens(tokens, onUpdate, true);
+    await updateTokens(tokens, onUpdate, nonBackendTokenDetails, baseCurrency, true);
   } catch (err) {
     logDebugError('tryUpdateTokens', err);
   }
@@ -146,7 +131,9 @@ export async function tryUpdateSwapTokens(localOnUpdate?: OnApiUpdate) {
 
     if (!isUpdaterAlive(localOnUpdate)) return;
 
-    const prices = getPricesCache();
+    await tokensPreload.promise;
+    const tokensCache = getTokensCache();
+
     const tokens = assets.reduce((acc: Record<string, ApiSwapAsset>, asset) => {
       acc[asset.slug] = {
         // Fix legacy variable names
@@ -155,7 +142,7 @@ export async function tryUpdateSwapTokens(localOnUpdate?: OnApiUpdate) {
         tokenAddress: 'contract' in asset && asset.contract !== TONCOIN.symbol
           ? asset.contract as string
           : asset.tokenAddress,
-        price: prices.bySlug[asset.slug]?.price ?? 0,
+        price: tokensCache.bySlug[asset.slug]?.price ?? 0,
       };
       return acc;
     }, {});

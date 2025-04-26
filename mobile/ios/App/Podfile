@@ -1,6 +1,6 @@
 require_relative '../../../node_modules/@capacitor/ios/scripts/pods_helpers'
 
-platform :ios, '13.0'
+platform :ios, '15.5'
 use_frameworks!
 
 # workaround to avoid Xcode caching of Pods that requires
@@ -21,17 +21,18 @@ def capacitor_pods
   pod 'CapacitorKeyboard', :path => '../../../node_modules/@capacitor/keyboard'
   pod 'CapacitorPushNotifications', :path => '../../../node_modules/@capacitor/push-notifications'
   pod 'CapacitorShare', :path => '../../../node_modules/@capacitor/share'
+  pod 'CapacitorStatusBar', :path => '../../../node_modules/@capacitor/status-bar'
+  pod 'CapawesomeCapacitorTorch', :path => '../../../node_modules/@capawesome/capacitor-torch'
   pod 'CapgoCapacitorNativeBiometric', :path => '../../../node_modules/@capgo/capacitor-native-biometric'
   pod 'CapgoNativeAudio', :path => '../../../node_modules/@capgo/native-audio'
   pod 'MauricewegnerCapacitorNavigationBar', :path => '../../../node_modules/@mauricewegner/capacitor-navigation-bar'
-  pod 'SinaKhMtwCapacitorStatusBar', :path => '../../../node_modules/@sina_kh/mtw-capacitor-status-bar'
   pod 'CapacitorNativeSettings', :path => '../../../node_modules/capacitor-native-settings'
   pod 'CapacitorPluginSafeArea', :path => '../../../node_modules/capacitor-plugin-safe-area'
   pod 'CapacitorSecureStoragePlugin', :path => '../../../node_modules/capacitor-secure-storage-plugin'
   pod 'MtwCapacitorUsbHid', :path => '../../../node_modules/mtw-capacitor-usb-hid'
   pod 'NativeBottomSheet', :path => '../../plugins/native-bottom-sheet'
   pod 'NativeDialog', :path => '../../plugins/native-dialog'
-  pod 'SinaKhMtwCapacitorSplashScreen', :path => '../../../node_modules/@sina_kh/mtw-capacitor-splash-screen'
+  pod 'CapacitorSplashScreen', :path => '../../../node_modules/@capacitor/splash-screen'
   pod 'CordovaPlugins', :path => '../capacitor-cordova-ios-plugins'
 end
 

@@ -247,12 +247,9 @@ addActionHandler('addToken', (global, actions, { token }) => {
         chain: token.chain,
         image: token.image,
         keywords: token.keywords,
-        quote: {
-          slug: token.slug,
-          price: token.price ?? 0,
-          priceUsd: token.priceUsd ?? 0,
-          percentChange24h: token.change24h ?? 0,
-        },
+        price: token.price ?? 0,
+        priceUsd: token.priceUsd ?? 0,
+        percentChange24h: token.change24h ?? 0,
       },
     });
   }
@@ -320,12 +317,9 @@ addActionHandler('importToken', async (global, actions, { address }) => {
     } else {
       const apiToken: ApiTokenWithPrice = {
         ...token,
-        quote: {
-          slug: token.slug,
-          price: 0,
-          priceUsd: 0,
-          percentChange24h: 0,
-        },
+        price: 0,
+        priceUsd: 0,
+        percentChange24h: 0,
       };
       global = updateTokenInfo(global, { [apiToken.slug]: apiToken });
       setGlobal(global);

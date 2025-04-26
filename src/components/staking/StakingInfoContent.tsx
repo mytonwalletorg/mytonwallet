@@ -15,6 +15,7 @@ import {
   selectAccountStakingTotalProfit,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
+  selectIsCurrentAccountViewMode,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatRelativeHumanDateTime } from '../../util/dateFormat';
@@ -49,6 +50,7 @@ interface OwnProps {
 }
 
 interface StateProps {
+  isViewMode: boolean;
   states?: ApiStakingState[];
   stakingState?: ApiStakingState;
   totalProfit: bigint;
@@ -76,6 +78,7 @@ function StakingInfoContent({
   endOfStakingCycle,
   theme,
   shouldUseNominators,
+  isViewMode,
   isSensitiveDataHidden,
   onClose,
 }: OwnProps & StateProps) {
@@ -157,8 +160,12 @@ function StakingInfoContent({
       return [];
     }
 
-    return buildStakingDropdownItems({ tokenBySlug, states, shouldUseNominators });
-  }, [tokenBySlug, states, shouldUseNominators]);
+    const items = buildStakingDropdownItems({ tokenBySlug, states, shouldUseNominators });
+
+    if (!isViewMode) return items;
+
+    return items.filter(({ value }) => value === stakingId);
+  }, [tokenBySlug, states, shouldUseNominators, isViewMode, stakingId]);
 
   function renderUnstakeDescription() {
     return (
@@ -251,15 +258,17 @@ function StakingInfoContent({
           labelClassName={styles.balanceStakedLabel}
           valueClassName={styles.balanceResult}
         />
-        <div className={styles.stakingInfoButtons}>
-          <Button
-            className={styles.stakingInfoButton}
-            isDisabled={isLoading}
-            onClick={handleClaimClick}
-          >
-            {lang('Claim')}
-          </Button>
-        </div>
+        {!isViewMode && (
+          <div className={styles.stakingInfoButtons}>
+            <Button
+              className={styles.stakingInfoButton}
+              isDisabled={isLoading}
+              onClick={handleClaimClick}
+            >
+              {lang('Claim')}
+            </Button>
+          </div>
+        )}
       </>
     );
   }
@@ -320,27 +329,28 @@ function StakingInfoContent({
                   labelClassName={styles.balanceStakedLabel}
                   valueClassName={styles.balanceResult}
                 />
-                <div
-                  className={
-                    buildClassName(styles.stakingInfoButtons, !!unclaimedRewards && styles.stakingInfoButtonsWithMargin)
-                  }
-                >
-                  <Button
-                    className={styles.stakingInfoButton}
-                    isPrimary
-                    isDisabled={isLoading}
-                    onClick={handleStakeClick}
-                  >
-                    {lang('Stake More')}
-                  </Button>
-                  <Button
-                    className={styles.stakingInfoButton}
-                    isDisabled={isLoading}
-                    onClick={handleUnstakeClick}
-                  >
-                    {lang('Unstake')}
-                  </Button>
-                </div>
+                {!isViewMode && (
+                  <div className={buildClassName(
+                    styles.stakingInfoButtons,
+                    !!unclaimedRewards && styles.stakingInfoButtonsWithMargin,
+                  )}>
+                    <Button
+                      className={styles.stakingInfoButton}
+                      isPrimary
+                      isDisabled={isLoading}
+                      onClick={handleStakeClick}
+                    >
+                      {lang('Stake More')}
+                    </Button>
+                    <Button
+                      className={styles.stakingInfoButton}
+                      isDisabled={isLoading}
+                      onClick={handleUnstakeClick}
+                    >
+                      {lang('Unstake')}
+                    </Button>
+                  </div>
+                )}
                 {!!unclaimedRewards && renderRewards()}
               </>
             )}
@@ -392,5 +402,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     theme: global.settings.theme,
     shouldUseNominators: accountState?.staking?.shouldUseNominators,
     isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+    isViewMode: selectIsCurrentAccountViewMode(global),
   };
 })(StakingInfoContent));

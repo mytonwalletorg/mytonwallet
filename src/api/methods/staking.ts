@@ -10,7 +10,7 @@ import { TONCOIN } from '../../config';
 import { fromDecimal } from '../../util/decimals';
 import { logDebugError } from '../../util/logs';
 import chains from '../chains';
-import { fetchStoredTonWallet } from '../common/accounts';
+import { fetchStoredAccount, fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet } from '../common/backend';
 import { setStakingCommonCache } from '../common/cache';
 import { createLocalTransaction } from './transactions';
@@ -49,6 +49,7 @@ export async function submitStake(
 
   if (state.tokenSlug === TONCOIN.slug) {
     localActivity = createLocalTransaction(accountId, 'ton', {
+      txId: result.msgHashNormalized,
       amount,
       fromAddress,
       toAddress: result.toAddress,
@@ -59,6 +60,7 @@ export async function submitStake(
     });
   } else {
     localActivity = createLocalTransaction(accountId, 'ton', {
+      txId: result.msgHashNormalized,
       amount,
       fromAddress,
       toAddress: result.toAddress,
@@ -90,6 +92,7 @@ export async function submitUnstake(
   }
 
   const localActivity = createLocalTransaction(accountId, 'ton', {
+    txId: result.msgHashNormalized,
     amount: result.amount,
     fromAddress,
     toAddress: result.toAddress,
@@ -110,8 +113,9 @@ export async function getStakingHistory(
   limit?: number,
   offset?: number,
 ): Promise<ApiStakingHistory> {
-  const { address } = await fetchStoredTonWallet(accountId);
-  return callBackendGet(`/staking/profits/${address}`, { limit, offset });
+  const { ton: tonWallet } = await fetchStoredAccount(accountId);
+  if (!tonWallet) return [];
+  return callBackendGet(`/staking/profits/${tonWallet.address}`, { limit, offset });
 }
 
 export async function tryUpdateStakingCommonData() {
@@ -131,10 +135,6 @@ export async function tryUpdateStakingCommonData() {
   }
 }
 
-export function fetchBackendStakingState(address: string) {
-  return ton.getBackendStakingState(address);
-}
-
 export async function submitStakingClaim(
   accountId: string,
   password: string,
@@ -150,6 +150,7 @@ export async function submitStakingClaim(
   }
 
   const localActivity = createLocalTransaction(accountId, 'ton', {
+    txId: result.msgHashNormalized,
     amount: result.amount,
     fromAddress,
     toAddress: result.toAddress,

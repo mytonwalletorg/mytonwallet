@@ -287,13 +287,13 @@ function TokenSelector({
   }, [searchTokenList.length, isLoading, searchValue, token, filteredTokenList]);
 
   useEffect(() => {
-    if (isValidAddressOrDomain(searchValue, 'ton')) {
+    if ('ton' in availableChains && isValidAddressOrDomain(searchValue, 'ton')) {
       importToken({ address: searchValue, isSwap: true });
       setRenderingKey(SearchState.Loading);
     } else {
       resetImportToken();
     }
-  }, [searchValue]);
+  }, [searchValue, availableChains]);
 
   useLayoutEffect(() => {
     if (!isActive || !scrollContainerRef.current) return;

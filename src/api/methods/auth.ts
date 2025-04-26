@@ -5,10 +5,11 @@ import type {
   ApiAccountAny,
   ApiAccountWithMnemonic,
   ApiActivityTimestamps,
-  ApiChain,
+  ApiImportAddressByChain,
   ApiLedgerAccount,
   ApiNetwork,
   ApiTonWallet,
+  ApiViewAccount,
 } from '../types';
 import { ApiCommonError } from '../types';
 
@@ -19,6 +20,7 @@ import chains from '../chains';
 import { toBase64Address } from '../chains/ton/util/tonCore';
 import {
   fetchStoredAccounts,
+  getAddressesFromAccount,
   getNewAccountId,
   removeAccountValue,
   removeNetworkAccountsValue,
@@ -28,7 +30,7 @@ import {
 import {
   decryptMnemonic, encryptMnemonic, generateBip39Mnemonic, validateBip39Mnemonic,
 } from '../common/mnemonic';
-import { nftRepository } from '../db';
+import { nftRepository, tokenRepository } from '../db';
 import { getEnvironment } from '../environment';
 import { handleServerError } from '../errors';
 import { storage } from '../storages';
@@ -86,8 +88,6 @@ export async function importMnemonic(
 
   let account: ApiAccountAny;
   let tonWallet: ApiTonWallet & { lastTxId?: string } | undefined;
-  let tonAddress: string;
-  let tronAddress: string | undefined;
 
   try {
     if (isBip39Mnemonic && isTonMnemonic) {
@@ -101,8 +101,6 @@ export async function importMnemonic(
       const tronWallet = tron.getWalletFromBip39Mnemonic(network, mnemonic);
       tonWallet = await ton.getWalletFromBip39Mnemonic(network, mnemonic);
 
-      tonAddress = tonWallet.address;
-      tronAddress = tronWallet.address;
       account = {
         type: 'bip39',
         mnemonicEncrypted,
@@ -120,7 +118,6 @@ export async function importMnemonic(
         mnemonicEncrypted,
         ton: tonWallet,
       };
-      tonAddress = tonWallet.address;
     }
 
     await setAccountValue(accountId, 'accounts', account);
@@ -131,8 +128,7 @@ export async function importMnemonic(
 
     return {
       accountId,
-      tonAddress,
-      tronAddress,
+      addressByChain: getAddressesFromAccount(account),
       secondNetworkAccount,
     };
   } catch (err) {
@@ -165,7 +161,7 @@ export async function createAccountWithSecondNetwork(options: {
 
   return {
     accountId: secondAccountId,
-    addressByChain: { ton: tonWallet.address } as Record<ApiChain, string>,
+    addressByChain: { ton: tonWallet.address },
     network: secondNetwork,
   };
 }
@@ -214,6 +210,7 @@ export async function resetAccounts() {
     storage.removeItem('currentAccountId'),
     getEnvironment().isDappSupported && removeAllDapps(),
     nftRepository.clear(),
+    tokenRepository.clear(),
   ]);
 }
 
@@ -241,5 +238,41 @@ export async function changePassword(oldPassword: string, password: string) {
     await updateStoredAccount<ApiAccountWithMnemonic>(accountId, {
       mnemonicEncrypted: encryptedMnemonic,
     });
+  }
+}
+
+export async function importViewAccount(network: ApiNetwork, addressByChain: ApiImportAddressByChain) {
+  try {
+    const account: ApiViewAccount = {
+      type: 'view',
+    };
+    let title: string | undefined;
+
+    if (addressByChain.ton) {
+      const wallet = await ton.getWalletFromAddress(network, addressByChain.ton);
+      if ('error' in wallet) return { ...wallet, chain: 'ton' };
+      account.ton = wallet.wallet;
+      title = wallet.title;
+    }
+
+    if (addressByChain.tron) {
+      account.tron = {
+        type: 'tron',
+        address: addressByChain.tron,
+        index: 0,
+      };
+    }
+
+    const accountId = await getNewAccountId(network);
+    await setAccountValue(accountId, 'accounts', account);
+    void activateAccount(accountId);
+
+    return {
+      accountId,
+      title,
+      resolvedAddresses: getAddressesFromAccount(account),
+    };
+  } catch (err) {
+    return handleServerError(err);
   }
 }

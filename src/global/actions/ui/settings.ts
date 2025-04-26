@@ -2,8 +2,11 @@ import { addCallback } from '../../../lib/teact/teactn';
 
 import type { GlobalState } from '../../types';
 
+import { setInMemoryPasswordSignal } from '../../../util/authApi/inMemoryPasswordStore';
 import { setLanguage } from '../../../util/langProvider';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import switchTheme from '../../../util/switchTheme';
+import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler } from '../..';
 
 let prevGlobal: GlobalState | undefined;
@@ -45,4 +48,40 @@ addActionHandler('setIsManualLockActive', (global, actions, { isActive, shouldHi
     isManualLockActive: isActive,
     appLockHideBiometrics: shouldHideBiometrics,
   };
+});
+
+addActionHandler('setIsAutoConfirmEnabled', (global, actions, { isEnabled }) => {
+  if (!isEnabled) {
+    actions.setInMemoryPassword({ password: undefined, force: true });
+  }
+
+  return {
+    ...global,
+    settings: {
+      ...global.settings,
+      isAutoConfirmEnabled: isEnabled || undefined,
+    },
+  };
+});
+
+addActionHandler('setInMemoryPassword', (global, actions, { password, isFinalCall, force }) => {
+  // `global` is not loaded in the NBS until it's opened for the first time, so `isAutoConfirmEnabled` may be
+  // incorrectly `undefined` when Auto Confirm is actually enabled. To mitigate that, we skip checking the setting
+  // when `isFinalCall` is `true`, because in this case the action is fired by the main WebView only when Auto Confirm is enabled.
+  if (!(global.settings.isAutoConfirmEnabled || isFinalCall || force)) {
+    return global;
+  }
+
+  setInMemoryPasswordSignal(password);
+
+  if (!isFinalCall) {
+    if (IS_DELEGATING_BOTTOM_SHEET) {
+      void callActionInNative('setInMemoryPassword', { password, isFinalCall: true });
+    }
+    if (IS_DELEGATED_BOTTOM_SHEET) {
+      void callActionInMain('setInMemoryPassword', { password, isFinalCall: true });
+    }
+  }
+
+  return global;
 });

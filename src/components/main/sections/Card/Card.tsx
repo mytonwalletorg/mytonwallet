@@ -13,6 +13,7 @@ import {
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
+  selectIsCurrentAccountViewMode,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
@@ -59,6 +60,7 @@ interface StateProps {
   cardNft?: ApiNft;
   isSensitiveDataHidden?: true;
   isNftBuyingDisabled: boolean;
+  isViewMode: boolean;
 }
 
 function Card({
@@ -74,6 +76,7 @@ function Card({
   isNftBuyingDisabled,
   balanceUpdateStartedAt,
   cardNft,
+  isViewMode,
 }: OwnProps & StateProps) {
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const [customCardClassName, setCustomCardClassName] = useState<string | undefined>(undefined);
@@ -218,7 +221,7 @@ function Card({
           />
           {values ? renderBalance() : renderLoader()}
           <CardAddress withTextGradient={withTextGradient} />
-          {!IS_CORE_WALLET && !isNftBuyingDisabled && <MintCardButton />}
+          {!IS_CORE_WALLET && !isNftBuyingDisabled && !isViewMode && <MintCardButton />}
         </div>
       </div>
 
@@ -227,7 +230,7 @@ function Card({
           token={renderedToken!}
           classNames={tokenCardTransitionClassNames}
           isUpdating={isUpdating}
-          onYieldClick={onYieldClick}
+          onYieldClick={isViewMode ? undefined : onYieldClick}
           onClose={onTokenCardClose}
         />
       )}
@@ -243,11 +246,12 @@ export default memo(
       const { cardBackgroundNft: cardNft } = selectCurrentAccountSettings(global) || {};
 
       return {
+        isViewMode: selectIsCurrentAccountViewMode(global),
         tokens: selectCurrentAccountTokens(global),
         currentTokenSlug: accountState?.currentTokenSlug,
         baseCurrency: global.settings.baseCurrency,
         stakingStates,
-        balanceUpdateStartedAt: global.balanceUpdateStartedAt,
+        balanceUpdateStartedAt: accountState?.balanceUpdateStartedAt,
         cardNft,
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         isNftBuyingDisabled: global.restrictions.isNftBuyingDisabled,

@@ -1,0 +1,137 @@
+@import "../../styles/mixins";
+
+.inputButtonWrapper {
+  position: absolute;
+  z-index: 2;
+  right: 0.1875rem;
+  bottom: 0.1875rem;
+
+  display: flex;
+
+  padding: calc(0.5rem - 0.1875rem) 0.5rem calc(0.5rem - 0.1875rem) 0;
+
+  background: var(--color-background-first);
+  border-radius: 0 var(--border-radius-default) var(--border-radius-default) 0;
+
+  &::before {
+    content: '';
+
+    position: absolute;
+    top: 0;
+    right: 100%;
+    bottom: 0;
+
+    width: 1.5rem;
+
+    background: var(--color-linear-effect-1);
+
+    @include transition(opacity 150ms);
+  }
+
+  &:empty {
+    display: none;
+  }
+}
+
+.inputButtonWrapperWithFocus::before {
+  opacity: 0;
+}
+
+.inputButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2rem;
+  height: 2rem;
+
+  font-size: 1.25rem;
+  color: var(--color-gray-3);
+
+  border-radius: var(--border-radius-small) !important;
+
+  &:active {
+    color: var(--color-input-button-text);
+
+    background-color: var(--color-input-button-background);
+
+    transition: none;
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      color: var(--color-input-button-text);
+
+      background-color: var(--color-input-button-background);
+    }
+  }
+}
+
+.inputButtonClear {
+  color: var(--color-gray-2);
+
+  &:active {
+    color: var(--color-gray-2);
+
+    opacity: 0.85;
+    background-color: unset;
+
+    transition: none;
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      color: var(--color-gray-2);
+
+      opacity: 0.85;
+      background-color: unset;
+    }
+  }
+}
+
+.inputButtonTransition {
+  width: auto;
+  height: auto;
+}
+
+.addressName {
+  color: var(--color-black);
+
+  &::after {
+    content: '';
+
+    position: relative;
+    top: -0.25rem;
+
+    display: inline-block;
+
+    width: 0.125rem;
+    height: 0.125rem;
+    margin: 0 0.25rem;
+
+    background: var(--color-gray-3);
+    border-radius: 50%;
+  }
+}
+
+.addressValue {
+  color: var(--color-gray-3);
+
+  &Single {
+    color: var(--color-black);
+  }
+}
+
+.inputStatic {
+  /* Default input padding minus 1px accounted for border width */
+  padding: 0.5rem 0.6875rem 0.375rem;
+
+  background: var(--color-background-first);
+  border: 1px solid var(--color-separator-input-stroke);
+}
+
+.inputWithIcon {
+  padding-right: 3rem;
+}

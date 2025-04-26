@@ -1,7 +1,7 @@
 import { AndroidSettings, IOSSettings, NativeSettings } from 'capacitor-native-settings';
 import { Dialog } from 'native-dialog';
 import React, {
-  memo, useLayoutEffect, useState,
+  memo, useEffect, useLayoutEffect, useState,
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -13,7 +13,9 @@ import {
   ANIMATED_STICKER_HUGE_SIZE_PX,
   ANIMATED_STICKER_SMALL_SIZE_PX,
   APP_NAME,
+  AUTO_CONFIRM_DURATION_MINUTES,
   AUTOLOCK_OPTIONS_LIST,
+  DEFAULT_AUTOLOCK_OPTION,
   IS_CAPACITOR,
   PIN_LENGTH,
 } from '../../config';
@@ -23,6 +25,7 @@ import {
   selectIsNativeBiometricAuthEnabled,
   selectIsPasswordPresent,
 } from '../../global/selectors';
+import { getHasInMemoryPassword, getInMemoryPassword } from '../../util/authApi/inMemoryPasswordStore';
 import { getDoesUsePinPad, getIsNativeBiometricAuthSupported } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { vibrateOnSuccess } from '../../util/haptics';
@@ -97,13 +100,12 @@ interface StateProps {
   isMultichainAccount: boolean;
   isAppLockEnabled?: boolean;
   autolockValue?: AutolockValueType;
+  isAutoConfirmEnabled?: boolean;
   isLoading?: boolean;
   currentAccountId: string;
 }
 
 const INITIAL_CHANGE_PASSWORD_SLIDE = getDoesUsePinPad() ? SLIDES.createNewPin : SLIDES.newPassword;
-
-const DEFAULT_AUTOLOCK_OPTION: AutolockValueType = 'never';
 
 function SettingsSecurity({
   isActive,
@@ -116,6 +118,7 @@ function SettingsSecurity({
   isMultichainAccount,
   isAppLockEnabled,
   autolockValue = DEFAULT_AUTOLOCK_OPTION,
+  isAutoConfirmEnabled,
   isAutoUpdateEnabled,
   currentAccountId,
   onSettingsClose,
@@ -131,7 +134,9 @@ function SettingsSecurity({
     openBiometricsTurnOn,
     setSettingsState,
     setAppLockValue,
+    setIsAutoConfirmEnabled,
     setIsAuthLoading,
+    setInMemoryPassword,
   } = getActions();
 
   const lang = useLang();
@@ -215,10 +220,6 @@ function SettingsSecurity({
       return;
     }
 
-    const mnemonic = await callApi('fetchMnemonic', currentAccountId!, enteredPassword);
-
-    setHasMnemonicWallet(Boolean(mnemonic && !isMnemonicPrivateKey(mnemonic)));
-
     if (getDoesUsePinPad()) {
       setIsPinAccepted();
       await vibrateOnSuccess(true);
@@ -232,6 +233,7 @@ function SettingsSecurity({
     await callApi('changePassword', password!, enteredPassword);
     setIsAuthLoading({ isLoading: true });
     setPassword(enteredPassword);
+    setInMemoryPassword({ password: enteredPassword });
     if (isNativeBiometricAuthEnabled) {
       disableNativeBiometrics();
       await enableNativeBiometrics({ password: enteredPassword });
@@ -311,6 +313,10 @@ function SettingsSecurity({
     setAppLockValue({ value: value as AutolockValueType, isEnabled: true });
   });
 
+  const handleAutoConfirmToggle = useLastCallback(() => {
+    setIsAutoConfirmEnabled({ isEnabled: !isAutoConfirmEnabled });
+  });
+
   // Biometrics
   const handleBiometricAuthToggle = useLastCallback(() => {
     if (isBiometricAuthEnabled) {
@@ -343,12 +349,22 @@ function SettingsSecurity({
     }
   });
 
+  useEffect(() => {
+    if (!password) return;
+
+    void callApi('fetchMnemonic', currentAccountId!, password!).then((mnemonic) => {
+      setHasMnemonicWallet(Boolean(mnemonic && !isMnemonicPrivateKey(mnemonic)));
+    });
+  }, [hasMnemonicWallet, currentAccountId, password]);
+
   // The `getIsTelegramBiometricsRestricted` case is required to display a toggle switch.
   // When activated, it will show a warning to the user indicating that they need to grant
   // the appropriate permissions for biometric authentication to function properly.
   const shouldRenderNativeBiometrics = isPasswordPresent
     && (getIsNativeBiometricAuthSupported() || IS_IOS_APP || getIsTelegramBiometricsRestricted());
   const shouldRenderMinifiedPinPad = isInsideModal && getDoesUsePinPad();
+
+  const isAutoConfirmAvailable = !isBiometricAuthEnabled;
 
   function renderSettings() {
     return (
@@ -451,6 +467,38 @@ function SettingsSecurity({
             </>
           )}
 
+          {isPasswordPresent && (
+            <>
+              <div className={buildClassName(styles.block, styles.settingsBlockWithDescription)}>
+                <div
+                  className={buildClassName(
+                    styles.item,
+                    styles.itemSmall,
+                    !isAutoConfirmAvailable && styles.itemDisabled,
+                  )}
+                  onClick={isAutoConfirmAvailable ? handleAutoConfirmToggle : undefined}
+                >
+                  {isPasswordNumeric ? lang('Remember Passcode') : lang('Remember Password')}
+
+                  <Switcher
+                    className={styles.menuSwitcher}
+                    label={isPasswordNumeric ? lang('Remember Passcode') : lang('Remember Password')}
+                    checked={isAutoConfirmAvailable && isAutoConfirmEnabled}
+                  />
+                </div>
+              </div>
+              <p className={styles.blockDescription}>
+                {
+                  lang(
+                    'App will not ask for signature for %1$d minutes after last entry.',
+                    AUTO_CONFIRM_DURATION_MINUTES,
+                  )
+                }
+                {!isAutoConfirmAvailable && ` ${lang('Not available with biometrics.')}`}
+              </p>
+            </>
+          )}
+
           {IS_ELECTRON && (
             <>
               <div className={buildClassName(styles.block, styles.settingsBlockWithDescription)}>
@@ -480,6 +528,12 @@ function SettingsSecurity({
       case SLIDES.settings:
         return renderSettings();
       case SLIDES.password:
+        if (getHasInMemoryPassword()) {
+          setCurrentSlide(SLIDES.settings);
+          void getInMemoryPassword().then((memoizedPassword) => setPassword(memoizedPassword!));
+
+          return undefined;
+        }
         return (
           <>
             {isInsideModal ? (
@@ -751,7 +805,7 @@ function SettingsSecurity({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
-    isPasswordNumeric, autolockValue, isAppLockEnabled,
+    isPasswordNumeric, autolockValue, isAppLockEnabled, isAutoConfirmEnabled,
   } = global.settings;
 
   const isBiometricAuthEnabled = selectIsBiometricAuthEnabled(global);
@@ -767,6 +821,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isPasswordPresent,
     isAppLockEnabled,
     autolockValue,
+    isAutoConfirmEnabled,
     isLoading: global.auth.isLoading,
     currentAccountId: global.currentAccountId!,
   };

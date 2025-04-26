@@ -32,6 +32,12 @@ project(':capacitor-push-notifications').projectDir = new File('../../node_modul
 include ':capacitor-share'
 project(':capacitor-share').projectDir = new File('../../node_modules/@capacitor/share/android')
 
+include ':capacitor-status-bar'
+project(':capacitor-status-bar').projectDir = new File('../../node_modules/@capacitor/status-bar/android')
+
+include ':capawesome-capacitor-torch'
+project(':capawesome-capacitor-torch').projectDir = new File('../../node_modules/@capawesome/capacitor-torch/android')
+
 include ':capgo-capacitor-native-biometric'
 project(':capgo-capacitor-native-biometric').projectDir = new File('../../node_modules/@capgo/capacitor-native-biometric/android')
 
@@ -40,9 +46,6 @@ project(':capgo-native-audio').projectDir = new File('../../node_modules/@capgo/
 
 include ':mauricewegner-capacitor-navigation-bar'
 project(':mauricewegner-capacitor-navigation-bar').projectDir = new File('../../node_modules/@mauricewegner/capacitor-navigation-bar/android')
-
-include ':sina_kh-mtw-capacitor-status-bar'
-project(':sina_kh-mtw-capacitor-status-bar').projectDir = new File('../../node_modules/@sina_kh/mtw-capacitor-status-bar/android')
 
 include ':capacitor-native-settings'
 project(':capacitor-native-settings').projectDir = new File('../../node_modules/capacitor-native-settings/android')

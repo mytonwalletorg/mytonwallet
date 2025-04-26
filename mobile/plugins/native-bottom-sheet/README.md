@@ -27,9 +27,9 @@ npx cap sync
 * [`toggleSelfFullSize(...)`](#toggleselffullsize)
 * [`openInMain(...)`](#openinmain)
 * [`isShown()`](#isshown)
-* [`addListener('delegate', ...)`](#addlistenerdelegate)
-* [`addListener('move', ...)`](#addlistenermove)
-* [`addListener('openInMain', ...)`](#addlisteneropeninmain)
+* [`addListener('delegate', ...)`](#addlistenerdelegate-)
+* [`addListener('move', ...)`](#addlistenermove-)
+* [`addListener('openInMain', ...)`](#addlisteneropeninmain-)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -253,6 +253,6 @@ addListener(eventName: 'openInMain', handler: (options: { key: BottomSheetKeys; 
 
 #### BottomSheetKeys
 
-<code>'initial' | 'receive' | 'invoice' | 'transfer' | 'swap' | 'stake' | 'unstake' | 'staking-info' | 'staking-claim' | 'vesting-info' | 'vesting-confirm' | 'transaction-info' | 'swap-activity' | 'backup' | 'add-account' | 'settings' | 'qr-scanner' | 'dapp-connect' | 'dapp-transfer' | 'disclaimer' | 'backup-warning' | 'onramp-widget' | 'mint-card'</code>
+<code>'initial' | 'receive' | 'invoice' | 'transfer' | 'swap' | 'stake' | 'unstake' | 'staking-info' | 'staking-claim' | 'vesting-info' | 'vesting-confirm' | 'transaction-info' | 'swap-activity' | 'backup' | 'add-account' | 'import-account' | 'settings' | 'qr-scanner' | 'dapp-connect' | 'dapp-transfer' | 'disclaimer' | 'backup-warning' | 'onramp-widget' | 'mint-card'</code>
 
 </docgen-api>

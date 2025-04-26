@@ -1,12 +1,10 @@
-export type ApiEmulatedTransaction = {
-  /** The network fee in TON (the fee taken by the blockchain itself) */
-  fee: bigint;
-  /** How much TON will be received as a result of the transaction (the sent amount is not deducted) */
-  received: bigint;
-};
+import type { ParsedTracePart } from '../chains/ton/types';
+import type { ApiActivity } from './activity';
 
 export type ApiEmulationResult = {
-  totalFee: bigint;
-  totalReceived: bigint;
-  byTransactionIndex: ApiEmulatedTransaction[];
+  networkFee: bigint;
+  realFee: bigint;
+  byTransactionIndex: ParsedTracePart[];
+  /** What else should happen after submitting the transactions (in addition to the transactions and the returned TON) */
+  activities: ApiActivity[];
 };

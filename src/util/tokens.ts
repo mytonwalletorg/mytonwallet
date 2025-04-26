@@ -37,6 +37,7 @@ export function buildUserToken(token: ApiTokenWithPrice | ApiToken): UserToken {
       'keywords',
       'chain',
       'tokenAddress',
+      'type',
     ]),
     amount: 0n,
     totalValue: '0',

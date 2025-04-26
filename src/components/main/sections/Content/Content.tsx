@@ -21,11 +21,13 @@ import {
   selectAccountStakingStates,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
+  selectDoesAccountSupportNft,
   selectEnabledTokensCountMemoizedFor,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { getStatusBarHeight } from '../../../../util/capacitor';
 import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
+import { compact } from '../../../../util/iteratees';
 import { getTelegramApp } from '../../../../util/telegram';
 import { IS_TOUCH_ENV, STICKY_CARD_INTERSECTION_THRESHOLD } from '../../../../util/windowEnvironment';
 import windowSize from '../../../../util/windowSize';
@@ -70,6 +72,7 @@ interface StateProps {
     isCollection: boolean;
   };
   currentSiteCategoryId?: number;
+  doesSupportNft: boolean;
 }
 
 let activeNftKey = 0;
@@ -88,6 +91,7 @@ function Content({
   hasVesting,
   isFullscreen,
   currentSiteCategoryId,
+  doesSupportNft,
 }: OwnProps & StateProps) {
   const {
     selectToken,
@@ -172,17 +176,13 @@ function Content({
   );
 
   const tabs = useMemo(
-    () => [
-      ...(
-        !shouldShowSeparateAssetsPanel
-          ? [{ id: ContentTab.Assets, title: lang('Assets'), className: styles.tab }]
-          : []
-      ),
+    () => compact([
+      !shouldShowSeparateAssetsPanel
+        && { id: ContentTab.Assets, title: lang('Assets'), className: styles.tab },
       { id: ContentTab.Activity, title: lang('Activity'), className: styles.tab },
-      ...(!isPortrait && !IS_CORE_WALLET
-        ? [{ id: ContentTab.Explore, title: lang('Explore'), className: styles.tab }]
-        : []),
-      {
+      !isPortrait && !IS_CORE_WALLET
+        && { id: ContentTab.Explore, title: lang('Explore'), className: styles.tab },
+      doesSupportNft && {
         id: ContentTab.Nft,
         title: lang('NFT'),
         className: styles.tab,
@@ -198,13 +198,10 @@ function Content({
           : nftCollections,
         onMenuItemClick: handleNftsMenuButtonClick,
       },
-      ...(nftCollections.some(({ value }) => value === NOTCOIN_VOUCHERS_ADDRESS) ? [{
-        id: ContentTab.NotcoinVouchers,
-        title: 'NOT Vouchers',
-        className: styles.tab,
-      }] : []),
-    ],
-    [lang, nftCollections, shouldShowSeparateAssetsPanel, shouldRenderHiddenNftsSection, isPortrait],
+      nftCollections.some(({ value }) => value === NOTCOIN_VOUCHERS_ADDRESS)
+        && { id: ContentTab.NotcoinVouchers, title: 'NOT Vouchers', className: styles.tab },
+    ]),
+    [lang, nftCollections, shouldShowSeparateAssetsPanel, shouldRenderHiddenNftsSection, isPortrait, doesSupportNft],
   );
 
   const activeTabIndex = useMemo(
@@ -429,6 +426,7 @@ export default memo(
       const tokensCount = selectEnabledTokensCountMemoizedFor(global.currentAccountId!)(tokens);
       const hasVesting = Boolean(vesting?.info?.length);
       const states = accountId ? selectAccountStakingStates(global, accountId) : undefined;
+      const doesSupportNft = selectDoesAccountSupportNft(global);
 
       return {
         nfts,
@@ -443,6 +441,7 @@ export default memo(
         hasVesting,
         currentSiteCategoryId,
         isFullscreen: global.isFullscreen,
+        doesSupportNft,
       };
     },
     (global, _, stickToFirst) => stickToFirst(global.currentAccountId),

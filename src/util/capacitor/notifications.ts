@@ -138,7 +138,7 @@ function handlePushNotificationRegistration(token: Token) {
       await callApi('subscribeNotifications', {
         userToken,
         platform: getCapacitorPlatform()!,
-        addresses: selectNotificationTonAddressesSlow(global, notificationAccounts),
+        addresses: Object.values(selectNotificationTonAddressesSlow(global, notificationAccounts)),
       });
       nextUpdatePushNotifications = Date.now() + (60 * MINUTE);
     }

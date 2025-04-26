@@ -3,13 +3,14 @@ import type { ApiNft } from '../types';
 import { TONCOIN } from '../../config';
 import { bigintDivideToNumber } from '../../util/bigint';
 import chains from '../chains';
-import { fetchStoredTonWallet } from '../common/accounts';
+import { fetchStoredAccount, fetchStoredTonWallet } from '../common/accounts';
 import { createLocalTransaction } from './transactions';
 
 const { ton } = chains;
 
-export function fetchNfts(accountId: string) {
-  return ton.getAccountNfts(accountId);
+export async function fetchNfts(accountId: string) {
+  const account = await fetchStoredAccount(accountId);
+  return 'ton' in account ? ton.getAccountNfts(accountId) : [];
 }
 
 export function checkNftTransferDraft(options: {
@@ -43,6 +44,7 @@ export async function submitNftTransfers(
 
   for (const [index, message] of result.messages.entries()) {
     createLocalTransaction(accountId, 'ton', {
+      txId: result.msgHashNormalized,
       amount: 0n, // Regular NFT transfers should have no amount in the activity list
       fromAddress,
       toAddress,
@@ -58,6 +60,7 @@ export async function submitNftTransfers(
   return result;
 }
 
-export function checkNftOwnership(accountId: string, nftAddress: string) {
-  return ton.checkNftOwnership(accountId, nftAddress);
+export async function checkNftOwnership(accountId: string, nftAddress: string) {
+  const account = await fetchStoredAccount(accountId);
+  return 'ton' in account && ton.checkNftOwnership(accountId, nftAddress);
 }

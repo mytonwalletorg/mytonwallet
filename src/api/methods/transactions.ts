@@ -67,18 +67,12 @@ export async function fetchAllActivitySlice(
   tronTokenSlugs: string[],
 ): Promise<ApiActivity[] | { error: string }> {
   try {
-    const { type } = await fetchStoredAccount(accountId);
+    const account = await fetchStoredAccount(accountId);
 
-    let tonActivities = await ton.fetchActivitySlice(accountId, undefined, toTimestamp, undefined, limit);
-
-    if (type !== 'bip39') {
-      tonActivities = await swapReplaceCexActivities(accountId, tonActivities);
-      return tonActivities;
-    }
-
-    const tronActivities: ApiActivity[] = await tron.getAllTransactionSlice(
-      accountId, toTimestamp, limit, tronTokenSlugs,
-    );
+    const [tonActivities, tronActivities] = await Promise.all([
+      'ton' in account ? ton.fetchActivitySlice(accountId, undefined, toTimestamp, undefined, limit) : [],
+      'tron' in account ? tron.getAllTransactionSlice(accountId, toTimestamp, limit, tronTokenSlugs) : [],
+    ]);
 
     const activities = mergeActivitiesToMaxTime(tonActivities, tronActivities);
 
@@ -161,8 +155,9 @@ export async function submitTransfer(
   let localActivity: ApiTransactionActivity;
 
   if ('msgHash' in result) {
-    const { encryptedComment, msgHash } = result;
+    const { encryptedComment, msgHash, msgHashNormalized } = result;
     localActivity = createLocalTransaction(accountId, chain, {
+      txId: msgHashNormalized,
       amount,
       fromAddress,
       toAddress,
@@ -209,10 +204,11 @@ export async function sendSignedTransferMessage(
   message: ApiSignedTransfer,
   pendingTransferId: string,
 ) {
-  const { msgHash } = await ton.sendSignedMessage(accountId, message, pendingTransferId);
+  const { msgHash, msgHashNormalized } = await ton.sendSignedMessage(accountId, message, pendingTransferId);
 
   const localActivity = createLocalTransaction(accountId, 'ton', {
     ...message.localActivity,
+    txId: msgHashNormalized,
     externalMsgHash: msgHash,
   });
 
@@ -264,6 +260,7 @@ export function fetchEstimateDiesel(accountId: string, tokenAddress: string) {
   return chain.fetchEstimateDiesel(accountId, tokenAddress);
 }
 
-export function fetchTonActivityDetails(accountId: string, activity: ApiActivity) {
-  return chains.ton.fetchActivityDetails(accountId, activity);
+export async function fetchTonActivityDetails(accountId: string, activity: ApiActivity) {
+  const result = await chains.ton.fetchActivityDetails(accountId, activity);
+  return result.activity;
 }

@@ -6,6 +6,7 @@ import type { ApiBaseCurrency, ApiTokenWithPrice } from '../../api/types';
 
 import { toBig, toDecimal } from '../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import isEmptyObject from '../../util/isEmptyObject';
 
 import styles from './Dapp.module.scss';
 
@@ -51,7 +52,7 @@ function DappAmountField({
     );
   }
 
-  if (Object.keys(amountsBySlug).length > 0) {
+  if (!isEmptyObject(amountsBySlug)) {
     const totalCost = getTotalCost(amountsBySlug, tokensBySlug);
     amountTerms.push(` (${formatCurrency(totalCost, getShortCurrencySymbol(baseCurrency))})`);
   }
@@ -81,6 +82,6 @@ function getTotalCost(amountsBySlug: Record<string, bigint>, tokensBySlug: Recor
     if (!token) {
       return sum;
     }
-    return sum + toBig(amount, token.decimals).toNumber() * token.quote.price;
+    return sum + toBig(amount, token.decimals).toNumber() * token.price;
   }, 0);
 }

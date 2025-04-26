@@ -1,0 +1,77 @@
+@import "../../styles/mixins";
+
+$paddingSize: 0.75rem;
+$iconSize: 2rem;
+$gapSize: 0.75rem;
+
+.root {
+  cursor: var(--custom-cursor, pointer);
+
+  position: relative;
+
+  display: flex;
+  gap: $gapSize;
+  align-items: center;
+
+  width: 100%;
+  padding: $paddingSize;
+
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-black);
+
+  background-color: var(--color-background-first);
+  border: none;
+
+  @include transition(background-color 150ms);
+
+  &:not(:first-child)::before {
+    content: '';
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: $paddingSize + $iconSize + $gapSize;
+
+    height: 0.0625rem;
+    /* stylelint-disable-next-line plugin/whole-pixel */
+    box-shadow: inset 0 -0.025rem 0 0 var(--color-separator);
+  }
+
+  &:first-child {
+    border-top-left-radius: var(--border-radius-default);
+    border-top-right-radius: var(--border-radius-default);
+  }
+
+  &:last-child {
+    border-bottom-right-radius: var(--border-radius-default);
+    border-bottom-left-radius: var(--border-radius-default);
+  }
+
+  &:not([disabled]):hover {
+    background-color: var(--color-interactive-item-hover);
+  }
+}
+
+.icon {
+  flex-shrink: 0;
+
+  width: $iconSize;
+  height: $iconSize;
+
+  font-size: $iconSize;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.rightItem {
+  margin-left: auto;
+
+  color: var(--color-gray-3);
+}
+
+.spinner {
+  margin-right: 0.25rem;
+  --spinner-size: 0.875rem;
+}

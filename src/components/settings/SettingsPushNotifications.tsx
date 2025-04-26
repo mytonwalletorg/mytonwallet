@@ -1,11 +1,13 @@
 import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { Account, AccountSettings, GlobalState } from '../../global/types';
+import type { Account, AccountSettings, AccountType, GlobalState } from '../../global/types';
 
 import { MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT } from '../../config';
 import { selectNetworkAccounts } from '../../global/selectors';
+import { getMainAccountAddress } from '../../util/account';
 import buildClassName from '../../util/buildClassName';
+import { isKeyCountGreater } from '../../util/isEmptyObject';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -70,16 +72,22 @@ function SettingsPushNotifications({
     isScrolled,
   } = useScrolledState();
 
-  function renderAccount(accountId: string, address: string, title?: string, isHardware?: boolean) {
-    const onClick = () => {
+  function renderAccount(
+    accountId: string,
+    addressByChain: Account['addressByChain'],
+    accountType: AccountType,
+    title?: string,
+  ) {
+    const onClick = !addressByChain.ton ? undefined : () => {
       toggleNotificationAccount({ accountId });
     };
 
     const { cardBackgroundNft } = settingsByAccountId?.[accountId] || {};
+    const address = getMainAccountAddress(addressByChain) ?? '';
 
     const isDisabled = enabledAccounts
       && !enabledAccounts[accountId]
-      && Object.keys(enabledAccounts).length >= MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT;
+      && isKeyCountGreater(enabledAccounts, MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT - 1);
 
     return (
       <AccountButton
@@ -92,7 +100,7 @@ function SettingsPushNotifications({
         address={address}
         title={title}
         ariaLabel={lang('Switch Account')}
-        isHardware={isHardware}
+        accountType={accountType}
         withCheckbox
         isLoading={isDisabled}
         isActive={Boolean(enabledAccounts && enabledAccounts[accountId])}
@@ -110,8 +118,8 @@ function SettingsPushNotifications({
         className={styles.settingsBlock}
       >
         {iterableAccounts.map(
-          ([accountId, { title, addressByChain, isHardware }]) => {
-            return renderAccount(accountId, addressByChain.ton, title, isHardware);
+          ([accountId, { title, addressByChain, type }]) => {
+            return renderAccount(accountId, addressByChain, type, title);
           },
         )}
       </AccountButtonWrapper>

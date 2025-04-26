@@ -2,6 +2,7 @@ import type { ApiNetwork } from '../types';
 
 import { parseAccountId } from '../../util/account';
 import chains from '../chains';
+import { fetchStoredAccount } from '../common/accounts';
 import { getTokenByAddress } from '../common/tokens';
 
 const { ton } = chains;
@@ -25,7 +26,9 @@ export function resolveTokenAddress(network: ApiNetwork, tokenWalletAddress: str
   return chain.resolveTokenAddress(network, tokenWalletAddress);
 }
 
-export function fetchTokenBalances(accountId: string) {
+export async function fetchTokenBalances(accountId: string) {
+  const account = await fetchStoredAccount(accountId);
+  if (!('ton' in account)) return [];
   const chain = chains.ton;
 
   return chain.getAccountTokenBalances(accountId);

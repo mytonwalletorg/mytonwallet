@@ -2,8 +2,6 @@ declare const process: NodeJS.Process;
 
 declare module '*.module.scss';
 
-declare const APP_REVISION: string;
-
 declare namespace React {
   interface HTMLAttributes {
     // Optimization for DOM nodes prepends and inserts

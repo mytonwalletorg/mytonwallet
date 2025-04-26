@@ -1,4 +1,5 @@
 import * as tonWebMnemonic from 'tonweb-mnemonic';
+import { Address } from '@ton/core';
 import * as bip39 from 'bip39';
 import nacl from 'tweetnacl';
 
@@ -8,19 +9,25 @@ import type {
   ApiNetwork,
   ApiTonAccount,
   ApiTonWallet,
+  ApiWalletInfo,
 } from '../../types';
 import type { ApiTonWalletVersion } from './types';
 import type { TonWallet } from './util/tonCore';
+import { ApiAuthError } from '../../types';
 
+import { DEFAULT_WALLET_VERSION } from '../../../config';
 import * as HDKey from '../../../lib/ed25519-hd-key';
 import { parseAccountId } from '../../../util/account';
 import isMnemonicPrivateKey from '../../../util/isMnemonicPrivateKey';
+import { omitUndefined } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
-import { toBase64Address } from './util/tonCore';
+import { getWalletPublicKey, toBase64Address } from './util/tonCore';
 import { fetchStoredAccount, getNewAccountId, setAccountValue } from '../../common/accounts';
 import { getMnemonic } from '../../common/mnemonic';
 import { bytesToHex, hexToBytes } from '../../common/utils';
+import { resolveAddress } from './address';
 import { TON_BIP39_PATH } from './constants';
+import { getWalletInfos } from './toncenter';
 import { buildWallet, pickBestWallet, publicKeyToAddress } from './wallet';
 
 export function generateMnemonic() {
@@ -144,8 +151,11 @@ export async function importNewWalletVersion(accountId: string, version: ApiTonW
   const { network } = parseAccountId(accountId);
 
   const account = await fetchStoredAccount<ApiTonAccount | ApiLedgerAccount>(accountId);
-  const publicKey = hexToBytes(account.ton.publicKey);
+  if (!account.ton.publicKey) {
+    throw new Error(`Account ${accountId} has no public key`);
+  }
 
+  const publicKey = hexToBytes(account.ton.publicKey);
   const newAddress = publicKeyToAddress(network, publicKey, version);
   const newAccountId = await getNewAccountId(network);
   const newAccount: ApiTonAccount | ApiLedgerAccount = {
@@ -169,5 +179,47 @@ export async function importNewWalletVersion(accountId: string, version: ApiTonW
     accountId: newAccountId,
     address: newAddress,
     ledger,
+  };
+}
+
+export async function getWalletFromAddress(
+  network: ApiNetwork,
+  addressOrDomain: string,
+): Promise<{ title?: string; wallet: ApiTonWallet } | { error: ApiAuthError }> {
+  const resolvedAddress = await resolveAddress(network, addressOrDomain, true);
+  if (resolvedAddress === 'dnsNotResolved') return { error: ApiAuthError.DomainNotResolved };
+  if (resolvedAddress === 'invalidAddress') return { error: ApiAuthError.InvalidAddress };
+  const rawAddress = resolvedAddress.address;
+
+  let address: Address;
+  try {
+    address = Address.parse(rawAddress);
+  } catch {
+    return { error: ApiAuthError.InvalidAddress };
+  }
+
+  const [walletInfos, publicKey] = await Promise.all([
+    getWalletInfos(network, [rawAddress]),
+    getWalletPublicKey(network, rawAddress),
+  ]);
+  const walletInfo = walletInfos[rawAddress] as ApiWalletInfo | undefined;
+
+  // When the address is not initialized, it's unknown whether it will be a wallet or a smart contract. Assuming it'll
+  // be a wallet because it's more likely. If the address gets initialized as a smart contract, the mismatching format
+  // of the stored address will cause some transactions to miss in Activity section of the app (this is a known problem).
+  const isWallet = !walletInfo?.isInitialized || Boolean(walletInfo.version);
+
+  return {
+    title: resolvedAddress.name,
+    wallet: omitUndefined<ApiTonWallet>({
+      type: 'ton',
+      publicKey: publicKey ? bytesToHex(publicKey) : undefined,
+      address: toBase64Address(address, !isWallet, network),
+      // The wallet has no version until it's initialized as a wallet. Using the default version just for the type
+      // compliance, it plays no role for view wallets anyway.
+      version: walletInfo?.version ?? DEFAULT_WALLET_VERSION,
+      index: 0,
+      isInitialized: walletInfo?.isInitialized ?? false,
+    }),
   };
 }

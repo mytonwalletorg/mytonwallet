@@ -1,6 +1,8 @@
 import type { DieselStatus } from '../../global/types';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
-import type { ApiLoyaltyType, ApiMtwCardType } from './misc';
+import type { ApiLoyaltyType, ApiMtwCardType, ApiTokenWithPrice } from './misc';
+
+export type ApiTokenDetails = Pick<ApiTokenWithPrice, 'slug' | 'type' | 'price' | 'priceUsd' | 'percentChange24h'>;
 
 export type ApiSwapDexLabel = 'dedust' | 'ston';
 
@@ -116,6 +118,7 @@ export type ApiSwapHistoryItem = {
   fromAmount: string;
   to: string;
   toAmount: string;
+  /** The real fee in the chain's native token */
   networkFee: string;
   swapFee: string;
   ourFee?: string;

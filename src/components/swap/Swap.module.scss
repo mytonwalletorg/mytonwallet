@@ -62,8 +62,7 @@
   flex-direction: column;
 }
 
-.advancedSlippageButton,
-.slippageLabel {
+.advancedSlippageButton {
   display: flex;
   align-items: center;
 }
@@ -164,36 +163,23 @@
 }
 
 .advancedDescription {
-  display: flex;
-  align-items: center;
-
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-gray-1);
 }
 
 .advancedTooltip {
-  cursor: var(--custom-cursor, pointer);
-
-  margin-left: 0.25rem;
-
   color: var(--color-gray-4);
 
   transition: color 150ms;
 }
 
 .advancedTooltipContainer {
-  z-index: 1;
-
-  width: 18.9375rem;
-}
-
-.advancedTooltipMessage {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 
-  font-size: 0.75rem;
+  max-width: 18.9375rem !important;
 }
 
 .advancedValue {
@@ -695,4 +681,8 @@ $animation-time: 350ms;
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-gray-2);
+}
+
+.feeLine {
+  align-self: stretch;
 }

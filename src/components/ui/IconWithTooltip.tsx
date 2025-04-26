@@ -22,6 +22,8 @@ import styles from './IconWithTooltip.module.scss';
 type OwnProps = {
   message: React.ReactNode;
   emoji?: EmojiIcon;
+  size?: 'small' | 'medium';
+  color?: 'warning';
   iconClassName?: string;
   tooltipClassName?: string;
 };
@@ -29,14 +31,18 @@ type OwnProps = {
 const ARROW_WIDTH = 0.6875 * REM;
 const GAP = 2 * REM;
 
+/** The component is designed to be positioned inline in text. Use a space symbol to create a gap on the left. */
 const IconWithTooltip: FC<OwnProps> = ({
   message,
   emoji,
+  size = 'medium',
+  color,
   iconClassName,
   tooltipClassName,
 }) => {
   const [isOpen, open, close] = useFlag();
   const { transitionClassNames, shouldRender } = useShowTransition(isOpen);
+  const colorClassName = color && styles[`color-${color}`];
 
   // eslint-disable-next-line no-null/no-null
   const iconRef = useRef<HTMLDivElement | null>(null);
@@ -86,25 +92,30 @@ const IconWithTooltip: FC<OwnProps> = ({
   }, [shouldRender]);
 
   function renderIcon() {
+    const commonClassName = buildClassName(styles.icon, iconClassName, styles[size], colorClassName);
+    const onClick = IS_TOUCH_ENV ? stopEvent : undefined;
+
     if (emoji) {
       return (
-        <div
+        <span
           ref={iconRef}
-          className={buildClassName(styles.icon, iconClassName)}
-          onClick={IS_TOUCH_ENV ? stopEvent : undefined}
+          className={commonClassName}
+          data-tooltip-key={randomTooltipKey}
+          onClick={onClick}
           onMouseEnter={open}
           onMouseLeave={close}
         >
           <Emoji from={emoji} />
-        </div>
+        </span>
       );
     }
 
     return (
       <i
         ref={iconRef}
-        className={buildClassName(styles.icon, 'icon-question', iconClassName)}
-        onClick={IS_TOUCH_ENV ? stopEvent : undefined}
+        className={buildClassName(commonClassName, styles.fontIcon, 'icon-question')}
+        data-tooltip-key={randomTooltipKey}
+        onClick={onClick}
         onMouseEnter={open}
         onMouseLeave={close}
       />
@@ -112,7 +123,7 @@ const IconWithTooltip: FC<OwnProps> = ({
   }
 
   return (
-    <div className={styles.wrapper} data-tooltip-key={randomTooltipKey}>
+    <>
       {shouldRender && (
         <Portal>
           <div
@@ -122,7 +133,7 @@ const IconWithTooltip: FC<OwnProps> = ({
           >
             <div
               ref={tooltipRef}
-              className={buildClassName(styles.tooltip, tooltipClassName)}
+              className={buildClassName(styles.tooltip, styles[size], colorClassName, tooltipClassName)}
             >
               {message}
             </div>
@@ -131,7 +142,7 @@ const IconWithTooltip: FC<OwnProps> = ({
         </Portal>
       )}
       {renderIcon()}
-    </div>
+    </>
   );
 };
 

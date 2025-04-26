@@ -5,14 +5,16 @@ import type {
   ApiNominatorsStakingState,
   ApiSwapAsset,
   ApiSwapDexLabel,
+  ApiTokenWithPrice,
 } from './api/types';
-import type { LangItem, TokenPeriod } from './global/types';
+import type { AutolockValueType, LangItem, TokenPeriod } from './global/types';
 
 export const APP_ENV = process.env.APP_ENV;
 
 export const IS_CORE_WALLET = process.env.IS_CORE_WALLET === '1';
 export const APP_NAME = process.env.APP_NAME || (IS_CORE_WALLET ? 'TON Wallet' : 'MyTonWallet');
 export const APP_VERSION = process.env.APP_VERSION!;
+export const APP_COMMIT_HASH = process.env.APP_COMMIT_HASH!;
 export const APP_ENV_MARKER = APP_ENV === 'staging' ? 'Beta' : APP_ENV === 'development' ? 'Dev' : undefined;
 export const EXTENSION_NAME = IS_CORE_WALLET ? 'TON Wallet' : 'MyTonWallet · My TON Wallet';
 export const EXTENSION_DESCRIPTION = IS_CORE_WALLET
@@ -23,6 +25,7 @@ export const EXTENSION_DESCRIPTION = IS_CORE_WALLET
 export const DEBUG = APP_ENV !== 'production' && APP_ENV !== 'perf' && APP_ENV !== 'test';
 export const DEBUG_MORE = false;
 export const DEBUG_API = false;
+export const DEBUG_VIEW_ACCOUNTS = false;
 
 export const IS_PRODUCTION = APP_ENV === 'production';
 export const IS_TEST = APP_ENV === 'test';
@@ -141,7 +144,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-184';
+export const LANG_CACHE_NAME = 'mtw-lang-187';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -288,6 +291,11 @@ export const STAKED_MYCOIN_SLUG = 'ton-eqcbzvsfwq';
 export const TRX_SWAP_COUNT_FEE_ADDRESS = 'TW2LXSebZ7Br1zHaiA2W1zRojDkDwjGmpw';
 export const MYCOIN_STAKING_POOL = 'EQC3roTiRRsoLzfYVK7yVVoIZjTEqAjQU3ju7aQ7HWTVL5o5';
 
+export const ALL_STAKING_POOLS = [
+  LIQUID_POOL,
+  MYCOIN_STAKING_POOL,
+];
+
 // In cross-chain swaps, only a few TON/TRON tokens are available.
 // It’s not optimal to request swap history for all the others.
 export const SWAP_CROSSCHAIN_SLUGS = new Set([
@@ -328,68 +336,57 @@ export const PRIORITY_TOKEN_SLUGS = [
   TONCOIN.slug, TON_USDT_SLUG, TRX.slug,
 ] as string[];
 
-export const TOKEN_INFO = {
+export const TOKEN_INFO: Record<string, ApiTokenWithPrice> = {
   toncoin: {
     ...TONCOIN,
-    quote: {
-      slug: TONCOIN.slug,
-      price: 1.95,
-      priceUsd: 1.95,
-      percentChange24h: 0,
-    },
+    isFromBackend: true,
+    price: 1.95,
+    priceUsd: 1.95,
+    percentChange24h: 0,
   },
   trx: {
     ...TRX,
-    quote: {
-      slug: TRX.slug,
-      price: 0,
-      priceUsd: 0,
-      percentChange24h: 0,
-    },
+    isFromBackend: true,
+    price: 0,
+    priceUsd: 0,
+    percentChange24h: 0,
   },
   [TRC20_USDT_MAINNET_SLUG]: { // mainnet
     ...TRC20_USDT,
     slug: TRC20_USDT_MAINNET_SLUG,
     tokenAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-    quote: {
-      slug: TRC20_USDT_MAINNET_SLUG,
-      price: 0,
-      priceUsd: 0,
-      percentChange24h: 0,
-    },
+    isFromBackend: true,
+    price: 0,
+    priceUsd: 0,
+    percentChange24h: 0,
   },
   [TRC20_USDT_TESTNET_SLUG]: { // testnet
     ...TRC20_USDT,
     slug: TRC20_USDT_TESTNET_SLUG,
     tokenAddress: 'TG3XXyExBkPp9nzdajDZsozEu4BkaSJozs',
-    quote: {
-      slug: TRC20_USDT_TESTNET_SLUG,
-      price: 0,
-      priceUsd: 0,
-      percentChange24h: 0,
-    },
+    isFromBackend: true,
+    price: 0,
+    priceUsd: 0,
+    percentChange24h: 0,
   },
   [TON_USDT_SLUG]: {
     ...TON_USDT,
     // eslint-disable-next-line max-len
     image: 'https://cache.tonapi.io/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
-    quote: {
-      slug: TON_USDT_SLUG,
-      price: 0,
-      priceUsd: 0,
-      percentChange24h: 0,
-    },
+    slug: TON_USDT_SLUG,
+    isFromBackend: true,
+    price: 0,
+    priceUsd: 0,
+    percentChange24h: 0,
   },
   [MYCOIN.slug]: {
     ...MYCOIN,
     // eslint-disable-next-line max-len
     image: 'https://cache.tonapi.io/imgproxy/Qy038wCBKISofJ0hYMlj6COWma330cx3Ju1ZSPM2LRU/rs:fill:200:200:1/g:no/aHR0cHM6Ly9teXRvbndhbGxldC5pby9sb2dvLTI1Ni1ibHVlLnBuZw.webp',
-    quote: {
-      slug: MYCOIN.slug,
-      price: 0,
-      priceUsd: 0,
-      percentChange24h: 0,
-    },
+    isFromBackend: true,
+    price: 0,
+    priceUsd: 0,
+    percentChange24h: 0,
   },
 };
 
@@ -557,12 +554,9 @@ export const AUTOLOCK_OPTIONS_LIST = [
   },
 ] as const;
 
+export const AUTO_CONFIRM_DURATION_MINUTES = 5;
+
 export const PRICELESS_TOKEN_HASHES = new Set([
-  '82566ad72b6568fe7276437d3b0c911aab65ed701c13601941b2917305e81c11', // Stonfi V1
-  'ec614ea4aaea3f7768606f1c1632b3374d3de096a1e7c4ba43c8009c487fee9d', // Stonfi V2
-  'c0f9d14fbc8e14f0d72cba2214165eee35836ab174130912baf9dbfa43ead562', // Dedust (for example, EQBkh7Mc411WTYF0o085MtwJpYpvGhZOMBphhIFzEpzlVODp)
-  '1275095b6da3911292406f4f4386f9e780099b854c6dee9ee2895ddce70927c1', // Dedust (for example, EQCm92zFBkLe_qcFDp7WBvI6JFSDsm4WbDPvZ7xNd7nPL_6M)
-  '5d01684bdf1d5c9be2682c4e36074202432628bd3477d77518d66b0976b78cca', // USDT Storm LP (for example, EQAzm06UMMsnFQrNKEubV1myIR-mm2ZOCnoic36frCgD8MLR)
   '173e31eee054cb0c76f77edc7956bed766bf48a1f63bd062d87040dcd3df700f', // FIVA SY tsTON EQAxGi9Al7hamLAORroxGkvfap6knGyzI50ThkP3CLPLTtOZ
   '5226dd4e6db9af26b24d5ca822bc4053b7e08152f923932abf25030c7e38bb42', // FIVA PT tsTON EQAkxIRGXgs2vD2zjt334MBjD3mXg2GsyEZHfzuYX_trQkFL
   'fea2c08a704e5192b7f37434927170440d445b87aab865c3ea2a68abe7168204', // FIVA YT tsTON EQAcy60qg22RCq87A_qgYK8hooEgjCZ44yxhdnKYdlWIfKXL
@@ -610,7 +604,7 @@ export const SWAP_API_VERSION = 2;
 
 export const JVAULT_URL = 'https://jvault.xyz';
 
-export const TON_DNS_ZONES = [
+const ALL_TON_DNS_ZONES = [
   {
     suffixes: ['ton'],
     baseFormat: /^([-\da-z]+\.){0,2}[-\da-z]{4,126}$/i,
@@ -639,3 +633,9 @@ export const TON_DNS_ZONES = [
     isUnofficial: true,
   },
 ];
+
+export const TON_DNS_ZONES = IS_CORE_WALLET
+  ? ALL_TON_DNS_ZONES.filter(({ isUnofficial }) => !isUnofficial)
+  : ALL_TON_DNS_ZONES;
+
+export const DEFAULT_AUTOLOCK_OPTION: AutolockValueType = '3';

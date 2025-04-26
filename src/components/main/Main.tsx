@@ -13,6 +13,7 @@ import {
   selectCurrentAccount,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
+  selectIsCurrentAccountViewMode,
 } from '../../global/selectors';
 import { useAccentColor } from '../../util/accentColor';
 import buildClassName from '../../util/buildClassName';
@@ -61,6 +62,7 @@ type StateProps = {
   stakingState?: ApiStakingState;
   isTestnet?: boolean;
   isLedger?: boolean;
+  isViewMode?: boolean;
   isStakingInfoModalOpen?: boolean;
   isSwapDisabled?: boolean;
   isOnRampDisabled?: boolean;
@@ -77,6 +79,7 @@ function Main({
   currentTokenSlug,
   stakingState,
   isTestnet,
+  isViewMode,
   isLedger,
   isStakingInfoModalOpen,
   isSwapDisabled,
@@ -198,7 +201,7 @@ function Main({
   const handleEarnClick = useLastCallback((stakingId?: string) => {
     if (stakingId) changeCurrentStaking({ stakingId });
 
-    if (isPortrait) {
+    if (isPortrait || isViewMode) {
       openStakingInfoOrStart();
     } else {
       setLandscapeActionsActiveTabIndex({ index: ActiveTab.Stake });
@@ -221,14 +224,16 @@ function Main({
               classNames={stickyCardTransitionClassNames}
             />
           )}
-          <PortraitActions
-            isTestnet={isTestnet}
-            stakingStatus={stakingStatus}
-            isLedger={isLedger}
-            isSwapDisabled={isSwapDisabled}
-            isOnRampDisabled={isOnRampDisabled}
-            onEarnClick={handleEarnClick}
-          />
+          {!isViewMode && (
+            <PortraitActions
+              isTestnet={isTestnet}
+              stakingStatus={stakingStatus}
+              isLedger={isLedger}
+              isSwapDisabled={isSwapDisabled}
+              isOnRampDisabled={isOnRampDisabled}
+              onEarnClick={handleEarnClick}
+            />
+          )}
         </div>
 
         <Content onStakedTokenClick={handleEarnClick} />
@@ -242,7 +247,7 @@ function Main({
         <div className={buildClassName(styles.sidebar, 'custom-scroll')}>
           <Warnings onOpenBackupWallet={openBackupWalletModal} />
           <Card onTokenCardClose={handleTokenCardClose} onYieldClick={handleEarnClick} />
-          <LandscapeActions stakingStatus={stakingStatus} isLedger={isLedger} theme={theme} />
+          {!isViewMode && <LandscapeActions stakingStatus={stakingStatus} isLedger={isLedger} theme={theme} />}
         </div>
         <div className={styles.main}>
           <Content onStakedTokenClick={handleEarnClick} />
@@ -286,6 +291,7 @@ export default memo(
         currentTokenSlug,
         isTestnet: global.settings.isTestnet,
         isLedger: Boolean(ledger),
+        isViewMode: selectIsCurrentAccountViewMode(global),
         isStakingInfoModalOpen: global.isStakingInfoModalOpen,
         isMediaViewerOpen: Boolean(global.mediaViewer?.mediaId),
         isSwapDisabled,

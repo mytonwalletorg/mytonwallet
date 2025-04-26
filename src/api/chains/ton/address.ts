@@ -9,28 +9,36 @@ import { getKnownAddressInfo } from '../../common/addresses';
 import { DnsCategory } from './constants';
 import { fetchAddressBook } from './toncenter';
 
-export async function resolveAddress(network: ApiNetwork, address: string): Promise<{
+export async function resolveAddress(network: ApiNetwork, address: string, skipFormatSelection?: boolean): Promise<{
   address: string;
   name?: string;
   isMemoRequired?: boolean;
   isScam?: boolean;
-} | undefined> {
+} | 'dnsNotResolved' | 'invalidAddress'> {
   const isDomain = isDnsDomain(address);
   let domain: string | undefined;
 
   if (isDomain) {
     const resolvedAddress = await resolveAddressByDomain(network, address);
     if (!resolvedAddress) {
-      return undefined;
+      return 'dnsNotResolved';
     }
 
-    const addressBook = await fetchAddressBook(network, [resolvedAddress]);
-
     domain = address;
-    address = addressBook[resolvedAddress].user_friendly;
+    address = resolvedAddress;
+
+    if (!skipFormatSelection) {
+      const addressBook = await fetchAddressBook(network, [address]);
+      address = addressBook[address].user_friendly;
+    }
   }
 
-  const normalizedAddress = normalizeAddress(address);
+  let normalizedAddress: string;
+  try {
+    normalizedAddress = normalizeAddress(address);
+  } catch {
+    return 'invalidAddress';
+  }
   const known = getKnownAddressInfo(normalizedAddress);
 
   if (known) {

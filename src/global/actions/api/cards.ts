@@ -3,7 +3,7 @@ import type { GlobalState } from '../../types';
 import { ApiCommonError } from '../../../api/types';
 import { MintCardState } from '../../types';
 
-import { MINT_CARD_ADDRESS, MINT_CARD_COMMENT, TONCOIN } from '../../../config';
+import { IS_CORE_WALLET, MINT_CARD_ADDRESS, MINT_CARD_COMMENT, TONCOIN } from '../../../config';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { fromDecimal } from '../../../util/decimals';
 import { vibrateOnError, vibrateOnSuccess } from '../../../util/haptics';
@@ -105,7 +105,7 @@ function handleTransferResult(global: GlobalState, accountId: string, error?: st
 }
 
 addActionHandler('checkCardNftOwnership', (global) => {
-  if (IS_DELEGATED_BOTTOM_SHEET) return;
+  if (IS_DELEGATED_BOTTOM_SHEET || IS_CORE_WALLET) return;
 
   const { byAccountId } = global.settings;
 

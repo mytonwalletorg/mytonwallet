@@ -43,7 +43,8 @@ export async function getAccountIds(): Promise<string[]> {
 export async function getAccountWithMnemonic() {
   const byId = await fetchStoredAccounts();
 
-  return Object.entries(byId).find(([, { type }]) => type !== 'ledger') as [string, ApiAccountWithMnemonic] | undefined;
+  return Object.entries(byId)
+    .find(([, { type }]) => type !== 'ledger' && type !== 'view') as [string, ApiAccountWithMnemonic] | undefined;
 }
 
 export async function getNewAccountId(network: ApiNetwork) {
@@ -57,15 +58,29 @@ export async function fetchStoredAddress(accountId: string, chain: ApiChain): Pr
 }
 
 export async function fetchStoredTonWallet(accountId: string): Promise<ApiTonWallet> {
-  return (await fetchStoredAccount<ApiAccountWithTon>(accountId)).ton;
+  return (await fetchStoredTonAccount(accountId)).ton;
 }
 
 export async function fetchStoredTronWallet(accountId: string): Promise<ApiTronWallet> {
-  return (await fetchStoredAccount<ApiAccountWithTron>(accountId)).tron;
+  return (await fetchStoredTronAccount(accountId)).tron;
 }
 
 export function fetchStoredAccount<T extends ApiAccountAny>(accountId: string): Promise<T> {
-  return getAccountValue(accountId, 'accounts');
+  const account = getAccountValue(accountId, 'accounts');
+  if (account) return account;
+  throw new Error(`Account ${accountId} doesn't exist`);
+}
+
+export async function fetchStoredTonAccount<T extends ApiAccountWithTon>(accountId: string): Promise<T> {
+  const account = await fetchStoredAccount(accountId);
+  if (account.ton) return account as T;
+  throw new Error('TON wallet missing');
+}
+
+export async function fetchStoredTronAccount<T extends ApiAccountWithTron>(accountId: string): Promise<T> {
+  const account = await fetchStoredAccount(accountId);
+  if ((account as ApiAccountWithTron).tron) return account as T;
+  throw new Error('TRON wallet missing');
 }
 
 export function fetchStoredAccounts(): Promise<Record<string, ApiAccountAny>> {
@@ -143,4 +158,13 @@ export function getCurrentAccountId(): Promise<string | undefined> {
 
 export function waitLogin() {
   return loginPromise;
+}
+
+export function getAddressesFromAccount(account: ApiAccountAny) {
+  const addressByChain: { [K in ApiChain]?: string } = {};
+
+  if ('ton' in account && account.ton) addressByChain.ton = account.ton.address;
+  if ('tron' in account && account.tron) addressByChain.tron = account.tron.address;
+
+  return addressByChain;
 }

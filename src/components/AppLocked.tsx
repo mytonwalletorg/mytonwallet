@@ -11,8 +11,8 @@ import {
 } from '../config';
 import {
   selectIsBiometricAuthEnabled,
-  selectIsHardwareAccount,
   selectIsNativeBiometricAuthEnabled,
+  selectIsPasswordAccount,
 } from '../global/selectors';
 import { getDoesUsePinPad, getIsNativeBiometricAuthSupported } from '../util/biometrics';
 import buildClassName from '../util/buildClassName';
@@ -39,7 +39,7 @@ import useThrottledCallback from '../hooks/useThrottledCallback';
 import Button from './ui/Button';
 import Image from './ui/Image';
 import { getInAppBrowser } from './ui/InAppBrowser';
-import PasswordForm from './ui/PasswordForm';
+import PasswordForm, { triggerPasswordFormHandleBiometrics } from './ui/PasswordForm';
 import Transition from './ui/Transition';
 
 import styles from './AppLocked.module.scss';
@@ -66,7 +66,7 @@ interface StateProps {
   isNonNativeBiometricAuthEnabled: boolean;
   autolockValue?: AutolockValueType;
   theme: Theme;
-  isHardwareAccount?: boolean;
+  isPasswordAccount?: boolean;
   isManualLockActive?: boolean;
   isAppLockEnabled?: boolean;
   shouldHideBiometrics?: boolean;
@@ -87,7 +87,7 @@ function AppLocked({
   isNonNativeBiometricAuthEnabled,
   autolockValue = 'never',
   theme,
-  isHardwareAccount,
+  isPasswordAccount,
   isManualLockActive,
   isAppLockEnabled,
   shouldHideBiometrics,
@@ -102,7 +102,7 @@ function AppLocked({
     ? coreWalletLogoPath
     : appTheme === 'light' ? logoLightPath : logoDarkPath;
 
-  const [isLocked, lock, unlock] = useFlag((autolockValue !== 'never' || isManualLockActive) && !isHardwareAccount);
+  const [isLocked, lock, unlock] = useFlag((autolockValue !== 'never' || isManualLockActive) && isPasswordAccount);
   const [shouldRenderUi, showUi, hideUi] = useFlag(isLocked);
   const lastActivityTime = useRef(Date.now());
   const [slideForBiometricAuth, setSlideForBiometricAuth] = useState(
@@ -145,7 +145,7 @@ function AppLocked({
   });
 
   const handleLock = useLastCallback(() => {
-    if ((autolockValue !== 'never' || isManualLockActive) && !isHardwareAccount) forceLockApp();
+    if ((autolockValue !== 'never' || isManualLockActive) && isPasswordAccount) forceLockApp();
   });
 
   if (DEBUG) (window as any).lock = handleLock;
@@ -269,12 +269,24 @@ function AppLocked({
 
   const transitionKey = Number(slideForBiometricAuth === SLIDES.passwordForm) + Number(shouldRenderUi) * 2;
 
+  const handleUnlockIntent = isNonNativeBiometricAuthEnabled
+    ? slideForBiometricAuth === SLIDES.passwordForm
+      ? triggerPasswordFormHandleBiometrics
+      : handleChangeSlideForBiometricAuth
+    : undefined;
+
+  useHotkeys(useMemo(() => (isAppLockEnabled && isLocked && handleUnlockIntent ? {
+    Space: handleUnlockIntent,
+    Enter: handleUnlockIntent,
+    Escape: handleUnlockIntent,
+  } : undefined), [isAppLockEnabled, isLocked, handleUnlockIntent]));
+
   if (IS_DELEGATED_BOTTOM_SHEET) return undefined;
 
   return (
     <Transition
       name={isNonNativeBiometricAuthEnabled && IS_TELEGRAM_APP ? 'slideFade' : 'semiFade'}
-      onContainerClick={isNonNativeBiometricAuthEnabled ? handleChangeSlideForBiometricAuth : undefined}
+      onContainerClick={handleUnlockIntent}
       activeKey={transitionKey}
       className={buildClassName(transitionClassNames, styles.appLockedWrapper)}
       shouldCleanup
@@ -287,7 +299,7 @@ function AppLocked({
 export default memo(withGlobal((global): StateProps => {
   const { autolockValue, isAppLockEnabled } = global.settings;
 
-  const isHardwareAccount = selectIsHardwareAccount(global);
+  const isPasswordAccount = selectIsPasswordAccount(global);
 
   const isBiometricAuthEnabled = selectIsBiometricAuthEnabled(global);
   const isNativeBiometricAuthEnabled = selectIsNativeBiometricAuthEnabled(global);
@@ -298,7 +310,7 @@ export default memo(withGlobal((global): StateProps => {
     autolockValue: isAppLockEnabled ? autolockValue : undefined,
     isAppLockEnabled,
     theme: global.settings.theme,
-    isHardwareAccount,
+    isPasswordAccount,
     isManualLockActive: global.isManualLockActive,
     shouldHideBiometrics: global.appLockHideBiometrics,
   };

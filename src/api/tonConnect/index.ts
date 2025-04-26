@@ -18,8 +18,8 @@ import nacl from 'tweetnacl';
 
 import type { ApiCheckMultiTransactionDraftResult, TonTransferParams } from '../chains/ton/types';
 import type {
-  ApiAccountAny,
   ApiAccountWithMnemonic,
+  ApiAccountWithTon,
   ApiAnyDisplayError,
   ApiDappMetadata,
   ApiDappRequest,
@@ -39,6 +39,7 @@ import { IS_EXTENSION, TONCOIN } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { bigintDivideToNumber } from '../../util/bigint';
+import { pick } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { fetchJsonMetadata } from '../../util/metadata';
 import safeExec from '../../util/safeExec';
@@ -51,7 +52,7 @@ import {
   getIsRawAddress, getWalletPublicKey, toBase64Address, toRawAddress,
 } from '../chains/ton/util/tonCore';
 import {
-  fetchStoredAccount,
+  fetchStoredTonAccount,
   getCurrentAccountId,
   getCurrentAccountIdOrFail,
 } from '../common/accounts';
@@ -78,7 +79,6 @@ import {
   isTransferPayloadDangerous,
   isValidString,
   isValidUrl,
-  showDappTransferAmountsAsFee,
 } from './utils';
 
 const BLANK_GIF_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
@@ -167,7 +167,7 @@ export async function connect(request: ApiDappRequest, message: ConnectRequest, 
     request.accountId = accountId;
     await addDapp(accountId, dapp);
 
-    const account = await fetchStoredAccount(accountId);
+    const account = await fetchStoredTonAccount(accountId);
     const { address } = account.ton;
 
     const maxMessages = getMaxMessages(account);
@@ -224,7 +224,7 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Co
 
     await updateDapp(accountId, origin, { connectedAt: Date.now() });
 
-    const account = await fetchStoredAccount<ApiAccountWithMnemonic>(accountId);
+    const account = await fetchStoredTonAccount(accountId);
 
     const maxMessages = getMaxMessages(account);
     const deviceInfo = tonConnectGetDeviceInfo(maxMessages);
@@ -246,7 +246,7 @@ export async function reconnect(request: ApiDappRequest, id: number): Promise<Co
   }
 }
 
-function getMaxMessages(account: ApiAccountAny) {
+function getMaxMessages(account: ApiAccountWithTon) {
   const { type, ton: { version } } = account;
 
   if (type === 'ledger') {
@@ -287,7 +287,7 @@ export async function sendTransaction(
     const txPayload = JSON.parse(message.params[0]) as TransactionPayload;
     const { messages, network: dappNetworkRaw } = txPayload;
 
-    const account = await fetchStoredAccount(accountId);
+    const account = await fetchStoredTonAccount(accountId);
     const {
       type, ton: {
         address,
@@ -315,7 +315,7 @@ export async function sendTransaction(
     let vestingAddress: string | undefined;
 
     if (txPayload.from && toBase64Address(txPayload.from) !== toBase64Address(address)) {
-      const publicKey = hexToBytes(publicKeyHex);
+      const publicKey = hexToBytes(publicKeyHex!);
       if (isLedger && await checkIsHisVestingWallet(network, publicKey, txPayload.from)) {
         vestingAddress = txPayload.from;
       } else {
@@ -356,6 +356,7 @@ export async function sendTransaction(
       accountId,
       dapp,
       transactions: transactionsForRequest,
+      emulation: checkResult.emulation && pick(checkResult.emulation, ['activities', 'realFee']),
       vestingAddress,
     });
 
@@ -369,12 +370,14 @@ export async function sendTransaction(
     let boc: string | undefined;
     let error: string | undefined;
     let msgHash: string | undefined;
+    let msgHashNormalized: string | undefined;
 
     if (isLedger) {
       const signedTransfers = response as ApiSignedTransfer[];
       const submitResult = await ton.sendSignedMessages(accountId, signedTransfers);
       boc = submitResult.firstBoc;
       msgHash = submitResult.msgHashes[0];
+      msgHashNormalized = submitResult.msgHashesNormalized[0];
 
       if (submitResult.successNumber > 0) {
         if (submitResult.successNumber < messages.length) {
@@ -394,7 +397,7 @@ export async function sendTransaction(
       if ('error' in submitResult) {
         error = submitResult.error;
       } else {
-        ({ boc, msgHash } = submitResult);
+        ({ boc, msgHash, msgHashNormalized } = submitResult);
       }
     }
 
@@ -405,6 +408,7 @@ export async function sendTransaction(
     transactionsForRequest.forEach(({ amount, normalizedAddress, payload }, index) => {
       const comment = payload?.type === 'comment' ? payload.comment : undefined;
       createLocalTransaction(accountId, 'ton', {
+        txId: msgHashNormalized!,
         amount,
         fromAddress: address,
         toAddress: normalizedAddress,
@@ -512,7 +516,7 @@ async function checkTransactionMessages(
   };
 }
 
-async function prepareTransactionForRequest(
+function prepareTransactionForRequest(
   network: ApiNetwork,
   messages: TransactionPayloadMessage[],
   checkResult: ApiCheckMultiTransactionDraftResult,
@@ -521,7 +525,7 @@ async function prepareTransactionForRequest(
     throw new Error('Both `emulation` and `fee` miss in the check result');
   }
 
-  const transactions = await Promise.all(messages.map(
+  return Promise.all(messages.map(
     async ({
       address,
       amount: rawAmount,
@@ -546,14 +550,10 @@ async function prepareTransactionForRequest(
         isScam,
         isDangerous: isTransferPayloadDangerous(payload),
         displayedToAddress: getTransferActualToAddress(toAddress, payload),
-        displayedAmount: amount,
-        fullFee: emulationResult?.fee ?? bigintDivideToNumber(checkResult.fee!, messages.length),
-        received: emulationResult?.received ?? 0n,
+        networkFee: emulationResult?.networkFee ?? bigintDivideToNumber(checkResult.fee!, messages.length),
       };
     },
   ));
-
-  return showDappTransferAmountsAsFee(transactions);
 }
 
 function formatConnectError(id: number, error: Error): ConnectEventError {
@@ -588,7 +588,7 @@ async function buildTonAddressReplyItem(accountId: string, wallet: ApiTonWallet)
     name: 'ton_addr',
     address: toRawAddress(address),
     network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
-    publicKey,
+    publicKey: publicKey!,
     walletStateInit: stateInit
       .toBoc({ idx: true, crc32: true })
       .toString('base64'),

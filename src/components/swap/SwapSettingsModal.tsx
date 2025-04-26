@@ -1,3 +1,4 @@
+import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
@@ -218,18 +219,10 @@ function SwapSettingsContent({
     return (
       <>
         {lang('Slippage')}
-        <IconWithTooltip
-          message={(
-            <div className={styles.advancedTooltipMessage}>
-              <span>{lang('$swap_slippage_tooltip1')}</span>
-              <span>{lang('$swap_slippage_tooltip2')}</span>
-            </div>
-          )}
-          tooltipClassName={styles.advancedTooltipContainer}
-          iconClassName={buildClassName(
-            styles.advancedTooltip, slippageError && styles.advancedError,
-          )}
-        />
+        <Tooltip isError={Boolean(slippageError)}>
+          <span>{lang('$swap_slippage_tooltip1')}</span>
+          <span>{lang('$swap_slippage_tooltip2')}</span>
+        </Tooltip>
       </>
     );
   }
@@ -262,15 +255,9 @@ function SwapSettingsContent({
           <div className={styles.advancedRow}>
             <span className={styles.advancedDescription}>
               {lang('Aggregator Fee')}
-              <IconWithTooltip
-                message={(
-                  <div className={styles.advancedTooltipMessage}>
-                    <span>{renderText(lang('$swap_aggregator_fee_tooltip', { percent: `${ourFeePercent}%` }))}</span>
-                  </div>
-                )}
-                tooltipClassName={styles.advancedTooltipContainer}
-                iconClassName={styles.advancedTooltip}
-              />
+              <Tooltip>
+                <span>{renderText(lang('$swap_aggregator_fee_tooltip', { percent: `${ourFeePercent}%` }))}</span>
+              </Tooltip>
             </span>
             <span className={styles.advancedValue}>
               {ourFee !== undefined
@@ -284,18 +271,10 @@ function SwapSettingsContent({
             <div className={styles.advancedRow}>
               <span className={buildClassName(styles.advancedDescription, priceImpactError && styles.advancedError)}>
                 {lang('Price Impact')}
-                <IconWithTooltip
-                  message={(
-                    <div className={styles.advancedTooltipMessage}>
-                      <span>{lang('$swap_price_impact_tooltip1')}</span>
-                      <span>{lang('$swap_price_impact_tooltip2')}</span>
-                    </div>
-                  )}
-                  tooltipClassName={styles.advancedTooltipContainer}
-                  iconClassName={buildClassName(
-                    styles.advancedTooltip, priceImpactError && styles.advancedError,
-                  )}
-                />
+                <Tooltip isError={Boolean(priceImpactError)}>
+                  <span>{lang('$swap_price_impact_tooltip1')}</span>
+                  <span>{lang('$swap_price_impact_tooltip2')}</span>
+                </Tooltip>
               </span>
               <span className={buildClassName(styles.advancedValue, priceImpactError && styles.advancedError)}>
                 {priceImpact !== undefined ? `${priceImpact}%` : <ValuePlaceholder />}
@@ -304,16 +283,10 @@ function SwapSettingsContent({
             <div className={styles.advancedRow}>
               <span className={styles.advancedDescription}>
                 {lang('Minimum Received')}
-                <IconWithTooltip
-                  message={(
-                    <div className={styles.advancedTooltipMessage}>
-                      <span>{lang('$swap_minimum_received_tooltip1')}</span>
-                      <span>{lang('$swap_minimum_received_tooltip2')}</span>
-                    </div>
-                  )}
-                  tooltipClassName={styles.advancedTooltipContainer}
-                  iconClassName={styles.advancedTooltip}
-                />
+                <Tooltip>
+                  <span>{lang('$swap_minimum_received_tooltip1')}</span>
+                  <span>{lang('$swap_minimum_received_tooltip2')}</span>
+                </Tooltip>
               </span>
               <span className={styles.advancedValue}>
                 {amountOutMin !== undefined && tokenOut
@@ -400,4 +373,18 @@ export default function SwapSettingsModal({ isOpen, onClose, ...restProps }: Own
 function ValuePlaceholder() {
   const lang = useLang();
   return <span className={styles.advancedPlaceholder}>{lang('No Data')}</span>;
+}
+
+function Tooltip({ children, isError }: { children: TeactNode; isError?: boolean }) {
+  return (
+    <>
+      {' '}
+      <IconWithTooltip
+        message={children}
+        size="small"
+        iconClassName={buildClassName(styles.advancedTooltip, isError && styles.advancedError)}
+        tooltipClassName={styles.advancedTooltipContainer}
+      />
+    </>
+  );
 }

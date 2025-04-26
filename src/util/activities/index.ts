@@ -1,31 +1,35 @@
-import type { ApiActivity, ApiTransaction, ApiTransactionType } from '../../api/types';
+import type { ApiActivity, ApiTransaction, ApiTransactionActivity, ApiTransactionType } from '../../api/types';
 import type { LangFn } from '../langProvider';
 
+import { ALL_STAKING_POOLS, BURN_ADDRESS } from '../../config';
 import { compareActivities } from '../compareActivities';
 import { unique } from '../iteratees';
 import { getIsTransactionWithPoisoning } from '../poisoningHash';
 
 type UnusualTxType = 'backend-swap' | 'local' | 'additional';
 
-const TRANSACTION_TYPE_TITLES: { [K in ApiTransactionType & keyof any]?: [complete: string, inProgress: string] } = {
-  stake: ['Staked', 'Staking'],
-  unstake: ['Unstaked', 'Unstaking'],
-  unstakeRequest: ['Unstake Requested', 'Requesting Unstake'],
-  callContract: ['Contract Called', 'Calling Contract'],
-  excess: ['Excess', 'Excess'],
-  contractDeploy: ['Contract Deployed', 'Deploying Contract'],
-  bounced: ['Bounced', 'Bouncing'],
-  mint: ['Minted', 'Minting'],
-  burn: ['Burned', 'Burning'],
-  auctionBid: ['NFT Auction Bid', 'Bidding at NFT Auction'],
-  dnsChangeAddress: ['Address Updated', 'Updating Address'],
-  dnsChangeSite: ['Site Updated', 'Updating Site'],
-  dnsChangeSubdomains: ['Subdomains Updated', 'Updating Subdomains'],
-  dnsChangeStorage: ['Storage Updated', 'Updating Storage'],
-  dnsDelete: ['Domain Record Deleted', 'Deleting Domain Record'],
-  dnsRenew: ['Domain Renewed', 'Renewing Domain'],
-  liquidityDeposit: ['Liquidity Provided', 'Providing Liquidity'],
-  liquidityWithdraw: ['Liquidity Withdrawn', 'Withdrawing Liquidity'],
+const TRANSACTION_TYPE_TITLES: {
+  [K in ApiTransactionType & keyof any]?: [past: string, present: string, future: string]
+} = {
+  stake: ['Staked', 'Staking', '$stake_action'],
+  unstake: ['Unstaked', 'Unstaking', '$unstake_action'],
+  unstakeRequest: ['Unstake Requested', 'Requesting Unstake', '$request_unstake_action'],
+  callContract: ['Contract Called', 'Calling Contract', '$call_contract_action'],
+  excess: ['Excess', 'Excess', 'Excess'],
+  contractDeploy: ['Contract Deployed', 'Deploying Contract', '$deploy_contract_action'],
+  bounced: ['Bounced', 'Bouncing', '$bounce_action'],
+  mint: ['Minted', 'Minting', '$mint_action'],
+  burn: ['Burned', 'Burning', '$burn_action'],
+  auctionBid: ['NFT Auction Bid', 'Bidding at NFT Auction', 'NFT Auction Bid'],
+  nftPurchase: ['NFT Bought', 'Buying NFT', '$buy_nft_action'],
+  dnsChangeAddress: ['Address Updated', 'Updating Address', '$update_address_action'],
+  dnsChangeSite: ['Site Updated', 'Updating Site', '$update_site_action'],
+  dnsChangeSubdomains: ['Subdomains Updated', 'Updating Subdomains', '$update_subdomains_action'],
+  dnsChangeStorage: ['Storage Updated', 'Updating Storage', '$update_storage_action'],
+  dnsDelete: ['Domain Record Deleted', 'Deleting Domain Record', '$delete_domain_record_action'],
+  dnsRenew: ['Domain Renewed', 'Renewing Domain', '$renew_domain_action'],
+  liquidityDeposit: ['Liquidity Provided', 'Providing Liquidity', '$provide_liquidity_action'],
+  liquidityWithdraw: ['Liquidity Withdrawn', 'Withdrawing Liquidity', '$withdraw_liquidity_action'],
 };
 
 export const STAKING_TRANSACTION_TYPES = new Set<ApiTransactionType | undefined>([
@@ -86,19 +90,20 @@ export function getIsIdSuitableForFetchingTimestamp(id: string) {
 
 export function getTransactionTitle(
   { type, isIncoming }: ApiTransaction,
-  isInProgress: boolean,
+  tense: 'past' | 'present' | 'future',
   translate: LangFn,
 ) {
+  const tenseIndex = tense === 'past' ? 0 : tense === 'present' ? 1 : 2;
   if (type) {
     const titles = TRANSACTION_TYPE_TITLES[type];
     if (titles) {
-      return translate(titles[isInProgress ? 1 : 0]);
+      return translate(titles[tenseIndex]);
     }
   }
   if (isIncoming) {
-    return translate(isInProgress ? 'Receiving' : 'Received');
+    return translate(['Received', 'Receiving', '$receive_action'][tenseIndex]);
   }
-  return translate(isInProgress ? 'Sending' : 'Sent');
+  return translate(['Sent', 'Sending', '$send_action'][tenseIndex]);
 }
 
 export function isScamTransaction(transaction: ApiTransaction) {
@@ -122,11 +127,24 @@ export function getTransactionAmountDisplayMode({ type, amount, nft }: ApiTransa
     : 'normal';
 }
 
-export function shouldShowTransactionAddress({ type, isIncoming, nft, toAddress }: ApiTransaction) {
-  const shouldHide = STAKING_TRANSACTION_TYPES.has(type) || type === 'burn'
-    || (!isIncoming && nft && toAddress === nft.address);
+export function shouldShowTransactionAddress(transaction: ApiTransaction) {
+  const { type, isIncoming, nft, toAddress, fromAddress } = transaction;
+  const shouldHide = isOurStakingTransaction(transaction)
+    || type === 'burn'
+    || type === 'nftPurchase'
+    || (!isIncoming && nft && toAddress === nft.address)
+    || (isIncoming && type === 'excess' && fromAddress === BURN_ADDRESS);
 
   return !shouldHide;
+}
+
+/** "Our" is staking that can be controlled with MyTonWallet app */
+export function isOurStakingTransaction({ type, isIncoming, toAddress, fromAddress }: ApiTransaction) {
+  return STAKING_TRANSACTION_TYPES.has(type) && ALL_STAKING_POOLS.includes(isIncoming ? fromAddress : toAddress);
+}
+
+export function shouldShowTransactionAnnualYield(transaction: ApiTransaction) {
+  return transaction.type === 'stake' && isOurStakingTransaction(transaction);
 }
 
 export function mergeActivitiesToMaxTime(array1: ApiActivity[], array2: ApiActivity[]) {
@@ -165,4 +183,8 @@ export function mergeActivityIdsToMaxTime(array1: string[], array2: string[], by
   return unique([...array1, ...array2])
     .filter((id) => byId[id].timestamp >= fromTimestamp)
     .sort((a, b) => compareActivities(byId[a], byId[b]));
+}
+
+export function getIsActivityWithHash(activity: ApiTransactionActivity) {
+  return !getIsTxIdLocal(activity.id) || !activity.extra?.withW5Gasless;
 }

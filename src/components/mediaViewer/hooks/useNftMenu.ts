@@ -92,12 +92,14 @@ const RESET_ACCENT_COLOR: DropdownItem = {
 
 export default function useNftMenu({
   nft,
+  isViewMode,
   isNftBlacklisted,
   isNftWhitelisted,
   isNftInstalled,
   isNftAccentColorInstalled,
 }: {
   nft?: ApiNft;
+  isViewMode: boolean;
   isNftBlacklisted?: boolean;
   isNftWhitelisted?: boolean;
   isNftInstalled?: boolean;
@@ -244,13 +246,13 @@ export default function useNftMenu({
     const isCard = !IS_CORE_WALLET && nft.collectionAddress === MTW_CARDS_COLLECTION;
 
     return [
-      ...(isTonDns ? [TON_DNS_ITEM] : []),
+      ...(isTonDns && !isViewMode ? [TON_DNS_ITEM] : []),
       ...(isCard ? [!isNftInstalled ? INSTALL_CARD : RESET_CARD] : []),
       ...(isCard ? [!isNftAccentColorInstalled ? INSTALL_ACCENT_COLOR : RESET_ACCENT_COLOR] : []),
-      {
+      ...(!isViewMode ? [{
         ...(isOnSale ? ON_SALE_ITEM : SEND_ITEM),
         ...(isCard && { withSeparator: true }),
-      },
+      }] : []),
       ...(isOnFragment ? [FRAGMENT_ITEM] : []),
       GETGEMS_ITEM,
       TON_EXPLORER_ITEM,
@@ -260,12 +262,12 @@ export default function useNftMenu({
         ...(isScam && !isNftWhitelisted ? [NOT_SCAM] : []),
         ...(!isScam && isNftBlacklisted ? [UNHIDE] : []),
       ] : []),
-      ...(!isOnSale ? [
+      ...(!isOnSale && !isViewMode ? [
         BURN_ITEM,
         SELECT_ITEM,
       ] : []),
     ];
-  }, [nft, isNftInstalled, isNftAccentColorInstalled, isNftBlacklisted, isNftWhitelisted]);
+  }, [nft, isViewMode, isNftInstalled, isNftAccentColorInstalled, isNftBlacklisted, isNftWhitelisted]);
 
   return { menuItems, handleMenuItemSelect };
 }

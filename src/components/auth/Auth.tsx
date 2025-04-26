@@ -25,6 +25,7 @@ import AuthCreatePin from './AuthCreatePin';
 import AuthCreatingWallet from './AuthCreatingWallet';
 import AuthDisclaimer from './AuthDisclaimer';
 import AuthImportMnemonic from './AuthImportMnemonic';
+import AuthImportViewAccount from './AuthImportViewAccount';
 import AuthSafetyRules from './AuthSafetyRules';
 import AuthSecretWords from './AuthSecretWords';
 import AuthStart from './AuthStart';
@@ -33,7 +34,6 @@ import styles from './Auth.module.scss';
 
 type StateProps = Pick<GlobalState['auth'], (
   'state' | 'biometricsStep' | 'error' | 'mnemonic' | 'mnemonicCheckIndexes' | 'isLoading' | 'method'
-  | 'isBackupModalOpen'
 )> & { theme: Theme };
 
 const RENDER_COUNT = Object.keys(AuthState).length / 2;
@@ -50,6 +50,7 @@ const Auth = ({
 }: StateProps) => {
   const {
     closeAbout,
+    closeImportViewAccount,
   } = getActions();
 
   const { isPortrait } = useDeviceScreen();
@@ -151,13 +152,28 @@ const Auth = ({
           />
         );
       case AuthState.about:
-        return <SettingsAbout isActive={isActive} handleBackClick={closeAbout} theme={theme} />;
+        return (
+          <SettingsAbout
+            isActive={isActive}
+            theme={theme}
+            headerClassName={styles.aboutHeader}
+            handleBackClick={closeAbout}
+          />
+        );
       case AuthState.safetyRules:
         return <AuthSafetyRules isActive={isActive} />;
       case AuthState.mnemonicPage:
         return <AuthSecretWords isActive={isActive} mnemonic={mnemonic} />;
       case AuthState.checkWords:
         return <AuthCheckWords isActive={isActive} mnemonic={mnemonic} checkIndexes={mnemonicCheckIndexes} />;
+      case AuthState.importViewAccount:
+        return (
+          <AuthImportViewAccount
+            isActive={isActive}
+            isLoading={isLoading}
+            onCancel={closeImportViewAccount}
+          />
+        );
     }
   }
 
@@ -182,7 +198,6 @@ const Auth = ({
 export default memo(withGlobal((global): StateProps => {
   const authProps = pick(global.auth, [
     'state', 'biometricsStep', 'error', 'mnemonic', 'mnemonicCheckIndexes', 'isLoading', 'method',
-    'isBackupModalOpen',
   ]);
   return {
     ...authProps,

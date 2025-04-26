@@ -7,6 +7,7 @@ import React, { memo, useState } from '../../lib/teact/teact';
 import { requestMutation } from '../../lib/fasterdom/fasterdom';
 import buildClassName from '../../util/buildClassName';
 
+import useFlag from '../../hooks/useFlag';
 import useLang from '../../hooks/useLang';
 
 import styles from './Input.module.scss';
@@ -17,6 +18,7 @@ type OwnProps = {
   type?: 'text' | 'password';
   label?: TeactNode;
   placeholder?: string;
+  valueOverlay?: TeactNode;
   value?: string | number;
   inputMode?: 'numeric' | 'text' | 'search';
   maxLength?: number;
@@ -27,6 +29,7 @@ type OwnProps = {
   error?: string;
   className?: string;
   wrapperClassName?: string;
+  autoCapitalize?: string;
   autoComplete?: string;
   autoCorrect?: boolean;
   inputArg?: any;
@@ -35,6 +38,7 @@ type OwnProps = {
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onFocus?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  isStatic?: boolean;
 };
 
 function Input({
@@ -42,6 +46,7 @@ function Input({
   id,
   label,
   placeholder,
+  valueOverlay,
   inputMode,
   isRequired,
   isDisabled,
@@ -54,6 +59,7 @@ function Input({
   inputArg,
   className,
   wrapperClassName,
+  autoCapitalize,
   autoComplete,
   autoCorrect,
   children,
@@ -61,9 +67,13 @@ function Input({
   onKeyDown,
   onFocus,
   onBlur,
+  isStatic,
 }: OwnProps) {
   const lang = useLang();
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+  const [hasFocus, markHasFocus, unmarkHasFocus] = useFlag(false);
+
+  const showValueOverlay = Boolean(valueOverlay && !hasFocus);
 
   const handleInput = (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onInput(e.currentTarget.value, inputArg);
@@ -83,6 +93,16 @@ function Input({
     });
   };
 
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    markHasFocus();
+    onFocus?.(e);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    unmarkHasFocus();
+    onBlur?.(e);
+  };
+
   const finalType = type === 'text' || isPasswordVisible ? 'text' : 'password';
   const inputFullClass = buildClassName(
     styles.input,
@@ -90,6 +110,7 @@ function Input({
     type === 'password' && styles.input_password,
     (hasError || error) && styles.error,
     isDisabled && styles.disabled,
+    valueOverlay && styles.input_withvalueOverlay,
   );
   const labelFullClass = buildClassName(
     styles.label,
@@ -107,46 +128,56 @@ function Input({
           {label}
         </label>
       )}
-      {isMultiline ? (
-        <textarea
-          ref={ref as RefObject<HTMLTextAreaElement>}
-          id={id}
-          className={inputFullClass}
-          value={value}
-          disabled={isDisabled}
-          maxLength={maxLength}
-          autoComplete={autoComplete}
-          onInput={handleInput}
-          onChange={handleChange}
-          onKeyDown={onKeyDown}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          tabIndex={0}
-          required={isRequired}
-          placeholder={placeholder}
-        />
-      ) : (
-        <input
-          ref={ref as RefObject<HTMLInputElement>}
-          id={id}
-          className={inputFullClass}
-          type={finalType}
-          value={value}
-          disabled={isDisabled}
-          inputMode={inputMode}
-          maxLength={maxLength}
-          autoComplete={autoComplete}
-          autoCorrect={autoCorrect}
-          spellCheck={autoCorrect}
-          onInput={handleInput}
-          onKeyDown={onKeyDown}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          tabIndex={0}
-          required={isRequired}
-          placeholder={placeholder}
-        />
-      )}
+      <div className={styles.inputContainer}>
+        {isMultiline ? (
+          <textarea
+            ref={ref as RefObject<HTMLTextAreaElement>}
+            id={id}
+            className={inputFullClass}
+            value={value}
+            disabled={isDisabled}
+            maxLength={maxLength}
+            autoComplete={autoComplete}
+            onInput={handleInput}
+            onChange={handleChange}
+            onKeyDown={onKeyDown}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            tabIndex={0}
+            required={isRequired}
+            placeholder={valueOverlay ? undefined : placeholder}
+          />
+        ) : (
+          <input
+            ref={ref as RefObject<HTMLInputElement>}
+            id={id}
+            className={inputFullClass}
+            type={finalType}
+            value={value}
+            disabled={isDisabled}
+            inputMode={inputMode}
+            maxLength={maxLength}
+            autoCapitalize={autoCapitalize}
+            autoComplete={autoComplete}
+            autoCorrect={autoCorrect}
+            spellCheck={autoCorrect}
+            onInput={handleInput}
+            onKeyDown={onKeyDown}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            tabIndex={0}
+            required={isRequired}
+            placeholder={valueOverlay ? undefined : placeholder}
+          />
+        )}
+
+        {showValueOverlay && (
+          <div className={buildClassName(styles.valueOverlay, isStatic && styles.static)}>
+            {valueOverlay}
+          </div>
+        )}
+      </div>
+
       {type === 'password' && (
         <button
           className={buildClassName(styles.visibilityToggle, label && styles.visibilityToggle_push)}

@@ -24,6 +24,7 @@ import {
   selectAccountStakingStates,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
+  selectIsCurrentAccountViewMode,
 } from '../../global/selectors';
 import { bigintMax } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
@@ -63,6 +64,7 @@ interface OwnProps {
 
 interface StateProps {
   isLoading?: boolean;
+  isViewMode: boolean;
   apiError?: string;
   tokens?: UserToken[];
   tokenBySlug?: Record<string, ApiTokenWithPrice>;
@@ -81,6 +83,7 @@ function StakingInitial({
   isActive,
   isStatic,
   isLoading,
+  isViewMode,
   apiError,
   tokens,
   tokenBySlug,
@@ -250,6 +253,7 @@ function StakingInitial({
 
   const canSubmit = amount
     && maxAmount
+    && !isViewMode
     && !isIncorrectAmount
     && !isBelowMinimumAmount
     && !isInsufficientFee
@@ -470,16 +474,18 @@ function StakingInitial({
 
       {renderStakingResult()}
 
-      <div className={modalStyles.buttons}>
-        <Button
-          isPrimary
-          isSubmit
-          isDisabled={!canSubmit}
-          isLoading={isLoading}
-        >
-          {lang('$stake_asset', { symbol: token?.symbol })}
-        </Button>
-      </div>
+      {!isViewMode && (
+        <div className={modalStyles.buttons}>
+          <Button
+            isPrimary
+            isSubmit
+            isDisabled={!canSubmit}
+            isLoading={isLoading}
+          >
+            {lang('$stake_asset', { symbol: token?.symbol })}
+          </Button>
+        </div>
+      )}
       {renderSafeInfoModal()}
     </form>
   );
@@ -504,6 +510,7 @@ export default memo(
       const stakingState = selectAccountStakingState(global, global.currentAccountId!);
 
       return {
+        isViewMode: selectIsCurrentAccountViewMode(global),
         isLoading: isLoading && ACTIVE_STATES.has(state),
         tokens,
         tokenBySlug,

@@ -9,6 +9,7 @@
   background-color: var(--color-background-window);
   border-radius: 0 0 var(--modal-border-radius) var(--modal-border-radius);
 
+  // For Android App, the bottom indentation is set in the `Modal` module itself
   :global(html.is-android-app) & {
     padding-bottom: 1rem;
   }

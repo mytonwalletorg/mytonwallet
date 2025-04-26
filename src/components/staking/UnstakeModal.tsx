@@ -20,6 +20,7 @@ import { Big } from '../../lib/big.js';
 import {
   selectAccountStakingState,
   selectCurrentAccountTokens,
+  selectIsCurrentAccountViewMode,
   selectIsMultichainAccount,
 } from '../../global/selectors';
 import { getDoesUsePinPad } from '../../util/biometrics';
@@ -61,6 +62,7 @@ import modalStyles from '../ui/Modal.module.scss';
 import styles from './Staking.module.scss';
 
 type StateProps = GlobalState['currentStaking'] & {
+  isViewMode: boolean;
   tokens?: UserToken[];
   stakingInfo: GlobalState['stakingInfo'];
   baseCurrency?: ApiBaseCurrency;
@@ -92,6 +94,7 @@ const UPDATE_UNSTAKE_DATE_INTERVAL_MS = 30000; // 30 sec
 
 function UnstakeModal({
   state,
+  isViewMode,
   isLoading,
   error,
   tokens,
@@ -431,16 +434,18 @@ function UnstakeModal({
 
           {renderUnstakeInfo()}
 
-          <div className={modalStyles.buttons}>
-            <Button
-              isPrimary
-              isLoading={isLoading}
-              isDisabled={isUnstakeDisabled}
-              onClick={handleStartUnstakeClick}
-            >
-              {lang('Unstake')}
-            </Button>
-          </div>
+          {!isViewMode && (
+            <div className={modalStyles.buttons}>
+              <Button
+                isPrimary
+                isLoading={isLoading}
+                isDisabled={isUnstakeDisabled}
+                onClick={handleStartUnstakeClick}
+              >
+                {lang('Unstake')}
+              </Button>
+            </div>
+          )}
         </div>
       </>
     );
@@ -464,6 +469,7 @@ function UnstakeModal({
           onSubmit={handleTransferSubmit}
           onCancel={handleBackClick}
           onUpdate={clearStakingError}
+          skipAuthScreen
         >
           {renderTransactionBanner()}
         </PasswordForm>
@@ -586,5 +592,6 @@ export default memo(withGlobal((global): StateProps => {
     isMultichainAccount,
     stakingState,
     isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
+    isViewMode: selectIsCurrentAccountViewMode(global),
   };
 })(UnstakeModal));

@@ -77,7 +77,7 @@ function TurnOn({
               isActive={isActive}
               isLoading={isLoading}
               error={error || localError}
-              operationType="passcode"
+              operationType="turnOnBiometrics"
               help={lang('Enabling biometric confirmation will reset the password.')}
               submitLabel={lang('Continue')}
               onSubmit={handleSubmit}

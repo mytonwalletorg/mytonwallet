@@ -1,5 +1,6 @@
 import type { StartScanOptions } from '@capacitor-mlkit/barcode-scanning';
 import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { Torch } from '@capawesome/capacitor-torch';
 import React, { memo, useRef, useState } from '../../../lib/teact/teact';
 import { addExtraClass, removeExtraClass } from '../../../lib/teact/teact-dom';
 import { getActions } from '../../../global';
@@ -45,13 +46,13 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
   const scanSquareRef = useRef<HTMLDivElement>(null);
 
   useEffectOnce(() => {
-    void BarcodeScanner
-      .isTorchAvailable()
+    void Torch
+      .isAvailable()
       .then((result) => {
         setIsFlashlightAvailable(result.available);
       });
-    void BarcodeScanner
-      .isTorchEnabled()
+    void Torch
+      .isEnabled()
       .then((result) => {
         setIsFlashlightEnabled(result.enabled);
       });
@@ -76,9 +77,9 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
 
     await BarcodeScanner.removeAllListeners();
     const listener = await BarcodeScanner.addListener(
-      'barcodeScanned',
-      async (event) => {
-        let { cornerPoints: qrCodeCoordinates } = event.barcode;
+      'barcodesScanned',
+      async ({ barcodes: [barcode] }) => {
+        let qrCodeCoordinates = barcode.cornerPoints;
         qrCodeCoordinates = qrCodeCoordinates ? sortCoordinatesClockwise(qrCodeCoordinates) : undefined;
 
         if (
@@ -91,7 +92,7 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
 
         await listener.remove();
         await vibrateOnSuccess();
-        handleQrCode({ data: event.barcode.rawValue });
+        handleQrCode({ data: barcode.rawValue });
         handleClose();
         await pause(DESTROY_SCANNER_DELAY_MS);
         if (IS_IOS) {
@@ -126,9 +127,9 @@ function QrScannerModal({ isOpen, onClose }: OwnProps) {
 
   const handleFlashlightClick = useLastCallback(async () => {
     if (isFlashlightEnabled) {
-      await BarcodeScanner.disableTorch();
+      await Torch.disable();
     } else {
-      await BarcodeScanner.enableTorch();
+      await Torch.enable();
     }
     setIsFlashlightEnabled(!isFlashlightEnabled);
   });

@@ -313,7 +313,7 @@ function SwapInitial({
         && addressByChain![tokenIn!.chain as ApiChain]
         && addressByChain![tokenOut!.chain as ApiChain]
       ) {
-        setSwapCexAddress({ toAddress: addressByChain![tokenOut!.chain as ApiChain] });
+        setSwapCexAddress({ toAddress: addressByChain![tokenOut!.chain as ApiChain]! });
         setSwapScreen({ state: SwapState.Password });
       } else {
         setSwapScreen({ state: SwapState.Blockchain });

@@ -9,7 +9,7 @@ function useFontScale(inputRef: React.RefObject<HTMLElement>, shouldGetParentWid
   const isFontChangedRef = useRef(false);
   const measureEl = useRef(document.createElement('div'));
 
-  const updateFontScale = (content: string) => {
+  const updateFontScale = (contentHtml: string) => {
     const input = inputRef.current;
 
     suppressStrict(() => {
@@ -23,7 +23,7 @@ function useFontScale(inputRef: React.RefObject<HTMLElement>, shouldGetParentWid
       }
       measureEl.current.className = buildClassName(input.className, 'measure-hidden');
       measureEl.current.style.width = `${width}px`;
-      measureEl.current.innerHTML = content;
+      measureEl.current.innerHTML = contentHtml;
       document.body.appendChild(measureEl.current);
 
       let delta = 1;

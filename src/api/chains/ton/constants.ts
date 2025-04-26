@@ -64,6 +64,8 @@ export const ALL_WALLET_VERSIONS: ApiTonWalletVersion[] = [
 
 export const OUR_FEE_PAYLOAD_BOC = 'te6cckEBAQEABgAACE0jhUPUcYAL';
 
+export const RAW_ADDRESS_LENGTH = 66;
+
 export enum Workchain {
   MasterChain = -1,
   BaseChain = 0,
@@ -80,6 +82,7 @@ export enum OpCode {
   Comment = 0,
   Encrypted = 0x2167da4b,
   OurFee = 0x4d238543,
+  Bounced = 0xffffffff,
 }
 
 export enum JettonOpCode {

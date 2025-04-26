@@ -93,8 +93,6 @@ Is there a community?: 有社群嗎？
 $about_wallet_community: 當然，歡迎來到我們的社群 %community_link%.
 $about_community_link_text: "**Telegram 頻道**"
 Currency History: 代幣歷史記錄
-$add_account_description1: |
-  **%app_name%** 讓您無縫在**多帳戶間**自由轉換。
 Enter Password: 輸入密碼
 Send: 發送
 Add Wallet: 新增錢包
@@ -242,8 +240,10 @@ $unstake_insufficient_balance: 您的主帳戶餘額需要有 %balance% 才能�
 at %annual_yield%: 在%annual_yield%
 Est. %annual_yield%: 預估 %annual_yield%
 Staked: 已質押
+$stake_action: 質押
 Unstaked: 已解除質押
 Unstaking: 解除質押
+$unstake_action: 解押
 The network fee has slightly changed, try sending again.: 網路費略有變化，請重新發送交易。
 Transfer was unsuccessful. Try again later.: 轉帳未成功，請稍後再試。
 Unstaking was unsuccessful. Try again later.: 解除質押未成功，請稍後再試。
@@ -330,7 +330,7 @@ Message is encrypted.: 消息已加密。
 $dapp_ledger_warning1: 您即將使用您的**Ledger**錢包發送多方交易。您需要手動**一一**簽署每筆底層交易。
 $dapp_ledger_warning2: 請慢慢來，不要中斷過程。
 Agree: 同意
-SwapTitle: 交換
+$swap_action: 交換
 Swap: 交換
 You sell: 您賣出
 You buy: 您購買
@@ -390,6 +390,7 @@ Insufficient liquidity: 流動性不足
 This address is new and never received transfers before.: 這個地址是新的，以前從未收到過轉帳。
 Create Backup: 建立備份
 Sending: 傳送
+$send_action: 發送
 Failed: 失敗
 Refunded: 退款
 On Hold: 持有
@@ -649,15 +650,16 @@ Confirm Sending: 確認發送
 Confirm Burning: 確認刻錄
 Confirm Passcode: 確認密碼
 Enter your code: 輸入您的代碼
-$hardware_payload_warning: 第三方服務正在請求訪問您的錢包 — 這可能會導致資金損失。如果您不確定此服務的可靠性，請取消操作。
+$hardware_payload_warning: "**第三方服務正在請求訪問您的錢包。**這可能會導致資金損失。如果您不確定此服務的可靠性，請取消操作。"
 $hardware_blind_sign_not_enabled: |
-  第三方服務正在請求訪問您的錢包 — 這可能會導致資金損失。如果您不確定此服務的可靠性，請取消操作。
+  **第三方服務正在請求訪問您的錢包。**這可能會導致資金損失。如果您不確定此服務的可靠性，請取消操作。
 
   要繼續，請在 Ledger 的 TON 應用程序設置中啟用“盲簽名”選項。
 $hardware_blind_sign_not_enabled_internal: 要繼續，請在 Ledger 的 TON 應用程序設置中啟用“盲簽名”選項。
 Switch to W5: 切換到 W5
 Not Scam: 不是騙局
 Untitled: 未命名
+Multichain: 多鏈
 $swap_too_small_amount: 金額太小
 Not enough %symbol%: "%symbol% 不足"
 $receive_tron_description: 掃描此二維碼或分享您的地址以充值錢包餘額。
@@ -728,16 +730,13 @@ Help Center: 幫助中心
 MyTonWallet Tips: MyTonWallet 提示
 $auth_import_24_mnemonic_description: |
   你可以透過輸入創建錢包時記錄的 **24 個秘密單詞** 來恢復對錢包的存取權限。
-$returned_value: ~ %value% 將被退還
 Open %nft_marketplace%: 打開 %nft_marketplace%
 Link was copied!: 連結已複製！
 Share Link: 分享連結
-Dapp Fee Details: 費用詳情
 $dapp_return_details: |
   %fee_amount% 將立即從您的錢包扣除以支付費用。
 
   %received_amount% 將在幾分鐘內退還給您。
-$dapp_return_disclaimer: 顯示的返還金額不受保證，並可能被惡意 Dapp 操縱。如果您不確定此服務的可靠性，請取消操作。
 Additional Amount Sent: 額外發送
 Show Sensitive Data: 顯示敏感數據
 Hide Sensitive Data: 隱藏敏感數據
@@ -745,35 +744,53 @@ Copy Address: 複製地址
 Copy Transaction ID: 複製交易ID
 Requesting Unstake: 請求解除質押
 Unstake Requested: 已請求解除質押
+$request_unstake_action: 請求解押
 Calling Contract: 呼叫合約
 Contract Called: 已呼叫合約
+$call_contract_action: 呼叫合約
 Deploying Contract: 部署合約
 Contract Deployed: 已部署合約
+$deploy_contract_action: 部署合約
 Minting: 鑄造
 Minted: 已鑄造
+$mint_action: 鑄造
 Burning: 銷毀
 Burned: 已銷毀
+$burn_action: 銷毀
 Address Updated: 地址已更新
 Updating Address: 更新地址中
+$update_address_action: 更新地址
 Site Updated: 網站已更新
 Updating Site: 更新網站中
+$update_site_action: 更新網站
 Subdomains Updated: 子域名已更新
 Updating Subdomains: 更新子域名中
+$update_subdomains_action: 更新子域名
 Storage Updated: 存儲已更新
 Updating Storage: 更新存儲中
+$update_storage_action: 更新存儲
 Domain Record Deleted: 域名記錄已刪除
 Deleting Domain Record: 刪除域名記錄中
+$delete_domain_record_action: 刪除域名記錄
 Renewing Domain: 續訂域名中
 Domain Renewed: 域名已續訂
+$renew_domain_action: 續訂域名
 Providing Liquidity: 提供流動性
 Liquidity Provided: 已提供流動性
+$provide_liquidity_action: 提供流動性
 Withdrawing Liquidity: 正在提取流動性
 Liquidity Withdrawn: 已提取流動性
+$withdraw_liquidity_action: 提取流動性
 Bounced: 被退回
 Bouncing: 反彈中
+$bounce_action: 反彈
 NFT Auction Bid: NFT 拍賣出價
 Bidding at NFT Auction: NFT 拍賣中出價
+NFT Bought: 已購買 NFT
+Buying NFT: 正在購買 NFT
+$buy_nft_action: 購買 NFT
 Receiving: 接收中
+$receive_action: 接收
 Change Palette: 更改調色板
 Palette: 調色板
 Unlock New Palettes: 解鎖新調色板
@@ -788,7 +805,22 @@ Easily send your upgraded card to any of your friends.: 輕鬆將您的升級卡
 Tradable: 可交易
 Sell or auction your card on third-party NFT marketplaces.: 在第三方 NFT 市場上出售或拍賣您的卡片。
 Upgrade for %currency% %amount%: 升級需 %currency% %amount%
-"%amount% left": "剩餘 %amount%"
-"%amount% sold": "已售 %amount%"
+"%amount% left": 剩餘 %amount%
+"%amount% sold": 已售 %amount%
 This card has been sold out: 此卡片已售罄
+Import Existing Wallet: 導入現有錢包
+View Any Address: 查看任意地址
+12/24 Secret Words: 12/24個助記詞
+24 Secret Words: 24個助記詞
+Wallet Address or Domain: 錢包地址或域名
+$import_view_account_note: 輸入TON或TRON網絡上的**任意地址**以**查看模式**打開。
+$view_mode: 查看
+Import Wallet: 導入錢包
 Please top up your TON balance.: 請充值您的TON餘額。
+Remember Passcode: 記住驗證碼
+Remember Password: 記住密碼
+Not available with biometrics.: 無法使用生物識別功能。
+App will not ask for signature for %1$d minutes after last entry.: 應用程式在上次輸入後的%1$d分鐘內不會要求簽名。
+Remember for %1$d minutes: 記住 %1$d 分鐘
+Preview: 預覽
+$preview_not_guaranteed: 預覽結果**不受保證**，且**可能被服務偽造**。

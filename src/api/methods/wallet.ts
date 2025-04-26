@@ -5,6 +5,7 @@ import type { ApiAccountWithMnemonic, ApiChain, ApiNetwork } from '../types';
 import { parseAccountId } from '../../util/account';
 import chains from '../chains';
 import { fetchPrivateKey as fetchTonPrivateKey } from '../chains/ton';
+import { checkToAddress } from '../chains/ton/transfer';
 import {
   fetchStoredAccount,
   fetchStoredAddress,
@@ -13,6 +14,7 @@ import {
 } from '../common/accounts';
 import * as dappPromises from '../common/dappPromises';
 import { getMnemonic } from '../common/mnemonic';
+import { handleServerError } from '../errors';
 
 const ton = chains.ton;
 
@@ -89,4 +91,19 @@ export function getWalletInfo(network: ApiNetwork, address: string) {
   const chain = chains.ton;
 
   return chain.getWalletInfo(network, address);
+}
+
+export async function getAddressInfo(network: ApiNetwork, toAddress: string): Promise<{
+  addressName?: string;
+  isScam?: boolean;
+  resolvedAddress?: string;
+  isToAddressNew?: boolean;
+  isBounceable?: boolean;
+  isMemoRequired?: boolean;
+} | { error: string }> {
+  try {
+    return await checkToAddress(network, toAddress);
+  } catch (err: any) {
+    return handleServerError(err);
+  }
 }

@@ -16,18 +16,25 @@ export const formatNumber = withCache((
   fractionDigits = 2,
   noTruncate?: boolean,
 ) => {
-  const bigValue = new Big(value);
+  let bigValue = new Big(value);
 
   if (bigValue.eq(0)) return '0';
 
+  const isNegative = bigValue.lt(0);
+  if (isNegative) bigValue = bigValue.neg();
+
   const method = bigValue.lt(1) ? 'toPrecision' : 'round';
-  const rounded = bigValue[method](fractionDigits, noTruncate ? Big.roundHalfUp : Big.roundDown)
+  let formatted = bigValue[method](fractionDigits, noTruncate ? Big.roundHalfUp : Big.roundDown)
     .toString()
     // Remove extra zeros after rounding to the specified accuracy
     .replace(/(\.\d*?)0+$/, '$1')
     .replace(/\.$/, '');
 
-  return applyThousandsGrouping(rounded);
+  formatted = applyThousandsGrouping(formatted);
+
+  if (isNegative) formatted = `-${formatted}`;
+
+  return formatted;
 });
 
 export function formatCurrency(
@@ -41,13 +48,14 @@ export function formatCurrency(
 }
 
 export function formatCurrencyExtended(
-  value: number | string, currency: string, noSign = false, fractionDigits?: number,
+  value: number | string, currency: string, noSign = false, fractionDigits?: number, isZeroNegative?: boolean,
 ) {
+  const numericValue = Number(value);
+  const isNegative = numericValue === 0 ? isZeroNegative : (numericValue < 0);
+  const prefix = !noSign ? (!isNegative ? '+\u202F' : '\u2212\u202F') : '';
+
   value = value.toString();
-
-  const prefix = !noSign ? (!value.startsWith('-') ? '+\u202F' : '\u2212\u202F') : '';
-
-  return prefix + formatCurrency(noSign ? value : value.replace('-', ''), currency, fractionDigits);
+  return prefix + formatCurrency(noSign ? value : value.replace(/^-/, ''), currency, fractionDigits);
 }
 
 export function formatCurrencySimple(value: number | bigint | string, currency: string, decimals?: number) {

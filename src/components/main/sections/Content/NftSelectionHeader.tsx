@@ -1,5 +1,5 @@
 import React, {
-  memo, useEffect, useRef, useState,
+  memo, useEffect, useMemo, useRef, useState,
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
@@ -7,7 +7,10 @@ import type { ApiNft } from '../../../../api/types';
 import { type IAnchorPosition } from '../../../../global/types';
 
 import { IS_CORE_WALLET } from '../../../../config';
-import { selectCurrentAccountState } from '../../../../global/selectors';
+import {
+  selectCurrentAccountState,
+  selectIsCurrentAccountViewMode,
+} from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 
@@ -24,29 +27,15 @@ import DropdownMenu from '../../../ui/DropdownMenu';
 import styles from './NftCollectionHeader.module.scss';
 
 interface StateProps {
+  isViewMode: boolean;
   byAddress?: Record<string, ApiNft>;
   selectedAddresses?: string[];
   currentCollectionAddress?: string;
 }
 
-const MENU_ITEMS: DropdownItem[] = [{
-  name: 'Send',
-  value: 'send',
-},
-...(!IS_CORE_WALLET ? [{
-  name: 'Hide',
-  value: 'hide',
-}] : []), {
-  name: 'Burn',
-  value: 'burn',
-  isDangerous: true,
-}, {
-  name: 'Select All',
-  value: 'select-all',
-  withSeparator: true,
-}];
-
-function NftSelectionHeader({ selectedAddresses, byAddress, currentCollectionAddress }: StateProps) {
+function NftSelectionHeader({
+  isViewMode, selectedAddresses, byAddress, currentCollectionAddress,
+}: StateProps) {
   const {
     selectAllNfts, clearNftsSelection, startTransfer, burnNfts, openHideNftModal,
   } = getActions();
@@ -61,6 +50,28 @@ function NftSelectionHeader({ selectedAddresses, byAddress, currentCollectionAdd
   });
 
   useEffect(() => (isActive ? captureEscKeyListener(clearNftsSelection) : undefined), [isActive]);
+
+  const menuItems: DropdownItem[] = useMemo(() => {
+    return [
+      ...(!isViewMode ? [{
+        name: 'Send',
+        value: 'send',
+      }] : []),
+      ...(!IS_CORE_WALLET ? [{
+        name: 'Hide',
+        value: 'hide',
+      }] : []),
+      ...(!isViewMode ? [{
+        name: 'Burn',
+        value: 'burn',
+        isDangerous: true,
+      }] : []), {
+        name: 'Select All',
+        value: 'select-all',
+        withSeparator: true,
+      },
+    ];
+  }, [isViewMode]);
 
   const handleSendClick = useLastCallback(() => {
     const nfts = selectedAddresses!.map((address) => byAddress![address]) ?? [];
@@ -160,7 +171,7 @@ function NftSelectionHeader({ selectedAddresses, byAddress, currentCollectionAdd
           transformOriginY={transformOriginY}
           buttonClassName={styles.menuItem}
           bubbleClassName={styles.menu}
-          items={MENU_ITEMS}
+          items={menuItems}
           onSelect={handleMenuItemClick}
           onClose={handleMenuClose}
         />
@@ -174,5 +185,10 @@ export default memo(withGlobal((global): StateProps => {
     selectedAddresses, byAddress, currentCollectionAddress,
   } = selectCurrentAccountState(global)?.nfts || {};
 
-  return { selectedAddresses, byAddress, currentCollectionAddress };
+  return {
+    selectedAddresses,
+    byAddress,
+    currentCollectionAddress,
+    isViewMode: selectIsCurrentAccountViewMode(global),
+  };
 })(NftSelectionHeader));

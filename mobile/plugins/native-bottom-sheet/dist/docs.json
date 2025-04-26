@@ -213,7 +213,7 @@
           "PluginListenerHandle",
           "BottomSheetKeys"
         ],
-        "slug": "addlistenerdelegate"
+        "slug": "addlistenerdelegate-"
       },
       {
         "name": "addListener",
@@ -236,7 +236,7 @@
         "complexTypes": [
           "PluginListenerHandle"
         ],
-        "slug": "addlistenermove"
+        "slug": "addlistenermove-"
       },
       {
         "name": "addListener",
@@ -260,7 +260,7 @@
           "PluginListenerHandle",
           "BottomSheetKeys"
         ],
-        "slug": "addlisteneropeninmain"
+        "slug": "addlisteneropeninmain-"
       }
     ],
     "properties": []
@@ -348,6 +348,10 @@
         },
         {
           "text": "'add-account'",
+          "complexTypes": []
+        },
+        {
+          "text": "'import-account'",
           "complexTypes": []
         },
         {

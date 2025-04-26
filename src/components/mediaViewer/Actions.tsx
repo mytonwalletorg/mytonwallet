@@ -4,7 +4,11 @@ import { withGlobal } from '../../global';
 import type { ApiNft } from '../../api/types';
 import { MediaType } from '../../global/types';
 
-import { selectCurrentAccountSettings, selectCurrentAccountState } from '../../global/selectors';
+import {
+  selectCurrentAccountSettings,
+  selectCurrentAccountState,
+  selectIsCurrentAccountViewMode,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 
 import useFlag from '../../hooks/useFlag';
@@ -30,10 +34,11 @@ type StateProps = {
   whitelistedNftAddresses?: string[];
   cardBackgroundNft?: ApiNft;
   accentColorNft?: ApiNft;
+  isViewMode: boolean;
 };
 
 function Actions({
-  onClose, nft, blacklistedNftAddresses, whitelistedNftAddresses, cardBackgroundNft, accentColorNft,
+  onClose, nft, blacklistedNftAddresses, whitelistedNftAddresses, cardBackgroundNft, accentColorNft, isViewMode,
 }: StateProps & OwnProps) {
   const lang = useLang();
   const [isMenuOpen, openMenu, closeMenu] = useFlag();
@@ -52,7 +57,7 @@ function Actions({
   );
 
   const { menuItems, handleMenuItemSelect } = useNftMenu({
-    nft, isNftBlacklisted, isNftWhitelisted, isNftInstalled, isNftAccentColorInstalled,
+    nft, isViewMode, isNftBlacklisted, isNftWhitelisted, isNftInstalled, isNftAccentColorInstalled,
   });
 
   const handleSelect = useLastCallback((value: string) => {
@@ -99,17 +104,18 @@ function Actions({
 
 export default memo(withGlobal<OwnProps>((global, { mediaId }): StateProps => {
   const { mediaType = MediaType.Nft } = global.mediaViewer || {};
+  const isViewMode = selectIsCurrentAccountViewMode(global);
 
-  if (!mediaId || mediaType !== MediaType.Nft) return {};
+  if (!mediaId || mediaType !== MediaType.Nft) return { isViewMode };
 
   const { byAddress } = selectCurrentAccountState(global)?.nfts || {};
   const nft = byAddress?.[mediaId];
-  if (!nft) return {};
+  if (!nft) return { isViewMode };
 
   const { blacklistedNftAddresses, whitelistedNftAddresses } = selectCurrentAccountState(global) || {};
   const { cardBackgroundNft, accentColorNft } = selectCurrentAccountSettings(global) || {};
 
   return {
-    nft, blacklistedNftAddresses, whitelistedNftAddresses, cardBackgroundNft, accentColorNft,
+    nft, blacklistedNftAddresses, whitelistedNftAddresses, cardBackgroundNft, accentColorNft, isViewMode,
   };
 })(Actions));

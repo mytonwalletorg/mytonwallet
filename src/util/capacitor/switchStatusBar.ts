@@ -1,5 +1,5 @@
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { NavigationBar } from '@mauricewegner/capacitor-navigation-bar';
-import { StatusBar, Style } from '@sina_kh/mtw-capacitor-status-bar';
 
 import type { Theme } from '../../global/types';
 

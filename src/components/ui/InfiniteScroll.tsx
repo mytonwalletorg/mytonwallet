@@ -25,7 +25,8 @@ type OwnProps = {
   preloadBackwards?: number;
   sensitiveArea?: number;
   withAbsolutePositioning?: boolean;
-  maxHeight?: number;
+  /* A CSS value */
+  maxHeight?: string;
   noScrollRestore?: boolean;
   noScrollRestoreOnTop?: boolean;
   noFastList?: boolean;
@@ -286,7 +287,7 @@ const InfiniteScroll: FC<OwnProps> = ({
       {withAbsolutePositioning && items?.length ? (
         <div
           teactFastList={!noFastList}
-          style={buildStyle('position: relative', IS_ANDROID && `height: ${maxHeight}px`)}
+          style={buildStyle('position: relative', IS_ANDROID && maxHeight !== undefined && `height: ${maxHeight}`)}
         >
           {children}
         </div>

@@ -2,8 +2,8 @@
 
 android {
   compileOptions {
-      sourceCompatibility JavaVersion.VERSION_17
-      targetCompatibility JavaVersion.VERSION_17
+      sourceCompatibility JavaVersion.VERSION_21
+      targetCompatibility JavaVersion.VERSION_21
   }
 }
 
@@ -19,10 +19,11 @@ dependencies {
     implementation project(':capacitor-keyboard')
     implementation project(':capacitor-push-notifications')
     implementation project(':capacitor-share')
+    implementation project(':capacitor-status-bar')
+    implementation project(':capawesome-capacitor-torch')
     implementation project(':capgo-capacitor-native-biometric')
     implementation project(':capgo-native-audio')
     implementation project(':mauricewegner-capacitor-navigation-bar')
-    implementation project(':sina_kh-mtw-capacitor-status-bar')
     implementation project(':capacitor-native-settings')
     implementation project(':capacitor-plugin-safe-area')
     implementation project(':capacitor-secure-storage-plugin')

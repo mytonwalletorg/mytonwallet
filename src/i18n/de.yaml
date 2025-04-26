@@ -94,9 +94,6 @@ Is there a community?: Gibt es eine Gemeinschaft?
 $about_wallet_community: Natürlich, willkommen in unserer %community_link%.
 $about_community_link_text: "**Telegram Kanal**"
 Currency History: Währungsgeschichte
-$add_account_description1: |
-  **%app_name%** ermöglicht es Ihnen, nahtlos
-  zwischen **mehreren Konten** zu wechseln.
 Enter Password: Passwort eingeben
 Send: Senden
 Add Wallet: Wallet hinzufügen
@@ -245,9 +242,10 @@ $unstake_insufficient_balance: Sie müssen %balance% auf Ihrem Hauptguthaben hab
 at %annual_yield%: bei %annual_yield%
 Est. %annual_yield%: Geschätzte %annual_yield%
 Staked: Gestakt
-Unstake Requested: Unstake angefordert
+$stake_action: Stake
 Unstaked: Ungestakt
 Unstaking: Entstaken
+$unstake_action: Entstaken
 The network fee has slightly changed, try sending again.: Die Netzwerkgebühr hat sich geringfügig geändert, versuchen Sie es erneut zu senden.
 Transfer was unsuccessful. Try again later.: Die Überweisung war nicht erfolgreich. Versuchen Sie es später erneut.
 Unstaking was unsuccessful. Try again later.: Das unstaken war nicht erfolgreich. Versuchen Sie es später erneut.
@@ -259,10 +257,7 @@ Unexpected error: Unerwarteter Fehler
 Unexpected Error: Unerwarteter Fehler
 Earn: Verdienen
 Earning: Verdienend
-InvalidAmount: Ungültiger Betrag
-InvalidToAddress: Ungültige Empfängeradresse
 Unexpected: Unerwarteter Fehler
-DomainNotResolved: Domain nicht aufgelöst
 You can save this address for quick access while sending.: Sie können diese Adresse speichern, um schnellen Zugriff beim Senden zu haben.
 Stake Again: Erneut staken
 Earned: Verdient
@@ -273,7 +268,9 @@ Dapp Permissions: Dapp-Berechtigungen
 $dapp_can_view_balance: "%dappname% wird die Wallet adresse und den Kontostand anzeigen können."
 Send Transaction: Transaktion senden
 Payload: Nutzlast
-$many_transactions: "%1$d Transaktionen"
+$many_transactions:
+  oneValue: "%1$d Transaktion"
+  otherValue: "%1$d Transaktionen"
 Total Amount: Gesamtbetrag
 $unstaking_short: Entstaken
 Handle ton:// links: Umgang mit ton://-Links
@@ -338,7 +335,7 @@ Message is encrypted.: Die Nachricht ist verschlüsselt.
 $dapp_ledger_warning1: Sie sind dabei, eine Mehrweg-Transaktion mit Ihrer **Ledger**-Wallet durchzuführen. Sie müssen jede zugrunde liegende Transaktion **manuell nacheinander** signieren.
 $dapp_ledger_warning2: Bitte nehmen Sie sich Zeit und unterbrechen Sie den Prozess nicht.
 Agree: Zustimmen
-SwapTitle: Tausch
+$swap_action: Tausch
 Swap: Tausch
 You sell: Sie verkaufen
 You buy: Sie kaufen
@@ -399,6 +396,7 @@ Insufficient liquidity: Unzureichende Liquidität
 This address is new and never received transfers before.: Diese Adresse ist neu und hat zuvor keine Überweisungen erhalten.
 Create Backup: Sicherung erstellen
 Sending: Senden
+$send_action: Senden
 Failed: Fehlgeschlagen
 Refunded: Erstattet
 On Hold: In Wartestellung
@@ -661,15 +659,16 @@ Confirm Sending: Senden bestätigen
 Confirm Burning: Brennen bestätigen
 Confirm Passcode: Passcode bestätigen
 Enter your code: Gib deinen Code ein
-$hardware_payload_warning: Ein externer Dienst fordert Zugriff auf Ihre Wallet an – dies kann zum Verlust von Mitteln führen. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
+$hardware_payload_warning: "**Ein externer Dienst fordert Zugriff auf Ihre Wallet an.** Dies kann zum Verlust von Mitteln führen. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind."
 $hardware_blind_sign_not_enabled: |
-  Ein externer Dienst fordert Zugriff auf Ihre Wallet an – dies kann zum Verlust von Mitteln führen. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
+  **Ein externer Dienst fordert Zugriff auf Ihre Wallet an.** Dies kann zum Verlust von Mitteln führen. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
 
   Um fortzufahren, aktivieren Sie die Option „Blindsignatur“ in den Einstellungen der TON App auf dem Ledger.
 $hardware_blind_sign_not_enabled_internal: Um fortzufahren, aktivieren Sie die Option „Blindsignatur“ in den Einstellungen der TON App auf dem Ledger.
 Switch to W5: Zu W5 wechseln
 Not Scam: Kein Betrug
 Untitled: Unbenannt
+Multichain: Multichain
 $swap_too_small_amount: Zu kleiner Betrag
 Not enough %symbol%: Nicht genug %symbol%
 $receive_tron_description: Scannen Sie diesen QR-Code oder teilen Sie Ihre Adresse, um Ihr Wallet-Guthaben aufzuladen.
@@ -740,51 +739,67 @@ Help Center: Hilfezentrum
 MyTonWallet Tips: MyTonWallet-Tipps
 $auth_import_24_mnemonic_description: |
   Sie können den Zugriff auf Ihre Wallet wiederherstellen, indem Sie die **24 geheimen Wörter** eingeben, die Sie beim Erstellen der Wallet notiert haben.
-$returned_value: ~ %value% wird zurückgegeben
 Open %nft_marketplace%: "%nft_marketplace% öffnen"
 Link was copied!: Link wurde kopiert!
 Share Link: Link teilen
-Dapp Fee Details: Dapp-Gebührenübersicht
 $dapp_return_details: |
   %fee_amount% wird sofort von Ihrer Wallet abgebucht, um die Gebühr zu bezahlen.
 
   %received_amount% wird Ihnen innerhalb weniger Minuten zurückerstattet.
-$dapp_return_disclaimer: Der angezeigte zurückgezahlte Betrag ist nicht garantiert und kann von bösartigen Dapps manipuliert werden. Brechen Sie den Vorgang ab, wenn Sie sich der Zuverlässigkeit dieses Dienstes nicht sicher sind.
 Additional Amount Sent: Zusätzlich wird gesendet
 Show Sensitive Data: Sensible Daten anzeigen
 Hide Sensitive Data: Sensible Daten ausblenden
 Copy Address: Adresse kopieren
 Copy Transaction ID: Transaktions-ID kopieren
 Requesting Unstake: Unstake wird angefordert
+Unstake Requested: Unstake angefordert
+$request_unstake_action: Unstake anfordern
 Calling Contract: Vertrag wird aufgerufen
 Contract Called: Vertrag aufgerufen
+$call_contract_action: Vertrag aufrufen
 Deploying Contract: Vertrag wird bereitgestellt
 Contract Deployed: Vertrag bereitgestellt
+$deploy_contract_action: Vertrag bereitstellen
 Minting: Minting
 Minted: Gemintet
+$mint_action: Minten
 Burning: Verbrennen
 Burned: Verbrannt
+$burn_action: Verbrennen
 Address Updated: Adresse aktualisiert
 Updating Address: Adresse wird aktualisiert
+$update_address_action: Adresse aktualisieren
 Site Updated: Webseite aktualisiert
 Updating Site: Webseite wird aktualisiert
+$update_site_action: Website aktualisieren
 Subdomains Updated: Subdomains aktualisiert
 Updating Subdomains: Subdomains werden aktualisiert
+$update_subdomains_action: Subdomains aktualisieren
 Storage Updated: Speicher aktualisiert
 Updating Storage: Speicher wird aktualisiert
+$update_storage_action: Speicher aktualisieren
 Domain Record Deleted: Domain-Eintrag gelöscht
 Deleting Domain Record: Domain-Eintrag wird gelöscht
+$delete_domain_record_action: Domain-Eintrag gelöschen
 Renewing Domain: Domain wird erneuert
 Domain Renewed: Domain erneuert
+$renew_domain_action: Domain erneuern
 Providing Liquidity: Liquidität wird bereitgestellt
 Liquidity Provided: Liquidität bereitgestellt
+$provide_liquidity_action: Liquidität bereitstellen
 Withdrawing Liquidity: Liquidität wird abgezogen
 Liquidity Withdrawn: Liquidität abgezogen
+$withdraw_liquidity_action: Liquidität abziehen
 Bounced: Zurückgesendet
 Bouncing: Zurückspringen
+$bounce_action: Zurücksenden
 NFT Auction Bid: NFT-Auktionsgebot
 Bidding at NFT Auction: Bieten bei NFT-Auktion
+NFT Bought: NFT gekauft
+Buying NFT: NFT wird gekauft
+$buy_nft_action: NFT kaufen
 Receiving: Empfangen
+$receive_action: Empfangen
 Change Palette: Palette ändern
 Palette: Palette
 Unlock New Palettes: Neue Paletten freischalten
@@ -802,4 +817,19 @@ Upgrade for %currency% %amount%: Upgrade für %currency% %amount%
 "%amount% left": "%amount% übrig"
 "%amount% sold": "%amount% verkauft"
 This card has been sold out: Diese Karte ist ausverkauft
+Import Existing Wallet: Vorhandene Wallet importieren
+View Any Address: Beliebige Adresse anzeigen
+12/24 Secret Words: 12/24 Geheime Wörter
+24 Secret Words: 24 Geheime Wörter
+Wallet Address or Domain: Wallet-Adresse oder Domain
+$import_view_account_note: Geben Sie **eine beliebige Adresse** im TON- oder TRON-Netzwerk ein, um sie im **Ansichtsmodus** zu öffnen.
+$view_mode: Ansicht
+Import Wallet: Wallet importieren
 Please top up your TON balance.: Bitte laden Sie Ihr TON-Guthaben auf.
+Remember Passcode: Code merken
+Remember Password: Passwort merken
+Not available with biometrics.: Nicht mit Biometrie verfügbar.
+App will not ask for signature for %1$d minutes after last entry.: Die App wird für %1$d Minuten nach der letzten Eingabe nicht nach einer Signatur fragen.
+Remember for %1$d minutes: Für %1$d Minuten merken
+Preview: Vorschau
+$preview_not_guaranteed: Das Vorschauergebnis ist **nicht garantiert **und kann **vom Dienst manipuliert **werden.

@@ -1,7 +1,7 @@
 import type { Table } from 'dexie';
 import Dexie from 'dexie';
 
-import type { ApiNft, ApiToken } from '../types';
+import type { ApiNft, ApiTokenWithPrice } from '../types';
 
 import { DbRepository } from './repository';
 
@@ -19,7 +19,7 @@ const DB_NANE = 'tables';
 export class ApiDb extends Dexie {
   nfts!: Table<ApiDbNft>;
 
-  tokens!: Table<ApiToken>;
+  tokens!: Table<ApiTokenWithPrice>;
 
   constructor() {
     super(DB_NANE);
@@ -31,6 +31,9 @@ export class ApiDb extends Dexie {
     });
     this.version(3).stores({
       tokens: 'tokenAddress, chain, &slug',
+    });
+    this.version(4).upgrade((tx) => {
+      return tx.table('tokens').clear();
     });
   }
 }

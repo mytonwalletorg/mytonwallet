@@ -35,7 +35,6 @@ import { omit, pick } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
 import { safeExecAsync } from '../../../util/safeExec';
 import { pause } from '../../../util/schedulers';
-import { emulateTrace, parseEmulation } from './util/emulation';
 import { decryptMessageComment, encryptMessageComment } from './util/encryption';
 import { sendExternal } from './util/sendExternal';
 import {
@@ -62,6 +61,7 @@ import { checkHasTransaction, fetchNewestActionId } from './activities';
 import { resolveAddress } from './address';
 import { fetchKeyPair, fetchPrivateKey } from './auth';
 import { ATTEMPTS, FEE_FACTOR, TRANSFER_TIMEOUT_SEC } from './constants';
+import { emulateTrace, parseEmulation } from './emulation';
 import {
   buildTokenTransfer,
   calculateTokenBalanceWithMintless,
@@ -295,31 +295,17 @@ export async function checkToAddress(network: ApiNetwork, toAddress: string) {
   } = {};
 
   const resolved = await resolveAddress(network, toAddress);
-  if (resolved) {
-    result.addressName = resolved.name;
-    result.resolvedAddress = resolved.address;
-    result.isMemoRequired = resolved.isMemoRequired;
-    result.isScam = resolved.isScam;
-    toAddress = resolved.address;
-  } else {
-    return {
-      ...result,
-      error: ApiTransactionDraftError.DomainNotResolved,
-    };
-  }
+  if (resolved === 'dnsNotResolved') return { ...result, error: ApiTransactionDraftError.DomainNotResolved };
+  if (resolved === 'invalidAddress') return { ...result, error: ApiTransactionDraftError.InvalidToAddress };
+  result.addressName = resolved.name;
+  result.resolvedAddress = resolved.address;
+  result.isMemoRequired = resolved.isMemoRequired;
+  result.isScam = resolved.isScam;
+  toAddress = resolved.address;
 
-  const {
-    isValid, isUserFriendly, isTestOnly, isBounceable,
-  } = parseAddress(toAddress);
+  const { isUserFriendly, isTestOnly, isBounceable } = parseAddress(toAddress);
 
   result.isBounceable = isBounceable;
-
-  if (!isValid) {
-    return {
-      ...result,
-      error: ApiTransactionDraftError.InvalidToAddress,
-    };
-  }
 
   const regex = /[+=/]/;
   const isUrlSafe = !regex.test(toAddress);
@@ -417,12 +403,12 @@ export async function submitTransfer(options: ApiSubmitTransferOptions): Promise
     }
 
     const client = getTonClient(network);
-    const { msgHash, boc } = await sendExternal(client, wallet!, transaction);
+    const { msgHash, boc, msgHashNormalized } = await sendExternal(client, wallet!, transaction);
 
     void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
 
     return {
-      amount, seqno, encryptedComment, toAddress, msgHash,
+      amount, seqno, encryptedComment, toAddress, msgHash, msgHashNormalized,
     };
   } catch (err: any) {
     logDebugError('submitTransfer', err);
@@ -647,7 +633,8 @@ export async function checkMultiTransactionDraft(
   let totalAmount: bigint = 0n;
 
   const { network } = parseAccountId(accountId);
-  const { isInitialized, version, address } = await fetchStoredTonWallet(accountId);
+  const tonWallet = await fetchStoredTonWallet(accountId);
+  const { isInitialized, version, address } = tonWallet;
 
   try {
     for (const { toAddress, amount } of messages) {
@@ -664,7 +651,7 @@ export async function checkMultiTransactionDraft(
       totalAmount += amount;
     }
 
-    const wallet = await getTonWallet(accountId);
+    const wallet = await getTonWallet(accountId, tonWallet);
     const { balance } = await getWalletInfo(network, wallet);
 
     const { transaction } = await signMultiTransaction({
@@ -674,7 +661,8 @@ export async function checkMultiTransactionDraft(
     if (withEmulation) {
       result.emulation = await safeExecAsync(async () => {
         const emulation = await emulateTrace(network, wallet, transaction, isInitialized);
-        return emulation && parseEmulation(network, address, emulation);
+        const parsedEmulation = await parseEmulation(network, address, emulation);
+        return applyFeeFactorToEmulationResult(parsedEmulation);
       });
     }
 
@@ -683,7 +671,7 @@ export async function checkMultiTransactionDraft(
       result.fee = bigintMultiplyToNumber(blockchainFee, FEE_FACTOR);
     }
 
-    const fee = result.emulation?.totalFee ?? result.fee ?? 0n;
+    const fee = result.emulation?.networkFee ?? result.fee ?? 0n;
     // TODO Should `totalAmount` be `0` for `withDiesel`?
     if (!withDiesel && balance < totalAmount + fee) {
       return { ...result, error: ApiTransactionDraftError.InsufficientBalance };
@@ -740,7 +728,7 @@ export async function submitMultiTransfer({
     }
 
     const client = getTonClient(network);
-    const { msgHash, boc, paymentLink } = await sendExternal(
+    const { msgHash, boc, paymentLink, msgHashNormalized } = await sendExternal(
       client, wallet!, transaction, gaslessType,
     );
 
@@ -764,6 +752,7 @@ export async function submitMultiTransfer({
       messages: clearedMessages,
       boc,
       msgHash,
+      msgHashNormalized,
       paymentLink,
       withW5Gasless,
     };
@@ -936,16 +925,16 @@ export async function sendSignedMessage(accountId: string, message: ApiSignedTra
   const { network } = parseAccountId(accountId);
   const { address: fromAddress, publicKey, version } = await fetchStoredTonWallet(accountId);
   const client = getTonClient(network);
-  const wallet = client.open(getTonWalletContract(publicKey, version!));
+  const wallet = client.open(getTonWalletContract(publicKey!, version));
   const { base64, seqno } = message;
   const pendingTransfer = pendingTransferId ? getPendingTransfer(pendingTransferId) : undefined;
 
   try {
-    const { msgHash, boc } = await sendExternal(client, wallet, Cell.fromBase64(base64));
+    const { msgHash, boc, msgHashNormalized } = await sendExternal(client, wallet, Cell.fromBase64(base64));
 
     void retrySendBoc(network, fromAddress, boc, seqno, pendingTransfer);
 
-    return { boc, msgHash };
+    return { boc, msgHash, msgHashNormalized };
   } catch (err) {
     pendingTransfer?.resolve();
     throw err;
@@ -956,7 +945,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
   const { network } = parseAccountId(accountId);
   const { address: fromAddress, publicKey, version } = await fetchStoredTonWallet(accountId);
   const client = getTonClient(network);
-  const wallet = client.open(getTonWalletContract(publicKey, version!));
+  const wallet = client.open(getTonWalletContract(publicKey!, version));
 
   const attempts = ATTEMPTS + messages.length;
   let index = 0;
@@ -965,6 +954,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
   let firstBoc: string | undefined;
 
   const msgHashes: string[] = [];
+  const msgHashesNormalized: string[] = [];
   let pendingTransfer: Deferred | undefined;
 
   while (index < messages.length && attempt < attempts) {
@@ -972,8 +962,9 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     try {
       ({ pendingTransfer } = await waitAndCreatePendingTransfer(network, fromAddress));
 
-      const { msgHash, boc } = await sendExternal(client, wallet, Cell.fromBase64(base64));
+      const { msgHash, boc, msgHashNormalized } = await sendExternal(client, wallet, Cell.fromBase64(base64));
       msgHashes.push(msgHash);
+      msgHashesNormalized.push(msgHashNormalized);
 
       if (index === 0) {
         firstBoc = boc;
@@ -989,7 +980,7 @@ export async function sendSignedMessages(accountId: string, messages: ApiSignedT
     attempt++;
   }
 
-  return { successNumber: index, firstBoc, msgHashes };
+  return { successNumber: index, firstBoc, msgHashes, msgHashesNormalized };
 }
 
 export async function decryptComment(
@@ -1111,4 +1102,15 @@ function getDieselToncoinFee(token: ApiToken) {
   realFee += DEFAULT_FEE;
 
   return { amount, realFee, isStars };
+}
+
+function applyFeeFactorToEmulationResult(emulation: ApiEmulationResult): ApiEmulationResult {
+  return {
+    ...emulation,
+    networkFee: bigintMultiplyToNumber(emulation.networkFee, FEE_FACTOR),
+    byTransactionIndex: emulation.byTransactionIndex.map((transaction) => ({
+      ...transaction,
+      networkFee: bigintMultiplyToNumber(transaction.networkFee, FEE_FACTOR),
+    })),
+  };
 }

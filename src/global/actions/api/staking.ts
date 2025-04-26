@@ -22,7 +22,7 @@ import {
   updateAccountState,
   updateCurrentStaking,
 } from '../../reducers';
-import { selectAccount, selectAccountStakingState } from '../../selectors';
+import { selectAccount, selectAccountStakingState, selectIsHardwareAccount } from '../../selectors';
 import { switchAccount } from './auth';
 
 const MODAL_CLOSING_DELAY = 50;
@@ -105,8 +105,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
       if ('error' in result) {
         global = updateCurrentStaking(global, { error: result.error });
       } else {
-        const account = selectAccount(global, currentAccountId)!;
-        if (account.isHardware) {
+        if (selectIsHardwareAccount(global)) {
           actions.resetHardwareWalletConnect();
           global = updateCurrentStaking(getGlobal(), { state: StakingState.UnstakeConnectHardware });
         } else {
@@ -136,7 +135,7 @@ addActionHandler('submitStakingInitial', async (global, actions, payload) => {
         global = updateCurrentStaking(global, { error: result.error });
       } else {
         const account = selectAccount(global, currentAccountId)!;
-        if (account.isHardware) {
+        if (account.type === 'hardware') {
           actions.resetHardwareWalletConnect();
           global = updateCurrentStaking(getGlobal(), { state: StakingState.StakeConnectHardware });
         } else {
@@ -430,8 +429,7 @@ addActionHandler('startStakingClaim', (global) => {
     return;
   }
 
-  const accountId = global.currentAccountId!;
-  const { isHardware } = selectAccount(global, accountId)!;
+  const isHardware = selectIsHardwareAccount(global);
 
   global = updateCurrentStaking(global, {
     state: isHardware ? StakingState.ClaimConnectHardware : StakingState.ClaimPassword,

@@ -1,5 +1,5 @@
 import type {
-  ApiActivityTimestamps, ApiChain, ApiLedgerAccount, ApiTonWallet, OnApiUpdate,
+  ApiActivityTimestamps, ApiChain, ApiLedgerAccount, ApiTonWallet, ApiUpdatingStatus, OnApiUpdate,
 } from '../types';
 
 import { IS_CORE_WALLET, IS_EXTENSION } from '../../config';
@@ -18,9 +18,8 @@ import { callHook } from '../hooks';
 import { storage } from '../storages';
 import { setupAccountConfigPolling } from './polling';
 
-const { ton, tron } = chains;
-
 let onUpdate: OnApiUpdate;
+const setUpdatingStatus = createUpdatingStatusManager();
 
 export function initAccounts(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
@@ -50,11 +49,15 @@ export async function activateAccount(accountId: string, newestActivityTimestamp
     void setupAccountConfigPolling(accountId, account);
   }
 
-  if ('ton' in account) {
-    ton.setupPolling(accountId, onUpdate, pickChainTimestamps(newestActivityTimestamps, 'ton'));
-  }
-  if ('tron' in account) {
-    void tron.setupPolling(accountId, onUpdate, pickChainTimestamps(newestActivityTimestamps, 'tron'));
+  for (const chain of Object.keys(chains) as (keyof typeof chains)[]) {
+    if (chain in account) {
+      void chains[chain].setupPolling(
+        accountId,
+        onUpdate,
+        setUpdatingStatus.bind(undefined, accountId, chain),
+        pickChainTimestamps(newestActivityTimestamps, chain),
+      );
+    }
   }
 }
 
@@ -82,4 +85,35 @@ export function fetchTonWallet(accountId: string): Promise<ApiTonWallet> {
 
 export function fetchLedgerAccount(accountId: string) {
   return fetchStoredAccount<ApiLedgerAccount>(accountId);
+}
+
+/**
+ * Returns a stateful function that receives updating statuses from multiple chains and merges them together into a
+ * single set of consistent 'updatingStatus' events for the UI.
+ */
+function createUpdatingStatusManager() {
+  const updatingStatuses = new Map<string, Set<ApiChain>>();
+
+  return (accountId: string, chain: ApiChain, kind: ApiUpdatingStatus['kind'], isUpdating: boolean) => {
+    const key = `${accountId} ${kind}`;
+    let chainsBeingUpdated = updatingStatuses.get(key);
+    if (!chainsBeingUpdated) {
+      chainsBeingUpdated = new Set();
+      updatingStatuses.set(key, chainsBeingUpdated);
+    }
+
+    const wasAnyUpdating = chainsBeingUpdated.size > 0;
+
+    if (isUpdating) {
+      chainsBeingUpdated.add(chain);
+      if (!wasAnyUpdating) {
+        onUpdate({ type: 'updatingStatus', kind, accountId, isUpdating: true });
+      }
+    } else {
+      chainsBeingUpdated.delete(chain);
+      if (chainsBeingUpdated.size === 0 && wasAnyUpdating) {
+        onUpdate({ type: 'updatingStatus', kind, accountId, isUpdating: false });
+      }
+    }
+  };
 }

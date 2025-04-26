@@ -1,11 +1,12 @@
 import { ActiveTab, TransferState } from '../../types';
 
+import { getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore';
 import { fromDecimal, toDecimal } from '../../../util/decimals';
 import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { setCurrentTransferAddress, updateCurrentTransfer } from '../../reducers';
-import { selectAccount } from '../../selectors';
+import { selectIsHardwareAccount } from '../../selectors';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
   const isOpen = global.currentTransfer.state !== TransferState.None;
@@ -81,18 +82,23 @@ addActionHandler('setTransferShouldEncrypt', (global, actions, { shouldEncrypt }
   return updateCurrentTransfer(global, { shouldEncrypt });
 });
 
-addActionHandler('submitTransferConfirm', (global, actions) => {
-  const accountId = global.currentAccountId!;
-  const account = selectAccount(global, accountId)!;
+addActionHandler('submitTransferConfirm', async (global, actions) => {
+  const inMemoryPassword = await getInMemoryPassword();
 
-  if (account.isHardware) {
+  global = getGlobal();
+
+  if (selectIsHardwareAccount(global)) {
     actions.resetHardwareWalletConnect();
-    global = updateCurrentTransfer(getGlobal(), { state: TransferState.ConnectHardware });
+    global = updateCurrentTransfer(global, { state: TransferState.ConnectHardware });
+    setGlobal(global);
+  } else if (inMemoryPassword) {
+    global = updateCurrentTransfer(global, { isLoading: true });
+    setGlobal(global);
+    await actions.submitTransferPassword({ password: inMemoryPassword });
   } else {
     global = updateCurrentTransfer(global, { state: TransferState.Password });
+    setGlobal(global);
   }
-
-  setGlobal(global);
 });
 
 addActionHandler('clearTransferError', (global) => {

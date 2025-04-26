@@ -56,3 +56,12 @@ export function clearCurrentSwap(global: GlobalState) {
     },
   };
 }
+
+/** replaceMap: keys - old (removed) activity ids, value - new (added) activity ids */
+export function replaceCurrentSwapId(global: GlobalState, replaceMap: Map<string, string>) {
+  const newSwapId = global.currentSwap.activityId && replaceMap.get(global.currentSwap.activityId);
+  if (newSwapId !== undefined) {
+    global = updateCurrentSwap(global, { activityId: newSwapId });
+  }
+  return global;
+}

@@ -12,32 +12,31 @@ import { formatTime } from '../../../../util/dateFormat';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
 import getPseudoRandomNumber from '../../../../util/getPseudoRandomNumber';
 import getSwapRate from '../../../../util/swap/getSwapRate';
-import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useLang from '../../../../hooks/useLang';
-import useLastCallback from '../../../../hooks/useLastCallback';
 
 import TokenIcon from '../../../common/TokenIcon';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import SensitiveData from '../../../ui/SensitiveData';
 
-import styles from './Transaction.module.scss';
+import styles from './Activity.module.scss';
 
 type OwnProps = {
   ref?: Ref<HTMLElement>;
   tokensBySlug?: Record<string, ApiSwapAsset>;
-  isLast: boolean;
+  isLast?: boolean;
   activity: ApiSwapActivity;
-  isActive: boolean;
+  isActive?: boolean;
   appTheme: AppTheme;
   addressByChain?: Account['addressByChain'];
-  isSensitiveDataHidden?: true;
-  onClick: (id: string) => void;
+  isSensitiveDataHidden?: boolean;
+  isFuture?: boolean;
+  onClick?: (id: string) => void;
 };
 
-const SWAP_HEIGHT = 4 * REM;
+const SWAP_HEIGHT = 4; // rem
 const CHANGELLY_PENDING_STATUSES = new Set(['new', 'waiting', 'confirming', 'exchanging', 'sending', 'hold']);
 const CHANGELLY_EXPIRED_STATUSES = new Set(['failed', 'expired', 'refunded', 'overdue']);
 const ONCHAIN_ERROR_STATUSES = new Set(['expired', 'failed']);
@@ -51,6 +50,7 @@ function Swap({
   appTheme,
   addressByChain,
   isSensitiveDataHidden,
+  isFuture,
   onClick,
 }: OwnProps) {
   const lang = useLang();
@@ -90,10 +90,6 @@ function Swap({
     to: toToken,
     toAddress: cex?.payoutAddress,
     addressByChain,
-  });
-
-  const handleClick = useLastCallback(() => {
-    onClick(id);
   });
 
   function renderIcon() {
@@ -153,6 +149,10 @@ function Swap({
   }
 
   function renderErrorMessage() {
+    if (isFuture) {
+      return <div />;
+    }
+
     const date: string | TeactNode[] = formatTime(timestamp);
     let state = '';
     const cexStatus = cex?.status;
@@ -174,15 +174,15 @@ function Swap({
     }
 
     return (
-      <div className={buildClassName(isError && styles.isSwapErrorMessage)}>
+      <div className={buildClassName(isError && styles.swapError)}>
         {date}{state ? `${WHOLE_PART_DELIMITER}∙${WHOLE_PART_DELIMITER}${state}` : ''}
       </div>
     );
   }
 
   function renderTitle() {
-    if (isHold || isError) {
-      return lang('SwapTitle');
+    if (isHold || isError || isFuture) {
+      return lang('$swap_action');
     } else if (isPending) {
       return lang('Swapping');
     }
@@ -211,18 +211,18 @@ function Swap({
   return (
     <Button
       ref={ref as RefObject<HTMLButtonElement>}
-      key={id}
       className={buildClassName(
         styles.item,
         isLast && styles.itemLast,
         isActive && styles.active,
+        onClick && styles.interactive,
       )}
-      onClick={handleClick}
+      onClick={onClick && (() => onClick(id))}
       isSimple
     >
       {renderIcon()}
       <div className={styles.header}>
-        <div className={styles.operationName}>
+        <div className={buildClassName(styles.operationName, isFuture && styles.atMiddle)}>
           {renderTitle()}
         </div>
         {renderAmount()}

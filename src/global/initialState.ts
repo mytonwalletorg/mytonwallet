@@ -11,6 +11,7 @@ import {
 
 import {
   ANIMATION_LEVEL_DEFAULT,
+  DEFAULT_AUTOLOCK_OPTION,
   DEFAULT_SLIPPAGE_VALUE,
   DEFAULT_STAKING_STATE,
   DEFAULT_TRANSFER_TOKEN_SLUG,
@@ -22,7 +23,7 @@ import {
 } from '../config';
 import { IS_IOS_APP, USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 36;
+export const STATE_VERSION = 39;
 
 export const INITIAL_STATE: GlobalState = {
   appState: AppState.Auth,
@@ -79,6 +80,8 @@ export const INITIAL_STATE: GlobalState = {
     byAccountId: {},
     areTokensWithNoCostHidden: !SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
     isSortByValueEnabled: true,
+    isAppLockEnabled: true,
+    autolockValue: DEFAULT_AUTOLOCK_OPTION,
   },
 
   byAccountId: {},

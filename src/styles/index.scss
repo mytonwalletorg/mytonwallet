@@ -37,6 +37,8 @@ body {
   color: var(--color-gray-1);
   text-align: left;
 
+  caret-color: var(--color-accent, auto);
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-touch-callout: none;

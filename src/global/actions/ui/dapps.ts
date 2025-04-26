@@ -1,6 +1,7 @@
 import { TransferState } from '../../types';
 
 import { BROWSER_HISTORY_LIMIT } from '../../../config';
+import { getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore';
 import { unique } from '../../../util/iteratees';
 import { callActionInMain } from '../../../util/multitab';
 import { openUrl } from '../../../util/openUrl';
@@ -10,7 +11,7 @@ import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   clearDappConnectRequestError, updateCurrentAccountState, updateCurrentDappTransfer,
 } from '../../reducers';
-import { selectAccount, selectCurrentAccountState } from '../../selectors';
+import { selectCurrentAccountState, selectIsHardwareAccount } from '../../selectors';
 import { switchAccount } from '../api/auth';
 
 addActionHandler('clearDappConnectRequestError', (global) => {
@@ -35,18 +36,23 @@ addActionHandler('setDappTransferScreen', (global, actions, payload) => {
   setGlobal(global);
 });
 
-addActionHandler('submitDappTransferConfirm', (global, actions) => {
-  const accountId = global.currentAccountId!;
-  const account = selectAccount(global, accountId)!;
+addActionHandler('submitDappTransferConfirm', async (global, actions) => {
+  const inMemoryPassword = await getInMemoryPassword();
 
-  if (account.isHardware) {
+  global = getGlobal();
+
+  if (selectIsHardwareAccount(global)) {
     actions.resetHardwareWalletConnect();
     global = updateCurrentDappTransfer(getGlobal(), { state: TransferState.ConnectHardware });
+    setGlobal(global);
+  } else if (inMemoryPassword) {
+    global = updateCurrentDappTransfer(global, { isLoading: true });
+    setGlobal(global);
+    await actions.submitDappTransferPassword({ password: inMemoryPassword });
   } else {
     global = updateCurrentDappTransfer(global, { state: TransferState.Password });
+    setGlobal(global);
   }
-
-  setGlobal(global);
 });
 
 addActionHandler('clearDappTransferError', (global) => {

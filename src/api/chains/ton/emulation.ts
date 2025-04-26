@@ -1,0 +1,122 @@
+import type { Cell } from '@ton/core';
+import { beginCell, external, storeMessage } from '@ton/core';
+
+import type { ApiActivity, ApiEmulationResult, ApiNetwork, ApiTransactionActivity } from '../../types';
+import type { EmulationResponse } from './toncenter/emulation';
+import type { TonWallet } from './util/tonCore';
+
+import { BURN_ADDRESS, TONCOIN } from '../../../config';
+import { FAKE_TX_ID } from '../../constants';
+import { fetchEmulateTrace } from './toncenter/emulation';
+import { calculateActivityDetails, getActivityRealFee } from './activities';
+import { parseActions } from './toncenter';
+import { parseTrace } from './traces';
+
+export function emulateTrace(network: ApiNetwork, wallet: TonWallet, body: Cell, isInitialized?: boolean) {
+  const boc = buildExternalBoc(wallet, body, isInitialized);
+  return fetchEmulateTrace(network, boc);
+}
+
+export function parseEmulation(
+  network: ApiNetwork,
+  walletAddress: string,
+  emulation: EmulationResponse,
+): ApiEmulationResult {
+  const parsedTrace = parseTrace({
+    network,
+    walletAddress,
+    actions: emulation.actions,
+    traceDetail: emulation.trace,
+    addressBook: emulation.address_book,
+    transactions: emulation.transactions,
+  });
+
+  const allActivities = parseActions(
+    network,
+    walletAddress,
+    emulation.actions,
+    emulation.address_book,
+    emulation.metadata,
+  ).activities;
+
+  const walletActivities: ApiActivity[] = [];
+  let totalRealFee = 0n;
+  let totalExcess = 0n;
+
+  for (let activity of allActivities) {
+    if (
+      activity.shouldHide || (
+        activity.kind === 'transaction'
+        && activity.fromAddress !== walletAddress
+        && activity.toAddress !== walletAddress
+      )) {
+      continue;
+    }
+
+    if (activity.shouldLoadDetails) {
+      const result = calculateActivityDetails(activity, parsedTrace);
+      activity = result.activity;
+      totalExcess += result.excess;
+    }
+
+    walletActivities.push(activity);
+    totalRealFee += getActivityRealFee(activity);
+  }
+
+  if (totalExcess) {
+    addExcessActivity(walletAddress, walletActivities, totalExcess);
+  }
+
+  return {
+    networkFee: parsedTrace.totalNetworkFee,
+    realFee: totalRealFee,
+    byTransactionIndex: parsedTrace.byTransactionIndex,
+    activities: walletActivities,
+  };
+}
+
+function addExcessActivity(walletAddress: string, activities: ApiActivity[], excess: bigint) {
+  const index = activities.findIndex((activity) => {
+    return activity.kind === 'transaction' && activity.type === 'excess';
+  });
+
+  if (index !== -1) {
+    const excessActivity = activities.splice(index, 1)[0] as ApiTransactionActivity;
+    activities.push({
+      ...excessActivity,
+      amount: excessActivity.amount + excess,
+    });
+  } else {
+    activities.push({
+      id: FAKE_TX_ID,
+      txId: FAKE_TX_ID,
+      timestamp: activities[activities.length - 1].timestamp,
+      kind: 'transaction',
+      amount: excess,
+      slug: TONCOIN.slug,
+      normalizedAddress: BURN_ADDRESS,
+      fromAddress: BURN_ADDRESS,
+      toAddress: walletAddress,
+      isIncoming: true,
+      fee: 0n,
+      type: 'excess',
+    });
+  }
+}
+
+function buildExternalBoc(wallet: TonWallet, body: Cell, isInitialized?: boolean) {
+  const externalMessage = external({
+    to: wallet.address,
+    init: !isInitialized ? {
+      code: wallet.init.code,
+      data: wallet.init.data,
+    } : undefined,
+    body,
+  });
+
+  return beginCell()
+    .store(storeMessage(externalMessage))
+    .endCell()
+    .toBoc()
+    .toString('base64');
+}

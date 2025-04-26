@@ -1,4 +1,5 @@
 import { MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT } from '../../../config';
+import { isKeyCountGreater } from '../../../util/isEmptyObject';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
@@ -38,10 +39,7 @@ addActionHandler('toggleNotificationAccount', (global, actions, { accountId }) =
 
   const isExists = enabledAccounts && enabledAccounts[accountId];
 
-  if (
-    !isExists
-    && Object.keys(enabledAccounts || {}).length >= MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT
-  ) {
+  if (!isExists && enabledAccounts && isKeyCountGreater(enabledAccounts, MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT - 1)) {
     return;
   }
 
@@ -67,7 +65,7 @@ addActionHandler('deleteAllNotificationAccounts', async (global, actions, props)
     'unsubscribeNotifications',
     {
       userToken,
-      addresses: selectNotificationTonAddressesSlow(global, accountIds),
+      addresses: Object.values(selectNotificationTonAddressesSlow(global, accountIds)),
     },
   );
 

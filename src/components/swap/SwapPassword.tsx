@@ -50,6 +50,7 @@ function SwapPassword({
         onSubmit={onSubmit}
         onCancel={onBack}
         onUpdate={clearSwapError}
+        skipAuthScreen
       >
         {children}
       </PasswordForm>

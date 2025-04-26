@@ -8,6 +8,7 @@ import { MintCardState } from '../../global/types';
 import { ANIMATED_STICKER_TINY_ICON_PX } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountState } from '../../global/selectors';
+import { getDoesUsePinPad } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -72,7 +73,7 @@ function MintCardModal({
   function renderPasswordForm(isActive: boolean) {
     return (
       <>
-        <ModalHeader title={lang('Enter Password')} onClose={closeMintCardModal} />
+        {!getDoesUsePinPad() && <ModalHeader title={lang('Enter Password')} onClose={closeMintCardModal} />}
         <PasswordForm
           isActive={isActive}
           error={error}
@@ -82,6 +83,7 @@ function MintCardModal({
           onSubmit={handlePasswordSubmit}
           onCancel={closeMintCardModal}
           onUpdate={clearMintCardError}
+          skipAuthScreen
         />
       </>
     );

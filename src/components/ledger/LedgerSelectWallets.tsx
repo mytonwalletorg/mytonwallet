@@ -74,7 +74,9 @@ function LedgerSelectWallets({
   });
 
   const alreadyConnectedList = useMemo(
-    () => Object.values(accounts ?? []).map(({ addressByChain: { ton: address } }) => address),
+    () => Object.values(accounts ?? [])
+      .map(({ addressByChain: { ton: address } }) => address)
+      .filter(Boolean),
     [accounts],
   );
 

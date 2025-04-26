@@ -6,7 +6,7 @@ import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { updateCurrentAccountSettings, updateMintCards } from '../../reducers';
-import { selectAccount } from '../../selectors';
+import { selectIsHardwareAccount } from '../../selectors';
 
 addActionHandler('openMintCardModal', (global): GlobalState => {
   return updateMintCards(global, { state: MintCardState.Initial });
@@ -17,8 +17,7 @@ addActionHandler('closeMintCardModal', (global): GlobalState => {
 });
 
 addActionHandler('startCardMinting', (global, action, { type }): GlobalState => {
-  const accountId = global.currentAccountId!;
-  const { isHardware } = selectAccount(global, accountId)!;
+  const isHardware = selectIsHardwareAccount(global);
 
   return updateMintCards(global, {
     type,

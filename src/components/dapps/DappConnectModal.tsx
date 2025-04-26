@@ -5,11 +5,17 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonConnectProof } from '../../api/tonConnect/types';
 import type { ApiDapp, ApiDappPermissions } from '../../api/types';
-import type { Account, AccountSettings, HardwareConnectState } from '../../global/types';
+import type {
+  Account, AccountSettings, AccountType, HardwareConnectState,
+} from '../../global/types';
 import { DappConnectState } from '../../global/types';
 
 import { selectNetworkAccounts } from '../../global/selectors';
+import { getMainAccountAddress } from '../../util/account';
+import { getHasInMemoryPassword, getInMemoryPassword } from '../../util/authApi/inMemoryPasswordStore';
 import buildClassName from '../../util/buildClassName';
+import { isKeyCountGreater } from '../../util/isEmptyObject';
+import isViewAccount from '../../util/isViewAccount';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 
 import useFlag from '../../hooks/useFlag';
@@ -84,15 +90,16 @@ function DappConnectModal({
     setSelectedAccount(currentAccountId);
   }, [currentAccountId]);
 
-  const shouldRenderAccounts = useMemo(() => {
-    return accounts && Object.keys(accounts).length > 1;
-  }, [accounts]);
+  const shouldRenderAccounts = accounts && isKeyCountGreater(accounts, 1);
   const { iconUrl, name, url } = dapp || {};
 
-  const handleSubmit = useLastCallback(() => {
+  const handleSubmit = useLastCallback(async () => {
     closeConfirm();
-    const { isHardware } = accounts![selectedAccount];
+    const isViewMode = isViewAccount(accounts![selectedAccount].type);
+    const isHardware = accounts![selectedAccount].type === 'hardware';
     const { isPasswordRequired, isAddressRequired } = requiredPermissions || {};
+
+    if (isViewMode) return;
 
     if (!requiredProof || (!isHardware && isAddressRequired && !isPasswordRequired)) {
       submitDappConnectRequestConfirm({
@@ -102,6 +109,11 @@ function DappConnectModal({
       cancelDappConnectRequestConfirm();
     } else if (isHardware) {
       setDappConnectRequestState({ state: DappConnectState.ConnectHardware });
+    } else if (getHasInMemoryPassword()) {
+      submitDappConnectRequestConfirm({
+        accountId: selectedAccount,
+        password: await getInMemoryPassword(),
+      });
     } else {
       // The confirmation window must be closed before the password screen is displayed
       requestAnimationFrame(() => {
@@ -127,9 +139,15 @@ function DappConnectModal({
     });
   });
 
-  function renderAccount(accountId: string, address: string, title?: string, isHardware?: boolean) {
-    const isActive = accountId === selectedAccount;
-    const onClick = isActive || isLoading ? undefined : () => setSelectedAccount(accountId);
+  function renderAccount(
+    accountId: string,
+    addressByChain: Account['addressByChain'],
+    accountType: AccountType,
+    title?: string,
+  ) {
+    const hasTonWallet = Boolean(addressByChain.ton);
+    const onClick = !hasTonWallet || isViewAccount(accountType) ? undefined : () => setSelectedAccount(accountId);
+    const address = getMainAccountAddress(addressByChain) ?? '';
     const { cardBackgroundNft } = settingsByAccountId?.[accountId] || {};
 
     return (
@@ -139,7 +157,7 @@ function DappConnectModal({
         address={address}
         title={title}
         ariaLabel={lang('Switch Account')}
-        isHardware={isHardware}
+        accountType={accountType}
         isActive={accountId === selectedAccount}
         isLoading={isLoading}
         // eslint-disable-next-line react/jsx-no-bind
@@ -156,8 +174,8 @@ function DappConnectModal({
         labelText={lang('Select wallet to use on this dapp')}
       >
         {iterableAccounts.map(
-          ([accountId, { title, addressByChain, isHardware }]) => {
-            return renderAccount(accountId, addressByChain.ton, title, isHardware);
+          ([accountId, { title, addressByChain, type }]) => {
+            return renderAccount(accountId, addressByChain, type, title);
           },
         )}
       </AccountButtonWrapper>
@@ -165,55 +183,52 @@ function DappConnectModal({
   }
 
   function renderDappInfo() {
+    const isViewMode = Boolean(selectedAccount && isViewAccount(accounts?.[selectedAccount].type));
+
     return (
-      <>
-        <ModalHeader title={lang('Connect Dapp')} onClose={cancelDappConnectRequestConfirm} />
+      <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
+        <DappInfo
+          iconUrl={iconUrl}
+          name={name}
+          url={url}
+          className={buildClassName(styles.dapp_first, styles.dapp_push)}
+        />
+        {shouldRenderAccounts && renderAccounts()}
 
-        <div className={modalStyles.transitionContent}>
-          <DappInfo
-            iconUrl={iconUrl}
-            name={name}
-            url={url}
-            className={buildClassName(styles.dapp_first, styles.dapp_push)}
-          />
-          {shouldRenderAccounts && renderAccounts()}
-
-          <div className={styles.footer}>
-            <Button
-              isPrimary
-              onClick={openConfirm}
-            >
-              {lang('Connect')}
-            </Button>
-          </div>
+        <div className={styles.footer}>
+          <Button
+            isPrimary
+            isDisabled={isViewMode}
+            onClick={openConfirm}
+          >
+            {lang('Connect')}
+          </Button>
         </div>
-      </>
+      </div>
     );
   }
 
   function renderWaitForConnection() {
     return (
-      <>
-        <ModalHeader title={lang('Connect Dapp')} onClose={cancelDappConnectRequestConfirm} />
-        <div className={modalStyles.transitionContent}>
-          <div className={buildClassName(styles.dappInfoSkeleton, styles.dapp_first)}>
-            <div className={styles.dappInfoIconSkeleton} />
-            <div className={styles.dappInfoTextSkeleton}>
-              <div className={styles.nameSkeleton} />
-              <div className={styles.descSkeleton} />
-            </div>
-          </div>
-          <div className={styles.accountWrapperSkeleton}>
-            {shouldRenderAccounts && renderAccounts()}
+      <div className={buildClassName(modalStyles.transitionContent, styles.skeletonBackground)}>
+        <div className={buildClassName(styles.dappInfoSkeleton, styles.dapp_first)}>
+          <div className={styles.dappInfoIconSkeleton} />
+          <div className={styles.dappInfoTextSkeleton}>
+            <div className={styles.nameSkeleton} />
+            <div className={styles.descSkeleton} />
           </div>
         </div>
-      </>
+        <div className={styles.accountWrapperSkeleton}>
+          {shouldRenderAccounts && renderAccounts()}
+        </div>
+      </div>
     );
   }
 
   function renderDappInfoWithSkeleton() {
     return (
       <Transition name="semiFade" activeKey={isLoading ? 0 : 1} slideClassName={styles.skeletonTransitionWrapper}>
+        <ModalHeader title={lang('Connect Dapp')} onClose={cancelDappConnectRequestConfirm} />
         {isLoading ? renderWaitForConnection() : renderDappInfo()}
       </Transition>
     );

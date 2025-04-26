@@ -12,7 +12,11 @@ import {
   IS_CORE_WALLET,
   MTW_CARDS_WEBSITE,
 } from '../../config';
-import { selectCurrentAccountSettings, selectCurrentAccountState } from '../../global/selectors';
+import {
+  selectCurrentAccountSettings,
+  selectCurrentAccountState,
+  selectIsCurrentAccountViewMode,
+} from '../../global/selectors';
 import { ACCENT_COLORS } from '../../util/accentColor/constants';
 import buildClassName from '../../util/buildClassName';
 import getAccentColorsFromNfts from '../../util/getAccentColorsFromNfts';
@@ -50,6 +54,7 @@ interface OwnProps {
 }
 
 interface StateProps {
+  isViewMode: boolean;
   accentColorIndex?: number;
   nftsByAddress?: Record<string, ApiNft>;
   nftAddresses?: string[];
@@ -80,6 +85,7 @@ function SettingsAppearance({
   nftAddresses,
   nftsByAddress,
   isInsideModal,
+  isViewMode,
   isTrayIconEnabled,
   isMintingCardsAvailable,
   isNftBuyingDisabled,
@@ -165,7 +171,7 @@ function SettingsAppearance({
   }
 
   const handleUnlockNewPalettesClick = useLastCallback(() => {
-    if (isMintingCardsAvailable) {
+    if (!isViewMode && isMintingCardsAvailable) {
       openMintCardModal();
     } else {
       void openUrl(MTW_CARDS_WEBSITE);
@@ -302,6 +308,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { config: { cardsInfo } = {} } = selectCurrentAccountState(global) || {};
 
   return {
+    isViewMode: selectIsCurrentAccountViewMode(global),
     accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
     nftAddresses,
     nftsByAddress,

@@ -24,11 +24,6 @@ const useInfiniteScroll = <ListId extends string | number>(
   isActive?: boolean,
   withResetOnInactive = false,
 ): [ListId[]?, GetMore?, ResetScroll?] => {
-  const requestParamsRef = useRef<{
-    direction?: LoadMoreDirection;
-    offsetId?: ListId;
-  }>({});
-
   const currentStateRef = useRef<{ viewportIds: ListId[]; isOnTop: boolean } | undefined>();
   if (!currentStateRef.current && listIds && !isDisabled) {
     const {
@@ -39,10 +34,6 @@ const useInfiniteScroll = <ListId extends string | number>(
   }
 
   const forceUpdate = useForceUpdate();
-
-  if (isDisabled) {
-    requestParamsRef.current = {};
-  }
 
   const prevSlug = usePrevious2(slug);
 
@@ -55,7 +46,6 @@ const useInfiniteScroll = <ListId extends string | number>(
     } = getViewportSlice(listIds, LoadMoreDirection.Forwards, listSlice, listIds[0]);
 
     currentStateRef.current = { viewportIds: newViewportIds, isOnTop: newIsOnTop };
-    requestParamsRef.current = {};
   });
 
   useSyncEffect(() => {
@@ -72,12 +62,8 @@ const useInfiniteScroll = <ListId extends string | number>(
       listIds,
       oldViewportIds,
       oldIsOnTop,
-      requestParamsRef.current.direction,
-      requestParamsRef.current.offsetId,
       listSlice,
     );
-
-    requestParamsRef.current = {};
 
     if (!oldViewportIds || !areSortedArraysEqual(oldViewportIds, newViewportIds)) {
       currentStateRef.current = { viewportIds: newViewportIds, isOnTop: newIsOnTop };
@@ -96,8 +82,6 @@ const useInfiniteScroll = <ListId extends string | number>(
     const offsetId = viewportIds
       ? direction === LoadMoreDirection.Backwards ? viewportIds[viewportIds.length - 1] : viewportIds[0]
       : undefined;
-
-    requestParamsRef.current = { direction, offsetId };
 
     if (!listIds) {
       if (loadMoreBackwards) {
@@ -163,14 +147,8 @@ function getViewportSliceAfterListChange<ListId extends string | number>(
   newListIds: ListId[],
   oldViewportIds: ListId[] | undefined,
   oldIsOnTop: boolean | undefined,
-  requestedDirection: LoadMoreDirection | undefined,
-  requestedOffsetId: ListId | undefined,
   sliceLength: number,
 ) {
-  if (requestedDirection !== undefined) {
-    return getViewportSlice(newListIds, requestedDirection, sliceLength, requestedOffsetId);
-  }
-
   if (oldIsOnTop) {
     // When the offsetId is on the top, the viewport slice must include at least as many items as it already has.
     // Otherwise, the ids, that the user is seeing, can disappear (that causes the list to scroll higher instantly).

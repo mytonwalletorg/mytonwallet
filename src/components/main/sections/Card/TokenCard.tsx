@@ -43,7 +43,7 @@ interface OwnProps {
   token: UserToken;
   classNames: string;
   isUpdating?: boolean;
-  onYieldClick: (stakingId?: string) => void;
+  onYieldClick?: (stakingId?: string) => void;
   onClose: NoneToVoidFunction;
 }
 
@@ -240,7 +240,10 @@ function TokenCard({
           <span className={styles.tokenTitle}>
             <span className={styles.tokenName}>{name}</span>
             {yieldType && (
-              <span className={styles.apy} onClick={() => onYieldClick(stakingId)}>
+              <span
+                className={buildClassName(styles.apy, onYieldClick && styles.interactive)}
+                onClick={onYieldClick ? () => onYieldClick(stakingId) : undefined}
+              >
                 {yieldType} {annualYield}%
               </span>
             )}

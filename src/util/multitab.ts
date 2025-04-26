@@ -71,7 +71,13 @@ export function initMultitab({ noPubGlobal }: { noPubGlobal?: boolean } = {}) {
 function handleGlobalChange(global: GlobalState) {
   if (global === currentGlobal) return;
 
-  if (isBackgroundModeActive()) {
+  // One of the goals of this check is preventing the Delegated Bottom Sheet global state initialization (performed by
+  // src/global/init.ts) from propagating to the main WebView. Normally this is prevented by `isBackgroundModeActive()`
+  // (the Sheet should be out of focus during the initialization), but we suspect that this approach is not fully
+  // reliable, because the focus may be in the Sheet during the initialization. So an extra `isInited` check is used -
+  // `isInited: false` appears only in the initial Teactn global state (see src/lib/teact/teactn.tsx) and we expect the
+  // first global change to be the initialization.
+  if (isBackgroundModeActive() || (currentGlobal as AnyLiteral).isInited === false) {
     currentGlobal = global;
     return;
   }

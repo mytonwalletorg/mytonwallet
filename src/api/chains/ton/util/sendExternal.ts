@@ -1,4 +1,4 @@
-import type { Cell } from '@ton/core';
+import type { Cell, Message } from '@ton/core';
 import { beginCell, external, storeMessage } from '@ton/core';
 
 import type { GaslessType } from '../transfer';
@@ -40,6 +40,7 @@ export async function sendExternal(
   const isW5Gasless = gaslessType === 'w5';
 
   const msgHash = cell.hash().toString('base64');
+  const msgHashNormalized = getExternalMsgHashNormalized(ext);
   const bodyMessageHash = message.hash().toString('base64');
   const boc = cell.toBoc().toString('base64');
 
@@ -57,6 +58,21 @@ export async function sendExternal(
   return {
     boc,
     msgHash: isW5Gasless ? bodyMessageHash : msgHash,
+    msgHashNormalized,
     paymentLink,
   };
+}
+
+function getExternalMsgHashNormalized(message: Message): string {
+  const cell = beginCell()
+    .storeUint(2, 2) // Message type: external-in
+    .storeUint(0, 2) // No sender address for external messages
+    .storeAddress(message.info.dest) // Store recipient address
+    .storeUint(0, 4) // Import fee is always zero for external messages
+    .storeBit(false) // No StateInit in this message
+    .storeBit(true) // Store the body as a reference
+    .storeRef(message.body) // Store the message body
+    .endCell();
+
+  return cell.hash().toString('base64');
 }

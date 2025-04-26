@@ -94,9 +94,6 @@ Is there a community?: Is there a community?
 $about_wallet_community: Sure, welcome to our %community_link%.
 $about_community_link_text: "**Telegram channel**"
 Currency History: Currency History
-$add_account_description1: |
-  **%app_name%** allows you to seamlessly
-  switch between **multiple accounts**.
 Enter Password: Enter Password
 Send: Send
 Add Wallet: Add Wallet
@@ -245,9 +242,10 @@ $unstake_insufficient_balance: You need to have %balance% on your main balance t
 at %annual_yield%: at %annual_yield%
 Est. %annual_yield%: Est. %annual_yield%
 Staked: Staked
-Unstake Requested: Unstake Requested
+$stake_action: Stake
 Unstaked: Unstaked
 Unstaking: Unstaking
+$unstake_action: Unstake
 The network fee has slightly changed, try sending again.: The network fee has slightly changed, try sending again.
 Transfer was unsuccessful. Try again later.: Transfer was unsuccessful. Try again later.
 Unstaking was unsuccessful. Try again later.: Unstaking was unsuccessful. Try again later.
@@ -259,10 +257,7 @@ Unexpected error: Unexpected error
 Unexpected Error: Unexpected Error
 Earn: Earn
 Earning: Earning
-InvalidAmount: Invalid amount
-InvalidToAddress: Invalid recipient address
 Unexpected: Unexpected error
-DomainNotResolved: Domain Not Resolved
 You can save this address for quick access while sending.: You can save this address for quick access while sending.
 Stake Again: Stake Again
 Earned: Earned
@@ -273,7 +268,9 @@ Dapp Permissions: Dapp Permissions
 $dapp_can_view_balance: "%dappname% will be able to view wallet address and balance."
 Send Transaction: Send Transaction
 Payload: Payload
-$many_transactions: "%1$d Transactions"
+$many_transactions:
+  oneValue: "%1$d Transaction"
+  otherValue: "%1$d Transactions"
 Total Amount: Total Amount
 $unstaking_short: Unstaking
 Handle ton:// links: Handle ton:// links
@@ -337,7 +334,7 @@ Message is encrypted.: Message is encrypted.
 $dapp_ledger_warning1: You are about to send a multi-way transaction using your **Ledger** wallet. You will need to sign each underlying transaction **one by one manually**.
 $dapp_ledger_warning2: Please take your time and do not interrupt the process.
 Agree: Agree
-SwapTitle: Swap
+$swap_action: Swap
 Swap: Swap
 You sell: You sell
 You buy: You buy
@@ -398,6 +395,7 @@ Insufficient liquidity: Insufficient liquidity
 This address is new and never received transfers before.: This address is new and never received transfers before.
 Create Backup: Create Backup
 Sending: Sending
+$send_action: Send
 Failed: Failed
 Refunded: Refunded
 On Hold: On Hold
@@ -660,9 +658,9 @@ Confirm Sending: Confirm Sending
 Confirm Burning: Confirm Burning
 Confirm Passcode: Confirm Passcode
 Enter your code: Enter your code
-$hardware_payload_warning: A third-party service is requesting access to your wallet — this could lead to the loss of funds. Cancel the operation if you are not sure about the reliability of this service.
+$hardware_payload_warning: "**A third-party service is requesting access to your wallet.** This could lead to the loss of funds. Cancel the operation if you are not sure about the reliability of this service."
 $hardware_blind_sign_not_enabled: |
-  A third-party service is requesting access to your wallet — this could lead to the loss of funds. Cancel the operation if you are not sure about the reliability of this service.
+  **A third-party service is requesting access to your wallet.** This could lead to the loss of funds. Cancel the operation if you are not sure about the reliability of this service.
 
   To continue, enable the "Blind Signing" option in the settings of the TON App on Ledger.
 $hardware_blind_sign_not_enabled_internal: To continue, enable the "Blind Signing" option in the settings of the TON App on Ledger.
@@ -740,51 +738,67 @@ Help Center: Help Center
 MyTonWallet Tips: MyTonWallet Tips
 $auth_import_24_mnemonic_description: |
   You can restore access to your wallet by entering the **24 secret words** that you wrote down when creating the wallet.
-$returned_value: ~ %value% will be returned
 Open %nft_marketplace%: Open %nft_marketplace%
 Link was copied!: Link was copied!
 Share Link: Share Link
-Dapp Fee Details: Dapp Fee Details
 $dapp_return_details: |
   %fee_amount% will be immediately debited from your wallet to pay the fee.
 
   %received_amount% will be returned to you within a few minutes.
-$dapp_return_disclaimer: The displayed returned amount is not guaranteed and may be manipulated by malicious dapps. Cancel the operation if you are not sure about the reliability of this service.
 Additional Amount Sent: Additional Amount Sent
 Show Sensitive Data: Show Sensitive Data
 Hide Sensitive Data: Hide Sensitive Data
 Copy Address: Copy Address
 Copy Transaction ID: Copy Transaction ID
 Requesting Unstake: Requesting Unstake
+Unstake Requested: Unstake Requested
+$request_unstake_action: Request Unstake
 Calling Contract: Calling Contract
 Contract Called: Contract Called
+$call_contract_action: Call Contract
 Deploying Contract: Deploying Contract
 Contract Deployed: Contract Deployed
+$deploy_contract_action: Deploy Contract
 Minting: Minting
 Minted: Minted
+$mint_action: Mint
 Burning: Burning
 Burned: Burned
+$burn_action: Burn
 Address Updated: Address Updated
 Updating Address: Updating Address
+$update_address_action: Update Address
 Site Updated: Site Updated
 Updating Site: Updating Site
+$update_site_action: Update Site
 Subdomains Updated: Subdomains Updated
 Updating Subdomains: Updating Subdomains
+$update_subdomains_action: Update Subdomains
 Storage Updated: Storage Updated
 Updating Storage: Updating Storage
+$update_storage_action: Update Storage
 Domain Record Deleted: Domain Record Deleted
 Deleting Domain Record: Deleting Domain Record
+$delete_domain_record_action: Delete Domain Record
 Renewing Domain: Renewing Domain
 Domain Renewed: Domain Renewed
+$renew_domain_action: Renew Domain
 Providing Liquidity: Providing Liquidity
 Liquidity Provided: Liquidity Provided
+$provide_liquidity_action: Provide Liquidity
 Withdrawing Liquidity: Withdrawing Liquidity
 Liquidity Withdrawn: Liquidity Withdrawn
+$withdraw_liquidity_action: Withdraw Liquidity
 Bounced: Bounced
 Bouncing: Bouncing
+$bounce_action: Bounce
 NFT Auction Bid: NFT Auction Bid
 Bidding at NFT Auction: Bidding at NFT Auction
+NFT Bought: NFT Bought
+Buying NFT: Buying NFT
+$buy_nft_action: Buy NFT
 Receiving: Receiving
+$receive_action: Receive
 Change Palette: Change Palette
 Palette: Palette
 Unlock New Palettes: Unlock New Palettes
@@ -802,4 +816,19 @@ Upgrade for %currency% %amount%: Upgrade for %currency% %amount%
 "%amount% left": "%amount% left"
 "%amount% sold": "%amount% sold"
 This card has been sold out: This card has been sold out
+Import Existing Wallet: Import Existing Wallet
+View Any Address: View Any Address
+12/24 Secret Words: 12/24 Secret Words
+24 Secret Words: 24 Secret Words
+Wallet Address or Domain: Wallet Address or Domain
+$import_view_account_note: Enter **any address** on TON or TRON network to open it in **View Mode**.
+$view_mode: View
+Import Wallet: Import Wallet
 Please top up your TON balance.: Please top up your TON balance.
+Remember Passcode: Remember Passcode
+Remember Password: Remember Password
+Not available with biometrics.: Not available with biometrics.
+App will not ask for signature for %1$d minutes after last entry.: The app will not ask for a signature for %1$d minutes after the last entry.
+Remember for %1$d minutes: Remember for %1$d minutes
+Preview: Preview
+$preview_not_guaranteed: Preview result **is not guaranteed **and **can be forged **by the service.

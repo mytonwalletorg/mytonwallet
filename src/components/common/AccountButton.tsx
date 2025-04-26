@@ -1,6 +1,7 @@
 import React, { memo } from '../../lib/teact/teact';
 
 import type { ApiNft } from '../../api/types';
+import type { AccountType } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
 import buildStyle from '../../util/buildStyle';
@@ -8,7 +9,7 @@ import { shortenAddress } from '../../util/shortenAddress';
 
 import useCardCustomization from '../../hooks/useCardCustomization';
 
-import { ACCOUNT_ADDRESS_SHIFT, HARDWARE_ACCOUNT_ADDRESS_SHIFT } from '../main/sections/Card/AccountButton';
+import { ACCOUNT_ADDRESS_SHIFT, ACCOUNT_WITH_ICON_ADDRESS_SHIFT } from '../main/sections/Card/AccountButton';
 
 import styles from './AccountButton.module.scss';
 
@@ -16,7 +17,7 @@ interface StateProps {
   accountId: string;
   address: string;
   title?: string;
-  isHardware?: boolean;
+  accountType: AccountType;
   isActive?: boolean;
   isLoading?: boolean;
   ariaLabel?: string;
@@ -30,7 +31,7 @@ function AccountButton({
   accountId,
   address,
   title,
-  isHardware,
+  accountType,
   ariaLabel,
   isActive,
   isLoading,
@@ -45,6 +46,8 @@ function AccountButton({
     classNames: mtwCardClassNames,
   } = useCardCustomization(cardBackgroundNft);
 
+  const isHardware = accountType === 'hardware';
+  const isViewMode = accountType === 'view';
   const fullClassName = buildClassName(
     className,
     styles.account,
@@ -52,6 +55,7 @@ function AccountButton({
     mtwCardClassNames,
     isActive && !withCheckbox && styles.account_current,
     isLoading && styles.account_disabled,
+    !onClick && styles.account_inactive,
   );
 
   return (
@@ -64,11 +68,12 @@ function AccountButton({
     >
       {title && <span className={buildClassName(styles.accountName, withTextGradient && 'gradientText')}>{title}</span>}
       <div className={buildClassName(styles.accountFooter, withTextGradient && 'gradientText')}>
-        {isHardware && <i className={buildClassName('icon-ledger', isHardware && styles.iconLedger)} aria-hidden />}
+        {isViewMode && <i className={buildClassName('icon-eye-filled', styles.icon)} aria-hidden />}
+        {isHardware && <i className={buildClassName('icon-ledger', styles.icon)} aria-hidden />}
         <span className={styles.accountAddress}>
           {shortenAddress(
             address,
-            isHardware ? HARDWARE_ACCOUNT_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
+            isHardware ? ACCOUNT_WITH_ICON_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
             ACCOUNT_ADDRESS_SHIFT,
           )}
         </span>

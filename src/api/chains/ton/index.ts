@@ -6,6 +6,7 @@ export {
   getWalletFromBip39Mnemonic,
   getWalletFromMnemonic,
   getWalletFromPrivateKey,
+  getWalletFromAddress,
   importNewWalletVersion,
 } from './auth';
 export {

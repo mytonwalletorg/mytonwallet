@@ -189,7 +189,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   }
 
   // Initializing the v1
-  if (!cached.stateVersion && cached.accounts && Object.keys(cached.accounts).length > 0) {
+  if (!cached.stateVersion && cached.accounts && !isEmptyObject(cached.accounts)) {
     cached.stateVersion = 1;
   }
 
@@ -472,24 +472,32 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 32;
   }
 
-  if (cached.stateVersion === 32) {
-    clearActivities();
-    cached.stateVersion = 33;
-  }
-
-  if (cached.stateVersion === 33) {
-    clearActivities();
-    cached.stateVersion = 34;
-  }
-
-  if (cached.stateVersion === 34) {
-    clearActivities();
-    cached.stateVersion = 35;
-  }
-
-  if (cached.stateVersion === 35) {
+  if (cached.stateVersion >= 32 && cached.stateVersion <= 35) {
     clearActivities();
     cached.stateVersion = 36;
+  }
+
+  if (cached.stateVersion === 36) {
+    for (const account of Object.values(cached.accounts?.byId ?? {})) {
+      account.type = (account as { isHardware?: boolean }).isHardware ? 'hardware' : 'mnemonic';
+      delete (account as { isHardware?: boolean }).isHardware;
+    }
+    cached.stateVersion = 37;
+  }
+
+  if (cached.stateVersion === 37) {
+    for (const token of Object.values(cached.tokenInfo.bySlug) as any[]) {
+      if (!token.price) token.price = 0;
+      if (!token.percentChange24h) token.percentChange24h = 0;
+      if (!token.priceUsd) token.priceUsd = 0;
+      if (token.quote) delete token.quote;
+    }
+    cached.stateVersion = 38;
+  }
+
+  if (cached.stateVersion === 38) {
+    clearActivities();
+    cached.stateVersion = 39;
   }
 
   // When adding migration here, increase `STATE_VERSION`

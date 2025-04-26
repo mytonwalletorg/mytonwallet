@@ -394,7 +394,7 @@ addActionHandler('submitSwapCex', async (global, actions, { password }) => {
     ? supportedChains.includes(tokenIn.chain as ApiChain)
     : tokenIn.chain === 'ton';
 
-  const tonAddress = account!.addressByChain.ton;
+  const tonAddress = account!.addressByChain.ton!;
   const toAddress = account?.addressByChain[tokenOut.chain as ApiChain] ?? global.currentSwap.toAddress!;
 
   const swapBuildRequest = buildSwapBuildRequest(global);
@@ -594,7 +594,7 @@ async function estimateDexSwap(global: GlobalState): Promise<SwapEstimateResult>
   const to = tokenOut.slug === TONCOIN.slug ? tokenOut.symbol : tokenOut.tokenAddress!;
   const { fromAmount, isFromAmountMax } = processNativeMaxSwap(global);
   const toAmount = global.currentSwap.amountOut ?? '0';
-  const fromAddress = selectCurrentAccount(global)!.addressByChain.ton;
+  const fromAddress = selectCurrentAccount(global)!.addressByChain.ton!;
 
   const estimateAmount = global.currentSwap.inputSource === SwapInputSource.In ? { fromAmount } : { toAmount };
 

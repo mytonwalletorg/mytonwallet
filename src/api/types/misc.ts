@@ -6,6 +6,7 @@ import type { ApiSseOptions } from './storage';
 export type ApiChain = 'ton' | 'tron';
 export type ApiNetwork = 'mainnet' | 'testnet';
 export type ApiLedgerDriver = 'HID' | 'USB';
+export type ApiTokenType = 'lp_token';
 
 export interface AccountIdParsed {
   id: number;
@@ -26,6 +27,7 @@ export interface ApiToken {
   slug: string;
   decimals: number;
   chain: ApiChain;
+  type?: ApiTokenType;
   tokenAddress?: string;
   image?: string;
   isPopular?: boolean;
@@ -37,18 +39,16 @@ export interface ApiToken {
   isTiny?: boolean;
   customPayloadApiUrl?: string;
   codeHash?: string;
+  /* Means the token is fetched from the backend by default and already includes price
+  and other details (`ApiTokenDetails`), so no separate requests are needed. */
+  isFromBackend?: boolean;
 }
 
-export interface ApiTokenWithPrice extends ApiToken {
-  quote: ApiTokenPrice;
-}
-
-export interface ApiTokenPrice {
-  slug: string;
+export type ApiTokenWithPrice = ApiToken & {
   price: number;
   priceUsd: number;
   percentChange24h: number;
-}
+};
 
 export type ApiKnownAddresses = Record<string, ApiAddressInfo>;
 
@@ -61,7 +61,7 @@ export interface ApiAddressInfo {
 export type ApiActivityTimestamps = Record<string, number | undefined>;
 export type ApiTransactionType = 'stake' | 'unstake' | 'unstakeRequest'
 | 'callContract' | 'excess' | 'contractDeploy' | 'bounced'
-| 'mint' | 'burn' | 'auctionBid'
+| 'mint' | 'burn' | 'auctionBid' | 'nftPurchase'
 | 'dnsChangeAddress' | 'dnsChangeSite' | 'dnsChangeSubdomains' | 'dnsChangeStorage' | 'dnsDelete' | 'dnsRenew'
 | 'liquidityDeposit' | 'liquidityWithdraw'
 | undefined;
@@ -75,7 +75,10 @@ export interface ApiTransaction {
   toAddress: string;
   comment?: string;
   encryptedComment?: string;
-  /** The fee to show in the UI (not the same as the network fee) */
+  /**
+   * The fee to show in the UI (not the same as the network fee). When not 0, should be shown even for incoming
+   * transactions. It means that there was a hidden outgoing transaction with the given fee.
+   */
   fee: bigint;
   slug: string;
   isIncoming: boolean;
@@ -217,35 +220,22 @@ export interface ApiDappTransfer extends ApiTransferToSign {
   normalizedAddress: string;
   /** The transfer address to show in the UI */
   displayedToAddress: string;
-  /**
-   * The transaction TON amount that should be shown in the UI.
-   * It may be less than `amount` because the difference is added to `fullFee`.
-   */
-  displayedAmount: bigint;
-  /** The transaction full fee to show in the UI. Includes the network fee and the TON amount used as a fee. */
-  fullFee: bigint;
-  /**
-   * The TON amount that will be returned back as a result of the transaction.
-   * - If `fullFee` ≥ `excess`, the UI should show the difference as the real fee;
-   * - Otherwise, the UI should show the difference as the returned amount.
-   */
-  received: bigint;
+  networkFee: bigint;
 }
 
 export interface ApiSignedTransfer {
   base64: string;
   seqno: number;
   /** Will be used to create a local activity in the global state after the transfer is sent */
-  localActivity: Omit<ApiLocalTransactionParams, 'externalMsgHash'>;
+  localActivity: Omit<ApiLocalTransactionParams, 'externalMsgHash' | 'txId'>;
 }
 
 /**
  * The `fee` field should contain the final (real) fee, because we want to show the real fee in local transactions
  */
 export type ApiLocalTransactionParams = Omit<
-ApiTransactionActivity, 'id' | 'txId' | 'timestamp' | 'isIncoming' | 'normalizedAddress' | 'kind' | 'shouldLoadDetails'
+ApiTransactionActivity, 'id' | 'timestamp' | 'isIncoming' | 'normalizedAddress' | 'kind' | 'shouldLoadDetails'
 > & {
-  txId?: string;
   normalizedAddress?: string;
 };
 
@@ -263,11 +253,14 @@ export type ApiBalanceBySlug = Record<string, bigint>;
 
 export type ApiWalletInfo = {
   address: string;
-  version: ApiTonWalletVersion;
+  /** Undefined when the address is not initialized or not a wallet */
+  version?: ApiTonWalletVersion;
   balance: bigint;
   isInitialized: boolean;
   lastTxId?: string;
 };
+
+export type ApiWalletWithVersionInfo = ApiWalletInfo & Required<Pick<ApiWalletInfo, 'version'>>;
 
 // Country codes from ISO-3166-1 spec
 export type ApiCountryCode = 'AF' | 'AX' | 'AL' | 'DZ' | 'AS' | 'AD' | 'AO' | 'AI' | 'AQ' | 'AG' | 'AR'
@@ -288,3 +281,6 @@ export type ApiCountryCode = 'AF' | 'AX' | 'AL' | 'DZ' | 'AS' | 'AD' | 'AO' | 'A
 | 'GS' | 'SS' | 'ES' | 'LK' | 'SD' | 'SR' | 'SJ' | 'SE' | 'CH' | 'SY' | 'TW' | 'TJ' | 'TZ' | 'TH'
 | 'TL' | 'TG' | 'TK' | 'TO' | 'TT' | 'TN' | 'TR' | 'TM' | 'TC' | 'TV' | 'UG' | 'UA' | 'AE' | 'GB'
 | 'US' | 'UM' | 'UY' | 'UZ' | 'VU' | 'VE' | 'VN' | 'VG' | 'VI' | 'WF' | 'EH' | 'YE' | 'ZM' | 'ZW';
+
+/** Each string value can be either an address or a domain name */
+export type ApiImportAddressByChain = { [K in ApiChain]?: string };

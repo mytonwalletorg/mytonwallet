@@ -4,7 +4,11 @@ import { withGlobal } from '../../../../global';
 import type { ApiNft } from '../../../../api/types';
 import type { IAnchorPosition } from '../../../../global/types';
 
-import { selectCurrentAccountSettings, selectCurrentAccountState } from '../../../../global/selectors';
+import {
+  selectCurrentAccountSettings,
+  selectCurrentAccountState,
+  selectIsCurrentAccountViewMode,
+} from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { stopEvent } from '../../../../util/domEvents';
 
@@ -27,6 +31,7 @@ interface OwnProps {
 }
 
 interface StateProps {
+  isViewMode: boolean;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
   cardBackgroundNft?: ApiNft;
@@ -34,14 +39,15 @@ interface StateProps {
 }
 
 function NftMenu({
+  isViewMode,
   nft,
   menuPosition,
-  onOpen,
-  onClose,
   blacklistedNftAddresses,
   whitelistedNftAddresses,
   cardBackgroundNft,
   accentColorNft,
+  onOpen,
+  onClose,
 }: OwnProps & StateProps) {
   const isNftBlacklisted = useMemo(() => {
     return blacklistedNftAddresses?.includes(nft.address);
@@ -57,7 +63,7 @@ function NftMenu({
   );
 
   const { menuItems, handleMenuItemSelect } = useNftMenu({
-    nft, isNftBlacklisted, isNftWhitelisted, isNftInstalled, isNftAccentColorInstalled,
+    nft, isViewMode, isNftBlacklisted, isNftWhitelisted, isNftInstalled, isNftAccentColorInstalled,
   });
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLButtonElement>(null);
@@ -127,6 +133,10 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const { cardBackgroundNft, accentColorNft } = selectCurrentAccountSettings(global) || {};
 
   return {
-    blacklistedNftAddresses, whitelistedNftAddresses, cardBackgroundNft, accentColorNft,
+    blacklistedNftAddresses,
+    whitelistedNftAddresses,
+    cardBackgroundNft,
+    accentColorNft,
+    isViewMode: selectIsCurrentAccountViewMode(global),
   };
 })(NftMenu));

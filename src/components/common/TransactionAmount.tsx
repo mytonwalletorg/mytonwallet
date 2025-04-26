@@ -32,7 +32,7 @@ function TransactionAmount({
   isSensitiveDataHidden,
 }: OwnProps) {
   const amountString = toDecimal(noSign ? bigintAbs(amount) : amount, decimals);
-  const [wholePart, fractionPart] = formatCurrencyExtended(amountString, '', noSign, decimals).split('.');
+  const [wholePart, fractionPart] = formatCurrencyExtended(amountString, '', noSign, decimals, !isIncoming).split('.');
   const withStatus = Boolean(status);
 
   return (

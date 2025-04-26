@@ -123,7 +123,7 @@ function StakingClaimModal({
           withChainIcon={isMultichainAccount}
           text={content}
           className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
-          secondText={shortenAddress(address!)}
+          secondText={address && shortenAddress(address)}
         />
         <div className={feeClassName}>
           {token && renderText(lang('$fee_value_bold', {
@@ -177,6 +177,7 @@ function StakingClaimModal({
             onSubmit={handleSubmit}
             onCancel={cancelStakingClaim}
             onUpdate={clearStakingError}
+            skipAuthScreen
           >
             {renderInfo()}
           </PasswordForm>

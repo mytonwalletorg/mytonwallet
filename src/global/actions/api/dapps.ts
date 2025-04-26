@@ -362,6 +362,7 @@ addActionHandler('apiUpdateDappConnect', async (global, actions, {
 addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
   promiseId,
   transactions,
+  emulation,
   accountId,
   dapp,
   vestingAddress,
@@ -400,6 +401,7 @@ addActionHandler('apiUpdateDappSendTransaction', async (global, actions, {
     state,
     promiseId,
     transactions,
+    emulation,
     dapp,
     vestingAddress,
   });

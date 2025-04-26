@@ -1,6 +1,6 @@
 import { beginCell, Cell, storeStateInit } from '@ton/core';
 
-import type { ApiNetwork, ApiTonWallet, ApiWalletInfo } from '../../types';
+import type { ApiNetwork, ApiTonWallet, ApiWalletWithVersionInfo } from '../../types';
 import type { ApiTonWalletVersion, ContractInfo } from './types';
 import type { TonWallet } from './util/tonCore';
 
@@ -173,7 +173,7 @@ export async function getWalletVersionInfos(
   network: ApiNetwork,
   publicKey: Uint8Array,
   versions: ApiTonWalletVersion[] = ALL_WALLET_VERSIONS,
-): Promise<(ApiWalletInfo & { wallet: TonWallet })[]> {
+): Promise<(ApiWalletWithVersionInfo & { wallet: TonWallet })[]> {
   const items = versions.map((version) => {
     const wallet = buildWallet(network, publicKey, version);
     const address = toBase64Address(wallet.address, false, network);
@@ -231,9 +231,12 @@ export function pickWalletByAddress(network: ApiNetwork, publicKey: Uint8Array, 
 }
 
 export async function getTonWallet(accountId: string, tonWallet?: ApiTonWallet) {
-  const { network } = parseAccountId(accountId);
   const { publicKey, version } = tonWallet ?? await fetchStoredTonWallet(accountId);
+  if (!publicKey) {
+    throw new Error('Public key is missing');
+  }
 
+  const { network } = parseAccountId(accountId);
   const publicKeyBytes = hexToBytes(publicKey);
   return buildWallet(network, publicKeyBytes, version);
 }

@@ -1,4 +1,4 @@
-import type { ApiActivity, ApiActivityTimestamps, ApiBalanceBySlug, OnApiUpdate } from '../../types';
+import type { ApiActivity, ApiActivityTimestamps, ApiBalanceBySlug, ApiUpdatingStatus, OnApiUpdate } from '../../types';
 
 import { TRX } from '../../../config';
 import { parseAccountId } from '../../../util/account';
@@ -27,6 +27,7 @@ const lastBalanceCache: Record<string, ApiBalanceBySlug> = {};
 export async function setupPolling(
   accountId: string,
   onUpdate: OnApiUpdate,
+  onUpdatingStatusChange: (kind: ApiUpdatingStatus['kind'], isUpdating: boolean) => void,
   newestActivityTimestamps: ApiActivityTimestamps,
 ) {
   const { network } = parseAccountId(accountId);
@@ -55,6 +56,9 @@ export async function setupPolling(
 
   while (isAlive(onUpdate, accountId)) {
     try {
+      onUpdatingStatusChange('balance', true);
+      onUpdatingStatusChange('activities', true);
+
       if (!lastBalanceCache[accountId]) lastBalanceCache[accountId] = {};
       const accountLastBalances = lastBalanceCache[accountId];
 
@@ -78,12 +82,19 @@ export async function setupPolling(
         });
       }
 
+      onUpdatingStatusChange('balance', false);
+
       await updateActivities(isBalanceChanged);
+
+      onUpdatingStatusChange('activities', false);
 
       accountLastBalances[TRX.slug] = trxBalance;
       accountLastBalances[usdtAddress] = usdtBalance;
     } catch (err) {
       logDebugError('tron:setupPolling', err);
+    } finally {
+      onUpdatingStatusChange('balance', false);
+      onUpdatingStatusChange('activities', false);
     }
 
     await pauseOrFocus(BALANCE_INTERVAL, BALANCE_INTERVAL_WHEN_NOT_FOCUSED);
@@ -96,10 +107,13 @@ export async function setupInactiveAccountsBalancePolling(onUpdate: OnApiUpdate)
       const accountsById = await fetchStoredAccounts();
       const activeAccountId = getActiveAccountId();
 
-      for (const [accountId] of Object.entries(accountsById)
-        .filter(([id, acc]) => acc.type === 'bip39' && id !== activeAccountId)) {
+      for (const [accountId, account] of Object.entries(accountsById)) {
+        if (accountId === activeAccountId || !('tron' in account) || !account.tron) {
+          continue;
+        }
+
         const { network } = parseAccountId(accountId);
-        const { address } = await fetchStoredTronWallet(accountId);
+        const { address } = account.tron;
 
         const { usdtAddress } = getChainConfig('tron')[network];
         const usdtSlug = buildTokenSlug('tron', usdtAddress);

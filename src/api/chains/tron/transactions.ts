@@ -26,6 +26,7 @@ export async function getTokenTransactionSlice(
       min_timestamp: fromTimestamp ? fromTimestamp + 1000 : undefined,
       max_timestamp: toTimestamp ? toTimestamp - 1000 : undefined,
       limit,
+      search_internal: false, // The parsing is not supported and not needed currently
     });
     return rawTransactions.map((rawTx) => parseRawTrxTransaction(address, rawTx)).filter(Boolean);
   } else {
@@ -109,14 +110,18 @@ function parseRawTrxTransaction(address: string, rawTx: any): ApiTransactionActi
     block_timestamp: timestamp,
   } = rawTx;
 
-  const amount = BigInt(rawData.contract[0].parameter.value.amount ?? 0);
-  const fromAddress = TronWeb.address.fromHex(rawData.contract[0].parameter.value.owner_address);
-  const toAddress = TronWeb.address.fromHex(rawData.contract[0].parameter.value.to_address!);
+  const parameters = rawData.contract[0].parameter.value;
+  const amount = BigInt(parameters.amount ?? 0);
+  const fromAddress = TronWeb.address.fromHex(parameters.owner_address);
+  const toAddress = TronWeb.address.fromHex(
+    parameters.to_address || parameters.receiver_address || parameters.contract_address,
+  );
 
   const slug = TRX.slug;
   const isIncoming = toAddress === address;
   const normalizedAddress = isIncoming ? fromAddress : toAddress;
   const fee = BigInt(energyFee + netFee);
+  const type = rawData.contract[0].type === 'TriggerSmartContract' ? 'callContract' : undefined;
   const shouldHide = rawData.contract[0].type === 'TransferAssetContract';
 
   return {
@@ -131,6 +136,7 @@ function parseRawTrxTransaction(address: string, rawTx: any): ApiTransactionActi
     isIncoming,
     normalizedAddress,
     fee,
+    type,
     shouldHide,
   };
 }
@@ -196,10 +202,10 @@ export function mergeTransactions(trxTxs: ApiTransactionActivity[], tokenTxs: Ap
 
   for (const tx of trxTxs) {
     const tokenTx = tokenTxById[tx.id];
-    if (tx.toAddress) {
-      trxTxsCleared.push(tx);
-    } else if (tokenTx) {
+    if (tokenTx) {
       tokenTx.fee = tx.fee;
+    } else if (tx.toAddress) {
+      trxTxsCleared.push(tx);
     }
   }
 

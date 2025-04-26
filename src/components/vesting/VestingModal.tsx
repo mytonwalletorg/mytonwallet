@@ -5,7 +5,11 @@ import type { ApiTokenWithPrice, ApiVestingInfo } from '../../api/types';
 import type { Theme } from '../../global/types';
 
 import { ANIMATED_STICKER_TINY_ICON_PX, SHORT_FRACTION_DIGITS } from '../../config';
-import { selectCurrentAccountState, selectMycoin } from '../../global/selectors';
+import {
+  selectCurrentAccountState,
+  selectIsCurrentAccountViewMode,
+  selectMycoin,
+} from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { formatFullDay, formatTime } from '../../util/dateFormat';
 import { formatCurrency } from '../../util/formatNumber';
@@ -28,6 +32,7 @@ import styles from './VestingModal.module.scss';
 
 interface StateProps {
   isOpen?: boolean;
+  isViewMode: boolean;
   isUnfreezeRequested?: boolean;
   vesting?: ApiVestingInfo[];
   theme: Theme;
@@ -39,6 +44,7 @@ const MY_TOKEN_SYMBOL = 'MY';
 
 function VestingModal({
   isOpen,
+  isViewMode,
   isUnfreezeRequested,
   vesting,
   mycoin,
@@ -117,7 +123,7 @@ function VestingModal({
           const title = part.status === 'frozen'
             ? 'Frozen'
             : (part.status === 'missed' ? 'Missed' : part.status === 'unfrozen' ? 'Unfrozen' : 'Ready to Unfreeze');
-          const isInteractive = !isUnfreezeRequested && part.status === 'ready';
+          const isInteractive = !isViewMode && !isUnfreezeRequested && part.status === 'ready';
           const endsAt = part.status === 'frozen'
             ? part.time
             : part.status === 'ready'
@@ -205,16 +211,18 @@ function VestingModal({
                   labelClassName={styles.inputLabel}
                   valueClassName={styles.unfreezeResult}
                 />
-                <div className={styles.buttons}>
-                  <Button
-                    className={styles.button}
-                    isPrimary
-                    isDisabled={isDisabledUnfreeze}
-                    onClick={!isDisabledUnfreeze ? handleStartClaimingVesting : undefined}
-                  >
-                    {lang('Unfreeze')}
-                  </Button>
-                </div>
+                {!isViewMode && (
+                  <div className={styles.buttons}>
+                    <Button
+                      className={styles.button}
+                      isPrimary
+                      isDisabled={isDisabledUnfreeze}
+                      onClick={!isDisabledUnfreeze ? handleStartClaimingVesting : undefined}
+                    >
+                      {lang('Unfreeze')}
+                    </Button>
+                  </div>
+                )}
               </>
             )}
         </div>
@@ -242,6 +250,7 @@ export default memo(withGlobal((global): StateProps => {
 
   return {
     isOpen: global.isVestingModalOpen,
+    isViewMode: selectIsCurrentAccountViewMode(global),
     vesting,
     isUnfreezeRequested: Boolean(unfreezeRequestedIds?.length),
     mycoin: selectMycoin(global),

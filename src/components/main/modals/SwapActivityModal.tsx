@@ -16,7 +16,11 @@ import {
 } from '../../../config';
 import { Big } from '../../../lib/big.js';
 import { getIsInternalSwap, getIsSupportedChain, resolveSwapAsset } from '../../../global/helpers';
-import { selectCurrentAccount, selectCurrentAccountState } from '../../../global/selectors';
+import {
+  selectCurrentAccount,
+  selectCurrentAccountState,
+  selectIsCurrentAccountViewMode,
+} from '../../../global/selectors';
 import { parseTxId } from '../../../util/activities';
 import buildClassName from '../../../util/buildClassName';
 import { formatFullDay, formatTime } from '../../../util/dateFormat';
@@ -503,7 +507,7 @@ export default memo(
       tokensBySlug: global.swapTokenInfo?.bySlug,
       theme,
       addressByChain: account?.addressByChain,
-      isSwapDisabled: isSwapDisabled || global.settings.isTestnet,
+      isSwapDisabled: isSwapDisabled || global.settings.isTestnet || selectIsCurrentAccountViewMode(global),
       isSensitiveDataHidden,
     };
   })(SwapActivityModal),

@@ -15,19 +15,13 @@ const selectCurrentDappTransferTotalsMemoized = memoize((
 
   let isScam = false;
   let isDangerous = false;
-  let fullFee = 0n;
-  let received = 0n;
   let nftCount = 0;
 
   for (const transaction of transactions ?? []) {
     if (transaction.isScam) isScam = true;
     if (transaction.isDangerous) isDangerous = true;
-    fullFee += transaction.fullFee;
-    received += transaction.received;
 
-    if (transaction.displayedAmount) {
-      addSlugAmount(TONCOIN.slug, transaction.displayedAmount);
-    }
+    addSlugAmount(TONCOIN.slug, transaction.amount + transaction.networkFee);
 
     if (isTokenTransferPayload(transaction.payload)) {
       addSlugAmount(transaction.payload.slug, transaction.payload.amount);
@@ -40,8 +34,6 @@ const selectCurrentDappTransferTotalsMemoized = memoize((
     amountsBySlug,
     isScam,
     isDangerous,
-    fullFee, // In TON
-    received, // In TON
     nftCount,
   };
 });

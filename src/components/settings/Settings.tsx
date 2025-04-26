@@ -4,7 +4,7 @@ import React, {
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonWalletVersion } from '../../api/chains/ton/types';
-import type { ApiDapp, ApiWalletInfo } from '../../api/types';
+import type { ApiDapp, ApiWalletWithVersionInfo } from '../../api/types';
 import type {
   Account, GlobalState, HardwareConnectState, UserToken,
 } from '../../global/types';
@@ -32,7 +32,8 @@ import {
 import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
-  selectIsHardwareAccount,
+  selectIsCurrentAccountViewMode,
+  selectIsPasswordAccount,
   selectNetworkAccounts,
 } from '../../global/selectors';
 import { getDoesUsePinPad } from '../../util/biometrics';
@@ -127,9 +128,9 @@ type StateProps = {
   dapps: ApiDapp[];
   isOpen?: boolean;
   tokens?: UserToken[];
-  isHardwareAccount?: boolean;
+  isPasswordAccount?: boolean;
   currentVersion?: ApiTonWalletVersion;
-  versions?: ApiWalletInfo[];
+  versions?: ApiWalletWithVersionInfo[];
   isCopyStorageEnabled?: boolean;
   supportAccountsCount?: number;
   hardwareWallets?: LedgerWalletInfo[];
@@ -140,6 +141,7 @@ type StateProps = {
   isRemoteTab?: boolean;
   arePushNotificationsAvailable?: boolean;
   isNftBuyingDisabled?: boolean;
+  isViewMode: boolean;
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
@@ -162,7 +164,7 @@ function Settings({
   isOpen = false,
   tokens,
   isInsideModal,
-  isHardwareAccount,
+  isPasswordAccount,
   currentVersion,
   versions,
   isCopyStorageEnabled,
@@ -175,6 +177,7 @@ function Settings({
   isRemoteTab,
   arePushNotificationsAvailable,
   isNftBuyingDisabled,
+  isViewMode,
 }: OwnProps & StateProps) {
   const {
     setSettingsState,
@@ -244,6 +247,7 @@ function Settings({
 
   const handleCloseSettings = useLastCallback(() => {
     closeSettings(undefined, { forceOnHeavyAnimation: true });
+    setSettingsState({ state: SettingsState.Initial });
   });
 
   useHistoryBack({
@@ -296,7 +300,15 @@ function Settings({
   }
 
   const handleBackClick = useLastCallback(() => {
-    setSettingsState({ state: SettingsState.Initial });
+    switch (renderingKey) {
+      case SettingsState.HiddenNfts:
+      case SettingsState.SelectTokenList:
+        setSettingsState({ state: SettingsState.Assets });
+        break;
+
+      default:
+        setSettingsState({ state: SettingsState.Initial });
+    }
   });
 
   const handleBackClickToAssets = useLastCallback(() => {
@@ -549,7 +561,7 @@ function Settings({
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
-            {!isHardwareAccount && (
+            {isPasswordAccount && (
               <div className={styles.item} onClick={handleSecurityOpen}>
                 <img className={styles.menuIcon} src={securityImg} alt={lang('Security')} />
                 {lang('Security')}
@@ -557,7 +569,7 @@ function Settings({
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
-            {IS_DAPP_SUPPORTED && (
+            {IS_DAPP_SUPPORTED && !isViewMode && (
               <div className={styles.item} onClick={handleConnectedDappsOpen}>
                 <img className={styles.menuIcon} src={connectedDappsImg} alt={lang('Connected Dapps')} />
                 {lang('Connected Dapps')}
@@ -905,7 +917,7 @@ function Settings({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const isHardwareAccount = selectIsHardwareAccount(global);
+  const isPasswordAccount = selectIsPasswordAccount(global);
   const accounts = selectNetworkAccounts(global);
   const { isCopyStorageEnabled, supportAccountsCount = 1, isNftBuyingDisabled } = global.restrictions;
 
@@ -925,7 +937,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     dapps,
     isOpen: global.areSettingsOpen,
     tokens: selectCurrentAccountTokens(global),
-    isHardwareAccount,
+    isPasswordAccount,
     currentVersion,
     versions,
     isCopyStorageEnabled,
@@ -938,6 +950,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     accounts,
     isNftBuyingDisabled,
     arePushNotificationsAvailable: global.pushNotifications.isAvailable,
+    isViewMode: selectIsCurrentAccountViewMode(global),
   };
 })(Settings));
 

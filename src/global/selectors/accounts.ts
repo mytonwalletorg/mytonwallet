@@ -4,6 +4,8 @@ import type {
 } from '../types';
 
 import { parseAccountId } from '../../util/account';
+import { isKeyCountGreater } from '../../util/isEmptyObject';
+import isViewAccount from '../../util/isViewAccount';
 import memoize from '../../util/memoize';
 import withCache from '../../util/withCache';
 
@@ -55,16 +57,6 @@ export function selectAccountState(global: GlobalState, accountId: string): Acco
   return global.byAccountId[accountId];
 }
 
-export function selectFirstNonHardwareAccount(global: GlobalState) {
-  const accounts = selectAccounts(global);
-
-  if (!accounts) {
-    return undefined;
-  }
-
-  return Object.values(accounts).find((account) => !account.isHardware);
-}
-
 export function selectAccountSettings(global: GlobalState, accountId: string): AccountSettings | undefined {
   return global.settings.byAccountId[accountId];
 }
@@ -73,10 +65,13 @@ export function selectCurrentAccountSettings(global: GlobalState) {
   return selectAccountSettings(global, global.currentAccountId!);
 }
 
-export function selectIsHardwareAccount(global: GlobalState) {
-  const state = selectAccount(global, global.currentAccountId!);
+function isHardwareAccount(account: Account) {
+  return account.type === 'hardware';
+}
 
-  return state?.isHardware;
+export function selectIsHardwareAccount(global: GlobalState) {
+  const account = selectCurrentAccount(global);
+  return Boolean(account) && isHardwareAccount(account);
 }
 
 export function selectAllHardwareAccounts(global: GlobalState) {
@@ -86,7 +81,7 @@ export function selectAllHardwareAccounts(global: GlobalState) {
     return undefined;
   }
 
-  return Object.values(accounts).filter((account) => account.isHardware);
+  return Object.values(accounts).filter(isHardwareAccount);
 }
 
 export function selectIsOneAccount(global: GlobalState) {
@@ -120,8 +115,21 @@ export function selectLedgerAccountIndexToImport(global: GlobalState) {
   return hardwareAccountIndexes.length - 1;
 }
 
+function isPasswordAccount(account: Account) {
+  return account.type === 'mnemonic';
+}
+
+export function selectIsPasswordAccount(global: GlobalState) {
+  const account = selectCurrentAccount(global);
+  return Boolean(account) && isPasswordAccount(account);
+}
+
+const selectIsPasswordPresentMemoized = memoize((accounts: Record<string, Account> | undefined) => {
+  return Object.values(accounts ?? {}).some(isPasswordAccount);
+});
+
 export function selectIsPasswordPresent(global: GlobalState) {
-  return !!selectFirstNonHardwareAccount(global);
+  return selectIsPasswordPresentMemoized(selectAccounts(global));
 }
 
 export function selectAccountIdByAddress(
@@ -166,7 +174,8 @@ export function selectAccountNftByAddress(global: GlobalState, accountId: string
 }
 
 export function selectIsMultichainAccount(global: GlobalState, accountId: string) {
-  return Boolean(selectAccount(global, accountId)?.addressByChain.tron);
+  const addressByChain = selectAccount(global, accountId)?.addressByChain;
+  return Boolean(addressByChain) && isKeyCountGreater(addressByChain, 1);
 }
 
 export function selectHasSession(global: GlobalState) {
@@ -183,4 +192,15 @@ export function selectIsNativeBiometricAuthEnabled(global: GlobalState) {
   const { authConfig } = global.settings;
 
   return !!authConfig && authConfig.kind === 'native-biometrics';
+}
+
+export function selectIsCurrentAccountViewMode(global: GlobalState) {
+  const { type } = selectCurrentAccount(global) || {};
+
+  return isViewAccount(type);
+}
+
+export function selectDoesAccountSupportNft(global: GlobalState) {
+  const account = selectCurrentAccount(global);
+  return Boolean(account?.addressByChain.ton);
 }

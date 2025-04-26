@@ -94,9 +94,6 @@ Is there a community?: ¿Hay una comunidad?
 $about_wallet_community: Claro, bienvenido a nuestro %community_link%.
 $about_community_link_text: "**canal de Telegram**"
 Currency History: Historia del activo
-$add_account_description1: |
-  **%app_name%** te permite cambiar sin problemas
-  entre **varios monederos**.
 Enter Password: Introduce la contraseña
 Send: Enviar
 Add Wallet: Agregar monedero
@@ -244,9 +241,10 @@ $unstake_insufficient_balance: Debe tener %balance% en su saldo principal para p
 at %annual_yield%: en %annual_yield%
 Est. %annual_yield%: Est. %annual_yield%
 Staked: Apostado
-Unstake Requested: Retiro solicitado
+$stake_action: Apostar
 Unstaked: Retirado
 Unstaking: Retirando
+$unstake_action: Retirarse
 The network fee has slightly changed, try sending again.: La comisión de red ha cambiado ligeramente, inténtalo de nuevo.
 Transfer was unsuccessful. Try again later.: La transferencia no tuvo éxito. Inténtalo de nuevo más tarde.
 Unstaking was unsuccessful. Try again later.: El retiro no tuvo éxito. Inténtalo de nuevo más tarde.
@@ -258,10 +256,7 @@ Unexpected error: Error inesperado
 Unexpected Error: Error inesperado
 Earn: Ganar
 Earning: Ganando
-InvalidAmount: Cantidad no válida
-InvalidToAddress: Dirección de destinatario no válida
 Unexpected: Error inesperado
-DomainNotResolved: Dominio no válido
 You can save this address for quick access while sending.: Puede guardar esta dirección como acceso rápido mientras envía.
 Stake Again: Apostar de nuevo
 Earned: Ganado
@@ -272,7 +267,9 @@ Dapp Permissions: Permisos de la Dapp
 $dapp_can_view_balance: "%dappname% podrá ver la dirección y el saldo del monedero."
 Send Transaction: Enviar transacción
 Payload: Carga útil
-$many_transactions: "%1$d transacciones"
+$many_transactions:
+  oneValue: "%1$d transacción"
+  otherValue: "%1$d transacciones"
 Total Amount: Cantidad total
 $unstaking_short: Retirando
 Handle ton:// links: Habilitar enlaces ton://
@@ -337,7 +334,7 @@ Message is encrypted.: El mensaje está encriptado.
 $dapp_ledger_warning1: Estás a punto de enviar una transacción multi-direccional utilizando tu monedero **Ledger**. Necesitarás firmar cada transacción subyacente **una por una manualmente**.
 $dapp_ledger_warning2: Por favor, tómate tu tiempo y no interrumpas el proceso.
 Agree: Aceptar
-SwapTitle: Intercambiar
+$swap_action: Intercambiar
 Swap: Intercambiar
 You sell: Usted vende
 You buy: Usted compra
@@ -398,6 +395,7 @@ Insufficient liquidity: Liquidez insuficiente
 This address is new and never received transfers before.: Esta dirección es nueva y nunca ha recibido transferencias antes.
 Create Backup: Crear copia de seguridad
 Sending: Enviando
+$send_action: Enviar
 Failed: Fallido
 Refunded: Reembolsado
 On Hold: En espera
@@ -658,15 +656,16 @@ Confirm Sending: Confirmar envío
 Confirm Burning: Confirmar quema
 Confirm Passcode: Confirmar contraseña
 Enter your code: Ingrese su código
-$hardware_payload_warning: Un servicio de terceros está solicitando acceso a su billetera — esto podría provocar la pérdida de fondos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
+$hardware_payload_warning: "**Un servicio de terceros está solicitando acceso a su billetera.** Esto podría provocar la pérdida de fondos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio."
 $hardware_blind_sign_not_enabled: |
-  Un servicio de terceros está solicitando acceso a su billetera — esto podría provocar la pérdida de fondos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
+  **Un servicio de terceros está solicitando acceso a su billetera.** Esto podría provocar la pérdida de fondos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
 
   Para continuar, habilite la opción "Firma Ciega" en la configuración de la aplicación TON en Ledger.
 $hardware_blind_sign_not_enabled_internal: Para continuar, habilite la opción "Firma Ciega" en la configuración de la aplicación TON en Ledger.
 Switch to W5: Cambiar a W5
 Not Scam: No es una estafa
 Untitled: Sin título
+Multichain: Multichain
 $swap_too_small_amount: Cantidad demasiado pequeña
 Not enough %symbol%: No hay suficiente %symbol%
 $receive_tron_description: Escanea este código QR o comparte tu dirección para recargar el saldo de tu billetera.
@@ -737,51 +736,67 @@ Help Center: Centro de ayuda
 MyTonWallet Tips: Consejos de MyTonWallet
 $auth_import_24_mnemonic_description: |
   Puedes restaurar el acceso a tu monedero introduciendo las **24 palabras secretas** que anotaste al crear el monedero.
-$returned_value: ~ %value% será devuelto
 Open %nft_marketplace%: Abrir %nft_marketplace%
 Link was copied!: ¡Enlace copiado!
 Share Link: Compartir enlace
-Dapp Fee Details: Detalles de la tarifa de Dapp
 $dapp_return_details: |
   %fee_amount% se debitará inmediatamente de tu billetera para pagar la tarifa.
 
   %received_amount% te será devuelto en unos minutos.
-$dapp_return_disclaimer: La cantidad devuelta mostrada no está garantizada y puede ser manipulada por dapps maliciosos. Cancele la operación si no está seguro sobre la fiabilidad de este servicio.
 Additional Amount Sent: Se enviará adicionalmente
 Show Sensitive Data: Mostrar datos sensibles
 Hide Sensitive Data: Ocultar datos sensibles
 Copy Address: Copiar dirección
 Copy Transaction ID: Copiar ID de transacción
 Requesting Unstake: Solicitando retiro
+Unstake Requested: Retiro solicitado
+$request_unstake_action: Solicitar retiro
 Calling Contract: Llamando al contrato
 Contract Called: Contrato llamado
+$call_contract_action: Llamar contrato
 Deploying Contract: Implementando contrato
 Contract Deployed: Contrato implementado
+$deploy_contract_action: Implementar contrato
 Minting: Minteo
 Minted: Minteado
+$mint_action: Mintear
 Burning: Quemando
 Burned: Quemado
+$burn_action: Quemar
 Address Updated: Dirección actualizada
 Updating Address: Actualizando dirección
+$update_address_action: Actualizar dirección
 Site Updated: Sitio web actualizado
 Updating Site: Actualizando sitio web
+$update_site_action: Actualizar sitio web
 Subdomains Updated: Subdominios actualizados
 Updating Subdomains: Actualizando subdominios
+$update_subdomains_action: Actualizar subdominios
 Storage Updated: Almacenamiento actualizado
 Updating Storage: Actualizando almacenamiento
+$update_storage_action: Actualizar almacenamiento
 Domain Record Deleted: Registro de dominio eliminado
 Deleting Domain Record: Eliminando registro de dominio
+$delete_domain_record_action: Eliminar registro de dominio
 Renewing Domain: Renovando dominio
 Domain Renewed: Dominio renovado
+$renew_domain_action: Renovar dominio
 Providing Liquidity: Proporcionando liquidez
 Liquidity Provided: Liquidez proporcionada
+$provide_liquidity_action: Proporcionar liquidez
 Withdrawing Liquidity: Retirando liquidez
 Liquidity Withdrawn: Liquidez retirada
+$withdraw_liquidity_action: Retirar liquidez
 Bounced: Rebotado
 Bouncing: Rebotando
+$bounce_action: Rebotar
 NFT Auction Bid: Puja en subasta de NFT
 Bidding at NFT Auction: Puja en la subasta de NFT
+NFT Bought: NFT comprado
+Buying NFT: Comprando NFT
+$buy_nft_action: Comprar NFT
 Receiving: Recibiendo
+$receive_action: Recibir
 Change Palette: Cambiar paleta
 Palette: Paleta
 Unlock New Palettes: Desbloquear nuevas paletas
@@ -799,4 +814,19 @@ Upgrade for %currency% %amount%: Actualización por %currency% %amount%
 "%amount% left": "%amount% restantes"
 "%amount% sold": "%amount% vendidos"
 This card has been sold out: Esta tarjeta está agotada
+Import Existing Wallet: Importar cartera existente
+View Any Address: Ver cualquier dirección
+12/24 Secret Words: 12/24 Palabras secretas
+24 Secret Words: 24 Palabras secretas
+Wallet Address or Domain: Dirección de cartera o dominio
+$import_view_account_note: Ingrese **cualquier dirección** en la red TON o TRON para abrirla en **Modo de visualización**.
+$view_mode: Ver
+Import Wallet: Importar monedero
 Please top up your TON balance.: Por favor, recargue su saldo TON.
+Remember Passcode: Recordar código
+Remember Password: Recordar contraseña
+Not available with biometrics.: No disponible con biometría.
+App will not ask for signature for %1$d minutes after last entry.: La aplicación no pedirá una firma durante %1$d minutos después de la última entrada.
+Remember for %1$d minutes: Recordar durante %1$d minutos
+Preview: Vista previa
+$preview_not_guaranteed: El resultado de la vista previa **no está garantizado **y **puede ser falsificado **por el servicio.

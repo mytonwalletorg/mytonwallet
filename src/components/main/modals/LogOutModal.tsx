@@ -8,8 +8,8 @@ import type { Account, AccountState } from '../../../global/types';
 import { IS_CORE_WALLET } from '../../../config';
 import renderText from '../../../global/helpers/renderText';
 import { selectCurrentAccountState, selectNetworkAccounts } from '../../../global/selectors';
+import { getAccountTitle } from '../../../util/account';
 import buildClassName from '../../../util/buildClassName';
-import { shortenAddress } from '../../../util/shortenAddress';
 import { IS_IOS_APP } from '../../../util/windowEnvironment';
 
 import useLang from '../../../hooks/useLang';
@@ -59,11 +59,11 @@ function LogOutModal({
       return [];
     }
 
-    return Object.entries(accounts).reduce<LinkAccount[]>((acc, [id, { title, addressByChain }]) => {
+    return Object.entries(accounts).reduce<LinkAccount[]>((acc, [id, account]) => {
       if (id !== currentAccountId && accountStates[id]?.isBackupRequired) {
         acc.push({
           id,
-          title: title || shortenAddress(addressByChain.ton)!,
+          title: getAccountTitle(account) ?? '',
         });
       }
 

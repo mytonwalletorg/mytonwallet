@@ -59,14 +59,6 @@
   background-color: var(--color-background-second);
 }
 
-.developerTitle {
-  margin: 1rem auto 1.5rem;
-
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--color-black);
-}
-
 .developerCloseButton {
   min-width: 9.25rem !important;
   margin: -0.5rem auto 0;
@@ -428,7 +420,8 @@
   }
 }
 
-.iconChevronRight {
+.iconChevronRight,
+.iconQuestion {
   color: var(--color-gray-3);
 }
 
@@ -565,6 +558,13 @@
     }
   }
 
+  &_disabled {
+    pointer-events: none;
+    cursor: not-allowed !important;
+
+    opacity: 0.4;
+  }
+
   @media (hover: hover) {
     &:focus-visible,
     &:hover {
@@ -648,26 +648,8 @@ a.item:hover {
   color: var(--color-gray-2);
 }
 
-.iconQuestion {
-  margin-inline-start: 0.3125rem;
-  margin-inline-end: auto;
-
-  color: var(--color-gray-3);
-}
-
-.blockWithTooltip {
-  display: flex;
-  align-items: center;
-}
-
-.tooltip {
-  min-width: 14rem;
-  max-width: 16rem;
-
-  &_wide {
-    width: max-content;
-    max-width: 17.5rem;
-  }
+.wideTooltip {
+  max-width: 17.5rem !important;
 }
 
 .disconnectButton {

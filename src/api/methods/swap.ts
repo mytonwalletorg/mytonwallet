@@ -24,7 +24,7 @@ import { parseAccountId } from '../../util/account';
 import { buildLocalTxId } from '../../util/activities';
 import { omitUndefined } from '../../util/iteratees';
 import chains from '../chains';
-import { fetchStoredAccount, fetchStoredTonWallet } from '../common/accounts';
+import { fetchStoredTonWallet } from '../common/accounts';
 import { callBackendGet, callBackendPost } from '../common/backend';
 import {
   getSwapItemSlug, patchSwapItem, swapGetHistoryItem, swapItemToActivity,
@@ -90,10 +90,10 @@ export async function swapSubmit(
   isGasless?: boolean,
 ) {
   const swapId = historyItem.id;
-  const account = await fetchStoredAccount(accountId);
+  const tonWallet = await fetchStoredTonWallet(accountId);
 
-  const { ton: { address } } = account;
-  const authToken = account.ton.authToken ?? await getBackendAuthToken(accountId, password);
+  const { address } = tonWallet;
+  const authToken = tonWallet.authToken ?? await getBackendAuthToken(accountId, password);
 
   try {
     const transferList: TonTransferParams[] = transfers.map((transfer) => ({

@@ -205,7 +205,7 @@ function SwapModal({
         return (
           <>
             <ModalHeader
-              title={lang('SwapTitle')}
+              title={lang('$swap_action')}
               onClose={cancelSwap}
             />
             <SwapInitial isActive={isActive} />

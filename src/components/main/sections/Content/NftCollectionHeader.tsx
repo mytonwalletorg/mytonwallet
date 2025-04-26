@@ -12,7 +12,10 @@ import {
   GETGEMS_BASE_TESTNET_URL,
   IS_CORE_WALLET,
 } from '../../../../config';
-import { selectCurrentAccountState } from '../../../../global/selectors';
+import {
+  selectCurrentAccountState,
+  selectIsCurrentAccountViewMode,
+} from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { openUrl } from '../../../../util/openUrl';
@@ -32,37 +35,14 @@ import styles from './NftCollectionHeader.module.scss';
 
 interface StateProps {
   isTestnet?: boolean;
+  isViewMode: boolean;
   nfts?: Record<string, ApiNft>;
   currentCollectionAddress?: string;
 }
 
-const MENU_ITEMS: DropdownItem[] = [{
-  name: 'Send All',
-  value: 'sendAll',
-}, {
-  name: 'Getgems',
-  value: 'getgems',
-  fontIcon: 'external',
-}, {
-  name: getExplorerName('ton'),
-  value: 'tonExplorer',
-  fontIcon: 'external',
-},
-...(!IS_CORE_WALLET ? [{
-  name: 'Hide All',
-  value: 'hideAll',
-}] : []), {
-  name: 'Burn All',
-  value: 'burnAll',
-  isDangerous: true,
-}, {
-  name: 'Select All',
-  value: 'selectAll',
-  withSeparator: true,
-}];
-
 function NftCollectionHeader({
   isTestnet,
+  isViewMode,
   nfts,
   currentCollectionAddress,
 }: StateProps) {
@@ -79,6 +59,37 @@ function NftCollectionHeader({
   const isMenuOpen = Boolean(menuPosition);
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLButtonElement>(null);
+
+  const menuItems: DropdownItem[] = useMemo(() => {
+    return [
+      ...(!isViewMode ? [{
+        name: 'Send All',
+        value: 'sendAll',
+      }] : []),
+      {
+        name: 'Getgems',
+        value: 'getgems',
+        fontIcon: 'external',
+      }, {
+        name: getExplorerName('ton'),
+        value: 'tonExplorer',
+        fontIcon: 'external',
+      },
+      ...(!IS_CORE_WALLET ? [{
+        name: 'Hide All',
+        value: 'hideAll',
+      }] : []),
+      ...(!isViewMode ? [{
+        name: 'Burn All',
+        value: 'burnAll',
+        isDangerous: true,
+      }] : []), {
+        name: 'Select All',
+        value: 'selectAll',
+        withSeparator: true,
+      },
+    ];
+  }, [isViewMode]);
 
   const nftFromCurrentCollection = useMemo(() => {
     if (!currentCollectionAddress || !nfts) {
@@ -218,7 +229,7 @@ function NftCollectionHeader({
         transformOriginY={transformOriginY}
         buttonClassName={styles.menuItem}
         bubbleClassName={styles.menu}
-        items={MENU_ITEMS}
+        items={menuItems}
         onSelect={handleMenuItemClick}
         onClose={handleMenuClose}
       />
@@ -236,5 +247,6 @@ export default memo(withGlobal((global): StateProps => {
     isTestnet: global.settings.isTestnet,
     nfts,
     currentCollectionAddress,
+    isViewMode: selectIsCurrentAccountViewMode(global),
   };
 })(NftCollectionHeader));

@@ -1,11 +1,13 @@
 import React from '../../../../lib/teact/teact';
 
 import type { ApiNft } from '../../../../api/types';
-import type { Account } from '../../../../global/types';
+import type { Account, AccountType } from '../../../../global/types';
 
+import { getMainAccountAddress } from '../../../../util/account';
 import buildClassName from '../../../../util/buildClassName';
 import buildStyle from '../../../../util/buildStyle';
 import { stopEvent } from '../../../../util/domEvents';
+import { isKeyCountGreater } from '../../../../util/isEmptyObject';
 import { shortenAddress } from '../../../../util/shortenAddress';
 
 import useCardCustomization from '../../../../hooks/useCardCustomization';
@@ -17,7 +19,7 @@ interface OwnProps {
   isActive: boolean;
   accountId: string;
   addressByChain: Account['addressByChain'];
-  isHardware?: boolean;
+  accountType: AccountType;
   title?: string;
   cardBackgroundNft?: ApiNft;
   canEditAccount?: boolean;
@@ -25,14 +27,14 @@ interface OwnProps {
   onEdit: NoneToVoidFunction;
 }
 
-export const HARDWARE_ACCOUNT_ADDRESS_SHIFT = 3;
+export const ACCOUNT_WITH_ICON_ADDRESS_SHIFT = 3;
 export const ACCOUNT_ADDRESS_SHIFT = 4;
 
 function AccountButton({
   isActive,
   accountId,
   addressByChain,
-  isHardware,
+  accountType,
   title,
   cardBackgroundNft,
   canEditAccount,
@@ -41,11 +43,14 @@ function AccountButton({
 }: OwnProps) {
   const lang = useLang();
 
-  const addressOrMultichain = Object.keys(addressByChain).length > 1
+  const isHardware = accountType === 'hardware';
+  const isViewMode = accountType === 'view';
+
+  const addressOrMultichain = isKeyCountGreater(addressByChain, 1)
     ? lang('Multichain')
     : shortenAddress(
-      addressByChain.ton,
-      isHardware ? HARDWARE_ACCOUNT_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
+      getMainAccountAddress(addressByChain) ?? '',
+      accountType !== 'mnemonic' ? ACCOUNT_WITH_ICON_ADDRESS_SHIFT : ACCOUNT_ADDRESS_SHIFT,
       ACCOUNT_ADDRESS_SHIFT,
     );
 
@@ -77,6 +82,7 @@ function AccountButton({
       {title && <span className={buildClassName(styles.accountName, withTextGradient && 'gradientText')}>{title}</span>}
       <div className={buildClassName(styles.accountAddressBlock, withTextGradient && 'gradientText')}>
         {isHardware && <i className="icon-ledger" aria-hidden />}
+        {isViewMode && <i className="icon-eye-filled" aria-hidden />}
         <span>{addressOrMultichain}</span>
       </div>
 

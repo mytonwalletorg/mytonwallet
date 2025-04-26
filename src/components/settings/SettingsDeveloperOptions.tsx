@@ -5,6 +5,7 @@ import type { ApiNetwork } from '../../api/types';
 import type { Account } from '../../global/types';
 
 import {
+  APP_COMMIT_HASH,
   APP_ENV,
   APP_VERSION,
   IS_CORE_WALLET,
@@ -88,11 +89,8 @@ function SettingsDeveloperOptions({
       onClose={onClose}
       noBackdropClose
       isCompact
+      title={lang('Developer Options')}
     >
-      <div className={styles.developerTitle}>
-        {lang('Developer Options')}
-      </div>
-
       <div className={styles.settingsBlock}>
         <Dropdown
           label={lang('Network')}
@@ -118,11 +116,8 @@ function SettingsDeveloperOptions({
         </>
       )}
 
-      <div
-        className={buildClassName(styles.settingsBlock, styles.logBlock)}
-        onClick={handleDownloadLogs}
-      >
-        <div className={buildClassName(styles.item, styles.item_small)}>
+      <div className={buildClassName(styles.settingsBlock)}>
+        <div className={buildClassName(styles.item, styles.item_small)} onClick={handleDownloadLogs}>
           {
             IS_EXTENSION
               ? (
@@ -164,10 +159,10 @@ async function getLogsString(
   }: StateProps,
 ) {
   const accountsInfo = accountsById && Object.keys(accountsById).reduce((acc, accountId) => {
-    const { addressByChain, isHardware } = accountsById[accountId];
+    const { addressByChain, type } = accountsById[accountId];
     acc[accountId] = {
+      type,
       addressByChain,
-      isHardware,
     };
     return acc;
   }, {} as any);
@@ -187,6 +182,7 @@ async function getLogsString(
       timezone: `UTC${timezoneOffset < 0 ? '-' : '+'}${Math.abs(timezoneOffset) / 60}`,
       environment: APP_ENV,
       version: APP_VERSION,
+      commit: APP_COMMIT_HASH,
       platform: getPlatform(),
       navigatorPlatform: navigator.platform,
       userAgent: navigator.userAgent,

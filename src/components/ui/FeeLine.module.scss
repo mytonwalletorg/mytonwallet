@@ -1,11 +1,15 @@
 .container {
-  height: 1em;
-
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-gray-3);
   text-align: center;
   white-space: nowrap;
+
+  // Increasing the selector selectivity to overwrite the Transition style
+  &.container {
+    width: auto; // Overwriting the Transition's `width: 100%` to make side margins work properly
+    height: 1em;
+  }
 
   &.static {
     color: var(--color-gray-3-desktop);

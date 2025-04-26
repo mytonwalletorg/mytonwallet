@@ -3,6 +3,7 @@ import type { Cell } from '@ton/core';
 import type { DieselStatus } from '../../../global/types';
 import type { ApiAnyDisplayError, ApiEmulationResult, ApiTransaction } from '../../types';
 import type { ContractType } from './constants';
+import type { AddressBook, AnyAction, TraceDetail } from './toncenter/types';
 
 export type ApiTonWalletVersion = 'simpleR1'
 | 'simpleR2'
@@ -88,6 +89,7 @@ export type ApiSubmitTransferTonResult = {
   amount: bigint;
   seqno: number;
   msgHash: string;
+  msgHashNormalized: string;
   encryptedComment?: string;
 } | {
   error: string;
@@ -99,6 +101,7 @@ export type ApiSubmitMultiTransferResult = {
   seqno: number;
   boc: string;
   msgHash: string;
+  msgHashNormalized: string;
   paymentLink?: string;
   withW5Gasless?: boolean;
 } | {
@@ -192,4 +195,24 @@ export type ApiTransactionExtended = ApiTransaction & {
   hash: string;
   msgHash: string;
   opCode?: number;
+};
+
+export type ParsedTracePart = {
+  hashes: Set<string>;
+  sent: bigint;
+  /** How much TON will be received as a result of the transaction (the sent amount is not deducted) */
+  received: bigint;
+  /** The network fee in TON (the fee taken by the blockchain itself) */
+  networkFee: bigint;
+};
+
+export type ParsedTrace = {
+  actions: AnyAction[];
+  traceDetail: TraceDetail;
+  addressBook: AddressBook;
+  // Parsed
+  byTransactionIndex: ParsedTracePart[];
+  totalSent: bigint;
+  totalReceived: bigint;
+  totalNetworkFee: bigint;
 };

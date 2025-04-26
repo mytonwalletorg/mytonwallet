@@ -116,7 +116,7 @@ function VestingPasswordModal({
           withChainIcon={isMultichainAccount}
           text={formatCurrency(currentlyReadyToUnfreezeAmount, mycoin!.symbol, mycoin!.decimals)}
           className={!getDoesUsePinPad() ? styles.transactionBanner : undefined}
-          secondText={shortenAddress(address!)}
+          secondText={address && shortenAddress(address)}
         />
         <div className={feeClassName}>
           {renderText(lang('$fee_value_bold', { fee: formatCurrency(claimAmount, TONCOIN.symbol) }))}

@@ -11,7 +11,9 @@ import type {
   ApiDapp,
   ApiDappPermissions,
   ApiDappTransfer,
+  ApiEmulationResult,
   ApiHistoryList,
+  ApiImportAddressByChain,
   ApiLedgerDriver,
   ApiMtwCardType,
   ApiNetwork,
@@ -28,6 +30,7 @@ import type {
   ApiSwapAsset,
   ApiSwapDexLabel,
   ApiSwapEstimateVariant,
+  ApiTokenType,
   ApiTokenWithPrice,
   ApiUpdate,
   ApiUpdateDappConnect,
@@ -35,7 +38,7 @@ import type {
   ApiUpdateDappSendTransactions,
   ApiUpdateWalletVersions,
   ApiVestingInfo,
-  ApiWalletInfo,
+  ApiWalletWithVersionInfo,
 } from '../api/types';
 import type { AUTOLOCK_OPTIONS_LIST } from '../config';
 import type { AuthConfig } from '../util/authApi/types';
@@ -86,7 +89,7 @@ export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWal
 
 interface AuthAccount {
   accountId: string;
-  addressByChain: Record<ApiChain, string>;
+  addressByChain: { [K in ApiChain]?: string };
   network?: ApiNetwork;
 }
 
@@ -127,6 +130,7 @@ export enum AuthState {
   safetyRules,
   mnemonicPage,
   checkWords,
+  importViewAccount,
 }
 
 export enum BiometricsState {
@@ -290,6 +294,7 @@ export type UserToken = {
   keywords?: string[];
   cmcSlug?: string;
   totalValue: string;
+  type?: ApiTokenType;
   color?: string;
   codeHash?: string;
 };
@@ -305,10 +310,12 @@ export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHisto
 
 export type DieselStatus = 'not-available' | 'not-authorized' | 'pending-previous' | 'available' | 'stars-fee';
 
+export type AccountType = 'mnemonic' | 'hardware' | 'view';
+
 export interface Account {
   title?: string;
-  addressByChain: Record<ApiChain, string>;
-  isHardware?: boolean;
+  type: AccountType;
+  addressByChain: { [K in ApiChain]?: string };
   ledger?: {
     index: number;
     driver: ApiLedgerDriver;
@@ -366,6 +373,8 @@ export interface AccountState {
   savedAddresses?: SavedAddress[];
   activeContentTab?: ContentTab;
   landscapeActionsActiveTabIndex?: ActiveTab;
+  activitiesUpdateStartedAt?: number;
+  balanceUpdateStartedAt?: number;
 
   // Staking
   staking?: {
@@ -437,7 +446,7 @@ export type GlobalState = {
     mnemonicCheckIndexes?: number[];
     error?: string;
     password?: string;
-    isBackupModalOpen?: boolean;
+    isImportModalOpen?: boolean;
     firstNetworkAccount?: AuthAccount;
     secondNetworkAccount?: AuthAccount;
   };
@@ -562,6 +571,8 @@ export type GlobalState = {
     promiseId?: string;
     isLoading?: boolean;
     transactions?: ApiDappTransfer[];
+    /** What else should happen after submitting the transactions (in addition to the transactions) */
+    emulation?: Pick<ApiEmulationResult, 'activities' | 'realFee'>;
     vestingAddress?: string;
     viewTransactionOnIdx?: number;
     dapp?: ApiDapp;
@@ -614,7 +625,7 @@ export type GlobalState = {
 
   walletVersions?: {
     currentVersion: ApiTonWalletVersion;
-    byId: Record<string, ApiWalletInfo[]>;
+    byId: Record<string, ApiWalletWithVersionInfo[]>;
   };
 
   settings: {
@@ -642,6 +653,7 @@ export type GlobalState = {
     baseCurrency?: ApiBaseCurrency;
     isAppLockEnabled?: boolean;
     autolockValue?: AutolockValueType;
+    isAutoConfirmEnabled?: boolean;
     isSensitiveDataHidden?: true;
   };
 
@@ -706,8 +718,6 @@ export type GlobalState = {
   };
 
   isLoadingOverlayOpen?: boolean;
-  activitiesUpdateStartedAt?: number;
-  balanceUpdateStartedAt?: number;
 
   pushNotifications: {
     isAvailable?: boolean;
@@ -752,6 +762,10 @@ export interface ActionPayloads {
   cleanAuthError: undefined;
   openAbout: undefined;
   closeAbout: undefined;
+  startImportViewAccount: undefined;
+  closeImportViewAccount: undefined;
+  openAuthImportWalletModal: undefined;
+  closeAuthImportWalletModal: undefined;
   openAuthBackupWalletModal: undefined;
   openMnemonicPage: undefined;
   openCreateBackUpPage: undefined;
@@ -770,6 +784,7 @@ export interface ActionPayloads {
   resetApiSettings: { areAllDisabled?: boolean } | undefined;
   checkAppVersion: undefined;
   importAccountByVersion: { version: ApiTonWalletVersion };
+  importViewAccount: { addressByChain: ApiImportAddressByChain };
 
   selectToken: { slug?: string } | undefined;
   openBackupWalletModal: undefined;
@@ -887,6 +902,7 @@ export interface ActionPayloads {
 
   addSavedAddress: { address: string; name: string; chain: ApiChain };
   removeFromSavedAddress: { address: string; chain: ApiChain };
+  checkTransferAddress: { address?: string };
 
   setCurrentTokenPeriod: { period: TokenPeriod };
   openAddAccountModal: undefined;
@@ -963,6 +979,8 @@ export interface ActionPayloads {
   copyStorageData: undefined;
   setAppLockValue: { value?: AutolockValueType; isEnabled: boolean };
   setIsManualLockActive: { isActive?: boolean; shouldHideBiometrics?: boolean };
+  setIsAutoConfirmEnabled: { isEnabled: boolean };
+  setInMemoryPassword: { password?: string; isFinalCall?: boolean; force?: boolean };
   openSettingsHardwareWallet: undefined;
 
   // Account Settings

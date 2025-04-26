@@ -22,7 +22,6 @@ import {
 import buildClassName from '../../../../util/buildClassName';
 import { toDecimal } from '../../../../util/decimals';
 import { buildCollectionByKey } from '../../../../util/iteratees';
-import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
@@ -156,7 +155,7 @@ function Assets({
   const currentContainerHeight = useMemo(() => {
     if (!withAbsolutePositioning || !viewportSlugs?.length || viewportIndex < 0) return undefined;
 
-    return (viewportIndex + viewportSlugs.length) * TOKEN_HEIGHT_REM * REM;
+    return (viewportIndex + viewportSlugs.length) * TOKEN_HEIGHT_REM;
   }, [viewportIndex, viewportSlugs?.length, withAbsolutePositioning]);
 
   useLayoutEffect(() => {
@@ -164,7 +163,7 @@ function Assets({
     if (!container) return;
 
     setExtraStyles(container, {
-      height: currentContainerHeight && !isLandscape ? `${currentContainerHeight}px` : '',
+      height: currentContainerHeight && !isLandscape ? `${currentContainerHeight}rem` : '',
     });
   }, [isLandscape, currentContainerHeight]);
 
@@ -285,7 +284,7 @@ function Assets({
       items={viewportSlugs}
       itemSelector=".token-list-item"
       withAbsolutePositioning={withAbsolutePositioning}
-      maxHeight={currentContainerHeight}
+      maxHeight={currentContainerHeight === undefined ? undefined : `${currentContainerHeight}rem`}
       onLoadMore={getMore}
     >
       {!renderedTokens && (

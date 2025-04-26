@@ -3,44 +3,80 @@ import React, { memo } from '../../lib/teact/teact';
 import type { ApiDappTransfer, ApiToken } from '../../api/types';
 
 import { TONCOIN } from '../../config';
+import renderText from '../../global/helpers/renderText';
 import { BIGINT_PREFIX } from '../../util/bigint';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
+import { isKeyCountGreater } from '../../util/isEmptyObject';
 import { isNftTransferPayload, isTokenTransferPayload } from '../../util/ton/transfer';
 import { DEFAULT_DECIMALS } from '../../api/chains/ton/constants';
 
 import useFlag from '../../hooks/useFlag';
+import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 
 import NftInfo from '../transfer/NftInfo';
 import InteractiveTextField from '../ui/InteractiveTextField';
+import ModalHeader from '../ui/ModalHeader';
 import DappAmountField from './DappAmountField';
-import DappTransferFee from './DappTransferFee';
 
+import modalStyles from '../ui/Modal.module.scss';
 import styles from './Dapp.module.scss';
 
 interface OwnProps {
-  transaction: ApiDappTransfer;
+  transaction?: ApiDappTransfer;
   tokensBySlug: Record<string, ApiToken>;
+  isActive: boolean;
+  onClose: NoneToVoidFunction;
+  onBack: NoneToVoidFunction;
 }
 
 const FRACTION_DIGITS = 2;
 
-function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
+function DappTransaction({ transaction, tokensBySlug, isActive, onClose, onBack }: OwnProps) {
+  const lang = useLang();
+
+  useHistoryBack({ isActive, onBack });
+
+  return (
+    <>
+      <ModalHeader
+        title={lang('Transaction Info')}
+        onBackButtonClick={onBack}
+        onClose={onClose}
+      />
+      <div className={buildClassName(modalStyles.transitionContent, styles.transactionContent)}>
+        {transaction && (
+          <DappTransactionContent
+            transaction={transaction}
+            tokensBySlug={tokensBySlug}
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+export default memo(DappTransaction);
+
+function DappTransactionContent({
+  transaction,
+  tokensBySlug,
+}: Required<Pick<OwnProps, 'transaction' | 'tokensBySlug'>>) {
   const lang = useLang();
   const [isPayloadExpanded, expandPayload] = useFlag(false);
 
   function renderAmount() {
     if (isNftTransferPayload(transaction.payload)) {
-      if (transaction.displayedAmount === 0n) {
+      if (transaction.amount === 0n) {
         return undefined;
       }
 
       return (
         <DappAmountField
           label={lang('Additional Amount Sent')}
-          amountsBySlug={{ [TONCOIN.slug]: transaction.displayedAmount }}
+          amountsBySlug={{ [TONCOIN.slug]: transaction.amount }}
         />
       );
     }
@@ -50,13 +86,20 @@ function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
     if (isTokenTransferPayload(transaction.payload)) {
       amountBySlug[transaction.payload.slug] = transaction.payload.amount;
     }
-    amountBySlug[TONCOIN.slug] = transaction.displayedAmount;
+    amountBySlug[TONCOIN.slug] = transaction.amount;
 
-    if (amountBySlug[TONCOIN.slug] === 0n && Object.keys(amountBySlug).length > 1) {
+    if (amountBySlug[TONCOIN.slug] === 0n && isKeyCountGreater(amountBySlug, 1)) {
       delete amountBySlug[TONCOIN.slug];
     }
 
     return <DappAmountField label={lang('Amount')} amountsBySlug={amountBySlug} />;
+  }
+
+  function renderFee() {
+    const amountBySlug = {
+      [TONCOIN.slug]: transaction.networkFee,
+    };
+    return <DappAmountField label={lang('Fee')} amountsBySlug={amountBySlug} />;
   }
 
   function renderPayload() {
@@ -173,6 +216,7 @@ function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
         copyNotification={lang('Address was copied!')}
       />
       {renderAmount()}
+      {renderFee()}
 
       {payloadElement && (
         <>
@@ -186,14 +230,10 @@ function DappTransfer({ transaction, tokensBySlug }: OwnProps) {
             )}
           </div>
           {transaction.isDangerous && (
-            <div className={styles.warningForPayload}>{lang('$hardware_payload_warning')}</div>
+            <div className={styles.warningForPayload}>{renderText(lang('$hardware_payload_warning'))}</div>
           )}
         </>
       )}
-
-      <DappTransferFee fullFee={transaction.fullFee} received={transaction.received} />
     </>
   );
 }
-
-export default memo(DappTransfer);

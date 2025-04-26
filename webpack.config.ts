@@ -15,7 +15,7 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
 import type { Compiler, Configuration } from 'webpack';
 import {
-  DefinePlugin, EnvironmentPlugin, IgnorePlugin, NormalModuleReplacementPlugin, ProvidePlugin,
+  EnvironmentPlugin, IgnorePlugin, NormalModuleReplacementPlugin, ProvidePlugin,
 } from 'webpack';
 
 import {
@@ -30,11 +30,7 @@ dotenv.config();
 // GitHub workflow uses an empty string as the default value if it's not in repository variables, so we cannot define a default value here
 process.env.BASE_URL = process.env.BASE_URL || PRODUCTION_URL;
 
-const {
-  APP_ENV = 'production',
-  BASE_URL,
-  HEAD,
-} = process.env;
+const { APP_ENV = 'production', BASE_URL } = process.env;
 const IS_CORE_WALLET = process.env.IS_CORE_WALLET === '1';
 const IS_CAPACITOR = process.env.IS_CAPACITOR === '1';
 const IS_EXTENSION = process.env.IS_EXTENSION === '1';
@@ -43,9 +39,7 @@ const IS_PACKAGED_ELECTRON = process.env.IS_PACKAGED_ELECTRON === '1';
 const IS_FIREFOX_EXTENSION = process.env.IS_FIREFOX_EXTENSION === '1';
 const IS_OPERA_EXTENSION = process.env.IS_OPERA_EXTENSION === '1';
 
-const gitRevisionPlugin = new GitRevisionPlugin();
-const branch = HEAD || gitRevisionPlugin.branch();
-const appRevision = !branch || branch === 'HEAD' ? gitRevisionPlugin.commithash()?.substring(0, 7) : branch;
+const appCommitHash = new GitRevisionPlugin().commithash();
 const canUseStatoscope = !IS_EXTENSION && !IS_PACKAGED_ELECTRON && !IS_CAPACITOR;
 const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
@@ -293,7 +287,7 @@ export default function createConfig(
         APP_ENV: 'production',
         APP_NAME: '',
         APP_VERSION: appVersion,
-        APP_REVISION: appRevision ?? '',
+        APP_COMMIT_HASH: appCommitHash ?? '',
         TEST_SESSION: '',
         TONCENTER_MAINNET_URL: '',
         TONCENTER_MAINNET_KEY: '',
@@ -323,16 +317,6 @@ export default function createConfig(
         SWAP_FEE_ADDRESS: '',
         DIESEL_ADDRESS: '',
         GIVEAWAY_CHECKIN_URL: '',
-      }),
-      /* eslint-enable no-null/no-null */
-      new DefinePlugin({
-        APP_REVISION: DefinePlugin.runtimeValue(
-          () => {
-            const { gitBranch, commit } = getGitMetadata();
-            return JSON.stringify(!gitBranch || gitBranch === 'HEAD' ? commit : gitBranch);
-          },
-          mode === 'development' ? true : [],
-        ),
       }),
       new ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
@@ -413,16 +397,6 @@ export default function createConfig(
 
     devtool:
       IS_EXTENSION ? 'cheap-source-map' : APP_ENV === 'production' && IS_PACKAGED_ELECTRON ? undefined : 'source-map',
-  };
-}
-
-function getGitMetadata() {
-  const revisionPlugin = new GitRevisionPlugin();
-  const commit = revisionPlugin.commithash()?.substring(0, 7);
-
-  return {
-    gitBranch: HEAD || gitRevisionPlugin.branch(),
-    commit,
   };
 }
 

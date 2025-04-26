@@ -127,15 +127,14 @@ export const resolveTokenAddress = withCacheAsync(async (network: ApiNetwork, to
 });
 
 export const getWalletPublicKey = withCacheAsync(async (network: ApiNetwork, address: string) => {
-  try {
-    const res = await getTonClient(network).callGetMethod(Address.parse(address), 'get_public_key');
-    const bigintKey = res.stack.readBigNumber();
-    const hex = bigintKey.toString(16).padStart(64, '0');
-    return hexToBytes(hex);
-  } catch (err) {
-    logDebugError('getWalletPublicKey', err);
+  const res = await getTonClient(network).runMethodWithError(Address.parse(address), 'get_public_key');
+  if (res.exit_code !== 0) {
     return undefined;
   }
+
+  const bigintKey = res.stack.readBigNumber();
+  const hex = bigintKey.toString(16).padStart(64, '0');
+  return hexToBytes(hex);
 });
 
 export const getJettonPoolStakeWallet = withCacheAsync(async (

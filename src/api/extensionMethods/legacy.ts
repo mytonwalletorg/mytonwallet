@@ -38,8 +38,9 @@ export async function onDappSendUpdates(onDappUpdate: OnApiSiteUpdate) {
 
 export async function getBalance() {
   const accountId = await getCurrentAccountIdOrFail();
+  const account = await fetchStoredAccount(accountId);
 
-  return ton.getAccountBalance(accountId);
+  return 'ton' in account ? ton.getAccountBalance(accountId) : 0n;
 }
 
 export async function requestAccounts() {
@@ -48,7 +49,7 @@ export async function requestAccounts() {
     return [];
   }
 
-  const tonWallet = await fetchStoredTonWallet(accountId);
+  const { ton: tonWallet } = await fetchStoredAccount(accountId);
   if (!tonWallet) {
     return [];
   }
@@ -62,9 +63,14 @@ export async function requestWallets() {
     return [];
   }
 
+  const { ton: tonWallet } = await fetchStoredAccount(accountId);
+  if (!tonWallet) {
+    return [];
+  }
+
   const { network } = parseAccountId(accountId);
-  const { address, publicKey, version } = await fetchStoredTonWallet(accountId);
-  const wallet = ton.buildWallet(network, publicKey, version);
+  const { address, publicKey, version } = tonWallet;
+  const wallet = ton.buildWallet(network, publicKey!, version);
 
   return [{
     address,
@@ -162,6 +168,7 @@ export async function sendTransaction(params: {
 
   const { address: fromAddress } = await fetchStoredTonWallet(accountId);
   createLocalTransaction(accountId, 'ton', {
+    txId: result.msgHashNormalized,
     amount,
     fromAddress,
     toAddress,
@@ -236,17 +243,19 @@ async function sendLedgerTransaction(
   });
 
   let msgHash: string;
+  let msgHashNormalized: string;
 
   try {
     const [signedMessage] = await promise as ApiSignedTransfer[];
 
-    ({ msgHash } = await ton.sendSignedMessage(accountId, signedMessage));
+    ({ msgHash, msgHashNormalized } = await ton.sendSignedMessage(accountId, signedMessage));
   } catch (err) {
     logDebugError('sendLedgerTransaction', err);
     return false;
   }
 
   createLocalTransaction(accountId, 'ton', {
+    txId: msgHashNormalized,
     amount,
     fromAddress,
     toAddress,

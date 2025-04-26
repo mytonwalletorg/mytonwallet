@@ -109,7 +109,7 @@ async function getPassword(config: AuthConfig) {
       throw new Error('Unexpected auth kind');
     }
   } catch (err) {
-    logDebugError('submitTransferPassword', err);
+    logDebugError('getPassword', err);
   }
 
   return password;

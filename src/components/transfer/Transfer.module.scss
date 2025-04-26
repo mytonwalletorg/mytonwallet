@@ -1,84 +1,15 @@
 @import "../../styles/mixins";
 
 .modalDialog {
-  height: 35.5rem;
+  height: 40.5rem;
 
   @supports (height: var(--safe-area-bottom)) {
-    height: calc(35.5rem + var(--safe-area-bottom));
+    height: calc(40.5rem + var(--safe-area-bottom));
   }
 
   :global(.is-native-bottom-sheet) & {
-    height: calc(35.5rem + var(--safe-area-bottom, 0rem));
+    height: calc(40.5rem + var(--safe-area-bottom, 0rem));
   }
-}
-
-.inputButton {
-  position: absolute;
-  right: 0.5rem;
-  bottom: 0.5rem;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 2rem;
-  height: 2rem;
-
-  font-size: 1.25rem;
-  color: var(--color-gray-3);
-
-  border-radius: var(--border-radius-small) !important;
-
-  &:active {
-    color: var(--color-input-button-text);
-
-    background-color: var(--color-input-button-background);
-
-    // Optimization
-    transition: none;
-  }
-
-  @media (hover: hover) {
-    &:hover,
-    &:focus-visible {
-      color: var(--color-input-button-text);
-
-      background-color: var(--color-input-button-background);
-    }
-  }
-}
-
-.inputButtonClear {
-  color: var(--color-gray-2);
-
-  &:active {
-    color: var(--color-gray-2);
-
-    opacity: 0.85;
-    background-color: unset;
-
-    // Optimization
-    transition: none;
-  }
-
-  @media (hover: hover) {
-    &:hover,
-    &:focus-visible {
-      color: var(--color-gray-2);
-
-      opacity: 0.85;
-      background-color: unset;
-    }
-  }
-}
-
-.inputButtonTransition {
-  width: auto;
-  height: auto;
-}
-
-.inputButtonShifted {
-  right: 2.5rem;
 }
 
 .amountInput {
@@ -156,10 +87,6 @@
 }
 
 .label {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-
   margin-bottom: 0.5rem;
 
   font-weight: 700;
@@ -312,14 +239,10 @@
   color: var(--color-gray-3);
   white-space: nowrap;
 
-  transition: opacity 150ms;
+  @include transition(opacity 150ms);
 
   .savedAddressDelete:hover + & {
     opacity: 0;
-  }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
   }
 }
 
@@ -338,14 +261,10 @@
 
   opacity: 0;
 
-  transition: opacity 150ms, color 150ms;
+  @include transition("opacity 150ms, color 150ms");
 
   &:hover {
     opacity: 1;
-  }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
   }
 
   /* stylelint-disable-next-line order/order, at-rule-empty-line-before */
@@ -436,7 +355,7 @@
 }
 
 .inputWithIcon {
-  padding-right: 2.375rem;
+  padding-right: 3.625rem;
 }
 
 textarea.inputStatic {
@@ -504,9 +423,7 @@ textarea.inputStatic {
 }
 
 .warningTooltipContainer {
-  z-index: 1;
-
-  width: 18.9375rem;
+  max-width: 18.9375rem !important;
 }
 
 .transactionBanner {

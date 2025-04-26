@@ -16,6 +16,7 @@ export type BottomSheetKeys =
   | 'swap-activity'
   | 'backup'
   | 'add-account'
+  | 'import-account'
   | 'settings'
   | 'qr-scanner'
   | 'dapp-connect'

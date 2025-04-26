@@ -172,10 +172,13 @@ function doesLocalActivityMatch(localActivity: ApiActivity, chainActivity: ApiAc
 }
 
 function notifyAboutNewActivities(global: GlobalState, newActivities: ApiActivity[]) {
+  if (!global.settings.canPlaySounds) {
+    return;
+  }
+
   const shouldPlaySound = newActivities.some((activity) => {
     return activity.kind === 'transaction'
       && activity.isIncoming
-      && global.settings.canPlaySounds
       && (Date.now() - activity.timestamp < TX_AGE_TO_PLAY_SOUND)
       && !(
         global.settings.areTinyTransfersHidden

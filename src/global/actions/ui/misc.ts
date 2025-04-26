@@ -3,7 +3,12 @@ import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import type { LedgerTransport } from '../../../util/ledger/types';
 import type { GlobalState } from '../../types';
 import {
-  AppState, AuthState, HardwareConnectState, SettingsState, SwapState, TransferState,
+  AppState,
+  AuthState,
+  HardwareConnectState,
+  SettingsState,
+  SwapState,
+  TransferState,
 } from '../../types';
 
 import {
@@ -58,7 +63,7 @@ import {
   selectCurrentAccount,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
-  selectFirstNonHardwareAccount,
+  selectIsPasswordPresent,
 } from '../../selectors';
 import { switchAccount } from '../api/auth';
 
@@ -151,10 +156,17 @@ addActionHandler('setCurrentTokenPeriod', (global, actions, { period }) => {
 });
 
 addActionHandler('addAccount', async (global, actions, { method, password, isAuthFlow }) => {
-  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
+  const isPasswordPresent = selectIsPasswordPresent(global);
   const isMnemonicImport = method === 'importMnemonic';
 
-  if (firstNonHardwareAccount) {
+  if (isPasswordPresent) {
+    if (!isAuthFlow) {
+      global = updateAccounts(global, {
+        isLoading: true,
+      });
+      setGlobal(global);
+    }
+
     if (!(await callApi('verifyPassword', password))) {
       global = getGlobal();
       if (isAuthFlow) {
@@ -180,7 +192,7 @@ addActionHandler('addAccount', async (global, actions, { method, password, isAut
   }
 
   global = getGlobal();
-  if (isMnemonicImport || !firstNonHardwareAccount) {
+  if (isMnemonicImport || !isPasswordPresent) {
     global = { ...global, isAddAccountModalOpen: undefined };
   } else {
     global = updateAccounts(global, { isLoading: true });
@@ -196,8 +208,8 @@ addActionHandler('addAccount', async (global, actions, { method, password, isAut
 
 addActionHandler('addAccount2', (global, actions, { method, password }) => {
   const isMnemonicImport = method === 'importMnemonic';
-  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
-  const authState = firstNonHardwareAccount
+  const isPasswordPresent = selectIsPasswordPresent(global);
+  const authState = isPasswordPresent
     ? isMnemonicImport
       ? AuthState.importWallet
       : undefined
@@ -207,7 +219,7 @@ addActionHandler('addAccount2', (global, actions, { method, password }) => {
         : (IS_BIOMETRIC_AUTH_SUPPORTED ? AuthState.createBiometrics : AuthState.createPassword)
     );
 
-  if (isMnemonicImport || !firstNonHardwareAccount) {
+  if (isMnemonicImport || !isPasswordPresent) {
     global = { ...global, appState: AppState.Auth };
   }
   global = updateAuth(global, { password, state: authState });
@@ -644,12 +656,9 @@ addActionHandler('changeBaseCurrency', async (global, actions, { currency }) => 
   }
 
   await callApi('setBaseCurrency', currency);
-  await callApi('tryUpdatePrices');
-
-  await Promise.all([
-    callApi('tryUpdateTokens'),
-    callApi('tryUpdateSwapTokens'),
-  ]);
+  await callApi('tryUpdateTokens');
+  // Swap tokens will be merged with the new prices loaded in `tryUpdateTokens`
+  await callApi('tryUpdateSwapTokens');
 });
 
 addActionHandler('setIsPinAccepted', (global) => {
@@ -770,6 +779,7 @@ addActionHandler('clearAccountLoading', (global) => {
 
 addActionHandler('authorizeDiesel', (global) => {
   const address = selectCurrentAccount(global)!.addressByChain.ton;
+  if (!address) throw new Error('TON address missing');
   setGlobal(updateCurrentAccountState(global, { isDieselAuthorizationStarted: true }));
   void openUrl(`https://t.me/${BOT_USERNAME}?start=auth-${address}`);
 });

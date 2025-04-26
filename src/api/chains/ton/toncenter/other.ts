@@ -1,6 +1,6 @@
 import type { ApiNetwork, ApiWalletInfo } from '../../../types';
 import type { ApiTonWalletVersion } from '../types';
-import type { AccountState, AddressBook, WalletState, WalletVersion } from './types';
+import type { AccountState, AddressBook, MetadataMap, WalletState, WalletVersion } from './types';
 
 import { TONCENTER_MAINNET_URL, TONCENTER_TESTNET_URL } from '../../../../config';
 import { buildTxId } from '../../../../util/activities';
@@ -61,7 +61,7 @@ export async function getWalletInfos(network: ApiNetwork, addresses: string[]): 
   return mapValues(states, (state) => {
     return {
       address: toBase64Address(state.address, false),
-      version: VERSION_MAP[state.wallet_type],
+      version: state.status === 'active' && state.is_wallet ? VERSION_MAP[state.wallet_type] : undefined,
       balance: BigInt(state.balance),
       isInitialized: state.status === 'active',
       lastTxId: state.last_transaction_hash ? buildTxId(state.last_transaction_hash) : undefined,
@@ -80,6 +80,10 @@ export async function getAccountStates(network: ApiNetwork, addresses: string[])
     state.address = addressByRaw[state.address.toLowerCase()];
   }
   return buildCollectionByKey(states, 'address');
+}
+
+export function fetchMetadata(network: ApiNetwork, addresses: string[]): Promise<MetadataMap> {
+  return callToncenterV3<MetadataMap>(network, '/metadata', { address: addresses.join(',') });
 }
 
 export function callToncenterV3<T = any>(network: ApiNetwork, path: string, data?: AnyLiteral) {

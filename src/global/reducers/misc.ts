@@ -4,7 +4,7 @@ import type {
   ApiSwapAsset,
   ApiTokenWithPrice,
 } from '../../api/types';
-import type { Account, AccountState, GlobalState } from '../types';
+import type { Account, AccountState, AccountType, GlobalState } from '../types';
 
 import {
   APP_NAME, IS_CORE_WALLET, POPULAR_WALLET_VERSIONS, TON_USDT_SLUG, TONCOIN,
@@ -58,6 +58,7 @@ export function clearIsPinAccepted(global: GlobalState): GlobalState {
 export function createAccount({
   global,
   accountId,
+  type,
   addressByChain,
   partial,
   titlePostfix,
@@ -65,38 +66,63 @@ export function createAccount({
 }: {
   global: GlobalState;
   accountId: string;
-  addressByChain: Record<ApiChain, string>;
+  type: AccountType;
+  addressByChain: Account['addressByChain'];
   partial?: Partial<Account>;
   titlePostfix?: string;
   network?: ApiNetwork;
 }) {
+  const account: Account = {
+    ...partial,
+    type,
+    addressByChain,
+  };
   let shouldForceAccountEdit = true;
 
-  if (!partial?.title) {
+  if (!account.title) {
     network = network || selectCurrentNetwork(global);
     const accounts = selectNetworkAccounts(global) || {};
     const accountAmount = Object.keys(accounts).length;
     const isMainnet = network === 'mainnet';
-    const titlePrefix = isMainnet ? 'Wallet' : 'Testnet Wallet';
+
+    const viewWalletsCount = Object.values(accounts).filter((acc) => acc.type === 'view').length;
+    const regularWalletsCount = accountAmount - viewWalletsCount;
+
+    const titlePrefix = type === 'view'
+      ? 'View Wallet'
+      : isMainnet ? 'Wallet' : 'Testnet Wallet';
     const postfix = titlePostfix ? ` ${titlePostfix}` : '';
-    let title = `${titlePrefix} ${accountAmount + 1}${postfix}`;
+
+    const count = type === 'view' ? viewWalletsCount + 1 : regularWalletsCount + 1;
+    account.title = `${titlePrefix} ${count}${postfix}`;
 
     if (accountAmount === 0) {
-      title = isMainnet ? APP_NAME : `Testnet ${APP_NAME}`;
+      account.title = isMainnet ? APP_NAME : `Testnet ${APP_NAME}`;
       shouldForceAccountEdit = false;
     }
-
-    partial = { ...partial, title };
   } else if (titlePostfix) {
-    const title = partial.title?.replace(new RegExp(`\\b(${POPULAR_WALLET_VERSIONS.join('|')})\\b`, 'g'), '');
-    partial = { ...partial, title: `${title.trim()} ${titlePostfix}` };
+    const title = account.title?.replace(new RegExp(`\\b(${POPULAR_WALLET_VERSIONS.join('|')})\\b`, 'g'), '');
+    account.title = `${title.trim()} ${titlePostfix}`;
   }
 
   if (!IS_CORE_WALLET) {
     global = { ...global, shouldForceAccountEdit };
   }
 
-  return updateAccount(global, accountId, { ...partial, addressByChain });
+  if (selectAccount(global, accountId)) {
+    throw new Error(`Account ${accountId} already exist`);
+  }
+
+  return {
+    ...global,
+    accounts: {
+      ...global.accounts,
+      byId: {
+        ...global.accounts?.byId,
+        [accountId]: account,
+      },
+    },
+  };
 }
 
 export function updateAccount(
@@ -104,6 +130,12 @@ export function updateAccount(
   accountId: string,
   partial: Partial<Account>,
 ) {
+  const account = selectAccount(global, accountId);
+
+  if (!account) {
+    throw new Error(`Account ${accountId} doesn't exist`);
+  }
+
   return {
     ...global,
     accounts: {
@@ -111,9 +143,9 @@ export function updateAccount(
       byId: {
         ...global.accounts?.byId,
         [accountId]: {
-          ...selectAccount(global, accountId),
+          ...account,
           ...partial,
-        } as Account,
+        },
       },
     },
   };
@@ -126,9 +158,9 @@ export function renameAccount(global: GlobalState, accountId: string, title: str
 export function createAccountsFromGlobal(global: GlobalState): GlobalState {
   const { firstNetworkAccount, secondNetworkAccount } = global.auth;
 
-  global = createAccount({ global, ...firstNetworkAccount! });
+  global = createAccount({ global, type: 'mnemonic', ...firstNetworkAccount! });
   if (secondNetworkAccount) {
-    global = createAccount({ global, ...secondNetworkAccount });
+    global = createAccount({ global, type: 'mnemonic', ...secondNetworkAccount });
   }
 
   return global;
@@ -143,6 +175,7 @@ export function updateBalances(
   const balances: ApiBalanceBySlug = { ...chainBalances };
   const currentBalances = selectAccountState(global, accountId)?.balances?.bySlug ?? {};
   const importedSlugs = selectAccountSettings(global, accountId)?.importedSlugs ?? [];
+  const hasTonWallet = Boolean(selectAccount(global, accountId)?.addressByChain?.ton);
 
   for (const [slug, balance] of Object.entries(currentBalances)) {
     if (getChainBySlug(slug) !== chain) {
@@ -151,7 +184,10 @@ export function updateBalances(
   }
 
   // Force balance value for USDT-TON and manual imported tokens
-  for (const slug of [...importedSlugs, TON_USDT_SLUG]) {
+  let forcedSlugs = importedSlugs;
+  if (hasTonWallet) forcedSlugs = [...forcedSlugs, TON_USDT_SLUG];
+
+  for (const slug of forcedSlugs) {
     if (!(slug in balances)) {
       balances[slug] = 0n;
     }
@@ -180,20 +216,24 @@ export function updateTokens(
   partial: Record<string, ApiTokenWithPrice>,
   withDeepCompare = false,
 ): GlobalState {
-  const currentTokens = global.tokenInfo?.bySlug;
+  const existingTokens = global.tokenInfo?.bySlug;
 
   // If the backend does not work, then we won't delete the old prices
-  if (!partial[TONCOIN.slug].quote.price) {
+  if (!partial[TONCOIN.slug].price) {
     partial = Object.values(partial).reduce((result, token) => {
+      const existingToken = existingTokens?.[token.slug];
+
       result[token.slug] = {
         ...token,
-        quote: currentTokens?.[token.slug]?.quote ?? token.quote,
+        price: existingToken?.price ?? token.price,
+        priceUsd: existingToken?.priceUsd ?? token.priceUsd,
+        percentChange24h: existingToken?.percentChange24h ?? token.percentChange24h,
       };
       return result;
     }, {} as Record<string, ApiTokenWithPrice>);
   }
 
-  if (withDeepCompare && currentTokens && isPartialDeepEqual(currentTokens, partial)) {
+  if (withDeepCompare && existingTokens && isPartialDeepEqual(existingTokens, partial)) {
     return global;
   }
 
@@ -202,7 +242,7 @@ export function updateTokens(
     tokenInfo: {
       ...global.tokenInfo,
       bySlug: {
-        ...currentTokens,
+        ...existingTokens,
         ...partial,
       },
     },

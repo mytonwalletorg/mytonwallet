@@ -1,7 +1,7 @@
 import type {
   Account, AccountSettings, AccountState, NotificationType,
 } from '../../types';
-import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
+import { ApiAuthError, ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../../api/types';
 import { AppState } from '../../types';
 
 import {
@@ -138,6 +138,7 @@ addActionHandler('afterSignOut', (global, actions, payload) => {
     if (global.settings.authConfig?.kind === 'native-biometrics') {
       void authApi.removeNativeBiometrics();
     }
+    actions.setInMemoryPassword({ password: undefined, force: true });
 
     actions.resetApiSettings({ areAllDisabled: true });
   }
@@ -232,6 +233,7 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       actions.showDialog({ message: 'Invalid amount' });
       break;
 
+    case ApiAuthError.InvalidAddress:
     case ApiTransactionDraftError.InvalidToAddress:
       actions.showDialog({ message: 'Invalid address' });
       break;
@@ -248,6 +250,7 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
       actions.showDialog({ message: 'Insufficient balance' });
       break;
 
+    case ApiAuthError.DomainNotResolved:
     case ApiTransactionDraftError.DomainNotResolved:
       actions.showDialog({ message: 'Domain is not connected to a wallet' });
       break;

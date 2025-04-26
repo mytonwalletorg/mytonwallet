@@ -1,0 +1,9 @@
+@mixin transition($props, $importantSuffix: '') {
+  & {
+    transition: #{$props} #{$importantSuffix};
+
+    :global(html.animation-level-0) & {
+      transition: none !important;
+    }
+  }
+}

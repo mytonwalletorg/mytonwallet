@@ -1,7 +1,7 @@
 import React, { memo, useMemo, useState } from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
-import type { ApiChain } from '../../api/types';
+import type { Account } from '../../global/types';
 import type { TabWithProperties } from '../ui/TabList';
 
 import { selectAccount } from '../../global/selectors';
@@ -20,7 +20,7 @@ import TronContent from './content/TronContent';
 import styles from './ReceiveModal.module.scss';
 
 interface StateProps {
-  addressByChain?: Record<ApiChain, string>;
+  addressByChain?: Account['addressByChain'];
   isLedger?: boolean;
 }
 
@@ -81,7 +81,7 @@ function Content({
             isActive={isOpen && isActive}
             isStatic={isStatic}
             isLedger={isLedger}
-            address={addressByChain!.ton}
+            address={addressByChain!.ton!}
             onClose={onClose}
           />
         );
@@ -91,7 +91,7 @@ function Content({
           <TronContent
             isActive={isOpen && isActive}
             isStatic={isStatic}
-            address={addressByChain!.tron}
+            address={addressByChain!.tron!}
             onClose={onClose}
           />
         );

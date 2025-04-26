@@ -8,6 +8,7 @@ import type {
   ApiSwapAsset,
   ApiVestingInfo,
 } from './backend';
+import type { ApiEmulationResult } from './emulation';
 import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBalanceBySlug,
@@ -18,7 +19,7 @@ import type {
   ApiNft,
   ApiStakingState,
   ApiTokenWithPrice,
-  ApiWalletInfo,
+  ApiWalletWithVersionInfo,
 } from './misc';
 import type { ApiParsedPayload } from './payload';
 import type { ApiDapp, ApiTonWallet } from './storage';
@@ -102,6 +103,7 @@ export type ApiUpdateDappSendTransactions = {
   accountId: string;
   dapp: ApiDapp;
   transactions: ApiDappTransfer[];
+  emulation?: Pick<ApiEmulationResult, 'activities' | 'realFee'>;
   vestingAddress?: string;
 };
 
@@ -204,7 +206,7 @@ export type ApiUpdateWalletVersions = {
   type: 'updateWalletVersions';
   accountId: string;
   currentVersion: ApiTonWalletVersion;
-  versions: ApiWalletInfo[];
+  versions: ApiWalletWithVersionInfo[];
 };
 
 export type ApiOpenUrl = {
@@ -232,6 +234,7 @@ export type ApiUpdateVesting = {
 export type ApiUpdatingStatus = {
   type: 'updatingStatus';
   kind: 'balance' | 'activities';
+  accountId: string;
   isUpdating?: boolean;
 };
 

@@ -12,7 +12,11 @@ type TracesResponse = {
 export async function fetchTrace(options: {
   network: ApiNetwork;
   traceId: string;
-}): Promise<{ trace: Trace; addressBook: AddressBook }> {
+}): Promise<{
+    trace: Trace;
+    addressBook: AddressBook;
+    metadata: MetadataMap;
+  }> {
   const { network, traceId } = options;
 
   const response = await callToncenterV3<TracesResponse>(network, '/traces', {
@@ -23,5 +27,6 @@ export async function fetchTrace(options: {
   return {
     trace: response.traces[0],
     addressBook: response.address_book,
+    metadata: response.metadata,
   };
 }

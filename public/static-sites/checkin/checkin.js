@@ -168,17 +168,19 @@ function handleSuccess(refAddress, referrals) {
   const refContainerEl = $('ref-container');
   const linkEl = refContainerEl.querySelector('a');
   linkEl.addEventListener('click', handleCopy);
-  linkEl.innerHTML = [
+  linkEl.append(
     REF_LINK_PREFIX.replace('https://', ''),
+    document.createElement('br'),
     address.slice(0, 24),
+    document.createElement('br'),
     address.slice(24),
-  ].join('<br />');
+  );
 
   $('show-referral-stats').classList.remove('faded');
   $('invited-me').textContent = shortenAddress(refAddress);
-  $('invited-by-me').innerHTML = '<br />' + referrals
-    .map(({ friendlyAddress }) => shortenAddress(friendlyAddress))
-    .join('<br />');
+  for (const { friendlyAddress } of referrals) {
+    $('invited-by-me').append(document.createElement('br'), shortenAddress(friendlyAddress));
+  }
 }
 
 function showError(msg) {

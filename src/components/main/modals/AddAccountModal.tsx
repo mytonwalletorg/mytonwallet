@@ -4,21 +4,20 @@ import { getActions, withGlobal } from '../../../global';
 import type { LedgerWalletInfo } from '../../../util/ledger/types';
 import { type Account, type HardwareConnectState, SettingsState } from '../../../global/types';
 
-import { ANIMATED_STICKER_BIG_SIZE_PX, APP_NAME } from '../../../config';
-import renderText from '../../../global/helpers/renderText';
-import { selectFirstNonHardwareAccount, selectNetworkAccounts } from '../../../global/selectors';
+import { IS_CORE_WALLET } from '../../../config';
+import { selectIsPasswordPresent, selectNetworkAccounts } from '../../../global/selectors';
+import { getHasInMemoryPassword, getInMemoryPassword } from '../../../util/authApi/inMemoryPasswordStore';
 import buildClassName from '../../../util/buildClassName';
 import resolveSlideTransitionName from '../../../util/resolveSlideTransitionName';
 import { IS_LEDGER_SUPPORTED } from '../../../util/windowEnvironment';
-import { ANIMATED_STICKERS_PATHS } from '../../ui/helpers/animatedAssets';
 
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
+import AuthImportViewAccount from '../../auth/AuthImportViewAccount';
 import LedgerConnect from '../../ledger/LedgerConnect';
 import LedgerSelectWallets from '../../ledger/LedgerSelectWallets';
-import AnimatedIconWithPreview from '../../ui/AnimatedIconWithPreview';
-import Button from '../../ui/Button';
+import ListItem from '../../ui/ListItem';
 import Modal from '../../ui/Modal';
 import ModalHeader from '../../ui/ModalHeader';
 import Transition from '../../ui/Transition';
@@ -32,7 +31,7 @@ interface StateProps {
   isLoading?: boolean;
   error?: string;
 
-  firstNonHardwareAccount?: Account;
+  isPasswordPresent: boolean;
   hardwareWallets?: LedgerWalletInfo[];
   accounts?: Record<string, Account>;
   hardwareState?: HardwareConnectState;
@@ -47,6 +46,8 @@ const enum RenderingState {
 
   ConnectHardware,
   SelectAccountsHardware,
+
+  ViewMode,
 }
 
 function AddAccountModal({
@@ -54,7 +55,7 @@ function AddAccountModal({
   isLoading,
   error,
   hardwareWallets,
-  firstNonHardwareAccount,
+  isPasswordPresent,
   accounts,
   hardwareState,
   isLedgerConnected,
@@ -87,7 +88,7 @@ function AddAccountModal({
   });
 
   const handleNewAccountClick = useLastCallback(() => {
-    if (!firstNonHardwareAccount) {
+    if (!isPasswordPresent) {
       addAccount({
         method: 'createAccount',
         password: '',
@@ -95,12 +96,19 @@ function AddAccountModal({
       return;
     }
 
-    setRenderingKey(RenderingState.Password);
-    setIsNewAccountImporting(false);
+    if (getHasInMemoryPassword()) {
+      void getInMemoryPassword().then((password) => addAccount({
+        method: 'createAccount',
+        password: password!,
+      }));
+    } else {
+      setRenderingKey(RenderingState.Password);
+      setIsNewAccountImporting(false);
+    }
   });
 
   const handleImportAccountClick = useLastCallback(() => {
-    if (!firstNonHardwareAccount) {
+    if (!isPasswordPresent) {
       addAccount({
         method: 'importMnemonic',
         password: '',
@@ -108,8 +116,20 @@ function AddAccountModal({
       return;
     }
 
-    setRenderingKey(RenderingState.Password);
     setIsNewAccountImporting(true);
+
+    if (getHasInMemoryPassword()) {
+      void getInMemoryPassword().then((password) => addAccount({
+        method: 'importMnemonic',
+        password: password!,
+      }));
+    } else {
+      setRenderingKey(RenderingState.Password);
+    }
+  });
+
+  const handleViewModeWalletClick = useLastCallback(() => {
+    setRenderingKey(RenderingState.ViewMode);
   });
 
   const handleImportHardwareWalletClick = useLastCallback(() => {
@@ -138,71 +158,66 @@ function AddAccountModal({
     openSettingsWithState({ state: SettingsState.WalletVersion });
   });
 
-  function renderSelector(isActive?: boolean) {
+  function renderSelector() {
     return (
       <>
         <ModalHeader title={lang('Add Wallet')} onClose={closeAddAccountModal} />
-        <AnimatedIconWithPreview
-          size={ANIMATED_STICKER_BIG_SIZE_PX}
-          play={isActive}
-          noLoop={false}
-          nonInteractive
-          className={styles.sticker}
-          tgsUrl={ANIMATED_STICKERS_PATHS.forge}
-          previewUrl={ANIMATED_STICKERS_PATHS.forgePreview}
-        />
-        <p className={styles.modalText}>
-          {renderText(lang('$add_account_description1', { app_name: APP_NAME }))}
-        </p>
 
-        <div className={styles.modalButtons}>
-          <Button
-            isPrimary
-            className={buildClassName(styles.button, styles.button_single)}
+        <div className={buildClassName(styles.actionsSection, styles.actionsSectionShift)}>
+          <ListItem
+            icon="wallet-add"
+            label={lang('Create New Wallet')}
             onClick={handleNewAccountClick}
-          >
-            {lang('Create Wallet')}
-          </Button>
-          <span className={styles.importText}>{lang('or import from')}</span>
-          <div className={buildClassName(
-            styles.importButtons,
-            !isOtherVersionsExist && styles.importButtonsWithMargin,
-          )}
-          >
-            <Button
-              className={buildClassName(styles.button, !IS_LEDGER_SUPPORTED && styles.button_single)}
-              onClick={handleImportAccountClick}
-            >
-              {lang('Secret Words')}
-            </Button>
-            {IS_LEDGER_SUPPORTED && (
-              <Button
-                className={buildClassName(styles.button, styles.ledgerButton)}
-                onClick={handleImportHardwareWalletClick}
-              >
-                {lang('Ledger')}
-              </Button>
-            )}
-          </div>
-          {isOtherVersionsExist && (
-            <div className={styles.walletVersionBlock}>
-              <span>
-                {lang('$wallet_switch_version_1', {
-                  action: (
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={handleOpenSettingWalletVersion}
-                      className={styles.walletVersionText}
-                    >
-                      {lang('$wallet_switch_version_2')}
-                    </div>
-                  ),
-                })}
-              </span>
-            </div>
+            isLoading={!isNewAccountImporting && isLoading}
+          />
+        </div>
+
+        <span className={styles.importText}>{lang('or import from')}</span>
+
+        <div className={styles.actionsSection}>
+          <ListItem
+            icon="key"
+            label={lang(IS_CORE_WALLET ? '24 Secret Words' : '12/24 Secret Words')}
+            onClick={handleImportAccountClick}
+            isLoading={isNewAccountImporting && isLoading}
+          />
+          {IS_LEDGER_SUPPORTED && (
+            <ListItem
+              icon="ledger-alt"
+              label={lang('Ledger')}
+              onClick={handleImportHardwareWalletClick}
+            />
           )}
         </div>
+
+        {!IS_CORE_WALLET && (
+          <div className={styles.actionsSection}>
+            <ListItem
+              icon="wallet-view"
+              label={lang('View Any Address')}
+              onClick={handleViewModeWalletClick}
+            />
+          </div>
+        )}
+
+        {isOtherVersionsExist && (
+          <div className={styles.walletVersionBlock}>
+            <span>
+              {lang('$wallet_switch_version_1', {
+                action: (
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={handleOpenSettingWalletVersion}
+                    className={styles.walletVersionText}
+                  >
+                    {lang('$wallet_switch_version_2')}
+                  </div>
+                ),
+              })}
+            </span>
+          </div>
+        )}
       </>
     );
   }
@@ -211,7 +226,7 @@ function AddAccountModal({
   function renderContent(isActive: boolean, isFrom: boolean, currentKey: number) {
     switch (currentKey) {
       case RenderingState.Initial:
-        return renderSelector(isActive);
+        return renderSelector();
       case RenderingState.Password:
         return (
           <AddAccountPasswordModal
@@ -245,6 +260,15 @@ function AddAccountModal({
             onClose={closeAddAccountModal}
           />
         );
+      case RenderingState.ViewMode:
+        return (
+          <AuthImportViewAccount
+            isActive={isActive}
+            isLoading={isLoading}
+            onCancel={handleBackClick}
+            onClose={closeAddAccountModal}
+          />
+        );
     }
   }
 
@@ -265,7 +289,9 @@ function AddAccountModal({
         className={buildClassName(modalStyles.transition, 'custom-scroll')}
         slideClassName={modalStyles.transitionSlide}
         activeKey={renderingKey}
-        nextKey={renderingKey === RenderingState.Initial ? RenderingState.Password : undefined}
+        nextKey={
+          renderingKey === RenderingState.Initial && !getHasInMemoryPassword() ? RenderingState.Password : undefined
+        }
       >
         {renderContent}
       </Transition>
@@ -275,7 +301,7 @@ function AddAccountModal({
 
 export default memo(withGlobal((global): StateProps => {
   const accounts = selectNetworkAccounts(global);
-  const firstNonHardwareAccount = selectFirstNonHardwareAccount(global);
+  const isPasswordPresent = selectIsPasswordPresent(global);
   const { byId: versionById } = global.walletVersions ?? {};
   const versions = versionById?.[global.currentAccountId!];
   const isOtherVersionsExist = !!versions?.length;
@@ -293,7 +319,7 @@ export default memo(withGlobal((global): StateProps => {
     error: global.accounts?.error,
 
     accounts,
-    firstNonHardwareAccount,
+    isPasswordPresent,
     hardwareState,
     hardwareWallets,
     isLedgerConnected,

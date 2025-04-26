@@ -9,14 +9,13 @@ import type { ApiBaseCurrency, ApiChain, ApiNft } from '../../api/types';
 import type { Account, SavedAddress, UserToken } from '../../global/types';
 import type { ExplainedTransferFee } from '../../util/fee/transferFee';
 import type { FeePrecision, FeeTerms } from '../../util/fee/types';
-import type { DropdownItem } from '../ui/Dropdown';
 import { TransferState } from '../../global/types';
 
 import { PRICELESS_TOKEN_HASHES, STAKED_TOKEN_SLUGS, TONCOIN } from '../../config';
 import { Big } from '../../lib/big.js';
-import renderText from '../../global/helpers/renderText';
 import {
   selectCurrentAccountState,
+  selectCurrentAccountTokenBalance,
   selectCurrentAccountTokens,
   selectIsHardwareAccount,
   selectIsMultichainAccount,
@@ -25,20 +24,20 @@ import {
 import buildClassName from '../../util/buildClassName';
 import { readClipboardContent } from '../../util/clipboard';
 import { SECOND } from '../../util/dateFormat';
-import { fromDecimal, toBig, toDecimal } from '../../util/decimals';
+import { fromDecimal, toBig } from '../../util/decimals';
 import { isDnsDomain } from '../../util/dns';
 import { stopEvent } from '../../util/domEvents';
 import {
   explainApiTransferFee, getMaxTransferAmount, isBalanceSufficientForTransfer,
 } from '../../util/fee/transferFee';
 import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
+import { getLocalAddressName } from '../../util/getLocalAddressName';
 import { vibrate } from '../../util/haptics';
 import { isValidAddressOrDomain } from '../../util/isValidAddressOrDomain';
 import { debounce } from '../../util/schedulers';
-import { shortenAddress } from '../../util/shortenAddress';
-import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
-import { IS_ANDROID, IS_CLIPBOARDS_SUPPORTED, IS_TOUCH_ENV } from '../../util/windowEnvironment';
-import { ASSET_LOGO_PATHS } from '../ui/helpers/assetLogos';
+import { trimStringByMaxBytes } from '../../util/text';
+import { getChainBySlug, getNativeToken } from '../../util/tokens';
+import { IS_ANDROID, IS_CLIPBOARDS_SUPPORTED } from '../../util/windowEnvironment';
 
 import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
 import useFlag from '../../hooks/useFlag';
@@ -50,15 +49,13 @@ import useShowTransition from '../../hooks/useShowTransition';
 
 import FeeDetailsModal from '../common/FeeDetailsModal';
 import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
-import AmountFieldMaxButton from '../ui/AmountFieldMaxButton';
 import Button from '../ui/Button';
-import Dropdown from '../ui/Dropdown';
 import FeeLine from '../ui/FeeLine';
-import Input from '../ui/Input';
-import InteractiveTextField from '../ui/InteractiveTextField';
-import Menu from '../ui/Menu';
-import RichNumberInput from '../ui/RichNumberInput';
 import Transition from '../ui/Transition';
+import AddressBook from './AddressBook';
+import AddressInput, { INPUT_CLEAR_BUTTON_ID } from './AddressInput';
+import AmountInputSection from './AmountInputSection';
+import CommentSection from './CommentSection';
 import NftChips from './NftChips';
 import NftInfo from './NftInfo';
 
@@ -71,6 +68,8 @@ interface OwnProps {
 
 interface StateProps {
   toAddress?: string;
+  resolvedAddress?: string;
+  toAddressName?: string;
   amount?: bigint;
   comment?: string;
   shouldEncrypt?: boolean;
@@ -80,8 +79,9 @@ interface StateProps {
   tokenSlug: string;
   tokens?: UserToken[];
   savedAddresses?: SavedAddress[];
-  currentAccountId?: string;
+  currentAccountId: string;
   accounts?: Record<string, Account>;
+  nativeTokenBalance: bigint;
   isEncryptedCommentSupported: boolean;
   isMemoRequired?: boolean;
   baseCurrency?: ApiBaseCurrency;
@@ -96,34 +96,17 @@ interface StateProps {
 
 const SAVED_ADDRESS_OPEN_DELAY = 300;
 const COMMENT_MAX_SIZE_BYTES = 5000;
-const SHORT_ADDRESS_SHIFT = 11;
-const MIN_ADDRESS_LENGTH_TO_SHORTEN = SHORT_ADDRESS_SHIFT * 2;
-const COMMENT_DROPDOWN_ITEMS = [
-  { value: 'raw', name: 'Comment or Memo' },
-  { value: 'encrypted', name: 'Encrypted Message' },
-];
 const ACTIVE_STATES = new Set([TransferState.Initial, TransferState.None]);
 const AUTHORIZE_DIESEL_INTERVAL_MS = SECOND;
 
-const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
-
 const runDebounce = debounce((cb) => cb(), 500, false);
-
-function doesSavedAddressFitSearch(savedAddress: SavedAddress, search: string) {
-  const searchQuery = search.toLowerCase();
-  const { address, name } = savedAddress;
-
-  return (
-    address.toLowerCase().startsWith(searchQuery)
-    || address.toLowerCase().endsWith(searchQuery)
-    || name.toLowerCase().split(/\s+/).some((part) => part.startsWith(searchQuery))
-  );
-}
 
 function TransferInitial({
   isStatic,
   tokenSlug,
   toAddress = '',
+  resolvedAddress,
+  toAddressName = '',
   amount,
   comment = '',
   shouldEncrypt,
@@ -132,6 +115,7 @@ function TransferInitial({
   realFee,
   savedAddresses,
   accounts,
+  nativeTokenBalance,
   currentAccountId,
   isEncryptedCommentSupported,
   isMemoRequired,
@@ -160,6 +144,7 @@ function TransferInitial({
     showDialog,
     authorizeDiesel,
     fetchTransferDieselState,
+    checkTransferAddress,
   } = getActions();
 
   const isNftTransfer = Boolean(nfts?.length);
@@ -184,6 +169,7 @@ function TransferInitial({
     symbol,
     chain,
     codeHash,
+    type: tokenType,
   } = transferToken || {};
 
   const [shouldRenderPasteButton, setShouldRenderPasteButton] = useState(IS_CLIPBOARDS_SUPPORTED);
@@ -191,9 +177,7 @@ function TransferInitial({
   const [isAddressBookOpen, openAddressBook, closeAddressBook] = useFlag();
   const [savedAddressForDeletion, setSavedAddressForDeletion] = useState<string | undefined>();
   const [savedChainForDeletion, setSavedChainForDeletion] = useState<ApiChain | undefined>();
-  const toAddressShort = toAddress.length > MIN_ADDRESS_LENGTH_TO_SHORTEN
-    ? shortenAddress(toAddress, SHORT_ADDRESS_SHIFT) || ''
-    : toAddress;
+
   const isAddressValid = chain ? isValidAddressOrDomain(toAddress, chain) : undefined;
   const otherAccountIds = useMemo(() => {
     return accounts ? Object.keys(accounts).filter((accountId) => accountId !== currentAccountId) : [];
@@ -201,10 +185,6 @@ function TransferInitial({
   const shouldUseAddressBook = useMemo(() => {
     return otherAccountIds.length > 0 || (savedAddresses && savedAddresses.length > 0);
   }, [otherAccountIds.length, savedAddresses]);
-
-  const nativeToken = useMemo(() => {
-    return tokens?.find((token) => !token.tokenAddress && token.chain === chain);
-  }, [tokens, chain])!;
 
   const isToncoin = tokenSlug === TONCOIN.slug;
 
@@ -218,8 +198,15 @@ function TransferInitial({
     : undefined;
   const renderingAmountInCurrency = useCurrentOrPrev(amountInCurrency, true);
   const withPasteButton = shouldRenderPasteButton && toAddress === '';
-  const withAddressClearButton = !!toAddress.length;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
+
+  const localAddressName = useMemo(() => getLocalAddressName({
+    address: toAddress,
+    chain: getChainBySlug(tokenSlug),
+    currentAccountId,
+    savedAddresses,
+    accounts: accounts!,
+  }), [accounts, currentAccountId, savedAddresses, toAddress, tokenSlug]);
 
   const explainedFee = useMemo(
     () => explainApiTransferFee({
@@ -231,7 +218,7 @@ function TransferInitial({
   // Note: this constant has 3 distinct meaningful values
   const isEnoughBalance = isBalanceSufficientForTransfer({
     tokenBalance: balance,
-    nativeTokenBalance: nativeToken.amount,
+    nativeTokenBalance,
     transferAmount: isNftTransfer ? 0n : amount,
     fullFee: explainedFee.fullFee?.terms,
     canTransferFullBalance: explainedFee.canTransferFullBalance,
@@ -256,31 +243,18 @@ function TransferInitial({
   const { shouldRender: shouldRenderCurrency, transitionClassNames: currencyClassNames } = useShowTransition(
     Boolean(amountInCurrency),
   );
+  const renderedCurrencyValue = useMemo(() => {
+    return (
+      <span className={buildClassName(styles.amountInCurrency, currencyClassNames)}>
+        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol, undefined, true)}
+      </span>);
+  }, [currencyClassNames, renderingAmountInCurrency, shortBaseSymbol]);
 
   const updateDieselState = useLastCallback(() => {
     fetchTransferDieselState({ tokenSlug });
   });
 
   useInterval(updateDieselState, authorizeDieselInterval);
-
-  const dropDownItems = useMemo(() => {
-    if (!tokens) {
-      return [];
-    }
-
-    return tokens.reduce<DropdownItem[]>((acc, token) => {
-      if ((token.amount > 0 && !token.isDisabled) || token.slug === tokenSlug) {
-        acc.push({
-          value: token.slug,
-          icon: ASSET_LOGO_PATHS[token.symbol.toLowerCase() as keyof typeof ASSET_LOGO_PATHS] || token.image,
-          overlayIcon: isMultichainAccount ? getChainNetworkIcon(token.chain) : undefined,
-          name: token.symbol,
-        });
-      }
-
-      return acc;
-    }, []);
-  }, [isMultichainAccount, tokenSlug, tokens]);
 
   useEffect(() => {
     if (
@@ -332,13 +306,13 @@ function TransferInitial({
   ]);
 
   useEffect(() => {
-    if (STAKED_TOKEN_SLUGS.has(tokenSlug) || PRICELESS_TOKEN_HASHES.has(codeHash ?? '')) {
+    if (tokenType === 'lp_token' || STAKED_TOKEN_SLUGS.has(tokenSlug) || PRICELESS_TOKEN_HASHES.has(codeHash ?? '')) {
       showDialog({
         title: lang('Warning!'),
         message: lang('$service_token_transfer_warning'),
       });
     }
-  }, [tokenSlug, codeHash, lang]);
+  }, [tokenType, tokenSlug, codeHash, lang]);
 
   const handleTokenChange = useLastCallback((slug: string) => {
     changeTransferToken({ tokenSlug: slug });
@@ -355,25 +329,7 @@ function TransferInitial({
   });
 
   const handleAddressFocus = useLastCallback(() => {
-    const el = toAddressRef.current!;
-
-    // `selectionStart` is only updated in the next frame after `focus` event
-    requestAnimationFrame(() => {
-      const caretPosition = el.selectionStart!;
-      markAddressFocused();
-
-      // Restore caret position after input field value has been focused and expanded
-      requestAnimationFrame(() => {
-        const newCaretPosition = caretPosition <= SHORT_ADDRESS_SHIFT + 3
-          ? caretPosition
-          : Math.max(0, el.value.length - (toAddressShort.length - caretPosition));
-
-        el.setSelectionRange(newCaretPosition, newCaretPosition);
-        if (newCaretPosition > SHORT_ADDRESS_SHIFT * 2) {
-          el.scrollLeft = el.scrollWidth - el.clientWidth;
-        }
-      });
-    });
+    markAddressFocused();
 
     if (shouldUseAddressBook) {
       // Simultaneous opening of the virtual keyboard and display of Saved Addresses causes animation degradation
@@ -385,23 +341,34 @@ function TransferInitial({
     }
   });
 
+  const handleAddressCheck = useLastCallback((address?: string) => {
+    if ((address && chain && isValidAddressOrDomain(address, chain)) || !address) {
+      checkTransferAddress({ address });
+    }
+  });
+
   const handleAddressBlur = useLastCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     unmarkAddressFocused();
 
     if (e.relatedTarget?.id === INPUT_CLEAR_BUTTON_ID) {
       handleAddressBookClose();
+      handleAddressCheck(toAddress);
 
       return;
     }
 
+    let addressToCheck = toAddress;
     if (isDnsDomain(toAddress) && toAddress !== toAddress.toLowerCase()) {
-      setTransferToAddress({ toAddress: toAddress.toLowerCase().trim() });
+      addressToCheck = toAddress.toLowerCase().trim();
+      setTransferToAddress({ toAddress: addressToCheck });
     } else if (toAddress !== toAddress.trim()) {
-      setTransferToAddress({ toAddress: toAddress.trim() });
+      addressToCheck = toAddress.trim();
+      setTransferToAddress({ toAddress: addressToCheck });
     }
 
     requestAnimationFrame(() => {
       handleAddressBookClose();
+      handleAddressCheck(addressToCheck);
     });
   });
 
@@ -411,6 +378,7 @@ function TransferInitial({
 
   const handleAddressClearClick = useLastCallback(() => {
     setTransferToAddress({ toAddress: undefined });
+    handleAddressCheck();
   });
 
   const handleQrScanClick = useLastCallback(() => {
@@ -435,7 +403,10 @@ function TransferInitial({
 
       if (type === 'text/plain') {
         isDisabledDebounce.current = true;
-        setTransferToAddress({ toAddress: text.trim() });
+        const newToAddress = text.trim();
+        setTransferToAddress({ toAddress: newToAddress });
+
+        handleAddressCheck(newToAddress);
       }
     } catch (err: any) {
       showNotification({ message: lang('Error reading clipboard') });
@@ -443,7 +414,7 @@ function TransferInitial({
     }
   });
 
-  const handleAddressBookItemClick = useLastCallback(
+  const handleAddressBookItemSelect = useLastCallback(
     (address: string) => {
       isDisabledDebounce.current = true;
       setTransferToAddress({ toAddress: address });
@@ -538,100 +509,9 @@ function TransferInitial({
     });
   });
 
-  const handleCommentOptionsChange = useLastCallback((option: string) => {
-    setTransferShouldEncrypt({ shouldEncrypt: option === 'encrypted' });
-  });
-
   const [isFeeModalOpen, openFeeModal, closeFeeModal] = useFeeModal(explainedFee);
 
-  const renderedSavedAddresses = useMemo(() => {
-    if (!savedAddresses || savedAddresses.length === 0) {
-      return undefined;
-    }
-
-    return savedAddresses
-      .filter((item) => {
-        // NFT transfer is only available on the TON blockchain
-        return (!isNftTransfer || item.chain === 'ton') && doesSavedAddressFitSearch(item, toAddress);
-      })
-      .map((item) => renderAddressItem({
-        key: `saved-${item.address}-${item.chain}`,
-        address: item.address,
-        name: item.name,
-        chain: isMultichainAccount ? item.chain : undefined,
-        deleteLabel: lang('Delete'),
-        onClick: handleAddressBookItemClick,
-        onDeleteClick: handleDeleteSavedAddressClick,
-      }));
-  }, [savedAddresses, isNftTransfer, toAddress, isMultichainAccount, lang]);
-
-  const renderedOtherAccounts = useMemo(() => {
-    if (otherAccountIds.length === 0) return undefined;
-
-    const addressesToBeIgnored = savedAddresses?.map((item) => `${item.chain}:${item.address}`) ?? [];
-    const uniqueAddresses = new Set<string>();
-    const otherAccounts = otherAccountIds
-      .reduce((acc, accountId) => {
-        const account = accounts![accountId];
-
-        Object.keys(account.addressByChain).forEach((currentChain) => {
-          const currentAddress = account.addressByChain[currentChain as ApiChain];
-          const key = `${currentChain}:${currentAddress}`;
-          if (
-            !uniqueAddresses.has(key)
-            // NFT transfer is only available on the TON blockchain
-            && (!isNftTransfer || currentChain === 'ton')
-            && (isMultichainAccount || currentChain === TONCOIN.chain)
-            && !addressesToBeIgnored.includes(`${currentChain}:${currentAddress}`)
-          ) {
-            uniqueAddresses.add(key);
-            acc.push({
-              name: account.title || shortenAddress(currentAddress)!,
-              address: currentAddress,
-              chain: currentChain as ApiChain,
-              isHardware: account.isHardware,
-            });
-          }
-        });
-
-        return acc;
-      }, [] as (SavedAddress & { isHardware?: boolean })[]);
-
-    return otherAccounts.filter(
-      (item) => doesSavedAddressFitSearch(item, toAddress),
-    ).map(({
-      address, name, chain: addressChain, isHardware,
-    }) => renderAddressItem({
-      key: `address-${address}-${addressChain}`,
-      address,
-      name,
-      chain: isMultichainAccount ? addressChain : undefined,
-      isHardware,
-      onClick: handleAddressBookItemClick,
-    }));
-  }, [otherAccountIds, savedAddresses, accounts, isMultichainAccount, isNftTransfer, toAddress]);
-
-  const shouldRenderSuggestions = !!renderedSavedAddresses?.length || !!renderedOtherAccounts?.length;
-
-  function renderAddressBook() {
-    if (!shouldRenderSuggestions) return undefined;
-
-    return (
-      <Menu
-        positionX="right"
-        type="suggestion"
-        noBackdrop
-        bubbleClassName={styles.savedAddressBubble}
-        isOpen={isAddressBookOpen}
-        onClose={closeAddressBook}
-      >
-        {renderedSavedAddresses}
-        {renderedOtherAccounts}
-      </Menu>
-    );
-  }
-
-  function renderBottomRight() {
+  const renderedBottomRight = useMemo(() => {
     let transitionKey = 0;
     let content: TeactNode = ' ';
 
@@ -655,142 +535,7 @@ function TransferInitial({
         {content}
       </Transition>
     );
-  }
-
-  function renderInputActions() {
-    return (
-      <Transition className={styles.inputButtonTransition} activeKey={toAddress.length ? 0 : 1} name="fade">
-        {toAddress.length ? (
-          <Button
-            isSimple
-            id={INPUT_CLEAR_BUTTON_ID}
-            className={buildClassName(styles.inputButton, styles.inputButtonClear)}
-            onClick={handleAddressClearClick}
-            ariaLabel={lang('Clear')}
-          >
-            <i className="icon-close-filled" aria-hidden />
-          </Button>
-        ) : (
-          <>
-            {isQrScannerSupported && (
-              <Button
-                isSimple
-                className={buildClassName(styles.inputButton, withPasteButton && styles.inputButtonShifted)}
-                onClick={handleQrScanClick}
-                ariaLabel={lang('Scan QR Code')}
-              >
-                <i className="icon-qr-scanner-alt" aria-hidden />
-              </Button>
-            )}
-            {withPasteButton && (
-              <Button isSimple className={styles.inputButton} onClick={handlePasteClick} ariaLabel={lang('Paste')}>
-                <i className="icon-paste" aria-hidden />
-              </Button>
-            )}
-          </>
-        )}
-      </Transition>
-    );
-  }
-
-  function renderBalance() {
-    if (isNftTransfer) return undefined;
-
-    return (
-      <AmountFieldMaxButton
-        maxAmount={maxAmount}
-        token={transferToken}
-        isLoading={maxAmount === undefined}
-        isSensitiveDataHidden={isSensitiveDataHidden}
-        onAmountClick={handleMaxAmountClick}
-      />
-    );
-  }
-
-  function renderTokens() {
-    return (
-      <Dropdown
-        items={dropDownItems}
-        selectedValue={tokenSlug}
-        className={styles.tokenDropdown}
-        itemClassName={styles.tokenDropdownItem}
-        onChange={handleTokenChange}
-      />
-    );
-  }
-
-  function renderCurrencyValue() {
-    return (
-      <span className={buildClassName(styles.amountInCurrency, currencyClassNames)}>
-        ≈&thinsp;{formatCurrency(renderingAmountInCurrency || '0', shortBaseSymbol, undefined, true)}
-      </span>
-    );
-  }
-
-  function renderCommentLabel() {
-    return (
-      <Dropdown
-        items={isEncryptedCommentSupported ? COMMENT_DROPDOWN_ITEMS : [COMMENT_DROPDOWN_ITEMS[0]]}
-        selectedValue={COMMENT_DROPDOWN_ITEMS[shouldEncrypt ? 1 : 0].value}
-        theme="light"
-        disabled={chain === 'tron'}
-        menuPositionHorizontal="left"
-        shouldTranslateOptions
-        className={styles.commentLabel}
-        onChange={handleCommentOptionsChange}
-      />
-    );
-  }
-
-  function renderCommentField() {
-    if (binPayload || stateInit) {
-      return (
-        <>
-          {binPayload && (
-            <>
-              <div className={styles.label}>{lang('Signing Data')}</div>
-              <InteractiveTextField
-                text={binPayload}
-                copyNotification={lang('Data was copied!')}
-                className={styles.addressWidget}
-              />
-            </>
-          )}
-
-          {stateInit && (
-            <>
-              <div className={styles.label}>{lang('Contract Initialization Data')}</div>
-              <InteractiveTextField
-                text={stateInit}
-                copyNotification={lang('Data was copied!')}
-                className={styles.addressWidget}
-              />
-            </>
-          )}
-
-          <div className={styles.error}>
-            {renderText(lang('$signature_warning'))}
-          </div>
-        </>
-      );
-    }
-
-    return (
-      <Input
-        wrapperClassName={styles.commentInputWrapper}
-        className={isStatic ? styles.inputStatic : undefined}
-        label={renderCommentLabel()}
-        placeholder={isCommentRequired ? lang('Required') : lang('Optional')}
-        value={comment}
-        isMultiline
-        isDisabled={chain === 'tron'}
-        onInput={handleCommentChange}
-        isRequired={isCommentRequired}
-      />
-    );
-  }
-
-  const withButton = isQrScannerSupported || withPasteButton || withAddressClearButton;
+  }, [amount, hasInsufficientFeeError, isAmountGreaterThanBalance, isStatic, lang]);
 
   function renderButtonText() {
     if (diesel?.status === 'not-authorized') {
@@ -801,8 +546,6 @@ function TransferInitial({
     }
     return lang('$send_token_symbol', isNftTransfer ? 'NFT' : symbol || 'TON');
   }
-
-  const shouldIgnoreErrors = isAddressBookOpen && shouldRenderSuggestions;
 
   function renderFee() {
     let terms: FeeTerms | undefined;
@@ -836,52 +579,71 @@ function TransferInitial({
         {nfts?.length === 1 && <NftInfo nft={nfts[0]} isStatic={isStatic} withMediaViewer />}
         {Boolean(nfts?.length) && nfts!.length > 1 && <NftChips nfts={nfts!} isStatic={isStatic} />}
 
-        <Input
-          ref={toAddressRef}
-          className={buildClassName(isStatic && styles.inputStatic, withButton && styles.inputWithIcon)}
-          isRequired
-          label={lang('Recipient Address')}
-          placeholder={lang('Wallet address or domain')}
-          value={isAddressFocused ? toAddress : toAddressShort}
-          error={hasToAddressError && !shouldIgnoreErrors ? (lang('Incorrect address') as string) : undefined}
-          autoCorrect={false}
+        <AddressInput
+          value={toAddress}
+          error={hasToAddressError ? (lang('Incorrect address') as string) : undefined}
+          isStatic={isStatic}
+          isFocused={isAddressFocused}
+          isQrScannerSupported={isQrScannerSupported}
+          withPasteButton={withPasteButton}
+          address={resolvedAddress || toAddress}
+          addressName={localAddressName || toAddressName}
+          inputRef={toAddressRef}
           onInput={handleAddressInput}
           onFocus={handleAddressFocus}
           onBlur={handleAddressBlur}
-        >
-          {renderInputActions()}
-        </Input>
+          onClearClick={handleAddressClearClick}
+          onQrScanClick={handleQrScanClick}
+          onPasteClick={handlePasteClick}
+        />
 
-        {shouldUseAddressBook && renderAddressBook()}
-
-        {renderBalance()}
-        {!isNftTransfer && (
-          <>
-            <RichNumberInput
-              key="amount"
-              id="amount"
-              hasError={hasAmountError}
-              value={amount === undefined ? undefined : toDecimal(amount, decimals)}
-              labelText={lang('Amount')}
-              onChange={handleAmountChange}
-              onPressEnter={handleSubmit}
-              decimals={decimals}
-              className={styles.amountInput}
-              inputClassName={isStatic ? styles.inputRichStatic : undefined}
-            >
-              {renderTokens()}
-            </RichNumberInput>
-
-            <div className={styles.amountBottomWrapper}>
-              <div className={styles.amountBottom}>
-                {shouldRenderCurrency && renderCurrencyValue()}
-                {renderBottomRight()}
-              </div>
-            </div>
-          </>
+        {shouldUseAddressBook && (
+          <AddressBook
+            isOpen={isAddressBookOpen}
+            isNftTransfer={isNftTransfer}
+            currentAddress={toAddress}
+            otherAccountIds={otherAccountIds}
+            onAddressSelect={handleAddressBookItemSelect}
+            onSavedAddressDelete={handleDeleteSavedAddressClick}
+            onClose={closeAddressBook}
+          />
         )}
 
-        {chain === 'ton' && renderCommentField()}
+        {!isNftTransfer && (
+          <AmountInputSection
+            amount={amount}
+            decimals={decimals!}
+            maxAmount={maxAmount}
+            token={transferToken}
+            allTokens={tokens}
+            tokenSlug={tokenSlug}
+            isStatic={isStatic}
+            hasAmountError={hasAmountError}
+            isMultichainAccount={isMultichainAccount}
+            isSensitiveDataHidden={isSensitiveDataHidden}
+            shouldRenderCurrency={shouldRenderCurrency}
+            currencyValue={renderedCurrencyValue}
+            bottomRightElement={renderedBottomRight}
+            onChange={handleAmountChange}
+            onTokenChange={handleTokenChange}
+            onMaxClick={handleMaxAmountClick}
+            onPressEnter={handleSubmit}
+          />
+        )}
+
+        {chain === 'ton' && (
+          <CommentSection
+            comment={comment}
+            shouldEncrypt={shouldEncrypt}
+            binPayload={binPayload}
+            stateInit={stateInit}
+            chain={chain}
+            isStatic={isStatic}
+            isCommentRequired={isCommentRequired}
+            isEncryptedCommentSupported={isEncryptedCommentSupported}
+            onCommentChange={handleCommentChange}
+          />
+        )}
 
         <div className={buildClassName(styles.footer, isStatic && chain !== 'ton' && styles.footer_shifted)}>
           {renderFee()}
@@ -931,6 +693,8 @@ export default memo(
     (global): StateProps => {
       const {
         toAddress,
+        resolvedAddress,
+        toAddressName,
         amount,
         comment,
         shouldEncrypt,
@@ -952,6 +716,8 @@ export default memo(
 
       return {
         toAddress,
+        resolvedAddress,
+        toAddressName,
         amount,
         comment,
         shouldEncrypt,
@@ -967,8 +733,9 @@ export default memo(
         isMemoRequired,
         isLoading: isLoading && ACTIVE_STATES.has(state),
         baseCurrency,
-        currentAccountId: global.currentAccountId,
+        currentAccountId: global.currentAccountId!,
         accounts: selectNetworkAccounts(global),
+        nativeTokenBalance: selectCurrentAccountTokenBalance(global, getNativeToken(getChainBySlug(tokenSlug)).slug),
         diesel,
         isDieselAuthorizationStarted: accountState?.isDieselAuthorizationStarted,
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
@@ -987,84 +754,6 @@ export default memo(
     },
   )(TransferInitial),
 );
-
-function trimStringByMaxBytes(str: string, maxBytes: number) {
-  const decoder = new TextDecoder('utf-8');
-  const encoded = new TextEncoder().encode(str);
-
-  return decoder.decode(encoded.slice(0, maxBytes)).replace(/\uFFFD/g, '');
-}
-
-function renderAddressItem({
-  key,
-  address,
-  name,
-  chain,
-  isHardware,
-  deleteLabel,
-  onClick,
-  onDeleteClick,
-}: {
-  key: string;
-  address: string;
-  name?: string;
-  chain?: ApiChain;
-  isHardware?: boolean;
-  deleteLabel?: string;
-  onClick: (address: string) => void;
-  onDeleteClick?: (address: string) => void;
-}) {
-  const isSavedAddress = !!onDeleteClick;
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    onDeleteClick!(address);
-  };
-
-  return (
-    <div
-      key={key}
-      tabIndex={-1}
-      role="button"
-      onMouseDown={IS_TOUCH_ENV ? undefined : () => onClick(address)}
-      onClick={IS_TOUCH_ENV ? () => onClick(address) : undefined}
-      className={styles.savedAddressItem}
-    >
-      <span className={styles.savedAddressName}>
-        <span className={styles.savedAddressNameText}>
-          {name || shortenAddress(address)}
-        </span>
-        {isHardware && <i className={buildClassName(styles.iconLedger, 'icon-ledger')} aria-hidden />}
-      </span>
-      {isSavedAddress && (
-        <span className={styles.savedAddressDelete}>
-          <span tabIndex={-1} role="button" className={styles.savedAddressDeleteInner} onMouseDown={handleDeleteClick}>
-            {deleteLabel}
-          </span>
-        </span>
-      )}
-      {name && (
-        <span className={styles.savedAddressAddress}>
-          {chain && <i className={buildClassName(styles.chainIcon, `icon-chain-${chain}`)} aria-hidden />}
-          {shortenAddress(address)}
-        </span>
-      )}
-      {isSavedAddress && (
-        <span
-          className={styles.savedAddressDeleteIcon}
-          role="button"
-          tabIndex={-1}
-          onMouseDown={handleDeleteClick}
-          onClick={stopEvent}
-          aria-label={deleteLabel}
-        >
-          <i className="icon-trash" aria-hidden />
-        </span>
-      )}
-    </div>
-  );
-}
 
 function useFeeModal(explainedFee: ExplainedTransferFee) {
   const isAvailable = explainedFee.realFee?.precision !== 'exact';

@@ -20,19 +20,35 @@ export type AccountState = {
 export type WalletVersion = 'wallet v1 r1' | 'wallet v1 r2' | 'wallet v1 r3' | 'wallet v2 r1' | 'wallet v2 r2'
 | 'wallet v3 r1' | 'wallet v3 r2' | 'wallet v4 r2' | 'wallet v5 r1';
 
-export type WalletState = {
+type CommonWalletState = {
   address: string;
   balance: string;
-  code_hash: string;
-  is_signature_allowed: boolean;
-  is_wallet: boolean;
   last_transaction_hash: string;
   last_transaction_lt: number;
+};
+
+type AciveWalletState = CommonWalletState & {
+  status: 'active';
+  is_wallet: true;
+  code_hash: string;
+  is_signature_allowed: boolean;
   seqno: number;
-  status: string;
   wallet_id: number;
   wallet_type: WalletVersion;
 };
+
+type ActiveNotWalletState = CommonWalletState & {
+  status: 'active';
+  is_wallet: false;
+  code_hash: string;
+};
+
+type InactiveWalletState = CommonWalletState & {
+  status: 'uninit';
+  is_wallet: false;
+};
+
+export type WalletState = AciveWalletState | ActiveNotWalletState | InactiveWalletState;
 
 // Actions
 type BaseAction = {
@@ -121,6 +137,7 @@ export type NftTransferAction = BaseAction & {
     custom_payload: string | null;
     forward_payload: string;
     forward_amount: string | null;
+    price: string | null;
   };
 };
 

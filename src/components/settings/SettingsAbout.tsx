@@ -25,13 +25,14 @@ import logoLightPath from '../../assets/logoLight.svg';
 
 interface OwnProps {
   isActive?: boolean;
-  handleBackClick: () => void;
   isInsideModal?: boolean;
+  headerClassName?: string;
   theme: Theme;
+  handleBackClick: NoneToVoidFunction;
 }
 
 function SettingsAbout({
-  isActive, handleBackClick, isInsideModal, theme,
+  isActive, isInsideModal, theme, headerClassName, handleBackClick,
 }: OwnProps) {
   const lang = useLang();
 
@@ -59,7 +60,12 @@ function SettingsAbout({
           className={styles.modalHeader}
         />
       ) : (
-        <div className={buildClassName(styles.header, 'with-notch-on-scroll', isScrolled && 'is-scrolled')}>
+        <div className={buildClassName(
+          styles.header,
+          headerClassName,
+          'with-notch-on-scroll',
+          isScrolled && 'is-scrolled',
+        )}>
           <Button isSimple isText onClick={handleBackClick} className={styles.headerBack}>
             <i className={buildClassName(styles.iconChevron, 'icon-chevron-left')} aria-hidden />
             <span>{lang('Back')}</span>

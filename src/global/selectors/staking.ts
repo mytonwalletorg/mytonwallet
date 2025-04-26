@@ -2,6 +2,7 @@ import type { ApiStakingState } from '../../api/types';
 import type { GlobalState } from '../types';
 
 import { DEFAULT_NOMINATORS_STAKING_STATE, TONCOIN } from '../../config';
+import { buildCollectionByKey } from '../../util/iteratees';
 import memoize from '../../util/memoize';
 import withCache from '../../util/withCache';
 import { selectAccountState } from './accounts';
@@ -18,6 +19,15 @@ const selectAccountStakingStatesMemoizedFor = withCache((accountId: string) => m
 export function selectAccountStakingStates(global: GlobalState, accountId: string) {
   const { stateById } = selectAccountState(global, accountId)?.staking ?? {};
   return selectAccountStakingStatesMemoizedFor(accountId)(global.stakingDefault, stateById);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const selectAccountStakingStatesBySlugMemoizedFor = withCache((accountId: string) => memoize(
+  (stakingStates: ApiStakingState[]) => buildCollectionByKey(stakingStates, 'tokenSlug'),
+));
+
+export function selectAccountStakingStatesBySlug(global: GlobalState, accountId: string) {
+  return selectAccountStakingStatesBySlugMemoizedFor(accountId)(selectAccountStakingStates(global, accountId));
 }
 
 export function selectAccountStakingState(global: GlobalState, accountId: string): ApiStakingState {

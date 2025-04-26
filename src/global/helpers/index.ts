@@ -9,8 +9,7 @@ export function getIsTinyOrScamTransaction(transaction: ApiTransaction, token?: 
   if (isScamTransaction(transaction)) return true;
   if (!token || transaction.nft || transaction.type) return false;
 
-  const decimals = token.decimals;
-  const cost = toBig(transaction.amount, decimals).abs().mul(token.quote.priceUsd ?? 0);
+  const cost = toBig(transaction.amount, token.decimals).abs().mul(token.priceUsd ?? 0);
   return cost.lt(TINY_TRANSFER_MAX_COST);
 }
 

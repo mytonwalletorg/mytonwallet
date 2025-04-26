@@ -59,7 +59,7 @@ export function doesSwapChangeRequireDexUnselect(
   return swap1.tokenInSlug !== swap2.tokenInSlug
     || swap1.tokenOutSlug !== swap2.tokenOutSlug
     || swap1.inputSource !== swap2.inputSource
-    || swap1[amountKey] !== swap2[amountKey];
+    || !((swap1.isMaxAmount && swap2.isMaxAmount) || swap1[amountKey] === swap2[amountKey]);
 }
 
 /**

@@ -44,6 +44,7 @@ function AuthStart({
     openAbout,
     openHardwareWalletModal,
     resetAuth,
+    openAuthImportWalletModal,
   } = getActions();
 
   const lang = useLang();
@@ -51,6 +52,30 @@ function AuthStart({
   const logoPath = appTheme === 'light' ? logoLightPath : logoDarkPath;
   const [isLogoReady, markLogoReady] = useFlag();
   const { transitionClassNames } = useShowTransition(isLogoReady, undefined, undefined, 'slow');
+
+  function renderSimpleImportForm() {
+    return (
+      <>
+        <span className={styles.importText}>{lang('or import from')}</span>
+        <div className={styles.importButtons}>
+          <Button
+            className={buildClassName(styles.btn, !IS_LEDGER_SUPPORTED && styles.btn_single)}
+            onClick={!isLoading ? startImportingWallet : undefined}
+          >
+            {lang('Secret Words')}
+          </Button>
+          {IS_LEDGER_SUPPORTED && (
+            <Button
+              className={buildClassName(styles.btn, styles.btn_mini)}
+              onClick={!isLoading ? openHardwareWalletModal : undefined}
+            >
+              {lang('Ledger')}
+            </Button>
+          )}
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className={buildClassName(styles.container, 'custom-scroll')}>
@@ -93,32 +118,27 @@ function AuthStart({
           <i className="icon-chevron-right" aria-hidden />
         </Button>
       )}
-      <div className={styles.importButtonsBlock}>
+      <div className={buildClassName(styles.importButtonsBlock, IS_CORE_WALLET && styles.importButtonsBlockSimple)}>
         <Button
           isPrimary
-          className={styles.btn}
+          className={buildClassName(
+            styles.btn,
+            !IS_CORE_WALLET && styles.btn_single,
+            !IS_CORE_WALLET && styles.btn_wide,
+          )}
           isLoading={isLoading}
           onClick={!isLoading ? startCreatingWallet : undefined}
         >
           {lang('Create Wallet')}
         </Button>
-        <span className={styles.importText}>{lang('or import from')}</span>
-        <div className={styles.importButtons}>
+        {IS_CORE_WALLET ? renderSimpleImportForm() : (
           <Button
-            className={buildClassName(styles.btn, !IS_LEDGER_SUPPORTED && styles.btn_single)}
-            onClick={!isLoading ? startImportingWallet : undefined}
+            className={buildClassName(styles.btn, styles.btn_wide, styles.btn_single)}
+            onClick={!isLoading ? openAuthImportWalletModal : undefined}
           >
-            {lang('Secret Words')}
+            {lang('Import Existing Wallet')}
           </Button>
-          {IS_LEDGER_SUPPORTED && (
-            <Button
-              className={buildClassName(styles.btn, styles.btn_mini)}
-              onClick={!isLoading ? openHardwareWalletModal : undefined}
-            >
-              {lang('Ledger')}
-            </Button>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

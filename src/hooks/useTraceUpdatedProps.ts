@@ -1,5 +1,7 @@
 import { useEffect, useRef } from '../lib/teact/teact';
 
+import isEmptyObject from '../util/isEmptyObject';
+
 /**
  * Custom React hook for tracing updates to props.
  * This hook logs the changed properties of a component every time it re-renders.
@@ -23,7 +25,7 @@ export default function useTraceUpdatedProps(props: Record<string, any>, shouldT
       return acc;
     }, {});
 
-    if (Object.keys(changedProps).length > 0 && shouldTrace) {
+    if (!isEmptyObject(changedProps) && shouldTrace) {
       // eslint-disable-next-line no-console
       console.log('Changed props:', changedProps);
     }

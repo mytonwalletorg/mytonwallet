@@ -1,4 +1,4 @@
-import type { ApiChain, ApiLiquidStakingState } from '../../../api/types';
+import type { ApiLiquidStakingState } from '../../../api/types';
 
 import { DEFAULT_STAKING_STATE, IS_CORE_WALLET, MTW_CARDS_COLLECTION } from '../../../config';
 import { areDeepEqual } from '../../../util/areDeepEqual';
@@ -26,7 +26,12 @@ import {
   updateVesting,
   updateVestingInfo,
 } from '../../reducers';
-import { selectAccountNftByAddress, selectAccountState, selectVestingPartsReadyToUnfreeze } from '../../selectors';
+import {
+  selectAccount,
+  selectAccountNftByAddress,
+  selectAccountState,
+  selectVestingPartsReadyToUnfreeze,
+} from '../../selectors';
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -168,10 +173,12 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
     case 'updateAccount': {
       const { accountId, partial } = update;
+      const account = selectAccount(global, accountId);
       global = updateAccount(global, accountId, {
         addressByChain: {
+          ...account?.addressByChain,
           ton: partial.address,
-        } as Record<ApiChain, string>,
+        },
       });
       setGlobal(global);
       break;
@@ -240,14 +247,14 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     }
 
     case 'updatingStatus': {
-      const { kind, isUpdating } = update;
+      const { kind, accountId, isUpdating } = update;
       const key = kind === 'balance' ? 'balanceUpdateStartedAt' : 'activitiesUpdateStartedAt';
-      if (isUpdating && global[key]) break;
+      const accountState = selectAccountState(global, accountId);
+      if (isUpdating && accountState?.[key]) break;
 
-      setGlobal({
-        ...global,
+      setGlobal(updateAccountState(global, accountId, {
         [key]: isUpdating ? Date.now() : undefined,
-      });
+      }));
       break;
     }
 
@@ -264,11 +271,17 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       } = update;
 
       global = updateSettings(global, { isTestnet });
-      global = createAccount({ global, accountId, addressByChain: { ton: address } as Record<ApiChain, string> });
+      global = createAccount({
+        global,
+        accountId,
+        type: 'mnemonic',
+        addressByChain: { ton: address },
+      });
       global = createAccount({
         global,
         accountId: secondAccountId,
-        addressByChain: { ton: secondAddress } as Record<ApiChain, string>,
+        type: 'mnemonic',
+        addressByChain: { ton: secondAddress },
         network: isTestnet ? 'mainnet' : 'testnet', // Second account should be created on opposite network
       });
       setGlobal(global);

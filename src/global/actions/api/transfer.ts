@@ -23,7 +23,7 @@ import {
   updateCurrentTransferByCheckResult,
   updateCurrentTransferLoading,
 } from '../../reducers';
-import { selectAccountState, selectToken, selectTokenAddress } from '../../selectors';
+import { selectAccountState, selectCurrentNetwork, selectToken, selectTokenAddress } from '../../selectors';
 
 addActionHandler('submitTransferInitial', async (global, actions, payload) => {
   if (IS_DELEGATING_BOTTOM_SHEET) {
@@ -443,6 +443,29 @@ addActionHandler('fetchTransferDieselState', async (global, actions, { tokenSlug
   global = preserveMaxTransferAmount(global, updateCurrentTransfer(global, { diesel }));
   if (accountState?.isDieselAuthorizationStarted && diesel.status !== 'not-authorized') {
     global = updateAccountState(global, global.currentAccountId!, { isDieselAuthorizationStarted: undefined });
+  }
+  setGlobal(global);
+});
+
+addActionHandler('checkTransferAddress', async (global, actions, { address }) => {
+  if (!address) {
+    global = updateCurrentTransfer(global, { toAddressName: undefined, resolvedAddress: undefined });
+    setGlobal(global);
+
+    return;
+  }
+
+  const network = selectCurrentNetwork(global);
+  const result = await callApi('getAddressInfo', network, address);
+
+  global = getGlobal();
+  if (!result || 'error' in result) {
+    global = updateCurrentTransfer(global, { toAddressName: undefined, resolvedAddress: undefined });
+  } else {
+    global = updateCurrentTransfer(global, {
+      toAddressName: result.addressName,
+      resolvedAddress: result.resolvedAddress,
+    });
   }
   setGlobal(global);
 });

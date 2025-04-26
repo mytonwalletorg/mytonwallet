@@ -5,7 +5,9 @@
 }
 
 .transitionContainer {
-  --header-padding-top: 0.625rem;
+  :global(html.is-telegram-app) & {
+    --header-padding-top: 0.625rem;
+  }
 
   @include respond-above(xs) {
     overflow: hidden;
@@ -79,6 +81,10 @@
   overflow: hidden;
 
   padding: 0 !important;
+}
+
+.aboutHeader {
+  padding-top: var(--header-padding-top) !important;
 }
 
 .logo {
@@ -290,6 +296,10 @@
   }
 }
 
+.viewModeSticker {
+  margin: 1.5rem auto;
+}
+
 .stickerAndTitle {
   display: flex;
   column-gap: 1rem;
@@ -492,11 +502,15 @@
 .importButtonsBlock {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
   align-items: center;
 
   width: 100%;
   margin-top: auto;
+}
+
+.importButtonsBlockSimple {
+  gap: 2rem;
 }
 
 .importText {
@@ -689,10 +703,22 @@
   text-align: center;
 }
 
+.actionsSection {
+  margin: 0 1rem 1.5rem;
+}
+
+.importModalContent {
+  padding-top: 1rem;
+
+  @include respond-below(xs) {
+    padding-bottom: max(calc(var(--safe-area-bottom) - 1.5rem), 0px);
+  }
+}
+
 @supports (padding-bottom: var(--safe-area-bottom)) {
   @include respond-below(xs) {
     .disclaimerBackupDialog {
-      padding-bottom: max(var(--safe-area-bottom), 0);
+      padding-bottom: max(var(--safe-area-bottom), 0px);
     }
   }
 }

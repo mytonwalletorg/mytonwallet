@@ -1,3 +1,5 @@
+@import "../../styles/mixins";
+
 .wrapper {
   position: relative;
 
@@ -22,18 +24,14 @@
   border-radius: var(--border-radius-default);
   outline: none;
 
-  transition: border-color 150ms, box-shadow 150ms;
-
   -webkit-appearance: none;
+
+  @include transition("border-color 150ms, box-shadow 150ms");
 
   &::placeholder {
     color: var(--color-gray-3);
 
-    transition: color 150ms;
-
-    :global(html.animation-level-0) & {
-      transition: none !important;
-    }
+    @include transition(color 150ms);
   }
 
   // Hide hint for Safari password strength meter
@@ -125,7 +123,7 @@
     line-height: 2rem;
     white-space: nowrap;
 
-    transition: color 150ms;
+    @include transition(color 150ms);
 
     /* Fix for ContentEditable multiline "issues" */
     br {
@@ -143,11 +141,7 @@
 
       color: var(--color-gray-4);
 
-      transition: color 150ms;
-
-      :global(html.animation-level-0) & {
-        transition: none !important;
-      }
+      @include transition(color 150ms);
     }
 
     &.disabled {
@@ -173,10 +167,6 @@
 
     font-size: calc(3rem * var(--base-font-size, 1));
     line-height: 3rem;
-  }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
   }
 }
 
@@ -209,7 +199,7 @@ textarea.input {
   border-radius: var(--border-radius-default);
   outline: none;
 
-  transition: box-shadow 150ms;
+  @include transition(box-shadow 150ms);
 
   &.error,
   &_hasFocus.error {
@@ -223,16 +213,13 @@ textarea.input {
 
     box-shadow: inset 0 0 0 0.125rem var(--color-accent);
   }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
-  }
 }
 
 .visibilityToggle {
   cursor: var(--custom-cursor, pointer);
 
   position: absolute;
+  z-index: 2;
   top: 0.75rem;
   right: 0.75rem;
 
@@ -247,7 +234,7 @@ textarea.input {
   border: none;
   outline: none;
 
-  transition: opacity 150ms;
+  @include transition(opacity 150ms);
 
   &:focus {
     opacity: 1;
@@ -256,10 +243,6 @@ textarea.input {
   &_push {
     top: auto;
     bottom: 0.5rem;
-  }
-
-  :global(html.animation-level-0) & {
-    transition: none !important;
   }
 }
 
@@ -282,7 +265,7 @@ textarea.input {
   color: var(--color-accent);
   white-space: nowrap;
 
-  transition: color 150ms;
+  @include transition(color 150ms);
 
   &.error {
     color: var(--color-red);
@@ -334,4 +317,46 @@ textarea.input {
 .mask {
   top: 0.375rem !important;
   left: 0.375rem !important;
+}
+
+.inputContainer {
+  position: relative;
+
+  width: 100%;
+}
+
+.input_withValueOverlay {
+  &::placeholder {
+    opacity: 0;
+  }
+}
+
+.valueOverlay {
+  pointer-events: none;
+
+  position: absolute;
+  /* stylelint-disable-next-line plugin/whole-pixel */
+  bottom: 0.21875rem;
+  left: 0.1875rem;
+  transform: translateY(-50%);
+
+  overflow: hidden;
+
+  width: calc(100% - 0.375rem);
+  height: auto;
+  padding: 0 0.5625rem;
+
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  background-color: var(--color-background-first);
+
+  :global(html:not(.is-ios):not(.is-macos)) & {
+    font-size: 0.9375rem;
+  }
+
+  &.static {
+    bottom: 0.1875rem;
+  }
 }

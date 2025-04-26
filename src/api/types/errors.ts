@@ -7,6 +7,8 @@ export enum ApiCommonError {
 
 export enum ApiAuthError {
   InvalidMnemonic = 'InvalidMnemonic',
+  InvalidAddress = 'InvalidAddress',
+  DomainNotResolved = 'DomainNotResolved',
 }
 
 export enum ApiTransactionDraftError {

@@ -9,4 +9,4 @@ type TonConnectMethodsWithPrefix = {
 
 export type AllMethods = Methods & ExtensionMethods & TonConnectMethodsWithPrefix;
 export type AllMethodArgs<N extends keyof AllMethods> = Parameters<AllMethods[N]>;
-export type AllMethodResponse<N extends keyof AllMethods> = ReturnType<AllMethods[N]>;
+export type AllMethodResponse<N extends keyof AllMethods> = Awaited<ReturnType<AllMethods[N]>>;

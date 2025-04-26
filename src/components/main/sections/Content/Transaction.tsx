@@ -4,7 +4,7 @@ import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
 import type { ApiTokenWithPrice, ApiTransactionActivity, ApiYieldType } from '../../../../api/types';
-import type { AppTheme, SavedAddress } from '../../../../global/types';
+import type { Account, AppTheme, SavedAddress } from '../../../../global/types';
 import { MediaType } from '../../../../global/types';
 
 import { ANIMATED_STICKER_TINY_ICON_PX, FRACTION_DIGITS, TONCOIN, TRANSACTION_ADDRESS_SHIFT } from '../../../../config';
@@ -13,7 +13,9 @@ import {
   getIsTxIdLocal,
   getTransactionAmountDisplayMode,
   getTransactionTitle,
-  isScamTransaction, shouldShowTransactionAddress,
+  isScamTransaction,
+  shouldShowTransactionAddress,
+  shouldShowTransactionAnnualYield,
   shouldShowTransactionComment,
   STAKING_TRANSACTION_TYPES,
 } from '../../../../util/activities';
@@ -22,9 +24,9 @@ import buildClassName from '../../../../util/buildClassName';
 import { formatTime } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrencyExtended } from '../../../../util/formatNumber';
+import { getLocalAddressName } from '../../../../util/getLocalAddressName';
 import getPseudoRandomNumber from '../../../../util/getPseudoRandomNumber';
 import { shortenAddress } from '../../../../util/shortenAddress';
-import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useLang from '../../../../hooks/useLang';
@@ -34,7 +36,7 @@ import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import SensitiveData from '../../../ui/SensitiveData';
 
-import styles from './Transaction.module.scss';
+import styles from './Activity.module.scss';
 
 import scamImg from '../../../../assets/scam.svg';
 
@@ -42,22 +44,25 @@ type OwnProps = {
   ref?: Ref<HTMLElement>;
   tokensBySlug?: Record<string, ApiTokenWithPrice>;
   transaction: ApiTransactionActivity;
-  isLast: boolean;
-  isActive: boolean;
+  isLast?: boolean;
+  isActive?: boolean;
   withChainIcon?: boolean;
-  annualYield: number;
+  annualYield?: number;
   yieldType?: ApiYieldType;
   appTheme: AppTheme;
   savedAddresses?: SavedAddress[];
   doesNftExist?: boolean;
-  isSensitiveDataHidden?: true;
-  onClick: (id: string) => void;
+  isSensitiveDataHidden?: boolean;
+  isFuture?: boolean;
+  accounts?: Record<string, Account>;
+  currentAccountId: string;
+  onClick?: (id: string) => void;
 };
 
-const TRANSACTION_HEIGHT = 4 * REM;
-const NFT_EXTRA_HEIGHT = 3.875 * REM;
-const COMMENT_EXTRA_HEIGHT = 2.375 * REM;
-const ADDRESS_RELEASE_HEIGHT = 1.25 * REM;
+const TRANSACTION_HEIGHT = 4; // rem
+const NFT_EXTRA_HEIGHT = 3.875; // rem
+const COMMENT_EXTRA_HEIGHT = 2.375; // rem
+const SUBHEADER_RELEASE_HEIGHT = 1.25; // rem
 
 function Transaction({
   ref,
@@ -72,6 +77,9 @@ function Transaction({
   withChainIcon,
   doesNftExist,
   isSensitiveDataHidden,
+  isFuture,
+  accounts,
+  currentAccountId,
   onClick,
 }: OwnProps) {
   const { openMediaViewer } = getActions();
@@ -99,13 +107,24 @@ function Transaction({
   const token = tokensBySlug?.[slug];
   const { chain } = token || {};
   const address = isIncoming ? fromAddress : toAddress;
-  const savedAddressName = useMemo(() => {
-    return address && chain && savedAddresses?.find((item) => item.address === address && item.chain === chain)?.name;
-  }, [address, chain, savedAddresses]);
-  const addressName = savedAddressName || metadata?.name;
+  const localAddressName = useMemo(() => {
+    if (!chain) return undefined;
+
+    return getLocalAddressName({
+      address,
+      chain,
+      currentAccountId,
+      accounts,
+      savedAddresses,
+    });
+  }, [accounts, address, chain, currentAccountId, savedAddresses]);
+  const addressName = localAddressName || metadata?.name;
   const isLocal = getIsTxIdLocal(txId);
   const amountCols = useMemo(() => getPseudoRandomNumber(5, 13, timestamp.toString()), [timestamp]);
-  const doAttachmentsTakeAddressSpace = shouldGiveAddressSpaceToAttachment(transaction);
+  const attachmentsTakeSubheader = shouldAttachmentTakeSubheader(transaction, isFuture);
+  const isNoSubheaderLeft = !!isFuture;
+  const isNoSubheaderRight = !shouldShowTransactionAddress(transaction)
+    && !shouldShowTransactionAnnualYield(transaction);
 
   let operationColorClass: string | undefined;
   let waitingIconName: keyof typeof ANIMATED_STICKERS_PATHS.light.preview = 'iconClockGray';
@@ -120,10 +139,6 @@ function Transaction({
     waitingIconName = 'iconClockPurpleWhite';
   }
 
-  const handleClick = useLastCallback(() => {
-    onClick(txId);
-  });
-
   const handleNftClick = useLastCallback((event: React.MouseEvent) => {
     event.stopPropagation();
     openMediaViewer({ mediaId: nft!.address, mediaType: MediaType.Nft, txId });
@@ -133,12 +148,12 @@ function Transaction({
     return (
       <div
         className={buildClassName(
+          styles.attachment,
           styles.nft,
           !doesNftExist && styles.nonInteractive,
           isIncoming && styles.received,
           comment && styles.nftWithComment,
           operationColorClass,
-          doAttachmentsTakeAddressSpace && styles.takesAddressSpace,
           'transaction-nft',
         )}
         onClick={doesNftExist ? handleNftClick : undefined}
@@ -156,10 +171,10 @@ function Transaction({
 
   function renderComment() {
     const className = buildClassName(
+      styles.attachment,
       styles.comment,
       isIncoming && styles.received,
       operationColorClass,
-      doAttachmentsTakeAddressSpace && styles.takesAddressSpace,
     );
 
     return (
@@ -184,6 +199,8 @@ function Transaction({
       iconName = 'icon-fire';
     } else if (type === 'auctionBid') {
       iconName = 'icon-auction-alt';
+    } else if (type === 'nftPurchase') {
+      iconName = 'icon-purchase';
     } else if (type === 'liquidityDeposit') {
       iconName = 'icon-can-in';
     } else if (type === 'liquidityWithdraw') {
@@ -223,6 +240,8 @@ function Transaction({
         toDecimal(noSign ? bigintAbs(amount) : amount, token?.decimals ?? FRACTION_DIGITS),
         token?.symbol || TONCOIN.symbol,
         noSign,
+        undefined,
+        !isIncoming,
       );
       isSensitiveData = true;
     } else if (isDnsOperation) {
@@ -240,7 +259,11 @@ function Transaction({
         rows={2}
         cellSize={8}
         align="right"
-        className={buildClassName(styles.amount, operationColorClass)}
+        className={buildClassName(
+          styles.amount,
+          operationColorClass,
+          isNoSubheaderRight && attachmentsTakeSubheader === 'none' && styles.atMiddle,
+        )}
       >
         {content}
       </SensitiveData>
@@ -248,11 +271,9 @@ function Transaction({
   }
 
   function renderAddress() {
-    const isAddressShown = shouldShowTransactionAddress(transaction);
-
     return (
       <div className={styles.address}>
-        {isAddressShown && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
+        {shouldShowTransactionAddress(transaction) && lang(isIncoming ? '$transaction_from' : '$transaction_to', {
           address: (
             <span className={styles.addressValue}>
               {withChainIcon && Boolean(chain) && (
@@ -265,7 +286,7 @@ function Transaction({
             </span>
           ),
         })}
-        {!isAddressShown && isStake && lang('at %annual_yield%', {
+        {shouldShowTransactionAnnualYield(transaction) && lang('at %annual_yield%', {
           annual_yield: <span className={styles.addressValue}>{yieldType} {annualYield}%</span>,
         })}
       </div>
@@ -275,21 +296,32 @@ function Transaction({
   return (
     <Button
       ref={ref as RefObject<HTMLButtonElement>}
-      key={txId}
-      className={buildClassName(styles.item, isLast && styles.itemLast, isActive && styles.active)}
-      onClick={handleClick}
+      className={buildClassName(
+        styles.item,
+        isLast && styles.itemLast,
+        isActive && styles.active,
+        onClick && styles.interactive,
+        attachmentsTakeSubheader === 'full' ? styles.attachmentsInFullSubheader
+          : attachmentsTakeSubheader === 'half' ? styles.attachmentsInHalfSubheader : undefined,
+      )}
+      onClick={onClick && (() => onClick(txId))}
       isSimple
     >
       {renderIcon()}
       <div className={styles.header}>
-        <div className={styles.operationName}>
-          {getTransactionTitle(transaction, false, lang)}
+        <div
+          className={buildClassName(
+            styles.operationName,
+            isNoSubheaderLeft && attachmentsTakeSubheader === 'none' && styles.atMiddle,
+          )}
+        >
+          {getTransactionTitle(transaction, isFuture ? 'future' : 'past', lang)}
           {isScamTransaction(transaction) && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
         </div>
         {renderAmount()}
       </div>
       <div className={styles.subheader}>
-        {formatTime(timestamp)}
+        <div>{!isFuture && formatTime(timestamp)}</div>
         {renderAddress()}
       </div>
       {nft && renderNft()}
@@ -300,15 +332,26 @@ function Transaction({
 
 export default memo(Transaction);
 
-export function getTransactionHeight(transaction: ApiTransactionActivity) {
+export function getTransactionHeight(transaction: ApiTransactionActivity, isFuture?: boolean) {
   return TRANSACTION_HEIGHT
     + (transaction.nft ? NFT_EXTRA_HEIGHT : 0)
     + (shouldShowTransactionComment(transaction) ? COMMENT_EXTRA_HEIGHT : 0)
-    - (shouldGiveAddressSpaceToAttachment(transaction) ? ADDRESS_RELEASE_HEIGHT : 0);
+    - (shouldAttachmentTakeSubheader(transaction, isFuture) !== 'none' ? SUBHEADER_RELEASE_HEIGHT : 0);
 }
 
-function shouldGiveAddressSpaceToAttachment(transaction: ApiTransactionActivity) {
-  return !transaction.isIncoming
-    && (transaction.nft || shouldShowTransactionComment(transaction))
-    && !(shouldShowTransactionAddress(transaction) || transaction.type === 'stake');
+function shouldAttachmentTakeSubheader(
+  transaction: ApiTransactionActivity,
+  isFuture?: boolean,
+): 'none' | 'half' | 'full' {
+  if (!transaction.nft && !shouldShowTransactionComment(transaction)) {
+    return 'none';
+  }
+
+  const isNoSubheaderLeft = !!isFuture;
+  const isNoSubheaderRight = !shouldShowTransactionAddress(transaction)
+    && !shouldShowTransactionAnnualYield(transaction);
+
+  return transaction.isIncoming
+    ? isNoSubheaderLeft ? isNoSubheaderRight ? 'full' : 'half' : 'none'
+    : isNoSubheaderRight ? isNoSubheaderLeft ? 'full' : 'half' : 'none';
 }

@@ -8,7 +8,6 @@ const KEYS_TO_IGNORE = new Set([
 ]);
 const MIN_RENDERS_TO_SHOW = 5;
 const MIN_DURATION_TO_SHOW = 2;
-const BG_GREEN = ' style="background: lightgreen"';
 
 let counters: Record<string, {
   value: number;
@@ -28,7 +27,7 @@ export function debugToOverlay(text: string) {
   const dateFormatted = `${date.toLocaleTimeString()}.${date.getMilliseconds()}`;
   const wasAtBottom = loggerEl.scrollTop + 10 >= loggerEl.scrollHeight - loggerEl.offsetHeight;
 
-  loggerEl.innerHTML += `${dateFormatted}: ${text}<br/>`;
+  loggerEl.append(`${dateFormatted}: ${text}`, document.createElement('br'));
 
   if (wasAtBottom) {
     loggerEl.scrollTop = loggerEl.scrollHeight;
@@ -69,7 +68,8 @@ export function renderCounters() {
     return acc;
   }, [0, 0]);
 
-  loggerEl.innerHTML = Object
+  loggerEl.innerHTML = '';
+  Object
     .entries(counters)
     .filter(([key, { value }]) => (
       (!KEYS_TO_IGNORE.has(key)) && (
@@ -80,12 +80,15 @@ export function renderCounters() {
     .sort((a, b) => (
       b[1].lastUpdateAt - a[1].lastUpdateAt
     ))
-    .map(([key, { value, lastUpdateAt }]) => ([
-      `<div style="background: #ff0000${factorToHex(value / (key.includes('renders') ? maxRenders : maxDuration))}">`,
-      `  <span${lastUpdateAt > halfSecondAgo ? BG_GREEN : ''}>${key}: ${Math.round(value)}</span>`,
-      '</div>',
-    ].join('\n')))
-    .join('\n');
+    .forEach(([key, { value, lastUpdateAt }]) => {
+      const content = document.createElement('span');
+      content.style.background = lastUpdateAt > halfSecondAgo ? 'lightgreen' : '';
+      content.textContent = `${key}: ${Math.round(value)}`;
+      const parent = document.createElement('div');
+      parent.style.background = `#ff0000${factorToHex(value / (key.includes('renders') ? maxRenders : maxDuration))}`;
+      parent.append(content);
+      loggerEl.append(parent);
+    });
 }
 
 export function debugFps() {
@@ -106,7 +109,7 @@ export function debugFps() {
     }
 
     const avg = ticks.reduce((acc, t) => acc + t, 0) / ticks.length;
-    loggerEl!.innerHTML = `${Math.round(1000 / avg)} FPS`;
+    loggerEl!.textContent = `${Math.round(1000 / avg)} FPS`;
     return true;
   }, fastRaf);
 }

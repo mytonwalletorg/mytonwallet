@@ -1,5 +1,11 @@
 @import "../../styles/mixins";
 
+$fieldGap: 1.25rem;
+$labelGap: 0.375rem;
+$labelLineHeight: 1.125rem;
+$labelSkeletonHeight: 1rem;
+$labelSidePadding: 0.5rem;
+
 .modalDialog {
   height: 35rem;
 
@@ -110,15 +116,12 @@
 
   display: block;
 
-  margin-bottom: 0.5rem;
-  padding: 0 0.5rem;
+  margin: 0 $labelSidePadding $labelGap;
 
   font-size: 0.8125rem;
   font-weight: 700;
-  line-height: unset;
+  line-height: $labelLineHeight;
   color: var(--color-gray-2);
-
-  background-color: var(--color-background-window);
 }
 
 .description {
@@ -148,7 +151,7 @@
 }
 
 .dataField {
-  margin-bottom: 1.25rem;
+  margin-bottom: $fieldGap;
 }
 
 .receivingAddress {
@@ -161,7 +164,7 @@
   overflow: hidden;
 
   box-sizing: border-box;
-  margin-bottom: 1.25rem;
+  margin-bottom: $fieldGap;
   padding: 0.875rem 0.75rem;
 
   font-size: 1rem;
@@ -219,7 +222,7 @@
 }
 
 .transactionList {
-  margin-bottom: 1.25rem;
+  margin-bottom: $fieldGap;
 
   background: var(--color-background-first);
   border-radius: var(--border-radius-default);
@@ -248,11 +251,13 @@
   }
 
   &:first-child {
-    border-radius: var(--border-radius-default) var(--border-radius-default) 0 0;
+    border-top-left-radius: var(--border-radius-default);
+    border-top-right-radius: var(--border-radius-default);
   }
 
   &:last-child {
-    border-radius: 0 0 var(--border-radius-default) var(--border-radius-default);
+    border-bottom-right-radius: var(--border-radius-default);
+    border-bottom-left-radius: var(--border-radius-default);
   }
 
   @media (hover: hover) {
@@ -315,7 +320,7 @@
   align-items: center;
 
   min-height: 4rem;
-  margin-bottom: 1.25rem;
+  margin: 0.375rem 0 1.25rem;
 
   color: var(--color-card-text);
 
@@ -523,44 +528,41 @@
 }
 
 .rowContainerSkeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-
-  margin-bottom: 1.25rem;
+  margin-bottom: $fieldGap;
 }
 
-.rowContainerLargeSkeleton {
-  margin-bottom: 1.125rem;
+.rowSkeleton,
+.rowLabelSkeleton,
+.rowFeeSkeleton {
+  @include skeleton(var(--color-background-second));
+
+  background-color: var(--color-separator-input-stroke);
+  border-radius: var(--border-radius-default);
 }
 
 .rowSkeleton {
-  @include skeleton(var(--color-background-second));
-
   width: 100%;
   height: 3rem;
-
-  background-color: var(--color-separator-input-stroke);
-  border-radius: var(--border-radius-default);
 }
 
 .rowLargeSkeleton {
-  height: 3.75rem;
+  height: 4rem;
 }
 
-.rowTextSkeleton {
-  @include skeleton(var(--color-background-second));
-
+.rowLabelSkeleton {
   width: 3.0625rem;
-  height: 1rem;
-  margin-left: 0.5rem;
-
-  background-color: var(--color-separator-input-stroke);
-  border-radius: var(--border-radius-default);
+  height: $labelSkeletonHeight;
+  margin: 0 auto ($labelGap + ($labelLineHeight - $labelSkeletonHeight)) $labelSidePadding;
 }
 
 .rowTextLargeSkeleton {
   width: 6.8125rem;
+}
+
+.rowFeeSkeleton {
+  width: 4.5rem;
+  height: $labelSkeletonHeight;
+  margin: $labelGap $labelSidePadding 0 auto;
 }
 
 .skeletonTransitionWrapper {
@@ -568,43 +570,60 @@
   flex-direction: column;
 }
 
+.skeletonBackground {
+  background-color: var(--background-color); // To ensure a glitch-free "semiFade" transition
+  background-clip: content-box; // To prevent the background from un-rounding the bottom corners of the modal
+}
+
+.transferWarning {
+  margin: -0.5rem 0 $fieldGap
+}
+
 .warningForPayload {
-  padding: 0.75rem;
+  position: relative;
 
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--color-transaction-amount-red-text);
+  overflow: hidden;
 
-  background-color: var(--color-transaction-amount-red-bg);
-  border-radius: var(--border-radius-normal);
-}
+  padding: 0.5625rem 0.75rem 0.625rem 1rem;
 
-.fee {
-  box-sizing: content-box;
-  margin-top: auto;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.125rem;
+  color: var(--color-yellow);
 
-  border-top: solid 1rem transparent; // Creates an auto top auto margin with a minimum height without messing the FeeLine layout
-}
+  background-color: var(--color-background-yellow);
+  border-radius: var(--border-radius-small);
 
-.buttonsAfterFee {
-  margin-top: 0 !important;
-  padding-top: 0.875rem !important;
-}
+  &::before {
+    content: '';
 
-.detailsModal {
-  &Content {
-    gap: 2rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    display: block;
+
+    width: 0.25rem;
+    height: 100%;
+
+    background: currentColor;
   }
+}
 
-  &Explanation {
-    display: flex;
-    flex-direction: column;
-    gap: 1.1875rem;
+.emulation {
+  margin-bottom: 0;
 
-    margin: 0 0.5rem;
+  &Fee {
+    margin: $labelGap $labelSidePadding $fieldGap;
 
-    > .warningForPayload {
-      margin: 0 -0.75rem;
-    }
+    text-align: right !important;
   }
+}
+
+.transferButtons {
+  padding-top: 0.875rem;
+}
+
+.transactionContent {
+  padding-top: 1rem;
 }

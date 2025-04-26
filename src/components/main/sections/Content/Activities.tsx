@@ -17,8 +17,8 @@ import {
 } from '../../../../config';
 import { getIsTinyOrScamTransaction } from '../../../../global/helpers';
 import {
-  selectAccountStakingStates,
-  selectCurrentAccount,
+  selectAccounts,
+  selectAccountStakingStatesBySlug,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectIsFirstTransactionsLoaded,
@@ -27,9 +27,7 @@ import {
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import { formatHumanDay, getDayStartAt, SECOND } from '../../../../util/dateFormat';
-import { buildCollectionByKey } from '../../../../util/iteratees';
 import { getIsTransactionWithPoisoning } from '../../../../util/poisoningHash';
-import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
@@ -45,9 +43,8 @@ import InfiniteScroll from '../../../ui/InfiniteScroll';
 import LoadingDots from '../../../ui/LoadingDots';
 import Spinner from '../../../ui/Spinner';
 import Transition from '../../../ui/Transition';
+import Activity, { getActivityHeight } from './Activity';
 import NewWalletGreeting from './NewWalletGreeting';
-import Swap, { getSwapHeight } from './Swap';
-import Transaction, { getTransactionHeight } from './Transaction';
 
 import styles from './Activities.module.scss';
 
@@ -61,7 +58,6 @@ type StateProps = {
   slug?: string;
   isNewWallet: boolean;
   isMultichainAccount: boolean;
-  addressByChain?: Account['addressByChain'];
   areTinyTransfersHidden?: boolean;
   byId?: Record<string, ApiActivity>;
   idsBySlug?: Record<string, string[]>;
@@ -77,8 +73,9 @@ type StateProps = {
   theme: Theme;
   isFirstTransactionsLoaded?: boolean;
   isSensitiveDataHidden?: true;
-  stakingStates?: ApiStakingState[];
+  stakingStateBySlug?: Record<string, ApiStakingState>;
   nftsByAddress?: Record<string, ApiNft>;
+  accounts?: Record<string, Account>;
 };
 
 interface ActivityOffsetInfo {
@@ -92,15 +89,14 @@ interface ActivityOffsetInfo {
 const FURTHER_SLICE = 30;
 const THROTTLE_TIME = SECOND;
 
-const LIST_TOP_PADDING = 0.5 * REM;
-const DATE_HEADER_HEIGHT = 2.125 * REM;
+const LIST_TOP_PADDING = 0.5; // rem
+const DATE_HEADER_HEIGHT = 2.125; // rem
 
 function Activities({
   isActive,
   currentAccountId,
   isNewWallet,
   isMultichainAccount,
-  addressByChain,
   slug,
   idsBySlug,
   idsMain,
@@ -117,8 +113,9 @@ function Activities({
   theme,
   isFirstTransactionsLoaded,
   isSensitiveDataHidden,
-  stakingStates,
+  stakingStateBySlug,
   nftsByAddress,
+  accounts,
 }: Omit<OwnProps, 'totalTokensAmount'> & StateProps) {
   const {
     fetchTokenTransactions, fetchAllTransactions, showActivityInfo,
@@ -132,10 +129,6 @@ function Activities({
   const isUpdating = useUpdateIndicator(activitiesUpdateStartedAt);
 
   const appTheme = useAppTheme(theme);
-
-  const stakingStateBySlug = useMemo(() => {
-    return stakingStates ? buildCollectionByKey(stakingStates, 'tokenSlug') : {};
-  }, [stakingStates]);
 
   const ids = useMemo(() => {
     let idList: string[] | undefined;
@@ -176,7 +169,7 @@ function Activities({
             && (!slug || activity.slug === slug)
             && (
               !areTinyTransfersHidden
-              || (slug && tokensBySlug[activity.slug]?.quote.priceUsd === 0)
+              || (slug && tokensBySlug[activity.slug]?.priceUsd === 0)
               || !getIsTinyOrScamTransaction(activity, tokensBySlug[activity.slug])
               || alwaysShownSlugs?.includes(activity.slug)
             )
@@ -238,7 +231,7 @@ function Activities({
       const activity = activitiesById[id];
       if (!activity) return;
 
-      let height = activity.kind === 'transaction' ? getTransactionHeight(activity) : getSwapHeight();
+      let height = getActivityHeight(activity);
 
       const isFirst = index === 0;
       if (isFirst) {
@@ -283,7 +276,7 @@ function Activities({
     const container = containerRef.current;
     if (!container) return;
 
-    setExtraStyles(container, { height: isLandscape ? '' : `${currentContainerHeight}px` });
+    setExtraStyles(container, { height: isLandscape ? '' : `${currentContainerHeight}rem` });
   }, [isLandscape, currentContainerHeight]);
 
   useEffect(() => {
@@ -304,46 +297,6 @@ function Activities({
 
   if (!currentAccountId) {
     return undefined;
-  }
-
-  function renderActivity(activity: ApiActivity, isLast: boolean, isActivityActive: boolean) {
-    const isSwap = activity.kind === 'swap';
-
-    if (isSwap) {
-      return (
-        <Swap
-          key={activity.id}
-          activity={activity}
-          tokensBySlug={swapTokensBySlug}
-          isLast={isLast}
-          isActive={isActivityActive}
-          appTheme={appTheme}
-          addressByChain={addressByChain}
-          isSensitiveDataHidden={isSensitiveDataHidden}
-          onClick={handleActivityClick}
-        />
-      );
-    } else {
-      const doesNftExist = Boolean(activity.nft && nftsByAddress?.[activity.nft.address]);
-
-      return (
-        <Transaction
-          key={activity.id}
-          transaction={activity}
-          tokensBySlug={tokensBySlug}
-          isActive={isActivityActive}
-          annualYield={stakingStateBySlug[activity.slug]?.annualYield}
-          yieldType={stakingStateBySlug[activity.slug]?.yieldType}
-          isLast={isLast}
-          savedAddresses={savedAddresses}
-          withChainIcon={isMultichainAccount}
-          appTheme={appTheme}
-          doesNftExist={doesNftExist}
-          isSensitiveDataHidden={isSensitiveDataHidden}
-          onClick={handleActivityClick}
-        />
-      );
-    }
   }
 
   function renderDate(dateValue: number, isFirst?: boolean) {
@@ -384,11 +337,26 @@ function Activities({
       return (
         <div
           key={id}
-          style={`top: ${activityInfo.offset}px`}
+          style={`top: ${activityInfo.offset}rem`}
           className={buildClassName('ListItem', styles.listItem)}
         >
           {activityInfo.isFirstInDay && renderDate(activity.timestamp, activityInfo.isFirst)}
-          {renderActivity(activity, activityInfo.isLastInDay, isActivityActive)}
+          <Activity
+            activity={activity}
+            isLast={activityInfo.isLastInDay}
+            isActive={isActivityActive}
+            tokensBySlug={tokensBySlug}
+            swapTokensBySlug={swapTokensBySlug}
+            appTheme={appTheme}
+            isSensitiveDataHidden={isSensitiveDataHidden}
+            nftsByAddress={nftsByAddress}
+            currentAccountId={currentAccountId}
+            stakingStateBySlug={stakingStateBySlug}
+            savedAddresses={savedAddresses}
+            withChainIcon={isMultichainAccount}
+            accounts={accounts}
+            onClick={handleActivityClick}
+          />
         </div>
       );
     });
@@ -439,7 +407,7 @@ function Activities({
       items={viewportIds}
       preloadBackwards={FURTHER_SLICE}
       withAbsolutePositioning
-      maxHeight={currentContainerHeight}
+      maxHeight={`${currentContainerHeight}rem`}
       onLoadMore={getMore}
     >
       {renderHistory()}
@@ -451,17 +419,17 @@ export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
       const accountId = global.currentAccountId;
-      const account = selectCurrentAccount(global);
       const accountState = selectCurrentAccountState(global);
       const accountSettings = selectCurrentAccountSettings(global);
       const isFirstTransactionsLoaded = selectIsFirstTransactionsLoaded(global, global.currentAccountId!);
       const isNewWallet = selectIsNewWallet(global, isFirstTransactionsLoaded);
       const slug = accountState?.currentTokenSlug;
-      const stakingStates = accountId ? selectAccountStakingStates(global, accountId) : undefined;
+      const stakingStateBySlug = accountId ? selectAccountStakingStatesBySlug(global, accountId) : undefined;
       const {
         idsBySlug, byId, isMainHistoryEndReached, isHistoryEndReachedBySlug, idsMain,
       } = accountState?.activities ?? {};
       const { byAddress } = accountState?.nfts || {};
+      const accounts = selectAccounts(global);
 
       return {
         isMultichainAccount: selectIsMultichainAccount(global, global.currentAccountId!),
@@ -479,13 +447,13 @@ export default memo(
         isHistoryEndReachedBySlug,
         currentActivityId: accountState?.currentActivityId,
         alwaysShownSlugs: accountSettings?.alwaysShownSlugs,
-        activitiesUpdateStartedAt: global.activitiesUpdateStartedAt,
+        activitiesUpdateStartedAt: accountState?.activitiesUpdateStartedAt,
         theme: global.settings.theme,
         isFirstTransactionsLoaded,
-        addressByChain: account?.addressByChain,
-        stakingStates,
+        stakingStateBySlug,
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         nftsByAddress: byAddress,
+        accounts,
       };
     },
     (global, { totalTokensAmount }, stickToFirst) => {

@@ -140,7 +140,7 @@
 
   @include respond-below(xs) {
     @supports (padding-bottom: var(--safe-area-bottom)) {
-      padding-bottom: var(--safe-area-bottom) !important;
+      padding-bottom: calc(var(--bottombar-height) + var(--safe-area-bottom)) !important;
     }
   }
 }
@@ -177,7 +177,6 @@
     flex: 1 1 auto;
 
     min-height: 0;
-    padding-bottom: calc(max(var(--safe-area-bottom), 0.375rem) + var(--bottombar-height));
   }
 }
 

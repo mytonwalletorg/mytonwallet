@@ -116,7 +116,7 @@ function $(id) {
 function setupDownloadButton() {
   document.addEventListener('DOMContentLoaded', () => {
     const downloadBtn = document.querySelector('.download-btn');
-    downloadBtn.innerHTML += ` for ${platform}`;
+    downloadBtn.append(` for ${platform}`);
   });
 }
 
@@ -125,16 +125,23 @@ function setupVersion() {
     Promise.all([packagesPromise, areSignaturesPresent()]).then(([packages, areSignaturesPresentResult]) => {
       const versionEl = document.querySelector('.version');
 
-      let html = `v. ${packages.$version}`;
+      versionEl.append(`v. ${packages.$version}`);
+
       if (currentPage !== "mobile" && IS_DESKTOP) {
-        const signaturesHtml = areSignaturesPresentResult
-          ? '<a href="javascript:redirectToFullList();">Signatures</a>'
-          : '<span class="missing-signatures">Missing signatures!</span>';
+        versionEl.append(' · ');
 
-        html += ` · ${signaturesHtml}`;
+        if (areSignaturesPresentResult) {
+          const element = document.createElement('a');
+          element.href = 'javascript:redirectToFullList();';
+          element.textContent = 'Signatures';
+          versionEl.append(element);
+        } else {
+          const element = document.createElement('span');
+          element.className = 'missing-signatures';
+          element.textContent = 'Missing signatures!';
+          versionEl.append(element);
+        }
       }
-
-      versionEl.innerHTML = html;
     });
   });
 }

@@ -169,15 +169,13 @@ function SettingsAssets({
             isLoading={localBaseCurrency !== baseCurrency}
           />
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleInvestorViewToggle}>
-            <div className={styles.blockWithTooltip}>
+            <div>
               {lang('Investor View')}
-
+              {' '}
               <IconWithTooltip
                 message={lang('Focus on asset value rather than current balance')}
-                tooltipClassName={styles.tooltip}
                 iconClassName={styles.iconQuestion}
               />
-
             </div>
 
             <Switcher
@@ -187,9 +185,9 @@ function SettingsAssets({
             />
           </div>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTinyTransfersHiddenToggle}>
-            <div className={styles.blockWithTooltip}>
+            <div>
               {lang('Hide Tiny Transfers')}
-
+              {' '}
               <IconWithTooltip
                 message={
                   lang(
@@ -197,7 +195,7 @@ function SettingsAssets({
                     { value: TINY_TRANSFER_MAX_COST },
                   ) as string
                 }
-                tooltipClassName={buildClassName(styles.tooltip, styles.tooltip_wide)}
+                tooltipClassName={buildClassName(styles.wideTooltip)}
                 iconClassName={styles.iconQuestion}
               />
             </div>
@@ -234,9 +232,9 @@ function SettingsAssets({
             />
           </div>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTokensWithNoPriceToggle}>
-            <div className={styles.blockWithTooltip}>
+            <div>
               {lang('Hide Tokens With No Cost')}
-
+              {' '}
               <IconWithTooltip
                 message={
                   lang(
@@ -244,7 +242,7 @@ function SettingsAssets({
                     { value: TINY_TRANSFER_MAX_COST },
                   ) as string
                 }
-                tooltipClassName={buildClassName(styles.tooltip, styles.tooltip_wide)}
+                tooltipClassName={buildClassName(styles.wideTooltip)}
                 iconClassName={styles.iconQuestion}
               />
             </div>

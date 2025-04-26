@@ -4,7 +4,7 @@ import { callActionInMain } from '../../../util/multitab';
 import { IS_DELEGATED_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler, setGlobal } from '../../index';
 import { updateVesting } from '../../reducers';
-import { selectAccount } from '../../selectors';
+import { selectIsHardwareAccount } from '../../selectors';
 
 addActionHandler('openVestingModal', (global) => {
   setGlobal({ ...global, isVestingModalOpen: true });
@@ -21,7 +21,7 @@ addActionHandler('startClaimingVesting', (global) => {
   }
 
   const accountId = global.currentAccountId!;
-  const { isHardware } = selectAccount(global, accountId)!;
+  const isHardware = selectIsHardwareAccount(global);
   global = { ...global, isVestingModalOpen: undefined };
   global = updateVesting(global, accountId, {
     isConfirmRequested: true,

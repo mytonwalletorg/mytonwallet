@@ -94,9 +94,6 @@ Is there a community?: Topluluğunuz var mı?
 $about_wallet_community: Elbette, topluluğumuza %community_link% üzerinden erişebilirsiniz.
 $about_community_link_text: "**Telegram kanalı**"
 Currency History: Para birimi geçmişi
-$add_account_description1: |
-  **%app_name%** **birden fazla cüzdan hesabı**
-  arasında sorunsuz şekilde geçiş yapmanıza imkan verir.
 Enter Password: Şifre girin
 Send: Gönder
 Add Wallet: Cüzdan ekleyin
@@ -245,9 +242,10 @@ $unstaking_when_receive: Stake'e yatırılmamış bakiyenizi %time% içinde alac
 $unstake_insufficient_balance: Unstaking işlemine devam etmek için ana bakiyenizde %balance% bulunması gerekir.
 at %annual_yield%: "%annual_yield% ile"
 Staked: Stake edildi
-Unstake Requested: Unstake talep edildi
+$stake_action: Stake işlemi
 Unstaked: Unstake gerçekleşti
 Unstaking: Unstaking gerçekleşiyor
+$unstake_action: Unstake işlemi
 The network fee has slightly changed, try sending again.: Ağ ücreti bir miktar değişti, tekrar göndermeyi deneyin.
 Transfer was unsuccessful. Try again later.: Transfer başarısız oldu. Daha sonra tekrar deneyin.
 Unstaking was unsuccessful. Try again later.: Unstake işlemi başarısız oldu. Daha sonra tekrar deneyin.
@@ -259,10 +257,7 @@ Unexpected error: Beklenmedik hata
 Unexpected Error: Beklenmedik hata
 Earn: Kazan
 Earning: Kazanıyor
-InvalidAmount: Geçersiz tutar
-InvalidToAddress: Geçersiz alıcı adresi
 Unexpected: Beklenmedik hata
-DomainNotResolved: Alan Adı çözümlenmedi
 You can save this address for quick access while sending.: Gönderirken hızlı erişim için bu adresi kaydedebilirsiniz.
 Stake Again: Yeniden stake edin
 Earned: Kazanıldı
@@ -337,7 +332,7 @@ Message is encrypted.: Mesaj şifrelenmiştir.
 $dapp_ledger_warning1: "**Ledger** cüzdanınızı kullanarak çok yönlü bir işlem göndermek üzeresiniz. İlgili her işlemi **tek tek manuel olarak** imzalamanız gerekecektir."
 $dapp_ledger_warning2: Lütfen acele etmeyin ve süreci kesintiye uğratmayın.
 Agree: Kabul et
-SwapTitle: Takas
+$swap_action: Takas
 Swap: Takas
 You sell: Satıyorsunuz
 You buy: Alıyorsunuz
@@ -398,6 +393,7 @@ Insufficient liquidity: Yetersiz likidite
 This address is new and never received transfers before.: Bu adres yenidir ve daha önce hiç transfer almamıştır.
 Create Backup: Yedek oluştur
 Sending: Gönderiliyor
+$send_action: Gönderim
 Failed: Başarısız
 Refunded: İade edildi
 On Hold: Beklemede
@@ -660,15 +656,16 @@ Confirm Sending: Göndermeyi Onayla
 Confirm Burning: Yazmayı Onayla
 Confirm Passcode: Şifreyi Onayla
 Enter your code: Kodunuzu girin
-$hardware_payload_warning: Üçüncü taraf bir hizmet cüzdanınıza erişim istiyor — bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
+$hardware_payload_warning: "**Üçüncü taraf bir hizmet cüzdanınıza erişim istiyor.** Bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin."
 $hardware_blind_sign_not_enabled: |
-  Üçüncü taraf bir hizmet cüzdanınıza erişim istiyor — bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
+  **Üçüncü taraf bir hizmet cüzdanınıza erişim istiyor.** Bu, fon kaybına yol açabilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
 
   Devam etmek için, Ledger üzerindeki TON Uygulamasının ayarlarında "Kör İmzalama" seçeneğini etkinleştirin.
 $hardware_blind_sign_not_enabled_internal: Devam etmek için, Ledger üzerindeki TON Uygulamasının ayarlarında "Kör İmzalama" seçeneğini etkinleştirin.
 Switch to W5: W5'e Geç
 Not Scam: Dolandırıcılık Değil
 Untitled: Başlıksız
+Multichain: Multichain
 $swap_too_small_amount: Çok küçük miktar
 Not enough %symbol%: Yeterli %symbol% yok
 $receive_tron_description: Cüzdan bakiyenizi artırmak için bu QR'yi tarayın veya adresinizi paylaşın.
@@ -739,51 +736,67 @@ Help Center: Yardım Merkezi
 MyTonWallet Tips: MyTonWallet İpuçları
 $auth_import_24_mnemonic_description: |
   Cüzdanınıza erişimi, cüzdanı oluştururken not ettiğiniz **24 gizli kelimeyi** girerek geri yükleyebilirsiniz.
-$returned_value: ~ %value% iade edilecek
 Open %nft_marketplace%: "%nft_marketplace%'ı aç"
 Link was copied!: Bağlantı kopyalandı!
 Share Link: Bağlantıyı Paylaş
-Dapp Fee Details: Dapp Ücret Detayları
 $dapp_return_details: |
   %fee_amount%, ücreti ödemek için cüzdanınızdan anında tahsil edilecektir.
 
   %received_amount% birkaç dakika içinde size geri gönderilecektir.
-$dapp_return_disclaimer: Görüntülenen iade edilen tutar garanti edilmez ve kötü niyetli dapp'ler tarafından manipüle edilebilir. Bu hizmetin güvenilirliğinden emin değilseniz işlemi iptal edin.
 Additional Amount Sent: Ekstra Gönderilecek
 Show Sensitive Data: Hassas Verileri Göster
 Hide Sensitive Data: Hassas Verileri Gizle
 Copy Address: Adresi Kopyala
 Copy Transaction ID: İşlem Kimliğini Kopyala
 Requesting Unstake: Unstake talep ediliyor
+Unstake Requested: Unstake talep edildi
+$request_unstake_action: Unstake talebi
 Calling Contract: Sözleşme çağrılıyor
 Contract Called: Sözleşme çağrıldı
+$call_contract_action: Sözleşme çağrısı
 Deploying Contract: Sözleşme dağıtılıyor
 Contract Deployed: Sözleşme dağıtıldı
+$deploy_contract_action: Sözleşme dağıtımı
 Minting: Mintleme
 Minted: Mintlendi
+$mint_action: Mint
 Burning: Yakma
 Burned: Yakıldı
+$burn_action: Yakma
 Address Updated: Adres güncellendi
 Updating Address: Adres güncelleniyor
+$update_address_action: Adres güncelleme
 Site Updated: Site güncellendi
 Updating Site: Site güncelleniyor
+$update_site_action: Site güncelleme
 Subdomains Updated: Alt alan adları güncellendi
 Updating Subdomains: Alt alan adları güncelleniyor
+$update_subdomains_action: Alt alan adı güncelleme
 Storage Updated: Depolama alanı güncellendi
 Updating Storage: Depolama alanı güncelleniyor
+$update_storage_action: Depolama güncelleme
 Domain Record Deleted: Alan adı kaydı silindi
 Deleting Domain Record: Alan adı kaydı siliniyor
+$delete_domain_record_action: Alan adı kaydını silme
 Renewing Domain: Alan adı yenileniyor
 Domain Renewed: Alan adı yenilendi
+$renew_domain_action: Alan adı yenileme
 Providing Liquidity: Likidite sağlanıyor
 Liquidity Provided: Likidite sağlandı
+$provide_liquidity_action: Likidite sağlama
 Withdrawing Liquidity: Likidite çekiliyor
 Liquidity Withdrawn: Likidite çekildi
+$withdraw_liquidity_action: Likidite çekme
 Bounced: Geri döndü
 Bouncing: Geri dönüyor
+$bounce_action: Geri dönüş
 NFT Auction Bid: NFT müzayede teklifi
 Bidding at NFT Auction: NFT müzayedesinde teklif verme
+NFT Bought: NFT satın alındı
+Buying NFT: NFT satın alınıyor
+$buy_nft_action: NFT satın alma
 Receiving: Alınıyor
+$receive_action: Alım
 Change Palette: Paleti Değiştir
 Palette: Palet
 Unlock New Palettes: Yeni Paletleri Aç
@@ -801,4 +814,19 @@ Upgrade for %currency% %amount%: "%currency% %amount% karşılığında yükselt
 "%amount% left": "%amount% kaldı"
 "%amount% sold": "%amount% satıldı"
 This card has been sold out: Bu kart tükendi
+Import Existing Wallet: Mevcut Cüzdanı İçe Aktar
+View Any Address: Herhangi Bir Adresi Görüntüle
+12/24 Secret Words: 12/24 Gizli Kelime
+24 Secret Words: 24 Gizli Kelime
+Wallet Address or Domain: Cüzdan Adresi veya Alan Adı
+$import_view_account_note: TON veya TRON ağındaki **herhangi bir adresi** **Görüntüleme Modu**'nda açmak için girin.
+$view_mode: Görüntüle
+Import Wallet: Cüzdanı içe aktar
 Please top up your TON balance.: Lütfen TON bakiyenizi yükleyin.
+Remember Passcode: Kodu hatırla
+Remember Password: Şifreyi hatırla
+Not available with biometrics.: Biyometrik ile kullanılamaz.
+App will not ask for signature for %1$d minutes after last entry.: Uygulama, son girişten sonra %1$d dakika boyunca imza istemeyecek.
+Remember for %1$d minutes: "%1$d dakika boyunca hatırla"
+Preview: Önizleme
+$preview_not_guaranteed: Önizleme sonucu **garanti edilmez **ve hizmet tarafından **sahte olabilir**.

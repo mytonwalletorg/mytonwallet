@@ -5,7 +5,7 @@ import { parseAccountId } from '../../util/account';
 import { buildBackendSwapId, parseTxId } from '../../util/activities';
 import { compareActivities } from '../../util/compareActivities';
 import { logDebugError } from '../../util/logs';
-import { fetchStoredTonWallet } from './accounts';
+import { fetchStoredAccount } from './accounts';
 import { callBackendGet, callBackendPost } from './backend';
 import { buildTokenSlug, getTokenByAddress, getTokenBySlug } from './tokens';
 
@@ -81,7 +81,10 @@ export async function swapReplaceCexActivities(
   }
 
   try {
-    const { address } = await fetchStoredTonWallet(accountId);
+    const { ton: { address } = {} } = await fetchStoredAccount(accountId);
+    if (!address) {
+      return activities;
+    }
 
     const firstTimestamp = activities[0].timestamp;
     const lastTimestamp = activities[activities.length - 1].timestamp;
