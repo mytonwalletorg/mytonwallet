@@ -319,7 +319,11 @@ addActionHandler('closeBackupWalletModal', (global) => {
 
 addActionHandler('initializeHardwareWalletModal', async (global, actions) => {
   const ledgerApi = await import('../../../util/ledger');
-  const { isBluetoothAvailable, isUsbAvailable } = await ledgerApi.detectAvailableTransports();
+  const {
+    isBluetoothAvailable,
+    isUsbAvailable,
+  } = await ledgerApi.detectAvailableTransports();
+  const hasUsbDevice = await ledgerApi.hasUsbDevice();
   const availableTransports: LedgerTransport[] = [];
   if (isUsbAvailable) {
     availableTransports.push('usb');
@@ -335,9 +339,11 @@ addActionHandler('initializeHardwareWalletModal', async (global, actions) => {
   } else if (availableTransports.length === 1) {
     actions.initializeHardwareWalletConnection({ transport: availableTransports[0] });
   } else {
-    global = updateHardware(getGlobal(), {
-      availableTransports,
-    });
+    global = getGlobal();
+    if (!hasUsbDevice) {
+      global = updateHardware(global, { lastUsedTransport: 'bluetooth' });
+    }
+    global = updateHardware(global, { availableTransports });
     setGlobal(global);
   }
 });
@@ -775,6 +781,10 @@ addActionHandler('clearAccountLoading', (global) => {
   }
 
   setGlobal(updateAccounts(global, { isLoading: undefined }));
+});
+
+addActionHandler('setIsAccountLoading', (global, actions, { isLoading }) => {
+  setGlobal(updateAccounts(global, { isLoading }));
 });
 
 addActionHandler('authorizeDiesel', (global) => {

@@ -19,10 +19,11 @@ import {
   GLOBAL_STATE_CACHE_KEY,
   IS_CAPACITOR,
   MAIN_ACCOUNT_ID,
+  TOKEN_INFO,
   TONCOIN,
 } from '../config';
 import { buildAccountId, parseAccountId } from '../util/account';
-import { getIsTxIdLocal } from '../util/activities';
+import { getActivityTokenSlugs, getIsTxIdLocal } from '../util/activities';
 import { bigintReviver } from '../util/bigint';
 import isEmptyObject from '../util/isEmptyObject';
 import {
@@ -39,6 +40,7 @@ import { selectAccountTokens } from './selectors';
 const UPDATE_THROTTLE = IS_CAPACITOR ? 500 : 5000;
 const ACTIVITIES_LIMIT = 20;
 const ACTIVITY_TOKENS_LIMIT = 30;
+const STAKING_HISTORY_LIMIT = 30;
 
 const updateCacheThrottled = throttle(() => onFullyIdle(() => updateCache()), UPDATE_THROTTLE, false);
 const updateCacheForced = () => updateCache(true);
@@ -525,16 +527,42 @@ function loadMemoryCache(cached: GlobalState) {
   }
 }
 
+const getUsedTokenSlugs = (reducedGlobal: GlobalState): string[] => {
+  const usedTokenSlugs = new Set<string>(Object.keys(TOKEN_INFO));
+
+  if (reducedGlobal.currentAccountId) {
+    const currentTokenSlug = reducedGlobal.byAccountId[reducedGlobal.currentAccountId]?.currentTokenSlug;
+    if (currentTokenSlug) {
+      usedTokenSlugs.add(currentTokenSlug);
+    }
+  }
+
+  Object.values(reducedGlobal.byAccountId).forEach((state) => {
+    const { balances, activities, staking } = state;
+
+    Object.keys(balances?.bySlug ?? {}).forEach((slug) => usedTokenSlugs.add(slug));
+    Object.keys(activities?.byId ?? {}).forEach((transactionId) => {
+      getActivityTokenSlugs(activities!.byId[transactionId]).forEach((slug) => usedTokenSlugs.add(slug));
+    });
+    Object.keys(activities?.idsBySlug ?? {}).forEach((slug) => usedTokenSlugs.add(slug));
+    Object.keys(staking?.stateById ?? {}).forEach((id) => {
+      usedTokenSlugs.add(staking!.stateById![id].tokenSlug);
+    });
+  });
+
+  return Array.from(usedTokenSlugs);
+};
+
 function updateCache(force?: boolean) {
   if (GLOBAL_STATE_CACHE_DISABLED || !isCaching || (!force && getIsHeavyAnimating())) {
     return;
   }
 
   const global = getGlobal();
+
   const reducedGlobal: GlobalState = {
     ...INITIAL_STATE,
     ...pick(global, [
-      'tokenInfo',
       'settings',
       'currentAccountId',
       'stateVersion',
@@ -550,6 +578,12 @@ function updateCache(force?: boolean) {
     byAccountId: reduceByAccountId(global),
   };
 
+  const usedTokenSlugs = getUsedTokenSlugs(reducedGlobal);
+
+  reducedGlobal.tokenInfo = {
+    bySlug: pickTruthy(global.tokenInfo.bySlug, usedTokenSlugs),
+  };
+
   const json = JSON.stringify(reducedGlobal);
   localStorage.setItem(GLOBAL_STATE_CACHE_KEY, json);
 }
@@ -557,13 +591,11 @@ function updateCache(force?: boolean) {
 function reduceByAccountId(global: GlobalState) {
   return Object.entries(global.byAccountId).reduce((acc, [accountId, state]) => {
     acc[accountId] = pick(state, [
-      'balances',
       'isBackupRequired',
       'currentTokenSlug',
       'currentTokenPeriod',
       'savedAddresses',
       'staking',
-      'stakingHistory',
       'activeContentTab',
       'landscapeActionsActiveTabIndex',
       'browserHistory',
@@ -574,11 +606,29 @@ function reduceByAccountId(global: GlobalState) {
     ]);
 
     const accountTokens = selectAccountTokens(global, accountId);
+    acc[accountId].balances = reduceAccountBalances(state.balances, accountTokens);
     acc[accountId].activities = reduceAccountActivities(state.activities, accountTokens);
     acc[accountId].staking = reduceAccountStaking(state.staking);
+    acc[accountId].stakingHistory = state.stakingHistory?.length
+      ? state.stakingHistory.slice(0, STAKING_HISTORY_LIMIT)
+      : undefined;
 
     return acc;
   }, {} as GlobalState['byAccountId']);
+}
+
+function reduceAccountBalances(balances?: AccountState['balances'], tokens?: UserToken[]) {
+  if (!balances?.bySlug || !tokens) return balances;
+
+  const reducedSlugs = tokens.slice(0, ACTIVITY_TOKENS_LIMIT).map(({ slug }) => slug);
+  if (!reducedSlugs.includes(TONCOIN.slug)) {
+    reducedSlugs.push(TONCOIN.slug);
+  }
+
+  return {
+    ...balances,
+    bySlug: pick(balances.bySlug, reducedSlugs),
+  };
 }
 
 function reduceAccountActivities(activities?: AccountState['activities'], tokens?: UserToken[]) {

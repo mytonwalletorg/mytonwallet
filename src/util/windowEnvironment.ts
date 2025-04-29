@@ -70,7 +70,7 @@ export const IS_ANDROID_APP = IS_ANDROID && IS_CAPACITOR;
 export const IS_CLIPBOARDS_SUPPORTED = !(IS_FIREFOX || IS_FIREFOX_EXTENSION || IS_TELEGRAM_APP);
 
 export const REM = parseInt(getComputedStyle(document.documentElement).fontSize, 10);
-export const STICKY_CARD_INTERSECTION_THRESHOLD = -3.75 * REM;
+export const STICKY_CARD_INTERSECTION_THRESHOLD = (IS_MAC_OS && IS_ELECTRON ? -3 : -3.75) * REM;
 
 export function setScrollbarWidthProperty() {
   const el = document.createElement('div');

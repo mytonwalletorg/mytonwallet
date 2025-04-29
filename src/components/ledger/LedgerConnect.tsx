@@ -17,6 +17,7 @@ import {
 
 import useAppTheme from '../../hooks/useAppTheme';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
+import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
@@ -142,6 +143,12 @@ function LedgerConnect({
 
     initializeHardwareWalletModal({ shouldDelegateToNative: IS_DELEGATING_BOTTOM_SHEET && shouldDelegateToNative });
   }, [isActive, isRemoteTab, shouldDelegateToNative]);
+
+  useEffectWithPrevDeps(([prevLastUsedTransport]) => {
+    if (lastUsedTransport && prevLastUsedTransport !== lastUsedTransport) {
+      setSelectedTransport(lastUsedTransport);
+    }
+  }, [lastUsedTransport]);
 
   const handleConnected = useLastCallback((isSingleWallet: boolean) => {
     if (isRemoteTab || (IS_DELEGATING_BOTTOM_SHEET && !shouldDelegateToNative)) {

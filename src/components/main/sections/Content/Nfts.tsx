@@ -1,4 +1,6 @@
-import React, { memo, useEffect, useMemo } from '../../../../lib/teact/teact';
+import React, {
+  memo, useEffect, useLayoutEffect, useMemo, useRef, useState,
+} from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { ApiNft } from '../../../../api/types';
@@ -21,6 +23,7 @@ import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import { useIntersectionObserver } from '../../../../hooks/useIntersectionObserver';
 import useLang from '../../../../hooks/useLang';
+import useLastCallback from '../../../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Spinner from '../../../ui/Spinner';
@@ -44,6 +47,8 @@ interface StateProps {
 }
 
 const INTERSECTION_THROTTLE = 200;
+const INITIAL_SLICE_LENGTH = 50;
+const SCROLL_THRESHOLD = 800;
 
 function Nfts({
   isActive,
@@ -58,8 +63,12 @@ function Nfts({
   const { clearNftsSelection } = getActions();
 
   const lang = useLang();
+  // eslint-disable-next-line no-null/no-null
+  const containerRef = useRef<HTMLDivElement>(null);
   const { isPortrait, isLandscape } = useDeviceScreen();
   const hasSelection = Boolean(selectedAddresses?.length);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const scrollContainerClosest = isPortrait ? '.app-slide-content' : '.nfts-container';
 
   useEffect(clearNftsSelection, [clearNftsSelection, isActive, currentCollectionAddress]);
   useEffect(() => (hasSelection ? captureEscKeyListener(clearNftsSelection) : undefined), [hasSelection]);
@@ -72,7 +81,7 @@ function Nfts({
     const blacklistedNftAddressesSet = new Set(blacklistedNftAddresses);
     const whitelistedNftAddressesSet = new Set(whitelistedNftAddresses);
 
-    return orderedAddresses
+    const result = orderedAddresses
       .map((address) => byAddress[address])
       .filter((nft) => {
         if (!nft) return false;
@@ -82,9 +91,39 @@ function Nfts({
       .filter((nft) => (
         !nft.isHidden || whitelistedNftAddressesSet.has(nft.address)
       ) && !blacklistedNftAddressesSet.has(nft.address));
+
+    return isScrolled ? result : result.slice(0, INITIAL_SLICE_LENGTH);
   }, [
     byAddress, currentCollectionAddress, orderedAddresses, blacklistedNftAddresses, whitelistedNftAddresses,
+    isScrolled,
   ]);
+
+  const handleNativeScroll = useLastCallback(() => {
+    const closestScrollContainer = containerRef.current?.closest<HTMLDivElement>(scrollContainerClosest);
+    if (!closestScrollContainer || isScrolled) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = closestScrollContainer;
+    const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+
+    if (distanceToBottom <= SCROLL_THRESHOLD) {
+      setIsScrolled(true);
+    }
+  });
+
+  useLayoutEffect(() => {
+    if (!scrollContainerClosest || !nfts?.length) return undefined;
+
+    const closestScrollContainer = containerRef.current?.closest<HTMLDivElement>(scrollContainerClosest);
+    if (!closestScrollContainer) return undefined;
+
+    closestScrollContainer.addEventListener('scroll', handleNativeScroll);
+
+    return () => {
+      closestScrollContainer.removeEventListener('scroll', handleNativeScroll);
+    };
+  }, [nfts?.length, scrollContainerClosest]);
 
   const { observe: observeIntersection } = useIntersectionObserver({
     throttleMs: INTERSECTION_THROTTLE,
@@ -139,6 +178,7 @@ function Nfts({
 
   return (
     <Transition
+      ref={containerRef}
       name="fade"
       activeKey={nfts.length}
       shouldCleanup

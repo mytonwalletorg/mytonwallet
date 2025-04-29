@@ -1,0 +1,14 @@
+What’s New in v3.6
+
+· View Any Address · Add any TON or TRON wallet by address and track balances and activity directly in the app.
+
+· Instant Transfer Link · Send an instant tracking link to recipients—even before the transaction is confirmed on the blockchain.
+
+· Remember Passcode · Confirm several actions in a row without re-entering your password.
+
+· Dapp Action Preview · See a detailed list of expected steps before confirming any action requested by a dapp.
+
+· LP Tokens Prices · See real-time prices for your provided liquidity.
+
+· Known Addresses · Recognized public addresses are now clearly identified in your Activity feed
+.

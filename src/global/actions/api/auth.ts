@@ -23,7 +23,7 @@ import { cloneDeep, compact } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { isLedgerConnectionBroken } from '../../../util/ledger/utils';
 import { logDebugError } from '../../../util/logs';
-import { callActionInMain } from '../../../util/multitab';
+import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import { clearPoisoningCache } from '../../../util/poisoningHash';
 import { pause } from '../../../util/schedulers';
 import {
@@ -681,6 +681,11 @@ addActionHandler('connectHardwareWallet', async (global, actions, params) => {
       isLedgerConnected: false,
       hardwareState: HardwareConnectState.Failed,
     });
+
+    if (params.transport === 'usb' && global.hardware.availableTransports?.includes('bluetooth')) {
+      global = updateHardware(global, { lastUsedTransport: 'bluetooth' });
+    }
+
     setGlobal(global);
     return;
   }
@@ -847,6 +852,7 @@ addActionHandler('enableBiometrics', async (global, actions, { password }) => {
     global = updateSettings(global, { authConfig: result.config });
 
     setGlobal(global);
+    actions.setInMemoryPassword({ password: undefined, force: true });
   } catch (err: any) {
     const error = err?.message.includes('privacy-considerations-client')
       ? 'Biometric setup failed.'
@@ -1008,6 +1014,7 @@ addActionHandler('enableNativeBiometrics', async (global, actions, { password })
     global = updateSettings(global, { authConfig: result.config });
     global = { ...global, nativeBiometricsError: undefined };
     setGlobal(global);
+    actions.setInMemoryPassword({ password: undefined, force: true });
 
     void vibrateOnSuccess();
   } catch (err: any) {
@@ -1164,6 +1171,9 @@ addActionHandler('importViewAccount', async (global, actions, { addressByChain }
     global = updateAuth(global, { isLoading: true });
   } else {
     global = updateAccounts(global, { isLoading: true });
+    if (IS_DELEGATING_BOTTOM_SHEET) {
+      callActionInNative('setIsAccountLoading', { isLoading: true });
+    }
   }
   setGlobal(global);
 
@@ -1174,6 +1184,9 @@ addActionHandler('importViewAccount', async (global, actions, { addressByChain }
     global = updateAuth(global, { isLoading: undefined });
   } else {
     global = updateAccounts(global, { isLoading: undefined });
+    if (IS_DELEGATING_BOTTOM_SHEET) {
+      callActionInNative('setIsAccountLoading', { isLoading: undefined });
+    }
   }
   setGlobal(global);
 

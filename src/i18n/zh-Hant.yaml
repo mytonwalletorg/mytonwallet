@@ -824,3 +824,5 @@ App will not ask for signature for %1$d minutes after last entry.: 應用程式�
 Remember for %1$d minutes: 記住 %1$d 分鐘
 Preview: 預覽
 $preview_not_guaranteed: 預覽結果**不受保證**，且**可能被服務偽造**。
+Exit all wallets: 退出所有錢包
+Can't confirm?: 無法登入？

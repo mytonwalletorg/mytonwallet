@@ -25,6 +25,7 @@ import styles from './LogOutModal.module.scss';
 interface OwnProps {
   isOpen?: boolean;
   onClose: (shouldCloseSettings: boolean) => void;
+  isInAppLock?: boolean;
 }
 
 interface StateProps {
@@ -48,11 +49,12 @@ function LogOutModal({
   accountStates,
   isBackupRequired,
   onClose,
+  isInAppLock,
 }: OwnProps & StateProps) {
   const { signOut, switchAccount } = getActions();
 
   const lang = useLang();
-  const [isLogOutFromAllAccounts, setIsLogOutFromAllAccounts] = useState<boolean>(IS_CORE_WALLET);
+  const [isLogOutFromAllAccounts, setIsLogOutFromAllAccounts] = useState<boolean>(IS_CORE_WALLET || !!isInAppLock);
 
   const accountsWithoutBackups = useMemo(() => {
     if (!hasManyAccounts) {
@@ -73,9 +75,9 @@ function LogOutModal({
 
   useEffect(() => {
     if (isOpen) {
-      setIsLogOutFromAllAccounts(IS_CORE_WALLET);
+      setIsLogOutFromAllAccounts(IS_CORE_WALLET || !!isInAppLock);
     }
-  }, [isOpen]);
+  }, [isOpen, isInAppLock]);
 
   const handleSwitchAccount = (accountId: string) => {
     onClose(false);
@@ -93,10 +95,19 @@ function LogOutModal({
 
   function renderAccountLink(account: LinkAccount, idx: number) {
     const { id, title } = account;
+
     const fullClassName = buildClassName(
-      styles.accountLink,
+      !isInAppLock && styles.accountLink,
       idx + 2 === accountsWithoutBackups.length && styles.penultimate,
     );
+
+    if (isInAppLock) {
+      return (
+        <span className={fullClassName}>
+          <strong>{title}</strong>
+        </span>
+      );
+    }
 
     return (
       <span className={fullClassName}>
@@ -145,11 +156,12 @@ function LogOutModal({
       isCompact
       title={IS_IOS_APP ? lang('Remove Wallet') : lang('Log Out')}
       onClose={handleClose}
+      isInAppLock={isInAppLock}
     >
       <p className={buildClassName(modalStyles.text, modalStyles.text_noExtraMargin)}>
         {renderText(lang('$logout_warning', '12/24'))}
       </p>
-      {!IS_CORE_WALLET && hasManyAccounts && (
+      {!(IS_CORE_WALLET || !!isInAppLock) && hasManyAccounts && (
         <Checkbox
           id="logount_all_accounts"
           className={styles.checkbox}

@@ -162,7 +162,7 @@
   }
 
   &:hover {
-    cursor: pointer;
+    cursor: var(--custom-cursor, pointer);
   }
 
   @media (hover: hover) {

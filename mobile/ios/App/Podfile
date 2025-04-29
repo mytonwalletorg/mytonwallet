@@ -39,7 +39,7 @@ end
 target 'MyTonWallet' do
   capacitor_pods
   # Add your Pods here
-  pod 'FloatingPanel', :git => 'https://github.com/mytonwalletorg/FloatingPanel', :commit => 'f58a8b94008540e680faba61867debf8b3cec682'
+  pod 'FloatingPanel', :git => 'https://github.com/mytonwalletorg/FloatingPanel', :commit => '477fd70521abbb12eb7f069f0220660c172dc936'
   pod 'FirebaseMessaging'
 end
 

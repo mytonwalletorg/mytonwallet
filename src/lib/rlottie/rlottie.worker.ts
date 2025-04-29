@@ -2,6 +2,7 @@ import type { CancellableCallback } from '../../util/PostMessageConnector';
 
 import { ungzip } from '../../util/compression';
 import { createPostMessageInterface } from '../../util/createPostMessageInterface';
+import { logDebugError } from '../../util/logs';
 
 declare const Module: any;
 
@@ -36,6 +37,7 @@ const rLottieApiPromise = new Promise<void>((resolve) => {
 const HIGH_PRIORITY_MAX_FPS = 60;
 const LOW_PRIORITY_MAX_FPS = 30;
 const DESTROY_REPEAT_DELAY = 1000;
+const LOTTIE_JSON_STUB = '{"tgs":1,"w":16,"h":16,"layers":[]}';
 
 const renderers = new Map<string, {
   imgSize: number;
@@ -98,13 +100,23 @@ async function extractJson(tgsUrl: string) {
   const response = await fetch(tgsUrl);
   const contentType = response.headers.get('Content-Type');
 
+  if (!response.ok) {
+    return LOTTIE_JSON_STUB;
+  }
+
   if (contentType === 'application/json') {
     return response.text();
   }
 
-  const arrayBuffer = await response.arrayBuffer();
-  const inflated = await ungzip(arrayBuffer);
-  return new TextDecoder().decode(inflated);
+  try {
+    const arrayBuffer = await response.arrayBuffer();
+    const inflated = await ungzip(arrayBuffer);
+    return new TextDecoder().decode(inflated);
+  } catch (err: any) {
+    logDebugError('[extractJson] ungzip error:', err?.message, err);
+
+    return LOTTIE_JSON_STUB;
+  }
 }
 
 function calcParams(json: string, isLowPriority: boolean, framesCount: number) {

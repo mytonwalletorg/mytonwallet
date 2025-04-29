@@ -710,7 +710,7 @@ $color-transition: color 300ms;
 }
 
 .periodChooser {
-  cursor: pointer;
+  cursor: var(--custom-cursor, pointer);
 
   position: absolute;
   bottom: 1.25rem;

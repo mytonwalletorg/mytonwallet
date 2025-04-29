@@ -12,7 +12,6 @@ import {
   IS_CORE_WALLET,
   IS_TELEGRAM_APP,
   LANDSCAPE_MIN_ASSETS_TAB_VIEW,
-  NOTCOIN_VOUCHERS_ADDRESS,
   PORTRAIT_MIN_ASSETS_TAB_VIEW,
 } from '../../../../config';
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
@@ -198,8 +197,6 @@ function Content({
           : nftCollections,
         onMenuItemClick: handleNftsMenuButtonClick,
       },
-      nftCollections.some(({ value }) => value === NOTCOIN_VOUCHERS_ADDRESS)
-        && { id: ContentTab.NotcoinVouchers, title: 'NOT Vouchers', className: styles.tab },
     ]),
     [lang, nftCollections, shouldShowSeparateAssetsPanel, shouldRenderHiddenNftsSection, isPortrait, doesSupportNft],
   );
@@ -224,14 +221,6 @@ function Content({
   });
 
   const handleSwitchTab = useLastCallback((tab: ContentTab) => {
-    if (tab === ContentTab.NotcoinVouchers) {
-      selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
-      setActiveContentTab({ tab: ContentTab.Nft });
-      handleNftCollectionClick(NOTCOIN_VOUCHERS_ADDRESS);
-
-      return;
-    }
-
     selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
     setActiveContentTab({ tab });
   });

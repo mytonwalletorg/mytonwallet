@@ -4,6 +4,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { GlobalState } from '../../global/types';
 
+import { WRONG_ATTEMPTS_BEFORE_LOG_OUT_SUGGESTION } from '../../config';
 import { getIsFaceIdAvailable } from '../../util/biometrics';
 import buildClassName from '../../util/buildClassName';
 import { vibrateOnError } from '../../util/haptics';
@@ -13,9 +14,11 @@ import { IS_DELEGATED_BOTTOM_SHEET } from '../../util/windowEnvironment';
 
 import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
 import useLastCallback from '../../hooks/useLastCallback';
+import { useMatchCount } from '../../hooks/useMatchCount';
 import usePrevious from '../../hooks/usePrevious';
 
 import PinPadButton from './PinPadButton';
+import Transition from './Transition';
 
 import styles from './PinPad.module.scss';
 
@@ -33,6 +36,7 @@ interface OwnProps {
   onChange: (value: string) => void;
   onClearError?: NoneToVoidFunction;
   onSubmit: (pin: string) => void;
+  onLogOutClick?: NoneToVoidFunction;
 }
 
 type StateProps = Pick<GlobalState['settings'], 'authConfig'> & {
@@ -57,6 +61,7 @@ function PinPad({
   onChange,
   onClearError,
   onSubmit,
+  onLogOutClick,
 }: OwnProps & StateProps) {
   const { clearIsPinAccepted } = getActions();
 
@@ -72,6 +77,8 @@ function PinPad({
     type === 'error' && styles.error,
     isSuccess && styles.success,
   );
+
+  const shouldSuggestLogout = useMatchCount(type === 'error', WRONG_ATTEMPTS_BEFORE_LOG_OUT_SUGGESTION);
 
   useEffect(() => {
     if (prevIsPinAccepted && !isPinAccepted && length === value.length) {
@@ -188,13 +195,27 @@ function PinPad({
           </PinPadButton>
         )}
         <PinPadButton value="0" onClick={handleClick} isDisabled={arePinButtonsDisabled} />
-        <PinPadButton
-          className={!canRenderBackspace && styles.buttonHidden}
-          isDisabled={!canRenderBackspace || isSuccess}
-          onClick={handleBackspaceClick}
+        <Transition
+          name="zoomFade"
+          activeKey={shouldSuggestLogout && !value.length ? 0 : 1}
         >
-          <i className="icon icon-backspace" aria-hidden />
-        </PinPadButton>
+          {onLogOutClick && shouldSuggestLogout && !value.length ? (
+            <PinPadButton
+              className={styles.buttonDanger}
+              onClick={onLogOutClick}
+            >
+              <i className="icon icon-exit" aria-hidden />
+            </PinPadButton>
+          ) : (
+            <PinPadButton
+              className={!canRenderBackspace && styles.buttonHidden}
+              isDisabled={!canRenderBackspace || isSuccess}
+              onClick={handleBackspaceClick}
+            >
+              <i className="icon icon-backspace" aria-hidden />
+            </PinPadButton>
+          )}
+        </Transition>
       </div>
     </div>
   );

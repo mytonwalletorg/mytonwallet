@@ -6,6 +6,10 @@
   position: relative;
   z-index: var(--z-modal);
 
+  &.inAppLock {
+    z-index: var(--z-modal-in-autolock);
+  }
+
   &.error {
     .dialog {
       max-width: 23rem;

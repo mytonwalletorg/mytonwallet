@@ -210,6 +210,7 @@
   --z-tooltip: 300;
   --z-confetti: 400;
   --z-autolock: 500;
+  --z-modal-in-autolock: 501;
   --z-portal-menu: 2500;
 
   --no-animation-transition: 200ms opacity ease;
@@ -242,6 +243,10 @@
   // Fix for opera, dead zone of 37 pixels in extension window on windows
   &.is-windows.is-opera.is-extension {
     --sticky-card-height: 4.75rem;
+  }
+
+  &.is-macos.is-electron {
+    --sticky-card-height: var(--electron-header-height);
   }
 
   &.theme-dark,

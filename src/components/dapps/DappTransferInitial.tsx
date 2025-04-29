@@ -193,7 +193,7 @@ function DappTransferInitial({
         <p className={styles.label}>
           {lang('Preview')}
           {' '}
-          <IconWithTooltip message={renderText(lang('$preview_not_guaranteed'))} color="warning" size="small" />
+          <IconWithTooltip message={renderText(lang('$preview_not_guaranteed'))} type="warning" size="small" />
         </p>
         <div className={buildClassName(styles.transactionList, styles.emulation)}>
           {activities.map((activity, index) => (

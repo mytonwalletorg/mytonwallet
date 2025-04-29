@@ -30,6 +30,7 @@ import useAppTheme from '../hooks/useAppTheme';
 import useBackgroundMode, { isBackgroundModeActive } from '../hooks/useBackgroundMode';
 import useEffectOnce from '../hooks/useEffectOnce';
 import useFlag from '../hooks/useFlag';
+import useForceUpdate from '../hooks/useForceUpdate';
 import { useHotkeys } from '../hooks/useHotkeys';
 import useLang from '../hooks/useLang';
 import useLastCallback from '../hooks/useLastCallback';
@@ -66,10 +67,10 @@ interface StateProps {
   isNonNativeBiometricAuthEnabled: boolean;
   autolockValue?: AutolockValueType;
   theme: Theme;
-  isPasswordAccount?: boolean;
   isManualLockActive?: boolean;
   isAppLockEnabled?: boolean;
   shouldHideBiometrics?: boolean;
+  canRender: boolean;
 }
 
 const enum SLIDES {
@@ -83,14 +84,36 @@ export function reportAppLockActivityEvent() {
   setActivitySignal(Date.now());
 }
 
+function useAppLockState(defaultValue?: boolean, canRender?: boolean) {
+  const isLockedRef = useRef(defaultValue);
+  const forceUpdate = useForceUpdate();
+
+  // For cases when `canRender` changes from `true` -> `false`, e.g. when all accounts are deleted
+  if (isLockedRef.current && !canRender) {
+    isLockedRef.current = false;
+  }
+
+  const lock = useLastCallback(() => {
+    isLockedRef.current = true;
+    forceUpdate();
+  });
+
+  const unlock = useLastCallback(() => {
+    isLockedRef.current = false;
+    forceUpdate();
+  });
+
+  return [isLockedRef.current, lock, unlock] as const;
+}
+
 function AppLocked({
   isNonNativeBiometricAuthEnabled,
   autolockValue = 'never',
   theme,
-  isPasswordAccount,
   isManualLockActive,
   isAppLockEnabled,
   shouldHideBiometrics,
+  canRender,
 }: StateProps): TeactJsx {
   const {
     setIsPinAccepted, clearIsPinAccepted, submitAppLockActivityEvent, setIsManualLockActive,
@@ -102,7 +125,7 @@ function AppLocked({
     ? coreWalletLogoPath
     : appTheme === 'light' ? logoLightPath : logoDarkPath;
 
-  const [isLocked, lock, unlock] = useFlag((autolockValue !== 'never' || isManualLockActive) && isPasswordAccount);
+  const [isLocked, lock, unlock] = useAppLockState(autolockValue !== 'never' || isManualLockActive, canRender);
   const [shouldRenderUi, showUi, hideUi] = useFlag(isLocked);
   const lastActivityTime = useRef(Date.now());
   const [slideForBiometricAuth, setSlideForBiometricAuth] = useState(
@@ -145,7 +168,7 @@ function AppLocked({
   });
 
   const handleLock = useLastCallback(() => {
-    if ((autolockValue !== 'never' || isManualLockActive) && isPasswordAccount) forceLockApp();
+    if ((autolockValue !== 'never' || isManualLockActive) && canRender) forceLockApp();
   });
 
   if (DEBUG) (window as any).lock = handleLock;
@@ -307,10 +330,10 @@ export default memo(withGlobal((global): StateProps => {
 
   return {
     isNonNativeBiometricAuthEnabled,
-    autolockValue: isAppLockEnabled ? autolockValue : undefined,
+    autolockValue,
+    canRender: Boolean(isAppLockEnabled && isPasswordAccount),
     isAppLockEnabled,
     theme: global.settings.theme,
-    isPasswordAccount,
     isManualLockActive: global.isManualLockActive,
     shouldHideBiometrics: global.appLockHideBiometrics,
   };

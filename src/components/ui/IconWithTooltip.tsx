@@ -23,7 +23,7 @@ type OwnProps = {
   message: React.ReactNode;
   emoji?: EmojiIcon;
   size?: 'small' | 'medium';
-  color?: 'warning';
+  type?: 'hint' | 'warning';
   iconClassName?: string;
   tooltipClassName?: string;
 };
@@ -36,13 +36,13 @@ const IconWithTooltip: FC<OwnProps> = ({
   message,
   emoji,
   size = 'medium',
-  color,
+  type = 'hint',
   iconClassName,
   tooltipClassName,
 }) => {
   const [isOpen, open, close] = useFlag();
   const { transitionClassNames, shouldRender } = useShowTransition(isOpen);
-  const colorClassName = color && styles[`color-${color}`];
+  const colorClassName = type === 'warning' && styles[`color-${type}`];
 
   // eslint-disable-next-line no-null/no-null
   const iconRef = useRef<HTMLDivElement | null>(null);
@@ -113,7 +113,11 @@ const IconWithTooltip: FC<OwnProps> = ({
     return (
       <i
         ref={iconRef}
-        className={buildClassName(commonClassName, styles.fontIcon, 'icon-question')}
+        className={buildClassName(
+          commonClassName,
+          styles.fontIcon,
+          type === 'warning' ? 'icon-exclamation' : 'icon-question',
+        )}
         data-tooltip-key={randomTooltipKey}
         onClick={onClick}
         onMouseEnter={open}

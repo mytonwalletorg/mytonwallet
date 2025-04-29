@@ -48,6 +48,7 @@ type OwnProps = {
   nativeBottomSheetKey?: BottomSheetKeys;
   forceFullNative?: boolean; // Always open in "full" size
   noResetFullNativeOnBlur?: boolean; // Don't reset "full" size on blur
+  isInAppLock?: boolean;
   forceBottomSheet?: boolean;
   noBackdrop?: boolean;
   noBackdropClose?: boolean;
@@ -82,6 +83,7 @@ function Modal({
   nativeBottomSheetKey,
   forceFullNative,
   forceBottomSheet,
+  isInAppLock,
   noResetFullNativeOnBlur,
   noBackdrop,
   noBackdropClose,
@@ -235,6 +237,7 @@ function Modal({
     isCompact && styles.compact,
     isCompact && 'is-compact-modal',
     forceBottomSheet && styles.forceBottomSheet,
+    isInAppLock && styles.inAppLock,
   );
 
   const backdropFullClass = buildClassName(styles.backdrop, noBackdrop && styles.noBackdrop);

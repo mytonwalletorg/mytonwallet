@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { AuthConfig } from '../../util/authApi/types';
 
-import { AUTO_CONFIRM_DURATION_MINUTES, PIN_LENGTH } from '../../config';
+import { AUTO_CONFIRM_DURATION_MINUTES, PIN_LENGTH, WRONG_ATTEMPTS_BEFORE_LOG_OUT_SUGGESTION } from '../../config';
 import { selectIsBiometricAuthEnabled, selectIsNativeBiometricAuthEnabled } from '../../global/selectors';
 import authApi from '../../util/authApi';
 import { getHasInMemoryPassword, getInMemoryPassword } from '../../util/authApi/inMemoryPasswordStore';
@@ -27,7 +27,9 @@ import useFocusAfterAnimation from '../../hooks/useFocusAfterAnimation';
 import useHideBottomBar from '../../hooks/useHideBottomBar';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
+import { useMatchCount } from '../../hooks/useMatchCount';
 
+import LogOutModal from '../main/modals/LogOutModal';
 import AnimatedIconWithPreview from './AnimatedIconWithPreview';
 import Button from './Button';
 import Checkbox from './Checkbox';
@@ -141,6 +143,8 @@ function PasswordForm({
   const { isSmallHeight, isPortrait } = useDeviceScreen();
   const isSubmitDisabled = !password.length && !showOnlyConfirmScreen;
   const canUsePinPad = getDoesUsePinPad();
+  const [isLogOutModalOpened, openLogOutModal, closeLogOutModal] = useFlag(false);
+  const shouldSuggestLogout = useMatchCount(!!error || !!localError, WRONG_ATTEMPTS_BEFORE_LOG_OUT_SUGGESTION);
 
   useEffect(() => {
     if (isActive) {
@@ -170,6 +174,7 @@ function PasswordForm({
 
   const handleBiometrics = useLastCallback(async () => {
     try {
+      setLocalError('');
       const biometricPassword = await authApi.getPassword(authConfig!);
       if (!biometricPassword) {
         setWrongAttempts(wrongAttempts + 1);
@@ -225,6 +230,11 @@ function PasswordForm({
 
   const handleAutoConfirmChange = useLastCallback((isEnabled: boolean) => {
     setIsAutoConfirmEnabled({ isEnabled });
+  });
+
+  const handleOpenLogOutModal = useLastCallback((e: React.MouseEvent) => {
+    stopEvent(e);
+    openLogOutModal();
   });
 
   useEffect(() => {
@@ -284,6 +294,7 @@ function PasswordForm({
             isDisabled={isLoading}
             className={modalStyles.buttonHalfWidth}
             onClick={!isLoading ? handleBiometrics : undefined}
+            shouldStopPropagation
           >
             {lang('Try Again')}
           </Button>
@@ -367,10 +378,14 @@ function PasswordForm({
             value={password}
             topContent={shouldRenderAutoConfirmCheckbox ? renderAutoConfirmCheckbox() : undefined}
             onBiometricsClick={isNativeBiometricAuthEnabled ? handleBiometrics : undefined}
+            onLogOutClick={operationType === 'unlock' ? openLogOutModal : undefined}
             onChange={setPassword}
             onClearError={handleClearError}
             onSubmit={submitCallback}
           />
+        )}
+        {operationType === 'unlock' && (
+          <LogOutModal isOpen={isLogOutModalOpened} onClose={closeLogOutModal} isInAppLock />
         )}
       </>
     );
@@ -443,7 +458,23 @@ function PasswordForm({
 
       {!showOnlyConfirmScreen && (isBiometricAuthEnabled ? renderBiometricPrompt() : renderPasswordForm())}
 
+      {shouldSuggestLogout && operationType === 'unlock' && (
+        <div className={styles.logOutWrapper}>
+          {lang('Can\'t confirm?')}
+          <span
+            role="button"
+            tabIndex={0}
+            className={styles.logOutButton}
+            onClick={handleOpenLogOutModal}
+          >
+            {lang('Exit all wallets')}
+            <i className={buildClassName('icon-chevron-right', styles.detailsIcon)} aria-hidden />
+          </span>
+        </div>
+      )}
+
       {renderFooterButtons()}
+
       <Modal
         isOpen={isResetBiometricsWarningOpen}
         isCompact
@@ -461,6 +492,9 @@ function PasswordForm({
           </Button>
         </div>
       </Modal>
+      {operationType === 'unlock' && (
+        <LogOutModal isOpen={isLogOutModalOpened} onClose={closeLogOutModal} isInAppLock />
+      )}
     </div>
   );
 }

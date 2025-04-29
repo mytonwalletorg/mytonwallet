@@ -10,6 +10,7 @@ import { Address } from '@ton/core/dist/address/Address';
 import { Builder } from '@ton/core/dist/boc/Builder';
 import { Cell } from '@ton/core/dist/boc/Cell';
 import { SendMode } from '@ton/core/dist/types/SendMode';
+import type { ICapacitorUSBDevice } from 'mtw-capacitor-usb-hid/dist/esm/definitions';
 
 import type { Workchain } from '../../api/chains/ton';
 import type { ApiSubmitTransferOptions } from '../../api/methods/types';
@@ -96,6 +97,7 @@ enum LedgerWalletVersion {
 const INTERNAL_WORKCHAIN = 0; // workchain === -1 ? 255 : 0;
 const DEFAULT_WALLET_VERSION: PossibleWalletVersion = 'v4R2';
 
+const DEVICE_DETECT_ATTEMPTS = 3;
 const ATTEMPTS = 10;
 const PAUSE = 125;
 const IS_BOUNCEABLE = false;
@@ -170,6 +172,19 @@ export async function detectAvailableTransports() {
     isUsbAvailable: isHidSupported || isWebUsbSupported,
     isBluetoothAvailable: isBluetoothSupported,
   };
+}
+
+export async function hasUsbDevice() {
+  let hasDevice = false;
+  if (isHidSupported) {
+    hasDevice = IS_ANDROID_APP
+      ? await hasCapacitorHIDDevice()
+      : await hasWebHIDDevice();
+  } else if (isWebUsbSupported) {
+    hasDevice = await hasWebUsbDevice();
+  }
+
+  return hasDevice;
 }
 
 function getInternalWalletVersion(version: PossibleWalletVersion) {
@@ -1033,4 +1048,36 @@ function handleLedgerErrors(err: any) {
   if (err?.statusCode === StatusCodes.CONDITIONS_OF_USE_NOT_SATISFIED) {
     throw new ApiUserRejectsError();
   }
+}
+
+async function tryDetectDevice(
+  listDeviceFn: () => Promise<ICapacitorUSBDevice[]>,
+  createTransportFn?: NoneToVoidFunction,
+) {
+  try {
+    for (let i = 0; i < DEVICE_DETECT_ATTEMPTS; i++) {
+      const [device] = await listDeviceFn();
+      if (!device) {
+        if (createTransportFn) await createTransportFn();
+        await pause(PAUSE);
+        continue;
+      }
+
+      return true;
+    }
+  } catch (err: any) {
+    logDebugError('tryDetectDevice', err);
+  }
+
+  return false;
+}
+
+function hasWebHIDDevice() {
+  return tryDetectDevice(TransportWebHID.list, TransportWebHID.create);
+}
+function hasWebUsbDevice() {
+  return tryDetectDevice(TransportWebUSB.list, TransportWebUSB.create);
+}
+function hasCapacitorHIDDevice() {
+  return tryDetectDevice(listLedgerDevices);
 }

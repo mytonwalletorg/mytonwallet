@@ -639,3 +639,4 @@ export const TON_DNS_ZONES = IS_CORE_WALLET
   : ALL_TON_DNS_ZONES;
 
 export const DEFAULT_AUTOLOCK_OPTION: AutolockValueType = '3';
+export const WRONG_ATTEMPTS_BEFORE_LOG_OUT_SUGGESTION = 2;

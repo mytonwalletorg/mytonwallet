@@ -59,7 +59,7 @@ function AuthImportViewAccount({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     stopEvent(e);
 
-    if (isInvalidAddress) return;
+    if (isInvalidAddress || isLoading) return;
 
     const addresses = value.trim().split(/\s+/);
     const addressByChain: ApiImportAddressByChain = {};
@@ -80,6 +80,7 @@ function AuthImportViewAccount({
 
     if (hasValidAddress) {
       importViewAccount({ addressByChain });
+      inputRef.current?.blur(); // To hide the virtual keyboard to show the loading indicator in the button
     } else {
       setIsInvalidAddress(true);
     }

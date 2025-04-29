@@ -830,3 +830,5 @@ App will not ask for signature for %1$d minutes after last entry.: Uygulama, son
 Remember for %1$d minutes: "%1$d dakika boyunca hatırla"
 Preview: Önizleme
 $preview_not_guaranteed: Önizleme sonucu **garanti edilmez **ve hizmet tarafından **sahte olabilir**.
+Exit all wallets: Tüm cüzdanlardan çık
+Can't confirm?: Giriş yapılamıyor mu?

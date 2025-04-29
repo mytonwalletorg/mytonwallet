@@ -270,7 +270,6 @@ export enum ContentTab {
   Activity,
   Explore,
   Nft,
-  NotcoinVouchers,
 }
 
 export enum MediaType {
@@ -856,10 +855,11 @@ export interface ActionPayloads {
   renameAccount: { accountId: string; title: string };
   clearAccountError: undefined;
   clearAccountLoading: undefined;
+  setIsAccountLoading: { isLoading: true | undefined };
   verifyHardwareAddress: undefined;
   authorizeDiesel: undefined;
   fetchTransferDieselState: { tokenSlug: string };
-  setIsAuthLoading: { isLoading?: boolean };
+  setIsAuthLoading: { isLoading: true | undefined };
 
   fetchTokenTransactions: { limit: number; slug: string; shouldLoadWithBudget?: boolean };
   fetchAllTransactions: { limit: number; shouldLoadWithBudget?: boolean };

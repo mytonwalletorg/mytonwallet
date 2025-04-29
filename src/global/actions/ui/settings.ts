@@ -8,6 +8,7 @@ import { callActionInMain, callActionInNative } from '../../../util/multitab';
 import switchTheme from '../../../util/switchTheme';
 import { IS_DELEGATED_BOTTOM_SHEET, IS_DELEGATING_BOTTOM_SHEET } from '../../../util/windowEnvironment';
 import { addActionHandler } from '../..';
+import { selectIsBiometricAuthEnabled } from '../../selectors';
 
 let prevGlobal: GlobalState | undefined;
 
@@ -69,6 +70,12 @@ addActionHandler('setInMemoryPassword', (global, actions, { password, isFinalCal
   // incorrectly `undefined` when Auto Confirm is actually enabled. To mitigate that, we skip checking the setting
   // when `isFinalCall` is `true`, because in this case the action is fired by the main WebView only when Auto Confirm is enabled.
   if (!(global.settings.isAutoConfirmEnabled || isFinalCall || force)) {
+    return global;
+  }
+
+  // If biometrics are enabled, we don't need to set the password in memory
+  const isBiometricAuthEnabled = selectIsBiometricAuthEnabled(global);
+  if (isBiometricAuthEnabled) {
     return global;
   }
 
